@@ -17,7 +17,6 @@ package com.netflix.spinnaker.clouddriver.ecs.security;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.module.CatsModule;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
@@ -40,6 +39,7 @@ import com.netflix.spinnaker.clouddriver.ecs.provider.agent.TaskHealthCachingAge
 import com.netflix.spinnaker.clouddriver.ecs.provider.view.EcsAccountMapper;
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils;
 import com.netflix.spinnaker.credentials.CredentialsLifecycleHandler;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -59,7 +59,7 @@ public class EcsCredentialsLifeCycleHandler
   protected final EcsProvider ecsProvider;
   protected final AmazonClientProvider amazonClientProvider;
   protected final AWSCredentialsProvider awsCredentialsProvider;
-  protected final Registry registry;
+  protected final MeterRegistry registry;
   protected final IamPolicyReader iamPolicyReader;
   protected final ObjectMapper objectMapper;
   protected final CatsModule catsModule;

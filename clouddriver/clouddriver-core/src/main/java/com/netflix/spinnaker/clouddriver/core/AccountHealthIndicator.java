@@ -17,9 +17,8 @@
 package com.netflix.spinnaker.clouddriver.core;
 
 import com.google.common.collect.ImmutableMap;
-import com.netflix.spectator.api.Registry;
-import com.netflix.spectator.api.patterns.PolledMeter;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.Nonnull;
@@ -52,8 +51,8 @@ public abstract class AccountHealthIndicator<T extends AccountCredentials>
    * @param id A unique identifier for the health indicator, used for reporting metrics
    * @param registry The registry to which metrics should be reported
    */
-  protected AccountHealthIndicator(String id, Registry registry) {
-    PolledMeter.using(registry).withName(metricName(id)).monitorValue(unhealthyAccounts);
+  protected AccountHealthIndicator(String id, MeterRegistry registry) {
+    registry.gauge(metricName(id), unhealthyAccounts);
   }
 
   private static String metricName(String id) {

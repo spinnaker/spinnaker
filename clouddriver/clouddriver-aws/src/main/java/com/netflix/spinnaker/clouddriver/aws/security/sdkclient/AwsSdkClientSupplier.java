@@ -31,10 +31,10 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.RateLimiter;
-import com.netflix.spectator.api.Counter;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.aws.security.AWSProxy;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixSTSAssumeRoleSessionCredentialsProvider;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -49,13 +49,13 @@ import org.springframework.util.ReflectionUtils;
 /** Factory for shared instances of AWS SDK clients. */
 public class AwsSdkClientSupplier {
 
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final LoadingCache<AmazonClientKey<?>, ?> awsSdkClients;
   private final RateLimiterSupplier rateLimiterSupplier;
 
   public AwsSdkClientSupplier(
       RateLimiterSupplier rateLimiterSupplier,
-      Registry registry,
+      MeterRegistry registry,
       RetryPolicy retryPolicy,
       List<RequestHandler2> requestHandlers,
       AWSProxy proxy,

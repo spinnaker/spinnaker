@@ -27,7 +27,6 @@ import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.frigga.Names;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult;
@@ -42,6 +41,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.model.*;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.CloudFoundryProvider;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
 import com.netflix.spinnaker.moniker.Moniker;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.vavr.collection.HashMap;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -63,7 +63,7 @@ public class CloudFoundryServerGroupCachingAgent extends AbstractCloudFoundryCac
           AUTHORITATIVE.forType(INSTANCES.getNs()));
 
   public CloudFoundryServerGroupCachingAgent(
-      CloudFoundryCredentials cloudFoundryCredentials, Registry registry) {
+      CloudFoundryCredentials cloudFoundryCredentials, MeterRegistry registry) {
     super(cloudFoundryCredentials, registry);
   }
 

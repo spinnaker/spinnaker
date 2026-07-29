@@ -17,9 +17,10 @@ package com.netflix.spinnaker.clouddriver.google
 
 import com.google.api.client.googleapis.services.AbstractGoogleClientRequest
 import com.google.api.client.http.HttpResponseException
-import com.netflix.spectator.api.Clock
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.google.batch.GoogleBatchRequest
+import io.micrometer.core.instrument.Clock
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tags
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -56,14 +57,14 @@ import java.util.concurrent.TimeUnit
  */
 @Component
 class GoogleExecutor {
-  static Registry globalRegistry
+  static MeterRegistry globalRegistry
 
-  static Registry getRegistry() {
+  static MeterRegistry getRegistry() {
     return globalRegistry
   }
 
   @Autowired
-  Registry autowiredRegistry
+  MeterRegistry autowiredRegistry
 
   @PostConstruct
   public void bindGlobalRegistry() {
@@ -78,10 +79,10 @@ class GoogleExecutor {
   final static String SCOPE_REGIONAL = "regional"
   final static String SCOPE_ZONAL = "zonal"
 
-  public static <T> T timeExecuteBatch(Registry spectator_registry, GoogleBatchRequest batch, String batchContext, String... tags) throws IOException {
+  public static <T> T timeExecuteBatch(MeterRegistry spectator_registry, GoogleBatchRequest batch, String batchContext, String... tags) throws IOException {
      def batchSize = batch.size()
      def success = "false"
-     Clock clock = spectator_registry.clock()
+     Clock clock = spectator_registry.config().clock()
      long startTime = clock.monotonicTime()
      int statusCode = 200
 
@@ -93,17 +94,17 @@ class GoogleExecutor {
      } finally {
        def status = statusCode.toString()[0] + "xx"
 
-       def tagDetails = [(TAG_BATCH_CONTEXT): batchContext, "success": success, "status": status, "statusCode": statusCode.toString()]
+       Tags allTags = Tags.of(tags).and(TAG_BATCH_CONTEXT, batchContext, "success", success, "status", status, "statusCode", statusCode.toString())
        long nanos = clock.monotonicTime() - startTime
-       spectator_registry.timer(spectator_registry.createId("google.batchExecute", tags).withTags(tagDetails)).record(nanos, TimeUnit.NANOSECONDS)
-       spectator_registry.counter(spectator_registry.createId("google.batchSize", tags).withTags(tagDetails)).increment(batchSize)
+       spectator_registry.timer("google.batchExecute", allTags).record(nanos, TimeUnit.NANOSECONDS)
+       spectator_registry.counter("google.batchSize", allTags).increment(batchSize)
      }
   }
 
-  public static <T> T timeExecute(Registry spectator_registry, AbstractGoogleClientRequest<T> request, String metric_name, String api, String... tags) throws IOException {
+  public static <T> T timeExecute(MeterRegistry spectator_registry, AbstractGoogleClientRequest<T> request, String metric_name, String api, String... tags) throws IOException {
      def success = "false"
      T result
-     Clock clock = spectator_registry.clock()
+     Clock clock = spectator_registry.config().clock()
      long startTime = clock.monotonicTime()
      int statusCode = -1
 
@@ -118,8 +119,8 @@ class GoogleExecutor {
        long nanos = clock.monotonicTime() - startTime
        def status = statusCode.toString()[0] + "xx"
 
-       def tagDetails = ["api": api, "success": success, "status": status, "statusCode": statusCode.toString() ]
-       spectator_registry.timer(spectator_registry.createId(metric_name, tags).withTags(tagDetails)).record(nanos, TimeUnit.NANOSECONDS)
+       Tags allTags = Tags.of(tags).and("api", api, "success", success, "status", status, "statusCode", statusCode.toString())
+       spectator_registry.timer(metric_name, allTags).record(nanos, TimeUnit.NANOSECONDS)
      }
      return result
   }

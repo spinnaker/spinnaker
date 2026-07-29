@@ -4,7 +4,7 @@ dependencies {
   implementation "io.spinnaker.kork:kork-annotations"
   implementation "io.spinnaker.kork:kork-credentials"
   implementation "io.spinnaker.kork:kork-credentials-api"
-  implementation "com.netflix.spectator:spectator-api"
+  implementation "io.micrometer:micrometer-core"
   implementation "io.spinnaker.fiat:fiat-api"
   implementation "io.spinnaker.fiat:fiat-core"
   implementation "org.apache.groovy:groovy"

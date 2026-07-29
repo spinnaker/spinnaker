@@ -22,7 +22,6 @@ import static java.util.stream.Collectors.toList;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.Empty;
 import com.netflix.frigga.Names;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.titus.TitusException;
 import com.netflix.spinnaker.clouddriver.titus.client.model.ActivateJobRequest;
 import com.netflix.spinnaker.clouddriver.titus.client.model.DisruptionBudgetHelper;
@@ -57,6 +56,7 @@ import com.netflix.titus.grpc.protogen.TaskKillRequest;
 import com.netflix.titus.grpc.protogen.TaskQuery;
 import com.netflix.titus.grpc.protogen.TaskQueryResult;
 import io.grpc.Status;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -86,7 +86,7 @@ public class RegionScopedTitusClient implements TitusClient {
   /** An instance of {@link TitusRegion} that this RegionScopedTitusClient will use */
   private final TitusRegion titusRegion;
 
-  private final Registry registry;
+  private final MeterRegistry registry;
 
   private final List<TitusJobCustomizer> titusJobCustomizers;
 
@@ -102,7 +102,7 @@ public class RegionScopedTitusClient implements TitusClient {
 
   public RegionScopedTitusClient(
       TitusRegion titusRegion,
-      Registry registry,
+      MeterRegistry registry,
       List<TitusJobCustomizer> titusJobCustomizers,
       String environment,
       String eurekaName,
@@ -126,7 +126,7 @@ public class RegionScopedTitusClient implements TitusClient {
       long connectTimeoutMillis,
       long readTimeoutMillis,
       ObjectMapper objectMapper,
-      Registry registry,
+      MeterRegistry registry,
       List<TitusJobCustomizer> titusJobCustomizers,
       String environment,
       String eurekaName,

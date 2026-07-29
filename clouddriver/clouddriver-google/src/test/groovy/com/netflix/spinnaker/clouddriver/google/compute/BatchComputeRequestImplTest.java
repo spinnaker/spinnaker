@@ -33,14 +33,15 @@ import com.google.api.services.compute.Compute.Images.Get;
 import com.google.api.services.compute.model.Image;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.netflix.spectator.api.BasicTag;
-import com.netflix.spectator.api.Counter;
-import com.netflix.spectator.api.DefaultRegistry;
-import com.netflix.spectator.api.Registry;
-import com.netflix.spectator.api.Tag;
-import com.netflix.spectator.api.Timer;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.Timer;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 import org.apache.http.client.HttpResponseException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -53,11 +54,11 @@ public class BatchComputeRequestImplTest {
   private static final String MIME_END = "--batch_foobarbaz--\n";
   private static final String BATCH_CONTENT_TYPE = "multipart/mixed; boundary=" + MIME_BOUNDARY;
 
-  private Registry registry;
+  private MeterRegistry registry;
 
   @BeforeEach
   public void setUp() {
-    registry = new DefaultRegistry();
+    registry = new SimpleMeterRegistry();
   }
 
   @Test
@@ -218,26 +219,28 @@ public class BatchComputeRequestImplTest {
 
     batchRequest.execute("batchContext");
 
-    assertThat(registry.timers()).hasSize(1);
-    Timer timer = registry.timers().findFirst().orElseThrow(AssertionError::new);
-    assertThat(timer.id().name()).isEqualTo("google.batchExecute");
-    assertThat(timer.id().tags())
+    List<Timer> timers = timers();
+    assertThat(timers).hasSize(1);
+    Timer timer = timers.get(0);
+    assertThat(timer.getId().getName()).isEqualTo("google.batchExecute");
+    assertThat(timer.getId().getTags())
         .contains(
             tag("context", "batchContext"),
             tag("success", "true"),
             tag("status", "2xx"),
             tag("statusCode", "200"));
 
-    assertThat(registry.counters()).hasSize(1);
-    Counter counter = registry.counters().findFirst().orElseThrow(AssertionError::new);
-    assertThat(counter.id().name()).isEqualTo("google.batchSize");
-    assertThat(counter.id().tags())
+    List<Counter> counters = counters();
+    assertThat(counters).hasSize(1);
+    Counter counter = counters.get(0);
+    assertThat(counter.getId().getName()).isEqualTo("google.batchSize");
+    assertThat(counter.getId().getTags())
         .contains(
             tag("context", "batchContext"),
             tag("success", "true"),
             tag("status", "2xx"),
             tag("statusCode", "200"));
-    assertThat(counter.actualCount()).isEqualTo(BatchComputeRequestImpl.MAX_BATCH_SIZE * 2 + 37);
+    assertThat(counter.count()).isEqualTo(BatchComputeRequestImpl.MAX_BATCH_SIZE * 2 + 37);
   }
 
   @Test
@@ -260,26 +263,28 @@ public class BatchComputeRequestImplTest {
 
     assertThatIOException().isThrownBy(() -> batchRequest.execute("batchContext"));
 
-    assertThat(registry.timers()).hasSize(1);
-    Timer timer = registry.timers().findFirst().orElseThrow(AssertionError::new);
-    assertThat(timer.id().name()).isEqualTo("google.batchExecute");
-    assertThat(timer.id().tags())
+    List<Timer> timers = timers();
+    assertThat(timers).hasSize(1);
+    Timer timer = timers.get(0);
+    assertThat(timer.getId().getName()).isEqualTo("google.batchExecute");
+    assertThat(timer.getId().getTags())
         .contains(
             tag("context", "batchContext"),
             tag("success", "false"),
             tag("status", "5xx"),
             tag("statusCode", "500"));
 
-    assertThat(registry.counters()).hasSize(1);
-    Counter counter = registry.counters().findFirst().orElseThrow(AssertionError::new);
-    assertThat(counter.id().name()).isEqualTo("google.batchSize");
-    assertThat(counter.id().tags())
+    List<Counter> counters = counters();
+    assertThat(counters).hasSize(1);
+    Counter counter = counters.get(0);
+    assertThat(counter.getId().getName()).isEqualTo("google.batchSize");
+    assertThat(counter.getId().getTags())
         .contains(
             tag("context", "batchContext"),
             tag("success", "false"),
             tag("status", "5xx"),
             tag("statusCode", "500"));
-    assertThat(counter.actualCount()).isEqualTo(55);
+    assertThat(counter.count()).isEqualTo(55);
   }
 
   @Test
@@ -302,35 +307,51 @@ public class BatchComputeRequestImplTest {
 
     assertThatIOException().isThrownBy(() -> batchRequest.execute("batchContext"));
 
-    assertThat(registry.timers()).hasSize(1);
-    Timer timer = registry.timers().findFirst().orElseThrow(AssertionError::new);
-    assertThat(timer.id().name()).isEqualTo("google.batchExecute");
-    assertThat(timer.id().tags())
+    List<Timer> timers = timers();
+    assertThat(timers).hasSize(1);
+    Timer timer = timers.get(0);
+    assertThat(timer.getId().getName()).isEqualTo("google.batchExecute");
+    assertThat(timer.getId().getTags())
         .contains(
             tag("context", "batchContext"),
             tag("success", "false"),
             tag("status", "4xx"),
             tag("statusCode", "404"));
 
-    assertThat(registry.counters()).hasSize(1);
-    Counter counter = registry.counters().findFirst().orElseThrow(AssertionError::new);
-    assertThat(counter.id().name()).isEqualTo("google.batchSize");
-    assertThat(counter.id().tags())
+    List<Counter> counters = counters();
+    assertThat(counters).hasSize(1);
+    Counter counter = counters.get(0);
+    assertThat(counter.getId().getName()).isEqualTo("google.batchSize");
+    assertThat(counter.getId().getTags())
         .contains(
             tag("context", "batchContext"),
             tag("success", "false"),
             tag("status", "4xx"),
             tag("statusCode", "404"));
-    assertThat(counter.actualCount()).isEqualTo(55);
+    assertThat(counter.count()).isEqualTo(55);
   }
 
   private static GoogleComputeRequest<Compute.Images.Get, Image> request(Compute compute)
       throws IOException {
     return new GoogleComputeRequestImpl<>(
         compute.images().get("project", "image-name"),
-        new DefaultRegistry(),
+        new SimpleMeterRegistry(),
         /* metricName= */ "google.api",
         /* tags= */ ImmutableMap.of());
+  }
+
+  private List<Timer> timers() {
+    return registry.getMeters().stream()
+        .filter(m -> m instanceof Timer)
+        .map(m -> (Timer) m)
+        .collect(Collectors.toList());
+  }
+
+  private List<Counter> counters() {
+    return registry.getMeters().stream()
+        .filter(m -> m instanceof Counter)
+        .map(m -> (Counter) m)
+        .collect(Collectors.toList());
   }
 
   @FunctionalInterface
@@ -429,6 +450,6 @@ public class BatchComputeRequestImplTest {
   }
 
   private static Tag tag(String key, String value) {
-    return new BasicTag(key, value);
+    return Tag.of(key, value);
   }
 }

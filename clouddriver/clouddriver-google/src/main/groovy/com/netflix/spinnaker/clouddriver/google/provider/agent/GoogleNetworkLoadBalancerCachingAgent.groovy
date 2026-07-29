@@ -24,7 +24,7 @@ import com.google.api.services.compute.ComputeRequest
 import com.google.api.services.compute.model.ForwardingRule
 import com.google.api.services.compute.model.ForwardingRuleList
 import com.google.api.services.compute.model.InstanceReference
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
@@ -54,7 +54,7 @@ class GoogleNetworkLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCa
   GoogleNetworkLoadBalancerCachingAgent(String clouddriverUserAgentApplicationName,
                                         GoogleNamedAccountCredentials credentials,
                                         ObjectMapper objectMapper,
-                                        Registry registry,
+                                        MeterRegistry registry,
                                         String region) {
     super(clouddriverUserAgentApplicationName,
           credentials,

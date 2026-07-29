@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Operation
-import com.netflix.spectator.api.DefaultRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
@@ -49,7 +49,7 @@ class DeleteGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
 
   void "should delete firewall rule"() {
     setup:
-      def registry = new DefaultRegistry()
+      def registry = new SimpleMeterRegistry()
       def computeMock = Mock(Compute)
       def firewallsMock = Mock(Compute.Firewalls)
       def firewallsDelete = Mock(Compute.Firewalls.Delete)

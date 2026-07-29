@@ -20,9 +20,9 @@ import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.InstanceGroupManager;
 import com.google.api.services.compute.model.RegionInstanceGroupManagerList;
 import com.google.common.collect.ImmutableList;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.io.IOException;
 import java.util.Optional;
 
@@ -35,7 +35,7 @@ public final class RegionInstanceGroupManagers {
   RegionInstanceGroupManagers(
       GoogleNamedAccountCredentials credentials,
       GoogleOperationPoller operationPoller,
-      Registry registry) {
+      MeterRegistry registry) {
     this.computeApi = credentials.getCompute().regionInstanceGroupManagers();
     this.credentials = credentials;
     this.requestFactory =

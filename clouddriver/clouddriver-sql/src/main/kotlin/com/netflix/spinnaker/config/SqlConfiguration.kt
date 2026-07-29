@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.event.persistence.EventRepository
 import com.netflix.spinnaker.clouddriver.security.AccountDefinitionMapper
@@ -78,7 +77,7 @@ class SqlConfiguration {
   fun sqlTaskCleanupAgent(
     jooq: DSLContext,
     clock: Clock,
-    registry: Registry,
+    registry: MeterRegistry,
     properties: SqlTaskCleanupAgentProperties
   ): SqlTaskCleanupAgent =
     SqlTaskCleanupAgent(jooq, clock, registry, properties)
@@ -101,8 +100,7 @@ class SqlConfiguration {
     serviceVersion: ServiceVersion,
     objectMapper: ObjectMapper,
     applicationEventPublisher: ApplicationEventPublisher,
-    registry: Registry,
-    meterRegistry: MeterRegistry,
+    registry: MeterRegistry,
     subtypeLocators: List<SubtypeLocator>
   ): EventRepository {
     // TODO(rz): ObjectMapperSubtypeConfigurer should become a standard kork feature. This is pretty gross.
@@ -114,7 +112,7 @@ class SqlConfiguration {
       applicationEventPublisher,
       registry
     ).let {
-      InstrumentedProxy.proxy(meterRegistry, it, "eventRepository", mapOf("backend" to "sql"))
+      InstrumentedProxy.proxy(registry, it, "eventRepository", mapOf("backend" to "sql"))
     }
   }
 
@@ -122,7 +120,7 @@ class SqlConfiguration {
   @ConditionalOnExpression("\${sql.read-only:false} == false")
   fun sqlEventCleanupAgent(
     jooq: DSLContext,
-    registry: Registry,
+    registry: MeterRegistry,
     properties: SqlEventCleanupAgentConfigProperties,
     dynamicConfigService: DynamicConfigService
   ): SqlEventCleanupAgent {

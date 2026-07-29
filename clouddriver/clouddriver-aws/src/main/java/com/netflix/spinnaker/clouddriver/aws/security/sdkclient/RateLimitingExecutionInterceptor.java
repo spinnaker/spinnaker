@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.aws.security.sdkclient;
 import static java.util.Objects.requireNonNull;
 
 import com.google.common.util.concurrent.RateLimiter;
-import com.netflix.spectator.api.Counter;
+import io.micrometer.core.instrument.Counter;
 import java.util.Objects;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;

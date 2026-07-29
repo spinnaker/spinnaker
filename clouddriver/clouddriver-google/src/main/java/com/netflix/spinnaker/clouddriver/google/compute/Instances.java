@@ -19,9 +19,9 @@ package com.netflix.spinnaker.clouddriver.google.compute;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Instance;
 import com.google.api.services.compute.model.InstanceList;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
+import io.micrometer.core.instrument.MeterRegistry;
 
 public final class Instances {
 
@@ -32,7 +32,7 @@ public final class Instances {
   Instances(
       GoogleNamedAccountCredentials credentials,
       GoogleOperationPoller operationPoller,
-      Registry registry) {
+      MeterRegistry registry) {
     this.computeApi = credentials.getCompute().instances();
     this.credentials = credentials;
     this.requestFactory =

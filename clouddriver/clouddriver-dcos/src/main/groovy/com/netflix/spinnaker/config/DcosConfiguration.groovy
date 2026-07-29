@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.config
 
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.clouddriver.dcos.DcosClientProvider
 import com.netflix.spinnaker.clouddriver.dcos.DcosConfigurationProperties
 import com.netflix.spinnaker.clouddriver.dcos.deploy.util.mapper.DeployDcosServerGroupDescriptionToAppMapper
@@ -55,7 +55,7 @@ class DcosConfiguration {
   }
 
   @Bean
-  DcosHealthIndicator dcosHealthIndicator(Registry registry, AccountCredentialsProvider accountCredentialsProvider, DcosClientProvider dcosClientProvider) {
+  DcosHealthIndicator dcosHealthIndicator(MeterRegistry registry, AccountCredentialsProvider accountCredentialsProvider, DcosClientProvider dcosClientProvider) {
     new DcosHealthIndicator(registry, accountCredentialsProvider, dcosClientProvider)
   }
 

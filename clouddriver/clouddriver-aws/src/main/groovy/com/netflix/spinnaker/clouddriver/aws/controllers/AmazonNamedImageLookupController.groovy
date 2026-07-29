@@ -19,8 +19,8 @@ package com.netflix.spinnaker.clouddriver.aws.controllers
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.Iterables
 import com.google.common.collect.Sets
-import com.netflix.spectator.api.Counter
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.Counter
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
@@ -56,13 +56,13 @@ class AmazonNamedImageLookupController {
 
   private final Cache cacheView
 
-  private final Registry registry
+  private final MeterRegistry registry
 
   private final Counter discardedImagesCounter;
 
   @Autowired
   AmazonNamedImageLookupController(Cache cacheView,
-                                   Registry registry) {
+                                   MeterRegistry registry) {
     this.cacheView = cacheView
     this.registry = registry
     this.discardedImagesCounter = registry.counter("aws.discardedImages")
@@ -109,7 +109,7 @@ class AmazonNamedImageLookupController {
     if (MAX_SEARCH_RESULTS < allFilteredImages.size()) {
       int discardedImages = allFilteredImages.size() - MAX_SEARCH_RESULTS
       log.warn("discarding {} image(s)", discardedImages)
-      discardedImagesCounter.add(discardedImages)
+      discardedImagesCounter.increment(discardedImages)
     }
     return allFilteredImages.subList(0, Math.min(MAX_SEARCH_RESULTS, allFilteredImages.size()))
   }

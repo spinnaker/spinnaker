@@ -22,7 +22,7 @@ import com.amazonaws.services.ec2.model.DescribeImagesResult
 import com.amazonaws.services.ec2.model.Filter
 import com.amazonaws.services.ec2.model.Image
 import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer
-import com.netflix.spectator.api.Spectator
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
@@ -93,7 +93,7 @@ class ImageCachingAgentSpec extends Specification {
     def acp = Stub(AmazonClientProvider) {
       getAmazonEC2(creds, region, _) >> ec2
     }
-    new ImageCachingAgent(acp, creds, region, AmazonObjectMapperConfigurer.createConfigured(), Spectator.globalRegistry(), publicImages, dcs)
+    new ImageCachingAgent(acp, creds, region, AmazonObjectMapperConfigurer.createConfigured(), new SimpleMeterRegistry(), publicImages, dcs)
   }
 
   void "two images with the same name result in one named image"() {

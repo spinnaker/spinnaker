@@ -11,7 +11,7 @@ import com.amazonaws.services.elasticloadbalancingv2.model.Tag
 import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroup
 import com.amazonaws.services.elasticloadbalancingv2.model.TagDescription
 import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer
-import com.netflix.spectator.api.Spectator
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.edda.EddaApi
@@ -76,7 +76,7 @@ class AmazonApplicationLoadBalancerCachingAgentSpec extends Specification {
       }
     }
 
-    new AmazonApplicationLoadBalancerCachingAgent(cloud, client, creds, region, eddaApi, AmazonObjectMapperConfigurer.createConfigured(), Spectator.globalRegistry(), eddaTimeoutConfig, filter)
+    new AmazonApplicationLoadBalancerCachingAgent(cloud, client, creds, region, eddaApi, AmazonObjectMapperConfigurer.createConfigured(), new SimpleMeterRegistry(), eddaTimeoutConfig, filter)
   }
 
   void "should filter by tags"() {

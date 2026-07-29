@@ -16,14 +16,14 @@
 
 package com.netflix.spinnaker.clouddriver.titus.client
 
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry;
 import com.netflix.spinnaker.clouddriver.titus.client.model.GrpcChannelFactory
 import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
 
 class SimpleGrpcChannelFactory implements GrpcChannelFactory {
   @Override
-  ManagedChannel build(TitusRegion titusRegion, String environment, String eurekaName, long defaultConnectTimeOut, Registry registry) {
+  ManagedChannel build(TitusRegion titusRegion, String environment, String eurekaName, long defaultConnectTimeOut, MeterRegistry registry) {
     return ManagedChannelBuilder.forAddress(titusRegion.url, titusRegion.port).build()
   }
 }

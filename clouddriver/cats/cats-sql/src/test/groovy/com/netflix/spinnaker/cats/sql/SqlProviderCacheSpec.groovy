@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.cats.sql
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
@@ -17,6 +16,7 @@ import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import com.zaxxer.hikari.HikariDataSource
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.jooq.DSLContext
 import org.jooq.SQLDialect
 import org.testcontainers.DockerClientFactory
@@ -55,7 +55,7 @@ class SqlProviderCacheSpec extends ProviderCacheSpec {
     def mapper = new ObjectMapper()
     def clock = Clock.fixed(Instant.EPOCH, ZoneId.of("UTC"))
     def sqlRetryProperties = new SqlRetryProperties(new RetryProperties(1, 10), new RetryProperties(1, 10))
-    def sqlMetrics = new SpectatorSqlCacheMetrics(new NoopRegistry())
+    def sqlMetrics = new SpectatorSqlCacheMetrics(new SimpleMeterRegistry())
     def dynamicConfigService = Mock(DynamicConfigService) {
       getConfig(_ as Class, _ as String, _) >> 10
     }

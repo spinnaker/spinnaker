@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.clouddriver.core;
 
-import com.netflix.spectator.api.Registry;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
@@ -32,7 +32,7 @@ public abstract class AlwaysUpHealthIndicator implements HealthIndicator {
 
   private final AtomicLong errors;
 
-  public AlwaysUpHealthIndicator(Registry registry, String name) {
+  public AlwaysUpHealthIndicator(MeterRegistry registry, String name) {
     this.errors = registry.gauge("health." + name + ".errors", new AtomicLong(0));
   }
 

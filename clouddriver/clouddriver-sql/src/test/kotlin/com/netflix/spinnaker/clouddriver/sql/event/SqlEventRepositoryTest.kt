@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.clouddriver.event.AbstractSpinnakerEvent
 import com.netflix.spinnaker.clouddriver.event.exceptions.AggregateChangeRejectedException
 import com.netflix.spinnaker.clouddriver.event.persistence.EventRepository.ListAggregatesCriteria
@@ -29,6 +28,7 @@ import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import com.netflix.spinnaker.kork.version.ServiceVersion
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.jupiter.api.Assumptions.assumeTrue
@@ -215,7 +215,7 @@ class SqlEventRepositoryTest : JUnit5Minutests {
         registerSubtypes(MyEvent::class.java)
       },
       applicationEventPublisher = applicationEventPublisher,
-      registry = NoopRegistry()
+      registry = SimpleMeterRegistry()
     )
 
     init {

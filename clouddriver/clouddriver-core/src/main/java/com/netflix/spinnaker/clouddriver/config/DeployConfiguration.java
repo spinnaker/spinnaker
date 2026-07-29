@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.data.task.InMemoryTaskRepository;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.deploy.DefaultDeployHandlerRegistry;
@@ -39,6 +38,7 @@ import com.netflix.spinnaker.clouddriver.security.AllowedAccountsValidator;
 import com.netflix.spinnaker.kork.web.context.RequestContextProvider;
 import com.netflix.spinnaker.kork.web.exceptions.ExceptionMessageDecorator;
 import com.netflix.spinnaker.kork.web.exceptions.ExceptionSummaryService;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -68,7 +68,7 @@ class DeployConfiguration {
   OrchestrationProcessor orchestrationProcessor(
       TaskRepository taskRepository,
       ApplicationContext applicationContext,
-      Registry registry,
+      MeterRegistry registry,
       Optional<Collection<OperationEventHandler>> operationEventHandlers,
       ObjectMapper objectMapper,
       ExceptionClassifier exceptionClassifier,
@@ -105,7 +105,7 @@ class DeployConfiguration {
           atomicOperationDescriptionPreProcessors,
       AccountCredentialsRepository accountCredentialsRepository,
       Optional<SagaRepository> sagaRepository,
-      Registry registry,
+      MeterRegistry registry,
       ObjectMapper objectMapper,
       ExceptionMessageDecorator exceptionMessageDecorator) {
     return new OperationsService(

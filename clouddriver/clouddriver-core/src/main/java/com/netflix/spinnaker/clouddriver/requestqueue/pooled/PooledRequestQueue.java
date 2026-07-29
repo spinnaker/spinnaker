@@ -17,10 +17,10 @@
 package com.netflix.spinnaker.clouddriver.requestqueue.pooled;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.requestqueue.RequestQueue;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import jakarta.annotation.PreDestroy;
 import java.util.Collection;
 import java.util.Queue;
@@ -52,13 +52,13 @@ public class PooledRequestQueue implements RequestQueue {
   private final RequestDistributor requestDistributor;
 
   private final DynamicConfigService dynamicConfigService;
-  private final Registry registry;
+  private final MeterRegistry registry;
 
   private final AtomicBoolean isEnabled = new AtomicBoolean(true);
 
   public PooledRequestQueue(
       DynamicConfigService dynamicConfigService,
-      Registry registry,
+      MeterRegistry registry,
       long defaultStartWorkTimeout,
       long defaultTimeout,
       int requestPoolSize) {
@@ -144,7 +144,8 @@ public class PooledRequestQueue implements RequestQueue {
         requestQueues.add(newQueue);
         queue = newQueue;
         registry.gauge(
-            registry.createId("pooledRequestQueue.partition.size", "partition", partition),
+            "pooledRequestQueue.partition.size",
+            Tags.of("partition", partition),
             queue,
             Queue::size);
       } else {
@@ -159,16 +160,18 @@ public class PooledRequestQueue implements RequestQueue {
     queue.offer(request);
     pollCoordinator.notifyItemsAdded();
 
-    Id id = registry.createId("pooledRequestQueue.totalTime", "partition", partition);
+    Tags tags = Tags.of("partition", partition);
     try {
       T result = request.getPromise().blockingGetOrThrow(startWorkTimeout, timeout, unit);
-      id = id.withTag("success", "true");
+      tags = tags.and("success", "true");
       return result;
     } catch (Throwable t) {
-      id = id.withTags("success", "false", "cause", t.getClass().getSimpleName());
+      tags = tags.and("success", "false", "cause", t.getClass().getSimpleName());
       throw t;
     } finally {
-      registry.timer(id).record(System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
+      registry
+          .timer("pooledRequestQueue.totalTime", tags)
+          .record(System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
     }
   }
 

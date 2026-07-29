@@ -16,7 +16,6 @@
  */
 package com.netflix.spinnaker.clouddriver.sql.event
 
-import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.clouddriver.sql.event.SqlEventCleanupAgent.Companion.EVENT_CLEANUP_INTERVAL_KEY
 import com.netflix.spinnaker.clouddriver.sql.event.SqlEventCleanupAgent.Companion.EVENT_CLEANUP_LIMIT_KEY
 import com.netflix.spinnaker.clouddriver.sql.event.SqlEventCleanupAgent.Companion.EVENT_CLEANUP_TIMEOUT_KEY
@@ -27,6 +26,7 @@ import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import de.huxhorn.sulky.ulid.ULID
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import io.mockk.every
 import io.mockk.mockk
 import org.jooq.impl.DSL
@@ -85,7 +85,7 @@ class SqlEventCleanupAgentTest : JUnit5Minutests {
 
     val subject = SqlEventCleanupAgent(
       database.context,
-      NoopRegistry(),
+      SimpleMeterRegistry(),
       SqlEventCleanupAgentConfigProperties(),
       dynamicConfigService
     )

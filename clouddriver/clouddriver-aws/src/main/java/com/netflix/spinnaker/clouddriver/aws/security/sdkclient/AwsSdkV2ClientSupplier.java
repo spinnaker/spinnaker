@@ -22,9 +22,9 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.RateLimiter;
-import com.netflix.spectator.api.Counter;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.aws.security.AWSProxy;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
@@ -67,7 +67,7 @@ public class AwsSdkV2ClientSupplier {
 
   private final LoadingCache<V2ClientKey, SdkClient> clientCache;
   private final RateLimiterSupplier rateLimiterSupplier;
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final RetryPolicy retryPolicy;
   private final AWSProxy proxy;
   private final boolean addSpinnakerUserToUserAgent;
@@ -75,7 +75,7 @@ public class AwsSdkV2ClientSupplier {
 
   public AwsSdkV2ClientSupplier(
       RateLimiterSupplier rateLimiterSupplier,
-      Registry registry,
+      MeterRegistry registry,
       RetryPolicy retryPolicy,
       AWSProxy proxy,
       boolean addSpinnakerUserToUserAgent) {
@@ -95,7 +95,7 @@ public class AwsSdkV2ClientSupplier {
    */
   public AwsSdkV2ClientSupplier(
       RateLimiterSupplier rateLimiterSupplier,
-      Registry registry,
+      MeterRegistry registry,
       RetryPolicy retryPolicy,
       AWSProxy proxy,
       boolean addSpinnakerUserToUserAgent,
@@ -205,7 +205,7 @@ public class AwsSdkV2ClientSupplier {
           ClientOverrideConfiguration.builder()
               .addExecutionInterceptor(rateLimitInterceptor)
               .retryPolicy(resolveRetryPolicy(key.clientConfiguration))
-              .addMetricPublisher(new SpectatorMetricPublisher(registry))
+              .addMetricPublisher(new MicrometerMetricPublisher(registry))
               .putAdvancedOption(SdkAdvancedClientOption.USER_AGENT_SUFFIX, "spinnaker");
 
       if (addSpinnakerUserToUserAgent) {

@@ -20,9 +20,9 @@ import static java.util.stream.Collectors.toList;
 
 import com.google.api.services.compute.ComputeRequest;
 import com.google.common.collect.ImmutableList;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.google.GoogleExecutor;
 import com.netflix.spinnaker.clouddriver.google.security.AccountForClient;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -32,12 +32,12 @@ class GoogleComputeRequestImpl<RequestT extends ComputeRequest<ResponseT>, Respo
     implements GoogleComputeRequest<RequestT, ResponseT> {
 
   private final RequestT request;
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final String metricName;
   private final Map<String, String> tags;
 
   GoogleComputeRequestImpl(
-      RequestT request, Registry registry, String metricName, Map<String, String> tags) {
+      RequestT request, MeterRegistry registry, String metricName, Map<String, String> tags) {
     this.request = request;
     this.registry = registry;
     this.metricName = metricName;

@@ -25,7 +25,7 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.google.common.collect.Lists
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.cats.agent.AccountAware
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
@@ -62,9 +62,9 @@ class InstanceCachingAgent implements CachingAgent, AccountAware, DriftMetric {
   final NetflixAmazonCredentials account
   final String region
   final ObjectMapper objectMapper
-  final Registry registry
+  final MeterRegistry registry
 
-  InstanceCachingAgent(AmazonClientProvider amazonClientProvider, NetflixAmazonCredentials account, String region, ObjectMapper objectMapper, Registry registry) {
+  InstanceCachingAgent(AmazonClientProvider amazonClientProvider, NetflixAmazonCredentials account, String region, ObjectMapper objectMapper, MeterRegistry registry) {
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region

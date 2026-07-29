@@ -19,10 +19,11 @@ package com.netflix.spinnaker.clouddriver.google
 import com.google.api.client.http.HttpHeaders
 import com.google.api.client.http.HttpResponseException
 
-import com.netflix.spectator.api.Id
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.google.security.AccountForClient
-import java.util.concurrent.TimeUnit
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tag
+import io.micrometer.core.instrument.Tags
+import io.micrometer.core.instrument.Timer
 
 
 public class GoogleApiTestUtils {
@@ -43,26 +44,17 @@ public class GoogleApiTestUtils {
     return [api: method, success: ok, statusCode: statusString, status: series + "xx"] + extra
   }
 
-  static public Id makeOkId(Registry registry, String method, Map extra) {
+  private static Tags toTags(Map<String, String> map) {
+    Tags.of(map.collect { k, v -> Tag.of(k.toString(), v.toString()) })
+  }
+
+  static public Timer okTimer(MeterRegistry registry, String method, Map extra) {
     // See GoogleExecutorTraitsSpec as to why the statusCode is 0
-    return makeId(registry, method, 0, extra)
+    return timer(registry, method, 0, extra)
   }
 
-  static public Id makeId(Registry registry, String method, int statusCode, Map extra) {
+  static public Timer timer(MeterRegistry registry, String method, int statusCode, Map extra) {
     extra = ["account":  AccountForClient.UNKNOWN_ACCOUNT] + extra
-    return registry.createId("google.api", makeTraitsTagMap(method, statusCode, extra))
+    return registry.timer("google.api", toTags(makeTraitsTagMap(method, statusCode, extra)))
   }
-
-  /**
-   * Creates a timer, records a 0 time on it, and returns the id.
-   * This is so that tests can check the timer for a count
-   */
-  static public Id seedTimer(Registry registry, String method, Map extra) {
-    Id id = makeOkId(registry, method, extra)
-    print "INITIAL " + registry.timer(id).count()
-    print "BEFORE " + registry.timer(id).count()
-    registry.timer(id).record(0, TimeUnit.NANOSECONDS)
-    print "FINAL " + registry.timer(id).count()
-  }
-
 }

@@ -21,7 +21,7 @@ import com.amazonaws.services.autoscaling.model.LaunchConfiguration
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.cats.agent.AccountAware
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
@@ -53,9 +53,9 @@ class LaunchConfigCachingAgent implements CachingAgent, AccountAware, DriftMetri
   final NetflixAmazonCredentials account
   final String region
   final ObjectMapper objectMapper
-  final Registry registry
+  final MeterRegistry registry
 
-  LaunchConfigCachingAgent(AmazonClientProvider amazonClientProvider, NetflixAmazonCredentials account, String region, ObjectMapper objectMapper, Registry registry) {
+  LaunchConfigCachingAgent(AmazonClientProvider amazonClientProvider, NetflixAmazonCredentials account, String region, ObjectMapper objectMapper, MeterRegistry registry) {
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region

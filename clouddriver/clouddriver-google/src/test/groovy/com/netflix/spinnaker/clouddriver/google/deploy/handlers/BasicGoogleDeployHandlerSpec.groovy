@@ -30,10 +30,7 @@ import com.google.api.services.compute.model.MachineTypeList
 import com.google.api.services.compute.model.Network
 import com.google.api.services.compute.model.NetworkList
 import com.google.api.services.compute.model.Operation
-import com.netflix.spectator.api.Clock
-import com.netflix.spectator.api.Id
-import com.netflix.spectator.api.Registry
-import com.netflix.spectator.api.Timer
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
@@ -160,22 +157,13 @@ class BasicGoogleDeployHandlerSpec extends Specification {
     
   def "autoscaler operations return operations for waiting"() {
     setup:
-    def mockRegistry = Mock(Registry)
-    def mockClock = Mock(Clock)
-    def mockTimer = Mock(Timer)
-    def mockId = Mock(Id)
+    def mockRegistry = new SimpleMeterRegistry()
     def mockCompute = Mock(Compute)
     def mockAutoscalers = Mock(Compute.Autoscalers)
     def mockAutoscalerInsert = Mock(Compute.Autoscalers.Insert)
     def mockRegionAutoscalers = Mock(Compute.RegionAutoscalers)
     def mockRegAutoscalerInsert = Mock(Compute.RegionAutoscalers.Insert)
-    
-    mockRegistry.clock() >> mockClock
-    mockRegistry.createId(_, _) >> mockId
-    mockId.withTags(_) >> mockId
-    mockRegistry.timer(_) >> mockTimer
-    mockClock.monotonicTime() >> 1000L
-    
+
     def zonalOperation = new Operation(name: "zonal-op", status: "DONE")
     def regionalOperation = new Operation(name: "regional-op", status: "DONE")
     
@@ -325,16 +313,8 @@ class BasicGoogleDeployHandlerSpec extends Specification {
     def expectedBackendService = new BackendService(name: "test-backend-service")
     
     // Setup registry mocks for timeExecute
-    def mockRegistry = Mock(Registry)
-    def mockClock = Mock(Clock)
-    def mockTimer = Mock(Timer)
-    def mockId = Mock(Id)
-    mockRegistry.clock() >> mockClock
-    mockRegistry.createId(_, _) >> mockId
-    mockId.withTags(_) >> mockId
-    mockRegistry.timer(_) >> mockTimer
-    mockClock.monotonicTime() >> 1000L
-    
+    def mockRegistry = new SimpleMeterRegistry()
+
     def handler = new BasicGoogleDeployHandler(registry: mockRegistry)
     
     // Create real credentials with mocked compute
@@ -363,16 +343,8 @@ class BasicGoogleDeployHandlerSpec extends Specification {
     def mockGet = Mock(Compute.BackendServices.Get)
     
     // Setup registry mocks for timeExecute
-    def mockRegistry = Mock(Registry)
-    def mockClock = Mock(Clock)
-    def mockTimer = Mock(Timer)
-    def mockId = Mock(Id)
-    mockRegistry.clock() >> mockClock
-    mockRegistry.createId(_, _) >> mockId
-    mockId.withTags(_) >> mockId
-    mockRegistry.timer(_) >> mockTimer
-    mockClock.monotonicTime() >> 1000L
-    
+    def mockRegistry = new SimpleMeterRegistry()
+
     def handler = new BasicGoogleDeployHandler(registry: mockRegistry)
     
     // Create real credentials with mocked compute
@@ -401,16 +373,8 @@ class BasicGoogleDeployHandlerSpec extends Specification {
     def expectedBackendService = new BackendService(name: "test-regional-backend-service")
     
     // Setup registry mocks for timeExecute
-    def mockRegistry = Mock(Registry)
-    def mockClock = Mock(Clock)
-    def mockTimer = Mock(Timer)
-    def mockId = Mock(Id)
-    mockRegistry.clock() >> mockClock
-    mockRegistry.createId(_, _) >> mockId
-    mockId.withTags(_) >> mockId
-    mockRegistry.timer(_) >> mockTimer
-    mockClock.monotonicTime() >> 1000L
-    
+    def mockRegistry = new SimpleMeterRegistry()
+
     def handler = new BasicGoogleDeployHandler(registry: mockRegistry)
     
     // Create real credentials with mocked compute
@@ -439,16 +403,8 @@ class BasicGoogleDeployHandlerSpec extends Specification {
     def mockGet = Mock(Compute.RegionBackendServices.Get)
     
     // Setup registry mocks for timeExecute
-    def mockRegistry = Mock(Registry)
-    def mockClock = Mock(Clock)
-    def mockTimer = Mock(Timer)
-    def mockId = Mock(Id)
-    mockRegistry.clock() >> mockClock
-    mockRegistry.createId(_, _) >> mockId
-    mockId.withTags(_) >> mockId
-    mockRegistry.timer(_) >> mockTimer
-    mockClock.monotonicTime() >> 1000L
-    
+    def mockRegistry = new SimpleMeterRegistry()
+
     def handler = new BasicGoogleDeployHandler(registry: mockRegistry)
     
     // Create real credentials with mocked compute
@@ -499,16 +455,8 @@ class BasicGoogleDeployHandlerSpec extends Specification {
     def lbPolicy = new GoogleHttpLoadBalancingPolicy()
     
     // Setup registry mocks for timeExecute
-    def mockRegistry = Mock(Registry)
-    def mockClock = Mock(Clock)
-    def mockTimer = Mock(Timer)
-    def mockId = Mock(Id)
-    mockRegistry.clock() >> mockClock
-    mockRegistry.createId(_, _) >> mockId
-    mockId.withTags(_) >> mockId
-    mockRegistry.timer(_) >> mockTimer
-    mockClock.monotonicTime() >> 1000L
-    
+    def mockRegistry = new SimpleMeterRegistry()
+
     def handler = new BasicGoogleDeployHandler(registry: mockRegistry)
     
     // Create real credentials with mocked compute
@@ -592,16 +540,8 @@ class BasicGoogleDeployHandlerSpec extends Specification {
     def lbPolicy = new GoogleHttpLoadBalancingPolicy()
     
     // Setup registry mocks for timeExecute
-    def mockRegistry = Mock(Registry)
-    def mockClock = Mock(Clock)
-    def mockTimer = Mock(Timer)
-    def mockId = Mock(Id)
-    mockRegistry.clock() >> mockClock
-    mockRegistry.createId(_, _) >> mockId
-    mockId.withTags(_) >> mockId
-    mockRegistry.timer(_) >> mockTimer
-    mockClock.monotonicTime() >> 1000L
-    
+    def mockRegistry = new SimpleMeterRegistry()
+
     def handler = new BasicGoogleDeployHandler(registry: mockRegistry)
     
     // Create real credentials with mocked compute

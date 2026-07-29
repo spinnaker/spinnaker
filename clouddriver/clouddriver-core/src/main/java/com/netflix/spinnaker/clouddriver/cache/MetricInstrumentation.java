@@ -16,25 +16,21 @@
 
 package com.netflix.spinnaker.clouddriver.cache;
 
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class MetricInstrumentation implements ExecutionInstrumentation {
 
-  private final Registry registry;
-  private final Id timingId;
+  private static final String TIMING_METRIC_NAME = "executionTime";
+
+  private final MeterRegistry registry;
 
   @Autowired
-  MetricInstrumentation(Registry registry) {
+  MetricInstrumentation(MeterRegistry registry) {
     this.registry = registry;
-    timingId =
-        registry
-            .createId("executionTime")
-            .withTag("className", MetricInstrumentation.class.getSimpleName());
   }
 
   private static String stripPackageName(String className) {
@@ -54,14 +50,28 @@ class MetricInstrumentation implements ExecutionInstrumentation {
   @Override
   public void executionCompleted(Agent agent, long elapsedMs) {
     registry
-        .timer(timingId.withTag("agent", agentName(agent)).withTag("success", "true"))
+        .timer(
+            TIMING_METRIC_NAME,
+            "className",
+            MetricInstrumentation.class.getSimpleName(),
+            "agent",
+            agentName(agent),
+            "success",
+            "true")
         .record(elapsedMs, TimeUnit.MILLISECONDS);
   }
 
   @Override
   public void executionFailed(Agent agent, Throwable cause, long elapsedMs) {
     registry
-        .timer(timingId.withTag("agent", agentName(agent)).withTag("success", "false"))
+        .timer(
+            TIMING_METRIC_NAME,
+            "className",
+            MetricInstrumentation.class.getSimpleName(),
+            "agent",
+            agentName(agent),
+            "success",
+            "false")
         .record(elapsedMs, TimeUnit.MILLISECONDS);
   }
 }

@@ -18,9 +18,9 @@ package com.netflix.spinnaker.clouddriver.aws.security.sdkclient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.netflix.spectator.api.NoopRegistry;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.core.limits.ServiceLimitConfigurationBuilder;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.Duration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,7 +48,7 @@ class AwsSdkV2ClientSupplierTest {
 
   @BeforeEach
   void setUp() {
-    Registry registry = new NoopRegistry();
+    MeterRegistry registry = new SimpleMeterRegistry();
     RateLimiterSupplier rateLimiterSupplier =
         new RateLimiterSupplier(new ServiceLimitConfigurationBuilder().build(), registry);
     RetryPolicy retryPolicy = RetryPolicy.defaultRetryPolicy();

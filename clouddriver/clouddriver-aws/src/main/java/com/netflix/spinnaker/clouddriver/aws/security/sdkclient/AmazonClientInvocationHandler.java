@@ -36,9 +36,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.Tags;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
@@ -70,7 +71,7 @@ public class AmazonClientInvocationHandler implements InvocationHandler {
   private final String serviceName;
   private final ObjectMapper objectMapper;
   private final EddaTimeoutConfig eddaTimeoutConfig;
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final Map<String, String> metricTags;
 
   public AmazonClientInvocationHandler(
@@ -80,7 +81,7 @@ public class AmazonClientInvocationHandler implements InvocationHandler {
       HttpClient httpClient,
       ObjectMapper objectMapper,
       EddaTimeoutConfig eddaTimeoutConfig,
-      Registry registry,
+      MeterRegistry registry,
       Map<String, String> metricTags) {
     this.edda = edda;
     this.httpClient = httpClient;
@@ -95,8 +96,7 @@ public class AmazonClientInvocationHandler implements InvocationHandler {
 
   @Override
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-    final Id id =
-        registry.createId("awsClientProxy.invoke", metricTags).withTag("method", method.getName());
+    final Tags idTags = toTags(metricTags).and("method", method.getName());
     final long startTime = System.nanoTime();
     boolean wasDelegated = false;
 
@@ -120,9 +120,18 @@ public class AmazonClientInvocationHandler implements InvocationHandler {
       }
     } finally {
       registry
-          .timer(id.withTag("requestMode", wasDelegated ? "sdkClient" : "edda"))
+          .timer(
+              "awsClientProxy.invoke",
+              idTags.and("requestMode", wasDelegated ? "sdkClient" : "edda"))
           .record(System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
     }
+  }
+
+  private static Tags toTags(Map<String, String> map) {
+    return Tags.of(
+        map.entrySet().stream()
+            .map(e -> Tag.of(e.getKey(), e.getValue()))
+            .collect(Collectors.toList()));
   }
 
   static Class[] getClassArgs(Object[] args) {
@@ -407,8 +416,7 @@ public class AmazonClientInvocationHandler implements InvocationHandler {
       Long mtime = null;
       final List<T> results = new ArrayList<>();
 
-      final Id deserializeJsonTimer = registry.createId("edda.deserializeJson", metricTags);
-      final Id resultSizeCounter = registry.createId("edda.resultSize", metricTags);
+      final Tags describeTags = toTags(metricTags);
       if (ids.isEmpty()) {
         HttpEntity entity = getHttpEntity(metricTags, object, null);
         try {
@@ -418,8 +426,8 @@ public class AmazonClientInvocationHandler implements InvocationHandler {
                   .constructParametrizedType(List.class, List.class, singleMeta);
           final List<Metadata<T>> metadataResults =
               registry
-                  .timer(deserializeJsonTimer)
-                  .record(() -> objectMapper.readValue(entity.getContent(), listMeta));
+                  .timer("edda.deserializeJson", describeTags)
+                  .recordCallable(() -> objectMapper.readValue(entity.getContent(), listMeta));
           for (Metadata<T> meta : metadataResults) {
             mtime = mtime == null ? meta.mtime : Math.min(mtime, meta.mtime);
             results.add(meta.data);
@@ -433,8 +441,8 @@ public class AmazonClientInvocationHandler implements InvocationHandler {
           try {
             final Metadata<T> result =
                 registry
-                    .timer(deserializeJsonTimer)
-                    .record(() -> objectMapper.readValue(entity.getContent(), singleMeta));
+                    .timer("edda.deserializeJson", describeTags)
+                    .recordCallable(() -> objectMapper.readValue(entity.getContent(), singleMeta));
             mtime = mtime == null ? result.mtime : Math.min(mtime, result.mtime);
             results.add(result.data);
           } finally {
@@ -442,13 +450,13 @@ public class AmazonClientInvocationHandler implements InvocationHandler {
           }
         }
       }
-      registry.counter(resultSizeCounter).increment(results.size());
+      registry.counter("edda.resultSize", describeTags).increment(results.size());
       lastModified.set(mtime);
       return results;
     } catch (Exception e) {
       log.error(e.getMessage() + " (retries exhausted)");
 
-      registry.counter(registry.createId("edda.failures", metricTags)).increment();
+      registry.counter("edda.failures", toTags(metricTags)).increment();
       final AmazonServiceException ex =
           new AmazonServiceException("Edda failed locating the managed objects requested.", e);
       if (e.getCause() instanceof HttpClientErrorException) {
@@ -496,18 +504,17 @@ public class AmazonClientInvocationHandler implements InvocationHandler {
     Random r = new Random();
     Exception ex = null;
 
-    final Id httpExecuteTime = registry.createId("edda.httpExecute", metricTags);
-    final Id httpErrors = registry.createId("edda.errors", metricTags).withTag("errorType", "http");
-    final Id networkErrors =
-        registry.createId("edda.errors", metricTags).withTag("errorType", "network");
-    final Id retryDelayMillis = registry.createId("edda.retryDelayMillis", metricTags);
-    final Id retries = registry.createId("edda.retries", metricTags);
+    final Tags eddaTags = toTags(metricTags);
+    final Tags httpErrorsTags = eddaTags.and("errorType", "http");
+    final Tags networkErrorsTags = eddaTags.and("errorType", "network");
     while (retryAttempts < eddaTimeoutConfig.getMaxAttempts()) {
       HttpEntity entity = null;
 
       try {
         final HttpResponse response =
-            registry.timer(httpExecuteTime).record(() -> httpClient.execute(get));
+            registry
+                .timer("edda.httpExecute", eddaTags)
+                .recordCallable(() -> httpClient.execute(get));
         final int statusCode = response.getStatusLine().getStatusCode();
         entity = response.getEntity();
         if (statusCode != HttpStatus.SC_OK) {
@@ -519,7 +526,8 @@ public class AmazonClientInvocationHandler implements InvocationHandler {
                   + response.getStatusLine().getReasonPhrase();
 
           registry
-              .counter(httpErrors.withTag("statusCode", Integer.toString(statusCode)))
+              .counter(
+                  "edda.errors", httpErrorsTags.and("statusCode", Integer.toString(statusCode)))
               .increment();
 
           throw new HttpClientErrorException(
@@ -531,7 +539,8 @@ public class AmazonClientInvocationHandler implements InvocationHandler {
         lastExceptionMessage = e.getClass().getSimpleName() + ": " + e.getMessage();
         ex = e;
         registry
-            .counter(networkErrors.withTag("exceptionType", e.getClass().getSimpleName()))
+            .counter(
+                "edda.errors", networkErrorsTags.and("exceptionType", e.getClass().getSimpleName()))
             .increment();
       } finally {
         lastUrl = url;
@@ -544,12 +553,12 @@ public class AmazonClientInvocationHandler implements InvocationHandler {
       log.warn(exceptionFormat, url, lastExceptionMessage, ex);
 
       try {
-        registry.counter(retryDelayMillis).increment(retryDelay);
+        registry.counter("edda.retryDelayMillis", eddaTags).increment(retryDelay);
         Thread.sleep(retryDelay);
       } catch (InterruptedException inter) {
         break;
       }
-      registry.counter(retries).increment();
+      registry.counter("edda.retries", eddaTags).increment();
       retryAttempts++;
       retryDelay += r.nextInt(eddaTimeoutConfig.getBackoffMillis());
     }

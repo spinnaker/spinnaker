@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Firewall
 import com.google.api.services.compute.model.FirewallList
-import com.netflix.spectator.api.DefaultRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
@@ -36,7 +36,7 @@ class GoogleSecurityGroupCachingAgentSpec extends Specification {
 
   void "should add security groups on initial run"() {
     setup:
-      def registry = new DefaultRegistry()
+      def registry = new SimpleMeterRegistry()
       def computeMock = Mock(Compute)
       def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).name(ACCOUNT_NAME).compute(computeMock).build()
       def firewallsMock = Mock(Compute.Firewalls)
@@ -88,7 +88,7 @@ class GoogleSecurityGroupCachingAgentSpec extends Specification {
 
   void "should cache project name as an attribute along with firewalls"(){
     setup:
-    def registry = new DefaultRegistry()
+    def registry = new SimpleMeterRegistry()
     def computeMock = Mock(Compute)
     def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).name(ACCOUNT_NAME).compute(computeMock).build()
     def firewallsMock = Mock(Compute.Firewalls)

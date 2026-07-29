@@ -35,7 +35,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.io.Resources;
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
@@ -57,6 +56,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.*;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.model.Front50Application;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
@@ -215,7 +215,7 @@ final class KubernetesCoreCachingAgentTest {
                 new KubernetesCoreCachingAgent(
                     credentials,
                     objectMapper,
-                    new NoopRegistry(),
+                    new SimpleMeterRegistry(),
                     i,
                     agentCount,
                     10L,
@@ -248,7 +248,7 @@ final class KubernetesCoreCachingAgentTest {
                 new KubernetesCoreCachingAgent(
                     credentials,
                     objectMapper,
-                    new NoopRegistry(),
+                    new SimpleMeterRegistry(),
                     i,
                     agentCount,
                     10L,
