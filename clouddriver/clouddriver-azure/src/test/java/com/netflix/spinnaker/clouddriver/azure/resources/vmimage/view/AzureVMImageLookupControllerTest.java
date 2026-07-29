@@ -95,15 +95,19 @@ class AzureVMImageLookupControllerTest {
     given(accountCredentialsProvider.getAll()).willReturn(Set.of());
     given(
             cache.getAll(
-                eq(Keys.Namespace.AZURE_CUSTOMVMIMAGES.getNs()), anyList(), any(CacheFilter.class)))
+                eq(Keys.Namespace.AZURE_CUSTOMVMIMAGES.getNs()),
+                anyCollection(),
+                any(CacheFilter.class)))
         .willReturn(List.of());
     given(
             cache.getAll(
-                eq(Keys.Namespace.AZURE_MANAGEDIMAGES.getNs()), anyList(), any(CacheFilter.class)))
+                eq(Keys.Namespace.AZURE_MANAGEDIMAGES.getNs()),
+                anyCollection(),
+                any(CacheFilter.class)))
         .willReturn(List.of());
     given(
             cache.getAll(
-                eq(Keys.Namespace.AZURE_VMIMAGES.getNs()), anyList(), any(CacheFilter.class)))
+                eq(Keys.Namespace.AZURE_VMIMAGES.getNs()), anyCollection(), any(CacheFilter.class)))
         .willReturn(List.of());
 
     // act and assert
@@ -130,7 +134,9 @@ class AzureVMImageLookupControllerTest {
         .willReturn(Set.of(key));
     given(
             cache.getAll(
-                eq(Keys.Namespace.AZURE_CUSTOMVMIMAGES.getNs()), anyList(), any(CacheFilter.class)))
+                eq(Keys.Namespace.AZURE_CUSTOMVMIMAGES.getNs()),
+                anyCollection(),
+                any(CacheFilter.class)))
         .willReturn(List.of(c));
 
     // act
@@ -152,7 +158,7 @@ class AzureVMImageLookupControllerTest {
         .returns(NOT_AVAILABLE, AzureNamedImage::getVersion)
         .returns(CUSTOM_IMAGE_PATH, AzureNamedImage::getUri);
 
-    verify(cache, times(1)).getAll(namespace.capture(), anyList(), any(CacheFilter.class));
+    verify(cache, times(1)).getAll(namespace.capture(), anyCollection(), any(CacheFilter.class));
     List<String> keyNamespace = namespace.getAllValues();
     assertThat(keyNamespace).containsOnly(Keys.Namespace.AZURE_CUSTOMVMIMAGES.getNs());
   }
@@ -173,7 +179,9 @@ class AzureVMImageLookupControllerTest {
         .willReturn(Set.of(key));
     given(
             cache.getAll(
-                eq(Keys.Namespace.AZURE_CUSTOMVMIMAGES.getNs()), anyList(), any(CacheFilter.class)))
+                eq(Keys.Namespace.AZURE_CUSTOMVMIMAGES.getNs()),
+                anyCollection(),
+                any(CacheFilter.class)))
         .willReturn(List.of(c));
 
     // act
@@ -196,7 +204,7 @@ class AzureVMImageLookupControllerTest {
         .returns(CUSTOM_IMAGE_PATH, AzureNamedImage::getUri);
 
     verify(cache, times(1)).filterIdentifiers(anyString(), anyString());
-    verify(cache, times(1)).getAll(namespace.capture(), anyList(), any(CacheFilter.class));
+    verify(cache, times(1)).getAll(namespace.capture(), anyCollection(), any(CacheFilter.class));
     List<String> keyNamespace = namespace.getAllValues();
     assertThat(keyNamespace).containsOnly(Keys.Namespace.AZURE_CUSTOMVMIMAGES.getNs());
   }
@@ -219,7 +227,9 @@ class AzureVMImageLookupControllerTest {
         .willReturn(Set.of(key));
     given(
             cache.getAll(
-                eq(Keys.Namespace.AZURE_CUSTOMVMIMAGES.getNs()), anyList(), any(CacheFilter.class)))
+                eq(Keys.Namespace.AZURE_CUSTOMVMIMAGES.getNs()),
+                anyCollection(),
+                any(CacheFilter.class)))
         .willReturn(List.of(c));
 
     given(accountCredentialsProvider.getAll()).willReturn(Set.of());
@@ -243,7 +253,8 @@ class AzureVMImageLookupControllerTest {
         .returns(CUSTOM_IMAGE_PATH, AzureNamedImage::getUri);
 
     verify(this.accountCredentialsProvider, times(1)).getAll();
-    verify(this.cache, times(1)).getAll(namespace.capture(), anyList(), any(CacheFilter.class));
+    verify(this.cache, times(1))
+        .getAll(namespace.capture(), anyCollection(), any(CacheFilter.class));
     List<String> keyNamespace = namespace.getAllValues();
     assertThat(keyNamespace).containsOnly(Keys.Namespace.AZURE_CUSTOMVMIMAGES.getNs());
   }
@@ -282,11 +293,13 @@ class AzureVMImageLookupControllerTest {
         .willReturn(Set.of(vmImageKey));
     given(
             cache.getAll(
-                eq(Keys.Namespace.AZURE_CUSTOMVMIMAGES.getNs()), anyList(), any(CacheFilter.class)))
+                eq(Keys.Namespace.AZURE_CUSTOMVMIMAGES.getNs()),
+                anyCollection(),
+                any(CacheFilter.class)))
         .willReturn(List.of(customImage));
     given(
             cache.getAll(
-                eq(Keys.Namespace.AZURE_VMIMAGES.getNs()), anyList(), any(CacheFilter.class)))
+                eq(Keys.Namespace.AZURE_VMIMAGES.getNs()), anyCollection(), any(CacheFilter.class)))
         .willReturn(List.of(vmImage));
 
     given(accountCredentialsProvider.getAll()).willReturn(Set.of());
@@ -326,7 +339,8 @@ class AzureVMImageLookupControllerTest {
 
     verify(this.accountCredentialsProvider, times(1)).getAll();
     verify(this.cache, times(2)).filterIdentifiers(anyString(), anyString());
-    verify(this.cache, times(2)).getAll(namespace.capture(), anyList(), any(CacheFilter.class));
+    verify(this.cache, times(2))
+        .getAll(namespace.capture(), anyCollection(), any(CacheFilter.class));
     List<String> keyNamespace = namespace.getAllValues();
     assertThat(keyNamespace)
         .containsOnly(
@@ -362,15 +376,19 @@ class AzureVMImageLookupControllerTest {
     given(accountCredentialsProvider.getAll()).willReturn(Set.of());
     given(
             cache.getAll(
-                eq(Keys.Namespace.AZURE_CUSTOMVMIMAGES.getNs()), anyList(), any(CacheFilter.class)))
+                eq(Keys.Namespace.AZURE_CUSTOMVMIMAGES.getNs()),
+                anyCollection(),
+                any(CacheFilter.class)))
         .willReturn(List.of());
     given(
             cache.getAll(
-                eq(Keys.Namespace.AZURE_MANAGEDIMAGES.getNs()), anyList(), any(CacheFilter.class)))
+                eq(Keys.Namespace.AZURE_MANAGEDIMAGES.getNs()),
+                anyCollection(),
+                any(CacheFilter.class)))
         .willReturn(List.of());
     given(
             cache.getAll(
-                eq(Keys.Namespace.AZURE_VMIMAGES.getNs()), anyList(), any(CacheFilter.class)))
+                eq(Keys.Namespace.AZURE_VMIMAGES.getNs()), anyCollection(), any(CacheFilter.class)))
         .willReturn(List.of(vmImage));
 
     given(accountCredentialsProvider.getAll()).willReturn(Set.of());
@@ -399,7 +417,8 @@ class AzureVMImageLookupControllerTest {
 
     verify(this.accountCredentialsProvider, times(1)).getAll();
     verify(this.cache, times(3)).filterIdentifiers(anyString(), anyString());
-    verify(this.cache, times(3)).getAll(namespace.capture(), anyList(), any(CacheFilter.class));
+    verify(this.cache, times(3))
+        .getAll(namespace.capture(), anyCollection(), any(CacheFilter.class));
     List<String> keyNamespace = namespace.getAllValues();
     assertThat(keyNamespace)
         .containsOnly(
@@ -430,11 +449,15 @@ class AzureVMImageLookupControllerTest {
         .willReturn(Set.of(key));
     given(
             cache.getAll(
-                eq(Keys.Namespace.AZURE_CUSTOMVMIMAGES.getNs()), anyList(), any(CacheFilter.class)))
+                eq(Keys.Namespace.AZURE_CUSTOMVMIMAGES.getNs()),
+                anyCollection(),
+                any(CacheFilter.class)))
         .willReturn(List.of());
     given(
             cache.getAll(
-                eq(Keys.Namespace.AZURE_MANAGEDIMAGES.getNs()), anyList(), any(CacheFilter.class)))
+                eq(Keys.Namespace.AZURE_MANAGEDIMAGES.getNs()),
+                anyCollection(),
+                any(CacheFilter.class)))
         .willReturn(List.of(c));
 
     // act
@@ -456,7 +479,7 @@ class AzureVMImageLookupControllerTest {
         .returns(NOT_AVAILABLE, AzureNamedImage::getVersion)
         .returns(NOT_AVAILABLE, AzureNamedImage::getUri);
 
-    verify(cache, times(2)).getAll(namespace.capture(), anyList(), any(CacheFilter.class));
+    verify(cache, times(2)).getAll(namespace.capture(), anyCollection(), any(CacheFilter.class));
     List<String> keyNamespace = namespace.getAllValues();
     assertThat(keyNamespace)
         .containsOnly(
@@ -486,11 +509,15 @@ class AzureVMImageLookupControllerTest {
     given(accountCredentialsProvider.getAll()).willReturn(Set.of());
     given(
             cache.getAll(
-                eq(Keys.Namespace.AZURE_CUSTOMVMIMAGES.getNs()), anyList(), any(CacheFilter.class)))
+                eq(Keys.Namespace.AZURE_CUSTOMVMIMAGES.getNs()),
+                anyCollection(),
+                any(CacheFilter.class)))
         .willReturn(List.of());
     given(
             cache.getAll(
-                eq(Keys.Namespace.AZURE_MANAGEDIMAGES.getNs()), anyList(), any(CacheFilter.class)))
+                eq(Keys.Namespace.AZURE_MANAGEDIMAGES.getNs()),
+                anyCollection(),
+                any(CacheFilter.class)))
         .willReturn(List.of(c));
 
     // act
@@ -513,7 +540,7 @@ class AzureVMImageLookupControllerTest {
         .returns(NOT_AVAILABLE, AzureNamedImage::getUri);
 
     verify(cache, times(2)).filterIdentifiers(anyString(), anyString());
-    verify(cache, times(2)).getAll(namespace.capture(), anyList(), any(CacheFilter.class));
+    verify(cache, times(2)).getAll(namespace.capture(), anyCollection(), any(CacheFilter.class));
     List<String> keyNamespace = namespace.getAllValues();
     assertThat(keyNamespace)
         .containsOnly(
