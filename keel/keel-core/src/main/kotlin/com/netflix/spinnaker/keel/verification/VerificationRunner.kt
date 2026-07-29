@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.keel.verification
 
-import com.netflix.spectator.api.Registry
-import com.netflix.spectator.api.Spectator
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.keel.BaseActionRunner
 import com.netflix.spinnaker.keel.api.Verification
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
@@ -27,7 +26,7 @@ class VerificationRunner(
   private val eventPublisher: ApplicationEventPublisher,
   private val imageFinder: ImageFinder,
   private val enforcer: EnvironmentExclusionEnforcer,
-  override val spectator: Registry
+  override val spectator: MeterRegistry
 ): BaseActionRunner<Verification>() {
   override fun logSubject() = ActionType.VERIFICATION.name
 

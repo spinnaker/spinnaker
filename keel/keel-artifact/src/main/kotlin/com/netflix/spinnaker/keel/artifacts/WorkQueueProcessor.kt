@@ -1,8 +1,7 @@
 package com.netflix.spinnaker.keel.artifacts
 
-import com.netflix.spectator.api.BasicTag
-import com.netflix.spectator.api.Registry
-import com.netflix.spectator.api.patterns.PolledMeter
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tag
 import com.netflix.spinnaker.keel.activation.ApplicationDown
 import com.netflix.spinnaker.keel.activation.ApplicationUp
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
@@ -55,7 +54,7 @@ final class WorkQueueProcessor(
   private val repository: KeelRepository,
   private val artifactSuppliers: List<ArtifactSupplier<*, *>>,
   private val publisher: ApplicationEventPublisher,
-  private val spectator: Registry,
+  private val spectator: MeterRegistry,
   private val clock: Clock,
   private val springEnv: Environment
 ): CoroutineScope {
@@ -82,10 +81,7 @@ final class WorkQueueProcessor(
     get() = springEnv.getProperty("keel.work-processing.code-event-batch-size", Int::class.java, config.codeEventBatchSize)
 
   init {
-    PolledMeter
-      .using(spectator)
-      .withName(NUMBER_QUEUED_GAUGE)
-      .monitorValue(this) { it.queueSize() }
+    spectator.gauge(NUMBER_QUEUED_GAUGE, this) { it.queueSize() }
   }
 
   private val lastArtifactCheck: AtomicReference<Instant> =
@@ -198,8 +194,8 @@ final class WorkQueueProcessor(
     spectator.counter(
       ARTIFACT_UPDATED_COUNTER_ID,
       listOf(
-        BasicTag("artifactName", artifact.name),
-        BasicTag("artifactType", artifact.type)
+        Tag.of("artifactName", artifact.name),
+        Tag.of("artifactType", artifact.type)
       )
     ).safeIncrement()
   }
@@ -291,15 +287,12 @@ final class WorkQueueProcessor(
   }
 
   private fun createDriftGauge(name: String): AtomicReference<Instant> =
-    PolledMeter
-      .using(spectator)
-      .withName(name)
-      .monitorValue(AtomicReference(clock.instant())) { previous ->
-        when(enabled.get()) {
-          true -> secondsSince(previous)
-          false -> 0.0
-        }
+    spectator.gauge(name, AtomicReference(clock.instant())) { previous ->
+      when(enabled.get()) {
+        true -> secondsSince(previous)
+        false -> 0.0
       }
+    }!!
 
 
   private fun secondsSince(start: AtomicReference<Instant>) : Double  =
@@ -309,6 +302,6 @@ final class WorkQueueProcessor(
       .toDouble()
       .div(1000)
 
-  fun Registry.recordDuration(metricName: String, clock:Clock, startTime: Instant, tags: Set<BasicTag> = emptySet()) =
+  fun MeterRegistry.recordDuration(metricName: String, clock:Clock, startTime: Instant, tags: Set<Tag> = emptySet()) =
     timer(metricName, tags).record(Duration.between(startTime, clock.instant()))
 }

@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.actuation
 
-import com.netflix.spectator.api.BasicTag
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.Tag
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.config.ArtifactCheckConfig
 import com.netflix.spinnaker.config.EnvironmentCheckConfig
 import com.netflix.spinnaker.config.EnvironmentDeletionConfig
@@ -78,7 +78,7 @@ class CheckScheduler(
   private val agentLockRepository: AgentLockRepository,
   private val clock: Clock,
   private val springEnv: Environment,
-  private val spectator: Registry
+  private val spectator: MeterRegistry
   ) : CoroutineScope {
   override val coroutineContext: CoroutineContext = Dispatchers.IO
 
@@ -334,7 +334,7 @@ class CheckScheduler(
   }
 
   private fun recordDuration(startTime : Instant, type: String) =
-    spectator.recordDurationPercentile("keel.scheduled.method.duration", clock, startTime, setOf(BasicTag("type", type)))
+    spectator.recordDurationPercentile("keel.scheduled.method.duration", clock, startTime, setOf(Tag.of("type", type)))
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }

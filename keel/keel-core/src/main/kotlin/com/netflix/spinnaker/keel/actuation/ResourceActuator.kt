@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.actuation
 
-import com.netflix.spectator.api.Registry
-import com.netflix.spectator.api.patterns.ThreadPoolMonitor
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tags
 import com.netflix.spinnaker.keel.api.CompleteVersionedArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
@@ -87,13 +87,21 @@ class ResourceActuator(
   private val publisher: ApplicationEventPublisher,
   private val clock: Clock,
   private val environmentExclusionEnforcer: EnvironmentExclusionEnforcer,
-  private val spectator: Registry
+  private val spectator: MeterRegistry
 ) {
   companion object {
     val asyncExecutor: Executor = Executors.newCachedThreadPool()
   }
 
-  private val threadPoolMonitor = ThreadPoolMonitor.attach(spectator, asyncExecutor as ThreadPoolExecutor, "keel-resource-actuator-thread-pool")
+  init {
+    val executor = asyncExecutor as ThreadPoolExecutor
+    val tags = Tags.of("id", "keel-resource-actuator-thread-pool")
+    spectator.gauge("threadpool.activeCount", tags, executor) { it.activeCount.toDouble() }
+    spectator.gauge("threadpool.maxThreads", tags, executor) { it.maximumPoolSize.toDouble() }
+    spectator.gauge("threadpool.poolSize", tags, executor) { it.poolSize.toDouble() }
+    spectator.gauge("threadpool.corePoolSize", tags, executor) { it.corePoolSize.toDouble() }
+    spectator.gauge("threadpool.queueSize", tags, executor) { it.queue.size.toDouble() }
+  }
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   @Trace(dispatcher=true)

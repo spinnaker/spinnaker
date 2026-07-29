@@ -1,9 +1,9 @@
 package com.netflix.spinnaker.keel.telemetry
 
-import com.netflix.spectator.api.BasicTag
-import com.netflix.spectator.api.Counter
-import com.netflix.spectator.api.Registry
-import com.netflix.spectator.api.histogram.PercentileTimer
+import io.micrometer.core.instrument.Counter
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tag
+import io.micrometer.core.instrument.Timer
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.time.Duration
@@ -15,16 +15,16 @@ fun Counter.safeIncrement() =
   try {
     increment()
   } catch (ex: Exception) {
-    spectatorLogger.error("Exception incrementing {} counter: {}", id().name(), ex.message)
+    spectatorLogger.error("Exception incrementing {} counter: {}", id.name, ex.message)
   }
 
-fun Registry.recordDurationPercentile(metricName: String, clock:Clock, startTime: Instant, tags: Set<BasicTag> = emptySet()) =
-  PercentileTimer
-    .builder(this)
-    .withName(metricName)
-    .withTags(tags)
-    .build()
+fun MeterRegistry.recordDurationPercentile(metricName: String, clock: Clock, startTime: Instant, tags: Set<Tag> = emptySet()) =
+  Timer
+    .builder(metricName)
+    .tags(tags)
+    .publishPercentileHistogram()
+    .register(this)
     .record(Duration.between(startTime, clock.instant()))
 
-fun Registry.recordDuration(metricName: String, clock:Clock, startTime: Instant, tags: Set<BasicTag> = emptySet()) =
+fun MeterRegistry.recordDuration(metricName: String, clock: Clock, startTime: Instant, tags: Set<Tag> = emptySet()) =
   timer(metricName, tags).record(Duration.between(startTime, clock.instant()))

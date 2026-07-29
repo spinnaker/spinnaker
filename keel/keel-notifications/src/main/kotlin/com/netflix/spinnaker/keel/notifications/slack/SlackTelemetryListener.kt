@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.notifications.slack
 
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.keel.events.ButtonClickedEvent
 import org.slf4j.LoggerFactory
 import org.springframework.context.event.EventListener
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component
  */
 @Component
 class SlackTelemetryListener(
-  val spectator: Registry
+  val spectator: MeterRegistry
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 

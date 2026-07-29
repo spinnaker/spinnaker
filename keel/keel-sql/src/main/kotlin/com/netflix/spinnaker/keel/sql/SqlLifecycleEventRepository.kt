@@ -1,8 +1,8 @@
 package com.netflix.spinnaker.keel.sql
 
 import com.fasterxml.jackson.databind.JsonMappingException
-import com.netflix.spectator.api.BasicTag
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.Tag
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEvent
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventRepository
@@ -26,7 +26,7 @@ class SqlLifecycleEventRepository(
   private val clock: Clock,
   private val jooq: DSLContext,
   private val sqlRetry: SqlRetry,
-  private val spectator: Registry,
+  private val spectator: MeterRegistry,
   private val publisher: ApplicationEventPublisher
 ) : LifecycleEventRepository {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -141,7 +141,7 @@ class SqlLifecycleEventRepository(
     val steps = calculateSteps(events)
     spectator.timer(
       LIFECYCLE_STEP_CALCULATION_DURATION_ID,
-      listOf(BasicTag("artifactRef", "${artifact.deliveryConfigName}:${artifact.reference}"))
+      listOf(Tag.of("artifactRef", "${artifact.deliveryConfigName}:${artifact.reference}"))
     ).record(Duration.between(startTime, clock.instant()))
     return steps
   }
@@ -192,7 +192,7 @@ class SqlLifecycleEventRepository(
 
     spectator.timer(
       LIFECYCLE_STEP_CALCULATION_ALL_DURATION_ID,
-      listOf(BasicTag("artifactRef", "${artifact.deliveryConfigName}:${artifact.reference}"))
+      listOf(Tag.of("artifactRef", "${artifact.deliveryConfigName}:${artifact.reference}"))
     ).record(Duration.between(startTime, clock.instant()))
     return steps
   }

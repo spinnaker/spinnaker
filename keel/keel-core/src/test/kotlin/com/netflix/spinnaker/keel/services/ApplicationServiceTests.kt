@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.services
 
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.config.ArtifactConfig
 import com.netflix.spinnaker.keel.actuation.EnvironmentTaskCanceler
 import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
@@ -213,7 +213,7 @@ class ApplicationServiceTests : JUnit5Minutests {
       } returns true
     }
 
-    val spectator = NoopRegistry()
+    val spectator = SimpleMeterRegistry()
 
     val artifactVersionLinks = ArtifactVersionLinks(mockScmInfo(), mockCacheFactory())
     val environmentTaskCanceler: EnvironmentTaskCanceler = mockk(relaxUnitFun = true)

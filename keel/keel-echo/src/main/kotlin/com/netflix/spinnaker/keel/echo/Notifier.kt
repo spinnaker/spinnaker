@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.echo
 
-import com.netflix.spectator.api.BasicTag
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tag
 import com.netflix.spinnaker.config.KeelNotificationConfig
 import com.netflix.spinnaker.keel.api.NotificationConfig
 import com.netflix.spinnaker.keel.echo.model.EchoNotification
@@ -48,7 +48,7 @@ class Notifier(
   private val notificationRepository: NotificationRepository,
   private val keelNotificationConfig: KeelNotificationConfig,
   private val springEnv: Environment,
-  private val spectator: Registry
+  private val spectator: MeterRegistry
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
   private val NOTIFICATION_SENT_ID = "keel.notification.sent"
@@ -65,7 +65,7 @@ class Notifier(
         notificationRepository.markSent(event.scope, event.ref, event.type)
         spectator.counter(
           NOTIFICATION_SENT_ID,
-          listOf(BasicTag("type", event.type.name))
+          listOf(Tag.of("type", event.type.name))
         )
           .runCatching { increment() }
           .onFailure {
