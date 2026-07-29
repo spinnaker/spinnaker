@@ -35,9 +35,6 @@ gate: &gate
 - *fiat
 - *kork
 
-halyard: &halyard
-- 'halyard/**'
-
 igor: &igor
 - 'igor/**'
 - *fiat
