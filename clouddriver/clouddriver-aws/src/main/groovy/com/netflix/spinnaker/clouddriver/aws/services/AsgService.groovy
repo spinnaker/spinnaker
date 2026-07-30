@@ -39,6 +39,22 @@ class AsgService {
     amazonAutoScaling.resumeProcesses(request)
   }
 
+  void putWarmPool(String asgName, Integer minSize, Integer maxGroupPreparedCapacity, String poolState, Boolean reuseOnScaleIn) {
+    def request = new PutWarmPoolRequest(
+      autoScalingGroupName: asgName,
+      minSize: minSize,
+      maxGroupPreparedCapacity: maxGroupPreparedCapacity,
+      poolState: poolState,
+      instanceReusePolicy: new InstanceReusePolicy(reuseOnScaleIn: reuseOnScaleIn)
+    )
+    amazonAutoScaling.putWarmPool(request)
+  }
+
+  void deleteWarmPool(String asgName, Boolean forceDelete = false) {
+    def request = new DeleteWarmPoolRequest(autoScalingGroupName: asgName, forceDelete: forceDelete)
+    amazonAutoScaling.deleteWarmPool(request)
+  }
+
   AutoScalingGroup getAutoScalingGroup(String asgName) {
     Iterables.getOnlyElement(getAutoScalingGroups([asgName]), null)
   }
