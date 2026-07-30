@@ -219,7 +219,7 @@ public class IamRoleCachingAgentTest extends CommonCachingAgent {
     when(iamPolicyReader.getTrustedEntities(any()))
         .thenReturn(Collections.singleton(trustRelationship));
     when(providerCache.filterIdentifiers(IAM_ROLE.toString(), expectedGlob))
-        .thenReturn(new ArrayList<>(oldKeys));
+        .thenReturn(new HashSet<>(oldKeys));
 
     // when
     CacheResult result = agent.loadData(providerCache);
