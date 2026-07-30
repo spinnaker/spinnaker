@@ -71,7 +71,9 @@ import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleIntern
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerView;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancingPolicy;
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancingScheme;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleNetworkLoadBalancer;
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleRegionalExternalHttpLoadBalancer;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleSslLoadBalancer;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleTcpLoadBalancer;
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider;
@@ -420,10 +422,33 @@ public class BasicGoogleDeployHandler
         foundLB.stream()
             .filter(lb -> lb.getLoadBalancerType() == GoogleLoadBalancerType.SSL)
             .collect(Collectors.toList());
-    // Queue TCP LBs to update.
+    // Queue global TCP LBs to update (those with target proxies).
     info.tcpLoadBalancers =
         foundLB.stream()
-            .filter(lb -> lb.getLoadBalancerType() == GoogleLoadBalancerType.TCP)
+            .filter(
+                lb ->
+                    lb.getLoadBalancerType() == GoogleLoadBalancerType.TCP
+                        && "global".equals(lb.getRegion()))
+            .collect(Collectors.toList());
+    // Queue regional external TCP/UDP LBs to update (those without target proxies).
+    info.regionalExternalTcpLoadBalancers =
+        foundLB.stream()
+            .filter(
+                lb ->
+                    lb.getLoadBalancerType() == GoogleLoadBalancerType.TCP
+                        && lb.getRegion() != null
+                        && !"global".equals(lb.getRegion())
+                        && lb.getLoadBalancingScheme() == GoogleLoadBalancingScheme.EXTERNAL)
+            .collect(Collectors.toList());
+    // Queue regional external HTTP/HTTPS LBs to update.
+    info.regionalExternalHttpLoadBalancers =
+        foundLB.stream()
+            .filter(
+                lb ->
+                    lb.getLoadBalancerType() == GoogleLoadBalancerType.HTTP
+                        && lb.getRegion() != null
+                        && !"global".equals(lb.getRegion())
+                        && lb.getLoadBalancingScheme() == GoogleLoadBalancingScheme.EXTERNAL)
             .collect(Collectors.toList());
 
     if (!Boolean.TRUE.equals(description.getDisableTraffic())) {
@@ -486,7 +511,9 @@ public class BasicGoogleDeployHandler
         || !loadBalancerInfo.getSslLoadBalancers().isEmpty()
         || !loadBalancerInfo.getTcpLoadBalancers().isEmpty()
         || !loadBalancerInfo.getInternalLoadBalancers().isEmpty()
-        || !loadBalancerInfo.getInternalHttpLoadBalancers().isEmpty();
+        || !loadBalancerInfo.getInternalHttpLoadBalancers().isEmpty()
+        || !loadBalancerInfo.getRegionalExternalTcpLoadBalancers().isEmpty()
+        || !loadBalancerInfo.getRegionalExternalHttpLoadBalancers().isEmpty();
   }
 
   protected GoogleHttpLoadBalancingPolicy buildLoadBalancerPolicyFromInput(
@@ -601,7 +628,9 @@ public class BasicGoogleDeployHandler
       GoogleHttpLoadBalancingPolicy policy,
       String region) {
     if (!CollectionUtils.isEmpty(lbInfo.getInternalLoadBalancers())
-        || !CollectionUtils.isEmpty(lbInfo.getInternalHttpLoadBalancers())) {
+        || !CollectionUtils.isEmpty(lbInfo.getInternalHttpLoadBalancers())
+        || !CollectionUtils.isEmpty(lbInfo.getRegionalExternalTcpLoadBalancers())
+        || !CollectionUtils.isEmpty(lbInfo.getRegionalExternalHttpLoadBalancers())) {
       List<BackendService> regionBackendServicesToUpdate = new ArrayList<>();
       Map<String, String> instanceMetadata = description.getInstanceMetadata();
       List<String> existingRegionalLbs =
@@ -621,12 +650,29 @@ public class BasicGoogleDeployHandler
               .collect(Collectors.toList());
       ilbServices.addAll(regionBackendServices);
       ilbServices.stream().distinct().collect(Collectors.toList());
+
+      // Add regional external TCP/UDP backend services
+      List<String> regionalExternalTcpServices =
+          lbInfo.getRegionalExternalTcpLoadBalancers().stream()
+              .map(lb -> (GoogleTcpLoadBalancer.View) lb)
+              .map(it -> it.getBackendService().getName())
+              .collect(Collectors.toList());
+      ilbServices.addAll(regionalExternalTcpServices);
+
       List<String> ilbNames =
           lbInfo.getInternalLoadBalancers().stream()
               .map(GoogleLoadBalancerView::getName)
               .collect(Collectors.toList());
       ilbNames.addAll(
           lbInfo.getInternalHttpLoadBalancers().stream()
+              .map(GoogleLoadBalancerView::getName)
+              .collect(Collectors.toList()));
+      ilbNames.addAll(
+          lbInfo.getRegionalExternalTcpLoadBalancers().stream()
+              .map(GoogleLoadBalancerView::getName)
+              .collect(Collectors.toList()));
+      ilbNames.addAll(
+          lbInfo.getRegionalExternalHttpLoadBalancers().stream()
               .map(GoogleLoadBalancerView::getName)
               .collect(Collectors.toList()));
 
@@ -645,6 +691,16 @@ public class BasicGoogleDeployHandler
               .flatMap(Collection::stream)
               .map(GoogleBackendService::getName)
               .collect(Collectors.toList());
+
+      // Add regional external HTTP/HTTPS backend services
+      List<String> regionalExternalHttpServices =
+          lbInfo.getRegionalExternalHttpLoadBalancers().stream()
+              .map(lb -> (GoogleRegionalExternalHttpLoadBalancer.RegionalExternalHttpLbView) lb)
+              .map(Utils::getBackendServicesFromRegionalExternalHttpLoadBalancerView)
+              .flatMap(Collection::stream)
+              .map(GoogleBackendService::getName)
+              .collect(Collectors.toList());
+      ilbServices.addAll(regionalExternalHttpServices);
 
       // Process each regional backend service for internal load balancers.
       // Regional backend services handle traffic within a specific GCP region.
@@ -1176,7 +1232,9 @@ public class BasicGoogleDeployHandler
       Task task) {
     if (!Boolean.TRUE.equals(description.getDisableTraffic())
         && (!lbInfo.internalLoadBalancers.isEmpty()
-            || !lbInfo.internalHttpLoadBalancers.isEmpty())) {
+            || !lbInfo.internalHttpLoadBalancers.isEmpty()
+            || !lbInfo.regionalExternalTcpLoadBalancers.isEmpty()
+            || !lbInfo.regionalExternalHttpLoadBalancers.isEmpty())) {
       regionBackendServicesToUpdate.forEach(
           backendService -> {
             Operation backendServiceOperation =
@@ -1632,6 +1690,8 @@ public class BasicGoogleDeployHandler
     List<GoogleLoadBalancerView> internalHttpLoadBalancers = new ArrayList<>();
     List<GoogleLoadBalancerView> sslLoadBalancers = new ArrayList<>();
     List<GoogleLoadBalancerView> tcpLoadBalancers = new ArrayList<>();
+    List<GoogleLoadBalancerView> regionalExternalTcpLoadBalancers = new ArrayList<>();
+    List<GoogleLoadBalancerView> regionalExternalHttpLoadBalancers = new ArrayList<>();
   }
 
   static class GoogleInstanceTemplate implements GoogleLabeledResource {

@@ -34,35 +34,14 @@ class GoogleTcpLoadBalancer extends GoogleLoadBalancer {
     new View(this)
   }
 
-  class View extends GoogleLoadBalancerView {
-    GoogleLoadBalancerType loadBalancerType
-    GoogleLoadBalancingScheme loadBalancingScheme
-
-    String name
-    String account
-    String region
-    Long createdTime
-    String ipAddress
-    String ipProtocol
-    String portRange
-
+  class View extends GoogleSimpleLoadBalancerView {
     GoogleBackendService backendService
 
-    Set<LoadBalancerServerGroup> serverGroups
-
-    View(GoogleTcpLoadBalancer googleTcpLoadBalancer){
+    View(GoogleTcpLoadBalancer googleTcpLoadBalancer) {
       loadBalancerType = googleTcpLoadBalancer.type
       loadBalancingScheme = googleTcpLoadBalancer.loadBalancingScheme
-      name = googleTcpLoadBalancer.name
-      account = googleTcpLoadBalancer.account
-      region = googleTcpLoadBalancer.region
-      createdTime = googleTcpLoadBalancer.createdTime
-      ipAddress = googleTcpLoadBalancer.ipAddress
-      ipProtocol = googleTcpLoadBalancer.ipProtocol
-      portRange = googleTcpLoadBalancer.portRange
+      populateCommonFields(googleTcpLoadBalancer)
       backendService = googleTcpLoadBalancer.backendService
-      serverGroups = new HashSet<>()
     }
-
   }
 }
