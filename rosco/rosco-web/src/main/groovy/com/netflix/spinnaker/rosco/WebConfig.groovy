@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.rosco
 
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
 import groovy.transform.CompileStatic
+import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
@@ -33,7 +33,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 public class WebConfig implements WebMvcConfigurer {
 
   @Autowired
-  Registry registry
+  MeterRegistry registry
 
   @Override
   public void addInterceptors(InterceptorRegistry registry) {

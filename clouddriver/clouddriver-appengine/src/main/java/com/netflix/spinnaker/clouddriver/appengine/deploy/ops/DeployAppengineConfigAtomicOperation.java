@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.appengine.deploy.ops;
 
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.appengine.AppengineJobExecutor;
 import com.netflix.spinnaker.clouddriver.appengine.config.AppengineConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.DeployAppengineConfigDescription;
@@ -27,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,7 +51,7 @@ public class DeployAppengineConfigAtomicOperation implements AtomicOperation<Voi
 
   @Autowired private ArtifactDownloader artifactDownloader;
 
-  @Autowired private Registry registry;
+  @Autowired private MeterRegistry registry;
 
   @Autowired private AppengineJobExecutor jobExecutor;
 
@@ -65,11 +65,9 @@ public class DeployAppengineConfigAtomicOperation implements AtomicOperation<Voi
     String region = description.getCredentials().getRegion();
 
     registry
-        .counter(
-            registry.createId(
-                "appengine.deployConfigStart", "account", serviceAccount, "region", region))
+        .counter("appengine.deployConfigStart", "account", serviceAccount, "region", region)
         .increment();
-    long startTime = registry.clock().monotonicTime();
+    long startTime = registry.config().clock().monotonicTime();
 
     AppengineConfigurationProperties.ManagedAccount.GcloudReleaseTrack gCloudReleaseTrack =
         description.getCredentials().getGcloudReleaseTrack();
@@ -130,11 +128,9 @@ public class DeployAppengineConfigAtomicOperation implements AtomicOperation<Voi
           "Failed to deploy to App Engine with command: " + deployCommand);
     } finally {
       try {
-        long duration = registry.clock().monotonicTime() - startTime;
+        long duration = registry.config().clock().monotonicTime() - startTime;
         registry
-            .timer(
-                registry.createId(
-                    "appengine.deployConfig", "account", serviceAccount, "success", success))
+            .timer("appengine.deployConfig", "account", serviceAccount, "success", success)
             .record(duration, TimeUnit.NANOSECONDS);
         FileUtils.cleanDirectory(directory.toFile());
         FileUtils.forceDelete(directory.toFile());

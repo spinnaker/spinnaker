@@ -15,12 +15,12 @@
  */
 package com.netflix.spinnaker.orca.qos
 
-import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT_STARTED
 import com.netflix.spinnaker.orca.api.test.pipeline
 import com.netflix.spinnaker.orca.notifications.AlwaysUnlockedNotificationClusterLock
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
@@ -43,7 +43,7 @@ class DefaultExecutionPromoterTest : SubjectSpek<DefaultExecutionPromoter>({
   val policy: PromotionPolicy = mock()
 
   subject(CachingMode.GROUP) {
-    DefaultExecutionPromoter(executionLauncher, executionRepository, listOf(policy), NoopRegistry(), 5000, AlwaysUnlockedNotificationClusterLock())
+    DefaultExecutionPromoter(executionLauncher, executionRepository, listOf(policy), SimpleMeterRegistry(), 5000, AlwaysUnlockedNotificationClusterLock())
   }
 
   fun resetMocks() = reset(executionRepository, policy)

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.echo.pubsub
 
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.echo.artifacts.MessageArtifactTranslator
 import com.netflix.spinnaker.echo.events.EventPropagator
 import com.netflix.spinnaker.echo.model.pubsub.MessageDescription
@@ -53,7 +53,7 @@ class PubsubMessageHandlerSpec extends Specification {
   PubsubMessageHandler.Factory pubsubMessageHandlerFactory = new PubsubMessageHandler.Factory(
     eventPropagator,
     redisClientSelector,
-    new NoopRegistry()
+    new SimpleMeterRegistry()
   )
 
   EventCreator eventCreator = new PubsubEventCreator(Optional.empty())

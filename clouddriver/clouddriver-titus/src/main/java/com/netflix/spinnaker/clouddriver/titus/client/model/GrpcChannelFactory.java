@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.titus.client.model;
 
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.titus.client.TitusRegion;
 import io.grpc.ManagedChannel;
+import io.micrometer.core.instrument.MeterRegistry;
 
 public interface GrpcChannelFactory {
   public ManagedChannel build(
@@ -26,5 +26,5 @@ public interface GrpcChannelFactory {
       String environment,
       String eurekaName,
       long defaultConnectTimeOut,
-      Registry registry);
+      MeterRegistry registry);
 }

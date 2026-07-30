@@ -23,7 +23,6 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.kotlin.KotlinModule;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation;
 import com.netflix.spinnaker.cats.agent.NoopExecutionInstrumentation;
@@ -107,6 +106,7 @@ import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.inject.Provider;
 import java.time.Clock;
 import java.util.ArrayList;
@@ -395,7 +395,7 @@ class CloudDriverConfig {
 
   @Bean
   DescriptionAuthorizerService descriptionAuthorizerService(
-      Registry registry,
+      MeterRegistry registry,
       Optional<FiatPermissionEvaluator> fiatPermissionEvaluator,
       SecurityConfig.OperationsSecurityConfigurationProperties opsSecurityConfigProps,
       AccountDefinitionSecretManager secretManager) {

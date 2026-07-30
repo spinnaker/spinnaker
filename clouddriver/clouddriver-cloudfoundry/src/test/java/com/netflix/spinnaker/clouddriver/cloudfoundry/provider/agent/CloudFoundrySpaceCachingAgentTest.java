@@ -29,7 +29,6 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
@@ -41,6 +40,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.client.Spaces;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganization;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.vavr.collection.List;
 import java.util.Collection;
 import java.util.Map;
@@ -50,7 +50,7 @@ import org.junit.jupiter.api.Test;
 class CloudFoundrySpaceCachingAgentTest {
   private String accountName = "account";
   private CloudFoundryClient cloudFoundryClient = mock(CloudFoundryClient.class);
-  private Registry registry = mock(Registry.class);
+  private MeterRegistry registry = mock(MeterRegistry.class);
   private CloudFoundryCredentials credentials = mock(CloudFoundryCredentials.class);
   private CloudFoundrySpaceCachingAgent cloudFoundrySpaceCachingAgent =
       new CloudFoundrySpaceCachingAgent(credentials, registry);

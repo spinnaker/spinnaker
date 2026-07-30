@@ -2,8 +2,8 @@ package com.netflix.spinnaker.keel.ec2
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.convertValue
-import com.netflix.spectator.api.BasicTag
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.Tag
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
 import com.netflix.spinnaker.keel.api.action.ActionRepository
 import com.netflix.spinnaker.keel.api.action.ActionType
@@ -35,7 +35,7 @@ class ImageTagger(
   private val actionRepository: ActionRepository,
   private val keelRepository: KeelRepository,
   private val springEnv: Environment,
-  private val spectator: Registry
+  private val spectator: MeterRegistry
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
@@ -92,7 +92,7 @@ class ImageTagger(
       log.debug("Launching task ${task.id} to tag image(s) $names")
       spectator.counter(
         TAG_AMI_JOB_LAUNCHED,
-        listOf(BasicTag("application", event.application))
+        listOf(Tag.of("application", event.application))
       ).increment()
     }
   }

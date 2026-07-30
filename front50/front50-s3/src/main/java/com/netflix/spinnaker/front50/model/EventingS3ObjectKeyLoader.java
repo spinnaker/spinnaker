@@ -25,10 +25,10 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListenableFutureTask;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.front50.config.S3MetadataStorageProperties;
 import com.netflix.spinnaker.front50.model.events.S3Event;
 import com.netflix.spinnaker.front50.model.events.S3EventWrapper;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.annotation.PreDestroy;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -66,7 +66,7 @@ public class EventingS3ObjectKeyLoader implements ObjectKeyLoader, Runnable {
   private final ObjectMapper objectMapper;
   private final TemporarySQSQueue temporarySQSQueue;
   private final StorageService storageService;
-  private final Registry registry;
+  private final MeterRegistry registry;
 
   private final Cache<KeyWithObjectType, Long> objectKeysByLastModifiedCache;
   private final LoadingCache<ObjectType, Map<String, Long>> objectKeysByObjectTypeCache;
@@ -81,7 +81,7 @@ public class EventingS3ObjectKeyLoader implements ObjectKeyLoader, Runnable {
       S3MetadataStorageProperties s3Properties,
       TemporarySQSQueue temporarySQSQueue,
       StorageService storageService,
-      Registry registry,
+      MeterRegistry registry,
       boolean scheduleImmediately) {
     this.objectMapper = objectMapper;
     this.temporarySQSQueue = temporarySQSQueue;

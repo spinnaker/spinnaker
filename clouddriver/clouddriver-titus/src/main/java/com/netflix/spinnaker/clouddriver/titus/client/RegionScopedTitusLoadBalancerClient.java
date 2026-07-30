@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.titus.client;
 
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.titus.client.model.GrpcChannelFactory;
 import com.netflix.titus.grpc.protogen.*;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,7 +34,7 @@ public class RegionScopedTitusLoadBalancerClient implements TitusLoadBalancerCli
 
   public RegionScopedTitusLoadBalancerClient(
       TitusRegion titusRegion,
-      Registry registry,
+      MeterRegistry registry,
       String environment,
       String eurekaName,
       GrpcChannelFactory channelFactory) {

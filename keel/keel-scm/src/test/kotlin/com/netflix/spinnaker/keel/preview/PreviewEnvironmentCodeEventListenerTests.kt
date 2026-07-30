@@ -1,8 +1,8 @@
 package com.netflix.spinnaker.keel.preview
 
-import com.netflix.spectator.api.Registry
-import com.netflix.spectator.api.Tag
-import com.netflix.spectator.api.Timer
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tag
+import io.micrometer.core.instrument.Timer
 import com.netflix.spinnaker.keel.api.ArtifactReferenceProvider
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.DependencyType.LOAD_BALANCER
@@ -108,7 +108,7 @@ internal class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
     val importer: DeliveryConfigImporter = mockk()
     val front50Cache: Front50Cache = mockk()
     val springEnv: org.springframework.core.env.Environment = mockk()
-    val spectator: Registry = mockk()
+    val spectator: MeterRegistry = mockk()
     val eventPublisher: ApplicationEventPublisher = mockk()
     val validator: DeliveryConfigValidator = mockk()
     val scmUtils: ScmUtils = mockk()

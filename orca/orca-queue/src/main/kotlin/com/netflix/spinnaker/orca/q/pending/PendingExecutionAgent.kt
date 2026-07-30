@@ -16,14 +16,14 @@
 
 package com.netflix.spinnaker.orca.q.pending
 
-import com.netflix.spectator.api.Counter
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.StartWaitingExecutions
 import com.netflix.spinnaker.q.Queue
+import io.micrometer.core.instrument.Counter
+import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
@@ -33,7 +33,7 @@ import org.springframework.stereotype.Component
 @ConditionalOnExpression("\${pollers.pending-execution-service-agent.enabled:false}")
 class PendingExecutionAgent(
   clusterLock: NotificationClusterLock,
-  registry: Registry,
+  registry: MeterRegistry,
   private val queue: Queue,
   private val pendingExecutionService: PendingExecutionService,
   private val executionRepository: ExecutionRepository,

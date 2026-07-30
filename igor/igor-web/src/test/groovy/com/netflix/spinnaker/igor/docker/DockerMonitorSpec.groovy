@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.igor.docker
 
-import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.igor.config.DockerRegistryProperties
 import com.netflix.spinnaker.igor.docker.model.DockerRegistryAccounts
@@ -28,6 +27,7 @@ import com.netflix.spinnaker.igor.keel.KeelService
 import com.netflix.spinnaker.igor.polling.LockService
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.springframework.scheduling.TaskScheduler
 import retrofit2.mock.Calls
 import spock.lang.Specification
@@ -36,7 +36,7 @@ import spock.lang.Unroll
 class DockerMonitorSpec extends Specification {
 
   def properties = new IgorConfigurationProperties()
-  def registry = new NoopRegistry()
+  def registry = new SimpleMeterRegistry()
   def dynamicConfig = new DynamicConfigService.NoopDynamicConfig()
   DiscoveryStatusListener discoveryStatusListener = new DiscoveryStatusListener(true)
   Optional<LockService> lockService = Optional.empty()

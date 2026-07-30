@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
 import com.google.api.services.compute.Compute
-import com.netflix.spectator.api.DefaultRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.description.ResizeGoogleServerGroupDescription
@@ -36,7 +36,7 @@ class ResizeGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   private static final REGION = "us-central1"
   private static final ZONE = "us-central1-b"
 
-  @Shared def registry = new DefaultRegistry()
+  @Shared def registry = new SimpleMeterRegistry()
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))

@@ -36,8 +36,8 @@ import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.stackdriver.canary.StackdriverCanaryScope;
 import com.netflix.kayenta.stackdriver.config.StackdriverConfigurationProperties;
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import jakarta.validation.constraints.NotNull;
 import java.io.IOException;
 import java.time.Instant;
@@ -67,7 +67,7 @@ public class StackdriverMetricsService implements MetricsService {
 
   @Autowired private final AccountCredentialsRepository accountCredentialsRepository;
 
-  @Autowired private final Registry registry;
+  @Autowired private final MeterRegistry registry;
 
   @Autowired private final StackdriverConfigurationProperties stackdriverConfigurationProperties;
 
@@ -337,21 +337,22 @@ public class StackdriverMetricsService implements MetricsService {
       list.setAggregationGroupByFields(groupByFields);
     }
 
-    long startTime = registry.clock().monotonicTime();
+    long startTime = registry.config().clock().monotonicTime();
     ListTimeSeriesResponse response;
 
     try {
       response = list.execute();
     } finally {
-      long endTime = registry.clock().monotonicTime();
-      Id stackdriverFetchTimerId =
-          registry.createId("stackdriver.fetchTime").withTag("project", projectId);
+      long endTime = registry.config().clock().monotonicTime();
+      Tags stackdriverFetchTimerTags = Tags.of("project", projectId);
 
       if (!StringUtils.isEmpty(location)) {
-        stackdriverFetchTimerId = stackdriverFetchTimerId.withTag("location", location);
+        stackdriverFetchTimerTags = stackdriverFetchTimerTags.and("location", location);
       }
 
-      registry.timer(stackdriverFetchTimerId).record(endTime - startTime, TimeUnit.NANOSECONDS);
+      registry
+          .timer("stackdriver.fetchTime", stackdriverFetchTimerTags)
+          .record(endTime - startTime, TimeUnit.NANOSECONDS);
     }
 
     long startAsLong = stackdriverCanaryScope.getStart().toEpochMilli();

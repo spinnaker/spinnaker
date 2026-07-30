@@ -22,7 +22,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.common.Header;
 import com.netflix.spinnaker.kork.web.filters.ProvidedIdRequestFilterConfigurationProperties;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
@@ -38,6 +37,7 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.orca.sql.PipelineRefTriggerDeserializerSupplier;
 import com.netflix.spinnaker.orca.sql.pipeline.persistence.PipelineRefTrigger;
 import com.netflix.spinnaker.orca.test.YamlFileApplicationContextInitializer;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Clock;
 import java.util.Map;
 import java.util.Optional;
@@ -70,7 +70,7 @@ public class ExecutionLauncherConfigurationTest extends YamlFileApplicationConte
   @Mock private ExecutionRunner executionRunner;
   private Clock clock;
   private Optional<PipelineValidator> pipelineValidator;
-  private Optional<Registry> registry;
+  private Optional<MeterRegistry> registry;
   @Mock private ApplicationEventPublisher applicationEventPublisher;
   private ExecutionLauncher executionLauncher;
 

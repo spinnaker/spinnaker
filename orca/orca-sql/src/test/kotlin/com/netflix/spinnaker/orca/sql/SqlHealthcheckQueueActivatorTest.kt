@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.orca.sql
 
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.isA
@@ -43,7 +43,7 @@ class SqlHealthcheckQueueActivatorTest : JUnit5Minutests {
     }
 
     context("a healthy current state") {
-      val subject = SqlHealthcheckActivator(dslContext, NoopRegistry(), unhealthyThreshold = 1).apply {
+      val subject = SqlHealthcheckActivator(dslContext, SimpleMeterRegistry(), unhealthyThreshold = 1).apply {
         _enabled.set(true)
       }
 
@@ -58,7 +58,7 @@ class SqlHealthcheckQueueActivatorTest : JUnit5Minutests {
     }
 
     context("an unhealthy sql connection") {
-      val subject = SqlHealthcheckActivator(dslContext, NoopRegistry(), healthyThreshold = 1).apply {
+      val subject = SqlHealthcheckActivator(dslContext, SimpleMeterRegistry(), healthyThreshold = 1).apply {
         _enabled.set(false)
       }
 

@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.actuation
 
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.config.ArtifactCheckConfig
 import com.netflix.spinnaker.config.EnvironmentCheckConfig
 import com.netflix.spinnaker.config.EnvironmentDeletionConfig
@@ -43,7 +43,7 @@ internal class CheckSchedulerTests : JUnit5Minutests {
   private val environmentPromotionChecker = mockk<EnvironmentPromotionChecker>()
   private val artifactHandler = mockk<ArtifactHandler>(relaxUnitFun = true)
   private val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
-  private val registry = NoopRegistry()
+  private val registry = SimpleMeterRegistry()
   private val checkMinAge = Duration.ofMinutes(5)
   private val resourceCheckConfig = ResourceCheckConfig().also {
     it.minAgeDuration = checkMinAge

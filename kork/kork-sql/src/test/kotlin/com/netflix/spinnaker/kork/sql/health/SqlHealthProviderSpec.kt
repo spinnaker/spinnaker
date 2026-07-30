@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.kork.sql.health
 
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.isA
@@ -38,7 +38,7 @@ internal object SqlHealthProviderSpec : Spek({
     val query = mock<DeleteUsingStep<*>>()
 
     Scenario("a healthy current state") {
-      val subject = SqlHealthProvider(dslContext, NoopRegistry(), readOnly = false, unhealthyThreshold = 1).apply {
+      val subject = SqlHealthProvider(dslContext, SimpleMeterRegistry(), readOnly = false, unhealthyThreshold = 1).apply {
         _enabled.set(true)
       }
 
@@ -57,7 +57,7 @@ internal object SqlHealthProviderSpec : Spek({
     }
 
     Scenario("a healthy current readOnly state") {
-      val subject = SqlHealthProvider(dslContext, NoopRegistry(), readOnly = true, unhealthyThreshold = 1).apply {
+      val subject = SqlHealthProvider(dslContext, SimpleMeterRegistry(), readOnly = true, unhealthyThreshold = 1).apply {
         _enabled.set(true)
       }
 
@@ -76,7 +76,7 @@ internal object SqlHealthProviderSpec : Spek({
     }
 
     Scenario("an unhealthy sql connection") {
-      val subject = SqlHealthProvider(dslContext, NoopRegistry(), readOnly = false, healthyThreshold = 1).apply {
+      val subject = SqlHealthProvider(dslContext, SimpleMeterRegistry(), readOnly = false, healthyThreshold = 1).apply {
         _enabled.set(false)
       }
 

@@ -22,7 +22,7 @@ import com.amazonaws.services.ec2.model.Image
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.cats.agent.AccountAware
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
@@ -61,14 +61,14 @@ class ImageCachingAgent implements CachingAgent, AccountAware, DriftMetric, Cust
   final NetflixAmazonCredentials account
   final String region
   final ObjectMapper objectMapper
-  final Registry registry
+  final MeterRegistry registry
   @Getter
   @Setter
   boolean includePublicImages
   final long pollIntervalMillis
   final DynamicConfigService dynamicConfigService
 
-  ImageCachingAgent(AmazonClientProvider amazonClientProvider, NetflixAmazonCredentials account, String region, ObjectMapper objectMapper, Registry registry, boolean includePublicImages, DynamicConfigService dynamicConfigService) {
+  ImageCachingAgent(AmazonClientProvider amazonClientProvider, NetflixAmazonCredentials account, String region, ObjectMapper objectMapper, MeterRegistry registry, boolean includePublicImages, DynamicConfigService dynamicConfigService) {
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region

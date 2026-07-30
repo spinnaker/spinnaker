@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.orca.q
 
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
@@ -43,7 +43,7 @@ import org.mockito.ArgumentMatchers.anyString
 class QueueShovelTest : SubjectSpek<QueueShovel>({
   val message = StartExecution(PIPELINE, "executionId", "app")
   val queue: Queue = mock()
-  val registry = NoopRegistry()
+  val registry = SimpleMeterRegistry()
   val ackCallback = mock<() -> Unit>()
   val previousQueue: Queue = mock()
   val executionRepository: ExecutionRepository = mock()

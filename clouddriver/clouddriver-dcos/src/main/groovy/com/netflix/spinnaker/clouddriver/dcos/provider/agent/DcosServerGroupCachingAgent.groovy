@@ -20,7 +20,7 @@ package com.netflix.spinnaker.clouddriver.dcos.provider.agent
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.collect.Iterables
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.cats.agent.*
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
@@ -69,7 +69,7 @@ class DcosServerGroupCachingAgent implements CachingAgent, OnDemandAgent, DcosCl
                               String clusterName,
                               DcosClientProvider clientProvider,
                               ObjectMapper objectMapper,
-                              Registry registry) {
+                              MeterRegistry registry) {
     this.accounts = accounts
     this.accountNames = accounts.collect { account -> account.account }
 

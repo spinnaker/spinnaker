@@ -16,9 +16,9 @@
 package com.netflix.spinnaker.clouddriver.google;
 
 import com.google.api.client.googleapis.services.AbstractGoogleClientRequest;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.google.batch.GoogleBatchRequest;
 import com.netflix.spinnaker.clouddriver.google.security.AccountForClient;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.io.IOException;
 
 /** This class is syntactic sugar atop the static GoogleExecutor. */
@@ -32,7 +32,7 @@ public interface GoogleExecutorTraits {
   String SCOPE_REGIONAL = GoogleExecutor.getSCOPE_REGIONAL();
   String SCOPE_ZONAL = GoogleExecutor.getSCOPE_ZONAL();
 
-  Registry getRegistry();
+  MeterRegistry getRegistry();
 
   default <T> T timeExecuteBatch(
       GoogleBatchRequest googleBatchRequest, String batchContext, String... tags)

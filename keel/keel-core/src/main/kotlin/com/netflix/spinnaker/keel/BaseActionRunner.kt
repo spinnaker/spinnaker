@@ -1,8 +1,7 @@
 package com.netflix.spinnaker.keel
 
-import com.netflix.spectator.api.BasicTag
-import com.netflix.spectator.api.Registry
-import com.netflix.spectator.api.Spectator
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tag
 import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
 import com.netflix.spinnaker.keel.api.action.Action
 import com.netflix.spinnaker.keel.api.action.ActionRepository
@@ -20,7 +19,7 @@ import org.slf4j.LoggerFactory
 abstract class BaseActionRunner<T: Action> {
   abstract val actionRepository: ActionRepository
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
-  abstract val spectator: Registry
+  abstract val spectator: MeterRegistry
 
   companion object {
     const val ACTION_BLOCKED_COUNTER = "keel.action-runner.blocked.count"
@@ -128,8 +127,8 @@ abstract class BaseActionRunner<T: Action> {
     spectator.counter(
       ACTION_BLOCKED_COUNTER,
       listOf(
-        BasicTag("type", logSubject()),
-        BasicTag("application", context.deliveryConfig.application)
+        Tag.of("type", logSubject()),
+        Tag.of("application", context.deliveryConfig.application)
       )
 
     ).increment()

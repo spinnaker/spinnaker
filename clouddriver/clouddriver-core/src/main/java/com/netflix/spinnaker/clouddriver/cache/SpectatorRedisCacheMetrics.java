@@ -16,17 +16,15 @@
 
 package com.netflix.spinnaker.clouddriver.cache;
 
-import com.netflix.spectator.api.BasicTag;
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
-import com.netflix.spectator.api.Tag;
 import com.netflix.spinnaker.cats.redis.cache.RedisCache.CacheMetrics;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
 import java.util.List;
 
 public class SpectatorRedisCacheMetrics implements CacheMetrics {
-  private final Registry registry;
+  private final MeterRegistry registry;
 
-  public SpectatorRedisCacheMetrics(Registry registry) {
+  public SpectatorRedisCacheMetrics(MeterRegistry registry) {
     this.registry = registry;
   }
 
@@ -45,23 +43,23 @@ public class SpectatorRedisCacheMetrics implements CacheMetrics {
       int pipelineOperations,
       int expireOperations) {
     final Iterable<Tag> tags = tags(prefix, type);
-    registry.counter(id("cats.redisCache.merge", "itemCount", tags)).increment(itemCount);
-    registry.counter(id("cats.redisCache.merge", "keysWritten", tags)).increment(keysWritten);
+    registry.counter(id("cats.redisCache.merge", "itemCount"), tags).increment(itemCount);
+    registry.counter(id("cats.redisCache.merge", "keysWritten"), tags).increment(keysWritten);
     registry
-        .counter(id("cats.redisCache.merge", "relationshipCount", tags))
+        .counter(id("cats.redisCache.merge", "relationshipCount"), tags)
         .increment(relationshipCount);
-    registry.counter(id("cats.redisCache.merge", "hashMatches", tags)).increment(hashMatches);
-    registry.counter(id("cats.redisCache.merge", "hashUpdates", tags)).increment(hashUpdates);
-    registry.counter(id("cats.redisCache.merge", "saddOperations", tags)).increment(saddOperations);
-    registry.counter(id("cats.redisCache.merge", "msetOperations", tags)).increment(msetOperations);
+    registry.counter(id("cats.redisCache.merge", "hashMatches"), tags).increment(hashMatches);
+    registry.counter(id("cats.redisCache.merge", "hashUpdates"), tags).increment(hashUpdates);
+    registry.counter(id("cats.redisCache.merge", "saddOperations"), tags).increment(saddOperations);
+    registry.counter(id("cats.redisCache.merge", "msetOperations"), tags).increment(msetOperations);
     registry
-        .counter(id("cats.redisCache.merge", "hmsetOperations", tags))
+        .counter(id("cats.redisCache.merge", "hmsetOperations"), tags)
         .increment(hmsetOperations);
     registry
-        .counter(id("cats.redisCache.merge", "pipelineOperations", tags))
+        .counter(id("cats.redisCache.merge", "pipelineOperations"), tags)
         .increment(pipelineOperations);
     registry
-        .counter(id("cats.redisCache.merge", "expireOperations", tags))
+        .counter(id("cats.redisCache.merge", "expireOperations"), tags)
         .increment(expireOperations);
   }
 
@@ -76,12 +74,12 @@ public class SpectatorRedisCacheMetrics implements CacheMetrics {
       int hdelOperations,
       int sremOperations) {
     final Iterable<Tag> tags = tags(prefix, type);
-    registry.counter(id("cats.redisCache.evict", "itemCount", tags)).increment(itemCount);
-    registry.counter(id("cats.redisCache.evict", "keysDeleted", tags)).increment(keysDeleted);
-    registry.counter(id("cats.redisCache.evict", "hashesDeleted", tags)).increment(hashesDeleted);
-    registry.counter(id("cats.redisCache.evict", "delOperations", tags)).increment(delOperations);
-    registry.counter(id("cats.redisCache.evict", "hdelOperations", tags)).increment(hdelOperations);
-    registry.counter(id("cats.redisCache.evict", "sremOperations", tags)).increment(sremOperations);
+    registry.counter(id("cats.redisCache.evict", "itemCount"), tags).increment(itemCount);
+    registry.counter(id("cats.redisCache.evict", "keysDeleted"), tags).increment(keysDeleted);
+    registry.counter(id("cats.redisCache.evict", "hashesDeleted"), tags).increment(hashesDeleted);
+    registry.counter(id("cats.redisCache.evict", "delOperations"), tags).increment(delOperations);
+    registry.counter(id("cats.redisCache.evict", "hdelOperations"), tags).increment(hdelOperations);
+    registry.counter(id("cats.redisCache.evict", "sremOperations"), tags).increment(sremOperations);
   }
 
   @Override
@@ -94,20 +92,20 @@ public class SpectatorRedisCacheMetrics implements CacheMetrics {
       int relationshipsRequested,
       int mgetOperations) {
     final Iterable<Tag> tags = tags(prefix, type);
-    registry.counter(id("cats.redisCache.get", "itemCount", tags)).increment(itemCount);
-    registry.counter(id("cats.redisCache.get", "requestedSize", tags)).increment(keysRequested);
-    registry.counter(id("cats.redisCache.get", "keysRequested", tags)).increment(keysRequested);
+    registry.counter(id("cats.redisCache.get", "itemCount"), tags).increment(itemCount);
+    registry.counter(id("cats.redisCache.get", "requestedSize"), tags).increment(keysRequested);
+    registry.counter(id("cats.redisCache.get", "keysRequested"), tags).increment(keysRequested);
     registry
-        .counter(id("cats.redisCache.get", "relationshipsRequested", tags))
+        .counter(id("cats.redisCache.get", "relationshipsRequested"), tags)
         .increment(relationshipsRequested);
-    registry.counter(id("cats.redisCache.get", "mgetOperations", tags)).increment(mgetOperations);
+    registry.counter(id("cats.redisCache.get", "mgetOperations"), tags).increment(mgetOperations);
   }
 
-  private Id id(String metricGroup, String metric, Iterable<Tag> tags) {
-    return registry.createId(metricGroup + '.' + metric, tags);
+  private String id(String metricGroup, String metric) {
+    return metricGroup + '.' + metric;
   }
 
   private Iterable<Tag> tags(String prefix, String type) {
-    return List.of(new BasicTag("prefix", prefix), new BasicTag("type", type));
+    return List.of(Tag.of("prefix", prefix), Tag.of("type", type));
   }
 }

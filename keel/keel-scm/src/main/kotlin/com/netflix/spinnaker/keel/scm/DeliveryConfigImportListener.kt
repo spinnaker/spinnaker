@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.scm
 
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.keel.api.artifacts.Commit
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.artifacts.Repo
@@ -32,7 +32,7 @@ class DeliveryConfigImportListener(
   private val front50Cache: Front50Cache,
   private val scmUtils: ScmUtils,
   private val springEnv: Environment,
-  private val spectator: Registry,
+  private val spectator: MeterRegistry,
   private val eventPublisher: ApplicationEventPublisher,
   private val clock: Clock
 ) {

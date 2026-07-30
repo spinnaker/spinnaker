@@ -43,9 +43,6 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.protobuf.util.JsonFormat;
 import com.netflix.frigga.Names;
 import com.netflix.frigga.autoscaling.AutoScalingGroupNameBuilder;
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
-import com.netflix.spectator.api.histogram.PercentileTimer;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.agent.AgentExecution;
@@ -78,6 +75,9 @@ import com.netflix.titus.grpc.protogen.ScalingPolicyResult;
 import com.netflix.titus.grpc.protogen.ScalingPolicyStatus;
 import com.netflix.titus.grpc.protogen.Task;
 import com.netflix.titus.grpc.protogen.TaskStatus;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
+import io.micrometer.core.instrument.Timer;
 import jakarta.inject.Provider;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -113,8 +113,8 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent, CachingA
   private final NetflixTitusCredentials account;
   private final TitusRegion region;
   private final ObjectMapper objectMapper;
-  private final Registry registry;
-  private final Id metricId;
+  private final MeterRegistry registry;
+  private final Tags baseTags;
   private final Provider<AwsLookupUtil> awsLookupUtil;
   private final DynamicConfigService dynamicConfigService;
 
@@ -176,7 +176,7 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent, CachingA
       NetflixTitusCredentials account,
       TitusRegion region,
       ObjectMapper objectMapper,
-      Registry registry,
+      MeterRegistry registry,
       Provider<AwsLookupUtil> awsLookupUtil,
       DynamicConfigService dynamicConfigService) {
     this.account = account;
@@ -190,11 +190,14 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent, CachingA
     this.registry = registry;
     this.awsLookupUtil = awsLookupUtil;
     this.dynamicConfigService = dynamicConfigService;
-    this.metricId =
-        registry
-            .createId("titus.cache.streaming")
-            .withTag("account", account.getName())
-            .withTag("region", region.getName());
+    this.baseTags = Tags.of("account", account.getName(), "region", region.getName());
+  }
+
+  private Timer streamingTimer(String operation) {
+    return Timer.builder("titus.cache.streaming")
+        .tags(baseTags.and("operation", operation))
+        .publishPercentileHistogram()
+        .register(registry);
   }
 
   @Override
@@ -462,7 +465,7 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent, CachingA
             titusAutoscalingClient != null
                 ? titusAutoscalingClient.getAllScalingPolicies()
                 : emptyList();
-        PercentileTimer.get(registry, metricId.withTag("operation", "getScalingPolicies"))
+        streamingTimer("getScalingPolicies")
             .record(System.currentTimeMillis() - startTime, MILLISECONDS);
 
         long startLoadBalancerTime = System.currentTimeMillis();
@@ -470,7 +473,7 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent, CachingA
             titusLoadBalancerClient != null
                 ? titusLoadBalancerClient.getAllLoadBalancers()
                 : emptyMap();
-        PercentileTimer.get(registry, metricId.withTag("operation", "getLoadBalancers"))
+        streamingTimer("getLoadBalancers")
             .record(System.currentTimeMillis() - startLoadBalancerTime, MILLISECONDS);
 
         CacheResult result = buildCacheResult(state, scalingPolicyResults, allLoadBalancers);
@@ -497,7 +500,7 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent, CachingA
         state.lastUpdate.set(System.currentTimeMillis());
         state.changes.set(0);
 
-        PercentileTimer.get(registry, metricId.withTag("operation", "processSnapshot"))
+        streamingTimer("processSnapshot")
             .record(System.currentTimeMillis() - startTime, MILLISECONDS);
       }
     }

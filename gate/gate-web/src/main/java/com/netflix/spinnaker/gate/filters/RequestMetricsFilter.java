@@ -16,8 +16,7 @@
 
 package com.netflix.spinnaker.gate.filters;
 
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -46,9 +45,9 @@ public class RequestMetricsFilter extends OncePerRequestFilter {
 
   static final String METRIC_NAME = "gate.requests";
 
-  private final Registry registry;
+  private final MeterRegistry registry;
 
-  public RequestMetricsFilter(Registry registry) {
+  public RequestMetricsFilter(MeterRegistry registry) {
     this.registry = registry;
   }
 
@@ -60,15 +59,20 @@ public class RequestMetricsFilter extends OncePerRequestFilter {
       chain.doFilter(request, response);
     } finally {
       int statusCode = response.getStatus();
-      Id id =
-          registry
-              .createId(METRIC_NAME)
-              .withTag("authType", AuthTypeResolver.resolveAuthType(request))
-              .withTag("principalKind", AuthTypeResolver.resolvePrincipalKind(request))
-              .withTag("method", request.getMethod())
-              .withTag("statusCode", Integer.toString(statusCode))
-              .withTag("status", statusClass(statusCode));
-      registry.counter(id).increment();
+      registry
+          .counter(
+              METRIC_NAME,
+              "authType",
+              AuthTypeResolver.resolveAuthType(request),
+              "principalKind",
+              AuthTypeResolver.resolvePrincipalKind(request),
+              "method",
+              request.getMethod(),
+              "statusCode",
+              Integer.toString(statusCode),
+              "status",
+              statusClass(statusCode))
+          .increment();
     }
   }
 

@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.orca.telemetry;
 
-import com.netflix.spectator.api.Registry;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -29,7 +30,7 @@ public class RedisPoolMetricsPostProcessor extends AbstractMetricsPostProcessor<
 
   @Autowired
   @Lazy
-  public RedisPoolMetricsPostProcessor(Registry registry) {
+  public RedisPoolMetricsPostProcessor(MeterRegistry registry) {
     super(JedisPool.class, registry);
   }
 
@@ -38,23 +39,28 @@ public class RedisPoolMetricsPostProcessor extends AbstractMetricsPostProcessor<
   protected void applyMetrics(JedisPool bean, String beanName) {
     final Pool<Jedis> pool = bean;
     registry.gauge(
-        registry.createId("redis.connectionPool.maxIdle", "poolName", beanName),
+        "redis.connectionPool.maxIdle",
+        Tags.of("poolName", beanName),
         pool,
         p -> Integer.valueOf(p.getMaxIdle()).doubleValue());
     registry.gauge(
-        registry.createId("redis.connectionPool.minIdle", "poolName", beanName),
+        "redis.connectionPool.minIdle",
+        Tags.of("poolName", beanName),
         pool,
         p -> Integer.valueOf(p.getMinIdle()).doubleValue());
     registry.gauge(
-        registry.createId("redis.connectionPool.numActive", "poolName", beanName),
+        "redis.connectionPool.numActive",
+        Tags.of("poolName", beanName),
         bean,
         p -> Integer.valueOf(p.getNumActive()).doubleValue());
     registry.gauge(
-        registry.createId("redis.connectionPool.numIdle", "poolName", beanName),
+        "redis.connectionPool.numIdle",
+        Tags.of("poolName", beanName),
         bean,
         p -> Integer.valueOf(p.getNumIdle()).doubleValue());
     registry.gauge(
-        registry.createId("redis.connectionPool.numWaiters", "poolName", beanName),
+        "redis.connectionPool.numWaiters",
+        Tags.of("poolName", beanName),
         bean,
         p -> Integer.valueOf(p.getNumWaiters()).doubleValue());
   }

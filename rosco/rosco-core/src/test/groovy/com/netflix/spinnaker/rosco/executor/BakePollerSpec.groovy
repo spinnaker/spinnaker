@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.rosco.executor
 
-import com.netflix.spectator.api.DefaultRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeRequest
@@ -55,7 +55,7 @@ class BakePollerSpec extends Specification implements TestDefaults {
       def bakePoller = new BakePoller(bakeStore: bakeStoreMock,
                                       executor: jobExecutorMock,
                                       cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock,
-                                      registry: new DefaultRegistry())
+                                      registry: new SimpleMeterRegistry())
 
     when:
       bakePoller.updateBakeStatusAndLogs(JOB_ID)
@@ -91,7 +91,7 @@ class BakePollerSpec extends Specification implements TestDefaults {
       def bakePoller = new BakePoller(bakeStore: bakeStoreMock,
                                       executor: jobExecutorMock,
                                       cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock,
-                                      registry: new DefaultRegistry())
+                                      registry: new SimpleMeterRegistry())
 
     when:
       bakePoller.updateBakeStatusAndLogs(JOB_ID)
@@ -123,7 +123,7 @@ class BakePollerSpec extends Specification implements TestDefaults {
       def bakePoller = new BakePoller(bakeStore: bakeStoreMock,
                                       executor: jobExecutorMock,
                                       cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock,
-                                      registry: new DefaultRegistry())
+                                      registry: new SimpleMeterRegistry())
 
     when:
       bakePoller.updateBakeStatusAndLogs(JOB_ID)
@@ -161,7 +161,7 @@ class BakePollerSpec extends Specification implements TestDefaults {
         bakeStore: bakeStoreMock,
         executor: jobExecutorMock,
         cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock,
-        registry: new DefaultRegistry())
+        registry: new SimpleMeterRegistry())
 
     when:
       bakePoller.completeBake(JOB_ID, LOGS_CONTENT)
@@ -207,7 +207,7 @@ class BakePollerSpec extends Specification implements TestDefaults {
             bakeStore: bakeStoreMock,
             executor: Mock(JobExecutor),
             cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock,
-            registry: new DefaultRegistry())
+            registry: new SimpleMeterRegistry())
 
     when:
     bakePoller.completeBake(JOB_ID, LOGS_CONTENT)

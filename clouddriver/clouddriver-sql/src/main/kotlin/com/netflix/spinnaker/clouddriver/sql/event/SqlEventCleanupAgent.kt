@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.clouddriver.sql.event
 
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.RunnableAgent
 import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent
 import com.netflix.spinnaker.clouddriver.core.provider.CoreProvider
@@ -26,6 +25,7 @@ import com.netflix.spinnaker.config.SqlEventCleanupAgentConfigProperties.Compani
 import com.netflix.spinnaker.kork.annotations.VisibleForTesting
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.sql.routing.withPool
+import io.micrometer.core.instrument.MeterRegistry
 import java.sql.Timestamp
 import java.time.Duration
 import java.time.Instant
@@ -39,15 +39,15 @@ import org.slf4j.LoggerFactory
  */
 class SqlEventCleanupAgent(
   private val jooq: DSLContext,
-  private val registry: Registry,
+  private val registry: MeterRegistry,
   private val properties: SqlEventCleanupAgentConfigProperties,
   private val dynamicConfigService: DynamicConfigService
 ) : RunnableAgent, CustomScheduledAgent, SqlAgent {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  private val deletedId = registry.createId("sql.eventCleanupAgent.deleted")
-  private val timingId = registry.createId("sql.eventCleanupAgent.timing")
+  private val deletedMetricName = "sql.eventCleanupAgent.deleted"
+  private val timingMetricName = "sql.eventCleanupAgent.timing"
 
   override fun run() {
     val duration = Duration.ofDays(properties.maxAggregateAgeDays)
@@ -56,7 +56,7 @@ class SqlEventCleanupAgent(
 
     log.info("Deleting aggregates last updated earlier than $cutoff ($duration), max $limit events")
 
-    registry.timer(timingId).record {
+    registry.timer(timingMetricName).record(Runnable {
       val threshold = Instant.now().minus(duration)
 
       withPool(ConnectionPools.EVENTS.value) {
@@ -78,10 +78,10 @@ class SqlEventCleanupAgent(
             .execute()
         }
 
-        registry.counter(deletedId).increment(deleted)
+        registry.counter(deletedMetricName).increment(deleted.toDouble())
         log.info("Deleted $deleted event aggregates")
       }
-    }
+    })
   }
 
   override fun getAgentType(): String = javaClass.simpleName

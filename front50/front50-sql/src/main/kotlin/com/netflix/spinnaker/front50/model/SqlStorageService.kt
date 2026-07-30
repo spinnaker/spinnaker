@@ -18,8 +18,6 @@ package com.netflix.spinnaker.front50.model
 
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.Id
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.Front50SqlProperties
 import com.netflix.spinnaker.front50.api.model.Timestamped
 import com.netflix.spinnaker.front50.model.ObjectType.APPLICATION
@@ -46,6 +44,7 @@ import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.routing.withPool
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import com.netflix.spinnaker.security.AuthenticatedRequest
+import io.micrometer.core.instrument.MeterRegistry
 import java.time.Clock
 import kotlin.system.measureTimeMillis
 import org.jooq.DSLContext
@@ -61,7 +60,7 @@ import org.slf4j.LoggerFactory
 
 class SqlStorageService(
   private val objectMapper: ObjectMapper,
-  private val registry: Registry,
+  private val registry: MeterRegistry,
   private val jooq: DSLContext,
   private val clock: Clock,
   private val sqlRetryProperties: SqlRetryProperties,
@@ -93,7 +92,7 @@ class SqlStorageService(
     private val lastModifiedField = field("last_modified_at", Long::class.java)
   }
 
-  private val invalidJsonCounterId: Id = registry.createId("sqlStorageService.invalidJson");
+  private val invalidJsonCounterName = "sqlStorageService.invalidJson"
 
   override fun supportsVersioning(): Boolean {
     return true
@@ -159,7 +158,7 @@ class SqlStorageService(
               }
             } catch (e: JsonProcessingException) {
               log.error("unable to deserialize {}", objectType.name, e)
-              registry.counter(invalidJsonCounterId.withTag("objectType", objectType.group)).increment();
+              registry.counter(invalidJsonCounterName, "objectType", objectType.group).increment();
               null
             }
           }
@@ -222,7 +221,7 @@ class SqlStorageService(
           resultMap[insertInto]!!.add(thisObject)
         } catch (e: JsonProcessingException) {
           log.error("unable to deserialize {}", objectType.name, e)
-          registry.counter(invalidJsonCounterId.withTag("objectType", objectType.group)).increment();
+          registry.counter(invalidJsonCounterName, "objectType", objectType.group).increment();
         }
       }
     }

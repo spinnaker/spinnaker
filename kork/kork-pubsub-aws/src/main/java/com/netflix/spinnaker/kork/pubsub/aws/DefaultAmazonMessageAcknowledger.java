@@ -18,16 +18,15 @@ package com.netflix.spinnaker.kork.pubsub.aws;
 
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiptHandleIsInvalidException;
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.pubsub.aws.api.AmazonMessageAcknowledger;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class DefaultAmazonMessageAcknowledger implements AmazonMessageAcknowledger {
-  private Registry registry;
+  private MeterRegistry registry;
 
-  public DefaultAmazonMessageAcknowledger(Registry registry) {
+  public DefaultAmazonMessageAcknowledger(MeterRegistry registry) {
     this.registry = registry;
   }
 
@@ -36,36 +35,40 @@ public class DefaultAmazonMessageAcknowledger implements AmazonMessageAcknowledg
     // Delete from queue
     try {
       subscription.amazonSQS.deleteMessage(subscription.queueUrl, message.getReceiptHandle());
-      registry.counter(getSuccessCounter(subscription)).increment();
+      incrementSuccessCounter(subscription);
     } catch (ReceiptHandleIsInvalidException e) {
       log.warn(
           "Error deleting message: {}, subscription: {}", message.getMessageId(), subscription, e);
-      registry.counter(getErrorCounter(subscription, e)).increment();
+      incrementErrorCounter(subscription, e);
     }
   }
 
   @Override
   public void nack(AmazonSubscriptionInformation subscription, Message message) {
     // Do nothing
-    registry.counter(getNackCounter(subscription)).increment();
+    incrementNackCounter(subscription);
   }
 
-  private Id getSuccessCounter(AmazonSubscriptionInformation subscription) {
-    return registry.createId(
-        "pubsub.amazon.acked", "subscription", subscription.properties.getName());
+  private void incrementSuccessCounter(AmazonSubscriptionInformation subscription) {
+    registry
+        .counter("pubsub.amazon.acked", "subscription", subscription.properties.getName())
+        .increment();
   }
 
-  private Id getErrorCounter(AmazonSubscriptionInformation subscription, Exception e) {
-    return registry.createId(
-        "pubsub.amazon.ackFailed",
-        "subscription",
-        subscription.properties.getName(),
-        "exceptionClass",
-        e.getClass().getSimpleName());
+  private void incrementErrorCounter(AmazonSubscriptionInformation subscription, Exception e) {
+    registry
+        .counter(
+            "pubsub.amazon.ackFailed",
+            "subscription",
+            subscription.properties.getName(),
+            "exceptionClass",
+            e.getClass().getSimpleName())
+        .increment();
   }
 
-  private Id getNackCounter(AmazonSubscriptionInformation subscription) {
-    return registry.createId(
-        "pubsub.amazon.nacked", "subscription", subscription.properties.getName());
+  private void incrementNackCounter(AmazonSubscriptionInformation subscription) {
+    registry
+        .counter("pubsub.amazon.nacked", "subscription", subscription.properties.getName())
+        .increment();
   }
 }

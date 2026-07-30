@@ -22,7 +22,7 @@ import com.amazonaws.services.ec2.model.AccountAttribute
 import com.amazonaws.services.ec2.model.AccountAttributeValue
 import com.amazonaws.services.ec2.model.DescribeAccountAttributesResult
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.DefaultRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.cats.agent.AgentProvider
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties
@@ -48,7 +48,7 @@ class AmazonCredentialsLifecycleHandlerSpec extends Specification {
   AwsProvider awsProvider
   Optional<Collection<AgentProvider>> agentProviders = Optional.empty()
   def amazonCloudProvider = new AmazonCloudProvider()
-  def registry = new DefaultRegistry()
+  def registry = new SimpleMeterRegistry()
   def serviceClientProvider = Mock(ServiceClientProvider)
   def eddaApiFactory = new EddaApiFactory(serviceClientProvider)
   def dynamicConfigService = Mock(DynamicConfigService) {

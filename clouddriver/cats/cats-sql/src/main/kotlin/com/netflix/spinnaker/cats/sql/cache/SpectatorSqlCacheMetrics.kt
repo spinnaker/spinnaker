@@ -15,12 +15,11 @@
  */
 package com.netflix.spinnaker.cats.sql.cache
 
-import com.netflix.spectator.api.BasicTag
-import com.netflix.spectator.api.Registry
-import com.netflix.spectator.api.Tag
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tag
 
 class SpectatorSqlCacheMetrics(
-  private val registry: Registry
+  private val registry: MeterRegistry
 ) : SqlCacheMetrics {
 
   override fun merge(
@@ -36,14 +35,14 @@ class SpectatorSqlCacheMetrics(
     duplicates: Int
   ) {
     val tags = tags(prefix, type)
-    registry.counter(id("cats.sqlCache.merge", "itemCount", tags)).increment(itemCount.toLong())
-    registry.counter(id("cats.sqlCache.merge", "itemsStored", tags)).increment(itemsStored.toLong())
-    registry.counter(id("cats.sqlCache.merge", "relationshipCount", tags)).increment(relationshipCount.toLong())
-    registry.counter(id("cats.sqlCache.merge", "relationshipsStored", tags)).increment(relationshipsStored.toLong())
-    registry.counter(id("cats.sqlCache.merge", "selectOperations", tags)).increment(selectOperations.toLong())
-    registry.counter(id("cats.sqlCache.merge", "writeOperations", tags)).increment(writeOperations.toLong())
-    registry.counter(id("cats.sqlCache.merge", "deleteOperations", tags)).increment(deleteOperations.toLong())
-    registry.counter(id("cats.sqlCache.merge", "duplicates", tags)).increment(duplicates.toLong())
+    registry.counter(id("cats.sqlCache.merge", "itemCount"), tags).increment(itemCount.toDouble())
+    registry.counter(id("cats.sqlCache.merge", "itemsStored"), tags).increment(itemsStored.toDouble())
+    registry.counter(id("cats.sqlCache.merge", "relationshipCount"), tags).increment(relationshipCount.toDouble())
+    registry.counter(id("cats.sqlCache.merge", "relationshipsStored"), tags).increment(relationshipsStored.toDouble())
+    registry.counter(id("cats.sqlCache.merge", "selectOperations"), tags).increment(selectOperations.toDouble())
+    registry.counter(id("cats.sqlCache.merge", "writeOperations"), tags).increment(writeOperations.toDouble())
+    registry.counter(id("cats.sqlCache.merge", "deleteOperations"), tags).increment(deleteOperations.toDouble())
+    registry.counter(id("cats.sqlCache.merge", "duplicates"), tags).increment(duplicates.toDouble())
   }
 
   override fun evict(
@@ -54,9 +53,9 @@ class SpectatorSqlCacheMetrics(
     deleteOperations: Int
   ) {
     val tags = tags(prefix, type)
-    registry.counter(id("cats.sqlCache.evict", "itemCount", tags)).increment(itemCount.toLong())
-    registry.counter(id("cats.sqlCache.evict", "itemsDeleted", tags)).increment(itemsDeleted.toLong())
-    registry.counter(id("cats.sqlCache.evict", "deleteOperations", tags)).increment(deleteOperations.toLong())
+    registry.counter(id("cats.sqlCache.evict", "itemCount"), tags).increment(itemCount.toDouble())
+    registry.counter(id("cats.sqlCache.evict", "itemsDeleted"), tags).increment(itemsDeleted.toDouble())
+    registry.counter(id("cats.sqlCache.evict", "deleteOperations"), tags).increment(deleteOperations.toDouble())
     super.evict(prefix, type, itemCount, itemsDeleted, deleteOperations)
   }
 
@@ -70,15 +69,14 @@ class SpectatorSqlCacheMetrics(
     async: Boolean
   ) {
     val tags = tags(prefix, type, async)
-    registry.counter(id("cats.sqlCache.get", "itemCount", tags)).increment(itemCount.toLong())
-    registry.counter(id("cats.sqlCache.get", "requestedSize", tags)).increment(requestedSize.toLong())
-    registry.counter(id("cats.sqlCache.get", "relationshipsRequested", tags)).increment(relationshipsRequested.toLong())
-    registry.counter(id("cats.sqlCache.get", "selectOperations", tags)).increment(selectOperations.toLong())
+    registry.counter(id("cats.sqlCache.get", "itemCount"), tags).increment(itemCount.toDouble())
+    registry.counter(id("cats.sqlCache.get", "requestedSize"), tags).increment(requestedSize.toDouble())
+    registry.counter(id("cats.sqlCache.get", "relationshipsRequested"), tags).increment(relationshipsRequested.toDouble())
+    registry.counter(id("cats.sqlCache.get", "selectOperations"), tags).increment(selectOperations.toDouble())
   }
 
-  private fun id(metricGroup: String, metric: String, tags: Iterable<Tag>) =
-    registry.createId("$metricGroup.$metric", tags)
+  private fun id(metricGroup: String, metric: String) = "$metricGroup.$metric"
 
   private fun tags(prefix: String, type: String, async: Boolean = false) =
-    listOf(BasicTag("prefix", prefix), BasicTag("type", type), BasicTag("async", async.toString()))
+    listOf(Tag.of("prefix", prefix), Tag.of("type", type), Tag.of("async", async.toString()))
 }

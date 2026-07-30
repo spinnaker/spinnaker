@@ -17,10 +17,10 @@
 package com.netflix.spinnaker.clouddriver.search.executor;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.search.SearchProvider;
 import com.netflix.spinnaker.clouddriver.search.SearchQueryCommand;
 import com.netflix.spinnaker.clouddriver.search.SearchResultSet;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +34,7 @@ public class SearchExecutor {
   private Integer timeout;
   private ExecutorService executor;
 
-  @Autowired Registry registry;
+  @Autowired MeterRegistry registry;
 
   SearchExecutor(SearchExecutorConfigProperties configProperties) {
     this.timeout = configProperties.getTimeout();
@@ -70,7 +70,8 @@ public class SearchExecutor {
         .collect(Collectors.toList());
   }
 
-  private static SearchResultSet getFuture(Future<SearchResultSet> f, Registry registry, String q) {
+  private static SearchResultSet getFuture(
+      Future<SearchResultSet> f, MeterRegistry registry, String q) {
     SearchResultSet resultSet = null;
     try {
       resultSet = f.get();
@@ -79,7 +80,7 @@ public class SearchExecutor {
     } catch (CancellationException e) {
       log.error(String.format("Retrieving result failed due to cancelled task: %s", f));
       String counterId = String.format("searchExecutor.%s.failures", q != null ? q : "*");
-      registry.counter(registry.createId(counterId)).increment(1);
+      registry.counter(counterId).increment(1);
     }
 
     if (resultSet == null) {
@@ -91,9 +92,9 @@ public class SearchExecutor {
   private static class SearchTask implements Callable<SearchResultSet> {
     private SearchProvider provider;
     private SearchQueryCommand searchQuery;
-    private Registry registry;
+    private MeterRegistry registry;
 
-    SearchTask(SearchProvider provider, SearchQueryCommand searchQuery, Registry registry) {
+    SearchTask(SearchProvider provider, SearchQueryCommand searchQuery, MeterRegistry registry) {
       this.provider = provider;
       this.searchQuery = searchQuery;
       this.registry = registry;
@@ -116,7 +117,7 @@ public class SearchExecutor {
       } catch (Exception e) {
         log.error(String.format("Search for '%s' in '%s' failed", q, searchQuery.getPlatform()), e);
         String counterId = String.format("searchExecutor.%s.failures", q != null ? q : "*");
-        registry.counter(registry.createId(counterId)).increment(1);
+        registry.counter(counterId).increment(1);
         return new SearchResultSet().setTotalMatches(0).setResults(Collections.EMPTY_LIST);
       }
     }

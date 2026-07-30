@@ -19,7 +19,7 @@ package com.netflix.spinnaker.gate.controllers
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.gate.api.extension.ProxyConfigProvider
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
@@ -53,7 +53,7 @@ import org.springframework.web.servlet.HandlerMapping
 @RequestMapping(value = ["/proxies"])
 class ProxyController(
   val objectMapper: ObjectMapper,
-  val registry: Registry,
+  val registry: MeterRegistry,
   val okHttpClientProvider: OkHttpClientProvider,
   val proxyConfigProvidersObjectProvider: ObjectProvider<List<ProxyConfigProvider>>
 ) {
@@ -85,7 +85,7 @@ class ProxyController(
     }
   )
 
-  val proxyInvocationsId = registry.createId("proxy.invocations")
+  val proxyInvocationsMetricName = "proxy.invocations"
 
   @RequestMapping(value = ["/{proxy}/**"], method = [DELETE, GET, POST, PUT])
   fun any(
@@ -156,11 +156,11 @@ class ProxyController(
     }
 
     registry.counter(
-      proxyInvocationsId
-        .withTag("proxy", proxyId)
-        .withTag("method", request.method)
-        .withTag("status", "${statusCode.toString()[0]}xx")
-        .withTag("statusCode", statusCode.toString())
+      proxyInvocationsMetricName,
+      "proxy", proxyId,
+      "method", request.method,
+      "status", "${statusCode.toString()[0]}xx",
+      "statusCode", statusCode.toString()
     ).increment()
 
     val responseObj = if (responseBody.startsWith("{")) {

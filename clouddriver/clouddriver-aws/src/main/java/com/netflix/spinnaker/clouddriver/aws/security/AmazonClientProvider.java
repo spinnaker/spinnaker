@@ -58,11 +58,11 @@ import com.amazonaws.services.support.AWSSupport;
 import com.amazonaws.services.support.AWSSupportClientBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer;
-import com.netflix.spectator.api.NoopRegistry;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.aws.security.sdkclient.*;
 import com.netflix.spinnaker.clouddriver.core.limits.ServiceLimitConfiguration;
 import com.netflix.spinnaker.clouddriver.core.limits.ServiceLimitConfigurationBuilder;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -113,7 +113,7 @@ public class AmazonClientProvider {
     private boolean logEndpoints = false;
     private ServiceLimitConfiguration serviceLimitConfiguration =
         new ServiceLimitConfigurationBuilder().build();
-    private Registry registry = new NoopRegistry();
+    private MeterRegistry registry = new SimpleMeterRegistry();
     private List<ExecutionInterceptor> v2ExecutionInterceptors = new ArrayList<>();
 
     public Builder httpClient(HttpClient httpClient) {
@@ -181,7 +181,7 @@ public class AmazonClientProvider {
       return this;
     }
 
-    public Builder registry(Registry registry) {
+    public Builder registry(MeterRegistry registry) {
       this.registry = registry;
       return this;
     }
@@ -308,7 +308,7 @@ public class AmazonClientProvider {
         EddaTimeoutConfig.DEFAULT,
         true,
         new ServiceLimitConfigurationBuilder().build(),
-        new NoopRegistry());
+        new SimpleMeterRegistry());
   }
 
   public AmazonClientProvider(
@@ -321,7 +321,7 @@ public class AmazonClientProvider {
       EddaTimeoutConfig eddaTimeoutConfig,
       boolean useGzip,
       ServiceLimitConfiguration serviceLimitConfiguration,
-      Registry registry) {
+      MeterRegistry registry) {
     this(
         httpClient,
         objectMapper,
@@ -346,7 +346,7 @@ public class AmazonClientProvider {
       EddaTimeoutConfig eddaTimeoutConfig,
       boolean useGzip,
       ServiceLimitConfiguration serviceLimitConfiguration,
-      Registry registry,
+      MeterRegistry registry,
       List<ExecutionInterceptor> v2ExecutionInterceptors) {
     RateLimiterSupplier rateLimiterSupplier =
         new RateLimiterSupplier(serviceLimitConfiguration, registry);

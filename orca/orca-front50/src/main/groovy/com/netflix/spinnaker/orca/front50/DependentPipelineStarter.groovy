@@ -17,8 +17,6 @@
 package com.netflix.spinnaker.orca.front50
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.Id
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact
 import com.netflix.spinnaker.kork.exceptions.ConfigurationException
@@ -31,6 +29,7 @@ import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.util.logging.Slf4j
+import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.beans.BeansException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
@@ -49,7 +48,7 @@ class DependentPipelineStarter implements ApplicationContextAware {
   ContextParameterProcessor contextParameterProcessor
   List<ExecutionPreprocessor> executionPreprocessors
   ArtifactUtils artifactUtils
-  Registry registry
+  MeterRegistry registry
 
   @Autowired
   DependentPipelineStarter(ApplicationContext applicationContext,
@@ -57,7 +56,7 @@ class DependentPipelineStarter implements ApplicationContextAware {
                            ContextParameterProcessor contextParameterProcessor,
                            Optional<List<ExecutionPreprocessor>> executionPreprocessors,
                            Optional<ArtifactUtils> artifactUtils,
-                           Registry registry) {
+                           MeterRegistry registry) {
     this.applicationContext = applicationContext
     this.objectMapper = objectMapper
     this.contextParameterProcessor = contextParameterProcessor
@@ -190,10 +189,11 @@ class DependentPipelineStarter implements ApplicationContextAware {
     if (artifactError == null) {
       callable = {
         return executionLauncher().start(PIPELINE, processedPipeline, parentPipeline.getRootId()).with {
-          Id id = registry.createId("pipelines.triggered")
-              .withTag("application", Optional.ofNullable(it.getApplication()).orElse("null"))
-              .withTag("monitor", "DependentPipelineStarter")
-          registry.counter(id).increment()
+          registry.counter(
+              "pipelines.triggered",
+              "application", Optional.ofNullable(it.getApplication()).orElse("null"),
+              "monitor", "DependentPipelineStarter"
+          ).increment()
           return it
         }
       } as Callable<PipelineExecution>

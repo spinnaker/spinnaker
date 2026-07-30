@@ -36,7 +36,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.netflix.spectator.api.DefaultRegistry;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.agent.AgentDataType.Authority;
 import com.netflix.spinnaker.cats.agent.CacheResult;
@@ -57,6 +56,7 @@ import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCrede
 import com.netflix.spinnaker.clouddriver.names.NamingStrategy;
 import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import com.netflix.spinnaker.moniker.Moniker;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
@@ -516,10 +516,10 @@ final class GoogleZonalServerGroupCachingAgentTest {
             .build(),
         new GoogleComputeApiFactory(
             new GoogleOperationPoller(),
-            new DefaultRegistry(),
+            new SimpleMeterRegistry(),
             "user-agent",
             MoreExecutors.listeningDecorator(Executors.newCachedThreadPool())),
-        new DefaultRegistry(),
+        new SimpleMeterRegistry(),
         REGION,
         new ObjectMapper(),
         serviceClientProvider);

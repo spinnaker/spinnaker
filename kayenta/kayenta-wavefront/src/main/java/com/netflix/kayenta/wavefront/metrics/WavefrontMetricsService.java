@@ -27,7 +27,7 @@ import com.netflix.kayenta.wavefront.security.WavefrontCredentials;
 import com.netflix.kayenta.wavefront.security.WavefrontNamedAccountCredentials;
 import com.netflix.kayenta.wavefront.service.WavefrontRemoteService;
 import com.netflix.kayenta.wavefront.service.WavefrontTimeSeries;
-import com.netflix.spectator.api.Registry;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.validation.constraints.NotNull;
 import java.io.IOException;
 import java.time.Instant;
@@ -50,7 +50,7 @@ public class WavefrontMetricsService implements MetricsService {
 
   @Autowired private final AccountCredentialsRepository accountCredentialsRepository;
 
-  @Autowired private final Registry registry;
+  @Autowired private final MeterRegistry registry;
 
   @Override
   public String getType() {

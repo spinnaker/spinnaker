@@ -15,10 +15,10 @@
  */
 package com.netflix.spinnaker.clouddriver.cloudrun.deploy.ops;
 
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class CloudrunAtomicOperation<ResultType> implements AtomicOperation<ResultType> {
-  @Autowired Registry registry;
+  @Autowired MeterRegistry registry;
 }

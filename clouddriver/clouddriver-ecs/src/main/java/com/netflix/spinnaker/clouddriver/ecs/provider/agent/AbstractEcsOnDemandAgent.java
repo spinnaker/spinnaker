@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.ecs.AmazonECS;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
@@ -27,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent;
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport;
 import com.netflix.spinnaker.clouddriver.cache.OnDemandType;
 import com.netflix.spinnaker.clouddriver.ecs.EcsCloudProvider;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -41,7 +41,7 @@ abstract class AbstractEcsOnDemandAgent<T> extends AbstractEcsCachingAgent<T>
       String region,
       AmazonClientProvider amazonClientProvider,
       AWSCredentialsProvider awsCredentialsProvider,
-      Registry registry) {
+      MeterRegistry registry) {
     super(account, region, amazonClientProvider, awsCredentialsProvider);
     this.metricsSupport =
         new OnDemandMetricsSupport(

@@ -2,7 +2,6 @@ package com.netflix.spinnaker.front50.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.appinfo.ApplicationInfoManager;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.front50.api.model.Timestamped;
 import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.jackson.mixins.PipelineMixins;
@@ -11,6 +10,7 @@ import com.netflix.spinnaker.front50.model.*;
 import com.netflix.spinnaker.front50.plugins.PluginBinaryStorageService;
 import com.netflix.spinnaker.front50.plugins.S3PluginBinaryStorageService;
 import com.netflix.spinnaker.kork.aws.bastion.BastionConfig;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Optional;
@@ -122,7 +122,7 @@ public class S3Config {
       S3MetadataStorageProperties s3Properties,
       StorageService storageService,
       TemporarySQSQueue temporaryQueueSupport,
-      Registry registry) {
+      MeterRegistry registry) {
     return new EventingS3ObjectKeyLoader(
         Executors.newFixedThreadPool(1),
         objectMapper,

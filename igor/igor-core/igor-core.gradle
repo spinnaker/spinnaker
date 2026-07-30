@@ -9,7 +9,6 @@ dependencies {
   implementation "com.squareup.retrofit2:retrofit"
   implementation "com.squareup.retrofit2:converter-jackson"
 
-  testImplementation "com.netflix.spectator:spectator-reg-micrometer"
   testImplementation "io.spinnaker.kork:kork-retrofit"
   testImplementation "com.squareup.okhttp3:mockwebserver"
   testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"

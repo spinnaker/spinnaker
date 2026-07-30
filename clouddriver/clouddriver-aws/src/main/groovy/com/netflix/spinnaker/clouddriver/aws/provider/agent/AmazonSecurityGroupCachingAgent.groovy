@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.aws.provider.agent
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.SecurityGroup
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.cats.agent.AccountAware
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
@@ -50,7 +50,7 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent, Ac
   final NetflixAmazonCredentials account
   final String region
   final ObjectMapper objectMapper
-  final Registry registry
+  final MeterRegistry registry
   final EddaTimeoutConfig eddaTimeoutConfig
 
   final OnDemandMetricsSupport metricsSupport
@@ -64,7 +64,7 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent, Ac
                                   NetflixAmazonCredentials account,
                                   String region,
                                   ObjectMapper objectMapper,
-                                  Registry registry,
+                                  MeterRegistry registry,
                                   EddaTimeoutConfig eddaTimeoutConfig) {
     this.amazonClientProvider = amazonClientProvider
     this.account = account

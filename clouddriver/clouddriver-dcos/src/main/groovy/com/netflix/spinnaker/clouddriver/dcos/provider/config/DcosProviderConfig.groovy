@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.Iterables
 import com.google.common.collect.Multimap
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.provider.Provider
 import com.netflix.spinnaker.clouddriver.dcos.DcosClientProvider
@@ -54,7 +54,7 @@ class DcosProviderConfig {
                             AccountCredentialsProvider accountCredentialsProvider,
                             AccountCredentialsRepository accountCredentialsRepository,
                             ObjectMapper objectMapper,
-                            Registry registry) {
+                            MeterRegistry registry) {
 
     def provider = new DcosProvider(dcosCloudProvider, Collections.newSetFromMap(new ConcurrentHashMap<Agent, Boolean>()))
     synchronizeDcosProvider(provider, accountCredentialsProvider, accountCredentialsRepository, objectMapper, registry)
@@ -65,7 +65,7 @@ class DcosProviderConfig {
                                               AccountCredentialsProvider accountCredentialsProvider,
                                               AccountCredentialsRepository accountCredentialsRepository,
                                               ObjectMapper objectMapper,
-                                              Registry registry) {
+                                              MeterRegistry registry) {
 
     Set<Pair<String, String>> scheduledAgents = getScheduledClusterAgents(dcosProvider)
 

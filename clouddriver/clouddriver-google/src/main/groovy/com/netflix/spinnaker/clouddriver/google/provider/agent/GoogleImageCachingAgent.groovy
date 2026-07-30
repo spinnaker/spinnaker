@@ -24,7 +24,7 @@ import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Image
 import com.google.api.services.compute.model.ImageList
 import com.google.common.annotations.VisibleForTesting
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
@@ -57,7 +57,7 @@ class GoogleImageCachingAgent extends AbstractGoogleCachingAgent {
   GoogleImageCachingAgent(String clouddriverUserAgentApplicationName,
                           GoogleNamedAccountCredentials credentials,
                           ObjectMapper objectMapper,
-                          Registry registry,
+                          MeterRegistry registry,
                           List<String> imageProjects,
                           List<String> baseImageProjects) {
     super(clouddriverUserAgentApplicationName,

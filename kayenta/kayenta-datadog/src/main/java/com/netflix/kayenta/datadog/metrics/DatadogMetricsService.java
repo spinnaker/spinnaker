@@ -31,7 +31,7 @@ import com.netflix.kayenta.model.DatadogMetricDescriptor;
 import com.netflix.kayenta.model.DatadogMetricDescriptorsResponse;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
-import com.netflix.spectator.api.Registry;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.validation.constraints.NotNull;
 import java.io.IOException;
 import java.time.Instant;
@@ -57,7 +57,7 @@ public class DatadogMetricsService implements MetricsService {
 
   @Autowired private final AccountCredentialsRepository accountCredentialsRepository;
 
-  @Autowired private final Registry registry;
+  @Autowired private final MeterRegistry registry;
 
   @Builder.Default
   private List<DatadogMetricDescriptor> metricDescriptorsCache = Collections.emptyList();

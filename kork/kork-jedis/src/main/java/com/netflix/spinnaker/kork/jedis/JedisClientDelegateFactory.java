@@ -18,19 +18,19 @@ package com.netflix.spinnaker.kork.jedis;
 import static com.netflix.spinnaker.kork.jedis.RedisClientConfiguration.Driver.REDIS;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.jedis.RedisClientConfiguration.Driver;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Map;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 
 public class JedisClientDelegateFactory implements RedisClientDelegateFactory<JedisClientDelegate> {
 
-  private Registry registry;
+  private MeterRegistry registry;
   private ObjectMapper objectMapper;
   private GenericObjectPoolConfig objectPoolConfig;
 
   public JedisClientDelegateFactory(
-      Registry registry, ObjectMapper objectMapper, GenericObjectPoolConfig objectPoolConfig) {
+      MeterRegistry registry, ObjectMapper objectMapper, GenericObjectPoolConfig objectPoolConfig) {
     this.registry = registry;
     this.objectMapper = objectMapper;
     this.objectPoolConfig = objectPoolConfig;

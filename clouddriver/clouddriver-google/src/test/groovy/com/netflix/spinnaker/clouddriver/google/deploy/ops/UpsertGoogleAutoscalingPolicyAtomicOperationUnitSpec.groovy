@@ -20,7 +20,7 @@ import com.google.api.services.compute.Compute
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.services.compute.model.*
 import com.netflix.spinnaker.cats.cache.Cache
-import com.netflix.spectator.api.DefaultRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.GoogleApiTestUtils
@@ -87,7 +87,7 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
   @Unroll
   void "can create zonal and regional scaling policies"() {
     setup:
-    def registry = new DefaultRegistry()
+    def registry = new SimpleMeterRegistry()
     def serverGroup = new GoogleServerGroup(zone: ZONE, regional: isRegional, selfLink: SELF_LINK).view
     def computeMock = Mock(Compute)
 
@@ -102,14 +102,12 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
     // zonal setup
     def autoscalerMock = Mock(Compute.Autoscalers)
     def insertMock = Mock(Compute.Autoscalers.Insert)
-    def zonalTimerId = GoogleApiTestUtils.makeOkId(registry, "compute.autoscalers.insert", [scope: "zonal", zone: ZONE])
-    registry.timer(zonalTimerId)
+    def zonalTimer = GoogleApiTestUtils.okTimer(registry, "compute.autoscalers.insert", [scope: "zonal", zone: ZONE])
 
     // regional setup
     def regionAutoscalerMock = Mock(Compute.RegionAutoscalers)
     def regionInsertMock = Mock(Compute.RegionAutoscalers.Insert)
-    def regionalTimerId = GoogleApiTestUtils.makeOkId(registry, "compute.regionAutoscalers.insert", [scope: "regional", region: REGION])
-    registry.timer(regionalTimerId)
+    def regionalTimer = GoogleApiTestUtils.okTimer(registry, "compute.regionAutoscalers.insert", [scope: "regional", region: REGION])
 
     @Subject def operation = Spy(UpsertGoogleAutoscalingPolicyAtomicOperation, constructorArgs: [description, googleClusterProviderMock, operationPollerMock,atomicOperationsRegistryMock, orchestrationProcessorMock, cacheView, objectMapper])
     operation.registry = registry
@@ -131,8 +129,8 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
       1 * insertMock.execute() >> [name: 'insertOp']
     }
 
-    registry.timer(regionalTimerId).count() == (isRegional ? 1 : 0)
-    registry.timer(zonalTimerId).count() == (isRegional ? 0 : 1)
+    regionalTimer.count() == (isRegional ? 1 : 0)
+    zonalTimer.count() == (isRegional ? 0 : 1)
 
     where:
     isRegional | location
@@ -143,7 +141,7 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
   @Unroll
   void "can update zonal and regional scaling policies"() {
     given:
-    def registry = new DefaultRegistry()
+    def registry = new SimpleMeterRegistry()
     def computeMock = Mock(Compute)
     def autoscalingPolicy = new AutoscalingPolicy(
       minNumReplicas: 1,
@@ -163,12 +161,12 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
     // zonal setup
     def autoscalerMock = Mock(Compute.Autoscalers)
     def updateMock = Mock(Compute.Autoscalers.Update)
-    def zonalTimerId = GoogleApiTestUtils.makeOkId(registry, "compute.autoscalers.update", [scope: "zonal", zone: ZONE])
+    def zonalTimer = GoogleApiTestUtils.okTimer(registry, "compute.autoscalers.update", [scope: "zonal", zone: ZONE])
 
     // regional setup
     def regionAutoscalerMock = Mock(Compute.RegionAutoscalers)
     def regionUpdateMock = Mock(Compute.RegionAutoscalers.Update)
-    def regionalTimerId = GoogleApiTestUtils.makeOkId(registry, "compute.regionAutoscalers.update", [scope: "regional", region: REGION])
+    def regionalTimer = GoogleApiTestUtils.okTimer(registry, "compute.regionAutoscalers.update", [scope: "regional", region: REGION])
 
     @Subject def operation = Spy(UpsertGoogleAutoscalingPolicyAtomicOperation, constructorArgs: [description, googleClusterProviderMock, operationPollerMock,atomicOperationsRegistryMock, orchestrationProcessorMock, cacheView, objectMapper])
     operation.registry = registry
@@ -189,8 +187,8 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
       1 * autoscalerMock.update(PROJECT_NAME, location, AUTOSCALER) >> updateMock
       1 * updateMock.execute() >> [name: 'updateOp']
     }
-    registry.timer(regionalTimerId).count() == (isRegional ? 1 : 0)
-    registry.timer(zonalTimerId).count() == (isRegional ? 0 : 1)
+    regionalTimer.count() == (isRegional ? 1 : 0)
+    zonalTimer.count() == (isRegional ? 0 : 1)
 
     where:
     isRegional | location
@@ -201,7 +199,7 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
   @Unroll
   void "builds autoscaler based on ancestor autoscaling policy and input description: input overrides nothing"() {
     setup:
-    def registry = new DefaultRegistry()
+    def registry = new SimpleMeterRegistry()
     def ancestorPolicy = new GoogleAutoscalingPolicy(
       minNumReplicas: MIN_NUM_REPLICAS, maxNumReplicas: MAX_NUM_REPLICAS, coolDownPeriodSec: COOL_DOWN_PERIOD_SEC,
       cpuUtilization: new GoogleAutoscalingPolicy.CpuUtilization(utilizationTarget: UTILIZATION_TARGET),
@@ -267,7 +265,7 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
   @Unroll
   void "builds autoscaler based on ancestor autoscaling policy and input description; input overrides everything"() {
     setup:
-    def registry = new DefaultRegistry()
+    def registry = new SimpleMeterRegistry()
     def ancestorPolicy = new AutoscalingPolicy(
       minNumReplicas: MIN_NUM_REPLICAS, maxNumReplicas: MAX_NUM_REPLICAS, coolDownPeriodSec: COOL_DOWN_PERIOD_SEC,
       cpuUtilization: new AutoscalingPolicyCpuUtilization(utilizationTarget: UTILIZATION_TARGET),
@@ -398,7 +396,7 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
 
   void "update the instance template when updatePolicyMetadata is called"() {
     given:
-    def registry = new DefaultRegistry()
+    def registry = new SimpleMeterRegistry()
     def computeMock = Mock(Compute)
     def autoscaler = [:]
 

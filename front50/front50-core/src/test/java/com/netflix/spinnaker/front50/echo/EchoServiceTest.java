@@ -26,7 +26,6 @@ import brave.http.HttpTracing;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.config.OkHttpMetricsInterceptorProperties;
 import com.netflix.spinnaker.config.RetrofitConfiguration;
@@ -45,6 +44,7 @@ import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor;
 import com.netflix.spinnaker.okhttp.SpinnakerRequestHeaderInterceptor;
 import com.netflix.spinnaker.retrofit.Retrofit2ConfigurationProperties;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.Collections;
 import java.util.List;
 import okhttp3.Interceptor;
@@ -65,7 +65,7 @@ import org.springframework.test.context.TestPropertySource;
       EchoConfiguration.class,
       DynamicConfigService.NoopDynamicConfig.class,
       StorageServiceConfigurationProperties.class,
-      NoopRegistry.class,
+      SimpleMeterRegistry.class,
       Retrofit2ServiceFactoryAutoConfiguration.class,
       RetrofitConfiguration.class,
       Retrofit2ConfigurationProperties.class,

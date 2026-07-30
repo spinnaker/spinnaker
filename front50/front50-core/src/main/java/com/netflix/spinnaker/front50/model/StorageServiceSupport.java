@@ -19,9 +19,6 @@ import static net.logstash.logback.argument.StructuredArguments.value;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-import com.netflix.spectator.api.Counter;
-import com.netflix.spectator.api.Registry;
-import com.netflix.spectator.api.Timer;
 import com.netflix.spinnaker.front50.api.model.Timestamped;
 import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.config.StorageServiceConfigurationProperties;
@@ -32,6 +29,10 @@ import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import io.github.resilience4j.core.SupplierUtils;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
+import io.micrometer.core.instrument.Timer;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Scheduler;
 import jakarta.annotation.PostConstruct;
@@ -63,7 +64,7 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
   private final StorageService service;
   private final Scheduler scheduler;
   private final ObjectKeyLoader objectKeyLoader;
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final CircuitBreakerRegistry circuitBreakerRegistry;
   private StorageServiceConfigurationProperties.PerObjectType configProperties;
 
@@ -85,7 +86,7 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
       Scheduler scheduler,
       ObjectKeyLoader objectKeyLoader,
       StorageServiceConfigurationProperties.PerObjectType configurationProperties,
-      Registry registry,
+      MeterRegistry registry,
       CircuitBreakerRegistry circuitBreakerRegistry) {
     this.objectType = objectType;
     this.service = service;
@@ -97,27 +98,20 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
 
     String typeName = objectType.name();
     this.autoRefreshTimer =
-        registry.timer(
-            registry.createId("storageServiceSupport.autoRefreshTime", "objectType", typeName));
+        registry.timer("storageServiceSupport.autoRefreshTime", "objectType", typeName);
     this.scheduledRefreshTimer =
-        registry.timer(
-            registry.createId(
-                "storageServiceSupport.scheduledRefreshTime", "objectType", typeName));
-    this.addCounter =
-        registry.counter(
-            registry.createId("storageServiceSupport.numAdded", "objectType", typeName));
+        registry.timer("storageServiceSupport.scheduledRefreshTime", "objectType", typeName);
+    this.addCounter = registry.counter("storageServiceSupport.numAdded", "objectType", typeName);
     this.removeCounter =
-        registry.counter(
-            registry.createId("storageServiceSupport.numRemoved", "objectType", typeName));
+        registry.counter("storageServiceSupport.numRemoved", "objectType", typeName);
     this.updateCounter =
-        registry.counter(
-            registry.createId("storageServiceSupport.numUpdated", "objectType", typeName));
+        registry.counter("storageServiceSupport.numUpdated", "objectType", typeName);
     this.mismatchedIdCounter =
-        registry.counter(
-            registry.createId("storageServiceSupport.mismatchedIds", "objectType", typeName));
+        registry.counter("storageServiceSupport.mismatchedIds", "objectType", typeName);
 
     registry.gauge(
-        registry.createId("storageServiceSupport.cacheSize", "objectType", typeName),
+        "storageServiceSupport.cacheSize",
+        Tags.of("objectType", typeName),
         this,
         new ToDoubleFunction() {
           @Override
@@ -127,7 +121,8 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
           }
         });
     registry.gauge(
-        registry.createId("storageServiceSupport.cacheAge", "objectType", typeName),
+        "storageServiceSupport.cacheAge",
+        Tags.of("objectType", typeName),
         lastRefreshedTime,
         (lrt) -> Long.valueOf(System.currentTimeMillis() - lrt.get()).doubleValue());
 

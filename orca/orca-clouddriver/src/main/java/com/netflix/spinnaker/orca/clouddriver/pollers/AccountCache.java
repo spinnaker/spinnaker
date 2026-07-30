@@ -17,13 +17,13 @@ package com.netflix.spinnaker.orca.clouddriver.pollers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Counter;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent;
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -53,7 +53,7 @@ public class AccountCache extends AbstractPollingNotificationAgent {
       ObjectMapper objectMapper,
       OortService oortService,
       RetrySupport retrySupport,
-      Registry registry) {
+      MeterRegistry registry) {
     super(notificationClusterLock);
     this.objectMapper = objectMapper;
     this.oortService = oortService;

@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.artifacts
 
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactMetadata
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
@@ -102,7 +102,7 @@ internal class WorkQueueProcessorTests : JUnit5Minutests {
       coEvery { supportedArtifact } returns SupportedArtifact(DEBIAN, DebianArtifact::class.java)
     }
     val artifactSuppliers = listOf(dockerArtifactSupplier, debianArtifactSupplier)
-    val spectator = NoopRegistry()
+    val spectator = SimpleMeterRegistry()
     val clock: Clock = MutableClock()
     val springEnv: Environment = mockk(relaxed = true)
 

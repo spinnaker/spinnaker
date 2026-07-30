@@ -15,9 +15,9 @@
  */
 package com.netflix.spinnaker.kork.sql.config
 
-import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.kork.sql.telemetry.HikariSpectatorMetricsTrackerFactory
+import com.netflix.spinnaker.kork.sql.telemetry.HikariMicrometerMetricsTrackerFactory
 import com.zaxxer.hikari.metrics.MetricsTrackerFactory
+import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -31,8 +31,8 @@ class HikariDataSourceConfiguration {
 
   @Suppress("UndocumentedPublicFunction")
   @Bean
-  fun hikariMetricsTrackerFactory(registry: Registry): MetricsTrackerFactory =
-    HikariSpectatorMetricsTrackerFactory(registry)
+  fun hikariMetricsTrackerFactory(registry: MeterRegistry): MetricsTrackerFactory =
+    HikariMicrometerMetricsTrackerFactory(registry)
 
   @Suppress("UndocumentedPublicFunction")
   @Bean

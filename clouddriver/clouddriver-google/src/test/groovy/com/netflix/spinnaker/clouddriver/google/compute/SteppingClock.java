@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.compute;
 
-import com.netflix.spectator.api.Clock;
+import io.micrometer.core.instrument.Clock;
 import java.time.Duration;
 
 class SteppingClock implements Clock {

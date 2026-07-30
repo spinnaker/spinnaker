@@ -19,7 +19,7 @@ package com.netflix.spinnaker.echo.pipelinetriggers
 
 import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
 import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.model.Trigger
@@ -38,7 +38,7 @@ import java.util.concurrent.ScheduledExecutorService
 class PipelineCacheSpec extends Specification implements RetrofitStubs {
   def front50 = Mock(Front50Service)
   def orca = Mock(OrcaService)
-  def registry = new NoopRegistry()
+  def registry = new SimpleMeterRegistry()
   def objectMapper = EchoObjectMapper.getInstance()
   def pipelineCacheConfigurationProperties = new PipelineCacheConfigurationProperties()
 

@@ -16,12 +16,11 @@
 
 package com.netflix.spinnaker.igor.nexus;
 
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.igor.config.NexusProperties;
 import com.netflix.spinnaker.igor.history.EchoService;
 import com.netflix.spinnaker.igor.nexus.model.NexusAssetWebhookPayload;
 import com.netflix.spinnaker.igor.nexus.model.NexusRepo;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -41,16 +40,14 @@ public class NexusController {
 
   private final NexusProperties nexusProperties;
   private final Optional<EchoService> echoService;
-  private final Registry registry;
-  private final Id missedNotificationId;
+  private final MeterRegistry registry;
+  private static final String MISSED_NOTIFICATION_METRIC_NAME = "webhook.missedEchoNotification";
 
   public NexusController(
-      NexusProperties nexusProperties, Optional<EchoService> echoService, Registry registry) {
+      NexusProperties nexusProperties, Optional<EchoService> echoService, MeterRegistry registry) {
     this.nexusProperties = nexusProperties;
     this.echoService = echoService;
     this.registry = registry;
-
-    missedNotificationId = registry.createId("webhook.missedEchoNotification");
   }
 
   @GetMapping("/names")
@@ -65,7 +62,8 @@ public class NexusController {
     if (!echoService.isPresent()) {
       log.warn("Cannot send build notification: Echo is not configured");
       registry
-          .counter(missedNotificationId.withTag("webhook", NexusController.class.getSimpleName()))
+          .counter(
+              MISSED_NOTIFICATION_METRIC_NAME, "webhook", NexusController.class.getSimpleName())
           .increment();
     } else {
       if (payload != null) {

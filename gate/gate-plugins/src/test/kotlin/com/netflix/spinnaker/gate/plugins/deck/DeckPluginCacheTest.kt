@@ -15,8 +15,8 @@
  */
 package com.netflix.spinnaker.gate.plugins.deck
 
-import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.kork.plugins.SpringPluginStatusProvider
 import com.netflix.spinnaker.kork.plugins.SpringStrictPluginLoaderStatusProvider
 import com.netflix.spinnaker.kork.plugins.bundle.PluginBundleExtractor
@@ -105,7 +105,7 @@ class DeckPluginCacheTest : JUnit5Minutests {
     val pluginBundleExtractor: PluginBundleExtractor = mockk(relaxed = true)
     val pluginStatusProvider: SpringPluginStatusProvider = mockk(relaxed = true)
     val pluginInfoReleaseProvider: PluginInfoReleaseProvider = mockk(relaxed = true)
-    val registry: Registry = NoopRegistry()
+    val registry: MeterRegistry = SimpleMeterRegistry()
     val springStrictPluginLoaderStatusProvider: SpringStrictPluginLoaderStatusProvider = mockk(relaxed = true)
     val subject = DeckPluginCache(updateManager, pluginBundleExtractor, pluginStatusProvider, pluginInfoReleaseProvider, registry, springStrictPluginLoaderStatusProvider, Optional.of(pluginsDir.toString()))
 

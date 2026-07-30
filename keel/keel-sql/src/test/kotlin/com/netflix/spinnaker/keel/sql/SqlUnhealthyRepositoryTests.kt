@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.sql
 
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.persistence.UnhealthyRepositoryTests
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
@@ -24,7 +24,7 @@ internal object SqlUnhealthyRepositoryTests : UnhealthyRepositoryTests<SqlUnheal
     resourceFactory,
     sqlRetry,
     publisher = mockk(relaxed = true),
-    spectator = NoopRegistry(),
+    spectator = SimpleMeterRegistry(),
     springEnv = mockEnvironment()
   )
 

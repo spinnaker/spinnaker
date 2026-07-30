@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.front50.model
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.config.Front50SqlProperties
 import com.netflix.spinnaker.front50.api.model.Timestamped
 import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
@@ -25,6 +24,7 @@ import com.netflix.spinnaker.front50.model.application.Application
 import com.netflix.spinnaker.front50.model.tag.EntityTags
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import dev.minutest.ContextBuilder
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -56,7 +56,7 @@ internal object SqlStorageServiceTests : JUnit5Minutests {
       jooqConfig.dialect
     )
 
-    val registry = DefaultRegistry()
+    val registry = SimpleMeterRegistry()
 
     val sqlStorageService = SqlStorageService(
       ObjectMapper(),
@@ -146,7 +146,7 @@ internal object SqlStorageServiceTests : JUnit5Minutests {
       context("Pipeline") {
 
         after {
-          registry.reset()
+          registry.clear()
         }
 
         test("create, update and delete a pipeline") {
@@ -261,7 +261,7 @@ internal object SqlStorageServiceTests : JUnit5Minutests {
           expectThat(
             pipelines.map { it.lastModified }.toSet()
           ).isEqualTo(lastModifiedList)
-          expectThat(registry.counter("sqlStorageService.invalidJson", "objectType", "pipelines").count()).isEqualTo(0);
+          expectThat(registry.counter("sqlStorageService.invalidJson", "objectType", "pipelines").count()).isEqualTo(0.0);
         }
 
         test("loadObjects with malformed pipelines") {
@@ -287,7 +287,7 @@ internal object SqlStorageServiceTests : JUnit5Minutests {
             listOf(invalidObjectKey)
           )
           expectThat(onlyInvalid).isEmpty()
-          expectThat(registry.counter("sqlStorageService.invalidJson", "objectType", "pipelines").count()).isEqualTo(1);
+          expectThat(registry.counter("sqlStorageService.invalidJson", "objectType", "pipelines").count()).isEqualTo(1.0);
 
           // Add a valid pipeline and repeat.  Make sure we get only the valid pipeline.
           val validObjectKey = "new-id-pipeline002-valid"
@@ -307,7 +307,7 @@ internal object SqlStorageServiceTests : JUnit5Minutests {
             listOf(invalidObjectKey, validObjectKey)
           )
           expectThat(withValidPipeline.map { it.id }.toList()).isEqualTo(listOf(validObjectKey))
-          expectThat(registry.counter("sqlStorageService.invalidJson", "objectType", "pipelines").count()).isEqualTo(2);
+          expectThat(registry.counter("sqlStorageService.invalidJson", "objectType", "pipelines").count()).isEqualTo(2.0);
         }
 
         test("loadObjectsNewerThan basic behavior") {
@@ -359,7 +359,7 @@ internal object SqlStorageServiceTests : JUnit5Minutests {
             lastModifiedThreshold
           )
           verifyNewerThan(newerItems, newObjectKeys, emptySet())
-          expectThat(registry.counter("sqlStorageService.invalidJson", "objectType", "pipelines").count()).isEqualTo(0);
+          expectThat(registry.counter("sqlStorageService.invalidJson", "objectType", "pipelines").count()).isEqualTo(0.0);
 
           // Delete a newer item and verify the behavior
           val newIdToDelete = newObjectKeys.first()
@@ -416,7 +416,7 @@ internal object SqlStorageServiceTests : JUnit5Minutests {
             lastModifiedThreshold
           )
           verifyNewerThan(onlyInvalid, setOf(), setOf())
-          expectThat(registry.counter("sqlStorageService.invalidJson", "objectType", "pipelines").count()).isEqualTo(1);
+          expectThat(registry.counter("sqlStorageService.invalidJson", "objectType", "pipelines").count()).isEqualTo(1.0);
 
           // Add a valid pipeline and repeat.  Make sure we get only the valid pipeline.
           val objectKey = "new-id-pipeline002-valid"
@@ -436,7 +436,7 @@ internal object SqlStorageServiceTests : JUnit5Minutests {
             lastModifiedThreshold
           )
           verifyNewerThan(withValidPipeline, setOf(objectKey), setOf())
-          expectThat(registry.counter("sqlStorageService.invalidJson", "objectType", "pipelines").count()).isEqualTo(2);
+          expectThat(registry.counter("sqlStorageService.invalidJson", "objectType", "pipelines").count()).isEqualTo(2.0);
         }
       }
 

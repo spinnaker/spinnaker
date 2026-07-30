@@ -27,12 +27,12 @@ import static org.mockito.Mockito.when;
 import ch.qos.logback.classic.Level;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.config.AmazonPubsubProperties;
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
 import com.netflix.spinnaker.echo.pubsub.PubsubMessageHandler;
 import com.netflix.spinnaker.kork.aws.ARN;
 import com.netflix.spinnaker.kork.test.log.MemoryAppender;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,7 +57,7 @@ public class AmazonSQSSubscriberTest {
 
   @Mock private PubsubMessageHandler pubsubMessageHandler;
 
-  @Mock private Registry registry;
+  private final SimpleMeterRegistry registry = new SimpleMeterRegistry();
 
   private final ARN queueARN = new ARN("arn:aws:sqs:us-west-2:100:queueName");
   private final ARN topicARN = new ARN("arn:aws:sns:us-west-2:100:topicName");

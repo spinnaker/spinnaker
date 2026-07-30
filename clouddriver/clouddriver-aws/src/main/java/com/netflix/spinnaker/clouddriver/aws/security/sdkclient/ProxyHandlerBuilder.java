@@ -22,10 +22,10 @@ import com.amazonaws.ClientConfiguration;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.aws.security.EddaTemplater;
 import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.lang.reflect.Proxy;
 import java.util.Map;
 import org.apache.http.client.HttpClient;
@@ -40,7 +40,7 @@ public class ProxyHandlerBuilder {
   private final ObjectMapper objectMapper;
   private final EddaTemplater eddaTemplater;
   private final EddaTimeoutConfig eddaTimeoutConfig;
-  private final Registry registry;
+  private final MeterRegistry registry;
 
   public ProxyHandlerBuilder(
       AwsSdkClientSupplier awsSdkClientSupplier,
@@ -48,7 +48,7 @@ public class ProxyHandlerBuilder {
       ObjectMapper objectMapper,
       EddaTemplater eddaTemplater,
       EddaTimeoutConfig eddaTimeoutConfig,
-      Registry registry) {
+      MeterRegistry registry) {
     this.awsSdkClientSupplier = requireNonNull(awsSdkClientSupplier);
     this.httpClient = requireNonNull(httpClient);
     this.objectMapper = requireNonNull(objectMapper);

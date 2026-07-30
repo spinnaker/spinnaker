@@ -18,7 +18,6 @@
 package com.netflix.spinnaker.clouddriver.sql
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.clouddriver.sql.event.SqlEventCleanupAgent
 import com.netflix.spinnaker.config.SqlEventCleanupAgentConfigProperties
 import com.netflix.spinnaker.config.SqlTaskCleanupAgentProperties
@@ -26,6 +25,7 @@ import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import io.mockk.every
 import io.mockk.mockk
 import strikt.api.expectThat
@@ -152,7 +152,7 @@ class SqlTaskCleanupAgentTest : JUnit5Minutests {
     val subject = SqlTaskCleanupAgent(
       jooq = database.context,
       clock = Clock.systemDefaultZone(),
-      registry = NoopRegistry(),
+      registry = SimpleMeterRegistry(),
       SqlTaskCleanupAgentProperties()
     )
 

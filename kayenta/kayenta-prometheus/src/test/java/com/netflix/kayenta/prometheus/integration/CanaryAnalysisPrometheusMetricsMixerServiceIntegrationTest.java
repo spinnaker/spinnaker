@@ -19,7 +19,7 @@ import com.netflix.kayenta.prometheus.metrics.PrometheusMetricsService;
 import com.netflix.kayenta.prometheus.model.PrometheusResults;
 import com.netflix.kayenta.prometheus.service.PrometheusRemoteService;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
-import com.netflix.spectator.api.NoopRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -77,7 +77,7 @@ public class CanaryAnalysisPrometheusMetricsMixerServiceIntegrationTest {
             PrometheusMetricsService.builder()
                 .scopeLabel("instance")
                 .accountCredentialsRepository(accountCredentialsRepository)
-                .registry(new NoopRegistry())
+                .registry(new SimpleMeterRegistry())
                 .build());
 
     metricSetMixerService = new MetricSetMixerService();

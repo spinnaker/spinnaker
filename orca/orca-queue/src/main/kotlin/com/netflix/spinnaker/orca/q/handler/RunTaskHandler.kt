@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
-import com.netflix.spectator.api.BasicTag
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.exceptions.UserException
 import com.netflix.spinnaker.orca.api.pipeline.TaskExecutionInterceptor
@@ -62,6 +60,9 @@ import com.netflix.spinnaker.orca.time.toDuration
 import com.netflix.spinnaker.orca.time.toInstant
 import com.netflix.spinnaker.q.Message
 import com.netflix.spinnaker.q.Queue
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tag
+import io.micrometer.core.instrument.Tags
 import org.apache.commons.lang3.time.DurationFormatUtils
 import org.slf4j.MDC
 import org.springframework.stereotype.Component
@@ -97,7 +98,7 @@ class RunTaskHandler(
   private val clock: Clock,
   private val exceptionHandlers: List<ExceptionHandler>,
   private val taskExecutionInterceptors: List<TaskExecutionInterceptor>,
-  private val registry: Registry,
+  private val registry: MeterRegistry,
   private val dynamicConfigService: DynamicConfigService,
   private val retriableLock: RetriableLock,
 ) : OrcaMessageHandler<RunTask>, ExpressionAware, AuthenticationAware {
@@ -258,7 +259,7 @@ class RunTaskHandler(
       val elapsedMillis = clock.millis() - thisInvocationStartTimeMs
 
       hashMapOf(
-        "task.invocations.duration" to commonTags + BasicTag("application", stage.execution.application),
+        "task.invocations.duration" to commonTags + Tag.of("application", stage.execution.application),
         "task.invocations.duration.withType" to commonTags + detailedTags
       ).forEach { name, tags ->
         registry.timer(name, tags).record(elapsedMillis, TimeUnit.MILLISECONDS)
@@ -432,22 +433,20 @@ class RunTaskHandler(
       Duration.between(startTime.toInstant(), endTime.toInstant())
     }
 
-  private fun Registry.timeoutCounter(
+  private fun MeterRegistry.timeoutCounter(
     executionType: ExecutionType,
     application: String,
     stageType: String,
     taskType: String
   ) =
     counter(
-      createId("queue.task.timeouts")
-        .withTags(
-          mapOf(
-            "executionType" to executionType.toString(),
-            "application" to application,
-            "stageType" to stageType,
-            "taskType" to taskType
-          )
-        )
+      "queue.task.timeouts",
+      Tags.of(
+        "executionType", executionType.toString(),
+        "application", application,
+        "stageType", stageType,
+        "taskType", taskType
+      )
     )
 
   private fun PipelineExecution.pausedDurationRelativeTo(instant: Instant?): Duration {

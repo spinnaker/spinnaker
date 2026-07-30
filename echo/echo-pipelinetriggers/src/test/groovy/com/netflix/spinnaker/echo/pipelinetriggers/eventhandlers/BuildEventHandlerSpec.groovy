@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers
 
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.echo.build.BuildInfoService
 import com.netflix.spinnaker.echo.config.IgorConfigurationProperties
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
@@ -18,7 +18,7 @@ import spock.lang.Unroll
 import static com.netflix.spinnaker.echo.model.trigger.BuildEvent.Result.*
 
 class BuildEventHandlerSpec extends Specification implements RetrofitStubs {
-  def registry = new NoopRegistry()
+  def registry = new SimpleMeterRegistry()
   def objectMapper = EchoObjectMapper.getInstance()
   def igorService = Mock(IgorService)
   def buildInformation = new BuildInfoService(igorService, new RetrySupport(), new IgorConfigurationProperties(jobNameAsQueryParameter: false))

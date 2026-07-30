@@ -38,8 +38,8 @@ import com.netflix.kayenta.retrofit.config.RemoteService;
 import com.netflix.kayenta.retrofit.config.RetrofitClientFactory;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.util.Retry;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.validation.constraints.NotNull;
 import java.time.Duration;
 import java.time.Instant;
@@ -70,7 +70,7 @@ public class AtlasMetricsService implements MetricsService {
 
   @Autowired private final ObjectMapper kayentaObjectMapper;
 
-  @Autowired private final Registry registry;
+  @Autowired private final MeterRegistry registry;
 
   @Autowired private final OkHttp3ClientConfiguration okHttp3ClientConfig;
 
@@ -200,7 +200,7 @@ public class AtlasMetricsService implements MetricsService {
     String decoratedQuery = atlasMetricSetQuery.getQ() + "," + atlasCanaryScope.cq();
     String isoStep = Duration.of(atlasCanaryScope.getStep(), SECONDS) + "";
 
-    long start = registry.clock().monotonicTime();
+    long start = registry.config().clock().monotonicTime();
     List<AtlasResults> atlasResultsList;
     try {
       atlasResultsList =
@@ -216,7 +216,7 @@ public class AtlasMetricsService implements MetricsService {
               MAX_RETRIES,
               RETRY_BACKOFF);
     } finally {
-      long end = registry.clock().monotonicTime();
+      long end = registry.config().clock().monotonicTime();
       registry.timer("atlas.fetchTime").record(end - start, TimeUnit.NANOSECONDS);
     }
     Map<String, AtlasResults> idToAtlasResultsMap = AtlasResultsHelper.merge(atlasResultsList);

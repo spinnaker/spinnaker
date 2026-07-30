@@ -17,8 +17,7 @@
  */
 package com.netflix.spinnaker.keel.veto.unhappy
 
-import com.netflix.spectator.api.Registry
-import com.netflix.spectator.api.patterns.PolledMeter
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.config.UnhappyVetoConfig
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
@@ -47,7 +46,7 @@ final class UnhappyVeto(
   private val resourceRepository: ResourceRepository,
   private val springEnv: Environment,
   private val config: UnhappyVetoConfig,
-  private val spectator: Registry,
+  private val spectator: MeterRegistry,
   private val clock: Clock
 ) : Veto {
 
@@ -56,10 +55,7 @@ final class UnhappyVeto(
   private val NUM_VETOS_GAUGE = "keel.vetos.unhappy.num"
 
   init {
-    PolledMeter
-      .using(spectator)
-      .withName(NUM_VETOS_GAUGE)
-      .monitorValue(this) { it.numberRejections().toDouble() }
+    spectator.gauge(NUM_VETOS_GAUGE, this) { it.numberRejections().toDouble() }
   }
 
   private val maxRetries: Int

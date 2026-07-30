@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.front50.migrations
 
-import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.front50.model.ObjectType
 import com.netflix.spinnaker.front50.model.SqlStorageService
 import com.netflix.spinnaker.front50.model.tag.EntityTagsDAO
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.web.context.RequestContextProvider
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.*
@@ -34,7 +34,7 @@ class StorageServiceMigratorTests : JUnit5Minutests {
   private val entityTagsDAO: EntityTagsDAO = mockk(relaxUnitFun = true)
   private val contextProvider: RequestContextProvider = mockk(relaxUnitFun = true)
 
-  private val subject = StorageServiceMigrator(dynamicConfigService, NoopRegistry(), target, source, entityTagsDAO, contextProvider)
+  private val subject = StorageServiceMigrator(dynamicConfigService, SimpleMeterRegistry(), target, source, entityTagsDAO, contextProvider)
 
   fun tests() = rootContext {
     after {

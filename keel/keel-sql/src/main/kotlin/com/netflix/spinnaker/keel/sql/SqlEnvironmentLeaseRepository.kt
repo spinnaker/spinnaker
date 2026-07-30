@@ -1,8 +1,7 @@
 package com.netflix.spinnaker.keel.sql
 
-import com.netflix.spectator.api.Id
-import com.netflix.spectator.api.Registry
-import com.netflix.spectator.api.histogram.PercentileTimer
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Timer
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.core.api.UID
@@ -28,17 +27,11 @@ import java.time.Instant
 class SqlEnvironmentLeaseRepository(
   private val jooq: DSLContext,
   private val clock: Clock,
-  private val spectator: Registry,
+  private val spectator: MeterRegistry,
   private val leaseDuration: Duration) : EnvironmentLeaseRepository {
 
-  private val leaseCountId = spectator.createId("lease.env.count")
-
-  /**
-   * Percentile timer builder for measuring how long the lease is held
-   *
-   * We use the default percentile time range: 10ms to 1 minute
-   */
-  private val timerBuilder = PercentileTimer.builder(spectator).withName("lease.env.duration")
+  private val leaseCountMetricName = "lease.env.count"
+  private val leaseDurationMetricName = "lease.env.duration"
 
 
   /**
@@ -71,20 +64,20 @@ class SqlEnvironmentLeaseRepository(
         when {
           // no existing lease
           record == null -> insertRecord(this, leaseUid, environmentUid, actionType)
-            .also { leaseCountId.incrementGranted("free", actionType, deliveryConfig.application, environment.name) }
+            .also { incrementGranted("free", actionType, deliveryConfig.application, environment.name) }
 
           // expired lease
           // leased_at is NOT NULL in the schema; jOOQ 3.19 generates converter-backed columns as
           // nullable, so assert non-null to reflect the DB guarantee.
           isExpired(record.leasedAt!!) -> updateRecord(this, leaseUid, environmentUid, actionType)
-            .also { leaseCountId.incrementGranted("expired", actionType, deliveryConfig.application, environment.name) }
+            .also { incrementGranted("expired", actionType, deliveryConfig.application, environment.name) }
 
           // active lease
           else -> throw ActiveLeaseExists(environment, record.leasedBy, record.leasedAt!!)
-            .also { leaseCountId.incrementDenied(actionType, deliveryConfig.application, environment.name) }
+            .also { incrementDenied(actionType, deliveryConfig.application, environment.name) }
         }
       }
-      return SqlLease(this, leaseUid, startTime, actionType, timerBuilder, clock)
+      return SqlLease(this, leaseUid, startTime, actionType, spectator, clock)
 
     } catch (e: DataAccessException) {
       recordDeniedLeaseTime(startTime, actionType)
@@ -100,10 +93,10 @@ class SqlEnvironmentLeaseRepository(
   }
 
   private fun recordDeniedLeaseTime(startTime: Instant, actionType: String) {
-    timerBuilder
-      .withTag("action", actionType)
-      .withTag("outcome", "denied")
-      .build()
+    Timer.builder(leaseDurationMetricName)
+      .tags("action", actionType, "outcome", "denied")
+      .publishPercentileHistogram()
+      .register(spectator)
       .record(Duration.between(startTime, clock.instant()))
   }
 
@@ -167,21 +160,21 @@ class SqlEnvironmentLeaseRepository(
   // Metric helpers
   //
 
-  private fun Id.incrementGranted(status: String, actionType: String, application: String, environment: String)  =
+  private fun incrementGranted(status: String, actionType: String, application: String, environment: String)  =
     increment("granted", status, actionType, application, environment)
 
-  private fun Id.incrementDenied(actionType: String, application: String, environment: String) =
+  private fun incrementDenied(actionType: String, application: String, environment: String) =
     increment("denied", "active", actionType, application, environment)
 
-  private fun Id.increment(outcome: String, status: String, actionType: String, application: String, environment: String) {
-    val id =
-      this.withTags(
-        "outcome", outcome,
-        "status", status,
-        "action", actionType,
-        "application", application,
-        "environment", environment)
-    spectator.counter(id).increment()
+  private fun increment(outcome: String, status: String, actionType: String, application: String, environment: String) {
+    spectator.counter(
+      leaseCountMetricName,
+      "outcome", outcome,
+      "status", status,
+      "action", actionType,
+      "application", application,
+      "environment", environment
+    ).increment()
   }
 
   class SqlLease(
@@ -189,16 +182,16 @@ class SqlEnvironmentLeaseRepository(
     val uid: UID,
     private val startTime: Instant,
     private val actionType: String,
-    private val timerBuilder: PercentileTimer.Builder,
+    private val spectator: MeterRegistry,
     private val clock: Clock
   ) : Lease {
     override fun close() {
       repository.release(this)
 
-      timerBuilder
-        .withTag("action", actionType)
-        .withTag("outcome", "granted")
-        .build()
+      Timer.builder("lease.env.duration")
+        .tags("action", actionType, "outcome", "granted")
+        .publishPercentileHistogram()
+        .register(spectator)
         .record(Duration.between(startTime, clock.instant()))
     }
   }

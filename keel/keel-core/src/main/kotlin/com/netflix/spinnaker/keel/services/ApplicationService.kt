@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.services
 
-import com.netflix.spectator.api.BasicTag
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.Tag
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.config.ArtifactConfig
 import com.netflix.spinnaker.keel.actuation.EnvironmentTaskCanceler
 import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
@@ -87,7 +87,7 @@ class ApplicationService(
   private val publisher: ApplicationEventPublisher,
   private val springEnv: SpringEnvironment,
   private val clock: Clock,
-  private val spectator: Registry,
+  private val spectator: MeterRegistry,
   private val artifactConfig: ArtifactConfig,
   private val artifactVersionLinks: ArtifactVersionLinks,
   private val environmentTaskCanceler: EnvironmentTaskCanceler
@@ -247,7 +247,7 @@ class ApplicationService(
       val summaries = getResourceSummaries(deliveryConfig)
       spectator.timer(
         RESOURCE_SUMMARY_CONSTRUCT_DURATION_ID,
-        listOf(BasicTag("application", application))
+        listOf(Tag.of("application", application))
       ).record(Duration.between(startTime, now))
       summaries
     } catch (e: NoSuchDeliveryConfigException) {
@@ -287,7 +287,7 @@ class ApplicationService(
       val summaries = repository.getEnvironmentSummaries(config)
       spectator.timer(
         ENV_SUMMARY_CONSTRUCT_DURATION_ID,
-        listOf(BasicTag("application", application))
+        listOf(Tag.of("application", application))
       ).record(Duration.between(startTime, now))
       summaries.sortedByDependencies()
     } catch (e: NoSuchDeliveryConfigException) {
@@ -324,7 +324,7 @@ class ApplicationService(
     val environmentSummaries = getEnvironmentSummariesFor(application)
     spectator.timer(
       ENV_SUMMARY_CONSTRUCT_DURATION_ID,
-      listOf(BasicTag("application", application))
+      listOf(Tag.of("application", application))
     ).record(Duration.between(startTime, now))
     return getArtifactSummariesFor(application, environmentSummaries, limit)
   }
@@ -413,7 +413,7 @@ class ApplicationService(
                   }
                 spectator.timer(
                   ARTIFACT_IN_ENV_SUMMARY_CONSTRUCT_DURATION,
-                  listOf(BasicTag("application", application))
+                  listOf(Tag.of("application", application))
                 ).record(Duration.between(artifactInEnvStartTime, now))
               }
             }
@@ -428,7 +428,7 @@ class ApplicationService(
         )
         spectator.timer(
           ARTIFACT_VERSION_SUMMARY_CONSTRUCT_DURATION_ID,
-          listOf(BasicTag("application", application))
+          listOf(Tag.of("application", application))
         ).record(Duration.between(versionStartTime, now))
         summary
       }
@@ -441,7 +441,7 @@ class ApplicationService(
     }
     spectator.timer(
       ARTIFACT_SUMMARY_CONSTRUCT_DURATION_ID,
-      listOf(BasicTag("application", application))
+      listOf(Tag.of("application", application))
     ).record(Duration.between(startTime, now))
     return artifactSummaries
   }

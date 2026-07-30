@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.orca.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.jedis.JedisClientConfiguration;
 import com.netflix.spinnaker.kork.jedis.RedisClientSelector;
 import com.netflix.spinnaker.kork.jedis.lock.RedisLockManager;
@@ -30,6 +29,7 @@ import com.netflix.spinnaker.orca.notifications.RedisNotificationClusterLock;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.RedisExecutionRepository;
 import groovy.util.logging.Slf4j;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.reactivex.rxjava3.core.Scheduler;
 import java.time.Clock;
 import java.util.Collections;
@@ -62,7 +62,7 @@ public class RedisConfiguration {
   @Bean
   @ConditionalOnProperty(value = "execution-repository.redis.enabled", matchIfMissing = true)
   public ExecutionRepository redisExecutionRepository(
-      Registry registry,
+      MeterRegistry meterRegistry,
       RedisClientSelector redisClientSelector,
       @Qualifier("queryAllScheduler") Scheduler queryAllScheduler,
       @Qualifier("queryByAppScheduler") Scheduler queryByAppScheduler,
@@ -70,14 +70,14 @@ public class RedisConfiguration {
       @Value("${keiko.queue.redis.queue-name:}") String bufferedPrefix) {
     ExecutionRepository repository =
         new RedisExecutionRepository(
-            registry,
+            meterRegistry,
             redisClientSelector,
             queryAllScheduler,
             queryByAppScheduler,
             threadPoolChunkSize,
             bufferedPrefix);
     return InstrumentedProxy.proxy(
-        registry, repository, "redis.executionRepository", Collections.emptyMap());
+        meterRegistry, repository, "redis.executionRepository", Collections.emptyMap());
   }
 
   @Bean
@@ -120,7 +120,7 @@ public class RedisConfiguration {
   @ConditionalOnProperty(value = "redis.external-lock.enabled")
   public LockManager lockManager(
       Clock clock,
-      Registry registry,
+      MeterRegistry registry,
       ObjectMapper mapper,
       RedisClientSelector redisClientSelector) {
     return new RedisLockManager(

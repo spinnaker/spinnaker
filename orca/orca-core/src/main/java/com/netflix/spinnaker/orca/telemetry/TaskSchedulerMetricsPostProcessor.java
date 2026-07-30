@@ -17,8 +17,8 @@ package com.netflix.spinnaker.orca.telemetry;
 
 import static java.lang.String.format;
 
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -33,7 +33,7 @@ public class TaskSchedulerMetricsPostProcessor
 
   @Autowired
   @Lazy
-  public TaskSchedulerMetricsPostProcessor(Registry registry) {
+  public TaskSchedulerMetricsPostProcessor(MeterRegistry registry) {
     super(ThreadPoolTaskScheduler.class, registry);
   }
 
@@ -41,9 +41,11 @@ public class TaskSchedulerMetricsPostProcessor
   protected void applyMetrics(ThreadPoolTaskScheduler bean, String beanName) throws Exception {
     BiConsumer<String, Function<ThreadPoolExecutor, Integer>> createGauge =
         (name, fn) -> {
-          Id id = registry.createId(format("threadpool.%s", name)).withTag("id", beanName);
-
-          registry.gauge(id, bean, ref -> fn.apply(ref.getScheduledThreadPoolExecutor()));
+          registry.gauge(
+              format("threadpool.%s", name),
+              Tags.of("id", beanName),
+              bean,
+              ref -> fn.apply(ref.getScheduledThreadPoolExecutor()));
         };
 
     createGauge.accept("activeCount", ThreadPoolExecutor::getActiveCount);

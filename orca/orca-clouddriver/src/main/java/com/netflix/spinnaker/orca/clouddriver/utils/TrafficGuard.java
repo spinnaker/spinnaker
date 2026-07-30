@@ -18,10 +18,8 @@ package com.netflix.spinnaker.orca.clouddriver.utils;
 
 import static java.lang.String.format;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
-import com.netflix.spectator.impl.Preconditions;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
@@ -34,6 +32,7 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Locat
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.front50.model.Application;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -48,22 +47,19 @@ public class TrafficGuard {
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   private final Front50Service front50Service;
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final DynamicConfigService dynamicConfigService;
   private final CloudDriverService cloudDriverService;
-
-  private final Id savesId;
 
   @Autowired
   public TrafficGuard(
       Optional<Front50Service> front50Service,
-      Registry registry,
+      MeterRegistry registry,
       DynamicConfigService dynamicConfigService,
       CloudDriverService cloudDriverService) {
     this.front50Service = front50Service.orElse(null);
     this.registry = registry;
     this.dynamicConfigService = dynamicConfigService;
-    this.savesId = registry.createId("trafficGuard.saves");
     this.cloudDriverService = cloudDriverService;
   }
 
@@ -293,19 +289,20 @@ public class TrafficGuard {
       return;
     }
 
-    Preconditions.checkArg(!currentServerGroups.isEmpty(), "currentServerGroups must not be empty");
+    Preconditions.checkArgument(
+        !currentServerGroups.isEmpty(), "currentServerGroups must not be empty");
 
     // make sure all server groups are in the same location
     TargetServerGroup someServerGroup = serverGroupsGoingAway.stream().findAny().get();
     Location location = someServerGroup.getLocation();
-    Preconditions.checkArg(
+    Preconditions.checkArgument(
         Stream.concat(serverGroupsGoingAway.stream(), currentServerGroups.stream())
             .allMatch(sg -> location.equals(sg.getLocation())),
         "server groups must all be in the same location but some not in " + location);
 
     // make sure all server groups are in the same cluster
     String cluster = someServerGroup.getMoniker().getCluster();
-    Preconditions.checkArg(
+    Preconditions.checkArgument(
         Stream.concat(serverGroupsGoingAway.stream(), currentServerGroups.stream())
             .allMatch(sg -> cluster.equals(sg.getMoniker().getCluster())),
         "server groups must all be in the same cluster but some not in " + cluster);
@@ -372,8 +369,11 @@ public class TrafficGuard {
 
       registry
           .counter(
-              savesId.withTags(
-                  "application", someServerGroup.getMoniker().getApp(), "account", account))
+              "trafficGuard.saves",
+              "application",
+              someServerGroup.getMoniker().getApp(),
+              "account",
+              account)
           .increment();
 
       throw new TrafficGuardException(message);

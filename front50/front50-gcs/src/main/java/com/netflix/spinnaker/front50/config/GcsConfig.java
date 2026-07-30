@@ -25,7 +25,6 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.front50.api.model.Timestamped;
 import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.jackson.mixins.PipelineMixins;
@@ -37,6 +36,7 @@ import com.netflix.spinnaker.front50.model.ObjectType;
 import com.netflix.spinnaker.front50.model.application.ApplicationPermissionDAO;
 import com.netflix.spinnaker.front50.model.application.DefaultApplicationPermissionDAO;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -140,7 +140,7 @@ public class GcsConfig {
   public ApplicationPermissionDAO applicationPermissionDAO(
       Storage storage,
       StorageServiceConfigurationProperties storageServiceConfigurationProperties,
-      Registry registry,
+      MeterRegistry registry,
       CircuitBreakerRegistry circuitBreakerRegistry,
       GcsProperties gcsProperties) {
 

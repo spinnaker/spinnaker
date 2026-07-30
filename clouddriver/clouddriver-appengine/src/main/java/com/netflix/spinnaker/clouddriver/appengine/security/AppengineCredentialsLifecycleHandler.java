@@ -17,12 +17,12 @@
 package com.netflix.spinnaker.clouddriver.appengine.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.appengine.provider.AppengineProvider;
 import com.netflix.spinnaker.clouddriver.appengine.provider.agent.AppengineLoadBalancerCachingAgent;
 import com.netflix.spinnaker.clouddriver.appengine.provider.agent.AppenginePlatformApplicationCachingAgent;
 import com.netflix.spinnaker.clouddriver.appengine.provider.agent.AppengineServerGroupCachingAgent;
 import com.netflix.spinnaker.credentials.CredentialsLifecycleHandler;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Collections;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +34,7 @@ public class AppengineCredentialsLifecycleHandler
     implements CredentialsLifecycleHandler<AppengineNamedAccountCredentials> {
   private final AppengineProvider appengineProvider;
   private final ObjectMapper objectMapper;
-  private final Registry registry;
+  private final MeterRegistry registry;
 
   @Override
   public void credentialsAdded(AppengineNamedAccountCredentials credentials) {

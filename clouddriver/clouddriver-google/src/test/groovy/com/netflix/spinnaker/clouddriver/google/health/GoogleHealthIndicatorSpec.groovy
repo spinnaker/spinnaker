@@ -20,8 +20,8 @@ package com.netflix.spinnaker.clouddriver.google.health
 import com.google.api.services.compute.model.Project
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
-import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.google.provider.agent.StubComputeFactory
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
@@ -38,7 +38,7 @@ class GoogleHealthIndicatorSpec extends Specification {
   private static final String PROJECT = "myproject"
   private static final String REGION = "myregion"
   private static final String ZONE = REGION + "-myzone"
-  private static final Registry REGISTRY = new NoopRegistry()
+  private static final MeterRegistry REGISTRY = new SimpleMeterRegistry()
 
   @Unroll
   def "health succeeds when google is reachable"() {

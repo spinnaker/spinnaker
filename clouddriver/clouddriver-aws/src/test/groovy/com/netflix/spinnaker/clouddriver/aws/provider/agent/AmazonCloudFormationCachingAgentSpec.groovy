@@ -26,7 +26,8 @@ import com.amazonaws.services.cloudformation.model.ListChangeSetsResult
 import com.amazonaws.services.cloudformation.model.Stack
 import com.amazonaws.services.cloudformation.model.StackEvent
 import com.amazonaws.services.ec2.AmazonEC2
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.google.common.collect.ImmutableMap
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
@@ -58,7 +59,7 @@ class AmazonCloudFormationCachingAgentSpec extends Specification {
   AmazonClientProvider acp
 
   @Shared
-  Registry registry
+  MeterRegistry registry
 
   def setup() {
     ec2 = Mock(AmazonEC2)
@@ -66,7 +67,7 @@ class AmazonCloudFormationCachingAgentSpec extends Specification {
       getName() >> accountName
     }
     acp = Mock(AmazonClientProvider)
-    registry = Mock(Registry)
+    registry = new SimpleMeterRegistry()
     agent = new AmazonCloudFormationCachingAgent(acp, creds, region, registry)
   }
 

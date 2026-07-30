@@ -1,11 +1,11 @@
 package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.sql.config.SqlProperties
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.sql.pending.SqlPendingExecutionService
 import com.netflix.spinnaker.q.Queue
+import io.micrometer.core.instrument.MeterRegistry
 import java.time.Clock
 import org.jooq.DSLContext
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -25,7 +25,7 @@ class SqlPendingExecutionConfiguration {
     repository: ExecutionRepository,
     mapper: ObjectMapper,
     clock: Clock,
-    registry: Registry,
+    registry: MeterRegistry,
     sqlProperties: SqlProperties,
     orcaSqlProperties: OrcaSqlProperties,
     sqlPendingProperties: SqlPendingExecutionProperties

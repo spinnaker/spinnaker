@@ -15,22 +15,22 @@
  */
 package com.netflix.spinnaker.kork.jedis.telemetry;
 
-import com.netflix.spectator.api.Registry;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
 public class InstrumentedJedisPool extends JedisPool {
 
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final JedisPool delegated;
   private final String poolName;
 
-  public InstrumentedJedisPool(Registry registry, JedisPool delegated) {
+  public InstrumentedJedisPool(MeterRegistry registry, JedisPool delegated) {
     this(registry, delegated, "unnamed");
   }
 
-  public InstrumentedJedisPool(Registry registry, JedisPool delegated, String poolName) {
+  public InstrumentedJedisPool(MeterRegistry registry, JedisPool delegated, String poolName) {
     this.registry = registry;
     this.delegated = delegated;
     this.poolName = poolName;

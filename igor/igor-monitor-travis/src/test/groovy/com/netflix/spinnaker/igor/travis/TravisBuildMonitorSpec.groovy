@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.igor.travis
 
-import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.igor.build.BuildCache
 import com.netflix.spinnaker.igor.history.EchoService
@@ -31,6 +30,7 @@ import com.netflix.spinnaker.igor.travis.service.TravisBuildConverter
 import com.netflix.spinnaker.igor.travis.service.TravisService
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.springframework.scheduling.TaskScheduler
 import retrofit2.mock.Calls
 import spock.lang.Specification
@@ -51,7 +51,7 @@ class TravisBuildMonitorSpec extends Specification {
         buildServices.addServices([MASTER: travisService])
         travisBuildMonitor = new TravisBuildMonitor(
             new IgorConfigurationProperties(),
-            new NoopRegistry(),
+            new SimpleMeterRegistry(),
             new DynamicConfigService.NoopDynamicConfig(),
             new DiscoveryStatusListener(true),
             buildCache,

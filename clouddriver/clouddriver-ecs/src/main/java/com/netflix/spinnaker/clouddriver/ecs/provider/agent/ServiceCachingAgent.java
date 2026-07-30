@@ -25,7 +25,6 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.ecs.AmazonECS;
 import com.amazonaws.services.ecs.model.*;
 import com.google.common.annotations.VisibleForTesting;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
@@ -39,6 +38,7 @@ import com.netflix.spinnaker.clouddriver.ecs.names.EcsResourceService;
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.moniker.Moniker;
 import com.netflix.spinnaker.moniker.Namer;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -66,7 +66,7 @@ public class ServiceCachingAgent extends AbstractEcsOnDemandAgent<Service> {
       String region,
       AmazonClientProvider amazonClientProvider,
       AWSCredentialsProvider awsCredentialsProvider,
-      Registry registry) {
+      MeterRegistry registry) {
     this(
         account,
         region,
@@ -85,7 +85,7 @@ public class ServiceCachingAgent extends AbstractEcsOnDemandAgent<Service> {
       String region,
       AmazonClientProvider amazonClientProvider,
       AWSCredentialsProvider awsCredentialsProvider,
-      Registry registry,
+      MeterRegistry registry,
       Namer naming) {
     super(account, region, amazonClientProvider, awsCredentialsProvider, registry);
     this.naming = naming;

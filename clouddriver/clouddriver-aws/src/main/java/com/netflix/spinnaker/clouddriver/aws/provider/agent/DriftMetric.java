@@ -16,13 +16,14 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.agent;
 
-import com.netflix.spectator.api.Gauge;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
+import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 
 public interface DriftMetric {
-  Registry getRegistry();
+  MeterRegistry getRegistry();
 
   NetflixAmazonCredentials getAccount();
 
@@ -32,23 +33,26 @@ public interface DriftMetric {
 
   String getAgentType();
 
-  default Gauge getDriftMetricGauge() {
+  default AtomicReference<Double> getDriftMetricGauge() {
     return getRegistry()
         .gauge(
             "cache.drift",
-            "agent",
-            getClass().getSimpleName(),
-            "account",
-            getAccount().getName(),
-            "region",
-            getRegion());
+            Tags.of(
+                "agent",
+                getClass().getSimpleName(),
+                "account",
+                getAccount().getName(),
+                "region",
+                getRegion()),
+            new AtomicReference<>(0.0),
+            AtomicReference::get);
   }
 
   default void recordDrift(Long start) {
     if (start != null && start != 0L) {
-      Long drift = getRegistry().clock().wallTime() - start;
+      Long drift = getRegistry().config().clock().wallTime() - start;
       getLog().info("{}/drift - {} milliseconds", getAgentType(), drift);
-      getDriftMetricGauge().set(drift);
+      getDriftMetricGauge().set(drift.doubleValue());
     }
   }
 }

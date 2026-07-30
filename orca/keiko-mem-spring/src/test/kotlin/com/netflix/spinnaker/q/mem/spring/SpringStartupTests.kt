@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.q.mem.spring
 
-import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.config.MemQueueConfiguration
 import com.netflix.spinnaker.config.QueueConfiguration
 import com.netflix.spinnaker.q.DeadMessageCallback
@@ -14,7 +13,8 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.test.context.junit.jupiter.SpringExtension
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest(
@@ -38,5 +38,5 @@ internal class TestConfiguration {
   fun deadMessageCallback(): DeadMessageCallback = { _, _ -> }
 
   @Bean
-  fun registry(): Registry = NoopRegistry()
+  fun registry(): MeterRegistry = SimpleMeterRegistry()
 }

@@ -18,14 +18,17 @@ package com.netflix.spinnaker.clouddriver.googlecommon.deploy;
 
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.common.collect.ImmutableMap;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.Tags;
 import java.net.SocketTimeoutException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNullableByDefault;
 import lombok.Builder;
@@ -77,10 +80,10 @@ public final class GoogleCommonSafeRetry {
       List<Integer> retryCodes,
       List<Integer> successCodes,
       Map<String, String> tags,
-      Registry registry)
+      MeterRegistry registry)
       throws GoogleApiException {
     boolean success = false;
-    long startTime = registry.clock().monotonicTime();
+    long startTime = registry.config().clock().monotonicTime();
     try {
       V result = performOperation(operation, description, retryCodes, successCodes);
       success = true;
@@ -100,9 +103,14 @@ public final class GoogleCommonSafeRetry {
               .putAll(tags)
               .put("success", Boolean.toString(success))
               .build();
+      Tags allTags =
+          Tags.of(
+              metricTags.entrySet().stream()
+                  .map(e -> Tag.of(e.getKey(), e.getValue()))
+                  .collect(Collectors.toList()));
       registry
-          .timer(registry.createId("google.safeRetry", metricTags))
-          .record(registry.clock().monotonicTime() - startTime, TimeUnit.NANOSECONDS);
+          .timer("google.safeRetry", allTags)
+          .record(registry.config().clock().monotonicTime() - startTime, TimeUnit.NANOSECONDS);
     }
   }
 
