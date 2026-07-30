@@ -15,8 +15,7 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.provider.agent
 
-import com.amazonaws.auth.AWSCredentialsProvider
-import com.amazonaws.services.ecs.AmazonECS
+import software.amazon.awssdk.services.ecs.EcsClient
 import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetHealthRequest
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetHealthResult
@@ -36,17 +35,16 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 class TargetHealthCachingAgentSpec extends Specification {
-  def ecs = Mock(AmazonECS)
+  def ecs = Mock(EcsClient)
   def clientProvider = Mock(AmazonClientProvider)
   def awsProviderCache = Mock(ProviderCache)
-  def credentialsProvider = Mock(AWSCredentialsProvider)
   def amazonloadBalancing = Mock(AmazonElasticLoadBalancing)
   def targetGroupArn = 'arn:aws:elasticloadbalancing:' + CommonCachingAgent.REGION + ':' + CommonCachingAgent.ACCOUNT_ID + ':targetgroup/test-tg/9e8997b7cff00c62'
   ObjectMapper mapper = new ObjectMapper()
 
   @Subject
   TargetHealthCachingAgent agent =
-    new TargetHealthCachingAgent(CommonCachingAgent.netflixAmazonCredentials, CommonCachingAgent.REGION, clientProvider, credentialsProvider, mapper)
+    new TargetHealthCachingAgent(CommonCachingAgent.netflixAmazonCredentials, CommonCachingAgent.REGION, clientProvider, mapper)
 
   def setup() {
     clientProvider.getAmazonElasticLoadBalancingV2(_, _, _) >> amazonloadBalancing
