@@ -13,3 +13,4 @@ export * from './ScalingProcessesDetailsSection';
 export * from './ScheduledActionsDetailsSection';
 export * from './SecurityGroupsDetailsSection';
 export * from './TagsDetailsSection';
+export * from './WarmPoolDetailsSection';
