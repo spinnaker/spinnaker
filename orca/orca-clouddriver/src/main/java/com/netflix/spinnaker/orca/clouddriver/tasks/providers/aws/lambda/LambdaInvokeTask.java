@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.lambda;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.config.CloudDriverConfigurationProperties;
+import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.lambda.LambdaStageConstants;
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.lambda.model.LambdaCloudDriverResponse;
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.lambda.model.LambdaDefinition;
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.lambda.model.input.LambdaInvokeStageInput;
@@ -55,8 +56,18 @@ public class LambdaInvokeTask implements LambdaStageBaseTask {
       return this.formErrorTaskResult(stage, "No such lambda found.");
     }
     LambdaInvokeStageInput ldi = utils.getInput(stage, LambdaInvokeStageInput.class);
-    LambdaTrafficUpdateInput tui = utils.getInput(stage, LambdaTrafficUpdateInput.class);
-    ldi.setPayloadArtifact(tui.getPayloadArtifact().getArtifact());
+
+    Object resolvedPayload = stage.getContext().get(LambdaStageConstants.resolvedPayloadKey);
+    if (resolvedPayload != null) {
+      ldi.setPayload(resolvedPayload.toString());
+      ldi.setPayloadArtifact(null);
+    } else {
+      LambdaTrafficUpdateInput tui = utils.getInput(stage, LambdaTrafficUpdateInput.class);
+      if (tui != null && tui.getPayloadArtifact() != null) {
+        ldi.setPayloadArtifact(tui.getPayloadArtifact().getArtifact());
+      }
+    }
+
     ldi.setQualifier(
         StringUtils.isNullOrEmpty(ldi.getAliasName()) ? "$LATEST" : ldi.getAliasName());
     ldi.setAppName(stage.getExecution().getApplication());

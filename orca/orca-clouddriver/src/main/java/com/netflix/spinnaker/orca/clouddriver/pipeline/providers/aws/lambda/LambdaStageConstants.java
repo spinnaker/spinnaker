@@ -45,6 +45,8 @@ public class LambdaStageConstants {
   public static final String resourceIdKey = "resourceId";
   public static final String functionNameKey = "functionName";
   public static final String urlKey = "url";
+  public static final String resolvedPayloadKey = "resolvedPayload";
+  public static final String resolvedPayloadArtifactKey = "resolvedPayloadArtifact";
 
   public static List<String> allUrlKeys =
       List.of(
