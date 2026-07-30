@@ -13,6 +13,14 @@ export interface IAmazonAsgTag {
   resourceType: string;
 }
 
+export interface IAmazonWarmPoolConfiguration {
+  minSize?: number;
+  maxGroupPreparedCapacity?: number;
+  poolState?: 'Stopped' | 'Running' | 'Hibernated';
+  instanceReusePolicy?: { reuseOnScaleIn?: boolean };
+  status?: string;
+}
+
 export interface IAmazonAsg extends IAsg {
   availabilityZones: string[];
   autoScalingGroupName: string;
@@ -26,6 +34,7 @@ export interface IAmazonAsg extends IAsg {
   suspendedProcesses?: ISuspendedProcess[];
   capacityRebalance?: boolean;
   tags: IAmazonAsgTag[];
+  warmPoolConfiguration?: IAmazonWarmPoolConfiguration;
 }
 
 export interface IAmazonServerGroup extends IServerGroup {

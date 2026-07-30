@@ -62,6 +62,23 @@ public class CloudDriverService {
         .map(TargetServerGroup::new);
   }
 
+  /**
+   * Like {@link #getTargetServerGroup}, but returns the server group as a raw {@code Map<String,
+   * Object>} rather than deserializing into the shared {@link ServerGroup} model. Useful for
+   * callers that need provider-specific fields the shared model doesn't carry.
+   */
+  public Optional<Map<String, Object>> getTargetServerGroupAsMap(
+      String account, String serverGroupName, String location) {
+    return maybe(() -> getServerGroupAsMap(account, location, serverGroupName));
+  }
+
+  public Map<String, Object> getServerGroupAsMap(
+      String account, String region, String serverGroup) {
+    ResponseBody responseBody =
+        Retrofit2SyncCall.execute(oortService.getServerGroup(account, region, serverGroup));
+    return readBody(responseBody, JSON_MAP);
+  }
+
   public ServerGroup getServerGroup(ServerGroupDescriptor descriptor) {
     ResponseBody responseBody =
         Retrofit2SyncCall.execute(
