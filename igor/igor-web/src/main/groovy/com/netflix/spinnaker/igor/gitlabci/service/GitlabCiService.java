@@ -105,6 +105,15 @@ public class GitlabCiService implements BuildOperations, BuildProperties, Stoppa
     throw new UnsupportedOperationException("getJobConfig is not yet implemented for Gitlab CI");
   }
 
+  /**
+   * For GitLab CI, there is no queue concept. The trigger returns the pipeline ID directly, so we
+   * simply return it as the build number to satisfy MonitorQueuedJenkinsJobTask.
+   */
+  @Override
+  public Object queuedBuild(String master, long item) {
+    return Map.of("number", item);
+  }
+
   @Override
   public long triggerBuildWithParameters(String job, Map<String, String> queryParameters) {
     String ref = queryParameters.getOrDefault("ref", "main");
