@@ -42,6 +42,7 @@ import com.netflix.spinnaker.igor.model.BuildServiceProvider;
 import com.netflix.spinnaker.igor.model.Crumb;
 import com.netflix.spinnaker.igor.service.BuildOperations;
 import com.netflix.spinnaker.igor.service.BuildProperties;
+import com.netflix.spinnaker.igor.service.StoppableBuildService;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerConversionException;
@@ -70,7 +71,7 @@ import org.yaml.snakeyaml.constructor.SafeConstructor;
 import retrofit2.Response;
 
 @Slf4j
-public class JenkinsService implements BuildOperations, BuildProperties {
+public class JenkinsService implements BuildOperations, BuildProperties, StoppableBuildService {
   private final ObjectMapper objectMapper = new ObjectMapper();
   private final String serviceName;
   private final JenkinsClient jenkinsClient;
@@ -359,8 +360,14 @@ public class JenkinsService implements BuildOperations, BuildProperties {
                 jenkinsClient.stopRunningBuild(encode(jobName), buildNumber, "", getCrumb())));
   }
 
-  public ResponseBody stopQueuedBuild(String queuedBuild) {
-    return circuitBreaker.executeSupplier(
+  @Override
+  public void stopRunningBuild(String jobName, long buildNumber) {
+    stopRunningBuild(jobName, Long.valueOf(buildNumber));
+  }
+
+  @Override
+  public void stopQueuedBuild(String queuedBuild) {
+    circuitBreaker.executeSupplier(
         () ->
             Retrofit2SyncCall.execute(jenkinsClient.stopQueuedBuild(queuedBuild, "", getCrumb())));
   }
