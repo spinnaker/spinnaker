@@ -19,3 +19,5 @@ spec:
             - tail
             - -f
             - /dev/null
+          securityContext:
+            runAsNonRoot: true
