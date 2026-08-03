@@ -1,73 +1,75 @@
-import * as angular from 'angular';
-
 import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
-import { CLUSTER_SERVICE } from '../cluster/cluster.service';
 import { SETTINGS } from '../config';
 import { TaskReader } from './task.read.service';
 
-export const CORE_TASK_TASK_DATASOURCE = 'spinnaker.core.task.dataSource';
-export const name = CORE_TASK_TASK_DATASOURCE; // for backwards compatibility
-angular.module(CORE_TASK_TASK_DATASOURCE, [CLUSTER_SERVICE]).run([
-  '$q',
-  'clusterService',
-  function ($q, clusterService) {
-    const addTasks = (application, tasks) => {
-      return $q.when(angular.isArray(tasks) ? tasks : []);
-    };
+export function registerTaskDataSources(promiseService, clusterService) {
+  const registerOnce = (config) => {
+    if (!ApplicationDataSourceRegistry.getDataSources().some(({ key }) => key === config.key)) {
+      ApplicationDataSourceRegistry.registerDataSource(config);
+    }
+  };
 
-    const loadPaginatedTasks = async (application, page = 1) => {
-      let limitPerPage = SETTINGS.tasksViewLimitPerPage;
-      const tasks = await TaskReader.getTasks(application.name, [], limitPerPage, page);
-      if (tasks.length === limitPerPage) {
-        return tasks.concat(await loadPaginatedTasks(application, page + 1));
-      } else {
-        return tasks;
-      }
-    };
+  const addTasks = (application, tasks) => {
+    return promiseService.resolve(Array.isArray(tasks) ? tasks : []);
+  };
 
-    const loadTasks = (application, page = 1) => {
-      let limitPerPage = SETTINGS.tasksViewLimitPerPage;
-      if (limitPerPage === undefined) {
-        return TaskReader.getTasks(application.name);
-      } else {
-        return loadPaginatedTasks(application, page);
-      }
-    };
+  const loadPaginatedTasks = async (application, page = 1) => {
+    let limitPerPage = SETTINGS.tasksViewLimitPerPage;
+    const tasks = await TaskReader.getTasks(application.name, [], limitPerPage, page);
+    if (tasks.length === limitPerPage) {
+      return tasks.concat(await loadPaginatedTasks(application, page + 1));
+    } else {
+      return tasks;
+    }
+  };
 
-    const loadRunningTasks = (application) => {
-      return TaskReader.getRunningTasks(application.name);
-    };
+  const loadTasks = (application, page = 1) => {
+    let limitPerPage = SETTINGS.tasksViewLimitPerPage;
+    if (limitPerPage === undefined) {
+      return TaskReader.getTasks(application.name);
+    } else {
+      return loadPaginatedTasks(application, page);
+    }
+  };
 
-    const addRunningTasks = (application, data) => {
-      return $q.when(data);
-    };
+  const loadRunningTasks = (application) => {
+    return TaskReader.getRunningTasks(application.name);
+  };
 
-    const runningTasksLoaded = (application) => {
-      clusterService.addTasksToServerGroups(application);
-      application.getDataSource('serverGroups').dataUpdated();
-    };
+  const addRunningTasks = (application, data) => {
+    return promiseService.resolve(data);
+  };
 
-    ApplicationDataSourceRegistry.registerDataSource({
-      key: 'tasks',
-      sref: '.tasks',
-      badge: 'runningTasks',
-      category: 'tasks',
-      loader: loadTasks,
-      onLoad: addTasks,
-      afterLoad: runningTasksLoaded,
-      lazy: true,
-      primary: true,
-      icon: 'fa fa-sm fa-fw fa-check-square',
-      iconName: 'spMenuTasks',
-      defaultData: [],
-    });
+  const runningTasksLoaded = (application) => {
+    const serverGroups = application.getDataSource('serverGroups');
+    if (!serverGroups) {
+      return;
+    }
 
-    ApplicationDataSourceRegistry.registerDataSource({
-      key: 'runningTasks',
-      visible: false,
-      loader: loadRunningTasks,
-      onLoad: addRunningTasks,
-      defaultData: [],
-    });
-  },
-]);
+    clusterService.addTasksToServerGroups(application);
+    serverGroups.dataUpdated();
+  };
+
+  registerOnce({
+    key: 'tasks',
+    sref: '.tasks',
+    badge: 'runningTasks',
+    category: 'tasks',
+    loader: loadTasks,
+    onLoad: addTasks,
+    afterLoad: runningTasksLoaded,
+    lazy: true,
+    primary: true,
+    icon: 'fa fa-sm fa-fw fa-check-square',
+    iconName: 'spMenuTasks',
+    defaultData: [],
+  });
+
+  registerOnce({
+    key: 'runningTasks',
+    visible: false,
+    loader: loadRunningTasks,
+    onLoad: addRunningTasks,
+    defaultData: [],
+  });
+}

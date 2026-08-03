@@ -8,11 +8,12 @@ import { distinctUntilChanged, map, takeUntil } from 'rxjs/operators';
 import { ApplicationTable } from './ApplicationsTable';
 import { PaginationControls } from './PaginationControls';
 import type { IAccount } from '../../account';
-import { AngularServices } from '../../angular/services';
-import type { Application } from '../../application';
 import type { ICache } from '../../cache';
 import { ViewStateCache } from '../../cache';
 import { InsightMenu } from '../../insight/InsightMenu';
+import { CreateApplicationModal } from '../modal/CreateApplicationModal';
+import type { IRouterInjectedProps } from '../../navigation/routerContext';
+import { withRouter } from '../../navigation/routerContext';
 import type { IApplicationSummary } from '../service/ApplicationReader';
 import { ApplicationReader } from '../service/ApplicationReader';
 import { Spinner } from '../../widgets';
@@ -41,7 +42,7 @@ export interface IApplicationsState {
   pagination: IApplicationPagination;
 }
 
-export class Applications extends React.Component<{}, IApplicationsState> {
+export class ApplicationsComponent extends React.Component<IRouterInjectedProps, IApplicationsState> {
   private applicationsCache: ICache;
 
   private filter$ = new BehaviorSubject<string>(null);
@@ -49,7 +50,7 @@ export class Applications extends React.Component<{}, IApplicationsState> {
   private pagination$ = new BehaviorSubject<IApplicationPagination>(this.getDefaultPagination());
   private destroy$ = new Subject();
 
-  constructor(props: {}) {
+  constructor(props: IRouterInjectedProps) {
     super(props);
     this.applyCachedViewState();
     const pagination = this.getDefaultPagination();
@@ -120,41 +121,29 @@ export class Applications extends React.Component<{}, IApplicationsState> {
         },
       );
 
-    const { $stateParams, $state, $rootScope } = AngularServices;
-    const { create } = $stateParams as IApplicationsStateParams;
+    const { stateParams, stateService } = this.props;
+    const { create } = stateParams as IApplicationsStateParams;
     applicationSummaries$.subscribe((applications: IApplicationSummary[]) => {
       if (create) {
         const found = applications.find((app) => app.name === create);
         if (found) {
           if (found.email) {
             // Application already exists - redirect to app
-            $state.go('home.applications.application', { application: create, create: null });
+            stateService.go('home.applications.application', { application: create, create: null });
           } else {
             // Inferred application - redirect to config
-            $state.go('home.applications.application.config', { application: create, create: null });
+            stateService.go('home.applications.application.config', { application: create, create: null });
           }
         } else {
-          // Nonexistant application - open create modal
-          AngularServices.modalService
-            .open({
-              scope: $rootScope.$new(),
-              templateUrl: require('../modal/newapplication.html'),
-              resolve: {
-                name: () => create,
-              },
-              controller: 'CreateApplicationModalCtrl',
-              controllerAs: 'newAppModal',
-            })
-            .result.then(
-              (app: Application) => {
-                $state.go('home.applications.application', { application: app.name, create: null });
-              },
-              () => {
-                // Clear out the query parameter if the dialog is dismissed
-                $state.go('home.applications', { create: null });
-              },
-            )
-            .catch(() => {});
+          CreateApplicationModal.show(create).then(
+            (app) => {
+              stateService.go('home.applications.application', { application: app.name, create: null });
+            },
+            () => {
+              // Clear out the query parameter if the dialog is dismissed
+              stateService.go('home.applications', { create: null });
+            },
+          );
         }
       }
     });
@@ -262,3 +251,6 @@ export class Applications extends React.Component<{}, IApplicationsState> {
     );
   }
 }
+
+export const Applications = withRouter(ApplicationsComponent);
+Applications.displayName = 'Applications';

@@ -5,9 +5,6 @@ import { ExecutionArtifactTab } from '../../../../artifact/react/ExecutionArtifa
 import { ExecutionDetailsTasks } from '../common';
 import { Registry } from '../../../../registry';
 
-export const CORE_PIPELINE_CONFIG_STAGES_JENKINS_JENKINSSTAGE = 'spinnaker.core.pipeline.stage.jenkinsStage';
-export const name = CORE_PIPELINE_CONFIG_STAGES_JENKINS_JENKINSSTAGE; // for backwards compatibility
-
 export const jenkinsStage = {
   label: 'Jenkins',
   description: 'Runs a Jenkins job',

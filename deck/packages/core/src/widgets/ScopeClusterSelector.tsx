@@ -17,7 +17,7 @@ export class ScopeClusterSelector extends React.Component<IScopeClusterSelectorP
     const { clusters, model } = this.props;
     const selectedNotInClusterList = !(Array.isArray(clusters) && clusters.some((cluster) => cluster === model));
 
-    const modelIsSet = model != null || (model || '').trim() !== '';
+    const modelIsSet = model != null && model.trim() !== '';
 
     this.state = {
       freeFormClusterField: modelIsSet ? selectedNotInClusterList : false,
@@ -62,14 +62,14 @@ export class ScopeClusterSelector extends React.Component<IScopeClusterSelectorP
         </div>
         <div className="pull-right">
           {!this.state.freeFormClusterField && (
-            <a className="clickable" onClick={this.toggleFreeFormClusterField}>
+            <button type="button" className="btn btn-link clickable" onClick={this.toggleFreeFormClusterField}>
               Toggle for text input
-            </a>
+            </button>
           )}
           {this.state.freeFormClusterField && (
-            <a className="clickable" onClick={this.toggleFreeFormClusterField}>
+            <button type="button" className="btn btn-link clickable" onClick={this.toggleFreeFormClusterField}>
               Toggle for list of existing clusters
-            </a>
+            </button>
           )}
         </div>
       </div>

@@ -12,13 +12,21 @@ configure({ adapter: new Adapter() });
 Error.stackTraceLimit = Infinity;
 
 import './packages/app/src/settings';
-import './packages/app/src/app';
 import { jasmineMockHttpSupport } from './packages/core/src/api/mock/jasmine';
+import { getDirectRouter, setDirectRouter } from './packages/core/src/navigation/directRouter';
+import { UIRouterReact } from '@uirouter/react';
 
-// angular 1 test harness
-import 'angular';
-import 'angular-mocks';
-beforeEach(angular.mock.module('bcherny/ngimport'));
+let directTestRouter;
+beforeEach(() => {
+  directTestRouter = new UIRouterReact();
+  setDirectRouter(directTestRouter);
+});
+afterEach(() => {
+  if (getDirectRouter() === directTestRouter) {
+    setDirectRouter(null);
+  }
+  directTestRouter.dispose();
+});
 
 jasmineMockHttpSupport();
 
@@ -43,6 +51,9 @@ testContext = require.context('./packages/cloudrun/src', true, /\.spec\.(js|ts|t
 testContext.keys().forEach(testContext);
 
 testContext = require.context('./packages/core/src', true, /\.spec\.(js|ts|tsx)$/);
+testContext.keys().forEach(testContext);
+
+testContext = require.context('./packages/kayenta/src', true, /\.spec\.(js|ts|tsx)$/);
 testContext.keys().forEach(testContext);
 
 testContext = require.context('./packages/dcos/src', true, /\.spec\.(js|ts|tsx)$/);

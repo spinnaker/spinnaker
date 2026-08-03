@@ -335,6 +335,32 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       shieldedKey << ["shieldedInstanceConfig", "shieldedVmConfig"]
   }
 
+  void "operation explicitly removes ancestor autoscaling policy"() {
+    setup:
+      def description = new BasicGoogleDeployDescription(source: [region: REGION,
+                                                                   serverGroupName: ANCESTOR_SERVER_GROUP_NAME],
+                                                         region: REGION,
+                                                         accountName: ACCOUNT_NAME,
+                                                         credentials: credentials)
+      description.overwriteAncestorAutoscalingPolicy = true
+      def googleClusterProviderMock = Mock(GoogleClusterProvider)
+      def basicGoogleDeployHandlerMock = Mock(BasicGoogleDeployHandler)
+      def deploymentResult = new DeploymentResult(serverGroupNames: ["$REGION:$NEW_SERVER_GROUP_NAME"])
+      @Subject def operation = new CopyLastGoogleServerGroupAtomicOperation(description)
+      operation.registry = registry
+      operation.googleClusterProvider = googleClusterProviderMock
+      operation.basicGoogleDeployHandler = basicGoogleDeployHandlerMock
+
+    when:
+      operation.operate([])
+
+    then:
+      1 * googleClusterProviderMock.getServerGroup(ACCOUNT_NAME, REGION, ANCESTOR_SERVER_GROUP_NAME) >> serverGroup
+      1 * basicGoogleDeployHandlerMock.handle({ BasicGoogleDeployDescription newDescription ->
+        newDescription.autoscalingPolicy == null
+      }, _) >> deploymentResult
+  }
+
   void "operation copies legacy shieldedVmConfig map values from wire-shaped ancestor properties"() {
     setup:
       def ancestorInstanceProperties = new InstanceProperties(

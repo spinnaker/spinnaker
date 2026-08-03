@@ -1,15 +1,8 @@
 import { cloneDeep, difference, uniq } from 'lodash';
 import React from 'react';
 
-import type { ILoadBalancerModalProps } from '@spinnaker/core';
-import {
-  AngularServices,
-  HelpField,
-  LoadBalancerWriter,
-  ReactModal,
-  StageConstants,
-  TaskMonitor,
-} from '@spinnaker/core';
+import type { ILoadBalancerModalProps, IRouterInjectedProps } from '@spinnaker/core';
+import { HelpField, LoadBalancerWriter, ReactModal, StageConstants, TaskMonitor, withRouter } from '@spinnaker/core';
 
 import { LoadBalancerMessage } from '../../../common/LoadBalancerMessage';
 import type { ICloudrunLoadBalancer } from '../../../common/domain';
@@ -32,8 +25,8 @@ function allocationTotalIsValid(splitDescription: ICloudrunTrafficSplitDescripti
   );
 }
 
-export class CloudrunLoadBalancerModal extends React.Component<
-  ICloudrunLoadBalancerModalProps,
+export class CloudrunLoadBalancerModalComponent extends React.Component<
+  ICloudrunLoadBalancerModalProps & IRouterInjectedProps,
   ICloudrunLoadBalancerModalState
 > {
   public static show(props: ICloudrunLoadBalancerModalProps): Promise<CloudrunLoadBalancerUpsertDescription> {
@@ -42,15 +35,16 @@ export class CloudrunLoadBalancerModal extends React.Component<
 
   private transformer = new CloudrunLoadBalancerTransformer();
   private isUnmounted = false;
+  private applicationRefreshUnsubscribe?: () => void;
 
-  constructor(props: ICloudrunLoadBalancerModalProps) {
+  constructor(props: ICloudrunLoadBalancerModalProps & IRouterInjectedProps) {
     super(props);
     this.state = {
       loading: !props.isNew,
       taskMonitor: new TaskMonitor({
         application: props.app,
         title: 'Updating your load balancer',
-        modalInstance: TaskMonitor.modalInstanceEmulation(() => props.dismissModal()),
+        onDismiss: () => props.dismissModal(),
         onTaskComplete: this.onTaskComplete,
       }),
     };
@@ -89,14 +83,17 @@ export class CloudrunLoadBalancerModal extends React.Component<
 
   public componentWillUnmount(): void {
     this.isUnmounted = true;
+    this.clearApplicationRefreshSubscription();
   }
 
   private onTaskComplete = (): void => {
+    this.clearApplicationRefreshSubscription();
+    this.applicationRefreshUnsubscribe = this.props.app.loadBalancers.onNextRefresh(this.onApplicationRefresh);
     this.props.app.loadBalancers.refresh();
-    this.props.app.loadBalancers.onNextRefresh(null, this.onApplicationRefresh);
   };
 
   private onApplicationRefresh = (): void => {
+    this.clearApplicationRefreshSubscription();
     if (this.isUnmounted) {
       return;
     }
@@ -108,11 +105,16 @@ export class CloudrunLoadBalancerModal extends React.Component<
       region: loadBalancer.region,
       provider: 'cloudrun',
     };
-    if (!AngularServices.$state.includes('**.loadBalancerDetails')) {
-      AngularServices.$state.go('.loadBalancerDetails', newStateParams);
+    if (!this.props.stateService.includes('**.loadBalancerDetails')) {
+      this.props.stateService.go('.loadBalancerDetails', newStateParams);
     } else {
-      AngularServices.$state.go('^.loadBalancerDetails', newStateParams);
+      this.props.stateService.go('^.loadBalancerDetails', newStateParams);
     }
+  };
+
+  private clearApplicationRefreshSubscription = (): void => {
+    this.applicationRefreshUnsubscribe?.();
+    this.applicationRefreshUnsubscribe = undefined;
   };
 
   private submit = (): void => {
@@ -186,6 +188,10 @@ export class CloudrunLoadBalancerModal extends React.Component<
     );
   }
 }
+
+export const CloudrunLoadBalancerModal = Object.assign(withRouter(CloudrunLoadBalancerModalComponent), {
+  show: CloudrunLoadBalancerModalComponent.show,
+});
 
 interface ICloudrunLoadBalancerBasicSettingsProps {
   loadBalancer: CloudrunLoadBalancerUpsertDescription;

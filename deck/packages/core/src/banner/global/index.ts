@@ -18,4 +18,3 @@ export * from './GlobalBannerAdminPage';
 export * from './GlobalBannerAdminPageContainer';
 export * from './GlobalBannerDisplay';
 export * from './GlobalBannerService';
-export * from './globalbanner.module';

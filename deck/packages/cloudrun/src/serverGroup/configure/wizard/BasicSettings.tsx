@@ -1,8 +1,8 @@
 import type { FormikProps } from 'formik';
 import React from 'react';
 
-import type { Application, IAccount, IServerGroup } from '@spinnaker/core';
-import { AccountSelectInput, AngularServices, HelpField, NameUtils, ServerGroupNamePreview } from '@spinnaker/core';
+import type { Application, IAccount, IRouterInjectedProps, IServerGroup } from '@spinnaker/core';
+import { AccountSelectInput, HelpField, NameUtils, ServerGroupNamePreview, withRouter } from '@spinnaker/core';
 
 import type { ICloudrunServerGroupCommandData } from '../serverGroupCommandBuilder.service';
 
@@ -22,7 +22,7 @@ export interface IServerGroupBasicSettingsState {
   latestServerGroup: IServerGroup;
 }
 
-export function ServerGroupBasicSettings({
+export function ServerGroupBasicSettingsComponent({
   accounts,
   onAccountSelect,
   selectedAccount,
@@ -30,7 +30,8 @@ export function ServerGroupBasicSettings({
   onEnterStack,
   detailsChanged,
   app,
-}: IServerGroupBasicSettingsProps) {
+  stateService,
+}: IServerGroupBasicSettingsProps & IRouterInjectedProps) {
   const { values } = formik;
   const { stack = '', freeFormDetails } = values;
 
@@ -56,11 +57,10 @@ export function ServerGroupBasicSettings({
       serverGroup: latestServerGroup.name,
     };
 
-    const { $state } = AngularServices;
-    if ($state.is('home.applications.application.insight.clusters')) {
-      $state.go('.serverGroup', params);
+    if (stateService.is('home.applications.application.insight.clusters')) {
+      stateService.go('.serverGroup', params);
     } else {
-      $state.go('^.serverGroup', params);
+      stateService.go('^.serverGroup', params);
     }
   };
 
@@ -118,6 +118,8 @@ export function ServerGroupBasicSettings({
     </div>
   );
 }
+
+export const ServerGroupBasicSettings = withRouter(ServerGroupBasicSettingsComponent);
 
 export interface IWizardServerGroupBasicSettingsProps {
   formik: FormikProps<ICloudrunServerGroupCommandData>;

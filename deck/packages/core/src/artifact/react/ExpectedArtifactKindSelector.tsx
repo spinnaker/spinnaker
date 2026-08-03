@@ -1,8 +1,6 @@
-import { module } from 'angular';
 import React from 'react';
 
 import { ArtifactIcon } from './ArtifactIcon';
-import { angularComponentFromReact } from '../../angular/angularComponentFromReact';
 import type { IArtifactKindConfig } from '../../domain';
 import { TetheredSelect } from '../../presentation';
 
@@ -83,15 +81,3 @@ export class ExpectedArtifactKindSelector extends React.Component<
     );
   }
 }
-
-export const EXPECTED_ARTIFACT_KIND_SELECTOR_COMPONENT_REACT = 'spinnaker.core.artifacts.expected.kind.selector.react';
-module(EXPECTED_ARTIFACT_KIND_SELECTOR_COMPONENT_REACT, []).component(
-  'expectedArtifactKindSelectorReact',
-  angularComponentFromReact(ExpectedArtifactKindSelector, 'expectedArtifactKindSelectorReact', [
-    'kinds',
-    'selected',
-    'onChange',
-    'showIcons',
-    'className',
-  ]),
-);

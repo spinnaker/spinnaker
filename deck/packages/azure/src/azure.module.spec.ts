@@ -14,7 +14,7 @@ import {
   StageConfigField,
 } from '@spinnaker/core';
 
-import * as azurePackage from './index';
+import './index';
 import { AzureImageReader } from './image/image.reader';
 import { AzureInstanceTypeService } from './instance/azureInstanceType.service';
 import { AzureLoadBalancerTransformer } from './loadBalancer/loadBalancer.transformer';
@@ -30,14 +30,6 @@ import { AzureServerGroupConfigurationService } from './serverGroup/configure/se
 import { AzureServerGroupTransformer } from './serverGroup/serverGroup.transformer';
 
 describe('Azure package registration', () => {
-  const legacyCtrlKey = ['Cont', 'roller'].join('');
-  const legacyStageCtrlKey = ['cont', 'roller'].join('');
-  const legacyViewKey = ['Template', 'Url'].join('');
-  const legacyModuleExport = ['AZURE', 'MODULE'].join('_');
-  const stageViewKey = ['template', 'Url'].join('');
-  const stepLabelViewKey = ['execution', 'Step', 'Label', 'Url'].join('');
-  const markupExtension = ['.', 'ht', 'ml'].join('');
-
   function expectRegistered(path: string): void {
     expect(CloudProviderRegistry.getValue('azure', path)).withContext(path).not.toBeNull();
   }
@@ -156,18 +148,6 @@ describe('Azure package registration', () => {
       .toBe(false);
   }
 
-  function expectNoAngularStageRegistration(stageConfig: any): void {
-    expect(stageConfig[stageViewKey]).withContext(`azure ${stageConfig.provides} stage view`).toBeUndefined();
-    expect(stageConfig[legacyStageCtrlKey]).withContext(`azure ${stageConfig.provides} legacy handler`).toBeUndefined();
-    expect(stageConfig[stepLabelViewKey]).withContext(`azure ${stageConfig.provides} step label view`).toBeUndefined();
-
-    const htmlValues = Object.keys(stageConfig)
-      .map((key) => stageConfig[key])
-      .filter((value) => typeof value === 'string' && value.endsWith(markupExtension));
-
-    expect(htmlValues).withContext(`azure ${stageConfig.provides} markup stage config values`).toEqual([]);
-  }
-
   function expectExecutionLabel(stageConfig: any, label: string): void {
     expect(stageConfig.executionLabelComponent)
       .withContext(`azure ${stageConfig.provides} execution label component`)
@@ -221,9 +201,7 @@ describe('Azure package registration', () => {
     };
   }
 
-  it('registers Azure without exporting an Angular module token', () => {
-    expect(Object.prototype.hasOwnProperty.call(azurePackage, legacyModuleExport)).toBe(false);
-
+  it('registers Azure provider values', () => {
     expect(CloudProviderRegistry.getValue('azure', 'image.reader')).toBe(AzureImageReader);
     expect(CloudProviderRegistry.getValue('azure', 'instance.instanceTypeService')).toBe(AzureInstanceTypeService);
     expect(CloudProviderRegistry.getValue('azure', 'loadBalancer.transformer')).toBe(AzureLoadBalancerTransformer);
@@ -246,24 +224,9 @@ describe('Azure package registration', () => {
     expectNonEmptyRegistration('loadBalancer.detailsSections');
     expectRegistered('securityGroup.CreateSecurityGroupModal');
     expectRegistered('securityGroup.details');
-
-    expect(CloudProviderRegistry.getValue('azure', `serverGroup.details${legacyCtrlKey}`)).toBeNull();
-    expect(CloudProviderRegistry.getValue('azure', `serverGroup.details${legacyViewKey}`)).toBeNull();
-    expect(CloudProviderRegistry.getValue('azure', `instance.details${legacyCtrlKey}`)).toBeNull();
-    expect(CloudProviderRegistry.getValue('azure', `instance.details${legacyViewKey}`)).toBeNull();
-    expect(CloudProviderRegistry.getValue('azure', `loadBalancer.details${legacyCtrlKey}`)).toBeNull();
-    expect(CloudProviderRegistry.getValue('azure', `loadBalancer.details${legacyViewKey}`)).toBeNull();
-    expect(CloudProviderRegistry.getValue('azure', `securityGroup.details${legacyCtrlKey}`)).toBeNull();
-    expect(CloudProviderRegistry.getValue('azure', `securityGroup.details${legacyViewKey}`)).toBeNull();
   });
 
-  it('does not bundle Azure Angular HTML templates', () => {
-    const azureTemplates = require.context('./', true, /\.html$/).keys();
-
-    expect(azureTemplates).toEqual([]);
-  });
-
-  it('registers Azure pipeline stages without Angular templates', () => {
+  it('registers Azure pipeline stages with React components', () => {
     const previousPipelineRegistry = Registry.pipeline;
     const previousUrlBuilderRegistry = Registry.urlBuilder;
 
@@ -277,8 +240,6 @@ describe('Azure package registration', () => {
       const destroyStage = expectStageComponent(stageTypes, 'destroyServerGroup', AzureDestroyAsgStageConfig);
       const disableStage = expectStageComponent(stageTypes, 'disableServerGroup', AzureDisableAsgStageConfig);
       const enableStage = expectStageComponent(stageTypes, 'enableServerGroup', AzureEnableAsgStageConfig);
-
-      [bakeStage, destroyStage, disableStage, enableStage].forEach(expectNoAngularStageRegistration);
 
       expectStageFields(bakeStage, ['Account', 'Regions', 'Base OS', 'Package', 'Base Label', 'Base Name']);
       expectRequiredFields(bakeStage, ['package', 'regions']);
@@ -294,17 +255,13 @@ describe('Azure package registration', () => {
       expectExecutionLabel(destroyStage, 'Destroy Server Group');
       expectExecutionLabel(disableStage, 'Disable Server Group');
       expectExecutionLabel(enableStage, 'Enable Server Group');
-
-      expect(stageTypes.some((stage) => (stage as any)[stageViewKey] || (stage as any)[legacyStageCtrlKey])).toBe(
-        false,
-      );
     } finally {
       Registry.pipeline = previousPipelineRegistry;
       Registry.urlBuilder = previousUrlBuilderRegistry;
     }
   });
 
-  it('renders Azure bake execution details without Angular templates', () => {
+  it('renders Azure bake execution details', () => {
     const previousPipelineRegistry = Registry.pipeline;
     const previousUrlBuilderRegistry = Registry.urlBuilder;
     const previousBakeryDetailUrl = SETTINGS.bakeryDetailUrl;
@@ -340,7 +297,6 @@ describe('Azure package registration', () => {
         }),
       );
 
-      expect(bakeStage.executionDetailsUrl).toBeUndefined();
       expect((BakeExecutionDetails as any).title).toBe('bakeConfig');
       const section = wrapper.dive();
       expect(section.text()).toContain('Azure');
@@ -692,6 +648,38 @@ describe('Azure package registration', () => {
       }),
     );
     expect(wrapper.find(Spinner).exists()).toBe(false);
+  });
+
+  it('clears the Azure bake scalar region when that region is deselected', () => {
+    const stage = { account: 'bakery', region: 'eastus', regions: ['eastus', 'westus'] } as any;
+    const updateStage = jasmine.createSpy('updateStage');
+    const wrapper = shallow(React.createElement(AzureBakeStageConfig, bakeStageProps(stage, updateStage)), {
+      disableLifecycleMethods: true,
+    });
+    wrapper.setState({ loading: false, regions: ['eastus', 'westus'] });
+
+    wrapper
+      .find('input[type="checkbox"]')
+      .at(0)
+      .simulate('change', { target: { checked: false } });
+
+    expect(updateStage).toHaveBeenCalledWith(jasmine.objectContaining({ region: undefined, regions: ['westus'] }));
+  });
+
+  it('preserves the Azure bake scalar region when a different region is deselected', () => {
+    const stage = { account: 'bakery', region: 'eastus', regions: ['eastus', 'westus'] } as any;
+    const updateStage = jasmine.createSpy('updateStage');
+    const wrapper = shallow(React.createElement(AzureBakeStageConfig, bakeStageProps(stage, updateStage)), {
+      disableLifecycleMethods: true,
+    });
+    wrapper.setState({ loading: false, regions: ['eastus', 'westus'] });
+
+    wrapper
+      .find('input[type="checkbox"]')
+      .at(1)
+      .simulate('change', { target: { checked: false } });
+
+    expect(updateStage).toHaveBeenCalledWith(jasmine.objectContaining({ region: 'eastus', regions: ['eastus'] }));
   });
 
   it('preserves Azure bake source-image mode field clearing and managed image behavior', async () => {

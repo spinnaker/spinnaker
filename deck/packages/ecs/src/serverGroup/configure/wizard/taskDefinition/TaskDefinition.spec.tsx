@@ -15,7 +15,7 @@ describe('TaskDefinition', () => {
   let command: IEcsServerGroupCommand;
 
   const configureCommand = (_query: string) => Promise.resolve() as PromiseLike<void>;
-  const notifyAngular = (_key: string, _value: any) => {};
+  const onFieldChange = (_key: string, _value: any) => {};
 
   const dockerAccounts: IAccountDetails[] = [
     {
@@ -48,13 +48,14 @@ describe('TaskDefinition', () => {
     } as any) as IEcsServerGroupCommand;
 
     spyOn(AccountService, 'listAccounts').and.returnValue(Promise.resolve(dockerAccounts));
+    spyOn(AccountService, 'getArtifactAccounts').and.returnValue(Promise.resolve([]));
     spyOn(DockerImageReader, 'findImages').and.returnValue(Promise.resolve(dockerImages));
   });
 
   describe('updateDockerRegistryAccount', () => {
     it('calls DockerImageReader.findImages with the selected account', async () => {
       const wrapper = mount(
-        <TaskDefinition command={command} notifyAngular={notifyAngular} configureCommand={configureCommand} />,
+        <TaskDefinition command={command} onFieldChange={onFieldChange} configureCommand={configureCommand} />,
       );
 
       await flushPromises();
@@ -70,7 +71,7 @@ describe('TaskDefinition', () => {
 
     it('updates component state and backingData with images returned for the account', async () => {
       const wrapper = mount(
-        <TaskDefinition command={command} notifyAngular={notifyAngular} configureCommand={configureCommand} />,
+        <TaskDefinition command={command} onFieldChange={onFieldChange} configureCommand={configureCommand} />,
       );
 
       (wrapper.instance() as any).updateDockerRegistryAccount({ value: 'my-docker-account' });
@@ -84,7 +85,7 @@ describe('TaskDefinition', () => {
     it('clears existing images immediately when account changes', () => {
       command.backingData.filtered.images = dockerImages as IEcsDockerImage[];
       const wrapper = mount(
-        <TaskDefinition command={command} notifyAngular={notifyAngular} configureCommand={configureCommand} />,
+        <TaskDefinition command={command} onFieldChange={onFieldChange} configureCommand={configureCommand} />,
       );
 
       (wrapper.instance() as any).updateDockerRegistryAccount({ value: 'my-docker-account' });
@@ -107,7 +108,7 @@ describe('TaskDefinition', () => {
       } as IEcsDockerImage;
 
       const wrapper = mount(
-        <TaskDefinition command={command} notifyAngular={notifyAngular} configureCommand={configureCommand} />,
+        <TaskDefinition command={command} onFieldChange={onFieldChange} configureCommand={configureCommand} />,
       );
 
       expect((wrapper.instance() as TaskDefinition).state.selectedDockerAccount).toBe('my-docker-account');
@@ -115,7 +116,7 @@ describe('TaskDefinition', () => {
 
     it('starts with no account selected when imageDescription has no account', () => {
       const wrapper = mount(
-        <TaskDefinition command={command} notifyAngular={notifyAngular} configureCommand={configureCommand} />,
+        <TaskDefinition command={command} onFieldChange={onFieldChange} configureCommand={configureCommand} />,
       );
 
       expect((wrapper.instance() as TaskDefinition).state.selectedDockerAccount).toBe('');

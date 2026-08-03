@@ -55,7 +55,7 @@ export class CloudrunManifestCommandBuilder {
     sourceManifest?: any,
     sourceMoniker?: IMoniker,
     sourceAccount?: string,
-  ): PromiseLike<ICloudrunManifestCommandData> {
+  ): Promise<ICloudrunManifestCommandData> {
     const dataToFetch = {
       accounts: AccountService.getAllAccountDetailsForProvider('cloudrun'),
       artifactAccounts: AccountService.getArtifactAccounts(),

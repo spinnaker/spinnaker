@@ -1,4 +1,3 @@
-import { module } from 'angular';
 /*
  * Copyright 2018 Schibsted ASA.
  *
@@ -17,7 +16,6 @@ import { module } from 'angular';
  */
 import React from 'react';
 
-import { angularComponentFromReact } from '../../../angular/angularComponentFromReact';
 import type { IStage } from '../../../domain';
 
 export interface IStageNameProps {
@@ -36,7 +34,3 @@ const nameFromRefId = (stages: IStage[], refId: string | number) => {
 export const StageName: React.SFC<IStageNameProps> = (props) => {
   return <span>{nameFromRefId(props.stages, props.refId)}</span>;
 };
-
-export const STAGE_NAME = 'spinnaker.core.artifact.stageName.component';
-
-module(STAGE_NAME, []).component('stageName', angularComponentFromReact(StageName, 'stageName', ['stages', 'refId']));

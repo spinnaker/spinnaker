@@ -1,5 +1,4 @@
 import { UISref } from '@uirouter/react';
-import { UIRouterContextComponent } from '@uirouter/react-hybrid';
 import React from 'react';
 
 import { CloudProviderLogo } from '../../cloudProvider/CloudProviderLogo';
@@ -27,13 +26,11 @@ export const InstanceDetailsHeader = ({
   <div className="InstanceDetailsHeader">
     {!standalone && (
       <div className="close-button">
-        <UIRouterContextComponent>
-          <UISref to="^">
-            <a className="btn btn-link">
-              <span className="glyphicon glyphicon-remove"></span>
-            </a>
-          </UISref>
-        </UIRouterContextComponent>
+        <UISref to="^">
+          <a className="btn btn-link">
+            <span className="glyphicon glyphicon-remove"></span>
+          </a>
+        </UISref>
       </div>
     )}
     {loading && (

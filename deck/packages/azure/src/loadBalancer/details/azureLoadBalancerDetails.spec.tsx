@@ -1,17 +1,35 @@
 import { UISref } from '@uirouter/react';
-import { shallow } from 'enzyme';
+import { UIRouterReact } from '@uirouter/react';
+import { mount, shallow } from 'enzyme';
 import React from 'react';
+import { act } from 'react-dom/test-utils';
+import { BehaviorSubject } from 'rxjs';
 
-import { CollapsibleSection } from '@spinnaker/core';
+import { CollapsibleSection, createDeckRuntime, DeckRuntimeContext, LoadBalancerReader } from '@spinnaker/core';
 
 import {
   AzureLoadBalancerDetailsSection,
   AzureLoadBalancerFirewallsSection,
   azureLoadBalancerDetailsSections,
   loadAzureLoadBalancerDetails,
+  useAzureLoadBalancerDetails,
 } from './azureLoadBalancerDetails';
 
 describe('AzureLoadBalancerDetails', () => {
+  let runtime: ReturnType<typeof createDeckRuntime>;
+  const RuntimeWrapper = ({ children }: React.PropsWithChildren<{}>) => (
+    <DeckRuntimeContext.Provider value={runtime}>{children}</DeckRuntimeContext.Provider>
+  );
+  const mountWithRuntime = (component: React.ReactElement) => mount(component, { wrappingComponent: RuntimeWrapper });
+
+  beforeEach(() => {
+    runtime = createDeckRuntime(new UIRouterReact());
+  });
+
+  afterEach(() => {
+    runtime.dispose();
+  });
+
   function buildApp(loadBalancers: any[]) {
     return {
       loadBalancers: {
@@ -26,6 +44,219 @@ describe('AzureLoadBalancerDetails', () => {
     region: 'westus',
     provider: 'azure',
   } as any;
+
+  function deferred<T>() {
+    let resolve: (value: T) => void;
+    const promise = new Promise<T>((promiseResolve) => {
+      resolve = promiseResolve;
+    });
+    return { promise, resolve: resolve! };
+  }
+
+  it('does not refetch details when a rerender recreates callbacks and route params', async () => {
+    const summary = {
+      account: 'test-account',
+      name: 'fnord-frontend',
+      provider: 'azure',
+      region: 'westus',
+    } as any;
+    const status$ = new BehaviorSubject({
+      status: 'FETCHED',
+      loaded: true,
+      lastRefresh: 1,
+      data: [summary],
+    });
+    const app = {
+      getDataSource: jasmine.createSpy('getDataSource').and.returnValue({
+        status$,
+        refresh: jasmine.createSpy('refresh'),
+      }),
+    } as any;
+    const getLoadBalancerDetails = spyOn(LoadBalancerReader.prototype, 'getLoadBalancerDetails').and.returnValue(
+      new Promise(() => undefined),
+    );
+
+    function TestComponent({ renderCount }: { renderCount: number }) {
+      useAzureLoadBalancerDetails({
+        app,
+        loadBalancerParams: { ...params },
+        autoClose: () => undefined,
+      } as any);
+      return <span>{renderCount}</span>;
+    }
+
+    let wrapper: any;
+    await act(async () => {
+      wrapper = mountWithRuntime(<TestComponent renderCount={0} />);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    await act(async () => {
+      wrapper.setProps({ renderCount: 1 });
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(getLoadBalancerDetails).toHaveBeenCalledTimes(1);
+    wrapper.unmount();
+  });
+
+  it('does not let an older route request overwrite newer load balancer details', async () => {
+    const oldSummary = { account: 'test-account', name: 'old-lb', provider: 'azure', region: 'westus' } as any;
+    const newSummary = { account: 'test-account', name: 'new-lb', provider: 'azure', region: 'westus' } as any;
+    const status$ = new BehaviorSubject({
+      status: 'FETCHED',
+      loaded: true,
+      lastRefresh: 1,
+      data: [oldSummary, newSummary],
+    });
+    const app = {
+      getDataSource: jasmine.createSpy('getDataSource').and.returnValue({
+        status$,
+        refresh: jasmine.createSpy('refresh'),
+      }),
+    } as any;
+    const oldRequest = deferred<any[]>();
+    const newRequest = deferred<any[]>();
+    const getLoadBalancerDetails = spyOn(LoadBalancerReader.prototype, 'getLoadBalancerDetails').and.returnValues(
+      oldRequest.promise,
+      newRequest.promise,
+    );
+
+    function TestComponent({ name }: { name: string }) {
+      const result = useAzureLoadBalancerDetails({
+        app,
+        loadBalancerParams: { ...params, name },
+        autoClose: () => undefined,
+      } as any);
+      return <span>{result.data?.name || ''}</span>;
+    }
+
+    let wrapper: any;
+    await act(async () => {
+      wrapper = mountWithRuntime(<TestComponent name="old-lb" />);
+      await Promise.resolve();
+    });
+    await act(async () => {
+      wrapper.setProps({ name: 'new-lb' });
+      await Promise.resolve();
+    });
+
+    expect(getLoadBalancerDetails).toHaveBeenCalledTimes(2);
+
+    await act(async () => {
+      newRequest.resolve([{ name: 'new-lb' }]);
+      await newRequest.promise;
+    });
+    wrapper.update();
+    expect(wrapper.text()).toBe('new-lb');
+
+    await act(async () => {
+      oldRequest.resolve([{ name: 'old-lb' }]);
+      await oldRequest.promise;
+    });
+    wrapper.update();
+    expect(wrapper.text()).toBe('new-lb');
+    wrapper.unmount();
+  });
+
+  it('stops loading when a data source error invalidates an active details request', async () => {
+    const summary = { account: 'test-account', name: 'fnord-frontend', provider: 'azure', region: 'westus' } as any;
+    const status$ = new BehaviorSubject({
+      status: 'FETCHED',
+      loaded: true,
+      lastRefresh: 1,
+      data: [summary],
+      error: null,
+    });
+    const app = {
+      getDataSource: jasmine.createSpy('getDataSource').and.returnValue({
+        status$,
+        refresh: jasmine.createSpy('refresh'),
+      }),
+    } as any;
+    const request = deferred<any[]>();
+    const getLoadBalancerDetails = spyOn(LoadBalancerReader.prototype, 'getLoadBalancerDetails').and.returnValue(
+      request.promise,
+    );
+
+    function TestComponent() {
+      const result = useAzureLoadBalancerDetails({
+        app,
+        loadBalancerParams: params,
+        autoClose: () => undefined,
+      } as any);
+      return <span data-loading={result.loading}>{result.data?.name || ''}</span>;
+    }
+
+    let wrapper: any;
+    await act(async () => {
+      wrapper = mountWithRuntime(<TestComponent />);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    wrapper.update();
+    expect(getLoadBalancerDetails).toHaveBeenCalledTimes(1);
+    expect(wrapper.find('span').prop('data-loading')).toBe(true);
+
+    await act(async () => {
+      status$.next({
+        status: 'ERROR',
+        loaded: true,
+        lastRefresh: 2,
+        data: [summary],
+        error: new Error('load balancer data source failed'),
+      });
+      await Promise.resolve();
+    });
+    wrapper.update();
+    expect(wrapper.find('span').prop('data-loading')).toBe(false);
+
+    await act(async () => {
+      request.resolve([{ name: 'fnord-frontend' }]);
+      await request.promise;
+    });
+    wrapper.update();
+    expect(wrapper.text()).toBe('');
+    wrapper.unmount();
+  });
+
+  it('does not update state when a details request resolves after unmount', async () => {
+    const summary = { account: 'test-account', name: 'fnord-frontend', provider: 'azure', region: 'westus' } as any;
+    const status$ = new BehaviorSubject({
+      status: 'FETCHED',
+      loaded: true,
+      lastRefresh: 1,
+      data: [summary],
+    });
+    const app = {
+      getDataSource: jasmine.createSpy('getDataSource').and.returnValue({
+        status$,
+        refresh: jasmine.createSpy('refresh'),
+      }),
+    } as any;
+    const request = deferred<any[]>();
+    spyOn(LoadBalancerReader.prototype, 'getLoadBalancerDetails').and.returnValue(request.promise);
+
+    function TestComponent() {
+      useAzureLoadBalancerDetails({ app, loadBalancerParams: params, autoClose: () => undefined } as any);
+      return null;
+    }
+
+    let wrapper: any;
+    await act(async () => {
+      wrapper = mountWithRuntime(<TestComponent />);
+      await Promise.resolve();
+    });
+    const consoleError = spyOn(console, 'error');
+    wrapper.unmount();
+
+    await act(async () => {
+      request.resolve([{ name: 'fnord-frontend' }]);
+      await request.promise;
+    });
+
+    const errors = consoleError.calls.allArgs().flat().map(String).join(' ');
+    expect(errors).not.toContain('state update on an unmounted component');
+  });
 
   it('loads matching summary details and preserves legacy Azure detail fields', async () => {
     const summary = {
@@ -89,6 +320,51 @@ describe('AzureLoadBalancerDetails', () => {
       { id: 'sg-2', name: 'a-firewall', account: 'test-account', region: 'westus' },
       { id: 'sg-1', name: 'z-firewall', account: 'test-account', region: 'westus' },
     ] as any);
+  });
+
+  it('uses the load balancer and security group readers from the runtime provider', async () => {
+    const summary = {
+      account: 'test-account',
+      name: 'fnord-frontend',
+      provider: 'azure',
+      region: 'westus',
+    } as any;
+    const status$ = new BehaviorSubject({
+      status: 'FETCHED',
+      loaded: true,
+      lastRefresh: 1,
+      data: [summary],
+    });
+    const app = {
+      getDataSource: jasmine.createSpy('getDataSource').and.returnValue({
+        status$,
+        refresh: jasmine.createSpy('refresh'),
+      }),
+      loadBalancers: { data: [summary] },
+    } as any;
+    const getLoadBalancerDetails = spyOn(LoadBalancerReader.prototype, 'getLoadBalancerDetails').and.resolveTo([
+      { name: 'fnord-frontend', securityGroups: ['firewall-id'] },
+    ] as any);
+    const getApplicationSecurityGroup = spyOn(
+      runtime.services.securityGroupReader,
+      'getApplicationSecurityGroup',
+    ).and.returnValue({ id: 'firewall-id', name: 'firewall' } as any);
+
+    function TestComponent() {
+      useAzureLoadBalancerDetails({ app, loadBalancerParams: params, autoClose: () => undefined } as any);
+      return null;
+    }
+
+    let wrapper: any;
+    await act(async () => {
+      wrapper = mountWithRuntime(<TestComponent />);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(getLoadBalancerDetails.calls.mostRecent().object).toBe(runtime.services.loadBalancerReader);
+    expect(getApplicationSecurityGroup).toHaveBeenCalledWith(app, 'test-account', 'westus', 'firewall-id');
+    wrapper.unmount();
   });
 
   it('closes the details panel when no matching summary exists', async () => {

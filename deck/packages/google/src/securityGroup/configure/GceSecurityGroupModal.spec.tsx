@@ -1,11 +1,21 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { mount as enzymeMount } from 'enzyme';
 
-import { AngularServices, SecurityGroupWriter, SubmitButton } from '@spinnaker/core';
+import { DeckRuntimeContext, SecurityGroupWriter, SubmitButton } from '@spinnaker/core';
 
-import { GceSecurityGroupModal } from './GceSecurityGroupModal';
+import { GceSecurityGroupModalComponent as GceSecurityGroupModal } from './GceSecurityGroupModal';
 
 describe('GceSecurityGroupModal', () => {
+  let runtimeServices: any;
+  const RuntimeWrapper = ({ children }: React.PropsWithChildren<{}>) => (
+    <DeckRuntimeContext.Provider value={{ services: runtimeServices } as any}>{children}</DeckRuntimeContext.Provider>
+  );
+  const mount = (component: React.ReactElement) => enzymeMount(component, { wrappingComponent: RuntimeWrapper });
+
+  beforeEach(() => {
+    runtimeServices = { securityGroupReader: { getAllSecurityGroups: () => Promise.resolve({}) } };
+  });
+
   const application = {
     name: 'my-app',
     securityGroups: { refresh: jasmine.createSpy('refresh') },
@@ -53,8 +63,8 @@ describe('GceSecurityGroupModal', () => {
         finishLoading = resolve;
       }),
     );
-    spyOnProperty(AngularServices, 'securityGroupReader', 'get').and.returnValue({ getAllSecurityGroups } as any);
-    const wrapper = shallow(
+    runtimeServices.securityGroupReader = { getAllSecurityGroups };
+    const wrapper = mount(
       <GceSecurityGroupModal
         application={{ ...application, securityGroups: { data: [] } } as any}
         credentials="my-account"
@@ -76,8 +86,8 @@ describe('GceSecurityGroupModal', () => {
       const getAllSecurityGroups = jasmine
         .createSpy('getAllSecurityGroups')
         .and.returnValue(Promise.resolve(globalSecurityGroups()));
-      spyOnProperty(AngularServices, 'securityGroupReader', 'get').and.returnValue({ getAllSecurityGroups } as any);
-      const wrapper = shallow(
+      runtimeServices.securityGroupReader = { getAllSecurityGroups };
+      const wrapper = mount(
         <GceSecurityGroupModal
           application={{ ...application, securityGroups: { data: [] } } as any}
           credentials="my-account"
@@ -99,10 +109,10 @@ describe('GceSecurityGroupModal', () => {
     const getAllSecurityGroups = jasmine
       .createSpy('getAllSecurityGroups')
       .and.returnValue(Promise.resolve(globalSecurityGroups()));
-    spyOnProperty(AngularServices, 'securityGroupReader', 'get').and.returnValue({ getAllSecurityGroups } as any);
-    const createWrapper = shallow(<GceSecurityGroupModal application={application as any} credentials="my-account" />);
+    runtimeServices.securityGroupReader = { getAllSecurityGroups };
+    const createWrapper = mount(<GceSecurityGroupModal application={application as any} credentials="my-account" />);
     createWrapper.setState({ securityGroup: validSecurityGroup({ name: 'cross-account-firewall' }) } as any);
-    const editWrapper = shallow(
+    const editWrapper = mount(
       <GceSecurityGroupModal application={application as any} mode="edit" securityGroup={validSecurityGroup()} />,
     );
 
@@ -118,8 +128,8 @@ describe('GceSecurityGroupModal', () => {
     const getAllSecurityGroups = jasmine
       .createSpy('getAllSecurityGroups')
       .and.returnValue(Promise.reject(new Error('inventory unavailable')));
-    spyOnProperty(AngularServices, 'securityGroupReader', 'get').and.returnValue({ getAllSecurityGroups } as any);
-    const wrapper = shallow(<GceSecurityGroupModal application={application as any} credentials="my-account" />);
+    runtimeServices.securityGroupReader = { getAllSecurityGroups };
+    const wrapper = mount(<GceSecurityGroupModal application={application as any} credentials="my-account" />);
     wrapper.setState({ securityGroup: validSecurityGroup({ name: 'new-firewall' }) } as any);
 
     await flush();
@@ -133,22 +143,26 @@ describe('GceSecurityGroupModal', () => {
     it(`waits for refreshed security groups before closing and navigating after ${mode}`, () => {
       let finishRefresh: (() => void) | undefined;
       const refresh = jasmine.createSpy('refresh');
-      const onNextRefresh = jasmine
-        .createSpy('onNextRefresh')
-        .and.callFake((_scope: any, callback: () => void) => (finishRefresh = callback));
+      const onNextRefresh = jasmine.createSpy('onNextRefresh').and.callFake((callback: () => void) => {
+        finishRefresh = callback;
+        return () => undefined;
+      });
       const closeModal = jasmine.createSpy('closeModal');
       const state = {
         go: jasmine.createSpy('go'),
         includes: jasmine.createSpy('includes').and.returnValue(mode === 'clone'),
       };
-      spyOnProperty(AngularServices, '$state', 'get').and.returnValue(state as any);
       const modal = new GceSecurityGroupModal({
         application: { name: 'my-app', securityGroups: { onNextRefresh, refresh } },
         closeModal,
         credentials: 'my-account',
         mode,
+        router: {},
         securityGroup: mode === 'clone' ? validSecurityGroup({ name: 'source-firewall' }) : undefined,
+        stateParams: {},
+        stateService: state,
       } as any);
+      (modal as any).mounted = true;
       (modal.state as any).securityGroup = validSecurityGroup({ name: ' new-firewall ', network: ' default ' });
 
       (modal as any).onTaskComplete();
@@ -169,6 +183,42 @@ describe('GceSecurityGroupModal', () => {
         vpcId: 'default',
       });
     });
+  });
+
+  it('owns its refresh subscription across replacement and unmount', () => {
+    const firstUnsubscribe = jasmine.createSpy('firstUnsubscribe');
+    const secondUnsubscribe = jasmine.createSpy('secondUnsubscribe');
+    const callbacks: Array<() => void> = [];
+    const onNextRefresh = jasmine.createSpy('onNextRefresh').and.callFake((callback: () => void) => {
+      callbacks.push(callback);
+      return callbacks.length === 1 ? firstUnsubscribe : secondUnsubscribe;
+    });
+    const refresh = jasmine.createSpy('refresh');
+    const closeModal = jasmine.createSpy('closeModal');
+    const stateService = { go: jasmine.createSpy('go'), includes: jasmine.createSpy('includes') };
+    const modal = new GceSecurityGroupModal({
+      application: { name: 'my-app', securityGroups: { onNextRefresh, refresh } },
+      closeModal,
+      credentials: 'my-account',
+      stateService,
+    } as any) as any;
+    modal.mounted = true;
+
+    modal.onTaskComplete();
+
+    expect(onNextRefresh.calls.first().invocationOrder).toBeLessThan(refresh.calls.first().invocationOrder);
+
+    modal.onTaskComplete();
+
+    expect(firstUnsubscribe).toHaveBeenCalledTimes(1);
+
+    modal.componentWillUnmount();
+    callbacks[1]();
+
+    expect(secondUnsubscribe).toHaveBeenCalledTimes(1);
+    expect(modal.applicationRefreshUnsubscribe).toBeUndefined();
+    expect(closeModal).not.toHaveBeenCalled();
+    expect(stateService.go).not.toHaveBeenCalled();
   });
 
   it('submits multiple protocol and port-range rows using the GCE firewall operation contract', () => {

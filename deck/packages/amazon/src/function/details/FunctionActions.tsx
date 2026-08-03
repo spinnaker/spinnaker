@@ -6,6 +6,7 @@ import {
   AddEntityTagLinks,
   ApplicationReader,
   ConfirmationModalService,
+  DeckRuntimeContext,
   FunctionWriter,
   SETTINGS,
 } from '@spinnaker/core';
@@ -26,6 +27,9 @@ export interface IFunctionActionsState {
 }
 
 export class FunctionActions extends React.Component<IFunctionActionsProps, IFunctionActionsState> {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   constructor(props: IFunctionActionsProps) {
     super(props);
     this.state = { application: props.app };
@@ -60,7 +64,7 @@ export class FunctionActions extends React.Component<IFunctionActionsProps, IFun
     const { functionDef } = this.props;
     const { application } = this.state;
     const FunctionModal = CreateLambdaFunction;
-    FunctionModal.show({ app: application, functionDef });
+    FunctionModal.show({ app: application, functionDef }, this.context.services);
   };
 
   public deleteFunction = (): void => {

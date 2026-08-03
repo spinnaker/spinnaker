@@ -1,10 +1,8 @@
-import { $log } from 'ngimport';
-
 import { REST } from '../api/ApiService';
 import type { IServerGroup } from '../domain';
 
 export class ServerGroupReader {
-  public static getScalingActivities(serverGroup: IServerGroup): PromiseLike<any[]> {
+  public static getScalingActivities(serverGroup: IServerGroup): Promise<any[]> {
     return REST('/applications')
       .path(
         serverGroup.app,
@@ -21,7 +19,7 @@ export class ServerGroupReader {
       })
       .get()
       .catch((error: any): any[] => {
-        $log.error(error, 'error retrieving scaling activities');
+        console.error(error, 'error retrieving scaling activities');
         return [];
       });
   }
@@ -31,7 +29,7 @@ export class ServerGroupReader {
     account: string,
     region: string,
     serverGroupName: string,
-  ): PromiseLike<IServerGroup> {
+  ): Promise<IServerGroup> {
     return REST('/applications')
       .path(application, 'serverGroups', account, region, serverGroupName)
       .query({ includeDetails: 'false' })

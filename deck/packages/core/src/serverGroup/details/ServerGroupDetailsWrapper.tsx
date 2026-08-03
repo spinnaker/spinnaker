@@ -1,9 +1,7 @@
-import { $q } from 'ngimport';
 import React from 'react';
 import type { Observable } from 'rxjs';
 
 import { ServerGroupDetails } from './ServerGroupDetails';
-import { AngularServices } from '../../angular/services';
 import type { Application } from '../../application';
 import { CloudProviderRegistry } from '../../cloudProvider';
 import type { IServerGroup } from '../../domain';
@@ -13,6 +11,7 @@ export interface IServerGroupDetailsWrapperProps {
   serverGroup: {
     name: string;
     accountId: string;
+    provider: string;
     region: string;
   };
 }
@@ -21,7 +20,6 @@ export type DetailsGetter = (props: IServerGroupDetailsProps, autoClose: () => v
 
 export interface IServerGroupDetailsWrapperState {
   detailsGetter: DetailsGetter;
-  legacyDetailsConfigured: boolean;
   sections: Array<React.ComponentType<IServerGroupDetailsSectionProps>>;
   Actions: React.ComponentType<IServerGroupActionsProps>;
 }
@@ -51,52 +49,55 @@ export class ServerGroupDetailsWrapper extends React.Component<
   IServerGroupDetailsWrapperProps,
   IServerGroupDetailsWrapperState
 > {
+  private configurationRequestId = 0;
+
   constructor(props: IServerGroupDetailsWrapperProps) {
     super(props);
 
     this.state = {
       Actions: undefined,
       detailsGetter: undefined,
-      legacyDetailsConfigured: false,
       sections: [],
     };
   }
 
-  private getServerGroupDetailsTemplate(): void {
-    const { provider } = AngularServices.$stateParams;
-    $q.all([
+  private getServerGroupDetailsTemplate(serverGroup: IServerGroupDetailsWrapperProps['serverGroup']): void {
+    const requestId = ++this.configurationRequestId;
+    const { provider } = serverGroup;
+    Promise.all([
       CloudProviderRegistry.getValue(provider, 'serverGroup.detailsActions'),
       CloudProviderRegistry.getValue(provider, 'serverGroup.detailsGetter'),
       CloudProviderRegistry.getValue(provider, 'serverGroup.detailsSections'),
-      CloudProviderRegistry.getValue(provider, 'serverGroup.detailsTemplateUrl'),
-      CloudProviderRegistry.getValue(provider, 'serverGroup.detailsController'),
     ]).then(
       (
         values: [
           React.ComponentClass<IServerGroupActionsProps>,
           DetailsGetter,
           Array<React.ComponentType<IServerGroupDetailsSectionProps>>,
-          string,
-          string,
         ],
       ) => {
-        const [Actions, detailsGetter, sections, templateUrl, controller] = values;
-        this.setState({ Actions, detailsGetter, legacyDetailsConfigured: !!(templateUrl && controller), sections });
+        const [Actions, detailsGetter, sections] = values;
+        if (requestId === this.configurationRequestId) {
+          this.setState({ Actions, detailsGetter, sections });
+        }
       },
     );
   }
 
   public componentDidMount(): void {
-    this.getServerGroupDetailsTemplate();
+    this.getServerGroupDetailsTemplate(this.props.serverGroup);
   }
 
-  public componentWillReceiveProps(): void {
-    this.getServerGroupDetailsTemplate();
+  public componentWillReceiveProps(nextProps: IServerGroupDetailsWrapperProps): void {
+    if (nextProps.serverGroup.provider !== this.props.serverGroup.provider) {
+      this.setState({ Actions: undefined, detailsGetter: undefined, sections: [] });
+      this.getServerGroupDetailsTemplate(nextProps.serverGroup);
+    }
   }
 
   public render() {
     const { app, serverGroup } = this.props;
-    const { Actions, detailsGetter, legacyDetailsConfigured, sections } = this.state;
+    const { Actions, detailsGetter, sections } = this.state;
 
     if (Actions && detailsGetter && sections) {
       // react
@@ -108,14 +109,6 @@ export class ServerGroupDetailsWrapper extends React.Component<
           Actions={Actions}
           detailsGetter={detailsGetter}
         />
-      );
-    }
-
-    if (legacyDetailsConfigured) {
-      return (
-        <div className="alert alert-warning">
-          Server group details must be migrated to React. AngularJS templates/controllers are no longer supported.
-        </div>
       );
     }
 

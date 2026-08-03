@@ -4,6 +4,8 @@ import { AccountService } from '../../account';
 import { HelpField } from '../../help/HelpField';
 import { Markdown } from '../../presentation/Markdown';
 
+import './userVerification.less';
+
 const { useEffect, useState } = React;
 
 export interface IUserVerificationProps {
@@ -41,7 +43,7 @@ export function UserVerification(props: IUserVerificationProps) {
     </>
   );
 
-  const className = `form-control input-sm highlight-pristine ${matches ? '' : 'ng-invalid'}`;
+  const className = `form-control input-sm highlight-pristine ${matches ? '' : 'invalid'}`;
   return hideComponent ? null : (
     <div className="row verification user-verification">
       <div className="col-sm-12">

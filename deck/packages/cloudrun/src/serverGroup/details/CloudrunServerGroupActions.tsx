@@ -1,13 +1,18 @@
 import React from 'react';
 import { Dropdown, MenuItem } from 'react-bootstrap';
 
-import type { IServerGroupActionsProps } from '@spinnaker/core';
-import { AngularServices, ConfirmationModalService } from '@spinnaker/core';
+import type { IRouterInjectedProps, IServerGroupActionsProps } from '@spinnaker/core';
+import { ConfirmationModalService, useDeckRuntimeServices, withRouter } from '@spinnaker/core';
 
 import { CloudrunHealth } from '../../common/cloudrunHealth';
 import type { ICloudrunServerGroup } from '../../interfaces';
 
-export function CloudrunServerGroupActions({ app, serverGroup }: IServerGroupActionsProps) {
+export function CloudrunServerGroupActionsComponent({
+  app,
+  serverGroup,
+  stateService,
+}: IServerGroupActionsProps & IRouterInjectedProps) {
+  const { serverGroupWriter } = useDeckRuntimeServices();
   const cloudrunServerGroup = serverGroup as ICloudrunServerGroup;
   const canDestroyServerGroup = Boolean(
     cloudrunServerGroup && !cloudrunServerGroup.tags?.isLatest && cloudrunServerGroup.disabled,
@@ -22,8 +27,8 @@ export function CloudrunServerGroupActions({ app, serverGroup }: IServerGroupAct
       application: app,
       title: `Destroying ${cloudrunServerGroup.name}`,
       onTaskComplete: () => {
-        if (AngularServices.$state.includes('**.serverGroup', stateParams)) {
-          AngularServices.$state.go('^');
+        if (stateService.includes('**.serverGroup', stateParams)) {
+          stateService.go('^');
         }
       },
     };
@@ -32,8 +37,7 @@ export function CloudrunServerGroupActions({ app, serverGroup }: IServerGroupAct
       buttonText: `Destroy ${cloudrunServerGroup.name}`,
       account: cloudrunServerGroup.account,
       taskMonitorConfig: taskMonitor,
-      submitMethod: (params: any) =>
-        AngularServices.serverGroupWriter.destroyServerGroup(cloudrunServerGroup, app, params),
+      submitMethod: (params: any) => serverGroupWriter.destroyServerGroup(cloudrunServerGroup, app, params),
       askForReason: true,
       platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
       platformHealthType: CloudrunHealth.PLATFORM,
@@ -72,3 +76,5 @@ export function CloudrunServerGroupActions({ app, serverGroup }: IServerGroupAct
     </Dropdown>
   );
 }
+
+export const CloudrunServerGroupActions = withRouter(CloudrunServerGroupActionsComponent);

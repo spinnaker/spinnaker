@@ -134,7 +134,7 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
   };
 
   private dockerChanged = (changes: IDockerImageAndTagChanges) => {
-    // Temporary until stage config section is no longer angular
+    // Image IDs live on the cluster while the remaining image fields live on the stage.
     const { imageId, ...rest } = changes;
     Object.assign(this.props.stage, rest);
     if (imageId) {

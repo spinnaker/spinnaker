@@ -25,6 +25,5 @@ import { TaskMonitor } from './TaskMonitor';
  *
  */
 export const useTaskMonitor = (config: ITaskMonitorConfig, dismissModal: () => void) => {
-  const modalInstance = TaskMonitor.modalInstanceEmulation(() => dismissModal());
-  return useMemo(() => new TaskMonitor({ modalInstance, ...config }), [config.application, config.title]);
+  return useMemo(() => new TaskMonitor({ onDismiss: dismissModal, ...config }), [config.application, config.title]);
 };

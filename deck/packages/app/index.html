@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="no-js" ng-app="netflix.spinnaker" ng-strict-di="true">
+<html class="no-js">
   <head>
     <title>Spinnaker</title>
     <meta charset="utf-8" />
@@ -98,7 +98,7 @@
   </head>
   <body>
     <!-- Sample loading styles -->
-    <div ng-style="{display: authenticating ? '' : 'none'}" class="loading-placeholder">
+    <div class="loading-placeholder">
       <svg
         width="322px"
         height="170px"
@@ -200,8 +200,7 @@
         </g>
       </svg>
 
-      <h1 id="welcome-message" ng-if="!authenticating">Hello!</h1>
-      <h1 style="display: none" ng-style="{display: authenticating ? '' : 'none'}">Authenticating...</h1>
+      <h1 id="welcome-message">Hello!</h1>
 
       <div class="bars">
         <div class="bar"></div>
@@ -259,7 +258,7 @@
     </script>
 
     <!-- Actually injects our application -->
-    <spinnaker ng-if="!authenticating"></spinnaker>
+    <div id="spinnaker-root"></div>
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://code.jquery.com/ui/1.14.2/jquery-ui.min.js"></script>

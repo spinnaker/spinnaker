@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { AngularServices, InfrastructureCaches, NetworkReader } from '@spinnaker/core';
+import { DeckRuntimeContext, InfrastructureCaches, NetworkReader } from '@spinnaker/core';
 
 import { AzureWizardPage } from './common';
 import Utility from '../../../../utility';
@@ -34,11 +34,10 @@ function matchesSelectedVnet(candidate: any, selectedVnet: any): boolean {
   );
 }
 
-function getLoadBalancerReader(): any {
-  return (AngularServices as any).loadBalancerReader;
-}
-
 export class ServerGroupLoadBalancers extends AzureWizardPage {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   private loadVnetSubnetsRequestId = 0;
 
   private getCommandLoadBalancer(loadBalancerName: string | null): any {
@@ -119,7 +118,12 @@ export class ServerGroupLoadBalancers extends AzureWizardPage {
     try {
       [loadBalancerDetails, networks] = await Promise.all([
         loadBalancerName
-          ? getLoadBalancerReader().getLoadBalancerDetails('azure', credentials, region, loadBalancerName)
+          ? this.context.services.loadBalancerReader.getLoadBalancerDetails(
+              'azure',
+              credentials,
+              region,
+              loadBalancerName,
+            )
           : Promise.resolve([]),
         NetworkReader.listNetworks(),
       ]);

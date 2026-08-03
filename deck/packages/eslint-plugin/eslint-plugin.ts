@@ -7,13 +7,6 @@ import importFromNpmNotRelative from './rules/import-from-npm-not-relative';
 import importFromPresentationNotCore from './rules/import-from-presentation-not-core';
 import importRelativeWithinSubpackage from './rules/import-relative-within-subpackage';
 import importSort from './rules/import-sort';
-import migrateToMockHttpClient from './rules/migrate-to-mock-http-client';
-import ngNoComponentClass from './rules/ng-no-component-class';
-import ngNoModuleExport from './rules/ng-no-module-export';
-import ngNoRequireAngularJS from './rules/ng-no-require-angularjs';
-import ngNoRequireModuleDeps from './rules/ng-no-require-module-deps';
-import ngStrictDI from './rules/ng-strictdi';
-import preferPromiseLike from './rules/prefer-promise-like';
 import restPreferStaticStringsInInitializer from './rules/rest-prefer-static-strings-in-initializer';
 
 const rules = {
@@ -26,13 +19,6 @@ const rules = {
   'import-from-presentation-not-core': importFromPresentationNotCore,
   'import-relative-within-subpackage': importRelativeWithinSubpackage,
   'import-sort': importSort,
-  'migrate-to-mock-http-client': migrateToMockHttpClient,
-  'ng-no-component-class': ngNoComponentClass,
-  'ng-no-module-export': ngNoModuleExport,
-  'ng-no-require-angularjs': ngNoRequireAngularJS,
-  'ng-no-require-module-deps': ngNoRequireModuleDeps,
-  'ng-strictdi': ngStrictDI,
-  'prefer-promise-like': preferPromiseLike,
   'rest-prefer-static-strings-in-initializer': restPreferStaticStringsInInitializer,
 };
 
@@ -42,6 +28,7 @@ const plugin = {
   get configs() {
     return {
       base: require('./base.config.js'),
+      'legacy-base': require('./legacy.config.js'),
       none: require('./none.config.js'),
     };
   },

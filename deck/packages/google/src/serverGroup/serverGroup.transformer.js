@@ -4,8 +4,6 @@ import { defaults, get } from 'lodash';
 
 import { GceHttpLoadBalancerUtils } from '../loadBalancer/httpLoadBalancerUtils.service';
 
-export const GOOGLE_SERVERGROUP_SERVERGROUP_TRANSFORMER = 'spinnaker.gce.serverGroup.transformer';
-export const name = GOOGLE_SERVERGROUP_SERVERGROUP_TRANSFORMER; // for backwards compatibility
 export class GceServerGroupTransformer {
   constructor() {
     const gceHttpLoadBalancerUtils = new GceHttpLoadBalancerUtils();

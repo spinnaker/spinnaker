@@ -40,6 +40,9 @@ import org.springframework.validation.annotation.Validated;
 @ConfigurationProperties("saml")
 @NullableByDefault
 public class SecuritySamlProperties {
+  // Users should migrate to the standard spring "/login/saml2/sso/{registrationId}" endpoint
+  @Deprecated(forRemoval = true)
+  private String loginProcessingUrl = "/saml/SSO";
 
   /** Whether SAML authentication is enabled. */
   private boolean enabled = false;

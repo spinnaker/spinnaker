@@ -32,6 +32,8 @@ import org.springframework.security.web.SecurityFilterChain;
     properties = {
       "spring.config.location=classpath:gate-test.yml",
       "saml.enabled=true",
+      "saml.login-processing-url=/saml/SSO",
+      "spring.security.saml2.relyingparty.registration.SSO.acs.location={baseUrl}/saml/{registrationId}",
       "spring.security.saml2.relyingparty.registration.SSO.entity-id=spinnaker-test",
       "spring.security.saml2.relyingparty.registration.SSO.assertingparty.singlesignon.sign-request=true",
       "spring.security.saml2.relyingparty.registration.SSO.signing.credentials[0].private-key-location=classpath:private_key.pem",

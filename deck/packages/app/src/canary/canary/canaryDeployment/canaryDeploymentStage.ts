@@ -1,4 +1,4 @@
-import { Registry } from '@spinnaker/core';
+import { NoConfigurationStageConfig, Registry } from '@spinnaker/core';
 
 import {
   CanaryDeploymentAnalysisHistory,
@@ -9,6 +9,7 @@ import {
 Registry.pipeline.registerStage({
   synthetic: true,
   key: 'canaryDeployment',
+  component: NoConfigurationStageConfig,
   executionDetailsSections: [
     CanaryDeploymentExecutionDetails,
     CanaryDeploymentAnalysisHistory,

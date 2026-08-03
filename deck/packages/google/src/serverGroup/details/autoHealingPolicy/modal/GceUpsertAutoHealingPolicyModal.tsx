@@ -50,10 +50,7 @@ export class GceUpsertAutoHealingPolicyModal extends React.Component<
       taskMonitor: new TaskMonitor({
         application: props.application,
         title: `${action} autohealing policy for ${props.serverGroup.name}`,
-        modalInstance: TaskMonitor.modalInstanceEmulation(
-          () => props.closeModal?.(),
-          () => props.dismissModal?.(),
-        ),
+        onDismiss: () => props.dismissModal?.(),
         onTaskComplete: () => {
           props.application.serverGroups?.refresh?.();
           props.closeModal?.();

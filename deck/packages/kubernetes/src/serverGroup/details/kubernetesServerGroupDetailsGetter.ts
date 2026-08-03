@@ -5,7 +5,7 @@ import type { IManifest, IServerGroupDetailsProps } from '@spinnaker/core';
 import { ManifestReader, ServerGroupReader } from '@spinnaker/core';
 import type { IKubernetesLoadBalancer, IKubernetesServerGroup, IKubernetesServerGroupView } from '../../interfaces';
 
-function extractServerGroupSummary(props: IServerGroupDetailsProps): PromiseLike<IKubernetesServerGroup> {
+function extractServerGroupSummary(props: IServerGroupDetailsProps): Promise<IKubernetesServerGroup> {
   const { app, serverGroup } = props;
   return app.ready().then(() => {
     let summary: IKubernetesServerGroup = app.serverGroups.data.find((toCheck: IKubernetesServerGroup) => {

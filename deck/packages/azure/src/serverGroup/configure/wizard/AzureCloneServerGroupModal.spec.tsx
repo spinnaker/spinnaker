@@ -1,11 +1,11 @@
 import {
   CloudProviderRegistry,
   DeployInitializer,
+  DeploymentStrategySelector,
   MapEditor,
   NetworkReader,
-  AngularServices,
+  nativePromiseService,
   ReactModal,
-  TaskMonitor,
   WizardModal,
   WizardPage,
 } from '@spinnaker/core';
@@ -14,9 +14,14 @@ import React from 'react';
 
 import { registerAzureProvider } from '../../../azure.module';
 import { AzureServerGroupTransformer } from '../../serverGroup.transformer';
-import { AzureCloneServerGroupModal } from './AzureCloneServerGroupModal';
+import { AzureServerGroupConfigurationService } from '../serverGroupConfiguration.service';
+import {
+  AzureCloneServerGroupModal as RoutedAzureCloneServerGroupModal,
+  AzureCloneServerGroupModalComponent as AzureCloneServerGroupModal,
+} from './AzureCloneServerGroupModal';
 import {
   ServerGroupAdvancedSettings,
+  ServerGroupBasicSettings,
   ServerGroupHealthSettings,
   ServerGroupImageSettings,
   ServerGroupLoadBalancers,
@@ -25,6 +30,7 @@ import {
 } from './pages';
 
 describe('AzureCloneServerGroupModal', () => {
+  let runtimeServices: any;
   const application = {
     name: 'fnord',
     serverGroups: {
@@ -64,11 +70,40 @@ describe('AzureCloneServerGroupModal', () => {
   }
 
   beforeEach(() => {
-    spyOn(TaskMonitor, 'modalInstanceEmulation').and.returnValue({
-      dismiss: () => null,
-      result: Promise.resolve(),
-    } as any);
+    runtimeServices = {
+      cacheInitializer: {},
+      loadBalancerReader: { getLoadBalancerDetails: jasmine.createSpy('getLoadBalancerDetails') },
+      securityGroupReader: {},
+    };
+    const configurationService = new AzureServerGroupConfigurationService(nativePromiseService, runtimeServices);
+    runtimeServices.providerServiceDelegate = {
+      getDelegate: jasmine.createSpy('getDelegate').and.returnValue(configurationService),
+    };
   });
+
+  function shallowModal(serverGroupCommand: any): any {
+    const wrapper = shallow(
+      <AzureCloneServerGroupModal
+        title="Configure"
+        application={application}
+        command={serverGroupCommand}
+        closeModal={jasmine.createSpy('closeModal')}
+        dismissModal={jasmine.createSpy('dismissModal')}
+      />,
+      { disableLifecycleMethods: true },
+    );
+    const modal = wrapper.instance() as any;
+    modal.context = { services: runtimeServices };
+    modal.componentDidMount();
+    wrapper.update();
+    return wrapper;
+  }
+
+  function loadBalancerPage(serverGroupCommand: any): any {
+    const page = new ServerGroupLoadBalancers({ formik: formik(serverGroupCommand) } as any) as any;
+    page.context = { services: runtimeServices };
+    return page;
+  }
 
   function formik(values: any): any {
     return {
@@ -88,50 +123,78 @@ describe('AzureCloneServerGroupModal', () => {
   it('registers as the Azure clone server group modal', () => {
     registerAzureProvider();
 
-    expect(CloudProviderRegistry.getValue('azure', 'serverGroup.CloneServerGroupModal')).toBe(
-      AzureCloneServerGroupModal,
+    expect(CloudProviderRegistry.getValue('azure', 'serverGroup.CloneServerGroupModal').render).toBe(
+      (RoutedAzureCloneServerGroupModal as any).render,
     );
   });
 
   it('show opens the React wizard and resolves with the submitted pipeline command', async () => {
     const serverGroupCommand = command();
-    spyOn(ReactModal, 'show').and.callFake((Component: any, props: any) => {
-      const modal = new Component({
-        ...props,
-        closeModal: (result: any) => Promise.resolve(result),
-        dismissModal: () => null,
-      });
-      return Promise.resolve((modal as any).submit(serverGroupCommand));
-    });
+    const runtimeServices = {} as any;
+    spyOn(ReactModal, 'show').and.returnValue(Promise.resolve(serverGroupCommand));
 
-    const result = await AzureCloneServerGroupModal.show({
-      title: 'Configure',
-      application,
-      command: serverGroupCommand,
-    } as any);
+    const result = await RoutedAzureCloneServerGroupModal.show(
+      {
+        title: 'Configure',
+        application,
+        command: serverGroupCommand,
+      } as any,
+      runtimeServices,
+    );
 
     expect(result).toBe(serverGroupCommand);
     expect(ReactModal.show).toHaveBeenCalledWith(
-      AzureCloneServerGroupModal,
+      RoutedAzureCloneServerGroupModal,
       jasmine.objectContaining({ title: 'Configure', application, command: serverGroupCommand }),
       { dialogClassName: 'wizard-modal modal-lg' },
+      runtimeServices,
     );
+  });
+
+  it('owns its refresh subscription across replacement and unmount', () => {
+    const firstUnsubscribe = jasmine.createSpy('firstUnsubscribe');
+    const secondUnsubscribe = jasmine.createSpy('secondUnsubscribe');
+    const callbacks: Array<() => void> = [];
+    const onNextRefresh = jasmine.createSpy('onNextRefresh').and.callFake((callback: () => void) => {
+      callbacks.push(callback);
+      return callbacks.length === 1 ? firstUnsubscribe : secondUnsubscribe;
+    });
+    const refresh = jasmine.createSpy('refresh');
+    const stateService = { go: jasmine.createSpy('go'), includes: jasmine.createSpy('includes') };
+    const modal = new AzureCloneServerGroupModal({
+      application: { name: 'fnord', serverGroups: { onNextRefresh, refresh } },
+      command: command(),
+      dismissModal: jasmine.createSpy('dismissModal'),
+      stateService,
+      title: 'Create server group',
+    } as any) as any;
+
+    modal.onTaskComplete();
+
+    expect(onNextRefresh.calls.first().invocationOrder).toBeLessThan(refresh.calls.first().invocationOrder);
+
+    modal.onTaskComplete();
+
+    expect(firstUnsubscribe).toHaveBeenCalledTimes(1);
+
+    modal.componentWillUnmount();
+    callbacks[1]();
+
+    expect(secondUnsubscribe).toHaveBeenCalledTimes(1);
+    expect(modal.applicationRefreshUnsubscribe).toBeUndefined();
+    expect(stateService.go).not.toHaveBeenCalled();
   });
 
   it('cancel and dismiss reject without submitting or mutating the command', async () => {
     const serverGroupCommand = command({ viewState: { mode: 'clone' } });
     const original = JSON.stringify(serverGroupCommand);
-    spyOn(ReactModal, 'show').and.callFake((Component: any, props: any) => {
-      const modal = new Component({
-        ...props,
-        closeModal: () => Promise.resolve(),
-        dismissModal: () => Promise.reject('cancelled'),
-      });
-      return (modal.props as any).dismissModal();
-    });
+    spyOn(ReactModal, 'show').and.returnValue(Promise.reject('cancelled'));
 
     await expectAsync(
-      AzureCloneServerGroupModal.show({ title: 'Clone', application, command: serverGroupCommand } as any),
+      RoutedAzureCloneServerGroupModal.show(
+        { title: 'Clone', application, command: serverGroupCommand } as any,
+        {} as any,
+      ),
     ).toBeRejectedWith('cancelled');
 
     expect(JSON.stringify(serverGroupCommand)).toBe(original);
@@ -166,15 +229,7 @@ describe('AzureCloneServerGroupModal', () => {
 
   it('renders the React wizard with Azure pages in parity order', () => {
     const serverGroupCommand = command();
-    const wrapper = shallow(
-      <AzureCloneServerGroupModal
-        title="Configure"
-        application={application}
-        command={serverGroupCommand}
-        closeModal={jasmine.createSpy('closeModal')}
-        dismissModal={jasmine.createSpy('dismissModal')}
-      />,
-    );
+    const wrapper = shallowModal(serverGroupCommand);
 
     wrapper.setState({ loaded: true });
     const wizard = wrapper.find(WizardModal);
@@ -201,17 +256,30 @@ describe('AzureCloneServerGroupModal', () => {
     ]);
   });
 
+  it('renders the deployment strategy selector and forwards strategy changes through Formik without a provider callback', () => {
+    const serverGroupCommand = command({
+      viewState: { mode: 'createPipeline', disableStrategySelection: false },
+    });
+    const formikProps = formik(serverGroupCommand);
+    const wrapper = shallow(<ServerGroupBasicSettings app={application} formik={formikProps} />);
+    const selector = wrapper.find(DeploymentStrategySelector);
+
+    expect(selector.exists()).toBe(true);
+
+    const onFieldChange = selector.exists() ? selector.prop('onFieldChange') : undefined;
+    const onSelectorStrategyChange = selector.exists() ? selector.prop('onStrategyChange') : undefined;
+    const strategy = { key: 'redblack' } as any;
+    onFieldChange?.('scaleDown', true);
+
+    expect(serverGroupCommand.onStrategyChange).toBeUndefined();
+    expect(() => onSelectorStrategyChange?.(serverGroupCommand, strategy)).not.toThrow();
+    expect(formikProps.setFieldValue).toHaveBeenCalledWith('scaleDown', true);
+    expect(formikProps.setFieldValue).toHaveBeenCalledWith('strategy', 'redblack');
+  });
+
   it('renders template selection before configuring deploy-stage commands', () => {
     const serverGroupCommand = { viewState: { requiresTemplateSelection: true, disableStrategySelection: true } };
-    const wrapper = shallow(
-      <AzureCloneServerGroupModal
-        title="Configure"
-        application={application}
-        command={serverGroupCommand}
-        closeModal={jasmine.createSpy('closeModal')}
-        dismissModal={jasmine.createSpy('dismissModal')}
-      />,
-    );
+    const wrapper = shallowModal(serverGroupCommand);
 
     expect(wrapper.find(DeployInitializer).exists()).toBe(true);
     expect(wrapper.find(WizardModal).exists()).toBe(false);
@@ -225,15 +293,7 @@ describe('AzureCloneServerGroupModal', () => {
       ],
     });
 
-    const wrapper = shallow(
-      <AzureCloneServerGroupModal
-        title="Configure"
-        application={application}
-        command={serverGroupCommand}
-        closeModal={jasmine.createSpy('closeModal')}
-        dismissModal={jasmine.createSpy('dismissModal')}
-      />,
-    );
+    const wrapper = shallowModal(serverGroupCommand);
     const workingCommand = (wrapper.state() as any).command;
 
     expect(workingCommand.backingData.filtered.images).toEqual([{ imageName: 'ubuntu-west', ami: 'ami-west' }]);
@@ -249,15 +309,7 @@ describe('AzureCloneServerGroupModal', () => {
         { imageName: 'ubuntu-east', amis: { eastus: ['ami-east'] } },
       ],
     });
-    const wrapper = shallow(
-      <AzureCloneServerGroupModal
-        title="Configure"
-        application={application}
-        command={serverGroupCommand}
-        closeModal={jasmine.createSpy('closeModal')}
-        dismissModal={jasmine.createSpy('dismissModal')}
-      />,
-    );
+    const wrapper = shallowModal(serverGroupCommand);
     const workingCommand = (wrapper.state() as any).command;
 
     workingCommand.region = 'eastus';
@@ -295,6 +347,7 @@ describe('AzureCloneServerGroupModal', () => {
   });
 
   it('renders account and region filtered load balancers from the command', () => {
+    spyOn(NetworkReader, 'listNetworks').and.returnValue(Promise.resolve({ azure: [] }) as any);
     const serverGroupCommand = command({
       loadBalancers: ['lb-a'],
       loadBalancerName: null,
@@ -316,9 +369,9 @@ describe('AzureCloneServerGroupModal', () => {
         filtered: { loadBalancers: ['lb-a'] },
       },
     });
-    spyOnProperty(AngularServices as any, 'loadBalancerReader', 'get').and.returnValue({
+    runtimeServices.loadBalancerReader = {
       getLoadBalancerDetails: () => Promise.resolve([{ vnet: 'vnet-a' }]),
-    });
+    };
     spyOn(NetworkReader, 'listNetworks').and.returnValue(
       Promise.resolve({
         azure: [
@@ -336,7 +389,7 @@ describe('AzureCloneServerGroupModal', () => {
       } as any),
     );
 
-    const page = new ServerGroupLoadBalancers({ formik: formik(serverGroupCommand) } as any) as any;
+    const page = loadBalancerPage(serverGroupCommand);
     await page.loadBalancerChanged('lb-a');
 
     expect(serverGroupCommand.loadBalancerType).toBe('Azure Application Gateway');
@@ -355,9 +408,9 @@ describe('AzureCloneServerGroupModal', () => {
         filtered: { loadBalancers: ['lb-a'] },
       },
     });
-    spyOnProperty(AngularServices as any, 'loadBalancerReader', 'get').and.returnValue({
+    runtimeServices.loadBalancerReader = {
       getLoadBalancerDetails: () => Promise.resolve([{ vnet: 'vnet-a' }]),
-    });
+    };
     spyOn(NetworkReader, 'listNetworks').and.returnValue(
       Promise.resolve({
         azure: [
@@ -372,7 +425,7 @@ describe('AzureCloneServerGroupModal', () => {
       } as any),
     );
 
-    const page = new ServerGroupLoadBalancers({ formik: formik(serverGroupCommand) } as any) as any;
+    const page = loadBalancerPage(serverGroupCommand);
     await page.loadBalancerChanged('lb-a');
 
     expect(serverGroupCommand.selectedVnet.name).toBe('vnet-a');
@@ -391,9 +444,9 @@ describe('AzureCloneServerGroupModal', () => {
       selectedVnetSubnets: ['old-subnet'],
       backingData: { loadBalancers: [], filtered: { loadBalancers: [] } },
     });
-    spyOnProperty(AngularServices as any, 'loadBalancerReader', 'get').and.returnValue({
+    runtimeServices.loadBalancerReader = {
       getLoadBalancerDetails: jasmine.createSpy('getLoadBalancerDetails'),
-    });
+    };
     spyOn(NetworkReader, 'listNetworks').and.returnValue(
       Promise.resolve({
         azure: [
@@ -408,7 +461,7 @@ describe('AzureCloneServerGroupModal', () => {
       } as any),
     );
 
-    const page = new ServerGroupLoadBalancers({ formik: formik(serverGroupCommand) } as any) as any;
+    const page = loadBalancerPage(serverGroupCommand);
     await page.loadVnetSubnets(null, null, 0);
 
     expect(serverGroupCommand.selectedVnet.subnets).toEqual([{ name: 'subnet-new', devices: [] }]);
@@ -425,9 +478,9 @@ describe('AzureCloneServerGroupModal', () => {
       selectedVnetSubnets: [],
       backingData: { loadBalancers: [], filtered: { loadBalancers: [] } },
     });
-    spyOnProperty(AngularServices as any, 'loadBalancerReader', 'get').and.returnValue({
+    runtimeServices.loadBalancerReader = {
       getLoadBalancerDetails: jasmine.createSpy('getLoadBalancerDetails'),
-    });
+    };
     spyOn(NetworkReader, 'listNetworks').and.returnValue(
       Promise.resolve({
         azure: [
@@ -442,7 +495,7 @@ describe('AzureCloneServerGroupModal', () => {
       } as any),
     );
 
-    const page = new ServerGroupLoadBalancers({ formik: formik(serverGroupCommand) } as any) as any;
+    const page = loadBalancerPage(serverGroupCommand);
     page.componentDidMount();
     await Promise.resolve();
     await Promise.resolve();
@@ -545,12 +598,12 @@ describe('AzureCloneServerGroupModal', () => {
       selectedVnetSubnets: [],
       backingData: { loadBalancers: [], filtered: { loadBalancers: [] } },
     });
-    spyOnProperty(AngularServices as any, 'loadBalancerReader', 'get').and.returnValue({
+    runtimeServices.loadBalancerReader = {
       getLoadBalancerDetails: jasmine.createSpy('getLoadBalancerDetails'),
-    });
+    };
     spyOn(NetworkReader, 'listNetworks').and.returnValue(Promise.reject(new Error('boom')));
 
-    const page = new ServerGroupLoadBalancers({ formik: formik(serverGroupCommand) } as any) as any;
+    const page = loadBalancerPage(serverGroupCommand);
 
     await expectAsync(page.loadVnetSubnets(null, null, 0)).toBeResolved();
 
@@ -570,12 +623,12 @@ describe('AzureCloneServerGroupModal', () => {
       vnet: 'old-vnet',
       vnetResourceGroup: 'old-rg',
     });
-    spyOnProperty(AngularServices as any, 'loadBalancerReader', 'get').and.returnValue({
+    runtimeServices.loadBalancerReader = {
       getLoadBalancerDetails: jasmine.createSpy('getLoadBalancerDetails'),
-    });
+    };
     spyOn(NetworkReader, 'listNetworks').and.returnValue(Promise.reject(new Error('boom')));
 
-    const page = new ServerGroupLoadBalancers({ formik: formik(serverGroupCommand) } as any) as any;
+    const page = loadBalancerPage(serverGroupCommand);
 
     await page.loadBalancerChanged('lb-b', true);
 
@@ -601,9 +654,9 @@ describe('AzureCloneServerGroupModal', () => {
         filtered: { loadBalancers: ['lb-a'] },
       },
     });
-    spyOnProperty(AngularServices as any, 'loadBalancerReader', 'get').and.returnValue({
+    runtimeServices.loadBalancerReader = {
       getLoadBalancerDetails: () => Promise.resolve([]),
-    });
+    };
     spyOn(NetworkReader, 'listNetworks').and.returnValue(
       Promise.resolve({
         azure: [
@@ -612,7 +665,7 @@ describe('AzureCloneServerGroupModal', () => {
       } as any),
     );
 
-    const page = new ServerGroupLoadBalancers({ formik: formik(serverGroupCommand) } as any) as any;
+    const page = loadBalancerPage(serverGroupCommand);
     await page.loadBalancerChanged('lb-a');
 
     expect(serverGroupCommand.loadBalancerType).toBe('Azure Load Balancer');
@@ -634,7 +687,7 @@ describe('AzureCloneServerGroupModal', () => {
       },
     });
     let resolveFirstRequest: (details: any[]) => void;
-    spyOnProperty(AngularServices as any, 'loadBalancerReader', 'get').and.returnValue({
+    runtimeServices.loadBalancerReader = {
       getLoadBalancerDetails: (_provider: string, _account: string, _region: string, loadBalancerName: string) => {
         if (loadBalancerName === 'lb-a') {
           return new Promise((resolve) => {
@@ -643,7 +696,7 @@ describe('AzureCloneServerGroupModal', () => {
         }
         return Promise.resolve([{ vnet: 'vnet-b' }]);
       },
-    });
+    };
     spyOn(NetworkReader, 'listNetworks').and.returnValue(
       Promise.resolve({
         azure: [
@@ -653,7 +706,7 @@ describe('AzureCloneServerGroupModal', () => {
       } as any),
     );
 
-    const page = new ServerGroupLoadBalancers({ formik: formik(serverGroupCommand) } as any) as any;
+    const page = loadBalancerPage(serverGroupCommand);
     const firstRequest = page.loadBalancerChanged('lb-a');
     const secondRequest = page.loadBalancerChanged('lb-b');
     await secondRequest;

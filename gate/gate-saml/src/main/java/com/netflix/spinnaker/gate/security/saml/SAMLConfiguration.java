@@ -37,6 +37,7 @@ import org.springframework.security.saml2.provider.service.authentication.OpenSa
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
+import org.springframework.util.StringUtils;
 
 /**
  * Configures SAML authentication for Spinnaker Gate.
@@ -91,17 +92,23 @@ public class SAMLConfiguration {
     public SecurityFilterChain securityFilterChain(
         HttpSecurity http, RelyingPartyRegistrationRepository registrations) throws Exception {
       authConfig.configure(http);
+      // Handles redirect in newer spring systems
       HttpSessionRequestCache requestCache = new HttpSessionRequestCache();
       requestCache.setMatchingRequestParameterName(null);
+      http.requestCache(cache -> cache.requestCache(requestCache));
 
-      var authenticationProvider = new OpenSaml4AuthenticationProvider();
-      authenticationProvider.setResponseAuthenticationConverter(responseAuthenticationConverter());
-      return http.saml2Login(
-              saml ->
-                  saml.authenticationManager(new ProviderManager(authenticationProvider))
-                      .relyingPartyRegistrationRepository(registrations))
-          .requestCache(cache -> cache.requestCache(requestCache))
-          .build();
+      http.saml2Login(
+          saml -> {
+            var authenticationProvider = new OpenSaml4AuthenticationProvider();
+            authenticationProvider.setResponseAuthenticationConverter(
+                responseAuthenticationConverter());
+            saml.authenticationManager(new ProviderManager(authenticationProvider));
+            saml.relyingPartyRegistrationRepository(registrations);
+            if (StringUtils.hasLength(properties.getLoginProcessingUrl())) {
+              saml.loginProcessingUrl(properties.getLoginProcessingUrl());
+            }
+          });
+      return http.build();
     }
   }
 }

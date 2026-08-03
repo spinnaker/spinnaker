@@ -2,6 +2,7 @@ import { mount } from 'enzyme';
 import React from 'react';
 
 import { AccountService } from '../../../account/AccountService';
+import { ScopeClusterSelector } from '../../../widgets/ScopeClusterSelector';
 import { PreconditionSelector } from './PreconditionSelector';
 import { StageStatusPreconditionConfig } from './types/stageStatus/StageStatusPreconditionConfig';
 
@@ -226,7 +227,30 @@ describe('<PreconditionSelector />', () => {
     });
     const component = mount(<PreconditionSelector {...props} />);
 
-    expect(component.find('select[name="cluster"] option').map((option) => option.prop('value'))).toEqual(['', 'api']);
+    const clusterSelector = component.find(ScopeClusterSelector);
+
+    expect(clusterSelector.length).toBe(1);
+    if (clusterSelector.length) {
+      expect(clusterSelector.prop('clusters')).toEqual(['api']);
+      expect(clusterSelector.prop('model')).toBe('');
+    }
+  });
+
+  it('renders the cluster dropdown for a new empty cluster-size precondition', () => {
+    const props = createProps({
+      precondition: {
+        cloudProvider: 'aws',
+        context: {},
+        failPipeline: true,
+        type: 'clusterSize',
+      },
+    });
+    const component = mount(<PreconditionSelector {...props} />);
+
+    const clusterSelector = component.find(ScopeClusterSelector);
+
+    expect(clusterSelector.find('select').length).toBe(1);
+    expect(clusterSelector.find('input[type="text"]').length).toBe(0);
   });
 
   it('updates the cluster size cluster and matching moniker without sequence', () => {
@@ -253,7 +277,14 @@ describe('<PreconditionSelector />', () => {
     });
     const component = mount(<PreconditionSelector {...props} />);
 
-    component.find('select[name="cluster"]').simulate('change', { target: { value: 'api' } });
+    const clusterSelector = component.find(ScopeClusterSelector);
+
+    expect(clusterSelector.length).toBe(1);
+    if (!clusterSelector.length) {
+      return;
+    }
+
+    clusterSelector.prop('onChange')({ clusterName: 'api' });
 
     expect(props.onChange).toHaveBeenCalledWith({
       cloudProvider: 'aws',
@@ -265,6 +296,61 @@ describe('<PreconditionSelector />', () => {
       },
       failPipeline: true,
       type: 'clusterSize',
+    });
+  });
+
+  ['custom-cluster', '${parameters.cluster}'].forEach((cluster) => {
+    it(`accepts the free-form cluster value ${cluster} and clears the moniker`, () => {
+      const application = {
+        getDataSource: () => ({
+          data: [
+            {
+              account: 'prod',
+              cluster: 'api',
+              moniker: { app: 'api', cluster: 'api', sequence: 1 },
+              region: 'us-west-1',
+            },
+          ],
+        }),
+      } as any;
+      const props = createProps({
+        application,
+        precondition: {
+          cloudProvider: 'aws',
+          context: {
+            cluster,
+            credentials: 'prod',
+            moniker: { app: 'api', cluster: 'api' },
+            regions: ['us-west-1'],
+          },
+          failPipeline: true,
+          type: 'clusterSize',
+        },
+      });
+      const component = mount(<PreconditionSelector {...props} />);
+
+      const clusterSelector = component.find(ScopeClusterSelector);
+
+      expect(clusterSelector.length).toBe(1);
+      if (!clusterSelector.length) {
+        return;
+      }
+
+      expect(clusterSelector.prop('model')).toBe(cluster);
+      expect(clusterSelector.find('input[type="text"]').length).toBe(1);
+      clusterSelector.prop('onChange')({ clusterName: cluster });
+
+      expect(props.onChange).toHaveBeenCalledWith({
+        cloudProvider: 'aws',
+        context: {
+          cluster,
+          credentials: 'prod',
+          moniker: undefined,
+          regions: ['us-west-1'],
+        },
+        failPipeline: true,
+        type: 'clusterSize',
+      });
     });
   });
 

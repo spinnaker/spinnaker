@@ -1,11 +1,11 @@
-import { AccountService, NetworkReader, AngularServices, TaskMonitor } from '@spinnaker/core';
+import { AccountService, NetworkReader } from '@spinnaker/core';
 import { shallow } from 'enzyme';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
 
 import {
   addSecurityRule,
-  AzureSecurityGroupModal,
+  AzureSecurityGroupModalComponent as AzureSecurityGroupModal,
   getAzureVnetSelectValue,
   initializeAzureSecurityGroupForModal,
   isAzureSecurityGroupValid,
@@ -201,10 +201,6 @@ describe('AzureSecurityGroupModal', () => {
       } as any,
       'fnord',
     );
-    spyOn(TaskMonitor, 'modalInstanceEmulation').and.returnValue({
-      dismiss: () => null,
-      result: Promise.resolve(),
-    } as any);
     const modal = new AzureSecurityGroupModal({
       app: { name: 'fnord', securityGroups: { refresh: jasmine.createSpy('refresh') } },
       closeModal: jasmine.createSpy('closeModal'),
@@ -300,10 +296,6 @@ describe('AzureSecurityGroupModal', () => {
         ],
       }) as any,
     );
-    spyOn(TaskMonitor, 'modalInstanceEmulation').and.returnValue({
-      dismiss: () => null,
-      result: Promise.resolve(),
-    } as any);
     const modal = new AzureSecurityGroupModal({
       app: { name: 'fnord', securityGroups: { refresh: jasmine.createSpy('refresh') } },
       closeModal: jasmine.createSpy('closeModal'),
@@ -330,10 +322,6 @@ describe('AzureSecurityGroupModal', () => {
 
   it('clears stale VNet and subnet fields when account or region reloads networks', async () => {
     spyOn(NetworkReader, 'listNetworks').and.returnValue(Promise.resolve({ azure: [] }) as any);
-    spyOn(TaskMonitor, 'modalInstanceEmulation').and.returnValue({
-      dismiss: () => null,
-      result: Promise.resolve(),
-    } as any);
     const modal = new AzureSecurityGroupModal({
       app: { name: 'fnord', securityGroups: { refresh: jasmine.createSpy('refresh') } },
       closeModal: jasmine.createSpy('closeModal'),
@@ -373,10 +361,6 @@ describe('AzureSecurityGroupModal', () => {
   });
 
   it('updates vpcId when selecting a new VNet', () => {
-    spyOn(TaskMonitor, 'modalInstanceEmulation').and.returnValue({
-      dismiss: () => null,
-      result: Promise.resolve(),
-    } as any);
     const selectedVnet = { name: 'new-vnet', resourceGroup: 'new-rg', subnets: [{ name: 'new-subnet' }] };
     const modal = new AzureSecurityGroupModal({
       app: { name: 'fnord', securityGroups: { refresh: jasmine.createSpy('refresh') } },
@@ -501,28 +485,29 @@ describe('AzureSecurityGroupModal', () => {
   });
 
   it('waits for refreshed security groups and navigates to new details after create or clone completes', () => {
-    spyOn(TaskMonitor, 'modalInstanceEmulation').and.returnValue({
-      dismiss: () => null,
-      result: Promise.resolve(),
-    } as any);
     const state = { go: jasmine.createSpy('go'), includes: jasmine.createSpy('includes').and.returnValue(false) };
-    spyOnProperty(AngularServices, '$state', 'get').and.returnValue(state as any);
-    const onNextRefresh = jasmine
-      .createSpy('onNextRefresh')
-      .and.callFake((_scope: any, callback: () => void) => callback());
+    let refreshCallback: () => void;
+    const onNextRefresh = jasmine.createSpy('onNextRefresh').and.callFake((callback: () => void) => {
+      refreshCallback = callback;
+      return jasmine.createSpy('unsubscribe');
+    });
+    const refresh = jasmine.createSpy('refresh').and.callFake(() => refreshCallback());
     const closeModal = jasmine.createSpy('closeModal');
     const modal = new AzureSecurityGroupModal({
-      app: { name: 'fnord', securityGroups: { onNextRefresh, refresh: jasmine.createSpy('refresh') } },
+      app: { name: 'fnord', securityGroups: { onNextRefresh, refresh } },
       closeModal,
       credentials: 'test-account',
       dismissModal: jasmine.createSpy('dismissModal'),
       mode: 'clone',
       securityGroup: { accountId: 'test-account', name: 'fnord-sg', region: 'westus', vpcId: 'vnet-1' },
+      stateService: state,
     } as any) as any;
+    modal.mounted = true;
 
     modal.onTaskComplete();
 
     expect(onNextRefresh).toHaveBeenCalled();
+    expect(onNextRefresh.calls.first().invocationOrder).toBeLessThan(refresh.calls.first().invocationOrder);
     expect(closeModal).toHaveBeenCalled();
     expect(state.go).toHaveBeenCalledWith('.firewallDetails', {
       accountId: 'test-account',
@@ -531,5 +516,43 @@ describe('AzureSecurityGroupModal', () => {
       region: 'westus',
       vpcId: 'vnet-1',
     });
+  });
+
+  it('owns its refresh subscription across replacement and unmount', () => {
+    const firstUnsubscribe = jasmine.createSpy('firstUnsubscribe');
+    const secondUnsubscribe = jasmine.createSpy('secondUnsubscribe');
+    const callbacks: Array<() => void> = [];
+    const onNextRefresh = jasmine.createSpy('onNextRefresh').and.callFake((callback: () => void) => {
+      callbacks.push(callback);
+      return callbacks.length === 1 ? firstUnsubscribe : secondUnsubscribe;
+    });
+    const refresh = jasmine.createSpy('refresh');
+    const closeModal = jasmine.createSpy('closeModal');
+    const stateService = { go: jasmine.createSpy('go'), includes: jasmine.createSpy('includes') };
+    const modal = new AzureSecurityGroupModal({
+      app: { name: 'fnord', securityGroups: { onNextRefresh, refresh } },
+      closeModal,
+      dismissModal: jasmine.createSpy('dismissModal'),
+      mode: 'create',
+      securityGroup: { accountId: 'test-account', name: 'fnord-sg', region: 'westus' },
+      stateService,
+    } as any) as any;
+    modal.mounted = true;
+
+    modal.onTaskComplete();
+
+    expect(onNextRefresh.calls.first().invocationOrder).toBeLessThan(refresh.calls.first().invocationOrder);
+
+    modal.onTaskComplete();
+
+    expect(firstUnsubscribe).toHaveBeenCalledTimes(1);
+
+    modal.componentWillUnmount();
+    callbacks[1]();
+
+    expect(secondUnsubscribe).toHaveBeenCalledTimes(1);
+    expect(modal.applicationRefreshUnsubscribe).toBeUndefined();
+    expect(closeModal).not.toHaveBeenCalled();
+    expect(stateService.go).not.toHaveBeenCalled();
   });
 });

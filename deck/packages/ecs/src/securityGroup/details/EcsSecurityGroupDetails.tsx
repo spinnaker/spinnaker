@@ -3,15 +3,22 @@ import { isEmpty } from 'lodash';
 import React from 'react';
 
 import { buildIpRulesModel, buildSecurityGroupRulesModel, IPRangeRules, VpcReader } from '@spinnaker/amazon';
-import type { Application, ISecurityGroup, ISecurityGroupDetail, SecurityGroupReader } from '@spinnaker/core';
+import type {
+  Application,
+  IRouterInjectedProps,
+  ISecurityGroup,
+  ISecurityGroupDetail,
+  SecurityGroupReader,
+} from '@spinnaker/core';
 import {
   AccountTag,
-  AngularServices,
   CloudProviderLogo,
   CollapsibleSection,
+  DeckRuntimeContext,
   FirewallLabels,
   RecentHistoryService,
   Spinner,
+  withRouter,
 } from '@spinnaker/core';
 
 interface IEcsResolvedSecurityGroup {
@@ -36,10 +43,13 @@ interface IEcsSecurityGroupDetailsState {
   securityGroup?: ISecurityGroupDetail & ISecurityGroup & Record<string, any>;
 }
 
-export class EcsSecurityGroupDetails extends React.Component<
-  IEcsSecurityGroupDetailsProps,
+export class EcsSecurityGroupDetailsComponent extends React.Component<
+  IEcsSecurityGroupDetailsProps & IRouterInjectedProps,
   IEcsSecurityGroupDetailsState
 > {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   public state: IEcsSecurityGroupDetailsState = { loading: true };
 
   private isUnmounted = false;
@@ -58,7 +68,7 @@ export class EcsSecurityGroupDetails extends React.Component<
         return;
       }
       this.loadSecurityGroup();
-      this.unsubscribeFromRefresh = dataSource.onRefresh(null, this.loadSecurityGroup);
+      this.unsubscribeFromRefresh = dataSource.onRefresh(this.loadSecurityGroup);
     });
   }
 
@@ -79,7 +89,7 @@ export class EcsSecurityGroupDetails extends React.Component<
   }
 
   private getSecurityGroupReader(): SecurityGroupReader {
-    return this.props.securityGroupReader || AngularServices.securityGroupReader;
+    return this.props.securityGroupReader || this.context.services.securityGroupReader;
   }
 
   private getVpcReader(): Pick<typeof VpcReader, 'getVpcName'> {
@@ -99,7 +109,7 @@ export class EcsSecurityGroupDetails extends React.Component<
       this.setState({ loading: false, notFound: true, securityGroup: undefined });
       return;
     }
-    AngularServices.$state.go('^', { allowModalToStayOpen: true }, { location: 'replace' });
+    this.props.stateService.go('^', { allowModalToStayOpen: true }, { location: 'replace' });
   };
 
   private loadSecurityGroup = (): void => {
@@ -164,7 +174,7 @@ export class EcsSecurityGroupDetails extends React.Component<
   };
 
   private closeDetails = (): void => {
-    AngularServices.$state.go('^');
+    this.props.stateService.go('^');
   };
 
   public render(): JSX.Element {
@@ -271,3 +281,5 @@ export class EcsSecurityGroupDetails extends React.Component<
     );
   }
 }
+
+export const EcsSecurityGroupDetails = withRouter(EcsSecurityGroupDetailsComponent);

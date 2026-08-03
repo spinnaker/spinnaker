@@ -1,23 +1,28 @@
-import { shallow } from 'enzyme';
+import { mount as enzymeMount } from 'enzyme';
 import React from 'react';
 import { Dropdown, Tooltip } from 'react-bootstrap';
 
 import { AWSProviderSettings } from '@spinnaker/amazon';
 import {
   AddEntityTagLinks,
-  AngularServices,
   ConfirmationModalService,
+  DeckRuntimeContext,
   ManagedMenuItem,
   SETTINGS,
   ServerGroupWarningMessageService,
 } from '@spinnaker/core';
 
-import { EcsServerGroupActions } from './EcsServerGroupActions';
+import { EcsServerGroupActionsComponent as EcsServerGroupActions } from './EcsServerGroupActions';
 import { EcsResizeServerGroupModal } from './resize/EcsResizeServerGroupModal';
 import { EcsRollbackServerGroupModal } from './rollback/EcsRollbackServerGroupModal';
 
 describe('<EcsServerGroupActions />', () => {
   const originalAdHocInfraWritesEnabled = AWSProviderSettings.adHocInfraWritesEnabled;
+  let runtimeServices: any;
+  const RuntimeWrapper = ({ children }: React.PropsWithChildren<{}>) => (
+    <DeckRuntimeContext.Provider value={{ services: runtimeServices } as any}>{children}</DeckRuntimeContext.Provider>
+  );
+  const shallow = (component: React.ReactElement) => enzymeMount(component, { wrappingComponent: RuntimeWrapper });
 
   const buildServerGroup = (overrides: any = {}) => ({
     account: 'test-account',
@@ -48,11 +53,13 @@ describe('<EcsServerGroupActions />', () => {
 
   beforeEach(() => {
     AWSProviderSettings.adHocInfraWritesEnabled = true;
-    spyOnProperty(AngularServices, 'serverGroupWriter', 'get').and.returnValue({
-      destroyServerGroup: () => Promise.resolve(),
-      disableServerGroup: () => Promise.resolve(),
-      enableServerGroup: () => Promise.resolve(),
-    } as any);
+    runtimeServices = {
+      serverGroupWriter: {
+        destroyServerGroup: () => Promise.resolve(),
+        disableServerGroup: () => Promise.resolve(),
+        enableServerGroup: () => Promise.resolve(),
+      },
+    };
   });
 
   afterEach(() => {
@@ -130,7 +137,7 @@ describe('<EcsServerGroupActions />', () => {
 
     action(wrapper, 'Rollback').prop('onClick')();
 
-    expect(show).toHaveBeenCalledOnceWith({ application: app, serverGroup });
+    expect(show).toHaveBeenCalledOnceWith({ application: app, serverGroup }, runtimeServices);
   });
 
   it('opens the completed resize modal with the enriched server group', () => {
@@ -141,7 +148,7 @@ describe('<EcsServerGroupActions />', () => {
 
     action(wrapper, 'Resize').prop('onClick')();
 
-    expect(show).toHaveBeenCalledOnceWith({ application: app, serverGroup });
+    expect(show).toHaveBeenCalledOnceWith({ application: app, serverGroup }, runtimeServices);
   });
 
   ['Disable', 'Enable', 'Destroy'].forEach((label) => {
@@ -149,12 +156,24 @@ describe('<EcsServerGroupActions />', () => {
       const app = buildApp();
       const serverGroup = buildServerGroup({ isDisabled: label === 'Enable' });
       const writerMethod = `${label.toLowerCase()}ServerGroup`;
-      const writer = AngularServices.serverGroupWriter as any;
+      const writer = runtimeServices.serverGroupWriter as any;
       const write = spyOn(writer, writerMethod).and.returnValue(Promise.resolve());
       const confirm = spyOn(ConfirmationModalService, 'confirm').and.returnValue(Promise.resolve());
+      const stateService = {
+        go: jasmine.createSpy('go'),
+        includes: jasmine.createSpy('includes').and.returnValue(true),
+      };
       spyOn(ServerGroupWarningMessageService, 'addDisableWarningMessage');
       spyOn(ServerGroupWarningMessageService, 'addDestroyWarningMessage');
-      const wrapper = shallow(<EcsServerGroupActions app={app} serverGroup={serverGroup} />);
+      const wrapper = shallow(
+        <EcsServerGroupActions
+          app={app}
+          router={{} as any}
+          serverGroup={serverGroup}
+          stateParams={{}}
+          stateService={stateService as any}
+        />,
+      );
 
       action(wrapper, label).prop('onClick')();
 
@@ -164,6 +183,10 @@ describe('<EcsServerGroupActions />', () => {
       const command = { interestingHealthProviderNames: ['Ecs'], reason: 'because it is safe' };
       params.submitMethod(command);
       expect(write).toHaveBeenCalledOnceWith(serverGroup, label === 'Disable' ? app.name : app, command);
+      if (label === 'Destroy') {
+        params.taskMonitorConfig.onTaskComplete();
+        expect(stateService.go).toHaveBeenCalledWith('^');
+      }
     });
   });
 

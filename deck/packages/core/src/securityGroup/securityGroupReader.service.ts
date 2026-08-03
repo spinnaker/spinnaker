@@ -1,14 +1,10 @@
-import type { ILogService, IQService } from 'angular';
-import { module } from 'angular';
 import { filter, forOwn, has, uniq } from 'lodash';
 import { cloneDeep } from 'lodash';
 
 import { REST } from '../api/ApiService';
 import type { Application } from '../application/application.model';
 import { InfrastructureCaches } from '../cache/infrastructureCaches';
-
 import type { ProviderServiceDelegate } from '../cloudProvider/providerService.delegate';
-import { PROVIDER_SERVICE_DELEGATE } from '../cloudProvider/providerService.delegate';
 import { SETTINGS } from '../config/settings';
 import type { ILoadBalancer, ISecurityGroup, IServerGroup, IServerGroupUsage } from '../domain';
 import type { IEntityTags } from '../domain/IEntityTags';
@@ -18,10 +14,9 @@ import { NameUtils } from '../naming';
 import type { IMoniker } from '../naming/IMoniker';
 import type { ISearchResults } from '../search/search.service';
 import { SearchService } from '../search/search.service';
-
 import type { ISecurityGroupSearchResult } from './securityGroupSearchResultType';
 import type { SecurityGroupTransformerService } from './securityGroupTransformer.service';
-import { SECURITY_GROUP_TRANSFORMER_SERVICE } from './securityGroupTransformer.service';
+import type { PromiseService } from '../utils/nativePromiseService';
 
 export interface ISecurityGroupsByAccount {
   [account: string]: {
@@ -157,7 +152,7 @@ export class SecurityGroupReader {
             }
             securityGroups.push(securityGroup);
           } catch (e) {
-            this.$log.warn('could not attach firewall to load balancer:', loadBalancer.name, securityGroupId, e);
+            this.logger.warn('could not attach firewall to load balancer:', loadBalancer.name, securityGroupId, e);
             notFoundCaught = true;
           }
         });
@@ -180,7 +175,7 @@ export class SecurityGroupReader {
         SecurityGroupReader.attachUsageFields(match);
         securityGroups.push(match);
       } catch (e) {
-        this.$log.warn('could not initialize application firewall:', securityGroup);
+        this.logger.warn('could not initialize application firewall:', securityGroup);
         notFoundCaught = true;
       }
     });
@@ -207,7 +202,7 @@ export class SecurityGroupReader {
             }
             sgSet.add(securityGroup);
           } catch (e) {
-            this.$log.warn('could not attach firewall to server group:', serverGroup.name, securityGroupId);
+            this.logger.warn('could not attach firewall to server group:', serverGroup.name, securityGroupId);
             notFoundCaught = true;
           }
         });
@@ -222,7 +217,7 @@ export class SecurityGroupReader {
   private clearCacheAndRetryAttachingSecurityGroups(
     application: Application,
     nameBasedSecurityGroups: ISecurityGroup[],
-  ): PromiseLike<any[]> {
+  ): Promise<any[]> {
     InfrastructureCaches.clearCache('securityGroups');
     return this.loadSecurityGroups().then((refreshedSecurityGroups: ISecurityGroupsByAccount) => {
       application['securityGroupsIndex'] = refreshedSecurityGroups;
@@ -242,7 +237,7 @@ export class SecurityGroupReader {
     application: Application,
     nameBasedSecurityGroups: ISecurityGroup[],
     retryIfNotFound: boolean,
-  ): PromiseLike<any[]> {
+  ): Promise<any[]> {
     let data: ISecurityGroup[] = [];
     let notFoundCaught = false;
     if (nameBasedSecurityGroups) {
@@ -280,31 +275,30 @@ export class SecurityGroupReader {
 
     data = uniq(data);
     if (notFoundCaught && retryIfNotFound) {
-      this.$log.warn('Clearing firewall cache and trying again...');
+      this.logger.warn('Clearing firewall cache and trying again...');
       return this.clearCacheAndRetryAttachingSecurityGroups(application, nameBasedSecurityGroups);
     } else {
       data.forEach((sg: ISecurityGroup) => this.addNamePartsToSecurityGroup(sg));
-      return this.$q
+      return this.promiseService
         .all(data.map((sg: ISecurityGroup) => this.securityGroupTransformer.normalizeSecurityGroup(sg)))
         .then(() => data);
     }
   }
 
-  public static $inject = ['$log', '$q', 'securityGroupTransformer', 'providerServiceDelegate'];
   constructor(
-    private $log: ILogService,
-    private $q: IQService,
+    private logger: Pick<Console, 'warn'>,
+    private promiseService: PromiseService,
     private securityGroupTransformer: SecurityGroupTransformerService,
     private providerServiceDelegate: ProviderServiceDelegate,
   ) {}
 
-  private getAllSecurityGroupsPromise: PromiseLike<ISecurityGroupsByAccountSourceData>;
+  private getAllSecurityGroupsPromise: Promise<ISecurityGroupsByAccountSourceData>;
 
-  public getAllSecurityGroups(): PromiseLike<ISecurityGroupsByAccountSourceData> {
+  public getAllSecurityGroups(): Promise<ISecurityGroupsByAccountSourceData> {
     const cache = InfrastructureCaches.get('securityGroups');
     const cached = cache ? cache.get('allGroups') : null;
     if (cached) {
-      return this.$q.resolve(this.decompress(cloneDeep(cached)));
+      return this.promiseService.resolve(this.decompress(cloneDeep(cached)));
     } else if (this.getAllSecurityGroupsPromise) {
       return this.getAllSecurityGroupsPromise;
     }
@@ -385,13 +379,13 @@ export class SecurityGroupReader {
   public getApplicationSecurityGroups(
     application: Application,
     nameBasedSecurityGroups: ISecurityGroup[],
-  ): PromiseLike<any> {
+  ): Promise<any> {
     return this.loadSecurityGroups()
       .then((allSecurityGroups: ISecurityGroupsByAccount) => {
         application['securityGroupsIndex'] = allSecurityGroups;
       })
       .then(() =>
-        this.$q
+        this.promiseService
           .all([application.getDataSource('serverGroups').ready(), application.getDataSource('loadBalancers').ready()])
           .then(() => this.attachSecurityGroups(application, nameBasedSecurityGroups, true)),
       );
@@ -404,7 +398,7 @@ export class SecurityGroupReader {
     region: string,
     vpcId: string,
     id: string,
-  ): PromiseLike<ISecurityGroupDetail> {
+  ): Promise<ISecurityGroupDetail> {
     return REST('/securityGroups')
       .path(account, region, id)
       .query({ provider, vpcId })
@@ -446,7 +440,7 @@ export class SecurityGroupReader {
       });
   }
 
-  public loadSecurityGroups(): PromiseLike<ISecurityGroupsByAccount> {
+  public loadSecurityGroups(): Promise<ISecurityGroupsByAccount> {
     return this.getAllSecurityGroups().then((groupsByAccount: ISecurityGroupsByAccountSourceData) => {
       const securityGroups: IReaderSecurityGroup[] = [];
       forOwn(groupsByAccount, (groupsByProvider, account) => {
@@ -465,7 +459,7 @@ export class SecurityGroupReader {
     });
   }
 
-  public loadSecurityGroupsByApplicationName(applicationName: string): PromiseLike<ISecurityGroup[]> {
+  public loadSecurityGroupsByApplicationName(applicationName: string): Promise<ISecurityGroup[]> {
     return SearchService.search<ISecurityGroupSearchResult>({
       q: applicationName,
       type: 'securityGroups',
@@ -473,7 +467,7 @@ export class SecurityGroupReader {
     }).then((searchResults: ISearchResults<ISecurityGroupSearchResult>) => {
       let result: ISecurityGroup[] = [];
       if (!searchResults || !searchResults.results) {
-        this.$log.warn('WARNING: Gate firewall endpoint appears to be down.');
+        this.logger.warn('WARNING: Gate firewall endpoint appears to be down.');
       } else {
         result = filter(searchResults.results, { application: applicationName });
       }
@@ -482,9 +476,3 @@ export class SecurityGroupReader {
     });
   }
 }
-
-export const SECURITY_GROUP_READER = 'spinnaker.core.securityGroup.read.service';
-module(SECURITY_GROUP_READER, [SECURITY_GROUP_TRANSFORMER_SERVICE, PROVIDER_SERVICE_DELEGATE]).service(
-  'securityGroupReader',
-  SecurityGroupReader,
-);

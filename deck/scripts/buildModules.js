@@ -17,6 +17,7 @@ async function buildModules() {
   try {
     await runPnpmBuild(`${PACKAGES_ROOT}/presentation`);
     await runPnpmBuild(`${PACKAGES_ROOT}/core`);
+    await runPnpmBuild(`${PACKAGES_ROOT}/kayenta`);
     await Promise.all(
       [
         'amazon',

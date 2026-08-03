@@ -1,7 +1,7 @@
+import { useRouter } from '@uirouter/react';
 import { get } from 'lodash';
 import React from 'react';
 import { Dropdown } from 'react-bootstrap';
-import { AngularServices } from '../../angular/services';
 
 import type { Application } from '../../application';
 import { CreatePipelineButton } from '../create/CreatePipelineButton';
@@ -73,13 +73,13 @@ export class CreatePipeline extends React.Component<ICreatePipelineProps> {
 }
 
 const Pipeline = (props: { pipeline: any; type: 'pipeline' | 'strategy' }): JSX.Element => {
+  const { stateService } = useRouter();
   const clicked = () => {
     logger.log({ category: 'Pipelines', action: `Configure ${props.type} (via top level)` });
-    const { $state } = AngularServices;
-    if (!$state.current.name.includes('.executions.execution')) {
-      $state.go('^.pipelineConfig', { pipelineId: props.pipeline.id });
+    if (!stateService.current.name.includes('.executions.execution')) {
+      stateService.go('^.pipelineConfig', { pipelineId: props.pipeline.id });
     } else {
-      $state.go('^.^.pipelineConfig', { pipelineId: props.pipeline.id });
+      stateService.go('^.^.pipelineConfig', { pipelineId: props.pipeline.id });
     }
   };
   return (

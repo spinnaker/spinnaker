@@ -179,7 +179,7 @@ abstract class AbstractSAMLConfigurationIntegrationTest {
         .contains("AuthnRequest")
         .contains("AssertionConsumerServiceURL")
         // Spring Boot's default ACS path: /login/saml2/sso/{registrationId}
-        .contains("http://localhost:" + port + "/login/saml2/sso/" + REGISTRATION_ID);
+        .contains("http://localhost:" + port + "/saml/" + REGISTRATION_ID);
 
     String samlRequestToKeycloak =
         generatePostBody(Map.of("SAMLRequest", samlRequest, "RelayState", relayState));
@@ -220,6 +220,8 @@ abstract class AbstractSAMLConfigurationIntegrationTest {
     driver.get("http://localhost:" + port + "/beans");
 
     WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+    System.out.println("Currently at :" + driver.getCurrentUrl());
+    System.out.println("Current page:" + driver.getPageSource());
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("username")));
 
     driver.findElement(By.id("username")).sendKeys(TEST_USER);
@@ -228,6 +230,8 @@ abstract class AbstractSAMLConfigurationIntegrationTest {
 
     wait.until(ExpectedConditions.urlContains("localhost:" + port));
 
+    System.out.println("After login, now at :" + driver.getCurrentUrl());
+    System.out.println("After login, now at :" + driver.getPageSource());
     assertThat(driver.getCurrentUrl()).contains("localhost:" + port + "/beans");
     assertThat(driver.getPageSource()).contains("beans");
 
@@ -329,7 +333,7 @@ abstract class AbstractSAMLConfigurationIntegrationTest {
          "clientId":"%s",
          "enabled":true,
          "protocol":"saml",
-         "redirectUris":["http://localhost:%s/login/saml2/sso/%s"],
+         "redirectUris":["http://localhost:%s/saml/%s"],
          "attributes":{
           "saml.authnstatement":"true",
           "saml.server.signature":"true",

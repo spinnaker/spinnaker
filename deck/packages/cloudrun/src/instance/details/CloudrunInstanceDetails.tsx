@@ -57,7 +57,7 @@ export class CloudrunInstanceDetails extends React.Component<
     this.isUnmounted = true;
   }
 
-  private retrieveInstance(): PromiseLike<ICloudrunInstance> {
+  private retrieveInstance(): Promise<ICloudrunInstance> {
     const { app, instance } = this.props;
     const dataSources: InstanceManager[] = flattenDeep([
       app.getDataSource('serverGroups').data,

@@ -1,19 +1,25 @@
 import { get } from 'lodash';
 import React from 'react';
 
-import type { Application, IModalComponentProps, IStage } from '@spinnaker/core';
+import type {
+  Application,
+  DeckRuntimeServices,
+  IModalComponentProps,
+  IRouterInjectedProps,
+  IStage,
+} from '@spinnaker/core';
 import {
-  AngularServices,
+  DeckRuntimeContext,
   FirewallLabels,
   noop,
   ReactModal,
   TaskMonitor,
+  withRouter,
   WizardModal,
   WizardPage,
 } from '@spinnaker/core';
 
 import { ServerGroupTemplateSelection } from './ServerGroupTemplateSelection';
-import { AwsServices } from '../../../aws.services';
 import {
   ServerGroupAdvancedSettings,
   ServerGroupBasicSettings,
@@ -24,6 +30,7 @@ import {
   ServerGroupZones,
 } from './pages';
 import type { IAmazonServerGroupCommand } from '../serverGroupConfiguration.service';
+import type { AwsServerGroupConfigurationService } from '../serverGroupConfiguration.service';
 
 export interface IAmazonCloneServerGroupModalProps extends IModalComponentProps {
   title: string;
@@ -38,31 +45,33 @@ export interface IAmazonCloneServerGroupModalState {
   taskMonitor: TaskMonitor;
 }
 
-export class AmazonCloneServerGroupModal extends React.Component<
-  IAmazonCloneServerGroupModalProps,
+export class AmazonCloneServerGroupModalComponent extends React.Component<
+  IAmazonCloneServerGroupModalProps & IRouterInjectedProps,
   IAmazonCloneServerGroupModalState
 > {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   public static defaultProps: Partial<IAmazonCloneServerGroupModalProps> = {
     closeModal: noop,
     dismissModal: noop,
   };
 
   private _isUnmounted = false;
-  private refreshUnsubscribe: () => void;
+  private refreshUnsubscribe?: () => void;
 
-  public static show(props: IAmazonCloneServerGroupModalProps): Promise<IAmazonServerGroupCommand> {
+  public static show(
+    props: IAmazonCloneServerGroupModalProps,
+    runtimeServices: DeckRuntimeServices,
+  ): Promise<IAmazonServerGroupCommand> {
     const modalProps = { dialogClassName: 'wizard-modal modal-lg' };
-    return ReactModal.show(AmazonCloneServerGroupModal, props, modalProps);
+    return ReactModal.show(AmazonCloneServerGroupModal, props, modalProps, runtimeServices);
   }
 
-  constructor(props: IAmazonCloneServerGroupModalProps) {
+  constructor(props: IAmazonCloneServerGroupModalProps & IRouterInjectedProps) {
     super(props);
 
     const requiresTemplateSelection = get(props, 'command.viewState.requiresTemplateSelection', false);
-    if (!requiresTemplateSelection) {
-      this.configureCommand();
-    }
-
     this.state = {
       firewallsLabel: FirewallLabels.get('Firewalls'),
       loaded: false,
@@ -70,10 +79,23 @@ export class AmazonCloneServerGroupModal extends React.Component<
       taskMonitor: new TaskMonitor({
         application: props.application,
         title: 'Creating your server group',
-        modalInstance: TaskMonitor.modalInstanceEmulation(() => this.props.dismissModal()),
+        onDismiss: () => this.props.dismissModal(),
         onTaskComplete: this.onTaskComplete,
       }),
     };
+  }
+
+  public componentDidMount(): void {
+    if (!this.state.requiresTemplateSelection) {
+      this.configureCommand();
+    }
+  }
+
+  private get configurationService(): AwsServerGroupConfigurationService {
+    return this.context.services.providerServiceDelegate.getDelegate(
+      this.props.command.selectedProvider,
+      'serverGroup.configurationService',
+    );
   }
 
   private templateSelected = () => {
@@ -82,11 +104,13 @@ export class AmazonCloneServerGroupModal extends React.Component<
   };
 
   private onTaskComplete = () => {
+    this.clearRefreshSubscription();
+    this.refreshUnsubscribe = this.props.application.serverGroups.onNextRefresh(this.onApplicationRefresh);
     this.props.application.serverGroups.refresh();
-    this.props.application.serverGroups.onNextRefresh(null, this.onApplicationRefresh);
   };
 
   protected onApplicationRefresh = (): void => {
+    this.clearRefreshSubscription();
     if (this._isUnmounted) {
       return;
     }
@@ -104,19 +128,19 @@ export class AmazonCloneServerGroupModal extends React.Component<
           provider: 'aws',
         };
         let transitionTo = '^.^.^.clusters.serverGroup';
-        if (AngularServices.$state.includes('**.clusters.serverGroup')) {
+        if (this.props.stateService.includes('**.clusters.serverGroup')) {
           // clone via details, all view
           transitionTo = '^.serverGroup';
         }
-        if (AngularServices.$state.includes('**.clusters.cluster.serverGroup')) {
+        if (this.props.stateService.includes('**.clusters.cluster.serverGroup')) {
           // clone or create with details open
           transitionTo = '^.^.serverGroup';
         }
-        if (AngularServices.$state.includes('**.clusters')) {
+        if (this.props.stateService.includes('**.clusters')) {
           // create new, no details open
           transitionTo = '.serverGroup';
         }
-        AngularServices.$state.go(transitionTo, newStateParams);
+        this.props.stateService.go(transitionTo, newStateParams);
       }
     }
   };
@@ -126,12 +150,12 @@ export class AmazonCloneServerGroupModal extends React.Component<
 
     command.credentialsChanged(command);
     command.regionChanged(command);
-    AwsServices.awsServerGroupConfigurationService.configureSubnetPurposes(command);
+    this.configurationService.configureSubnetPurposes(command);
   };
 
   private configureCommand = () => {
     const { application, command } = this.props;
-    AwsServices.awsServerGroupConfigurationService.configureCommand(application, command).then(() => {
+    this.configurationService.configureCommand(application, command).then(() => {
       this.initializeCommand();
       this.setState({ loaded: true, requiresTemplateSelection: false });
     });
@@ -150,10 +174,13 @@ export class AmazonCloneServerGroupModal extends React.Component<
 
   public componentWillUnmount(): void {
     this._isUnmounted = true;
-    if (this.refreshUnsubscribe) {
-      this.refreshUnsubscribe();
-    }
+    this.clearRefreshSubscription();
   }
+
+  private clearRefreshSubscription = (): void => {
+    this.refreshUnsubscribe?.();
+    this.refreshUnsubscribe = undefined;
+  };
 
   private submit = (command: IAmazonServerGroupCommand): void => {
     this.normalizeCommand(command);
@@ -162,7 +189,7 @@ export class AmazonCloneServerGroupModal extends React.Component<
       this.props.closeModal && this.props.closeModal(command);
     } else {
       this.state.taskMonitor.submit(() =>
-        AngularServices.serverGroupWriter.cloneServerGroup(command, this.props.application),
+        this.context.services.serverGroupWriter.cloneServerGroup(command, this.props.application),
       );
     }
   };
@@ -249,3 +276,8 @@ export class AmazonCloneServerGroupModal extends React.Component<
     );
   }
 }
+
+export const AmazonCloneServerGroupModal = Object.assign(
+  withRouter<IAmazonCloneServerGroupModalProps & IRouterInjectedProps>(AmazonCloneServerGroupModalComponent),
+  { show: AmazonCloneServerGroupModalComponent.show },
+);

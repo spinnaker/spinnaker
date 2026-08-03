@@ -1,7 +1,6 @@
 import { cloneDeep } from 'lodash';
 
 import type { Application, IPipeline, IServerGroup, IStage } from '@spinnaker/core';
-
 import type {
   GceCommandHandlerName,
   GceConfigurationRefreshMethod,
@@ -15,15 +14,13 @@ import type {
   IGceServerGroupConfigurationAdapter,
   IGceServerGroupWizardAdapter,
 } from './GceServerGroupWizard.types';
-import { GceServerGroupCommandBuilder } from '../serverGroupCommandBuilder.service';
-import { GceServerGroupConfigurationService } from '../serverGroupConfiguration.service';
 
 const EMPTY_UPDATE_RESULT: IGceServerGroupCommandUpdateResult = { dirty: {} };
 
 export class GceServerGroupWizardAdapter implements IGceServerGroupWizardAdapter {
   public constructor(
-    private commandBuilder = (new GceServerGroupCommandBuilder() as unknown) as IGceServerGroupCommandBuilderAdapter,
-    private configurationService = (new GceServerGroupConfigurationService() as unknown) as IGceServerGroupConfigurationAdapter,
+    private commandBuilder: IGceServerGroupCommandBuilderAdapter,
+    private configurationService: IGceServerGroupConfigurationAdapter,
   ) {}
 
   public buildNewServerGroupCommand(

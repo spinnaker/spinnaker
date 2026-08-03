@@ -1,11 +1,10 @@
-import { $q } from 'ngimport';
-
 import type { IConfirmModalProps } from './ConfirmModal';
 import { ConfirmModal } from './ConfirmModal';
 import { toMarkdown } from '../presentation/Markdown';
 import { ReactModal } from '../presentation/ReactModal';
 import type { ITaskMonitorConfig } from '../task';
 import { TaskMonitor } from '../task';
+import { diagnosticLogger } from '../utils/diagnosticLogger';
 
 export interface IConfirmationModalPassthroughProps {
   account?: string;
@@ -18,6 +17,8 @@ export interface IConfirmationModalPassthroughProps {
   multiTaskTitle?: string;
   platformHealthOnlyShowOverride?: boolean;
   platformHealthType?: string;
+  reasonPlaceholder?: string;
+  reasonRequired?: boolean;
   retryBody?: string;
   submitJustWithReason?: boolean;
   submitMethod?: (args?: any) => PromiseLike<any>;
@@ -37,7 +38,7 @@ export class ConfirmationModalService {
     cancelButtonText: 'Cancel',
   };
 
-  public static confirm(params: IConfirmationModalParams): PromiseLike<any> {
+  public static confirm(params: IConfirmationModalParams): Promise<any> {
     const extendedParams: IConfirmModalProps = { ...this.defaults, ...params };
 
     if (params.body) {
@@ -52,12 +53,24 @@ export class ConfirmationModalService {
       extendedParams.taskMonitors = taskMonitorConfigs.map((m) => new TaskMonitor(m));
     }
 
-    const { promise, resolve, reject } = $q.defer();
-    ReactModal.show(ConfirmModal, extendedParams).then(resolve, reject);
+    const modalPromise = ReactModal.show(ConfirmModal, extendedParams);
+    const monitors = [extendedParams.taskMonitor, ...(extendedParams.taskMonitors || [])].filter(Boolean);
+    let cleanedUp = false;
+    const cleanupTaskMonitors = () => {
+      if (cleanedUp) {
+        return;
+      }
+      cleanedUp = true;
+      monitors.forEach((monitor) => {
+        try {
+          monitor.onModalClose();
+        } catch (error) {
+          diagnosticLogger.error('Failed to clean up confirmation task monitor', error);
+        }
+      });
+    };
+    modalPromise.then(cleanupTaskMonitors, cleanupTaskMonitors);
 
-    // modal was dismissed
-    promise.catch(() => {});
-
-    return promise;
+    return modalPromise;
   }
 }

@@ -39,7 +39,7 @@ export class AmazonLoadBalancerDataUtils {
   public static populateTargetGroups(
     application: Application,
     serverGroup: IAmazonServerGroup,
-  ): PromiseLike<ITargetGroup[]> {
+  ): Promise<ITargetGroup[]> {
     return Promise.all([
       AccountService.getAccountDetails(serverGroup.account),
       application.getDataSource('loadBalancers').ready(),

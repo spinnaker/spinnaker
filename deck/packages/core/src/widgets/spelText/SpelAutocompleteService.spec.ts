@@ -1,8 +1,7 @@
-import { $q } from 'ngimport';
-
 import { SpelAutocompleteService } from './SpelAutocompleteService';
 import type { IExecution, IPipeline, IStage } from '../../domain';
 import type { ExecutionService } from '../../pipeline';
+import { nativePromiseService } from '../../utils/nativePromiseService';
 
 describe('SpelAutocompleteService', () => {
   describe('addPipelineInfo', () => {
@@ -19,7 +18,7 @@ describe('SpelAutocompleteService', () => {
         triggers: [],
         parameterConfig: [],
       } as IPipeline & IExecution;
-      const spelAutocompleteService = new SpelAutocompleteService($q, {} as ExecutionService);
+      const spelAutocompleteService = new SpelAutocompleteService(nativePromiseService, {} as ExecutionService);
 
       const results = spelAutocompleteService.buildTextCompleteConfig(pipeline);
 
@@ -49,7 +48,7 @@ describe('SpelAutocompleteService', () => {
         triggers: [],
         parameterConfig: [],
       } as IPipeline & IExecution;
-      const spelAutocompleteService = new SpelAutocompleteService($q, {} as ExecutionService);
+      const spelAutocompleteService = new SpelAutocompleteService(nativePromiseService, {} as ExecutionService);
 
       const results = spelAutocompleteService.buildTextCompleteConfig(pipeline);
 
@@ -80,7 +79,7 @@ describe('SpelAutocompleteService', () => {
       triggers: [],
       parameterConfig: [],
     } as IPipeline & IExecution;
-    const spelAutocompleteService = new SpelAutocompleteService($q, {} as ExecutionService);
+    const spelAutocompleteService = new SpelAutocompleteService(nativePromiseService, {} as ExecutionService);
 
     const results = spelAutocompleteService.buildTextCompleteConfig(pipeline);
 

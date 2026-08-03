@@ -3,20 +3,27 @@ import { groupBy, isEmpty } from 'lodash';
 import React from 'react';
 import { Dropdown, MenuItem } from 'react-bootstrap';
 
-import type { Application, ISecurityGroup, ISecurityGroupDetail, SecurityGroupReader } from '@spinnaker/core';
+import type {
+  Application,
+  IRouterInjectedProps,
+  ISecurityGroup,
+  ISecurityGroupDetail,
+  SecurityGroupReader,
+} from '@spinnaker/core';
 import {
   AccountTag,
   AddEntityTagLinks,
-  AngularServices,
   CollapsibleSection,
   ConfirmationModalService,
   confirmNotManaged,
+  DeckRuntimeContext,
   FirewallLabels,
   ManagedResourceDetailsIndicator,
   RecentHistoryService,
   SecurityGroupWriter,
   SETTINGS,
   Spinner,
+  withRouter,
 } from '@spinnaker/core';
 
 import { IPRangeRules } from './IPRangeRules';
@@ -198,10 +205,13 @@ export function AmazonSecurityGroupActions({
   );
 }
 
-export class AmazonSecurityGroupDetails extends React.Component<
-  IAmazonSecurityGroupDetailsProps,
+export class AmazonSecurityGroupDetailsComponent extends React.Component<
+  IAmazonSecurityGroupDetailsProps & IRouterInjectedProps,
   IAmazonSecurityGroupDetailsState
 > {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   public state: IAmazonSecurityGroupDetailsState = { loading: true };
 
   private isUnmounted = false;
@@ -220,7 +230,7 @@ export class AmazonSecurityGroupDetails extends React.Component<
         return;
       }
       this.loadSecurityGroup();
-      this.unsubscribeFromRefresh = dataSource.onRefresh(null, this.loadSecurityGroup);
+      this.unsubscribeFromRefresh = dataSource.onRefresh(this.loadSecurityGroup);
     });
   }
 
@@ -243,7 +253,7 @@ export class AmazonSecurityGroupDetails extends React.Component<
   }
 
   private getSecurityGroupReader(): SecurityGroupReader {
-    return this.props.securityGroupReader || AngularServices.securityGroupReader;
+    return this.props.securityGroupReader || this.context.services.securityGroupReader;
   }
 
   private autoClose = (): void => {
@@ -259,7 +269,7 @@ export class AmazonSecurityGroupDetails extends React.Component<
       this.setState({ loading: false, notFound: true });
       return;
     }
-    AngularServices.$state.go('^', { allowModalToStayOpen: true }, { location: 'replace' });
+    this.props.stateService.go('^', { allowModalToStayOpen: true }, { location: 'replace' });
   };
 
   private loadSecurityGroup = (): void => {
@@ -313,7 +323,7 @@ export class AmazonSecurityGroupDetails extends React.Component<
   };
 
   private closeDetails = (): void => {
-    AngularServices.$state.go('^');
+    this.props.stateService.go('^');
   };
 
   public render(): JSX.Element {
@@ -430,3 +440,5 @@ export class AmazonSecurityGroupDetails extends React.Component<
     );
   }
 }
+
+export const AmazonSecurityGroupDetails = withRouter(AmazonSecurityGroupDetailsComponent);

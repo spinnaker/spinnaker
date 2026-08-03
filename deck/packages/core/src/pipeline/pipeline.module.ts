@@ -1,102 +1,54 @@
-import { module } from 'angular';
-
-import { CORE_PIPELINE_CONFIG_PIPELINECONFIG_MODULE } from './config/pipelineConfig.module';
-import { APPLY_SOURCE_SERVER_GROUP_CAPACITY_STAGE } from './config/stages/applySourceServerGroupCapacity/applySourceServerGroupCapacityStage.module';
+import './config/pipelineConfig.module';
+import './config/stages/applySourceServerGroupCapacity/applySourceServerGroupCapacityStage.module';
 import './config/stages/awsCodeBuild/awsCodeBuildStage';
 import './config/stages/bake/bakeStage';
 import './config/stages/bakeManifest/bakeManifestStage';
 import './config/stages/checkPreconditions/checkPreconditionsStage';
-import { CLONE_SERVER_GROUP_STAGE } from './config/stages/cloneServerGroup/cloneServerGroupStage.module';
-import { STAGE_COMMON_MODULE } from './config/stages/common/stage.common.module';
+import './config/stages/cloneServerGroup/cloneServerGroupStage.module';
 import './config/stages/concourse/concourseStage';
 import './config/stages/createLoadBalancer/createLoadBalancerStage';
 import './config/stages/deploy/deployStage';
 import './config/stages/deployService/deployServiceStage';
-import { DESTROY_ASG_STAGE } from './config/stages/destroyAsg/destroyAsgStage';
+import './config/stages/destroyAsg/destroyAsgStage';
 import './config/stages/destroyService/destroyServiceStage';
-import { DISABLE_ASG_STAGE_MODULE } from './config/stages/disableAsg/disableAsgStage.module';
-import { DISABLE_CLUSTER_STAGE } from './config/stages/disableCluster/disableClusterStage';
-import { ENABLE_ASG_STAGE } from './config/stages/enableAsg/enableAsgStage';
+import './config/stages/disableAsg/disableAsgStage.module';
+import './config/stages/disableCluster/disableClusterStage';
+import './config/stages/enableAsg/enableAsgStage';
 import './config/stages/entityTags/applyEntityTagsStage';
+import './config/stages/evaluateArtifacts/evaluateArtifactsStage';
 import './config/stages/evaluateVariables/evaluateVariablesStage';
-import { EXECUTION_WINDOWS } from './config/stages/executionWindows/executionWindows.module';
 import './config/stages/executionWindows/executionWindowsStage';
-import { FIND_AMI_STAGE } from './config/stages/findAmi/findAmiStage';
-import { FIND_ARTIFACT_FROM_EXECUTION_STAGE } from './config/stages/findArtifactFromExecution/findArtifactFromExecutionStage';
-import { CORE_PIPELINE_CONFIG_STAGES_FINDIMAGEFROMTAGS_FINDIMAGEFROMTAGSSTAGE_MODULE } from './config/stages/findImageFromTags/findImageFromTagsStage.module';
+import './config/stages/findAmi/findAmiStage';
+import './config/stages/findArtifactFromExecution/findArtifactFromExecutionStage';
+import './config/stages/findImageFromTags/findImageFromTagsStage';
 import './config/stages/googleCloudBuild/googleCloudBuildStage';
 import './config/stages/gremlin/gremlinStage';
 import './config/stages/group/groupStage';
 import './config/stages/jenkins/jenkinsStage';
 import './config/stages/managed/importDeliveryConfigStage';
 import './config/stages/manualJudgment/manualJudgmentStage';
-import { CORE_PIPELINE_CONFIG_STAGES_MONITORPIPELINE_MONITORPIPELINESTAGE_MODULE } from './config/stages/monitorPipeline/monitorPipelineStage.module';
-import { EVALUATE_HEALTH_STAGE } from './config/stages/monitoreddeploy/evaluateHealthStage';
-import { NOTIFY_DEPLOY_STARTING_STAGE } from './config/stages/monitoreddeploy/notifyDeployStartingStage';
-import { CORE_PIPELINE_CONFIG_STAGES_PIPELINE_PIPELINESTAGE_MODULE } from './config/stages/pipeline/pipelineStage.module';
-import { registerPreconfiguredJobStages } from './config/stages/preconfiguredJob/preconfiguredJobStage';
-import { RESIZE_ASG_STAGE } from './config/stages/resizeAsg/resizeAsgStage';
-import { ROLLBACK_CLUSTER_STAGE } from './config/stages/rollbackCluster/rollbackClusterStage';
+import './config/stages/monitorPipeline/monitorPipelineStage';
+import './config/stages/monitoreddeploy/evaluateHealthStage';
+import './config/stages/monitoreddeploy/notifyDeployStartingStage';
+import './config/stages/pipeline/pipelineStage';
+import './config/stages/resizeAsg/resizeAsgStage';
+import './config/stages/rollbackCluster/rollbackClusterStage';
 import './config/stages/runJob/runJobStage';
+import './config/stages/runMultiplePipelines/runMultiplePipelinesStage';
 import './config/stages/savePipelines/savePipelinesStage';
-import { SCALE_DOWN_CLUSTER_STAGE } from './config/stages/scaleDownCluster/scaleDownClusterStage';
-import { SCRIPT_STAGE } from './config/stages/script/scriptStage';
+import './config/stages/scaleDownCluster/scaleDownClusterStage';
+import './config/stages/script/scriptStage';
 import './config/stages/shareService/shareServiceStage';
-import { SHRINK_CLUSTER_STAGE } from './config/stages/shrinkCluster/shrinkClusterStage';
-import { CORE_PIPELINE_CONFIG_STAGES_TAGIMAGE_TAGIMAGESTAGE_MODULE } from './config/stages/tagImage/tagImageStage.module';
+import './config/stages/shrinkCluster/shrinkClusterStage';
+import './config/stages/tagImage/tagImageStage';
 import './config/stages/travis/travisStage';
-import { UNMATCHED_STAGE_TYPE_STAGE } from './config/stages/unmatchedStageTypeStage/unmatchedStageTypeStage';
+import './config/stages/unmatchedStageTypeStage/unmatchedStageTypeStage';
 import './config/stages/unshareService/unshareServiceStage';
 import './config/stages/wait/waitStage';
 import './config/stages/waitForCondition/waitForConditionStage';
-import { CORE_PIPELINE_CONFIG_STAGES_WAITFORPARENTTASKS_WAITFORPARENTTASKS } from './config/stages/waitForParentTasks/waitForParentTasks';
-import { WEBHOOK_STAGE_MODULE } from './config/stages/webhook/webhookStage.module';
-import { PIPELINE_TEMPLATES_V2_STATES_CONFIG } from './config/templates/v2/pipelineTemplateV2.states';
-import { EXECUTION_DETAILS_SECTION_NAV } from './details/executionDetailsSectionNav.component';
-import { STAGE_FAILURE_MESSAGE_COMPONENT } from './details/stageFailureMessage.component';
-import { BUILD_DISPLAY_NAME_FILTER } from './executionBuild/buildDisplayName.filter';
-import { CORE_PIPELINE_PIPELINE_DATASOURCE } from './pipeline.dataSource';
-import { PIPELINE_STATES } from './pipeline.states';
-import { ARTIFACT_LIST } from './status/artifactList.component';
+import './config/stages/waitForParentTasks/waitForParentTasks';
+import './config/stages/webhook/webhookStage';
+import './config/templates/v2/pipelineTemplateV2.states';
+import './pipeline.states';
 
 import './pipeline.less';
-
-export const PIPELINE_MODULE = 'spinnaker.core.pipeline';
-
-module(PIPELINE_MODULE, [
-  EXECUTION_DETAILS_SECTION_NAV,
-
-  BUILD_DISPLAY_NAME_FILTER,
-
-  STAGE_FAILURE_MESSAGE_COMPONENT,
-
-  CORE_PIPELINE_PIPELINE_DATASOURCE,
-  ARTIFACT_LIST,
-  PIPELINE_STATES,
-  CORE_PIPELINE_CONFIG_PIPELINECONFIG_MODULE,
-  WEBHOOK_STAGE_MODULE,
-  UNMATCHED_STAGE_TYPE_STAGE,
-  CLONE_SERVER_GROUP_STAGE,
-  STAGE_COMMON_MODULE,
-  DESTROY_ASG_STAGE,
-  DISABLE_ASG_STAGE_MODULE,
-  DISABLE_CLUSTER_STAGE,
-  ROLLBACK_CLUSTER_STAGE,
-  ENABLE_ASG_STAGE,
-  EXECUTION_WINDOWS,
-  FIND_AMI_STAGE,
-  FIND_ARTIFACT_FROM_EXECUTION_STAGE,
-  CORE_PIPELINE_CONFIG_STAGES_FINDIMAGEFROMTAGS_FINDIMAGEFROMTAGSSTAGE_MODULE,
-  CORE_PIPELINE_CONFIG_STAGES_TAGIMAGE_TAGIMAGESTAGE_MODULE,
-  CORE_PIPELINE_CONFIG_STAGES_PIPELINE_PIPELINESTAGE_MODULE,
-  CORE_PIPELINE_CONFIG_STAGES_MONITORPIPELINE_MONITORPIPELINESTAGE_MODULE,
-  RESIZE_ASG_STAGE,
-  SCALE_DOWN_CLUSTER_STAGE,
-  SCRIPT_STAGE,
-  SHRINK_CLUSTER_STAGE,
-  CORE_PIPELINE_CONFIG_STAGES_WAITFORPARENTTASKS_WAITFORPARENTTASKS,
-  APPLY_SOURCE_SERVER_GROUP_CAPACITY_STAGE,
-  EVALUATE_HEALTH_STAGE,
-  NOTIFY_DEPLOY_STARTING_STAGE,
-  PIPELINE_TEMPLATES_V2_STATES_CONFIG,
-]).run(() => registerPreconfiguredJobStages());

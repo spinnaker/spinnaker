@@ -1,12 +1,29 @@
 import { cloneDeep } from 'lodash';
 import React from 'react';
 
-import type { Application, IModalComponentProps, IStage, IWizardPageInjectedProps } from '@spinnaker/core';
-import { AngularServices, noop, ReactModal, TaskMonitor, WizardModal, WizardPage } from '@spinnaker/core';
+import type {
+  Application,
+  DeckRuntimeServices,
+  IModalComponentProps,
+  IRouterInjectedProps,
+  IStage,
+  IWizardPageInjectedProps,
+} from '@spinnaker/core';
+import {
+  DeckRuntimeContext,
+  noop,
+  ReactModal,
+  TaskMonitor,
+  withRouter,
+  WizardModal,
+  WizardPage,
+} from '@spinnaker/core';
 
 import { validateGceServerGroupCommand } from './GceServerGroupWizard.helpers';
 import type {
   IGceServerGroupCommand,
+  IGceServerGroupCommandBuilderAdapter,
+  IGceServerGroupConfigurationAdapter,
   IGceServerGroupWizardAdapter,
   IGceServerGroupWizardCommandState,
 } from './GceServerGroupWizard.types';
@@ -197,16 +214,19 @@ export function transformGceServerGroupCommand(command: IGceServerGroupCommand):
   return transformed;
 }
 
-export class GceCloneServerGroupModal extends React.Component<
-  IGceCloneServerGroupModalProps,
+export class GceCloneServerGroupModalComponent extends React.Component<
+  IGceCloneServerGroupModalProps & IRouterInjectedProps,
   IGceCloneServerGroupModalState
 > {
-  public static defaultProps: Partial<IGceCloneServerGroupModalProps> = {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
+  public static defaultProps: Partial<IGceCloneServerGroupModalProps & IRouterInjectedProps> = {
     closeModal: noop,
     dismissModal: noop,
   };
 
-  private adapter: IGceServerGroupWizardAdapter;
+  private adapter?: IGceServerGroupWizardAdapter;
   private command: IGceServerGroupCommand;
   private commandState: IGceServerGroupWizardCommandState;
   private configureRequest = 0;
@@ -214,13 +234,21 @@ export class GceCloneServerGroupModal extends React.Component<
   private formik: IWizardPageInjectedProps<IGceServerGroupCommand>['formik'] = null;
   private unmounted = false;
 
-  public static show(props: IGceCloneServerGroupModalProps): Promise<any> {
-    return ReactModal.show(GceCloneServerGroupModal, props, { dialogClassName: 'wizard-modal modal-lg' });
+  public static show(props: IGceCloneServerGroupModalProps, runtimeServices: DeckRuntimeServices): Promise<any> {
+    return ReactModal.show(
+      GceCloneServerGroupModal,
+      props,
+      { dialogClassName: 'wizard-modal modal-lg' },
+      runtimeServices,
+    );
   }
 
-  public constructor(props: IGceCloneServerGroupModalProps) {
-    super(props);
-    this.adapter = props.adapter || new GceServerGroupWizardAdapter();
+  public constructor(
+    props: IGceCloneServerGroupModalProps & IRouterInjectedProps,
+    context: React.ContextType<typeof DeckRuntimeContext>,
+  ) {
+    super(props, context);
+    this.adapter = props.adapter;
     this.command = cloneDeep(props.command);
     this.commandState = createGceServerGroupWizardCommandState(this.command);
     this.state = {
@@ -230,7 +258,7 @@ export class GceCloneServerGroupModal extends React.Component<
       taskMonitor: new TaskMonitor({
         application: props.application,
         title: props.title || 'Creating your server group',
-        modalInstance: TaskMonitor.modalInstanceEmulation(() => this.props.dismissModal()),
+        onDismiss: () => this.props.dismissModal(),
         onTaskComplete: this.onTaskComplete,
       }),
     };
@@ -248,10 +276,11 @@ export class GceCloneServerGroupModal extends React.Component<
 
   private configureCommand = async (): Promise<void> => {
     const request = ++this.configureRequest;
+    const adapter = this.getAdapter();
     try {
       let command = this.formik?.values || this.command;
       if (command.viewState?.requiresTemplateSelection) {
-        const baseCommand = await this.adapter.buildNewServerGroupCommand(this.props.application, {
+        const baseCommand = await adapter.buildNewServerGroupCommand(this.props.application, {
           mode: 'createPipeline',
         });
         command = initializePipelineCreateCommand(baseCommand, command);
@@ -260,7 +289,7 @@ export class GceCloneServerGroupModal extends React.Component<
         return;
       }
 
-      const configured = await this.adapter.configureCommand(this.props.application, command);
+      const configured = await adapter.configureCommand(this.props.application, command);
       if (this.unmounted || request !== this.configureRequest) {
         return;
       }
@@ -287,6 +316,20 @@ export class GceCloneServerGroupModal extends React.Component<
     return this.configureCommand();
   };
 
+  private getAdapter(): IGceServerGroupWizardAdapter {
+    if (!this.adapter) {
+      if (!this.context?.services) {
+        throw new Error('GCE server group wizard requires Deck runtime services');
+      }
+      const delegate = this.context.services.providerServiceDelegate;
+      this.adapter = new GceServerGroupWizardAdapter(
+        delegate.getDelegate<IGceServerGroupCommandBuilderAdapter>('gce', 'serverGroup.commandBuilder'),
+        delegate.getDelegate<IGceServerGroupConfigurationAdapter>('gce', 'serverGroup.configurationService'),
+      );
+    }
+    return this.adapter;
+  }
+
   private submit = (command: IGceServerGroupCommand = this.formik?.values || this.command): any => {
     const transformed = transformGceServerGroupCommand(command);
     const mode = transformed.viewState?.mode;
@@ -294,16 +337,14 @@ export class GceCloneServerGroupModal extends React.Component<
       return this.props.closeModal(transformed);
     }
     return this.state.taskMonitor.submit(() =>
-      AngularServices.serverGroupWriter.cloneServerGroup(transformed as any, this.props.application),
+      this.context.services.serverGroupWriter.cloneServerGroup(transformed as any, this.props.application),
     );
   };
 
   private onTaskComplete = (): void => {
+    this.clearApplicationRefreshSubscription();
+    this.applicationRefreshUnsubscribe = this.props.application.serverGroups.onNextRefresh(this.onApplicationRefresh);
     this.props.application.serverGroups.refresh();
-    this.applicationRefreshUnsubscribe = this.props.application.serverGroups.onNextRefresh(
-      null,
-      this.onApplicationRefresh,
-    );
   };
 
   private onApplicationRefresh = (): void => {
@@ -322,16 +363,16 @@ export class GceCloneServerGroupModal extends React.Component<
     }
 
     let transitionTo = '^.^.^.clusters.serverGroup';
-    if (AngularServices.$state.includes('**.clusters.serverGroup')) {
+    if (this.props.stateService.includes('**.clusters.serverGroup')) {
       transitionTo = '^.serverGroup';
     }
-    if (AngularServices.$state.includes('**.clusters.cluster.serverGroup')) {
+    if (this.props.stateService.includes('**.clusters.cluster.serverGroup')) {
       transitionTo = '^.^.serverGroup';
     }
-    if (AngularServices.$state.includes('**.clusters')) {
+    if (this.props.stateService.includes('**.clusters')) {
       transitionTo = '.serverGroup';
     }
-    AngularServices.$state.go(transitionTo, {
+    this.props.stateService.go(transitionTo, {
       accountId: command.credentials,
       provider: 'gce',
       region: command.region,
@@ -378,6 +419,8 @@ export class GceCloneServerGroupModal extends React.Component<
       );
     }
 
+    const adapter = this.getAdapter();
+
     return (
       <WizardModal<IGceServerGroupCommand>
         key={loaded ? 'loaded' : 'loading'}
@@ -392,7 +435,7 @@ export class GceCloneServerGroupModal extends React.Component<
         render={({ formik, nextIdx, wizard }) => {
           this.formik = formik;
           this.command = formik.values;
-          const pageProps = { adapter: this.adapter, app: application, commandState: this.commandState, formik };
+          const pageProps = { adapter, app: application, commandState: this.commandState, formik };
           return (
             <>
               <WizardPage
@@ -466,6 +509,10 @@ export class GceCloneServerGroupModal extends React.Component<
     );
   }
 }
+
+export const GceCloneServerGroupModal = Object.assign(withRouter(GceCloneServerGroupModalComponent), {
+  show: GceCloneServerGroupModalComponent.show,
+});
 
 function initializeCommand(command: IGceServerGroupCommand, snapshot: IPersistedSelectionSnapshot): void {
   const accountAvailable =

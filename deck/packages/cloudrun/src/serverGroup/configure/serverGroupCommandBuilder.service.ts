@@ -89,7 +89,7 @@ const getSubmitButtonLabel = (mode: string): string => {
 
 export class CloudrunV2ServerGroupCommandBuilder {
   // new add servergroup
-  public buildNewServerGroupCommand(app: Application): PromiseLike<ICloudrunServerGroupCommandData> {
+  public buildNewServerGroupCommand(app: Application): Promise<ICloudrunServerGroupCommandData> {
     return CloudrunServerGroupCommandBuilder.buildNewServerGroupCommand(app, 'cloudrun', 'create');
   }
 
@@ -153,7 +153,7 @@ export class CloudrunServerGroupCommandBuilder {
     cluster: CloudrunDeployDescription,
     _stage: IStage,
     pipeline: IPipeline,
-  ): PromiseLike<ICloudrunServerGroupCommandData> {
+  ): Promise<ICloudrunServerGroupCommandData> {
     return CloudrunServerGroupCommandBuilder.buildNewServerGroupCommand(app, 'cloudrun', 'editPipeline').then(
       (command: ICloudrunServerGroupCommandData) => {
         command = {
@@ -194,7 +194,7 @@ export class CloudrunServerGroupCommandBuilder {
     app: Application,
     sourceAccount: string,
     mode: string,
-  ): PromiseLike<ICloudrunServerGroupCommandData> {
+  ): Promise<ICloudrunServerGroupCommandData> {
     const dataToFetch = {
       accounts: AccountService.getAllAccountDetailsForProvider('cloudrun'),
       artifactAccounts: AccountService.getArtifactAccounts(),

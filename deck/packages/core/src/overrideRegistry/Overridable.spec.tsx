@@ -1,4 +1,3 @@
-import { mock } from 'angular';
 import { mount } from 'enzyme';
 import React from 'react';
 import { of as observableOf } from 'rxjs';
@@ -6,10 +5,10 @@ import { of as observableOf } from 'rxjs';
 import { AccountService } from '../account/AccountService';
 import { CloudProviderRegistry } from '../cloudProvider/CloudProviderRegistry';
 import { SETTINGS } from '../config/settings';
-import { REACT_MODULE } from '../reactShims';
 
 import { Overridable } from './Overridable';
-import { OVERRIDE_REGISTRY, OverrideRegistry } from './override.registry';
+import { overridesComponent } from './Overrides';
+import { overrideRegistry, OverrideRegistry } from './override.registry';
 
 class Original extends React.Component<{ accountId?: string }> {
   public render() {
@@ -18,39 +17,26 @@ class Original extends React.Component<{ accountId?: string }> {
 }
 
 describe('Overridable', () => {
-  beforeEach(mock.module(REACT_MODULE, OVERRIDE_REGISTRY));
-
-  it('keeps deprecated template override methods as non-rendering compatibility shims', () => {
-    const overrideRegistry = new OverrideRegistry();
-    const warnSpy = spyOn(console, 'warn');
-
-    expect(() => overrideRegistry.overrideTemplate('legacyTemplate', 'legacy.html')).not.toThrow();
-    expect(() => overrideRegistry.overrideController('legacyController', 'LegacyController')).not.toThrow();
-
-    expect(overrideRegistry.getTemplate('legacyTemplate')).toBeNull();
-    expect(overrideRegistry.getController('legacyController')).toBeNull();
-    expect(warnSpy.calls.count()).toBe(4);
-    expect(warnSpy.calls.allArgs().map(([message]) => message)).toEqual([
-      'OverrideRegistry.overrideTemplate("legacyTemplate") is deprecated. Angular template overrides are no longer rendered; migrate to overrideComponent(key, Component).',
-      'OverrideRegistry.overrideController("legacyController") is deprecated. Angular controller overrides are no longer rendered; migrate to overrideComponent(key, Component).',
-      'OverrideRegistry.getTemplate("legacyTemplate") is deprecated. Angular template overrides are no longer rendered; migrate to getComponent(key).',
-      'OverrideRegistry.getController("legacyController") is deprecated. Angular controller overrides are no longer rendered; migrate to getComponent(key).',
-    ]);
-  });
-
   it('renders a React component override registered in the override registry', () => {
     const key = 'overridable.spec.registryComponent';
     const OriginalComponent = Overridable(key)(Original);
     const OverrideComponent = () => <div className="override">Override</div>;
 
-    mock.inject((overrideRegistry: OverrideRegistry) => {
-      overrideRegistry.overrideComponent(key, OverrideComponent);
-    });
+    overrideRegistry.overrideComponent(key, OverrideComponent);
 
     const wrapper = mount(<OriginalComponent />);
 
     expect(wrapper.find('.override').text()).toBe('Override');
     expect(wrapper.find('.original').exists()).toBeFalse();
+  });
+
+  it('flushes queued override registrations into the singleton registry', () => {
+    const key = 'overridable.spec.directSingletonRegistry';
+    const OverrideComponent = () => <div className="override">Override</div>;
+
+    overridesComponent(OverrideComponent, key);
+
+    expect(overrideRegistry.getComponent(key)).toBe(OverrideComponent as any);
   });
 
   it('renders the original component when only a legacy cloud-provider template override is registered', () => {

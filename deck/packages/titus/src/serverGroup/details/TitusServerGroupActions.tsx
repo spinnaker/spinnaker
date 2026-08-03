@@ -2,15 +2,16 @@ import { orderBy } from 'lodash';
 import React from 'react';
 import { Dropdown } from 'react-bootstrap';
 
-import type { IServerGroupActionsProps } from '@spinnaker/core';
+import type { IRouterInjectedProps, IServerGroupActionsProps } from '@spinnaker/core';
 import {
   AddEntityTagLinks,
-  AngularServices,
   ConfirmationModalService,
   confirmNotManaged,
+  DeckRuntimeContext,
   ReactModal,
   ServerGroupWarningMessageService,
   SETTINGS,
+  withRouter,
 } from '@spinnaker/core';
 
 import { TitusServerGroupCommandBuilder } from '../configure/ServerGroupCommandBuilder';
@@ -18,7 +19,10 @@ import { TitusCloneServerGroupModal } from '../configure/wizard/TitusCloneServer
 import { TitusResizeServerGroupModal } from './resize/TitusResizeServerGroupModal';
 import { TitusRollbackServerGroupModal } from './rollback/TitusRollbackServerGroupModal';
 
-export class TitusServerGroupActions extends React.Component<IServerGroupActionsProps> {
+export class TitusServerGroupActionsComponent extends React.Component<IServerGroupActionsProps & IRouterInjectedProps> {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   private destroyServerGroup = (): void => {
     const { app, serverGroup } = this.props;
     const taskMonitorConfig = {
@@ -26,8 +30,8 @@ export class TitusServerGroupActions extends React.Component<IServerGroupActions
       title: 'Destroying ' + serverGroup.name,
       onTaskComplete: () => {
         const stateParams = { name: serverGroup.name, accountId: serverGroup.account, region: serverGroup.region };
-        if (AngularServices.$state.includes('**.serverGroup', stateParams)) {
-          AngularServices.$state.go('^');
+        if (this.props.stateService.includes('**.serverGroup', stateParams)) {
+          this.props.stateService.go('^');
         }
       },
     };
@@ -39,7 +43,7 @@ export class TitusServerGroupActions extends React.Component<IServerGroupActions
       platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
       platformHealthType: 'Titus',
       submitMethod: () =>
-        AngularServices.serverGroupWriter.destroyServerGroup(serverGroup, app, {
+        this.context.services.serverGroupWriter.destroyServerGroup(serverGroup, app, {
           cloudProvider: 'titus',
           serverGroupName: serverGroup.name,
           region: serverGroup.region,
@@ -61,7 +65,7 @@ export class TitusServerGroupActions extends React.Component<IServerGroupActions
       platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
       platformHealthType: 'Titus',
       submitMethod: () =>
-        AngularServices.serverGroupWriter.disableServerGroup(serverGroup, app.name, {
+        this.context.services.serverGroupWriter.disableServerGroup(serverGroup, app.name, {
           cloudProvider: 'titus',
           serverGroupName: serverGroup.name,
           region: serverGroup.region,
@@ -84,7 +88,7 @@ export class TitusServerGroupActions extends React.Component<IServerGroupActions
       platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
       platformHealthType: 'Titus',
       submitMethod: () =>
-        AngularServices.serverGroupWriter.enableServerGroup(serverGroup, app, {
+        this.context.services.serverGroupWriter.enableServerGroup(serverGroup, app, {
           cloudProvider: 'titus',
           serverGroupName: serverGroup.name,
           region: serverGroup.region,
@@ -171,12 +175,15 @@ export class TitusServerGroupActions extends React.Component<IServerGroupActions
       if (!notManaged) {
         return;
       }
-      TitusRollbackServerGroupModal.show({
-        allServerGroups,
-        application: app,
-        previousServerGroup,
-        serverGroup,
-      } as any);
+      TitusRollbackServerGroupModal.show(
+        {
+          allServerGroups,
+          application: app,
+          previousServerGroup,
+          serverGroup,
+        } as any,
+        this.context.services,
+      );
     });
   };
 
@@ -184,14 +191,23 @@ export class TitusServerGroupActions extends React.Component<IServerGroupActions
     const { app, serverGroup } = this.props;
     confirmNotManaged(serverGroup, app).then(
       (notManaged) =>
-        notManaged && ReactModal.show(TitusResizeServerGroupModal, { serverGroup, application: app } as any),
+        notManaged &&
+        ReactModal.show(
+          TitusResizeServerGroupModal,
+          { serverGroup, application: app } as any,
+          undefined,
+          this.context.services,
+        ),
     );
   };
 
   private cloneServerGroup = (): void => {
     const { app, serverGroup } = this.props;
     TitusServerGroupCommandBuilder.buildServerGroupCommandFromExisting(app, serverGroup).then((command: any) => {
-      TitusCloneServerGroupModal.show({ title: `Clone ${serverGroup.name}`, application: app, command });
+      TitusCloneServerGroupModal.show(
+        { title: `Clone ${serverGroup.name}`, application: app, command },
+        this.context.services,
+      );
     });
   };
 
@@ -255,3 +271,5 @@ export class TitusServerGroupActions extends React.Component<IServerGroupActions
     );
   }
 }
+
+export const TitusServerGroupActions = withRouter(TitusServerGroupActionsComponent);

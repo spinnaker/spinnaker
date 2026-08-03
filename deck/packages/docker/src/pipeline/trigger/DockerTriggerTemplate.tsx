@@ -32,8 +32,9 @@ export class DockerTriggerTemplate extends React.Component<
 > {
   private queryStream = new Subject();
   private subscription: Subscription;
+  private tagRequest: AbortController;
 
-  public static formatLabel(trigger: IDockerTrigger): PromiseLike<string> {
+  public static formatLabel(trigger: IDockerTrigger): Promise<string> {
     return Promise.resolve(
       `(Docker Registry) ${trigger.account ? trigger.account + ':' : ''} ${trigger.repository || ''}`,
     );
@@ -52,22 +53,30 @@ export class DockerTriggerTemplate extends React.Component<
   }
 
   private handleQuery = () => {
+    this.tagRequest?.abort();
+    this.tagRequest = new AbortController();
     const trigger = this.props.command.trigger as IDockerTrigger;
     if (trigger.type === 'helm/oci') {
       return observableFrom(
-        DockerChartImageReader.findTags({
-          provider: 'dockerRegistry', // Use helmOci provider for Helm OCI triggers
-          account: trigger.account,
-          repository: trigger.repository,
-        }),
+        DockerChartImageReader.findTags(
+          {
+            provider: 'dockerRegistry', // Use helmOci provider for Helm OCI triggers
+            account: trigger.account,
+            repository: trigger.repository,
+          },
+          this.tagRequest.signal,
+        ),
       );
     } else {
       return observableFrom(
-        DockerImageReader.findTags({
-          provider: 'dockerRegistry',
-          account: trigger.account,
-          repository: trigger.repository,
-        }),
+        DockerImageReader.findTags(
+          {
+            provider: 'dockerRegistry',
+            account: trigger.account,
+            repository: trigger.repository,
+          },
+          this.tagRequest.signal,
+        ),
       );
     }
   };
@@ -154,6 +163,7 @@ export class DockerTriggerTemplate extends React.Component<
     if (this.subscription) {
       this.subscription.unsubscribe();
     }
+    this.tagRequest?.abort();
 
     // cancel search stream if trigger has changed to some other type
     if (command.trigger.type !== 'docker' && command.trigger.type !== 'helm/oci') {
@@ -175,6 +185,7 @@ export class DockerTriggerTemplate extends React.Component<
     if (this.subscription) {
       this.subscription.unsubscribe();
     }
+    this.tagRequest?.abort();
   }
 
   private searchTags = (query = '') => {

@@ -1,19 +1,19 @@
 import React from 'react';
 
-import type { IExecutionDetailsSectionProps } from '@spinnaker/core';
-import { AngularServices, ClusterState, ExecutionDetailsSection, timestamp, UrlBuilder } from '@spinnaker/core';
+import type { IExecutionDetailsSectionProps, IRouterInjectedProps } from '@spinnaker/core';
+import { ClusterState, ExecutionDetailsSection, timestamp, UrlBuilder, withRouter } from '@spinnaker/core';
 
 import { CanaryScore } from '../CanaryScore';
 import { HistoryTable } from '../../acaTask/AcaTaskExecutionDetails';
 import { getCanaryAnalysisHistory } from './canaryDeploymentHistory';
 
-function buildClusterUrl(stage: any, cluster: any) {
+function buildClusterUrl(stage: any, cluster: any, project: string) {
   const metadata: any = {
     type: 'clusters',
     application: stage.context.application,
     cluster: cluster.name,
     account: cluster.accountName,
-    project: AngularServices.$stateParams.project,
+    project,
   };
   metadata.href = UrlBuilder.buildFromMetadata(metadata);
   return metadata;
@@ -85,10 +85,12 @@ function CodeChanges({ stage }: IExecutionDetailsSectionProps) {
   );
 }
 
-function DeploymentDetails({ stage }: IExecutionDetailsSectionProps) {
+function DeploymentDetails({ stage, project }: IExecutionDetailsSectionProps & { project: string }) {
   const deployment = stage.context;
-  const baselineClusterUrl = deployment.baselineCluster ? buildClusterUrl(stage, deployment.baselineCluster) : null;
-  const canaryClusterUrl = deployment.canaryCluster ? buildClusterUrl(stage, deployment.canaryCluster) : null;
+  const baselineClusterUrl = deployment.baselineCluster
+    ? buildClusterUrl(stage, deployment.baselineCluster, project)
+    : null;
+  const canaryClusterUrl = deployment.canaryCluster ? buildClusterUrl(stage, deployment.canaryCluster, project) : null;
   return (
     <div className="canary-details">
       <div className="row">
@@ -186,7 +188,7 @@ function ClusterColumn({ title, cluster, clusterUrl }: { title: string; cluster:
   );
 }
 
-function CanaryDeploymentExecutionDetailsComponent(props: IExecutionDetailsSectionProps) {
+export function CanaryDeploymentExecutionDetailsComponent(props: IExecutionDetailsSectionProps & IRouterInjectedProps) {
   return (
     <ExecutionDetailsSection name={props.name} current={props.current}>
       {props.name === 'canaryAnalysisHistory' ? (
@@ -194,13 +196,13 @@ function CanaryDeploymentExecutionDetailsComponent(props: IExecutionDetailsSecti
       ) : props.name === 'codeChanges' ? (
         <CodeChanges {...props} />
       ) : (
-        <DeploymentDetails {...props} />
+        <DeploymentDetails {...props} project={props.stateParams.project} />
       )}
     </ExecutionDetailsSection>
   );
 }
 
-export const CanaryDeploymentExecutionDetails = Object.assign(CanaryDeploymentExecutionDetailsComponent, {
+export const CanaryDeploymentExecutionDetails = Object.assign(withRouter(CanaryDeploymentExecutionDetailsComponent), {
   title: 'canaryDeployment',
 });
 export const CanaryDeploymentAnalysisHistory = Object.assign(

@@ -1,9 +1,12 @@
 import React from 'react';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
-import { AngularServices } from '../../../../angular/services';
 
+import type { IDeckRuntimeServicesInjectedProps } from '../../../../bootstrap/DeckRuntimeContext';
+import { withDeckRuntimeServices } from '../../../../bootstrap/DeckRuntimeContext';
 import type { IExecutionStageLabelProps } from '../../../../domain';
 import { ExecutionWindowActions } from '../executionWindows/ExecutionWindowActions';
+import type { IRouterInjectedProps } from '../../../../navigation/routerContext';
+import { withRouter } from '../../../../navigation/routerContext';
 import { HoverablePopover } from '../../../../presentation/HoverablePopover';
 import { SkipConditionWait } from '../waitForCondition/SkipConditionWait';
 import { Spinner } from '../../../../widgets/spinners/Spinner';
@@ -19,10 +22,13 @@ export interface IExecutionBarLabelState {
   hydrated: boolean;
 }
 
-export class ExecutionBarLabel extends React.Component<IExecutionBarLabelProps, IExecutionBarLabelState> {
+export class ExecutionBarLabelComponent extends React.Component<
+  IExecutionBarLabelProps & IRouterInjectedProps & IDeckRuntimeServicesInjectedProps,
+  IExecutionBarLabelState
+> {
   private mounted = false;
 
-  constructor(props: IExecutionBarLabelProps) {
+  constructor(props: IExecutionBarLabelProps & IRouterInjectedProps & IDeckRuntimeServicesInjectedProps) {
     super(props);
     this.state = {
       hydrated: props.execution && props.execution.hydrated,
@@ -34,7 +40,7 @@ export class ExecutionBarLabel extends React.Component<IExecutionBarLabelProps, 
     if (!this.requiresHydration() || !execution) {
       return;
     }
-    AngularServices.executionService.hydrate(application, execution).then(() => {
+    this.props.deckRuntimeServices.executionService.hydrate(application, execution).then(() => {
       if (this.mounted && !this.state.hydrated) {
         this.setState({ hydrated: true });
       }
@@ -59,11 +65,13 @@ export class ExecutionBarLabel extends React.Component<IExecutionBarLabelProps, 
   private DefaultLabel = () => {
     const { stage, application, execution } = this.props;
     const LabelComponent = stage.labelComponent;
-    const tooltip = (
-      <Tooltip id={stage.id}>
+    const label =
+      LabelComponent === ExecutionBarLabel ? (
+        <span>{this.getRenderableStageName()}</span>
+      ) : (
         <LabelComponent application={application} execution={execution} stage={stage} />
-      </Tooltip>
-    );
+      );
+    const tooltip = <Tooltip id={stage.id}>{label}</Tooltip>;
     return (
       <OverlayTrigger placement="top" overlay={tooltip}>
         {this.props.children}
@@ -99,11 +107,10 @@ export class ExecutionBarLabel extends React.Component<IExecutionBarLabelProps, 
   };
 
   private getRenderableStageName(): string {
-    const { stage } = this.props;
+    const { stage, stateParams } = this.props;
     let stageName = stage.name ? stage.name : stage.type;
-    const params = AngularServices.$uiRouter.globals.params;
-    if (stage.type === 'group' && stage.groupStages && stage.index === Number(params.stage)) {
-      const subStageIndex = Number(params.subStage);
+    if (stage.type === 'group' && stage.groupStages && stage.index === Number(stateParams.stage)) {
+      const subStageIndex = Number(stateParams.subStage);
       if (!Number.isNaN(subStageIndex)) {
         const activeStage = stage.groupStages[subStageIndex];
         if (activeStage) {
@@ -142,3 +149,6 @@ export class ExecutionBarLabel extends React.Component<IExecutionBarLabelProps, 
     return <span>{this.getRenderableStageName()}</span>;
   }
 }
+
+export const ExecutionBarLabel = withDeckRuntimeServices(withRouter(ExecutionBarLabelComponent));
+ExecutionBarLabel.displayName = 'ExecutionBarLabel';

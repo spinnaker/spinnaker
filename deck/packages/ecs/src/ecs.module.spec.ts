@@ -11,7 +11,9 @@ describe('ECS package registration', () => {
   it('registers ECS through React components', () => {
     expect(CloudProviderRegistry.getValue('ecs', 'serverGroup.transformer')).toBe(EcsServerGroupTransformer);
     expect(CloudProviderRegistry.getValue('ecs', 'serverGroup.commandBuilder')).toBe(EcsServerGroupCommandBuilder);
-    expect(CloudProviderRegistry.getValue('ecs', 'serverGroup.detailsActions')).toBe(EcsServerGroupActions);
+    expect(CloudProviderRegistry.getValue('ecs', 'serverGroup.detailsActions').displayName).toBe(
+      EcsServerGroupActions.displayName,
+    );
     expect(CloudProviderRegistry.getValue('ecs', 'adHocInfrastructureWritesEnabled')).toBeTrue();
     const detailsSections = CloudProviderRegistry.getValue('ecs', 'serverGroup.detailsSections');
     expect(detailsSections.length).toBe(9);
@@ -32,7 +34,8 @@ describe('ECS package registration', () => {
     expect(CloudProviderRegistry.getValue('ecs', `securityGroup.details${controllerKey}`)).toBeNull();
   });
 
-  it('registers ECS pipeline stages without an Angular module dependency', () => {
+  it('registers ECS pipeline stages directly', () => {
+    Registry.reinitialize();
     registerEcsPipelineStages();
     const stages = Registry.pipeline.getStageTypes();
     expect(stages.find((stage) => stage.cloudProvider === 'ecs' && stage.provides === 'destroyServerGroup')).toEqual(
@@ -41,6 +44,36 @@ describe('ECS package registration', () => {
     expect(stages.find((stage) => stage.cloudProvider === 'ecs' && stage.provides === 'resizeServerGroup')).toEqual(
       jasmine.objectContaining({ cloudProvider: 'ecs', provides: 'resizeServerGroup' }),
     );
+  });
+
+  it('ECS stage configs expose React components without legacy templates', () => {
+    Registry.reinitialize();
+    registerEcsPipelineStages();
+    const ecsStages = Registry.pipeline
+      .getStageTypes()
+      .filter((stage) => stage.cloudProvider === 'ecs' && stage.provides);
+
+    expect(ecsStages.map((stage) => stage.provides).sort()).toEqual([
+      'cloneServerGroup',
+      'destroyServerGroup',
+      'disableCluster',
+      'disableServerGroup',
+      'enableServerGroup',
+      'findImageFromTags',
+      'resizeServerGroup',
+      'scaleDownCluster',
+      'shrinkCluster',
+    ]);
+    ecsStages.forEach((stage) => {
+      expect(stage.component).toEqual(jasmine.any(Function));
+      expect(stage.templateUrl).toBeUndefined();
+    });
+  });
+
+  it('does not bundle ECS HTML templates', () => {
+    const ecsTemplates = require.context('./', true, /\.html$/).keys();
+
+    expect(ecsTemplates).toEqual([]);
   });
 
   it('normalizes ECS security groups as resolved values', async () => {

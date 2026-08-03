@@ -1,14 +1,9 @@
-import { AngularServices } from '../../../../angular/services';
 import type { Application } from '../../../../application';
 import type { IExecution, IExecutionStage } from '../../../../domain';
 import type { ExecutionService } from '../../../service/execution.service';
 
 export class ManualJudgmentService {
-  constructor(private executionService?: ExecutionService) {}
-
-  private getExecutionService(): ExecutionService {
-    return this.executionService || AngularServices.executionService;
-  }
+  constructor(private executionService: ExecutionService) {}
 
   public provideJudgment(
     application: Application,
@@ -16,8 +11,8 @@ export class ManualJudgmentService {
     stage: IExecutionStage,
     judgmentStatus: string,
     judgmentInput?: string,
-  ): PromiseLike<void> {
-    const executionService = this.getExecutionService();
+  ): Promise<void> {
+    const { executionService } = this;
     const matcher = (result: IExecution) => {
       const match = result.stages.find((test) => test.id === stage.id);
       return match && match.status !== 'RUNNING';
@@ -28,5 +23,3 @@ export class ManualJudgmentService {
       .then((updated) => executionService.updateExecution(application, updated));
   }
 }
-
-export const manualJudgmentService = new ManualJudgmentService();

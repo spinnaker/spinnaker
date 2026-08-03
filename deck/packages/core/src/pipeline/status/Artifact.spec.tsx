@@ -1,4 +1,3 @@
-import { mock } from 'angular';
 import type { ShallowWrapper } from 'enzyme';
 import { shallow } from 'enzyme';
 import React from 'react';
@@ -6,7 +5,6 @@ import React from 'react';
 import type { IArtifactProps } from './Artifact';
 import { Artifact } from './Artifact';
 import type { IArtifact } from '../../domain';
-import { REACT_MODULE } from '../../reactShims';
 
 const ARTIFACT_TYPE = 'docker/image';
 const ARTIFACT_NAME = 'example.com/container';
@@ -14,9 +12,6 @@ const ARTIFACT_REFERENCE = 'docker.io/example.com/container:latest';
 
 describe('<Artifact/>', () => {
   let component: ShallowWrapper<IArtifactProps>;
-
-  beforeEach(mock.module(REACT_MODULE));
-  beforeEach(mock.inject(() => {})); // Angular is lazy.
 
   it("renders an artifact's name", function () {
     const artifact: IArtifact = {

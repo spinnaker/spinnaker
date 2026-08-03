@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.lambda.deploy.description;
 
-import com.amazonaws.services.lambda.model.InvokeResult;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import software.amazon.awssdk.services.lambda.model.InvokeResponse;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class InvokeLambdaFunctionOutputDescription {
-  InvokeResult invokeResult;
+  InvokeResponse invokeResult;
   private String responseString;
 }

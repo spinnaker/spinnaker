@@ -3,7 +3,6 @@ import React, { useCallback, useEffect, useState } from 'react';
 import {
   AccountService,
   AccountTag,
-  AngularServices,
   CloudProviderRegistry,
   CollapsibleSection,
   ConfirmationModalService,
@@ -12,6 +11,7 @@ import {
   ManagedMenuItem,
   TaskExecutor,
   useDataSource,
+  useDeckRuntimeServices,
 } from '@spinnaker/core';
 
 import { GceLoadBalancerChoiceModal } from '../configure/choice/GceLoadBalancerChoiceModal';
@@ -188,6 +188,7 @@ export async function loadGceLoadBalancerDetails({
 }
 
 export function useGceLoadBalancerDetails({ app, autoClose, loadBalancerParams }: IUseDetailsProps): any {
+  const { loadBalancerReader } = useDeckRuntimeServices();
   const dataSource = app.getDataSource('loadBalancers');
   const { data: loadBalancers, loaded, refresh, error } = useDataSource<any[]>(dataSource);
   const [data, setData] = useState<any>();
@@ -208,7 +209,7 @@ export function useGceLoadBalancerDetails({ app, autoClose, loadBalancerParams }
           autoClose,
           loadBalancers,
           loadBalancerParams,
-          loadBalancerReader: AngularServices.loadBalancerReader,
+          loadBalancerReader,
         }),
       );
     } catch (e) {
@@ -216,7 +217,7 @@ export function useGceLoadBalancerDetails({ app, autoClose, loadBalancerParams }
     } finally {
       setLoadingDetails(false);
     }
-  }, [app, autoClose, error, loadBalancers, loadBalancerParams, loaded]);
+  }, [app, autoClose, error, loadBalancerReader, loadBalancers, loadBalancerParams, loaded]);
 
   useEffect(() => {
     refetch();
@@ -232,7 +233,7 @@ export function useGceLoadBalancerDetails({ app, autoClose, loadBalancerParams }
   };
 }
 
-function deleteGceHttpLoadBalancer(loadBalancer: any, app: any, params: any = {}): PromiseLike<any> {
+function deleteGceHttpLoadBalancer(loadBalancer: any, app: any, params: any = {}): Promise<any> {
   const region = loadBalancer.region || 'global';
   const job = {
     cloudProvider: loadBalancer.provider || 'gce',
@@ -257,7 +258,7 @@ function deleteGceHttpLoadBalancer(loadBalancer: any, app: any, params: any = {}
   });
 }
 
-function deleteGceLoadBalancer(loadBalancer: any, app: any, params: any = {}): PromiseLike<any> {
+function deleteGceLoadBalancer(loadBalancer: any, app: any, params: any = {}): Promise<any> {
   if (gceHttpLoadBalancerUtils.isHttpLoadBalancer(loadBalancer)) {
     return deleteGceHttpLoadBalancer(loadBalancer, app, params);
   }

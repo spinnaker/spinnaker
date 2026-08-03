@@ -6,9 +6,13 @@ describe('kubernetes: Firewalls', () => {
     cy.intercept('/securityGroups', {
       fixture: 'kubernetes/securityGroups/securityGroups.json',
     });
-    cy.intercept('/search?pageSize=500&q=kubernetesapp&type=securityGroups', {
-      fixture: 'kubernetes/securityGroups/search/search_result.json',
-    });
+    cy.intercept(
+      {
+        pathname: '/search',
+        query: { q: 'kubernetesapp', type: 'securityGroups', pageSize: '500' },
+      },
+      { fixture: 'kubernetes/securityGroups/search/search_result.json' },
+    );
     cy.intercept('/securityGroups/k8s-local/dev/networkPolicy*?provider=kubernetes&vpcId=', {
       fixture: 'kubernetes/securityGroups/networkPolicy.json',
     });
@@ -94,10 +98,11 @@ describe('kubernetes: Firewalls', () => {
 
   it('should open delete modal and submit delete task', () => {
     cy.intercept('POST', '/tasks', (req) => {
-      expect(req.body.job[0].type).to.equal('deleteManifest');
-      expect(req.body.job[0].manifestName).to.equal('networkPolicy backend-security-policy');
-      expect(req.body.job[0].location).to.equal('dev');
-      expect(req.body.job[0].account).to.equal('k8s-local');
+      const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+      expect(body.job[0].type).to.equal('deleteManifest');
+      expect(body.job[0].manifestName).to.equal('networkPolicy backend-security-policy');
+      expect(body.job[0].location).to.equal('dev');
+      expect(body.job[0].account).to.equal('k8s-local');
       req.reply({ ref: '/tasks/01K17CHBN7Y358PSRE7GR04DC0' });
     }).as('deleteTask');
 

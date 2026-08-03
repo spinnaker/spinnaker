@@ -1,19 +1,20 @@
 import React from 'react';
 import { Modal } from 'react-bootstrap';
 
-import type { Application, IModalComponentProps } from '@spinnaker/core';
+import type { Application, IModalComponentProps, IRouterInjectedProps } from '@spinnaker/core';
 import {
   AccountService,
-  AngularServices,
   LoadBalancerWriter,
   ModalClose,
   NameUtils,
+  nativePromiseService,
   NetworkReader,
   noop,
   ReactModal,
   SubmitButton,
   TaskMonitor,
   TaskMonitorWrapper,
+  withRouter,
 } from '@spinnaker/core';
 
 import { AzureLoadBalancerTransformer } from '../loadBalancer.transformer';
@@ -335,8 +336,8 @@ export function normalizeAzureLoadBalancerForSubmit(loadBalancer: any, loadBalan
   return normalized;
 }
 
-export class AzureLoadBalancerModal extends React.Component<
-  IAzureLoadBalancerModalProps,
+export class AzureLoadBalancerModalComponent extends React.Component<
+  IAzureLoadBalancerModalProps & IRouterInjectedProps,
   IAzureLoadBalancerModalState
 > {
   public static defaultProps: Partial<IAzureLoadBalancerModalProps> = {
@@ -350,18 +351,16 @@ export class AzureLoadBalancerModal extends React.Component<
   }
 
   private mounted = false;
-  private transformer = new AzureLoadBalancerTransformer(null);
+  private applicationRefreshUnsubscribe?: () => void;
+  private transformer = new AzureLoadBalancerTransformer(nativePromiseService);
 
-  constructor(props: IAzureLoadBalancerModalProps) {
+  constructor(props: IAzureLoadBalancerModalProps & IRouterInjectedProps) {
     super(props);
     const application = this.getApplication();
     const taskMonitor = new TaskMonitor({
       application,
       title: `${props.isNew ? 'Creating' : 'Updating'} your load balancer`,
-      modalInstance: TaskMonitor.modalInstanceEmulation(
-        () => this.props.closeModal(),
-        () => this.props.dismissModal(),
-      ),
+      onDismiss: () => this.props.dismissModal(),
       onTaskComplete: this.onTaskComplete,
     });
 
@@ -387,6 +386,8 @@ export class AzureLoadBalancerModal extends React.Component<
 
   public componentWillUnmount(): void {
     this.mounted = false;
+    this.applicationRefreshUnsubscribe?.();
+    this.applicationRefreshUnsubscribe = undefined;
   }
 
   private getApplication(): Application {
@@ -435,11 +436,15 @@ export class AzureLoadBalancerModal extends React.Component<
 
   private onTaskComplete = (): void => {
     const application = this.getApplication();
+    this.applicationRefreshUnsubscribe?.();
+    this.applicationRefreshUnsubscribe = undefined;
+    this.applicationRefreshUnsubscribe = application.loadBalancers.onNextRefresh(this.onApplicationRefresh);
     application.loadBalancers.refresh();
-    application.loadBalancers.onNextRefresh(this, this.onApplicationRefresh);
   };
 
   private onApplicationRefresh = (): void => {
+    this.applicationRefreshUnsubscribe?.();
+    this.applicationRefreshUnsubscribe = undefined;
     if (!this.mounted) {
       return;
     }
@@ -453,10 +458,10 @@ export class AzureLoadBalancerModal extends React.Component<
       provider: 'azure',
     };
 
-    if (!AngularServices.$state.includes('**.loadBalancerDetails')) {
-      AngularServices.$state.go('.loadBalancerDetails', newStateParams);
+    if (!this.props.stateService.includes('**.loadBalancerDetails')) {
+      this.props.stateService.go('.loadBalancerDetails', newStateParams);
     } else {
-      AngularServices.$state.go('^.loadBalancerDetails', newStateParams);
+      this.props.stateService.go('^.loadBalancerDetails', newStateParams);
     }
   };
 
@@ -948,3 +953,8 @@ export class AzureLoadBalancerModal extends React.Component<
     );
   }
 }
+
+export const AzureLoadBalancerModal = Object.assign(
+  withRouter<IAzureLoadBalancerModalProps & IRouterInjectedProps>(AzureLoadBalancerModalComponent),
+  { show: AzureLoadBalancerModalComponent.show },
+);

@@ -15,7 +15,7 @@ describe('Container', () => {
   let command: IEcsServerGroupCommand;
 
   const configureCommand = (_query: string) => Promise.resolve() as PromiseLike<void>;
-  const notifyAngular = (_key: string, _value: any) => {};
+  const onFieldChange = (_key: string, _value: any) => {};
 
   const dockerAccounts: IAccountDetails[] = [
     {
@@ -50,7 +50,7 @@ describe('Container', () => {
   describe('updateDockerRegistryAccount', () => {
     it('calls DockerImageReader.findImages with the selected account', async () => {
       const wrapper = mount(
-        <Container command={command} notifyAngular={notifyAngular} configureCommand={configureCommand} />,
+        <Container command={command} onFieldChange={onFieldChange} configureCommand={configureCommand} />,
       );
 
       await flushPromises();
@@ -66,7 +66,7 @@ describe('Container', () => {
 
     it('updates component state and backingData with images returned for the account', async () => {
       const wrapper = mount(
-        <Container command={command} notifyAngular={notifyAngular} configureCommand={configureCommand} />,
+        <Container command={command} onFieldChange={onFieldChange} configureCommand={configureCommand} />,
       );
 
       (wrapper.instance() as any).updateDockerRegistryAccount({ value: 'my-docker-account' });
@@ -80,7 +80,7 @@ describe('Container', () => {
     it('clears existing images immediately when account changes', () => {
       command.backingData.filtered.images = dockerImages as IEcsDockerImage[];
       const wrapper = mount(
-        <Container command={command} notifyAngular={notifyAngular} configureCommand={configureCommand} />,
+        <Container command={command} onFieldChange={onFieldChange} configureCommand={configureCommand} />,
       );
 
       (wrapper.instance() as any).updateDockerRegistryAccount({ value: 'my-docker-account' });
@@ -104,7 +104,7 @@ describe('Container', () => {
       } as IEcsDockerImage;
 
       const wrapper = mount(
-        <Container command={command} notifyAngular={notifyAngular} configureCommand={configureCommand} />,
+        <Container command={command} onFieldChange={onFieldChange} configureCommand={configureCommand} />,
       );
 
       expect((wrapper.instance() as Container).state.selectedDockerAccount).toBe('my-docker-account');
@@ -112,7 +112,7 @@ describe('Container', () => {
 
     it('starts with no account selected when imageDescription has no account', () => {
       const wrapper = mount(
-        <Container command={command} notifyAngular={notifyAngular} configureCommand={configureCommand} />,
+        <Container command={command} onFieldChange={onFieldChange} configureCommand={configureCommand} />,
       );
 
       expect((wrapper.instance() as Container).state.selectedDockerAccount).toBe('');

@@ -1,12 +1,15 @@
 import { DestroyServiceExecutionDetails } from './DestroyServiceExecutionDetails';
-import { ExecutionDetailsTasks } from '../common';
+import { ExecutionDetailsTasks, NoConfigurationStageConfig } from '../common';
 import { Registry } from '../../../../registry';
 
-Registry.pipeline.registerStage({
+export const destroyServiceStage = {
   executionDetailsSections: [DestroyServiceExecutionDetails, ExecutionDetailsTasks],
   useBaseProvider: true,
   key: 'destroyService',
   label: 'Destroy Service',
   description: 'Destroys a service',
+  component: NoConfigurationStageConfig,
   strategy: true,
-});
+};
+
+Registry.pipeline.registerStage(destroyServiceStage);

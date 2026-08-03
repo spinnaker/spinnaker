@@ -164,7 +164,7 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
 
   public componentWillUnmount = () => this.destroy$.next();
 
-  public loadAccounts = (): PromiseLike<void> => {
+  public loadAccounts = (): Promise<void> => {
     return AccountService.getAllAccountDetailsForProvider('kubernetes').then((accounts) => {
       const selector = this.state.selector;
       const kind = parseSpinnakerName(selector.manifestName).kind;
@@ -244,8 +244,8 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
 
   private isExpression = (value: string): boolean => (typeof value === 'string' ? value.includes('${') : false);
 
-  private search = (kind: string, namespace: string, account: string): PromiseLike<string[]> => {
-    if (this.isExpression(account)) {
+  private search = (kind: string, namespace: string, account: string): Promise<string[]> => {
+    if (!kind || !namespace || !account || this.isExpression(account)) {
       return Promise.resolve([]);
     }
     return ManifestKindSearchService.search(kind, namespace, account).then((results) =>

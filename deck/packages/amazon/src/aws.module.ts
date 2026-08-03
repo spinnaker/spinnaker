@@ -33,6 +33,7 @@ import { registerAwsFindAmiStage } from './pipeline/stages/findAmi/awsFindAmiSta
 import { registerAwsFindImageFromTagsStage } from './pipeline/stages/findImageFromTags/awsFindImageFromTagsStage';
 import { registerLambdaInvokeStage } from './pipeline/stages/invokeLambda';
 import { registerAwsModifyScalingProcessStage } from './pipeline/stages/modifyScalingProcess/modifyScalingProcessStage';
+import { registerAwsModifyWarmPoolStage } from './pipeline/stages/modifyWarmPool/modifyWarmPoolStage';
 import { registerAwsResizeAsgStage } from './pipeline/stages/resizeAsg/awsResizeAsgStage';
 import { registerAwsRollbackClusterStage } from './pipeline/stages/rollbackCluster/awsRollbackClusterStage';
 import { registerLambdaRouteStage } from './pipeline/stages/routeLambda';
@@ -45,7 +46,7 @@ import { AmazonSecurityGroupDetails } from './securityGroup/details/AmazonSecuri
 import { AwsSecurityGroupReader } from './securityGroup/securityGroup.reader';
 import { AwsSecurityGroupTransformer } from './securityGroup/securityGroup.transformer';
 import { AwsServerGroupCommandBuilder } from './serverGroup/configure/serverGroupCommandBuilder.service';
-import { AwsServerGroupConfigurationService } from './serverGroup/configure/serverGroupConfiguration.service';
+import { AwsServerGroupConfigurationServiceDelegate } from './serverGroup/configure/serverGroupConfiguration.service';
 import { AmazonCloneServerGroupModal } from './serverGroup/configure/wizard/AmazonCloneServerGroupModal';
 import { AmazonServerGroupActions } from './serverGroup/details/AmazonServerGroupActions';
 import { amazonServerGroupDetailsGetter } from './serverGroup/details/amazonServerGroupDetailsGetter';
@@ -69,6 +70,7 @@ import {
   ScheduledActionsDetailsSection,
   SecurityGroupsDetailsSection,
   TagsDetailsSection,
+  WarmPoolDetailsSection,
 } from './serverGroup/details/sections';
 import { AwsServerGroupTransformer } from './serverGroup/serverGroup.transformer';
 import './validation/ApplicationNameValidator';
@@ -82,6 +84,13 @@ export function registerAmazonProvider(): void {
     logo: {
       path: amazonLogo,
     },
+    applicationProviderFields: [
+      {
+        field: 'useAmiBlockDeviceMappings',
+        label: 'Prefer AMI Block Device Mappings',
+        type: 'boolean',
+      },
+    ],
     image: {
       reader: AwsImageReader,
     },
@@ -100,6 +109,7 @@ export function registerAmazonProvider(): void {
         ScalingProcessesDetailsSection,
         ScalingPoliciesDetailsSection,
         ScheduledActionsDetailsSection,
+        WarmPoolDetailsSection,
         TagsDetailsSection,
         PackageDetailsSection,
         AdvancedSettingsDetailsSection,
@@ -107,7 +117,7 @@ export function registerAmazonProvider(): void {
       ],
       CloneServerGroupModal: AmazonCloneServerGroupModal,
       commandBuilder: AwsServerGroupCommandBuilder,
-      configurationService: AwsServerGroupConfigurationService,
+      configurationService: AwsServerGroupConfigurationServiceDelegate,
       instanceTypeService: AwsInstanceTypeService,
       scalingActivitiesEnabled: true,
       TargetTrackingChart,
@@ -174,6 +184,7 @@ export function registerAmazonPipelineStages(): void {
   registerPipelineStageOnce('Aws.LambdaDeploymentStage', registerLambdaDeployStage, null);
   registerPipelineStageOnce('Aws.LambdaInvokeStage', registerLambdaInvokeStage, null);
   registerPipelineStageOnce('modifyAwsScalingProcess', registerAwsModifyScalingProcessStage);
+  registerPipelineStageOnce('modifyWarmPool', registerAwsModifyWarmPoolStage);
   registerPipelineStageOnce('resizeServerGroup', registerAwsResizeAsgStage);
   registerPipelineStageOnce('rollbackCluster', registerAwsRollbackClusterStage);
   registerPipelineStageOnce('Aws.LambdaUpdateCodeStage', registerLambdaUpdateStage, null);

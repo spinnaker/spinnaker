@@ -6,7 +6,8 @@ import type { IConfirmationModalPassthroughProps } from './confirmationModal.ser
 import { ModalClose } from '../modal';
 import type { IModalComponentProps } from '../presentation';
 import { Markdown, useEscapeKeyPressed } from '../presentation';
-import { TaskMonitor, TaskMonitorWrapper, TaskReason, UserVerification } from '../task';
+import type { TaskMonitor } from '../task';
+import { TaskMonitorWrapper, TaskReason, UserVerification } from '../task';
 import { MultiTaskMonitor } from '../task/monitor/MultiTaskMonitor';
 import { Spinner } from '../widgets/spinners/Spinner';
 
@@ -30,21 +31,45 @@ export const ConfirmModal = (props: IConfirmModalProps) => {
   useEscapeKeyPressed(() => dismissModal());
 
   useEffect(() => {
-    if (taskMonitor && !taskMonitor.modalInstance) {
-      taskMonitor.modalInstance = TaskMonitor.modalInstanceEmulation(closeModal, dismissModal);
+    if (!taskMonitor) {
+      return undefined;
     }
-    if (taskMonitor?.onTaskRetry) {
-      const { onTaskRetry } = taskMonitor;
-      taskMonitor.onTaskRetry = () => {
-        setIsRetry(true);
-        setIsSubmitting(false);
-        onTaskRetry();
-      };
+
+    const originalOnTaskRetry = taskMonitor.onTaskRetry;
+    const handleTaskRetry = () => {
+      setIsRetry(true);
+      setIsSubmitting(false);
+      originalOnTaskRetry?.();
+    };
+    taskMonitor.onTaskRetry = handleTaskRetry;
+
+    const originalCloseModal = taskMonitor.closeModal;
+    let hasDismissed = false;
+    const handleTaskMonitorClose = (event?: React.MouseEvent<any>) => {
+      originalCloseModal(event);
+      if (hasDismissed) {
+        return;
+      }
+      hasDismissed = true;
+      dismissModal();
+    };
+    if (!taskMonitor.hasDismissHandler()) {
+      taskMonitor.closeModal = handleTaskMonitorClose;
     }
-  }, [taskMonitor]);
+
+    return () => {
+      if (taskMonitor.onTaskRetry === handleTaskRetry) {
+        taskMonitor.onTaskRetry = originalOnTaskRetry;
+      }
+      if (taskMonitor.closeModal === handleTaskMonitorClose) {
+        taskMonitor.closeModal = originalCloseModal;
+      }
+    };
+  }, [taskMonitor, dismissModal]);
 
   const requiresVerification = account || (verificationLabel && textToVerify);
-  const isDisabled = isSubmitting || !isValid;
+  const reasonIsValid = !props.reasonRequired || Boolean(reason?.trim());
+  const isDisabled = isSubmitting || !isValid || !reasonIsValid;
 
   const showError = (e: string) => {
     setError({ isError: true, message: e });
@@ -116,7 +141,7 @@ export const ConfirmModal = (props: IConfirmModalProps) => {
             </div>
           )}
           {isRetry && props.retryBody && <Markdown message={props.retryBody} />}
-          {showReasonInput && <TaskReason reason={reason} onChange={setReason} />}
+          {showReasonInput && <TaskReason reason={reason} placeholder={props.reasonPlaceholder} onChange={setReason} />}
         </Modal.Body>
       )}
       <Modal.Footer>

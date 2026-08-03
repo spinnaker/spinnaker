@@ -9,9 +9,13 @@ describe('Kubernetes provider registration', () => {
   it('registers the provider configuration', () => {
     registerKubernetesProvider();
 
-    expect(CloudProviderRegistry.getValue('kubernetes', 'instance.details')).toBe(KubernetesInstanceDetails);
+    expect(CloudProviderRegistry.getValue('kubernetes', 'instance.details').displayName).toBe(
+      KubernetesInstanceDetails.displayName,
+    );
     expect(CloudProviderRegistry.getValue('kubernetes', 'securityGroup.CreateSecurityGroupModal')).toBe(ManifestWizard);
-    expect(CloudProviderRegistry.getValue('kubernetes', 'securityGroup.details')).toBe(KubernetesSecurityGroupDetails);
+    expect(CloudProviderRegistry.getValue('kubernetes', 'securityGroup.details').displayName).toBe(
+      KubernetesSecurityGroupDetails.displayName,
+    );
     expect(CloudProviderRegistry.getValue('kubernetes', 'securityGroup.transformer')).toBe(
       KubernetesV2SecurityGroupTransformer,
     );

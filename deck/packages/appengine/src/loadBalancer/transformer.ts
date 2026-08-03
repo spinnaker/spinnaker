@@ -75,7 +75,7 @@ export class AppengineLoadBalancerUpsertDescription implements ILoadBalancerUpse
 }
 
 export class AppengineLoadBalancerTransformer {
-  public normalizeLoadBalancer(loadBalancer: ILoadBalancer): PromiseLike<ILoadBalancer> {
+  public normalizeLoadBalancer(loadBalancer: ILoadBalancer): Promise<ILoadBalancer> {
     loadBalancer.provider = loadBalancer.type;
     loadBalancer.instanceCounts = this.buildInstanceCounts(loadBalancer.serverGroups);
     loadBalancer.instances = [];
@@ -99,7 +99,7 @@ export class AppengineLoadBalancerTransformer {
   public convertLoadBalancerForEditing(
     loadBalancer: IAppengineLoadBalancer,
     application: Application,
-  ): PromiseLike<IAppengineLoadBalancer> {
+  ): Promise<IAppengineLoadBalancer> {
     return application
       .getDataSource('loadBalancers')
       .ready()

@@ -22,7 +22,7 @@ export interface IFunctionDeleteCommand extends IJob {
 }
 
 export class FunctionWriter {
-  public static deleteFunction(command: IFunctionDeleteCommand, application: Application): PromiseLike<ITask> {
+  public static deleteFunction(command: IFunctionDeleteCommand, application: Application): Promise<ITask> {
     command.type = 'lambdaFunction';
     command.operation = 'deleteLambdaFunction';
     return TaskExecutor.executeTask({
@@ -37,7 +37,7 @@ export class FunctionWriter {
     application: Application,
     descriptor: string,
     params: any = {},
-  ): PromiseLike<ITask> {
+  ): Promise<ITask> {
     Object.assign(command, params);
     return TaskExecutor.executeTask({
       job: [command],

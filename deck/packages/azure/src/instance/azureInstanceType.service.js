@@ -1,8 +1,7 @@
 import _ from 'lodash';
 
 export class AzureInstanceTypeService {
-  constructor($q) {
-    const resolve = (value) => ($q && $q.when ? $q.when(value) : Promise.resolve(value));
+  constructor(promiseService) {
     const B = {
       type: 'B-series',
       description:
@@ -804,7 +803,7 @@ export class AzureInstanceTypeService {
         }
         category.stats = buildStats(category);
       });
-      return resolve(categories);
+      return promiseService.resolve(categories);
     }
 
     const getAllTypesByRegion = function getAllTypesByRegion() {

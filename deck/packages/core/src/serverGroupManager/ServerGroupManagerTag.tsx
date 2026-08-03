@@ -1,8 +1,9 @@
 import React from 'react';
-import { AngularServices } from '../angular/services';
 
 import type { Application } from '../application';
 import type { IServerGroup, IServerGroupManager } from '../domain';
+import type { IRouterInjectedProps } from '../navigation/routerContext';
+import { withRouter } from '../navigation/routerContext';
 import { Tooltip } from '../presentation/Tooltip';
 
 import type { IServerGroupManagerStateParams } from './serverGroupManager.states';
@@ -12,7 +13,7 @@ export interface IServerGroupManagerTagProps {
   serverGroup: IServerGroup;
 }
 
-export class ServerGroupManagerTag extends React.Component<IServerGroupManagerTagProps> {
+class ServerGroupManagerTagComponent extends React.Component<IServerGroupManagerTagProps & IRouterInjectedProps> {
   public render() {
     const serverGroupManager = this.extractServerGroupManager();
     if (!serverGroupManager) {
@@ -48,9 +49,9 @@ export class ServerGroupManagerTag extends React.Component<IServerGroupManagerTa
 
   private openDetails = (event: React.MouseEvent<HTMLElement>): void => {
     event.preventDefault();
-    const { $state } = AngularServices;
-    const nextState = $state.current.name.endsWith('.clusters') ? '.serverGroupManager' : '^.serverGroupManager';
-    $state.go(nextState, this.buildStateParams());
+    const { stateService } = this.props;
+    const nextState = stateService.current.name.endsWith('.clusters') ? '.serverGroupManager' : '^.serverGroupManager';
+    stateService.go(nextState, this.buildStateParams());
   };
 
   private buildStateParams(): IServerGroupManagerStateParams {
@@ -63,3 +64,6 @@ export class ServerGroupManagerTag extends React.Component<IServerGroupManagerTa
     };
   }
 }
+
+export const ServerGroupManagerTag = withRouter(ServerGroupManagerTagComponent);
+ServerGroupManagerTag.displayName = 'ServerGroupManagerTag';

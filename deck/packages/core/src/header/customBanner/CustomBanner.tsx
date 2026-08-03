@@ -1,9 +1,10 @@
 import { get } from 'lodash';
 import React from 'react';
 
-import { AngularServices } from '../../angular/services';
 import type { ICustomBannerConfig } from '../../application/config/customBanner/CustomBannerConfig';
 import { ApplicationReader } from '../../application/service/ApplicationReader';
+import type { IRouterInjectedProps } from '../../navigation/routerContext';
+import { withRouter } from '../../navigation/routerContext';
 import { Markdown } from '../../presentation/Markdown';
 import { noop } from '../../utils';
 
@@ -14,7 +15,7 @@ export interface ICustomBannerState {
   bannerConfig: ICustomBannerConfig;
 }
 
-export class CustomBanner extends React.Component<{}, ICustomBannerState> {
+export class CustomBannerComponent extends React.Component<IRouterInjectedProps, ICustomBannerState> {
   private locationChangeUnsubscribe: Function;
 
   public state = {
@@ -23,13 +24,12 @@ export class CustomBanner extends React.Component<{}, ICustomBannerState> {
   } as ICustomBannerState;
 
   public componentDidMount(): void {
-    this.locationChangeUnsubscribe = AngularServices.$uiRouter.transitionService.onSuccess({}, () =>
-      this.updateApplication(),
+    this.locationChangeUnsubscribe = this.props.router.transitionService.onSuccess({}, (transition) =>
+      this.updateApplication(transition.params('to').application),
     );
   }
 
-  private updateApplication(): void {
-    const applicationName: string = get(AngularServices, '$stateParams.application');
+  private updateApplication(applicationName: string = this.props.stateParams.application): void {
     if (applicationName !== this.state.applicationName) {
       this.setState({
         applicationName,
@@ -53,7 +53,7 @@ export class CustomBanner extends React.Component<{}, ICustomBannerState> {
     });
   }
 
-  public render(): React.ReactElement<CustomBanner> {
+  public render(): React.ReactElement<CustomBannerComponent> {
     const { bannerConfig } = this.state;
     if (bannerConfig == null) {
       return null;
@@ -75,3 +75,6 @@ export class CustomBanner extends React.Component<{}, ICustomBannerState> {
     this.locationChangeUnsubscribe();
   }
 }
+
+export const CustomBanner = withRouter(CustomBannerComponent);
+CustomBanner.displayName = 'CustomBanner';

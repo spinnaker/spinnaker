@@ -141,7 +141,7 @@ function serverGroupFromCloneCommand(source, command, name) {
 
 function createInstanceTypeService(core) {
   const InstanceTypeService = core.CloudProviderRegistry.getValue('gce', 'instance.instanceTypeService');
-  const delegate = new InstanceTypeService(core.AngularServices.$q);
+  const delegate = new InstanceTypeService(core.nativePromiseService);
   const findInstanceType = async (instanceType) => {
     const categories = await delegate.getCategories('gce');
     for (const category of categories) {
@@ -180,7 +180,7 @@ function createInstanceTypeService(core) {
 
 function createCommandBuilder(core, instanceTypeService) {
   const CommandBuilder = core.CloudProviderRegistry.getValue('gce', 'serverGroup.commandBuilder');
-  const delegate = new CommandBuilder(core.AngularServices.$q);
+  const delegate = new CommandBuilder(core.nativePromiseService);
 
   const buildServerGroupCommandFromExisting = async (application, serverGroup, mode = 'clone') => {
     const source = copy(serverGroup);
@@ -549,13 +549,9 @@ function installGceTestHarness() {
     const core = win.spinnaker?.plugins?.sharedLibraries?._spinnaker_core;
     expect(core, 'shared @spinnaker/core library').to.exist;
 
-    const actualSecurityGroupReader = core.AngularServices.securityGroupReader;
-    const securityGroupReader = new Proxy(actualSecurityGroupReader, {
-      get: (target, property) => {
-        const value = target[property];
-        return typeof value === 'function' ? value.bind(target) : value;
-      },
-    });
+    const securityGroupReader = {
+      getAllSecurityGroups: () => core.REST('/securityGroups').get(),
+    };
     const instanceTypeService = createInstanceTypeService(core);
     const commandBuilder = createCommandBuilder(core, instanceTypeService);
     const lifecycle = [];
@@ -563,7 +559,7 @@ function installGceTestHarness() {
       ...createWizardAdapter(core, instanceTypeService, securityGroupReader, win, lifecycle),
       ...commandBuilder,
     };
-    const facade = core.AngularServices.serverGroupCommandBuilder;
+    const facade = core.ServerGroupCommandBuilderService.prototype;
     facade.buildNewServerGroupCommand = (application, _provider, defaults) =>
       commandBuilder.buildNewServerGroupCommand(application, defaults);
     facade.buildNewServerGroupCommandForPipeline = (_provider, stage, pipeline) =>
@@ -573,13 +569,23 @@ function installGceTestHarness() {
 
     const CloneServerGroupModal = core.CloudProviderRegistry.getValue('gce', 'serverGroup.CloneServerGroupModal');
     const showModal = CloneServerGroupModal.show.bind(CloneServerGroupModal);
-    CloneServerGroupModal.show = (props) => showModal({ ...props, adapter });
-    win.__gceFunctionalHarness = { adapter, commandBuilder, core, lifecycle, showModal: CloneServerGroupModal.show };
+    const runtime = core.createDeckRuntime(core.getDirectRouter());
+    const showModalWithAdapter = (props, runtimeServices = runtime.services) =>
+      showModal({ ...props, adapter }, runtimeServices);
+    core.CloudProviderRegistry.overrideValue('gce', 'serverGroup.CloneServerGroupModal.show', showModalWithAdapter);
+    win.__gceFunctionalHarness = {
+      adapter,
+      commandBuilder,
+      core,
+      lifecycle,
+      runtime,
+      showModal: showModalWithAdapter,
+    };
   });
 }
 
 function resolvedApplication(harness) {
-  const globals = harness.core.AngularServices.$uiRouter.globals;
+  const globals = harness.core.getDirectRouter().globals;
   const transition = globals.transition || globals.successfulTransitions?.peekTail();
   return transition.injector().get('app');
 }

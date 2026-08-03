@@ -50,6 +50,7 @@ class BasicGoogleDeployDescription extends BaseGoogleInstanceDescription impleme
   Boolean disableTraffic
   Set<String> securityGroups
   GoogleAutoscalingPolicy autoscalingPolicy
+  Boolean overwriteAncestorAutoscalingPolicy = false
   GoogleHttpLoadBalancingPolicy loadBalancingPolicy
   GoogleAutoHealingPolicy autoHealingPolicy
   Boolean overwriteAncestorAutoHealingPolicy = false

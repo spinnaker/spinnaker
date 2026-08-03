@@ -1,7 +1,5 @@
 import { StateMatcher } from '@uirouter/core';
-import type { UIRouterReact } from '@uirouter/react';
-import { UIRouterContext } from '@uirouter/react';
-import { mock } from 'angular';
+import { hashLocationPlugin, servicesPlugin, UIRouterContext, UIRouterReact } from '@uirouter/react';
 import { mount } from 'enzyme';
 import React from 'react';
 import { RecoilRoot } from 'recoil';
@@ -18,25 +16,22 @@ import { ApplicationNavigation } from './ApplicationNavigation';
 import { ApplicationModelBuilder } from '../../application';
 import { SETTINGS } from '../../config';
 import type { IPipeline } from '../../domain';
-import { OVERRIDE_REGISTRY } from '../../overrideRegistry';
-import { REACT_MODULE } from '../../reactShims';
 import type { ApplicationDataSource } from '../service/applicationDataSource';
 
 describe('ApplicationNavigation', () => {
-  let $uiRouter: UIRouterReact;
+  let router: UIRouterReact;
   const currentStates = ['**.pipelines.**', '**.tasks.**'];
 
-  beforeEach(mock.module(REACT_MODULE, OVERRIDE_REGISTRY));
-  beforeEach(
-    mock.inject((_$uiRouter_: UIRouterReact) => {
-      $uiRouter = _$uiRouter_;
-    }),
-  );
   beforeEach(() => {
+    router = new UIRouterReact();
+    router.plugin(servicesPlugin);
+    router.plugin(hashLocationPlugin);
     // Initialize current route
-    spyOn($uiRouter.stateService, 'includes').and.callFake((substate: any) => currentStates.includes(substate));
+    spyOn(router.stateService, 'includes').and.callFake((substate: any) => currentStates.includes(substate));
     spyOn(StateMatcher.prototype, 'find').and.callFake(() => undefined as any);
   });
+
+  afterEach(() => router.dispose());
 
   it('should render header, categories', () => {
     const app = ApplicationModelBuilder.createApplicationForTests(
@@ -60,7 +55,7 @@ describe('ApplicationNavigation', () => {
 
     const wrapper = mount(
       <RecoilRoot>
-        <UIRouterContext.Provider value={$uiRouter}>
+        <UIRouterContext.Provider value={router}>
           <ApplicationNavigation app={app} />
         </UIRouterContext.Provider>
       </RecoilRoot>,
@@ -76,6 +71,24 @@ describe('ApplicationNavigation', () => {
     expect(pagerDutyButton.length).toEqual(0);
   });
 
+  it('renders nav routes with shared flex row classes', () => {
+    const app = ApplicationModelBuilder.createApplicationForTests('testapp', mockServerGroupDataSourceConfig);
+    app.attributes.dataSources = app.dataSources;
+
+    const wrapper = mount(
+      <RecoilRoot>
+        <UIRouterContext.Provider value={router}>
+          <ApplicationNavigation app={app} />
+        </UIRouterContext.Provider>
+      </RecoilRoot>,
+    );
+
+    const firstNavRoute = wrapper.find('a.nav-category').first();
+
+    expect(firstNavRoute.hasClass('flex-container-h')).toBe(true);
+    expect(firstNavRoute.hasClass('middle')).toBe(true);
+  });
+
   it('should render pager button', () => {
     SETTINGS.feature.pagerDuty = true;
     const app = ApplicationModelBuilder.createApplicationForTests('testapp');
@@ -83,7 +96,7 @@ describe('ApplicationNavigation', () => {
 
     const wrapper = mount(
       <RecoilRoot>
-        <UIRouterContext.Provider value={$uiRouter}>
+        <UIRouterContext.Provider value={router}>
           <ApplicationNavigation app={app} />
         </UIRouterContext.Provider>
       </RecoilRoot>,
@@ -98,7 +111,7 @@ describe('ApplicationNavigation', () => {
 
     const wrapper = mount(
       <RecoilRoot>
-        <UIRouterContext.Provider value={$uiRouter}>
+        <UIRouterContext.Provider value={router}>
           <ApplicationNavigation app={app} />
         </UIRouterContext.Provider>
       </RecoilRoot>,
@@ -130,7 +143,7 @@ describe('ApplicationNavigation', () => {
 
     const wrapper = mount(
       <RecoilRoot>
-        <UIRouterContext.Provider value={$uiRouter}>
+        <UIRouterContext.Provider value={router}>
           <ApplicationNavigation app={app} />
         </UIRouterContext.Provider>
       </RecoilRoot>,

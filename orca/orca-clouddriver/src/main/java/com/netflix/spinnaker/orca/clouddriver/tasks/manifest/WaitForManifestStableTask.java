@@ -31,6 +31,7 @@ import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -54,6 +55,14 @@ public class WaitForManifestStableTask
   @Override
   public long getTimeout() {
     return TimeUnit.MINUTES.toMillis(30);
+  }
+
+  @Override
+  public long getDynamicTimeout(@Nonnull StageExecution stage) {
+    return Optional.ofNullable(stage.getContext().get("stableManifestTimeoutMinutes"))
+        .map(v -> Long.parseLong(v.toString()))
+        .map(TimeUnit.MINUTES::toMillis)
+        .orElseGet(this::getTimeout);
   }
 
   @Nonnull

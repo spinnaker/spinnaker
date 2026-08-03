@@ -41,12 +41,10 @@ export class TaskMonitorModal<T> extends React.Component<ITaskMonitorModalProps<
 
   private submitTask = (values: any) => {
     const { application, description } = this.props;
-    const onClose = (result: any) => this.props.closeModal(result);
     const onDismiss = (result: any) => this.props.dismissModal(result);
-    const modalInstance = TaskMonitor.modalInstanceEmulation(onClose, onDismiss);
     const taskMonitor = new TaskMonitor({
       application,
-      modalInstance,
+      onDismiss,
       title: description,
       onTaskComplete: () => application.serverGroups.refresh(),
     });

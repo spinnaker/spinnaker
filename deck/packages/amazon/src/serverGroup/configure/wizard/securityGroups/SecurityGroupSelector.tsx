@@ -3,7 +3,7 @@ import type { Option } from 'react-select';
 import VirtualizedSelect from 'react-virtualized-select';
 
 import type { ISecurityGroup } from '@spinnaker/core';
-import { AngularServices, FirewallLabels, HelpField, InfrastructureCaches, timestamp } from '@spinnaker/core';
+import { DeckRuntimeContext, FirewallLabels, HelpField, InfrastructureCaches, timestamp } from '@spinnaker/core';
 
 import type { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
 
@@ -23,20 +23,25 @@ export interface ISecurityGroupSelectorState {
 }
 
 export class SecurityGroupSelector extends React.Component<ISecurityGroupSelectorProps, ISecurityGroupSelectorState> {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   constructor(props: ISecurityGroupSelectorProps) {
     super(props);
     this.state = {
       refreshing: false,
-      refreshTime: InfrastructureCaches.get('securityGroups').getStats().ageMax,
+      refreshTime: this.getRefreshTime(),
     };
   }
+
+  private getRefreshTime = () => InfrastructureCaches.get('securityGroups')?.getStats().ageMax || 0;
 
   private refreshSecurityGroups = () => {
     this.setState({ refreshing: true });
     if (this.props.refresh) {
       this.props.refresh().then(() => this.setState({ refreshing: false }));
     } else {
-      (AngularServices.providerServiceDelegate.getDelegate(
+      (this.context.services.providerServiceDelegate.getDelegate(
         this.props.command.selectedProvider,
         'serverGroup.configurationService',
       ) as any)
@@ -44,7 +49,7 @@ export class SecurityGroupSelector extends React.Component<ISecurityGroupSelecto
         .then(() => {
           this.setState({
             refreshing: false,
-            refreshTime: InfrastructureCaches.get('securityGroups').getStats().ageMax,
+            refreshTime: this.getRefreshTime(),
           });
         });
     }

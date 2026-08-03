@@ -31,8 +31,14 @@ describe('GceServerGroupCommandBuilder', () => {
     xpnNamingService.deriveProjectId.and.returnValue('test-project');
     xpnNamingService.decorateXpnResourceIfNecessary.and.callFake((_projectId, resource) => resource);
 
-    const $q = { all: (values) => Promise.all(values), when: (value) => Promise.resolve(value) };
-    builder = new GceServerGroupCommandBuilder($q, instanceTypeService, customInstanceBuilder, xpnNamingService, []);
+    const promiseService = { all: (values) => Promise.all(values), resolve: (value) => Promise.resolve(value) };
+    builder = new GceServerGroupCommandBuilder(
+      promiseService,
+      instanceTypeService,
+      customInstanceBuilder,
+      xpnNamingService,
+      [],
+    );
   });
 
   function application() {

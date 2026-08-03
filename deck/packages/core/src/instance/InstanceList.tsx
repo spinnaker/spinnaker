@@ -4,8 +4,9 @@ import { Subject } from 'rxjs';
 import { distinctUntilChanged, map, takeUntil } from 'rxjs/operators';
 
 import { InstanceListBody } from './InstanceListBody';
-import { AngularServices } from '../angular/services';
 import type { IInstance, IServerGroup } from '../domain';
+import type { IRouterInjectedProps } from '../navigation/routerContext';
+import { withRouter } from '../navigation/routerContext';
 import { SortToggle } from '../presentation/sortToggle/SortToggle';
 import { ClusterState } from '../state';
 
@@ -31,20 +32,21 @@ interface IColumnWidths {
   cloudProvider: number;
 }
 
-export class InstanceList extends React.Component<IInstanceListProps, IInstanceListState> {
+export class InstanceListComponent extends React.Component<
+  IInstanceListProps & IRouterInjectedProps,
+  IInstanceListState
+> {
   private instanceGroup: any;
   private clusterFilterModel = ClusterState.filterModel.asFilterModel;
-  private $state = AngularServices.$state;
-  private $uiRouter = AngularServices.$uiRouter;
   private destroy$ = new Subject();
 
-  constructor(props: IInstanceListProps) {
+  constructor(props: IInstanceListProps & IRouterInjectedProps) {
     super(props);
     this.instanceGroup = ClusterState.multiselectModel.getOrCreateInstanceGroup(props.serverGroup);
     this.state = {
-      multiselect: this.$state.params.multiselect,
+      multiselect: props.stateParams.multiselect,
       allSelected: this.instanceGroup.selectAll,
-      instanceSort: this.$state.params.instanceSort,
+      instanceSort: props.stateParams.instanceSort,
     };
   }
 
@@ -53,16 +55,16 @@ export class InstanceList extends React.Component<IInstanceListProps, IInstanceL
       this.setState({ allSelected: this.instanceGroup.selectAll });
     });
 
-    this.$uiRouter.globals.params$
+    this.props.router.globals.params$
       .pipe(
-        map((params) => [params.multiselect, params.instanceSort]),
+        map((params) => ({ multiselect: params.multiselect, instanceSort: params.instanceSort })),
         distinctUntilChanged(isEqual),
         takeUntil(this.destroy$),
       )
-      .subscribe(() => {
+      .subscribe(({ multiselect, instanceSort }) => {
         this.setState({
-          multiselect: this.$state.params.multiselect,
-          instanceSort: this.$state.params.instanceSort,
+          multiselect,
+          instanceSort,
         });
       });
   }
@@ -194,3 +196,6 @@ export class InstanceList extends React.Component<IInstanceListProps, IInstanceL
     );
   }
 }
+
+export const InstanceList = withRouter(InstanceListComponent);
+InstanceList.displayName = 'InstanceList';

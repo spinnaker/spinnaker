@@ -43,19 +43,15 @@ public class LambdaCacheClient extends AbstractCacheClient<Function> {
     LambdaFunction lambdaFunction = objectMapper.convertValue(attributes, LambdaFunction.class);
     // Fix broken translation of uuid fields. Perhaps this is better fixed by configuring the
     // objectMapper right
-    List<Map> eventSourceMappings = (List<Map>) attributes.get("eventSourceMappings");
+    List<Map<String, Object>> eventSourceMappings = lambdaFunction.getEventSourceMappings();
     if (eventSourceMappings == null) {
       return lambdaFunction;
     }
     Map<String, String> arnUuidMap = new HashMap<>();
     eventSourceMappings.forEach(
         xx -> arnUuidMap.put((String) xx.get("eventSourceArn"), (String) xx.get("uuid")));
-    lambdaFunction
-        .getEventSourceMappings()
-        .forEach(
-            currMapping -> {
-              currMapping.setUUID(arnUuidMap.get(currMapping.getEventSourceArn()));
-            });
+    eventSourceMappings.forEach(
+        currMapping -> currMapping.put("uuid", arnUuidMap.get(currMapping.get("eventSourceArn"))));
     return lambdaFunction;
   }
 }

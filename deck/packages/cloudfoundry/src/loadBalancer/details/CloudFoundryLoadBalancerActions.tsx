@@ -1,23 +1,25 @@
 import React from 'react';
 import { Dropdown } from 'react-bootstrap';
 
-import type { Application, ILoadBalancer, ILoadBalancerDeleteCommand } from '@spinnaker/core';
-import { AngularServices, ConfirmationModalService, LoadBalancerWriter } from '@spinnaker/core';
+import type { Application, ILoadBalancer, ILoadBalancerDeleteCommand, IRouterInjectedProps } from '@spinnaker/core';
+import { ConfirmationModalService, LoadBalancerWriter, withRouter } from '@spinnaker/core';
 
 export interface ICloudFoundryLoadBalancerActionsProps {
   application: Application;
   loadBalancer: ILoadBalancer;
 }
 
-export class CloudFoundryLoadBalancerActions extends React.Component<ICloudFoundryLoadBalancerActionsProps> {
+export class CloudFoundryLoadBalancerActionsComponent extends React.Component<
+  ICloudFoundryLoadBalancerActionsProps & IRouterInjectedProps
+> {
   private deleteLoadBalancer = () => {
     const { application, loadBalancer } = this.props;
     const taskMonitor = {
       application: application,
       title: 'Deleting ' + loadBalancer.name,
-      onTaskComplete() {
-        if (AngularServices.$state.includes('**.serverGroup', { instanceId: loadBalancer.name })) {
-          AngularServices.$state.go('^');
+      onTaskComplete: () => {
+        if (this.props.stateService.includes('**.serverGroup', { instanceId: loadBalancer.name })) {
+          this.props.stateService.go('^');
         }
       },
     };
@@ -58,3 +60,5 @@ export class CloudFoundryLoadBalancerActions extends React.Component<ICloudFound
     );
   }
 }
+
+export const CloudFoundryLoadBalancerActions = withRouter(CloudFoundryLoadBalancerActionsComponent);

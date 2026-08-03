@@ -1,16 +1,17 @@
-import { mock, noop } from 'angular';
+import { noop } from 'lodash';
 
 import { mockHttpClient } from '../api/mock/jasmine';
 import type { MockHttpClient } from '../api/mock/mockHttpClient';
 import { Application } from '../application/application.model';
 import { ApplicationModelBuilder } from '../application/applicationModel.builder';
 import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
+import type { DeckRuntime } from '../bootstrap/DeckRuntime';
+import { createDeckRuntime } from '../bootstrap/DeckRuntime';
 import type {
   IServerGroupCommand,
   IServerGroupCommandViewState,
 } from './configure/common/serverGroupCommandBuilder.service';
-import type { ServerGroupWriter } from './serverGroupWriter.service';
-import { SERVER_GROUP_WRITER } from './serverGroupWriter.service';
+import { ServerGroupWriter } from './serverGroupWriter.service';
 import type { ITaskCommand } from '../task/taskExecutor';
 
 interface IApplicationTask {
@@ -24,24 +25,14 @@ class TestApplication extends Application {
 describe('serverGroupWriter', function () {
   let serverGroupTransformer: any, serverGroupWriter: ServerGroupWriter;
 
-  beforeEach(mock.module(SERVER_GROUP_WRITER));
-
   beforeEach(function () {
-    mock.inject(function (_serverGroupWriter_: ServerGroupWriter, _serverGroupTransformer_: any) {
-      serverGroupWriter = _serverGroupWriter_;
-      serverGroupTransformer = _serverGroupTransformer_;
-    });
-  });
-
-  beforeEach(function () {
+    serverGroupTransformer = {
+      convertServerGroupCommandToDeployConfiguration: (command: any) => command,
+    };
+    serverGroupWriter = new ServerGroupWriter(serverGroupTransformer);
     spyOn(serverGroupTransformer, 'convertServerGroupCommandToDeployConfiguration').and.callFake((command: any) => {
       return command;
     });
-  });
-
-  it('should inject defined objects', async function () {
-    expect(serverGroupTransformer).toBeDefined();
-    expect(serverGroupWriter).toBeDefined();
   });
 
   describe('clone server group submit', function () {
@@ -124,5 +115,47 @@ describe('serverGroupWriter', function () {
       expect(submitted.description).toBe('Create Cloned Server Group from app-v002');
       expect(submitted.job[0].source).toEqual(command.source);
     });
+  });
+});
+
+describe('direct runtime server group writer', () => {
+  let runtime: DeckRuntime;
+
+  beforeEach(() => {
+    runtime = createDeckRuntime();
+  });
+
+  afterEach(() => runtime.dispose());
+
+  it('submits a destroy job with the runtime-owned writer', async () => {
+    const http = mockHttpClient();
+    let submitted: ITaskCommand = {};
+    http
+      .expectPOST('/tasks')
+      .respond(200, { ref: '/1' })
+      .onRequestReceived((request) => (submitted = request.data));
+    http.expectGET('/tasks/1').respond(200, {});
+
+    const task = runtime.services.serverGroupWriter.destroyServerGroup(
+      {
+        name: 'app-test-v001',
+        account: 'test-account',
+        region: 'us-east-1',
+        provider: 'directRuntimeServerGroupWriterTest',
+      } as any,
+      { name: 'app' } as any,
+    );
+    await http.flush();
+    await task;
+
+    expect(submitted.job[0]).toEqual(
+      jasmine.objectContaining({
+        type: 'destroyServerGroup',
+        serverGroupName: 'app-test-v001',
+        credentials: 'test-account',
+        region: 'us-east-1',
+        cloudProvider: 'directRuntimeServerGroupWriterTest',
+      }),
+    );
   });
 });

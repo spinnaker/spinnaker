@@ -411,7 +411,12 @@ export class AzureBakeStageConfig extends React.Component<any, IAzureBakeStageSt
                 onChange={(event) => {
                   const regions = new Set(stage.regions || []);
                   event.target.checked ? regions.add(region) : regions.delete(region);
-                  this.updateStage({ region, regions: Array.from(regions) });
+                  const scalarRegion = event.target.checked
+                    ? region
+                    : stage.region === region
+                    ? undefined
+                    : stage.region;
+                  this.updateStage({ region: scalarRegion, regions: Array.from(regions) });
                 }}
               />
               {region}

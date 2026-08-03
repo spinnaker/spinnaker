@@ -52,6 +52,6 @@ describe('WebhookExecutionDetails', () => {
     expect(links.at(0).prop('rel')).toBe('noopener noreferrer');
     expect(links.at(1).prop('href')).toBe('https://example.test/progress/1');
     expect(component.find('.webhook-progress-message').prop('style')).toEqual({ whiteSpace: 'pre-line' });
-    expect(component.html()).not.toContain('href="javascript:alert(1)"');
+    expect(links.map((link) => link.prop('href'))).not.toContain('javascript:alert(1)');
   });
 });

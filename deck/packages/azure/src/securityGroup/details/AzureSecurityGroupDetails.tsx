@@ -1,8 +1,20 @@
 import React from 'react';
 import { Dropdown, MenuItem } from 'react-bootstrap';
 
-import type { Application, IOverridableProps, ISecurityGroupDetail, SecurityGroupReader } from '@spinnaker/core';
-import { AccountTag, AngularServices, CollapsibleSection, ConfirmationModalService } from '@spinnaker/core';
+import type {
+  Application,
+  IOverridableProps,
+  IRouterInjectedProps,
+  ISecurityGroupDetail,
+  SecurityGroupReader,
+} from '@spinnaker/core';
+import {
+  AccountTag,
+  CollapsibleSection,
+  ConfirmationModalService,
+  DeckRuntimeContext,
+  withRouter,
+} from '@spinnaker/core';
 
 import { AzureSecurityGroupModal } from '../configure/AzureSecurityGroupModal';
 import { AzureSecurityGroupWriter } from '../securityGroup.write.service';
@@ -31,10 +43,13 @@ interface IAzureSecurityGroupSectionProps {
   securityGroup: ISecurityGroupDetail & Record<string, any>;
 }
 
-export class AzureSecurityGroupDetails extends React.Component<
-  IAzureSecurityGroupDetailsProps,
+export class AzureSecurityGroupDetailsComponent extends React.Component<
+  IAzureSecurityGroupDetailsProps & IRouterInjectedProps,
   IAzureSecurityGroupDetailsState
 > {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   public state: IAzureSecurityGroupDetailsState = { loading: true };
 
   private isUnmounted = false;
@@ -53,7 +68,7 @@ export class AzureSecurityGroupDetails extends React.Component<
         return;
       }
       this.loadSecurityGroup();
-      this.unsubscribeFromRefresh = dataSource.onRefresh(null, this.loadSecurityGroup);
+      this.unsubscribeFromRefresh = dataSource.onRefresh(this.loadSecurityGroup);
     });
   }
 
@@ -76,7 +91,7 @@ export class AzureSecurityGroupDetails extends React.Component<
   }
 
   private getSecurityGroupReader(): SecurityGroupReader {
-    return this.props.securityGroupReader || AngularServices.securityGroupReader;
+    return this.props.securityGroupReader || this.context.services.securityGroupReader;
   }
 
   private loadSecurityGroup = (): void => {
@@ -117,11 +132,11 @@ export class AzureSecurityGroupDetails extends React.Component<
       this.props.autoClose();
       return;
     }
-    AngularServices.$state.go('^');
+    this.props.stateService.go('^');
   };
 
   private closeDetails = (): void => {
-    AngularServices.$state.go('^');
+    this.props.stateService.go('^');
   };
 
   public render(): JSX.Element {
@@ -170,6 +185,8 @@ export class AzureSecurityGroupDetails extends React.Component<
     );
   }
 }
+
+export const AzureSecurityGroupDetails = withRouter(AzureSecurityGroupDetailsComponent);
 
 function withResolvedCoordinates(securityGroup: any, resolvedSecurityGroup?: IAzureResolvedSecurityGroup): any {
   if (!resolvedSecurityGroup) {

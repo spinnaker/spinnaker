@@ -8,7 +8,7 @@ import { AwsServices } from '../../aws.services';
 import type { IAmazonLoadBalancer, IAmazonServerGroup, IAmazonServerGroupView } from '../../domain';
 import { AutoScalingProcessService } from './scalingProcesses/AutoScalingProcessService';
 
-function extractServerGroupSummary(props: IServerGroupDetailsProps): PromiseLike<IAmazonServerGroup> {
+function extractServerGroupSummary(props: IServerGroupDetailsProps): Promise<IAmazonServerGroup> {
   const { app, serverGroup } = props;
   return app.ready().then(() => {
     let summary: IAmazonServerGroup = app.serverGroups.data.find((toCheck: IAmazonServerGroup) => {

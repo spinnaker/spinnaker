@@ -2,11 +2,11 @@ import React, { useEffect, useState } from 'react';
 
 import {
   AccountTag,
-  AngularServices,
   CollapsibleSection,
   ConfirmationModalService,
   FirewallLabels,
   SecurityGroupWriter,
+  useDeckRuntimeServices,
 } from '@spinnaker/core';
 
 import { GceSecurityGroupModal } from '../configure/GceSecurityGroupModal';
@@ -70,15 +70,16 @@ export function GceSecurityGroupActions({
   resolvedSecurityGroup?: any;
   securityGroup: any;
 }): JSX.Element {
+  const runtimeServices = useDeckRuntimeServices();
   const [menuOpen, setMenuOpen] = useState(false);
   const firewall = withResolvedCoordinates(securityGroup, resolvedSecurityGroup);
   const sharedVpcHostFirewall = typeof firewall.id === 'string' && firewall.id.includes('/');
   const readOnlyExplanation = 'You cannot modify shared VPC host project firewall rules.';
   const editInboundRules = (): void => {
-    GceSecurityGroupModal.show({ application: app, mode: 'edit', securityGroup: firewall });
+    GceSecurityGroupModal.show({ application: app, mode: 'edit', securityGroup: firewall }, runtimeServices);
   };
   const cloneSecurityGroup = (): void => {
-    GceSecurityGroupModal.show({ application: app, mode: 'clone', securityGroup: firewall });
+    GceSecurityGroupModal.show({ application: app, mode: 'clone', securityGroup: firewall }, runtimeServices);
   };
   const deleteSecurityGroup = (): void => {
     ConfirmationModalService.confirm({
@@ -153,14 +154,15 @@ export function GceSecurityGroupActions({
 }
 
 export function GceSecurityGroupDetails({ app, resolvedSecurityGroup }: IGceSecurityGroupDetailsProps): JSX.Element {
+  const { securityGroupReader } = useDeckRuntimeServices();
   const routeKey = securityGroupCoordinatesKey(resolvedSecurityGroup);
   const [loadedSecurityGroup, setLoadedSecurityGroup] = useState<{ key: string; value: any }>();
 
   useEffect(() => {
     let cancelled = false;
 
-    const loadSecurityGroup = (): PromiseLike<any> => {
-      return AngularServices.securityGroupReader
+    const loadSecurityGroup = (): Promise<any> => {
+      return securityGroupReader
         .getSecurityGroupDetails(
           app,
           resolvedSecurityGroup.accountId,
@@ -184,13 +186,13 @@ export function GceSecurityGroupDetails({ app, resolvedSecurityGroup }: IGceSecu
     };
 
     loadSecurityGroup();
-    const unsubscribeFromRefresh = app.securityGroups?.onRefresh?.(null, loadSecurityGroup);
+    const unsubscribeFromRefresh = app.securityGroups?.onRefresh?.(loadSecurityGroup);
 
     return () => {
       cancelled = true;
       unsubscribeFromRefresh?.();
     };
-  }, [app, routeKey]);
+  }, [app, routeKey, securityGroupReader]);
 
   const loading = loadedSecurityGroup?.key !== routeKey;
   const securityGroup = loading ? resolvedSecurityGroup : loadedSecurityGroup.value;

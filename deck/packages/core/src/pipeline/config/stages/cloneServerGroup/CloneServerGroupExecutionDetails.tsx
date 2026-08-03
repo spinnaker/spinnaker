@@ -2,11 +2,12 @@ import { find, get } from 'lodash';
 import React from 'react';
 
 import { AccountTag } from '../../../../account';
-import { AngularServices } from '../../../../angular/services';
 import type { IExecutionDetailsSectionProps } from '../common';
 import { ExecutionDetailsSection } from '../common';
 import { StageFailureMessage } from '../../../details';
 import { UrlBuilder } from '../../../../navigation';
+import type { IRouterInjectedProps } from '../../../../navigation/routerContext';
+import { withRouter } from '../../../../navigation/routerContext';
 import { ClusterState } from '../../../../state';
 
 export interface IDeployResult {
@@ -24,18 +25,18 @@ export interface ICloneServerGroupExecutionDetailsState {
   deployResults: IDeployResult[];
 }
 
-export class CloneServerGroupExecutionDetails extends React.Component<
-  IExecutionDetailsSectionProps,
+export class CloneServerGroupExecutionDetailsComponent extends React.Component<
+  IExecutionDetailsSectionProps & IRouterInjectedProps,
   ICloneServerGroupExecutionDetailsState
 > {
   public static title = 'cloneServerGroupConfig';
 
-  constructor(props: IExecutionDetailsSectionProps) {
+  constructor(props: IExecutionDetailsSectionProps & IRouterInjectedProps) {
     super(props);
     this.state = { deployResults: [] };
   }
 
-  private addDeployedArtifacts(props: IExecutionDetailsSectionProps): void {
+  private addDeployedArtifacts(props: IExecutionDetailsSectionProps & IRouterInjectedProps): void {
     const context = get(props, 'stage.context', {} as any);
     const tasks = context['kato.tasks'] ?? [];
     if (tasks.length === 0) {
@@ -60,7 +61,7 @@ export class CloneServerGroupExecutionDetails extends React.Component<
           account: context.credentials,
           region,
           provider: context.cloudProvider ?? 'aws',
-          project: AngularServices.$stateParams.project,
+          project: props.stateParams.project,
         };
         result.href = UrlBuilder.buildFromMetadata(result);
         return result;
@@ -73,7 +74,7 @@ export class CloneServerGroupExecutionDetails extends React.Component<
     this.addDeployedArtifacts(this.props);
   }
 
-  public componentWillReceiveProps(nextProps: IExecutionDetailsSectionProps) {
+  public componentWillReceiveProps(nextProps: IExecutionDetailsSectionProps & IRouterInjectedProps) {
     if (nextProps.stage !== this.props.stage) {
       this.addDeployedArtifacts(nextProps);
     }
@@ -126,6 +127,10 @@ export class CloneServerGroupExecutionDetails extends React.Component<
     );
   }
 }
+
+export const CloneServerGroupExecutionDetails = Object.assign(withRouter(CloneServerGroupExecutionDetailsComponent), {
+  title: CloneServerGroupExecutionDetailsComponent.title,
+});
 
 const DeployedServerGroup = (props: { result: IDeployResult }): JSX.Element => {
   const deployClicked = (event: React.MouseEvent<HTMLAnchorElement>) => {

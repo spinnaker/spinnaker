@@ -58,7 +58,7 @@ export class GceAutoscalingPolicyWriter {
     serverGroup: IGcePolicyServerGroup,
     autoscalingPolicy: IGceAutoscalingPolicy,
     params: IGcePolicyTaskParams = {},
-  ): PromiseLike<ITask> {
+  ): Promise<ITask> {
     return TaskExecutor.executeTask({
       application,
       description: `Upsert scaling policy ${serverGroup.name}`,
@@ -66,10 +66,7 @@ export class GceAutoscalingPolicyWriter {
     });
   }
 
-  public static deleteAutoscalingPolicy(
-    application: Application,
-    serverGroup: IGcePolicyServerGroup,
-  ): PromiseLike<ITask> {
+  public static deleteAutoscalingPolicy(application: Application, serverGroup: IGcePolicyServerGroup): Promise<ITask> {
     return TaskExecutor.executeTask({
       application,
       description: `Delete scaling policy ${serverGroup.name}`,
@@ -81,7 +78,7 @@ export class GceAutoscalingPolicyWriter {
     application: Application,
     serverGroup: IGcePolicyServerGroup,
     autoHealingPolicy: IGceAutoHealingPolicy,
-  ): PromiseLike<ITask> {
+  ): Promise<ITask> {
     return TaskExecutor.executeTask({
       application,
       description: `Upsert autohealing policy ${serverGroup.name}`,
@@ -94,10 +91,7 @@ export class GceAutoscalingPolicyWriter {
     });
   }
 
-  public static deleteAutoHealingPolicy(
-    application: Application,
-    serverGroup: IGcePolicyServerGroup,
-  ): PromiseLike<ITask> {
+  public static deleteAutoHealingPolicy(application: Application, serverGroup: IGcePolicyServerGroup): Promise<ITask> {
     return TaskExecutor.executeTask({
       application,
       description: `Delete autohealing policy ${serverGroup.name}`,
