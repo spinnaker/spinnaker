@@ -26,6 +26,10 @@ public class GitlabCiResultConverter {
   public static Result getResultFromGitlabCiState(PipelineStatus status) {
     switch (status) {
       case pending:
+      case created:
+      case waitingForResource:
+      case preparing:
+      case scheduled:
         return Result.NOT_BUILT;
       case running:
         return Result.BUILDING;
@@ -37,6 +41,8 @@ public class GitlabCiResultConverter {
         return Result.FAILURE;
       case skipped:
         return Result.NOT_BUILT;
+      case manual:
+        return Result.NOT_BUILT;
       default:
         log.info("could not convert " + String.valueOf(status));
         throw new IllegalArgumentException("status: " + String.valueOf(status) + " is not known");
@@ -47,6 +53,10 @@ public class GitlabCiResultConverter {
     switch (status) {
       case pending:
       case running:
+      case created:
+      case waitingForResource:
+      case preparing:
+      case scheduled:
         return true;
       default:
         return false;
