@@ -38,12 +38,6 @@ export function GceAutoHealingPolicyDetails({
     ) : null;
   }
 
-  const maxUnavailable =
-    typeof policy.maxUnavailable?.percent === 'number'
-      ? `${policy.maxUnavailable.percent}%`
-      : typeof policy.maxUnavailable?.fixed === 'number'
-      ? `${policy.maxUnavailable.fixed} fixed`
-      : '-';
   const deletePolicy = (): void => {
     ConfirmationModalService.confirm({
       header: `Really delete autohealer for ${serverGroup.name}?`,
@@ -61,8 +55,6 @@ export function GceAutoHealingPolicyDetails({
         <dd>{policy.healthCheck || policy.healthCheckUrl || '-'}</dd>
         <dt>Initial Delay</dt>
         <dd>{policy.initialDelaySec ?? '-'} seconds</dd>
-        <dt>Max Unavailable</dt>
-        <dd>{maxUnavailable}</dd>
       </dl>
       {mutationsEnabled && (
         <div className="text-right">

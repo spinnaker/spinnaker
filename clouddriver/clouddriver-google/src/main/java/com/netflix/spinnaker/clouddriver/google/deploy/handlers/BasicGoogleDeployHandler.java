@@ -27,10 +27,11 @@ import com.google.api.services.compute.model.Backend;
 import com.google.api.services.compute.model.BackendService;
 import com.google.api.services.compute.model.DistributionPolicy;
 import com.google.api.services.compute.model.DistributionPolicyZoneConfiguration;
-import com.google.api.services.compute.model.FixedOrPercent;
 import com.google.api.services.compute.model.Image;
 import com.google.api.services.compute.model.InstanceGroupManager;
 import com.google.api.services.compute.model.InstanceGroupManagerAutoHealingPolicy;
+import com.google.api.services.compute.model.InstanceGroupManagerInstanceFlexibilityPolicy;
+import com.google.api.services.compute.model.InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection;
 import com.google.api.services.compute.model.InstanceProperties;
 import com.google.api.services.compute.model.InstanceTemplate;
 import com.google.api.services.compute.model.Metadata;
@@ -54,6 +55,7 @@ import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProper
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEServerGroupNameResolver;
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil;
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller;
+import com.netflix.spinnaker.clouddriver.google.deploy.GoogleRmigRedistributionContract;
 import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry;
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription;
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException;
@@ -224,7 +226,7 @@ public class BasicGoogleDeployHandler
               serviceAccounts,
               scheduling,
               labels);
-      addShieldedVmConfigToInstanceProperties(description, instanceProperties, bootImage);
+      addShieldedInstanceConfigToInstanceProperties(description, instanceProperties, bootImage);
       addMinCpuPlatformToInstanceProperties(description, instanceProperties);
       InstanceTemplate instanceTemplate =
           buildInstanceTemplate(instanceTemplateName, instanceProperties);
@@ -290,7 +292,7 @@ public class BasicGoogleDeployHandler
   }
 
   protected String getLocationFromInput(BasicGoogleDeployDescription description, String region) {
-    return description.getRegional() ? region : description.getZone();
+    return Boolean.TRUE.equals(description.getRegional()) ? region : description.getZone();
   }
 
   protected String getMachineTypeNameFromInput(
@@ -491,7 +493,7 @@ public class BasicGoogleDeployHandler
 
   protected GoogleHttpLoadBalancingPolicy buildLoadBalancerPolicyFromInput(
       BasicGoogleDeployDescription description) throws JsonProcessingException {
-    Map<String, String> instanceMetadata = description.getInstanceMetadata();
+    Map<String, String> instanceMetadata = ensureInstanceMetadata(description);
     String sourcePolicyJson = instanceMetadata.get(LOAD_BALANCING_POLICY);
     if (description.getLoadBalancingPolicy() != null
         && description.getLoadBalancingPolicy().getBalancingMode() != null) {
@@ -526,7 +528,7 @@ public class BasicGoogleDeployHandler
     // If we try to execute the update, GCP will fail since the MIG is not created yet.
     if (hasBackedServiceFromInput(description, lbInfo)) {
       List<BackendService> backendServicesToUpdate = new ArrayList<>();
-      Map<String, String> instanceMetadata = description.getInstanceMetadata();
+      Map<String, String> instanceMetadata = ensureInstanceMetadata(description);
       List<String> backendServices =
           instanceMetadata.get(BACKEND_SERVICE_NAMES) != null
               ? new ArrayList<>(
@@ -603,7 +605,7 @@ public class BasicGoogleDeployHandler
     if (!CollectionUtils.isEmpty(lbInfo.getInternalLoadBalancers())
         || !CollectionUtils.isEmpty(lbInfo.getInternalHttpLoadBalancers())) {
       List<BackendService> regionBackendServicesToUpdate = new ArrayList<>();
-      Map<String, String> instanceMetadata = description.getInstanceMetadata();
+      Map<String, String> instanceMetadata = ensureInstanceMetadata(description);
       List<String> existingRegionalLbs =
           instanceMetadata.get(REGIONAL_LOAD_BALANCER_NAMES) != null
               ? new ArrayList<>(
@@ -686,6 +688,15 @@ public class BasicGoogleDeployHandler
     return Collections.emptyList();
   }
 
+  private Map<String, String> ensureInstanceMetadata(BasicGoogleDeployDescription description) {
+    Map<String, String> instanceMetadata = description.getInstanceMetadata();
+    if (instanceMetadata == null) {
+      instanceMetadata = new HashMap<>();
+      description.setInstanceMetadata(instanceMetadata);
+    }
+    return instanceMetadata;
+  }
+
   protected void addUserDataToInstanceMetadata(
       BasicGoogleDeployDescription description,
       String serverGroupName,
@@ -721,13 +732,26 @@ public class BasicGoogleDeployHandler
   }
 
   protected void addSelectZonesToInstanceMetadata(BasicGoogleDeployDescription description) {
-    if (Boolean.TRUE.equals(description.getRegional())
-        && Boolean.TRUE.equals(description.getSelectZones())) {
-      Map<String, String> instanceMetadata = description.getInstanceMetadata();
-      if (description.getInstanceMetadata() == null) {
-        instanceMetadata = new HashMap<>();
+    boolean explicitlySelectedZones =
+        Boolean.TRUE.equals(description.getRegional())
+            && Boolean.TRUE.equals(description.getSelectZones());
+    Map<String, String> sourceMetadata = description.getInstanceMetadata();
+
+    if (sourceMetadata == null) {
+      if (explicitlySelectedZones) {
+        description.setInstanceMetadata(new HashMap<>(Map.of(SELECT_ZONES, "true")));
       }
-      instanceMetadata.put(SELECT_ZONES, "true");
+      return;
+    }
+
+    // Only this marker represents explicit user intent; observed GCP distribution zones do not.
+    if (explicitlySelectedZones || sourceMetadata.containsKey(SELECT_ZONES)) {
+      Map<String, String> instanceMetadata = new HashMap<>(sourceMetadata);
+      if (explicitlySelectedZones) {
+        instanceMetadata.put(SELECT_ZONES, "true");
+      } else {
+        instanceMetadata.remove(SELECT_ZONES);
+      }
       description.setInstanceMetadata(instanceMetadata);
     }
   }
@@ -742,13 +766,13 @@ public class BasicGoogleDeployHandler
 
   protected List<ServiceAccount> buildServiceAccountFromInput(
       BasicGoogleDeployDescription description) {
-    if (!description.getAuthScopes().isEmpty()
+    List<String> authScopes = description.getAuthScopes();
+    if (!CollectionUtils.isEmpty(authScopes)
         && StringUtils.isBlank(description.getServiceAccountEmail())) {
       description.setServiceAccountEmail("default");
     }
 
-    return GCEUtil.buildServiceAccount(
-        description.getServiceAccountEmail(), description.getAuthScopes());
+    return GCEUtil.buildServiceAccount(description.getServiceAccountEmail(), authScopes);
   }
 
   protected Scheduling buildSchedulingFromInput(BasicGoogleDeployDescription description) {
@@ -760,6 +784,7 @@ public class BasicGoogleDeployHandler
     Map<String, String> labels = description.getLabels();
     if (labels == null) {
       labels = new HashMap<>();
+      description.setLabels(labels);
     }
 
     // Used to group instances when querying for metrics from kayenta.
@@ -830,16 +855,16 @@ public class BasicGoogleDeployHandler
         .setLabels(labels)
         .setScheduling(scheduling)
         .setServiceAccounts(serviceAccounts)
-        .setResourceManagerTags(description.getResourceManagerTags())
-        .setPartnerMetadata(description.getPartnerMetadata());
+        .setResourceManagerTags(description.getResourceManagerTags());
   }
 
-  protected void addShieldedVmConfigToInstanceProperties(
+  protected void addShieldedInstanceConfigToInstanceProperties(
       BasicGoogleDeployDescription description,
       InstanceProperties instanceProperties,
       Image bootImage) {
     if (GCEUtil.isShieldedVmCompatible(bootImage)) {
-      instanceProperties.setShieldedVmConfig(GCEUtil.buildShieldedVmConfig(description));
+      instanceProperties.setShieldedInstanceConfig(
+          GCEUtil.buildShieldedInstanceConfig(description));
     }
   }
 
@@ -967,16 +992,9 @@ public class BasicGoogleDeployHandler
       autoHealingPolicy = List.of(policy);
     }
 
-    if (autoHealingPolicy != null
-        && description.getAutoHealingPolicy() != null
-        && description.getAutoHealingPolicy().getMaxUnavailable() != null) {
-      FixedOrPercent maxUnavailable = new FixedOrPercent();
-      maxUnavailable.setFixed(
-          description.getAutoHealingPolicy().getMaxUnavailable().getFixed().intValue());
-      maxUnavailable.setPercent(
-          description.getAutoHealingPolicy().getMaxUnavailable().getPercent().intValue());
-      autoHealingPolicy.get(0).set("maxUnavailable", maxUnavailable);
-    }
+    // maxUnavailable is retained on the Spinnaker description for API compatibility, but
+    // stable Compute v1 autoHealingPolicies only supports healthCheck/initialDelaySec.
+    // maxUnavailable belongs to updatePolicy and must not be sent in this patch body.
     return autoHealingPolicy;
   }
 
@@ -1060,6 +1078,7 @@ public class BasicGoogleDeployHandler
       throws IOException {
     if (Boolean.TRUE.equals(description.getRegional())) {
       setDistributionPolicyToInstanceGroup(description, instanceGroupManager);
+      GoogleRmigRedistributionContract.enforce(instanceGroupManager);
       String targetLink =
           createRegionalInstanceGroupManagerAndWait(
               description, lbInfo, serverGroupName, region, instanceGroupManager, task);
@@ -1096,7 +1115,10 @@ public class BasicGoogleDeployHandler
       }
 
       if (StringUtils.isNotBlank(description.getDistributionPolicy().getTargetShape())) {
-        distributionPolicy.setTargetShape(description.getDistributionPolicy().getTargetShape());
+        // Canonicalize before the GCP call so Deck/API casing and whitespace cannot produce
+        // rejected or inconsistently stored distribution shapes.
+        distributionPolicy.setTargetShape(
+            description.getDistributionPolicy().getTargetShape().trim().toUpperCase(Locale.ROOT));
       }
 
       if (!CollectionUtils.isEmpty(distributionPolicy.getZones())
@@ -1104,6 +1126,81 @@ public class BasicGoogleDeployHandler
         instanceGroupManager.setDistributionPolicy(distributionPolicy);
       }
     }
+    setInstanceFlexibilityPolicyToInstanceGroup(description, instanceGroupManager);
+  }
+
+  /**
+   * Maps the Spinnaker flexibility policy model to the GCE v1 {@code
+   * InstanceGroupManagerInstanceFlexibilityPolicy}. Malformed entries (null key, null selection, or
+   * empty machineTypes) are silently filtered out as a defense-in-depth measure. Rank is optional
+   * for one or multiple selections; omitted ranks are left unset so GCP applies equal/default
+   * preference.
+   *
+   * @see <a href="https://cloud.google.com/compute/docs/reference/rest/v1/instanceGroupManagers">
+   *     InstanceGroupManager resource — instanceFlexibilityPolicy field (v1)</a>
+   * @see <a
+   *     href="https://cloud.google.com/compute/docs/instance-groups/about-instance-flexibility">
+   *     Instance flexibility policy constraints (GCP docs)</a>
+   */
+  protected void setInstanceFlexibilityPolicyToInstanceGroup(
+      BasicGoogleDeployDescription description, InstanceGroupManager instanceGroupManager) {
+    if (description.getInstanceFlexibilityPolicy() == null) {
+      return;
+    }
+    if (!Boolean.TRUE.equals(description.getRegional())) {
+      log.warn(
+          "Instance flexibility policy is only supported for regional MIGs; skipping for {}",
+          description.getApplication());
+      return;
+    }
+    Map<
+            String,
+            com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy
+                .InstanceSelection>
+        rawSelections = description.getInstanceFlexibilityPolicy().getInstanceSelections();
+    if (rawSelections == null || rawSelections.isEmpty()) {
+      return;
+    }
+    int totalEntries = rawSelections.size();
+    Map<String, InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection> selections =
+        rawSelections.entrySet().stream()
+            .filter(entry -> entry.getKey() != null)
+            .filter(entry -> entry.getValue() != null)
+            .filter(entry -> !CollectionUtils.isEmpty(entry.getValue().getMachineTypes()))
+            .collect(
+                Collectors.toMap(
+                    Map.Entry::getKey,
+                    entry -> {
+                      InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection selection =
+                          new InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection()
+                              .setMachineTypes(
+                                  entry.getValue().getMachineTypes().stream()
+                                      .map(
+                                          machineType ->
+                                              machineType == null ? null : machineType.trim())
+                                      .collect(Collectors.toList()));
+                      // Omit null rank so the serialized GCP body does not send an explicit null.
+                      if (entry.getValue().getRank() != null) {
+                        selection.setRank(entry.getValue().getRank());
+                      }
+                      return selection;
+                    }));
+    int droppedEntries = totalEntries - selections.size();
+    if (droppedEntries > 0) {
+      log.warn(
+          "Dropped {} of {} instance flexibility selections due to null key, null value, "
+              + "or empty machineTypes",
+          droppedEntries,
+          totalEntries);
+    }
+    if (selections.isEmpty()) {
+      return;
+    }
+    InstanceGroupManagerInstanceFlexibilityPolicy flexPolicy =
+        new InstanceGroupManagerInstanceFlexibilityPolicy();
+    flexPolicy.setInstanceSelections(selections);
+    instanceGroupManager.setInstanceFlexibilityPolicy(flexPolicy);
+    log.debug("Configured instance flexibility policy with {} selection groups", selections.size());
   }
 
   private void updateBackendServices(
@@ -1285,6 +1382,17 @@ public class BasicGoogleDeployHandler
     return instanceTemplateUrl;
   }
 
+  /**
+   * Returns whether dependent backend-service or autoscaler operations require the MIG insert to
+   * complete first. An omitted {@code disableTraffic} value preserves the traffic-enabled default.
+   */
+  protected boolean shouldWaitForInstanceGroupManagerCreation(
+      BasicGoogleDeployDescription description, LoadBalancerInfo lbInfo) {
+    return autoscalerIsSpecified(description)
+        || (!Boolean.TRUE.equals(description.getDisableTraffic())
+            && hasBackedServiceFromInput(description, lbInfo));
+  }
+
   protected String createRegionalInstanceGroupManagerAndWait(
       BasicGoogleDeployDescription description,
       LoadBalancerInfo lbInfo,
@@ -1306,11 +1414,7 @@ public class BasicGoogleDeployHandler
             TAG_REGION,
             region);
 
-    if ((!description.getDisableTraffic() && hasBackedServiceFromInput(description, lbInfo))
-        || autoscalerIsSpecified(description)
-        || (!description.getDisableTraffic()
-            && (!lbInfo.internalLoadBalancers.isEmpty()
-                || !lbInfo.internalHttpLoadBalancers.isEmpty()))) {
+    if (shouldWaitForInstanceGroupManagerCreation(description, lbInfo)) {
       // Before updating the Backend Services or creating the Autoscaler we must wait until the
       // managed instance group is created.
       googleOperationPoller.waitForRegionalOperation(
@@ -1393,11 +1497,7 @@ public class BasicGoogleDeployHandler
             TAG_ZONE,
             description.getZone());
 
-    if ((!description.getDisableTraffic() && hasBackedServiceFromInput(description, lbInfo))
-        || autoscalerIsSpecified(description)
-        || (!description.getDisableTraffic()
-            && (!lbInfo.internalLoadBalancers.isEmpty()
-                || !lbInfo.internalHttpLoadBalancers.isEmpty()))) {
+    if (shouldWaitForInstanceGroupManagerCreation(description, lbInfo)) {
       // Before updating the Backend Services or creating the Autoscaler we must wait until the
       // managed instance group is created.
       googleOperationPoller.waitForZonalOperation(
