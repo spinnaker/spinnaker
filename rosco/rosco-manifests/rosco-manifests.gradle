@@ -8,7 +8,7 @@ dependencies {
   implementation "io.spinnaker.kork:kork-security"
   implementation "io.spinnaker.kork:kork-core"
   implementation "commons-io:commons-io"
-  implementation "org.apache.commons:commons-compress:1.21"
+  implementation "org.apache.commons:commons-compress"
   implementation "org.yaml:snakeyaml"
 
   implementation "com.squareup.retrofit2:retrofit"
