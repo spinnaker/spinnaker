@@ -23,7 +23,8 @@ Any CI service that supports stopping/cancelling builds implements this interfac
 
 - **`GitlabCiClient.java`** — Added `triggerPipeline()` and `cancelPipeline()` Retrofit endpoints
 - **`GitlabCiProperties.java`** — Added `triggerToken` configuration field to `GitlabCiHost`
-- **`GitlabCiService.java`** — Implemented `triggerBuildWithParameters()` (was `UnsupportedOperationException`) and added `cancelPipeline()`. Implements `StoppableBuildService`.
+- **`GitlabCiService.java`** — Implemented `triggerBuildWithParameters()` (was `UnsupportedOperationException`) and added `cancelPipeline()`. Implements `StoppableBuildService`. Overrides `queuedBuild()` to return pipeline ID directly (GitLab CI has no queue concept).
+- **`GitlabCiResultConverter.java`** — Added handling for all GitLab pipeline statuses (`created`, `waitingForResource`, `preparing`, `scheduled`, `manual`). Previously these threw `IllegalArgumentException` when the monitor polled a newly-triggered pipeline.
 
 ### BuildController: Generic stop logic
 
@@ -45,23 +46,41 @@ gitlab-ci:
       address: https://gitlab.example.com
       privateToken: <api-token>
       triggerToken: <pipeline-trigger-token>
+      permissions:
+        READ:
+        - my-team
+        WRITE:
+        - my-team
 ```
 
 The `triggerToken` is a [GitLab Pipeline Trigger Token](https://docs.gitlab.com/ee/ci/triggers/) created in the GitLab project settings. It is stored server-side in Igor's configuration — never exposed in pipeline JSON.
+
+The `triggerToken` is optional — if not configured, pipeline monitoring and status polling still work (using `privateToken`), but triggering will fail with a clear error message.
+
+Fiat `permissions` must be configured on the master to control access (same as Jenkins masters).
 
 ## Testing
 
 - **`GitlabCiServiceSpec`** — 5 new test cases: trigger happy path, default ref, missing token validation, cancel, stopRunningBuild delegation
 - **`BuildControllerStopSpec`** — 7 new test cases: stopRunningBuild routing, stopQueuedBuild routing, 404 handling, error propagation, UnsupportedOperationException handling, non-stoppable service rejection, unknown master handling
+- **`JenkinsServiceSpec`** — 3 new test cases: bridge method delegation for stopRunningBuild, stopQueuedBuild, and interface implementation check
 - All existing tests pass (no regressions)
+- Manually tested end-to-end on a live Spinnaker deployment:
+  - Trigger: Spinnaker UI → Orca → Igor → GitLab CI pipeline triggered
+  - Monitor: Stage polls until GitLab pipeline completes, marks SUCCEEDED
+  - Cancel: Spinnaker stage cancels correctly from UI (stops monitoring)
+    - Note: Cancel does not yet propagate to GitLab CI (requires Orca-side CancelStageHandler wiring — documented as follow-up)
+  - Status handling: Pipeline in "created" state handled gracefully (no crash)
 
 ## Follow-up Work
 
 - **Orca**: Create `GitlabCiStage.java` for a dedicated stage type (currently uses the Jenkins stage type via `CIStage`)
-- **Deck**: Add a GitLab CI stage selector with project/ref/variables form fields  
+- **Orca**: Wire cancel propagation via `CancelStageHandler` to call Igor's stop route for CI stages
+- **Deck**: Add a GitLab CI stage selector with project/ref/variables form fields
+- **Igor**: Implement `CiBuildService` for the CI view in the UI and Managed Delivery artifact metadata
 - **Task renaming**: Rename `StartJenkinsJobTask` → `StartBuildJobTask`, `StopJenkinsJobTask` → `StopBuildJobTask` (requires backward compatibility validation with stored pipeline executions)
 - **Fiat permissions**: Document configuration for GitLab CI masters
 
 ## Related Discussion
 
-Community discussion on task naming and `StoppableBuildService` approach: [link to Spinnaker Slack/GitHub discussion]
+Community discussion on task naming and `StoppableBuildService` approach: https://spinnakerteam.slack.com/archives/C091CCWRJ/p1782487022482969
