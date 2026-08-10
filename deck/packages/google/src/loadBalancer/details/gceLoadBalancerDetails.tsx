@@ -266,9 +266,9 @@ function deleteGceHttpLoadBalancer(loadBalancer: any, app: any, params: any = {}
 
   return TaskExecutor.executeTask({
     application: app,
-    description: `Delete load balancer: ${loadBalancer.urlMapName || loadBalancer.name} in ${loadBalancer.account}:${
-      region
-    }`,
+    description: `Delete load balancer: ${loadBalancer.urlMapName || loadBalancer.name} in ${
+      loadBalancer.account
+    }:${region}`,
     job: [job],
   });
 }
@@ -451,9 +451,7 @@ export function GceLoadBalancerListenersSection({ loadBalancer }: { app: any; lo
         <dl>
           <dt>
             Load Balancer → Instance
-            {showsNamedPortHelp(loadBalancer.loadBalancerType) && (
-              <HelpField id="gce.httpLoadBalancer.namedPort" />
-            )}
+            {showsNamedPortHelp(loadBalancer.loadBalancerType) && <HelpField id="gce.httpLoadBalancer.namedPort" />}
           </dt>
           {listenerRows.map((listenerRow, index) => (
             <dd key={index}>{listenerRow}</dd>

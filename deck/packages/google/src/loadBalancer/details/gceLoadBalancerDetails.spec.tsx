@@ -1,10 +1,21 @@
 import { mount, shallow } from 'enzyme';
 import React from 'react';
 
-import { CloudProviderRegistry, ConfirmationModalService, HelpField, InfrastructureCaches, ManagedMenuItem, TaskExecutor } from '@spinnaker/core';
+import {
+  CloudProviderRegistry,
+  ConfirmationModalService,
+  HelpField,
+  InfrastructureCaches,
+  ManagedMenuItem,
+  TaskExecutor,
+} from '@spinnaker/core';
 
 import { GceLoadBalancerChoiceModal } from '../configure/choice/GceLoadBalancerChoiceModal';
-import { GceLoadBalancerActions, GceLoadBalancerListenersSection, loadGceLoadBalancerDetails } from './gceLoadBalancerDetails';
+import {
+  GceLoadBalancerActions,
+  GceLoadBalancerListenersSection,
+  loadGceLoadBalancerDetails,
+} from './gceLoadBalancerDetails';
 
 describe('GceLoadBalancerActions', () => {
   const app = { name: 'fnord' } as any;
@@ -88,7 +99,9 @@ describe('loadGceLoadBalancerDetails', () => {
       ),
     };
     const accountService = {
-      getAccountDetails: jasmine.createSpy('getAccountDetails').and.returnValue(Promise.resolve({ project: 'gce-project' })),
+      getAccountDetails: jasmine
+        .createSpy('getAccountDetails')
+        .and.returnValue(Promise.resolve({ project: 'gce-project' })),
     };
     const autoClose = jasmine.createSpy('autoClose');
 

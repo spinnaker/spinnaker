@@ -12,7 +12,10 @@ import {
   RecentHistoryService,
 } from '@spinnaker/core';
 
-import { GceInstanceDetailsComponent as GceInstanceDetails, normalizeGceInstanceLoadBalancers } from './GceInstanceDetails';
+import {
+  GceInstanceDetailsComponent as GceInstanceDetails,
+  normalizeGceInstanceLoadBalancers,
+} from './GceInstanceDetails';
 
 describe('GceInstanceDetails', () => {
   function application(loadBalancers: any[] = []) {
