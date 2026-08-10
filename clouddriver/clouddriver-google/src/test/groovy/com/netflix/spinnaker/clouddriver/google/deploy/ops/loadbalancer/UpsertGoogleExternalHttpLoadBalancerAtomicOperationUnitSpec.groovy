@@ -16,22 +16,69 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.api.client.json.gson.GsonFactory
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.ForwardingRule
 import com.google.api.services.compute.model.TargetHttpProxy
+import com.netflix.spectator.api.DefaultRegistry
+import com.netflix.spinnaker.clouddriver.data.task.Task
+import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
+import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
+import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
+import com.netflix.spinnaker.clouddriver.google.deploy.converters.UpsertGoogleLoadBalancerAtomicOperationConverter
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleLoadBalancerDescription
+import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.model.GoogleNetwork
 import com.netflix.spinnaker.clouddriver.google.model.GoogleSubnet
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleInternalHttpLoadBalancer
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
+import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleNetworkProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSubnetProvider
+import com.netflix.spinnaker.clouddriver.google.security.FakeGoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.google.test.CapturingComputeTransport
+import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository
+import com.netflix.spinnaker.credentials.NoopCredentialsLifecycleHandler
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
+
+import static com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.UpsertGoogleHttpLoadBalancerTestConstants.*
 
 class UpsertGoogleExternalHttpLoadBalancerAtomicOperationUnitSpec extends Specification {
   private static final ACCOUNT_NAME = "auto"
   private static final PROJECT_NAME = "my-project"
   private static final REGION = "us-central1"
+  private static final EXTERNAL_HTTP_LB = "external-http-lb"
+  private static final EXTERNAL_HC = "http-hc"
+  private static final EXTERNAL_BS = "default-backend"
+  private static final EXTERNAL_CERT = "regional-cert"
+  private static final String CERT_URL =
+    "//certificatemanager.googleapis.com/projects/${PROJECT_NAME}/locations/${REGION}/certificates/${EXTERNAL_CERT}"
+
+  @Shared GoogleHealthCheck hc
+  @Shared def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
+  @Shared def registry = new DefaultRegistry()
+  @Shared SafeRetry safeRetry
+  @Shared ObjectMapper objectMapper = new ObjectMapper()
+
+  def setupSpec() {
+    TaskRepository.threadLocalTask.set(Mock(Task))
+    hc = new GoogleHealthCheck(
+      name: EXTERNAL_HC,
+      healthCheckType: GoogleHealthCheck.HealthCheckType.HTTP,
+      requestPath: "/",
+      port: 80,
+      checkIntervalSec: 5,
+      timeoutSec: 5,
+      healthyThreshold: 2,
+      unhealthyThreshold: 2
+    )
+    safeRetry = SafeRetry.withoutDelay()
+  }
 
   void "resolveSubnet accepts a same-project proxy-only subnet stored as a bare local network name"() {
     setup:
@@ -288,6 +335,165 @@ class UpsertGoogleExternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       0 * targetHttpProxies.delete(_, _, _)
   }
 
+  void "create path serializes regional external managed HTTP(S) resources through compute transport"() {
+    setup:
+      CapturingComputeTransport transport = new CapturingComputeTransport()
+      Compute compute = new Compute.Builder(
+        transport, GsonFactory.getDefaultInstance(), null).setApplicationName("test").build()
+      def credentialsRepo = new MapBackedCredentialsRepository(
+        GoogleNamedAccountCredentials.CREDENTIALS_TYPE, new NoopCredentialsLifecycleHandler<>())
+      credentialsRepo.save(new GoogleNamedAccountCredentials.Builder()
+        .name(ACCOUNT_NAME)
+        .project(PROJECT_NAME)
+        .compute(compute)
+        .credentials(new FakeGoogleCredentials())
+        .build())
+      def converter = new UpsertGoogleLoadBalancerAtomicOperationConverter(
+        credentialsRepository: credentialsRepo)
+      def googleNetworkProviderMock = Mock(GoogleNetworkProvider)
+      def googleSubnetProviderMock = Mock(GoogleSubnetProvider)
+      def description = converter.convertDescription([
+        accountName: ACCOUNT_NAME,
+        loadBalancerType: GoogleLoadBalancerType.EXTERNAL_MANAGED,
+        loadBalancerName: EXTERNAL_HTTP_LB,
+        region: REGION,
+        network: "default",
+        networkTier: "STANDARD",
+        portRange: SSL_PROXY_PORT_RANGE,
+        certificate: CERT_URL,
+        defaultService: [
+          name: EXTERNAL_BS,
+          backends: [],
+          healthCheck: hc,
+          sessionAffinity: "NONE",
+        ],
+        hostRules: null,
+      ])
+      @Subject def operation = new UpsertGoogleExternalHttpLoadBalancerAtomicOperation(description)
+      setGoogleOperationPoller(operation, new GoogleOperationPoller(
+        googleConfigurationProperties: new GoogleConfigurationProperties(),
+        threadSleeper: threadSleeperMock,
+        registry: registry,
+        safeRetry: safeRetry))
+      operation.googleNetworkProvider = googleNetworkProviderMock
+      operation.googleSubnetProvider = googleSubnetProviderMock
+      operation.registry = registry
+      operation.safeRetry = safeRetry
+
+    when:
+      operation.operate([])
+
+    then:
+      1 * googleNetworkProviderMock.getAllMatchingKeyPattern("gce:networks:default:${ACCOUNT_NAME}:global") >> [
+        new GoogleNetwork(
+          name: "default",
+          selfLink: "https://compute.googleapis.com/compute/v1/projects/${PROJECT_NAME}/global/networks/default")
+      ]
+      1 * googleSubnetProviderMock.getAllMatchingKeyPattern("gce:subnets:*:${ACCOUNT_NAME}:${REGION}") >> [
+        new GoogleSubnet(account: ACCOUNT_NAME, region: REGION, network: "default", purpose: "REGIONAL_MANAGED_PROXY")
+      ]
+
+      def forwardingRuleBody = objectMapper.readTree(
+        transport.findPostTo("/forwardingRules").orElseThrow().body())
+      forwardingRuleBody.path("loadBalancingScheme").asText() == "EXTERNAL_MANAGED"
+      forwardingRuleBody.path("network").asText() ==
+        "https://compute.googleapis.com/compute/v1/projects/${PROJECT_NAME}/global/networks/default"
+      forwardingRuleBody.path("networkTier").asText() == "STANDARD"
+      !forwardingRuleBody.has("subnetwork")
+      forwardingRuleBody.path("IPProtocol").asText() == "TCP"
+      forwardingRuleBody.path("portRange").asText() == SSL_PROXY_PORT_RANGE
+      forwardingRuleBody.path("target").asText().contains("/targetHttpsProxies/")
+      transport.findPostTo("/regions/${REGION}/forwardingRules").isPresent()
+
+      def httpsProxyBody = objectMapper.readTree(
+        transport.findPostTo("/targetHttpsProxies").orElseThrow().body())
+      httpsProxyBody.path("urlMap").asText().contains("/urlMaps/${EXTERNAL_HTTP_LB}")
+      httpsProxyBody.path("sslCertificates").size() == 1
+      httpsProxyBody.path("sslCertificates").get(0).asText() == CERT_URL
+      !httpsProxyBody.has("certificateMap")
+
+      def urlMapBody = objectMapper.readTree(transport.findPostTo("/urlMaps").orElseThrow().body())
+      urlMapBody.path("defaultService").asText().contains("/backendServices/${EXTERNAL_BS}")
+
+      def backendServiceBody = objectMapper.readTree(
+        transport.findPostTo("/backendServices").orElseThrow().body())
+      backendServiceBody.path("loadBalancingScheme").asText() == "EXTERNAL_MANAGED"
+      backendServiceBody.path("healthChecks").get(0).asText().contains("/healthChecks/${EXTERNAL_HC}")
+
+      def healthCheckBody = objectMapper.readTree(
+        transport.findPostTo("/healthChecks").orElseThrow().body())
+      healthCheckBody.path("name").asText() == EXTERNAL_HC
+      healthCheckBody.has("httpHealthCheck")
+
+      def writeOrder = transport.writeRequests*.url()
+      writeOrder.findIndexOf { it.contains("/healthChecks") } <
+        writeOrder.findIndexOf { it.contains("/backendServices") }
+      writeOrder.findIndexOf { it.contains("/backendServices") } <
+        writeOrder.findIndexOf { it.contains("/urlMaps") }
+      writeOrder.findIndexOf { it.contains("/urlMaps") } <
+        writeOrder.findIndexOf { it.contains("/targetHttpsProxies") }
+      writeOrder.findIndexOf { it.contains("/targetHttpsProxies") } <
+        writeOrder.findIndexOf { it.contains("/forwardingRules") }
+  }
+
+  void "operate accepts omitted optional external managed fields on create without NPE"() {
+    setup:
+      CapturingComputeTransport transport = new CapturingComputeTransport()
+      Compute compute = new Compute.Builder(
+        transport, GsonFactory.getDefaultInstance(), null).setApplicationName("test").build()
+      def credentialsRepo = new MapBackedCredentialsRepository(
+        GoogleNamedAccountCredentials.CREDENTIALS_TYPE, new NoopCredentialsLifecycleHandler<>())
+      credentialsRepo.save(new GoogleNamedAccountCredentials.Builder()
+        .name(ACCOUNT_NAME)
+        .project(PROJECT_NAME)
+        .compute(compute)
+        .credentials(new FakeGoogleCredentials())
+        .build())
+      def converter = new UpsertGoogleLoadBalancerAtomicOperationConverter(
+        credentialsRepository: credentialsRepo)
+      def googleNetworkProviderMock = Mock(GoogleNetworkProvider)
+      def googleSubnetProviderMock = Mock(GoogleSubnetProvider)
+      def description = converter.convertDescription([
+        accountName: ACCOUNT_NAME,
+        loadBalancerType: GoogleLoadBalancerType.EXTERNAL_MANAGED,
+        loadBalancerName: "external-http-minimal",
+        region: REGION,
+        network: "default",
+        portRange: PORT_RANGE,
+        defaultService: [
+          name: "minimal-backend",
+          backends: [],
+          healthCheck: hc,
+        ],
+        hostRules: null,
+      ])
+      @Subject def operation = new UpsertGoogleExternalHttpLoadBalancerAtomicOperation(description)
+      setGoogleOperationPoller(operation, new GoogleOperationPoller(
+        googleConfigurationProperties: new GoogleConfigurationProperties(),
+        threadSleeper: threadSleeperMock,
+        registry: registry,
+        safeRetry: safeRetry))
+      operation.googleNetworkProvider = googleNetworkProviderMock
+      operation.googleSubnetProvider = googleSubnetProviderMock
+      operation.registry = registry
+      operation.safeRetry = safeRetry
+
+    when:
+      operation.operate([])
+
+    then:
+      1 * googleNetworkProviderMock.getAllMatchingKeyPattern(_) >> [
+        new GoogleNetwork(
+          name: "default",
+          selfLink: "https://compute.googleapis.com/compute/v1/projects/${PROJECT_NAME}/global/networks/default")
+      ]
+      1 * googleSubnetProviderMock.getAllMatchingKeyPattern(_) >> [
+        new GoogleSubnet(account: ACCOUNT_NAME, region: REGION, network: "default", purpose: "REGIONAL_MANAGED_PROXY")
+      ]
+      transport.findPostTo("/targetHttpProxies").isPresent()
+      !transport.findPostTo("/targetHttpsProxies").isPresent()
+  }
+
   void "deleteRegionalListenerIfOwned ignores missing listener"() {
     setup:
       def compute = Mock(Compute)
@@ -315,5 +521,14 @@ class UpsertGoogleExternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       0 * forwardingRules.delete(_, _, _)
       0 * compute.regionTargetHttpProxies()
       0 * compute.regionTargetHttpsProxies()
+  }
+
+  private static void setGoogleOperationPoller(
+    UpsertGoogleExternalHttpLoadBalancerAtomicOperation operation,
+    GoogleOperationPoller poller) {
+    def pollerField =
+      UpsertGoogleInternalHttpLoadBalancerAtomicOperation.getDeclaredField("googleOperationPoller")
+    pollerField.accessible = true
+    pollerField.set(operation, poller)
   }
 }

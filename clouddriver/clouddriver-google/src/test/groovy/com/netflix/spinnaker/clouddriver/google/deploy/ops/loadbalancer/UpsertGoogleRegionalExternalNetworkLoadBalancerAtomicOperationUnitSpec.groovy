@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.api.client.json.gson.GsonFactory
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.BackendService
 import com.google.api.services.compute.model.ForwardingRule
@@ -35,7 +37,9 @@ import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperation
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleSessionAffinity
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.google.test.CapturingComputeTransport
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -51,6 +55,7 @@ class UpsertGoogleRegionalExternalNetworkLoadBalancerAtomicOperationUnitSpec ext
   @Shared def registry = new DefaultRegistry()
   @Shared def threadSleeper = Mock(GoogleOperationPoller.ThreadSleeper)
   @Shared SafeRetry safeRetry
+  @Shared ObjectMapper objectMapper = new ObjectMapper()
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
@@ -189,6 +194,91 @@ class UpsertGoogleRegionalExternalNetworkLoadBalancerAtomicOperationUnitSpec ext
       0 * forwardingRules.delete(_, _, _)
       0 * forwardingRules.insert(_, _, _)
       0 * healthChecks.update(_, _, _, _)
+  }
+
+  void "create path serializes regional external network passthrough resources through compute transport"() {
+    setup:
+      CapturingComputeTransport transport = new CapturingComputeTransport()
+      Compute compute = new Compute.Builder(
+        transport, GsonFactory.getDefaultInstance(), null).setApplicationName("test").build()
+      def description = new UpsertGoogleLoadBalancerDescription(
+        accountName: "auto",
+        credentials: new GoogleNamedAccountCredentials.Builder().project(PROJECT).compute(compute).build(),
+        loadBalancerName: LOAD_BALANCER,
+        loadBalancerType: GoogleLoadBalancerType.REGIONAL_EXTERNAL_NETWORK,
+        region: REGION,
+        ipProtocol: "TCP",
+        ports: ["80", "443"],
+        networkTier: "PREMIUM",
+        ipAddress: "35.1.2.3",
+        backendService: new GoogleBackendService(
+          name: BACKEND_SERVICE,
+          sessionAffinity: GoogleSessionAffinity.NONE,
+          healthCheck: new GoogleHealthCheck(
+            name: HEALTH_CHECK,
+            healthCheckType: GoogleHealthCheck.HealthCheckType.TCP,
+            port: 80,
+            checkIntervalSec: 5,
+            timeoutSec: 5,
+            healthyThreshold: 2,
+            unhealthyThreshold: 2
+          )
+        )
+      )
+      @Subject def operation = operation(description)
+
+    when:
+      operation.operate([])
+
+    then:
+      def healthCheckBody = objectMapper.readTree(
+        transport.findPostTo("/healthChecks").orElseThrow().body())
+      healthCheckBody.path("name").asText() == HEALTH_CHECK
+      healthCheckBody.has("tcpHealthCheck")
+
+      def backendServiceBody = objectMapper.readTree(
+        transport.findPostTo("/backendServices").orElseThrow().body())
+      backendServiceBody.path("loadBalancingScheme").asText() == "EXTERNAL"
+      backendServiceBody.path("protocol").asText() == "TCP"
+      backendServiceBody.path("sessionAffinity").asText() == "NONE"
+      backendServiceBody.path("healthChecks").get(0).asText().contains("/healthChecks/${HEALTH_CHECK}")
+      !backendServiceBody.has("target")
+
+      def forwardingRuleBody = objectMapper.readTree(
+        transport.findPostTo("/forwardingRules").orElseThrow().body())
+      forwardingRuleBody.path("loadBalancingScheme").asText() == "EXTERNAL"
+      forwardingRuleBody.path("backendService").asText().contains("/backendServices/${BACKEND_SERVICE}")
+      forwardingRuleBody.path("IPProtocol").asText() == "TCP"
+      forwardingRuleBody.path("IPAddress").asText() == "35.1.2.3"
+      forwardingRuleBody.path("networkTier").asText() == "PREMIUM"
+      forwardingRuleBody.path("ports").collect { it.asText() } == ["80", "443"]
+      !forwardingRuleBody.has("target")
+
+      def writeOrder = transport.writeRequests*.url()
+      writeOrder.findIndexOf { it.contains("/healthChecks") } <
+        writeOrder.findIndexOf { it.contains("/backendServices") }
+      writeOrder.findIndexOf { it.contains("/backendServices") } <
+        writeOrder.findIndexOf { it.contains("/forwardingRules") }
+  }
+
+  void "create path tolerates omitted address and network tier on direct-edit payload"() {
+    setup:
+      CapturingComputeTransport transport = new CapturingComputeTransport()
+      Compute compute = new Compute.Builder(
+        transport, GsonFactory.getDefaultInstance(), null).setApplicationName("test").build()
+      def description = description(compute)
+      description.ipAddress = null
+      description.networkTier = null
+      @Subject def operation = operation(description)
+
+    when:
+      operation.operate([])
+
+    then:
+      def forwardingRuleBody = objectMapper.readTree(
+        transport.findPostTo("/forwardingRules").orElseThrow().body())
+      !forwardingRuleBody.has("IPAddress")
+      !forwardingRuleBody.has("networkTier")
   }
 
   void "ports-only update preserves existing forwarding rule address and network tier"() {
