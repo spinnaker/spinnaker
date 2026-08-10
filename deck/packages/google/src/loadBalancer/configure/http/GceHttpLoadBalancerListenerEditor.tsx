@@ -34,6 +34,23 @@ export function GceHttpLoadBalancerListenerEditor({
   subnets,
 }: IGceHttpLoadBalancerListenerEditorProps): JSX.Element {
   const protocols = ['HTTP', 'HTTPS'];
+  const externalManaged = loadBalancerType === 'EXTERNAL_MANAGED';
+
+  const updateAddress = (name: string): void => {
+    const address = selectedReference(name, addresses);
+    if (externalManaged) {
+      const selectedAddress = addresses.find((option) => option.name === name);
+      const networkTier = (selectedAddress as { networkTier?: string } | undefined)?.networkTier;
+      onChange({
+        ...listener,
+        address,
+        ...(networkTier ? { networkTier } : {}),
+      });
+      return;
+    }
+    const { networkTier: _networkTier, ...listenerWithoutTier } = listener;
+    onChange({ ...listenerWithoutTier, address });
+  };
 
   return (
     <fieldset className="gce-http-listener">
@@ -99,7 +116,7 @@ export function GceHttpLoadBalancerListenerEditor({
         <select
           data-testid="listener-address"
           value={listener.address?.name || ''}
-          onChange={(event) => onChange({ ...listener, address: selectedReference(event.target.value, addresses) })}
+          onChange={(event) => updateAddress(event.target.value)}
         >
           <option value="">Ephemeral</option>
           {addresses.map((address) => (
@@ -132,17 +149,32 @@ export function GceHttpLoadBalancerListenerEditor({
               ))}
             </select>
           </label>
-          <label>
-            Certificate map
-            <input
-              data-testid="listener-certificate-map"
-              type="text"
-              value={listener.certificateMap || ''}
-              onChange={(event) =>
-                onChange({ ...listener, certificate: undefined, certificateMap: event.target.value || undefined })
-              }
-            />
-          </label>
+          {externalManaged && (
+            <label>
+              Network tier
+              <select
+                data-testid="listener-network-tier"
+                value={listener.networkTier || 'PREMIUM'}
+                onChange={(event) => onChange({ ...listener, networkTier: event.target.value })}
+              >
+                <option value="PREMIUM">Premium</option>
+                <option value="STANDARD">Standard</option>
+              </select>
+            </label>
+          )}
+          {!externalManaged && (
+            <label>
+              Certificate map
+              <input
+                data-testid="listener-certificate-map"
+                type="text"
+                value={listener.certificateMap || ''}
+                onChange={(event) =>
+                  onChange({ ...listener, certificate: undefined, certificateMap: event.target.value || undefined })
+                }
+              />
+            </label>
+          )}
         </>
       )}
       <button type="button" className="btn btn-sm btn-default" onClick={onRemove}>

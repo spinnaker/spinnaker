@@ -6,6 +6,7 @@ import {
   CloudProviderRegistry,
   CollapsibleSection,
   ConfirmationModalService,
+  HelpField,
   InfrastructureCaches,
   LoadBalancerWriter,
   ManagedMenuItem,
@@ -37,8 +38,14 @@ function isSameVpc(candidate: any, params: any): boolean {
 
 function findLoadBalancerInList(loadBalancers: any[], params: any): any {
   return (loadBalancers || []).find((candidate: any) => {
+    const nameMatches =
+      candidate.name === params.name ||
+      (gceHttpLoadBalancerUtils.isRegionalHttpLoadBalancer(candidate) && candidate.urlMapName === params.name);
+    const typeMatches = !params.loadBalancerType || candidate.loadBalancerType === params.loadBalancerType;
+
     return (
-      candidate.name === params.name &&
+      nameMatches &&
+      typeMatches &&
       candidate.account === params.accountId &&
       (candidate.region === params.region || candidate.region === 'global') &&
       isSameVpc(candidate, params)
@@ -83,6 +90,7 @@ function getBackendServices(loadBalancer: any): any[] {
 function getResourceTypes(loadBalancerType: string): string[] {
   switch (loadBalancerType) {
     case 'INTERNAL':
+    case 'REGIONAL_EXTERNAL_NETWORK':
       return ['gce_forwarding_rule', 'gce_backend_service'];
     case 'NETWORK':
       return ['gce_forwarding_rule', 'gce_target_pool', 'gce_health_check'];
@@ -90,16 +98,23 @@ function getResourceTypes(loadBalancerType: string): string[] {
     case 'TCP':
       return ['gce_forwarding_rule', 'gce_backend_service'];
     case 'INTERNAL_MANAGED':
+    case 'EXTERNAL_MANAGED':
       return ['http_load_balancer', 'gce_target_http_proxy', 'gce_url_map', 'gce_backend_service'];
     default:
       return ['http_load_balancer', 'gce_target_http_proxy', 'gce_url_map', 'gce_backend_service'];
   }
 }
 
+function getLogSearchName(loadBalancer: any): string {
+  return gceHttpLoadBalancerUtils.isRegionalHttpLoadBalancer(loadBalancer)
+    ? loadBalancer.urlMapName || loadBalancer.name
+    : loadBalancer.name;
+}
+
 function buildLogsLink(project: string, loadBalancer: any): string {
   return `https://console.developers.google.com/project/${project}/logs?advancedFilter=resource.type=(${getResourceTypes(
     loadBalancer.loadBalancerType,
-  ).join(' OR ')})%0A"${loadBalancer.name}"`;
+  ).join(' OR ')})%0A"${getLogSearchName(loadBalancer)}"`;
 }
 
 async function loadDetails(loadBalancer: any, loadBalancerParams: any, loadBalancerReader: any): Promise<any[]> {
@@ -251,9 +266,9 @@ function deleteGceHttpLoadBalancer(loadBalancer: any, app: any, params: any = {}
 
   return TaskExecutor.executeTask({
     application: app,
-    description: `Delete load balancer: ${loadBalancer.urlMapName || loadBalancer.name} in ${
-      loadBalancer.account
-    }:global`,
+    description: `Delete load balancer: ${loadBalancer.urlMapName || loadBalancer.name} in ${loadBalancer.account}:${
+      region
+    }`,
     job: [job],
   });
 }
@@ -288,7 +303,10 @@ function GceLoadBalancerDeleteOptions({
   deleteParams: { deleteHealthChecks: boolean };
   loadBalancer: any;
 }): JSX.Element {
-  const hasHealthChecks = gceHttpLoadBalancerUtils.isHttpLoadBalancer(loadBalancer) || !!loadBalancer.healthCheck;
+  const hasHealthChecks =
+    gceHttpLoadBalancerUtils.isHttpLoadBalancer(loadBalancer) ||
+    !!loadBalancer.healthCheck ||
+    !!loadBalancer.backendService?.healthCheck;
   if (!hasHealthChecks) {
     return null;
   }
@@ -392,15 +410,55 @@ export function GceLoadBalancerInformationSection({ loadBalancer }: { app: any; 
   );
 }
 
+function showsNamedPortHelp(loadBalancerType: string): boolean {
+  return (
+    gceHttpLoadBalancerUtils.isHttpLoadBalancer({ loadBalancerType, provider: 'gce' } as any) ||
+    loadBalancerType === 'SSL' ||
+    loadBalancerType === 'TCP'
+  );
+}
+
+function formatListenerDescription(description: any): string {
+  const listener = description.listener || description;
+  return `${listener.protocol}:${listener.loadBalancerPort} → ${listener.instanceProtocol}:${listener.instancePort}`;
+}
+
+function formatNormalizedHttpListener(listener: any): string {
+  const port = listener.port || listener.portRange?.split('-')[0];
+  const protocol = listener.protocol || (port === '443' || listener.certificate ? 'HTTPS' : 'HTTP');
+  return `${protocol}:${port}`;
+}
+
+function getListenerDisplayRows(loadBalancer: any): string[] {
+  const listenerDescriptions = loadBalancer.elb?.listenerDescriptions;
+  if (listenerDescriptions?.length) {
+    return listenerDescriptions.map(formatListenerDescription);
+  }
+
+  if (gceHttpLoadBalancerUtils.isHttpLoadBalancer(loadBalancer) && loadBalancer.listeners?.length) {
+    return loadBalancer.listeners.map(formatNormalizedHttpListener);
+  }
+
+  return [];
+}
+
 export function GceLoadBalancerListenersSection({ loadBalancer }: { app: any; loadBalancer: any }): JSX.Element {
+  const listenerRows = getListenerDisplayRows(loadBalancer);
+
   return (
     <CollapsibleSection heading="Listeners" defaultExpanded={true}>
-      {(loadBalancer.listeners || []).length ? (
-        <ul>
-          {loadBalancer.listeners.map((listener: any, index: number) => (
-            <li key={index}>{[listener.protocol, listener.port || listener.portRange].filter(Boolean).join(':')}</li>
+      {listenerRows.length ? (
+        <dl>
+          <dt>
+            Load Balancer → Instance
+            {showsNamedPortHelp(loadBalancer.loadBalancerType) && (
+              <HelpField id="gce.httpLoadBalancer.namedPort" />
+            )}
+          </dt>
+          {listenerRows.map((listenerRow, index) => (
+            <dd key={index}>{listenerRow}</dd>
           ))}
-        </ul>
+        </dl>
       ) : (
         <span>No listeners configured</span>
       )}
