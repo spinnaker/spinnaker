@@ -21,11 +21,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ApplicationService;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.DomainService;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Domain;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Page;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.RouteService;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Application;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Pagination;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Route;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -80,34 +79,51 @@ class CloudFoundryClientUtilsTest {
   }
 
   @Test
-  void collectPageResourcesIteratesOverOnePage() {
-    DomainService domainService = mock(DomainService.class);
-    Domain domainOne = new Domain().setName("domain-name-one");
-    Page pageOne = Page.singleton(domainOne, "domain-one-guid").setTotalPages(1).setTotalResults(1);
+  void collectPagesForRoutesIteratesOverOnePage() {
+    RouteService routeService = mock(RouteService.class);
+    Route routeOne = new Route();
+    routeOne.setHost("route-name-one");
+    routeOne.setGuid("route-one-guid");
+    Pagination<Route> pageOne = new Pagination<>();
+    pageOne.setPagination(new Pagination.Details().setTotalPages(1));
+    pageOne.setResources(Collections.singletonList(routeOne));
 
-    when(domainService.allShared(null)).thenReturn(Calls.response(Response.success(pageOne)));
+    when(routeService.all(null, null, null, null, null, null, null, null))
+        .thenReturn(Calls.response(Response.success(pageOne)));
 
     List results =
-        CloudFoundryClientUtils.collectPageResources("shared domains", domainService::allShared);
+        CloudFoundryClientUtils.collectPages(
+            "routes", page -> routeService.all(page, null, null, null, null, null, null, null));
 
-    assertThat(results).containsExactly(pageOne.getResources().get(0));
+    assertThat(results).containsExactly(routeOne);
   }
 
   @Test
-  void collectPageResourcesIteratesOverMultiplePages() {
-    DomainService domainService = mock(DomainService.class);
-    Domain domainOne = new Domain().setName("domain-name-one");
-    Page pageOne = Page.singleton(domainOne, "domain-one-guid").setTotalPages(2).setTotalResults(2);
-    Domain domainTwo = new Domain().setName("domain-name-two");
-    Page pageTwo = Page.singleton(domainTwo, "domain-two-guid").setTotalPages(2).setTotalResults(2);
+  void collectPagesForRoutesIteratesOverMultiplePages() {
+    RouteService routeService = mock(RouteService.class);
+    Route routeOne = new Route();
+    routeOne.setHost("route-name-one");
+    routeOne.setGuid("route-one-guid");
+    Pagination<Route> pageOne = new Pagination<>();
+    pageOne.setPagination(new Pagination.Details().setTotalPages(2));
+    pageOne.setResources(Collections.singletonList(routeOne));
 
-    when(domainService.allShared(null)).thenReturn(Calls.response(Response.success(pageOne)));
-    when(domainService.allShared(2)).thenReturn(Calls.response(Response.success(pageTwo)));
+    Route routeTwo = new Route();
+    routeTwo.setHost("route-name-two");
+    routeTwo.setGuid("route-two-guid");
+    Pagination<Route> pageTwo = new Pagination<>();
+    pageTwo.setPagination(new Pagination.Details().setTotalPages(2));
+    pageTwo.setResources(Collections.singletonList(routeTwo));
+
+    when(routeService.all(null, null, null, null, null, null, null, null))
+        .thenReturn(Calls.response(Response.success(pageOne)));
+    when(routeService.all(2, null, null, null, null, null, null, null))
+        .thenReturn(Calls.response(Response.success(pageTwo)));
 
     List results =
-        CloudFoundryClientUtils.collectPageResources("shared domains", domainService::allShared);
+        CloudFoundryClientUtils.collectPages(
+            "routes", page -> routeService.all(page, null, null, null, null, null, null, null));
 
-    assertThat(results)
-        .containsExactly(pageOne.getResources().get(0), pageTwo.getResources().get(0));
+    assertThat(results).containsExactly(routeOne, routeTwo);
   }
 }

@@ -1,5 +1,4 @@
 import { UISref } from '@uirouter/react';
-import { UIRouterContext } from '@uirouter/react-hybrid';
 import React from 'react';
 
 import { Tooltip } from '../../presentation';
@@ -14,7 +13,6 @@ export interface IProjectSummaryPodProps {
   onResultClick: (categoryName: string) => void;
 }
 
-@UIRouterContext
 export class ProjectSummaryPod extends React.Component<IProjectSummaryPodProps> {
   private handleRemoveClicked = (evt: React.MouseEvent<any>) => {
     evt.preventDefault();

@@ -30,6 +30,7 @@ import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
+import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -60,7 +61,8 @@ public class DeployCloudrunAtomicOperation implements AtomicOperation<Deployment
   private final ObjectMapper objectMapper =
       new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-  private final ObjectMapper yamlReader = new ObjectMapper(new YAMLFactory());
+  private final ObjectMapper yamlReader =
+      new ObjectMapper(YAMLFactory.builder().loaderOptions(YamlHelper.getLoaderOptions()).build());
 
   private CloudrunYmlData ymlData = new CloudrunYmlData();
 

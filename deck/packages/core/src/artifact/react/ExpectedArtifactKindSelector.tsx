@@ -1,11 +1,8 @@
-import { module } from 'angular';
 import React from 'react';
-import { react2angular } from 'react2angular';
 
 import { ArtifactIcon } from './ArtifactIcon';
 import type { IArtifactKindConfig } from '../../domain';
 import { TetheredSelect } from '../../presentation';
-import { withErrorBoundary } from '../../presentation/SpinErrorBoundary';
 
 export interface IExpectedArtifactKindSelectorProps {
   kinds: IArtifactKindConfig[];
@@ -84,15 +81,3 @@ export class ExpectedArtifactKindSelector extends React.Component<
     );
   }
 }
-
-export const EXPECTED_ARTIFACT_KIND_SELECTOR_COMPONENT_REACT = 'spinnaker.core.artifacts.expected.kind.selector.react';
-module(EXPECTED_ARTIFACT_KIND_SELECTOR_COMPONENT_REACT, []).component(
-  'expectedArtifactKindSelectorReact',
-  react2angular(withErrorBoundary(ExpectedArtifactKindSelector, 'expectedArtifactKindSelectorReact'), [
-    'kinds',
-    'selected',
-    'onChange',
-    'showIcons',
-    'className',
-  ]),
-);

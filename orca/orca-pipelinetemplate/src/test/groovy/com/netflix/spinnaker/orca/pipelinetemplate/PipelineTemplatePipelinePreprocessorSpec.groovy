@@ -21,6 +21,8 @@ import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.Timer
+import com.netflix.spinnaker.kork.yaml.YamlHelper
+import com.netflix.spinnaker.kork.yaml.YamlParserProperties
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -52,7 +54,8 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
       new YamlRenderedValueConverter(), objectMapper, Mock(Front50Service), []
   )
 
-  TemplateLoader templateLoader = new TemplateLoader([new FileTemplateSchemeLoader(objectMapper)], objectMapper, renderer)
+  def yamlHelper = new YamlHelper(new YamlParserProperties())
+  TemplateLoader templateLoader = new TemplateLoader([new FileTemplateSchemeLoader(objectMapper, yamlHelper)], objectMapper, renderer, yamlHelper)
   V2TemplateLoader v2TemplateLoader = new V2TemplateLoader(oortService, objectMapper)
   ContextParameterProcessor contextParameterProcessor = new ContextParameterProcessor()
 

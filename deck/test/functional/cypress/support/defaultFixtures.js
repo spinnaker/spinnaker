@@ -14,11 +14,12 @@ export const registerDefaultFixtures = () => {
   cy.intercept('/applications/*/firewalls', []);
   cy.intercept('/applications/*/loadBalancers', []);
   cy.intercept('/applications/*/pipelineConfigs', []);
-  cy.intercept('/applications/*/pipelines?expand=true*', []);
+  cy.intercept(/\/applications\/.*\/pipelines.*/, []);
   cy.intercept('/applications/*/serverGroupManagers', []);
   cy.intercept('/applications/*/serverGroups', []);
   cy.intercept('/applications/*/strategyConfigs', []);
   cy.intercept('/applications/*/tasks?statuses=RUNNING,SUSPENDED,NOT_STARTED', []);
+  cy.intercept('**/application/*/pipelineLock', []);
   cy.intercept('/applications/*/rawResources', []);
   cy.intercept('/applications/compute?*', { fixture: 'default/application.compute.json' });
   cy.intercept('/applications/ecsapp?*', { fixture: 'default/application.ecsapp.json' });
@@ -27,6 +28,7 @@ export const registerDefaultFixtures = () => {
   cy.intercept('/artifacts/credentials', { fixture: 'default/artifacts.credentials.json' });
   cy.intercept('/auth/user', { fixture: 'default/auth.user.anonymous.json' });
   cy.intercept('/credentials?expand=true', { fixture: 'default/credentials.expand.json' });
+  cy.intercept('/executions?limit=*', []);
   cy.intercept('/jobs/preconfigured', []);
   cy.intercept('/loadBalancers?provider=appengine', []);
   cy.intercept('/loadBalancers?provider=gce', { fixture: 'default/loadBalancers.gce.json' });

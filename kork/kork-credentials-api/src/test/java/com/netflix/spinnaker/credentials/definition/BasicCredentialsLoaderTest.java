@@ -17,7 +17,9 @@
 package com.netflix.spinnaker.credentials.definition;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 import com.netflix.spinnaker.credentials.Credentials;
@@ -70,6 +72,66 @@ public class BasicCredentialsLoaderTest {
     when(source.getCredentialsDefinitions()).thenReturn(Collections.emptyList());
     loader.load();
     assertThat(repository.getAll()).isEmpty();
+  }
+
+  @Test
+  public void testFailedSaveIsRetriedOnNextLoad() {
+    CredentialsDefinitionSource<CredentialsDefinition> source =
+        mock(CredentialsDefinitionSource.class);
+    CredentialsLifecycleHandler<FakeCredentials> handler = mock(CredentialsLifecycleHandler.class);
+    CredentialsRepository<FakeCredentials> repository =
+        new MapBackedCredentialsRepository<>(TEST_TYPE, handler);
+
+    BasicCredentialsLoader<CredentialsDefinition, FakeCredentials> loader =
+        new BasicCredentialsLoader<>(
+            source, account -> new FakeCredentials(account.getName()), repository);
+
+    CredentialsDefinition def1 = mock(CredentialsDefinition.class);
+    when(def1.getName()).thenReturn("cred1");
+    when(source.getCredentialsDefinitions()).thenReturn(Arrays.asList(def1));
+
+    // saving the credentials fails transiently (e.g. lifecycle handler error)
+    doThrow(new RuntimeException("transient failure"))
+        .when(handler)
+        .credentialsAdded(org.mockito.ArgumentMatchers.any());
+    loader.load();
+    assertThat(repository.getOne("cred1")).isNull();
+
+    // the account must be retried and loaded on the next run once the failure clears
+    reset(handler);
+    loader.load();
+    assertThat(repository.getOne("cred1")).isNotNull();
+  }
+
+  @Test
+  public void testParseFailureDoesNotBlockOtherDefinitions() {
+    CredentialsDefinitionSource<CredentialsDefinition> source =
+        mock(CredentialsDefinitionSource.class);
+    CredentialsRepository<FakeCredentials> repository =
+        new MapBackedCredentialsRepository<>(TEST_TYPE, null);
+
+    BasicCredentialsLoader<CredentialsDefinition, FakeCredentials> loader =
+        new BasicCredentialsLoader<>(
+            source,
+            account -> {
+              if (account.getName().equals("bad")) {
+                throw new RuntimeException("cannot parse this account");
+              }
+              return new FakeCredentials(account.getName());
+            },
+            repository);
+
+    CredentialsDefinition bad = mock(CredentialsDefinition.class);
+    when(bad.getName()).thenReturn("bad");
+    CredentialsDefinition good = mock(CredentialsDefinition.class);
+    when(good.getName()).thenReturn("good");
+
+    when(source.getCredentialsDefinitions()).thenReturn(Arrays.asList(bad, good));
+    loader.load();
+
+    // the definition after the failing one is still loaded
+    assertThat(repository.getOne("bad")).isNull();
+    assertThat(repository.getOne("good")).isNotNull();
   }
 
   @RequiredArgsConstructor

@@ -1,12 +1,12 @@
 import { UISref } from '@uirouter/react';
-import { UIRouterContextComponent } from '@uirouter/react-hybrid';
 import { sortBy } from 'lodash';
 import React from 'react';
 
 import type { Application, ISecurityGroup } from '@spinnaker/core';
-import { AccountService, CollapsibleSection, FirewallLabels, ReactInjector } from '@spinnaker/core';
+import { AccountService, CollapsibleSection, DeckRuntimeContext, FirewallLabels } from '@spinnaker/core';
+
 import type { ITitusServerGroupView } from '../../domain';
-import { TitusReactInjector } from '../../reactShims';
+import { TitusSecurityGroupReader } from '../../securityGroup/securityGroup.read.service';
 
 export interface ITitusServerGroupDetailsSectionProps {
   app: Application;
@@ -21,6 +21,9 @@ export class TitusSecurityGroupsDetailsSection extends React.Component<
   ITitusServerGroupDetailsSectionProps,
   ISecurityGroupsDetailsSectionState
 > {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   constructor(props: ITitusServerGroupDetailsSectionProps) {
     super(props);
     this.state = {};
@@ -35,7 +38,7 @@ export class TitusSecurityGroupsDetailsSection extends React.Component<
     const { region } = serverGroup;
     if (app.securityGroupsIndex && serverGroup.accountDetails) {
       const securityGroups = serverGroup.securityGroups.map((sgId) =>
-        TitusReactInjector.titusSecurityGroupReader.resolveIndexedSecurityGroup(
+        TitusSecurityGroupReader.resolveIndexedSecurityGroup(
           app.securityGroupsIndex,
           { account: serverGroup.accountDetails.awsAccount, region },
           sgId,
@@ -46,7 +49,7 @@ export class TitusSecurityGroupsDetailsSection extends React.Component<
       AccountService.listAllAccounts('titus').then((accounts) => {
         const titusAccount = accounts.find((a) => a.name === serverGroup.account);
         if (titusAccount && titusAccount.awsAccount) {
-          ReactInjector.securityGroupReader.getAllSecurityGroups().then((allSecurityGroups) => {
+          this.context.services.securityGroupReader.getAllSecurityGroups().then((allSecurityGroups) => {
             const regionalGroups = allSecurityGroups[titusAccount.awsAccount]['aws'][region];
             const securityGroups = serverGroup.securityGroups
               .map((sgId) => regionalGroups.find((rg) => rg.id === sgId))
@@ -78,28 +81,24 @@ export class TitusSecurityGroupsDetailsSection extends React.Component<
       <CollapsibleSection heading={FirewallLabels.get('Firewalls')} outerDivClassName="">
         <ul>
           {initializing && serverGroup.securityGroups.map((sgId) => <li key={sgId}>...</li>)}
-          <UIRouterContextComponent>
-            <>
-              {sortBy(securityGroups, 'name').map((securityGroup) => (
-                <li key={securityGroup.name}>
-                  <UISref
-                    to="^.firewallDetails"
-                    params={{
-                      name: securityGroup.name,
-                      accountId: securityGroup.account,
-                      region: serverGroup.region,
-                      vpcId: securityGroup.vpcId,
-                      provider: 'aws',
-                    }}
-                  >
-                    <a>
-                      {securityGroup.name} ({securityGroup.id})
-                    </a>
-                  </UISref>
-                </li>
-              ))}
-            </>
-          </UIRouterContextComponent>
+          {sortBy(securityGroups, 'name').map((securityGroup) => (
+            <li key={securityGroup.name}>
+              <UISref
+                to="^.firewallDetails"
+                params={{
+                  name: securityGroup.name,
+                  accountId: securityGroup.account,
+                  region: serverGroup.region,
+                  vpcId: securityGroup.vpcId,
+                  provider: 'aws',
+                }}
+              >
+                <a>
+                  {securityGroup.name} ({securityGroup.id})
+                </a>
+              </UISref>
+            </li>
+          ))}
         </ul>
       </CollapsibleSection>
     );

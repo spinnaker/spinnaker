@@ -12,8 +12,9 @@ export const UserMenu = () => {
   const authenticatedUser = AuthenticationService.getAuthenticatedUser();
   const showLogOutDropdown = authenticatedUser.authenticated;
   const canMintApiTokens = authenticatedUser.canMintApiTokens ?? false;
+  const isAdmin = authenticatedUser.isAdmin ?? false;
 
-  if (!SETTINGS.authEnabled) {
+  if (!SETTINGS.authEnabled || !showLogOutDropdown) {
     return null;
   }
 
@@ -26,6 +27,21 @@ export const UserMenu = () => {
         </Dropdown.Toggle>
         {showLogOutDropdown && (
           <Dropdown.Menu pullRight>
+            {isAdmin && (
+              <>
+                <li role="presentation">
+                  <UISref to="home.globalBanners">
+                    <a role="menuitem">Global Banners</a>
+                  </UISref>
+                </li>
+                <li role="presentation">
+                  <UISref to="home.accountManagement">
+                    <a role="menuitem">Account Management</a>
+                  </UISref>
+                </li>
+                <li role="presentation" className="divider" />
+              </>
+            )}
             {canMintApiTokens && (
               <>
                 <li role="presentation">

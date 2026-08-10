@@ -41,10 +41,7 @@ export class CloudFoundryLoadBalancerUpsertDescription
 }
 
 export class CloudFoundryLoadBalancerTransformer {
-  public static $inject = ['$q'];
-  constructor(private $q: ng.IQService) {}
-
-  public normalizeLoadBalancer(loadBalancer: ILoadBalancer): PromiseLike<ILoadBalancer> {
+  public normalizeLoadBalancer(loadBalancer: ILoadBalancer): Promise<ILoadBalancer> {
     loadBalancer.provider = loadBalancer.type;
     loadBalancer.instanceCounts = this.buildInstanceCounts(loadBalancer.serverGroups);
     loadBalancer.instances = [];
@@ -63,7 +60,7 @@ export class CloudFoundryLoadBalancerTransformer {
 
     const activeServerGroups = loadBalancer.serverGroups.filter((sg) => !sg.isDisabled);
     loadBalancer.instances = chain(activeServerGroups).map('instances').flatten().value() as IInstance[];
-    return this.$q.resolve(loadBalancer);
+    return Promise.resolve(loadBalancer);
   }
 
   public constructNewCloudFoundryLoadBalancerTemplate(
@@ -87,7 +84,7 @@ export class CloudFoundryLoadBalancerTransformer {
   public convertLoadBalancerForEditing(
     loadBalancer: ICloudFoundryLoadBalancer,
     application: Application,
-  ): PromiseLike<ICloudFoundryLoadBalancer> {
+  ): Promise<ICloudFoundryLoadBalancer> {
     return application
       .getDataSource('loadBalancers')
       .ready()

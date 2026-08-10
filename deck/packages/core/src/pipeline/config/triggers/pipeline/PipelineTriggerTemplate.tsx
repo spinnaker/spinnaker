@@ -1,12 +1,14 @@
 import { get, has } from 'lodash';
 import React from 'react';
 import type { Option } from 'react-select';
+import type { IDeckRuntimeServicesInjectedProps } from '../../../../bootstrap/DeckRuntimeContext';
+import { withDeckRuntimeServices } from '../../../../bootstrap/DeckRuntimeContext';
 
+import { SETTINGS } from '../../../../config/settings';
 import type { IExecution, IPipeline, IPipelineCommand, IPipelineTrigger } from '../../../../domain';
 import { ExecutionBuildTitle } from '../../../executionBuild/ExecutionBuildTitle';
 import type { ITriggerTemplateComponentProps } from '../../../manualExecution/TriggerTemplate';
 import { TetheredSelect } from '../../../../presentation/TetheredSelect';
-import { ReactInjector } from '../../../../reactShims';
 import { ExecutionsTransformer } from '../../../service/ExecutionsTransformer';
 import { PipelineConfigService } from '../../services/PipelineConfigService';
 import { timestamp } from '../../../../utils/timeFormatters';
@@ -19,11 +21,11 @@ export interface IPipelineTriggerTemplateState {
   selectedExecution: string;
 }
 
-export class PipelineTriggerTemplate extends React.Component<
-  ITriggerTemplateComponentProps,
+export class PipelineTriggerTemplateComponent extends React.Component<
+  ITriggerTemplateComponentProps & IDeckRuntimeServicesInjectedProps,
   IPipelineTriggerTemplateState
 > {
-  public static formatLabel(trigger: IPipelineTrigger): PromiseLike<string> {
+  public static formatLabel(trigger: IPipelineTrigger): Promise<string> {
     // if this is a re-run, the trigger info will be on the parentExecution; otherwise, check the trigger itself
     // (normalization occurs in the pipelineTriggerOptions component, but that renders after this method is called)
     const application = get(trigger, 'parentExecution.application', trigger.application);
@@ -41,7 +43,7 @@ export class PipelineTriggerTemplate extends React.Component<
     return PipelineConfigService.getPipelinesForApplication(application).then(loadSuccess, loadFailure);
   }
 
-  public constructor(props: ITriggerTemplateComponentProps) {
+  public constructor(props: ITriggerTemplateComponentProps & IDeckRuntimeServicesInjectedProps) {
     super(props);
     this.state = {
       executions: [],
@@ -75,8 +77,8 @@ export class PipelineTriggerTemplate extends React.Component<
       return;
     }
 
-    ReactInjector.executionService
-      .getExecutionsForConfigIds([trigger.pipeline], { limit: 20 })
+    this.props.deckRuntimeServices.executionService
+      .getExecutionsForConfigIds([trigger.pipeline], { limit: SETTINGS.maxPipelineTriggerExecutionOptions })
       .then(this.executionLoadSuccess, this.executionLoadFailure);
   };
 
@@ -211,3 +213,7 @@ export class PipelineTriggerTemplate extends React.Component<
     );
   }
 }
+
+export const PipelineTriggerTemplate = Object.assign(withDeckRuntimeServices(PipelineTriggerTemplateComponent), {
+  formatLabel: PipelineTriggerTemplateComponent.formatLabel,
+});

@@ -33,15 +33,19 @@ const throwInvalidIconComponentError = () => {
   throw new Error('No name or reactComponent provided in Icon props');
 };
 
+const normalizeIconComponent = (component: any): SVGComponent => {
+  return component?.ReactComponent || component?.default || component;
+};
+
 export const Icon = memo(({ name, reactComponent, appearance, size, color, className }: IIconProps) => {
   let Component;
   if (name) {
-    Component = iconsByName[name];
+    Component = normalizeIconComponent(iconsByName[name]);
     if (!Component) {
       throwInvalidIconError(name);
     }
   } else {
-    Component = reactComponent || throwInvalidIconComponentError();
+    Component = normalizeIconComponent(reactComponent || throwInvalidIconComponentError());
   }
 
   const width = size ? pxDimensionsBySize[size] || size : pxDimensionsBySize[DEFAULT_SIZE];

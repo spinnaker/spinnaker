@@ -1,4 +1,4 @@
-export { AMAZON_MODULE } from './aws.module';
+import './aws.module';
 
 export * from './aws.settings';
 export * from './certificates';
@@ -7,7 +7,7 @@ export * from './domain';
 export * from './keyPairs';
 export * from './loadBalancer';
 export * from './function';
-export * from './reactShims';
+export * from './aws.services';
 export * from './serverGroup';
 export * from './subnet';
 export * from './vpc';

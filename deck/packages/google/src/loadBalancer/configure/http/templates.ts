@@ -48,7 +48,4 @@ export class ListenerTemplate {
   public certificate: string | null = null;
   public certificateMap: string | null = null;
   public certificateSource: 'certificate' | 'certificateMap' = 'certificate';
-  public ipAddress: string | null = null;
-  public networkTier: string | null = null;
-  public subnet: string | null = null;
 }

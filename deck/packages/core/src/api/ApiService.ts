@@ -1,15 +1,43 @@
 import { isNil } from 'lodash';
-import { $http } from 'ngimport';
 
 import { AuthenticationInitializer } from '../authentication/AuthenticationInitializer';
 import type { ICache } from '../cache/deckCacheFactory';
 import { SETTINGS } from '../config/settings';
+import {
+  captureIapSessionRefreshGeneration,
+  hasIapSessionRefreshedSince,
+  IAP_SESSION_REFRESH_URL,
+  refreshIapSession,
+  shouldRefreshIapSession,
+} from './iapSessionRefresh';
 
 type IPrimitive = string | boolean | number;
 type IParams = Record<string, IPrimitive | IPrimitive[]>;
 
 interface Headers {
   [headerName: string]: string;
+}
+
+export interface XhrError<T = unknown> {
+  data?: T;
+  message?: string;
+  name?: string;
+  stack?: string;
+  status?: number;
+  statusText?: string;
+  xhrStatus?: string;
+}
+
+type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+
+interface IPreparedXhrRequest {
+  method: HttpMethod;
+  url: string;
+  headers: Array<[string, string]>;
+  body: unknown;
+  timeout: number;
+  withCredentials: boolean;
+  iapSessionRefreshGeneration: number;
 }
 
 /**
@@ -28,18 +56,18 @@ export interface IRequestBuilder {
   query(queryParams: IParams): this;
 
   /** Enables or disables caching of the response */
-  useCache(useCache?: boolean): this;
+  useCache(useCache?: boolean | ICache): this;
 
   /** issues a GET request */
-  get<T = any>(): PromiseLike<T>;
+  get<T = any>(): Promise<T>;
   /** issues a POST request */
-  post<T = any, P = any>(data?: P): PromiseLike<T>;
+  post<T = any, P = any>(data?: P): Promise<T>;
   /** issues a PUT request */
-  put<T = any, P = any>(data?: P): PromiseLike<T>;
+  put<T = any, P = any>(data?: P): Promise<T>;
   /** issues a PATCH request */
-  patch<T = any, P = any>(data?: P): PromiseLike<T>;
+  patch<T = any, P = any>(data?: P): Promise<T>;
   /** issues a DELETE request */
-  delete<T = any, P = any>(data?: P): PromiseLike<T>;
+  delete<T = any, P = any>(data?: P): Promise<T>;
 }
 
 /**
@@ -50,10 +78,10 @@ interface IRequestBuilderConfig {
   url: string;
   timeout?: number;
   headers?: Headers;
-  /** @deprecated used for AngularJS backwards compat */
+  /** @deprecated retained for legacy request config compatibility */
   data?: any;
   params?: object;
-  cache?: boolean;
+  cache?: boolean | ICache;
 }
 
 /**
@@ -76,11 +104,11 @@ export interface IDeprecatedRequestBuilder extends IRequestBuilder {
   /** @deprecated use put(data) or post(data) instead */
   data(data: any): this;
   // Add overload with params
-  get<T = any>(params?: IParams): PromiseLike<T>;
+  get<T = any>(params?: IParams): Promise<T>;
   /** @deprecated use delete() instead (this is a passthrough to delete) */
-  remove(params?: IParams): PromiseLike<any>;
+  remove(params?: IParams): Promise<any>;
   /** @deprecated use get() instead (this is a passthrough to get) */
-  getList<T = any>(params?: IParams): PromiseLike<T>;
+  getList<T = any>(params?: IParams): Promise<T>;
 }
 
 /**
@@ -88,11 +116,11 @@ export interface IDeprecatedRequestBuilder extends IRequestBuilder {
  * In the future, we should have a TestingHttpClient and a FetchHttpClient (or whatever http client we go with)
  */
 export interface IHttpClientImplementation {
-  get<T = any>(config: IRequestBuilderConfig): PromiseLike<T>;
-  post<T = any>(config: IRequestBuilderConfig): PromiseLike<T>;
-  put<T = any>(config: IRequestBuilderConfig): PromiseLike<T>;
-  patch<T = any>(config: IRequestBuilderConfig): PromiseLike<T>;
-  delete<T = any>(config: IRequestBuilderConfig): PromiseLike<T>;
+  get<T = any>(config: IRequestBuilderConfig): Promise<T>;
+  post<T = any>(config: IRequestBuilderConfig): Promise<T>;
+  put<T = any>(config: IRequestBuilderConfig): Promise<T>;
+  patch<T = any>(config: IRequestBuilderConfig): Promise<T>;
+  delete<T = any>(config: IRequestBuilderConfig): Promise<T>;
 }
 
 export class InvalidAPIResponse extends Error {
@@ -104,39 +132,186 @@ export class InvalidAPIResponse extends Error {
   }
 }
 
-/**
- * An HTTP client that uses the AngularJS $http service
- * This client also handles non-data responses from Gate which is used to indicate the user is not authenticated
- * TODO: Can the re-authentication logic be moved somewhere else?
- */
-class AngularJSHttpClient implements IHttpClientImplementation {
+export class XhrHttpClient implements IHttpClientImplementation {
+  private readonly defaultCache = new Map<string, unknown>();
+  private readonly inFlightRequests = new WeakMap<object, Map<string, Promise<unknown>>>();
+
   delete = <T = any>(requestConfig: IRequestBuilderConfig) => this.request<T>('DELETE', requestConfig);
   get = <T = any>(requestConfig: IRequestBuilderConfig) => this.request<T>('GET', requestConfig);
   post = <T = any>(requestConfig: IRequestBuilderConfig) => this.request<T>('POST', requestConfig);
   put = <T = any>(requestConfig: IRequestBuilderConfig) => this.request<T>('PUT', requestConfig);
   patch = <T = any>(requestConfig: IRequestBuilderConfig) => this.request<T>('PATCH', requestConfig);
 
-  private request<T>(
-    method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
-    requestConfig: IRequestBuilderConfig,
-  ): PromiseLike<T> {
-    return $http<T>({ ...requestConfig, method }).then((response) => {
-      const contentType = response.headers('content-type');
+  private request<T>(method: HttpMethod, requestConfig: IRequestBuilderConfig): Promise<T> {
+    const preparedRequest = this.prepareXhrRequest(method, requestConfig);
+    if (method !== 'GET' || !requestConfig.cache) {
+      return this.sendXhrRequest<T>(preparedRequest, false);
+    }
 
-      if (contentType) {
-        // e.g application/json, application/hal+json
-        const isJson = contentType.match(/application\/(.+\+)?json/);
-        // e.g. application/yaml, application/x-yaml; it's regex, let's not get too fancy
-        const isYaml = contentType.match(/application\/(.+-)?yaml/);
-        const isZeroLengthHtml = contentType.includes('text/html') && (response as any).data === '';
-        const isZeroLengthText = contentType.includes('text/plain') && (response as any).data === '';
-        if (!(isJson || isYaml || isZeroLengthHtml || isZeroLengthText)) {
-          AuthenticationInitializer.reauthenticateUser();
-          throw new InvalidAPIResponse(invalidContentMessage, response);
+    const cache = requestConfig.cache === true ? this.defaultCache : requestConfig.cache;
+    const cached = cache.get(preparedRequest.url);
+    if (cached !== undefined) {
+      return Promise.resolve(cached as T | PromiseLike<T>);
+    }
+
+    let inFlightForCache = this.inFlightRequests.get(cache);
+    const inFlight = inFlightForCache?.get(preparedRequest.url);
+    if (inFlight) {
+      return inFlight as Promise<T>;
+    }
+
+    if (!inFlightForCache) {
+      inFlightForCache = new Map();
+      this.inFlightRequests.set(cache, inFlightForCache);
+    }
+    const request = this.sendXhrRequest<T>(preparedRequest, false);
+    inFlightForCache.set(preparedRequest.url, request);
+    const clearInFlight = () => {
+      inFlightForCache.delete(preparedRequest.url);
+      if (inFlightForCache.size === 0) {
+        this.inFlightRequests.delete(cache);
+      }
+    };
+    request.then(
+      (response) => {
+        clearInFlight();
+        if (cache instanceof Map) {
+          cache.set(preparedRequest.url, response);
+        } else {
+          cache.put(preparedRequest.url, response);
         }
+      },
+      () => {
+        clearInFlight();
+      },
+    );
+    return request;
+  }
+
+  private xhrRequest<T>(method: HttpMethod, requestConfig: IRequestBuilderConfig): Promise<T> {
+    return this.sendXhrRequest<T>(this.prepareXhrRequest(method, requestConfig), false);
+  }
+
+  private prepareXhrRequest(method: HttpMethod, requestConfig: IRequestBuilderConfig): IPreparedXhrRequest {
+    const url = new URL(requestConfig.url, window.location.origin);
+    Object.entries(requestConfig.params || {}).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        value.forEach((item) => url.searchParams.append(key, String(item)));
+      } else if (!isNil(value)) {
+        url.searchParams.set(key, String(value));
+      }
+    });
+
+    const data = requestConfig.data;
+    const dataType = Object.prototype.toString.call(data);
+    const isArrayBufferView = typeof ArrayBuffer !== 'undefined' && ArrayBuffer.isView(data);
+    const isSupportedXhrBody =
+      typeof data === 'string' ||
+      isArrayBufferView ||
+      [
+        '[object ArrayBuffer]',
+        '[object Blob]',
+        '[object File]',
+        '[object FormData]',
+        '[object URLSearchParams]',
+        '[object Document]',
+        '[object HTMLDocument]',
+        '[object XMLDocument]',
+      ].includes(dataType);
+    const serializesAsJson = !isNil(data) && !isSupportedXhrBody;
+    const body = isNil(data) ? undefined : serializesAsJson ? JSON.stringify(data) : data;
+    const configuredHeaders = Object.entries(requestConfig.headers || {});
+    const hasContentType = configuredHeaders.some(([key]) => key.toLowerCase() === 'content-type');
+    const headers: Array<[string, string]> = [];
+    if (serializesAsJson && !hasContentType) {
+      headers.push(['Content-Type', 'application/json;charset=utf-8']);
+    }
+    headers.push(...configuredHeaders);
+
+    return {
+      method,
+      url: url.toString(),
+      headers,
+      body,
+      timeout: requestConfig.timeout ?? 0,
+      withCredentials: true,
+      iapSessionRefreshGeneration: captureIapSessionRefreshGeneration(),
+    };
+  }
+
+  private sendXhrRequest<T>(preparedRequest: IPreparedXhrRequest, iapSessionRefreshAttempted: boolean): Promise<T> {
+    const parseResponse = (contentType: string, responseText: string): T => {
+      const isJson = /^\s*application\/(?:[^;\s]+\+)?json(?:\s*;|$)/i.test(contentType);
+      if (isJson || /^\s*(?:\[|{)/.test(responseText)) {
+        return responseText ? JSON.parse(responseText) : (null as T);
+      }
+      return (responseText as unknown) as T;
+    };
+    const isValidContent = (contentType: string, responseText: string): boolean => {
+      if (!contentType) {
+        return true;
       }
 
-      return response.data;
+      const mediaType = contentType.split(';', 1)[0].trim();
+      const isJson = /^application\/(?:[^+]+\+)?json$/i.test(mediaType);
+      const isYaml = /^application\/(?:.+-)?yaml$/i.test(mediaType);
+      const isEmptyHtmlOrText = /^(?:text\/html|text\/plain)$/i.test(mediaType) && responseText === '';
+      return isJson || isYaml || isEmptyHtmlOrText;
+    };
+
+    return new Promise<T>((resolve, reject) => {
+      const request = new XMLHttpRequest();
+      request.open(preparedRequest.method, preparedRequest.url);
+      preparedRequest.headers.forEach(([key, value]) => request.setRequestHeader(key, value));
+      request.timeout = preparedRequest.timeout;
+      request.withCredentials = preparedRequest.withCredentials;
+      request.onload = () => {
+        const contentType = request.getResponseHeader('content-type') || '';
+        const responseText = request.responseText || '';
+        try {
+          const data = parseResponse(contentType, responseText);
+          if (request.status >= 400) {
+            const rejection: XhrError<T> = {
+              status: request.status,
+              statusText: request.statusText,
+              data,
+            };
+            if (shouldRefreshIapSession(request.status, preparedRequest, iapSessionRefreshAttempted)) {
+              if (hasIapSessionRefreshedSince(preparedRequest.iapSessionRefreshGeneration)) {
+                this.sendXhrRequest<T>(preparedRequest, true).then(resolve, reject);
+              } else {
+                refreshIapSession(() => this.xhrRequest('GET', { url: IAP_SESSION_REFRESH_URL })).then(
+                  () => this.sendXhrRequest<T>(preparedRequest, true).then(resolve, reject),
+                  () => reject(rejection),
+                );
+              }
+            } else {
+              reject(rejection);
+            }
+            return;
+          }
+
+          if (!isValidContent(contentType, responseText)) {
+            AuthenticationInitializer.reauthenticateUser();
+            reject(
+              new InvalidAPIResponse(invalidContentMessage, {
+                status: request.status,
+                statusText: request.statusText,
+                data,
+              }),
+            );
+            return;
+          }
+
+          resolve(data);
+        } catch (error) {
+          reject(error);
+        }
+      };
+      request.onerror = () =>
+        reject(new Error(`Failed to load resource: ${preparedRequest.method} ${preparedRequest.url}`));
+      request.ontimeout = () => reject({ status: -1, statusText: '', xhrStatus: 'timeout', data: null });
+      request.send(preparedRequest.body as any);
     });
   }
 }
@@ -154,7 +329,7 @@ function joinPaths(...paths: IPrimitive[]) {
 
 /** The base request builder implementation */
 export class RequestBuilder implements IRequestBuilder {
-  static defaultHttpClient: IHttpClientImplementation = new AngularJSHttpClient();
+  static defaultHttpClient: IHttpClientImplementation = new XhrHttpClient();
 
   public constructor(
     protected config: IRequestBuilderConfig = makeRequestBuilderConfig(),
@@ -185,42 +360,52 @@ export class RequestBuilder implements IRequestBuilder {
   }
 
   // queryParams argument for backwards compat
-  get<T>(queryParams: object = {}) {
+  get<T>(queryParams: object = {}): Promise<T> {
     // Merge with existing params
     const params = { ...this.config.params, ...queryParams };
     const url = joinPaths(this.baseUrl, this.config.url);
-    return this.httpClient.get<T>({ ...this.config, url, params });
+    return Promise.resolve(
+      this.httpClient.get<T>({ ...this.config, url, params }),
+    );
   }
 
-  post<T>(postData?: any) {
+  post<T>(postData?: any): Promise<T> {
     // Check this.config.data for backwards compat
     const data = postData ?? this.config.data;
     const url = joinPaths(this.baseUrl, this.config.url);
-    return this.httpClient.post<T>({ ...this.config, url, data });
+    return Promise.resolve(
+      this.httpClient.post<T>({ ...this.config, url, data }),
+    );
   }
 
-  put<T>(putData?: any) {
+  put<T>(putData?: any): Promise<T> {
     // Check this.config.data for backwards compat
     const data = putData ?? this.config.data;
     const url = joinPaths(this.baseUrl, this.config.url);
-    return this.httpClient.put<T>({ ...this.config, url, data });
+    return Promise.resolve(
+      this.httpClient.put<T>({ ...this.config, url, data }),
+    );
   }
 
-  patch<T>(putData?: any) {
+  patch<T>(putData?: any): Promise<T> {
     // Check this.config.data for backwards compat
     const data = putData ?? this.config.data;
     const url = joinPaths(this.baseUrl, this.config.url);
-    return this.httpClient.patch<T>({ ...this.config, url, data });
+    return Promise.resolve(
+      this.httpClient.patch<T>({ ...this.config, url, data }),
+    );
   }
 
-  delete<T>(deleteData?: any) {
+  delete<T>(deleteData?: any): Promise<T> {
     const data = deleteData ?? this.config.data;
     const url = joinPaths(this.baseUrl, this.config.url);
-    return this.httpClient.delete<T>({ ...this.config, url, data });
+    return Promise.resolve(
+      this.httpClient.delete<T>({ ...this.config, url, data }),
+    );
   }
 
-  useCache(cache = true) {
-    return this.builder({ ...this.config, cache: cache as boolean });
+  useCache(cache: boolean | ICache = true) {
+    return this.builder({ ...this.config, cache });
   }
 
   query(queryParams: IParams) {
@@ -249,7 +434,7 @@ export class DeprecatedRequestBuilder extends RequestBuilder implements IDepreca
   remove = this.delete.bind(this).bind(this);
   data = (data: any) => this.builder({ ...this.config, data });
   withParams = this.query.bind(this);
-  useCache = (cache: boolean | ICache = true) => this.builder({ ...this.config, cache: cache as boolean });
+  useCache = (cache: boolean | ICache = true) => this.builder({ ...this.config, cache });
 }
 
 class DeprecatedRequestBuilderRoot extends DeprecatedRequestBuilder {

@@ -88,7 +88,7 @@ export class EcsTargetGroupDetails extends React.Component<IEcsTargetGroupProps,
           this.setState({
             refreshListenerUnsubscribe: this.props.app
               .getDataSource('loadBalancers')
-              .onRefresh(null, () => this.extractTargetGroup()),
+              .onRefresh(() => this.extractTargetGroup()),
           });
         } else {
           this.setState({

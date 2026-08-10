@@ -1,9 +1,6 @@
-import { module } from 'angular';
 import { formatDistanceToNow } from 'date-fns';
 import { DateTime, Duration } from 'luxon';
-import { react2angular } from 'react2angular';
 
-import { SystemTimezone } from './SystemTimezone';
 import { SETTINGS } from '../config/settings';
 
 // Luxon supports up to 100 million days after epoch start
@@ -86,14 +83,3 @@ export function timePickerTime(input: any) {
   }
   return '-';
 }
-
-export const TIME_FORMATTERS = 'spinnaker.core.utils.timeFormatters';
-module(TIME_FORMATTERS, [])
-  .filter('timestamp', () => timestamp)
-  .filter('relativeTime', () => relativeTime)
-  .filter('duration', () => duration)
-  .filter('timePickerTime', () => timePickerTime)
-  // Disable eslint react2angular-with-error-boundary rule
-  // Rule fixer would cause a circular package dependency between utils and presentation
-  // eslint-disable-next-line
-  .component('systemTimezone', react2angular(SystemTimezone));

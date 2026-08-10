@@ -1,7 +1,9 @@
 import { shallow } from 'enzyme';
 import React from 'react';
 
-import { CustomBanner } from './CustomBanner';
+import { UIRouterReact } from '@uirouter/react';
+
+import { CustomBannerComponent } from './CustomBanner';
 import { Application } from '../../application/application.model';
 import type { ICustomBannerConfig } from '../../application/config/customBanner/CustomBannerConfig';
 import { getTestBannerConfigs } from '../../application/config/customBanner/CustomBannerConfig.spec';
@@ -10,12 +12,16 @@ describe('<CustomBanner />', () => {
   let application: Application;
   let wrapper: any;
   let bannerConfigs: ICustomBannerConfig[];
+  let router: UIRouterReact;
 
   beforeEach(() => {
+    router = new UIRouterReact();
     application = new Application('my-app', null, []);
-    wrapper = shallow(<CustomBanner />);
+    wrapper = shallow(<CustomBannerComponent router={router} stateParams={{}} stateService={router.stateService} />);
     bannerConfigs = getTestBannerConfigs();
   });
+
+  afterEach(() => router.dispose());
 
   describe('view', () => {
     it('renders no banner by default', () => {

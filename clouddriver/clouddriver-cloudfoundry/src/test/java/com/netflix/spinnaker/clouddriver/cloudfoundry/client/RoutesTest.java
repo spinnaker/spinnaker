@@ -25,16 +25,16 @@ import static org.mockito.Mockito.when;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.RouteService;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.RouteId;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Page;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Resource;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Route;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.RouteMapping;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.config.CloudFoundryConfigurationProperties;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Pagination;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Relationship;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Route;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ToOneRelationship;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryDomain;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryLoadBalancer;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganization;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ForkJoinPool;
 import org.junit.jupiter.api.Test;
@@ -54,28 +54,10 @@ class RoutesTest {
     Spaces spaces = mock(Spaces.class);
     when(spaces.findById(any())).thenReturn(CloudFoundrySpace.fromRegion("myorg > dev"));
 
-    Route route = new Route();
-    route.setHost("demo1-prod");
-    route.setDomainGuid("domainGuid");
-    route.setPath("/path");
-
     RouteService routeService = mock(RouteService.class);
-    when(routeService.all(any(), any(), any()))
-        .thenAnswer(
-            invocation -> Calls.response(Response.success(Page.singleton(route, "abc123"))));
-    when(routeService.routeMappings(any(), any()))
-        .thenAnswer(invocation -> Calls.response(Response.success(new Page<>())));
 
     Routes routes =
-        new Routes(
-            "pws",
-            routeService,
-            null,
-            domains,
-            spaces,
-            500,
-            ForkJoinPool.commonPool(),
-            new CloudFoundryConfigurationProperties.LocalCacheConfig());
+        new Routes("pws", routeService, null, domains, spaces, 500, ForkJoinPool.commonPool());
     RouteId routeId = routes.toRouteId("demo1-prod.apps.calabasas.cf-app.com/path/v1.0");
     assertThat(routeId).isNotNull();
     assertThat(routeId.getHost()).isEqualTo("demo1-prod");
@@ -85,16 +67,7 @@ class RoutesTest {
 
   @Test
   void toRouteIdReturnsNullForInvalidRoute() {
-    Routes routes =
-        new Routes(
-            null,
-            null,
-            null,
-            null,
-            null,
-            500,
-            ForkJoinPool.commonPool(),
-            new CloudFoundryConfigurationProperties.LocalCacheConfig());
+    Routes routes = new Routes(null, null, null, null, null, 500, ForkJoinPool.commonPool());
     assertNull(routes.toRouteId("demo1-pro cf-app.com/path"));
   }
 
@@ -109,35 +82,19 @@ class RoutesTest {
     when(domains.findByName(eq("apps.calabasas.cf-app.com"))).thenReturn(Optional.of(domain));
 
     Route hostOnly =
-        new Route(
-            new RouteId().setHost("somehost").setDomainGuid("domain-guid").setPath(""),
-            "space-guid");
+        createV3Route("route-guid-1", "somehost", "", null, "space-guid", "domain-guid");
     Route withPath1 =
-        new Route(
-            new RouteId().setHost("somehost").setDomainGuid("domain-guid").setPath("/person"),
-            "space-guid");
+        createV3Route("route-guid-2", "somehost", "/person", null, "space-guid", "domain-guid");
     Route withPath2 =
-        new Route(
-            new RouteId().setHost("somehost").setDomainGuid("domain-guid").setPath("/account"),
-            "space-guid");
+        createV3Route("route-guid-3", "somehost", "/account", null, "space-guid", "domain-guid");
     Route withPathAndPort =
-        new Route(
-            new Route()
-                .setHost("somehost")
-                .setDomainGuid("domain-guid")
-                .setPath("/account")
-                .setPort(8888),
-            "space-guid");
+        createV3Route("route-guid-4", "somehost", "/account", 8888, "space-guid", "domain-guid");
 
-    Page<Route> routePage = new Page<>();
-    routePage.setTotalPages(1);
-    routePage.setTotalResults(4);
-    routePage.setResources(
-        Arrays.asList(
-            createRouteResource(withPath2),
-            createRouteResource(withPath1),
-            createRouteResource(hostOnly),
-            createRouteResource(withPathAndPort)));
+    Pagination<Route> routePage = new Pagination<>();
+    Pagination.Details details = new Pagination.Details();
+    details.setTotalPages(1);
+    routePage.setPagination(details);
+    routePage.setResources(Arrays.asList(withPath2, withPath1, hostOnly, withPathAndPort));
 
     Spaces spaces = mock(Spaces.class);
     CloudFoundryOrganization org =
@@ -145,27 +102,14 @@ class RoutesTest {
     CloudFoundrySpace space =
         CloudFoundrySpace.builder().organization(org).name("space-name").id("space-guid").build();
     RouteService routeService = mock(RouteService.class);
-
-    Page<RouteMapping> routeMappingPage = new Page<>();
-    routeMappingPage.setTotalResults(0);
-    routeMappingPage.setTotalPages(1);
+    Applications applications = mock(Applications.class);
 
     when(spaces.findById("space-guid")).thenReturn(space);
-    when(routeService.all(any(), any(), any()))
+    when(routeService.all(any(), any(), any(), any(), any(), any(), any(), any()))
         .thenAnswer(invocation -> Calls.response(Response.success(routePage)));
-    when(routeService.routeMappings(any(), any()))
-        .thenAnswer(invocation -> Calls.response(Response.success(routeMappingPage)));
-
     Routes routes =
         new Routes(
-            "pws",
-            routeService,
-            null,
-            domains,
-            spaces,
-            500,
-            ForkJoinPool.commonPool(),
-            new CloudFoundryConfigurationProperties.LocalCacheConfig());
+            "pws", routeService, applications, domains, spaces, 500, ForkJoinPool.commonPool());
 
     CloudFoundryLoadBalancer loadBalancer =
         routes.find(new RouteId().setHost("somehost").setDomainGuid("domain-guid"), "space-guid");
@@ -175,8 +119,7 @@ class RoutesTest {
     assertThat(loadBalancer.getPath()).isNullOrEmpty();
     assertThat(loadBalancer.getPort()).isNull();
 
-    routePage.setResources(
-        Arrays.asList(createRouteResource(withPathAndPort), createRouteResource(withPath2)));
+    routePage.setResources(Arrays.asList(withPathAndPort, withPath2));
 
     loadBalancer =
         routes.find(
@@ -189,10 +132,18 @@ class RoutesTest {
     assertThat(loadBalancer.getPort()).isNull();
   }
 
-  private Resource<Route> createRouteResource(Route route) {
-    return new Resource<Route>()
-        .setEntity(route)
-        .setMetadata(new Resource.Metadata().setGuid("route-guid"));
+  private Route createV3Route(
+      String guid, String host, String path, Integer port, String spaceGuid, String domainGuid) {
+    Route route = new Route();
+    route.setGuid(guid);
+    route.setHost(host);
+    route.setPath(path);
+    route.setPort(port);
+    route.setRelationships(
+        Map.of(
+            "space", new ToOneRelationship(new Relationship(spaceGuid)),
+            "domain", new ToOneRelationship(new Relationship(domainGuid))));
+    return route;
   }
 
   @Test

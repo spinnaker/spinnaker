@@ -14,10 +14,10 @@ import type {
   IPipelineTemplateV2Collections,
   IPipelineTemplateV2VersionSelections,
 } from '../../../../domain/IPipelineTemplateV2';
+import type { IRouterInjectedProps, IRouterStateChange } from '../../../../navigation/routerContext';
+import { stateChangeSuccess$, withRouter } from '../../../../navigation/routerContext';
 import { PipelineTemplateV2Service } from './pipelineTemplateV2.service';
 import { ReactSelectInput } from '../../../../presentation';
-import type { IStateChange } from '../../../../reactShims';
-import { ReactInjector } from '../../../../reactShims';
 
 import './PipelineTemplatesV2.less';
 
@@ -42,7 +42,7 @@ export const PipelineTemplatesV2Error = (props: { message: string }) => {
   );
 };
 
-export class PipelineTemplatesV2 extends React.Component<{}, IPipelineTemplatesV2State> {
+export class PipelineTemplatesV2Component extends React.Component<IRouterInjectedProps, IPipelineTemplatesV2State> {
   private routeChangedSubscription: Subscription = null;
 
   public state: IPipelineTemplatesV2State = {
@@ -50,13 +50,13 @@ export class PipelineTemplatesV2 extends React.Component<{}, IPipelineTemplatesV
     searchValue: '',
     selectedTemplate: null,
     templates: {},
-    viewTemplateVersion: ReactInjector.$stateParams.templateId,
+    viewTemplateVersion: this.props.stateParams.templateId,
     templateVersionSelections: {},
   };
 
   public componentDidMount() {
     this.fetchTemplates();
-    this.routeChangedSubscription = ReactInjector.stateEvents.stateChangeSuccess.subscribe(this.onRouteChanged);
+    this.routeChangedSubscription = stateChangeSuccess$(this.props.router).subscribe(this.onRouteChanged);
   }
 
   public componentWillUnmount() {
@@ -77,7 +77,7 @@ export class PipelineTemplatesV2 extends React.Component<{}, IPipelineTemplatesV
     );
   }
 
-  private onRouteChanged = (stateChange: IStateChange) => {
+  private onRouteChanged = (stateChange: IRouterStateChange) => {
     const { to, toParams } = stateChange;
     if (to.name === 'home.pipeline-templates') {
       this.setState({ viewTemplateVersion: null });
@@ -112,7 +112,7 @@ export class PipelineTemplatesV2 extends React.Component<{}, IPipelineTemplatesV
   };
 
   private dismissDetailsModal = () => {
-    ReactInjector.$state.go('home.pipeline-templates');
+    this.props.stateService.go('home.pipeline-templates');
   };
 
   private onSearchFieldChanged = (event: React.SyntheticEvent<HTMLInputElement>) => {
@@ -313,3 +313,5 @@ export class PipelineTemplatesV2 extends React.Component<{}, IPipelineTemplatesV
     );
   }
 }
+
+export const PipelineTemplatesV2 = withRouter(PipelineTemplatesV2Component);

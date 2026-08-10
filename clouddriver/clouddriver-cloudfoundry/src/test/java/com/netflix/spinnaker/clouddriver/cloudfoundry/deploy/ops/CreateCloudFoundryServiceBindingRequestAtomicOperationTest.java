@@ -24,10 +24,8 @@ import static org.mockito.Mockito.*;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.MockCloudFoundryClient;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.AbstractServiceInstance;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Resource;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.UserProvidedServiceInstance;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ProcessStats;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ServiceInstance;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.CreateCloudFoundryServiceBindingDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganization;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
@@ -67,16 +65,11 @@ public class CreateCloudFoundryServiceBindingRequestAtomicOperationTest
     CreateCloudFoundryServiceBindingAtomicOperation operation =
         new CreateCloudFoundryServiceBindingAtomicOperation(poller, desc);
 
-    UserProvidedServiceInstance serviceInstance = new UserProvidedServiceInstance();
+    ServiceInstance serviceInstance = new ServiceInstance();
     serviceInstance.setName("service1");
+    serviceInstance.setGuid("123abc");
 
-    Resource<UserProvidedServiceInstance> resource = new Resource<>();
-    Resource.Metadata metadata = new Resource.Metadata();
-    metadata.setGuid("123abc");
-    resource.setEntity(serviceInstance);
-    resource.setMetadata(metadata);
-
-    List<Resource<? extends AbstractServiceInstance>> instances = List.of(resource);
+    List<ServiceInstance> instances = List.of(serviceInstance);
     when(desc.getClient().getServiceInstances().findAllServicesBySpaceAndNames(any(), any()))
         .thenReturn(instances);
     when(poller.waitForOperation(any(Supplier.class), any(), any(), any(), any(), any()))
@@ -84,7 +77,7 @@ public class CreateCloudFoundryServiceBindingRequestAtomicOperationTest
 
     Task task = runOperation(operation);
 
-    verify(client.getServiceInstances()).createServiceBinding(any());
+    verify(client.getServiceInstances()).createServiceBinding(any(), any(), any(), any());
     assertThat(task.getHistory())
         .has(
             status(
@@ -114,16 +107,11 @@ public class CreateCloudFoundryServiceBindingRequestAtomicOperationTest
     CreateCloudFoundryServiceBindingAtomicOperation operation =
         new CreateCloudFoundryServiceBindingAtomicOperation(poller, desc);
 
-    UserProvidedServiceInstance serviceInstance = new UserProvidedServiceInstance();
+    ServiceInstance serviceInstance = new ServiceInstance();
     serviceInstance.setName("service1");
+    serviceInstance.setGuid("123abc");
 
-    Resource<UserProvidedServiceInstance> resource = new Resource<>();
-    Resource.Metadata metadata = new Resource.Metadata();
-    metadata.setGuid("123abc");
-    resource.setEntity(serviceInstance);
-    resource.setMetadata(metadata);
-
-    List<Resource<? extends AbstractServiceInstance>> instances = List.of(resource);
+    List<ServiceInstance> instances = List.of(serviceInstance);
     when(desc.getClient().getServiceInstances().findAllServicesBySpaceAndNames(any(), any()))
         .thenReturn(instances);
     when(poller.waitForOperation(any(Supplier.class), any(), any(), any(), any(), any()))
@@ -131,7 +119,7 @@ public class CreateCloudFoundryServiceBindingRequestAtomicOperationTest
 
     Task task = runOperation(operation);
 
-    verify(client.getServiceInstances()).createServiceBinding(any());
+    verify(client.getServiceInstances()).createServiceBinding(any(), any(), any(), any());
     assertThat(task.getHistory())
         .has(
             status(

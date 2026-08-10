@@ -1,10 +1,9 @@
-import { UISref } from '@uirouter/react';
+import { UISref, useCurrentStateAndParams } from '@uirouter/react';
 import React from 'react';
 
-import { ReactInjector } from '../../reactShims';
-
 export const InstanceDetailsPane = (props: { children: React.ReactNode }) => {
-  const isStandalone = ReactInjector.$uiRouter.globals.current.name === 'instanceDetails';
+  const { state } = useCurrentStateAndParams();
+  const isStandalone = state.name === 'instanceDetails';
 
   return (
     <div className="details-panel">

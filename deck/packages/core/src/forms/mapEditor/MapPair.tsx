@@ -32,6 +32,7 @@ export const MapPair = (props: {
         )}
         <td>
           <input
+            aria-label={keyLabel}
             className="form-control input input-sm"
             type="text"
             value={pair.key}
@@ -53,6 +54,7 @@ export const MapPair = (props: {
             />
           ) : (
             <input
+              aria-label={valueLabel}
               className="form-control input input-sm"
               type="text"
               value={pair.value}
@@ -62,10 +64,10 @@ export const MapPair = (props: {
         </td>
         <td>
           <div className="form-control-static">
-            <a className="clickable button" onClick={onDelete}>
+            <button aria-label="Remove field" className="clickable button" onClick={onDelete} type="button">
               <span className="glyphicon glyphicon-trash" />
               <span className="sr-only">Remove field</span>
-            </a>
+            </button>
           </div>
         </td>
       </tr>

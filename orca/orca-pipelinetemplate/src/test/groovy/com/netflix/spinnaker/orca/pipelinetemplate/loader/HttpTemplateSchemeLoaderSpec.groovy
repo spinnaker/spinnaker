@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.orca.pipelinetemplate.loader
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.kork.yaml.YamlHelper
+import com.netflix.spinnaker.kork.yaml.YamlParserProperties
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateLoaderException
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpHandler
@@ -27,7 +29,7 @@ import spock.lang.Subject
 
 class HttpTemplateSchemeLoaderSpec extends Specification {
   @Subject
-  def schemeLoader = new HttpTemplateSchemeLoader(new ObjectMapper())
+  def schemeLoader = new HttpTemplateSchemeLoader(new ObjectMapper(), new YamlHelper(new YamlParserProperties()))
 
   @Shared
   def httpServer

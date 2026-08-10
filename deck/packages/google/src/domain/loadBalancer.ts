@@ -18,16 +18,15 @@ export interface IGceHttpLoadBalancer extends IGceLoadBalancer {
   certificateMap?: string;
   defaultService: IGceBackendService;
   detail: string;
-  hostRules: IGceHostRule[];
+  hostRules: IGceHostRule;
   ipAddress: string;
   listeners: IGceListener[];
-  loadBalancerType: 'HTTP' | 'INTERNAL_MANAGED' | 'EXTERNAL_MANAGED';
+  loadBalancerType: 'HTTP';
   provider: 'gce';
-  region: string;
+  region: 'global';
   stack: string;
   urlMapName: string;
   subnet?: string;
-  networkTier?: string;
 }
 
 export interface IGceHostRule {
@@ -46,10 +45,7 @@ export interface IGcePathRule {
 export interface IGceListener {
   certificate?: string | null;
   certificateMap?: string | null;
-  certificateSource?: 'certificate' | 'certificateMap';
   name: string;
   port: string;
   ipAddress: string;
-  networkTier?: string;
-  subnet?: string;
 }

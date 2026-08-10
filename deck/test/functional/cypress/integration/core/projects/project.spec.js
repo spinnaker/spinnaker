@@ -51,7 +51,6 @@ describe('core: Project', () => {
 
   it('should opens configure project and validates content', async () => {
     cy.visit('#/projects/kubernetesproject/dashboard');
-    cy.window().its('angular').should('exist');
 
     // Open modal
     cy.get('.pull-right .configure-project-link').click();
@@ -123,7 +122,6 @@ describe('core: Project', () => {
 
   it('shows application status and interacts with region filters', () => {
     cy.visit('#/projects/kubernetesproject/dashboard');
-    cy.window().its('angular').should('exist');
 
     // Header + filter dropdown
     cy.contains('h3', 'Application Status').within(() => {
@@ -140,7 +138,7 @@ describe('core: Project', () => {
     });
 
     // Rollup summary (24 instances now)
-    cy.get('project-cluster .rollup-entry .rollup-summary').within(() => {
+    cy.get('.project-cluster .rollup-entry .rollup-summary').within(() => {
       cy.get('.account-tag').should('contain.text', 'k8s-local');
       cy.get('.cluster-name').should('contain.text', '*-*');
       cy.get('.cluster-health').first().should('contain.text', '1 Application');
@@ -148,12 +146,12 @@ describe('core: Project', () => {
     });
 
     // Expand details
-    cy.get('project-cluster .rollup-entry .row.clickable').click();
-    cy.get('project-cluster .rollup-details').should('not.exist');
-    cy.get('project-cluster .rollup-entry .row.clickable').click();
+    cy.get('.project-cluster .rollup-entry .row.clickable').click();
+    cy.get('.project-cluster .rollup-details').should('not.exist');
+    cy.get('.project-cluster .rollup-entry .row.clickable').click();
 
     // Table shows 3 region columns initially (dev/prod/test)
-    cy.get('project-cluster .rollup-details thead').within(() => {
+    cy.get('.project-cluster .rollup-details thead').within(() => {
       cy.get('th').contains('Last Push').should('exist');
       cy.get('th').filter((_, el) => el.innerText.trim() === 'dev').should('have.length', 1);
       cy.get('th').filter((_, el) => el.innerText.trim() === 'prod').should('have.length', 1);
@@ -161,7 +159,7 @@ describe('core: Project', () => {
     });
 
     // App row basics
-    cy.get('project-cluster .rollup-details tbody tr').first().within(() => {
+    cy.get('.project-cluster .rollup-details tbody tr').first().within(() => {
       cy.get('td a.heavy')
         .should('contain.text', 'KUBERNETESAPP')
         .and('have.attr', 'href')
@@ -184,14 +182,14 @@ describe('core: Project', () => {
     cy.contains('h3', 'Application Status').find('h6.dropdown-toggle').click();
 
     // Now table should only show dev + prod region columns
-    cy.get('project-cluster .rollup-details thead').within(() => {
+    cy.get('.project-cluster .rollup-details thead').within(() => {
       cy.get('th').filter((_, el) => el.innerText.trim() === 'dev').should('have.length', 1);
       cy.get('th').filter((_, el) => el.innerText.trim() === 'prod').should('have.length', 1);
       cy.get('th').filter((_, el) => el.innerText.trim() === 'test').should('have.length', 0);
     });
 
     // And row should only have 2 region links (dev + prod)
-    cy.get('project-cluster .rollup-details tbody tr').first().within(() => {
+    cy.get('.project-cluster .rollup-details tbody tr').first().within(() => {
       cy.get('td a[href*="reg="]').should('have.length', 2);
       cy.get('td a[href*="reg=dev"]').should('have.length', 1);
       cy.get('td a[href*="reg=prod"]').should('have.length', 1);
@@ -204,7 +202,7 @@ describe('core: Project', () => {
     });
     cy.contains('h3', 'Application Status').find('h6.dropdown-toggle').click();
 
-    cy.get('project-cluster .rollup-details thead').within(() => {
+    cy.get('.project-cluster .rollup-details thead').within(() => {
       ['dev', 'prod', 'test'].forEach((r) =>
         cy.get('th').filter((_, el) => el.innerText.trim() === r).should('have.length', 1),
       );
@@ -216,7 +214,7 @@ describe('core: Project', () => {
     // close dropdown to trigger any re-render
     cy.contains('h3', 'Application Status').find('h6.dropdown-toggle').click();
 
-    cy.get('project-cluster .rollup-details thead').within(() => {
+    cy.get('.project-cluster .rollup-details thead').within(() => {
       const regionHeaders = ['dev', 'prod', 'test'];
       cy.get('th').then(($ths) => {
         const texts = [...$ths].map((el) => el.innerText.trim());
@@ -225,18 +223,17 @@ describe('core: Project', () => {
       });
     });
     //
-    cy.get('project-cluster .rollup-details tbody tr').first().find('td a[href*="reg="]').should('have.length', 3);
+    cy.get('.project-cluster .rollup-details tbody tr').first().find('td a[href*="reg="]').should('have.length', 3);
   });
 
   it('should show pipeline status', () => {
     cy.visit('#/projects/kubernetesproject/dashboard');
-    cy.window().its('angular').should('exist');
 
     cy.get('.project-column').eq(1).within(() => {
       cy.contains('h3', 'Pipeline Status').should('exist');
 
       // First pipeline: deployment (3 stages)
-      cy.get('project-pipeline').eq(0).within(() => {
+      cy.get('.project-pipeline').eq(0).within(() => {
         cy.get('.execution-title a').should('contain.text', 'KUBERNETESAPP: deployment');
         cy.get('.execution-bar .execution-marker')
           .should('have.length', 3)
@@ -248,7 +245,7 @@ describe('core: Project', () => {
       });
 
       // Second pipeline: bake_and_deploy_manifest (5 stages)
-      cy.get('project-pipeline').eq(1).within(() => {
+      cy.get('.project-pipeline').eq(1).within(() => {
         cy.get('.execution-title a').should('contain.text', 'KUBERNETESAPP: bake_and_deploy_manifest');
         const classes = [
           'stage-type-deletemanifest',
@@ -271,7 +268,7 @@ describe('core: Project', () => {
 
   afterEach(() => {
     cy.window().then((win) => {
-      win.removeAllListeners && win.removeAllListeners();
+      win && win.removeAllListeners && win.removeAllListeners();
     });
   });
 });

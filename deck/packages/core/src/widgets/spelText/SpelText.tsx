@@ -1,15 +1,14 @@
-import type { StateService } from '@uirouter/core';
 import classNames from 'classnames';
 import $ from 'jquery';
 import 'jquery-textcomplete';
-import { $q, $timeout } from 'ngimport';
 import React from 'react';
 import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import { SpelAutocompleteService } from './SpelAutocompleteService';
+import { DeckRuntimeContext } from '../../bootstrap/DeckRuntimeContext';
 import type { IPipeline } from '../../domain';
-import { ExecutionService } from '../../pipeline/service/execution.service';
+import { nativePromiseService } from '../../utils/nativePromiseService';
 
 import './spel.less';
 
@@ -26,6 +25,9 @@ export interface ISpelTextState {
 }
 
 export class SpelText extends React.Component<ISpelTextProps, ISpelTextState> {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   public static defaultProps: Partial<ISpelTextProps> = {
     placeholder: '',
   };
@@ -38,21 +40,27 @@ export class SpelText extends React.Component<ISpelTextProps, ISpelTextState> {
   constructor(props: ISpelTextProps) {
     super(props);
     this.state = { textcompleteConfig: [] };
-    this.autocompleteService = new SpelAutocompleteService($q, new ExecutionService($q, {} as StateService, $timeout));
+    this.spelInputRef = React.createRef();
+  }
+
+  public componentWillUnmount(): void {
+    this.$input?.off('change', this.onChange);
+    this.destroy$.next();
+  }
+
+  public componentDidMount(): void {
+    if (!this.context) {
+      throw new Error('SpelText requires Deck runtime services');
+    }
+    this.autocompleteService = new SpelAutocompleteService(
+      nativePromiseService,
+      this.context.services.executionService,
+    );
     observableFrom(this.autocompleteService.addPipelineInfo(this.props.pipeline))
       .pipe(takeUntil(this.destroy$))
       .subscribe((textcompleteConfig) => {
         this.setState({ textcompleteConfig: textcompleteConfig });
       });
-    this.spelInputRef = React.createRef();
-  }
-
-  public componentWillUnmount(): void {
-    this.$input.off('change', this.onChange);
-    this.destroy$.next();
-  }
-
-  public componentDidMount(): void {
     this.$input = $(this.spelInputRef.current);
     this.renderSuggestions();
     this.$input.on('change', this.onChange);

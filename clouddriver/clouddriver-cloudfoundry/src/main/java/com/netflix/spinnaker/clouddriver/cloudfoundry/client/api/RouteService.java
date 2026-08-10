@@ -16,33 +16,31 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client.api;
 
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Page;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Resource;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Route;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.RouteMapping;
-import java.util.List;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.CreateRoute;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Pagination;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Route;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.*;
 
 public interface RouteService {
-  // Mapping to CF API style query params -
-  // https://apidocs.cloudfoundry.org/1.34.0/routes/list_all_routes.html
-  @GET("v2/routes?results-per-page=100")
-  Call<Page<Route>> all(
+  @GET("v3/routes")
+  Call<Pagination<Route>> all(
       @Query("page") Integer page,
       @Query("per_page") Integer perPage,
-      @Query("q") List<String> queryParams);
+      @Query("hosts") String hosts,
+      @Query("organization_guids") String organizationGuids,
+      @Query("domain_guids") String domainGuids,
+      @Query("paths") String paths,
+      @Query("ports") String ports,
+      @Query("space_guids") String spaceGuids);
 
-  @GET("v2/routes/{guid}")
-  Call<Resource<Route>> findById(@Path("guid") String guid);
+  @GET("v3/routes/{guid}")
+  Call<Route> findById(@Path("guid") String guid);
 
-  @GET("v2/routes/{guid}/route_mappings")
-  Call<Page<RouteMapping>> routeMappings(@Path("guid") String guid, @Query("page") Integer page);
+  @POST("v3/routes")
+  Call<Route> createRoute(@Body CreateRoute route);
 
-  @POST("v2/routes")
-  Call<Resource<Route>> createRoute(@Body Route route);
-
-  @DELETE("v2/routes/{guid}?recursive=true")
+  @DELETE("v3/routes/{guid}")
   Call<ResponseBody> deleteRoute(@Path("guid") String guid);
 }

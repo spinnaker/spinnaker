@@ -19,6 +19,8 @@ fi
 ARCH=$(uname -m)
 if [ "$ARCH" = "x86_64" ]; then
   ARCH="amd64"
+elif [ "$ARCH" = "aarch64" ]; then
+  ARCH="arm64"
 fi
 
 # Get the PACKER_PLUGINS environment variable or set a default value

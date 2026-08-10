@@ -1,54 +1,40 @@
-import type { IQService, IRootScopeService, IScope } from 'angular';
-import { mock } from 'angular';
-
 import type { IAmazonServerGroup, IScalingPolicyAlarmView, IStepAdjustment } from '@spinnaker/amazon';
 import { VpcReader } from '@spinnaker/amazon';
 
-import type { EcsServerGroupTransformer } from './serverGroup.transformer';
-import { ECS_SERVER_GROUP_TRANSFORMER } from './serverGroup.transformer';
+import { EcsServerGroupTransformer } from './serverGroup.transformer';
 
 describe('ecsServerGroupTransformer', () => {
-  let transformer: EcsServerGroupTransformer, $q: IQService, $scope: IScope;
+  let transformer: EcsServerGroupTransformer;
 
-  beforeEach(mock.module(ECS_SERVER_GROUP_TRANSFORMER));
-
-  beforeEach(
-    mock.inject(
-      (_ecsServerGroupTransformer_: EcsServerGroupTransformer, _$q_: IQService, $rootScope: IRootScopeService) => {
-        transformer = _ecsServerGroupTransformer_;
-        $q = _$q_;
-        $scope = $rootScope.$new();
-      },
-    ),
-  );
+  beforeEach(() => {
+    transformer = new EcsServerGroupTransformer();
+  });
 
   describe('normalize server group', () => {
     beforeEach(() => {
       spyOn(VpcReader, 'listVpcs').and.returnValue(
-        $q.when([{ account: 'test', region: 'us-east-1', id: 'vpc-1', name: 'main' } as any]),
+        Promise.resolve([{ account: 'test', region: 'us-east-1', id: 'vpc-1', name: 'main' } as any]),
       );
     });
 
-    it('adds vpc name to server group', () => {
+    it('adds vpc name to server group', async () => {
       const serverGroup = {
         account: 'test',
         region: 'us-east-1',
         vpcId: 'vpc-1',
         instances: [],
       } as IAmazonServerGroup;
-      transformer.normalizeServerGroup(serverGroup);
-      $scope.$digest();
+      await transformer.normalizeServerGroup(serverGroup);
       expect(serverGroup.vpcName).toBe('main');
     });
 
-    it('adds empty vpc name when no vpcId found on server group', () => {
+    it('adds empty vpc name when no vpcId found on server group', async () => {
       const serverGroup = {
         account: 'test',
         region: 'us-east-1',
         instances: [],
       } as IAmazonServerGroup;
-      transformer.normalizeServerGroup(serverGroup);
-      $scope.$digest();
+      await transformer.normalizeServerGroup(serverGroup);
       expect(serverGroup.vpcName).toBe('');
     });
   });

@@ -1,10 +1,8 @@
-import { module } from 'angular';
 import React from 'react';
 import { MenuItem } from 'react-bootstrap';
-import { react2angular } from 'react2angular';
 
 import type { Application } from '@spinnaker/core';
-import { ConfirmationModalService, ManifestWriter, robotToHuman, withErrorBoundary } from '@spinnaker/core';
+import { ConfirmationModalService, ManifestWriter, robotToHuman } from '@spinnaker/core';
 
 import type { IAnyKubernetesResource } from '../../interfaces';
 
@@ -38,9 +36,3 @@ export function PauseRollout({ application, resource }: IPauseRolloutProps) {
   };
   return <MenuItem onClick={handleClick}>Pause Rollout</MenuItem>;
 }
-
-export const KUBERNETES_PAUSE_ROLLOUT = 'spinnaker.kubernetes.pause.rollout';
-module(KUBERNETES_PAUSE_ROLLOUT, []).component(
-  'kubernetesPauseRollout',
-  react2angular(withErrorBoundary(PauseRollout, 'kubernetesPauseRollout'), ['application', 'resource']),
-);

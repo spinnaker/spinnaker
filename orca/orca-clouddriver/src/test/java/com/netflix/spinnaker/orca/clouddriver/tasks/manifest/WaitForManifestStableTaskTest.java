@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.Test;
 import retrofit2.mock.Calls;
@@ -272,6 +273,64 @@ final class WaitForManifestStableTaskTest {
     AssertionsForClassTypes.assertThat(result.getStatus()).isEqualTo(ExecutionStatus.TERMINAL);
     assertThat(getMessages(result))
         .containsExactly(failedMessage(MANIFEST_1), waitingToStabilizeMessage(MANIFEST_2));
+  }
+
+  @Test
+  void defaultTimeoutIs30Minutes() {
+    OortService oortService = mock(OortService.class);
+    WaitForManifestStableTask task = new WaitForManifestStableTask(oortService);
+
+    StageExecutionImpl stage =
+        createStageWithManifests(ImmutableMap.of(NAMESPACE, ImmutableList.of(MANIFEST_1)));
+
+    assertThat(task.getDynamicTimeout(stage)).isEqualTo(TimeUnit.MINUTES.toMillis(30));
+  }
+
+  @Test
+  void dynamicTimeoutReadsStableManifestTimeoutMinutes() {
+    OortService oortService = mock(OortService.class);
+    WaitForManifestStableTask task = new WaitForManifestStableTask(oortService);
+
+    StageExecutionImpl stage =
+        createStageWithContext(
+            ImmutableMap.<String, Object>builder()
+                .put("account.name", ACCOUNT)
+                .put(
+                    "outputs.manifestNamesByNamespace",
+                    ImmutableMap.of(NAMESPACE, ImmutableList.of(MANIFEST_1)))
+                .put("stableManifestTimeoutMinutes", 60)
+                .build());
+
+    assertThat(task.getDynamicTimeout(stage)).isEqualTo(TimeUnit.MINUTES.toMillis(60));
+  }
+
+  @Test
+  void dynamicTimeoutFallsBackToDefaultWhenFieldAbsent() {
+    OortService oortService = mock(OortService.class);
+    WaitForManifestStableTask task = new WaitForManifestStableTask(oortService);
+
+    StageExecutionImpl stage =
+        createStageWithManifests(ImmutableMap.of(NAMESPACE, ImmutableList.of(MANIFEST_1)));
+
+    assertThat(task.getDynamicTimeout(stage)).isEqualTo(TimeUnit.MINUTES.toMillis(30));
+  }
+
+  @Test
+  void dynamicTimeoutAcceptsStringValue() {
+    OortService oortService = mock(OortService.class);
+    WaitForManifestStableTask task = new WaitForManifestStableTask(oortService);
+
+    StageExecutionImpl stage =
+        createStageWithContext(
+            ImmutableMap.<String, Object>builder()
+                .put("account.name", ACCOUNT)
+                .put(
+                    "outputs.manifestNamesByNamespace",
+                    ImmutableMap.of(NAMESPACE, ImmutableList.of(MANIFEST_1)))
+                .put("stableManifestTimeoutMinutes", "45")
+                .build());
+
+    assertThat(task.getDynamicTimeout(stage)).isEqualTo(TimeUnit.MINUTES.toMillis(45));
   }
 
   private static String waitingToStabilizeMessage(String manifest) {

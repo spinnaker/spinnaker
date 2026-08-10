@@ -1,9 +1,9 @@
 import type { StateService } from '@uirouter/core';
 import { isDate, isObject, isUndefined } from 'lodash';
 
+import { getDirectRouter } from './directRouter';
 import type { ITask } from '../domain';
 import { NameUtils } from '../naming';
-import { ReactInjector } from '../reactShims';
 import { Registry } from '../registry';
 
 // TODO: refactor to marker interface and have input types declare expected fields
@@ -39,6 +39,10 @@ interface IClusterFilter {
   q?: string;
   reg?: string;
   stack?: string;
+}
+
+function getStateService(): StateService {
+  return getDirectRouter()!.stateService;
 }
 
 class UrlBuilderUtils {
@@ -349,7 +353,7 @@ export class UrlBuilder {
     const builder: IUrlBuilder = Registry.urlBuilder.getBuilder(input.type);
     let result: string;
     if (builder) {
-      result = builder.build(input, ReactInjector.$state);
+      result = builder.build(input, getStateService());
     } else {
       result = '/';
     }

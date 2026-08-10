@@ -7,7 +7,7 @@ import { SETTINGS } from '../../config/settings';
 import type { IExecutionGroup } from '../../domain';
 import { FilterModelService } from '../../filterModel';
 import type { IFilterConfig, IFilterModel } from '../../filterModel/IFilterModel';
-import { ReactInjector } from '../../reactShims';
+import { getDirectRouter } from '../../navigation/directRouter';
 
 export const filterModelConfig: IFilterConfig[] = [
   { model: 'awaitingJudgement', type: 'boolean', clearValue: false },
@@ -38,18 +38,20 @@ export class ExecutionFilterModel {
   public expandSubject: Subject<boolean> = new Subject<boolean>();
 
   constructor() {
-    const { transitionService } = ReactInjector.$uiRouter;
+    const transitionService = getDirectRouter()?.transitionService;
 
-    this.configViewStateCache = ViewStateCache.createCache('executionFilters', {
-      version: 2,
-      maxAge: SETTINGS.maxPipelineAgeDays * 24 * 60 * 60 * 1000,
-    });
+    this.configViewStateCache =
+      ViewStateCache.get('executionFilters') ||
+      ViewStateCache.createCache('executionFilters', {
+        version: 2,
+        maxAge: SETTINGS.maxPipelineAgeDays * 24 * 60 * 60 * 1000,
+      });
 
     this.asFilterModel = FilterModelService.configureFilterModel(this as any, filterModelConfig);
     FilterModelService.registerRouterHooks(this.asFilterModel, '**.application.pipelines.executions.**');
     this.asFilterModel.activate();
 
-    transitionService.onBefore(
+    transitionService?.onBefore(
       {
         entering: (state) =>
           !!(

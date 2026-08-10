@@ -1,10 +1,10 @@
-import type { IHttpPromiseCallbackArg } from 'angular';
-import { $q } from 'ngimport';
-
+import type { XhrError } from '../api/ApiService';
 import { AuthenticationService } from '../authentication/AuthenticationService';
 import type { ITask } from '../domain';
 import { TaskReader } from './task.read.service';
 import { TaskWriter } from './task.write.service';
+
+const reject = <T = never>(value: any): Promise<T> => Promise.reject(value);
 
 export interface IJob {
   [attribute: string]: any;
@@ -25,7 +25,7 @@ export interface ITaskCommand {
 }
 
 export class TaskExecutor {
-  public static executeTask(taskCommand: ITaskCommand): PromiseLike<ITask> {
+  public static executeTask(taskCommand: ITaskCommand): Promise<ITask> {
     const owner: any = taskCommand.application || taskCommand.project || { name: 'ad-hoc' };
     if (taskCommand.application && taskCommand.application.name) {
       taskCommand.application = taskCommand.application.name;
@@ -47,7 +47,7 @@ export class TaskExecutor {
         }
         return TaskReader.getTask(taskId);
       },
-      (response: IHttpPromiseCallbackArg<any>) => {
+      (response: XhrError<{ message?: string }>) => {
         const message: string = response.data?.message || 'Sorry, no more information.';
         const error: any = {
           status: response.status,
@@ -55,7 +55,7 @@ export class TaskExecutor {
           log: message,
           failureMessage: message,
         };
-        return $q.reject(error);
+        return reject(error);
       },
     );
   }

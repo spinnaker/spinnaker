@@ -1,3 +1,4 @@
+import { useRouter } from '@uirouter/react';
 import React from 'react';
 import { Dropdown, MenuItem } from 'react-bootstrap';
 
@@ -7,7 +8,6 @@ import type { IManagedResourceSummary } from '../../domain';
 import { HelpField } from '../../help';
 import managedDeliveryLogo from '../icons/md-logo-color.svg';
 import { HoverablePopover } from '../../presentation';
-import { ReactInjector } from '../../reactShims';
 import { showManagedResourceHistoryModal } from '../resourceHistory/ManagedResourceHistoryModal';
 import { toggleResourcePause } from './toggleResourceManagement';
 import { logger } from '../../utils/Logger';
@@ -31,6 +31,7 @@ export const ManagedResourceDetailsIndicator = ({
   resourceSummary,
   application,
 }: IManagedResourceDetailsIndicatorProps) => {
+  const { stateService } = useRouter();
   if (!resourceSummary) {
     return null;
   }
@@ -63,7 +64,7 @@ export const ManagedResourceDetailsIndicator = ({
   const appPausedHelpContent = `
     <p>Resource management is currently disabled for the entire application.
     <a
-      href=${ReactInjector.$state.href('home.applications.application.config', {
+      href=${stateService.href('home.applications.application.config', {
         section: 'managed-resources',
       })}
     >

@@ -1,16 +1,15 @@
-import { module } from 'angular';
 import React from 'react';
 import { MenuItem } from 'react-bootstrap';
-import { react2angular } from 'react2angular';
 
 import type { Application } from '@spinnaker/core';
-import { ConfirmationModalService, ManifestWriter, withErrorBoundary } from '@spinnaker/core';
+import { ConfirmationModalService, ManifestWriter } from '@spinnaker/core';
 
-import type { IKubernetesServerGroupManager } from '../../interfaces';
+import type { IKubernetesServerGroup, IKubernetesServerGroupManager } from '../../interfaces';
 
 interface IRollingRestartProps {
   application: Application;
-  serverGroupManager: IKubernetesServerGroupManager;
+  serverGroupManager?: IKubernetesServerGroupManager;
+  serverGroup?: IKubernetesServerGroup;
 }
 
 interface IRollingRestartParameters {
@@ -21,34 +20,29 @@ interface IRollingRestartParameters {
   reason?: string;
 }
 
-export function RollingRestart({ application, serverGroupManager }: IRollingRestartProps) {
+export function RollingRestart({ application, serverGroupManager, serverGroup }: IRollingRestartProps) {
   function rollingRestart() {
+    const rollingRestartParameters: IRollingRestartParameters = {
+      account: serverGroupManager?.account || serverGroup?.account,
+      cloudProvider: 'kubernetes',
+      location: serverGroupManager?.namespace || serverGroup?.namespace,
+      manifestName: serverGroupManager?.name || serverGroup?.name,
+    };
+
     ConfirmationModalService.confirm({
-      account: serverGroupManager.account,
+      account: rollingRestartParameters.account,
       askForReason: true,
-      header: `Initiate rolling restart of ${serverGroupManager.name}`,
+      header: `Initiate rolling restart of ${rollingRestartParameters.manifestName}`,
       submitMethod: (params: { reason?: string }) => {
-        const rollingRestartParameters: IRollingRestartParameters = {
-          account: serverGroupManager.account,
-          cloudProvider: 'kubernetes',
-          location: serverGroupManager.namespace,
-          manifestName: serverGroupManager.name,
-          reason: params.reason,
-        };
+        rollingRestartParameters.reason = params.reason;
         return ManifestWriter.rollingRestartManifest(rollingRestartParameters, application);
       },
       taskMonitorConfig: {
         application,
-        title: `Rolling restart of ${serverGroupManager.name}`,
+        title: `Rolling restart of ${rollingRestartParameters.manifestName} in ${rollingRestartParameters.account}`,
         onTaskComplete: () => application.serverGroups.refresh(true),
       },
     });
   }
   return <MenuItem onClick={rollingRestart}>Rolling Restart</MenuItem>;
 }
-
-export const KUBERNETES_ROLLING_RESTART = 'spinnaker.kubernetes.v2.rolling.restart';
-module(KUBERNETES_ROLLING_RESTART, []).component(
-  'kubernetesRollingRestart',
-  react2angular(withErrorBoundary(RollingRestart, 'kubernetesRollingRestart'), ['application', 'serverGroupManager']),
-);

@@ -1,5 +1,4 @@
 import { flatten } from 'lodash';
-import { $q } from 'ngimport';
 
 import { REST } from '../../../api/ApiService';
 import type { IPipelineTemplateConfigV2 } from '../../../domain';
@@ -84,7 +83,7 @@ export class PipelineTemplateReader {
     source: string,
     executionId?: string,
     pipelineConfigId?: string,
-  ): PromiseLike<IPipelineTemplate> {
+  ): Promise<IPipelineTemplate> {
     return REST('/pipelineTemplates/resolve')
       .query({ source, executionId, pipelineConfigId })
       .get()
@@ -97,20 +96,19 @@ export class PipelineTemplateReader {
   public static getPipelinePlan(
     config: IPipelineTemplateConfig | IPipelineTemplateConfigV2,
     executionId?: string,
-  ): PromiseLike<IPipeline> {
+  ): Promise<IPipeline> {
     const endpoint = PipelineTemplateV2Service.isV2PipelineConfig(config)
       ? '/v2/pipelineTemplates/plan'
       : '/pipelines/start';
     return REST(endpoint).post({ ...config, plan: true, executionId });
   }
 
-  public static getPipelineTemplatesByScope = (scope: string): PromiseLike<IPipelineTemplate[]> => {
+  public static getPipelineTemplatesByScope = (scope: string): Promise<IPipelineTemplate[]> => {
     return REST('/pipelineTemplates').query({ scope }).get();
   };
 
-  public static getPipelineTemplatesByScopes(scopes: string[]): PromiseLike<IPipelineTemplate[]> {
-    return $q
-      .all(scopes.map(this.getPipelineTemplatesByScope))
+  public static getPipelineTemplatesByScopes(scopes: string[]): Promise<IPipelineTemplate[]> {
+    return Promise.all(scopes.map(this.getPipelineTemplatesByScope))
       .then((templates) => flatten(templates))
       .then((templates) => {
         templates.forEach((template) => (template.selfLink = `spinnaker://${template.id}`));
@@ -139,7 +137,7 @@ export class PipelineTemplateReader {
     };
   }
 
-  public static getV2PipelineTemplateList(): PromiseLike<IPipelineTemplateV2Collections> {
+  public static getV2PipelineTemplateList(): Promise<IPipelineTemplateV2Collections> {
     return REST('/v2/pipelineTemplates/versions').get();
   }
 }

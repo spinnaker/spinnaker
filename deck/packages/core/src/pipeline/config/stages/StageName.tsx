@@ -1,4 +1,3 @@
-import { module } from 'angular';
 /*
  * Copyright 2018 Schibsted ASA.
  *
@@ -16,10 +15,8 @@ import { module } from 'angular';
  * limitations under the License.
  */
 import React from 'react';
-import { react2angular } from 'react2angular';
 
 import type { IStage } from '../../../domain';
-import { withErrorBoundary } from '../../../presentation/SpinErrorBoundary';
 
 export interface IStageNameProps {
   stages: IStage[];
@@ -37,10 +34,3 @@ const nameFromRefId = (stages: IStage[], refId: string | number) => {
 export const StageName: React.SFC<IStageNameProps> = (props) => {
   return <span>{nameFromRefId(props.stages, props.refId)}</span>;
 };
-
-export const STAGE_NAME = 'spinnaker.core.artifact.stageName.component';
-
-module(STAGE_NAME, []).component(
-  'stageName',
-  react2angular(withErrorBoundary(StageName, 'stageName'), ['stages', 'refId']),
-);

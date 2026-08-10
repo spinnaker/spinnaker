@@ -15,13 +15,14 @@ import type {
   IWizardPageComponent,
 } from '@spinnaker/core';
 import {
+  DeckRuntimeContext,
   FormikFormField,
   HelpField,
-  ReactInjector,
   ReactSelectInput,
   SubnetReader,
   TetheredSelect,
 } from '@spinnaker/core';
+
 import type { IAmazonFunctionUpsertCommand } from '../../index';
 import { VpcReader } from '../../vpc';
 
@@ -48,6 +49,9 @@ export interface INetworkState {
 export class Network
   extends React.Component<INetworkProps, INetworkState>
   implements IWizardPageComponent<IAmazonFunctionUpsertCommand> {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   constructor(props: INetworkProps) {
     super(props);
     this.getAllVpcs();
@@ -76,12 +80,12 @@ export class Network
     return {};
   }
 
-  private getAvailableSubnets(): PromiseLike<ISubnet[]> {
+  private getAvailableSubnets(): Promise<ISubnet[]> {
     return SubnetReader.listSubnetsByProvider('aws');
   }
 
-  private getAvailableSecurityGroups(): PromiseLike<ISecurityGroupsByAccountSourceData> {
-    return ReactInjector.securityGroupReader.getAllSecurityGroups();
+  private getAvailableSecurityGroups(): Promise<ISecurityGroupsByAccountSourceData> {
+    return this.context.services.securityGroupReader.getAllSecurityGroups();
   }
   private makeSubnetOptions(availableSubnets: ISubnet[]): ISubnetOption[] {
     const subOptions: ISubnetOption[] = availableSubnets.map((s) => ({ subnetId: s.id, vpcId: s.vpcId }));

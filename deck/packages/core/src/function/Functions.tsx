@@ -39,9 +39,7 @@ export class Functions extends React.Component<IFunctionsProps, IFunctionsState>
 
     this.groupsUpdatedListener = FunctionState.filterService.groupsUpdatedStream.subscribe(() => this.groupsUpdated());
     FunctionState.filterModel.asFilterModel.activate();
-    this.functionsRefreshUnsubscribe = app
-      .getDataSource('functions')
-      .onRefresh(null, () => this.updateFunctionGroups());
+    this.functionsRefreshUnsubscribe = app.getDataSource('functions').onRefresh(() => this.updateFunctionGroups());
     app.setActiveState(app.loadBalancers);
     this.updateFunctionGroups();
   }

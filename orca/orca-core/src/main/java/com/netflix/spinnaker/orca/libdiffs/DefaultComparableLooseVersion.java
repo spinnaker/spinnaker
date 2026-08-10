@@ -58,15 +58,21 @@ public class DefaultComparableLooseVersion implements ComparableLooseVersion {
       LooseVersion rhs = (LooseVersion) o;
       if (this.version.equals(rhs.version)) return 0;
       for (int i = 0; i < 4; i++) {
-        try {
-          if (versions[i] > rhs.versions[i]) return 1;
-          if (versions[i] < rhs.versions[i]) return -1;
-        } catch (Exception e) {
-          // assume it's different
-          return -1;
-        }
+        // A missing component (shorter version, e.g. "1.2" vs "1.2.3") counts as 0,
+        // matching Python's LooseVersion where "1.2.3" > "1.2".
+        int lhsComponent = component(versions, i);
+        int rhsComponent = component(rhs.versions, i);
+        if (lhsComponent > rhsComponent) return 1;
+        if (lhsComponent < rhsComponent) return -1;
       }
       return 0;
+    }
+
+    private static int component(Integer[] versions, int i) {
+      if (versions == null || i >= versions.length || versions[i] == null) {
+        return 0;
+      }
+      return versions[i];
     }
 
     public String toString() {

@@ -1,6 +1,13 @@
 import React, { useState } from 'react';
 import { NumberInput, StageConfigField } from '@spinnaker/core';
-import type { IScaleCommand } from './scale.controller';
+
+export interface IScaleCommand {
+  manifestName: string;
+  location: string;
+  account: string;
+  reason: string;
+  replicas: number;
+}
 
 export interface IScaleSettingsFormProps {
   options: IScaleCommand;

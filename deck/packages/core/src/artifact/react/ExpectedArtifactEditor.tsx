@@ -1,23 +1,14 @@
-import { module } from 'angular';
 import { cloneDeep } from 'lodash';
 import React from 'react';
-import { react2angular } from 'react2angular';
 
 import { ArtifactAccountSelector } from './ArtifactAccountSelector';
-import {
-  EXPECTED_ARTIFACT_KIND_SELECTOR_COMPONENT_REACT,
-  ExpectedArtifactKindSelector,
-} from './ExpectedArtifactKindSelector';
+import { ExpectedArtifactKindSelector } from './ExpectedArtifactKindSelector';
 import type { IExpectedArtifactSourceOption } from './ExpectedArtifactSourceSelector';
-import {
-  EXPECTED_ARTIFACT_SOURCE_SELECTOR_COMPONENT_REACT,
-  ExpectedArtifactSourceSelector,
-} from './ExpectedArtifactSourceSelector';
+import { ExpectedArtifactSourceSelector } from './ExpectedArtifactSourceSelector';
 import type { IArtifactAccount } from '../../account';
 import type { IArtifact, IArtifactKindConfig, IExpectedArtifact, IPipeline } from '../../domain';
 import { ExpectedArtifactService } from '../expectedArtifact.service';
 import { StageConfigField } from '../../pipeline/config/stages/common/stageConfigField/StageConfigField';
-import { withErrorBoundary } from '../../presentation/SpinErrorBoundary';
 
 export interface IExpectedArtifactEditorProps {
   default?: IExpectedArtifact;
@@ -201,22 +192,3 @@ export class ExpectedArtifactEditor extends React.Component<
     );
   }
 }
-
-export const EXPECTED_ARTIFACT_EDITOR_COMPONENT_REACT = 'spinnaker.core.artifacts.expected.editor.react';
-module(EXPECTED_ARTIFACT_EDITOR_COMPONENT_REACT, [
-  EXPECTED_ARTIFACT_KIND_SELECTOR_COMPONENT_REACT,
-  EXPECTED_ARTIFACT_SOURCE_SELECTOR_COMPONENT_REACT,
-]).component(
-  'expectedArtifactEditorReact',
-  react2angular(withErrorBoundary(ExpectedArtifactEditor, 'expectedArtifactEditorReact'), [
-    'default',
-    'kinds',
-    'sources',
-    'accounts',
-    'onSave',
-    'showIcons',
-    'showAccounts',
-    'className',
-    'pipeline',
-  ]),
-);

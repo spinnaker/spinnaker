@@ -1,7 +1,7 @@
 import { cloneDeep, forOwn, includes, isNil, pick, reduce, size, some } from 'lodash';
 
 import type { IFilterConfig, IFilterModel, ITrueKeyModel } from './IFilterModel';
-import { ReactInjector } from '../reactShims';
+import { getDirectRouter } from '../navigation/directRouter';
 
 export class FilterModelService {
   public static configureFilterModel(filterModel: IFilterModel, filterModelConfig: IFilterConfig[]) {
@@ -33,7 +33,7 @@ export class FilterModelService {
     // Apply any mutations to the current sortFilter values as ui-router state params
     filterModel.applyParamsToUrl = () => {
       const toParams = FilterModelService.mapSortFilterToRouterParams(filterModel);
-      ReactInjector.$state.go('.', toParams, { location: 'replace' });
+      getDirectRouter()?.stateService.go('.', toParams, { location: 'replace' });
     };
 
     return filterModel;
@@ -60,13 +60,21 @@ export class FilterModelService {
       const valueIfNil = filterTypeDefaults[filter.type];
       const rawValue = params[filter.param];
       const paramValue = isNil(rawValue) ? valueIfNil : rawValue;
-      // Clone deep so angularjs mutations happen on a different object reference
-      return { ...acc, [filter.model]: cloneDeep(paramValue) };
+      const normalizedValue = filter.normalizeParamValue
+        ? filter.normalizeParamValue(paramValue, { valueIfNil, rawValue, params })
+        : paramValue;
+      // Isolate the filter model from subsequent mutations to router params.
+      return { ...acc, [filter.model]: cloneDeep(normalizedValue) };
     }, {} as any);
   }
 
   public static registerRouterHooks(filterModel: IFilterModel, stateGlob: string) {
-    const { transitionService } = ReactInjector.$uiRouter;
+    const router = getDirectRouter();
+    if (!router) {
+      return;
+    }
+
+    const { transitionService } = router;
     const filterParams = filterModel.config.map((cfg) => cfg.param);
     let savedParamsForScreen: any = {};
 
@@ -94,8 +102,7 @@ export class FilterModelService {
       savedParamsForScreen = {};
     });
 
-    // Map transition param values to sortFilter values and save on the filterModel before each transition
-    // In the future, we should remove  the AngularJS code that watches for mutations on the sortFilter object
+    // Map transition param values onto the existing sortFilter before each transition.
     transitionService.onBefore({ to: stateGlob }, (trans) => {
       const toParams = trans.params();
       Object.assign(filterModel.sortFilter, FilterModelService.mapRouterParamsToSortFilter(filterModel, toParams));
