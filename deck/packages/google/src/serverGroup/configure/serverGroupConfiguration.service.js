@@ -424,6 +424,7 @@ export class GceServerGroupConfigurationService {
           command.loadBalancers,
           command.credentials,
           newLoadBalancerObjects,
+          command.region,
         );
         const matched = _.intersection(command.backingData.filtered.loadBalancers, command.loadBalancers);
         const removed = _.xor(matched, command.loadBalancers);

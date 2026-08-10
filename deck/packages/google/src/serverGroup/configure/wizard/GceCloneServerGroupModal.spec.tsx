@@ -849,6 +849,119 @@ describe('GceCloneServerGroupModal', () => {
     });
   });
 
+  it('maps EXTERNAL_MANAGED selections to regional listener metadata', () => {
+    const transformed = transformGceServerGroupCommand(
+      buildCommand({
+        backingData: {
+          filtered: {
+            loadBalancerIndex: {
+              'external-managed-lb': {
+                listeners: [{ name: 'external-listener' }],
+                loadBalancerType: 'EXTERNAL_MANAGED',
+                name: 'external-managed-lb',
+              },
+            },
+          },
+        },
+        loadBalancers: ['external-managed-lb'],
+        viewState: { ...buildCommand().viewState, mode: 'clone' },
+      }),
+    );
+
+    expect(transformed.instanceMetadata).toEqual({
+      'load-balancer-names': 'external-listener',
+    });
+  });
+
+  it('maps REGIONAL_EXTERNAL_NETWORK selections to direct regional load balancer metadata', () => {
+    const transformed = transformGceServerGroupCommand(
+      buildCommand({
+        backingData: {
+          filtered: {
+            loadBalancerIndex: {
+              'regional-network-lb': {
+                loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK',
+                name: 'regional-network-lb',
+              },
+            },
+          },
+        },
+        loadBalancers: ['regional-network-lb'],
+        viewState: { ...buildCommand().viewState, mode: 'clone' },
+      }),
+    );
+
+    expect(transformed.instanceMetadata).toEqual({
+      'load-balancer-names': 'regional-network-lb',
+    });
+  });
+
+  ['clone', 'editPipeline'].forEach((mode) => {
+    it(`strips stale ignored loadBalancingPolicy from REGIONAL_EXTERNAL_NETWORK-only ${mode} submit payloads`, () => {
+      const transformed = transformGceServerGroupCommand(
+        buildCommand({
+          backingData: {
+            filtered: {
+              loadBalancerIndex: {
+                'regional-network-lb': {
+                  loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK',
+                  name: 'regional-network-lb',
+                },
+              },
+            },
+          },
+          loadBalancers: ['regional-network-lb'],
+          loadBalancingPolicy: {
+            balancingMode: 'UTILIZATION',
+            capacityScaler: 2,
+            maxUtilization: 2,
+            namedPorts: [{ name: '', port: 65536 }],
+          },
+          viewState: { ...buildCommand().viewState, mode },
+        }),
+      );
+
+      expect(transformed.loadBalancingPolicy).toBeUndefined();
+    });
+  });
+
+  it('preserves applicable loadBalancingPolicy for mixed EXTERNAL_MANAGED selections on submit', () => {
+    const transformed = transformGceServerGroupCommand(
+      buildCommand({
+        backingData: {
+          filtered: {
+            loadBalancerIndex: {
+              'external-managed-lb': {
+                listeners: [{ name: 'external-listener' }],
+                loadBalancerType: 'EXTERNAL_MANAGED',
+                name: 'external-managed-lb',
+              },
+              'regional-network-lb': {
+                loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK',
+                name: 'regional-network-lb',
+              },
+            },
+          },
+        },
+        loadBalancers: ['external-managed-lb', 'regional-network-lb'],
+        loadBalancingPolicy: {
+          balancingMode: 'RATE',
+          capacityScaler: 1,
+          maxRatePerInstance: 100,
+          namedPorts: [{ name: 'https', port: 443 }],
+        },
+        viewState: { ...buildCommand().viewState, mode: 'clone' },
+      }),
+    );
+
+    expect(transformed.loadBalancingPolicy).toEqual({
+      balancingMode: 'RATE',
+      capacityScaler: 1,
+      maxRatePerInstance: 100,
+      namedPorts: [{ name: 'https', port: 443 }],
+    });
+  });
+
   it('rebuilds pipeline metadata from the selected regional load balancer and backend services', () => {
     const transformed = transformGceServerGroupCommand(
       buildCommand({
