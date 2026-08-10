@@ -24,6 +24,22 @@ function selectedReference(name: string, options: IGceLoadBalancerDataItem[]): I
   return (options.find((option) => option.name === name) || { name }) as IGceResourceReference;
 }
 
+function certificateManagerReference(resourceUrl: string): IGceResourceReference | undefined {
+  const selfLink = resourceUrl.trim();
+  if (!selfLink) {
+    return undefined;
+  }
+  return {
+    name: selfLink.split('/').filter(Boolean).pop() || selfLink,
+    selfLink,
+  };
+}
+
+function certificateManagerUrl(certificate: IGceResourceReference | undefined): string {
+  const selfLink = certificate?.selfLink || '';
+  return selfLink.includes('/sslCertificates/') ? '' : selfLink;
+}
+
 export function GceHttpLoadBalancerListenerEditor({
   addresses,
   certificates,
@@ -149,6 +165,24 @@ export function GceHttpLoadBalancerListenerEditor({
               ))}
             </select>
           </label>
+          {externalManaged && (
+            <label>
+              Certificate Manager resource URL
+              <input
+                data-testid="listener-certificate-manager-url"
+                placeholder="//certificatemanager.googleapis.com/projects/.../locations/.../certificates/..."
+                type="text"
+                value={certificateManagerUrl(listener.certificate)}
+                onChange={(event) =>
+                  onChange({
+                    ...listener,
+                    certificate: certificateManagerReference(event.target.value),
+                    certificateMap: undefined,
+                  })
+                }
+              />
+            </label>
+          )}
           {externalManaged && (
             <label>
               Network tier

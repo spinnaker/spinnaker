@@ -409,6 +409,83 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
       0 * errors._
   }
 
+  void "pass validation when external managed optional address networkTier and certificate are omitted"() {
+    setup:
+      def input = [
+        accountName       : ACCOUNT_NAME,
+        loadBalancerType  : GoogleLoadBalancerType.EXTERNAL_MANAGED,
+        region            : REGION,
+        network           : "default",
+        "loadBalancerName": LOAD_BALANCER_NAME,
+        "portRange"       : PORT_RANGE,
+        "defaultService"  : [
+          "name"       : DEFAULT_SERVICE,
+          "backends"   : [],
+          "healthCheck": hc,
+        ],
+        "hostRules"       : null,
+      ]
+      def description = converter.convertDescription(input)
+      def errors = Mock(ValidationErrors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      0 * errors._
+  }
+
+  void "fail validation without throwing when external managed default service is missing"() {
+    setup:
+      def input = [
+        accountName       : ACCOUNT_NAME,
+        loadBalancerType  : GoogleLoadBalancerType.EXTERNAL_MANAGED,
+        region            : REGION,
+        network           : "default",
+        "loadBalancerName": LOAD_BALANCER_NAME,
+        "portRange"       : PORT_RANGE,
+        "defaultService"  : null,
+        "hostRules"       : null,
+      ]
+      def description = converter.convertDescription(input)
+      def errors = Mock(ValidationErrors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue("defaultService",
+        "upsertGoogleLoadBalancerDescription.backendServiceRequired")
+      0 * errors._
+  }
+
+  void "pass validation when regional external network optional address and networkTier are omitted"() {
+    setup:
+      def description = regionalExternalNetworkDescription()
+      description.ipAddress = null
+      description.networkTier = null
+      def errors = Mock(ValidationErrors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      0 * errors._
+  }
+
+  void "fail validation when regional external network ports are omitted"() {
+    setup:
+      def description = regionalExternalNetworkDescription()
+      description.ports = null
+      def errors = Mock(ValidationErrors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue("ports", "upsertGoogleLoadBalancerDescription.ports.required")
+  }
+
   void "fail validation when certificateMap is provided for external managed HTTP"() {
     setup:
       def input = [

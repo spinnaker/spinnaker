@@ -30,8 +30,20 @@ describe('GceRegionalExternalNetworkLoadBalancerEditor', () => {
     const options = buildGceRegionalExternalNetworkLoadBalancerOptions(command, {
       ...emptyData(),
       addresses: [
-        { account: 'account-a', address: '35.1.2.3', addressType: 'EXTERNAL', networkTier: 'PREMIUM', region: 'europe-west1' },
-        { account: 'account-a', address: '10.0.0.1', addressType: 'INTERNAL', networkTier: 'PREMIUM', region: 'europe-west1' },
+        {
+          account: 'account-a',
+          address: '35.1.2.3',
+          addressType: 'EXTERNAL',
+          networkTier: 'PREMIUM',
+          region: 'europe-west1',
+        },
+        {
+          account: 'account-a',
+          address: '10.0.0.1',
+          addressType: 'INTERNAL',
+          networkTier: 'PREMIUM',
+          region: 'europe-west1',
+        },
         { account: 'account-a', address: '198.51.100.1', addressType: 'EXTERNAL', region: 'us-central1' },
       ],
     } as any);
@@ -72,18 +84,64 @@ describe('GceRegionalExternalNetworkLoadBalancerEditor', () => {
       'edit',
     );
     const wrapper = shallow(
-      <GceRegionalExternalNetworkLoadBalancerEditor command={command} data={emptyData()} onChange={jasmine.createSpy()} />,
+      <GceRegionalExternalNetworkLoadBalancerEditor
+        command={command}
+        data={emptyData()}
+        onChange={jasmine.createSpy()}
+      />,
     );
 
-    ['credentials', 'region', 'address', 'networkTier', 'protocol', 'ports', 'sessionAffinity', 'healthCheck'].forEach(
-      (field) => expect(wrapper.find(`[data-field="${field}"]`).exists()).toBe(true),
-    );
-    expect(wrapper.find('[data-field="protocol"] option').map((option) => option.prop('value'))).toEqual(['TCP', 'UDP']);
+    [
+      'credentials',
+      'region',
+      'address',
+      'networkTier',
+      'protocol',
+      'ports',
+      'sessionAffinity',
+      'healthCheck',
+      'healthCheckName',
+    ].forEach((field) => expect(wrapper.find(`[data-field="${field}"]`).exists()).toBe(true));
+    expect(wrapper.find('[data-field="protocol"] option').map((option) => option.prop('value'))).toEqual([
+      'TCP',
+      'UDP',
+    ]);
     expect(wrapper.find('[data-field="sessionAffinity"] option').map((option) => option.prop('value'))).toEqual([
       'NONE',
       'CLIENT_IP',
       'CLIENT_IP_PROTO',
+      'CLIENT_IP_PORT_PROTO',
     ]);
+  });
+
+  it('updates both health check references by name without mutating the command', () => {
+    const command = normalizeGceRegionalExternalNetworkLoadBalancerCommand(
+      {
+        account: 'account-a',
+        backendService: {
+          healthCheck: { healthCheckType: 'TCP', name: 'old-check', port: 80 },
+          name: 'app-main',
+          sessionAffinity: 'NONE',
+        },
+        loadBalancerName: 'app-main',
+        ports: ['80'],
+        region: 'europe-west1',
+      },
+      'edit',
+    );
+    const onChange = jasmine.createSpy('onChange');
+    const wrapper = shallow(
+      <GceRegionalExternalNetworkLoadBalancerEditor command={command} data={emptyData()} onChange={onChange} />,
+    );
+
+    wrapper.find('[data-field="healthCheckName"] input').simulate('change', { target: { value: 'new-check' } });
+
+    const nextCommand = onChange.calls.mostRecent().args[0];
+    expect(nextCommand.backendServices[0].healthCheck).toBe(nextCommand.healthChecks[0]);
+    expect(nextCommand.backendServices[0].healthCheck.name).toBe('new-check');
+    expect(nextCommand.healthChecks[0].name).toBe('new-check');
+    expect((command.backendServices[0].healthCheck as any).name).toBe('old-check');
+    expect(command.healthChecks[0].name).toBe('old-check');
   });
 
   it('updates protocol, trimmed ports, and session affinity through normalized editor changes', () => {
@@ -102,8 +160,10 @@ describe('GceRegionalExternalNetworkLoadBalancerEditor', () => {
     wrapper.find('[data-field="ports"] input').simulate('change', { target: { value: '80, 443 , 8080' } });
     expect(onChange.calls.mostRecent().args[0].ports).toEqual(['80', '443', '8080']);
 
-    wrapper.find('[data-field="sessionAffinity"] select').simulate('change', { target: { value: 'CLIENT_IP_PROTO' } });
-    expect(onChange.calls.mostRecent().args[0].backendServices[0].sessionAffinity).toBe('CLIENT_IP_PROTO');
+    wrapper.find('[data-field="sessionAffinity"] select').simulate('change', {
+      target: { value: 'CLIENT_IP_PORT_PROTO' },
+    });
+    expect(onChange.calls.mostRecent().args[0].backendServices[0].sessionAffinity).toBe('CLIENT_IP_PORT_PROTO');
   });
 
   it('locks identity, region, and preserved edit fields while allowing protocol and port edits', () => {
@@ -125,7 +185,11 @@ describe('GceRegionalExternalNetworkLoadBalancerEditor', () => {
       'edit',
     );
     const wrapper = shallow(
-      <GceRegionalExternalNetworkLoadBalancerEditor command={command} data={emptyData()} onChange={jasmine.createSpy()} />,
+      <GceRegionalExternalNetworkLoadBalancerEditor
+        command={command}
+        data={emptyData()}
+        onChange={jasmine.createSpy()}
+      />,
     );
 
     ['name', 'credentials', 'region', 'address', 'networkTier'].forEach((field) => {
@@ -161,8 +225,79 @@ describe('GceRegionalExternalNetworkLoadBalancerEditor', () => {
       'Ports must be between 1 and 65535.',
       'Backend service name is required.',
       'Each backend service requires a health check.',
-      'Session affinity must be NONE, CLIENT_IP, or CLIENT_IP_PROTO.',
+      'Health check name is required.',
+      'Session affinity must be NONE, CLIENT_IP, CLIENT_IP_PROTO, or CLIENT_IP_PORT_PROTO.',
     ]);
+  });
+
+  it('accepts every supported passthrough session affinity', () => {
+    (['NONE', 'CLIENT_IP', 'CLIENT_IP_PROTO', 'CLIENT_IP_PORT_PROTO'] as const).forEach((sessionAffinity) => {
+      const command = normalizeGceRegionalExternalNetworkLoadBalancerCommand(
+        {
+          account: 'account-a',
+          backendService: {
+            healthCheck: { healthCheckType: 'TCP', name: 'tcp-check', port: 80 },
+            name: 'app-main',
+            sessionAffinity,
+          },
+          loadBalancerName: 'app-main',
+          ports: ['80'],
+          region: 'europe-west1',
+        },
+        'create',
+      );
+
+      expect(
+        validateGceRegionalExternalNetworkLoadBalancerCommand(command).some((error) =>
+          error.startsWith('Session affinity'),
+        ),
+      ).toBe(false);
+    });
+  });
+
+  (['edit', 'pipeline'] as const).forEach((mode) => {
+    it(`rejects an explicitly null ${mode} health check without throwing`, () => {
+      const command = normalizeGceRegionalExternalNetworkLoadBalancerCommand(
+        {
+          account: 'account-a',
+          backendService: {
+            healthCheck: null,
+            name: 'app-main',
+            sessionAffinity: 'NONE',
+          },
+          loadBalancerName: 'app-main',
+          ports: ['80'],
+          region: 'europe-west1',
+        },
+        mode,
+      );
+
+      expect(validateGceRegionalExternalNetworkLoadBalancerCommand(command)).toEqual([
+        'Each backend service requires a health check.',
+        'Health check name is required.',
+      ]);
+    });
+  });
+
+  it('rejects a health check whose name is omitted', () => {
+    const command = normalizeGceRegionalExternalNetworkLoadBalancerCommand(
+      {
+        account: 'account-a',
+        backendService: {
+          healthCheck: { healthCheckType: 'TCP', name: 'tcp-check', port: 80 },
+          name: 'app-main',
+          sessionAffinity: 'NONE',
+        },
+        loadBalancerName: 'app-main',
+        ports: ['80'],
+        region: 'europe-west1',
+      },
+      'create',
+    );
+    command.backendServices[0].healthCheck = { healthCheckType: 'TCP', name: '', port: 80 };
+    command.healthChecks = [{ healthCheckType: 'TCP', name: '', port: 80 }];
+
+    expect(validateGceRegionalExternalNetworkLoadBalancerCommand(command)).toContain('Health check name is required.');
   });
 
   it('rejects more than five discrete ports', () => {

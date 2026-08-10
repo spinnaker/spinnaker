@@ -196,6 +196,11 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
             "upsertGoogleLoadBalancerDescription.portRange.requireSinglePort")
         }
 
+        if (!description.defaultService) {
+          errors.rejectValue("defaultService",
+            "upsertGoogleLoadBalancerDescription.backendServiceRequired")
+        }
+
         // Each backend service must have a health check.
         def googleExternalHttpLoadBalancer = new GoogleExternalHttpLoadBalancer(
             name: description.loadBalancerName,
@@ -208,7 +213,7 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
             network: description.network
         )
         List<GoogleBackendService> externalServices = Utils.getBackendServicesFromExternalHttpLoadBalancerView(googleExternalHttpLoadBalancer.view)
-        externalServices?.each { GoogleBackendService service ->
+        externalServices?.findAll { it != null }?.each { GoogleBackendService service ->
           if (!service.healthCheck) {
             errors.rejectValue("defaultService OR hostRules.pathMatcher.defaultService OR hostRules.pathMatcher.pathRules.backendService",
               "upsertGoogleLoadBalancerDescription.backendServices.healthCheckRequired")

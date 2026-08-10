@@ -22,6 +22,7 @@ import type {
   IGceLoadBalancerData,
   IGceLoadBalancerDataReaders,
   IGceLoadBalancerDataState,
+  IGceLoadBalancerHealthCheck,
   IGceResourceReference,
   IGceSerializedLoadBalancerCommand,
 } from '../common';
@@ -99,31 +100,59 @@ export function normalizeGceRegionalExternalNetworkLoadBalancerCommand(
   ) as IGceRegionalExternalNetworkLoadBalancerCommand;
   const listener = command.listeners[0];
   const ports = splitPorts(listener?.portRange);
+  let backendServices = command.backendServices;
+  let healthChecks = command.healthChecks;
 
   if (mode === 'create') {
-    if (backendService && !command.backendServices.length) {
-      command.backendServices = [
+    if (backendService && !backendServices.length) {
+      backendServices = [
         {
           name: String(backendService.name || ''),
           sessionAffinity: backendService.sessionAffinity || 'NONE',
           ...(backendService.healthCheck ? { healthCheck: backendService.healthCheck } : {}),
         },
       ];
-    } else if (!command.backendServices.length) {
-      const defaultHealthCheck = createGceRegionalExternalNetworkHealthCheck();
-      command.backendServices = [
+    } else if (!backendServices.length) {
+      const defaultHealthCheck = createGceRegionalExternalNetworkHealthCheck(command.name);
+      backendServices = [
         {
           healthCheck: (defaultHealthCheck as unknown) as IGceResourceReference,
           name: command.name,
           sessionAffinity: 'NONE',
         },
       ];
-      command.healthChecks = [defaultHealthCheck];
+      healthChecks = [defaultHealthCheck];
     }
+  }
+
+  const backend = backendServices[0];
+  const backendHealthCheck =
+    typeof backend?.healthCheck === 'object' ? (backend.healthCheck as IGceLoadBalancerHealthCheck) : undefined;
+  const referencedHealthCheck = backendHealthCheck?.name
+    ? healthChecks.find(({ name }) => name === backendHealthCheck.name)
+    : undefined;
+  const healthCheck =
+    (backendHealthCheck && Object.keys(backendHealthCheck).some((key) => key !== 'name' && key !== 'selfLink')
+      ? backendHealthCheck
+      : referencedHealthCheck || backendHealthCheck || healthChecks[0]) || undefined;
+  if (backend && healthCheck) {
+    const namedHealthCheck = {
+      ...healthCheck,
+      name: healthCheck.name?.trim() || command.name,
+    };
+    backendServices = [
+      {
+        ...backend,
+        healthCheck: (namedHealthCheck as unknown) as IGceResourceReference,
+      },
+    ];
+    healthChecks = [namedHealthCheck];
   }
 
   return {
     ...command,
+    backendServices,
+    healthChecks,
     loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK',
     ports,
   };

@@ -10,7 +10,11 @@ import type {
 } from '../common';
 import { mergeGceResourceOptions } from '../common';
 
-export type GceRegionalExternalNetworkSessionAffinity = 'NONE' | 'CLIENT_IP' | 'CLIENT_IP_PROTO';
+export type GceRegionalExternalNetworkSessionAffinity =
+  | 'NONE'
+  | 'CLIENT_IP'
+  | 'CLIENT_IP_PROTO'
+  | 'CLIENT_IP_PORT_PROTO';
 
 export type IGceRegionalExternalNetworkLoadBalancerCommand = IGceLoadBalancerCommand & {
   loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK';
@@ -38,13 +42,19 @@ export interface IGceRegionalExternalNetworkLoadBalancerEditorProps {
   onChange: (command: IGceRegionalExternalNetworkLoadBalancerCommand) => void;
 }
 
-const SESSION_AFFINITIES: GceRegionalExternalNetworkSessionAffinity[] = ['NONE', 'CLIENT_IP', 'CLIENT_IP_PROTO'];
+const SESSION_AFFINITIES: GceRegionalExternalNetworkSessionAffinity[] = [
+  'NONE',
+  'CLIENT_IP',
+  'CLIENT_IP_PROTO',
+  'CLIENT_IP_PORT_PROTO',
+];
 const PROTOCOLS: GceLoadBalancerProtocol[] = ['TCP', 'UDP'];
 const MAX_PORTS = 5;
 
-export function createGceRegionalExternalNetworkHealthCheck(): IGceLoadBalancerHealthCheck {
+export function createGceRegionalExternalNetworkHealthCheck(name: string): IGceLoadBalancerHealthCheck {
   return {
     healthCheckType: 'TCP',
+    name,
     port: 80,
   };
 }
@@ -95,10 +105,11 @@ export function validateGceRegionalExternalNetworkLoadBalancerCommand(
 
   if (!backend?.name?.trim()) errors.push('Backend service name is required.');
   if (!hasHealthCheck(backend)) errors.push('Each backend service requires a health check.');
+  if (!healthCheckName(backend, command.healthChecks[0])) errors.push('Health check name is required.');
 
   const sessionAffinity = String(backend?.sessionAffinity || 'NONE').toUpperCase();
   if (!SESSION_AFFINITIES.includes(sessionAffinity as GceRegionalExternalNetworkSessionAffinity)) {
-    errors.push('Session affinity must be NONE, CLIENT_IP, or CLIENT_IP_PROTO.');
+    errors.push('Session affinity must be NONE, CLIENT_IP, CLIENT_IP_PROTO, or CLIENT_IP_PORT_PROTO.');
   }
 
   return errors;
@@ -115,7 +126,7 @@ export function GceRegionalExternalNetworkLoadBalancerEditor({
   const healthCheck =
     (typeof backend.healthCheck === 'object' ? backend.healthCheck : undefined) ||
     command.healthChecks[0] ||
-    createGceRegionalExternalNetworkHealthCheck();
+    createGceRegionalExternalNetworkHealthCheck(command.name);
   const editing = command.mode === 'edit';
   const portsValue = (command.ports?.length ? command.ports : splitPorts(listener.portRange)).join(', ');
 
@@ -211,6 +222,7 @@ export function GceRegionalExternalNetworkLoadBalancerEditor({
 
       <h4>Health Check</h4>
       <div className="form-group" data-field="healthCheck">
+        {textField('Name', 'healthCheckName', healthCheck.name || '', (name) => updateHealthCheck({ name }))}
         {numberField('Port', 'healthCheckPort', healthCheck.port, (port) => updateHealthCheck({ port }))}
       </div>
     </div>
@@ -322,4 +334,18 @@ function hasHealthCheck(backend?: { healthCheck?: unknown }): boolean {
     return Boolean(record.healthCheckType || record.port || record.name);
   }
   return false;
+}
+
+function healthCheckName(
+  backend: { healthCheck?: unknown } | undefined,
+  commandHealthCheck: IGceLoadBalancerHealthCheck | undefined,
+): string {
+  const backendHealthCheck = backend?.healthCheck;
+  const name =
+    typeof backendHealthCheck === 'string'
+      ? backendHealthCheck
+      : backendHealthCheck !== null && typeof backendHealthCheck === 'object'
+      ? (backendHealthCheck as IGceResourceReference).name
+      : commandHealthCheck?.name;
+  return String(name || '').trim();
 }

@@ -1,6 +1,8 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 
+import { buildGceLoadBalancerJobs } from '../common';
+
 import { GceHttpLoadBalancerListenerEditor } from './GceHttpLoadBalancerListenerEditor';
 
 describe('GceHttpLoadBalancerListenerEditor', () => {
@@ -149,6 +151,65 @@ describe('GceHttpLoadBalancerListenerEditor', () => {
     );
 
     expect(wrapper.find('[data-testid="listener-certificate-map"]').exists()).toBe(false);
+  });
+
+  it('accepts a direct Certificate Manager URL while preserving selectable Compute certificates', () => {
+    const onChange = jasmine.createSpy('onChange');
+    const certificateUrl =
+      '//certificatemanager.googleapis.com/projects/test/locations/europe-west1/certificates/manager-cert';
+    const wrapper = shallow(
+      <GceHttpLoadBalancerListenerEditor
+        addresses={[]}
+        certificates={[{ name: 'compute-cert', selfLink: 'https://compute/sslCertificates/compute-cert' }]}
+        listener={{ name: 'external-https', portRange: '443', protocol: 'HTTPS' }}
+        loadBalancerType="EXTERNAL_MANAGED"
+        onChange={onChange}
+        onRemove={jasmine.createSpy('onRemove')}
+        subnets={[]}
+      />,
+    );
+
+    expect(wrapper.find('[data-testid="listener-certificate"] option').map((option) => option.prop('value'))).toContain(
+      'compute-cert',
+    );
+    wrapper.find('[data-testid="listener-certificate"]').simulate('change', { target: { value: 'compute-cert' } });
+    const computeListener = onChange.calls.mostRecent().args[0];
+    expect(computeListener.certificate).toEqual({
+      name: 'compute-cert',
+      selfLink: 'https://compute/sslCertificates/compute-cert',
+    });
+    wrapper.setProps({ listener: computeListener });
+    expect(wrapper.find('[data-testid="listener-certificate-manager-url"]').prop('value')).toBe('');
+
+    let certificateUrlInput = wrapper.find('[data-testid="listener-certificate-manager-url"]');
+    expect(certificateUrlInput.exists()).toBe(true);
+    expect(certificateUrlInput.closest('label').text()).toContain('Certificate Manager resource URL');
+    certificateUrlInput.simulate('change', { target: { value: '//certificate' } });
+    wrapper.setProps({ listener: onChange.calls.mostRecent().args[0] });
+    certificateUrlInput = wrapper.find('[data-testid="listener-certificate-manager-url"]');
+    expect(certificateUrlInput.prop('value')).toBe('//certificate');
+
+    certificateUrlInput.simulate('change', { target: { value: certificateUrl } });
+
+    const listener = onChange.calls.mostRecent().args[0];
+    expect(listener.certificate).toEqual({ name: 'manager-cert', selfLink: certificateUrl });
+    expect(listener.certificateMap).toBeUndefined();
+
+    const operations = buildGceLoadBalancerJobs({
+      backendServices: [{ healthCheck: { name: 'check-a' }, name: 'backend-a', portName: 'http' }],
+      credentials: 'account-a',
+      defaultService: { name: 'backend-a' },
+      healthChecks: [{ healthCheckType: 'HTTPS', name: 'check-a', port: 443, requestPath: '/health' }],
+      hostRules: [],
+      listeners: [listener],
+      loadBalancerType: 'EXTERNAL_MANAGED',
+      mode: 'pipeline',
+      name: 'app-main',
+      network: { name: 'default' },
+      region: 'europe-west1',
+    } as any);
+    expect(operations[0].certificate).toBe(certificateUrl);
+    expect(operations[0].certificateMap).toBeUndefined();
   });
 
   (['HTTP', 'INTERNAL_MANAGED'] as const).forEach((loadBalancerType) => {

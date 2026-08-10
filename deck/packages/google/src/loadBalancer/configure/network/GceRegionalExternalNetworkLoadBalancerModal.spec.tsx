@@ -110,8 +110,60 @@ describe('GceRegionalExternalNetworkLoadBalancerModal', () => {
     expect((payload as any).listeners).toBeUndefined();
   });
 
-  it('returns only the normalized command in pipeline mode with omitted optional health-check fields', () => {
+  it('returns a named health check in pipeline mode when the persisted name is omitted', () => {
     const executeTask = jasmine.createSpy('executeTask');
+    const persisted = {
+      account: 'account-a',
+      backendService: {
+        healthCheck: { healthCheckType: 'TCP', port: 80 },
+        name: 'app-main',
+        sessionAffinity: 'NONE',
+      },
+      ipProtocol: 'TCP',
+      loadBalancerName: 'app-main',
+      ports: ['80'],
+      region: 'europe-west1',
+    };
+    const command = normalizeGceRegionalExternalNetworkLoadBalancerCommand(persisted, 'pipeline');
+
+    const result = submitGceRegionalExternalNetworkLoadBalancerCommand(command, { application, executeTask });
+
+    expect(result).toEqual(serializeGceRegionalExternalNetworkLoadBalancerCommand(command));
+    expect((result as any).backendService.healthCheck.name).toBe('app-main');
+    expect(command.backendServices[0].healthCheck).toBe(command.healthChecks[0]);
+    expect(persisted.backendService.healthCheck).toEqual({ healthCheckType: 'TCP', port: 80 });
+    expect(executeTask).not.toHaveBeenCalled();
+  });
+
+  it('serializes the referenced pipeline health check through the backend service', () => {
+    const command = normalizeGceRegionalExternalNetworkLoadBalancerCommand(
+      {
+        account: 'account-a',
+        backendService: {
+          healthCheck: 'tcp-check',
+          name: 'app-main',
+          sessionAffinity: 'NONE',
+        },
+        healthChecks: [{ healthCheckType: 'TCP', name: 'tcp-check', port: 80 }],
+        ipProtocol: 'TCP',
+        loadBalancerName: 'app-main',
+        ports: ['80'],
+        region: 'europe-west1',
+      },
+      'pipeline',
+    );
+
+    const payload = serializeGceRegionalExternalNetworkLoadBalancerCommand(command);
+
+    expect(command.backendServices[0].healthCheck).toBe(command.healthChecks[0]);
+    expect(payload.backendService.healthCheck).toEqual({
+      healthCheckType: 'TCP',
+      name: 'tcp-check',
+      port: 80,
+    });
+  });
+
+  it('serializes a named health check for direct edit when the persisted name is omitted', () => {
     const command = normalizeGceRegionalExternalNetworkLoadBalancerCommand(
       {
         account: 'account-a',
@@ -125,14 +177,12 @@ describe('GceRegionalExternalNetworkLoadBalancerModal', () => {
         ports: ['80'],
         region: 'europe-west1',
       },
-      'pipeline',
+      'edit',
     );
 
-    const result = submitGceRegionalExternalNetworkLoadBalancerCommand(command, { application, executeTask });
+    const payload = serializeGceRegionalExternalNetworkLoadBalancerCommand(command);
 
-    expect(result).toEqual(serializeGceRegionalExternalNetworkLoadBalancerCommand(command));
-    expect((result as any).backendService.healthCheck.name).toBeUndefined();
-    expect(executeTask).not.toHaveBeenCalled();
+    expect(payload.backendService.healthCheck.name).toBe('app-main');
   });
 
   it('preserves ipAddress and networkTier when direct edit omits optional address fields', () => {
@@ -186,6 +236,8 @@ describe('GceRegionalExternalNetworkLoadBalancerModal', () => {
 
     const result = submitGceRegionalExternalNetworkLoadBalancerCommand(command, { application, executeTask });
 
+    expect(command.backendServices[0].healthCheck).toBe(command.healthChecks[0]);
+    expect((command.backendServices[0].healthCheck as any).name).toBe('app-main');
     expect(result).toBe(task);
     expect(executeTask).toHaveBeenCalledOnceWith({
       application,
