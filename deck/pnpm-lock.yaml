@@ -1612,8 +1612,8 @@ importers:
         specifier: ^3.1.1
         version: 3.1.1
       ws:
-        specifier: ^7.4.3
-        version: 7.5.11(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+        specifier: ^8.0.0
+        version: 8.21.1(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       yargs:
         specifier: ^16.2.0
         version: 16.2.0
