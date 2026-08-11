@@ -1,9 +1,8 @@
 package com.netflix.spinnaker.keel.telemetry
 
-import com.netflix.spectator.api.BasicTag
-import com.netflix.spectator.api.Registry
-import com.netflix.spectator.api.patterns.PolledMeter
-import com.netflix.spectator.api.patterns.ThreadPoolMonitor
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tag
+import io.micrometer.core.instrument.Tags
 import com.netflix.spinnaker.keel.activation.ApplicationDown
 import com.netflix.spinnaker.keel.activation.ApplicationUp
 import com.netflix.spinnaker.keel.actuation.ScheduledArtifactCheckStarting
@@ -29,7 +28,7 @@ import java.util.concurrent.atomic.AtomicReference
 
 @Component
 class TelemetryListener(
-  private val spectator: Registry,
+  private val spectator: MeterRegistry,
   private val clock: Clock,
   threadPoolTaskSchedulers: List<ThreadPoolTaskScheduler>,
   threadPoolTaskExecutors: List<ThreadPoolTaskExecutor>,
@@ -50,15 +49,24 @@ class TelemetryListener(
   init {
     // attach monitors for all the thread pools we have
     threadPoolTaskSchedulers.forEach { executor ->
-      ThreadPoolMonitor.attach(spectator, executor.scheduledThreadPoolExecutor, executor.threadNamePrefix + "spring")
+      attachThreadPoolMonitor(executor.scheduledThreadPoolExecutor, executor.threadNamePrefix + "spring")
     }
 
     threadPoolTaskExecutors.forEach { executor ->
-      ThreadPoolMonitor.attach(spectator, executor.threadPoolExecutor, executor.threadNamePrefix + "spring")
+      attachThreadPoolMonitor(executor.threadPoolExecutor, executor.threadNamePrefix + "spring")
     }
 
     // todo: add coroutines once you can actually monitor them as described here: https://github.com/Kotlin/kotlinx.coroutines/issues/1360
     // need to monitor Dispatchers.Default, Dispatchers.IO, and Dispatchers.Unconfined
+  }
+
+  private fun attachThreadPoolMonitor(executor: java.util.concurrent.ThreadPoolExecutor, id: String) {
+    val tags = Tags.of("id", id)
+    spectator.gauge("threadpool.activeCount", tags, executor) { it.activeCount.toDouble() }
+    spectator.gauge("threadpool.maxThreads", tags, executor) { it.maximumPoolSize.toDouble() }
+    spectator.gauge("threadpool.poolSize", tags, executor) { it.poolSize.toDouble() }
+    spectator.gauge("threadpool.corePoolSize", tags, executor) { it.corePoolSize.toDouble() }
+    spectator.gauge("threadpool.queueSize", tags, executor) { it.queue.size.toDouble() }
   }
 
   @EventListener(ApplicationUp::class)
@@ -81,8 +89,8 @@ class TelemetryListener(
     spectator.timer(
       TIME_SINCE_LAST_CHECK,
       listOf(
-        BasicTag("identifier", event.identifier),
-        BasicTag("type", event.type)
+        Tag.of("identifier", event.identifier ?: "unknown"),
+        Tag.of("type", event.type)
       )
     ).record(Duration.between(event.lastCheckedAt, clock.instant()).toSeconds(), TimeUnit.SECONDS)
   }
@@ -92,10 +100,10 @@ class TelemetryListener(
     spectator.counter(
       RESOURCE_CHECKED_COUNTER_ID,
       listOf(
-        BasicTag("resourceId", event.id),
-        BasicTag("resourceKind", event.kind.toString()),
-        BasicTag("resourceState", event.state.name),
-        BasicTag("resourceApplication", event.application)
+        Tag.of("resourceId", event.id),
+        Tag.of("resourceKind", event.kind.toString()),
+        Tag.of("resourceState", event.state.name),
+        Tag.of("resourceApplication", event.application)
       )
     ).safeIncrement()
   }
@@ -105,9 +113,9 @@ class TelemetryListener(
     spectator.counter(
       RESOURCE_CHECK_SKIPPED_COUNTER_ID,
       listOf(
-        BasicTag("resourceId", event.id),
-        BasicTag("resourceKind", event.kind.toString()),
-        BasicTag("skipper", event.skipper)
+        Tag.of("resourceId", event.id),
+        Tag.of("resourceKind", event.kind.toString()),
+        Tag.of("skipper", event.skipper)
       )
     ).safeIncrement()
   }
@@ -117,9 +125,9 @@ class TelemetryListener(
     spectator.counter(
       RESOURCE_CHECK_TIMED_OUT_ID,
       listOf(
-        BasicTag("kind", event.kind.kind),
-        BasicTag("resourceId", event.id),
-        BasicTag("application", event.application)
+        Tag.of("kind", event.kind.kind),
+        Tag.of("resourceId", event.id),
+        Tag.of("application", event.application)
       )
     ).safeIncrement()
   }
@@ -134,8 +142,8 @@ class TelemetryListener(
     spectator.counter(
       ENVIRONMENT_CHECK_TIMED_OUT_ID,
       listOf(
-        BasicTag("application", event.application),
-        BasicTag("deliveryConfig", event.deliveryConfigName)
+        Tag.of("application", event.application),
+        Tag.of("deliveryConfig", event.deliveryConfigName)
       )
     ).safeIncrement()
   }
@@ -145,10 +153,10 @@ class TelemetryListener(
     spectator.counter(
       ARTIFACT_APPROVED_COUNTER_ID,
       listOf(
-        BasicTag("application", event.application),
-        BasicTag("environment", event.environmentName),
-        BasicTag("artifactName", event.artifactName),
-        BasicTag("artifactType", event.artifactType)
+        Tag.of("application", event.application),
+        Tag.of("environment", event.environmentName),
+        Tag.of("artifactName", event.artifactName),
+        Tag.of("artifactType", event.artifactType)
       )
     ).safeIncrement()
   }
@@ -158,9 +166,9 @@ class TelemetryListener(
     spectator.counter(
       RESOURCE_ACTUATION_LAUNCHED_COUNTER_ID,
       listOf(
-        BasicTag("resourceId", event.id),
-        BasicTag("resourceKind", event.kind.toString()),
-        BasicTag("resourceApplication", event.application)
+        Tag.of("resourceId", event.id),
+        Tag.of("resourceKind", event.kind.toString()),
+        Tag.of("resourceApplication", event.application)
       )
     ).safeIncrement()
   }
@@ -201,7 +209,7 @@ class TelemetryListener(
   fun onArtifactVersionVetoed(event: ArtifactVersionVetoed) {
     spectator.counter(
       ARTIFACT_VERSION_VETOED,
-      listOf(BasicTag("application", event.application))
+      listOf(Tag.of("application", event.application))
     )
       .safeIncrement()
   }
@@ -217,7 +225,7 @@ class TelemetryListener(
   fun onEnvironmentCheckComplete(event: EnvironmentCheckComplete) {
     spectator.timer(
       ENVIRONMENT_CHECK_DURATION_ID,
-      listOf(BasicTag("application", event.application))
+      listOf(Tag.of("application", event.application))
     ).record(event.duration)
   }
 
@@ -232,7 +240,7 @@ class TelemetryListener(
   fun onAgentInvocationComplete(event: AgentInvocationComplete) {
     spectator.timer(
       AGENT_DURATION_ID,
-      listOf(BasicTag("agent", event.agentName))
+      listOf(Tag.of("agent", event.agentName))
     ).record(event.duration)
   }
 
@@ -241,9 +249,9 @@ class TelemetryListener(
     spectator.counter(
       VERIFICATION_COMPLETED_COUNTER_ID,
       listOf(
-        BasicTag("application", event.application),
-        BasicTag("verificationType", event.verificationType),
-        BasicTag("status", event.status.name)
+        Tag.of("application", event.application),
+        Tag.of("verificationType", event.verificationType),
+        Tag.of("status", event.status.name)
       )
     ).safeIncrement()
   }
@@ -253,8 +261,8 @@ class TelemetryListener(
     spectator.counter(
       VERIFICATION_STARTED_COUNTER_ID,
       listOf(
-        BasicTag("application", event.application),
-        BasicTag("verificationType", event.verificationType)
+        Tag.of("application", event.application),
+        Tag.of("verificationType", event.verificationType)
       )
     ).safeIncrement()
   }
@@ -264,8 +272,8 @@ class TelemetryListener(
     spectator.counter(
       INVALID_VERIFICATION_ID_SEEN_COUNTER_ID,
       listOf(
-        BasicTag("application", event.application),
-        BasicTag("invalidId", event.id)
+        Tag.of("application", event.application),
+        Tag.of("invalidId", event.id)
       )
     ).safeIncrement()
   }
@@ -282,9 +290,9 @@ class TelemetryListener(
     spectator.counter(
       BLOCKED_ACTUATION_ID,
       listOf(
-        BasicTag("resourceId", event.id),
-        BasicTag("resourceKind", event.kind.toString()),
-        BasicTag("resourceApplication", event.application)
+        Tag.of("resourceId", event.id),
+        Tag.of("resourceKind", event.kind.toString()),
+        Tag.of("resourceApplication", event.application)
       )
     ).safeIncrement()
   }
@@ -294,8 +302,8 @@ class TelemetryListener(
     spectator.counter(
       FEATURE_ROLLOUT_ATTEMPTED_ID,
       listOf(
-        BasicTag("feature", event.feature),
-        BasicTag("resourceId", event.resourceId)
+        Tag.of("feature", event.feature),
+        Tag.of("resourceId", event.resourceId)
       )
     ).safeIncrement()
   }
@@ -305,8 +313,8 @@ class TelemetryListener(
     spectator.counter(
       FEATURE_ROLLOUT_FAILED_ID,
       listOf(
-        BasicTag("feature", event.feature),
-        BasicTag("resourceId", event.resourceId)
+        Tag.of("feature", event.feature),
+        Tag.of("resourceId", event.resourceId)
       )
     ).safeIncrement()
   }
@@ -319,15 +327,12 @@ class TelemetryListener(
       .div(1000)
 
   private fun createDriftGauge(name: String): AtomicReference<Instant> =
-    PolledMeter
-      .using(spectator)
-      .withName(name)
-      .monitorValue(AtomicReference(clock.instant())) { previous ->
-        when(enabled.get()) {
-          true -> secondsSince(previous)
-          false -> 0.0
-        }
+    spectator.gauge(name, AtomicReference(clock.instant())) { previous ->
+      when(enabled.get()) {
+        true -> secondsSince(previous)
+        false -> 0.0
       }
+    }!!
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 

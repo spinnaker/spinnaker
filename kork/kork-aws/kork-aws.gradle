@@ -20,7 +20,7 @@ dependencies {
   api(platform(project(":spinnaker-dependencies")))
 
   api "org.springframework.boot:spring-boot-autoconfigure"
-  api "com.netflix.spectator:spectator-api"
+  api "io.micrometer:micrometer-core"
   api "com.amazonaws:aws-java-sdk-core"
   api "com.amazonaws:aws-java-sdk-sns"
   api "com.amazonaws:aws-java-sdk-sqs"
@@ -30,14 +30,6 @@ dependencies {
   api "com.hubspot.jinjava:jinjava"
   api "com.jcraft:jsch.agentproxy.jsch"
   api "com.jcraft:jsch.agentproxy.connector-factory"
-
-  implementation("com.netflix.spectator:spectator-ext-aws") {
-    // exclude transitives to keep spectator's version of the aws sdk from
-    // overriding what we specify elsewhere.  It's not so much the aws sdk that
-    // causes problems, but its transitive dependencies -- jackson and then
-    // kotlin.
-    transitive = false
-  }
 
   runtimeOnly "com.amazonaws:aws-java-sdk-sts"
 

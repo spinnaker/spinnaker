@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.titus
 
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.keel.api.TaskStatus
 import com.netflix.spinnaker.keel.api.action.ActionState
 import com.netflix.spinnaker.keel.api.actuation.SubjectType
@@ -32,7 +32,7 @@ import java.time.Instant
 
 internal class ContainerRunnerTests {
   private val taskLauncher: TaskLauncher = mockk()
-  private val spectator = NoopRegistry()
+  private val spectator = SimpleMeterRegistry()
   private val orca: OrcaService = mockk(relaxUnitFun = true)
 
   private val subject = ContainerRunner(taskLauncher, orca, spectator)

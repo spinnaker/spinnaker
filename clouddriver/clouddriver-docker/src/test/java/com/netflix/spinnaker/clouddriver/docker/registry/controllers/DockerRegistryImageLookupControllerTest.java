@@ -23,8 +23,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.netflix.spectator.api.NoopRegistry;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.cats.cache.WriteableCache;
@@ -47,6 +45,8 @@ import com.netflix.spinnaker.fiat.shared.FiatService;
 import com.netflix.spinnaker.fiat.shared.FiatStatus;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.dynamicconfig.SpringDynamicConfigService;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -90,8 +90,8 @@ class DockerRegistryImageLookupControllerTest {
     }
 
     @Bean
-    Registry registry() {
-      return new NoopRegistry();
+    MeterRegistry registry() {
+      return new SimpleMeterRegistry();
     }
 
     @Bean

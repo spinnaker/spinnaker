@@ -21,7 +21,7 @@ import static java.util.Objects.requireNonNull;
 import com.amazonaws.Request;
 import com.amazonaws.handlers.RequestHandler2;
 import com.google.common.util.concurrent.RateLimiter;
-import com.netflix.spectator.api.Counter;
+import io.micrometer.core.instrument.Counter;
 import java.util.Objects;
 
 /** A RequestHandler that will throttle requests via the supplied RateLimiter. */

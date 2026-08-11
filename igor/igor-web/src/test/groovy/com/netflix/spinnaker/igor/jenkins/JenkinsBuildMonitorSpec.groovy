@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.igor.jenkins
 
-import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.igor.config.JenkinsProperties
 import com.netflix.spinnaker.igor.history.EchoService
@@ -30,6 +29,7 @@ import com.netflix.spinnaker.igor.service.BuildServices
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import okhttp3.Request
 import org.slf4j.Logger
 import org.springframework.scheduling.TaskScheduler
@@ -54,7 +54,7 @@ class   JenkinsBuildMonitorSpec extends Specification {
         buildServices.addServices([MASTER: jenkinsService])
         monitor = new JenkinsBuildMonitor(
             igorConfigurationProperties,
-            new NoopRegistry(),
+            new SimpleMeterRegistry(),
             new DynamicConfigService.NoopDynamicConfig(),
             new DiscoveryStatusListener(true),
             Optional.empty(),

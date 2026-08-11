@@ -29,7 +29,7 @@ import com.netflix.kayenta.graphite.service.GraphiteRemoteService;
 import com.netflix.kayenta.metrics.MetricSet;
 import com.netflix.kayenta.metrics.MetricsService;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
-import com.netflix.spectator.api.Registry;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.validation.constraints.NotNull;
 import java.io.IOException;
 import java.time.Instant;
@@ -62,7 +62,7 @@ public class GraphiteMetricsService implements MetricsService {
 
   @Autowired private final AccountCredentialsRepository accountCredentialsRepository = null;
 
-  @Autowired private final Registry registry = null;
+  @Autowired private final MeterRegistry registry = null;
 
   @Builder.Default
   private List<GraphiteMetricDescriptor> metricDescriptorsCache = Collections.emptyList();

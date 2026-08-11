@@ -21,11 +21,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers.BaseTriggerEventHandler;
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService;
 import com.netflix.spinnaker.echo.services.Front50Service;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.context.annotation.UserConfigurations;
@@ -41,7 +41,7 @@ public class PipelineCacheTest {
           .withBean(PipelineCache.class)
           .withBean(PipelineCacheConfigurationProperties.class)
           .withBean(ObjectMapper.class)
-          .withBean(NoopRegistry.class)
+          .withBean(SimpleMeterRegistry.class)
           .withConfiguration(UserConfigurations.of(ConfigWithTriggerEventHandlers.class));
 
   @Test

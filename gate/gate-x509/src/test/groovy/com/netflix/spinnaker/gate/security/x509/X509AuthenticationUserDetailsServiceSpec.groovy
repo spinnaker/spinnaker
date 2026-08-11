@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.gate.security.x509
 
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicLong
 
 class X509AuthenticationUserDetailsServiceSpec extends Specification {
 
-  def registry = new NoopRegistry()
+  def registry = new SimpleMeterRegistry()
 
   def "should debounce login calls"() {
     given:

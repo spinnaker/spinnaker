@@ -1,14 +1,15 @@
 package com.netflix.spinnaker.cats.sql.cache
 
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.RunnableAgent
 import com.netflix.spinnaker.cats.module.CatsModule
 import com.netflix.spinnaker.cats.sql.SqlProviderCache
 import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent
 import com.netflix.spinnaker.clouddriver.core.provider.CoreProvider
 import com.netflix.spinnaker.clouddriver.sql.SqlAgent
+import io.micrometer.core.instrument.MeterRegistry
 import java.time.Clock
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.contracts.ExperimentalContracts
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationContext
@@ -16,7 +17,7 @@ import org.springframework.context.ApplicationContext
 @ExperimentalContracts
 class SqlCleanupStaleOnDemandCachesAgent(
   private val applicationContext: ApplicationContext,
-  private val registry: Registry,
+  private val registry: MeterRegistry,
   private val clock: Clock
 ) : RunnableAgent, CustomScheduledAgent, SqlAgent {
 
@@ -28,16 +29,20 @@ class SqlCleanupStaleOnDemandCachesAgent(
     private val log = LoggerFactory.getLogger(SqlCleanupStaleOnDemandCachesAgent::class.java)
   }
 
-  private val countId = registry.createId("cats.sqlCache.cleanedStaleOnDemandKeys.count")
-  private val timeId = registry.createId("cats.sqlCache.cleanedStaleOnDemandKeys.time")
+  private val countGauge = registry.gauge(
+    "cats.sqlCache.cleanedStaleOnDemandKeys.count", AtomicReference(0.0)
+  ) { it.get() }
+  private val timeGauge = registry.gauge(
+    "cats.sqlCache.cleanedStaleOnDemandKeys.time", AtomicReference(0.0)
+  ) { it.get() }
 
   override fun run() {
     val start = clock.millis()
 
     val deleted = getCache().cleanOnDemand(MAX_ONDEMAND_AGE_MILLIS)
 
-    registry.gauge(countId).set(deleted.toDouble())
-    registry.gauge(timeId).set((clock.millis() - start).toDouble())
+    countGauge!!.set(deleted.toDouble())
+    timeGauge!!.set((clock.millis() - start).toDouble())
   }
 
   private fun getCache(): SqlProviderCache {

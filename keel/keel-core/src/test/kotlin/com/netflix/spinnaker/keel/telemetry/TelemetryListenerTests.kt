@@ -1,9 +1,11 @@
 package com.netflix.spinnaker.keel.telemetry
 
-import com.netflix.spectator.api.Counter
-import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spectator.api.Registry
-import com.netflix.spectator.api.Tag
+import io.micrometer.core.instrument.Counter
+import io.micrometer.core.instrument.Meter
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tag
+import io.micrometer.core.instrument.Tags
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.keel.api.ResourceKind.Companion.parseKind
 import com.netflix.spinnaker.keel.events.ResourceValid
 import dev.minutest.junit.JUnit5Minutests
@@ -23,7 +25,7 @@ import java.time.Instant
 
 internal class TelemetryListenerTests : JUnit5Minutests {
 
-  private val registry = spyk<Registry>(NoopRegistry())
+  private val registry = spyk<MeterRegistry>(SimpleMeterRegistry())
   private val counter = mockk<Counter>(relaxUnitFun = true)
   private val event = ResourceValid(
     kind = parseKind("ec2/cluster@v1"),
@@ -40,7 +42,7 @@ internal class TelemetryListenerTests : JUnit5Minutests {
 
     context("successful metric submission") {
       test("increments an Atlas counter") {
-        every { registry.counter(any(), any<List<Tag>>()) } returns counter
+        every { registry.counter(any(), any<Iterable<Tag>>()) } returns counter
 
         onResourceChecked(event)
 
@@ -51,7 +53,7 @@ internal class TelemetryListenerTests : JUnit5Minutests {
 
       test("tags the counter") {
         val id = slot<String>()
-        val tags = slot<List<Tag>>()
+        val tags = slot<Iterable<Tag>>()
         every {
           registry.counter(capture(id), capture(tags))
         } returns counter
@@ -82,7 +84,7 @@ internal class TelemetryListenerTests : JUnit5Minutests {
 
     context("metric submission fails") {
       before {
-        every { counter.id() } returns NoopRegistry().createId("whatever")
+        every { counter.id } returns Meter.Id("whatever", Tags.empty(), null, null, Meter.Type.COUNTER)
         every { counter.increment() } throws IllegalStateException("Somebody set up us the bomb")
       }
 
@@ -97,5 +99,5 @@ internal class TelemetryListenerTests : JUnit5Minutests {
   }
 }
 
-fun Assertion.Builder<Tag>.key() = get { key() }
-fun Assertion.Builder<Tag>.value() = get { value() }
+fun Assertion.Builder<Tag>.key() = get { key }
+fun Assertion.Builder<Tag>.value() = get { value }

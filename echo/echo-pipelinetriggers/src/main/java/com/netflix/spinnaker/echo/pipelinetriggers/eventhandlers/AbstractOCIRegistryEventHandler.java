@@ -17,11 +17,11 @@
 package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.AbstractOCIRegistryEvent;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
@@ -39,7 +39,7 @@ public abstract class AbstractOCIRegistryEventHandler<T extends AbstractOCIRegis
     extends BaseTriggerEventHandler<T> {
 
   protected AbstractOCIRegistryEventHandler(
-      Registry registry,
+      MeterRegistry registry,
       ObjectMapper objectMapper,
       FiatPermissionEvaluator fiatPermissionEvaluator) {
     super(registry, objectMapper, fiatPermissionEvaluator);

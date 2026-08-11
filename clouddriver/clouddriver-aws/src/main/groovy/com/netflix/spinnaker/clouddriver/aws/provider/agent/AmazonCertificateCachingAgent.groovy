@@ -20,8 +20,6 @@ import com.amazonaws.services.identitymanagement.model.AmazonIdentityManagementE
 import com.amazonaws.services.identitymanagement.model.ListServerCertificatesRequest
 import com.amazonaws.services.identitymanagement.model.ServerCertificateMetadata
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.Id
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.AccountAware
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
@@ -35,9 +33,12 @@ import com.netflix.spinnaker.clouddriver.aws.provider.AwsInfrastructureProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import groovy.util.logging.Slf4j
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tags
 
 import java.time.Duration
 import java.time.Instant
+import java.util.concurrent.atomic.AtomicReference
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.CERTIFICATES
@@ -49,8 +50,8 @@ class AmazonCertificateCachingAgent implements CachingAgent, AccountAware {
   final NetflixAmazonCredentials account
   final String region
   final ObjectMapper objectMapper
-  final Registry registry
-  final Id securityTokenExceptionGauge
+  final MeterRegistry registry
+  final AtomicReference<Double> securityTokenExceptionGauge
 
   private Instant lastFailure
 
@@ -64,16 +65,20 @@ class AmazonCertificateCachingAgent implements CachingAgent, AccountAware {
                                 NetflixAmazonCredentials account,
                                 String region,
                                 ObjectMapper objectMapper,
-                                Registry registry) {
+                                MeterRegistry registry) {
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region
     this.objectMapper = objectMapper
     this.registry = registry
-    this.securityTokenExceptionGauge = registry.createId("aws.certificateCache.errors",
-      "account", account.name,
-      "account_id", account.accountId,
-      "region", region)
+    this.securityTokenExceptionGauge = registry.gauge(
+      "aws.certificateCache.errors",
+      Tags.of("account", account.name,
+        "account_id", account.accountId,
+        "region", region,
+        "operation", "ListServerCertificates"),
+      new AtomicReference<Double>(0.0),
+      { AtomicReference<Double> ref -> ref.get() })
   }
 
   @Override
@@ -108,7 +113,7 @@ class AmazonCertificateCachingAgent implements CachingAgent, AccountAware {
       while (true) {
         try {
           def resp = iam.listServerCertificates(listServerCertificatesRequest)
-          registry.gauge(securityTokenExceptionGauge.withTag("operation", "ListServerCertificates")).set(0)
+          securityTokenExceptionGauge.set(0.0d)
           iamCertificates.addAll(resp.serverCertificateMetadataList)
           if (resp.marker) {
             listServerCertificatesRequest.withMarker(resp.marker)
@@ -120,7 +125,7 @@ class AmazonCertificateCachingAgent implements CachingAgent, AccountAware {
           log.warn("An error occured when querying for \"ListServerCertificates\" in AWS account ${account.name} " +
             "(${account.accountId}) in region ${region}. Will not retry in the next ${RETRY_DELAY.toMinutes()} minutes. " +
             "Details:\n${e.message}")
-          registry.gauge(securityTokenExceptionGauge.withTag("operation", "ListServerCertificates")).set(1)
+          securityTokenExceptionGauge.set(1.0d)
           break
         }
 

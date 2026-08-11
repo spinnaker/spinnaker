@@ -31,8 +31,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
-import com.netflix.spectator.api.NoopRegistry;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.mem.InMemoryNamedCacheFactory;
 import com.netflix.spinnaker.cats.provider.DefaultProviderRegistry;
 import com.netflix.spinnaker.cats.provider.ProviderRegistry;
@@ -79,6 +77,8 @@ import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.configserver.CloudConfigResourceService;
 import com.netflix.spinnaker.kork.configserver.ConfigFileService;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -94,7 +94,7 @@ import org.mockito.internal.stubbing.defaultanswers.ReturnsSmartNulls;
 @ExtendWith(SoftAssertionsExtension.class)
 final class KubernetesDataProviderIntegrationTest {
   private static final String ACCOUNT_NAME = "my-account";
-  private static final Registry registry = new NoopRegistry();
+  private static final MeterRegistry registry = new SimpleMeterRegistry();
   private static final ObjectMapper objectMapper = new ObjectMapper();
   private static final KubernetesProvider kubernetesProvider = new KubernetesProvider();
   private static final ImmutableList<KubernetesHandler> handlers =
@@ -603,7 +603,7 @@ final class KubernetesDataProviderIntegrationTest {
 
     KubernetesCredentials.Factory credentialFactory =
         new KubernetesCredentials.Factory(
-            new NoopRegistry(),
+            new SimpleMeterRegistry(),
             new KubernetesNamerRegistry(ImmutableList.of(new KubernetesManifestNamer())),
             getJobExecutor(),
             new ConfigFileService(new CloudConfigResourceService()),

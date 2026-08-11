@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.yandex.provider.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils;
@@ -26,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.yandex.provider.YandexInfrastructurePro
 import com.netflix.spinnaker.clouddriver.yandex.provider.agent.*;
 import com.netflix.spinnaker.clouddriver.yandex.security.YandexCloudCredentials;
 import com.netflix.spinnaker.clouddriver.yandex.service.YandexCloudFacade;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -41,7 +41,7 @@ public class YandexInfrastructureProviderConfig {
       AccountCredentialsRepository accountCredentialsRepository,
       YandexCloudFacade yandexCloudFacade,
       ObjectMapper objectMapper,
-      Registry registry) {
+      MeterRegistry registry) {
     objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
     Set<YandexCloudCredentials> allAccounts =

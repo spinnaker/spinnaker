@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.fiat.roles;
 
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.fiat.config.ResourceProvidersHealthIndicator;
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig;
 import com.netflix.spinnaker.fiat.model.UserPermission;
@@ -29,6 +27,8 @@ import com.netflix.spinnaker.fiat.permissions.PermissionsRepository;
 import com.netflix.spinnaker.fiat.permissions.PermissionsResolver;
 import com.netflix.spinnaker.fiat.providers.ProviderException;
 import com.netflix.spinnaker.fiat.providers.ResourceProvider;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -54,7 +54,7 @@ public class Synchronizer {
   private final PermissionsResolver permissionsResolver;
   private final PermissionsRepository permissionsRepository;
   private final ResourceProvider<ServiceAccount> serviceAccountProvider;
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final long retryIntervalMs;
   private final long syncDelayTimeoutMs;
 
@@ -63,7 +63,7 @@ public class Synchronizer {
       PermissionsResolver permissionsResolver,
       PermissionsRepository permissionsRepository,
       ResourceProvider<ServiceAccount> serviceAccountProvider,
-      Registry registry,
+      MeterRegistry registry,
       @Value("${fiat.write-mode.retry-interval-ms:10000}") long retryIntervalMs,
       @Value("${fiat.write-mode.sync-delay-ms:600000}") long syncDelayTimeoutMs) {
     this.retryIntervalMs = retryIntervalMs;
@@ -269,9 +269,12 @@ public class Synchronizer {
       throw new RuntimeException(ex);
     } finally {
       boolean success = cause == null;
-      Id timer = registry.createId(metricName(timerName)).withTag("success", success);
+      Tags tags = Tags.of("success", String.valueOf(success));
+      if (!success) {
+        tags = tags.and("cause", cause);
+      }
       registry
-          .timer(success ? timer : timer.withTag("cause", cause))
+          .timer(metricName(timerName), tags)
           .record(System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
     }
   }

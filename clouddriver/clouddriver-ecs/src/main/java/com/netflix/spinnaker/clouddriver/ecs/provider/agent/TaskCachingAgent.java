@@ -29,7 +29,6 @@ import com.amazonaws.services.ecs.model.DescribeTasksRequest;
 import com.amazonaws.services.ecs.model.ListTasksRequest;
 import com.amazonaws.services.ecs.model.ListTasksResult;
 import com.amazonaws.services.ecs.model.Task;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
@@ -37,6 +36,7 @@ import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -64,7 +64,7 @@ public class TaskCachingAgent extends AbstractEcsOnDemandAgent<Task> {
       String region,
       AmazonClientProvider amazonClientProvider,
       AWSCredentialsProvider awsCredentialsProvider,
-      Registry registry) {
+      MeterRegistry registry) {
     super(account, region, amazonClientProvider, awsCredentialsProvider, registry);
   }
 

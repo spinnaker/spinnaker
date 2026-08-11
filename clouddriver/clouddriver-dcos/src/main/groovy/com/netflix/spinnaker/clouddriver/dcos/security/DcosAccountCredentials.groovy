@@ -18,7 +18,7 @@
 package com.netflix.spinnaker.clouddriver.dcos.security
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.clouddriver.dcos.cache.Keys
 import com.netflix.spinnaker.clouddriver.dcos.deploy.util.id.MarathonPathId
 import com.netflix.spinnaker.fiat.model.resources.Permissions
@@ -39,7 +39,7 @@ class DcosAccountCredentials extends AbstractAccountCredentials<DcosCredentialMa
   final List<String> requiredGroupMembership
   final Permissions permissions
   final List<DcosRegion> regions
-  final Registry spectatorRegistry
+  final MeterRegistry spectatorRegistry
   // Not really a fan of creating this just for use within deck, but it works for now
   final List<DcosClusterInfo> dcosClusters
 
@@ -52,7 +52,7 @@ class DcosAccountCredentials extends AbstractAccountCredentials<DcosCredentialMa
                          List<LinkedDockerRegistryConfiguration> dockerRegistries,
                          List<String> requiredGroupMembership,
                          Permissions permissions,
-                         Registry spectatorRegistry,
+                         MeterRegistry spectatorRegistry,
                          List<DcosClusterCredentials> clusters) {
     this.name = account
     this.account = account
@@ -94,7 +94,7 @@ class DcosAccountCredentials extends AbstractAccountCredentials<DcosCredentialMa
     private List<LinkedDockerRegistryConfiguration> dockerRegistries
     private List<String> requiredGroupMembership
     private Permissions permissions
-    private Registry spectatorRegistry
+    private MeterRegistry spectatorRegistry
     private List<DcosClusterCredentials> clusterCredentials
 
     Builder account(String account) {
@@ -135,7 +135,7 @@ class DcosAccountCredentials extends AbstractAccountCredentials<DcosCredentialMa
       return this
     }
 
-    Builder spectatorRegistry(Registry spectatorRegistry) {
+    Builder spectatorRegistry(MeterRegistry spectatorRegistry) {
       this.spectatorRegistry = spectatorRegistry
       return this
     }

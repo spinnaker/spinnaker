@@ -2,7 +2,7 @@ package com.netflix.spinnaker.keel.preview
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.convertValue
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.keel.api.ArtifactReferenceProvider
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Dependent
@@ -62,7 +62,7 @@ class PreviewEnvironmentCodeEventListener(
   private val front50Cache: Front50Cache,
   private val objectMapper: ObjectMapper,
   private val springEnv: Environment,
-  private val spectator: Registry,
+  private val spectator: MeterRegistry,
   private val clock: Clock,
   private val eventPublisher: ApplicationEventPublisher,
   private val scmUtils: ScmUtils,

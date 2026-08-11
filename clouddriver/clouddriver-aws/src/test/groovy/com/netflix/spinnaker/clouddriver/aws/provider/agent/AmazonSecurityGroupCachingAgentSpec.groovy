@@ -21,7 +21,7 @@ import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult
 import com.amazonaws.services.ec2.model.SecurityGroup
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer
-import com.netflix.spectator.api.Spectator
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
@@ -52,7 +52,7 @@ class AmazonSecurityGroupCachingAgentSpec extends Specification {
   EddaTimeoutConfig eddaTimeoutConfig = new EddaTimeoutConfig.Builder().build()
 
   @Subject AmazonSecurityGroupCachingAgent agent = new AmazonSecurityGroupCachingAgent(
-    amazonClientProvider, creds, region, mapper, Spectator.registry(), eddaTimeoutConfig)
+    amazonClientProvider, creds, region, mapper, new SimpleMeterRegistry(), eddaTimeoutConfig)
 
   SecurityGroup securityGroupA = new SecurityGroup(groupId: 'id-a', groupName: 'name-a', description: 'a')
   SecurityGroup securityGroupB = new SecurityGroup(groupId: 'id-b', groupName: 'name-b', description: 'b')
@@ -82,7 +82,7 @@ class AmazonSecurityGroupCachingAgentSpec extends Specification {
       securityGroups: [securityGroupA, securityGroupB])
     def cred = TestCredential.named("test", [edda: "http://foo", eddaEnabled: true])
     def agent = new AmazonSecurityGroupCachingAgent(
-      amazonClientProvider, cred, region, mapper, Spectator.registry(), eddaTimeoutConfig)
+      amazonClientProvider, cred, region, mapper, new SimpleMeterRegistry(), eddaTimeoutConfig)
     CacheData onDemandResult = new DefaultCacheData(agent.lastModifiedKey, [lastModified: '12346'], [:])
     def existingIds = ['sg1', 'sg2']
     List<CacheData> existingCacheData = []

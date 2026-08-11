@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.azure.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.clouddriver.azure.AzureCloudProvider;
 import com.netflix.spinnaker.clouddriver.azure.resources.common.cache.provider.AzureInfrastructureProvider;
@@ -31,6 +30,7 @@ import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.cache.AzureMana
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.cache.AzureVMImageCachingAgent;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import com.netflix.spinnaker.credentials.CredentialsLifecycleHandler;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -46,14 +46,14 @@ public class AzureCredentialsLifecycleHandler
   private final AzureInfrastructureProvider azureInfrastructureProvider;
   private final AzureCloudProvider azureCloudProvider;
   private final ObjectMapper objectMapper;
-  private final Registry registry;
+  private final MeterRegistry registry;
 
   public AzureCredentialsLifecycleHandler(
       AccountCredentialsProvider accountCredentialsProvider,
       AzureInfrastructureProvider azureInfrastructureProvider,
       AzureCloudProvider azureCloudProvider,
       ObjectMapper objectMapper,
-      Registry registry) {
+      MeterRegistry registry) {
     this.accountCredentialsProvider = accountCredentialsProvider;
     this.azureInfrastructureProvider = azureInfrastructureProvider;
     this.azureCloudProvider = azureCloudProvider;

@@ -26,7 +26,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.cats.cache.WriteableCache;
 import com.netflix.spinnaker.cats.mem.InMemoryCache;
 import com.netflix.spinnaker.cats.provider.DefaultProviderCache;
@@ -34,6 +33,7 @@ import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent;
 import com.netflix.spinnaker.clouddriver.yandex.model.YandexCloudLoadBalancer;
 import com.netflix.spinnaker.clouddriver.yandex.security.YandexCloudCredentials;
 import com.netflix.spinnaker.clouddriver.yandex.service.YandexCloudFacade;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.HashMap;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
@@ -55,7 +55,7 @@ class YandexNetworkLoadBalancerCachingAgentTest {
     cred.setName(ACCOUNT_NAME);
     YandexNetworkLoadBalancerCachingAgent agent =
         new YandexNetworkLoadBalancerCachingAgent(
-            cred, new ObjectMapper(), new NoopRegistry(), facade);
+            cred, new ObjectMapper(), new SimpleMeterRegistry(), facade);
     WriteableCache cache = new InMemoryCache();
     DefaultProviderCache providerCache = new DefaultProviderCache(cache);
     Map<String, Object> params = buildTestRequest(true);
@@ -74,7 +74,7 @@ class YandexNetworkLoadBalancerCachingAgentTest {
     cred.setName(ACCOUNT_NAME);
     YandexNetworkLoadBalancerCachingAgent agent =
         new YandexNetworkLoadBalancerCachingAgent(
-            cred, new ObjectMapper(), new NoopRegistry(), facade);
+            cred, new ObjectMapper(), new SimpleMeterRegistry(), facade);
     WriteableCache cache = new InMemoryCache();
     DefaultProviderCache providerCache = new DefaultProviderCache(cache);
     Map<String, Object> params = buildTestRequest(false);

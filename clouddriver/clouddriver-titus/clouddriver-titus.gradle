@@ -24,7 +24,7 @@ dependencies {
   implementation "com.google.protobuf:protobuf-java"
   implementation "com.google.protobuf:protobuf-java-util"
   implementation "com.netflix.frigga:frigga"
-  implementation "com.netflix.spectator:spectator-api"
+  implementation "io.micrometer:micrometer-core"
   implementation "io.spinnaker.fiat:fiat-api"
   implementation "io.spinnaker.fiat:fiat-core"
   implementation "io.spinnaker.kork:kork-artifacts"

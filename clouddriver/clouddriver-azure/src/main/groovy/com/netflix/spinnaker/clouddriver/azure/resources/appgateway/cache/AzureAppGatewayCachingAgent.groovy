@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.azure.resources.appgateway.cache
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
@@ -41,7 +41,7 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITA
 
 @Slf4j
 class AzureAppGatewayCachingAgent extends AzureCachingAgent {
-  final Registry registry
+  final MeterRegistry registry
   final OnDemandMetricsSupport metricsSupport
 
   static final Set<AgentDataType> types = Collections.unmodifiableSet([
@@ -53,7 +53,7 @@ class AzureAppGatewayCachingAgent extends AzureCachingAgent {
                               AzureCredentials creds,
                               String region,
                               ObjectMapper objectMapper,
-                              Registry registry) {
+                              MeterRegistry registry) {
     super(azureCloudProvider, accountName, creds, region, objectMapper)
     this.registry = registry
     this.metricsSupport = new OnDemandMetricsSupport(registry, this, "${azureCloudProvider.id}:${OnDemandType.LoadBalancer}")

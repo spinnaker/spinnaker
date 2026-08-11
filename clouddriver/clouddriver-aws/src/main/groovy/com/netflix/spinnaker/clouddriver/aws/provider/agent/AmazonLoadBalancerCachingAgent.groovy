@@ -25,7 +25,7 @@ import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerNotFoundException
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
@@ -54,7 +54,7 @@ class AmazonLoadBalancerCachingAgent extends AbstractAmazonLoadBalancerCachingAg
                                  String region,
                                  EddaApi eddaApi,
                                  ObjectMapper objectMapper,
-                                 Registry registry,
+                                 MeterRegistry registry,
                                  AmazonCachingAgentFilter amazonCachingAgentFilter) {
     super(amazonCloudProvider, amazonClientProvider, account, region, objectMapper, registry, amazonCachingAgentFilter)
     this.eddaApi = eddaApi

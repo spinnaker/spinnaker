@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.requestqueue.pooled
 
-import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import spock.lang.Specification
 
 import java.util.concurrent.Executor
@@ -28,7 +28,7 @@ class RequestDistributorSpec extends Specification {
 
   def "should pop and dispatch one item per queue"() {
     given:
-    Registry registry = new NoopRegistry()
+    MeterRegistry registry = new SimpleMeterRegistry()
     Collection<Queue<PooledRequest>> queues = [new LinkedBlockingQueue<>(), new LinkedBlockingQueue<>(), new LinkedBlockingQueue<>()]
     queues[0].add(new PooledRequest<Integer>(registry, "appA", {return 0}))
     queues[0].add(new PooledRequest<Integer>(registry, "appA", {return 1}))

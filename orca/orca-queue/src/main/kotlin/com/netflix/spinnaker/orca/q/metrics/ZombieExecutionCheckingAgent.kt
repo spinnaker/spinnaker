@@ -16,13 +16,12 @@
 
 package com.netflix.spinnaker.orca.q.metrics
 
-import com.netflix.spectator.api.BasicTag
-import com.netflix.spectator.api.Registry
-import com.netflix.spectator.api.Tag
 import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
 import com.netflix.spinnaker.orca.q.ZombieExecutionService
 import com.netflix.spinnaker.q.metrics.MonitorableQueue
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tags
 import java.time.Clock
 import java.time.Duration
 import net.logstash.logback.argument.StructuredArguments.kv
@@ -43,7 +42,7 @@ import org.springframework.stereotype.Component
 @ConditionalOnBean(MonitorableQueue::class)
 class ZombieExecutionCheckingAgent(
   private val zombieExecutionService: ZombieExecutionService,
-  private val registry: Registry,
+  private val registry: MeterRegistry,
   private val clock: Clock,
   conch: NotificationClusterLock,
   @Value("\${queue.zombie-check.interval-ms:3600000}") private val pollingIntervalMs: Long,
@@ -85,10 +84,7 @@ class ZombieExecutionCheckingAgent(
           kv("executionName", it.name),
           kv("executionId", it.id)
         )
-        val tags = mutableListOf<Tag>(
-          BasicTag("application", it.application),
-          BasicTag("type", it.type.name)
-        )
+        val tags = Tags.of("application", it.application, "type", it.type.name)
         registry.counter("queue.zombies", tags).increment()
       }
     } finally {

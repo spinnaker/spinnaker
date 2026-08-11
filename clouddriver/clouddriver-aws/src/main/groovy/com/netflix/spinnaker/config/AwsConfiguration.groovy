@@ -21,7 +21,7 @@ import com.amazonaws.retry.RetryPolicy.BackoffStrategy
 import com.amazonaws.retry.RetryPolicy.RetryCondition
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties
 import com.netflix.spinnaker.clouddriver.aws.deploy.InstanceTypeUtils.BlockDeviceConfig
 import com.netflix.spinnaker.clouddriver.aws.deploy.asg.LaunchTemplateRollOutConfig
@@ -100,7 +100,7 @@ class AwsConfiguration {
   }
 
   @Bean
-  AmazonClientProvider amazonClientProvider(AwsConfigurationProperties awsConfigurationProperties, RetryCondition instrumentedRetryCondition, BackoffStrategy instrumentedBackoffStrategy, AWSProxy proxy, EddaTimeoutConfig eddaTimeoutConfig, ServiceLimitConfiguration serviceLimitConfiguration, Registry registry) {
+  AmazonClientProvider amazonClientProvider(AwsConfigurationProperties awsConfigurationProperties, RetryCondition instrumentedRetryCondition, BackoffStrategy instrumentedBackoffStrategy, AWSProxy proxy, EddaTimeoutConfig eddaTimeoutConfig, ServiceLimitConfiguration serviceLimitConfiguration, MeterRegistry registry) {
     new AmazonClientProvider.Builder()
       .backoffStrategy(instrumentedBackoffStrategy)
       .retryCondition(instrumentedRetryCondition)
@@ -192,7 +192,7 @@ class AwsConfiguration {
 
   @Bean
   AmazonHealthIndicator amazonHealthIndicator(
-    Registry registry,
+    MeterRegistry registry,
     CredentialsRepository<NetflixAmazonCredentials> credentialsRepository,
     AmazonClientProvider amazonClientProvider,
     AwsConfigurationProperties awsConfigurationProperties

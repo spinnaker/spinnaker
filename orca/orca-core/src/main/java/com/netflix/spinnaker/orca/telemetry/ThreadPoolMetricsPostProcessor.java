@@ -18,8 +18,8 @@ package com.netflix.spinnaker.orca.telemetry;
 
 import static java.lang.String.format;
 
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -34,7 +34,7 @@ public class ThreadPoolMetricsPostProcessor
 
   @Autowired
   @Lazy
-  public ThreadPoolMetricsPostProcessor(Registry registry) {
+  public ThreadPoolMetricsPostProcessor(MeterRegistry registry) {
     super(ThreadPoolTaskExecutor.class, registry);
   }
 
@@ -42,9 +42,11 @@ public class ThreadPoolMetricsPostProcessor
   protected void applyMetrics(ThreadPoolTaskExecutor executor, String threadPoolName) {
     BiConsumer<String, Function<ThreadPoolExecutor, Integer>> createGauge =
         (name, fn) -> {
-          Id id = registry.createId(format("threadpool.%s", name)).withTag("id", threadPoolName);
-
-          registry.gauge(id, executor, ref -> fn.apply(ref.getThreadPoolExecutor()));
+          registry.gauge(
+              format("threadpool.%s", name),
+              Tags.of("id", threadPoolName),
+              executor,
+              ref -> fn.apply(ref.getThreadPoolExecutor()));
         };
 
     createGauge.accept("activeCount", ThreadPoolExecutor::getActiveCount);

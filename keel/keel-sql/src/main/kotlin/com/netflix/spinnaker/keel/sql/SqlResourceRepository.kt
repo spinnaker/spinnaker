@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.sql
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind.Companion.parseKind
 import com.netflix.spinnaker.keel.api.ResourceSpec
@@ -56,7 +56,7 @@ open class SqlResourceRepository(
   private val resourceFactory: ResourceFactory,
   private val sqlRetry: SqlRetry,
   private val publisher: ApplicationEventPublisher,
-  private val spectator: Registry,
+  private val spectator: MeterRegistry,
   private val springEnv: Environment
 ) : ResourceRepository {
 
@@ -66,7 +66,7 @@ open class SqlResourceRepository(
    * Insert into RESOURCE_VERSION table is frequently deadlocking.
    * Creating a metric to get insight into affected apps
    */
-  private val resourceVersionInsertId = spectator.createId("resource.version.insert")
+  private val resourceVersionInsertMetricName = "resource.version.insert"
 
   private val itemsDueForCheckCheckSingleSelectQuery : Boolean
     get() = springEnv.getProperty("keel.items.due.for.check.single.select.query", Boolean::class.java, false)
@@ -176,16 +176,17 @@ open class SqlResourceRepository(
         .execute()
     } catch(e: Exception) {
       log.error("Failed to insert resource version for ${resource.id}: $e", e)
-      spectator.counter(resourceVersionInsertId.withTags(
+      spectator.counter(
+        resourceVersionInsertMetricName,
         "success", "false",
         "application", resource.application, // Capture the app on fail cases to help repro
         "kind", resource.kind.toString()
-      ))
+      )
         .increment()
       throw e
     }
 
-    spectator.counter(resourceVersionInsertId.withTag("success", "true")).increment()
+    spectator.counter(resourceVersionInsertMetricName, "success", "true").increment()
 
     jooq.insertInto(RESOURCE_LAST_CHECKED)
       .set(RESOURCE_LAST_CHECKED.RESOURCE_UID, uid)

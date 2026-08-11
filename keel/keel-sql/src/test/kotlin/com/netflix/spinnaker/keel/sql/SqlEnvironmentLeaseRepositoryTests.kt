@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.sql
 
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.keel.artifacts.DockerArtifactSupplier
 import com.netflix.spinnaker.keel.jackson.registerKeelApiModule
 import com.netflix.spinnaker.keel.persistence.EnvironmentLeaseRepositoryTests
@@ -38,7 +38,7 @@ internal class SqlEnvironmentLeaseRepositoryTests :
     SqlEnvironmentLeaseRepository(
       jooq = jooq,
       clock = clock,
-      spectator = NoopRegistry(),
+      spectator = SimpleMeterRegistry(),
       leaseDuration = leaseDuration
     )
 

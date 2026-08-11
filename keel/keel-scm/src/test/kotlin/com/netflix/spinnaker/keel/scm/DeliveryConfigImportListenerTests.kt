@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.scm
 
-import com.netflix.spectator.api.Registry
-import com.netflix.spectator.api.Tag
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tag
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactOriginFilter
 import com.netflix.spinnaker.keel.api.artifacts.branchName
 import com.netflix.spinnaker.keel.api.persistence.KeelReadOnlyRepository
@@ -46,7 +46,7 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
     val scmUtils: ScmUtils = mockk()
     val springEnv: Environment = mockk()
     val notificationRepository: DismissibleNotificationRepository = mockk()
-    val spectator: Registry = mockk()
+    val spectator: MeterRegistry = mockk()
     val clock = MutableClock()
     val eventPublisher: ApplicationEventPublisher = mockk()
     val subject = DeliveryConfigImportListener(

@@ -26,7 +26,6 @@ import static java.util.stream.Collectors.toSet;
 
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult;
@@ -41,6 +40,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryLoadBala
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.CloudFoundryProvider;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.*;
 import javax.annotation.Nullable;
 import lombok.Getter;
@@ -56,7 +56,7 @@ public class CloudFoundryLoadBalancerCachingAgent extends AbstractCloudFoundryCa
       Collections.singletonList(AUTHORITATIVE.forType(LOAD_BALANCERS.getNs()));
 
   public CloudFoundryLoadBalancerCachingAgent(
-      CloudFoundryCredentials credentials, Registry registry) {
+      CloudFoundryCredentials credentials, MeterRegistry registry) {
     super(credentials, registry);
   }
 

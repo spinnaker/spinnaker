@@ -32,11 +32,6 @@ keiko:
       queueName: kayenta.keiko.queue
       deadLetterQueueName: kayenta.keiko.queue.deadLetters
 
-spectator:
-  applicationName: ${spring.application.name}
-  webEndpoint:
-    enabled: true
-
 spring:
   liquibase:
     change-log: classpath:db/changelog-master.yml

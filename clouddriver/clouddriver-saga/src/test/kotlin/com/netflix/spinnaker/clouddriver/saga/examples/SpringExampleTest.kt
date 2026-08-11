@@ -15,8 +15,6 @@
  */
 package com.netflix.spinnaker.clouddriver.saga.examples
 
-import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.event.config.EventSourceAutoConfiguration
 import com.netflix.spinnaker.clouddriver.saga.Action1
 import com.netflix.spinnaker.clouddriver.saga.Action2
@@ -30,6 +28,8 @@ import com.netflix.spinnaker.clouddriver.saga.flow.SagaFlow
 import com.netflix.spinnaker.clouddriver.saga.models.Saga
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import java.util.function.Predicate
 import org.springframework.boot.autoconfigure.AutoConfigurations
 import org.springframework.boot.test.context.assertj.AssertableApplicationContext
@@ -82,7 +82,7 @@ class SpringExampleTest : JUnit5Minutests {
   @Configuration
   open class DependencyConfiguration {
     @Bean
-    open fun registry(): Registry = NoopRegistry()
+    open fun registry(): MeterRegistry = SimpleMeterRegistry()
 
     @Bean
     open fun action1(): Action1 = Action1()

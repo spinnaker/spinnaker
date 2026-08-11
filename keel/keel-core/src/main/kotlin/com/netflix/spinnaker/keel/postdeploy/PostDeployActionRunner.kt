@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.keel.postdeploy
 
-import com.netflix.spectator.api.Registry
-import com.netflix.spectator.api.Spectator
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.keel.BaseActionRunner
 import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
 import com.netflix.spinnaker.keel.api.action.ActionRepository
@@ -26,7 +25,7 @@ class PostDeployActionRunner(
   private val handlers: List<PostDeployActionHandler<*>>,
   private val eventPublisher: ApplicationEventPublisher,
   override val actionRepository: ActionRepository,
-  override val spectator: Registry
+  override val spectator: MeterRegistry
 ): BaseActionRunner<PostDeployAction>() {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 

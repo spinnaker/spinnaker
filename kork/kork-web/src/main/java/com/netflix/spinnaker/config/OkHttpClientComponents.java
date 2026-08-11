@@ -18,7 +18,6 @@ package com.netflix.spinnaker.config;
 
 import brave.http.HttpTracing;
 import brave.okhttp3.TracingInterceptor;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientCustomizer;
 import com.netflix.spinnaker.kork.crypto.PasswordProvider;
 import com.netflix.spinnaker.kork.crypto.SecureRandomBuilder;
@@ -31,6 +30,7 @@ import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor;
 import com.netflix.spinnaker.okhttp.SpinnakerRequestHeaderInterceptor;
 import com.netflix.spinnaker.retrofit.Retrofit2ConfigurationProperties;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.inject.Provider;
 import java.io.File;
 import java.io.FileInputStream;
@@ -72,7 +72,7 @@ import org.springframework.util.CollectionUtils;
   Retrofit2ConfigurationProperties.class
 })
 public class OkHttpClientComponents {
-  private final Provider<Registry> registryProvider;
+  private final Provider<MeterRegistry> registryProvider;
   private final OkHttpClientConfigurationProperties clientProperties;
   private final OkHttpMetricsInterceptorProperties metricsProperties;
   private final Retrofit2ConfigurationProperties retrofit2Properties;

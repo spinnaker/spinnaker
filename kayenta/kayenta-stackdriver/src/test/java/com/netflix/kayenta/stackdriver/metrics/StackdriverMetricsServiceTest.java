@@ -21,7 +21,7 @@ import com.netflix.kayenta.metrics.MetricSet;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.stackdriver.canary.StackdriverCanaryScope;
-import com.netflix.spectator.api.DefaultRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -49,7 +49,7 @@ public class StackdriverMetricsServiceTest {
     accountCredentialsRepoMock = mock(AccountCredentialsRepository.class);
     stackdriverMetricsServiceBuilder
         .accountCredentialsRepository(accountCredentialsRepoMock)
-        .registry(new DefaultRegistry());
+        .registry(new SimpleMeterRegistry());
     stackdriverMetricsService = stackdriverMetricsServiceBuilder.build();
   }
 

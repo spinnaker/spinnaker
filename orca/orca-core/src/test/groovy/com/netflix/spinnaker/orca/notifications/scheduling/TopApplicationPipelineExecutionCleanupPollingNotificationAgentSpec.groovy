@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.orca.notifications.scheduling
 
-import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.TaskExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import spock.lang.Specification
 import spock.lang.Unroll
 import io.reactivex.rxjava3.core.Observable
@@ -39,7 +39,7 @@ class TopApplicationPipelineExecutionCleanupPollingNotificationAgentSpec extends
     def filter = new TopApplicationExecutionCleanupPollingNotificationAgent(
       Mock(NotificationClusterLock),
       Mock(ExecutionRepository),
-      new NoopRegistry(),
+      new SimpleMeterRegistry(),
       5000,
       2500,
       []
@@ -70,7 +70,7 @@ class TopApplicationPipelineExecutionCleanupPollingNotificationAgentSpec extends
     def mapper = new TopApplicationExecutionCleanupPollingNotificationAgent(
       Mock(NotificationClusterLock),
       Mock(ExecutionRepository),
-      new NoopRegistry(),
+      new SimpleMeterRegistry(),
       5000,
       2500,
       []
@@ -99,7 +99,7 @@ class TopApplicationPipelineExecutionCleanupPollingNotificationAgentSpec extends
     def agent = new TopApplicationExecutionCleanupPollingNotificationAgent(
       Mock(NotificationClusterLock),
       executionRepository,
-      new NoopRegistry(),
+      new SimpleMeterRegistry(),
       5000,
       2,
       [pipelineDependencyCleanupOperator]

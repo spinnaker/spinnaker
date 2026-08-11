@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.titus.postdeploy
 
-import com.netflix.spectator.api.BasicTag
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.Tag
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.config.BaseUrlConfig
 import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
 import com.netflix.spinnaker.keel.api.action.ActionState
@@ -42,7 +42,7 @@ class TagAmiHandler(
   override val eventPublisher: EventPublisher,
   private val taskLauncher: TaskLauncher,
   private val orca: OrcaService,
-  private val spectator: Registry,
+  private val spectator: MeterRegistry,
   private val baseUrlConfig: BaseUrlConfig,
   private val imageFinder: ImageFinder
 ) : PostDeployActionHandler<TagAmiPostDeployAction> {
@@ -83,7 +83,7 @@ class TagAmiHandler(
       log.debug("Launching task ${task.id} to tag image(s) $names")
       spectator.counter(
         TAG_AMI_JOB_LAUNCHED,
-        listOf(BasicTag("application", context.deliveryConfig.application))
+        listOf(Tag.of("application", context.deliveryConfig.application))
       ).increment()
       tasksIds.add(task.id)
     }

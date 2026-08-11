@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.event.persistence.EventRepository
 import com.netflix.spinnaker.clouddriver.security.AccountDefinitionMapper
@@ -34,6 +33,7 @@ import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
 import com.netflix.spinnaker.kork.sql.config.SqlProperties
 import com.netflix.spinnaker.kork.telemetry.InstrumentedProxy
 import com.netflix.spinnaker.kork.version.ServiceVersion
+import io.micrometer.core.instrument.MeterRegistry
 import org.jooq.DSLContext
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
@@ -77,7 +77,7 @@ class SqlConfiguration {
   fun sqlTaskCleanupAgent(
     jooq: DSLContext,
     clock: Clock,
-    registry: Registry,
+    registry: MeterRegistry,
     properties: SqlTaskCleanupAgentProperties
   ): SqlTaskCleanupAgent =
     SqlTaskCleanupAgent(jooq, clock, registry, properties)
@@ -100,7 +100,7 @@ class SqlConfiguration {
     serviceVersion: ServiceVersion,
     objectMapper: ObjectMapper,
     applicationEventPublisher: ApplicationEventPublisher,
-    registry: Registry,
+    registry: MeterRegistry,
     subtypeLocators: List<SubtypeLocator>
   ): EventRepository {
     // TODO(rz): ObjectMapperSubtypeConfigurer should become a standard kork feature. This is pretty gross.
@@ -120,7 +120,7 @@ class SqlConfiguration {
   @ConditionalOnExpression("\${sql.read-only:false} == false")
   fun sqlEventCleanupAgent(
     jooq: DSLContext,
-    registry: Registry,
+    registry: MeterRegistry,
     properties: SqlEventCleanupAgentConfigProperties,
     dynamicConfigService: DynamicConfigService
   ): SqlEventCleanupAgent {

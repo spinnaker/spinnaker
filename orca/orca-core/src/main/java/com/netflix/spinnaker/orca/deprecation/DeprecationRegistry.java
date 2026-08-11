@@ -17,8 +17,7 @@ package com.netflix.spinnaker.orca.deprecation;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,12 +29,12 @@ public class DeprecationRegistry {
   private static final String METRIC_NAME = "orca.deprecation";
   private static final String APPLICATION_TAG_KEY = "application";
   private static final String DEPRECATION_TAG_KEY = "deprecationName";
-  private final Registry registry;
+  private final MeterRegistry registry;
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   @Autowired
-  public DeprecationRegistry(Registry registry) {
+  public DeprecationRegistry(MeterRegistry registry) {
     this.registry = registry;
   }
 
@@ -48,11 +47,8 @@ public class DeprecationRegistry {
       return;
     }
 
-    Id id =
-        registry
-            .createId(METRIC_NAME)
-            .withTag(DEPRECATION_TAG_KEY, tagName)
-            .withTag(APPLICATION_TAG_KEY, application);
-    registry.counter(id).increment();
+    registry
+        .counter(METRIC_NAME, DEPRECATION_TAG_KEY, tagName, APPLICATION_TAG_KEY, application)
+        .increment();
   }
 }

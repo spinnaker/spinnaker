@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.sql
 
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceSpec
@@ -51,7 +51,7 @@ internal object SqlResourceRepositoryPeriodicallyCheckedTests :
       resourceFactory,
       sqlRetry,
       publisher = mockk(relaxed = true),
-      spectator = NoopRegistry(),
+      spectator = SimpleMeterRegistry(),
       springEnv = mockEnvironment()
     )
   }
@@ -98,7 +98,7 @@ internal object SqlResourceRepositoryPeriodicallyCheckedTests :
         // create a new repository object that is configured with our custom retries
         val repo =
           SqlResourceRepository(jooq, clock, configuredObjectMapper(), resourceFactory,
-            customSqlRetry, publisher = mockk(relaxed = true), spectator = NoopRegistry(), springEnv = mockEnvironment())
+            customSqlRetry, publisher = mockk(relaxed = true), spectator = SimpleMeterRegistry(), springEnv = mockEnvironment())
         val results = synchronizedSet<Resource<ResourceSpec>>(HashSet())
 
         doInParallel(500) {

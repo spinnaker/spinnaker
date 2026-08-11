@@ -18,7 +18,6 @@ package com.netflix.spinnaker.echo.pipelinetriggers.orca;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.pipelinetriggers.QuietPeriodIndicator;
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService.TriggerResponse;
@@ -33,6 +32,7 @@ import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.annotation.PostConstruct;
 import java.util.Collection;
 import java.util.Collections;
@@ -55,7 +55,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class PipelineInitiator {
 
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final DynamicConfigService dynamicConfigService;
   private final OrcaService orca;
   private final FiatPermissionEvaluator fiatPermissionEvaluator;
@@ -70,7 +70,7 @@ public class PipelineInitiator {
 
   @Autowired
   public PipelineInitiator(
-      @NonNull Registry registry,
+      @NonNull MeterRegistry registry,
       @NonNull OrcaService orca,
       @NonNull Optional<FiatPermissionEvaluator> fiatPermissionEvaluator,
       @NonNull FiatStatus fiatStatus,

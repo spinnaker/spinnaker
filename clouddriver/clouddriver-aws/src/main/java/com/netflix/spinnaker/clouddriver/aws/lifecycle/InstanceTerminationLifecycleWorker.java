@@ -32,8 +32,6 @@ import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.frigga.Names;
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery.AwsEurekaSupport;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials.LifecycleHook;
@@ -45,6 +43,8 @@ import com.netflix.spinnaker.credentials.CredentialsRepository;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import jakarta.inject.Provider;
 import java.io.IOException;
 import java.time.Duration;
@@ -55,6 +55,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,16 +69,20 @@ public class InstanceTerminationLifecycleWorker implements Runnable {
   private static final int AWS_MAX_NUMBER_OF_MESSAGES = 10;
   private static final String SUPPORTED_LIFECYCLE_TRANSITION =
       "autoscaling:EC2_INSTANCE_TERMINATING";
+  private static final String LAG_METRIC_NAME = "terminationLifecycle.lag";
+  private static final String PROCESSED_METRIC_NAME = "terminationLifecycle.totalProcessed";
+  private static final String FAILED_METRIC_NAME = "terminationLifecycle.totalFailed";
 
   ObjectMapper objectMapper;
   AmazonClientProvider amazonClientProvider;
   CredentialsRepository<NetflixAmazonCredentials> credentialsRepository;
   InstanceTerminationConfigurationProperties properties;
   Provider<AwsEurekaSupport> discoverySupport;
-  Registry registry;
+  MeterRegistry registry;
 
   private final ARN queueARN;
   private final ARN topicARN;
+  private final AtomicReference<Double> lagGauge;
 
   private String queueId = null;
 
@@ -87,7 +92,7 @@ public class InstanceTerminationLifecycleWorker implements Runnable {
       CredentialsRepository<NetflixAmazonCredentials> credentialsRepository,
       InstanceTerminationConfigurationProperties properties,
       Provider<AwsEurekaSupport> discoverySupport,
-      Registry registry) {
+      MeterRegistry registry) {
     this.objectMapper = objectMapper;
     this.amazonClientProvider = amazonClientProvider;
     this.credentialsRepository = credentialsRepository;
@@ -98,6 +103,12 @@ public class InstanceTerminationLifecycleWorker implements Runnable {
     Set<NetflixAmazonCredentials> accountCredentials = credentialsRepository.getAll();
     this.queueARN = new ARN(accountCredentials, properties.getQueueARN());
     this.topicARN = new ARN(accountCredentials, properties.getTopicARN());
+    this.lagGauge =
+        registry.gauge(
+            LAG_METRIC_NAME,
+            Tags.of("region", queueARN.region),
+            new AtomicReference<>(0.0),
+            AtomicReference::get);
   }
 
   public String getWorkerName() {
@@ -169,7 +180,7 @@ public class InstanceTerminationLifecycleWorker implements Runnable {
                 }
 
                 deleteMessage(amazonSQS, queueId, message);
-                registry.counter(getProcessedMetricId(queueARN.region)).increment();
+                registry.counter(PROCESSED_METRIC_NAME, "region", queueARN.region).increment();
               });
     }
   }
@@ -212,7 +223,7 @@ public class InstanceTerminationLifecycleWorker implements Runnable {
     Eureka eureka = discoverySupport.get().getEureka(credentials, queueARN.region);
 
     if (!updateInstanceStatus(eureka, names.getApp(), message.ec2InstanceId)) {
-      registry.counter(getFailedMetricId(queueARN.region)).increment();
+      registry.counter(FAILED_METRIC_NAME, "region", queueARN.region).increment();
     }
     recordLag(
         message.time,
@@ -336,29 +347,17 @@ public class InstanceTerminationLifecycleWorker implements Runnable {
     return new Policy("allow-sns-or-sqs-send", Arrays.asList(snsStatement, sqsStatement));
   }
 
-  Id getLagMetricId(String region) {
-    return registry.createId("terminationLifecycle.lag", "region", region);
-  }
-
   void recordLag(Date start, String region, String account, String serverGroup, String instanceId) {
     if (start != null) {
-      Long lag = registry.clock().wallTime() - start.getTime();
+      Long lag = registry.config().clock().wallTime() - start.getTime();
       log.info(
           "Lifecycle message processed (account: {}, serverGroup: {}, instance: {}, lagSeconds: {})",
           account,
           serverGroup,
           instanceId,
           Duration.ofMillis(lag).getSeconds());
-      registry.gauge(getLagMetricId(region), lag);
+      lagGauge.set(lag.doubleValue());
     }
-  }
-
-  Id getProcessedMetricId(String region) {
-    return registry.createId("terminationLifecycle.totalProcessed", "region", region);
-  }
-
-  Id getFailedMetricId(String region) {
-    return registry.createId("terminationLifecycle.totalFailed", "region", region);
   }
 
   private static List<String> getAllAccountIds(

@@ -24,7 +24,7 @@ import com.amazonaws.services.ec2.model.LaunchTemplate
 import com.amazonaws.services.ec2.model.LaunchTemplateVersion
 import com.amazonaws.services.ec2.model.ResponseLaunchTemplateData
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
@@ -36,7 +36,7 @@ import spock.lang.Subject
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.LAUNCH_TEMPLATES
 
 class AmazonLaunchTemplateCachingAgentSpec extends Specification {
-  def registry = new NoopRegistry()
+  def registry = new SimpleMeterRegistry()
   def objectMapper = new ObjectMapper()
   def region = "us-east-1"
   def account = "test"

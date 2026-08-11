@@ -19,9 +19,9 @@ package com.netflix.spinnaker.clouddriver.google.compute;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Autoscaler;
 import com.google.api.services.compute.model.RegionAutoscalerList;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.io.IOException;
 
 public final class RegionAutoscalers {
@@ -33,7 +33,7 @@ public final class RegionAutoscalers {
   RegionAutoscalers(
       GoogleNamedAccountCredentials credentials,
       GoogleOperationPoller operationPoller,
-      Registry registry) {
+      MeterRegistry registry) {
     this.computeApi = credentials.getCompute().regionAutoscalers();
     this.credentials = credentials;
     this.requestFactory =

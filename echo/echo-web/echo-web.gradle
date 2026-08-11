@@ -44,7 +44,6 @@ dependencies {
     implementation "com.squareup.retrofit2:retrofit"
     implementation "com.squareup.retrofit2:converter-jackson"
     implementation "com.fasterxml.jackson.core:jackson-databind"
-    implementation "com.netflix.spectator:spectator-api"
     implementation "jakarta.validation:jakarta.validation-api"
     implementation 'net.redhogs.cronparser:cron-parser-core:2.8'
     implementation "org.springframework.data:spring-data-rest-webmvc"

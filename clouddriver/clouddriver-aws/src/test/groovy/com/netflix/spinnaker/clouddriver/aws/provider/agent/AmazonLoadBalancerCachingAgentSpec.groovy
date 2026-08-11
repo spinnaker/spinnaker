@@ -3,7 +3,7 @@ package com.netflix.spinnaker.clouddriver.aws.provider.agent
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing
 import com.amazonaws.services.elasticloadbalancing.model.*
 import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer
-import com.netflix.spectator.api.Spectator
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.edda.EddaApi
@@ -60,7 +60,7 @@ class AmazonLoadBalancerCachingAgentSpec extends Specification {
       }
     }
 
-    new AmazonLoadBalancerCachingAgent(cloud, client, creds, region, eddaApi, AmazonObjectMapperConfigurer.createConfigured(), Spectator.globalRegistry(), filter)
+    new AmazonLoadBalancerCachingAgent(cloud, client, creds, region, eddaApi, AmazonObjectMapperConfigurer.createConfigured(), new SimpleMeterRegistry(), filter)
   }
 
   void "should filter by tags"() {

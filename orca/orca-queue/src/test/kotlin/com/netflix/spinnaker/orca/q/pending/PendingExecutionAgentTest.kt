@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.q.pending
 
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.api.test.pipeline
@@ -47,7 +47,7 @@ internal object PendingExecutionAgentTest : SubjectSpek<PendingExecutionAgent>({
 
   class PendingExecutionAgentProxy : PendingExecutionAgent(
     clusterLock,
-    NoopRegistry(),
+    SimpleMeterRegistry(),
     queue,
     pendingExecutionService,
     executionRepository,

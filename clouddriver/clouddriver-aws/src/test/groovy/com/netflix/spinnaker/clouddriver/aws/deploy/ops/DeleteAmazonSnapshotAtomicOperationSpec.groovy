@@ -20,7 +20,7 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.DeleteSnapshotRequest
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteAmazonSnapshotDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
@@ -41,7 +41,7 @@ class DeleteAmazonSnapshotAtomicOperationSpec extends Specification {
   )
 
   @Subject
-  def deleteSnapshotOp = new DeleteAmazonSnapshotAtomicOperation(description, new NoopRegistry())
+  def deleteSnapshotOp = new DeleteAmazonSnapshotAtomicOperation(description, new SimpleMeterRegistry())
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))

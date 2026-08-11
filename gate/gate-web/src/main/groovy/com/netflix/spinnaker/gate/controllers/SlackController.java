@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.gate.controllers;
 
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.gate.config.SlackConfigProperties;
 import com.netflix.spinnaker.gate.services.SlackService;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.swagger.v3.oas.annotations.Operation;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -48,7 +48,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class SlackController {
 
   private static final Logger log = LoggerFactory.getLogger(SlackController.class);
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final AtomicReference<List<Map>> slackChannelsCache =
       new AtomicReference<>(new ArrayList<>());
 
@@ -60,7 +60,9 @@ public class SlackController {
 
   @Autowired
   public SlackController(
-      SlackService slackService, SlackConfigProperties slackConfigProperties, Registry registry) {
+      SlackService slackService,
+      SlackConfigProperties slackConfigProperties,
+      MeterRegistry registry) {
     this.slackService = slackService;
     this.slackConfigProperties = slackConfigProperties;
     this.registry = registry;

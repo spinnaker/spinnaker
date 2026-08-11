@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.bakery.telemetry
 
-import com.netflix.spectator.api.BasicTag
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tag
 import com.netflix.spinnaker.keel.bakery.artifact.BakeLaunched
 import com.netflix.spinnaker.keel.bakery.artifact.ImageRegionMismatchDetected
 import com.netflix.spinnaker.keel.bakery.artifact.RecurrentBakeDetected
@@ -11,17 +11,17 @@ import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 
 @Component
-class BakeryTelemetryListener(private val spectator: Registry) {
+class BakeryTelemetryListener(private val spectator: MeterRegistry) {
 
   @EventListener(ImageRegionMismatchDetected::class)
   fun onImageRegionMismatchDetected(event: ImageRegionMismatchDetected) {
     spectator.counter(
       IMAGE_REGION_MISMATCH_DETECTED_ID,
       listOf(
-        BasicTag("appVersion", event.appVersion),
-        BasicTag("baseAmiName", event.baseAmiName),
-        BasicTag("found", event.foundRegions.joinToString()),
-        BasicTag("desired", event.desiredRegions.joinToString())
+        Tag.of("appVersion", event.appVersion),
+        Tag.of("baseAmiName", event.baseAmiName),
+        Tag.of("found", event.foundRegions.joinToString()),
+        Tag.of("desired", event.desiredRegions.joinToString())
       )
     )
       .runCatching { increment() }
@@ -35,7 +35,7 @@ class BakeryTelemetryListener(private val spectator: Registry) {
     spectator.counter(
       BAKE_LAUNCHED_ID,
       listOf(
-        BasicTag("appVersion", event.appVersion)
+        Tag.of("appVersion", event.appVersion)
       )
     )
       .runCatching { increment() }
@@ -49,7 +49,7 @@ class BakeryTelemetryListener(private val spectator: Registry) {
     spectator.counter(
       RECURRENT_BAKE_DETECTED_ID,
       listOf(
-        BasicTag("versions", "${event.appVersion}+${event.baseAmiVersion}")
+        Tag.of("versions", "${event.appVersion}+${event.baseAmiVersion}")
       )
     )
   }
@@ -59,7 +59,7 @@ class BakeryTelemetryListener(private val spectator: Registry) {
     spectator.counter(
       MISSING_REGIONS_DETECTED,
       listOf(
-        BasicTag("versions", event.version)
+        Tag.of("versions", event.version)
       )
     )
   }

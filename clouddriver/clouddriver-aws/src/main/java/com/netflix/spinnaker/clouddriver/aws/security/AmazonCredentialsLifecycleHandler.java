@@ -18,7 +18,6 @@
 package com.netflix.spinnaker.clouddriver.aws.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.agent.AgentProvider;
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider;
@@ -36,6 +35,7 @@ import com.netflix.spinnaker.config.AwsConfiguration.DeployDefaults;
 import com.netflix.spinnaker.credentials.CredentialsLifecycleHandler;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -70,7 +70,7 @@ public class AmazonCredentialsLifecycleHandler
   private final @Qualifier("amazonObjectMapper") ObjectMapper amazonObjectMapper;
   private final EddaApiFactory eddaApiFactory;
   private final ApplicationContext ctx;
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final Optional<ExecutorService> reservationReportPool;
   private final Optional<Collection<AgentProvider>> agentProviders;
   private final EddaTimeoutConfig eddaTimeoutConfig;

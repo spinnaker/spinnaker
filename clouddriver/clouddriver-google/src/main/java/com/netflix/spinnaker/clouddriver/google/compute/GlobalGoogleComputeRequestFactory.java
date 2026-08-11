@@ -19,13 +19,13 @@ package com.netflix.spinnaker.clouddriver.google.compute;
 import com.google.api.services.compute.ComputeRequest;
 import com.google.api.services.compute.model.Operation;
 import com.google.common.collect.ImmutableMap;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.google.GoogleExecutor;
 import com.netflix.spinnaker.clouddriver.google.compute.GoogleComputeOperationRequestImpl.OperationWaiter;
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil;
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
+import io.micrometer.core.instrument.MeterRegistry;
 
 final class GlobalGoogleComputeRequestFactory {
 
@@ -34,14 +34,14 @@ final class GlobalGoogleComputeRequestFactory {
 
   private final String serviceName;
   private final GoogleNamedAccountCredentials credentials;
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final GoogleOperationPoller poller;
 
   GlobalGoogleComputeRequestFactory(
       String serviceName,
       GoogleNamedAccountCredentials credentials,
       GoogleOperationPoller poller,
-      Registry registry) {
+      MeterRegistry registry) {
     this.serviceName = serviceName;
     this.credentials = credentials;
     this.registry = registry;

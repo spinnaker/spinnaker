@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.sql
 
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.keel.persistence.LifecycleMonitorRepositoryTests
 import com.netflix.spinnaker.keel.test.configuredTestObjectMapper
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
@@ -29,7 +29,7 @@ internal object SqlLifecycleMonitorRepositoryTests
       clock,
       jooq,
       sqlRetry,
-      NoopRegistry(),
+      SimpleMeterRegistry(),
       publisher
     )
   }

@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.dcos.security
 
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.cats.module.CatsModule
 import com.netflix.spinnaker.clouddriver.dcos.DcosClientCompositeKey
 import com.netflix.spinnaker.clouddriver.dcos.DcosClientProvider
@@ -39,7 +39,7 @@ import org.springframework.context.annotation.DependsOn
 class DcosCredentialsInitializer {
   private final static LOGGER = LoggerFactory.getLogger(DcosCredentialsInitializer)
 
-  @Autowired Registry spectatorRegistry
+  @Autowired MeterRegistry spectatorRegistry
 
   @Bean
   @DependsOn("dockerRegistryNamedAccountCredentials")

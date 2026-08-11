@@ -10,11 +10,6 @@ rosco:
 redis:
   connection: ${services.redis.baseUrl:redis://localhost:6379}
 
-spectator:
-  applicationName: ${spring.application.name}
-  webEndpoint:
-    enabled: false
-
 packer:
   # Set this if running Packer >= 1.4.0 for timestamp prepended output
   timestamp: false

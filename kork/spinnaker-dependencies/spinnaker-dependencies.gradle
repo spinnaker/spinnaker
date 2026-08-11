@@ -18,7 +18,6 @@ ext {
     log4jKotlin      : "1.5.0",
     protobuf         : "3.25.9",
     retrofit2        : "2.12.0",
-    spectator        : "1.7.3", // watch to match what is coming from eureka which defines this, but not ALL the versions
     spek             : "1.1.5",
     elasticsearch    : "8.19.18", // Used by clouddriver, moved here for central dep management
     spek2            : "2.0.9",
@@ -111,16 +110,6 @@ dependencies {
     api("com.netflix.eureka:eureka-client")
     api("com.netflix.frigga:frigga:0.28.0")
     api("com.netflix.netflix-commons:netflix-eventbus:0.3.0")
-    api("com.netflix.spectator:spectator-api:${versions.spectator}")
-    api("com.netflix.spectator:spectator-ext-aws:${versions.spectator}")
-    api("com.netflix.spectator:spectator-ext-aws2:${versions.spectator}")
-    api("com.netflix.spectator:spectator-ext-ipc:${versions.spectator}")
-    api("com.netflix.spectator:spectator-ext-gc:${versions.spectator}")
-    api("com.netflix.spectator:spectator-ext-jvm:${versions.spectator}")
-    api("com.netflix.spectator:spectator-nflx-plugin:${versions.spectator}")
-    api("com.netflix.spectator:spectator-reg-atlas:${versions.spectator}")
-    api("com.netflix.spectator:spectator-web-spring:${versions.spectator}")
-    api("com.netflix.spectator:spectator-reg-micrometer:${versions.spectator}")
     api("com.nimbusds:nimbus-jose-jwt:10.9")
     api("com.ninja-squad:springmockk:4.0.2")  //Compatible with Spring boot 3.x and Java 17+ https://github.com/Ninja-Squad/springmockk?tab=readme-ov-file#versions-compatibility
     api("com.squareup.retrofit2:converter-jackson:${versions.retrofit2}")

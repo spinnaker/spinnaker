@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.echo.microsoftteams
 
-import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.config.OkHttpMetricsInterceptorProperties
 import com.netflix.spinnaker.okhttp.OkHttp3MetricsInterceptor
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
 import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor
 import com.netflix.spinnaker.okhttp.SpinnakerRequestHeaderInterceptor
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import okhttp3.OkHttpClient
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -52,7 +52,7 @@ class MicrosoftTeamsServiceRetrofitSpec extends Specification {
 
     def okHttpClientConfig = new OkHttp3ClientConfiguration(
       new OkHttpClientConfigurationProperties(),
-      new OkHttp3MetricsInterceptor({ -> new NoopRegistry() }, new OkHttpMetricsInterceptorProperties()),
+      new OkHttp3MetricsInterceptor({ -> new SimpleMeterRegistry() }, new OkHttpMetricsInterceptorProperties()),
       HttpLoggingInterceptor.Level.NONE,
       new SpinnakerRequestHeaderInterceptor(false, []),
       new Retrofit2EncodeCorrectionInterceptor(),

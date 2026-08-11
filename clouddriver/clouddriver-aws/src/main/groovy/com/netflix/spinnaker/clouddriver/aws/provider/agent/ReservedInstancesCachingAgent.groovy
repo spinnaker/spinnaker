@@ -22,7 +22,7 @@ import com.amazonaws.services.ec2.model.ReservedInstances
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.cats.agent.AccountAware
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
@@ -59,13 +59,13 @@ class ReservedInstancesCachingAgent implements CachingAgent, CustomScheduledAgen
   final NetflixAmazonCredentials account
   final String region
   final ObjectMapper objectMapper
-  final Registry registry
+  final MeterRegistry registry
 
   ReservedInstancesCachingAgent(AmazonClientProvider amazonClientProvider,
                                 NetflixAmazonCredentials account,
                                 String region,
                                 ObjectMapper objectMapper,
-                                Registry registry) {
+                                MeterRegistry registry) {
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region

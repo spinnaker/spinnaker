@@ -2,7 +2,7 @@ package com.netflix.spinnaker.orca.q.pending
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.config.DualPendingExecutionServiceConfiguration
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.api.test.pipeline
@@ -49,7 +49,7 @@ internal object DualPendingExecutionServiceTest : SubjectSpek<DualPendingExecuti
     DualPendingExecutionService(
       properties,
       listOf(primaryService, previousService),
-      NoopRegistry()
+      SimpleMeterRegistry()
     )
   }
 

@@ -30,7 +30,7 @@ dependencies {
 
   api 'com.amazonaws:aws-java-sdk-sns'
   api 'com.amazonaws:aws-java-sdk-sqs'
-  api 'com.netflix.spectator:spectator-api'
+  api 'io.micrometer:micrometer-core'
   api 'org.slf4j:slf4j-api'
   api "software.amazon.awssdk:sns"
   api "software.amazon.awssdk:sqs"

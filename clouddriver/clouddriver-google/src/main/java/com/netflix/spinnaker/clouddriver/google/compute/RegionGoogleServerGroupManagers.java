@@ -21,9 +21,9 @@ import com.google.api.services.compute.ComputeRequest;
 import com.google.api.services.compute.model.InstanceGroupManager;
 import com.google.api.services.compute.model.Operation;
 import com.google.api.services.compute.model.RegionInstanceGroupManagersAbandonInstancesRequest;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.io.IOException;
 import java.util.List;
 
@@ -38,7 +38,7 @@ final class RegionGoogleServerGroupManagers implements GoogleServerGroupManagers
   RegionGoogleServerGroupManagers(
       GoogleNamedAccountCredentials credentials,
       GoogleOperationPoller operationPoller,
-      Registry registry,
+      MeterRegistry registry,
       String instanceGroupName,
       String region) {
     this.credentials = credentials;

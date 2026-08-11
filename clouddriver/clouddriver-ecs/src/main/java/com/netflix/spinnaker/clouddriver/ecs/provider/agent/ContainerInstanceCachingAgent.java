@@ -26,7 +26,6 @@ import com.amazonaws.services.ecs.model.ContainerInstance;
 import com.amazonaws.services.ecs.model.DescribeContainerInstancesRequest;
 import com.amazonaws.services.ecs.model.ListContainerInstancesRequest;
 import com.amazonaws.services.ecs.model.ListContainerInstancesResult;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
@@ -34,6 +33,7 @@ import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -56,7 +56,7 @@ public class ContainerInstanceCachingAgent extends AbstractEcsOnDemandAgent<Cont
       String region,
       AmazonClientProvider amazonClientProvider,
       AWSCredentialsProvider awsCredentialsProvider,
-      Registry registry) {
+      MeterRegistry registry) {
     super(account, region, amazonClientProvider, awsCredentialsProvider, registry);
   }
 

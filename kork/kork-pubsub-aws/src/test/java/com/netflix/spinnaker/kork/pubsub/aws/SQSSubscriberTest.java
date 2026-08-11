@@ -34,10 +34,10 @@ import com.amazonaws.services.sqs.model.GetQueueUrlResult;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
-import com.netflix.spectator.api.DefaultRegistry;
 import com.netflix.spinnaker.kork.pubsub.aws.api.AmazonMessageAcknowledger;
 import com.netflix.spinnaker.kork.pubsub.aws.api.AmazonPubsubMessageHandler;
 import com.netflix.spinnaker.kork.pubsub.aws.config.AmazonPubsubProperties;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -62,7 +62,7 @@ public class SQSSubscriberTest {
             amazonSNS(),
             amazonSQS(),
             enableOnce(),
-            new DefaultRegistry());
+            new SimpleMeterRegistry());
 
     // when
     subscriber.initializeQueue();
@@ -88,7 +88,7 @@ public class SQSSubscriberTest {
             amazonSNS(),
             amazonSQS(),
             enableOnce(),
-            new DefaultRegistry());
+            new SimpleMeterRegistry());
 
     // when
     subscriber.initializeQueue();
@@ -114,7 +114,7 @@ public class SQSSubscriberTest {
             amazonSNS(),
             amazonSQS,
             disabled,
-            new DefaultRegistry());
+            new SimpleMeterRegistry());
 
     // when
     subscriber.listenForMessages();
@@ -140,7 +140,7 @@ public class SQSSubscriberTest {
             sns,
             sqs,
             enableOnce(),
-            new DefaultRegistry());
+            new SimpleMeterRegistry());
 
     // when
     subscriber.initializeQueue();
@@ -166,7 +166,7 @@ public class SQSSubscriberTest {
             sns,
             sqs,
             enableOnce(),
-            new DefaultRegistry());
+            new SimpleMeterRegistry());
 
     // when
     subscriber.initializeQueue();

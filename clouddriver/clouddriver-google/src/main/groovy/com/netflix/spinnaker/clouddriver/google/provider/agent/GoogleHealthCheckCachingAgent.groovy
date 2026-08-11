@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.google.provider.agent
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.services.compute.ComputeRequest
 import com.google.api.services.compute.model.*
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
@@ -45,7 +45,7 @@ class GoogleHealthCheckCachingAgent extends AbstractGoogleCachingAgent {
   GoogleHealthCheckCachingAgent(String clouddriverUserAgentApplicationName,
                                 GoogleNamedAccountCredentials credentials,
                                 ObjectMapper objectMapper,
-                                Registry registry) {
+                                MeterRegistry registry) {
     super(clouddriverUserAgentApplicationName,
           credentials,
           objectMapper,

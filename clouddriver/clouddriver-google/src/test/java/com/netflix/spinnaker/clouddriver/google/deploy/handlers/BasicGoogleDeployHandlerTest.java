@@ -43,7 +43,6 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.services.compute.model.*;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties;
@@ -77,6 +76,7 @@ import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSubnetProvid
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.model.ServerGroup;
 import com.netflix.spinnaker.config.GoogleConfiguration;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -112,7 +112,7 @@ public class BasicGoogleDeployHandlerTest {
   @Mock private Cache cacheView;
   private ObjectMapper objectMapper = new ObjectMapper();
   @Mock private SafeRetry safeRetry;
-  @Mock private Registry registry;
+  @Mock private MeterRegistry registry;
 
   @InjectMocks @Spy private BasicGoogleDeployHandler basicGoogleDeployHandler;
 

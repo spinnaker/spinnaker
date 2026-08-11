@@ -15,13 +15,13 @@
  */
 package com.netflix.spinnaker.orca.qos
 
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.annotations.VisibleForTesting
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT_STARTED
 import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import io.micrometer.core.instrument.MeterRegistry
 import net.logstash.logback.argument.StructuredArguments.value
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.BeanInitializationException
@@ -35,15 +35,12 @@ class DefaultExecutionPromoter(
   private val executionLauncher: ExecutionLauncher,
   private val executionRepository: ExecutionRepository,
   private val policies: List<PromotionPolicy>,
-  private val registry: Registry,
+  private val registry: MeterRegistry,
   private val pollingIntervalMs: Long,
   clusterLock: NotificationClusterLock
 ) : ExecutionPromoter, AbstractPollingNotificationAgent(clusterLock) {
 
   private val log = LoggerFactory.getLogger(ExecutionPromoter::class.java)
-
-  private val elapsedTimeId = registry.createId("qos.promoter.elapsedTime")
-  private val promotedId = registry.createId("qos.promoter.executionsPromoted")
 
   init {
     if (policies.isEmpty()) {
@@ -53,7 +50,7 @@ class DefaultExecutionPromoter(
 
   @VisibleForTesting
   public override fun tick() {
-    registry.timer(elapsedTimeId).record {
+    registry.timer("qos.promoter.elapsedTime").record(Runnable {
       executionRepository.retrieveBufferedExecutions()
         .sortedByDescending { it.buildTime }
         .let {
@@ -83,9 +80,9 @@ class DefaultExecutionPromoter(
             executionRepository.updateStatus(it)
             executionLauncher.start(it)
           }
-          registry.counter(promotedId).increment(result.candidates.size.toLong())
+          registry.counter("qos.promoter.executionsPromoted").increment(result.candidates.size.toDouble())
         }
-    }
+    })
   }
 
   private class NoPromotionPolicies(message: String) : BeanInitializationException(message)

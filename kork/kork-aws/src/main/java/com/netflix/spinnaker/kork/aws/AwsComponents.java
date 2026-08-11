@@ -20,8 +20,7 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.metrics.AwsSdkMetrics;
 import com.amazonaws.retry.RetryPolicy;
-import com.netflix.spectator.api.Registry;
-import com.netflix.spectator.aws.SpectatorMetricCollector;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -44,19 +43,19 @@ public class AwsComponents {
   }
 
   @Bean
-  RetryPolicy.RetryCondition instrumentedRetryCondition(Registry registry) {
+  RetryPolicy.RetryCondition instrumentedRetryCondition(MeterRegistry registry) {
     return new InstrumentedRetryCondition(registry);
   }
 
   @Bean
-  RetryPolicy.BackoffStrategy instrumentedBackoffStrategy(Registry registry) {
+  RetryPolicy.BackoffStrategy instrumentedBackoffStrategy(MeterRegistry registry) {
     return new InstrumentedBackoffStrategy(registry);
   }
 
   @Bean
   @ConditionalOnProperty(value = "aws.metrics.enabled", matchIfMissing = true)
-  SpectatorMetricCollector spectatorMetricsCollector(Registry registry) {
-    SpectatorMetricCollector collector = new SpectatorMetricCollector(registry);
+  MicrometerRequestMetricCollector micrometerRequestMetricCollector(MeterRegistry registry) {
+    MicrometerRequestMetricCollector collector = new MicrometerRequestMetricCollector(registry);
     AwsSdkMetrics.setMetricCollector(collector);
     return collector;
   }

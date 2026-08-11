@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.actuation
 
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.keel.actuation.SleepyJavaResourceHandler.SLEEPY_RESOURCE_KIND
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
@@ -123,7 +123,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
       publisher,
       clock,
       environmentExclusionEnforcer,
-      NoopRegistry()
+      SimpleMeterRegistry()
     )
   }
 

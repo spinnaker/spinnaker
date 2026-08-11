@@ -19,8 +19,8 @@ package com.netflix.spinnaker.clouddriver.aws.health
 import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.DescribeAccountAttributesResult
-import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
@@ -31,7 +31,7 @@ import spock.lang.Unroll
 
 class AmazonHealthIndicatorSpec extends Specification {
 
-  private static final Registry REGISTRY = new NoopRegistry()
+  private static final MeterRegistry REGISTRY = new SimpleMeterRegistry()
   AwsConfigurationProperties awsConfigurationProperties
 
   void setup(){

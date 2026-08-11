@@ -16,25 +16,18 @@
 
 package com.netflix.spinnaker.orca.q.metrics
 
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.events.TaskComplete
+import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.context.ApplicationListener
 import org.springframework.stereotype.Component
 
 @Component
-class TaskResultMonitor(private val registry: Registry) :
+class TaskResultMonitor(private val registry: MeterRegistry) :
   ApplicationListener<TaskComplete> {
 
-  private val id = registry.createId("orca.task.result")
-
   override fun onApplicationEvent(event: TaskComplete) {
-    id
-      .withTag("status", event.task.status.name)
-      .withTag("task", event.task.implementingClass)
-      .let { id ->
-        registry
-          .counter(id)
-          .increment()
-      }
+    registry
+      .counter("orca.task.result", "status", event.task.status.name, "task", event.task.implementingClass)
+      .increment()
   }
 }

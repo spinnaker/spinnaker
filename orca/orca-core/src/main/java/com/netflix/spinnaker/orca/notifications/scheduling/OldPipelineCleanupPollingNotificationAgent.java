@@ -17,14 +17,13 @@ package com.netflix.spinnaker.orca.notifications.scheduling;
 
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE;
 
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.LongTaskTimer;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent;
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
+import io.micrometer.core.instrument.LongTaskTimer;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.functions.Function;
 import io.reactivex.rxjava3.functions.Predicate;
@@ -98,22 +97,22 @@ public class OldPipelineCleanupPollingNotificationAgent extends AbstractPollingN
 
   private final Clock clock;
   private final ExecutionRepository executionRepository;
-  private final Registry registry;
+  private final MeterRegistry registry;
 
   private final long pollingIntervalMs;
   private final int thresholdDays;
   private final int minimumPipelineExecutions;
   private final List<PipelineDependencyCleanupOperator> pipelineDependencyCleanupOperators;
 
-  private final Id deletedId;
-  private final Id timerId;
+  private static final String DELETED_METRIC_NAME = "pollers.oldPipelineCleanup.deleted";
+  private final LongTaskTimer timer;
 
   @Autowired
   public OldPipelineCleanupPollingNotificationAgent(
       NotificationClusterLock clusterLock,
       ExecutionRepository executionRepository,
       Clock clock,
-      Registry registry,
+      MeterRegistry registry,
       @Value("${pollers.old-pipeline-cleanup.interval-ms:3600000}") long pollingIntervalMs,
       @Value("${pollers.old-pipeline-cleanup.threshold-days:30}") int thresholdDays,
       @Value("${pollers.old-pipeline-cleanup.minimum-pipeline-executions:5}")
@@ -128,8 +127,7 @@ public class OldPipelineCleanupPollingNotificationAgent extends AbstractPollingN
     this.minimumPipelineExecutions = minimumPipelineExecutions;
     this.pipelineDependencyCleanupOperators = pipelineDependencyCleanupOperators;
 
-    deletedId = registry.createId("pollers.oldPipelineCleanup.deleted");
-    timerId = registry.createId("pollers.oldPipelineCleanup.timing");
+    timer = LongTaskTimer.builder("pollers.oldPipelineCleanup.timing").register(registry);
   }
 
   @Override
@@ -144,8 +142,7 @@ public class OldPipelineCleanupPollingNotificationAgent extends AbstractPollingN
 
   @Override
   protected void tick() {
-    LongTaskTimer timer = registry.longTaskTimer(timerId);
-    long timerId = timer.start();
+    LongTaskTimer.Sample sample = timer.start();
     try {
       executionRepository
           .retrieveAllApplicationNames(PIPELINE)
@@ -157,7 +154,7 @@ public class OldPipelineCleanupPollingNotificationAgent extends AbstractPollingN
     } catch (Exception e) {
       log.error("Cleanup failed", e);
     } finally {
-      timer.stop(timerId);
+      sample.stop();
     }
   }
 
@@ -200,7 +197,7 @@ public class OldPipelineCleanupPollingNotificationAgent extends AbstractPollingN
         p -> {
           log.info("Deleting pipeline execution " + p.id + ": " + p.toString());
           executionRepository.delete(PIPELINE, p.id);
-          registry.counter(deletedId.withTag("application", p.application)).increment();
+          registry.counter(DELETED_METRIC_NAME, "application", p.application).increment();
         });
   }
 

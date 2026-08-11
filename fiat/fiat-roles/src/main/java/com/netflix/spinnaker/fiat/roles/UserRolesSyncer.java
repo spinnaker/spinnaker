@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.fiat.roles;
 
-import com.netflix.spectator.api.Gauge;
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.fiat.config.ResourceProvidersHealthIndicator;
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig;
 import com.netflix.spinnaker.fiat.config.UserRolesSyncerConfig;
@@ -34,6 +31,8 @@ import com.netflix.spinnaker.fiat.providers.ResourceProvider;
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import com.netflix.spinnaker.kork.lock.LockManager;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Date;
@@ -72,8 +71,8 @@ public class UserRolesSyncer {
   private final UserRolesSyncerConfig configurationProperties;
   private final Synchronizer synchronizer;
 
-  private final Registry registry;
-  private final Gauge userRolesSyncCount;
+  private final MeterRegistry registry;
+  private final AtomicReference<Double> userRolesSyncCount;
 
   private static final String KEY_USER_ROLES = "user_roles";
   private static final String KEY_LAST_SYNC_TIME = "last_sync_time";
@@ -85,7 +84,7 @@ public class UserRolesSyncer {
   @Autowired
   public UserRolesSyncer(
       DiscoveryStatusListener discoveryStatusListener,
-      Registry registry,
+      MeterRegistry registry,
       LockManager lockManager,
       PermissionsRepository permissionsRepository,
       PermissionsResolver permissionsResolver,
@@ -106,7 +105,8 @@ public class UserRolesSyncer {
     this.synchronizer = synchronizer;
 
     this.registry = registry;
-    this.userRolesSyncCount = registry.gauge(metricName("syncCount"));
+    this.userRolesSyncCount =
+        registry.gauge(metricName("syncCount"), new AtomicReference<>(0.0), AtomicReference::get);
   }
 
   @Scheduled(fixedDelay = 30000L)
@@ -136,11 +136,13 @@ public class UserRolesSyncer {
         lockOptions,
         () -> {
           try {
-            timeIt("syncTime", () -> userRolesSyncCount.set(this.syncAndReturn(new ArrayList<>())));
+            timeIt(
+                "syncTime",
+                () -> userRolesSyncCount.set((double) this.syncAndReturn(new ArrayList<>())));
             log.info("user roles synced");
           } catch (Exception e) {
             log.error("User roles synchronization failed", e);
-            userRolesSyncCount.set(-1);
+            userRolesSyncCount.set(-1.0);
           }
         });
   }
@@ -488,9 +490,12 @@ public class UserRolesSyncer {
       throw new RuntimeException(ex);
     } finally {
       boolean success = cause == null;
-      Id timer = registry.createId(metricName(timerName)).withTag("success", success);
+      Tags tags = Tags.of("success", String.valueOf(success));
+      if (!success) {
+        tags = tags.and("cause", cause);
+      }
       registry
-          .timer(success ? timer : timer.withTag("cause", cause))
+          .timer(metricName(timerName), tags)
           .record(System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
     }
   }

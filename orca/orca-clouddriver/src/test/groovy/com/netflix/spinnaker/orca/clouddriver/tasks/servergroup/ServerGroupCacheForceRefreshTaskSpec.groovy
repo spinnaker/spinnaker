@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheStatusService
 import okhttp3.ResponseBody
@@ -47,7 +47,7 @@ class ServerGroupCacheForceRefreshTaskSpec extends Specification {
     cacheStatusService,
     cacheService,
     new ObjectMapper(),
-    new NoopRegistry()
+    new SimpleMeterRegistry()
   )
   def stage = stage()
 

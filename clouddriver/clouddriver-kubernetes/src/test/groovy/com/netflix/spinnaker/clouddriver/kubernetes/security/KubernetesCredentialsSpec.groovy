@@ -18,8 +18,8 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.security
 
 import com.google.common.collect.ImmutableList
-import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesAccountProperties.ManagedAccount
 import com.netflix.spinnaker.clouddriver.kubernetes.description.AccountResourcePropertyRegistry
 import com.netflix.spinnaker.clouddriver.kubernetes.description.GlobalResourcePropertyRegistry
@@ -36,7 +36,7 @@ import com.netflix.spinnaker.kork.configserver.ConfigFileService
 import spock.lang.Specification
 
 class KubernetesCredentialsSpec extends Specification {
-  Registry registry = Stub(Registry)
+  MeterRegistry registry = Stub(MeterRegistry)
   KubectlJobExecutor kubectlJobExecutor = Stub(KubectlJobExecutor)
   String NAMESPACE = "my-namespace"
   AccountResourcePropertyRegistry.Factory resourcePropertyRegistryFactory = Mock(AccountResourcePropertyRegistry.Factory)
@@ -49,7 +49,7 @@ class KubernetesCredentialsSpec extends Specification {
   GlobalResourcePropertyRegistry globalResourcePropertyRegistry = new GlobalResourcePropertyRegistry(ImmutableList.of(), new KubernetesUnregisteredCustomResourceHandler())
 
   KubernetesCredentials.Factory credentialFactory = new KubernetesCredentials.Factory(
-    new NoopRegistry(),
+    new SimpleMeterRegistry(),
     namerRegistry,
     kubectlJobExecutor,
     configFileService,

@@ -16,7 +16,7 @@
 package com.netflix.spinnaker.clouddriver.alicloud.provider;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
+import io.micrometer.core.instrument.MeterRegistry;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.clouddriver.alicloud.AliCloudProvider;
 import com.netflix.spinnaker.clouddriver.alicloud.common.ClientFactory;
@@ -47,7 +47,7 @@ public class AliProviderConfig {
       AccountCredentialsRepository accountCredentialsRepository,
       AliCloudClientProvider aliCloudClientProvider,
       AliCloudCredentialsProvider aliCloudCredentialsProvider,
-      Registry registry,
+      MeterRegistry registry,
       ObjectMapper objectMapper,
       AliCloudProvider aliCloudProvider,
       ApplicationContext ctx,
@@ -76,7 +76,7 @@ public class AliProviderConfig {
       AccountCredentialsRepository accountCredentialsRepository,
       AliCloudClientProvider aliCloudClientProvider,
       AliCloudCredentialsProvider aliCloudCredentialsProvider,
-      Registry registry,
+      MeterRegistry registry,
       ObjectMapper objectMapper,
       AliCloudProvider aliCloudProvider,
       ApplicationContext ctx,

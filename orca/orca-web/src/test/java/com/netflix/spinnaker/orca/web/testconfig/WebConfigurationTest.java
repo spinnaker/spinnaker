@@ -19,7 +19,6 @@ package com.netflix.spinnaker.orca.web.testconfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.config.TaskControllerConfigurationProperties;
 import com.netflix.spinnaker.fiat.shared.FiatService;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
@@ -35,6 +34,7 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import com.netflix.spinnaker.orca.pipelinetemplate.PipelineTemplateService;
 import com.netflix.spinnaker.orca.web.config.WebConfiguration;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.context.annotation.UserConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
@@ -59,7 +59,7 @@ class WebConfigurationTest {
   // all the beans they depend on.
   private final ApplicationContextRunner runner =
       new ApplicationContextRunner()
-          .withBean(NoopRegistry.class)
+          .withBean(SimpleMeterRegistry.class)
           .withAllowBeanDefinitionOverriding(true)
           .withConfiguration(
               UserConfigurations.of(TestDependencyConfiguration.class, WebConfiguration.class));

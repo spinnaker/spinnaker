@@ -23,7 +23,6 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.config.DefaultServiceClientProvider;
 import com.netflix.spinnaker.config.okhttp3.DefaultOkHttpClientBuilderProvider;
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
@@ -39,6 +38,7 @@ import com.netflix.spinnaker.orca.echo.config.EchoConfiguration;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.pipeline.persistence.InMemoryExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.Collections;
 import java.util.Map;
 import okhttp3.OkHttpClient;
@@ -66,7 +66,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
       OkHttpClientConfigurationProperties.class,
       ObjectMapper.class,
       FiatStatus.class,
-      NoopRegistry.class,
+      SimpleMeterRegistry.class,
       DynamicConfigService.NoopDynamicConfig.class,
       FiatClientConfigurationProperties.class,
       InMemoryExecutionRepository.class,

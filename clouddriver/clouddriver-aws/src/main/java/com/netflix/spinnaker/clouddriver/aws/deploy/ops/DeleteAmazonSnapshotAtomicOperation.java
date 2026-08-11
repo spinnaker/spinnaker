@@ -20,13 +20,12 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.ops;
 
 import com.amazonaws.services.ec2.model.AmazonEC2Exception;
 import com.amazonaws.services.ec2.model.DeleteSnapshotRequest;
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteAmazonSnapshotDescription;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,15 +35,15 @@ public class DeleteAmazonSnapshotAtomicOperation implements AtomicOperation<Void
   private static final String BASE_PHASE = "DELETE_SNAPSHOT";
   private final Logger log = LoggerFactory.getLogger(getClass());
 
+  private static final String DELETE_SNAPSHOT_TASK_METRIC_NAME = "tasks.DeleteAmazonSnapshot";
+
   private final DeleteAmazonSnapshotDescription description;
-  private final Registry registry;
-  private final Id deleteSnapshotTaskId;
+  private final MeterRegistry registry;
 
   public DeleteAmazonSnapshotAtomicOperation(
-      DeleteAmazonSnapshotDescription description, Registry registry) {
+      DeleteAmazonSnapshotDescription description, MeterRegistry registry) {
     this.description = description;
     this.registry = registry;
-    this.deleteSnapshotTaskId = registry.createId("tasks.DeleteAmazonSnapshot");
   }
 
   private static Task getTask() {
@@ -73,10 +72,13 @@ public class DeleteAmazonSnapshotAtomicOperation implements AtomicOperation<Void
     } catch (Exception e) {
       registry
           .counter(
-              deleteSnapshotTaskId
-                  .withTag("success", false)
-                  .withTag("region", description.getRegion())
-                  .withTag("account", description.getAccount()))
+              DELETE_SNAPSHOT_TASK_METRIC_NAME,
+              "success",
+              "false",
+              "region",
+              description.getRegion(),
+              "account",
+              description.getAccount())
           .increment();
       log.error(
           String.format(
@@ -87,10 +89,13 @@ public class DeleteAmazonSnapshotAtomicOperation implements AtomicOperation<Void
     }
     registry
         .counter(
-            deleteSnapshotTaskId
-                .withTag("success", true)
-                .withTag("region", description.getRegion())
-                .withTag("account", description.getAccount()))
+            DELETE_SNAPSHOT_TASK_METRIC_NAME,
+            "success",
+            "true",
+            "region",
+            description.getRegion(),
+            "account",
+            description.getAccount())
         .increment();
 
     getTask()

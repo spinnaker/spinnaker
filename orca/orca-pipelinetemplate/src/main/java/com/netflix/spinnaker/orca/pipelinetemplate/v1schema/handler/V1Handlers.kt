@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.handler
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.pipelinetemplate.handler.Handler
 import com.netflix.spinnaker.orca.pipelinetemplate.handler.HandlerChain
 import com.netflix.spinnaker.orca.pipelinetemplate.handler.HandlerGroup
@@ -28,6 +27,7 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.validator.V1TemplateConfigurationSchemaValidator
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.validator.V1TemplateSchemaValidator
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors
+import io.micrometer.core.instrument.MeterRegistry
 import java.util.stream.Collectors
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -38,7 +38,7 @@ class V1SchemaHandlerGroup
   private val templateLoader: TemplateLoader,
   private val renderer: Renderer,
   private val objectMapper: ObjectMapper,
-  private val registry: Registry
+  private val registry: MeterRegistry
 ) : HandlerGroup {
 
   override fun getHandlers(): List<Handler> =
@@ -89,7 +89,7 @@ class V1TemplateValidationHandler : Handler {
 
 class V1GraphMutatorHandler(
   private val renderer: Renderer,
-  private val registry: Registry
+  private val registry: MeterRegistry
 ) : Handler {
 
   override fun handle(chain: HandlerChain, context: PipelineTemplateContext) {

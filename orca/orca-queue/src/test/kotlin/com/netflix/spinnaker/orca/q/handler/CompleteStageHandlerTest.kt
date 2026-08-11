@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
-import com.netflix.spectator.api.Id
-import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.orca.DefaultStageResolver
 import com.netflix.spinnaker.orca.NoOpTaskImplementationResolver
 import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner.STAGE_AFTER
@@ -70,6 +68,7 @@ import com.netflix.spinnaker.q.Queue
 import com.netflix.spinnaker.spek.and
 import com.netflix.spinnaker.spek.but
 import com.netflix.spinnaker.time.fixedClock
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.atLeastOnce
@@ -104,7 +103,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
   val publisher: ApplicationEventPublisher = mock()
   val exceptionHandler: ExceptionHandler = DefaultExceptionHandler()
   val clock = fixedClock()
-  val registry = spy(DefaultRegistry())
+  val registry = spy(SimpleMeterRegistry())
   val contextParameterProcessor: ContextParameterProcessor = mock()
 
   val emptyStage = object : StageDefinitionBuilder {
@@ -539,13 +538,10 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
           }
 
           it("tracks result with stage tags") {
-            argumentCaptor<Id>().let {
-              verify(registry, atLeastOnce()).timer(it.capture())
-              val metricId = it.firstValue
-              assertThat(metricId.name()).isEqualTo("stage.invocations.duration")
-              assertThat(metricId.tags().any{ t -> t.key() == "tag1" && t.value() == "value1" }).isTrue
-              assertThat(metricId.tags().any{ t -> t.key() == "tag2" && t.value() == "value2" }).isTrue
-            }
+            val timer = registry.find("stage.invocations.duration").timers()
+              .first { t -> t.id.tags.any { it.key == "tag1" } }
+            assertThat(timer.id.tags.any { t -> t.key == "tag1" && t.value == "value1" }).isTrue
+            assertThat(timer.id.tags.any { t -> t.key == "tag2" && t.value == "value2" }).isTrue
           }
         }
       }

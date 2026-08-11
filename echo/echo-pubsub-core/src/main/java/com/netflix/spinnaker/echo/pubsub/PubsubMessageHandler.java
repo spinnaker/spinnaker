@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.echo.pubsub;
 
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.api.events.Event;
 import com.netflix.spinnaker.echo.events.EventPropagator;
 import com.netflix.spinnaker.echo.model.pubsub.MessageDescription;
@@ -25,6 +23,8 @@ import com.netflix.spinnaker.echo.pubsub.model.EventCreator;
 import com.netflix.spinnaker.echo.pubsub.model.MessageAcknowledger;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import com.netflix.spinnaker.kork.jedis.RedisClientSelector;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -39,7 +39,7 @@ public class PubsubMessageHandler {
 
   private final EventPropagator eventPropagator;
   private RedisClientDelegate redisClientDelegate;
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final List<EventCreator> eventCreators;
 
   private static final String SUCCESS = "OK";
@@ -48,12 +48,12 @@ public class PubsubMessageHandler {
   public static class Factory {
     private final EventPropagator eventPropagator;
     private final RedisClientDelegate redisClientDelegate;
-    private final Registry registry;
+    private final MeterRegistry registry;
 
     public Factory(
         EventPropagator eventPropagator,
         Optional<RedisClientSelector> redisClientSelector,
-        Registry registry) {
+        MeterRegistry registry) {
       this.eventPropagator = eventPropagator;
       this.redisClientDelegate =
           redisClientSelector.map(selector -> selector.primary("default")).orElse(null);
@@ -73,7 +73,7 @@ public class PubsubMessageHandler {
   private PubsubMessageHandler(
       EventPropagator eventPropagator,
       RedisClientDelegate redisClientDelegate,
-      Registry registry,
+      MeterRegistry registry,
       List<EventCreator> eventCreators) {
     this.eventPropagator = eventPropagator;
     this.redisClientDelegate = redisClientDelegate;
@@ -94,7 +94,7 @@ public class PubsubMessageHandler {
     if (messageComplete(completeKey, description.getMessagePayload())) {
       // Acknowledge duplicate messages but don't process them
       acknowledger.ack();
-      registry.counter(getDuplicateMetricId(description)).increment();
+      registry.counter("echo.pubsub.duplicateMessages", pubsubTags(description)).increment();
       return;
     }
 
@@ -106,7 +106,7 @@ public class PubsubMessageHandler {
       }
       setMessageComplete(
           completeKey, description.getMessagePayload(), description.getRetentionDeadlineSeconds());
-      registry.counter(getProcessedMetricId(description)).increment();
+      registry.counter("echo.pubsub.messagesProcessed", pubsubTags(description)).increment();
     }
   }
 
@@ -177,17 +177,9 @@ public class PubsubMessageHandler {
     return Long.toString(checksum.getValue());
   }
 
-  private Id getDuplicateMetricId(MessageDescription messageDescription) {
-    return registry
-        .createId("echo.pubsub.duplicateMessages")
-        .withTag("subscription", messageDescription.getSubscriptionName())
-        .withTag("pubsubSystem", messageDescription.getPubsubSystem().toString());
-  }
-
-  private Id getProcessedMetricId(MessageDescription messageDescription) {
-    return registry
-        .createId("echo.pubsub.messagesProcessed")
-        .withTag("subscription", messageDescription.getSubscriptionName())
-        .withTag("pubsubSystem", messageDescription.getPubsubSystem().toString());
+  private Tags pubsubTags(MessageDescription messageDescription) {
+    return Tags.of(
+        "subscription", messageDescription.getSubscriptionName(),
+        "pubsubSystem", messageDescription.getPubsubSystem().toString());
   }
 }

@@ -24,7 +24,7 @@ import com.google.api.services.compute.model.InstanceProperties
 import com.google.api.services.compute.model.InstanceTemplate
 import com.google.api.services.compute.model.Scheduling
 import com.google.api.services.compute.model.ShieldedVmConfig
-import com.netflix.spectator.api.DefaultRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
@@ -102,7 +102,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   private def instanceProperties
   private def instanceTemplate
   private def serverGroup
-  private def registry = new DefaultRegistry()
+  private def registry = new SimpleMeterRegistry()
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))

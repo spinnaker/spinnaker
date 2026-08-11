@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks
 
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.annotations.VisibleForTesting
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
@@ -35,6 +34,7 @@ import com.netflix.spinnaker.orca.pipeline.model.SystemNotification
 import groovy.transform.CompileStatic
 import groovy.transform.TypeCheckingMode
 import groovy.util.logging.Slf4j
+import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -51,7 +51,7 @@ import java.util.concurrent.TimeUnit
 class MonitorKatoTask implements RetryableTask, CloudProviderAware {
 
   private final Clock clock
-  private final Registry registry
+  private final MeterRegistry registry
   private final KatoService kato
   private final DynamicConfigService dynamicConfigService
   private final RetrySupport retrySupport
@@ -61,12 +61,12 @@ class MonitorKatoTask implements RetryableTask, CloudProviderAware {
   static final int MAX_HTTP_INTERNAL_RETRIES = 5
 
   @Autowired
-  MonitorKatoTask(KatoService katoService, Registry registry, DynamicConfigService dynamicConfigService, RetrySupport retrySupport) {
+  MonitorKatoTask(KatoService katoService, MeterRegistry registry, DynamicConfigService dynamicConfigService, RetrySupport retrySupport) {
     this(katoService, registry, Clock.systemUTC(), dynamicConfigService, retrySupport)
   }
 
   @VisibleForTesting
-  MonitorKatoTask(KatoService katoService, Registry registry, Clock clock, DynamicConfigService dynamicConfigService, RetrySupport retrySupport) {
+  MonitorKatoTask(KatoService katoService, MeterRegistry registry, Clock clock, DynamicConfigService dynamicConfigService, RetrySupport retrySupport) {
     this.registry = registry
     this.clock = clock
     this.kato = katoService

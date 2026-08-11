@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.front50.model
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.front50.config.S3MetadataStorageProperties
 import com.netflix.spinnaker.front50.config.S3Properties
 import com.netflix.spinnaker.front50.model.events.S3Event
@@ -36,7 +36,7 @@ class EventingS3ObjectKeyLoaderSpec extends Specification {
   )
   def temporarySQSQueue = Mock(TemporarySQSQueue)
   def s3StorageService = Mock(S3StorageService)
-  def registry = Mock(Registry)
+  def registry = Mock(MeterRegistry)
 
   @Subject
   def objectKeyLoader = new EventingS3ObjectKeyLoader(

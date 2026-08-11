@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.gate.plugins.web.installed
 
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.gate.plugins.deck.DeckPluginConfiguration
 import com.netflix.spinnaker.gate.plugins.deck.DeckPluginService
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
@@ -40,7 +40,7 @@ class PluginsInstalledControllerTest {
 
   private val contextRunner = ApplicationContextRunner()
     .withConfiguration(AutoConfigurations.of(DeckPluginConfiguration::class.java))
-    .withBean(NoopRegistry::class.java)
+    .withBean(SimpleMeterRegistry::class.java)
     .withBean(SpinnakerUpdateManager::class.java, { mock() })
     .withBean(SpinnakerPluginManager::class.java, { mock() })
     .withBean(SpringStrictPluginLoaderStatusProvider::class.java, { mock() })

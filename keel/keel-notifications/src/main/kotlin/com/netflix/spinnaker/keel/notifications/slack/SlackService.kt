@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.notifications.slack
 
-import com.netflix.spectator.api.BasicTag
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.Tag
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.config.SlackConfiguration
 import com.netflix.spinnaker.keel.notifications.NotificationType
 import com.netflix.spinnaker.keel.telemetry.safeIncrement
@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component
 class SlackService(
   private val springEnv: Environment,
   final val slackConfig: SlackConfiguration,
-  private val spectator: Registry
+  private val spectator: MeterRegistry
 ) {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -53,8 +53,8 @@ class SlackService(
         spectator.counter(
           SLACK_MESSAGE_SENT,
           listOf(
-            BasicTag("notificationType", type.first().name),
-            BasicTag("application", application)
+            Tag.of("notificationType", type.first().name),
+            Tag.of("application", application)
           )
         ).safeIncrement()
       }
@@ -64,8 +64,8 @@ class SlackService(
         spectator.counter(
           SLACK_MESSAGE_FAILED,
           listOf(
-            BasicTag("notificationType", type.first().name),
-            BasicTag("application", application)
+            Tag.of("notificationType", type.first().name),
+            Tag.of("application", application)
           )
         ).safeIncrement()
         return response
@@ -102,8 +102,8 @@ class SlackService(
       spectator.counter(
         SLACK_MESSAGE_SENT,
         listOf(
-          BasicTag("notificationType", "update"),
-          BasicTag("application", application)
+          Tag.of("notificationType", "update"),
+          Tag.of("application", application)
         )
       ).safeIncrement()
     }
@@ -113,8 +113,8 @@ class SlackService(
       spectator.counter(
         SLACK_MESSAGE_FAILED,
         listOf(
-          BasicTag("notificationType", "update"),
-          BasicTag("application", application)
+          Tag.of("notificationType", "update"),
+          Tag.of("application", application)
         )
       ).safeIncrement()
     }

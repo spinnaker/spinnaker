@@ -20,18 +20,18 @@ import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonWebServiceRequest;
 import com.amazonaws.retry.PredefinedRetryPolicies;
 import com.amazonaws.retry.RetryPolicy;
-import com.netflix.spectator.api.Registry;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Objects;
 
 public class InstrumentedRetryCondition implements RetryPolicy.RetryCondition {
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final RetryPolicy.RetryCondition delegate;
 
-  public InstrumentedRetryCondition(Registry registry) {
+  public InstrumentedRetryCondition(MeterRegistry registry) {
     this(registry, PredefinedRetryPolicies.DEFAULT_RETRY_CONDITION);
   }
 
-  public InstrumentedRetryCondition(Registry registry, RetryPolicy.RetryCondition delegate) {
+  public InstrumentedRetryCondition(MeterRegistry registry, RetryPolicy.RetryCondition delegate) {
     this.registry = Objects.requireNonNull(registry, "registry");
     this.delegate = Objects.requireNonNull(delegate, "delegate");
   }

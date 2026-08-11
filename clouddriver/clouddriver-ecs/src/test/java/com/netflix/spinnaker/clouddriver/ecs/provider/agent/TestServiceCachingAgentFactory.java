@@ -17,13 +17,13 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.names.EcsDefaultNamer;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 public class TestServiceCachingAgentFactory {
   public static ServiceCachingAgent create(NetflixAmazonCredentials creds, String region) {
     return new ServiceCachingAgent(
-        creds, region, null, null, new NoopRegistry(), new EcsDefaultNamer());
+        creds, region, null, null, new SimpleMeterRegistry(), new EcsDefaultNamer());
   }
 }

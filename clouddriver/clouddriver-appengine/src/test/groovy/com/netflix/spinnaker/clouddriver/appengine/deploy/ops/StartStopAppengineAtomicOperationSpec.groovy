@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.appengine.deploy.ops
 
 import com.google.api.services.appengine.v1.Appengine
 import com.google.api.services.appengine.v1.model.Version
-import com.netflix.spectator.api.DefaultRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.clouddriver.appengine.deploy.AppengineSafeRetry
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.StartStopAppengineDescription
 import com.netflix.spinnaker.clouddriver.appengine.model.AppengineServerGroup
@@ -73,7 +73,7 @@ class StartStopAppengineAtomicOperationSpec extends Specification {
         new StartAppengineAtomicOperation(description) :
         new StopAppengineAtomicOperation(description)
       operation.appengineClusterProvider = clusterProviderMock
-      operation.registry = new DefaultRegistry()
+      operation.registry = new SimpleMeterRegistry()
       operation.safeRetry = AppengineSafeRetry.withoutDelay()
 
     when:

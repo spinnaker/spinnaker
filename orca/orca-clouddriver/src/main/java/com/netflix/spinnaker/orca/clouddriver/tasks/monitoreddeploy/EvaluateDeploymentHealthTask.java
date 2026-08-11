@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.monitoreddeploy;
 
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.config.DeploymentMonitorDefinition;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
@@ -26,6 +24,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.deploymentmonitor.DeploymentMonitorServiceProvider;
 import com.netflix.spinnaker.orca.deploymentmonitor.models.EvaluateHealthRequest;
 import com.netflix.spinnaker.orca.deploymentmonitor.models.EvaluateHealthResponse;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
@@ -38,7 +37,7 @@ import org.springframework.stereotype.Component;
 public class EvaluateDeploymentHealthTask extends MonitoredDeployBaseTask {
   @Autowired
   EvaluateDeploymentHealthTask(
-      DeploymentMonitorServiceProvider deploymentMonitorServiceProvider, Registry registry) {
+      DeploymentMonitorServiceProvider deploymentMonitorServiceProvider, MeterRegistry registry) {
     super(deploymentMonitorServiceProvider, registry);
   }
 
@@ -57,25 +56,27 @@ public class EvaluateDeploymentHealthTask extends MonitoredDeployBaseTask {
 
     EvaluateHealthResponse.NextStepDirective directive = response.getNextStep().getDirective();
 
-    Id statusCounterId =
-        registry
-            .createId("deploymentMonitor.healthStatus")
-            .withTag("monitorId", monitorDefinition.getId())
-            .withTag("status", directive.toString());
-
-    registry.counter(statusCounterId).increment();
+    registry
+        .counter(
+            "deploymentMonitor.healthStatus",
+            "monitorId",
+            monitorDefinition.getId(),
+            "status",
+            directive.toString())
+        .increment();
 
     if (directive != EvaluateHealthResponse.NextStepDirective.WAIT) {
       // We want to log the time it takes for the monitor to actually produce a decision
       // since wait is a not a decision - no need to time it
-      Id timerId =
-          registry
-              .createId("deploymentMonitor.timing")
-              .withTag("monitorId", monitorDefinition.getId())
-              .withTag("status", directive.toString());
-
       long duration = Instant.now().toEpochMilli() - stage.getStartTime();
-      registry.timer(timerId).record(duration, TimeUnit.MILLISECONDS);
+      registry
+          .timer(
+              "deploymentMonitor.timing",
+              "monitorId",
+              monitorDefinition.getId(),
+              "status",
+              directive.toString())
+          .record(duration, TimeUnit.MILLISECONDS);
     }
 
     return buildTaskResult(processDirective(directive, monitorDefinition), response);

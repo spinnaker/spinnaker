@@ -23,13 +23,13 @@ import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.ECS_APP
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.ecs.AmazonECS;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.Application;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +47,7 @@ public class ApplicationCachingAgent extends AbstractEcsOnDemandAgent<Applicatio
       String region,
       AmazonClientProvider amazonClientProvider,
       AWSCredentialsProvider awsCredentialsProvider,
-      Registry registry,
+      MeterRegistry registry,
       ObjectMapper objectMapper) {
     super(account, region, amazonClientProvider, awsCredentialsProvider, registry);
     this.objectMapper = objectMapper;

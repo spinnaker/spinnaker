@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.titus.postdeploy
 
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
@@ -116,7 +116,7 @@ internal class TagAmiHandlerTests {
     eventPublisher = mockk(),
     taskLauncher = launcher,
     orca = orca,
-    spectator = NoopRegistry(),
+    spectator = SimpleMeterRegistry(),
     baseUrlConfig = mockk() { every { baseUrl } returns "https://spin" },
     imageFinder = finder
   )

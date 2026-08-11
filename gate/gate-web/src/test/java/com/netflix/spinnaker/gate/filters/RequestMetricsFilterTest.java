@@ -18,9 +18,10 @@ package com.netflix.spinnaker.gate.filters;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.netflix.spectator.api.Counter;
-import com.netflix.spectator.api.DefaultRegistry;
-import com.netflix.spectator.api.Registry;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import java.io.IOException;
@@ -38,12 +39,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 class RequestMetricsFilterTest {
 
-  private Registry registry;
+  private MeterRegistry registry;
   private RequestMetricsFilter filter;
 
   @BeforeEach
   void setUp() {
-    registry = new DefaultRegistry();
+    registry = new SimpleMeterRegistry();
     filter = new RequestMetricsFilter(registry);
     SecurityContextHolder.clearContext();
   }
@@ -75,7 +76,7 @@ class RequestMetricsFilterTest {
             RequestMetricsFilter.METRIC_NAME,
             "authType",
             AuthTypeResolver.TYPE_API_TOKEN);
-    assertThat(c.count()).isEqualTo(1L);
+    assertThat(c.count()).isEqualTo(1.0);
     assertThat(tag(c, "principalKind")).isEqualTo("service_account");
     assertThat(tag(c, "method")).isEqualTo("POST");
     assertThat(tag(c, "statusCode")).isEqualTo("201");
@@ -157,7 +158,7 @@ class RequestMetricsFilterTest {
             RequestMetricsFilter.METRIC_NAME,
             "authType",
             AuthTypeResolver.TYPE_API_TOKEN);
-    assertThat(c.count()).isEqualTo(1L);
+    assertThat(c.count()).isEqualTo(1.0);
     assertThat(tag(c, "method")).isEqualTo("DELETE");
     assertThat(tag(c, "statusCode")).isEqualTo("500");
     assertThat(tag(c, "status")).isEqualTo("5xx");
@@ -190,8 +191,8 @@ class RequestMetricsFilterTest {
     Counter none =
         findSingleCounter(
             registry, RequestMetricsFilter.METRIC_NAME, "authType", AuthTypeResolver.TYPE_NONE);
-    assertThat(api.count()).isEqualTo(1L);
-    assertThat(none.count()).isEqualTo(1L);
+    assertThat(api.count()).isEqualTo(1.0);
+    assertThat(none.count()).isEqualTo(1.0);
   }
 
   // ---------------------------------------------------------------------------
@@ -203,11 +204,9 @@ class RequestMetricsFilterTest {
    * test if zero or more than one counter matches.
    */
   private static Counter findSingleCounter(
-      Registry registry, String metricName, String tagKey, String tagValue) {
+      MeterRegistry registry, String metricName, String tagKey, String tagValue) {
     List<Counter> matching =
-        registry
-            .counters()
-            .filter(c -> c.id().name().equals(metricName))
+        registry.find(metricName).counters().stream()
             .filter(c -> tagValue.equals(tag(c, tagKey)))
             .toList();
     assertThat(matching)
@@ -217,9 +216,9 @@ class RequestMetricsFilterTest {
   }
 
   private static String tag(Counter counter, String key) {
-    for (com.netflix.spectator.api.Tag t : counter.id().tags()) {
-      if (t.key().equals(key)) {
-        return t.value();
+    for (Tag t : counter.getId().getTags()) {
+      if (t.getKey().equals(key)) {
+        return t.getValue();
       }
     }
     return null;

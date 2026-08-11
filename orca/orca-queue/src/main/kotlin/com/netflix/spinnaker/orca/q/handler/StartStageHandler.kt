@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.q.handler
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.TaskImplementationResolver
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT_STARTED
@@ -49,6 +48,9 @@ import com.netflix.spinnaker.orca.q.buildTasks
 import com.netflix.spinnaker.q.AttemptsAttribute
 import com.netflix.spinnaker.q.MaxAttemptsAttribute
 import com.netflix.spinnaker.q.Queue
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tag
+import io.micrometer.core.instrument.Tags
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
@@ -69,7 +71,7 @@ class StartStageHandler(
   private val exceptionHandlers: List<ExceptionHandler>,
   @Qualifier("mapper") private val objectMapper: ObjectMapper,
   private val clock: Clock,
-  private val registry: Registry,
+  private val registry: MeterRegistry,
   @Value("\${queue.retry.delay.ms:15000}") retryDelayMs: Long,
   private val taskImplementationResolver: TaskImplementationResolver
 ) : OrcaMessageHandler<StartStage>, StageBuilderAware, ExpressionAware, AuthenticationAware {
@@ -150,20 +152,16 @@ class StartStageHandler(
       return
     }
 
-    val id = registry.createId("stage.invocations")
-      .withTag("type", stage.type)
-      .withTag("application", stage.execution.application)
-      .let { id ->
-        // TODO rz - Need to check synthetics for their cloudProvider.
-        stage.context["cloudProvider"]?.let {
-          id.withTag("cloudProvider", it.toString())
-        } ?: id
-      }.let { id ->
-        stage.additionalMetricTags?.let {
-          id.withTags(stage.additionalMetricTags)
-        } ?: id
-      }
-    registry.counter(id).increment()
+    var tags = Tags.of("type", stage.type, "application", stage.execution.application)
+
+    // TODO rz - Need to check synthetics for their cloudProvider.
+    stage.context["cloudProvider"]?.let {
+      tags = tags.and("cloudProvider", it.toString())
+    }
+    stage.additionalMetricTags?.let { additionalTags ->
+      tags = tags.and(additionalTags.map { Tag.of(it.key, it.value) })
+    }
+    registry.counter("stage.invocations", tags).increment()
   }
 
   override val messageType = StartStage::class.java

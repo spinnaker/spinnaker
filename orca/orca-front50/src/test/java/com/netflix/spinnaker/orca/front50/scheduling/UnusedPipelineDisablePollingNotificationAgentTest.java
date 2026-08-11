@@ -20,13 +20,12 @@ import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPEL
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.LongTaskTimer;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -49,19 +48,11 @@ class UnusedPipelineDisablePollingNotificationAgentTest {
   NotificationClusterLock clusterLock = mock(NotificationClusterLock.class);
   ExecutionRepository executionRepository = mock(ExecutionRepository.class);
   Front50Service front50Service = mock(Front50Service.class);
-  Registry registry = mock(Registry.class);
-  LongTaskTimer timer = mock(LongTaskTimer.class);
-
-  Id timerId = mock(Id.class);
-  Id disabledId = mock(Id.class);
+  MeterRegistry registry = new SimpleMeterRegistry();
 
   @BeforeEach
   void setUp() {
     MockitoAnnotations.openMocks(this);
-    when(registry.createId("pollers.unusedPipelineDisable.timing")).thenReturn(timerId);
-    when(registry.createId("pollers.unusedPipelineDisable.disabled")).thenReturn(disabledId);
-    when(registry.longTaskTimer(timerId)).thenReturn(timer);
-    when(timer.start()).thenReturn(1L);
   }
 
   @Test
@@ -147,7 +138,6 @@ class UnusedPipelineDisablePollingNotificationAgentTest {
         .thenReturn(Calls.response(List.of(Map.of("id", "pipeline1"))));
     when(front50Service.getPipeline(anyString()))
         .thenReturn(Calls.response(Map.of("disabled", true)));
-    when(disabledId.withTag(any())).thenReturn(disabledId);
 
     Clock clock = Clock.fixed(Instant.now(), ZoneOffset.UTC);
     UnusedPipelineDisablePollingNotificationAgent agent =

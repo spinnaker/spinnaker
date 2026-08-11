@@ -17,8 +17,6 @@
 package com.netflix.spinnaker.orca.q.handler
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.DefaultRegistry
-import com.netflix.spectator.api.Id
 import com.netflix.spinnaker.assertj.assertSoftly
 import com.netflix.spinnaker.orca.DefaultStageResolver
 import com.netflix.spinnaker.orca.NoOpTaskImplementationResolver
@@ -66,6 +64,8 @@ import com.netflix.spinnaker.orca.q.zeroTaskStage
 import com.netflix.spinnaker.q.Queue
 import com.netflix.spinnaker.spek.and
 import com.netflix.spinnaker.time.fixedClock
+import io.micrometer.core.instrument.Tag
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.atLeastOnce
@@ -106,7 +106,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
   val exceptionHandler: ExceptionHandler = mock()
   val objectMapper = ObjectMapper()
   val clock = fixedClock()
-  val registry = spy(DefaultRegistry())
+  val registry = spy(SimpleMeterRegistry())
   val retryDelay = Duration.ofSeconds(5)
 
   subject(GROUP) {
@@ -1027,13 +1027,13 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
       }
 
       it("tracks result with stage tags") {
-        argumentCaptor<Id>().let {
-          verify(registry, atLeastOnce()).counter(it.capture())
-          val metricId = it.firstValue
-          assertThat(metricId.name()).isEqualTo("stage.invocations")
-          assertThat(metricId.tags().any{ t -> t.key() == "tag1" && t.value() == "value1" }).isTrue
-          assertThat(metricId.tags().any{ t -> t.key() == "tag2" && t.value() == "value2" }).isTrue
-        }
+        val nameCaptor = argumentCaptor<String>()
+        val tagsCaptor = argumentCaptor<Iterable<Tag>>()
+        verify(registry, atLeastOnce()).counter(nameCaptor.capture(), tagsCaptor.capture())
+        assertThat(nameCaptor.firstValue).isEqualTo("stage.invocations")
+        val tags = tagsCaptor.firstValue
+        assertThat(tags.any { t -> t.key == "tag1" && t.value == "value1" }).isTrue
+        assertThat(tags.any { t -> t.key == "tag2" && t.value == "value2" }).isTrue
       }
     }
   }

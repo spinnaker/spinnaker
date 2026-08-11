@@ -17,9 +17,9 @@ package com.netflix.spinnaker.kork.jedis.telemetry;
 
 import static com.netflix.spinnaker.kork.jedis.telemetry.TelemetryHelper.*;
 
-import com.netflix.spectator.api.Registry;
-import com.netflix.spectator.api.histogram.PercentileDistributionSummary;
-import com.netflix.spectator.api.histogram.PercentileTimer;
+import io.micrometer.core.instrument.DistributionSummary;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -41,11 +41,11 @@ import redis.clients.jedis.util.KeyValue;
 
 public class InstrumentedPipeline extends Pipeline {
 
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final Pipeline delegated;
   private final String poolName;
 
-  public InstrumentedPipeline(Registry registry, Jedis jedis, String poolName) {
+  public InstrumentedPipeline(MeterRegistry registry, Jedis jedis, String poolName) {
     super(jedis);
     this.registry = registry;
     this.delegated = jedis.pipelined();
@@ -64,19 +64,26 @@ public class InstrumentedPipeline extends Pipeline {
       String command, Optional<Long> payloadSize, Callable<T> action) {
     payloadSize.ifPresent(
         size ->
-            PercentileDistributionSummary.get(
-                    registry, payloadSizeId(registry, poolName, command, true))
+            DistributionSummary.builder(payloadSizeName(command))
+                .tags(commandTags(poolName, true))
+                .publishPercentileHistogram()
+                .register(registry)
                 .record(size));
     try {
-      return PercentileTimer.get(registry, timerId(registry, poolName, command, true))
-          .record(
+      return Timer.builder(timerName(command))
+          .tags(commandTags(poolName, true))
+          .publishPercentileHistogram()
+          .register(registry)
+          .recordCallable(
               () -> {
                 T result = action.call();
-                registry.counter(invocationId(registry, poolName, command, true, true)).increment();
+                registry
+                    .counter(invocationName(command), invocationTags(poolName, true, true))
+                    .increment();
                 return result;
               });
     } catch (Exception e) {
-      registry.counter(invocationId(registry, poolName, command, true, false)).increment();
+      registry.counter(invocationName(command), invocationTags(poolName, true, false)).increment();
       throw new InstrumentedJedisException("could not execute delegate function", e);
     }
   }
@@ -92,18 +99,25 @@ public class InstrumentedPipeline extends Pipeline {
   private void internalInstrumented(String command, Optional<Long> payloadSize, Runnable action) {
     payloadSize.ifPresent(
         size ->
-            PercentileDistributionSummary.get(
-                    registry, payloadSizeId(registry, poolName, command, true))
+            DistributionSummary.builder(payloadSizeName(command))
+                .tags(commandTags(poolName, true))
+                .publishPercentileHistogram()
+                .register(registry)
                 .record(size));
     try {
-      PercentileTimer.get(registry, timerId(registry, poolName, command, true))
+      Timer.builder(timerName(command))
+          .tags(commandTags(poolName, true))
+          .publishPercentileHistogram()
+          .register(registry)
           .record(
               () -> {
                 action.run();
-                registry.counter(invocationId(registry, poolName, command, true, true)).increment();
+                registry
+                    .counter(invocationName(command), invocationTags(poolName, true, true))
+                    .increment();
               });
     } catch (Exception e) {
-      registry.counter(invocationId(registry, poolName, command, true, false)).increment();
+      registry.counter(invocationName(command), invocationTags(poolName, true, false)).increment();
       throw new InstrumentedJedisException("could not execute delegate function", e);
     }
   }

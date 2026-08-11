@@ -15,8 +15,6 @@
  */
 package com.netflix.spinnaker.orca.qos
 
-import com.netflix.spectator.api.Registry
-import com.netflix.spectator.api.patterns.PolledMeter
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.orca.annotations.Sync
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.BUFFERED
@@ -26,6 +24,7 @@ import com.netflix.spinnaker.orca.qos.BufferAction.BUFFER
 import com.netflix.spinnaker.orca.qos.BufferAction.ENQUEUE
 import com.netflix.spinnaker.orca.qos.BufferState.ACTIVE
 import com.netflix.spinnaker.orca.qos.bufferstate.BufferStateSupplierProvider
+import io.micrometer.core.instrument.MeterRegistry
 import net.logstash.logback.argument.StructuredArguments.value
 import org.slf4j.LoggerFactory
 import org.springframework.context.event.EventListener
@@ -39,7 +38,7 @@ import java.util.concurrent.atomic.AtomicLong
 class ExecutionBufferActuator(
   private val bufferStateSupplierProvider: BufferStateSupplierProvider,
   private val configService: DynamicConfigService,
-  private val registry: Registry,
+  private val registry: MeterRegistry,
   policies: List<BufferPolicy>
 ) {
 
@@ -47,15 +46,8 @@ class ExecutionBufferActuator(
 
   private val orderedPolicies = policies.sortedByDescending { it.order }.toList()
 
-  private val bufferingId = registry.createId("qos.buffering")
-  private val bufferedId = registry.createId("qos.executionsBuffered")
-  private val enqueuedId = registry.createId("qos.executionsEnqueued")
-  private val elapsedTimeId = registry.createId("qos.actuator.elapsedTime")
-
-  // have to use PolledMeter because an ordinary metric is deleted by Garbage Collector
-  private val bufferingEnabled = PolledMeter.using(registry)
-    .withId(bufferingId)
-    .monitorValue(AtomicLong(0))
+  // have to use a gauge because an ordinary metric is deleted by Garbage Collector
+  private val bufferingEnabled = registry.gauge("qos.buffering", AtomicLong(0))
 
   @Sync
   @EventListener(BeforeInitialExecutionPersist::class)
@@ -76,16 +68,16 @@ class ExecutionBufferActuator(
           BUFFER -> {
             if (configService.isEnabled("qos.learning-mode", true)) {
               log.debug("Learning mode: Would have buffered execution {} (using $supplierName), reason: ${it.reason}", value("executionId", execution.id))
-              registry.counter(bufferedId.withTag("learning", "true")).increment()
+              registry.counter("qos.executionsBuffered", "learning", "true").increment()
             } else {
               log.warn("Buffering execution {} (using $supplierName), reason: ${it.reason}", value("executionId", execution.id))
-              registry.counter(bufferedId.withTag("learning", "false")).increment()
+              registry.counter("qos.executionsBuffered", "learning", "false").increment()
               execution.status = BUFFERED
             }
           }
           ENQUEUE -> {
             log.debug("Enqueuing execution {} (using $supplierName), reason: ${it.reason}", value("executionId", execution.id))
-            registry.counter(enqueuedId).increment()
+            registry.counter("qos.executionsEnqueued").increment()
           }
         }
       }
@@ -95,7 +87,7 @@ class ExecutionBufferActuator(
   }
 
   fun withActionDecision(execution: PipelineExecution, fn: (BufferResult) -> Unit) {
-    registry.timer(elapsedTimeId).record {
+    registry.timer("qos.actuator.elapsedTime").record(Runnable {
       orderedPolicies
         .map { it.apply(execution) }
         .let { bufferResults ->
@@ -119,6 +111,6 @@ class ExecutionBufferActuator(
           )
         }
         ?.run { fn.invoke(this) }
-    }
+    })
   }
 }
