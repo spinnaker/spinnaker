@@ -33,7 +33,7 @@
   },
   "devDependencies": {
     "@eslint/compat": "^2.0.3",
-    "@eslint/eslintrc": "^3.3.5",
+    "@eslint/eslintrc": "^3.3.6",
     "@eslint/js": "^9.39.2",
     "@spinnaker/eslint-plugin": "workspace:^",
     "@types/jasmine": "3.6.9",
