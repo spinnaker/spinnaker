@@ -556,8 +556,8 @@ importers:
         specifier: 1.5.1
         version: 1.5.1(react@16.14.0)
       js-yaml:
-        specifier: 3.13.1
-        version: 3.13.1
+        specifier: 3.14.2
+        version: 3.14.2
       lodash:
         specifier: 4.18.1
         version: 4.18.1
@@ -632,8 +632,8 @@ importers:
         specifier: 1.5.1
         version: 1.5.1(react@16.14.0)
       js-yaml:
-        specifier: 3.13.1
-        version: 3.13.1
+        specifier: 3.14.2
+        version: 3.14.2
       lodash:
         specifier: 4.18.1
         version: 4.18.1
@@ -777,8 +777,8 @@ importers:
         specifier: npm:js-worker-search-uuid-fix@^1.4.2
         version: js-worker-search-uuid-fix@1.4.2
       js-yaml:
-        specifier: 3.13.1
-        version: 3.13.1
+        specifier: 3.14.2
+        version: 3.14.2
       lodash:
         specifier: 4.18.1
         version: 4.18.1
@@ -1463,8 +1463,8 @@ importers:
         specifier: 1.5.1
         version: 1.5.1(react@16.14.0)
       js-yaml:
-        specifier: 3.13.1
-        version: 3.13.1
+        specifier: 3.14.2
+        version: 3.14.2
       lodash:
         specifier: 4.18.1
         version: 4.18.1
