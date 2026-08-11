@@ -726,8 +726,8 @@ importers:
         specifier: 7.2.1
         version: 7.2.1(@uirouter/core@6.0.8)
       ajv:
-        specifier: ^6.14.0
-        version: 6.15.0
+        specifier: ^8.0.0
+        version: 8.20.0
       ansi_up:
         specifier: 5.1.0
         version: 5.1.0
