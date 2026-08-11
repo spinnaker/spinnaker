@@ -786,8 +786,8 @@ importers:
         specifier: 4.5.0
         version: 4.5.0(lodash@4.18.1)
       luxon:
-        specifier: 1.23.0
-        version: 1.23.0
+        specifier: 1.28.1
+        version: 1.28.1
       memoize-one:
         specifier: 6.0.0
         version: 6.0.0
