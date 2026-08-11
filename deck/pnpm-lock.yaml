@@ -107,8 +107,8 @@ importers:
         specifier: ^4.1.4
         version: 4.1.5
       lerna:
-        specifier: ^9.0.0
-        version: 9.0.7(@types/node@16.4.13)
+        specifier: ^10.0.0
+        version: 10.0.0(@types/node@16.4.13)(typescript@5.0.4)
       prettier:
         specifier: 2.1.2
         version: 2.1.2

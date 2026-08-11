@@ -61,7 +61,7 @@
     "karma-super-dots-reporter": "0.2.0",
     "karma-webpack": "5.0.0",
     "kleur": "^4.1.4",
-    "lerna": "^9.0.0",
+    "lerna": "^10.0.0",
     "prettier": "2.1.2",
     "process": "^0.11.10",
     "prompts": "^2.4.1",
