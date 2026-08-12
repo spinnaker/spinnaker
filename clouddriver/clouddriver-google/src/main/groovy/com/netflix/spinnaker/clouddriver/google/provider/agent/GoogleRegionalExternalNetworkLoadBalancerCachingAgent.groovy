@@ -76,7 +76,9 @@ class GoogleRegionalExternalNetworkLoadBalancerCachingAgent
       createdTime: Utils.getTimeFromTimestamp(forwardingRule.creationTimestamp),
       ipAddress: forwardingRule.IPAddress,
       ipProtocol: forwardingRule.IPProtocol,
+      // A TCP/UDP passthrough rule carries either discrete ports or a contiguous portRange, never both.
       ports: forwardingRule.ports,
+      portRange: forwardingRule.portRange,
       loadBalancingScheme: GoogleLoadBalancingScheme.valueOf(forwardingRule.getLoadBalancingScheme()),
       network: forwardingRule.getNetwork(),
       networkTier: forwardingRule.getNetworkTier(),

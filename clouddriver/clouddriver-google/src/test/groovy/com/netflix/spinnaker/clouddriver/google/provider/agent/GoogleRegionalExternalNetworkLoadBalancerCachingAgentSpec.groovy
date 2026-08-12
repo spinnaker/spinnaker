@@ -236,6 +236,45 @@ class GoogleRegionalExternalNetworkLoadBalancerCachingAgentSpec extends Specific
     loadBalancers[0].backendService.healthCheck.port == 8080
   }
 
+  @Unroll
+  void "cache graph records the forwarding rule #portDescription"() {
+    given:
+    def loadBalancers = []
+    def callback = createForwardingRuleCallbacks(createAgent())
+    callback.loadBalancers = loadBalancers
+    callback.failedLoadBalancers = []
+    callback.groupHealthRequest = null
+    callback.projectRegionBackendServices = [new BackendService(name: "backend-service", loadBalancingScheme: "EXTERNAL")]
+    callback.healthCheckContext = []
+
+    when:
+    callback.cacheRemainderOfLoadBalancerResourceGraph(
+      new ForwardingRule(
+        name: "lb-name",
+        region: "projects/${PROJECT}/regions/${REGION}",
+        loadBalancingScheme: "EXTERNAL",
+        backendService: "projects/${PROJECT}/regions/${REGION}/backendServices/backend-service",
+        IPProtocol: "TCP",
+        IPAddress: "1.2.3.4",
+        ports: ports,
+        portRange: portRange,
+        networkTier: "PREMIUM"
+      )
+    )
+
+    then:
+    loadBalancers.size() == 1
+    loadBalancers[0].ipAddress == "1.2.3.4"
+    loadBalancers[0].networkTier == "PREMIUM"
+    loadBalancers[0].ports == ports
+    loadBalancers[0].portRange == portRange
+
+    where:
+    portDescription | ports          | portRange
+    "ports"         | ["80", "443"]  | null
+    "port range"    | null           | "8080-8090"
+  }
+
   void "cache graph queues backend group health through batch request"() {
     given:
     def compute = Mock(Compute)
