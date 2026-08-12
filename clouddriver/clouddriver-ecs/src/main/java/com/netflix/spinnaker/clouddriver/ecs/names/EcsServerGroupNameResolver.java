@@ -17,14 +17,18 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.names;
 
-import com.amazonaws.services.ecs.AmazonECS;
-import com.amazonaws.services.ecs.model.*;
 import com.google.common.collect.Lists;
 import com.netflix.spinnaker.moniker.Moniker;
 import com.netflix.spinnaker.moniker.Namer;
 import java.util.*;
 import java.util.stream.IntStream;
 import org.apache.commons.lang3.StringUtils;
+import software.amazon.awssdk.services.ecs.EcsClient;
+import software.amazon.awssdk.services.ecs.model.DescribeServicesRequest;
+import software.amazon.awssdk.services.ecs.model.DescribeServicesResponse;
+import software.amazon.awssdk.services.ecs.model.ListServicesRequest;
+import software.amazon.awssdk.services.ecs.model.ListServicesResponse;
+import software.amazon.awssdk.services.ecs.model.Service;
 
 public class EcsServerGroupNameResolver {
 
@@ -33,12 +37,12 @@ public class EcsServerGroupNameResolver {
   private static final int MAX_NEXT_SERVER_GROUP_ATTEMPTS = 5;
 
   private final String ecsClusterName;
-  private final AmazonECS ecs;
+  private final EcsClient ecs;
   private final String region;
   private final Namer<EcsResource> naming;
 
   public EcsServerGroupNameResolver(
-      String ecsClusterName, AmazonECS ecs, String region, Namer<EcsResource> namer) {
+      String ecsClusterName, EcsClient ecs, String region, Namer<EcsResource> namer) {
     this.ecsClusterName = ecsClusterName;
     this.ecs = ecs;
     this.region = region;
@@ -61,12 +65,13 @@ public class EcsServerGroupNameResolver {
     List<List<String>> serviceBatches = Lists.partition(allServices, 10);
     for (List<String> serviceBatch : serviceBatches) {
       DescribeServicesRequest request =
-          new DescribeServicesRequest()
-              .withCluster(ecsClusterName)
-              .withServices(serviceBatch)
-              .withInclude("TAGS");
-      DescribeServicesResult result = ecs.describeServices(request);
-      for (Service service : result.getServices()) {
+          DescribeServicesRequest.builder()
+              .cluster(ecsClusterName)
+              .services(serviceBatch)
+              .includeWithStrings("TAGS")
+              .build();
+      DescribeServicesResponse result = ecs.describeServices(request);
+      for (Service service : result.services()) {
         Moniker moniker = naming.deriveMoniker(new EcsResourceService(service));
 
         if (isSameName(currentName.getApp(), moniker.getApp())
@@ -120,29 +125,27 @@ public class EcsServerGroupNameResolver {
     // so it would not show up in the "taken slots" list.
     // We need to describe it to determine if it does exist before using the name
     DescribeServicesRequest request =
-        new DescribeServicesRequest().withCluster(ecsClusterName).withServices(newServiceName);
-    DescribeServicesResult result = ecs.describeServices(request);
+        DescribeServicesRequest.builder().cluster(ecsClusterName).services(newServiceName).build();
+    DescribeServicesResponse result = ecs.describeServices(request);
 
     // an active or draining ECS service with this name was not found
-    return result.getServices().isEmpty()
-        || result.getServices().get(0).getStatus().equals("INACTIVE");
+    return result.services().isEmpty() || result.services().get(0).status().equals("INACTIVE");
   }
 
   private List<String> listAllServices(String ecsClusterName) {
     List<String> allServices = new ArrayList<>();
     String nextToken = null;
     do {
-      ListServicesRequest request = new ListServicesRequest().withCluster(ecsClusterName);
+      ListServicesRequest.Builder requestBuilder =
+          ListServicesRequest.builder().cluster(ecsClusterName);
       if (nextToken != null) {
-        request.setNextToken(nextToken);
+        requestBuilder.nextToken(nextToken);
       }
 
-      ListServicesResult result = ecs.listServices(request);
-      for (String serviceArn : result.getServiceArns()) {
-        allServices.add(serviceArn);
-      }
+      ListServicesResponse result = ecs.listServices(requestBuilder.build());
+      allServices.addAll(result.serviceArns());
 
-      nextToken = result.getNextToken();
+      nextToken = result.nextToken();
     } while (nextToken != null && nextToken.length() != 0);
     return allServices;
   }
