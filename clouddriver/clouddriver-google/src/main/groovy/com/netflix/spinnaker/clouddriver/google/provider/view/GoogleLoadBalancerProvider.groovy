@@ -318,7 +318,8 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
         break
       case GoogleLoadBalancerType.INTERNAL:
         GoogleInternalLoadBalancer.View ilbView = view as GoogleInternalLoadBalancer.View
-        def portString = ilbView.ports.join(",")
+        // An all-ports internal passthrough rule reports no discrete ports.
+        def portString = ilbView.ports?.join(",")
         instancePort = portString
         loadBalancerPort = portString
         break
