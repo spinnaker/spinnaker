@@ -23,7 +23,6 @@ import com.netflix.spinnaker.clouddriver.ecs.names.EcsDefaultNamer;
 
 public class TestServiceCachingAgentFactory {
   public static ServiceCachingAgent create(NetflixAmazonCredentials creds, String region) {
-    return new ServiceCachingAgent(
-        creds, region, null, null, new NoopRegistry(), new EcsDefaultNamer());
+    return new ServiceCachingAgent(creds, region, null, new NoopRegistry(), new EcsDefaultNamer());
   }
 }

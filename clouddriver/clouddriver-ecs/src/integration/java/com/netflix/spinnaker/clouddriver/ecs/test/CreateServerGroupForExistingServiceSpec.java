@@ -45,6 +45,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.stubbing.Answer;
+import software.amazon.awssdk.services.ecs.EcsClient;
+import software.amazon.awssdk.services.ecs.model.DescribeServicesResponse;
+import software.amazon.awssdk.services.ecs.model.ListServicesResponse;
 
 public class CreateServerGroupForExistingServiceSpec extends EcsSpec {
 
@@ -55,8 +58,34 @@ public class CreateServerGroupForExistingServiceSpec extends EcsSpec {
 
   private AmazonElasticLoadBalancing mockELB = mock(AmazonElasticLoadBalancing.class);
 
+  private EcsClient mockEcsV2 = mock(EcsClient.class);
+
   @BeforeEach
   public void setup() {
+
+    // mock v2 ECS responses (used by EcsServerGroupNameResolver)
+    when(mockEcsV2.listServices(
+            any(software.amazon.awssdk.services.ecs.model.ListServicesRequest.class)))
+        .thenReturn(
+            ListServicesResponse.builder()
+                .serviceArns(
+                    Collections.singletonList(
+                        "arn:aws:ecs:ecs-integInputEC2TgMappingsExistingServiceStack-v000"))
+                .build());
+    when(mockEcsV2.describeServices(
+            any(software.amazon.awssdk.services.ecs.model.DescribeServicesRequest.class)))
+        .thenReturn(
+            DescribeServicesResponse.builder()
+                .services(
+                    Collections.singletonList(
+                        software.amazon.awssdk.services.ecs.model.Service.builder()
+                            .serviceName("ecs-integInputEC2TgMappingsExistingServiceStack-v000")
+                            .status("INACTIVE")
+                            .build()))
+                .build());
+
+    when(mockAwsProvider.getAmazonEcsV2(any(NetflixAmazonCredentials.class), anyString()))
+        .thenReturn(mockEcsV2);
 
     // mocking calls
     when(mockECS.listAccountSettings(any(ListAccountSettingsRequest.class)))
