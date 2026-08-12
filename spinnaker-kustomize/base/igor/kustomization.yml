@@ -3,7 +3,7 @@ kind: Kustomization
 resources:
   - deployment.yml
   - service.yml
-  - serviceaccount.ym l
+  - serviceaccount.yml
 labels:
   - includeSelectors: true
     pairs:
