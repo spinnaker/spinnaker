@@ -67,11 +67,7 @@ allprojects {
 }
 
 // This is registered here so that 'gate' is the default working directory for the commands in this script
-tasks.register('swagger') {
-  doLast {
-    exec {
-      workingDir project.rootDir
-      commandLine('bash', '-c', 'swagger/generate_swagger.sh')
-    }
-  }
+tasks.register('swagger', Exec) {
+  workingDir project.rootDir
+  commandLine 'bash', '-c', 'swagger/generate_swagger.sh'
 }
