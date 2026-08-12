@@ -51,6 +51,12 @@ public class GoogleExternalHttpLoadBalancer extends GoogleLoadBalancer {
 
   String network;
 
+  /**
+   * Network tier of the forwarding rule, PREMIUM or STANDARD. Only external schemes carry one,
+   * which is why the internal sibling model omits it.
+   */
+  String networkTier;
+
   @JsonIgnore
   public ExternalHttpLbView getView() {
     return new ExternalHttpLbView();
@@ -77,5 +83,6 @@ public class GoogleExternalHttpLoadBalancer extends GoogleLoadBalancer {
     String certificate = GoogleExternalHttpLoadBalancer.this.certificate;
     String urlMapName = GoogleExternalHttpLoadBalancer.this.urlMapName;
     String network = GoogleExternalHttpLoadBalancer.this.network;
+    String networkTier = GoogleExternalHttpLoadBalancer.this.networkTier;
   }
 }

@@ -267,6 +267,46 @@ public class GoogleExternalHttpLoadBalancerCachingAgentTest {
   }
 
   @Test
+  void constructLoadBalancers_exposesForwardingRuleNetworkTierOnTheView() throws IOException {
+    Compute compute = mock(Compute.class);
+    configureSharedRegionalData(compute);
+    Compute.ForwardingRules forwardingRules = mock(Compute.ForwardingRules.class);
+    Compute.ForwardingRules.Get getForwardingRule = mock(Compute.ForwardingRules.Get.class);
+    when(compute.forwardingRules()).thenReturn(forwardingRules);
+    when(forwardingRules.get(PROJECT, REGION, "standard-tier-lb")).thenReturn(getForwardingRule);
+    when(getForwardingRule.execute())
+        .thenReturn(buildHttpRule("standard-tier-lb", "good-proxy").setNetworkTier("STANDARD"));
+
+    Compute.RegionTargetHttpProxies targetHttpProxies = mock(Compute.RegionTargetHttpProxies.class);
+    Compute.RegionTargetHttpProxies.Get getGoodProxy =
+        mock(Compute.RegionTargetHttpProxies.Get.class);
+    when(compute.regionTargetHttpProxies()).thenReturn(targetHttpProxies);
+    when(targetHttpProxies.get(PROJECT, REGION, "good-proxy")).thenReturn(getGoodProxy);
+    when(getGoodProxy.execute()).thenReturn(new TargetHttpProxy().setUrlMap(urlMapUrl("good-map")));
+
+    Compute.RegionUrlMaps regionUrlMaps = mock(Compute.RegionUrlMaps.class);
+    Compute.RegionUrlMaps.Get getGoodMap = mock(Compute.RegionUrlMaps.Get.class);
+    when(compute.regionUrlMaps()).thenReturn(regionUrlMaps);
+    when(regionUrlMaps.get(PROJECT, REGION, "good-map")).thenReturn(getGoodMap);
+    when(getGoodMap.execute())
+        .thenReturn(
+            new UrlMap()
+                .setName("good-map")
+                .setDefaultService(backendServiceUrl("backend-service")));
+
+    GoogleExternalHttpLoadBalancerCachingAgent agent = createAgent(compute);
+
+    List<GoogleLoadBalancer> loadBalancers = agent.constructLoadBalancers("standard-tier-lb");
+
+    assertThat(loadBalancers).hasSize(1);
+    GoogleExternalHttpLoadBalancer loadBalancer =
+        (GoogleExternalHttpLoadBalancer) loadBalancers.get(0);
+    // Deck reads the tier off the view to render each listener's network tier, so a model field
+    // that never reaches the view would still leave the UI showing the PREMIUM default.
+    assertThat(loadBalancer.getView().getNetworkTier()).isEqualTo("STANDARD");
+  }
+
+  @Test
   void constructLoadBalancers_rejectsWrongSchemeOnDemandForwardingRule() throws IOException {
     Compute compute = mock(Compute.class);
     configureSharedRegionalData(compute);

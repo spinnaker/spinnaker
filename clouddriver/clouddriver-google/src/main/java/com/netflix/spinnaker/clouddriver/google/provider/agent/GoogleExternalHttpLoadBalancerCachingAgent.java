@@ -88,6 +88,7 @@ public class GoogleExternalHttpLoadBalancerCachingAgent
     GoogleExternalHttpLoadBalancer loadBalancer = new GoogleExternalHttpLoadBalancer();
     populateCommonFields(loadBalancer, forwardingRule);
     loadBalancer.setNetwork(forwardingRule.getNetwork());
+    loadBalancer.setNetworkTier(forwardingRule.getNetworkTier());
     loadBalancer.setHostRules(new ArrayList<>());
     return loadBalancer;
   }
