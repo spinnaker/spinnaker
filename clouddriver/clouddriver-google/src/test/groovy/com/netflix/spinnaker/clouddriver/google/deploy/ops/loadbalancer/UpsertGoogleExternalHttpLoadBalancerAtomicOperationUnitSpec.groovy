@@ -434,6 +434,10 @@ class UpsertGoogleExternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
         writeOrder.findIndexOf { it.contains("/targetHttpsProxies") }
       writeOrder.findIndexOf { it.contains("/targetHttpsProxies") } <
         writeOrder.findIndexOf { it.contains("/forwardingRules") }
+
+      // Every resource in this family is regional, so a write to a global collection is a defect
+      // even when the request body itself is correct.
+      writeOrder.every { it.contains("/regions/${REGION}/") }
   }
 
   void "operate accepts omitted optional external managed fields on create without NPE"() {

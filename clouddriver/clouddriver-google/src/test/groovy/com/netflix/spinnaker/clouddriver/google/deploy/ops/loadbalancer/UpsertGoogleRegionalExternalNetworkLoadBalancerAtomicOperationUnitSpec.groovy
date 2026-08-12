@@ -259,6 +259,10 @@ class UpsertGoogleRegionalExternalNetworkLoadBalancerAtomicOperationUnitSpec ext
         writeOrder.findIndexOf { it.contains("/backendServices") }
       writeOrder.findIndexOf { it.contains("/backendServices") } <
         writeOrder.findIndexOf { it.contains("/forwardingRules") }
+
+      // Every resource in this family is regional, so a write to a global collection is a defect
+      // even when the request body itself is correct.
+      writeOrder.every { it.contains("/regions/${REGION}/") }
   }
 
   void "create path tolerates omitted address and network tier on direct-edit payload"() {

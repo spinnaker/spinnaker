@@ -186,24 +186,30 @@ public class UpsertGoogleInternalHttpLoadBalancerAtomicOperation
 
     // Look up the legacy health checks so we can do the work to transition smoothly to the UHCs.
     try {
+      // Compute omits `items` when the region holds no resources yet, so these lists are null on
+      // the first regional load balancer created in a region.
       List<HealthCheck> existingHealthChecks =
-          timeExecute(
-                  compute.regionHealthChecks().list(project, region),
-                  "compute.regionHealthChecks.list",
-                  TAG_SCOPE,
-                  SCOPE_REGIONAL,
-                  TAG_REGION,
-                  region)
-              .getItems();
+          Optional.ofNullable(
+                  timeExecute(
+                          compute.regionHealthChecks().list(project, region),
+                          "compute.regionHealthChecks.list",
+                          TAG_SCOPE,
+                          SCOPE_REGIONAL,
+                          TAG_REGION,
+                          region)
+                      .getItems())
+              .orElseGet(List::of);
       List<BackendService> existingServices =
-          timeExecute(
-                  compute.regionBackendServices().list(project, region),
-                  "compute.regionBackendServices.list",
-                  TAG_SCOPE,
-                  SCOPE_REGIONAL,
-                  TAG_REGION,
-                  region)
-              .getItems();
+          Optional.ofNullable(
+                  timeExecute(
+                          compute.regionBackendServices().list(project, region),
+                          "compute.regionBackendServices.list",
+                          TAG_SCOPE,
+                          SCOPE_REGIONAL,
+                          TAG_REGION,
+                          region)
+                      .getItems())
+              .orElseGet(List::of);
       UrlMap existingUrlMap = null;
       try {
         existingUrlMap =

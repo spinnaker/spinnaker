@@ -97,7 +97,10 @@ public final class CapturingComputeTransport extends HttpTransport {
         return response.setStatusCode(200).setContent(operationResponseJson);
       }
       if (LIST_RESOURCE_PATTERN.matcher(url).find()) {
-        return response.setStatusCode(200).setContent("{\"items\":[]}");
+        // Compute list responses omit `items` entirely when the scope holds no resources, so
+        // getItems() returns null rather than an empty list. Emitting `{}` keeps callers honest
+        // about null-guarding; a fixture that returned `{"items":[]}` would hide that contract.
+        return response.setStatusCode(200).setContent("{}");
       }
       return response.setStatusCode(404).setContent(NOT_FOUND_JSON);
     }
