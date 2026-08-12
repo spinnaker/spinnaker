@@ -197,6 +197,10 @@ class AmazonServerGroup implements ServerGroup, Serializable {
     return null
   }
 
+  Map<String, Object> getWarmPoolConfiguration() {
+    return asg?.warmPoolConfiguration as Map<String, Object>
+  }
+
   @Override
   ServerGroup.ImagesSummary getImagesSummary() {
     def i = image

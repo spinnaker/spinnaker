@@ -16,15 +16,18 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.lambda;
 
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.lambda.LambdaCacheRefreshTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.lambda.LambdaInvokeTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.lambda.LambdaInvokeVerificationTask;
+import com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.lambda.LambdaResolveInvokeArtifactTask;
 import javax.annotation.Nonnull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -32,15 +35,30 @@ import org.springframework.stereotype.Component;
 public class LambdaInvokeStage implements StageDefinitionBuilder {
   private static final Logger logger = LoggerFactory.getLogger(LambdaInvokeStage.class);
 
-  public LambdaInvokeStage() {
+  private static final String RESOLVE_PAYLOAD_ARTIFACT_FLAG =
+      "stages.lambda-invoke.resolve-payload-artifact";
+
+  private final DynamicConfigService dynamicConfigService;
+
+  @Autowired
+  public LambdaInvokeStage(DynamicConfigService dynamicConfigService) {
+    this.dynamicConfigService = dynamicConfigService;
     logger.debug("Constructing Aws.LambdaInvokeStage");
   }
 
   @Override
   public void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
     logger.debug("taskGraph for Aws.LambdaInvokeStage");
+    if (shouldResolvePayloadArtifact(stage)) {
+      builder.withTask(
+          LambdaResolveInvokeArtifactTask.TASK_NAME, LambdaResolveInvokeArtifactTask.class);
+    }
     builder.withTask("lambdaInvokeTask", LambdaInvokeTask.class);
     builder.withTask("lambdaInvokeVerificationTask", LambdaInvokeVerificationTask.class);
     builder.withTask("lambdaCacheRefreshTask", LambdaCacheRefreshTask.class);
+  }
+
+  private boolean shouldResolvePayloadArtifact(StageExecution stage) {
+    return dynamicConfigService.isEnabled(RESOLVE_PAYLOAD_ARTIFACT_FLAG, false);
   }
 }

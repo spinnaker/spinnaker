@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -50,22 +51,28 @@ public class AccountDefinitionSource<T extends CredentialsDefinition>
    * Constructs an account-based {@code CredentialsDefinitionSource<T>} using the provided
    * repository, account type, and additional sources for accounts of the same type.
    *
-   * @param repository the backing repository for managing account definitions at runtime
+   * @param repository the backing repository for managing account definitions at runtime; may be
+   *     null when no durable account storage is available, in which case only the additional
+   *     sources are consulted
    * @param type the account type supported by this source (must be annotated with {@link
    *     JsonTypeName})
    * @param additionalSources the list of other credential definition sources to list accounts from
    */
   public AccountDefinitionSource(
-      AccountDefinitionRepository repository,
+      @Nullable AccountDefinitionRepository repository,
       Class<T> type,
       List<CredentialsDefinitionSource<T>> additionalSources) {
-    String typeName = AccountDefinitionTypes.getCredentialsTypeName(type);
-    Objects.requireNonNull(
-        typeName, () -> "Class " + type + " is not annotated with type discriminator");
     List<CredentialsDefinitionSource<T>> sources = new ArrayList<>(additionalSources.size() + 1);
-    sources.add(
-        () ->
-            repository.listByType(typeName).stream().map(type::cast).collect(Collectors.toList()));
+    if (repository != null) {
+      String typeName = AccountDefinitionTypes.getCredentialsTypeName(type);
+      Objects.requireNonNull(
+          typeName, () -> "Class " + type + " is not annotated with type discriminator");
+      sources.add(
+          () ->
+              repository.listByType(typeName).stream()
+                  .map(type::cast)
+                  .collect(Collectors.toList()));
+    }
     sources.addAll(additionalSources);
     this.sources = List.copyOf(sources);
   }

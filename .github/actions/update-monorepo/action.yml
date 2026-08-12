@@ -10,7 +10,7 @@ inputs:
   repos:
     description: Comma-separated list of repositories under `github.com/spinnaker/<service>` to be merged to matching subtrees
     required: true
-    default: 'clouddriver,deck,deck-kayenta,echo,fiat,front50,gate,halyard,igor,kayenta,keel,kork,orca,rosco,spin,spinnaker-gradle-project'
+    default: 'clouddriver,deck,deck-kayenta,echo,fiat,front50,gate,igor,kayenta,keel,kork,orca,rosco,spin,spinnaker-gradle-project'
   remote-ref:
     description: Remote ref to merge from
     default: master

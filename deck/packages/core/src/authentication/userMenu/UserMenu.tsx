@@ -34,6 +34,11 @@ export const UserMenu = () => {
                     <a role="menuitem">Global Banners</a>
                   </UISref>
                 </li>
+                <li role="presentation">
+                  <UISref to="home.accountManagement">
+                    <a role="menuitem">Account Management</a>
+                  </UISref>
+                </li>
                 <li role="presentation" className="divider" />
               </>
             )}
