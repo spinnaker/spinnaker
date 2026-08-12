@@ -597,6 +597,61 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
         "upsertGoogleLoadBalancerDescription.ipProtocol.tcpRequired")
   }
 
+  void "fail validation when external managed HTTP ip address is IPv6"() {
+    setup:
+      def input = [
+        accountName       : ACCOUNT_NAME,
+        loadBalancerType  : GoogleLoadBalancerType.EXTERNAL_MANAGED,
+        region            : REGION,
+        network           : "default",
+        ipAddress         : "2001:db8::1",
+        "loadBalancerName": LOAD_BALANCER_NAME,
+        "portRange"       : PORT_RANGE,
+        "defaultService"  : [
+          "name"       : DEFAULT_SERVICE,
+          "backends"   : [],
+          "healthCheck": hc,
+        ],
+        "hostRules"       : null,
+      ]
+      def description = converter.convertDescription(input)
+      def errors = Mock(ValidationErrors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue("ipAddress",
+        "upsertGoogleLoadBalancerDescription.ipAddress.ipv6NotSupported")
+  }
+
+  void "pass validation when external managed HTTP ip address is IPv4"() {
+    setup:
+      def input = [
+        accountName       : ACCOUNT_NAME,
+        loadBalancerType  : GoogleLoadBalancerType.EXTERNAL_MANAGED,
+        region            : REGION,
+        network           : "default",
+        ipAddress         : "203.0.113.10",
+        "loadBalancerName": LOAD_BALANCER_NAME,
+        "portRange"       : PORT_RANGE,
+        "defaultService"  : [
+          "name"       : DEFAULT_SERVICE,
+          "backends"   : [],
+          "healthCheck": hc,
+        ],
+        "hostRules"       : null,
+      ]
+      def description = converter.convertDescription(input)
+      def errors = Mock(ValidationErrors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      0 * errors._
+  }
+
   void "fail with improperly formatted ports"() {
     setup:
       def input = [
