@@ -18,6 +18,12 @@ inputs:
     description: Publish changelog?
     required: true
     default: 'true'
+  publish-api-docs:
+    description: Publish API docs (OpenAPI/Swagger specs) to the docs site?
+    required: true
+    default: 'true'
+  swagger-json-path:
+    description: Path to Gate's generated OpenAPI spec (e.g. from `./gradlew :gate:swagger`), to publish as the API docs site's swagger.json. Skipped if unset or the path does not exist.
 
   # BoM configuration
   version:
@@ -99,3 +105,5 @@ outputs:
     description: Contents of `versions.yml`
   versions-yml-url:
     description: Link to published `versions.yml`
+  api-docs-url:
+    description: Link to the published API docs PR
