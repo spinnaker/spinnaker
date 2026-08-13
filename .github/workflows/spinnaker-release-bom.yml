@@ -31,6 +31,10 @@ on:
         description: Allow BoM overwrite if it already exists?
         type: boolean
         default: false
+      publish-api-docs:
+        description: Publish Gate's OpenAPI spec to the docs site?
+        type: boolean
+        default: true
 
   workflow_dispatch:
     inputs:
@@ -61,6 +65,10 @@ on:
         description: Allow BoM overwrite if it already exists?
         type: boolean
         default: false
+      publish-api-docs:
+        description: Publish Gate's OpenAPI spec to the docs site?
+        type: boolean
+        default: true
 
 jobs:
   check-preconditions:
@@ -117,6 +125,18 @@ jobs:
             spinnaker.io
             spinnaker
 
+      - uses: actions/setup-java@v4
+        if: inputs.publish-api-docs == true
+        with:
+          java-version: |
+            17
+          distribution: 'zulu'
+          cache: gradle
+
+      - name: Generate Gate OpenAPI spec
+        if: inputs.publish-api-docs == true
+        run: ./gradlew :gate:swagger
+
       - name: Create Spinnaker release BoM and changelog
         id: spinnaker-release-bom
         uses: ./.github/actions/spinnaker-release
@@ -130,6 +150,8 @@ jobs:
           publish-bom: ${{ inputs.publish-bom }}
           publish-changelog: ${{ inputs.publish-changelog }}
           allow-bom-overwrite: ${{ inputs.allow-bom-overwrite }}
+          publish-api-docs: ${{ inputs.publish-api-docs }}
+          swagger-json-path: gate/swagger/swagger.json
 
       - name: Create Github release
         if: inputs.publish-github-release == true
