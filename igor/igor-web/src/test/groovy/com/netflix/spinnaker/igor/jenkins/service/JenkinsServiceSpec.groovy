@@ -768,4 +768,32 @@ class JenkinsServiceSpec extends Specification {
 
       properties == [:]
     }
+
+    def "stopRunningBuild interface method delegates to existing Jenkins stop"() {
+      given:
+      def jobName = "my-job"
+      long buildNumber = 42
+
+      when:
+      service.stopRunningBuild(jobName, buildNumber)
+
+      then:
+      1 * client.stopRunningBuild("my-job", 42L, '', null) >> Calls.response(null)
+    }
+
+    def "stopQueuedBuild interface method calls Jenkins queue cancel"() {
+      given:
+      def queuedBuild = "queue-123"
+
+      when:
+      service.stopQueuedBuild(queuedBuild)
+
+      then:
+      1 * client.stopQueuedBuild("queue-123", '', null) >> Calls.response(null)
+    }
+
+    def "JenkinsService implements StoppableBuildService"() {
+      expect:
+      service instanceof com.netflix.spinnaker.igor.service.StoppableBuildService
+    }
 }
