@@ -20,18 +20,16 @@ const repositoryRoot = path.resolve(deckRoot, '..');
 const coreSourceRoot = path.resolve(__dirname, '../../core/src');
 const parseYaml = createRequire(path.join(deckRoot, 'packages/core/package.json'))('js-yaml').load;
 const deckTypescript = createRequire(path.join(deckRoot, 'packages/app/package.json'))('typescript');
-const deckKayentaRoot = path.join(repositoryRoot, 'deck-kayenta');
+const deckKayentaRoot = path.join(deckRoot, 'packages/kayenta');
 const deckKayentaSourceRoot = path.join(deckKayentaRoot, 'src');
 const spinnakerGradleProjectRoot = path.join(repositoryRoot, 'spinnaker-gradle-project');
 const functionalRoot = path.join(deckRoot, 'test/functional');
 const deckWorkspacePath = path.join(deckRoot, 'pnpm-workspace.yaml');
-const deckKayentaWorkspacePath = path.join(deckKayentaRoot, 'pnpm-workspace.yaml');
 const functionalWorkspacePath = path.join(functionalRoot, 'pnpm-workspace.yaml');
-const activeWorkspacePaths = [deckWorkspacePath, deckKayentaWorkspacePath, functionalWorkspacePath];
+const activeWorkspacePaths = [deckWorkspacePath, functionalWorkspacePath];
 const deckLockPath = path.join(deckRoot, 'pnpm-lock.yaml');
-const deckKayentaLockPath = path.join(deckKayentaRoot, 'pnpm-lock.yaml');
 const functionalLockPath = path.join(functionalRoot, 'pnpm-lock.yaml');
-const activeLockPaths = [deckLockPath, deckKayentaLockPath, functionalLockPath];
+const activeLockPaths = [deckLockPath, functionalLockPath];
 const coreManifestPath = path.join(deckRoot, 'packages/core/package.json');
 const pluginsdkPeerdepsManifestPath = path.join(deckRoot, 'packages/pluginsdk-peerdeps/package.json');
 const deckTestRoot = path.join(deckRoot, 'test');
@@ -44,11 +42,7 @@ const angularTemplateLoaderHelperPath = path.join(
 );
 const sharedRollupConfigPath = path.join(deckRoot, 'packages/scripts/config/rollup.config.base.js');
 const activeBuildConfigFiles = [];
-const legacyFacadeConsumerRoots = [
-  path.join(deckRoot, 'packages'),
-  path.join(deckRoot, 'test'),
-  path.join(repositoryRoot, 'deck-kayenta/src'),
-];
+const legacyFacadeConsumerRoots = [path.join(deckRoot, 'packages'), path.join(deckRoot, 'test')];
 const angularServicesPath = path.join(coreSourceRoot, 'angular', 'services.ts');
 const angularServicesSpecPath = path.join(coreSourceRoot, 'angular', 'services.spec.ts');
 const bridgePath = path.join(coreSourceRoot, 'navigation/legacyStateConfig.bridge.ts');
@@ -198,7 +192,7 @@ function packageSourceRoots() {
 }
 
 function productionSourceRoots() {
-  return [...packageSourceRoots(), deckKayentaSourceRoot];
+  return packageSourceRoots();
 }
 
 function isWithin(file, directory) {
@@ -206,9 +200,7 @@ function isWithin(file, directory) {
   return relativePath === '' || (!relativePath.startsWith(`..${path.sep}`) && relativePath !== '..');
 }
 
-function discoverActiveBuildConfigFiles(
-  roots = [deckRoot, deckKayentaRoot, functionalRoot, spinnakerGradleProjectRoot],
-) {
+function discoverActiveBuildConfigFiles(roots = [deckRoot, functionalRoot, spinnakerGradleProjectRoot]) {
   const pluginConfigRoot = path.join(deckRoot, 'packages/pluginsdk/pluginconfig');
   const scaffoldRoot = path.join(deckRoot, 'packages/pluginsdk/scaffold');
   const nonconventionalRoots = [
@@ -216,7 +208,6 @@ function discoverActiveBuildConfigFiles(
     path.join(deckRoot, 'packages/scripts/config'),
     path.join(deckRoot, 'packages/scripts/helpers'),
     pluginConfigRoot,
-    path.join(deckKayentaRoot, 'build_scripts'),
   ];
   const toolConfigName = /^(?:rollup|webpack|vite|karma|jest|babel|postcss|cypress)(?:[.-]|[A-Z])/;
   const files = roots.flatMap((root) => workspaceFiles(root));
@@ -270,7 +261,7 @@ function discoverActiveAppArtifactFiles(appRoot, fixtureHost) {
 function activeSourceFiles() {
   return Array.from(
     new Set(
-      [path.join(deckRoot, 'packages'), path.join(deckRoot, 'scripts'), deckKayentaRoot, functionalRoot]
+      [path.join(deckRoot, 'packages'), path.join(deckRoot, 'scripts'), functionalRoot]
         .flatMap((sourceRoot) => workspaceSourceFiles(sourceRoot))
         .filter((file) => sourceExtensions.includes(path.extname(file)))
         .filter((file) => file !== angularRemovalGuardFixturePath)
@@ -300,7 +291,6 @@ function activeManifestFiles() {
     path.join(deckRoot, 'package.json'),
     ...workspaceFiles(packagesRoot, new Set(['.json'])).filter((file) => path.basename(file) === 'package.json'),
     path.join(deckTestRoot, 'functional/package.json'),
-    path.join(deckKayentaRoot, 'package.json'),
   ].sort();
 }
 
@@ -2035,7 +2025,11 @@ test('PR7 detector fixtures are accepted by repository-level source scans', () =
   assert.deepEqual(findForbiddenAngularTestIdentifiers([__filename], repositoryRoot), []);
 });
 
-test('active source scan covers Deck, Deck-Kayenta, app artifacts, functional tests, and Karma', () => {
+test('package source roots discover nested Kayenta exactly once', () => {
+  assert.equal(packageSourceRoots().filter((sourceRoot) => sourceRoot === deckKayentaSourceRoot).length, 1);
+});
+
+test('active source scan covers Deck, Kayenta, app artifacts, functional tests, and Karma', () => {
   const files = activeSourceFiles();
   const nodeScriptTests = readdirSync(appScriptsRoot, { withFileTypes: true })
     .filter((entry) => entry.isFile() && entry.name.endsWith('.test.js'))
@@ -2057,7 +2051,6 @@ test('active source scan covers Deck, Deck-Kayenta, app artifacts, functional te
     path.join(deckKayentaSourceRoot, 'kayenta/report/detail/graph/semiotic/declarations/semiotic.d.ts'),
     path.join(deckTestRoot, 'functional/cypress.config.ts'),
     path.join(deckRoot, 'packages/app/webpack.config.js'),
-    path.join(repositoryRoot, 'deck-kayenta/jest.config.js'),
     ...karmaFiles,
   ];
 
@@ -2148,20 +2141,15 @@ test('active package metadata covers functional and nested scaffold manifests', 
   assert.ok(activeManifestFiles().includes(path.join(deckRoot, 'packages/pluginsdk/scaffold/package.json')));
 });
 
-test('active workspace metadata covers Deck, Deck-Kayenta, and functional roots', () => {
+test('active workspace metadata covers Deck and functional roots', () => {
   assert.deepEqual(activeWorkspacePaths, [
     deckWorkspacePath,
-    deckKayentaWorkspacePath,
     path.join(deckTestRoot, 'functional/pnpm-workspace.yaml'),
   ]);
 });
 
-test('active pnpm lock metadata covers Deck, Deck-Kayenta, and functional roots', () => {
-  assert.deepEqual(activeLockPaths, [
-    deckLockPath,
-    deckKayentaLockPath,
-    path.join(deckTestRoot, 'functional/pnpm-lock.yaml'),
-  ]);
+test('active pnpm lock metadata covers Deck and functional roots', () => {
+  assert.deepEqual(activeLockPaths, [deckLockPath, path.join(deckTestRoot, 'functional/pnpm-lock.yaml')]);
 });
 
 test('active source and test infrastructure do not use Angular', () => {
@@ -2611,8 +2599,6 @@ test('context-aware raw detectors ignore comments and ordinary strings', () => {
 
 test('active build config discovery covers every representative toolchain', () => {
   const representativeFiles = [
-    path.join(deckKayentaRoot, '.eslintrc.js'),
-    path.join(deckKayentaRoot, 'jsconfig.json'),
     path.join(deckRoot, 'eslint.config.js'),
     path.join(deckRoot, 'jsconfig.json'),
     path.join(deckRoot, 'tsconfig.json'),
@@ -2633,13 +2619,12 @@ test('active build config discovery covers every representative toolchain', () =
     path.join(deckRoot, 'packages/scripts/config/rollup.config.base.js'),
     path.join(deckRoot, 'packages/scripts/helpers/rollup-node-auto-external-configurer.js'),
     path.join(deckRoot, 'packages/eslint-plugin/test.eslintrc'),
+    path.join(deckRoot, 'test/functional/cypress.config.ts'),
     path.join(deckRoot, 'test/functional/vite.config.ts'),
     path.join(deckRoot, 'test/functional/tsconfig.json'),
     path.join(deckRoot, 'karma.conf.js'),
     path.join(deckRoot, 'postcss.config.js'),
-    path.join(repositoryRoot, 'deck-kayenta/rollup.config.js'),
-    path.join(repositoryRoot, 'deck-kayenta/jest.config.js'),
-    path.join(repositoryRoot, 'deck-kayenta/babel.config.js'),
+    path.join(deckKayentaRoot, 'rollup.config.js'),
     path.join(repositoryRoot, 'spinnaker-gradle-project/spinnaker-extensions/build.gradle.kts'),
   ];
 
