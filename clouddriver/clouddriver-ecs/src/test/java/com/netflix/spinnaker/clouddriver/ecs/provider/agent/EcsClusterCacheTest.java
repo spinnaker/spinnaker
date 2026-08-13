@@ -21,8 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import com.amazonaws.services.ecs.model.ListClustersRequest;
-import com.amazonaws.services.ecs.model.ListClustersResult;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
@@ -30,13 +28,14 @@ import com.netflix.spinnaker.clouddriver.ecs.cache.client.EcsClusterCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.EcsCluster;
 import java.util.Collection;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.services.ecs.model.ListClustersRequest;
+import software.amazon.awssdk.services.ecs.model.ListClustersResponse;
 import spock.lang.Subject;
 
 public class EcsClusterCacheTest extends CommonCachingAgent {
   @Subject
   private final EcsClusterCachingAgent agent =
-      new EcsClusterCachingAgent(
-          netflixAmazonCredentials, REGION, clientProvider, credentialsProvider);
+      new EcsClusterCachingAgent(netflixAmazonCredentials, REGION, clientProvider);
 
   @Subject private final EcsClusterCacheClient client = new EcsClusterCacheClient(providerCache);
 
@@ -44,7 +43,8 @@ public class EcsClusterCacheTest extends CommonCachingAgent {
   public void shouldRetrieveFromWrittenCache() {
     // Given
     String key = Keys.getClusterKey(ACCOUNT, REGION, CLUSTER_NAME_1);
-    ListClustersResult listClustersResult = new ListClustersResult().withClusterArns(CLUSTER_ARN_1);
+    ListClustersResponse listClustersResult =
+        ListClustersResponse.builder().clusterArns(CLUSTER_ARN_1).build();
     when(ecs.listClusters(any(ListClustersRequest.class))).thenReturn(listClustersResult);
 
     // When

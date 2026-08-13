@@ -50,6 +50,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.stubbing.Answer;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import software.amazon.awssdk.services.ecs.EcsClient;
+import software.amazon.awssdk.services.ecs.model.DescribeServicesResponse;
+import software.amazon.awssdk.services.ecs.model.ListServicesResponse;
 
 public class CreateServerGroupWithArtifactsSpec extends EcsSpec {
 
@@ -66,8 +69,23 @@ public class CreateServerGroupWithArtifactsSpec extends EcsSpec {
 
   private AmazonElasticLoadBalancing mockELB = mock(AmazonElasticLoadBalancing.class);
 
+  private EcsClient mockEcsV2 = mock(EcsClient.class);
+
   @BeforeEach
   public void setup() {
+
+    // mock v2 ECS responses (used by EcsServerGroupNameResolver)
+    when(mockEcsV2.listServices(
+            any(software.amazon.awssdk.services.ecs.model.ListServicesRequest.class)))
+        .thenReturn(
+            ListServicesResponse.builder().serviceArns(java.util.Collections.emptyList()).build());
+    when(mockEcsV2.describeServices(
+            any(software.amazon.awssdk.services.ecs.model.DescribeServicesRequest.class)))
+        .thenReturn(
+            DescribeServicesResponse.builder().services(java.util.Collections.emptyList()).build());
+
+    when(mockAwsProvider.getAmazonEcsV2(any(NetflixAmazonCredentials.class), anyString()))
+        .thenReturn(mockEcsV2);
 
     // mocking calls
     when(mockECS.listAccountSettings(any(ListAccountSettingsRequest.class)))

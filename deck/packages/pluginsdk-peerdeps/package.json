@@ -39,7 +39,7 @@
     "@uirouter/core": "6.0.8",
     "@uirouter/react": "1.0.7",
     "bufferutil": "4.0.9",
-    "lodash-es": "4.17.21",
+    "lodash-es": "4.18.1",
     "npm-run-all2": "5.0.0",
     "postcss": "^8.4.14",
     "prettier": "2.1.2",
