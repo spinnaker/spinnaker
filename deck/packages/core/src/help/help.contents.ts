@@ -317,6 +317,8 @@ const helpContents: { [key: string]: string } = {
     <p>e.g.: <b>chart/helmfile.yml</b></p>`,
   'pipeline.config.bake.manifest.helmfile.name':
     '<p> Name is used to set the expected artifact in the Produces Artifact section. </p>',
+  'pipeline.config.bake.manifest.helmfile.stateValues': `
+    <p>State values files are passed to helmfile's <i>--state-values-file</i> flag. Unlike value artifacts (which override values passed to <i>helm template</i> for a release), these override the <i>.Values</i> used to template the helmfile.yaml itself.</p>`,
   'pipeline.config.bake.cf.manifest.name':
     '<p> Name should be the same as the expected artifact in the Produces Artifact section. </p>',
   'pipeline.config.bake.cf.manifest.templateArtifact': `

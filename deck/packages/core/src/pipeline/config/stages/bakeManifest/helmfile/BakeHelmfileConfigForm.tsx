@@ -127,6 +127,42 @@ export class BakeHelmfileConfigForm extends React.Component<
     }
   };
 
+  private onStateValuesArtifactEdited = (artifact: IArtifact, index: number) => {
+    this.props.formik.setFieldValue(`stateValuesArtifacts[${index}].id`, null);
+    this.props.formik.setFieldValue(`stateValuesArtifacts[${index}].artifact`, artifact);
+    this.props.formik.setFieldValue(`stateValuesArtifacts[${index}].account`, artifact.artifactAccount);
+  };
+
+  private onStateValuesArtifactSelected = (artifact: IExpectedArtifact, index: number) => {
+    this.props.formik.setFieldValue(`stateValuesArtifacts[${index}].id`, artifact.id);
+    this.props.formik.setFieldValue(`stateValuesArtifacts[${index}].artifact`, null);
+    if (artifact.matchArtifact) {
+      this.props.formik.setFieldValue(`stateValuesArtifacts[${index}].account`, artifact.matchArtifact.artifactAccount);
+    } else {
+      this.props.formik.setFieldValue(`stateValuesArtifacts[${index}].account`, null);
+    }
+  };
+
+  private addStateValuesArtifact = () => {
+    const stage = this.props.formik.values;
+    const newStateValuesArtifacts = [
+      ...(stage.stateValuesArtifacts || []),
+      {
+        account: '',
+        id: '',
+      },
+    ];
+
+    this.props.formik.setFieldValue('stateValuesArtifacts', newStateValuesArtifacts);
+  };
+
+  private removeStateValuesArtifact = (index: number) => {
+    const stage = this.props.formik.values;
+    const newStateValuesArtifacts = [...stage.stateValuesArtifacts];
+    newStateValuesArtifacts.splice(index, 1);
+    this.props.formik.setFieldValue('stateValuesArtifacts', newStateValuesArtifacts);
+  };
+
   private outputNameChange = (outputName: string) => {
     const stage = this.props.formik.values;
     const expectedArtifacts = stage.expectedArtifacts;
@@ -229,6 +265,47 @@ export class BakeHelmfileConfigForm extends React.Component<
           <button className="btn btn-block btn-sm add-new" onClick={() => this.addInputArtifact()}>
             <span className="glyphicon glyphicon-plus-sign" />
             Add value artifact
+          </button>
+        </StageConfigField>
+        <h4>State Values</h4>
+        {stage.stateValuesArtifacts && stage.stateValuesArtifacts.length > 0 && (
+          <div className="row form-group">
+            {stage.stateValuesArtifacts.map((a: any, index: number) => {
+              return (
+                <div key={index}>
+                  <div className="col-md-offset-1 col-md-9">
+                    <StageArtifactSelectorDelegate
+                      artifact={a.artifact}
+                      excludedArtifactTypePatterns={[]}
+                      expectedArtifactId={a.id}
+                      label="Expected Artifact"
+                      onArtifactEdited={(artifact) => {
+                        this.onStateValuesArtifactEdited(artifact, index);
+                      }}
+                      onExpectedArtifactSelected={(artifact: IExpectedArtifact) =>
+                        this.onStateValuesArtifactSelected(artifact, index)
+                      }
+                      pipeline={this.props.pipeline}
+                      stage={stage}
+                    />
+                  </div>
+                  <div className="col-md-1">
+                    <div className="form-control-static">
+                      <button onClick={() => this.removeStateValuesArtifact(index)}>
+                        <span className="glyphicon glyphicon-trash" />
+                        <span className="sr-only">Remove field</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+        <StageConfigField fieldColumns={8} label={''} helpKey="pipeline.config.bake.manifest.helmfile.stateValues">
+          <button className="btn btn-block btn-sm add-new" onClick={() => this.addStateValuesArtifact()}>
+            <span className="glyphicon glyphicon-plus-sign" />
+            Add state values artifact
           </button>
         </StageConfigField>
         <StageConfigField fieldColumns={6} label="Overrides">

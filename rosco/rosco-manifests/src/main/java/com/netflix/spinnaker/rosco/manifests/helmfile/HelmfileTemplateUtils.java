@@ -19,6 +19,8 @@ package com.netflix.spinnaker.rosco.manifests.helmfile;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreConfigurationProperties;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.rosco.jobs.BakeRecipe;
 import com.netflix.spinnaker.rosco.manifests.ArtifactDownloader;
 import com.netflix.spinnaker.rosco.manifests.BakeManifestEnvironment;
@@ -64,7 +66,32 @@ public class HelmfileTemplateUtils extends HelmBakeTemplateUtils<HelmfileBakeMan
         getHelmTypePathFromArtifact(env, inputArtifacts, request.getHelmfileFilePath());
 
     log.info("path to helmfile: {}", helmfileFilePath);
-    return buildCommand(request, getValuePaths(inputArtifacts, env), helmfileFilePath);
+    return buildCommand(
+        request,
+        getValuePaths(inputArtifacts, env),
+        getStateValuePaths(request, env),
+        helmfileFilePath);
+  }
+
+  private List<Path> getStateValuePaths(
+      HelmfileBakeManifestRequest request, BakeManifestEnvironment env) {
+    List<Artifact> stateValuesArtifacts = request.getStateValuesArtifacts();
+    if (stateValuesArtifacts == null || stateValuesArtifacts.isEmpty()) {
+      return new ArrayList<>();
+    }
+
+    List<Path> stateValuePaths = new ArrayList<>();
+    try {
+      for (Artifact stateValuesArtifact : stateValuesArtifacts) {
+        stateValuePaths.add(downloadArtifactToTmpFile(env, stateValuesArtifact));
+      }
+    } catch (SpinnakerHttpException e) {
+      throw new SpinnakerHttpException(fetchFailureMessage("state values file", e), e);
+    } catch (IOException | SpinnakerException e) {
+      throw new IllegalStateException(fetchFailureMessage("state values file", e), e);
+    }
+
+    return stateValuePaths;
   }
 
   public String fetchFailureMessage(String description, Exception e) {
@@ -76,7 +103,10 @@ public class HelmfileTemplateUtils extends HelmBakeTemplateUtils<HelmfileBakeMan
   }
 
   public BakeRecipe buildCommand(
-      HelmfileBakeManifestRequest request, List<Path> valuePaths, Path helmfileFilePath) {
+      HelmfileBakeManifestRequest request,
+      List<Path> valuePaths,
+      List<Path> stateValuePaths,
+      Path helmfileFilePath) {
     BakeRecipe result = new BakeRecipe();
     result.setName(request.getOutputName());
 
@@ -105,6 +135,14 @@ public class HelmfileTemplateUtils extends HelmBakeTemplateUtils<HelmfileBakeMan
 
     if (request.isIncludeCRDs()) {
       command.add("--include-crds");
+    }
+
+    if (!stateValuePaths.isEmpty()) {
+      stateValuePaths.forEach(
+          path -> {
+            command.add("--state-values-file");
+            command.add(path.toString());
+          });
     }
 
     Map<String, Object> overrides = request.getOverrides();
