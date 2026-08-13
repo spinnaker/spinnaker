@@ -2,7 +2,19 @@ dependencies {
   implementation project(":kayenta-core")
   implementation project(":kayenta-aws")
 
-  api "com.amazonaws:aws-java-sdk-s3"
+  api "software.amazon.awssdk:s3"
+  implementation "commons-codec:commons-codec"
   api "org.apache.httpcomponents.client5:httpclient5"
   api "org.apache.httpcomponents.core5:httpcore5"
+
+  testImplementation project(":kayenta-core")
+  testImplementation "org.junit.jupiter:junit-jupiter-api"
+  testImplementation "org.junit.jupiter:junit-jupiter-engine"
+  testImplementation "org.assertj:assertj-core"
+  testImplementation "org.mockito:mockito-core"
+  testImplementation "com.fasterxml.jackson.core:jackson-databind"
+  testImplementation "org.testcontainers:testcontainers"
+  testImplementation "org.testcontainers:junit-jupiter"
+  testImplementation "org.testcontainers:testcontainers-minio:2.0.5"
+  testRuntimeOnly "ch.qos.logback:logback-classic"
 }
