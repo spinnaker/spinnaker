@@ -44,6 +44,7 @@ class GitlabCiServiceSpec extends Specification {
     void setup() {
         client = Mock(GitlabCiClient)
         hostConfig = new GitlabCiHost()
+        hostConfig.setTriggerToken("test-trigger-token")
         service = new GitlabCiService(client, "gitlab", hostConfig, Permissions.EMPTY)
     }
 
@@ -170,5 +171,78 @@ class GitlabCiServiceSpec extends Specification {
     0 * client.getJobLog(PROJECT_ID, JOB_ID)
 
     thrown SpinnakerHttpException
+  }
+
+  def "triggerBuildWithParameters triggers a pipeline and returns its ID"() {
+    given:
+    final String PROJECT_ID = "9729"
+    final String REF = "main"
+    final long PIPELINE_ID = 12345
+
+    Pipeline triggeredPipeline = new Pipeline(id: PIPELINE_ID)
+
+    when:
+    long result = service.triggerBuildWithParameters(PROJECT_ID, [ref: REF])
+
+    then:
+    1 * client.triggerPipeline(PROJECT_ID, "test-trigger-token", REF) >> Calls.response(triggeredPipeline)
+    result == PIPELINE_ID
+  }
+
+  def "triggerBuildWithParameters uses 'main' as default ref"() {
+    given:
+    final String PROJECT_ID = "9729"
+    final long PIPELINE_ID = 99
+
+    Pipeline triggeredPipeline = new Pipeline(id: PIPELINE_ID)
+
+    when:
+    long result = service.triggerBuildWithParameters(PROJECT_ID, [:])
+
+    then:
+    1 * client.triggerPipeline(PROJECT_ID, "test-trigger-token", "main") >> Calls.response(triggeredPipeline)
+    result == PIPELINE_ID
+  }
+
+  def "triggerBuildWithParameters throws when triggerToken is not configured"() {
+    given:
+    def hostConfigNoToken = new GitlabCiHost()
+    def serviceNoToken = new GitlabCiService(client, "gitlab-no-token", hostConfigNoToken, Permissions.EMPTY)
+
+    when:
+    serviceNoToken.triggerBuildWithParameters("9729", [ref: "main"])
+
+    then:
+    def ex = thrown(IllegalStateException)
+    ex.message.contains("triggerToken is not configured")
+  }
+
+  def "cancelPipeline calls the client and returns the pipeline"() {
+    given:
+    final String PROJECT_ID = "9729"
+    final long PIPELINE_ID = 12345
+
+    Pipeline cancelledPipeline = new Pipeline(id: PIPELINE_ID)
+
+    when:
+    Pipeline result = service.cancelPipeline(PROJECT_ID, PIPELINE_ID)
+
+    then:
+    1 * client.cancelPipeline(PROJECT_ID, PIPELINE_ID) >> Calls.response(cancelledPipeline)
+    result.id == PIPELINE_ID
+  }
+
+  def "stopRunningBuild delegates to cancelPipeline"() {
+    given:
+    final String PROJECT_ID = "9729"
+    final long PIPELINE_ID = 12345
+
+    Pipeline cancelledPipeline = new Pipeline(id: PIPELINE_ID)
+
+    when:
+    service.stopRunningBuild(PROJECT_ID, PIPELINE_ID)
+
+    then:
+    1 * client.cancelPipeline(PROJECT_ID, PIPELINE_ID) >> Calls.response(cancelledPipeline)
   }
 }
