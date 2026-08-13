@@ -1,9 +1,11 @@
 import * as core from '@actions/core';
+import * as fs from 'fs';
 import { Bom } from './bom';
 import { services } from './services/all';
 import * as util from '../util';
 import { fromCurrent, VersionsDotYml } from './versionsDotYml';
 import { forVersion, Changelog } from './changelog';
+import { ApiDocs, gateSource } from './apiDocs';
 import { Version } from '../versions';
 
 export async function generate(): Promise<void> {
@@ -31,9 +33,16 @@ export async function generate(): Promise<void> {
   core.setOutput('changelog', changelog.markdown);
   core.setOutput('changelog-url', changelog.prUrl);
 
+  const apiDocs = await generateApiDocs().catch((err) => {
+    core.error('Failed to generate API docs');
+    throw err;
+  });
+
+  core.setOutput('api-docs-url', apiDocs?.prUrl ?? '');
+
   core.info(`Generated BoM: \n${bom.toString()}`);
   core.info(`Generated versions.yml: \n${versionsYml.toString()}`);
-  await publish(bom, versionsYml, changelog);
+  await publish(bom, versionsYml, changelog, apiDocs);
 }
 
 async function generateBom(): Promise<Bom> {
@@ -69,10 +78,37 @@ async function generateVersionsYml(): Promise<VersionsDotYml> {
   return versionsYml;
 }
 
+async function generateApiDocs(): Promise<ApiDocs | null> {
+  const version = util.getInput('version');
+  const sources = [gateSource()].filter((source) => {
+    if (!source.specPath) {
+      core.info(
+        `No spec path provided for ${source.service} - skipping API docs`,
+      );
+      return false;
+    }
+    if (!fs.existsSync(source.specPath)) {
+      core.warning(
+        `Spec path ${source.specPath} for ${source.service} does not exist - skipping API docs`,
+      );
+      return false;
+    }
+    return true;
+  });
+
+  if (sources.length === 0) {
+    return null;
+  }
+
+  core.info('Running API docs generator');
+  return new ApiDocs(version, sources);
+}
+
 async function publish(
   bom: Bom,
   versionDotYml: VersionsDotYml,
   changelog: Changelog,
+  apiDocs: ApiDocs | null,
 ) {
   const publishBom = util.getInput('publish-bom');
   if (publishBom == 'true') {
@@ -93,5 +129,14 @@ async function publish(
     await changelog.publish();
   } else {
     core.info('Not publishing changelog - publish-changelog is false');
+  }
+
+  const publishApiDocs = util.getInput('publish-api-docs');
+  if (publishApiDocs == 'true' && apiDocs) {
+    await apiDocs.publish();
+  } else {
+    core.info(
+      'Not publishing API docs - publish-api-docs is false or no specs were found',
+    );
   }
 }
