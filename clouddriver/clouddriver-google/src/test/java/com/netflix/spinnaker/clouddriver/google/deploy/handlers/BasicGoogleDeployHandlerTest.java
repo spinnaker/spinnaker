@@ -144,6 +144,7 @@ public class BasicGoogleDeployHandlerTest {
     mockCredentials = mock(GoogleNamedAccountCredentials.class);
     mockTask = mock(Task.class);
     mockedGCEUtil = mockStatic(GCEUtil.class);
+    mockedGCEUtil.when(() -> GCEUtil.canonicalizeTargetShape(anyString())).thenCallRealMethod();
     mockedUtils = mockStatic(Utils.class);
     mockAutoscalingPolicy = mock(GoogleAutoscalingPolicy.class);
 

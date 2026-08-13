@@ -53,6 +53,8 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.client.ServiceClientProvider
 import groovy.util.logging.Slf4j
 
+import java.util.Locale
+
 import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.HEALTH_CHECKS
 import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.HTTP_HEALTH_CHECKS
 
@@ -75,6 +77,17 @@ class GCEUtil {
   public static final String LOAD_BALANCING_POLICY = "load-balancing-policy"
   public static final String SELECT_ZONES = 'select-zones'
   public static final String AUTOSCALING_POLICY = 'autoscaling-policy'
+
+  static String canonicalizeTargetShape(String targetShape) {
+    if (targetShape == null) {
+      return null
+    }
+    String trimmed = targetShape.trim()
+    if (!trimmed) {
+      return null
+    }
+    return trimmed.toUpperCase(Locale.ROOT)
+  }
 
   static String queryMachineType(String instanceType, String location, GoogleNamedAccountCredentials credentials, Task task, String phase) {
     task.updateStatus phase, "Looking up machine type $instanceType..."

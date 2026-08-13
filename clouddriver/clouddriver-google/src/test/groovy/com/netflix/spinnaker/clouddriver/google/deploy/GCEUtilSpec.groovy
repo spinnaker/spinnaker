@@ -632,6 +632,21 @@ package com.netflix.spinnaker.clouddriver.google.deploy
       ]
   }
 
+  @Unroll
+  void "canonicalizeTargetShape should return #expected for #targetShape"() {
+    expect:
+      GCEUtil.canonicalizeTargetShape(targetShape) == expected
+
+    where:
+      targetShape        || expected
+      null               || null
+      ""                 || null
+      "   "              || null
+      " any "            || "ANY"
+      "even"             || "EVEN"
+      "ANY_SINGLE_ZONE"  || "ANY_SINGLE_ZONE"
+  }
+
   void "buildCertificateMapUrl should build global certificate manager URL"() {
     expect:
       GCEUtil.buildCertificateMapUrl(PROJECT_NAME, "my-map") ==

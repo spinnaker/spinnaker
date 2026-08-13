@@ -1118,7 +1118,7 @@ public class BasicGoogleDeployHandler
         // Canonicalize before the GCP call so Deck/API casing and whitespace cannot produce
         // rejected or inconsistently stored distribution shapes.
         distributionPolicy.setTargetShape(
-            description.getDistributionPolicy().getTargetShape().trim().toUpperCase(Locale.ROOT));
+            GCEUtil.canonicalizeTargetShape(description.getDistributionPolicy().getTargetShape()));
       }
 
       if (!CollectionUtils.isEmpty(distributionPolicy.getZones())

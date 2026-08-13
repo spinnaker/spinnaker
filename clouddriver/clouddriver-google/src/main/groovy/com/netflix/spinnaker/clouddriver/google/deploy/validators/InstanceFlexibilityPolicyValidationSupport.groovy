@@ -17,13 +17,13 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
+import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import java.util.Collections
 import java.util.HashSet
-import java.util.Locale
 import java.util.Set
 
 final class InstanceFlexibilityPolicyValidationSupport {
@@ -78,12 +78,13 @@ final class InstanceFlexibilityPolicyValidationSupport {
     // Regional MIG defaults to EVEN when targetShape is not explicitly provided.
     // Users must explicitly set a flexibility-compatible targetShape; null is treated as EVEN
     // and rejected. See: https://cloud.google.com/compute/docs/instance-groups/about-instance-flexibility
-    def targetShape = description.distributionPolicy?.targetShape?.trim()
-    if (!targetShape || targetShape.equalsIgnoreCase("EVEN")) {
+    def targetShape =
+      GCEUtil.canonicalizeTargetShape(description.distributionPolicy?.targetShape)
+    if (!targetShape || targetShape == "EVEN") {
       issues.add(
         new ValidationIssue(
           INCOMPATIBLE_WITH_EVEN_SHAPE_CODE, INCOMPATIBLE_WITH_EVEN_SHAPE_MESSAGE))
-    } else if (!ALLOWED_FLEX_TARGET_SHAPES.contains(targetShape.toUpperCase(Locale.ROOT))) {
+    } else if (!ALLOWED_FLEX_TARGET_SHAPES.contains(targetShape)) {
       issues.add(new ValidationIssue(INVALID_TARGET_SHAPE_CODE, INVALID_TARGET_SHAPE_MESSAGE))
     }
 
