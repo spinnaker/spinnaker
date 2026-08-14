@@ -16,13 +16,13 @@
 
 package com.netflix.kayenta.aws.security;
 
-import com.amazonaws.services.s3.AmazonS3;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.kayenta.security.AccountCredentials;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+import software.amazon.awssdk.services.s3.S3Client;
 
 @SuperBuilder
 @Setter
@@ -40,5 +40,5 @@ public class AwsNamedAccountCredentials extends AccountCredentials<AwsCredential
     return "aws";
   }
 
-  @JsonIgnore private AmazonS3 amazonS3;
+  @JsonIgnore private S3Client s3Client;
 }
