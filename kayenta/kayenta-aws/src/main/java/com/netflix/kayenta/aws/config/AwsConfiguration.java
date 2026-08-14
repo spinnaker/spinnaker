@@ -16,21 +16,12 @@
 
 package com.netflix.kayenta.aws.config;
 
-import com.amazonaws.ClientConfiguration;
-import com.amazonaws.Protocol;
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.auth.BasicSessionCredentials;
-import com.amazonaws.auth.profile.ProfileCredentialsProvider;
-import com.amazonaws.client.builder.AwsClientBuilder;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.netflix.kayenta.aws.security.AwsCredentials;
 import com.netflix.kayenta.aws.security.AwsNamedAccountCredentials;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import java.io.IOException;
+import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +32,16 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.http.apache.ProxyConfiguration;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3ClientBuilder;
+import software.amazon.awssdk.services.s3.S3Configuration;
 
 @Configuration
 @ConditionalOnProperty("kayenta.aws.enabled")
@@ -65,55 +66,55 @@ public class AwsConfiguration {
 
       log.info("Registering AWS account {} with supported types {}.", name, supportedTypes);
 
-      ClientConfiguration clientConfiguration = new ClientConfiguration();
+      S3ClientBuilder s3ClientBuilder = S3Client.builder();
 
-      if (awsManagedAccount.getProxyProtocol() != null) {
-        if (awsManagedAccount.getProxyProtocol().equalsIgnoreCase("HTTPS")) {
-          clientConfiguration.setProtocol(Protocol.HTTPS);
-        } else {
-          clientConfiguration.setProtocol(Protocol.HTTP);
-        }
-        Optional.ofNullable(awsManagedAccount.getProxyHost())
-            .ifPresent(clientConfiguration::setProxyHost);
-        Optional.ofNullable(awsManagedAccount.getProxyPort())
-            .map(Integer::parseInt)
-            .ifPresent(clientConfiguration::setProxyPort);
-      }
-
-      AmazonS3ClientBuilder amazonS3ClientBuilder = AmazonS3ClientBuilder.standard();
       String profileName = awsManagedAccount.getProfileName();
-
       if (!StringUtils.isEmpty(profileName)) {
-        amazonS3ClientBuilder.withCredentials(new ProfileCredentialsProvider(profileName));
+        s3ClientBuilder.credentialsProvider(ProfileCredentialsProvider.create(profileName));
       }
 
       AwsManagedAccount.ExplicitAwsCredentials explicitCredentials =
           awsManagedAccount.getExplicitCredentials();
       if (explicitCredentials != null) {
         String sessionToken = explicitCredentials.getSessionToken();
-        AWSCredentials awsCreds =
+        software.amazon.awssdk.auth.credentials.AwsCredentials sdkCreds =
             (sessionToken == null)
-                ? new BasicAWSCredentials(
+                ? AwsBasicCredentials.create(
                     explicitCredentials.getAccessKey(), explicitCredentials.getSecretKey())
-                : new BasicSessionCredentials(
+                : AwsSessionCredentials.create(
                     explicitCredentials.getAccessKey(),
                     explicitCredentials.getSecretKey(),
                     sessionToken);
-        amazonS3ClientBuilder.withCredentials(new AWSStaticCredentialsProvider(awsCreds));
+        s3ClientBuilder.credentialsProvider(StaticCredentialsProvider.create(sdkCreds));
+      }
+
+      String proxyProtocol = awsManagedAccount.getProxyProtocol();
+      if (proxyProtocol != null) {
+        String proxyHost = awsManagedAccount.getProxyHost();
+        String proxyPort = awsManagedAccount.getProxyPort();
+        if (proxyHost != null && proxyPort != null) {
+          String proxyUri = proxyProtocol.toLowerCase() + "://" + proxyHost + ":" + proxyPort;
+          s3ClientBuilder.httpClientBuilder(
+              ApacheHttpClient.builder()
+                  .proxyConfiguration(
+                      ProxyConfiguration.builder().endpoint(URI.create(proxyUri)).build()));
+        }
       }
 
       String endpoint = awsManagedAccount.getEndpoint();
-
       if (!StringUtils.isEmpty(endpoint)) {
-        amazonS3ClientBuilder.setEndpointConfiguration(
-            new AwsClientBuilder.EndpointConfiguration(endpoint, null));
-        amazonS3ClientBuilder.setPathStyleAccessEnabled(true);
+        s3ClientBuilder.endpointOverride(URI.create(endpoint));
+        s3ClientBuilder.serviceConfiguration(
+            S3Configuration.builder().pathStyleAccessEnabled(true).build());
+        String region = Optional.ofNullable(awsManagedAccount.getRegion()).orElse("us-east-1");
+        s3ClientBuilder.region(Region.of(region));
       } else {
         Optional.ofNullable(awsManagedAccount.getRegion())
-            .ifPresent(amazonS3ClientBuilder::setRegion);
+            .map(Region::of)
+            .ifPresent(s3ClientBuilder::region);
       }
 
-      AmazonS3 amazonS3 = amazonS3ClientBuilder.build();
+      S3Client s3Client = s3ClientBuilder.build();
 
       try {
         AwsCredentials awsCredentials = new AwsCredentials();
@@ -139,7 +140,7 @@ public class AwsConfiguration {
             awsNamedAccountCredentialsBuilder.bucket(bucket);
             awsNamedAccountCredentialsBuilder.region(awsManagedAccount.getRegion());
             awsNamedAccountCredentialsBuilder.rootFolder(rootFolder);
-            awsNamedAccountCredentialsBuilder.amazonS3(amazonS3);
+            awsNamedAccountCredentialsBuilder.s3Client(s3Client);
           }
 
           awsNamedAccountCredentialsBuilder.supportedTypes(supportedTypes);
