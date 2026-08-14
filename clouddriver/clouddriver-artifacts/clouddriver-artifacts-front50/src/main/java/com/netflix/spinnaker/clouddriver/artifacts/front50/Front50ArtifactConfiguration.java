@@ -36,7 +36,8 @@ class Front50ArtifactConfiguration {
     CredentialsRepository<Front50ArtifactCredentials> repository =
         new MapBackedCredentialsRepository<>(
             Front50ArtifactCredentials.CREDENTIALS_TYPE, new NoopCredentialsLifecycleHandler<>());
-    repository.save(new Front50ArtifactCredentials(objectMapper, front50Service));
+    repository.save(
+        new Front50ArtifactCredentials(objectMapper, front50Service, new Front50ArtifactAccount()));
     return repository;
   }
 }

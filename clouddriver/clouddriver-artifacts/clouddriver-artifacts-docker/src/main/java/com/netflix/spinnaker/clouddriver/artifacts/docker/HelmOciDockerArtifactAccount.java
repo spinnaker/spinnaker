@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.artifacts.docker;
 
 import com.google.common.base.Strings;
 import com.netflix.spinnaker.clouddriver.artifacts.config.UserInputValidatedArtifactAccount;
+import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import com.netflix.spinnaker.kork.docker.service.DefaultDockerOkClientProvider;
@@ -72,8 +73,12 @@ public class HelmOciDockerArtifactAccount extends UserInputValidatedArtifactAcco
       List<String> helmOciRepositories,
       long clientTimeoutMillis,
       int paginateSize,
-      ServiceClientProvider serviceClientProvider) {
-    super(Strings.nullToEmpty(name), null);
+      ServiceClientProvider serviceClientProvider,
+      Permissions.Builder permissions) {
+    super(
+        Strings.nullToEmpty(name),
+        null,
+        Optional.ofNullable(permissions).orElseGet(Permissions.Builder::new));
     this.username = username;
     this.password = password;
     this.passwordFile = passwordFile;

@@ -19,15 +19,18 @@ package com.netflix.spinnaker.clouddriver.controllers;
 
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactDownloader;
+import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccountAuthorizer;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreURIBuilder;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.exceptions.MissingCredentialsException;
+import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,26 +53,31 @@ public class ArtifactController {
   private ArtifactDownloader artifactDownloader;
   private final ArtifactStore storage;
   private final ArtifactStoreURIBuilder artifactStoreURIBuilder;
+  private final ArtifactAccountAuthorizer artifactAccountAuthorizer;
 
   @Autowired
   public ArtifactController(
       Optional<ArtifactCredentialsRepository> artifactCredentialsRepository,
       Optional<ArtifactDownloader> artifactDownloader,
       Optional<ArtifactStore> storage,
-      Optional<ArtifactStoreURIBuilder> artifactStoreURIBuilder) {
+      Optional<ArtifactStoreURIBuilder> artifactStoreURIBuilder,
+      ArtifactAccountAuthorizer artifactAccountAuthorizer) {
     this.artifactCredentialsRepository = artifactCredentialsRepository.orElse(null);
     this.artifactDownloader = artifactDownloader.orElse(null);
     this.storage = storage.orElse(null);
     this.artifactStoreURIBuilder = artifactStoreURIBuilder.orElse(null);
+    this.artifactAccountAuthorizer = artifactAccountAuthorizer;
   }
 
   @RequestMapping(method = RequestMethod.GET, value = "/credentials")
   List<ArtifactCredentials> list() {
     if (artifactCredentialsRepository == null) {
       return Collections.emptyList();
-    } else {
-      return artifactCredentialsRepository.getAllCredentials();
     }
+    String username = AuthenticatedRequest.getSpinnakerUser().orElse("anonymous");
+    return artifactCredentialsRepository.getAllCredentials().stream()
+        .filter(credentials -> artifactAccountAuthorizer.canRead(username, credentials))
+        .collect(Collectors.toList());
   }
 
   // PUT because we need to send a body, which GET does not allow for spring/retrofit

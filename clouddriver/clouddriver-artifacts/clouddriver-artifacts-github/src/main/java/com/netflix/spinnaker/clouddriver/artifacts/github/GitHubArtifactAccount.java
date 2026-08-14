@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.artifacts.config.BasicAuth;
 import com.netflix.spinnaker.clouddriver.artifacts.config.HttpUrlRestrictions;
 import com.netflix.spinnaker.clouddriver.artifacts.config.TokenAuth;
 import com.netflix.spinnaker.clouddriver.artifacts.config.UserInputValidatedArtifactAccount;
+import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import java.util.Optional;
 import javax.annotation.ParametersAreNullableByDefault;
@@ -61,10 +62,12 @@ public class GitHubArtifactAccount extends UserInputValidatedArtifactAccount
       String tokenFile,
       String githubAPIVersion,
       boolean useContentAPI,
-      HttpUrlRestrictions urlRestrictions) {
+      HttpUrlRestrictions urlRestrictions,
+      Permissions.Builder permissions) {
     super(
         Strings.nullToEmpty(name),
-        Optional.ofNullable(urlRestrictions).orElse(HttpUrlRestrictions.builder().build()));
+        Optional.ofNullable(urlRestrictions).orElse(HttpUrlRestrictions.builder().build()),
+        Optional.ofNullable(permissions).orElseGet(Permissions.Builder::new));
     this.username = Optional.ofNullable(Strings.emptyToNull(username));
     this.password = Optional.ofNullable(Strings.emptyToNull(password));
     this.usernamePasswordFile = Optional.ofNullable(Strings.emptyToNull(usernamePasswordFile));

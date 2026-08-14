@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Google, Inc.
+ * Copyright 2026 Spinnaker.io, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  *
  */
 
-package com.netflix.spinnaker.clouddriver.artifacts.embedded;
+package com.netflix.spinnaker.clouddriver.artifacts.front50;
 
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccount;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
@@ -24,7 +24,11 @@ import lombok.Value;
 
 @NonnullByDefault
 @Value
-final class EmbeddedArtifactAccount implements ArtifactAccount {
-  private final String name = "embedded-artifact";
+final class Front50ArtifactAccount implements ArtifactAccount {
   private final Permissions.Builder permissions = new Permissions.Builder();
+
+  @Override
+  public String getName() {
+    return Front50ArtifactCredentials.ACCOUNT_NAME;
+  }
 }

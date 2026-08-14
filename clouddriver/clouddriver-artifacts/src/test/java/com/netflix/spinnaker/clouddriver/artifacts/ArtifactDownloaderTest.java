@@ -19,7 +19,9 @@ package com.netflix.spinnaker.clouddriver.artifacts;
 
 import static org.assertj.core.api.Assertions.*;
 
+import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccountAuthorizer;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
+import com.netflix.spinnaker.clouddriver.security.AllowAllAccountSecurityPolicy;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
 import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository;
 import com.netflix.spinnaker.credentials.NoopCredentialsLifecycleHandler;
@@ -27,6 +29,7 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.exceptions.MissingCredentialsException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 public class ArtifactDownloaderTest {
@@ -40,7 +43,9 @@ public class ArtifactDownloaderTest {
     repository.save(credentials);
 
     ArtifactCredentialsRepository artifactsCredentials =
-        new ArtifactCredentialsRepository(List.of(repository));
+        new ArtifactCredentialsRepository(
+            List.of(repository),
+            new ArtifactAccountAuthorizer(Optional.of(new AllowAllAccountSecurityPolicy())));
 
     assertThat(artifactsCredentials.getCredentialsForType("test", "type1")).isEqualTo(credentials);
     assertThatExceptionOfType(MissingCredentialsException.class)

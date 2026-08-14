@@ -18,10 +18,12 @@
 package com.netflix.spinnaker.clouddriver.artifacts;
 
 import com.google.common.base.Strings;
+import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccountAuthorizer;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.credentials.CompositeCredentialsRepository;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
 import com.netflix.spinnaker.kork.exceptions.MissingCredentialsException;
+import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
@@ -29,9 +31,13 @@ import lombok.extern.slf4j.Slf4j;
 public class ArtifactCredentialsRepository
     extends CompositeCredentialsRepository<ArtifactCredentials> {
 
+  private final ArtifactAccountAuthorizer authorizer;
+
   public ArtifactCredentialsRepository(
-      List<CredentialsRepository<? extends ArtifactCredentials>> repositories) {
+      List<CredentialsRepository<? extends ArtifactCredentials>> repositories,
+      ArtifactAccountAuthorizer authorizer) {
     super(repositories);
+    this.authorizer = authorizer;
   }
 
   public ArtifactCredentials getCredentialsForType(String name, String artifactType) {
@@ -41,16 +47,31 @@ public class ArtifactCredentialsRepository
       throw new IllegalArgumentException(message);
     }
 
-    return getAllCredentials().stream()
-        .filter(a -> a.getName().equals(name) && a.handlesType(artifactType))
-        .findFirst()
-        .orElseThrow(
-            () ->
-                new MissingCredentialsException(
-                    "Credentials '"
-                        + name
-                        + "' supporting artifact type '"
-                        + artifactType
-                        + "' cannot be found"));
+    ArtifactCredentials credentials =
+        getAllCredentials().stream()
+            .filter(a -> a.getName().equals(name) && a.handlesType(artifactType))
+            .findFirst()
+            .orElseThrow(
+                () ->
+                    new MissingCredentialsException(
+                        "Credentials '"
+                            + name
+                            + "' supporting artifact type '"
+                            + artifactType
+                            + "' cannot be found"));
+
+    String username = AuthenticatedRequest.getSpinnakerUser().orElse("anonymous");
+    if (!authorizer.canUse(username, credentials)) {
+      // Same exception as "not found" so an unauthorized caller can't distinguish a restricted
+      // account from one that doesn't exist.
+      throw new MissingCredentialsException(
+          "Credentials '"
+              + name
+              + "' supporting artifact type '"
+              + artifactType
+              + "' cannot be found");
+    }
+
+    return credentials;
   }
 }
