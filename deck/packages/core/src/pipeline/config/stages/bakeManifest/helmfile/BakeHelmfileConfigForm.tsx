@@ -166,6 +166,30 @@ export class BakeHelmfileConfigForm extends React.Component<
             value={stage.outputName}
           />
         </StageConfigField>
+        <StageConfigField
+          fieldColumns={3}
+          label={'Namespace'}
+          helpKey="pipeline.config.bake.manifest.helmfile.namespace"
+        >
+          <TextInput
+            onChange={(e: React.ChangeEvent<any>) => {
+              this.props.formik.setFieldValue('namespace', e.target.value);
+            }}
+            value={stage.namespace}
+          />
+        </StageConfigField>
+        <StageConfigField
+          fieldColumns={3}
+          label={'Environment'}
+          helpKey="pipeline.config.bake.manifest.helmfile.environment"
+        >
+          <TextInput
+            onChange={(e: React.ChangeEvent<any>) => {
+              this.props.formik.setFieldValue('environment', e.target.value);
+            }}
+            value={stage.environment}
+          />
+        </StageConfigField>
         <h4>Template Artifact</h4>
         <StageArtifactSelectorDelegate
           artifact={this.getInputArtifact(stage, 0).artifact}
