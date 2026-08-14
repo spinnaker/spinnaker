@@ -17,11 +17,14 @@
 package com.netflix.spinnaker.front50.redis
 
 import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
+import com.netflix.spinnaker.front50.config.DeprecatedStorageBackend
 import com.netflix.spinnaker.front50.model.application.Application
 import com.netflix.spinnaker.front50.model.notification.Notification
 
 import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplate
 import com.netflix.spinnaker.front50.model.project.Project
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -32,12 +35,23 @@ import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer
 import org.springframework.data.redis.serializer.StringRedisSerializer
 
+/**
+ * Redis-backed Front50 metadata storage configuration.
+ *
+ * @deprecated Front50 is moving to SQL-only persistence. Redis metadata storage remains available
+ * through Spinnaker 2027.0.0 and is scheduled for removal afterward. Prefer SQL.
+ */
+@Deprecated
 @Configuration
 @EnableConfigurationProperties(RedisConfigurationProperties)
 @ConditionalOnExpression('${spinnaker.redis.enabled:false}')
 class RedisConfig {
+
+  private static final Logger log = LoggerFactory.getLogger(RedisConfig)
+
   @Bean
   RedisApplicationDAO redisApplicationDAO(RedisTemplate<String, Application> template) {
+    DeprecatedStorageBackend.warn(log, "Redis")
     new RedisApplicationDAO(redisTemplate: template)
   }
 
