@@ -516,6 +516,33 @@ final class HelmfileTemplateUtilsTest {
   }
 
   @Test
+  public void buildBakeRecipeRejectsEnvironmentWithInvalidCharacters() throws IOException {
+    ArtifactDownloader artifactDownloader = mock(ArtifactDownloader.class);
+    RoscoHelmfileConfigurationProperties helmfileConfigurationProperties =
+        new RoscoHelmfileConfigurationProperties();
+    HelmfileTemplateUtils helmfileTemplateUtils =
+        new HelmfileTemplateUtils(
+            artifactDownloader,
+            Optional.empty(),
+            artifactStoreConfig,
+            helmfileConfigurationProperties);
+
+    HelmfileBakeManifestRequest request = new HelmfileBakeManifestRequest();
+    Artifact artifact = Artifact.builder().build();
+    request.setEnvironment("prod; rm -rf /");
+    request.setInputArtifacts(Collections.singletonList(artifact));
+    request.setOverrides(Collections.emptyMap());
+
+    try (BakeManifestEnvironment env = BakeManifestEnvironment.create()) {
+      IllegalArgumentException thrown =
+          assertThrows(
+              IllegalArgumentException.class,
+              () -> helmfileTemplateUtils.buildBakeRecipe(env, request));
+      assertThat(thrown.getMessage()).contains("environment");
+    }
+  }
+
+  @Test
   public void buildBakeRecipeDoesNotIncludeEnvironmentWhenNotSet() throws IOException {
     ArtifactDownloader artifactDownloader = mock(ArtifactDownloader.class);
     RoscoHelmfileConfigurationProperties helmfileConfigurationProperties =
@@ -563,6 +590,33 @@ final class HelmfileTemplateUtilsTest {
       assertTrue(recipe.getCommand().contains(namespaceName));
       // Assert that the flag position goes after 'helmfile template' subcommand
       assertTrue(recipe.getCommand().indexOf("--namespace") > 1);
+    }
+  }
+
+  @Test
+  public void buildBakeRecipeRejectsNamespaceWithInvalidCharacters() throws IOException {
+    ArtifactDownloader artifactDownloader = mock(ArtifactDownloader.class);
+    RoscoHelmfileConfigurationProperties helmfileConfigurationProperties =
+        new RoscoHelmfileConfigurationProperties();
+    HelmfileTemplateUtils helmfileTemplateUtils =
+        new HelmfileTemplateUtils(
+            artifactDownloader,
+            Optional.empty(),
+            artifactStoreConfig,
+            helmfileConfigurationProperties);
+
+    HelmfileBakeManifestRequest request = new HelmfileBakeManifestRequest();
+    Artifact artifact = Artifact.builder().build();
+    request.setNamespace("--kubeconfig=/etc/passwd");
+    request.setInputArtifacts(Collections.singletonList(artifact));
+    request.setOverrides(Collections.emptyMap());
+
+    try (BakeManifestEnvironment env = BakeManifestEnvironment.create()) {
+      IllegalArgumentException thrown =
+          assertThrows(
+              IllegalArgumentException.class,
+              () -> helmfileTemplateUtils.buildBakeRecipe(env, request));
+      assertThat(thrown.getMessage()).contains("namespace");
     }
   }
 
