@@ -317,6 +317,14 @@ const helpContents: { [key: string]: string } = {
     <p>e.g.: <b>chart/helmfile.yml</b></p>`,
   'pipeline.config.bake.manifest.helmfile.name':
     '<p> Name is used to set the expected artifact in the Produces Artifact section. </p>',
+  'pipeline.config.bake.manifest.helmfile.environment': `
+    <p>The environment name used to customize the content of the helmfile manifest.</p>
+    <p>This value is passed directly as the <samp>--environment</samp> argument to the <samp>helmfile</samp> executable, so it is limited to letters, numbers, <samp>.</samp>, <samp>_</samp>, and <samp>-</samp>.</p>
+    <p>If left blank, no <samp>--environment</samp> argument is passed at all - <samp>helmfile</samp> itself then falls back to its own built-in environment named <b>default</b>. Spinnaker does not pass <b>default</b> explicitly; it's simply what helmfile uses when no environment is specified.</p>`,
+  'pipeline.config.bake.manifest.helmfile.namespace': `
+    <p>The namespace to be released into.</p>
+    <p>This value is passed directly as the <samp>--namespace</samp> argument to the <samp>helmfile</samp> executable, so it is limited to letters, numbers, <samp>.</samp>, <samp>_</samp>, and <samp>-</samp>.</p>
+    <p>If left blank, no <samp>--namespace</samp> argument is passed at all.</p>`,
   'pipeline.config.bake.cf.manifest.name':
     '<p> Name should be the same as the expected artifact in the Produces Artifact section. </p>',
   'pipeline.config.bake.cf.manifest.templateArtifact': `
