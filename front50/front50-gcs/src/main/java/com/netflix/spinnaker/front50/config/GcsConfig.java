@@ -52,6 +52,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
 
+/**
+ * GCS metadata storage configuration.
+ *
+ * @deprecated Front50 is moving to SQL-only persistence. GCS metadata storage remains available
+ *     through Spinnaker 2027.0.0 and is scheduled for removal afterward. Prefer SQL; see {@link
+ *     DeprecatedStorageBackend}.
+ */
+@Deprecated
 @Configuration
 @ConditionalOnExpression("${spinnaker.gcs.enabled:false}")
 @EnableConfigurationProperties(GcsProperties.class)
@@ -65,11 +73,14 @@ public class GcsConfig {
       ObjectType.APPLICATION_PERMISSION.getDefaultMetadataFilename(true);
 
   @Bean
+  @SuppressWarnings("deprecation")
   public GcsStorageService defaultGoogleCloudStorageService(
       Storage storage, GcsProperties gcsProperties) {
+    DeprecatedStorageBackend.warn(log, "GCS");
     return googleCloudStorageService(storage, DATA_FILENAME, gcsProperties);
   }
 
+  @SuppressWarnings("deprecation")
   private GcsStorageService googleCloudStorageService(
       Storage storage, String dataFilename, GcsProperties gcsProperties) {
     var executor =
@@ -137,6 +148,7 @@ public class GcsConfig {
   }
 
   @Bean
+  @SuppressWarnings("deprecation")
   public ApplicationPermissionDAO applicationPermissionDAO(
       Storage storage,
       StorageServiceConfigurationProperties storageServiceConfigurationProperties,
