@@ -159,7 +159,7 @@ public class HelmfileTemplateUtils extends HelmBakeTemplateUtils<HelmfileBakeMan
       command.add("--include-crds");
     }
 
-    if (!stateValuePaths.isEmpty()) {
+    if (stateValuePaths != null && !stateValuePaths.isEmpty()) {
       stateValuePaths.forEach(
           path -> {
             command.add("--state-values-file");
