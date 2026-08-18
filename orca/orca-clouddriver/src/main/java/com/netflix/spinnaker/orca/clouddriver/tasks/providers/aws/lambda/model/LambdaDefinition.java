@@ -16,31 +16,84 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.lambda.model;
 
-import com.amazonaws.services.lambda.model.AliasConfiguration;
-import com.amazonaws.services.lambda.model.EventSourceMappingConfiguration;
-import com.amazonaws.services.lambda.model.FunctionCodeLocation;
-import com.amazonaws.services.lambda.model.FunctionConfiguration;
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
+/**
+ * Model for a Lambda function as returned by clouddriver's cache. Spinnaker-specific fields are
+ * explicit Lombok fields. FunctionConfiguration fields (functionName, functionArn, revisionId,
+ * state, etc.) come from clouddriver's v2-serialised JSON and are stored in a flat catch-all map so
+ * the shape is stable regardless of SDK version.
+ */
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class LambdaDefinition extends FunctionConfiguration {
+public class LambdaDefinition {
+
   private String cloudProvider;
   private String account;
   private String region;
 
   private Map<String, String> revisions;
-  private List<AliasConfiguration> aliasConfigurations;
-  private List<EventSourceMappingConfiguration> eventSourceMappings;
-  private FunctionCodeLocation code;
+
+  @SuppressWarnings("rawtypes")
+  private List<Map<String, Object>> aliasConfigurations;
+
+  @SuppressWarnings("rawtypes")
+  private List<Map<String, Object>> eventSourceMappings;
+
+  private Map<String, Object> code;
   private Map<String, String> tags;
   private List<String> targetGroups;
-  private String state;
-  private String stateReason;
-  private String stateReasonCode;
+
+  @Builder.Default private Map<String, Object> attributes = new HashMap<>();
+
+  @JsonAnySetter
+  public void setAttribute(String key, Object value) {
+    if (attributes == null) {
+      attributes = new HashMap<>();
+    }
+    attributes.put(key, value);
+  }
+
+  @JsonAnyGetter
+  public Map<String, Object> getAttributes() {
+    return attributes;
+  }
+
+  // ---- FunctionConfiguration fields from clouddriver cache --------------------
+
+  public String getFunctionName() {
+    return (String) attributes.get("functionName");
+  }
+
+  public String getFunctionArn() {
+    return (String) attributes.get("functionArn");
+  }
+
+  public String getRevisionId() {
+    return (String) attributes.get("revisionId");
+  }
+
+  public String getState() {
+    return (String) attributes.get("state");
+  }
+
+  public String getStateReason() {
+    return (String) attributes.get("stateReason");
+  }
+
+  public String getStateReasonCode() {
+    return (String) attributes.get("stateReasonCode");
+  }
 }
