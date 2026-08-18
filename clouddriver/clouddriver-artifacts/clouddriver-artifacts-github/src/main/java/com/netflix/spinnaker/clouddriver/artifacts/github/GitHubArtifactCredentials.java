@@ -27,7 +27,9 @@ import com.netflix.spinnaker.clouddriver.artifacts.config.SimpleHttpArtifactCred
 import com.netflix.spinnaker.clouddriver.artifacts.exceptions.FailedDownloadException;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.github.GitHubAppAuthenticator;
 import java.io.IOException;
+import java.net.URI;
 import javax.annotation.Nullable;
 import lombok.Data;
 import lombok.Getter;
@@ -47,18 +49,46 @@ public class GitHubArtifactCredentials extends SimpleHttpArtifactCredentials<Git
 
   @JsonIgnore private final ObjectMapper objectMapper;
   private final boolean useContentAPI;
+  @JsonIgnore @Nullable private final GitHubAppAuthenticator gitHubAppAuthenticator;
 
   GitHubArtifactCredentials(
       GitHubArtifactAccount account, OkHttpClient okHttpClient, ObjectMapper objectMapper) {
+    this(account, okHttpClient, objectMapper, null);
+  }
+
+  // visible for testing
+  GitHubArtifactCredentials(
+      GitHubArtifactAccount account,
+      OkHttpClient okHttpClient,
+      ObjectMapper objectMapper,
+      @Nullable GitHubAppAuthenticator gitHubAppAuthenticator) {
     super(okHttpClient, account);
     this.name = account.getName();
     this.objectMapper = objectMapper;
     this.useContentAPI = account.isUseContentAPI();
+    this.gitHubAppAuthenticator =
+        account
+            .getGithubApp()
+            .map(
+                githubApp ->
+                    gitHubAppAuthenticator != null
+                        ? gitHubAppAuthenticator
+                        : githubApp.toAuthenticator())
+            .orElse(null);
   }
 
   @Override
-  protected Headers getHeaders(GitHubArtifactAccount account) {
+  protected Headers getHeaders(GitHubArtifactAccount account) throws IOException {
     Headers headers = super.getHeaders(account);
+    if (gitHubAppAuthenticator != null) {
+      // The installation token is resolved per request; the authenticator caches it and refreshes
+      // it before expiration.
+      headers =
+          headers
+              .newBuilder()
+              .set("Authorization", "token " + gitHubAppAuthenticator.getInstallationToken())
+              .build();
+    }
     if (account.isUseContentAPI()) {
       return headers
           .newBuilder()
@@ -77,7 +107,36 @@ public class GitHubArtifactCredentials extends SimpleHttpArtifactCredentials<Git
       version = "master";
     }
 
-    return parseUrl(artifact.getReference()).newBuilder().addQueryParameter("ref", version).build();
+    HttpUrl metadataUrl =
+        parseUrl(artifact.getReference()).newBuilder().addQueryParameter("ref", version).build();
+    validateGitHubAppApiBaseUrlHost(metadataUrl);
+    return metadataUrl;
+  }
+
+  /**
+   * The installation token is minted against githubApp.apiBaseUrl but used against the artifact
+   * reference's host, so both must belong to the same GitHub instance. The reference is already a
+   * GitHub API URL (e.g. https://api.github.com/repos/... or https://ghe.example.com/api/v3/...),
+   * so the hosts must match exactly.
+   */
+  private void validateGitHubAppApiBaseUrlHost(HttpUrl reference) {
+    if (gitHubAppAuthenticator == null) {
+      return;
+    }
+    String apiBaseUrl = getAccount().getGithubApp().orElseThrow().getApiBaseUrl();
+    String apiHost = URI.create(apiBaseUrl).getHost();
+    if (apiHost == null) {
+      throw new IllegalArgumentException(
+          "Unable to extract host from githubApp.apiBaseUrl: " + apiBaseUrl);
+    }
+    if (!reference.host().equalsIgnoreCase(apiHost)) {
+      throw new IllegalArgumentException(
+          String.format(
+              "Artifact reference host '%s' does not match githubApp.apiBaseUrl host '%s' for github"
+                  + " account '%s'. Set githubApp.apiBaseUrl to the GitHub API base URL of the"
+                  + " instance hosting the repository (e.g. https://%s/api/v3 for GitHub Enterprise).",
+              reference.host(), apiHost, getName(), reference.host()));
+    }
   }
 
   @Override

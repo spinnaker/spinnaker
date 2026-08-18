@@ -1,74 +1,47 @@
 /*
- * Copyright 2021 Netflix, Inc.
+ * Copyright 2026 Harness, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-package com.netflix.spinnaker.clouddriver.artifacts.gitRepo;
+package com.netflix.spinnaker.clouddriver.artifacts.github;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.netflix.spinnaker.kork.github.GitHubAppCredentials;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.junitpioneer.jupiter.TempDirectory;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.boot.context.properties.source.MapConfigurationPropertySource;
 
-@ExtendWith({TempDirectory.class})
-public class GitRepoArtifactAccountTest {
-
-  @Test
-  void shouldGetTokenFromFile(@TempDirectory.TempDir Path tempDir) throws IOException {
-    Path authFile = tempDir.resolve("auth-file");
-    Files.write(authFile, "zzz".getBytes());
-
-    GitRepoArtifactAccount account =
-        GitRepoArtifactAccount.builder()
-            .name("gitRepo-account")
-            .tokenFile(authFile.toAbsolutePath().toString())
-            .build();
-
-    assertThat(account.getTokenAsString().get()).isEqualTo("zzz");
-  }
-
-  @Test
-  void shouldGetTokenFromProperty() {
-    GitRepoArtifactAccount account =
-        GitRepoArtifactAccount.builder().name("gitRepo-account").token("tokentoken").build();
-
-    assertThat(account.getTokenAsString().get()).isEqualTo("tokentoken");
-  }
+class GitHubArtifactAccountTest {
 
   @Test
   void shouldBindNestedGitHubAppBlock() {
     Map<String, String> properties = new HashMap<>();
-    properties.put("name", "gitRepo-account");
+    properties.put("name", "github-account");
     properties.put("githubApp.appId", "12345");
     properties.put("githubApp.appPrivateKeyPath", "/secrets/gh-app-key.pem");
     properties.put("githubApp.appInstallationId", "67890");
     properties.put("githubApp.apiBaseUrl", "https://ghe.example.com/api/v3");
 
-    GitRepoArtifactAccount account = bind(properties);
+    GitHubArtifactAccount account = bind(properties);
 
-    assertThat(account.getGithubApp().isPresent()).isTrue();
+    assertThat(account.getGithubApp()).isPresent();
     assertThat(account.getGithubApp().get().getAppId()).isEqualTo("12345");
     assertThat(account.getGithubApp().get().getAppPrivateKeyPath())
         .isEqualTo("/secrets/gh-app-key.pem");
@@ -80,12 +53,12 @@ public class GitRepoArtifactAccountTest {
   @Test
   void shouldDefaultGitHubAppApiBaseUrlWhenBinding() {
     Map<String, String> properties = new HashMap<>();
-    properties.put("name", "gitRepo-account");
+    properties.put("name", "github-account");
     properties.put("githubApp.appId", "12345");
     properties.put("githubApp.appPrivateKeyPath", "/secrets/gh-app-key.pem");
     properties.put("githubApp.appInstallationId", "67890");
 
-    GitRepoArtifactAccount account = bind(properties);
+    GitHubArtifactAccount account = bind(properties);
 
     assertThat(account.getGithubApp().get().getApiBaseUrl())
         .isEqualTo(GitHubAppCredentials.DEFAULT_API_BASE_URL);
@@ -94,7 +67,7 @@ public class GitRepoArtifactAccountTest {
   @Test
   void shouldRejectIncompleteGitHubAppBlockWhenBinding() {
     Map<String, String> properties = new HashMap<>();
-    properties.put("name", "gitRepo-account");
+    properties.put("name", "github-account");
     properties.put("githubApp.appId", "12345");
 
     assertThrows(Exception.class, () -> bind(properties));
@@ -102,15 +75,14 @@ public class GitRepoArtifactAccountTest {
 
   @Test
   void shouldHaveNoGitHubAppWhenNotConfigured() {
-    GitRepoArtifactAccount account =
-        GitRepoArtifactAccount.builder().name("gitRepo-account").build();
+    GitHubArtifactAccount account = GitHubArtifactAccount.builder().name("github-account").build();
 
-    assertThat(account.getGithubApp().isPresent()).isFalse();
+    assertThat(account.getGithubApp()).isEmpty();
   }
 
-  private GitRepoArtifactAccount bind(Map<String, String> properties) {
+  private GitHubArtifactAccount bind(Map<String, String> properties) {
     return new Binder(new MapConfigurationPropertySource(properties))
-        .bind("", Bindable.of(GitRepoArtifactAccount.class))
+        .bind("", Bindable.of(GitHubArtifactAccount.class))
         .get();
   }
 }

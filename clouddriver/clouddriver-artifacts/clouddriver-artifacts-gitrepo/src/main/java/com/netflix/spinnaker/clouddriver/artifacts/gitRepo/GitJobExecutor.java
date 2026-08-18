@@ -22,6 +22,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import com.netflix.spinnaker.clouddriver.jobs.JobExecutor;
 import com.netflix.spinnaker.clouddriver.jobs.JobRequest;
 import com.netflix.spinnaker.clouddriver.jobs.JobResult;
+import com.netflix.spinnaker.kork.github.GitHubAppAuthenticator;
+import com.netflix.spinnaker.kork.github.GitHubAppCredentials;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -32,6 +34,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.regex.Pattern;
+import javax.annotation.Nullable;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -61,8 +64,10 @@ public class GitJobExecutor {
   private final String gitExecutable;
   private final AuthType authType;
   private final Path askPassBinary;
+  @Nullable private final GitHubAppAuthenticator gitHubAppAuthenticator;
 
   private enum AuthType {
+    GITHUB_APP,
     USER_PASS,
     USER_TOKEN,
     TOKEN,
@@ -76,24 +81,58 @@ public class GitJobExecutor {
       String gitExecutable,
       String gitUrlRegex)
       throws IOException {
+    this(account, jobExecutor, gitExecutable, gitUrlRegex, null);
+  }
+
+  // visible for testing
+  GitJobExecutor(
+      GitRepoArtifactAccount account,
+      JobExecutor jobExecutor,
+      String gitExecutable,
+      String gitUrlRegex,
+      @Nullable GitHubAppAuthenticator gitHubAppAuthenticator)
+      throws IOException {
     this.gitUrlPattern = Pattern.compile(gitUrlRegex);
     this.account = account;
     this.jobExecutor = jobExecutor;
     this.gitExecutable = gitExecutable;
-    if (!StringUtils.isEmpty(account.getUsername())
-        && !StringUtils.isEmpty(account.getPassword())) {
-      authType = AuthType.USER_PASS;
-    } else if (!StringUtils.isEmpty(account.getUsername())
-        && account.getTokenAsString().filter(t -> !StringUtils.isEmpty(t)).isPresent()) {
-      authType = AuthType.USER_TOKEN;
-    } else if (account.getTokenAsString().filter(t -> !StringUtils.isEmpty(t)).isPresent()) {
-      authType = AuthType.TOKEN;
-    } else if (!StringUtils.isEmpty(account.getSshPrivateKeyFilePath())) {
-      authType = AuthType.SSH;
+    if (account.getGithubApp().isPresent()) {
+      authType = AuthType.GITHUB_APP;
+      this.gitHubAppAuthenticator =
+          gitHubAppAuthenticator != null
+              ? gitHubAppAuthenticator
+              : createAuthenticator(account.getName(), account.getGithubApp().get());
     } else {
-      authType = AuthType.NONE;
+      this.gitHubAppAuthenticator = null;
+      if (!StringUtils.isEmpty(account.getUsername())
+          && !StringUtils.isEmpty(account.getPassword())) {
+        authType = AuthType.USER_PASS;
+      } else if (!StringUtils.isEmpty(account.getUsername())
+          && account.getTokenAsString().filter(t -> !StringUtils.isEmpty(t)).isPresent()) {
+        authType = AuthType.USER_TOKEN;
+      } else if (account.getTokenAsString().filter(t -> !StringUtils.isEmpty(t)).isPresent()) {
+        authType = AuthType.TOKEN;
+      } else if (!StringUtils.isEmpty(account.getSshPrivateKeyFilePath())) {
+        authType = AuthType.SSH;
+      } else {
+        authType = AuthType.NONE;
+      }
     }
     askPassBinary = initAskPass();
+  }
+
+  private static GitHubAppAuthenticator createAuthenticator(
+      String accountName, GitHubAppCredentials githubApp) throws IOException {
+    try {
+      return githubApp.toAuthenticator();
+    } catch (RuntimeException e) {
+      throw new IOException(
+          "Failed to initialize GitHub App authentication for git/repo account "
+              + accountName
+              + ": "
+              + e.getMessage(),
+          e);
+    }
   }
 
   /**
@@ -181,6 +220,42 @@ public class GitJobExecutor {
       throw new IllegalArgumentException(
           "Git URL does not looked like a valid git reference.\"" + repoUrl);
     }
+    if (authType == AuthType.GITHUB_APP && repoUrl.startsWith("http")) {
+      validateGitHubAppApiBaseUrlHost(repoUrl);
+    }
+  }
+
+  /**
+   * The installation token is minted against githubApp.apiBaseUrl but used against the repo URL's
+   * host, so both must belong to the same GitHub instance. github.com repos pair with the default
+   * https://api.github.com; anything else (e.g. GitHub Enterprise) must match exactly.
+   */
+  private void validateGitHubAppApiBaseUrlHost(String repoUrl) {
+    String repoHost = hostOf(repoUrl);
+    String apiHost = hostOf(account.getGithubApp().orElseThrow().getApiBaseUrl());
+    boolean valid =
+        repoHost.equals(apiHost)
+            || ("github.com".equals(repoHost) && "api.github.com".equals(apiHost));
+    if (!valid) {
+      throw new IllegalArgumentException(
+          String.format(
+              "Repository host '%s' does not match githubApp.apiBaseUrl host '%s' for git/repo account '%s'."
+                  + " Set githubApp.apiBaseUrl to the GitHub API base URL of the instance hosting the"
+                  + " repository (e.g. https://%s/api/v3 for GitHub Enterprise).",
+              repoHost, apiHost, account.getName(), repoHost));
+    }
+  }
+
+  private static String hostOf(String url) {
+    try {
+      String host = new URI(url).getHost();
+      if (host != null) {
+        return host.toLowerCase();
+      }
+    } catch (URISyntaxException e) {
+      // fall through to the error below
+    }
+    throw new IllegalArgumentException("Unable to extract host from URL: " + url);
   }
 
   private void clone(String repoUrl, String branch, Path destination, String repoBasename)
@@ -292,7 +367,13 @@ public class GitJobExecutor {
 
     log.info("Pulling git/repo {} into {}", repoUrl, localPath.toString());
 
-    new CommandChain(localPath).addCommand(gitExecutable + " pull").runAllOrFail();
+    CommandChain pullChain = new CommandChain(localPath);
+    if (authType == AuthType.GITHUB_APP) {
+      // The origin URL carries the installation token used at clone time, which expires after ~1
+      // hour. Re-point origin at a fresh (cached) token so pulls on retained clones keep working.
+      pullChain.addCommand(gitExecutable + " remote set-url origin " + repoUrlWithAuth(repoUrl));
+    }
+    pullChain.addCommand(gitExecutable + " pull").runAllOrFail();
 
     if (!localPath.getParent().toFile().setLastModified(System.currentTimeMillis())) {
       log.warn("Unable to set last modified time on {}", localPath.getParent().toString());
@@ -354,7 +435,8 @@ public class GitJobExecutor {
   }
 
   private boolean isValidReference(String reference) {
-    if (authType == AuthType.USER_PASS
+    if (authType == AuthType.GITHUB_APP
+        || authType == AuthType.USER_PASS
         || authType == AuthType.USER_TOKEN
         || authType == AuthType.TOKEN) {
       return reference.startsWith("http");
@@ -368,6 +450,7 @@ public class GitJobExecutor {
   private List<String> cmdToList(String cmd) {
     List<String> cmdList = new ArrayList<>();
     switch (authType) {
+      case GITHUB_APP:
       case USER_PASS:
       case USER_TOKEN:
       case TOKEN:
@@ -385,14 +468,18 @@ public class GitJobExecutor {
   }
 
   private String repoUrlWithAuth(String repoUrl) {
-    if (authType != AuthType.USER_PASS
+    if (authType != AuthType.GITHUB_APP
+        && authType != AuthType.USER_PASS
         && authType != AuthType.USER_TOKEN
         && authType != AuthType.TOKEN) {
       return repoUrl;
     }
 
     String authPart;
-    if (authType == AuthType.USER_PASS) {
+    if (authType == AuthType.GITHUB_APP) {
+      // https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/authenticating-as-a-github-app-installation#about-authentication-as-a-github-app-installation
+      authPart = "x-access-token:$GIT_TOKEN";
+    } else if (authType == AuthType.USER_PASS) {
       authPart = "$GIT_USER:$GIT_PASS";
     } else if (authType == AuthType.USER_TOKEN) {
       authPart = "$GIT_USER:$GIT_TOKEN";
@@ -414,10 +501,15 @@ public class GitJobExecutor {
     }
   }
 
-  private Map<String, String> addEnvVars(Map<String, String> env) {
+  private Map<String, String> addEnvVars(Map<String, String> env) throws IOException {
     Map<String, String> result = new HashMap<>(env);
 
     switch (authType) {
+      case GITHUB_APP:
+        // The authenticator caches installation tokens, so resolving the token per command does
+        // not hit the GitHub API each time.
+        result.put("GIT_TOKEN", encodeURIComponent(gitHubAppAuthenticator.getInstallationToken()));
+        break;
       case USER_PASS:
         result.put("GIT_USER", encodeURIComponent(account.getUsername()));
         result.put("GIT_PASS", encodeURIComponent(account.getPassword()));
@@ -501,7 +593,7 @@ public class GitJobExecutor {
       this.workingDir = workingDir;
     }
 
-    CommandChain addCommand(String command) {
+    CommandChain addCommand(String command) throws IOException {
       commands.add(
           new JobRequest(
               cmdToList(command), addEnvVars(System.getenv()), this.workingDir.toFile()));

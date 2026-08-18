@@ -57,7 +57,7 @@ public abstract class BaseHttpArtifactCredentials<T extends UserInputValidatedAr
     return authHeader;
   }
 
-  protected Headers getHeaders(T account) {
+  protected Headers getHeaders(T account) throws IOException {
     Headers.Builder headers = new Headers.Builder();
     Optional<String> authHeader = getAuthHeader(account);
     if (authHeader.isPresent()) {
