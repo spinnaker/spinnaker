@@ -12,12 +12,22 @@ All metadata is durably stored and served out of an in-memory cache.
 
 The following storage backends are supported:
 
-- Amazon S3
-- Google Cloud Storage
-- Redis
-- [SQL](https://github.com/spinnaker/front50/blob/master/front50-sql/src/main/kotlin/com/netflix/spinnaker/front50/model/SqlStorageService.kt) - _recommended_
+- [SQL](https://github.com/spinnaker/spinnaker/blob/main/front50/front50-sql/src/main/kotlin/com/netflix/spinnaker/front50/model/SqlStorageService.kt) — **recommended** (required after Spinnaker 2027.0.0)
+- Amazon S3 — **deprecated** (removal after Spinnaker 2027.0.0)
+- Google Cloud Storage — **deprecated** (removal after Spinnaker 2027.0.0)
+- Redis — **deprecated** (removal after Spinnaker 2027.0.0)
+- Azure Blob / Oracle Object Storage / OpenStack Swift — **deprecated** (removal after Spinnaker 2027.0.0)
+
+Front50 is moving to **SQL-only** metadata persistence. Non-SQL backends still work so
+operators can migrate, but enabling them logs a startup warning. Prefer SQL now:
+
+https://spinnaker.io/docs/setup/productionize/persistence/front50-sql/
 
 `SQL` is a cloud agnostic storage backend that offers strong read-after-write consistency and metadata versioning.
+
+> **Note:** S3 *plugin-binary* storage (`spinnaker.s3.plugin-storage`) is separate from
+> Front50 metadata storage and is not covered by this deprecation. Orca's artifact store
+> also continues to support S3.
 
 ### Metadata
 
