@@ -29,7 +29,6 @@ import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.ServiceCacheClient;
-import com.netflix.spinnaker.clouddriver.ecs.cache.client.TaskDefinitionCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.Service;
 import java.util.*;
 import org.slf4j.Logger;
@@ -123,43 +122,22 @@ public class TaskDefinitionCachingAgent extends AbstractEcsOnDemandAgent<TaskDef
     return taskDefinitions;
   }
 
+  /**
+   * Reads a cached task definition back as the SDK v2 model. The cached attributes are written by
+   * {@link #convertTaskDefinitionToAttributes} and are deserialized as a whole, so every field the
+   * agent caches survives the round trip: rebuilding the model field by field silently dropped
+   * everything not copied (port mappings, health checks, environment), and since task definitions
+   * are never re-described once cached, that loss was permanent.
+   */
   private TaskDefinition retrieveFromCache(String taskDefArn, ProviderCache providerCache) {
-    TaskDefinitionCacheClient taskDefinitionCacheClient =
-        new TaskDefinitionCacheClient(providerCache, objectMapper);
-
     String key = Keys.getTaskDefinitionKey(accountName, region, taskDefArn);
+    CacheData cacheData = providerCache.get(TASK_DEFINITIONS.toString(), key);
 
-    com.amazonaws.services.ecs.model.TaskDefinition cached = taskDefinitionCacheClient.get(key);
-    if (cached == null) {
+    if (cacheData == null) {
       return null;
     }
 
-    // Convert v1 cached TaskDefinition to v2 TaskDefinition
-    TaskDefinition.Builder builder =
-        TaskDefinition.builder()
-            .taskDefinitionArn(cached.getTaskDefinitionArn())
-            .taskRoleArn(cached.getTaskRoleArn())
-            .cpu(cached.getCpu())
-            .memory(cached.getMemory());
-
-    if (cached.getContainerDefinitions() != null) {
-      List<software.amazon.awssdk.services.ecs.model.ContainerDefinition> v2ContainerDefs =
-          new ArrayList<>();
-      for (com.amazonaws.services.ecs.model.ContainerDefinition v1Def :
-          cached.getContainerDefinitions()) {
-        v2ContainerDefs.add(
-            software.amazon.awssdk.services.ecs.model.ContainerDefinition.builder()
-                .name(v1Def.getName())
-                .image(v1Def.getImage())
-                .cpu(v1Def.getCpu())
-                .memory(v1Def.getMemory())
-                .memoryReservation(v1Def.getMemoryReservation())
-                .build());
-      }
-      builder.containerDefinitions(v2ContainerDefs);
-    }
-
-    return builder.build();
+    return objectMapper.convertValue(cacheData.getAttributes(), TaskDefinition.class);
   }
 
   @Override
