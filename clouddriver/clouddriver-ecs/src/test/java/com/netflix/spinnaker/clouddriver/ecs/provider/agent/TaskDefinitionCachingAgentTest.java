@@ -27,16 +27,21 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
+import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import java.util.*;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.services.ecs.model.ContainerDefinition;
 import software.amazon.awssdk.services.ecs.model.DescribeTaskDefinitionRequest;
 import software.amazon.awssdk.services.ecs.model.DescribeTaskDefinitionResponse;
+import software.amazon.awssdk.services.ecs.model.HealthCheck;
+import software.amazon.awssdk.services.ecs.model.KeyValuePair;
+import software.amazon.awssdk.services.ecs.model.PortMapping;
 import software.amazon.awssdk.services.ecs.model.TaskDefinition;
 import spock.lang.Subject;
 
 public class TaskDefinitionCachingAgentTest extends CommonCachingAgent {
-  ObjectMapper mapper = new ObjectMapper();
+  ObjectMapper mapper = new ObjectMapper().registerModule(new AwsSdkV2Module());
 
   @Subject
   private final TaskDefinitionCachingAgent agent =
@@ -135,6 +140,78 @@ public class TaskDefinitionCachingAgentTest extends CommonCachingAgent {
               + " but it was: "
               + taskDef.taskDefinitionArn());
     }
+  }
+
+  @Test
+  public void shouldRetainAllFieldsOfCachedTaskDefinitions() {
+    // Given
+    Map<String, Object> serviceAttr = new HashMap<>();
+    serviceAttr.put("taskDefinition", TASK_DEFINITION_ARN_1);
+    serviceAttr.put("desiredCount", 1);
+    serviceAttr.put("serviceName", SERVICE_NAME_1);
+    serviceAttr.put("maximumPercent", 200);
+    serviceAttr.put("minimumHealthyPercent", 50);
+    serviceAttr.put("createdAt", 8976543L);
+
+    DefaultCacheData serviceCache =
+        new DefaultCacheData("test-service", serviceAttr, Collections.emptyMap());
+    when(providerCache.filterIdentifiers(
+            SERVICES.toString(), "ecs;services;test-account;us-west-2;*"))
+        .thenReturn(Collections.singletonList("test-service"));
+    when(providerCache.getAll(anyString(), any(Set.class)))
+        .thenReturn(Collections.singletonList(serviceCache));
+
+    TaskDefinition cachedTaskDef =
+        TaskDefinition.builder()
+            .taskDefinitionArn(TASK_DEFINITION_ARN_1)
+            .taskRoleArn("task-role-arn")
+            .cpu("256")
+            .memory("512")
+            .containerDefinitions(
+                ContainerDefinition.builder()
+                    .name("test-container")
+                    .image("test-image")
+                    .memoryReservation(256)
+                    .portMappings(PortMapping.builder().containerPort(7007).hostPort(7007).build())
+                    .environment(KeyValuePair.builder().name("ENV_VAR").value("value").build())
+                    .healthCheck(HealthCheck.builder().command("CMD-SHELL", "exit 0").build())
+                    .build())
+            .build();
+
+    // the agent caches attributes through convertTaskDefinitionToAttributes, so the cache entry a
+    // later run reads back is exactly what a previous run wrote
+    Map<String, Object> taskDefAttr =
+        TaskDefinitionCachingAgent.convertTaskDefinitionToAttributes(cachedTaskDef);
+    DefaultCacheData taskDefCache =
+        new DefaultCacheData(TASK_DEFINITION_ARN_1, taskDefAttr, Collections.emptyMap());
+    when(providerCache.get(
+            TASK_DEFINITIONS.toString(),
+            "ecs;taskDefinitions;test-account;us-west-2;" + TASK_DEFINITION_ARN_1))
+        .thenReturn(taskDefCache);
+
+    // When
+    List<TaskDefinition> returnedTaskDefs = agent.getItems(ecs, providerCache);
+
+    // Then no field may be dropped: the loss would be permanent, since a cached task definition is
+    // never described again. (The models are not compared with equals() because the round trip
+    // materializes the SDK's auto-construct collections, e.g. Links=[], as explicitly set empties.)
+    assertEquals(1, returnedTaskDefs.size());
+    TaskDefinition returned = returnedTaskDefs.get(0);
+    assertEquals(TASK_DEFINITION_ARN_1, returned.taskDefinitionArn());
+    assertEquals("task-role-arn", returned.taskRoleArn());
+    assertEquals("256", returned.cpu());
+    assertEquals("512", returned.memory());
+    assertEquals(1, returned.containerDefinitions().size());
+
+    ContainerDefinition returnedContainer = returned.containerDefinitions().get(0);
+    ContainerDefinition cachedContainer = cachedTaskDef.containerDefinitions().get(0);
+    assertEquals(cachedContainer.name(), returnedContainer.name());
+    assertEquals(cachedContainer.image(), returnedContainer.image());
+    assertEquals(cachedContainer.memoryReservation(), returnedContainer.memoryReservation());
+    // port mappings drive load balancer health: without them TaskHealthCachingAgent skips the task
+    assertEquals(cachedContainer.portMappings(), returnedContainer.portMappings());
+    assertEquals(cachedContainer.environment(), returnedContainer.environment());
+    assertEquals(cachedContainer.healthCheck(), returnedContainer.healthCheck());
   }
 
   @Test
