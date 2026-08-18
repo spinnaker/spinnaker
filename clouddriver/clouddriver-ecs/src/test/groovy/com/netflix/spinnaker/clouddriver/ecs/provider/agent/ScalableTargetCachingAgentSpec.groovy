@@ -18,7 +18,9 @@ package com.netflix.spinnaker.clouddriver.ecs.provider.agent
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.netflix.spinnaker.cats.provider.ProviderCache
+import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import software.amazon.awssdk.services.applicationautoscaling.ApplicationAutoScalingClient
 import software.amazon.awssdk.services.applicationautoscaling.model.DescribeScalableTargetsRequest
@@ -36,7 +38,10 @@ class ScalableTargetCachingAgentSpec extends Specification {
   def autoscaling = Mock(ApplicationAutoScalingClient)
   def clientProvider = Mock(AmazonClientProvider)
   def providerCache = Mock(ProviderCache)
+  // mirrors clouddriver's ObjectMapper: AwsSdkV2Module is registered as a Spring Module bean
   def objectMapper = new ObjectMapper()
+    .registerModule(new JavaTimeModule())
+    .registerModule(new AwsSdkV2Module())
     .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
   @Subject
@@ -76,6 +81,7 @@ class ScalableTargetCachingAgentSpec extends Specification {
         .minCapacity(0)
         .maxCapacity(9001)
         .roleARN("role-arn")
+        .creationTime(Instant.now())
         .build()
     }.toSet()
 
@@ -83,6 +89,8 @@ class ScalableTargetCachingAgentSpec extends Specification {
     def cacheData = agent.generateFreshData(givenScalableTargets)
 
     then:
+    // the cache serializes attributes to JSON, so they have to survive writeValueAsString
+    cacheData.get(SCALABLE_TARGETS.ns).each { objectMapper.writeValueAsString(it.getAttributes()) }
     cacheData.size() == 1
     cacheData.get(SCALABLE_TARGETS.ns).size() == givenScalableTargets.size()
     givenScalableTargets*.resourceId().containsAll(cacheData.get(SCALABLE_TARGETS.ns)*.getAttributes().resourceId)
