@@ -28,8 +28,6 @@ dependencies {
   implementation 'org.springframework.boot:spring-boot-autoconfigure'
   implementation 'jakarta.validation:jakarta.validation-api'
 
-  api 'com.amazonaws:aws-java-sdk-sns'
-  api 'com.amazonaws:aws-java-sdk-sqs'
   api 'com.netflix.spectator:spectator-api'
   api 'org.slf4j:slf4j-api'
   api "software.amazon.awssdk:sns"

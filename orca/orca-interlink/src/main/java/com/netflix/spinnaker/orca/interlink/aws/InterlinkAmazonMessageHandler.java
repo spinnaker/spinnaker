@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.interlink.aws;
 
-import com.amazonaws.services.sqs.model.Message;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
@@ -29,6 +28,7 @@ import com.netflix.spinnaker.orca.pipeline.CompoundExecutionOperator;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
+import software.amazon.awssdk.services.sqs.model.Message;
 
 @Slf4j
 public class InterlinkAmazonMessageHandler implements AmazonPubsubMessageHandler {
@@ -49,7 +49,7 @@ public class InterlinkAmazonMessageHandler implements AmazonPubsubMessageHandler
   public void handleMessage(Message message) {
     try {
       NotificationMessage snsMessage =
-          objectMapper.readValue(message.getBody(), NotificationMessage.class);
+          objectMapper.readValue(message.body(), NotificationMessage.class);
       InterlinkEvent event = objectMapper.readValue(snsMessage.getMessage(), InterlinkEvent.class);
       log.debug("Received interlink event {}", event);
 

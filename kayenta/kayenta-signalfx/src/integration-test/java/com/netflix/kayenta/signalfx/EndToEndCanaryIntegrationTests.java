@@ -34,7 +34,6 @@ import io.restassured.response.ValidatableResponse;
 import java.io.IOException;
 import java.time.Instant;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /** End to end integration tests */
@@ -42,11 +41,6 @@ import org.junit.jupiter.api.Test;
 public class EndToEndCanaryIntegrationTests extends BaseSignalFxIntegrationTest {
 
   public static final int CANARY_WINDOW_IN_MINUTES = 5;
-
-  @BeforeAll
-  public static void beforeClass() {
-    System.setProperty("block.for.metrics", System.getProperty("block.for.metrics", "true"));
-  }
 
   @Test
   public void test_that_signalfx_can_be_used_as_a_data_source_for_a_canary_execution_healthy()
