@@ -26,6 +26,8 @@ dependencies {
   api "com.amazonaws:aws-java-sdk-sqs"
   api "software.amazon.awssdk:arns"
   api "software.amazon.awssdk:auth"
+  api "software.amazon.awssdk:sdk-core"
+  api "com.fasterxml.jackson.core:jackson-databind"
   api "org.apache.groovy:groovy"
   api "com.hubspot.jinjava:jinjava"
   api "com.jcraft:jsch.agentproxy.jsch"
