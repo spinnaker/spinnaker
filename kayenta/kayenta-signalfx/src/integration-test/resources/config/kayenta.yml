@@ -7,7 +7,9 @@ kayenta:
     enabled: true
     accounts:
     - name: sfx-integration-test-account
-      accessToken: ${kayenta.signalfx.apiKey}
+      accessToken: mock-token
+      endpoint:
+        baseUrl: ${kayenta.signalfx.mockEndpoint:http://localhost:0}
       supportedTypes:
       - METRICS_STORE
       defaultScopeKey: canary-scope
