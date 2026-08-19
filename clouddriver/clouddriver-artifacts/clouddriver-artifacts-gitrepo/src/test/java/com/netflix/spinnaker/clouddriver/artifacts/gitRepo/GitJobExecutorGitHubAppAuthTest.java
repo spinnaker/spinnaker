@@ -30,10 +30,12 @@ import com.netflix.spinnaker.clouddriver.jobs.JobRequest;
 import com.netflix.spinnaker.clouddriver.jobs.JobResult;
 import com.netflix.spinnaker.kork.github.GitHubAppAuthenticator;
 import com.netflix.spinnaker.kork.github.GitHubAppCredentials;
+import com.netflix.spinnaker.kork.github.test.GitHubAppTestKeys;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import javax.annotation.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -52,9 +54,10 @@ class GitJobExecutorGitHubAppAuthTest {
 
   private JobExecutor mockJobExecutor;
   private GitHubAppAuthenticator mockAuthenticator;
+  private Path privateKeyFile;
 
   @BeforeEach
-  void setUp() throws IOException {
+  void setUp() throws Exception {
     mockJobExecutor = mock(JobExecutor.class);
     when(mockJobExecutor.runJob(any()))
         .thenReturn(
@@ -62,6 +65,9 @@ class GitJobExecutorGitHubAppAuthTest {
 
     mockAuthenticator = mock(GitHubAppAuthenticator.class);
     when(mockAuthenticator.getInstallationToken()).thenReturn(INSTALLATION_TOKEN);
+
+    // a real key, for the tests that build a real authenticator rather than a mock
+    privateKeyFile = GitHubAppTestKeys.writePkcs8Pem(tempDir.resolve("gh-app-key.pem"));
   }
 
   @Test
@@ -158,29 +164,6 @@ class GitJobExecutorGitHubAppAuthTest {
   }
 
   @Test
-  @DisplayName("Repo URLs on a different GitHub instance than apiBaseUrl are rejected")
-  void rejectsRepoHostMismatchingApiBaseUrl() throws IOException {
-    // account mints tokens against api.github.com (default), but the repo lives on GHE
-    GitJobExecutor executor = executorFor(accountWithGitHubApp(null).build());
-
-    IllegalArgumentException exception =
-        assertThrows(
-            IllegalArgumentException.class,
-            () ->
-                executor.cloneOrPull(
-                    "https://ghe.example.com/org/repo.git",
-                    "main",
-                    tempDir.resolve("clone"),
-                    "repo"));
-
-    assertThat(exception.getMessage())
-        .contains("ghe.example.com")
-        .contains("api.github.com")
-        .contains("githubApp.apiBaseUrl");
-    verify(mockJobExecutor, never()).runJob(any());
-  }
-
-  @Test
   @DisplayName("GitHub Enterprise repos work with a matching apiBaseUrl")
   void acceptsGheRepoWithMatchingApiBaseUrl() throws IOException {
     GitJobExecutor executor =
@@ -196,6 +179,125 @@ class GitJobExecutorGitHubAppAuthTest {
             "-c",
             "git clone --branch main --depth 1 https://x-access-token:$GIT_TOKEN@ghe.example.com/org/repo.git");
     assertThat(request.getEnvironment()).containsEntry("GIT_TOKEN", INSTALLATION_TOKEN);
+  }
+
+  @Test
+  @DisplayName("Derive mode resolves the installation token from the repository in the URL")
+  void deriveModeResolvesInstallationFromRepoOwner() throws IOException {
+    when(mockAuthenticator.getInstallationTokenForRepo("org", "repo"))
+        .thenReturn(INSTALLATION_TOKEN);
+    GitJobExecutor executor = executorFor(accountWithGitHubAppDeriveMode().build());
+
+    executor.cloneOrPull(
+        "https://github.com/org/repo.git", "main", tempDir.resolve("clone"), "repo");
+
+    JobRequest request = capturedJobRequest();
+    assertThat(request.getTokenizedCommand())
+        .containsExactly(
+            "sh",
+            "-c",
+            "git clone --branch main --depth 1 https://x-access-token:$GIT_TOKEN@github.com/org/repo.git");
+    assertThat(request.getEnvironment()).containsEntry("GIT_TOKEN", INSTALLATION_TOKEN);
+    verify(mockAuthenticator).getInstallationTokenForRepo("org", "repo");
+    verify(mockAuthenticator, never()).getInstallationToken();
+  }
+
+  @Test
+  @DisplayName("Derive mode resolves the token once per command chain, not once per command")
+  void deriveModeResolvesTokenOncePerChain() throws IOException {
+    when(mockAuthenticator.getInstallationTokenForRepo("org", "repo"))
+        .thenReturn(INSTALLATION_TOKEN);
+    GitJobExecutor executor = executorFor(accountWithGitHubAppDeriveMode().build());
+
+    // a full-SHA fetch runs four git commands in a single chain against the same remote
+    executor.cloneOrPull(
+        "https://github.com/org/repo.git",
+        "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0",
+        tempDir.resolve("clone"),
+        "repo");
+
+    List<JobRequest> requests = capturedJobRequests(4);
+    assertThat(requests)
+        .allSatisfy(
+            request ->
+                assertThat(request.getEnvironment())
+                    .containsEntry("GIT_TOKEN", INSTALLATION_TOKEN));
+    verify(mockAuthenticator, times(1)).getInstallationTokenForRepo("org", "repo");
+  }
+
+  @Test
+  @DisplayName("Derive mode does not resolve a token for local-only operations")
+  void deriveModeSkipsTokenForLocalOperations() throws IOException {
+    GitJobExecutor executor = executorFor(accountWithGitHubAppDeriveMode().build());
+    Path localClone = tempDir.resolve("repo");
+    Files.createDirectories(localClone.resolve(".git"));
+
+    executor.archive(localClone, "main", "src", tempDir.resolve("output.tgz"));
+
+    JobRequest request = capturedJobRequest();
+    assertThat(request.getEnvironment()).doesNotContainKey("GIT_TOKEN");
+    verify(mockAuthenticator, never()).getInstallationToken();
+    verify(mockAuthenticator, never()).getInstallationTokenForRepo(any(), any());
+  }
+
+  @Test
+  @DisplayName("Derive mode fails with a directive error when the owner cannot be determined")
+  void deriveModeFailsWhenOwnerCannotBeDetermined() throws IOException {
+    GitJobExecutor executor = executorFor(accountWithGitHubAppDeriveMode().build());
+
+    IllegalArgumentException exception =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                executor.cloneOrPull(
+                    "https://github.com/", "main", tempDir.resolve("clone"), "repo"));
+
+    assertThat(exception.getMessage()).contains("appInstallationId");
+    verify(mockJobExecutor, never()).runJob(any());
+  }
+
+  @Test
+  @DisplayName("Derive mode clones repositories owned by an allowed organization")
+  void deriveModeAllowsListedOrganizations() throws IOException {
+    when(mockAuthenticator.getInstallationTokenForRepo("org", "repo"))
+        .thenReturn(INSTALLATION_TOKEN);
+    GitJobExecutor executor =
+        executorFor(accountWithGitHubAppDeriveMode(List.of("org", "other-org")).build());
+
+    executor.cloneOrPull(
+        "https://github.com/org/repo.git", "main", tempDir.resolve("clone"), "repo");
+
+    assertThat(capturedJobRequest().getEnvironment())
+        .containsEntry("GIT_TOKEN", INSTALLATION_TOKEN);
+  }
+
+  @Test
+  @DisplayName("Derive mode rejects repositories outside the allowed organizations")
+  void deriveModeRejectsUnlistedOrganizations() throws IOException {
+    // the real authenticator enforces the allowlist; here the account carries it end to end
+    GitRepoArtifactAccount account = accountWithGitHubAppDeriveMode(List.of("allowed-org")).build();
+    GitJobExecutor executor =
+        new GitJobExecutor(
+            account,
+            mockJobExecutor,
+            "git",
+            GitRepoArtifactProviderProperties.DEFAULT_GIT_URL_REGEX_PATTERN,
+            account.getGithubApp().orElseThrow().toAuthenticator("test account"));
+
+    IllegalArgumentException exception =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                executor.cloneOrPull(
+                    "https://github.com/forbidden-org/repo.git",
+                    "main",
+                    tempDir.resolve("clone"),
+                    "repo"));
+
+    assertThat(exception.getMessage())
+        .contains("not permitted to access repositories owned by")
+        .contains("forbidden-org");
+    verify(mockJobExecutor, never()).runJob(any());
   }
 
   @Test
@@ -227,6 +329,18 @@ class GitJobExecutorGitHubAppAuthTest {
       String apiBaseUrl) {
     GitHubAppCredentials githubApp =
         new GitHubAppCredentials("12345", "/path/to/key.pem", "67890", apiBaseUrl);
+    return GitRepoArtifactAccount.builder().name("test-account").githubApp(githubApp);
+  }
+
+  private GitRepoArtifactAccount.GitRepoArtifactAccountBuilder accountWithGitHubAppDeriveMode() {
+    return accountWithGitHubAppDeriveMode(null);
+  }
+
+  private GitRepoArtifactAccount.GitRepoArtifactAccountBuilder accountWithGitHubAppDeriveMode(
+      @Nullable List<String> allowedOrganizations) {
+    GitHubAppCredentials githubApp =
+        new GitHubAppCredentials(
+            "12345", privateKeyFile.toString(), null, null, allowedOrganizations);
     return GitRepoArtifactAccount.builder().name("test-account").githubApp(githubApp);
   }
 

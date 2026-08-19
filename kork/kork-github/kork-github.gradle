@@ -1,4 +1,5 @@
 apply plugin: "java-library"
+apply plugin: "java-test-fixtures"
 apply from: "$rootDir/../kotlin.gradle"
 apply from: "$rootDir/gradle/detekt.gradle"
 apply from: "$rootDir/gradle/lombok.gradle"

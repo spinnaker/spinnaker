@@ -25,6 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junitpioneer.jupiter.TempDirectory;
@@ -75,6 +76,34 @@ public class GitRepoArtifactAccountTest {
     assertThat(account.getGithubApp().get().getAppInstallationId()).isEqualTo("67890");
     assertThat(account.getGithubApp().get().getApiBaseUrl())
         .isEqualTo("https://ghe.example.com/api/v3");
+  }
+
+  @Test
+  void shouldBindAllowedOrganizations() {
+    Map<String, String> properties = new HashMap<>();
+    properties.put("name", "gitRepo-account");
+    properties.put("githubApp.appId", "12345");
+    properties.put("githubApp.appPrivateKeyPath", "/secrets/gh-app-key.pem");
+    properties.put("githubApp.allowedOrganizations[0]", "My-Org");
+    properties.put("githubApp.allowedOrganizations[1]", "other-org");
+
+    GitRepoArtifactAccount account = bind(properties);
+
+    assertThat(account.getGithubApp().get().getAllowedOrganizations())
+        .isEqualTo(Set.of("my-org", "other-org"));
+    assertThat(account.getGithubApp().get().isUnrestrictedDeriveMode()).isFalse();
+  }
+
+  @Test
+  void shouldAllowAnyOrganizationWhenAllowedOrganizationsIsNotConfigured() {
+    Map<String, String> properties = new HashMap<>();
+    properties.put("name", "gitRepo-account");
+    properties.put("githubApp.appId", "12345");
+    properties.put("githubApp.appPrivateKeyPath", "/secrets/gh-app-key.pem");
+
+    GitRepoArtifactAccount account = bind(properties);
+
+    assertThat(account.getGithubApp().get().isUnrestrictedDeriveMode()).isTrue();
   }
 
   @Test

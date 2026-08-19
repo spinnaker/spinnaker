@@ -26,10 +26,13 @@ import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.clouddriver.artifacts.config.SimpleHttpArtifactCredentials;
 import com.netflix.spinnaker.clouddriver.artifacts.exceptions.FailedDownloadException;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
+import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.github.GitHubAppAuthenticator;
+import com.netflix.spinnaker.kork.github.GitHubAppCredentials;
+import com.netflix.spinnaker.kork.github.GitHubRepoRef;
 import java.io.IOException;
-import java.net.URI;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import lombok.Data;
 import lombok.Getter;
@@ -49,45 +52,51 @@ public class GitHubArtifactCredentials extends SimpleHttpArtifactCredentials<Git
 
   @JsonIgnore private final ObjectMapper objectMapper;
   private final boolean useContentAPI;
+
+  /** Both non-null exactly when the account is configured for GitHub App authentication. */
+  @JsonIgnore @Nullable private final GitHubAppCredentials githubApp;
+
   @JsonIgnore @Nullable private final GitHubAppAuthenticator gitHubAppAuthenticator;
 
   GitHubArtifactCredentials(
-      GitHubArtifactAccount account, OkHttpClient okHttpClient, ObjectMapper objectMapper) {
+      GitHubArtifactAccount account, OkHttpClient okHttpClient, ObjectMapper objectMapper)
+      throws IOException {
     this(account, okHttpClient, objectMapper, null);
   }
 
-  // visible for testing
+  @VisibleForTesting
   GitHubArtifactCredentials(
       GitHubArtifactAccount account,
       OkHttpClient okHttpClient,
       ObjectMapper objectMapper,
-      @Nullable GitHubAppAuthenticator gitHubAppAuthenticator) {
+      @Nullable GitHubAppAuthenticator gitHubAppAuthenticator)
+      throws IOException {
     super(okHttpClient, account);
     this.name = account.getName();
     this.objectMapper = objectMapper;
     this.useContentAPI = account.isUseContentAPI();
-    this.gitHubAppAuthenticator =
-        account
-            .getGithubApp()
-            .map(
-                githubApp ->
-                    gitHubAppAuthenticator != null
-                        ? gitHubAppAuthenticator
-                        : githubApp.toAuthenticator())
-            .orElse(null);
+    this.githubApp = account.getGithubApp().orElse(null);
+    if (githubApp == null) {
+      this.gitHubAppAuthenticator = null;
+    } else {
+      this.gitHubAppAuthenticator =
+          gitHubAppAuthenticator != null
+              ? gitHubAppAuthenticator
+              : githubApp.toAuthenticator("github artifact account '" + account.getName() + "'");
+    }
   }
 
   @Override
-  protected Headers getHeaders(GitHubArtifactAccount account) throws IOException {
+  protected Headers getHeaders(GitHubArtifactAccount account, HttpUrl url) throws IOException {
     Headers headers = super.getHeaders(account);
     if (gitHubAppAuthenticator != null) {
-      // The installation token is resolved per request; the authenticator caches it and refreshes
-      // it before expiration.
-      headers =
-          headers
-              .newBuilder()
-              .set("Authorization", "token " + gitHubAppAuthenticator.getInstallationToken())
-              .build();
+      // The installation token is resolved per request; the authenticator serves cached tokens
+      // without contacting the GitHub API and refreshes them before expiration.
+      Optional<String> installationToken = installationTokenFor(url);
+      if (installationToken.isPresent()) {
+        headers =
+            headers.newBuilder().set("Authorization", "token " + installationToken.get()).build();
+      }
     }
     if (account.isUseContentAPI()) {
       return headers
@@ -100,6 +109,33 @@ public class GitHubArtifactCredentials extends SimpleHttpArtifactCredentials<Git
     return headers;
   }
 
+  /**
+   * Resolves the installation token for the URL being fetched. In pinned mode (appInstallationId
+   * configured) the configured installation is used; otherwise the installation is derived from the
+   * repository the URL points at.
+   *
+   * <p>Returns empty when the repository cannot be determined from the URL, which happens for raw
+   * content download URLs whose layout differs between github.com and GitHub Enterprise. Those URLs
+   * carry their own access token when the contents API issues them, so the request is sent without
+   * GitHub App credentials rather than authenticated as a guessed repository.
+   */
+  private Optional<String> installationTokenFor(HttpUrl url) throws IOException {
+    if (githubApp.hasInstallationId()) {
+      return Optional.of(gitHubAppAuthenticator.getInstallationToken());
+    }
+    Optional<GitHubRepoRef> repoRef = GitHubRepoRef.fromPathSegments(url.pathSegments());
+    if (repoRef.isEmpty()) {
+      log.debug(
+          "Unable to determine the repository from {} for github artifact account {}; sending the request without GitHub App credentials. Set githubApp.appInstallationId to pin an installation.",
+          url,
+          name);
+      return Optional.empty();
+    }
+    return Optional.of(
+        gitHubAppAuthenticator.getInstallationTokenForRepo(
+            repoRef.get().getOwner(), repoRef.get().getRepo()));
+  }
+
   private HttpUrl getMetadataUrl(Artifact artifact) {
     String version = Strings.nullToEmpty(artifact.getVersion());
     if (version.isEmpty()) {
@@ -107,36 +143,7 @@ public class GitHubArtifactCredentials extends SimpleHttpArtifactCredentials<Git
       version = "master";
     }
 
-    HttpUrl metadataUrl =
-        parseUrl(artifact.getReference()).newBuilder().addQueryParameter("ref", version).build();
-    validateGitHubAppApiBaseUrlHost(metadataUrl);
-    return metadataUrl;
-  }
-
-  /**
-   * The installation token is minted against githubApp.apiBaseUrl but used against the artifact
-   * reference's host, so both must belong to the same GitHub instance. The reference is already a
-   * GitHub API URL (e.g. https://api.github.com/repos/... or https://ghe.example.com/api/v3/...),
-   * so the hosts must match exactly.
-   */
-  private void validateGitHubAppApiBaseUrlHost(HttpUrl reference) {
-    if (gitHubAppAuthenticator == null) {
-      return;
-    }
-    String apiBaseUrl = getAccount().getGithubApp().orElseThrow().getApiBaseUrl();
-    String apiHost = URI.create(apiBaseUrl).getHost();
-    if (apiHost == null) {
-      throw new IllegalArgumentException(
-          "Unable to extract host from githubApp.apiBaseUrl: " + apiBaseUrl);
-    }
-    if (!reference.host().equalsIgnoreCase(apiHost)) {
-      throw new IllegalArgumentException(
-          String.format(
-              "Artifact reference host '%s' does not match githubApp.apiBaseUrl host '%s' for github"
-                  + " account '%s'. Set githubApp.apiBaseUrl to the GitHub API base URL of the"
-                  + " instance hosting the repository (e.g. https://%s/api/v3 for GitHub Enterprise).",
-              reference.host(), apiHost, getName(), reference.host()));
-    }
+    return parseUrl(artifact.getReference()).newBuilder().addQueryParameter("ref", version).build();
   }
 
   @Override

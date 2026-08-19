@@ -2,6 +2,7 @@ dependencies {
   implementation "commons-io:commons-io"
   implementation "io.spinnaker.kork:kork-github"
   implementation "org.apache.commons:commons-compress:${commonsCompressVersion}"
+  testImplementation testFixtures("io.spinnaker.kork:kork-github")
   testImplementation "io.spinnaker.kork:kork-secrets"
   testImplementation "org.mockito:mockito-core"
 

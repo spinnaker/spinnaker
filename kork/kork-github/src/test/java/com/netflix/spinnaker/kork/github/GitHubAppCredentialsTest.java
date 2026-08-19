@@ -18,8 +18,11 @@ package com.netflix.spinnaker.kork.github;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -108,13 +111,70 @@ class GitHubAppCredentialsTest {
   }
 
   @Test
-  void shouldRejectMissingAppInstallationId() {
+  void shouldAllowMissingAppInstallationIdForDeriveMode() {
+    GitHubAppCredentials credentials =
+        new GitHubAppCredentials("12345", "/path/to/key.pem", null, null);
+
+    assertFalse(credentials.hasInstallationId());
+    assertNull(credentials.getAppInstallationId());
+
+    GitHubAppCredentials pinned =
+        new GitHubAppCredentials("12345", "/path/to/key.pem", "67890", null);
+    assertTrue(pinned.hasInstallationId());
+  }
+
+  @Test
+  void shouldTreatBlankAppInstallationIdAsUnset() {
+    GitHubAppCredentials credentials =
+        new GitHubAppCredentials("12345", "/path/to/key.pem", "  ", null);
+
+    assertFalse(credentials.hasInstallationId());
+  }
+
+  @Test
+  void shouldRejectNonNumericAppInstallationIdAtConfigurationTime() {
     IllegalArgumentException exception =
         assertThrows(
             IllegalArgumentException.class,
-            () -> new GitHubAppCredentials("12345", "/path/to/key.pem", null, null));
+            () -> new GitHubAppCredentials("12345", "/path/to/key.pem", "not-a-number", null));
 
-    assertTrue(exception.getMessage().contains("appInstallationId"));
+    assertTrue(exception.getMessage().contains("appInstallationId must be numeric"));
+  }
+
+  @Test
+  void shouldNormalizeAllowedOrganizations() {
+    GitHubAppCredentials credentials =
+        new GitHubAppCredentials(
+            "12345", "/path/to/key.pem", null, null, List.of(" My-Org ", "OTHER-ORG", "", "   "));
+
+    assertEquals(Set.of("my-org", "other-org"), credentials.getAllowedOrganizations());
+    assertFalse(credentials.isUnrestrictedDeriveMode());
+  }
+
+  @Test
+  void shouldDefaultToAllowingAnyOrganizationInDeriveMode() {
+    GitHubAppCredentials credentials =
+        new GitHubAppCredentials("12345", "/path/to/key.pem", null, null);
+
+    assertTrue(credentials.getAllowedOrganizations().isEmpty());
+    assertTrue(credentials.isUnrestrictedDeriveMode());
+  }
+
+  @Test
+  void pinnedModeNeverReportsAsAllowingAnyOrganization() {
+    // in pinned mode the installation is fixed, so there is no owner derivation to restrict
+    GitHubAppCredentials credentials =
+        new GitHubAppCredentials("12345", "/path/to/key.pem", "67890", null);
+
+    assertFalse(credentials.isUnrestrictedDeriveMode());
+  }
+
+  @Test
+  void shouldTrimAppInstallationId() {
+    GitHubAppCredentials credentials =
+        new GitHubAppCredentials("12345", "/path/to/key.pem", " 67890 ", null);
+
+    assertEquals("67890", credentials.getAppInstallationId());
   }
 
   @Test
@@ -125,7 +185,7 @@ class GitHubAppCredentialsTest {
     GitHubAppCredentials credentials =
         new GitHubAppCredentials("12345", privateKeyFile.toString(), "67890", null);
 
-    GitHubAppAuthenticator authenticator = credentials.toAuthenticator();
+    GitHubAppAuthenticator authenticator = credentials.toAuthenticator("test account");
 
     assertNotNull(authenticator);
   }
@@ -135,8 +195,11 @@ class GitHubAppCredentialsTest {
     GitHubAppCredentials credentials =
         new GitHubAppCredentials("12345", "/nonexistent/key.pem", "67890", null);
 
-    RuntimeException exception = assertThrows(RuntimeException.class, credentials::toAuthenticator);
+    IOException exception =
+        assertThrows(IOException.class, () -> credentials.toAuthenticator("test account"));
 
-    assertTrue(exception.getMessage().contains("Failed to load GitHub App private key"));
+    assertTrue(
+        exception.getMessage().contains("Failed to initialize GitHub App authentication for"));
+    assertTrue(exception.getCause().getMessage().contains("Failed to load GitHub App private key"));
   }
 }

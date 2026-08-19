@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 import com.netflix.spinnaker.kork.github.GitHubAppCredentials;
+import com.netflix.spinnaker.kork.github.test.GitHubAppTestKeys;
 import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
 import com.netflix.spinnaker.kork.secrets.SecretEngine;
 import com.netflix.spinnaker.kork.secrets.SecretEngineRegistry;
@@ -28,8 +29,6 @@ import com.netflix.spinnaker.kork.secrets.SecretPropertyProcessor;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.KeyPairGenerator;
-import java.util.Base64;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -52,14 +51,7 @@ class GitHubAppSecretResolutionTest {
 
   @BeforeEach
   void setUp() throws Exception {
-    KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-    keyPairGenerator.initialize(2048);
-    pemContents =
-        ("-----BEGIN PRIVATE KEY-----\n"
-                + Base64.getMimeEncoder(64, "\n".getBytes(StandardCharsets.UTF_8))
-                    .encodeToString(keyPairGenerator.generateKeyPair().getPrivate().getEncoded())
-                + "\n-----END PRIVATE KEY-----\n")
-            .getBytes(StandardCharsets.UTF_8);
+    pemContents = GitHubAppTestKeys.generatePkcs8Pem().getBytes(StandardCharsets.UTF_8);
 
     SecretEngine testEngine =
         new SecretEngine() {
@@ -128,6 +120,6 @@ class GitHubAppSecretResolutionTest {
     GitHubAppCredentials credentials =
         new GitHubAppCredentials("12345", resolvedPath, "67890", null);
 
-    assertDoesNotThrow(credentials::toAuthenticator);
+    assertDoesNotThrow(() -> credentials.toAuthenticator("test account"));
   }
 }

@@ -22,8 +22,10 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import com.netflix.spinnaker.clouddriver.jobs.JobExecutor;
 import com.netflix.spinnaker.clouddriver.jobs.JobRequest;
 import com.netflix.spinnaker.clouddriver.jobs.JobResult;
+import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
 import com.netflix.spinnaker.kork.github.GitHubAppAuthenticator;
 import com.netflix.spinnaker.kork.github.GitHubAppCredentials;
+import com.netflix.spinnaker.kork.github.GitHubRepoRef;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -64,6 +66,10 @@ public class GitJobExecutor {
   private final String gitExecutable;
   private final AuthType authType;
   private final Path askPassBinary;
+
+  /** Both non-null exactly when {@link AuthType#GITHUB_APP} is in use. */
+  @Nullable private final GitHubAppCredentials githubApp;
+
   @Nullable private final GitHubAppAuthenticator gitHubAppAuthenticator;
 
   private enum AuthType {
@@ -84,7 +90,7 @@ public class GitJobExecutor {
     this(account, jobExecutor, gitExecutable, gitUrlRegex, null);
   }
 
-  // visible for testing
+  @VisibleForTesting
   GitJobExecutor(
       GitRepoArtifactAccount account,
       JobExecutor jobExecutor,
@@ -98,11 +104,13 @@ public class GitJobExecutor {
     this.gitExecutable = gitExecutable;
     if (account.getGithubApp().isPresent()) {
       authType = AuthType.GITHUB_APP;
+      this.githubApp = account.getGithubApp().get();
       this.gitHubAppAuthenticator =
           gitHubAppAuthenticator != null
               ? gitHubAppAuthenticator
-              : createAuthenticator(account.getName(), account.getGithubApp().get());
+              : githubApp.toAuthenticator("git/repo account '" + account.getName() + "'");
     } else {
+      this.githubApp = null;
       this.gitHubAppAuthenticator = null;
       if (!StringUtils.isEmpty(account.getUsername())
           && !StringUtils.isEmpty(account.getPassword())) {
@@ -119,20 +127,6 @@ public class GitJobExecutor {
       }
     }
     askPassBinary = initAskPass();
-  }
-
-  private static GitHubAppAuthenticator createAuthenticator(
-      String accountName, GitHubAppCredentials githubApp) throws IOException {
-    try {
-      return githubApp.toAuthenticator();
-    } catch (RuntimeException e) {
-      throw new IOException(
-          "Failed to initialize GitHub App authentication for git/repo account "
-              + accountName
-              + ": "
-              + e.getMessage(),
-          e);
-    }
   }
 
   /**
@@ -220,42 +214,6 @@ public class GitJobExecutor {
       throw new IllegalArgumentException(
           "Git URL does not looked like a valid git reference.\"" + repoUrl);
     }
-    if (authType == AuthType.GITHUB_APP && repoUrl.startsWith("http")) {
-      validateGitHubAppApiBaseUrlHost(repoUrl);
-    }
-  }
-
-  /**
-   * The installation token is minted against githubApp.apiBaseUrl but used against the repo URL's
-   * host, so both must belong to the same GitHub instance. github.com repos pair with the default
-   * https://api.github.com; anything else (e.g. GitHub Enterprise) must match exactly.
-   */
-  private void validateGitHubAppApiBaseUrlHost(String repoUrl) {
-    String repoHost = hostOf(repoUrl);
-    String apiHost = hostOf(account.getGithubApp().orElseThrow().getApiBaseUrl());
-    boolean valid =
-        repoHost.equals(apiHost)
-            || ("github.com".equals(repoHost) && "api.github.com".equals(apiHost));
-    if (!valid) {
-      throw new IllegalArgumentException(
-          String.format(
-              "Repository host '%s' does not match githubApp.apiBaseUrl host '%s' for git/repo account '%s'."
-                  + " Set githubApp.apiBaseUrl to the GitHub API base URL of the instance hosting the"
-                  + " repository (e.g. https://%s/api/v3 for GitHub Enterprise).",
-              repoHost, apiHost, account.getName(), repoHost));
-    }
-  }
-
-  private static String hostOf(String url) {
-    try {
-      String host = new URI(url).getHost();
-      if (host != null) {
-        return host.toLowerCase();
-      }
-    } catch (URISyntaxException e) {
-      // fall through to the error below
-    }
-    throw new IllegalArgumentException("Unable to extract host from URL: " + url);
   }
 
   private void clone(String repoUrl, String branch, Path destination, String repoBasename)
@@ -287,7 +245,7 @@ public class GitJobExecutor {
 
     String command =
         gitExecutable + " clone --branch " + branch + " --depth 1 " + repoUrlWithAuth(repoUrl);
-    JobResult<String> result = new CommandChain(destination).addCommand(command).runAll();
+    JobResult<String> result = new CommandChain(destination, repoUrl).addCommand(command).runAll();
     if (result.getResult() == JobResult.Result.SUCCESS) {
       return;
     }
@@ -315,7 +273,7 @@ public class GitJobExecutor {
     }
 
     JobResult<String> result =
-        new CommandChain(repoPath)
+        new CommandChain(repoPath, repoUrl)
             .addCommand(gitExecutable + " init")
             .addCommand(gitExecutable + " remote add origin " + repoUrlWithAuth(repoUrl))
             .addCommand(gitExecutable + " fetch --depth 1 origin " + sha)
@@ -339,7 +297,7 @@ public class GitJobExecutor {
   private void cloneAndCheckoutSha(
       String repoUrl, String sha, Path destination, String repoBasename) throws IOException {
     Path repoPath = Paths.get(destination.toString(), repoBasename);
-    new CommandChain(destination)
+    new CommandChain(destination, repoUrl)
         .addCommand(gitExecutable + " clone " + repoUrlWithAuth(repoUrl))
         .runAllOrFail();
     new CommandChain(repoPath).addCommand(gitExecutable + " checkout " + sha).runAllOrFail();
@@ -367,7 +325,7 @@ public class GitJobExecutor {
 
     log.info("Pulling git/repo {} into {}", repoUrl, localPath.toString());
 
-    CommandChain pullChain = new CommandChain(localPath);
+    CommandChain pullChain = new CommandChain(localPath, repoUrl);
     if (authType == AuthType.GITHUB_APP) {
       // The origin URL carries the installation token used at clone time, which expires after ~1
       // hour. Re-point origin at a fresh (cached) token so pulls on retained clones keep working.
@@ -501,14 +459,45 @@ public class GitJobExecutor {
     }
   }
 
-  private Map<String, String> addEnvVars(Map<String, String> env) throws IOException {
+  /**
+   * Resolves the installation token for the repo being accessed. In pinned mode (appInstallationId
+   * configured) the configured installation is used; otherwise the installation is derived from the
+   * repository the URL points at. Returns null for local-only operations (no repoUrl).
+   */
+  @Nullable
+  private String gitHubAppInstallationToken(@Nullable String repoUrl) throws IOException {
+    if (githubApp.hasInstallationId()) {
+      return gitHubAppAuthenticator.getInstallationToken();
+    }
+    if (repoUrl == null) {
+      return null;
+    }
+    GitHubRepoRef repoRef =
+        GitHubRepoRef.parse(repoUrl)
+            .orElseThrow(
+                () ->
+                    new IllegalArgumentException(
+                        "Unable to determine the repository owner and name from URL "
+                            + repoUrl
+                            + ". Configure githubApp.appInstallationId on git/repo account '"
+                            + account.getName()
+                            + "' to pin an installation instead."));
+    return gitHubAppAuthenticator.getInstallationTokenForRepo(
+        repoRef.getOwner(), repoRef.getRepo());
+  }
+
+  private Map<String, String> addEnvVars(Map<String, String> env, @Nullable String repoUrl)
+      throws IOException {
     Map<String, String> result = new HashMap<>(env);
 
     switch (authType) {
       case GITHUB_APP:
-        // The authenticator caches installation tokens, so resolving the token per command does
-        // not hit the GitHub API each time.
-        result.put("GIT_TOKEN", encodeURIComponent(gitHubAppAuthenticator.getInstallationToken()));
+        // The authenticator caches installation tokens per installation, so resolving the token per
+        // command does not hit the GitHub API each time.
+        String gitHubAppToken = gitHubAppInstallationToken(repoUrl);
+        if (gitHubAppToken != null) {
+          result.put("GIT_TOKEN", encodeURIComponent(gitHubAppToken));
+        }
         break;
       case USER_PASS:
         result.put("GIT_USER", encodeURIComponent(account.getUsername()));
@@ -589,15 +578,31 @@ public class GitJobExecutor {
     private final Collection<JobRequest> commands = new ArrayList<>();
     private final Path workingDir;
 
+    /** The remote this chain operates on, or null for chains that only touch the local clone. */
+    @Nullable private final String repoUrl;
+
+    private Map<String, String> env;
+
     CommandChain(Path workingDir) {
+      this(workingDir, null);
+    }
+
+    CommandChain(Path workingDir, @Nullable String repoUrl) {
       this.workingDir = workingDir;
+      this.repoUrl = repoUrl;
     }
 
     CommandChain addCommand(String command) throws IOException {
-      commands.add(
-          new JobRequest(
-              cmdToList(command), addEnvVars(System.getenv()), this.workingDir.toFile()));
+      commands.add(new JobRequest(cmdToList(command), env(), this.workingDir.toFile()));
       return this;
+    }
+
+    /** Resolves the environment (including any GitHub App token) once per chain. */
+    private Map<String, String> env() throws IOException {
+      if (env == null) {
+        env = addEnvVars(System.getenv(), repoUrl);
+      }
+      return env;
     }
 
     void runAllOrFail() throws IOException {
