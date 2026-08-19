@@ -64,10 +64,14 @@ export function MetricQueryTemplateEditor({
     editInlineTemplate(transformValueForSave(e.target.value));
   };
 
+  const helpId = providerVariableHints
+    ? `canary.config.template.${providerVariableHints.serviceType}`
+    : 'canary.config.filterTemplate';
+
   return (
     <FormRow
       label="Query Template"
-      helpId="canary.config.filterTemplate"
+      helpId={helpId}
       inputOnly={true}
       error={isEmpty(displayValue) && 'Template is required'}
     >

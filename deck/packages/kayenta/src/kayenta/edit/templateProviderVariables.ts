@@ -9,6 +9,11 @@
  * — `baseScopeAttributes` is the authoritative source of truth for a provider's variable names.
  */
 export interface ITemplateProviderVariables {
+  // Matches the object key below and the provider's HelpContentsRegistry key
+  // (`canary.config.template.<serviceType>`, registered in canary.help.ts) -- kept as an explicit
+  // field, rather than derived by reverse-lookup against the map, so callers that already have an
+  // ITemplateProviderVariables value in hand can compute the right help id without needing the map.
+  serviceType: string;
   variables: string[];
   example: string;
   note?: string;
@@ -19,16 +24,19 @@ export interface ITemplateProviderVariables {
 // `*MetricsService.java`/`*QueryBuilderService.java`), except where noted otherwise below.
 export const templateProviderVariables: { [serviceType: string]: ITemplateProviderVariables } = {
   datadog: {
+    serviceType: 'datadog',
     // kayenta-datadog/.../DatadogMetricsService.java: baseScopeAttributes = {"scope", "location"}
     variables: ['scope', 'location'],
     example: 'avg:trace.express.request.duration{service:${scope},env:${location}}',
   },
   prometheus: {
+    serviceType: 'prometheus',
     // kayenta-prometheus/.../PrometheusMetricsService.java uses the same expandCustomFilter helper.
     variables: ['scope', 'location'],
     example: 'rate(http_requests_total{service="${scope}", region="${location}"}[5m])',
   },
   stackdriver: {
+    serviceType: 'stackdriver',
     // kayenta-stackdriver/.../StackdriverMetricsService.java:
     // baseScopeAttributes = {"project", "resourceType", "scope", "location"}
     variables: ['project', 'resourceType', 'scope', 'location'],
@@ -36,35 +44,41 @@ export const templateProviderVariables: { [serviceType: string]: ITemplateProvid
       'metric.type="compute.googleapis.com/instance/cpu/utilization" AND resource.type="${resourceType}" AND resource.label.project_id="${project}"',
   },
   signalfx: {
+    serviceType: 'signalfx',
     // kayenta-signalfx/.../SignalFxQueryBuilderService.java: baseScopeAttributes = {"scope", "location"}
     variables: ['scope', 'location'],
     example:
       "data('request.count', filters=filter('cluster', '${scope}') and filter('region', '${location}')).sum().publish()",
   },
   newrelic: {
+    serviceType: 'newrelic',
     // kayenta-newrelic-insights/.../NewRelicQueryBuilderService.java:
     // baseScopeAttributes = {"scope", "location", "step"}
     variables: ['scope', 'location', 'step'],
     example: "SELECT average(duration) FROM Transaction WHERE appName = '${scope}' SINCE ${step} minutes ago",
   },
   atlas: {
+    serviceType: 'atlas',
     // kayenta-atlas/.../AtlasMetricsService.java:
     // baseScopeAttributes = {"type", "deployment", "dataset", "environment", "accountId", "scope", "location"}
     variables: ['type', 'deployment', 'dataset', 'environment', 'accountId', 'scope', 'location'],
     example: 'name,requestLatency,:eq,nf.cluster,${scope},:eq,:and,nf.account,${accountId},:eq,:and',
   },
   graphite: {
+    serviceType: 'graphite',
     // kayenta-graphite/.../GraphiteMetricsService.java: baseScopeAttributes = {"scope", "location"}
     variables: ['scope', 'location'],
     example: 'summarize(scaleToSeconds(stats.${scope}.${location}.request.count, 1), "5min", "sum")',
   },
   wavefront: {
+    serviceType: 'wavefront',
     // kayenta-wavefront/.../WavefrontMetricsService.java:
     // baseScopeAttributes = {"scope", "location", "granularity"}
     variables: ['scope', 'location', 'granularity'],
     example: 'ts(request.count, source=${scope} and region=${location}), ${granularity}',
   },
   influxdb: {
+    serviceType: 'influxdb',
     // InfluxDB's query engine is bespoke (see InfluxDbQueryBuilder.java), not built on the shared
     // QueryConfigUtils.expandCustomFilter helper, so it exposes a fixed, different set of variable
     // names rather than arbitrary CanaryScope bean-property names.
