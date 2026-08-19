@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASK_DEFINITIONS;
 
+import com.amazonaws.services.ecs.model.LoadBalancer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
@@ -84,23 +85,36 @@ public class TaskDefinitionCachingAgent extends AbstractEcsOnDemandAgent<TaskDef
     Collection<Service> services = serviceCacheClient.getAll(accountName, region);
     log.debug("Found {} ECS services for which to cache task definitions", services.size());
 
-    Set<String> taskDefArns = new HashSet<>();
+    Map<String, Set<Integer>> loadBalancedPortsByTaskDefArn = new HashMap<>();
 
     for (Service service : services) {
-      taskDefArns.add(service.getTaskDefinition());
+      Set<Integer> loadBalancedPorts =
+          loadBalancedPortsByTaskDefArn.computeIfAbsent(
+              service.getTaskDefinition(), arn -> new HashSet<>());
+
+      if (service.getLoadBalancers() == null) {
+        continue;
+      }
+
+      for (LoadBalancer loadBalancer : service.getLoadBalancers()) {
+        if (loadBalancer.getContainerPort() != null) {
+          loadBalancedPorts.add(loadBalancer.getContainerPort());
+        }
+      }
     }
 
     List<TaskDefinition> taskDefinitions = new ArrayList<>();
 
     int newTaskDefs = 0;
 
-    for (String arn : taskDefArns) {
+    for (Map.Entry<String, Set<Integer>> taskDefArn : loadBalancedPortsByTaskDefArn.entrySet()) {
+      String arn = taskDefArn.getKey();
 
-      // TaskDefinitions are immutable, there's no reason to
-      // make a describe call on existing ones.
+      // TaskDefinitions are immutable, so there's no reason to make a describe call on an existing
+      // one, as long as what is cached is still complete.
       TaskDefinition cacheEntry = retrieveFromCache(arn, providerCache);
 
-      if (cacheEntry != null) {
+      if (cacheEntry != null && isCacheEntryComplete(cacheEntry, taskDefArn.getValue())) {
         taskDefinitions.add(cacheEntry);
       } else {
         DescribeTaskDefinitionResponse response =
@@ -120,6 +134,45 @@ public class TaskDefinitionCachingAgent extends AbstractEcsOnDemandAgent<TaskDef
         taskDefinitions.size() - newTaskDefs);
 
     return taskDefinitions;
+  }
+
+  /**
+   * A cached task definition is only reused while it still carries what the ECS provider reads from
+   * it, so an entry cached in a degraded form is described again rather than kept indefinitely. A
+   * cached entry is otherwise never described again, which is what made an earlier serialization
+   * bug permanent: entries lost their port mappings, {@link TaskHealthCachingAgent} then skipped
+   * every task, and load balancer health stayed unknown until the entries were evicted by hand.
+   *
+   * @param loadBalancedContainerPorts the container ports the services using this task definition
+   *     load balance on, each of which needs a matching port mapping for task health to resolve
+   */
+  private boolean isCacheEntryComplete(
+      TaskDefinition taskDefinition, Set<Integer> loadBalancedContainerPorts) {
+    if (taskDefinition.containerDefinitions().isEmpty()) {
+      log.debug(
+          "Cached task definition '{}' has no container definitions. Describing it again.",
+          taskDefinition.taskDefinitionArn());
+      return false;
+    }
+
+    for (Integer containerPort : loadBalancedContainerPorts) {
+      if (!isContainerPortPresent(taskDefinition, containerPort)) {
+        log.debug(
+            "Cached task definition '{}' has no port mapping for load balanced container port {}. Describing it again.",
+            taskDefinition.taskDefinitionArn(),
+            containerPort);
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  private static boolean isContainerPortPresent(
+      TaskDefinition taskDefinition, Integer containerPort) {
+    return taskDefinition.containerDefinitions().stream()
+        .flatMap(containerDefinition -> containerDefinition.portMappings().stream())
+        .anyMatch(portMapping -> Objects.equals(portMapping.containerPort(), containerPort));
   }
 
   /**
