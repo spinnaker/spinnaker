@@ -16,6 +16,9 @@
 
 package com.netflix.kayenta.canary.providers.metrics;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryMetricSetQueryConfig;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,17 +26,42 @@ import lombok.experimental.SuperBuilder;
 import org.springframework.util.StringUtils;
 
 /**
- * Base class for {@link CanaryMetricSetQueryConfig} implementations, providing the shared
- * customInlineTemplate/customFilterTemplate fields and escaping logic common to every provider, so
+ * Base class for {@link CanaryMetricSetQueryConfig} implementations, providing the shared {@code
+ * template}/{@code customFilterTemplate} fields and escaping logic common to every provider, so
  * individual provider implementations don't each redeclare them.
  */
 @SuperBuilder(toBuilder = true)
 @NoArgsConstructor
 public abstract class AbstractCanaryMetricSetQueryConfig implements CanaryMetricSetQueryConfig {
 
-  @Getter private String customInlineTemplate;
+  /**
+   * Single per-metric query template. Replaces the old two-field {@code
+   * customInlineTemplate}/{@code customFilterTemplate} split. {@code @JsonAlias} allows existing
+   * stored JSON still using the legacy {@code customInlineTemplate} key to deserialize into this
+   * field automatically; new writes always serialize under {@code template}.
+   */
+  @Getter
+  @JsonAlias("customInlineTemplate")
+  private String template;
 
-  @Getter private String customFilterTemplate;
+  /**
+   * @deprecated superseded by {@link #template}; refers by name to an entry in the canary config's
+   *     top-level {@code templates} map. Retained only for backward-compatible reads of existing
+   *     configs -- see {@link #getTemplate(CanaryConfig)}.
+   */
+  @Deprecated @Getter private String customFilterTemplate;
+
+  /**
+   * @deprecated use {@link #getTemplate()} instead; retained for backward-compatible reads of
+   *     existing configs, and because some call sites still invoke this directly rather than
+   *     through JSON deserialization. {@code @JsonIgnore}d so new writes serialize only under
+   *     {@code template}, never duplicating the value under the legacy key.
+   */
+  @Deprecated
+  @JsonIgnore
+  public String getCustomInlineTemplate() {
+    return template;
+  }
 
   // Lombok's @SuperBuilder does not generate builder()/toBuilder() convenience methods on
   // abstract classes (there is no concrete builder impl to instantiate for an abstract type) --
@@ -42,13 +70,30 @@ public abstract class AbstractCanaryMetricSetQueryConfig implements CanaryMetric
   public abstract AbstractCanaryMetricSetQueryConfigBuilder<?, ?> toBuilder();
 
   @Override
-  public CanaryMetricSetQueryConfig cloneWithEscapedInlineTemplate() {
-    if (StringUtils.isEmpty(customInlineTemplate)) {
+  public CanaryMetricSetQueryConfig cloneWithEscapedTemplate() {
+    if (StringUtils.isEmpty(template)) {
       return this;
     } else {
-      return this.toBuilder()
-          .customInlineTemplate(customInlineTemplate.replace("${", "$\\{"))
-          .build();
+      return this.toBuilder().template(template.replace("${", "$\\{")).build();
     }
+  }
+
+  @Override
+  public String getTemplate(CanaryConfig canaryConfig) {
+    if (!StringUtils.isEmpty(template)) {
+      return QueryConfigUtils.unescapeTemplate(template);
+    }
+
+    if (!StringUtils.isEmpty(customFilterTemplate)
+        && canaryConfig != null
+        && canaryConfig.getTemplates() != null) {
+      String named = canaryConfig.getTemplates().get(customFilterTemplate);
+
+      if (named != null) {
+        return QueryConfigUtils.unescapeTemplate(named);
+      }
+    }
+
+    return null;
   }
 }

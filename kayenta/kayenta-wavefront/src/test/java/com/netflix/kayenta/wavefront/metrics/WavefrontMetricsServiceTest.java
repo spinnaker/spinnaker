@@ -64,7 +64,7 @@ public class WavefrontMetricsServiceTest {
   public void testBuildQuery_customInlineTemplateIsUsedVerbatim() {
     WavefrontCanaryMetricSetQueryConfig queryConfig =
         WavefrontCanaryMetricSetQueryConfig.builder()
-            .customInlineTemplate("avg(ts(" + METRIC_NAME + ", autoscaling_group=${scope}))")
+            .template("avg(ts(" + METRIC_NAME + ", autoscaling_group=${scope}))")
             .build();
     CanaryMetricConfig canaryMetricConfig = CanaryMetricConfig.builder().query(queryConfig).build();
     CanaryScope canaryScope = createScope(SCOPE);

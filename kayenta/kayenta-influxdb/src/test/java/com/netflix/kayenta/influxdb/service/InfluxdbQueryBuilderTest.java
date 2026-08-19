@@ -91,7 +91,7 @@ public class InfluxdbQueryBuilderTest {
         InfluxdbCanaryMetricSetQueryConfig.builder()
             .metricName(measurement)
             .fields(fieldsList)
-            .customInlineTemplate(customInlineTemplate)
+            .template(customInlineTemplate)
             .build();
     return queryConfig;
   }

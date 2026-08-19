@@ -150,7 +150,7 @@ public class StackdriverFetchController {
     }
 
     if (!StringUtils.isEmpty(customFilter)) {
-      stackdriverCanaryMetricSetQueryConfigBuilder.customInlineTemplate(customFilter);
+      stackdriverCanaryMetricSetQueryConfigBuilder.template(customFilter);
     }
 
     CanaryMetricConfig canaryMetricConfig =

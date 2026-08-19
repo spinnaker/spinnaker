@@ -33,8 +33,7 @@ public class AtlasMetricsServiceTest {
   public void testBuildQuery_customInlineTemplateIsUsedVerbatim() {
     AtlasCanaryMetricSetQueryConfig queryConfig =
         AtlasCanaryMetricSetQueryConfig.builder()
-            .customInlineTemplate(
-                "name,requestsPerSecond,:eq,:list,(,nf.cluster,${scope},:eq,:cq,),:each")
+            .template("name,requestsPerSecond,:eq,:list,(,nf.cluster,${scope},:eq,:cq,),:each")
             .build();
     CanaryMetricConfig canaryMetricConfig = CanaryMetricConfig.builder().query(queryConfig).build();
 

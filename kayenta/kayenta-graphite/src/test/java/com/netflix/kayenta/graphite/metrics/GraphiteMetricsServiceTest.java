@@ -34,9 +34,7 @@ public class GraphiteMetricsServiceTest {
   @Test
   public void testBuildQuery_customInlineTemplateIsUsedVerbatim() {
     GraphiteCanaryMetricSetQueryConfig queryConfig =
-        GraphiteCanaryMetricSetQueryConfig.builder()
-            .customInlineTemplate("servers.${scope}.cpu")
-            .build();
+        GraphiteCanaryMetricSetQueryConfig.builder().template("servers.${scope}.cpu").build();
     CanaryMetricConfig canaryMetricConfig = CanaryMetricConfig.builder().query(queryConfig).build();
 
     CanaryScope canaryScope = createScope("myapp-prod-v002", "us-east-1");

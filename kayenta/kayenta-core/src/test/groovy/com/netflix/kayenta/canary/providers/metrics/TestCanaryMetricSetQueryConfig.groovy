@@ -16,21 +16,27 @@
 
 package com.netflix.kayenta.canary.providers.metrics
 
+import com.netflix.kayenta.canary.CanaryConfig
 import com.netflix.kayenta.canary.CanaryMetricSetQueryConfig
 import org.springframework.util.StringUtils
 
 class TestCanaryMetricSetQueryConfig implements CanaryMetricSetQueryConfig {
 
-    String customInlineTemplate
+    String template
     String serviceType = "test-service"
 
     @Override
-    CanaryMetricSetQueryConfig cloneWithEscapedInlineTemplate() {
-        if (StringUtils.isEmpty(customInlineTemplate)) {
+    CanaryMetricSetQueryConfig cloneWithEscapedTemplate() {
+        if (StringUtils.isEmpty(template)) {
             return this
         } else {
-            return new TestCanaryMetricSetQueryConfig(customInlineTemplate: customInlineTemplate.replace('${', '$\\{'))
+            return new TestCanaryMetricSetQueryConfig(template: template.replace('${', '$\\{'))
         }
+    }
+
+    @Override
+    String getTemplate(CanaryConfig canaryConfig) {
+        template
     }
 
     @Override
