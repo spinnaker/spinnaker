@@ -23,15 +23,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.amazonaws.services.applicationautoscaling.AWSApplicationAutoScalingClient;
-import com.amazonaws.services.applicationautoscaling.model.DescribeScalableTargetsRequest;
-import com.amazonaws.services.applicationautoscaling.model.DescribeScalableTargetsResult;
-import com.amazonaws.services.ecs.AmazonECS;
-import com.amazonaws.services.ecs.model.*;
-import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing;
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsRequest;
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsResult;
-import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroup;
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactDownloader;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
@@ -50,9 +41,15 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.stubbing.Answer;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import software.amazon.awssdk.services.applicationautoscaling.ApplicationAutoScalingClient;
+import software.amazon.awssdk.services.applicationautoscaling.model.DescribeScalableTargetsRequest;
+import software.amazon.awssdk.services.applicationautoscaling.model.DescribeScalableTargetsResponse;
 import software.amazon.awssdk.services.ecs.EcsClient;
-import software.amazon.awssdk.services.ecs.model.DescribeServicesResponse;
-import software.amazon.awssdk.services.ecs.model.ListServicesResponse;
+import software.amazon.awssdk.services.ecs.model.*;
+import software.amazon.awssdk.services.elasticloadbalancingv2.ElasticLoadBalancingV2Client;
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeTargetGroupsRequest;
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeTargetGroupsResponse;
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetGroup;
 
 public class CreateServerGroupWithArtifactsSpec extends EcsSpec {
 
@@ -62,89 +59,77 @@ public class CreateServerGroupWithArtifactsSpec extends EcsSpec {
 
   private ArtifactCredentials mockArtifactCredentials = mock(ArtifactCredentials.class);
 
-  private AWSApplicationAutoScalingClient mockAWSApplicationAutoScalingClient =
-      mock(AWSApplicationAutoScalingClient.class);
-
-  private AmazonECS mockECS = mock(AmazonECS.class);
-
-  private AmazonElasticLoadBalancing mockELB = mock(AmazonElasticLoadBalancing.class);
-
   private EcsClient mockEcsV2 = mock(EcsClient.class);
+
+  private ElasticLoadBalancingV2Client mockELB = mock(ElasticLoadBalancingV2Client.class);
+
+  private ApplicationAutoScalingClient mockAutoScalingV2 = mock(ApplicationAutoScalingClient.class);
 
   @BeforeEach
   public void setup() {
 
     // mock v2 ECS responses (used by EcsServerGroupNameResolver)
-    when(mockEcsV2.listServices(
-            any(software.amazon.awssdk.services.ecs.model.ListServicesRequest.class)))
+    when(mockEcsV2.listServices(any(ListServicesRequest.class)))
         .thenReturn(
             ListServicesResponse.builder().serviceArns(java.util.Collections.emptyList()).build());
-    when(mockEcsV2.describeServices(
-            any(software.amazon.awssdk.services.ecs.model.DescribeServicesRequest.class)))
+    when(mockEcsV2.describeServices(any(DescribeServicesRequest.class)))
         .thenReturn(
             DescribeServicesResponse.builder().services(java.util.Collections.emptyList()).build());
+
+    when(mockEcsV2.listAccountSettings(any(ListAccountSettingsRequest.class)))
+        .thenReturn(ListAccountSettingsResponse.builder().build());
+
+    when(mockEcsV2.registerTaskDefinition(any(RegisterTaskDefinitionRequest.class)))
+        .thenAnswer(
+            (Answer<RegisterTaskDefinitionResponse>)
+                invocation -> {
+                  RegisterTaskDefinitionRequest request = invocation.getArgument(0);
+                  String testArn = "arn:aws:ecs:::task-definition/" + request.family() + ":1";
+                  return RegisterTaskDefinitionResponse.builder()
+                      .taskDefinition(TaskDefinition.builder().taskDefinitionArn(testArn).build())
+                      .build();
+                });
+
+    when(mockEcsV2.createService(any(CreateServiceRequest.class)))
+        .thenReturn(
+            CreateServiceResponse.builder()
+                .service(Service.builder().serviceName("createdService").build())
+                .build());
 
     when(mockAwsProvider.getAmazonEcsV2(any(NetflixAmazonCredentials.class), anyString()))
         .thenReturn(mockEcsV2);
 
-    // mocking calls
-    when(mockECS.listAccountSettings(any(ListAccountSettingsRequest.class)))
-        .thenReturn(new ListAccountSettingsResult());
-
-    when(mockECS.listServices(any(ListServicesRequest.class))).thenReturn(new ListServicesResult());
-
-    when(mockECS.describeServices(any(DescribeServicesRequest.class)))
-        .thenReturn(new DescribeServicesResult());
-
-    when(mockECS.createService(any(CreateServiceRequest.class)))
-        .thenReturn(
-            new CreateServiceResult().withService(new Service().withServiceName("createdService")));
-
-    when(mockECS.registerTaskDefinition(any(RegisterTaskDefinitionRequest.class)))
-        .thenAnswer(
-            (Answer<RegisterTaskDefinitionResult>)
-                invocation -> {
-                  RegisterTaskDefinitionRequest request =
-                      (RegisterTaskDefinitionRequest) invocation.getArguments()[0];
-                  String testArn = "arn:aws:ecs:::task-definition/" + request.getFamily() + ":1";
-                  TaskDefinition taskDef = new TaskDefinition().withTaskDefinitionArn(testArn);
-                  return new RegisterTaskDefinitionResult().withTaskDefinition(taskDef);
-                });
-
     when(mockArtifactCredentialsRepository.getCredentials(anyString(), anyString()))
         .thenReturn(mockArtifactCredentials);
 
-    when(mockAWSApplicationAutoScalingClient.describeScalableTargets(
-            any(DescribeScalableTargetsRequest.class)))
-        .thenReturn(new DescribeScalableTargetsResult());
-
-    // mock ELB responses
+    // mock v2 ELB responses
     when(mockELB.describeTargetGroups(any(DescribeTargetGroupsRequest.class)))
         .thenAnswer(
-            (Answer<DescribeTargetGroupsResult>)
+            (Answer<DescribeTargetGroupsResponse>)
                 invocation -> {
-                  DescribeTargetGroupsRequest request =
-                      (DescribeTargetGroupsRequest) invocation.getArguments()[0];
+                  DescribeTargetGroupsRequest request = invocation.getArgument(0);
                   String testArn =
                       "arn:aws:elasticloadbalancing:::targetgroup/"
-                          + request.getNames().get(0)
+                          + request.names().get(0)
                           + "/76tgredfc";
-                  TargetGroup testTg = new TargetGroup().withTargetGroupArn(testArn);
-
-                  return new DescribeTargetGroupsResult().withTargetGroups(testTg);
+                  return DescribeTargetGroupsResponse.builder()
+                      .targetGroups(TargetGroup.builder().targetGroupArn(testArn).build())
+                      .build();
                 });
 
-    when(mockAwsProvider.getAmazonEcs(
-            any(NetflixAmazonCredentials.class), anyString(), anyBoolean()))
-        .thenReturn(mockECS);
-
-    when(mockAwsProvider.getAmazonApplicationAutoScaling(
-            any(NetflixAmazonCredentials.class), anyString(), anyBoolean()))
-        .thenReturn(mockAWSApplicationAutoScalingClient);
-
-    when(mockAwsProvider.getAmazonElasticLoadBalancingV2(
-            any(NetflixAmazonCredentials.class), anyString(), anyBoolean()))
+    when(mockAwsProvider.getAmazonElasticLoadBalancingV2V2(
+            any(NetflixAmazonCredentials.class), anyString()))
         .thenReturn(mockELB);
+
+    // mock v2 Application Auto Scaling (source scalable target lookup for specs with a source)
+    when(mockAutoScalingV2.describeScalableTargets(any(DescribeScalableTargetsRequest.class)))
+        .thenReturn(
+            DescribeScalableTargetsResponse.builder()
+                .scalableTargets(java.util.Collections.emptyList())
+                .build());
+    when(mockAwsProvider.getAmazonApplicationAutoScalingV2(
+            any(NetflixAmazonCredentials.class), anyString()))
+        .thenReturn(mockAutoScalingV2);
   }
 
   @DisplayName(
@@ -205,25 +190,24 @@ public class CreateServerGroupWithArtifactsSpec extends EcsSpec {
 
     ArgumentCaptor<RegisterTaskDefinitionRequest> registerTaskDefArgs =
         ArgumentCaptor.forClass(RegisterTaskDefinitionRequest.class);
-    verify(mockECS).registerTaskDefinition(registerTaskDefArgs.capture());
+    verify(mockEcsV2).registerTaskDefinition(registerTaskDefArgs.capture());
     RegisterTaskDefinitionRequest seenTaskDefRequest = registerTaskDefArgs.getValue();
-    assertEquals(expectedServerGroupName, seenTaskDefRequest.getFamily() + "-v000");
-    assertEquals(1, seenTaskDefRequest.getContainerDefinitions().size());
+    assertEquals(expectedServerGroupName, seenTaskDefRequest.family() + "-v000");
+    assertEquals(1, seenTaskDefRequest.containerDefinitions().size());
     assertEquals(
-        "arn:aws:iam:::executionRole/testExecutionRole:1",
-        seenTaskDefRequest.getExecutionRoleArn());
-    assertEquals("arn:aws:iam:::role/testTaskRole:1", seenTaskDefRequest.getTaskRoleArn());
-    assertEquals("application", seenTaskDefRequest.getContainerDefinitions().get(0).getName());
+        "arn:aws:iam:::executionRole/testExecutionRole:1", seenTaskDefRequest.executionRoleArn());
+    assertEquals("arn:aws:iam:::role/testTaskRole:1", seenTaskDefRequest.taskRoleArn());
+    assertEquals("application", seenTaskDefRequest.containerDefinitions().get(0).name());
     assertEquals(
         "awslogs",
-        seenTaskDefRequest.getContainerDefinitions().get(0).getLogConfiguration().getLogDriver());
+        seenTaskDefRequest.containerDefinitions().get(0).logConfiguration().logDriverAsString());
     assertEquals(
         "spinnaker-ecs-demo",
         seenTaskDefRequest
-            .getContainerDefinitions()
+            .containerDefinitions()
             .get(0)
-            .getLogConfiguration()
-            .getOptions()
+            .logConfiguration()
+            .options()
             .get("awslogs-group"));
 
     ArgumentCaptor<DescribeTargetGroupsRequest> elbArgCaptor =
@@ -232,15 +216,15 @@ public class CreateServerGroupWithArtifactsSpec extends EcsSpec {
 
     ArgumentCaptor<CreateServiceRequest> createServiceArgs =
         ArgumentCaptor.forClass(CreateServiceRequest.class);
-    verify(mockECS).createService(createServiceArgs.capture());
+    verify(mockEcsV2).createService(createServiceArgs.capture());
     CreateServiceRequest seenCreateServRequest = createServiceArgs.getValue();
-    assertEquals("EC2", seenCreateServRequest.getLaunchType());
-    assertEquals(expectedServerGroupName, seenCreateServRequest.getServiceName());
-    assertEquals(1, seenCreateServRequest.getLoadBalancers().size());
-    LoadBalancer serviceLB = seenCreateServRequest.getLoadBalancers().get(0);
-    assertEquals("application", serviceLB.getContainerName());
-    assertEquals(80, serviceLB.getContainerPort().intValue());
-    assertEquals("integArtifactEC2TgMappings-cluster", seenCreateServRequest.getCluster());
+    assertEquals("EC2", seenCreateServRequest.launchTypeAsString());
+    assertEquals(expectedServerGroupName, seenCreateServRequest.serviceName());
+    assertEquals(1, seenCreateServRequest.loadBalancers().size());
+    LoadBalancer serviceLB = seenCreateServRequest.loadBalancers().get(0);
+    assertEquals("application", serviceLB.containerName());
+    assertEquals(80, serviceLB.containerPort().intValue());
+    assertEquals("integArtifactEC2TgMappings-cluster", seenCreateServRequest.cluster());
   }
 
   @DisplayName(
@@ -301,25 +285,24 @@ public class CreateServerGroupWithArtifactsSpec extends EcsSpec {
 
     ArgumentCaptor<RegisterTaskDefinitionRequest> registerTaskDefArgs =
         ArgumentCaptor.forClass(RegisterTaskDefinitionRequest.class);
-    verify(mockECS).registerTaskDefinition(registerTaskDefArgs.capture());
+    verify(mockEcsV2).registerTaskDefinition(registerTaskDefArgs.capture());
     RegisterTaskDefinitionRequest seenTaskDefRequest = registerTaskDefArgs.getValue();
-    assertEquals(expectedServerGroupName, seenTaskDefRequest.getFamily() + "-v000");
-    assertEquals(1, seenTaskDefRequest.getContainerDefinitions().size());
+    assertEquals(expectedServerGroupName, seenTaskDefRequest.family() + "-v000");
+    assertEquals(1, seenTaskDefRequest.containerDefinitions().size());
     assertEquals(
-        "arn:aws:iam:::executionRole/testExecutionRole:1",
-        seenTaskDefRequest.getExecutionRoleArn());
-    assertEquals("arn:aws:iam:::role/testTaskRole:1", seenTaskDefRequest.getTaskRoleArn());
-    assertEquals("application", seenTaskDefRequest.getContainerDefinitions().get(0).getName());
+        "arn:aws:iam:::executionRole/testExecutionRole:1", seenTaskDefRequest.executionRoleArn());
+    assertEquals("arn:aws:iam:::role/testTaskRole:1", seenTaskDefRequest.taskRoleArn());
+    assertEquals("application", seenTaskDefRequest.containerDefinitions().get(0).name());
     assertEquals(
         "awslogs",
-        seenTaskDefRequest.getContainerDefinitions().get(0).getLogConfiguration().getLogDriver());
+        seenTaskDefRequest.containerDefinitions().get(0).logConfiguration().logDriverAsString());
     assertEquals(
         "spinnaker-ecs-demo",
         seenTaskDefRequest
-            .getContainerDefinitions()
+            .containerDefinitions()
             .get(0)
-            .getLogConfiguration()
-            .getOptions()
+            .logConfiguration()
+            .options()
             .get("awslogs-group"));
 
     ArgumentCaptor<DescribeTargetGroupsRequest> elbArgCaptor =
@@ -328,16 +311,16 @@ public class CreateServerGroupWithArtifactsSpec extends EcsSpec {
 
     ArgumentCaptor<CreateServiceRequest> createServiceArgs =
         ArgumentCaptor.forClass(CreateServiceRequest.class);
-    verify(mockECS).createService(createServiceArgs.capture());
+    verify(mockEcsV2).createService(createServiceArgs.capture());
     CreateServiceRequest seenCreateServRequest = createServiceArgs.getValue();
-    assertEquals(0, seenCreateServRequest.getCapacityProviderStrategy().size());
-    assertEquals("FARGATE", seenCreateServRequest.getLaunchType());
-    assertEquals(expectedServerGroupName, seenCreateServRequest.getServiceName());
-    assertEquals(1, seenCreateServRequest.getLoadBalancers().size());
-    LoadBalancer serviceLB = seenCreateServRequest.getLoadBalancers().get(0);
-    assertEquals("application", serviceLB.getContainerName());
-    assertEquals(80, serviceLB.getContainerPort().intValue());
-    assertEquals("integArtifactsFargateTgMappings-cluster", seenCreateServRequest.getCluster());
+    assertEquals(0, seenCreateServRequest.capacityProviderStrategy().size());
+    assertEquals("FARGATE", seenCreateServRequest.launchTypeAsString());
+    assertEquals(expectedServerGroupName, seenCreateServRequest.serviceName());
+    assertEquals(1, seenCreateServRequest.loadBalancers().size());
+    LoadBalancer serviceLB = seenCreateServRequest.loadBalancers().get(0);
+    assertEquals("application", serviceLB.containerName());
+    assertEquals(80, serviceLB.containerPort().intValue());
+    assertEquals("integArtifactsFargateTgMappings-cluster", seenCreateServRequest.cluster());
   }
 
   @DisplayName(
@@ -400,25 +383,24 @@ public class CreateServerGroupWithArtifactsSpec extends EcsSpec {
 
     ArgumentCaptor<RegisterTaskDefinitionRequest> registerTaskDefArgs =
         ArgumentCaptor.forClass(RegisterTaskDefinitionRequest.class);
-    verify(mockECS).registerTaskDefinition(registerTaskDefArgs.capture());
+    verify(mockEcsV2).registerTaskDefinition(registerTaskDefArgs.capture());
     RegisterTaskDefinitionRequest seenTaskDefRequest = registerTaskDefArgs.getValue();
-    assertEquals(expectedServerGroupName, seenTaskDefRequest.getFamily() + "-v000");
-    assertEquals(1, seenTaskDefRequest.getContainerDefinitions().size());
+    assertEquals(expectedServerGroupName, seenTaskDefRequest.family() + "-v000");
+    assertEquals(1, seenTaskDefRequest.containerDefinitions().size());
     assertEquals(
-        "arn:aws:iam:::executionRole/testExecutionRole:1",
-        seenTaskDefRequest.getExecutionRoleArn());
-    assertEquals("arn:aws:iam:::role/testTaskRole:1", seenTaskDefRequest.getTaskRoleArn());
-    assertEquals("application", seenTaskDefRequest.getContainerDefinitions().get(0).getName());
+        "arn:aws:iam:::executionRole/testExecutionRole:1", seenTaskDefRequest.executionRoleArn());
+    assertEquals("arn:aws:iam:::role/testTaskRole:1", seenTaskDefRequest.taskRoleArn());
+    assertEquals("application", seenTaskDefRequest.containerDefinitions().get(0).name());
     assertEquals(
         "awslogs",
-        seenTaskDefRequest.getContainerDefinitions().get(0).getLogConfiguration().getLogDriver());
+        seenTaskDefRequest.containerDefinitions().get(0).logConfiguration().logDriverAsString());
     assertEquals(
         "spinnaker-ecs-demo",
         seenTaskDefRequest
-            .getContainerDefinitions()
+            .containerDefinitions()
             .get(0)
-            .getLogConfiguration()
-            .getOptions()
+            .logConfiguration()
+            .options()
             .get("awslogs-group"));
 
     ArgumentCaptor<DescribeTargetGroupsRequest> elbArgCaptor =
@@ -427,21 +409,19 @@ public class CreateServerGroupWithArtifactsSpec extends EcsSpec {
 
     ArgumentCaptor<CreateServiceRequest> createServiceArgs =
         ArgumentCaptor.forClass(CreateServiceRequest.class);
-    verify(mockECS).createService(createServiceArgs.capture());
+    verify(mockEcsV2).createService(createServiceArgs.capture());
     CreateServiceRequest seenCreateServRequest = createServiceArgs.getValue();
-    assertEquals(1, seenCreateServRequest.getCapacityProviderStrategy().size());
+    assertEquals(1, seenCreateServRequest.capacityProviderStrategy().size());
     assertEquals(
-        "FARGATE",
-        seenCreateServRequest.getCapacityProviderStrategy().get(0).getCapacityProvider());
-    assertNull(seenCreateServRequest.getLaunchType());
-    assertEquals(expectedServerGroupName, seenCreateServRequest.getServiceName());
-    assertEquals(1, seenCreateServRequest.getLoadBalancers().size());
-    LoadBalancer serviceLB = seenCreateServRequest.getLoadBalancers().get(0);
-    assertEquals("application", serviceLB.getContainerName());
-    assertEquals(80, serviceLB.getContainerPort().intValue());
+        "FARGATE", seenCreateServRequest.capacityProviderStrategy().get(0).capacityProvider());
+    assertNull(seenCreateServRequest.launchTypeAsString());
+    assertEquals(expectedServerGroupName, seenCreateServRequest.serviceName());
+    assertEquals(1, seenCreateServRequest.loadBalancers().size());
+    LoadBalancer serviceLB = seenCreateServRequest.loadBalancers().get(0);
+    assertEquals("application", serviceLB.containerName());
+    assertEquals(80, serviceLB.containerPort().intValue());
     assertEquals(
-        "integArtifactsFargateCapacityProviderStrategy-cluster",
-        seenCreateServRequest.getCluster());
+        "integArtifactsFargateCapacityProviderStrategy-cluster", seenCreateServRequest.cluster());
   }
 
   @DisplayName(
@@ -555,33 +535,32 @@ public class CreateServerGroupWithArtifactsSpec extends EcsSpec {
 
     ArgumentCaptor<RegisterTaskDefinitionRequest> registerTaskDefArgs =
         ArgumentCaptor.forClass(RegisterTaskDefinitionRequest.class);
-    verify(mockECS).registerTaskDefinition(registerTaskDefArgs.capture());
+    verify(mockEcsV2).registerTaskDefinition(registerTaskDefArgs.capture());
     RegisterTaskDefinitionRequest seenTaskDefRequest = registerTaskDefArgs.getValue();
-    assertEquals(expectedServerGroupName, seenTaskDefRequest.getFamily() + "-v000");
+    assertEquals(expectedServerGroupName, seenTaskDefRequest.family() + "-v000");
     assertEquals(
-        "arn:aws:iam:::executionRole/testExecutionRole:1",
-        seenTaskDefRequest.getExecutionRoleArn());
-    assertEquals("arn:aws:iam:::role/testTaskRole:1", seenTaskDefRequest.getTaskRoleArn());
-    assertEquals(2, seenTaskDefRequest.getContainerDefinitions().size());
+        "arn:aws:iam:::executionRole/testExecutionRole:1", seenTaskDefRequest.executionRoleArn());
+    assertEquals("arn:aws:iam:::role/testTaskRole:1", seenTaskDefRequest.taskRoleArn());
+    assertEquals(2, seenTaskDefRequest.containerDefinitions().size());
     ContainerDefinition container1 =
-        seenTaskDefRequest.getContainerDefinitions().stream()
-            .filter(container -> container.getName().equals("application1"))
+        seenTaskDefRequest.containerDefinitions().stream()
+            .filter(container -> container.name().equals("application1"))
             .collect(Collectors.toList())
             .get(0);
     ContainerDefinition container2 =
-        seenTaskDefRequest.getContainerDefinitions().stream()
-            .filter(container -> container.getName().equals("application2"))
+        seenTaskDefRequest.containerDefinitions().stream()
+            .filter(container -> container.name().equals("application2"))
             .collect(Collectors.toList())
             .get(0);
-    assertEquals("application1", container1.getName());
-    assertEquals("app1/image", container1.getImage());
-    assertEquals("application2", container2.getName());
-    assertEquals("app2/image", container2.getImage());
-    assertEquals(80, container1.getPortMappings().get(0).getContainerPort());
-    assertEquals(84, container2.getPortMappings().get(0).getContainerPort());
+    assertEquals("application1", container1.name());
+    assertEquals("app1/image", container1.image());
+    assertEquals("application2", container2.name());
+    assertEquals("app2/image", container2.image());
+    assertEquals(80, container1.portMappings().get(0).containerPort());
+    assertEquals(84, container2.portMappings().get(0).containerPort());
     assertEquals(
-        "spinnaker-ecs-demo", container1.getLogConfiguration().getOptions().get("awslogs-group"));
-    assertEquals("awslogs", container1.getLogConfiguration().getLogDriver());
+        "spinnaker-ecs-demo", container1.logConfiguration().options().get("awslogs-group"));
+    assertEquals("awslogs", container1.logConfiguration().logDriverAsString());
 
     ArgumentCaptor<DescribeTargetGroupsRequest> elbArgCaptor =
         ArgumentCaptor.forClass(DescribeTargetGroupsRequest.class);
@@ -589,35 +568,35 @@ public class CreateServerGroupWithArtifactsSpec extends EcsSpec {
 
     ArgumentCaptor<CreateServiceRequest> createServiceArgs =
         ArgumentCaptor.forClass(CreateServiceRequest.class);
-    verify(mockECS).createService(createServiceArgs.capture());
+    verify(mockEcsV2).createService(createServiceArgs.capture());
     CreateServiceRequest seenCreateServRequest = createServiceArgs.getValue();
-    assertEquals("EC2", seenCreateServRequest.getLaunchType());
-    assertEquals(expectedServerGroupName, seenCreateServRequest.getServiceName());
-    assertEquals(2, seenCreateServRequest.getLoadBalancers().size());
+    assertEquals("EC2", seenCreateServRequest.launchTypeAsString());
+    assertEquals(expectedServerGroupName, seenCreateServRequest.serviceName());
+    assertEquals(2, seenCreateServRequest.loadBalancers().size());
     LoadBalancer serviceLB1 =
-        seenCreateServRequest.getLoadBalancers().stream()
-            .filter(lb -> lb.getContainerName().equals("application1"))
+        seenCreateServRequest.loadBalancers().stream()
+            .filter(lb -> lb.containerName().equals("application1"))
             .collect(Collectors.toList())
             .get(0);
     LoadBalancer serviceLB2 =
-        seenCreateServRequest.getLoadBalancers().stream()
-            .filter(lb -> lb.getContainerName().equals("application2"))
+        seenCreateServRequest.loadBalancers().stream()
+            .filter(lb -> lb.containerName().equals("application2"))
             .collect(Collectors.toList())
             .get(0);
 
-    assertEquals("application1", serviceLB1.getContainerName());
-    assertEquals(80, serviceLB1.getContainerPort().intValue());
+    assertEquals("application1", serviceLB1.containerName());
+    assertEquals(80, serviceLB1.containerPort().intValue());
     assertEquals(
         "arn:aws:elasticloadbalancing:::targetgroup/integArtifactEC2TgMappings-targetGroupForPort80/76tgredfc",
-        serviceLB1.getTargetGroupArn());
-    assertEquals("application2", serviceLB2.getContainerName());
-    assertEquals(84, serviceLB2.getContainerPort().intValue());
+        serviceLB1.targetGroupArn());
+    assertEquals("application2", serviceLB2.containerName());
+    assertEquals(84, serviceLB2.containerPort().intValue());
     assertEquals(
         "arn:aws:elasticloadbalancing:::targetgroup/integArtifactEC2TgMappings-targetGroupForPort84/76tgredfc",
-        serviceLB2.getTargetGroupArn());
+        serviceLB2.targetGroupArn());
     assertEquals(
         "integArtifactEC2TgMappingskWithMultipleLBsAndContainers-cluster",
-        seenCreateServRequest.getCluster());
+        seenCreateServRequest.cluster());
   }
 
   @Test
@@ -666,46 +645,45 @@ public class CreateServerGroupWithArtifactsSpec extends EcsSpec {
 
     ArgumentCaptor<RegisterTaskDefinitionRequest> registerTaskDefArgs =
         ArgumentCaptor.forClass(RegisterTaskDefinitionRequest.class);
-    verify(mockECS).registerTaskDefinition(registerTaskDefArgs.capture());
+    verify(mockEcsV2).registerTaskDefinition(registerTaskDefArgs.capture());
     RegisterTaskDefinitionRequest seenTaskDefRequest = registerTaskDefArgs.getValue();
-    assertEquals(expectedServerGroupName, seenTaskDefRequest.getFamily() + "-v000");
-    assertEquals(1, seenTaskDefRequest.getContainerDefinitions().size());
+    assertEquals(expectedServerGroupName, seenTaskDefRequest.family() + "-v000");
+    assertEquals(1, seenTaskDefRequest.containerDefinitions().size());
     assertEquals(
-        "arn:aws:iam:::executionRole/testExecutionRole:1",
-        seenTaskDefRequest.getExecutionRoleArn());
-    assertEquals("application", seenTaskDefRequest.getContainerDefinitions().get(0).getName());
+        "arn:aws:iam:::executionRole/testExecutionRole:1", seenTaskDefRequest.executionRoleArn());
+    assertEquals("application", seenTaskDefRequest.containerDefinitions().get(0).name());
     assertEquals(
         "awslogs",
-        seenTaskDefRequest.getContainerDefinitions().get(0).getLogConfiguration().getLogDriver());
+        seenTaskDefRequest.containerDefinitions().get(0).logConfiguration().logDriverAsString());
     assertEquals(
         "spinnaker-ecs-demo",
         seenTaskDefRequest
-            .getContainerDefinitions()
+            .containerDefinitions()
             .get(0)
-            .getLogConfiguration()
-            .getOptions()
+            .logConfiguration()
+            .options()
             .get("awslogs-group"));
 
     ContainerDefinition containerDefinition =
-        seenTaskDefRequest.getContainerDefinitions().stream()
-            .filter(container -> container.getName().equals("application"))
+        seenTaskDefRequest.containerDefinitions().stream()
+            .filter(container -> container.name().equals("application"))
             .collect(Collectors.toList())
             .get(0);
 
-    assertEquals(80, containerDefinition.getPortMappings().get(0).getContainerPort());
+    assertEquals(80, containerDefinition.portMappings().get(0).containerPort());
 
-    assertEquals("tcp", containerDefinition.getPortMappings().get(0).getProtocol());
+    assertEquals("tcp", containerDefinition.portMappings().get(0).protocolAsString());
 
-    assertEquals(256, containerDefinition.getCpu());
+    assertEquals(256, containerDefinition.cpu());
 
-    assertEquals(512, containerDefinition.getMemoryReservation());
+    assertEquals(512, containerDefinition.memoryReservation());
 
-    assertEquals("PLACEHOLDER", containerDefinition.getImage());
+    assertEquals("PLACEHOLDER", containerDefinition.image());
 
-    assertEquals("bridge", seenTaskDefRequest.getNetworkMode());
+    assertEquals("bridge", seenTaskDefRequest.networkModeAsString());
     assertEquals(
         "ecs-integSpELProcessedArtifactsEC2TgMappingsStack-detailTest",
-        seenTaskDefRequest.getFamily());
-    assertEquals("bridge", seenTaskDefRequest.getNetworkMode());
+        seenTaskDefRequest.family());
+    assertEquals("bridge", seenTaskDefRequest.networkModeAsString());
   }
 }

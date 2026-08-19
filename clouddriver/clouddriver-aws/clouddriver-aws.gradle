@@ -35,6 +35,7 @@ dependencies {
   api "software.amazon.awssdk:cloudwatch"
   api "software.amazon.awssdk:ecr"
   api "software.amazon.awssdk:ecs"
+  api "software.amazon.awssdk:elasticloadbalancingv2"
   api "software.amazon.awssdk:iam"
   api "software.amazon.awssdk:lambda"
   api "software.amazon.awssdk:secretsmanager"
