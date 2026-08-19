@@ -41,6 +41,12 @@ import software.amazon.awssdk.services.ecs.model.TaskDefinition;
 import spock.lang.Subject;
 
 public class TaskDefinitionCachingAgentTest extends CommonCachingAgent {
+  // a described task definition is distinguishable from a cached one, so that reusing the cache can
+  // be told apart from making a describe call
+  private static final String CACHED_IMAGE = "cached-image";
+  private static final String DESCRIBED_IMAGE = "described-image";
+  private static final int LOAD_BALANCED_CONTAINER_PORT = 7007;
+
   ObjectMapper mapper = new ObjectMapper().registerModule(new AwsSdkV2Module());
 
   @Subject
@@ -97,31 +103,9 @@ public class TaskDefinitionCachingAgentTest extends CommonCachingAgent {
   @Test
   public void shouldRetainCachedTaskDefinitions() {
     // Given
-    Map<String, Object> serviceAttr = new HashMap<>();
-    serviceAttr.put("taskDefinition", TASK_DEFINITION_ARN_1);
-    serviceAttr.put("desiredCount", 1);
-    serviceAttr.put("serviceName", SERVICE_NAME_1);
-    serviceAttr.put("maximumPercent", 200);
-    serviceAttr.put("minimumHealthyPercent", 50);
-    serviceAttr.put("createdAt", 8976543L);
-
-    DefaultCacheData serviceCache =
-        new DefaultCacheData("test-service", serviceAttr, Collections.emptyMap());
-    when(providerCache.filterIdentifiers(
-            SERVICES.toString(), "ecs;services;test-account;us-west-2;*"))
-        .thenReturn(Collections.singletonList("test-service"));
-    when(providerCache.getAll(anyString(), any(Set.class)))
-        .thenReturn(Collections.singletonList(serviceCache));
-
-    Map<String, Object> taskDefAttr = new HashMap<>();
-    taskDefAttr.put("taskDefinitionArn", TASK_DEFINITION_ARN_1);
-
-    DefaultCacheData taskDefCache =
-        new DefaultCacheData(TASK_DEFINITION_ARN_1, taskDefAttr, Collections.emptyMap());
-    when(providerCache.get(
-            TASK_DEFINITIONS.toString(),
-            "ecs;taskDefinitions;test-account;us-west-2;" + TASK_DEFINITION_ARN_1))
-        .thenReturn(taskDefCache);
+    givenServiceCache(null);
+    givenCachedTaskDefinition(taskDefinition(CACHED_IMAGE));
+    givenDescribedTaskDefinition(taskDefinition(DESCRIBED_IMAGE));
 
     // When
     List<TaskDefinition> returnedTaskDefs = agent.getItems(ecs, providerCache);
@@ -139,7 +123,147 @@ public class TaskDefinitionCachingAgentTest extends CommonCachingAgent {
               + TASK_DEFINITION_ARN_1
               + " but it was: "
               + taskDef.taskDefinitionArn());
+      assertEquals(
+          CACHED_IMAGE,
+          taskDef.containerDefinitions().get(0).image(),
+          "Expected the cached task definition to be reused rather than described again");
     }
+  }
+
+  @Test
+  public void shouldDescribeCachedTaskDefinitionWithoutContainerDefinitions() {
+    // Given
+    givenServiceCache(null);
+
+    // an entry cached without container definitions carries nothing the ECS provider can read
+    Map<String, Object> taskDefAttr = new HashMap<>();
+    taskDefAttr.put("taskDefinitionArn", TASK_DEFINITION_ARN_1);
+    when(providerCache.get(
+            TASK_DEFINITIONS.toString(),
+            "ecs;taskDefinitions;test-account;us-west-2;" + TASK_DEFINITION_ARN_1))
+        .thenReturn(
+            new DefaultCacheData(TASK_DEFINITION_ARN_1, taskDefAttr, Collections.emptyMap()));
+    givenDescribedTaskDefinition(taskDefinition(DESCRIBED_IMAGE));
+
+    // When
+    List<TaskDefinition> returnedTaskDefs = agent.getItems(ecs, providerCache);
+
+    // Then
+    assertEquals(1, returnedTaskDefs.size());
+    assertEquals(
+        DESCRIBED_IMAGE,
+        returnedTaskDefs.get(0).containerDefinitions().get(0).image(),
+        "Expected an incomplete cache entry to be described again");
+  }
+
+  @Test
+  public void shouldDescribeCachedTaskDefinitionMissingLoadBalancedPortMapping() {
+    // Given
+    givenServiceCache(LOAD_BALANCED_CONTAINER_PORT);
+
+    // without the load balanced port mapping, TaskHealthCachingAgent cannot resolve task health, so
+    // reusing this entry would keep load balancer health unknown for as long as it stays cached
+    givenCachedTaskDefinition(taskDefinition(CACHED_IMAGE));
+    givenDescribedTaskDefinition(taskDefinition(DESCRIBED_IMAGE, LOAD_BALANCED_CONTAINER_PORT));
+
+    // When
+    List<TaskDefinition> returnedTaskDefs = agent.getItems(ecs, providerCache);
+
+    // Then
+    assertEquals(1, returnedTaskDefs.size());
+    assertEquals(
+        DESCRIBED_IMAGE,
+        returnedTaskDefs.get(0).containerDefinitions().get(0).image(),
+        "Expected a cache entry missing the load balanced port mapping to be described again");
+    assertEquals(
+        LOAD_BALANCED_CONTAINER_PORT,
+        returnedTaskDefs
+            .get(0)
+            .containerDefinitions()
+            .get(0)
+            .portMappings()
+            .get(0)
+            .containerPort());
+  }
+
+  @Test
+  public void shouldRetainCachedTaskDefinitionWithLoadBalancedPortMapping() {
+    // Given
+    givenServiceCache(LOAD_BALANCED_CONTAINER_PORT);
+    givenCachedTaskDefinition(taskDefinition(CACHED_IMAGE, LOAD_BALANCED_CONTAINER_PORT));
+    givenDescribedTaskDefinition(taskDefinition(DESCRIBED_IMAGE, LOAD_BALANCED_CONTAINER_PORT));
+
+    // When
+    List<TaskDefinition> returnedTaskDefs = agent.getItems(ecs, providerCache);
+
+    // Then
+    assertEquals(1, returnedTaskDefs.size());
+    assertEquals(
+        CACHED_IMAGE,
+        returnedTaskDefs.get(0).containerDefinitions().get(0).image(),
+        "Expected a complete cache entry to be reused rather than described again");
+  }
+
+  private static TaskDefinition taskDefinition(String image, int... containerPorts) {
+    List<PortMapping> portMappings = new ArrayList<>();
+    for (int containerPort : containerPorts) {
+      portMappings.add(PortMapping.builder().containerPort(containerPort).build());
+    }
+
+    return TaskDefinition.builder()
+        .taskDefinitionArn(TASK_DEFINITION_ARN_1)
+        .containerDefinitions(
+            ContainerDefinition.builder()
+                .name("test-container")
+                .image(image)
+                .portMappings(portMappings)
+                .build())
+        .build();
+  }
+
+  private void givenServiceCache(Integer loadBalancedContainerPort) {
+    Map<String, Object> serviceAttr = new HashMap<>();
+    serviceAttr.put("taskDefinition", TASK_DEFINITION_ARN_1);
+    serviceAttr.put("desiredCount", 1);
+    serviceAttr.put("serviceName", SERVICE_NAME_1);
+    serviceAttr.put("maximumPercent", 200);
+    serviceAttr.put("minimumHealthyPercent", 50);
+    serviceAttr.put("createdAt", 8976543L);
+
+    if (loadBalancedContainerPort != null) {
+      Map<String, Object> loadBalancer = new HashMap<>();
+      loadBalancer.put("containerPort", loadBalancedContainerPort);
+      loadBalancer.put("containerName", "test-container");
+      loadBalancer.put("targetGroupArn", "arn:aws:elasticloadbalancing:targetgroup/test");
+      serviceAttr.put("loadBalancers", Collections.singletonList(loadBalancer));
+    }
+
+    DefaultCacheData serviceCache =
+        new DefaultCacheData("test-service", serviceAttr, Collections.emptyMap());
+    when(providerCache.filterIdentifiers(
+            SERVICES.toString(), "ecs;services;test-account;us-west-2;*"))
+        .thenReturn(Collections.singletonList("test-service"));
+    when(providerCache.getAll(anyString(), any(Set.class)))
+        .thenReturn(Collections.singletonList(serviceCache));
+  }
+
+  private void givenCachedTaskDefinition(TaskDefinition taskDefinition) {
+    // the agent caches through convertTaskDefinitionToAttributes, so the entry a later run reads
+    // back is exactly what an earlier run wrote
+    when(providerCache.get(
+            TASK_DEFINITIONS.toString(),
+            "ecs;taskDefinitions;test-account;us-west-2;" + TASK_DEFINITION_ARN_1))
+        .thenReturn(
+            new DefaultCacheData(
+                TASK_DEFINITION_ARN_1,
+                TaskDefinitionCachingAgent.convertTaskDefinitionToAttributes(taskDefinition),
+                Collections.emptyMap()));
+  }
+
+  private void givenDescribedTaskDefinition(TaskDefinition taskDefinition) {
+    when(ecs.describeTaskDefinition(any(DescribeTaskDefinitionRequest.class)))
+        .thenReturn(
+            DescribeTaskDefinitionResponse.builder().taskDefinition(taskDefinition).build());
   }
 
   @Test
