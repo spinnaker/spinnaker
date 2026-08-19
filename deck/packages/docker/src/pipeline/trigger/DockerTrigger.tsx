@@ -45,8 +45,8 @@ Registry.pipeline.registerTrigger({
 });
 
 Registry.pipeline.registerTrigger({
-  label: 'Helm Docker Registry',
-  description: 'Executes the pipeline on an helm/image update',
+  label: 'Docker Registry (OCI)',
+  description: 'Executes the pipeline on a Docker OCI image update',
   key: 'helm/oci',
   component: DockerHelmOciTriggerConfig,
   manualExecutionComponent: DockerTriggerTemplate,
