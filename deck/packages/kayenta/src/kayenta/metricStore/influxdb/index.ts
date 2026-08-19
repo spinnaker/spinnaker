@@ -1,9 +1,9 @@
-import AtlasMetricConfigurer, { queryFinder } from './atlasMetricConfigurer';
+import InfluxDbMetricConfigurer, { queryFinder } from './metricConfigurer';
 import metricStoreConfigStore from '../metricStoreConfig.service';
 
 metricStoreConfigStore.register({
-  name: 'atlas',
-  metricConfigurer: AtlasMetricConfigurer,
+  name: 'influxdb',
+  metricConfigurer: InfluxDbMetricConfigurer,
   queryFinder,
   useTemplates: true,
 });

@@ -78,9 +78,18 @@ const helpContents: { [key: string]: string } = {
     <p>If no strategy is chosen, the default strategy for the metric will be implemented.</p>
   `,
   'canary.config.filterTemplate': `
-    <p>Templates allow you to compose and parameterize advanced queries against your telemetry provider.</p>
-    <p>Parameterized queries are hydrated by values provided in the canary stage. The <strong>project</strong>, <strong>resourceType</strong>, </string><strong>scope</strong>, and <strong>location</strong> variable bindings are implicitly available.</p>
-    <p>For example, you can interpolate <strong>project</strong> using the following syntax: <strong>\${project}</strong>.</p>
+    <p>Templates let you compose and parameterize advanced queries against your telemetry provider, instead of (or in addition to) using the structured "Guided" form below.</p>
+    <p>Write your query as normal, substituting <strong>\${variable}</strong> for any value you want hydrated at execution time — for example <strong>\${scope}</strong>. Each provider implicitly exposes its own set of variables (shown above the editor); <code>extendedScopeParams</code> can supply additional bindings of your own choosing.</p>
+    <p><strong>Undefined variables fail loudly, not silently:</strong> if your template references a variable that isn't available — implicit or extended — execution throws an error rather than substituting an empty string or leaving the literal <code>\${...}</code> in place. This means typos in variable names are caught immediately rather than producing a subtly wrong query.</p>
+    <p><strong>extendedScopeParams</strong> are user-supplied key/value bindings set on the canary pipeline stage (alongside the scope, region, and other standard fields). They take the highest precedence of any variable binding, letting a single canary config be reused across pipelines that each supply different values for the same template variables.</p>
+    <p>You can either type a query directly into the template editor (saved as <code>customInlineTemplate</code>), or save it under a name in the "Saved Templates" panel to reuse it across multiple metrics (saved as <code>customFilterTemplate</code>, referencing an entry in the config's shared <code>templates</code> map). Only one of the two is ever in effect for a given metric — editing the text after loading a saved template detaches it back to an inline (unsaved) template.</p>
+    <p><strong>Example</strong> (Stackdriver): given the implicit variables <strong>project</strong> and <strong>resourceType</strong>, a template of</p>
+    <pre>metric.type="compute.googleapis.com/instance/cpu/utilization" AND resource.type="\${resourceType}" AND resource.label.project_id="\${project}"</pre>
+    <p>will have <code>\${resourceType}</code> and <code>\${project}</code> replaced with the values from the canary scope before the query is executed.</p>
+  `,
+  'canary.config.guidedModeDeprecated': `
+    <p>The structured "Guided" form remains fully supported for existing metric configs, but it is <strong>deprecated</strong>: it is no longer the default for new metrics, new providers are not gaining guided forms, and it is planned for removal in a future release.</p>
+    <p>Consider migrating this metric to a query <strong>Template</strong> when convenient.</p>
   `,
   'canary.config.signalFx.queryPairs': `
     <p><strong>Query pairs are optional</strong></p>
@@ -105,10 +114,6 @@ const helpContents: { [key: string]: string } = {
     <p>This method is used to construct the compiled SignalFlow program. EX:<pre>data('request.count', filters=filter('uri', 'v1/some-endpoint') and filter('status_code', '5*') and filter('version', '1.0.0') and filter('environment', 'production')).sum(by=['version', 'environment']).publish()</pre>
         Note that the version and environment k,v pairs are sourced from the canary scope. The other k,v pairs come from the metric specific k,v pair list.
     </p>
-  `,
-  'canary.config.prometheus.queryType': `
-    <p>Select <strong>default</strong> to use options from the UI to configure your query.</p>
-    <p>Select <strong>PromQL</strong> to compose a custom PromQL query (see <a target="blank" href="https://prometheus.io/docs/prometheus/latest/querying/basics/">documentation</a>).</p>
   `,
   'canary.config.effectSize.cles': `
     <p>

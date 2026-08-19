@@ -2,12 +2,17 @@ import autoBindMethods from 'class-autobind-decorator';
 import { get } from 'lodash';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import type { Action } from 'redux';
+import type { Action, Dispatch } from 'redux';
 import { createSelector } from 'reselect';
 
 import * as Creators from '../../actions/creators';
 import type { ICanaryMetricConfig } from '../../domain';
+import { MetricConfigMode } from '../../domain/IMetricConfigMode';
 import type { ICanaryMetricValidationErrors, MetricValidatorFunction } from '../../edit/editMetricValidation';
+import MetricConfigModeToggle from '../../edit/metricConfigModeToggle';
+import MetricQueryTemplateEditor from '../../edit/metricQueryTemplateEditor';
+import { templateProviderVariables } from '../../edit/templateProviderVariables';
+import { clearTemplateState, useMetricConfigMode } from '../../edit/useMetricConfigMode';
 import { DISABLE_EDIT_CONFIG, DisableableInput } from '../../layout/disableable';
 import FormRow from '../../layout/formRow';
 import type { IKeyValuePair, IUpdateKeyValueListPayload } from '../../layout/keyValueList';
@@ -26,6 +31,7 @@ interface ISignalFxMetricConfigurerDispatchProps {
   updateMetricName: (name: string) => void;
   updateAggregationMethod: (method: string) => void;
   updateQueryPairs: (payload: IUpdateKeyValueListPayload) => void;
+  clearTemplateState: () => void;
 }
 
 type SignalFxMetricConfigurerProps = ISignalFxMetricConfigurerStateProps & ISignalFxMetricConfigurerDispatchProps;
@@ -34,6 +40,59 @@ export const queryFinder = (metric: ICanaryMetricConfig) => get(metric, 'query.m
 const getSignalFxMetric = queryFinder;
 const getQueryPairs = (metric: ICanaryMetricConfig) => get(metric, 'query.queryPairs', []) as IKeyValuePair[];
 const getAggregationMethod = (metric: ICanaryMetricConfig) => get(metric, 'query.aggregationMethod', '');
+
+// Guided fields for a SignalFx metric, split out into its own function component so it can use
+// the mode-toggle hook (SignalFxMetricConfigurer itself is a class component).
+function SignalFxGuidedFields({
+  editingMetric,
+  validationErrors,
+  onMetricNameChange,
+  onAggregationMethodChange,
+  updateQueryPairs,
+}: {
+  editingMetric: ICanaryMetricConfig;
+  validationErrors: ICanaryMetricValidationErrors;
+  onMetricNameChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onAggregationMethodChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  updateQueryPairs: (payload: IUpdateKeyValueListPayload) => void;
+}) {
+  return (
+    <>
+      <FormRow label="SignalFx Metric" error={get(validationErrors, 'signalFxMetric.message', null)} inputOnly={true}>
+        <DisableableInput
+          type="text"
+          value={getSignalFxMetric(editingMetric)}
+          onChange={onMetricNameChange}
+          disabledStateKeys={[DISABLE_EDIT_CONFIG]}
+        />
+      </FormRow>
+      <FormRow
+        label="Aggregation Method"
+        inputOnly={true}
+        helpId="canary.config.signalFx.aggregationMethod"
+        error={get(validationErrors, 'aggregationMethod.message', null)}
+      >
+        <DisableableInput
+          type="text"
+          value={getAggregationMethod(editingMetric)}
+          onChange={onAggregationMethodChange}
+          disabledStateKeys={[DISABLE_EDIT_CONFIG]}
+        />
+      </FormRow>
+      <FormRow
+        label="Query Pairs"
+        helpId="canary.config.signalFx.queryPairs"
+        error={get(validationErrors, 'queryPairs.message', null)}
+      >
+        <KeyValueList
+          className="signalfx-query-pairs"
+          list={getQueryPairs(editingMetric)}
+          actionCreator={updateQueryPairs}
+        />
+      </FormRow>
+    </>
+  );
+}
 
 @autoBindMethods
 class SignalFxMetricConfigurer extends React.Component<SignalFxMetricConfigurerProps> {
@@ -46,45 +105,69 @@ class SignalFxMetricConfigurer extends React.Component<SignalFxMetricConfigurerP
   }
 
   public render() {
-    const { editingMetric, updateQueryPairs, validationErrors } = this.props;
+    const { editingMetric, updateQueryPairs, validationErrors, clearTemplateState: onClearTemplateState } = this.props;
 
     return (
-      <section>
-        <FormRow label="SignalFx Metric" error={get(validationErrors, 'signalFxMetric.message', null)} inputOnly={true}>
-          <DisableableInput
-            type="text"
-            value={getSignalFxMetric(editingMetric)}
-            onChange={this.onMetricNameChange}
-            disabledStateKeys={[DISABLE_EDIT_CONFIG]}
-          />
-        </FormRow>
-        <FormRow
-          label="Aggregation Method"
-          inputOnly={true}
-          helpId="canary.config.signalFx.aggregationMethod"
-          error={get(validationErrors, 'aggregationMethod.message', null)}
-        >
-          <DisableableInput
-            type="text"
-            value={getAggregationMethod(editingMetric)}
-            onChange={this.onAggregationMethodChange}
-            disabledStateKeys={[DISABLE_EDIT_CONFIG]}
-          />
-        </FormRow>
-        <FormRow
-          label="Query Pairs"
-          helpId="canary.config.signalFx.queryPairs"
-          error={get(validationErrors, 'queryPairs.message', null)}
-        >
-          <KeyValueList
-            className="signalfx-query-pairs"
-            list={getQueryPairs(editingMetric)}
-            actionCreator={updateQueryPairs}
-          />
-        </FormRow>
-      </section>
+      <SignalFxModeSection
+        {...{
+          editingMetric,
+          validationErrors,
+          updateQueryPairs,
+          onClearTemplateState,
+          onMetricNameChange: this.onMetricNameChange,
+          onAggregationMethodChange: this.onAggregationMethodChange,
+        }}
+      />
     );
   }
+}
+
+function SignalFxModeSection(props: {
+  editingMetric: ICanaryMetricConfig;
+  validationErrors: ICanaryMetricValidationErrors;
+  updateQueryPairs: (payload: IUpdateKeyValueListPayload) => void;
+  onClearTemplateState: () => void;
+  onMetricNameChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onAggregationMethodChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}) {
+  const {
+    editingMetric,
+    validationErrors,
+    updateQueryPairs,
+    onClearTemplateState,
+    onMetricNameChange,
+    onAggregationMethodChange,
+  } = props;
+  const hasTemplateData = Boolean(
+    get(editingMetric, 'query.customInlineTemplate') || get(editingMetric, 'query.customFilterTemplate'),
+  );
+  const hasGuidedData = Boolean(
+    getSignalFxMetric(editingMetric) || getAggregationMethod(editingMetric) || getQueryPairs(editingMetric).length,
+  );
+  const [mode, setMode] = useMetricConfigMode(editingMetric.id, hasTemplateData, hasGuidedData);
+
+  const handleModeChange = (newMode: MetricConfigMode) => {
+    setMode(newMode);
+    onClearTemplateState();
+  };
+
+  return (
+    <section>
+      <MetricConfigModeToggle mode={mode} onChange={handleModeChange} />
+      {mode === MetricConfigMode.GUIDED && (
+        <SignalFxGuidedFields
+          editingMetric={editingMetric}
+          validationErrors={validationErrors}
+          onMetricNameChange={onMetricNameChange}
+          onAggregationMethodChange={onAggregationMethodChange}
+          updateQueryPairs={updateQueryPairs}
+        />
+      )}
+      {mode === MetricConfigMode.TEMPLATE && (
+        <MetricQueryTemplateEditor providerVariableHints={templateProviderVariables.signalfx} />
+      )}
+    </section>
+  );
 }
 
 /**
@@ -182,6 +265,7 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): ISignalFx
       dispatch(Creators.updateSignalFxAggregationMethod({ aggregationMethod }));
     },
     updateQueryPairs: (payload) => dispatch(Creators.updateSignalFxQueryPairs(payload)),
+    clearTemplateState: () => clearTemplateState(dispatch as Dispatch<any>),
   };
 }
 

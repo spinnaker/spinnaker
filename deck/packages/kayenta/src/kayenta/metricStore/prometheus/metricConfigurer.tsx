@@ -2,38 +2,39 @@ import { get } from 'lodash';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import type { Option } from 'react-select';
-import type { Action } from 'redux';
+import type { Action, Dispatch } from 'redux';
 import { createSelector } from 'reselect';
 
 import * as Creators from '../../actions/creators';
 import type { ICanaryMetricConfig } from '../../domain/ICanaryConfig';
+import { MetricConfigMode } from '../../domain/IMetricConfigMode';
 import type { IPrometheusCanaryMetricSetQueryConfig } from './domain/IPrometheusCanaryMetricSetQueryConfig';
-import { PrometheusQueryType } from './domain/IPrometheusCanaryMetricSetQueryConfig';
 import type { ICanaryMetricValidationErrors } from '../../edit/editMetricValidation';
+import MetricConfigModeToggle from '../../edit/metricConfigModeToggle';
+import MetricQueryTemplateEditor from '../../edit/metricQueryTemplateEditor';
+import { templateProviderVariables } from '../../edit/templateProviderVariables';
+import { clearTemplateState, useMetricConfigMode } from '../../edit/useMetricConfigMode';
 import { DISABLE_EDIT_CONFIG, DisableableReactSelect } from '../../layout/disableable';
 import FormRow from '../../layout/formRow';
 import type { IUpdateListPayload } from '../../layout/list';
 import { List } from '../../layout/list';
-import RadioChoice from '../../layout/radioChoice';
 import PrometheusMetricTypeSelector from './metricTypeSelector';
 import type { ICanaryState } from '../../reducers';
 import { editingMetricSelector } from '../../selectors';
-import { queryTypeSelector } from '../../selectors/filterTemplatesSelectors';
 
 interface IPrometheusMetricConfigurerStateProps {
   editingMetric: ICanaryMetricConfig;
-  queryType: PrometheusQueryType;
   validationErrors: ICanaryMetricValidationErrors;
 }
 
 interface IPrometheusMetricConfigurerDispatchProps {
   updateLabelBindings: (payload: IUpdateListPayload) => void;
   updateGroupBy: (payload: IUpdateListPayload) => void;
-  updateFilterQueryType: (queryType: PrometheusQueryType) => void;
   updatePrometheusMetricQueryField: <T extends keyof IPrometheusCanaryMetricSetQueryConfig>(
     field: keyof IPrometheusCanaryMetricSetQueryConfig,
     value: Option<IPrometheusCanaryMetricSetQueryConfig[T]>,
   ) => void;
+  clearTemplateState: () => void;
 }
 
 const RESOURCE_TYPES = ['gce_instance', 'aws_ec2_instance'];
@@ -43,35 +44,38 @@ const toReactSelectOptions = (values: string[]): Array<Option<string>> =>
 
 /*
  * Component for configuring a Prometheus metric.
+ *
+ * Prometheus used to have its own bespoke Default/PromQL toggle (backed by a client-only
+ * "PromQL:" string prefix on the inline template, used to distinguish PromQL-mode templates from
+ * plain custom filters). That toggle is now just an instance of the generic Guided/Template mode
+ * toggle shared by every provider, and the "PromQL:" prefix trick was retired entirely -- nothing
+ * server-side (PrometheusMetricsService.java / PrometheusCanaryMetricSetQueryConfig.java) ever
+ * parsed for that prefix, so it was purely client-side dead weight once the template editor
+ * became available unconditionally rather than being gated behind selecting "PromQL".
  * */
 function PrometheusMetricConfigurer({
   editingMetric,
-  queryType,
   updateLabelBindings,
   updateGroupBy,
-  updateFilterQueryType,
   updatePrometheusMetricQueryField,
   validationErrors,
+  clearTemplateState: onClearTemplateState,
 }: IPrometheusMetricConfigurerStateProps & IPrometheusMetricConfigurerDispatchProps) {
+  const hasTemplateData = Boolean(
+    get(editingMetric, 'query.customInlineTemplate') || get(editingMetric, 'query.customFilterTemplate'),
+  );
+  const hasGuidedData = Boolean(get(editingMetric, 'query.metricName'));
+  const [mode, setMode] = useMetricConfigMode(editingMetric.id, hasTemplateData, hasGuidedData);
+
+  const handleModeChange = (newMode: MetricConfigMode) => {
+    setMode(newMode);
+    onClearTemplateState();
+  };
+
   return (
     <>
-      <FormRow label="Query Type" helpId="canary.config.prometheus.queryType">
-        <RadioChoice
-          value={PrometheusQueryType.DEFAULT}
-          label="Default"
-          name="queryType"
-          current={queryType}
-          action={() => updateFilterQueryType(PrometheusQueryType.DEFAULT)}
-        />
-        <RadioChoice
-          value={PrometheusQueryType.PROMQL}
-          label="PromQL"
-          name="queryType"
-          current={queryType}
-          action={() => updateFilterQueryType(PrometheusQueryType.PROMQL)}
-        />
-      </FormRow>
-      {queryType === PrometheusQueryType.DEFAULT && (
+      <MetricConfigModeToggle mode={mode} onChange={handleModeChange} />
+      {mode === MetricConfigMode.GUIDED && (
         <>
           <FormRow label="Resource Type" inputOnly={true}>
             <DisableableReactSelect
@@ -95,6 +99,9 @@ function PrometheusMetricConfigurer({
           </FormRow>
         </>
       )}
+      {mode === MetricConfigMode.TEMPLATE && (
+        <MetricQueryTemplateEditor providerVariableHints={templateProviderVariables.prometheus} />
+      )}
     </>
   );
 }
@@ -102,7 +109,6 @@ function PrometheusMetricConfigurer({
 function mapStateToProps(state: ICanaryState): IPrometheusMetricConfigurerStateProps {
   return {
     editingMetric: state.selectedConfig.editingMetric,
-    queryType: queryTypeSelector(state),
     validationErrors: prometheusMetricValidationSelector(state),
   };
 }
@@ -113,12 +119,7 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IPromethe
     updateGroupBy: (payload) => dispatch(Creators.updatePrometheusGroupBy(payload)),
     updatePrometheusMetricQueryField: (field, option) =>
       dispatch(Creators.updatePrometheusMetricQueryField({ field, value: option && option.value })),
-    updateFilterQueryType: (value: PrometheusQueryType) => {
-      dispatch(Creators.updatePrometheusMetricQueryField({ field: 'queryType', value }));
-      dispatch(Creators.editTemplateCancel()); // clear template editing
-      dispatch(Creators.selectTemplate({ name: null })); // deselect template
-      dispatch(Creators.editInlineTemplate({ value: '' })); // clear inline template
-    },
+    clearTemplateState: () => clearTemplateState(dispatch as Dispatch<any>),
   };
 }
 

@@ -2,11 +2,16 @@ import { get } from 'lodash';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import type { Option } from 'react-select';
-import type { Action } from 'redux';
+import type { Action, Dispatch } from 'redux';
 
 import * as Creators from '../../actions/creators';
 import type { ICanaryMetricConfig } from '../../domain/ICanaryConfig';
+import { MetricConfigMode } from '../../domain/IMetricConfigMode';
 import type { IStackdriverCanaryMetricSetQueryConfig } from './domain/IStackdriverCanaryMetricSetQueryConfig';
+import MetricConfigModeToggle from '../../edit/metricConfigModeToggle';
+import MetricQueryTemplateEditor from '../../edit/metricQueryTemplateEditor';
+import { templateProviderVariables } from '../../edit/templateProviderVariables';
+import { clearTemplateState, useMetricConfigMode } from '../../edit/useMetricConfigMode';
 import { DISABLE_EDIT_CONFIG, DisableableReactSelect } from '../../layout/disableable';
 import FormRow from '../../layout/formRow';
 import type { IUpdateListPayload } from '../../layout/list';
@@ -24,6 +29,7 @@ interface IStackdriverMetricConfigurerDispatchProps {
     value: Option<IStackdriverCanaryMetricSetQueryConfig[T]>,
   ) => void;
   updateGroupBy: (payload: IUpdateListPayload) => void;
+  clearTemplateState: () => void;
 }
 
 // TODO(dpeach): externalize these values.
@@ -88,42 +94,62 @@ function StackdriverMetricConfigurer({
   editingMetric,
   updateGroupBy,
   updateStackdriverQueryField,
+  clearTemplateState: onClearTemplateState,
 }: IStackdriverMetricConfigurerStateProps & IStackdriverMetricConfigurerDispatchProps) {
+  const hasTemplateData = Boolean(
+    get(editingMetric, 'query.customInlineTemplate') || get(editingMetric, 'query.customFilterTemplate'),
+  );
+  const hasGuidedData = Boolean(get(editingMetric, 'query.metricType'));
+  const [mode, setMode] = useMetricConfigMode(editingMetric.id, hasTemplateData, hasGuidedData);
+
+  const handleModeChange = (newMode: MetricConfigMode) => {
+    setMode(newMode);
+    onClearTemplateState();
+  };
+
   return (
     <>
-      <FormRow label="Resource Type" helpId={`${STACKDRIVER_HELP_ID_PREFIX}.resourceType`} inputOnly={true}>
-        <DisableableReactSelect
-          value={get(editingMetric, 'query.resourceType')}
-          options={toReactSelectOptions(RESOURCE_TYPES)}
-          onChange={(option: Option<string>) => updateStackdriverQueryField('resourceType', option)}
-          disabledStateKeys={[DISABLE_EDIT_CONFIG]}
-        />
-      </FormRow>
-      <FormRow label="Metric Type" helpId={`${STACKDRIVER_HELP_ID_PREFIX}.metricType`} inputOnly={true}>
-        <StackdriverMetricTypeSelector
-          value={get(editingMetric, 'query.metricType', '')}
-          onChange={(option: Option<string>) => updateStackdriverQueryField('metricType', option)}
-        />
-      </FormRow>
-      <FormRow label="Group By" helpId={`${STACKDRIVER_HELP_ID_PREFIX}.groupBy`}>
-        <List list={editingMetric.query.groupByFields || []} actionCreator={updateGroupBy} />
-      </FormRow>
-      <FormRow label="Aligner" helpId={`${STACKDRIVER_HELP_ID_PREFIX}.perSeriesAligner`} inputOnly={true}>
-        <DisableableReactSelect
-          value={get(editingMetric, 'query.perSeriesAligner')}
-          options={toReactSelectOptions(PER_SERIES_ALIGNERS)}
-          onChange={(option: Option<string>) => updateStackdriverQueryField('perSeriesAligner', option)}
-          disabledStateKeys={[DISABLE_EDIT_CONFIG]}
-        />
-      </FormRow>
-      <FormRow label="Reducer" helpId={`${STACKDRIVER_HELP_ID_PREFIX}.crossSeriesReducer`} inputOnly={true}>
-        <DisableableReactSelect
-          value={get(editingMetric, 'query.crossSeriesReducer')}
-          options={toReactSelectOptions(CROSS_SERIES_REDUCERS)}
-          onChange={(option: Option<string>) => updateStackdriverQueryField('crossSeriesReducer', option)}
-          disabledStateKeys={[DISABLE_EDIT_CONFIG]}
-        />
-      </FormRow>
+      <MetricConfigModeToggle mode={mode} onChange={handleModeChange} />
+      {mode === MetricConfigMode.GUIDED && (
+        <>
+          <FormRow label="Resource Type" helpId={`${STACKDRIVER_HELP_ID_PREFIX}.resourceType`} inputOnly={true}>
+            <DisableableReactSelect
+              value={get(editingMetric, 'query.resourceType')}
+              options={toReactSelectOptions(RESOURCE_TYPES)}
+              onChange={(option: Option<string>) => updateStackdriverQueryField('resourceType', option)}
+              disabledStateKeys={[DISABLE_EDIT_CONFIG]}
+            />
+          </FormRow>
+          <FormRow label="Metric Type" helpId={`${STACKDRIVER_HELP_ID_PREFIX}.metricType`} inputOnly={true}>
+            <StackdriverMetricTypeSelector
+              value={get(editingMetric, 'query.metricType', '')}
+              onChange={(option: Option<string>) => updateStackdriverQueryField('metricType', option)}
+            />
+          </FormRow>
+          <FormRow label="Group By" helpId={`${STACKDRIVER_HELP_ID_PREFIX}.groupBy`}>
+            <List list={editingMetric.query.groupByFields || []} actionCreator={updateGroupBy} />
+          </FormRow>
+          <FormRow label="Aligner" helpId={`${STACKDRIVER_HELP_ID_PREFIX}.perSeriesAligner`} inputOnly={true}>
+            <DisableableReactSelect
+              value={get(editingMetric, 'query.perSeriesAligner')}
+              options={toReactSelectOptions(PER_SERIES_ALIGNERS)}
+              onChange={(option: Option<string>) => updateStackdriverQueryField('perSeriesAligner', option)}
+              disabledStateKeys={[DISABLE_EDIT_CONFIG]}
+            />
+          </FormRow>
+          <FormRow label="Reducer" helpId={`${STACKDRIVER_HELP_ID_PREFIX}.crossSeriesReducer`} inputOnly={true}>
+            <DisableableReactSelect
+              value={get(editingMetric, 'query.crossSeriesReducer')}
+              options={toReactSelectOptions(CROSS_SERIES_REDUCERS)}
+              onChange={(option: Option<string>) => updateStackdriverQueryField('crossSeriesReducer', option)}
+              disabledStateKeys={[DISABLE_EDIT_CONFIG]}
+            />
+          </FormRow>
+        </>
+      )}
+      {mode === MetricConfigMode.TEMPLATE && (
+        <MetricQueryTemplateEditor providerVariableHints={templateProviderVariables.stackdriver} />
+      )}
     </>
   );
 }
@@ -139,6 +165,7 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IStackdri
     updateStackdriverQueryField: (field, option) =>
       dispatch(Creators.updateStackdriverMetricResourceField({ field, value: option && option.value })),
     updateGroupBy: (payload) => dispatch(Creators.updateStackdriverGroupBy(payload)),
+    clearTemplateState: () => clearTemplateState(dispatch as Dispatch<any>),
   };
 }
 

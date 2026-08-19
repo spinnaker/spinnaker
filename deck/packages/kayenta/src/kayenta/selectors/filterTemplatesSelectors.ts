@@ -3,50 +3,24 @@ import { createSelector } from 'reselect';
 
 import { configTemplatesSelector, editingMetricSelector, editingTemplateSelector, metricListSelector } from './';
 import { validateTemplate } from '../edit/filterTemplatesValidation';
-import { PrometheusQueryType } from '../metricStore/prometheus/domain/IPrometheusCanaryMetricSetQueryConfig';
-import {
-  getPrometheusQueryType,
-  prometheusQueryTypeToTransformFunction,
-} from '../metricStore/prometheus/queryTypeSelectors';
 import type { ICanaryState } from '../reducers';
-
-// TODO(mneterval): More elegant separation of prometheus-specific logic
-
-export interface ITemplateTransformFunctions {
-  fromValue: (template: string) => string;
-  toValue: (template: string) => string;
-}
-
-// Map of provider-specific query type to methods that transform templates between how they are persisted and displayed in the UI
-export const queryTypeToTransformFunctions: { [queryType: string]: ITemplateTransformFunctions } = {
-  ...prometheusQueryTypeToTransformFunction,
-};
-
-export const queryTypeSelector = createSelector(
-  (state: ICanaryState) => state.selectedConfig.editingMetric,
-  (editingMetric) => {
-    return editingMetric && editingMetric.query.serviceType === 'prometheus'
-      ? getPrometheusQueryType(editingMetric)
-      : null;
-  },
-);
-
-export const transformInlineTemplateForDisplay = createSelector(queryTypeSelector, (queryType) =>
-  get(queryTypeToTransformFunctions, [queryType, 'fromValue'], identity),
-);
-
-export const transformInlineTemplateForSave = createSelector(queryTypeSelector, (queryType) =>
-  get(queryTypeToTransformFunctions, [queryType, 'toValue'], identity),
-);
 
 export const selectedTemplateNameSelector = (state: ICanaryState): string =>
   get(state, 'selectedConfig.editingMetric.query.customFilterTemplate');
 
-export const inlineTemplateValueSelector = createSelector(
-  (state: ICanaryState) => get(state, 'selectedConfig.editingMetric.query.customInlineTemplate'),
-  transformInlineTemplateForDisplay,
-  (template: string, transformer: (template: string) => string): string => transformer(template),
-);
+export const inlineTemplateValueSelector = (state: ICanaryState): string =>
+  get(state, 'selectedConfig.editingMetric.query.customInlineTemplate');
+
+// No provider currently needs to transform a template's value between how it's persisted and how
+// it's displayed in the UI. (Prometheus previously used a client-only "PromQL:" string prefix to
+// distinguish PromQL-mode templates, but nothing server-side ever parsed for that prefix -- see
+// kayenta-prometheus's PrometheusMetricsService.java/PrometheusCanaryMetricSetQueryConfig.java --
+// so it was dead weight once the template editor became available to every provider, and was
+// retired.) These stay as pass-through selectors so MetricQueryTemplateEditor doesn't need to
+// special-case a provider that might need a real transform in the future.
+export const transformInlineTemplateForDisplay = (_state: ICanaryState): ((template: string) => string) => identity;
+
+export const transformInlineTemplateForSave = (_state: ICanaryState): ((template: string) => string) => identity;
 
 export const editingTemplateValidationSelector = createSelector(
   editingTemplateSelector,
@@ -68,16 +42,9 @@ export const isFilterTemplateValidSelector = createSelector(editingTemplateValid
 
 export const isInlineTemplateValidSelector = createSelector(inlineTemplateValueSelector, (value) => !isEmpty(value));
 
-const inlineTemplateQueryTypes = [PrometheusQueryType.PROMQL];
-
-export const useInlineTemplateEditorSelector = createSelector(queryTypeSelector, (queryType) =>
-  inlineTemplateQueryTypes.includes(queryType),
-);
-
-export const isTemplateValidSelector = createSelector(
-  useInlineTemplateEditorSelector,
-  isFilterTemplateValidSelector,
-  isInlineTemplateValidSelector,
-  (isInlineTemplate, isFilterTemplateValid, isInlineTemplateValid) =>
-    isInlineTemplate ? isInlineTemplateValid : isFilterTemplateValid,
-);
+// This only ever gated the Confirm button on the "editingTemplate" name/value form's own
+// validation (duplicate/blank name, blank value) -- not on whether a template is actually
+// selected/populated, since most metrics never touch that form at all. Kept as its own named
+// selector (rather than inlining isFilterTemplateValidSelector at call sites) since it's the one
+// editMetricModal.tsx actually gates Confirm on.
+export const isTemplateValidSelector = isFilterTemplateValidSelector;

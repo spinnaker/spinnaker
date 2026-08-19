@@ -4,7 +4,6 @@ import {
   validateTemplateName,
   validateTemplateValue,
 } from './filterTemplatesValidation';
-import { PrometheusQueryType } from '../metricStore/prometheus/domain/IPrometheusCanaryMetricSetQueryConfig';
 
 describe('Filter template validation', () => {
   let validationInput: ITemplateValidationInput;
@@ -58,7 +57,6 @@ describe('Filter template validation', () => {
         scopeName: 'default',
         query: {
           customFilterTemplate: 'my-filter-template',
-          queryType: PrometheusQueryType.DEFAULT,
         },
       });
       expect(
@@ -89,7 +87,6 @@ function getTestValidationInput(): ITemplateValidationInput {
         scopeName: 'default',
         query: {
           customFilterTemplate: 'my-filter-template',
-          queryType: PrometheusQueryType.DEFAULT,
         },
       },
     ],
@@ -101,7 +98,6 @@ function getTestValidationInput(): ITemplateValidationInput {
       scopeName: 'default',
       query: {
         customFilterTemplate: 'my-filter-template',
-        queryType: PrometheusQueryType.DEFAULT,
       },
     },
   };

@@ -1,8 +1,10 @@
 import './atlas';
 import './datadog';
 import './graphite';
+import './influxdb';
 import './newrelic';
 import './prometheus';
 import './signalfx';
 import './stackdriver';
+import './wavefront';
 export { default as metricStoreConfigStore } from './metricStoreConfig.service';
