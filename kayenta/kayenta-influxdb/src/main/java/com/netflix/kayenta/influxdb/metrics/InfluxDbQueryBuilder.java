@@ -16,6 +16,7 @@
 
 package com.netflix.kayenta.influxdb.metrics;
 
+import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.canary.providers.metrics.InfluxdbCanaryMetricSetQueryConfig;
 import java.util.*;
@@ -35,8 +36,13 @@ public class InfluxDbQueryBuilder {
 
   // TODO(joerajeev): protect against injection. Influxdb is supposed to support binding params,
   // https://docs.influxdata.com/influxdb/v1.5/tools/api/
-  public String build(InfluxdbCanaryMetricSetQueryConfig queryConfig, CanaryScope canaryScope) {
+  @SuppressWarnings("deprecation")
+  public String build(
+      CanaryConfig canaryConfig,
+      InfluxdbCanaryMetricSetQueryConfig queryConfig,
+      CanaryScope canaryScope) {
     StringBuilder query = new StringBuilder();
+    queryConfig = resolveCustomFilterTemplate(canaryConfig, queryConfig);
     validateMandatoryParams(queryConfig, canaryScope);
 
     if (!StringUtils.isEmpty(queryConfig.getCustomInlineTemplate())) {
@@ -54,6 +60,39 @@ public class InfluxDbQueryBuilder {
     return builtQuery;
   }
 
+  /**
+   * If no {@code customInlineTemplate} is set but a {@code customFilterTemplate} name is, resolve
+   * that name against the canary config's top-level templates map and treat the resolved string as
+   * the inline template for the remainder of the (unchanged) custom-query building logic. Inline
+   * wins over named if somehow both are set.
+   */
+  private InfluxdbCanaryMetricSetQueryConfig resolveCustomFilterTemplate(
+      CanaryConfig canaryConfig, InfluxdbCanaryMetricSetQueryConfig queryConfig) {
+    String customInlineTemplate = queryConfig.getCustomInlineTemplate();
+    String customFilterTemplate = queryConfig.getCustomFilterTemplate();
+
+    if (!StringUtils.isEmpty(customInlineTemplate) || StringUtils.isEmpty(customFilterTemplate)) {
+      return queryConfig;
+    }
+
+    Map<String, String> templates = canaryConfig == null ? null : canaryConfig.getTemplates();
+
+    if (CollectionUtils.isEmpty(templates)) {
+      throw new IllegalArgumentException(
+          "Custom filter template '"
+              + customFilterTemplate
+              + "' was referenced, but no templates were defined.");
+    } else if (!templates.containsKey(customFilterTemplate)) {
+      throw new IllegalArgumentException(
+          "Custom filter template '" + customFilterTemplate + "' was not found.");
+    }
+
+    return queryConfig.toBuilder()
+        .customInlineTemplate(templates.get(customFilterTemplate))
+        .build();
+  }
+
+  @SuppressWarnings("deprecation")
   private void validateMandatoryParams(
       InfluxdbCanaryMetricSetQueryConfig queryConfig, CanaryScope canaryScope) {
     if (StringUtils.isEmpty(queryConfig.getMetricName())
@@ -77,6 +116,7 @@ public class InfluxDbQueryBuilder {
     }
   }
 
+  @SuppressWarnings("deprecation")
   private List<String> handleFields(InfluxdbCanaryMetricSetQueryConfig queryConfig) {
     List<String> fields = queryConfig.getFields();
     if (CollectionUtils.isEmpty(fields)) {

@@ -49,6 +49,7 @@ public class WavefrontFetchController {
   }
 
   @RequestMapping(value = "/query", method = RequestMethod.POST)
+  @SuppressWarnings("deprecation")
   public Map queryMetrics(
       @RequestParam(required = false) final String metricsAccountName,
       @RequestParam(required = false) final String storageAccountName,
