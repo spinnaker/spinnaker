@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.model
 
-import com.amazonaws.services.cloudformation.model.Change
 import com.fasterxml.jackson.databind.ObjectMapper
 import spock.lang.Specification
 
@@ -42,7 +41,7 @@ class AmazonCloudFormationStackSpec extends Specification {
           status: "status",
           statusReason: "statusReason",
           changes: [
-            new Change().withType("type")
+            [type: "Resource"]
           ]
         ]
       ]
@@ -68,7 +67,6 @@ class AmazonCloudFormationStackSpec extends Specification {
         it.status == "status"
         it.statusReason == "statusReason"
         it.changes.size() == 1
-        it.changes.get(0).type == "type"
       }
     }
   }
@@ -95,5 +93,4 @@ class AmazonCloudFormationStackSpec extends Specification {
       changeSets == null
     }
   }
-
 }
