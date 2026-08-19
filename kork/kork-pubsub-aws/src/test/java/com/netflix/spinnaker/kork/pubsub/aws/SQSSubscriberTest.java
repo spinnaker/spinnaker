@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.kork.pubsub.aws;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -26,23 +25,24 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.amazonaws.services.sns.AmazonSNS;
-import com.amazonaws.services.sns.model.SubscribeResult;
-import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.model.GetQueueUrlRequest;
-import com.amazonaws.services.sqs.model.GetQueueUrlResult;
-import com.amazonaws.services.sqs.model.Message;
-import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
-import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.netflix.spectator.api.DefaultRegistry;
 import com.netflix.spinnaker.kork.pubsub.aws.api.AmazonMessageAcknowledger;
 import com.netflix.spinnaker.kork.pubsub.aws.api.AmazonPubsubMessageHandler;
 import com.netflix.spinnaker.kork.pubsub.aws.config.AmazonPubsubProperties;
 import java.util.List;
-import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.services.sns.SnsClient;
+import software.amazon.awssdk.services.sns.model.SubscribeRequest;
+import software.amazon.awssdk.services.sns.model.SubscribeResponse;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.GetQueueUrlResponse;
+import software.amazon.awssdk.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
+import software.amazon.awssdk.services.sqs.model.SetQueueAttributesRequest;
 
 public class SQSSubscriberTest {
 
@@ -59,8 +59,8 @@ public class SQSSubscriberTest {
             subscription(),
             mock(AmazonPubsubMessageHandler.class),
             messageAcknowledger,
-            amazonSNS(),
-            amazonSQS(),
+            snsClient(),
+            sqsClient(),
             enableOnce(),
             new DefaultRegistry());
 
@@ -85,8 +85,8 @@ public class SQSSubscriberTest {
             subscription(),
             throwyHandler,
             messageAcknowledger,
-            amazonSNS(),
-            amazonSQS(),
+            snsClient(),
+            sqsClient(),
             enableOnce(),
             new DefaultRegistry());
 
@@ -103,16 +103,16 @@ public class SQSSubscriberTest {
   @DisplayName("the subscriber does not query SQS when disabled")
   void testSubscriberNotQuerySQSDisabled() {
     // given
-    AmazonSQS amazonSQS = mock(AmazonSQS.class);
-    Supplier disabled = spy(Supplier.class);
+    SqsClient sqsClient = mock(SqsClient.class);
+    Supplier<Boolean> disabled = spy(Supplier.class);
     doReturn(false).when(disabled).get();
     subscriber =
         new SQSSubscriber(
             subscription(),
             mock(AmazonPubsubMessageHandler.class),
             mock(AmazonMessageAcknowledger.class),
-            amazonSNS(),
-            amazonSQS,
+            snsClient(),
+            sqsClient,
             disabled,
             new DefaultRegistry());
 
@@ -120,7 +120,7 @@ public class SQSSubscriberTest {
     subscriber.listenForMessages();
 
     // then
-    verify(amazonSQS, never()).receiveMessage(any(ReceiveMessageRequest.class));
+    verify(sqsClient, never()).receiveMessage(any(ReceiveMessageRequest.class));
   }
 
   @Test
@@ -130,8 +130,8 @@ public class SQSSubscriberTest {
     AmazonPubsubProperties.AmazonPubsubSubscription sub = subscription();
     sub.setSkipQueueBootstrap(true);
 
-    AmazonSQS sqs = amazonSQS();
-    AmazonSNS sns = amazonSNS();
+    SqsClient sqs = sqsClient();
+    SnsClient sns = snsClient();
     subscriber =
         new SQSSubscriber(
             sub,
@@ -145,19 +145,18 @@ public class SQSSubscriberTest {
     // when
     subscriber.initializeQueue();
 
-    // then
-    verify(sqs, times(1)).getQueueUrl(any(GetQueueUrlRequest.class));
-    verify(sqs, never()).createQueue(anyString());
-    verify(sqs, never()).setQueueAttributes(anyString(), any(Map.class));
-    verify(sns, never()).subscribe(anyString(), anyString(), anyString());
+    // then — only getQueueUrl called, no setQueueAttributes or subscribe
+    verify(sqs, times(1)).getQueueUrl(any(Consumer.class));
+    verify(sqs, never()).setQueueAttributes(any(SetQueueAttributesRequest.class));
+    verify(sns, never()).subscribe(any(SubscribeRequest.class));
   }
 
   @Test
   @DisplayName("initializeQueue bootstraps queue when skipQueueBootstrap=false (default)")
   void testInitializeQueueBootstrapsWhenFlagFalse() {
     // given — default subscription has skipQueueBootstrap=false
-    AmazonSQS sqs = amazonSQS();
-    AmazonSNS sns = amazonSNS();
+    SqsClient sqs = sqsClient();
+    SnsClient sns = snsClient();
     subscriber =
         new SQSSubscriber(
             subscription(),
@@ -172,9 +171,9 @@ public class SQSSubscriberTest {
     subscriber.initializeQueue();
 
     // then
-    verify(sqs, times(1)).getQueueUrl(any(GetQueueUrlRequest.class));
-    verify(sqs, times(1)).setQueueAttributes(anyString(), any(Map.class));
-    verify(sns, times(1)).subscribe(anyString(), anyString(), anyString());
+    verify(sqs, times(1)).getQueueUrl(any(Consumer.class));
+    verify(sqs, times(1)).setQueueAttributes(any(SetQueueAttributesRequest.class));
+    verify(sns, times(1)).subscribe(any(SubscribeRequest.class));
   }
 
   AmazonPubsubProperties.AmazonPubsubSubscription subscription() {
@@ -186,38 +185,39 @@ public class SQSSubscriberTest {
     return subscription;
   }
 
-  AmazonSQS amazonSQS() {
-    Message msg = spy(new Message());
+  SqsClient sqsClient() {
+    Message msg = Message.builder().messageId("msg-1").receiptHandle("handle-1").body("{}").build();
 
-    GetQueueUrlResult getQueueUrlResult = spy(new GetQueueUrlResult());
-    doReturn("https://queueUrl").when(getQueueUrlResult).getQueueUrl();
+    GetQueueUrlResponse getQueueUrlResponse =
+        GetQueueUrlResponse.builder().queueUrl("https://queueUrl").build();
 
-    ReceiveMessageResult receiveMessageResult = spy(ReceiveMessageResult.class);
-    doReturn(List.of(msg)).when(receiveMessageResult).getMessages();
+    ReceiveMessageResponse receiveMessageResponse =
+        ReceiveMessageResponse.builder().messages(List.of(msg)).build();
 
-    AmazonSQS SQS = spy(AmazonSQS.class);
-    doReturn(getQueueUrlResult).when(SQS).getQueueUrl(any(GetQueueUrlRequest.class));
-    doReturn(receiveMessageResult).when(SQS).receiveMessage(any(ReceiveMessageRequest.class));
+    SqsClient sqsClient = mock(SqsClient.class);
+    doReturn(getQueueUrlResponse).when(sqsClient).getQueueUrl(any(Consumer.class));
+    doReturn(receiveMessageResponse)
+        .when(sqsClient)
+        .receiveMessage(any(ReceiveMessageRequest.class));
 
-    return SQS;
+    return sqsClient;
   }
 
-  AmazonSNS amazonSNS() {
-    SubscribeResult subscribeResult = spy(new SubscribeResult());
-    doReturn("arn:aws:sqs:us-east-2:123456789012:MySubscription")
-        .when(subscribeResult)
-        .getSubscriptionArn();
+  SnsClient snsClient() {
+    SubscribeResponse subscribeResponse =
+        SubscribeResponse.builder()
+            .subscriptionArn("arn:aws:sqs:us-east-2:123456789012:MySubscription")
+            .build();
 
-    AmazonSNS SNS = spy(AmazonSNS.class);
-    doReturn(subscribeResult).when(SNS).subscribe(anyString(), anyString(), anyString());
+    SnsClient snsClient = mock(SnsClient.class);
+    doReturn(subscribeResponse).when(snsClient).subscribe(any(SubscribeRequest.class));
 
-    return SNS;
+    return snsClient;
   }
 
-  Supplier enableOnce() {
-    Supplier sup = spy(Supplier.class);
+  Supplier<Boolean> enableOnce() {
+    Supplier<Boolean> sup = spy(Supplier.class);
     doReturn(true, false).when(sup).get();
-
     return sup;
   }
 }
