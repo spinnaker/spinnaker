@@ -184,7 +184,7 @@ public class ContainerInformationService {
   private String getPlatformHealthStateFromTargetGroup(EcsTargetHealth targetHealth) {
     Set<String> statuses =
         targetHealth.getTargetHealthDescriptions().stream()
-            .map(tg -> tg.getTargetHealth().getState())
+            .map(tg -> tg.targetHealth().stateAsString())
             .collect(Collectors.toSet());
 
     for (String status : statuses) {
