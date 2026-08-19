@@ -1,8 +1,8 @@
 /**
  * Per-provider hints shown alongside the unified query template editor (see
  * `metricQueryTemplateEditor.tsx`), telling the user which `${variable}` bindings are implicitly
- * available for that provider's `customInlineTemplate`/`customFilterTemplate`, plus a short
- * illustrative (not necessarily byte-perfect) example query.
+ * available for that provider's `query.template`, plus a short illustrative (not necessarily
+ * byte-perfect) example query.
  *
  * These come from each provider's backend `*MetricsService.java` (or equivalent) call to
  * `QueryConfigUtils.expandCustomFilter(canaryConfig, queryConfig, canaryScope, baseScopeAttributes)`

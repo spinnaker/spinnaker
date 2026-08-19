@@ -61,9 +61,7 @@ function PrometheusMetricConfigurer({
   validationErrors,
   clearTemplateState: onClearTemplateState,
 }: IPrometheusMetricConfigurerStateProps & IPrometheusMetricConfigurerDispatchProps) {
-  const hasTemplateData = Boolean(
-    get(editingMetric, 'query.customInlineTemplate') || get(editingMetric, 'query.customFilterTemplate'),
-  );
+  const hasTemplateData = Boolean(get(editingMetric, 'query.template'));
   const hasGuidedData = Boolean(get(editingMetric, 'query.metricName'));
   const [mode, setMode] = useMetricConfigMode(editingMetric.id, hasTemplateData, hasGuidedData);
 

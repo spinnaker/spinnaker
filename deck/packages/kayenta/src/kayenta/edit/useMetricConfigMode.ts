@@ -57,15 +57,13 @@ export function useMetricConfigMode(
 }
 
 /**
- * Clears all template-related state for the metric being edited. Dispatched whenever the mode
- * toggle changes (in either direction), mirroring Prometheus's pre-existing `queryType` toggle
- * behavior: guided fields are left untouched on switch (backend query builders already prefer a
- * populated template over guided fields, and preserving guided input means nothing is lost if the
- * user switches back), but stale template data is always cleared so it can't shadow fresh guided
- * input after switching to Guided.
+ * Clears the metric's template text. Dispatched whenever the mode toggle changes (in either
+ * direction), mirroring Prometheus's pre-existing `queryType` toggle behavior: guided fields are
+ * left untouched on switch (backend query builders already prefer a populated template over
+ * guided fields, and preserving guided input means nothing is lost if the user switches back),
+ * but stale template data is always cleared so it can't shadow fresh guided input after switching
+ * to Guided.
  */
 export function clearTemplateState(dispatch: Dispatch<any>): void {
-  dispatch(Creators.editTemplateCancel());
-  dispatch(Creators.selectTemplate({ name: null }));
   dispatch(Creators.editInlineTemplate({ value: '' }));
 }

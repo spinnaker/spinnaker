@@ -18,11 +18,10 @@ import Styleguide from '../layout/styleguide';
 import MetricConfigurerDelegator from './metricConfigurerDelegator';
 import type { ICanaryState } from '../reducers';
 import { editingMetricValidationErrorsSelector } from '../selectors';
-import { isTemplateValidSelector } from '../selectors/filterTemplatesSelectors';
 
 import './editMetricModal.less';
 
-interface IEditMetricModalDispatchProps {
+export interface IEditMetricModalDispatchProps {
   rename: (event: any) => void;
   changeGroup: (event: any) => void;
   updateDirection: (event: any) => void;
@@ -34,10 +33,9 @@ interface IEditMetricModalDispatchProps {
   cancel: () => void;
 }
 
-interface IEditMetricModalStateProps {
+export interface IEditMetricModalStateProps {
   metric: ICanaryMetricConfig;
   groups: string[];
-  isTemplateValid: boolean;
   disableEdit: boolean;
   validationErrors: ICanaryMetricValidationErrors;
 }
@@ -52,7 +50,6 @@ function EditMetricModal({
   groups,
   confirm,
   cancel,
-  isTemplateValid,
   updateDirection,
   updateNanStrategy,
   updateOutlierStrategy,
@@ -71,10 +68,7 @@ function EditMetricModal({
   const critical = metric.analysisConfigurations?.canary?.critical ?? false;
   const dataRequired = metric.analysisConfigurations?.canary?.mustHaveData ?? false;
   const isConfirmDisabled =
-    !isTemplateValid ||
-    disableEdit ||
-    CanarySettings.disableConfigEdit ||
-    values(validationErrors).some((e) => !isNull(e));
+    disableEdit || CanarySettings.disableConfigEdit || values(validationErrors).some((e) => !isNull(e));
 
   const metricGroup = metric.groups.length ? metric.groups[0] : groups[0];
   return (
@@ -244,11 +238,9 @@ function mapDispatchToProps(dispatch: any): IEditMetricModalDispatchProps {
     },
     cancel: () => {
       dispatch(Creators.editMetricCancel());
-      dispatch(Creators.editTemplateCancel());
     },
     confirm: () => {
       dispatch(Creators.editMetricConfirm());
-      dispatch(Creators.editTemplateCancel());
     },
     updateDirection: ({ target }: React.ChangeEvent<HTMLInputElement>) => {
       dispatch(Creators.updateMetricDirection({ id: target.dataset.id, direction: target.value }));
@@ -272,7 +264,6 @@ function mapStateToProps(state: ICanaryState): IEditMetricModalStateProps {
   return {
     metric: state.selectedConfig.editingMetric,
     groups: state.selectedConfig.group.list.sort(),
-    isTemplateValid: isTemplateValidSelector(state),
     disableEdit: state.app.disableConfigEdit || CanarySettings.disableConfigEdit,
     validationErrors: editingMetricValidationErrorsSelector(state),
   };

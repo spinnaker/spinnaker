@@ -3,8 +3,8 @@ import { Provider } from 'react-redux';
 import { createStore } from 'redux';
 
 import { KayentaAccountType } from '../domain';
-import '../metricStore';
 import EditMetricModal from './editMetricModal';
+import '../metricStore';
 
 export default { component: EditMetricModal, title: 'Kayenta/Edit Metric Modal' };
 
@@ -21,12 +21,11 @@ const baseState = {
         },
       ],
     },
-    metricsServiceMetadata: { data: [] },
+    metricsServiceMetadata: { data: [] as any[] },
   },
   selectedConfig: {
     editingMetric: null as any,
-    editingTemplate: {},
-    config: { templates: {} as { [key: string]: string } },
+    config: {},
     group: { list: ['Group 1', 'Group 2'] },
     metricList: [] as any[],
   },
@@ -39,7 +38,7 @@ function buildStore(overrides: any) {
     selectedConfig: { ...baseState.selectedConfig, ...(overrides.selectedConfig || {}) },
   };
   const store = createStore(() => state);
-  store.dispatch = (() => undefined) as any;
+  store.dispatch = ((): undefined => undefined) as any;
   return store;
 }
 
@@ -91,7 +90,7 @@ export const PrometheusExistingGuidedConfig = () => {
   );
 };
 
-export const StackdriverTemplateWithSavedTemplates = () => {
+export const StackdriverTemplateExample = () => {
   const store = buildStore({
     selectedConfig: {
       editingMetric: {
@@ -100,13 +99,8 @@ export const StackdriverTemplateWithSavedTemplates = () => {
         query: {
           type: 'stackdriver',
           serviceType: 'stackdriver',
-          customInlineTemplate:
+          template:
             'metric.type="compute.googleapis.com/instance/cpu/utilization" AND resource.type="${resourceType}" AND resource.label.project_id="${project}"',
-        },
-      },
-      config: {
-        templates: {
-          'standard-scope-filter': 'resource.label.project_id="${project}" AND resource.type="${resourceType}"',
         },
       },
     },
@@ -127,7 +121,8 @@ export const InfluxDbTemplateOnlyProvider = () => {
         query: {
           type: 'influxdb',
           serviceType: 'influxdb',
-          customInlineTemplate: 'SELECT mean("value") FROM "disk_reads" WHERE ${timeFilter} AND "host" = \'${scope}\' GROUP BY time(${step})',
+          template:
+            'SELECT mean("value") FROM "disk_reads" WHERE ${timeFilter} AND "host" = \'${scope}\' GROUP BY time(${step})',
         },
       },
     },

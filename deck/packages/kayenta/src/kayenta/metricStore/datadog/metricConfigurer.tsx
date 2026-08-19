@@ -40,9 +40,7 @@ function DatadogMetricConfigurer({
   clearTemplateState: onClearTemplateState,
   editingMetric,
 }: DatadogMetricConfigurerProps) {
-  const hasTemplateData = Boolean(
-    get(editingMetric, 'query.customInlineTemplate') || get(editingMetric, 'query.customFilterTemplate'),
-  );
+  const hasTemplateData = Boolean(get(editingMetric, 'query.template'));
   const hasGuidedData = Boolean(nameFinder(editingMetric));
   const [mode, setMode] = useMetricConfigMode(editingMetric.id, hasTemplateData, hasGuidedData);
 

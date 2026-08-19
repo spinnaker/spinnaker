@@ -138,9 +138,7 @@ function SignalFxModeSection(props: {
     onMetricNameChange,
     onAggregationMethodChange,
   } = props;
-  const hasTemplateData = Boolean(
-    get(editingMetric, 'query.customInlineTemplate') || get(editingMetric, 'query.customFilterTemplate'),
-  );
+  const hasTemplateData = Boolean(get(editingMetric, 'query.template'));
   const hasGuidedData = Boolean(
     getSignalFxMetric(editingMetric) || getAggregationMethod(editingMetric) || getQueryPairs(editingMetric).length,
   );

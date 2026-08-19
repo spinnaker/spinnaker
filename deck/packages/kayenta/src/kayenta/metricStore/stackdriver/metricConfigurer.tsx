@@ -96,9 +96,7 @@ function StackdriverMetricConfigurer({
   updateStackdriverQueryField,
   clearTemplateState: onClearTemplateState,
 }: IStackdriverMetricConfigurerStateProps & IStackdriverMetricConfigurerDispatchProps) {
-  const hasTemplateData = Boolean(
-    get(editingMetric, 'query.customInlineTemplate') || get(editingMetric, 'query.customFilterTemplate'),
-  );
+  const hasTemplateData = Boolean(get(editingMetric, 'query.template'));
   const hasGuidedData = Boolean(get(editingMetric, 'query.metricType'));
   const [mode, setMode] = useMetricConfigMode(editingMetric.id, hasTemplateData, hasGuidedData);
 
