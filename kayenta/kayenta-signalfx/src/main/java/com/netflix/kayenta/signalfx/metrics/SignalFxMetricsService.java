@@ -17,8 +17,8 @@
 
 package com.netflix.kayenta.signalfx.metrics;
 
-import static com.signalfx.signalflow.ChannelMessage.Type.DATA_MESSAGE;
-import static com.signalfx.signalflow.ChannelMessage.Type.ERROR_MESSAGE;
+import static com.netflix.kayenta.signalfx.service.signalflow.SignalFlowMessage.Type.DATA_MESSAGE;
+import static com.netflix.kayenta.signalfx.service.signalflow.SignalFlowMessage.Type.ERROR_MESSAGE;
 
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
@@ -35,8 +35,8 @@ import com.netflix.kayenta.signalfx.service.ErrorResponse;
 import com.netflix.kayenta.signalfx.service.SignalFlowExecutionResult;
 import com.netflix.kayenta.signalfx.service.SignalFxRequestError;
 import com.netflix.kayenta.signalfx.service.SignalFxSignalFlowRemoteService;
+import com.netflix.kayenta.signalfx.service.signalflow.SignalFlowMessage;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
-import com.signalfx.signalflow.ChannelMessage;
 import jakarta.validation.constraints.NotNull;
 import java.time.Duration;
 import java.time.Instant;
@@ -161,13 +161,13 @@ public class SignalFxMetricsService implements MetricsService {
         immediate,
         program);
 
-    LinkedList<ChannelMessage.DataMessage> dataMessages =
+    LinkedList<SignalFlowMessage.DataMessage> dataMessages =
         extractDataMessages(signalFlowExecutionResult);
 
-    ChannelMessage.DataMessage firstDataPoint =
+    SignalFlowMessage.DataMessage firstDataPoint =
         dataMessages.size() > 0 ? dataMessages.getFirst() : null;
 
-    ChannelMessage.DataMessage lastDataPoint =
+    SignalFlowMessage.DataMessage lastDataPoint =
         dataMessages.size() > 0 ? dataMessages.getLast() : null;
 
     // Return a Metric set of the reduced and aggregated data
@@ -212,17 +212,17 @@ public class SignalFxMetricsService implements MetricsService {
    * @param signalFlowExecutionResult The SignalFlow program results.
    * @return An linked list of the data points from the result.
    */
-  private LinkedList<ChannelMessage.DataMessage> extractDataMessages(
+  private LinkedList<SignalFlowMessage.DataMessage> extractDataMessages(
       SignalFlowExecutionResult signalFlowExecutionResult) {
     return signalFlowExecutionResult.getChannelMessages().parallelStream()
         .filter(channelMessage -> channelMessage.getType().equals(DATA_MESSAGE))
-        .map((message) -> (ChannelMessage.DataMessage) message)
+        .map((message) -> (SignalFlowMessage.DataMessage) message)
         .collect(Collectors.toCollection(LinkedList::new));
   }
 
   /** Parses the channel messages and the first error if present. */
   private void validateResults(
-      List<ChannelMessage> channelMessages,
+      List<SignalFlowMessage> channelMessages,
       String account,
       long startEpochMilli,
       long endEpochMilli,
@@ -258,7 +258,7 @@ public class SignalFxMetricsService implements MetricsService {
    * @return The list of values with missing data filled with NaNs
    */
   protected List<Double> getTimeSeriesDataFromDataMessages(
-      List<ChannelMessage.DataMessage> dataMessages) {
+      List<SignalFlowMessage.DataMessage> dataMessages) {
     return dataMessages.stream()
         .map(
             message -> {
