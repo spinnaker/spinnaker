@@ -28,7 +28,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.function.Function;
 import okhttp3.OkHttpClient;
 import org.apache.commons.io.Charsets;
@@ -102,20 +101,39 @@ class GitlabArtifactCredentialsTest {
   }
 
   @Test
-  void obeyRestrictionsWhenSet() throws IOException {
-    // explicitly deny the test server we're hitting.
+  void obeyRestrictionsWhenSet(@WiremockResolver.Wiremock WireMockServer server)
+      throws IOException {
     GitlabArtifactAccount account =
         GitlabArtifactAccount.builder()
             .urlRestrictions(
-                HttpUrlRestrictions.builder().allowedDomains(List.of("example.com")).build())
+                HttpUrlRestrictions.builder()
+                    .allowedHostnamesRegex("localhost|127\\.0\\.0\\.1")
+                    .rejectLocalhost(false)
+                    .build())
             .name("my-gitlab-account")
             .build();
     GitlabArtifactCredentials credentials = new GitlabArtifactCredentials(account, okHttpClient);
-    assertThat(credentials.download(Artifact.builder().reference("http://example.com").build()))
+
+    server.stubFor(
+        any(urlPathEqualTo(DOWNLOAD_PATH))
+            .willReturn(aResponse().withStatus(200).withBody(FILE_CONTENTS)));
+
+    assertThat(
+            credentials.download(
+                Artifact.builder()
+                    .reference(server.baseUrl() + DOWNLOAD_PATH)
+                    .type("gitlab/file")
+                    .build()))
         .isNotNull();
+
     Assertions.assertThrows(
         IllegalArgumentException.class,
-        () -> credentials.download(Artifact.builder().reference("http://google.com").build()));
+        () ->
+            credentials.download(
+                Artifact.builder()
+                    .reference("http://example.com/artifact")
+                    .type("gitlab/file")
+                    .build()));
   }
 
   private void runTestCase(
