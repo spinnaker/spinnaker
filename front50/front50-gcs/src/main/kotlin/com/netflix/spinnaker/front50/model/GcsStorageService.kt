@@ -41,6 +41,13 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import jakarta.annotation.PostConstruct
 
+/**
+ * GCS-backed Front50 metadata storage.
+ *
+ * @deprecated Front50 is moving to SQL-only persistence. Remains available through Spinnaker
+ * 2027.0.0; scheduled for removal afterward. Prefer SqlStorageService.
+ */
+@Deprecated("Front50 GCS metadata storage is deprecated; migrate to SQL. Removal after 2027.0.0.")
 class GcsStorageService(
   private val storage: Storage,
   private val bucketName: String,

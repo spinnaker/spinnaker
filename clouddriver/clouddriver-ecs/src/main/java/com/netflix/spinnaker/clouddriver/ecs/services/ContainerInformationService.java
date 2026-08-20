@@ -19,7 +19,6 @@ package com.netflix.spinnaker.clouddriver.ecs.services;
 import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ecs.model.ContainerDefinition;
 import com.amazonaws.services.ecs.model.LoadBalancer;
-import com.amazonaws.services.ecs.model.NetworkBinding;
 import com.amazonaws.services.ecs.model.TaskDefinition;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.ContainerInstanceCacheClient;
@@ -43,6 +42,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import software.amazon.awssdk.services.ecs.model.NetworkBinding;
 
 @Component
 public class ContainerInformationService {
@@ -184,7 +184,7 @@ public class ContainerInformationService {
   private String getPlatformHealthStateFromTargetGroup(EcsTargetHealth targetHealth) {
     Set<String> statuses =
         targetHealth.getTargetHealthDescriptions().stream()
-            .map(tg -> tg.getTargetHealth().getState())
+            .map(tg -> tg.targetHealth().stateAsString())
             .collect(Collectors.toSet());
 
     for (String status : statuses) {
@@ -229,7 +229,7 @@ public class ContainerInformationService {
       hostPort = getAddressHostPortForMultipleContainers(task);
     } else {
       try {
-        hostPort = task.getContainers().get(0).getNetworkBindings().get(0).getHostPort();
+        hostPort = task.getContainers().get(0).networkBindings().get(0).hostPort();
       } catch (Exception e) {
         hostPort = -1;
       }
@@ -300,11 +300,11 @@ public class ContainerInformationService {
     task.getContainers()
         .forEach(
             (c) -> {
-              List<NetworkBinding> networkBindings = c.getNetworkBindings();
+              List<NetworkBinding> networkBindings = c.networkBindings();
               networkBindings.forEach(
                   (b) -> {
-                    if (b.getHostPort() != null) {
-                      hostPorts.add(b.getHostPort());
+                    if (b.hostPort() != null) {
+                      hostPorts.add(b.hostPort());
                     }
                   });
             });

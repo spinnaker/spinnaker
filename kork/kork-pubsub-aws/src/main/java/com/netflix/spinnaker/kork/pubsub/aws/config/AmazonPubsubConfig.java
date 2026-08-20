@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.kork.pubsub.aws.config;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.aws.bastion.BastionConfig;
 import com.netflix.spinnaker.kork.core.RetrySupport;
@@ -37,6 +36,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 
 @Configuration
 @ConditionalOnProperty({"pubsub.enabled", "pubsub.amazon.enabled"})
@@ -55,7 +55,7 @@ public class AmazonPubsubConfig {
 
   @Bean
   SQSSubscriberProvider subscriberProvider(
-      AWSCredentialsProvider awsCredentialsProvider,
+      AwsCredentialsProvider awsCredentialsProvider,
       AmazonPubsubProperties properties,
       PubsubSubscribers subscribers,
       AmazonPubsubMessageHandlerFactory messageHandlerFactory,
@@ -76,7 +76,7 @@ public class AmazonPubsubConfig {
 
   @Bean
   SNSPublisherProvider publisherProvider(
-      AWSCredentialsProvider awsCredentialsProvider,
+      AwsCredentialsProvider awsCredentialsProvider,
       AmazonPubsubProperties properties,
       PubsubPublishers pubsubPublishers,
       Registry registry,

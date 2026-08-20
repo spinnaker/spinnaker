@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -515,6 +516,33 @@ final class HelmfileTemplateUtilsTest {
   }
 
   @Test
+  public void buildBakeRecipeRejectsEnvironmentWithInvalidCharacters() throws IOException {
+    ArtifactDownloader artifactDownloader = mock(ArtifactDownloader.class);
+    RoscoHelmfileConfigurationProperties helmfileConfigurationProperties =
+        new RoscoHelmfileConfigurationProperties();
+    HelmfileTemplateUtils helmfileTemplateUtils =
+        new HelmfileTemplateUtils(
+            artifactDownloader,
+            Optional.empty(),
+            artifactStoreConfig,
+            helmfileConfigurationProperties);
+
+    HelmfileBakeManifestRequest request = new HelmfileBakeManifestRequest();
+    Artifact artifact = Artifact.builder().build();
+    request.setEnvironment("prod; rm -rf /");
+    request.setInputArtifacts(Collections.singletonList(artifact));
+    request.setOverrides(Collections.emptyMap());
+
+    try (BakeManifestEnvironment env = BakeManifestEnvironment.create()) {
+      IllegalArgumentException thrown =
+          assertThrows(
+              IllegalArgumentException.class,
+              () -> helmfileTemplateUtils.buildBakeRecipe(env, request));
+      assertThat(thrown.getMessage()).contains("environment");
+    }
+  }
+
+  @Test
   public void buildBakeRecipeDoesNotIncludeEnvironmentWhenNotSet() throws IOException {
     ArtifactDownloader artifactDownloader = mock(ArtifactDownloader.class);
     RoscoHelmfileConfigurationProperties helmfileConfigurationProperties =
@@ -562,6 +590,33 @@ final class HelmfileTemplateUtilsTest {
       assertTrue(recipe.getCommand().contains(namespaceName));
       // Assert that the flag position goes after 'helmfile template' subcommand
       assertTrue(recipe.getCommand().indexOf("--namespace") > 1);
+    }
+  }
+
+  @Test
+  public void buildBakeRecipeRejectsNamespaceWithInvalidCharacters() throws IOException {
+    ArtifactDownloader artifactDownloader = mock(ArtifactDownloader.class);
+    RoscoHelmfileConfigurationProperties helmfileConfigurationProperties =
+        new RoscoHelmfileConfigurationProperties();
+    HelmfileTemplateUtils helmfileTemplateUtils =
+        new HelmfileTemplateUtils(
+            artifactDownloader,
+            Optional.empty(),
+            artifactStoreConfig,
+            helmfileConfigurationProperties);
+
+    HelmfileBakeManifestRequest request = new HelmfileBakeManifestRequest();
+    Artifact artifact = Artifact.builder().build();
+    request.setNamespace("--kubeconfig=/etc/passwd");
+    request.setInputArtifacts(Collections.singletonList(artifact));
+    request.setOverrides(Collections.emptyMap());
+
+    try (BakeManifestEnvironment env = BakeManifestEnvironment.create()) {
+      IllegalArgumentException thrown =
+          assertThrows(
+              IllegalArgumentException.class,
+              () -> helmfileTemplateUtils.buildBakeRecipe(env, request));
+      assertThat(thrown.getMessage()).contains("namespace");
     }
   }
 
@@ -735,6 +790,111 @@ final class HelmfileTemplateUtilsTest {
           assertFalse(path.startsWith("-"), "Path to values file must be provided");
         }
       }
+    }
+  }
+
+  @Test
+  public void buildBakeRecipeIncludesStateValuesFileWhenSet() throws IOException {
+    ArtifactDownloader artifactDownloader = mock(ArtifactDownloader.class);
+    RoscoHelmfileConfigurationProperties helmfileConfigurationProperties =
+        new RoscoHelmfileConfigurationProperties();
+    HelmfileTemplateUtils helmfileTemplateUtils =
+        new HelmfileTemplateUtils(
+            artifactDownloader,
+            Optional.empty(),
+            artifactStoreConfig,
+            helmfileConfigurationProperties);
+
+    HelmfileBakeManifestRequest request = new HelmfileBakeManifestRequest();
+    Artifact artifact = Artifact.builder().build();
+    Artifact stateValuesArtifact = Artifact.builder().build();
+    Artifact stateValuesArtifact2 = Artifact.builder().build();
+    request.setInputArtifacts(Collections.singletonList(artifact));
+    request.setStateValuesArtifacts(ImmutableList.of(stateValuesArtifact, stateValuesArtifact2));
+    request.setOverrides(Collections.emptyMap());
+
+    try (BakeManifestEnvironment env = BakeManifestEnvironment.create()) {
+      BakeRecipe recipe = helmfileTemplateUtils.buildBakeRecipe(env, request);
+      assertTrue(recipe.getCommand().contains("--state-values-file"));
+      // Assert that the flag position goes after 'helmfile template' subcommand
+      assertTrue(recipe.getCommand().indexOf("--state-values-file") > 1);
+      // Assert that a --state-values-file flag is present for each state values artifact
+      assertEquals(
+          2,
+          (int)
+              recipe.getCommand().stream()
+                  .filter(arg -> arg.equals("--state-values-file"))
+                  .count());
+
+      // Verify each '--state-values-file' flag is followed by a path to a file
+      for (int i = 0; i < recipe.getCommand().size(); i++) {
+        if ("--state-values-file".equals(recipe.getCommand().get(i))) {
+          int nextIdx = i + 1;
+          assertTrue(
+              nextIdx < recipe.getCommand().size(), "Missing path after --state-values-file");
+          String path = recipe.getCommand().get(nextIdx);
+          assertFalse(path.isEmpty(), "State values file path should not be empty");
+          assertFalse(path.startsWith("-"), "Path to state values file must be provided");
+        }
+      }
+    }
+  }
+
+  @Test
+  public void buildBakeRecipeDoesNotIncludeStateValuesFileWhenNotSet() throws IOException {
+    ArtifactDownloader artifactDownloader = mock(ArtifactDownloader.class);
+    RoscoHelmfileConfigurationProperties helmfileConfigurationProperties =
+        new RoscoHelmfileConfigurationProperties();
+    HelmfileTemplateUtils helmfileTemplateUtils =
+        new HelmfileTemplateUtils(
+            artifactDownloader,
+            Optional.empty(),
+            artifactStoreConfig,
+            helmfileConfigurationProperties);
+
+    HelmfileBakeManifestRequest request = new HelmfileBakeManifestRequest();
+    Artifact artifact = Artifact.builder().build();
+    request.setInputArtifacts(Collections.singletonList(artifact));
+    request.setOverrides(Collections.emptyMap());
+
+    try (BakeManifestEnvironment env = BakeManifestEnvironment.create()) {
+      BakeRecipe recipe = helmfileTemplateUtils.buildBakeRecipe(env, request);
+      assertFalse(recipe.getCommand().contains("--state-values-file"));
+    }
+  }
+
+  @Test
+  public void buildBakeRecipeStateValuesFileDownloadFailureIsWrapped() throws IOException {
+    ArtifactDownloader artifactDownloader = mock(ArtifactDownloader.class);
+    RoscoHelmfileConfigurationProperties helmfileConfigurationProperties =
+        new RoscoHelmfileConfigurationProperties();
+    HelmfileTemplateUtils helmfileTemplateUtils =
+        new HelmfileTemplateUtils(
+            artifactDownloader,
+            Optional.empty(),
+            artifactStoreConfig,
+            helmfileConfigurationProperties);
+
+    HelmfileBakeManifestRequest request = new HelmfileBakeManifestRequest();
+    Artifact artifact = Artifact.builder().name("template-artifact").build();
+    Artifact stateValuesArtifact = Artifact.builder().name("state-values-artifact").build();
+    request.setInputArtifacts(Collections.singletonList(artifact));
+    request.setStateValuesArtifacts(ImmutableList.of(stateValuesArtifact));
+    request.setOverrides(Collections.emptyMap());
+
+    SpinnakerException spinnakerException = new SpinnakerException("error from ArtifactDownloader");
+    doThrow(spinnakerException)
+        .when(artifactDownloader)
+        .downloadArtifactToFile(eq(stateValuesArtifact), any(Path.class));
+
+    try (BakeManifestEnvironment env = BakeManifestEnvironment.create()) {
+      IllegalStateException thrown =
+          assertThrows(
+              IllegalStateException.class,
+              () -> helmfileTemplateUtils.buildBakeRecipe(env, request));
+
+      assertThat(thrown.getMessage()).contains("Failed to fetch helmfile state values file");
+      assertThat(thrown.getCause()).isEqualTo(spinnakerException);
     }
   }
 

@@ -1143,10 +1143,13 @@ class SqlCache(
               .innerJoin(table(sqlNames.relTableName(type)).`as`("rel"))
               .on(sql("rel.id=r.id"))
               .where(relWhere)
+              // Columns must be qualified with the `rel` alias: both `r` and `rel` expose an `id`
+              // column, and postgres resolves group by names against input columns before output
+              // aliases, so unqualified names fail with "column reference is ambiguous".
               .groupBy(
-                field("rel_id"),
-                field("id"),
-                field("rel_type")
+                field("rel.rel_id"),
+                field("rel.id"),
+                field("rel.rel_type")
               )
           )
           .fetch()
