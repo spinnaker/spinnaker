@@ -35,8 +35,11 @@ public abstract class BaseHttpArtifactCredentials<T extends UserInputValidatedAr
   @Getter @VisibleForTesting @JsonIgnore private final T account;
 
   protected BaseHttpArtifactCredentials(OkHttpClient okHttpClient, T account) {
-    this.okHttpClient = okHttpClient;
     this.account = account;
+    // Disable automatic redirects to prevent SSRF via unvalidated redirect chains.
+    // We manually follow redirects, validating each Location header when restrictions are set.
+    this.okHttpClient =
+        okHttpClient.newBuilder().followRedirects(false).followSslRedirects(false).build();
   }
 
   private Optional<String> getAuthHeader(ArtifactAccount account) {
@@ -85,13 +88,63 @@ public abstract class BaseHttpArtifactCredentials<T extends UserInputValidatedAr
   }
 
   protected ResponseBody fetchUrl(HttpUrl url) throws IOException {
-    Request request = new Request.Builder().headers(getHeaders(account)).url(url).build();
-    Response downloadResponse = okHttpClient.newCall(request).execute();
-    if (!downloadResponse.isSuccessful()) {
-      downloadResponse.body().close();
-      throw new IOException(
-          String.format("Received %d status code from %s", downloadResponse.code(), url.host()));
+    HttpUrl currentUrl = url;
+    int redirectCount = 0;
+    int maxRedirects = 10; // Match OkHttp's default redirect limit
+    HttpUrl originalHost = url;
+
+    while (redirectCount < maxRedirects) {
+      // Only send auth headers to the original host; strip them on cross-host redirects
+      // to prevent credential leakage to attacker-controlled redirect targets
+      Headers headers =
+          currentUrl.host().equals(originalHost.host())
+              ? getHeaders(account)
+              : new Headers.Builder().build();
+      Request request = new Request.Builder().headers(headers).url(currentUrl).build();
+      Response response = okHttpClient.newCall(request).execute();
+
+      // Handle redirects manually with validation at each hop
+      if (response.isRedirect()) {
+        String location = response.header("Location");
+        response.body().close();
+
+        if (location == null || location.trim().isEmpty()) {
+          throw new IOException(
+              String.format(
+                  "Received redirect (%d) from %s with no Location header",
+                  response.code(), currentUrl));
+        }
+
+        // Resolve relative redirects against the current URL
+        HttpUrl redirectUrl = currentUrl.resolve(location);
+        if (redirectUrl == null) {
+          throw new IOException(
+              String.format("Invalid redirect Location header: %s from %s", location, currentUrl));
+        }
+
+        // Re-validate the redirect target against URL restrictions when configured.
+        // This prevents SSRF attacks where an attacker controls an allowed external host
+        // that redirects to internal endpoints (e.g., cloud metadata servers).
+        if (account.getUrlRestrictions() != null) {
+          account.getUrlRestrictions().validateURI(redirectUrl);
+        }
+
+        currentUrl = redirectUrl;
+        redirectCount++;
+        continue;
+      }
+
+      // Non-redirect response
+      if (!response.isSuccessful()) {
+        response.body().close();
+        throw new IOException(
+            String.format("Received %d status code from %s", response.code(), currentUrl.host()));
+      }
+
+      return response.body();
     }
-    return downloadResponse.body();
+
+    throw new IOException(
+        String.format("Too many redirects (>%d) following %s", maxRedirects, url));
   }
 }
