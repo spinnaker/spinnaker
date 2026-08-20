@@ -19,6 +19,9 @@ spec:
             - tail
             - -f
             - /dev/null
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65534
           volumeMounts:
             - mountPath: /tmp/mounted
               name: mounted

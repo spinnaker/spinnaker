@@ -48,6 +48,13 @@ import java.util.function.Supplier;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
+/**
+ * Oracle Object Storage-backed Front50 metadata storage.
+ *
+ * @deprecated Front50 is moving to SQL-only persistence. Remains available through Spinnaker
+ *     2027.0.0; scheduled for removal afterward. Prefer SQL.
+ */
+@Deprecated
 public class OracleStorageService implements StorageService {
 
   private final Client client;
