@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 import org.springaicommunity.mcp.annotation.McpTool;
 import org.springaicommunity.mcp.annotation.McpToolParam;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PostFilter;
 
 /**
  * MCP tools for listing and managing Spinnaker applications. {@code list_applications}/{@code
@@ -36,6 +37,13 @@ import org.springframework.http.HttpStatus;
  * metadata); {@code create_application}/{@code delete_application} submit the same Orca job types
  * ({@code createApplication}/{@code deleteApplication}) that Deck submits (see {@link
  * OrchestrationJobs}).
+ *
+ * <p>{@code list_applications} calls front50's {@code ?restricted=false} endpoint (the same one
+ * {@code ApplicationController.getAllApplicationsUnrestricted} in gate-web uses) so it can apply
+ * its own {@code owner} filter across every application, then narrows the result with
+ * {@code @PostFilter} to mirror the {@code @PostFilter} front50 itself applies on its restricted
+ * list endpoint - required because gate-mcp cannot depend on gate-web's controller layer that would
+ * otherwise do this filtering.
  */
 public class ApplicationTools {
 
@@ -51,6 +59,7 @@ public class ApplicationTools {
       name = "list_applications",
       description =
           "List Spinnaker applications visible to the caller, optionally filtered by owner email.")
+  @PostFilter("hasPermission(filterObject.get('name'), 'APPLICATION', 'READ')")
   @SuppressWarnings("unchecked")
   public List<Map<String, Object>> listApplications(
       @McpToolParam(

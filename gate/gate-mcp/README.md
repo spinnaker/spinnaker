@@ -159,11 +159,50 @@ controls used when a rollout is stuck.
   `Front50Service`, `KayentaService`, `KeelService`, `TaskService`) that those gate-web classes
   themselves wrap. `KayentaService` was moved from gate-web to gate-core to make this possible
   (alongside `OrcaService`/`ClouddriverService`/`Front50Service`/`EchoService`/`KeelService`, which
-  already lived there) without duplicating a second Retrofit client. Gate's authentication is still
-  fully inherited, since it's enforced by a servlet filter chain in front of every endpoint, not
-  per-controller logic; the one documented gap is `ApplicationController.getAllApplications`'s
-  `@PostFilter` permission expression in gate-web, which `list_applications` here doesn't have
-  (front50/clouddriver still scope results by the caller's identity server-side).
+  already lived there) without duplicating a second Retrofit client. Gate's *authentication* is
+  still fully inherited (enforced by a servlet filter chain in front of every endpoint, including
+  the MCP transport), but *authorization* is a different story: bypassing gate-web's controllers
+  also bypasses whatever `@PreAuthorize`/`@PostFilter` Fiat checks live on those controllers
+  specifically, as opposed to on the downstream service each controller calls. Every tool in this
+  module was individually audited against its downstream service's own authorization behavior:
+  - **front50, orca, clouddriver, and keel-web all self-enforce Fiat checks** on the endpoints
+    these tools call, independent of which client calls them (identity propagates from Gate's
+    request filter chain through to these services via the standard `X-SPINNAKER-USER`/allowed-
+    accounts headers, so a downstream `@PreAuthorize`/`@PostFilter` evaluates against the real
+    calling user). This covers `get_application`, `create_application`/`delete_application`,
+    `search_infrastructure`/`search_all_types`, `submit_orchestration` and every typed deploy/LB
+    tool, `get_clusters`/`get_server_groups`/`get_load_balancers`, all of `PipelineTools`/
+    `ExecutionTools`/`ManualJudgmentTools`/`TaskTools` (backed by orca's `TaskController`),
+    `PipelineConfigTools` (backed by front50's `PipelineController`), all of `KeelTools` (keel-web
+    checks permissions explicitly via `AuthorizationSupport` on every controller), and
+    `SpinnakerResources`.
+  - **`list_applications` was a genuine, gate-mcp-specific bypass and has been fixed.** It called
+    front50's `?restricted=false` endpoint (`Front50Service.getAllApplicationsUnrestricted`) -
+    the same escape hatch gate-web's own `ApplicationController.getAllApplications` uses, but
+    gate-web immediately re-applies the missing check with its own
+    `@PostFilter("hasPermission(filterObject.name, 'APPLICATION', 'READ')")`. Since gate-mcp can't
+    reuse that controller, the method now carries the equivalent
+    `@PostFilter("hasPermission(filterObject.get('name'), 'APPLICATION', 'READ')")` directly
+    (Spring method security is enabled globally in gate-core via
+    `SpringSecurityAnnotationConfig`, and applies to any Spring-managed bean, including the plain
+    `@Bean`-registered tool classes here) - see `ApplicationToolsAuthorizationTest`, which proves
+    the filter is live through a real Spring AOP proxy, not just present in source.
+  - **`get_task` has the same exposure as Deck already has, not a new one.** Orca's
+    `GET /tasks/{id}` deliberately ships with its `@PostAuthorize` commented out (see the comment
+    in `TaskController.groovy`: Deck polls this endpoint immediately after application creation,
+    before Fiat permissions have propagated, and task ids are hard-to-guess GUIDs). gate-web's own
+    `TaskController` has no additional check either, so this tool's exposure is identical to
+    Deck's - not worsened by going through gate-mcp.
+  - **All of `KayentaTools` inherits a pre-existing, platform-wide gap, not one specific to
+    gate-mcp.** Kayenta has no Fiat integration of its own (`WebSecurityConfig.securityFilterChain`
+    is `permitAll()` for every request, with a `TODO: If we choose to use fiat, this needs to be
+    removed`), and gate-web's own `CanaryController` proxy has no `@PreAuthorize` either - so any
+    authenticated Spinnaker user can already read/write any application's canary configs through
+    Deck's canary UI today. `KayentaTools` has that same exposure, no more and no less. Fixing this
+    properly means adding real Fiat enforcement to Kayenta/gate-web's canary proxy, which is out of
+    scope for gate-mcp to bolt on unilaterally (it would make the MCP surface *more* restrictive
+    than Deck for the same operations, not fix the actual gap) - tracked as a platform-level
+    follow-up, not a gate-mcp bug.
 - **`submit_orchestration`** / **`create_task`** are the generic primitives every other mutating
   tool builds on - the `{application, description, job: [...]}` payload Deck submits for every
   write operation (see `OrchestrationJobs` / `TaskService` in gate-core). Any clouddriver-supported
