@@ -42,11 +42,14 @@ import retrofit2.converter.jackson.JacksonConverterFactory;
 /**
  * Verifies {@link SearchTools} against a real HTTP server (via a genuine Retrofit-backed {@link
  * ClouddriverService}, not a Mockito mock of the interface) - this exercises the actual query
- * string Retrofit builds from {@code @Query}/{@code @QueryMap} annotations, which is exactly the
- * layer where Gate's real {@code /search} proxy silently drops multi-value {@code type} (see the
- * class javadoc on {@link SearchTools}). A pure interface mock would happily accept any Java
- * arguments and couldn't catch that class of bug; this confirms the request Gate actually sends
- * over the wire matches what clouddriver's {@code SearchController} expects.
+ * string Retrofit builds from {@code @Query}/{@code @QueryMap} annotations. {@code
+ * searchInfrastructureSendsMultipleTypesAsRepeatedQueryParamsInOneRequest} below is the
+ * load-bearing regression test for the fix described in {@link SearchTools}' class javadoc: Gate's
+ * {@code /search} proxy used to declare {@code type} as a single {@code String}, so a multi-type
+ * search could never reach clouddriver as multiple query values, no matter what a caller sent. A
+ * pure interface mock would happily accept any Java arguments and couldn't catch that class of bug;
+ * this confirms the request Gate actually sends over the wire matches what clouddriver's {@code
+ * SearchController} expects.
  */
 @ExtendWith(MockitoExtension.class)
 class SearchToolsWireTest {
@@ -66,10 +69,9 @@ class SearchToolsWireTest {
             .baseUrl(server.url("/"))
             .addConverterFactory(JacksonConverterFactory.create(new ObjectMapper()))
             // Matches production wiring (kork's ServiceClientProvider): without this,
-            // Retrofit2SyncCall.execute()
-            // just returns a null body for non-2xx responses instead of throwing, since it does not
-            // itself check
-            // response.isSuccessful() - see Retrofit2SyncCall's source.
+            // Retrofit2SyncCall.execute() just returns a null body for non-2xx responses instead
+            // of throwing, since it does not itself check response.isSuccessful() - see
+            // Retrofit2SyncCall's source.
             .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
             .build();
     ClouddriverService realClouddriverService = retrofit.create(ClouddriverService.class);
@@ -84,10 +86,11 @@ class SearchToolsWireTest {
   }
 
   @Test
-  void searchInfrastructureSendsExactlyOneTypeAndTheQuery() throws InterruptedException {
+  void searchInfrastructureSendsTheTypeAndTheQuery() throws InterruptedException {
     server.enqueue(jsonResponse("[]"));
 
-    searchTools.searchInfrastructure("myapp", "applications", null, null, null, null, null);
+    searchTools.searchInfrastructure(
+        "myapp", List.of("applications"), null, null, null, null, null);
 
     RecordedRequest request = server.takeRequest();
     HttpUrl url = request.getRequestUrl();
@@ -98,12 +101,28 @@ class SearchToolsWireTest {
   }
 
   @Test
+  void searchInfrastructureSendsMultipleTypesAsRepeatedQueryParamsInOneRequest()
+      throws InterruptedException {
+    server.enqueue(jsonResponse("[]"));
+
+    searchTools.searchInfrastructure(
+        "myapp", List.of("applications", "clusters", "serverGroups"), null, null, null, null, null);
+
+    // The whole point of the fix: one HTTP request, with 'type' repeated for each requested type -
+    // not silently collapsed to the first value, and not split across multiple requests.
+    assertThat(server.getRequestCount()).isEqualTo(1);
+    HttpUrl url = server.takeRequest().getRequestUrl();
+    assertThat(url.queryParameterValues("type"))
+        .containsExactly("applications", "clusters", "serverGroups");
+  }
+
+  @Test
   void searchInfrastructureForwardsPlatformAndFiltersAsQueryParams() throws InterruptedException {
     server.enqueue(jsonResponse("[]"));
 
     searchTools.searchInfrastructure(
         "myapp",
-        "serverGroups",
+        List.of("serverGroups"),
         "aws",
         25,
         2,
@@ -123,7 +142,8 @@ class SearchToolsWireTest {
       throws InterruptedException {
     server.enqueue(jsonResponse("[]"));
 
-    searchTools.searchInfrastructure("myapp", "applications", null, null, null, null, null);
+    searchTools.searchInfrastructure(
+        "myapp", List.of("applications"), null, null, null, null, null);
 
     HttpUrl url = server.takeRequest().getRequestUrl();
     assertThat(url.queryParameterNames()).doesNotContain("pageSize");
@@ -131,7 +151,7 @@ class SearchToolsWireTest {
 
   @Test
   void searchInfrastructureShortCircuitsShortQueriesWithoutHittingTheNetwork() {
-    searchTools.searchInfrastructure("ab", "applications", null, null, null, null, null);
+    searchTools.searchInfrastructure("ab", List.of("applications"), null, null, null, null, null);
 
     assertThat(server.getRequestCount()).isEqualTo(0);
   }
@@ -140,7 +160,7 @@ class SearchToolsWireTest {
   void searchInfrastructureAllowsShortQueriesWhenExplicitlyAllowed() throws InterruptedException {
     server.enqueue(jsonResponse("[]"));
 
-    searchTools.searchInfrastructure("ab", "applications", null, null, null, true, null);
+    searchTools.searchInfrastructure("ab", List.of("applications"), null, null, null, true, null);
 
     assertThat(server.getRequestCount()).isEqualTo(1);
     assertThat(server.takeRequest().getRequestUrl().queryParameter("q")).isEqualTo("ab");
@@ -155,6 +175,10 @@ class SearchToolsWireTest {
         searchTools.searchAllTypes(
             "myapp", List.of("applications", "clusters"), null, null, null, null);
 
+    // search_all_types deliberately keeps firing one request per type (rather than switching to
+    // the new single-multi-type-request capability), so each type keeps its own independent
+    // pageSize/page budget instead of sharing one relevance-ranked budget across types - see the
+    // pagination caveat in SearchTools' class javadoc.
     assertThat(server.getRequestCount()).isEqualTo(2);
     RecordedRequest first = server.takeRequest();
     RecordedRequest second = server.takeRequest();

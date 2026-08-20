@@ -30,32 +30,41 @@ import org.springaicommunity.mcp.annotation.McpToolParam;
  * MCP tools for Spinnaker's global infrastructure/application search (clouddriver's {@code /search}
  * endpoint, backed by its Cats cache indices).
  *
- * <p><b>This proxies a genuinely quirky endpoint - read this before trusting its output:</b>
+ * <p><b>Read this before trusting the output - what was fixed and what's still quirky:</b>
  *
  * <ul>
- *   <li>Gate's own {@code /search} REST endpoint requires exactly one {@code type} per call
- *       (`@RequestParam(value = "type") String type`, no default) even though clouddriver's
- *       underlying {@code SearchController} is documented as supporting an omitted/multi-value type
- *       ("if no value is supplied, all types will be returned") - clouddriver declares {@code type}
- *       as a {@code List<String>}, but Gate's Retrofit client ({@code ClouddriverService.search})
- *       declares it as a single {@code String}, so a multi-type request can never actually reach
- *       clouddriver as multiple values through Gate. Deck's own frontend works around exactly this
- *       by firing one request per registered search category and merging client-side (see {@code
- *       InfrastructureSearchServiceV2} in deck) - {@code search_all_types} below does the same
- *       thing, which is the only way to get an "everything" search through Gate today.
- *   <li>Short queries are silently short-circuited: with {@code allowShortQuery} unset/false, a
- *       query under 3 characters returns an empty list rather than erroring - both Gate's
- *       controller and this tool replicate that guard (clouddriver's own endpoint has no such
- *       guard, so calling clouddriver directly bypasses it, but Gate's UI-facing contract expects
- *       it).
- *   <li>When a query matches results from more than one clouddriver {@code SearchProvider} in a
- *       single call, clouddriver merges them into one result set and hardcodes its top-level {@code
- *       platform} field to {@code "aws"} regardless of which provider(s) actually matched (see the
- *       {@code TODO-cfieber} workaround for <a
- *       href="https://github.com/spinnaker/deck/issues/128">spinnaker/deck#128</a> in clouddriver's
- *       {@code SearchController} - unresolved as of this writing). Do not trust the aggregate
- *       {@code platform} field on a result set as "which cloud provider produced these results"
- *       when more than one provider could plausibly match; prefer per-result fields.
+ *   <li><b>Fixed here:</b> Gate's own {@code /search} REST endpoint and its Retrofit client
+ *       (`ClouddriverService.search` in gate-core) used to declare {@code type} as a single {@code
+ *       String}, even though clouddriver's backend {@code SearchController}/{@code SearchProvider}
+ *       always accepted a {@code List<String>} and natively searches multiple types in one pass
+ *       over its cache (see {@code CatsSearchProvider.findMatches}, which does one combined
+ *       cache-identifier scan across all requested types rather than one scan per type). That meant
+ *       a multi-type request could never reach clouddriver as multiple values through Gate - fixed
+ *       by changing {@code type} to {@code List<String>} end-to-end (gate-core's {@code
+ *       ClouddriverService}, gate-web's {@code SearchService}/{@code SearchController}). {@code
+ *       search_infrastructure} below now accepts multiple types in a single call, which is
+ *       genuinely cheaper than firing one request per type: one HTTP round trip and one
+ *       permission-check pass instead of N.
+ *   <li><b>Still true, and important:</b> when searching multiple types in one call, {@code
+ *       pageSize}/{@code page} apply to the *combined, relevance-sorted* match list across all
+ *       requested types, not independently per type - a type with many matches can crowd out a type
+ *       with few in the same page. If you want a fair/independent result budget per category (e.g.
+ *       "show me some of everything"), use {@code search_all_types} instead, which fires one call
+ *       per type (mirroring Deck's own global search bar, see {@code InfrastructureSearchServiceV2}
+ *       in deck) so each type gets its own page/pageSize.
+ *   <li><b>Still broken upstream, not fixed here:</b> clouddriver's own {@code SearchController}
+ *       declares {@code type} as {@code required} with no default, despite its javadoc claiming an
+ *       omitted type searches everything - so a truly typeless "search absolutely everything in one
+ *       call" was never possible and still isn't; you must supply at least one type. Also, when a
+ *       query matches results from more than one clouddriver {@code SearchProvider}, clouddriver
+ *       merges them into one result set and hardcodes its top-level {@code platform} field to
+ *       {@code "aws"} regardless of which provider(s) actually matched (see the {@code
+ *       CatsSearchProvider.getPlatform()} `// TODO(cfieber) - need a better story around this`, and
+ *       the {@code SearchController} workaround for <a
+ *       href="https://github.com/spinnaker/deck/issues/128">spinnaker/deck#128</a> - both
+ *       unresolved upstream as of this writing). Don't trust the aggregate {@code platform} field
+ *       as "which provider produced these results" when more than one could match; prefer
+ *       per-result fields.
  * </ul>
  *
  * <p>Reimplemented directly against {@link ClouddriverServiceSelector} (a gate-core bean) since
@@ -90,11 +99,12 @@ public class SearchTools {
   @McpTool(
       name = "search_infrastructure",
       description =
-          "Search Spinnaker infrastructure/applications for a single type, e.g. 'applications', 'projects', "
-              + "'clusters', 'serverGroups', 'instances', 'loadBalancers', 'securityGroups' (some cloud providers "
-              + "register additional types, e.g. 'certificates', 'subnets'). Backed by clouddriver's cached search "
-              + "index, not a live infrastructure call. To search across all types at once, use search_all_types "
-              + "instead - Gate's search API only accepts one type per call.")
+          "Search Spinnaker infrastructure/applications, e.g. types 'applications', 'projects', 'clusters', "
+              + "'serverGroups', 'instances', 'loadBalancers', 'securityGroups' (some cloud providers register "
+              + "additional types, e.g. 'certificates', 'subnets'). Backed by clouddriver's cached search index, "
+              + "not a live infrastructure call. Searching multiple types in one call is efficient (one request, "
+              + "one combined cache scan) but shares a single pageSize/page budget across all of them, sorted by "
+              + "relevance - if you need a fair number of results from *each* type instead, use search_all_types.")
   public List<Map> searchInfrastructure(
       @McpToolParam(
               description =
@@ -102,9 +112,10 @@ public class SearchTools {
               required = false)
           String query,
       @McpToolParam(
-              description = "The result type to search, e.g. 'applications' or 'serverGroups'",
+              description =
+                  "One or more result types to search, e.g. ['applications'] or ['serverGroups', 'instances']",
               required = true)
-          String type,
+          List<String> types,
       @McpToolParam(
               description = "Restrict results to this platform/provider, if the caller knows it",
               required = false)
@@ -130,17 +141,17 @@ public class SearchTools {
     if (isTooShort(query, allowShortQuery)) {
       return List.of();
     }
-    return executeSearch(query, type, platform, pageSize, page, filters);
+    return executeSearch(query, types, platform, pageSize, page, filters);
   }
 
   @McpTool(
       name = "search_all_types",
       description =
-          "Search across all (or a chosen subset of) infrastructure/application types at once, merging the "
-              + "per-type results - the MCP equivalent of Deck's global search bar. Gate's underlying /search API "
-              + "only accepts one type per HTTP call, so this fires one search_infrastructure-equivalent call per "
-              + "type and combines the results; a type that errors is reported separately rather than failing the "
-              + "whole search.")
+          "Search across all (or a chosen subset of) infrastructure/application types at once, giving each type "
+              + "its own independent result budget and merging the per-type results - the MCP equivalent of Deck's "
+              + "global search bar. Use this over search_infrastructure when you want a fair sampling across "
+              + "categories rather than one relevance-ranked list; a type that errors is reported separately "
+              + "rather than failing the whole search.")
   public Map<String, Object> searchAllTypes(
       @McpToolParam(
               description =
@@ -188,7 +199,7 @@ public class SearchTools {
     for (String type : searchTypes) {
       try {
         resultsByType.put(
-            type, executeSearch(query, type, platform, effectivePageSize, 1, filters));
+            type, executeSearch(query, List.of(type), platform, effectivePageSize, 1, filters));
       } catch (Exception e) {
         log.warn("search_all_types: search failed for type '{}'", type, e);
         errorsByType.put(type, String.valueOf(e.getMessage()));
@@ -201,7 +212,7 @@ public class SearchTools {
 
   private List<Map> executeSearch(
       String query,
-      String type,
+      List<String> types,
       String platform,
       Integer pageSize,
       Integer page,
@@ -211,7 +222,7 @@ public class SearchTools {
             .select()
             .search(
                 query == null ? "" : query,
-                type,
+                types,
                 platform,
                 pageSize,
                 page == null ? 1 : page,

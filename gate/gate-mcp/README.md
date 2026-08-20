@@ -45,12 +45,13 @@ into write access.
 ### Global search (`SearchTools`)
 
 Proxies clouddriver's `/search` endpoint (its cached Cats index, not a live infrastructure call).
-See the "search is quasi-broken" design note below before relying on multi-provider result sets.
+Fixed as part of this module (see the design note below) to actually support searching multiple
+types in one call, which Gate's REST API had never been able to do end-to-end.
 
 | Tool | Description |
 |---|---|
-| `search_infrastructure` | Search one type at a time (`applications`, `clusters`, `serverGroups`, `instances`, `loadBalancers`, `securityGroups`, `projects`, plus provider-specific types) |
-| `search_all_types` | Search across all (or a chosen subset of) types at once by fanning out one call per type and merging results - the MCP equivalent of Deck's global search bar |
+| `search_infrastructure` | Search one or more types in a single, relevance-ranked call (`applications`, `clusters`, `serverGroups`, `instances`, `loadBalancers`, `securityGroups`, `projects`, plus provider-specific types) |
+| `search_all_types` | Search across all (or a chosen subset of) types at once, giving each type its own independent result budget by fanning out one call per type and merging results - the MCP equivalent of Deck's global search bar |
 
 ### Pipeline definitions (`PipelineConfigTools`)
 
@@ -194,28 +195,51 @@ controls used when a rollout is stuck.
   adds a generic passthrough (`@QueryMap` over all provider-specific parameters), since every
   provider's fetch controller shares the same `metricSetName`/`metricName` plus free-form query
   params shape.
-- **Global search is genuinely quirky - verified against clouddriver's actual source, not just
-  Gate's**: Gate's `/search` REST endpoint requires exactly one `type` per call
-  (`@RequestParam(value = "type") String type`, no default), even though clouddriver's backend
-  `SearchController` is documented as supporting an omitted/multi-value `type` ("if no value is
-  supplied, all types will be returned") and declares it as a `List<String>`. The break is at
-  Gate's layer: `ClouddriverService.search` (gate-core) declares `type` as a single `String`, so a
-  multi-type request can never reach clouddriver as multiple values through Gate, regardless of
-  what a caller sends. Deck's own frontend never actually relies on multi-type-in-one-call either -
+- **Global search's ancient multi-type bug is fixed, end-to-end, in Gate itself** (not worked
+  around client-side) - verified against clouddriver's actual source, not just Gate's. Gate's
+  `/search` REST endpoint used to require exactly one `type` per call
+  (`@RequestParam(value = "type") String type`), even though clouddriver's backend
+  `SearchController`/`SearchProvider` always accepted a `List<String>` and natively searches
+  multiple types in a single pass over its cache (`CatsSearchProvider.findMatches` does one
+  combined cache-identifier scan across all requested types, not one scan per type - see its
+  source). The break was entirely at Gate's layer: `ClouddriverService.search` (gate-core)
+  declared `type` as a single `String`, so a multi-type request could never reach clouddriver as
+  multiple values, no matter what a caller sent - fixed by changing `type` to `List<String>`
+  end-to-end (gate-core's `ClouddriverService`, gate-web's `SearchService`/`SearchController`,
+  and `SecurityGroupService`, the one other gate-web caller of the same Retrofit method).
+  `search_infrastructure` now genuinely searches multiple types in one HTTP call - which is also a
+  *performance win*, not a risk: one round trip and one permission-check pass instead of N, and no
+  more backend cache-scan work than before (each requested type still needs its own cache lookup
+  either way). The one behavioral tradeoff to know: a multi-type call shares a single
+  `pageSize`/`page` budget across the combined, relevance-sorted result set, so a type with many
+  matches can crowd out one with few - `search_all_types` still exists, and still fires one call
+  per type, specifically for when you want a fair/independent budget per category instead (this
+  also matches Deck's own frontend, which never relied on multi-type-in-one-call either -
   `InfrastructureSearchServiceV2` in deck fires one request per registered search category and
-  merges client-side - so `search_all_types` replicates exactly that pattern rather than trying to
-  "fix" Gate's REST contract (out of scope/risk for this module). Separately, when a query matches
-  results from more than one clouddriver `SearchProvider` in a single call, clouddriver merges them
-  into one result set and hardcodes its top-level `platform` field to `"aws"` regardless of which
-  provider(s) actually matched (see the `TODO-cfieber` workaround for
-  [spinnaker/deck#128](https://github.com/spinnaker/deck/issues/128) in clouddriver's
-  `SearchController` - unresolved upstream as of this writing); don't trust the aggregate
-  `platform` field as "which provider produced these results" when more than one could match.
+  merges client-side).
+
+  Two related things were investigated and deliberately **not** changed, both upstream in
+  clouddriver rather than Gate, and out of scope for this module's blast radius: (1) clouddriver's
+  own `SearchController` still declares `type` as required with no default, despite its javadoc
+  claiming an omitted type searches everything, so a truly typeless "search absolutely everything"
+  still isn't possible - you must supply at least one type; and (2) when a query matches results
+  from more than one clouddriver `SearchProvider`, clouddriver merges them into one result set and
+  hardcodes its top-level `platform` field to `"aws"` regardless of which provider(s) actually
+  matched (see `CatsSearchProvider.getPlatform()`'s own `// TODO(cfieber) - need a better story
+  around this`, and the `SearchController` workaround for
+  [spinnaker/deck#128](https://github.com/spinnaker/deck/issues/128) - both unresolved upstream as
+  of this writing). Don't trust the aggregate `platform` field as "which provider produced these
+  results" when more than one could match; prefer per-result fields.
+
   `SearchToolsWireTest` verifies the actual HTTP request Gate sends (via a real Retrofit client
-  against `MockWebServer`, not a mocked interface) matches what clouddriver expects, including that
+  against `MockWebServer`, not a mocked interface) matches what clouddriver expects - including
+  `searchInfrastructureSendsMultipleTypesAsRepeatedQueryParamsInOneRequest`, the regression test
+  for this fix, confirming `type` is sent as repeated query values in a single request rather than
+  collapsed to one or split across several. It also confirmed a second bug along the way:
   `Retrofit2SyncCall.execute()` needs `ErrorHandlingExecutorCallAdapterFactory` registered to throw
   on non-2xx responses at all (without it, it silently returns a null body) - the same adapter
-  production wiring registers via `ServiceClientProvider`.
+  production wiring registers via `ServiceClientProvider`, but easy to omit in a hand-built test
+  client and get a false-positive "it works" result.
 
 ## Recommended follow-on work
 
