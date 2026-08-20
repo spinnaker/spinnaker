@@ -102,7 +102,10 @@ public class PipelineConfigTools {
     job.put("staleCheck", staleCheck != null && staleCheck);
 
     return orchestrationJobs.submit(
-        String.valueOf(application), "Save pipeline '" + name + "'", List.of(job));
+        "save_pipeline_config",
+        String.valueOf(application),
+        "Save pipeline '" + name + "'",
+        List.of(job));
   }
 
   @McpTool(name = "delete_pipeline_config", description = "Delete a pipeline definition by name.")
@@ -133,6 +136,9 @@ public class PipelineConfigTools {
     job.put("user", AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"));
 
     orchestrationJobs.submit(
-        application, "Delete pipeline '" + pipeline.get("name") + "'", List.of(job));
+        "delete_pipeline_config",
+        application,
+        "Delete pipeline '" + pipeline.get("name") + "'",
+        List.of(job));
   }
 }

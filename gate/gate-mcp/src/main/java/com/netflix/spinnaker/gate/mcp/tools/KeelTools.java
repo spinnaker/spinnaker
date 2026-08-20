@@ -126,7 +126,8 @@ public class KeelTools {
   public DeliveryConfig saveDeliveryConfig(
       @McpToolParam(description = "Full delivery config manifest map", required = true)
           Map<String, Object> manifest) {
-    accessGuard.requireWriteAccess("save_delivery_config");
+    accessGuard.requireWriteAccess(
+        "save_delivery_config", String.valueOf(manifest.get("application")));
     return Retrofit2SyncCall.execute(keelService.upsertManifest(toDeliveryConfig(manifest)));
   }
 
@@ -135,7 +136,7 @@ public class KeelTools {
       description = "Delete a delivery config manifest by name.")
   public DeliveryConfig deleteDeliveryConfig(
       @McpToolParam(description = "Delivery config manifest name", required = true) String name) {
-    accessGuard.requireWriteAccess("delete_delivery_config");
+    accessGuard.requireWriteAccess("delete_delivery_config", name);
     return Retrofit2SyncCall.execute(keelService.deleteManifest(name));
   }
 
@@ -209,7 +210,7 @@ public class KeelTools {
           String status,
       @McpToolParam(description = "Optional comment explaining the decision", required = false)
           String comment) {
-    accessGuard.requireWriteAccess("update_environment_constraint_status");
+    accessGuard.requireWriteAccess("update_environment_constraint_status", application);
 
     ConstraintStatus constraintStatus = new ConstraintStatus();
     constraintStatus.setType(type);
@@ -244,7 +245,7 @@ public class KeelTools {
           "Pause Managed Delivery for an entire application - stops all automated management of its resources.")
   public void pauseManagedApplication(
       @McpToolParam(description = "Application name", required = true) String application) {
-    accessGuard.requireWriteAccess("pause_managed_application");
+    accessGuard.requireWriteAccess("pause_managed_application", application);
     Retrofit2SyncCall.executeCall(
         keelService.pauseApplication(application, Collections.emptyMap()));
   }
@@ -254,7 +255,7 @@ public class KeelTools {
       description = "Resume Managed Delivery for a paused application.")
   public void resumeManagedApplication(
       @McpToolParam(description = "Application name", required = true) String application) {
-    accessGuard.requireWriteAccess("resume_managed_application");
+    accessGuard.requireWriteAccess("resume_managed_application", application);
     Retrofit2SyncCall.executeCall(keelService.resumeApplication(application));
   }
 
@@ -263,7 +264,7 @@ public class KeelTools {
       description = "Pause Managed Delivery for a single resource.")
   public void pauseManagedResource(
       @McpToolParam(description = "Resource id", required = true) String resourceId) {
-    accessGuard.requireWriteAccess("pause_managed_resource");
+    accessGuard.requireWriteAccess("pause_managed_resource", resourceId);
     Retrofit2SyncCall.executeCall(keelService.pauseResource(resourceId, Collections.emptyMap()));
   }
 
@@ -272,7 +273,7 @@ public class KeelTools {
       description = "Resume Managed Delivery for a paused resource.")
   public void resumeManagedResource(
       @McpToolParam(description = "Resource id", required = true) String resourceId) {
-    accessGuard.requireWriteAccess("resume_managed_resource");
+    accessGuard.requireWriteAccess("resume_managed_resource", resourceId);
     Retrofit2SyncCall.executeCall(keelService.resumeResource(resourceId));
   }
 
@@ -291,7 +292,7 @@ public class KeelTools {
           String pinnedBy,
       @McpToolParam(description = "Optional comment explaining why", required = false)
           String comment) {
-    accessGuard.requireWriteAccess("pin_artifact_version");
+    accessGuard.requireWriteAccess("pin_artifact_version", application);
 
     EnvironmentArtifactPin pin = new EnvironmentArtifactPin();
     pin.setTargetEnvironment(targetEnvironment);
@@ -316,7 +317,7 @@ public class KeelTools {
                   "Artifact reference to unpin; omit to unpin everything in the environment",
               required = false)
           String reference) {
-    accessGuard.requireWriteAccess("unpin_artifact_version");
+    accessGuard.requireWriteAccess("unpin_artifact_version", application);
     Retrofit2SyncCall.executeCall(
         keelService.deletePinForEnvironment(application, targetEnvironment, reference));
   }
@@ -333,7 +334,7 @@ public class KeelTools {
       @McpToolParam(description = "Artifact version to veto", required = true) String version,
       @McpToolParam(description = "Optional comment explaining why", required = false)
           String comment) {
-    accessGuard.requireWriteAccess("veto_artifact_version");
+    accessGuard.requireWriteAccess("veto_artifact_version", application);
     Retrofit2SyncCall.executeCall(
         keelService.veto(application, buildVeto(targetEnvironment, reference, version, comment)));
   }
@@ -347,7 +348,7 @@ public class KeelTools {
           String targetEnvironment,
       @McpToolParam(description = "Artifact reference", required = true) String reference,
       @McpToolParam(description = "Artifact version", required = true) String version) {
-    accessGuard.requireWriteAccess("remove_artifact_veto");
+    accessGuard.requireWriteAccess("remove_artifact_veto", application);
     Retrofit2SyncCall.executeCall(
         keelService.deleteVeto(application, targetEnvironment, reference, version));
   }
@@ -365,7 +366,7 @@ public class KeelTools {
       @McpToolParam(description = "Artifact version to mark bad", required = true) String version,
       @McpToolParam(description = "Optional comment explaining why", required = false)
           String comment) {
-    accessGuard.requireWriteAccess("mark_artifact_version_bad");
+    accessGuard.requireWriteAccess("mark_artifact_version_bad", application);
     Retrofit2SyncCall.executeCall(
         keelService.markBad(
             application, buildVeto(targetEnvironment, reference, version, comment)));
@@ -382,7 +383,7 @@ public class KeelTools {
       @McpToolParam(description = "Artifact version to mark good", required = true) String version,
       @McpToolParam(description = "Optional comment explaining why", required = false)
           String comment) {
-    accessGuard.requireWriteAccess("mark_artifact_version_good");
+    accessGuard.requireWriteAccess("mark_artifact_version_good", application);
     Retrofit2SyncCall.executeCall(
         keelService.markGood(
             application, buildVeto(targetEnvironment, reference, version, comment)));
@@ -403,7 +404,7 @@ public class KeelTools {
           String status,
       @McpToolParam(description = "Optional comment explaining why", required = false)
           String comment) {
-    accessGuard.requireWriteAccess("override_verification");
+    accessGuard.requireWriteAccess("override_verification", application);
 
     OverrideVerificationRequest request =
         new OverrideVerificationRequest(verificationId, artifactReference, artifactVersion, status);
@@ -423,7 +424,7 @@ public class KeelTools {
           String verificationId,
       @McpToolParam(description = "Artifact reference", required = true) String artifactReference,
       @McpToolParam(description = "Artifact version", required = true) String artifactVersion) {
-    accessGuard.requireWriteAccess("retry_verification");
+    accessGuard.requireWriteAccess("retry_verification", application);
 
     RetryVerificationRequest request =
         new RetryVerificationRequest(verificationId, artifactReference, artifactVersion);

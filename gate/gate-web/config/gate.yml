@@ -114,6 +114,12 @@ mcp:
     # When true (the default), mutating tools (application create/delete, orchestration
     # submission, pipeline triggers/cancels, manual judgment, ...) reject instead of executing.
     read-only: true
+    # Number of most-recent mutating tool calls retained in-memory for the
+    # spinnaker://mcp/audit-log resource. Oldest entries are dropped once exceeded.
+    audit-log-size: 500
+    # When true (the default) and Echo is configured (services.echo.enabled), every mutating
+    # tool call is also published as an event to Echo, alongside every other Spinnaker write.
+    audit-echo-events: true
 
 spring:
   jackson:

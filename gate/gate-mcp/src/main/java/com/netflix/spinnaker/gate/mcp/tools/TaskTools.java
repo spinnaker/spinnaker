@@ -92,7 +92,7 @@ public class TaskTools {
                   "List of job maps to submit, e.g. [{\"type\": \"createServerGroup\", ...}]",
               required = true)
           List<Map<String, Object>> jobs) {
-    accessGuard.requireWriteAccess("create_task");
+    accessGuard.requireWriteAccess("create_task", application);
 
     Map<String, Object> operation = new LinkedHashMap<>();
     operation.put("application", application);
@@ -104,7 +104,7 @@ public class TaskTools {
 
   @McpTool(name = "cancel_task", description = "Cancel a running Orca task.")
   public void cancelTask(@McpToolParam(description = "Task id", required = true) String taskId) {
-    accessGuard.requireWriteAccess("cancel_task");
+    accessGuard.requireWriteAccess("cancel_task", taskId);
     taskService.cancelTask(taskId);
   }
 }

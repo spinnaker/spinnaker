@@ -142,6 +142,8 @@ controls used when a rollout is stuck.
 | `spinnaker://applications/{application}/pipelines` | Recent executions |
 | `spinnaker://executions/{executionId}` | Execution detail |
 | `spinnaker://applications/{application}/manual-judgments` | Pending manual judgments |
+| `spinnaker://mcp/audit-log` | Recent mutating MCP tool calls, most recent first |
+| `spinnaker://mcp/audit-log/{application}` | The above, filtered to one application/target |
 
 ## Prompts
 
@@ -208,6 +210,33 @@ controls used when a rollout is stuck.
   write operation (see `OrchestrationJobs` / `TaskService` in gate-core). Any clouddriver-supported
   operation for any cloud provider can be submitted through them even without a dedicated typed
   tool. `submit_orchestration` blocks until the task finishes; `create_task` returns immediately.
+- **`spinnaker://mcp/audit-log`**: every mutating tool call already passes through one of two
+  choke points - `McpAccessGuard.requireWriteAccess` (direct downstream calls: Kayenta, Keel,
+  manual judgment, pipeline execution control, ad-hoc tasks) or `OrchestrationJobs.submit` (the
+  Orca job-submission path: application create/delete, deploys, LB upserts, pipeline-config
+  save/delete). Both now record into a shared `McpAuditLog` - `McpAccessGuard` records once the
+  read-only gate passes (an authorized *attempt*, since the downstream call happens after), while
+  `OrchestrationJobs.submit` records only once Orca reports the orchestration `SUCCEEDED` (a
+  confirmed *outcome*). Each entry is `{timestamp, tool, target, user}`, where `target` is the
+  application/delivery-config/resource/execution/task id the tool acted on, and `user` comes from
+  `AuthenticatedRequest` (the same identity Fiat authorized the call against). The log itself is a
+  small in-memory ring buffer (`mcp.server.audit-log-size`, default 500) - see "Recommended
+  follow-on work" for making it persistent/shared across instances.
+- **Echo audit events**: the same two choke points that feed `McpAuditLog` also call
+  `McpEchoAuditPublisher.publish(tool, target)`, which posts a `{content: {tool, target, user},
+  details: {source: "mcp", type: "mcp:tool:<tool>", application: target}, eventId}` event to Echo's
+  generic `POST /` endpoint (`EchoService.postEvent` - the same mechanism `PipelineService
+  .triggerViaEcho` in gate-web uses for manual pipeline triggers). This puts every MCP-initiated
+  write into the same event stream every other Spinnaker write already feeds - notifications,
+  audit UIs, anything else subscribed to Echo - instead of only being visible via gate-mcp's own
+  audit-log resource. Echo is an optional service (`services.echo.enabled`); when it isn't
+  configured, or `mcp.server.audit-echo-events: false` is set, this is a no-op - and a failed
+  publish attempt is caught and logged, never allowed to fail the tool call itself (the write
+  already succeeded; losing the audit event is far preferable to rolling back or erroring out a
+  completed action because Echo happened to be down). `target` is stamped into `details
+  .application` even though it isn't always literally an application name (it can be an execution,
+  task, resource, or canary config id) - that's the field Echo's existing consumers key on, so
+  it's used as the best available identifier rather than left unset.
 - Tool/resource/prompt classes are plain POJOs registered via `@Bean` methods in
   `McpServerAutoConfiguration` (not `@Component`-scanned), so when `mcp.server.enabled` is false
   none of them exist in the application context at all. `KayentaTools`/`KeelTools` additionally
@@ -308,4 +337,7 @@ Not built in this version. Roughly in order of likely value for CD-focused MCP c
   the onboarding/adoption HTML reports were left out of `KeelTools` as lower-value/harder-to-fit
   for a typed tool schema; worth revisiting if onboarding workflows become a priority.
 - Per-tool Fiat scopes finer-grained than the blanket `read-only` flag.
-- An audit-log resource/sink for MCP-originated actions.
+- A persistent/shared backing store for `McpAuditLog` (e.g. Redis, matching the pattern
+  `api-tokens`/`global-banner` already use in `gate-local.yml`) so the audit trail survives a
+  restart and is consistent across a multi-instance Gate deployment - today's in-memory version is
+  per-process and bounded by `mcp.server.audit-log-size`.

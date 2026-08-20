@@ -38,13 +38,16 @@ class OrchestrationJobsTest {
 
   @Mock private TaskService taskService;
 
+  private McpAuditLog auditLog;
   private OrchestrationJobs orchestrationJobs;
 
   @BeforeEach
   void setUp() {
     McpServerProperties properties = new McpServerProperties();
     properties.setReadOnly(false);
-    orchestrationJobs = new OrchestrationJobs(taskService, new McpAccessGuard(properties));
+    auditLog = new McpAuditLog(500);
+    orchestrationJobs =
+        new OrchestrationJobs(taskService, new McpAccessGuard(properties, auditLog), auditLog);
   }
 
   @Test
@@ -54,7 +57,8 @@ class OrchestrationJobsTest {
     doReturn(taskResult).when(taskService).createAndWaitForCompletion(anyMap());
 
     Map<String, Object> result =
-        orchestrationJobs.submit("myapp", "Create application 'myapp'", List.of(job));
+        orchestrationJobs.submit(
+            "create_application", "myapp", "Create application 'myapp'", List.of(job));
 
     assertThat(result).containsEntry("status", "SUCCEEDED");
 
@@ -64,6 +68,11 @@ class OrchestrationJobsTest {
     assertThat(operation.get("application")).isEqualTo("myapp");
     assertThat(operation.get("description")).isEqualTo("Create application 'myapp'");
     assertThat(operation.get("job")).isEqualTo(List.of(job));
+
+    assertThat(auditLog.recent(null)).hasSize(1);
+    McpAuditLog.Entry entry = auditLog.recent(null).get(0);
+    assertThat(entry.tool()).isEqualTo("create_application");
+    assertThat(entry.target()).isEqualTo("myapp");
   }
 
   @Test
@@ -76,11 +85,15 @@ class OrchestrationJobsTest {
     doReturn(taskResult).when(taskService).createAndWaitForCompletion(anyMap());
 
     assertThatThrownBy(
-            () -> orchestrationJobs.submit("myapp", "Create application 'myapp'", List.of()))
+            () ->
+                orchestrationJobs.submit(
+                    "create_application", "myapp", "Create application 'myapp'", List.of()))
         .isInstanceOf(OrchestrationFailedException.class)
         .hasMessageContaining("task-2")
         .hasMessageContaining("TERMINAL")
         .hasMessageContaining("name is required");
+
+    assertThat(auditLog.recent(null)).isEmpty();
   }
 
   @Test

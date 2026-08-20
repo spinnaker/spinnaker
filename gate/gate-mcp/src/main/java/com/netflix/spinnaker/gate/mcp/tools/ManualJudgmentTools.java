@@ -89,7 +89,7 @@ public class ManualJudgmentTools {
               description = "Optional free-text judgment input, if the stage collects one",
               required = false)
           String judgmentInput) {
-    accessGuard.requireWriteAccess("judge_pipeline_stage");
+    accessGuard.requireWriteAccess("judge_pipeline_stage", executionId);
 
     Map<String, Object> context = new LinkedHashMap<>();
     context.put("judgmentStatus", judgmentStatus);

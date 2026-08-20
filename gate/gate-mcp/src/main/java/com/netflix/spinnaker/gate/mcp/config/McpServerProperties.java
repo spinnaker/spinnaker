@@ -32,4 +32,19 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class McpServerProperties {
   private boolean enabled = false;
   private boolean readOnly = true;
+
+  /**
+   * Number of most-recent mutating-tool invocations to retain in the in-memory {@code
+   * spinnaker://mcp/audit-log} resource. Oldest entries are dropped once this is exceeded.
+   */
+  private int auditLogSize = 500;
+
+  /**
+   * When true (the default) and Echo is configured ({@code services.echo.enabled: true}), every
+   * mutating tool call is also published as an event to Echo - the same audit/notification stream
+   * every other Spinnaker write already feeds - in addition to being recorded in the in-memory
+   * {@code spinnaker://mcp/audit-log}. Set to false to keep MCP writes out of Echo's event stream
+   * while still recording them locally.
+   */
+  private boolean auditEchoEvents = true;
 }

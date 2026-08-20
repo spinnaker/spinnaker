@@ -110,6 +110,13 @@ global-banner:
 #    ## expose only read/query tools to an MCP client before opting into write
 #    ## access.
 #    read-only: false
+#    ## Number of most-recent mutating tool calls kept in-memory for the
+#    ## spinnaker://mcp/audit-log resource. Oldest entries are dropped once exceeded.
+#    audit-log-size: 500
+#    ## When true (the default) and Echo is configured (services.echo.enabled), every
+#    ## mutating tool call is also published as an event to Echo, alongside every other
+#    ## Spinnaker write.
+#    audit-echo-events: true
 #spring:
 #  ai:
 #    mcp:

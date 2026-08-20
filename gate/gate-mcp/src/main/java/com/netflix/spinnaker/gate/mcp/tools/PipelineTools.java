@@ -63,7 +63,7 @@ public class PipelineTools {
                   "Pipeline parameters to pass through, matching the pipeline's configured parameter names",
               required = false)
           Map<String, Object> parameters) {
-    accessGuard.requireWriteAccess("trigger_pipeline");
+    accessGuard.requireWriteAccess("trigger_pipeline", application);
 
     String user = AuthenticatedRequest.getSpinnakerUser().orElse("anonymous");
     Map<String, Object> pipelineConfig =
@@ -96,7 +96,7 @@ public class PipelineTools {
               description = "Force cancellation even if the execution can't be cleanly stopped",
               required = false)
           Boolean force) {
-    accessGuard.requireWriteAccess("cancel_pipeline");
+    accessGuard.requireWriteAccess("cancel_pipeline", executionId);
     Retrofit2SyncCall.execute(
         orcaServiceSelector
             .select()
@@ -106,14 +106,14 @@ public class PipelineTools {
   @McpTool(name = "pause_pipeline", description = "Pause a running pipeline execution.")
   public void pausePipeline(
       @McpToolParam(description = "Pipeline execution id", required = true) String executionId) {
-    accessGuard.requireWriteAccess("pause_pipeline");
+    accessGuard.requireWriteAccess("pause_pipeline", executionId);
     Retrofit2SyncCall.execute(orcaServiceSelector.select().pausePipeline(executionId, ""));
   }
 
   @McpTool(name = "resume_pipeline", description = "Resume a paused pipeline execution.")
   public void resumePipeline(
       @McpToolParam(description = "Pipeline execution id", required = true) String executionId) {
-    accessGuard.requireWriteAccess("resume_pipeline");
+    accessGuard.requireWriteAccess("resume_pipeline", executionId);
     Retrofit2SyncCall.execute(orcaServiceSelector.select().resumePipeline(executionId, ""));
   }
 }

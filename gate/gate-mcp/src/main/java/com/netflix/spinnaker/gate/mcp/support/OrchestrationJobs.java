@@ -34,22 +34,40 @@ public class OrchestrationJobs {
 
   private final TaskService taskService;
   private final McpAccessGuard accessGuard;
+  private final McpAuditLog auditLog;
+  private final McpEchoAuditPublisher echoAuditPublisher;
 
   public OrchestrationJobs(TaskService taskService, McpAccessGuard accessGuard) {
+    this(taskService, accessGuard, new McpAuditLog(500));
+  }
+
+  public OrchestrationJobs(
+      TaskService taskService, McpAccessGuard accessGuard, McpAuditLog auditLog) {
+    this(taskService, accessGuard, auditLog, McpEchoAuditPublisher.disabled());
+  }
+
+  public OrchestrationJobs(
+      TaskService taskService,
+      McpAccessGuard accessGuard,
+      McpAuditLog auditLog,
+      McpEchoAuditPublisher echoAuditPublisher) {
     this.taskService = taskService;
     this.accessGuard = accessGuard;
+    this.auditLog = auditLog;
+    this.echoAuditPublisher = echoAuditPublisher;
   }
 
   /**
    * Rejects the call if the MCP server is running in read-only mode. Every mutating tool method
-   * must call this before doing any work.
+   * must call this before doing any work. Doesn't itself record an audit entry - {@link #submit}
+   * does, once the orchestration is confirmed to have succeeded.
    */
   public void requireWriteAccess(String toolName) {
-    accessGuard.requireWriteAccess(toolName);
+    accessGuard.checkWriteAccess(toolName);
   }
 
   public Map<String, Object> submit(
-      String application, String description, List<Map<String, Object>> jobs) {
+      String toolName, String application, String description, List<Map<String, Object>> jobs) {
     Map<String, Object> operation = new LinkedHashMap<>();
     operation.put("application", application);
     operation.put("description", description);
@@ -60,6 +78,8 @@ public class OrchestrationJobs {
     if (!"SUCCEEDED".equalsIgnoreCase(String.valueOf(status))) {
       throw new OrchestrationFailedException(description, result);
     }
+    auditLog.record(toolName, application);
+    echoAuditPublisher.publish(toolName, application);
     @SuppressWarnings("unchecked")
     Map<String, Object> typedResult = (Map<String, Object>) result;
     return typedResult;

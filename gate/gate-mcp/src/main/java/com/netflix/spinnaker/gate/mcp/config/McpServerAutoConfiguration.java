@@ -18,8 +18,11 @@ package com.netflix.spinnaker.gate.mcp.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.gate.mcp.prompts.SpinnakerPrompts;
+import com.netflix.spinnaker.gate.mcp.resources.McpAuditLogResource;
 import com.netflix.spinnaker.gate.mcp.resources.SpinnakerResources;
 import com.netflix.spinnaker.gate.mcp.support.McpAccessGuard;
+import com.netflix.spinnaker.gate.mcp.support.McpAuditLog;
+import com.netflix.spinnaker.gate.mcp.support.McpEchoAuditPublisher;
 import com.netflix.spinnaker.gate.mcp.support.OrchestrationJobs;
 import com.netflix.spinnaker.gate.mcp.tools.ApplicationTools;
 import com.netflix.spinnaker.gate.mcp.tools.DeploymentTools;
@@ -33,10 +36,12 @@ import com.netflix.spinnaker.gate.mcp.tools.SearchTools;
 import com.netflix.spinnaker.gate.mcp.tools.TaskTools;
 import com.netflix.spinnaker.gate.services.TaskService;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector;
+import com.netflix.spinnaker.gate.services.internal.EchoService;
 import com.netflix.spinnaker.gate.services.internal.Front50Service;
 import com.netflix.spinnaker.gate.services.internal.KayentaService;
 import com.netflix.spinnaker.gate.services.internal.KeelService;
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector;
+import java.util.Optional;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -64,13 +69,39 @@ import org.springframework.context.annotation.Configuration;
 public class McpServerAutoConfiguration {
 
   @Bean
-  public McpAccessGuard mcpAccessGuard(McpServerProperties properties) {
-    return new McpAccessGuard(properties);
+  public McpAuditLog mcpAuditLog(McpServerProperties properties) {
+    return new McpAuditLog(properties.getAuditLogSize());
+  }
+
+  /**
+   * {@code Optional<EchoService>} because Echo is itself an optional Spinnaker service ({@code
+   * services.echo.enabled}) - when it isn't configured, or {@code mcp.server.audit-echo-events} is
+   * false, every mutating tool call still lands in {@link McpAuditLog}, it just isn't also
+   * published to Echo.
+   */
+  @Bean
+  public McpEchoAuditPublisher mcpEchoAuditPublisher(
+      McpServerProperties properties, Optional<EchoService> echoService) {
+    return properties.isAuditEchoEvents()
+        ? new McpEchoAuditPublisher(echoService)
+        : McpEchoAuditPublisher.disabled();
   }
 
   @Bean
-  public OrchestrationJobs orchestrationJobs(TaskService taskService, McpAccessGuard accessGuard) {
-    return new OrchestrationJobs(taskService, accessGuard);
+  public McpAccessGuard mcpAccessGuard(
+      McpServerProperties properties,
+      McpAuditLog auditLog,
+      McpEchoAuditPublisher echoAuditPublisher) {
+    return new McpAccessGuard(properties, auditLog, echoAuditPublisher);
+  }
+
+  @Bean
+  public OrchestrationJobs orchestrationJobs(
+      TaskService taskService,
+      McpAccessGuard accessGuard,
+      McpAuditLog auditLog,
+      McpEchoAuditPublisher echoAuditPublisher) {
+    return new OrchestrationJobs(taskService, accessGuard, auditLog, echoAuditPublisher);
   }
 
   @Bean
@@ -151,6 +182,11 @@ public class McpServerAutoConfiguration {
   public SpinnakerResources spinnakerResources(
       Front50Service front50Service, OrcaServiceSelector orcaServiceSelector) {
     return new SpinnakerResources(front50Service, orcaServiceSelector);
+  }
+
+  @Bean
+  public McpAuditLogResource mcpAuditLogResource(McpAuditLog auditLog) {
+    return new McpAuditLogResource(auditLog);
   }
 
   @Bean

@@ -110,7 +110,7 @@ public class DeploymentTools {
               required = true)
           List<Map<String, Object>> jobs) {
     orchestrationJobs.requireWriteAccess("submit_orchestration");
-    return orchestrationJobs.submit(application, description, jobs);
+    return orchestrationJobs.submit("submit_orchestration", application, description, jobs);
   }
 
   @McpTool(
@@ -185,7 +185,10 @@ public class DeploymentTools {
         String.join("-", nonNull(application), nonNull(stack), nonNull(freeFormDetails))
             .replaceAll("-+$", "");
     return orchestrationJobs.submit(
-        application, "Deploy server group in cluster " + clusterName, List.of(job));
+        "deploy_aws_server_group",
+        application,
+        "Deploy server group in cluster " + clusterName,
+        List.of(job));
   }
 
   @McpTool(
@@ -223,7 +226,7 @@ public class DeploymentTools {
     }
 
     return orchestrationJobs.submit(
-        application, "Upsert load balancer '" + name + "'", List.of(job));
+        "upsert_load_balancer", application, "Upsert load balancer '" + name + "'", List.of(job));
   }
 
   private static String nonNull(String value) {

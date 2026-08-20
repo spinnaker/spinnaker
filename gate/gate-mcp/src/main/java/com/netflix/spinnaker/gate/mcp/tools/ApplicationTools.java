@@ -124,7 +124,8 @@ public class ApplicationTools {
     job.put("application", applicationAttributes);
     job.put("user", AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"));
 
-    return orchestrationJobs.submit(name, "Create application '" + name + "'", List.of(job));
+    return orchestrationJobs.submit(
+        "create_application", name, "Create application '" + name + "'", List.of(job));
   }
 
   @McpTool(
@@ -144,6 +145,7 @@ public class ApplicationTools {
     job.put("application", applicationAttributes);
     job.put("user", AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"));
 
-    return orchestrationJobs.submit(name, "Delete application '" + name + "'", List.of(job));
+    return orchestrationJobs.submit(
+        "delete_application", name, "Delete application '" + name + "'", List.of(job));
   }
 }

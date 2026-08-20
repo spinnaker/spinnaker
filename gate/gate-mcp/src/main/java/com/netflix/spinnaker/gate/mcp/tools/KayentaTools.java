@@ -86,7 +86,8 @@ public class KayentaTools {
           Map<String, Object> config,
       @McpToolParam(description = "Kayenta configuration storage account name", required = false)
           String configurationAccountName) {
-    accessGuard.requireWriteAccess("save_canary_config");
+    accessGuard.requireWriteAccess(
+        "save_canary_config", id != null ? id : String.valueOf(config.get("name")));
     if (id != null) {
       return Retrofit2SyncCall.execute(
           kayentaService.updateCanaryConfig(id, config, configurationAccountName));
@@ -100,7 +101,7 @@ public class KayentaTools {
       @McpToolParam(description = "Canary config id", required = true) String id,
       @McpToolParam(description = "Kayenta configuration storage account name", required = false)
           String configurationAccountName) {
-    accessGuard.requireWriteAccess("delete_canary_config");
+    accessGuard.requireWriteAccess("delete_canary_config", id);
     Retrofit2SyncCall.execute(kayentaService.deleteCanaryConfig(id, configurationAccountName));
   }
 
@@ -196,7 +197,8 @@ public class KayentaTools {
           String storageAccountName,
       @McpToolParam(description = "Kayenta configuration storage account name", required = false)
           String configurationAccountName) {
-    accessGuard.requireWriteAccess("initiate_canary");
+    accessGuard.requireWriteAccess(
+        "initiate_canary", application != null ? application : canaryConfigId);
     return Retrofit2SyncCall.execute(
         kayentaService.initiateCanary(
             canaryConfigId,
@@ -231,7 +233,7 @@ public class KayentaTools {
           String metricsAccountName,
       @McpToolParam(description = "Kayenta storage account name", required = false)
           String storageAccountName) {
-    accessGuard.requireWriteAccess("initiate_canary_with_config");
+    accessGuard.requireWriteAccess("initiate_canary_with_config", application);
     return Retrofit2SyncCall.execute(
         kayentaService.initiateCanaryWithConfig(
             adhocExecutionRequest,
