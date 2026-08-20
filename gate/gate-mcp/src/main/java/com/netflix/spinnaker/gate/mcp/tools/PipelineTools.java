@@ -21,7 +21,9 @@ import com.netflix.spinnaker.gate.mcp.support.PipelineConfigs;
 import com.netflix.spinnaker.gate.services.internal.Front50Service;
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -115,5 +117,83 @@ public class PipelineTools {
       @McpToolParam(description = "Pipeline execution id", required = true) String executionId) {
     accessGuard.requireWriteAccess("resume_pipeline", executionId);
     Retrofit2SyncCall.execute(orcaServiceSelector.select().resumePipeline(executionId, ""));
+  }
+
+  @McpTool(
+      name = "evaluate_pipeline_expression",
+      description =
+          "Evaluate a SpEL pipeline expression (e.g. '${execution.trigger.parameters.foo}') against an execution's "
+              + "context - the same evaluation Deck's expression debugger uses. If 'executionId' is omitted, "
+              + "evaluates against the most recent execution for 'application' (optionally narrowed to a single "
+              + "pipeline with 'pipelineName'). Pass 'stageId' to evaluate in a specific stage's context instead of "
+              + "the whole execution.")
+  public Map<String, Object> evaluatePipelineExpression(
+      @McpToolParam(description = "SpEL expression to evaluate", required = true) String expression,
+      @McpToolParam(
+              description =
+                  "Pipeline execution id to evaluate against; if omitted, the most recent execution for "
+                      + "'application' is used",
+              required = false)
+          String executionId,
+      @McpToolParam(
+              description = "Evaluate in this stage's context instead of the whole execution",
+              required = false)
+          String stageId,
+      @McpToolParam(
+              description =
+                  "Application to find the most recent execution for; required if 'executionId' is omitted",
+              required = false)
+          String application,
+      @McpToolParam(
+              description = "Narrow the most-recent-execution lookup to this pipeline name",
+              required = false)
+          String pipelineName) {
+    String resolvedExecutionId =
+        executionId != null
+            ? executionId
+            : mostRecentExecutionId(requireApplication(application), pipelineName);
+
+    if (stageId != null) {
+      return Retrofit2SyncCall.execute(
+          orcaServiceSelector
+              .select()
+              .evaluateExpressionForExecutionAtStage(resolvedExecutionId, stageId, expression));
+    }
+    return Retrofit2SyncCall.execute(
+        orcaServiceSelector
+            .select()
+            .evaluateExpressionForExecution(resolvedExecutionId, expression));
+  }
+
+  private static String requireApplication(String application) {
+    if (application == null) {
+      throw new IllegalArgumentException(
+          "application is required when executionId is not provided, to find the most recent execution");
+    }
+    return application;
+  }
+
+  private String mostRecentExecutionId(String application, String pipelineName) {
+    List<Map<String, Object>> executions =
+        Retrofit2SyncCall.execute(
+            orcaServiceSelector
+                .select()
+                .getPipelines(application, 1, null, false, pipelineName, null));
+    Map<String, Object> mostRecent =
+        executions.stream()
+            .max(Comparator.comparingLong(PipelineTools::startTimeOrZero))
+            .orElseThrow(
+                () ->
+                    new NotFoundException(
+                        "No executions found for application '"
+                            + application
+                            + "'"
+                            + (pipelineName != null ? " pipeline '" + pipelineName + "'" : "")));
+    return String.valueOf(mostRecent.get("id"));
+  }
+
+  private static long startTimeOrZero(Map<String, Object> execution) {
+    Object startTime = execution.getOrDefault("startTime", execution.get("buildTime"));
+    return startTime instanceof Number ? ((Number) startTime).longValue() : 0L;
   }
 }

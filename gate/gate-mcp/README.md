@@ -69,6 +69,7 @@ types in one call, which Gate's REST API had never been able to do end-to-end.
 | `trigger_pipeline` | Start a pipeline execution |
 | `get_pipeline_execution` | Get a pipeline execution by id |
 | `cancel_pipeline` / `pause_pipeline` / `resume_pipeline` | Control a running execution |
+| `evaluate_pipeline_expression` | Evaluate a SpEL expression against an execution (or stage); defaults to the application's most recent execution if no `executionId` is given |
 
 ### Execution search & triage (`ExecutionTools`)
 
@@ -94,6 +95,20 @@ types in one call, which Gate's REST API had never been able to do end-to-end.
 | `get_task` | Retrieve a task by id |
 | `create_task` | Submit a raw ad-hoc task and return immediately (fire-and-forget; poll with `get_task`) |
 | `cancel_task` | Cancel a running task |
+
+### Admin (`AdminTools`) - requires Fiat admin
+
+| Tool | Description |
+|---|---|
+| `cancel_zombie_pipeline` | Force-cancel an execution stuck in a running state that won't respond to `cancel_pipeline` |
+
+### Global banners (`GlobalBannerTools`, only when `global-banner.enabled: true`) - requires Fiat admin
+
+| Tool | Description |
+|---|---|
+| `list_global_banners` | List every global UI banner, active and inactive |
+| `set_global_banner` | Create or update a global UI banner shown across all Deck pages |
+| `delete_global_banner` | Delete a global UI banner by id |
 
 ### Canary analysis (`KayentaTools`, only when `services.kayenta.enabled: true`)
 
@@ -205,6 +220,22 @@ controls used when a rollout is stuck.
     scope for gate-mcp to bolt on unilaterally (it would make the MCP surface *more* restrictive
     than Deck for the same operations, not fix the actual gap) - tracked as a platform-level
     follow-up, not a gate-mcp bug.
+  - **`AdminTools`/`GlobalBannerTools` are the one place this module *adds* enforcement rather than
+    inheriting or finding it already downstream.** Orca's `/admin/forceCancelExecution` (backing
+    `cancel_zombie_pipeline`) has zero authorization of its own - it's protected *only* by
+    gate-web's `AdminController.killZombie`'s `@PreAuthorize("@fiatPermissionEvaluator
+    .isAdmin()")`. The global banner subsystem (`GlobalBannerService`, backing
+    `list_global_banners`/`set_global_banner`/`delete_global_banner`) is similarly unprotected on
+    its own - gate-web's `GlobalBannerController` checks admin status with a manual `if
+    (!permissionService.isAdmin(...))`, not a Spring Security annotation. Since gate-mcp can't
+    inherit either controller's enforcement, every method on both tool classes carries
+    `@PreAuthorize("@fiatPermissionEvaluator.isAdmin()")` directly, verified through a real Spring
+    AOP proxy in `AdminToolsAuthorizationTest`/`GlobalBannerToolsAuthorizationTest` (same pattern as
+    `ApplicationToolsAuthorizationTest`). `GlobalBannerService`/`RedisBannerRepository`/
+    `BannerRecord`/`GlobalBannerProperties` were moved from gate-web to gate-core (same reasoning,
+    and same move, as `KayentaService`) so this module could depend on them; gate-core gained a
+    `redis.clients:jedis` dependency as a result - gate-web's `GlobalBannerConfig` still owns the
+    actual `JedisPool`-backed bean registration, unchanged.
 - **`submit_orchestration`** / **`create_task`** are the generic primitives every other mutating
   tool builds on - the `{application, description, job: [...]}` payload Deck submits for every
   write operation (see `OrchestrationJobs` / `TaskService` in gate-core). Any clouddriver-supported
@@ -237,6 +268,15 @@ controls used when a rollout is stuck.
   .application` even though it isn't always literally an application name (it can be an execution,
   task, resource, or canary config id) - that's the field Echo's existing consumers key on, so
   it's used as the best available identifier rather than left unset.
+- **`evaluate_pipeline_expression`'s "most recent execution" default**: when `executionId` is
+  omitted, it calls orca's `getPipelines(application, limit=1, ..., pipelineNameFilter, ...)` -
+  self-enforced the same as every other `PipelineTools` read - then picks the single result with
+  the highest `startTime` (falling back to `buildTime`) across whatever it returns. This is
+  deliberate rather than just taking the first result: with `limit=1` and no `pipelineNameFilter`,
+  orca groups by pipeline *name* and returns the most recent execution *per pipeline*, so an
+  application with several distinct pipelines can come back with more than one candidate: the
+  `startTime` comparison is what actually picks the single most recent execution across all of
+  them. Pass `pipelineName` to scope the lookup to one pipeline instead.
 - Tool/resource/prompt classes are plain POJOs registered via `@Bean` methods in
   `McpServerAutoConfiguration` (not `@Component`-scanned), so when `mcp.server.enabled` is false
   none of them exist in the application context at all. `KayentaTools`/`KeelTools` additionally

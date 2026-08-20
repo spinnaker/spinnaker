@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.gate.mcp.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.gate.banner.GlobalBannerProperties;
+import com.netflix.spinnaker.gate.banner.GlobalBannerService;
 import com.netflix.spinnaker.gate.mcp.prompts.SpinnakerPrompts;
 import com.netflix.spinnaker.gate.mcp.resources.McpAuditLogResource;
 import com.netflix.spinnaker.gate.mcp.resources.SpinnakerResources;
@@ -24,9 +26,11 @@ import com.netflix.spinnaker.gate.mcp.support.McpAccessGuard;
 import com.netflix.spinnaker.gate.mcp.support.McpAuditLog;
 import com.netflix.spinnaker.gate.mcp.support.McpEchoAuditPublisher;
 import com.netflix.spinnaker.gate.mcp.support.OrchestrationJobs;
+import com.netflix.spinnaker.gate.mcp.tools.AdminTools;
 import com.netflix.spinnaker.gate.mcp.tools.ApplicationTools;
 import com.netflix.spinnaker.gate.mcp.tools.DeploymentTools;
 import com.netflix.spinnaker.gate.mcp.tools.ExecutionTools;
+import com.netflix.spinnaker.gate.mcp.tools.GlobalBannerTools;
 import com.netflix.spinnaker.gate.mcp.tools.KayentaTools;
 import com.netflix.spinnaker.gate.mcp.tools.KeelTools;
 import com.netflix.spinnaker.gate.mcp.tools.ManualJudgmentTools;
@@ -176,6 +180,26 @@ public class McpServerAutoConfiguration {
       OrcaServiceSelector orcaServiceSelector,
       McpAccessGuard accessGuard) {
     return new TaskTools(taskService, orcaServiceSelector, accessGuard);
+  }
+
+  @Bean
+  public AdminTools adminTools(
+      OrcaServiceSelector orcaServiceSelector, McpAccessGuard accessGuard) {
+    return new AdminTools(orcaServiceSelector, accessGuard);
+  }
+
+  /**
+   * The global banner subsystem is optional too ({@code global-banner.enabled}); see {@code
+   * GlobalBannerConfig} in gate-web, which registers the {@code GlobalBannerService} bean this
+   * depends on. Same deliberately-a-property-not-a-bean-condition reasoning as Kayenta/Keel above.
+   */
+  @Bean
+  @ConditionalOnProperty(name = "global-banner.enabled", havingValue = "true")
+  public GlobalBannerTools globalBannerTools(
+      GlobalBannerService globalBannerService,
+      GlobalBannerProperties globalBannerProperties,
+      McpAccessGuard accessGuard) {
+    return new GlobalBannerTools(globalBannerService, globalBannerProperties, accessGuard);
   }
 
   @Bean
