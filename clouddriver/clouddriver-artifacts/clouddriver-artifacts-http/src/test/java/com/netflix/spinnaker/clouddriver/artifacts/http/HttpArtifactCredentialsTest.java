@@ -28,7 +28,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.function.Function;
 import okhttp3.OkHttpClient;
 import org.apache.commons.io.Charsets;
@@ -108,20 +107,33 @@ class HttpArtifactCredentialsTest {
   }
 
   @Test
-  void blockUnlessInWhiteList() throws IOException {
-    // explicitly deny the test server we're hitting.
+  void blockUnlessInWhiteList(@WiremockResolver.Wiremock WireMockServer server) throws IOException {
     HttpArtifactAccount account =
         HttpArtifactAccount.builder()
             .urlRestrictions(
-                HttpUrlRestrictions.builder().allowedDomains(List.of("google.com")).build())
+                HttpUrlRestrictions.builder()
+                    .allowedHostnamesRegex("localhost|127\\.0\\.0\\.1")
+                    .rejectLocalhost(false)
+                    .build())
             .name("my-bitbucket-account")
             .build();
     HttpArtifactCredentials credentials = new HttpArtifactCredentials(account, okHttpClient);
-    assertThat(credentials.download(Artifact.builder().reference("http://google.com").build()))
+
+    server.stubFor(any(urlPathEqualTo(URL)).willReturn(aResponse().withStatus(200).withBody("ok")));
+
+    assertThat(
+            credentials.download(
+                Artifact.builder().reference(server.baseUrl() + URL).type("http/file").build()))
         .isNotNull();
+
     Assertions.assertThrows(
         IllegalArgumentException.class,
-        () -> credentials.download(Artifact.builder().reference("http://example.com").build()));
+        () ->
+            credentials.download(
+                Artifact.builder()
+                    .reference("http://example.com/artifact")
+                    .type("http/file")
+                    .build()));
   }
 
   @Test
@@ -132,6 +144,28 @@ class HttpArtifactCredentialsTest {
     Assertions.assertThrows(
         IllegalArgumentException.class,
         () -> credentials.download(Artifact.builder().reference("http://localhost").build()));
+  }
+
+  @Test
+  void blockSsrfViaRedirectToRestrictedHost(@WiremockResolver.Wiremock WireMockServer server) {
+    HttpArtifactAccount account =
+        HttpArtifactAccount.builder()
+            .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(true).build())
+            .name("my-http-account")
+            .build();
+    HttpArtifactCredentials credentials = new HttpArtifactCredentials(account, okHttpClient);
+    server.stubFor(
+        any(urlPathEqualTo(URL))
+            .willReturn(
+                aResponse()
+                    .withStatus(302)
+                    .withHeader("Location", "http://127.0.0.1:8080/secret")));
+    Artifact artifact =
+        Artifact.builder().reference(server.baseUrl() + URL).type("http/file").build();
+
+    Throwable thrown = catchThrowable(() -> credentials.download(artifact));
+
+    assertThat(thrown).isInstanceOf(IllegalArgumentException.class);
   }
 
   private void runTestCase(
