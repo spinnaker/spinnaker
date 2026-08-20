@@ -19,7 +19,6 @@ package com.netflix.spinnaker.clouddriver.ecs.provider.view;
 import com.amazonaws.services.applicationautoscaling.model.ScalableTarget;
 import com.amazonaws.services.ec2.model.GroupIdentifier;
 import com.amazonaws.services.ecs.model.ContainerDefinition;
-import com.amazonaws.services.ecs.model.NetworkInterface;
 import com.google.common.collect.Sets;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.EcsCloudProvider;
@@ -60,6 +59,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import software.amazon.awssdk.services.ecs.model.NetworkInterface;
 
 @Component
 public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluster> {
@@ -225,8 +225,8 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
 
     NetworkInterface networkInterface =
         !task.getContainers().isEmpty()
-                && !task.getContainers().get(0).getNetworkInterfaces().isEmpty()
-            ? task.getContainers().get(0).getNetworkInterfaces().get(0)
+                && !task.getContainers().get(0).networkInterfaces().isEmpty()
+            ? task.getContainers().get(0).networkInterfaces().get(0)
             : null;
 
     return new EcsTask(
