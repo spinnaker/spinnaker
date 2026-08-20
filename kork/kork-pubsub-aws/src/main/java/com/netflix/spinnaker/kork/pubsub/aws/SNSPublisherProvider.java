@@ -16,10 +16,6 @@
 
 package com.netflix.spinnaker.kork.pubsub.aws;
 
-import com.amazonaws.ClientConfiguration;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.services.sns.AmazonSNS;
-import com.amazonaws.services.sns.AmazonSNSClientBuilder;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.aws.ARN;
 import com.netflix.spinnaker.kork.core.RetrySupport;
@@ -37,6 +33,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.sns.SnsClient;
 
 /** Creates one SNSPublisher per subscription */
 @Component
@@ -44,7 +43,7 @@ import org.springframework.stereotype.Component;
 public class SNSPublisherProvider {
   private static final Logger log = LoggerFactory.getLogger(SNSPublisherProvider.class);
 
-  private final AWSCredentialsProvider awsCredentialsProvider;
+  private final AwsCredentialsProvider awsCredentialsProvider;
   private final AmazonPubsubProperties properties;
   private final PubsubPublishers pubsubPublishers;
   private final Registry registry;
@@ -54,7 +53,7 @@ public class SNSPublisherProvider {
 
   @Autowired
   public SNSPublisherProvider(
-      AWSCredentialsProvider awsCredentialsProvider,
+      AwsCredentialsProvider awsCredentialsProvider,
       AmazonPubsubProperties properties,
       PubsubPublishers pubsubPublishers,
       Registry registry,
@@ -84,18 +83,17 @@ public class SNSPublisherProvider {
               ARN topicARN = new ARN(subscription.getTopicARN());
               log.info("Bootstrapping SNS topic: {}", topicARN);
 
-              AmazonSNS amazonSNS =
-                  AmazonSNSClientBuilder.standard()
-                      .withCredentials(awsCredentialsProvider)
-                      .withClientConfiguration(new ClientConfiguration())
-                      .withRegion(topicARN.getRegion())
+              SnsClient snsClient =
+                  SnsClient.builder()
+                      .credentialsProvider(awsCredentialsProvider)
+                      .region(Region.of(topicARN.getRegion()))
                       .build();
 
               Supplier<Boolean> isEnabled =
                   PubSubUtils.getEnabledSupplier(dynamicConfig, subscription, discoveryStatus);
 
               SNSPublisher publisher =
-                  new SNSPublisher(subscription, amazonSNS, isEnabled, registry, retrySupport);
+                  new SNSPublisher(subscription, snsClient, isEnabled, registry, retrySupport);
 
               publishers.add(publisher);
             });

@@ -20,14 +20,10 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITA
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASKS;
 
-import com.amazonaws.services.ecs.model.Container;
 import com.amazonaws.services.ecs.model.ContainerDefinition;
 import com.amazonaws.services.ecs.model.LoadBalancer;
-import com.amazonaws.services.ecs.model.NetworkBinding;
-import com.amazonaws.services.ecs.model.NetworkInterface;
 import com.amazonaws.services.ecs.model.PortMapping;
 import com.amazonaws.services.ecs.model.TaskDefinition;
-import com.amazonaws.services.elasticloadbalancingv2.model.TargetHealthDescription;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.cache.CacheData;
@@ -51,6 +47,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.ecs.EcsClient;
+import software.amazon.awssdk.services.ecs.model.Container;
+import software.amazon.awssdk.services.ecs.model.NetworkBinding;
+import software.amazon.awssdk.services.ecs.model.NetworkInterface;
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetHealthDescription;
 
 public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
     implements HealthProvidingCachingAgent {
@@ -200,8 +200,8 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
       NetworkInterface networkInterface = null;
 
       for (Container container : containers) {
-        if (container.getNetworkInterfaces().size() >= 1) {
-          networkInterface = container.getNetworkInterfaces().get(0);
+        if (container.networkInterfaces().size() >= 1) {
+          networkInterface = container.networkInterfaces().get(0);
           break;
         }
       }
@@ -212,7 +212,7 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
               task,
               serviceName,
               loadBalancer.getTargetGroupArn(),
-              networkInterface.getPrivateIpv4Address(),
+              networkInterface.privateIpv4Address(),
               loadBalancer.getContainerPort(),
               overallTaskHealth);
     }
@@ -223,9 +223,9 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
       Task task, String serviceName, TargetHealthDescription healthDescription) {
     String targetHealth = STATUS_UNKNOWN;
     if (healthDescription != null) {
-      log.debug("Task target health is: {}", healthDescription.getTargetHealth());
+      log.debug("Task target health is: {}", healthDescription.targetHealth());
       targetHealth =
-          healthDescription.getTargetHealth().getState().equals("healthy")
+          healthDescription.targetHealth().stateAsString().equals("healthy")
               ? STATUS_UP
               : STATUS_UNKNOWN;
     }
@@ -289,10 +289,7 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
       List<TargetHealthDescription> targetHealths, String targetId, Integer targetPort) {
 
     return targetHealths.stream()
-        .filter(
-            h ->
-                h.getTarget().getId().equals(targetId)
-                    && h.getTarget().getPort().equals(targetPort))
+        .filter(h -> h.target().id().equals(targetId) && h.target().port().equals(targetPort))
         .findFirst()
         .orElse(null);
   }
@@ -338,12 +335,12 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
   private Optional<Integer> getHostPort(List<Container> containers, Integer hostPort) {
     if (containers != null && !containers.isEmpty()) {
       for (Container container : containers) {
-        for (NetworkBinding networkBinding : container.getNetworkBindings()) {
-          Integer containerPort = networkBinding.getContainerPort();
+        for (NetworkBinding networkBinding : container.networkBindings()) {
+          Integer containerPort = networkBinding.containerPort();
 
           if (containerPort != null && containerPort.intValue() == hostPort.intValue()) {
             log.debug("Load balanced hostPort: {} found for container.", hostPort);
-            return Optional.of(networkBinding.getHostPort());
+            return Optional.of(networkBinding.hostPort());
           }
         }
       }
@@ -370,9 +367,7 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
     Collection<Container> containers = task.getContainers();
 
     for (Container container : containers) {
-      if (!(container.getNetworkBindings() == null
-          || container.getNetworkBindings().isEmpty()
-          || container.getNetworkBindings().get(0) == null)) {
+      if (!(container.networkBindings().isEmpty() || container.networkBindings().get(0) == null)) {
         return false;
       }
     }
@@ -383,9 +378,8 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
     Collection<Container> containers = task.getContainers();
 
     for (Container container : containers) {
-      if (!(container.getNetworkInterfaces() == null
-          || container.getNetworkInterfaces().isEmpty()
-          || container.getNetworkInterfaces().get(0) == null)) {
+      if (!(container.networkInterfaces().isEmpty()
+          || container.networkInterfaces().get(0) == null)) {
         return false;
       }
     }
