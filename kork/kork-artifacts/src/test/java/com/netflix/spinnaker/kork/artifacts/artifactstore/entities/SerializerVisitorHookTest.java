@@ -100,6 +100,22 @@ class SerializerVisitorHookTest {
                     "manifests", (Object) List.of(Map.of("manifest.field1", "manifest.value1")))),
             "[{\"manifests\":[{\"customKind\":false,\"metadata\":{},\"reference\":\"ref://stored\",\"type\":\"remote/map/base64\"}]}]"),
         Arguments.of(
+            // mirrors findArtifactsFromResource / runJobManifest outputs, which put a single
+            // manifest map (not a list) under the "manifest" key.
+            Map.of("manifest", (Object) Map.of("manifest.field1", "manifest.value1")),
+            "{\"manifest\":{\"customKind\":false,\"metadata\":{},\"reference\":\"ref://stored\",\"type\":\"remote/map/base64\"}}"),
+        Arguments.of(
+            // mirrors a "kato.tasks[].resultObjects[]" entry nested inside a list.
+            List.of(
+                Map.of(
+                    "resultObjects",
+                    (Object)
+                        List.of(
+                            Map.of(
+                                "manifests",
+                                (Object) List.of(Map.of("manifest.field1", "manifest.value1")))))),
+            "[{\"resultObjects\":[{\"manifests\":[{\"customKind\":false,\"metadata\":{},\"reference\":\"ref://stored\",\"type\":\"remote/map/base64\"}]}]}]"),
+        Arguments.of(
             new MockContainer(
                 Map.of("field1", "value1", "field2", "value2"),
                 Set.of(Map.of("manifest.field1", "manifest.value1"))),
