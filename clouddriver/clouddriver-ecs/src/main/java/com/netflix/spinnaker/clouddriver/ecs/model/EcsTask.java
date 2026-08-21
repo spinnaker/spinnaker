@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.model;
 
-import com.amazonaws.services.ecs.model.NetworkInterface;
 import com.netflix.spinnaker.clouddriver.ecs.EcsCloudProvider;
 import com.netflix.spinnaker.clouddriver.model.HealthState;
 import com.netflix.spinnaker.clouddriver.model.Instance;
@@ -24,6 +23,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import lombok.Data;
+import software.amazon.awssdk.services.ecs.model.NetworkInterface;
 
 @Data
 public class EcsTask implements Instance, Serializable {
