@@ -29,20 +29,7 @@ function isIntegerInRange(value: unknown, maximum = MAX_INT): value is number {
 }
 
 function isValidPolicy(policy: IGceAutoHealingPolicy): boolean {
-  if (!policy.healthCheck?.trim() || !policy.healthCheckKind || !isIntegerInRange(policy.initialDelaySec)) {
-    return false;
-  }
-  if (!policy.maxUnavailable || Object.keys(policy.maxUnavailable).length === 0) {
-    return true;
-  }
-  const hasFixed = Object.prototype.hasOwnProperty.call(policy.maxUnavailable, 'fixed');
-  const hasPercent = Object.prototype.hasOwnProperty.call(policy.maxUnavailable, 'percent');
-  if (hasFixed === hasPercent) {
-    return false;
-  }
-  return hasPercent
-    ? isIntegerInRange(policy.maxUnavailable.percent, 100)
-    : isIntegerInRange(policy.maxUnavailable.fixed);
+  return Boolean(policy.healthCheck?.trim() && policy.healthCheckKind && isIntegerInRange(policy.initialDelaySec));
 }
 
 export class GceUpsertAutoHealingPolicyModal extends React.Component<
@@ -56,8 +43,10 @@ export class GceUpsertAutoHealingPolicyModal extends React.Component<
   public constructor(props: IGceUpsertAutoHealingPolicyModalProps) {
     super(props);
     const action = props.policy ? 'Edit' : 'New';
+    const policy = cloneDeep(props.policy || { initialDelaySec: 300 });
+    Reflect.deleteProperty(policy, 'maxUnavailable');
     this.state = {
-      policy: cloneDeep(props.policy || { initialDelaySec: 300 }),
+      policy,
       taskMonitor: new TaskMonitor({
         application: props.application,
         title: `${action} autohealing policy for ${props.serverGroup.name}`,
