@@ -69,5 +69,66 @@ describe('gceServerGroupTransformer', () => {
       expect(deployConfig.account).toBe('my-google-account');
       expect(deployConfig.backingData).toBeUndefined();
     });
+
+    it('preserves instanceFlexibilityPolicy for pipeline edit/save round-trips', () => {
+      const flexibilityPolicy = {
+        instanceSelections: {
+          preferred: { machineTypes: ['n2-standard-8'] },
+          fallback: { rank: 2, machineTypes: ['e2-standard-8'] },
+        },
+      };
+      const command = {
+        credentials: 'test-account',
+        region: 'us-central1',
+        zone: 'us-central1-a',
+        enableTraffic: true,
+        instanceFlexibilityPolicy: flexibilityPolicy,
+        backingData: { filtered: { truncatedZones: ['us-central1-a'] } },
+        viewState: { mode: 'editPipeline' },
+      };
+
+      const deployConfig = transformer.convertServerGroupCommandToDeployConfiguration(command);
+
+      expect(deployConfig.instanceFlexibilityPolicy).toEqual(flexibilityPolicy);
+      expect(deployConfig.backingData).toBeUndefined();
+      expect(deployConfig.viewState).toBeUndefined();
+    });
+
+    it('preserves nested distribution and flexibility intent while stripping unsupported legacy fields', () => {
+      const flexibilityPolicy = {
+        instanceSelections: {
+          preferred: { machineTypes: ['n2-standard-8'] },
+        },
+      };
+      const deployConfig = transformer.convertServerGroupCommandToDeployConfiguration({
+        autoHealingPolicy: {
+          healthCheck: 'web-health-check',
+          healthCheckUrl: 'https://compute/healthChecks/web-health-check',
+          initialDelaySec: 0,
+          maxUnavailable: { fixed: 2 },
+        },
+        credentials: 'test-account',
+        distributionPolicy: { zones: ['us-central1-a'], targetShape: 'ANY_SINGLE_ZONE' },
+        enableTraffic: true,
+        instanceFlexibilityPolicy: flexibilityPolicy,
+        partnerMetadata: { legacy: true },
+        region: 'us-central1',
+        selectZones: false,
+        viewState: { mode: 'editPipeline' },
+      });
+
+      expect(deployConfig.distributionPolicy).toEqual({
+        zones: ['us-central1-a'],
+        targetShape: 'ANY_SINGLE_ZONE',
+      });
+      expect(deployConfig.selectZones).toBe(false);
+      expect(deployConfig.instanceFlexibilityPolicy).toEqual(flexibilityPolicy);
+      expect(deployConfig.partnerMetadata).toBeUndefined();
+      expect(deployConfig.autoHealingPolicy).toEqual({
+        healthCheck: 'web-health-check',
+        healthCheckUrl: 'https://compute/healthChecks/web-health-check',
+        initialDelaySec: 0,
+      });
+    });
   });
 });

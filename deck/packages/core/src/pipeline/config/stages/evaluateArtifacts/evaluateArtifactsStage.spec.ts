@@ -25,7 +25,7 @@ describe('evaluateArtifactsStage', () => {
     );
   });
 
-  it('does not register Angular-only config fields', () => {
+  it('does not register legacy config fields', () => {
     const stageConfig = Registry.pipeline.getStageConfig({ type: 'evaluateArtifacts' } as any) as any;
 
     expect(stageConfig.controller).toBeUndefined();
