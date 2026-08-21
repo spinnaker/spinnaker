@@ -7,6 +7,8 @@ import type {
   IWizardPageInjectedProps,
 } from '@spinnaker/core';
 
+import type { IGceInstanceFlexibilityPolicy } from '../../../domain/serverGroup';
+
 export const GCE_SERVER_GROUP_OPERATION_MODES = ['create', 'clone', 'createPipeline', 'editPipeline'] as const;
 
 export type GceServerGroupOperationMode = typeof GCE_SERVER_GROUP_OPERATION_MODES[number];
@@ -31,6 +33,7 @@ export interface IGceServerGroupCommand {
   };
   freeFormDetails?: string | null;
   image?: string | null;
+  instanceFlexibilityPolicy?: IGceInstanceFlexibilityPolicy;
   processCommandUpdateResult?: (result: IGceServerGroupCommandUpdateResult) => void;
   region?: string | null;
   regional: boolean;
