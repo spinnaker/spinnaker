@@ -205,6 +205,35 @@ public class GoogleInternalHttpLoadBalancerCachingAgentTest {
   }
 
   @Test
+  void isInternalManagedHttpForwardingRule_rejectsOtherManagedSchemes() {
+    ForwardingRule internalManagedRule =
+        new ForwardingRule()
+            .setLoadBalancingScheme("INTERNAL_MANAGED")
+            .setTarget("projects/test/regions/us-central1/targetHttpProxies/internal-proxy");
+    ForwardingRule externalManagedRule =
+        new ForwardingRule()
+            .setLoadBalancingScheme("EXTERNAL_MANAGED")
+            .setTarget("projects/test/regions/us-central1/targetHttpProxies/external-proxy");
+    ForwardingRule sslProxyRule =
+        new ForwardingRule()
+            .setLoadBalancingScheme("INTERNAL_MANAGED")
+            .setTarget("projects/test/regions/us-central1/targetSslProxies/ssl-proxy");
+
+    assertThat(
+            GoogleInternalHttpLoadBalancerCachingAgent.isInternalManagedHttpForwardingRule(
+                internalManagedRule))
+        .isTrue();
+    assertThat(
+            GoogleInternalHttpLoadBalancerCachingAgent.isInternalManagedHttpForwardingRule(
+                externalManagedRule))
+        .isFalse();
+    assertThat(
+            GoogleInternalHttpLoadBalancerCachingAgent.isInternalManagedHttpForwardingRule(
+                sslProxyRule))
+        .isFalse();
+  }
+
+  @Test
   void handleHealthCheck_withMultipleBackendServices() throws Exception {
     // Given
     HealthCheck healthCheck = buildBaseHealthCheck("multi-hc", "us-central1");

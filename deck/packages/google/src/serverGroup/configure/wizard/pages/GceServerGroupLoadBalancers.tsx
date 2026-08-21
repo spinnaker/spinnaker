@@ -8,6 +8,10 @@ import type {
   IGceServerGroupWizardPageProps,
 } from '../GceServerGroupWizard.types';
 import { GceServerGroupWizardPage } from '../GceServerGroupWizardPage';
+import { getBalancingModes, resolveLoadBalancingPolicy } from '../gceServerGroupLoadBalancingPolicy';
+import { GceHttpLoadBalancerUtils } from '../../../../loadBalancer/httpLoadBalancerUtils.service';
+
+const gceHttpLoadBalancerUtils = new GceHttpLoadBalancerUtils();
 
 interface ILoadBalancerOption {
   name: string;
@@ -67,15 +71,7 @@ type PreservedField =
   | 'loadBalancers'
   | 'loadBalancingPolicy';
 
-const HTTP_BALANCING_MODES = ['RATE', 'UTILIZATION'];
-const CONNECTION_BALANCING_MODES = ['CONNECTION', 'UTILIZATION'];
 const MODE_LIMIT_FIELDS = ['maxConnectionsPerInstance', 'maxRatePerInstance', 'maxUtilization'];
-const DEFAULT_LOAD_BALANCING_POLICY = {
-  balancingMode: 'UTILIZATION',
-  capacityScaler: 1,
-  maxUtilization: 0.8,
-  namedPorts: [{ name: 'http', port: 80 }],
-};
 
 function policyErrorId(field: string): string {
   return `gce-load-balancing-policy-${field.replace(/([A-Z])/g, '-$1').toLowerCase()}-error`;
@@ -101,8 +97,12 @@ export class GceServerGroupLoadBalancers extends GceServerGroupWizardPage<IGceSe
       return errors;
     }
 
-    const policyErrors: ILoadBalancingPolicyErrors = {};
     const balancingModes = getBalancingModes(values);
+    if (!balancingModes.length) {
+      return errors;
+    }
+
+    const policyErrors: ILoadBalancingPolicyErrors = {};
     if (!policy.balancingMode || !balancingModes.includes(policy.balancingMode)) {
       policyErrors.balancingMode = 'Select a balancing mode supported by the selected load balancers.';
     }
@@ -257,6 +257,10 @@ export class GceServerGroupLoadBalancers extends GceServerGroupWizardPage<IGceSe
     values: IGceServerGroupCommand,
     loadBalancerName: string,
   ): React.ReactElement | null {
+    const loadBalancer = getLoadBalancerIndex(values)[loadBalancerName];
+    if (loadBalancer?.loadBalancerType === 'REGIONAL_EXTERNAL_NETWORK') {
+      return null;
+    }
     const availableBackendServices = getBackendServiceData(values, loadBalancerName).map(({ name }) => name);
     const selectedBackendServices = uniqueStrings(values.backendServices?.[loadBalancerName]);
     if (!availableBackendServices.length && !selectedBackendServices.length) {
@@ -460,7 +464,7 @@ export class GceServerGroupLoadBalancers extends GceServerGroupWizardPage<IGceSe
       backendServices,
       backendServiceMetadata: uniqueStrings(Object.values(backendServices).flat()),
     };
-    nextCommand.loadBalancingPolicy = reconcileLoadBalancingPolicy(nextCommand);
+    nextCommand.loadBalancingPolicy = resolveLoadBalancingPolicy(nextCommand);
     void this.applyPageUpdate(nextCommand, ['loadBalancers', 'loadBalancerMetadata', 'loadBalancingPolicy'], true);
   };
 
@@ -633,48 +637,6 @@ function getNamedPortNames(command: IGceServerGroupCommand): string[] {
   ).filter(Boolean);
 }
 
-function getBalancingModes(command: IGceServerGroupCommand): string[] {
-  const loadBalancerIndex = getLoadBalancerIndex(command);
-  const modeSets = uniqueStrings(command.loadBalancers)
-    .map((loadBalancerName) => loadBalancerIndex[loadBalancerName]?.loadBalancerType)
-    .filter((loadBalancerType): loadBalancerType is string => Boolean(loadBalancerType))
-    .map((loadBalancerType) =>
-      loadBalancerType === 'HTTP' || loadBalancerType === 'INTERNAL_MANAGED'
-        ? HTTP_BALANCING_MODES
-        : CONNECTION_BALANCING_MODES,
-    );
-  if (!modeSets.length) {
-    const persistedMode = (command.loadBalancingPolicy as ILoadBalancingPolicy | undefined)?.balancingMode;
-    return persistedMode ? [persistedMode] : [];
-  }
-  return modeSets.slice(1).reduce((modes, nextModes) => modes.filter((mode) => nextModes.includes(mode)), modeSets[0]);
-}
-
-function reconcileLoadBalancingPolicy(command: IGceServerGroupCommand): ILoadBalancingPolicy | undefined {
-  const balancingModes = getBalancingModes(command);
-  if (!balancingModes.length) {
-    return undefined;
-  }
-  const existing = command.loadBalancingPolicy as ILoadBalancingPolicy | undefined;
-  const balancingMode =
-    existing?.balancingMode && balancingModes.includes(existing.balancingMode)
-      ? existing.balancingMode
-      : DEFAULT_LOAD_BALANCING_POLICY.balancingMode;
-  const policy: ILoadBalancingPolicy = {
-    ...existing,
-    balancingMode,
-    capacityScaler: existing?.capacityScaler ?? DEFAULT_LOAD_BALANCING_POLICY.capacityScaler,
-    namedPorts: existing?.namedPorts ?? DEFAULT_LOAD_BALANCING_POLICY.namedPorts.map((namedPort) => ({ ...namedPort })),
-  };
-  if (existing?.balancingMode !== balancingMode) {
-    MODE_LIMIT_FIELDS.forEach((field) => delete policy[field]);
-  }
-  if (balancingMode === 'UTILIZATION' && policy.maxUtilization === undefined) {
-    policy.maxUtilization = DEFAULT_LOAD_BALANCING_POLICY.maxUtilization;
-  }
-  return policy;
-}
-
 function reconcileLoadBalancerMetadata(
   command: IGceServerGroupCommand,
   nextLoadBalancers: string[],
@@ -706,7 +668,7 @@ function getLoadBalancerMetadataReference(
   if (!loadBalancer) {
     return undefined;
   }
-  if (loadBalancer.loadBalancerType === 'HTTP' || loadBalancer.loadBalancerType === 'INTERNAL_MANAGED') {
+  if (gceHttpLoadBalancerUtils.isHttpLoadBalancer({ ...loadBalancer, provider: 'gce' } as any)) {
     const names = uniqueStrings((loadBalancer.listeners || []).map(({ name }) => name || ''));
     if (!names.length) {
       return undefined;

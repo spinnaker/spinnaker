@@ -6,6 +6,7 @@ import { ReactModal } from '@spinnaker/core';
 import { GceProxyLoadBalancerModal } from '../common/GceProxyLoadBalancerModal';
 import { GceHttpLoadBalancerModal } from '../http/GceHttpLoadBalancerModal';
 import { GceNetworkLoadBalancerModal } from '../network/GceNetworkLoadBalancerModal';
+import { GceRegionalExternalNetworkLoadBalancerModal } from '../network/GceRegionalExternalNetworkLoadBalancerModal';
 import {
   GCE_LOAD_BALANCER_CHOICES,
   GceLoadBalancerChoiceModal,
@@ -15,6 +16,13 @@ import {
 describe('GceLoadBalancerChoiceModal', () => {
   const application = { name: 'fnord' } as any;
 
+  const spyOnAllGceLoadBalancerModals = (impl: (props: any) => Promise<any> = () => Promise.resolve() as any): void => {
+    spyOn(GceNetworkLoadBalancerModal, 'show').and.callFake(impl);
+    spyOn(GceProxyLoadBalancerModal, 'show').and.callFake(impl);
+    spyOn(GceHttpLoadBalancerModal, 'show').and.callFake(impl);
+    spyOn(GceRegionalExternalNetworkLoadBalancerModal, 'show').and.callFake(impl);
+  };
+
   it('routes every exposed GCE load balancer type to its React modal', () => {
     expect(GCE_LOAD_BALANCER_CHOICES.map(({ type }) => type)).toEqual([
       'NETWORK',
@@ -23,14 +31,17 @@ describe('GceLoadBalancerChoiceModal', () => {
       'SSL',
       'HTTP',
       'INTERNAL_MANAGED',
+      'EXTERNAL_MANAGED',
+      'REGIONAL_EXTERNAL_NETWORK',
     ]);
     expect(getGceLoadBalancerModal('NETWORK')).toBe(GceNetworkLoadBalancerModal);
     (['INTERNAL', 'TCP', 'SSL'] as const).forEach((type) => {
       expect(getGceLoadBalancerModal(type)).withContext(type).toBe(GceProxyLoadBalancerModal);
     });
-    (['HTTP', 'INTERNAL_MANAGED'] as const).forEach((type) => {
+    (['HTTP', 'INTERNAL_MANAGED', 'EXTERNAL_MANAGED'] as const).forEach((type) => {
       expect(getGceLoadBalancerModal(type)).withContext(type).toBe(GceHttpLoadBalancerModal);
     });
+    expect(getGceLoadBalancerModal('REGIONAL_EXTERNAL_NETWORK')).toBe(GceRegionalExternalNetworkLoadBalancerModal);
   });
 
   it('advertises pipeline support only at the fully routed choice entry point', () => {
@@ -82,9 +93,7 @@ describe('GceLoadBalancerChoiceModal', () => {
   });
 
   it('opens every exposed type in create and pipeline modes', () => {
-    spyOn(GceNetworkLoadBalancerModal, 'show').and.returnValue(Promise.resolve() as any);
-    spyOn(GceProxyLoadBalancerModal, 'show').and.returnValue(Promise.resolve() as any);
-    spyOn(GceHttpLoadBalancerModal, 'show').and.returnValue(Promise.resolve() as any);
+    spyOnAllGceLoadBalancerModals();
 
     ([false, true] as const).forEach((forPipelineConfig) => {
       GCE_LOAD_BALANCER_CHOICES.forEach((choice) => {
@@ -154,9 +163,7 @@ describe('GceLoadBalancerChoiceModal', () => {
   });
 
   it('routes every exposed type directly to edit mode with the current load balancer', () => {
-    spyOn(GceNetworkLoadBalancerModal, 'show').and.callFake((props: any) => Promise.resolve(props.loadBalancer) as any);
-    spyOn(GceProxyLoadBalancerModal, 'show').and.callFake((props: any) => Promise.resolve(props.loadBalancer) as any);
-    spyOn(GceHttpLoadBalancerModal, 'show').and.callFake((props: any) => Promise.resolve(props.loadBalancer) as any);
+    spyOnAllGceLoadBalancerModals((props: any) => Promise.resolve(props.loadBalancer) as any);
     const reactModalShow = spyOn(ReactModal, 'show');
 
     GCE_LOAD_BALANCER_CHOICES.forEach((choice) => {
@@ -182,9 +189,7 @@ describe('GceLoadBalancerChoiceModal', () => {
   });
 
   it('routes every existing type to pipeline mode when editing pipeline configuration', () => {
-    spyOn(GceNetworkLoadBalancerModal, 'show').and.callFake((props: any) => Promise.resolve(props.loadBalancer) as any);
-    spyOn(GceProxyLoadBalancerModal, 'show').and.callFake((props: any) => Promise.resolve(props.loadBalancer) as any);
-    spyOn(GceHttpLoadBalancerModal, 'show').and.callFake((props: any) => Promise.resolve(props.loadBalancer) as any);
+    spyOnAllGceLoadBalancerModals((props: any) => Promise.resolve(props.loadBalancer) as any);
     const reactModalShow = spyOn(ReactModal, 'show');
 
     GCE_LOAD_BALANCER_CHOICES.forEach((choice) => {
@@ -219,6 +224,7 @@ describe('GceLoadBalancerChoiceModal', () => {
       const networkShow = spyOn(GceNetworkLoadBalancerModal, 'show');
       const proxyShow = spyOn(GceProxyLoadBalancerModal, 'show');
       const httpShow = spyOn(GceHttpLoadBalancerModal, 'show');
+      const regionalExternalNetworkShow = spyOn(GceRegionalExternalNetworkLoadBalancerModal, 'show');
       const blockedResult = Promise.resolve();
       const reactModalShow = spyOn(ReactModal, 'show').and.returnValue(blockedResult);
       const loadBalancer = { name: 'fnord', loadBalancerType: persistedType };
@@ -234,6 +240,7 @@ describe('GceLoadBalancerChoiceModal', () => {
       expect(networkShow).not.toHaveBeenCalled();
       expect(proxyShow).not.toHaveBeenCalled();
       expect(httpShow).not.toHaveBeenCalled();
+      expect(regionalExternalNetworkShow).not.toHaveBeenCalled();
     });
   });
 
@@ -263,6 +270,7 @@ describe('GceLoadBalancerChoiceModal', () => {
     const networkShow = spyOn(GceNetworkLoadBalancerModal, 'show');
     const proxyShow = spyOn(GceProxyLoadBalancerModal, 'show');
     const httpShow = spyOn(GceHttpLoadBalancerModal, 'show');
+    const regionalExternalNetworkShow = spyOn(GceRegionalExternalNetworkLoadBalancerModal, 'show');
     const modal = new GceLoadBalancerChoiceModal({
       application,
       forPipelineConfig: true,
@@ -275,5 +283,29 @@ describe('GceLoadBalancerChoiceModal', () => {
     expect(networkShow).not.toHaveBeenCalled();
     expect(proxyShow).not.toHaveBeenCalled();
     expect(httpShow).not.toHaveBeenCalled();
+    expect(regionalExternalNetworkShow).not.toHaveBeenCalled();
+  });
+
+  it('exposes EXTERNAL_MANAGED and REGIONAL_EXTERNAL_NETWORK choices', () => {
+    expect(GCE_LOAD_BALANCER_CHOICES.map(({ type }) => type)).toEqual([
+      'NETWORK',
+      'INTERNAL',
+      'TCP',
+      'SSL',
+      'HTTP',
+      'INTERNAL_MANAGED',
+      'EXTERNAL_MANAGED',
+      'REGIONAL_EXTERNAL_NETWORK',
+    ]);
+  });
+
+  it('routes EXTERNAL_MANAGED to the HTTP modal', () => {
+    expect(getGceLoadBalancerModal('EXTERNAL_MANAGED' as any)).toBe(GceHttpLoadBalancerModal);
+  });
+
+  it('routes REGIONAL_EXTERNAL_NETWORK to its dedicated modal', () => {
+    expect(getGceLoadBalancerModal('REGIONAL_EXTERNAL_NETWORK' as any)).toBe(
+      GceRegionalExternalNetworkLoadBalancerModal,
+    );
   });
 });

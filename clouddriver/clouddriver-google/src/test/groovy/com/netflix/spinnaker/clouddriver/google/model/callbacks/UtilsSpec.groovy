@@ -17,6 +17,11 @@
 package com.netflix.spinnaker.clouddriver.google.model.callbacks
 
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleTargetProxyType
+import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
+import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancedBackend
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleRegionalExternalNetworkLoadBalancer
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -143,5 +148,36 @@ class UtilsSpec extends Specification {
       "my-svc-project" | "projects/my-host-project/regions/us-central1/subnetworks/some-subnet" || "my-host-project/some-subnet"
       "my-svc-project" | "projects/my-svc-project/global/networks/some-network"                 || "some-network"
       "my-svc-project" | "projects/my-svc-project/regions/us-central1/subnetworks/some-subnet"  || "some-subnet"
+  }
+
+  void "should determine regional external network disabled state from direct backend service"() {
+    given:
+      def loadBalancer = new GoogleRegionalExternalNetworkLoadBalancer(
+        name: LOAD_BALANCER_NAME,
+        backendService: new GoogleBackendService(backends: [
+          new GoogleLoadBalancedBackend(serverGroupUrl: "projects/test/regions/${REGION}/instanceGroups/other-group")
+        ])
+      )
+      def serverGroup = new GoogleServerGroup(
+        name: SERVER_GROUP_NAME,
+        region: REGION,
+        asg: [(GCEUtil.REGIONAL_LOAD_BALANCER_NAMES): LOAD_BALANCER_NAME]
+      )
+
+    expect:
+      Utils.determineRegionalExternalNetworkLoadBalancerDisabledState(loadBalancer, serverGroup)
+  }
+
+  void "should tolerate malformed regional external network load balancer disabled state"() {
+    given:
+      def loadBalancer = new GoogleRegionalExternalNetworkLoadBalancer(name: LOAD_BALANCER_NAME)
+      def serverGroup = new GoogleServerGroup(
+        name: SERVER_GROUP_NAME,
+        region: REGION,
+        asg: [(GCEUtil.REGIONAL_LOAD_BALANCER_NAMES): LOAD_BALANCER_NAME]
+      )
+
+    expect:
+      !Utils.determineRegionalExternalNetworkLoadBalancerDisabledState(loadBalancer, serverGroup)
   }
 }

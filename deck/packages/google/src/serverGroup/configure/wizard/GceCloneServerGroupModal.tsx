@@ -29,6 +29,8 @@ import type {
 } from './GceServerGroupWizard.types';
 import { GceServerGroupWizardAdapter } from './GceServerGroupWizardAdapter';
 import { createGceServerGroupWizardCommandState } from './GceServerGroupWizardPage';
+import { resolveLoadBalancingPolicy } from './gceServerGroupLoadBalancingPolicy';
+import { GceHttpLoadBalancerUtils } from '../../../loadBalancer/httpLoadBalancerUtils.service';
 import {
   AdvancedSettings,
   GceServerGroupFirewalls,
@@ -39,6 +41,8 @@ import {
   ServerGroupImageSettings,
   ServerGroupInstanceType,
 } from './pages';
+
+const gceHttpLoadBalancerUtils = new GceHttpLoadBalancerUtils();
 
 interface IGceCloneServerGroupModalProps extends IModalComponentProps {
   adapter?: IGceServerGroupWizardAdapter;
@@ -124,7 +128,7 @@ function loadBalancerMetadataReference(name: string, loadBalancer: any): ILoadBa
   if (!loadBalancer) {
     return undefined;
   }
-  if (loadBalancer.loadBalancerType === 'HTTP' || loadBalancer.loadBalancerType === 'INTERNAL_MANAGED') {
+  if (gceHttpLoadBalancerUtils.isHttpLoadBalancer({ ...loadBalancer, provider: 'gce' })) {
     const names = (loadBalancer.listeners || []).map((listener: any) => listener.name).filter(Boolean);
     return names.length
       ? {
@@ -208,6 +212,12 @@ export function transformGceServerGroupCommand(command: IGceServerGroupCommand):
   }
   if (transformed.minCpuPlatform === '(Automatic)') {
     transformed.minCpuPlatform = '';
+  }
+  const loadBalancingPolicy = resolveLoadBalancingPolicy(command);
+  if (loadBalancingPolicy) {
+    transformed.loadBalancingPolicy = loadBalancingPolicy;
+  } else {
+    delete transformed.loadBalancingPolicy;
   }
   delete transformed.loadBalancerMetadata;
   delete transformed.securityGroups;
