@@ -902,32 +902,49 @@ class StandardGceAttributeValidatorSpec extends Specification {
   }
 
   @Unroll
-  void "valid autoHealer maxUnavailable with fixed=#fixed and percent=#percent"() {
+  void "rejects autoHealer maxUnavailable when fixed=#fixed percent=#percent healthCheck=#healthCheck"() {
     setup:
       def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
       validator.validateAutoHealingPolicy(new GoogleAutoHealingPolicy(
-        healthCheck: "some-hc",
+        healthCheck: healthCheck,
         maxUnavailable: [fixed: fixed, percent: percent]))
 
     then:
-      0 * errors._
+      1 * errors.rejectValue(
+        "autoHealingPolicy.maxUnavailable",
+        "decorator.autoHealingPolicy.maxUnavailable.unsupportedOnStableComputeV1",
+        "autoHealingPolicy.maxUnavailable is not supported on Compute Engine stable v1. " +
+          "Omit the field; auto-healing concurrency is not controlled by this property on v1 MIGs.")
 
     where:
-      fixed | percent
-      null  | 0
-      null  | 100
-      0     | null
-      50    | null
-      50    | 100
-      null  | 100.25
-      50.25 | null
-      50.25 | 100.25
+      fixed | percent | healthCheck
+      null  | 0       | "some-hc"
+      0     | null    | "some-hc"
+      50    | 100     | "some-hc"
+      null  | null    | "some-hc"
+      3     | null    | null
   }
 
-  void "invalid autoHealer maxUnavailable"() {
+  void "rejects empty autoHealer maxUnavailable object without requiring healthCheck"() {
+    setup:
+      def errors = Mock(ValidationErrors)
+      def validator = new StandardGceAttributeValidator(DECORATOR, errors)
+
+    when:
+      validator.validateAutoHealingPolicy(new GoogleAutoHealingPolicy(
+        maxUnavailable: []))
+
+    then:
+      1 * errors.rejectValue(
+        "autoHealingPolicy.maxUnavailable",
+        "decorator.autoHealingPolicy.maxUnavailable.unsupportedOnStableComputeV1",
+        _)
+  }
+
+  void "autoHealing policy without maxUnavailable still validates healthCheck and delay"() {
     setup:
       def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
@@ -935,27 +952,9 @@ class StandardGceAttributeValidatorSpec extends Specification {
     when:
       validator.validateAutoHealingPolicy(new GoogleAutoHealingPolicy(
         healthCheck: "some-hc",
-        maxUnavailable: []))
+        initialDelaySec: 30))
 
     then:
-      1 * errors.rejectValue("autoHealingPolicy.maxUnavailable", "decorator.autoHealingPolicy.maxUnavailable.neitherFixedNorPercent")
-
-    when:
-      validator.validateAutoHealingPolicy(new GoogleAutoHealingPolicy(
-        healthCheck: "some-hc",
-        maxUnavailable: [fixed: -1]))
-
-    then:
-      1 * errors.rejectValue("autoHealingPolicy.maxUnavailable.fixed", "decorator.autoHealingPolicy.maxUnavailable.fixed.negative")
-
-    when:
-      validator.validateAutoHealingPolicy(new GoogleAutoHealingPolicy(
-        healthCheck: "some-hc",
-        maxUnavailable: [percent: -1]))
-
-    then:
-      1 * errors.rejectValue("autoHealingPolicy.maxUnavailable.percent",
-        "decorator.autoHealingPolicy.maxUnavailable.percent.rangeViolation",
-        "decorator.autoHealingPolicy.maxUnavailable.percent must be between 0 and 100, inclusive.")
+      0 * errors._
   }
 }
