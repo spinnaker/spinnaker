@@ -451,4 +451,87 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
                              "basicGoogleDeployDescription.autoscalingPolicy.maxNumReplicas must not be less than " +
                                  "basicGoogleDeployDescription.autoscalingPolicy.minNumReplicas.")
   }
+
+  void "selectZones on a zonal create request fails validation"() {
+    given:
+      def errors = Mock(ValidationErrors)
+      def description = new BasicGoogleDeployDescription(
+        regional: false,
+        selectZones: true,
+        distributionPolicy: new com.netflix.spinnaker.clouddriver.google.model.GoogleDistributionPolicy(
+          zones: ["us-central1-a"]))
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue(
+        "selectZones",
+        "basicGoogleDeployDescription.selectZones.requiresRegional",
+        "selectZones requires a regional server group.")
+  }
+
+  @Unroll
+  void "selectZones with zones #zones fails create validation"() {
+    given:
+      def errors = Mock(ValidationErrors)
+      def description = new BasicGoogleDeployDescription(
+        regional: true,
+        region: REGION,
+        selectZones: true,
+        distributionPolicy: new com.netflix.spinnaker.clouddriver.google.model.GoogleDistributionPolicy(
+          zones: zones))
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue(
+        "distributionPolicy.zones",
+        "basicGoogleDeployDescription.distributionPolicy.zones.requiredWhenSelectZones",
+        "distributionPolicy.zones must contain at least one zone when selectZones is true.")
+
+    where:
+      zones << [null, []]
+  }
+
+  void "instance flexibility validation issues use the create validator error-code prefix"() {
+    setup:
+      def errors = Mock(ValidationErrors)
+      def selection = new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy.InstanceSelection()
+      selection.setRank(-1)
+      selection.setMachineTypes(["n2-standard-8"])
+      def flexPolicy = new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy()
+      flexPolicy.setInstanceSelections(["preferred": selection])
+
+    when:
+      validator.validate([], new BasicGoogleDeployDescription(
+        regional: true,
+        region: REGION,
+        instanceFlexibilityPolicy: flexPolicy,
+        distributionPolicy: new com.netflix.spinnaker.clouddriver.google.model.GoogleDistributionPolicy(
+          targetShape: "BALANCED"
+        )
+      ), errors)
+
+    then:
+      1 * errors.rejectValue(
+        "instanceFlexibilityPolicy",
+        "basicGoogleDeployDescription.instanceFlexibilityPolicy.negativeRank",
+        "Each instance selection rank must be zero or greater.")
+  }
+
+  void "partnerMetadata on description does not trigger validation rejection"() {
+    setup:
+      def errors = Mock(ValidationErrors)
+
+    when:
+      validator.validate([], new BasicGoogleDeployDescription(
+        partnerMetadata: ["key": "value"]
+      ), errors)
+
+    then:
+      0 * errors.rejectValue("partnerMetadata", _, _)
+  }
+
 }
