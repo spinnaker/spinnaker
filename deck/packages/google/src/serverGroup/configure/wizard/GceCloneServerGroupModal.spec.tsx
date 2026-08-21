@@ -651,9 +651,13 @@ describe('GceCloneServerGroupModal', () => {
     await modal.configureCommand();
 
     expect(modal.state.command.loadBalancers).toEqual(['http-url-map']);
-    expect(transformGceServerGroupCommand(modal.state.command).instanceMetadata).toEqual({
+    const transformed = transformGceServerGroupCommand(modal.state.command);
+    expect(transformed.instanceMetadata).toEqual({
       'global-load-balancer-names': 'http-listener',
     });
+    // The wizard's URL-map display identity must not reach the request: a global HTTP LB attaches
+    // through global-load-balancer-names, and 'http-url-map' names nothing GCEUtil can resolve.
+    expect(transformed.loadBalancers).toEqual([]);
   });
 
   it('restores an unavailable clone image from viewState.imageId', async () => {
@@ -846,6 +850,277 @@ describe('GceCloneServerGroupModal', () => {
       'backend-service-names': 'current-backend',
       'global-load-balancer-names': 'current-forwarding-rule',
       owner: 'delivery',
+    });
+  });
+
+  describe('transformGceServerGroupCommand load balancer submission', () => {
+    it('submits EXTERNAL_MANAGED listener names in loadBalancers and regional metadata', () => {
+      const command = buildCommand({
+        backingData: {
+          filtered: {
+            loadBalancerIndex: {
+              'external-managed-lb': {
+                listeners: [{ name: 'external-listener-a' }, { name: 'external-listener-b' }],
+                loadBalancerType: 'EXTERNAL_MANAGED',
+                name: 'external-managed-lb',
+              },
+            },
+          },
+        },
+        loadBalancers: ['external-managed-lb'],
+        viewState: { ...buildCommand().viewState, mode: 'clone' },
+      });
+
+      const transformed = transformGceServerGroupCommand(command);
+
+      expect(transformed.loadBalancers).toEqual(['external-listener-a', 'external-listener-b']);
+      expect(transformed.instanceMetadata['load-balancer-names']).toBe('external-listener-a,external-listener-b');
+      expect(command.loadBalancers).toEqual(['external-managed-lb']);
+    });
+
+    it('submits REGIONAL_EXTERNAL_NETWORK direct names in loadBalancers and regional metadata', () => {
+      const command = buildCommand({
+        backingData: {
+          filtered: {
+            loadBalancerIndex: {
+              'regional-network-lb': {
+                loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK',
+                name: 'regional-network-lb',
+              },
+            },
+          },
+        },
+        loadBalancers: ['regional-network-lb'],
+        viewState: { ...buildCommand().viewState, mode: 'clone' },
+      });
+
+      const transformed = transformGceServerGroupCommand(command);
+
+      expect(transformed.loadBalancers).toEqual(['regional-network-lb']);
+      expect(transformed.instanceMetadata['load-balancer-names']).toBe('regional-network-lb');
+      expect(command.loadBalancers).toEqual(['regional-network-lb']);
+    });
+
+    it('submits INTERNAL direct names in loadBalancers and regional metadata', () => {
+      const command = buildCommand({
+        backingData: {
+          filtered: {
+            loadBalancerIndex: {
+              'internal-lb': { loadBalancerType: 'INTERNAL', name: 'internal-lb' },
+            },
+          },
+        },
+        loadBalancers: ['internal-lb'],
+        viewState: { ...buildCommand().viewState, mode: 'clone' },
+      });
+
+      const transformed = transformGceServerGroupCommand(command);
+
+      expect(transformed.loadBalancers).toEqual(['internal-lb']);
+      expect(transformed.instanceMetadata['load-balancer-names']).toBe('internal-lb');
+      expect(command.loadBalancers).toEqual(['internal-lb']);
+    });
+
+    it('submits INTERNAL_MANAGED listener names in loadBalancers and regional metadata', () => {
+      const command = buildCommand({
+        backingData: {
+          filtered: {
+            loadBalancerIndex: {
+              'internal-managed-lb': {
+                listeners: [{ name: 'internal-listener-a' }, { name: 'internal-listener-b' }],
+                loadBalancerType: 'INTERNAL_MANAGED',
+                name: 'internal-managed-lb',
+              },
+            },
+          },
+        },
+        loadBalancers: ['internal-managed-lb'],
+        viewState: { ...buildCommand().viewState, mode: 'clone' },
+      });
+
+      const transformed = transformGceServerGroupCommand(command);
+
+      expect(transformed.loadBalancers).toEqual(['internal-listener-a', 'internal-listener-b']);
+      expect(transformed.instanceMetadata['load-balancer-names']).toBe('internal-listener-a,internal-listener-b');
+      expect(command.loadBalancers).toEqual(['internal-managed-lb']);
+    });
+
+    it('submits an unresolvable selection by name when no metadata explains it', () => {
+      const command = buildCommand({
+        backingData: { filtered: { loadBalancerIndex: {} } },
+        loadBalancers: ['unresolvable-lb'],
+        viewState: { ...buildCommand().viewState, mode: 'clone' },
+      });
+
+      const transformed = transformGceServerGroupCommand(command);
+
+      // Dropping it would deploy a server group that silently takes no traffic; sending the raw name
+      // lets GCEUtil.queryAllLoadBalancers fail the deploy instead.
+      expect(transformed.loadBalancers).toEqual(['unresolvable-lb']);
+    });
+
+    it('does not seed load balancer metadata from the source instanceMetadata', () => {
+      const command = buildCommand({
+        backingData: { filtered: { loadBalancerIndex: {} } },
+        instanceMetadata: {
+          'load-balancer-names': 'deselected-lb',
+          owner: 'delivery',
+        },
+        loadBalancers: ['unresolvable-lb'],
+        viewState: { ...buildCommand().viewState, mode: 'clone' },
+      });
+
+      const transformed = transformGceServerGroupCommand(command);
+
+      // Clouddriver appends to whatever we send, so seeding from the source server group's raw
+      // metadata would silently reattach a load balancer the user deselected.
+      expect(transformed.loadBalancers).toEqual(['unresolvable-lb']);
+      expect(transformed.instanceMetadata).toEqual({ owner: 'delivery' });
+    });
+
+    it('submits global SSL and TCP names from global metadata in loadBalancers', () => {
+      const command = buildCommand({
+        backingData: {
+          filtered: {
+            loadBalancerIndex: {
+              'global-ssl-lb': { loadBalancerType: 'SSL', name: 'global-ssl-lb' },
+              'global-tcp-lb': { loadBalancerType: 'TCP', name: 'global-tcp-lb' },
+            },
+          },
+        },
+        loadBalancers: ['global-ssl-lb', 'global-tcp-lb'],
+        viewState: { ...buildCommand().viewState, mode: 'clone' },
+      });
+
+      const transformed = transformGceServerGroupCommand(command);
+
+      expect(transformed.loadBalancers).toEqual(['global-ssl-lb', 'global-tcp-lb']);
+      expect(transformed.instanceMetadata['global-load-balancer-names']).toBe('global-ssl-lb,global-tcp-lb');
+      expect(command.loadBalancers).toEqual(['global-ssl-lb', 'global-tcp-lb']);
+    });
+
+    (['clone', 'editPipeline'] as const).forEach((mode) => {
+      it(`submits inline typed global SSL and TCP selections in ${mode} mode`, () => {
+        const command = buildCommand({
+          backingData: { filtered: { loadBalancerIndex: {} } },
+          loadBalancers: [
+            { loadBalancerType: 'SSL', name: 'inline-ssl-lb' },
+            { loadBalancerType: 'TCP', name: 'inline-tcp-lb' },
+          ],
+          viewState: { ...buildCommand().viewState, mode },
+        });
+        const originalCommand = cloneDeep(command);
+
+        const transformed = transformGceServerGroupCommand(command);
+
+        expect(transformed.loadBalancers).toEqual(['inline-ssl-lb', 'inline-tcp-lb']);
+        expect(transformed.instanceMetadata['global-load-balancer-names']).toBe('inline-ssl-lb,inline-tcp-lb');
+        expect(command).toEqual(originalCommand);
+      });
+    });
+
+    it('submits regional, SSL, then TCP names regardless of load balancer index order', () => {
+      const command = buildCommand({
+        backingData: {
+          filtered: {
+            loadBalancerIndex: {
+              'global-tcp-lb': { loadBalancerType: 'TCP', name: 'global-tcp-lb' },
+              'regional-network-lb': {
+                loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK',
+                name: 'regional-network-lb',
+              },
+              'global-ssl-lb': { loadBalancerType: 'SSL', name: 'global-ssl-lb' },
+            },
+          },
+        },
+        loadBalancers: ['global-tcp-lb', 'regional-network-lb', 'global-ssl-lb'],
+        viewState: { ...buildCommand().viewState, mode: 'clone' },
+      });
+
+      const transformed = transformGceServerGroupCommand(command);
+
+      expect(transformed.loadBalancers).toEqual(['regional-network-lb', 'global-ssl-lb', 'global-tcp-lb']);
+      expect(command.loadBalancers).toEqual(['global-tcp-lb', 'regional-network-lb', 'global-ssl-lb']);
+    });
+
+    it('does not submit global HTTP URL-map display identities as top-level loadBalancers', () => {
+      const command = buildCommand({
+        backingData: {
+          filtered: {
+            loadBalancerIndex: {
+              'http-url-map': {
+                listeners: [{ name: 'http-forwarding-rule' }],
+                loadBalancerType: 'HTTP',
+                name: 'http-url-map',
+              },
+            },
+          },
+        },
+        loadBalancers: ['http-url-map'],
+        viewState: { ...buildCommand().viewState, mode: 'clone' },
+      });
+
+      const transformed = transformGceServerGroupCommand(command);
+
+      expect(transformed.loadBalancers).toEqual([]);
+      expect(transformed.instanceMetadata['global-load-balancer-names']).toBe('http-forwarding-rule');
+      expect(command.loadBalancers).toEqual(['http-url-map']);
+    });
+
+    it('preserves unavailable regional listener metadata in loadBalancers without mutating the wizard command', () => {
+      const command = buildCommand({
+        loadBalancerMetadata: {
+          'global-load-balancer-names': ['known-listener-new'],
+          'load-balancer-names': ['persisted-listener'],
+        },
+        loadBalancers: ['known-lb', 'persisted-lb'],
+        viewState: { ...buildCommand().viewState, mode: 'clone' },
+      });
+
+      const transformed = transformGceServerGroupCommand(command);
+
+      expect(transformed.loadBalancers).toEqual(['persisted-listener']);
+      expect(transformed.instanceMetadata).toEqual({
+        'global-load-balancer-names': 'known-listener-new',
+        'load-balancer-names': 'persisted-listener',
+      });
+      expect(command.loadBalancers).toEqual(['known-lb', 'persisted-lb']);
+    });
+
+    it('submits mixed regional HTTP, network, and global SSL/TCP attachments', () => {
+      const command = buildCommand({
+        backingData: {
+          filtered: {
+            loadBalancerIndex: {
+              'external-managed-lb': {
+                listeners: [{ name: 'external-listener' }],
+                loadBalancerType: 'EXTERNAL_MANAGED',
+                name: 'external-managed-lb',
+              },
+              'global-tcp-lb': { loadBalancerType: 'TCP', name: 'global-tcp-lb' },
+              'http-url-map': {
+                listeners: [{ name: 'http-forwarding-rule' }],
+                loadBalancerType: 'HTTP',
+                name: 'http-url-map',
+              },
+              'regional-network-lb': {
+                loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK',
+                name: 'regional-network-lb',
+              },
+            },
+          },
+        },
+        loadBalancers: ['external-managed-lb', 'regional-network-lb', 'global-tcp-lb', 'http-url-map'],
+        viewState: { ...buildCommand().viewState, mode: 'clone' },
+      });
+
+      const transformed = transformGceServerGroupCommand(command);
+
+      expect(transformed.loadBalancers).toEqual(['external-listener', 'regional-network-lb', 'global-tcp-lb']);
+      expect(transformed.instanceMetadata).toEqual({
+        'global-load-balancer-names': 'global-tcp-lb,http-forwarding-rule',
+        'load-balancer-names': 'external-listener,regional-network-lb',
+      });
     });
   });
 

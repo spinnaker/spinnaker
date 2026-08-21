@@ -124,6 +124,17 @@ function metadataSource(command: IGceServerGroupCommand): Record<string, string[
   };
 }
 
+// Only metadata that has been re-attributed to the current selection. The source server group's raw
+// instanceMetadata names LBs the user may since have deselected, and Clouddriver appends to whatever
+// we send, so seeding from it silently reattaches them.
+function attributedLoadBalancerMetadata(command: IGceServerGroupCommand): Record<string, string[]> {
+  const loadBalancerMetadata = command.loadBalancerMetadata || {};
+  return {
+    [GLOBAL_LOAD_BALANCER_NAMES]: metadataValues(loadBalancerMetadata[GLOBAL_LOAD_BALANCER_NAMES]),
+    [REGIONAL_LOAD_BALANCER_NAMES]: metadataValues(loadBalancerMetadata[REGIONAL_LOAD_BALANCER_NAMES]),
+  };
+}
+
 function loadBalancerMetadataReference(name: string, loadBalancer: any): ILoadBalancerMetadataReference | undefined {
   if (!loadBalancer) {
     return undefined;
@@ -151,7 +162,7 @@ function buildLoadBalancerMetadata(command: IGceServerGroupCommand): Record<stri
   const unavailableLoadBalancers = (command.loadBalancers || []).filter(
     (loadBalancer: any) => !loadBalancer.loadBalancerType && !loadBalancerIndex[loadBalancerName(loadBalancer)],
   );
-  const persistedMetadata = metadataSource(command);
+  const persistedMetadata = attributedLoadBalancerMetadata(command);
   const metadata: Record<string, string[]> = {
     [GLOBAL_LOAD_BALANCER_NAMES]: unavailableLoadBalancers.length
       ? [...persistedMetadata[GLOBAL_LOAD_BALANCER_NAMES]]
@@ -184,17 +195,60 @@ function buildLoadBalancerMetadata(command: IGceServerGroupCommand): Record<stri
   return compactMetadata(metadata);
 }
 
+function collectLoadBalancerNamesForCommand(
+  loadBalancerIndex: Record<string, any>,
+  loadBalancerMetadata: Record<string, string>,
+  selectedLoadBalancers: any[],
+  persistedMetadata: Record<string, string[]>,
+): string[] {
+  const selectedGlobalLoadBalancers = new Set(metadataValues(loadBalancerMetadata[GLOBAL_LOAD_BALANCER_NAMES]));
+  const candidates = [...Object.values(loadBalancerIndex), ...selectedLoadBalancers];
+  const selectedGlobalNames = (loadBalancerType: 'SSL' | 'TCP') =>
+    candidates
+      .filter((loadBalancer: any) => loadBalancer.loadBalancerType === loadBalancerType)
+      .map(loadBalancerName)
+      .filter((name: string) => selectedGlobalLoadBalancers.has(name));
+
+  // Persisted metadata already carries the concrete forwarding-rule names behind selections Deck
+  // cannot resolve. Only when it carries nothing would such a selection vanish from the request
+  // entirely, deploying a server group that silently takes no traffic; sending the raw name instead
+  // lets GCEUtil.queryAllLoadBalancers reject the deploy.
+  const unresolvedSelectedNames = Object.values(persistedMetadata).some((names) => names.length)
+    ? []
+    : selectedLoadBalancers
+        .filter(
+          (loadBalancer: any) => !loadBalancer.loadBalancerType && !loadBalancerIndex[loadBalancerName(loadBalancer)],
+        )
+        .map(loadBalancerName)
+        .filter(Boolean);
+
+  return unique([
+    ...metadataValues(loadBalancerMetadata[REGIONAL_LOAD_BALANCER_NAMES]),
+    ...selectedGlobalNames('SSL'),
+    ...selectedGlobalNames('TCP'),
+    ...unresolvedSelectedNames,
+  ]);
+}
+
 export function transformGceServerGroupCommand(command: IGceServerGroupCommand): IGceServerGroupCommand {
   const transformed = cloneDeep(command);
   const instanceMetadata = { ...(command.instanceMetadata || {}) };
+  const loadBalancerMetadata = buildLoadBalancerMetadata(command);
   delete instanceMetadata[GLOBAL_LOAD_BALANCER_NAMES];
   delete instanceMetadata[REGIONAL_LOAD_BALANCER_NAMES];
   delete instanceMetadata[BACKEND_SERVICE_NAMES];
 
   transformed.instanceMetadata = {
     ...instanceMetadata,
-    ...buildLoadBalancerMetadata(command),
+    ...loadBalancerMetadata,
   };
+  // Clouddriver resolves regional HTTP attachments by forwarding-rule name, not Deck's logical URL-map display identity.
+  transformed.loadBalancers = collectLoadBalancerNamesForCommand(
+    command.backingData?.filtered?.loadBalancerIndex || {},
+    loadBalancerMetadata,
+    command.loadBalancers || [],
+    attributedLoadBalancerMetadata(command),
+  );
   transformed.tags = (command.tags || []).map((tag: any) => tag.value || tag);
   transformed.targetSize = command.capacity?.desired;
   if (command.autoscalingPolicy) {
