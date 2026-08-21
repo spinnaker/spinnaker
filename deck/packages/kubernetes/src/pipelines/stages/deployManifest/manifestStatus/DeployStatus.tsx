@@ -2,7 +2,13 @@ import { get } from 'lodash';
 import React from 'react';
 
 import type { IExecutionDetailsSectionProps, IManifest } from '@spinnaker/core';
-import { CollapsibleElement, ExecutionDetailsSection, ManifestYaml, SETTINGS, StageFailureMessage } from '@spinnaker/core';
+import {
+  CollapsibleElement,
+  ExecutionDetailsSection,
+  ManifestYaml,
+  SETTINGS,
+  StageFailureMessage,
+} from '@spinnaker/core';
 
 import { ManifestStatus } from './ManifestStatus';
 import type { IStageManifest, IStoredManifestReference } from '../../../../manifest/manifest.service';
