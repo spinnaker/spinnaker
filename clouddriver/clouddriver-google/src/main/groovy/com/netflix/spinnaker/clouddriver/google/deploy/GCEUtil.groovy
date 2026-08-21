@@ -1144,24 +1144,34 @@ class GCEUtil {
     Metadata instanceMetadata = serverGroup?.launchConfig?.instanceTemplate?.properties?.metadata
     Map metadataMap = buildMapFromMetadata(instanceMetadata)
     def regionalLoadBalancersInMetadata = metadataMap?.get(REGIONAL_LOAD_BALANCER_NAMES)?.tokenize(",") ?: []
-    def backendServiceNames = googleLoadBalancerProvider.getApplicationLoadBalancers("").findAll {
-      it.name in regionalLoadBalancersInMetadata
+    def selectedLoadBalancerNames = regionalLoadBalancersInMetadata ?: (serverGroup.loadBalancers ?: [])
+    def cachedLoadBalancers = googleLoadBalancerProvider.getApplicationLoadBalancers("").findAll {
+      it.name in selectedLoadBalancerNames
     }
-      .findAll { it.loadBalancerType == GoogleLoadBalancerType.REGIONAL_EXTERNAL_NETWORK }
-      .collect { GoogleRegionalExternalNetworkLoadBalancer.View view -> view.backendService.name }
-    if (!backendServiceNames) {
-      log.warn("Cache call missed for regional external network load balancer, making a call to GCP")
+    def foundLoadBalancers = cachedLoadBalancers.findAll {
+      it.loadBalancerType == GoogleLoadBalancerType.REGIONAL_EXTERNAL_NETWORK
+    }
+    def backendServiceNames = foundLoadBalancers.collect {
+      GoogleRegionalExternalNetworkLoadBalancer.View view -> view.backendService.name
+    }
+    // Subtract the names we resolved as regional external NLBs, not every cached name: a stale or
+    // same-named entry of another family would otherwise suppress the GCP fallback and silently
+    // skip the attachment. The per-service scheme guard below still blocks wrong-family mutation.
+    def missingLoadBalancerNames = selectedLoadBalancerNames - foundLoadBalancers*.name
+    if (missingLoadBalancerNames) {
+      log.warn("Cache call missed for regional external network load balancers ${missingLoadBalancerNames}, making a call to GCP")
       List<ForwardingRule> projectRegionalForwardingRules = executor.timeExecute(
         compute.forwardingRules().list(project, region),
         "compute.forwardingRules.list",
         executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region
       ).getItems() ?: []
-      backendServiceNames = projectRegionalForwardingRules.findAll { ForwardingRule forwardingRule ->
-        isRegionalExternalNetworkPassthroughForwardingRule(forwardingRule) && forwardingRule.name in serverGroup.loadBalancers
+      backendServiceNames.addAll(projectRegionalForwardingRules.findAll { ForwardingRule forwardingRule ->
+        isRegionalExternalNetworkPassthroughForwardingRule(forwardingRule) && forwardingRule.name in missingLoadBalancerNames
       }.collect { ForwardingRule forwardingRule ->
         getLocalName(forwardingRule.backendService)
-      }
+      })
     }
+    backendServiceNames = backendServiceNames.unique()
 
     backendServiceNames?.each { String backendServiceName ->
       BackendService backendService = executor.timeExecute(
@@ -1807,15 +1817,22 @@ class GCEUtil {
     def region = serverGroup.region
     def loadBalancersInMetadata = serverGroup?.asg?.get(REGIONAL_LOAD_BALANCER_NAMES) ?:
       (serverGroup.loadBalancers ?: [])
-    def foundLoadBalancers = googleLoadBalancerProvider.getApplicationLoadBalancers("").findAll {
-      it.name in loadBalancersInMetadata && it.loadBalancerType == GoogleLoadBalancerType.REGIONAL_EXTERNAL_NETWORK
+    def cachedLoadBalancers = googleLoadBalancerProvider.getApplicationLoadBalancers("").findAll {
+      it.name in loadBalancersInMetadata
+    }
+    def foundLoadBalancers = cachedLoadBalancers.findAll {
+      it.loadBalancerType == GoogleLoadBalancerType.REGIONAL_EXTERNAL_NETWORK
     }
 
-    List<String> backendServicesToDeleteFrom = []
-    if (foundLoadBalancers) {
-      backendServicesToDeleteFrom = foundLoadBalancers.collect { lb -> lb.backendService.name }
-    } else {
-      log.warn("Cache call missed for regional external network load balancer, making a call to GCP")
+    List<String> backendServicesToDeleteFrom =
+      foundLoadBalancers.collect { lb -> lb.backendService.name }
+    // Subtract the names we resolved as regional external NLBs, not every cached name: a stale or
+    // same-named entry of another family would otherwise suppress the GCP fallback and leave the
+    // destroyed server group attached to a live NLB. The per-service scheme guard below still
+    // blocks wrong-family mutation.
+    def missingLoadBalancerNames = loadBalancersInMetadata - foundLoadBalancers*.name
+    if (missingLoadBalancerNames) {
+      log.warn("Cache call missed for regional external network load balancers ${missingLoadBalancerNames}, making a call to GCP")
       List<ForwardingRule> projectForwardingRules = executor.timeExecute(
         compute.forwardingRules().list(project, region),
         "compute.forwardingRules.list",
@@ -1823,12 +1840,13 @@ class GCEUtil {
       ).getItems() ?: []
 
       def matchingForwardingRules = projectForwardingRules.findAll { ForwardingRule forwardingRule ->
-        isRegionalExternalNetworkPassthroughForwardingRule(forwardingRule) && forwardingRule.name in loadBalancersInMetadata
+        isRegionalExternalNetworkPassthroughForwardingRule(forwardingRule) && forwardingRule.name in missingLoadBalancerNames
       }
-      backendServicesToDeleteFrom = matchingForwardingRules.collect { ForwardingRule forwardingRule ->
+      backendServicesToDeleteFrom.addAll(matchingForwardingRules.collect { ForwardingRule forwardingRule ->
         getLocalName(forwardingRule.backendService)
-      }
+      })
     }
+    backendServicesToDeleteFrom = backendServicesToDeleteFrom.unique()
 
     log.debug("Attempting to delete backends for ${serverGroup.name} from the following regional external network backend services: ${backendServicesToDeleteFrom}")
     backendServicesToDeleteFrom?.each { String backendServiceName ->

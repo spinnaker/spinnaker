@@ -37,6 +37,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy
   import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
   import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
   import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
+  import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleExternalHttpLoadBalancer
   import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancer
   import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleRegionalExternalNetworkLoadBalancer
   import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleNetworkLoadBalancer
@@ -705,6 +706,285 @@ package com.netflix.spinnaker.clouddriver.google.deploy
       1 * googleOperationPoller.waitForRegionalOperation(compute, PROJECT_NAME, REGION, "update-backend-service", null, taskMock, "compute.${REGION}.backendServices.update", PHASE)
   }
 
+  void "add regional external network backend falls back past a cached wrong-family name without mutating it"() {
+    setup:
+      def compute = Mock(Compute)
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
+      def googleOperationPoller = Mock(GoogleOperationPoller)
+      def googleLoadBalancerProvider = Mock(GoogleLoadBalancerProvider)
+      def serverGroup = serverGroupView("server-group-v001", "shared-lb-name")
+      def httpLoadBalancer = new GoogleExternalHttpLoadBalancer(name: "shared-lb-name")
+
+    when:
+      GCEUtil.addRegionalExternalNetworkLoadBalancerBackends(
+        compute,
+        PROJECT_NAME,
+        serverGroup,
+        googleLoadBalancerProvider,
+        taskMock,
+        PHASE,
+        googleOperationPoller,
+        executor)
+
+    then:
+      1 * googleLoadBalancerProvider.getApplicationLoadBalancers("") >> [httpLoadBalancer.view]
+      // A cache entry of another family no longer suppresses the GCP lookup, so a genuine NLB that
+      // happens to share the name is still found. The same-named proxy rule carries a target and is
+      // therefore not a passthrough rule, so nothing is attached here.
+      1 * compute.forwardingRules() >> forwardingRules
+      1 * forwardingRules.list(PROJECT_NAME, REGION) >> forwardingRulesList
+      1 * forwardingRulesList.execute() >> new ForwardingRuleList(items: [
+        new ForwardingRule(
+          name: "shared-lb-name",
+          loadBalancingScheme: "EXTERNAL",
+          target: "projects/${PROJECT_NAME}/regions/${REGION}/targetHttpProxies/shared-lb-proxy",
+          IPProtocol: "TCP"
+        )
+      ])
+      0 * compute.regionBackendServices()
+      0 * googleOperationPoller._
+  }
+
+  void "add regional external network backend attaches a live NLB whose cached entry is another family"() {
+    setup:
+      def compute = Mock(Compute)
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
+      def backendServices = Mock(Compute.RegionBackendServices)
+      def backendServicesGet = Mock(Compute.RegionBackendServices.Get)
+      def backendServicesUpdate = Mock(Compute.RegionBackendServices.Update)
+      def googleOperationPoller = Mock(GoogleOperationPoller)
+      def googleLoadBalancerProvider = Mock(GoogleLoadBalancerProvider)
+      def serverGroup = serverGroupView("server-group-v001", "shared-lb-name")
+      def httpLoadBalancer = new GoogleExternalHttpLoadBalancer(name: "shared-lb-name")
+      def liveBackend = new BackendService(
+        name: "live-service", loadBalancingScheme: "EXTERNAL", backends: [])
+
+    when:
+      GCEUtil.addRegionalExternalNetworkLoadBalancerBackends(
+        compute,
+        PROJECT_NAME,
+        serverGroup,
+        googleLoadBalancerProvider,
+        taskMock,
+        PHASE,
+        googleOperationPoller,
+        executor)
+
+    then:
+      // The cache holds an unrelated load balancer under the selected name. Suppressing the GCP
+      // lookup on that basis would silently deploy a server group that takes no traffic.
+      1 * googleLoadBalancerProvider.getApplicationLoadBalancers("") >> [httpLoadBalancer.view]
+      1 * compute.forwardingRules() >> forwardingRules
+      1 * forwardingRules.list(PROJECT_NAME, REGION) >> forwardingRulesList
+      1 * forwardingRulesList.execute() >> new ForwardingRuleList(items: [
+        new ForwardingRule(
+          name: "shared-lb-name",
+          loadBalancingScheme: "EXTERNAL",
+          backendService: "projects/${PROJECT_NAME}/regions/${REGION}/backendServices/live-service",
+          IPProtocol: "TCP"
+        )
+      ])
+      2 * compute.regionBackendServices() >> backendServices
+      1 * backendServices.get(PROJECT_NAME, REGION, "live-service") >> backendServicesGet
+      1 * backendServicesGet.execute() >> liveBackend
+      1 * backendServices.update(PROJECT_NAME, REGION, "live-service", {
+        it.backends*.group == [GCEUtil.buildRegionalServerGroupUrl(PROJECT_NAME, REGION, "server-group-v001")]
+      }) >> backendServicesUpdate
+      1 * backendServicesUpdate.execute() >> new Operation(name: "live-update")
+      1 * googleOperationPoller.waitForRegionalOperation(
+        compute, PROJECT_NAME, REGION, "live-update", null, taskMock,
+        "compute.${REGION}.backendServices.update", PHASE)
+  }
+
+  void "add regional external network backend skips the GCP lookup when no load balancer is named"() {
+    setup:
+      def compute = Mock(Compute)
+      def googleOperationPoller = Mock(GoogleOperationPoller)
+      def googleLoadBalancerProvider = Mock(GoogleLoadBalancerProvider)
+      def serverGroup = serverGroupView("server-group-v001")
+
+    when:
+      GCEUtil.addRegionalExternalNetworkLoadBalancerBackends(
+        compute,
+        PROJECT_NAME,
+        serverGroup,
+        googleLoadBalancerProvider,
+        taskMock,
+        PHASE,
+        googleOperationPoller,
+        executor)
+
+    then:
+      1 * googleLoadBalancerProvider.getApplicationLoadBalancers("") >> []
+      // Listing every forwarding rule in the region can only ever match an empty name set.
+      0 * compute.forwardingRules()
+      0 * compute.regionBackendServices()
+      0 * googleOperationPoller._
+  }
+
+  void "add regional external network backend attaches once for a duplicated load balancer name"() {
+    setup:
+      def compute = Mock(Compute)
+      def backendServices = Mock(Compute.RegionBackendServices)
+      def backendServicesGet = Mock(Compute.RegionBackendServices.Get)
+      def backendServicesUpdate = Mock(Compute.RegionBackendServices.Update)
+      def googleOperationPoller = Mock(GoogleOperationPoller)
+      def googleLoadBalancerProvider = Mock(GoogleLoadBalancerProvider)
+      def serverGroup = serverGroupView("server-group-v001", "dup-lb", "dup-lb")
+      def cachedLoadBalancer = new GoogleRegionalExternalNetworkLoadBalancer(
+        name: "dup-lb",
+        backendService: new GoogleBackendService(name: "dup-service")
+      )
+      def cachedBackend = new BackendService(
+        name: "dup-service", loadBalancingScheme: "EXTERNAL", backends: [])
+
+    when:
+      GCEUtil.addRegionalExternalNetworkLoadBalancerBackends(
+        compute,
+        PROJECT_NAME,
+        serverGroup,
+        googleLoadBalancerProvider,
+        taskMock,
+        PHASE,
+        googleOperationPoller,
+        executor)
+
+    then:
+      1 * googleLoadBalancerProvider.getApplicationLoadBalancers("") >> [cachedLoadBalancer.view]
+      // Every duplicate resolves from the cache, so nothing is missing and no fallback is needed.
+      0 * compute.forwardingRules()
+      2 * compute.regionBackendServices() >> backendServices
+      1 * backendServices.get(PROJECT_NAME, REGION, "dup-service") >> backendServicesGet
+      1 * backendServicesGet.execute() >> cachedBackend
+      1 * backendServices.update(PROJECT_NAME, REGION, "dup-service", {
+        it.backends*.group == [GCEUtil.buildRegionalServerGroupUrl(PROJECT_NAME, REGION, "server-group-v001")]
+      }) >> backendServicesUpdate
+      1 * backendServicesUpdate.execute() >> new Operation(name: "dup-update")
+      1 * googleOperationPoller.waitForRegionalOperation(
+        compute, PROJECT_NAME, REGION, "dup-update", null, taskMock,
+        "compute.${REGION}.backendServices.update", PHASE)
+  }
+
+  void "add regional external network backends falls back per missing cached load balancer"() {
+    setup:
+      def compute = Mock(Compute)
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
+      def backendServices = Mock(Compute.RegionBackendServices)
+      def cachedGet = Mock(Compute.RegionBackendServices.Get)
+      def fallbackGet = Mock(Compute.RegionBackendServices.Get)
+      def cachedUpdate = Mock(Compute.RegionBackendServices.Update)
+      def fallbackUpdate = Mock(Compute.RegionBackendServices.Update)
+      def googleOperationPoller = Mock(GoogleOperationPoller)
+      def googleLoadBalancerProvider = Mock(GoogleLoadBalancerProvider)
+      def serverGroup = serverGroupView("server-group-v001", "cached-lb", "missing-lb")
+      def cachedLoadBalancer = new GoogleRegionalExternalNetworkLoadBalancer(
+        name: "cached-lb",
+        backendService: new GoogleBackendService(name: "cached-service")
+      )
+      def cachedBackend = new BackendService(
+        name: "cached-service", loadBalancingScheme: "EXTERNAL", backends: [])
+      def fallbackBackend = new BackendService(
+        name: "fallback-service", loadBalancingScheme: "EXTERNAL", backends: [])
+
+    when:
+      GCEUtil.addRegionalExternalNetworkLoadBalancerBackends(
+        compute,
+        PROJECT_NAME,
+        serverGroup,
+        googleLoadBalancerProvider,
+        taskMock,
+        PHASE,
+        googleOperationPoller,
+        executor)
+
+    then:
+      1 * googleLoadBalancerProvider.getApplicationLoadBalancers("") >> [cachedLoadBalancer.view]
+      1 * compute.forwardingRules() >> forwardingRules
+      1 * forwardingRules.list(PROJECT_NAME, REGION) >> forwardingRulesList
+      1 * forwardingRulesList.execute() >> new ForwardingRuleList(items: [
+        new ForwardingRule(
+          name: "missing-lb",
+          loadBalancingScheme: "EXTERNAL",
+          backendService: "projects/${PROJECT_NAME}/regions/${REGION}/backendServices/fallback-service",
+          IPProtocol: "TCP"
+        )
+      ])
+      4 * compute.regionBackendServices() >> backendServices
+      1 * backendServices.get(PROJECT_NAME, REGION, "cached-service") >> cachedGet
+      1 * backendServices.get(PROJECT_NAME, REGION, "fallback-service") >> fallbackGet
+      1 * cachedGet.execute() >> cachedBackend
+      1 * fallbackGet.execute() >> fallbackBackend
+      1 * backendServices.update(PROJECT_NAME, REGION, "cached-service", {
+        it.backends*.group == [GCEUtil.buildRegionalServerGroupUrl(PROJECT_NAME, REGION, "server-group-v001")]
+      }) >> cachedUpdate
+      1 * backendServices.update(PROJECT_NAME, REGION, "fallback-service", {
+        it.backends*.group == [GCEUtil.buildRegionalServerGroupUrl(PROJECT_NAME, REGION, "server-group-v001")]
+      }) >> fallbackUpdate
+      1 * cachedUpdate.execute() >> new Operation(name: "cached-update")
+      1 * fallbackUpdate.execute() >> new Operation(name: "fallback-update")
+      1 * googleOperationPoller.waitForRegionalOperation(
+        compute, PROJECT_NAME, REGION, "cached-update", null, taskMock,
+        "compute.${REGION}.backendServices.update", PHASE)
+      1 * googleOperationPoller.waitForRegionalOperation(
+        compute, PROJECT_NAME, REGION, "fallback-update", null, taskMock,
+        "compute.${REGION}.backendServices.update", PHASE)
+  }
+
+  void "add regional external network backends falls back to server group names and deduplicates backend services"() {
+    setup:
+      def compute = Mock(Compute)
+      def backendServices = Mock(Compute.RegionBackendServices)
+      def backendServicesGet = Mock(Compute.RegionBackendServices.Get)
+      def backendServicesUpdate = Mock(Compute.RegionBackendServices.Update)
+      def googleOperationPoller = Mock(GoogleOperationPoller)
+      def googleLoadBalancerProvider = Mock(GoogleLoadBalancerProvider)
+      def serverGroup = new GoogleServerGroup(
+        name: "server-group-v001",
+        region: REGION,
+        regional: true,
+        asg: [(GCEUtil.REGIONAL_LOAD_BALANCER_NAMES): ["cached-lb-a", "cached-lb-b"]]
+      ).view
+      def backendService = new BackendService(
+        name: "shared-service", loadBalancingScheme: "EXTERNAL", backends: [])
+      def loadBalancers = ["cached-lb-a", "cached-lb-b"].collect { String loadBalancerName ->
+        new GoogleRegionalExternalNetworkLoadBalancer(
+          name: loadBalancerName,
+          backendService: new GoogleBackendService(name: "shared-service")
+        ).view
+      }
+
+    when:
+      GCEUtil.addRegionalExternalNetworkLoadBalancerBackends(
+        compute,
+        PROJECT_NAME,
+        serverGroup,
+        googleLoadBalancerProvider,
+        taskMock,
+        PHASE,
+        googleOperationPoller,
+        executor)
+
+    then:
+      1 * googleLoadBalancerProvider.getApplicationLoadBalancers("") >> loadBalancers
+      0 * compute.forwardingRules()
+      2 * compute.regionBackendServices() >> backendServices
+      1 * backendServices.get(PROJECT_NAME, REGION, "shared-service") >> backendServicesGet
+      1 * backendServicesGet.execute() >> backendService
+      1 * backendServices.update(PROJECT_NAME, REGION, "shared-service", { BackendService updated ->
+        updated.backends.size() == 1 &&
+          updated.backends[0].balancingMode == "CONNECTION" &&
+          updated.backends[0].group ==
+          GCEUtil.buildRegionalServerGroupUrl(PROJECT_NAME, REGION, "server-group-v001")
+      }) >> backendServicesUpdate
+      1 * backendServicesUpdate.execute() >> new Operation(name: "update-backend-service")
+      1 * googleOperationPoller.waitForRegionalOperation(
+        compute, PROJECT_NAME, REGION, "update-backend-service", null, taskMock,
+        "compute.${REGION}.backendServices.update", PHASE)
+  }
+
   void "add regional external network backend from live fallback forwarding rule"() {
     setup:
       def compute = Mock(Compute)
@@ -825,6 +1105,247 @@ package com.netflix.spinnaker.clouddriver.google.deploy
       }) >> backendServicesUpdate
       1 * backendServicesUpdate.execute() >> updateOp
       1 * googleOperationPoller.waitForRegionalOperation(compute, PROJECT_NAME, REGION, "update-backend-service", null, taskMock, "compute.${REGION}.backendServices.update", PHASE)
+  }
+
+  void "destroy regional external network backend falls back past a cached wrong-family name without mutating it"() {
+    setup:
+      def compute = Mock(Compute)
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
+      def googleOperationPoller = Mock(GoogleOperationPoller)
+      def googleLoadBalancerProvider = Mock(GoogleLoadBalancerProvider)
+      def serverGroup = serverGroupView("server-group-v001", "shared-lb-name")
+      def httpLoadBalancer = new GoogleExternalHttpLoadBalancer(name: "shared-lb-name")
+
+    when:
+      GCEUtil.destroyRegionalExternalNetworkLoadBalancerBackends(
+        compute,
+        PROJECT_NAME,
+        serverGroup,
+        googleLoadBalancerProvider,
+        taskMock,
+        PHASE,
+        googleOperationPoller,
+        executor)
+
+    then:
+      1 * googleLoadBalancerProvider.getApplicationLoadBalancers("") >> [httpLoadBalancer.view]
+      // Same as the add direction: the lookup runs, but a same-named proxy rule is not a
+      // passthrough rule, so no backend service is detached.
+      1 * compute.forwardingRules() >> forwardingRules
+      1 * forwardingRules.list(PROJECT_NAME, REGION) >> forwardingRulesList
+      1 * forwardingRulesList.execute() >> new ForwardingRuleList(items: [
+        new ForwardingRule(
+          name: "shared-lb-name",
+          loadBalancingScheme: "EXTERNAL",
+          target: "projects/${PROJECT_NAME}/regions/${REGION}/targetHttpProxies/shared-lb-proxy",
+          IPProtocol: "TCP"
+        )
+      ])
+      0 * compute.regionBackendServices()
+      0 * googleOperationPoller._
+  }
+
+  void "destroy regional external network backend detaches a live NLB whose cached entry is another family"() {
+    setup:
+      def compute = Mock(Compute)
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
+      def backendServices = Mock(Compute.RegionBackendServices)
+      def backendServicesGet = Mock(Compute.RegionBackendServices.Get)
+      def backendServicesUpdate = Mock(Compute.RegionBackendServices.Update)
+      def googleOperationPoller = Mock(GoogleOperationPoller)
+      def googleLoadBalancerProvider = Mock(GoogleLoadBalancerProvider)
+      def serverGroup = serverGroupView("server-group-v001", "shared-lb-name")
+      def httpLoadBalancer = new GoogleExternalHttpLoadBalancer(name: "shared-lb-name")
+      def liveBackend = new BackendService(
+        name: "live-service",
+        loadBalancingScheme: "EXTERNAL",
+        backends: [new Backend(
+          group: GCEUtil.buildRegionalServerGroupUrl(PROJECT_NAME, REGION, "server-group-v001"))]
+      )
+
+    when:
+      GCEUtil.destroyRegionalExternalNetworkLoadBalancerBackends(
+        compute,
+        PROJECT_NAME,
+        serverGroup,
+        googleLoadBalancerProvider,
+        taskMock,
+        PHASE,
+        googleOperationPoller,
+        executor)
+
+    then:
+      // Without the fallback the destroyed server group stays attached to a live NLB.
+      1 * googleLoadBalancerProvider.getApplicationLoadBalancers("") >> [httpLoadBalancer.view]
+      1 * compute.forwardingRules() >> forwardingRules
+      1 * forwardingRules.list(PROJECT_NAME, REGION) >> forwardingRulesList
+      1 * forwardingRulesList.execute() >> new ForwardingRuleList(items: [
+        new ForwardingRule(
+          name: "shared-lb-name",
+          loadBalancingScheme: "EXTERNAL",
+          backendService: "projects/${PROJECT_NAME}/regions/${REGION}/backendServices/live-service",
+          IPProtocol: "TCP"
+        )
+      ])
+      2 * compute.regionBackendServices() >> backendServices
+      1 * backendServices.get(PROJECT_NAME, REGION, "live-service") >> backendServicesGet
+      1 * backendServicesGet.execute() >> liveBackend
+      1 * backendServices.update(PROJECT_NAME, REGION, "live-service", {
+        it.backends.isEmpty()
+      }) >> backendServicesUpdate
+      1 * backendServicesUpdate.execute() >> new Operation(name: "live-update")
+      1 * googleOperationPoller.waitForRegionalOperation(
+        compute, PROJECT_NAME, REGION, "live-update", null, taskMock,
+        "compute.${REGION}.backendServices.update", PHASE)
+  }
+
+  void "destroy regional external network backend skips the GCP lookup when no load balancer is named"() {
+    setup:
+      def compute = Mock(Compute)
+      def googleOperationPoller = Mock(GoogleOperationPoller)
+      def googleLoadBalancerProvider = Mock(GoogleLoadBalancerProvider)
+      def serverGroup = serverGroupView("server-group-v001")
+
+    when:
+      GCEUtil.destroyRegionalExternalNetworkLoadBalancerBackends(
+        compute,
+        PROJECT_NAME,
+        serverGroup,
+        googleLoadBalancerProvider,
+        taskMock,
+        PHASE,
+        googleOperationPoller,
+        executor)
+
+    then:
+      1 * googleLoadBalancerProvider.getApplicationLoadBalancers("") >> []
+      // Listing every forwarding rule in the region can only ever match an empty name set.
+      0 * compute.forwardingRules()
+      0 * compute.regionBackendServices()
+      0 * googleOperationPoller._
+  }
+
+  void "destroy regional external network backends falls back per missing cached load balancer"() {
+    setup:
+      def compute = Mock(Compute)
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
+      def backendServices = Mock(Compute.RegionBackendServices)
+      def cachedGet = Mock(Compute.RegionBackendServices.Get)
+      def fallbackGet = Mock(Compute.RegionBackendServices.Get)
+      def cachedUpdate = Mock(Compute.RegionBackendServices.Update)
+      def fallbackUpdate = Mock(Compute.RegionBackendServices.Update)
+      def googleOperationPoller = Mock(GoogleOperationPoller)
+      def googleLoadBalancerProvider = Mock(GoogleLoadBalancerProvider)
+      def groupUrl = GCEUtil.buildRegionalServerGroupUrl(PROJECT_NAME, REGION, "server-group-v001")
+      def serverGroup = serverGroupView("server-group-v001", "cached-lb", "missing-lb")
+      def cachedLoadBalancer = new GoogleRegionalExternalNetworkLoadBalancer(
+        name: "cached-lb",
+        backendService: new GoogleBackendService(name: "cached-service")
+      )
+      def cachedBackend = new BackendService(
+        name: "cached-service", loadBalancingScheme: "EXTERNAL",
+        backends: [new Backend(group: groupUrl)])
+      def fallbackBackend = new BackendService(
+        name: "fallback-service", loadBalancingScheme: "EXTERNAL",
+        backends: [new Backend(group: groupUrl)])
+
+    when:
+      GCEUtil.destroyRegionalExternalNetworkLoadBalancerBackends(
+        compute,
+        PROJECT_NAME,
+        serverGroup,
+        googleLoadBalancerProvider,
+        taskMock,
+        PHASE,
+        googleOperationPoller,
+        executor)
+
+    then:
+      1 * googleLoadBalancerProvider.getApplicationLoadBalancers("") >> [cachedLoadBalancer.view]
+      1 * compute.forwardingRules() >> forwardingRules
+      1 * forwardingRules.list(PROJECT_NAME, REGION) >> forwardingRulesList
+      1 * forwardingRulesList.execute() >> new ForwardingRuleList(items: [
+        new ForwardingRule(
+          name: "missing-lb",
+          loadBalancingScheme: "EXTERNAL",
+          backendService: "projects/${PROJECT_NAME}/regions/${REGION}/backendServices/fallback-service",
+          IPProtocol: "UDP"
+        )
+      ])
+      4 * compute.regionBackendServices() >> backendServices
+      1 * backendServices.get(PROJECT_NAME, REGION, "cached-service") >> cachedGet
+      1 * backendServices.get(PROJECT_NAME, REGION, "fallback-service") >> fallbackGet
+      1 * cachedGet.execute() >> cachedBackend
+      1 * fallbackGet.execute() >> fallbackBackend
+      1 * backendServices.update(PROJECT_NAME, REGION, "cached-service", {
+        it.backends.isEmpty()
+      }) >> cachedUpdate
+      1 * backendServices.update(PROJECT_NAME, REGION, "fallback-service", {
+        it.backends.isEmpty()
+      }) >> fallbackUpdate
+      1 * cachedUpdate.execute() >> new Operation(name: "cached-update")
+      1 * fallbackUpdate.execute() >> new Operation(name: "fallback-update")
+      1 * googleOperationPoller.waitForRegionalOperation(
+        compute, PROJECT_NAME, REGION, "cached-update", null, taskMock,
+        "compute.${REGION}.backendServices.update", PHASE)
+      1 * googleOperationPoller.waitForRegionalOperation(
+        compute, PROJECT_NAME, REGION, "fallback-update", null, taskMock,
+        "compute.${REGION}.backendServices.update", PHASE)
+  }
+
+  void "destroy regional external network backends falls back to server group names and deduplicates backend services"() {
+    setup:
+      def compute = Mock(Compute)
+      def backendServices = Mock(Compute.RegionBackendServices)
+      def backendServicesGet = Mock(Compute.RegionBackendServices.Get)
+      def backendServicesUpdate = Mock(Compute.RegionBackendServices.Update)
+      def googleOperationPoller = Mock(GoogleOperationPoller)
+      def googleLoadBalancerProvider = Mock(GoogleLoadBalancerProvider)
+      def groupUrl = GCEUtil.buildRegionalServerGroupUrl(PROJECT_NAME, REGION, "server-group-v001")
+      def serverGroup = new GoogleServerGroup(
+        name: "server-group-v001",
+        region: REGION,
+        regional: true,
+        asg: [(GCEUtil.GLOBAL_LOAD_BALANCER_NAMES): ["cached-lb-a", "cached-lb-b"]]
+      ).view
+      def backendService = new BackendService(
+        name: "shared-service",
+        loadBalancingScheme: "EXTERNAL",
+        backends: [new Backend(group: groupUrl)])
+      def loadBalancers = ["cached-lb-a", "cached-lb-b"].collect { String loadBalancerName ->
+        new GoogleRegionalExternalNetworkLoadBalancer(
+          name: loadBalancerName,
+          backendService: new GoogleBackendService(name: "shared-service")
+        ).view
+      }
+
+    when:
+      GCEUtil.destroyRegionalExternalNetworkLoadBalancerBackends(
+        compute,
+        PROJECT_NAME,
+        serverGroup,
+        googleLoadBalancerProvider,
+        taskMock,
+        PHASE,
+        googleOperationPoller,
+        executor)
+
+    then:
+      1 * googleLoadBalancerProvider.getApplicationLoadBalancers("") >> loadBalancers
+      0 * compute.forwardingRules()
+      2 * compute.regionBackendServices() >> backendServices
+      1 * backendServices.get(PROJECT_NAME, REGION, "shared-service") >> backendServicesGet
+      1 * backendServicesGet.execute() >> backendService
+      1 * backendServices.update(PROJECT_NAME, REGION, "shared-service", {
+        it.backends.isEmpty()
+      }) >> backendServicesUpdate
+      1 * backendServicesUpdate.execute() >> new Operation(name: "update-backend-service")
+      1 * googleOperationPoller.waitForRegionalOperation(
+        compute, PROJECT_NAME, REGION, "update-backend-service", null, taskMock,
+        "compute.${REGION}.backendServices.update", PHASE)
   }
 
   void "destroy regional external network backend from live fallback and skip wrong backend scheme"() {
@@ -1047,17 +1568,20 @@ package com.netflix.spinnaker.clouddriver.google.deploy
       0 * compute.regionBackendServices()
   }
 
-  private static GoogleServerGroup.View serverGroupView(String serverGroupName, String loadBalancerName) {
+  private static GoogleServerGroup.View serverGroupView(String serverGroupName, String... loadBalancerNames) {
     new GoogleServerGroup(
       name: serverGroupName,
       region: REGION,
       regional: true,
       launchConfig: [
         instanceTemplate: new InstanceTemplate(properties: new InstanceProperties(metadata: new Metadata(items: [
-          new Metadata.Items(key: GCEUtil.REGIONAL_LOAD_BALANCER_NAMES, value: loadBalancerName)
+          new Metadata.Items(
+            key: GCEUtil.REGIONAL_LOAD_BALANCER_NAMES,
+            value: loadBalancerNames.join(",")
+          )
         ])))
       ],
-      asg: [(GCEUtil.REGIONAL_LOAD_BALANCER_NAMES): [loadBalancerName]]
+      asg: [(GCEUtil.REGIONAL_LOAD_BALANCER_NAMES): loadBalancerNames as List]
     ).view
   }
 }

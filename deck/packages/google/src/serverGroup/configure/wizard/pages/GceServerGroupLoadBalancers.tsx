@@ -8,7 +8,13 @@ import type {
   IGceServerGroupWizardPageProps,
 } from '../GceServerGroupWizard.types';
 import { GceServerGroupWizardPage } from '../GceServerGroupWizardPage';
-import { getBalancingModes, resolveLoadBalancingPolicy } from '../gceServerGroupLoadBalancingPolicy';
+import {
+  getBalancingModes,
+  getSelectedLoadBalancerNames,
+  resolveLoadBalancingPolicy,
+  validateLoadBalancingPolicy,
+} from '../gceServerGroupLoadBalancingPolicy';
+import type { ILoadBalancingPolicyErrors } from '../gceServerGroupLoadBalancingPolicy';
 import { GceHttpLoadBalancerUtils } from '../../../../loadBalancer/httpLoadBalancerUtils.service';
 
 const gceHttpLoadBalancerUtils = new GceHttpLoadBalancerUtils();
@@ -43,15 +49,6 @@ interface ILoadBalancingPolicy {
   maxRatePerInstance?: number | string;
   maxUtilization?: number | string;
   namedPorts?: INamedPort[];
-}
-
-interface ILoadBalancingPolicyErrors {
-  balancingMode?: string;
-  capacityScaler?: string;
-  maxConnectionsPerInstance?: string;
-  maxRatePerInstance?: string;
-  maxUtilization?: string;
-  namedPorts?: Array<{ name?: string; port?: string }>;
 }
 
 interface ILoadBalancerMetadataReference {
@@ -92,49 +89,8 @@ export class GceServerGroupLoadBalancers extends GceServerGroupWizardPage<IGceSe
     const errors = super.validate(values) as IGceServerGroupCommandValidationErrors & {
       loadBalancingPolicy?: ILoadBalancingPolicyErrors;
     };
-    const policy = values.loadBalancingPolicy as ILoadBalancingPolicy | undefined;
-    if (!policy || !uniqueStrings(values.loadBalancers).length) {
-      return errors;
-    }
-
-    const balancingModes = getBalancingModes(values);
-    if (!balancingModes.length) {
-      return errors;
-    }
-
-    const policyErrors: ILoadBalancingPolicyErrors = {};
-    if (!policy.balancingMode || !balancingModes.includes(policy.balancingMode)) {
-      policyErrors.balancingMode = 'Select a balancing mode supported by the selected load balancers.';
-    }
-    if (!isValidBoundedValue(policy.capacityScaler, values, 0, 1)) {
-      policyErrors.capacityScaler = 'Capacity must be between 0 and 100%.';
-    }
-
-    const namedPortErrors = (policy.namedPorts || []).map(({ name, port }) => {
-      const namedPortError: { name?: string; port?: string } = {};
-      if (!name?.trim()) {
-        namedPortError.name = 'Port name required.';
-      }
-      if (!isValidInteger(port, values, 1, 65535)) {
-        namedPortError.port = 'Port must be an integer between 1 and 65535.';
-      }
-      return namedPortError;
-    });
-    if (namedPortErrors.some((namedPortError) => Object.keys(namedPortError).length)) {
-      policyErrors.namedPorts = namedPortErrors;
-    }
-
-    if (policy.balancingMode === 'RATE' && !isValidMinimum(policy.maxRatePerInstance, values, 0)) {
-      policyErrors.maxRatePerInstance = 'Max rate must be a finite number greater than or equal to zero.';
-    }
-    if (policy.balancingMode === 'CONNECTION' && !isValidMinimum(policy.maxConnectionsPerInstance, values, 0)) {
-      policyErrors.maxConnectionsPerInstance = 'Max connections must be a finite number greater than or equal to zero.';
-    }
-    if (policy.balancingMode === 'UTILIZATION' && !isValidBoundedValue(policy.maxUtilization, values, 0, 1)) {
-      policyErrors.maxUtilization = 'Max utilization must be between 0 and 100%.';
-    }
-
-    if (Object.keys(policyErrors).length) {
+    const policyErrors = validateLoadBalancingPolicy(values);
+    if (policyErrors) {
       errors.loadBalancingPolicy = policyErrors;
     }
     return errors;
@@ -142,9 +98,12 @@ export class GceServerGroupLoadBalancers extends GceServerGroupWizardPage<IGceSe
 
   public render(): React.ReactElement {
     const values = this.props.formik.values;
-    const selectedLoadBalancers = uniqueStrings(values.loadBalancers);
+    const selectedLoadBalancers = getSelectedLoadBalancerNames(values);
     const selectedReferences = preserveReferences(getAvailableLoadBalancers(values), selectedLoadBalancers);
-    const policy = (values.loadBalancingPolicy || {}) as ILoadBalancingPolicy;
+    const existingPolicy = values.loadBalancingPolicy as ILoadBalancingPolicy | undefined;
+    const policy = (existingPolicy?.balancingMode === ''
+      ? existingPolicy
+      : resolveLoadBalancingPolicy(values) || existingPolicy || {}) as ILoadBalancingPolicy;
     const policyErrors = (this.validate(values) as IGceServerGroupCommandValidationErrors & {
       loadBalancingPolicy?: ILoadBalancingPolicyErrors;
     }).loadBalancingPolicy || { namedPorts: [] };
@@ -186,6 +145,15 @@ export class GceServerGroupLoadBalancers extends GceServerGroupWizardPage<IGceSe
         </div>
 
         {selectedLoadBalancers.map((loadBalancerName) => this.renderBackendServiceSelector(values, loadBalancerName))}
+
+        {selectedLoadBalancers.length > 0 && balancingModes.length === 0 && policyErrors.balancingMode && (
+          <div className="form-group">
+            <label className="col-md-3 sm-label-right">Balancing mode</label>
+            <div className="col-md-7">
+              {renderPolicyError(policyErrors.balancingMode, policyErrorId('balancingMode'))}
+            </div>
+          </div>
+        )}
 
         {selectedLoadBalancers.length > 0 && balancingModes.length > 0 && (
           <>
@@ -540,7 +508,7 @@ export class GceServerGroupLoadBalancers extends GceServerGroupWizardPage<IGceSe
       const loadBalancerIndex = getLoadBalancerIndex(latestCommand);
       const configurationCommand = {
         ...latestCommand,
-        loadBalancers: uniqueStrings(latestCommand.loadBalancers).filter((name) => Boolean(loadBalancerIndex[name])),
+        loadBalancers: getSelectedLoadBalancerNames(latestCommand).filter((name) => Boolean(loadBalancerIndex[name])),
       };
       const update = await this.adapter.applyConfigurationUpdate(configurationCommand, 'configureLoadBalancerOptions');
       const command: IGceServerGroupCommand = {
@@ -566,7 +534,7 @@ export class GceServerGroupLoadBalancers extends GceServerGroupWizardPage<IGceSe
   }
 
   private handleRefresh = (): void => {
-    const selectedLoadBalancers = uniqueStrings(this.props.formik.values.loadBalancers);
+    const selectedLoadBalancers = uniqueLoadBalancerSelections(this.props.formik.values.loadBalancers);
     void this.runLatestCommandRequest(this.props.formik.values, async (latestCommand) => {
       const update = await this.adapter.applyConfigurationRefresh(latestCommand, 'refreshLoadBalancers');
       return {
@@ -718,53 +686,6 @@ function isExpression(value: unknown): boolean {
   return typeof value === 'string' && /^\s*\$\{.+\}\s*$/.test(value);
 }
 
-function isValidBoundedValue(
-  value: unknown,
-  command: IGceServerGroupCommand,
-  minimum: number,
-  maximum: number,
-): boolean {
-  if (isPipelineMode(command) && isExpression(value)) {
-    return true;
-  }
-  if (!hasNumericValue(value)) {
-    return false;
-  }
-  const numericValue = Number(value);
-  return Number.isFinite(numericValue) && numericValue >= minimum && numericValue <= maximum;
-}
-
-function isValidMinimum(value: unknown, command: IGceServerGroupCommand, minimum: number): boolean {
-  if (isPipelineMode(command) && isExpression(value)) {
-    return true;
-  }
-  if (!hasNumericValue(value)) {
-    return false;
-  }
-  const numericValue = Number(value);
-  return Number.isFinite(numericValue) && numericValue >= minimum;
-}
-
-function isValidInteger(value: unknown, command: IGceServerGroupCommand, minimum: number, maximum: number): boolean {
-  if (isPipelineMode(command) && isExpression(value)) {
-    return true;
-  }
-  if (!hasNumericValue(value)) {
-    return false;
-  }
-  const numericValue = Number(value);
-  return (
-    Number.isFinite(numericValue) &&
-    Number.isInteger(numericValue) &&
-    numericValue >= minimum &&
-    numericValue <= maximum
-  );
-}
-
-function hasNumericValue(value: unknown): boolean {
-  return value !== null && value !== undefined && (typeof value !== 'string' || Boolean(value.trim()));
-}
-
 function parsePercentageValue(value: string): number | string {
   if (isExpression(value)) {
     return value;
@@ -810,4 +731,20 @@ function uniqueStrings(values: unknown): string[] {
     return [];
   }
   return Array.from(new Set(values.filter((value): value is string => typeof value === 'string' && Boolean(value))));
+}
+
+// A selection is either a raw name or an inline-typed object carrying the type the load balancer
+// index cannot supply. Dedupe by name without discarding the objects.
+function uniqueLoadBalancerSelections(values: unknown): any[] {
+  if (!Array.isArray(values)) {
+    return [];
+  }
+  const byName = new Map<string, any>();
+  values.forEach((value: any) => {
+    const name = typeof value === 'string' ? value : value?.name;
+    if (typeof name === 'string' && name && !byName.has(name)) {
+      byName.set(name, value);
+    }
+  });
+  return Array.from(byName.values());
 }

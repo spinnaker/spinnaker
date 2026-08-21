@@ -558,6 +558,7 @@ public class BasicGoogleDeployHandler
       LoadBalancerInfo lbInfo,
       GoogleHttpLoadBalancingPolicy policy,
       String region) {
+    validateLoadBalancingPolicyCompatibility(description, lbInfo, policy);
     // Resolve and queue the backend service updates, but don't execute yet.
     // We need to resolve this information to set metadata in the template so enable can know about
     // the
@@ -639,12 +640,15 @@ public class BasicGoogleDeployHandler
       LoadBalancerInfo lbInfo,
       GoogleHttpLoadBalancingPolicy policy,
       String region) {
-    if (!CollectionUtils.isEmpty(lbInfo.getInternalLoadBalancers())
+    validateLoadBalancingPolicyCompatibility(description, lbInfo, policy);
+    Map<String, String> instanceMetadata = description.getInstanceMetadata();
+    if ((instanceMetadata != null
+            && StringUtils.isNotBlank(instanceMetadata.get(REGION_BACKEND_SERVICE_NAMES)))
+        || !CollectionUtils.isEmpty(lbInfo.getInternalLoadBalancers())
         || !CollectionUtils.isEmpty(lbInfo.getInternalHttpLoadBalancers())
         || !CollectionUtils.isEmpty(lbInfo.getExternalHttpLoadBalancers())
         || !CollectionUtils.isEmpty(lbInfo.getRegionalExternalNetworkLoadBalancers())) {
       List<BackendService> regionBackendServicesToUpdate = new ArrayList<>();
-      Map<String, String> instanceMetadata = description.getInstanceMetadata();
       List<String> existingRegionalLbs =
           instanceMetadata.get(REGIONAL_LOAD_BALANCER_NAMES) != null
               ? new ArrayList<>(
@@ -736,48 +740,144 @@ public class BasicGoogleDeployHandler
         instanceMetadata.put(REGION_BACKEND_SERVICE_NAMES, String.join(",", ilbServices));
       }
 
-      // Process each regional backend service for internal load balancers.
-      // Regional backend services handle traffic within a specific GCP region.
+      Map<String, BackendService> resolvedBackendServices = new LinkedHashMap<>();
       ilbServices.forEach(
           backendServiceName -> {
             try {
-              BackendService backendService =
+              resolvedBackendServices.put(
+                  backendServiceName,
                   getRegionBackendServiceFromProvider(
-                      description.getCredentials(), region, backendServiceName);
-              Backend backendToAdd;
-              if (internalHttpLbBackendServices.contains(backendServiceName)
-                  || externalHttpLbBackendServices.contains(backendServiceName)) {
-                backendToAdd = GCEUtil.backendFromLoadBalancingPolicy(policy);
-              } else {
-                backendToAdd = new Backend();
-                if (regionalExternalNetworkLbBackendServices.contains(backendServiceName)) {
-                  backendToAdd.setBalancingMode("CONNECTION");
-                }
-              }
-              if (Boolean.TRUE.equals(description.getRegional())) {
-                backendToAdd.setGroup(
-                    GCEUtil.buildRegionalServerGroupUrl(
-                        description.getCredentials().getProject(), region, serverGroupName));
-              } else {
-                backendToAdd.setGroup(
-                    GCEUtil.buildZonalServerGroupUrl(
-                        description.getCredentials().getProject(),
-                        description.getZone(),
-                        serverGroupName));
-              }
-
-              if (backendService.getBackends() == null) {
-                backendService.setBackends(new ArrayList<>());
-              }
-              backendService.getBackends().add(backendToAdd);
-              regionBackendServicesToUpdate.add(backendService);
+                      description.getCredentials(), region, backendServiceName));
             } catch (IOException e) {
               log.error(e.getMessage());
             }
           });
+
+      boolean hasManagedRegionalBackend =
+          resolvedBackendServices.values().stream()
+              .anyMatch(BasicGoogleDeployHandler::isManagedRegionalBackendService);
+      boolean hasPassthroughRegionalBackend =
+          resolvedBackendServices.values().stream()
+              .anyMatch(BasicGoogleDeployHandler::isPassthroughRegionalBackendService);
+      validateLoadBalancingPolicyCompatibility(
+          description, lbInfo, policy, hasManagedRegionalBackend, hasPassthroughRegionalBackend);
+
+      resolvedBackendServices.forEach(
+          (backendServiceName, backendService) -> {
+            boolean usesHttpPolicy =
+                internalHttpLbBackendServices.contains(backendServiceName)
+                    || externalHttpLbBackendServices.contains(backendServiceName)
+                    || isManagedRegionalBackendService(backendService);
+            Backend backendToAdd;
+            if (usesHttpPolicy) {
+              backendToAdd = GCEUtil.backendFromLoadBalancingPolicy(policy);
+            } else {
+              backendToAdd = new Backend();
+              if (regionalExternalNetworkLbBackendServices.contains(backendServiceName)
+                  || "EXTERNAL".equals(backendService.getLoadBalancingScheme())) {
+                backendToAdd.setBalancingMode("CONNECTION");
+              }
+            }
+            if (Boolean.TRUE.equals(description.getRegional())) {
+              backendToAdd.setGroup(
+                  GCEUtil.buildRegionalServerGroupUrl(
+                      description.getCredentials().getProject(), region, serverGroupName));
+            } else {
+              backendToAdd.setGroup(
+                  GCEUtil.buildZonalServerGroupUrl(
+                      description.getCredentials().getProject(),
+                      description.getZone(),
+                      serverGroupName));
+            }
+
+            if (backendService.getBackends() == null) {
+              backendService.setBackends(new ArrayList<>());
+            }
+            backendService.getBackends().add(backendToAdd);
+            regionBackendServicesToUpdate.add(backendService);
+          });
       return regionBackendServicesToUpdate;
     }
     return Collections.emptyList();
+  }
+
+  protected void validateLoadBalancingPolicyCompatibility(
+      BasicGoogleDeployDescription description,
+      LoadBalancerInfo lbInfo,
+      GoogleHttpLoadBalancingPolicy policy) {
+    validateLoadBalancingPolicyCompatibility(description, lbInfo, policy, false, false);
+  }
+
+  /**
+   * The resolved* flags carry what only a provider read can establish: the load balancing scheme of
+   * regional backend services named by instance metadata rather than by a selected load balancer.
+   * Callers that have not read the provider pass false, so both the pre-read and post-read guards
+   * derive every other signal from the same place.
+   */
+  protected void validateLoadBalancingPolicyCompatibility(
+      BasicGoogleDeployDescription description,
+      LoadBalancerInfo lbInfo,
+      GoogleHttpLoadBalancingPolicy policy,
+      boolean resolvedHttpBackend,
+      boolean resolvedPassthroughBackend) {
+    Map<String, String> instanceMetadata = description.getInstanceMetadata();
+    boolean hasHttpBackend =
+        (instanceMetadata != null
+                && StringUtils.isNotBlank(instanceMetadata.get(BACKEND_SERVICE_NAMES)))
+            || !CollectionUtils.isEmpty(lbInfo.getInternalHttpLoadBalancers())
+            || !CollectionUtils.isEmpty(lbInfo.getExternalHttpLoadBalancers())
+            || resolvedHttpBackend;
+    boolean hasConnectionProxyBackend =
+        !CollectionUtils.isEmpty(lbInfo.getSslLoadBalancers())
+            || !CollectionUtils.isEmpty(lbInfo.getTcpLoadBalancers());
+    boolean hasPassthroughBackend =
+        !CollectionUtils.isEmpty(lbInfo.getInternalLoadBalancers())
+            || !CollectionUtils.isEmpty(lbInfo.getRegionalExternalNetworkLoadBalancers())
+            || resolvedPassthroughBackend;
+    validateLoadBalancingPolicyCompatibility(
+        policy, hasHttpBackend, hasConnectionProxyBackend, hasPassthroughBackend);
+  }
+
+  private void validateLoadBalancingPolicyCompatibility(
+      GoogleHttpLoadBalancingPolicy policy,
+      boolean hasHttpBackend,
+      boolean hasConnectionProxyBackend,
+      boolean hasPassthroughBackend) {
+    if (!hasPassthroughBackend) {
+      return;
+    }
+    if (hasHttpBackend && hasConnectionProxyBackend) {
+      throw new IllegalArgumentException(
+          "The same instance group cannot attach HTTP backends, SSL/TCP proxy backends, and regional passthrough backends because they have no compatible balancing mode.");
+    }
+    GoogleLoadBalancingPolicy.BalancingMode balancingMode =
+        policy == null ? null : policy.getBalancingMode();
+    if (balancingMode == null && (hasHttpBackend || hasConnectionProxyBackend)) {
+      throw new IllegalArgumentException(
+          String.format(
+              "No balancing mode was specified, but the same instance group must use %s when it also attaches to a regional passthrough load balancer backend.",
+              hasHttpBackend ? "RATE for HTTP backends" : "CONNECTION for SSL/TCP proxy backends"));
+    }
+    // GCP requires one MIG-wide mode compatible with every attached backend family.
+    if (hasHttpBackend && balancingMode != GoogleLoadBalancingPolicy.BalancingMode.RATE) {
+      throw new IllegalArgumentException(
+          "The same instance group must use RATE for HTTP backends when it also uses CONNECTION for a regional passthrough load balancer backend.");
+    }
+    if (hasConnectionProxyBackend
+        && balancingMode != GoogleLoadBalancingPolicy.BalancingMode.CONNECTION) {
+      throw new IllegalArgumentException(
+          "The same instance group must use CONNECTION for SSL/TCP proxy backends when it also attaches to a regional passthrough load balancer backend.");
+    }
+  }
+
+  private static boolean isManagedRegionalBackendService(BackendService backendService) {
+    return "INTERNAL_MANAGED".equals(backendService.getLoadBalancingScheme())
+        || "EXTERNAL_MANAGED".equals(backendService.getLoadBalancingScheme());
+  }
+
+  private static boolean isPassthroughRegionalBackendService(BackendService backendService) {
+    return "INTERNAL".equals(backendService.getLoadBalancingScheme())
+        || "EXTERNAL".equals(backendService.getLoadBalancingScheme());
   }
 
   protected void addUserDataToInstanceMetadata(

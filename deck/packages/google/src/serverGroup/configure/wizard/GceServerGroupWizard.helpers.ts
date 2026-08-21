@@ -4,6 +4,7 @@ import type {
   IGceServerGroupCommandValidationErrors,
   IPersistedReference,
 } from './GceServerGroupWizard.types';
+import { validateLoadBalancingPolicy } from './gceServerGroupLoadBalancingPolicy';
 
 export function getGceServerGroupLocationMode(
   command: Pick<IGceServerGroupCommand, 'regional'>,
@@ -46,6 +47,12 @@ export function validateGceServerGroupCommand(command: IGceServerGroupCommand): 
   }
   if (command.capacity?.desired === null || command.capacity?.desired === undefined) {
     errors.capacity = { desired: 'Desired capacity required.' };
+  }
+  const loadBalancingPolicyErrors = validateLoadBalancingPolicy(command);
+  if (loadBalancingPolicyErrors) {
+    (errors as IGceServerGroupCommandValidationErrors & {
+      loadBalancingPolicy: unknown;
+    }).loadBalancingPolicy = loadBalancingPolicyErrors;
   }
   return errors;
 }

@@ -113,6 +113,29 @@ describe('GCE server group Load Balancers page', () => {
     );
   });
 
+  it('preserves inline typed selections across a refresh', async () => {
+    const values = command({
+      loadBalancers: [{ name: 'inline-ssl-lb', loadBalancerType: 'SSL' }, 'persisted-lb', 'persisted-lb'],
+    });
+    const { adapter, formik } = testProps(values);
+    adapter.applyConfigurationRefresh.and.resolveTo({
+      command: { ...values, loadBalancers: [] },
+      result: { dirty: {} },
+    });
+    const wrapper = shallow(<GceServerGroupLoadBalancers app={{} as any} formik={formik} adapter={adapter} />);
+
+    wrapper.find('button[aria-label="Refresh load balancers"]').simulate('click');
+    await flush();
+
+    // The inline object carries the type the load balancer index cannot supply; coercing selections
+    // to plain strings on refresh silently drops it.
+    expect(formik.setValues).toHaveBeenCalledWith(
+      jasmine.objectContaining({
+        loadBalancers: [{ name: 'inline-ssl-lb', loadBalancerType: 'SSL' }, 'persisted-lb'],
+      }),
+    );
+  });
+
   it('shows scoped backend services, named-port names, and balancing modes while preserving unavailable values', () => {
     const values = command({
       loadBalancers: ['regional-lb'],
@@ -640,14 +663,244 @@ describe('GCE server group Load Balancers page', () => {
     expect(transformGceServerGroupCommand(submitCommand).loadBalancingPolicy).toBeUndefined();
   });
 
-  it('preserves EXTERNAL_MANAGED balancing modes when mixed with REGIONAL_EXTERNAL_NETWORK', () => {
+  (['HTTP', 'INTERNAL_MANAGED', 'EXTERNAL_MANAGED'] as const).forEach((loadBalancerType) => {
+    it(`allows only RATE for ${loadBalancerType} mixed with REGIONAL_EXTERNAL_NETWORK`, () => {
+      const values = command({
+        loadBalancers: ['http-lb', 'regional-network-lb'],
+        loadBalancingPolicy: {
+          balancingMode: 'RATE',
+          capacityScaler: 1,
+          maxRatePerInstance: 100,
+          namedPorts: [{ name: 'https', port: 443 }],
+        },
+        backingData: {
+          ...command().backingData,
+          filtered: {
+            loadBalancerIndex: {
+              'http-lb': {
+                name: 'http-lb',
+                loadBalancerType,
+                listeners: [{ name: 'http-listener' }],
+                backendServices: [{ name: 'http-backend', portName: 'https' }],
+              },
+              'regional-network-lb': {
+                name: 'regional-network-lb',
+                loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK',
+              },
+            },
+          },
+        },
+      });
+      const wrapper = shallow(<GceServerGroupLoadBalancers app={{} as any} formik={testProps(values).formik} />);
+
+      expect(selectOptions(wrapper, 'Balancing mode')).toEqual([['RATE', 'RATE']]);
+      expect(wrapper.find('input[aria-label="Max rate per instance"]').prop('value')).toBe(100);
+    });
+  });
+
+  (['SSL', 'TCP'] as const).forEach((loadBalancerType) => {
+    it(`allows only CONNECTION for ${loadBalancerType} mixed with REGIONAL_EXTERNAL_NETWORK`, () => {
+      const values = command({
+        loadBalancers: ['proxy-lb', 'regional-network-lb'],
+        loadBalancingPolicy: {
+          balancingMode: 'CONNECTION',
+          capacityScaler: 1,
+          maxConnectionsPerInstance: 25,
+          namedPorts: [],
+        },
+        backingData: {
+          ...command().backingData,
+          filtered: {
+            loadBalancerIndex: {
+              'proxy-lb': {
+                name: 'proxy-lb',
+                loadBalancerType,
+              },
+              'regional-network-lb': {
+                name: 'regional-network-lb',
+                loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK',
+              },
+            },
+          },
+        },
+      });
+      const wrapper = shallow(<GceServerGroupLoadBalancers app={{} as any} formik={testProps(values).formik} />);
+
+      expect(selectOptions(wrapper, 'Balancing mode')).toEqual([['CONNECTION', 'CONNECTION']]);
+      expect(wrapper.find('input[aria-label="Max connections per instance"]').prop('value')).toBe(25);
+    });
+
+    it(`rejects HTTP, ${loadBalancerType}, and REGIONAL_EXTERNAL_NETWORK because no balancing mode is shared`, () => {
+      const values = command({
+        application: 'fnord',
+        capacity: { desired: 3, max: 3, min: 3 },
+        image: 'ubuntu',
+        zone: 'us-central1-a',
+        loadBalancers: ['http-lb', 'proxy-lb', 'regional-network-lb'],
+        loadBalancingPolicy: {
+          balancingMode: 'UTILIZATION',
+          capacityScaler: 1,
+          maxUtilization: 0.8,
+          namedPorts: [{ name: 'https', port: 443 }],
+        },
+        backingData: {
+          ...command().backingData,
+          filtered: {
+            loadBalancerIndex: {
+              'http-lb': { name: 'http-lb', loadBalancerType: 'HTTP' },
+              'proxy-lb': { name: 'proxy-lb', loadBalancerType },
+              'regional-network-lb': {
+                name: 'regional-network-lb',
+                loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK',
+              },
+            },
+          },
+        },
+      });
+      const wrapper = shallow(<GceServerGroupLoadBalancers app={{} as any} formik={testProps(values).formik} />);
+      const page = wrapper.instance() as GceServerGroupLoadBalancers;
+
+      expect((page.validate(values) as any).loadBalancingPolicy?.balancingMode).toContain(
+        'no compatible balancing mode',
+      );
+      expect((validateGceServerGroupCommand(values) as any).loadBalancingPolicy?.balancingMode).toContain(
+        'no compatible balancing mode',
+      );
+      expect(wrapper.find('[role="alert"]').text()).toContain('no compatible balancing mode');
+    });
+  });
+
+  (['HTTP', 'INTERNAL_MANAGED', 'EXTERNAL_MANAGED'] as const).forEach((loadBalancerType) => {
+    it(`allows only RATE for ${loadBalancerType} mixed with INTERNAL passthrough`, () => {
+      const values = command({
+        loadBalancers: ['http-lb', 'internal-lb'],
+        loadBalancingPolicy: {
+          balancingMode: 'RATE',
+          capacityScaler: 1,
+          maxRatePerInstance: 100,
+          namedPorts: [{ name: 'https', port: 443 }],
+        },
+        backingData: {
+          ...command().backingData,
+          filtered: {
+            loadBalancerIndex: {
+              'http-lb': {
+                name: 'http-lb',
+                loadBalancerType,
+                listeners: [{ name: 'http-listener' }],
+                backendServices: [{ name: 'http-backend', portName: 'https' }],
+              },
+              'internal-lb': { name: 'internal-lb', loadBalancerType: 'INTERNAL' },
+            },
+          },
+        },
+      });
+      const wrapper = shallow(<GceServerGroupLoadBalancers app={{} as any} formik={testProps(values).formik} />);
+
+      // BasicGoogleDeployHandler counts INTERNAL as passthrough, so offering UTILIZATION here would
+      // let the wizard submit a combination Clouddriver rejects.
+      expect(selectOptions(wrapper, 'Balancing mode')).toEqual([['RATE', 'RATE']]);
+    });
+  });
+
+  it('does not block an unresolved load balancer when no passthrough is selected', () => {
     const values = command({
-      loadBalancers: ['external-managed-lb', 'regional-network-lb'],
+      application: 'fnord',
+      capacity: { desired: 3, max: 3, min: 3 },
+      image: 'ubuntu',
+      zone: 'us-central1-a',
+      loadBalancers: ['http-lb', 'unresolved-lb'],
       loadBalancingPolicy: {
         balancingMode: 'RATE',
         capacityScaler: 1,
         maxRatePerInstance: 100,
+        namedPorts: [{ name: 'http', port: 80 }],
+      },
+      backingData: {
+        ...command().backingData,
+        filtered: {
+          loadBalancerIndex: {
+            'http-lb': {
+              name: 'http-lb',
+              loadBalancerType: 'HTTP',
+              listeners: [{ name: 'http-listener' }],
+              backendServices: [{ name: 'http-backend', portName: 'http' }],
+            },
+          },
+        },
+      },
+    });
+    const wrapper = shallow(<GceServerGroupLoadBalancers app={{} as any} formik={testProps(values).formik} />);
+
+    // Only a passthrough backend makes the required mode depend on the other family, so without one
+    // an unidentifiable selection must not block the submit.
+    expect(selectOptions(wrapper, 'Balancing mode')).toEqual([
+      ['RATE', 'RATE'],
+      ['UTILIZATION', 'UTILIZATION'],
+    ]);
+    expect((wrapper.instance() as GceServerGroupLoadBalancers).validate(values)).toEqual({});
+    expect(validateGceServerGroupCommand(values)).toEqual({});
+  });
+
+  it('normalizes inline typed load balancers when deriving compatibility', () => {
+    const values = command({
+      loadBalancers: [
+        { name: 'http-lb', loadBalancerType: 'HTTP' },
+        { name: 'regional-network-lb', loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK' },
+      ],
+      loadBalancingPolicy: {
+        balancingMode: 'RATE',
+        capacityScaler: 1,
+        maxRatePerInstance: 100,
+        namedPorts: [{ name: 'http', port: 80 }],
+      },
+      backingData: {
+        ...command().backingData,
+        filtered: { loadBalancerIndex: {} },
+      },
+    });
+    const wrapper = shallow(<GceServerGroupLoadBalancers app={{} as any} formik={testProps(values).formik} />);
+
+    expect(selectOptions(wrapper, 'Balancing mode')).toEqual([['RATE', 'RATE']]);
+    expect((wrapper.instance() as GceServerGroupLoadBalancers).validate(values)).toEqual({});
+  });
+
+  it('blocks an unresolved load balancer combined with REGIONAL_EXTERNAL_NETWORK', () => {
+    const values = regionalExternalNetworkCommand({
+      application: 'fnord',
+      capacity: { desired: 3, max: 3, min: 3 },
+      image: 'ubuntu',
+      zone: 'us-central1-a',
+      loadBalancers: ['regional-network-lb', 'unresolved-lb'],
+      loadBalancingPolicy: {
+        balancingMode: 'RATE',
+        capacityScaler: 1,
+        maxRatePerInstance: 100,
+        namedPorts: [{ name: 'http', port: 80 }],
+      },
+    });
+    const wrapper = shallow(<GceServerGroupLoadBalancers app={{} as any} formik={testProps(values).formik} />);
+
+    expect(
+      ((wrapper.instance() as GceServerGroupLoadBalancers).validate(values) as any).loadBalancingPolicy?.balancingMode,
+    ).toContain('cannot determine');
+    expect((validateGceServerGroupCommand(values) as any).loadBalancingPolicy?.balancingMode).toContain(
+      'cannot determine',
+    );
+    expect(wrapper.find('[role="alert"]').text()).toContain('cannot determine');
+  });
+
+  it('resolves persisted UTILIZATION to RATE for EXTERNAL_MANAGED mixed with REGIONAL_EXTERNAL_NETWORK', () => {
+    const values = command({
+      loadBalancers: ['external-managed-lb', 'regional-network-lb'],
+      loadBalancingPolicy: {
+        balancingMode: 'UTILIZATION',
+        capacityScaler: 0.75,
+        maxConnectionsPerInstance: 25,
+        maxRatePerInstance: 100,
+        maxUtilization: 0.7,
         namedPorts: [{ name: 'https', port: 443 }],
+        unknownField: 'keep',
       },
       backingData: {
         ...command().backingData,
@@ -667,13 +920,57 @@ describe('GCE server group Load Balancers page', () => {
         },
       },
     });
-    const wrapper = shallow(<GceServerGroupLoadBalancers app={{} as any} formik={testProps(values).formik} />);
 
-    expect(selectOptions(wrapper, 'Balancing mode')).toEqual([
-      ['RATE', 'RATE'],
-      ['UTILIZATION', 'UTILIZATION'],
-    ]);
-    expect(wrapper.find('input[aria-label="Max rate per instance"]').prop('value')).toBe(100);
+    expect(transformGceServerGroupCommand(values).loadBalancingPolicy).toEqual({
+      balancingMode: 'RATE',
+      capacityScaler: 0.75,
+      maxRatePerInstance: 100,
+      namedPorts: [{ name: 'https', port: 443 }],
+      unknownField: 'keep',
+    });
+  });
+
+  it('resolves the default UTILIZATION policy to RATE for HTTP mixed with REGIONAL_EXTERNAL_NETWORK', () => {
+    const values = command({
+      loadBalancers: ['http-lb', 'regional-network-lb'],
+      backingData: {
+        ...command().backingData,
+        filtered: {
+          loadBalancerIndex: {
+            'http-lb': {
+              name: 'http-lb',
+              loadBalancerType: 'HTTP',
+              listeners: [{ name: 'http-listener' }],
+              backendServices: [{ name: 'http-backend', portName: 'http' }],
+            },
+            'regional-network-lb': {
+              name: 'regional-network-lb',
+              loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK',
+            },
+          },
+        },
+      },
+    });
+
+    expect(transformGceServerGroupCommand(values).loadBalancingPolicy).toEqual({
+      balancingMode: 'RATE',
+      capacityScaler: 1,
+      namedPorts: [{ name: 'http', port: 80 }],
+    });
+    const wrapper = shallow(<GceServerGroupLoadBalancers app={{} as any} formik={testProps(values).formik} />);
+    const page = wrapper.instance() as GceServerGroupLoadBalancers;
+    expect((page.validate(values) as any).loadBalancingPolicy?.maxRatePerInstance).toContain('Max rate');
+
+    const submitCommand = {
+      ...values,
+      application: 'fnord',
+      capacity: { desired: 3, max: 3, min: 3 },
+      image: 'ubuntu',
+      zone: 'us-central1-a',
+    };
+    expect((validateGceServerGroupCommand(submitCommand) as any).loadBalancingPolicy?.maxRatePerInstance).toContain(
+      'Max rate',
+    );
   });
 
   it('preserves classic NETWORK balancing modes when mixed with REGIONAL_EXTERNAL_NETWORK', () => {
