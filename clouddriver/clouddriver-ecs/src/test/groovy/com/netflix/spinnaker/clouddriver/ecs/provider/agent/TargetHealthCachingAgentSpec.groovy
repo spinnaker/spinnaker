@@ -16,14 +16,14 @@
 package com.netflix.spinnaker.clouddriver.ecs.provider.agent
 
 import software.amazon.awssdk.services.ecs.EcsClient
-import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetHealthRequest
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetHealthResult
-import com.amazonaws.services.elasticloadbalancingv2.model.TargetDescription
-import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroupNotFoundException
-import com.amazonaws.services.elasticloadbalancingv2.model.TargetHealth
-import com.amazonaws.services.elasticloadbalancingv2.model.TargetHealthDescription
-import com.amazonaws.services.elasticloadbalancingv2.model.TargetHealthStateEnum
+import software.amazon.awssdk.services.elasticloadbalancingv2.ElasticLoadBalancingV2Client
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeTargetHealthRequest
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeTargetHealthResponse
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetDescription
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetGroupNotFoundException
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetHealth
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetHealthDescription
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetHealthStateEnum
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
@@ -38,7 +38,7 @@ class TargetHealthCachingAgentSpec extends Specification {
   def ecs = Mock(EcsClient)
   def clientProvider = Mock(AmazonClientProvider)
   def awsProviderCache = Mock(ProviderCache)
-  def amazonloadBalancing = Mock(AmazonElasticLoadBalancing)
+  def amazonloadBalancing = Mock(ElasticLoadBalancingV2Client)
   def targetGroupArn = 'arn:aws:elasticloadbalancing:' + CommonCachingAgent.REGION + ':' + CommonCachingAgent.ACCOUNT_ID + ':targetgroup/test-tg/9e8997b7cff00c62'
   ObjectMapper mapper = new ObjectMapper()
 
@@ -47,7 +47,7 @@ class TargetHealthCachingAgentSpec extends Specification {
     new TargetHealthCachingAgent(CommonCachingAgent.netflixAmazonCredentials, CommonCachingAgent.REGION, clientProvider, mapper)
 
   def setup() {
-    clientProvider.getAmazonElasticLoadBalancingV2(_, _, _) >> amazonloadBalancing
+    clientProvider.getAmazonElasticLoadBalancingV2V2(_, _) >> amazonloadBalancing
     awsProviderCache.filterIdentifiers(_, _) >> []
 
     def targetGroupAttributes = [
@@ -75,8 +75,8 @@ class TargetHealthCachingAgentSpec extends Specification {
     then:
     // ELB response contains no TargetHealths
     1 * amazonloadBalancing.describeTargetHealth({ DescribeTargetHealthRequest request ->
-      request.targetGroupArn == targetGroupArn
-    }) >> new DescribeTargetHealthResult()
+      request.targetGroupArn() == targetGroupArn
+    }) >> DescribeTargetHealthResponse.builder().build()
 
     targetHealthList.size() == 0
   }
@@ -87,14 +87,16 @@ class TargetHealthCachingAgentSpec extends Specification {
     def unhealthyTargetId = '10.0.0.14'
 
     TargetHealthDescription targetHealth1 =
-      new TargetHealthDescription().withTarget(
-        new TargetDescription().withId(healthyTargetId).withPort(80))
-      .withTargetHealth(new TargetHealth().withState(TargetHealthStateEnum.Healthy))
+      TargetHealthDescription.builder()
+        .target(TargetDescription.builder().id(healthyTargetId).port(80).build())
+        .targetHealth(TargetHealth.builder().state(TargetHealthStateEnum.HEALTHY).build())
+        .build()
 
     TargetHealthDescription targetHealth2 =
-      new TargetHealthDescription().withTarget(
-        new TargetDescription().withId(unhealthyTargetId).withPort(80))
-      .withTargetHealth(new TargetHealth().withState(TargetHealthStateEnum.Unhealthy))
+      TargetHealthDescription.builder()
+        .target(TargetDescription.builder().id(unhealthyTargetId).port(80).build())
+        .targetHealth(TargetHealth.builder().state(TargetHealthStateEnum.UNHEALTHY).build())
+        .build()
 
     when:
     agent.setAwsCache(awsProviderCache)
@@ -102,18 +104,18 @@ class TargetHealthCachingAgentSpec extends Specification {
 
     then:
     1 * amazonloadBalancing.describeTargetHealth({ DescribeTargetHealthRequest request ->
-      request.targetGroupArn == targetGroupArn
-    }) >> new DescribeTargetHealthResult().withTargetHealthDescriptions(targetHealth1, targetHealth2)
+      request.targetGroupArn() == targetGroupArn
+    }) >> DescribeTargetHealthResponse.builder().targetHealthDescriptions(targetHealth1, targetHealth2).build()
 
     targetHealthList.size() == 1
     EcsTargetHealth targetHealth = targetHealthList.get(0)
     targetHealth.getTargetGroupArn() == targetGroupArn
     for (TargetHealthDescription targetHealthDescription: targetHealth.getTargetHealthDescriptions()) {
-      targetHealthDescription.getTarget().getPort() == 80
-      if (targetHealthDescription.getTarget().getId() == healthyTargetId) {
-        targetHealthDescription.getTargetHealth().getState() == TargetHealthStateEnum.Healthy.toString()
+      targetHealthDescription.target().port() == 80
+      if (targetHealthDescription.target().id() == healthyTargetId) {
+        targetHealthDescription.targetHealth().stateAsString() == TargetHealthStateEnum.HEALTHY.toString()
       } else {
-        targetHealthDescription.getTargetHealth().getState() == TargetHealthStateEnum.Unhealthy.toString()
+        targetHealthDescription.targetHealth().stateAsString() == TargetHealthStateEnum.UNHEALTHY.toString()
       }
     }
   }
@@ -133,8 +135,8 @@ class TargetHealthCachingAgentSpec extends Specification {
 
     then:
     1 * amazonloadBalancing.describeTargetHealth({ DescribeTargetHealthRequest request ->
-      request.targetGroupArn == targetGroupArn
-    }) >> { throw new TargetGroupNotFoundException("The specified target group does not exist.") }
+      request.targetGroupArn() == targetGroupArn
+    }) >> { throw TargetGroupNotFoundException.builder().message("The specified target group does not exist.").build() }
 
     targetHealthList.size() == 0
   }
@@ -174,9 +176,10 @@ class TargetHealthCachingAgentSpec extends Specification {
       new DefaultCacheData(targetGroupKey2, targetGroupAttributes2, relations2)
 
     TargetHealthDescription targetHealth =
-      new TargetHealthDescription().withTarget(
-        new TargetDescription().withId('10.0.0.3').withPort(80))
-        .withTargetHealth(new TargetHealth().withState(TargetHealthStateEnum.Healthy))
+      TargetHealthDescription.builder()
+        .target(TargetDescription.builder().id('10.0.0.3').port(80).build())
+        .targetHealth(TargetHealth.builder().state(TargetHealthStateEnum.HEALTHY).build())
+        .build()
 
     // return cache data for both target groups
     awsProviderCache.getAll(TARGET_GROUPS.getNs(), _, _) >> [targetGroupCacheData, targetGroupCacheData2]
@@ -188,8 +191,8 @@ class TargetHealthCachingAgentSpec extends Specification {
     then:
     // expect one describe call, with correct target group
     1 * amazonloadBalancing.describeTargetHealth({ DescribeTargetHealthRequest request ->
-      request.targetGroupArn == targetGroupArn
-    }) >> new DescribeTargetHealthResult().withTargetHealthDescriptions(targetHealth)
+      request.targetGroupArn() == targetGroupArn
+    }) >> DescribeTargetHealthResponse.builder().targetHealthDescriptions(targetHealth).build()
 
     targetHealthList.size() == 1
     EcsTargetHealth targetHealthDescription = targetHealthList.get(0)

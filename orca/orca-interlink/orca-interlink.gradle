@@ -25,7 +25,6 @@ dependencies {
   api("io.spinnaker.kork:kork-pubsub-aws")
 
   implementation(project(":orca-core"))
-  implementation("com.amazonaws:aws-java-sdk-sqs")
   implementation("jakarta.validation:jakarta.validation-api")
 
   compileOnly("org.projectlombok:lombok")
