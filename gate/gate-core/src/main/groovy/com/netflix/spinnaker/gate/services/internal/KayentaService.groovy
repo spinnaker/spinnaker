@@ -25,6 +25,7 @@ import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
+import retrofit2.http.QueryMap
 
 
 interface KayentaService {
@@ -89,4 +90,16 @@ interface KayentaService {
   @GET("metricSetPairList/{metricSetPairListId}")
   Call<List> getMetricSetPairList(@Path("metricSetPairListId") metricSetPairListId,
                             @Query("accountName") String storageAccountName)
+
+  /**
+   * Synchronously executes a single metric query against a metrics source, exactly as Deck's canary
+   * config UI does when a user clicks "Test Query" - before a canary config is saved. Every metrics
+   * provider (prometheus, datadog, stackdriver, graphite, influxdb, newrelic-insights, atlas,
+   * wavefront) exposes this at "fetch/{provider}/query" with provider-specific query parameters
+   * (metricSetName/metricName are common to all of them), so this is intentionally generic rather
+   * than one typed method per provider.
+   */
+  @POST("fetch/{provider}/query")
+  Call<Map> queryMetrics(@Path("provider") String provider,
+                   @QueryMap Map<String, Object> queryParameters)
 }

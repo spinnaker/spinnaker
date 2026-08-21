@@ -36,9 +36,11 @@ dependencies {
   implementation "io.cloudevents:cloudevents-spring:2.5.0"
   implementation "io.cloudevents:cloudevents-json-jackson:2.5.0"
   implementation "io.cloudevents:cloudevents-http-basic:2.5.0"
+  implementation "redis.clients:jedis"
   testImplementation "com.squareup.retrofit2:retrofit-mock"
   testImplementation "com.squareup.retrofit2:converter-jackson"
   testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
+  testImplementation "io.spinnaker.kork:kork-jedis-test"
 }
 
 sourceSets {
