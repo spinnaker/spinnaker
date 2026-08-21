@@ -30,11 +30,13 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 
 @Slf4j
-public abstract class BaseHttpArtifactCredentials<T extends UserInputValidatedArtifactAccount> {
+public abstract class BaseHttpArtifactCredentials<T extends UserInputValidatedArtifactAccount>
+    extends AbstractArtifactCredentials {
   @JsonIgnore private final OkHttpClient okHttpClient;
   @Getter @VisibleForTesting @JsonIgnore private final T account;
 
   protected BaseHttpArtifactCredentials(OkHttpClient okHttpClient, T account) {
+    super(account);
     this.account = account;
     // Disable automatic redirects to prevent SSRF via unvalidated redirect chains.
     // We manually follow redirects, validating each Location header when restrictions are set.

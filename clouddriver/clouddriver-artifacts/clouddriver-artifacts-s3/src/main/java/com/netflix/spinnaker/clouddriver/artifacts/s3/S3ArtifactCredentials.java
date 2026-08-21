@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.artifacts.s3;
 import com.google.common.collect.ImmutableList;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.aws2.SpectatorExecutionInterceptor;
-import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
+import com.netflix.spinnaker.clouddriver.artifacts.config.AbstractArtifactCredentials;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
@@ -49,7 +49,7 @@ import software.amazon.awssdk.services.s3.model.S3Exception;
 
 @Slf4j
 @NonnullByDefault
-public class S3ArtifactCredentials implements ArtifactCredentials {
+public class S3ArtifactCredentials extends AbstractArtifactCredentials {
   public static final String CREDENTIALS_TYPE = "artifacts-s3";
   @Getter private final String name;
   @Getter private final ImmutableList<String> types = ImmutableList.of("s3/object");
@@ -89,6 +89,7 @@ public class S3ArtifactCredentials implements ArtifactCredentials {
       S3ArtifactProviderProperties s3ArtifactProviderProperties,
       Registry registry)
       throws IllegalArgumentException {
+    super(account);
     name = account.getName();
     apiEndpoint = account.getApiEndpoint();
     apiRegion = account.getApiRegion();

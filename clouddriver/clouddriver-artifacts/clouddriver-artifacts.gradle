@@ -20,8 +20,10 @@ allprojects {
   }
 
   dependencies {
+    implementation project(":clouddriver-api")
     implementation project(":clouddriver-core")
     implementation "com.squareup.okhttp3:okhttp"
+    implementation "io.spinnaker.fiat:fiat-core"
     implementation "io.spinnaker.kork:kork-artifacts"
     implementation "io.spinnaker.kork:kork-credentials"
     implementation "org.springframework.boot:spring-boot-starter-web"

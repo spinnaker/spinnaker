@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.config;
 
+import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -33,4 +34,6 @@ public abstract class UserInputValidatedArtifactAccount implements ArtifactAccou
    * configuration file itself (e.g. dockerhub).
    */
   private final HttpUrlRestrictions urlRestrictions;
+
+  private final Permissions.Builder permissions;
 }

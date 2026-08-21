@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.artifacts.gitRepo;
 import com.google.common.base.Strings;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccount;
 import com.netflix.spinnaker.clouddriver.artifacts.config.TokenAuth;
+import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import java.util.List;
 import java.util.Optional;
@@ -41,6 +42,7 @@ public class GitRepoArtifactAccount implements ArtifactAccount, TokenAuth {
   private final String sshKnownHostsFilePath;
   private final boolean sshTrustUnknownHosts;
   private final List<String> allowedHosts;
+  private final Permissions.Builder permissions;
 
   @Builder
   @ParametersAreNullableByDefault
@@ -66,7 +68,8 @@ public class GitRepoArtifactAccount implements ArtifactAccount, TokenAuth {
         sshPrivateKeyPassphraseCmd,
         sshKnownHostsFilePath,
         sshTrustUnknownHosts,
-        List.of());
+        List.of(),
+        null);
   }
 
   @Builder
@@ -83,7 +86,8 @@ public class GitRepoArtifactAccount implements ArtifactAccount, TokenAuth {
       String sshPrivateKeyPassphraseCmd,
       String sshKnownHostsFilePath,
       boolean sshTrustUnknownHosts,
-      List<String> allowedHosts) {
+      List<String> allowedHosts,
+      Permissions.Builder permissions) {
     this.name = Strings.nullToEmpty(name);
     this.username = Strings.nullToEmpty(username);
     this.password = Strings.nullToEmpty(password);
@@ -95,5 +99,6 @@ public class GitRepoArtifactAccount implements ArtifactAccount, TokenAuth {
     this.sshKnownHostsFilePath = Strings.nullToEmpty(sshKnownHostsFilePath);
     this.sshTrustUnknownHosts = sshTrustUnknownHosts;
     this.allowedHosts = allowedHosts;
+    this.permissions = Optional.ofNullable(permissions).orElseGet(Permissions.Builder::new);
   }
 }
