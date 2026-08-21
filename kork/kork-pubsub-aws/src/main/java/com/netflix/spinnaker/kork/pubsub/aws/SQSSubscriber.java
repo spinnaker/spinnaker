@@ -16,12 +16,6 @@
 
 package com.netflix.spinnaker.kork.pubsub.aws;
 
-import com.amazonaws.services.sns.AmazonSNS;
-import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.model.Message;
-import com.amazonaws.services.sqs.model.QueueDoesNotExistException;
-import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
-import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.netflix.spectator.api.Counter;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
@@ -34,6 +28,11 @@ import com.netflix.spinnaker.kork.pubsub.model.PubsubSubscriber;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.sns.SnsClient;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.model.QueueDoesNotExistException;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 
 /**
  * One subscriber for each subscription. The subscriber makes sure the SQS queue is created,
@@ -42,8 +41,8 @@ import org.slf4j.LoggerFactory;
 public class SQSSubscriber implements Runnable, PubsubSubscriber {
   private static final Logger log = LoggerFactory.getLogger(SQSSubscriber.class);
 
-  private final AmazonSNS amazonSNS;
-  private final AmazonSQS amazonSQS;
+  private final SnsClient snsClient;
+  private final SqsClient sqsClient;
   private final AmazonPubsubProperties.AmazonPubsubSubscription subscription;
   private final AmazonPubsubMessageHandler messageHandler;
   private final AmazonMessageAcknowledger messageAcknowledger;
@@ -58,15 +57,15 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
       AmazonPubsubProperties.AmazonPubsubSubscription subscription,
       AmazonPubsubMessageHandler messageHandler,
       AmazonMessageAcknowledger messageAcknowledger,
-      AmazonSNS amazonSNS,
-      AmazonSQS amazonSQS,
+      SnsClient snsClient,
+      SqsClient sqsClient,
       Supplier<Boolean> isEnabled,
       Registry registry) {
     this.subscription = subscription;
     this.messageHandler = messageHandler;
     this.messageAcknowledger = messageAcknowledger;
-    this.amazonSNS = amazonSNS;
-    this.amazonSQS = amazonSQS;
+    this.snsClient = snsClient;
+    this.sqsClient = sqsClient;
     this.isEnabled = isEnabled;
     this.registry = registry;
 
@@ -124,21 +123,21 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
   void initializeQueue() {
     String queueUrl;
     if (subscription.isSkipQueueBootstrap()) {
-      queueUrl = PubSubUtils.getQueueUrl(amazonSQS, queueARN);
+      queueUrl = PubSubUtils.getQueueUrl(sqsClient, queueARN);
       log.info(
           "skipQueueBootstrap=true for {}; resolving queue URL only, not calling setQueueAttributes/subscribe",
           queueARN);
     } else {
       queueUrl =
           PubSubUtils.ensureQueueExists(
-              amazonSQS, queueARN, topicARN, subscription.getSqsMessageRetentionPeriodSeconds());
-      PubSubUtils.subscribeToTopic(amazonSNS, topicARN, queueARN);
+              sqsClient, queueARN, topicARN, subscription.getSqsMessageRetentionPeriodSeconds());
+      PubSubUtils.subscribeToTopic(snsClient, topicARN, queueARN);
     }
 
     this.subscriptionInfo =
         AmazonSubscriptionInformation.builder()
-            .amazonSNS(amazonSNS)
-            .amazonSQS(amazonSQS)
+            .snsClient(snsClient)
+            .sqsClient(sqsClient)
             .properties(subscription)
             .queueUrl(queueUrl)
             .build();
@@ -147,20 +146,22 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
   @VisibleForTesting
   void listenForMessages() {
     while (isEnabled.get()) {
-      ReceiveMessageResult receiveMessageResult =
-          amazonSQS.receiveMessage(
-              new ReceiveMessageRequest(this.subscriptionInfo.queueUrl)
-                  .withMaxNumberOfMessages(subscription.getMaxNumberOfMessages())
-                  .withVisibilityTimeout(subscription.getVisibilityTimeout())
-                  .withWaitTimeSeconds(subscription.getWaitTimeSeconds())
-                  .withMessageAttributeNames("All"));
+      var receiveResponse =
+          sqsClient.receiveMessage(
+              ReceiveMessageRequest.builder()
+                  .queueUrl(this.subscriptionInfo.getQueueUrl())
+                  .maxNumberOfMessages(subscription.getMaxNumberOfMessages())
+                  .visibilityTimeout(subscription.getVisibilityTimeout())
+                  .waitTimeSeconds(subscription.getWaitTimeSeconds())
+                  .messageAttributeNames("All")
+                  .build());
 
-      if (receiveMessageResult.getMessages().isEmpty()) {
+      if (receiveResponse.messages().isEmpty()) {
         log.debug("Received no messages for queue {}", queueARN);
         continue;
       }
 
-      receiveMessageResult.getMessages().forEach(this::handleMessage);
+      receiveResponse.messages().forEach(this::handleMessage);
     }
   }
 
