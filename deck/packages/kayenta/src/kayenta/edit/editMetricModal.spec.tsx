@@ -24,8 +24,6 @@ describe('EditMetricModal', () => {
       },
     },
     groups: ['Group 1', 'Group 2'],
-    isTemplateValid: true,
-    useInlineTemplateEditor: false,
     disableEdit: false,
     validationErrors: {},
     rename: jasmine.createSpy(),
@@ -62,7 +60,6 @@ describe('EditMetricModal', () => {
         },
         groups: ['Group 1'],
       },
-      editingTemplate: {},
       group: {
         list: ['Group 1', 'Group 2'],
       },

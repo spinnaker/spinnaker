@@ -16,6 +16,7 @@
 
 package com.netflix.kayenta.influxdb.metrics;
 
+import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.canary.providers.metrics.InfluxdbCanaryMetricSetQueryConfig;
 import java.util.*;
@@ -35,8 +36,13 @@ public class InfluxDbQueryBuilder {
 
   // TODO(joerajeev): protect against injection. Influxdb is supposed to support binding params,
   // https://docs.influxdata.com/influxdb/v1.5/tools/api/
-  public String build(InfluxdbCanaryMetricSetQueryConfig queryConfig, CanaryScope canaryScope) {
+  @SuppressWarnings("deprecation")
+  public String build(
+      CanaryConfig canaryConfig,
+      InfluxdbCanaryMetricSetQueryConfig queryConfig,
+      CanaryScope canaryScope) {
     StringBuilder query = new StringBuilder();
+    queryConfig = resolveTemplate(canaryConfig, queryConfig);
     validateMandatoryParams(queryConfig, canaryScope);
 
     if (!StringUtils.isEmpty(queryConfig.getCustomInlineTemplate())) {
@@ -54,6 +60,49 @@ public class InfluxDbQueryBuilder {
     return builtQuery;
   }
 
+  /**
+   * Resolves the {@code template} vs. {@code customFilterTemplate} precedence and threads the
+   * resolved text back onto the query config's {@code template} field so the rest of the
+   * (unchanged) custom-query building logic below can keep reading it via {@link
+   * InfluxdbCanaryMetricSetQueryConfig#getCustomInlineTemplate()}.
+   *
+   * <p>Deliberately does NOT delegate to the shared {@link
+   * AbstractCanaryMetricSetQueryConfig#getTemplate(CanaryConfig)} here: that method always
+   * unescapes the resolved text (converting {@code $\{...}} back to {@code ${...}}) for the shared
+   * {@code QueryConfigUtils} template-expansion engine used by every other provider. InfluxDB never
+   * used that engine or that escaping convention -- its own hand-rolled {@code
+   * ${timeFilter}}/{@code ${scope}}/{@code ${step}} token-replace logic below expects the raw,
+   * as-stored text verbatim (including any literal {@code $\{...}} sequences), so unescaping here
+   * would corrupt it. This still simplifies away the old duplicate throw-on-missing validation --
+   * an unresolvable {@code customFilterTemplate} now just falls through to {@link
+   * #validateMandatoryParams}'s existing "measurement is required" check instead of raising its own
+   * separate error, consistent with how the shared {@code getTemplate(CanaryConfig)} resolution
+   * behaves for every other provider.
+   */
+  private InfluxdbCanaryMetricSetQueryConfig resolveTemplate(
+      CanaryConfig canaryConfig, InfluxdbCanaryMetricSetQueryConfig queryConfig) {
+    if (!StringUtils.isEmpty(queryConfig.getCustomInlineTemplate())) {
+      return queryConfig;
+    }
+
+    String customFilterTemplate = queryConfig.getCustomFilterTemplate();
+
+    if (StringUtils.isEmpty(customFilterTemplate)
+        || canaryConfig == null
+        || CollectionUtils.isEmpty(canaryConfig.getTemplates())) {
+      return queryConfig;
+    }
+
+    String resolved = canaryConfig.getTemplates().get(customFilterTemplate);
+
+    if (resolved == null) {
+      return queryConfig;
+    }
+
+    return queryConfig.toBuilder().template(resolved).build();
+  }
+
+  @SuppressWarnings("deprecation")
   private void validateMandatoryParams(
       InfluxdbCanaryMetricSetQueryConfig queryConfig, CanaryScope canaryScope) {
     if (StringUtils.isEmpty(queryConfig.getMetricName())
@@ -77,6 +126,7 @@ public class InfluxDbQueryBuilder {
     }
   }
 
+  @SuppressWarnings("deprecation")
   private List<String> handleFields(InfluxdbCanaryMetricSetQueryConfig queryConfig) {
     List<String> fields = queryConfig.getFields();
     if (CollectionUtils.isEmpty(fields)) {

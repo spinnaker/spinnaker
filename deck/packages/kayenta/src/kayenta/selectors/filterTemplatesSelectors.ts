@@ -1,83 +1,20 @@
 import { get, identity, isEmpty } from 'lodash';
 import { createSelector } from 'reselect';
 
-import { configTemplatesSelector, editingMetricSelector, editingTemplateSelector, metricListSelector } from './';
-import { validateTemplate } from '../edit/filterTemplatesValidation';
-import { PrometheusQueryType } from '../metricStore/prometheus/domain/IPrometheusCanaryMetricSetQueryConfig';
-import {
-  getPrometheusQueryType,
-  prometheusQueryTypeToTransformFunction,
-} from '../metricStore/prometheus/queryTypeSelectors';
 import type { ICanaryState } from '../reducers';
 
-// TODO(mneterval): More elegant separation of prometheus-specific logic
+export const inlineTemplateValueSelector = (state: ICanaryState): string =>
+  get(state, 'selectedConfig.editingMetric.query.template');
 
-export interface ITemplateTransformFunctions {
-  fromValue: (template: string) => string;
-  toValue: (template: string) => string;
-}
+// No provider currently needs to transform a template's value between how it's persisted and how
+// it's displayed in the UI. (Prometheus previously used a client-only "PromQL:" string prefix to
+// distinguish PromQL-mode templates, but nothing server-side ever parsed for that prefix -- see
+// kayenta-prometheus's PrometheusMetricsService.java/PrometheusCanaryMetricSetQueryConfig.java --
+// so it was dead weight once the template editor became available to every provider, and was
+// retired.) These stay as pass-through selectors so MetricQueryTemplateEditor doesn't need to
+// special-case a provider that might need a real transform in the future.
+export const transformInlineTemplateForDisplay = (_state: ICanaryState): ((template: string) => string) => identity;
 
-// Map of provider-specific query type to methods that transform templates between how they are persisted and displayed in the UI
-export const queryTypeToTransformFunctions: { [queryType: string]: ITemplateTransformFunctions } = {
-  ...prometheusQueryTypeToTransformFunction,
-};
-
-export const queryTypeSelector = createSelector(
-  (state: ICanaryState) => state.selectedConfig.editingMetric,
-  (editingMetric) => {
-    return editingMetric && editingMetric.query.serviceType === 'prometheus'
-      ? getPrometheusQueryType(editingMetric)
-      : null;
-  },
-);
-
-export const transformInlineTemplateForDisplay = createSelector(queryTypeSelector, (queryType) =>
-  get(queryTypeToTransformFunctions, [queryType, 'fromValue'], identity),
-);
-
-export const transformInlineTemplateForSave = createSelector(queryTypeSelector, (queryType) =>
-  get(queryTypeToTransformFunctions, [queryType, 'toValue'], identity),
-);
-
-export const selectedTemplateNameSelector = (state: ICanaryState): string =>
-  get(state, 'selectedConfig.editingMetric.query.customFilterTemplate');
-
-export const inlineTemplateValueSelector = createSelector(
-  (state: ICanaryState) => get(state, 'selectedConfig.editingMetric.query.customInlineTemplate'),
-  transformInlineTemplateForDisplay,
-  (template: string, transformer: (template: string) => string): string => transformer(template),
-);
-
-export const editingTemplateValidationSelector = createSelector(
-  editingTemplateSelector,
-  configTemplatesSelector,
-  metricListSelector,
-  editingMetricSelector,
-  (editingTemplate, configTemplates, metricList, editingMetric) =>
-    validateTemplate({
-      editingTemplate,
-      configTemplates,
-      metricList,
-      editingMetric,
-    }),
-);
-
-export const isFilterTemplateValidSelector = createSelector(editingTemplateValidationSelector, (validation) =>
-  isEmpty(Object.keys(validation.errors)),
-);
+export const transformInlineTemplateForSave = (_state: ICanaryState): ((template: string) => string) => identity;
 
 export const isInlineTemplateValidSelector = createSelector(inlineTemplateValueSelector, (value) => !isEmpty(value));
-
-const inlineTemplateQueryTypes = [PrometheusQueryType.PROMQL];
-
-export const useInlineTemplateEditorSelector = createSelector(queryTypeSelector, (queryType) =>
-  inlineTemplateQueryTypes.includes(queryType),
-);
-
-export const isTemplateValidSelector = createSelector(
-  useInlineTemplateEditorSelector,
-  isFilterTemplateValidSelector,
-  isInlineTemplateValidSelector,
-  (isInlineTemplate, isFilterTemplateValid, isInlineTemplateValid) =>
-    isInlineTemplate ? isInlineTemplateValid : isFilterTemplateValid,
-);

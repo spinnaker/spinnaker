@@ -35,7 +35,7 @@ class DatadogMetricsServiceSpec extends Specification {
     DatadogCanaryMetricSetQueryConfig queryConfig =
       DatadogCanaryMetricSetQueryConfig.builder()
         .metricName(metricName)
-        .customInlineTemplate(customInlineTemplate)
+        .template(customInlineTemplate)
         .build()
     CanaryMetricConfig canaryMetricConfig =
       CanaryMetricConfig.builder()

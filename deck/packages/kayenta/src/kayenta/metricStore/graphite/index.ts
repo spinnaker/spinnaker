@@ -5,4 +5,5 @@ metricStoreConfigStore.register({
   name: 'graphite',
   metricConfigurer: GraphiteMetricConfigurer,
   queryFinder,
+  useTemplates: true,
 });

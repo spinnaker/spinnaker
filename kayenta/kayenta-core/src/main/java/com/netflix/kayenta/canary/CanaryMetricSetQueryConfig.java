@@ -36,7 +36,12 @@ public interface CanaryMetricSetQueryConfig {
    * Optionally defines a metric-specific query template. Takes precedence over {@link
    * #getCustomFilterTemplate}. It is expanded by using the key/value pairs in {@link
    * CanaryScope#extendedScopeParams} as the variable bindings.
+   *
+   * @deprecated use {@link #getTemplate(CanaryConfig)} instead; retained for backward-compatible
+   *     reads of existing configs and for the few call sites that still need the raw,
+   *     un-resolved-against-the-named-templates-map field directly.
    */
+  @Deprecated
   default String getCustomInlineTemplate() {
     return null;
   }
@@ -46,13 +51,28 @@ public interface CanaryMetricSetQueryConfig {
    * CanaryConfig#templates} map. It is expanded by using the key/value pairs in {@link
    * CanaryScope#extendedScopeParams} as the variable bindings. Once expanded, the resulting filter
    * is used when composing the query.
+   *
+   * @deprecated use {@link #getTemplate(CanaryConfig)} instead; retained for backward-compatible
+   *     reads of existing configs.
    */
+  @Deprecated
   default String getCustomFilterTemplate() {
     return null;
   }
 
-  default CanaryMetricSetQueryConfig cloneWithEscapedInlineTemplate() {
+  default CanaryMetricSetQueryConfig cloneWithEscapedTemplate() {
     return this;
+  }
+
+  /**
+   * Resolves the single raw template string to use for this metric's query, applying the {@code
+   * template} (formerly {@code customInlineTemplate}) vs. {@code customFilterTemplate} precedence
+   * and named-template-map lookup, and unescaping the result. Returns {@code null} when neither
+   * field is set, or when a {@code customFilterTemplate} name doesn't resolve against {@code
+   * canaryConfig}'s {@link CanaryConfig#getTemplates()} map.
+   */
+  default String getTemplate(CanaryConfig canaryConfig) {
+    return null;
   }
 
   @NonNull
