@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
 import okhttp3.MediaType
@@ -45,6 +46,14 @@ class DeleteLoadBalancerForceRefreshTaskSpec extends Specification {
   def setup() {
     stage.context.putAll(config)
     task.cacheService = Mock(CloudDriverCacheService)
+    task.mapper = new ObjectMapper()
+  }
+
+  static ResponseBody pendingBody(List<String> identifiers) {
+    ResponseBody.create(
+      MediaType.parse("application/json"),
+      "{\"cachedIdentifiersByType\":{\"loadBalancers\":${identifiers.collect { "\"${it}\"" }}}}"
+    )
   }
 
   void "should force cache refresh load balancer via clouddriver when clusterName provided"() {
@@ -77,7 +86,7 @@ class DeleteLoadBalancerForceRefreshTaskSpec extends Specification {
 
     then:
     1 * task.cacheService.forceCacheUpdate('aws', 'LoadBalancer', _) >> refreshCall
-    1 * refreshCall.execute() >> Response.success(HTTP_ACCEPTED, ResponseBody.create(MediaType.parse("application/json"), "[]"))
+    1 * refreshCall.execute() >> Response.success(HTTP_ACCEPTED, pendingBody([]))
     result.status == ExecutionStatus.RUNNING
 
     when:
@@ -89,15 +98,47 @@ class DeleteLoadBalancerForceRefreshTaskSpec extends Specification {
     result.status == ExecutionStatus.SUCCEEDED
   }
 
+  void "accepts a pending refresh that reports the evicted identifiers"() {
+    given:
+    def refreshCall = Mock(Call)
+
+    when:
+    // A non-atomic agent scheduler answers every stored on-demand result with 202. Re-POSTing that
+    // would keep the stage running until it timed out, failing a delete that already succeeded.
+    def result = task.execute(stage)
+
+    then:
+    1 * task.cacheService.forceCacheUpdate('aws', 'LoadBalancer', _) >> refreshCall
+    1 * refreshCall.execute() >> Response.success(
+      HTTP_ACCEPTED,
+      pendingBody(['aws:loadBalancers:fzlem:us-west-1:flapjack-main-frontend'])
+    )
+    result.status == ExecutionStatus.SUCCEEDED
+  }
+
+  void "reposts when a later region has not run the refresh yet"() {
+    given:
+    stage.context.regions = ["us-west-1", "us-east-1"]
+    def refreshCall = Mock(Call)
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    2 * task.cacheService.forceCacheUpdate('aws', 'LoadBalancer', _) >> refreshCall
+    1 * refreshCall.execute() >> Response.success(null)
+    1 * refreshCall.execute() >> Response.success(HTTP_ACCEPTED, pendingBody([]))
+    result.status == ExecutionStatus.RUNNING
+  }
+
   @Unroll
   void "keeps retrying on retryable status #statusCode"() {
     given:
     def refreshCall = Mock(Call)
-    def body = ResponseBody.create(MediaType.parse("application/json"), "[]")
     task.cacheService.forceCacheUpdate('aws', 'LoadBalancer', _) >> refreshCall
     refreshCall.execute() >> (statusCode == HTTP_ACCEPTED
-      ? Response.success(HTTP_ACCEPTED, body)
-      : Response.error(statusCode, body))
+      ? Response.success(HTTP_ACCEPTED, pendingBody([]))
+      : Response.error(statusCode, ResponseBody.create(MediaType.parse("application/json"), "{}")))
 
     expect:
     task.execute(stage).status == ExecutionStatus.RUNNING
@@ -111,7 +152,7 @@ class DeleteLoadBalancerForceRefreshTaskSpec extends Specification {
     given:
     def refreshCall = Mock(Call)
     task.cacheService.forceCacheUpdate('aws', 'LoadBalancer', _) >> refreshCall
-    refreshCall.execute() >> Response.error(HTTP_BAD_REQUEST, ResponseBody.create(MediaType.parse("application/json"), "[]"))
+    refreshCall.execute() >> Response.error(HTTP_BAD_REQUEST, ResponseBody.create(MediaType.parse("application/json"), "{}"))
 
     when:
     task.execute(stage)

@@ -257,6 +257,7 @@ class UpsertLoadBalancerForceRefreshTaskSpec extends Specification {
     stage.context.cloudProvider = "gce"
     stage.context = [
       cloudProvider: "gce",
+      loadBalancerType: "REGIONAL_EXTERNAL_NETWORK",
       targets: [
         [credentials: "spinnaker", availabilityZones: ["us-west-1": []], name: "flapjack-frontend"]
       ],
@@ -280,6 +281,7 @@ class UpsertLoadBalancerForceRefreshTaskSpec extends Specification {
     stage.context = new HashMap(config)
     stage.context.putAll(result.context)
     stage.context.cloudProvider = "gce"
+    stage.context.loadBalancerType = "REGIONAL_EXTERNAL_NETWORK"
     result = task.execute(stage)
 
     then:
@@ -291,6 +293,7 @@ class UpsertLoadBalancerForceRefreshTaskSpec extends Specification {
     given:
     stage.context = [
       cloudProvider: "gce",
+      loadBalancerType: "REGIONAL_EXTERNAL_NETWORK",
       targets: [
         [credentials: "spinnaker", availabilityZones: ["us-west-1": [], "us-east-1": []], name: "flapjack-frontend"]
       ],
@@ -333,10 +336,38 @@ class UpsertLoadBalancerForceRefreshTaskSpec extends Specification {
     result.context.refreshState.allAreComplete == false
   }
 
+  void "succeeds for a gce http upsert without consulting oort"() {
+    given:
+    stage.context = [
+      cloudProvider: "gce",
+      loadBalancerType: "HTTP",
+      targets: [
+        [credentials: "spinnaker", availabilityZones: ["us-west-1": []], name: "flapjack-urlmap"]
+      ],
+      refreshState: [
+        hasRequested: true,
+        seenPendingCacheUpdates: true,
+        attempt: 0,
+        allAreComplete: true,
+        refreshIds: ["gce:loadBalancers:spinnaker:us-west-1:flapjack-urlmap"]
+      ]
+    ]
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    // An HTTP upsert is named for its URL map, but the load balancer cache is keyed by forwarding
+    // rule, so a provider read would never find it and would wait out the timeout.
+    0 * oortService.getLoadBalancerDetails(_, _, _, _)
+    result.status == ExecutionStatus.SUCCEEDED
+  }
+
   void "keeps waiting when the pending short circuit fires before a gce load balancer is visible"() {
     given:
     stage.context = [
       cloudProvider: "gce",
+      loadBalancerType: "REGIONAL_EXTERNAL_NETWORK",
       targets: [
         [credentials: "spinnaker", availabilityZones: ["us-west-1": []], name: "flapjack-frontend"]
       ],

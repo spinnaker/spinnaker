@@ -47,6 +47,15 @@ public class UpsertLoadBalancerForceRefreshTask implements CloudProviderAware, R
 
   static final int MAX_CHECK_FOR_PENDING = 3
 
+  /**
+   * Regional external passthrough NLBs are the only upsert whose success we cannot infer. Their
+   * caching agent reports no pending on-demand requests, so the pending protocol never confirms the
+   * write, and they are named by their forwarding rule -- the same name the cache is keyed by.
+   * An HTTP upsert names its URL map instead, which the load balancer cache never holds, so reading
+   * the provider for one would wait out the timeout on a refresh that had already succeeded.
+   */
+  static final String VISIBILITY_CHECKED_LOAD_BALANCER_TYPE = "REGIONAL_EXTERNAL_NETWORK"
+
   private final CloudDriverCacheService cacheService
   private final CloudDriverCacheStatusService cacheStatusService
   private final ObjectMapper mapper
@@ -208,7 +217,7 @@ public class UpsertLoadBalancerForceRefreshTask implements CloudProviderAware, R
   }
 
   private TaskResult succeedWhenReady(StageExecution stage, LBUpsertContext context, String cloudProvider) {
-    if (isGce(cloudProvider) && !allGceLoadBalancersVisible(stage)) {
+    if (isGce(cloudProvider) && needsVisibilityCheck(stage) && !allGceLoadBalancersVisible(stage)) {
       return TaskResult.builder(ExecutionStatus.RUNNING).context(getOutput(context)).build()
     }
     return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(getOutput(context)).build()
@@ -216,6 +225,10 @@ public class UpsertLoadBalancerForceRefreshTask implements CloudProviderAware, R
 
   private static boolean isGce(String cloudProvider) {
     return "gce".equalsIgnoreCase(cloudProvider)
+  }
+
+  private static boolean needsVisibilityCheck(StageExecution stage) {
+    return VISIBILITY_CHECKED_LOAD_BALANCER_TYPE.equalsIgnoreCase(stage.context.loadBalancerType as String)
   }
 
   private boolean allGceLoadBalancersVisible(StageExecution stage) {

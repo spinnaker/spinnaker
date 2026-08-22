@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer
 
+import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
@@ -38,6 +40,9 @@ class DeleteLoadBalancerForceRefreshTask implements CloudProviderAware, Retryabl
 
   @Autowired
   CloudDriverCacheService cacheService
+
+  @Autowired
+  ObjectMapper mapper
 
   @Nonnull
   @Override
@@ -63,7 +68,17 @@ class DeleteLoadBalancerForceRefreshTask implements CloudProviderAware, Retryabl
         continue
       }
 
-      if (statusCode == HttpURLConnection.HTTP_ACCEPTED || statusCode == 429 || statusCode >= 500) {
+      if (statusCode == HttpURLConnection.HTTP_ACCEPTED) {
+        if (extractRefreshIds(response).isEmpty()) {
+          // Cats reports PENDING with no identifiers only when an atomic agent could not take the
+          // lock, meaning the refresh never ran. Re-POST on the next attempt.
+          return TaskResult.ofStatus(ExecutionStatus.RUNNING)
+        }
+        // Identifiers came back, so a non-atomic agent stored the eviction and will process it.
+        continue
+      }
+
+      if (statusCode == 429 || statusCode >= 500) {
         return TaskResult.ofStatus(ExecutionStatus.RUNNING)
       }
 
@@ -73,6 +88,15 @@ class DeleteLoadBalancerForceRefreshTask implements CloudProviderAware, Retryabl
     }
 
     return TaskResult.ofStatus(ExecutionStatus.SUCCEEDED)
+  }
+
+  private List<String> extractRefreshIds(Response response) {
+    if (!response.body()) {
+      return []
+    }
+
+    Map<String, Object> responseBody = mapper.readValue(response.body().byteStream(), new TypeReference<Map<String, Object>>() {})
+    return (responseBody?.cachedIdentifiersByType?.loadBalancers ?: []) as List<String>
   }
 
   @Override

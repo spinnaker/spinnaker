@@ -1784,6 +1784,30 @@ public class BasicGoogleDeployHandlerTest {
   }
 
   @Test
+  void testRejectsConnectionWithStaleGlobalBackendMetadataAndPassthrough() {
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfo = regionalNetworkLoadBalancerInfo();
+    GoogleHttpLoadBalancingPolicy policy = new GoogleHttpLoadBalancingPolicy();
+    policy.setBalancingMode(GoogleLoadBalancingPolicy.BalancingMode.CONNECTION);
+
+    // Only UpsertGoogleHttpLoadBalancerAtomicOperation writes backend-service-names, and
+    // getBackendServicesToUpdate attaches this MIG to every service it names, so the attachment is
+    // real even with no HTTP load balancer selected and GCP would reject anything but RATE.
+    mockDescription.setInstanceMetadata(
+        new HashMap<>(Map.of(GCEUtil.BACKEND_SERVICE_NAMES, "stale-global-backend")));
+    mockDescription.setCredentials(mockCredentials);
+    mockDescription.setZone("us-central1-a");
+
+    IllegalArgumentException error =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                basicGoogleDeployHandler.getRegionBackendServicesToUpdate(
+                    mockDescription, "server-group-name", lbInfo, policy, "us-central1"));
+
+    assertThat(error.getMessage()).contains("must use RATE for HTTP backends");
+  }
+
+  @Test
   void testRejectsIncompatibleLoadBalancersEvenWhenTrafficIsDisabled() throws IOException {
     BasicGoogleDeployHandler.LoadBalancerInfo lbInfo = dualFamilyLoadBalancerInfo(false);
     GoogleHttpLoadBalancingPolicy policy = new GoogleHttpLoadBalancingPolicy();
