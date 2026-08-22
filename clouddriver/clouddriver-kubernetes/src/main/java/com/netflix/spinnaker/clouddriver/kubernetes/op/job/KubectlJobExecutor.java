@@ -444,7 +444,18 @@ public class KubectlJobExecutor {
     }
 
     try {
-      return gson.fromJson(status.getOutput(), KubernetesManifest.class);
+      String output = status.getOutput();
+      if (Strings.isNullOrEmpty(output)) {
+        throw new KubectlException(
+            "Failed to read kubectl output for: "
+                + name
+                + " of kind: "
+                + kind
+                + " in namespace: "
+                + namespace
+                + ": output is null or empty");
+      }
+      return gson.fromJson(output, KubernetesManifest.class);
     } catch (JsonSyntaxException e) {
       throw new KubectlException(
           "Failed to parse kubectl output for: "
