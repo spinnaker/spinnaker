@@ -110,7 +110,7 @@ public abstract class AbstractRedisCache implements WriteableCache {
   }
 
   @Override
-  public Collection<String> existingIdentifiers(String type, Collection<String> identifiers) {
+  public Set<String> existingIdentifiers(String type, Collection<String> identifiers) {
     final Map<String, Response<Boolean>> responses = new LinkedHashMap<>();
     redisClientDelegate.withPipeline(
         p -> {
@@ -123,7 +123,7 @@ public abstract class AbstractRedisCache implements WriteableCache {
     return responses.entrySet().stream()
         .filter(e -> e.getValue().get())
         .map(Map.Entry::getKey)
-        .collect(Collectors.toList());
+        .collect(Collectors.toSet());
   }
 
   @Override
@@ -173,12 +173,12 @@ public abstract class AbstractRedisCache implements WriteableCache {
   }
 
   @Override
-  public Collection<String> getIdentifiers(String type) {
+  public Set<String> getIdentifiers(String type) {
     return scanMembers(allOfTypeId(type));
   }
 
   @Override
-  public Collection<String> filterIdentifiers(String type, String glob) {
+  public Set<String> filterIdentifiers(String type, String glob) {
     return scanMembers(allOfTypeId(type), Optional.of(glob));
   }
 

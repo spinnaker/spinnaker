@@ -41,6 +41,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -121,8 +122,8 @@ public class LambdaCachingAgentTest {
             attributes,
             Collections.emptyMap()));
 
-    Collection<String> oldKeys =
-        List.of(
+    Set<String> oldKeys =
+        Set.of(
             Keys.getLambdaFunctionKey(netflixAmazonCredentials.getName(), REGION, "function-1"),
             Keys.getLambdaFunctionKey(netflixAmazonCredentials.getName(), REGION, "function-2"));
 
