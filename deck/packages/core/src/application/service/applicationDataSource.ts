@@ -1,5 +1,3 @@
-import type { IScope } from 'angular';
-import { $log, $q } from 'ngimport';
 import type { Observable } from 'rxjs';
 import {
   BehaviorSubject,
@@ -22,14 +20,18 @@ import {
   tap,
   withLatestFrom,
 } from 'rxjs/operators';
-
 import type { Application } from '../application.model';
 import type { IEntityTags } from '../../domain';
+import { getDirectRouter } from '../../navigation/directRouter';
 import type { IconNames } from '../../presentation';
 import { robotToHuman } from '../../presentation';
-import { ReactInjector } from '../../reactShims';
-import { FirewallLabels } from '../../securityGroup';
-import { toIPromise } from '../../utils';
+import { FirewallLabels } from '../../securityGroup/label/FirewallLabels';
+import { toPromise } from '../../utils';
+import { diagnosticLogger } from '../../utils/diagnosticLogger';
+
+function resolvePromise<T>(value?: T): Promise<T> {
+  return Promise.resolve(value);
+}
 
 export interface IFetchStatus {
   status: 'NOT_INITIALIZED' | 'FETCHING' | 'FETCHED' | 'ERROR';
@@ -381,8 +383,9 @@ export class ApplicationDataSource<T = any> implements IDataSourceConfig<T> {
     }
 
     if (config.autoActivate) {
-      ReactInjector.$uiRouter.transitionService.onSuccess({ entering: this.activeState }, () => this.activate());
-      ReactInjector.$uiRouter.transitionService.onSuccess({ exiting: this.activeState }, () => this.deactivate());
+      const transitionService = getDirectRouter()?.transitionService;
+      transitionService?.onSuccess({ entering: this.activeState }, () => this.activate());
+      transitionService?.onSuccess({ exiting: this.activeState }, () => this.deactivate());
     }
 
     // While we can initialize these fields directly on the class to give them private/public
@@ -432,7 +435,7 @@ export class ApplicationDataSource<T = any> implements IDataSourceConfig<T> {
 
     // Some data sources expect other data sources to exist on the application
     // Wait one tick before processing the stream so all data sources are registered
-    const nextTick$ = observableFrom($q.resolve());
+    const nextTick$ = observableFrom(resolvePromise());
 
     fetchStream$.pipe(withLatestFrom(nextTick$)).subscribe(([fetchStatus, _void]) => {
       // Update mutable flags
@@ -456,33 +459,27 @@ export class ApplicationDataSource<T = any> implements IDataSourceConfig<T> {
   /**
    * A method that allows another method to be called the next time the data source refreshes
    *
-   * @param $scope the controller scope of the calling method. If the $scope is destroyed, the subscription is disposed.
-   *        If you pass in null for the $scope, you are responsible for unsubscribing when your component unmounts.
    * @param callback the method to call the next time the data source refreshes
    * @param onError (optional) a method to call if the data source refresh fails
    * @return a method to call to unsubscribe
    */
-  public onNextRefresh($scope: IScope, callback: (data?: any) => void, onError?: (err?: any) => void): () => void {
+  public onNextRefresh(callback: (data?: any) => void, onError?: (err?: any) => void): () => void {
     const subscription = this.nextRefresh$.subscribe(
       (data) => callback(data),
       (error) => onError && onError(error),
     );
 
-    $scope && $scope.$on('$destroy', () => subscription.unsubscribe());
     return () => subscription.unsubscribe();
   }
 
   /**
-   * A method that allows another method to be called the whenever the data source refreshes. The subscription will be
-   * automatically disposed when the $scope is destroyed.
+   * A method that allows another method to be called whenever the data source refreshes.
    *
-   * @param $scope the controller scope of the calling method. If the $scope is destroyed, the subscription is disposed.
-   *        If you pass in null for the $scope, you are responsible for unsubscribing when your component unmounts.
    * @param callback the method to call the next time the data source refreshes
    * @param onError (optional) a method to call if the data source refresh fails
    * @return a method to call to unsubscribe
    */
-  public onRefresh($scope: IScope, callback: (data?: any) => void, onError?: (err?: any) => void): () => void {
+  public onRefresh(callback: (data?: any) => void, onError?: (err?: any) => void): () => void {
     const failures$ = this.refreshFailure$.pipe(
       mergeMap(({ error }) => {
         onError && onError(error);
@@ -492,7 +489,6 @@ export class ApplicationDataSource<T = any> implements IDataSourceConfig<T> {
 
     const subscription = observableMerge(this.data$.pipe(skip(1)), failures$).subscribe((data) => callback(data));
 
-    $scope && $scope.$on('$destroy', () => subscription.unsubscribe());
     return () => subscription.unsubscribe();
   }
 
@@ -506,14 +502,14 @@ export class ApplicationDataSource<T = any> implements IDataSourceConfig<T> {
    *
    * The promise will reject if the data source has failed to load, or fails to load the next time it tries to load
    *
-   * @returns {PromiseLike<T>}
+   * @returns {Promise<T>}
    */
-  public ready(): PromiseLike<T> {
+  public ready(): Promise<T> {
     if (this.disabled || this.loaded || (this.lazy && !this.active)) {
-      return $q.resolve(this.data);
+      return resolvePromise(this.data);
     }
 
-    return toIPromise(this.nextRefresh$);
+    return toPromise(this.nextRefresh$);
   }
 
   /**
@@ -557,18 +553,18 @@ export class ApplicationDataSource<T = any> implements IDataSourceConfig<T> {
    * @param forceRefresh
    * @returns {any}
    */
-  public refresh(forceRefresh?: boolean): PromiseLike<any> {
+  public refresh(forceRefresh?: boolean): Promise<any> {
     this.debug(`refresh(${forceRefresh})`);
     if (!this.loader || this.disabled || (this.lazy && !this.active)) {
       this.loaded = false;
       this.updateData(this.defaultData);
-      return $q.resolve(this.data);
+      return resolvePromise(this.data);
     }
 
-    const promise = toIPromise(this.data$.pipe(skip(1), take(1)));
+    const promise = toPromise(this.data$.pipe(skip(1), take(1)));
 
     if (this.loading && !forceRefresh) {
-      $log.info(`${this.key} still loading, skipping refresh`);
+      diagnosticLogger.info(`${this.key} still loading, skipping refresh`);
     } else {
       this.fetchRequest$.next();
     }

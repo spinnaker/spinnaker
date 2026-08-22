@@ -86,9 +86,9 @@ String getRequiredSystemProp(String key) {
 
 //noinspection GroovyAssignabilityCheck
 task integrationTest(type: Test) {
+  useJUnitPlatform()
   doFirst {
     systemProperty("redis.port", startEmbeddedRedis.ext.redisPort)
-    systemProperty("kayenta.signalfx.apiKey", getRequiredSystemProp('kayenta.signalfx.apiKey'))
   }
   systemProperty("spring.application.name", "kayenta")
   systemProperty('spring.config.name', "spinnaker,kayenta")
@@ -114,14 +114,16 @@ configurations {
 dependencies {
   implementation project(":kayenta-core")
 
-  api 'com.signalfx.public:signalfx-java:1.0.5'
-
   testImplementation project(":kayenta-standalone-canary-analysis")
   testImplementation "com.squareup.retrofit2:converter-jackson"
+  testImplementation "com.squareup.okhttp3:mockwebserver"
   // Integration Test dependencies
   integrationTestImplementation sourceSets.main.output
   integrationTestImplementation sourceSets.test.output
   integrationTestImplementation project(':kayenta-web')
+  integrationTestImplementation "com.squareup.okhttp3:mockwebserver"
+  integrationTestRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+  integrationTestRuntimeOnly "org.junit.platform:junit-platform-launcher"
 
   // Apache 2.0 https://github.com/rest-assured/rest-assured/blob/master/LICENSE
   integrationTestImplementation "io.rest-assured:rest-assured"

@@ -24,7 +24,6 @@ on:
       - 'fiat/**'
       - 'front50/**'
       - 'gate/**'
-      - 'halyard/**'
       - 'igor/**'
       - 'kayenta/**'
       - 'keel/**'
@@ -36,7 +35,7 @@ jobs:
   libraries-nexus:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/version
         id: version
@@ -64,6 +63,7 @@ jobs:
           ./gradlew assemble publishToNexus
 
       - name: Close and release Nexus staging repository
+        continue-on-error: true
         env:
           ORG_GRADLE_PROJECT_version: ${{ steps.version.outputs.version }}
           ORG_GRADLE_PROJECT_nexusPublishEnabled: true

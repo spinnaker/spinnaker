@@ -1,10 +1,7 @@
-import { module } from 'angular';
 import React from 'react';
 import { MenuItem } from 'react-bootstrap';
-import { react2angular } from 'react2angular';
 
 import type { Application } from '@spinnaker/core';
-import { withErrorBoundary } from '@spinnaker/core';
 import { useModal } from '@spinnaker/core';
 
 import { DeleteModal } from './DeleteModal';
@@ -26,9 +23,3 @@ export function Delete(props: IDeleteProps) {
     </>
   );
 }
-
-export const KUBERNETES_DELETE = 'spinnaker.kubernetes.delete';
-module(KUBERNETES_DELETE, []).component(
-  'kubernetesDelete',
-  react2angular(withErrorBoundary(Delete, 'kubernetesDelete'), ['application', 'resource', 'manifestController']),
-);

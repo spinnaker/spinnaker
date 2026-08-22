@@ -1,6 +1,4 @@
-import type { IHttpPromiseCallbackArg } from 'angular';
-import { $log } from 'ngimport';
-
+import type { XhrError } from '../api/ApiService';
 import { API } from '../api/ApiService';
 import type { ICache } from '../cache';
 
@@ -42,7 +40,7 @@ export class SearchService {
   public static search<T extends ISearchResult>(
     searchParams: ISearchParams,
     cache: ICache = null,
-  ): PromiseLike<ISearchResults<T>> {
+  ): Promise<ISearchResults<T>> {
     const defaultParams: ISearchParams = {
       pageSize: SearchService.DEFAULT_PAGE_SIZE,
     };
@@ -62,8 +60,8 @@ export class SearchService {
       .then((response: Array<ISearchResults<T>>) => {
         return response[0] || getFallbackResults<T>();
       })
-      .catch((response: IHttpPromiseCallbackArg<any>) => {
-        $log.error(response.data, response);
+      .catch((response: XhrError) => {
+        console.error(response.data, response);
         return getFallbackResults();
       });
   }

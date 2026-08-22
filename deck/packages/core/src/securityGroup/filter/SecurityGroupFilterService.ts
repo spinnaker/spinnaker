@@ -65,7 +65,7 @@ export class SecurityGroupFilterService {
     const currentGroups: ISecurityGroupGroup[] = SecurityGroupState.filterModel.asFilterModel.groups;
     this.diffSubgroups(currentGroups, groups);
 
-    // sort groups in place so Angular doesn't try to update the world
+    // Preserve the groups array identity for existing subscribers.
     currentGroups.sort((a: ISecurityGroupGroup, b: ISecurityGroupGroup) => {
       if (a.heading < b.heading) {
         return -1;

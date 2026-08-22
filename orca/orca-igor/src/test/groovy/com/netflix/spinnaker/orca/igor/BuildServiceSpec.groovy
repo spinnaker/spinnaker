@@ -104,6 +104,6 @@ class BuildServiceSpec extends Specification {
     buildService.stop(MASTER, JOB_NAME, QUEUED_BUILD, BUILD_NUMBER )
 
     then:
-    1 * igorService.stopWithJobNameAsQueryParameter(MASTER, JOB_NAME, QUEUED_BUILD, BUILD_NUMBER, '') >> Calls.response(null)
+    1 * igorService.stopWithJobNameAsQueryParameter(MASTER, QUEUED_BUILD, BUILD_NUMBER, JOB_NAME, '') >> Calls.response(null)
   }
 }

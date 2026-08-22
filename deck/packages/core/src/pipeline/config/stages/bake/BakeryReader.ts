@@ -1,5 +1,4 @@
 import { get, has } from 'lodash';
-import { $q } from 'ngimport';
 
 import { AccountService } from '../../../../account/AccountService';
 import { REST } from '../../../../api/ApiService';
@@ -19,26 +18,26 @@ export interface IBaseOsOptions {
 }
 
 export class BakeryReader {
-  public static getRegions(provider: string): PromiseLike<string[]> {
+  public static getRegions(provider: string): Promise<string[]> {
     if (has(SETTINGS, `providers.${provider}.bakeryRegions`)) {
-      return $q.when(get(SETTINGS, `providers.${provider}.bakeryRegions`));
+      return Promise.resolve(get(SETTINGS, `providers.${provider}.bakeryRegions`));
     }
     return AccountService.getUniqueAttributeForAllAccounts(provider, 'regions').then((regions: string[]) =>
       regions.sort(),
     );
   }
 
-  public static getBaseOsOptions(provider: string): PromiseLike<IBaseOsOptions> {
+  public static getBaseOsOptions(provider: string): Promise<IBaseOsOptions> {
     return this.getAllBaseOsOptions().then((options) => {
       return options.find((o) => o.cloudProvider === provider);
     });
   }
 
-  private static getAllBaseOsOptions(): PromiseLike<IBaseOsOptions[]> {
+  private static getAllBaseOsOptions(): Promise<IBaseOsOptions[]> {
     return REST('/bakery/options').useCache().get();
   }
 
-  public static getBaseLabelOptions(): PromiseLike<string[]> {
-    return $q.when(['release', 'candidate', 'previous', 'unstable']);
+  public static getBaseLabelOptions(): Promise<string[]> {
+    return Promise.resolve(['release', 'candidate', 'previous', 'unstable']);
   }
 }

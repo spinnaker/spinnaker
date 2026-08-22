@@ -16,15 +16,14 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
 
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClientUtils.collectPageResources;
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClientUtils.collectPages;
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClientUtils.safelyCall;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.DomainService;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Domain;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Resource;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Domain;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryDomain;
 import groovy.util.logging.Slf4j;
 import java.util.ArrayList;
@@ -50,10 +49,7 @@ public class Domains {
                 @Override
                 public CloudFoundryDomain load(@Nonnull String guid)
                     throws CloudFoundryApiException, ResourceNotFoundException {
-                  Resource<Domain> domain =
-                      safelyCall(() -> api.findSharedDomainById(guid))
-                          .orElseGet(
-                              () -> safelyCall(() -> api.findPrivateDomainById(guid)).orElse(null));
+                  Domain domain = safelyCall(() -> api.findById(guid)).orElse(null);
 
                   if (domain == null) throw new ResourceNotFoundException();
 
@@ -61,11 +57,11 @@ public class Domains {
                 }
               });
 
-  private CloudFoundryDomain map(Resource<Domain> res) throws CloudFoundryApiException {
-    String orgGuid = res.getEntity().getOwningOrganizationGuid();
+  private CloudFoundryDomain map(Domain domain) throws CloudFoundryApiException {
+    String orgGuid = domain.getOwningOrganizationGuid();
     return CloudFoundryDomain.builder()
-        .id(res.getMetadata().getGuid())
-        .name(res.getEntity().getName())
+        .id(domain.getGuid())
+        .name(domain.getName())
         .organization(orgGuid != null ? organizations.findById(orgGuid) : null)
         .build();
   }
@@ -86,17 +82,11 @@ public class Domains {
   }
 
   public List<CloudFoundryDomain> all() throws CloudFoundryApiException {
-    List<Resource<Domain>> sharedDomains = collectPageResources("shared domains", api::allShared);
-    List<Resource<Domain>> privateDomains =
-        collectPageResources("private domains", api::allPrivate);
+    List<Domain> allDomains = collectPages("domains", page -> api.all(page));
 
-    List<CloudFoundryDomain> domains =
-        new ArrayList<>(sharedDomains.size() + privateDomains.size());
-    for (Resource<Domain> sharedDomain : sharedDomains) {
-      domains.add(map(sharedDomain));
-    }
-    for (Resource<Domain> privateDomain : privateDomains) {
-      domains.add(map(privateDomain));
+    List<CloudFoundryDomain> domains = new ArrayList<>(allDomains.size());
+    for (Domain domain : allDomains) {
+      domains.add(map(domain));
     }
     for (CloudFoundryDomain domain : domains) {
       domainCache.put(domain.getId(), domain);

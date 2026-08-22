@@ -115,10 +115,7 @@ function EvaluateVariablesStageForm(props: IEvaluateVariablesStageFormProps) {
 
   React.useEffect(() => {
     if (variables.length === 0) {
-      // This setTimeout is necessary because the interaction between pipelineConfigurer.js and stage.module.js
-      // causes this component to get mounted multiple times.  The second time it gets mounted, the initial
-      // variable is already added to the array, and then gets auto-touched by SpinFormik.tsx.
-      // The end effect is that the red validation warnings are shown immediately when the Evaluate Variables stage is added.
+      // Defer initialization so SpinFormik does not immediately mark the generated variable as touched.
       setTimeout(() => isMountedRef.current && formik.setFieldValue('variables', [{ key: null, value: null }]), 100);
     }
   }, []);

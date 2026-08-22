@@ -1,13 +1,12 @@
-import type { IQService, IRootScopeService } from 'angular';
-import { mock } from 'angular';
 import { flatten } from 'lodash';
 
 import { InfrastructureCaches } from './';
 import { AccountService } from '../account/AccountService';
-import type { CacheInitializerService } from './cacheInitializer.service';
-import { CACHE_INITIALIZER_SERVICE } from './cacheInitializer.service';
+import type { DeckRuntime } from '../bootstrap/DeckRuntime';
+import { createDeckRuntime } from '../bootstrap/DeckRuntime';
+import { CacheInitializerService } from './cacheInitializer.service';
 import type { SecurityGroupReader } from '../securityGroup/securityGroupReader.service';
-import { SECURITY_GROUP_READER } from '../securityGroup/securityGroupReader.service';
+import { nativePromiseService } from '../utils/nativePromiseService';
 
 interface IKeys {
   [key: string]: string[];
@@ -15,95 +14,97 @@ interface IKeys {
 }
 
 describe('Service: cacheInitializer', function () {
-  let $q: IQService;
-  let $root: IRootScopeService;
   let cacheInitializer: CacheInitializerService;
   let securityGroupReader: SecurityGroupReader;
 
-  beforeEach(mock.module(CACHE_INITIALIZER_SERVICE, SECURITY_GROUP_READER));
-  beforeEach(
-    mock.inject(function (
-      _$q_: IQService,
-      _$rootScope_: IRootScopeService,
-      _cacheInitializer_: CacheInitializerService,
-      _securityGroupReader_: SecurityGroupReader,
-    ) {
-      $q = _$q_;
-      $root = _$rootScope_;
-      cacheInitializer = _cacheInitializer_;
-      securityGroupReader = _securityGroupReader_;
-    }),
-  );
   beforeEach(() => {
     InfrastructureCaches.destroyCaches();
-  });
-
-  it('should initialize injected dependencies', function () {
-    expect($q).toBeDefined();
-    expect($root).toBeDefined();
-    expect(cacheInitializer).toBeDefined();
-    expect(securityGroupReader).toBeDefined();
+    securityGroupReader = { getAllSecurityGroups: () => Promise.resolve([]) } as any;
+    cacheInitializer = new CacheInitializerService(nativePromiseService, securityGroupReader, {
+      hasDelegate: () => false,
+    });
   });
 
   describe('spinnaker.core.cache.initializer', () => {
     const keys: IKeys = {
       sg: ['sg1', 'sg2', 'sg3'],
     };
-    let initialized: boolean;
-
     beforeEach(() => {
-      initialized = false;
-      spyOn(securityGroupReader, 'getAllSecurityGroups').and.returnValue($q.when(keys.sg as any));
-      spyOn(AccountService, 'listProviders').and.returnValue($q.when([]));
+      spyOn(securityGroupReader, 'getAllSecurityGroups').and.returnValue(Promise.resolve(keys.sg as any));
+      spyOn(AccountService, 'listProviders').and.returnValue(Promise.resolve([]));
     });
 
-    it('should initialize the cache initializer with the initialization values', () => {
-      cacheInitializer.initialize().then((result: any[]) => {
-        expect(result.length).toBe(5); // from infrastructure cache config
-        const flattened: string[][] = flatten(result); // only the arrays that actually contain data
-        expect(flattened.length).toBe(1); // the four initialized string[] above used for the spyOns.
-        expect(flattened[0]).toEqual(keys.sg);
-        initialized = true;
-      });
-      $root.$digest();
-      expect(initialized).toBeTruthy();
+    it('should initialize the cache initializer with the initialization values', async () => {
+      const result = await cacheInitializer.initialize();
+
+      expect(result.length).toBe(5); // from infrastructure cache config
+      const flattened: string[][] = flatten(result); // only the arrays that actually contain data
+      expect(flattened.length).toBe(1); // the four initialized string[] above used for the spyOns.
+      expect(flattened[0]).toEqual(keys.sg);
     });
 
-    it('should remove all items from all caches', () => {
-      cacheInitializer.refreshCaches().then((result: any[]) => {
-        expect(result.length).toBe(5);
-        result.forEach((item: any) => expect(item).toBeUndefined());
-        initialized = true;
-      });
-      $root.$digest();
-      expect(initialized).toBeTruthy();
+    it('should remove all items from all caches', async () => {
+      const result = await cacheInitializer.refreshCaches();
+
+      expect(result.length).toBe(5);
+      result.forEach((item: any) => expect(item).toBeUndefined());
     });
 
-    it('should remove all items from the specified cache', () => {
+    it('should remove all items from the specified cache', async () => {
       let cache = InfrastructureCaches.get('securityGroups');
       expect(cache).toBeUndefined();
 
-      cacheInitializer.initialize().then(() => {
-        cache = InfrastructureCaches.get('securityGroups');
-        expect(cache).toBeDefined();
-        expect(cache.keys().length).toBe(0);
+      await cacheInitializer.initialize();
+      cache = InfrastructureCaches.get('securityGroups');
+      expect(cache).toBeDefined();
+      expect(cache.keys().length).toBe(0);
 
-        const key = 'myTestCacheKey';
-        const value = 'myTestCacheValue';
-        cache.put(key, value);
+      const key = 'myTestCacheKey';
+      const value = 'myTestCacheValue';
+      cache.put(key, value);
 
-        expect(cache.keys().length).toBe(1);
-        expect(cache.get(key)).toBe(value);
+      expect(cache.keys().length).toBe(1);
+      expect(cache.get(key)).toBe(value);
 
-        cacheInitializer.refreshCache('securityGroups').then((result: any[]) => {
-          expect(flatten(result)).toEqual(keys.sg);
-          cache = InfrastructureCaches.get('securityGroups');
-          expect(cache.keys().length).toBe(0);
-        });
-        initialized = true;
-      });
-      $root.$digest();
-      expect(initialized).toBeTruthy();
+      const result = await cacheInitializer.refreshCache('securityGroups');
+      expect(flatten(result)).toEqual(keys.sg);
+      cache = InfrastructureCaches.get('securityGroups');
+      expect(cache.keys().length).toBe(0);
     });
+  });
+});
+
+describe('direct runtime cache initializer', () => {
+  let runtime: DeckRuntime;
+
+  beforeEach(() => {
+    InfrastructureCaches.destroyCaches();
+    runtime = createDeckRuntime();
+  });
+
+  afterEach(() => {
+    runtime.dispose();
+    InfrastructureCaches.destroyCaches();
+  });
+
+  it('initializes and refreshes infrastructure caches with native runtime dependencies', async () => {
+    spyOn(InfrastructureCaches, 'createCache').and.returnValue({} as any);
+    spyOn(InfrastructureCaches, 'clearCache');
+    spyOn(AccountService, 'listProviders').and.returnValue(Promise.resolve([]));
+    const getAllSecurityGroups = spyOn(runtime.services.securityGroupReader, 'getAllSecurityGroups').and.returnValue(
+      Promise.resolve([]),
+    );
+    const cacheInitializer = runtime.services.cacheInitializer;
+
+    expect(cacheInitializer.initialize).toEqual(jasmine.any(Function));
+    expect(cacheInitializer.refreshCache).toEqual(jasmine.any(Function));
+    expect(cacheInitializer.refreshCaches).toEqual(jasmine.any(Function));
+
+    await cacheInitializer.initialize();
+    await cacheInitializer.refreshCache('securityGroups');
+    await cacheInitializer.refreshCaches();
+
+    expect(AccountService.listProviders).toHaveBeenCalledWith();
+    expect(getAllSecurityGroups).toHaveBeenCalledTimes(3);
   });
 });

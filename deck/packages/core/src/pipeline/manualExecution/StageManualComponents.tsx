@@ -3,10 +3,7 @@ import React from 'react';
 import type { ITriggerTemplateComponentProps } from './TriggerTemplate';
 import type { IPipelineCommand } from '../../domain';
 
-/**
- * This is only necessary because manualPipelineExecution is still in angular
- * Once it is converted to React, this whole component can be removed
- */
+/** Renders each stage-specific manual execution component. */
 export class StageManualComponents extends React.Component<{
   command: IPipelineCommand;
   updateCommand: (path: string, value: any) => void;

@@ -51,7 +51,7 @@ public class BuildService {
     return this.igorFeatureFlagProperties.isJobNameAsQueryParameter()
         ? Retrofit2SyncCall.execute(
             igorService.stopWithJobNameAsQueryParameter(
-                master, jobName, queuedBuild, buildNumber, ""))
+                master, queuedBuild, buildNumber, jobName, ""))
         : Retrofit2SyncCall.execute(
             igorService.stop(master, jobName, queuedBuild, buildNumber, ""));
   }

@@ -21,19 +21,16 @@
   },
   "dependencies": {
     "@spinnaker/core": "workspace:^0.29.1",
-    "@uirouter/angularjs": "1.0.26",
-    "angular": "1.8.3",
-    "angular-ui-bootstrap": "2.5.0",
+    "@uirouter/react": "1.0.7",
     "lodash": "4.18.1",
     "react": "16.14.0",
     "react-bootstrap": "0.32.1",
-    "react-select": "1.2.1"
+    "react-select": "1.2.1",
+    "rxjs": "6.6.7"
   },
   "devDependencies": {
     "@spinnaker/eslint-plugin": "workspace:^3.0.2",
     "@spinnaker/scripts": "workspace:^0.4.0",
-    "@types/angular": "1.6.26",
-    "@types/angular-ui-bootstrap": "0.13.41",
     "@types/lodash": "4.14.64",
     "@types/node": "7.0.5",
     "@types/react": "16.14.10",

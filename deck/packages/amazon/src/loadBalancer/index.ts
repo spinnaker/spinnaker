@@ -7,3 +7,4 @@ export * from './TargetGroupDetails';
 export * from './configure/common/AmazonCertificateSelectField';
 export * from './configure/AmazonLoadBalancerChoiceModal';
 export * from './configure/LoadBalancerTypes';
+export * from './details/amazonLoadBalancerDetails';

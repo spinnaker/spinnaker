@@ -21,6 +21,8 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.netflix.spinnaker.igor.config.ManagedDeliveryConfigProperties
 import com.netflix.spinnaker.igor.scm.stash.client.StashClient
 import com.netflix.spinnaker.igor.scm.stash.client.StashMaster
+import com.netflix.spinnaker.kork.yaml.YamlHelper
+import com.netflix.spinnaker.kork.yaml.YamlParserProperties
 import com.netflix.spinnaker.igor.scm.stash.client.model.DirectoryChild
 import com.netflix.spinnaker.igor.scm.stash.client.model.DirectoryChildren
 import com.netflix.spinnaker.igor.scm.stash.client.model.DirectoryListingResponse
@@ -48,7 +50,8 @@ class ManagedDeliveryScmServiceSpec extends Specification {
         Optional.of(new StashMaster(stashClient: client, baseUrl : STASH_ADDRESS)),
         Optional.empty(),
         Optional.empty(),
-        Optional.empty()
+        Optional.empty(),
+        new YamlHelper(new YamlParserProperties())
       )
   }
 

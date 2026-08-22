@@ -25,9 +25,9 @@ import (
 
 	"github.com/andreyvit/diff"
 
-	"github.com/spinnaker/spin/cmd"
-	"github.com/spinnaker/spin/cmd/canary"
-	"github.com/spinnaker/spin/util"
+	"github.com/spinnaker/spinnaker/spin/cmd"
+	"github.com/spinnaker/spinnaker/spin/cmd/canary"
+	"github.com/spinnaker/spinnaker/spin/util"
 )
 
 func TestCanaryConfigGet_json(t *testing.T) {

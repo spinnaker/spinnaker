@@ -52,7 +52,7 @@ export class EditDisruptionBudgetModal extends React.Component<IEditDisruptionBu
     const taskMonitor = new TaskMonitor({
       application,
       title: 'Updating Job Disruption Budget',
-      modalInstance: TaskMonitor.modalInstanceEmulation(() => dismissModal()),
+      onDismiss: () => dismissModal(),
       onTaskComplete: () => application.serverGroups.refresh(),
     });
 

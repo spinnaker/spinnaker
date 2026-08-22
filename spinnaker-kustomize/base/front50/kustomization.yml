@@ -1,10 +1,12 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-- deployment.yml
-- service.yml
-- serviceaccount.yml
-commonLabels:
-  app.kubernetes.io/name: front50
+  - deployment.yml
+  - service.yml
+  - serviceaccount.yml
+labels:
+  - includeSelectors: true
+    pairs:
+      app.kubernetes.io/name: front50
 configMapGenerator:
-- name: front50
+  - name: front50

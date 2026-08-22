@@ -25,8 +25,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/spinnaker/spin/cmd"
-	"github.com/spinnaker/spin/util"
+	"github.com/spinnaker/spinnaker/spin/cmd"
+	"github.com/spinnaker/spinnaker/spin/util"
 )
 
 func TestPipelineTemplateSave_createjson(t *testing.T) {
@@ -377,14 +377,14 @@ func testGatePipelineTemplateUpdateTagSuccess(buffer io.Writer, method *string, 
 		"/v2/pipelineTemplates/update/testSpelTemplate",
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			*method = "update"
-			util.NewTestBufferHandlerFunc(http.MethodPost, buffer, http.StatusOK, "").ServeHTTP(w, r)
+			util.NewTestBufferHandlerFunc(http.MethodPost, buffer, http.StatusOK, "{}").ServeHTTP(w, r)
 		}),
 	)
 	mux.Handle(
 		"/v2/pipelineTemplates/create",
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			*method = "create"
-			util.NewTestBufferHandlerFunc(http.MethodPost, buffer, http.StatusAccepted, "").ServeHTTP(w, r)
+			util.NewTestBufferHandlerFunc(http.MethodPost, buffer, http.StatusAccepted, "{}").ServeHTTP(w, r)
 		}),
 	)
 	// Return that we found an MPT if a tag from the request equals to expectedTag.
@@ -406,7 +406,7 @@ func testGatePipelineTemplateUpdateSuccess(buffer io.Writer) *httptest.Server {
 	mux := util.TestGateMuxWithVersionHandler()
 	mux.Handle(
 		"/v2/pipelineTemplates/update/testSpelTemplate",
-		util.NewTestBufferHandlerFunc(http.MethodPost, buffer, http.StatusOK, ""),
+		util.NewTestBufferHandlerFunc(http.MethodPost, buffer, http.StatusOK, "{}"),
 	)
 	// Return that we found an MPT to signal that we should update.
 	mux.Handle("/v2/pipelineTemplates/testSpelTemplate", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -423,7 +423,7 @@ func testGatePipelineTemplateCreateSuccess(buffer io.Writer) *httptest.Server {
 	mux := util.TestGateMuxWithVersionHandler()
 	mux.Handle(
 		"/v2/pipelineTemplates/create",
-		util.NewTestBufferHandlerFunc(http.MethodPost, buffer, http.StatusAccepted, ""),
+		util.NewTestBufferHandlerFunc(http.MethodPost, buffer, http.StatusAccepted, "{}"),
 	)
 	// Return that there are no existing MPTs.
 	mux.Handle("/v2/pipelineTemplates/testSpelTemplate", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

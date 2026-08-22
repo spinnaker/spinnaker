@@ -1,15 +1,15 @@
 import { cloneDeep, get } from 'lodash';
 import React from 'react';
 
-import type { ILoadBalancerModalProps } from '@spinnaker/core';
+import type { DeckRuntimeServices, ILoadBalancerModalProps, IRouterInjectedProps } from '@spinnaker/core';
 import {
   AccountService,
   FirewallLabels,
   LoadBalancerWriter,
   noop,
-  ReactInjector,
   ReactModal,
   TaskMonitor,
+  withRouter,
   WizardModal,
   WizardPage,
 } from '@spinnaker/core';
@@ -36,8 +36,8 @@ export interface ICreateApplicationLoadBalancerState {
   taskMonitor: TaskMonitor;
 }
 
-export class CreateApplicationLoadBalancer extends React.Component<
-  ICreateApplicationLoadBalancerProps,
+export class CreateApplicationLoadBalancerComponent extends React.Component<
+  ICreateApplicationLoadBalancerProps & IRouterInjectedProps,
   ICreateApplicationLoadBalancerState
 > {
   public static defaultProps: Partial<ICreateApplicationLoadBalancerProps> = {
@@ -46,15 +46,18 @@ export class CreateApplicationLoadBalancer extends React.Component<
   };
 
   private _isUnmounted = false;
-  private refreshUnsubscribe: () => void;
+  private refreshUnsubscribe?: () => void;
   private certificateTypes = get(AWSProviderSettings, 'loadBalancers.certificateTypes', ['iam', 'acm']);
 
-  public static show(props: ICreateApplicationLoadBalancerProps): Promise<IAmazonApplicationLoadBalancerUpsertCommand> {
+  public static show(
+    props: ICreateApplicationLoadBalancerProps,
+    runtimeServices: DeckRuntimeServices,
+  ): Promise<IAmazonApplicationLoadBalancerUpsertCommand> {
     const modalProps = { dialogClassName: 'wizard-modal modal-lg' };
-    return ReactModal.show(CreateApplicationLoadBalancer, props, modalProps);
+    return ReactModal.show(CreateApplicationLoadBalancer, props, modalProps, runtimeServices);
   }
 
-  constructor(props: ICreateApplicationLoadBalancerProps) {
+  constructor(props: ICreateApplicationLoadBalancerProps & IRouterInjectedProps) {
     super(props);
 
     const loadBalancerCommand = props.command
@@ -92,7 +95,7 @@ export class CreateApplicationLoadBalancer extends React.Component<
     return certificateId;
   }
 
-  private formatListeners(command: IAmazonApplicationLoadBalancerUpsertCommand): PromiseLike<void> {
+  private formatListeners(command: IAmazonApplicationLoadBalancerUpsertCommand): Promise<void> {
     return AccountService.getAccountDetails(command.credentials).then((account) => {
       command.listeners.forEach((listener) => {
         if (listener.protocol === 'HTTP') {
@@ -171,11 +174,12 @@ export class CreateApplicationLoadBalancer extends React.Component<
   }
 
   protected onApplicationRefresh(values: IAmazonApplicationLoadBalancerUpsertCommand): void {
+    this.refreshUnsubscribe?.();
+    this.refreshUnsubscribe = undefined;
     if (this._isUnmounted) {
       return;
     }
 
-    this.refreshUnsubscribe = undefined;
     this.props.dismissModal();
     this.setState({ taskMonitor: undefined });
     const newStateParams = {
@@ -186,23 +190,24 @@ export class CreateApplicationLoadBalancer extends React.Component<
       provider: 'aws',
     };
 
-    if (!ReactInjector.$state.includes('**.loadBalancerDetails')) {
-      ReactInjector.$state.go('.loadBalancerDetails', newStateParams);
+    if (!this.props.stateService.includes('**.loadBalancerDetails')) {
+      this.props.stateService.go('.loadBalancerDetails', newStateParams);
     } else {
-      ReactInjector.$state.go('^.loadBalancerDetails', newStateParams);
+      this.props.stateService.go('^.loadBalancerDetails', newStateParams);
     }
   }
 
   public componentWillUnmount(): void {
     this._isUnmounted = true;
-    if (this.refreshUnsubscribe) {
-      this.refreshUnsubscribe();
-    }
+    this.refreshUnsubscribe?.();
+    this.refreshUnsubscribe = undefined;
   }
 
   private onTaskComplete(values: IAmazonApplicationLoadBalancerUpsertCommand): void {
+    this.refreshUnsubscribe?.();
+    this.refreshUnsubscribe = undefined;
+    this.refreshUnsubscribe = this.props.app.loadBalancers.onNextRefresh(() => this.onApplicationRefresh(values));
     this.props.app.loadBalancers.refresh();
-    this.refreshUnsubscribe = this.props.app.loadBalancers.onNextRefresh(null, () => this.onApplicationRefresh(values));
   }
 
   private submit = (values: IAmazonApplicationLoadBalancerUpsertCommand): void => {
@@ -240,7 +245,7 @@ export class CreateApplicationLoadBalancer extends React.Component<
       const taskMonitor = new TaskMonitor({
         application: app,
         title: `${isNew ? 'Creating' : 'Updating'} your load balancer`,
-        modalInstance: TaskMonitor.modalInstanceEmulation(() => this.props.dismissModal()),
+        onDismiss: () => this.props.dismissModal(),
         onTaskComplete: () => this.onTaskComplete(loadBalancerCommandFormatted),
       });
 
@@ -335,3 +340,8 @@ export class CreateApplicationLoadBalancer extends React.Component<
     );
   }
 }
+
+export const CreateApplicationLoadBalancer = Object.assign(
+  withRouter<ICreateApplicationLoadBalancerProps & IRouterInjectedProps>(CreateApplicationLoadBalancerComponent),
+  { show: CreateApplicationLoadBalancerComponent.show },
+);

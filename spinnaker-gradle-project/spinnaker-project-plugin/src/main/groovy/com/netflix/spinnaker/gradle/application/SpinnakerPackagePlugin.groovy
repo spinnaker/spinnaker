@@ -73,7 +73,7 @@ class SpinnakerPackagePlugin implements Plugin<Project> {
                 into('/etc/logrotate.d')
                 setUser('root')
                 setPermissionGroup('root')
-                setFileMode(0644)
+                filePermissions { unix(0644) }
                 setFileType(new Directive(Directive.RPMFILE_CONFIG | Directive.RPMFILE_NOREPLACE))
             }
         }

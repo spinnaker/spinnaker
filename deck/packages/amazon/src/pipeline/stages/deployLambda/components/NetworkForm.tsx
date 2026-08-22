@@ -9,11 +9,11 @@ import type { IFormikStageConfigInjectedProps, IFormInputProps, ISecurityGroup, 
 import {
   FormikFormField,
   NetworkReader,
-  ReactInjector,
   ReactSelectInput,
   SubnetReader,
   TetheredSelect,
   useData,
+  useDeckRuntimeServices,
 } from '@spinnaker/core';
 
 const toSubnetOption = (value: ISubnet): Option<string> => {
@@ -21,6 +21,7 @@ const toSubnetOption = (value: ISubnet): Option<string> => {
 };
 
 export function NetworkForm(props: IFormikStageConfigInjectedProps) {
+  const { securityGroupReader } = useDeckRuntimeServices();
   const { values } = props.formik;
 
   const onChangeVpc = (vpcs: any) => {
@@ -47,11 +48,7 @@ export function NetworkForm(props: IFormikStageConfigInjectedProps) {
 
   const { result: fetchSubnetsResult } = useData(() => SubnetReader.listSubnetsByProvider('aws'), [], []);
 
-  const { result: fetchSGsResult } = useData(
-    () => ReactInjector.securityGroupReader.getAllSecurityGroups(),
-    undefined,
-    [],
-  );
+  const { result: fetchSGsResult } = useData(() => securityGroupReader.getAllSecurityGroups(), undefined, []);
 
   const availableVpcs =
     values.account && values.region && fetchVpcsStatus !== 'PENDING'

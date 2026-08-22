@@ -11,11 +11,13 @@ export interface IInstanceTagsProps {
 }
 
 export const InstanceTags = ({ tags }: IInstanceTagsProps) => {
-  const sortedTags = orderBy(tags, ['key'], ['asc']);
+  const instanceTags = tags || [];
+  const sortedTags = orderBy(instanceTags, ['key'], ['asc']);
   return (
     <CollapsibleSection heading="Tags" defaultExpanded={true}>
-      {!tags.length && <div>No tags associated with this server</div>}
-      {tags.length && sortedTags.map((tag) => <LabeledValue key={tag.key} label={tag.key} value={tag.value} />)}
+      {!instanceTags.length && <div>No tags associated with this server</div>}
+      {Boolean(instanceTags.length) &&
+        sortedTags.map((tag) => <LabeledValue key={tag.key} label={tag.key} value={tag.value} />)}
     </CollapsibleSection>
   );
 };

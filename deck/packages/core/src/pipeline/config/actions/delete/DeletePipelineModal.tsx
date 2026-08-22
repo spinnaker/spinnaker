@@ -1,5 +1,5 @@
+import { useRouter } from '@uirouter/react';
 import { get, isEmpty, set } from 'lodash';
-import { $log } from 'ngimport';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
 
@@ -7,9 +7,8 @@ import type { Application } from '../../../../application';
 import type { IPipeline } from '../../../../domain';
 import { ModalClose } from '../../../../modal';
 import type { IModalComponentProps } from '../../../../presentation';
-import { ReactInjector } from '../../../../reactShims';
-
 import { PipelineConfigService } from '../../services/PipelineConfigService';
+import { diagnosticLogger } from '../../../../utils/diagnosticLogger';
 
 export interface IDeletePipelineModalProps extends IModalComponentProps {
   application: Application;
@@ -17,6 +16,7 @@ export interface IDeletePipelineModalProps extends IModalComponentProps {
 }
 
 export function DeletePipelineModal(props: IDeletePipelineModalProps) {
+  const { stateService } = useRouter();
   const [errorMessage, setErrorMessage] = React.useState<string>(null);
   const [deleteError, setDeleteError] = React.useState<boolean>(false);
   const [deleting, setDeleting] = React.useState<boolean>(false);
@@ -43,11 +43,11 @@ export function DeletePipelineModal(props: IDeletePipelineModalProps) {
         if (!isEmpty(idsToUpdatedIndices)) {
           PipelineConfigService.reorderPipelines(application.name, idsToUpdatedIndices, isPipelineStrategy);
         }
-        ReactInjector.$state.go('^.executions', null, { location: 'replace' });
+        stateService.go('^.executions', null, { location: 'replace' });
         closeModal();
       },
       (response) => {
-        $log.warn(response);
+        diagnosticLogger.warn(response);
         setDeleting(false);
         setDeleteError(true);
         setErrorMessage(get(response, 'data.message', 'No message provided'));

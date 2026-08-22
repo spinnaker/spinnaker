@@ -1,5 +1,4 @@
 import { capitalize, get } from 'lodash';
-import { $q } from 'ngimport';
 import React from 'react';
 import type { Option } from 'react-select';
 import { from as observableFrom, Subject } from 'rxjs';
@@ -34,8 +33,8 @@ export class BaseBuildTriggerTemplate extends React.Component<
 > {
   private destroy$ = new Subject();
 
-  public static formatLabel(trigger: IBuildTrigger): PromiseLike<string> {
-    return $q.when(`(${capitalize(trigger.type)}) ${trigger.master}: ${trigger.job}`);
+  public static formatLabel(trigger: IBuildTrigger): Promise<string> {
+    return Promise.resolve(`(${capitalize(trigger.type)}) ${trigger.master}: ${trigger.job}`);
   }
 
   public constructor(props: IBaseBuildTriggerTemplateProps) {

@@ -88,6 +88,7 @@ class DockerRegistryImageLookupControllerSpec extends Specification {
   void "When finding images with includeDetails == false"() {
     when:
     def lookupOptions = new AbstractDockerRegistryLookupController.LookupOptions()
+    lookupOptions.account = "test-account"
     lookupOptions.includeDetails = false
     def result = dockerRegistryImageLookupController.find(lookupOptions)
 
@@ -104,6 +105,7 @@ class DockerRegistryImageLookupControllerSpec extends Specification {
   void "When finding images with includeDetails == true"() {
     when:
     def lookupOptions = new AbstractDockerRegistryLookupController.LookupOptions()
+    lookupOptions.account = "test-account"
     lookupOptions.includeDetails = true
     def result = dockerRegistryImageLookupController.find(lookupOptions)
 
@@ -123,6 +125,7 @@ class DockerRegistryImageLookupControllerSpec extends Specification {
   void "When finding images with filtered repository for an image that exists" () {
     when:
     def lookupOptions = new AbstractDockerRegistryLookupController.LookupOptions()
+    lookupOptions.account = "test-account"
     lookupOptions.repository = "test-repo"
     def result = dockerRegistryImageLookupController.find(lookupOptions)
 
@@ -137,6 +140,7 @@ class DockerRegistryImageLookupControllerSpec extends Specification {
   void "When finding images with filtered repository and tag for an image that exists" () {
     when:
     def lookupOptions = new AbstractDockerRegistryLookupController.LookupOptions()
+    lookupOptions.account = "test-account"
     lookupOptions.repository = "test-repo"
     lookupOptions.tag = "1.0"
     def result = dockerRegistryImageLookupController.find(lookupOptions)
@@ -152,6 +156,7 @@ class DockerRegistryImageLookupControllerSpec extends Specification {
   void "When finding images with filtered repository for an image that does not exist" () {
     when:
     def lookupOptions = new AbstractDockerRegistryLookupController.LookupOptions()
+    lookupOptions.account = "test-account"
     lookupOptions.repository = "wrong-repo"
     def result = dockerRegistryImageLookupController.find(lookupOptions)
 
@@ -162,6 +167,7 @@ class DockerRegistryImageLookupControllerSpec extends Specification {
   void "When finding images with filtered tag for a tag that does not exist" () {
     when:
     def lookupOptions = new AbstractDockerRegistryLookupController.LookupOptions()
+    lookupOptions.account = "test-account"
     lookupOptions.repository = "wrong-tag"
     def result = dockerRegistryImageLookupController.find(lookupOptions)
 
@@ -200,6 +206,7 @@ class DockerRegistryImageLookupControllerSpec extends Specification {
 
     when:
     def lookupOptions = new AbstractDockerRegistryLookupController.LookupOptions()
+    lookupOptions.account = "test-account"
     lookupOptions.includeDetails = true
     def result = dockerRegistryImageLookupController.find(lookupOptions)
 

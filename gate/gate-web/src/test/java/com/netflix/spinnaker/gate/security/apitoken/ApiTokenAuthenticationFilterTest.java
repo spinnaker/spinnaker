@@ -350,6 +350,65 @@ class ApiTokenAuthenticationFilterTest {
     verify(permissionEvaluator, never()).getPermission(any());
   }
 
+  // ---------------------------------------------------------------------------
+  // Case-insensitive Bearer scheme (RFC 7235 §2.1: auth-scheme is case-insensitive)
+  // ---------------------------------------------------------------------------
+
+  @Test
+  @DisplayName("Authorization: 'Bearer spk_…' (canonical casing) — authenticates successfully")
+  void bearerCanonicalCaseAuthenticates() throws Exception {
+    assertBearerPrefixAuthenticates("Bearer ");
+  }
+
+  @Test
+  @DisplayName("Authorization: 'bearer spk_…' (lowercase scheme) — authenticates successfully")
+  void bearerLowercaseAuthenticates() throws Exception {
+    assertBearerPrefixAuthenticates("bearer ");
+  }
+
+  @Test
+  @DisplayName("Authorization: 'BEARER spk_…' (uppercase scheme) — authenticates successfully")
+  void bearerUppercaseAuthenticates() throws Exception {
+    assertBearerPrefixAuthenticates("BEARER ");
+  }
+
+  /**
+   * Shared assertion for the three Bearer-casing tests: a token presented with the given prefix
+   * resolves to the same authenticated principal, proving the scheme match is case-insensitive
+   * while the opaque {@code spk_} token prefix is preserved verbatim downstream.
+   */
+  private void assertBearerPrefixAuthenticates(String bearerPrefix) throws Exception {
+    when(apiTokenService.resolveByHash(EXPECTED_HASH))
+        .thenReturn(Optional.of(record(TOKEN_ID, PRINCIPAL, "USER", FUTURE_EXPIRY)));
+    when(permissionService.isEnabled()).thenReturn(false);
+
+    MockHttpServletRequest request = new MockHttpServletRequest();
+    request.addHeader("Authorization", bearerPrefix + PLAINTEXT);
+
+    filter.doFilterInternal(request, new MockHttpServletResponse(), new MockFilterChain());
+
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    assertThat(auth).isNotNull();
+    assertThat(auth.getName()).isEqualTo(PRINCIPAL);
+    verify(apiTokenService).resolveByHash(EXPECTED_HASH);
+  }
+
+  @Test
+  @DisplayName("Authorization: 'Bearer SPK_…' (uppercased token prefix) — passes through")
+  void bearerWithUppercasedTokenPrefixPassesThrough() throws Exception {
+    MockHttpServletRequest request = new MockHttpServletRequest();
+    // Bearer scheme case is permissive; the spk_ token prefix is case-sensitive and must not match.
+    request.addHeader("Authorization", "Bearer SPK_abc123xyz789");
+    MockHttpServletResponse response = new MockHttpServletResponse();
+    FilterChain chain = spy(new MockFilterChain());
+
+    filter.doFilterInternal(request, response, chain);
+
+    verify(chain).doFilter(request, response);
+    assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
+    verifyNoInteractions(apiTokenService);
+  }
+
   @Test
   @DisplayName("non-expiring token (null expiresAt) — authenticates successfully")
   void nonExpiringTokenAuthenticates() throws Exception {

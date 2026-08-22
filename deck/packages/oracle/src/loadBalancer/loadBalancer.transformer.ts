@@ -1,6 +1,3 @@
-import { module } from 'angular';
-import { $q } from 'ngimport';
-
 import type { Application } from '@spinnaker/core';
 import type {
   IOracleBackEndSet,
@@ -15,7 +12,7 @@ import { OracleProviderSettings } from '../oracle.settings';
 import { OracleDefaultProviderSettings } from '../oracle.settings';
 
 export class OracleLoadBalancerTransformer {
-  public normalizeLoadBalancer(loadBalancer: IOracleLoadBalancer): PromiseLike<IOracleLoadBalancer> {
+  public normalizeLoadBalancer(loadBalancer: IOracleLoadBalancer): Promise<IOracleLoadBalancer> {
     /*loadBalancer.serverGroups.forEach(function(serverGroup) {
       serverGroup.account = loadBalancer.account;
       serverGroup.region = loadBalancer.region;
@@ -39,10 +36,10 @@ export class OracleLoadBalancerTransformer {
       .map('detachedInstances')
       .flatten()
       .value();*/
-    return $q.resolve(loadBalancer);
+    return Promise.resolve(loadBalancer);
   }
 
-  public convertLoadBalancerForEditing(loadBalancer: IOracleLoadBalancer): IOracleLoadBalancerUpsertCommand {
+  public convertLoadBalancerForEditing(loadBalancer: any): any {
     if (loadBalancer.listeners) {
       Object.keys(loadBalancer.listeners).forEach((key) => {
         const lis = loadBalancer.listeners[key];
@@ -56,7 +53,7 @@ export class OracleLoadBalancerTransformer {
       region: loadBalancer.region,
       shape: loadBalancer.shape,
       isPrivate: loadBalancer.isPrivate,
-      subnetIds: loadBalancer.subnets.map((subnet) => subnet.id),
+      subnetIds: loadBalancer.subnets.map((subnet: any) => subnet.id),
       certificates: loadBalancer.certificates,
       listeners: loadBalancer.listeners,
       hostnames: loadBalancer.hostnames,
@@ -70,7 +67,7 @@ export class OracleLoadBalancerTransformer {
     return toEdit;
   }
 
-  public constructNewLoadBalancerTemplate(application: Application): IOracleLoadBalancerUpsertCommand {
+  public constructNewLoadBalancerTemplate(application: Application): any {
     const defaultCredentials =
       application.defaultCredentials.oracle ||
       (OracleProviderSettings.defaults
@@ -139,6 +136,3 @@ export class OracleLoadBalancerTransformer {
     };
   }
 }
-
-export const ORACLE_LOAD_BALANCER_TRANSFORMER = 'spinnaker.oracle.loadBalancer.transformer';
-module(ORACLE_LOAD_BALANCER_TRANSFORMER, []).service('oracleLoadBalancerTransformer', OracleLoadBalancerTransformer);

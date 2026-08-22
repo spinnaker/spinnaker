@@ -3,12 +3,12 @@ import { Form } from 'formik';
 import React from 'react';
 import { Modal, ModalFooter } from 'react-bootstrap';
 
-import type { Application, IModalComponentProps, IServerGroupJob } from '@spinnaker/core';
+import type { Application, DeckRuntimeServices, IModalComponentProps, IServerGroupJob } from '@spinnaker/core';
 import {
+  DeckRuntimeContext,
   FormikFormField,
   ModalClose,
   noop,
-  ReactInjector,
   ReactModal,
   ReactSelectInput,
   SpinFormik,
@@ -16,6 +16,7 @@ import {
   TaskMonitorWrapper,
   TaskReason,
 } from '@spinnaker/core';
+
 import type { ICloudFoundryServerGroup } from '../../../domain';
 
 export interface ICloudFoundryRollbackServerGroupModalProps extends IModalComponentProps {
@@ -49,6 +50,9 @@ export class CloudFoundryRollbackServerGroupModal extends React.Component<
   ICloudFoundryRollbackServerGroupModalProps,
   ICloudFoundryRollbackServerGroupModalState
 > {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   public static defaultProps: Partial<ICloudFoundryRollbackServerGroupModalProps> = {
     closeModal: noop,
     dismissModal: noop,
@@ -56,9 +60,12 @@ export class CloudFoundryRollbackServerGroupModal extends React.Component<
 
   private formikRef = React.createRef<Formik<ICloudFoundryRollbackServerGroupValues>>();
 
-  public static show(props: ICloudFoundryRollbackServerGroupModalProps): Promise<ICloudFoundryRollbackJob> {
+  public static show(
+    props: ICloudFoundryRollbackServerGroupModalProps,
+    runtimeServices: DeckRuntimeServices,
+  ): Promise<ICloudFoundryRollbackJob> {
     const modalProps = {};
-    return ReactModal.show(CloudFoundryRollbackServerGroupModal, props, modalProps);
+    return ReactModal.show(CloudFoundryRollbackServerGroupModal, props, modalProps, runtimeServices);
   }
 
   constructor(props: ICloudFoundryRollbackServerGroupModalProps) {
@@ -73,7 +80,7 @@ export class CloudFoundryRollbackServerGroupModal extends React.Component<
       taskMonitor: new TaskMonitor({
         application: props.application,
         title: 'Rollback ' + name,
-        modalInstance: TaskMonitor.modalInstanceEmulation(() => this.props.dismissModal()),
+        onDismiss: () => this.props.dismissModal(),
         onTaskComplete: () => this.props.application.serverGroups.refresh(),
       }),
     };
@@ -98,7 +105,7 @@ export class CloudFoundryRollbackServerGroupModal extends React.Component<
     };
 
     this.state.taskMonitor.submit(() => {
-      return ReactInjector.serverGroupWriter.rollbackServerGroup(serverGroup, application, command);
+      return this.context.services.serverGroupWriter.rollbackServerGroup(serverGroup, application, command);
     });
   };
 

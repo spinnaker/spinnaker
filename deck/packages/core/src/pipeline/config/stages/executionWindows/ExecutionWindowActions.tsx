@@ -2,10 +2,10 @@ import { get } from 'lodash';
 import React from 'react';
 
 import type { Application } from '../../../../application/application.model';
+import { DeckRuntimeContext } from '../../../../bootstrap/DeckRuntimeContext';
 import { ConfirmationModalService } from '../../../../confirmationModal';
 import { DAYS_OF_WEEK } from './daysOfWeek';
 import type { IExecution, IExecutionStage } from '../../../../domain';
-import { ReactInjector } from '../../../../reactShims';
 import { SystemTimezone } from '../../../../utils/SystemTimezone';
 import { timePickerTime } from '../../../../utils/timeFormatters';
 
@@ -33,6 +33,9 @@ export class ExecutionWindowActions extends React.Component<
   IExecutionWindowActionsProps,
   IExecutionWindowActionsState
 > {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   constructor(props: IExecutionWindowActionsProps) {
     super(props);
     const days = props.stage.context.restrictedExecutionWindow?.days;
@@ -46,7 +49,7 @@ export class ExecutionWindowActions extends React.Component<
   }
 
   private finishWaiting = (e: React.MouseEvent<HTMLElement>): void => {
-    const { executionService } = ReactInjector;
+    const { executionService } = this.context.services;
     (e.target as HTMLElement).blur(); // forces closing of the popover when the modal opens
     const { application, execution, stage } = this.props;
 

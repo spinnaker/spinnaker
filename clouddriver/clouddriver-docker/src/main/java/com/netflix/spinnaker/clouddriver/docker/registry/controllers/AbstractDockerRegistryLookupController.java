@@ -25,11 +25,15 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PostFilter;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.server.ResponseStatusException;
 
 public abstract class AbstractDockerRegistryLookupController {
   @Autowired protected Cache cacheView;
@@ -81,15 +85,34 @@ public abstract class AbstractDockerRegistryLookupController {
   }
 
   /**
-   * Find images based on lookup options
+   * Find images based on lookup options.
    *
-   * @param lookupOptions The options to use for lookup
+   * <p>When {@code account} is provided, permission is verified once up front (O(1) fiat call)
+   * rather than per returned image. Anonymous callers (e.g. igor's internal polling via {@code
+   * AuthenticatedRequest.allowAnonymous()}) bypass fiat entirely and are trusted at the network
+   * level; they must still supply {@code account} to scope the query efficiently.
+   *
+   * @param lookupOptions The options to use for lookup; {@code account} is required for
+   *     authenticated callers
    * @return A list of images
    */
   @RequestMapping(value = "/find", method = RequestMethod.GET)
-  @PostFilter("hasPermission(filterObject['account'], 'ACCOUNT', 'READ')")
+  @PreAuthorize(
+      "isAnonymous()"
+          + " or (#lookupOptions.account != null"
+          + "     and !#lookupOptions.account.isEmpty()"
+          + "     and hasPermission(#lookupOptions.account, 'ACCOUNT', 'READ'))")
   public List<Map<String, Object>> find(LookupOptions lookupOptions) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    boolean isAnonymous = authentication instanceof AnonymousAuthenticationToken;
+
     String account = lookupOptions.getAccount() != null ? lookupOptions.getAccount() : "";
+
+    // Non-anonymous callers must supply account so auth can be checked once rather than per image.
+    if (!isAnonymous && account.isEmpty()) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "The 'account' parameter is required");
+    }
 
     Set<CacheData> images;
     if (lookupOptions.getQ() != null && !lookupOptions.getQ().isEmpty()) {

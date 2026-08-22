@@ -1,6 +1,4 @@
-import type { IQService } from 'angular';
-import { module, noop } from 'angular';
-import { cloneDeep, uniq } from 'lodash';
+import { cloneDeep, noop, uniq } from 'lodash';
 import { Duration } from 'luxon';
 
 import { AccountService } from '../account/AccountService';
@@ -10,7 +8,7 @@ import type { IInfrastructureCacheConfig } from './infrastructureCacheConfig';
 import { INFRASTRUCTURE_CACHE_CONFIG } from './infrastructureCacheConfig';
 import { InfrastructureCaches } from './infrastructureCaches';
 import type { SecurityGroupReader } from '../securityGroup/securityGroupReader.service';
-import { SECURITY_GROUP_READER } from '../securityGroup/securityGroupReader.service';
+import type { PromiseService } from '../utils/nativePromiseService';
 
 interface IInitializers {
   [key: string]: any[];
@@ -31,7 +29,7 @@ export class CacheInitializerService {
     config.onReset = config.onReset || [noop];
   }
 
-  private extendConfig(): PromiseLike<void> {
+  private extendConfig(): Promise<void> {
     Object.keys(this.cacheConfig).forEach((key: string) => {
       this.setConfigDefaults(key, this.cacheConfig[key]);
     });
@@ -61,53 +59,49 @@ export class CacheInitializerService {
     });
   }
 
-  private initializeCache(key: string): PromiseLike<any[]> {
+  private initializeCache(key: string): Promise<any[]> {
     InfrastructureCaches.createCache(key, this.cacheConfig[key]);
     if (this.cacheConfig[key].initializers) {
       const initializer: any = this.cacheConfig[key].initializers;
-      const all: Array<PromiseLike<any>> = [];
+      const all: Array<Promise<any>> = [];
       initializer.forEach((method: Function) => {
         all.push(method());
       });
 
-      return this.$q.all(all);
+      return this.promiseService.all(all);
     } else {
-      return this.$q.resolve(undefined);
+      return this.promiseService.resolve(undefined);
     }
   }
 
-  public static $inject = ['$q', 'securityGroupReader', 'providerServiceDelegate'];
   constructor(
-    private $q: IQService,
+    private promiseService: PromiseService,
     private securityGroupReader: SecurityGroupReader,
     private providerServiceDelegate: any,
   ) {}
 
-  public initialize(): PromiseLike<any[]> {
+  public initialize(): Promise<any[]> {
     return this.extendConfig().then(() => {
       const all: any[] = [];
       Object.keys(this.cacheConfig).forEach((key: string) => {
         all.push(this.initializeCache(key));
       });
 
-      return this.$q.all(all);
+      return this.promiseService.all(all);
     });
   }
 
-  public refreshCache(key: string): PromiseLike<any[]> {
+  public refreshCache(key: string): Promise<any[]> {
     InfrastructureCaches.clearCache(key);
     return this.initializeCache(key);
   }
 
-  public refreshCaches(): PromiseLike<any[]> {
-    const all: Array<PromiseLike<any[]>> = [];
+  public refreshCaches(): Promise<any[]> {
+    const all: Array<Promise<any[]>> = [];
     Object.keys(this.cacheConfig).forEach((key: string) => {
       all.push(this.refreshCache(key));
     });
 
-    return this.$q.all(all);
+    return this.promiseService.all(all);
   }
 }
-
-export const CACHE_INITIALIZER_SERVICE = 'spinnaker.core.cache.initializer';
-module(CACHE_INITIALIZER_SERVICE, [SECURITY_GROUP_READER]).service('cacheInitializer', CacheInitializerService);

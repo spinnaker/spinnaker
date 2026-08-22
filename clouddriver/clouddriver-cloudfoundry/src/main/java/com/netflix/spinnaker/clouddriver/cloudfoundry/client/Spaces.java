@@ -71,19 +71,12 @@ public class Spaces {
   @Nullable
   public CloudFoundryServiceInstance getServiceInstanceById(
       String spaceId, String serviceInstanceName) {
-    return collectPageResources(
+    return collectPages(
             "get service instances by id",
-            pg ->
-                api.getServiceInstancesById(
-                    spaceId, pg, Collections.singletonList("name:" + serviceInstanceName)))
+            pg -> api.getServiceInstancesById(spaceId, pg, serviceInstanceName))
         .stream()
         .findFirst()
-        .map(
-            e ->
-                CloudFoundryServiceInstance.builder()
-                    .name(e.getEntity().getName())
-                    .id(e.getMetadata().getGuid())
-                    .build())
+        .map(e -> CloudFoundryServiceInstance.builder().name(e.getName()).id(e.getGuid()).build())
         .orElse(null);
   }
 

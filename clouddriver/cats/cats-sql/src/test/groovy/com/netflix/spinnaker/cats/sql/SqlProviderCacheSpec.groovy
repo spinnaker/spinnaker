@@ -19,9 +19,7 @@ import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import com.zaxxer.hikari.HikariDataSource
 import org.jooq.DSLContext
 import org.jooq.SQLDialect
-import org.testcontainers.DockerClientFactory
 import spock.lang.AutoCleanup
-import spock.lang.Requires
 import spock.lang.Shared
 import spock.lang.Unroll
 
@@ -30,8 +28,7 @@ import java.time.Instant
 import java.time.ZoneId
 
 
-@Requires({ DockerClientFactory.instance().isDockerAvailable() })
-class SqlProviderCacheSpec extends ProviderCacheSpec {
+abstract class SqlProviderCacheSpec extends ProviderCacheSpec {
 
   @Shared
   DSLContext context
@@ -40,6 +37,14 @@ class SqlProviderCacheSpec extends ProviderCacheSpec {
   HikariDataSource dataSource
 
   WriteableCache backingStore
+
+  /**
+   * The database the spec runs against. Implemented per dialect so that the shared test bodies below
+   * are exercised against every SQL backend clouddriver supports.
+   */
+  abstract SqlTestUtil.TestDatabase initDatabase()
+
+  abstract SQLDialect getDialect()
 
   def cleanup() {
     SqlTestUtil.cleanupDb(context)
@@ -60,7 +65,7 @@ class SqlProviderCacheSpec extends ProviderCacheSpec {
       getConfig(_ as Class, _ as String, _) >> 10
     }
 
-    SqlTestUtil.TestDatabase testDatabase = SqlTestUtil.initTcMysqlDatabase()
+    SqlTestUtil.TestDatabase testDatabase = initDatabase()
     context = testDatabase.context
     dataSource = testDatabase.dataSource
 
@@ -74,7 +79,7 @@ class SqlProviderCacheSpec extends ProviderCacheSpec {
       "test",
       sqlMetrics,
       dynamicConfigService,
-      new SqlConstraintsInitializer().getDefaultSqlConstraints(SQLDialect.MYSQL),
+      new SqlConstraintsInitializer().getDefaultSqlConstraints(getDialect()),
       new SqlNamedCacheFactory.DefaultProviderCacheConfiguration()
     )
 
@@ -171,6 +176,27 @@ class SqlProviderCacheSpec extends ProviderCacheSpec {
     then:
     fooData["instances"].collect { it.id }.sort() == instanceIdsForAppFoo
     fooData["serverGroup"].collect { it.id }.sort() == sgIdsForAppFoo
+  }
+
+  @Unroll
+  def 'can retrieve by application with relationships (filter: #filter)'() {
+    setup:
+    populateOne('serverGroup', 'fooSg1', createData('fooSg1', [application: "foo"], [:]))
+    populateOne('serverGroup', 'barSg1', createData('barSg1', [application: "bar"], [:]))
+
+    addInformative('instances', 'fooInst1', createData('fooInst1', [application: "foo"], [serverGroup: ['fooSg1']]))
+
+    when:
+    def fooData = cache.getAllByApplication('serverGroup', 'foo', filter)
+
+    then:
+    fooData['serverGroup'].collect { it.id } == ['fooSg1']
+    fooData['serverGroup'][0].relationships['instances'] == ['fooInst1']
+
+    where:
+    // A null filter resolves to the "ALL" relationship prefix, which is what AmazonClusterProvider
+    // passes for namespaces absent from its filter map. Both variants must fetch relationships.
+    filter << [RelationshipCacheFilter.include('instances'), null]
   }
 
   void addInformative(String type, String id, CacheData cacheData = createData(id)) {

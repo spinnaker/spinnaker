@@ -1,51 +1,81 @@
-import type { IQService } from 'angular';
-import { module } from 'angular';
 import type { Application } from '../application/application.model';
 import { INFRASTRUCTURE_KEY } from '../application/nav/defaultCategories';
 import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
+import type { ProviderServiceDelegate } from '../cloudProvider/providerService.delegate';
 import { SETTINGS } from '../config/settings';
-import type { IFunction } from '../domain';
+import type { IFunction, IFunctionSourceData } from '../domain';
 import { EntityTagsReader } from '../entityTag/EntityTagsReader';
+import { FunctionReader } from './function.read.service';
+import type { IFunctionTransformer } from './function.transformer';
 
-import type { FunctionReader } from './function.read.service';
-import { FUNCTION_READ_SERVICE } from './function.read.service';
+export function createDirectFunctionReader(providerServiceDelegate: ProviderServiceDelegate): FunctionReader {
+  const functionTransformer: IFunctionTransformer = {
+    normalizeFunction: (functionDef: IFunctionSourceData) =>
+      providerServiceDelegate
+        .getDelegate<IFunctionTransformer>(functionDef.provider ? functionDef.provider : 'aws', 'function.transformer')
+        .normalizeFunction(functionDef),
+    normalizeFunctionSet: (functions: IFunctionSourceData[]) => {
+      const setTransformers = functions
+        .filter((fn) =>
+          providerServiceDelegate.hasDelegate(fn.provider ? fn.provider : 'aws', 'function.setTransformer'),
+        )
+        .map((fn) =>
+          providerServiceDelegate.getDelegate<IFunctionTransformer>(
+            fn.provider ? fn.provider : 'aws',
+            'function.setTransformer',
+          ),
+        )
+        .filter(
+          (transformer, index, transformers) =>
+            transformers.findIndex(
+              (candidate) => candidate.normalizeFunctionSet === transformer.normalizeFunctionSet,
+            ) === index,
+        );
 
-export const FUNCTION_DATA_SOURCE = 'spinnaker.core.functions.dataSource';
-module(FUNCTION_DATA_SOURCE, [FUNCTION_READ_SERVICE]).run([
-  '$q',
-  'functionReader',
-  ($q: IQService, functionReader: FunctionReader) => {
-    if (!SETTINGS.feature.functions) {
-      return;
-    }
-    const functions = (application: Application) => {
-      return functionReader.loadFunctions(application.name);
-    };
+      return setTransformers.reduce(
+        (result, transformer) => transformer.normalizeFunctionSet.call(transformer, result),
+        functions,
+      );
+    },
+  };
 
-    const addFunctions = (_application: Application, functionList: IFunction[]) => {
-      return $q.when(functionList);
-    };
+  return new FunctionReader(functionTransformer);
+}
 
-    const addTags = (application: Application) => {
-      EntityTagsReader.addTagsToFunctions(application);
-    };
+export function registerFunctionDataSource(functionReader: FunctionReader): void {
+  if (
+    !SETTINGS.feature.functions ||
+    ApplicationDataSourceRegistry.getDataSources().some((source) => source.key === 'functions')
+  ) {
+    return;
+  }
+  const functions = (application: Application) => {
+    return functionReader.loadFunctions(application.name);
+  };
 
-    ApplicationDataSourceRegistry.registerDataSource({
-      key: 'functions',
-      label: 'functions',
-      sref: '.insight.functions',
-      category: INFRASTRUCTURE_KEY,
-      optional: true,
-      icon: 'fa fa-xs fa-fw fa-asterisk',
-      iconName: 'spMenuFunctions',
-      loader: functions,
-      onLoad: addFunctions,
-      afterLoad: addTags,
-      providerField: 'cloudProvider',
-      credentialsField: 'account',
-      regionField: 'region',
-      description: 'Serverless Compute Service.',
-      defaultData: [],
-    });
-  },
-]);
+  const addFunctions = (_application: Application, functionList: IFunction[]) => {
+    return Promise.resolve(functionList);
+  };
+
+  const addTags = (application: Application) => {
+    EntityTagsReader.addTagsToFunctions(application);
+  };
+
+  ApplicationDataSourceRegistry.registerDataSource({
+    key: 'functions',
+    label: 'functions',
+    sref: '.insight.functions',
+    category: INFRASTRUCTURE_KEY,
+    optional: true,
+    icon: 'fa fa-xs fa-fw fa-asterisk',
+    iconName: 'spMenuFunctions',
+    loader: functions,
+    onLoad: addFunctions,
+    afterLoad: addTags,
+    providerField: 'cloudProvider',
+    credentialsField: 'account',
+    regionField: 'region',
+    description: 'Serverless Compute Service.',
+    defaultData: [],
+  });
+}

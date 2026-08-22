@@ -84,6 +84,19 @@ public class ApiTokenAuthenticationFilter extends OncePerRequestFilter {
 
   public static final String HEADER_X_SPINNAKER_TOKEN = "X-Spinnaker-Token";
 
+  /** RFC 7235 §2.1 auth-scheme prefix (including trailing space) for {@code Authorization}. */
+  static final String BEARER_SCHEME = "Bearer ";
+
+  /**
+   * Case-insensitive RFC 7235 §2.1 match of the {@code Bearer } auth-scheme prefix. Shared with
+   * {@code ApiTokenAuthConfigurerAdapter.ApiTokenRequestMatcher} so the routing layer and the
+   * filter can't drift on what counts as a Bearer header.
+   */
+  static boolean hasBearerScheme(String authHeader) {
+    return authHeader != null
+        && authHeader.regionMatches(true, 0, BEARER_SCHEME, 0, BEARER_SCHEME.length());
+  }
+
   @Override
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain chain)
@@ -95,7 +108,7 @@ public class ApiTokenAuthenticationFilter extends OncePerRequestFilter {
     // re-emits MDC entries as outbound headers on every downstream call, which would leak the
     // plaintext token to Fiat logs. Clear it from MDC and wrap the request so it can't be re-read.
     if (request.getHeader(HEADER_X_SPINNAKER_TOKEN) != null) {
-      MDC.remove(HEADER_X_SPINNAKER_TOKEN.toUpperCase());
+      MDC.remove(HEADER_X_SPINNAKER_TOKEN.toUpperCase(Locale.ROOT));
       request = new TokenHeaderStrippingRequestWrapper(request);
     }
 
@@ -202,8 +215,13 @@ public class ApiTokenAuthenticationFilter extends OncePerRequestFilter {
       return xToken;
     }
     String authHeader = request.getHeader("Authorization");
-    if (authHeader != null && authHeader.startsWith("Bearer " + properties.getTokenPrefix())) {
-      return authHeader.substring("Bearer ".length());
+    // RFC 7235 §2.1: the auth-scheme token is case-insensitive ("Bearer"/"bearer"/"BEARER" are all
+    // valid). The opaque token (spk_…) itself is case-sensitive and stays so.
+    if (hasBearerScheme(authHeader)) {
+      String candidate = authHeader.substring(BEARER_SCHEME.length());
+      if (candidate.startsWith(properties.getTokenPrefix())) {
+        return candidate;
+      }
     }
     return null;
   }

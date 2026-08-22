@@ -4,3 +4,4 @@ spin.exe
 *.iml
 *.vscode*
 gateapi
+openapi-generator-cli*

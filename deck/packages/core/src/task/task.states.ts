@@ -1,78 +1,76 @@
-import { module } from 'angular';
-
 import { TaskNotFound } from './TaskNotFound';
+import { Tasks } from './Tasks';
 import type { ApplicationStateProvider } from '../application/application.state.provider';
-import { APPLICATION_STATE_PROVIDER } from '../application/application.state.provider';
-import type { INestedState, StateConfigProvider } from '../navigation/state.provider';
+import { registerApplicationState } from '../application/applicationState.registration';
+import { registerRootState } from '../navigation/rootState.registration';
+import type { INestedState } from '../navigation/state.provider';
 import { TaskReader } from './task.read.service';
 
-export const TASK_STATES = 'spinnaker.core.task.states';
-module(TASK_STATES, [APPLICATION_STATE_PROVIDER]).config([
-  'applicationStateProvider',
-  'stateConfigProvider',
-  (applicationStateProvider: ApplicationStateProvider, stateConfigProvider: StateConfigProvider) => {
-    const taskDetails: INestedState = {
-      name: 'taskDetails',
-      url: '/:taskId',
-      views: {},
-      data: {
-        pageTitleDetails: {
-          title: 'Task Details',
-          nameParam: 'taskId',
-        },
+export function getTasksState(): INestedState {
+  const taskDetails: INestedState = {
+    name: 'taskDetails',
+    url: '/:taskId',
+    views: {},
+    data: {
+      pageTitleDetails: {
+        title: 'Task Details',
+        nameParam: 'taskId',
       },
-    };
+    },
+  };
 
-    const tasks: INestedState = {
-      name: 'tasks',
-      url: '/tasks?q',
-      views: {
-        insight: {
-          templateUrl: require('../task/tasks.html'),
-          controller: 'TasksCtrl',
-          controllerAs: 'tasks',
-        },
+  return {
+    name: 'tasks',
+    url: '/tasks?q',
+    views: {
+      insight: {
+        component: Tasks,
+        $type: 'react',
       },
-      params: {
-        q: { dynamic: true, value: null },
+    },
+    params: {
+      q: { dynamic: true, value: null },
+    },
+    data: {
+      pageTitleSection: {
+        title: 'Tasks',
       },
-      data: {
-        pageTitleSection: {
-          title: 'Tasks',
-        },
-      },
-      children: [taskDetails],
-    };
+    },
+    children: [taskDetails],
+  };
+}
 
-    const taskLookup: INestedState = {
-      name: 'taskLookup',
-      url: '/tasks/:taskId',
-      params: {
-        taskId: { dynamic: true },
-      },
-      redirectTo: (transition) => {
-        const { taskId } = transition.params();
+registerApplicationState((applicationStateProvider: ApplicationStateProvider) => {
+  applicationStateProvider.addChildState(getTasksState());
+});
 
-        if (!taskId) {
-          return undefined;
-        }
+registerRootState((stateConfigProvider) => {
+  const taskLookup: INestedState = {
+    name: 'taskLookup',
+    url: '/tasks/:taskId',
+    params: {
+      taskId: { dynamic: true },
+    },
+    redirectTo: (transition) => {
+      const { taskId } = transition.params();
 
-        return Promise.resolve(TaskReader.getTask(taskId))
-          .then((task) =>
-            transition.router.stateService.target('home.applications.application.tasks.taskDetails', {
-              application: task.application,
-              taskId,
-            }),
-          )
-          .catch(() => {});
-      },
-      views: {
-        'main@': { component: TaskNotFound, $type: 'react' },
-      },
-    };
+      if (!taskId) {
+        return undefined;
+      }
 
-    applicationStateProvider.addChildState(tasks);
+      return Promise.resolve(TaskReader.getTask(taskId))
+        .then((task) =>
+          transition.router.stateService.target('home.applications.application.tasks.taskDetails', {
+            application: task.application,
+            taskId,
+          }),
+        )
+        .catch(() => {});
+    },
+    views: {
+      'main@': { component: TaskNotFound, $type: 'react' },
+    },
+  };
 
-    stateConfigProvider.addToRootState(taskLookup);
-  },
-]);
+  stateConfigProvider.addToRootState(taskLookup);
+});

@@ -1,0 +1,104 @@
+{
+  "credentials": [
+    {
+      "accountType": "gce",
+      "authorized": true,
+      "challengeDestructiveActions": false,
+      "cloudProvider": "gce",
+      "environment": "gce",
+      "name": "gce",
+      "permissions": {},
+      "primaryAccount": true,
+      "providerVersion": "v1",
+      "regions": [
+        {
+          "availabilityZones": ["us-central1-a"],
+          "name": "us-central1",
+          "preferredZones": ["us-central1-a"]
+        }
+      ],
+      "requiredGroupMembership": [],
+      "skin": "v1",
+      "type": "gce"
+    }
+  ],
+  "networks": [
+    {
+      "account": "gce",
+      "cloudProvider": "gce",
+      "id": "default",
+      "name": "default",
+      "region": "global",
+      "selfLink": "projects/test/global/networks/default"
+    }
+  ],
+  "search": {
+    "addresses": [
+      {
+        "results": [
+          {
+            "account": "gce",
+            "address": "{\"address\":\"203.0.113.10\",\"name\":\"lb-address\"}",
+            "name": "lb-address",
+            "provider": "gce",
+            "region": "us-central1",
+            "type": "addresses"
+          }
+        ]
+      }
+    ],
+    "backendServices": [
+      {
+        "results": [
+          {
+            "account": "gce",
+            "healthCheck": { "name": "lb-health-check" },
+            "name": "lb-backend",
+            "portName": "http",
+            "region": "global",
+            "sessionAffinity": "NONE"
+          }
+        ]
+      }
+    ],
+    "healthChecks": [
+      {
+        "results": [
+          {
+            "account": "gce",
+            "healthCheck": "{\"checkIntervalSec\":10,\"healthCheckType\":\"HTTP\",\"healthyThreshold\":2,\"name\":\"lb-health-check\",\"port\":80,\"requestPath\":\"/\",\"timeoutSec\":5,\"unhealthyThreshold\":2}",
+            "kind": "HTTP",
+            "name": "lb-health-check",
+            "provider": "gce",
+            "type": "healthChecks"
+          }
+        ]
+      }
+    ],
+    "sslCertificates": [
+      {
+        "results": [
+          {
+            "account": "gce",
+            "name": "lb-cert",
+            "provider": "gce",
+            "type": "sslCertificates"
+          }
+        ]
+      }
+    ]
+  },
+  "subnets": [
+    {
+      "account": "gce",
+      "cidrBlock": "10.0.0.0/24",
+      "id": "lb-subnet",
+      "name": "lb-subnet",
+      "network": "default",
+      "purpose": "PRIVATE",
+      "region": "us-central1",
+      "selfLink": "projects/test/regions/us-central1/subnetworks/lb-subnet",
+      "type": "gce"
+    }
+  ]
+}

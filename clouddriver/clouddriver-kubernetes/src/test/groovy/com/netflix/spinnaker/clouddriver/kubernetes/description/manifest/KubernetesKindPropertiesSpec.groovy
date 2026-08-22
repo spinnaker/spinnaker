@@ -20,10 +20,10 @@ package com.netflix.spinnaker.clouddriver.kubernetes.description.manifest
 
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKindProperties
-import io.kubernetes.client.openapi.models.V1beta1CustomResourceDefinition
-import io.kubernetes.client.openapi.models.V1beta1CustomResourceDefinitionBuilder
-import io.kubernetes.client.openapi.models.V1beta1CustomResourceDefinitionNamesBuilder
-import io.kubernetes.client.openapi.models.V1beta1CustomResourceDefinitionSpecBuilder
+import io.kubernetes.client.openapi.models.V1CustomResourceDefinition
+import io.kubernetes.client.openapi.models.V1CustomResourceDefinitionBuilder
+import io.kubernetes.client.openapi.models.V1CustomResourceDefinitionNamesBuilder
+import io.kubernetes.client.openapi.models.V1CustomResourceDefinitionSpecBuilder
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -75,12 +75,12 @@ class KubernetesKindPropertiesSpec extends Specification {
     when:
     def kind = "TestKind"
     def group = "stable.example.com"
-    V1beta1CustomResourceDefinition crd =
-      new V1beta1CustomResourceDefinitionBuilder()
+    V1CustomResourceDefinition crd =
+      new V1CustomResourceDefinitionBuilder()
         .withSpec(
-          new V1beta1CustomResourceDefinitionSpecBuilder()
+          new V1CustomResourceDefinitionSpecBuilder()
             .withNames(
-              new V1beta1CustomResourceDefinitionNamesBuilder().withKind(kind).build())
+              new V1CustomResourceDefinitionNamesBuilder().withKind(kind).build())
             .withGroup(group)
             .withScope(scope)
             .build())

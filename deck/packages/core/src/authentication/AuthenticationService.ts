@@ -3,12 +3,16 @@ export interface IUser {
   authenticated: boolean;
   roles?: string[];
   lastAuthenticated?: number;
+  canMintApiTokens?: boolean;
+  isAdmin?: boolean;
 }
 
 const defaultUser: IUser = {
   name: '[anonymous]',
   roles: [],
   authenticated: false,
+  canMintApiTokens: false,
+  isAdmin: false,
 };
 
 export class AuthenticationService {
@@ -26,13 +30,24 @@ export class AuthenticationService {
       this.user.authenticated = true;
       this.user.lastAuthenticated = new Date().getTime();
       this.user.roles = authenticatedUser.roles;
+      this.user.canMintApiTokens = authenticatedUser.canMintApiTokens ?? false;
+      this.user.isAdmin = authenticatedUser.isAdmin ?? false;
     }
 
-    this.authEvents.forEach((event: Function) => event());
+    this.authEvents.forEach((event: Function) => {
+      try {
+        event();
+      } catch (error) {
+        console.error('Authentication listener failed', error);
+      }
+    });
   }
 
-  public static onAuthentication(event: Function): void {
+  public static onAuthentication(event: Function): () => void {
     this.authEvents.push(event);
+    return () => {
+      this.authEvents = this.authEvents.filter((registeredEvent) => registeredEvent !== event);
+    };
   }
 
   public static authenticationExpired(): void {

@@ -18,8 +18,10 @@ package com.netflix.spinnaker.gradle.extension.tasks
 import com.netflix.spinnaker.gradle.extension.Plugins
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.bundling.Zip
+import org.gradle.work.DisableCachingByDefault
 
-open class AssembleUIPluginTask : Zip() {
+@DisableCachingByDefault(because = "UI plugin zip assembly is not cacheable")
+abstract class AssembleUIPluginTask : Zip() {
 
   @Internal
   override fun getGroup(): String = Plugins.GROUP

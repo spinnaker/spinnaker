@@ -18,6 +18,12 @@
     "interactive": "./upgrade-interactive.sh"
   },
   "files": [],
+  "devDependencies": {
+    "@spinnaker/core": "workspace:^",
+    "@spinnaker/eslint-plugin": "workspace:^",
+    "@spinnaker/pluginsdk": "workspace:^",
+    "@spinnaker/presentation": "workspace:^"
+  },
   "peerDependencies": {
     "@rollup/plugin-commonjs": "^28.0.9",
     "@rollup/plugin-json": "^6.1.0",
@@ -26,14 +32,14 @@
     "@rollup/plugin-typescript": "^12.3.0",
     "@rollup/plugin-url": "^8.0.2",
     "@spinnaker/core": "0.29.1",
-    "@spinnaker/eslint-plugin": "3.0.1",
+    "@spinnaker/eslint-plugin": "3.0.2",
     "@spinnaker/pluginsdk": "*",
     "@spinnaker/presentation": "0.3.1",
     "@types/react": "~16.8.0",
-    "@uirouter/core": "6.0.4",
-    "@uirouter/react": "1.0.2",
+    "@uirouter/core": "6.0.8",
+    "@uirouter/react": "1.0.7",
     "bufferutil": "4.0.9",
-    "lodash-es": "4.17.21",
+    "lodash-es": "4.18.1",
     "npm-run-all2": "5.0.0",
     "postcss": "^8.4.14",
     "prettier": "2.1.2",

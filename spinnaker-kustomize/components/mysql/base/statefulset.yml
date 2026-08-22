@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql
+spec:
+  serviceName: "mysql"
+  replicas: 1
+  template:
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:8.0
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: "testing123"
+        - name: clouddriver
+          value: "testing123"
+        - name: echo
+          value: "testing123"
+        - name: fiat
+          value: "testing123"
+        - name: front50
+          value: "testing123"
+        - name: orca
+          value: "testing123"
+        ports:
+        - name: traffic-port
+          containerPort: 3306
+          protocol: TCP
+        readinessProbe:
+          exec:
+            command:
+            - mysqladmin
+            - ping
+            - -h
+            - localhost
+          initialDelaySeconds: 20
+        resources:
+          requests:
+            memory: 256Mi
+            cpu: 100m
+        securityContext:
+          allowPrivilegeEscalation: false
+        volumeMounts:
+        - name: config
+          mountPath: /etc/mysql/conf.d
+        - name: init
+          mountPath: /docker-entrypoint-initdb.d/init.sh
+          subPath: init.sh
+        - name: mysql
+          mountPath: /var/lib/mysql
+      volumes:
+      - name: config
+        configMap:
+          name: mysql
+          items:
+          - key: config.cnf
+            path: config.cnf
+      - name: init
+        configMap:
+          name: mysql
+          defaultMode: 0755
+          items:
+          - key: init.sh
+            path: init.sh
+  volumeClaimTemplates:
+  - metadata:
+      name: mysql
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi

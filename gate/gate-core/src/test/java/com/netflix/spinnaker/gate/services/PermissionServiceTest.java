@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.services;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -285,6 +286,36 @@ public class PermissionServiceTest {
     }
 
     verifyNoMoreInteractions(extendedFiatService, permissionEvaluator);
+  }
+
+  @Test
+  public void testIsAdminReturnsFalseWithoutCallingFiatWhenDisabled() {
+    FiatStatus fiatStatus = mock(FiatStatus.class);
+    FiatPermissionEvaluator permissionEvaluator = mock(FiatPermissionEvaluator.class);
+    when(fiatStatus.isEnabled()).thenReturn(false);
+
+    PermissionService permissionService =
+        new PermissionService(null, null, null, permissionEvaluator, fiatStatus);
+
+    assertFalse(permissionService.isAdmin("foo@bar.com"));
+    verify(permissionEvaluator, times(0)).getPermission("foo@bar.com");
+  }
+
+  @Test
+  public void testIsAdminDelegatesToFiatWhenEnabled() {
+    FiatStatus fiatStatus = mock(FiatStatus.class);
+    FiatPermissionEvaluator permissionEvaluator = mock(FiatPermissionEvaluator.class);
+    when(fiatStatus.isEnabled()).thenReturn(true);
+
+    UserPermission.View permission = new UserPermission.View();
+    permission.setAdmin(true);
+    when(permissionEvaluator.getPermission("foo@bar.com")).thenReturn(permission);
+
+    PermissionService permissionService =
+        new PermissionService(null, null, null, permissionEvaluator, fiatStatus);
+
+    assertTrue(permissionService.isAdmin("foo@bar.com"));
+    verify(permissionEvaluator, times(1)).getPermission("foo@bar.com");
   }
 
   private UserPermission.View sa(String name, String application, Collection<Authorization> auths) {

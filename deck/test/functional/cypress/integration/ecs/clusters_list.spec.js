@@ -29,20 +29,11 @@ describe('Amazon ECS: aws-prod-ecsdemo cluster', () => {
     cy.get('.btn:contains("Server Group Actions")')
       .click()
       .get('.dropdown-menu')
-      .get('.ng-scope')
       .should('contain.text', 'Rollback');
 
     cy.get('a:contains("Rollback")').click({ force: true });
 
     cy.get('.modal-title').should('contain.text', 'Rollback aws-prod-ecsdemo');
-  });
-
-  it('shows stored details view and ECS server group actions', () => {
-    cy.visit('#/applications/ecsapp/clusters');
-
-    cy.get('.sub-group:contains("aws-prod-ecsdemo")').find('.server-group:contains("v000")').click({ force: true });
-
-    cy.get('.btn:contains("Server Group Actions")').click().get('a:contains("Rollback")').click();
   });
 
   it('shows stored instance details view action', () => {
@@ -56,10 +47,10 @@ describe('Amazon ECS: aws-prod-ecsdemo cluster', () => {
       .get('a[title="f8757e00-184d-4288-b535-4124a739e7be"]')
       .click();
 
-    cy.get('.details-panel > .header')
-      .get('instance-details-header')
-      .get('.header-text')
-      .get('h3:contains("f8757e00-184d-4288-b535-4124a739e7be")');
+    cy.get('.details-panel > .header .InstanceDetailsHeader .header-text h3').should(
+      'contain.text',
+      'f8757e00-184d-4288-b535-4124a739e7be',
+    );
 
     cy.get('[data-test-id="instanceDetails.content"]')
       .get('.collapsible-section')

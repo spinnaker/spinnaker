@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.State.SUCCEEDED;
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.Type.CREATE_SERVICE_KEY;
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.LastOperation.State.SUCCEEDED;
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.LastOperation.Type.CREATE_SERVICE_KEY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.atIndex;
 import static org.mockito.Mockito.*;

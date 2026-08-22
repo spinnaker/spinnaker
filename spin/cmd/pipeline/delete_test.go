@@ -18,7 +18,7 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/spinnaker/spin/cmd"
+	"github.com/spinnaker/spinnaker/spin/cmd"
 )
 
 // TODO(jacobkiefer): This test overlaps heavily with pipeline_save_test.go,

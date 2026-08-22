@@ -1,21 +1,18 @@
-import { module } from 'angular';
-
 import type { Application } from '@spinnaker/core';
 import { ApplicationDataSourceRegistry, INFRASTRUCTURE_KEY, REST } from '@spinnaker/core';
 
-export const KUBERNETS_RAW_RESOURCE_DATA_SOURCE = 'spinnaker.core.rawresource.dataSource';
 export const KUBERNETS_RAW_RESOURCE_DATA_SOURCE_KEY = 'k8s';
 const KUBERNETS_RAW_RESOURCE_DATA_SOURCE_SREF = `.insight.${KUBERNETS_RAW_RESOURCE_DATA_SOURCE_KEY}`;
 
 type ApiK8sResource = any;
 
-const fetchK8sResources = (application: Application): PromiseLike<ApiK8sResource> =>
+const fetchK8sResources = (application: Application): Promise<ApiK8sResource> =>
   REST('applications').path(application.name, 'rawResources').get();
 
-const formatK8sResources = (_: Application, result: ApiK8sResource): PromiseLike<ApiK8sResource> =>
-  Promise.resolve(result);
+const formatK8sResources = (_: Application, result: ApiK8sResource): Promise<ApiK8sResource> => Promise.resolve(result);
 
-module(KUBERNETS_RAW_RESOURCE_DATA_SOURCE, []).run(() => {
+export function registerKubernetesRawResourceDataSource(): void {
+  ApplicationDataSourceRegistry.removeDataSource(KUBERNETS_RAW_RESOURCE_DATA_SOURCE_KEY);
   ApplicationDataSourceRegistry.registerDataSource({
     key: KUBERNETS_RAW_RESOURCE_DATA_SOURCE_KEY,
     label: 'Kubernetes',
@@ -32,4 +29,4 @@ module(KUBERNETS_RAW_RESOURCE_DATA_SOURCE, []).run(() => {
     description: 'Collections of kubernetes resources',
     defaultData: [],
   });
-});
+}

@@ -1,0 +1,74 @@
+import { mount } from 'enzyme';
+import React from 'react';
+import { of as observableOf } from 'rxjs';
+
+import { AccountService } from '../account/AccountService';
+import { CloudProviderRegistry } from '../cloudProvider/CloudProviderRegistry';
+import { SETTINGS } from '../config/settings';
+
+import { Overridable } from './Overridable';
+import { overridesComponent } from './Overrides';
+import { overrideRegistry, OverrideRegistry } from './override.registry';
+
+class Original extends React.Component<{ accountId?: string }> {
+  public render() {
+    return <div className="original">Original</div>;
+  }
+}
+
+describe('Overridable', () => {
+  it('renders a React component override registered in the override registry', () => {
+    const key = 'overridable.spec.registryComponent';
+    const OriginalComponent = Overridable(key)(Original);
+    const OverrideComponent = () => <div className="override">Override</div>;
+
+    overrideRegistry.overrideComponent(key, OverrideComponent);
+
+    const wrapper = mount(<OriginalComponent />);
+
+    expect(wrapper.find('.override').text()).toBe('Override');
+    expect(wrapper.find('.original').exists()).toBeFalse();
+  });
+
+  it('flushes queued override registrations into the singleton registry', () => {
+    const key = 'overridable.spec.directSingletonRegistry';
+    const OverrideComponent = () => <div className="override">Override</div>;
+
+    overridesComponent(OverrideComponent, key);
+
+    expect(overrideRegistry.getComponent(key)).toBe(OverrideComponent as any);
+  });
+
+  it('renders the original component when only a legacy cloud-provider template override is registered', () => {
+    const key = 'overridable.spec.legacyCloudProviderTemplate';
+    const provider = 'overridableSpecProvider';
+    const OriginalComponent = Overridable(key)(Original);
+
+    SETTINGS.providers[provider] = { defaults: { account: 'test' } } as any;
+    CloudProviderRegistry.registerProvider(provider, { name: provider });
+    CloudProviderRegistry.overrideValue(provider, `${key}TemplateUrl`, 'legacy-template.html');
+    CloudProviderRegistry.overrideValue(provider, `${key}Controller`, 'LegacyController');
+    AccountService.accounts$ = observableOf([{ name: 'test', cloudProvider: provider } as any]);
+
+    const wrapper = mount(<OriginalComponent accountId="test" />);
+
+    expect(wrapper.find('.original').text()).toBe('Original');
+  });
+
+  it('renders a React component override registered for a cloud provider', () => {
+    const key = 'overridable.spec.cloudProviderComponent';
+    const provider = 'overridableSpecComponentProvider';
+    const OriginalComponent = Overridable(key)(Original);
+    const OverrideComponent = () => <div className="override">Override</div>;
+
+    SETTINGS.providers[provider] = { defaults: { account: 'test' } } as any;
+    CloudProviderRegistry.registerProvider(provider, { name: provider });
+    CloudProviderRegistry.overrideValue(provider, key, OverrideComponent);
+    AccountService.accounts$ = observableOf([{ name: 'test', cloudProvider: provider } as any]);
+
+    const wrapper = mount(<OriginalComponent accountId="test" />);
+
+    expect(wrapper.find('.override').text()).toBe('Override');
+    expect(wrapper.find('.original').exists()).toBeFalse();
+  });
+});

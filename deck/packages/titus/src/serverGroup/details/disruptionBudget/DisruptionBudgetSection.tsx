@@ -1,21 +1,18 @@
-import { module } from 'angular';
 import { isEqual } from 'lodash';
 import prettyMilliseconds from 'pretty-ms';
 import React from 'react';
-import { react2angular } from 'react2angular';
 
 import type { IServerGroupDetailsSectionProps } from '@spinnaker/core';
-import { HelpField, withErrorBoundary } from '@spinnaker/core';
+import { HelpField } from '@spinnaker/core';
 
 import { EditDisruptionBudgetModal } from './EditDisruptionBudgetModal';
-import type { ITitusServerGroupCommand } from '../../configure/serverGroupConfiguration.service';
+import { TitusServerGroupCommandBuilder } from '../../configure/ServerGroupCommandBuilder';
 import { getDefaultJobDisruptionBudgetForApp } from '../../configure/serverGroupConfiguration.service';
 import type { IFieldOption } from '../../configure/wizard/pages/disruptionBudget/JobDisruptionBudget';
 import { DisruptionBudgetDescription } from '../../configure/wizard/pages/disruptionBudget/JobDisruptionBudget';
 import { policyOptions } from '../../configure/wizard/pages/disruptionBudget/PolicyOptions';
 import { rateOptions } from '../../configure/wizard/pages/disruptionBudget/RateOptions';
 import type { IJobDisruptionBudget, ITitusServerGroup } from '../../../domain';
-import { TitusReactInjector } from '../../../reactShims';
 
 interface IDisruptionBudgetSection extends IServerGroupDetailsSectionProps {
   serverGroup: ITitusServerGroup;
@@ -180,11 +177,9 @@ export class DisruptionBudgetSection extends React.Component<IDisruptionBudgetSe
 
   private editBudget = (): void => {
     const { app, serverGroup } = this.props;
-    TitusReactInjector.titusServerGroupCommandBuilder
-      .buildServerGroupCommandFromExisting(app, serverGroup)
-      .then((command: ITitusServerGroupCommand) => {
-        EditDisruptionBudgetModal.show({ command, application: app, serverGroup });
-      });
+    TitusServerGroupCommandBuilder.buildServerGroupCommandFromExisting(app, serverGroup).then((command: any) => {
+      EditDisruptionBudgetModal.show({ command, application: app, serverGroup });
+    });
   };
 
   public render() {
@@ -217,10 +212,3 @@ export class DisruptionBudgetSection extends React.Component<IDisruptionBudgetSe
     );
   }
 }
-
-export const DISRUPTION_BUDGET_DETAILS_SECTION = 'spinnaker.titus.disruptionbudget.section';
-
-module(DISRUPTION_BUDGET_DETAILS_SECTION, []).component(
-  'titusDisruptionBudgetSection',
-  react2angular(withErrorBoundary(DisruptionBudgetSection, 'titusDisruptionBudgetSection'), ['serverGroup', 'app']),
-);

@@ -1,6 +1,6 @@
 apply plugin: 'io.spinnaker.package'
 
-mainClassName = 'com.netflix.spinnaker.gate.Main'
+application.mainClass = 'com.netflix.spinnaker.gate.Main'
 
 repositories {
   maven {
@@ -14,6 +14,7 @@ dependencies {
   implementation project(":gate-proxy")
   implementation project(":gate-plugins")
   implementation project(":gate-integrations-gremlin")
+  implementation project(":gate-mcp")
 
   implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
   implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"

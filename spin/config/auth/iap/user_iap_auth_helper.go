@@ -24,7 +24,7 @@ import (
 
 	"golang.org/x/oauth2"
 
-	"github.com/spinnaker/spin/util/execcmd"
+	"github.com/spinnaker/spinnaker/spin/util/execcmd"
 )
 
 const (

@@ -225,6 +225,31 @@ class ApiTokenServiceTest {
     }
 
     @Test
+    @DisplayName(
+        "swallows TokenOperationFailedException from updateLastFiatCheck — request still resolves")
+    void resolvesWhenLastFiatCheckWriteLosesWatchRace() {
+      // Bookkeeping write is best-effort: a lost WATCH race must not 500 a valid request.
+      when(permissionService.isEnabled()).thenReturn(true);
+      properties.setRejectCheckIntervalSeconds(60);
+      TokenRecord record = makeRecord(TOKEN_ID, PRINCIPAL, FUTURE_EXPIRY);
+      record.setLastFiatCheckAt(Instant.now().minusSeconds(120).toString());
+      when(redisRepo.findByHash(HASH)).thenReturn(Optional.of(record));
+      View roleView = new View();
+      roleView.setName("ops");
+      when(permissionService.getRolesForTokenAuth(PRINCIPAL))
+          .thenReturn(java.util.Set.of(roleView));
+      doThrow(new RedisApiTokenRepository.TokenOperationFailedException("lost WATCH race"))
+          .when(redisRepo)
+          .updateLastFiatCheck(eq(TOKEN_ID), eq(HASH), any(Instant.class));
+
+      Optional<TokenRecord> result = service.resolveByHash(HASH);
+
+      assertThat(result).isPresent();
+      assertThat(result.get().getId()).isEqualTo(TOKEN_ID);
+      verify(redisRepo).updateLastFiatCheck(eq(TOKEN_ID), eq(HASH), any(Instant.class));
+    }
+
+    @Test
     @DisplayName("triggers Fiat check when lastFiatCheckAt is absent")
     void triggersFiatCheckWhenLastCheckAbsent() {
       when(permissionService.isEnabled()).thenReturn(true);

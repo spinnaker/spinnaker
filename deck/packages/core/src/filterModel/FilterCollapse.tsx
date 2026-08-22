@@ -1,20 +1,17 @@
-import { $rootScope } from 'ngimport';
 import React from 'react';
 
 import { Tooltip } from '../presentation';
-import { ReactInjector } from '../reactShims';
 
 import './FilterCollapse.less';
 
-export class FilterCollapse extends React.Component<{}> {
-  private onClick = (pin: boolean) => {
-    ReactInjector.insightFilterStateModel.pinFilters(pin);
-    $rootScope.$apply(); // insight layout needs to change
-    this.setState({}); // force re-render since we are using insight filter state model to show the collapse button
-  };
+export interface IFilterCollapseProps {
+  filtersExpanded: boolean;
+  onToggle: () => void;
+}
 
+export class FilterCollapse extends React.Component<IFilterCollapseProps> {
   public render() {
-    const { filtersExpanded } = ReactInjector.insightFilterStateModel;
+    const { filtersExpanded, onToggle } = this.props;
 
     return (
       <div className="filters-toggle layer-medium">
@@ -23,7 +20,7 @@ export class FilterCollapse extends React.Component<{}> {
             <Tooltip value="Show filters">
               <button
                 className="btn btn-xs btn-default pin clickable sp-padding-xs"
-                onClick={() => this.onClick(true)}
+                onClick={onToggle}
                 style={{ display: filtersExpanded ? 'none' : 'inherit' }}
               >
                 <i className="fa fa-forward" />
@@ -37,7 +34,7 @@ export class FilterCollapse extends React.Component<{}> {
             <Tooltip value="Hide filters">
               <button
                 className="btn btn-xs btn-default unpin clickable sp-margin-s-xaxis sp-margin-2xs-yaxis sp-padding-xs"
-                onClick={() => this.onClick(false)}
+                onClick={onToggle}
                 style={{ display: filtersExpanded ? 'inherit' : 'none' }}
               >
                 <i className="fa fa-backward" />

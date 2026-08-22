@@ -1,5 +1,4 @@
 import $ from 'jquery';
-import { $timeout } from 'ngimport';
 
 export class ScrollToService {
   public static toDomId(id: string) {
@@ -7,7 +6,7 @@ export class ScrollToService {
   }
 
   public static scrollTo(selector: string, scrollableContainer: string, offset = 0, delay = 0): void {
-    $timeout(() => {
+    setTimeout(() => {
       const elem: JQuery = $(selector);
       if (elem.length) {
         const content: JQuery = scrollableContainer ? elem.closest(scrollableContainer) : $('body');

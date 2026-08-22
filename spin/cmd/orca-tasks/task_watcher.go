@@ -19,7 +19,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/spinnaker/spin/cmd/gateclient"
+	"github.com/spinnaker/spinnaker/spin/cmd/gateclient"
 )
 
 func calculateSleepTime(now int64, lastTryTime int64, attempts int64) time.Duration {

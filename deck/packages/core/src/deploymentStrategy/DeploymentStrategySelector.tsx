@@ -62,8 +62,7 @@ export class DeploymentStrategySelector extends React.Component<
         newStrategy.initializationMethod(command);
       }
     }
-    // Usage of the angular <deployment-strategy-selector> do not have an onStrategyChange and simply expect command.strategy to be updated
-    // This was previously done by <ui-select ng-model="$ctrl.command.strategy">
+    // Keep the shared command in sync when callers do not provide a change callback.
     command.strategy = strategy;
     if (onStrategyChange && newStrategy) {
       onStrategyChange(command, newStrategy);

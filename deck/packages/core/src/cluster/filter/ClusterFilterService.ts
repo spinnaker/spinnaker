@@ -1,6 +1,5 @@
 import { each, every, forOwn, groupBy, isEmpty, some, sortBy } from 'lodash';
 import { Debounce } from 'lodash-decorators';
-import { $log } from 'ngimport';
 import { Subject } from 'rxjs';
 
 import type { Application } from '../../application/application.model';
@@ -9,8 +8,9 @@ import type { ISortFilter } from '../../filterModel';
 import { FilterModelService } from '../../filterModel';
 import type { ILabelFilter } from './labelFilterUtils';
 import { trueKeyObjectToLabelFilters } from './labelFilterUtils';
-import { ReactInjector } from '../../reactShims';
+import { getDirectRouter } from '../../navigation/directRouter';
 import { ClusterState } from '../../state';
+import { diagnosticLogger } from '../../utils/diagnosticLogger';
 
 export interface IParentGrouping {
   subgroups: IClusterSubgroup[] | IServerGroupSubgroup[];
@@ -188,7 +188,7 @@ export class ClusterFilterService {
         category[result.category] = true;
         sortFilter.category = category;
       }
-      if (ReactInjector.$stateParams.application === result.application) {
+      if (getDirectRouter()?.stateService.params.application === result.application) {
         this.updateClusterGroups();
       }
     }
@@ -418,7 +418,7 @@ export class ClusterFilterService {
 
   private sortGroupsByHeading(groups: IClusterGroup[]): void {
     this.diffSubgroups(ClusterState.filterModel.asFilterModel.groups, groups);
-    // sort groups in place so Angular doesn't try to update the world
+    // Preserve the groups array identity for existing subscribers.
     ClusterState.filterModel.asFilterModel.groups.sort((a: IClusterGroup, b: IClusterGroup) =>
       a.heading.localeCompare(b.heading),
     );
@@ -502,7 +502,7 @@ export class ClusterFilterService {
       );
 
       if (!newServerGroup) {
-        $log.debug(
+        diagnosticLogger.debug(
           'server group no longer found, removing:',
           serverGroup.name,
           serverGroup.account,
@@ -512,7 +512,7 @@ export class ClusterFilterService {
         toRemove.push(idx);
       } else {
         if (serverGroup.stringVal !== newServerGroup.stringVal) {
-          $log.debug(
+          diagnosticLogger.debug(
             'change detected, updating server group:',
             serverGroup.name,
             serverGroup.account,
@@ -539,7 +539,12 @@ export class ClusterFilterService {
       );
 
       if (!oldServerGroup) {
-        $log.debug('new server group found, adding', serverGroup.name, serverGroup.account, serverGroup.region);
+        diagnosticLogger.debug(
+          'new server group found, adding',
+          serverGroup.name,
+          serverGroup.account,
+          serverGroup.region,
+        );
         oldGroup.serverGroups.push(serverGroup);
       }
     });

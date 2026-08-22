@@ -22,8 +22,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/spinnaker/spin/cmd"
-	"github.com/spinnaker/spin/util"
+	"github.com/spinnaker/spinnaker/spin/cmd"
+	"github.com/spinnaker/spinnaker/spin/util"
 )
 
 func TestPipelineList_basic(t *testing.T) {
@@ -79,6 +79,7 @@ func TestPipelineList_fail(t *testing.T) {
 func testGatePipelineListSuccess() *httptest.Server {
 	mux := util.TestGateMuxWithVersionHandler()
 	mux.Handle("/applications/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("content-type", "application/json")
 		fmt.Fprintln(w, strings.TrimSpace(pipelineListJson))
 	}))
 	return httptest.NewServer(mux)

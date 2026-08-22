@@ -24,6 +24,7 @@ import com.netflix.spinnaker.igor.scm.bitbucket.client.BitBucketMaster;
 import com.netflix.spinnaker.igor.scm.github.client.GitHubMaster;
 import com.netflix.spinnaker.igor.scm.gitlab.client.GitLabMaster;
 import com.netflix.spinnaker.igor.scm.stash.client.StashMaster;
+import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -52,7 +53,8 @@ public class ManagedDeliveryScmService {
       Optional<StashMaster> stashMaster,
       Optional<GitHubMaster> gitHubMaster,
       Optional<GitLabMaster> gitLabMaster,
-      Optional<BitBucketMaster> bitBucketMaster) {
+      Optional<BitBucketMaster> bitBucketMaster,
+      YamlHelper yamlHelper) {
     this.configProperties =
         configProperties.isPresent()
             ? configProperties.get()
@@ -62,7 +64,8 @@ public class ManagedDeliveryScmService {
     this.gitLabMaster = gitLabMaster;
     this.bitBucketMaster = bitBucketMaster;
     this.jsonMapper = new ObjectMapper();
-    this.yamlMapper = new ObjectMapper(new YAMLFactory());
+    this.yamlMapper =
+        new ObjectMapper(YAMLFactory.builder().loaderOptions(yamlHelper.loaderOptions()).build());
   }
 
   /**

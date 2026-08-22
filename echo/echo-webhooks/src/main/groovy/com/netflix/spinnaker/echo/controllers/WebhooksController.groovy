@@ -135,9 +135,9 @@ class WebhooksController {
   }
 
   @RequestMapping(value = '/webhooks/cdevents/{source}', method = RequestMethod.POST)
-  ResponseEntity<Void> forwardEvent(@PathVariable String source,
-                                    @RequestBody CloudEvent cdevent,
-                                    @RequestHeader HttpHeaders headers) {
+  WebhooksController.WebhookResponse forwardEvent(@PathVariable String source,
+                                                  @RequestBody CloudEvent cdevent,
+                                                  @RequestHeader HttpHeaders headers) {
     log.info("CDEvents Webhook received with source ${source} and with event type ${cdevent.getType()}")
     String ceDataJsonString  = headers.get("Ce-Data").get(0)
     log.info("CDEvent received with in the CloudEvent data request {}", ceDataJsonString)
@@ -174,8 +174,7 @@ class WebhooksController {
     }
     propagator.processEvent(event)
 
-    WebhookResponse.newInstance(eventProcessed: true, eventId: event.eventId)
-    ResponseEntity.ok().build();
+    return WebhookResponse.newInstance(eventProcessed: true, eventId: event.eventId)
   }
 
   private static class WebhookResponse {

@@ -2,9 +2,9 @@ import React from 'react';
 
 import type { Application } from '@spinnaker/core';
 import { ReactModal } from '@spinnaker/core';
-import type { IAmazonServerGroupView } from '../../../domain';
-import { AwsReactInjector } from '../../../reactShims';
 
+import { AwsServices } from '../../../aws.services';
+import type { IAmazonServerGroupView } from '../../../domain';
 import type { IUpsertTargetTrackingModalProps } from './targetTracking/UpsertTargetTrackingModal';
 import { UpsertTargetTrackingModal } from './targetTracking/UpsertTargetTrackingModal';
 import { PolicyTypeSelectionModal } from './upsert/PolicyTypeSelectionModal';
@@ -44,7 +44,7 @@ export class CreateScalingPolicyButton extends React.Component<
 
     const upsertProps = {
       app: application,
-      policy: AwsReactInjector.awsServerGroupTransformer.constructNewStepScalingPolicyTemplate(serverGroup),
+      policy: AwsServices.awsServerGroupTransformer.constructNewStepScalingPolicyTemplate(serverGroup),
       serverGroup,
     } as IUpsertScalingPolicyModalProps;
     const modalProps = { dialogClassName: 'wizard-modal modal-lg' };
@@ -56,7 +56,7 @@ export class CreateScalingPolicyButton extends React.Component<
 
     const upsertProps = {
       app: application,
-      policy: AwsReactInjector.awsServerGroupTransformer.constructNewTargetTrackingPolicyTemplate(),
+      policy: AwsServices.awsServerGroupTransformer.constructNewTargetTrackingPolicyTemplate(),
       serverGroup,
     } as IUpsertTargetTrackingModalProps;
     const modalProps = { dialogClassName: 'wizard-modal modal-lg' };

@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/spinnaker/spin/util"
+	"github.com/spinnaker/spinnaker/spin/util"
 
 	"github.com/spf13/cobra"
 )

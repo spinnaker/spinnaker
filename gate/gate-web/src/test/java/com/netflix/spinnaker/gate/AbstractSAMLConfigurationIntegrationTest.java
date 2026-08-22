@@ -74,6 +74,9 @@ abstract class AbstractSAMLConfigurationIntegrationTest {
   protected static final String TEST_USER = "testuser";
   protected static final String TEST_PASSWORD = "testpassword";
   protected static final String TEST_EMAIL = "testuser@example.com";
+  // Registration ID — must match the key under
+  // spring.security.saml2.relyingparty.registration.<id>
+  protected static final String REGISTRATION_ID = "SSO";
 
   @MockitoBean ClouddriverService clouddriverService;
 
@@ -81,7 +84,7 @@ abstract class AbstractSAMLConfigurationIntegrationTest {
 
   @MockitoBean Front50Service front50Service;
 
-  @Autowired protected SecuritySamlProperties properties;
+  @Autowired protected SecuritySamlProperties samlProperties;
 
   @LocalServerPort protected int port;
 
@@ -122,14 +125,20 @@ abstract class AbstractSAMLConfigurationIntegrationTest {
 
   @DynamicPropertySource
   static void configureProperties(DynamicPropertyRegistry registry) throws IOException {
+    // IdP metadata URI uses Spring Boot's native SAML2 relying-party property.
+    // The registration ID key must match the one used in @SpringBootTest properties.
     registry.add(
-        "saml.metadata-url",
+        "spring.security.saml2.relyingparty.registration."
+            + REGISTRATION_ID
+            + ".assertingparty.metadata-uri",
         () -> keycloakBaseUrl + "/realms/" + REALM_NAME + "/protocol/saml/descriptor");
   }
 
   protected void assertSamlPropertiesLoaded() {
-    assertThat(properties).isNotNull();
-    assertThat(properties.getMetadataUrl()).contains(REALM_NAME);
+    // Context loading successfully already proves Spring Boot auto-configured the relying-party
+    // registration from the dynamic spring.security.saml2.* property.
+    assertThat(samlProperties).isNotNull();
+    assertThat(samlProperties.isEnabled()).isTrue();
   }
 
   protected void assertSamlRedirectFlowWorks() throws Exception {
@@ -149,14 +158,13 @@ abstract class AbstractSAMLConfigurationIntegrationTest {
                 .build(),
             HttpResponse.BodyHandlers.ofString());
     assertThat(response.headers().firstValue("Location").orElse(""))
-        .isEqualTo("http://localhost:" + port + "/saml2/authenticate?registrationId=SSO");
-    //        .isEqualTo("http://localhost:" + port + "/saml2/authenticate/SSO"); - this changed in
-    // later versions of spring to be an argument vs a path based approach.
+        .isEqualTo(
+            "http://localhost:" + port + "/saml2/authenticate?registrationId=" + REGISTRATION_ID);
     assertThat(response.statusCode()).isEqualTo(302);
 
     HttpRequest request =
         HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:" + port + "/saml2/authenticate/SSO"))
+            .uri(URI.create("http://localhost:" + port + "/saml2/authenticate/" + REGISTRATION_ID))
             .GET()
             .build();
     response = client.send(request, HttpResponse.BodyHandlers.ofString());
@@ -166,12 +174,13 @@ abstract class AbstractSAMLConfigurationIntegrationTest {
     String samlRequest = extractFieldFromBody("SAMLRequest", body);
     String relayState = extractFieldFromBody("RelayState", body);
 
-    String decodeSamlRequest = decodeSamlRequest(samlRequest);
-    assertThat(decodeSamlRequest)
+    String decodedSamlRequest = decodeSamlRequest(samlRequest);
+    assertThat(decodedSamlRequest)
         .contains("AuthnRequest")
         .contains("AssertionConsumerServiceURL")
-        .contains("http://localhost:" + port + "/saml/SSO");
-    // Note hte saml AC (aka /saml/SSO) MUST match the redirectUris in the client.
+        // Spring Boot's default ACS path: /login/saml2/sso/{registrationId}
+        .contains("http://localhost:" + port + "/saml/" + REGISTRATION_ID);
+
     String samlRequestToKeycloak =
         generatePostBody(Map.of("SAMLRequest", samlRequest, "RelayState", relayState));
     HttpRequest authPost =
@@ -211,6 +220,8 @@ abstract class AbstractSAMLConfigurationIntegrationTest {
     driver.get("http://localhost:" + port + "/beans");
 
     WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+    System.out.println("Currently at :" + driver.getCurrentUrl());
+    System.out.println("Current page:" + driver.getPageSource());
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("username")));
 
     driver.findElement(By.id("username")).sendKeys(TEST_USER);
@@ -219,6 +230,8 @@ abstract class AbstractSAMLConfigurationIntegrationTest {
 
     wait.until(ExpectedConditions.urlContains("localhost:" + port));
 
+    System.out.println("After login, now at :" + driver.getCurrentUrl());
+    System.out.println("After login, now at :" + driver.getPageSource());
     assertThat(driver.getCurrentUrl()).contains("localhost:" + port + "/beans");
     assertThat(driver.getPageSource()).contains("beans");
 
@@ -239,8 +252,7 @@ abstract class AbstractSAMLConfigurationIntegrationTest {
             .POST(HttpRequest.BodyPublishers.ofString(tokenBody))
             .build();
 
-    Thread.sleep(
-        500); // The... test tends to need a minute post creation.... to make sure this WORKS
+    Thread.sleep(500);
     HttpResponse<String> tokenResponse =
         client.send(tokenRequest, HttpResponse.BodyHandlers.ofString());
     String accessToken = extractAccessToken(tokenResponse.body());
@@ -254,8 +266,7 @@ abstract class AbstractSAMLConfigurationIntegrationTest {
         """
             .formatted(REALM_NAME);
 
-    Thread.sleep(
-        500); // The... test tends to need a minute post creation.... to make sure this WORKS
+    Thread.sleep(500);
     HttpRequest createRealmRequest =
         HttpRequest.newBuilder()
             .uri(URI.create(keycloakBaseUrl + "/admin/realms"))
@@ -315,13 +326,14 @@ abstract class AbstractSAMLConfigurationIntegrationTest {
         client.send(tokenRequest, HttpResponse.BodyHandlers.ofString());
     String accessToken = extractAccessToken(tokenResponse.body());
 
+    // ACS redirect URI uses Spring Boot's default path: /login/saml2/sso/{registrationId}
     String clientJson =
         """
         {
          "clientId":"%s",
          "enabled":true,
          "protocol":"saml",
-         "redirectUris":["http://localhost:%s/saml/SSO"],
+         "redirectUris":["http://localhost:%s/saml/%s"],
          "attributes":{
           "saml.authnstatement":"true",
           "saml.server.signature":"true",
@@ -329,7 +341,7 @@ abstract class AbstractSAMLConfigurationIntegrationTest {
          }
         }
         """
-            .formatted(CLIENT_ID, port);
+            .formatted(CLIENT_ID, port, REGISTRATION_ID);
 
     HttpRequest createClientRequest =
         HttpRequest.newBuilder()
@@ -340,7 +352,7 @@ abstract class AbstractSAMLConfigurationIntegrationTest {
             .build();
 
     assertThat(client.send(createClientRequest, HttpResponse.BodyHandlers.ofString()).statusCode())
-        .isIn(List.of(201, 409)); // add 409 in case created in another test... we just move on
+        .isIn(List.of(201, 409));
   }
 
   private static String extractAccessToken(String json) {

@@ -10,13 +10,14 @@ import {
   ModalClose,
   NumberInput,
   PlatformHealthOverride,
-  ReactInjector,
   SpinFormik,
   TaskMonitorWrapper,
+  useDeckRuntimeServices,
   UserVerification,
   useTaskMonitor,
   ValidationMessage,
 } from '@spinnaker/core';
+
 import type { ITitusServerGroup } from '../../../domain';
 
 const { useState, useEffect, useMemo } = React;
@@ -214,6 +215,7 @@ function validateResizeCommand(values: ITitusResizeServerGroupCommand) {
 }
 
 export function TitusResizeServerGroupModal(props: ITitusResizeServerGroupModalProps) {
+  const { serverGroupWriter } = useDeckRuntimeServices();
   const { serverGroup, application, dismissModal } = props;
 
   const initialAdvancedMode = useMemo(() => {
@@ -235,7 +237,7 @@ export function TitusResizeServerGroupModal(props: ITitusResizeServerGroupModalP
     dismissModal,
   );
   const submit = (command: ITitusResizeServerGroupCommand) =>
-    taskMonitor.submit(() => ReactInjector.serverGroupWriter.resizeServerGroup(serverGroup, application, command));
+    taskMonitor.submit(() => serverGroupWriter.resizeServerGroup(serverGroup, application, command));
 
   const initialValues = { capacity: serverGroup.capacity } as ITitusResizeServerGroupCommand;
 

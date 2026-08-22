@@ -1,11 +1,11 @@
 import React from 'react';
 
-import { CollapsibleSection, confirmNotManaged, HelpField, ModalInjector, timestamp, Tooltip } from '@spinnaker/core';
+import { CollapsibleSection, HelpField, timestamp, Tooltip } from '@spinnaker/core';
 
 import type { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
 import { AWSProviderSettings } from '../../../aws.settings';
 import type { IScalingProcess } from '../../../domain';
-import { AutoScalingProcessService } from '../scalingProcesses/AutoScalingProcessService';
+import { AutoScalingProcessService, ModifyScalingProcessesModal } from '../scalingProcesses';
 
 export interface IScalingProcessesDetailsSectionState {
   autoScalingProcesses: IScalingProcess[];
@@ -22,23 +22,6 @@ export class ScalingProcessesDetailsSection extends React.Component<
 
     this.state = this.getState(props);
   }
-
-  private toggleScalingProcesses = (): void => {
-    const { app, serverGroup } = this.props;
-    confirmNotManaged(serverGroup, app).then(
-      (isNotManaged) =>
-        isNotManaged &&
-        ModalInjector.modalService.open({
-          templateUrl: require('../scalingProcesses/modifyScalingProcesses.html'),
-          controller: 'ModifyScalingProcessesCtrl as ctrl',
-          resolve: {
-            serverGroup: () => serverGroup,
-            application: () => app,
-            processes: () => this.state.autoScalingProcesses,
-          },
-        }),
-    );
-  };
 
   private getState(props: IAmazonServerGroupDetailsSectionProps): IScalingProcessesDetailsSectionState {
     const { serverGroup } = props;
@@ -62,6 +45,11 @@ export class ScalingProcessesDetailsSection extends React.Component<
   public componentWillReceiveProps(nextProps: IAmazonServerGroupDetailsSectionProps): void {
     this.setState(this.getState(nextProps));
   }
+
+  private editScalingProcesses = (): void => {
+    const { app: application, serverGroup } = this.props;
+    ModifyScalingProcessesModal.show({ application, serverGroup });
+  };
 
   public render(): JSX.Element {
     const { autoScalingProcesses, scalingPoliciesDisabled, scheduledActionsDisabled } = this.state;
@@ -103,7 +91,7 @@ export class ScalingProcessesDetailsSection extends React.Component<
           ))}
         </ul>
         {AWSProviderSettings.adHocInfraWritesEnabled && (
-          <a className="clickable" onClick={this.toggleScalingProcesses}>
+          <a className="clickable" onClick={this.editScalingProcesses}>
             Edit Scaling Processes
           </a>
         )}

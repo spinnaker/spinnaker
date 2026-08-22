@@ -1,9 +1,8 @@
 import { flatten, isEqual, map, uniq, xor } from 'lodash';
-import { $q } from 'ngimport';
 import React from 'react';
 import type { Option } from 'react-select';
 
-import type { IAccount } from './AccountService';
+import type { IAccount, IAccountDetails } from './AccountService';
 import { AccountService } from './AccountService';
 import type { IFormInputProps } from '../presentation/forms/inputs';
 import { ReactSelectInput } from '../presentation/forms/inputs/ReactSelectInput';
@@ -48,15 +47,15 @@ export class AccountSelectInput extends React.Component<IAccountSelectInputProps
     }
 
     const accountsAreObjects = Boolean((accounts[0] as IAccount).name);
-    let getAccountDetails = $q.when([]);
+    let getAccountDetails: Promise<IAccountDetails[]> = Promise.resolve([]);
     if (provider) {
       getAccountDetails = AccountService.getAllAccountDetailsForProvider(provider);
     }
     if (!provider && accountsAreObjects) {
       const providers = uniq(map(accounts as IAccount[], 'type'));
-      getAccountDetails = $q
-        .all(providers.map((p) => AccountService.getAllAccountDetailsForProvider(p)))
-        .then((details) => flatten(details));
+      getAccountDetails = Promise.all(
+        providers.map((p) => AccountService.getAllAccountDetailsForProvider(p)),
+      ).then((details) => flatten(details));
     }
 
     getAccountDetails.then((details) => {
@@ -131,9 +130,7 @@ export class AccountSelectInput extends React.Component<IAccountSelectInputProps
     const useSimpleSelect = mergedAccounts.length < renderFilterableSelectThreshold;
 
     if (useSimpleSelect) {
-      // When this select is used in Angular, the event is accessed in a $timeout, and React will have
-      // re-rendered the input, setting its value (the event.target.value) back to the previous value
-      // This can go away once we're out of Angular land.
+      // Preserve the event for consumers that read its value asynchronously.
       const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         e.persist();
         this.props.onChange(e);

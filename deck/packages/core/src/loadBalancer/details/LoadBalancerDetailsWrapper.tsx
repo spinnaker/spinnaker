@@ -1,4 +1,3 @@
-import { $templateCache } from 'ngimport';
 import type { FunctionComponent } from 'react';
 import React from 'react';
 
@@ -10,7 +9,6 @@ import type { ILoadBalancerStateParams } from '../loadBalancer.states';
 import type { IOverridableProps } from '../../overrideRegistry';
 import { overridableComponent } from '../../overrideRegistry';
 import { useData } from '../../presentation';
-import { AngularJSAdapter } from '../../reactShims';
 
 export interface ILoadBalancerDetailsWrapperProps extends IOverridableProps {
   app: Application;
@@ -49,8 +47,6 @@ export interface ILoadBalancerDetailsProps extends ILoadBalancerDetailsWrapperPr
 }
 
 interface IDetailsTemplateState {
-  detailsTemplateUrl?: string;
-  detailsController?: string;
   useDetailsHook?: UseDetailsHook<ILoadBalancer>;
   detailsActions?: FunctionComponent<ILoadBalancerActionsProps>;
   detailsSections?: Array<FunctionComponent<ILoadBalancerDetailsSectionProps>>;
@@ -61,33 +57,22 @@ const getDetailsTemplate = (provider: string): Promise<IDetailsTemplateState> =>
     CloudProviderRegistry.getValue(provider, 'loadBalancer.useDetailsHook'),
     CloudProviderRegistry.getValue(provider, 'loadBalancer.detailsActions'),
     CloudProviderRegistry.getValue(provider, 'loadBalancer.detailsSections'),
-    CloudProviderRegistry.getValue(provider, 'loadBalancer.detailsTemplateUrl'),
-    CloudProviderRegistry.getValue(provider, 'loadBalancer.detailsController'),
-  ]).then(([useDetailsHook, detailsActions, detailsSections, templateUrl, detailsController]) => {
-    const detailsTemplateUrl = templateUrl ? $templateCache.get<string>(templateUrl) : undefined;
+  ]).then(([useDetailsHook, detailsActions, detailsSections]) => {
     return {
       useDetailsHook,
       detailsActions,
       detailsSections,
-      detailsTemplateUrl,
-      detailsController,
     };
   });
 
-function LoadBalancerDetailsWrapper({ app, loadBalancer }: ILoadBalancerDetailsWrapperProps) {
+export function LoadBalancerDetailsWrapper({ app, loadBalancer }: ILoadBalancerDetailsWrapperProps) {
   const { provider } = loadBalancer;
 
   const { result: detailsTemplate } = useData<IDetailsTemplateState>(() => getDetailsTemplate(provider), {}, [
     provider,
   ]);
 
-  const {
-    useDetailsHook,
-    detailsActions: DetailsActions,
-    detailsSections,
-    detailsTemplateUrl,
-    detailsController,
-  } = detailsTemplate;
+  const { useDetailsHook, detailsActions: DetailsActions, detailsSections } = detailsTemplate;
 
   if (useDetailsHook && DetailsActions && detailsSections) {
     // React rendering
@@ -98,18 +83,6 @@ function LoadBalancerDetailsWrapper({ app, loadBalancer }: ILoadBalancerDetailsW
         useDetails={useDetailsHook}
         Actions={DetailsActions}
         sections={detailsSections}
-      />
-    );
-  }
-
-  if (detailsTemplateUrl && detailsController) {
-    // Angular rendering
-    return (
-      <AngularJSAdapter
-        className="detail-content flex-container-h"
-        template={detailsTemplateUrl}
-        controller={`${detailsController} as ctrl`}
-        locals={{ app, loadBalancer }}
       />
     );
   }

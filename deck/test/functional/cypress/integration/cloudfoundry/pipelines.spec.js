@@ -3,8 +3,11 @@ import { registerDefaultFixtures } from '../../support';
 describe('cf: CloudFoundry Bake Manifest Tab', () => {
   beforeEach(() => {
     registerDefaultFixtures();
-    cy.intercept('/applications/cloudfoundryapp/pipelines?expand=false&limit=2', {
+    cy.intercept({ pathname: '/applications/cloudfoundryapp/pipelines' }, {
       fixture: 'cloudfoundry/pipelines/pipelines.json',
+    });
+    cy.fixture('cloudfoundry/pipelines/01F6848ZR2N8NJAPBVTEP9R8FV.succeeded.json').then((execution) => {
+      cy.intercept('/applications/cloudfoundryapp/pipelines?*expand=true*', [execution]);
     });
     cy.intercept('/applications/cloudfoundryapp/pipelineConfigs', {
       fixture: 'cloudfoundry/pipelines/pipelineConfigs.json',

@@ -9,11 +9,11 @@ export interface ICertificate {
 }
 
 export class CertificateReader {
-  public static listCertificates(): PromiseLike<ICertificate[]> {
+  public static listCertificates(): Promise<ICertificate[]> {
     return REST('/certificates').get();
   }
 
-  public static listCertificatesByProvider(cloudProvider: string): PromiseLike<ICertificate[]> {
+  public static listCertificatesByProvider(cloudProvider: string): Promise<ICertificate[]> {
     return REST('/certificates').path(cloudProvider).get();
   }
 }

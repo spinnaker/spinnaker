@@ -1,4 +1,3 @@
-import { $q, $templateCache } from 'ngimport';
 import React from 'react';
 import type { Observable } from 'rxjs';
 
@@ -6,13 +5,13 @@ import { ServerGroupDetails } from './ServerGroupDetails';
 import type { Application } from '../../application';
 import { CloudProviderRegistry } from '../../cloudProvider';
 import type { IServerGroup } from '../../domain';
-import { AngularJSAdapter, ReactInjector } from '../../reactShims';
 
 export interface IServerGroupDetailsWrapperProps {
   app: Application;
   serverGroup: {
     name: string;
     accountId: string;
+    provider: string;
     region: string;
   };
 }
@@ -20,10 +19,6 @@ export interface IServerGroupDetailsWrapperProps {
 export type DetailsGetter = (props: IServerGroupDetailsProps, autoClose: () => void) => Observable<IServerGroup>;
 
 export interface IServerGroupDetailsWrapperState {
-  angular: {
-    template: string;
-    controller: string;
-  };
   detailsGetter: DetailsGetter;
   sections: Array<React.ComponentType<IServerGroupDetailsSectionProps>>;
   Actions: React.ComponentType<IServerGroupActionsProps>;
@@ -54,61 +49,55 @@ export class ServerGroupDetailsWrapper extends React.Component<
   IServerGroupDetailsWrapperProps,
   IServerGroupDetailsWrapperState
 > {
+  private configurationRequestId = 0;
+
   constructor(props: IServerGroupDetailsWrapperProps) {
     super(props);
 
     this.state = {
-      angular: {
-        template: undefined,
-        controller: undefined,
-      },
       Actions: undefined,
       detailsGetter: undefined,
       sections: [],
     };
   }
 
-  private getServerGroupDetailsTemplate(): void {
-    const { provider } = ReactInjector.$stateParams;
-    $q.all([
+  private getServerGroupDetailsTemplate(serverGroup: IServerGroupDetailsWrapperProps['serverGroup']): void {
+    const requestId = ++this.configurationRequestId;
+    const { provider } = serverGroup;
+    Promise.all([
       CloudProviderRegistry.getValue(provider, 'serverGroup.detailsActions'),
       CloudProviderRegistry.getValue(provider, 'serverGroup.detailsGetter'),
       CloudProviderRegistry.getValue(provider, 'serverGroup.detailsSections'),
-      CloudProviderRegistry.getValue(provider, 'serverGroup.detailsTemplateUrl'),
-      CloudProviderRegistry.getValue(provider, 'serverGroup.detailsController'),
     ]).then(
       (
         values: [
           React.ComponentClass<IServerGroupActionsProps>,
           DetailsGetter,
           Array<React.ComponentType<IServerGroupDetailsSectionProps>>,
-          string,
-          string,
         ],
       ) => {
-        const [Actions, detailsGetter, sections, templateUrl, controller] = values;
-        const template = templateUrl ? $templateCache.get<string>(templateUrl) : undefined;
-        this.setState({ angular: { template, controller }, Actions, detailsGetter, sections });
+        const [Actions, detailsGetter, sections] = values;
+        if (requestId === this.configurationRequestId) {
+          this.setState({ Actions, detailsGetter, sections });
+        }
       },
     );
   }
 
   public componentDidMount(): void {
-    this.getServerGroupDetailsTemplate();
+    this.getServerGroupDetailsTemplate(this.props.serverGroup);
   }
 
-  public componentWillReceiveProps(): void {
-    this.getServerGroupDetailsTemplate();
+  public componentWillReceiveProps(nextProps: IServerGroupDetailsWrapperProps): void {
+    if (nextProps.serverGroup.provider !== this.props.serverGroup.provider) {
+      this.setState({ Actions: undefined, detailsGetter: undefined, sections: [] });
+      this.getServerGroupDetailsTemplate(nextProps.serverGroup);
+    }
   }
 
   public render() {
     const { app, serverGroup } = this.props;
-    const {
-      angular: { template, controller },
-      Actions,
-      detailsGetter,
-      sections,
-    } = this.state;
+    const { Actions, detailsGetter, sections } = this.state;
 
     if (Actions && detailsGetter && sections) {
       // react
@@ -119,18 +108,6 @@ export class ServerGroupDetailsWrapper extends React.Component<
           sections={sections}
           Actions={Actions}
           detailsGetter={detailsGetter}
-        />
-      );
-    }
-
-    // angular
-    if (template && controller) {
-      return (
-        <AngularJSAdapter
-          className="detail-content flex-container-h"
-          template={template}
-          controller={`${controller} as ctrl`}
-          locals={{ app, serverGroup }}
         />
       );
     }

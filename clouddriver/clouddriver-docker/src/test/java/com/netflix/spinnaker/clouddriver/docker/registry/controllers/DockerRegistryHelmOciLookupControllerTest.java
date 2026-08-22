@@ -174,7 +174,7 @@ class DockerRegistryHelmOciLookupControllerTest {
     accountCredentialsRepository.save(credentials.getName(), credentials);
 
     mockMvc
-        .perform(get("/dockerRegistry/charts/find"))
+        .perform(get("/dockerRegistry/charts/find").queryParam("account", "test-account"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$[0].account").value("test-account"))
         .andExpect(jsonPath("$[0].artifact.type").value("helm/image"));
@@ -191,8 +191,8 @@ class DockerRegistryHelmOciLookupControllerTest {
     accountCredentialsRepository.save(credentials.getName(), credentials);
 
     mockMvc
-        .perform(get("/dockerRegistry/charts/find"))
-        .andExpectAll(status().isOk(), jsonPath("$.length()").value(0));
+        .perform(get("/dockerRegistry/charts/find").queryParam("account", "test-account"))
+        .andExpect(status().isForbidden());
   }
 
   @Test
@@ -205,7 +205,10 @@ class DockerRegistryHelmOciLookupControllerTest {
     accountCredentialsRepository.save(credentials.getName(), credentials);
 
     mockMvc
-        .perform(get("/dockerRegistry/charts/find").queryParam("includeDetails", "true"))
+        .perform(
+            get("/dockerRegistry/charts/find")
+                .queryParam("account", "test-account")
+                .queryParam("includeDetails", "true"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$[0].artifact.type").value("helm/image"))
         .andExpect(jsonPath("$[0].artifact.metadata.registry").value("test-registry"))
@@ -244,7 +247,10 @@ class DockerRegistryHelmOciLookupControllerTest {
 
     // Test find with query parameter
     mockMvc
-        .perform(get("/dockerRegistry/charts/find").queryParam("q", "test-repository"))
+        .perform(
+            get("/dockerRegistry/charts/find")
+                .queryParam("account", "test-account")
+                .queryParam("q", "test-repository"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$[0].repository").value("test-repository"))
         .andExpect(jsonPath("$[0].tag").value("1.0"))
@@ -338,6 +344,7 @@ class DockerRegistryHelmOciLookupControllerTest {
     mockMvc
         .perform(
             get("/dockerRegistry/charts/find")
+                .queryParam("account", "test-account")
                 .queryParam("repository", "repo1")
                 .queryParam("tag", "tag1"))
         .andExpect(status().isOk())
@@ -447,7 +454,7 @@ class DockerRegistryHelmOciLookupControllerTest {
 
     // Test find with no matching results
     mockMvc
-        .perform(get("/dockerRegistry/charts/find"))
+        .perform(get("/dockerRegistry/charts/find").queryParam("account", "test-account"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.length()").value(0));
   }

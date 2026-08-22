@@ -1,8 +1,8 @@
+import { useRouter } from '@uirouter/react';
 import React from 'react';
 
 import type { Application } from '../application.model';
 import { ConfirmationModalService } from '../../confirmationModal';
-import { ReactInjector } from '../../reactShims';
 import { FirewallLabel } from '../../securityGroup/label';
 import { ApplicationWriter } from '../service/ApplicationWriter';
 
@@ -11,13 +11,14 @@ export interface IDeleteApplicationSection {
 }
 
 export function DeleteApplicationSection(props: IDeleteApplicationSection) {
+  const { stateService } = useRouter();
   const { application } = props;
   const deleteApplication = (): void => {
     const taskMonitor = {
       application,
       title: `Deleting ${application.name}`,
       onTaskComplete: () => {
-        ReactInjector.$state.go('home.infrastructure');
+        stateService.go('home.infrastructure');
       },
     };
 

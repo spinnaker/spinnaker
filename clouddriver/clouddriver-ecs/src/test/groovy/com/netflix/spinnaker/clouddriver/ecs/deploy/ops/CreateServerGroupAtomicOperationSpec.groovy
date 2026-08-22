@@ -23,6 +23,8 @@ import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsResult
 import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroup
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement
+import software.amazon.awssdk.services.ecs.model.ListServicesResponse
+import software.amazon.awssdk.services.ecs.model.DescribeServicesResponse
 import com.amazonaws.services.identitymanagement.model.GetRoleResult
 import com.amazonaws.services.identitymanagement.model.Role
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -89,11 +91,31 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     source.useSourceCapacity = true
 
     amazonClientProvider.getAmazonEcs(_, _, _) >> ecs
+    amazonClientProvider.getAmazonEcsV2(_, _) >> ecsV2
     amazonClientProvider.getAmazonIdentityManagement(_, _, _) >> iamClient
     amazonClientProvider.getAmazonElasticLoadBalancingV2(_, _, _) >> loadBalancingV2
     amazonClientProvider.getAmazonApplicationAutoScaling(_, _, _) >> autoScalingClient
     containerInformationService.getClusterName(_, _, _) >> 'cluster-name'
     credentialsRepository.getOne(_) >> creds
+
+    // v2 EcsClient stubs for EcsServerGroupNameResolver
+    ecsV2.listServices(_ as software.amazon.awssdk.services.ecs.model.ListServicesRequest) >> ListServicesResponse.builder()
+      .serviceArns(["${serviceName}-v007".toString()])
+      .build()
+    ecsV2.describeServices({ software.amazon.awssdk.services.ecs.model.DescribeServicesRequest req ->
+      req.services().size() > 1 || req.services().any { it.contains('v007') }
+    } as software.amazon.awssdk.services.ecs.model.DescribeServicesRequest) >> DescribeServicesResponse.builder()
+      .services([software.amazon.awssdk.services.ecs.model.Service.builder()
+        .serviceName("${serviceName}-v007".toString())
+        .createdAt(java.time.Instant.now())
+        .desiredCount(3)
+        .status('ACTIVE')
+        .tags([])
+        .build()])
+      .build()
+    ecsV2.describeServices(_ as software.amazon.awssdk.services.ecs.model.DescribeServicesRequest) >> DescribeServicesResponse.builder()
+      .services([])
+      .build()
   }
 
   def 'should create a service'() {

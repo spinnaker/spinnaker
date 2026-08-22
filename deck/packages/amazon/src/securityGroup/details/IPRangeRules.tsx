@@ -25,7 +25,7 @@ export class IPRangeRules extends React.Component<IIPRangeRulesProps> {
     return (
       <CollapsibleSection heading={heading}>
         {ipRules.map((rule) => (
-          <LabeledValueList className="horizontal-when-filters-collapsed">
+          <LabeledValueList key={rule.address} className="horizontal-when-filters-collapsed">
             <LabeledValue label="IP Range" value={rule.address} />
             <LabeledValue
               label="Port Ranges"

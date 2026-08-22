@@ -20,6 +20,7 @@ import static java.util.Objects.requireNonNull;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.auth.AWSSessionCredentials;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties;
@@ -30,7 +31,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 
 /**
@@ -190,10 +193,14 @@ public class AmazonCredentials extends AbstractAccountCredentials<AWSCredentials
   }
 
   /**
-   * Returns an AWS SDK v2 {@link AwsCredentialsProvider} for this account. The base implementation
-   * returns the v2 {@link DefaultCredentialsProvider}; subclasses that use IAM role assumption
-   * (e.g. {@link AssumeRoleAmazonCredentials}) override this to return a v2 {@link
-   * SpinnakerStsAssumeRoleCredentialsProviderV2} backed by the account's configured role ARN.
+   * Returns an AWS SDK v2 {@link AwsCredentialsProvider} for this account. If a v1 {@link
+   * AWSCredentialsProvider} is configured, it is bridged to v2 by adapting each resolved credential
+   * on every call. This ensures the v2 provider benefits from the v1 provider's token refresh logic
+   * and works in environments where the v2 {@link DefaultCredentialsProvider} cannot independently
+   * discover credentials (e.g. GKE pods with static AWS keys).
+   *
+   * <p>Subclasses that use IAM role assumption (e.g. {@link AssumeRoleAmazonCredentials}) may
+   * override this to return a dedicated v2 STS assume-role provider instead.
    *
    * <p>v2 clients constructed via {@link
    * com.netflix.spinnaker.clouddriver.aws.security.sdkclient.AwsSdkV2ClientSupplier} use this
@@ -201,6 +208,17 @@ public class AmazonCredentials extends AbstractAccountCredentials<AWSCredentials
    */
   @JsonIgnore
   public AwsCredentialsProvider getV2CredentialsProvider() {
+    if (credentialsProvider != null) {
+      return () -> {
+        AWSCredentials v1Creds = credentialsProvider.getCredentials();
+        if (v1Creds instanceof AWSSessionCredentials) {
+          AWSSessionCredentials session = (AWSSessionCredentials) v1Creds;
+          return AwsSessionCredentials.create(
+              session.getAWSAccessKeyId(), session.getAWSSecretKey(), session.getSessionToken());
+        }
+        return AwsBasicCredentials.create(v1Creds.getAWSAccessKeyId(), v1Creds.getAWSSecretKey());
+      };
+    }
     return DefaultCredentialsProvider.create();
   }
 

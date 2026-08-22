@@ -1,6 +1,6 @@
 apply plugin: 'io.spinnaker.package'
 
-mainClassName = 'com.netflix.spinnaker.rosco.Main'
+application.mainClass = 'com.netflix.spinnaker.rosco.Main'
 
 configurations.all {
   exclude group: 'javax.servlet', module: 'servlet-api'
@@ -28,7 +28,7 @@ dependencies {
   testImplementation "com.squareup.retrofit2:retrofit"
   testImplementation "com.squareup.retrofit2:converter-jackson"
   testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
-  testImplementation "org.apache.commons:commons-compress:1.21"
+  testImplementation "org.apache.commons:commons-compress"
   testImplementation "org.assertj:assertj-core"
 }
 
@@ -49,7 +49,7 @@ ospackage {
   configurationFile('/opt/rosco/config/packer/install_packages.sh')
 
   from('../docker') {
-    into "/opt/${project.applicationName}/docker"
+    into "/opt/${project.application.applicationName}/docker"
   }
 }
 

@@ -15,11 +15,9 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.provider.agent
 
-import com.amazonaws.auth.AWSCredentialsProvider
-import com.amazonaws.services.servicediscovery.AWSServiceDiscovery
-import com.amazonaws.services.servicediscovery.model.ListServicesRequest
-import com.amazonaws.services.servicediscovery.model.ListServicesResult
-import com.amazonaws.services.servicediscovery.model.ServiceSummary
+import software.amazon.awssdk.services.servicediscovery.ServiceDiscoveryClient
+import software.amazon.awssdk.services.servicediscovery.model.ListServicesResponse
+import software.amazon.awssdk.services.servicediscovery.model.ServiceSummary
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.provider.ProviderCache
@@ -31,10 +29,9 @@ import spock.lang.Subject
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.SERVICE_DISCOVERY_REGISTRIES
 
 class ServiceDiscoveryCachingAgentSpec extends Specification {
-  def serviceDiscovery = Mock(AWSServiceDiscovery)
+  def serviceDiscovery = Mock(ServiceDiscoveryClient)
   def clientProvider = Mock(AmazonClientProvider)
   def providerCache = Mock(ProviderCache)
-  def credentialsProvider = Mock(AWSCredentialsProvider)
   def objectMapper = new ObjectMapper()
     .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
@@ -47,13 +44,13 @@ class ServiceDiscoveryCachingAgentSpec extends Specification {
     0.upto(4, {
       def serviceName = "test-service-${it}"
       def serviceId = "srv-${it}"
-      givenServices << new ServiceSummary(
-        name: serviceName,
-        id: serviceId,
-        arn: "arn:aws:servicediscovery:us-west-1:0123456789012:service/${serviceId}"
-      )
+      givenServices << ServiceSummary.builder()
+        .name(serviceName)
+        .id(serviceId)
+        .arn("arn:aws:servicediscovery:us-west-1:012345678910:service/${serviceId}")
+        .build()
     })
-    serviceDiscovery.listServices(_) >> new ListServicesResult().withServices(givenServices)
+    serviceDiscovery.listServices(_) >> ListServicesResponse.builder().services(givenServices).build()
 
     when:
     def retrievedServices = agent.fetchServices(serviceDiscovery)
@@ -75,13 +72,13 @@ class ServiceDiscoveryCachingAgentSpec extends Specification {
         region: 'us-west-1',
         name: serviceName,
         id: serviceId,
-        arn: "arn:aws:servicediscovery:us-west-1:0123456789012:service/${serviceId}"
+        arn: "arn:aws:servicediscovery:us-west-1:012345678910:service/${serviceId}"
       )
-      servicesEntries << new ServiceSummary(
-        name: serviceName,
-        id: serviceId,
-        arn: "arn:aws:servicediscovery:us-west-1:0123456789012:service/${serviceId}"
-      )
+      servicesEntries << ServiceSummary.builder()
+        .name(serviceName)
+        .id(serviceId)
+        .arn("arn:aws:servicediscovery:us-west-1:012345678910:service/${serviceId}")
+        .build()
     })
 
     when:
@@ -99,13 +96,13 @@ class ServiceDiscoveryCachingAgentSpec extends Specification {
 
   def 'should use filterIdentifiers with account and region glob for evictions'() {
     given:
-    def givenService = new ServiceSummary(
-      name: "test-service",
-      id: "srv-123",
-      arn: "arn:aws:servicediscovery:us-west-1:0123456789012:service/srv-123"
-    )
-    clientProvider.getAmazonServiceDiscovery(_, _, _) >> serviceDiscovery
-    serviceDiscovery.listServices(_) >> new ListServicesResult().withServices([givenService])
+    def givenService = ServiceSummary.builder()
+      .name("test-service")
+      .id("srv-123")
+      .arn("arn:aws:servicediscovery:us-west-1:0123456789012:service/srv-123")
+      .build()
+    clientProvider.getAmazonServiceDiscoveryV2(_, _) >> serviceDiscovery
+    serviceDiscovery.listServices(_) >> ListServicesResponse.builder().services([givenService]).build()
 
     def account = 'test-account'
     def region = 'us-west-1'

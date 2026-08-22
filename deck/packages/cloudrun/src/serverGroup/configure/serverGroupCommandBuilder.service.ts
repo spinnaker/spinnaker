@@ -1,6 +1,4 @@
-import { module } from 'angular';
 import { cloneDeep } from 'lodash';
-import { $q } from 'ngimport';
 
 import type {
   Application,
@@ -91,7 +89,7 @@ const getSubmitButtonLabel = (mode: string): string => {
 
 export class CloudrunV2ServerGroupCommandBuilder {
   // new add servergroup
-  public buildNewServerGroupCommand(app: Application): PromiseLike<ICloudrunServerGroupCommandData> {
+  public buildNewServerGroupCommand(app: Application): Promise<ICloudrunServerGroupCommandData> {
     return CloudrunServerGroupCommandBuilder.buildNewServerGroupCommand(app, 'cloudrun', 'create');
   }
 
@@ -113,7 +111,6 @@ export class CloudrunV2ServerGroupCommandBuilder {
 }
 
 export class CloudrunServerGroupCommandBuilder {
-  public static $inject = ['$q'];
   public static ServerGroupCommandIsValid(command: ICloudrunServerGroupCommand): boolean {
     if (!command.moniker) {
       return false;
@@ -156,7 +153,7 @@ export class CloudrunServerGroupCommandBuilder {
     cluster: CloudrunDeployDescription,
     _stage: IStage,
     pipeline: IPipeline,
-  ): PromiseLike<ICloudrunServerGroupCommandData> {
+  ): Promise<ICloudrunServerGroupCommandData> {
     return CloudrunServerGroupCommandBuilder.buildNewServerGroupCommand(app, 'cloudrun', 'editPipeline').then(
       (command: ICloudrunServerGroupCommandData) => {
         command = {
@@ -197,14 +194,14 @@ export class CloudrunServerGroupCommandBuilder {
     app: Application,
     sourceAccount: string,
     mode: string,
-  ): PromiseLike<ICloudrunServerGroupCommandData> {
+  ): Promise<ICloudrunServerGroupCommandData> {
     const dataToFetch = {
       accounts: AccountService.getAllAccountDetailsForProvider('cloudrun'),
       artifactAccounts: AccountService.getArtifactAccounts(),
     };
 
-    return $q.all(dataToFetch).then((backingData: { accounts: IAccountDetails[] }) => {
-      const { accounts } = backingData;
+    return Promise.all([dataToFetch.accounts, dataToFetch.artifactAccounts]).then(([accounts, artifactAccounts]) => {
+      const backingData = { accounts, artifactAccounts };
 
       const account = accounts.some((a) => a.name === sourceAccount)
         ? accounts.find((a) => a.name === sourceAccount).name
@@ -245,10 +242,3 @@ export class CloudrunServerGroupCommandBuilder {
     });
   }
 }
-
-export const CLOUDRUN_SERVER_GROUP_COMMAND_BUILDER = 'spinnaker.cloudrun.serverGroup.commandBuilder.service';
-
-module(CLOUDRUN_SERVER_GROUP_COMMAND_BUILDER, []).service(
-  'cloudrunV2ServerGroupCommandBuilder',
-  CloudrunV2ServerGroupCommandBuilder,
-);

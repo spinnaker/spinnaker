@@ -1,6 +1,6 @@
 apply plugin: 'io.spinnaker.package'
 
-mainClassName = 'com.netflix.spinnaker.fiat.Main'
+application.mainClass = 'com.netflix.spinnaker.fiat.Main'
 
 configurations.all {
   exclude group: 'javax.servlet', module: 'servlet-api'
@@ -42,4 +42,4 @@ dependencies {
   testImplementation "io.spinnaker.kork:kork-sql-test"
 }
 
-applicationName = 'fiat'
+application.applicationName = 'fiat'

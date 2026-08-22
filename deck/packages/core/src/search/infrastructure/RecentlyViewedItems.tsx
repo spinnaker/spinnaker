@@ -2,10 +2,10 @@ import React from 'react';
 
 import type { ISearchResult, ISearchResultPodData } from './SearchResultPods';
 import { SearchResultPods } from './SearchResultPods';
+import { useDeckRuntimeServices } from '../../bootstrap/DeckRuntimeContext';
 import type { IRecentHistoryEntry } from '../../history';
 import { RecentHistoryService } from '../../history';
 import { useData } from '../../presentation/hooks';
-import { ReactInjector } from '../../reactShims';
 import { logger } from '../../utils';
 
 export interface IChildComponentProps {
@@ -21,13 +21,14 @@ export interface IRecentlyViewedItemsProps {
 }
 
 export function RecentlyViewedItems(props: IRecentlyViewedItemsProps) {
+  const { infrastructureSearchService } = useDeckRuntimeServices();
   const { Component } = props;
   const categoryNames = ['projects', 'applications', 'loadBalancers', 'serverGroups', 'instances', 'securityGroups'];
   // useMemo to get a single searcher per mount. The Searcher immediately performs work when instantiated.
-  const search = React.useMemo(() => ReactInjector.infrastructureSearchService.getSearcher(), []);
+  const search = React.useMemo(() => infrastructureSearchService.getSearcher(), [infrastructureSearchService]);
 
   /** fetches the displayName and adds it to the history entry */
-  function getFullHistoryEntry(category: string, item: IRecentHistoryEntry): PromiseLike<ISearchResult> {
+  function getFullHistoryEntry(category: string, item: IRecentHistoryEntry): Promise<ISearchResult> {
     const routeParams = { ...item.params, ...item.extraData };
     return search.formatRouteResult(category, routeParams).then((displayName) => ({ ...item, displayName }));
   }
@@ -65,8 +66,7 @@ export function RecentlyViewedItems(props: IRecentlyViewedItemsProps) {
       onResultClick={handleResultClick}
     />
   ) : (
-    // Once RecentlyViewedItems is no longer rendered as part of any angular
-    // templates, we can stop defaulting to SearchResultPods and require a component.
+    // Keep a default renderer for callers that do not provide a category-specific component.
     <SearchResultPods
       results={result}
       onRemoveItem={handleRemoveItem}

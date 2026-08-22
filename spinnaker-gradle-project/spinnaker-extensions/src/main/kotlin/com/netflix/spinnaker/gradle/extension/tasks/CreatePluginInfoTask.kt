@@ -29,6 +29,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
+import org.gradle.work.DisableCachingByDefault
 import java.io.File
 import java.lang.IllegalStateException
 import java.time.Instant
@@ -36,6 +37,7 @@ import java.time.Instant
 /**
  * TODO(rz): Need to expose release state to the world.
  */
+@DisableCachingByDefault(because = "Plugin info generation is not cacheable")
 open class CreatePluginInfoTask : DefaultTask() {
 
   @Internal
