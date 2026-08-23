@@ -327,33 +327,7 @@ public class AmazonCloudFormationCachingAgent
                             .build();
                     DescribeChangeSetResponse describeChangeSetResponse =
                         cloudFormationClient.describeChangeSet(describeChangeSetRequest);
-                    changeSetAttributes.put(
-                        "changes",
-                        describeChangeSetResponse.changes().stream()
-                            .map(
-                                change -> {
-                                  Map<String, Object> changeMap = new HashMap<>();
-                                  changeMap.put("type", change.typeAsString());
-                                  if (change.resourceChange() != null) {
-                                    Map<String, Object> resourceChange = new HashMap<>();
-                                    resourceChange.put(
-                                        "action", change.resourceChange().actionAsString());
-                                    resourceChange.put(
-                                        "logicalResourceId",
-                                        change.resourceChange().logicalResourceId());
-                                    resourceChange.put(
-                                        "physicalResourceId",
-                                        change.resourceChange().physicalResourceId());
-                                    resourceChange.put(
-                                        "resourceType", change.resourceChange().resourceType());
-                                    resourceChange.put(
-                                        "replacement",
-                                        change.resourceChange().replacementAsString());
-                                    changeMap.put("resourceChange", resourceChange);
-                                  }
-                                  return changeMap;
-                                })
-                            .collect(Collectors.toList()));
+                    changeSetAttributes.put("changes", describeChangeSetResponse.changes());
                     log.debug(
                         "Adding change set attributes for stack {}: {}",
                         stack.stackName(),

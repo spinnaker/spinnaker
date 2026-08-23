@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.cache.OnDemandType
 import software.amazon.awssdk.services.cloudformation.CloudFormationClient
+import software.amazon.awssdk.services.cloudformation.model.Change
 import software.amazon.awssdk.services.cloudformation.model.ChangeSetSummary
 import software.amazon.awssdk.services.cloudformation.model.DescribeChangeSetRequest
 import software.amazon.awssdk.services.cloudformation.model.DescribeChangeSetResponse
@@ -133,7 +134,7 @@ class AmazonCloudFormationCachingAgentSpec extends Specification {
       .status("status")
       .statusReason("statusReason")
       .build()
-    def change = software.amazon.awssdk.services.cloudformation.model.Change.builder().type("Resource").build()
+    def change = Change.builder().type("Resource").build()
 
     when:
     def cache = agent.loadData(providerCache)
