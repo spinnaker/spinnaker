@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.ecs.deploy.ops;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactDownloader;
+import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials;
 import com.netflix.spinnaker.clouddriver.aws.security.AssumeRoleAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
@@ -90,7 +91,7 @@ public class CreateServerGroupAtomicOperation
   protected ObjectMapper mapper =
       new ObjectMapper()
           .enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-          .registerModule(new AwsSdkV2JacksonModule());
+          .registerModule(new AwsSdkV2Module());
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 

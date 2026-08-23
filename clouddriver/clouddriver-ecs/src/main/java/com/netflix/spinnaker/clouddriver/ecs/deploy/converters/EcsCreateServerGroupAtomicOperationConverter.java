@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.ecs.deploy.converters;
 
 import com.netflix.spinnaker.clouddriver.ecs.EcsOperation;
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.CreateServerGroupDescription;
-import com.netflix.spinnaker.clouddriver.ecs.deploy.ops.AwsSdkV2JacksonModule;
 import com.netflix.spinnaker.clouddriver.ecs.deploy.ops.CreateServerGroupAtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
@@ -41,12 +40,10 @@ public class EcsCreateServerGroupAtomicOperationConverter
     // CreateServerGroupDescription embeds AWS SDK v2 model types (e.g.
     // CapacityProviderStrategyItem,
     // PlacementStrategy, PlacementConstraint) which are immutable and cannot be constructed by a
-    // plain ObjectMapper. Register the module that deserializes them via their SDK builders.
+    // plain ObjectMapper. The Spring-managed ObjectMapper already has AwsSdkV2Module registered
+    // (via AwsSdkV2JacksonConfiguration) which handles deserialization via their SDK builders.
     CreateServerGroupDescription converted =
-        getObjectMapper()
-            .copy()
-            .registerModule(new AwsSdkV2JacksonModule())
-            .convertValue(input, CreateServerGroupDescription.class);
+        getObjectMapper().convertValue(input, CreateServerGroupDescription.class);
     converted.setCredentials(getCredentialsObject(input.get("credentials").toString()));
 
     return converted;
