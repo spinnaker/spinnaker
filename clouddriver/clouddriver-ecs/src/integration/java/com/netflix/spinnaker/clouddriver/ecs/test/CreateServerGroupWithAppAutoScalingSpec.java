@@ -110,7 +110,7 @@ public class CreateServerGroupWithAppAutoScalingSpec extends EcsSpec {
                       .targetGroups(TargetGroup.builder().targetGroupArn(testArn).build())
                       .build();
                 });
-    when(mockAwsProvider.getAmazonElasticLoadBalancingV2V2(
+    when(mockAwsProvider.getElasticLoadBalancingV2Client(
             any(NetflixAmazonCredentials.class), anyString()))
         .thenReturn(mockELB);
 

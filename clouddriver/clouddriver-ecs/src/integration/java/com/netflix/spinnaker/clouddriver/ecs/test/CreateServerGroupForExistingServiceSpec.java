@@ -107,7 +107,7 @@ public class CreateServerGroupForExistingServiceSpec extends EcsSpec {
                       .build();
                 });
 
-    when(mockAwsProvider.getAmazonElasticLoadBalancingV2V2(
+    when(mockAwsProvider.getElasticLoadBalancingV2Client(
             any(NetflixAmazonCredentials.class), anyString()))
         .thenReturn(mockELB);
   }

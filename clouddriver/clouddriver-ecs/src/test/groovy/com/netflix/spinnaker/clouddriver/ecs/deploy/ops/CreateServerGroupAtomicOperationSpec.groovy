@@ -90,7 +90,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
 
     amazonClientProvider.getAmazonEcsV2(_, _) >> ecs
     amazonClientProvider.getIamV2(_, _) >> iamClient
-    amazonClientProvider.getAmazonElasticLoadBalancingV2V2(_, _) >> loadBalancingV2
+    amazonClientProvider.getElasticLoadBalancingV2Client(_, _) >> loadBalancingV2
     amazonClientProvider.getAmazonApplicationAutoScalingV2(_, _) >> autoScalingClient
     containerInformationService.getClusterName(_, _, _) >> 'cluster-name'
     credentialsRepository.getOne(_) >> creds

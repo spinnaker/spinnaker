@@ -949,7 +949,7 @@ public class CreateServerGroupAtomicOperation
 
   private ElasticLoadBalancingV2Client getAmazonElasticLoadBalancingClient() {
     NetflixAmazonCredentials credentialAccount = description.getCredentials();
-    return amazonClientProvider.getAmazonElasticLoadBalancingV2V2(credentialAccount, getRegion());
+    return amazonClientProvider.getElasticLoadBalancingV2Client(credentialAccount, getRegion());
   }
 
   private IamClient getAmazonIdentityManagementClient() {
