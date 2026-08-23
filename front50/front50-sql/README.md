@@ -1,5 +1,13 @@
 ## Configuring SQL store for front50
 
+> **Deprecation notice:** Non-SQL Front50 metadata storage backends (S3, GCS, Redis,
+> Azure, Oracle, Swift) are deprecated and scheduled for removal after Spinnaker
+> **2027.0.0**. SQL is the recommended persistence store and will be required after
+> that release. See the
+> [Front50 SQL setup guide](https://spinnaker.io/docs/setup/productionize/persistence/front50-sql/)
+> for migration steps. S3 plugin-binary storage (`spinnaker.s3.plugin-storage`) and
+> Orca's artifact store are not covered by this deprecation.
+
 #### MySQL:
 
 ```yaml

@@ -17,10 +17,12 @@
 package com.netflix.spinnaker.clouddriver.ecs.provider.agent
 
 import software.amazon.awssdk.services.ecs.EcsClient
-import com.amazonaws.services.ecs.model.Container
+import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module
+import software.amazon.awssdk.services.ecs.model.Container
+import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module
 import com.amazonaws.services.ecs.model.ContainerDefinition
 import com.amazonaws.services.ecs.model.LoadBalancer
-import com.amazonaws.services.ecs.model.NetworkBinding
+import software.amazon.awssdk.services.ecs.model.NetworkBinding
 import com.amazonaws.services.ecs.model.PortMapping
 import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetHealthResult
@@ -46,7 +48,7 @@ class TaskHealthCacheSpec extends Specification {
   def ecs = Mock(EcsClient)
   def clientProvider = Mock(AmazonClientProvider)
   def providerCache = Mock(ProviderCache)
-  ObjectMapper mapper = new ObjectMapper()
+  ObjectMapper mapper = new ObjectMapper().registerModule(new AwsSdkV2Module())
 
   @Subject
   TaskHealthCachingAgent agent = new TaskHealthCachingAgent(CommonCachingAgent.netflixAmazonCredentials, CommonCachingAgent.REGION, clientProvider, mapper)
@@ -66,8 +68,8 @@ class TaskHealthCacheSpec extends Specification {
     def containerInstanceKey = Keys.getContainerInstanceKey(CommonCachingAgent.ACCOUNT, CommonCachingAgent.REGION, CommonCachingAgent.CONTAINER_INSTANCE_ARN_1)
     def targetHealthKey = Keys.getTargetHealthKey(CommonCachingAgent.ACCOUNT, CommonCachingAgent.REGION, targetGroupArn)
 
-    ObjectMapper mapper = new ObjectMapper()
-    Map<String, Object> containerMap = mapper.convertValue(new Container().withNetworkBindings(new NetworkBinding().withContainerPort(1338).withHostPort(1338)), Map.class)
+    ObjectMapper mapper = new ObjectMapper().registerModule(new AwsSdkV2Module())
+    Map<String, Object> containerMap = mapper.convertValue(Container.builder().networkBindings(NetworkBinding.builder().containerPort(1338).hostPort(1338).build()).build(), Map.class)
     Map<String, Object> loadbalancerMap = mapper.convertValue(new LoadBalancer().withTargetGroupArn(targetGroupArn).withContainerPort(1338), Map.class)
     Map<String, Object> targetHealthMap = mapper.convertValue(
       new TargetHealthDescription().withTarget(new TargetDescription().withId(CommonCachingAgent.EC2_INSTANCE_ID_1).withPort(1338)).withTargetHealth(new TargetHealth().withState(TargetHealthStateEnum.Healthy)), Map.class)

@@ -50,6 +50,13 @@ import org.openstack4j.openstack.OSFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * OpenStack Swift-backed Front50 metadata storage.
+ *
+ * @deprecated Front50 is moving to SQL-only persistence. Remains available through Spinnaker
+ *     2027.0.0; scheduled for removal afterward. Prefer SQL.
+ */
+@Deprecated
 public class SwiftStorageService implements StorageService {
   private static final Logger log = LoggerFactory.getLogger(SwiftStorageService.class);
 
