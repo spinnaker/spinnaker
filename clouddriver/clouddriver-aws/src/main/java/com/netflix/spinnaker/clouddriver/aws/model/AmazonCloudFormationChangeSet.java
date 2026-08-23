@@ -17,7 +17,7 @@ package com.netflix.spinnaker.clouddriver.aws.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
-import java.util.Map;
+import software.amazon.awssdk.services.cloudformation.model.Change;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class AmazonCloudFormationChangeSet {
@@ -25,7 +25,7 @@ public class AmazonCloudFormationChangeSet {
   private String name;
   private String status;
   private String statusReason;
-  private List<Map<String, Object>> changes;
+  private List<Change> changes;
 
   public String getName() {
     return name;
@@ -39,7 +39,7 @@ public class AmazonCloudFormationChangeSet {
     return statusReason;
   }
 
-  public List<Map<String, Object>> getChanges() {
+  public List<Change> getChanges() {
     return changes;
   }
 }
