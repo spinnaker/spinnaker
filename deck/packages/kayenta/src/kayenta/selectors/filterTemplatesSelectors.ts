@@ -22,12 +22,23 @@ export const queryTypeToTransformFunctions: { [queryType: string]: ITemplateTran
   ...prometheusQueryTypeToTransformFunction,
 };
 
+// Clickhouse has no structured/guided query builder - it always edits customInlineTemplate
+// directly, so it's unconditionally treated as an "inline template" query type below.
+const CLICKHOUSE_QUERY_TYPE = 'SQL';
+
 export const queryTypeSelector = createSelector(
   (state: ICanaryState) => state.selectedConfig.editingMetric,
   (editingMetric) => {
-    return editingMetric && editingMetric.query.serviceType === 'prometheus'
-      ? getPrometheusQueryType(editingMetric)
-      : null;
+    if (!editingMetric) {
+      return null;
+    }
+    if (editingMetric.query.serviceType === 'prometheus') {
+      return getPrometheusQueryType(editingMetric);
+    }
+    if (editingMetric.query.serviceType === 'clickhouse') {
+      return CLICKHOUSE_QUERY_TYPE;
+    }
+    return null;
   },
 );
 
@@ -68,7 +79,7 @@ export const isFilterTemplateValidSelector = createSelector(editingTemplateValid
 
 export const isInlineTemplateValidSelector = createSelector(inlineTemplateValueSelector, (value) => !isEmpty(value));
 
-const inlineTemplateQueryTypes = [PrometheusQueryType.PROMQL];
+const inlineTemplateQueryTypes: string[] = [PrometheusQueryType.PROMQL, CLICKHOUSE_QUERY_TYPE];
 
 export const useInlineTemplateEditorSelector = createSelector(queryTypeSelector, (queryType) =>
   inlineTemplateQueryTypes.includes(queryType),
