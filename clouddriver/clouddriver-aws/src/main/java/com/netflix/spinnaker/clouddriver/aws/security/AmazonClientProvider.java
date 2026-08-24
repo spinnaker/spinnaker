@@ -857,7 +857,7 @@ public class AmazonClientProvider {
    *
    * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
    */
-  public ElasticLoadBalancingV2Client getAmazonElasticLoadBalancingV2V2(
+  public ElasticLoadBalancingV2Client getElasticLoadBalancingV2Client(
       NetflixAmazonCredentials amazonCredentials, String region) {
     return awsSdkV2ClientSupplier.getClient(
         ElasticLoadBalancingV2Client::builder,
