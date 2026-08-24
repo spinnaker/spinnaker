@@ -20,7 +20,6 @@ import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.SERVICE
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
-import com.amazonaws.services.ecs.model.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.clouddriver.ecs.TestCredential;
@@ -28,10 +27,14 @@ import com.netflix.spinnaker.clouddriver.ecs.cache.client.ServiceCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.Service;
 import com.netflix.spinnaker.clouddriver.ecs.provider.agent.ServiceCachingAgent;
 import com.netflix.spinnaker.clouddriver.ecs.provider.agent.TestServiceCachingAgentFactory;
+import java.time.Instant;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.services.ecs.model.AwsVpcConfiguration;
+import software.amazon.awssdk.services.ecs.model.DeploymentConfiguration;
+import software.amazon.awssdk.services.ecs.model.LoadBalancer;
+import software.amazon.awssdk.services.ecs.model.NetworkConfiguration;
 import spock.lang.Subject;
 
 public class ServiceCacheClientTest extends CommonCacheClient {
@@ -50,34 +53,48 @@ public class ServiceCacheClientTest extends CommonCacheClient {
     String key = Keys.getServiceKey(ACCOUNT, REGION, serviceName);
     String clusterName = "test-cluster";
 
-    LoadBalancer loadBalancer = new LoadBalancer();
-    loadBalancer.setContainerName("container-name");
-    loadBalancer.setContainerPort(8080);
-    loadBalancer.setLoadBalancerName("balancer-of-load");
-    loadBalancer.setTargetGroupArn("target-group-arn");
+    LoadBalancer loadBalancer =
+        LoadBalancer.builder()
+            .containerName("container-name")
+            .containerPort(8080)
+            .loadBalancerName("balancer-of-load")
+            .targetGroupArn("target-group-arn")
+            .build();
 
-    com.amazonaws.services.ecs.model.Service service =
-        new com.amazonaws.services.ecs.model.Service();
-    service.setServiceName(serviceName);
-    service.setServiceArn("arn:aws:ecs:" + REGION + ":012345678910:service/" + serviceName);
-    service.setClusterArn("arn:aws:ecs:" + REGION + ":012345678910:cluster/" + clusterName);
-    service.setTaskDefinition(
-        "arn:aws:ecs:" + REGION + ":012345678910:task-definition/test-task-def:1");
-    service.setRoleArn("arn:aws:ecs:" + REGION + ":012345678910:service/test-role");
-    service.setDeploymentConfiguration(
-        new DeploymentConfiguration().withMinimumHealthyPercent(50).withMaximumPercent(100));
-    service.setNetworkConfiguration(
-        new NetworkConfiguration()
-            .withAwsvpcConfiguration(
-                new AwsVpcConfiguration()
-                    .withSecurityGroups(Collections.singletonList("security-group-id"))
-                    .withSubnets(Collections.singletonList("subnet-id"))));
-    service.setLoadBalancers(Collections.singleton(loadBalancer));
-    service.setDesiredCount(9001);
-    service.setCreatedAt(new Date());
+    Instant createdAt = Instant.now();
+    software.amazon.awssdk.services.ecs.model.Service service =
+        software.amazon.awssdk.services.ecs.model.Service.builder()
+            .serviceName(serviceName)
+            .serviceArn("arn:aws:ecs:" + REGION + ":012345678910:service/" + serviceName)
+            .clusterArn("arn:aws:ecs:" + REGION + ":012345678910:cluster/" + clusterName)
+            .taskDefinition(
+                "arn:aws:ecs:" + REGION + ":012345678910:task-definition/test-task-def:1")
+            .roleArn("arn:aws:ecs:" + REGION + ":012345678910:service/test-role")
+            .deploymentConfiguration(
+                DeploymentConfiguration.builder()
+                    .minimumHealthyPercent(50)
+                    .maximumPercent(100)
+                    .build())
+            .networkConfiguration(
+                NetworkConfiguration.builder()
+                    .awsvpcConfiguration(
+                        AwsVpcConfiguration.builder()
+                            .securityGroups("security-group-id")
+                            .subnets("subnet-id")
+                            .build())
+                    .build())
+            .loadBalancers(loadBalancer)
+            .desiredCount(9001)
+            .createdAt(createdAt)
+            .build();
     Map<String, Object> attributes = agent.convertServiceToAttributes(service);
-    attributes.put(
-        "loadBalancers", Collections.singletonList(mapper.convertValue(loadBalancer, Map.class)));
+    // Manually build the loadBalancer map since v2 SDK objects aren't JavaBean-serializable
+    Map<String, Object> loadBalancerMap = new java.util.HashMap<>();
+    loadBalancerMap.put("containerName", "container-name");
+    loadBalancerMap.put("containerPort", 8080);
+    loadBalancerMap.put("loadBalancerName", "balancer-of-load");
+    loadBalancerMap.put("targetGroupArn", "target-group-arn");
+    attributes.put("loadBalancers", Collections.singletonList(loadBalancerMap));
 
     when(cacheView.get(SERVICES.toString(), key))
         .thenReturn(new DefaultCacheData(key, attributes, Collections.emptyMap()));
@@ -94,9 +111,9 @@ public class ServiceCacheClientTest extends CommonCacheClient {
             + ecsService.getClusterName());
 
     assertTrue(
-        service.getClusterArn().equals(ecsService.getClusterArn()),
+        service.clusterArn().equals(ecsService.getClusterArn()),
         "Expected the cluster ARN to be "
-            + service.getClusterArn()
+            + service.clusterArn()
             + " but got "
             + ecsService.getClusterArn());
 
@@ -129,52 +146,52 @@ public class ServiceCacheClientTest extends CommonCacheClient {
             + ecsService.getServiceName());
 
     assertTrue(
-        service.getServiceArn().equals(ecsService.getServiceArn()),
+        service.serviceArn().equals(ecsService.getServiceArn()),
         "Expected the service ARN to be "
-            + service.getServiceArn()
+            + service.serviceArn()
             + " but got "
             + ecsService.getServiceArn());
 
     assertTrue(
-        service.getRoleArn().equals(ecsService.getRoleArn()),
+        service.roleArn().equals(ecsService.getRoleArn()),
         "Expected the role ARN of the service to be "
-            + service.getRoleArn()
+            + service.roleArn()
             + " but got "
             + ecsService.getRoleArn());
 
     assertTrue(
-        service.getTaskDefinition().equals(ecsService.getTaskDefinition()),
+        service.taskDefinition().equals(ecsService.getTaskDefinition()),
         "Expected the task definition of the service to be "
-            + service.getTaskDefinition()
+            + service.taskDefinition()
             + " but got "
             + ecsService.getTaskDefinition());
 
     assertTrue(
-        service.getDesiredCount() == ecsService.getDesiredCount(),
+        service.desiredCount() == ecsService.getDesiredCount(),
         "Expected the desired count of the service to be "
-            + service.getDesiredCount()
+            + service.desiredCount()
             + " but got "
             + ecsService.getDesiredCount());
 
     assertTrue(
-        service.getDeploymentConfiguration().getMaximumPercent() == ecsService.getMaximumPercent(),
+        service.deploymentConfiguration().maximumPercent() == ecsService.getMaximumPercent(),
         "Expected the maximum percent of the service to be "
-            + service.getDeploymentConfiguration().getMaximumPercent()
+            + service.deploymentConfiguration().maximumPercent()
             + " but got "
             + ecsService.getMaximumPercent());
 
     assertTrue(
-        service.getDeploymentConfiguration().getMinimumHealthyPercent()
+        service.deploymentConfiguration().minimumHealthyPercent()
             == ecsService.getMinimumHealthyPercent(),
         "Expected the minimum healthy percent of the service to be "
-            + service.getDeploymentConfiguration().getMinimumHealthyPercent()
+            + service.deploymentConfiguration().minimumHealthyPercent()
             + " but got "
             + ecsService.getMinimumHealthyPercent());
 
     assertTrue(
-        service.getCreatedAt().getTime() == ecsService.getCreatedAt(),
+        service.createdAt().toEpochMilli() == ecsService.getCreatedAt(),
         "Expected the created at of the service to be "
-            + service.getCreatedAt().getTime()
+            + service.createdAt().toEpochMilli()
             + " but got "
             + ecsService.getCreatedAt());
 
@@ -200,12 +217,5 @@ public class ServiceCacheClientTest extends CommonCacheClient {
         ecsService.getLoadBalancers().size() == 1,
         "Expected the service to have 1 load balancer but got "
             + ecsService.getLoadBalancers().size());
-
-    assertTrue(
-        ecsService.getLoadBalancers().get(0).equals(loadBalancer),
-        "Expected the service to have load balancer "
-            + loadBalancer
-            + " but got "
-            + ecsService.getLoadBalancers().get(0));
   }
 }

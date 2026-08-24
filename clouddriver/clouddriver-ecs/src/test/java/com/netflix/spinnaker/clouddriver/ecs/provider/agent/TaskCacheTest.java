@@ -21,22 +21,22 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import com.amazonaws.services.ecs.model.DescribeTasksRequest;
-import com.amazonaws.services.ecs.model.DescribeTasksResult;
-import com.amazonaws.services.ecs.model.ListClustersRequest;
-import com.amazonaws.services.ecs.model.ListClustersResult;
-import com.amazonaws.services.ecs.model.ListTasksRequest;
-import com.amazonaws.services.ecs.model.ListTasksResult;
-import com.amazonaws.services.ecs.model.Task;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.TaskCacheClient;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.services.ecs.model.DescribeTasksRequest;
+import software.amazon.awssdk.services.ecs.model.DescribeTasksResponse;
+import software.amazon.awssdk.services.ecs.model.ListClustersRequest;
+import software.amazon.awssdk.services.ecs.model.ListClustersResponse;
+import software.amazon.awssdk.services.ecs.model.ListTasksRequest;
+import software.amazon.awssdk.services.ecs.model.ListTasksResponse;
+import software.amazon.awssdk.services.ecs.model.Task;
 import spock.lang.Subject;
 
 public class TaskCacheTest extends CommonCachingAgent {
@@ -44,8 +44,7 @@ public class TaskCacheTest extends CommonCachingAgent {
 
   @Subject
   private final TaskCachingAgent agent =
-      new TaskCachingAgent(
-          netflixAmazonCredentials, REGION, clientProvider, credentialsProvider, registry);
+      new TaskCachingAgent(netflixAmazonCredentials, REGION, clientProvider, registry);
 
   @Subject private final TaskCacheClient client = new TaskCacheClient(providerCache, mapper);
 
@@ -54,23 +53,26 @@ public class TaskCacheTest extends CommonCachingAgent {
     // Given
     String key = Keys.getTaskKey(ACCOUNT, REGION, TASK_ID_1);
 
-    Task task = new Task();
-    task.setTaskArn(TASK_ARN_1);
-    task.setClusterArn(CLUSTER_ARN_1);
-    task.setContainerInstanceArn(CONTAINER_INSTANCE_ARN_1);
-    task.setGroup("group" + SERVICE_NAME_1);
-    task.setContainers(Collections.emptyList());
-    task.setLastStatus(STATUS);
-    task.setDesiredStatus(STATUS);
-    task.setStartedAt(new Date());
-    task.setAvailabilityZone(REGION + "a");
+    Instant startedAt = Instant.now();
+    Task task =
+        Task.builder()
+            .taskArn(TASK_ARN_1)
+            .clusterArn(CLUSTER_ARN_1)
+            .containerInstanceArn(CONTAINER_INSTANCE_ARN_1)
+            .group("group" + SERVICE_NAME_1)
+            .containers(Collections.emptyList())
+            .lastStatus(STATUS)
+            .desiredStatus(STATUS)
+            .startedAt(startedAt)
+            .availabilityZone(REGION + "a")
+            .build();
 
     when(ecs.listClusters(any(ListClustersRequest.class)))
-        .thenReturn(new ListClustersResult().withClusterArns(CLUSTER_ARN_1));
+        .thenReturn(ListClustersResponse.builder().clusterArns(CLUSTER_ARN_1).build());
     when(ecs.listTasks(any(ListTasksRequest.class)))
-        .thenReturn(new ListTasksResult().withTaskArns(TASK_ARN_1));
+        .thenReturn(ListTasksResponse.builder().taskArns(TASK_ARN_1).build());
     when(ecs.describeTasks(any(DescribeTasksRequest.class)))
-        .thenReturn(new DescribeTasksResult().withTasks(task));
+        .thenReturn(DescribeTasksResponse.builder().tasks(task).build());
 
     // When
     CacheResult cacheResult = agent.loadData(providerCache);
@@ -98,46 +100,46 @@ public class TaskCacheTest extends CommonCachingAgent {
         "Expected the task ARN to be " + TASK_ARN_1 + " but got " + ecsTask.getTaskArn());
 
     assertTrue(
-        task.getContainerInstanceArn().equals(ecsTask.getContainerInstanceArn()),
+        task.containerInstanceArn().equals(ecsTask.getContainerInstanceArn()),
         "Expected the container instance ARN name to be "
-            + task.getContainerInstanceArn()
+            + task.containerInstanceArn()
             + " but got "
             + ecsTask.getContainerInstanceArn());
 
     assertTrue(
-        task.getGroup().equals(ecsTask.getGroup()),
-        "Expected the group to be " + task.getGroup() + " but got " + ecsTask.getGroup());
+        task.group().equals(ecsTask.getGroup()),
+        "Expected the group to be " + task.group() + " but got " + ecsTask.getGroup());
 
     assertTrue(
-        task.getLastStatus().equals(ecsTask.getLastStatus()),
+        task.lastStatus().equals(ecsTask.getLastStatus()),
         "Expected the last status to be "
-            + task.getLastStatus()
+            + task.lastStatus()
             + " but got "
             + ecsTask.getLastStatus());
 
     assertTrue(
-        task.getDesiredStatus().equals(ecsTask.getDesiredStatus()),
+        task.desiredStatus().equals(ecsTask.getDesiredStatus()),
         "Expected the desired status to be "
-            + task.getDesiredStatus()
+            + task.desiredStatus()
             + " but got "
             + ecsTask.getDesiredStatus());
 
     assertTrue(
-        task.getStartedAt().getTime() == ecsTask.getStartedAt(),
+        task.startedAt().toEpochMilli() == ecsTask.getStartedAt(),
         "Expected the started at to be "
-            + task.getStartedAt().getTime()
+            + task.startedAt().toEpochMilli()
             + " but got "
             + ecsTask.getStartedAt());
 
     assertTrue(
-        task.getAvailabilityZone() == ecsTask.getAvailabilityZone(),
+        task.availabilityZone().equals(ecsTask.getAvailabilityZone()),
         "Expected the availability zone to be "
-            + task.getAvailabilityZone()
+            + task.availabilityZone()
             + " but got "
             + ecsTask.getAvailabilityZone());
 
     assertTrue(
-        task.getContainers().size() == 0,
-        "Expected the task to have 0 containers but got " + task.getContainers().size());
+        task.containers().size() == 0,
+        "Expected the task to have 0 containers but got " + task.containers().size());
   }
 }

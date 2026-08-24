@@ -15,10 +15,10 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.cache
 
-import com.amazonaws.services.elasticloadbalancingv2.model.TargetDescription
-import com.amazonaws.services.elasticloadbalancingv2.model.TargetHealth
-import com.amazonaws.services.elasticloadbalancingv2.model.TargetHealthDescription
-import com.amazonaws.services.elasticloadbalancingv2.model.TargetHealthStateEnum
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetDescription
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetHealth
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetHealthDescription
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetHealthStateEnum
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 
@@ -43,16 +43,26 @@ class TargetHealthCacheClientSpec extends Specification {
     def key =
       Keys.getTargetHealthKey('test-account', 'us-west-1', targetGroupArn)
 
-    def targetHealthDescription = new TargetHealthDescription().withTarget(
-      new TargetDescription().withId(targetId).withPort(80))
-      .withTargetHealth(new TargetHealth().withState(TargetHealthStateEnum.Healthy))
+    def targetHealthDescription = TargetHealthDescription.builder()
+      .target(TargetDescription.builder().id(targetId).port(80).build())
+      .targetHealth(TargetHealth.builder().state(TargetHealthStateEnum.HEALTHY).build())
+      .build()
 
     def originalTargetHealth = new EcsTargetHealth(
       targetGroupArn: targetGroupArn,
       targetHealthDescriptions: Collections.singletonList(targetHealthDescription)
     )
 
-    def attributes = objectMapper.convertValue(originalTargetHealth, Map)
+    // Manually build the attributes map since v2 SDK objects aren't JavaBeans-serializable
+    def attributes = [
+      targetGroupArn: targetGroupArn,
+      targetHealthDescriptions: [
+        [
+          target: [id: targetId, port: 80, availabilityZone: null],
+          targetHealth: [state: 'healthy', reason: null, description: null]
+        ]
+      ]
+    ]
     cacheView.get(TARGET_HEALTHS.toString(), key) >> new DefaultCacheData(key, attributes, Collections.emptyMap())
 
     when:
