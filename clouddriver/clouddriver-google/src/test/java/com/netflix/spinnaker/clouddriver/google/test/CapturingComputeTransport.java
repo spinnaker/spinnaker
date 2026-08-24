@@ -32,7 +32,7 @@ import java.util.regex.Pattern;
 
 /**
  * Captures outbound Compute HTTP requests (method, URL, JSON body) for API-boundary contract tests.
- * Public for reuse across handler and load-balancer operation test packages.
+ * Public for reuse across handler, autoscaling, and load-balancer operation test packages.
  */
 public final class CapturingComputeTransport extends HttpTransport {
   private static final Pattern LIST_RESOURCE_PATTERN =

@@ -2,7 +2,10 @@
 
 import { nativePromiseService } from '@spinnaker/core';
 
-import { GceServerGroupConfigurationService } from './serverGroupConfiguration.service';
+import {
+  GCE_DISTRIBUTION_POLICY_TARGET_SHAPES,
+  GceServerGroupConfigurationService,
+} from './serverGroupConfiguration.service';
 
 describe('GceServerGroupConfigurationService', () => {
   let service;
@@ -67,6 +70,12 @@ describe('GceServerGroupConfigurationService', () => {
       expect(command.backendServices).toEqual({
         'app-main (account-a/europe-west1/EXTERNAL_MANAGED)': ['europe-backend'],
       });
+    });
+  });
+
+  describe('target shapes', () => {
+    it('exposes BALANCED and ANY_SINGLE_ZONE alongside ANY and EVEN', () => {
+      expect(GCE_DISTRIBUTION_POLICY_TARGET_SHAPES).toEqual(['ANY', 'EVEN', 'BALANCED', 'ANY_SINGLE_ZONE']);
     });
   });
 });

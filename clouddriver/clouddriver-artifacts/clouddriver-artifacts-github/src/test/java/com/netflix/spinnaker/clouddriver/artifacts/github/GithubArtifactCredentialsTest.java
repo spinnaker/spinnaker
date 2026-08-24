@@ -18,6 +18,13 @@ package com.netflix.spinnaker.clouddriver.artifacts.github;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
@@ -25,10 +32,14 @@ import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.matching.RegexPattern;
 import com.netflix.spinnaker.clouddriver.artifacts.config.HttpUrlRestrictions;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.github.GitHubAppAuthenticator;
+import com.netflix.spinnaker.kork.github.GitHubAppCredentials;
+import com.netflix.spinnaker.kork.github.test.GitHubAppTestKeys;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.function.Function;
 import okhttp3.OkHttpClient;
 import org.apache.commons.io.Charsets;
@@ -94,6 +105,201 @@ class GithubArtifactCredentialsTest {
     Files.write(authFile, "aaa".getBytes());
 
     runTestCase(server, account, m -> m.withHeader("Authorization", equalTo("token aaa")));
+  }
+
+  @Test
+  void downloadWithGitHubAppAuth(@WiremockResolver.Wiremock WireMockServer server)
+      throws IOException {
+    GitHubAppAuthenticator authenticator = mock(GitHubAppAuthenticator.class);
+    when(authenticator.getInstallationToken()).thenReturn("ghs_installation-token");
+
+    GitHubArtifactAccount account = gitHubAppAccountBuilder(server.baseUrl()).build();
+
+    runTestCase(
+        server,
+        new GitHubArtifactCredentials(account, okHttpClient, objectMapper, authenticator),
+        m -> m.withHeader("Authorization", equalTo("token ghs_installation-token")));
+  }
+
+  @Test
+  void gitHubAppAuthTakesPrecedenceOverTokenAuth(@WiremockResolver.Wiremock WireMockServer server)
+      throws IOException {
+    GitHubAppAuthenticator authenticator = mock(GitHubAppAuthenticator.class);
+    when(authenticator.getInstallationToken()).thenReturn("ghs_installation-token");
+
+    GitHubArtifactAccount account = gitHubAppAccountBuilder(server.baseUrl()).token("abc").build();
+
+    runTestCase(
+        server,
+        new GitHubArtifactCredentials(account, okHttpClient, objectMapper, authenticator),
+        m -> m.withHeader("Authorization", equalTo("token ghs_installation-token")));
+  }
+
+  @Test
+  void gitHubAppInstallationTokenIsResolvedPerRequest(
+      @WiremockResolver.Wiremock WireMockServer server) throws IOException {
+    GitHubAppAuthenticator authenticator = mock(GitHubAppAuthenticator.class);
+    when(authenticator.getInstallationToken()).thenReturn("ghs_token_one");
+
+    GitHubArtifactAccount account = gitHubAppAccountBuilder(server.baseUrl()).build();
+    GitHubArtifactCredentials credentials =
+        new GitHubArtifactCredentials(account, okHttpClient, objectMapper, authenticator);
+
+    runTestCase(
+        server, credentials, m -> m.withHeader("Authorization", equalTo("token ghs_token_one")));
+
+    // Simulate token rotation: the next download must pick up the fresh installation token
+    when(authenticator.getInstallationToken()).thenReturn("ghs_token_two");
+
+    runTestCase(
+        server, credentials, m -> m.withHeader("Authorization", equalTo("token ghs_token_two")));
+  }
+
+  @Test
+  void downloadWithGitHubAppDeriveMode(@WiremockResolver.Wiremock WireMockServer server)
+      throws IOException {
+    GitHubAppAuthenticator authenticator = mock(GitHubAppAuthenticator.class);
+    when(authenticator.getInstallationTokenForRepo(anyString(), anyString()))
+        .thenReturn("ghs_derived_token");
+
+    // no appInstallationId - the installation is derived from the repository in the URL.
+    // useContentAPI keeps this to a single contents-API request, which identifies the repository.
+    GitHubArtifactAccount account =
+        deriveModeAccountBuilder(server.baseUrl()).useContentAPI(true).build();
+
+    server.stubFor(
+        any(urlPathEqualTo(METADATA_PATH))
+            .withQueryParam("ref", equalTo("master"))
+            .withHeader("Authorization", equalTo("token ghs_derived_token"))
+            .willReturn(aResponse().withBody(FILE_CONTENTS)));
+
+    GitHubArtifactCredentials credentials =
+        new GitHubArtifactCredentials(account, okHttpClient, objectMapper, authenticator);
+
+    assertThat(credentials.download(artifactFor(server)))
+        .hasSameContentAs(new ByteArrayInputStream(FILE_CONTENTS.getBytes(Charsets.UTF_8)));
+    assertThat(server.findUnmatchedRequests().getRequests()).isEmpty();
+
+    verify(authenticator, atLeastOnce()).getInstallationTokenForRepo("spinnaker", "testing");
+    verify(authenticator, never()).getInstallationToken();
+  }
+
+  @Test
+  void gitHubAppDeriveModeOmitsCredentialsWhenRepositoryIsNotDerivableFromUrl(
+      @WiremockResolver.Wiremock WireMockServer server) throws IOException {
+    GitHubAppAuthenticator authenticator = mock(GitHubAppAuthenticator.class);
+    when(authenticator.getInstallationTokenForRepo(anyString(), anyString()))
+        .thenReturn("ghs_derived_token");
+
+    GitHubArtifactAccount account = deriveModeAccountBuilder(server.baseUrl()).build();
+
+    // the contents API response points at a download URL whose layout does not identify a
+    // repository, so no installation can be derived for that hop
+    final String downloadPath = "/download/spinnaker/testing/master/manifest.yml";
+    GitHubArtifactCredentials.ContentMetadata contentMetadata =
+        new GitHubArtifactCredentials.ContentMetadata()
+            .setDownloadUrl(server.baseUrl() + downloadPath);
+
+    server.stubFor(
+        any(urlPathEqualTo(METADATA_PATH))
+            .withQueryParam("ref", equalTo("master"))
+            .withHeader("Authorization", equalTo("token ghs_derived_token"))
+            .willReturn(aResponse().withBody(objectMapper.writeValueAsString(contentMetadata))));
+    server.stubFor(
+        any(urlPathEqualTo(downloadPath))
+            .withHeader("Authorization", absent())
+            .willReturn(aResponse().withBody(FILE_CONTENTS)));
+
+    GitHubArtifactCredentials credentials =
+        new GitHubArtifactCredentials(account, okHttpClient, objectMapper, authenticator);
+
+    assertThat(credentials.download(artifactFor(server)))
+        .hasSameContentAs(new ByteArrayInputStream(FILE_CONTENTS.getBytes(Charsets.UTF_8)));
+    assertThat(server.findUnmatchedRequests().getRequests()).isEmpty();
+
+    // only the contents-API hop resolved an installation
+    verify(authenticator, times(1)).getInstallationTokenForRepo("spinnaker", "testing");
+  }
+
+  @Test
+  void gitHubAppDeriveModeRejectsOwnersOutsideAllowedOrganizations(
+      @TempDirectory.TempDir Path tempDir, @WiremockResolver.Wiremock WireMockServer server)
+      throws Exception {
+    Path privateKeyFile = tempDir.resolve("gh-app-key.pem");
+    GitHubAppTestKeys.writePkcs8Pem(privateKeyFile);
+
+    // the artifact reference points at spinnaker/testing, which is not on the allowlist
+    GitHubArtifactAccount account =
+        gitHubAppAccountBuilder(server.baseUrl())
+            .githubApp(
+                new GitHubAppCredentials(
+                    "12345",
+                    privateKeyFile.toString(),
+                    null,
+                    server.baseUrl(),
+                    List.of("allowed-org")))
+            .build();
+    GitHubArtifactCredentials credentials =
+        new GitHubArtifactCredentials(account, okHttpClient, objectMapper);
+
+    IllegalArgumentException exception =
+        Assertions.assertThrows(
+            IllegalArgumentException.class, () -> credentials.download(artifactFor(server)));
+
+    assertThat(exception.getMessage())
+        .contains("not permitted to access repositories owned by")
+        .contains("spinnaker");
+    assertThat(server.getAllServeEvents()).isEmpty();
+  }
+
+  @Test
+  void gitHubAppEndToEndTokenExchangeAndDownload(
+      @TempDirectory.TempDir Path tempDir, @WiremockResolver.Wiremock WireMockServer server)
+      throws Exception {
+    // Real private key file, real GitHubAppAuthenticator - the wiremock server plays the GitHub
+    // API for both the token exchange and the artifact download
+    Path privateKeyFile = tempDir.resolve("gh-app-key.pem");
+    GitHubAppTestKeys.writePkcs8Pem(privateKeyFile);
+
+    server.stubFor(
+        get(urlPathEqualTo("/app"))
+            .willReturn(
+                aResponse()
+                    .withHeader("Content-Type", "application/json")
+                    .withBody("{\"id\": 12345, \"name\": \"test-app\"}")));
+    server.stubFor(
+        get(urlPathEqualTo("/app/installations/67890"))
+            .willReturn(
+                aResponse()
+                    .withHeader("Content-Type", "application/json")
+                    .withBody(
+                        "{\"id\": 67890, \"app_id\": 12345, \"account\": {\"login\": \"test-org\"}}")));
+    server.stubFor(
+        post(urlPathEqualTo("/app/installations/67890/access_tokens"))
+            .willReturn(
+                aResponse()
+                    .withStatus(201)
+                    .withHeader("Content-Type", "application/json")
+                    .withBody(
+                        "{\"token\": \"ghs_e2e_token\", \"expires_at\": \"2099-01-01T00:00:00Z\"}")));
+
+    GitHubArtifactAccount account =
+        gitHubAppAccountBuilder(server.baseUrl())
+            .githubApp(
+                new GitHubAppCredentials(
+                    "12345", privateKeyFile.toString(), "67890", server.baseUrl()))
+            .build();
+
+    runTestCase(
+        server,
+        new GitHubArtifactCredentials(account, okHttpClient, objectMapper),
+        m -> m.withHeader("Authorization", equalTo("token ghs_e2e_token")));
+
+    // the installation token was minted with a JWT signed by the app's private key
+    server.verify(
+        1,
+        postRequestedFor(urlPathEqualTo("/app/installations/67890/access_tokens"))
+            .withHeader("Authorization", matching("Bearer eyJ.*")));
   }
 
   @Test
@@ -226,7 +432,7 @@ class GithubArtifactCredentialsTest {
   }
 
   @Test
-  void defaultRestrictLinkLocalAndLocalhost() {
+  void defaultRestrictLinkLocalAndLocalhost() throws IOException {
     // explicitly deny the test server we're hitting.
     GitHubArtifactCredentials credentials =
         new GitHubArtifactCredentials(
@@ -242,14 +448,44 @@ class GithubArtifactCredentialsTest {
     Assertions.assertThrows(IllegalArgumentException.class, () -> credentials.download(artifact));
   }
 
+  private GitHubArtifactAccount.GitHubArtifactAccountBuilder deriveModeAccountBuilder(
+      String apiBaseUrl) {
+    return gitHubAppAccountBuilder(apiBaseUrl)
+        .githubApp(new GitHubAppCredentials("12345", "/path/to/key.pem", null, apiBaseUrl));
+  }
+
+  private Artifact artifactFor(WireMockServer server) {
+    return Artifact.builder()
+        .reference(server.baseUrl() + METADATA_PATH)
+        .version("master")
+        .type("github/file")
+        .build();
+  }
+
+  private GitHubArtifactAccount.GitHubArtifactAccountBuilder gitHubAppAccountBuilder(
+      String apiBaseUrl) {
+    GitHubAppCredentials githubApp =
+        new GitHubAppCredentials("12345", "/path/to/key.pem", "67890", apiBaseUrl);
+    return GitHubArtifactAccount.builder()
+        .name("my-github-account")
+        .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
+        .githubApp(githubApp);
+  }
+
   private void runTestCase(
       WireMockServer server,
       GitHubArtifactAccount account,
       Function<MappingBuilder, MappingBuilder> expectedAuth)
       throws IOException {
-    GitHubArtifactCredentials credentials =
-        new GitHubArtifactCredentials(account, okHttpClient, objectMapper);
+    runTestCase(
+        server, new GitHubArtifactCredentials(account, okHttpClient, objectMapper), expectedAuth);
+  }
 
+  private void runTestCase(
+      WireMockServer server,
+      GitHubArtifactCredentials credentials,
+      Function<MappingBuilder, MappingBuilder> expectedAuth)
+      throws IOException {
     Artifact artifact =
         Artifact.builder()
             .reference(server.baseUrl() + METADATA_PATH)
