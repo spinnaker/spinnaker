@@ -20,11 +20,14 @@ import com.netflix.spinnaker.kork.aws.ARN
 import software.amazon.awssdk.services.sqs.SqsClient
 import software.amazon.awssdk.services.sqs.model.CreateQueueRequest
 import software.amazon.awssdk.services.sqs.model.CreateQueueResponse
+import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest
 import software.amazon.awssdk.services.sqs.model.GetQueueUrlResponse
+import software.amazon.awssdk.services.sqs.model.QueueAttributeName
 import software.amazon.awssdk.services.sqs.model.QueueDoesNotExistException
 import software.amazon.awssdk.services.sqs.model.SetQueueAttributesRequest
-import software.amazon.awssdk.services.sqs.model.SetQueueAttributesResponse
 import spock.lang.Specification
+
+import java.util.function.Consumer
 
 class PubSubUtilsSpec extends Specification {
   SqsClient sqsClient = Mock()
@@ -32,14 +35,21 @@ class PubSubUtilsSpec extends Specification {
   ARN queueARN = new ARN("arn:aws:sqs:us-west-2:100:queueName")
   ARN topicARN = new ARN("arn:aws:sns:us-west-2:100:topicName")
 
-  def "getQueueUrl returns URL"() {
+  def "getQueueUrl returns URL and passes QueueOwnerAWSAccountId"() {
     when:
     def url = PubSubUtils.getQueueUrl(sqsClient, queueARN)
 
     then:
     url == "my-queue-url"
-    // The v2 SDK uses a Consumer<Builder> lambda overload, not a request object
-    1 * sqsClient.getQueueUrl(_) >> GetQueueUrlResponse.builder().queueUrl("my-queue-url").build()
+    1 * sqsClient.getQueueUrl(_ as Consumer) >> { Consumer<GetQueueUrlRequest.Builder> consumer ->
+      // Verify the consumer sets the right values by building the request
+      def builder = GetQueueUrlRequest.builder()
+      consumer.accept(builder)
+      def req = builder.build()
+      assert req.queueName() == queueARN.name
+      assert req.queueOwnerAWSAccountId() == queueARN.account
+      return GetQueueUrlResponse.builder().queueUrl("my-queue-url").build()
+    }
     0 * _
   }
 
@@ -48,7 +58,8 @@ class PubSubUtilsSpec extends Specification {
     PubSubUtils.getQueueUrl(sqsClient, queueARN)
 
     then:
-    (1.._) * sqsClient.getQueueUrl(_) >> {
+    // retrySupport retries MAX_RETRIES (=5) times before giving up
+    (1.._) * sqsClient.getQueueUrl(_ as Consumer) >> {
       throw QueueDoesNotExistException.builder().message("nope").build()
     }
     0 * sqsClient.createQueue(_ as CreateQueueRequest)
@@ -61,9 +72,16 @@ class PubSubUtilsSpec extends Specification {
 
     then:
     queueId == "my-queue-url"
-    1 * sqsClient.getQueueUrl(_) >> GetQueueUrlResponse.builder().queueUrl("my-queue-url").build()
+    1 * sqsClient.getQueueUrl(_ as Consumer) >> {
+      GetQueueUrlResponse.builder().queueUrl("my-queue-url").build()
+    }
     0 * sqsClient.createQueue(_ as CreateQueueRequest)
-    1 * sqsClient.setQueueAttributes(_ as SetQueueAttributesRequest) >> SetQueueAttributesResponse.builder().build()
+    1 * sqsClient.setQueueAttributes(_ as SetQueueAttributesRequest) >> { SetQueueAttributesRequest req ->
+      assert req.queueUrl() == "my-queue-url"
+      assert req.attributes().get(QueueAttributeName.POLICY) == PubSubUtils.buildSQSPolicy(queueARN, topicARN).toJson()
+      assert req.attributes().get(QueueAttributeName.MESSAGE_RETENTION_PERIOD) == "1"
+      return null
+    }
     0 * _
   }
 
@@ -73,11 +91,20 @@ class PubSubUtilsSpec extends Specification {
 
     then:
     queueId == "my-queue-url"
-    (1.._) * sqsClient.getQueueUrl(_) >> {
+    // retry may re-invoke getQueueUrl before giving up and returning to ensureQueueExists
+    (1.._) * sqsClient.getQueueUrl(_ as Consumer) >> {
       throw QueueDoesNotExistException.builder().message("nope").build()
     }
-    1 * sqsClient.createQueue(_ as CreateQueueRequest) >> CreateQueueResponse.builder().queueUrl("my-queue-url").build()
-    1 * sqsClient.setQueueAttributes(_ as SetQueueAttributesRequest) >> SetQueueAttributesResponse.builder().build()
+    1 * sqsClient.createQueue(_ as CreateQueueRequest) >> { CreateQueueRequest req ->
+      assert req.queueName() == queueARN.name
+      return CreateQueueResponse.builder().queueUrl("my-queue-url").build()
+    }
+    1 * sqsClient.setQueueAttributes(_ as SetQueueAttributesRequest) >> { SetQueueAttributesRequest req ->
+      assert req.queueUrl() == "my-queue-url"
+      assert req.attributes().get(QueueAttributeName.POLICY) == PubSubUtils.buildSQSPolicy(queueARN, topicARN).toJson()
+      assert req.attributes().get(QueueAttributeName.MESSAGE_RETENTION_PERIOD) == "1"
+      return null
+    }
     0 * _
   }
 }
