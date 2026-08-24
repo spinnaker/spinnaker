@@ -14,33 +14,3 @@ dependencies {
   testImplementation "io.spinnaker.kork:kork-jedis-test"
   testRuntimeOnly "ch.qos.logback:logback-classic"
 }
-
-// This module's `test` task is disabled repo-wide (see orca/build.gradle), and the legacy Spek 1.x
-// TCK suites in it discover nothing under JUnit Platform 5.9 anyway. Expose the targeted JUnit 5
-// regression tests through a task of their own so they can be run deliberately without re-enabling
-// -- and thereby having to fix -- everything else in here.
-//
-// Not wired into `check`: it needs a Docker daemon for EmbeddedRedis.
-//   ./gradlew :orca:keiko-redis:redisAckRaceTest
-tasks.register('redisAckRaceTest', Test) {
-  description = 'Runs the RedisQueue ack/push race regression tests. Requires Docker.'
-  group = 'verification'
-
-  testClassesDirs = sourceSets.test.output.classesDirs
-  classpath = sourceSets.test.runtimeClasspath
-
-  useJUnitPlatform()
-  filter {
-    includeTestsMatching 'com.netflix.spinnaker.q.redis.RedisQueueAckRaceTest'
-  }
-
-  // testcontainers 1.19.8 pulls docker-java 3.3.6, which negotiates Docker API 1.32. Docker >= 25
-  // refuses that ("client version 1.32 is too old. Minimum supported API version is 1.40"), and
-  // testcontainers reports it as the far less helpful "Could not find a valid Docker environment".
-  // DOCKER_API_VERSION is not honoured by docker-java; this system property is.
-  systemProperty 'api.version', '1.43'
-  testLogging {
-    events "passed", "skipped", "failed"
-    exceptionFormat = "full"
-  }
-}

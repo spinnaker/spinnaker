@@ -37,8 +37,6 @@ import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
 
 /**
- * Reproduces the message loss described in `orca-message-loss-ack-race-2026-08.md`.
- *
  * [RedisQueue.ackMessage] decides whether to delete a message outright by asking "is an identical
  * fingerprint back on the queue right now?" and then, if not, deleting every trace of that
  * fingerprint. The question and the deletion are separate round-trips, and the deletion re-derives
@@ -50,22 +48,16 @@ import redis.clients.jedis.JedisPool
  * branch; and the redirect cascade it kicks off (reset loop tasks -> restart the loop-start task ->
  * that task completes -> start the loop-end task -> push `RunTask`) regenerates a message with
  * byte-identical content, and therefore the identical fingerprint, a few hundred milliseconds
- * later. Production execution `01KYVFKT30ZGAPQEMT98NKFTMN` lost exactly that message on
- * 2026-07-31 and sat `RUNNING` with nothing in the queue for 6h20m.
+ * later.
  *
- * The two pods here mirror that incident: [podA] polls and acks (pod `6lxzz`, the `REDIRECT` ack),
+ * The two pods here mirror this scenario: [podA] polls and acks (pod `6lxzz`, the `REDIRECT` ack),
  * [podB] pushes the identical successor (pod `k4vp4`, `StartTaskHandler`'s `push(RunTask)`).
  * [TestMessage] is a data class, so two instances with the same payload collide on fingerprint for
  * free.
  *
- * Requires Docker: [EmbeddedRedis] is a Testcontainer. The module's `test` task is disabled
- * repo-wide, so run this via its dedicated task:
- *
- * ```
- * ./gradlew :orca:keiko-redis:redisAckRaceTest
- * ```
+ * Requires Docker: [EmbeddedRedis] is a Testcontainer.
  */
-class RedisQueueAckRaceTest {
+class RedisQueueIntegrationTest {
 
   /**
    * Runs a one-shot action immediately after the first Redis command issued while armed.
