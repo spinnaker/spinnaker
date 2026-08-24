@@ -53,6 +53,9 @@ public class UpsertLoadBalancerForceRefreshTask implements CloudProviderAware, R
    * write, and they are named by their forwarding rule -- the same name the cache is keyed by.
    * An HTTP upsert names its URL map instead, which the load balancer cache never holds, so reading
    * the provider for one would wait out the timeout on a refresh that had already succeeded.
+   *
+   * This is a wire value from Clouddriver's loadBalancerType contract. Orca intentionally does not
+   * depend on provider-specific Clouddriver model classes; the decision-table spec pins the value.
    */
   static final String VISIBILITY_CHECKED_LOAD_BALANCER_TYPE = "REGIONAL_EXTERNAL_NETWORK"
 
@@ -259,6 +262,12 @@ public class UpsertLoadBalancerForceRefreshTask implements CloudProviderAware, R
     }
   }
 
+  /**
+   * Cats normally returns the cache identifier as {@code id}. Some non-atomic pending rows expose
+   * only their request details, so the fallback reconstructs the documented
+   * provider:type:account:region:name identity emitted by Clouddriver. Keep this fallback in sync
+   * with the force-cache response contract rather than importing provider cache-key code into Orca.
+   */
   private static boolean pendingUpdateMatchesRefreshId(Map pendingUpdate, String refreshId) {
     if (pendingUpdate.id as String == refreshId) {
       return true

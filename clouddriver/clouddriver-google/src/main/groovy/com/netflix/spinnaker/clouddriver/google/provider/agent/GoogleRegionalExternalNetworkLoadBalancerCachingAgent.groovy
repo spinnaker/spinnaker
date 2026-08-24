@@ -36,7 +36,8 @@ import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCrede
  * this subclass keeps the EXTERNAL TCP/UDP ownership and regional health-check conversion.
  */
 class GoogleRegionalExternalNetworkLoadBalancerCachingAgent
-  extends AbstractGoogleRegionalPassthroughLoadBalancerCachingAgent<GoogleRegionalExternalNetworkLoadBalancer> {
+  extends AbstractGoogleRegionalPassthroughLoadBalancerCachingAgent<
+    GoogleRegionalExternalNetworkLoadBalancer, List<HealthCheck>> {
 
   GoogleRegionalExternalNetworkLoadBalancerCachingAgent(String clouddriverUserAgentApplicationName,
                                                         GoogleNamedAccountCredentials credentials,
@@ -87,16 +88,19 @@ class GoogleRegionalExternalNetworkLoadBalancerCachingAgent
   }
 
   @Override
-  Object fetchHealthCheckContext() {
+  List<HealthCheck> fetchHealthCheckContext() {
     GCEUtil.fetchRegionalHealthChecks(this, compute, project, region)
   }
 
   @Override
-  void attachHealthChecks(BackendService backendService, GoogleRegionalExternalNetworkLoadBalancer googleLoadBalancer, Object healthCheckContext) {
+  void attachHealthChecks(BackendService backendService,
+                          GoogleRegionalExternalNetworkLoadBalancer googleLoadBalancer,
+                          List<HealthCheck> healthCheckContext) {
     backendService.healthChecks?.each { String healthCheckURL ->
       def healthCheckName = Utils.getLocalName(healthCheckURL)
       HealthCheck healthCheck = healthCheckContext.find { hc -> Utils.getLocalName(hc.getName()) == healthCheckName }
-      GoogleRegionalExternalNetworkLoadBalancerCachingAgent.handleHealthCheck(healthCheck, googleLoadBalancer.backendService)
+      GoogleRegionalExternalNetworkLoadBalancerCachingAgent.handleHealthCheck(
+        healthCheck, googleLoadBalancer.backendService)
     }
   }
 

@@ -38,7 +38,7 @@ export class LoadBalancer extends React.Component<ILoadBalancerProps> {
       name: loadBalancer.name,
       vpcId: loadBalancer.vpcId,
       provider: loadBalancer.cloudProvider,
-      loadBalancerType: (loadBalancer as any).loadBalancerType,
+      loadBalancerType: loadBalancer.loadBalancerType,
     };
 
     return (

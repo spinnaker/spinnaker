@@ -79,6 +79,11 @@ public class GoogleExternalHttpLoadBalancerCachingAgent
   }
 
   @Override
+  protected String getLoadBalancingScheme() {
+    return GoogleLoadBalancerType.EXTERNAL_MANAGED.name();
+  }
+
+  @Override
   protected boolean isOwnedForwardingRule(ForwardingRule forwardingRule) {
     return isExternalManagedHttpForwardingRule(forwardingRule);
   }
@@ -138,17 +143,6 @@ public class GoogleExternalHttpLoadBalancerCachingAgent
         "Could not enrich regional external HTTP load balancer {} because health check {} was missing.",
         loadBalancer.getName(),
         healthCheckName);
-  }
-
-  @Override
-  protected void handleUnsupportedTargetProxy(
-      ForwardingRule forwardingRule,
-      GoogleExternalHttpLoadBalancer loadBalancer,
-      List<String> failedLoadBalancers) {
-    failedLoadBalancers.add(loadBalancer.getName());
-    log.debug(
-        "Unsupported target proxy for regional external HTTP load balancer {}",
-        forwardingRule.getName());
   }
 
   @Override

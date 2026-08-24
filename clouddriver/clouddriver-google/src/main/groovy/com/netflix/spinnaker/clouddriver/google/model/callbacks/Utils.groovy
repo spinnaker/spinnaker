@@ -374,8 +374,9 @@ class Utils {
 
     if (loadBalancer.backendService == null) {
       log.warn("Malformed internal load balancer encountered: ${loadBalancer}")
+      return false
     }
-    List<GoogleLoadBalancedBackend> serviceBackends = loadBalancer?.backendService?.backends
+    List<GoogleLoadBalancedBackend> serviceBackends = loadBalancer.backendService.backends
     List<String> backendGroupNames = serviceBackends
       .findAll { serverGroup.region == Utils.getRegionFromGroupUrl(it.serverGroupUrl) }
       .collect { GCEUtil.getLocalName(it.serverGroupUrl) }

@@ -95,8 +95,10 @@ import com.netflix.spinnaker.clouddriver.model.ServerGroup;
 import com.netflix.spinnaker.config.GoogleConfiguration;
 import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository;
 import com.netflix.spinnaker.credentials.NoopCredentialsLifecycleHandler;
+import groovy.lang.Closure;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -1399,6 +1401,44 @@ public class BasicGoogleDeployHandlerTest {
         "regional-external-network-load-balancer", instanceMetadata.get("load-balancer-names"));
     assertEquals("regional-external-backend", instanceMetadata.get("region-backend-service-names"));
     assertEquals("CONNECTION", result.get(0).getBackends().get(0).getBalancingMode());
+  }
+
+  @Test
+  void testMetadataOnlyRegionalBackendServiceIsWritten() throws Exception {
+    Compute compute = mock(Compute.class);
+    BackendService backendService = new BackendService().setName("metadata-backend");
+    mockDescription.setCredentials(mockCredentials);
+    mockDescription.setDisableTraffic(false);
+    when(mockCredentials.getCompute()).thenReturn(compute);
+    when(mockCredentials.getProject()).thenReturn("project");
+
+    invokeUpdateRegionalBackendServices(
+        mockDescription, "server-group", "us-central1", List.of(backendService));
+
+    verify(safeRetry)
+        .doRetry(
+            any(Closure.class),
+            eq("Regional load balancer backend service"),
+            eq(mockTask),
+            anyList(),
+            anyList(),
+            any(),
+            eq(registry));
+  }
+
+  @Test
+  void testDisableTrafficSuppressesMetadataOnlyRegionalBackendServiceWrite() throws Exception {
+    mockDescription.setCredentials(mockCredentials);
+    mockDescription.setDisableTraffic(true);
+
+    invokeUpdateRegionalBackendServices(
+        mockDescription,
+        "server-group",
+        "us-central1",
+        List.of(new BackendService().setName("metadata-backend")));
+
+    verify(safeRetry, never())
+        .doRetry(any(Closure.class), anyString(), any(), anyList(), anyList(), any(), any());
   }
 
   @Test
@@ -4501,6 +4541,25 @@ public class BasicGoogleDeployHandlerTest {
     input.put("source", source);
 
     return input;
+  }
+
+  private void invokeUpdateRegionalBackendServices(
+      BasicGoogleDeployDescription description,
+      String serverGroupName,
+      String region,
+      List<BackendService> backendServices)
+      throws Exception {
+    Method method =
+        BasicGoogleDeployHandler.class.getDeclaredMethod(
+            "updateRegionalBackendServices",
+            BasicGoogleDeployDescription.class,
+            String.class,
+            String.class,
+            List.class,
+            Task.class);
+    method.setAccessible(true);
+    method.invoke(
+        basicGoogleDeployHandler, description, serverGroupName, region, backendServices, mockTask);
   }
 
   private static void setPrivateField(Object target, String fieldName, Object value) {

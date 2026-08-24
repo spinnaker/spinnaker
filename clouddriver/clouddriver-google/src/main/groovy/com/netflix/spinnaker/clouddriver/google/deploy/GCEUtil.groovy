@@ -452,6 +452,18 @@ class GCEUtil {
       forwardingRule?.IPProtocol in ["TCP", "UDP"]
   }
 
+  private static boolean sameComputeResource(String left, String right) {
+    canonicalComputeResourcePath(left) == canonicalComputeResourcePath(right)
+  }
+
+  private static String canonicalComputeResourcePath(String resource) {
+    if (!resource) {
+      return resource
+    }
+    int projectsIndex = resource.indexOf("/projects/")
+    return projectsIndex >= 0 ? resource.substring(projectsIndex + 1) : resource
+  }
+
   static List<String> queryInstanceUrls(String projectName,
                                         String region,
                                         List<String> instanceLocalNames,
@@ -1240,14 +1252,16 @@ class GCEUtil {
       if (backendService.loadBalancingScheme != "EXTERNAL") {
         return
       }
+      String backendGroup = serverGroup.regional ?
+        buildRegionalServerGroupUrl(project, region, serverGroupName) :
+        buildZonalServerGroupUrl(project, serverGroup.zone, serverGroupName)
       Backend backendToAdd = new Backend(balancingMode: 'CONNECTION')
-      if (serverGroup.regional) {
-        backendToAdd.setGroup(buildRegionalServerGroupUrl(project, region, serverGroupName))
-      } else {
-        backendToAdd.setGroup(buildZonalServerGroupUrl(project, serverGroup.zone, serverGroupName))
-      }
+      backendToAdd.setGroup(backendGroup)
       if (backendService.backends == null) {
         backendService.backends = []
+      }
+      backendService.backends.removeAll { Backend backend ->
+        sameComputeResource(backend.group, backendGroup)
       }
       backendService.backends << backendToAdd
       def updateOp = executor.timeExecute(
@@ -1490,14 +1504,16 @@ class GCEUtil {
           if (backendService.loadBalancingScheme != "EXTERNAL_MANAGED") {
             return
           }
+          String backendGroup = serverGroup.regional ?
+            buildRegionalServerGroupUrl(project, serverGroup.region, serverGroupName) :
+            buildZonalServerGroupUrl(project, serverGroup.zone, serverGroupName)
           Backend backendToAdd = backendFromLoadBalancingPolicy(policy)
-          if (serverGroup.regional) {
-            backendToAdd.setGroup(buildRegionalServerGroupUrl(project, serverGroup.region, serverGroupName))
-          } else {
-            backendToAdd.setGroup(buildZonalServerGroupUrl(project, serverGroup.zone, serverGroupName))
-          }
+          backendToAdd.setGroup(backendGroup)
           if (backendService.backends == null) {
             backendService.backends = []
+          }
+          backendService.backends.removeAll { Backend backend ->
+            sameComputeResource(backend.group, backendGroup)
           }
           backendService.backends << backendToAdd
           def updateOp = executor.timeExecute(
@@ -2006,29 +2022,31 @@ class GCEUtil {
 
     log.debug("Looking up the following Internal Http load balancers in the cache: ${httpLoadBalancersInMetadata}")
     def foundInternalHttpLoadBalancers = googleLoadBalancerProvider.getApplicationLoadBalancers("").findAll {
-      it.name in serverGroup.loadBalancers && it.loadBalancerType == GoogleLoadBalancerType.INTERNAL_MANAGED
+      it.name in httpLoadBalancersInMetadata && it.loadBalancerType == GoogleLoadBalancerType.INTERNAL_MANAGED
     }
     def cachedInternalNames = foundInternalHttpLoadBalancers.collect { it.name }
     def fallbackInternalNames = httpLoadBalancersInMetadata.findAll {
       !(it in cachedInternalNames)
     }
     List<String> fallbackInternalBackendServiceNames = []
+    List<String> fallbackResolvedNames = []
     if (fallbackInternalNames) {
       log.warn("Cache call missed for Internal Http load balancers ${fallbackInternalNames}, making a call to GCP")
       List<ForwardingRule> projectForwardingRules = executor.timeExecute(
         compute.forwardingRules().list(project, region),
         "compute.forwardingRules",
         executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region
-      ).getItems()
+      ).getItems() ?: []
       def matchingRules = projectForwardingRules.findAll { ForwardingRule forwardingRule ->
         forwardingRule.loadBalancingScheme == "INTERNAL_MANAGED" &&
           forwardingRule.target && Utils.getTargetProxyType(forwardingRule.target) in [GoogleTargetProxyType.HTTP, GoogleTargetProxyType.HTTPS] &&
           forwardingRule.name in fallbackInternalNames
       }
+      fallbackResolvedNames = matchingRules*.name
       fallbackInternalBackendServiceNames = getRegionHttpBackendServiceNamesFromForwardingRules(compute, project, region, matchingRules, executor)
     }
 
-    def notDeleted = httpLoadBalancersInMetadata - (foundInternalHttpLoadBalancers.collect { it.name })
+    def notDeleted = httpLoadBalancersInMetadata - cachedInternalNames - fallbackResolvedNames
     if (notDeleted) {
       log.warn("Could not locate the following Internal Http load balancers: ${notDeleted}. Proceeding with other backend deletions without mutating them.")
     }
@@ -2098,6 +2116,7 @@ class GCEUtil {
       !(it in cachedExternalNames)
     }
     List<String> fallbackExternalBackendServiceNames = []
+    List<String> fallbackResolvedNames = []
     if (fallbackExternalNames) {
       // When cache readback misses a regional external LB, derive backend services from the live
       // forwarding-rule graph so disable/destroy can remove the server group without stale cache.
@@ -2113,10 +2132,11 @@ class GCEUtil {
           Utils.getTargetProxyType(forwardingRule.target) in [GoogleTargetProxyType.HTTP, GoogleTargetProxyType.HTTPS] &&
           forwardingRule.name in fallbackExternalNames
       }
+      fallbackResolvedNames = matchingRules*.name
       fallbackExternalBackendServiceNames = getRegionHttpBackendServiceNamesFromForwardingRules(compute, project, region, matchingRules, executor)
     }
 
-    def notDeleted = httpLoadBalancersInMetadata - (foundExternalHttpLoadBalancers.collect { it.name })
+    def notDeleted = httpLoadBalancersInMetadata - cachedExternalNames - fallbackResolvedNames
     if (notDeleted) {
       log.warn("Could not locate the following External Http load balancers: ${notDeleted}. Proceeding with other backend deletions without mutating them.")
     }

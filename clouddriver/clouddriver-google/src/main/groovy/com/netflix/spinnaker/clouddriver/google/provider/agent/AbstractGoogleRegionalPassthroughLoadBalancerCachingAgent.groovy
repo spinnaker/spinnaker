@@ -52,7 +52,7 @@ import org.slf4j.LoggerFactory
  * own the scheme/protocol predicate and health-check source.
  */
 @Slf4j
-abstract class AbstractGoogleRegionalPassthroughLoadBalancerCachingAgent<T extends GoogleLoadBalancer>
+abstract class AbstractGoogleRegionalPassthroughLoadBalancerCachingAgent<T extends GoogleLoadBalancer, H>
   extends AbstractGoogleLoadBalancerCachingAgent {
 
   Map<String, List<BackendServiceGroupHealth>> backendServiceNameToGroupHealths = [:]
@@ -86,7 +86,7 @@ abstract class AbstractGoogleRegionalPassthroughLoadBalancerCachingAgent<T exten
     resolutions = new HashSet<>()
 
     List<BackendService> projectRegionBackendServices = GCEUtil.fetchRegionBackendServices(this, compute, project, region)
-    def healthCheckContext = fetchHealthCheckContext()
+    H healthCheckContext = fetchHealthCheckContext()
 
     ForwardingRuleCallbacks forwardingRuleCallbacks = new ForwardingRuleCallbacks(
       loadBalancers: loadBalancers,
@@ -144,18 +144,18 @@ abstract class AbstractGoogleRegionalPassthroughLoadBalancerCachingAgent<T exten
   abstract T newLoadBalancer(ForwardingRule forwardingRule)
 
   /**
-   * Fetches the opaque health-check lookup that {@link #attachHealthChecks} consumes, read once per
-   * refresh. The shape is subclass-private and the base never inspects it: internal passthrough
+   * Fetches the typed health-check lookup that {@link #attachHealthChecks} consumes, read once per
+   * refresh. The type is subclass-private and the base never inspects it: internal passthrough
    * returns a map of legacy HTTP/HTTPS/generic health checks, while regional external network
    * returns a flat list of regional health checks.
    */
-  abstract Object fetchHealthCheckContext()
+  abstract H fetchHealthCheckContext()
 
   /**
    * Resolves the backend service's health checks against {@code healthCheckContext} (the value
    * returned by {@link #fetchHealthCheckContext}) and attaches them to the model's backend service.
    */
-  abstract void attachHealthChecks(BackendService backendService, T googleLoadBalancer, Object healthCheckContext)
+  abstract void attachHealthChecks(BackendService backendService, T googleLoadBalancer, H healthCheckContext)
 
   /** Message thrown when an on-demand refresh is asked to cache a rule this scheme does not own. */
   abstract String wrongSchemeMessage()
@@ -166,7 +166,7 @@ abstract class AbstractGoogleRegionalPassthroughLoadBalancerCachingAgent<T exten
 
     GoogleBatchRequest groupHealthRequest
     List<BackendService> projectRegionBackendServices
-    Object healthCheckContext
+    H healthCheckContext
 
     ForwardingRuleSingletonCallback newForwardingRuleSingletonCallback() {
       return new ForwardingRuleSingletonCallback()
@@ -231,7 +231,7 @@ abstract class AbstractGoogleRegionalPassthroughLoadBalancerCachingAgent<T exten
 
   private void handleBackendService(BackendService backendService,
                                     T googleLoadBalancer,
-                                    Object healthCheckContext,
+                                    H healthCheckContext,
                                     GoogleBatchRequest groupHealthRequest) {
     def groupHealthCallback = new GroupHealthCallback(backendServiceName: backendService.name)
 

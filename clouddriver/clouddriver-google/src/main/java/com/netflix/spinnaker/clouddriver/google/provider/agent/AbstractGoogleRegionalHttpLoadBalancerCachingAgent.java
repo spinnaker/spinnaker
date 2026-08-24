@@ -52,6 +52,7 @@ import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBa
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GooglePathMatcher;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GooglePathRule;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleSessionAffinity;
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleTargetProxyType;
 import com.netflix.spinnaker.clouddriver.google.provider.agent.util.GroupHealthRequest;
 import com.netflix.spinnaker.clouddriver.google.provider.agent.util.LoadBalancerHealthResolution;
 import com.netflix.spinnaker.clouddriver.google.provider.agent.util.PaginatedRequest;
@@ -212,6 +213,9 @@ abstract class AbstractGoogleRegionalHttpLoadBalancerCachingAgent<T extends Goog
   /** Metric/instrumentation prefix used to tag this agent's batched Compute calls. */
   protected abstract String getInstrumentationPrefix();
 
+  /** GCP load-balancing scheme owned by this regional HTTP-family agent. */
+  protected abstract String getLoadBalancingScheme();
+
   /**
    * Returns true when this scheme owns the forwarding rule (its load balancing scheme and HTTP(S)
    * target proxy belong to this subclass). The base only walks owned rules, so this guard keeps the
@@ -253,16 +257,27 @@ abstract class AbstractGoogleRegionalHttpLoadBalancerCachingAgent<T extends Goog
    */
   protected abstract void handleMissingHealthCheck(String healthCheckName, T loadBalancer);
 
-  /**
-   * Applies the subclass policy for forwarding rules whose scheme matches but whose target proxy is
-   * not HTTP(S). Internal managed logs and keeps the load balancer; external managed adds it to
-   * {@code failedLoadBalancers} so it is dropped from the cache result.
-   */
-  protected abstract void handleUnsupportedTargetProxy(
-      ForwardingRule forwardingRule, T loadBalancer, List<String> failedLoadBalancers);
-
   /** Message thrown when an on-demand refresh is asked to cache a rule this scheme does not own. */
   protected abstract String getWrongSchemeMessage();
+
+  private boolean isMalformedOwnedSchemeRule(ForwardingRule forwardingRule) {
+    if (!getLoadBalancingScheme().equals(forwardingRule.getLoadBalancingScheme())) {
+      return false;
+    }
+    GoogleTargetProxyType targetProxyType =
+        forwardingRule.getTarget() == null
+            ? null
+            : Utils.getTargetProxyType(forwardingRule.getTarget());
+    return targetProxyType == null || targetProxyType == GoogleTargetProxyType.UNKNOWN;
+  }
+
+  private void logMalformedRule(ForwardingRule forwardingRule) {
+    log.warn(
+        "Ignoring malformed regional {} forwarding rule {} with target {}.",
+        getLoadBalancingScheme(),
+        forwardingRule.getName(),
+        forwardingRule.getTarget());
+  }
 
   public class ForwardingRuleCallbacks {
     private final List<T> loadBalancers;
@@ -334,7 +349,12 @@ abstract class AbstractGoogleRegionalHttpLoadBalancerCachingAgent<T extends Goog
                     failedLoadBalancers));
             break;
           default:
-            handleUnsupportedTargetProxy(forwardingRule, loadBalancer, failedLoadBalancers);
+            failedLoadBalancers.add(loadBalancer.getName());
+            log.warn(
+                "Ignoring regional {} forwarding rule {} because target {} is not HTTP(S).",
+                getLoadBalancingScheme(),
+                forwardingRule.getName(),
+                forwardingRule.getTarget());
         }
       } catch (IOException e) {
         throw new UncheckedIOException(e);
@@ -354,6 +374,14 @@ abstract class AbstractGoogleRegionalHttpLoadBalancerCachingAgent<T extends Goog
           throws IOException {
         if (isOwnedForwardingRule(forwardingRule)) {
           cacheRemainderOfLoadBalancerResourceGraph(forwardingRule);
+        } else if (isMalformedOwnedSchemeRule(forwardingRule)) {
+          logMalformedRule(forwardingRule);
+          throw new IllegalStateException(
+              "Malformed regional "
+                  + getLoadBalancingScheme()
+                  + " forwarding rule "
+                  + forwardingRule.getName()
+                  + ".");
         } else {
           throw new IllegalArgumentException(getWrongSchemeMessage());
         }
@@ -367,9 +395,14 @@ abstract class AbstractGoogleRegionalHttpLoadBalancerCachingAgent<T extends Goog
         if (forwardingRuleList.getItems() == null) {
           return;
         }
-        forwardingRuleList.getItems().stream()
-            .filter(AbstractGoogleRegionalHttpLoadBalancerCachingAgent.this::isOwnedForwardingRule)
-            .forEach(ForwardingRuleCallbacks.this::cacheRemainderOfLoadBalancerResourceGraph);
+        for (ForwardingRule forwardingRule : forwardingRuleList.getItems()) {
+          if (isOwnedForwardingRule(forwardingRule)) {
+            cacheRemainderOfLoadBalancerResourceGraph(forwardingRule);
+          } else if (isMalformedOwnedSchemeRule(forwardingRule)) {
+            failedLoadBalancers.add(forwardingRule.getName());
+            logMalformedRule(forwardingRule);
+          }
+        }
       }
 
       @Override

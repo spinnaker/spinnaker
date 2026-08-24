@@ -721,6 +721,56 @@ package com.netflix.spinnaker.clouddriver.google.deploy
       1 * googleOperationPoller.waitForRegionalOperation(compute, PROJECT_NAME, REGION, "update-backend-service", null, taskMock, "compute.${REGION}.backendServices.update", PHASE)
   }
 
+  void "add regional external network backend is idempotent when the server group is already attached"() {
+    setup:
+      def compute = Mock(Compute)
+      def backendServices = Mock(Compute.RegionBackendServices)
+      def backendServicesGet = Mock(Compute.RegionBackendServices.Get)
+      def backendServicesUpdate = Mock(Compute.RegionBackendServices.Update)
+      def googleOperationPoller = Mock(GoogleOperationPoller)
+      def googleLoadBalancerProvider = Mock(GoogleLoadBalancerProvider)
+      def groupUrl = GCEUtil.buildRegionalServerGroupUrl(
+        PROJECT_NAME, REGION, "server-group-v001")
+      def canonicalGroupUrl = groupUrl.replace(
+        "https://compute.googleapis.com/", "https://www.googleapis.com/")
+      def backendService = new BackendService(
+        name: "backend-service",
+        loadBalancingScheme: "EXTERNAL",
+        backends: [new Backend(group: canonicalGroupUrl, balancingMode: "CONNECTION")])
+      def serverGroup = serverGroupView("server-group-v001", "regional-external-lb")
+      def loadBalancer = new GoogleRegionalExternalNetworkLoadBalancer(
+        name: "regional-external-lb",
+        backendService: new GoogleBackendService(name: "backend-service")
+      )
+      def updateOp = new Operation(name: "update-backend-service")
+
+    when:
+      GCEUtil.addRegionalExternalNetworkLoadBalancerBackends(
+        compute,
+        PROJECT_NAME,
+        serverGroup,
+        googleLoadBalancerProvider,
+        taskMock,
+        PHASE,
+        googleOperationPoller,
+        executor)
+
+    then:
+      1 * googleLoadBalancerProvider.getApplicationLoadBalancers("") >> [loadBalancer.view]
+      2 * compute.regionBackendServices() >> backendServices
+      1 * backendServices.get(PROJECT_NAME, REGION, "backend-service") >> backendServicesGet
+      1 * backendServicesGet.execute() >> backendService
+      1 * backendServices.update(PROJECT_NAME, REGION, "backend-service", {
+        it.backends*.group == [groupUrl] &&
+          it.backends*.balancingMode == ["CONNECTION"]
+      }) >> backendServicesUpdate
+      1 * backendServicesUpdate.execute() >> updateOp
+      1 * googleOperationPoller.waitForRegionalOperation(
+        compute, PROJECT_NAME, REGION, "update-backend-service", null, taskMock,
+        "compute.${REGION}.backendServices.update", PHASE)
+      backendService.backends*.group == [groupUrl]
+  }
+
   void "add regional external network backend falls back past a cached wrong-family name without mutating it"() {
     setup:
       def compute = Mock(Compute)

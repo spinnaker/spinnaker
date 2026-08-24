@@ -213,6 +213,40 @@ describe('GceRegionalExternalNetworkLoadBalancerModal', () => {
     expect(payload.ipProtocol).toBe('UDP');
   });
 
+  it('serializes a TCP to UDP protocol edit for Clouddriver forwarding-rule recreation', () => {
+    const command = normalizeGceRegionalExternalNetworkLoadBalancerCommand(
+      {
+        account: 'account-a',
+        backendService: {
+          healthCheck: { healthCheckType: 'TCP', name: 'tcp-check', port: 80 },
+          name: 'app-main',
+          sessionAffinity: 'NONE',
+        },
+        ipAddress: '35.1.2.3',
+        ipProtocol: 'TCP',
+        loadBalancerName: 'app-main',
+        networkTier: 'PREMIUM',
+        ports: ['80'],
+        region: 'europe-west1',
+      },
+      'edit',
+    );
+    command.listeners[0] = {
+      ...command.listeners[0],
+      portRange: '53',
+      protocol: 'UDP',
+    };
+    command.ports = ['53'];
+
+    const payload = serializeGceRegionalExternalNetworkLoadBalancerCommand(command);
+
+    expect(payload.ipProtocol).toBe('UDP');
+    expect(payload.ports).toEqual(['53']);
+    expect(payload.ipAddress).toBe('35.1.2.3');
+    expect(payload.networkTier).toBe('PREMIUM');
+    expect(payload.backendService.name).toBe('app-main');
+  });
+
   it('executes the direct normalized job in infrastructure create mode', () => {
     const task = Promise.resolve({ id: 'task' });
     const executeTask = jasmine.createSpy('executeTask').and.returnValue(task);

@@ -20,6 +20,7 @@ import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleTarget
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleInternalLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancedBackend
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleRegionalExternalNetworkLoadBalancer
 import spock.lang.Specification
@@ -179,5 +180,18 @@ class UtilsSpec extends Specification {
 
     expect:
       !Utils.determineRegionalExternalNetworkLoadBalancerDisabledState(loadBalancer, serverGroup)
+  }
+
+  void "should tolerate malformed internal load balancer disabled state"() {
+    given:
+      def loadBalancer = new GoogleInternalLoadBalancer(name: LOAD_BALANCER_NAME)
+      def serverGroup = new GoogleServerGroup(
+        name: SERVER_GROUP_NAME,
+        region: REGION,
+        asg: [(GCEUtil.REGIONAL_LOAD_BALANCER_NAMES): LOAD_BALANCER_NAME]
+      )
+
+    expect:
+      !Utils.determineInternalLoadBalancerDisabledState(loadBalancer, serverGroup)
   }
 }

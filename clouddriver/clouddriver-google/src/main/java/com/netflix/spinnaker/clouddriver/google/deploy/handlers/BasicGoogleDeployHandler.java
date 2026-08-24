@@ -263,12 +263,7 @@ public class BasicGoogleDeployHandler
       updateBackendServices(
           description, lbToUpdate, nextServerGroupName, backendServicesToUpdate, task);
       updateRegionalBackendServices(
-          description,
-          lbToUpdate,
-          nextServerGroupName,
-          region,
-          regionBackendServicesToUpdate,
-          task);
+          description, nextServerGroupName, region, regionBackendServicesToUpdate, task);
 
       DeploymentResult deploymentResult = new DeploymentResult();
       deploymentResult.setServerGroupNames(
@@ -1462,16 +1457,12 @@ public class BasicGoogleDeployHandler
 
   private void updateRegionalBackendServices(
       BasicGoogleDeployDescription description,
-      LoadBalancerInfo lbInfo,
       String serverGroupName,
       String region,
       List<BackendService> regionBackendServicesToUpdate,
       Task task) {
     if (!Boolean.TRUE.equals(description.getDisableTraffic())
-        && (!lbInfo.internalLoadBalancers.isEmpty()
-            || !lbInfo.internalHttpLoadBalancers.isEmpty()
-            || !lbInfo.regionalExternalNetworkLoadBalancers.isEmpty()
-            || !lbInfo.externalHttpLoadBalancers.isEmpty())) {
+        && !regionBackendServicesToUpdate.isEmpty()) {
       regionBackendServicesToUpdate.forEach(
           backendService -> {
             Operation backendServiceOperation =

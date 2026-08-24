@@ -38,7 +38,14 @@ import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCrede
  * scheme predicate, model factory, and legacy HTTP/HTTPS/generic health-check sources.
  */
 class GoogleInternalLoadBalancerCachingAgent
-  extends AbstractGoogleRegionalPassthroughLoadBalancerCachingAgent<GoogleInternalLoadBalancer> {
+  extends AbstractGoogleRegionalPassthroughLoadBalancerCachingAgent<
+    GoogleInternalLoadBalancer, InternalHealthCheckContext> {
+
+  static class InternalHealthCheckContext {
+    List<HttpHealthCheck> httpHealthChecks
+    List<HttpsHealthCheck> httpsHealthChecks
+    List<HealthCheck> healthChecks
+  }
 
   GoogleInternalLoadBalancerCachingAgent(String clouddriverUserAgentApplicationName,
                                          GoogleNamedAccountCredentials credentials,
@@ -84,16 +91,18 @@ class GoogleInternalLoadBalancerCachingAgent
   }
 
   @Override
-  Object fetchHealthCheckContext() {
-    [
+  InternalHealthCheckContext fetchHealthCheckContext() {
+    new InternalHealthCheckContext(
       httpHealthChecks : GCEUtil.fetchHttpHealthChecks(this, compute, project),
       httpsHealthChecks: GCEUtil.fetchHttpsHealthChecks(this, compute, project),
       healthChecks     : GCEUtil.fetchHealthChecks(this, compute, project),
-    ]
+    )
   }
 
   @Override
-  void attachHealthChecks(BackendService backendService, GoogleInternalLoadBalancer googleLoadBalancer, Object healthCheckContext) {
+  void attachHealthChecks(BackendService backendService,
+                          GoogleInternalLoadBalancer googleLoadBalancer,
+                          InternalHealthCheckContext healthCheckContext) {
     backendService.healthChecks?.each { String healthCheckURL ->
       def healthCheckName = Utils.getLocalName(healthCheckURL)
       def healthCheckType = Utils.getHealthCheckType(healthCheckURL)

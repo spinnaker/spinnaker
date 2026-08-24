@@ -14,8 +14,6 @@ import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCrede
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Caches regional internal HTTP(S) ({@code INTERNAL_MANAGED}) Application Load Balancers. A thin
@@ -24,9 +22,6 @@ import org.slf4j.LoggerFactory;
  */
 public class GoogleInternalHttpLoadBalancerCachingAgent
     extends AbstractGoogleRegionalHttpLoadBalancerCachingAgent<GoogleInternalHttpLoadBalancer> {
-  private static final Logger log =
-      LoggerFactory.getLogger(GoogleInternalHttpLoadBalancerCachingAgent.class);
-
   public GoogleInternalHttpLoadBalancerCachingAgent(
       String clouddriverUserAgentApplicationName,
       GoogleNamedAccountCredentials credentials,
@@ -57,6 +52,11 @@ public class GoogleInternalHttpLoadBalancerCachingAgent
   @Override
   protected String getInstrumentationPrefix() {
     return "InternalHttpLoadBalancerCaching";
+  }
+
+  @Override
+  protected String getLoadBalancingScheme() {
+    return GoogleLoadBalancerType.INTERNAL_MANAGED.name();
   }
 
   @Override
@@ -122,16 +122,6 @@ public class GoogleInternalHttpLoadBalancerCachingAgent
             + healthCheckName
             + " for "
             + loadBalancer.getName());
-  }
-
-  @Override
-  protected void handleUnsupportedTargetProxy(
-      ForwardingRule forwardingRule,
-      GoogleInternalHttpLoadBalancer loadBalancer,
-      List<String> failedLoadBalancers) {
-    log.debug(
-        "Unsupported regional target proxy for internal HTTP load balancer {}",
-        forwardingRule.getName());
   }
 
   @Override

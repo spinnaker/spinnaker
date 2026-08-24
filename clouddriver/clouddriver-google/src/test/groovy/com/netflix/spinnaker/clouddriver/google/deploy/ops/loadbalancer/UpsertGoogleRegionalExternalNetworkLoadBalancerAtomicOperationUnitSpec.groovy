@@ -43,6 +43,7 @@ import com.netflix.spinnaker.clouddriver.google.test.CapturingComputeTransport
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 class UpsertGoogleRegionalExternalNetworkLoadBalancerAtomicOperationUnitSpec extends Specification {
   private static final String PROJECT = "my-project"
@@ -296,6 +297,7 @@ class UpsertGoogleRegionalExternalNetworkLoadBalancerAtomicOperationUnitSpec ext
       def forwardingRulesInsert = Mock(Compute.ForwardingRules.Insert)
       def backendServices = Mock(Compute.RegionBackendServices)
       def backendServicesGet = Mock(Compute.RegionBackendServices.Get)
+      def backendServicesUpdate = Mock(Compute.RegionBackendServices.Update)
       def healthChecks = Mock(Compute.RegionHealthChecks)
       def healthChecksGet = Mock(Compute.RegionHealthChecks.Get)
       def regionOperations = Mock(Compute.RegionOperations)
@@ -362,6 +364,128 @@ class UpsertGoogleRegionalExternalNetworkLoadBalancerAtomicOperationUnitSpec ext
         new Operation(name: "delete-forwarding-rule", status: "DONE"),
         new Operation(name: "insert-forwarding-rule", status: "DONE")
       ]
+  }
+
+  @Unroll
+  void "recreates the forwarding rule when #changedField changes"() {
+    setup:
+      def compute = Mock(Compute)
+      def regions = Mock(Compute.Regions)
+      def regionsList = Mock(Compute.Regions.List)
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
+      def obsoleteForwardingRuleGet = Mock(Compute.ForwardingRules.Get)
+      def forwardingRulesDelete = Mock(Compute.ForwardingRules.Delete)
+      def obsoleteForwardingRuleDelete = Mock(Compute.ForwardingRules.Delete)
+      def forwardingRulesInsert = Mock(Compute.ForwardingRules.Insert)
+      def backendServices = Mock(Compute.RegionBackendServices)
+      def backendServicesGet = Mock(Compute.RegionBackendServices.Get)
+      def backendServicesUpdate = Mock(Compute.RegionBackendServices.Update)
+      def healthChecks = Mock(Compute.RegionHealthChecks)
+      def healthChecksGet = Mock(Compute.RegionHealthChecks.Get)
+      def regionOperations = Mock(Compute.RegionOperations)
+      def regionOperationsGet = Mock(Compute.RegionOperations.Get)
+      def description = description(compute)
+      description.ipProtocol = desiredProtocol
+      description.backendService.name = desiredBackendService
+      description.listenersToDelete = ["old-listener"]
+      @Subject def operation = operation(description)
+      boolean forwardingRuleWasDeleted = false
+      boolean obsoleteForwardingRuleWasDeleted = false
+
+    when:
+      operation.operate([])
+
+    then:
+      1 * compute.regions() >> regions
+      1 * regions.list(PROJECT) >> regionsList
+      1 * regionsList.execute() >> new RegionList(items: [new Region(name: REGION)])
+
+      5 * compute.forwardingRules() >> forwardingRules
+      1 * forwardingRules.get(PROJECT, REGION, LOAD_BALANCER) >> forwardingRulesGet
+      1 * forwardingRulesGet.execute() >> new ForwardingRule(
+        name: LOAD_BALANCER,
+        region: "projects/${PROJECT}/regions/${REGION}",
+        loadBalancingScheme: "EXTERNAL",
+        backendService: "projects/${PROJECT}/regions/${REGION}/backendServices/${BACKEND_SERVICE}",
+        IPProtocol: "TCP",
+        IPAddress: "35.1.2.3",
+        networkTier: "PREMIUM",
+        ports: ["80"]
+      )
+      1 * forwardingRules.delete(PROJECT, REGION, LOAD_BALANCER) >> forwardingRulesDelete
+      1 * forwardingRulesDelete.execute() >> {
+        forwardingRuleWasDeleted = true
+        new Operation(name: "delete-forwarding-rule", status: "DONE")
+      }
+      1 * forwardingRules.get(PROJECT, REGION, "old-listener") >> obsoleteForwardingRuleGet
+      1 * obsoleteForwardingRuleGet.execute() >> new ForwardingRule(
+        name: "old-listener",
+        region: "projects/${PROJECT}/regions/${REGION}",
+        loadBalancingScheme: "EXTERNAL",
+        backendService: "projects/${PROJECT}/regions/${REGION}/backendServices/${BACKEND_SERVICE}",
+        IPProtocol: "TCP",
+        ports: ["443"]
+      )
+      1 * forwardingRules.delete(
+        PROJECT, REGION, "old-listener") >> obsoleteForwardingRuleDelete
+      1 * obsoleteForwardingRuleDelete.execute() >> {
+        obsoleteForwardingRuleWasDeleted = true
+        new Operation(name: "delete-old-listener", status: "DONE")
+      }
+      1 * forwardingRules.insert(PROJECT, REGION, { ForwardingRule replacement ->
+        replacement.backendService.endsWith("/backendServices/${desiredBackendService}") &&
+          replacement.IPProtocol == desiredProtocol &&
+          replacement.IPAddress == "35.1.2.3" &&
+          replacement.networkTier == "PREMIUM" &&
+          replacement.ports == ["80"]
+      }) >> forwardingRulesInsert
+      1 * forwardingRulesInsert.execute() >> new Operation(name: "insert-forwarding-rule", status: "DONE")
+
+      (1 + backendUpdateCalls) * compute.regionBackendServices() >> backendServices
+      1 * backendServices.get(PROJECT, REGION, desiredBackendService) >> backendServicesGet
+      1 * backendServicesGet.execute() >> new BackendService(
+        name: desiredBackendService,
+        loadBalancingScheme: "EXTERNAL",
+        protocol: existingBackendProtocol,
+        sessionAffinity: "NONE",
+        healthChecks: [HEALTH_CHECK_URL]
+      )
+      backendUpdateCalls * backendServices.update(
+        PROJECT, REGION, desiredBackendService, {
+          it.protocol == desiredProtocol
+        }) >> backendServicesUpdate
+      backendUpdateCalls * backendServicesUpdate.execute() >> {
+        assert forwardingRuleWasDeleted
+        assert obsoleteForwardingRuleWasDeleted
+        new Operation(name: "update-backend-service", status: "DONE")
+      }
+
+      1 * compute.regionHealthChecks() >> healthChecks
+      1 * healthChecks.get(PROJECT, REGION, HEALTH_CHECK) >> healthChecksGet
+      1 * healthChecksGet.execute() >> new HealthCheck(
+        name: HEALTH_CHECK,
+        checkIntervalSec: 5,
+        timeoutSec: 5,
+        healthyThreshold: 2,
+        unhealthyThreshold: 2,
+        tcpHealthCheck: new TCPHealthCheck(port: 80)
+      )
+
+      (3 + backendUpdateCalls) * compute.regionOperations() >> regionOperations
+      1 * regionOperations.get(PROJECT, REGION, "delete-forwarding-rule") >> regionOperationsGet
+      1 * regionOperations.get(PROJECT, REGION, "delete-old-listener") >> regionOperationsGet
+      backendUpdateCalls * regionOperations.get(
+        PROJECT, REGION, "update-backend-service") >> regionOperationsGet
+      1 * regionOperations.get(PROJECT, REGION, "insert-forwarding-rule") >> regionOperationsGet
+      (3 + backendUpdateCalls) * regionOperationsGet.execute() >> {
+        new Operation(name: "operation", status: "DONE")
+      }
+
+    where:
+      changedField      | desiredProtocol | desiredBackendService  | existingBackendProtocol | backendUpdateCalls
+      "protocol"        | "UDP"           | BACKEND_SERVICE         | "TCP"                   | 1
+      "backend service" | "TCP"           | "replacement-backend"  | "TCP"                   | 0
   }
 
   void "deletes listenersToDelete without recreating unchanged primary forwarding rule"() {
