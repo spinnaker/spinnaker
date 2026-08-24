@@ -73,7 +73,7 @@ public class TargetHealthCachingAgent extends AbstractEcsAwsAwareCachingAgent<Ec
     log.debug("Fetched {} target groups for which to get target healths", targetGroups.size());
 
     ElasticLoadBalancingV2Client amazonLoadBalancing =
-        amazonClientProvider.getAmazonElasticLoadBalancingV2V2(account, region);
+        amazonClientProvider.getElasticLoadBalancingV2Client(account, region);
 
     List<EcsTargetHealth> targetHealthList = new LinkedList<>();
 
