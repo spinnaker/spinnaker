@@ -5,4 +5,5 @@ metricStoreConfigStore.register({
   name: 'newrelic',
   metricConfigurer: NewRelicMetricConfigurer,
   queryFinder,
+  useTemplates: true,
 });

@@ -17,10 +17,12 @@ package com.netflix.kayenta.wavefront.metrics;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
 import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.canary.providers.metrics.WavefrontCanaryMetricSetQueryConfig;
 import com.netflix.kayenta.wavefront.canary.WavefrontCanaryScope;
+import java.util.Collections;
 import org.junit.jupiter.api.Test;
 
 public class WavefrontMetricsServiceTest {
@@ -56,6 +58,43 @@ public class WavefrontMetricsServiceTest {
     String query =
         wavefrontMetricsService.buildQuery("", null, canaryMetricSetQueryConfig, canaryScope);
     assertThat(query).isEqualTo(AGGREGATE + "(ts(" + METRIC_NAME + ", " + SCOPE + "))");
+  }
+
+  @Test
+  public void testBuildQuery_customInlineTemplateIsUsedVerbatim() {
+    WavefrontCanaryMetricSetQueryConfig queryConfig =
+        WavefrontCanaryMetricSetQueryConfig.builder()
+            .template("avg(ts(" + METRIC_NAME + ", autoscaling_group=${scope}))")
+            .build();
+    CanaryMetricConfig canaryMetricConfig = CanaryMetricConfig.builder().query(queryConfig).build();
+    CanaryScope canaryScope = createScope(SCOPE);
+
+    String query =
+        wavefrontMetricsService.buildQuery(
+            "", CanaryConfig.builder().build(), canaryMetricConfig, canaryScope);
+
+    assertThat(query).isEqualTo("avg(ts(" + METRIC_NAME + ", autoscaling_group=" + SCOPE + "))");
+  }
+
+  @Test
+  public void testBuildQuery_customFilterTemplateResolvesNamedEntry() {
+    WavefrontCanaryMetricSetQueryConfig queryConfig =
+        WavefrontCanaryMetricSetQueryConfig.builder().customFilterTemplate("myTemplate").build();
+    CanaryMetricConfig canaryMetricConfig = CanaryMetricConfig.builder().query(queryConfig).build();
+
+    CanaryConfig canaryConfig =
+        CanaryConfig.builder()
+            .templates(
+                Collections.singletonMap(
+                    "myTemplate", "avg(ts(" + METRIC_NAME + ", autoscaling_group=${scope}))"))
+            .build();
+
+    CanaryScope canaryScope = createScope(SCOPE);
+
+    String query =
+        wavefrontMetricsService.buildQuery("", canaryConfig, canaryMetricConfig, canaryScope);
+
+    assertThat(query).isEqualTo("avg(ts(" + METRIC_NAME + ", autoscaling_group=" + SCOPE + "))");
   }
 
   private CanaryMetricConfig queryConfig(String aggregate) {

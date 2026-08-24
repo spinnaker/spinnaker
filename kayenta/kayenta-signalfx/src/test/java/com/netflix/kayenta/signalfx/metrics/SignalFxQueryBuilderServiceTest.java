@@ -46,9 +46,7 @@ public class SignalFxQueryBuilderServiceTest {
 
     CanaryConfig canaryConfig = CanaryConfig.builder().build();
     SignalFxCanaryMetricSetQueryConfig metricSetQueryConfig =
-        SignalFxCanaryMetricSetQueryConfig.builder()
-            .customInlineTemplate(customInlineTemplate)
-            .build();
+        SignalFxCanaryMetricSetQueryConfig.builder().template(customInlineTemplate).build();
     CanaryScope canaryScope = CanaryScope.builder().build();
     SignalFxScopeConfiguration scopeConfiguration = SignalFxScopeConfiguration.builder().build();
     SignalFxCanaryScope scope = new SignalFxCanaryScope();
@@ -93,9 +91,7 @@ public class SignalFxQueryBuilderServiceTest {
     SignalFxCanaryScope scope = new SignalFxCanaryScope();
     CanaryConfig canaryConfig = CanaryConfig.builder().build();
     SignalFxCanaryMetricSetQueryConfig metricSetQueryConfig =
-        SignalFxCanaryMetricSetQueryConfig.builder()
-            .customInlineTemplate(customInlineTemplate)
-            .build();
+        SignalFxCanaryMetricSetQueryConfig.builder().template(customInlineTemplate).build();
     CanaryScope canaryScope = CanaryScope.builder().build();
     canaryScope.setExtendedScopeParams(ImmutableMap.of("some_key", "some_value"));
     SignalFxScopeConfiguration scopeConfiguration = SignalFxScopeConfiguration.builder().build();
