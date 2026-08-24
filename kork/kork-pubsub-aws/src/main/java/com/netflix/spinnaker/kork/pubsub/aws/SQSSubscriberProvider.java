@@ -94,17 +94,18 @@ public class SQSSubscriberProvider {
               log.info("Bootstrapping SQS for SNS topic: {}", subscription.getTopicARN());
               ARN queueArn = new ARN(subscription.getQueueARN());
               ARN topicArn = new ARN(subscription.getTopicARN());
-
-              SnsClient snsClient =
-                  SnsClient.builder()
-                      .credentialsProvider(awsCredentialsProvider)
-                      .region(Region.of(topicArn.getRegion()))
-                      .build();
+              Region queueRegion = Region.of(queueArn.getRegion());
+              Region topicRegion = Region.of(topicArn.getRegion());
 
               SqsClient sqsClient =
                   SqsClient.builder()
                       .credentialsProvider(awsCredentialsProvider)
-                      .region(Region.of(queueArn.getRegion()))
+                      .region(queueRegion)
+                      .build();
+              SnsClient snsClient =
+                  SnsClient.builder()
+                      .credentialsProvider(awsCredentialsProvider)
+                      .region(topicRegion)
                       .build();
 
               SQSSubscriber worker =
