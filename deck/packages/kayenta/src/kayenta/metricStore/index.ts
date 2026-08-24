@@ -1,4 +1,5 @@
 import './atlas';
+import './clickhouse';
 import './datadog';
 import './graphite';
 import './newrelic';
