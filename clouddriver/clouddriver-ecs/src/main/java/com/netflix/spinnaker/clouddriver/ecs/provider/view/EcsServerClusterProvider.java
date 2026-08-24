@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.provider.view;
 
-import com.amazonaws.services.applicationautoscaling.model.ScalableTarget;
 import com.amazonaws.services.ec2.model.GroupIdentifier;
 import com.amazonaws.services.ecs.model.ContainerDefinition;
 import com.google.common.collect.Sets;
@@ -59,6 +58,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import software.amazon.awssdk.services.applicationautoscaling.model.ScalableTarget;
 import software.amazon.awssdk.services.ecs.model.NetworkInterface;
 
 @Component
@@ -285,8 +285,8 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
     ServerGroup.Capacity capacity = new ServerGroup.Capacity();
     capacity.setDesired(desiredCount);
     if (target != null) {
-      capacity.setMin(target.getMinCapacity());
-      capacity.setMax(target.getMaxCapacity());
+      capacity.setMin(target.minCapacity());
+      capacity.setMax(target.maxCapacity());
     } else {
       // TODO: Min/Max should be based on (desired count * min/max precent).
       capacity.setMin(desiredCount);
@@ -421,9 +421,9 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
     }
     EcsServerGroup.AutoScalingGroup asg =
         new EcsServerGroup.AutoScalingGroup()
-            .setDesiredCapacity(scalableTarget.getMaxCapacity())
-            .setMaxSize(scalableTarget.getMaxCapacity())
-            .setMinSize(scalableTarget.getMinCapacity());
+            .setDesiredCapacity(scalableTarget.maxCapacity())
+            .setMaxSize(scalableTarget.maxCapacity())
+            .setMinSize(scalableTarget.minCapacity());
 
     // TODO: Update Deck to handle an asg. Current Deck implementation uses a EC2 AutoScaling Group
     // serverGroup.setAsg(asg);
