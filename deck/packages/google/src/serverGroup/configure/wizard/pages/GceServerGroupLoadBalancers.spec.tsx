@@ -89,15 +89,31 @@ describe('GCE server group Load Balancers page', () => {
   });
 
   it('refreshes backing data while preserving selected load balancers', async () => {
-    const values = command({ loadBalancers: ['persisted-lb'] });
+    const values = command({
+      loadBalancers: ['persisted-lb'],
+      loadBalancerSelectionMetadata: {
+        'persisted-lb': { key: 'load-balancer-names', names: ['persisted-listener'] },
+      },
+      viewState: {
+        mode: 'create',
+        dirty: { loadBalancers: ['regional-lb'] },
+        initialLoadBalancers: ['regional-lb', 'persisted-lb'],
+        loadBalancerSelectionsChanged: true,
+      },
+    });
     const { adapter, formik } = testProps(values);
     adapter.applyConfigurationRefresh.and.resolveTo({
       command: {
         ...values,
         backingData: { ...values.backingData, refreshed: true },
         loadBalancers: [],
+        loadBalancerSelectionMetadata: {},
+        viewState: {
+          mode: 'create',
+          dirty: {},
+        },
       },
-      result: { dirty: {} },
+      result: { dirty: { loadBalancers: ['persisted-lb'] } },
     });
     const wrapper = shallow(<GceServerGroupLoadBalancers app={{} as any} formik={formik} adapter={adapter} />);
 
@@ -109,6 +125,14 @@ describe('GCE server group Load Balancers page', () => {
       jasmine.objectContaining({
         backingData: jasmine.objectContaining({ refreshed: true }),
         loadBalancers: ['persisted-lb'],
+        loadBalancerSelectionMetadata: {
+          'persisted-lb': { key: 'load-balancer-names', names: ['persisted-listener'] },
+        },
+        viewState: jasmine.objectContaining({
+          dirty: { loadBalancers: ['persisted-lb'] },
+          initialLoadBalancers: ['regional-lb', 'persisted-lb'],
+          loadBalancerSelectionsChanged: true,
+        }),
       }),
     );
   });
@@ -1078,6 +1102,133 @@ describe('GCE server group Load Balancers page', () => {
         capacityScaler: 'Capacity must be between 0 and 100%.',
         maxRatePerInstance: 'Max rate must be a finite number greater than or equal to zero.',
       },
+    });
+  });
+
+  describe('load balancer metadata attribution', () => {
+    it('drops deselected unavailable load balancer names from selection metadata and submission payloads', async () => {
+      const values = command({
+        loadBalancers: ['unavailable-a', 'unavailable-b'],
+        loadBalancerMetadata: {
+          'load-balancer-names': ['listener-a', 'listener-b'],
+        },
+        loadBalancerSelectionMetadata: {
+          'unavailable-a': { key: 'load-balancer-names', names: ['listener-a'] },
+          'unavailable-b': { key: 'load-balancer-names', names: ['listener-b'] },
+        },
+      });
+      const { adapter, formik } = testProps(values);
+      adapter.applyConfigurationUpdate.and.callFake(async (nextCommand) => ({
+        command: nextCommand,
+        result: { dirty: {} },
+      }));
+      const wrapper = shallow(<GceServerGroupLoadBalancers app={{} as any} formik={formik} adapter={adapter} />);
+
+      wrapper.find('select[aria-label="Load balancers"]').simulate('change', {
+        target: { selectedOptions: [{ value: 'unavailable-a' }] },
+      });
+      await flush();
+
+      expect(formik.setValues).toHaveBeenCalledWith(
+        jasmine.objectContaining({
+          loadBalancerSelectionMetadata: {
+            'unavailable-a': { key: 'load-balancer-names', names: ['listener-a'] },
+          },
+          loadBalancers: ['unavailable-a'],
+        }),
+      );
+      const submitted = transformGceServerGroupCommand(formik.setValues.calls.mostRecent().args[0]);
+      expect(submitted.loadBalancers).toEqual(['listener-a']);
+      expect(submitted.instanceMetadata).toEqual({
+        'load-balancer-names': 'listener-a',
+      });
+    });
+
+    it('blocks submit when selection changes while unattributed legacy metadata remains', async () => {
+      const values = command({
+        loadBalancers: ['regional-lb'],
+        loadBalancerMetadata: {
+          'load-balancer-names': ['orphan-listener', 'regional-lb'],
+        },
+        viewState: {
+          mode: 'create',
+          dirty: {},
+          initialLoadBalancers: ['regional-lb'],
+        },
+      });
+      const { adapter, formik } = testProps(values);
+      adapter.applyConfigurationUpdate.and.callFake(async (nextCommand) => ({
+        command: nextCommand,
+        result: { dirty: {} },
+      }));
+      const wrapper = shallow(<GceServerGroupLoadBalancers app={{} as any} formik={formik} adapter={adapter} />);
+
+      wrapper.find('select[aria-label="Load balancers"]').simulate('change', {
+        target: { selectedOptions: [{ value: 'global-lb' }] },
+      });
+      await flush();
+
+      const changedCommand = formik.setValues.calls.mostRecent().args[0];
+      const errors = (wrapper.instance() as GceServerGroupLoadBalancers).validate(changedCommand);
+      expect(errors.loadBalancers).toContain('cannot be mapped to the current selection');
+      expect(validateGceServerGroupCommand(changedCommand).loadBalancers).toContain(
+        'cannot be mapped to the current selection',
+      );
+    });
+
+    it('allows unchanged legacy flat metadata without per-selection references', () => {
+      const values = command({
+        loadBalancers: ['persisted-lb'],
+        loadBalancerMetadata: {
+          'load-balancer-names': ['persisted-listener'],
+        },
+      });
+      const wrapper = shallow(<GceServerGroupLoadBalancers app={{} as any} formik={testProps(values).formik} />);
+
+      expect((wrapper.instance() as GceServerGroupLoadBalancers).validate(values).loadBalancers).toBeUndefined();
+      expect(validateGceServerGroupCommand(values).loadBalancers).toBeUndefined();
+    });
+
+    it('clears validation after changing then reverting to the initial load balancer selection', async () => {
+      const values = command({
+        loadBalancers: ['regional-lb'],
+        loadBalancerMetadata: {
+          'load-balancer-names': ['orphan-listener', 'regional-lb'],
+        },
+        viewState: {
+          mode: 'create',
+          dirty: {},
+          initialLoadBalancers: ['regional-lb'],
+        },
+      });
+      const { adapter, formik } = testProps(values);
+      formik.setValues = jasmine.createSpy('setValues').and.callFake((next: IGceServerGroupCommand) => {
+        formik.values = next;
+      });
+      adapter.applyConfigurationUpdate.and.callFake(async (nextCommand) => ({
+        command: nextCommand,
+        result: { dirty: {} },
+      }));
+      const wrapper = shallow(<GceServerGroupLoadBalancers app={{} as any} formik={formik} adapter={adapter} />);
+      const page = wrapper.instance() as GceServerGroupLoadBalancers;
+
+      wrapper.find('select[aria-label="Load balancers"]').simulate('change', {
+        target: { selectedOptions: [{ value: 'global-lb' }] },
+      });
+      await flush();
+
+      const changedCommand = formik.setValues.calls.mostRecent().args[0];
+      expect(page.validate(changedCommand).loadBalancers).toContain('cannot be mapped to the current selection');
+
+      wrapper.find('select[aria-label="Load balancers"]').simulate('change', {
+        target: { selectedOptions: [{ value: 'regional-lb' }] },
+      });
+      await flush();
+
+      const revertedCommand = formik.setValues.calls.mostRecent().args[0];
+      expect(page.validate(revertedCommand).loadBalancers).toBeUndefined();
+      expect(validateGceServerGroupCommand(revertedCommand).loadBalancers).toBeUndefined();
+      expect(revertedCommand.viewState.loadBalancerSelectionsChanged).toBe(false);
     });
   });
 });

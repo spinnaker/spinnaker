@@ -4,6 +4,7 @@ import type {
   IGceServerGroupCommandValidationErrors,
   IPersistedReference,
 } from './GceServerGroupWizard.types';
+import { validateLoadBalancerMetadataAttribution } from './gceServerGroupLoadBalancerMetadata';
 import { validateLoadBalancingPolicy } from './gceServerGroupLoadBalancingPolicy';
 
 export function getGceServerGroupLocationMode(
@@ -53,6 +54,10 @@ export function validateGceServerGroupCommand(command: IGceServerGroupCommand): 
     (errors as IGceServerGroupCommandValidationErrors & {
       loadBalancingPolicy: unknown;
     }).loadBalancingPolicy = loadBalancingPolicyErrors;
+  }
+  const loadBalancerMetadataError = validateLoadBalancerMetadataAttribution(command);
+  if (loadBalancerMetadataError) {
+    errors.loadBalancers = loadBalancerMetadataError;
   }
   return errors;
 }

@@ -18,6 +18,8 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheStatusService
@@ -27,6 +29,8 @@ import okhttp3.Request
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
 import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
@@ -66,7 +70,44 @@ class UpsertLoadBalancerForceRefreshTaskSpec extends Specification {
     stage.context.putAll(config)
   }
 
-  void "should force cache refresh server groups via oort when name provided"() {
+  static ResponseBody pendingBody(List<String> identifiers) {
+    ResponseBody.create(
+      MediaType.parse("application/json"),
+      "{\"cachedIdentifiersByType\":{\"loadBalancers\":${identifiers.collect { "\"${it}\"" }}}}"
+    )
+  }
+
+  static SpinnakerHttpException httpException(int statusCode) {
+    def response = Response.error(
+      statusCode,
+      ResponseBody.create(MediaType.parse("application/json"), '{"message":"visibility lookup failed"}')
+    )
+    def retrofit = new Retrofit.Builder()
+      .baseUrl("http://oort/")
+      .addConverterFactory(JacksonConverterFactory.create())
+      .build()
+    new SpinnakerHttpException(response, retrofit)
+  }
+
+  void useCompletedRegionalRefreshContext() {
+    stage.context = [
+      cloudProvider: "gce",
+      loadBalancerType: "REGIONAL_EXTERNAL_NETWORK",
+      targets: [
+        [credentials: "spinnaker", availabilityZones: ["us-west-1": []], name: "flapjack-frontend"]
+      ],
+      refreshState: [
+        hasRequested: true,
+        seenPendingCacheUpdates: true,
+        attempt: 0,
+        allAreComplete: true,
+        refreshIds: ["gce:loadBalancers:spinnaker:us-west-1:flapjack-frontend"]
+      ]
+    ]
+  }
+
+  @Unroll
+  void "maps #responseCase force-cache response to #expectedStatus"() {
     when:
     1 * cloudDriverCacheService.forceCacheUpdate('aws', 'LoadBalancer', _) >> {
       String cloudProvider, String type, Map<String, Object> body ->
@@ -74,32 +115,25 @@ class UpsertLoadBalancerForceRefreshTaskSpec extends Specification {
         assert body.loadBalancerName == "flapjack-frontend"
         assert body.account == "spinnaker"
         assert body.region == "us-west-1"
-        Calls.response(null)
+        response
     }
 
     def result = task.execute(stage)
 
     then:
-    result.status == ExecutionStatus.SUCCEEDED
-    result.context.refreshState.hasRequested == true
-    result.context.refreshState.allAreComplete == true
-  }
+    result.status == expectedStatus
+    result.context.refreshState.hasRequested == expectedHasRequested
+    result.context.refreshState.allAreComplete == expectedAllAreComplete
+    result.context.refreshState.refreshIds == expectedRefreshIds
+    result.context.refreshState.seenPendingCacheUpdates == false
+    result.context.refreshState.attempt == 0
 
-  void "reposts when clouddriver accepts refresh without identifiers"() {
-    given:
-    String json = '{"cachedIdentifiersByType":{"loadBalancers":[]}}'
-    cloudDriverCacheService.forceCacheUpdate('aws', 'LoadBalancer', _) >> {
-      Calls.response(Response.success(HTTP_ACCEPTED, ResponseBody.create(MediaType.parse("application/json"), json)))
-    }
-
-    when:
-    def result = task.execute(stage)
-
-    then:
-    result.status == ExecutionStatus.RUNNING
-    result.context.refreshState.hasRequested == false
-    result.context.refreshState.allAreComplete == false
-    result.context.refreshState.refreshIds == []
+    where:
+    responseCase        | response                                                                                                       || expectedStatus            | expectedHasRequested | expectedAllAreComplete | expectedRefreshIds
+    "200 complete"      | Calls.response(null)                                                                                           || ExecutionStatus.SUCCEEDED  | true                 | true                   | []
+    "202 empty IDs"     | Calls.response(Response.success(HTTP_ACCEPTED, pendingBody([])))                                               || ExecutionStatus.RUNNING    | false                | false                  | []
+    "202 missing IDs"   | Calls.response(Response.success(HTTP_ACCEPTED, ResponseBody.create(MediaType.parse("application/json"), "{}"))) || ExecutionStatus.RUNNING    | false                | false                  | []
+    "202 populated IDs" | Calls.response(Response.success(HTTP_ACCEPTED, pendingBody(["aws:loadBalancers:spinnaker:us-west-1:flapjack-frontend"]))) || ExecutionStatus.RUNNING | true | false | ["aws:loadBalancers:spinnaker:us-west-1:flapjack-frontend"]
   }
 
   void "matches pending cache updates using clouddriver details"() {
@@ -336,20 +370,23 @@ class UpsertLoadBalancerForceRefreshTaskSpec extends Specification {
     result.context.refreshState.allAreComplete == false
   }
 
-  void "succeeds for a gce http upsert without consulting oort"() {
+  // HTTP upserts are named for URL maps, but Oort's load balancer cache is keyed by forwarding
+  // rules, so only regional external network load balancers can use the visibility check.
+  @Unroll
+  void "completion decision: #completionCase"() {
     given:
     stage.context = [
-      cloudProvider: "gce",
-      loadBalancerType: "HTTP",
+      cloudProvider: cloudProvider,
+      loadBalancerType: loadBalancerType,
       targets: [
-        [credentials: "spinnaker", availabilityZones: ["us-west-1": []], name: "flapjack-urlmap"]
+        [credentials: "spinnaker", availabilityZones: ["us-west-1": []], name: targetName]
       ],
       refreshState: [
         hasRequested: true,
-        seenPendingCacheUpdates: true,
-        attempt: 0,
-        allAreComplete: true,
-        refreshIds: ["gce:loadBalancers:spinnaker:us-west-1:flapjack-urlmap"]
+        seenPendingCacheUpdates: seenPending,
+        attempt: attempt,
+        allAreComplete: allAreComplete,
+        refreshIds: ["${cloudProvider}:loadBalancers:spinnaker:us-west-1:${targetName}".toString()]
       ]
     ]
 
@@ -357,10 +394,91 @@ class UpsertLoadBalancerForceRefreshTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    // An HTTP upsert is named for its URL map, but the load balancer cache is keyed by forwarding
-    // rule, so a provider read would never find it and would wait out the timeout.
-    0 * oortService.getLoadBalancerDetails(_, _, _, _)
-    result.status == ExecutionStatus.SUCCEEDED
+    oortCalls * oortService.getLoadBalancerDetails(_, _, _, _) >> {
+      String provider, String account, String region, String name ->
+        assert provider == "gce"
+        assert account == "spinnaker"
+        assert region == "us-west-1"
+        assert name == targetName
+        Calls.response(oortDetails)
+    }
+    result.status == expectedStatus
+
+    where:
+    completionCase                          | cloudProvider | loadBalancerType            | targetName          | allAreComplete | seenPending | attempt                                                   | oortCalls | oortDetails                    || expectedStatus
+    "gce HTTP all-complete"                 | "gce"         | "HTTP"                      | "flapjack-urlmap"   | true           | true        | 0                                                         | 0         | null                           || ExecutionStatus.SUCCEEDED
+    "gce regional all-complete, Oort miss"  | "gce"         | "REGIONAL_EXTERNAL_NETWORK" | "flapjack-frontend" | true           | true        | 0                                                         | 1         | []                             || ExecutionStatus.RUNNING
+    "gce regional all-complete, Oort hit"   | "gce"         | "REGIONAL_EXTERNAL_NETWORK" | "flapjack-frontend" | true           | true        | 0                                                         | 1         | [[name: "flapjack-frontend"]]  || ExecutionStatus.SUCCEEDED
+    "non-gce pending short circuit"         | "aws"         | null                        | "flapjack-frontend" | false          | false       | UpsertLoadBalancerForceRefreshTask.MAX_CHECK_FOR_PENDING | 0         | null                           || ExecutionStatus.SUCCEEDED
+  }
+
+  @Unroll
+  void "keeps running when regional visibility lookup fails with #failureCase"() {
+    given:
+    useCompletedRegionalRefreshContext()
+    def request = new Request.Builder().url("http://oort/loadBalancers/gce/spinnaker/us-west-1/flapjack-frontend").build()
+    def oortCall = Mock(Call)
+    if (failureType == "http") {
+      oortCall.execute() >> { throw httpException(statusCode) }
+    } else if (failureType == "network") {
+      oortCall.request() >> request
+      oortCall.execute() >> { throw new IOException("connection reset") }
+    } else {
+      oortCall.execute() >> { throw new SpinnakerServerException(new IOException("upstream failure"), request) }
+    }
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    1 * oortService.getLoadBalancerDetails(_, _, _, _) >> {
+      String provider, String account, String region, String name ->
+        assert provider == "gce"
+        assert account == "spinnaker"
+        assert region == "us-west-1"
+        assert name == "flapjack-frontend"
+        oortCall
+    }
+    0 * oortService._
+    result.status == ExecutionStatus.RUNNING
+
+    where:
+    failureCase               | failureType | statusCode
+    "Oort HTTP 429"           | "http"      | 429
+    "Oort HTTP 500"           | "http"      | 500
+    "Oort HTTP 503"           | "http"      | 503
+    "SpinnakerNetworkException" | "network" | null
+    "SpinnakerServerException"  | "server"  | null
+  }
+
+  @Unroll
+  void "fails with context when regional visibility lookup returns Oort HTTP #statusCode"() {
+    given:
+    useCompletedRegionalRefreshContext()
+    def oortCall = Mock(Call)
+    oortCall.execute() >> { throw httpException(statusCode) }
+
+    when:
+    task.execute(stage)
+
+    then:
+    1 * oortService.getLoadBalancerDetails(_, _, _, _) >> {
+      String provider, String account, String region, String name ->
+        assert provider == "gce"
+        assert account == "spinnaker"
+        assert region == "us-west-1"
+        assert name == "flapjack-frontend"
+        oortCall
+    }
+    0 * oortService._
+    def error = thrown(IllegalStateException)
+    error.message.contains(statusCode.toString())
+    error.message.contains("flapjack-frontend")
+    error.message.contains("spinnaker")
+    error.message.contains("us-west-1")
+
+    where:
+    statusCode << [HTTP_BAD_REQUEST, 404]
   }
 
   void "keeps waiting when the pending short circuit fires before a gce load balancer is visible"() {
@@ -389,30 +507,6 @@ class UpsertLoadBalancerForceRefreshTaskSpec extends Specification {
     0 * cloudDriverCacheStatusService.pendingForceCacheUpdates(_, _)
     1 * oortService.getLoadBalancerDetails('gce', 'spinnaker', 'us-west-1', 'flapjack-frontend') >> Calls.response([])
     result.status == ExecutionStatus.RUNNING
-  }
-
-  void "short circuits to success for non-gce providers without consulting oort"() {
-    given:
-    stage.context = [
-      cloudProvider: "aws",
-      targets: [
-        [credentials: "spinnaker", availabilityZones: ["us-west-1": []], name: "flapjack-frontend"]
-      ],
-      refreshState: [
-        hasRequested: true,
-        seenPendingCacheUpdates: false,
-        attempt: UpsertLoadBalancerForceRefreshTask.MAX_CHECK_FOR_PENDING,
-        allAreComplete: false,
-        refreshIds: ["aws:loadBalancers:spinnaker:us-west-1:flapjack-frontend"]
-      ]
-    ]
-
-    when:
-    def result = task.execute(stage)
-
-    then:
-    0 * oortService.getLoadBalancerDetails(_, _, _, _)
-    result.status == ExecutionStatus.SUCCEEDED
   }
 
   @Unroll

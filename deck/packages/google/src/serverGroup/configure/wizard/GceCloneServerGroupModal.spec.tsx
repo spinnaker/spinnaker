@@ -18,6 +18,7 @@ import {
   GceCloneServerGroupModalComponent as GceCloneServerGroupModal,
   transformGceServerGroupCommand,
 } from './GceCloneServerGroupModal';
+import { validateGceServerGroupCommand } from './GceServerGroupWizard.helpers';
 import { GceServerGroupWizardAdapter } from './GceServerGroupWizardAdapter';
 import type { IGceServerGroupCommand, IGceServerGroupWizardAdapter } from './GceServerGroupWizard.types';
 import { registerGoogleProvider } from '../../../gce.module';
@@ -315,6 +316,167 @@ describe('GceCloneServerGroupModal', () => {
       'customInstanceChanged',
     ]);
     Object.keys(handlers).forEach((handler) => expect(handlers[handler]).toHaveBeenCalledWith(formik.values));
+  });
+
+  it('retains the original load balancer baseline when selection changes while configuration is pending', async () => {
+    const command = buildCommand({
+      loadBalancerMetadata: {
+        'load-balancer-names': ['orphan-listener'],
+      },
+      loadBalancers: ['original-lb'],
+      viewState: { ...buildCommand().viewState, mode: 'clone' },
+    });
+    const request = deferred<IGceServerGroupCommand>();
+    const adapter = buildAdapter();
+    adapter.configureCommand.and.returnValue(request.promise);
+    const modal = new GceCloneServerGroupModal(buildProps(command, adapter)) as any;
+    spyOn(modal, 'setState').and.callFake((state: any) => (modal.state = { ...modal.state, ...state }));
+    const formik: any = {
+      setValues: jasmine
+        .createSpy('setValues')
+        .and.callFake((values: IGceServerGroupCommand) => (formik.values = values)),
+      values: command,
+    };
+    modal.formik = formik;
+
+    const configure = modal.configureCommand();
+    formik.values = {
+      ...formik.values,
+      loadBalancers: ['edited-lb'],
+    };
+    request.resolve(
+      buildCommand({
+        ...buildInitializationHandlers(),
+        backingData: {
+          ...buildCommand().backingData,
+          filtered: {
+            ...buildCommand().backingData.filtered,
+            loadBalancerIndex: {},
+          },
+        },
+      }),
+    );
+    await configure;
+
+    expect(modal.state.command.loadBalancers).toEqual(['edited-lb']);
+    expect(modal.state.command.viewState.initialLoadBalancers).toEqual(['original-lb']);
+    expect(validateGceServerGroupCommand(modal.state.command).loadBalancers).toContain(
+      'Saved load balancer metadata cannot be mapped',
+    );
+  });
+
+  it('normalizes the immutable original alias baseline after an edit during configuration', async () => {
+    const command = buildCommand({
+      backingData: undefined,
+      loadBalancerMetadata: {
+        'global-load-balancer-names': ['http-listener'],
+      },
+      loadBalancers: ['http-listener'],
+      viewState: { ...buildCommand().viewState, mode: 'clone' },
+    });
+    const request = deferred<IGceServerGroupCommand>();
+    const adapter = buildAdapter();
+    adapter.configureCommand.and.returnValue(request.promise);
+    const modal = new GceCloneServerGroupModal(buildProps(command, adapter)) as any;
+    spyOn(modal, 'setState').and.callFake((state: any) => (modal.state = { ...modal.state, ...state }));
+    const formik: any = {
+      setValues: jasmine
+        .createSpy('setValues')
+        .and.callFake((values: IGceServerGroupCommand) => (formik.values = values)),
+      values: command,
+    };
+    modal.formik = formik;
+    const handlers = buildInitializationHandlers((handler, initializedCommand) => {
+      if (handler === 'credentialsChanged') {
+        initializedCommand.backingData.filtered.loadBalancerIndex = {
+          'http-url-map': {
+            listeners: [{ name: 'http-listener' }],
+            loadBalancerType: 'HTTP',
+            name: 'http-url-map',
+          },
+        };
+      }
+    });
+
+    const configure = modal.configureCommand();
+    formik.values = {
+      ...formik.values,
+      loadBalancers: ['edited-lb'],
+    };
+    request.resolve(
+      buildCommand({
+        ...handlers,
+        backingData: {
+          ...buildCommand().backingData,
+          filtered: { ...buildCommand().backingData.filtered },
+        },
+      }),
+    );
+    await configure;
+
+    expect(modal.state.command.loadBalancers).toEqual(['edited-lb']);
+    expect(modal.state.command.viewState.initialLoadBalancers).toEqual(['http-url-map']);
+    expect(validateGceServerGroupCommand(modal.state.command).loadBalancers).toContain(
+      'Saved load balancer metadata cannot be mapped',
+    );
+
+    const revertedCommand = {
+      ...modal.state.command,
+      loadBalancers: ['http-url-map'],
+    };
+    expect(validateGceServerGroupCommand(revertedCommand).loadBalancers).toBeUndefined();
+  });
+
+  it('retains the immutable original baseline when configuration fails after an edit and retry succeeds', async () => {
+    const command = buildCommand({
+      loadBalancerMetadata: {
+        'load-balancer-names': ['orphan-listener'],
+      },
+      loadBalancers: ['original-lb'],
+      viewState: { ...buildCommand().viewState, mode: 'clone' },
+    });
+    const firstRequest = deferred<IGceServerGroupCommand>();
+    const secondRequest = deferred<IGceServerGroupCommand>();
+    const adapter = buildAdapter();
+    adapter.configureCommand.and.returnValues(firstRequest.promise, secondRequest.promise);
+    const modal = new GceCloneServerGroupModal(buildProps(command, adapter)) as any;
+    spyOn(modal, 'setState').and.callFake((state: any) => (modal.state = { ...modal.state, ...state }));
+    const formik: any = {
+      setValues: jasmine
+        .createSpy('setValues')
+        .and.callFake((values: IGceServerGroupCommand) => (formik.values = values)),
+      values: command,
+    };
+    modal.formik = formik;
+
+    const configure = modal.configureCommand();
+    formik.values = {
+      ...formik.values,
+      loadBalancers: ['edited-lb'],
+    };
+    firstRequest.reject(new Error('configuration failed'));
+    await configure;
+
+    const retry = modal.retryConfiguration();
+    secondRequest.resolve(
+      buildCommand({
+        ...buildInitializationHandlers(),
+        backingData: {
+          ...buildCommand().backingData,
+          filtered: {
+            ...buildCommand().backingData.filtered,
+            loadBalancerIndex: {},
+          },
+        },
+      }),
+    );
+    await retry;
+
+    expect(modal.state.command.loadBalancers).toEqual(['edited-lb']);
+    expect(modal.state.command.viewState.initialLoadBalancers).toEqual(['original-lb']);
+    expect(validateGceServerGroupCommand(modal.state.command).loadBalancers).toContain(
+      'Saved load balancer metadata cannot be mapped',
+    );
   });
 
   it('preserves an untouched clone with unavailable zonal and load balancer references', async () => {
@@ -651,6 +813,8 @@ describe('GceCloneServerGroupModal', () => {
     await modal.configureCommand();
 
     expect(modal.state.command.loadBalancers).toEqual(['http-url-map']);
+    expect(modal.state.command.viewState.initialLoadBalancers).toEqual(['http-url-map']);
+    expect(validateGceServerGroupCommand(modal.state.command).loadBalancers).toBeUndefined();
     const transformed = transformGceServerGroupCommand(modal.state.command);
     expect(transformed.instanceMetadata).toEqual({
       'global-load-balancer-names': 'http-listener',
@@ -658,6 +822,56 @@ describe('GceCloneServerGroupModal', () => {
     // The wizard's URL-map display identity must not reach the request: a global HTTP LB attaches
     // through global-load-balancer-names, and 'http-url-map' names nothing GCEUtil can resolve.
     expect(transformed.loadBalancers).toEqual([]);
+  });
+
+  (['SSL', 'TCP'] as const).forEach((loadBalancerType) => {
+    (['clone', 'createPipeline', 'editPipeline'] as const).forEach((mode) => {
+      it(`submits unavailable global ${loadBalancerType} selections in ${mode} mode`, async () => {
+        const loadBalancerName = `unavailable-${loadBalancerType.toLowerCase()}-lb`;
+        const baseCommand = buildCommand();
+        const command = buildCommand({
+          backingData: {
+            ...baseCommand.backingData,
+            filtered: {
+              ...baseCommand.backingData.filtered,
+              loadBalancerIndex: {
+                [loadBalancerName]: {
+                  loadBalancerType,
+                  name: loadBalancerName,
+                },
+              },
+            },
+          },
+          loadBalancerMetadata: {
+            'global-load-balancer-names': [loadBalancerName],
+          },
+          loadBalancers: [loadBalancerName],
+          viewState: { ...baseCommand.viewState, mode },
+        });
+        const configured = buildCommand({
+          ...buildInitializationHandlers(),
+          backingData: {
+            ...baseCommand.backingData,
+            filtered: {
+              ...baseCommand.backingData.filtered,
+              loadBalancerIndex: {},
+            },
+          },
+        });
+        const adapter = buildAdapter();
+        adapter.configureCommand.and.resolveTo(configured);
+        const modal = new GceCloneServerGroupModal(buildProps(command, adapter)) as any;
+        spyOn(modal, 'setState').and.callFake((state: any) => (modal.state = { ...modal.state, ...state }));
+
+        await modal.configureCommand();
+
+        const transformed = transformGceServerGroupCommand(modal.state.command);
+        expect(transformed.instanceMetadata).toEqual({
+          'global-load-balancer-names': loadBalancerName,
+        });
+        expect(transformed.loadBalancers).toEqual([loadBalancerName]);
+      });
+    });
   });
 
   it('restores an unavailable clone image from viewState.imageId', async () => {
@@ -945,6 +1159,29 @@ describe('GceCloneServerGroupModal', () => {
       expect(command.loadBalancers).toEqual(['internal-managed-lb']);
     });
 
+    it('preserves selected load balancer metadata insertion order', () => {
+      const command = buildCommand({
+        backingData: {
+          filtered: {
+            loadBalancerIndex: {
+              'internal-managed-lb': {
+                listeners: [{ name: 'z-listener' }, { name: 'a-listener' }],
+                loadBalancerType: 'INTERNAL_MANAGED',
+                name: 'internal-managed-lb',
+              },
+            },
+          },
+        },
+        loadBalancers: ['internal-managed-lb'],
+        viewState: { ...buildCommand().viewState, mode: 'clone' },
+      });
+
+      const transformed = transformGceServerGroupCommand(command);
+
+      expect(transformed.loadBalancers).toEqual(['z-listener', 'a-listener']);
+      expect(transformed.instanceMetadata['load-balancer-names']).toBe('z-listener,a-listener');
+    });
+
     it('submits an unresolvable selection by name when no metadata explains it', () => {
       const command = buildCommand({
         backingData: { filtered: { loadBalancerIndex: {} } },
@@ -1079,12 +1316,378 @@ describe('GceCloneServerGroupModal', () => {
 
       const transformed = transformGceServerGroupCommand(command);
 
-      expect(transformed.loadBalancers).toEqual(['persisted-listener']);
+      expect(transformed.loadBalancers).toEqual(['persisted-listener', 'known-lb', 'persisted-lb']);
       expect(transformed.instanceMetadata).toEqual({
         'global-load-balancer-names': 'known-listener-new',
         'load-balancer-names': 'persisted-listener',
       });
       expect(command.loadBalancers).toEqual(['known-lb', 'persisted-lb']);
+    });
+
+    describe('load balancer metadata attribution', () => {
+      it('retains raw unresolved names for unexplained unavailable selections while sibling metadata exists', () => {
+        const command = buildCommand({
+          backingData: {
+            filtered: {
+              loadBalancerIndex: {
+                'resolved-http-lb': {
+                  listeners: [{ name: 'resolved-listener' }],
+                  loadBalancerType: 'HTTP',
+                  name: 'resolved-http-lb',
+                },
+              },
+            },
+          },
+          loadBalancerMetadata: {
+            'global-load-balancer-names': ['resolved-listener'],
+          },
+          loadBalancerSelectionMetadata: {
+            'resolved-http-lb': {
+              key: 'global-load-balancer-names',
+              names: ['resolved-listener'],
+            },
+          },
+          loadBalancers: ['resolved-http-lb', 'unexplained-lb'],
+          viewState: { ...buildCommand().viewState, mode: 'clone' },
+        });
+
+        const transformed = transformGceServerGroupCommand(command);
+
+        expect(transformed.loadBalancers).toEqual(['unexplained-lb']);
+        expect(transformed.instanceMetadata).toEqual({
+          'global-load-balancer-names': 'resolved-listener',
+        });
+      });
+
+      (['clone', 'createPipeline', 'editPipeline'] as const).forEach((mode) => {
+        it(`submits every selected load balancer in ${mode} mode`, () => {
+          const command = buildCommand({
+            backingData: {
+              filtered: {
+                loadBalancerIndex: {
+                  'resolved-http-lb': {
+                    listeners: [{ name: 'resolved-listener' }],
+                    loadBalancerType: 'HTTP',
+                    name: 'resolved-http-lb',
+                  },
+                },
+              },
+            },
+            loadBalancerSelectionMetadata: {
+              'resolved-http-lb': {
+                key: 'global-load-balancer-names',
+                names: ['resolved-listener'],
+              },
+            },
+            loadBalancers: ['resolved-http-lb', 'unexplained-lb'],
+            viewState: { ...buildCommand().viewState, mode },
+          });
+
+          const transformed = transformGceServerGroupCommand(command);
+
+          expect(transformed.loadBalancers).toEqual(['unexplained-lb']);
+        });
+      });
+
+      it('omits deselected unavailable load balancer names from submission payloads', () => {
+        const command = buildCommand({
+          backingData: { filtered: { loadBalancerIndex: {} } },
+          loadBalancerMetadata: {
+            'load-balancer-names': ['listener-a', 'listener-b'],
+          },
+          loadBalancerSelectionMetadata: {
+            'unavailable-a': {
+              key: 'load-balancer-names',
+              names: ['listener-a'],
+            },
+          },
+          loadBalancers: ['unavailable-a'],
+          viewState: {
+            ...buildCommand().viewState,
+            mode: 'clone',
+            initialLoadBalancers: ['unavailable-a', 'unavailable-b'],
+          },
+        });
+
+        const transformed = transformGceServerGroupCommand(command);
+
+        expect(transformed.loadBalancers).toEqual(['listener-a']);
+        expect(transformed.instanceMetadata).toEqual({
+          'load-balancer-names': 'listener-a',
+        });
+        expect(transformed.loadBalancerSelectionMetadata).toBeUndefined();
+      });
+
+      it('preserves attributed and residual legacy metadata in mixed partial unchanged state', () => {
+        const command = buildCommand({
+          backingData: { filtered: { loadBalancerIndex: {} } },
+          loadBalancerMetadata: {
+            'load-balancer-names': ['attributed-listener', 'orphan-listener'],
+          },
+          loadBalancerSelectionMetadata: {
+            'unavailable-a': {
+              key: 'load-balancer-names',
+              names: ['attributed-listener'],
+            },
+          },
+          loadBalancers: ['unavailable-a'],
+          viewState: {
+            ...buildCommand().viewState,
+            mode: 'clone',
+            initialLoadBalancers: ['unavailable-a'],
+            loadBalancerSelectionsChanged: false,
+          },
+        });
+
+        const transformed = transformGceServerGroupCommand(command);
+
+        expect(transformed.instanceMetadata).toEqual({
+          'load-balancer-names': 'attributed-listener,orphan-listener',
+        });
+        expect(transformed.loadBalancers).toEqual(['attributed-listener']);
+      });
+
+      it('preserves residual legacy metadata for an unchanged resolved attributed selection', () => {
+        const command = buildCommand({
+          backingData: {
+            filtered: {
+              loadBalancerIndex: {
+                'regional-network-lb': {
+                  loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK',
+                  name: 'regional-network-lb',
+                },
+              },
+            },
+          },
+          loadBalancerMetadata: {
+            'load-balancer-names': ['regional-network-lb', 'orphan-listener'],
+          },
+          loadBalancerSelectionMetadata: {
+            'regional-network-lb': {
+              key: 'load-balancer-names',
+              names: ['regional-network-lb'],
+            },
+          },
+          loadBalancers: ['regional-network-lb'],
+          viewState: {
+            ...buildCommand().viewState,
+            initialLoadBalancers: ['regional-network-lb'],
+            mode: 'clone',
+          },
+        });
+
+        const transformed = transformGceServerGroupCommand(command);
+
+        expect(transformed.loadBalancers).toEqual(['regional-network-lb']);
+        expect(transformed.instanceMetadata).toEqual({
+          'load-balancer-names': 'regional-network-lb,orphan-listener',
+        });
+      });
+
+      it('submits resolved regional selections alongside partial per-selection metadata', () => {
+        const command = buildCommand({
+          backingData: {
+            filtered: {
+              loadBalancerIndex: {
+                'regional-network-lb': {
+                  loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK',
+                  name: 'regional-network-lb',
+                },
+              },
+            },
+          },
+          loadBalancerSelectionMetadata: {
+            'unavailable-a': {
+              key: 'load-balancer-names',
+              names: ['attributed-listener'],
+            },
+          },
+          loadBalancers: ['unavailable-a', 'regional-network-lb'],
+          viewState: { ...buildCommand().viewState, mode: 'clone' },
+        });
+
+        const transformed = transformGceServerGroupCommand(command);
+
+        expect(transformed.loadBalancers).toEqual(['attributed-listener', 'regional-network-lb']);
+        expect(transformed.instanceMetadata).toEqual({
+          'load-balancer-names': 'attributed-listener,regional-network-lb',
+        });
+      });
+
+      it('fails loud for multiple unresolved legacy selections with ambiguous partial flat metadata', () => {
+        const command = buildCommand({
+          backingData: { filtered: { loadBalancerIndex: {} } },
+          loadBalancerMetadata: {
+            'load-balancer-names': ['legacy-listener'],
+          },
+          loadBalancers: ['unresolved-a', 'unresolved-b'],
+          viewState: { ...buildCommand().viewState, mode: 'clone' },
+        });
+
+        const transformed = transformGceServerGroupCommand(command);
+
+        expect(transformed.loadBalancers).toEqual(['legacy-listener', 'unresolved-a', 'unresolved-b']);
+        expect(transformed.instanceMetadata).toEqual({
+          'load-balancer-names': 'legacy-listener',
+        });
+      });
+
+      it('fails loud when resolved sibling metadata cannot explain one unresolved legacy selection', () => {
+        const command = buildCommand({
+          backingData: {
+            filtered: {
+              loadBalancerIndex: {
+                'resolved-http-lb': {
+                  listeners: [{ name: 'resolved-listener' }],
+                  loadBalancerType: 'HTTP',
+                  name: 'resolved-http-lb',
+                },
+              },
+            },
+          },
+          loadBalancers: ['resolved-http-lb', 'unresolved-lb'],
+          viewState: { ...buildCommand().viewState, mode: 'clone' },
+        });
+
+        const transformed = transformGceServerGroupCommand(command);
+
+        expect(transformed.loadBalancers).toEqual(['unresolved-lb']);
+        expect(transformed.instanceMetadata).toEqual({
+          'global-load-balancer-names': 'resolved-listener',
+        });
+      });
+
+      it('fails loud for an unavailable selection with ambiguous legacy global attribution', () => {
+        const command = buildCommand({
+          backingData: { filtered: { loadBalancerIndex: {} } },
+          loadBalancerMetadata: {
+            'global-load-balancer-names': ['legacy-global-listener'],
+          },
+          loadBalancerSelectionMetadata: {
+            'unavailable-global-lb': {
+              key: 'global-load-balancer-names',
+              names: ['legacy-global-listener'],
+            },
+          },
+          loadBalancers: ['unavailable-global-lb'],
+          viewState: { ...buildCommand().viewState, mode: 'clone' },
+        });
+
+        const transformed = transformGceServerGroupCommand(command);
+
+        expect(transformed.loadBalancers).toEqual(['unavailable-global-lb']);
+        expect(transformed.instanceMetadata).toEqual({
+          'global-load-balancer-names': 'legacy-global-listener',
+        });
+      });
+
+      it('does not submit residual global metadata matching an unselected indexed proxy load balancer', () => {
+        const command = buildCommand({
+          backingData: {
+            filtered: {
+              loadBalancerIndex: {
+                'unselected-ssl-lb': {
+                  loadBalancerType: 'SSL',
+                  name: 'unselected-ssl-lb',
+                },
+              },
+            },
+          },
+          loadBalancerMetadata: {
+            'global-load-balancer-names': ['unselected-ssl-lb'],
+            'load-balancer-names': ['selected-listener'],
+          },
+          loadBalancerSelectionMetadata: {
+            'selected-unavailable-lb': {
+              key: 'load-balancer-names',
+              names: ['selected-listener'],
+            },
+          },
+          loadBalancers: ['selected-unavailable-lb'],
+          viewState: {
+            ...buildCommand().viewState,
+            initialLoadBalancers: ['selected-unavailable-lb'],
+            mode: 'clone',
+          },
+        });
+
+        const transformed = transformGceServerGroupCommand(command);
+
+        expect(transformed.loadBalancers).toEqual(['selected-listener']);
+        expect(transformed.instanceMetadata).toEqual({
+          'global-load-balancer-names': 'unselected-ssl-lb',
+          'load-balancer-names': 'selected-listener',
+        });
+      });
+
+      it('preserves unchanged legacy flat metadata without per-selection references', () => {
+        const command = buildCommand({
+          loadBalancerMetadata: {
+            'global-load-balancer-names': ['legacy-global-listener'],
+            'load-balancer-names': ['legacy-regional-listener'],
+          },
+          loadBalancers: ['legacy-lb'],
+          viewState: { ...buildCommand().viewState, mode: 'clone' },
+        });
+
+        const transformed = transformGceServerGroupCommand(command);
+
+        expect(transformed.loadBalancers).toEqual(['legacy-regional-listener']);
+        expect(transformed.instanceMetadata).toEqual({
+          'global-load-balancer-names': 'legacy-global-listener',
+          'load-balancer-names': 'legacy-regional-listener',
+        });
+      });
+
+      it('strips internal selection metadata from transformed commands', () => {
+        const command = buildCommand({
+          loadBalancerSelectionMetadata: {
+            'legacy-lb': {
+              key: 'load-balancer-names',
+              names: ['legacy-regional-listener'],
+            },
+          },
+          loadBalancerMetadata: {
+            'load-balancer-names': ['legacy-regional-listener'],
+          },
+          loadBalancers: ['legacy-lb'],
+          viewState: { ...buildCommand().viewState, mode: 'clone' },
+        });
+
+        const transformed = transformGceServerGroupCommand(command);
+
+        expect(transformed.loadBalancerSelectionMetadata).toBeUndefined();
+      });
+
+      (['clone', 'createPipeline', 'editPipeline'] as const).forEach((mode) => {
+        it(`strips internal load balancer attribution viewState from transformed ${mode} commands`, () => {
+          const command = buildCommand({
+            loadBalancerSelectionMetadata: {
+              'legacy-lb': {
+                key: 'load-balancer-names',
+                names: ['legacy-regional-listener'],
+              },
+            },
+            loadBalancers: ['legacy-lb'],
+            viewState: {
+              ...buildCommand().viewState,
+              mode,
+              dirty: { loadBalancers: ['legacy-lb'] },
+              disableImageSelection: true,
+              initialLoadBalancers: ['legacy-lb'],
+              loadBalancerSelectionsChanged: true,
+            },
+          });
+
+          const transformed = transformGceServerGroupCommand(command);
+
+          expect(transformed.viewState.initialLoadBalancers).toBeUndefined();
+          expect(transformed.viewState.loadBalancerSelectionsChanged).toBeUndefined();
+          expect(transformed.viewState.mode).toBe(mode);
+          expect(transformed.viewState.dirty).toEqual({ loadBalancers: ['legacy-lb'] });
+          expect(transformed.viewState.disableImageSelection).toBe(true);
+        });
+      });
     });
 
     it('submits mixed regional HTTP, network, and global SSL/TCP attachments', () => {
@@ -1609,8 +2212,12 @@ function buildInitializationHandlers(
   }, {} as Record<string, jasmine.Spy>);
 }
 
-function deferred<T>(): { promise: Promise<T>; resolve: (value: T) => void } {
+function deferred<T>(): { promise: Promise<T>; reject: (reason?: any) => void; resolve: (value: T) => void } {
+  let reject: (reason?: any) => void;
   let resolve: (value: T) => void;
-  const promise = new Promise<T>((promiseResolve) => (resolve = promiseResolve));
-  return { promise, resolve };
+  const promise = new Promise<T>((promiseResolve, promiseReject) => {
+    reject = promiseReject;
+    resolve = promiseResolve;
+  });
+  return { promise, reject, resolve };
 }

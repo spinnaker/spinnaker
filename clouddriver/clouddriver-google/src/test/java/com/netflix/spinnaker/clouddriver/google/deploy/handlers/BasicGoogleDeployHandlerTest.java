@@ -31,6 +31,7 @@ import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.anyList;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.contains;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
@@ -1615,6 +1616,106 @@ public class BasicGoogleDeployHandlerTest {
   }
 
   @Test
+  void testRejectsNonRateForHttpAndMetadataOnlyPassthroughAfterProviderReads() throws IOException {
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfo = httpOnlyLoadBalancerInfo();
+
+    for (String passthroughScheme : List.of("INTERNAL", "EXTERNAL")) {
+      for (GoogleLoadBalancingPolicy.BalancingMode balancingMode :
+          Arrays.asList(
+              GoogleLoadBalancingPolicy.BalancingMode.UTILIZATION,
+              GoogleLoadBalancingPolicy.BalancingMode.CONNECTION,
+              null)) {
+        GoogleHttpLoadBalancingPolicy policy = new GoogleHttpLoadBalancingPolicy();
+        policy.setBalancingMode(balancingMode);
+        configureMetadataOnlyMixedRegionalBackends(passthroughScheme);
+        clearInvocations(basicGoogleDeployHandler);
+
+        IllegalArgumentException error =
+            assertThrows(
+                IllegalArgumentException.class,
+                () ->
+                    basicGoogleDeployHandler.getRegionBackendServicesToUpdate(
+                        mockDescription, "server-group-name", lbInfo, policy, "us-central1"));
+
+        String scenario = "mode=" + balancingMode + ", passthroughScheme=" + passthroughScheme;
+        assertThat(error.getMessage())
+            .as(scenario)
+            .contains(
+                balancingMode == null
+                    ? "No balancing mode was specified"
+                    : "must use RATE for HTTP backends")
+            .contains("RATE for HTTP backends");
+        verify(basicGoogleDeployHandler, times(2))
+            .getRegionBackendServiceFromProvider(any(), any(), any());
+        verify(basicGoogleDeployHandler)
+            .getRegionBackendServiceFromProvider(
+                any(), eq("us-central1"), eq("metadata-managed-backend"));
+        verify(basicGoogleDeployHandler)
+            .getRegionBackendServiceFromProvider(
+                any(), eq("us-central1"), eq("metadata-passthrough-backend"));
+      }
+    }
+  }
+
+  @Test
+  void testAppliesSchemeSpecificModesForHttpAndMetadataOnlyPassthroughWithRate()
+      throws IOException {
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfo = httpOnlyLoadBalancerInfo();
+    GoogleHttpLoadBalancingPolicy policy = new GoogleHttpLoadBalancingPolicy();
+    policy.setBalancingMode(GoogleLoadBalancingPolicy.BalancingMode.RATE);
+    mockedGCEUtil
+        .when(() -> GCEUtil.backendFromLoadBalancingPolicy(any()))
+        .thenReturn(new Backend().setBalancingMode("RATE"));
+
+    for (String passthroughScheme : List.of("INTERNAL", "EXTERNAL")) {
+      configureMetadataOnlyMixedRegionalBackends(passthroughScheme);
+      clearInvocations(basicGoogleDeployHandler);
+
+      List<BackendService> result =
+          basicGoogleDeployHandler.getRegionBackendServicesToUpdate(
+              mockDescription, "server-group-name", lbInfo, policy, "us-central1");
+
+      assertThat(result).hasSize(2);
+      assertThat(backendMode(result, "metadata-managed-backend"))
+          .as("managed backend mode with %s passthrough", passthroughScheme)
+          .isEqualTo("RATE");
+      assertThat(backendMode(result, "metadata-passthrough-backend"))
+          .as("passthrough backend mode for scheme %s", passthroughScheme)
+          .isEqualTo("EXTERNAL".equals(passthroughScheme) ? "CONNECTION" : null);
+      verify(basicGoogleDeployHandler, times(2))
+          .getRegionBackendServiceFromProvider(any(), any(), any());
+    }
+  }
+
+  @Test
+  void testRejectsMissingConnectionForProxyAndSelectedPassthrough() throws IOException {
+    for (GoogleLoadBalancerType proxyType :
+        List.of(GoogleLoadBalancerType.SSL, GoogleLoadBalancerType.TCP)) {
+      BasicGoogleDeployHandler.LoadBalancerInfo lbInfo =
+          proxyWithSelectedPassthroughLoadBalancerInfo(proxyType);
+      GoogleHttpLoadBalancingPolicy policy = new GoogleHttpLoadBalancingPolicy();
+      mockDescription.setInstanceMetadata(new HashMap<>());
+      mockDescription.setCredentials(mockCredentials);
+      mockDescription.setZone("us-central1-a");
+      clearInvocations(basicGoogleDeployHandler);
+
+      IllegalArgumentException error =
+          assertThrows(
+              IllegalArgumentException.class,
+              () ->
+                  basicGoogleDeployHandler.getRegionBackendServicesToUpdate(
+                      mockDescription, "server-group-name", lbInfo, policy, "us-central1"));
+
+      assertThat(error.getMessage())
+          .as("proxyType=%s", proxyType)
+          .contains("No balancing mode was specified")
+          .contains("CONNECTION for SSL/TCP proxy backends");
+      verify(basicGoogleDeployHandler, never())
+          .getRegionBackendServiceFromProvider(any(), any(), any());
+    }
+  }
+
+  @Test
   void testAppliesRateToMetadataOnlyManagedRegionalBackendWithPassthrough() throws IOException {
     BasicGoogleDeployHandler.LoadBalancerInfo lbInfo = regionalNetworkLoadBalancerInfo();
     GoogleHttpLoadBalancingPolicy policy = new GoogleHttpLoadBalancingPolicy();
@@ -1972,6 +2073,73 @@ public class BasicGoogleDeployHandlerTest {
     BasicGoogleDeployHandler.LoadBalancerInfo lbInfo =
         new BasicGoogleDeployHandler.LoadBalancerInfo();
     lbInfo.setRegionalExternalNetworkLoadBalancers(List.of(networkLoadBalancer.getView()));
+    return lbInfo;
+  }
+
+  private BasicGoogleDeployHandler.LoadBalancerInfo httpOnlyLoadBalancerInfo() {
+    GoogleBackendService managedBackendService = new GoogleBackendService();
+    managedBackendService.setName("metadata-managed-backend");
+    GoogleExternalHttpLoadBalancer httpLoadBalancer = new GoogleExternalHttpLoadBalancer();
+    httpLoadBalancer.setName("external-http-load-balancer");
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfo =
+        new BasicGoogleDeployHandler.LoadBalancerInfo();
+    lbInfo.setExternalHttpLoadBalancers(List.of(httpLoadBalancer.getView()));
+    mockedUtils
+        .when(() -> Utils.getBackendServicesFromExternalHttpLoadBalancerView(any()))
+        .thenReturn(List.of(managedBackendService));
+    return lbInfo;
+  }
+
+  private void configureMetadataOnlyMixedRegionalBackends(String passthroughScheme)
+      throws IOException {
+    mockDescription.setInstanceMetadata(
+        new HashMap<>(
+            Map.of(
+                GCEUtil.REGION_BACKEND_SERVICE_NAMES,
+                "metadata-managed-backend,metadata-passthrough-backend")));
+    mockDescription.setCredentials(mockCredentials);
+    mockDescription.setZone("us-central1-a");
+    doAnswer(
+            invocation -> {
+              String backendName = invocation.getArgument(2);
+              return new BackendService()
+                  .setName(backendName)
+                  .setLoadBalancingScheme(
+                      backendName.equals("metadata-managed-backend")
+                          ? "EXTERNAL_MANAGED"
+                          : passthroughScheme)
+                  .setBackends(new ArrayList<>());
+            })
+        .when(basicGoogleDeployHandler)
+        .getRegionBackendServiceFromProvider(any(), any(), any());
+  }
+
+  private String backendMode(List<BackendService> backendServices, String backendServiceName) {
+    return backendServices.stream()
+        .filter(backendService -> backendServiceName.equals(backendService.getName()))
+        .findFirst()
+        .orElseThrow()
+        .getBackends()
+        .get(0)
+        .getBalancingMode();
+  }
+
+  private BasicGoogleDeployHandler.LoadBalancerInfo proxyWithSelectedPassthroughLoadBalancerInfo(
+      GoogleLoadBalancerType proxyType) {
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfo = regionalNetworkLoadBalancerInfo();
+    GoogleBackendService proxyBackendService = new GoogleBackendService();
+    proxyBackendService.setName(proxyType.name().toLowerCase() + "-backend-service");
+    if (proxyType == GoogleLoadBalancerType.SSL) {
+      GoogleSslLoadBalancer sslLoadBalancer = new GoogleSslLoadBalancer();
+      sslLoadBalancer.setName("ssl-load-balancer");
+      sslLoadBalancer.setBackendService(proxyBackendService);
+      lbInfo.setSslLoadBalancers(List.of(sslLoadBalancer.getView()));
+    } else {
+      GoogleTcpLoadBalancer tcpLoadBalancer = new GoogleTcpLoadBalancer();
+      tcpLoadBalancer.setName("tcp-load-balancer");
+      tcpLoadBalancer.setBackendService(proxyBackendService);
+      lbInfo.setTcpLoadBalancers(List.of(tcpLoadBalancer.getView()));
+    }
     return lbInfo;
   }
 

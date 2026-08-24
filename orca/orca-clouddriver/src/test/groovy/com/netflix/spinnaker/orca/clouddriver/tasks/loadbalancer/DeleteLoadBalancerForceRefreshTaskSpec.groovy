@@ -56,8 +56,9 @@ class DeleteLoadBalancerForceRefreshTaskSpec extends Specification {
     )
   }
 
-  void "should force cache refresh load balancer via clouddriver when clusterName provided"() {
-  setup:
+  @Unroll
+  void "maps #responseCase force-cache response to #expectedStatus"() {
+    given:
     def refreshCall = Mock(Call)
 
     when:
@@ -73,8 +74,18 @@ class DeleteLoadBalancerForceRefreshTaskSpec extends Specification {
       assert body.evict == true
       refreshCall
     }
-    1 * refreshCall.execute() >> Response.success(null)
-    result.status == ExecutionStatus.SUCCEEDED
+    1 * refreshCall.execute() >> response
+    result.status == expectedStatus
+
+    where:
+    responseCase        | response                                                                                                             || expectedStatus
+    "200 complete"      | Response.success(null)                                                                                               || ExecutionStatus.SUCCEEDED
+    "202 empty IDs"     | Response.success(HTTP_ACCEPTED, pendingBody([]))                                                                      || ExecutionStatus.RUNNING
+    // A populated 202 means a non-atomic agent stored the eviction, so re-POSTing would never finish.
+    "202 populated IDs" | Response.success(HTTP_ACCEPTED, pendingBody(["aws:loadBalancers:fzlem:us-west-1:flapjack-main-frontend"]))              || ExecutionStatus.SUCCEEDED
+    "429 throttled"     | Response.error(429, ResponseBody.create(MediaType.parse("application/json"), "{}"))                                   || ExecutionStatus.RUNNING
+    "500 server error"  | Response.error(500, ResponseBody.create(MediaType.parse("application/json"), "{}"))                                   || ExecutionStatus.RUNNING
+    "503 server error"  | Response.error(503, ResponseBody.create(MediaType.parse("application/json"), "{}"))                                   || ExecutionStatus.RUNNING
   }
 
   void "retries until clouddriver accepts the refresh"() {
@@ -98,24 +109,6 @@ class DeleteLoadBalancerForceRefreshTaskSpec extends Specification {
     result.status == ExecutionStatus.SUCCEEDED
   }
 
-  void "accepts a pending refresh that reports the evicted identifiers"() {
-    given:
-    def refreshCall = Mock(Call)
-
-    when:
-    // A non-atomic agent scheduler answers every stored on-demand result with 202. Re-POSTing that
-    // would keep the stage running until it timed out, failing a delete that already succeeded.
-    def result = task.execute(stage)
-
-    then:
-    1 * task.cacheService.forceCacheUpdate('aws', 'LoadBalancer', _) >> refreshCall
-    1 * refreshCall.execute() >> Response.success(
-      HTTP_ACCEPTED,
-      pendingBody(['aws:loadBalancers:fzlem:us-west-1:flapjack-main-frontend'])
-    )
-    result.status == ExecutionStatus.SUCCEEDED
-  }
-
   void "reposts when a later region has not run the refresh yet"() {
     given:
     stage.context.regions = ["us-west-1", "us-east-1"]
@@ -132,36 +125,24 @@ class DeleteLoadBalancerForceRefreshTaskSpec extends Specification {
   }
 
   @Unroll
-  void "keeps retrying on retryable status #statusCode"() {
+  void "fails with context on terminal client status #statusCode"() {
     given:
     def refreshCall = Mock(Call)
     task.cacheService.forceCacheUpdate('aws', 'LoadBalancer', _) >> refreshCall
-    refreshCall.execute() >> (statusCode == HTTP_ACCEPTED
-      ? Response.success(HTTP_ACCEPTED, pendingBody([]))
-      : Response.error(statusCode, ResponseBody.create(MediaType.parse("application/json"), "{}")))
-
-    expect:
-    task.execute(stage).status == ExecutionStatus.RUNNING
-
-    where:
-    // java.net.HttpURLConnection has no constant for 429.
-    statusCode << [HTTP_ACCEPTED, 429, 500, 503]
-  }
-
-  void "fails on terminal client errors"() {
-    given:
-    def refreshCall = Mock(Call)
-    task.cacheService.forceCacheUpdate('aws', 'LoadBalancer', _) >> refreshCall
-    refreshCall.execute() >> Response.error(HTTP_BAD_REQUEST, ResponseBody.create(MediaType.parse("application/json"), "{}"))
+    refreshCall.execute() >> Response.error(statusCode, ResponseBody.create(MediaType.parse("application/json"), "{}"))
 
     when:
     task.execute(stage)
 
     then:
     def error = thrown(IllegalStateException)
-    error.message.contains('400')
+    error.message.contains(statusCode.toString())
     error.message.contains('flapjack-main-frontend')
     error.message.contains('us-west-1')
+    error.message.contains('fzlem')
+
+    where:
+    statusCode << [HTTP_BAD_REQUEST, 404]
   }
 
   void "retries on network failures"() {
