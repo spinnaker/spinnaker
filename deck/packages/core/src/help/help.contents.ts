@@ -145,11 +145,25 @@ const helpContents: { [key: string]: string } = {
   'pipeline.config.expectedArtifact.defaultGithub.reference': `
       <p>The GitHub API content url the artifact lives under. The domain name may change if you're running GHE.</p>
       <p>An example for GitHub.com is <code>https://api.github.com/repos/$ORG/$REPO/contents/$FILEPATH</code>. An example for GitHub Enterprise is <code>https://github.domain.com/api/v3/repos/$ORG/$REPO/contents/$FILEPATH</code>. See <a href="https://www.spinnaker.io/reference/artifacts/types/github-file/#fields">our docs</a> for more info.</p>`,
+  'pipeline.config.expectedArtifact.defaultGithub.baseUrl': `
+      <p>The GitHub API base URL, i.e. everything before <code>/repos/$ORG/$REPO/contents/$FILEPATH</code>.</p>
+      <p>For GitHub.com this is <code>https://api.github.com</code>. For GitHub Enterprise this is typically <code>https://github.domain.com/api/v3</code>.</p>`,
+  'pipeline.config.expectedArtifact.defaultGithub.org': `
+      <p>The GitHub organization or user that owns the repository.</p>`,
+  'pipeline.config.expectedArtifact.defaultGithub.repo': `
+      <p>The name of the GitHub repository.</p>`,
   'pipeline.config.expectedArtifact.defaultGitlab.version': `
       <p>Either the commit or branch to checkout.</p>`,
   'pipeline.config.expectedArtifact.defaultGitlab.reference': `
       <p>The Gitlab API file url the artifact lives under. The domain name may change if you're running your own Gitlab server. The repository and path to files must be URL encoded.</p>
       <p>An example is <code>https://gitlab.com/api/v4/projects/$ORG%2F$REPO/repository/files/path%2Fto%2Ffile.yml/raw</code>. See <a href="https://www.spinnaker.io/reference/artifacts/types/gitlab-file/#fields">our docs</a> for more info.</p>`,
+  'pipeline.config.expectedArtifact.defaultGitlab.baseUrl': `
+      <p>The Gitlab API base URL, i.e. everything before <code>/projects/$ORG%2F$REPO/repository/files/$FILEPATH/raw</code>.</p>
+      <p>For gitlab.com this is <code>https://gitlab.com/api/v4</code>. For a self-hosted Gitlab server this is typically <code>https://gitlab.domain.com/api/v4</code>.</p>`,
+  'pipeline.config.expectedArtifact.defaultGitlab.org': `
+      <p>The Gitlab group or namespace that owns the repository.</p>`,
+  'pipeline.config.expectedArtifact.defaultGitlab.repo': `
+      <p>The name of the Gitlab project (repository).</p>`,
   'pipeline.config.expectedArtifact.gitrepo.url': '<p>The location of your Git repository.</p>',
   'pipeline.config.expectedArtifact.gitrepo.branch': '<p>The branch of the repository you want to use.</p>',
   'pipeline.config.expectedArtifact.gitrepo.checkoutSubpath':
@@ -168,6 +182,18 @@ const helpContents: { [key: string]: string } = {
       <p>An example is <code>https://api.bitbucket.org/1.0/repositories/$ORG/$REPO/raw/$VERSION/$FILEPATH</code>. See <a href="https://www.spinnaker.io/reference/artifacts/types/bitbucket-file/#fields">our docs</a> for more info.</p>`,
   'pipeline.config.expectedArtifact.defaultBitbucket.filepath': `
       <p>The file path within your repo. path/to/file.yml is an example.</p>`,
+  'pipeline.config.expectedArtifact.defaultBitbucket.baseUrl': `
+      <p>The Bitbucket API base URL. For Bitbucket Server (Stash) this is everything before <code>/projects/$PROJECTKEY/repos/$REPONAME/raw/$FILEPATH</code>, e.g. <code>https://bitbucket.mycompany.com/rest/api/1.0</code>. For Bitbucket Cloud this is everything before <code>/repositories/$ORG/$REPO/raw/$VERSION/$FILEPATH</code>, e.g. <code>https://api.bitbucket.org/1.0</code>.</p>`,
+  'pipeline.config.expectedArtifact.defaultBitbucket.projectKey': `
+      <p>The Bitbucket Server project key that owns the repository.</p>`,
+  'pipeline.config.expectedArtifact.defaultBitbucket.repoName': `
+      <p>The name of the Bitbucket Server repository.</p>`,
+  'pipeline.config.expectedArtifact.defaultBitbucket.org': `
+      <p>The Bitbucket Cloud workspace or account that owns the repository.</p>`,
+  'pipeline.config.expectedArtifact.defaultBitbucket.repo': `
+      <p>The name of the Bitbucket Cloud repository.</p>`,
+  'pipeline.config.expectedArtifact.defaultBitbucket.version': `
+      <p>Either the commit or branch to checkout.</p>`,
   'pipeline.config.trigger.helm.chart': `The Helm chart name.`,
   'pipeline.config.trigger.helm.version': `The Helm chart version, as semver.`,
   'pipeline.config.trigger.helm.version.manual': `The Helm chart version, as an exact version.`,
@@ -317,6 +343,8 @@ const helpContents: { [key: string]: string } = {
     <p>e.g.: <b>chart/helmfile.yml</b></p>`,
   'pipeline.config.bake.manifest.helmfile.name':
     '<p> Name is used to set the expected artifact in the Produces Artifact section. </p>',
+  'pipeline.config.bake.manifest.helmfile.stateValues': `
+    <p>State values files are passed to helmfile's <i>--state-values-file</i> flag. Unlike value artifacts (which override values passed to <i>helm template</i> for a release), these override the <i>.Values</i> used to template the helmfile.yaml itself.</p>`,
   'pipeline.config.bake.manifest.helmfile.environment': `
     <p>The environment name used to customize the content of the helmfile manifest.</p>
     <p>This value is passed directly as the <samp>--environment</samp> argument to the <samp>helmfile</samp> executable, so it is limited to letters, numbers, <samp>.</samp>, <samp>_</samp>, and <samp>-</samp>.</p>

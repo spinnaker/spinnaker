@@ -16,10 +16,6 @@
 
 package com.netflix.spinnaker.kork.pubsub.aws;
 
-import com.amazonaws.ClientConfiguration;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.services.sns.AmazonSNSClientBuilder;
-import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
 import com.google.common.base.Preconditions;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.aws.ARN;
@@ -41,6 +37,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.sns.SnsClient;
+import software.amazon.awssdk.services.sqs.SqsClient;
 
 /** Starts the individual SQS workers (one for each subscription) */
 @Component
@@ -48,7 +48,7 @@ import org.springframework.stereotype.Component;
 public class SQSSubscriberProvider {
   private static final Logger log = LoggerFactory.getLogger(SQSSubscriberProvider.class);
 
-  private final AWSCredentialsProvider awsCredentialsProvider;
+  private final AwsCredentialsProvider awsCredentialsProvider;
   private final AmazonPubsubProperties properties;
   private final PubsubSubscribers pubsubSubscribers;
   private final AmazonPubsubMessageHandlerFactory pubsubMessageHandlerFactory;
@@ -59,7 +59,7 @@ public class SQSSubscriberProvider {
 
   @Autowired
   public SQSSubscriberProvider(
-      AWSCredentialsProvider awsCredentialsProvider,
+      AwsCredentialsProvider awsCredentialsProvider,
       AmazonPubsubProperties properties,
       PubsubSubscribers pubsubSubscribers,
       AmazonPubsubMessageHandlerFactory pubsubMessageHandlerFactory,
@@ -94,22 +94,27 @@ public class SQSSubscriberProvider {
               log.info("Bootstrapping SQS for SNS topic: {}", subscription.getTopicARN());
               ARN queueArn = new ARN(subscription.getQueueARN());
               ARN topicArn = new ARN(subscription.getTopicARN());
+              Region queueRegion = Region.of(queueArn.getRegion());
+              Region topicRegion = Region.of(topicArn.getRegion());
+
+              SqsClient sqsClient =
+                  SqsClient.builder()
+                      .credentialsProvider(awsCredentialsProvider)
+                      .region(queueRegion)
+                      .build();
+              SnsClient snsClient =
+                  SnsClient.builder()
+                      .credentialsProvider(awsCredentialsProvider)
+                      .region(topicRegion)
+                      .build();
 
               SQSSubscriber worker =
                   new SQSSubscriber(
                       subscription,
                       pubsubMessageHandlerFactory.create(subscription),
                       messageAcknowledger,
-                      AmazonSNSClientBuilder.standard()
-                          .withCredentials(awsCredentialsProvider)
-                          .withClientConfiguration(new ClientConfiguration())
-                          .withRegion(topicArn.getRegion())
-                          .build(),
-                      AmazonSQSClientBuilder.standard()
-                          .withCredentials(awsCredentialsProvider)
-                          .withClientConfiguration(new ClientConfiguration())
-                          .withRegion(queueArn.getRegion())
-                          .build(),
+                      snsClient,
+                      sqsClient,
                       PubSubUtils.getEnabledSupplier(dynamicConfig, subscription, discoveryStatus),
                       registry);
               try {

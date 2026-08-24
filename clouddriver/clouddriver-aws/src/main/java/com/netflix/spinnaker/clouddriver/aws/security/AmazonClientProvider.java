@@ -74,6 +74,7 @@ import software.amazon.awssdk.services.applicationautoscaling.ApplicationAutoSca
 import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
 import software.amazon.awssdk.services.ecr.EcrClient;
 import software.amazon.awssdk.services.ecs.EcsClient;
+import software.amazon.awssdk.services.elasticloadbalancingv2.ElasticLoadBalancingV2Client;
 import software.amazon.awssdk.services.iam.IamClient;
 import software.amazon.awssdk.services.lambda.LambdaClient;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
@@ -846,6 +847,21 @@ public class AmazonClientProvider {
     return awsSdkV2ClientSupplier.getClient(
         ApplicationAutoScalingClient::builder,
         ApplicationAutoScalingClient.class,
+        amazonCredentials.getV2CredentialsProvider(),
+        region,
+        amazonCredentials.getName());
+  }
+
+  /**
+   * Returns an AWS SDK v2 {@link ElasticLoadBalancingV2Client} for the given account and region.
+   *
+   * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
+   */
+  public ElasticLoadBalancingV2Client getElasticLoadBalancingV2Client(
+      NetflixAmazonCredentials amazonCredentials, String region) {
+    return awsSdkV2ClientSupplier.getClient(
+        ElasticLoadBalancingV2Client::builder,
+        ElasticLoadBalancingV2Client.class,
         amazonCredentials.getV2CredentialsProvider(),
         region,
         amazonCredentials.getName());

@@ -43,6 +43,13 @@ public class HelmfileBakeManifestRequest extends BakeManifestRequest {
   List<Artifact> inputArtifacts;
 
   /**
+   * State values files, passed to helmfile's `--state-values-file` flag. Unlike the values files in
+   * inputArtifacts (which override values passed to `helm template` for a release), these override
+   * the `.Values` used to template the helmfile.yaml itself.
+   */
+  List<Artifact> stateValuesArtifacts;
+
+  /**
    * Include custom resource definition manifests in the templated output. Helmfile uses Helm v3
    * only which provides the option to include CRDs as part of the rendered output.
    */

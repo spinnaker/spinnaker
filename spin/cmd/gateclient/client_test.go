@@ -55,6 +55,66 @@ func TestNewGateClientSendsXSpinnakerTokenHeader(t *testing.T) {
 	}
 }
 
+// TestNewGateClientSendsBearerTokenOnApiRequests verifies that API requests
+// (not just the initial login call) carry the cached OAuth2 access token as
+// an Authorization header. The generated gate client never consumes
+// gate.ContextAccessToken, so without transport-level injection API calls go
+// out with no Authorization header at all and depend on a session cookie
+// that a gate running Spring Security oauth2Login() never issues to
+// non-browser clients. This completes the assertion the test below sets up
+// but never makes: it captures the login request's Authorization header,
+// while this test asserts the header on an actual API request (/version).
+func TestNewGateClientSendsBearerTokenOnApiRequests(t *testing.T) {
+	token := "cached-access-token"
+	versionHeaders := make(chan string, 1)
+
+	mux := http.NewServeMux()
+	mux.Handle("/version", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		versionHeaders <- r.Header.Get("Authorization")
+		payload := map[string]string{"version": "Unknown"}
+		b, _ := json.Marshal(payload)
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprintln(w, string(b))
+	}))
+	mux.Handle("/login/oauth2/code/test-provider", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	testServer := httptest.NewServer(mux)
+	defer testServer.Close()
+
+	configPath := filepath.Join(t.TempDir(), "config")
+	configContents := "gate:\n" +
+		"  endpoint: " + testServer.URL + "\n" +
+		"auth:\n" +
+		"  enabled: true\n" +
+		"  oauth2:\n" +
+		"    authUrl: " + testServer.URL + "/oauth/authorize\n" +
+		"    tokenUrl: " + testServer.URL + "/oauth/token\n" +
+		"    scopes:\n" +
+		"      - openid\n" +
+		"    provider: test-provider\n" +
+		"    cachedToken:\n" +
+		"      access_token: " + token + "\n" +
+		"      token_type: Bearer\n" +
+		"      expiry: " + time.Now().Add(time.Hour).UTC().Format(time.RFC3339) + "\n"
+
+	if err := os.WriteFile(configPath, []byte(configContents), 0o600); err != nil {
+		t.Fatalf("failed writing test config: %v", err)
+	}
+
+	ui := output.NewUI(true, false, output.MarshalToJson, io.Discard, io.Discard)
+	if _, err := NewGateClient(ui, "", "", configPath, false, false, 0); err != nil {
+		t.Fatalf("NewGateClient returned error: %v", err)
+	}
+
+	got := <-versionHeaders
+	want := "Bearer " + token
+	if got != want {
+		t.Fatalf("Authorization header on /version: got %q, want %q", got, want)
+	}
+}
+
 func TestNewGateClientSetsContextAccessTokenFromOAuth2CachedToken(t *testing.T) {
 	token := "cached-access-token"
 	loginHeaders := make(chan string, 1)

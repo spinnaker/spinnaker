@@ -2,11 +2,17 @@ import { get } from 'lodash';
 import React from 'react';
 
 import type { IExecutionDetailsSectionProps, IManifest } from '@spinnaker/core';
-import { CollapsibleElement, ExecutionDetailsSection, SETTINGS, StageFailureMessage } from '@spinnaker/core';
+import {
+  CollapsibleElement,
+  ExecutionDetailsSection,
+  ManifestYaml,
+  SETTINGS,
+  StageFailureMessage,
+} from '@spinnaker/core';
 
 import { ManifestStatus } from './ManifestStatus';
-import type { IStageManifest } from '../../../../manifest/manifest.service';
-import { KubernetesManifestService } from '../../../../manifest/manifest.service';
+import type { IStageManifest, IStoredManifestReference } from '../../../../manifest/manifest.service';
+import { isStoredManifestReference, KubernetesManifestService } from '../../../../manifest/manifest.service';
 
 import './DeployStatus.less';
 
@@ -38,7 +44,9 @@ export class DeployStatus extends React.Component<IExecutionDetailsSectionProps,
   }
 
   public componentDidUpdate(_prevProps: IExecutionDetailsSectionProps, prevState: IDeployStatusState) {
-    const manifests: IStageManifest[] = get(this.props.stage, ['context', 'outputs.manifests'], []).filter((m) => !!m);
+    const manifests: IStageManifest[] = get(this.props.stage, ['context', 'outputs.manifests'], [])
+      .filter((m) => !!m)
+      .filter((m) => !isStoredManifestReference(m));
     const manifestIds = manifests.map((m) => KubernetesManifestService.manifestIdentifier(m)).sort();
     if (prevState.manifestIds.join('') !== manifestIds.join('')) {
       this.unsubscribeAll();
@@ -69,6 +77,16 @@ export class DeployStatus extends React.Component<IExecutionDetailsSectionProps,
 
   private unsubscribeAll() {
     this.state.subscriptions.forEach(({ unsubscribe }) => unsubscribe());
+  }
+
+  // Manifests the artifact-store entity storage feature replaced with a reference instead
+  // of expanding them before deck saw them. We can't determine their kind/name/namespace
+  // (and so can't subscribe to live status for them) without fetching the content, so we
+  // let the user load them on demand instead, same as a baked manifest's YAML.
+  private get storedManifestRefs(): IStoredManifestReference[] {
+    return get(this.props.stage, ['context', 'outputs.manifests'], [])
+      .filter((m: unknown) => !!m)
+      .filter(isStoredManifestReference);
   }
 
   private stageManifestToIManifest(manifest: IStageManifest, account: string): IManifest {
@@ -109,6 +127,23 @@ export class DeployStatus extends React.Component<IExecutionDetailsSectionProps,
                       manifest.manifest.metadata.uid || KubernetesManifestService.manifestIdentifier(manifest.manifest);
                     return <ManifestStatus key={uid} manifest={manifest} account={stage.context.account} />;
                   })}
+                </div>
+              </div>
+            </div>
+          )}
+          {!!this.storedManifestRefs.length && (
+            <div className="row">
+              <div className="col-md-12">
+                <div className="well alert alert-info">
+                  {this.storedManifestRefs.map((ref, i) => (
+                    <div key={i}>
+                      <ManifestYaml
+                        linkName="Load Manifest Details"
+                        modalTitle="Manifest"
+                        manifestUri={ref.reference.replace(/^ref?:\/\//, '')}
+                      />
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
