@@ -35,8 +35,6 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
   private final boolean discoveryEnabled;
   private final String front50;
   private final boolean front50Enabled;
-  private final String bastionHost;
-  private final boolean bastionEnabled;
   private final boolean shieldEnabled;
   private final boolean lambdaEnabled;
 
@@ -59,8 +57,6 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
       @JsonProperty("discoveryEnabled") Boolean discoveryEnabled,
       @JsonProperty("front50") String front50,
       @JsonProperty("front50Enabled") Boolean front50Enabled,
-      @JsonProperty("bastionHost") String bastionHost,
-      @JsonProperty("bastionEnabled") Boolean bastionEnabled,
       @JsonProperty("shieldEnabled") Boolean shieldEnabled,
       @JsonProperty("lambdaEnabled") Boolean lambdaEnabled) {
     this(
@@ -83,8 +79,6 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
         discoveryEnabled,
         front50,
         front50Enabled,
-        bastionHost,
-        bastionEnabled,
         shieldEnabled,
         lambdaEnabled);
   }
@@ -129,8 +123,6 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
         copy.isDiscoveryEnabled(),
         copy.getFront50(),
         copy.isFront50Enabled(),
-        copy.getBastionHost(),
-        copy.isBastionEnabled(),
         copy.isShieldEnabled(),
         copy.isLambdaEnabled());
   }
@@ -155,8 +147,6 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
       Boolean discoveryEnabled,
       String front50,
       Boolean front50Enabled,
-      String bastionHost,
-      Boolean bastionEnabled,
       Boolean shieldEnabled,
       Boolean lambdaEnabled) {
     super(
@@ -179,8 +169,6 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
     this.discoveryEnabled = flagValue(discovery, discoveryEnabled);
     this.front50 = front50;
     this.front50Enabled = flagValue(front50, front50Enabled);
-    this.bastionHost = bastionHost;
-    this.bastionEnabled = flagValue(bastionHost, bastionEnabled);
     this.shieldEnabled = shieldEnabled != null && shieldEnabled;
     this.lambdaEnabled = lambdaEnabled != null && lambdaEnabled;
   }

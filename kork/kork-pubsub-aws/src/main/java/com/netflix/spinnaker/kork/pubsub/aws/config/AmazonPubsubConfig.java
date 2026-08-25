@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.kork.pubsub.aws.config;
 
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.kork.aws.bastion.BastionConfig;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
@@ -35,13 +34,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 
 @Configuration
 @ConditionalOnProperty({"pubsub.enabled", "pubsub.amazon.enabled"})
 @EnableConfigurationProperties(AmazonPubsubProperties.class)
-@Import(BastionConfig.class)
 public class AmazonPubsubConfig {
   public static final String SYSTEM = "amazon";
 

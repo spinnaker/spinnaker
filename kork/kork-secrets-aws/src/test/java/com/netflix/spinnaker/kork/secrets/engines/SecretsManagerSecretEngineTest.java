@@ -22,9 +22,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.amazonaws.services.secretsmanager.model.DescribeSecretResult;
-import com.amazonaws.services.secretsmanager.model.GetSecretValueResult;
-import com.amazonaws.services.secretsmanager.model.Tag;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
 import com.netflix.spinnaker.kork.secrets.InvalidSecretFormatException;
@@ -38,13 +35,16 @@ import com.netflix.spinnaker.kork.secrets.user.UserSecretMetadataField;
 import com.netflix.spinnaker.kork.secrets.user.UserSecretReference;
 import com.netflix.spinnaker.kork.secrets.user.UserSecretSerde;
 import com.netflix.spinnaker.kork.secrets.user.UserSecretSerdeFactory;
-import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Spy;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.services.secretsmanager.model.DescribeSecretResponse;
+import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
+import software.amazon.awssdk.services.secretsmanager.model.Tag;
 
 public class SecretsManagerSecretEngineTest {
   @Spy private SecretsManagerSecretEngine secretsManagerSecretEngine;
@@ -53,14 +53,16 @@ public class SecretsManagerSecretEngineTest {
   private UserSecretSerdeFactory userSecretSerdeFactory;
   private UserSecretSerde userSecretSerde;
 
-  private GetSecretValueResult kvSecretValue =
-      new GetSecretValueResult().withSecretString("{\"password\":\"hunter2\"}");
-  private GetSecretValueResult plaintextSecretValue =
-      new GetSecretValueResult().withSecretString("letmein");
-  private GetSecretValueResult binarySecretValue =
-      new GetSecretValueResult().withSecretBinary(ByteBuffer.wrap("i'm binary".getBytes()));
-  private GetSecretValueResult secretStringFileValue =
-      new GetSecretValueResult().withSecretString("BEGIN RSA PRIVATE KEY");
+  private GetSecretValueResponse kvSecretValue =
+      GetSecretValueResponse.builder().secretString("{\"password\":\"hunter2\"}").build();
+  private GetSecretValueResponse plaintextSecretValue =
+      GetSecretValueResponse.builder().secretString("letmein").build();
+  private GetSecretValueResponse binarySecretValue =
+      GetSecretValueResponse.builder()
+          .secretBinary(SdkBytes.fromUtf8String("i'm binary"))
+          .build();
+  private GetSecretValueResponse secretStringFileValue =
+      GetSecretValueResponse.builder().secretString("BEGIN RSA PRIVATE KEY").build();
 
   @BeforeEach
   public void setup() {
@@ -126,11 +128,18 @@ public class SecretsManagerSecretEngineTest {
 
   @Test
   public void decryptJsonUserSecret() {
-    DescribeSecretResult description =
-        new DescribeSecretResult()
-            .withTags(
-                new Tag().withKey(UserSecretMetadataField.TYPE.getTagKey()).withValue("opaque"),
-                new Tag().withKey(UserSecretMetadataField.ROLES.getTagKey()).withValue("a, b, c"));
+    DescribeSecretResponse description =
+        DescribeSecretResponse.builder()
+            .tags(
+                Tag.builder()
+                    .key(UserSecretMetadataField.TYPE.getTagKey())
+                    .value("opaque")
+                    .build(),
+                Tag.builder()
+                    .key(UserSecretMetadataField.ROLES.getTagKey())
+                    .value("a, b, c")
+                    .build())
+            .build();
     doReturn(description).when(secretsManagerSecretEngine).getSecretDescription(any());
 
     UserSecretData data = new OpaqueUserSecretData(Map.of("password", "hunter2"));
@@ -141,8 +150,8 @@ public class SecretsManagerSecretEngineTest {
             .roles(List.of("a", "b", "c"))
             .build();
     byte[] secretBytes = userSecretSerde.serialize(data, metadata);
-    GetSecretValueResult stubResult =
-        new GetSecretValueResult().withSecretBinary(ByteBuffer.wrap(secretBytes));
+    GetSecretValueResponse stubResult =
+        GetSecretValueResponse.builder().secretBinary(SdkBytes.fromByteArray(secretBytes)).build();
     doReturn(stubResult).when(secretsManagerSecretEngine).getSecretValue(any());
 
     UserSecretReference reference =
