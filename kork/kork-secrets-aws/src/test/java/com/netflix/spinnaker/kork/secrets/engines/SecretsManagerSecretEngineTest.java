@@ -58,9 +58,7 @@ public class SecretsManagerSecretEngineTest {
   private GetSecretValueResponse plaintextSecretValue =
       GetSecretValueResponse.builder().secretString("letmein").build();
   private GetSecretValueResponse binarySecretValue =
-      GetSecretValueResponse.builder()
-          .secretBinary(SdkBytes.fromUtf8String("i'm binary"))
-          .build();
+      GetSecretValueResponse.builder().secretBinary(SdkBytes.fromUtf8String("i'm binary")).build();
   private GetSecretValueResponse secretStringFileValue =
       GetSecretValueResponse.builder().secretString("BEGIN RSA PRIVATE KEY").build();
 
@@ -131,10 +129,7 @@ public class SecretsManagerSecretEngineTest {
     DescribeSecretResponse description =
         DescribeSecretResponse.builder()
             .tags(
-                Tag.builder()
-                    .key(UserSecretMetadataField.TYPE.getTagKey())
-                    .value("opaque")
-                    .build(),
+                Tag.builder().key(UserSecretMetadataField.TYPE.getTagKey()).value("opaque").build(),
                 Tag.builder()
                     .key(UserSecretMetadataField.ROLES.getTagKey())
                     .value("a, b, c")
