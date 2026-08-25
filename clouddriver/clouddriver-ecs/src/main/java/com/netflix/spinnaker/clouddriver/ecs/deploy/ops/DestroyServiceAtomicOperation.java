@@ -16,15 +16,15 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.deploy.ops;
 
-import com.amazonaws.services.ecs.AmazonECS;
-import com.amazonaws.services.ecs.model.DeleteServiceRequest;
-import com.amazonaws.services.ecs.model.DeleteServiceResult;
-import com.amazonaws.services.ecs.model.DeregisterTaskDefinitionRequest;
-import com.amazonaws.services.ecs.model.UpdateServiceRequest;
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.ModifyServiceDescription;
 import com.netflix.spinnaker.clouddriver.ecs.services.EcsCloudMetricService;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import software.amazon.awssdk.services.ecs.EcsClient;
+import software.amazon.awssdk.services.ecs.model.DeleteServiceRequest;
+import software.amazon.awssdk.services.ecs.model.DeleteServiceResponse;
+import software.amazon.awssdk.services.ecs.model.DeregisterTaskDefinitionRequest;
+import software.amazon.awssdk.services.ecs.model.UpdateServiceRequest;
 
 public class DestroyServiceAtomicOperation
     extends AbstractEcsAtomicOperation<ModifyServiceDescription, Void> {
@@ -37,7 +37,7 @@ public class DestroyServiceAtomicOperation
   @Override
   public Void operate(List priorOutputs) {
     updateTaskStatus("Initializing Destroy Amazon ECS Server Group Operation...");
-    AmazonECS ecs = getAmazonEcsClient();
+    EcsClient ecs = getAmazonEcsClient();
 
     String ecsClusterName =
         containerInformationService.getClusterName(
@@ -51,28 +51,33 @@ public class DestroyServiceAtomicOperation
         ecsClusterName);
     updateTaskStatus("Done removing MetricAlarms from " + description.getServerGroupName() + ".");
 
-    UpdateServiceRequest updateServiceRequest = new UpdateServiceRequest();
-    updateServiceRequest.setService(description.getServerGroupName());
-    updateServiceRequest.setDesiredCount(0);
-    updateServiceRequest.setCluster(ecsClusterName);
+    UpdateServiceRequest updateServiceRequest =
+        UpdateServiceRequest.builder()
+            .service(description.getServerGroupName())
+            .desiredCount(0)
+            .cluster(ecsClusterName)
+            .build();
 
     updateTaskStatus("Scaling " + description.getServerGroupName() + " server group down to 0.");
     ecs.updateService(updateServiceRequest);
 
-    DeleteServiceRequest deleteServiceRequest = new DeleteServiceRequest();
-    deleteServiceRequest.setService(description.getServerGroupName());
-    deleteServiceRequest.setCluster(ecsClusterName);
+    DeleteServiceRequest deleteServiceRequest =
+        DeleteServiceRequest.builder()
+            .service(description.getServerGroupName())
+            .cluster(ecsClusterName)
+            .build();
 
     updateTaskStatus("Deleting " + description.getServerGroupName() + " server group.");
-    DeleteServiceResult deleteServiceResult = ecs.deleteService(deleteServiceRequest);
+    DeleteServiceResponse deleteServiceResult = ecs.deleteService(deleteServiceRequest);
 
     updateTaskStatus(
         "Deleting "
-            + deleteServiceResult.getService().getTaskDefinition()
+            + deleteServiceResult.service().taskDefinition()
             + " task definition belonging to the server group.");
     ecs.deregisterTaskDefinition(
-        new DeregisterTaskDefinitionRequest()
-            .withTaskDefinition(deleteServiceResult.getService().getTaskDefinition()));
+        DeregisterTaskDefinitionRequest.builder()
+            .taskDefinition(deleteServiceResult.service().taskDefinition())
+            .build());
 
     return null;
   }

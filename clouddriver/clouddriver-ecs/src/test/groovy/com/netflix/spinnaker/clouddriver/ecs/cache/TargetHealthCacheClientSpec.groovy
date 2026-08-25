@@ -15,11 +15,13 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.cache
 
-import com.amazonaws.services.elasticloadbalancingv2.model.TargetDescription
-import com.amazonaws.services.elasticloadbalancingv2.model.TargetHealth
-import com.amazonaws.services.elasticloadbalancingv2.model.TargetHealthDescription
-import com.amazonaws.services.elasticloadbalancingv2.model.TargetHealthStateEnum
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetDescription
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetHealth
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetHealthDescription
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetHealthStateEnum
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module
+import com.netflix.spinnaker.clouddriver.ecs.provider.agent.TargetHealthCachingAgent
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TARGET_HEALTHS;
@@ -32,7 +34,8 @@ import spock.lang.Subject
 
 class TargetHealthCacheClientSpec extends Specification {
   def cacheView = Mock(Cache)
-  def objectMapper = new ObjectMapper()
+  // mirrors clouddriver's ObjectMapper: AwsSdkV2Module is registered as a Spring Module bean
+  def objectMapper = new ObjectMapper().registerModule(new AwsSdkV2Module())
   @Subject
   private TargetHealthCacheClient client = new TargetHealthCacheClient(cacheView, objectMapper)
 
@@ -43,17 +46,20 @@ class TargetHealthCacheClientSpec extends Specification {
     def key =
       Keys.getTargetHealthKey('test-account', 'us-west-1', targetGroupArn)
 
-    def targetHealthDescription = new TargetHealthDescription().withTarget(
-      new TargetDescription().withId(targetId).withPort(80))
-      .withTargetHealth(new TargetHealth().withState(TargetHealthStateEnum.Healthy))
+    def targetHealthDescription = TargetHealthDescription.builder()
+      .target(TargetDescription.builder().id(targetId).port(80).build())
+      .targetHealth(TargetHealth.builder().state(TargetHealthStateEnum.HEALTHY).build())
+      .build()
 
     def originalTargetHealth = new EcsTargetHealth(
       targetGroupArn: targetGroupArn,
       targetHealthDescriptions: Collections.singletonList(targetHealthDescription)
     )
 
-    def attributes = objectMapper.convertValue(originalTargetHealth, Map)
-    cacheView.get(TARGET_HEALTHS.toString(), key) >> new DefaultCacheData(key, attributes, Collections.emptyMap())
+    // exercise the caching agent's write path, including the JSON round trip the cache performs
+    def attributes = TargetHealthCachingAgent.convertToTargetHealthAttributes(originalTargetHealth)
+    def cachedAttributes = objectMapper.readValue(objectMapper.writeValueAsString(attributes), Map)
+    cacheView.get(TARGET_HEALTHS.toString(), key) >> new DefaultCacheData(key, cachedAttributes, Collections.emptyMap())
 
     when:
     def retrievedTargetHealth = client.get(key)

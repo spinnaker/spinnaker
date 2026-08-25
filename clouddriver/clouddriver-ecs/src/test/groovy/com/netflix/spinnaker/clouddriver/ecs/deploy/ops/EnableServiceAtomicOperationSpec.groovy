@@ -16,8 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.deploy.ops
 
-import com.amazonaws.services.applicationautoscaling.AWSApplicationAutoScaling
-import com.amazonaws.services.applicationautoscaling.model.DescribeScalableTargetsResult
+import software.amazon.awssdk.services.applicationautoscaling.model.DescribeScalableTargetsResponse
 import com.netflix.spinnaker.clouddriver.ecs.TestCredential
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.ModifyServiceDescription
 
@@ -33,8 +32,8 @@ class EnableServiceAtomicOperationSpec extends CommonAtomicOperation {
     operation.credentialsRepository = credentialsRepository
     operation.containerInformationService = containerInformationService
 
-    amazonClientProvider.getAmazonEcs(_, _, _) >> ecs
-    amazonClientProvider.getAmazonApplicationAutoScaling(_, _, _) >> autoscaling
+    amazonClientProvider.getAmazonEcsV2(_, _) >> ecs
+    amazonClientProvider.getAmazonApplicationAutoScalingV2(_, _) >> autoscaling
 
     containerInformationService.getClusterName(_, _, _) >> 'cluster-name'
     credentialsRepository.getOne(_) >> TestCredential.named("test")
@@ -43,7 +42,9 @@ class EnableServiceAtomicOperationSpec extends CommonAtomicOperation {
     operation.operate([])
 
     then:
-    1 * autoscaling.describeScalableTargets(_) >> new DescribeScalableTargetsResult().withScalableTargets([])
+    1 * autoscaling.describeScalableTargets(_) >> DescribeScalableTargetsResponse.builder()
+      .scalableTargets([])
+      .build()
     1 * ecs.updateService(_)
     1 * autoscaling.registerScalableTarget(_)
   }

@@ -28,11 +28,11 @@ dependencies {
   implementation 'org.springframework.boot:spring-boot-autoconfigure'
   implementation 'jakarta.validation:jakarta.validation-api'
 
-  api 'com.netflix.spectator:spectator-api'
-  api 'org.slf4j:slf4j-api'
   api "software.amazon.awssdk:sns"
   api "software.amazon.awssdk:sqs"
   api "software.amazon.awssdk:iam-policy-builder"
+  api 'com.netflix.spectator:spectator-api'
+  api 'org.slf4j:slf4j-api'
 
   testImplementation "org.spockframework:spock-core"
   testRuntimeOnly "cglib:cglib-nodep"

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.provider.view
 
-import com.amazonaws.services.applicationautoscaling.model.ScalableTarget
+import software.amazon.awssdk.services.applicationautoscaling.model.ScalableTarget
 import com.amazonaws.services.ec2.model.GroupIdentifier
 import com.amazonaws.services.ec2.model.Instance
 import com.amazonaws.services.ec2.model.Placement
@@ -158,11 +158,11 @@ class EcsServerClusterProviderSpec extends Specification {
       ]
     )
 
-    def scalableTarget = new ScalableTarget(
-      minCapacity: 1,
-      maxCapacity: 2,
-      resourceId: "service:/mycluster/${serviceName}"
-    )
+    def scalableTarget = ScalableTarget.builder()
+      .minCapacity(1)
+      .maxCapacity(2)
+      .resourceId("service:/mycluster/${serviceName}")
+      .build()
 
     def ecsServerGroupEast = makeEcsServerGroup(serviceName, 'us-east-1', startedAt.toEpochMilli(), taskId, healthStatus, ip)
     def ecsServerGroupWest = makeEcsServerGroup(serviceName, 'us-west-1', startedAt.toEpochMilli(), taskId, healthStatus, ip)

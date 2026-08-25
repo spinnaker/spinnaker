@@ -24,8 +24,6 @@ import com.amazonaws.services.applicationautoscaling.AWSApplicationAutoScaling;
 import com.amazonaws.services.applicationautoscaling.AWSApplicationAutoScalingClientBuilder;
 import com.amazonaws.services.autoscaling.AmazonAutoScaling;
 import com.amazonaws.services.autoscaling.AmazonAutoScalingClientBuilder;
-import com.amazonaws.services.cloudformation.AmazonCloudFormation;
-import com.amazonaws.services.cloudformation.AmazonCloudFormationClientBuilder;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatch;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClientBuilder;
 import com.amazonaws.services.ec2.AmazonEC2;
@@ -48,14 +46,6 @@ import com.amazonaws.services.servicediscovery.AWSServiceDiscovery;
 import com.amazonaws.services.servicediscovery.AWSServiceDiscoveryClientBuilder;
 import com.amazonaws.services.shield.AWSShield;
 import com.amazonaws.services.shield.AWSShieldClientBuilder;
-import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
-import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflowClientBuilder;
-import com.amazonaws.services.sns.AmazonSNS;
-import com.amazonaws.services.sns.AmazonSNSClientBuilder;
-import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
-import com.amazonaws.services.support.AWSSupport;
-import com.amazonaws.services.support.AWSSupportClientBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer;
 import com.netflix.spectator.api.NoopRegistry;
@@ -71,13 +61,19 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.services.applicationautoscaling.ApplicationAutoScalingClient;
+import software.amazon.awssdk.services.cloudformation.CloudFormationClient;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
 import software.amazon.awssdk.services.ecr.EcrClient;
 import software.amazon.awssdk.services.ecs.EcsClient;
+import software.amazon.awssdk.services.elasticloadbalancingv2.ElasticLoadBalancingV2Client;
 import software.amazon.awssdk.services.iam.IamClient;
 import software.amazon.awssdk.services.lambda.LambdaClient;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.servicediscovery.ServiceDiscoveryClient;
+import software.amazon.awssdk.services.sns.SnsClient;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.support.SupportClient;
+import software.amazon.awssdk.services.swf.SwfClient;
 
 /** Provider of Amazon SDK Clients that can read through Edda. */
 public class AmazonClientProvider {
@@ -444,16 +440,6 @@ public class AmazonClientProvider {
         AmazonS3.class, AmazonS3ClientBuilder.class, amazonCredentials, region, true);
   }
 
-  public AmazonCloudFormation getAmazonCloudFormation(
-      NetflixAmazonCredentials amazonCredentials, String region) {
-    return proxyHandlerBuilder.getProxyHandler(
-        AmazonCloudFormation.class,
-        AmazonCloudFormationClientBuilder.class,
-        amazonCredentials,
-        region,
-        true);
-  }
-
   public AmazonAutoScaling getAutoScaling(
       NetflixAmazonCredentials amazonCredentials, String region) {
     return getAutoScaling(amazonCredentials, region, false);
@@ -551,31 +537,6 @@ public class AmazonClientProvider {
         region);
   }
 
-  public AmazonSimpleWorkflow getAmazonSimpleWorkflow(
-      NetflixAmazonCredentials amazonCredentials, String region) {
-    return getAmazonSimpleWorkflow(amazonCredentials, region, false);
-  }
-
-  public AmazonSimpleWorkflow getAmazonSimpleWorkflow(
-      NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
-    return proxyHandlerBuilder.getProxyHandler(
-        AmazonSimpleWorkflow.class,
-        AmazonSimpleWorkflowClientBuilder.class,
-        amazonCredentials,
-        region,
-        skipEdda);
-  }
-
-  public AmazonSimpleWorkflow getAmazonSimpleWorkflow(
-      String accountName, AWSCredentialsProvider awsCredentialsProvider, String region) {
-    return awsSdkClientSupplier.getClient(
-        AmazonSimpleWorkflowClientBuilder.class,
-        AmazonSimpleWorkflow.class,
-        accountName,
-        awsCredentialsProvider,
-        region);
-  }
-
   public AmazonCloudWatch getAmazonCloudWatch(
       NetflixAmazonCredentials amazonCredentials, String region) {
     return getAmazonCloudWatch(amazonCredentials, region, false);
@@ -608,27 +569,6 @@ public class AmazonClientProvider {
   public AmazonCloudWatch getCloudWatch(
       NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
     return getAmazonCloudWatch(amazonCredentials, region, skipEdda);
-  }
-
-  public AmazonSNS getAmazonSNS(NetflixAmazonCredentials amazonCredentials, String region) {
-    return getAmazonSNS(amazonCredentials, region, false);
-  }
-
-  public AmazonSNS getAmazonSNS(
-      NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
-    return proxyHandlerBuilder.getProxyHandler(
-        AmazonSNS.class, AmazonSNSClientBuilder.class, amazonCredentials, region, skipEdda);
-  }
-
-  public AmazonSNS getAmazonSNS(
-      String accountName, AWSCredentialsProvider awsCredentialsProvider, String region) {
-    return awsSdkClientSupplier.getClient(
-        AmazonSNSClientBuilder.class, AmazonSNS.class, accountName, awsCredentialsProvider, region);
-  }
-
-  public AmazonSQS getAmazonSQS(NetflixAmazonCredentials amazonCredentials, String region) {
-    return proxyHandlerBuilder.getProxyHandler(
-        AmazonSQS.class, AmazonSQSClientBuilder.class, amazonCredentials, region, false);
   }
 
   public AmazonIdentityManagement getAmazonIdentityManagement(
@@ -701,11 +641,6 @@ public class AmazonClientProvider {
         amazonCredentials,
         region,
         skipEdda);
-  }
-
-  public AWSSupport getAmazonSupport(NetflixAmazonCredentials amazonCredentials, String region) {
-    return proxyHandlerBuilder.getProxyHandler(
-        AWSSupport.class, AWSSupportClientBuilder.class, amazonCredentials, region, true);
   }
 
   // ---------------------------------------------------------------------------
@@ -846,6 +781,94 @@ public class AmazonClientProvider {
     return awsSdkV2ClientSupplier.getClient(
         ApplicationAutoScalingClient::builder,
         ApplicationAutoScalingClient.class,
+        amazonCredentials.getV2CredentialsProvider(),
+        region,
+        amazonCredentials.getName());
+  }
+
+  /**
+   * Returns an AWS SDK v2 {@link SupportClient} for the given account and region.
+   *
+   * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
+   */
+  public SupportClient getAmazonSupportV2(
+      NetflixAmazonCredentials amazonCredentials, String region) {
+    return awsSdkV2ClientSupplier.getClient(
+        SupportClient::builder,
+        SupportClient.class,
+        amazonCredentials.getV2CredentialsProvider(),
+        region,
+        amazonCredentials.getName());
+  }
+
+  /**
+   * Returns an AWS SDK v2 {@link SwfClient} for the given account and region.
+   *
+   * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
+   */
+  public SwfClient getAmazonSimpleWorkflowV2(
+      NetflixAmazonCredentials amazonCredentials, String region) {
+    return awsSdkV2ClientSupplier.getClient(
+        SwfClient::builder,
+        SwfClient.class,
+        amazonCredentials.getV2CredentialsProvider(),
+        region,
+        amazonCredentials.getName());
+  }
+
+  /**
+   * Returns an AWS SDK v2 {@link SnsClient} for the given account and region.
+   *
+   * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
+   */
+  public SnsClient getAmazonSnsV2(NetflixAmazonCredentials amazonCredentials, String region) {
+    return awsSdkV2ClientSupplier.getClient(
+        SnsClient::builder,
+        SnsClient.class,
+        amazonCredentials.getV2CredentialsProvider(),
+        region,
+        amazonCredentials.getName());
+  }
+
+  /**
+   * Returns an AWS SDK v2 {@link SqsClient} for the given account and region.
+   *
+   * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
+   */
+  public SqsClient getAmazonSqsV2(NetflixAmazonCredentials amazonCredentials, String region) {
+    return awsSdkV2ClientSupplier.getClient(
+        SqsClient::builder,
+        SqsClient.class,
+        amazonCredentials.getV2CredentialsProvider(),
+        region,
+        amazonCredentials.getName());
+  }
+
+  /**
+   * Returns an AWS SDK v2 {@link CloudFormationClient} for the given account and region.
+   *
+   * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
+   */
+  public CloudFormationClient getAmazonCloudFormationV2(
+      NetflixAmazonCredentials amazonCredentials, String region) {
+    return awsSdkV2ClientSupplier.getClient(
+        CloudFormationClient::builder,
+        CloudFormationClient.class,
+        amazonCredentials.getV2CredentialsProvider(),
+        region,
+        amazonCredentials.getName());
+  }
+
+  /**
+   * Returns an AWS SDK v2 {@link ElasticLoadBalancingV2Client} for the given account and region.
+   *
+   * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
+   */
+  public ElasticLoadBalancingV2Client getElasticLoadBalancingV2Client(
+      NetflixAmazonCredentials amazonCredentials, String region) {
+    return awsSdkV2ClientSupplier.getClient(
+        ElasticLoadBalancingV2Client::builder,
+        ElasticLoadBalancingV2Client.class,
         amazonCredentials.getV2CredentialsProvider(),
         region,
         amazonCredentials.getName());

@@ -53,6 +53,8 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.client.ServiceClientProvider
 import groovy.util.logging.Slf4j
 
+import java.util.Locale
+
 import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.HEALTH_CHECKS
 import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.HTTP_HEALTH_CHECKS
 
@@ -75,6 +77,17 @@ class GCEUtil {
   public static final String LOAD_BALANCING_POLICY = "load-balancing-policy"
   public static final String SELECT_ZONES = 'select-zones'
   public static final String AUTOSCALING_POLICY = 'autoscaling-policy'
+
+  static String canonicalizeTargetShape(String targetShape) {
+    if (targetShape == null) {
+      return null
+    }
+    String trimmed = targetShape.trim()
+    if (!trimmed) {
+      return null
+    }
+    return trimmed.toUpperCase(Locale.ROOT)
+  }
 
   static String queryMachineType(String instanceType, String location, GoogleNamedAccountCredentials credentials, Task task, String phase) {
     task.updateStatus phase, "Looking up machine type $instanceType..."
@@ -636,7 +649,10 @@ class GCEUtil {
 
     def networkInterface = instanceTemplateProperties.networkInterfaces[0]
     def serviceAccountEmail = instanceTemplateProperties.serviceAccounts?.getAt(0)?.email
-    def shieldedVmConfig = instanceTemplateProperties.shieldedVmConfig
+    // Prefer stable-v1 shieldedInstanceConfig; fall back to legacy shieldedVmConfig for
+    // templates created before the Compute v1 cutover. Legacy values arrive as Map/GenericJson
+    // from wire JSON, so normalize rather than casting directly to ShieldedInstanceConfig.
+    def shieldedConfig = resolveShieldedInstanceConfig(instanceTemplateProperties)
 
     return new BaseGoogleInstanceDescription(
       image: image,
@@ -651,10 +667,46 @@ class GCEUtil {
       subnet: Utils.decorateXpnResourceIdIfNeeded(project, networkInterface.subnet),
       serviceAccountEmail: serviceAccountEmail,
       authScopes: retrieveScopesFromServiceAccount(serviceAccountEmail, instanceTemplateProperties.serviceAccounts),
-      enableSecureBoot: shieldedVmConfig?.enableSecureBoot,
-      enableVtpm: shieldedVmConfig?.enableVtpm,
-      enableIntegrityMonitoring: shieldedVmConfig?.enableIntegrityMonitoring
+      enableSecureBoot: shieldedConfig?.enableSecureBoot,
+      enableVtpm: shieldedConfig?.enableVtpm,
+      enableIntegrityMonitoring: shieldedConfig?.enableIntegrityMonitoring
     )
+  }
+
+  /**
+   * Resolve shielded VM settings from InstanceProperties, preferring the stable-v1 typed field
+   * and falling back to the legacy GenericJson key {@code shieldedVmConfig}.
+   *
+   * <p>Wire JSON for unknown/legacy nested objects is typically a {@link Map}, not a typed
+   * {@link ShieldedInstanceConfig}. Callers must not cast {@code get("shieldedVmConfig")}
+   * directly or clone/template rebuild paths will throw {@link ClassCastException}.
+   */
+  static ShieldedInstanceConfig resolveShieldedInstanceConfig(InstanceProperties properties) {
+    if (properties == null) {
+      return null
+    }
+    if (properties.shieldedInstanceConfig != null) {
+      return properties.shieldedInstanceConfig
+    }
+    return convertToShieldedInstanceConfig(properties.get("shieldedVmConfig"))
+  }
+
+  /** Normalize a typed model, Map, or GenericJson-like object into ShieldedInstanceConfig. */
+  static ShieldedInstanceConfig convertToShieldedInstanceConfig(Object raw) {
+    if (raw == null) {
+      return null
+    }
+    if (raw instanceof ShieldedInstanceConfig) {
+      return (ShieldedInstanceConfig) raw
+    }
+    if (raw instanceof Map) {
+      def config = new ShieldedInstanceConfig()
+      config.enableSecureBoot = raw.enableSecureBoot as Boolean
+      config.enableVtpm = raw.enableVtpm as Boolean
+      config.enableIntegrityMonitoring = raw.enableIntegrityMonitoring as Boolean
+      return config
+    }
+    return null
   }
 
   static GoogleAutoHealingPolicy buildAutoHealingPolicyDescriptionFromAutoHealingPolicy(
@@ -947,22 +999,28 @@ class GCEUtil {
     return scheduling
   }
 
-  static ShieldedVmConfig buildShieldedVmConfig(BaseGoogleInstanceDescription description) {
-    def shieldedVmConfig = new ShieldedVmConfig()
+  // Builds the v1 ShieldedInstanceConfig (replaces beta ShieldedVmConfig).
+  // See: https://cloud.google.com/compute/docs/reference/rest/v1/instances/insert
+  //      (shieldedInstanceConfig on InstanceProperties)
+  // Only fields explicitly present on the description are set. Omitted (null) fields are left unset
+  // so GCP applies its own defaults (Secure Boot off, vTPM on, integrity monitoring on) rather than
+  // Spinnaker forcing them. This preserves behavior for direct-edit payloads that omit these fields.
+  static ShieldedInstanceConfig buildShieldedInstanceConfig(BaseGoogleInstanceDescription description) {
+    def shieldedInstanceConfig = new ShieldedInstanceConfig()
 
     if (description.enableSecureBoot != null) {
-      shieldedVmConfig.enableSecureBoot = description.enableSecureBoot
+      shieldedInstanceConfig.enableSecureBoot = description.enableSecureBoot
     }
 
     if (description.enableVtpm != null) {
-      shieldedVmConfig.enableVtpm = description.enableVtpm
+      shieldedInstanceConfig.enableVtpm = description.enableVtpm
     }
 
     if (description.enableIntegrityMonitoring != null) {
-      shieldedVmConfig.enableIntegrityMonitoring = description.enableIntegrityMonitoring
+      shieldedInstanceConfig.enableIntegrityMonitoring = description.enableIntegrityMonitoring
     }
 
-    return shieldedVmConfig
+    return shieldedInstanceConfig
   }
 
   static void updateStatusAndThrowNotFoundException(String errorMsg, Task task, String phase) {

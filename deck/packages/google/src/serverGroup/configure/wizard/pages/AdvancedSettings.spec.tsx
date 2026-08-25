@@ -126,20 +126,14 @@ describe('GCE server group Advanced Settings page', () => {
     expect(wrapper.find('[data-testid="disk-size-0"]').prop('max')).toBe(65536);
   });
 
-  it('preserves and updates nested partner metadata without flattening unknown data', () => {
+  it('does not render or validate the unsupported partner metadata editor', () => {
     const values = command({ partnerMetadata: { partner: { entries: { unknown: 'keep' } } } });
     const wrapper = shallow(<AdvancedSettings app={{} as any} formik={formik(values)} />);
+    const page = new AdvancedSettings({ app: {} as any, formik: formik(values) } as any);
 
-    expect(wrapper.find('[data-testid="partner-metadata"]').prop('value')).toBe(
-      JSON.stringify(values.partnerMetadata, null, 2),
-    );
-    wrapper.find('[data-testid="partner-metadata"]').simulate('change', {
-      target: { value: '{"partner":{"entries":{"unknown":"keep","added":"value"}}}' },
-    });
-
-    expect(values.partnerMetadata).toEqual({
-      partner: { entries: { unknown: 'keep', added: 'value' } },
-    });
+    expect(wrapper.find('[data-testid="partner-metadata"]').exists()).toBe(false);
+    expect(wrapper.text()).not.toContain('Partner Metadata');
+    expect(page.validate(command({ partnerMetadata: '{legacy-invalid-json' }))).toEqual({});
   });
 
   it('keeps scheduling and shielded VM constraints internally consistent', () => {
@@ -218,7 +212,6 @@ describe('GCE server group Advanced Settings page', () => {
           resourceManagerTags: { tag: '' },
           tags: [{ value: '' }],
           authScopes: [''],
-          partnerMetadata: '{invalid',
           enableConfidentialCompute: true,
           confidentialInstanceType: '',
         }),
@@ -231,7 +224,6 @@ describe('GCE server group Advanced Settings page', () => {
       resourceManagerTags: 'Resource Manager tag values cannot be empty.',
       tags: 'Network tags cannot be empty.',
       authScopes: 'Auth scopes cannot be empty.',
-      partnerMetadata: 'Partner metadata must be a JSON object.',
       confidentialInstanceType: 'Confidential instance type required.',
     });
   });
@@ -245,7 +237,6 @@ describe('GCE server group Advanced Settings page', () => {
       resourceManagerTags: { tag: '' },
       tags: [{ value: '' }],
       authScopes: [''],
-      partnerMetadata: '{invalid',
       enableConfidentialCompute: true,
       confidentialInstanceType: '',
     });
@@ -261,7 +252,6 @@ describe('GCE server group Advanced Settings page', () => {
       ['[aria-label="Labels"]', 'gce-advanced-labels-error'],
       ['[aria-label="Resource Manager Tags"]', 'gce-advanced-resource-manager-tags-error'],
       ['[aria-label="Network tag 1"]', 'gce-advanced-network-tags-error'],
-      ['[data-testid="partner-metadata"]', 'gce-advanced-partner-metadata-error'],
       ['#gce-confidential-instance-type', 'gce-advanced-confidential-instance-type-error'],
       ['[aria-label="Auth scope 1"]', 'gce-advanced-auth-scopes-error'],
     ].forEach(([selector, errorId]) => {
@@ -280,7 +270,6 @@ describe('GCE server group Advanced Settings page', () => {
       'Resource Manager tag values cannot be empty.',
     );
     expectAdvancedError(wrapper, 'gce-advanced-network-tags-error', 'Network tags cannot be empty.');
-    expectAdvancedError(wrapper, 'gce-advanced-partner-metadata-error', 'Partner metadata must be a JSON object.');
     expectAdvancedError(
       wrapper,
       'gce-advanced-confidential-instance-type-error',

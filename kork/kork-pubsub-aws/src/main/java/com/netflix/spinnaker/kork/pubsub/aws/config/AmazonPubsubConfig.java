@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.kork.pubsub.aws.config;
 
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.kork.aws.AwsComponents;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
@@ -39,6 +40,7 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 @Configuration
 @ConditionalOnProperty({"pubsub.enabled", "pubsub.amazon.enabled"})
 @EnableConfigurationProperties(AmazonPubsubProperties.class)
+@Import(AwsComponents.class)
 public class AmazonPubsubConfig {
   public static final String SYSTEM = "amazon";
 
