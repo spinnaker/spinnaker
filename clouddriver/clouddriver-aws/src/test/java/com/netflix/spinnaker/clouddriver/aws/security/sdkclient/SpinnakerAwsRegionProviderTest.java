@@ -82,7 +82,10 @@ class SpinnakerAwsRegionProviderTest {
                 "http://"
                     + metadataMock.getHost()
                     + ":"
-                    + metadataMock.getMappedPort(METADATA_MOCK_PORT)))
+                    + metadataMock.getMappedPort(METADATA_MOCK_PORT))
+            .remove("AWS_REGION")
+            .remove("AWS_DEFAULT_REGION")
+            .set("AWS_CONFIG_FILE", tempDir.resolve("nonexistent").toFile().getCanonicalPath()))
         .execute(
             () -> {
               String region = spinnakerAwsRegionProvider.getRegion();
