@@ -15,9 +15,9 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.model;
 
-import com.amazonaws.services.cloudformation.model.Change;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
+import software.amazon.awssdk.services.cloudformation.model.Change;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class AmazonCloudFormationChangeSet {
