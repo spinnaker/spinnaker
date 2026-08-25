@@ -74,6 +74,11 @@ dependencies {
   api(platform("com.google.protobuf:protobuf-bom:${versions.protobuf}"))
   api(platform("com.google.cloud:libraries-bom:${versions.gcp}"))
   api(platform("software.amazon.awssdk:bom:${versions.awsv2}"))
+  // awspring 3.x (Spring Cloud AWS on AWS SDK v2). Imported AFTER the awssdk BOM
+  // so our pinned AWS SDK v2 version wins Gradle's first-declared conflict
+  // resolution for Maven consumers. Used by kork-cloud-config-server for the
+  // s3:// ResourceLoader (S3ProtocolResolver).
+  api(platform("io.awspring.cloud:spring-cloud-aws-dependencies:3.3.0"))
   api(platform("org.springframework.cloud:spring-cloud-dependencies:${versions.springCloud}"))
   api(platform("io.strikt:strikt-bom:0.31.0"))
   api(platform("org.spockframework:spock-bom:2.4-groovy-4.0"))
