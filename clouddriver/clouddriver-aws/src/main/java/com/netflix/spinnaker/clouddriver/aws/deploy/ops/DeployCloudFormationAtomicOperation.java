@@ -15,8 +15,6 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops;
 
-import com.amazonaws.services.cloudformation.AmazonCloudFormation;
-import com.amazonaws.services.cloudformation.model.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeployCloudFormationDescription;
@@ -33,6 +31,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.util.StringUtils;
+import software.amazon.awssdk.services.cloudformation.CloudFormationClient;
+import software.amazon.awssdk.services.cloudformation.model.ChangeSetType;
+import software.amazon.awssdk.services.cloudformation.model.CloudFormationException;
+import software.amazon.awssdk.services.cloudformation.model.CreateChangeSetRequest;
+import software.amazon.awssdk.services.cloudformation.model.CreateChangeSetResponse;
+import software.amazon.awssdk.services.cloudformation.model.CreateStackRequest;
+import software.amazon.awssdk.services.cloudformation.model.CreateStackResponse;
+import software.amazon.awssdk.services.cloudformation.model.DescribeStacksRequest;
+import software.amazon.awssdk.services.cloudformation.model.Parameter;
+import software.amazon.awssdk.services.cloudformation.model.Tag;
+import software.amazon.awssdk.services.cloudformation.model.UpdateStackRequest;
+import software.amazon.awssdk.services.cloudformation.model.UpdateStackResponse;
+import software.amazon.awssdk.services.cloudformation.model.ValidateTemplateRequest;
 
 @Slf4j
 public class DeployCloudFormationAtomicOperation implements AtomicOperation<Map> {
@@ -58,30 +69,31 @@ public class DeployCloudFormationAtomicOperation implements AtomicOperation<Map>
   public Map operate(List priorOutputs) {
     Task task = TaskRepository.threadLocalTask.get();
     task.updateStatus(BASE_PHASE, "Configuring CloudFormation Stack");
-    AmazonCloudFormation amazonCloudFormation =
-        amazonClientProvider.getAmazonCloudFormation(
+    CloudFormationClient cloudFormationClient =
+        amazonClientProvider.getAmazonCloudFormationV2(
             description.getCredentials(), description.getRegion());
     String templateURL = description.getTemplateURL();
     String templateBody = description.getTemplateBody();
-    validateTemplate(amazonCloudFormation, templateURL, templateBody);
+    validateTemplate(cloudFormationClient, templateURL, templateBody);
     String roleARN = description.getRoleARN();
     List<Parameter> parameters =
         description.getParameters().entrySet().stream()
             .map(
                 entry ->
-                    new Parameter()
-                        .withParameterKey(entry.getKey())
-                        .withParameterValue(entry.getValue()))
+                    Parameter.builder()
+                        .parameterKey(entry.getKey())
+                        .parameterValue(entry.getValue())
+                        .build())
             .collect(Collectors.toList());
     List<Tag> tags =
         description.getTags().entrySet().stream()
-            .map(entry -> new Tag().withKey(entry.getKey()).withValue(entry.getValue()))
+            .map(entry -> Tag.builder().key(entry.getKey()).value(entry.getValue()).build())
             .collect(Collectors.toList());
 
     List<String> notificationARNs =
         Optional.ofNullable(description.getNotificationARNs()).orElse(Collections.emptyList());
 
-    boolean stackExists = stackExists(amazonCloudFormation);
+    boolean stackExists = stackExists(cloudFormationClient);
 
     String stackId;
     if (description.isChangeSet()) {
@@ -89,7 +101,7 @@ public class DeployCloudFormationAtomicOperation implements AtomicOperation<Map>
       log.info("{} change set for stack: {}", changeSetType, description);
       stackId =
           createChangeSet(
-              amazonCloudFormation,
+              cloudFormationClient,
               templateURL,
               templateBody,
               roleARN,
@@ -103,7 +115,7 @@ public class DeployCloudFormationAtomicOperation implements AtomicOperation<Map>
         log.info("Updating existing stack {}", description);
         stackId =
             updateStack(
-                amazonCloudFormation,
+                cloudFormationClient,
                 templateURL,
                 templateBody,
                 roleARN,
@@ -115,7 +127,7 @@ public class DeployCloudFormationAtomicOperation implements AtomicOperation<Map>
         log.info("Creating new stack: {}", description);
         stackId =
             createStack(
-                amazonCloudFormation,
+                cloudFormationClient,
                 templateURL,
                 templateBody,
                 roleARN,
@@ -129,7 +141,7 @@ public class DeployCloudFormationAtomicOperation implements AtomicOperation<Map>
   }
 
   private String createStack(
-      AmazonCloudFormation amazonCloudFormation,
+      CloudFormationClient cloudFormationClient,
       String templateURL,
       String templateBody,
       String roleARN,
@@ -139,30 +151,31 @@ public class DeployCloudFormationAtomicOperation implements AtomicOperation<Map>
       List<String> notificationARNs) {
     Task task = TaskRepository.threadLocalTask.get();
     task.updateStatus(BASE_PHASE, "Preparing CloudFormation Stack");
-    CreateStackRequest createStackRequest =
-        new CreateStackRequest()
-            .withStackName(description.getStackName())
-            .withParameters(parameters)
-            .withTags(tags)
-            .withCapabilities(capabilities)
-            .withNotificationARNs(notificationARNs);
+    CreateStackRequest.Builder requestBuilder =
+        CreateStackRequest.builder()
+            .stackName(description.getStackName())
+            .parameters(parameters)
+            .tags(tags)
+            .capabilitiesWithStrings(capabilities)
+            .notificationARNs(notificationARNs);
 
     if (StringUtils.hasText(templateURL)) {
-      createStackRequest.setTemplateURL(templateURL);
+      requestBuilder.templateURL(templateURL);
     } else {
-      createStackRequest.setTemplateBody(templateBody);
+      requestBuilder.templateBody(templateBody);
     }
 
     if (StringUtils.hasText(roleARN)) {
-      createStackRequest.setRoleARN(roleARN);
+      requestBuilder.roleARN(roleARN);
     }
     task.updateStatus(BASE_PHASE, "Uploading CloudFormation Stack");
-    CreateStackResult createStackResult = amazonCloudFormation.createStack(createStackRequest);
-    return createStackResult.getStackId();
+    CreateStackResponse createStackResponse =
+        cloudFormationClient.createStack(requestBuilder.build());
+    return createStackResponse.stackId();
   }
 
   private String updateStack(
-      AmazonCloudFormation amazonCloudFormation,
+      CloudFormationClient cloudFormationClient,
       String templateURL,
       String templateBody,
       String roleARN,
@@ -172,32 +185,32 @@ public class DeployCloudFormationAtomicOperation implements AtomicOperation<Map>
       List<String> notificationARNs) {
     Task task = TaskRepository.threadLocalTask.get();
     task.updateStatus(BASE_PHASE, "CloudFormation Stack exists. Updating it");
-    UpdateStackRequest updateStackRequest =
-        new UpdateStackRequest()
-            .withStackName(description.getStackName())
-            .withParameters(parameters)
-            .withTags(tags)
-            .withCapabilities(capabilities)
-            .withNotificationARNs(notificationARNs);
+    UpdateStackRequest.Builder requestBuilder =
+        UpdateStackRequest.builder()
+            .stackName(description.getStackName())
+            .parameters(parameters)
+            .tags(tags)
+            .capabilitiesWithStrings(capabilities)
+            .notificationARNs(notificationARNs);
 
     if (StringUtils.hasText(templateURL)) {
-      updateStackRequest.setTemplateURL(templateURL);
+      requestBuilder.templateURL(templateURL);
     } else {
-      updateStackRequest.setTemplateBody(templateBody);
+      requestBuilder.templateBody(templateBody);
     }
 
     if (StringUtils.hasText(roleARN)) {
-      updateStackRequest.setRoleARN(roleARN);
+      requestBuilder.roleARN(roleARN);
     }
     task.updateStatus(BASE_PHASE, "Uploading CloudFormation Stack");
     try {
-      UpdateStackResult updateStackResult = amazonCloudFormation.updateStack(updateStackRequest);
-      return updateStackResult.getStackId();
-    } catch (AmazonCloudFormationException e) {
-
+      UpdateStackResponse updateStackResponse =
+          cloudFormationClient.updateStack(requestBuilder.build());
+      return updateStackResponse.stackId();
+    } catch (CloudFormationException e) {
       if (e.getMessage().contains(NO_CHANGE_STACK_ERROR_MESSAGE)) {
         // No changes on the stack, ignore failure
-        return getStackId(amazonCloudFormation);
+        return getStackId(cloudFormationClient);
       }
       log.error("Error updating stack", e);
       throw e;
@@ -205,7 +218,7 @@ public class DeployCloudFormationAtomicOperation implements AtomicOperation<Map>
   }
 
   private String createChangeSet(
-      AmazonCloudFormation amazonCloudFormation,
+      CloudFormationClient cloudFormationClient,
       String templateURL,
       String templateBody,
       String roleARN,
@@ -216,74 +229,75 @@ public class DeployCloudFormationAtomicOperation implements AtomicOperation<Map>
       ChangeSetType changeSetType) {
     Task task = TaskRepository.threadLocalTask.get();
     task.updateStatus(BASE_PHASE, "CloudFormation Stack exists. Creating a change set");
-    CreateChangeSetRequest createChangeSetRequest =
-        new CreateChangeSetRequest()
-            .withStackName(description.getStackName())
-            .withChangeSetName(description.getChangeSetName())
-            .withParameters(parameters)
-            .withTags(tags)
-            .withCapabilities(capabilities)
-            .withNotificationARNs(notificationARNs)
-            .withChangeSetType(changeSetType)
-            .withIncludeNestedStacks(
+    CreateChangeSetRequest.Builder requestBuilder =
+        CreateChangeSetRequest.builder()
+            .stackName(description.getStackName())
+            .changeSetName(description.getChangeSetName())
+            .parameters(parameters)
+            .tags(tags)
+            .capabilitiesWithStrings(capabilities)
+            .notificationARNs(notificationARNs)
+            .changeSetType(changeSetType)
+            .includeNestedStacks(
                 awsConfigurationProperties.getCloudformation().getChangeSetsIncludeNestedStacks());
 
     if (StringUtils.hasText(templateURL)) {
-      createChangeSetRequest.setTemplateURL(templateURL);
+      requestBuilder.templateURL(templateURL);
     } else {
-      createChangeSetRequest.setTemplateBody(templateBody);
+      requestBuilder.templateBody(templateBody);
     }
 
     if (StringUtils.hasText(roleARN)) {
-      createChangeSetRequest.setRoleARN(roleARN);
+      requestBuilder.roleARN(roleARN);
     }
 
     task.updateStatus(BASE_PHASE, "Uploading CloudFormation ChangeSet");
     try {
-      CreateChangeSetResult createChangeSetResult =
-          amazonCloudFormation.createChangeSet(createChangeSetRequest);
-      return createChangeSetResult.getStackId();
-    } catch (AmazonCloudFormationException e) {
+      CreateChangeSetResponse createChangeSetResponse =
+          cloudFormationClient.createChangeSet(requestBuilder.build());
+      return createChangeSetResponse.stackId();
+    } catch (CloudFormationException e) {
       log.error("Error creating change set", e);
       throw e;
     }
   }
 
-  private boolean stackExists(AmazonCloudFormation amazonCloudFormation) {
+  private boolean stackExists(CloudFormationClient cloudFormationClient) {
     try {
-      getStackId(amazonCloudFormation);
+      getStackId(cloudFormationClient);
       return true;
     } catch (Exception e) {
       return false;
     }
   }
 
-  private String getStackId(AmazonCloudFormation amazonCloudFormation) {
-    return amazonCloudFormation
-        .describeStacks(new DescribeStacksRequest().withStackName(description.getStackName()))
-        .getStacks()
+  private String getStackId(CloudFormationClient cloudFormationClient) {
+    return cloudFormationClient
+        .describeStacks(
+            DescribeStacksRequest.builder().stackName(description.getStackName()).build())
+        .stacks()
         .stream()
         .findFirst()
         .orElseThrow(
             () ->
                 new IllegalArgumentException(
                     "No CloudFormation Stack found with stack name " + description.getStackName()))
-        .getStackId();
+        .stackId();
   }
 
   private void validateTemplate(
-      AmazonCloudFormation amazonCloudFormation, String templateURL, String templateBody) {
+      CloudFormationClient cloudFormationClient, String templateURL, String templateBody) {
     try {
-      ValidateTemplateRequest validateTemplateRequest = new ValidateTemplateRequest();
+      ValidateTemplateRequest.Builder requestBuilder = ValidateTemplateRequest.builder();
 
       if (StringUtils.hasText(templateURL)) {
-        validateTemplateRequest.setTemplateURL(templateURL);
+        requestBuilder.templateURL(templateURL);
       } else {
-        validateTemplateRequest.setTemplateBody(templateBody);
+        requestBuilder.templateBody(templateBody);
       }
 
-      amazonCloudFormation.validateTemplate(validateTemplateRequest);
-    } catch (AmazonCloudFormationException e) {
+      cloudFormationClient.validateTemplate(requestBuilder.build());
+    } catch (CloudFormationException e) {
       log.error("Error validating cloudformation template", e);
       throw e;
     }
