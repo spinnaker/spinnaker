@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.provider.view
 
-import com.amazonaws.services.ecs.model.LoadBalancer
+import software.amazon.awssdk.services.ecs.model.LoadBalancer
 import com.netflix.spinnaker.clouddriver.ecs.EcsCloudProvider
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.EcsLoadbalancerCacheClient
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.EcsTargetGroupCacheClient
@@ -102,15 +102,17 @@ class EcsLoadBalancerProviderSpec extends Specification {
     def tgArn2 = 'arn:aws:elasticloadbalancing:us-west-1:1234567890:targetgroup/test-tg-2/2136bac'
 
     // define 2 ports to expose on our task
-    LoadBalancer ecsLb1 = new LoadBalancer()
-    ecsLb1.setContainerName("container-name")
-    ecsLb1.setContainerPort(8080)
-    ecsLb1.setTargetGroupArn(tgArn1)
+    LoadBalancer ecsLb1 = LoadBalancer.builder()
+      .containerName("container-name")
+      .containerPort(8080)
+      .targetGroupArn(tgArn1)
+      .build()
 
-    LoadBalancer ecsLb2 = new LoadBalancer()
-    ecsLb2.setContainerName("container-name")
-    ecsLb2.setContainerPort(443)
-    ecsLb2.setTargetGroupArn(tgArn2)
+    LoadBalancer ecsLb2 = LoadBalancer.builder()
+      .containerName("container-name")
+      .containerPort(443)
+      .targetGroupArn(tgArn2)
+      .build()
 
     // add these to our service
     Service ecsService = new Service()
@@ -195,10 +197,11 @@ class EcsLoadBalancerProviderSpec extends Specification {
     def tgArn = 'arn:aws:elasticloadbalancing:us-west-1:1234567890:targetgroup/test-tg-1/2136bac'
 
     // define 2 ecs services load balanced behind the same target group
-    LoadBalancer service1lb = new LoadBalancer()
-    service1lb.setContainerName("container-name")
-    service1lb.setContainerPort(8080)
-    service1lb.setTargetGroupArn(tgArn)
+    LoadBalancer service1lb = LoadBalancer.builder()
+      .containerName("container-name")
+      .containerPort(8080)
+      .targetGroupArn(tgArn)
+      .build()
 
     Service ecsService1 = new Service()
     ecsService1.setServiceName('ecs-test-one-000v')
@@ -207,10 +210,11 @@ class EcsLoadBalancerProviderSpec extends Specification {
     ecsService1.setAccount('test-account')
     ecsService1.setApplicationName(applicationName)
 
-    LoadBalancer service2lb = new LoadBalancer()
-    service2lb.setContainerName("container-name")
-    service2lb.setContainerPort(8080)
-    service2lb.setTargetGroupArn(tgArn)
+    LoadBalancer service2lb = LoadBalancer.builder()
+      .containerName("container-name")
+      .containerPort(8080)
+      .targetGroupArn(tgArn)
+      .build()
 
     Service ecsService2 = new Service()
     ecsService2.setServiceName('ecs-test-two-000v')
