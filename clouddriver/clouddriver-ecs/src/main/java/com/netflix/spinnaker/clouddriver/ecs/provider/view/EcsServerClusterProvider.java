@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.ecs.provider.view;
 
 import com.amazonaws.services.ec2.model.GroupIdentifier;
-import com.amazonaws.services.ecs.model.ContainerDefinition;
 import com.google.common.collect.Sets;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.EcsCloudProvider;
@@ -59,6 +58,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.services.applicationautoscaling.model.ScalableTarget;
+import software.amazon.awssdk.services.ecs.model.ContainerDefinition;
 import software.amazon.awssdk.services.ecs.model.NetworkInterface;
 
 @Component
@@ -157,7 +157,7 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
       String taskDefinitionKey =
           Keys.getTaskDefinitionKey(
               credentials.getName(), awsRegion.getName(), service.getTaskDefinition());
-      com.amazonaws.services.ecs.model.TaskDefinition taskDefinition =
+      software.amazon.awssdk.services.ecs.model.TaskDefinition taskDefinition =
           taskDefinitionCacheClient.get(taskDefinitionKey);
       if (taskDefinition == null) {
         continue;
@@ -243,42 +243,42 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
   }
 
   private TaskDefinition buildTaskDefinition(
-      com.amazonaws.services.ecs.model.TaskDefinition taskDefinition) {
-    String roleArn = taskDefinition.getTaskRoleArn();
+      software.amazon.awssdk.services.ecs.model.TaskDefinition taskDefinition) {
+    String roleArn = taskDefinition.taskRoleArn();
     String iamRole = roleArn != null ? StringUtils.substringAfterLast(roleArn, "/") : "None";
-    ContainerDefinition containerDefinition = taskDefinition.getContainerDefinitions().get(0);
+    ContainerDefinition containerDefinition = taskDefinition.containerDefinitions().get(0);
 
     int cpu = 0;
-    if (containerDefinition.getCpu() != null) {
-      cpu = containerDefinition.getCpu();
-    } else if (taskDefinition.getCpu() != null) {
-      cpu = Integer.parseInt(taskDefinition.getCpu());
+    if (containerDefinition.cpu() != null) {
+      cpu = containerDefinition.cpu();
+    } else if (taskDefinition.cpu() != null) {
+      cpu = Integer.parseInt(taskDefinition.cpu());
     }
 
     int memoryReservation = 0;
-    if (containerDefinition.getMemoryReservation() != null) {
-      memoryReservation = containerDefinition.getMemoryReservation();
+    if (containerDefinition.memoryReservation() != null) {
+      memoryReservation = containerDefinition.memoryReservation();
     }
 
     int memoryLimit = 0;
-    if (containerDefinition.getMemory() != null) {
-      memoryLimit = containerDefinition.getMemory();
-    } else if (taskDefinition.getMemory() != null) {
-      memoryLimit = Integer.parseInt(taskDefinition.getMemory());
+    if (containerDefinition.memory() != null) {
+      memoryLimit = containerDefinition.memory();
+    } else if (taskDefinition.memory() != null) {
+      memoryLimit = Integer.parseInt(taskDefinition.memory());
     }
 
     return new TaskDefinition()
-        .setContainerImage(containerDefinition.getImage())
+        .setContainerImage(containerDefinition.image())
         .setContainerPort(
-            containerDefinition.getPortMappings().isEmpty()
+            containerDefinition.portMappings().isEmpty()
                 ? 0
-                : containerDefinition.getPortMappings().get(0).getContainerPort())
+                : containerDefinition.portMappings().get(0).containerPort())
         .setCpuUnits(cpu)
         .setMemoryReservation(memoryReservation)
         .setMemoryLimit(memoryLimit)
         .setIamRole(iamRole)
-        .setTaskName(StringUtils.substringAfterLast(taskDefinition.getTaskDefinitionArn(), "/"))
-        .setEnvironmentVariables(containerDefinition.getEnvironment());
+        .setTaskName(StringUtils.substringAfterLast(taskDefinition.taskDefinitionArn(), "/"))
+        .setEnvironmentVariables(containerDefinition.environment());
   }
 
   private ServerGroup.Capacity buildServerGroupCapacity(int desiredCount, ScalableTarget target) {
@@ -315,7 +315,7 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
       Set<Instance> instances,
       long creationTime,
       String ecsClusterName,
-      com.amazonaws.services.ecs.model.TaskDefinition taskDefinition,
+      software.amazon.awssdk.services.ecs.model.TaskDefinition taskDefinition,
       List<String> eniSubnets,
       List<String> eniSecurityGroups,
       boolean includeDetails) {

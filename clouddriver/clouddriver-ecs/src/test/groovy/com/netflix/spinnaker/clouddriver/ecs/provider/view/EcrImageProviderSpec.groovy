@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.provider.view
 
-import com.amazonaws.services.ecr.AmazonECR
-import com.amazonaws.services.ecr.model.DescribeImagesRequest
-import com.amazonaws.services.ecr.model.DescribeImagesResult
-import com.amazonaws.services.ecr.model.ImageDetail
-import com.amazonaws.services.ecr.model.ImageIdentifier
-import com.amazonaws.services.ecr.model.ListImagesResult
+import software.amazon.awssdk.services.ecr.EcrClient
+import software.amazon.awssdk.services.ecr.model.DescribeImagesRequest
+import software.amazon.awssdk.services.ecr.model.DescribeImagesResponse
+import software.amazon.awssdk.services.ecr.model.ImageDetail
+import software.amazon.awssdk.services.ecr.model.ImageIdentifier
+import software.amazon.awssdk.services.ecr.model.ListImagesResponse
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.ecs.TestCredential
 import com.netflix.spinnaker.clouddriver.ecs.model.EcsDockerImage
@@ -66,23 +66,23 @@ class EcrImageProviderSpec extends Specification {
     def repoName = 'test-repo'
     def accountId = '123456789012'
     def digest = 'sha256:deadbeef785192c146085da66a4261e25e79a6210103433464eb7f79deadbeef'
-    def creationDate = new Date()
+    def creationDate = java.time.Instant.now()
     def url = accountId + '.dkr.ecr.' + region + '.amazonaws.com/' + repoName + ':' + tag
 
-    def imageDetail = new ImageDetail(
-      imageTags: [tag],
-      repositoryName: repoName,
-      registryId: accountId,
-      imageDigest: digest,
-      imagePushedAt: creationDate
-    )
+    def imageDetail = ImageDetail.builder()
+      .imageTags([tag])
+      .repositoryName(repoName)
+      .registryId(accountId)
+      .imageDigest(digest)
+      .imagePushedAt(creationDate)
+      .build()
 
-    def amazonECR = Mock(AmazonECR)
+    def amazonECR = Mock(EcrClient)
 
-    amazonClientProvider.getAmazonEcr(_, _, _) >> amazonECR
+    amazonClientProvider.getAmazonEcrV2(_, _) >> amazonECR
     credentialsRepository.getAll() >> [new NetflixECSCredentials(TestCredential.named('')) ]
-    amazonECR.listImages(_) >> new ListImagesResult().withImageIds(Collections.emptyList())
-    amazonECR.describeImages(_) >> new DescribeImagesResult().withImageDetails(imageDetail)
+    amazonECR.listImages(_) >> ListImagesResponse.builder().imageIds(Collections.emptyList()).build()
+    amazonECR.describeImages(_) >> DescribeImagesResponse.builder().imageDetails(imageDetail).build()
 
     def expectedListOfImages = [new EcsDockerImage(
       region: region,
@@ -104,23 +104,23 @@ class EcrImageProviderSpec extends Specification {
     def repoName = 'test-repo'
     def accountId = '123456789012'
     def digest = 'sha256:deadbeef785192c146085da66a4261e25e79a6210103433464eb7f79deadbeef'
-    def creationDate = new Date()
+    def creationDate = java.time.Instant.now()
     def url = accountId + '.dkr.ecr.' + region + '.amazonaws.com/' + repoName + '@' + digest
 
-    def imageDetail = new ImageDetail(
-      imageTags: [],
-      repositoryName: repoName,
-      registryId: accountId,
-      imageDigest: digest,
-      imagePushedAt: creationDate
-    )
+    def imageDetail = ImageDetail.builder()
+      .imageTags([])
+      .repositoryName(repoName)
+      .registryId(accountId)
+      .imageDigest(digest)
+      .imagePushedAt(creationDate)
+      .build()
 
-    def amazonECR = Mock(AmazonECR)
+    def amazonECR = Mock(EcrClient)
 
-    amazonClientProvider.getAmazonEcr(_, _, _) >> amazonECR
+    amazonClientProvider.getAmazonEcrV2(_, _) >> amazonECR
     credentialsRepository.getAll() >> [new NetflixECSCredentials(TestCredential.named('')) ]
-    amazonECR.listImages(_) >> new ListImagesResult().withImageIds(Collections.emptyList())
-    amazonECR.describeImages(_) >> new DescribeImagesResult().withImageDetails(imageDetail)
+    amazonECR.listImages(_) >> ListImagesResponse.builder().imageIds(Collections.emptyList()).build()
+    amazonECR.describeImages(_) >> DescribeImagesResponse.builder().imageDetails(imageDetail).build()
 
     def expectedListOfImages = [new EcsDockerImage(
       region: region,
@@ -143,15 +143,15 @@ class EcrImageProviderSpec extends Specification {
     def accountId = '123456789012'
     def tag = 'arbitrary-tag'
     def digest = 'sha256:deadbeef785192c146085da66a4261e25e79a6210103433464eb7f79deadbeef'
-    def creationDate = new Date()
+    def creationDate = java.time.Instant.now()
     def url = accountId + '.dkr.ecr.' + region + '.amazonaws.com/' + repoName + ':' + tag// + '@' + digest
-    def imageDetail = new ImageDetail(
-      repositoryName: repoName,
-      registryId: accountId,
-      imageDigest: digest,
-      imageTags: List.of(tag),
-      imagePushedAt: creationDate
-    )
+    def imageDetail = ImageDetail.builder()
+      .repositoryName(repoName)
+      .registryId(accountId)
+      .imageDigest(digest)
+      .imageTags(List.of(tag))
+      .imagePushedAt(creationDate)
+      .build()
 
     Map<String, Object> region1 = Map.of(
       'name', 'eu-west-1',
@@ -175,11 +175,11 @@ class EcrImageProviderSpec extends Specification {
       new NetflixECSCredentials(TestCredential.named('incorrect-region', overrides1)),
       new NetflixECSCredentials(TestCredential.named('correct-region', overrides2))]
 
-    def amazonECR = Mock(AmazonECR)
+    def amazonECR = Mock(EcrClient)
 
-    amazonClientProvider.getAmazonEcr(_, _, _) >> amazonECR
-    amazonECR.listImages(_) >> new ListImagesResult().withImageIds(Collections.emptyList())
-    amazonECR.describeImages(_) >> new DescribeImagesResult().withImageDetails(imageDetail)
+    amazonClientProvider.getAmazonEcrV2(_, _) >> amazonECR
+    amazonECR.listImages(_) >> ListImagesResponse.builder().imageIds(Collections.emptyList()).build()
+    amazonECR.describeImages(_) >> DescribeImagesResponse.builder().imageDetails(imageDetail).build()
 
     def expectedListOfImages = [new EcsDockerImage(
       region: region,
@@ -269,36 +269,39 @@ class EcrImageProviderSpec extends Specification {
     def accountId = '123456789012'
     def digest = 'sha256:deadbeef785192c146085da66a4261e25e79a6210103433464eb7f79deadbeef'
     def url = accountId + '.dkr.ecr.' + region + '.amazonaws.com/' + repoName + ':' + tag
-    def imageId = new ImageIdentifier().withImageTag(tag).withImageDigest(digest)
-    def creationDate = new Date()
+    def imageId = ImageIdentifier.builder().imageTag(tag).imageDigest(digest).build()
+    def creationDate = java.time.Instant.now()
 
-    def amazonECR = Mock(AmazonECR)
+    def amazonECR = Mock(EcrClient)
 
-    amazonClientProvider.getAmazonEcr(_, _, _) >> amazonECR
+    amazonClientProvider.getAmazonEcrV2(_, _) >> amazonECR
     credentialsRepository.getAll() >> [new NetflixECSCredentials(TestCredential.named('')) ]
 
     amazonECR.listImages(_) >>> [
-      new ListImagesResult()
-        .withImageIds(new ImageIdentifier().withImageTag("notlatest1").withImageDigest("sha256:aaa"))
-        .withNextToken("next1"),
-      new ListImagesResult()
-        .withImageIds(new ImageIdentifier().withImageTag("notlatest2").withImageDigest("sha256:bbb"))
-        .withImageIds(imageId)
-        .withNextToken(null),
+      ListImagesResponse.builder()
+        .imageIds(ImageIdentifier.builder().imageTag("notlatest1").imageDigest("sha256:aaa").build())
+        .nextToken("next1")
+        .build(),
+      ListImagesResponse.builder()
+        .imageIds(ImageIdentifier.builder().imageTag("notlatest2").imageDigest("sha256:bbb").build(), imageId)
+        .nextToken(null)
+        .build(),
     ]
     amazonECR.describeImages(
-      new DescribeImagesRequest()
-        .withRegistryId(accountId)
-        .withRepositoryName(repoName)
-        .withImageIds(imageId)
-    ) >> new DescribeImagesResult()
-      .withImageDetails(new ImageDetail(
-        imageTags: [tag],
-        repositoryName: repoName,
-        registryId: accountId,
-        imageDigest: digest,
-        imagePushedAt: creationDate,
-      ))
+      DescribeImagesRequest.builder()
+        .registryId(accountId)
+        .repositoryName(repoName)
+        .imageIds(imageId)
+        .build()
+    ) >> DescribeImagesResponse.builder()
+      .imageDetails(ImageDetail.builder()
+        .imageTags([tag])
+        .repositoryName(repoName)
+        .registryId(accountId)
+        .imageDigest(digest)
+        .imagePushedAt(creationDate)
+        .build())
+      .build()
 
     def expectedImages = [new EcsDockerImage(
       region: region,
