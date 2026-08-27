@@ -1,2 +1,5 @@
 org.springframework.context.ApplicationListener=\
   com.netflix.spinnaker.kork.configserver.CloudConfigApplicationListener
+
+org.springframework.boot.env.EnvironmentPostProcessor=\
+  com.netflix.spinnaker.kork.configserver.autoconfig.AwsS3ProtocolResolverDefaultsEnvironmentPostProcessor
