@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.kork.secrets.engines;
 
-import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import java.util.Map;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 
 public interface SecretsManagerClientProvider {
   /**
@@ -26,5 +26,5 @@ public interface SecretsManagerClientProvider {
    * com.netflix.spinnaker.kork.secrets.EncryptedSecret} or {@link
    * com.netflix.spinnaker.kork.secrets.user.UserSecretReference} URI.
    */
-  AWSSecretsManager getClientForSecretParameters(Map<String, String> parameters);
+  SecretsManagerClient getClientForSecretParameters(Map<String, String> parameters);
 }
