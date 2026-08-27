@@ -24,9 +24,9 @@ import software.amazon.awssdk.services.ecs.model.AwsVpcConfiguration
 import software.amazon.awssdk.services.ecs.model.DeploymentConfiguration
 import software.amazon.awssdk.services.ecs.model.NetworkConfiguration
 import java.time.Instant
-import com.amazonaws.services.ecs.model.TaskDefinition
-import com.amazonaws.services.ecs.model.ContainerDefinition as V1ContainerDefinition
-import com.amazonaws.services.ecs.model.PortMapping as V1PortMapping
+import software.amazon.awssdk.services.ecs.model.TaskDefinition
+import software.amazon.awssdk.services.ecs.model.ContainerDefinition
+import software.amazon.awssdk.services.ecs.model.PortMapping
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
@@ -146,17 +146,17 @@ class EcsServerClusterProviderSpec extends Specification {
       )]
     )
 
-    cachedTaskDefinition = new TaskDefinition(
-      containerDefinitions: [
-        new V1ContainerDefinition(
-          image: 'my-image',
-          memoryReservation: 256,
-          cpu: 123,
-          environment: [],
-          portMappings: [new V1PortMapping(containerPort: 1337)]
-        )
-      ]
-    )
+    cachedTaskDefinition = TaskDefinition.builder()
+      .containerDefinitions(
+        ContainerDefinition.builder()
+          .image('my-image')
+          .memoryReservation(256)
+          .cpu(123)
+          .environment([])
+          .portMappings(PortMapping.builder().containerPort(1337).build())
+          .build()
+      )
+      .build()
 
     def scalableTarget = ScalableTarget.builder()
       .minCapacity(1)
@@ -276,17 +276,17 @@ class EcsServerClusterProviderSpec extends Specification {
 
   def 'should produce an ecs cluster with hard memory limit'() {
     given:
-    cachedTaskDefinition = new TaskDefinition(
-      containerDefinitions: [
-        new V1ContainerDefinition(
-          image: 'my-image',
-          environment: [],
-          portMappings: [new V1PortMapping(containerPort: 1337)],
-          memory: 256,
-          cpu: 123
-        )
-      ]
-    )
+    cachedTaskDefinition = TaskDefinition.builder()
+      .containerDefinitions(
+        ContainerDefinition.builder()
+          .image('my-image')
+          .environment([])
+          .portMappings(PortMapping.builder().containerPort(1337).build())
+          .memory(256)
+          .cpu(123)
+          .build()
+      )
+      .build()
     for (serverGroup in expectedCluster.serverGroups) {
       EcsServerGroup ecsServerGroup = serverGroup
       ecsServerGroup.taskDefinition.memoryLimit = 256
@@ -303,17 +303,17 @@ class EcsServerClusterProviderSpec extends Specification {
 
   def 'should produce an ecs cluster with CPU and memory set at task level'() {
     given:
-    cachedTaskDefinition = new TaskDefinition(
-      memory: '256',
-      cpu: '123',
-      containerDefinitions: [
-        new V1ContainerDefinition(
-          image: 'my-image',
-          environment: [],
-          portMappings: [new V1PortMapping(containerPort: 1337)]
-        )
-      ]
-    )
+    cachedTaskDefinition = TaskDefinition.builder()
+      .memory('256')
+      .cpu('123')
+      .containerDefinitions(
+        ContainerDefinition.builder()
+          .image('my-image')
+          .environment([])
+          .portMappings(PortMapping.builder().containerPort(1337).build())
+          .build()
+      )
+      .build()
     for (serverGroup in expectedCluster.serverGroups) {
       EcsServerGroup ecsServerGroup = serverGroup
       ecsServerGroup.taskDefinition.memoryLimit = 256
@@ -330,16 +330,16 @@ class EcsServerClusterProviderSpec extends Specification {
 
   def 'should produce an ecs cluster with zero port mappings'() {
     given:
-    cachedTaskDefinition = new TaskDefinition(
-      containerDefinitions: [
-        new V1ContainerDefinition(
-          image: 'my-image',
-          environment: [],
-          memoryReservation: 256,
-          cpu: 123
-        )
-      ]
-    )
+    cachedTaskDefinition = TaskDefinition.builder()
+      .containerDefinitions(
+        ContainerDefinition.builder()
+          .image('my-image')
+          .environment([])
+          .memoryReservation(256)
+          .cpu(123)
+          .build()
+      )
+      .build()
     for (serverGroup in expectedCluster.serverGroups) {
       EcsServerGroup ecsServerGroup = serverGroup
       ecsServerGroup.taskDefinition.containerPort = 0
