@@ -67,8 +67,6 @@ public class AccountsConfiguration {
     @Include private Boolean discoveryEnabled;
     @Include private String front50;
     @Include private Boolean front50Enabled;
-    @Include private String bastionHost;
-    @Include private Boolean bastionEnabled;
     @Include private String assumeRole;
     @Include private String sessionName;
     @Include private Integer sessionDurationSeconds;
@@ -209,22 +207,6 @@ public class AccountsConfiguration {
 
     public void setFront50Enabled(Boolean front50Enabled) {
       this.front50Enabled = front50Enabled;
-    }
-
-    public String getBastionHost() {
-      return bastionHost;
-    }
-
-    public void setBastionHost(String bastionHost) {
-      this.bastionHost = bastionHost;
-    }
-
-    public Boolean getBastionEnabled() {
-      return bastionEnabled;
-    }
-
-    public void setBastionEnabled(Boolean bastionEnabled) {
-      this.bastionEnabled = bastionEnabled;
     }
 
     public String getAssumeRole() {

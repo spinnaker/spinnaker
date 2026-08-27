@@ -63,7 +63,6 @@ import com.netflix.spinnaker.clouddriver.event.SpinnakerEvent
 import com.netflix.spinnaker.clouddriver.saga.config.SagaAutoConfiguration
 import com.netflix.spinnaker.credentials.CredentialsRepository
 import com.netflix.spinnaker.kork.aws.AwsComponents
-import com.netflix.spinnaker.kork.aws.bastion.BastionConfig
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer
 import org.springframework.beans.factory.annotation.Qualifier
@@ -81,7 +80,6 @@ import org.springframework.core.annotation.Order
 @ComponentScan(["com.netflix.spinnaker.clouddriver.aws"])
 @EnableConfigurationProperties(AwsConfigurationProperties)
 @Import([
-  BastionConfig,
   AmazonCredentialsInitializer,
   AwsComponents,
   SagaAutoConfiguration
