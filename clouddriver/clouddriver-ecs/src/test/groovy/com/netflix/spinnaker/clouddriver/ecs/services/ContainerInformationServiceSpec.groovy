@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.services
 
-import com.amazonaws.services.ec2.model.Instance
-import com.amazonaws.services.ec2.model.Placement
+import software.amazon.awssdk.services.ec2.model.Instance
+import software.amazon.awssdk.services.ec2.model.Placement
 import software.amazon.awssdk.services.ecs.model.Container
 import software.amazon.awssdk.services.ecs.model.ContainerDefinition
 import software.amazon.awssdk.services.ecs.model.HealthCheck
@@ -412,9 +412,9 @@ class ContainerInformationServiceSpec extends Specification {
       ec2InstanceId: 'i-deadbeef'
     )
 
-    def instance = new Instance(
-      privateIpAddress: ip
-    )
+    def instance = Instance.builder()
+      .privateIpAddress(ip)
+      .build()
 
     containerInstanceCacheClient.get(_) >> containerInstance
     ecsInstanceCacheClient.find(_, _, _) >> [instance]
@@ -465,7 +465,7 @@ class ContainerInformationServiceSpec extends Specification {
       ec2InstanceId: 'i-deadbeef'
     )
 
-    def instance = new Instance()
+    def instance = Instance.builder().build()
 
     containerInstanceCacheClient.get(_) >> containerInstance
     ecsInstanceCacheClient.find(_, _, _) >> [instance]
@@ -547,9 +547,9 @@ class ContainerInformationServiceSpec extends Specification {
       ec2InstanceId: 'i-deadbeef'
     )
 
-    def instance = new Instance(
-      privateIpAddress: '127.0.0.1'
-    )
+    def instance = Instance.builder()
+      .privateIpAddress('127.0.0.1')
+      .build()
 
     containerInstanceCacheClient.get(_) >> containerInstance
     ecsInstanceCacheClient.find(_, _, _) >> [instance]
@@ -587,9 +587,9 @@ class ContainerInformationServiceSpec extends Specification {
       ec2InstanceId: 'i-deadbeef'
     )
 
-    def instance = new Instance(
-      privateIpAddress: ip
-    )
+    def instance = Instance.builder()
+      .privateIpAddress(ip)
+      .build()
 
     containerInstanceCacheClient.get(_) >> containerInstance
     ecsInstanceCacheClient.find(_, _, _) >> [instance]
@@ -622,8 +622,8 @@ class ContainerInformationServiceSpec extends Specification {
 
     containerInstanceCacheClient.get(_) >> containerInstance
     ecsInstanceCacheClient.find(_, _, _) >> [
-      new Instance(instanceId: "id-1"),
-      new Instance(instanceId: "id-2")
+      Instance.builder().instanceId("id-1").build(),
+      Instance.builder().instanceId("id-2").build()
     ]
     ecsCredentialsConfig.getAccounts() >> [ecsAccount]
 
@@ -643,12 +643,12 @@ class ContainerInformationServiceSpec extends Specification {
       name: 'ecs-account',
       awsAccount: 'aws-test-account'
     )
-    def givenInstance = new Instance(
-      instanceId: 'i-deadbeef',
-      privateIpAddress: '0.0.0.0',
-      publicIpAddress: '127.0.0.1',
-      placement: new Placement(availabilityZone: 'us-west-1a')
-    )
+    def givenInstance = Instance.builder()
+      .instanceId('i-deadbeef')
+      .privateIpAddress('0.0.0.0')
+      .publicIpAddress('127.0.0.1')
+      .placement(Placement.builder().availabilityZone('us-west-1a').build())
+      .build()
 
     containerInstanceCacheClient.get(_) >> containerInstance
     ecsCredentialsConfig.getAccounts() >> [ecsAccount]
@@ -684,11 +684,11 @@ class ContainerInformationServiceSpec extends Specification {
       name: 'ecs-account',
       awsAccount: 'aws-test-account'
     )
-    def givenInstance = new Instance(
-      instanceId: 'i-deadbeef',
-      privateIpAddress: '0.0.0.0',
-      publicIpAddress: '127.0.0.1'
-    )
+    def givenInstance = Instance.builder()
+      .instanceId('i-deadbeef')
+      .privateIpAddress('0.0.0.0')
+      .publicIpAddress('127.0.0.1')
+      .build()
 
     containerInstanceCacheClient.get(_) >> containerInstance
     ecsCredentialsConfig.getAccounts() >> [ecsAccount]
@@ -743,11 +743,11 @@ class ContainerInformationServiceSpec extends Specification {
       name: 'ecs-account',
       awsAccount: 'aws-test-account'
     )
-    def givenInstance = new Instance(
-      instanceId: 'i-deadbeef',
-      privateIpAddress: '0.0.0.0',
-      publicIpAddress: '127.0.0.1'
-    )
+    def givenInstance = Instance.builder()
+      .instanceId('i-deadbeef')
+      .privateIpAddress('0.0.0.0')
+      .publicIpAddress('127.0.0.1')
+      .build()
 
     containerInstanceCacheClient.get(_) >> containerInstance
     ecsCredentialsConfig.getAccounts() >> [ecsAccount]
@@ -805,11 +805,11 @@ class ContainerInformationServiceSpec extends Specification {
     )
     def givenInstances = []
     0.upto(4, {
-      givenInstances << new Instance(
-        instanceId: "i-deadbee${it}",
-        privateIpAddress: '0.0.0.0',
-        publicIpAddress: '127.0.0.1'
-      )
+      givenInstances << Instance.builder()
+        .instanceId("i-deadbee${it}")
+        .privateIpAddress('0.0.0.0')
+        .publicIpAddress('127.0.0.1')
+        .build()
     })
 
     containerInstanceCacheClient.get(_) >> containerInstance
