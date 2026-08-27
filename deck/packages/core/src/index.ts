@@ -30,6 +30,7 @@ export * from './diffs';
 export * from './event/EventBus';
 
 export * from './filterModel';
+export * from './fleet';
 export * from './forms';
 
 export * from './healthCounts';

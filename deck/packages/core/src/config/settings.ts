@@ -79,6 +79,18 @@ export interface IManagedDeliveryURLs {
   previewEnvironments?: string;
 }
 
+/**
+ * Settings for a deployment where several Spinnaker instances sit behind a single global URL,
+ * with an edge router assigning each user to an instance. See gate/docs/fleet.md.
+ */
+export interface IFleetSettings {
+  enabled: boolean;
+  /** The fleet's single user-facing origin, e.g. `https://spinnaker.example.com`. */
+  globalUrl: string;
+  /** Identity of the instance serving this Deck, e.g. `inst-1`. Diagnostics only. */
+  instanceId?: string;
+}
+
 export interface ISpinnakerSettings {
   [key: string]: any;
   accountTagLimit?: number;
@@ -119,6 +131,7 @@ export interface ISpinnakerSettings {
     url: string;
   };
   additionalHelpLinks?: IAdditionalHelpLinks[];
+  fleet?: IFleetSettings;
   gateUrl: string;
   gitSources: string[];
   hiddenStages: string[];

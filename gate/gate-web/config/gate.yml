@@ -121,6 +121,41 @@ mcp:
     # tool call is also published as an event to Echo, alongside every other Spinnaker write.
     audit-echo-events: true
 
+# Running this Gate as one instance of a fleet of Spinnaker instances behind a single global URL.
+# Disabled by default - an operator must opt in. See gate/docs/fleet.md for the full deployment
+# guide, including the required forwarded-header, session-cookie and SAML settings, and the edge
+# router contract.
+fleet:
+  enabled: false
+  # The fleet's single user-facing base URL. Required when enabled. Requests whose effective host
+  # (after X-Forwarded-Host is applied) matches this are treated as having arrived via the fleet
+  # edge; anything else is a direct-to-instance hit. Also the redirect target for non-admins.
+  # global-base-url: https://spinnaker.example.com
+  #
+  # This instance's fleet identity, used for logging and Deck's fleet.instanceId setting. Routing
+  # is driven by the per-instance session cookie name at the edge, not by this value.
+  # instance-id: inst-1
+  #
+  # Request paths exempt from the direct-access guardrail (Ant syntax). The default is derived from
+  # the permitAll set in AuthConfig plus the SAML endpoints, so it never gates anything that is not
+  # already reachable unauthenticated. The configured saml.login-processing-url is always exempt in
+  # addition to this list. Override only to add site-specific integrations.
+  # exempt-paths:
+  #   - /error
+  #   - /favicon.ico
+  #   - /health
+  #   - /health/**
+  #   - /auth/user
+  #   - /auth/loggedOut
+  #   - /auth/logout
+  #   - /plugins/deck/**
+  #   - /webhooks/**
+  #   - /notifications/callbacks/**
+  #   - /managed/notifications/callbacks/**
+  #   - /saml/**
+  #   - /saml2/**
+  #   - /login/saml2/**
+
 spring:
   jackson:
     mapper:

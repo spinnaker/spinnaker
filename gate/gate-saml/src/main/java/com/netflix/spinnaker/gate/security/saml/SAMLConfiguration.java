@@ -26,7 +26,9 @@ import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.session.DefaultCookieSerializerCustomizer;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.web.server.Cookie;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -66,10 +68,32 @@ public class SAMLConfiguration {
     private final ObjectFactory<AuthenticationService> authenticationServiceFactory;
     private final ObjectFactory<AllowedAccountsSupport> allowedAccountsSupportFactory;
 
-    /** Disables the same-site requirement for cookies as configured in other SSO modules. */
+    /**
+     * Controls the session cookie's {@code SameSite} attribute.
+     *
+     * <p>Historically this unconditionally cleared the attribute (as the other SSO modules still
+     * do), because Spring Session's {@code DefaultCookieSerializer} defaults it to {@code Lax} and
+     * a strict {@code Lax} cookie is not returned on the cross-site POST an external IdP makes to
+     * the Assertion Consumer Service. Clearing it is still the default here, so existing
+     * deployments are unaffected.
+     *
+     * <p>It is now overridable: because Spring Boot's {@code SessionAutoConfiguration} applies
+     * {@code server.servlet.session.cookie.*} <em>before</em> {@link
+     * DefaultCookieSerializerCustomizer} beans, a hard-coded value here would silently win over the
+     * property. Reading the property and passing it through keeps the property meaningful, which
+     * matters for deployments whose IdP is on a different registrable domain from Spinnaker (making
+     * the ACS POST genuinely cross-site, where only {@code SameSite=None} with {@code Secure} is
+     * reliable across browsers) — for example a Spinnaker fleet behind a single global URL. See
+     * {@code gate/docs/fleet.md}.
+     */
     @Bean
-    public static DefaultCookieSerializerCustomizer defaultCookieSerializerCustomizer() {
-      return cookieSerializer -> cookieSerializer.setSameSite(null);
+    public static DefaultCookieSerializerCustomizer defaultCookieSerializerCustomizer(
+        ServerProperties serverProperties) {
+      Cookie.SameSite configured =
+          serverProperties.getServlet().getSession().getCookie().getSameSite();
+      // A null attribute value omits SameSite entirely, which is the long-standing default here.
+      String attributeValue = (configured != null) ? configured.attributeValue() : null;
+      return cookieSerializer -> cookieSerializer.setSameSite(attributeValue);
     }
 
     @Bean

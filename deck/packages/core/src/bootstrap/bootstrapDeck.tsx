@@ -22,6 +22,7 @@ import { SpinnakerContainer } from './SpinnakerContainer';
 import { initGoogleAnalytics } from '../analytics/react.ga';
 import { initializeAuthentication } from '../authentication/authentication.module';
 import { VersionChecker } from '../config/VersionChecker';
+import { FleetOriginGuard } from '../fleet/fleetOriginGuard';
 import '../navigation/coreRoutes';
 import { getDirectRouter, setDirectRouter } from '../navigation/directRouter';
 import { configureRouter, startRouter } from '../navigation/router';
@@ -118,6 +119,13 @@ function initializeInfrastructureCaches(runtime: DeckRuntime): void {
 async function runBootstrap(root: HTMLElement): Promise<void> {
   const authenticated = await initializeAuthentication();
   if (!authenticated) {
+    cleanupRuntime();
+    return;
+  }
+
+  // Must run after authentication: the guard needs isAdmin, which only exists once /auth/user has
+  // resolved. Returns false when it has started a redirect to the fleet's global URL.
+  if (!FleetOriginGuard.enforce()) {
     cleanupRuntime();
     return;
   }

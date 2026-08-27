@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.gate.filters;
 
-import com.netflix.spinnaker.gate.security.apitoken.ApiTokenAuthenticationFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Locale;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -26,11 +25,16 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
 /**
- * Centralised classification of the auth mechanism for an inbound request, used by {@link
- * RequestMetricsFilter} to tag {@code gate.requests}. Auth filters can publish an authoritative tag
- * via {@link #AUTH_TYPE_ATTRIBUTE} (low-cardinality string); otherwise we fall back to heuristics
- * over {@link SecurityContextHolder}. {@link ApiTokenAuthenticationFilter} sets {@link
- * #TYPE_API_TOKEN}.
+ * Centralised classification of the auth mechanism for an inbound request, used by {@code
+ * RequestMetricsFilter} to tag {@code gate.requests} and by {@link FleetDirectAccessFilter} to
+ * restrict its guardrail to browser sessions. Auth filters can publish an authoritative tag via
+ * {@link #AUTH_TYPE_ATTRIBUTE} (low-cardinality string); otherwise we fall back to heuristics over
+ * {@link SecurityContextHolder}. {@code ApiTokenAuthenticationFilter} sets {@link #TYPE_API_TOKEN}.
+ *
+ * <p>Lives in {@code gate-core} so filters in either module can use it without inverting the
+ * gate-core ← gate-web module dependency; {@code RequestMetricsFilter} and {@code
+ * ApiTokenAuthenticationFilter} are referenced as {@code @code} rather than {@code @link} for that
+ * reason.
  */
 public final class AuthTypeResolver {
 
@@ -106,7 +110,7 @@ public final class AuthTypeResolver {
   }
 
   /**
-   * Returns the principal-kind tag for the request. Only {@link ApiTokenAuthenticationFilter}
+   * Returns the principal-kind tag for the request. Only {@code ApiTokenAuthenticationFilter}
    * populates this today; everything else is {@link #PRINCIPAL_KIND_UNKNOWN}.
    */
   public static String resolvePrincipalKind(HttpServletRequest request) {

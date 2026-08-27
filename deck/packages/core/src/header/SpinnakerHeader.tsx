@@ -7,6 +7,7 @@ import { verticalNavExpandedAtom } from '../application/nav/navAtoms';
 import { UserMenu } from '../authentication/userMenu/UserMenu';
 import { GlobalBannerDisplay } from '../banner/global/GlobalBannerDisplay';
 import { CollapsibleSectionStateCache } from '../cache';
+import { FleetInstanceBadge } from '../fleet/FleetInstanceBadge';
 import { HelpMenu } from '../help/HelpMenu';
 import { overridableComponent } from '../overrideRegistry';
 import { GlobalSearch } from '../search/global/GlobalSearch';
@@ -104,6 +105,7 @@ export const SpinnakerHeaderContent = () => {
               <GlobalSearch />
             </ul>
             <ul className="nav nav-items">
+              <FleetInstanceBadge />
               <UserMenu />
               <HelpMenu />
             </ul>

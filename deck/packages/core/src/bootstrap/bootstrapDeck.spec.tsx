@@ -20,6 +20,7 @@ import { GlobalBannerService } from '../banner/global/GlobalBannerService';
 import { bootstrapDeck, createDeckRoot, resetBootstrapDeckForTests } from './bootstrapDeck';
 import { CacheInitializerService } from '../cache/cacheInitializer.service';
 import { SETTINGS } from '../config/settings';
+import { FleetOriginGuard } from '../fleet/fleetOriginGuard';
 import { getDirectRouter, setDirectRouter } from '../navigation/directRouter';
 import { configureRouter } from '../navigation/router';
 import { NotificationService } from '../notification/NotificationService';
@@ -498,6 +499,39 @@ describe('bootstrapDeck', () => {
     expect(renderSpy).not.toHaveBeenCalled();
     expect(listenSpy).not.toHaveBeenCalled();
     expect(syncSpy).not.toHaveBeenCalled();
+  });
+
+  it('stops without rendering when the fleet origin guard starts a redirect', async () => {
+    const root = createRoot();
+    const fleetGuardSpy = spyOn(FleetOriginGuard, 'enforce').and.returnValue(false);
+
+    await bootstrapDeck(root);
+
+    expect(fleetGuardSpy).toHaveBeenCalledTimes(1);
+    expect(deckManifestSpy).not.toHaveBeenCalled();
+    expect(routerPluginSpy).not.toHaveBeenCalled();
+    expect(cacheInitializeSpy).not.toHaveBeenCalled();
+    expect(renderSpy).not.toHaveBeenCalled();
+    expect(listenSpy).not.toHaveBeenCalled();
+    expect(syncSpy).not.toHaveBeenCalled();
+  });
+
+  it('runs the fleet origin guard only after authentication resolves', async () => {
+    const root = createRoot();
+    const callOrder: string[] = [];
+    authenticationSpy.and.callFake(() => {
+      callOrder.push('authenticate');
+      return Promise.resolve(true);
+    });
+    spyOn(FleetOriginGuard, 'enforce').and.callFake(() => {
+      callOrder.push('fleetGuard');
+      return true;
+    });
+
+    await bootstrapDeck(root);
+
+    expect(callOrder).toEqual(['authenticate', 'fleetGuard']);
+    expect(renderSpy).toHaveBeenCalled();
   });
 
   it('does not request dynamic metadata before authentication succeeds', async () => {

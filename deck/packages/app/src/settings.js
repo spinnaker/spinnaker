@@ -35,6 +35,10 @@ const dryRunEnabled = import.meta.env.VITE_DRYRUN_ENABLED === 'true' || process.
 const entityTagsEnabled =
   import.meta.env.VITE_ENTITY_TAGS_ENABLED === 'true' || process.env.ENTITY_TAGS_ENABLED === 'true' || false;
 const fiatEnabled = import.meta.env.VITE_FIAT_ENABLED === 'true' || process.env.FIAT_ENABLED === 'true' || false;
+// Fleet mode: several Spinnaker instances behind one global URL. See gate/docs/fleet.md.
+const fleetEnabled = import.meta.env.VITE_FLEET_ENABLED === 'true' || process.env.FLEET_ENABLED === 'true' || false;
+const fleetGlobalUrl = import.meta.env.VITE_FLEET_GLOBAL_URL || process.env.FLEET_GLOBAL_URL || '';
+const fleetInstanceId = import.meta.env.VITE_FLEET_INSTANCE_ID || process.env.FLEET_INSTANCE_ID || '';
 const gceScaleDownControlsEnabled =
   import.meta.env.VITE_GCE_SCALE_DOWN_CONTROLS_ENABLED === 'true' ||
   process.env.GCE_SCALE_DOWN_CONTROLS_ENABLED === 'true' ||
@@ -141,6 +145,11 @@ window.spinnakerSettings = {
     functions: functionsEnabled,
     helmApiVersions: helmApiVersionsEnabled,
     kubernetesRawResources: k8sRawResourcesEnabled,
+  },
+  fleet: {
+    enabled: fleetEnabled,
+    globalUrl: fleetGlobalUrl,
+    instanceId: fleetInstanceId,
   },
   gateUrl: apiHost,
   gitSources: ['stash', 'github', 'bitbucket', 'gitlab'],

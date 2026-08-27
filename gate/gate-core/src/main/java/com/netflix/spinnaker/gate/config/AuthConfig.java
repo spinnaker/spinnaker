@@ -21,6 +21,7 @@ import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.fiat.shared.FiatStatus;
 import com.netflix.spinnaker.gate.filters.FiatSessionFilter;
+import com.netflix.spinnaker.gate.filters.FleetDirectAccessFilter;
 import com.netflix.spinnaker.gate.services.ServiceAccountFilterConfigProps;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +35,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 
 @Configuration
@@ -41,7 +43,8 @@ import org.springframework.security.web.authentication.AnonymousAuthenticationFi
   ServiceConfiguration.class,
   ServiceAccountFilterConfigProps.class,
   FiatClientConfigurationProperties.class,
-  DynamicRoutingConfigProperties.class
+  DynamicRoutingConfigProperties.class,
+  FleetConfigurationProperties.class
 })
 @NonnullByDefault
 @RequiredArgsConstructor
@@ -50,6 +53,7 @@ public class AuthConfig {
   private final FiatStatus fiatStatus;
   private final FiatPermissionEvaluator permissionEvaluator;
   private final RequestMatcherProvider requestMatcherProvider;
+  private final FleetConfigurationProperties fleetConfigurationProperties;
 
   @Setter(
       onMethod_ = {@Autowired},
@@ -65,6 +69,16 @@ public class AuthConfig {
       onMethod_ = {@Autowired},
       onParam_ = {@Value("${security.webhooks.default-auth-enabled:false}")})
   private boolean webhookDefaultAuthEnabled;
+
+  /**
+   * The SAML Assertion Consumer Service path, always exempted from the fleet direct-access
+   * guardrail. With a per-instance ACS the IdP POSTs the assertion straight to an instance's own
+   * hostname, so gating it would make login impossible for non-admins.
+   */
+  @Setter(
+      onMethod_ = {@Autowired},
+      onParam_ = {@Value("${saml.login-processing-url:/saml/SSO}")})
+  private String samlLoginProcessingUrl = "/saml/SSO";
 
   @Bean
   public WebSecurityCustomizer securityDebugCustomizer() {
@@ -115,6 +129,14 @@ public class AuthConfig {
     if (fiatSessionFilterEnabled) {
       var filter = new FiatSessionFilter(fiatStatus, permissionEvaluator);
       http.addFilterBefore(filter, AnonymousAuthenticationFilter.class);
+    }
+
+    if (fleetConfigurationProperties.isEnabled()) {
+      // After AuthorizationFilter so the SecurityContext is populated and admin status is known.
+      var filter =
+          new FleetDirectAccessFilter(
+              fleetConfigurationProperties, permissionEvaluator, samlLoginProcessingUrl);
+      http.addFilterAfter(filter, AuthorizationFilter.class);
     }
   }
 }

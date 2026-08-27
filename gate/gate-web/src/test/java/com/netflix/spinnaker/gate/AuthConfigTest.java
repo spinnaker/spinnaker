@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.gate.config.AuthConfig;
+import com.netflix.spinnaker.gate.filters.FleetDirectAccessFilter;
 import com.netflix.spinnaker.gate.health.DownstreamServicesHealthIndicator;
 import com.netflix.spinnaker.gate.security.basic.BasicAuthConfig;
 import com.netflix.spinnaker.gate.services.ApplicationService;
@@ -26,6 +27,7 @@ import com.netflix.spinnaker.gate.services.DefaultProviderLookupService;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -91,9 +93,24 @@ class AuthConfigTest {
   /** To prevent attempts to load accounts */
   @MockitoBean DefaultProviderLookupService defaultProviderLookupService;
 
+  @Autowired List<SecurityFilterChain> securityFilterChains;
+
   @BeforeEach
   void init(TestInfo testInfo) {
     System.out.println("--------------- Test " + testInfo.getDisplayName());
+  }
+
+  /**
+   * fleet.enabled defaults to false, so a stock deployment must not carry the fleet guardrail at
+   * all. See FleetEnabledAuthConfigTest for the enabled case.
+   */
+  @Test
+  void fleetFilterAbsentByDefault() {
+    assertThat(
+            securityFilterChains.stream()
+                .flatMap(chain -> chain.getFilters().stream())
+                .anyMatch(FleetDirectAccessFilter.class::isInstance))
+        .isFalse();
   }
 
   @Test
