@@ -16,17 +16,14 @@
 
 package com.netflix.spinnaker.echo.config;
 
-import com.netflix.spinnaker.kork.aws.bastion.BastionConfig;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 
 @Configuration
 @ConditionalOnExpression("${pubsub.enabled:false} && ${pubsub.amazon.enabled:false}")
-@Import(BastionConfig.class)
 @EnableConfigurationProperties(AmazonPubsubProperties.class)
 public class AmazonPubsubConfig {
 
