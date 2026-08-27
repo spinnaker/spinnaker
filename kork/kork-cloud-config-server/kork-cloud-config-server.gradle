@@ -9,7 +9,9 @@ dependencies {
   implementation project(':kork-secrets')
   implementation "org.springframework.cloud:spring-cloud-context"
   implementation "org.springframework.cloud:spring-cloud-config-server"
-  implementation "io.awspring.cloud:spring-cloud-aws-context:2.3.5"
+  // awspring 3.x starter: registers S3ProtocolResolver so Spring's ResourceLoader
+  // can resolve s3:// URIs against AWS SDK v2 (replaces spring-cloud-aws-context 2.x).
+  implementation "io.awspring.cloud:spring-cloud-aws-starter-s3"
 
   testImplementation project(':kork-config')
   testImplementation "org.springframework.boot:spring-boot-starter-test"
