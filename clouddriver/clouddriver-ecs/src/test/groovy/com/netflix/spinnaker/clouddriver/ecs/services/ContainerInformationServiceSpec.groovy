@@ -19,11 +19,11 @@ package com.netflix.spinnaker.clouddriver.ecs.services
 import com.amazonaws.services.ec2.model.Instance
 import com.amazonaws.services.ec2.model.Placement
 import software.amazon.awssdk.services.ecs.model.Container
-import com.amazonaws.services.ecs.model.ContainerDefinition
-import com.amazonaws.services.ecs.model.HealthCheck
-import com.amazonaws.services.ecs.model.LoadBalancer
+import software.amazon.awssdk.services.ecs.model.ContainerDefinition
+import software.amazon.awssdk.services.ecs.model.HealthCheck
+import software.amazon.awssdk.services.ecs.model.LoadBalancer
 import software.amazon.awssdk.services.ecs.model.NetworkBinding
-import com.amazonaws.services.ecs.model.TaskDefinition
+import software.amazon.awssdk.services.ecs.model.TaskDefinition
 import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetHealth
 import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetHealthDescription
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.*
@@ -66,7 +66,7 @@ class ContainerInformationServiceSpec extends Specification {
 
     def cachedService = new Service(
       serviceName: serviceName,
-      loadBalancers: [new LoadBalancer()]
+      loadBalancers: [LoadBalancer.builder().build()]
     )
 
     def cachedTaskHealth = new TaskHealth(
@@ -78,7 +78,7 @@ class ContainerInformationServiceSpec extends Specification {
     serviceCacheClient.get(_) >> cachedService
     taskHealthCacheClient.get(_) >> cachedTaskHealth
     taskCacheClient.get(_) >> new Task(lastStatus: 'RUNNING')
-    taskDefinitionCacheClient.get(_) >> new TaskDefinition()
+    taskDefinitionCacheClient.get(_) >> TaskDefinition.builder().build()
 
     def expectedHealthStatus = [
       [
@@ -116,7 +116,7 @@ class ContainerInformationServiceSpec extends Specification {
 
     serviceCacheClient.get(_) >> null
     taskHealthCacheClient.get(_) >> cachedTaskHealth
-    taskDefinitionCacheClient.get(_) >> new TaskDefinition()
+    taskDefinitionCacheClient.get(_) >> TaskDefinition.builder().build()
 
     def expectedHealthStatus = [
       [
@@ -141,7 +141,7 @@ class ContainerInformationServiceSpec extends Specification {
 
     def cachedService = new Service(
       serviceName: serviceName,
-      loadBalancers: [new LoadBalancer()]
+      loadBalancers: [LoadBalancer.builder().build()]
     )
 
     serviceCacheClient.get(_) >> cachedService
@@ -168,12 +168,12 @@ class ContainerInformationServiceSpec extends Specification {
     def serviceName = 'test-service-name'
     def cachedService = new Service(
       serviceName: serviceName,
-      loadBalancers: [new LoadBalancer()]
+      loadBalancers: [LoadBalancer.builder().build()]
     )
 
     serviceCacheClient.get(_) >> cachedService
     taskCacheClient.get(_) >> new Task(lastStatus: lastStatus, healthStatus: healthStatus)
-    taskDefinitionCacheClient.get(_) >> new TaskDefinition()
+    taskDefinitionCacheClient.get(_) >> TaskDefinition.builder().build()
     def expectedHealthStatus = [
       [
         instanceId: taskId,
@@ -210,14 +210,14 @@ class ContainerInformationServiceSpec extends Specification {
     def serviceName = 'test-service-name'
     def cachedService = new Service(
       serviceName: serviceName,
-      loadBalancers: [new LoadBalancer()]
+      loadBalancers: [LoadBalancer.builder().build()]
     )
 
     serviceCacheClient.get(_) >> cachedService
     taskCacheClient.get(_) >> new Task(lastStatus: lastStatus, healthStatus: healthStatus)
-    taskDefinitionCacheClient.get(_) >> new TaskDefinition(containerDefinitions:  Lists.newArrayList(new ContainerDefinition
-      (healthCheck: new HealthCheck(
-        command: Lists.newArrayList("myCommand")))))
+    taskDefinitionCacheClient.get(_) >> TaskDefinition.builder().containerDefinitions(
+      ContainerDefinition.builder().healthCheck(HealthCheck.builder().command(Lists.newArrayList("myCommand")).build()).build()
+    ).build()
     def expectedHealthStatus = [
       [
         instanceId: taskId,
@@ -260,12 +260,12 @@ class ContainerInformationServiceSpec extends Specification {
 
     def cachedService = new Service(
       serviceName: serviceName,
-      loadBalancers: [new LoadBalancer()]
+      loadBalancers: [LoadBalancer.builder().build()]
     )
 
     serviceCacheClient.get(_) >> cachedService
     taskCacheClient.get(_) >> new Task(lastStatus: lastStatus, healthStatus: healthStatus)
-    taskDefinitionCacheClient.get(_) >> new TaskDefinition(containerDefinitions:  Lists.newArrayList(new ContainerDefinition(healthCheck: null)))
+    taskDefinitionCacheClient.get(_) >> TaskDefinition.builder().containerDefinitions(ContainerDefinition.builder().build()).build()
     targetHealthCacheClient.get(_) >> null
 
     def expectedHealthStatus = [
@@ -302,12 +302,12 @@ class ContainerInformationServiceSpec extends Specification {
 
     def cachedService = new Service(
       serviceName: serviceName,
-      loadBalancers: [new LoadBalancer()]
+      loadBalancers: [LoadBalancer.builder().build()]
     )
 
     serviceCacheClient.get(_) >> cachedService
     taskCacheClient.get(_) >> new Task(lastStatus: lastStatus, healthStatus: healthStatus)
-    taskDefinitionCacheClient.get(_) >> new TaskDefinition(containerDefinitions:  Lists.newArrayList(new ContainerDefinition(healthCheck: null)))
+    taskDefinitionCacheClient.get(_) >> TaskDefinition.builder().containerDefinitions(ContainerDefinition.builder().build()).build()
     targetHealthCacheClient.get(_) >> new EcsTargetHealth(targetHealthDescriptions: List.of(
       TargetHealthDescription.builder().targetHealth(TargetHealth.builder().state(targetHealthStatus).build()).build()
     ))
@@ -349,12 +349,12 @@ class ContainerInformationServiceSpec extends Specification {
 
     def cachedService = new Service(
       serviceName: serviceName,
-      loadBalancers: [new LoadBalancer()]
+      loadBalancers: [LoadBalancer.builder().build()]
     )
 
     serviceCacheClient.get(_) >> cachedService
     taskCacheClient.get(_) >> new Task(lastStatus: lastStatus, healthStatus: healthStatus)
-    taskDefinitionCacheClient.get(_) >> new TaskDefinition(containerDefinitions:  Lists.newArrayList(new ContainerDefinition(healthCheck: null)))
+    taskDefinitionCacheClient.get(_) >> TaskDefinition.builder().containerDefinitions(ContainerDefinition.builder().build()).build()
     targetHealthCacheClient.get(_) >> new EcsTargetHealth(targetHealthDescriptions: List.of(
       TargetHealthDescription.builder().targetHealth(TargetHealth.builder().state(targetHealthStatus1).build()).build(),
       TargetHealthDescription.builder().targetHealth(TargetHealth.builder().state(targetHealthStatus2).build()).build()

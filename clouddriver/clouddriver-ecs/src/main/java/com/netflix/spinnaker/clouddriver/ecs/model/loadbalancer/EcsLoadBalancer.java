@@ -15,7 +15,6 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.model.loadbalancer;
 
-import com.amazonaws.services.elasticloadbalancingv2.model.Listener;
 import com.netflix.spinnaker.clouddriver.ecs.EcsCloudProvider;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup;
@@ -23,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.Data;
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.Listener;
 
 @Data
 public class EcsLoadBalancer implements LoadBalancer {
