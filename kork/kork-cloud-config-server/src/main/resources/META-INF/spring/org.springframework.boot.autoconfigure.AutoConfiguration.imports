@@ -1,1 +1,2 @@
 com.netflix.spinnaker.kork.configserver.autoconfig.CloudConfigAutoConfiguration
+com.netflix.spinnaker.kork.configserver.autoconfig.AwsS3ProtocolResolverConfiguration
