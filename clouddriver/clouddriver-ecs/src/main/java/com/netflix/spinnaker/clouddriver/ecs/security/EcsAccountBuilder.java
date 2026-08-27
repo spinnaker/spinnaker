@@ -36,8 +36,6 @@ public class EcsAccountBuilder {
     account.setAccountId(netflixAmazonCredentials.getAccountId());
     account.setAllowPrivateThirdPartyImages(
         netflixAmazonCredentials.getAllowPrivateThirdPartyImages());
-    account.setBastionEnabled(netflixAmazonCredentials.isBastionEnabled());
-    account.setBastionHost(netflixAmazonCredentials.getBastionHost());
     account.setEdda(account.getEdda());
 
     account.setDiscoveryEnabled(netflixAmazonCredentials.isDiscoveryEnabled());

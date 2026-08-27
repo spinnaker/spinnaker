@@ -10,7 +10,6 @@ import com.netflix.spinnaker.front50.jackson.mixins.TimestampedMixins;
 import com.netflix.spinnaker.front50.model.*;
 import com.netflix.spinnaker.front50.plugins.PluginBinaryStorageService;
 import com.netflix.spinnaker.front50.plugins.S3PluginBinaryStorageService;
-import com.netflix.spinnaker.kork.aws.bastion.BastionConfig;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Optional;
@@ -21,7 +20,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
@@ -38,7 +36,6 @@ import software.amazon.awssdk.services.sqs.SqsClient;
  */
 @Configuration
 @ConditionalOnProperty("spinnaker.s3.enabled")
-@Import(BastionConfig.class)
 @EnableConfigurationProperties({S3MetadataStorageProperties.class, S3PluginStorageProperties.class})
 public class S3Config {
 

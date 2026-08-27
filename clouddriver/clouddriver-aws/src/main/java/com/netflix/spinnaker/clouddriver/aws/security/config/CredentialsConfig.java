@@ -185,7 +185,6 @@ public class CredentialsConfig {
   private List<LifecycleHook> defaultLifecycleHooks;
   private String defaultEddaTemplate;
   private String defaultFront50Template;
-  private String defaultBastionHostTemplate;
   private String defaultDiscoveryTemplate;
   private String defaultAssumeRole;
   private String defaultSessionName;
@@ -231,14 +230,6 @@ public class CredentialsConfig {
 
   public void setDefaultFront50Template(String defaultFront50Template) {
     this.defaultFront50Template = defaultFront50Template;
-  }
-
-  public String getDefaultBastionHostTemplate() {
-    return defaultBastionHostTemplate;
-  }
-
-  public void setDefaultBastionHostTemplate(String defaultBastionHostTemplate) {
-    this.defaultBastionHostTemplate = defaultBastionHostTemplate;
   }
 
   public String getDefaultDiscoveryTemplate() {
