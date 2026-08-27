@@ -428,10 +428,6 @@ public class AmazonCredentialsParser<
         account.getSessionDurationSeconds() != null
             ? account.getSessionDurationSeconds()
             : config.getDefaultSessionDurationSeconds());
-    account.setBastionHost(
-        templateFirstNonNull(
-            templateContext, account.getBastionHost(), config.getDefaultBastionHostTemplate()));
-
     if (account.getLifecycleHooks() != null) {
       for (CredentialsConfig.LifecycleHook lifecycleHook : account.getLifecycleHooks()) {
         lifecycleHook.setRoleARN(
