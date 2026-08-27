@@ -22,6 +22,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
+import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module;
 import com.netflix.spinnaker.clouddriver.ecs.TestCredential;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.ServiceCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.Service;
@@ -38,7 +39,7 @@ import software.amazon.awssdk.services.ecs.model.NetworkConfiguration;
 import spock.lang.Subject;
 
 public class ServiceCacheClientTest extends CommonCacheClient {
-  private final ObjectMapper mapper = new ObjectMapper();
+  private final ObjectMapper mapper = new ObjectMapper().registerModule(new AwsSdkV2Module());
 
   @Subject private final ServiceCacheClient client = new ServiceCacheClient(cacheView, mapper);
 
