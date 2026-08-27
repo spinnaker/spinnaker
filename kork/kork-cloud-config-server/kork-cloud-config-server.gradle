@@ -9,9 +9,15 @@ dependencies {
   implementation project(':kork-secrets')
   implementation "org.springframework.cloud:spring-cloud-context"
   implementation "org.springframework.cloud:spring-cloud-config-server"
-  // awspring 3.x starter: registers S3ProtocolResolver so Spring's ResourceLoader
-  // can resolve s3:// URIs against AWS SDK v2 (replaces spring-cloud-aws-context 2.x).
-  implementation "io.awspring.cloud:spring-cloud-aws-starter-s3"
+  // Bare S3 module only (not the "starter"): gives us S3ProtocolResolver/S3Client so Spring's
+  // ResourceLoader can resolve s3:// URIs against AWS SDK v2 (replaces spring-cloud-aws-context
+  // 2.x), without pulling in spring-cloud-aws-autoconfigure's unrelated per-service
+  // @AutoConfiguration classes (SNS, SQS, DynamoDB, SecretsManager, ParameterStore, SES,
+  // CloudWatch metrics), which end up on the runtime classpath of every service that depends on
+  // kork-cloud-config-server and would otherwise auto-activate and require a resolvable AWS
+  // region at startup. We wire S3Client/S3ProtocolResolver ourselves in
+  // AwsS3ProtocolResolverConfiguration, gated the same way the SDK v1 config was.
+  implementation "io.awspring.cloud:spring-cloud-aws-s3"
 
   testImplementation project(':kork-config')
   testImplementation "org.springframework.boot:spring-boot-starter-test"
