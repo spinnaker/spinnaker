@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer
 
-import com.amazonaws.AmazonServiceException
-import com.amazonaws.services.elasticloadbalancing.model.*
-import com.amazonaws.services.shield.AWSShield
-import com.amazonaws.services.shield.model.CreateProtectionRequest
+import software.amazon.awssdk.awscore.exception.AwsServiceException
+import software.amazon.awssdk.services.elasticloadbalancing.model.*
+import software.amazon.awssdk.services.shield.ShieldClient
+import software.amazon.awssdk.services.shield.model.CreateProtectionRequest
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerClassicDescription
@@ -88,7 +88,7 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
 
       task.updateStatus BASE_PHASE, "Beginning deployment to $region in $availabilityZones for $loadBalancerName"
 
-      def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(description.credentials, region, true)
+      def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancingClassicV2(description.credentials, region)
 
       LoadBalancerDescription loadBalancer = null
 
@@ -96,28 +96,29 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
       List<Listener> listeners = []
       description.listeners
         .each { UpsertAmazonLoadBalancerClassicDescription.Listener listener ->
-          def awsListener = new Listener()
-          awsListener.withLoadBalancerPort(listener.externalPort).withInstancePort(listener.internalPort)
+          def awsListenerBuilder = Listener.builder()
+          awsListenerBuilder.loadBalancerPort(listener.externalPort).instancePort(listener.internalPort)
 
-          awsListener.withProtocol(listener.externalProtocol.name())
+          awsListenerBuilder.protocol(listener.externalProtocol.name())
           if (listener.internalProtocol && (listener.externalProtocol != listener.internalProtocol)) {
-            awsListener.withInstanceProtocol(listener.internalProtocol.name())
+            awsListenerBuilder.instanceProtocol(listener.internalProtocol.name())
           } else {
-            awsListener.withInstanceProtocol(listener.externalProtocol.name())
+            awsListenerBuilder.instanceProtocol(listener.externalProtocol.name())
           }
           if (listener.sslCertificateId) {
             task.updateStatus BASE_PHASE, "Attaching listener with SSL ServerCertificate: ${listener.sslCertificateId}"
-            awsListener.withSSLCertificateId(listener.sslCertificateId)
+            awsListenerBuilder.sslCertificateId(listener.sslCertificateId)
           }
+          def awsListener = awsListenerBuilder.build()
           listeners << awsListener
-          task.updateStatus BASE_PHASE, "Appending listener ${awsListener.protocol}:${awsListener.loadBalancerPort} -> ${awsListener.instanceProtocol}:${awsListener.instancePort}"
+          task.updateStatus BASE_PHASE, "Appending listener ${awsListener.protocol()}:${awsListener.loadBalancerPort()} -> ${awsListener.instanceProtocol()}:${awsListener.instancePort()}"
         }
 
       try {
-        loadBalancer = loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest([loadBalancerName]))?.
-                loadBalancerDescriptions?.getAt(0)
+        loadBalancer = loadBalancing.describeLoadBalancers(DescribeLoadBalancersRequest.builder().loadBalancerNames([loadBalancerName]).build())?.
+                loadBalancerDescriptions()?.getAt(0)
         task.updateStatus BASE_PHASE, "Found existing load balancer named ${loadBalancerName} in ${region}... Using that."
-      } catch (AmazonServiceException ignore) {
+      } catch (AwsServiceException ignore) {
       }
 
       Set<String> securityGroups = regionScopedProvider.securityGroupService.getSecurityGroupIds(description.securityGroups, description.vpcId)
@@ -139,7 +140,7 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
           String application = null
           try {
             application = Names.parseName(description.name).getApp() ?: Names.parseName(description.clusterName).getApp()
-            Set<Integer> ports = listeners.collect { l -> l.getInstancePort() }
+            Set<Integer> ports = listeners.collect { l -> l.instancePort() }
             if (description.healthCheckPort) {
               ports.add(description.healthCheckPort)
             }
@@ -168,11 +169,12 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
         if (!description.isInternal && description.credentials.shieldEnabled && description.shieldProtectionEnabled) {
           task.updateStatus BASE_PHASE, "Configuring AWS Shield for ${loadBalancerName} in ${region}..."
           try {
-            AWSShield shieldClient = amazonClientProvider.getAmazonShield(description.credentials, region)
+            ShieldClient shieldClient = amazonClientProvider.getAmazonShieldV2(description.credentials, region)
             shieldClient.createProtection(
-              new CreateProtectionRequest()
-                .withName(loadBalancerName)
-                .withResourceArn(loadBalancerArn(description.credentials.accountId, region, loadBalancerName))
+              CreateProtectionRequest.builder()
+                .name(loadBalancerName)
+                .resourceArn(loadBalancerArn(description.credentials.accountId, region, loadBalancerName))
+                .build()
             )
             task.updateStatus BASE_PHASE, "AWS Shield configured for ${loadBalancerName} in ${region}."
           } catch (Exception e) {
@@ -181,17 +183,17 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
           }
         }
       } else {
-        dnsName = loadBalancer.DNSName
+        dnsName = loadBalancer.dnsName()
         LoadBalancerUpsertHandler.updateLoadBalancer(loadBalancing, loadBalancer, listeners, securityGroups)
       }
 
       // Configure health checks
       if (description.healthCheck) {
         task.updateStatus BASE_PHASE, "Configuring healthcheck for ${loadBalancerName} in ${region}..."
-        def healthCheck = new ConfigureHealthCheckRequest(loadBalancerName, new HealthCheck()
-                .withTarget(description.healthCheck).withInterval(description.healthInterval)
-                .withTimeout(description.healthTimeout).withUnhealthyThreshold(description.unhealthyThreshold)
-                .withHealthyThreshold(description.healthyThreshold))
+        def healthCheck = ConfigureHealthCheckRequest.builder().loadBalancerName(loadBalancerName).healthCheck(HealthCheck.builder()
+                .target(description.healthCheck).interval(description.healthInterval)
+                .timeout(description.healthTimeout).unhealthyThreshold(description.unhealthyThreshold)
+                .healthyThreshold(description.healthyThreshold).build()).build()
         loadBalancing.configureHealthCheck(healthCheck)
         task.updateStatus BASE_PHASE, "Healthcheck configured."
       }
@@ -201,52 +203,54 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
       ConnectionSettings connectionSettings = null
 
       if (loadBalancer) {
-        def currentAttributes = loadBalancing.describeLoadBalancerAttributes(new DescribeLoadBalancerAttributesRequest().withLoadBalancerName(loadBalancerName)).loadBalancerAttributes
+        def currentAttributes = loadBalancing.describeLoadBalancerAttributes(DescribeLoadBalancerAttributesRequest.builder().loadBalancerName(loadBalancerName).build()).loadBalancerAttributes()
 
-        Boolean crossZoneBalancingEnabled = [description.crossZoneBalancing, currentAttributes?.crossZoneLoadBalancing?.enabled, deployDefaults.loadBalancing.crossZoneBalancingDefault].findResult(Closure.IDENTITY)
+        Boolean crossZoneBalancingEnabled = [description.crossZoneBalancing, currentAttributes?.crossZoneLoadBalancing()?.enabled(), deployDefaults.loadBalancing.crossZoneBalancingDefault].findResult(Closure.IDENTITY)
 
-        if (crossZoneBalancingEnabled != currentAttributes?.crossZoneLoadBalancing?.enabled) {
-          crossZoneLoadBalancing = new CrossZoneLoadBalancing(enabled: crossZoneBalancingEnabled)
+        if (crossZoneBalancingEnabled != currentAttributes?.crossZoneLoadBalancing()?.enabled()) {
+          crossZoneLoadBalancing = CrossZoneLoadBalancing.builder().enabled(crossZoneBalancingEnabled).build()
         }
 
-        Boolean connectionDrainingEnabled = [description.connectionDraining, currentAttributes?.connectionDraining?.enabled, deployDefaults.loadBalancing.connectionDrainingDefault].findResult(Closure.IDENTITY)
-        Integer deregistrationDelay = [description.deregistrationDelay, currentAttributes?.connectionDraining?.timeout, deployDefaults.loadBalancing.deregistrationDelayDefault].findResult(Closure.IDENTITY)
+        Boolean connectionDrainingEnabled = [description.connectionDraining, currentAttributes?.connectionDraining()?.enabled(), deployDefaults.loadBalancing.connectionDrainingDefault].findResult(Closure.IDENTITY)
+        Integer deregistrationDelay = [description.deregistrationDelay, currentAttributes?.connectionDraining()?.timeout(), deployDefaults.loadBalancing.deregistrationDelayDefault].findResult(Closure.IDENTITY)
 
-        if (connectionDrainingEnabled != currentAttributes?.connectionDraining?.enabled || deregistrationDelay != currentAttributes?.connectionDraining?.timeout) {
-          connectionDraining = new ConnectionDraining(
-            enabled: connectionDrainingEnabled,
-            timeout: deregistrationDelay)
+        if (connectionDrainingEnabled != currentAttributes?.connectionDraining()?.enabled() || deregistrationDelay != currentAttributes?.connectionDraining()?.timeout()) {
+          connectionDraining = ConnectionDraining.builder()
+            .enabled(connectionDrainingEnabled)
+            .timeout(deregistrationDelay).build()
         }
 
-        Integer idleTimeout = [description.idleTimeout, currentAttributes?.connectionSettings?.idleTimeout, deployDefaults.loadBalancing.idleTimeout].findResult(Closure.IDENTITY)
-        if (idleTimeout != currentAttributes?.connectionSettings?.idleTimeout) {
-          connectionSettings = new ConnectionSettings( idleTimeout: idleTimeout )
+        Integer idleTimeout = [description.idleTimeout, currentAttributes?.connectionSettings()?.idleTimeout(), deployDefaults.loadBalancing.idleTimeout].findResult(Closure.IDENTITY)
+        if (idleTimeout != currentAttributes?.connectionSettings()?.idleTimeout()) {
+          connectionSettings = ConnectionSettings.builder().idleTimeout(idleTimeout).build()
         }
 
       } else {
-        crossZoneLoadBalancing = new CrossZoneLoadBalancing(enabled: [description.crossZoneBalancing, deployDefaults.loadBalancing.crossZoneBalancingDefault].findResult(Boolean.TRUE, Closure.IDENTITY))
-        connectionDraining = new ConnectionDraining(
-          enabled: [description.connectionDraining, deployDefaults.loadBalancing.connectionDrainingDefault].findResult(Boolean.FALSE, Closure.IDENTITY),
-          timeout: [description.deregistrationDelay, deployDefaults.loadBalancing.deregistrationDelayDefault].findResult(Closure.IDENTITY))
-        connectionSettings = new ConnectionSettings(
-          idleTimeout: [description.idleTimeout, deployDefaults.loadBalancing.idleTimeout].findResult(Closure.IDENTITY))
+        crossZoneLoadBalancing = CrossZoneLoadBalancing.builder().enabled([description.crossZoneBalancing, deployDefaults.loadBalancing.crossZoneBalancingDefault].findResult(Boolean.TRUE, Closure.IDENTITY)).build()
+        connectionDraining = ConnectionDraining.builder()
+          .enabled([description.connectionDraining, deployDefaults.loadBalancing.connectionDrainingDefault].findResult(Boolean.FALSE, Closure.IDENTITY))
+          .timeout([description.deregistrationDelay, deployDefaults.loadBalancing.deregistrationDelayDefault].findResult(Closure.IDENTITY)).build()
+        connectionSettings = ConnectionSettings.builder()
+          .idleTimeout([description.idleTimeout, deployDefaults.loadBalancing.idleTimeout].findResult(Closure.IDENTITY)).build()
       }
 
       if (crossZoneLoadBalancing != null || connectionDraining != null || connectionSettings != null) {
-        LoadBalancerAttributes attributes = new LoadBalancerAttributes()
+        def attributesBuilder = LoadBalancerAttributes.builder()
         if (crossZoneLoadBalancing) {
-          attributes.setCrossZoneLoadBalancing(crossZoneLoadBalancing)
+          attributesBuilder.crossZoneLoadBalancing(crossZoneLoadBalancing)
         }
         if (connectionDraining) {
-          attributes.setConnectionDraining(connectionDraining)
+          attributesBuilder.connectionDraining(connectionDraining)
         }
         if (connectionSettings) {
-          attributes.setConnectionSettings(connectionSettings)
+          attributesBuilder.connectionSettings(connectionSettings)
         }
         // Apply balancing opinions...
         loadBalancing.modifyLoadBalancerAttributes(
-          new ModifyLoadBalancerAttributesRequest(loadBalancerName: loadBalancerName)
-            .withLoadBalancerAttributes(attributes)
+          ModifyLoadBalancerAttributesRequest.builder()
+            .loadBalancerName(loadBalancerName)
+            .loadBalancerAttributes(attributesBuilder.build())
+            .build()
           )
       }
 

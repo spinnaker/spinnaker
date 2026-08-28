@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.aws.model.edda;
 
-import com.amazonaws.services.elasticloadbalancingv2.model.Rule;
 import java.util.List;
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.Rule;
 
 public class EddaRule {
   private String listenerArn;
