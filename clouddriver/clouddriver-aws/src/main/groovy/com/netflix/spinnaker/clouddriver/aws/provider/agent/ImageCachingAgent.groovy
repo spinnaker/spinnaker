@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
-import com.amazonaws.services.ec2.model.DescribeImagesRequest
-import com.amazonaws.services.ec2.model.Filter
-import com.amazonaws.services.ec2.model.Image
+import software.amazon.awssdk.services.ec2.model.DescribeImagesRequest
+import software.amazon.awssdk.services.ec2.model.Filter
+import software.amazon.awssdk.services.ec2.model.Image
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
@@ -125,48 +125,40 @@ class ImageCachingAgent implements CachingAgent, AccountAware, DriftMetric, Cust
     }
     log.info("Describing items in ${agentType}")
     //we read public images directly from AWS instead of having edda cache them:
-    def amazonEC2 = amazonClientProvider.getAmazonEC2(account, region, includePublicImages)
-    def request = new DescribeImagesRequest()
+    def amazonEC2 = amazonClientProvider.getAmazonEC2V2(account, region)
+    List<Filter> filters = new ArrayList<>()
     if (includePublicImages) {
-      request.withFilters(new Filter('is-public', ['true']))
+      filters.add(Filter.builder().name('is-public').values(['true']).build())
     } else {
-      request.withFilters(new Filter('is-public', ['false']))
+      filters.add(Filter.builder().name('is-public').values(['false']).build())
     }
 
     List<String> imageStates = dynamicConfigService.getConfig(List, "aws.defaults.image-states", List.of());
     if (!imageStates.isEmpty()) {
       log.debug("using image state filter '${imageStates}'")
-      request.withFilters(new Filter('state', imageStates))
+      filters.add(Filter.builder().name('state').values(imageStates).build())
     }
+    def request = DescribeImagesRequest.builder().filters(filters).build()
 
-    List<Image> images = amazonEC2.describeImages(request).images
+    List<Image> images = amazonEC2.describeImages(request).images()
     Long start = null
-    if (account.eddaEnabled) {
-      start = amazonClientProvider.lastModified ?: 0
-      // Edda does not respect filter parameters. Filter here manually instead.
-      if (includePublicImages) {
-        images = images.findAll { it.isPublic() }
-      } else {
-        images = images.findAll { !it.isPublic() }
-      }
-    }
 
     Collection<CacheData> imageCacheData = new ArrayList<>(images.size())
     Map<String, CacheData> namedImageCacheDataMap = new HashMap<>(images.size())
 
     for (Image image : images) {
       Map<String, Object> attributes = objectMapper.convertValue(image, ATTRIBUTES)
-      def imageId = Keys.getImageKey(image.imageId, account.name, region)
-      def namedImageId = Keys.getNamedImageKey(account.name, image.name)
+      def imageId = Keys.getImageKey(image.imageId(), account.name, region)
+      def namedImageId = Keys.getNamedImageKey(account.name, image.name())
       imageCacheData.add(new DefaultCacheData(imageId, attributes, [(NAMED_IMAGES.ns): [namedImageId]]))
 
       CacheData namedImageCacheData = namedImageCacheDataMap.get(namedImageId);
       if (namedImageCacheData == null) {
         namedImageCacheDataMap.put(namedImageId, new DefaultCacheData(namedImageId, [
-          name              : image.name,
-          virtualizationType: image.virtualizationType,
-          architecture      : image.architecture,
-          creationDate      : image.creationDate
+          name              : image.name(),
+          virtualizationType: image.virtualizationType(),
+          architecture      : image.architecture(),
+          creationDate      : image.creationDate()
         ], [(IMAGES.ns): [imageId]]))
       } else {
         // There's already a named image with this name, so add the imageId to
