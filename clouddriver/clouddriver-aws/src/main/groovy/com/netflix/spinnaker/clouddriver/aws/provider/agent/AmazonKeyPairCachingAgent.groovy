@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
-import com.amazonaws.services.ec2.model.KeyPairInfo
+import software.amazon.awssdk.services.ec2.model.KeyPairInfo
 import com.netflix.spinnaker.cats.agent.AccountAware
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
@@ -82,13 +82,13 @@ class AmazonKeyPairCachingAgent implements CachingAgent, AccountAware, CustomSch
   @Override
   CacheResult loadData(ProviderCache providerCache) {
     log.info("Describing items in ${agentType}")
-    def ec2 = amazonClientProvider.getAmazonEC2(account, region)
-    def keyPairs = ec2.describeKeyPairs().keyPairs
+    def ec2 = amazonClientProvider.getAmazonEC2V2(account, region)
+    def keyPairs = ec2.describeKeyPairs().keyPairs()
 
     List<CacheData> data = keyPairs.collect { KeyPairInfo keyPair ->
-      new DefaultCacheData(Keys.getKeyPairKey(keyPair.keyName, region, account.name), [
-        keyName       : keyPair.keyName,
-        keyFingerprint: keyPair.keyFingerprint
+      new DefaultCacheData(Keys.getKeyPairKey(keyPair.keyName(), region, account.name), [
+        keyName       : keyPair.keyName(),
+        keyFingerprint: keyPair.keyFingerprint()
       ], [:])
     }
     log.info("Caching ${data.size()} items in ${agentType}")

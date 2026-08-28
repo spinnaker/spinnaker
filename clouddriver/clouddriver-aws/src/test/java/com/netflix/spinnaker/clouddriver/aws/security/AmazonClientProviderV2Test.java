@@ -27,6 +27,7 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.services.applicationautoscaling.ApplicationAutoScalingClient;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
+import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ecr.EcrClient;
 import software.amazon.awssdk.services.ecs.EcsClient;
 import software.amazon.awssdk.services.iam.IamClient;
@@ -34,7 +35,7 @@ import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.servicediscovery.ServiceDiscoveryClient;
 
 /**
- * Unit tests verifying the seven v2 getter methods on {@link AmazonClientProvider} produce the
+ * Unit tests verifying the eight v2 getter methods on {@link AmazonClientProvider} produce the
  * correct v2 client types and delegate to the v2 supplier correctly.
  */
 class AmazonClientProviderV2Test {
@@ -55,6 +56,12 @@ class AmazonClientProviderV2Test {
     creds = mock(NetflixAmazonCredentials.class);
     when(creds.getV2CredentialsProvider()).thenReturn(dummyCreds());
     when(creds.getName()).thenReturn("test-account");
+  }
+
+  @Test
+  void getAmazonEC2V2ReturnsEc2Client() {
+    Ec2Client client = provider.getAmazonEC2V2(creds, REGION);
+    assertThat(client).isNotNull().isInstanceOf(Ec2Client.class);
   }
 
   @Test
