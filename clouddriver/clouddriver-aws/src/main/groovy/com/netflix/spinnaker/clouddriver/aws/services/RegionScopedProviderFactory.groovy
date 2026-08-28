@@ -92,6 +92,17 @@ class RegionScopedProviderFactory {
       amazonClientProvider.getAmazonElasticLoadBalancing(amazonCredentials, region, true)
     }
 
+    // AWS SDK v2 equivalents. No skipEdda parameter: Edda read-through is v1-only. Kept alongside
+    // the v1 methods above (not replacing them) since some consumers of this class still depend on
+    // the v1 EC2/AutoScaling methods elsewhere in RegionScopedProvider and haven't migrated yet.
+    software.amazon.awssdk.services.elasticloadbalancingv2.ElasticLoadBalancingV2Client getElasticLoadBalancingV2Client() {
+      amazonClientProvider.getElasticLoadBalancingV2Client(amazonCredentials, region)
+    }
+
+    software.amazon.awssdk.services.elasticloadbalancing.ElasticLoadBalancingClient getAmazonElasticLoadBalancingClassicV2() {
+      amazonClientProvider.getAmazonElasticLoadBalancingClassicV2(amazonCredentials, region)
+    }
+
     SubnetAnalyzer getSubnetAnalyzer() {
       SubnetAnalyzer.from(amazonEC2.describeSubnets().subnets)
     }
