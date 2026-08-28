@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
-import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.SecurityGroup
+import software.amazon.awssdk.services.ec2.Ec2Client
+import software.amazon.awssdk.services.ec2.model.SecurityGroup
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.AccountAware
@@ -113,7 +113,7 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent, Ac
 
     Long startTime = null
     def securityGroups = metricsSupport.readData {
-      def ec2 = amazonClientProvider.getAmazonEC2(account, region, true)
+      def ec2 = amazonClientProvider.getAmazonEC2V2(account, region)
       if (account.eddaEnabled && !eddaTimeoutConfig.disabledRegions.contains(region)) {
         startTime = System.currentTimeMillis()
       }
@@ -132,10 +132,13 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent, Ac
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
-    def ec2 = amazonClientProvider.getAmazonEC2(account, region)
+    def ec2 = amazonClientProvider.getAmazonEC2V2(account, region)
     List<SecurityGroup> securityGroups = getSecurityGroups(ec2)
     def evictions = [:]
     if (account.eddaEnabled && !eddaTimeoutConfig.disabledRegions.contains(region)) {
+      // amazonClientProvider.lastModified is only ever populated by the v1 Edda-intercepting
+      // proxy; v2 clients read directly from AWS, so this is always null here and the
+      // short-circuit-on-unchanged-data optimization below no longer applies for this agent.
       Long startTime = amazonClientProvider.lastModified
       if (startTime) {
         def lastModifiedRecord = providerCache.get(ON_DEMAND.ns, lastModifiedKey)
@@ -169,15 +172,15 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent, Ac
     return []
   }
 
-  private List<SecurityGroup> getSecurityGroups(AmazonEC2 amazonEC2) {
+  private List<SecurityGroup> getSecurityGroups(Ec2Client amazonEC2) {
     log.info("Describing items in ${agentType}")
-    amazonEC2.describeSecurityGroups().securityGroups
+    amazonEC2.describeSecurityGroups().securityGroups()
   }
 
   private CacheResult buildCacheResult(ProviderCache providerCache, List<SecurityGroup> securityGroups, Map<String, List<String>> evictions, Long lastModified) {
     List<CacheData> data = securityGroups.collect { SecurityGroup securityGroup ->
       Map<String, Object> attributes = objectMapper.convertValue(securityGroup, AwsInfrastructureProvider.ATTRIBUTES)
-      new DefaultCacheData(Keys.getSecurityGroupKey(securityGroup.groupName, securityGroup.groupId, region, account.name, securityGroup.vpcId),
+      new DefaultCacheData(Keys.getSecurityGroupKey(securityGroup.groupName(), securityGroup.groupId(), region, account.name, securityGroup.vpcId()),
         attributes,
         [:])
     }
