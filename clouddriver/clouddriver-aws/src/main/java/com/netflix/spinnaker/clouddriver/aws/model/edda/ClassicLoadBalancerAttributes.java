@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.model.edda;
 
-import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerAttributes;
+import software.amazon.awssdk.services.elasticloadbalancing.model.LoadBalancerAttributes;
 
 public class ClassicLoadBalancerAttributes {
 
