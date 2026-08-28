@@ -17,16 +17,17 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
-import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
-import com.amazonaws.services.autoscaling.model.LaunchTemplate
-import com.amazonaws.services.autoscaling.model.LaunchTemplateSpecification
-import com.amazonaws.services.autoscaling.model.MixedInstancesPolicy
-import com.amazonaws.services.autoscaling.model.SuspendedProcess
-import com.amazonaws.services.autoscaling.model.TagDescription
-import com.amazonaws.services.ec2.AmazonEC2
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
+import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsResponse
+import software.amazon.awssdk.services.autoscaling.model.LaunchTemplate
+import software.amazon.awssdk.services.autoscaling.model.LaunchTemplateSpecification
+import software.amazon.awssdk.services.autoscaling.model.MixedInstancesPolicy
+import software.amazon.awssdk.services.autoscaling.model.SuspendedProcess
+import software.amazon.awssdk.services.autoscaling.model.TagDescription
+import software.amazon.awssdk.services.ec2.Ec2Client
 import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer
+import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module
 import com.netflix.spectator.api.Spectator
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
@@ -50,20 +51,20 @@ class ClusterCachingAgentSpec extends Specification {
   static Collection<String> defaultSuspendedProcesses = ["Launch"]
   static String vpc = "vpc-1"
 
-  AutoScalingGroup defaultAsg = new AutoScalingGroup()
-    .withAutoScalingGroupName("test-v001")
-    .withDesiredCapacity(defaultDesired)
-    .withMinSize(defaultMin)
-    .withMaxSize(defaultMax)
-    .withVPCZoneIdentifier("subnetId1,subnetId2")
-    .withSuspendedProcesses(defaultSuspendedProcesses.collect { new SuspendedProcess().withProcessName(it) }
-  )
+  AutoScalingGroup defaultAsg = AutoScalingGroup.builder()
+    .autoScalingGroupName("test-v001")
+    .desiredCapacity(defaultDesired)
+    .minSize(defaultMin)
+    .maxSize(defaultMax)
+    .vpcZoneIdentifier("subnetId1,subnetId2")
+    .suspendedProcesses(defaultSuspendedProcesses.collect { SuspendedProcess.builder().processName(it).build() })
+    .build()
 
   @Shared
   ProviderCache providerCache = Mock(ProviderCache)
 
   @Shared
-  AmazonEC2 ec2 = Mock(AmazonEC2)
+  Ec2Client ec2 = Mock(Ec2Client)
 
   @Shared
   EddaTimeoutConfig edda = Mock(EddaTimeoutConfig)
@@ -78,17 +79,17 @@ class ClusterCachingAgentSpec extends Specification {
     }
     def cloud = Stub(AmazonCloudProvider)
     def client = Stub(AmazonClientProvider) {
-      getAmazonEC2(creds, region, _) >> ec2
+      getAmazonEC2V2(creds, region) >> ec2
     }
-    new ClusterCachingAgent(cloud, client, creds, region, AmazonObjectMapperConfigurer.createConfigured(), Spectator.globalRegistry(), edda, filter)
+    new ClusterCachingAgent(cloud, client, creds, region, AmazonObjectMapperConfigurer.createConfigured().registerModule(new AwsSdkV2Module()), Spectator.globalRegistry(), edda, filter)
   }
 
   @Unroll
   def "should compare capacity and suspended processes when determining if ASGs are similar"() {
     given:
-    def asg = new AutoScalingGroup().withDesiredCapacity(desired).withMinSize(min).withMaxSize(max).withSuspendedProcesses(
-      suspendedProcesses.collect { new SuspendedProcess().withProcessName(it) }
-    )
+    def asg = AutoScalingGroup.builder().desiredCapacity(desired).minSize(min).maxSize(max).suspendedProcesses(
+      suspendedProcesses.collect { SuspendedProcess.builder().processName(it).build() }
+    ).build()
 
     when:
     ClusterCachingAgent.areSimilarAutoScalingGroups(defaultAsg, asg) == areSimilar
@@ -134,12 +135,13 @@ class ClusterCachingAgentSpec extends Specification {
   @Unroll
   def "should create launchTemplate/Config key correctly for all types of asg"() {
     given:
-    AutoScalingGroup asg = new AutoScalingGroup()
-      .withAutoScalingGroupName("app-stack-v000")
-      .withDesiredCapacity(defaultDesired)
-      .withMinSize(defaultMin)
-      .withMaxSize(defaultMax)
+    AutoScalingGroup asg = AutoScalingGroup.builder()
+      .autoScalingGroupName("app-stack-v000")
+      .desiredCapacity(defaultDesired)
+      .minSize(defaultMin)
+      .maxSize(defaultMax)
       ."$asgPropKey"(asgPropValue)
+      .build()
 
     when:
     def asgData = new ClusterCachingAgent.AsgData(asg, null, null, "acc", "us-west-1", null)
@@ -149,19 +151,22 @@ class ClusterCachingAgentSpec extends Specification {
     asgData.launchTemplate == launchTemplateKey
 
     where:
-    asgPropKey                    |          asgPropValue                     ||           launchTemplateKey             ||  launchConfigKey
-    "withLaunchConfigurationName" |         "launchConfig-1"                  ||                 null                    || "aws:launchConfigs:acc:us-west-1:launchConfig-1"
-    "withLaunchTemplate"          | new LaunchTemplateSpecification()
-                                      .withLaunchTemplateName("lt-1")
-                                      .withVersion("2")                       ||"aws:launchTemplates:acc:us-west-1:lt-1" || null
-    "withMixedInstancesPolicy"    | new MixedInstancesPolicy()
-                                    .withLaunchTemplate(new LaunchTemplate()
-                                      .withLaunchTemplateSpecification(
-                                        new LaunchTemplateSpecification()
-                                        .withLaunchTemplateName("lt-1")
-                                        .withVersion("\$Latest")
-                                      )
-                                    )                                         ||"aws:launchTemplates:acc:us-west-1:lt-1" || null
+    asgPropKey                | asgPropValue                                                                   || launchTemplateKey                        || launchConfigKey
+    "launchConfigurationName" | "launchConfig-1"                                                                || null                                      || "aws:launchConfigs:acc:us-west-1:launchConfig-1"
+    "launchTemplate"          | LaunchTemplateSpecification.builder()
+                                   .launchTemplateName("lt-1")
+                                   .version("2")
+                                   .build()                                                                     || "aws:launchTemplates:acc:us-west-1:lt-1" || null
+    "mixedInstancesPolicy"    | MixedInstancesPolicy.builder()
+                                   .launchTemplate(LaunchTemplate.builder()
+                                     .launchTemplateSpecification(
+                                       LaunchTemplateSpecification.builder()
+                                         .launchTemplateName("lt-1")
+                                         .version("\$Latest")
+                                         .build()
+                                     )
+                                     .build())
+                                   .build()                                                                     || "aws:launchTemplates:acc:us-west-1:lt-1" || null
   }
 
   def "on demand update result should have authoritative types correctly set"() {
@@ -185,12 +190,8 @@ class ClusterCachingAgentSpec extends Specification {
     given:
     def agent = getAgent()
     def client = Stub(AmazonClientProvider) {
-      getAutoScaling(_, _, _) >> Stub(AmazonAutoScaling) {
-        describeAutoScalingGroups(_) >> new DescribeAutoScalingGroupsResult() {
-          List<AutoScalingGroup> getAutoScalingGroups() {
-            return filterableASGs
-          }
-        }
+      getAutoScalingV2(_, _) >> Stub(AutoScalingClient) {
+        describeAutoScalingGroups(_) >> DescribeAutoScalingGroupsResponse.builder().autoScalingGroups(filterableASGs).build()
       }
     }
 
@@ -202,11 +203,11 @@ class ClusterCachingAgentSpec extends Specification {
     def result = agent.loadAutoScalingGroups(clients)
 
     then:
-    result.asgs*.autoScalingGroupName == expected
+    result.asgs*.autoScalingGroupName() == expected
 
     where:
     includeTags                   | excludeTags                   | expected
-    null                          | null                          | filterableASGs*.autoScalingGroupName
+    null                          | null                          | filterableASGs*.autoScalingGroupName()
     [taggify("hello")]            | null                          | ["test-hello-tag-value", "test-hello-tag-value-different", "test-hello-tag-no-value"]
     [taggify("hello", "goodbye")] | null                          | ["test-hello-tag-value"]
     [taggify("hello", "goo")]     | null                          | []
@@ -233,20 +234,25 @@ class ClusterCachingAgentSpec extends Specification {
   }
 
   private static final List<AutoScalingGroup> filterableASGs = [
-    new AutoScalingGroup()
-      .withAutoScalingGroupName("test-hello-tag-value")
-      .withTags(new TagDescription().withKey("hello").withValue("goodbye")),
-    new AutoScalingGroup()
-      .withAutoScalingGroupName("test-hello-tag-value-different")
-      .withTags(new TagDescription().withKey("hello").withValue("ciao")),
-    new AutoScalingGroup()
-      .withAutoScalingGroupName("test-hello-tag-no-value")
-      .withTags(new TagDescription().withKey("hello")),
-    new AutoScalingGroup()
-      .withAutoScalingGroupName("test-no-hello-tag")
-      .withTags(new TagDescription().withKey("Name")),
-    new AutoScalingGroup()
-      .withAutoScalingGroupName("test-no-tags"),
+    AutoScalingGroup.builder()
+      .autoScalingGroupName("test-hello-tag-value")
+      .tags(TagDescription.builder().key("hello").value("goodbye").build())
+      .build(),
+    AutoScalingGroup.builder()
+      .autoScalingGroupName("test-hello-tag-value-different")
+      .tags(TagDescription.builder().key("hello").value("ciao").build())
+      .build(),
+    AutoScalingGroup.builder()
+      .autoScalingGroupName("test-hello-tag-no-value")
+      .tags(TagDescription.builder().key("hello").build())
+      .build(),
+    AutoScalingGroup.builder()
+      .autoScalingGroupName("test-no-hello-tag")
+      .tags(TagDescription.builder().key("Name").build())
+      .build(),
+    AutoScalingGroup.builder()
+      .autoScalingGroupName("test-no-tags")
+      .build(),
   ]
 
   private static def taggify(String name = null, String value = null) {
@@ -254,6 +260,6 @@ class ClusterCachingAgentSpec extends Specification {
   }
 
   private SuspendedProcess sP(String processName) {
-    return new SuspendedProcess().withProcessName(processName)
+    return SuspendedProcess.builder().processName(processName).build()
   }
 }
