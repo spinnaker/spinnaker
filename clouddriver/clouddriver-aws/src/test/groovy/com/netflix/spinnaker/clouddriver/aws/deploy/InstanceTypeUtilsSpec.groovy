@@ -17,10 +17,10 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy
 
-import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.DescribeInstanceTypesResult
-import com.amazonaws.services.ec2.model.InstanceTypeInfo
-import com.amazonaws.services.ec2.model.ProcessorInfo
+import software.amazon.awssdk.services.ec2.Ec2Client
+import software.amazon.awssdk.services.ec2.model.DescribeInstanceTypesResponse
+import software.amazon.awssdk.services.ec2.model.InstanceTypeInfo
+import software.amazon.awssdk.services.ec2.model.ProcessorInfo
 import com.netflix.spinnaker.config.AwsConfiguration.DeployDefaults
 import com.netflix.spinnaker.clouddriver.aws.deploy.InstanceTypeUtils.BlockDeviceConfig
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
@@ -139,7 +139,7 @@ class InstanceTypeUtilsSpec extends Specification {
   @Unroll
   def 'compatibility among ami virtualization #amiVirtualization, ami architecture #amiArchitecture and instance type is determined correctly'() {
     given:
-    AmazonEC2 ec2 = Mock(AmazonEC2)
+    Ec2Client ec2 = Mock(Ec2Client)
 
     when:
     InstanceTypeUtils.validateCompatibilityWithAmi(
@@ -148,17 +148,18 @@ class InstanceTypeUtilsSpec extends Specification {
       instanceTypes.toSet())
 
     then:
-    1 * ec2.describeInstanceTypes(_) >> new DescribeInstanceTypesResult(instanceTypes: [
-      new InstanceTypeInfo(
-        instanceType: "test1.large",
-        processorInfo: new ProcessorInfo(supportedArchitectures: ["i386","x86_64"], sustainedClockSpeedInGhz: 2.8),
-        supportedVirtualizationTypes: ["hvm","paravirtual"],
-      ),
-      new InstanceTypeInfo(
-        instanceType: "test2.large",
-        processorInfo: new ProcessorInfo(supportedArchitectures: ["arm64", "x86_64"], sustainedClockSpeedInGhz: 2.8),
-        supportedVirtualizationTypes: ["hvm"],
-      )])
+    1 * ec2.describeInstanceTypes(_) >> DescribeInstanceTypesResponse.builder().instanceTypes([
+      InstanceTypeInfo.builder()
+        .instanceType("test1.large")
+        .processorInfo(ProcessorInfo.builder().supportedArchitecturesWithStrings(["i386","x86_64"]).sustainedClockSpeedInGhz(2.8).build())
+        .supportedVirtualizationTypesWithStrings(["hvm","paravirtual"])
+        .build(),
+      InstanceTypeInfo.builder()
+        .instanceType("test2.large")
+        .processorInfo(ProcessorInfo.builder().supportedArchitecturesWithStrings(["arm64", "x86_64"]).sustainedClockSpeedInGhz(2.8).build())
+        .supportedVirtualizationTypesWithStrings(["hvm"])
+        .build()
+    ]).build()
 
     and:
     noExceptionThrown()
@@ -173,7 +174,7 @@ class InstanceTypeUtilsSpec extends Specification {
   @Unroll
   def 'incompatible ami virtualization #amiVirtualization and instance family throws exception'() {
     given:
-    def ec2 = Mock(AmazonEC2)
+    def ec2 = Mock(Ec2Client)
 
     when:
     InstanceTypeUtils.validateCompatibilityWithAmi(
@@ -182,17 +183,18 @@ class InstanceTypeUtilsSpec extends Specification {
       instanceTypes.toSet())
 
     then:
-    1 * ec2.describeInstanceTypes(_) >> new DescribeInstanceTypesResult(instanceTypes: [
-      new InstanceTypeInfo(
-        instanceType: "test1.large",
-        processorInfo: new ProcessorInfo(supportedArchitectures: ["i386","x86_64"], sustainedClockSpeedInGhz: 2.8),
-        supportedVirtualizationTypes: ["hvm","paravirtual"],
-      ),
-      new InstanceTypeInfo(
-        instanceType: "test2.large",
-        processorInfo: new ProcessorInfo(supportedArchitectures: ["arm64", "x86_64"], sustainedClockSpeedInGhz: 2.8),
-        supportedVirtualizationTypes: ["hvm"],
-      )])
+    1 * ec2.describeInstanceTypes(_) >> DescribeInstanceTypesResponse.builder().instanceTypes([
+      InstanceTypeInfo.builder()
+        .instanceType("test1.large")
+        .processorInfo(ProcessorInfo.builder().supportedArchitecturesWithStrings(["i386","x86_64"]).sustainedClockSpeedInGhz(2.8).build())
+        .supportedVirtualizationTypesWithStrings(["hvm","paravirtual"])
+        .build(),
+      InstanceTypeInfo.builder()
+        .instanceType("test2.large")
+        .processorInfo(ProcessorInfo.builder().supportedArchitecturesWithStrings(["arm64", "x86_64"]).sustainedClockSpeedInGhz(2.8).build())
+        .supportedVirtualizationTypesWithStrings(["hvm"])
+        .build()
+    ]).build()
 
     and:
     thrown(IllegalArgumentException)

@@ -18,8 +18,8 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.DeleteSnapshotRequest
+import software.amazon.awssdk.services.ec2.Ec2Client
+import software.amazon.awssdk.services.ec2.model.DeleteSnapshotRequest
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteAmazonSnapshotDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
@@ -49,9 +49,9 @@ class DeleteAmazonSnapshotAtomicOperationSpec extends Specification {
 
   def "should delete a snapshot"() {
     given:
-    def ec2 = Mock(AmazonEC2)
+    def ec2 = Mock(Ec2Client)
     def amazonClientProvider = Stub(AmazonClientProvider) {
-      getAmazonEC2(credentials, "us-east-1") >> ec2
+      getAmazonEC2V2(credentials, "us-east-1") >> ec2
     }
 
     and:

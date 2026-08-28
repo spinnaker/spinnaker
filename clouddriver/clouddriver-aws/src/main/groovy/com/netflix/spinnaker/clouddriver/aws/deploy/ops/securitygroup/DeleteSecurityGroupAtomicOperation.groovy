@@ -16,14 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup
 
-import com.amazonaws.AmazonServiceException
-import com.amazonaws.services.ec2.model.DeleteSecurityGroupRequest
-import com.amazonaws.services.ec2.model.IpPermission
-import com.amazonaws.services.ec2.model.IpRange
-import com.amazonaws.services.ec2.model.Ipv6Range
-import com.amazonaws.services.ec2.model.RevokeSecurityGroupIngressRequest
-import com.amazonaws.services.ec2.model.SecurityGroup
-import com.amazonaws.services.ec2.model.UserIdGroupPair
+import software.amazon.awssdk.services.ec2.model.DeleteSecurityGroupRequest
+import software.amazon.awssdk.services.ec2.model.Ec2Exception
+import software.amazon.awssdk.services.ec2.model.IpPermission
+import software.amazon.awssdk.services.ec2.model.RevokeSecurityGroupIngressRequest
+import software.amazon.awssdk.services.ec2.model.SecurityGroup
+import software.amazon.awssdk.services.ec2.model.UserIdGroupPair
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -49,8 +47,8 @@ class DeleteSecurityGroupAtomicOperation implements AtomicOperation<Void> {
     this.description = description
   }
 
-  private void generateDependencyError(AmazonServiceException e, Task task, Map<SecurityGroup, List<IpPermission>> securityGroupToRevokeIngressPermissions) {
-    List<String> dependentSecurityGroupsWithIngress = securityGroupToRevokeIngressPermissions.collect { it.key.groupName }
+  private void generateDependencyError(Ec2Exception e, Task task, Map<SecurityGroup, List<IpPermission>> securityGroupToRevokeIngressPermissions) {
+    List<String> dependentSecurityGroupsWithIngress = securityGroupToRevokeIngressPermissions.collect { it.key.groupName() }
     String message = "Failed deleting security group because of existing dependencies. "
     if (dependentSecurityGroupsWithIngress.size() > 0) {
       message += "Ingress rules still exist on security group(s): ${dependentSecurityGroupsWithIngress.join(", ")}."
@@ -66,28 +64,28 @@ class DeleteSecurityGroupAtomicOperation implements AtomicOperation<Void> {
   Void operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing Delete Security Group Operation..."
     for (region in description.regions) {
-      def ec2 = amazonClientProvider.getAmazonEC2(description.credentials, region, true)
+      def ec2 = amazonClientProvider.getAmazonEC2V2(description.credentials, region)
       def result = ec2.describeSecurityGroups()
-      List<SecurityGroup> securityGroups = result.securityGroups
-      SecurityGroup securityGroup = securityGroups.find { it.vpcId == description.vpcId && it.groupName == description.securityGroupName }
+      List<SecurityGroup> securityGroups = result.securityGroups()
+      SecurityGroup securityGroup = securityGroups.find { it.vpcId() == description.vpcId && it.groupName() == description.securityGroupName }
       String vpcText = description.vpcId ? "${description.vpcId} ": ''
       String securityGroupDescription = "${description.securityGroupName} in ${region} ${vpcText}for ${description.credentials.name}"
 
       if (securityGroup) {
-        DeleteSecurityGroupRequest request = new DeleteSecurityGroupRequest(groupId: securityGroup.groupId)
+        DeleteSecurityGroupRequest request = DeleteSecurityGroupRequest.builder().groupId(securityGroup.groupId()).build()
         task.updateStatus BASE_PHASE, "Deleting ${securityGroupDescription}."
         try {
           ec2.deleteSecurityGroup(request)
-        } catch (AmazonServiceException e) {
-          if (e.errorCode == "DependencyViolation") {
+        } catch (Ec2Exception e) {
+          if (e.awsErrorDetails().errorCode() == "DependencyViolation") {
             // Get the list of dependent ingress rules
             Map<SecurityGroup, List<IpPermission>> securityGroupToRevokeIngressPermissions = new HashMap<>()
             securityGroups.each { sg ->
-              sg.ipPermissions.each { ipPerm ->
-                if (ipPerm.userIdGroupPairs != null) {
+              sg.ipPermissions().each { ipPerm ->
+                if (ipPerm.userIdGroupPairs() != null) {
                   // Check if the there is an ingress rule for the to-be-deleted security group
-                  UserIdGroupPair pair = ipPerm.userIdGroupPairs.find {
-                    it.groupId == securityGroup.groupId
+                  UserIdGroupPair pair = ipPerm.userIdGroupPairs().find {
+                    it.groupId() == securityGroup.groupId()
                   }
                   if (pair != null) {
                     List<IpPermission> ipPermissions = securityGroupToRevokeIngressPermissions.get(sg)
@@ -96,13 +94,12 @@ class DeleteSecurityGroupAtomicOperation implements AtomicOperation<Void> {
                       ipPermissions = new ArrayList<>()
                       securityGroupToRevokeIngressPermissions.put(sg, ipPermissions)
                     }
-                    IpPermission permission = ipPerm.clone()
-
                     // Make sure we only delete the security group rules and not the IP range rules
-                    permission.setIpRanges(new ArrayList<String>())
-                    permission.setIpv4Ranges(new ArrayList<IpRange>())
-                    permission.setIpv6Ranges(new ArrayList<Ipv6Range>())
-                    permission.userIdGroupPairs = [pair]
+                    IpPermission permission = ipPerm.toBuilder()
+                      .ipRanges(new ArrayList<>())
+                      .ipv6Ranges(new ArrayList<>())
+                      .userIdGroupPairs([pair])
+                      .build()
 
                     ipPermissions.push(permission)
                   }
@@ -110,8 +107,8 @@ class DeleteSecurityGroupAtomicOperation implements AtomicOperation<Void> {
               }
             }
             this.generateDependencyError(e, task, securityGroupToRevokeIngressPermissions)
-          } else if (e.errorCode != "InvalidGroup.NotFound") {
-            task.updateStatus BASE_PHASE, e.errorMessage
+          } else if (e.awsErrorDetails().errorCode() != "InvalidGroup.NotFound") {
+            task.updateStatus BASE_PHASE, e.awsErrorDetails().errorMessage()
             throw e
           }
         }

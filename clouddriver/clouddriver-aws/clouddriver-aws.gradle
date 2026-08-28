@@ -32,8 +32,12 @@ dependencies {
   implementation "jakarta.inject:jakarta.inject-api:2.0.1"
   implementation "com.amazonaws:aws-java-sdk"
   api "software.amazon.awssdk:applicationautoscaling"
+  // TODO: redundant once awsSdkv2MigrationEc2Pr1/awsSdkv2MigrationAutoScalingPr2 merge
+  api "software.amazon.awssdk:autoscaling"
   api "software.amazon.awssdk:cloudformation"
   api "software.amazon.awssdk:cloudwatch"
+  // TODO: redundant once awsSdkv2MigrationEc2Pr1 merges
+  api "software.amazon.awssdk:ec2"
   api "software.amazon.awssdk:ecr"
   api "software.amazon.awssdk:ecs"
   api "software.amazon.awssdk:elasticloadbalancingv2"

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer
 
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRequest
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerNotFoundException
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory

@@ -61,8 +61,10 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.services.applicationautoscaling.ApplicationAutoScalingClient;
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
 import software.amazon.awssdk.services.cloudformation.CloudFormationClient;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
+import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ecr.EcrClient;
 import software.amazon.awssdk.services.ecs.EcsClient;
 import software.amazon.awssdk.services.elasticloadbalancingv2.ElasticLoadBalancingV2Client;
@@ -869,6 +871,38 @@ public class AmazonClientProvider {
     return awsSdkV2ClientSupplier.getClient(
         ElasticLoadBalancingV2Client::builder,
         ElasticLoadBalancingV2Client.class,
+        amazonCredentials.getV2CredentialsProvider(),
+        region,
+        amazonCredentials.getName());
+  }
+
+  // TODO: redundant once awsSdkv2MigrationEc2Pr1 merges into main - remove this duplicate then.
+  /**
+   * Returns an AWS SDK v2 {@link Ec2Client} for the given account and region.
+   *
+   * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
+   */
+  public Ec2Client getAmazonEC2V2(NetflixAmazonCredentials amazonCredentials, String region) {
+    return awsSdkV2ClientSupplier.getClient(
+        Ec2Client::builder,
+        Ec2Client.class,
+        amazonCredentials.getV2CredentialsProvider(),
+        region,
+        amazonCredentials.getName());
+  }
+
+  // TODO: redundant once awsSdkv2MigrationAutoScalingPr2 merges into main - remove this duplicate
+  // then.
+  /**
+   * Returns an AWS SDK v2 {@link AutoScalingClient} for the given account and region.
+   *
+   * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
+   */
+  public AutoScalingClient getAutoScalingV2(
+      NetflixAmazonCredentials amazonCredentials, String region) {
+    return awsSdkV2ClientSupplier.getClient(
+        AutoScalingClient::builder,
+        AutoScalingClient.class,
         amazonCredentials.getV2CredentialsProvider(),
         region,
         amazonCredentials.getName());

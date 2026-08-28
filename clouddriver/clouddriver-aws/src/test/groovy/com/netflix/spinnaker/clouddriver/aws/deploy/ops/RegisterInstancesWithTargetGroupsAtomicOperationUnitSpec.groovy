@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.autoscaling.model.Instance
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
+import software.amazon.awssdk.services.autoscaling.model.Instance
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRequest
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersResult
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
@@ -49,11 +49,10 @@ class RegisterInstancesWithTargetGroupsAtomicOperationUnitSpec extends InstanceT
       _ * updateStatus(_,_)
     })
 
-    def asg = Mock(AutoScalingGroup) {
-      1 * getTargetGroupARNs() >> ["tg1"]
-      1 * getInstances() >> [new Instance().withInstanceId("i-123456")]
-      0 * _._
-    }
+    def asg = AutoScalingGroup.builder()
+      .targetGroupARNs(["tg1"])
+      .instances([Instance.builder().instanceId("i-123456").build()])
+      .build()
 
     when:
     op.operate([])
@@ -73,11 +72,10 @@ class RegisterInstancesWithTargetGroupsAtomicOperationUnitSpec extends InstanceT
       0 * fail()
     })
 
-    def asg = Mock(AutoScalingGroup) {
-      1 * getTargetGroupARNs() >> []
-      1 * getInstances() >> description.instanceIds.collect { new Instance().withInstanceId(it) }
-      0 * _._
-    }
+    def asg = AutoScalingGroup.builder()
+      .targetGroupARNs([])
+      .instances(description.instanceIds.collect { Instance.builder().instanceId(it).build() })
+      .build()
 
     when:
     op.operate([])

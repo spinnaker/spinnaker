@@ -17,8 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.actions;
 
-import com.amazonaws.services.autoscaling.model.LaunchTemplateOverrides;
-import com.amazonaws.services.ec2.model.LaunchTemplateVersion;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
@@ -40,6 +38,8 @@ import lombok.Value;
 import lombok.experimental.NonFinal;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
+import software.amazon.awssdk.services.autoscaling.model.LaunchTemplateOverrides;
+import software.amazon.awssdk.services.ec2.model.LaunchTemplateVersion;
 
 /** Action to prepare for AWS EC2 Auto Scaling Group update. */
 @Component

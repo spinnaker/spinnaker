@@ -15,13 +15,13 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.deploy.validators;
 
-import com.amazonaws.services.autoscaling.model.WarmPoolState;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertWarmPoolDescription;
 import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
+import software.amazon.awssdk.services.autoscaling.model.WarmPoolState;
 
 @Component
 public class UpsertWarmPoolDescriptionValidator

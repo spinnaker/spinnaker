@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.amazonaws.services.ec2.AmazonEC2
+import software.amazon.awssdk.services.ec2.Ec2Client
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing
 import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing as AmazonElasticLoadBalancingV2
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
@@ -60,7 +60,7 @@ abstract class EnableDisableAtomicOperationUnitSpecSupport extends Specification
   AmazonElasticLoadBalancingV2 loadBalancingV2
 
   @Shared
-  AmazonEC2 amazonEc2
+  Ec2Client amazonEc2
 
   def setup() {
     task = Mock(Task)
@@ -69,7 +69,7 @@ abstract class EnableDisableAtomicOperationUnitSpecSupport extends Specification
     asgService = Mock(AsgService)
     loadBalancing = Mock(AmazonElasticLoadBalancing)
     loadBalancingV2 = Mock(AmazonElasticLoadBalancingV2)
-    amazonEc2 = Mock(AmazonEC2)
+    amazonEc2 = Mock(Ec2Client)
     wireOpMocks(op)
   }
 
