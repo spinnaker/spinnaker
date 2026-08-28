@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
-import com.amazonaws.services.autoscaling.model.DescribeLaunchConfigurationsRequest
-import com.amazonaws.services.autoscaling.model.LaunchConfiguration
+import software.amazon.awssdk.services.autoscaling.model.DescribeLaunchConfigurationsRequest
+import software.amazon.awssdk.services.autoscaling.model.LaunchConfiguration
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
@@ -86,26 +86,26 @@ class LaunchConfigCachingAgent implements CachingAgent, AccountAware, DriftMetri
   @Override
   CacheResult loadData(ProviderCache providerCache) {
     log.info("Describing items in ${agentType}")
-    def autoScaling = amazonClientProvider.getAutoScaling(account, region)
+    def autoScaling = amazonClientProvider.getAutoScalingV2(account, region)
 
     Long start = null
     List<LaunchConfiguration> launchConfigs = []
-    def request = new DescribeLaunchConfigurationsRequest()
+    def request = DescribeLaunchConfigurationsRequest.builder().build()
     while (true) {
       def resp = autoScaling.describeLaunchConfigurations(request)
       if (account.eddaEnabled) {
         start = amazonClientProvider.lastModified ?: 0
       }
-      launchConfigs.addAll(resp.launchConfigurations)
-      if (resp.nextToken) {
-        request.withNextToken(resp.nextToken)
+      launchConfigs.addAll(resp.launchConfigurations())
+      if (resp.nextToken()) {
+        request = request.toBuilder().nextToken(resp.nextToken()).build()
       } else {
         break
       }
     }
 
     Collection<CacheData> launchConfigData = launchConfigs.collect { LaunchConfiguration lc ->
-      String key = Keys.getLaunchConfigKey(lc.launchConfigurationName, account.name, region)
+      String key = Keys.getLaunchConfigKey(lc.launchConfigurationName(), account.name, region)
       String application = Keys.parse(key).get("application")
       Map<String, Object> attributes = objectMapper.convertValue(lc, ATTRIBUTES);
 
@@ -113,7 +113,7 @@ class LaunchConfigCachingAgent implements CachingAgent, AccountAware, DriftMetri
         attributes.put("application", application)
       }
 
-      Map<String, Collection<String>> relationships = [(IMAGES.ns):[Keys.getImageKey(lc.imageId, account.name, region)]]
+      Map<String, Collection<String>> relationships = [(IMAGES.ns):[Keys.getImageKey(lc.imageId(), account.name, region)]]
       new DefaultCacheData(key, attributes, relationships)
     }
 
