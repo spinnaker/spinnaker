@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
-import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.Address
-import com.amazonaws.services.ec2.model.DescribeAddressesResult
-import com.amazonaws.services.ec2.model.DomainType
+import software.amazon.awssdk.services.ec2.Ec2Client
+import software.amazon.awssdk.services.ec2.model.Address
+import software.amazon.awssdk.services.ec2.model.DescribeAddressesResponse
+import software.amazon.awssdk.services.ec2.model.DomainType
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
@@ -40,34 +40,34 @@ class AmazonElasticIpCachingAgentSpec extends Specification {
   ProviderCache providerCache = Mock(ProviderCache)
 
   @Shared
-  AmazonEC2 ec2
+  Ec2Client ec2
 
   @Shared
-  Address eipA = new Address().withPublicIp("10.0.0.1").withDomain(DomainType.Standard).withInstanceId("i-123456")
+  Address eipA = Address.builder().publicIp("10.0.0.1").domain(DomainType.STANDARD).instanceId("i-123456").build()
 
   @Shared
-  String eipAKey = Keys.getElasticIpKey(eipA.publicIp, region, account)
+  String eipAKey = Keys.getElasticIpKey(eipA.publicIp(), region, account)
 
   @Shared
-  Address eipB = new Address().withPublicIp("10.0.0.2").withDomain(DomainType.Vpc)
+  Address eipB = Address.builder().publicIp("10.0.0.2").domain(DomainType.VPC).build()
 
   @Shared
-  String eipBKey = Keys.getElasticIpKey(eipB.publicIp, region, account)
+  String eipBKey = Keys.getElasticIpKey(eipB.publicIp(), region, account)
 
   def setup() {
-    ec2 = Mock(AmazonEC2)
+    ec2 = Mock(Ec2Client)
     def creds = Stub(NetflixAmazonCredentials) {
       getName() >> account
     }
     def acp = Stub(AmazonClientProvider) {
-      getAmazonEC2(creds, region) >> ec2
+      getAmazonEC2V2(creds, region) >> ec2
     }
     agent = new AmazonElasticIpCachingAgent(acp, creds, region)
   }
 
   void "should add elastic ips on initial run"() {
     given:
-    def addr = new DescribeAddressesResult().withAddresses([eipA, eipB])
+    def addr = DescribeAddressesResponse.builder().addresses([eipA, eipB]).build()
 
     when:
     def result = agent.loadData(providerCache)
@@ -81,15 +81,11 @@ class AmazonElasticIpCachingAgentSpec extends Specification {
   }
 
   void "should evict elastic ips when not found on subsequent runs"() {
-    given:
-    def result = Mock(DescribeAddressesResult)
-
     when:
     def cache = agent.loadData(providerCache)
 
     then:
-    1 * result.getAddresses() >> [eipA, eipB]
-    1 * ec2.describeAddresses() >> result
+    1 * ec2.describeAddresses() >> DescribeAddressesResponse.builder().addresses([eipA, eipB]).build()
     0 * _
 
     cache.cacheResults[Keys.Namespace.ELASTIC_IPS.ns].find { it.id == eipAKey }
@@ -99,8 +95,7 @@ class AmazonElasticIpCachingAgentSpec extends Specification {
     cache = agent.loadData(providerCache)
 
     then:
-    1 * result.getAddresses() >> [eipA]
-    1 * ec2.describeAddresses() >> result
+    1 * ec2.describeAddresses() >> DescribeAddressesResponse.builder().addresses([eipA]).build()
     0 * _
 
     cache.cacheResults[Keys.Namespace.ELASTIC_IPS.ns].find { it.id == eipAKey }

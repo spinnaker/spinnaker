@@ -21,13 +21,6 @@ import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.IM
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.LAUNCH_TEMPLATES;
 import static java.util.stream.Collectors.toSet;
 
-import com.amazonaws.services.ec2.AmazonEC2;
-import com.amazonaws.services.ec2.model.DescribeLaunchTemplateVersionsRequest;
-import com.amazonaws.services.ec2.model.DescribeLaunchTemplateVersionsResult;
-import com.amazonaws.services.ec2.model.DescribeLaunchTemplatesRequest;
-import com.amazonaws.services.ec2.model.DescribeLaunchTemplatesResult;
-import com.amazonaws.services.ec2.model.LaunchTemplate;
-import com.amazonaws.services.ec2.model.LaunchTemplateVersion;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
@@ -54,6 +47,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.ec2.Ec2Client;
+import software.amazon.awssdk.services.ec2.model.DescribeLaunchTemplateVersionsRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeLaunchTemplateVersionsResponse;
+import software.amazon.awssdk.services.ec2.model.DescribeLaunchTemplatesRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeLaunchTemplatesResponse;
+import software.amazon.awssdk.services.ec2.model.LaunchTemplate;
+import software.amazon.awssdk.services.ec2.model.LaunchTemplateVersion;
 
 public class AmazonLaunchTemplateCachingAgent implements CachingAgent, AccountAware {
   private final Logger log = LoggerFactory.getLogger(getClass());
@@ -88,7 +88,7 @@ public class AmazonLaunchTemplateCachingAgent implements CachingAgent, AccountAw
 
   @Override
   public CacheResult loadData(ProviderCache providerCache) {
-    final AmazonEC2 ec2 = amazonClientProvider.getAmazonEC2(account, region);
+    final Ec2Client ec2 = amazonClientProvider.getAmazonEC2V2(account, region);
     final List<LaunchTemplate> launchTemplates = getLaunchTemplates(ec2);
     final List<LaunchTemplateVersion> launchTemplateVersions =
         getLaunchTemplateVersions(ec2, DEFAULT_VERSIONS);
@@ -96,13 +96,13 @@ public class AmazonLaunchTemplateCachingAgent implements CachingAgent, AccountAw
     for (LaunchTemplate launchTemplate : launchTemplates) {
       Set<LaunchTemplateVersion> versions =
           launchTemplateVersions.stream()
-              .filter(t -> t.getLaunchTemplateId().equals(launchTemplate.getLaunchTemplateId()))
+              .filter(t -> t.launchTemplateId().equals(launchTemplate.launchTemplateId()))
               .collect(toSet());
 
       // store the latest template version info
       Optional<LaunchTemplateVersion> latest =
           versions.stream()
-              .filter(v -> v.getVersionNumber().equals(launchTemplate.getLatestVersionNumber()))
+              .filter(v -> v.versionNumber().equals(launchTemplate.latestVersionNumber()))
               .findFirst();
 
       if (latest.isEmpty()) {
@@ -111,8 +111,7 @@ public class AmazonLaunchTemplateCachingAgent implements CachingAgent, AccountAw
       }
 
       String key =
-          Keys.getLaunchTemplateKey(
-              launchTemplate.getLaunchTemplateName(), account.getName(), region);
+          Keys.getLaunchTemplateKey(launchTemplate.launchTemplateName(), account.getName(), region);
       Map<String, Object> attributes = objectMapper.convertValue(launchTemplate, ATTRIBUTES);
 
       attributes.put("application", Keys.parse(key).get("application"));
@@ -125,8 +124,7 @@ public class AmazonLaunchTemplateCachingAgent implements CachingAgent, AccountAw
           versions.stream()
               .map(
                   i ->
-                      Keys.getImageKey(
-                          i.getLaunchTemplateData().getImageId(), account.getName(), region))
+                      Keys.getImageKey(i.launchTemplateData().imageId(), account.getName(), region))
               .collect(Collectors.toSet());
 
       Map<String, Collection<String>> relationships = Collections.singletonMap(IMAGES.ns, images);
@@ -137,14 +135,14 @@ public class AmazonLaunchTemplateCachingAgent implements CachingAgent, AccountAw
   }
 
   /** Gets a list of ec2 Launch templates */
-  private List<LaunchTemplate> getLaunchTemplates(AmazonEC2 ec2) {
+  private List<LaunchTemplate> getLaunchTemplates(Ec2Client ec2) {
     final List<LaunchTemplate> launchTemplates = new ArrayList<>();
-    final DescribeLaunchTemplatesRequest request = new DescribeLaunchTemplatesRequest();
+    DescribeLaunchTemplatesRequest request = DescribeLaunchTemplatesRequest.builder().build();
     while (true) {
-      final DescribeLaunchTemplatesResult result = ec2.describeLaunchTemplates(request);
-      launchTemplates.addAll(result.getLaunchTemplates());
-      if (result.getNextToken() != null) {
-        request.withNextToken(result.getNextToken());
+      final DescribeLaunchTemplatesResponse result = ec2.describeLaunchTemplates(request);
+      launchTemplates.addAll(result.launchTemplates());
+      if (result.nextToken() != null) {
+        request = request.toBuilder().nextToken(result.nextToken()).build();
       } else {
         break;
       }
@@ -154,16 +152,16 @@ public class AmazonLaunchTemplateCachingAgent implements CachingAgent, AccountAw
   }
 
   /** Gets a list of ec2 Launch template versions for a Launch template */
-  private List<LaunchTemplateVersion> getLaunchTemplateVersions(AmazonEC2 ec2, String... versions) {
+  private List<LaunchTemplateVersion> getLaunchTemplateVersions(Ec2Client ec2, String... versions) {
     final List<LaunchTemplateVersion> launchTemplateVersions = new ArrayList<>();
-    final DescribeLaunchTemplateVersionsRequest request =
-        new DescribeLaunchTemplateVersionsRequest().withVersions(versions);
+    DescribeLaunchTemplateVersionsRequest request =
+        DescribeLaunchTemplateVersionsRequest.builder().versions(versions).build();
     while (true) {
-      final DescribeLaunchTemplateVersionsResult result =
+      final DescribeLaunchTemplateVersionsResponse result =
           ec2.describeLaunchTemplateVersions(request);
-      launchTemplateVersions.addAll(result.getLaunchTemplateVersions());
-      if (result.getNextToken() != null) {
-        request.withNextToken(result.getNextToken());
+      launchTemplateVersions.addAll(result.launchTemplateVersions());
+      if (result.nextToken() != null) {
+        request = request.toBuilder().nextToken(result.nextToken()).build();
       } else {
         break;
       }

@@ -20,6 +20,9 @@ dependencies {
   implementation project(":clouddriver-security")
 
   implementation "com.amazonaws:aws-java-sdk"
+  // TODO: redundant once clouddriver-aws's SDKv2 EC2 migration merges (it declares this as `api`,
+  // exposing it here transitively). Harmless in the meantime; safe to remove at that point.
+  implementation "software.amazon.awssdk:ec2"
   implementation "com.github.ben-manes.caffeine:guava"
   implementation "com.netflix.awsobjectmapper:awsobjectmapper"
   implementation "com.netflix.frigga:frigga"
