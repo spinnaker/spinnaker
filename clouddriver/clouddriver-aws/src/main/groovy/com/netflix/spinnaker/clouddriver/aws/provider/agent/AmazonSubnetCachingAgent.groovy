@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
-import com.amazonaws.services.ec2.model.Subnet
+import software.amazon.awssdk.services.ec2.model.Subnet
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.agent.*
 import com.netflix.spinnaker.cats.cache.CacheData
@@ -76,13 +76,13 @@ class AmazonSubnetCachingAgent implements CachingAgent, AccountAware {
   @Override
   CacheResult loadData(ProviderCache providerCache) {
     log.info("Describing items in ${agentType}")
-    def ec2 = amazonClientProvider.getAmazonEC2(account, region)
-    def subnets = ec2.describeSubnets().subnets
+    def ec2 = amazonClientProvider.getAmazonEC2V2(account, region)
+    def subnets = ec2.describeSubnets().subnets()
 
     List<CacheData> data = subnets.collect { Subnet subnet ->
       Map<String, Object> attributes = amazonObjectMapper.convertValue(subnet, AwsInfrastructureProvider.ATTRIBUTES)
       attributes.putIfAbsent("accountId", account.accountId)
-      new DefaultCacheData(Keys.getSubnetKey(subnet.subnetId, region, account.name),
+      new DefaultCacheData(Keys.getSubnetKey(subnet.subnetId(), region, account.name),
         attributes,
         [:])
     }
