@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.provider.view;
 
-import com.amazonaws.services.ec2.model.GroupIdentifier;
 import com.google.common.collect.Sets;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.EcsCloudProvider;
@@ -58,6 +57,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.services.applicationautoscaling.model.ScalableTarget;
+import software.amazon.awssdk.services.ec2.model.GroupIdentifier;
 import software.amazon.awssdk.services.ecs.model.ContainerDefinition;
 import software.amazon.awssdk.services.ecs.model.NetworkInterface;
 
@@ -355,16 +355,16 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
           Task task = taskCacheClient.get(taskKey);
 
           if (task != null) {
-            com.amazonaws.services.ec2.model.Instance ec2Instance =
+            software.amazon.awssdk.services.ec2.model.Instance ec2Instance =
                 containerInformationService.getEc2Instance(account, region, task);
             if (ec2Instance != null) {
-              if (ec2Instance.getVpcId() != null && !ec2Instance.getVpcId().isEmpty()) {
-                vpcId = ec2Instance.getVpcId();
+              if (ec2Instance.vpcId() != null && !ec2Instance.vpcId().isEmpty()) {
+                vpcId = ec2Instance.vpcId();
               }
-              if (ec2Instance.getSecurityGroups() != null) {
+              if (ec2Instance.securityGroups() != null) {
                 securityGroups =
-                    ec2Instance.getSecurityGroups().stream()
-                        .map(GroupIdentifier::getGroupId)
+                    ec2Instance.securityGroups().stream()
+                        .map(GroupIdentifier::groupId)
                         .collect(Collectors.toSet());
               }
               break;

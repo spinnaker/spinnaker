@@ -17,9 +17,9 @@
 package com.netflix.spinnaker.clouddriver.ecs.provider.view
 
 import software.amazon.awssdk.services.applicationautoscaling.model.ScalableTarget
-import com.amazonaws.services.ec2.model.GroupIdentifier
-import com.amazonaws.services.ec2.model.Instance
-import com.amazonaws.services.ec2.model.Placement
+import software.amazon.awssdk.services.ec2.model.GroupIdentifier
+import software.amazon.awssdk.services.ec2.model.Instance
+import software.amazon.awssdk.services.ec2.model.Placement
 import software.amazon.awssdk.services.ecs.model.AwsVpcConfiguration
 import software.amazon.awssdk.services.ecs.model.DeploymentConfiguration
 import software.amazon.awssdk.services.ecs.model.NetworkConfiguration
@@ -136,15 +136,11 @@ class EcsServerClusterProviderSpec extends Specification {
       type      : 'loadbalancer'
     ]
 
-    ec2Instance = new Instance(
-      placement: new Placement(
-        availabilityZone: availabilityZone
-      ),
-      vpcId: 'vpc-1234',
-      securityGroups: [new GroupIdentifier (
-        groupId: 'sg-1234'
-      )]
-    )
+    ec2Instance = Instance.builder()
+      .placement(Placement.builder().availabilityZone(availabilityZone).build())
+      .vpcId('vpc-1234')
+      .securityGroups(GroupIdentifier.builder().groupId('sg-1234').build())
+      .build()
 
     cachedTaskDefinition = TaskDefinition.builder()
       .containerDefinitions(
@@ -234,8 +230,14 @@ class EcsServerClusterProviderSpec extends Specification {
     def serviceAttributes = TestServiceCachingAgentFactory.create(creds, creds.getRegions()[0].getName()).convertServiceToAttributes(serviceWithVpc)
     def serviceCacheData = new DefaultCacheData('', serviceAttributes, [:])
 
-    ec2Instance.vpcId = 'vpc-wrong'
-    ec2Instance.securityGroups = [new GroupIdentifier (groupId: 'sg-wrong')]
+    ec2Instance = ec2Instance.toBuilder()
+      .vpcId('vpc-wrong')
+      .securityGroups(GroupIdentifier.builder().groupId('sg-wrong').build())
+      .build()
+    // setup() already stubbed getEc2Instance with the pre-rebuild instance; v2 objects are
+    // immutable (unlike v1, mutating the shared field in place no longer updates what the mock
+    // returns), so re-stub with the rebuilt instance.
+    containerInformationService.getEc2Instance(_, _, _) >> ec2Instance
 
     when:
     def retrievedCluster = provider.getCluster("myapp", CREDS_NAME, FAMILY_NAME)
@@ -381,7 +383,7 @@ class EcsServerClusterProviderSpec extends Specification {
     def retrievedCluster = provider.getCluster("myapp", CREDS_NAME, FAMILY_NAME)
 
     then:
-    containerInformationService.getEc2Instance(_, _, _) >> new Instance()
+    containerInformationService.getEc2Instance(_, _, _) >> Instance.builder().build()
     retrievedCluster == expectedCluster
   }
 
