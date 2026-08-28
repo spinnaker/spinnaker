@@ -16,18 +16,18 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.handlers
 
-import com.amazonaws.AmazonServiceException
-import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing
-import com.amazonaws.services.elasticloadbalancing.model.ApplySecurityGroupsToLoadBalancerRequest
-import com.amazonaws.services.elasticloadbalancing.model.CreateLoadBalancerListenersRequest
-import com.amazonaws.services.elasticloadbalancing.model.CreateLoadBalancerRequest
-import com.amazonaws.services.elasticloadbalancing.model.DeleteLoadBalancerListenersRequest
-import com.amazonaws.services.elasticloadbalancing.model.Listener
-import com.amazonaws.services.elasticloadbalancing.model.ListenerDescription
-import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerAttributes
-import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
-import com.amazonaws.services.elasticloadbalancing.model.ModifyLoadBalancerAttributesRequest
-import com.amazonaws.services.elasticloadbalancing.model.SetLoadBalancerPoliciesOfListenerRequest
+import software.amazon.awssdk.awscore.exception.AwsServiceException
+import software.amazon.awssdk.services.elasticloadbalancing.ElasticLoadBalancingClient
+import software.amazon.awssdk.services.elasticloadbalancing.model.ApplySecurityGroupsToLoadBalancerRequest
+import software.amazon.awssdk.services.elasticloadbalancing.model.CreateLoadBalancerListenersRequest
+import software.amazon.awssdk.services.elasticloadbalancing.model.CreateLoadBalancerRequest
+import software.amazon.awssdk.services.elasticloadbalancing.model.DeleteLoadBalancerListenersRequest
+import software.amazon.awssdk.services.elasticloadbalancing.model.Listener
+import software.amazon.awssdk.services.elasticloadbalancing.model.ListenerDescription
+import software.amazon.awssdk.services.elasticloadbalancing.model.LoadBalancerAttributes
+import software.amazon.awssdk.services.elasticloadbalancing.model.LoadBalancerDescription
+import software.amazon.awssdk.services.elasticloadbalancing.model.ModifyLoadBalancerAttributesRequest
+import software.amazon.awssdk.services.elasticloadbalancing.model.SetLoadBalancerPoliciesOfListenerRequest
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationException
@@ -42,19 +42,19 @@ class LoadBalancerUpsertHandler {
     TaskRepository.threadLocalTask.get()
   }
 
-  public static void updateLoadBalancer(AmazonElasticLoadBalancing loadBalancing, LoadBalancerDescription loadBalancer,
+  public static void updateLoadBalancer(ElasticLoadBalancingClient loadBalancing, LoadBalancerDescription loadBalancer,
                                   List<Listener> listeners, Collection<String> securityGroups) {
     def amazonErrors = []
-    def loadBalancerName = loadBalancer.loadBalancerName
-    if (loadBalancer.getVPCId() && !securityGroups) {
+    def loadBalancerName = loadBalancer.loadBalancerName()
+    if (loadBalancer.vpcId() && !securityGroups) {
       throw new IllegalArgumentException("Load balancer ${loadBalancerName} must have at least one security group")
     }
 
     if (securityGroups) {
-      loadBalancing.applySecurityGroupsToLoadBalancer(new ApplySecurityGroupsToLoadBalancerRequest(
-        loadBalancerName: loadBalancerName,
-        securityGroups: securityGroups
-      ))
+      loadBalancing.applySecurityGroupsToLoadBalancer(ApplySecurityGroupsToLoadBalancerRequest.builder()
+        .loadBalancerName(loadBalancerName)
+        .securityGroups(securityGroups)
+        .build())
     }
 
     task.updateStatus BASE_PHASE, "Security groups updated on ${loadBalancerName}."
@@ -62,7 +62,7 @@ class LoadBalancerUpsertHandler {
     if (listeners) {
       // ignore all references to :0 => :0 listeners - leave them alone if they're there, do not add them if they're not
       listeners = listeners.findAll(notLegacyListener);
-      def existingListeners = loadBalancer.listenerDescriptions*.listener.findAll(notLegacyListener)
+      def existingListeners = loadBalancer.listenerDescriptions()*.listener().findAll(notLegacyListener)
       def listenersToRemove = existingListeners.findAll {
         // existed previously but were not supplied in upsert and should be deleted
         !listeners.contains(it)
@@ -72,25 +72,28 @@ class LoadBalancerUpsertHandler {
       // no need to recreate existing listeners
       listeners.removeAll(existingListeners)
       final List<ListenerDescription> listenerDescriptionsToRemove = loadBalancer
-        .listenerDescriptions
+        .listenerDescriptions()
         .findAll {
-          it.listener in listenersToRemove
+          it.listener() in listenersToRemove
         }
 
       def createListener = { ListenerDescription listenerDescription, boolean isRollback ->
         try {
-          loadBalancing.createLoadBalancerListeners(new CreateLoadBalancerListenersRequest(loadBalancerName, [listenerDescription.listener]))
-          if (!listenerDescription.policyNames.isEmpty()) {
+          loadBalancing.createLoadBalancerListeners(CreateLoadBalancerListenersRequest.builder()
+            .loadBalancerName(loadBalancerName)
+            .listeners([listenerDescription.listener()])
+            .build())
+          if (!listenerDescription.policyNames().isEmpty()) {
             ensureSetLoadBalancerListenerPolicies(loadBalancerName, listenerDescription, loadBalancing)
           }
 
           task.updateStatus BASE_PHASE,
             "Listener ${isRollback ? 'rolled back on' : 'added to'} ${loadBalancerName} " +
-              "(${listenerDescription.listener.loadBalancerPort}:${listenerDescription.listener.protocol}:${listenerDescription.listener.instancePort})."
-        } catch (AmazonServiceException e) {
+              "(${listenerDescription.listener().loadBalancerPort()}:${listenerDescription.listener().protocol()}:${listenerDescription.listener().instancePort()})."
+        } catch (AwsServiceException e) {
           def exceptionMessage = "Failed to ${isRollback ? 'roll back' : 'add'} listener to ${loadBalancerName} " +
-            "(${listenerDescription.listener.loadBalancerPort}:${listenerDescription.listener.protocol}:${listenerDescription.listener.instancePort}) " +
-            "- reason: ${e.errorMessage}."
+            "(${listenerDescription.listener().loadBalancerPort()}:${listenerDescription.listener().protocol()}:${listenerDescription.listener().instancePort()}) " +
+            "- reason: ${e.awsErrorDetails().errorMessage()}."
 
           task.updateStatus BASE_PHASE, exceptionMessage
           amazonErrors << exceptionMessage
@@ -103,25 +106,28 @@ class LoadBalancerUpsertHandler {
       listenerDescriptionsToRemove.each {
         try {
           loadBalancing.deleteLoadBalancerListeners(
-            new DeleteLoadBalancerListenersRequest(loadBalancerName, [it.listener.loadBalancerPort])
+            DeleteLoadBalancerListenersRequest.builder()
+              .loadBalancerName(loadBalancerName)
+              .loadBalancerPorts([it.listener().loadBalancerPort()])
+              .build()
           )
 
           task.updateStatus BASE_PHASE,
-            "Listener removed from ${loadBalancerName} (${it.listener.loadBalancerPort}:${it.listener.protocol}:${it.listener.instancePort})."
-        } catch(AmazonServiceException e) {
+            "Listener removed from ${loadBalancerName} (${it.listener().loadBalancerPort()}:${it.listener().protocol()}:${it.listener().instancePort()})."
+        } catch(AwsServiceException e) {
           // Rollback as this failure will result in an exception when creating listeners.
-          task.updateStatus BASE_PHASE, "Failed to remove listener $it: $e.errorMessage."
-          amazonErrors << e.errorMessage
+          task.updateStatus BASE_PHASE, "Failed to remove listener $it: ${e.awsErrorDetails().errorMessage()}."
+          amazonErrors << e.awsErrorDetails().errorMessage()
         }
       }
 
       listeners.each { listener ->
         final List<String> policyNames = loadBalancer
-          .listenerDescriptions.find {
-            it.listener.loadBalancerPort == listener.loadBalancerPort && it.listener.protocol == listener.protocol
-          }?.policyNames
+          .listenerDescriptions().find {
+            it.listener().loadBalancerPort() == listener.loadBalancerPort() && it.listener().protocol() == listener.protocol()
+          }?.policyNames()
 
-        final ListenerDescription description = new ListenerDescription(listener: listener, policyNames: policyNames)
+        final ListenerDescription description = ListenerDescription.builder().listener(listener).policyNames(policyNames).build()
         if (!createListener(description, false)) {
           rollback = true
         }
@@ -139,62 +145,63 @@ class LoadBalancerUpsertHandler {
     }
   }
 
-  public static String createLoadBalancer(AmazonElasticLoadBalancing loadBalancing, String loadBalancerName, boolean isInternal,
+  public static String createLoadBalancer(ElasticLoadBalancingClient loadBalancing, String loadBalancerName, boolean isInternal,
                                           Collection<String> availabilityZones, Collection<String> subnetIds,
                                           Collection<Listener> listeners, Collection<String> securityGroups) {
     return createLoadBalancer(loadBalancing, loadBalancerName, isInternal, availabilityZones, subnetIds, listeners, securityGroups, null)
   }
 
-  public static String createLoadBalancer(AmazonElasticLoadBalancing loadBalancing, String loadBalancerName, boolean isInternal,
+  public static String createLoadBalancer(ElasticLoadBalancingClient loadBalancing, String loadBalancerName, boolean isInternal,
                                           Collection<String> availabilityZones, Collection<String> subnetIds,
                                           Collection<Listener> listeners, Collection<String> securityGroups, LoadBalancerAttributes sourceAttributes) {
-    def request = new CreateLoadBalancerRequest(loadBalancerName)
+    def requestBuilder = CreateLoadBalancerRequest.builder().loadBalancerName(loadBalancerName)
 
     // Networking Related
     if (subnetIds) {
       task.updateStatus BASE_PHASE, "Subnets: [$subnetIds]"
-      request.withSubnets(subnetIds)
+      requestBuilder.subnets(subnetIds)
       if (isInternal) {
-        request.scheme = 'internal'
+        requestBuilder.scheme('internal')
       }
-      request.withSecurityGroups(securityGroups)
+      requestBuilder.securityGroups(securityGroups)
     } else {
-      request.withAvailabilityZones(availabilityZones)
+      requestBuilder.availabilityZones(availabilityZones)
     }
-    request.withListeners(listeners)
+    requestBuilder.listeners(listeners)
     task.updateStatus BASE_PHASE, "Creating load balancer."
-    def result = loadBalancing.createLoadBalancer(request)
+    def result = loadBalancing.createLoadBalancer(requestBuilder.build())
     if (sourceAttributes) {
       task.updateStatus BASE_PHASE, "Configuring load balancer attributes."
       loadBalancing.modifyLoadBalancerAttributes(
-        new ModifyLoadBalancerAttributesRequest()
-          .withLoadBalancerAttributes(sourceAttributes)
-          .withLoadBalancerName(loadBalancerName)
+        ModifyLoadBalancerAttributesRequest.builder()
+          .loadBalancerAttributes(sourceAttributes)
+          .loadBalancerName(loadBalancerName)
+          .build()
       )
     }
-    result.DNSName
+    result.dnsName()
   }
 
   // ignore the old listener :0 => :0, which AWS adds to ELBs created sometime before 2012-09-26
   private static Closure notLegacyListener = { Listener listener ->
-    listener.instancePort != 0 && listener.loadBalancerPort != 0 && listener.protocol
+    listener.instancePort() != 0 && listener.loadBalancerPort() != 0 && listener.protocol()
   }
 
   /**
    * Ensures policies set in the request are applied to the load balancer
    */
   private static void ensureSetLoadBalancerListenerPolicies(
-    String loadBalancerName, ListenerDescription listenerDescription, AmazonElasticLoadBalancing loadBalancing) {
-    final SetLoadBalancerPoliciesOfListenerRequest policyRequest = new SetLoadBalancerPoliciesOfListenerRequest()
-      .withLoadBalancerName(loadBalancerName)
-      .withLoadBalancerPort(listenerDescription.listener.loadBalancerPort)
+    String loadBalancerName, ListenerDescription listenerDescription, ElasticLoadBalancingClient loadBalancing) {
+    final SetLoadBalancerPoliciesOfListenerRequest policyRequest = SetLoadBalancerPoliciesOfListenerRequest.builder()
+      .loadBalancerName(loadBalancerName)
+      .loadBalancerPort(listenerDescription.listener().loadBalancerPort())
+      .policyNames(listenerDescription.policyNames())
+      .build()
 
     try {
-      loadBalancing.setLoadBalancerPoliciesOfListener(
-        policyRequest.withPolicyNames(listenerDescription.policyNames)
-      )
-    } catch(AmazonServiceException e) {
-      log.error("Failed to set listener policies on loadbalancer $loadBalancerName: $e.errorMessage")
+      loadBalancing.setLoadBalancerPoliciesOfListener(policyRequest)
+    } catch(AwsServiceException e) {
+      log.error("Failed to set listener policies on loadbalancer $loadBalancerName: ${e.awsErrorDetails().errorMessage()}")
     }
   }
 }
