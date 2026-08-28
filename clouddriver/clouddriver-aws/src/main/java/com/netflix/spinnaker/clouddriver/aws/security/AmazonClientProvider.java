@@ -672,6 +672,24 @@ public class AmazonClientProvider {
   }
 
   /**
+   * Returns an AWS SDK v2 {@link AutoScalingClient} for the given account and region.
+   *
+   * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
+   * Like EC2, AutoScaling is actually fronted by Edda in practice (via {@link
+   * #getAutoScaling(NetflixAmazonCredentials, String, boolean)}), so callers migrating to this
+   * method should be aware they are trading Edda read-through for direct AWS API calls.
+   */
+  public AutoScalingClient getAutoScalingV2(
+      NetflixAmazonCredentials amazonCredentials, String region) {
+    return awsSdkV2ClientSupplier.getClient(
+        AutoScalingClient::builder,
+        AutoScalingClient.class,
+        amazonCredentials.getV2CredentialsProvider(),
+        region,
+        amazonCredentials.getName());
+  }
+
+  /**
    * Returns an AWS SDK v2 {@link EcsClient} for the given account and region.
    *
    * <p>Unlike its v1 counterpart this method has no {@code skipEdda} parameter. Edda read-through
