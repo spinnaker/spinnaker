@@ -34,6 +34,7 @@ dependencies {
   api "software.amazon.awssdk:applicationautoscaling"
   api "software.amazon.awssdk:cloudformation"
   api "software.amazon.awssdk:cloudwatch"
+  api "software.amazon.awssdk:ec2"
   api "software.amazon.awssdk:ecr"
   api "software.amazon.awssdk:ecs"
   api "software.amazon.awssdk:elasticloadbalancingv2"
