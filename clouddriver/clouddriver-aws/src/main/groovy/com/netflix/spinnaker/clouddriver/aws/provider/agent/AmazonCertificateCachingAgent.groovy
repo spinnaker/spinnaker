@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
-import com.amazonaws.services.identitymanagement.model.AmazonIdentityManagementException
-import com.amazonaws.services.identitymanagement.model.ListServerCertificatesRequest
-import com.amazonaws.services.identitymanagement.model.ServerCertificateMetadata
+import software.amazon.awssdk.services.iam.model.IamException
+import software.amazon.awssdk.services.iam.model.ListServerCertificatesRequest
+import software.amazon.awssdk.services.iam.model.ServerCertificateMetadata
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
@@ -100,22 +100,22 @@ class AmazonCertificateCachingAgent implements CachingAgent, AccountAware {
   CacheResult loadData(ProviderCache providerCache) {
     if (!lastFailure || lastFailure.isBefore(Instant.now() - RETRY_DELAY)) {
       log.info("Describing items in ${agentType}")
-      def iam = amazonClientProvider.getAmazonIdentityManagement(account, region)
+      def iam = amazonClientProvider.getIamV2(account, region)
 
       // Get all the target groups
       List<ServerCertificateMetadata> iamCertificates = []
-      ListServerCertificatesRequest listServerCertificatesRequest = new ListServerCertificatesRequest()
+      ListServerCertificatesRequest listServerCertificatesRequest = ListServerCertificatesRequest.builder().build()
       while (true) {
         try {
           def resp = iam.listServerCertificates(listServerCertificatesRequest)
           registry.gauge(securityTokenExceptionGauge.withTag("operation", "ListServerCertificates")).set(0)
-          iamCertificates.addAll(resp.serverCertificateMetadataList)
-          if (resp.marker) {
-            listServerCertificatesRequest.withMarker(resp.marker)
+          iamCertificates.addAll(resp.serverCertificateMetadataList())
+          if (resp.marker()) {
+            listServerCertificatesRequest = listServerCertificatesRequest.toBuilder().marker(resp.marker()).build()
           } else {
             break
           }
-        } catch (AmazonIdentityManagementException e) {
+        } catch (IamException e) {
           lastFailure = Instant.now()
           log.warn("An error occured when querying for \"ListServerCertificates\" in AWS account ${account.name} " +
             "(${account.accountId}) in region ${region}. Will not retry in the next ${RETRY_DELAY.toMinutes()} minutes. " +
@@ -128,7 +128,7 @@ class AmazonCertificateCachingAgent implements CachingAgent, AccountAware {
 
       List<CacheData> data = iamCertificates.collect { ServerCertificateMetadata cert ->
         Map<String, Object> attributes = objectMapper.convertValue(cert, AwsInfrastructureProvider.ATTRIBUTES)
-        new DefaultCacheData(Keys.getCertificateKey(cert.serverCertificateId, region, account.name, "iam"),
+        new DefaultCacheData(Keys.getCertificateKey(cert.serverCertificateId(), region, account.name, "iam"),
           attributes,
           [:])
       }

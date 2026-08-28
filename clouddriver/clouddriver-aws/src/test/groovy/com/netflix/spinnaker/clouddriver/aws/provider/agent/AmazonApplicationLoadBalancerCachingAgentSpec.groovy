@@ -1,20 +1,21 @@
 package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
-import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeListenersResult
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeLoadBalancersResult
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTagsResult
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsResult
-import com.amazonaws.services.elasticloadbalancingv2.model.Listener
-import com.amazonaws.services.elasticloadbalancingv2.model.LoadBalancer
-import com.amazonaws.services.elasticloadbalancingv2.model.Tag
-import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroup
-import com.amazonaws.services.elasticloadbalancingv2.model.TagDescription
+import software.amazon.awssdk.services.elasticloadbalancingv2.ElasticLoadBalancingV2Client
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeListenersResponse
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeLoadBalancersResponse
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeTagsResponse
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeTargetGroupsResponse
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.Listener
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.LoadBalancer
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.Tag
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetGroup
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.TagDescription
 import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer
 import com.netflix.spectator.api.Spectator
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.edda.EddaApi
+import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
@@ -31,7 +32,7 @@ class AmazonApplicationLoadBalancerCachingAgentSpec extends Specification {
   static String accountId = 'accountId'
 
   @Shared
-  AmazonElasticLoadBalancing elasticLoadBalancing = Mock(AmazonElasticLoadBalancing)
+  ElasticLoadBalancingV2Client elasticLoadBalancing = Mock(ElasticLoadBalancingV2Client)
 
   @Shared
   EddaApi eddaApi = Mock(EddaApi)
@@ -49,34 +50,26 @@ class AmazonApplicationLoadBalancerCachingAgentSpec extends Specification {
     }
     def cloud = Stub(AmazonCloudProvider)
     def client = Stub(AmazonClientProvider) {
-      getAmazonElasticLoadBalancingV2(_, _) >> Stub(AmazonElasticLoadBalancing) {
-        describeLoadBalancers(_) >> new DescribeLoadBalancersResult() {
-          List<LoadBalancer> getLoadBalancers() {
-            return filterableLBs().keySet() as List
-          }
-        }
+      getElasticLoadBalancingV2Client(_, _) >> Stub(ElasticLoadBalancingV2Client) {
+        describeLoadBalancers(_) >> DescribeLoadBalancersResponse.builder()
+          .loadBalancers(filterableLBs().keySet() as List)
+          .build()
 
-        describeTags(_) >> new DescribeTagsResult() {
-          List<TagDescription> getTagDescriptions() {
-            return filterableLBs().values().flatten()
-          }
-        }
+        describeTags(_) >> DescribeTagsResponse.builder()
+          .tagDescriptions(filterableLBs().values().flatten() as List<TagDescription>)
+          .build()
 
-        describeTargetGroups(_) >> new DescribeTargetGroupsResult() {
-          List<TargetGroup> getTargetGroups() {
-            return filterableTargetGroups()
-          }
-        }
+        describeTargetGroups(_) >> DescribeTargetGroupsResponse.builder()
+          .targetGroups(filterableTargetGroups())
+          .build()
 
-        describeListeners(_) >> new DescribeListenersResult() {
-          List<Listener> getListeners() {
-            return []
-          }
-        }
+        describeListeners(_) >> DescribeListenersResponse.builder()
+          .listeners([] as List<Listener>)
+          .build()
       }
     }
 
-    new AmazonApplicationLoadBalancerCachingAgent(cloud, client, creds, region, eddaApi, AmazonObjectMapperConfigurer.createConfigured(), Spectator.globalRegistry(), eddaTimeoutConfig, filter)
+    new AmazonApplicationLoadBalancerCachingAgent(cloud, client, creds, region, eddaApi, AmazonObjectMapperConfigurer.createConfigured().registerModule(new AwsSdkV2Module()), Spectator.globalRegistry(), eddaTimeoutConfig, filter)
   }
 
   void "should filter by tags"() {
@@ -100,7 +93,7 @@ class AmazonApplicationLoadBalancerCachingAgentSpec extends Specification {
 
     where:
     includeTags                   | excludeTags                   | expected
-    null                          | null                          | filterableLBs()*.getKey().collect { buildCacheKey(it.loadBalancerName) }
+    null                          | null                          | filterableLBs()*.getKey().collect { buildCacheKey(it.loadBalancerName()) }
     [taggify("hello")]            | null                          | buildCacheKeys(["test-hello-tag-value", "test-hello-tag-value-different", "test-hello-tag-no-value"])
     [taggify("hello", "goodbye")] | null                          | buildCacheKeys(["test-hello-tag-value"])
     [taggify("hello", "goo")]     | null                          | buildCacheKeys([])
@@ -128,25 +121,25 @@ class AmazonApplicationLoadBalancerCachingAgentSpec extends Specification {
 
   private static final Map<LoadBalancer, List<TagDescription>> filterableLBs() {
     return [
-      (new LoadBalancer().withLoadBalancerName("test-hello-tag-value").withLoadBalancerArn(buildELBArn("test-hello-tag-value")))                    :
-        [new TagDescription().withResourceArn(buildELBArn("test-hello-tag-value")).withTags(new Tag().withKey("hello").withValue("goodbye"))],
-      (new LoadBalancer().withLoadBalancerName("test-hello-tag-value-different").withLoadBalancerArn(buildELBArn("test-hello-tag-value-different"))):
-        [new TagDescription().withResourceArn(buildELBArn("test-hello-tag-value-different")).withTags(new Tag().withKey("hello").withValue("ciao"))],
-      (new LoadBalancer().withLoadBalancerName("test-hello-tag-no-value").withLoadBalancerArn(buildELBArn("test-hello-tag-no-value")))              :
-        [new TagDescription().withResourceArn(buildELBArn("test-hello-tag-no-value")).withTags(new Tag().withKey("hello"))],
-      (new LoadBalancer().withLoadBalancerName("test-no-hello-tag").withLoadBalancerArn(buildELBArn("test-no-hello-tag")))                          :
-        [new TagDescription().withResourceArn(buildELBArn("test-no-hello-tag")).withTags(new Tag().withKey("Name"))],
-      (new LoadBalancer().withLoadBalancerName("test-no-tags").withLoadBalancerArn(buildELBArn("test-no-tags")))                                    : []
+      (LoadBalancer.builder().loadBalancerName("test-hello-tag-value").loadBalancerArn(buildELBArn("test-hello-tag-value")).build())                    :
+        [TagDescription.builder().resourceArn(buildELBArn("test-hello-tag-value")).tags(Tag.builder().key("hello").value("goodbye").build()).build()],
+      (LoadBalancer.builder().loadBalancerName("test-hello-tag-value-different").loadBalancerArn(buildELBArn("test-hello-tag-value-different")).build()):
+        [TagDescription.builder().resourceArn(buildELBArn("test-hello-tag-value-different")).tags(Tag.builder().key("hello").value("ciao").build()).build()],
+      (LoadBalancer.builder().loadBalancerName("test-hello-tag-no-value").loadBalancerArn(buildELBArn("test-hello-tag-no-value")).build())              :
+        [TagDescription.builder().resourceArn(buildELBArn("test-hello-tag-no-value")).tags(Tag.builder().key("hello").build()).build()],
+      (LoadBalancer.builder().loadBalancerName("test-no-hello-tag").loadBalancerArn(buildELBArn("test-no-hello-tag")).build())                          :
+        [TagDescription.builder().resourceArn(buildELBArn("test-no-hello-tag")).tags(Tag.builder().key("Name").build()).build()],
+      (LoadBalancer.builder().loadBalancerName("test-no-tags").loadBalancerArn(buildELBArn("test-no-tags")).build())                                    : []
     ] as Map
   }
 
   private static final List<TargetGroup> filterableTargetGroups() {
     return [
-      new TargetGroup().withTargetGroupName("tg-test-hello-tag-value").withLoadBalancerArns(buildELBArn("test-hello-tag-value")),
-      new TargetGroup().withTargetGroupName("tg-test-hello-tag-value-different").withLoadBalancerArns(buildELBArn("test-hello-tag-value-different")),
-      new TargetGroup().withTargetGroupName("tg-test-hello-tag-no-value").withLoadBalancerArns(buildELBArn("test-hello-tag-no-value")),
-      new TargetGroup().withTargetGroupName("tg-test-no-hello-tag").withLoadBalancerArns(buildELBArn("test-no-hello-tag")),
-      new TargetGroup().withTargetGroupName("tg-test-no-tags").withLoadBalancerArns(buildELBArn("test-no-tags")),
+      TargetGroup.builder().targetGroupName("tg-test-hello-tag-value").loadBalancerArns(buildELBArn("test-hello-tag-value")).build(),
+      TargetGroup.builder().targetGroupName("tg-test-hello-tag-value-different").loadBalancerArns(buildELBArn("test-hello-tag-value-different")).build(),
+      TargetGroup.builder().targetGroupName("tg-test-hello-tag-no-value").loadBalancerArns(buildELBArn("test-hello-tag-no-value")).build(),
+      TargetGroup.builder().targetGroupName("tg-test-no-hello-tag").loadBalancerArns(buildELBArn("test-no-hello-tag")).build(),
+      TargetGroup.builder().targetGroupName("tg-test-no-tags").loadBalancerArns(buildELBArn("test-no-tags")).build(),
     ]
   }
 
