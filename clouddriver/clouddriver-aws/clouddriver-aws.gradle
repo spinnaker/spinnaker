@@ -36,7 +36,6 @@ dependencies {
   api "software.amazon.awssdk:autoscaling"
   api "software.amazon.awssdk:cloudformation"
   api "software.amazon.awssdk:cloudwatch"
-  // TODO: redundant once awsSdkv2MigrationEc2Pr1 merges
   api "software.amazon.awssdk:ec2"
   api "software.amazon.awssdk:ecr"
   api "software.amazon.awssdk:ecs"

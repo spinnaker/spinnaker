@@ -654,6 +654,24 @@ public class AmazonClientProvider {
   // ---------------------------------------------------------------------------
 
   /**
+   * Returns an AWS SDK v2 {@link Ec2Client} for the given account and region.
+   *
+   * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
+   * Note that EC2 is one of the few remaining v1 services that is actually fronted by Edda in
+   * practice (via {@link #getAmazonEC2(NetflixAmazonCredentials, String, boolean)}), so callers
+   * migrating to this method should be aware they are trading Edda read-through for direct AWS API
+   * calls.
+   */
+  public Ec2Client getAmazonEC2V2(NetflixAmazonCredentials amazonCredentials, String region) {
+    return awsSdkV2ClientSupplier.getClient(
+        Ec2Client::builder,
+        Ec2Client.class,
+        amazonCredentials.getV2CredentialsProvider(),
+        region,
+        amazonCredentials.getName());
+  }
+
+  /**
    * Returns an AWS SDK v2 {@link EcsClient} for the given account and region.
    *
    * <p>Unlike its v1 counterpart this method has no {@code skipEdda} parameter. Edda read-through
