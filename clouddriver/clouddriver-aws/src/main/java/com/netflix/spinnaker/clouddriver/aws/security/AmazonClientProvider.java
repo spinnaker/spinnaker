@@ -63,6 +63,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.services.applicationautoscaling.ApplicationAutoScalingClient;
 import software.amazon.awssdk.services.cloudformation.CloudFormationClient;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
+import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ecr.EcrClient;
 import software.amazon.awssdk.services.ecs.EcsClient;
 import software.amazon.awssdk.services.elasticloadbalancingv2.ElasticLoadBalancingV2Client;
@@ -650,6 +651,24 @@ public class AmazonClientProvider {
   // provide Edda read-through support (Edda interception is v1-only).
   // They are the building blocks for the clouddriver-ecs → v2 migration.
   // ---------------------------------------------------------------------------
+
+  /**
+   * Returns an AWS SDK v2 {@link Ec2Client} for the given account and region.
+   *
+   * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
+   * Note that EC2 is one of the few remaining v1 services that is actually fronted by Edda in
+   * practice (via {@link #getAmazonEC2(NetflixAmazonCredentials, String, boolean)}), so callers
+   * migrating to this method should be aware they are trading Edda read-through for direct AWS API
+   * calls.
+   */
+  public Ec2Client getAmazonEC2V2(NetflixAmazonCredentials amazonCredentials, String region) {
+    return awsSdkV2ClientSupplier.getClient(
+        Ec2Client::builder,
+        Ec2Client.class,
+        amazonCredentials.getV2CredentialsProvider(),
+        region,
+        amazonCredentials.getName());
+  }
 
   /**
    * Returns an AWS SDK v2 {@link EcsClient} for the given account and region.
