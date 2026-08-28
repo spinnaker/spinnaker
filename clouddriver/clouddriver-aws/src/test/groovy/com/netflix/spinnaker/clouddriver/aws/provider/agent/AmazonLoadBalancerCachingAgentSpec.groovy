@@ -1,12 +1,19 @@
 package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
-import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing
-import com.amazonaws.services.elasticloadbalancing.model.*
+import software.amazon.awssdk.services.elasticloadbalancing.ElasticLoadBalancingClient
+import software.amazon.awssdk.services.elasticloadbalancing.model.DescribeLoadBalancerAttributesResponse
+import software.amazon.awssdk.services.elasticloadbalancing.model.DescribeLoadBalancersResponse
+import software.amazon.awssdk.services.elasticloadbalancing.model.DescribeTagsResponse
+import software.amazon.awssdk.services.elasticloadbalancing.model.LoadBalancerAttributes
+import software.amazon.awssdk.services.elasticloadbalancing.model.LoadBalancerDescription
+import software.amazon.awssdk.services.elasticloadbalancing.model.Tag
+import software.amazon.awssdk.services.elasticloadbalancing.model.TagDescription
 import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer
 import com.netflix.spectator.api.Spectator
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.edda.EddaApi
+import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
@@ -21,7 +28,7 @@ class AmazonLoadBalancerCachingAgentSpec extends Specification {
   static String accountId = 'accountId'
 
   @Shared
-  AmazonElasticLoadBalancing elasticLoadBalancing = Mock(AmazonElasticLoadBalancing)
+  ElasticLoadBalancingClient elasticLoadBalancing = Mock(ElasticLoadBalancingClient)
 
   @Shared
   EddaApi eddaApi = Mock(EddaApi)
@@ -39,28 +46,22 @@ class AmazonLoadBalancerCachingAgentSpec extends Specification {
     }
     def cloud = Stub(AmazonCloudProvider)
     def client = Stub(AmazonClientProvider) {
-      getAmazonElasticLoadBalancing(_, _) >> Stub(AmazonElasticLoadBalancing) {
-        describeLoadBalancers(_) >> new DescribeLoadBalancersResult() {
-          List<LoadBalancerDescription> getLoadBalancerDescriptions() {
-            return filterableLBs().keySet() as List
-          }
-        }
+      getAmazonElasticLoadBalancingClassicV2(_, _) >> Stub(ElasticLoadBalancingClient) {
+        describeLoadBalancers(_) >> DescribeLoadBalancersResponse.builder()
+          .loadBalancerDescriptions(filterableLBs().keySet() as List)
+          .build()
 
-        describeTags(_) >> new DescribeTagsResult() {
-          List<TagDescription> getTagDescriptions() {
-            return filterableLBs().values().flatten()
-          }
-        }
+        describeTags(_) >> DescribeTagsResponse.builder()
+          .tagDescriptions(filterableLBs().values().flatten() as List<TagDescription>)
+          .build()
 
-        describeLoadBalancerAttributes(_) >> new DescribeLoadBalancerAttributesResult() {
-          LoadBalancerAttributes getLoadBalancerAttributes() {
-            return new LoadBalancerAttributes()
-          }
-        }
+        describeLoadBalancerAttributes(_) >> DescribeLoadBalancerAttributesResponse.builder()
+          .loadBalancerAttributes(LoadBalancerAttributes.builder().build())
+          .build()
       }
     }
 
-    new AmazonLoadBalancerCachingAgent(cloud, client, creds, region, eddaApi, AmazonObjectMapperConfigurer.createConfigured(), Spectator.globalRegistry(), filter)
+    new AmazonLoadBalancerCachingAgent(cloud, client, creds, region, eddaApi, AmazonObjectMapperConfigurer.createConfigured().registerModule(new AwsSdkV2Module()), Spectator.globalRegistry(), filter)
   }
 
   void "should filter by tags"() {
@@ -83,7 +84,7 @@ class AmazonLoadBalancerCachingAgentSpec extends Specification {
 
     where:
     includeTags                   | excludeTags                   | expected
-    null                          | null                          | filterableLBs()*.getKey().collect { buildCacheKey(it.loadBalancerName) }
+    null                          | null                          | filterableLBs()*.getKey().collect { buildCacheKey(it.loadBalancerName()) }
     [taggify("hello")]            | null                          | buildCacheKeys(["test-hello-tag-value", "test-hello-tag-value-different", "test-hello-tag-no-value"])
     [taggify("hello", "goodbye")] | null                          | buildCacheKeys(["test-hello-tag-value"])
     [taggify("hello", "goo")]     | null                          | buildCacheKeys([])
@@ -111,15 +112,15 @@ class AmazonLoadBalancerCachingAgentSpec extends Specification {
 
   private static final Map<LoadBalancerDescription, List<TagDescription>> filterableLBs() {
     return [
-      (new LoadBalancerDescription().withLoadBalancerName("test-hello-tag-value")):
-        [new TagDescription().withLoadBalancerName("test-hello-tag-value").withTags(new Tag().withKey("hello").withValue("goodbye"))],
-      (new LoadBalancerDescription().withLoadBalancerName("test-hello-tag-value-different")):
-        [new TagDescription().withLoadBalancerName("test-hello-tag-value-different").withTags(new Tag().withKey("hello").withValue("ciao"))],
-      (new LoadBalancerDescription().withLoadBalancerName("test-hello-tag-no-value")):
-        [new TagDescription().withLoadBalancerName("test-hello-tag-no-value").withTags(new Tag().withKey("hello"))],
-      (new LoadBalancerDescription().withLoadBalancerName("test-no-hello-tag")):
-        [new TagDescription().withLoadBalancerName("test-no-hello-tag").withTags(new Tag().withKey("Name"))],
-      (new LoadBalancerDescription().withLoadBalancerName("test-no-tags")):[]
+      (LoadBalancerDescription.builder().loadBalancerName("test-hello-tag-value").build()):
+        [TagDescription.builder().loadBalancerName("test-hello-tag-value").tags(Tag.builder().key("hello").value("goodbye").build()).build()],
+      (LoadBalancerDescription.builder().loadBalancerName("test-hello-tag-value-different").build()):
+        [TagDescription.builder().loadBalancerName("test-hello-tag-value-different").tags(Tag.builder().key("hello").value("ciao").build()).build()],
+      (LoadBalancerDescription.builder().loadBalancerName("test-hello-tag-no-value").build()):
+        [TagDescription.builder().loadBalancerName("test-hello-tag-no-value").tags(Tag.builder().key("hello").build()).build()],
+      (LoadBalancerDescription.builder().loadBalancerName("test-no-hello-tag").build()):
+        [TagDescription.builder().loadBalancerName("test-no-hello-tag").tags(Tag.builder().key("Name").build()).build()],
+      (LoadBalancerDescription.builder().loadBalancerName("test-no-tags").build()):[]
     ] as Map
   }
 
