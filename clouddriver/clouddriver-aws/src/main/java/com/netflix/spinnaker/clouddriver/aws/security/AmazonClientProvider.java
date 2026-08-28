@@ -67,11 +67,13 @@ import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ecr.EcrClient;
 import software.amazon.awssdk.services.ecs.EcsClient;
+import software.amazon.awssdk.services.elasticloadbalancing.ElasticLoadBalancingClient;
 import software.amazon.awssdk.services.elasticloadbalancingv2.ElasticLoadBalancingV2Client;
 import software.amazon.awssdk.services.iam.IamClient;
 import software.amazon.awssdk.services.lambda.LambdaClient;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.servicediscovery.ServiceDiscoveryClient;
+import software.amazon.awssdk.services.shield.ShieldClient;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.support.SupportClient;
@@ -912,33 +914,31 @@ public class AmazonClientProvider {
         amazonCredentials.getName());
   }
 
-  // TODO: redundant once awsSdkv2MigrationEc2Pr1 merges into main - remove this duplicate then.
   /**
-   * Returns an AWS SDK v2 {@link Ec2Client} for the given account and region.
+   * Returns an AWS SDK v2 {@link ElasticLoadBalancingClient} for classic (non-Application/Network)
+   * Elastic Load Balancers, for the given account and region.
    *
    * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
    */
-  public Ec2Client getAmazonEC2V2(NetflixAmazonCredentials amazonCredentials, String region) {
+  public ElasticLoadBalancingClient getAmazonElasticLoadBalancingClassicV2(
+      NetflixAmazonCredentials amazonCredentials, String region) {
     return awsSdkV2ClientSupplier.getClient(
-        Ec2Client::builder,
-        Ec2Client.class,
+        ElasticLoadBalancingClient::builder,
+        ElasticLoadBalancingClient.class,
         amazonCredentials.getV2CredentialsProvider(),
         region,
         amazonCredentials.getName());
   }
 
-  // TODO: redundant once awsSdkv2MigrationAutoScalingPr2 merges into main - remove this duplicate
-  // then.
   /**
-   * Returns an AWS SDK v2 {@link AutoScalingClient} for the given account and region.
+   * Returns an AWS SDK v2 {@link ShieldClient} for the given account and region.
    *
    * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
    */
-  public AutoScalingClient getAutoScalingV2(
-      NetflixAmazonCredentials amazonCredentials, String region) {
+  public ShieldClient getAmazonShieldV2(NetflixAmazonCredentials amazonCredentials, String region) {
     return awsSdkV2ClientSupplier.getClient(
-        AutoScalingClient::builder,
-        AutoScalingClient.class,
+        ShieldClient::builder,
+        ShieldClient.class,
         amazonCredentials.getV2CredentialsProvider(),
         region,
         amazonCredentials.getName());
