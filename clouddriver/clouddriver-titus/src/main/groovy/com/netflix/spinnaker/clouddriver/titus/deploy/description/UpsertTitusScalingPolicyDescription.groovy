@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.titus.deploy.description
 
-import com.amazonaws.services.applicationautoscaling.model.CustomizedMetricSpecification as AwsCustomizedMetricSpecification
-import com.amazonaws.services.applicationautoscaling.model.MetricDimension as AwsMetricDimension
-import com.amazonaws.services.applicationautoscaling.model.PredefinedMetricSpecification as AwsPredefinedMetricSpecification
-import com.amazonaws.services.applicationautoscaling.model.StepAdjustment as AwsStepAdjustment
-import com.amazonaws.services.autoscaling.model.StepAdjustment
+import software.amazon.awssdk.services.applicationautoscaling.model.CustomizedMetricSpecification as AwsCustomizedMetricSpecification
+import software.amazon.awssdk.services.applicationautoscaling.model.MetricDimension as AwsMetricDimension
+import software.amazon.awssdk.services.applicationautoscaling.model.PredefinedMetricSpecification as AwsPredefinedMetricSpecification
+import software.amazon.awssdk.services.applicationautoscaling.model.StepAdjustment as AwsStepAdjustment
+import software.amazon.awssdk.services.autoscaling.model.StepAdjustment
 import com.google.protobuf.BoolValue
 import com.google.protobuf.DoubleValue
 import com.google.protobuf.Int32Value
@@ -87,8 +87,8 @@ class UpsertTitusScalingPolicyDescription extends AbstractTitusCredentialsDescri
       if (targetTrackingConfiguration.predefinedMetricSpecification) {
         ttpBuilder.setPredefinedMetricSpecification(
           PredefinedMetricSpecification.newBuilder()
-            .setPredefinedMetricType(targetTrackingConfiguration.predefinedMetricSpecification.predefinedMetricType)
-            .setResourceLabel(targetTrackingConfiguration.predefinedMetricSpecification.resourceLabel)
+            .setPredefinedMetricType(targetTrackingConfiguration.predefinedMetricSpecification.predefinedMetricTypeAsString())
+            .setResourceLabel(targetTrackingConfiguration.predefinedMetricSpecification.resourceLabel())
         )
       }
 
@@ -96,19 +96,19 @@ class UpsertTitusScalingPolicyDescription extends AbstractTitusCredentialsDescri
         def metricSpecification = targetTrackingConfiguration.customizedMetricSpecification
         CustomizedMetricSpecification.Builder metricBuilder = CustomizedMetricSpecification.newBuilder()
         metricBuilder
-          .setMetricName(metricSpecification.metricName)
-          .setNamespace(metricSpecification.namespace)
-          .setStatistic(Statistic.valueOf(metricSpecification.statistic))
+          .setMetricName(metricSpecification.metricName())
+          .setNamespace(metricSpecification.namespace())
+          .setStatistic(Statistic.valueOf(metricSpecification.statisticAsString()))
 
-        if (metricSpecification.unit) {
-          metricBuilder.setUnit(metricSpecification.unit)
+        if (metricSpecification.unit()) {
+          metricBuilder.setUnit(metricSpecification.unit())
         }
 
-        metricSpecification.dimensions.each {
+        metricSpecification.dimensions().each {
           metricBuilder.addDimensions(
             MetricDimension.newBuilder()
-              .setName(it.name)
-              .setValue(it.value)
+              .setName(it.name())
+              .setValue(it.value())
           )
         }
         ttpBuilder.setCustomizedMetricSpecification(metricBuilder)
@@ -126,13 +126,13 @@ class UpsertTitusScalingPolicyDescription extends AbstractTitusCredentialsDescri
       }
       step.stepAdjustments.each { adjustment ->
         StepAdjustments.Builder adjustmentBuilder = StepAdjustments.newBuilder()
-        if (adjustment.metricIntervalLowerBound != null) {
-          adjustmentBuilder.setMetricIntervalLowerBound(DoubleValue.of(adjustment.metricIntervalLowerBound))
+        if (adjustment.metricIntervalLowerBound() != null) {
+          adjustmentBuilder.setMetricIntervalLowerBound(DoubleValue.of(adjustment.metricIntervalLowerBound()))
         }
-        if (adjustment.metricIntervalUpperBound != null) {
-          adjustmentBuilder.setMetricIntervalUpperBound(DoubleValue.of(adjustment.metricIntervalUpperBound))
+        if (adjustment.metricIntervalUpperBound() != null) {
+          adjustmentBuilder.setMetricIntervalUpperBound(DoubleValue.of(adjustment.metricIntervalUpperBound()))
         }
-        adjustmentBuilder.setScalingAdjustment(Int32Value.of(adjustment.scalingAdjustment))
+        adjustmentBuilder.setScalingAdjustment(Int32Value.of(adjustment.scalingAdjustment()))
         stepBuilder.addStepAdjustments(adjustmentBuilder)
       }
 
@@ -171,15 +171,14 @@ class UpsertTitusScalingPolicyDescription extends AbstractTitusCredentialsDescri
       step.metricAggregationType = stepPolicy.metricAggregationType
       step.stepAdjustments = []
       stepPolicy.stepAdjustmentsList?.each {
-        com.amazonaws.services.applicationautoscaling.model.StepAdjustment adjustment = new AwsStepAdjustment()
-        adjustment.scalingAdjustment = it.scalingAdjustment.value
+        def adjustmentBuilder = AwsStepAdjustment.builder().scalingAdjustment(it.scalingAdjustment.value)
         if (it.hasMetricIntervalLowerBound()) {
-          adjustment.metricIntervalLowerBound = it.metricIntervalLowerBound?.value
+          adjustmentBuilder.metricIntervalLowerBound(it.metricIntervalLowerBound?.value)
         }
         if (it.hasMetricIntervalUpperBound()) {
-          adjustment.metricIntervalUpperBound = it.metricIntervalUpperBound?.value
+          adjustmentBuilder.metricIntervalUpperBound(it.metricIntervalUpperBound?.value)
         }
-        step.stepAdjustments << adjustment
+        step.stepAdjustments << adjustmentBuilder.build()
       }
       AlarmConfiguration alarmConfig = stepDescriptor.alarmConfig
       UpsertAlarmDescription alarm = new UpsertAlarmDescription()
@@ -207,16 +206,15 @@ class UpsertTitusScalingPolicyDescription extends AbstractTitusCredentialsDescri
       targetTrackingConfiguration.targetValue = targetDescriptor.targetValue.value
 
       CustomizedMetricSpecification sourceMetricSpecification = targetDescriptor.customizedMetricSpecification
-      AwsCustomizedMetricSpecification customizedMetricSpecification = new AwsCustomizedMetricSpecification()
-      targetTrackingConfiguration.customizedMetricSpecification = customizedMetricSpecification
-      customizedMetricSpecification.withMetricName(sourceMetricSpecification.metricName)
-        .withNamespace(sourceMetricSpecification.namespace)
-        .withStatistic(sourceMetricSpecification.statistic.name())
-        .withUnit(sourceMetricSpecification.unit)
-        .withDimensions(sourceMetricSpecification.dimensionsList.collect { dimension ->
+      targetTrackingConfiguration.customizedMetricSpecification = AwsCustomizedMetricSpecification.builder()
+        .metricName(sourceMetricSpecification.metricName)
+        .namespace(sourceMetricSpecification.namespace)
+        .statistic(sourceMetricSpecification.statistic.name())
+        .unit(sourceMetricSpecification.unit)
+        .dimensions(sourceMetricSpecification.dimensionsList.collect { dimension ->
         String value = dimension.name == "AutoScalingGroupName" ? serverGroupName : dimension.value
-        new AwsMetricDimension().withName(dimension.name).withValue(value)
-      })
+        AwsMetricDimension.builder().name(dimension.name).value(value).build()
+      }).build()
     }
     log.info("UpsertTitusScalingPolicyDescription for ${serverGroupName} description: ${ JsonOutput.toJson(description) }")
     description
