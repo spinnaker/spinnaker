@@ -94,6 +94,8 @@ export const ProjectDashboard = ({ projectConfiguration: project, transition }: 
     getSelectedRegionsFromTransition(transition),
   );
   const [application] = React.useState(() => ApplicationModelBuilder.createStandaloneApplication('project'));
+  const clusterLoadGeneration = React.useRef(0);
+  const pipelineLoadGeneration = React.useRef(0);
 
   const applyRegionFilter = (nextSelectedRegions: IRegionSelection) => {
     const selected = removeUnselectedRegions(nextSelectedRegions);
@@ -102,6 +104,7 @@ export const ProjectDashboard = ({ projectConfiguration: project, transition }: 
   };
 
   const loadClusters = () => {
+    const loadGeneration = ++clusterLoadGeneration.current;
     setClusterState((state) => ({ ...state, refreshing: true, error: false }));
     const configuredClusters = project.config?.clusters?.length;
     const clustersPromise: Promise<IProjectDashboardCluster[]> = configuredClusters
@@ -112,6 +115,9 @@ export const ProjectDashboard = ({ projectConfiguration: project, transition }: 
 
     return clustersPromise
       .then((nextClusters: IProjectDashboardCluster[]) => {
+        if (loadGeneration !== clusterLoadGeneration.current) {
+          return;
+        }
         setClusters(nextClusters);
         setClusterState({
           initializing: false,
@@ -121,12 +127,19 @@ export const ProjectDashboard = ({ projectConfiguration: project, transition }: 
           lastRefresh: Date.now(),
         });
       })
-      .catch(() => setClusterState((state) => ({ ...state, initializing: false, refreshing: false, error: true })));
+      .catch(() => {
+        if (loadGeneration === clusterLoadGeneration.current) {
+          setClusterState((state) => ({ ...state, initializing: false, refreshing: false, error: true }));
+        }
+      });
   };
 
-  const loadManualPipelineFallback = () =>
+  const loadManualPipelineFallback = (loadGeneration: number) =>
     executionService.getProjectExecutions(project.name).then(
       (nextExecutions: IExecution[]) => {
+        if (loadGeneration !== pipelineLoadGeneration.current) {
+          return;
+        }
         setPipelineGroups(getProjectPipelineGroups(project, [], nextExecutions));
         setExecutionState({
           initializing: false,
@@ -137,10 +150,15 @@ export const ProjectDashboard = ({ projectConfiguration: project, transition }: 
           lastRefresh: Date.now(),
         });
       },
-      () => setExecutionState((state) => ({ ...state, initializing: false, refreshing: false, error: true })),
+      () => {
+        if (loadGeneration === pipelineLoadGeneration.current) {
+          setExecutionState((state) => ({ ...state, initializing: false, refreshing: false, error: true }));
+        }
+      },
     );
 
   const loadPipelines = async () => {
+    const loadGeneration = ++pipelineLoadGeneration.current;
     setExecutionState((state) => ({ ...state, refreshing: true, error: false, warning: false }));
     setPipelineGroups([]);
 
@@ -148,12 +166,15 @@ export const ProjectDashboard = ({ projectConfiguration: project, transition }: 
     try {
       pipelineConfigs = await PipelineConfigService.getAllPipelineConfigs();
     } catch {
-      return loadManualPipelineFallback();
+      return loadManualPipelineFallback(loadGeneration);
     }
 
     try {
       const pipelineConfigIds = getProjectPipelineConfigIds(project, pipelineConfigs);
       const nextExecutions = await executionService.getProjectExecutionsForConfigIds(pipelineConfigIds);
+      if (loadGeneration !== pipelineLoadGeneration.current) {
+        return;
+      }
       setPipelineGroups(getProjectPipelineGroups(project, pipelineConfigs, nextExecutions));
       setExecutionState({
         initializing: false,
@@ -164,7 +185,9 @@ export const ProjectDashboard = ({ projectConfiguration: project, transition }: 
         lastRefresh: Date.now(),
       });
     } catch {
-      setExecutionState((state) => ({ ...state, initializing: false, refreshing: false, error: true }));
+      if (loadGeneration === pipelineLoadGeneration.current) {
+        setExecutionState((state) => ({ ...state, initializing: false, refreshing: false, error: true }));
+      }
     }
   };
 
