@@ -328,18 +328,30 @@ export class ExecutionService {
     return ['pipeline', groupBy, application, heading].join('#');
   }
 
+  private transformProjectExecutions(executions: IExecution[] = []): IExecution[] {
+    if (!executions || !executions.length) {
+      return [];
+    }
+    executions.forEach((execution) => ExecutionsTransformer.transformExecution({} as Application, execution));
+    return executions.sort((a, b) => b.startTime - (a.startTime || Date.now()));
+  }
+
   public getProjectExecutions(project: string, limit = 1): Promise<IExecution[]> {
     return REST('/projects')
       .path(project, 'pipelines')
       .query({ limit })
       .get()
-      .then((executions: IExecution[]) => {
-        if (!executions || !executions.length) {
-          return [];
-        }
-        executions.forEach((execution) => ExecutionsTransformer.transformExecution({} as Application, execution));
-        return executions.sort((a, b) => b.startTime - (a.startTime || Date.now()));
-      });
+      .then((executions: IExecution[]) => this.transformProjectExecutions(executions));
+  }
+
+  public getProjectExecutionsForConfigIds(pipelineConfigIds: string[], limit = 1): Promise<IExecution[]> {
+    if (!pipelineConfigIds.length) {
+      return Promise.resolve([]);
+    }
+    return REST('/executions')
+      .query({ limit, pipelineConfigIds: pipelineConfigIds.join(',') })
+      .get()
+      .then((executions: IExecution[]) => this.transformProjectExecutions(executions));
   }
 
   public addExecutionsToApplication(application: Application, executions: IExecution[] = []): IExecution[] {

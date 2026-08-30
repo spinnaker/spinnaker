@@ -1,14 +1,18 @@
 import type { Transition } from '@uirouter/core';
+import { UISref } from '@uirouter/react';
 import React from 'react';
 
 import { getAvailableProjectClusterRegions, ProjectCluster } from './ProjectCluster';
 import type { IProjectDashboardCluster, IRegionSelection } from './ProjectClusterModel';
+import { getProjectPipelineConfigIds, getProjectPipelineGroups } from './ProjectPipelineModel';
+import type { IProjectPipelineGroup } from './ProjectPipelineModel';
 import { RegionFilter } from './RegionFilter';
 import { ApplicationModelBuilder } from '../../application/applicationModel.builder';
 import { useDeckRuntimeServices } from '../../bootstrap/DeckRuntimeContext';
-import type { IExecution, IProject } from '../../domain';
+import type { IExecution, IPipeline, IProject } from '../../domain';
 import { RecentHistoryService } from '../../history/recentHistory.service';
 import { ProjectPipeline } from './pipeline/ProjectPipeline';
+import { PipelineConfigService } from '../../pipeline/config/services/PipelineConfigService';
 import { ProjectReader } from '../service/ProjectReader';
 import { Spinner } from '../../widgets';
 
@@ -24,6 +28,7 @@ interface ILoadState {
   refreshing: boolean;
   loaded: boolean;
   error: boolean;
+  warning?: boolean;
   lastRefresh?: number;
 }
 
@@ -82,7 +87,7 @@ const RefreshControl = ({ onRefresh, refreshing }: { onRefresh: () => void; refr
 export const ProjectDashboard = ({ projectConfiguration: project, transition }: IProjectDashboardProps) => {
   const { executionService } = useDeckRuntimeServices();
   const [clusters, setClusters] = React.useState<IProjectDashboardCluster[]>([]);
-  const [executions, setExecutions] = React.useState<IExecution[]>([]);
+  const [pipelineGroups, setPipelineGroups] = React.useState<IProjectPipelineGroup[]>([]);
   const [clusterState, setClusterState] = React.useState<ILoadState>(initialLoadState());
   const [executionState, setExecutionState] = React.useState<ILoadState>(initialLoadState());
   const [selectedRegions, setSelectedRegions] = React.useState<IRegionSelection>(() =>
@@ -119,21 +124,47 @@ export const ProjectDashboard = ({ projectConfiguration: project, transition }: 
       .catch(() => setClusterState((state) => ({ ...state, initializing: false, refreshing: false, error: true })));
   };
 
-  const loadExecutions = () => {
-    setExecutionState((state) => ({ ...state, refreshing: true, error: false }));
-    return executionService
-      .getProjectExecutions(project.name)
-      .then((nextExecutions: IExecution[]) => {
-        setExecutions(nextExecutions);
+  const loadManualPipelineFallback = () =>
+    executionService.getProjectExecutions(project.name).then(
+      (nextExecutions: IExecution[]) => {
+        setPipelineGroups(getProjectPipelineGroups(project, [], nextExecutions));
         setExecutionState({
           initializing: false,
           refreshing: false,
           loaded: true,
           error: false,
+          warning: true,
           lastRefresh: Date.now(),
         });
-      })
-      .catch(() => setExecutionState((state) => ({ ...state, initializing: false, refreshing: false, error: true })));
+      },
+      () => setExecutionState((state) => ({ ...state, initializing: false, refreshing: false, error: true })),
+    );
+
+  const loadPipelines = async () => {
+    setExecutionState((state) => ({ ...state, refreshing: true, error: false, warning: false }));
+
+    let pipelineConfigs: IPipeline[];
+    try {
+      pipelineConfigs = await PipelineConfigService.getAllPipelineConfigs();
+    } catch {
+      return loadManualPipelineFallback();
+    }
+
+    try {
+      const pipelineConfigIds = getProjectPipelineConfigIds(project, pipelineConfigs);
+      const nextExecutions = await executionService.getProjectExecutionsForConfigIds(pipelineConfigIds);
+      setPipelineGroups(getProjectPipelineGroups(project, pipelineConfigs, nextExecutions));
+      setExecutionState({
+        initializing: false,
+        refreshing: false,
+        loaded: true,
+        error: false,
+        warning: false,
+        lastRefresh: Date.now(),
+      });
+    } catch {
+      setExecutionState((state) => ({ ...state, initializing: false, refreshing: false, error: true }));
+    }
   };
 
   React.useEffect(() => {
@@ -149,11 +180,11 @@ export const ProjectDashboard = ({ projectConfiguration: project, transition }: 
     });
 
     loadClusters();
-    loadExecutions();
+    loadPipelines();
 
     const refreshInterval = window.setInterval(() => {
       loadClusters();
-      loadExecutions();
+      loadPipelines();
     }, 3 * 60 * 1000);
 
     return () => window.clearInterval(refreshInterval);
@@ -202,19 +233,41 @@ export const ProjectDashboard = ({ projectConfiguration: project, transition }: 
         <div className="col-md-5 project-column">
           <h3>
             Pipeline Status
-            <RefreshControl onRefresh={loadExecutions} refreshing={executionState.refreshing} />
+            <RefreshControl onRefresh={loadPipelines} refreshing={executionState.refreshing} />
           </h3>
           {!executionState.loaded && (
             <div className="horizontal center">
               <Spinner size="small" />
             </div>
           )}
-          {executions.map((execution) => (
-            <section className="project-pipeline" key={execution.id}>
-              <ProjectPipeline application={application} execution={execution} />
+          {pipelineGroups.map((group) => (
+            <section className="project-pipeline-group" key={group.application}>
+              <h4>{group.application}</h4>
+              {group.pipelines.map((row) =>
+                row.execution ? (
+                  <section className="project-pipeline" key={row.pipelineConfigId}>
+                    <ProjectPipeline application={application} execution={row.execution} />
+                  </section>
+                ) : (
+                  <div className="project-pipeline-never-run" key={row.pipelineConfigId}>
+                    <UISref
+                      to="home.applications.application.pipelines.pipelineConfig"
+                      params={{ application: row.application, pipelineId: row.pipelineConfigId }}
+                    >
+                      <a>{row.name}</a>
+                    </UISref>
+                    <span>Never run</span>
+                  </div>
+                ),
+              )}
             </section>
           ))}
-          {!project.config.pipelineConfigs.length && <h4>No pipelines configured</h4>}
+          {executionState.loaded && !pipelineGroups.length && <h4>No pipelines found</h4>}
+          {executionState.warning && (
+            <div className="alert alert-warning">
+              Automatic pipeline discovery is unavailable. Showing manually configured pipeline executions.
+            </div>
+          )}
           {executionState.error && <h4>There was a problem loading the executions for this project.</h4>}
         </div>
       </div>
