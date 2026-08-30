@@ -142,6 +142,7 @@ export const ProjectDashboard = ({ projectConfiguration: project, transition }: 
 
   const loadPipelines = async () => {
     setExecutionState((state) => ({ ...state, refreshing: true, error: false, warning: false }));
+    setPipelineGroups([]);
 
     let pipelineConfigs: IPipeline[];
     try {

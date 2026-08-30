@@ -189,6 +189,24 @@ describe('<ProjectDashboard />', () => {
     wrapper.unmount();
   });
 
+  it('clears prior never-run rows when a refresh fails', async () => {
+    executionService.getProjectExecutionsForConfigIds.and.returnValue(Promise.resolve([]));
+
+    const wrapper = await mountAndFlush(<TestDashboard projectConfiguration={project} transition={transition()} />);
+    expect(wrapper.text()).toContain('Never run');
+
+    executionService.getProjectExecutionsForConfigIds.and.returnValue(Promise.reject(new Error('refresh failed')));
+    await act(async () => {
+      wrapper.find('RefreshControl button').simulate('click');
+      await Promise.resolve();
+    });
+    wrapper.update();
+
+    expect(wrapper.text()).toContain('There was a problem loading the executions for this project.');
+    expect(wrapper.text()).not.toContain('Never run');
+    wrapper.unmount();
+  });
+
   it('renders an empty state when no manual or tagged pipelines exist', async () => {
     (PipelineConfigService.getAllPipelineConfigs as jasmine.Spy).and.returnValue(Promise.resolve([]));
     const emptyProject = { ...project, config: { applications: [], clusters: [], pipelineConfigs: [] } };
