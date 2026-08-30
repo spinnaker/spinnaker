@@ -31,7 +31,7 @@ class GoogleLoadBalancerProviderSpec extends Specification {
   private static final ACCOUNT_NAME = "auto"
   private static final LOAD_BALANCER_NAME = "default"
   private static final REGION_EUROPE = "europe-west1"
-  private static final SERVER_GROUP_IDS = ["server_group_identifier"]
+  private static final SERVER_GROUP_IDS = ["server_group_identifier"] as Set
 
   void "should return session affinity"() {
     setup:
@@ -60,7 +60,7 @@ class GoogleLoadBalancerProviderSpec extends Specification {
     when:
       def details = provider.byAccountAndRegionAndName(ACCOUNT_NAME, REGION_EUROPE, LOAD_BALANCER_NAME)
     then:
-      _ * cacheView.filterIdentifiers(LOAD_BALANCERS.ns, _) >> ["lb_identifier"]
+      _ * cacheView.filterIdentifiers(LOAD_BALANCERS.ns, _) >> (["lb_identifier"] as Set)
       1 * cacheView.getAll(LOAD_BALANCERS.ns, _, _) >> [googleLoadBalancerView]
       1 * cacheView.filterIdentifiers(SERVER_GROUPS.ns, _) >> SERVER_GROUP_IDS
       1 * cacheView.getAll(SERVER_GROUPS.ns, SERVER_GROUP_IDS) >> [serverGroup]

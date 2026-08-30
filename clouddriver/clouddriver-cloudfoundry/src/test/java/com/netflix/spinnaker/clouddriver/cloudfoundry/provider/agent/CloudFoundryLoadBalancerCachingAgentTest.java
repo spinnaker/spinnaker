@@ -205,7 +205,7 @@ class CloudFoundryLoadBalancerCachingAgentTest {
     Integer processedCount = 1;
     Long processedTime = 222L;
     String loadBalancerKey = Keys.getLoadBalancerKey(accountName, cloudFoundryLoadBalancer);
-    Collection<String> expectedKeys = singleton("key1");
+    Set<String> expectedKeys = singleton("key1");
     when(mockProviderCache.filterIdentifiers(any(), any())).thenReturn(expectedKeys);
     Collection<CacheData> onDemandCacheData =
         singleton(
