@@ -197,7 +197,7 @@ describe('<ProjectDashboard />', () => {
 
     executionService.getProjectExecutionsForConfigIds.and.returnValue(Promise.reject(new Error('refresh failed')));
     await act(async () => {
-      wrapper.find('RefreshControl button').simulate('click');
+      wrapper.find('.col-md-5 RefreshControl button').simulate('click');
       await Promise.resolve();
     });
     wrapper.update();
@@ -221,7 +221,7 @@ describe('<ProjectDashboard />', () => {
     executionService.getProjectExecutions.and.returnValue(Promise.reject(new Error('fallback failed')));
 
     await act(async () => {
-      wrapper.find('RefreshControl button').simulate('click');
+      wrapper.find('.col-md-5 RefreshControl button').simulate('click');
       await Promise.resolve();
       await Promise.resolve();
     });
