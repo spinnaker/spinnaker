@@ -165,14 +165,15 @@ describe('<ProjectDashboard />', () => {
     wrapper.unmount();
   });
 
-  it('falls back to manual project executions when config discovery fails', async () => {
+  it('loads manual pipeline executions through the application-filtered endpoint when config discovery fails', async () => {
     (PipelineConfigService.getAllPipelineConfigs as jasmine.Spy).and.returnValue(
       Promise.reject(new Error('configs failed')),
     );
 
     const wrapper = await mountAndFlush(<TestDashboard projectConfiguration={project} transition={transition()} />);
 
-    expect(executionService.getProjectExecutions).toHaveBeenCalledWith('kubernetesproject');
+    expect(executionService.getProjectExecutionsForConfigIds).toHaveBeenCalledWith(['deployment']);
+    expect(executionService.getProjectExecutions).not.toHaveBeenCalled();
     expect(wrapper.find('ProjectPipeline').length).toBe(1);
     expect(wrapper.text()).toContain('Automatic pipeline discovery is unavailable');
     wrapper.unmount();
@@ -218,7 +219,7 @@ describe('<ProjectDashboard />', () => {
     (PipelineConfigService.getAllPipelineConfigs as jasmine.Spy).and.returnValue(
       Promise.reject(new Error('refresh failed')),
     );
-    executionService.getProjectExecutions.and.returnValue(Promise.reject(new Error('fallback failed')));
+    executionService.getProjectExecutionsForConfigIds.and.returnValue(Promise.reject(new Error('fallback failed')));
 
     await act(async () => {
       wrapper.find('.col-md-5 RefreshControl button').simulate('click');

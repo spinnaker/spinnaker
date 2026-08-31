@@ -135,7 +135,7 @@ export const ProjectDashboard = ({ projectConfiguration: project, transition }: 
   };
 
   const loadManualPipelineFallback = (loadGeneration: number) =>
-    executionService.getProjectExecutions(project.name).then(
+    executionService.getProjectExecutionsForConfigIds(getProjectPipelineConfigIds(project, [])).then(
       (nextExecutions: IExecution[]) => {
         if (loadGeneration !== pipelineLoadGeneration.current) {
           return;
