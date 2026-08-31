@@ -21,8 +21,8 @@ import software.amazon.awssdk.services.ec2.model.Instance
 import software.amazon.awssdk.services.ec2.model.InstanceState
 import software.amazon.awssdk.services.ec2.model.InstanceStateName
 import software.amazon.awssdk.services.ec2.model.Reservation
-import com.amazonaws.services.elasticloadbalancing.model.DeregisterInstancesFromLoadBalancerRequest
-import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerNotFoundException
+import software.amazon.awssdk.services.elasticloadbalancing.model.DeregisterInstancesFromLoadBalancerRequest
+import software.amazon.awssdk.services.elasticloadbalancing.model.LoadBalancerNotFoundException
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.EnableDisableAsgDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery.AwsEurekaSupport
@@ -65,8 +65,8 @@ class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnit
     1 * asgService.getAutoScalingGroup(_) >> asg
     1 * asgService.suspendProcesses(_, AutoScalingProcessType.getDisableProcesses())
     1 * loadBalancing.deregisterInstancesFromLoadBalancer(_) >> { DeregisterInstancesFromLoadBalancerRequest req ->
-      assert req.instances[0].instanceId == "i1"
-      assert req.loadBalancerName == "lb1"
+      assert req.instances()[0].instanceId() == "i1"
+      assert req.loadBalancerName() == "lb1"
     }
   }
 
@@ -90,7 +90,7 @@ class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnit
     1 * asgService.getAutoScalingGroup(_) >> asg
     1 * asgService.suspendProcesses(_, AutoScalingProcessType.getDisableProcesses())
     1 * loadBalancing.deregisterInstancesFromLoadBalancer(_) >> {
-      throw new LoadBalancerNotFoundException("Does not exist")
+      throw LoadBalancerNotFoundException.builder().message("Does not exist").build()
     }
     1 * eureka.getInstanceInfo('i1') >>
       Calls.response([
