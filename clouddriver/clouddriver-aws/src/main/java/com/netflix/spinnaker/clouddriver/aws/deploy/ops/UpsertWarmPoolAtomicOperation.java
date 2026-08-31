@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops;
 
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.AsgDescription;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertWarmPoolDescription;
 import com.netflix.spinnaker.clouddriver.aws.services.AsgService;
@@ -26,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup;
 
 public class UpsertWarmPoolAtomicOperation implements AtomicOperation<Void> {
 

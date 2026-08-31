@@ -17,11 +17,11 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.asg
 
-import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.autoscaling.model.BlockDeviceMapping
-import com.amazonaws.services.autoscaling.model.CreateLaunchConfigurationRequest
-import com.amazonaws.services.autoscaling.model.Ebs
-import com.amazonaws.services.autoscaling.model.LaunchConfiguration
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient
+import software.amazon.awssdk.services.autoscaling.model.BlockDeviceMapping
+import software.amazon.awssdk.services.autoscaling.model.CreateLaunchConfigurationRequest
+import software.amazon.awssdk.services.autoscaling.model.Ebs
+import software.amazon.awssdk.services.autoscaling.model.LaunchConfiguration
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.DefaultUserDataTokenizer
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.UserDataProviderAggregator
 import com.netflix.spinnaker.clouddriver.aws.userdata.UserDataOverride
@@ -35,7 +35,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 class DefaultLaunchConfigurationBuilderSpec extends Specification {
-  def autoScaling = Mock(AmazonAutoScaling)
+  def autoScaling = Mock(AutoScalingClient)
   def asgService = Mock(AsgService)
   def securityGroupService = Mock(SecurityGroupService)
   def userDataOverride = new UserDataOverride()
@@ -114,7 +114,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
     1 * securityGroupService.getSecurityGroupNamesFromIds(_) >> [:]
     1 * securityGroupService.getSecurityGroupForApplication(application, subnetType) >> application
     1 * autoScaling.createLaunchConfiguration(_ as CreateLaunchConfigurationRequest) >> { CreateLaunchConfigurationRequest req ->
-      assert req.getUserData() == expectedUserData
+      assert req.userData() == expectedUserData
     }
     0 * _
 
@@ -144,7 +144,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
     1 * securityGroupService.getSecurityGroupNamesFromIds(_) >> [:]
     1 * securityGroupService.getSecurityGroupForApplication(application, subnetType) >> application
     1 * autoScaling.createLaunchConfiguration(_ as CreateLaunchConfigurationRequest) >> { CreateLaunchConfigurationRequest req ->
-      assert req.getUserData() == expectedUserData
+      assert req.userData() == expectedUserData
     }
     0 * _
 
@@ -177,7 +177,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
     1 * securityGroupService.getSecurityGroupNamesFromIds(_) >> [:]
     1 * securityGroupService.getSecurityGroupForApplication(application, subnetType) >> application
     1 * autoScaling.createLaunchConfiguration(_ as CreateLaunchConfigurationRequest) >> { CreateLaunchConfigurationRequest req ->
-      assert req.getUserData() == expectedUserData
+      assert req.userData() == expectedUserData
     }
     0 * _
 
@@ -489,15 +489,14 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
     given:
     AccountCredentials<?> account = Mock(AccountCredentials)
     String launchConfigurationName = 'source-launch-config'
-    LaunchConfiguration launchConfiguration = new LaunchConfiguration()
-    launchConfiguration.setLaunchConfigurationName(launchConfigurationName)
     int throughput = 250
-    Ebs ebs = new Ebs()
-    ebs.setThroughput(throughput)
-    BlockDeviceMapping blockDeviceMapping = new BlockDeviceMapping()
-    blockDeviceMapping.setEbs(ebs)
-    launchConfiguration.setBlockDeviceMappings([blockDeviceMapping])
-    launchConfiguration.setEbsOptimized(false) // arbitrary, must not be null
+    Ebs ebs = Ebs.builder().throughput(throughput).build()
+    BlockDeviceMapping blockDeviceMapping = BlockDeviceMapping.builder().ebs(ebs).build()
+    LaunchConfiguration launchConfiguration = LaunchConfiguration.builder()
+      .launchConfigurationName(launchConfigurationName)
+      .blockDeviceMappings([blockDeviceMapping])
+      .ebsOptimized(false) // arbitrary, must not be null
+      .build()
     when:
     LaunchConfigurationBuilder.LaunchConfigurationSettings result = builder.buildSettingsFromLaunchConfiguration(account,'region', launchConfigurationName)
 

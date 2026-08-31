@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup
 
-import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.*
+import software.amazon.awssdk.services.ec2.Ec2Client
+import software.amazon.awssdk.services.ec2.model.*
 import com.google.common.collect.ImmutableSet
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
@@ -105,20 +105,20 @@ class SecurityGroupLookupFactory {
 
     SecurityGroupUpdater createSecurityGroup(UpsertSecurityGroupDescription description) {
       final credentials = getCredentialsForName(description.account)
-      final request = new CreateSecurityGroupRequest(description.name, description.description)
+      final requestBuilder = CreateSecurityGroupRequest.builder().groupName(description.name).description(description.description)
       if (description.vpcId) {
-        request.withVpcId(description.vpcId)
+        requestBuilder.vpcId(description.vpcId)
       }
-      final amazonEC2 = amazonClientProvider.getAmazonEC2(credentials, region, true)
-      final result = amazonEC2.createSecurityGroup(request)
-      final newSecurityGroup = new SecurityGroup(
-        ownerId: credentials.accountId,
-        groupId: result.groupId,
-        groupName: description.name,
-        description: description.description,
-        vpcId: description.vpcId
-      )
-      securityGroupById.put(result.groupId, newSecurityGroup)
+      final amazonEC2 = amazonClientProvider.getAmazonEC2V2(credentials, region)
+      final result = amazonEC2.createSecurityGroup(requestBuilder.build())
+      final newSecurityGroup = SecurityGroup.builder()
+        .ownerId(credentials.accountId)
+        .groupId(result.groupId())
+        .groupName(description.name)
+        .description(description.description)
+        .vpcId(description.vpcId)
+        .build()
+      securityGroupById.put(result.groupId(), newSecurityGroup)
       securityGroupByName.put(description.name, newSecurityGroup)
 
       try {
@@ -127,13 +127,12 @@ class SecurityGroupLookupFactory {
          * created security group is not immediately taggable.
          */
         retrySupport.retry({
-          CreateTagsRequest createTagRequest = new CreateTagsRequest()
           Collection<Tag> tags = new HashSet()
-          tags.add(new Tag("Name", description.name))
+          tags.add(Tag.builder().key("Name").value(description.name).build())
           description.tags.each {
-            entry -> tags.add(new Tag(entry.key, entry.value))
+            entry -> tags.add(Tag.builder().key(entry.key).value(entry.value).build())
           }
-          createTagRequest.withResources(result.groupId).withTags(tags)
+          CreateTagsRequest createTagRequest = CreateTagsRequest.builder().resources(result.groupId()).tags(tags).build()
 
           try {
             amazonEC2.createTags(createTagRequest)
@@ -145,10 +144,10 @@ class SecurityGroupLookupFactory {
           log.info("Succesfully tagged newly created security group '${description.name}'")
 
           try {
-            def describeSecurityGroupsRequest = new DescribeSecurityGroupsRequest().withFilters(
-              new Filter("group-name", [description.name])
-            )
-            def securityGroups = amazonEC2.describeSecurityGroups(describeSecurityGroupsRequest).securityGroups
+            def describeSecurityGroupsRequest = DescribeSecurityGroupsRequest.builder().filters(
+              Filter.builder().name("group-name").values([description.name]).build()
+            ).build()
+            def securityGroups = amazonEC2.describeSecurityGroups(describeSecurityGroupsRequest).securityGroups()
             if (!securityGroups) {
               throw new IntegrationException("Not Found!").setRetryable(true)
             }
@@ -163,7 +162,7 @@ class SecurityGroupLookupFactory {
         log.error(
           "Unable to tag or describe newly created security group (groupName: {}, groupId: {}, accountId: {})",
           description.name,
-          result.groupId,
+          result.groupId(),
           credentials.accountId,
           e
         )
@@ -179,7 +178,7 @@ class SecurityGroupLookupFactory {
       final credentials = getCredentialsForName(accountName)
       if (!credentials) { return Optional.empty() }
 
-      def amazonEC2 = amazonClientProvider.getAmazonEC2(credentials, region, skipEdda)
+      def amazonEC2 = amazonClientProvider.getAmazonEC2V2(credentials, region)
       def cachedSecurityGroupKey = name.toLowerCase() + "." + vpcId
       def cachedSecurityGroup = securityGroupByName.get(cachedSecurityGroupKey)
       if (cachedSecurityGroup) {
@@ -187,29 +186,29 @@ class SecurityGroupLookupFactory {
       }
       def securityGroups
       if (skipEdda) {
-        def describeSecurityGroupsRequest = new DescribeSecurityGroupsRequest().withFilters(
-          new Filter("group-name", [name])
-        )
-        securityGroups = amazonEC2.describeSecurityGroups(describeSecurityGroupsRequest).securityGroups
+        def describeSecurityGroupsRequest = DescribeSecurityGroupsRequest.builder().filters(
+          Filter.builder().name("group-name").values([name]).build()
+        ).build()
+        securityGroups = amazonEC2.describeSecurityGroups(describeSecurityGroupsRequest).securityGroups()
       } else {
         securityGroups = getEddaSecurityGroups(amazonEC2, accountName, region)
       }
 
       def securityGroup = securityGroups.find {
-        it.groupName == name && it.vpcId == vpcId
+        it.groupName() == name && it.vpcId() == vpcId
       }
       if (securityGroup) {
         securityGroupByName[cachedSecurityGroupKey] = securityGroup
-        securityGroupById[securityGroup.groupId + "." + vpcId] = securityGroup
+        securityGroupById[securityGroup.groupId() + "." + vpcId] = securityGroup
         return Optional.of(new SecurityGroupUpdater(securityGroup, amazonEC2))
       }
       Optional.empty()
     }
 
-    private List<SecurityGroup> getEddaSecurityGroups(AmazonEC2 amazonEC2, String accountName, String region) {
+    private List<SecurityGroup> getEddaSecurityGroups(Ec2Client amazonEC2, String accountName, String region) {
       def cacheKey = accountName + ':' + region
       if (!eddaCachedSecurityGroups.containsKey(cacheKey)) {
-        eddaCachedSecurityGroups[cacheKey] = amazonEC2.describeSecurityGroups().securityGroups
+        eddaCachedSecurityGroups[cacheKey] = new ArrayList<>(amazonEC2.describeSecurityGroups().securityGroups())
       }
       return eddaCachedSecurityGroups[cacheKey]
     }
@@ -218,7 +217,7 @@ class SecurityGroupLookupFactory {
       final credentials = getCredentialsForName(accountName)
       if (!credentials) { return Optional.empty() }
 
-      def amazonEC2 = amazonClientProvider.getAmazonEC2(credentials, region, skipEdda)
+      def amazonEC2 = amazonClientProvider.getAmazonEC2V2(credentials, region)
       def cachedSecurityGroupKey = groupId.toLowerCase() + "." + vpcId
       def cachedSecurityGroup = securityGroupById.get(cachedSecurityGroupKey)
       if (cachedSecurityGroup) {
@@ -226,20 +225,20 @@ class SecurityGroupLookupFactory {
       }
       def securityGroups = []
       if (skipEdda) {
-        def describeSecurityGroupsRequest = new DescribeSecurityGroupsRequest().withGroupIds(groupId)
+        def describeSecurityGroupsRequest = DescribeSecurityGroupsRequest.builder().groupIds(groupId).build()
         try {
-          securityGroups = amazonEC2.describeSecurityGroups(describeSecurityGroupsRequest).securityGroups
+          securityGroups = amazonEC2.describeSecurityGroups(describeSecurityGroupsRequest).securityGroups()
         } catch (Exception ignored) {}
       } else {
         securityGroups = getEddaSecurityGroups(amazonEC2, accountName, region)
       }
 
       def securityGroup = securityGroups.find {
-        it.groupId == groupId && it.vpcId == vpcId
+        it.groupId() == groupId && it.vpcId() == vpcId
       }
       if (securityGroup) {
         securityGroupById[cachedSecurityGroupKey] = securityGroup
-        securityGroupByName[securityGroup.groupName.toLowerCase() + "." + vpcId] = securityGroup
+        securityGroupByName[securityGroup.groupName().toLowerCase() + "." + vpcId] = securityGroup
         return Optional.of(new SecurityGroupUpdater(securityGroup, amazonEC2))
       }
       Optional.empty()
@@ -247,74 +246,78 @@ class SecurityGroupLookupFactory {
   }
 
   static class SecurityGroupUpdater {
-    final SecurityGroup securityGroup
-    private final AmazonEC2 amazonEC2
+    private SecurityGroup securityGroup
+    private final Ec2Client amazonEC2
     private final Logger log = LoggerFactory.getLogger(getClass())
 
     SecurityGroup getSecurityGroup() {
       securityGroup
     }
 
-    SecurityGroupUpdater(SecurityGroup securityGroup, AmazonEC2 amazonEC2) {
+    SecurityGroupUpdater(SecurityGroup securityGroup, Ec2Client amazonEC2) {
       this.securityGroup = securityGroup
       this.amazonEC2 = amazonEC2
     }
 
     void updateIngress(List<IpPermission> ipPermissionsToUpdate) {
-      amazonEC2.updateSecurityGroupRuleDescriptionsIngress(new UpdateSecurityGroupRuleDescriptionsIngressRequest(
-        groupId: securityGroup.groupId,
-        ipPermissions: ipPermissionsToUpdate
-      ))
+      amazonEC2.updateSecurityGroupRuleDescriptionsIngress(UpdateSecurityGroupRuleDescriptionsIngressRequest.builder()
+        .groupId(securityGroup.groupId())
+        .ipPermissions(ipPermissionsToUpdate)
+        .build())
     }
 
     void addIngress(List<IpPermission> ipPermissionsToAdd) {
-      amazonEC2.authorizeSecurityGroupIngress(new AuthorizeSecurityGroupIngressRequest(
-        groupId: securityGroup.groupId,
-        ipPermissions: ipPermissionsToAdd
-      ))
-      securityGroup.ipPermissions.addAll(ipPermissionsToAdd)
+      amazonEC2.authorizeSecurityGroupIngress(AuthorizeSecurityGroupIngressRequest.builder()
+        .groupId(securityGroup.groupId())
+        .ipPermissions(ipPermissionsToAdd)
+        .build())
+      List<IpPermission> updated = new ArrayList<>(securityGroup.ipPermissions())
+      updated.addAll(ipPermissionsToAdd)
+      securityGroup = securityGroup.toBuilder().ipPermissions(updated).build()
     }
 
     void removeIngress(List<IpPermission> ipPermissionsToRemove) {
-      amazonEC2.revokeSecurityGroupIngress(new RevokeSecurityGroupIngressRequest(
-        groupId: securityGroup.groupId,
-        ipPermissions: ipPermissionsToRemove
-      ))
-      securityGroup.ipPermissions.removeAll(ipPermissionsToRemove)
+      amazonEC2.revokeSecurityGroupIngress(RevokeSecurityGroupIngressRequest.builder()
+        .groupId(securityGroup.groupId())
+        .ipPermissions(ipPermissionsToRemove)
+        .build())
+      List<IpPermission> updated = new ArrayList<>(securityGroup.ipPermissions())
+      updated.removeAll(ipPermissionsToRemove)
+      securityGroup = securityGroup.toBuilder().ipPermissions(updated).build()
     }
 
     void updateTags(UpsertSecurityGroupDescription description, DynamicConfigService dynamicConfigService) {
-      String groupId = securityGroup.groupId
+      String groupId = securityGroup.groupId()
       try {
 
         //fetch -> delete -> create new tags to ensure they are consistent
-        DescribeTagsRequest describeTagsRequest = new DescribeTagsRequest().withFilters(
-          new Filter("resource-id", [groupId])
-        )
-        DescribeTagsResult tagsResult = amazonEC2.describeTags(describeTagsRequest)
-        List<TagDescription> currentTags = tagsResult.getTags()
+        DescribeTagsRequest describeTagsRequest = DescribeTagsRequest.builder().filters(
+          Filter.builder().name("resource-id").values([groupId]).build()
+        ).build()
+        DescribeTagsResponse tagsResult = amazonEC2.describeTags(describeTagsRequest)
+        List<TagDescription> currentTags = tagsResult.tags()
         Collection<Tag> oldTags = new HashSet()
         // Filter Spinnaker specific tags, update to other tags might result in permission errors
         def additionalTags = dynamicConfigService.getConfig(String.class, "aws.features.security-group.additional-tags","")
         currentTags.each {
           it ->
-            if (it.key.equals("Name") || description.tags?.keySet()?.contains(it.key) || additionalTags.contains(it.key)) {
-              oldTags.add(new Tag(it.key, it.value))
+            if (it.key().equals("Name") || description.tags?.keySet()?.contains(it.key()) || additionalTags.contains(it.key())) {
+              oldTags.add(Tag.builder().key(it.key()).value(it.value()).build())
             }
         }
 
-        DeleteTagsRequest deleteTagsRequest = new DeleteTagsRequest()
-          .withResources(groupId)
-          .withTags(oldTags)
+        DeleteTagsRequest deleteTagsRequest = DeleteTagsRequest.builder()
+          .resources(groupId)
+          .tags(oldTags)
+          .build()
         amazonEC2.deleteTags(deleteTagsRequest)
 
-        CreateTagsRequest createTagRequest = new CreateTagsRequest()
         Collection<Tag> tags = new HashSet()
-        tags.add(new Tag("Name", description.name))
+        tags.add(Tag.builder().key("Name").value(description.name).build())
         description.tags.each {
-          entry -> tags.add(new Tag(entry.key, entry.value))
+          entry -> tags.add(Tag.builder().key(entry.key).value(entry.value).build())
         }
-        createTagRequest.withResources(groupId).withTags(tags)
+        CreateTagsRequest createTagRequest = CreateTagsRequest.builder().resources(groupId).tags(tags).build()
         amazonEC2.createTags(createTagRequest)
 
       } catch (Exception e) {
