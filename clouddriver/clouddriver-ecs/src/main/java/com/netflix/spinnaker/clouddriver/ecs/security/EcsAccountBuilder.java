@@ -36,13 +36,11 @@ public class EcsAccountBuilder {
     account.setAccountId(netflixAmazonCredentials.getAccountId());
     account.setAllowPrivateThirdPartyImages(
         netflixAmazonCredentials.getAllowPrivateThirdPartyImages());
-    account.setEdda(account.getEdda());
 
     account.setDiscoveryEnabled(netflixAmazonCredentials.isDiscoveryEnabled());
     account.setDiscovery(netflixAmazonCredentials.getDiscovery());
     account.setDefaultKeyPair(netflixAmazonCredentials.getDefaultKeyPair());
     account.setDefaultSecurityGroups(netflixAmazonCredentials.getDefaultSecurityGroups());
-    account.setEddaEnabled(netflixAmazonCredentials.isEddaEnabled());
     account.setEnvironment(netflixAmazonCredentials.getEnvironment());
     account.setFront50(netflixAmazonCredentials.getFront50());
     account.setFront50Enabled(netflixAmazonCredentials.isFront50Enabled());

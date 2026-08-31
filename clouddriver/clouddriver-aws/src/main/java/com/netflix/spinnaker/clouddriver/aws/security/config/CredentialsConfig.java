@@ -183,7 +183,6 @@ public class CredentialsConfig {
   private List<Region> defaultRegions;
   private List<String> defaultSecurityGroups;
   private List<LifecycleHook> defaultLifecycleHooks;
-  private String defaultEddaTemplate;
   private String defaultFront50Template;
   private String defaultDiscoveryTemplate;
   private String defaultAssumeRole;
@@ -214,14 +213,6 @@ public class CredentialsConfig {
 
   public void setDefaultSecurityGroups(List<String> defaultSecurityGroups) {
     this.defaultSecurityGroups = defaultSecurityGroups;
-  }
-
-  public String getDefaultEddaTemplate() {
-    return defaultEddaTemplate;
-  }
-
-  public void setDefaultEddaTemplate(String defaultEddaTemplate) {
-    this.defaultEddaTemplate = defaultEddaTemplate;
   }
 
   public String getDefaultFront50Template() {
