@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
-import com.amazonaws.services.autoscaling.model.TerminateInstanceInAutoScalingGroupRequest
-import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
+import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsRequest
+import software.amazon.awssdk.services.autoscaling.model.TerminateInstanceInAutoScalingGroupRequest
+import software.amazon.awssdk.services.autoscaling.model.UpdateAutoScalingGroupRequest
 import com.amazonaws.services.elasticloadbalancing.model.DeregisterInstancesFromLoadBalancerRequest
 import com.amazonaws.services.elasticloadbalancing.model.Instance
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
@@ -50,50 +50,50 @@ class TerminateInstanceAndDecrementAsgAtomicOperation implements AtomicOperation
   @Override
   Void operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing termination of $description.instance in $description.asgName"
-    def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, description.region, true)
+    def autoScaling = amazonClientProvider.getAutoScalingV2(description.credentials, description.region)
     def asg = getAsg(autoScaling, description.asgName)
-    if (!asg.instances*.instanceId.contains(description.instance)) {
-      task.updateStatus BASE_PHASE, "Cannot terminate invalid instance $description.instance in server group $asg.autoScalingGroupName"
-      throw new IllegalArgumentException("Invalid instance $description.instance for $asg.autoScalingGroupName")
+    if (!asg.instances()*.instanceId().contains(description.instance)) {
+      task.updateStatus BASE_PHASE, "Cannot terminate invalid instance $description.instance in server group ${asg.autoScalingGroupName()}"
+      throw new IllegalArgumentException("Invalid instance $description.instance for ${asg.autoScalingGroupName()}")
     }
 
-    if (asg.minSize == asg.desiredCapacity) {
+    if (asg.minSize() == asg.desiredCapacity()) {
       if (description.adjustMinIfNecessary) {
-        int newMin = asg.minSize - 1
+        int newMin = asg.minSize() - 1
         if (newMin < 0) {
           task.updateStatus BASE_PHASE, "Cannot adjust min size below 0"
         } else {
-          autoScaling.updateAutoScalingGroup(new UpdateAutoScalingGroupRequest().withAutoScalingGroupName(asg.autoScalingGroupName).withMinSize(newMin))
+          autoScaling.updateAutoScalingGroup(UpdateAutoScalingGroupRequest.builder().autoScalingGroupName(asg.autoScalingGroupName()).minSize(newMin).build())
         }
       } else {
         task.updateStatus BASE_PHASE, "Cannot decrement ASG below minSize - set adjustMinIfNecessary to resize down minSize before terminating"
-        throw new IllegalStateException("Invalid ASG capacity for terminateAndDecrementAsg: min: $asg.minSize, max: $asg.maxSize, desired: $asg.desiredCapacity")
+        throw new IllegalStateException("Invalid ASG capacity for terminateAndDecrementAsg: min: ${asg.minSize()}, max: ${asg.maxSize()}, desired: ${asg.desiredCapacity()}")
       }
     }
     def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(description.credentials, description.region, true)
-    for (loadBalancer in asg.loadBalancerNames) {
+    for (loadBalancer in asg.loadBalancerNames()) {
       def deregisterRequest = new DeregisterInstancesFromLoadBalancerRequest(loadBalancer, [new Instance(description.instance)])
       loadBalancing.deregisterInstancesFromLoadBalancer(deregisterRequest)
     }
 
-    def termRequest = new TerminateInstanceInAutoScalingGroupRequest().withInstanceId(description.instance).withShouldDecrementDesiredCapacity(true)
+    def termRequest = TerminateInstanceInAutoScalingGroupRequest.builder().instanceId(description.instance).shouldDecrementDesiredCapacity(true).build()
     autoScaling.terminateInstanceInAutoScalingGroup(termRequest)
     if (description.setMaxToNewDesired) {
       asg = getAsg(autoScaling, description.asgName)
-      if (asg.desiredCapacity != asg.maxSize) {
-        autoScaling.updateAutoScalingGroup(new UpdateAutoScalingGroupRequest().withAutoScalingGroupName(description.asgName).withMaxSize(asg.desiredCapacity))
+      if (asg.desiredCapacity() != asg.maxSize()) {
+        autoScaling.updateAutoScalingGroup(UpdateAutoScalingGroupRequest.builder().autoScalingGroupName(description.asgName).maxSize(asg.desiredCapacity()).build())
       }
     }
     task.updateStatus BASE_PHASE, "Done executing termination and ASG size decrement."
   }
 
-  AutoScalingGroup getAsg(AmazonAutoScaling autoScaling, String asgName) {
-    def result = autoScaling.describeAutoScalingGroups(new DescribeAutoScalingGroupsRequest().withAutoScalingGroupNames(asgName))
-    if (!result.autoScalingGroups) {
+  AutoScalingGroup getAsg(AutoScalingClient autoScaling, String asgName) {
+    def result = autoScaling.describeAutoScalingGroups(DescribeAutoScalingGroupsRequest.builder().autoScalingGroupNames(asgName).build())
+    if (!result.autoScalingGroups()) {
       task.updateStatus BASE_PHASE, "ASG not found in specified regions."
       throw new AutoScalingGroupNotFoundException()
     }
-    result.autoScalingGroups.getAt(0)
+    result.autoScalingGroups().getAt(0)
   }
 
   @InheritConstructors
