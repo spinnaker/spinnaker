@@ -59,7 +59,7 @@ class AmazonClientProviderV2Test {
     provider = new AmazonClientProvider();
 
     creds = mock(NetflixAmazonCredentials.class);
-    when(creds.getV2CredentialsProvider()).thenReturn(dummyCreds());
+    when(creds.getCredentialsProvider()).thenReturn(dummyCreds());
     when(creds.getName()).thenReturn("test-account");
   }
 

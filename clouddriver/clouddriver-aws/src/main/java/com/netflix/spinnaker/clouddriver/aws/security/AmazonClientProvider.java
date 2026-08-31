@@ -16,9 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.security;
 
-import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.AWSSessionCredentials;
 import com.amazonaws.handlers.RequestHandler2;
 import com.amazonaws.retry.PredefinedRetryPolicies;
 import com.amazonaws.retry.RetryPolicy;
@@ -32,9 +30,7 @@ import com.netflix.spinnaker.clouddriver.core.limits.ServiceLimitConfigurationBu
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.services.applicationautoscaling.ApplicationAutoScalingClient;
 import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
@@ -314,36 +310,19 @@ public class AmazonClientProvider {
     return awsSdkV2ClientSupplier.getClient(
         Ec2Client::builder,
         Ec2Client.class,
-        amazonCredentials.getV2CredentialsProvider(),
+        amazonCredentials.getCredentialsProvider(),
         region,
         amazonCredentials.getName());
   }
 
   /**
-   * Returns an AWS SDK v2 {@link Ec2Client} for a raw v1 {@link AWSCredentialsProvider}, for
-   * callers (like {@link DefaultAWSAccountInfoLookup}) that don't have a {@link
-   * NetflixAmazonCredentials} to build against.
+   * Returns an AWS SDK v2 {@link Ec2Client} for a raw {@link AwsCredentialsProvider}, for callers
+   * (like {@link DefaultAWSAccountInfoLookup}) that don't have a {@link NetflixAmazonCredentials}
+   * to build against.
    */
-  public Ec2Client getAmazonEC2V2(AWSCredentialsProvider awsCredentialsProvider, String region) {
+  public Ec2Client getAmazonEC2V2(AwsCredentialsProvider awsCredentialsProvider, String region) {
     return awsSdkV2ClientSupplier.getClient(
-        Ec2Client::builder,
-        Ec2Client.class,
-        bridgeV1CredentialsProvider(awsCredentialsProvider),
-        region,
-        "UNSPECIFIED_ACCOUNT");
-  }
-
-  private static AwsCredentialsProvider bridgeV1CredentialsProvider(
-      AWSCredentialsProvider v1Provider) {
-    return () -> {
-      AWSCredentials v1Creds = v1Provider.getCredentials();
-      if (v1Creds instanceof AWSSessionCredentials) {
-        AWSSessionCredentials session = (AWSSessionCredentials) v1Creds;
-        return AwsSessionCredentials.create(
-            session.getAWSAccessKeyId(), session.getAWSSecretKey(), session.getSessionToken());
-      }
-      return AwsBasicCredentials.create(v1Creds.getAWSAccessKeyId(), v1Creds.getAWSSecretKey());
-    };
+        Ec2Client::builder, Ec2Client.class, awsCredentialsProvider, region, "UNSPECIFIED_ACCOUNT");
   }
 
   /** Returns an AWS SDK v2 {@link AutoScalingClient} for the given account and region. */
@@ -352,7 +331,7 @@ public class AmazonClientProvider {
     return awsSdkV2ClientSupplier.getClient(
         AutoScalingClient::builder,
         AutoScalingClient.class,
-        amazonCredentials.getV2CredentialsProvider(),
+        amazonCredentials.getCredentialsProvider(),
         region,
         amazonCredentials.getName());
   }
@@ -362,7 +341,7 @@ public class AmazonClientProvider {
     return awsSdkV2ClientSupplier.getClient(
         EcsClient::builder,
         EcsClient.class,
-        amazonCredentials.getV2CredentialsProvider(),
+        amazonCredentials.getCredentialsProvider(),
         region,
         amazonCredentials.getName());
   }
@@ -372,7 +351,7 @@ public class AmazonClientProvider {
     return awsSdkV2ClientSupplier.getClient(
         EcrClient::builder,
         EcrClient.class,
-        amazonCredentials.getV2CredentialsProvider(),
+        amazonCredentials.getCredentialsProvider(),
         region,
         amazonCredentials.getName());
   }
@@ -382,7 +361,7 @@ public class AmazonClientProvider {
     return awsSdkV2ClientSupplier.getClient(
         IamClient::builder,
         IamClient.class,
-        amazonCredentials.getV2CredentialsProvider(),
+        amazonCredentials.getCredentialsProvider(),
         region,
         amazonCredentials.getName());
   }
@@ -403,7 +382,7 @@ public class AmazonClientProvider {
     return awsSdkV2ClientSupplier.getClient(
         LambdaClient::builder,
         LambdaClient.class,
-        amazonCredentials.getV2CredentialsProvider(),
+        amazonCredentials.getCredentialsProvider(),
         region,
         amazonCredentials.getName(),
         clientConfiguration);
@@ -415,7 +394,7 @@ public class AmazonClientProvider {
     return awsSdkV2ClientSupplier.getClient(
         CloudWatchClient::builder,
         CloudWatchClient.class,
-        amazonCredentials.getV2CredentialsProvider(),
+        amazonCredentials.getCredentialsProvider(),
         region,
         amazonCredentials.getName());
   }
@@ -426,7 +405,7 @@ public class AmazonClientProvider {
     return awsSdkV2ClientSupplier.getClient(
         Route53Client::builder,
         Route53Client.class,
-        amazonCredentials.getV2CredentialsProvider(),
+        amazonCredentials.getCredentialsProvider(),
         region,
         amazonCredentials.getName());
   }
@@ -436,7 +415,7 @@ public class AmazonClientProvider {
     return awsSdkV2ClientSupplier.getClient(
         S3Client::builder,
         S3Client.class,
-        amazonCredentials.getV2CredentialsProvider(),
+        amazonCredentials.getCredentialsProvider(),
         region,
         amazonCredentials.getName());
   }
@@ -447,7 +426,7 @@ public class AmazonClientProvider {
     return awsSdkV2ClientSupplier.getClient(
         SecretsManagerClient::builder,
         SecretsManagerClient.class,
-        amazonCredentials.getV2CredentialsProvider(),
+        amazonCredentials.getCredentialsProvider(),
         region,
         amazonCredentials.getName());
   }
@@ -458,7 +437,7 @@ public class AmazonClientProvider {
     return awsSdkV2ClientSupplier.getClient(
         ServiceDiscoveryClient::builder,
         ServiceDiscoveryClient.class,
-        amazonCredentials.getV2CredentialsProvider(),
+        amazonCredentials.getCredentialsProvider(),
         region,
         amazonCredentials.getName());
   }
@@ -471,7 +450,7 @@ public class AmazonClientProvider {
     return awsSdkV2ClientSupplier.getClient(
         ApplicationAutoScalingClient::builder,
         ApplicationAutoScalingClient.class,
-        amazonCredentials.getV2CredentialsProvider(),
+        amazonCredentials.getCredentialsProvider(),
         region,
         amazonCredentials.getName());
   }
@@ -482,7 +461,7 @@ public class AmazonClientProvider {
     return awsSdkV2ClientSupplier.getClient(
         SupportClient::builder,
         SupportClient.class,
-        amazonCredentials.getV2CredentialsProvider(),
+        amazonCredentials.getCredentialsProvider(),
         region,
         amazonCredentials.getName());
   }
@@ -493,7 +472,7 @@ public class AmazonClientProvider {
     return awsSdkV2ClientSupplier.getClient(
         SwfClient::builder,
         SwfClient.class,
-        amazonCredentials.getV2CredentialsProvider(),
+        amazonCredentials.getCredentialsProvider(),
         region,
         amazonCredentials.getName());
   }
@@ -503,7 +482,7 @@ public class AmazonClientProvider {
     return awsSdkV2ClientSupplier.getClient(
         SnsClient::builder,
         SnsClient.class,
-        amazonCredentials.getV2CredentialsProvider(),
+        amazonCredentials.getCredentialsProvider(),
         region,
         amazonCredentials.getName());
   }
@@ -513,7 +492,7 @@ public class AmazonClientProvider {
     return awsSdkV2ClientSupplier.getClient(
         SqsClient::builder,
         SqsClient.class,
-        amazonCredentials.getV2CredentialsProvider(),
+        amazonCredentials.getCredentialsProvider(),
         region,
         amazonCredentials.getName());
   }
@@ -524,7 +503,7 @@ public class AmazonClientProvider {
     return awsSdkV2ClientSupplier.getClient(
         CloudFormationClient::builder,
         CloudFormationClient.class,
-        amazonCredentials.getV2CredentialsProvider(),
+        amazonCredentials.getCredentialsProvider(),
         region,
         amazonCredentials.getName());
   }
@@ -537,7 +516,7 @@ public class AmazonClientProvider {
     return awsSdkV2ClientSupplier.getClient(
         ElasticLoadBalancingV2Client::builder,
         ElasticLoadBalancingV2Client.class,
-        amazonCredentials.getV2CredentialsProvider(),
+        amazonCredentials.getCredentialsProvider(),
         region,
         amazonCredentials.getName());
   }
@@ -551,7 +530,7 @@ public class AmazonClientProvider {
     return awsSdkV2ClientSupplier.getClient(
         ElasticLoadBalancingClient::builder,
         ElasticLoadBalancingClient.class,
-        amazonCredentials.getV2CredentialsProvider(),
+        amazonCredentials.getCredentialsProvider(),
         region,
         amazonCredentials.getName());
   }
@@ -561,7 +540,7 @@ public class AmazonClientProvider {
     return awsSdkV2ClientSupplier.getClient(
         ShieldClient::builder,
         ShieldClient.class,
-        amazonCredentials.getV2CredentialsProvider(),
+        amazonCredentials.getCredentialsProvider(),
         region,
         amazonCredentials.getName());
   }
