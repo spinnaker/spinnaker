@@ -20,7 +20,7 @@ import software.amazon.awssdk.services.ec2.model.Instance
 import software.amazon.awssdk.services.ec2.model.InstanceState
 import software.amazon.awssdk.services.ec2.model.InstanceStateName
 import software.amazon.awssdk.services.ec2.model.Reservation
-import com.amazonaws.services.elasticloadbalancing.model.RegisterInstancesWithLoadBalancerRequest
+import software.amazon.awssdk.services.elasticloadbalancing.model.RegisterInstancesWithLoadBalancerRequest
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.EnableDisableAsgDescription
 import com.netflix.spinnaker.clouddriver.aws.model.AutoScalingProcessType
@@ -58,8 +58,8 @@ class EnableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitS
     1 * asgService.getAutoScalingGroup(_) >> asg
     1 * asgService.resumeProcesses(_, AutoScalingProcessType.getDisableProcesses())
     1 * loadBalancing.registerInstancesWithLoadBalancer(_) >> { RegisterInstancesWithLoadBalancerRequest req ->
-      assert req.instances[0].instanceId == "i1"
-      assert req.loadBalancerName == "lb1"
+      assert req.instances()[0].instanceId() == "i1"
+      assert req.loadBalancerName() == "lb1"
     }
   }
 
