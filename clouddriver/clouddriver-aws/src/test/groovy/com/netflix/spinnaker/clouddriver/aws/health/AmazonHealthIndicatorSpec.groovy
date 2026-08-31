@@ -16,9 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.aws.health
 
-import com.amazonaws.AmazonServiceException
-import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.DescribeAccountAttributesResult
+import software.amazon.awssdk.awscore.exception.AwsErrorDetails
+import software.amazon.awssdk.services.ec2.Ec2Client
+import software.amazon.awssdk.services.ec2.model.DescribeAccountAttributesResponse
+import software.amazon.awssdk.services.ec2.model.Ec2Exception
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties
@@ -38,6 +39,13 @@ class AmazonHealthIndicatorSpec extends Specification {
     awsConfigurationProperties = new AwsConfigurationProperties()
   }
 
+  private static Ec2Exception failure() {
+    return Ec2Exception.builder()
+      .message("fail")
+      .awsErrorDetails(AwsErrorDetails.builder().errorCode("InternalError").errorMessage("fail").build())
+      .build()
+  }
+
   @Unroll
   def "health details contains warning when amazon appears unreachable"() {
     setup:
@@ -45,11 +53,11 @@ class AmazonHealthIndicatorSpec extends Specification {
     def credentialsRepository = Stub(CredentialsRepository) {
       getAll() >> creds
     }
-    def mockEc2 = Stub(AmazonEC2) {
-      describeAccountAttributes() >> { throw new AmazonServiceException("fail") }
+    def mockEc2 = Stub(Ec2Client) {
+      describeAccountAttributes() >> { throw failure() }
     }
     def mockAmazonClientProvider = Stub(AmazonClientProvider) {
-      getAmazonEC2(*_) >> mockEc2
+      getAmazonEC2V2(_, _) >> mockEc2
     }
 
     awsConfigurationProperties.health.setVerifyAccountHealth(verifyAccountHealth)
@@ -84,11 +92,11 @@ class AmazonHealthIndicatorSpec extends Specification {
     def credentialsRepository = Stub(CredentialsRepository) {
       getAll() >> creds
     }
-    def mockEc2 = Stub(AmazonEC2) {
-      describeAccountAttributes() >> { Mock(DescribeAccountAttributesResult) }
+    def mockEc2 = Stub(Ec2Client) {
+      describeAccountAttributes() >> { Mock(DescribeAccountAttributesResponse) }
     }
     def mockAmazonClientProvider = Stub(AmazonClientProvider) {
-      getAmazonEC2(*_) >> mockEc2
+      getAmazonEC2V2(_, _) >> mockEc2
     }
 
     def indicator = new AmazonHealthIndicator(
@@ -112,11 +120,11 @@ class AmazonHealthIndicatorSpec extends Specification {
     def credentialsRepository = Stub(CredentialsRepository) {
       getAll() >> []
     }
-    def mockEc2 = Stub(AmazonEC2) {
-      describeAccountAttributes() >> { Mock(DescribeAccountAttributesResult) }
+    def mockEc2 = Stub(Ec2Client) {
+      describeAccountAttributes() >> { Mock(DescribeAccountAttributesResponse) }
     }
     def mockAmazonClientProvider = Stub(AmazonClientProvider) {
-      getAmazonEC2(*_) >> mockEc2
+      getAmazonEC2V2(_, _) >> mockEc2
     }
 
     def indicator = new AmazonHealthIndicator(
@@ -141,12 +149,12 @@ class AmazonHealthIndicatorSpec extends Specification {
     def credentialsRepository = Stub(CredentialsRepository) {
       getAll() >> creds
     }
-    def mockEc2 = Stub(AmazonEC2) {
-      describeAccountAttributes() >> { throw new AmazonServiceException("fail") }
+    def mockEc2 = Stub(Ec2Client) {
+      describeAccountAttributes() >> { throw failure() }
     }
 
     def mockAmazonClientProvider = Stub(AmazonClientProvider) {
-      getAmazonEC2(*_) >> mockEc2
+      getAmazonEC2V2(_, _) >> mockEc2
     }
 
     def indicator = new AmazonHealthIndicator(

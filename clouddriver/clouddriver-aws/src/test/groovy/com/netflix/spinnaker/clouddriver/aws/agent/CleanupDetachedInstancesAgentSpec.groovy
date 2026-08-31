@@ -16,8 +16,14 @@
 
 package com.netflix.spinnaker.clouddriver.aws.agent
 
-import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.*
+import software.amazon.awssdk.services.ec2.Ec2Client
+import software.amazon.awssdk.services.ec2.model.DescribeInstancesRequest
+import software.amazon.awssdk.services.ec2.model.DescribeInstancesResponse
+import software.amazon.awssdk.services.ec2.model.Instance
+import software.amazon.awssdk.services.ec2.model.InstanceState
+import software.amazon.awssdk.services.ec2.model.Reservation
+import software.amazon.awssdk.services.ec2.model.Tag
+import software.amazon.awssdk.services.ec2.model.TerminateInstancesRequest
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.DetachInstancesAtomicOperation
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
@@ -37,8 +43,8 @@ class CleanupDetachedInstancesAgentSpec extends Specification {
     def amazonEC2USE = mockAmazonEC2("us-east-1")
 
     def amazonClientProvider = Mock(AmazonClientProvider) {
-      1 * getAmazonEC2(test, "us-west-1") >> { amazonEC2USW }
-      1 * getAmazonEC2(test, "us-east-1") >> { amazonEC2USE }
+      1 * getAmazonEC2V2(test, "us-west-1") >> { amazonEC2USW }
+      1 * getAmazonEC2V2(test, "us-east-1") >> { amazonEC2USE }
       0 * _
     }
     CredentialsRepository<NetflixAmazonCredentials> credentialsRepository = Stub(CredentialsRepository) {
@@ -51,10 +57,10 @@ class CleanupDetachedInstancesAgentSpec extends Specification {
 
     then:
     1 * amazonEC2USW.terminateInstances({ TerminateInstancesRequest request ->
-      request.instanceIds == ["i-us-west-1_1", "i-us-west-1_2"]
+      request.instanceIds() == ["i-us-west-1_1", "i-us-west-1_2"]
     } as TerminateInstancesRequest)
     1 * amazonEC2USE.terminateInstances({ TerminateInstancesRequest request ->
-      request.instanceIds == ["i-us-east-1_1", "i-us-east-1_2"]
+      request.instanceIds() == ["i-us-east-1_1", "i-us-east-1_2"]
     } as TerminateInstancesRequest)
   }
 
@@ -64,28 +70,32 @@ class CleanupDetachedInstancesAgentSpec extends Specification {
     CleanupDetachedInstancesAgent.shouldTerminate(instance) == shouldTerminate
 
     where:
-    instance                                                         || shouldTerminate
-    new Instance()                                                   || false // not tagged for termination
-    new Instance().withTags(new Tag("unknown"))                      || false // not tagged for termination
-    new Instance().withTags(new Tag("spinnaker:PendingTermination")) || true // pending termination and not in ASG
-    new Instance()
-      .withState(new InstanceState().withName("terminated"))
-      .withTags(new Tag("spinnaker:PendingTermination"))             || false // already terminated
-    new Instance().withTags(
-      new Tag("spinnaker:PendingTermination"),
-      new Tag("aws:autoscaling:groupName", "test-v000")
-    )                                                                || false // still in ASG
+    instance                                                                                                 || shouldTerminate
+    Instance.builder().build()                                                                               || false // not tagged for termination
+    Instance.builder().tags(tag("unknown")).build()                                                          || false // not tagged for termination
+    Instance.builder().tags(tag("spinnaker:PendingTermination")).build()                                     || true // pending termination and not in ASG
+    Instance.builder()
+      .state(InstanceState.builder().name("terminated").build())
+      .tags(tag("spinnaker:PendingTermination")).build()                                                     || false // already terminated
+    Instance.builder().tags(
+      tag("spinnaker:PendingTermination"),
+      tag("aws:autoscaling:groupName", "test-v000")
+    ).build()                                                                                                 || false // still in ASG
   }
 
-  private AmazonEC2 mockAmazonEC2(String region) {
-    return Mock(AmazonEC2) {
+  private static Tag tag(String key, String value = null) {
+    return Tag.builder().key(key).value(value).build()
+  }
+
+  private Ec2Client mockAmazonEC2(String region) {
+    return Mock(Ec2Client) {
       1 * describeInstances(_) >> { DescribeInstancesRequest request ->
-        assert request.filters.find { it.name == "tag-key" && it.values == [DetachInstancesAtomicOperation.TAG_PENDING_TERMINATION]}
-        new DescribeInstancesResult().withReservations(new Reservation().withInstances([
-          new Instance().withTags(new Tag("spinnaker:PendingTermination")).withInstanceId("i-${region}_1"),
-          new Instance().withTags(new Tag("spinnaker:PendingTermination")).withInstanceId("i-${region}_2"),
-          new Instance().withInstanceId("i-${region}_3"),
-        ]))
+        assert request.filters().find { it.name() == "tag-key" && it.values() == [DetachInstancesAtomicOperation.TAG_PENDING_TERMINATION]}
+        DescribeInstancesResponse.builder().reservations(Reservation.builder().instances([
+          Instance.builder().tags(tag("spinnaker:PendingTermination")).instanceId("i-${region}_1").build(),
+          Instance.builder().tags(tag("spinnaker:PendingTermination")).instanceId("i-${region}_2").build(),
+          Instance.builder().instanceId("i-${region}_3").build(),
+        ]).build()).build()
       }
       0 * _
     }
