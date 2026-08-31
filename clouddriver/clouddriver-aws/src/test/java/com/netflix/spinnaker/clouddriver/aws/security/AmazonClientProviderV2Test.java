@@ -34,6 +34,7 @@ import software.amazon.awssdk.services.ecs.EcsClient;
 import software.amazon.awssdk.services.elasticloadbalancing.ElasticLoadBalancingClient;
 import software.amazon.awssdk.services.iam.IamClient;
 import software.amazon.awssdk.services.route53.Route53Client;
+import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.servicediscovery.ServiceDiscoveryClient;
 import software.amazon.awssdk.services.shield.ShieldClient;
@@ -102,6 +103,11 @@ class AmazonClientProviderV2Test {
   void getAmazonRoute53V2ReturnsRoute53Client() {
     Route53Client client = provider.getAmazonRoute53V2(creds, REGION);
     assertThat(client).isNotNull().isInstanceOf(Route53Client.class);
+
+  @Test
+  void getAmazonS3V2ReturnsS3Client() {
+    S3Client client = provider.getAmazonS3V2(creds, REGION);
+    assertThat(client).isNotNull().isInstanceOf(S3Client.class);
   }
 
   @Test

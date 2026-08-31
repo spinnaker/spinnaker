@@ -38,6 +38,8 @@ import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.route53.AmazonRoute53;
+import com.amazonaws.services.route53.AmazonRoute53ClientBuilder;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
 import com.amazonaws.services.servicediscovery.AWSServiceDiscovery;
@@ -70,6 +72,7 @@ import software.amazon.awssdk.services.elasticloadbalancingv2.ElasticLoadBalanci
 import software.amazon.awssdk.services.iam.IamClient;
 import software.amazon.awssdk.services.lambda.LambdaClient;
 import software.amazon.awssdk.services.route53.Route53Client;
+import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.servicediscovery.ServiceDiscoveryClient;
 import software.amazon.awssdk.services.shield.ShieldClient;
@@ -438,11 +441,6 @@ public class AmazonClientProvider {
     // AmazonIdentityManagement.class, accountName, awsCredentialsProvider, region);
   }
 
-  public AmazonS3 getAmazonS3(NetflixAmazonCredentials amazonCredentials, String region) {
-    return proxyHandlerBuilder.getProxyHandler(
-        AmazonS3.class, AmazonS3ClientBuilder.class, amazonCredentials, region, true);
-  }
-
   public AmazonAutoScaling getAutoScaling(
       NetflixAmazonCredentials amazonCredentials, String region) {
     return getAutoScaling(amazonCredentials, region, false);
@@ -732,13 +730,25 @@ public class AmazonClientProvider {
   /**
    * Returns an AWS SDK v2 {@link Route53Client} for the given account and region.
    *
-   * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
    */
   public Route53Client getAmazonRoute53V2(
       NetflixAmazonCredentials amazonCredentials, String region) {
     return awsSdkV2ClientSupplier.getClient(
         Route53Client::builder,
         Route53Client.class,
+        amazonCredentials.getV2CredentialsProvider(),
+        region,
+        amazonCredentials.getName());
+  }
+
+  /**
+   * Returns an AWS SDK v2 {@link S3Client} for the given account and region.
+   *
+   */
+  public S3Client getAmazonS3V2(NetflixAmazonCredentials amazonCredentials, String region) {
+    return awsSdkV2ClientSupplier.getClient(
+        S3Client::builder,
+        S3Client.class,
         amazonCredentials.getV2CredentialsProvider(),
         region,
         amazonCredentials.getName());

@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.aws.model
 
-import com.amazonaws.services.cloudwatch.model.Dimension
-import com.amazonaws.services.cloudwatch.model.Metric
+import software.amazon.awssdk.services.cloudwatch.model.Dimension
+import software.amazon.awssdk.services.cloudwatch.model.Metric
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.netflix.spinnaker.clouddriver.model.CloudMetricDescriptor
 
@@ -35,7 +35,7 @@ class AmazonMetricDescriptor implements CloudMetricDescriptor {
     this.dimensions = dimensions
   }
   static AmazonMetricDescriptor from(Metric metric) {
-    new AmazonMetricDescriptor('aws', metric.namespace, metric.metricName, metric.dimensions)
+    new AmazonMetricDescriptor('aws', metric.namespace(), metric.metricName(), metric.dimensions())
   }
 
 }
