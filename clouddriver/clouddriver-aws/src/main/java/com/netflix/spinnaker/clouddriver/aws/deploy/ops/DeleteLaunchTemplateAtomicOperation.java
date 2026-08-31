@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops;
 
-import com.amazonaws.services.ec2.AmazonEC2;
-import com.amazonaws.services.ec2.model.DeleteLaunchTemplateRequest;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteAmazonLaunchTemplateDescription;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
@@ -27,6 +25,8 @@ import com.netflix.spinnaker.kork.core.RetrySupport;
 import java.time.Duration;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import software.amazon.awssdk.services.ec2.Ec2Client;
+import software.amazon.awssdk.services.ec2.model.DeleteLaunchTemplateRequest;
 
 public class DeleteLaunchTemplateAtomicOperation implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "DELETE_LAUNCH_TEMPLATE";
@@ -51,8 +51,8 @@ public class DeleteLaunchTemplateAtomicOperation implements AtomicOperation<Void
             BASE_PHASE,
             String.format("Initializing Delete Launch Template operation for %s", description));
 
-    AmazonEC2 ec2 =
-        amazonClientProvider.getAmazonEC2(description.getCredentials(), description.getRegion());
+    Ec2Client ec2 =
+        amazonClientProvider.getAmazonEC2V2(description.getCredentials(), description.getRegion());
     retrySupport.retry(
         () -> deleteLaunchTemplate(description.getLaunchTemplateId(), ec2),
         3,
@@ -68,10 +68,10 @@ public class DeleteLaunchTemplateAtomicOperation implements AtomicOperation<Void
     return null;
   }
 
-  private Boolean deleteLaunchTemplate(String launchTemplateId, AmazonEC2 ec2) {
+  private Boolean deleteLaunchTemplate(String launchTemplateId, Ec2Client ec2) {
     try {
       ec2.deleteLaunchTemplate(
-          new DeleteLaunchTemplateRequest().withLaunchTemplateId(launchTemplateId));
+          DeleteLaunchTemplateRequest.builder().launchTemplateId(launchTemplateId).build());
       return true;
     } catch (Exception e) {
       if (e.getMessage().toLowerCase().contains("does not exist")) {

@@ -1,8 +1,8 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.actions
 
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.autoscaling.model.LaunchTemplateSpecification
-import com.amazonaws.services.ec2.model.*
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
+import software.amazon.awssdk.services.autoscaling.model.LaunchTemplateSpecification
+import software.amazon.awssdk.services.ec2.model.*
 import com.fasterxml.jackson.databind.JsonMappingException
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.ModifyServerGroupLaunchTemplateDescription
@@ -23,10 +23,10 @@ class ModifyServerGroupLaunchTemplateSpec extends Specification {
     getOne(_) >> credentials
   }
 
-  def autoScalingGroupWithLt = new AutoScalingGroup(
-    autoScalingGroupName: "test-v001",
-    launchTemplate: new LaunchTemplateSpecification(launchTemplateName: "lt-1", version: "1")
-  )
+  def autoScalingGroupWithLt = AutoScalingGroup.builder()
+    .autoScalingGroupName("test-v001")
+    .launchTemplate(LaunchTemplateSpecification.builder().launchTemplateName("lt-1").version("1").build())
+    .build()
 
   def regionScopedProvider = Stub(RegionScopedProviderFactory.RegionScopedProvider) {
     getLaunchTemplateService() >> ltService
@@ -49,7 +49,7 @@ class ModifyServerGroupLaunchTemplateSpec extends Specification {
   @Unroll
   def "should modify launch template as expected"() {
     given:
-    def dummySrcVersion = new LaunchTemplateVersion()
+    def dummySrcVersion = LaunchTemplateVersion.builder().build()
     def modifyCommand = new ModifyServerGroupLaunchTemplate.ModifyServerGroupLaunchTemplateCommand.ModifyServerGroupLaunchTemplateCommandBuilder()
       .description(dummyDescription)
       .isAsgBackedByMixedInstancesPolicy(asgBackedByMip)
@@ -58,7 +58,7 @@ class ModifyServerGroupLaunchTemplateSpec extends Specification {
       .sourceVersion(dummySrcVersion)
       .build()
 
-    def newDummyVersion = new LaunchTemplateVersion(launchTemplateId: "lt-1", versionNumber: 2L)
+    def newDummyVersion = LaunchTemplateVersion.builder().launchTemplateId("lt-1").versionNumber(2L).build()
 
     when:
     SagaAction.Result result = modifyAction.apply(modifyCommand, new Saga("test", "test"))

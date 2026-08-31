@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
-import com.amazonaws.services.autoscaling.model.TerminateInstanceInAutoScalingGroupRequest
-import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
+import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsRequest
+import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsResponse
+import software.amazon.awssdk.services.autoscaling.model.TerminateInstanceInAutoScalingGroupRequest
+import software.amazon.awssdk.services.autoscaling.model.UpdateAutoScalingGroupRequest
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing
 import com.amazonaws.services.elasticloadbalancing.model.DeregisterInstancesFromLoadBalancerRequest
 import com.amazonaws.services.elasticloadbalancing.model.Instance
@@ -33,16 +33,15 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.description.TerminateInstanc
 import spock.lang.Specification
 
 class TerminateInstanceAndDecrementAsgAtomicOperationUnitSpec extends Specification {
-  def instance = new com.amazonaws.services.autoscaling.model.Instance()
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Stub(Task))
   }
 
   void "operation invokes update to autoscaling group"() {
     setup:
-    def mockAutoScaling = Mock(AmazonAutoScaling)
+    def mockAutoScaling = Mock(AutoScalingClient)
     def mockAmazonClientProvider = Stub(AmazonClientProvider) {
-      getAutoScaling(_, _, true) >> mockAutoScaling
+      getAutoScalingV2(_, _) >> mockAutoScaling
     }
     def description = new TerminateInstanceAndDecrementAsgDescription(asgName: "myasg-stack-v000", region: "us-west-1", instance: "i-123456")
     description.credentials = TestCredential.named('baz')
@@ -55,13 +54,13 @@ class TerminateInstanceAndDecrementAsgAtomicOperationUnitSpec extends Specificat
     then:
     1 * mockAutoScaling.describeAutoScalingGroups(_) >> { DescribeAutoScalingGroupsRequest request ->
       assert request.autoScalingGroupNames == ["myasg-stack-v000"]
-      def asg = Stub(AutoScalingGroup) {
-        getAutoScalingGroupName() >> "myasg-stack-v000"
-        getMinSize() >> 1
-        getDesiredCapacity() >> 2
-        getInstances() >> [instance.withInstanceId(description.instance)]
-      }
-      new DescribeAutoScalingGroupsResult().withAutoScalingGroups(asg)
+      def asg = AutoScalingGroup.builder()
+        .autoScalingGroupName("myasg-stack-v000")
+        .minSize(1)
+        .desiredCapacity(2)
+        .instances([software.amazon.awssdk.services.autoscaling.model.Instance.builder().instanceId(description.instance).build()])
+        .build()
+      DescribeAutoScalingGroupsResponse.builder().autoScalingGroups(asg).build()
     }
     1 * mockAutoScaling.terminateInstanceInAutoScalingGroup(_) >> { TerminateInstanceInAutoScalingGroupRequest request ->
       assert request.instanceId == "i-123456"
@@ -72,10 +71,10 @@ class TerminateInstanceAndDecrementAsgAtomicOperationUnitSpec extends Specificat
 
   void "operation deregisters instances from load balancers"() {
     setup:
-    def mockAutoScaling = Mock(AmazonAutoScaling)
+    def mockAutoScaling = Mock(AutoScalingClient)
     def mockLoadBalancing = Mock(AmazonElasticLoadBalancing)
     def mockAmazonClientProvider = Stub(AmazonClientProvider) {
-      getAutoScaling(_, _, true) >> mockAutoScaling
+      getAutoScalingV2(_, _) >> mockAutoScaling
       getAmazonElasticLoadBalancing(_, _, true) >> mockLoadBalancing
     }
     def description = new TerminateInstanceAndDecrementAsgDescription(asgName: "myasg-stack-v000", region: "us-west-1", instance: "i-123456")
@@ -89,14 +88,14 @@ class TerminateInstanceAndDecrementAsgAtomicOperationUnitSpec extends Specificat
     then:
     1 * mockAutoScaling.describeAutoScalingGroups(_) >> { DescribeAutoScalingGroupsRequest request ->
       assert request.autoScalingGroupNames == ["myasg-stack-v000"]
-      def asg = Stub(AutoScalingGroup) {
-        getAutoScalingGroupName() >> "myasg-stack-v000"
-        getMinSize() >> 1
-        getDesiredCapacity() >> 2
-        getLoadBalancerNames() >> ['myasg--frontend']
-        getInstances() >> [instance.withInstanceId(description.instance)]
-      }
-      new DescribeAutoScalingGroupsResult().withAutoScalingGroups(asg)
+      def asg = AutoScalingGroup.builder()
+        .autoScalingGroupName("myasg-stack-v000")
+        .minSize(1)
+        .desiredCapacity(2)
+        .loadBalancerNames(['myasg--frontend'])
+        .instances([software.amazon.awssdk.services.autoscaling.model.Instance.builder().instanceId(description.instance).build()])
+        .build()
+      DescribeAutoScalingGroupsResponse.builder().autoScalingGroups(asg).build()
     }
     1 * mockLoadBalancing.deregisterInstancesFromLoadBalancer(_) >> { DeregisterInstancesFromLoadBalancerRequest request ->
       assert request.instances == [new Instance('i-123456')]
@@ -111,9 +110,9 @@ class TerminateInstanceAndDecrementAsgAtomicOperationUnitSpec extends Specificat
 
   void 'operation adjusts minSize if requested and required'() {
     setup:
-    def mockAutoScaling = Mock(AmazonAutoScaling)
+    def mockAutoScaling = Mock(AutoScalingClient)
     def mockAmazonClientProvider = Stub(AmazonClientProvider) {
-      getAutoScaling(_, _, true) >> mockAutoScaling
+      getAutoScalingV2(_, _) >> mockAutoScaling
     }
     def description = new TerminateInstanceAndDecrementAsgDescription(asgName: "myasg-stack-v000", region: "us-west-1", instance: "i-123456", adjustMinIfNecessary: true)
     description.credentials = TestCredential.named('baz')
@@ -126,13 +125,13 @@ class TerminateInstanceAndDecrementAsgAtomicOperationUnitSpec extends Specificat
     then:
     1 * mockAutoScaling.describeAutoScalingGroups(_) >> { DescribeAutoScalingGroupsRequest request ->
       assert request.autoScalingGroupNames == ["myasg-stack-v000"]
-      def asg = Stub(AutoScalingGroup) {
-        getAutoScalingGroupName() >> "myasg-stack-v000"
-        getMinSize() >> 1
-        getDesiredCapacity() >> 1
-        getInstances() >> [instance.withInstanceId(description.instance)]
-      }
-      new DescribeAutoScalingGroupsResult().withAutoScalingGroups(asg)
+      def asg = AutoScalingGroup.builder()
+        .autoScalingGroupName("myasg-stack-v000")
+        .minSize(1)
+        .desiredCapacity(1)
+        .instances([software.amazon.awssdk.services.autoscaling.model.Instance.builder().instanceId(description.instance).build()])
+        .build()
+      DescribeAutoScalingGroupsResponse.builder().autoScalingGroups(asg).build()
     }
     1 * mockAutoScaling.updateAutoScalingGroup(_) >> { UpdateAutoScalingGroupRequest request ->
       assert request.minSize == 0
@@ -146,9 +145,9 @@ class TerminateInstanceAndDecrementAsgAtomicOperationUnitSpec extends Specificat
 
   void 'operation fails if minSize adjustment needed but not requested'() {
     setup:
-    def mockAutoScaling = Mock(AmazonAutoScaling)
+    def mockAutoScaling = Mock(AutoScalingClient)
     def mockAmazonClientProvider = Stub(AmazonClientProvider) {
-      getAutoScaling(_, _, true) >> mockAutoScaling
+      getAutoScalingV2(_, _) >> mockAutoScaling
     }
     def description = new TerminateInstanceAndDecrementAsgDescription(asgName: "myasg-stack-v000", region: "us-west-1", instance: "i-123456")
     description.credentials = TestCredential.named('baz')
@@ -162,22 +161,22 @@ class TerminateInstanceAndDecrementAsgAtomicOperationUnitSpec extends Specificat
     thrown(IllegalStateException)
     1 * mockAutoScaling.describeAutoScalingGroups(_) >> { DescribeAutoScalingGroupsRequest request ->
       assert request.autoScalingGroupNames == ["myasg-stack-v000"]
-      def asg = Stub(AutoScalingGroup) {
-        getAutoScalingGroupName() >> "myasg-stack-v000"
-        getMinSize() >> 1
-        getDesiredCapacity() >> 1
-        getInstances() >> [instance.withInstanceId(description.instance)]
-      }
-      new DescribeAutoScalingGroupsResult().withAutoScalingGroups(asg)
+      def asg = AutoScalingGroup.builder()
+        .autoScalingGroupName("myasg-stack-v000")
+        .minSize(1)
+        .desiredCapacity(1)
+        .instances([software.amazon.awssdk.services.autoscaling.model.Instance.builder().instanceId(description.instance).build()])
+        .build()
+      DescribeAutoScalingGroupsResponse.builder().autoScalingGroups(asg).build()
     }
     0 * _
   }
 
   void 'operation adjusts maxSize to desired size after termination if requested'() {
     setup:
-    def mockAutoScaling = Mock(AmazonAutoScaling)
+    def mockAutoScaling = Mock(AutoScalingClient)
     def mockAmazonClientProvider = Stub(AmazonClientProvider) {
-      getAutoScaling(_, _, true) >> mockAutoScaling
+      getAutoScalingV2(_, _) >> mockAutoScaling
     }
     def description = new TerminateInstanceAndDecrementAsgDescription(asgName: "myasg-stack-v000", region: "us-west-1", instance: "i-123456", setMaxToNewDesired: true)
     description.credentials = TestCredential.named('baz')
@@ -191,25 +190,25 @@ class TerminateInstanceAndDecrementAsgAtomicOperationUnitSpec extends Specificat
     2 * mockAutoScaling.describeAutoScalingGroups(_) >>
       { DescribeAutoScalingGroupsRequest request ->
         assert request.autoScalingGroupNames == ["myasg-stack-v000"]
-        def asg = Stub(AutoScalingGroup) {
-          getAutoScalingGroupName() >> "myasg-stack-v000"
-          getMinSize() >> 1
-          getDesiredCapacity() >> 2
-          getMaxSize() >> 2
-          getInstances() >> [instance.withInstanceId(description.instance)]
-        }
-        new DescribeAutoScalingGroupsResult().withAutoScalingGroups(asg)
+        def asg = AutoScalingGroup.builder()
+          .autoScalingGroupName("myasg-stack-v000")
+          .minSize(1)
+          .desiredCapacity(2)
+          .maxSize(2)
+          .instances([software.amazon.awssdk.services.autoscaling.model.Instance.builder().instanceId(description.instance).build()])
+          .build()
+        DescribeAutoScalingGroupsResponse.builder().autoScalingGroups(asg).build()
       } >>
       { DescribeAutoScalingGroupsRequest request ->
           assert request.autoScalingGroupNames == ["myasg-stack-v000"]
-          def asg = Stub(AutoScalingGroup) {
-            getAutoScalingGroupName() >> "myasg-stack-v000"
-            getMinSize() >> 1
-            getDesiredCapacity() >> 1
-            getMaxSize() >> 2
-            getInstances() >> [instance.withInstanceId(description.instance)]
-          }
-          new DescribeAutoScalingGroupsResult().withAutoScalingGroups(asg)
+          def asg = AutoScalingGroup.builder()
+            .autoScalingGroupName("myasg-stack-v000")
+            .minSize(1)
+            .desiredCapacity(1)
+            .maxSize(2)
+            .instances([software.amazon.awssdk.services.autoscaling.model.Instance.builder().instanceId(description.instance).build()])
+            .build()
+          DescribeAutoScalingGroupsResponse.builder().autoScalingGroups(asg).build()
       }
     1 * mockAutoScaling.terminateInstanceInAutoScalingGroup(_) >> { TerminateInstanceInAutoScalingGroupRequest request ->
       assert request.instanceId == "i-123456"
@@ -224,9 +223,9 @@ class TerminateInstanceAndDecrementAsgAtomicOperationUnitSpec extends Specificat
 
   void "should fail operation if the instance isn't part of the Server Group"() {
     given:
-    def amazonAutoScaling = Mock(AmazonAutoScaling)
+    def amazonAutoScaling = Mock(AutoScalingClient)
     def amazonClientProvider = Stub(AmazonClientProvider) {
-      getAutoScaling(_, _, true) >> amazonAutoScaling
+      getAutoScalingV2(_, _) >> amazonAutoScaling
     }
 
     def description = new TerminateInstanceAndDecrementAsgDescription(
@@ -236,16 +235,16 @@ class TerminateInstanceAndDecrementAsgAtomicOperationUnitSpec extends Specificat
       setMaxToNewDesired: true
     )
 
-    def serverGroup = new AutoScalingGroup(
-      autoScalingGroupName: description.asgName,
-      instances: [new com.amazonaws.services.autoscaling.model.Instance(instanceId: "i-456")],
-      desiredCapacity: 3,
-      minSize: 1
-    )
+    def serverGroup = AutoScalingGroup.builder()
+      .autoScalingGroupName(description.asgName)
+      .instances([software.amazon.awssdk.services.autoscaling.model.Instance.builder().instanceId("i-456").build()])
+      .desiredCapacity(3)
+      .minSize(1)
+      .build()
 
     and:
     1 * amazonAutoScaling.describeAutoScalingGroups(_) >>
-      new DescribeAutoScalingGroupsResult().withAutoScalingGroups(serverGroup)
+      DescribeAutoScalingGroupsResponse.builder().autoScalingGroups(serverGroup).build()
 
     def operation = new TerminateInstanceAndDecrementAsgAtomicOperation(description)
     operation.amazonClientProvider = amazonClientProvider

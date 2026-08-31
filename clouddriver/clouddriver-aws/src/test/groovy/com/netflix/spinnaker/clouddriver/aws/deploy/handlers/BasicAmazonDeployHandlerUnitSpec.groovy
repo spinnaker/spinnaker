@@ -16,28 +16,28 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.handlers
 
-import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.autoscaling.model.BlockDeviceMapping
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
-import com.amazonaws.services.autoscaling.model.LaunchConfiguration
-import com.amazonaws.services.autoscaling.model.LaunchTemplate
-import com.amazonaws.services.autoscaling.model.LaunchTemplateOverrides
-import com.amazonaws.services.autoscaling.model.LaunchTemplateSpecification
-import com.amazonaws.services.autoscaling.model.MixedInstancesPolicy
-import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.DescribeImagesRequest
-import com.amazonaws.services.ec2.model.DescribeImagesResult
-import com.amazonaws.services.ec2.model.DescribeInstanceTypesResult
-import com.amazonaws.services.ec2.model.DescribeVpcClassicLinkResult
-import com.amazonaws.services.ec2.model.EbsBlockDevice
-import com.amazonaws.services.ec2.model.Image
-import com.amazonaws.services.ec2.model.InstanceTypeInfo
-import com.amazonaws.services.ec2.model.LaunchTemplateBlockDeviceMapping
-import com.amazonaws.services.ec2.model.LaunchTemplateVersion
-import com.amazonaws.services.ec2.model.ProcessorInfo
-import com.amazonaws.services.ec2.model.ResponseLaunchTemplateData
-import com.amazonaws.services.ec2.model.VpcClassicLink
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
+import software.amazon.awssdk.services.autoscaling.model.BlockDeviceMapping
+import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsResponse
+import software.amazon.awssdk.services.autoscaling.model.LaunchConfiguration
+import software.amazon.awssdk.services.autoscaling.model.LaunchTemplate
+import software.amazon.awssdk.services.autoscaling.model.LaunchTemplateOverrides
+import software.amazon.awssdk.services.autoscaling.model.LaunchTemplateSpecification
+import software.amazon.awssdk.services.autoscaling.model.MixedInstancesPolicy
+import software.amazon.awssdk.services.ec2.Ec2Client
+import software.amazon.awssdk.services.ec2.model.DescribeImagesRequest
+import software.amazon.awssdk.services.ec2.model.DescribeImagesResponse
+import software.amazon.awssdk.services.ec2.model.DescribeInstanceTypesResponse
+import software.amazon.awssdk.services.ec2.model.DescribeVpcClassicLinkResponse
+import software.amazon.awssdk.services.ec2.model.EbsBlockDevice
+import software.amazon.awssdk.services.ec2.model.Image
+import software.amazon.awssdk.services.ec2.model.InstanceTypeInfo
+import software.amazon.awssdk.services.ec2.model.LaunchTemplateBlockDeviceMapping
+import software.amazon.awssdk.services.ec2.model.LaunchTemplateVersion
+import software.amazon.awssdk.services.ec2.model.ProcessorInfo
+import software.amazon.awssdk.services.ec2.model.ResponseLaunchTemplateData
+import software.amazon.awssdk.services.ec2.model.VpcClassicLink
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing as AmazonELBV1
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersResult
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
@@ -98,7 +98,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
   @Shared
   Task task = Mock(Task)
 
-  AmazonEC2 amazonEC2 = Mock(AmazonEC2)
+  Ec2Client amazonEC2 = Mock(Ec2Client)
   AmazonElasticLoadBalancing elbV2 = Mock(AmazonElasticLoadBalancing)
   AmazonELBV1 elbV1 = Mock(AmazonELBV1)
   AwsConfiguration.AmazonServerGroupProvider amazonServerGroupProvider = Mock(AwsConfiguration.AmazonServerGroupProvider)
@@ -112,18 +112,13 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     this.instanceType = 'test.large'
     this.blockDevices = [new AmazonBlockDevice(deviceName: "/dev/sdb", virtualName: "ephemeral0")]
 
-    amazonEC2.describeImages(_) >> new DescribeImagesResult()
-      .withImages(new Image().withImageId("ami-12345").withVirtualizationType('hvm').withArchitecture('x86_64'))
-    amazonEC2.describeInstanceTypes(_) >> new DescribeInstanceTypesResult(instanceTypes: [
-      new InstanceTypeInfo(
-        instanceType: this.instanceType,
-        supportedVirtualizationTypes: ['hvm'],
-        processorInfo: new ProcessorInfo(supportedArchitectures: ['x86_64'], sustainedClockSpeedInGhz: 2.8),
-      )])
+    amazonEC2.describeImages(_) >> DescribeImagesResponse.builder().images(Image.builder().imageId("ami-12345").virtualizationType('hvm').architecture('x86_64').build()).build()
+    amazonEC2.describeInstanceTypes(_) >> DescribeInstanceTypesResponse.builder().instanceTypes([
+      InstanceTypeInfo.builder().instanceType(this.instanceType).supportedVirtualizationTypesWithStrings(['hvm']).processorInfo(ProcessorInfo.builder().supportedArchitecturesWithStrings(['x86_64']).sustainedClockSpeedInGhz(2.8).build()).build()]).build()
 
     def rspf = Stub(RegionScopedProviderFactory) {
       forRegion(_, _) >> Stub(RegionScopedProviderFactory.RegionScopedProvider) {
-        getAutoScaling() >> Stub(AmazonAutoScaling)
+        getAutoScaling() >> Stub(AutoScalingClient)
         getAmazonEC2() >> amazonEC2
         getAmazonElasticLoadBalancingV2(_) >> elbV2
         getAmazonElasticLoadBalancing() >> elbV1
@@ -178,7 +173,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     then:
     2 == deployCallCounts
     results.serverGroupNames == ['us-west-1:foo', 'us-east-1:foo']
-    2 * amazonEC2.describeVpcClassicLink() >> new DescribeVpcClassicLinkResult()
+    2 * amazonEC2.describeVpcClassicLink() >> DescribeVpcClassicLinkResponse.builder().build()
   }
 
   void "classic load balancer names are derived from prior execution results"() {
@@ -201,7 +196,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     setlbCalls
     classicLbs == ['lb']
     1 * elbV1.describeLoadBalancers(_) >> new DescribeLoadBalancersResult().withLoadBalancerDescriptions(new LoadBalancerDescription().withLoadBalancerName("lb"))
-    1 * amazonEC2.describeVpcClassicLink() >> new DescribeVpcClassicLinkResult()
+    1 * amazonEC2.describeVpcClassicLink() >> DescribeVpcClassicLinkResponse.builder().build()
   }
 
   void "handles classic load balancers"() {
@@ -219,7 +214,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
 
     then:
     1 * elbV1.describeLoadBalancers(_) >> new DescribeLoadBalancersResult().withLoadBalancerDescriptions(new LoadBalancerDescription().withLoadBalancerName("lb"))
-    1 * amazonEC2.describeVpcClassicLink() >> new DescribeVpcClassicLinkResult()
+    1 * amazonEC2.describeVpcClassicLink() >> DescribeVpcClassicLinkResponse.builder().build()
 
     classicLbs == ['lb']
   }
@@ -238,7 +233,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     def deploymentResult = handler.handle(description, [])
 
     then:
-    1 * amazonEC2.describeVpcClassicLink() >> new DescribeVpcClassicLinkResult()
+    1 * amazonEC2.describeVpcClassicLink() >> DescribeVpcClassicLinkResponse.builder().build()
 
     deploymentResult.deployments.size() == 1
     deploymentResult.deployments[0].capacity == new DeploymentResult.Deployment.Capacity(min: 1, max: 10, desired: 5)
@@ -260,7 +255,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
 
     then:
     1 * elbV2.describeTargetGroups(new DescribeTargetGroupsRequest().withNames("tg")) >> new DescribeTargetGroupsResult().withTargetGroups(new TargetGroup().withTargetGroupArn("arn:lb:targetGroup1"))
-    1 * amazonEC2.describeVpcClassicLink() >> new DescribeVpcClassicLinkResult()
+    1 * amazonEC2.describeVpcClassicLink() >> DescribeVpcClassicLinkResponse.builder().build()
 
     targetGroupARNs == ['arn:lb:targetGroup1']
   }
@@ -298,11 +293,11 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
 
     then:
     actualClassicLinkVpcId == "vpc-456"
-    1 * amazonEC2.describeVpcClassicLink() >> new DescribeVpcClassicLinkResult(vpcs: [
-      new VpcClassicLink(vpcId: "vpc-123", classicLinkEnabled: false),
-      new VpcClassicLink(vpcId: "vpc-456", classicLinkEnabled: true),
-      new VpcClassicLink(vpcId: "vpc-789", classicLinkEnabled: false)
-    ])
+    1 * amazonEC2.describeVpcClassicLink() >> DescribeVpcClassicLinkResponse.builder().vpcs([
+      VpcClassicLink.builder().vpcId("vpc-123").classicLinkEnabled(false).build(),
+      VpcClassicLink.builder().vpcId("vpc-456").classicLinkEnabled(true).build(),
+      VpcClassicLink.builder().vpcId("vpc-789").classicLinkEnabled(false).build()
+    ]).build()
   }
 
   void "should not populate classic link VPC Id when there is a subnetType"() {
@@ -385,9 +380,8 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     2 == deployCallCounts
     results.serverGroupNames == ['us-west-1:foo', 'us-east-1:foo']
     setBlockDevices == this.blockDevices
-    2 * amazonEC2.describeVpcClassicLink() >> new DescribeVpcClassicLinkResult()
-    2 * amazonEC2.describeImages(_) >> new DescribeImagesResult().withImages(new Image().withImageId('ami-12345')
-      .withVirtualizationType('hvm'))
+    2 * amazonEC2.describeVpcClassicLink() >> DescribeVpcClassicLinkResponse.builder().build()
+    2 * amazonEC2.describeImages(_) >> DescribeImagesResponse.builder().images(Image.builder().imageId('ami-12345').virtualizationType('hvm').build()).build()
   }
 
   void "should favour explicit description block devices over default config"() {
@@ -412,9 +406,8 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     results.serverGroupNames == ['us-west-1:foo', 'us-east-1:foo']
     setBlockDevices.size()
     setBlockDevices == description.blockDevices
-    2 * amazonEC2.describeVpcClassicLink() >> new DescribeVpcClassicLinkResult()
-    2 * amazonEC2.describeImages(_) >> new DescribeImagesResult().withImages(new Image().withImageId('ami-12345')
-      .withVirtualizationType('hvm').withArchitecture('x86_64'))
+    2 * amazonEC2.describeVpcClassicLink() >> DescribeVpcClassicLinkResponse.builder().build()
+    2 * amazonEC2.describeImages(_) >> DescribeImagesResponse.builder().images(Image.builder().imageId('ami-12345').virtualizationType('hvm').architecture('x86_64').build()).build()
   }
 
   @Unroll
@@ -439,16 +432,9 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     then:
     2 == deployCallCounts
     results.serverGroupNames == ['us-west-1:foo', 'us-east-1:foo']
-    2 * amazonEC2.describeVpcClassicLink() >> new DescribeVpcClassicLinkResult()
+    2 * amazonEC2.describeVpcClassicLink() >> DescribeVpcClassicLinkResponse.builder().build()
     2 * amazonEC2.describeImages(_) >>
-      new DescribeImagesResult()
-        .withImages(new Image()
-        .withImageId('ami-12345')
-          .withBlockDeviceMappings([new com.amazonaws.services.ec2.model.BlockDeviceMapping()
-                                      .withDeviceName("/dev/sdh")
-                                      .withEbs(new EbsBlockDevice().withVolumeSize(500))])
-          .withVirtualizationType('hvm')
-          .withArchitecture('x86_64'))
+      DescribeImagesResponse.builder().images(Image.builder().imageId('ami-12345').blockDeviceMappings([software.amazon.awssdk.services.ec2.model.BlockDeviceMapping.builder().deviceName("/dev/sdh").ebs(EbsBlockDevice.builder().volumeSize(500).build()).build()]).virtualizationType('hvm').architecture('x86_64').build()).build()
     setBlockDevices == expectedBlockDevices
 
     where:
@@ -478,9 +464,9 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
       assert req.filters.first().name == 'name'
       assert req.filters.first().values == ['the-greatest-ami-in-the-world']
 
-      return new DescribeImagesResult().withImages(new Image().withImageId('ami-12345').withVirtualizationType('hvm').withArchitecture('x86_64'))
+      return DescribeImagesResponse.builder().images(Image.builder().imageId('ami-12345').virtualizationType('hvm').architecture('x86_64').build()).build()
     }
-    1 * amazonEC2.describeVpcClassicLink() >> new DescribeVpcClassicLinkResult()
+    1 * amazonEC2.describeVpcClassicLink() >> DescribeVpcClassicLinkResponse.builder().build()
     deployCallCounts == 1
   }
 
@@ -489,18 +475,17 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     given:
     def asgService = Mock(AsgService) {
       expectedCallsToAws * getLaunchConfiguration(_) >> {
-        return new LaunchConfiguration()
-          .withBlockDeviceMappings(new BlockDeviceMapping().withDeviceName("OLD_DEVICE")
-        )
+        return LaunchConfiguration.builder().blockDeviceMappings(BlockDeviceMapping.builder().deviceName("OLD_DEVICE").build()
+        ).build()
       }
     }
     def sourceRegionScopedProvider = Mock(RegionScopedProvider) {
       expectedCallsToAws * getAsgService() >> { return asgService }
       1 * getAutoScaling() >> {
-        return Mock(AmazonAutoScaling) {
+        return Mock(AutoScalingClient) {
           1 * describeAutoScalingGroups(_) >> {
-            return new DescribeAutoScalingGroupsResult().withAutoScalingGroups(
-              new AutoScalingGroup().withLaunchConfigurationName("launchConfig"))
+            return DescribeAutoScalingGroupsResponse.builder().autoScalingGroups(
+              AutoScalingGroup.builder().launchConfigurationName("launchConfig").build()).build()
           }
         }
       }
@@ -525,32 +510,21 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
   @Unroll
   void "should copy block devices from source provider using a launch template if not specified explicitly and instance types match"() {
     given:
-    def launchTemplateVersion = new LaunchTemplateVersion(
-      launchTemplateName: "lt",
-      launchTemplateId: "id",
-      versionNumber: 0,
-      launchTemplateData: new ResponseLaunchTemplateData(
-        blockDeviceMappings: [new LaunchTemplateBlockDeviceMapping(deviceName: "OLD_DEVICE")]
-      )
-    )
+    def launchTemplateVersion = LaunchTemplateVersion.builder().launchTemplateName("lt").launchTemplateId("id").versionNumber(0).launchTemplateData(ResponseLaunchTemplateData.builder().blockDeviceMappings([LaunchTemplateBlockDeviceMapping.builder().deviceName("OLD_DEVICE").build()]).build()).build()
 
-    def launchTemplate = new LaunchTemplateSpecification(
-      launchTemplateName: launchTemplateVersion.launchTemplateName,
-      launchTemplateId: launchTemplateVersion.launchTemplateId,
-      version: launchTemplateVersion.versionNumber.toString(),
-    )
+    def launchTemplate = LaunchTemplateSpecification.builder().launchTemplateName(launchTemplateVersion.launchTemplateName).launchTemplateId(launchTemplateVersion.launchTemplateId).version(launchTemplateVersion.versionNumber.toString()).build()
 
     and:
     def launchTemplateService = Mock(LaunchTemplateService) {
       getLaunchTemplateVersion({it.launchTemplateId == launchTemplate.launchTemplateId} as LaunchTemplateSpecification) >> Optional.of(launchTemplateVersion)
     }
 
-    def autoScaling = Mock(AmazonAutoScaling) {
+    def autoScaling = Mock(AutoScalingClient) {
       describeAutoScalingGroups(_) >> {
-        return new DescribeAutoScalingGroupsResult().withAutoScalingGroups(
-          new AutoScalingGroup().withLaunchTemplate(
+        return DescribeAutoScalingGroupsResponse.builder().autoScalingGroups(
+          AutoScalingGroup.builder().launchTemplate(
             launchTemplate
-          ))
+          ).build()).build()
       }
     }
 
@@ -618,18 +592,17 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     int expectedCallsToAws = description.copySourceCustomBlockDeviceMappings ? 2 : 0
     def asgService = Mock(AsgService) {
       (expectedCallsToAws) * getLaunchConfiguration(_) >> {
-        return new LaunchConfiguration()
-          .withBlockDeviceMappings(new BlockDeviceMapping().withDeviceName("OLD_DEVICE")
-        )
+        return LaunchConfiguration.builder().blockDeviceMappings(BlockDeviceMapping.builder().deviceName("OLD_DEVICE").build()
+        ).build()
       }
     }
     def sourceRegionScopedProvider = Mock(RegionScopedProvider) {
       (expectedCallsToAws) * getAsgService() >> { return asgService }
       1 * getAutoScaling() >> {
-        return Mock(AmazonAutoScaling) {
+        return Mock(AutoScalingClient) {
           1 * describeAutoScalingGroups(_) >> {
-            return new DescribeAutoScalingGroupsResult().withAutoScalingGroups(
-              new AutoScalingGroup().withLaunchConfigurationName('foo'))
+            return DescribeAutoScalingGroupsResponse.builder().autoScalingGroups(
+              AutoScalingGroup.builder().launchConfigurationName('foo').build()).build()
           }
         }
       }
@@ -672,8 +645,8 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     given:
     def description = new BasicAmazonDeployDescription(capacity: descriptionCapacity, instanceType: this.instanceType)
     def sourceRegionScopedProvider = Stub(RegionScopedProvider) {
-      getAutoScaling() >> Stub(AmazonAutoScaling) {
-        describeAutoScalingGroups(_) >> new DescribeAutoScalingGroupsResult()
+      getAutoScaling() >> Stub(AutoScalingClient) {
+        describeAutoScalingGroups(_) >> DescribeAutoScalingGroupsResponse.builder().build()
       }
     }
 
@@ -693,20 +666,16 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     given:
     def description = new BasicAmazonDeployDescription(capacity: descriptionCapacity, instanceType: this.instanceType)
     def asgService = Stub(AsgService) {
-      getLaunchConfiguration(_) >> new LaunchConfiguration()
+      getLaunchConfiguration(_) >> LaunchConfiguration.builder().build()
     }
     def sourceRegionScopedProvider = Stub(RegionScopedProvider) {
       getAsgService() >> asgService
-      getAutoScaling() >> Stub(AmazonAutoScaling) {
+      getAutoScaling() >> Stub(AutoScalingClient) {
         describeAutoScalingGroups(_) >> {
-          new DescribeAutoScalingGroupsResult().withAutoScalingGroups(
-            new AutoScalingGroup()
-              .withLaunchConfigurationName('lc')
-              .withMinSize(sourceCapacity.min)
-              .withMaxSize(sourceCapacity.max)
-              .withDesiredCapacity(sourceCapacity.desired)
+          DescribeAutoScalingGroupsResponse.builder().autoScalingGroups(
+            AutoScalingGroup.builder().launchConfigurationName('lc').minSize(sourceCapacity.min).maxSize(sourceCapacity.max).desiredCapacity(sourceCapacity.desired).build()
 
-          )
+          ).build()
         }
       }
     }
@@ -802,13 +771,12 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     handler.handle(description, [])
 
     then:
-    1 * amazonEC2.describeImages(_) >> new DescribeImagesResult().withImages(new Image().withImageId('ami-12345')
-      .withVirtualizationType(virtualizationType))
-    1 * amazonEC2.describeVpcClassicLink() >> new DescribeVpcClassicLinkResult()
-    1 * amazonEC2.describeInstanceTypes(_) >> new DescribeInstanceTypesResult(instanceTypes: [
-      new InstanceTypeInfo(instanceType: "r3.xlarge", supportedVirtualizationTypes: ["hvm"]),
-      new InstanceTypeInfo(instanceType: "t3.micro", supportedVirtualizationTypes: ["hvm"])
-    ])
+    1 * amazonEC2.describeImages(_) >> DescribeImagesResponse.builder().images(Image.builder().imageId('ami-12345').virtualizationType(virtualizationType).build()).build()
+    1 * amazonEC2.describeVpcClassicLink() >> DescribeVpcClassicLinkResponse.builder().build()
+    1 * amazonEC2.describeInstanceTypes(_) >> DescribeInstanceTypesResponse.builder().instanceTypes([
+      InstanceTypeInfo.builder().instanceType("r3.xlarge").supportedVirtualizationTypesWithStrings(["hvm"]).build(),
+      InstanceTypeInfo.builder().instanceType("t3.micro").supportedVirtualizationTypesWithStrings(["hvm"]).build()
+    ]).build()
 
     and:
     thrown IllegalArgumentException
@@ -830,16 +798,10 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     handler.handle(description, [])
 
     then:
-    1 * amazonEC2.describeImages(_) >> new DescribeImagesResult().withImages(new Image().withImageId('ami-12345')
-      .withVirtualizationType(virtualizationType)
-      .withArchitecture("x86_64"))
-    1 * amazonEC2.describeVpcClassicLink() >> new DescribeVpcClassicLinkResult()
-    1 * amazonEC2.describeInstanceTypes(_) >> new DescribeInstanceTypesResult(instanceTypes: [
-      new InstanceTypeInfo(
-        instanceType: this.instanceType,
-        supportedVirtualizationTypes: [virtualizationType],
-        processorInfo: new ProcessorInfo(supportedArchitectures: ["x86_64"], sustainedClockSpeedInGhz: 2.8),
-      )])
+    1 * amazonEC2.describeImages(_) >> DescribeImagesResponse.builder().images(Image.builder().imageId('ami-12345').virtualizationType(virtualizationType).architecture("x86_64").build()).build()
+    1 * amazonEC2.describeVpcClassicLink() >> DescribeVpcClassicLinkResponse.builder().build()
+    1 * amazonEC2.describeInstanceTypes(_) >> DescribeInstanceTypesResponse.builder().instanceTypes([
+      InstanceTypeInfo.builder().instanceType(this.instanceType).supportedVirtualizationTypesWithStrings([virtualizationType]).processorInfo(ProcessorInfo.builder().supportedArchitecturesWithStrings(["x86_64"]).sustainedClockSpeedInGhz(2.8).build()).build()]).build()
 
     and:
     noExceptionThrown()
@@ -861,24 +823,20 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
       instanceType: targetInstanceType,
       blockDevices: descriptionBlockDevices
     )
-    def launchConfiguration = new LaunchConfiguration()
-      .withLaunchConfigurationName('lc')
-      .withInstanceType(sourceInstanceType)
-      .withBlockDeviceMappings(sourceBlockDevices?.collect {
-      new BlockDeviceMapping().withVirtualName(it.virtualName).withDeviceName(it.deviceName)
-    })
-    def sourceAsg = new AutoScalingGroup()
-      .withLaunchConfigurationName(launchConfiguration.getLaunchConfigurationName())
+    def launchConfiguration = LaunchConfiguration.builder().launchConfigurationName('lc').instanceType(sourceInstanceType).blockDeviceMappings(sourceBlockDevices?.collect {
+      BlockDeviceMapping.builder().virtualName(it.virtualName).deviceName(it.deviceName).build()
+    }).build()
+    def sourceAsg = AutoScalingGroup.builder().launchConfigurationName(launchConfiguration.launchConfigurationName()).build()
 
     def asgService = Mock(AsgService) {
       getLaunchConfiguration(_) >> launchConfiguration
     }
     def sourceRegionScopedProvider = Stub(RegionScopedProvider) {
       getAsgService() >> asgService
-      getAutoScaling() >> Stub(AmazonAutoScaling) {
+      getAutoScaling() >> Stub(AutoScalingClient) {
         describeAutoScalingGroups(_) >> {
-          new DescribeAutoScalingGroupsResult().withAutoScalingGroups(
-            sourceAsg)
+          DescribeAutoScalingGroupsResponse.builder().autoScalingGroups(
+            sourceAsg).build()
         }
       }
     }
@@ -901,26 +859,17 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
   @Unroll
   void "should regenerate block device mappings conditionally, for source ASG with mixed instances policy"() {
     setup:
-    def launchTemplateVersion = new LaunchTemplateVersion(
-      launchTemplateName: "lt",
-      launchTemplateId: "id",
-      versionNumber: 0,
-      launchTemplateData: new ResponseLaunchTemplateData(
-        instanceType: sourceInstanceType,
-        blockDeviceMappings: sourceBlockDevices?.collect {
-          new LaunchTemplateBlockDeviceMapping().withVirtualName(it.virtualName).withDeviceName(it.deviceName)
-        }))
-    def mixedInstancesPolicy = new MixedInstancesPolicy()
-      .withLaunchTemplate(new LaunchTemplate()
-        .withLaunchTemplateSpecification(new LaunchTemplateSpecification()
-          .withLaunchTemplateId(launchTemplateVersion.launchTemplateId)
-          .withLaunchTemplateName(launchTemplateVersion.launchTemplateName)
-          .withVersion(launchTemplateVersion.versionNumber.toString()))
-        .withOverrides(
-          new LaunchTemplateOverrides().withInstanceType("c3.large").withWeightedCapacity("2"),
-          new LaunchTemplateOverrides().withInstanceType("c3.xlarge").withWeightedCapacity("4")))
+    def launchTemplateVersion = LaunchTemplateVersion.builder().launchTemplateName("lt").launchTemplateId("id").versionNumber(0).launchTemplateData(ResponseLaunchTemplateData.builder().instanceType(sourceInstanceType).blockDeviceMappings(sourceBlockDevices?.collect {
+          LaunchTemplateBlockDeviceMapping.builder().virtualName(it.virtualName).deviceName(it.deviceName).build()
+        }).build()).build()
+    def mixedInstancesPolicy = MixedInstancesPolicy.builder().launchTemplate(LaunchTemplate.builder().launchTemplateSpecification(LaunchTemplateSpecification.builder()
+          .launchTemplateId(launchTemplateVersion.launchTemplateId)
+          .launchTemplateName(launchTemplateVersion.launchTemplateName)
+          .version(launchTemplateVersion.versionNumber.toString()).build()).overrides(
+          LaunchTemplateOverrides.builder().instanceType("c3.large").weightedCapacity("2").build(),
+          LaunchTemplateOverrides.builder().instanceType("c3.xlarge").weightedCapacity("4").build()).build()).build()
 
-    def sourceAsg = new AutoScalingGroup().withMixedInstancesPolicy(mixedInstancesPolicy)
+    def sourceAsg = AutoScalingGroup.builder().mixedInstancesPolicy(mixedInstancesPolicy).build()
 
     and:
     def launchTemplateService = Mock(LaunchTemplateService) {
@@ -929,9 +878,9 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
 
     def sourceRegionScopedProvider = Mock(RegionScopedProvider) {
       getLaunchTemplateService() >> launchTemplateService
-      getAutoScaling() >> Stub(AmazonAutoScaling) {
+      getAutoScaling() >> Stub(AutoScalingClient) {
         describeAutoScalingGroups(_) >> {
-          new DescribeAutoScalingGroupsResult().withAutoScalingGroups(sourceAsg)
+          DescribeAutoScalingGroupsResponse.builder().autoScalingGroups(sourceAsg).build()
         }
       }
     }

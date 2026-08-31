@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer
 
-import com.amazonaws.services.ec2.model.IpPermission
-import com.amazonaws.services.ec2.model.SecurityGroup
+import software.amazon.awssdk.services.ec2.model.IpPermission
+import software.amazon.awssdk.services.ec2.model.SecurityGroup
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupLookupFactory
 import spock.lang.Specification
@@ -30,15 +30,9 @@ class IngressLoadBalancerBuilderSpec extends Specification {
     getInstance("us-east-1") >> securityGroupLookup
   }
 
-  def elbSecurityGroup = new SecurityGroup()
-    .withVpcId("vpcId")
-    .withGroupId("sg-1234")
-    .withGroupName("kato-elb")
+  def elbSecurityGroup = SecurityGroup.builder().vpcId("vpcId").groupId("sg-1234").groupName("kato-elb").build()
 
-  def applicationSecurityGroup = new SecurityGroup()
-    .withVpcId("vpcId")
-    .withGroupId("sg-1111")
-    .withGroupName("kato")
+  def applicationSecurityGroup = SecurityGroup.builder().vpcId("vpcId").groupId("sg-1111").groupName("kato").build()
 
   def elbSecurityGroupUpdater = Mock(SecurityGroupLookupFactory.SecurityGroupUpdater)
   def appSecurityGroupUpdater = Mock(SecurityGroupLookupFactory.SecurityGroupUpdater)
