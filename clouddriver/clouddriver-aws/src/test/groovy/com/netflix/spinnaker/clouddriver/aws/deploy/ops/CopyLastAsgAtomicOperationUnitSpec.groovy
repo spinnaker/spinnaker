@@ -15,31 +15,31 @@
  */
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
-import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.autoscaling.model.BlockDeviceMapping
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
-import com.amazonaws.services.autoscaling.model.DescribeLaunchConfigurationsRequest
-import com.amazonaws.services.autoscaling.model.DescribeLaunchConfigurationsResult
-import com.amazonaws.services.autoscaling.model.DescribeLifecycleHooksRequest
-import com.amazonaws.services.autoscaling.model.DescribeLifecycleHooksResult
-import com.amazonaws.services.autoscaling.model.Ebs
-import com.amazonaws.services.autoscaling.model.InstancesDistribution
-import com.amazonaws.services.autoscaling.model.LaunchConfiguration
-import com.amazonaws.services.autoscaling.model.LaunchTemplate
-import com.amazonaws.services.autoscaling.model.LaunchTemplateOverrides
-import com.amazonaws.services.autoscaling.model.LaunchTemplateSpecification
-import com.amazonaws.services.autoscaling.model.LifecycleHook
-import com.amazonaws.services.autoscaling.model.MixedInstancesPolicy
-import com.amazonaws.services.autoscaling.model.TagDescription
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
+import software.amazon.awssdk.services.autoscaling.model.BlockDeviceMapping
+import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsResponse
+import software.amazon.awssdk.services.autoscaling.model.DescribeLaunchConfigurationsRequest
+import software.amazon.awssdk.services.autoscaling.model.DescribeLaunchConfigurationsResponse
+import software.amazon.awssdk.services.autoscaling.model.DescribeLifecycleHooksRequest
+import software.amazon.awssdk.services.autoscaling.model.DescribeLifecycleHooksResponse
+import software.amazon.awssdk.services.autoscaling.model.Ebs
+import software.amazon.awssdk.services.autoscaling.model.InstancesDistribution
+import software.amazon.awssdk.services.autoscaling.model.LaunchConfiguration
+import software.amazon.awssdk.services.autoscaling.model.LaunchTemplate
+import software.amazon.awssdk.services.autoscaling.model.LaunchTemplateOverrides
+import software.amazon.awssdk.services.autoscaling.model.LaunchTemplateSpecification
+import software.amazon.awssdk.services.autoscaling.model.LifecycleHook
+import software.amazon.awssdk.services.autoscaling.model.MixedInstancesPolicy
+import software.amazon.awssdk.services.autoscaling.model.TagDescription
 import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.CreditSpecification
-import com.amazonaws.services.ec2.model.LaunchTemplateBlockDeviceMapping
-import com.amazonaws.services.ec2.model.LaunchTemplateEbsBlockDevice
-import com.amazonaws.services.ec2.model.LaunchTemplateInstanceMarketOptions
-import com.amazonaws.services.ec2.model.LaunchTemplateSpotMarketOptions
-import com.amazonaws.services.ec2.model.LaunchTemplateVersion
-import com.amazonaws.services.ec2.model.ResponseLaunchTemplateData
+import software.amazon.awssdk.services.ec2.model.CreditSpecification
+import software.amazon.awssdk.services.ec2.model.LaunchTemplateBlockDeviceMapping
+import software.amazon.awssdk.services.ec2.model.LaunchTemplateEbsBlockDevice
+import software.amazon.awssdk.services.ec2.model.LaunchTemplateInstanceMarketOptions
+import software.amazon.awssdk.services.ec2.model.LaunchTemplateSpotMarketOptions
+import software.amazon.awssdk.services.ec2.model.LaunchTemplateVersion
+import software.amazon.awssdk.services.ec2.model.ResponseLaunchTemplateData
 import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AWSServerGroupNameResolver
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType
 import com.netflix.spinnaker.clouddriver.aws.deploy.validators.BasicAmazonDeployDescriptionValidator
@@ -63,7 +63,7 @@ import spock.lang.Unroll
 class CopyLastAsgAtomicOperationUnitSpec extends Specification {
 
   def deployHandler = Mock(BasicAmazonDeployHandler)
-  def mockAutoScaling = Mock(AmazonAutoScaling)
+  def mockAutoScaling = Mock(AutoScalingClient)
   def ec2 = Mock(AmazonEC2)
   def mockProvider = Mock(AmazonClientProvider)
   def mockAsgReferenceCopier = Mock(AsgReferenceCopier)
@@ -88,7 +88,7 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     TaskRepository.threadLocalTask.set(Mock(Task))
 
     mockProvider.getAmazonEC2(_, _, true) >> ec2
-    mockProvider.getAutoScaling(_, _, true) >> mockAutoScaling
+    mockProvider.getAutoScalingV2(_, _) >> mockAutoScaling
 
     regionScopedProviderStub.getAsgReferenceCopier(_, _) >> mockAsgReferenceCopier
     regionScopedProviderStub.getAsgService() >> asgService
@@ -111,40 +111,39 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
 
     and:
     def blockDevicesFromSrcAsg = [new AmazonBlockDevice(deviceName: "/dev/src")]
-    def launchTemplateVersion = new LaunchTemplateVersion(
-      launchTemplateName: "foo",
-      launchTemplateId: "foo",
-      versionNumber: 0,
-      launchTemplateData: new ResponseLaunchTemplateData(
-        keyName: "key-pair-name",
-        instanceMarketOptions: new LaunchTemplateInstanceMarketOptions(
-          spotOptions: new LaunchTemplateSpotMarketOptions(
-            maxPrice: ancestorSpotPrice
-          )
-        ),
-        blockDeviceMappings: blockDevicesFromSrcAsg?.collect {
-          new LaunchTemplateBlockDeviceMapping().withVirtualName(it.virtualName).withDeviceName(it.deviceName)
-        }
-      )
-    )
+    def launchTemplateVersion = LaunchTemplateVersion.builder()
+      .launchTemplateName("foo")
+      .launchTemplateId("foo")
+      .versionNumber(0L)
+      .launchTemplateData(ResponseLaunchTemplateData.builder()
+        .keyName("key-pair-name")
+        .instanceMarketOptions(LaunchTemplateInstanceMarketOptions.builder()
+          .spotOptions(LaunchTemplateSpotMarketOptions.builder().maxPrice(ancestorSpotPrice).build())
+          .build())
+        .blockDeviceMappings(blockDevicesFromSrcAsg?.collect {
+          LaunchTemplateBlockDeviceMapping.builder().virtualName(it.virtualName).deviceName(it.deviceName).build()
+        } ?: [])
+        .build())
+      .build()
 
-    def launchTemplateSpec = new LaunchTemplateSpecification(
-      launchTemplateName: launchTemplateVersion.launchTemplateName,
-      launchTemplateId: launchTemplateVersion.launchTemplateId,
-      version: launchTemplateVersion.versionNumber.toString(),
-    )
+    def launchTemplateSpec = LaunchTemplateSpecification.builder()
+      .launchTemplateName(launchTemplateVersion.launchTemplateName)
+      .launchTemplateId(launchTemplateVersion.launchTemplateId)
+      .version(launchTemplateVersion.versionNumber.toString())
+      .build()
 
     and:
     regionScopedProviderStub.getLaunchTemplateService() >> Mock(LaunchTemplateService) {
       getLaunchTemplateVersion(launchTemplateSpec) >> Optional.of(launchTemplateVersion)
     }
-    def mockAncestorAsg = Mock(AutoScalingGroup)
-    mockAncestorAsg.getAutoScalingGroupName() >> "asgard-stack-v000"
-    mockAncestorAsg.getMinSize() >> 0
-    mockAncestorAsg.getMaxSize() >> 2
-    mockAncestorAsg.getDesiredCapacity() >> 4
-    mockAncestorAsg.getLaunchTemplate() >> launchTemplateSpec
-    mockAncestorAsg.getTags() >> [new TagDescription().withKey('Name').withValue('name-tag')]
+    def mockAncestorAsg = AutoScalingGroup.builder()
+      .autoScalingGroupName("asgard-stack-v000")
+      .minSize(0)
+      .maxSize(2)
+      .desiredCapacity(4)
+      .launchTemplate(launchTemplateSpec)
+      .tags([TagDescription.builder().key('Name').value('name-tag').build()])
+      .build()
     deployHandler.buildBlockDeviceMappingsFromSourceAsg(regionScopedProviderStub, mockAncestorAsg, description) >> blockDevicesFromSrcAsg
 
     when:
@@ -155,7 +154,7 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     result.serverGroupNames == ['asgard-stack-v001']
 
     1 * mockAutoScaling.describeAutoScalingGroups(_) >> {
-      new DescribeAutoScalingGroupsResult().withAutoScalingGroups([mockAncestorAsg])
+      DescribeAutoScalingGroupsResponse.builder().autoScalingGroups([mockAncestorAsg]).build()
     }
 
     1 * serverGroupNameResolver.resolveLatestServerGroupName("asgard-stack") >> { "asgard-stack-v000" }
@@ -192,29 +191,34 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
 
     2 * mockAutoScaling.describeLaunchConfigurations(_) >> { DescribeLaunchConfigurationsRequest request ->
       assert request.launchConfigurationNames == ['foo']
-      def mockLaunch = Mock(LaunchConfiguration)
-      mockLaunch.getLaunchConfigurationName() >> "foo"
-      mockLaunch.getKeyName() >> "key-pair-name"
-      mockLaunch.getBlockDeviceMappings() >> [new BlockDeviceMapping().withDeviceName('/dev/sdb').withEbs(new Ebs().withVolumeSize(125)), new BlockDeviceMapping().withDeviceName('/dev/sdc').withVirtualName('ephemeral1')]
-      mockLaunch.getSpotPrice() >> ancestorSpotPrice
-      new DescribeLaunchConfigurationsResult().withLaunchConfigurations([mockLaunch])
+      def mockLaunch = LaunchConfiguration.builder()
+        .launchConfigurationName("foo")
+        .keyName("key-pair-name")
+        .blockDeviceMappings([
+          BlockDeviceMapping.builder().deviceName('/dev/sdb').ebs(Ebs.builder().volumeSize(125).build()).build(),
+          BlockDeviceMapping.builder().deviceName('/dev/sdc').virtualName('ephemeral1').build()
+        ])
+        .spotPrice(ancestorSpotPrice)
+        .build()
+      DescribeLaunchConfigurationsResponse.builder().launchConfigurations([mockLaunch]).build()
     }
     2 * mockAutoScaling.describeAutoScalingGroups(_) >> {
-      def mockAsg = Mock(AutoScalingGroup)
-      mockAsg.getAutoScalingGroupName() >> "asgard-stack-v000"
-      mockAsg.getMinSize() >> 0
-      mockAsg.getMaxSize() >> 2
-      mockAsg.getDesiredCapacity() >> 4
-      mockAsg.getLaunchConfigurationName() >> "foo"
-      mockAsg.getTags() >> [new TagDescription().withKey('Name').withValue('name-tag')]
-      new DescribeAutoScalingGroupsResult().withAutoScalingGroups([mockAsg])
+      def mockAsg = AutoScalingGroup.builder()
+        .autoScalingGroupName("asgard-stack-v000")
+        .minSize(0)
+        .maxSize(2)
+        .desiredCapacity(4)
+        .launchConfigurationName("foo")
+        .tags([TagDescription.builder().key('Name').value('name-tag').build()])
+        .build()
+      DescribeAutoScalingGroupsResponse.builder().autoScalingGroups([mockAsg]).build()
     }
 
     2 * serverGroupNameResolver.resolveLatestServerGroupName("asgard-stack") >> { "asgard-stack-v000" }
     0 * serverGroupNameResolver._
-    1 * deployHandler.handle(expectedDescription(expectedSpotPrice, 'us-east-1'), _) >>
+    1 * deployHandler.handle(expectedDescription(expectedSpotPrice, 'us-east-1', null, null, null, null, null, []), _) >>
       new DeploymentResult(serverGroupNames: ['asgard-stack-v001'], serverGroupNameByRegion: ['us-east-1': 'asgard-stack-v001'])
-    1 * deployHandler.handle(expectedDescription(expectedSpotPrice, 'us-west-1'), _) >>
+    1 * deployHandler.handle(expectedDescription(expectedSpotPrice, 'us-west-1', null, null, null, null, null, []), _) >>
       new DeploymentResult(serverGroupNames: ['asgard-stack-v001'], serverGroupNameByRegion: ['us-west-1': 'asgard-stack-v001'])
 
     where:
@@ -242,24 +246,21 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     }
 
     and:
-    def launchTemplateVersion = new LaunchTemplateVersion(
-      launchTemplateName: "foo",
-      launchTemplateId: "foo",
-      versionNumber: 0,
-      launchTemplateData: new ResponseLaunchTemplateData(
-        keyName: "key-pair-name"
-      )
-    )
+    def rltdBuilder3 = ResponseLaunchTemplateData.builder().keyName("key-pair-name")
     if (ancestorUnlimitedCpuCredits != null) {
-      launchTemplateVersion.launchTemplateData.creditSpecification = new CreditSpecification(
-        cpuCredits: ancestorUnlimitedCpuCredits
-      )
+      rltdBuilder3.creditSpecification(CreditSpecification.builder().cpuCredits(ancestorUnlimitedCpuCredits).build())
     }
-    def launchTemplateSpec = new LaunchTemplateSpecification(
-      launchTemplateName: launchTemplateVersion.launchTemplateName,
-      launchTemplateId: launchTemplateVersion.launchTemplateId,
-      version: launchTemplateVersion.versionNumber.toString(),
-    )
+    def launchTemplateVersion = LaunchTemplateVersion.builder()
+      .launchTemplateName("foo")
+      .launchTemplateId("foo")
+      .versionNumber(0L)
+      .launchTemplateData(rltdBuilder3.build())
+      .build()
+    def launchTemplateSpec = LaunchTemplateSpecification.builder()
+      .launchTemplateName(launchTemplateVersion.launchTemplateName)
+      .launchTemplateId(launchTemplateVersion.launchTemplateId)
+      .version(launchTemplateVersion.versionNumber.toString())
+      .build()
 
     and:
     regionScopedProviderStub.getLaunchTemplateService() >> Mock(LaunchTemplateService) {
@@ -267,15 +268,16 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     }
 
     and:
-    def mockAncestorAsg = Mock(AutoScalingGroup)
-    mockAncestorAsg.getAutoScalingGroupName() >> "asgard-stack-v000"
-    mockAncestorAsg.getMinSize() >> 0
-    mockAncestorAsg.getMaxSize() >> 2
-    mockAncestorAsg.getDesiredCapacity() >> 4
-    mockAncestorAsg.getLaunchTemplate() >> launchTemplateSpec
-    mockAncestorAsg.getTags() >> [new TagDescription().withKey('Name').withValue('name-tag')]
+    def mockAncestorAsg = AutoScalingGroup.builder()
+      .autoScalingGroupName("asgard-stack-v000")
+      .minSize(0)
+      .maxSize(2)
+      .desiredCapacity(4)
+      .launchTemplate(launchTemplateSpec)
+      .tags([TagDescription.builder().key('Name').value('name-tag').build()])
+      .build()
     mockAutoScaling.describeAutoScalingGroups(_) >> {
-      new DescribeAutoScalingGroupsResult().withAutoScalingGroups([mockAncestorAsg])
+      DescribeAutoScalingGroupsResponse.builder().autoScalingGroups([mockAncestorAsg]).build()
     }
     serverGroupNameResolver.resolveLatestServerGroupName("asgard-stack") >> { "asgard-stack-v000" }
 
@@ -309,45 +311,37 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     description.launchTemplateOverridesForInstanceType = requestOverrides
 
     and:
-    def launchTemplateVersion = new LaunchTemplateVersion(
-      launchTemplateName: "foo",
-      launchTemplateId: "foo",
-      versionNumber: 0,
-      launchTemplateData: new ResponseLaunchTemplateData(
-        keyName: "key-pair-name",
-        blockDeviceMappings: [
-          new LaunchTemplateBlockDeviceMapping(
-            deviceName: "/dev/sdb",
-            ebs: new LaunchTemplateEbsBlockDevice(
-              volumeSize: 125
-            )
-          ),
-          new LaunchTemplateBlockDeviceMapping(
-            deviceName: "/dev/sdc",
-            virtualName: "ephemeral1"
-          )
-        ]
-      )
-    )
-    def launchTemplateSpec = new LaunchTemplateSpecification(
-      launchTemplateName: launchTemplateVersion.launchTemplateName,
-      launchTemplateId: launchTemplateVersion.launchTemplateId,
-      version: launchTemplateVersion.versionNumber.toString(),
-    )
-    def ancestorMixedInstancesPolicy = new MixedInstancesPolicy(
-      launchTemplate: new LaunchTemplate(
-        launchTemplateSpecification: launchTemplateSpec,
-        overrides: ancestorOverrides
-      ),
-      instancesDistribution: new InstancesDistribution(
-        onDemandAllocationStrategy: "prioritized",
-        onDemandBaseCapacity: 2,
-        onDemandPercentageAboveBaseCapacity: 50,
-        spotAllocationStrategy: ancestorSpotAllocStrategy, // AWS default is lowest-price
-        spotInstancePools: ancestorSpotAllocStrategy == "lowest-price" ? 2 : null, // AWS default is 2
-        spotMaxPrice: ancestorSpotPrice,
-      )
-    )
+    def launchTemplateVersion = LaunchTemplateVersion.builder()
+      .launchTemplateName("foo")
+      .launchTemplateId("foo")
+      .versionNumber(0L)
+      .launchTemplateData(ResponseLaunchTemplateData.builder()
+        .keyName("key-pair-name")
+        .blockDeviceMappings([
+          LaunchTemplateBlockDeviceMapping.builder().deviceName("/dev/sdb").ebs(LaunchTemplateEbsBlockDevice.builder().volumeSize(125).build()).build(),
+          LaunchTemplateBlockDeviceMapping.builder().deviceName("/dev/sdc").virtualName("ephemeral1").build()
+        ])
+        .build())
+      .build()
+    def launchTemplateSpec = LaunchTemplateSpecification.builder()
+      .launchTemplateName(launchTemplateVersion.launchTemplateName)
+      .launchTemplateId(launchTemplateVersion.launchTemplateId)
+      .version(launchTemplateVersion.versionNumber.toString())
+      .build()
+    def ancestorMixedInstancesPolicy = MixedInstancesPolicy.builder()
+      .launchTemplate(LaunchTemplate.builder()
+        .launchTemplateSpecification(launchTemplateSpec)
+        .overrides(ancestorOverrides ?: [])
+        .build())
+      .instancesDistribution(InstancesDistribution.builder()
+        .onDemandAllocationStrategy("prioritized")
+        .onDemandBaseCapacity(2)
+        .onDemandPercentageAboveBaseCapacity(50)
+        .spotAllocationStrategy(ancestorSpotAllocStrategy) // AWS default is lowest-price
+        .spotInstancePools(ancestorSpotAllocStrategy == "lowest-price" ? 2 : null) // AWS default is 2
+        .spotMaxPrice(ancestorSpotPrice)
+        .build())
+      .build()
 
     and:
     regionScopedProviderStub.getLaunchTemplateService() >> Mock(LaunchTemplateService) {
@@ -362,27 +356,29 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     result.serverGroupNames == ['asgard-stack-v001']
 
     1 * mockAutoScaling.describeAutoScalingGroups(_) >> {
-      def mockAsg = Mock(AutoScalingGroup)
-      mockAsg.getAutoScalingGroupName() >> "asgard-stack-v000"
-      mockAsg.getMinSize() >> 0
-      mockAsg.getMaxSize() >> 2
-      mockAsg.getDesiredCapacity() >> 4
-      mockAsg.getMixedInstancesPolicy() >> ancestorMixedInstancesPolicy
-      mockAsg.getTags() >> [new TagDescription().withKey('Name').withValue('name-tag')]
-      new DescribeAutoScalingGroupsResult().withAutoScalingGroups([mockAsg])
+      def mockAsg = AutoScalingGroup.builder()
+        .autoScalingGroupName("asgard-stack-v000")
+        .minSize(0)
+        .maxSize(2)
+        .desiredCapacity(4)
+        .mixedInstancesPolicy(ancestorMixedInstancesPolicy)
+        .tags([TagDescription.builder().key('Name').value('name-tag').build()])
+        .build()
+      DescribeAutoScalingGroupsResponse.builder().autoScalingGroups([mockAsg]).build()
     }
 
     and:
     1 * serverGroupNameResolver.resolveLatestServerGroupName("asgard-stack") >> { "asgard-stack-v000" }
     0 * serverGroupNameResolver._
     1 * deployHandler.handle(_ as BasicAmazonDeployDescription, _) >> { arguments ->
-      def expectedMip = ancestorMixedInstancesPolicy
-      expectedMip.setInstancesDistribution(ancestorMixedInstancesPolicy.getInstancesDistribution()
-        .withSpotAllocationStrategy(expectedSpotAllocStrategy)
-        .withSpotMaxPrice(expectedSpotPrice)
-        .withSpotInstancePools(expectedSpotAllocStrategy == "lowest-price" ? 2 : null))
-      expectedMip.setLaunchTemplate(ancestorMixedInstancesPolicy.getLaunchTemplate().withOverrides(expectedOverrides))
-      def expectedDesc = expectedDescription(null, "us-east-1", null, null, expectedMip)
+      def expectedMip = ancestorMixedInstancesPolicy.toBuilder()
+        .instancesDistribution(ancestorMixedInstancesPolicy.instancesDistribution().toBuilder()
+          .spotAllocationStrategy(expectedSpotAllocStrategy)
+          .spotMaxPrice(expectedSpotPrice)
+          .spotInstancePools(expectedSpotAllocStrategy == "lowest-price" ? 2 : null)
+          .build())
+        .build()
+      def expectedDesc = expectedDescription(null, "us-east-1", null, null, expectedMip, expectedOverrides)
       def actualDesc = arguments[0]
 
       assert actualDesc == expectedDesc; new DeploymentResult(serverGroupNames: ['asgard-stack-v001'], serverGroupNameByRegion: ['us-east-1': 'asgard-stack-v001'])
@@ -394,16 +390,12 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     "0.25"           | "0.5"             || "0.25"            |   "capacity-optimized"   |     "lowest-price"        ||   "capacity-optimized"    |[new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(
                                                                                                                                                         instanceType: "c5.large", priority: 1),
                                                                                                                                                     new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(
-                                                                                                                                                        instanceType: "c4.large", priority: 2)]                               |[new LaunchTemplateOverrides().withInstanceType("m5.large")
-                                                                                                                                                                                                                                    .withWeightedCapacity("1")]                             ||[new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(
+                                                                                                                                                        instanceType: "c4.large", priority: 2)]                               |[LaunchTemplateOverrides.builder().instanceType("m5.large").weightedCapacity("1").build()]                             ||[new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(
                                                                                                                                                                                                                                                                                                    instanceType: "c5.large", priority: 1),
                                                                                                                                                                                                                                                                                                new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(
                                                                                                                                                                                                                                                                                                    instanceType: "c4.large", priority: 2)]
     null             | "0.25"            || "0.25"            |       null               |     "lowest-price"        ||     "lowest-price"        |                                      []                                   |                             null                            ||              null
-    ""               | "0.25"            || null              |   "capacity-optimized"   |     "lowest-price"        ||    "capacity-optimized"   |                                      null                                 |[new LaunchTemplateOverrides().withInstanceType("m5.large")
-                                                                                                                                                                                                                                  .withWeightedCapacity("1"),
-                                                                                                                                                                                                                                new LaunchTemplateOverrides().withInstanceType("m5.xlarge")
-                                                                                                                                                                                                                                  .withWeightedCapacity("2")]                               ||[new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(
+    ""               | "0.25"            || null              |   "capacity-optimized"   |     "lowest-price"        ||    "capacity-optimized"   |                                      null                                 |[LaunchTemplateOverrides.builder().instanceType("m5.large").weightedCapacity("1").build(), LaunchTemplateOverrides.builder().instanceType("m5.xlarge").weightedCapacity("2").build()]                               ||[new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(
                                                                                                                                                                                                                                                                                                    instanceType: "m5.large", weightedCapacity: "1", priority: 1),
                                                                                                                                                                                                                                                                                                new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(
                                                                                                                                                                                                                                                                                                    instanceType: "m5.xlarge", weightedCapacity: "2", priority: 2)]
@@ -417,20 +409,18 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     description.lifecycleHooks = requestLifecycleHooks
     description.capacityRebalance = requestCapRebalance
 
-    def launchTemplateVersion = new LaunchTemplateVersion(
-      launchTemplateName: "foo",
-      launchTemplateId: "foo",
-      versionNumber: 0,
-      launchTemplateData: new ResponseLaunchTemplateData(
-        keyName: "key-pair-name",
-        )
-      )
+    def launchTemplateVersion = LaunchTemplateVersion.builder()
+      .launchTemplateName("foo")
+      .launchTemplateId("foo")
+      .versionNumber(0L)
+      .launchTemplateData(ResponseLaunchTemplateData.builder().keyName("key-pair-name").build())
+      .build()
 
-    def launchTemplateSpec = new LaunchTemplateSpecification(
-      launchTemplateName: launchTemplateVersion.launchTemplateName,
-      launchTemplateId: launchTemplateVersion.launchTemplateId,
-      version: launchTemplateVersion.versionNumber.toString(),
-    )
+    def launchTemplateSpec = LaunchTemplateSpecification.builder()
+      .launchTemplateName(launchTemplateVersion.launchTemplateName)
+      .launchTemplateId(launchTemplateVersion.launchTemplateId)
+      .version(launchTemplateVersion.versionNumber.toString())
+      .build()
 
     and:
     regionScopedProviderStub.getLaunchTemplateService() >> Mock(LaunchTemplateService) {
@@ -442,18 +432,19 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
 
     then:
     1 * mockAutoScaling.describeAutoScalingGroups(_) >> {
-      def mockAsg = Mock(AutoScalingGroup)
-      mockAsg.getAutoScalingGroupName() >> "asgard-stack-v000"
-      mockAsg.getMinSize() >> 0
-      mockAsg.getMaxSize() >> 2
-      mockAsg.getDesiredCapacity() >> 4
-      mockAsg.getLaunchTemplate() >> launchTemplateSpec
-      mockAsg.getCapacityRebalance() >> ancestorCapRebalance
-      new DescribeAutoScalingGroupsResult().withAutoScalingGroups([mockAsg])
+      def mockAsg = AutoScalingGroup.builder()
+        .autoScalingGroupName("asgard-stack-v000")
+        .minSize(0)
+        .maxSize(2)
+        .desiredCapacity(4)
+        .launchTemplate(launchTemplateSpec)
+        .capacityRebalance(ancestorCapRebalance)
+        .build()
+      DescribeAutoScalingGroupsResponse.builder().autoScalingGroups([mockAsg]).build()
     }
     (requestLifecycleHooks ? 0 : 1) * mockAutoScaling.describeLifecycleHooks(_ as DescribeLifecycleHooksRequest) >> { arguments ->
       DescribeLifecycleHooksRequest req = arguments[0]
-      assert req.getAutoScalingGroupName() == "asgard-stack-v000"; new DescribeLifecycleHooksResult().withLifecycleHooks(ancestorLifecycleHooks)
+      assert req.autoScalingGroupName() == "asgard-stack-v000"; DescribeLifecycleHooksResponse.builder().lifecycleHooks(ancestorLifecycleHooks ?: []).build()
     }
 
     and:
@@ -469,17 +460,17 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     where:
     requestCapRebalance | ancestorCapRebalance || expectedCapRebalance | requestLifecycleHooks                                                             | ancestorLifecycleHooks                                        || expectedLifecycleHooks
           null          |       false          ||       false          | null                                                                              |      null                                                     ||  []
-          null          |       true           ||       true           | null                                                                              | [new LifecycleHook(
-                                                                                                                                                              lifecycleTransition: 'autoscaling:EC2_INSTANCE_TERMINATING',
-                                                                                                                                                              heartbeatTimeout: 1800,
-                                                                                                                                                              defaultResult: 'CONTINUE')]                                  || [new AmazonAsgLifecycleHook(
+          null          |       true           ||       true           | null                                                                              | [LifecycleHook.builder()
+                                                                                                                                                              .lifecycleTransition('autoscaling:EC2_INSTANCE_TERMINATING')
+                                                                                                                                                              .heartbeatTimeout(1800)
+                                                                                                                                                              .defaultResult('CONTINUE').build()]                                  || [new AmazonAsgLifecycleHook(
                                                                                                                                                                                                                                 lifecycleTransition: AmazonAsgLifecycleHook.Transition.EC2InstanceTerminating,
                                                                                                                                                                                                                                 heartbeatTimeout: 1800,
                                                                                                                                                                                                                                 defaultResult: AmazonAsgLifecycleHook.DefaultResult.CONTINUE)]
-          false         |       false          ||       false          |[]                                                                                | [new LifecycleHook(
-                                                                                                                                                              lifecycleTransition: 'autoscaling:EC2_INSTANCE_TERMINATING',
-                                                                                                                                                              heartbeatTimeout: 1800,
-                                                                                                                                                              defaultResult: 'CONTINUE')]                                  || [new AmazonAsgLifecycleHook(
+          false         |       false          ||       false          |[]                                                                                | [LifecycleHook.builder()
+                                                                                                                                                              .lifecycleTransition('autoscaling:EC2_INSTANCE_TERMINATING')
+                                                                                                                                                              .heartbeatTimeout(1800)
+                                                                                                                                                              .defaultResult('CONTINUE').build()]                                  || [new AmazonAsgLifecycleHook(
                                                                                                                                                                                                                                 lifecycleTransition: AmazonAsgLifecycleHook.Transition.EC2InstanceTerminating,
                                                                                                                                                                                                                                 heartbeatTimeout: 1800,
                                                                                                                                                                                                                                 defaultResult: AmazonAsgLifecycleHook.DefaultResult.CONTINUE)]
@@ -506,7 +497,8 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
           Boolean unlimitedCpuCredits = null,
           MixedInstancesPolicy mip = null,
           List<LaunchTemplateOverridesForInstanceType> overrides = null,
-          List<AmazonBlockDevice> blockDevices = null
+          List<AmazonBlockDevice> blockDevices = null,
+          List<String> classicLinkVpcSecurityGroups = null
   ) {
     def desc = new BasicAmazonDeployDescription(
       application: 'asgard',
@@ -514,11 +506,15 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
       credentials: TestCredential.named('baz'),
       keyPair: 'key-pair-name',
       securityGroups: ['someGroupName', 'sg-12345a'],
-      availabilityZones: [(region): null],
+      availabilityZones: [(region): []],
+      enabledMetrics: [],
+      loadBalancers: [],
+      terminationPolicies: [],
+      classicLinkVpcSecurityGroups: classicLinkVpcSecurityGroups,
       capacity: new BasicAmazonDeployDescription.Capacity(min: 1, max: 3, desired: 5),
       tags: [Name: 'name-tag'],
       lifecycleHooks: [],
-      spotPrice: mip ? mip.getInstancesDistribution().getSpotMaxPrice() : expectedSpotPrice,
+      spotPrice: mip ? mip.instancesDistribution().spotMaxPrice() : expectedSpotPrice,
       source: new BasicAmazonDeployDescription.Source(
         asgName: "asgard-stack-v000",
         account: 'baz',

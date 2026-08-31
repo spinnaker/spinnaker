@@ -15,11 +15,11 @@
  */
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
-import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
-import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
+import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsRequest
+import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsResponse
+import software.amazon.awssdk.services.autoscaling.model.UpdateAutoScalingGroupRequest
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.ResizeAsgDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
@@ -30,9 +30,9 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class ResizeAsgAtomicOperationUnitSpec extends Specification {
-  def mockAutoScaling = Mock(AmazonAutoScaling)
+  def mockAutoScaling = Mock(AutoScalingClient)
   def mockAmazonClientProvider = Mock(AmazonClientProvider) {
-    _ * getAutoScaling(_, _, true) >> { return mockAutoScaling }
+    _ * getAutoScalingV2(_, _) >> { return mockAutoScaling }
   }
 
   def setupSpec() {
@@ -63,9 +63,9 @@ class ResizeAsgAtomicOperationUnitSpec extends Specification {
     then:
     1 * mockAutoScaling.describeAutoScalingGroups(_) >> { DescribeAutoScalingGroupsRequest request ->
       assert request.autoScalingGroupNames == ["myasg-stack-v000"]
-      return new DescribeAutoScalingGroupsResult().withAutoScalingGroups(
-        new AutoScalingGroup().withAutoScalingGroupName("myasg-stack-v0001").withStatus(status)
-      )
+      return DescribeAutoScalingGroupsResponse.builder().autoScalingGroups(
+        AutoScalingGroup.builder().autoScalingGroupName("myasg-stack-v0001").status(status).build()
+      ).build()
     }
     expectedUpdateCount * mockAutoScaling.updateAutoScalingGroup(_) >> { UpdateAutoScalingGroupRequest request ->
       assert request.autoScalingGroupName == "myasg-stack-v000"
@@ -85,10 +85,11 @@ class ResizeAsgAtomicOperationUnitSpec extends Specification {
   void "should raise exception if expected capacity constraint is violated"() {
     given:
     def constraints = capacityConstraint ? new ResizeAsgDescription.Constraints(capacity: capacityConstraint) : null
-    def autoScalingGroup = new AutoScalingGroup()
-      .withMinSize(currentMin)
-      .withMaxSize(currentMax)
-      .withDesiredCapacity(currentDesired)
+    def autoScalingGroup = AutoScalingGroup.builder()
+      .minSize(currentMin)
+      .maxSize(currentMax)
+      .desiredCapacity(currentDesired)
+      .build()
 
     when:
     def exceptionThrown
@@ -128,9 +129,9 @@ class ResizeAsgAtomicOperationUnitSpec extends Specification {
     operation.operate([])
 
     then:
-    expectedOps * mockAutoScaling.describeAutoScalingGroups(_) >> new DescribeAutoScalingGroupsResult().withAutoScalingGroups(
-      new AutoScalingGroup().withAutoScalingGroupName("myasg-stack-v0001")
-    )
+    expectedOps * mockAutoScaling.describeAutoScalingGroups(_) >> DescribeAutoScalingGroupsResponse.builder().autoScalingGroups(
+      AutoScalingGroup.builder().autoScalingGroupName("myasg-stack-v0001").build()
+    ).build()
 
     expectedOps * mockAutoScaling.updateAutoScalingGroup(_) >> {
       request ->

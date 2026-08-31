@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
-import com.amazonaws.services.autoscaling.model.DescribeLifecycleHooksRequest
-import com.amazonaws.services.autoscaling.model.LaunchTemplateSpecification
-import com.amazonaws.services.ec2.model.DescribeSubnetsRequest
-import com.amazonaws.services.ec2.model.LaunchTemplateVersion
-import com.amazonaws.services.ec2.model.ResponseLaunchTemplateData
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
+import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsRequest
+import software.amazon.awssdk.services.autoscaling.model.DescribeLifecycleHooksRequest
+import software.amazon.awssdk.services.autoscaling.model.LaunchTemplateSpecification
+import software.amazon.awssdk.services.ec2.model.DescribeSubnetsRequest
+import software.amazon.awssdk.services.ec2.model.LaunchTemplateVersion
+import software.amazon.awssdk.services.ec2.model.ResponseLaunchTemplateData
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsRequest
 import com.netflix.frigga.Names
 import com.netflix.frigga.autoscaling.AutoScalingGroupNameBuilder
@@ -98,9 +98,9 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
       if (description.source.account && description.source.region && description.source.asgName) {
         sourceRegion = description.source.region
         sourceAsgCredentials = credentialsRepository.getOne(description.source.account)
-        def sourceAutoScaling = amazonClientProvider.getAutoScaling(sourceAsgCredentials, sourceRegion, true)
-        def request = new DescribeAutoScalingGroupsRequest(autoScalingGroupNames: [description.source.asgName])
-        List<AutoScalingGroup> ancestorAsgs = sourceAutoScaling.describeAutoScalingGroups(request).autoScalingGroups
+        def sourceAutoScaling = amazonClientProvider.getAutoScalingV2(sourceAsgCredentials, sourceRegion)
+        def request = DescribeAutoScalingGroupsRequest.builder().autoScalingGroupNames([description.source.asgName]).build()
+        List<AutoScalingGroup> ancestorAsgs = sourceAutoScaling.describeAutoScalingGroups(request).autoScalingGroups()
         ancestorAsg = ancestorAsgs.getAt(0)
       } else {
         sourceRegion = targetRegion
@@ -130,10 +130,10 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
           newDescription.source = new BasicAmazonDeployDescription.Source(
             sourceAsgCredentials.name,
             sourceRegionScopedProvider.region,
-            ancestorAsg.autoScalingGroupName,
+            ancestorAsg.autoScalingGroupName(),
             null // we will already pull the capacity from this ASG
           )
-          task.updateStatus BASE_PHASE, "Using ${sourceRegion}/${ancestorAsg.autoScalingGroupName} as source."
+          task.updateStatus BASE_PHASE, "Using ${sourceRegion}/${ancestorAsg.autoScalingGroupName()} as source."
         }
       }
 
@@ -154,14 +154,14 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
 
         List<String> securityGroups
         List<String> classicLinkVPCSecurityGroups = null
-        if (ancestorAsg.launchTemplate != null || ancestorAsg.mixedInstancesPolicy != null) {
-          final boolean isMip = ancestorAsg.mixedInstancesPolicy != null
+        if (ancestorAsg.launchTemplate() != null || ancestorAsg.mixedInstancesPolicy() != null) {
+          final boolean isMip = ancestorAsg.mixedInstancesPolicy() != null
 
           LaunchTemplateSpecification ancestorLtSpec
           if (isMip) {
-            ancestorLtSpec = ancestorAsg.mixedInstancesPolicy.launchTemplate.launchTemplateSpecification
+            ancestorLtSpec = ancestorAsg.mixedInstancesPolicy().launchTemplate().launchTemplateSpecification()
           } else {
-            ancestorLtSpec = ancestorAsg.launchTemplate
+            ancestorLtSpec = ancestorAsg.launchTemplate()
           }
 
           LaunchTemplateVersion launchTemplateVersion = sourceRegionScopedProvider
@@ -169,46 +169,46 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
             .orElseThrow({
               new IllegalStateException("Requested launch template $ancestorLtSpec was not found")
             })
-          final ResponseLaunchTemplateData ancestorLtData = launchTemplateVersion.getLaunchTemplateData()
+          final ResponseLaunchTemplateData ancestorLtData = launchTemplateVersion.launchTemplateData()
 
           imageId = ancestorLtData.imageId
           keyName = ancestorLtData.keyName
           kernelId = ancestorLtData.kernelId
           userData = ancestorLtData.userData
           ramdiskId = ancestorLtData.ramDiskId
-          instanceType = ancestorLtData.instanceType
+          instanceType = ancestorLtData.instanceTypeAsString()
           securityGroups = ancestorLtData.securityGroups
           ebsOptimized = ancestorLtData.ebsOptimized
-          iamInstanceProfile = ancestorLtData.iamInstanceProfile?.name
+          iamInstanceProfile = ancestorLtData.iamInstanceProfile?.name()
           instanceMonitoring = ancestorLtData.monitoring?.enabled
           spotMaxPrice = isMip
-            ? ancestorAsg.mixedInstancesPolicy.instancesDistribution.spotMaxPrice
-            : ancestorLtData.instanceMarketOptions?.spotOptions?.maxPrice
+            ? ancestorAsg.mixedInstancesPolicy().instancesDistribution().spotMaxPrice()
+            : ancestorLtData.instanceMarketOptions()?.spotOptions()?.maxPrice()
 
           newDescription.setLaunchTemplate = true
-          newDescription.enableEnclave = description.enableEnclave != null ? description.enableEnclave :  ancestorLtData.enclaveOptions?.getEnabled()
-          newDescription.requireIMDSv2 = description.requireIMDSv2 != null ? description.requireIMDSv2 : ancestorLtData.metadataOptions?.httpTokens == "required"
+          newDescription.enableEnclave = description.enableEnclave != null ? description.enableEnclave :  ancestorLtData.enclaveOptions()?.enabled()
+          newDescription.requireIMDSv2 = description.requireIMDSv2 != null ? description.requireIMDSv2 : ancestorLtData.metadataOptions()?.httpTokensAsString() == "required"
           newDescription.associateIPv6Address = description.associateIPv6Address
           newDescription.unlimitedCpuCredits = description.unlimitedCpuCredits != null
             ? description.unlimitedCpuCredits
-            : AsgConfigHelper.getUnlimitedCpuCreditsFromAncestorLt(ancestorLtData.creditSpecification, InstanceTypeUtils.isBurstingSupportedByAllTypes(description.getAllInstanceTypes()))
+            : AsgConfigHelper.getUnlimitedCpuCreditsFromAncestorLt(ancestorLtData.creditSpecification(), InstanceTypeUtils.isBurstingSupportedByAllTypes(description.getAllInstanceTypes()))
 
-          if (!ancestorLtData.networkInterfaces?.empty && ancestorLtData.networkInterfaces*.associatePublicIpAddress?.any()) {
+          if (!ancestorLtData.networkInterfaces()?.empty && ancestorLtData.networkInterfaces()*.associatePublicIpAddress?.any()) {
             associatePublicIpAddress = true
           }
-          if (!ancestorLtData.networkInterfaces?.empty) {
+          if (!ancestorLtData.networkInterfaces()?.empty) {
             // Network interfaces are the source of truth for launch template security groups
-            def networkInterface = ancestorLtData.networkInterfaces.find({it.deviceIndex == 0 })
+            def networkInterface = ancestorLtData.networkInterfaces().find({it.deviceIndex() == 0 })
             if (networkInterface != null) {
               securityGroups = networkInterface.groups
               if (description.associateIPv6Address == null) {
-                newDescription.associateIPv6Address = networkInterface.getIpv6AddressCount() > 0 ? true : false
+                newDescription.associateIPv6Address = networkInterface.ipv6AddressCount() > 0 ? true : false
               }
             }
           }
 
           if (isMip) {
-            def ancestorInstancesDistribution = ancestorAsg.mixedInstancesPolicy.instancesDistribution
+            def ancestorInstancesDistribution = ancestorAsg.mixedInstancesPolicy().instancesDistribution()
             newDescription.onDemandAllocationStrategy = description.onDemandAllocationStrategy != null ? description.onDemandAllocationStrategy : ancestorInstancesDistribution.onDemandAllocationStrategy
             newDescription.onDemandBaseCapacity = description.onDemandBaseCapacity != null ? description.onDemandBaseCapacity : ancestorInstancesDistribution.onDemandBaseCapacity
             newDescription.onDemandPercentageAboveBaseCapacity = description.onDemandPercentageAboveBaseCapacity != null ? description.onDemandPercentageAboveBaseCapacity : ancestorInstancesDistribution.onDemandPercentageAboveBaseCapacity
@@ -219,11 +219,11 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
 
             newDescription.launchTemplateOverridesForInstanceType = description.launchTemplateOverridesForInstanceType != null && !description.launchTemplateOverridesForInstanceType.isEmpty()
               ? description.launchTemplateOverridesForInstanceType
-              : AsgConfigHelper.getDescriptionOverrides(ancestorAsg.mixedInstancesPolicy.launchTemplate.overrides)
+              : AsgConfigHelper.getDescriptionOverrides(ancestorAsg.mixedInstancesPolicy().launchTemplate().overrides())
           }
         } else {
           def ancestorLaunchConfiguration = sourceRegionScopedProvider
-            .asgService.getLaunchConfiguration(ancestorAsg.launchConfigurationName)
+            .asgService.getLaunchConfiguration(ancestorAsg.launchConfigurationName())
 
           keyName = ancestorLaunchConfiguration.keyName
           imageId = ancestorLaunchConfiguration.imageId
@@ -241,50 +241,50 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
           classicLinkVPCSecurityGroups = ancestorLaunchConfiguration.classicLinkVPCSecurityGroups
         }
 
-        if (ancestorAsg.VPCZoneIdentifier) {
+        if (ancestorAsg.vpcZoneIdentifier()) {
           task.updateStatus BASE_PHASE, "Looking up subnet type..."
-          newDescription.subnetType = description.subnetType != null ? description.subnetType : getPurposeForSubnet(sourceRegion, ancestorAsg.VPCZoneIdentifier.tokenize(',').getAt(0))
+          newDescription.subnetType = description.subnetType != null ? description.subnetType : getPurposeForSubnet(sourceRegion, ancestorAsg.vpcZoneIdentifier().tokenize(',').getAt(0))
           task.updateStatus BASE_PHASE, "Found: ${newDescription.subnetType}."
         }
 
         newDescription.iamRole = description.iamRole ?: iamInstanceProfile
         newDescription.amiName = description.amiName ?: imageId
-        newDescription.availabilityZones = [(targetRegion): description.availabilityZones[targetRegion] ?: ancestorAsg.availabilityZones]
+        newDescription.availabilityZones = [(targetRegion): description.availabilityZones[targetRegion] ?: ancestorAsg.availabilityZones()]
         newDescription.instanceType = description.instanceType ?: instanceType
-        newDescription.loadBalancers = description.loadBalancers != null ? description.loadBalancers : ancestorAsg.loadBalancerNames
+        newDescription.loadBalancers = description.loadBalancers != null ? description.loadBalancers : ancestorAsg.loadBalancerNames()
         newDescription.targetGroups = description.targetGroups
-        if (newDescription.targetGroups == null && ancestorAsg.targetGroupARNs && ancestorAsg.targetGroupARNs.size() > 0) {
-          def targetGroups = sourceRegionScopedProvider.getAmazonElasticLoadBalancingV2(true).describeTargetGroups(new DescribeTargetGroupsRequest().withTargetGroupArns(ancestorAsg.targetGroupARNs)).targetGroups
+        if (newDescription.targetGroups == null && ancestorAsg.targetGroupARNs() && ancestorAsg.targetGroupARNs().size() > 0) {
+          def targetGroups = sourceRegionScopedProvider.getAmazonElasticLoadBalancingV2(true).describeTargetGroups(new DescribeTargetGroupsRequest().withTargetGroupArns(ancestorAsg.targetGroupARNs())).targetGroups
           def targetGroupNames = targetGroups.collect { it.targetGroupName }
           newDescription.targetGroups = targetGroupNames
         }
 
         newDescription.securityGroups = description.securityGroups != null ? description.securityGroups : translateSecurityGroupIds(securityGroups)
-        newDescription.capacity.min = description.capacity?.min != null ? description.capacity.min : ancestorAsg.minSize
-        newDescription.capacity.max = description.capacity?.max != null ? description.capacity.max : ancestorAsg.maxSize
-        newDescription.capacity.desired = description.capacity?.desired != null ? description.capacity.desired : ancestorAsg.desiredCapacity
+        newDescription.capacity.min = description.capacity?.min != null ? description.capacity.min : ancestorAsg.minSize()
+        newDescription.capacity.max = description.capacity?.max != null ? description.capacity.max : ancestorAsg.maxSize()
+        newDescription.capacity.desired = description.capacity?.desired != null ? description.capacity.desired : ancestorAsg.desiredCapacity()
         newDescription.keyPair = description.keyPair ?: (sourceIsTarget ? keyName : description.credentials.defaultKeyPair)
         newDescription.associatePublicIpAddress = description.associatePublicIpAddress != null ? description.associatePublicIpAddress : associatePublicIpAddress
-        newDescription.cooldown = description.cooldown != null ? description.cooldown : ancestorAsg.defaultCooldown
-        newDescription.enabledMetrics = description.enabledMetrics != null ? description.enabledMetrics : ancestorAsg.enabledMetrics*.metric
-        newDescription.healthCheckGracePeriod = description.healthCheckGracePeriod != null ? description.healthCheckGracePeriod : ancestorAsg.healthCheckGracePeriod
-        newDescription.healthCheckType = description.healthCheckType ?: ancestorAsg.healthCheckType
-        newDescription.suspendedProcesses = description.suspendedProcesses != null ? description.suspendedProcesses : ancestorAsg.suspendedProcesses*.processName
-        newDescription.terminationPolicies = description.terminationPolicies != null ? description.terminationPolicies : ancestorAsg.terminationPolicies
+        newDescription.cooldown = description.cooldown != null ? description.cooldown : ancestorAsg.defaultCooldown()
+        newDescription.enabledMetrics = description.enabledMetrics != null ? description.enabledMetrics : ancestorAsg.enabledMetrics()*.metric
+        newDescription.healthCheckGracePeriod = description.healthCheckGracePeriod != null ? description.healthCheckGracePeriod : ancestorAsg.healthCheckGracePeriod()
+        newDescription.healthCheckType = description.healthCheckType ?: ancestorAsg.healthCheckType()
+        newDescription.suspendedProcesses = description.suspendedProcesses != null ? description.suspendedProcesses : ancestorAsg.suspendedProcesses()*.processName
+        newDescription.terminationPolicies = description.terminationPolicies != null ? description.terminationPolicies : ancestorAsg.terminationPolicies()
         newDescription.kernelId = description.kernelId ?: (kernelId ?: null)
         newDescription.ramdiskId = description.ramdiskId ?: (ramdiskId ?: null)
         newDescription.instanceMonitoring = description.instanceMonitoring != null ? description.instanceMonitoring : instanceMonitoring
         newDescription.ebsOptimized = description.ebsOptimized != null ? description.ebsOptimized : ebsOptimized
         newDescription.classicLinkVpcId = description.classicLinkVpcId != null ? description.classicLinkVpcId : classicLinkVPCId
         newDescription.classicLinkVpcSecurityGroups = description.classicLinkVpcSecurityGroups != null ? description.classicLinkVpcSecurityGroups : translateSecurityGroupIds(classicLinkVPCSecurityGroups)
-        newDescription.tags = description.tags != null ? description.tags : ancestorAsg.tags?.collectEntries {
-          [(it.getKey()): it.getValue()]
+        newDescription.tags = description.tags != null ? description.tags : ancestorAsg.tags()?.collectEntries {
+          [(it.key()): it.value()]
         }
         newDescription.blockDevices = description.blockDevices != null ? description.blockDevices : basicAmazonDeployHandler.buildBlockDeviceMappingsFromSourceAsg(sourceRegionScopedProvider, ancestorAsg, description)
-        newDescription.capacityRebalance = description.capacityRebalance != null ? description.capacityRebalance : ancestorAsg.capacityRebalance
+        newDescription.capacityRebalance = description.capacityRebalance != null ? description.capacityRebalance : ancestorAsg.capacityRebalance()
         newDescription.lifecycleHooks = description.lifecycleHooks != null && !description.lifecycleHooks.isEmpty()
           ? description.lifecycleHooks
-          : getLifecycleHooksFromAncestor(sourceRegion, ancestorAsg.autoScalingGroupName, description)
+          : getLifecycleHooksFromAncestor(sourceRegion, ancestorAsg.autoScalingGroupName(), description)
 
         /*
           Copy over the ancestor user data only if the UserDataProviders behavior is disabled and no user data is provided
@@ -335,28 +335,28 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
   }
 
   String getPurposeForSubnet(String region, String subnetId) {
-    def amazonEC2 = amazonClientProvider.getAmazonEC2(description.credentials, region, true)
-    def result = amazonEC2.describeSubnets(new DescribeSubnetsRequest().withSubnetIds(subnetId))
-    if (result && result.subnets) {
-      def data = SubnetData.from(result.subnets.first())
+    def amazonEC2 = amazonClientProvider.getAmazonEC2V2(description.credentials, region)
+    def result = amazonEC2.describeSubnets(DescribeSubnetsRequest.builder().subnetIds(subnetId).build())
+    if (result && result.subnets()) {
+      def data = SubnetData.from(result.subnets().first())
       return data.purpose
     }
     return null
   }
 
   private List<AmazonAsgLifecycleHook> getLifecycleHooksFromAncestor(String region, String ancestorAsgName, BasicAmazonDeployDescription description) {
-    def autoscaling = amazonClientProvider.getAutoScaling(description.credentials, region, true)
-    def result = autoscaling.describeLifecycleHooks(new DescribeLifecycleHooksRequest().withAutoScalingGroupName(ancestorAsgName))
-    if (result && result.lifecycleHooks) {
-      return result.lifecycleHooks
+    def autoscaling = amazonClientProvider.getAutoScalingV2(description.credentials, region)
+    def result = autoscaling.describeLifecycleHooks(DescribeLifecycleHooksRequest.builder().autoScalingGroupName(ancestorAsgName).build())
+    if (result && result.lifecycleHooks()) {
+      return result.lifecycleHooks()
         .stream()
         .collect { new AmazonAsgLifecycleHook(
-          roleARN: it.roleARN,
-          notificationTargetARN: it.notificationTargetARN,
-          notificationMetadata: it.notificationMetadata,
-          lifecycleTransition: AmazonAsgLifecycleHook.Transition.valueOfName(it.lifecycleTransition),
-          heartbeatTimeout: it.heartbeatTimeout,
-          defaultResult: it.defaultResult)
+          roleARN: it.roleARN(),
+          notificationTargetARN: it.notificationTargetARN(),
+          notificationMetadata: it.notificationMetadata(),
+          lifecycleTransition: AmazonAsgLifecycleHook.Transition.valueOfName(it.lifecycleTransition()),
+          heartbeatTimeout: it.heartbeatTimeout(),
+          defaultResult: it.defaultResult())
       }
     }
 
