@@ -205,6 +205,7 @@ describe('<ProjectDashboard />', () => {
 
     expect(wrapper.text()).toContain('There was a problem loading the executions for this project.');
     expect(wrapper.text()).not.toContain('Never run');
+    expect(wrapper.text()).not.toContain('No pipelines found');
     wrapper.unmount();
   });
 
