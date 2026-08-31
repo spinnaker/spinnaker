@@ -15,6 +15,8 @@ describe('core: Project', () => {
     cy.intercept('/projects/kubernetesproject/pipelines*', {
       fixture: 'core/projects/kubernetesproject/pipelines.json',
     });
+    cy.intercept('/pipelineConfigs', { fixture: 'kubernetes/pipelines/pipelineConfigs.json' });
+    cy.intercept('/executions*', { fixture: 'core/projects/kubernetesproject/pipelines.json' });
     cy.intercept('/applications/kubernetesapp/pipelineConfigs', {
       fixture: 'kubernetes/pipelines/pipelineConfigs.json',
     });
@@ -232,20 +234,9 @@ describe('core: Project', () => {
     cy.get('.project-column').eq(1).within(() => {
       cy.contains('h3', 'Pipeline Status').should('exist');
 
-      // First pipeline: deployment (3 stages)
+      // Pipelines are grouped by application and sorted by name
+      // First pipeline: bake_and_deploy_manifest (5 stages)
       cy.get('.project-pipeline').eq(0).within(() => {
-        cy.get('.execution-title a').should('contain.text', 'KUBERNETESAPP: deployment');
-        cy.get('.execution-bar .execution-marker')
-          .should('have.length', 3)
-          .each(($m) => cy.wrap($m).should('have.class', 'execution-marker-succeeded'));
-        cy.get('.execution-bar .execution-marker').each(($m) =>
-          cy.wrap($m).should('have.class', 'stage-type-deploymanifest'),
-        );
-        cy.get('.duration').each(($d) => cy.wrap($d).invoke('text').should('match', /\d{2}:\d{2}/));
-      });
-
-      // Second pipeline: bake_and_deploy_manifest (5 stages)
-      cy.get('.project-pipeline').eq(1).within(() => {
         cy.get('.execution-title a').should('contain.text', 'KUBERNETESAPP: bake_and_deploy_manifest');
         const classes = [
           'stage-type-deletemanifest',
@@ -260,6 +251,18 @@ describe('core: Project', () => {
         });
         cy.get('.execution-bar .execution-marker').each(($m) =>
           cy.wrap($m).should('have.class', 'execution-marker-succeeded'),
+        );
+        cy.get('.duration').each(($d) => cy.wrap($d).invoke('text').should('match', /\d{2}:\d{2}/));
+      });
+
+      // Second pipeline: deployment (3 stages)
+      cy.get('.project-pipeline').eq(1).within(() => {
+        cy.get('.execution-title a').should('contain.text', 'KUBERNETESAPP: deployment');
+        cy.get('.execution-bar .execution-marker')
+          .should('have.length', 3)
+          .each(($m) => cy.wrap($m).should('have.class', 'execution-marker-succeeded'));
+        cy.get('.execution-bar .execution-marker').each(($m) =>
+          cy.wrap($m).should('have.class', 'stage-type-deploymanifest'),
         );
         cy.get('.duration').each(($d) => cy.wrap($d).invoke('text').should('match', /\d{2}:\d{2}/));
       });
