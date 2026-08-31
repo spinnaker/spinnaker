@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.aws.agent
 
-import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.cloudwatch.model.DeleteAlarmsRequest
-import com.amazonaws.services.cloudwatch.model.DescribeAlarmsRequest
-import com.amazonaws.services.cloudwatch.model.MetricAlarm
-import com.amazonaws.services.cloudwatch.model.StateValue
-import com.amazonaws.services.gamelift.model.DescribeScalingPoliciesRequest
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient
+import software.amazon.awssdk.services.autoscaling.model.DescribePoliciesRequest
+import software.amazon.awssdk.services.cloudwatch.model.DeleteAlarmsRequest
+import software.amazon.awssdk.services.cloudwatch.model.DescribeAlarmsRequest
+import software.amazon.awssdk.services.cloudwatch.model.MetricAlarm
+import software.amazon.awssdk.services.cloudwatch.model.StateValue
 import com.netflix.spinnaker.cats.agent.RunnableAgent
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsCleanupProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
@@ -87,31 +87,32 @@ class CleanupAlarmsAgent implements RunnableAgent, CustomScheduledAgent {
       credentials.regions.each { AmazonCredentials.AWSRegion region ->
         log.info("Looking for alarms to delete")
         try {
-          def cloudWatch = amazonClientProvider.getCloudWatch(credentials, region.name)
-          Set<String> attachedAlarms = getAttachedAlarms(amazonClientProvider.getAutoScaling(credentials, region.name))
-          def describeAlarmsRequest = new DescribeAlarmsRequest().withStateValue(StateValue.INSUFFICIENT_DATA)
+          def cloudWatch = amazonClientProvider.getAmazonCloudWatchV2(credentials, region.name)
+          Set<String> attachedAlarms = getAttachedAlarms(amazonClientProvider.getAutoScalingV2(credentials, region.name))
+          def describeAlarmsRequest = DescribeAlarmsRequest.builder().stateValue(StateValue.INSUFFICIENT_DATA).build()
+          def cutoff = DateTime.now().minusDays(daysToLeave).toDate().toInstant()
 
           while (true) {
             def result = cloudWatch.describeAlarms(describeAlarmsRequest)
 
-            List<MetricAlarm> alarmsToDelete = result.metricAlarms.findAll {
-              it.stateUpdatedTimestamp.before(DateTime.now().minusDays(daysToLeave).toDate()) &&
-                !attachedAlarms.contains(it.alarmName) &&
-                ALARM_NAME_PATTERN.matcher(it.alarmName).matches()
+            List<MetricAlarm> alarmsToDelete = result.metricAlarms().findAll {
+              it.stateUpdatedTimestamp().isBefore(cutoff) &&
+                !attachedAlarms.contains(it.alarmName()) &&
+                ALARM_NAME_PATTERN.matcher(it.alarmName()).matches()
             }
 
             if (alarmsToDelete) {
               // terminate up to 20 alarms at a time (avoids any AWS limits on # of concurrent deletes)
-              alarmsToDelete.collate(20).each {
+              alarmsToDelete.collect { it.alarmName() }.collate(20).each {
                 log.info("Deleting ${it.size()} alarms in ${credentials.name}/${region.name} " +
-                  "(alarms: ${it.alarmName.join(", ")})")
-                cloudWatch.deleteAlarms(new DeleteAlarmsRequest().withAlarmNames(it.alarmName))
+                  "(alarms: ${it.join(", ")})")
+                cloudWatch.deleteAlarms(DeleteAlarmsRequest.builder().alarmNames(it).build())
                 Thread.sleep(500)
               }
             }
 
-            if (result.nextToken) {
-              describeAlarmsRequest.withNextToken(result.nextToken)
+            if (result.nextToken()) {
+              describeAlarmsRequest = describeAlarmsRequest.toBuilder().nextToken(result.nextToken()).build()
             } else {
               break
             }
@@ -127,15 +128,15 @@ class CleanupAlarmsAgent implements RunnableAgent, CustomScheduledAgent {
     return credentialsRepository.getAll()
   }
 
-  private static Set<String> getAttachedAlarms(AmazonAutoScaling autoScaling) {
+  private static Set<String> getAttachedAlarms(AutoScalingClient autoScaling) {
     Set<String> alarms = []
-    def request = new DescribeScalingPoliciesRequest()
+    def request = DescribePoliciesRequest.builder().build()
     while (true) {
-      def result = autoScaling.describePolicies()
-      alarms.addAll(result.scalingPolicies.alarms.alarmName.flatten())
+      def result = autoScaling.describePolicies(request)
+      alarms.addAll(result.scalingPolicies().collectMany { it.alarms() }*.alarmName())
 
-      if (result.nextToken) {
-        request.withNextToken(result.nextToken)
+      if (result.nextToken()) {
+        request = request.toBuilder().nextToken(result.nextToken()).build()
       } else {
         break
       }

@@ -43,6 +43,7 @@ dependencies {
   api "software.amazon.awssdk:iam"
   api "software.amazon.awssdk:iam-policy-builder"
   api "software.amazon.awssdk:lambda"
+  api "software.amazon.awssdk:s3"
   api "software.amazon.awssdk:secretsmanager"
   api "software.amazon.awssdk:servicediscovery"
   api "software.amazon.awssdk:shield"
@@ -90,6 +91,8 @@ dependencies {
   testImplementation "org.springframework.boot:spring-boot-starter-test"
   testImplementation "org.springframework:spring-test"
   testImplementation "org.testcontainers:testcontainers"
+  testImplementation "org.testcontainers:junit-jupiter"
+  testImplementation "org.testcontainers:testcontainers-minio"
   testImplementation "com.squareup.retrofit2:retrofit-mock"
 
   integrationImplementation project(":clouddriver-web")
