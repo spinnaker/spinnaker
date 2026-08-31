@@ -16,24 +16,20 @@
 
 package com.netflix.spinnaker.clouddriver.aws.security;
 
+import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.auth.AWSSessionCredentials;
 import com.amazonaws.handlers.RequestHandler2;
 import com.amazonaws.retry.PredefinedRetryPolicies;
 import com.amazonaws.retry.RetryPolicy;
 import com.amazonaws.services.applicationautoscaling.AWSApplicationAutoScaling;
 import com.amazonaws.services.applicationautoscaling.AWSApplicationAutoScalingClientBuilder;
-import com.amazonaws.services.autoscaling.AmazonAutoScaling;
-import com.amazonaws.services.autoscaling.AmazonAutoScalingClientBuilder;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatch;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClientBuilder;
-import com.amazonaws.services.ec2.AmazonEC2;
-import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
 import com.amazonaws.services.ecr.AmazonECR;
 import com.amazonaws.services.ecr.AmazonECRClientBuilder;
 import com.amazonaws.services.ecs.AmazonECS;
 import com.amazonaws.services.ecs.AmazonECSClientBuilder;
-import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing;
-import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancingClientBuilder;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClientBuilder;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
@@ -55,6 +51,9 @@ import java.util.List;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.services.applicationautoscaling.ApplicationAutoScalingClient;
 import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
@@ -394,31 +393,6 @@ public class AmazonClientProvider {
     return AmazonClientInvocationHandler.lastModified.get();
   }
 
-  public AmazonEC2 getAmazonEC2(NetflixAmazonCredentials amazonCredentials, String region) {
-    return getAmazonEC2(amazonCredentials, region, false);
-  }
-
-  public AmazonEC2 getAmazonEC2(
-      NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
-    return proxyHandlerBuilder.getProxyHandler(
-        AmazonEC2.class, AmazonEC2ClientBuilder.class, amazonCredentials, region, skipEdda);
-  }
-
-  public AmazonEC2 getAmazonEC2(AWSCredentialsProvider awsCredentialsProvider, String region) {
-    return awsSdkClientSupplier.getClient(
-        AmazonEC2ClientBuilder.class,
-        AmazonEC2.class,
-        "UNSPECIFIED_ACCOUNT",
-        awsCredentialsProvider,
-        region);
-  }
-
-  public AmazonEC2 getAmazonEC2(
-      String accountName, AWSCredentialsProvider awsCredentialsProvider, String region) {
-    return awsSdkClientSupplier.getClient(
-        AmazonEC2ClientBuilder.class, AmazonEC2.class, accountName, awsCredentialsProvider, region);
-  }
-
   public AmazonECS getAmazonEcs(
       NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
     return proxyHandlerBuilder.getProxyHandler(
@@ -435,41 +409,6 @@ public class AmazonClientProvider {
         skipEdda);
     // return awsSdkClientSupplier.getClient(AmazonIdentityManagementClientBuilder.class,
     // AmazonIdentityManagement.class, accountName, awsCredentialsProvider, region);
-  }
-
-  public AmazonAutoScaling getAutoScaling(
-      NetflixAmazonCredentials amazonCredentials, String region) {
-    return getAutoScaling(amazonCredentials, region, false);
-  }
-
-  public AmazonAutoScaling getAutoScaling(
-      NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
-    return proxyHandlerBuilder.getProxyHandler(
-        AmazonAutoScaling.class,
-        AmazonAutoScalingClientBuilder.class,
-        amazonCredentials,
-        region,
-        skipEdda);
-  }
-
-  public AmazonAutoScaling getAutoScaling(
-      String accountName, AWSCredentialsProvider awsCredentialsProvider, String region) {
-    return awsSdkClientSupplier.getClient(
-        AmazonAutoScalingClientBuilder.class,
-        AmazonAutoScaling.class,
-        accountName,
-        awsCredentialsProvider,
-        region);
-  }
-
-  public AmazonElasticLoadBalancing getAmazonElasticLoadBalancing(
-      String accountName, AWSCredentialsProvider awsCredentialsProvider, String region) {
-    return awsSdkClientSupplier.getClient(
-        AmazonElasticLoadBalancingClientBuilder.class,
-        AmazonElasticLoadBalancing.class,
-        accountName,
-        awsCredentialsProvider,
-        region);
   }
 
   public com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing
@@ -601,10 +540,6 @@ public class AmazonClientProvider {
    * Returns an AWS SDK v2 {@link Ec2Client} for the given account and region.
    *
    * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
-   * Note that EC2 is one of the few remaining v1 services that is actually fronted by Edda in
-   * practice (via {@link #getAmazonEC2(NetflixAmazonCredentials, String, boolean)}), so callers
-   * migrating to this method should be aware they are trading Edda read-through for direct AWS API
-   * calls.
    */
   public Ec2Client getAmazonEC2V2(NetflixAmazonCredentials amazonCredentials, String region) {
     return awsSdkV2ClientSupplier.getClient(
@@ -613,6 +548,33 @@ public class AmazonClientProvider {
         amazonCredentials.getV2CredentialsProvider(),
         region,
         amazonCredentials.getName());
+  }
+
+  /**
+   * Returns an AWS SDK v2 {@link Ec2Client} for a raw v1 {@link AWSCredentialsProvider}, for
+   * callers (like {@link DefaultAWSAccountInfoLookup}) that don't have a {@link
+   * NetflixAmazonCredentials} to build against.
+   */
+  public Ec2Client getAmazonEC2V2(AWSCredentialsProvider awsCredentialsProvider, String region) {
+    return awsSdkV2ClientSupplier.getClient(
+        Ec2Client::builder,
+        Ec2Client.class,
+        bridgeV1CredentialsProvider(awsCredentialsProvider),
+        region,
+        "UNSPECIFIED_ACCOUNT");
+  }
+
+  private static AwsCredentialsProvider bridgeV1CredentialsProvider(
+      AWSCredentialsProvider v1Provider) {
+    return () -> {
+      AWSCredentials v1Creds = v1Provider.getCredentials();
+      if (v1Creds instanceof AWSSessionCredentials) {
+        AWSSessionCredentials session = (AWSSessionCredentials) v1Creds;
+        return AwsSessionCredentials.create(
+            session.getAWSAccessKeyId(), session.getAWSSecretKey(), session.getSessionToken());
+      }
+      return AwsBasicCredentials.create(v1Creds.getAWSAccessKeyId(), v1Creds.getAWSSecretKey());
+    };
   }
 
   /**
