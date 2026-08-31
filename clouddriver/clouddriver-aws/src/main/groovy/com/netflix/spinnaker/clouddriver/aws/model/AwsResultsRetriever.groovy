@@ -36,7 +36,7 @@ abstract class AwsResultsRetriever<T, Q, S> {
     Integer remaining = maxResults
     String nextToken = null
     while (remaining > 0) {
-      setNextToken(request, nextToken)
+      request = setNextToken(request, nextToken)
       limitRetrieval(request, remaining)
       S result = makeRequest(request)
       items.addAll(accessResult(result))
@@ -61,7 +61,11 @@ abstract class AwsResultsRetriever<T, Q, S> {
     // request.withMaxResults(Math.min(maxResultsPerRequest, remaining))
   }
 
-  protected void setNextToken(Q request, String nextToken) {
+  // Returns the (possibly new) request with nextToken applied. For AWS SDK v1 requests, the
+  // default implementation mutates and returns the same object via .withNextToken(); v2 requests
+  // are immutable, so v2 subclasses must override this to return a rebuilt request via
+  // .toBuilder().nextToken(nextToken).build() instead.
+  protected Q setNextToken(Q request, String nextToken) {
     request.withNextToken(nextToken)
   }
 

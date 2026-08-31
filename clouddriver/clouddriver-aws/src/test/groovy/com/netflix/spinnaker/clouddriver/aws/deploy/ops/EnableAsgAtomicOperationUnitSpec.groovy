@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.ec2.model.DescribeInstancesResult
-import com.amazonaws.services.ec2.model.Instance
-import com.amazonaws.services.ec2.model.InstanceState
-import com.amazonaws.services.ec2.model.Reservation
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
+import software.amazon.awssdk.services.ec2.model.DescribeInstancesResponse
+import software.amazon.awssdk.services.ec2.model.Instance
+import software.amazon.awssdk.services.ec2.model.InstanceState
+import software.amazon.awssdk.services.ec2.model.InstanceStateName
+import software.amazon.awssdk.services.ec2.model.Reservation
 import com.amazonaws.services.elasticloadbalancing.model.RegisterInstancesWithLoadBalancerRequest
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.EnableDisableAsgDescription
@@ -39,15 +40,15 @@ class EnableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitS
 
   def 'should register instances from load balancer and resume scaling processes'() {
     given:
-    def asg = Mock(AutoScalingGroup)
-    asg.getAutoScalingGroupName() >> "asg1"
-    asg.getLoadBalancerNames() >> ["lb1"]
-    asg.getInstances() >> [new com.amazonaws.services.autoscaling.model.Instance().withInstanceId("i1").withLifecycleState("InService") ]
+    def asg = AutoScalingGroup.builder()
+      .autoScalingGroupName("asg1")
+      .loadBalancerNames(["lb1"])
+      .instances([software.amazon.awssdk.services.autoscaling.model.Instance.builder().instanceId("i1").lifecycleState("InService").build()])
+      .build()
 
     and:
-    def instance = new Instance().withState(new InstanceState().withName("running")).withInstanceId("i1")
-    def describeInstanceResult = Mock(DescribeInstancesResult)
-    describeInstanceResult.getReservations() >> [new Reservation().withInstances(instance)]
+    def instance = Instance.builder().state(InstanceState.builder().name(InstanceStateName.RUNNING).build()).instanceId("i1").build()
+    def describeInstanceResult = DescribeInstancesResponse.builder().reservations([Reservation.builder().instances(instance).build()]).build()
 
     when:
     op.operate([])
@@ -64,15 +65,15 @@ class EnableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitS
 
   def 'should enable instances for asg in discovery'() {
     given:
-    def asg = Mock(AutoScalingGroup)
-    asg.getAutoScalingGroupName() >> "asg1"
-    asg.getInstances() >> [new com.amazonaws.services.autoscaling.model.Instance().withInstanceId("i1").withLifecycleState("InService") ]
+    def asg = AutoScalingGroup.builder()
+      .autoScalingGroupName("asg1")
+      .instances([software.amazon.awssdk.services.autoscaling.model.Instance.builder().instanceId("i1").lifecycleState("InService").build()])
+      .build()
 
     and:
-    def instance1 = new Instance().withState(new InstanceState().withName("running")).withInstanceId("i1")
-    def instance2 = new Instance().withState(new InstanceState().withName("terminated")).withInstanceId("i2")
-    def describeInstanceResult = Mock(DescribeInstancesResult)
-    describeInstanceResult.getReservations() >> [new Reservation().withInstances(instance1), new Reservation().withInstances(instance2)]
+    def instance1 = Instance.builder().state(InstanceState.builder().name(InstanceStateName.RUNNING).build()).instanceId("i1").build()
+    def instance2 = Instance.builder().state(InstanceState.builder().name(InstanceStateName.TERMINATED).build()).instanceId("i2").build()
+    def describeInstanceResult = DescribeInstancesResponse.builder().reservations([Reservation.builder().instances(instance1).build(), Reservation.builder().instances(instance2).build()]).build()
 
     when:
     op.operate([])
@@ -104,14 +105,14 @@ class EnableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitS
     def noDiscoveryOp = new EnableAsgAtomicOperation(noDiscovery)
     wireOpMocks(noDiscoveryOp)
 
-    def asg = Mock(AutoScalingGroup)
-    asg.getAutoScalingGroupName() >> "asg1"
-    asg.getInstances() >> [new com.amazonaws.services.autoscaling.model.Instance().withInstanceId("i1").withLifecycleState("InService") ]
+    def asg = AutoScalingGroup.builder()
+      .autoScalingGroupName("asg1")
+      .instances([software.amazon.awssdk.services.autoscaling.model.Instance.builder().instanceId("i1").lifecycleState("InService").build()])
+      .build()
 
     and:
-    def instance = new Instance().withState(new InstanceState().withName("running")).withInstanceId("i1")
-    def describeInstanceResult = Mock(DescribeInstancesResult)
-    describeInstanceResult.getReservations() >> [new Reservation().withInstances(instance)]
+    def instance = Instance.builder().state(InstanceState.builder().name(InstanceStateName.RUNNING).build()).instanceId("i1").build()
+    def describeInstanceResult = DescribeInstancesResponse.builder().reservations([Reservation.builder().instances(instance).build()]).build()
 
     when:
     noDiscoveryOp.operate([])

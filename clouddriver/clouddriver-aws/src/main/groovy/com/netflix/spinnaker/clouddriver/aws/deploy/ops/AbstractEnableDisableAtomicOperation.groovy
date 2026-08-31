@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.amazonaws.services.ec2.model.DescribeInstancesRequest
-import com.amazonaws.services.ec2.model.DescribeInstancesResult
-import com.amazonaws.services.ec2.model.Filter
-import com.amazonaws.services.ec2.model.InstanceStateName
-import com.amazonaws.services.ec2.model.Reservation
+import software.amazon.awssdk.services.ec2.model.DescribeInstancesRequest
+import software.amazon.awssdk.services.ec2.model.DescribeInstancesResponse
+import software.amazon.awssdk.services.ec2.model.Filter
+import software.amazon.awssdk.services.ec2.model.InstanceStateName
+import software.amazon.awssdk.services.ec2.model.Reservation
 import com.amazonaws.services.elasticloadbalancing.model.DeregisterInstancesFromLoadBalancerRequest
 import com.amazonaws.services.elasticloadbalancing.model.Instance
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerNotFoundException
@@ -111,22 +111,22 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
       }
 
       List<String> instanceIds = asg.instances.findAll {
-        it.lifecycleState == "InService" || it.lifecycleState.startsWith("Pending")
+        it.lifecycleStateAsString() == "InService" || it.lifecycleStateAsString().startsWith("Pending")
       }*.instanceId
 
       int failedAttempts = 0
       if (instanceIds) {
-        DescribeInstancesRequest describeInstancesRequest = new DescribeInstancesRequest().withInstanceIds(instanceIds)
+        DescribeInstancesRequest describeInstancesRequest = DescribeInstancesRequest.builder().instanceIds(instanceIds).build()
         List<Reservation> reservations = []
         while (true) {
           try {
-            DescribeInstancesResult describeInstancesResult = regionScopedProvider.amazonEC2.describeInstances(describeInstancesRequest)
-            reservations.addAll(describeInstancesResult.getReservations())
-            if (!describeInstancesResult.nextToken) {
+            DescribeInstancesResponse describeInstancesResult = regionScopedProvider.amazonEC2.describeInstances(describeInstancesRequest)
+            reservations.addAll(describeInstancesResult.reservations())
+            if (!describeInstancesResult.nextToken()) {
               break
             }
 
-            describeInstancesRequest.setNextToken(describeInstancesResult.nextToken)
+            describeInstancesRequest = describeInstancesRequest.toBuilder().nextToken(describeInstancesResult.nextToken()).build()
           } catch (Exception e1) {
             failedAttempts++
             log.error("Failed to describe one of the instances in {}", instanceIds, e1)
@@ -153,8 +153,8 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
 
         Set<String> filteredInstanceIds = []
         for (Reservation reservation : reservations) {
-          filteredInstanceIds += reservation.getInstances().findAll {
-            [ InstanceStateName.Running, InstanceStateName.Pending ].contains(InstanceStateName.fromValue(it.getState().getName()))
+          filteredInstanceIds += reservation.instances().findAll {
+            [ InstanceStateName.RUNNING, InstanceStateName.PENDING ].contains(it.state().name())
           }*.instanceId
         }
         instanceIds = filteredInstanceIds as List<String>
@@ -233,19 +233,19 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
       RegionScopedProviderFactory.RegionScopedProvider regionScopedProvider,
       String serverGroupName
   ) {
-    DescribeInstancesRequest describeInstancesRequest = new DescribeInstancesRequest().withFilters(
-        new Filter().withName(INSTANCE_ASG_TAG_NAME).withValues(serverGroupName)
-    )
+    DescribeInstancesRequest describeInstancesRequest = DescribeInstancesRequest.builder().filters(
+        Filter.builder().name(INSTANCE_ASG_TAG_NAME).values(serverGroupName).build()
+    ).build()
 
-    DescribeInstancesResult describeInstancesResult = regionScopedProvider.amazonEC2.describeInstances(
+    DescribeInstancesResponse describeInstancesResult = regionScopedProvider.amazonEC2.describeInstances(
         describeInstancesRequest
     )
-    List<Reservation> reservations = describeInstancesResult.getReservations()
+    List<Reservation> reservations = describeInstancesResult.reservations()
 
-    while (describeInstancesResult.getNextToken()) {
-      describeInstancesRequest.setNextToken(describeInstancesResult.getNextToken())
+    while (describeInstancesResult.nextToken()) {
+      describeInstancesRequest = describeInstancesRequest.toBuilder().nextToken(describeInstancesResult.nextToken()).build()
       describeInstancesResult = regionScopedProvider.amazonEC2.describeInstances(describeInstancesRequest)
-      reservations += describeInstancesResult.getReservations()
+      reservations += describeInstancesResult.reservations()
     }
 
     return reservations

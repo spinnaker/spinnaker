@@ -17,19 +17,19 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.asg.asgbuilders
 
-import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.autoscaling.model.AlreadyExistsException
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
-import com.amazonaws.services.autoscaling.model.InstancesDistribution
-import com.amazonaws.services.autoscaling.model.LaunchTemplateOverrides
-import com.amazonaws.services.autoscaling.model.LaunchTemplateSpecification
-import com.amazonaws.services.autoscaling.model.MixedInstancesPolicy
-import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.DescribeSubnetsResult
-import com.amazonaws.services.ec2.model.LaunchTemplate
-import com.amazonaws.services.ec2.model.Subnet
-import com.amazonaws.services.ec2.model.Tag
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient
+import software.amazon.awssdk.services.autoscaling.model.AlreadyExistsException
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
+import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsResponse
+import software.amazon.awssdk.services.autoscaling.model.InstancesDistribution
+import software.amazon.awssdk.services.autoscaling.model.LaunchTemplateOverrides
+import software.amazon.awssdk.services.autoscaling.model.LaunchTemplateSpecification
+import software.amazon.awssdk.services.autoscaling.model.MixedInstancesPolicy
+import software.amazon.awssdk.services.ec2.Ec2Client
+import software.amazon.awssdk.services.ec2.model.DescribeSubnetsResponse
+import software.amazon.awssdk.services.ec2.model.LaunchTemplate
+import software.amazon.awssdk.services.ec2.model.Subnet
+import software.amazon.awssdk.services.ec2.model.Tag
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AsgConfigHelper
 import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AsgLifecycleHookWorker
@@ -56,8 +56,8 @@ class AsgWithMixedInstancesPolicyBuilderSpec extends Specification {
   def ec2LtService = Mock(LaunchTemplateService)
   def securityGroupService = Mock(SecurityGroupService)
   def deployDefaults = Mock(AwsConfiguration.DeployDefaults)
-  def autoScaling = Mock(AmazonAutoScaling)
-  def amazonEC2 = Mock(AmazonEC2)
+  def autoScaling = Mock(AutoScalingClient)
+  def amazonEC2 = Mock(Ec2Client)
   def asgLifecycleHookWorker = Mock(AsgLifecycleHookWorker)
 
   def credential = TestCredential.named('foo')
@@ -71,10 +71,10 @@ class AsgWithMixedInstancesPolicyBuilderSpec extends Specification {
     asgConfigHelper = Spy(AsgConfigHelper)
     override1 = new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(
       instanceType: "some.type.large",
-      weightedCapacity: 2)
+      weightedCapacity: "2")
     override2 = new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(
       instanceType: "some.type.xlarge",
-      weightedCapacity: 4)
+      weightedCapacity: "4")
     asgConfig = AutoScalingWorker.AsgConfiguration.builder()
       .setLaunchTemplate(true)
       .credentials(credential)
@@ -97,28 +97,28 @@ class AsgWithMixedInstancesPolicyBuilderSpec extends Specification {
     securityGroupService.resolveSecurityGroupIdsWithSubnetType(_,_) >> ["sg-1"]
 
     // general expected parameters in request
-    ec2Lt = new LaunchTemplate(launchTemplateName: "lt-1", launchTemplateId: "lt-1", latestVersionNumber: 1, defaultVersionNumber: 0)
-    asgLtSpec = new com.amazonaws.services.autoscaling.model.LaunchTemplateSpecification(launchTemplateId: ec2Lt.getLaunchTemplateId(), version: "\$Latest")
+    ec2Lt = LaunchTemplate.builder().launchTemplateName("lt-1").launchTemplateId("lt-1").latestVersionNumber(1L).defaultVersionNumber(0L).build()
+    asgLtSpec = LaunchTemplateSpecification.builder().launchTemplateId(ec2Lt.launchTemplateId()).version("\$Latest").build()
     overrides = [
-      new LaunchTemplateOverrides().withInstanceType(override1.instanceType).withWeightedCapacity(override1.weightedCapacity),
-      new LaunchTemplateOverrides().withInstanceType(override2.instanceType).withWeightedCapacity(override2.weightedCapacity)
+      LaunchTemplateOverrides.builder().instanceType(override1.instanceType).weightedCapacity(override1.weightedCapacity).build(),
+      LaunchTemplateOverrides.builder().instanceType(override2.instanceType).weightedCapacity(override2.weightedCapacity).build()
     ]
-    asgLt = new com.amazonaws.services.autoscaling.model.LaunchTemplate(launchTemplateSpecification: asgLtSpec, overrides: overrides)
-    instancesDist = new InstancesDistribution(
-      onDemandBaseCapacity: 1,
-      onDemandPercentageAboveBaseCapacity: 50,
-      spotMaxPrice: "2",
-      spotAllocationStrategy: "capacity-optimized"
-    )
-    mip = new MixedInstancesPolicy().withInstancesDistribution(instancesDist).withLaunchTemplate(asgLt)
+    asgLt = software.amazon.awssdk.services.autoscaling.model.LaunchTemplate.builder().launchTemplateSpecification(asgLtSpec).overrides(overrides).build()
+    instancesDist = InstancesDistribution.builder()
+      .onDemandBaseCapacity(1)
+      .onDemandPercentageAboveBaseCapacity(50)
+      .spotMaxPrice("2")
+      .spotAllocationStrategy("capacity-optimized")
+      .build()
+    mip = MixedInstancesPolicy.builder().instancesDistribution(instancesDist).launchTemplate(asgLt).build()
   }
 
-  private DescribeSubnetsResult getDescribeSubnetsResult() {
-    return new DescribeSubnetsResult(subnets: [
-      new Subnet(subnetId: 'subnetId1', availabilityZone: 'us-east-1a', tags: [new Tag(key: 'immutable_metadata', value: '{"purpose": "internal", "target": "ec2" }')]),
-      new Subnet(subnetId: 'subnetId2', availabilityZone: 'us-west-2a'),
-      new Subnet(subnetId: 'subnetId3', availabilityZone: 'us-west-2a'),
-    ])
+  private DescribeSubnetsResponse getDescribeSubnetsResult() {
+    return DescribeSubnetsResponse.builder().subnets([
+      Subnet.builder().subnetId('subnetId1').availabilityZone('us-east-1a').tags([Tag.builder().key('immutable_metadata').value('{"purpose": "internal", "target": "ec2" }').build()]).build(),
+      Subnet.builder().subnetId('subnetId2').availabilityZone('us-west-2a').build(),
+      Subnet.builder().subnetId('subnetId3').availabilityZone('us-west-2a').build(),
+    ]).build()
   }
 
   void "should build ASG request with mixed instances policy correctly"() {
@@ -141,26 +141,24 @@ class AsgWithMixedInstancesPolicyBuilderSpec extends Specification {
     then:
     1 * ec2LtService.createLaunchTemplate(asgConfig, asgName, _) >> ec2Lt
 
-    1 * task.updateStatus(taskPhase, "Deploying ASG $asgName with mixed instances policy " +
-      "{LaunchTemplate: {LaunchTemplateSpecification: {LaunchTemplateId: lt-1,Version: \$Latest},Overrides: [{InstanceType: some.type.large,WeightedCapacity: 2,}, {InstanceType: some.type.xlarge,WeightedCapacity: 4,}]}," +
-      "InstancesDistribution: {OnDemandBaseCapacity: 1,OnDemandPercentageAboveBaseCapacity: 50,SpotAllocationStrategy: capacity-optimized,SpotMaxPrice: 2}}")
+    1 * task.updateStatus(taskPhase, "Deploying ASG $asgName with mixed instances policy " + mip.toString())
     2 * amazonEC2.describeSubnets() >> getDescribeSubnetsResult()
 
     and:
-    request.getLaunchTemplate() == null
-    request.getMixedInstancesPolicy() == mip
+    request.launchTemplate() == null
+    request.mixedInstancesPolicy() == mip
 
     and:
-    request.getAutoScalingGroupName() == asgName
-    request.getMinSize() == 1
-    request.getMaxSize() == 3
-    request.getDesiredCapacity() == 2
-    request.getLoadBalancerNames() == ["one", "two"]
-    request.getTargetGroupARNs() == ["tg1", "tg2"]
-    request.getDefaultCooldown() == 5
-    request.getHealthCheckGracePeriod() == 5
-    request.getHealthCheckType() == "ec2"
-    request.getTerminationPolicies() == ["Default", "OldestInstance"]
+    request.autoScalingGroupName() == asgName
+    request.minSize() == 1
+    request.maxSize() == 3
+    request.desiredCapacity() == 2
+    request.loadBalancerNames() == ["one", "two"]
+    request.targetGroupARNs() == ["tg1", "tg2"]
+    request.defaultCooldown() == 5
+    request.healthCheckGracePeriod() == 5
+    request.healthCheckType() == "ec2"
+    request.terminationPolicies() == ["Default", "OldestInstance"]
   }
 
   void "should build ASG request with tags correctly"() {
@@ -173,11 +171,11 @@ class AsgWithMixedInstancesPolicyBuilderSpec extends Specification {
 
     then:
     1 * ec2LtService.createLaunchTemplate(asgConfig, asgName, _) >> ec2Lt
-    request.getMixedInstancesPolicy() == mip
-    def tag = request.getTags()[0]
-    tag.getKey() == "foo"
-    tag.getValue() == "bar"
-    tag.getPropagateAtLaunch() == true
+    request.mixedInstancesPolicy() == mip
+    def tag = request.tags()[0]
+    tag.key() == "foo"
+    tag.value() == "bar"
+    tag.propagateAtLaunch() == true
   }
 
   @Unroll
@@ -195,17 +193,15 @@ class AsgWithMixedInstancesPolicyBuilderSpec extends Specification {
     1 * ec2LtService.createLaunchTemplate(asgConfig, asgName, _) >> ec2Lt
     (StringUtils.isEmpty(subnetType) ? 0 : 2) * amazonEC2.describeSubnets() >> getDescribeSubnetsResult()
 
-    1 * task.updateStatus(taskPhase, "Deploying ASG $asgName with mixed instances policy " +
-      "{LaunchTemplate: {LaunchTemplateSpecification: {LaunchTemplateId: lt-1,Version: \$Latest},Overrides: [{InstanceType: some.type.large,WeightedCapacity: 2,}, {InstanceType: some.type.xlarge,WeightedCapacity: 4,}]}," +
-      "InstancesDistribution: {OnDemandBaseCapacity: 1,OnDemandPercentageAboveBaseCapacity: 50,SpotAllocationStrategy: capacity-optimized,SpotMaxPrice: 2}}")
+    1 * task.updateStatus(taskPhase, "Deploying ASG $asgName with mixed instances policy " + mip.toString())
     1 * task.updateStatus(taskPhase, deployMsg)
 
     and:
-    request.getMixedInstancesPolicy() == mip
-    request.getVPCZoneIdentifier() == subnetIdsForAsg
+    request.mixedInstancesPolicy() == mip
+    request.vpcZoneIdentifier() == subnetIdsForAsg
     subnetIdsForAsg == null
-      ? request.getAvailabilityZones() == ["us-west-2a"]
-      : request.getAvailabilityZones() == []
+      ? request.availabilityZones() == ["us-west-2a"]
+      : request.availabilityZones() == []
 
     where:
     subnetType |  subnetIds   | subnetIdsForAsg ||  deployMsg
@@ -229,15 +225,13 @@ class AsgWithMixedInstancesPolicyBuilderSpec extends Specification {
     then:
     1 * ec2LtService.createLaunchTemplate(asgConfig, asgName, _) >> ec2Lt
     2 * amazonEC2.describeSubnets() >> getDescribeSubnetsResult()
-    1 * task.updateStatus(taskPhase, "Deploying ASG $asgName with mixed instances policy " +
-      "{LaunchTemplate: {LaunchTemplateSpecification: {LaunchTemplateId: lt-1,Version: \$Latest},Overrides: [{InstanceType: some.type.large,WeightedCapacity: 2,}, {InstanceType: some.type.xlarge,WeightedCapacity: 4,}]}," +
-      "InstancesDistribution: {OnDemandBaseCapacity: 1,OnDemandPercentageAboveBaseCapacity: 50,SpotAllocationStrategy: capacity-optimized,SpotMaxPrice: 2}}")
+    1 * task.updateStatus(taskPhase, "Deploying ASG $asgName with mixed instances policy " + mip.toString())
     1 * task.updateStatus(taskPhase, " > Deploying to subnetIds: subnetId1")
 
     and:
-    request.getMixedInstancesPolicy() == mip
-    request.getVPCZoneIdentifier() == subnetIdsForAsg
-    request.getAvailabilityZones() == []
+    request.mixedInstancesPolicy() == mip
+    request.vpcZoneIdentifier() == subnetIdsForAsg
+    request.availabilityZones() == []
 
     where:
     subnetIds     |   subnetIdsForAsg
@@ -260,9 +254,7 @@ class AsgWithMixedInstancesPolicyBuilderSpec extends Specification {
     1 * ec2LtService.createLaunchTemplate(asgConfig, asgName, _) >> ec2Lt
     (StringUtils.isEmpty(subnetType) ? 0 : 1) * amazonEC2.describeSubnets() >> getDescribeSubnetsResult()
 
-    1 * task.updateStatus(taskPhase, "Deploying ASG $asgName with mixed instances policy " +
-      "{LaunchTemplate: {LaunchTemplateSpecification: {LaunchTemplateId: lt-1,Version: \$Latest},Overrides: [{InstanceType: some.type.large,WeightedCapacity: 2,}, {InstanceType: some.type.xlarge,WeightedCapacity: 4,}]}," +
-      "InstancesDistribution: {OnDemandBaseCapacity: 1,OnDemandPercentageAboveBaseCapacity: 50,SpotAllocationStrategy: capacity-optimized,SpotMaxPrice: 2}}")
+    1 * task.updateStatus(taskPhase, "Deploying ASG $asgName with mixed instances policy " + mip.toString())
 
     and:
     def ex = thrown(IllegalStateException)
@@ -295,15 +287,13 @@ class AsgWithMixedInstancesPolicyBuilderSpec extends Specification {
     1 * ec2LtService.createLaunchTemplate(asgConfig, asgName, _) >> ec2Lt
     2 * amazonEC2.describeSubnets() >> getDescribeSubnetsResult()
 
-    1 * task.updateStatus(taskPhase, "Deploying ASG $asgName with mixed instances policy " +
-      "{LaunchTemplate: {LaunchTemplateSpecification: {LaunchTemplateId: lt-1,Version: \$Latest},Overrides: [{InstanceType: some.type.large,WeightedCapacity: 2,}, {InstanceType: some.type.xlarge,WeightedCapacity: 4,}]}," +
-      "InstancesDistribution: {OnDemandBaseCapacity: 1,OnDemandPercentageAboveBaseCapacity: 50,SpotAllocationStrategy: capacity-optimized,SpotMaxPrice: 2}}")
+    1 * task.updateStatus(taskPhase, "Deploying ASG $asgName with mixed instances policy " + mip.toString())
     1 * task.updateStatus(taskPhase, deployMsg)
 
     and:
-    request.getMixedInstancesPolicy() == mip
-    request.getVPCZoneIdentifier() == subnetIdsForAsg
-    request.getAvailabilityZones() == []
+    request.mixedInstancesPolicy() == mip
+    request.vpcZoneIdentifier() == subnetIdsForAsg
+    request.availabilityZones() == []
 
     where:
     subnetIds         | subnetIdsForAsg       ||  deployMsg
@@ -327,9 +317,7 @@ class AsgWithMixedInstancesPolicyBuilderSpec extends Specification {
     1 * ec2LtService.createLaunchTemplate(asgConfig, asgName, _) >> ec2Lt
     2 * amazonEC2.describeSubnets() >> getDescribeSubnetsResult()
 
-    1 * task.updateStatus(taskPhase, "Deploying ASG $asgName with mixed instances policy " +
-      "{LaunchTemplate: {LaunchTemplateSpecification: {LaunchTemplateId: lt-1,Version: \$Latest},Overrides: [{InstanceType: some.type.large,WeightedCapacity: 2,}, {InstanceType: some.type.xlarge,WeightedCapacity: 4,}]}," +
-      "InstancesDistribution: {OnDemandBaseCapacity: 1,OnDemandPercentageAboveBaseCapacity: 50,SpotAllocationStrategy: capacity-optimized,SpotMaxPrice: 2}}")
+    1 * task.updateStatus(taskPhase, "Deploying ASG $asgName with mixed instances policy " + mip.toString())
 
     and:
     def ex = thrown(RuntimeException)
@@ -363,9 +351,7 @@ class AsgWithMixedInstancesPolicyBuilderSpec extends Specification {
     1 * autoScaling.updateAutoScalingGroup(_)
     0 * autoScaling. _
 
-    1 * task.updateStatus(taskPhase, "Deploying ASG $asgName with mixed instances policy " +
-      "{LaunchTemplate: {LaunchTemplateSpecification: {LaunchTemplateId: lt-1,Version: \$Latest},Overrides: [{InstanceType: some.type.large,WeightedCapacity: 2,}, {InstanceType: some.type.xlarge,WeightedCapacity: 4,}]}," +
-      "InstancesDistribution: {OnDemandBaseCapacity: 1,OnDemandPercentageAboveBaseCapacity: 50,SpotAllocationStrategy: capacity-optimized,SpotMaxPrice: 2}}")
+    1 * task.updateStatus(taskPhase, "Deploying ASG $asgName with mixed instances policy " + mip.toString())
     1 * task.updateStatus(taskPhase, ' > Deploying to subnetIds: subnetId1')
     1 * task.updateStatus(taskPhase, 'Setting size of myasg-v000 in foo/us-east-1 to [min=1, max=3, desired=2]')
     1 * task.updateStatus(taskPhase, "Deployed EC2 server group named $asgName")
@@ -383,7 +369,7 @@ class AsgWithMixedInstancesPolicyBuilderSpec extends Specification {
 
     then:
     1 * ec2LtService.createLaunchTemplate(asgConfig, asgName, _) >> ec2Lt
-    count * autoScaling.enableMetricsCollection({count == 1 ? it.metrics == ['GroupMinSize', 'GroupMaxSize'] : _ })
+    count * autoScaling.enableMetricsCollection({count == 1 ? it.metrics() == ['GroupMinSize', 'GroupMaxSize'] : _ })
 
     where:
     enabledMetrics                   | instanceMonitoring  | count
@@ -410,7 +396,7 @@ class AsgWithMixedInstancesPolicyBuilderSpec extends Specification {
     // According to
     // https://docs.aws.amazon.com/autoscaling/ec2/APIReference/API_EnableMetricsCollection.html,
     // specifying granularity with no metrics means all metrics.
-    1 * autoScaling.enableMetricsCollection({ (it.granularity == '1Minute') && (it.metrics == []) })
+    1 * autoScaling.enableMetricsCollection({ (it.granularity() == '1Minute') && (it.metrics() == []) })
   }
 
   void "continues if serverGroup already exists, is reasonably the same and within safety window"() {
@@ -424,18 +410,16 @@ class AsgWithMixedInstancesPolicyBuilderSpec extends Specification {
     then:
     noExceptionThrown()
     1 * ec2LtService.createLaunchTemplate(asgConfig, asgName, _) >> ec2Lt
-    1 * autoScaling.createAutoScalingGroup(_) >> { throw new AlreadyExistsException("Already exists, man") }
+    1 * autoScaling.createAutoScalingGroup(_) >> { throw AlreadyExistsException.builder().message("Already exists, man").build() }
     1 * autoScaling.describeAutoScalingGroups(_) >> {
-      new DescribeAutoScalingGroupsResult(
-        autoScalingGroups: [
-          new AutoScalingGroup(
-            autoScalingGroupName: "myasg-v000",
-            mixedInstancesPolicy: mip,
-            loadBalancerNames: ["one", "two"],
-            createdTime: new Date()
-          )
-        ]
-      )
+      DescribeAutoScalingGroupsResponse.builder().autoScalingGroups([
+        AutoScalingGroup.builder()
+          .autoScalingGroupName("myasg-v000")
+          .mixedInstancesPolicy(mip)
+          .loadBalancerNames(["one", "two"])
+          .createdTime(Instant.now())
+          .build()
+      ]).build()
     }
   }
 
@@ -460,43 +444,45 @@ class AsgWithMixedInstancesPolicyBuilderSpec extends Specification {
     noExceptionThrown()
     1 * ec2LtService.createLaunchTemplate(asgConfig, asgName, _) >> ec2Lt
     if (sbTypeReq != null) {
-      2 * amazonEC2.describeSubnets() >> new DescribeSubnetsResult(subnets: [new Subnet(subnetId: 'sb1', availabilityZone: 'us-east-1a'), new Subnet(subnetId: 'sb2', availabilityZone: 'us-east-1b'),])
+      2 * amazonEC2.describeSubnets() >> DescribeSubnetsResponse.builder().subnets([Subnet.builder().subnetId('sb1').availabilityZone('us-east-1a').build(), Subnet.builder().subnetId('sb2').availabilityZone('us-east-1b').build(),]).build()
     }
-    1 * autoScaling.createAutoScalingGroup(_) >> { throw new AlreadyExistsException("Already exists, man") }
+    1 * autoScaling.createAutoScalingGroup(_) >> { throw AlreadyExistsException.builder().message("Already exists, man").build() }
     1 * autoScaling.describeAutoScalingGroups(_) >> {
-      new DescribeAutoScalingGroupsResult(
-        autoScalingGroups: [
-          new AutoScalingGroup(
-            autoScalingGroupName: "myasg-v000",
-            mixedInstancesPolicy: new MixedInstancesPolicy(
-              instancesDistribution: new InstancesDistribution(
-                onDemandBaseCapacity: 1,
-                onDemandPercentageAboveBaseCapacity: 50,
-                spotMaxPrice: "2",
-                spotAllocationStrategy: "capacity-optimized"
-              ),
-              launchTemplate: new com.amazonaws.services.autoscaling.model.LaunchTemplate(
-                launchTemplateSpecification: new LaunchTemplateSpecification(
-                  launchTemplateId: ec2Lt.getLaunchTemplateId(),
-                  version: "\$Latest"
-                ),
-                overrides:[
-                  new LaunchTemplateOverrides(instanceType: "some.type.large", weightedCapacity: 2),
-                  new LaunchTemplateOverrides(instanceType: "some.type.xlarge", weightedCapacity: 4)]
-              )
-            ),
-            availabilityZones: az,
-            vPCZoneIdentifier: sb,
-            loadBalancerNames: ["one", "two"],
-            targetGroupARNs: ["tg1", "tg2"],
-            defaultCooldown: 5,
-            healthCheckGracePeriod: 5,
-            healthCheckType: "elb",
-            terminationPolicies: ["tp1", "tp2"],
-            createdTime: new Date()
-          )
-        ]
-      )
+      DescribeAutoScalingGroupsResponse.builder().autoScalingGroups([
+        AutoScalingGroup.builder()
+          .autoScalingGroupName("myasg-v000")
+          .mixedInstancesPolicy(
+            MixedInstancesPolicy.builder()
+              .instancesDistribution(
+                InstancesDistribution.builder()
+                  .onDemandBaseCapacity(1)
+                  .onDemandPercentageAboveBaseCapacity(50)
+                  .spotMaxPrice("2")
+                  .spotAllocationStrategy("capacity-optimized")
+                  .build())
+              .launchTemplate(
+                software.amazon.awssdk.services.autoscaling.model.LaunchTemplate.builder()
+                  .launchTemplateSpecification(
+                    LaunchTemplateSpecification.builder()
+                      .launchTemplateId(ec2Lt.launchTemplateId())
+                      .version("\$Latest")
+                      .build())
+                  .overrides([
+                    LaunchTemplateOverrides.builder().instanceType("some.type.large").weightedCapacity("2").build(),
+                    LaunchTemplateOverrides.builder().instanceType("some.type.xlarge").weightedCapacity("4").build()])
+                  .build())
+              .build())
+          .availabilityZones(az)
+          .vpcZoneIdentifier(sb)
+          .loadBalancerNames(["one", "two"])
+          .targetGroupARNs(["tg1", "tg2"])
+          .defaultCooldown(5)
+          .healthCheckGracePeriod(5)
+          .healthCheckType("elb")
+          .terminationPolicies(["tp1", "tp2"])
+          .createdTime(Instant.now())
+          .build()
+      ]).build()
     }
     1 * task.updateStatus('AWS_DEPLOY_TEST', deployMsg)
 
@@ -518,18 +504,16 @@ class AsgWithMixedInstancesPolicyBuilderSpec extends Specification {
     then:
     thrown(AlreadyExistsException)
     1 * ec2LtService.createLaunchTemplate(asgConfig, asgName, _) >> ec2Lt
-    1 * autoScaling.createAutoScalingGroup(_) >> { throw new AlreadyExistsException("Already exists, man") }
+    1 * autoScaling.createAutoScalingGroup(_) >> { throw AlreadyExistsException.builder().message("Already exists, man").build() }
     1 * autoScaling.describeAutoScalingGroups(_) >> {
-      new DescribeAutoScalingGroupsResult(
-        autoScalingGroups: [
-          new AutoScalingGroup(
-            autoScalingGroupName: "myasg-v000",
-            mixedInstancesPolicy: mip,
-            loadBalancerNames: ["one", "two"],
-            createdTime: new Date(Instant.now().minus(3, ChronoUnit.HOURS).toEpochMilli())
-          )
-        ]
-      )
+      DescribeAutoScalingGroupsResponse.builder().autoScalingGroups([
+        AutoScalingGroup.builder()
+          .autoScalingGroupName("myasg-v000")
+          .mixedInstancesPolicy(mip)
+          .loadBalancerNames(["one", "two"])
+          .createdTime(Instant.now().minus(3, ChronoUnit.HOURS))
+          .build()
+      ]).build()
     }
   }
 
@@ -553,48 +537,48 @@ class AsgWithMixedInstancesPolicyBuilderSpec extends Specification {
     then:
     thrown(AlreadyExistsException)
     1 * ec2LtService.createLaunchTemplate(asgConfig, asgName, _) >> ec2Lt
-    _ * amazonEC2.describeSubnets() >> new DescribeSubnetsResult(subnets: [new Subnet(subnetId: 'sb1', availabilityZone: 'az1'),new Subnet(subnetId: 'sb2', availabilityZone: 'az2'),])
-    1 * autoScaling.createAutoScalingGroup(_) >> { throw new AlreadyExistsException("Already exists, man") }
+    _ * amazonEC2.describeSubnets() >> DescribeSubnetsResponse.builder().subnets([Subnet.builder().subnetId('sb1').availabilityZone('az1').build(),Subnet.builder().subnetId('sb2').availabilityZone('az2').build(),]).build()
+    1 * autoScaling.createAutoScalingGroup(_) >> { throw AlreadyExistsException.builder().message("Already exists, man").build() }
     1 * autoScaling.describeAutoScalingGroups(_) >> {
-      new DescribeAutoScalingGroupsResult(
-        autoScalingGroups: [
-          new AutoScalingGroup(
-            autoScalingGroupName: "myasg-v000",
-            mixedInstancesPolicy: new MixedInstancesPolicy(
-              instancesDistribution: new InstancesDistribution(
-                onDemandBaseCapacity: 1,
-                onDemandPercentageAboveBaseCapacity: 50,
-                spotInstancePools: spotInstancePools,
-                spotMaxPrice: spotMaxPrice,
-                spotAllocationStrategy: spotAllocStrategy
-              ),
-              launchTemplate: new com.amazonaws.services.autoscaling.model.LaunchTemplate(
-                launchTemplateSpecification: new LaunchTemplateSpecification(
-                  launchTemplateId: ec2LtId,
-                  version: "\$Latest"
-                ),
-                overrides:[
-                  new LaunchTemplateOverrides(instanceType: override1InstType, weightedCapacity: override1Wgt),
-                  new LaunchTemplateOverrides(instanceType: "some.type.xlarge", weightedCapacity: 4)]
-              )
-            ),
-            availabilityZones: null,
-            vPCZoneIdentifier: sb,
-            loadBalancerNames: lb,
-            targetGroupARNs: tg,
-            defaultCooldown: cd,
-            healthCheckGracePeriod: hcGp,
-            healthCheckType: hc,
-            terminationPolicies: tp,
-            createdTime: new Date()
-          )
-        ]
-      )
+      DescribeAutoScalingGroupsResponse.builder().autoScalingGroups([
+        AutoScalingGroup.builder()
+          .autoScalingGroupName("myasg-v000")
+          .mixedInstancesPolicy(
+            MixedInstancesPolicy.builder()
+              .instancesDistribution(
+                InstancesDistribution.builder()
+                  .onDemandBaseCapacity(1)
+                  .onDemandPercentageAboveBaseCapacity(50)
+                  .spotInstancePools(spotInstancePools)
+                  .spotMaxPrice(spotMaxPrice)
+                  .spotAllocationStrategy(spotAllocStrategy)
+                  .build())
+              .launchTemplate(
+                software.amazon.awssdk.services.autoscaling.model.LaunchTemplate.builder()
+                  .launchTemplateSpecification(
+                    LaunchTemplateSpecification.builder()
+                      .launchTemplateId(ec2LtId)
+                      .version("\$Latest")
+                      .build())
+                  .overrides([
+                    LaunchTemplateOverrides.builder().instanceType(override1InstType).weightedCapacity(override1Wgt as String).build(),
+                    LaunchTemplateOverrides.builder().instanceType("some.type.xlarge").weightedCapacity("4").build()])
+                  .build())
+              .build())
+          .availabilityZones(null)
+          .vpcZoneIdentifier(sb)
+          .loadBalancerNames(lb)
+          .targetGroupARNs(tg)
+          .defaultCooldown(cd)
+          .healthCheckGracePeriod(hcGp)
+          .healthCheckType(hc)
+          .terminationPolicies(tp)
+          .createdTime(Instant.now())
+          .build()
+      ]).build()
     }
 
-    1 * task.updateStatus(taskPhase, "Deploying ASG $asgName with mixed instances policy " +
-      "{LaunchTemplate: {LaunchTemplateSpecification: {LaunchTemplateId: lt-1,Version: \$Latest},Overrides: [{InstanceType: some.type.large,WeightedCapacity: 2,}, {InstanceType: some.type.xlarge,WeightedCapacity: 4,}]}," +
-      "InstancesDistribution: {OnDemandBaseCapacity: 1,OnDemandPercentageAboveBaseCapacity: 50,SpotAllocationStrategy: capacity-optimized,SpotMaxPrice: 2}}")
+    1 * task.updateStatus(taskPhase, "Deploying ASG $asgName with mixed instances policy " + mip.toString())
     1 * task.updateStatus(taskPhase, "$asgName already exists and does not seem to match desired state on: $failedPredicates")
 
     where:
@@ -670,7 +654,7 @@ class AsgWithMixedInstancesPolicyBuilderSpec extends Specification {
 
     then:
     1 * ec2LtService.createLaunchTemplate(asgConfig, asgName, _) >> ec2Lt
-    request.capacityRebalance == capacityRebalance
+    request.capacityRebalance() == capacityRebalance
 
     where:
     capacityRebalance << [true, false, null]

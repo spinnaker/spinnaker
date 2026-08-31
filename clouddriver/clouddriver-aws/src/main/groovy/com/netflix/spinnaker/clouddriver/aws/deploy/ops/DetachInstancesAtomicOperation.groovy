@@ -16,14 +16,14 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
-import com.amazonaws.services.autoscaling.model.DetachInstancesRequest
-import com.amazonaws.services.autoscaling.model.LifecycleState
-import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
-import com.amazonaws.services.ec2.model.CreateTagsRequest
-import com.amazonaws.services.ec2.model.Tag
-import com.amazonaws.services.ec2.model.TerminateInstancesRequest
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
+import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsRequest
+import software.amazon.awssdk.services.autoscaling.model.DetachInstancesRequest
+import software.amazon.awssdk.services.autoscaling.model.LifecycleState
+import software.amazon.awssdk.services.autoscaling.model.UpdateAutoScalingGroupRequest
+import software.amazon.awssdk.services.ec2.model.CreateTagsRequest
+import software.amazon.awssdk.services.ec2.model.Tag
+import software.amazon.awssdk.services.ec2.model.TerminateInstancesRequest
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -35,8 +35,8 @@ import org.springframework.beans.factory.annotation.Autowired
 @Slf4j
 class DetachInstancesAtomicOperation implements AtomicOperation<Void> {
   private static final int MAX_DETACH = 20
-  private static final Set<String> ALLOWED_LIFECYCLE_STATES = [
-    LifecycleState.InService.toString(), LifecycleState.Standby.toString()
+  private static final Set<LifecycleState> ALLOWED_LIFECYCLE_STATES = [
+    LifecycleState.IN_SERVICE, LifecycleState.STANDBY
   ]
 
   private static final String BASE_PHASE = "DETACH_INSTANCES"
@@ -58,39 +58,39 @@ class DetachInstancesAtomicOperation implements AtomicOperation<Void> {
 
   @Override
   Void operate(List priorOutputs) {
-    def amazonAutoScaling = amazonClientProvider.getAutoScaling(description.credentials, description.region, true)
+    def amazonAutoScaling = amazonClientProvider.getAutoScalingV2(description.credentials, description.region)
     amazonAutoScaling.describeAutoScalingGroups(
-      new DescribeAutoScalingGroupsRequest().withAutoScalingGroupNames(description.asgName)
-    ).autoScalingGroups.each { AutoScalingGroup autoScalingGroup ->
-      def validInstanceIds = description.instanceIds.intersect(autoScalingGroup.instances*.instanceId)
+      DescribeAutoScalingGroupsRequest.builder().autoScalingGroupNames(description.asgName).build()
+    ).autoScalingGroups().each { AutoScalingGroup autoScalingGroup ->
+      def validInstanceIds = description.instanceIds.intersect(autoScalingGroup.instances()*.instanceId())
       if (!validInstanceIds) {
         // no work to do, no-op
         return
       }
 
       validInstanceIds = validInstanceIds.findAll { String instanceId ->
-        def instance = autoScalingGroup.instances.find { it.instanceId == instanceId }
-        if (ALLOWED_LIFECYCLE_STATES.contains(instance.lifecycleState)) {
+        def instance = autoScalingGroup.instances().find { it.instanceId() == instanceId }
+        if (ALLOWED_LIFECYCLE_STATES.contains(instance.lifecycleState())) {
           return true
         }
 
-        task.updateStatus BASE_PHASE, "Unable to detach instance ${instanceId} (lifecycleState: ${instance.lifecycleState}, asgName: ${description.asgName})"
+        task.updateStatus BASE_PHASE, "Unable to detach instance ${instanceId} (lifecycleState: ${instance.lifecycleStateAsString()}, asgName: ${description.asgName})"
         return false
       }
 
-      int newMin = autoScalingGroup.desiredCapacity - validInstanceIds.size()
-      if (description.decrementDesiredCapacity && newMin < autoScalingGroup.minSize) {
+      int newMin = autoScalingGroup.desiredCapacity() - validInstanceIds.size()
+      if (description.decrementDesiredCapacity && newMin < autoScalingGroup.minSize()) {
         if (description.adjustMinIfNecessary) {
           if (newMin < 0) {
             task.updateStatus BASE_PHASE, "Cannot adjust min size below 0"
           } else {
             amazonAutoScaling.updateAutoScalingGroup(
-              new UpdateAutoScalingGroupRequest().withAutoScalingGroupName(autoScalingGroup.autoScalingGroupName).withMinSize(newMin)
+              UpdateAutoScalingGroupRequest.builder().autoScalingGroupName(autoScalingGroup.autoScalingGroupName()).minSize(newMin).build()
             )
           }
         } else {
           task.updateStatus BASE_PHASE, "Cannot decrement ASG below minSize - set adjustMinIfNecessary to resize down minSize before detaching instances"
-          throw new IllegalStateException("Invalid ASG capacity for detachInstances (min: $autoScalingGroup.minSize, max: $autoScalingGroup.maxSize, desired: $autoScalingGroup.desiredCapacity)")
+          throw new IllegalStateException("Invalid ASG capacity for detachInstances (min: ${autoScalingGroup.minSize()}, max: ${autoScalingGroup.maxSize()}, desired: ${autoScalingGroup.desiredCapacity()})")
         }
       }
 
@@ -100,30 +100,31 @@ class DetachInstancesAtomicOperation implements AtomicOperation<Void> {
       }
 
       task.updateStatus BASE_PHASE, "Tagging instances (${validInstanceIds.join(", ")})."
-      def tags = [new Tag(TAG_DETACHED, description.asgName)]
+      def tags = [Tag.builder().key(TAG_DETACHED).value(description.asgName).build()]
       if (description.terminateDetachedInstances) {
-        tags << new Tag(TAG_PENDING_TERMINATION, System.currentTimeMillis() as String)
+        tags << Tag.builder().key(TAG_PENDING_TERMINATION).value(System.currentTimeMillis() as String).build()
       }
 
-      def amazonEC2 = amazonClientProvider.getAmazonEC2(description.credentials, description.region, true)
-      amazonEC2.createTags(new CreateTagsRequest().withResources(validInstanceIds).withTags(tags))
+      def amazonEC2 = amazonClientProvider.getAmazonEC2V2(description.credentials, description.region)
+      amazonEC2.createTags(CreateTagsRequest.builder().resources(validInstanceIds).tags(tags).build())
       task.updateStatus BASE_PHASE, "Tagged instances (${validInstanceIds.join(", ")})."
 
       validInstanceIds.collate(MAX_DETACH).each {
         // AWS has a restriction on the # of instances that can be detached at any one time, hence batching is required.
         task.updateStatus BASE_PHASE, "Detaching instances (${it.join(", ")}) from ASG (${description.asgName})."
         amazonAutoScaling.detachInstances(
-          new DetachInstancesRequest()
-            .withAutoScalingGroupName(description.asgName)
-            .withInstanceIds(it)
-            .withShouldDecrementDesiredCapacity(description.decrementDesiredCapacity)
+          DetachInstancesRequest.builder()
+            .autoScalingGroupName(description.asgName)
+            .instanceIds(it)
+            .shouldDecrementDesiredCapacity(description.decrementDesiredCapacity)
+            .build()
         )
         task.updateStatus BASE_PHASE, "Detached instances (${it.join(", ")}) from ASG (${description.asgName})."
       }
 
       if (description.terminateDetachedInstances) {
         task.updateStatus BASE_PHASE, "Terminating instances (${validInstanceIds.join(", ")})."
-        amazonEC2.terminateInstances(new TerminateInstancesRequest().withInstanceIds(validInstanceIds))
+        amazonEC2.terminateInstances(TerminateInstancesRequest.builder().instanceIds(validInstanceIds).build())
         task.updateStatus BASE_PHASE, "Terminated instances (${validInstanceIds.join(", ")})."
       }
     }
