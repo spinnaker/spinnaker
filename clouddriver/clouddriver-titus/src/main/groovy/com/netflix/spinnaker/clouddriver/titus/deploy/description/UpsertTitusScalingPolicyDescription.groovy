@@ -188,10 +188,10 @@ class UpsertTitusScalingPolicyDescription extends AbstractTitusCredentialsDescri
       alarm.period = alarmConfig.periodSec?.value
       alarm.actionsEnabled = true
       alarm.evaluationPeriods = alarmConfig.evaluationPeriods?.value
-      alarm.comparisonOperator = com.amazonaws.services.cloudwatch.model.ComparisonOperator.valueOf(alarmConfig.comparisonOperator.name())
+      alarm.comparisonOperator = alarmConfig.comparisonOperator.name()
       alarm.namespace = alarmConfig.metricNamespace
       alarm.metricName = alarmConfig.metricName
-      alarm.statistic = com.amazonaws.services.cloudwatch.model.Statistic.valueOf(alarmConfig.statistic.name())
+      alarm.statistic = alarmConfig.statistic.name()
     }
 
     // Titus Target Tracking always uses customized metric specifications, so use that to determine if it's a target tracking policy
