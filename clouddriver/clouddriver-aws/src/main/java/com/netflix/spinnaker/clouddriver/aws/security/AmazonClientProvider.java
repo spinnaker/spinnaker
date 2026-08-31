@@ -36,10 +36,6 @@ import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing;
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancingClientBuilder;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClientBuilder;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.route53.AmazonRoute53;
-import com.amazonaws.services.route53.AmazonRoute53ClientBuilder;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
 import com.amazonaws.services.servicediscovery.AWSServiceDiscovery;
@@ -727,10 +723,7 @@ public class AmazonClientProvider {
         amazonCredentials.getName());
   }
 
-  /**
-   * Returns an AWS SDK v2 {@link Route53Client} for the given account and region.
-   *
-   */
+  /** Returns an AWS SDK v2 {@link Route53Client} for the given account and region. */
   public Route53Client getAmazonRoute53V2(
       NetflixAmazonCredentials amazonCredentials, String region) {
     return awsSdkV2ClientSupplier.getClient(
@@ -741,10 +734,7 @@ public class AmazonClientProvider {
         amazonCredentials.getName());
   }
 
-  /**
-   * Returns an AWS SDK v2 {@link S3Client} for the given account and region.
-   *
-   */
+  /** Returns an AWS SDK v2 {@link S3Client} for the given account and region. */
   public S3Client getAmazonS3V2(NetflixAmazonCredentials amazonCredentials, String region) {
     return awsSdkV2ClientSupplier.getClient(
         S3Client::builder,

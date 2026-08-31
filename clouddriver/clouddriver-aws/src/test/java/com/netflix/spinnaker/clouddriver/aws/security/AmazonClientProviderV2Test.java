@@ -103,6 +103,7 @@ class AmazonClientProviderV2Test {
   void getAmazonRoute53V2ReturnsRoute53Client() {
     Route53Client client = provider.getAmazonRoute53V2(creds, REGION);
     assertThat(client).isNotNull().isInstanceOf(Route53Client.class);
+  }
 
   @Test
   void getAmazonS3V2ReturnsS3Client() {
