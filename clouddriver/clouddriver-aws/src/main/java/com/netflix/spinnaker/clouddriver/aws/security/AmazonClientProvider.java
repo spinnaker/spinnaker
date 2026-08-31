@@ -490,21 +490,6 @@ public class AmazonClientProvider {
   }
 
   public AmazonElasticLoadBalancing getAmazonElasticLoadBalancing(
-      NetflixAmazonCredentials amazonCredentials, String region) {
-    return getAmazonElasticLoadBalancing(amazonCredentials, region, false);
-  }
-
-  public AmazonElasticLoadBalancing getAmazonElasticLoadBalancing(
-      NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
-    return proxyHandlerBuilder.getProxyHandler(
-        AmazonElasticLoadBalancing.class,
-        AmazonElasticLoadBalancingClientBuilder.class,
-        amazonCredentials,
-        region,
-        skipEdda);
-  }
-
-  public AmazonElasticLoadBalancing getAmazonElasticLoadBalancing(
       String accountName, AWSCredentialsProvider awsCredentialsProvider, String region) {
     return awsSdkClientSupplier.getClient(
         AmazonElasticLoadBalancingClientBuilder.class,
@@ -512,22 +497,6 @@ public class AmazonClientProvider {
         accountName,
         awsCredentialsProvider,
         region);
-  }
-
-  public com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing
-      getAmazonElasticLoadBalancingV2(NetflixAmazonCredentials amazonCredentials, String region) {
-    return getAmazonElasticLoadBalancingV2(amazonCredentials, region, false);
-  }
-
-  public com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing
-      getAmazonElasticLoadBalancingV2(
-          NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
-    return proxyHandlerBuilder.getProxyHandler(
-        com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing.class,
-        com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancingClientBuilder.class,
-        amazonCredentials,
-        region,
-        skipEdda);
   }
 
   public com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing

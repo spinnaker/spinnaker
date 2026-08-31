@@ -23,7 +23,7 @@ import software.amazon.awssdk.services.autoscaling.model.LaunchTemplateSpecifica
 import software.amazon.awssdk.services.ec2.model.DescribeSubnetsRequest
 import software.amazon.awssdk.services.ec2.model.LaunchTemplateVersion
 import software.amazon.awssdk.services.ec2.model.ResponseLaunchTemplateData
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsRequest
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeTargetGroupsRequest
 import com.netflix.frigga.Names
 import com.netflix.frigga.autoscaling.AutoScalingGroupNameBuilder
 import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AsgConfigHelper
@@ -254,8 +254,8 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
         newDescription.loadBalancers = description.loadBalancers != null ? description.loadBalancers : ancestorAsg.loadBalancerNames()
         newDescription.targetGroups = description.targetGroups
         if (newDescription.targetGroups == null && ancestorAsg.targetGroupARNs() && ancestorAsg.targetGroupARNs().size() > 0) {
-          def targetGroups = sourceRegionScopedProvider.getAmazonElasticLoadBalancingV2(true).describeTargetGroups(new DescribeTargetGroupsRequest().withTargetGroupArns(ancestorAsg.targetGroupARNs())).targetGroups
-          def targetGroupNames = targetGroups.collect { it.targetGroupName }
+          def targetGroups = sourceRegionScopedProvider.getElasticLoadBalancingV2Client().describeTargetGroups(DescribeTargetGroupsRequest.builder().targetGroupArns(ancestorAsg.targetGroupARNs()).build()).targetGroups()
+          def targetGroupNames = targetGroups.collect { it.targetGroupName() }
           newDescription.targetGroups = targetGroupNames
         }
 
