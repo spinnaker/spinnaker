@@ -12,10 +12,8 @@ import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer
 import com.netflix.spectator.api.Spectator
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
-import com.netflix.spinnaker.clouddriver.aws.edda.EddaApi
 import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
-import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import spock.lang.Shared
 import spock.lang.Specification
@@ -29,12 +27,6 @@ class AmazonLoadBalancerCachingAgentSpec extends Specification {
 
   @Shared
   ElasticLoadBalancingClient elasticLoadBalancing = Mock(ElasticLoadBalancingClient)
-
-  @Shared
-  EddaApi eddaApi = Mock(EddaApi)
-
-  @Shared
-  EddaTimeoutConfig eddaTimeoutConfig = Mock(EddaTimeoutConfig)
 
   @Shared
   AmazonCachingAgentFilter filter = new AmazonCachingAgentFilter()
@@ -61,7 +53,7 @@ class AmazonLoadBalancerCachingAgentSpec extends Specification {
       }
     }
 
-    new AmazonLoadBalancerCachingAgent(cloud, client, creds, region, eddaApi, AmazonObjectMapperConfigurer.createConfigured().registerModule(new AwsSdkV2Module()), Spectator.globalRegistry(), filter)
+    new AmazonLoadBalancerCachingAgent(cloud, client, creds, region, AmazonObjectMapperConfigurer.createConfigured().registerModule(new AwsSdkV2Module()), Spectator.globalRegistry(), filter)
   }
 
   void "should filter by tags"() {
