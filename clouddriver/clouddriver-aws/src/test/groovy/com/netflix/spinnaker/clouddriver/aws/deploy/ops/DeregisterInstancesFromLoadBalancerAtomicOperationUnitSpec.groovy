@@ -18,10 +18,10 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
 import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
 import software.amazon.awssdk.services.autoscaling.model.Instance
-import com.amazonaws.services.elasticloadbalancing.model.DeregisterInstancesFromLoadBalancerRequest
-import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRequest
-import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersResult
-import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
+import software.amazon.awssdk.services.elasticloadbalancing.model.DeregisterInstancesFromLoadBalancerRequest
+import software.amazon.awssdk.services.elasticloadbalancing.model.DescribeLoadBalancersRequest
+import software.amazon.awssdk.services.elasticloadbalancing.model.DescribeLoadBalancersResponse
+import software.amazon.awssdk.services.elasticloadbalancing.model.LoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerLookupHelper
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -57,8 +57,8 @@ class DeregisterInstancesFromLoadBalancerAtomicOperationUnitSpec extends Instanc
     then:
     1 * asgService.getAutoScalingGroup(description.asgName) >> asg
     1 * loadBalancing.deregisterInstancesFromLoadBalancer(_) >> { DeregisterInstancesFromLoadBalancerRequest req ->
-      assert req.instances*.instanceId == description.instanceIds
-      assert req.loadBalancerName == "lb1"
+      assert req.instances()*.instanceId() == description.instanceIds
+      assert req.loadBalancerName() == "lb1"
     }
   }
 
@@ -88,10 +88,10 @@ class DeregisterInstancesFromLoadBalancerAtomicOperationUnitSpec extends Instanc
 
     then:
     0 * asgService.getAutoScalingGroup(_)
-    2 * loadBalancing.describeLoadBalancers(_) >> { DescribeLoadBalancersRequest req -> new DescribeLoadBalancersResult().withLoadBalancerDescriptions(new LoadBalancerDescription().withLoadBalancerName(req.loadBalancerNames[0]))}
+    2 * loadBalancing.describeLoadBalancers(_) >> { DescribeLoadBalancersRequest req -> DescribeLoadBalancersResponse.builder().loadBalancerDescriptions(LoadBalancerDescription.builder().loadBalancerName(req.loadBalancerNames()[0]).build()).build()}
     2 * loadBalancing.deregisterInstancesFromLoadBalancer(_) >> { DeregisterInstancesFromLoadBalancerRequest req ->
-      assert req.instances*.instanceId == description.instanceIds
-      assert description.loadBalancerNames.contains(req.loadBalancerName)
+      assert req.instances()*.instanceId() == description.instanceIds
+      assert description.loadBalancerNames.contains(req.loadBalancerName())
     }
   }
 

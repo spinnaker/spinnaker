@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer
 
 import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRequest
-import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerNotFoundException
+import software.amazon.awssdk.services.elasticloadbalancing.model.DescribeLoadBalancersRequest
+import software.amazon.awssdk.services.elasticloadbalancing.model.LoadBalancerNotFoundException
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
 
 class LoadBalancerLookupHelper {
@@ -43,10 +43,10 @@ class LoadBalancerLookupHelper {
     if (!allLoadBalancers) {
       return result
     }
-    def elbClassic = rsp.getAmazonElasticLoadBalancing()
+    def elbClassic = rsp.getAmazonElasticLoadBalancingClassicV2()
     for (String lbName : allLoadBalancers) {
       try {
-        def foo = elbClassic.describeLoadBalancers(new DescribeLoadBalancersRequest().withLoadBalancerNames(lbName))
+        def foo = elbClassic.describeLoadBalancers(DescribeLoadBalancersRequest.builder().loadBalancerNames(lbName).build())
         result.classicLoadBalancers.add(lbName)
       } catch (LoadBalancerNotFoundException loadBalancerNotFoundException) {
         // ignore

@@ -16,15 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer
 
-import com.amazonaws.AmazonServiceException
 import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsRequest
-import com.amazonaws.services.elasticloadbalancingv2.model.LoadBalancerNotFoundException
-import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroupNotFoundException
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeTargetGroupsRequest
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.LoadBalancerNotFoundException
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetGroupNotFoundException
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
-
-import java.lang.reflect.InvocationTargetException
-import java.lang.reflect.UndeclaredThrowableException
 
 class TargetGroupLookupHelper {
 
@@ -48,40 +44,17 @@ class TargetGroupLookupHelper {
     if (!allTargetGroups) {
       return result
     }
-    def lbv2 = rsp.getAmazonElasticLoadBalancingV2(false)
+    def lbv2 = rsp.getElasticLoadBalancingV2Client()
     Set<String> targetGroups = []
     for (String targetGroupName : allTargetGroups) {
       try {
-        def targetGroup = lbv2.describeTargetGroups(new DescribeTargetGroupsRequest().withNames(targetGroupName)).targetGroups.first()
+        def targetGroup = lbv2.describeTargetGroups(DescribeTargetGroupsRequest.builder().names(targetGroupName).build()).targetGroups().first()
         targetGroups.add(targetGroupName)
-        result.targetGroupARNs.add(targetGroup.targetGroupArn)
+        result.targetGroupARNs.add(targetGroup.targetGroupArn())
       } catch (LoadBalancerNotFoundException ignore) {
         // ignore
       } catch (TargetGroupNotFoundException ignore) {
         // ignore
-      } catch (UndeclaredThrowableException e) {
-        // There are edda calls hidden behind an .invoke from Aws SDK. Exceptions from
-        // those methods show up wrapped in UndeclaredThrowable and/or InvocationTarget
-        // If it is a legitimate failure, makes sense to throw the actual error
-        boolean rethrow = true
-        Throwable toRethrow = e.undeclaredThrowable
-
-        if (e.undeclaredThrowable instanceof InvocationTargetException) {
-          InvocationTargetException ite = (InvocationTargetException)e.undeclaredThrowable
-
-          toRethrow = ite.targetException
-          if (ite.targetException instanceof AmazonServiceException) {
-            AmazonServiceException ase = (AmazonServiceException)ite.targetException
-
-            if (ase.statusCode == 404) {
-              rethrow = false
-            }
-          }
-        }
-
-        if (rethrow) {
-          throw toRethrow
-        }
       }
     }
 
