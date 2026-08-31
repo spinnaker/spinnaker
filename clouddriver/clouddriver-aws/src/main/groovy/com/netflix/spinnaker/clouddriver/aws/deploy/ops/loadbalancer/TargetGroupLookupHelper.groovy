@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer
 
 import com.amazonaws.AmazonServiceException
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsRequest
 import com.amazonaws.services.elasticloadbalancingv2.model.LoadBalancerNotFoundException
 import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroupNotFoundException
