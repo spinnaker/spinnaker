@@ -16,11 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
-import software.amazon.awssdk.services.cloudwatch.model.ComparisonOperator
 import software.amazon.awssdk.services.cloudwatch.model.Dimension
 import software.amazon.awssdk.services.cloudwatch.model.PutMetricAlarmRequest
-import software.amazon.awssdk.services.cloudwatch.model.StandardUnit
-import software.amazon.awssdk.services.cloudwatch.model.Statistic
 import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupsNameable
 
 class UpsertAlarmDescription extends AbstractAmazonCredentialsDescription implements ServerGroupsNameable {
@@ -31,7 +28,7 @@ class UpsertAlarmDescription extends AbstractAmazonCredentialsDescription implem
   Boolean actionsEnabled = true
 
   String alarmDescription
-  ComparisonOperator comparisonOperator
+  String comparisonOperator
 
   Collection<Dimension> dimensions
 
@@ -42,9 +39,9 @@ class UpsertAlarmDescription extends AbstractAmazonCredentialsDescription implem
   String namespace
   String metricName
 
-  Statistic statistic
+  String statistic
 
-  StandardUnit unit
+  String unit
 
   Collection<String> alarmActionArns
   Collection<String> insufficientDataActionArns
