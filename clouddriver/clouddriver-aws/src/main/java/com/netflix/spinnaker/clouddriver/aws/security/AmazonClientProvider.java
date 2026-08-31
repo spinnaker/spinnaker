@@ -36,8 +36,6 @@ import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing;
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancingClientBuilder;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClientBuilder;
-import com.amazonaws.services.route53.AmazonRoute53;
-import com.amazonaws.services.route53.AmazonRoute53ClientBuilder;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
 import com.amazonaws.services.servicediscovery.AWSServiceDiscovery;
@@ -69,6 +67,7 @@ import software.amazon.awssdk.services.elasticloadbalancing.ElasticLoadBalancing
 import software.amazon.awssdk.services.elasticloadbalancingv2.ElasticLoadBalancingV2Client;
 import software.amazon.awssdk.services.iam.IamClient;
 import software.amazon.awssdk.services.lambda.LambdaClient;
+import software.amazon.awssdk.services.route53.Route53Client;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.servicediscovery.ServiceDiscoveryClient;
@@ -463,26 +462,6 @@ public class AmazonClientProvider {
         region);
   }
 
-  public AmazonRoute53 getAmazonRoute53(NetflixAmazonCredentials amazonCredentials, String region) {
-    return getAmazonRoute53(amazonCredentials, region, false);
-  }
-
-  public AmazonRoute53 getAmazonRoute53(
-      NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
-    return proxyHandlerBuilder.getProxyHandler(
-        AmazonRoute53.class, AmazonRoute53ClientBuilder.class, amazonCredentials, region, skipEdda);
-  }
-
-  public AmazonRoute53 getAmazonRoute53(
-      String accountName, AWSCredentialsProvider awsCredentialsProvider, String region) {
-    return awsSdkClientSupplier.getClient(
-        AmazonRoute53ClientBuilder.class,
-        AmazonRoute53.class,
-        accountName,
-        awsCredentialsProvider,
-        region);
-  }
-
   public AmazonElasticLoadBalancing getAmazonElasticLoadBalancing(
       String accountName, AWSCredentialsProvider awsCredentialsProvider, String region) {
     return awsSdkClientSupplier.getClient(
@@ -744,11 +723,18 @@ public class AmazonClientProvider {
         amazonCredentials.getName());
   }
 
-  /**
-   * Returns an AWS SDK v2 {@link S3Client} for the given account and region.
-   *
-   * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
-   */
+  /** Returns an AWS SDK v2 {@link Route53Client} for the given account and region. */
+  public Route53Client getAmazonRoute53V2(
+      NetflixAmazonCredentials amazonCredentials, String region) {
+    return awsSdkV2ClientSupplier.getClient(
+        Route53Client::builder,
+        Route53Client.class,
+        amazonCredentials.getV2CredentialsProvider(),
+        region,
+        amazonCredentials.getName());
+  }
+
+  /** Returns an AWS SDK v2 {@link S3Client} for the given account and region. */
   public S3Client getAmazonS3V2(NetflixAmazonCredentials amazonCredentials, String region) {
     return awsSdkV2ClientSupplier.getClient(
         S3Client::builder,

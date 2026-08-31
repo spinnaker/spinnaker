@@ -43,6 +43,7 @@ dependencies {
   api "software.amazon.awssdk:iam"
   api "software.amazon.awssdk:iam-policy-builder"
   api "software.amazon.awssdk:lambda"
+  api "software.amazon.awssdk:route53"
   api "software.amazon.awssdk:s3"
   api "software.amazon.awssdk:secretsmanager"
   api "software.amazon.awssdk:servicediscovery"
