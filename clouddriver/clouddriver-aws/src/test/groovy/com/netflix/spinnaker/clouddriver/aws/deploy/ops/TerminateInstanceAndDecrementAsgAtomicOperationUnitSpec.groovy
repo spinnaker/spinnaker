@@ -22,9 +22,9 @@ import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGrou
 import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsResponse
 import software.amazon.awssdk.services.autoscaling.model.TerminateInstanceInAutoScalingGroupRequest
 import software.amazon.awssdk.services.autoscaling.model.UpdateAutoScalingGroupRequest
-import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing
-import com.amazonaws.services.elasticloadbalancing.model.DeregisterInstancesFromLoadBalancerRequest
-import com.amazonaws.services.elasticloadbalancing.model.Instance
+import software.amazon.awssdk.services.elasticloadbalancing.ElasticLoadBalancingClient
+import software.amazon.awssdk.services.elasticloadbalancing.model.DeregisterInstancesFromLoadBalancerRequest
+import software.amazon.awssdk.services.elasticloadbalancing.model.Instance
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -72,10 +72,10 @@ class TerminateInstanceAndDecrementAsgAtomicOperationUnitSpec extends Specificat
   void "operation deregisters instances from load balancers"() {
     setup:
     def mockAutoScaling = Mock(AutoScalingClient)
-    def mockLoadBalancing = Mock(AmazonElasticLoadBalancing)
+    def mockLoadBalancing = Mock(ElasticLoadBalancingClient)
     def mockAmazonClientProvider = Stub(AmazonClientProvider) {
       getAutoScalingV2(_, _) >> mockAutoScaling
-      getAmazonElasticLoadBalancing(_, _, true) >> mockLoadBalancing
+      getAmazonElasticLoadBalancingClassicV2(_, _) >> mockLoadBalancing
     }
     def description = new TerminateInstanceAndDecrementAsgDescription(asgName: "myasg-stack-v000", region: "us-west-1", instance: "i-123456")
     description.credentials = TestCredential.named('baz')
@@ -98,8 +98,8 @@ class TerminateInstanceAndDecrementAsgAtomicOperationUnitSpec extends Specificat
       DescribeAutoScalingGroupsResponse.builder().autoScalingGroups(asg).build()
     }
     1 * mockLoadBalancing.deregisterInstancesFromLoadBalancer(_) >> { DeregisterInstancesFromLoadBalancerRequest request ->
-      assert request.instances == [new Instance('i-123456')]
-      assert request.loadBalancerName == 'myasg--frontend'
+      assert request.instances() == [Instance.builder().instanceId('i-123456').build()]
+      assert request.loadBalancerName() == 'myasg--frontend'
     }
     1 * mockAutoScaling.terminateInstanceInAutoScalingGroup(_) >> { TerminateInstanceInAutoScalingGroupRequest request ->
       assert request.instanceId == "i-123456"

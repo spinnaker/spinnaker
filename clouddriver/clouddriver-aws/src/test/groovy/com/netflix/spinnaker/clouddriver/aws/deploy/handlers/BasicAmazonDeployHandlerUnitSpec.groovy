@@ -38,14 +38,14 @@ import software.amazon.awssdk.services.ec2.model.LaunchTemplateVersion
 import software.amazon.awssdk.services.ec2.model.ProcessorInfo
 import software.amazon.awssdk.services.ec2.model.ResponseLaunchTemplateData
 import software.amazon.awssdk.services.ec2.model.VpcClassicLink
-import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing as AmazonELBV1
-import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersResult
-import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
-import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerNotFoundException as LBNFEV1
-import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsRequest
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsResult
-import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroup
+import software.amazon.awssdk.services.elasticloadbalancing.ElasticLoadBalancingClient
+import software.amazon.awssdk.services.elasticloadbalancing.model.DescribeLoadBalancersResponse
+import software.amazon.awssdk.services.elasticloadbalancing.model.LoadBalancerDescription
+import software.amazon.awssdk.services.elasticloadbalancing.model.LoadBalancerNotFoundException as LBNFEV1
+import software.amazon.awssdk.services.elasticloadbalancingv2.ElasticLoadBalancingV2Client
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeTargetGroupsRequest
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeTargetGroupsResponse
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetGroup
 import com.netflix.spinnaker.clouddriver.aws.deploy.asg.LaunchTemplateRollOutConfig
 import com.netflix.spinnaker.clouddriver.aws.services.LaunchTemplateService
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
@@ -99,8 +99,8 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
   Task task = Mock(Task)
 
   Ec2Client amazonEC2 = Mock(Ec2Client)
-  AmazonElasticLoadBalancing elbV2 = Mock(AmazonElasticLoadBalancing)
-  AmazonELBV1 elbV1 = Mock(AmazonELBV1)
+  ElasticLoadBalancingV2Client elbV2 = Mock(ElasticLoadBalancingV2Client)
+  ElasticLoadBalancingClient elbV1 = Mock(ElasticLoadBalancingClient)
   AwsConfiguration.AmazonServerGroupProvider amazonServerGroupProvider = Mock(AwsConfiguration.AmazonServerGroupProvider)
 
   String instanceType
@@ -120,8 +120,8 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
       forRegion(_, _) >> Stub(RegionScopedProviderFactory.RegionScopedProvider) {
         getAutoScaling() >> Stub(AutoScalingClient)
         getAmazonEC2() >> amazonEC2
-        getAmazonElasticLoadBalancingV2(_) >> elbV2
-        getAmazonElasticLoadBalancing() >> elbV1
+        getElasticLoadBalancingV2Client() >> elbV2
+        getAmazonElasticLoadBalancingClassicV2() >> elbV1
       }
     }
     def defaults = new AwsConfiguration.DeployDefaults(iamRole: 'IamRole')
@@ -195,7 +195,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     then:
     setlbCalls
     classicLbs == ['lb']
-    1 * elbV1.describeLoadBalancers(_) >> new DescribeLoadBalancersResult().withLoadBalancerDescriptions(new LoadBalancerDescription().withLoadBalancerName("lb"))
+    1 * elbV1.describeLoadBalancers(_) >> DescribeLoadBalancersResponse.builder().loadBalancerDescriptions(LoadBalancerDescription.builder().loadBalancerName("lb").build()).build()
     1 * amazonEC2.describeVpcClassicLink() >> DescribeVpcClassicLinkResponse.builder().build()
   }
 
@@ -213,7 +213,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     handler.handle(description, [])
 
     then:
-    1 * elbV1.describeLoadBalancers(_) >> new DescribeLoadBalancersResult().withLoadBalancerDescriptions(new LoadBalancerDescription().withLoadBalancerName("lb"))
+    1 * elbV1.describeLoadBalancers(_) >> DescribeLoadBalancersResponse.builder().loadBalancerDescriptions(LoadBalancerDescription.builder().loadBalancerName("lb").build()).build()
     1 * amazonEC2.describeVpcClassicLink() >> DescribeVpcClassicLinkResponse.builder().build()
 
     classicLbs == ['lb']
@@ -254,7 +254,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     handler.handle(description, [])
 
     then:
-    1 * elbV2.describeTargetGroups(new DescribeTargetGroupsRequest().withNames("tg")) >> new DescribeTargetGroupsResult().withTargetGroups(new TargetGroup().withTargetGroupArn("arn:lb:targetGroup1"))
+    1 * elbV2.describeTargetGroups(DescribeTargetGroupsRequest.builder().names("tg").build()) >> DescribeTargetGroupsResponse.builder().targetGroups(TargetGroup.builder().targetGroupArn("arn:lb:targetGroup1").build()).build()
     1 * amazonEC2.describeVpcClassicLink() >> DescribeVpcClassicLinkResponse.builder().build()
 
     targetGroupARNs == ['arn:lb:targetGroup1']
@@ -269,7 +269,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     handler.handle(description, [])
 
     then:
-    1 * elbV1.describeLoadBalancers(_) >> { throw new LBNFEV1("not found") }
+    1 * elbV1.describeLoadBalancers(_) >> { throw LBNFEV1.builder().message("not found").build() }
 
     thrown(IllegalStateException)
 
