@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.model
 
-import com.amazonaws.services.cloudwatch.model.GetMetricStatisticsResult
+import software.amazon.awssdk.services.cloudwatch.model.GetMetricStatisticsResponse
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.netflix.spinnaker.clouddriver.model.CloudMetricStatistics
 import groovy.transform.Immutable
@@ -28,13 +28,12 @@ class AmazonMetricStatistics implements CloudMetricStatistics<AmazonMetricDatapo
   String unit
   List<AmazonMetricDatapoint> datapoints
 
-  static AmazonMetricStatistics from(GetMetricStatisticsResult result) {
-    def datapoints = result.datapoints
-        .sort { a, b -> a.timestamp <=> b.timestamp }
-        .findResults {
-          new AmazonMetricDatapoint(it.timestamp, it.average, it.sum, it.sampleCount, it.minimum, it.maximum)
+  static AmazonMetricStatistics from(GetMetricStatisticsResponse result) {
+    def sortedRawDatapoints = result.datapoints().sort(false) { a, b -> a.timestamp() <=> b.timestamp() }
+    def datapoints = sortedRawDatapoints.findResults {
+          new AmazonMetricDatapoint(Date.from(it.timestamp()), it.average(), it.sum(), it.sampleCount(), it.minimum(), it.maximum())
         } as List
-    def unit = result.datapoints ? result.datapoints[0].unit : null
+    def unit = sortedRawDatapoints ? sortedRawDatapoints[0].unitAsString() : null
 
     new AmazonMetricStatistics(unit, datapoints)
   }
