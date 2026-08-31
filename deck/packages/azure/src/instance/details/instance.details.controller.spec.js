@@ -68,62 +68,52 @@ describe('Controller: azureInstanceDetailsCtrl', function () {
     });
   });
 
-  describe('canRegister methods', function () {
-    beforeEach(function () {
-      var details = {};
-      var params = {
-        instanceId: 'i-123',
-        region: 'us-west-1',
-        account: 'test',
-      };
+  describe('instance actions', function () {
+    function buildController(instanceOverrides) {
+      var params = { instanceId: 'myapp-dev-v086_3', region: 'westus', account: 'test' };
 
-      spyOn(InstanceReader, 'getInstanceDetails').and.returnValue(
-        $q.when({
-          plain: function () {
-            return details;
-          },
-        }),
-      );
+      spyOn(InstanceReader, 'getInstanceDetails').and.returnValue($q.when({ health: [] }));
 
-      application.loadBalancers.loaded = true;
       application.serverGroups.data = [
         {
+          name: 'myapp-dev-v086',
           account: 'test',
-          region: 'us-west-1',
-          instances: [
-            {
-              id: 'i-123',
-              health: [{ type: 'Discovery', state: 'Up', reason: 'original reason' }],
-            },
-          ],
+          region: 'westus',
+          loadBalancers: [],
+          instances: [Object.assign({ name: 'myapp-dev-v086_3', health: [] }, instanceOverrides || {})],
         },
       ];
       application.serverGroups.loaded = true;
+      application.loadBalancers.loaded = true;
 
       this.createController(application, params);
       scope.$digest();
+    }
+
+    it('matches a server group instance by name when it has no id', function () {
+      buildController.call(this);
+
+      expect(scope.instance).toBeDefined();
+      expect(scope.instance.id).toBe('myapp-dev-v086_3');
+      expect(scope.instance.serverGroup).toBe('myapp-dev-v086');
     });
 
-    it('can register with discovery when discovery', function () {
-      expect(controller.canRegisterWithDiscovery()).toBe(false);
-      scope.instance.health[0].state = 'OutOfService';
-      expect(controller.canRegisterWithDiscovery()).toBe(true);
-      scope.instance.health[0].state = 'Down';
-      expect(controller.canRegisterWithDiscovery()).toBe(false);
-      scope.instance.health = [];
-      expect(controller.canRegisterWithDiscovery()).toBe(false);
+    it('offers reboot, terminate, and terminate and shrink', function () {
+      buildController.call(this);
+
+      expect(scope.instanceActions.map((a) => a.label)).toEqual([
+        'Reboot',
+        'Terminate',
+        'Terminate and Shrink Server Group',
+      ]);
     });
 
-    it('can register with load balancer', function () {
-      expect(controller.canRegisterWithLoadBalancer()).toBe(false);
-      scope.instance.health[0].type = 'LoadBalancer';
-      scope.instance.health[0].state = 'OutOfService';
-      expect(controller.canRegisterWithLoadBalancer()).toBe(false);
-      // add a load balancer
-      scope.instance.loadBalancers = ['elb-1'];
-      expect(controller.canRegisterWithLoadBalancer()).toBe(true);
-      scope.instance.health[0].state = 'Up';
-      expect(controller.canRegisterWithLoadBalancer()).toBe(false);
+    it('omits terminate and shrink when the instance has no server group', function () {
+      buildController.call(this);
+      scope.instance.serverGroup = null;
+      scope.instanceActions = controller.constructInstanceActions(scope.instance);
+
+      expect(scope.instanceActions.map((a) => a.label)).toEqual(['Reboot', 'Terminate']);
     });
   });
 });

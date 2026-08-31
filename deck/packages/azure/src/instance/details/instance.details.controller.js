@@ -5,13 +5,9 @@ import { module } from 'angular';
 import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
 import _ from 'lodash';
 
-import {
-  CloudProviderRegistry,
-  ConfirmationModalService,
-  InstanceReader,
-  InstanceWriter,
-  RecentHistoryService,
-} from '@spinnaker/core';
+import { CloudProviderRegistry, ConfirmationModalService, InstanceReader, RecentHistoryService } from '@spinnaker/core';
+
+import { AzureInstanceWriter } from '../azure.instance.write.service';
 
 export const AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER = 'spinnaker.azure.instance.detail.controller';
 export const name = AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER; // for backwards compatibility
@@ -69,7 +65,7 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [UIROUTER_ANGULARJS, 
         } else {
           app.serverGroups.data.some(function (serverGroup) {
             return serverGroup.instances.some(function (possibleInstance) {
-              if (possibleInstance.id === instance.instanceId) {
+              if (possibleInstance.id === instance.instanceId || possibleInstance.name === instance.instanceId) {
                 instanceSummary = possibleInstance;
                 loadBalancers = serverGroup.loadBalancers;
                 account = serverGroup.account;
@@ -85,7 +81,7 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [UIROUTER_ANGULARJS, 
             // perhaps it is in a server group that is part of another app
             app.loadBalancers.data.some(function (loadBalancer) {
               return loadBalancer.instances.some(function (possibleInstance) {
-                if (possibleInstance.id === instance.instanceId) {
+                if (possibleInstance.id === instance.instanceId || possibleInstance.name === instance.instanceId) {
                   instanceSummary = possibleInstance;
                   loadBalancers = [loadBalancer.name];
                   account = loadBalancer.account;
@@ -103,7 +99,7 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [UIROUTER_ANGULARJS, 
                     return false;
                   }
                   return serverGroup.instances.some(function (possibleInstance) {
-                    if (possibleInstance.id === instance.instanceId) {
+                    if (possibleInstance.id === instance.instanceId || possibleInstance.name === instance.instanceId) {
                       instanceSummary = possibleInstance;
                       loadBalancers = [loadBalancer.name];
                       account = loadBalancer.account;
@@ -131,6 +127,10 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [UIROUTER_ANGULARJS, 
               $scope.instance.region = region;
               $scope.instance.vpcId = vpcId;
               $scope.instance.loadBalancers = loadBalancers;
+              // AzureInstance carries a name but no id; the terminate and reboot jobs address
+              // instances by id, and the writer needs serverGroup to send serverGroupName.
+              $scope.instance.id = $scope.instance.id || instance.instanceId;
+              $scope.instance.serverGroup = $scope.instance.serverGroup || extraData.serverGroup;
               const discoveryMetric = _.find($scope.healthMetrics, function (metric) {
                 return metric.type === 'Discovery';
               });
@@ -157,34 +157,6 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [UIROUTER_ANGULARJS, 
         return $q.when(null);
       }
 
-      this.canDeregisterFromLoadBalancer = function () {
-        return $scope.instance.health.some(function (health) {
-          return health.type === 'LoadBalancer';
-        });
-      };
-
-      this.canRegisterWithLoadBalancer = function () {
-        const instance = $scope.instance;
-        if (!instance.loadBalancers || !instance.loadBalancers.length) {
-          return false;
-        }
-        const outOfService = instance.health.some(function (health) {
-          return health.type === 'LoadBalancer' && health.state === 'OutOfService';
-        });
-        const hasLoadBalancerHealth = instance.health.some(function (health) {
-          return health.type === 'LoadBalancer';
-        });
-        return outOfService || !hasLoadBalancerHealth;
-      };
-
-      this.canRegisterWithDiscovery = function () {
-        const instance = $scope.instance;
-        const discoveryHealth = instance.health.filter(function (health) {
-          return health.type === 'Discovery';
-        });
-        return discoveryHealth.length ? discoveryHealth[0].state === 'OutOfService' : false;
-      };
-
       this.terminateInstance = function terminateInstance() {
         const instance = $scope.instance;
 
@@ -199,7 +171,7 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [UIROUTER_ANGULARJS, 
         };
 
         const submitMethod = function () {
-          return InstanceWriter.terminateInstance(instance, app);
+          return AzureInstanceWriter.terminateInstance(instance, app);
         };
 
         ConfirmationModalService.confirm({
@@ -225,7 +197,7 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [UIROUTER_ANGULARJS, 
         };
 
         const submitMethod = function () {
-          return InstanceWriter.terminateInstanceAndShrinkServerGroup(instance, app);
+          return AzureInstanceWriter.terminateInstanceAndShrinkServerGroup(instance, app);
         };
 
         ConfirmationModalService.confirm({
@@ -246,7 +218,7 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [UIROUTER_ANGULARJS, 
         };
 
         const submitMethod = function () {
-          return InstanceWriter.rebootInstance(instance, app);
+          return AzureInstanceWriter.rebootInstance(instance, app);
         };
 
         ConfirmationModalService.confirm({
@@ -258,97 +230,20 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [UIROUTER_ANGULARJS, 
         });
       };
 
-      this.registerInstanceWithLoadBalancer = function registerInstanceWithLoadBalancer() {
-        const instance = $scope.instance;
-        const loadBalancerNames = instance.loadBalancers.join(' and ');
+      this.constructInstanceActions = (instance) => {
+        const actions = [
+          { label: 'Reboot', triggerAction: this.rebootInstance },
+          { label: 'Terminate', triggerAction: this.terminateInstance },
+        ];
 
-        const taskMonitor = {
-          application: app,
-          title: 'Registering ' + instance.instanceId + ' with ' + loadBalancerNames,
-        };
+        if (instance.serverGroup) {
+          actions.push({
+            label: 'Terminate and Shrink Server Group',
+            triggerAction: this.terminateInstanceAndShrinkServerGroup,
+          });
+        }
 
-        const submitMethod = function () {
-          return InstanceWriter.registerInstanceWithLoadBalancer(instance, app);
-        };
-
-        ConfirmationModalService.confirm({
-          header: 'Really register ' + instance.instanceId + ' with ' + loadBalancerNames + '?',
-          buttonText: 'Register ' + instance.instanceId,
-          account: instance.account,
-          taskMonitorConfig: taskMonitor,
-          submitMethod: submitMethod,
-        });
-      };
-
-      this.deregisterInstanceFromLoadBalancer = function deregisterInstanceFromLoadBalancer() {
-        const instance = $scope.instance;
-        const loadBalancerNames = instance.loadBalancers.join(' and ');
-
-        const taskMonitor = {
-          application: app,
-          title: 'Deregistering ' + instance.instanceId + ' from ' + loadBalancerNames,
-        };
-
-        const submitMethod = function () {
-          return InstanceWriter.deregisterInstanceFromLoadBalancer(instance, app);
-        };
-
-        ConfirmationModalService.confirm({
-          header: 'Really deregister ' + instance.instanceId + ' from ' + loadBalancerNames + '?',
-          buttonText: 'Deregister ' + instance.instanceId,
-          account: instance.account,
-          taskMonitorConfig: taskMonitor,
-          submitMethod: submitMethod,
-        });
-      };
-
-      this.enableInstanceInDiscovery = function enableInstanceInDiscovery() {
-        const instance = $scope.instance;
-
-        const taskMonitor = {
-          application: app,
-          title: 'Enabling ' + instance.instanceId + ' in discovery',
-        };
-
-        const submitMethod = function () {
-          return InstanceWriter.enableInstanceInDiscovery(instance, app);
-        };
-
-        ConfirmationModalService.confirm({
-          header: 'Really enable ' + instance.instanceId + ' in discovery?',
-          buttonText: 'Enable ' + instance.instanceId,
-          account: instance.account,
-          taskMonitorConfig: taskMonitor,
-          submitMethod: submitMethod,
-        });
-      };
-
-      this.disableInstanceInDiscovery = function disableInstanceInDiscovery() {
-        const instance = $scope.instance;
-
-        const taskMonitor = {
-          application: app,
-          title: 'Disabling ' + instance.instanceId + ' in discovery',
-        };
-
-        const submitMethod = function () {
-          return InstanceWriter.disableInstanceInDiscovery(instance, app);
-        };
-
-        ConfirmationModalService.confirm({
-          header: 'Really disable ' + instance.instanceId + ' in discovery?',
-          buttonText: 'Disable ' + instance.instanceId,
-          account: instance.account,
-          taskMonitorConfig: taskMonitor,
-          submitMethod: submitMethod,
-        });
-      };
-
-      this.hasHealthState = function hasHealthState(healthProviderType, state) {
-        const instance = $scope.instance;
-        return instance.health.some(function (health) {
-          return health.type === healthProviderType && health.state === state;
-        });
+        return actions;
       };
 
       const initialize = app.isStandalone
@@ -356,6 +251,9 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [UIROUTER_ANGULARJS, 
         : $q.all([app.serverGroups.ready(), app.loadBalancers.ready()]).then(retrieveInstance);
 
       initialize.then(() => {
+        if ($scope.instance) {
+          $scope.instanceActions = this.constructInstanceActions($scope.instance);
+        }
         // Two things to look out for here:
         //  1. If the retrieveInstance call completes *after* the user has navigated away from the view, there
         //     is no point in subscribing to the refresh

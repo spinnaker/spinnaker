@@ -2,6 +2,7 @@
 
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import * as angular from 'angular';
+import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
 import _ from 'lodash';
 
 import {
@@ -23,6 +24,7 @@ export const name = AZURE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_AZURE_CONTROLLE
 angular
   .module(AZURE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_AZURE_CONTROLLER, [
     UIROUTER_ANGULARJS,
+    ANGULAR_UI_BOOTSTRAP,
     AZURE_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE,
     SERVER_GROUP_WRITER,
   ])
@@ -254,6 +256,38 @@ angular
               azureServerGroupCommandBuilder.buildServerGroupCommandFromExisting(app, serverGroup),
           },
         });
+      };
+
+      this.isEnableLocked = () => {
+        const serverGroup = $scope.serverGroup;
+        if (!serverGroup.isDisabled) {
+          return false;
+        }
+        return (serverGroup.runningTasks || []).some((task) =>
+          _.get(task, 'execution.stages', []).some((stage) => stage.type === 'resizeServerGroup'),
+        );
+      };
+
+      this.isRollbackEnabled = () => {
+        const serverGroup = $scope.serverGroup;
+        if (!serverGroup.isDisabled) {
+          return true;
+        }
+        return app
+          .getDataSource('serverGroups')
+          .data.some(
+            (g) =>
+              g.cluster === serverGroup.cluster &&
+              g.region === serverGroup.region &&
+              g.account === serverGroup.account &&
+              !g.isDisabled,
+          );
+      };
+
+      this.hasDisabledInstances = () => {
+        const serverGroup = $scope.serverGroup;
+        // a server group may have out-of-service instances without itself being disabled
+        return serverGroup.isDisabled || _.get(serverGroup, 'instanceCounts.outOfService', 0) > 0;
       };
 
       this.truncateCommitHash = function () {

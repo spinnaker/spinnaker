@@ -26,10 +26,18 @@
           Server Group Actions <span class="caret"></span>
         </button>
         <ul class="dropdown-menu" uib-dropdown-menu role="menu">
-          <li><a href ng-if="!serverGroup.isDisabled" ng-click="ctrl.rollbackServerGroup()">Rollback</a></li>
+          <li ng-if="ctrl.isRollbackEnabled()"><a href ng-click="ctrl.rollbackServerGroup()">Rollback</a></li>
+          <li role="presentation" class="divider" ng-if="ctrl.isRollbackEnabled()"></li>
           <li><a href ng-click="ctrl.resizeServerGroup()">Resize</a></li>
-          <li><a href ng-click="ctrl.disableServerGroup()">Disable</a></li>
-          <li><a href ng-click="ctrl.enableServerGroup()">Enable</a></li>
+          <li ng-if="!serverGroup.isDisabled"><a href ng-click="ctrl.disableServerGroup()">Disable</a></li>
+          <li ng-if="ctrl.hasDisabledInstances() && !ctrl.isEnableLocked()">
+            <a href ng-click="ctrl.enableServerGroup()">Enable</a>
+          </li>
+          <li ng-if="ctrl.isEnableLocked()" class="disabled">
+            <a href title="A resize is in progress on this server group">
+              <span class="small glyphicon glyphicon-lock"></span> Enable
+            </a>
+          </li>
           <li><a href ng-click="ctrl.destroyServerGroup()">Destroy</a></li>
           <li><a href ng-click="ctrl.cloneServerGroup(serverGroup)">Clone</a></li>
         </ul>

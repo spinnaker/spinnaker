@@ -6,6 +6,9 @@
       loading="state.loading"
       standalone="state.standalone"
     ></instance-details-header>
+    <div class="actions" ng-if="!state.loading && instance">
+      <instance-actions actions="instanceActions"></instance-actions>
+    </div>
   </div>
   <div class="content" ng-if="!state.loading && instance">
     <collapsible-section heading="Instance Information" expanded="true">

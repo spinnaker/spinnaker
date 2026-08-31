@@ -315,6 +315,73 @@ public class AzureComputeClient extends AzureBaseClient {
   }
 
   /**
+   * Map scale set VM names onto the instance indexes every VMSS API expects.
+   *
+   * An unresolved name is an error rather than a skip: dropping one silently would let a
+   * terminate report success having done nothing.
+   */
+  static List<String> resolveInstanceIds(Collection<AzureInstance> instances, Collection<String> names) {
+    Map<String, String> idsByName = [:]
+    (instances ?: []).each { AzureInstance instance -> idsByName[instance.name] = instance.resourceId }
+    List<String> ids = []
+    names.each { String name ->
+      String id = idsByName[name]
+      if (!id) {
+        throw new IllegalArgumentException("Instance ${name} was not found in the server group")
+      }
+      ids << id
+    }
+    ids
+  }
+
+  List<String> getInstanceIds(String resourceGroupName, String serverGroupName, Collection<String> names) {
+    resolveInstanceIds(getServerGroupInstances(resourceGroupName, serverGroupName), names)
+  }
+
+  void rebootInstances(String resourceGroupName, String serverGroupName, Collection<String> names) {
+    def ids = getInstanceIds(resourceGroupName, serverGroupName, names)
+    executeOp({
+      azure.virtualMachineScaleSets()
+        .getByResourceGroup(resourceGroupName, serverGroupName)
+        .virtualMachines()
+        .restartInstances(ids)
+    })
+  }
+
+  void deleteInstances(String resourceGroupName, String serverGroupName, Collection<String> names) {
+    def ids = getInstanceIds(resourceGroupName, serverGroupName, names)
+    executeOp({
+      azure.virtualMachineScaleSets()
+        .getByResourceGroup(resourceGroupName, serverGroupName)
+        .virtualMachines()
+        .deleteInstances(ids, false)
+    })
+  }
+
+  /**
+   * The fluent SDK exposes no batch reimage, so this reimages one VM at a time. A failure from
+   * reimage() itself can leave preceding VMs in the loop already reimaged.
+   */
+  void reimageInstances(String resourceGroupName, String serverGroupName, Collection<String> names) {
+    List<VirtualMachineScaleSetVM> vms = executeOp({
+      azure.virtualMachineScaleSets()
+        .getByResourceGroup(resourceGroupName, serverGroupName)
+        ?.virtualMachines()?.list()?.asList()
+    }) ?: []
+    Map<String, VirtualMachineScaleSetVM> vmsByName = [:]
+    vms.each { VirtualMachineScaleSetVM vm -> vmsByName[vm.name()] = vm }
+    List<VirtualMachineScaleSetVM> vmsToReimage = []
+    names.each { String name ->
+      VirtualMachineScaleSetVM vm = vmsByName[name]
+      if (!vm) {
+        throw new IllegalArgumentException("Instance ${name} was not found in the server group")
+      }
+      vmsToReimage << vm
+    }
+    vmsToReimage.each { VirtualMachineScaleSetVM vm -> executeOp({ vm.reimage() }) }
+  }
+
+  /**
    * check the scale set's health status using the default timeout
    */
   Boolean waitForScaleSetHealthy(String resourceGroupName, String serverGroupName) {
