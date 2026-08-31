@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
-import com.amazonaws.services.cloudwatch.model.ComparisonOperator
-import com.amazonaws.services.cloudwatch.model.Dimension
-import com.amazonaws.services.cloudwatch.model.PutMetricAlarmRequest
-import com.amazonaws.services.cloudwatch.model.StandardUnit
-import com.amazonaws.services.cloudwatch.model.Statistic
+import software.amazon.awssdk.services.cloudwatch.model.ComparisonOperator
+import software.amazon.awssdk.services.cloudwatch.model.Dimension
+import software.amazon.awssdk.services.cloudwatch.model.PutMetricAlarmRequest
+import software.amazon.awssdk.services.cloudwatch.model.StandardUnit
+import software.amazon.awssdk.services.cloudwatch.model.Statistic
 import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupsNameable
 
 class UpsertAlarmDescription extends AbstractAmazonCredentialsDescription implements ServerGroupsNameable {
@@ -51,23 +51,23 @@ class UpsertAlarmDescription extends AbstractAmazonCredentialsDescription implem
   Collection<String> okActionArns
 
   PutMetricAlarmRequest buildRequest() {
-    new PutMetricAlarmRequest(
-        alarmName: name,
-        actionsEnabled: actionsEnabled,
-        alarmDescription: alarmDescription,
-        comparisonOperator: comparisonOperator,
-        evaluationPeriods: evaluationPeriods,
-        period: period,
-        threshold: threshold,
-        namespace: namespace,
-        metricName: metricName,
-        statistic: statistic,
-        unit: unit,
-        dimensions: dimensions,
-        alarmActions: alarmActionArns,
-        insufficientDataActions: insufficientDataActionArns,
-        oKActions: okActionArns
-    )
+    PutMetricAlarmRequest.builder()
+        .alarmName(name)
+        .actionsEnabled(actionsEnabled)
+        .alarmDescription(alarmDescription)
+        .comparisonOperator(comparisonOperator)
+        .evaluationPeriods(evaluationPeriods)
+        .period(period)
+        .threshold(threshold)
+        .namespace(namespace)
+        .metricName(metricName)
+        .statistic(statistic)
+        .unit(unit)
+        .dimensions(dimensions)
+        .alarmActions(alarmActionArns)
+        .insufficientDataActions(insufficientDataActionArns)
+        .okActions(okActionArns)
+        .build()
   }
 
   @Override
