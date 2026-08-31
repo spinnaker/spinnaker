@@ -17,9 +17,9 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
 import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.elasticloadbalancingv2.model.DeregisterTargetsRequest
-import com.amazonaws.services.elasticloadbalancingv2.model.RegisterTargetsRequest
-import com.amazonaws.services.elasticloadbalancingv2.model.TargetDescription
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.DeregisterTargetsRequest
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.RegisterTargetsRequest
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetDescription
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.InstanceTargetGroupRegistrationDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.TargetGroupLookupHelper
@@ -87,14 +87,14 @@ abstract class AbstractInstanceTargetGroupRegistrationAtomicOperation implements
   private void operateOnInstances(RegionScopedProviderFactory.RegionScopedProvider regionScopedProvider, TargetGroupLookupHelper.TargetGroupLookupResult targetGroups, Collection<String> instanceIds, String performingAction) {
     def task = getTask()
     if (targetGroups.targetGroupARNs) {
-      def targets = instanceIds.collect { new TargetDescription().withId(it) }
-      def elbv2 = regionScopedProvider.getAmazonElasticLoadBalancingV2(true)
+      def targets = instanceIds.collect { TargetDescription.builder().id(it).build() }
+      def elbv2 = regionScopedProvider.getElasticLoadBalancingV2Client()
       targetGroups.targetGroupARNs.each {
         task.updateStatus phaseName, "${performingAction} instances ($instanceIds) in target group $it"
         if (getRegistrationAction() == RegistrationAction.REGISTER) {
-          elbv2.registerTargets(new RegisterTargetsRequest().withTargetGroupArn(it).withTargets(targets))
+          elbv2.registerTargets(RegisterTargetsRequest.builder().targetGroupArn(it).targets(targets).build())
         } else {
-          elbv2.deregisterTargets(new DeregisterTargetsRequest().withTargetGroupArn(it).withTargets(targets))
+          elbv2.deregisterTargets(DeregisterTargetsRequest.builder().targetGroupArn(it).targets(targets).build())
         }
       }
     }
