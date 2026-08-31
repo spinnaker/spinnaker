@@ -16,15 +16,14 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
+import software.amazon.awssdk.awscore.exception.AwsServiceException
 import software.amazon.awssdk.core.exception.SdkClientException
 import software.amazon.awssdk.services.autoscaling.AutoScalingClient
-import software.amazon.awssdk.services.autoscaling.model.AutoScalingException
 import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
 import software.amazon.awssdk.services.autoscaling.model.DeleteAutoScalingGroupRequest
 import software.amazon.awssdk.services.autoscaling.model.DeleteLaunchConfigurationRequest
 import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import software.amazon.awssdk.services.ec2.Ec2Client
-import software.amazon.awssdk.services.ec2.model.Ec2Exception
 import software.amazon.awssdk.services.ec2.model.DeleteLaunchTemplateRequest
 import software.amazon.awssdk.services.ec2.model.TerminateInstancesRequest
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
@@ -124,7 +123,7 @@ class DestroyAsgAtomicOperation implements AtomicOperation<Void> {
         try {
           autoScaling.deleteLaunchConfiguration(
             DeleteLaunchConfigurationRequest.builder().launchConfigurationName(lcName).build())
-        } catch (AutoScalingException e) {
+        } catch (AwsServiceException e) {
           if (!e.message.toLowerCase().contains("launch configuration name not found")) {
             throw e
           }
@@ -138,7 +137,7 @@ class DestroyAsgAtomicOperation implements AtomicOperation<Void> {
         try {
           amazonEC2.deleteLaunchTemplate(
             DeleteLaunchTemplateRequest.builder().launchTemplateId(launchTemplateId).build())
-        } catch (Ec2Exception e) {
+        } catch (AwsServiceException e) {
           // Ignore not found exception
           if (!e.message.toLowerCase().contains("does not exist")) {
             throw e

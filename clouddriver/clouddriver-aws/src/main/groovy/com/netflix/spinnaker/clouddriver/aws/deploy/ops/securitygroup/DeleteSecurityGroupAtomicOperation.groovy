@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup
 
+import software.amazon.awssdk.awscore.exception.AwsServiceException
 import software.amazon.awssdk.services.ec2.model.DeleteSecurityGroupRequest
-import software.amazon.awssdk.services.ec2.model.Ec2Exception
 import software.amazon.awssdk.services.ec2.model.IpPermission
 import software.amazon.awssdk.services.ec2.model.RevokeSecurityGroupIngressRequest
 import software.amazon.awssdk.services.ec2.model.SecurityGroup
@@ -47,7 +47,7 @@ class DeleteSecurityGroupAtomicOperation implements AtomicOperation<Void> {
     this.description = description
   }
 
-  private void generateDependencyError(Ec2Exception e, Task task, Map<SecurityGroup, List<IpPermission>> securityGroupToRevokeIngressPermissions) {
+  private void generateDependencyError(AwsServiceException e, Task task, Map<SecurityGroup, List<IpPermission>> securityGroupToRevokeIngressPermissions) {
     List<String> dependentSecurityGroupsWithIngress = securityGroupToRevokeIngressPermissions.collect { it.key.groupName() }
     String message = "Failed deleting security group because of existing dependencies. "
     if (dependentSecurityGroupsWithIngress.size() > 0) {
@@ -76,7 +76,7 @@ class DeleteSecurityGroupAtomicOperation implements AtomicOperation<Void> {
         task.updateStatus BASE_PHASE, "Deleting ${securityGroupDescription}."
         try {
           ec2.deleteSecurityGroup(request)
-        } catch (Ec2Exception e) {
+        } catch (AwsServiceException e) {
           if (e.awsErrorDetails().errorCode() == "DependencyViolation") {
             // Get the list of dependent ingress rules
             Map<SecurityGroup, List<IpPermission>> securityGroupToRevokeIngressPermissions = new HashMap<>()

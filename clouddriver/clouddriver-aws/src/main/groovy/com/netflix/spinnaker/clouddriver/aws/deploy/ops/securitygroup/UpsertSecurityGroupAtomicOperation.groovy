@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup
 
-import software.amazon.awssdk.services.ec2.model.Ec2Exception
+import software.amazon.awssdk.awscore.exception.AwsServiceException
 import software.amazon.awssdk.services.ec2.model.IpPermission
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupIngressConverter.ConvertedIngress
@@ -84,7 +84,7 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
         securityGroupUpdater = securityGroupLookup.createSecurityGroup(description)
         task.updateStatus BASE_PHASE, "Created Security Group ${securityGroupUpdater.securityGroup}"
         existingIpPermissions = []
-      } catch (Ec2Exception e) {
+      } catch (AwsServiceException e) {
         if (e.awsErrorDetails().errorCode() == "InvalidGroup.Duplicate") {
           securityGroupUpdater = securityGroupLookup.getSecurityGroupByName(
             description.account,
@@ -135,7 +135,7 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
         //Update tags to ensure they are consistent with rule changes
         securityGroupUpdater.updateTags(description, dynamicConfigService)
         task.updateStatus BASE_PHASE, status
-      } catch (Ec2Exception e) {
+      } catch (AwsServiceException e) {
         task.updateStatus BASE_PHASE, "Error updating ingress to '${description.name}' - ${e.awsErrorDetails().errorMessage()}"
         throw e
       }
@@ -156,7 +156,7 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
         //Update tags to ensure they are consistent with rule changes
         securityGroupUpdater.updateTags(description, dynamicConfigService)
         task.updateStatus BASE_PHASE, status
-      } catch (Ec2Exception e) {
+      } catch (AwsServiceException e) {
         task.updateStatus BASE_PHASE, "Error adding ingress to '${description.name}' - ${e.awsErrorDetails().errorMessage()}"
         throw e
       }
@@ -176,7 +176,7 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
         //Update tags to ensure they are consistent with rule changes
         securityGroupUpdater.updateTags(description, dynamicConfigService)
         task.updateStatus BASE_PHASE, status
-      } catch (Ec2Exception e) {
+      } catch (AwsServiceException e) {
         task.updateStatus BASE_PHASE, "Error removing ingress from ${description.name}: ${e.awsErrorDetails().errorMessage()}"
         throw e
       }
