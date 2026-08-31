@@ -17,9 +17,9 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
 import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.elasticloadbalancing.model.DeregisterInstancesFromLoadBalancerRequest
-import com.amazonaws.services.elasticloadbalancing.model.Instance
-import com.amazonaws.services.elasticloadbalancing.model.RegisterInstancesWithLoadBalancerRequest
+import software.amazon.awssdk.services.elasticloadbalancing.model.DeregisterInstancesFromLoadBalancerRequest
+import software.amazon.awssdk.services.elasticloadbalancing.model.Instance
+import software.amazon.awssdk.services.elasticloadbalancing.model.RegisterInstancesWithLoadBalancerRequest
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerLookupHelper
 import com.netflix.spinnaker.clouddriver.data.task.Task
@@ -88,23 +88,23 @@ abstract class AbstractInstanceLoadBalancerRegistrationAtomicOperation implement
   private void operateOnInstances(RegionScopedProviderFactory.RegionScopedProvider regionScopedProvider, LoadBalancerLookupHelper.LoadBalancerLookupResult loadBalancers, Collection<String> instanceIds, String performingAction) {
     def task = getTask()
     if (loadBalancers.classicLoadBalancers) {
-      def instances = instanceIds.collect { new Instance(instanceId: it) }
+      def instances = instanceIds.collect { Instance.builder().instanceId(it).build() }
 
-      def amazonELB = regionScopedProvider.getAmazonElasticLoadBalancing()
+      def amazonELB = regionScopedProvider.getAmazonElasticLoadBalancingClassicV2()
       loadBalancers.classicLoadBalancers.each {
         task.updateStatus phaseName, "${performingAction} instances ($instanceIds) in ${it}."
         if (getRegistrationAction() == RegistrationAction.REGISTER) {
-          amazonELB.registerInstancesWithLoadBalancer(new RegisterInstancesWithLoadBalancerRequest(
-            it,
-            instances
-          ))
+          amazonELB.registerInstancesWithLoadBalancer(RegisterInstancesWithLoadBalancerRequest.builder()
+            .loadBalancerName(it)
+            .instances(instances)
+            .build())
         } else {
-          amazonELB.deregisterInstancesFromLoadBalancer(new DeregisterInstancesFromLoadBalancerRequest(
-            it,
-            instances
-          ))
+          amazonELB.deregisterInstancesFromLoadBalancer(DeregisterInstancesFromLoadBalancerRequest.builder()
+            .loadBalancerName(it)
+            .instances(instances)
+            .build())
         }
-        task.updateStatus phaseName, "Finished ${performingAction.toLowerCase()} instances (${instances*.instanceId.join(", ")}) in ${it}."
+        task.updateStatus phaseName, "Finished ${performingAction.toLowerCase()} instances (${instances*.instanceId().join(", ")}) in ${it}."
       }
     }
   }

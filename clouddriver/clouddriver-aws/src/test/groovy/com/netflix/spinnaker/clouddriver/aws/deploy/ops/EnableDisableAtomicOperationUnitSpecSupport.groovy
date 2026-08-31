@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
 import software.amazon.awssdk.services.ec2.Ec2Client
-import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing
-import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing as AmazonElasticLoadBalancingV2
+import software.amazon.awssdk.services.elasticloadbalancing.ElasticLoadBalancingClient
+import software.amazon.awssdk.services.elasticloadbalancingv2.ElasticLoadBalancingV2Client
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.EnableDisableAsgDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery.AwsEurekaSupport
@@ -54,10 +54,10 @@ abstract class EnableDisableAtomicOperationUnitSpecSupport extends Specification
   Eureka eureka
 
   @Shared
-  AmazonElasticLoadBalancing loadBalancing
+  ElasticLoadBalancingClient loadBalancing
 
   @Shared
-  AmazonElasticLoadBalancingV2 loadBalancingV2
+  ElasticLoadBalancingV2Client loadBalancingV2
 
   @Shared
   Ec2Client amazonEc2
@@ -67,8 +67,8 @@ abstract class EnableDisableAtomicOperationUnitSpecSupport extends Specification
     TaskRepository.threadLocalTask.set(task)
     eureka = Mock(Eureka)
     asgService = Mock(AsgService)
-    loadBalancing = Mock(AmazonElasticLoadBalancing)
-    loadBalancingV2 = Mock(AmazonElasticLoadBalancingV2)
+    loadBalancing = Mock(ElasticLoadBalancingClient)
+    loadBalancingV2 = Mock(ElasticLoadBalancingV2Client)
     amazonEc2 = Mock(Ec2Client)
     wireOpMocks(op)
   }
@@ -78,8 +78,8 @@ abstract class EnableDisableAtomicOperationUnitSpecSupport extends Specification
       forRegion(_, _) >> {
         return Stub(RegionScopedProviderFactory.RegionScopedProvider) {
           getAsgService() >> asgService
-          getAmazonElasticLoadBalancing() >> loadBalancing
-          getAmazonElasticLoadBalancingV2() >> loadBalancingV2
+          getAmazonElasticLoadBalancingClassicV2() >> loadBalancing
+          getElasticLoadBalancingV2Client() >> loadBalancingV2
           getEureka() >> eureka
           getAmazonEC2() >> amazonEc2
         }

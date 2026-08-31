@@ -21,8 +21,8 @@ import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
 import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import software.amazon.awssdk.services.autoscaling.model.TerminateInstanceInAutoScalingGroupRequest
 import software.amazon.awssdk.services.autoscaling.model.UpdateAutoScalingGroupRequest
-import com.amazonaws.services.elasticloadbalancing.model.DeregisterInstancesFromLoadBalancerRequest
-import com.amazonaws.services.elasticloadbalancing.model.Instance
+import software.amazon.awssdk.services.elasticloadbalancing.model.DeregisterInstancesFromLoadBalancerRequest
+import software.amazon.awssdk.services.elasticloadbalancing.model.Instance
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -70,9 +70,12 @@ class TerminateInstanceAndDecrementAsgAtomicOperation implements AtomicOperation
         throw new IllegalStateException("Invalid ASG capacity for terminateAndDecrementAsg: min: ${asg.minSize()}, max: ${asg.maxSize()}, desired: ${asg.desiredCapacity()}")
       }
     }
-    def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(description.credentials, description.region, true)
+    def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancingClassicV2(description.credentials, description.region)
     for (loadBalancer in asg.loadBalancerNames()) {
-      def deregisterRequest = new DeregisterInstancesFromLoadBalancerRequest(loadBalancer, [new Instance(description.instance)])
+      def deregisterRequest = DeregisterInstancesFromLoadBalancerRequest.builder()
+          .loadBalancerName(loadBalancer)
+          .instances(Instance.builder().instanceId(description.instance).build())
+          .build()
       loadBalancing.deregisterInstancesFromLoadBalancer(deregisterRequest)
     }
 

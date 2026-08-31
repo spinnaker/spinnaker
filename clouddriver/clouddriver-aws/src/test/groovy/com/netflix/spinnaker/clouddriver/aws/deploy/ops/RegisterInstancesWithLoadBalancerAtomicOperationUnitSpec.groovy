@@ -18,10 +18,10 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
 import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
 import software.amazon.awssdk.services.autoscaling.model.Instance
-import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRequest
-import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersResult
-import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
-import com.amazonaws.services.elasticloadbalancing.model.RegisterInstancesWithLoadBalancerRequest
+import software.amazon.awssdk.services.elasticloadbalancing.model.DescribeLoadBalancersRequest
+import software.amazon.awssdk.services.elasticloadbalancing.model.DescribeLoadBalancersResponse
+import software.amazon.awssdk.services.elasticloadbalancing.model.LoadBalancerDescription
+import software.amazon.awssdk.services.elasticloadbalancing.model.RegisterInstancesWithLoadBalancerRequest
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerLookupHelper
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -55,8 +55,8 @@ class RegisterInstancesWithLoadBalancerAtomicOperationUnitSpec extends InstanceL
     then:
     1 * asgService.getAutoScalingGroup(description.asgName) >> asg
     1 * loadBalancing.registerInstancesWithLoadBalancer(_) >> { RegisterInstancesWithLoadBalancerRequest req ->
-      assert req.instances*.instanceId == description.instanceIds
-      assert req.loadBalancerName == "lb1"
+      assert req.instances()*.instanceId() == description.instanceIds
+      assert req.loadBalancerName() == "lb1"
     }
   }
 
@@ -91,10 +91,10 @@ class RegisterInstancesWithLoadBalancerAtomicOperationUnitSpec extends InstanceL
 
     then:
     0 * asgService.getAutoScalingGroup(_)
-    2 * loadBalancing.describeLoadBalancers(_) >> { DescribeLoadBalancersRequest r -> new DescribeLoadBalancersResult().withLoadBalancerDescriptions(new LoadBalancerDescription().withLoadBalancerName(r.loadBalancerNames[0]))}
+    2 * loadBalancing.describeLoadBalancers(_) >> { DescribeLoadBalancersRequest r -> DescribeLoadBalancersResponse.builder().loadBalancerDescriptions(LoadBalancerDescription.builder().loadBalancerName(r.loadBalancerNames()[0]).build()).build()}
     2 * loadBalancing.registerInstancesWithLoadBalancer(_) >> { RegisterInstancesWithLoadBalancerRequest req ->
-      assert req.instances*.instanceId == description.instanceIds
-      assert description.loadBalancerNames.contains(req.loadBalancerName)
+      assert req.instances()*.instanceId() == description.instanceIds
+      assert description.loadBalancerNames.contains(req.loadBalancerName())
     }
   }
 
