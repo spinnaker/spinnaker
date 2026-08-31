@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.view
 
-import com.amazonaws.services.s3.model.S3Object
-import com.amazonaws.services.s3.model.S3ObjectInputStream
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.credentials.CredentialsRepository
 import org.springframework.security.access.AccessDeniedException
+import software.amazon.awssdk.core.ResponseInputStream
+import software.amazon.awssdk.services.s3.model.GetObjectResponse
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -49,7 +49,12 @@ class AmazonS3DataProviderSpec extends Specification {
     )
   ])
 
-  def s3Object = Mock(S3Object)
+  static ResponseInputStream<GetObjectResponse> responseStream(String content) {
+    new ResponseInputStream<GetObjectResponse>(
+      GetObjectResponse.builder().build(),
+      new ByteArrayInputStream(content.bytes)
+    )
+  }
 
   @Subject
   def dataProvider = Spy(AmazonS3DataProvider, constructorArgs: [
@@ -117,10 +122,7 @@ class AmazonS3DataProviderSpec extends Specification {
 
     then:
     1 * dataProvider.fetchObject("accountName", "us-east-1", "my_restricted_bucket", "magic/my_object") >> {
-      return s3Object
-    }
-    1 * s3Object.getObjectContent() >> {
-      return new S3ObjectInputStream(new ByteArrayInputStream("my example output!".bytes), null)
+      return responseStream("my example output!")
     }
     new String(outputStream.toByteArray(), "UTF-8") == "my example output!"
   }
@@ -145,10 +147,7 @@ class AmazonS3DataProviderSpec extends Specification {
 
     then:
     1 * dataProvider.fetchObject("accountName", "us-east-1", "bucket", "key") >> {
-      return s3Object
-    }
-    1 * s3Object.getObjectContent() >> {
-      return new S3ObjectInputStream(new ByteArrayInputStream("my example output!".bytes), null)
+      return responseStream("my example output!")
     }
     dataProvider.getStaticCacheStats().hitCount() == 0
     result == "my example output!"
@@ -174,12 +173,7 @@ class AmazonS3DataProviderSpec extends Specification {
 
     then:
     1 * dataProvider.fetchObject("accountName", "us-east-1", "bucket", "listKey") >> {
-      return s3Object
-    }
-    1 * s3Object.getObjectContent() >> {
-      return new S3ObjectInputStream(
-        new ByteArrayInputStream(resultsJson.bytes), null
-      )
+      return responseStream(resultsJson)
     }
     result == [
       [name: "bar", id: 2]
@@ -190,12 +184,7 @@ class AmazonS3DataProviderSpec extends Specification {
 
     then:
     1 * dataProvider.fetchObject("accountName", "us-east-1", "bucket", "key") >> {
-      return s3Object
-    }
-    1 * s3Object.getObjectContent() >> {
-      return new S3ObjectInputStream(
-        new ByteArrayInputStream(resultsJson.bytes), null
-      )
+      return responseStream(resultsJson)
     }
 
     // if type != list than all results should be returned as-is w/o filtering
