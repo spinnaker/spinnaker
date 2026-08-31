@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.autoscaling.model.Instance
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
+import software.amazon.awssdk.services.autoscaling.model.Instance
 import com.amazonaws.services.elasticloadbalancingv2.model.DeregisterTargetsRequest
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsRequest
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsResult
@@ -46,11 +46,10 @@ class DeregisterInstancesFromTargetGroupsAtomicOperationUnitSpec extends Instanc
 
   void 'should deregister instances from target groups'() {
     setup:
-    def asg = Mock(AutoScalingGroup) {
-      1 * getTargetGroupARNs() >> ["tg1"]
-      1 * getInstances() >> [new Instance().withInstanceId("i-123456")]
-      0 * _._
-    }
+    def asg = AutoScalingGroup.builder()
+      .targetGroupARNs(["tg1"])
+      .instances([Instance.builder().instanceId("i-123456").build()])
+      .build()
 
     when:
     op.operate([])
@@ -65,11 +64,10 @@ class DeregisterInstancesFromTargetGroupsAtomicOperationUnitSpec extends Instanc
 
   void 'should noop task if no load balancers found'() {
     setup:
-    def asg = Mock(AutoScalingGroup) {
-      1 * getTargetGroupARNs() >> []
-      1 * getInstances() >> description.instanceIds.collect { new Instance().withInstanceId(it) }
-      0 * _._
-    }
+    def asg = AutoScalingGroup.builder()
+      .targetGroupARNs([])
+      .instances(description.instanceIds.collect { Instance.builder().instanceId(it).build() })
+      .build()
 
     when:
     op.operate([])

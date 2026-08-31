@@ -23,45 +23,12 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.amazonaws.services.autoscaling.AmazonAutoScaling;
-import com.amazonaws.services.autoscaling.model.CreateAutoScalingGroupRequest;
-import com.amazonaws.services.autoscaling.model.CreateLaunchConfigurationRequest;
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest;
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult;
-import com.amazonaws.services.autoscaling.model.LaunchTemplateSpecification;
-import com.amazonaws.services.ec2.AmazonEC2;
-import com.amazonaws.services.ec2.model.CreateLaunchTemplateRequest;
-import com.amazonaws.services.ec2.model.CreateLaunchTemplateResult;
-import com.amazonaws.services.ec2.model.DescribeAddressesResult;
-import com.amazonaws.services.ec2.model.DescribeImagesRequest;
-import com.amazonaws.services.ec2.model.DescribeImagesResult;
-import com.amazonaws.services.ec2.model.DescribeInstanceTypesRequest;
-import com.amazonaws.services.ec2.model.DescribeInstanceTypesResult;
-import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
-import com.amazonaws.services.ec2.model.DescribeInstancesResult;
-import com.amazonaws.services.ec2.model.DescribeKeyPairsResult;
-import com.amazonaws.services.ec2.model.DescribeLaunchTemplatesRequest;
-import com.amazonaws.services.ec2.model.DescribeLaunchTemplatesResult;
-import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest;
-import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult;
-import com.amazonaws.services.ec2.model.DescribeSubnetsResult;
-import com.amazonaws.services.ec2.model.DescribeVpcClassicLinkResult;
-import com.amazonaws.services.ec2.model.DescribeVpcsResult;
-import com.amazonaws.services.ec2.model.Image;
-import com.amazonaws.services.ec2.model.InstanceTypeInfo;
-import com.amazonaws.services.ec2.model.LaunchTemplate;
-import com.amazonaws.services.ec2.model.ProcessorInfo;
-import com.amazonaws.services.ec2.model.SecurityGroup;
-import com.amazonaws.services.ec2.model.Subnet;
-import com.amazonaws.services.ec2.model.Tag;
-import com.amazonaws.services.ec2.model.VirtualizationType;
 import com.netflix.spinnaker.clouddriver.aws.AwsBaseSpec;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.aws.utils.TestUtils;
@@ -74,6 +41,38 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.context.ActiveProfiles;
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
+import software.amazon.awssdk.services.autoscaling.model.CreateAutoScalingGroupRequest;
+import software.amazon.awssdk.services.autoscaling.model.CreateLaunchConfigurationRequest;
+import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsRequest;
+import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsResponse;
+import software.amazon.awssdk.services.autoscaling.model.LaunchTemplateSpecification;
+import software.amazon.awssdk.services.ec2.Ec2Client;
+import software.amazon.awssdk.services.ec2.model.CreateLaunchTemplateRequest;
+import software.amazon.awssdk.services.ec2.model.CreateLaunchTemplateResponse;
+import software.amazon.awssdk.services.ec2.model.DescribeAddressesResponse;
+import software.amazon.awssdk.services.ec2.model.DescribeImagesRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeImagesResponse;
+import software.amazon.awssdk.services.ec2.model.DescribeInstanceTypesRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeInstanceTypesResponse;
+import software.amazon.awssdk.services.ec2.model.DescribeInstancesRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeInstancesResponse;
+import software.amazon.awssdk.services.ec2.model.DescribeKeyPairsResponse;
+import software.amazon.awssdk.services.ec2.model.DescribeLaunchTemplatesRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeLaunchTemplatesResponse;
+import software.amazon.awssdk.services.ec2.model.DescribeSecurityGroupsRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeSecurityGroupsResponse;
+import software.amazon.awssdk.services.ec2.model.DescribeSubnetsResponse;
+import software.amazon.awssdk.services.ec2.model.DescribeVpcClassicLinkResponse;
+import software.amazon.awssdk.services.ec2.model.DescribeVpcsResponse;
+import software.amazon.awssdk.services.ec2.model.Image;
+import software.amazon.awssdk.services.ec2.model.InstanceTypeInfo;
+import software.amazon.awssdk.services.ec2.model.LaunchTemplate;
+import software.amazon.awssdk.services.ec2.model.ProcessorInfo;
+import software.amazon.awssdk.services.ec2.model.SecurityGroup;
+import software.amazon.awssdk.services.ec2.model.Subnet;
+import software.amazon.awssdk.services.ec2.model.Tag;
+import software.amazon.awssdk.services.ec2.model.VirtualizationType;
 
 /**
  * Test class with launch template settings enabled in clouddriver.yml, for CreateServerGroup
@@ -93,7 +92,7 @@ public class CreateServerGroupLaunchTemplatesEnabledSpec extends AwsBaseSpec {
   private final String EXPECTED_SERVER_GROUP_NAME = "myAwsApp-myStack-v000";
   private final String EXPECTED_LAUNCH_TEMPLATE_ID = "lt-1";
   private final LaunchTemplateSpecification EXPECTED_LAUNCH_TEMPLATE_SPEC =
-      new LaunchTemplateSpecification().withLaunchTemplateId("lt-1").withVersion("1");
+      LaunchTemplateSpecification.builder().launchTemplateId("lt-1").version("1").build();
   private final String EXPECTED_DEPLOY_WITH_LT_MSG_FMT = "Deploying ASG %s with launch template %s";
 
   private final String EXPECTED_DEPLOY_WITH_LC_MSG_FMT =
@@ -101,94 +100,113 @@ public class CreateServerGroupLaunchTemplatesEnabledSpec extends AwsBaseSpec {
   private final String EXPECTED_LAUNCH_CONFIG_NAME =
       "myAwsApp-myStack-v000-"; // partial name without the timestamp part
 
-  private AmazonAutoScaling mockAutoScaling = mock(AmazonAutoScaling.class);
-  private AmazonEC2 mockEc2 = mock(AmazonEC2.class);
+  private AutoScalingClient mockAutoScaling = mock(AutoScalingClient.class);
+  private Ec2Client mockEc2 = mock(Ec2Client.class);
 
   @BeforeEach
   public void setup() {
     // mock EC2 responses
     when(mockRegionScopedProvider.getAmazonEC2()).thenReturn(mockEc2);
-    when(mockAwsClientProvider.getAmazonEC2(
-            any(NetflixAmazonCredentials.class), anyString(), anyBoolean()))
+    when(mockAwsClientProvider.getAmazonEC2V2(any(NetflixAmazonCredentials.class), anyString()))
         .thenReturn(mockEc2);
 
     when(mockEc2.describeSecurityGroups(any(DescribeSecurityGroupsRequest.class)))
         .thenReturn(
-            new DescribeSecurityGroupsResult()
-                .withSecurityGroups(
-                    new SecurityGroup().withGroupId("sg-123").withGroupName("myAwsApp")));
-    when(mockEc2.describeVpcClassicLink()).thenReturn(new DescribeVpcClassicLinkResult());
-    when(mockEc2.describeAddresses()).thenReturn(new DescribeAddressesResult());
-    when(mockEc2.describeVpcs()).thenReturn(new DescribeVpcsResult());
-    when(mockEc2.describeKeyPairs()).thenReturn(new DescribeKeyPairsResult());
+            DescribeSecurityGroupsResponse.builder()
+                .securityGroups(
+                    SecurityGroup.builder().groupId("sg-123").groupName("myAwsApp").build())
+                .build());
+    when(mockEc2.describeVpcClassicLink())
+        .thenReturn(DescribeVpcClassicLinkResponse.builder().build());
+    when(mockEc2.describeAddresses()).thenReturn(DescribeAddressesResponse.builder().build());
+    when(mockEc2.describeVpcs()).thenReturn(DescribeVpcsResponse.builder().build());
+    when(mockEc2.describeKeyPairs()).thenReturn(DescribeKeyPairsResponse.builder().build());
     when(mockEc2.describeInstances(any(DescribeInstancesRequest.class)))
-        .thenReturn(new DescribeInstancesResult());
+        .thenReturn(DescribeInstancesResponse.builder().build());
     when(mockEc2.describeImages(any(DescribeImagesRequest.class)))
         .thenReturn(
-            new DescribeImagesResult()
-                .withImages(
-                    new Image()
-                        .withImageId("ami-12345")
-                        .withVirtualizationType("hvm")
-                        .withArchitecture("x86_64")));
+            DescribeImagesResponse.builder()
+                .images(
+                    Image.builder()
+                        .imageId("ami-12345")
+                        .virtualizationType("hvm")
+                        .architecture("x86_64")
+                        .build())
+                .build());
     when(mockEc2.describeInstanceTypes(any(DescribeInstanceTypesRequest.class)))
         .thenReturn(
-            new DescribeInstanceTypesResult()
-                .withInstanceTypes(
-                    new InstanceTypeInfo()
-                        .withInstanceType("t3.medium")
-                        .withProcessorInfo(new ProcessorInfo().withSupportedArchitectures("x86_64"))
-                        .withSupportedVirtualizationTypes(Arrays.asList("hvm")),
-                    new InstanceTypeInfo()
-                        .withInstanceType("c3.large")
-                        .withProcessorInfo(
-                            new ProcessorInfo().withSupportedArchitectures("i386", "x86_64"))
-                        .withSupportedVirtualizationTypes(Arrays.asList("hvm", "paravirtual"))));
+            DescribeInstanceTypesResponse.builder()
+                .instanceTypes(
+                    InstanceTypeInfo.builder()
+                        .instanceType("t3.medium")
+                        .processorInfo(
+                            ProcessorInfo.builder()
+                                .supportedArchitecturesWithStrings("x86_64")
+                                .build())
+                        .supportedVirtualizationTypesWithStrings(Arrays.asList("hvm"))
+                        .build(),
+                    InstanceTypeInfo.builder()
+                        .instanceType("c3.large")
+                        .processorInfo(
+                            ProcessorInfo.builder()
+                                .supportedArchitecturesWithStrings("i386", "x86_64")
+                                .build())
+                        .supportedVirtualizationTypesWithStrings(
+                            Arrays.asList("hvm", "paravirtual"))
+                        .build())
+                .build());
     when(mockEc2.describeSubnets())
         .thenReturn(
-            new DescribeSubnetsResult()
-                .withSubnets(
+            DescribeSubnetsResponse.builder()
+                .subnets(
                     Arrays.asList(
-                        new Subnet()
-                            .withSubnetId("subnetId1")
-                            .withAvailabilityZone("us-west-1a")
-                            .withTags(
-                                new Tag()
-                                    .withKey("immutable_metadata")
-                                    .withValue(
-                                        "{\"purpose\": \"internal\", \"target\": \"ec2\" }")),
-                        new Subnet()
-                            .withSubnetId("subnetId2")
-                            .withAvailabilityZone("us-west-2a"))));
+                        Subnet.builder()
+                            .subnetId("subnetId1")
+                            .availabilityZone("us-west-1a")
+                            .tags(
+                                Tag.builder()
+                                    .key("immutable_metadata")
+                                    .value("{\"purpose\": \"internal\", \"target\": \"ec2\" }")
+                                    .build())
+                            .build(),
+                        Subnet.builder()
+                            .subnetId("subnetId2")
+                            .availabilityZone("us-west-2a")
+                            .build()))
+                .build());
 
     when(mockEc2.describeLaunchTemplates(any(DescribeLaunchTemplatesRequest.class)))
         .thenReturn(
-            new DescribeLaunchTemplatesResult()
-                .withLaunchTemplates(
+            DescribeLaunchTemplatesResponse.builder()
+                .launchTemplates(
                     Arrays.asList(
-                        new LaunchTemplate()
-                            .withLaunchTemplateId("lt-1")
-                            .withLatestVersionNumber(1L)
-                            .withDefaultVersionNumber(0L),
-                        new LaunchTemplate()
-                            .withLaunchTemplateId("lt-2")
-                            .withLatestVersionNumber(1L)
-                            .withDefaultVersionNumber(0L))));
+                        LaunchTemplate.builder()
+                            .launchTemplateId("lt-1")
+                            .latestVersionNumber(1L)
+                            .defaultVersionNumber(0L)
+                            .build(),
+                        LaunchTemplate.builder()
+                            .launchTemplateId("lt-2")
+                            .latestVersionNumber(1L)
+                            .defaultVersionNumber(0L)
+                            .build()))
+                .build());
 
     when(mockEc2.createLaunchTemplate(any(CreateLaunchTemplateRequest.class)))
         .thenReturn(
-            new CreateLaunchTemplateResult()
-                .withLaunchTemplate(
-                    new LaunchTemplate().withLaunchTemplateId("lt-1").withLatestVersionNumber(1L)));
+            CreateLaunchTemplateResponse.builder()
+                .launchTemplate(
+                    LaunchTemplate.builder()
+                        .launchTemplateId("lt-1")
+                        .latestVersionNumber(1L)
+                        .build())
+                .build());
 
     // mock autoscaling response
-    when(mockAwsClientProvider.getAutoScaling(any(NetflixAmazonCredentials.class), anyString()))
-        .thenReturn(mockAutoScaling);
-    when(mockAwsClientProvider.getAutoScaling(
-            any(NetflixAmazonCredentials.class), anyString(), anyBoolean()))
+    when(mockAwsClientProvider.getAutoScalingV2(any(NetflixAmazonCredentials.class), anyString()))
         .thenReturn(mockAutoScaling);
     when(mockAutoScaling.describeAutoScalingGroups(any(DescribeAutoScalingGroupsRequest.class)))
-        .thenReturn(new DescribeAutoScalingGroupsResult());
+        .thenReturn(DescribeAutoScalingGroupsResponse.builder().build());
   }
 
   @DisplayName("Assert AWS and launch template features are enabled")
@@ -252,37 +270,32 @@ public class CreateServerGroupLaunchTemplatesEnabledSpec extends AwsBaseSpec {
     verify(mockEc2).createLaunchTemplate(createLaunchTemplateArgs.capture());
     CreateLaunchTemplateRequest createLtReq = createLaunchTemplateArgs.getValue();
 
-    assertTrue(createLtReq.getLaunchTemplateName().contains("myAwsApp-myStack-v000-"));
-    assertEquals("ami-12345", createLtReq.getLaunchTemplateData().getImageId());
-    assertEquals("t3.medium", createLtReq.getLaunchTemplateData().getInstanceType());
+    assertTrue(createLtReq.launchTemplateName().contains("myAwsApp-myStack-v000-"));
+    assertEquals("ami-12345", createLtReq.launchTemplateData().imageId());
+    assertEquals("t3.medium", createLtReq.launchTemplateData().instanceTypeAsString());
+    assertEquals(1, createLtReq.launchTemplateData().networkInterfaces().get(0).groups().size());
     assertEquals(
-        1, createLtReq.getLaunchTemplateData().getNetworkInterfaces().get(0).getGroups().size());
-    assertEquals(
-        "sg-123",
-        createLtReq.getLaunchTemplateData().getNetworkInterfaces().get(0).getGroups().get(0));
+        "sg-123", createLtReq.launchTemplateData().networkInterfaces().get(0).groups().get(0));
 
+    assertEquals("unlimited", createLtReq.launchTemplateData().creditSpecification().cpuCredits());
     assertEquals(
-        "unlimited", createLtReq.getLaunchTemplateData().getCreditSpecification().getCpuCredits());
-    assertEquals(
-        "required", createLtReq.getLaunchTemplateData().getMetadataOptions().getHttpTokens());
-    assertEquals(
-        1, createLtReq.getLaunchTemplateData().getNetworkInterfaces().get(0).getIpv6AddressCount());
+        "required", createLtReq.launchTemplateData().metadataOptions().httpTokensAsString());
+    assertEquals(1, createLtReq.launchTemplateData().networkInterfaces().get(0).ipv6AddressCount());
 
-    assertNull(createLtReq.getLaunchTemplateData().getInstanceMarketOptions());
-    assertNull(createLtReq.getLaunchTemplateData().getPlacement());
-    assertTrue(createLtReq.getLaunchTemplateData().getLicenseSpecifications().isEmpty());
+    assertNull(createLtReq.launchTemplateData().instanceMarketOptions());
+    assertNull(createLtReq.launchTemplateData().placement());
+    assertTrue(createLtReq.launchTemplateData().licenseSpecifications().isEmpty());
 
     ArgumentCaptor<CreateAutoScalingGroupRequest> createAsgArgs =
         ArgumentCaptor.forClass(CreateAutoScalingGroupRequest.class);
     verify(mockAutoScaling).createAutoScalingGroup(createAsgArgs.capture());
     CreateAutoScalingGroupRequest createAsgReq = createAsgArgs.getValue();
 
-    assertEquals(EXPECTED_LAUNCH_TEMPLATE_SPEC, createAsgReq.getLaunchTemplate());
-    assertEquals(1, createAsgReq.getTags().size());
-    assertEquals("testPurpose", createAsgReq.getTags().get(0).getKey());
+    assertEquals(EXPECTED_LAUNCH_TEMPLATE_SPEC, createAsgReq.launchTemplate());
+    assertEquals(1, createAsgReq.tags().size());
+    assertEquals("testPurpose", createAsgReq.tags().get(0).key());
     assertEquals(
-        "testing server group with launch template features",
-        createAsgReq.getTags().get(0).getValue());
+        "testing server group with launch template features", createAsgReq.tags().get(0).value());
   }
 
   @DisplayName(
@@ -330,31 +343,23 @@ public class CreateServerGroupLaunchTemplatesEnabledSpec extends AwsBaseSpec {
     verify(mockEc2).createLaunchTemplate(createLaunchTemplateArgs.capture());
     CreateLaunchTemplateRequest createLtReq = createLaunchTemplateArgs.getValue();
 
-    assertTrue(createLtReq.getLaunchTemplateName().contains("myAwsApp-myStack-v000-"));
-    assertEquals("ami-12345", createLtReq.getLaunchTemplateData().getImageId());
-    assertEquals("t3.medium", createLtReq.getLaunchTemplateData().getInstanceType());
+    assertTrue(createLtReq.launchTemplateName().contains("myAwsApp-myStack-v000-"));
+    assertEquals("ami-12345", createLtReq.launchTemplateData().imageId());
+    assertEquals("t3.medium", createLtReq.launchTemplateData().instanceTypeAsString());
     assertEquals(
-        "spot", createLtReq.getLaunchTemplateData().getInstanceMarketOptions().getMarketType());
+        "spot", createLtReq.launchTemplateData().instanceMarketOptions().marketTypeAsString());
     assertEquals(
-        "1.5",
-        createLtReq
-            .getLaunchTemplateData()
-            .getInstanceMarketOptions()
-            .getSpotOptions()
-            .getMaxPrice());
+        "1.5", createLtReq.launchTemplateData().instanceMarketOptions().spotOptions().maxPrice());
     assertEquals(
         "standard",
-        createLtReq
-            .getLaunchTemplateData()
-            .getCreditSpecification()
-            .getCpuCredits()); // default for t3 type
+        createLtReq.launchTemplateData().creditSpecification().cpuCredits()); // default for t3 type
 
     ArgumentCaptor<CreateAutoScalingGroupRequest> createAsgArgs =
         ArgumentCaptor.forClass(CreateAutoScalingGroupRequest.class);
     verify(mockAutoScaling).createAutoScalingGroup(createAsgArgs.capture());
     CreateAutoScalingGroupRequest createAsgReq = createAsgArgs.getValue();
 
-    assertEquals(EXPECTED_LAUNCH_TEMPLATE_SPEC, createAsgReq.getLaunchTemplate());
+    assertEquals(EXPECTED_LAUNCH_TEMPLATE_SPEC, createAsgReq.launchTemplate());
   }
 
   @DisplayName("Given request with incompatible AMI and instance type, fail with accurate message")
@@ -371,12 +376,14 @@ public class CreateServerGroupLaunchTemplatesEnabledSpec extends AwsBaseSpec {
             .asMap();
     when(mockEc2.describeImages(any(DescribeImagesRequest.class)))
         .thenReturn(
-            new DescribeImagesResult()
-                .withImages(
-                    new Image()
-                        .withImageId("img-1")
-                        .withName("test-image")
-                        .withVirtualizationType(VirtualizationType.Paravirtual)));
+            DescribeImagesResponse.builder()
+                .images(
+                    Image.builder()
+                        .imageId("img-1")
+                        .name("test-image")
+                        .virtualizationType(VirtualizationType.PARAVIRTUAL)
+                        .build())
+                .build());
 
     // when, then
     String taskId =
@@ -445,18 +452,18 @@ public class CreateServerGroupLaunchTemplatesEnabledSpec extends AwsBaseSpec {
     verify(mockAutoScaling).createLaunchConfiguration(createLaunchConfigArgs.capture());
     CreateLaunchConfigurationRequest createLcReq = createLaunchConfigArgs.getValue();
 
-    assertTrue(createLcReq.getLaunchConfigurationName().contains(EXPECTED_LAUNCH_CONFIG_NAME));
-    assertEquals(1, createLcReq.getSecurityGroups().size());
-    assertEquals("sg-123", createLcReq.getSecurityGroups().get(0));
-    assertEquals("ami-12345", createLcReq.getImageId());
-    assertEquals("c3.large", createLcReq.getInstanceType());
+    assertTrue(createLcReq.launchConfigurationName().contains(EXPECTED_LAUNCH_CONFIG_NAME));
+    assertEquals(1, createLcReq.securityGroups().size());
+    assertEquals("sg-123", createLcReq.securityGroups().get(0));
+    assertEquals("ami-12345", createLcReq.imageId());
+    assertEquals("c3.large", createLcReq.instanceType());
 
     ArgumentCaptor<CreateAutoScalingGroupRequest> createAsgArgs =
         ArgumentCaptor.forClass(CreateAutoScalingGroupRequest.class);
     verify(mockAutoScaling).createAutoScalingGroup(createAsgArgs.capture());
     CreateAutoScalingGroupRequest createAsgReq = createAsgArgs.getValue();
 
-    assertTrue(createAsgReq.getLaunchConfigurationName().contains(EXPECTED_LAUNCH_CONFIG_NAME));
+    assertTrue(createAsgReq.launchConfigurationName().contains(EXPECTED_LAUNCH_CONFIG_NAME));
   }
 
   @DisplayName(
@@ -474,9 +481,10 @@ public class CreateServerGroupLaunchTemplatesEnabledSpec extends AwsBaseSpec {
             .asMap();
     when(mockEc2.describeSecurityGroups(any(DescribeSecurityGroupsRequest.class)))
         .thenReturn(
-            new DescribeSecurityGroupsResult()
-                .withSecurityGroups(
-                    new SecurityGroup().withGroupId("sg-123").withGroupName("myExcludedApp")));
+            DescribeSecurityGroupsResponse.builder()
+                .securityGroups(
+                    SecurityGroup.builder().groupId("sg-123").groupName("myExcludedApp").build())
+                .build());
 
     // when, then
     String taskId =
@@ -509,17 +517,17 @@ public class CreateServerGroupLaunchTemplatesEnabledSpec extends AwsBaseSpec {
     verify(mockAutoScaling).createLaunchConfiguration(createLaunchConfigArgs.capture());
     CreateLaunchConfigurationRequest createLcReq = createLaunchConfigArgs.getValue();
 
-    assertTrue(createLcReq.getLaunchConfigurationName().contains(expectedLcName));
-    assertEquals(1, createLcReq.getSecurityGroups().size());
-    assertEquals("sg-123", createLcReq.getSecurityGroups().get(0));
-    assertEquals("ami-12345", createLcReq.getImageId());
-    assertEquals("c3.large", createLcReq.getInstanceType());
+    assertTrue(createLcReq.launchConfigurationName().contains(expectedLcName));
+    assertEquals(1, createLcReq.securityGroups().size());
+    assertEquals("sg-123", createLcReq.securityGroups().get(0));
+    assertEquals("ami-12345", createLcReq.imageId());
+    assertEquals("c3.large", createLcReq.instanceType());
 
     ArgumentCaptor<CreateAutoScalingGroupRequest> createAsgArgs =
         ArgumentCaptor.forClass(CreateAutoScalingGroupRequest.class);
     verify(mockAutoScaling).createAutoScalingGroup(createAsgArgs.capture());
     CreateAutoScalingGroupRequest createAsgReq = createAsgArgs.getValue();
 
-    assertTrue(createAsgReq.getLaunchConfigurationName().contains(expectedLcName));
+    assertTrue(createAsgReq.launchConfigurationName().contains(expectedLcName));
   }
 }

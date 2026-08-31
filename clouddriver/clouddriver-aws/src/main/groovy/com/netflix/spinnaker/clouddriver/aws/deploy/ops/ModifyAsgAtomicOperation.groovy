@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
-import com.amazonaws.services.autoscaling.model.DisableMetricsCollectionRequest
-import com.amazonaws.services.autoscaling.model.EnableMetricsCollectionRequest
-import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
+import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsRequest
+import software.amazon.awssdk.services.autoscaling.model.DisableMetricsCollectionRequest
+import software.amazon.awssdk.services.autoscaling.model.EnableMetricsCollectionRequest
+import software.amazon.awssdk.services.autoscaling.model.UpdateAutoScalingGroupRequest
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.ModifyAsgDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
@@ -63,52 +63,55 @@ class ModifyAsgAtomicOperation implements AtomicOperation<Void> {
 
   private boolean modifyAsg(String asgName, String region) {
     try {
-      def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, region, true)
+      def autoScaling = amazonClientProvider.getAutoScalingV2(description.credentials, region)
 
-      def asgResult = autoScaling.describeAutoScalingGroups(new DescribeAutoScalingGroupsRequest().withAutoScalingGroupNames(asgName))
-      if (!asgResult.autoScalingGroups) {
+      def asgResult = autoScaling.describeAutoScalingGroups(DescribeAutoScalingGroupsRequest.builder().autoScalingGroupNames(asgName).build())
+      if (!asgResult.autoScalingGroups()) {
         task.updateStatus BASE_PHASE, "No ASG named $asgName found in $region"
         return false
       }
-      def asg = asgResult.autoScalingGroups[0]
+      def asg = asgResult.autoScalingGroups()[0]
 
       task.updateStatus BASE_PHASE, "Updating $asgName in $region..."
 
-      def updateRequest = new UpdateAutoScalingGroupRequest()
-          .withAutoScalingGroupName(asgName)
-          .withDefaultCooldown(description.cooldown)
-          .withHealthCheckGracePeriod(description.healthCheckGracePeriod)
-          .withHealthCheckType(description.healthCheckType)
-          .withTerminationPolicies(description.terminationPolicies)
-          .withCapacityRebalance(description.capacityRebalance)
+      def updateRequest = UpdateAutoScalingGroupRequest.builder()
+          .autoScalingGroupName(asgName)
+          .defaultCooldown(description.cooldown)
+          .healthCheckGracePeriod(description.healthCheckGracePeriod)
+          .healthCheckType(description.healthCheckType)
+          .terminationPolicies(description.terminationPolicies)
+          .capacityRebalance(description.capacityRebalance)
+          .build()
 
       // enable / disable metrics
       def desiredMetrics = description.enabledMetrics ?: []
       def metricsToDisable = []
-      asg.enabledMetrics.each {
+      asg.enabledMetrics().each {
         if (!desiredMetrics.contains(it.metric)) {
           metricsToDisable << it.metric
         }
       }
       if (metricsToDisable) {
         task.updateStatus BASE_PHASE, "Disabling unselected Auto Scaling Group metrics for $asgName in $region..."
-        autoScaling.disableMetricsCollection(new DisableMetricsCollectionRequest()
-          .withAutoScalingGroupName(asgName)
-          .withMetrics(metricsToDisable))
+        autoScaling.disableMetricsCollection(DisableMetricsCollectionRequest.builder()
+          .autoScalingGroupName(asgName)
+          .metrics(metricsToDisable)
+          .build())
       }
 
       def metricsToEnable = []
       desiredMetrics.each { desiredMetric ->
-         if (!asg.enabledMetrics.find { it.metric == desiredMetric }) {
+         if (!asg.enabledMetrics().find { it.metric == desiredMetric }) {
            metricsToEnable << desiredMetric
          }
       }
       if (metricsToEnable) {
         task.updateStatus BASE_PHASE, "Enabling selected Auto Scaling Group metrics for $asgName in $region..."
-        autoScaling.enableMetricsCollection(new EnableMetricsCollectionRequest()
-          .withAutoScalingGroupName(asgName)
-          .withGranularity('1Minute')
-          .withMetrics(metricsToEnable))
+        autoScaling.enableMetricsCollection(EnableMetricsCollectionRequest.builder()
+          .autoScalingGroupName(asgName)
+          .granularity('1Minute')
+          .metrics(metricsToEnable)
+          .build())
       }
 
       // update sever group
