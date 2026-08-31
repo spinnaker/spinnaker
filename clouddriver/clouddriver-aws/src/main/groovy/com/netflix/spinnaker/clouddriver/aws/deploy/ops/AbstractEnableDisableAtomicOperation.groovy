@@ -21,15 +21,15 @@ import software.amazon.awssdk.services.ec2.model.DescribeInstancesResponse
 import software.amazon.awssdk.services.ec2.model.Filter
 import software.amazon.awssdk.services.ec2.model.InstanceStateName
 import software.amazon.awssdk.services.ec2.model.Reservation
-import com.amazonaws.services.elasticloadbalancing.model.DeregisterInstancesFromLoadBalancerRequest
-import com.amazonaws.services.elasticloadbalancing.model.Instance
-import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerNotFoundException
-import com.amazonaws.services.elasticloadbalancing.model.RegisterInstancesWithLoadBalancerRequest
-import com.amazonaws.services.elasticloadbalancingv2.model.DeregisterTargetsRequest
-import com.amazonaws.services.elasticloadbalancingv2.model.InvalidTargetException
-import com.amazonaws.services.elasticloadbalancingv2.model.RegisterTargetsRequest
-import com.amazonaws.services.elasticloadbalancingv2.model.TargetDescription
-import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroupNotFoundException
+import software.amazon.awssdk.services.elasticloadbalancing.model.DeregisterInstancesFromLoadBalancerRequest
+import software.amazon.awssdk.services.elasticloadbalancing.model.Instance
+import software.amazon.awssdk.services.elasticloadbalancing.model.LoadBalancerNotFoundException
+import software.amazon.awssdk.services.elasticloadbalancing.model.RegisterInstancesWithLoadBalancerRequest
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.DeregisterTargetsRequest
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.InvalidTargetException
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.RegisterTargetsRequest
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetDescription
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetGroupNotFoundException
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.EnableDisableAsgDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.EnableDisableInstanceDiscoveryDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery.AwsEurekaSupport
@@ -85,8 +85,8 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
     def credentials = description.credentials
     try {
       def regionScopedProvider = regionScopedProviderFactory.forRegion(credentials, region)
-      def loadBalancing = regionScopedProvider.amazonElasticLoadBalancing
-      def lbv2 = regionScopedProvider.getAmazonElasticLoadBalancingV2(true)
+      def loadBalancing = regionScopedProvider.amazonElasticLoadBalancingClassicV2
+      def lbv2 = regionScopedProvider.getElasticLoadBalancingV2Client()
 
       def asgService = regionScopedProvider.asgService
       def asg = asgService.getAutoScalingGroup(serverGroupName)
@@ -174,7 +174,7 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
         changeRegistrationOfInstancesWithLoadBalancer(asg.loadBalancerNames, instanceIds) { String loadBalancerName, List<Instance> instances ->
           try {
             task.updateStatus phaseName, "Deregistering instances from Load Balancers..."
-            loadBalancing.deregisterInstancesFromLoadBalancer(new DeregisterInstancesFromLoadBalancerRequest(loadBalancerName, instances))
+            loadBalancing.deregisterInstancesFromLoadBalancer(DeregisterInstancesFromLoadBalancerRequest.builder().loadBalancerName(loadBalancerName).instances(instances).build())
           } catch (LoadBalancerNotFoundException e) {
             task.updateStatus phaseName, "Unable to deregister instances, ${loadBalancerName} does not exist (${e.message})"
           }
@@ -182,7 +182,7 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
         changeRegistrationOfInstancesWithTargetGroups(asg.targetGroupARNs, instanceIds) { String targetGroupArn, List<TargetDescription> instances ->
           try {
             task.updateStatus phaseName, "Deregistering instances from Target Groups..."
-            lbv2.deregisterTargets(new DeregisterTargetsRequest().withTargetGroupArn(targetGroupArn).withTargets(instances))
+            lbv2.deregisterTargets(DeregisterTargetsRequest.builder().targetGroupArn(targetGroupArn).targets(instances).build())
           } catch (TargetGroupNotFoundException | InvalidTargetException ex) {
             task.updateStatus phaseName, "Unable to deregister targets, $targetGroupArn invalid ($ex.message)"
           }
@@ -190,11 +190,11 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
       } else {
         changeRegistrationOfInstancesWithLoadBalancer(asg.loadBalancerNames, instanceIds) { String loadBalancerName, List<Instance> instances ->
           task.updateStatus phaseName, "Registering instances with Load Balancers..."
-          loadBalancing.registerInstancesWithLoadBalancer(new RegisterInstancesWithLoadBalancerRequest(loadBalancerName, instances))
+          loadBalancing.registerInstancesWithLoadBalancer(RegisterInstancesWithLoadBalancerRequest.builder().loadBalancerName(loadBalancerName).instances(instances).build())
         }
         changeRegistrationOfInstancesWithTargetGroups(asg.targetGroupARNs, instanceIds) { String targetGroupArn, List<TargetDescription> targets ->
           task.updateStatus phaseName, "Registering instances with Target Groups..."
-          lbv2.registerTargets(new RegisterTargetsRequest().withTargetGroupArn(targetGroupArn).withTargets(targets))
+          lbv2.registerTargets(RegisterTargetsRequest.builder().targetGroupArn(targetGroupArn).targets(targets).build())
         }
       }
 
@@ -252,11 +252,11 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
   }
 
   private static void changeRegistrationOfInstancesWithTargetGroups(Collection<String> targetGroupArns, Collection<String> instanceIds, Closure actOnInstancesAndTargetGroup) {
-    handleInstancesWithLoadBalancing(targetGroupArns, instanceIds, { new TargetDescription().withId(it) }, actOnInstancesAndTargetGroup)
+    handleInstancesWithLoadBalancing(targetGroupArns, instanceIds, { TargetDescription.builder().id(it).build() }, actOnInstancesAndTargetGroup)
   }
 
   private static void changeRegistrationOfInstancesWithLoadBalancer(Collection<String> loadBalancerNames, Collection<String> instanceIds, Closure actOnInstancesAndLoadBalancer) {
-    handleInstancesWithLoadBalancing(loadBalancerNames, instanceIds, { new Instance(instanceId: it)}, actOnInstancesAndLoadBalancer)
+    handleInstancesWithLoadBalancing(loadBalancerNames, instanceIds, { Instance.builder().instanceId(it).build() }, actOnInstancesAndLoadBalancer)
   }
 
   private static void handleInstancesWithLoadBalancing(Collection<String> lbIdentifiers, Collection<String> instanceIds, Closure instanceIdTransform, Closure actOnInstancesAndLoadBalancer) {
