@@ -37,7 +37,7 @@ abstract class AwsResultsRetriever<T, Q, S> {
     String nextToken = null
     while (remaining > 0) {
       request = setNextToken(request, nextToken)
-      limitRetrieval(request, remaining)
+      request = limitRetrieval(request, remaining)
       S result = makeRequest(request)
       items.addAll(accessResult(result))
       nextToken = getNextToken(result)
@@ -55,10 +55,12 @@ abstract class AwsResultsRetriever<T, Q, S> {
 
   protected abstract List<T> accessResult(S result)
 
-  protected void limitRetrieval(Q request, int remaining) {
-    // Won't limit the items retrieved by default. There is no standard way to do this for all AWS requests.
-    // It can be implemented with something like this:
-    // request.withMaxResults(Math.min(maxResultsPerRequest, remaining))
+  // Returns the (possibly new) request with a max-results limit applied. Won't limit the items
+  // retrieved by default -- there is no standard way to do this for all AWS requests. v2 requests
+  // are immutable, so overrides should return a rebuilt request, e.g.
+  // request.toBuilder().maxResults(Math.min(maxResultsPerRequest, remaining)).build()
+  protected Q limitRetrieval(Q request, int remaining) {
+    request
   }
 
   // Returns the (possibly new) request with nextToken applied. For AWS SDK v1 requests, the

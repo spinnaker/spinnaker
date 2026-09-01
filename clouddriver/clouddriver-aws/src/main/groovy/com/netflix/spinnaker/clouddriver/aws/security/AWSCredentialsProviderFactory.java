@@ -16,14 +16,14 @@
 
 package com.netflix.spinnaker.clouddriver.aws.security;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 
 public interface AWSCredentialsProviderFactory {
   /**
-   * Create an AWSCredentialsProvider object
+   * Create an AwsCredentialsProvider object
    *
-   * @param profileName the profile name requesting an AWSCredentialsProvider
+   * @param profileName the profile name requesting an AwsCredentialsProvider
    * @return an AWSAccountInfoLookup object
    */
-  AWSCredentialsProvider makeAWSCredentialsProvider(String profileName);
+  AwsCredentialsProvider makeAWSCredentialsProvider(String profileName);
 }
