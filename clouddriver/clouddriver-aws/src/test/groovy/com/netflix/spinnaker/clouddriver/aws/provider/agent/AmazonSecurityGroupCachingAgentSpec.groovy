@@ -24,17 +24,13 @@ import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer
 import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module
 import com.netflix.spectator.api.Spectator
 import com.netflix.spinnaker.cats.cache.CacheData
-import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
-import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
-import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.cache.Keys
 import spock.lang.Specification
 import spock.lang.Subject
 
-import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.ON_DEMAND
 import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.SECURITY_GROUPS
 
 class AmazonSecurityGroupCachingAgentSpec extends Specification {
@@ -46,14 +42,12 @@ class AmazonSecurityGroupCachingAgentSpec extends Specification {
   NetflixAmazonCredentials creds = Stub(NetflixAmazonCredentials) { getName() >> account }
   AmazonClientProvider amazonClientProvider = Stub(AmazonClientProvider) {
     getAmazonEC2V2(_, _) >> ec2
-    getLastModified() >> 12345L
   }
   ProviderCache providerCache = Mock(ProviderCache)
   ObjectMapper mapper = new AmazonObjectMapperConfigurer().createConfigured().registerModule(new AwsSdkV2Module())
-  EddaTimeoutConfig eddaTimeoutConfig = new EddaTimeoutConfig.Builder().build()
 
   @Subject AmazonSecurityGroupCachingAgent agent = new AmazonSecurityGroupCachingAgent(
-    amazonClientProvider, creds, region, mapper, Spectator.registry(), eddaTimeoutConfig)
+    amazonClientProvider, creds, region, mapper, Spectator.registry())
 
   SecurityGroup securityGroupA = SecurityGroup.builder().groupId('id-a').groupName('name-a').description('a').build()
   SecurityGroup securityGroupB = SecurityGroup.builder().groupId('id-b').groupName('name-b').description('b').build()
@@ -75,29 +69,6 @@ class AmazonSecurityGroupCachingAgentSpec extends Specification {
       cd.id.containsAll([keyGroupA, keyGroupB])
     }
     0 * _
-  }
-
-  void "should prefer security groups from cache when on_demand record present"() {
-    given:
-    DescribeSecurityGroupsResponse result = DescribeSecurityGroupsResponse.builder()
-      .securityGroups(securityGroupA, securityGroupB).build()
-    def cred = TestCredential.named("test", [edda: "http://foo", eddaEnabled: true])
-    def agent = new AmazonSecurityGroupCachingAgent(
-      amazonClientProvider, cred, region, mapper, Spectator.registry(), eddaTimeoutConfig)
-    CacheData onDemandResult = new DefaultCacheData(agent.lastModifiedKey, [lastModified: '12346'], [:])
-    def existingIds = ['sg1', 'sg2']
-    List<CacheData> existingCacheData = []
-
-    when:
-    def cache = agent.loadData(providerCache)
-
-    then:
-    1 * ec2.describeSecurityGroups() >> result
-    1 * providerCache.get(ON_DEMAND.ns, agent.lastModifiedKey) >> onDemandResult
-    1 * providerCache.filterIdentifiers(SECURITY_GROUPS.ns, Keys.getSecurityGroupKey('*', '*', region, 'test', '*')) >> existingIds
-    1 * providerCache.getAll(SECURITY_GROUPS.ns, existingIds) >> existingCacheData
-    cache.cacheResults[SECURITY_GROUPS.ns] == existingCacheData
-
   }
 
   void "should get correct cache key pattern"() {

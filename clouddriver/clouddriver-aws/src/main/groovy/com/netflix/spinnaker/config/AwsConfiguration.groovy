@@ -49,8 +49,6 @@ import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentialsInitializer
 import com.netflix.spinnaker.clouddriver.aws.security.DefaultAWSAccountInfoLookup
 import com.netflix.spinnaker.clouddriver.aws.security.DefaultAWSAccountInfoLookupFactory
-import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig
-import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig.Builder
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.security.ProfileCredentialsProviderFactory
 import com.netflix.spinnaker.clouddriver.aws.services.IdGenerator
@@ -87,27 +85,13 @@ import org.springframework.core.annotation.Order
 class AwsConfiguration {
 
   @Bean
-  @ConfigurationProperties('aws.edda')
-  Builder eddaTimeoutConfigBuilder() {
-    return new Builder()
-  }
-
-  @Bean
-  EddaTimeoutConfig eddaTimeoutConfig(Builder eddaTimeoutConfigBuilder) {
-    eddaTimeoutConfigBuilder.build()
-  }
-
-  @Bean
-  AmazonClientProvider amazonClientProvider(AwsConfigurationProperties awsConfigurationProperties, RetryCondition instrumentedRetryCondition, BackoffStrategy instrumentedBackoffStrategy, AWSProxy proxy, EddaTimeoutConfig eddaTimeoutConfig, ServiceLimitConfiguration serviceLimitConfiguration, Registry registry) {
+  AmazonClientProvider amazonClientProvider(AwsConfigurationProperties awsConfigurationProperties, RetryCondition instrumentedRetryCondition, BackoffStrategy instrumentedBackoffStrategy, AWSProxy proxy, ServiceLimitConfiguration serviceLimitConfiguration, Registry registry) {
     new AmazonClientProvider.Builder()
       .backoffStrategy(instrumentedBackoffStrategy)
       .retryCondition(instrumentedRetryCondition)
       .objectMapper(amazonObjectMapper())
       .maxErrorRetry(awsConfigurationProperties.client.maxErrorRetry)
-      .maxConnections(awsConfigurationProperties.client.maxConnections)
-      .maxConnectionsPerRoute(awsConfigurationProperties.client.maxConnectionsPerRoute)
       .proxy(proxy)
-      .eddaTimeoutConfig(eddaTimeoutConfig)
       .useGzip(awsConfigurationProperties.client.useGzip)
       .serviceLimitConfiguration(serviceLimitConfiguration)
       .registry(registry)
