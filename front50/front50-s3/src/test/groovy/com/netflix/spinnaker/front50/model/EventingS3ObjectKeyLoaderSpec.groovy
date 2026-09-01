@@ -26,6 +26,7 @@ import spock.lang.Subject
 import spock.lang.Unroll
 
 import java.text.SimpleDateFormat
+import java.util.TimeZone
 import java.util.concurrent.ExecutorService
 
 class EventingS3ObjectKeyLoaderSpec extends Specification {
@@ -93,7 +94,8 @@ class EventingS3ObjectKeyLoaderSpec extends Specification {
   }
 
   def "should record all modifications contained within an S3Event"() {
-    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
+    sdf.setTimeZone(TimeZone.getTimeZone("UTC"))
     given:
     def s3Event = new S3Event(
       records: [

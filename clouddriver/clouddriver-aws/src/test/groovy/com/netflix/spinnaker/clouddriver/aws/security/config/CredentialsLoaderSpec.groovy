@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.security.config
 
-import com.amazonaws.auth.AWSCredentialsProvider
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider
 import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties
 import com.netflix.spinnaker.clouddriver.aws.security.AWSAccountInfoLookup
 import com.netflix.spinnaker.clouddriver.aws.security.AWSAccountInfoLookupFactory
@@ -53,7 +53,7 @@ class CredentialsLoaderSpec extends Specification {
           new Account(name: 'prod', accountId: 67890)
         ])
 
-        AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
+        AwsCredentialsProvider provider = Mock(AwsCredentialsProvider)
         AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
         AmazonClientProvider amazonClientProvider = Mock(AmazonClientProvider)
         AWSAccountInfoLookupFactory lookupFactory = Mock(AWSAccountInfoLookupFactory)
@@ -100,7 +100,7 @@ class CredentialsLoaderSpec extends Specification {
         def config = new CredentialsConfig()
         def accountsConfig = new AccountsConfiguration(accounts: [new Account(name: 'default')])
 
-        AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
+        AwsCredentialsProvider provider = Mock(AwsCredentialsProvider)
         AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
         AmazonClientProvider amazonClientProvider = Mock(AmazonClientProvider)
         AWSAccountInfoLookupFactory lookupFactory = Mock(AWSAccountInfoLookupFactory)
@@ -139,7 +139,7 @@ class CredentialsLoaderSpec extends Specification {
         setup:
         def config = new CredentialsConfig()
         def accountsConfig = new AccountsConfiguration(accounts: [new Account(name: 'default')])
-        AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
+        AwsCredentialsProvider provider = Mock(AwsCredentialsProvider)
         AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
         AmazonClientProvider amazonClientProvider = Mock(AmazonClientProvider)
         AWSAccountInfoLookupFactory lookupFactory = Mock(AWSAccountInfoLookupFactory)
@@ -181,7 +181,7 @@ class CredentialsLoaderSpec extends Specification {
         def accountsConfig = new AccountsConfiguration(accounts: [
           new Account(name: 'default', accountId: 1), new Account(name: 'other', accountId: 2)
         ])
-        AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
+        AwsCredentialsProvider provider = Mock(AwsCredentialsProvider)
         AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
         AmazonClientProvider amazonClientProvider = Mock(AmazonClientProvider)
         AWSAccountInfoLookupFactory lookupFactory = Mock(AWSAccountInfoLookupFactory)
@@ -219,7 +219,7 @@ class CredentialsLoaderSpec extends Specification {
             accountId: 1,
             regions: [ new Region(name: 'us-west-2')])]
         )
-        AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
+        AwsCredentialsProvider provider = Mock(AwsCredentialsProvider)
         AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
         AmazonClientProvider amazonClientProvider = Mock(AmazonClientProvider)
         AWSAccountInfoLookupFactory lookupFactory = Mock(AWSAccountInfoLookupFactory)
@@ -276,7 +276,7 @@ class CredentialsLoaderSpec extends Specification {
               )
             ])
         ])
-        AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
+        AwsCredentialsProvider provider = Mock(AwsCredentialsProvider)
         AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
         AmazonClientProvider amazonClientProvider = Mock(AmazonClientProvider)
         AWSAccountInfoLookupFactory lookupFactory = Mock(AWSAccountInfoLookupFactory)
@@ -325,7 +325,7 @@ class CredentialsLoaderSpec extends Specification {
                 defaultRegions: [new Region(name: 'us-east-1', availabilityZones: ['us-east-1a'])])
 
         def accountsConfig = new AccountsConfiguration(accounts: [new Account(name: 'gonnaFail')])
-        AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
+        AwsCredentialsProvider provider = Mock(AwsCredentialsProvider)
         AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
         AmazonClientProvider amazonClientProvider = Mock(AmazonClientProvider)
         AWSAccountInfoLookupFactory lookupFactory = Mock(AWSAccountInfoLookupFactory)
@@ -381,7 +381,7 @@ class CredentialsLoaderSpec extends Specification {
         ])
     ])
 
-    AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
+    AwsCredentialsProvider provider = Mock(AwsCredentialsProvider)
     AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
     AmazonClientProvider amazonClientProvider = Mock(AmazonClientProvider)
     AWSAccountInfoLookupFactory lookupFactory = Mock(AWSAccountInfoLookupFactory)
@@ -438,7 +438,7 @@ class CredentialsLoaderSpec extends Specification {
     def accountsConfig = new AccountsConfiguration(accounts: [
       new Account(name: 'prod', accountId: 67890)
     ])
-    AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
+    AwsCredentialsProvider provider = Mock(AwsCredentialsProvider)
     AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
     AmazonClientProvider amazonClientProvider = Mock(AmazonClientProvider)
     AWSAccountInfoLookupFactory lookupFactory = Mock(AWSAccountInfoLookupFactory)

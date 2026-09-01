@@ -15,9 +15,9 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.model
 
-import com.amazonaws.services.ec2.model.DescribeSpotPriceHistoryRequest
-import com.amazonaws.services.ec2.model.DescribeSpotPriceHistoryResult
-import com.amazonaws.services.ec2.model.SpotPrice
+import software.amazon.awssdk.services.ec2.model.DescribeSpotPriceHistoryRequest
+import software.amazon.awssdk.services.ec2.model.DescribeSpotPriceHistoryResponse
+import software.amazon.awssdk.services.ec2.model.SpotPrice
 import com.netflix.spinnaker.clouddriver.aws.model.AwsResultsRetriever
 import spock.lang.Specification
 
@@ -25,176 +25,195 @@ class AwsResultsRetrieverSpec  extends Specification {
 
   def service = Mock(AwsEc2Service)
 
-  def retriever = new AwsResultsRetriever<SpotPrice, DescribeSpotPriceHistoryRequest, DescribeSpotPriceHistoryResult>() {
-    DescribeSpotPriceHistoryResult makeRequest(DescribeSpotPriceHistoryRequest request) {
+  def retriever = new AwsResultsRetriever<SpotPrice, DescribeSpotPriceHistoryRequest, DescribeSpotPriceHistoryResponse>() {
+    DescribeSpotPriceHistoryResponse makeRequest(DescribeSpotPriceHistoryRequest request) {
       service.describeSpotPriceHistory(request)
     }
-    List<SpotPrice> accessResult(DescribeSpotPriceHistoryResult result) {
-      result.spotPriceHistory
+    List<SpotPrice> accessResult(DescribeSpotPriceHistoryResponse result) {
+      result.spotPriceHistory()
+    }
+    DescribeSpotPriceHistoryRequest setNextToken(DescribeSpotPriceHistoryRequest request, String nextToken) {
+      request.toBuilder().nextToken(nextToken).build()
     }
   }
 
   static interface AwsEc2Service {
-    DescribeSpotPriceHistoryResult describeSpotPriceHistory(DescribeSpotPriceHistoryRequest request)
+    DescribeSpotPriceHistoryResponse describeSpotPriceHistory(DescribeSpotPriceHistoryRequest request)
   }
 
-  def 'should retrieve for all tokens'() {
+  static DescribeSpotPriceHistoryRequest request(String availabilityZone, String nextToken = null, Integer maxResults = null) {
+    def builder = DescribeSpotPriceHistoryRequest.builder().availabilityZone(availabilityZone).nextToken(nextToken)
+    if (maxResults != null) {
+      builder.maxResults(maxResults)
+    }
+    builder.build()
+  }
+
+  static SpotPrice spotPrice(String price) {
+    SpotPrice.builder().spotPrice(price).build()
+  }
+
+  void "should retrieve for all tokens"() {
     when:
-    List<SpotPrice> actual = retriever.retrieve(new DescribeSpotPriceHistoryRequest(availabilityZone: 'us-east-7'))
+    List<SpotPrice> actual = retriever.retrieve(request('us-east-7'))
 
     then:
-    1 * service.describeSpotPriceHistory(new DescribeSpotPriceHistoryRequest(availabilityZone: 'us-east-7', nextToken: null)) >> {
-      new DescribeSpotPriceHistoryResult(nextToken: 'more1', spotPriceHistory: [
-        new SpotPrice(spotPrice: '1'),
-        new SpotPrice(spotPrice: '2'),
-        new SpotPrice(spotPrice: '3'),
-      ])
+    1 * service.describeSpotPriceHistory(request('us-east-7', null)) >> {
+      DescribeSpotPriceHistoryResponse.builder().nextToken('more1').spotPriceHistory([
+        spotPrice('1'),
+        spotPrice('2'),
+        spotPrice('3'),
+      ]).build()
     }
 
     then:
-    1 * service.describeSpotPriceHistory(new DescribeSpotPriceHistoryRequest(availabilityZone: 'us-east-7', nextToken: 'more1')) >> {
-      new DescribeSpotPriceHistoryResult(nextToken: 'more2', spotPriceHistory: [
-        new SpotPrice(spotPrice: '4'),
-        new SpotPrice(spotPrice: '5'),
-        new SpotPrice(spotPrice: '6'),
-      ])
+    1 * service.describeSpotPriceHistory(request('us-east-7', 'more1')) >> {
+      DescribeSpotPriceHistoryResponse.builder().nextToken('more2').spotPriceHistory([
+        spotPrice('4'),
+        spotPrice('5'),
+        spotPrice('6'),
+      ]).build()
     }
 
     then:
-    1 * service.describeSpotPriceHistory(new DescribeSpotPriceHistoryRequest(availabilityZone: 'us-east-7', nextToken: 'more2')) >> {
-      new DescribeSpotPriceHistoryResult(nextToken: null, spotPriceHistory: [
-        new SpotPrice(spotPrice: '7'),
-        new SpotPrice(spotPrice: '8'),
-        new SpotPrice(spotPrice: '9'),
-      ])
+    1 * service.describeSpotPriceHistory(request('us-east-7', 'more2')) >> {
+      DescribeSpotPriceHistoryResponse.builder().nextToken(null).spotPriceHistory([
+        spotPrice('7'),
+        spotPrice('8'),
+        spotPrice('9'),
+      ]).build()
     }
 
     and:
     actual == [
-      new SpotPrice(spotPrice: '1'),
-      new SpotPrice(spotPrice: '2'),
-      new SpotPrice(spotPrice: '3'),
-      new SpotPrice(spotPrice: '4'),
-      new SpotPrice(spotPrice: '5'),
-      new SpotPrice(spotPrice: '6'),
-      new SpotPrice(spotPrice: '7'),
-      new SpotPrice(spotPrice: '8'),
-      new SpotPrice(spotPrice: '9'),
+      spotPrice('1'),
+      spotPrice('2'),
+      spotPrice('3'),
+      spotPrice('4'),
+      spotPrice('5'),
+      spotPrice('6'),
+      spotPrice('7'),
+      spotPrice('8'),
+      spotPrice('9'),
     ]
     0 * _
   }
 
-  def 'should retrieve only once if no tokens exist'() {
+  void "should retrieve only once if no tokens exist"() {
     when:
-    List<SpotPrice> actual = retriever.retrieve(new DescribeSpotPriceHistoryRequest(availabilityZone: 'us-east-7'))
+    List<SpotPrice> actual = retriever.retrieve(request('us-east-7'))
 
     then:
-    1 * service.describeSpotPriceHistory(new DescribeSpotPriceHistoryRequest(availabilityZone: 'us-east-7', nextToken: null)) >> {
-      new DescribeSpotPriceHistoryResult(nextToken: null, spotPriceHistory: [
-        new SpotPrice(spotPrice: '1'),
-        new SpotPrice(spotPrice: '2'),
-        new SpotPrice(spotPrice: '3'),
-        new SpotPrice(spotPrice: '4'),
-      ])
+    1 * service.describeSpotPriceHistory(request('us-east-7', null)) >> {
+      DescribeSpotPriceHistoryResponse.builder().nextToken(null).spotPriceHistory([
+        spotPrice('1'),
+        spotPrice('2'),
+        spotPrice('3'),
+        spotPrice('4'),
+      ]).build()
     }
 
     and:
     actual == [
-      new SpotPrice(spotPrice: '1'),
-      new SpotPrice(spotPrice: '2'),
-      new SpotPrice(spotPrice: '3'),
-      new SpotPrice(spotPrice: '4'),
+      spotPrice('1'),
+      spotPrice('2'),
+      spotPrice('3'),
+      spotPrice('4'),
     ]
     0 * _
   }
 
-  def 'should retrieve up to limit'() {
+  void "should retrieve up to limit"() {
     def retriever = new AwsResultsRetriever<SpotPrice, DescribeSpotPriceHistoryRequest,
-      DescribeSpotPriceHistoryResult>(5) {
-      DescribeSpotPriceHistoryResult makeRequest(DescribeSpotPriceHistoryRequest request) {
+      DescribeSpotPriceHistoryResponse>(5) {
+      DescribeSpotPriceHistoryResponse makeRequest(DescribeSpotPriceHistoryRequest request) {
         service.describeSpotPriceHistory(request)
       }
-      List<SpotPrice> accessResult(DescribeSpotPriceHistoryResult result) {
-        result.spotPriceHistory
+      List<SpotPrice> accessResult(DescribeSpotPriceHistoryResponse result) {
+        result.spotPriceHistory()
       }
-      void limitRetrieval(DescribeSpotPriceHistoryRequest request, int remaining) {
-        request.withMaxResults(Math.min(3, remaining))
+      DescribeSpotPriceHistoryRequest setNextToken(DescribeSpotPriceHistoryRequest request, String nextToken) {
+        request.toBuilder().nextToken(nextToken).build()
+      }
+      DescribeSpotPriceHistoryRequest limitRetrieval(DescribeSpotPriceHistoryRequest request, int remaining) {
+        request.toBuilder().maxResults(Math.min(3, remaining)).build()
       }
     }
 
     when:
-    List<SpotPrice> actual = retriever.retrieve(new DescribeSpotPriceHistoryRequest(availabilityZone: 'us-east-7'))
+    List<SpotPrice> actual = retriever.retrieve(request('us-east-7'))
 
     then:
-    1 * service.describeSpotPriceHistory(new DescribeSpotPriceHistoryRequest(availabilityZone: 'us-east-7',
-      maxResults: 3, nextToken: null)) >> {
-      new DescribeSpotPriceHistoryResult(nextToken: 'more1', spotPriceHistory: [
-        new SpotPrice(spotPrice: '1'),
-        new SpotPrice(spotPrice: '2'),
-        new SpotPrice(spotPrice: '3'),
-      ])
+    1 * service.describeSpotPriceHistory(request('us-east-7', null, 3)) >> {
+      DescribeSpotPriceHistoryResponse.builder().nextToken('more1').spotPriceHistory([
+        spotPrice('1'),
+        spotPrice('2'),
+        spotPrice('3'),
+      ]).build()
     }
 
     then:
-    1 * service.describeSpotPriceHistory(new DescribeSpotPriceHistoryRequest(availabilityZone: 'us-east-7',
-      maxResults: 2, nextToken: 'more1')) >> {
-      new DescribeSpotPriceHistoryResult(nextToken: 'more2', spotPriceHistory: [
-        new SpotPrice(spotPrice: '4'),
-        new SpotPrice(spotPrice: '5'),
-      ])
+    1 * service.describeSpotPriceHistory(request('us-east-7', 'more1', 2)) >> {
+      DescribeSpotPriceHistoryResponse.builder().nextToken('more2').spotPriceHistory([
+        spotPrice('4'),
+        spotPrice('5'),
+      ]).build()
     }
 
     and:
     actual == [
-      new SpotPrice(spotPrice: '1'),
-      new SpotPrice(spotPrice: '2'),
-      new SpotPrice(spotPrice: '3'),
-      new SpotPrice(spotPrice: '4'),
-      new SpotPrice(spotPrice: '5'),
+      spotPrice('1'),
+      spotPrice('2'),
+      spotPrice('3'),
+      spotPrice('4'),
+      spotPrice('5'),
     ]
     0 * _
   }
 
-  def 'should not enforce limit if limitRetrieval is not implemented'() {
+  void "should not enforce limit if limitRetrieval is not implemented"() {
     def retriever = new AwsResultsRetriever<SpotPrice, DescribeSpotPriceHistoryRequest,
-      DescribeSpotPriceHistoryResult>(5) {
-      DescribeSpotPriceHistoryResult makeRequest(DescribeSpotPriceHistoryRequest request) {
+      DescribeSpotPriceHistoryResponse>(5) {
+      DescribeSpotPriceHistoryResponse makeRequest(DescribeSpotPriceHistoryRequest request) {
         service.describeSpotPriceHistory(request)
       }
-      List<SpotPrice> accessResult(DescribeSpotPriceHistoryResult result) {
-        result.spotPriceHistory
+      List<SpotPrice> accessResult(DescribeSpotPriceHistoryResponse result) {
+        result.spotPriceHistory()
+      }
+      DescribeSpotPriceHistoryRequest setNextToken(DescribeSpotPriceHistoryRequest request, String nextToken) {
+        request.toBuilder().nextToken(nextToken).build()
       }
     }
 
     when:
-    List<SpotPrice> actual = retriever.retrieve(new DescribeSpotPriceHistoryRequest(availabilityZone: 'us-east-7'))
+    List<SpotPrice> actual = retriever.retrieve(request('us-east-7'))
 
     then:
-    1 * service.describeSpotPriceHistory(new DescribeSpotPriceHistoryRequest(availabilityZone: 'us-east-7', nextToken: null)) >> {
-      new DescribeSpotPriceHistoryResult(nextToken: 'more1', spotPriceHistory: [
-        new SpotPrice(spotPrice: '1'),
-        new SpotPrice(spotPrice: '2'),
-        new SpotPrice(spotPrice: '3'),
-      ])
+    1 * service.describeSpotPriceHistory(request('us-east-7', null)) >> {
+      DescribeSpotPriceHistoryResponse.builder().nextToken('more1').spotPriceHistory([
+        spotPrice('1'),
+        spotPrice('2'),
+        spotPrice('3'),
+      ]).build()
     }
 
     then:
-    1 * service.describeSpotPriceHistory(new DescribeSpotPriceHistoryRequest(availabilityZone: 'us-east-7', nextToken: 'more1')) >> {
-      new DescribeSpotPriceHistoryResult(nextToken: 'more2', spotPriceHistory: [
-        new SpotPrice(spotPrice: '4'),
-        new SpotPrice(spotPrice: '5'),
-        new SpotPrice(spotPrice: '6'),
-      ])
+    1 * service.describeSpotPriceHistory(request('us-east-7', 'more1')) >> {
+      DescribeSpotPriceHistoryResponse.builder().nextToken('more2').spotPriceHistory([
+        spotPrice('4'),
+        spotPrice('5'),
+        spotPrice('6'),
+      ]).build()
     }
 
     and:
     actual == [
-      new SpotPrice(spotPrice: '1'),
-      new SpotPrice(spotPrice: '2'),
-      new SpotPrice(spotPrice: '3'),
-      new SpotPrice(spotPrice: '4'),
-      new SpotPrice(spotPrice: '5'),
-      new SpotPrice(spotPrice: '6'),
+      spotPrice('1'),
+      spotPrice('2'),
+      spotPrice('3'),
+      spotPrice('4'),
+      spotPrice('5'),
+      spotPrice('6'),
     ]
     0 * _
   }

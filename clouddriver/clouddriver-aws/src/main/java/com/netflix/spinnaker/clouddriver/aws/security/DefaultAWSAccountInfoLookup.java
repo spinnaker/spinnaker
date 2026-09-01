@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.security;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials.AWSRegion;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,6 +25,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.AvailabilityZone;
@@ -41,11 +41,11 @@ public class DefaultAWSAccountInfoLookup implements AWSAccountInfoLookup {
   private static final Pattern IAM_ARN_PATTERN =
       Pattern.compile(".*?arn:aws(?:-cn|-us-gov)?:(?:iam|sts)::(\\d+):.*");
 
-  private final AWSCredentialsProvider credentialsProvider;
+  private final AwsCredentialsProvider credentialsProvider;
   private final AmazonClientProvider amazonClientProvider;
 
   public DefaultAWSAccountInfoLookup(
-      AWSCredentialsProvider credentialsProvider, AmazonClientProvider amazonClientProvider) {
+      AwsCredentialsProvider credentialsProvider, AmazonClientProvider amazonClientProvider) {
     this.credentialsProvider = credentialsProvider;
     this.amazonClientProvider = amazonClientProvider;
   }
