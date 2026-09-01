@@ -42,7 +42,6 @@ const credentials = [
     challengeDestructiveActions: false,
     cloudProvider: 'aws',
     defaultKeyPair: 'test-keypair',
-    eddaEnabled: false,
     environment: 'test',
     front50Enabled: false,
     name: 'test',

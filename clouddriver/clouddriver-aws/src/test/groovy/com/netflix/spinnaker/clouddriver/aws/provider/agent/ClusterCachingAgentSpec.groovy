@@ -32,7 +32,6 @@ import com.netflix.spectator.api.Spectator
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
-import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import spock.lang.Shared
 import spock.lang.Specification
@@ -67,9 +66,6 @@ class ClusterCachingAgentSpec extends Specification {
   Ec2Client ec2 = Mock(Ec2Client)
 
   @Shared
-  EddaTimeoutConfig edda = Mock(EddaTimeoutConfig)
-
-  @Shared
   AmazonCachingAgentFilter filter = new AmazonCachingAgentFilter()
 
   def getAgent() {
@@ -81,29 +77,7 @@ class ClusterCachingAgentSpec extends Specification {
     def client = Stub(AmazonClientProvider) {
       getAmazonEC2V2(creds, region) >> ec2
     }
-    new ClusterCachingAgent(cloud, client, creds, region, AmazonObjectMapperConfigurer.createConfigured().registerModule(new AwsSdkV2Module()), Spectator.globalRegistry(), edda, filter)
-  }
-
-  @Unroll
-  def "should compare capacity and suspended processes when determining if ASGs are similar"() {
-    given:
-    def asg = AutoScalingGroup.builder().desiredCapacity(desired).minSize(min).maxSize(max).suspendedProcesses(
-      suspendedProcesses.collect { SuspendedProcess.builder().processName(it).build() }
-    ).build()
-
-    when:
-    ClusterCachingAgent.areSimilarAutoScalingGroups(defaultAsg, asg) == areSimilar
-
-    then:
-    true
-
-    where:
-    min        | max        | desired        | suspendedProcesses        || areSimilar
-    defaultMin | defaultMax | defaultDesired | defaultSuspendedProcesses || true
-    0          | defaultMax | defaultDesired | defaultSuspendedProcesses || false
-    defaultMin | 0          | defaultDesired | defaultSuspendedProcesses || false
-    defaultMin | defaultMax | 0              | defaultSuspendedProcesses || false
-    defaultMin | defaultMax | defaultDesired | []                        || false
+    new ClusterCachingAgent(cloud, client, creds, region, AmazonObjectMapperConfigurer.createConfigured().registerModule(new AwsSdkV2Module()), Spectator.globalRegistry(), filter)
   }
 
   @Unroll
@@ -195,7 +169,7 @@ class ClusterCachingAgentSpec extends Specification {
       }
     }
 
-    def clients = new ClusterCachingAgent.AmazonClients(client, agent.account, agent.region, false)
+    def clients = new ClusterCachingAgent.AmazonClients(client, agent.account, agent.region)
     filter.includeTags = includeTags
     filter.excludeTags = excludeTags
 
