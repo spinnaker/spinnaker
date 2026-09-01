@@ -21,10 +21,8 @@ import lombok.Builder;
 import lombok.Value;
 
 /**
- * Per-service tuning applied to an AWS SDK v2 client built by {@link AwsSdkV2ClientSupplier}. This
- * is the v2 equivalent of the v1 {@code com.amazonaws.ClientConfiguration} that callers used to
- * pass to {@code AmazonClientProvider}. All fields are optional; {@code null} means "leave the
- * supplier default in place".
+ * Per-service tuning applied to an AWS SDK v2 client built by {@link AwsSdkV2ClientSupplier}. All
+ * fields are optional; {@code null} means "leave the supplier default in place".
  *
  * <p>This type participates in the supplier's cache identity (via value-based {@code equals}/{@code
  * hashCode}), so clients requested with different tuning for the same account, region, and service
