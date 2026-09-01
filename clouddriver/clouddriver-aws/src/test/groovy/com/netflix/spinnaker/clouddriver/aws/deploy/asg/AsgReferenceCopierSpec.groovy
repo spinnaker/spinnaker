@@ -21,7 +21,6 @@ import software.amazon.awssdk.services.autoscaling.model.DescribeScheduledAction
 import software.amazon.awssdk.services.autoscaling.model.DescribeScheduledActionsResponse
 import software.amazon.awssdk.services.autoscaling.model.PutScheduledUpdateGroupActionRequest
 import software.amazon.awssdk.services.autoscaling.model.ScheduledUpdateGroupAction
-import com.amazonaws.services.cloudwatch.AmazonCloudWatch
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.services.IdGenerator
 import com.netflix.spinnaker.clouddriver.data.task.Task
@@ -34,13 +33,9 @@ class AsgReferenceCopierSpec extends Specification {
 
   def sourceAutoScaling = Mock(AutoScalingClient)
   def targetAutoScaling = Mock(AutoScalingClient)
-  def sourceCloudWatch = Mock(AmazonCloudWatch)
-  def targetCloudWatch = Mock(AmazonCloudWatch)
   def amazonClientProvider = Stub(AmazonClientProvider) {
     getAutoScalingV2(_, 'us-east-1') >> sourceAutoScaling
     getAutoScalingV2(_, 'us-west-1') >> targetAutoScaling
-    getCloudWatch(_, 'us-east-1', true) >> sourceCloudWatch
-    getCloudWatch(_, 'us-west-1', true) >> targetCloudWatch
   }
 
   long now = System.currentTimeMillis()

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.view
 
-import com.amazonaws.services.autoscaling.model.LifecycleState
+import software.amazon.awssdk.services.autoscaling.model.LifecycleState
 import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
@@ -349,7 +349,7 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster>, ServerGro
         if (!serverGroup.instances && serverGroupEntry.attributes.instances) {
           // has no direct instance relationships but we can partially populate instances based on attributes.instances
           def validStates = [
-            LifecycleState.InService.name()
+            LifecycleState.IN_SERVICE.toString()
           ]
 
           serverGroup.instances = (serverGroupEntry.attributes.instances as List<Map>).findAll {
