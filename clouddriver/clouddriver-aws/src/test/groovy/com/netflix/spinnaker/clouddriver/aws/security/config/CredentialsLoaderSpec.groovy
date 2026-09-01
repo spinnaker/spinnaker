@@ -42,7 +42,6 @@ class CredentialsLoaderSpec extends Specification {
                 new Region(name: 'us-east-1', availabilityZones: ['us-east-1c', 'us-east-1d', 'us-east-1e']),
                 new Region(name: 'us-west-2', availabilityZones: ['us-west-2a', 'us-west-2b'])],
                 defaultKeyPairTemplate: 'nf-{{name}}-keypair-a',
-                defaultEddaTemplate: 'http://edda-main.%s.{{name}}.netflix.net',
                 defaultFront50Template: 'http://front50.prod.netflix.net/{{name}}',
                 defaultDiscoveryTemplate: 'http://%s.discovery{{name}}.netflix.net',
                 defaultAssumeRole: 'role/asgard'
@@ -256,7 +255,6 @@ class CredentialsLoaderSpec extends Specification {
                 new Region(name: 'us-east-1', availabilityZones: ['us-east-1c', 'us-east-1d', 'us-east-1e']),
                 new Region(name: 'us-west-2', availabilityZones: ['us-west-2a', 'us-west-2b'])],
                 defaultKeyPairTemplate: 'nf-{{name}}-keypair-a',
-                defaultEddaTemplate: 'http://edda-main.%s.{{name}}.netflix.net',
                 defaultFront50Template: 'http://front50.prod.netflix.net/{{name}}',
                 defaultDiscoveryTemplate: 'http://%s.discovery{{name}}.netflix.net',
                 defaultAssumeRole: 'role/asgard',
@@ -269,7 +267,6 @@ class CredentialsLoaderSpec extends Specification {
             accountId: 12345,
             regions: [new Region(name: 'us-west-1', availabilityZones: ['us-west-1a'])],
             discovery: 'us-west-1.discoveryqa.netflix.net',
-            eddaEnabled: false,
             defaultKeyPair: 'oss-{{accountId}}-keypair',
             lifecycleHooks: [
               new LifecycleHook(
@@ -306,8 +303,6 @@ class CredentialsLoaderSpec extends Specification {
             cred.defaultKeyPair == 'oss-12345-keypair'
             cred.discovery == 'us-west-1.discoveryqa.netflix.net'
             cred.discoveryEnabled
-            cred.edda == 'http://edda-main.%s.test.netflix.net'
-            !cred.eddaEnabled
             cred.front50 == 'http://front50.prod.netflix.net/test'
             cred.front50Enabled
             cred.regions.size() == 1
@@ -434,7 +429,6 @@ class CredentialsLoaderSpec extends Specification {
       new Region(name: 'us-east-1', availabilityZones: ['us-east-1c', 'us-east-1d', 'us-east-1e']),
       new Region(name: 'us-west-2', availabilityZones: ['us-west-2a', 'us-west-2b'])],
       defaultKeyPairTemplate: 'nf-{{name}}-keypair-a',
-      defaultEddaTemplate: 'http://edda-main.%s.{{name}}.netflix.net',
       defaultFront50Template: 'http://front50.prod.netflix.net/{{name}}',
       defaultDiscoveryTemplate: 'http://%s.discovery{{name}}.netflix.net',
       defaultAssumeRole: 'role/asgard',

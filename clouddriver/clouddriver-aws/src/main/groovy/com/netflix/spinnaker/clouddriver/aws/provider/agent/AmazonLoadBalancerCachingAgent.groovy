@@ -33,11 +33,9 @@ import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
-import com.netflix.spinnaker.clouddriver.aws.edda.EddaApi
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
-import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.INSTANCES
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.LOAD_BALANCERS
@@ -45,19 +43,16 @@ import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.ON
 
 class AmazonLoadBalancerCachingAgent extends AbstractAmazonLoadBalancerCachingAgent {
 
-  private EddaApi eddaApi
   private static final int DESCRIBE_TAG_LIMIT = 20
 
   AmazonLoadBalancerCachingAgent(AmazonCloudProvider amazonCloudProvider,
                                  AmazonClientProvider amazonClientProvider,
                                  NetflixAmazonCredentials account,
                                  String region,
-                                 EddaApi eddaApi,
                                  ObjectMapper objectMapper,
                                  Registry registry,
                                  AmazonCachingAgentFilter amazonCachingAgentFilter) {
     super(amazonCloudProvider, amazonClientProvider, account, region, objectMapper, registry, amazonCachingAgentFilter)
-    this.eddaApi = eddaApi
   }
 
   @Override
@@ -147,14 +142,10 @@ class AmazonLoadBalancerCachingAgent extends AbstractAmazonLoadBalancerCachingAg
     def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancingClassicV2(account, region)
     List<LoadBalancerDescription> allLoadBalancers = []
     def request = DescribeLoadBalancersRequest.builder().build()
-    Long start = account.eddaEnabled ? null : System.currentTimeMillis()
+    Long start = System.currentTimeMillis()
 
     while (true) {
       def resp = loadBalancing.describeLoadBalancers(request)
-      if (account.eddaEnabled) {
-        start = amazonClientProvider.lastModified ?: 0
-      }
-
       allLoadBalancers.addAll(resp.loadBalancerDescriptions())
       if (resp.nextMarker()) {
         request = request.toBuilder().marker(resp.nextMarker()).build()
@@ -181,14 +172,7 @@ class AmazonLoadBalancerCachingAgent extends AbstractAmazonLoadBalancerCachingAg
       }
     }
 
-    Map<String, LoadBalancerAttributes> loadBalancerAttributes = buildLoadBalancerAttributes(loadBalancing, allLoadBalancers, account.eddaEnabled)
-
-    if (!start) {
-      if (account.eddaEnabled && allLoadBalancers) {
-        log.warn("${agentType} did not receive lastModified value in response metadata")
-      }
-      start = System.currentTimeMillis()
-    }
+    Map<String, LoadBalancerAttributes> loadBalancerAttributes = buildLoadBalancerAttributes(loadBalancing, allLoadBalancers)
 
     def evictableOnDemandCacheDatas = []
     def usableOnDemandCacheDatas = []
@@ -213,21 +197,12 @@ class AmazonLoadBalancerCachingAgent extends AbstractAmazonLoadBalancerCachingAg
   }
 
   Map<String, LoadBalancerAttributes> buildLoadBalancerAttributes(ElasticLoadBalancingClient loadBalancing,
-                                                                  List<LoadBalancerDescription> allLoadBalancers,
-                                                                  boolean useEdda) {
-    Map<String, LoadBalancerAttributes> loadBalancerNameToAttributes
-    if (useEdda) {
-      loadBalancerNameToAttributes = Retrofit2SyncCall.execute(eddaApi.classicLoadBalancerAttributes()).collectEntries {
-        [(it.name): it.attributes]
-      }
-    } else {
-      loadBalancerNameToAttributes = allLoadBalancers.collectEntries {
-        [(it.loadBalancerName()): loadBalancing.describeLoadBalancerAttributes(
-          DescribeLoadBalancerAttributesRequest.builder().loadBalancerName(it.loadBalancerName()).build()
-        ).loadBalancerAttributes()]
-      }
+                                                                  List<LoadBalancerDescription> allLoadBalancers) {
+    return allLoadBalancers.collectEntries {
+      [(it.loadBalancerName()): loadBalancing.describeLoadBalancerAttributes(
+        DescribeLoadBalancerAttributesRequest.builder().loadBalancerName(it.loadBalancerName()).build()
+      ).loadBalancerAttributes()]
     }
-    return loadBalancerNameToAttributes
   }
 
   private CacheResult buildCacheResult(Collection<LoadBalancerDescription> allLoadBalancers, Map<String, LoadBalancerAttributes> loadBalancerAttributes, Map<String, CacheData> onDemandCacheDataByLb, long start, Collection<CacheData> evictableOnDemandCacheDatas) {
