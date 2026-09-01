@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.view
 
-import com.amazonaws.services.ec2.model.Vpc
+import software.amazon.awssdk.services.ec2.model.Vpc
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
@@ -59,10 +59,10 @@ class AmazonVpcProvider implements NetworkProvider<AmazonVpc> {
   AmazonVpc fromCacheData(CacheData cacheData) {
     def parts = Keys.parse(cacheData.id)
     def vpc = amazonObjectMapper.convertValue(cacheData.attributes, Vpc)
-    def isDeprecated = vpc.tags.find { it.key == DEPRECATED_TAG_KEY }?.value
+    def isDeprecated = vpc.tags().find { it.key() == DEPRECATED_TAG_KEY }?.value()
     new AmazonVpc(
       cloudProvider: AmazonCloudProvider.ID,
-      id: vpc.vpcId,
+      id: vpc.vpcId(),
       name: getVpcName(vpc),
       account: parts.account,
       region: parts.region,
@@ -71,6 +71,6 @@ class AmazonVpcProvider implements NetworkProvider<AmazonVpc> {
   }
 
   static String getVpcName(Vpc vpc) {
-    vpc?.tags?.find { it.key == NAME_TAG_KEY }?.value
+    vpc?.tags()?.find { it.key() == NAME_TAG_KEY }?.value()
   }
 }

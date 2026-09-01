@@ -17,10 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.security
 
-import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.AccountAttribute
-import com.amazonaws.services.ec2.model.AccountAttributeValue
-import com.amazonaws.services.ec2.model.DescribeAccountAttributesResult
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.cats.agent.AgentProvider
@@ -107,10 +103,7 @@ class AmazonCredentialsLifecycleHandlerSpec extends Specification {
   }
 
   def 'it should add agents'() {
-    def amazonEC2 = Mock(AmazonEC2)
-    def amazonClientProvider = Mock(AmazonClientProvider) {
-      getAmazonEC2(_, _) >> amazonEC2
-    }
+    def amazonClientProvider = Mock(AmazonClientProvider)
     def handler = new AmazonCredentialsLifecycleHandler(awsCleanupProvider, awsInfrastructureProvider, awsProvider,
       amazonCloudProvider, amazonClientProvider, null, awsConfigurationProperties, objectMapper, null, null, registry, reservationReportPool, agentProviders, null, dynamicConfigService, deployDefaults,
       credentialsRepository)
@@ -148,15 +141,7 @@ class AmazonCredentialsLifecycleHandlerSpec extends Specification {
   }
 
   def 'account should be removed from reservation agent'() {
-    def amazonEC2 = Mock(AmazonEC2) {
-      describeAccountAttributes(_) >> new DescribeAccountAttributesResult().withAccountAttributes(
-        new AccountAttribute().withAttributeName("supported-platforms").withAttributeValues(
-          new AccountAttributeValue().withAttributeValue("VPC")
-        ))
-    }
-    def amazonClientProvider = Mock(AmazonClientProvider) {
-      getAmazonEC2(_, _) >> amazonEC2
-    }
+    def amazonClientProvider = Mock(AmazonClientProvider)
     def handler = new AmazonCredentialsLifecycleHandler(awsCleanupProvider, awsInfrastructureProvider, awsProvider,
       amazonCloudProvider, amazonClientProvider, null, awsConfigurationProperties, objectMapper, null, null, registry, reservationReportPool, agentProviders, null, dynamicConfigService, deployDefaults,
       credentialsRepository)
