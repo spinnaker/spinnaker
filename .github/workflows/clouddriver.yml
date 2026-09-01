@@ -51,7 +51,104 @@ on:
       - '.github/workflows/clouddriver.yml'
 
 jobs:
+  # Run unit tests in parallel shards by cloud provider group.
+  # The 'none' shard covers all core modules (cats, clouddriver-core, clouddriver-sql, etc.).
+  # Each shard also includes core modules since they are always included by settings.gradle.
+  test:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard:
+          - name: core
+            providers: none
+          - name: aws
+            providers: aws
+          - name: gcp
+            providers: gcp
+          - name: others
+            providers: azure,cloudfoundry,huaweicloud,kubernetes,oracle,tencentcloud,yandex,cloudrun,titus
+    name: Test (${{ matrix.shard.name }})
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v4
+        with:
+          java-version: |
+            17
+          distribution: 'zulu'
+          cache: gradle
+
+      - name: Cache Gradle build cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/build-cache
+          key: ${{ runner.os }}-gradle-build-cache-clouddriver-${{ matrix.shard.name }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-build-cache-clouddriver-${{ matrix.shard.name }}-
+
+      - name: Run tests
+        env:
+          GRADLE_OPTS: -Dorg.gradle.daemon=false -Xmx4g -Xms4g
+        run: |
+          sudo sh -c 'echo "nameserver 1.1.1.1" > /etc/resolv.conf'
+          ./gradlew -PincludeCloudProviders=${{ matrix.shard.providers }} --build-cache --stacktrace ':clouddriver:build'
+
+  # Container integration tests run after unit tests pass
+  integration-test:
+    if: github.event_name == 'pull_request'
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v4
+        with:
+          java-version: |
+            17
+          distribution: 'zulu'
+          cache: gradle
+
+      - name: Cache Gradle build cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/build-cache
+          key: ${{ runner.os }}-gradle-build-cache-clouddriver-integration-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-build-cache-clouddriver-integration-
+
+      - name: Run build to produce container artifacts
+        env:
+          GRADLE_OPTS: -Dorg.gradle.daemon=false -Xmx4g -Xms4g
+        run: |
+          sudo sh -c 'echo "nameserver 1.1.1.1" > /etc/resolv.conf'
+          ./gradlew --build-cache :clouddriver:clouddriver-web:installDist
+
+      - name: Container Integration Tests (build)
+        uses: docker/build-push-action@v6
+        env:
+          DOCKER_BUILD_SUMMARY: false
+          DOCKER_BUILD_RECORD_UPLOAD: false
+        with:
+          context: clouddriver
+          file: clouddriver/Dockerfile.slim
+          platforms: local
+          load: true
+          secrets: |
+            github_token=${{ secrets.GITHUB_TOKEN }}
+          tags: |
+            "clouddriver-integration-test"
+
+      - name: Container Integration Tests (test)
+        env:
+          FULL_DOCKER_IMAGE_NAME: "clouddriver-integration-test"
+          GRADLE_OPTS: -Dorg.gradle.daemon=false -Xmx4g -Xms4g
+        run: |
+          sudo sh -c 'echo "nameserver 1.1.1.1" > /etc/resolv.conf'
+          ./gradlew --build-cache :clouddriver:clouddriver-integration:test
+
+  # Build and publish — runs on push/dispatch (not PRs)
   build:
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -64,3 +161,4 @@ jobs:
           version-override: ${{ inputs.version-override }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           gar-json-key: ${{ secrets.GAR_JSON_KEY }}
+          integration-test: 'false'
