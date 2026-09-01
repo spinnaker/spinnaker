@@ -18,10 +18,10 @@ package com.netflix.spinnaker.clouddriver.aws.security
 
 import com.amazonaws.auth.AWSCredentialsProvider
 import com.amazonaws.auth.BasicAWSCredentials
-import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.ec2.AmazonEC2
 import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient
+import software.amazon.awssdk.services.ec2.Ec2Client
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -34,25 +34,25 @@ class AmazonClientProviderSpec extends Specification {
   @Shared AwsConfigurationProperties awsConfigurationProperties = new AwsConfigurationProperties()
   @Shared NetflixAmazonCredentials credentials = new NetflixAmazonCredentials(TestCredential.named('test'), credentialsProvider, awsConfigurationProperties)
 
-  void "getAmazonEC2 builds a client directly against AWS"() {
+  void "getAmazonEC2V2 builds a client directly against AWS"() {
     setup:
     def provider = new AmazonClientProvider()
 
     when:
-    def client = provider.getAmazonEC2(credentials, "us-east-1")
+    def client = provider.getAmazonEC2V2(credentials, "us-east-1")
 
     then:
-    client instanceof AmazonEC2
+    client instanceof Ec2Client
   }
 
-  void "getAutoScaling builds a client directly against AWS"() {
+  void "getAutoScalingV2 builds a client directly against AWS"() {
     setup:
     def provider = new AmazonClientProvider()
 
     when:
-    def client = provider.getAutoScaling(credentials, "us-east-1")
+    def client = provider.getAutoScalingV2(credentials, "us-east-1")
 
     then:
-    client instanceof AmazonAutoScaling
+    client instanceof AutoScalingClient
   }
 }
