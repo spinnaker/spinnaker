@@ -59,7 +59,7 @@ class AmazonClientProviderV2Test {
     provider = new AmazonClientProvider();
 
     creds = mock(NetflixAmazonCredentials.class);
-    when(creds.getV2CredentialsProvider()).thenReturn(dummyCreds());
+    when(creds.getCredentialsProvider()).thenReturn(dummyCreds());
     when(creds.getName()).thenReturn("test-account");
   }
 
@@ -154,5 +154,11 @@ class AmazonClientProviderV2Test {
     EcsClient east = provider.getAmazonEcsV2(creds, "us-east-1");
     EcsClient west = provider.getAmazonEcsV2(creds, "us-west-2");
     assertThat(east).isNotSameAs(west);
+  }
+
+  @Test
+  void nullRegionResolvesViaDefaultRegionProviderChainInsteadOfThrowing() {
+    Ec2Client client = provider.getAmazonEC2V2(creds, AmazonClientProvider.DEFAULT_REGION);
+    assertThat(client).isNotNull().isInstanceOf(Ec2Client.class);
   }
 }
