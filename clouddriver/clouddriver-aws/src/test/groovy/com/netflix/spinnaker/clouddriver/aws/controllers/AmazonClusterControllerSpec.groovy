@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.aws.controllers
 
-import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.autoscaling.model.Activity
-import com.amazonaws.services.autoscaling.model.DescribeScalingActivitiesRequest
-import com.amazonaws.services.autoscaling.model.DescribeScalingActivitiesResult
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient
+import software.amazon.awssdk.services.autoscaling.model.Activity
+import software.amazon.awssdk.services.autoscaling.model.DescribeScalingActivitiesRequest
+import software.amazon.awssdk.services.autoscaling.model.DescribeScalingActivitiesResponse
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
@@ -38,9 +38,9 @@ class AmazonClusterControllerSpec extends Specification {
     def credsProvider = Stub(CredentialsRepository) {
       getOne(account) >> creds
     }
-    def autoScaling = Mock(AmazonAutoScaling)
+    def autoScaling = Mock(AutoScalingClient)
     def provider = Stub(AmazonClientProvider)
-    provider.getAutoScaling(creds, region) >> autoScaling
+    provider.getAutoScalingV2(creds, region) >> autoScaling
     controller.amazonClientProvider = provider
     controller.credentialsRepository = credsProvider
 
@@ -49,12 +49,12 @@ class AmazonClusterControllerSpec extends Specification {
 
     then:
     1 * autoScaling.describeScalingActivities(_) >> { DescribeScalingActivitiesRequest request ->
-      assert request.autoScalingGroupName == asgName
-      new DescribeScalingActivitiesResult(activities: [new Activity(activityId: "1234")])
+      assert request.autoScalingGroupName() == asgName
+      DescribeScalingActivitiesResponse.builder().activities(Activity.builder().activityId("1234").build()).build()
     }
     result.statusCode == HttpStatus.OK
     result.body instanceof List
-    result.body[0].activityId == "1234"
+    result.body[0].activityId() == "1234"
 
     where:
     account = "test"

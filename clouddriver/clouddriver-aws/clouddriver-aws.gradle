@@ -30,7 +30,6 @@ dependencies {
   implementation project(":clouddriver-saga")
 
   implementation "jakarta.inject:jakarta.inject-api:2.0.1"
-  implementation "com.amazonaws:aws-java-sdk"
   api "software.amazon.awssdk:applicationautoscaling"
   api "software.amazon.awssdk:autoscaling"
   api "software.amazon.awssdk:cloudformation"
@@ -43,6 +42,7 @@ dependencies {
   api "software.amazon.awssdk:iam"
   api "software.amazon.awssdk:iam-policy-builder"
   api "software.amazon.awssdk:lambda"
+  api "software.amazon.awssdk:route53"
   api "software.amazon.awssdk:s3"
   api "software.amazon.awssdk:secretsmanager"
   api "software.amazon.awssdk:servicediscovery"

@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.config
 
-import com.amazonaws.auth.AWSCredentialsProvider
-import com.amazonaws.retry.RetryPolicy.BackoffStrategy
-import com.amazonaws.retry.RetryPolicy.RetryCondition
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer
 import com.netflix.spectator.api.Registry
@@ -37,6 +34,7 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.UserDataProviderAgg
 import com.netflix.spinnaker.clouddriver.aws.event.AfterResizeEventHandler
 import com.netflix.spinnaker.clouddriver.aws.event.DefaultAfterResizeEventHandler
 import com.netflix.spinnaker.clouddriver.aws.health.AmazonHealthIndicator
+import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonServerGroup
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsCleanupProvider
@@ -49,8 +47,6 @@ import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentialsInitializer
 import com.netflix.spinnaker.clouddriver.aws.security.DefaultAWSAccountInfoLookup
 import com.netflix.spinnaker.clouddriver.aws.security.DefaultAWSAccountInfoLookupFactory
-import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig
-import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig.Builder
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.security.ProfileCredentialsProviderFactory
 import com.netflix.spinnaker.clouddriver.aws.services.IdGenerator
@@ -74,6 +70,7 @@ import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.*
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider
 
 @Configuration
 @ConditionalOnProperty('aws.enabled')
@@ -87,28 +84,10 @@ import org.springframework.core.annotation.Order
 class AwsConfiguration {
 
   @Bean
-  @ConfigurationProperties('aws.edda')
-  Builder eddaTimeoutConfigBuilder() {
-    return new Builder()
-  }
-
-  @Bean
-  EddaTimeoutConfig eddaTimeoutConfig(Builder eddaTimeoutConfigBuilder) {
-    eddaTimeoutConfigBuilder.build()
-  }
-
-  @Bean
-  AmazonClientProvider amazonClientProvider(AwsConfigurationProperties awsConfigurationProperties, RetryCondition instrumentedRetryCondition, BackoffStrategy instrumentedBackoffStrategy, AWSProxy proxy, EddaTimeoutConfig eddaTimeoutConfig, ServiceLimitConfiguration serviceLimitConfiguration, Registry registry) {
+  AmazonClientProvider amazonClientProvider(AwsConfigurationProperties awsConfigurationProperties, AWSProxy proxy, ServiceLimitConfiguration serviceLimitConfiguration, Registry registry) {
     new AmazonClientProvider.Builder()
-      .backoffStrategy(instrumentedBackoffStrategy)
-      .retryCondition(instrumentedRetryCondition)
-      .objectMapper(amazonObjectMapper())
       .maxErrorRetry(awsConfigurationProperties.client.maxErrorRetry)
-      .maxConnections(awsConfigurationProperties.client.maxConnections)
-      .maxConnectionsPerRoute(awsConfigurationProperties.client.maxConnectionsPerRoute)
       .proxy(proxy)
-      .eddaTimeoutConfig(eddaTimeoutConfig)
-      .useGzip(awsConfigurationProperties.client.useGzip)
       .serviceLimitConfiguration(serviceLimitConfiguration)
       .registry(registry)
       .addSpinnakerUserToUserAgent(awsConfigurationProperties.client.addSpinnakerUserToUserAgent)
@@ -117,7 +96,7 @@ class AwsConfiguration {
   }
 
   @Bean
-  AWSAccountInfoLookup awsAccountInfoLookup(AWSCredentialsProvider awsCredentialsProvider, AmazonClientProvider amazonClientProvider) {
+  AWSAccountInfoLookup awsAccountInfoLookup(AwsCredentialsProvider awsCredentialsProvider, AmazonClientProvider amazonClientProvider) {
     return new DefaultAWSAccountInfoLookup(awsCredentialsProvider, amazonClientProvider)
   }
 
@@ -134,7 +113,7 @@ class AwsConfiguration {
   @Bean
   @Qualifier("amazonObjectMapper")
   ObjectMapper amazonObjectMapper() {
-    return new AmazonObjectMapperConfigurer().createConfigured()
+    return new AmazonObjectMapperConfigurer().createConfigured().registerModule(new AwsSdkV2Module())
   }
 
   @Bean

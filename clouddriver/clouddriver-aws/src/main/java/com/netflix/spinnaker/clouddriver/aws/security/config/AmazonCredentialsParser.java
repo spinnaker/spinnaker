@@ -17,8 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.security.config;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.util.CollectionUtils;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
@@ -48,6 +46,8 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.util.CollectionUtils;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 
 @Slf4j
 public class AmazonCredentialsParser<
@@ -56,7 +56,7 @@ public class AmazonCredentialsParser<
 
   private final AmazonClientProvider amazonClientProvider;
 
-  private final AWSCredentialsProvider credentialsProvider;
+  private final AwsCredentialsProvider credentialsProvider;
   private final AWSAccountInfoLookup awsAccountInfoLookup;
 
   /** Used with multiple managing accounts to lookup aws account info */
@@ -66,7 +66,7 @@ public class AmazonCredentialsParser<
   private final AWSCredentialsProviderFactory awsCredentialsProviderFactory;
 
   /** The key is a profile name, and the value is the provider for that profile */
-  private final Map<String, AWSCredentialsProvider> credentialsProviderMap;
+  private final Map<String, AwsCredentialsProvider> credentialsProviderMap;
 
   /** The key is a profile name, and the value is account info lookup object for that profile. */
   private final Map<String, AWSAccountInfoLookup> awsAccountInfoLookupMap;
@@ -88,7 +88,7 @@ public class AmazonCredentialsParser<
   private static final String DEFAULT_REGIONS_PROCESSED_KEY = "default_regions_processed";
 
   public AmazonCredentialsParser(
-      AWSCredentialsProvider credentialsProvider,
+      AwsCredentialsProvider credentialsProvider,
       AmazonClientProvider amazonClientProvider,
       AWSAccountInfoLookup awsAccountInfoLookup,
       AWSAccountInfoLookupFactory awsAccountInfoLookupFactory,
@@ -122,7 +122,7 @@ public class AmazonCredentialsParser<
     this.awsConfigurationProperties = Objects.requireNonNull(awsConfigurationProperties);
 
     // look in the credentials config to find default region names
-    if (!CollectionUtils.isNullOrEmpty(credentialsConfig.getDefaultRegions())) {
+    if (!CollectionUtils.isEmpty(credentialsConfig.getDefaultRegions())) {
       // With multiple managing accounts, is there more than one list of default
       // regions?  It's possible to add another property to add profile-specific
       // defaults, like:
@@ -157,7 +157,7 @@ public class AmazonCredentialsParser<
     // has no availability zones specified.
     initializeRegionsCacheWithDefaultRegions();
 
-    if (CollectionUtils.isNullOrEmpty(toInit)) {
+    if (CollectionUtils.isEmpty(toInit)) {
       return getRegionsFromCache(awsAccountInfoLookup, this.defaultRegionNames);
     }
 
@@ -168,7 +168,7 @@ public class AmazonCredentialsParser<
     List<String> toLookup = new ArrayList<>();
     for (Region region : toInit) {
       // only attempt to lookup regions that don't have any availability zones set in the config
-      if (CollectionUtils.isNullOrEmpty(region.getAvailabilityZones())) {
+      if (CollectionUtils.isEmpty(region.getAvailabilityZones())) {
         Region fromCache = regionCache.get(region.getName());
         // no need to lookup the region if it already exists in the cache
         if (fromCache != null) {
@@ -410,8 +410,6 @@ public class AmazonCredentialsParser<
     account.setDefaultKeyPair(
         templateFirstNonNull(
             templateContext, account.getDefaultKeyPair(), config.getDefaultKeyPairTemplate()));
-    account.setEdda(
-        templateFirstNonNull(templateContext, account.getEdda(), config.getDefaultEddaTemplate()));
     account.setFront50(
         templateFirstNonNull(
             templateContext, account.getFront50(), config.getDefaultFront50Template()));
@@ -498,7 +496,7 @@ public class AmazonCredentialsParser<
    * @param account access the credentials provider for this account
    * @return the credentials provider for account
    */
-  private AWSCredentialsProvider getCredentialsProvider(
+  private AwsCredentialsProvider getCredentialsProvider(
       CredentialsConfig credentialsConfig, Account account) {
     // If the useManagingAccountProfile feature is disabled, return the standalone credentials
     // provider.
@@ -589,7 +587,7 @@ public class AmazonCredentialsParser<
     boolean resolveAccountId();
 
     T translate(
-        AWSCredentialsProvider credentialsProvider,
+        AwsCredentialsProvider credentialsProvider,
         Account account,
         AwsConfigurationProperties awsConfigurationProperties)
         throws Throwable;
@@ -608,7 +606,7 @@ public class AmazonCredentialsParser<
       try {
         copyConstructor =
             credentialType.getConstructor(
-                credentialType, AWSCredentialsProvider.class, AwsConfigurationProperties.class);
+                credentialType, AwsCredentialsProvider.class, AwsConfigurationProperties.class);
       } catch (NoSuchMethodException nsme) {
         throw new IllegalArgumentException(
             "Class "
@@ -616,7 +614,7 @@ public class AmazonCredentialsParser<
                 + " must supply a constructor with "
                 + credentialType
                 + ", "
-                + AWSCredentialsProvider.class
+                + AwsCredentialsProvider.class
                 + ", "
                 + AwsConfigurationProperties.class
                 + " args.");
@@ -640,7 +638,7 @@ public class AmazonCredentialsParser<
 
     @Override
     public T translate(
-        AWSCredentialsProvider credentialsProvider,
+        AwsCredentialsProvider credentialsProvider,
         Account account,
         AwsConfigurationProperties awsConfigurationProperties)
         throws Throwable {

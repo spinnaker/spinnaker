@@ -18,9 +18,6 @@ package com.netflix.spinnaker.clouddriver.aws.security;
 
 import static java.util.Objects.requireNonNull;
 
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.AWSSessionCredentials;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties;
@@ -31,18 +28,16 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 
 /**
- * Basic set of Amazon credentials that use a provided {@link
- * com.amazonaws.auth.AWSCredentialsProvider} to resolve account credentials. If none provided, the
- * {@link com.amazonaws.auth.DefaultAWSCredentialsProviderChain} will be used. The account's active
- * regions and availability zones can be specified as well.
+ * Basic set of Amazon credentials that use a provided {@link AwsCredentialsProvider} to resolve
+ * account credentials. If none provided, the {@link DefaultCredentialsProvider} chain will be used.
+ * The account's active regions and availability zones can be specified as well.
  */
-public class AmazonCredentials extends AbstractAccountCredentials<AWSCredentials> {
+public class AmazonCredentials extends AbstractAccountCredentials<AwsCredentials> {
   private static final String CLOUD_PROVIDER = "aws";
 
   private final String name;
@@ -57,7 +52,7 @@ public class AmazonCredentials extends AbstractAccountCredentials<AWSCredentials
   private final List<String> defaultSecurityGroups;
   private final List<LifecycleHook> lifecycleHooks;
   private final boolean allowPrivateThirdPartyImages;
-  private final AWSCredentialsProvider credentialsProvider;
+  private final AwsCredentialsProvider credentialsProvider;
 
   public AmazonCredentials(
       @JsonProperty("name") String name,
@@ -90,7 +85,7 @@ public class AmazonCredentials extends AbstractAccountCredentials<AWSCredentials
 
   public AmazonCredentials(
       AmazonCredentials source,
-      AWSCredentialsProvider credentialsProvider,
+      AwsCredentialsProvider credentialsProvider,
       AwsConfigurationProperties awsConfigurationProperties) {
     this(
         source.getName(),
@@ -121,7 +116,7 @@ public class AmazonCredentials extends AbstractAccountCredentials<AWSCredentials
       Permissions permissions,
       List<LifecycleHook> lifecycleHooks,
       boolean allowPrivateThirdPartyImages,
-      AWSCredentialsProvider credentialsProvider) {
+      AwsCredentialsProvider credentialsProvider) {
     this.name = requireNonNull(name, "name");
     this.environment = requireNonNull(environment, "environment");
     this.accountType = requireNonNull(accountType, "accountType");
@@ -144,7 +139,8 @@ public class AmazonCredentials extends AbstractAccountCredentials<AWSCredentials
             ? Collections.<LifecycleHook>emptyList()
             : Collections.unmodifiableList(lifecycleHooks);
     this.allowPrivateThirdPartyImages = allowPrivateThirdPartyImages;
-    this.credentialsProvider = credentialsProvider;
+    this.credentialsProvider =
+        credentialsProvider != null ? credentialsProvider : DefaultCredentialsProvider.create();
   }
 
   @Override
@@ -188,44 +184,14 @@ public class AmazonCredentials extends AbstractAccountCredentials<AWSCredentials
   }
 
   @JsonIgnore
-  public AWSCredentialsProvider getCredentialsProvider() {
+  public AwsCredentialsProvider getCredentialsProvider() {
     return credentialsProvider;
-  }
-
-  /**
-   * Returns an AWS SDK v2 {@link AwsCredentialsProvider} for this account. If a v1 {@link
-   * AWSCredentialsProvider} is configured, it is bridged to v2 by adapting each resolved credential
-   * on every call. This ensures the v2 provider benefits from the v1 provider's token refresh logic
-   * and works in environments where the v2 {@link DefaultCredentialsProvider} cannot independently
-   * discover credentials (e.g. GKE pods with static AWS keys).
-   *
-   * <p>Subclasses that use IAM role assumption (e.g. {@link AssumeRoleAmazonCredentials}) may
-   * override this to return a dedicated v2 STS assume-role provider instead.
-   *
-   * <p>v2 clients constructed via {@link
-   * com.netflix.spinnaker.clouddriver.aws.security.sdkclient.AwsSdkV2ClientSupplier} use this
-   * method to obtain credentials.
-   */
-  @JsonIgnore
-  public AwsCredentialsProvider getV2CredentialsProvider() {
-    if (credentialsProvider != null) {
-      return () -> {
-        AWSCredentials v1Creds = credentialsProvider.getCredentials();
-        if (v1Creds instanceof AWSSessionCredentials) {
-          AWSSessionCredentials session = (AWSSessionCredentials) v1Creds;
-          return AwsSessionCredentials.create(
-              session.getAWSAccessKeyId(), session.getAWSSecretKey(), session.getSessionToken());
-        }
-        return AwsBasicCredentials.create(v1Creds.getAWSAccessKeyId(), v1Creds.getAWSSecretKey());
-      };
-    }
-    return DefaultCredentialsProvider.create();
   }
 
   @Override
   @JsonIgnore
-  public AWSCredentials getCredentials() {
-    return credentialsProvider.getCredentials();
+  public AwsCredentials getCredentials() {
+    return credentialsProvider.resolveCredentials();
   }
 
   @Override

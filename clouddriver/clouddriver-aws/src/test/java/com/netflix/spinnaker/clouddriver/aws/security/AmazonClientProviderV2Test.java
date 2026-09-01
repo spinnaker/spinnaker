@@ -33,14 +33,15 @@ import software.amazon.awssdk.services.ecr.EcrClient;
 import software.amazon.awssdk.services.ecs.EcsClient;
 import software.amazon.awssdk.services.elasticloadbalancing.ElasticLoadBalancingClient;
 import software.amazon.awssdk.services.iam.IamClient;
+import software.amazon.awssdk.services.route53.Route53Client;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.servicediscovery.ServiceDiscoveryClient;
 import software.amazon.awssdk.services.shield.ShieldClient;
 
 /**
- * Unit tests verifying the nine v2 getter methods on {@link AmazonClientProvider} produce the
- * correct v2 client types and delegate to the v2 supplier correctly.
+ * Unit tests verifying the v2 getter methods on {@link AmazonClientProvider} produce the correct v2
+ * client types and delegate to the v2 supplier correctly.
  */
 class AmazonClientProviderV2Test {
 
@@ -58,7 +59,7 @@ class AmazonClientProviderV2Test {
     provider = new AmazonClientProvider();
 
     creds = mock(NetflixAmazonCredentials.class);
-    when(creds.getV2CredentialsProvider()).thenReturn(dummyCreds());
+    when(creds.getCredentialsProvider()).thenReturn(dummyCreds());
     when(creds.getName()).thenReturn("test-account");
   }
 
@@ -96,6 +97,12 @@ class AmazonClientProviderV2Test {
   void getAmazonCloudWatchV2ReturnsCloudWatchClient() {
     CloudWatchClient client = provider.getAmazonCloudWatchV2(creds, REGION);
     assertThat(client).isNotNull().isInstanceOf(CloudWatchClient.class);
+  }
+
+  @Test
+  void getAmazonRoute53V2ReturnsRoute53Client() {
+    Route53Client client = provider.getAmazonRoute53V2(creds, REGION);
+    assertThat(client).isNotNull().isInstanceOf(Route53Client.class);
   }
 
   @Test
@@ -147,5 +154,11 @@ class AmazonClientProviderV2Test {
     EcsClient east = provider.getAmazonEcsV2(creds, "us-east-1");
     EcsClient west = provider.getAmazonEcsV2(creds, "us-west-2");
     assertThat(east).isNotSameAs(west);
+  }
+
+  @Test
+  void nullRegionResolvesViaDefaultRegionProviderChainInsteadOfThrowing() {
+    Ec2Client client = provider.getAmazonEC2V2(creds, AmazonClientProvider.DEFAULT_REGION);
+    assertThat(client).isNotNull().isInstanceOf(Ec2Client.class);
   }
 }
