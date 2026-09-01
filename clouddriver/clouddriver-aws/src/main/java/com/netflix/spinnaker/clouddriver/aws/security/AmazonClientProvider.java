@@ -16,36 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.security;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.handlers.RequestHandler2;
-import com.amazonaws.retry.PredefinedRetryPolicies;
-import com.amazonaws.retry.RetryPolicy;
-import com.amazonaws.services.applicationautoscaling.AWSApplicationAutoScaling;
-import com.amazonaws.services.applicationautoscaling.AWSApplicationAutoScalingClientBuilder;
-import com.amazonaws.services.autoscaling.AmazonAutoScaling;
-import com.amazonaws.services.autoscaling.AmazonAutoScalingClientBuilder;
-import com.amazonaws.services.cloudwatch.AmazonCloudWatch;
-import com.amazonaws.services.cloudwatch.AmazonCloudWatchClientBuilder;
-import com.amazonaws.services.ec2.AmazonEC2;
-import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
-import com.amazonaws.services.ecr.AmazonECR;
-import com.amazonaws.services.ecr.AmazonECRClientBuilder;
-import com.amazonaws.services.ecs.AmazonECS;
-import com.amazonaws.services.ecs.AmazonECSClientBuilder;
-import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing;
-import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancingClientBuilder;
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClientBuilder;
-import com.amazonaws.services.route53.AmazonRoute53;
-import com.amazonaws.services.route53.AmazonRoute53ClientBuilder;
-import com.amazonaws.services.secretsmanager.AWSSecretsManager;
-import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
-import com.amazonaws.services.servicediscovery.AWSServiceDiscovery;
-import com.amazonaws.services.servicediscovery.AWSServiceDiscoveryClientBuilder;
-import com.amazonaws.services.shield.AWSShield;
-import com.amazonaws.services.shield.AWSShieldClientBuilder;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer;
 import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.aws.security.sdkclient.*;
@@ -54,10 +24,9 @@ import com.netflix.spinnaker.clouddriver.core.limits.ServiceLimitConfigurationBu
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.services.applicationautoscaling.ApplicationAutoScalingClient;
 import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
 import software.amazon.awssdk.services.cloudformation.CloudFormationClient;
@@ -69,6 +38,7 @@ import software.amazon.awssdk.services.elasticloadbalancing.ElasticLoadBalancing
 import software.amazon.awssdk.services.elasticloadbalancingv2.ElasticLoadBalancingV2Client;
 import software.amazon.awssdk.services.iam.IamClient;
 import software.amazon.awssdk.services.lambda.LambdaClient;
+import software.amazon.awssdk.services.route53.Route53Client;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.servicediscovery.ServiceDiscoveryClient;
@@ -78,36 +48,22 @@ import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.support.SupportClient;
 import software.amazon.awssdk.services.swf.SwfClient;
 
-/** Provider of Amazon SDK Clients that can read through Edda. */
+/** Provider of Amazon SDK Clients. */
 public class AmazonClientProvider {
 
   /**
-   * This constant (as null) indicates that whatever the current region from the AWS SDKs
-   * perspective should be used.
-   *
-   * <p>The region to use will be resolved dynamically by {@link SpinnakerAwsRegionProvider} which
-   * supports all the standard SDK means of explicitly specifying the current region, (environment
-   * variable, instance profile, instance metadata).
+   * This constant (as null) indicates that the region should be resolved dynamically via the AWS
+   * SDK's default region provider chain (environment variable, instance profile, instance
+   * metadata), falling back to {@code us-east-1} if none of those resolve. See {@link
+   * AwsSdkV2ClientSupplier}.
    */
   public static final String DEFAULT_REGION = null;
 
-  private final AwsSdkClientSupplier awsSdkClientSupplier;
   private final AwsSdkV2ClientSupplier awsSdkV2ClientSupplier;
-  private final ProxyHandlerBuilder proxyHandlerBuilder;
 
   public static class Builder {
-    private HttpClient httpClient;
-    private ObjectMapper objectMapper;
-    private EddaTemplater eddaTemplater;
-    private RetryPolicy.RetryCondition retryCondition;
-    private RetryPolicy.BackoffStrategy backoffStrategy;
     private Integer maxErrorRetry;
-    private List<RequestHandler2> requestHandlers = new ArrayList<>();
     private AWSProxy proxy;
-    private EddaTimeoutConfig eddaTimeoutConfig;
-    private int maxConnections = 200;
-    private int maxConnectionsPerRoute = 20;
-    private boolean uzeGzip = true;
     private boolean addSpinnakerUserToUserAgent = false;
     private boolean logEndpoints = false;
     private ServiceLimitConfiguration serviceLimitConfiguration =
@@ -115,63 +71,13 @@ public class AmazonClientProvider {
     private Registry registry = new NoopRegistry();
     private List<ExecutionInterceptor> v2ExecutionInterceptors = new ArrayList<>();
 
-    public Builder httpClient(HttpClient httpClient) {
-      this.httpClient = httpClient;
-      return this;
-    }
-
     public Builder proxy(AWSProxy proxy) {
       this.proxy = proxy;
       return this;
     }
 
-    public Builder objectMapper(ObjectMapper objectMapper) {
-      this.objectMapper = objectMapper;
-      return this;
-    }
-
-    public Builder eddaTemplater(EddaTemplater eddaTemplater) {
-      this.eddaTemplater = eddaTemplater;
-      return this;
-    }
-
-    public Builder retryCondition(RetryPolicy.RetryCondition retryCondition) {
-      this.retryCondition = retryCondition;
-      return this;
-    }
-
-    public Builder backoffStrategy(RetryPolicy.BackoffStrategy backoffStrategy) {
-      this.backoffStrategy = backoffStrategy;
-      return this;
-    }
-
     public Builder maxErrorRetry(Integer maxErrorRetry) {
       this.maxErrorRetry = maxErrorRetry;
-      return this;
-    }
-
-    public Builder requestHandler(RequestHandler2 requestHandler) {
-      this.requestHandlers.add(requestHandler);
-      return this;
-    }
-
-    public Builder eddaTimeoutConfig(EddaTimeoutConfig eddaTimeoutConfig) {
-      this.eddaTimeoutConfig = eddaTimeoutConfig;
-      return this;
-    }
-
-    public Builder maxConnections(int maxConnections) {
-      this.maxConnections = maxConnections;
-      return this;
-    }
-
-    public Builder maxConnectionsPerRoute(int maxConnectionsPerRoute) {
-      this.maxConnectionsPerRoute = maxConnectionsPerRoute;
-      return this;
-    }
-
-    public Builder useGzip(boolean useGzip) {
-      this.uzeGzip = useGzip;
       return this;
     }
 
@@ -197,7 +103,7 @@ public class AmazonClientProvider {
 
     /**
      * Adds an AWS SDK v2 {@link ExecutionInterceptor} that will be attached to every v2 client
-     * built by the provider. This is the v2 equivalent of {@link #requestHandler(RequestHandler2)}.
+     * built by the provider.
      */
     public Builder v2ExecutionInterceptor(ExecutionInterceptor interceptor) {
       this.v2ExecutionInterceptors.add(interceptor);
@@ -205,507 +111,123 @@ public class AmazonClientProvider {
     }
 
     public AmazonClientProvider build() {
-      HttpClient client = this.httpClient;
-      if (client == null) {
-        HttpClientBuilder builder = HttpClientBuilder.create();
-        builder.setMaxConnTotal(this.maxConnections);
-        builder.setMaxConnPerRoute(this.maxConnectionsPerRoute);
-        client = builder.build();
+      RetryPolicy.Builder retryPolicyBuilder = RetryPolicy.builder();
+      if (maxErrorRetry != null) {
+        retryPolicyBuilder.numRetries(maxErrorRetry);
       }
 
-      ObjectMapper mapper =
-          this.objectMapper == null
-              ? AmazonObjectMapperConfigurer.createConfigured()
-              : this.objectMapper;
-      EddaTemplater templater =
-          this.eddaTemplater == null ? EddaTemplater.defaultTemplater() : this.eddaTemplater;
-      RetryPolicy policy = buildPolicy();
-      AWSProxy proxy = this.proxy;
-      EddaTimeoutConfig eddaTimeoutConfig =
-          this.eddaTimeoutConfig == null ? EddaTimeoutConfig.DEFAULT : this.eddaTimeoutConfig;
-
-      List<RequestHandler2> handlersToAdd = new ArrayList<>();
-
-      if (addSpinnakerUserToUserAgent) {
-        handlersToAdd.add(new AddSpinnakerUserToUserAgentRequestHandler());
-      }
-
+      List<ExecutionInterceptor> interceptors = this.v2ExecutionInterceptors;
       if (logEndpoints) {
-        handlersToAdd.add(new LogEndpointRequestHandler());
-      }
-
-      final List<RequestHandler2> requestHandlers;
-      if (!handlersToAdd.isEmpty()) {
-        requestHandlers = new ArrayList<>(this.requestHandlers.size() + handlersToAdd.size());
-        requestHandlers.addAll(this.requestHandlers);
-        requestHandlers.addAll(handlersToAdd);
-      } else {
-        requestHandlers = this.requestHandlers;
+        interceptors = new ArrayList<>(interceptors);
+        interceptors.add(new LogEndpointExecutionInterceptor());
       }
 
       return new AmazonClientProvider(
-          client,
-          mapper,
-          templater,
-          policy,
-          requestHandlers,
+          retryPolicyBuilder.build(),
           proxy,
-          eddaTimeoutConfig,
-          uzeGzip,
+          addSpinnakerUserToUserAgent,
           serviceLimitConfiguration,
           registry,
-          v2ExecutionInterceptors);
-    }
-
-    private RetryPolicy buildPolicy() {
-      if (retryCondition == null && backoffStrategy == null) {
-        if (maxErrorRetry == null) {
-          return PredefinedRetryPolicies.getDefaultRetryPolicy();
-        }
-        return new RetryPolicy(
-            PredefinedRetryPolicies.DEFAULT_RETRY_CONDITION,
-            PredefinedRetryPolicies.DEFAULT_BACKOFF_STRATEGY,
-            maxErrorRetry,
-            true);
-      }
-      RetryPolicy.RetryCondition condition =
-          this.retryCondition == null
-              ? PredefinedRetryPolicies.DEFAULT_RETRY_CONDITION
-              : this.retryCondition;
-      RetryPolicy.BackoffStrategy strategy =
-          this.backoffStrategy == null
-              ? PredefinedRetryPolicies.DEFAULT_BACKOFF_STRATEGY
-              : this.backoffStrategy;
-      int retry =
-          this.maxErrorRetry == null
-              ? PredefinedRetryPolicies.DEFAULT_MAX_ERROR_RETRY
-              : this.maxErrorRetry;
-
-      return new RetryPolicy(condition, strategy, retry, true);
+          interceptors);
     }
   }
 
   /** So it's possible for tests to create mocks */
   public AmazonClientProvider() {
-    this((HttpClient) null);
-  }
-
-  /** Also for testing */
-  public AmazonClientProvider(HttpClient httpClient) {
-    this(httpClient, AmazonObjectMapperConfigurer.createConfigured());
-  }
-
-  /** Also for testing */
-  public AmazonClientProvider(HttpClient httpClient, ObjectMapper objectMapper) {
     this(
-        httpClient == null ? HttpClients.createDefault() : httpClient,
-        objectMapper == null ? AmazonObjectMapperConfigurer.createConfigured() : objectMapper,
-        EddaTemplater.defaultTemplater(),
-        PredefinedRetryPolicies.getDefaultRetryPolicy(),
-        Collections.emptyList(),
+        RetryPolicy.defaultRetryPolicy(),
         null,
-        EddaTimeoutConfig.DEFAULT,
-        true,
+        false,
         new ServiceLimitConfigurationBuilder().build(),
-        new NoopRegistry());
-  }
-
-  public AmazonClientProvider(
-      HttpClient httpClient,
-      ObjectMapper objectMapper,
-      EddaTemplater eddaTemplater,
-      RetryPolicy retryPolicy,
-      List<RequestHandler2> requestHandlers,
-      AWSProxy proxy,
-      EddaTimeoutConfig eddaTimeoutConfig,
-      boolean useGzip,
-      ServiceLimitConfiguration serviceLimitConfiguration,
-      Registry registry) {
-    this(
-        httpClient,
-        objectMapper,
-        eddaTemplater,
-        retryPolicy,
-        requestHandlers,
-        proxy,
-        eddaTimeoutConfig,
-        useGzip,
-        serviceLimitConfiguration,
-        registry,
+        new NoopRegistry(),
         Collections.emptyList());
   }
 
   public AmazonClientProvider(
-      HttpClient httpClient,
-      ObjectMapper objectMapper,
-      EddaTemplater eddaTemplater,
       RetryPolicy retryPolicy,
-      List<RequestHandler2> requestHandlers,
       AWSProxy proxy,
-      EddaTimeoutConfig eddaTimeoutConfig,
-      boolean useGzip,
+      boolean addSpinnakerUserToUserAgent,
       ServiceLimitConfiguration serviceLimitConfiguration,
       Registry registry,
       List<ExecutionInterceptor> v2ExecutionInterceptors) {
     RateLimiterSupplier rateLimiterSupplier =
         new RateLimiterSupplier(serviceLimitConfiguration, registry);
-    this.awsSdkClientSupplier =
-        new AwsSdkClientSupplier(
-            rateLimiterSupplier, registry, retryPolicy, requestHandlers, proxy, useGzip);
-    software.amazon.awssdk.core.retry.RetryPolicy v2RetryPolicy = buildV2RetryPolicy(retryPolicy);
-    boolean v2AddUserAgent =
-        requestHandlers.stream()
-            .anyMatch(h -> h instanceof AddSpinnakerUserToUserAgentRequestHandler);
     this.awsSdkV2ClientSupplier =
         new AwsSdkV2ClientSupplier(
             rateLimiterSupplier,
             registry,
-            v2RetryPolicy,
+            retryPolicy,
             proxy,
-            v2AddUserAgent,
+            addSpinnakerUserToUserAgent,
             v2ExecutionInterceptors);
-    this.proxyHandlerBuilder =
-        new ProxyHandlerBuilder(
-            awsSdkClientSupplier,
-            httpClient,
-            objectMapper,
-            eddaTemplater,
-            eddaTimeoutConfig,
-            registry);
-  }
-
-  /**
-   * Translates v1 retry settings into a v2 {@link software.amazon.awssdk.core.retry.RetryPolicy}.
-   * The v2 SDK provides sensible defaults for backoff and retry conditions; we only override the
-   * max number of retries to match the v1 configuration.
-   */
-  private static software.amazon.awssdk.core.retry.RetryPolicy buildV2RetryPolicy(
-      RetryPolicy v1RetryPolicy) {
-    return software.amazon.awssdk.core.retry.RetryPolicy.builder()
-        .numRetries(v1RetryPolicy.getMaxErrorRetry())
-        .build();
-  }
-
-  /**
-   * When edda serves the request, the last-modified time is captured from the response metadata.
-   *
-   * @return the last-modified timestamp, if available.
-   */
-  public Long getLastModified() {
-    return AmazonClientInvocationHandler.lastModified.get();
-  }
-
-  public AmazonEC2 getAmazonEC2(NetflixAmazonCredentials amazonCredentials, String region) {
-    return getAmazonEC2(amazonCredentials, region, false);
-  }
-
-  public AmazonEC2 getAmazonEC2(
-      NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
-    return proxyHandlerBuilder.getProxyHandler(
-        AmazonEC2.class, AmazonEC2ClientBuilder.class, amazonCredentials, region, skipEdda);
-  }
-
-  public AmazonEC2 getAmazonEC2(AWSCredentialsProvider awsCredentialsProvider, String region) {
-    return awsSdkClientSupplier.getClient(
-        AmazonEC2ClientBuilder.class,
-        AmazonEC2.class,
-        "UNSPECIFIED_ACCOUNT",
-        awsCredentialsProvider,
-        region);
-  }
-
-  public AmazonEC2 getAmazonEC2(
-      String accountName, AWSCredentialsProvider awsCredentialsProvider, String region) {
-    return awsSdkClientSupplier.getClient(
-        AmazonEC2ClientBuilder.class, AmazonEC2.class, accountName, awsCredentialsProvider, region);
-  }
-
-  public AmazonECS getAmazonEcs(
-      NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
-    return proxyHandlerBuilder.getProxyHandler(
-        AmazonECS.class, AmazonECSClientBuilder.class, amazonCredentials, region, skipEdda);
-  }
-
-  public AmazonIdentityManagement getIam(
-      NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
-    return proxyHandlerBuilder.getProxyHandler(
-        AmazonIdentityManagement.class,
-        AmazonIdentityManagementClientBuilder.class,
-        amazonCredentials,
-        region,
-        skipEdda);
-    // return awsSdkClientSupplier.getClient(AmazonIdentityManagementClientBuilder.class,
-    // AmazonIdentityManagement.class, accountName, awsCredentialsProvider, region);
-  }
-
-  public AmazonAutoScaling getAutoScaling(
-      NetflixAmazonCredentials amazonCredentials, String region) {
-    return getAutoScaling(amazonCredentials, region, false);
-  }
-
-  public AmazonAutoScaling getAutoScaling(
-      NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
-    return proxyHandlerBuilder.getProxyHandler(
-        AmazonAutoScaling.class,
-        AmazonAutoScalingClientBuilder.class,
-        amazonCredentials,
-        region,
-        skipEdda);
-  }
-
-  public AmazonAutoScaling getAutoScaling(
-      String accountName, AWSCredentialsProvider awsCredentialsProvider, String region) {
-    return awsSdkClientSupplier.getClient(
-        AmazonAutoScalingClientBuilder.class,
-        AmazonAutoScaling.class,
-        accountName,
-        awsCredentialsProvider,
-        region);
-  }
-
-  public AmazonRoute53 getAmazonRoute53(NetflixAmazonCredentials amazonCredentials, String region) {
-    return getAmazonRoute53(amazonCredentials, region, false);
-  }
-
-  public AmazonRoute53 getAmazonRoute53(
-      NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
-    return proxyHandlerBuilder.getProxyHandler(
-        AmazonRoute53.class, AmazonRoute53ClientBuilder.class, amazonCredentials, region, skipEdda);
-  }
-
-  public AmazonRoute53 getAmazonRoute53(
-      String accountName, AWSCredentialsProvider awsCredentialsProvider, String region) {
-    return awsSdkClientSupplier.getClient(
-        AmazonRoute53ClientBuilder.class,
-        AmazonRoute53.class,
-        accountName,
-        awsCredentialsProvider,
-        region);
-  }
-
-  public AmazonElasticLoadBalancing getAmazonElasticLoadBalancing(
-      String accountName, AWSCredentialsProvider awsCredentialsProvider, String region) {
-    return awsSdkClientSupplier.getClient(
-        AmazonElasticLoadBalancingClientBuilder.class,
-        AmazonElasticLoadBalancing.class,
-        accountName,
-        awsCredentialsProvider,
-        region);
-  }
-
-  public com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing
-      getAmazonElasticLoadBalancingV2(
-          String accountName, AWSCredentialsProvider awsCredentialsProvider, String region) {
-    return awsSdkClientSupplier.getClient(
-        com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancingClientBuilder.class,
-        com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing.class,
-        accountName,
-        awsCredentialsProvider,
-        region);
-  }
-
-  public AmazonCloudWatch getAmazonCloudWatch(
-      NetflixAmazonCredentials amazonCredentials, String region) {
-    return getAmazonCloudWatch(amazonCredentials, region, false);
-  }
-
-  public AmazonCloudWatch getAmazonCloudWatch(
-      NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
-    return proxyHandlerBuilder.getProxyHandler(
-        AmazonCloudWatch.class,
-        AmazonCloudWatchClientBuilder.class,
-        amazonCredentials,
-        region,
-        skipEdda);
-  }
-
-  public AmazonCloudWatch getAmazonCloudWatch(
-      String accountName, AWSCredentialsProvider awsCredentialsProvider, String region) {
-    return awsSdkClientSupplier.getClient(
-        AmazonCloudWatchClientBuilder.class,
-        AmazonCloudWatch.class,
-        accountName,
-        awsCredentialsProvider,
-        region);
-  }
-
-  public AmazonCloudWatch getCloudWatch(NetflixAmazonCredentials amazonCredentials, String region) {
-    return getAmazonCloudWatch(amazonCredentials, region);
-  }
-
-  public AmazonCloudWatch getCloudWatch(
-      NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
-    return getAmazonCloudWatch(amazonCredentials, region, skipEdda);
-  }
-
-  public AmazonIdentityManagement getAmazonIdentityManagement(
-      NetflixAmazonCredentials amazonCredentials, String region) {
-    return getAmazonIdentityManagement(amazonCredentials, region, false);
-  }
-
-  public AmazonIdentityManagement getAmazonIdentityManagement(
-      NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
-    return proxyHandlerBuilder.getProxyHandler(
-        AmazonIdentityManagement.class,
-        AmazonIdentityManagementClientBuilder.class,
-        amazonCredentials,
-        region,
-        skipEdda);
-  }
-
-  public AmazonIdentityManagement getAmazonIdentityManagement(
-      String accountName, AWSCredentialsProvider awsCredentialsProvider, String region) {
-    return awsSdkClientSupplier.getClient(
-        AmazonIdentityManagementClientBuilder.class,
-        AmazonIdentityManagement.class,
-        accountName,
-        awsCredentialsProvider,
-        region);
-  }
-
-  public AWSShield getAmazonShield(NetflixAmazonCredentials amazonCredentials, String region) {
-    return proxyHandlerBuilder.getProxyHandler(
-        AWSShield.class, AWSShieldClientBuilder.class, amazonCredentials, region, true);
-  }
-
-  public AWSShield getAmazonShield(
-      String accountName, AWSCredentialsProvider awsCredentialsProvider, String region) {
-    return awsSdkClientSupplier.getClient(
-        AWSShieldClientBuilder.class, AWSShield.class, accountName, awsCredentialsProvider, region);
-  }
-
-  public AWSApplicationAutoScaling getAmazonApplicationAutoScaling(
-      NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
-    return proxyHandlerBuilder.getProxyHandler(
-        AWSApplicationAutoScaling.class,
-        AWSApplicationAutoScalingClientBuilder.class,
-        amazonCredentials,
-        region,
-        skipEdda);
-  }
-
-  public AmazonECR getAmazonEcr(
-      NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
-    return proxyHandlerBuilder.getProxyHandler(
-        AmazonECR.class, AmazonECRClientBuilder.class, amazonCredentials, region, skipEdda);
-  }
-
-  public AWSSecretsManager getAmazonSecretsManager(
-      NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
-    return proxyHandlerBuilder.getProxyHandler(
-        AWSSecretsManager.class,
-        AWSSecretsManagerClientBuilder.class,
-        amazonCredentials,
-        region,
-        skipEdda);
-  }
-
-  public AWSServiceDiscovery getAmazonServiceDiscovery(
-      NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
-    return proxyHandlerBuilder.getProxyHandler(
-        AWSServiceDiscovery.class,
-        AWSServiceDiscoveryClientBuilder.class,
-        amazonCredentials,
-        region,
-        skipEdda);
   }
 
   // ---------------------------------------------------------------------------
   // AWS SDK v2 client methods
-  //
-  // These methods return software.amazon.awssdk (v2) clients and do NOT
-  // provide Edda read-through support (Edda interception is v1-only).
-  // They are the building blocks for the clouddriver-ecs → v2 migration.
   // ---------------------------------------------------------------------------
 
-  /**
-   * Returns an AWS SDK v2 {@link Ec2Client} for the given account and region.
-   *
-   * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
-   * Note that EC2 is one of the few remaining v1 services that is actually fronted by Edda in
-   * practice (via {@link #getAmazonEC2(NetflixAmazonCredentials, String, boolean)}), so callers
-   * migrating to this method should be aware they are trading Edda read-through for direct AWS API
-   * calls.
-   */
+  /** Returns an AWS SDK v2 {@link Ec2Client} for the given account and region. */
   public Ec2Client getAmazonEC2V2(NetflixAmazonCredentials amazonCredentials, String region) {
     return awsSdkV2ClientSupplier.getClient(
         Ec2Client::builder,
         Ec2Client.class,
-        amazonCredentials.getV2CredentialsProvider(),
+        amazonCredentials.getCredentialsProvider(),
         region,
         amazonCredentials.getName());
   }
 
   /**
-   * Returns an AWS SDK v2 {@link AutoScalingClient} for the given account and region.
-   *
-   * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
-   * Like EC2, AutoScaling is actually fronted by Edda in practice (via {@link
-   * #getAutoScaling(NetflixAmazonCredentials, String, boolean)}), so callers migrating to this
-   * method should be aware they are trading Edda read-through for direct AWS API calls.
+   * Returns an AWS SDK v2 {@link Ec2Client} for a raw {@link AwsCredentialsProvider}, for callers
+   * (like {@link DefaultAWSAccountInfoLookup}) that don't have a {@link NetflixAmazonCredentials}
+   * to build against.
    */
+  public Ec2Client getAmazonEC2V2(AwsCredentialsProvider awsCredentialsProvider, String region) {
+    return awsSdkV2ClientSupplier.getClient(
+        Ec2Client::builder, Ec2Client.class, awsCredentialsProvider, region, "UNSPECIFIED_ACCOUNT");
+  }
+
+  /** Returns an AWS SDK v2 {@link AutoScalingClient} for the given account and region. */
   public AutoScalingClient getAutoScalingV2(
       NetflixAmazonCredentials amazonCredentials, String region) {
     return awsSdkV2ClientSupplier.getClient(
         AutoScalingClient::builder,
         AutoScalingClient.class,
-        amazonCredentials.getV2CredentialsProvider(),
+        amazonCredentials.getCredentialsProvider(),
         region,
         amazonCredentials.getName());
   }
 
-  /**
-   * Returns an AWS SDK v2 {@link EcsClient} for the given account and region.
-   *
-   * <p>Unlike its v1 counterpart this method has no {@code skipEdda} parameter. Edda read-through
-   * cannot be supported for v2 clients: the interception mechanism wraps v1 service interfaces in a
-   * JDK dynamic proxy (see {@link
-   * com.netflix.spinnaker.clouddriver.aws.security.sdkclient.AmazonClientInvocationHandler}), but
-   * the v2 client types are unrelated classes that the proxy cannot implement. v2 calls go directly
-   * to AWS.
-   */
+  /** Returns an AWS SDK v2 {@link EcsClient} for the given account and region. */
   public EcsClient getAmazonEcsV2(NetflixAmazonCredentials amazonCredentials, String region) {
     return awsSdkV2ClientSupplier.getClient(
         EcsClient::builder,
         EcsClient.class,
-        amazonCredentials.getV2CredentialsProvider(),
+        amazonCredentials.getCredentialsProvider(),
         region,
         amazonCredentials.getName());
   }
 
-  /**
-   * Returns an AWS SDK v2 {@link EcrClient} for the given account and region.
-   *
-   * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
-   */
+  /** Returns an AWS SDK v2 {@link EcrClient} for the given account and region. */
   public EcrClient getAmazonEcrV2(NetflixAmazonCredentials amazonCredentials, String region) {
     return awsSdkV2ClientSupplier.getClient(
         EcrClient::builder,
         EcrClient.class,
-        amazonCredentials.getV2CredentialsProvider(),
+        amazonCredentials.getCredentialsProvider(),
         region,
         amazonCredentials.getName());
   }
 
-  /**
-   * Returns an AWS SDK v2 {@link IamClient} for the given account and region.
-   *
-   * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
-   */
+  /** Returns an AWS SDK v2 {@link IamClient} for the given account and region. */
   public IamClient getIamV2(NetflixAmazonCredentials amazonCredentials, String region) {
     return awsSdkV2ClientSupplier.getClient(
         IamClient::builder,
         IamClient.class,
-        amazonCredentials.getV2CredentialsProvider(),
+        amazonCredentials.getCredentialsProvider(),
         region,
         amazonCredentials.getName());
   }
 
-  /**
-   * Returns an AWS SDK v2 {@link LambdaClient} for the given account and region.
-   *
-   * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
-   */
+  /** Returns an AWS SDK v2 {@link LambdaClient} for the given account and region. */
   public LambdaClient getLambdaV2(NetflixAmazonCredentials amazonCredentials, String region) {
     return getLambdaV2(amazonCredentials, region, null);
   }
@@ -713,8 +235,6 @@ public class AmazonClientProvider {
   /**
    * Returns an AWS SDK v2 {@link LambdaClient} for the given account and region, applying
    * per-service tuning (retry count, socket timeout, TCP keep-alive).
-   *
-   * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
    */
   public LambdaClient getLambdaV2(
       NetflixAmazonCredentials amazonCredentials,
@@ -723,170 +243,141 @@ public class AmazonClientProvider {
     return awsSdkV2ClientSupplier.getClient(
         LambdaClient::builder,
         LambdaClient.class,
-        amazonCredentials.getV2CredentialsProvider(),
+        amazonCredentials.getCredentialsProvider(),
         region,
         amazonCredentials.getName(),
         clientConfiguration);
   }
 
-  /**
-   * Returns an AWS SDK v2 {@link CloudWatchClient} for the given account and region.
-   *
-   * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
-   */
+  /** Returns an AWS SDK v2 {@link CloudWatchClient} for the given account and region. */
   public CloudWatchClient getAmazonCloudWatchV2(
       NetflixAmazonCredentials amazonCredentials, String region) {
     return awsSdkV2ClientSupplier.getClient(
         CloudWatchClient::builder,
         CloudWatchClient.class,
-        amazonCredentials.getV2CredentialsProvider(),
+        amazonCredentials.getCredentialsProvider(),
         region,
         amazonCredentials.getName());
   }
 
-  /**
-   * Returns an AWS SDK v2 {@link S3Client} for the given account and region.
-   *
-   * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
-   */
+  /** Returns an AWS SDK v2 {@link Route53Client} for the given account and region. */
+  public Route53Client getAmazonRoute53V2(
+      NetflixAmazonCredentials amazonCredentials, String region) {
+    return awsSdkV2ClientSupplier.getClient(
+        Route53Client::builder,
+        Route53Client.class,
+        amazonCredentials.getCredentialsProvider(),
+        region,
+        amazonCredentials.getName());
+  }
+
+  /** Returns an AWS SDK v2 {@link S3Client} for the given account and region. */
   public S3Client getAmazonS3V2(NetflixAmazonCredentials amazonCredentials, String region) {
     return awsSdkV2ClientSupplier.getClient(
         S3Client::builder,
         S3Client.class,
-        amazonCredentials.getV2CredentialsProvider(),
+        amazonCredentials.getCredentialsProvider(),
         region,
         amazonCredentials.getName());
   }
 
-  /**
-   * Returns an AWS SDK v2 {@link SecretsManagerClient} for the given account and region.
-   *
-   * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
-   */
+  /** Returns an AWS SDK v2 {@link SecretsManagerClient} for the given account and region. */
   public SecretsManagerClient getAmazonSecretsManagerV2(
       NetflixAmazonCredentials amazonCredentials, String region) {
     return awsSdkV2ClientSupplier.getClient(
         SecretsManagerClient::builder,
         SecretsManagerClient.class,
-        amazonCredentials.getV2CredentialsProvider(),
+        amazonCredentials.getCredentialsProvider(),
         region,
         amazonCredentials.getName());
   }
 
-  /**
-   * Returns an AWS SDK v2 {@link ServiceDiscoveryClient} for the given account and region.
-   *
-   * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
-   */
+  /** Returns an AWS SDK v2 {@link ServiceDiscoveryClient} for the given account and region. */
   public ServiceDiscoveryClient getAmazonServiceDiscoveryV2(
       NetflixAmazonCredentials amazonCredentials, String region) {
     return awsSdkV2ClientSupplier.getClient(
         ServiceDiscoveryClient::builder,
         ServiceDiscoveryClient.class,
-        amazonCredentials.getV2CredentialsProvider(),
+        amazonCredentials.getCredentialsProvider(),
         region,
         amazonCredentials.getName());
   }
 
   /**
    * Returns an AWS SDK v2 {@link ApplicationAutoScalingClient} for the given account and region.
-   *
-   * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
    */
   public ApplicationAutoScalingClient getAmazonApplicationAutoScalingV2(
       NetflixAmazonCredentials amazonCredentials, String region) {
     return awsSdkV2ClientSupplier.getClient(
         ApplicationAutoScalingClient::builder,
         ApplicationAutoScalingClient.class,
-        amazonCredentials.getV2CredentialsProvider(),
+        amazonCredentials.getCredentialsProvider(),
         region,
         amazonCredentials.getName());
   }
 
-  /**
-   * Returns an AWS SDK v2 {@link SupportClient} for the given account and region.
-   *
-   * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
-   */
+  /** Returns an AWS SDK v2 {@link SupportClient} for the given account and region. */
   public SupportClient getAmazonSupportV2(
       NetflixAmazonCredentials amazonCredentials, String region) {
     return awsSdkV2ClientSupplier.getClient(
         SupportClient::builder,
         SupportClient.class,
-        amazonCredentials.getV2CredentialsProvider(),
+        amazonCredentials.getCredentialsProvider(),
         region,
         amazonCredentials.getName());
   }
 
-  /**
-   * Returns an AWS SDK v2 {@link SwfClient} for the given account and region.
-   *
-   * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
-   */
+  /** Returns an AWS SDK v2 {@link SwfClient} for the given account and region. */
   public SwfClient getAmazonSimpleWorkflowV2(
       NetflixAmazonCredentials amazonCredentials, String region) {
     return awsSdkV2ClientSupplier.getClient(
         SwfClient::builder,
         SwfClient.class,
-        amazonCredentials.getV2CredentialsProvider(),
+        amazonCredentials.getCredentialsProvider(),
         region,
         amazonCredentials.getName());
   }
 
-  /**
-   * Returns an AWS SDK v2 {@link SnsClient} for the given account and region.
-   *
-   * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
-   */
+  /** Returns an AWS SDK v2 {@link SnsClient} for the given account and region. */
   public SnsClient getAmazonSnsV2(NetflixAmazonCredentials amazonCredentials, String region) {
     return awsSdkV2ClientSupplier.getClient(
         SnsClient::builder,
         SnsClient.class,
-        amazonCredentials.getV2CredentialsProvider(),
+        amazonCredentials.getCredentialsProvider(),
         region,
         amazonCredentials.getName());
   }
 
-  /**
-   * Returns an AWS SDK v2 {@link SqsClient} for the given account and region.
-   *
-   * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
-   */
+  /** Returns an AWS SDK v2 {@link SqsClient} for the given account and region. */
   public SqsClient getAmazonSqsV2(NetflixAmazonCredentials amazonCredentials, String region) {
     return awsSdkV2ClientSupplier.getClient(
         SqsClient::builder,
         SqsClient.class,
-        amazonCredentials.getV2CredentialsProvider(),
+        amazonCredentials.getCredentialsProvider(),
         region,
         amazonCredentials.getName());
   }
 
-  /**
-   * Returns an AWS SDK v2 {@link CloudFormationClient} for the given account and region.
-   *
-   * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
-   */
+  /** Returns an AWS SDK v2 {@link CloudFormationClient} for the given account and region. */
   public CloudFormationClient getAmazonCloudFormationV2(
       NetflixAmazonCredentials amazonCredentials, String region) {
     return awsSdkV2ClientSupplier.getClient(
         CloudFormationClient::builder,
         CloudFormationClient.class,
-        amazonCredentials.getV2CredentialsProvider(),
+        amazonCredentials.getCredentialsProvider(),
         region,
         amazonCredentials.getName());
   }
 
   /**
    * Returns an AWS SDK v2 {@link ElasticLoadBalancingV2Client} for the given account and region.
-   *
-   * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
    */
   public ElasticLoadBalancingV2Client getElasticLoadBalancingV2Client(
       NetflixAmazonCredentials amazonCredentials, String region) {
     return awsSdkV2ClientSupplier.getClient(
         ElasticLoadBalancingV2Client::builder,
         ElasticLoadBalancingV2Client.class,
-        amazonCredentials.getV2CredentialsProvider(),
+        amazonCredentials.getCredentialsProvider(),
         region,
         amazonCredentials.getName());
   }
@@ -894,29 +385,23 @@ public class AmazonClientProvider {
   /**
    * Returns an AWS SDK v2 {@link ElasticLoadBalancingClient} for classic (non-Application/Network)
    * Elastic Load Balancers, for the given account and region.
-   *
-   * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
    */
   public ElasticLoadBalancingClient getAmazonElasticLoadBalancingClassicV2(
       NetflixAmazonCredentials amazonCredentials, String region) {
     return awsSdkV2ClientSupplier.getClient(
         ElasticLoadBalancingClient::builder,
         ElasticLoadBalancingClient.class,
-        amazonCredentials.getV2CredentialsProvider(),
+        amazonCredentials.getCredentialsProvider(),
         region,
         amazonCredentials.getName());
   }
 
-  /**
-   * Returns an AWS SDK v2 {@link ShieldClient} for the given account and region.
-   *
-   * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
-   */
+  /** Returns an AWS SDK v2 {@link ShieldClient} for the given account and region. */
   public ShieldClient getAmazonShieldV2(NetflixAmazonCredentials amazonCredentials, String region) {
     return awsSdkV2ClientSupplier.getClient(
         ShieldClient::builder,
         ShieldClient.class,
-        amazonCredentials.getV2CredentialsProvider(),
+        amazonCredentials.getCredentialsProvider(),
         region,
         amazonCredentials.getName());
   }

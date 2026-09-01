@@ -146,7 +146,7 @@ class S3ArtifactCredentialsTest {
   @Test
   void normalDownload() throws IOException {
     S3ArtifactCredentials s3ArtifactCredentials =
-        new S3ArtifactCredentials(account, s3Client, s3ArtifactProviderProperties, registry);
+        new S3ArtifactCredentials(account, s3Client, s3ArtifactProviderProperties);
     try (InputStream artifactStream = s3ArtifactCredentials.download(artifact)) {
       String actual = new String(artifactStream.readAllBytes(), StandardCharsets.UTF_8);
       assertEquals(CONTENTS, actual);
@@ -166,11 +166,7 @@ class S3ArtifactCredentialsTest {
     S3ArtifactValidator s3ArtifactValidator = spy(DummyS3ArtifactValidator.class);
     S3ArtifactCredentials s3ArtifactCredentials =
         new S3ArtifactCredentials(
-            account,
-            Optional.of(s3ArtifactValidator),
-            s3Client,
-            s3ArtifactProviderProperties,
-            registry);
+            account, Optional.of(s3ArtifactValidator), s3Client, s3ArtifactProviderProperties);
     try (InputStream artifactStream = s3ArtifactCredentials.download(artifact)) {
       String actual = new String(artifactStream.readAllBytes(), StandardCharsets.UTF_8);
       assertEquals(CONTENTS, actual);
@@ -186,7 +182,7 @@ class S3ArtifactCredentialsTest {
     Artifact otherArtifact =
         Artifact.builder().name("invalid-reference").reference("no-s3-prefix").build();
     S3ArtifactCredentials s3ArtifactCredentials =
-        new S3ArtifactCredentials(account, s3Client, s3ArtifactProviderProperties, registry);
+        new S3ArtifactCredentials(account, s3Client, s3ArtifactProviderProperties);
     assertThatThrownBy(() -> s3ArtifactCredentials.download(otherArtifact))
         .isInstanceOf(IllegalArgumentException.class);
   }
@@ -199,7 +195,7 @@ class S3ArtifactCredentialsTest {
             .reference("s3://does-not-exist/foo")
             .build();
     S3ArtifactCredentials s3ArtifactCredentials =
-        new S3ArtifactCredentials(account, s3Client, s3ArtifactProviderProperties, registry);
+        new S3ArtifactCredentials(account, s3Client, s3ArtifactProviderProperties);
     assertThatThrownBy(() -> s3ArtifactCredentials.download(otherArtifact))
         .isInstanceOf(NoSuchBucketException.class)
         .hasMessageContaining("The specified bucket does not exist");
@@ -211,7 +207,7 @@ class S3ArtifactCredentialsTest {
     Artifact otherArtifact =
         Artifact.builder().name("file-not-found-artifact").reference(bucketName).build();
     S3ArtifactCredentials s3ArtifactCredentials =
-        new S3ArtifactCredentials(account, s3Client, s3ArtifactProviderProperties, registry);
+        new S3ArtifactCredentials(account, s3Client, s3ArtifactProviderProperties);
     assertThatThrownBy(() -> s3ArtifactCredentials.download(otherArtifact))
         .isInstanceOf(NotFoundException.class)
         .hasMessageContaining(bucketName + " not found");
