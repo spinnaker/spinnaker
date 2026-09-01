@@ -32,7 +32,6 @@ import software.amazon.awssdk.services.autoscaling.model.LaunchTemplateSpecifica
 import software.amazon.awssdk.services.autoscaling.model.LifecycleHook
 import software.amazon.awssdk.services.autoscaling.model.MixedInstancesPolicy
 import software.amazon.awssdk.services.autoscaling.model.TagDescription
-import com.amazonaws.services.ec2.AmazonEC2
 import software.amazon.awssdk.services.ec2.model.CreditSpecification
 import software.amazon.awssdk.services.ec2.model.LaunchTemplateBlockDeviceMapping
 import software.amazon.awssdk.services.ec2.model.LaunchTemplateEbsBlockDevice
@@ -64,7 +63,6 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
 
   def deployHandler = Mock(BasicAmazonDeployHandler)
   def mockAutoScaling = Mock(AutoScalingClient)
-  def ec2 = Mock(AmazonEC2)
   def mockProvider = Mock(AmazonClientProvider)
   def mockAsgReferenceCopier = Mock(AsgReferenceCopier)
   def asgService = new AsgService(mockAutoScaling)
@@ -87,7 +85,6 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
   def setup() {
     TaskRepository.threadLocalTask.set(Mock(Task))
 
-    mockProvider.getAmazonEC2(_, _, true) >> ec2
     mockProvider.getAutoScalingV2(_, _) >> mockAutoScaling
 
     regionScopedProviderStub.getAsgReferenceCopier(_, _) >> mockAsgReferenceCopier
