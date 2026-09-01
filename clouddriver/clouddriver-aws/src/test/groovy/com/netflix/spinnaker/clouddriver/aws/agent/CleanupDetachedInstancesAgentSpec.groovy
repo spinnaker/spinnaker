@@ -37,8 +37,8 @@ class CleanupDetachedInstancesAgentSpec extends Specification {
     def amazonEC2USE = mockAmazonEC2("us-east-1")
 
     def amazonClientProvider = Mock(AmazonClientProvider) {
-      1 * getAmazonEC2(test, "us-west-1", true) >> { amazonEC2USW }
-      1 * getAmazonEC2(test, "us-east-1", true) >> { amazonEC2USE }
+      1 * getAmazonEC2(test, "us-west-1") >> { amazonEC2USW }
+      1 * getAmazonEC2(test, "us-east-1") >> { amazonEC2USE }
       0 * _
     }
     CredentialsRepository<NetflixAmazonCredentials> credentialsRepository = Stub(CredentialsRepository) {
