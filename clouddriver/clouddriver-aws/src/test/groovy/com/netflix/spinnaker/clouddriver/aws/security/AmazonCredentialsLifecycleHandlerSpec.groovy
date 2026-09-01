@@ -27,7 +27,6 @@ import com.netflix.spinnaker.cats.agent.AgentProvider
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
-import com.netflix.spinnaker.clouddriver.aws.edda.EddaApiFactory
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsCleanupProvider
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsInfrastructureProvider
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider
@@ -35,7 +34,6 @@ import com.netflix.spinnaker.clouddriver.aws.provider.agent.ImageCachingAgent
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.ReservationReportCachingAgent
 import com.netflix.spinnaker.config.AwsConfiguration
 import com.netflix.spinnaker.credentials.CredentialsRepository
-import com.netflix.spinnaker.kork.client.ServiceClientProvider
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import spock.lang.Specification
 
@@ -49,8 +47,6 @@ class AmazonCredentialsLifecycleHandlerSpec extends Specification {
   Optional<Collection<AgentProvider>> agentProviders = Optional.empty()
   def amazonCloudProvider = new AmazonCloudProvider()
   def registry = new DefaultRegistry()
-  def serviceClientProvider = Mock(ServiceClientProvider)
-  def eddaApiFactory = new EddaApiFactory(serviceClientProvider)
   def dynamicConfigService = Mock(DynamicConfigService) {
     isEnabled("aws.features.cloud-formation", false) >> false
     isEnabled("aws.features.launch-templates", false) >> false
@@ -81,7 +77,7 @@ class AmazonCredentialsLifecycleHandlerSpec extends Specification {
     def imageCachingAgentTwo = new ImageCachingAgent(null, credTwo, "us-east-1", objectMapper, null, false, null)
     awsProvider.addAgents([imageCachingAgentOne, imageCachingAgentTwo])
     def handler = new AmazonCredentialsLifecycleHandler(awsCleanupProvider, awsInfrastructureProvider, awsProvider,
-      null, null, null, null, objectMapper, null, null, null, null, null, null, null, null, null, null,
+      null, null, null, null, objectMapper, null, null, null, null, null, null, null, null,
       credentialsRepository)
 
     when:
@@ -99,7 +95,7 @@ class AmazonCredentialsLifecycleHandlerSpec extends Specification {
     def imageCachingAgentTwo = new ImageCachingAgent(null, credTwo, "us-east-1", objectMapper, null, false, null)
     awsProvider.addAgents([imageCachingAgentOne, imageCachingAgentTwo])
     def handler = new AmazonCredentialsLifecycleHandler(awsCleanupProvider, awsInfrastructureProvider, awsProvider,
-      null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+      null, null, null, null, null, null, null, null, null, null, null, null, null,
       credentialsRepository)
     handler.publicRegions.add("us-west-2")
 
@@ -116,7 +112,7 @@ class AmazonCredentialsLifecycleHandlerSpec extends Specification {
       getAmazonEC2(_, _) >> amazonEC2
     }
     def handler = new AmazonCredentialsLifecycleHandler(awsCleanupProvider, awsInfrastructureProvider, awsProvider,
-      amazonCloudProvider, amazonClientProvider, null, awsConfigurationProperties, objectMapper, null, eddaApiFactory, null, registry, reservationReportPool, agentProviders, null, null, dynamicConfigService, deployDefaults,
+      amazonCloudProvider, amazonClientProvider, null, awsConfigurationProperties, objectMapper, null, null, registry, reservationReportPool, agentProviders, null, dynamicConfigService, deployDefaults,
       credentialsRepository)
     def credThree = TestCredential.named('three')
 
@@ -137,7 +133,7 @@ class AmazonCredentialsLifecycleHandlerSpec extends Specification {
 
   def 'subsequent call should not add reservation caching agents'() {
     def handler = new AmazonCredentialsLifecycleHandler(awsCleanupProvider, awsInfrastructureProvider, awsProvider,
-      amazonCloudProvider, null, null, awsConfigurationProperties, objectMapper, null, eddaApiFactory, null, registry, reservationReportPool, agentProviders, null, null, dynamicConfigService, deployDefaults,
+      amazonCloudProvider, null, null, awsConfigurationProperties, objectMapper, null, null, registry, reservationReportPool, agentProviders, null, dynamicConfigService, deployDefaults,
       credentialsRepository)
     def credThree = TestCredential.named('three')
     handler.reservationReportCachingAgentScheduled = true
@@ -162,7 +158,7 @@ class AmazonCredentialsLifecycleHandlerSpec extends Specification {
       getAmazonEC2(_, _) >> amazonEC2
     }
     def handler = new AmazonCredentialsLifecycleHandler(awsCleanupProvider, awsInfrastructureProvider, awsProvider,
-      amazonCloudProvider, amazonClientProvider, null, awsConfigurationProperties, objectMapper, null, eddaApiFactory, null, registry, reservationReportPool, agentProviders, null, null, dynamicConfigService, deployDefaults,
+      amazonCloudProvider, amazonClientProvider, null, awsConfigurationProperties, objectMapper, null, null, registry, reservationReportPool, agentProviders, null, dynamicConfigService, deployDefaults,
       credentialsRepository)
     def credThree = TestCredential.named('three')
     handler.credentialsAdded(credThree)
