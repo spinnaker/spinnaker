@@ -286,10 +286,9 @@ export const ProjectDashboard = ({ projectConfiguration: project, transition }: 
               )}
             </section>
           ))}
-          {executionState.loaded &&
-            !executionState.refreshing &&
-            !executionState.error &&
-            !pipelineGroups.length && <h4>No pipelines found</h4>}
+          {executionState.loaded && !executionState.refreshing && !executionState.error && !pipelineGroups.length && (
+            <h4>No pipelines found</h4>
+          )}
           {executionState.warning && (
             <div className="alert alert-warning">
               Automatic pipeline discovery is unavailable. Showing manually configured pipeline executions.
