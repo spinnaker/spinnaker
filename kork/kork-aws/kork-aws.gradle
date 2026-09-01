@@ -22,8 +22,6 @@ dependencies {
   api "org.springframework.boot:spring-boot-autoconfigure"
   api "com.netflix.spectator:spectator-api"
   api "com.amazonaws:aws-java-sdk-core"
-  api "com.amazonaws:aws-java-sdk-sns"
-  api "com.amazonaws:aws-java-sdk-sqs"
   api "software.amazon.awssdk:arns"
   api "software.amazon.awssdk:auth"
   api "software.amazon.awssdk:sdk-core"
@@ -40,8 +38,6 @@ dependencies {
     // kotlin.
     transitive = false
   }
-
-  runtimeOnly "com.amazonaws:aws-java-sdk-sts"
 
   testImplementation "org.junit.jupiter:junit-jupiter-api"
   testImplementation "org.junit.jupiter:junit-jupiter-engine"
