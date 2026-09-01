@@ -16,32 +16,29 @@
 
 package com.netflix.spinnaker.kork.aws;
 
-import com.netflix.spectator.api.Registry;
-import com.netflix.spectator.aws2.SpectatorExecutionInterceptor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 
+/**
+ * AWS SDK v2 client metrics (call latency, retry counts, throttling, etc.) are recorded
+ * automatically for every v2 client built anywhere in the JVM via {@code
+ * com.netflix.spectator.aws2.SpectatorExecutionInterceptor}, registered through the SDK's global
+ * execution-interceptor classpath discovery mechanism (see {@code
+ * software/amazon/awssdk/global/handlers/execution.interceptors} in this module's resources). This
+ * is the v2-native equivalent of v1's {@code AwsSdkMetrics.setMetricCollector} global hook -- no
+ * per-client wiring needed. It resolves the target registry via {@code Spectator.globalRegistry()},
+ * which every Spinnaker app's own {@code Registry} bean is added to (see kork-core's {@code
+ * SpectatorConfiguration}), so metrics land in the same place regardless of whether a caller
+ * injects {@code Registry} directly.
+ */
 @Configuration
 public class AwsComponents {
   @Bean
   @ConditionalOnMissingBean(AwsCredentialsProvider.class)
   AwsCredentialsProvider v2AwsCredentialsProvider() {
     return DefaultCredentialsProvider.builder().build();
-  }
-
-  /**
-   * A v2 {@code ExecutionInterceptor} that records AWS SDK v2 client metrics (call latency, retry
-   * counts, throttling, etc.) to the Spectator {@link Registry}. Attach it to a client via {@code
-   * ClientOverrideConfiguration.builder().addExecutionInterceptor(...)}; it isn't applied
-   * automatically, since v2 has no global metrics hook equivalent to v1's {@code
-   * AwsSdkMetrics.setMetricCollector}.
-   */
-  @Bean
-  @ConditionalOnMissingBean(SpectatorExecutionInterceptor.class)
-  SpectatorExecutionInterceptor spectatorExecutionInterceptor(Registry registry) {
-    return new SpectatorExecutionInterceptor(registry);
   }
 }
