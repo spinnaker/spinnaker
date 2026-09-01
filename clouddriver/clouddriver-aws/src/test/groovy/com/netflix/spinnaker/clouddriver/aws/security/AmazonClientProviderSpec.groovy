@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.aws.security
 
-import com.amazonaws.auth.AWSCredentialsProvider
-import com.amazonaws.auth.BasicAWSCredentials
 import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider
 import software.amazon.awssdk.services.autoscaling.AutoScalingClient
 import software.amazon.awssdk.services.ec2.Ec2Client
 import spock.lang.Shared
@@ -27,8 +27,8 @@ import spock.lang.Specification
 
 class AmazonClientProviderSpec extends Specification {
 
-  @Shared def credentialsProvider = Stub(AWSCredentialsProvider) {
-      getCredentials() >> new BasicAWSCredentials('foo', 'bar')
+  @Shared def credentialsProvider = Stub(AwsCredentialsProvider) {
+      resolveCredentials() >> AwsBasicCredentials.create('foo', 'bar')
   }
 
   @Shared AwsConfigurationProperties awsConfigurationProperties = new AwsConfigurationProperties()

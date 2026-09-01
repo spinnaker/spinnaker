@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.aws.security;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import java.util.List;
 import lombok.Getter;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 
 /**
  * An implementation of {@link AmazonCredentials} that is decorated with Netflix concepts like
@@ -95,7 +95,7 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
    */
   public NetflixAmazonCredentials(
       NetflixAmazonCredentials copy,
-      AWSCredentialsProvider credentialsProvider,
+      AwsCredentialsProvider credentialsProvider,
       AwsConfigurationProperties awsConfigurationProperties) {
     this(
         copy.getName(),
@@ -132,7 +132,7 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
       Permissions permissions,
       List<LifecycleHook> lifecycleHooks,
       boolean allowPrivateThirdPartyImages,
-      AWSCredentialsProvider credentialsProvider,
+      AwsCredentialsProvider credentialsProvider,
       String discovery,
       Boolean discoveryEnabled,
       String front50,
