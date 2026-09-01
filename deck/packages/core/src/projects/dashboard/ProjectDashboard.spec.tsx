@@ -209,6 +209,35 @@ describe('<ProjectDashboard />', () => {
     wrapper.unmount();
   });
 
+  it('updates execution layout when a refresh returns a new execution', async () => {
+    const refreshedExecution = {
+      ...execution,
+      id: '02',
+      stageSummaries: [
+        ...execution.stageSummaries,
+        { ...execution.stageSummaries[0], id: '2', refId: '2', index: 1, name: 'Verify' },
+      ],
+    };
+    executionService.getProjectExecutionsForConfigIds.and.returnValues(
+      Promise.resolve([execution]),
+      Promise.resolve([refreshedExecution]),
+    );
+
+    const wrapper = await mountAndFlush(<TestDashboard projectConfiguration={project} transition={transition()} />);
+    expect(wrapper.find('.execution-marker').at(0).prop('style').width).toBe('100%');
+
+    await act(async () => {
+      wrapper.find('.col-md-5 RefreshControl button').simulate('click');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    wrapper.update();
+
+    expect(wrapper.find('.execution-marker').length).toBe(2);
+    expect(wrapper.find('.execution-marker').at(0).prop('style').width).toBe('50%');
+    wrapper.unmount();
+  });
+
   it('ignores a superseded pipeline load', async () => {
     let resolveInitialDiscovery: (configs: any[]) => void;
     const initialDiscovery = new Promise<any[]>((resolve) => {

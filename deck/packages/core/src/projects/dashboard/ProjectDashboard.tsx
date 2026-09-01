@@ -269,7 +269,7 @@ export const ProjectDashboard = ({ projectConfiguration: project, transition }: 
               <h4>{group.application}</h4>
               {group.pipelines.map((row) =>
                 row.execution ? (
-                  <section className="project-pipeline" key={row.pipelineConfigId}>
+                  <section className="project-pipeline" key={row.execution?.id ?? row.pipelineConfigId}>
                     <ProjectPipeline application={application} execution={row.execution} />
                   </section>
                 ) : (
