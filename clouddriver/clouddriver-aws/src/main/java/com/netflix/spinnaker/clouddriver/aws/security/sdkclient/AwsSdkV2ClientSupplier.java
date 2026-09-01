@@ -38,15 +38,16 @@ import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.http.apache.ProxyConfiguration;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 
 /**
- * Factory for shared instances of AWS SDK v2 clients. Mirrors the caching semantics of {@link
- * AwsSdkClientSupplier} but targets the {@code software.amazon.awssdk} API.
+ * Factory for shared instances of AWS SDK v2 clients.
  *
  * <p>Clients are keyed by (service builder supplier, credentials provider identity, region,
  * account) and evicted after 10 minutes of inactivity. A {@link Supplier} of the service builder is
@@ -115,8 +116,9 @@ public class AwsSdkV2ClientSupplier {
    * @param clientType the expected v2 client interface — used only for casting; not a cache key
    *     component.
    * @param credentialsProvider v2 credentials for this account
-   * @param region AWS region string; must not be {@code null} — AWS SDK v2 resolves region eagerly
-   *     at client build time, so a missing region will throw at construction, not request time.
+   * @param region AWS region string, or {@code null} to resolve dynamically via the SDK's default
+   *     region provider chain (matching {@link
+   *     com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider#DEFAULT_REGION}).
    * @param account the Spinnaker account name, used for rate-limiter resolution
    * @return a shared, cached client instance
    */
@@ -148,12 +150,17 @@ public class AwsSdkV2ClientSupplier {
     requireNonNull(builderSupplier, "builderSupplier");
     requireNonNull(clientType, "clientType");
     requireNonNull(credentialsProvider, "credentialsProvider");
-    requireNonNull(region, "region");
     requireNonNull(account, "account");
 
+    String resolvedRegion = region != null ? region : resolveDefaultRegion();
     V2ClientKey key =
         new V2ClientKey(
-            clientType, builderSupplier, credentialsProvider, region, account, clientConfiguration);
+            clientType,
+            builderSupplier,
+            credentialsProvider,
+            resolvedRegion,
+            account,
+            clientConfiguration);
 
     try {
       return clientType.cast(clientCache.get(key));
@@ -176,6 +183,14 @@ public class AwsSdkV2ClientSupplier {
       AwsCredentialsProvider credentialsProvider,
       String region) {
     return getClient(builderSupplier, clientType, credentialsProvider, region, "unknown");
+  }
+
+  private static String resolveDefaultRegion() {
+    try {
+      return new DefaultAwsRegionProviderChain().getRegion().id();
+    } catch (SdkClientException e) {
+      return Region.US_EAST_1.id();
+    }
   }
 
   // -------------------------------------------------------------------------
@@ -294,6 +309,10 @@ public class AwsSdkV2ClientSupplier {
     }
     if (proxy.getProxyPassword() != null) {
       proxyConfig.password(proxy.getProxyPassword());
+    }
+    if (proxy.isNTLMProxy()) {
+      proxyConfig.ntlmDomain(proxy.getProxyDomain());
+      proxyConfig.ntlmWorkstation(proxy.getProxyWorkstation());
     }
     return proxyConfig.build();
   }

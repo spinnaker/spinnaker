@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.security
 
-import com.amazonaws.auth.AWSCredentialsProvider
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails
 import software.amazon.awssdk.services.ec2.Ec2Client
 import software.amazon.awssdk.services.ec2.model.Ec2Exception
@@ -27,7 +27,7 @@ class DefaultAWSAccountInfoLookupSpec extends Specification {
     def 'it should regex the error'() {
 
         def ec2 = Stub(Ec2Client)
-        def creds = Stub(AWSCredentialsProvider)
+        def creds = Stub(AwsCredentialsProvider)
         def provider = Stub(AmazonClientProvider) {
             getAmazonEC2V2(creds, AmazonClientProvider.DEFAULT_REGION) >> ec2
         }

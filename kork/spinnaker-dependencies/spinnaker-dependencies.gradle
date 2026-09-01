@@ -71,7 +71,6 @@ dependencies {
   // import-order-safety reason as log4j-bom/netty-bom above.
   api(platform("org.apache.httpcomponents.core5:httpcore5-parent:${versions.httpcore5}"))
   api(platform("org.springframework.boot:spring-boot-dependencies:${versions.springBoot}"))
-  api(platform("com.amazonaws:aws-java-sdk-bom:${versions.aws}"))
   api(platform("com.google.protobuf:protobuf-bom:${versions.protobuf}"))
   api(platform("com.google.cloud:libraries-bom:${versions.gcp}"))
   api(platform("software.amazon.awssdk:bom:${versions.awsv2}"))
@@ -87,7 +86,6 @@ dependencies {
   api(platform("io.arrow-kt:arrow-stack:${versions.arrow}"))
   constraints {
     api("cglib:cglib-nodep:3.3.0")
-    api("com.amazonaws:aws-java-sdk:${versions.aws}")
     api("com.google.api-client:google-api-client:2.4.1")
     api("com.google.apis:google-api-services-admin-directory:directory_v1-rev20240429-2.0.0")
     api("com.google.apis:google-api-services-cloudbuild:v1-rev20240427-2.0.0")
@@ -118,7 +116,6 @@ dependencies {
     api("com.netflix.frigga:frigga:0.28.0")
     api("com.netflix.netflix-commons:netflix-eventbus:0.3.0")
     api("com.netflix.spectator:spectator-api:${versions.spectator}")
-    api("com.netflix.spectator:spectator-ext-aws:${versions.spectator}")
     api("com.netflix.spectator:spectator-ext-aws2:${versions.spectator}")
     api("com.netflix.spectator:spectator-ext-ipc:${versions.spectator}")
     api("com.netflix.spectator:spectator-ext-gc:${versions.spectator}")
