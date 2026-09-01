@@ -41,13 +41,9 @@ class SecurityGroupLookupFactory {
   }
 
   SecurityGroupLookup getInstance(String region) {
-    getInstance(region, true)
-  }
-
-  SecurityGroupLookup getInstance(String region, boolean skipEdda) {
     final allNetflixAmazonCredentials = credentialsRepository.getAll()
     final accounts = ImmutableSet.copyOf(allNetflixAmazonCredentials)
-    new SecurityGroupLookup(amazonClientProvider, region, accounts, skipEdda)
+    new SecurityGroupLookup(amazonClientProvider, region, accounts)
   }
 
   /**
@@ -61,8 +57,6 @@ class SecurityGroupLookupFactory {
     private final AmazonClientProvider amazonClientProvider
     private final String region
     private final ImmutableSet<NetflixAmazonCredentials> accounts
-    private final boolean skipEdda
-    Map<String, List<SecurityGroup>> eddaCachedSecurityGroups = [:]
 
     private final Map<String, SecurityGroup> securityGroupByName = [:]
     private final Map<String, SecurityGroup> securityGroupById = [:]
@@ -72,15 +66,6 @@ class SecurityGroupLookupFactory {
       this.amazonClientProvider = amazonClientProvider
       this.region = region
       this.accounts = accounts
-      this.skipEdda = true
-    }
-
-    SecurityGroupLookup(AmazonClientProvider amazonClientProvider, String region,
-                        ImmutableSet<NetflixAmazonCredentials> accounts, boolean skipEdda) {
-      this.amazonClientProvider = amazonClientProvider
-      this.region = region
-      this.accounts = accounts
-      this.skipEdda = skipEdda
     }
 
     NetflixAmazonCredentials getCredentialsForName(String accountName) {
@@ -168,9 +153,6 @@ class SecurityGroupLookupFactory {
         )
       }
 
-      if (!skipEdda) {
-        getEddaSecurityGroups(amazonEC2, description.account, region).add(newSecurityGroup)
-      }
       new SecurityGroupUpdater(newSecurityGroup, amazonEC2)
     }
 
@@ -184,15 +166,10 @@ class SecurityGroupLookupFactory {
       if (cachedSecurityGroup) {
         return Optional.of(new SecurityGroupUpdater(cachedSecurityGroup, amazonEC2))
       }
-      def securityGroups
-      if (skipEdda) {
-        def describeSecurityGroupsRequest = DescribeSecurityGroupsRequest.builder().filters(
-          Filter.builder().name("group-name").values([name]).build()
-        ).build()
-        securityGroups = amazonEC2.describeSecurityGroups(describeSecurityGroupsRequest).securityGroups()
-      } else {
-        securityGroups = getEddaSecurityGroups(amazonEC2, accountName, region)
-      }
+      def describeSecurityGroupsRequest = DescribeSecurityGroupsRequest.builder().filters(
+        Filter.builder().name("group-name").values([name]).build()
+      ).build()
+      def securityGroups = amazonEC2.describeSecurityGroups(describeSecurityGroupsRequest).securityGroups()
 
       def securityGroup = securityGroups.find {
         it.groupName() == name && it.vpcId() == vpcId
@@ -203,14 +180,6 @@ class SecurityGroupLookupFactory {
         return Optional.of(new SecurityGroupUpdater(securityGroup, amazonEC2))
       }
       Optional.empty()
-    }
-
-    private List<SecurityGroup> getEddaSecurityGroups(Ec2Client amazonEC2, String accountName, String region) {
-      def cacheKey = accountName + ':' + region
-      if (!eddaCachedSecurityGroups.containsKey(cacheKey)) {
-        eddaCachedSecurityGroups[cacheKey] = new ArrayList<>(amazonEC2.describeSecurityGroups().securityGroups())
-      }
-      return eddaCachedSecurityGroups[cacheKey]
     }
 
     Optional<SecurityGroupUpdater> getSecurityGroupById(String accountName, String groupId, String vpcId) {
@@ -224,14 +193,10 @@ class SecurityGroupLookupFactory {
         return Optional.of(new SecurityGroupUpdater(cachedSecurityGroup, amazonEC2))
       }
       def securityGroups = []
-      if (skipEdda) {
-        def describeSecurityGroupsRequest = DescribeSecurityGroupsRequest.builder().groupIds(groupId).build()
-        try {
-          securityGroups = amazonEC2.describeSecurityGroups(describeSecurityGroupsRequest).securityGroups()
-        } catch (Exception ignored) {}
-      } else {
-        securityGroups = getEddaSecurityGroups(amazonEC2, accountName, region)
-      }
+      def describeSecurityGroupsRequest = DescribeSecurityGroupsRequest.builder().groupIds(groupId).build()
+      try {
+        securityGroups = amazonEC2.describeSecurityGroups(describeSecurityGroupsRequest).securityGroups()
+      } catch (Exception ignored) {}
 
       def securityGroup = securityGroups.find {
         it.groupId() == groupId && it.vpcId() == vpcId
