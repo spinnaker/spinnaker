@@ -60,8 +60,6 @@ public class AccountsConfiguration {
     @Include private List<String> defaultSecurityGroups;
     private List<String> requiredGroupMembership = new ArrayList<>();
     @Include private Permissions.Builder permissions = new Permissions.Builder();
-    @Include private String edda;
-    @Include private Boolean eddaEnabled;
     @Include private Boolean lambdaEnabled;
     @Include private String discovery;
     @Include private Boolean discoveryEnabled;
@@ -159,22 +157,6 @@ public class AccountsConfiguration {
 
     public void setPermissions(Permissions.Builder permissions) {
       this.permissions = permissions;
-    }
-
-    public String getEdda() {
-      return edda;
-    }
-
-    public void setEdda(String edda) {
-      this.edda = edda;
-    }
-
-    public Boolean getEddaEnabled() {
-      return eddaEnabled;
-    }
-
-    public void setEddaEnabled(Boolean eddaEnabled) {
-      this.eddaEnabled = eddaEnabled;
     }
 
     public String getDiscovery() {
