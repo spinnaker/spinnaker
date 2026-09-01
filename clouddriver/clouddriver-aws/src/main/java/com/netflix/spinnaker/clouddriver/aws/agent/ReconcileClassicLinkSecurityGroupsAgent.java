@@ -122,7 +122,7 @@ public class ReconcileClassicLinkSecurityGroupsAgent
       return;
     }
     log.info("Checking classic link security groups in {}/{}", account.getName(), region);
-    AmazonEC2 ec2 = amazonClientProvider.getAmazonEC2(account, region, true);
+    AmazonEC2 ec2 = amazonClientProvider.getAmazonEC2(account, region);
     List<String> classicLinkVpcIds =
         ec2.describeVpcClassicLink().getVpcs().stream()
             .filter(VpcClassicLink::getClassicLinkEnabled)

@@ -75,7 +75,7 @@ class CleanupDetachedInstancesAgent implements RunnableAgent, CustomScheduledAge
       credentials.regions.each { AmazonCredentials.AWSRegion region ->
         log.info("Looking for instances pending termination in ${credentials.name}:${region.name}")
         try {
-        def amazonEC2 = amazonClientProvider.getAmazonEC2(credentials, region.name, true)
+        def amazonEC2 = amazonClientProvider.getAmazonEC2(credentials, region.name)
         def describeInstancesRequest = new DescribeInstancesRequest().withFilters(
           new Filter("tag-key", [DetachInstancesAtomicOperation.TAG_PENDING_TERMINATION])
         )
