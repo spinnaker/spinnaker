@@ -42,7 +42,7 @@ public class AmazonHealthIndicator extends AccountHealthIndicator<NetflixAmazonC
           "aws.health.verifyAccountHealth flag is enabled - verifying connection to the EC2 accounts");
       try {
         AmazonEC2 ec2 =
-            amazonClientProvider.getAmazonEC2(account, AmazonClientProvider.DEFAULT_REGION, true);
+            amazonClientProvider.getAmazonEC2(account, AmazonClientProvider.DEFAULT_REGION);
         if (ec2 == null) {
           return Optional.of(
               String.format("Could not create Amazon client for '%s'", account.getName()));

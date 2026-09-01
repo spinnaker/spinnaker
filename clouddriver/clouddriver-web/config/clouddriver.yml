@@ -336,7 +336,6 @@ spring:
   #accounts:
     # - name: account-display-name
     #   defaultKeyPair: key-pair
-    #   edda: http://edda.{{region}}.host.net:7001
     #   discovery: "http://{{region}}.discovery.host.net:7001/eureka"
     #   accountId: 123456789012
     #   regions: #override default regions

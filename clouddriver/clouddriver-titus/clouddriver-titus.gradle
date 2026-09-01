@@ -20,7 +20,6 @@ dependencies {
   implementation project(":clouddriver-security")
 
   implementation "jakarta.inject:jakarta.inject-api:2.0.1"
-  implementation "com.amazonaws:aws-java-sdk"
   // TODO: redundant once clouddriver-aws's SDKv2 AutoScaling migration merges (it declares this as
   // `api`, exposing it here transitively). Harmless in the meantime; safe to remove at that point.
   implementation "software.amazon.awssdk:autoscaling"

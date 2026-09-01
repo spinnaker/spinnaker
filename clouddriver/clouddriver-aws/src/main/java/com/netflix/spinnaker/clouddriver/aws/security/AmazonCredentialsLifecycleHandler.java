@@ -23,7 +23,6 @@ import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.agent.AgentProvider;
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider;
 import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties;
-import com.netflix.spinnaker.clouddriver.aws.edda.EddaApiFactory;
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsCleanupProvider;
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsInfrastructureProvider;
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider;
@@ -68,12 +67,10 @@ public class AmazonCredentialsLifecycleHandler
   private final AwsConfigurationProperties awsConfigurationProperties;
   private final ObjectMapper objectMapper;
   private final @Qualifier("amazonObjectMapper") ObjectMapper amazonObjectMapper;
-  private final EddaApiFactory eddaApiFactory;
   private final ApplicationContext ctx;
   private final Registry registry;
   private final Optional<ExecutorService> reservationReportPool;
   private final Optional<Collection<AgentProvider>> agentProviders;
-  private final EddaTimeoutConfig eddaTimeoutConfig;
   private final AmazonCachingAgentFilter amazonCachingAgentFilter;
   private final DynamicConfigService dynamicConfigService;
   private final DeployDefaults deployDefaults;
@@ -163,7 +160,6 @@ public class AmazonCredentialsLifecycleHandler
             amazonClientProvider,
             amazonObjectMapper,
             registry,
-            eddaTimeoutConfig,
             this.awsInfraRegions);
     awsInfrastructureProvider.addAgents(result.getAgents());
     this.awsInfraRegions.addAll(result.getRegionsToAdd());
@@ -177,12 +173,10 @@ public class AmazonCredentialsLifecycleHandler
             amazonClientProvider,
             objectMapper,
             registry,
-            eddaTimeoutConfig,
             amazonCachingAgentFilter,
             awsProvider,
             amazonCloudProvider,
             dynamicConfigService,
-            eddaApiFactory,
             reservationReportPool,
             agentProviders,
             ctx,
