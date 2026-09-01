@@ -1,7 +1,5 @@
 package com.netflix.spinnaker.clouddriver.aws.health;
 
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.services.ec2.AmazonEC2;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
@@ -10,6 +8,8 @@ import com.netflix.spinnaker.clouddriver.core.AccountHealthIndicator;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.services.ec2.Ec2Client;
 
 @Slf4j
 public class AmazonHealthIndicator extends AccountHealthIndicator<NetflixAmazonCredentials> {
@@ -41,8 +41,8 @@ public class AmazonHealthIndicator extends AccountHealthIndicator<NetflixAmazonC
       log.info(
           "aws.health.verifyAccountHealth flag is enabled - verifying connection to the EC2 accounts");
       try {
-        AmazonEC2 ec2 =
-            amazonClientProvider.getAmazonEC2(account, AmazonClientProvider.DEFAULT_REGION);
+        Ec2Client ec2 =
+            amazonClientProvider.getAmazonEC2V2(account, AmazonClientProvider.DEFAULT_REGION);
         if (ec2 == null) {
           return Optional.of(
               String.format("Could not create Amazon client for '%s'", account.getName()));
@@ -50,8 +50,8 @@ public class AmazonHealthIndicator extends AccountHealthIndicator<NetflixAmazonC
 
         ec2.describeAccountAttributes();
 
-      } catch (AmazonServiceException e) {
-        String errorCode = e.getErrorCode();
+      } catch (AwsServiceException e) {
+        String errorCode = e.awsErrorDetails().errorCode();
 
         if (!"RequestLimitExceeded".equalsIgnoreCase(errorCode)) {
           return Optional.of(
