@@ -160,15 +160,10 @@ public class PipelineController {
    * @param status the execution status of the pipeline (canceled/suspended/succeeded)
    */
   @PreAuthorize("#restricted ? @fiatPermissionEvaluator.storeWholePermission() : true")
-<<<<<<< HEAD
-  @PostFilter("#restricted ? hasPermission(filterObject.name, 'APPLICATION', 'READ') : true")
-  @RequestMapping(value = "triggeredBy/{id:.+}/{status}", method = RequestMethod.GET)
-=======
   @PostFilter("#restricted ? hasPermission(filterObject.application, 'APPLICATION', 'READ') : true")
   @RequestMapping(
       value = {"triggeredBy/{id:.+}/{status}", "triggeredBy/{id:.+}/{status}/"},
       method = RequestMethod.GET)
->>>>>>> 6719810 (fix(front50): filter pipelines by application, not pipeline name, in PostFilter (#7945))
   public Collection<Pipeline> getTriggeredPipelines(
       @PathVariable String id,
       @PathVariable String status,
