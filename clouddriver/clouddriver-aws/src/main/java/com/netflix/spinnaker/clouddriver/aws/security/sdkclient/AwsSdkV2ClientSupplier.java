@@ -52,15 +52,6 @@ import software.amazon.awssdk.regions.Region;
  * account) and evicted after 10 minutes of inactivity. A {@link Supplier} of the service builder is
  * used instead of a builder class reference because v2 builders are not reflectively instantiatable
  * via a single static {@code standard()} convention.
- *
- * <p>Edda note: v2 clients returned by this class do not have Edda read-through support. Edda
- * interception works by wrapping v1 service interfaces (e.g. {@code AmazonECS}) in a JDK dynamic
- * proxy backed by {@link
- * com.netflix.spinnaker.clouddriver.aws.security.sdkclient.AmazonClientInvocationHandler}, which
- * hooks into call dispatch via v1 {@code RequestHandler2}. The v2 client types ({@code EcsClient}
- * etc.) are unrelated classes that the existing proxy cannot implement, and v2 uses a different
- * interceptor API ({@code ExecutionInterceptor}) with no equivalent Edda integration. Consumers
- * migrating to v2 should read directly from the AWS APIs rather than through Edda.
  */
 @Slf4j
 public class AwsSdkV2ClientSupplier {

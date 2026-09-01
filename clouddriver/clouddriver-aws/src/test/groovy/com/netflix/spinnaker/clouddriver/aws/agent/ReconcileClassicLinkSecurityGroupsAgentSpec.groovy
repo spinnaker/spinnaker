@@ -49,7 +49,7 @@ class ReconcileClassicLinkSecurityGroupsAgentSpec extends Specification {
   )
   def ec2 = Mock(AmazonEC2)
   def amazonClientProvider = Stub(AmazonClientProvider) {
-    getAmazonEC2(_, _, _) >> ec2
+    getAmazonEC2(_, _) >> ec2
   }
 
   def agent = buildAgent(test)

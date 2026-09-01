@@ -410,8 +410,6 @@ public class AmazonCredentialsParser<
     account.setDefaultKeyPair(
         templateFirstNonNull(
             templateContext, account.getDefaultKeyPair(), config.getDefaultKeyPairTemplate()));
-    account.setEdda(
-        templateFirstNonNull(templateContext, account.getEdda(), config.getDefaultEddaTemplate()));
     account.setFront50(
         templateFirstNonNull(
             templateContext, account.getFront50(), config.getDefaultFront50Template()));
