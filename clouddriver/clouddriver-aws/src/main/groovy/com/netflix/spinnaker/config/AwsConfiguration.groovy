@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.config
 
-import com.amazonaws.retry.RetryPolicy.BackoffStrategy
-import com.amazonaws.retry.RetryPolicy.RetryCondition
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer
 import com.netflix.spectator.api.Registry
@@ -86,14 +84,10 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider
 class AwsConfiguration {
 
   @Bean
-  AmazonClientProvider amazonClientProvider(AwsConfigurationProperties awsConfigurationProperties, RetryCondition instrumentedRetryCondition, BackoffStrategy instrumentedBackoffStrategy, AWSProxy proxy, ServiceLimitConfiguration serviceLimitConfiguration, Registry registry) {
+  AmazonClientProvider amazonClientProvider(AwsConfigurationProperties awsConfigurationProperties, AWSProxy proxy, ServiceLimitConfiguration serviceLimitConfiguration, Registry registry) {
     new AmazonClientProvider.Builder()
-      .backoffStrategy(instrumentedBackoffStrategy)
-      .retryCondition(instrumentedRetryCondition)
-      .objectMapper(amazonObjectMapper())
       .maxErrorRetry(awsConfigurationProperties.client.maxErrorRetry)
       .proxy(proxy)
-      .useGzip(awsConfigurationProperties.client.useGzip)
       .serviceLimitConfiguration(serviceLimitConfiguration)
       .registry(registry)
       .addSpinnakerUserToUserAgent(awsConfigurationProperties.client.addSpinnakerUserToUserAgent)

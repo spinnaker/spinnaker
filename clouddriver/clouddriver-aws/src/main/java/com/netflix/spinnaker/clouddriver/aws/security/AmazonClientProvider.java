@@ -16,12 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.security;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.handlers.RequestHandler2;
-import com.amazonaws.retry.PredefinedRetryPolicies;
-import com.amazonaws.retry.RetryPolicy;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer;
 import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.aws.security.sdkclient.*;
@@ -32,6 +26,7 @@ import java.util.Collections;
 import java.util.List;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.services.applicationautoscaling.ApplicationAutoScalingClient;
 import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
 import software.amazon.awssdk.services.cloudformation.CloudFormationClient;
@@ -57,26 +52,18 @@ import software.amazon.awssdk.services.swf.SwfClient;
 public class AmazonClientProvider {
 
   /**
-   * This constant (as null) indicates that whatever the current region from the AWS SDKs
-   * perspective should be used.
-   *
-   * <p>The region to use will be resolved dynamically by {@link SpinnakerAwsRegionProvider} which
-   * supports all the standard SDK means of explicitly specifying the current region, (environment
-   * variable, instance profile, instance metadata).
+   * This constant (as null) indicates that the region should be resolved dynamically via the AWS
+   * SDK's default region provider chain (environment variable, instance profile, instance
+   * metadata), falling back to {@code us-east-1} if none of those resolve. See {@link
+   * AwsSdkV2ClientSupplier}.
    */
   public static final String DEFAULT_REGION = null;
 
-  private final AwsSdkClientSupplier awsSdkClientSupplier;
   private final AwsSdkV2ClientSupplier awsSdkV2ClientSupplier;
 
   public static class Builder {
-    private ObjectMapper objectMapper;
-    private RetryPolicy.RetryCondition retryCondition;
-    private RetryPolicy.BackoffStrategy backoffStrategy;
     private Integer maxErrorRetry;
-    private List<RequestHandler2> requestHandlers = new ArrayList<>();
     private AWSProxy proxy;
-    private boolean uzeGzip = true;
     private boolean addSpinnakerUserToUserAgent = false;
     private boolean logEndpoints = false;
     private ServiceLimitConfiguration serviceLimitConfiguration =
@@ -89,33 +76,8 @@ public class AmazonClientProvider {
       return this;
     }
 
-    public Builder objectMapper(ObjectMapper objectMapper) {
-      this.objectMapper = objectMapper;
-      return this;
-    }
-
-    public Builder retryCondition(RetryPolicy.RetryCondition retryCondition) {
-      this.retryCondition = retryCondition;
-      return this;
-    }
-
-    public Builder backoffStrategy(RetryPolicy.BackoffStrategy backoffStrategy) {
-      this.backoffStrategy = backoffStrategy;
-      return this;
-    }
-
     public Builder maxErrorRetry(Integer maxErrorRetry) {
       this.maxErrorRetry = maxErrorRetry;
-      return this;
-    }
-
-    public Builder requestHandler(RequestHandler2 requestHandler) {
-      this.requestHandlers.add(requestHandler);
-      return this;
-    }
-
-    public Builder useGzip(boolean useGzip) {
-      this.uzeGzip = useGzip;
       return this;
     }
 
@@ -141,7 +103,7 @@ public class AmazonClientProvider {
 
     /**
      * Adds an AWS SDK v2 {@link ExecutionInterceptor} that will be attached to every v2 client
-     * built by the provider. This is the v2 equivalent of {@link #requestHandler(RequestHandler2)}.
+     * built by the provider.
      */
     public Builder v2ExecutionInterceptor(ExecutionInterceptor interceptor) {
       this.v2ExecutionInterceptors.add(interceptor);
@@ -149,156 +111,55 @@ public class AmazonClientProvider {
     }
 
     public AmazonClientProvider build() {
-      ObjectMapper mapper =
-          this.objectMapper == null
-              ? AmazonObjectMapperConfigurer.createConfigured()
-              : this.objectMapper;
-      RetryPolicy policy = buildPolicy();
-      AWSProxy proxy = this.proxy;
-
-      List<RequestHandler2> handlersToAdd = new ArrayList<>();
-
-      if (addSpinnakerUserToUserAgent) {
-        handlersToAdd.add(new AddSpinnakerUserToUserAgentRequestHandler());
+      RetryPolicy.Builder retryPolicyBuilder = RetryPolicy.builder();
+      if (maxErrorRetry != null) {
+        retryPolicyBuilder.numRetries(maxErrorRetry);
       }
 
+      List<ExecutionInterceptor> interceptors = this.v2ExecutionInterceptors;
       if (logEndpoints) {
-        handlersToAdd.add(new LogEndpointRequestHandler());
-      }
-
-      final List<RequestHandler2> requestHandlers;
-      if (!handlersToAdd.isEmpty()) {
-        requestHandlers = new ArrayList<>(this.requestHandlers.size() + handlersToAdd.size());
-        requestHandlers.addAll(this.requestHandlers);
-        requestHandlers.addAll(handlersToAdd);
-      } else {
-        requestHandlers = this.requestHandlers;
+        interceptors = new ArrayList<>(interceptors);
+        interceptors.add(new LogEndpointExecutionInterceptor());
       }
 
       return new AmazonClientProvider(
-          mapper,
-          policy,
-          requestHandlers,
+          retryPolicyBuilder.build(),
           proxy,
-          uzeGzip,
+          addSpinnakerUserToUserAgent,
           serviceLimitConfiguration,
           registry,
-          v2ExecutionInterceptors);
-    }
-
-    private RetryPolicy buildPolicy() {
-      if (retryCondition == null && backoffStrategy == null) {
-        if (maxErrorRetry == null) {
-          return PredefinedRetryPolicies.getDefaultRetryPolicy();
-        }
-        return new RetryPolicy(
-            PredefinedRetryPolicies.DEFAULT_RETRY_CONDITION,
-            PredefinedRetryPolicies.DEFAULT_BACKOFF_STRATEGY,
-            maxErrorRetry,
-            true);
-      }
-      RetryPolicy.RetryCondition condition =
-          this.retryCondition == null
-              ? PredefinedRetryPolicies.DEFAULT_RETRY_CONDITION
-              : this.retryCondition;
-      RetryPolicy.BackoffStrategy strategy =
-          this.backoffStrategy == null
-              ? PredefinedRetryPolicies.DEFAULT_BACKOFF_STRATEGY
-              : this.backoffStrategy;
-      int retry =
-          this.maxErrorRetry == null
-              ? PredefinedRetryPolicies.DEFAULT_MAX_ERROR_RETRY
-              : this.maxErrorRetry;
-
-      return new RetryPolicy(condition, strategy, retry, true);
+          interceptors);
     }
   }
 
   /** So it's possible for tests to create mocks */
   public AmazonClientProvider() {
-    this(AmazonObjectMapperConfigurer.createConfigured());
-  }
-
-  /** Also for testing */
-  public AmazonClientProvider(ObjectMapper objectMapper) {
     this(
-        objectMapper == null ? AmazonObjectMapperConfigurer.createConfigured() : objectMapper,
-        PredefinedRetryPolicies.getDefaultRetryPolicy(),
-        Collections.emptyList(),
+        RetryPolicy.defaultRetryPolicy(),
         null,
-        true,
+        false,
         new ServiceLimitConfigurationBuilder().build(),
-        new NoopRegistry());
-  }
-
-  public AmazonClientProvider(
-      ObjectMapper objectMapper,
-      RetryPolicy retryPolicy,
-      List<RequestHandler2> requestHandlers,
-      AWSProxy proxy,
-      boolean useGzip,
-      ServiceLimitConfiguration serviceLimitConfiguration,
-      Registry registry) {
-    this(
-        objectMapper,
-        retryPolicy,
-        requestHandlers,
-        proxy,
-        useGzip,
-        serviceLimitConfiguration,
-        registry,
+        new NoopRegistry(),
         Collections.emptyList());
   }
 
   public AmazonClientProvider(
-      ObjectMapper objectMapper,
       RetryPolicy retryPolicy,
-      List<RequestHandler2> requestHandlers,
       AWSProxy proxy,
-      boolean useGzip,
+      boolean addSpinnakerUserToUserAgent,
       ServiceLimitConfiguration serviceLimitConfiguration,
       Registry registry,
       List<ExecutionInterceptor> v2ExecutionInterceptors) {
     RateLimiterSupplier rateLimiterSupplier =
         new RateLimiterSupplier(serviceLimitConfiguration, registry);
-    this.awsSdkClientSupplier =
-        new AwsSdkClientSupplier(
-            rateLimiterSupplier, registry, retryPolicy, requestHandlers, proxy, useGzip);
-    software.amazon.awssdk.core.retry.RetryPolicy v2RetryPolicy = buildV2RetryPolicy(retryPolicy);
-    boolean v2AddUserAgent =
-        requestHandlers.stream()
-            .anyMatch(h -> h instanceof AddSpinnakerUserToUserAgentRequestHandler);
     this.awsSdkV2ClientSupplier =
         new AwsSdkV2ClientSupplier(
             rateLimiterSupplier,
             registry,
-            v2RetryPolicy,
+            retryPolicy,
             proxy,
-            v2AddUserAgent,
+            addSpinnakerUserToUserAgent,
             v2ExecutionInterceptors);
-  }
-
-  /**
-   * Translates v1 retry settings into a v2 {@link software.amazon.awssdk.core.retry.RetryPolicy}.
-   * The v2 SDK provides sensible defaults for backoff and retry conditions; we only override the
-   * max number of retries to match the v1 configuration.
-   */
-  private static software.amazon.awssdk.core.retry.RetryPolicy buildV2RetryPolicy(
-      RetryPolicy v1RetryPolicy) {
-    return software.amazon.awssdk.core.retry.RetryPolicy.builder()
-        .numRetries(v1RetryPolicy.getMaxErrorRetry())
-        .build();
-  }
-
-  public com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing
-      getAmazonElasticLoadBalancingV2(
-          String accountName, AWSCredentialsProvider awsCredentialsProvider, String region) {
-    return awsSdkClientSupplier.getClient(
-        com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancingClientBuilder.class,
-        com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing.class,
-        accountName,
-        awsCredentialsProvider,
-        region);
   }
 
   // ---------------------------------------------------------------------------

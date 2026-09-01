@@ -155,4 +155,10 @@ class AmazonClientProviderV2Test {
     EcsClient west = provider.getAmazonEcsV2(creds, "us-west-2");
     assertThat(east).isNotSameAs(west);
   }
+
+  @Test
+  void nullRegionResolvesViaDefaultRegionProviderChainInsteadOfThrowing() {
+    Ec2Client client = provider.getAmazonEC2V2(creds, AmazonClientProvider.DEFAULT_REGION);
+    assertThat(client).isNotNull().isInstanceOf(Ec2Client.class);
+  }
 }

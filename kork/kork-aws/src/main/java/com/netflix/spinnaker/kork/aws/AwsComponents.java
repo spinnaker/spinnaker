@@ -16,14 +16,9 @@
 
 package com.netflix.spinnaker.kork.aws;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
-import com.amazonaws.metrics.AwsSdkMetrics;
-import com.amazonaws.retry.RetryPolicy;
 import com.netflix.spectator.api.Registry;
-import com.netflix.spectator.aws.SpectatorMetricCollector;
+import com.netflix.spectator.aws2.SpectatorExecutionInterceptor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -32,32 +27,21 @@ import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 @Configuration
 public class AwsComponents {
   @Bean
-  @ConditionalOnMissingBean(AWSCredentialsProvider.class)
-  AWSCredentialsProvider awsCredentialsProvider() {
-    return new DefaultAWSCredentialsProviderChain();
-  }
-
-  @Bean
   @ConditionalOnMissingBean(AwsCredentialsProvider.class)
   AwsCredentialsProvider v2AwsCredentialsProvider() {
     return DefaultCredentialsProvider.builder().build();
   }
 
+  /**
+   * A v2 {@code ExecutionInterceptor} that records AWS SDK v2 client metrics (call latency, retry
+   * counts, throttling, etc.) to the Spectator {@link Registry}. Attach it to a client via {@code
+   * ClientOverrideConfiguration.builder().addExecutionInterceptor(...)}; it isn't applied
+   * automatically, since v2 has no global metrics hook equivalent to v1's {@code
+   * AwsSdkMetrics.setMetricCollector}.
+   */
   @Bean
-  RetryPolicy.RetryCondition instrumentedRetryCondition(Registry registry) {
-    return new InstrumentedRetryCondition(registry);
-  }
-
-  @Bean
-  RetryPolicy.BackoffStrategy instrumentedBackoffStrategy(Registry registry) {
-    return new InstrumentedBackoffStrategy(registry);
-  }
-
-  @Bean
-  @ConditionalOnProperty(value = "aws.metrics.enabled", matchIfMissing = true)
-  SpectatorMetricCollector spectatorMetricsCollector(Registry registry) {
-    SpectatorMetricCollector collector = new SpectatorMetricCollector(registry);
-    AwsSdkMetrics.setMetricCollector(collector);
-    return collector;
+  @ConditionalOnMissingBean(SpectatorExecutionInterceptor.class)
+  SpectatorExecutionInterceptor spectatorExecutionInterceptor(Registry registry) {
+    return new SpectatorExecutionInterceptor(registry);
   }
 }
