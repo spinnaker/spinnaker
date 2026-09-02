@@ -487,6 +487,169 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
                                                                                                                                                             defaultResult: AmazonAsgLifecycleHook.DefaultResult.ABANDON)]
   }
 
+  void "operation copies ancestor asg's load balancer names into a mutable list"() {
+    given:
+    description.availabilityZones = ['us-east-1': []]
+
+    def launchTemplateVersion = LaunchTemplateVersion.builder()
+      .launchTemplateName("foo")
+      .launchTemplateId("foo")
+      .versionNumber(0L)
+      .launchTemplateData(ResponseLaunchTemplateData.builder().keyName("key-pair-name").build())
+      .build()
+
+    def launchTemplateSpec = LaunchTemplateSpecification.builder()
+      .launchTemplateName(launchTemplateVersion.launchTemplateName)
+      .launchTemplateId(launchTemplateVersion.launchTemplateId)
+      .version(launchTemplateVersion.versionNumber.toString())
+      .build()
+
+    regionScopedProviderStub.getLaunchTemplateService() >> Mock(LaunchTemplateService) {
+      getLaunchTemplateVersion(launchTemplateSpec) >> Optional.of(launchTemplateVersion)
+    }
+
+    when:
+    op.operate([])
+
+    then:
+    1 * mockAutoScaling.describeAutoScalingGroups(_) >> {
+      def mockAsg = AutoScalingGroup.builder()
+        .autoScalingGroupName("asgard-stack-v000")
+        .minSize(0)
+        .maxSize(2)
+        .desiredCapacity(4)
+        .launchTemplate(launchTemplateSpec)
+        .loadBalancerNames(["ancestor-elb"])
+        .build()
+      DescribeAutoScalingGroupsResponse.builder().autoScalingGroups([mockAsg]).build()
+    }
+    1 * serverGroupNameResolver.resolveLatestServerGroupName("asgard-stack") >> { "asgard-stack-v000" }
+    0 * serverGroupNameResolver._
+    1 * deployHandler.handle(_ as BasicAmazonDeployDescription, _) >> { arguments ->
+      BasicAmazonDeployDescription actualDesc = arguments[0]
+
+      assert actualDesc.loadBalancers == ["ancestor-elb"]
+      // this must not throw UnsupportedOperationException, as BasicAmazonDeployHandler
+      // mutates description.loadBalancers via addAll()
+      actualDesc.loadBalancers.addAll(["supplied-elb"])
+      assert actualDesc.loadBalancers == ["ancestor-elb", "supplied-elb"]
+
+      new DeploymentResult(serverGroupNames: ['asgard-stack-v001'], serverGroupNameByRegion: ['us-east-1': 'asgard-stack-v001'])
+    }
+  }
+
+  void "operation copies ancestor asg's termination policies into a mutable list"() {
+    given:
+    description.availabilityZones = ['us-east-1': []]
+
+    def launchTemplateVersion = LaunchTemplateVersion.builder()
+      .launchTemplateName("foo")
+      .launchTemplateId("foo")
+      .versionNumber(0L)
+      .launchTemplateData(ResponseLaunchTemplateData.builder().keyName("key-pair-name").build())
+      .build()
+
+    def launchTemplateSpec = LaunchTemplateSpecification.builder()
+      .launchTemplateName(launchTemplateVersion.launchTemplateName)
+      .launchTemplateId(launchTemplateVersion.launchTemplateId)
+      .version(launchTemplateVersion.versionNumber.toString())
+      .build()
+
+    regionScopedProviderStub.getLaunchTemplateService() >> Mock(LaunchTemplateService) {
+      getLaunchTemplateVersion(launchTemplateSpec) >> Optional.of(launchTemplateVersion)
+    }
+
+    when:
+    op.operate([])
+
+    then:
+    1 * mockAutoScaling.describeAutoScalingGroups(_) >> {
+      def mockAsg = AutoScalingGroup.builder()
+        .autoScalingGroupName("asgard-stack-v000")
+        .minSize(0)
+        .maxSize(2)
+        .desiredCapacity(4)
+        .launchTemplate(launchTemplateSpec)
+        .terminationPolicies(["OldestInstance"])
+        .build()
+      DescribeAutoScalingGroupsResponse.builder().autoScalingGroups([mockAsg]).build()
+    }
+    1 * serverGroupNameResolver.resolveLatestServerGroupName("asgard-stack") >> { "asgard-stack-v000" }
+    0 * serverGroupNameResolver._
+    1 * deployHandler.handle(_ as BasicAmazonDeployDescription, _) >> { arguments ->
+      BasicAmazonDeployDescription actualDesc = arguments[0]
+
+      assert actualDesc.terminationPolicies == ["OldestInstance"]
+      // must not throw UnsupportedOperationException if a caller mutates this list
+      actualDesc.terminationPolicies.add("Default")
+      assert actualDesc.terminationPolicies == ["OldestInstance", "Default"]
+
+      new DeploymentResult(serverGroupNames: ['asgard-stack-v001'], serverGroupNameByRegion: ['us-east-1': 'asgard-stack-v001'])
+    }
+  }
+
+  void "operation copies ancestor asg's launch template security groups into a mutable list when cloning across accounts"() {
+    given:
+    description.availabilityZones = ['us-east-1': []]
+    description.securityGroups = null
+    description.source = new BasicAmazonDeployDescription.Source(
+      account: 'other-account',
+      region: 'us-east-1',
+      asgName: 'asgard-stack-v000'
+    )
+
+    def otherAccountCredentials = TestCredential.named('other-account')
+    def mockCredentialsRepository = Mock(com.netflix.spinnaker.credentials.CredentialsRepository)
+    op.credentialsRepository = mockCredentialsRepository
+
+    def launchTemplateVersion = LaunchTemplateVersion.builder()
+      .launchTemplateName("foo")
+      .launchTemplateId("foo")
+      .versionNumber(0L)
+      .launchTemplateData(ResponseLaunchTemplateData.builder()
+        .keyName("key-pair-name")
+        .securityGroups(["sg-ancestor"])
+        .build())
+      .build()
+
+    def launchTemplateSpec = LaunchTemplateSpecification.builder()
+      .launchTemplateName(launchTemplateVersion.launchTemplateName)
+      .launchTemplateId(launchTemplateVersion.launchTemplateId)
+      .version(launchTemplateVersion.versionNumber.toString())
+      .build()
+
+    def mockAncestorAsg = AutoScalingGroup.builder()
+      .autoScalingGroupName("asgard-stack-v000")
+      .minSize(0)
+      .maxSize(2)
+      .desiredCapacity(4)
+      .launchTemplate(launchTemplateSpec)
+      .build()
+
+    regionScopedProviderStub.getLaunchTemplateService() >> Mock(LaunchTemplateService) {
+      getLaunchTemplateVersion(launchTemplateSpec) >> Optional.of(launchTemplateVersion)
+    }
+
+    when:
+    op.operate([])
+
+    then:
+    1 * mockCredentialsRepository.getOne('other-account') >> otherAccountCredentials
+    1 * mockAutoScaling.describeAutoScalingGroups(_) >> {
+      DescribeAutoScalingGroupsResponse.builder().autoScalingGroups([mockAncestorAsg]).build()
+    }
+    1 * deployHandler.handle(_ as BasicAmazonDeployDescription, _) >> { arguments ->
+      BasicAmazonDeployDescription actualDesc = arguments[0]
+
+      assert actualDesc.securityGroups == ["sg-ancestor"]
+      // must not throw UnsupportedOperationException if a caller mutates this list
+      actualDesc.securityGroups.add("sg-added")
+      assert actualDesc.securityGroups == ["sg-ancestor", "sg-added"]
+
+      new DeploymentResult(serverGroupNames: ['asgard-stack-v001'], serverGroupNameByRegion: ['us-east-1': 'asgard-stack-v001'])
+    }
+  }
+
   private static BasicAmazonDeployDescription expectedDescription(
           String expectedSpotPrice = null,
           String region,
