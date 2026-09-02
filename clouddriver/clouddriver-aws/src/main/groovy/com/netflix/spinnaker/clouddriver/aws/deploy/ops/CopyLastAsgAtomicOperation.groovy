@@ -109,11 +109,13 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
       boolean sourceIsTarget = sourceRegion == targetRegion && sourceAsgCredentials.name == description.credentials.name
       def sourceRegionScopedProvider = regionScopedProviderFactory.forRegion(sourceAsgCredentials, sourceRegion)
       Closure<List<String>> translateSecurityGroupIds = { List<String> ids ->
+        // ids may be an unmodifiable list straight off an AWS SDK v2 model (e.g.
+        // ResponseLaunchTemplateData.securityGroups()), so always return a mutable copy.
         if (!sourceIsTarget) {
-          return ids
+          return ids == null ? ids : new ArrayList<>(ids)
         }
         if (!ids) {
-          return ids
+          return ids == null ? ids : new ArrayList<>(ids)
         }
         sourceRegionScopedProvider.getSecurityGroupService().getSecurityGroupNamesFromIds(ids).keySet().toList()
       }
@@ -251,7 +253,7 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
         newDescription.amiName = description.amiName ?: imageId
         newDescription.availabilityZones = [(targetRegion): description.availabilityZones[targetRegion] ?: ancestorAsg.availabilityZones()]
         newDescription.instanceType = description.instanceType ?: instanceType
-        newDescription.loadBalancers = description.loadBalancers != null ? description.loadBalancers : ancestorAsg.loadBalancerNames()
+        newDescription.loadBalancers = description.loadBalancers != null ? description.loadBalancers : new ArrayList<>(ancestorAsg.loadBalancerNames())
         newDescription.targetGroups = description.targetGroups
         if (newDescription.targetGroups == null && ancestorAsg.targetGroupARNs() && ancestorAsg.targetGroupARNs().size() > 0) {
           def targetGroups = sourceRegionScopedProvider.getElasticLoadBalancingV2Client().describeTargetGroups(DescribeTargetGroupsRequest.builder().targetGroupArns(ancestorAsg.targetGroupARNs()).build()).targetGroups()
@@ -270,7 +272,7 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
         newDescription.healthCheckGracePeriod = description.healthCheckGracePeriod != null ? description.healthCheckGracePeriod : ancestorAsg.healthCheckGracePeriod()
         newDescription.healthCheckType = description.healthCheckType ?: ancestorAsg.healthCheckType()
         newDescription.suspendedProcesses = description.suspendedProcesses != null ? description.suspendedProcesses : ancestorAsg.suspendedProcesses()*.processName
-        newDescription.terminationPolicies = description.terminationPolicies != null ? description.terminationPolicies : ancestorAsg.terminationPolicies()
+        newDescription.terminationPolicies = description.terminationPolicies != null ? description.terminationPolicies : new ArrayList<>(ancestorAsg.terminationPolicies())
         newDescription.kernelId = description.kernelId ?: (kernelId ?: null)
         newDescription.ramdiskId = description.ramdiskId ?: (ramdiskId ?: null)
         newDescription.instanceMonitoring = description.instanceMonitoring != null ? description.instanceMonitoring : instanceMonitoring
