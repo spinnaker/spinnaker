@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.controllers;
+package com.netflix.spinnaker.clouddriver.listeners;
 
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.verify;
@@ -22,7 +22,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.netflix.spinnaker.clouddriver.Main;
-import com.netflix.spinnaker.clouddriver.listeners.ConfigurationRefreshListener;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
@@ -36,6 +35,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+/** Verifies that POST /refresh triggers ConfigurationRefreshListener regardless of cloud provider. */
 @WebAppConfiguration
 @SpringBootTest(classes = {Main.class})
 @TestPropertySource(
@@ -43,15 +43,13 @@ import org.springframework.web.context.WebApplicationContext;
       "redis.enabled = false",
       "sql.enabled = false",
       "spring.application.name = clouddriver",
-      "kubernetes.enabled = true",
       "management.endpoints.web.exposure.include = refresh",
-      "kubernetes.customPropertyBindingEnabled = true",
       "spring.cloud.bootstrap.enabled = true",
       "spring.cloud.config.server.bootstrap = true",
       "spring.profiles.active = native",
       "spring.cloud.config.server.native.search-locations = classpath:/"
     })
-public class KubernetesCustomPropertyBindingRefreshTest {
+public class ConfigurationRefreshListenerTest {
   private MockMvc mockMvc;
 
   @Autowired private WebApplicationContext webApplicationContext;
@@ -65,7 +63,7 @@ public class KubernetesCustomPropertyBindingRefreshTest {
   }
 
   @Test
-  public void testRefreshScopeRefreshedEvent() throws Exception {
+  public void postRefreshTriggersListener() throws Exception {
     mockMvc.perform(post("/refresh")).andExpect(status().isOk());
 
     verify(listener).onApplicationEvent(any(RefreshScopeRefreshedEvent.class));
