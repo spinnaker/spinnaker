@@ -18,5 +18,8 @@ package com.netflix.spinnaker.orca.clouddriver.config;
 
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
-@EnableConfigurationProperties(JobConfigurationProperties.class)
+@EnableConfigurationProperties({
+  JobConfigurationProperties.class,
+  RunScriptPreconfiguredJobProperties.class
+})
 public class ClouddriverJobConfiguration {}

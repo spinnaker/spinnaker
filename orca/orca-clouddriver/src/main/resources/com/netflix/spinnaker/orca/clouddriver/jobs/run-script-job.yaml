@@ -1,0 +1,80 @@
+label: Run Script
+description: Runs a Script in a container
+type: runContainerScript
+waitForCompletion: true
+cloudProvider: kubernetes
+credentials: added-from-api
+account: added-from-api
+application: kubernetes
+parameters:
+  - name: image
+    label: Image
+    description: Docker image to run your script in (choose one with all the dependencies you need)
+    mapping: manifest.spec.template.spec.containers[0].image
+    order: 0
+  - name: scriptPath
+    label: Command
+    description: The command to run your script. Ex. 'bash myscript.sh' or 'go test ./...'
+    mapping: manifest.spec.template.spec.containers[0].env[0].value
+    order: 1
+  - name: BRANCH
+    label: Repo Branch
+    description: Branch to checkout
+    mapping: manifest.spec.template.spec.initContainers[0].env[0].value
+    order: 3
+  - name: REPO
+    label: Repo URL
+    description: The Git repo where your script is located
+    mapping: manifest.spec.template.spec.initContainers[0].env[1].value
+    order: 2
+  - name: namespace
+    label: Namespace
+    description: The namespace where you want the script to be run
+    mapping: manifest.metadata.namespace
+    defaultValue: spinnaker
+    order: 4
+manifest:
+  apiVersion: batch/v1
+  kind: Job
+  metadata:
+    generateName: script-runner
+    namespace: spinnaker
+  spec:
+    backoffLimit: 0
+    template:
+      spec:
+        restartPolicy: Never
+        volumes:
+          - name: workspace
+            emptyDir: {}
+        initContainers:
+          - name: git
+            image: ethanfrogers/fetch-artifact:v2
+            env:
+              - name: BRANCH
+                value: master
+              - name: URL
+                value: https://github.com/armory-io/loadtesting
+              - name: OUTPUT_DIR
+                value: /workspace
+              - name: ARTIFACT_ACCOUNT
+                value: gitrepo
+              - name: ARTIFACT_SERVICE
+                value: http://spin-clouddriver:7002
+            volumeMounts:
+              - name: workspace
+                mountPath: /workspace
+        containers:
+          - name: script
+            image: myorg/scriptContainer:latest
+            command:
+              - bash
+              - -c
+              - $(SCRIPT_PATH)
+            workingDir: /workspace
+            env:
+              - name: SCRIPT_PATH
+                value: /default/script/path
+            volumeMounts:
+              - name: workspace
+                mountPath: /workspace
