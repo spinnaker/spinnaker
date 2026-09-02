@@ -27,7 +27,6 @@ import com.netflix.spinnaker.orca.plugins.TaskExtension2
 import dev.minutest.rootContext
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import strikt.api.expect
-import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
 
 class OrcaPluginsTest : PluginsTck<OrcaPluginsFixture>() {
@@ -53,11 +52,11 @@ class OrcaPluginsTest : PluginsTck<OrcaPluginsFixture>() {
             TitusPreconfiguredJobProperties::class.java
           )
 
+        val pluginJob =
+          jobService.preconfiguredStages.filterIsInstance<TitusPreconfiguredJobProperties>().single()
+
         expect {
-          that(jobService.preconfiguredStages).hasSize(1)
-          jobService.preconfiguredStages.first().let { preconfiguredStage ->
-            that(preconfiguredStage).isEqualTo(titusPreconfiguredJobProperties)
-          }
+          that(pluginJob).isEqualTo(titusPreconfiguredJobProperties)
         }
       }
 

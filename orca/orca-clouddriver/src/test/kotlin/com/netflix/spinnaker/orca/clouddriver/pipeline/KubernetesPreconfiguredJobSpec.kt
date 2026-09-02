@@ -56,6 +56,8 @@ class KubernetesPreconfiguredJobSpec : JUnit5Minutests {
             .contains("\"label\":\"Test Preconfigured Job\"")
             .contains("\"description\":\"Preconfigured job for testing\"")
             .contains("\"type\":\"testPreconfiguredJob\"")
+            .contains("\"type\":\"runContainerScript\"")
+            .contains("\"label\":\"Run Script\"")
         }
       }
       test("can execute a pipeline that contains a stage type provided by the preconfigured job definition") {
@@ -89,6 +91,50 @@ class KubernetesPreconfiguredJobSpec : JUnit5Minutests {
         }
 
         verify(timeout = 2000) { katoRestService.requestOperations("kubernetes", any(), match { it.toString().contains("alias=preconfiguredJob") }) }
+      }
+
+      test("can execute a pipeline that uses the inlined Run Script preconfigured job") {
+        val pipeline =
+          """
+          {
+          "stages":[{
+            "alias":"preconfiguredJob",
+            "name":"Run Script",
+            "parameters":{
+              "image":"busybox:latest",
+              "scriptPath":"echo hi",
+              "BRANCH":"main",
+              "REPO":"https://github.com/example/repo",
+              "namespace":"spinnaker"
+            },
+            "refId":"1",
+            "requisiteStageRefIds":[],
+            "type":"runContainerScript"
+          }]
+          }
+          """.trimIndent()
+
+        every { katoRestService.requestOperations(any(), any(), any()) } returns Calls.response(TaskId("1"))
+
+        val resp = subject.post("/orchestrate") {
+          with(csrf())
+          contentType = MediaType.APPLICATION_JSON
+          content = pipeline
+        }.andReturn().response
+
+        expect {
+          that(resp.status).isEqualTo(200)
+          that(resp.contentAsString)
+            .contains("\"ref\":\"/pipelines")
+        }
+
+        verify(timeout = 2000) {
+          katoRestService.requestOperations(
+            "kubernetes",
+            any(),
+            match { it.toString().contains("alias=preconfiguredJob") && it.toString().contains("script-runner") }
+          )
+        }
       }
     }
   }
