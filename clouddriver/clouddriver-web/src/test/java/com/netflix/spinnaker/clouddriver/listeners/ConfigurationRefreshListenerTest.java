@@ -35,7 +35,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-/** Verifies that POST /refresh triggers ConfigurationRefreshListener regardless of cloud provider. */
+/**
+ * Verifies that POST /refresh triggers ConfigurationRefreshListener regardless of cloud provider.
+ */
 @WebAppConfiguration
 @SpringBootTest(classes = {Main.class})
 @TestPropertySource(
