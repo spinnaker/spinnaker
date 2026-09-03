@@ -30,7 +30,6 @@ describe('AmazonStageConfig', () => {
 
   it('defines generic fields only for simple scalar stages', () => {
     const simpleStageTypes = [
-      'bake',
       'cloneServerGroup',
       'destroyAsg',
       'destroyServerGroup',
@@ -46,6 +45,7 @@ describe('AmazonStageConfig', () => {
       'shrinkCluster',
     ];
     const dedicatedStageTypes = [
+      'bake',
       'deployCloudFormation',
       'findImageFromTags',
       'modifyAwsScalingProcess',
