@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.clouddriver.lambda.cache.model;
 
 import com.netflix.spinnaker.clouddriver.model.Application;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import lombok.AllArgsConstructor;
@@ -28,5 +29,8 @@ import lombok.NoArgsConstructor;
 public class LambdaApplication implements Application {
   private String name;
   private Map<String, String> attributes;
-  private Map<String, Set<String>> clusterNames;
+  // Application.getClusterNames() is documented as never returning null (@Empty); Lambda
+  // applications have no ASG-backed clusters, so default to an empty map rather than leaving
+  // this null, which previously caused a NullPointerException in ClusterController.mergeClusters.
+  private Map<String, Set<String>> clusterNames = new HashMap<>();
 }
