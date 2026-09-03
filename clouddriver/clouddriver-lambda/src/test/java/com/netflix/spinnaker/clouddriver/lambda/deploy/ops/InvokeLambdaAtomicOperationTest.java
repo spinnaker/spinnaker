@@ -66,7 +66,7 @@ public class InvokeLambdaAtomicOperationTest implements LambdaTestingDefaults {
   void testInvokeLambda() {
 
     AWSLambda lambdaClient = mock(AWSLambda.class);
-    doReturn(lambdaClient).when(invokeOperation).getLambdaClient();
+    doReturn(lambdaClient).when(invokeOperation).getInvokeLambdaClient();
 
     ArgumentCaptor<InvokeRequest> captor = ArgumentCaptor.forClass(InvokeRequest.class);
     InvokeResult result = new InvokeResult();
@@ -87,7 +87,7 @@ public class InvokeLambdaAtomicOperationTest implements LambdaTestingDefaults {
     invokeDesc.setTimeout(55);
 
     AWSLambda lambdaClient = mock(AWSLambda.class);
-    doReturn(lambdaClient).when(invokeOperation).getLambdaClient();
+    doReturn(lambdaClient).when(invokeOperation).getInvokeLambdaClient();
 
     ArgumentCaptor<InvokeRequest> invokeCaptor = ArgumentCaptor.forClass(InvokeRequest.class);
     doReturn(new InvokeResult()).when(lambdaClient).invoke(invokeCaptor.capture());

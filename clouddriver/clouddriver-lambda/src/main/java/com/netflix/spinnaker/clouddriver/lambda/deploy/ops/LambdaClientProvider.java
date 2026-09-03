@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.lambda.deploy.exception.InvalidAccountException;
 import com.netflix.spinnaker.config.LambdaServiceConfig;
+import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class LambdaClientProvider {
@@ -32,6 +33,15 @@ public class LambdaClientProvider {
   @Autowired protected LambdaServiceConfig operationsConfig;
   private String region;
   private NetflixAmazonCredentials credentials;
+
+  /**
+   * The maximum time an AWS Lambda function can run (15 minutes). Used as the socket-timeout
+   * ceiling for the dedicated invoke client so that a synchronous {@code RequestResponse} invoke —
+   * which holds the connection idle for the entire function execution — is never cut short below
+   * this hard limit. The per-request {@code sdkRequestTimeout} set by {@code
+   * InvokeLambdaAtomicOperation} remains the authoritative, tunable bound within this ceiling.
+   */
+  private static final int LAMBDA_MAX_EXECUTION_MS = (int) TimeUnit.MINUTES.toMillis(15);
 
   public LambdaClientProvider(String region, NetflixAmazonCredentials credentials) {
     this.region = region;
@@ -47,9 +57,38 @@ public class LambdaClientProvider {
   // timeouts based upon a precedent/business logic (e.g. if configured, and no account overrides
   // use region timeouts)
   protected AWSLambda getLambdaClient() {
+    return buildLambdaClient(buildClientConfiguration(operationsConfig.getInvokeTimeoutMs()));
+  }
 
+  /**
+   * Returns a Lambda client dedicated to synchronous invocations. It differs from {@link
+   * #getLambdaClient()} only in its socket timeout, which is raised to the Lambda maximum so the
+   * per-request {@code sdkRequestTimeout} governs how long an invoke may run rather than being
+   * capped by the shorter default socket timeout used for all other (short) Lambda operations.
+   *
+   * <p>The distinct {@link ClientConfiguration} resolves to a separate cached client (see {@code
+   * AwsSdkClientSupplier}), leaving the shared non-invoke client's timeouts unchanged.
+   */
+  protected AWSLambda getInvokeLambdaClient() {
+    return buildLambdaClient(buildClientConfiguration(LAMBDA_MAX_EXECUTION_MS));
+  }
+
+  private AWSLambda buildLambdaClient(ClientConfiguration clientConfiguration) {
+    if (!credentials.isLambdaEnabled()) {
+      throw new InvalidAccountException("AWS Lambda is not enabled for provided account. \n");
+    }
+    // Note this is a CACHED response call.  AKA the clientConfig is ONLY set when this is first
+    // cached/loaded for a given (account, region, clientConfig) combination.
+    return amazonClientProvider.getAmazonLambda(credentials, clientConfiguration, region);
+  }
+
+  /**
+   * Translates the Lambda operation defaults into the client tuning, applying the given socket
+   * timeout. A negative retry count defers to the SDK's default retry policy.
+   */
+  private ClientConfiguration buildClientConfiguration(int socketTimeoutMs) {
     ClientConfiguration clientConfiguration = new ClientConfiguration();
-    clientConfiguration.setSocketTimeout(operationsConfig.getInvokeTimeoutMs());
+    clientConfiguration.setSocketTimeout(socketTimeoutMs);
     clientConfiguration.setUseTcpKeepAlive(operationsConfig.isTcpKeepAlive());
     // only override if non-negative, and can't just set to the negative default :(
     if (operationsConfig.getRetry().getRetries() >= 0) {
@@ -63,14 +102,7 @@ public class LambdaClientProvider {
       // doing it here as well as in the retry policy to be safe.
       clientConfiguration.setMaxErrorRetry(operationsConfig.getRetry().getRetries());
     }
-
-    if (!credentials.isLambdaEnabled()) {
-      throw new InvalidAccountException("AWS Lambda is not enabled for provided account. \n");
-    }
-    // Note this is a CACHED response call.  AKA the clientConfig is ONLY set when this is first
-    // cached/loaded
-    // and won't be changed if OTHER requests make this.
-    return amazonClientProvider.getAmazonLambda(credentials, clientConfiguration, region);
+    return clientConfiguration;
   }
 
   protected String getRegion() {

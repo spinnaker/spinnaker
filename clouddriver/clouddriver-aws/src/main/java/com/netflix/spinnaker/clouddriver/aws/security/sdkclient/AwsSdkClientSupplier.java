@@ -210,6 +210,15 @@ public class AwsSdkClientSupplier {
     private final AWSCredentialsProvider awsCredentialsProvider;
     private final Region region;
     private final RequestHandler2 requestHandler;
+
+    /**
+     * Per-service tuning applied at build time. Included in {@link #equals}/{@link #hashCode} by
+     * value (via its socket timeout, max error retry, and TCP keep-alive settings) so that
+     * different tuning for the same (implClass, credentials, region, requestHandler) resolves to
+     * distinct cached clients (e.g. a short-timeout client vs a long-timeout invoke client). {@link
+     * ClientConfiguration} itself has no meaningful {@code equals()}, so we compare the handful of
+     * fields callers actually vary rather than the whole object.
+     */
     private final ClientConfiguration clientConfiguration;
 
     public AmazonClientKey(
@@ -255,7 +264,8 @@ public class AwsSdkClientSupplier {
       if (!implClass.equals(that.implClass)) return false;
       if (!awsCredentialsProvider.equals(that.awsCredentialsProvider)) return false;
       if (region != that.region) return false;
-      return Objects.equals(requestHandler, that.requestHandler);
+      if (!Objects.equals(requestHandler, that.requestHandler)) return false;
+      return clientConfigurationsEqual(clientConfiguration, that.clientConfiguration);
     }
 
     @Override
@@ -264,7 +274,28 @@ public class AwsSdkClientSupplier {
       result = 31 * result + awsCredentialsProvider.hashCode();
       result = 31 * result + (region != null ? region.hashCode() : 0);
       result = 31 * result + (requestHandler != null ? requestHandler.hashCode() : 0);
+      result = 31 * result + clientConfigurationHash(clientConfiguration);
       return result;
+    }
+
+    /**
+     * Value-compares the subset of {@link ClientConfiguration} fields that callers (e.g. Lambda's
+     * dedicated invoke client) actually vary. {@link ClientConfiguration} does not override {@code
+     * equals()}, so without this, differently-tuned configs for the same service/account/region
+     * would collide on a single cached client.
+     */
+    private static boolean clientConfigurationsEqual(ClientConfiguration a, ClientConfiguration b) {
+      if (a == b) return true;
+      if (a == null || b == null) return false;
+      return a.getSocketTimeout() == b.getSocketTimeout()
+          && a.getMaxErrorRetry() == b.getMaxErrorRetry()
+          && a.useTcpKeepAlive() == b.useTcpKeepAlive();
+    }
+
+    private static int clientConfigurationHash(ClientConfiguration cc) {
+      return cc == null
+          ? 0
+          : Objects.hash(cc.getSocketTimeout(), cc.getMaxErrorRetry(), cc.useTcpKeepAlive());
     }
   }
 }
