@@ -4,7 +4,7 @@ import type { IStage, IStageConfigProps } from '@spinnaker/core';
 import { AccountService, AppListExtractor, ChecklistInput, StageConfigField, StageConstants } from '@spinnaker/core';
 import type { IAccount } from '@spinnaker/core';
 
-type AmazonStageFieldType = 'account' | 'regions' | 'selectionStrategy' | 'target' | 'text';
+type AmazonStageFieldType = 'account' | 'onlyEnabled' | 'regions' | 'selectionStrategy' | 'target' | 'text';
 
 export interface IAmazonStageField {
   fieldName: string;
@@ -28,15 +28,10 @@ const findImageFields: IAmazonStageField[] = [
   { fieldName: 'regions', label: 'Region', type: 'regions' },
   { fieldName: 'cluster', label: 'Cluster' },
   { fieldName: 'selectionStrategy', label: 'Server Group Selection', type: 'selectionStrategy' },
+  { fieldName: 'onlyEnabled', label: 'Server Group Filters', type: 'onlyEnabled' },
 ];
 
 const amazonStageFields: { [type: string]: IAmazonStageField[] } = {
-  cloneServerGroup: [
-    { fieldName: 'credentials', label: 'Account', type: 'account' },
-    { fieldName: 'region', label: 'Region' },
-    { fieldName: 'targetCluster', label: 'Cluster' },
-    { fieldName: 'target', label: 'Server Group', type: 'target' },
-  ],
   destroyAsg: [
     { fieldName: 'credentials', label: 'Account', type: 'account' },
     { fieldName: 'regions', label: 'Region', type: 'regions' },
@@ -49,55 +44,8 @@ const amazonStageFields: { [type: string]: IAmazonStageField[] } = {
     { fieldName: 'cluster', label: 'Cluster' },
     { fieldName: 'target', label: 'Server Group', type: 'target' },
   ],
-  disableAsg: [
-    { fieldName: 'credentials', label: 'Account', type: 'account' },
-    { fieldName: 'regions', label: 'Region', type: 'regions' },
-    { fieldName: 'cluster', label: 'Cluster' },
-    { fieldName: 'target', label: 'Server Group', type: 'target' },
-  ],
-  disableCluster: [
-    { fieldName: 'credentials', label: 'Account', type: 'account' },
-    { fieldName: 'regions', label: 'Region', type: 'regions' },
-    { fieldName: 'cluster', label: 'Cluster' },
-    { fieldName: 'remainingEnabledServerGroups', label: 'Keep enabled Server Groups' },
-  ],
-  disableServerGroup: [
-    { fieldName: 'credentials', label: 'Account', type: 'account' },
-    { fieldName: 'regions', label: 'Region', type: 'regions' },
-    { fieldName: 'cluster', label: 'Cluster' },
-    { fieldName: 'target', label: 'Server Group', type: 'target' },
-  ],
-  enableAsg: [
-    { fieldName: 'credentials', label: 'Account', type: 'account' },
-    { fieldName: 'regions', label: 'Region', type: 'regions' },
-    { fieldName: 'cluster', label: 'Cluster' },
-    { fieldName: 'target', label: 'Server Group', type: 'target' },
-  ],
-  enableServerGroup: [
-    { fieldName: 'credentials', label: 'Account', type: 'account' },
-    { fieldName: 'regions', label: 'Region', type: 'regions' },
-    { fieldName: 'cluster', label: 'Cluster' },
-    { fieldName: 'target', label: 'Server Group', type: 'target' },
-  ],
   findAmi: findImageFields,
   findImage: findImageFields,
-  rollbackCluster: [
-    { fieldName: 'credentials', label: 'Account', type: 'account' },
-    { fieldName: 'regions', label: 'Region', type: 'regions' },
-    { fieldName: 'cluster', label: 'Cluster' },
-  ],
-  scaleDownCluster: [
-    { fieldName: 'credentials', label: 'Account', type: 'account' },
-    { fieldName: 'regions', label: 'Region', type: 'regions' },
-    { fieldName: 'cluster', label: 'Cluster' },
-    { fieldName: 'remainingFullSizeServerGroups', label: 'Keep full size Server Groups' },
-  ],
-  shrinkCluster: [
-    { fieldName: 'credentials', label: 'Account', type: 'account' },
-    { fieldName: 'regions', label: 'Region', type: 'regions' },
-    { fieldName: 'cluster', label: 'Cluster' },
-    { fieldName: 'shrinkToSize', label: 'Shrink to Server Groups' },
-  ],
 };
 
 const defaultFields: IAmazonStageField[] = [
@@ -134,6 +82,19 @@ function renderField(props: IStageConfigProps, field: IAmazonStageField, account
           </option>
         ))}
       </select>
+    );
+  }
+
+  if (field.type === 'onlyEnabled') {
+    return (
+      <label className="checkbox-inline">
+        <input
+          checked={stage[field.fieldName] !== false}
+          onChange={(event) => updateStageField({ [field.fieldName]: event.target.checked })}
+          type="checkbox"
+        />
+        Only consider enabled Server Groups
+      </label>
     );
   }
 
