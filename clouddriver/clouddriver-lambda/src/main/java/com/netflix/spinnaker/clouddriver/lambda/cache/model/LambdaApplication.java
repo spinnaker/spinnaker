@@ -29,5 +29,4 @@ public class LambdaApplication implements Application {
   private String name;
   private Map<String, String> attributes;
   private Map<String, Set<String>> clusterNames;
-  private Map<String, Set<String>> clusterNameMetadata;
 }
