@@ -22,36 +22,31 @@ describe('AmazonStageConfig', () => {
       <AmazonStageConfig
         application={application as any}
         pipeline={{} as any}
-        stage={{ type: 'enableServerGroup', cloudProviderType: 'aws', ...stage }}
+        stage={{ type: 'destroyServerGroup', cloudProviderType: 'aws', ...stage }}
         updateStageField={jasmine.createSpy('updateStageField') as any}
       />,
     );
   }
 
   it('defines generic fields only for simple scalar stages', () => {
-    const simpleStageTypes = [
+    const simpleStageTypes = ['destroyAsg', 'destroyServerGroup', 'findAmi', 'findImage'];
+    const dedicatedStageTypes = [
+      'bake',
       'cloneServerGroup',
-      'destroyAsg',
-      'destroyServerGroup',
+      'deployCloudFormation',
       'disableAsg',
       'disableCluster',
       'disableServerGroup',
       'enableAsg',
       'enableServerGroup',
-      'findAmi',
-      'findImage',
-      'rollbackCluster',
-      'scaleDownCluster',
-      'shrinkCluster',
-    ];
-    const dedicatedStageTypes = [
-      'bake',
-      'deployCloudFormation',
       'findImageFromTags',
       'modifyAwsScalingProcess',
       'modifyScalingProcess',
       'resizeAsg',
       'resizeServerGroup',
+      'rollbackCluster',
+      'scaleDownCluster',
+      'shrinkCluster',
       'upsertImageTags',
     ];
     const fallbackFields = getAmazonStageFields({ type: 'unknown' });
