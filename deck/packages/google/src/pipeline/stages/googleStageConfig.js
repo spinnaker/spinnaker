@@ -221,10 +221,29 @@ class GceBaseStageConfig extends React.Component {
 
 export class GceTargetServerGroupStageConfig extends GceBaseStageConfig {
   render() {
-    const { application, stage } = this.props;
+    const { application, stage, showHealthOverride = false } = this.props;
     initializeGceStage(stage, application, { target: StageConstants.TARGET_LIST[0].val });
-    return h('div', null, this.renderAccountRegionClusterSelector(), this.renderTargetSelect());
+    return h(
+      'div',
+      null,
+      this.renderAccountRegionClusterSelector(),
+      this.renderTargetSelect(),
+      showHealthOverride &&
+        h(GcePlatformHealthOverride, {
+          application,
+          stage,
+          updateStage: (nextStage) => replaceStage(this.props, nextStage),
+        }),
+    );
   }
+}
+
+export function GceDisableAsgStageConfig(props) {
+  return h(GceTargetServerGroupStageConfig, { ...props, showHealthOverride: true });
+}
+
+export function GceEnableAsgStageConfig(props) {
+  return h(GceTargetServerGroupStageConfig, { ...props, showHealthOverride: true });
 }
 
 function syncTargetClusterFields(stage) {
