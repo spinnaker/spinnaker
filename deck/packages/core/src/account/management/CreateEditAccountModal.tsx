@@ -5,6 +5,7 @@ import type { IAccountDefinition } from './AccountManagementService';
 import { AccountManagementService } from './AccountManagementService';
 import { ACCOUNT_SAMPLES, buildSampleDefinition } from './accountSamples';
 import { CloudProviderRegistry } from '../../cloudProvider/CloudProviderRegistry';
+import { ReactSelectInput } from '../../presentation/forms/inputs/ReactSelectInput';
 
 const VALID_NAME_RE = /^[a-zA-Z0-9._-]+$/;
 
@@ -121,23 +122,19 @@ export function CreateEditAccountModal({ existing, defaultType, onClose, onSaved
             <div className="col-md-6">
               <div className="form-group">
                 <label htmlFor="account-type-field">Account Type *</label>
-                <input
+                <ReactSelectInput
                   id="account-type-field"
-                  className="form-control"
-                  type="text"
-                  list="account-type-field-suggestions"
+                  name="account-type-field"
+                  inputClassName="form-control"
+                  mode="CREATABLE"
+                  stringOptions={typeSuggestions}
                   value={type}
-                  onChange={(e) => setType(e.target.value)}
+                  onChange={(e) => setType(e.target.value ?? '')}
+                  clearable={false}
                   disabled={isEdit}
                   autoFocus={!isEdit}
-                  required
                   placeholder="e.g. kubernetes"
                 />
-                <datalist id="account-type-field-suggestions">
-                  {typeSuggestions.map((suggestion) => (
-                    <option key={suggestion} value={suggestion} />
-                  ))}
-                </datalist>
                 <span className="help-block text-muted">
                   {sample?.description ??
                     (isEdit ? 'Type cannot be changed after creation' : 'No sample available for this type')}

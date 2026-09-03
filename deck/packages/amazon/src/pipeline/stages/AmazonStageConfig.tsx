@@ -31,10 +31,6 @@ const findImageFields: IAmazonStageField[] = [
 ];
 
 const amazonStageFields: { [type: string]: IAmazonStageField[] } = {
-  bake: [
-    { fieldName: 'package', label: 'Package' },
-    { fieldName: 'regions', label: 'Region', type: 'regions' },
-  ],
   cloneServerGroup: [
     { fieldName: 'credentials', label: 'Account', type: 'account' },
     { fieldName: 'region', label: 'Region' },

@@ -20,7 +20,7 @@ import {
   useAmazonLoadBalancerDetails,
 } from './loadBalancer';
 import amazonLogo from './logo/amazon.logo.svg';
-import { registerAwsBakeStage } from './pipeline/stages/bake/awsBakeStage';
+import { registerAwsBakeStage } from './pipeline/stages/bake/AwsBakeStageConfig';
 import { registerAwsCloneServerGroupStage } from './pipeline/stages/cloneServerGroup/awsCloneServerGroupStage';
 import { registerLambdaDeleteStage } from './pipeline/stages/deleteLambda';
 import { registerDeployCloudFormationStackStage } from './pipeline/stages/deployCloudFormation/deployCloudFormationStackStage';
