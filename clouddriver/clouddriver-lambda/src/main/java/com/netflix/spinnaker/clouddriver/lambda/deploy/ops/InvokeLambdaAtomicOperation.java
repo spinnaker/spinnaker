@@ -67,7 +67,7 @@ public class InvokeLambdaAtomicOperation
 
   private InvokeLambdaFunctionOutputDescription invokeFunction(
       String functionName, String payload) {
-    AWSLambda client = getLambdaClient();
+    AWSLambda client = getInvokeLambdaClient();
     InvokeRequest req =
         new InvokeRequest()
             .withFunctionName(functionName)
