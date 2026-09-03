@@ -7,6 +7,7 @@ import { AwsImageReader } from './image';
 import { AwsInstanceTypeService } from './instance/awsInstanceType.service';
 import { AwsLoadBalancerTransformer } from './loadBalancer';
 import { AmazonStageConfig, getAmazonStageFields } from './pipeline/stages/AmazonStageConfig';
+import { awsBakeStage, AwsBakeStageConfig } from './pipeline/stages/bake/AwsBakeStageConfig';
 import { DeployCloudFormationStackStageConfig } from './pipeline/stages/deployCloudFormation/DeployCloudFormationStackStageConfig';
 import { AwsFindImageFromTagsStageConfig } from './pipeline/stages/findImageFromTags/AwsFindImageFromTagsStageConfig';
 import { ModifyScalingProcessStageConfig } from './pipeline/stages/modifyScalingProcess/ModifyScalingProcessStageConfig';
@@ -173,6 +174,10 @@ describe('Amazon package registration', () => {
         key: string;
       }> = [
         {
+          key: 'bake',
+          component: AwsBakeStageConfig,
+        },
+        {
           key: 'deployCloudFormation',
           component: DeployCloudFormationStackStageConfig,
         },
@@ -208,7 +213,6 @@ describe('Amazon package registration', () => {
         .toBeGreaterThan(0);
 
       [
-        'bake',
         'cloneServerGroup',
         'destroyServerGroup',
         'disableCluster',
@@ -255,7 +259,7 @@ describe('Amazon package registration', () => {
   });
 
   it('renders required AWS stage-specific config fields', () => {
-    expect(getAmazonStageFields({ type: 'bake' } as any).map((field) => field.fieldName)).toContain('package');
+    expect(awsBakeStage.validators.map((validator: any) => validator.fieldName)).toContain('package');
     expect(getAmazonStageFields({ type: 'findImage' } as any).map((field) => field.fieldName)).toEqual([
       'credentials',
       'regions',
