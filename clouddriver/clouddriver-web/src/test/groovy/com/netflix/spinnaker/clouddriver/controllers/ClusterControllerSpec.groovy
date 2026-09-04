@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.controllers
 
-import com.netflix.spinnaker.clouddriver.aws.model.AmazonCluster
 import com.netflix.spinnaker.clouddriver.model.*
 import com.netflix.spinnaker.clouddriver.requestqueue.RequestQueue
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
@@ -371,10 +370,10 @@ class ClusterControllerSpec extends Specification {
 
     then: "expect that only the correct cluster provider will try to get Cluster"
     1 * clusterProvider1.getCluster("app", "account", "clusterName", true) >> {
-      def cluster = new AmazonCluster()
-      cluster.type = "aws"
-      cluster.getServerGroups().add(serverGroup)
-      cluster
+      Set<ServerGroup> serverGroups = Collections.synchronizedSet(new HashSet<>())
+      serverGroups.add(serverGroup)
+      [getName: { "clusterName" }, getType: { "aws" }, getAccountName: { "account" },
+       getServerGroups: { serverGroups }, getLoadBalancers: { [] as Set }] as Cluster
     }
 
     // the second cluster provider shouldn't be asked to look for the cluster
