@@ -31,6 +31,7 @@ import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.anyList;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.contains;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
@@ -71,6 +72,7 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleSubnet;
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService;
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleExternalHttpLoadBalancer;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancingPolicy;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleInternalHttpLoadBalancer;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleInternalLoadBalancer;
@@ -78,7 +80,9 @@ import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBa
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerView;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancingPolicy;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleNetworkLoadBalancer;
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleRegionalExternalNetworkLoadBalancer;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleSslLoadBalancer;
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleTcpLoadBalancer;
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider;
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider;
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleNetworkProvider;
@@ -91,8 +95,10 @@ import com.netflix.spinnaker.clouddriver.model.ServerGroup;
 import com.netflix.spinnaker.config.GoogleConfiguration;
 import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository;
 import com.netflix.spinnaker.credentials.NoopCredentialsLifecycleHandler;
+import groovy.lang.Closure;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -207,6 +213,8 @@ public class BasicGoogleDeployHandlerTest {
 
   @Test
   void testGetLocationFromInput_RegionalOmittedResolvesZonally() {
+    // Raw pipeline/REST payloads may omit `regional`; a null value must resolve to a zonal deploy
+    // instead of throwing when the Boolean is unboxed.
     String zone = "us-central1-a";
     mockDescription.setRegional(null);
     mockDescription.setZone(zone);
@@ -1203,6 +1211,7 @@ public class BasicGoogleDeployHandlerTest {
   @Test
   void testGetRegionBackendServicesToUpdateWithInternalLoadBalancers() throws IOException {
     GoogleHttpLoadBalancingPolicy policyMock = mock(GoogleHttpLoadBalancingPolicy.class);
+    when(policyMock.getBalancingMode()).thenReturn(GoogleLoadBalancingPolicy.BalancingMode.RATE);
     BasicGoogleDeployHandler.LoadBalancerInfo lbInfoMock =
         mock(BasicGoogleDeployHandler.LoadBalancerInfo.class);
     GoogleBackendService backendServiceMock = mock(GoogleBackendService.class);
@@ -1223,7 +1232,8 @@ public class BasicGoogleDeployHandlerTest {
 
     Map<String, String> instanceMetadata = new HashMap<>();
     instanceMetadata.put("load-balancer-names", "load-balancer-1,load-balancer-2");
-    instanceMetadata.put("region-backend-service-names", "us-central1-backend");
+    instanceMetadata.put(
+        "region-backend-service-names", "us-central1-backend,google-backend-service");
     mockDescription.setInstanceMetadata(instanceMetadata);
     mockDescription.setCredentials(mockCredentials);
     mockDescription.setZone("us-central1-a");
@@ -1236,6 +1246,9 @@ public class BasicGoogleDeployHandlerTest {
     mockedGCEUtil
         .when(() -> GCEUtil.buildZonalServerGroupUrl(any(), any(), any()))
         .thenReturn("zonal-server-group-url");
+    mockedGCEUtil
+        .when(() -> GCEUtil.backendFromLoadBalancingPolicy(any()))
+        .thenReturn(new Backend());
     GoogleBackendService googleBackendService = new GoogleBackendService();
     googleBackendService.setName("google-backend-service");
     mockedUtils
@@ -1246,10 +1259,966 @@ public class BasicGoogleDeployHandlerTest {
         basicGoogleDeployHandler.getRegionBackendServicesToUpdate(
             mockDescription, "server-group-name", lbInfoMock, policyMock, region);
     assertNotNull(result);
-    assertEquals(2, result.size());
+    assertEquals(3, result.size());
     assertEquals(
         "load-balancer-1,load-balancer-2,internal-load-balancer,internal-http-load-balancer",
         instanceMetadata.get("load-balancer-names"));
+    assertEquals(
+        "backend-service-internal,us-central1-backend,google-backend-service",
+        instanceMetadata.get("region-backend-service-names"));
+  }
+
+  @Test
+  void testGetRegionBackendServicesToUpdateWithInternalHttpLoadBalancerWithoutExistingMetadata()
+      throws IOException {
+    GoogleHttpLoadBalancingPolicy policyMock = mock(GoogleHttpLoadBalancingPolicy.class);
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfoMock =
+        mock(BasicGoogleDeployHandler.LoadBalancerInfo.class);
+    when(lbInfoMock.getInternalLoadBalancers()).thenReturn(new ArrayList<>());
+
+    List<GoogleLoadBalancerView> internalHttpLB = new ArrayList<>();
+    GoogleInternalHttpLoadBalancer googleInternalHttpLB = new GoogleInternalHttpLoadBalancer();
+    googleInternalHttpLB.setName("internal-http-load-balancer");
+    internalHttpLB.add(googleInternalHttpLB.getView());
+    when(lbInfoMock.getInternalHttpLoadBalancers()).thenReturn(internalHttpLB);
+
+    Map<String, String> instanceMetadata = new HashMap<>();
+    mockDescription.setInstanceMetadata(instanceMetadata);
+    mockDescription.setCredentials(mockCredentials);
+    mockDescription.setZone("us-central1-a");
+
+    doReturn(mock(BackendService.class))
+        .when(basicGoogleDeployHandler)
+        .getRegionBackendServiceFromProvider(any(), any(), any());
+    mockedGCEUtil
+        .when(() -> GCEUtil.buildZonalServerGroupUrl(any(), any(), any()))
+        .thenReturn("zonal-server-group-url");
+    mockedGCEUtil
+        .when(() -> GCEUtil.backendFromLoadBalancingPolicy(any()))
+        .thenReturn(new Backend());
+    GoogleBackendService googleBackendService = new GoogleBackendService();
+    googleBackendService.setName("google-backend-service");
+    mockedUtils
+        .when(() -> Utils.getBackendServicesFromInternalHttpLoadBalancerView(any()))
+        .thenReturn(List.of(googleBackendService));
+
+    List<BackendService> result =
+        basicGoogleDeployHandler.getRegionBackendServicesToUpdate(
+            mockDescription, "server-group-name", lbInfoMock, policyMock, "us-central1");
+
+    assertNotNull(result);
+    assertEquals(1, result.size());
+    assertEquals("internal-http-load-balancer", instanceMetadata.get("load-balancer-names"));
+    assertEquals("google-backend-service", instanceMetadata.get("region-backend-service-names"));
+  }
+
+  @Test
+  void testGetRegionBackendServicesToUpdateWithExternalHttpLoadBalancerWithoutExistingMetadata()
+      throws IOException {
+    GoogleHttpLoadBalancingPolicy policyMock = mock(GoogleHttpLoadBalancingPolicy.class);
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfoMock =
+        mock(BasicGoogleDeployHandler.LoadBalancerInfo.class);
+    when(lbInfoMock.getInternalLoadBalancers()).thenReturn(new ArrayList<>());
+    when(lbInfoMock.getInternalHttpLoadBalancers()).thenReturn(new ArrayList<>());
+
+    List<GoogleLoadBalancerView> externalHttpLB = new ArrayList<>();
+    GoogleExternalHttpLoadBalancer googleExternalHttpLB = new GoogleExternalHttpLoadBalancer();
+    googleExternalHttpLB.setName("external-http-load-balancer");
+    externalHttpLB.add(googleExternalHttpLB.getView());
+    when(lbInfoMock.getExternalHttpLoadBalancers()).thenReturn(externalHttpLB);
+
+    Map<String, String> instanceMetadata = new HashMap<>();
+    mockDescription.setInstanceMetadata(instanceMetadata);
+    mockDescription.setCredentials(mockCredentials);
+    mockDescription.setZone("us-central1-a");
+
+    doReturn(mock(BackendService.class))
+        .when(basicGoogleDeployHandler)
+        .getRegionBackendServiceFromProvider(any(), any(), any());
+    mockedGCEUtil
+        .when(() -> GCEUtil.buildZonalServerGroupUrl(any(), any(), any()))
+        .thenReturn("zonal-server-group-url");
+    mockedGCEUtil
+        .when(() -> GCEUtil.backendFromLoadBalancingPolicy(any()))
+        .thenReturn(new Backend());
+    GoogleBackendService googleBackendService = new GoogleBackendService();
+    googleBackendService.setName("external-backend-service");
+    mockedUtils
+        .when(() -> Utils.getBackendServicesFromExternalHttpLoadBalancerView(any()))
+        .thenReturn(List.of(googleBackendService));
+
+    List<BackendService> result =
+        basicGoogleDeployHandler.getRegionBackendServicesToUpdate(
+            mockDescription, "server-group-name", lbInfoMock, policyMock, "us-central1");
+
+    assertNotNull(result);
+    assertEquals(1, result.size());
+    assertEquals("external-http-load-balancer", instanceMetadata.get("load-balancer-names"));
+    assertEquals("external-backend-service", instanceMetadata.get("region-backend-service-names"));
+  }
+
+  @Test
+  void testGetRegionBackendServicesToUpdateWithRegionalExternalNetworkLoadBalancer()
+      throws IOException {
+    GoogleHttpLoadBalancingPolicy policyMock = mock(GoogleHttpLoadBalancingPolicy.class);
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfoMock =
+        mock(BasicGoogleDeployHandler.LoadBalancerInfo.class);
+    when(lbInfoMock.getInternalLoadBalancers()).thenReturn(new ArrayList<>());
+    when(lbInfoMock.getInternalHttpLoadBalancers()).thenReturn(new ArrayList<>());
+    when(lbInfoMock.getExternalHttpLoadBalancers()).thenReturn(new ArrayList<>());
+
+    GoogleBackendService googleBackendService = new GoogleBackendService();
+    googleBackendService.setName("regional-external-backend");
+    List<GoogleLoadBalancerView> regionalExternalNetworkLB = new ArrayList<>();
+    GoogleRegionalExternalNetworkLoadBalancer googleRegionalExternalNetworkLB =
+        new GoogleRegionalExternalNetworkLoadBalancer();
+    googleRegionalExternalNetworkLB.setName("regional-external-network-load-balancer");
+    googleRegionalExternalNetworkLB.setBackendService(googleBackendService);
+    regionalExternalNetworkLB.add(googleRegionalExternalNetworkLB.getView());
+    when(lbInfoMock.getRegionalExternalNetworkLoadBalancers())
+        .thenReturn(regionalExternalNetworkLB);
+
+    Map<String, String> instanceMetadata = new HashMap<>();
+    mockDescription.setInstanceMetadata(instanceMetadata);
+    mockDescription.setCredentials(mockCredentials);
+    mockDescription.setZone("us-central1-a");
+
+    BackendService backendService = new BackendService();
+    doReturn(backendService)
+        .when(basicGoogleDeployHandler)
+        .getRegionBackendServiceFromProvider(any(), any(), any());
+    mockedGCEUtil
+        .when(() -> GCEUtil.buildZonalServerGroupUrl(any(), any(), any()))
+        .thenReturn("zonal-server-group-url");
+
+    List<BackendService> result =
+        basicGoogleDeployHandler.getRegionBackendServicesToUpdate(
+            mockDescription, "server-group-name", lbInfoMock, policyMock, "us-central1");
+
+    assertNotNull(result);
+    assertEquals(1, result.size());
+    assertEquals(
+        "regional-external-network-load-balancer", instanceMetadata.get("load-balancer-names"));
+    assertEquals("regional-external-backend", instanceMetadata.get("region-backend-service-names"));
+    assertEquals("CONNECTION", result.get(0).getBackends().get(0).getBalancingMode());
+  }
+
+  @Test
+  void testMetadataOnlyRegionalBackendServiceIsWritten() throws Exception {
+    Compute compute = mock(Compute.class);
+    BackendService backendService = new BackendService().setName("metadata-backend");
+    mockDescription.setCredentials(mockCredentials);
+    mockDescription.setDisableTraffic(false);
+    when(mockCredentials.getCompute()).thenReturn(compute);
+    when(mockCredentials.getProject()).thenReturn("project");
+
+    invokeUpdateRegionalBackendServices(
+        mockDescription, "server-group", "us-central1", List.of(backendService));
+
+    verify(safeRetry)
+        .doRetry(
+            any(Closure.class),
+            eq("Regional load balancer backend service"),
+            eq(mockTask),
+            anyList(),
+            anyList(),
+            any(),
+            eq(registry));
+  }
+
+  @Test
+  void testDisableTrafficSuppressesMetadataOnlyRegionalBackendServiceWrite() throws Exception {
+    mockDescription.setCredentials(mockCredentials);
+    mockDescription.setDisableTraffic(true);
+
+    invokeUpdateRegionalBackendServices(
+        mockDescription,
+        "server-group",
+        "us-central1",
+        List.of(new BackendService().setName("metadata-backend")));
+
+    verify(safeRetry, never())
+        .doRetry(any(Closure.class), anyString(), any(), anyList(), anyList(), any(), any());
+  }
+
+  @Test
+  void testRejectsUtilizationWithRegionalExternalNetworkLoadBalancerBeforeBackendUpdates()
+      throws IOException {
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfo = dualFamilyLoadBalancerInfo(false);
+    GoogleHttpLoadBalancingPolicy policy = new GoogleHttpLoadBalancingPolicy();
+    policy.setBalancingMode(GoogleLoadBalancingPolicy.BalancingMode.UTILIZATION);
+
+    mockDescription.setInstanceMetadata(new HashMap<>());
+    mockDescription.setCredentials(mockCredentials);
+    mockDescription.setZone("us-central1-a");
+
+    IllegalArgumentException error =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                basicGoogleDeployHandler.getRegionBackendServicesToUpdate(
+                    mockDescription, "server-group-name", lbInfo, policy, "us-central1"));
+
+    assertThat(error.getMessage())
+        .contains("must use RATE")
+        .contains("CONNECTION")
+        .contains("same instance group");
+    verify(basicGoogleDeployHandler, never())
+        .getRegionBackendServiceFromProvider(any(), any(), any());
+  }
+
+  @Test
+  void testRejectsUtilizationWithInternalPassthroughLoadBalancerBeforeBackendUpdates()
+      throws IOException {
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfo = dualFamilyLoadBalancerInfo(true);
+    GoogleHttpLoadBalancingPolicy policy = new GoogleHttpLoadBalancingPolicy();
+    policy.setBalancingMode(GoogleLoadBalancingPolicy.BalancingMode.UTILIZATION);
+
+    mockDescription.setInstanceMetadata(new HashMap<>());
+    mockDescription.setCredentials(mockCredentials);
+    mockDescription.setZone("us-central1-a");
+
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            basicGoogleDeployHandler.getRegionBackendServicesToUpdate(
+                mockDescription, "server-group-name", lbInfo, policy, "us-central1"));
+    verify(basicGoogleDeployHandler, never())
+        .getRegionBackendServiceFromProvider(any(), any(), any());
+  }
+
+  @Test
+  void testRejectsConnectionWithHttpAndRegionalExternalNetworkBeforeBackendUpdates()
+      throws IOException {
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfo = dualFamilyLoadBalancerInfo(false);
+    GoogleHttpLoadBalancingPolicy policy = new GoogleHttpLoadBalancingPolicy();
+    policy.setBalancingMode(GoogleLoadBalancingPolicy.BalancingMode.CONNECTION);
+
+    mockDescription.setInstanceMetadata(new HashMap<>());
+    mockDescription.setCredentials(mockCredentials);
+    mockDescription.setZone("us-central1-a");
+    mockedGCEUtil
+        .when(() -> GCEUtil.backendFromLoadBalancingPolicy(any()))
+        .thenReturn(new Backend());
+
+    IllegalArgumentException error =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                basicGoogleDeployHandler.getRegionBackendServicesToUpdate(
+                    mockDescription, "server-group-name", lbInfo, policy, "us-central1"));
+
+    assertThat(error.getMessage()).contains("must use RATE for HTTP backends");
+    verify(basicGoogleDeployHandler, never())
+        .getRegionBackendServiceFromProvider(any(), any(), any());
+  }
+
+  @Test
+  void testRejectsUtilizationWithGlobalHttpBackendMetadataBeforeGlobalBackendRead()
+      throws IOException {
+    GoogleBackendService networkBackendService = new GoogleBackendService();
+    networkBackendService.setName("regional-network-backend-service");
+    GoogleRegionalExternalNetworkLoadBalancer networkLoadBalancer =
+        new GoogleRegionalExternalNetworkLoadBalancer();
+    networkLoadBalancer.setName("regional-network-load-balancer");
+    networkLoadBalancer.setBackendService(networkBackendService);
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfo =
+        new BasicGoogleDeployHandler.LoadBalancerInfo();
+    lbInfo.setRegionalExternalNetworkLoadBalancers(List.of(networkLoadBalancer.getView()));
+    GoogleHttpLoadBalancingPolicy policy = new GoogleHttpLoadBalancingPolicy();
+    policy.setBalancingMode(GoogleLoadBalancingPolicy.BalancingMode.UTILIZATION);
+
+    mockDescription.setInstanceMetadata(
+        new HashMap<>(Map.of(GCEUtil.BACKEND_SERVICE_NAMES, "global-http-backend-service")));
+    mockDescription.setCredentials(mockCredentials);
+    mockDescription.setZone("us-central1-a");
+
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            basicGoogleDeployHandler.getBackendServiceToUpdate(
+                mockDescription, "server-group-name", lbInfo, policy, "us-central1"));
+    verify(basicGoogleDeployHandler, never()).getBackendServiceFromProvider(any(), any());
+  }
+
+  @Test
+  void testRejectsUtilizationWithSslLoadBalancerBeforeGlobalBackendRead() throws IOException {
+    GoogleBackendService backendService = new GoogleBackendService();
+    backendService.setName("ssl-backend-service");
+    GoogleSslLoadBalancer loadBalancer = new GoogleSslLoadBalancer();
+    loadBalancer.setName("ssl-load-balancer");
+    loadBalancer.setBackendService(backendService);
+
+    assertRejectsUtilizationWithGlobalProxyLoadBalancer(loadBalancer.getView());
+  }
+
+  @Test
+  void testRejectsUtilizationWithTcpLoadBalancerBeforeGlobalBackendRead() throws IOException {
+    GoogleBackendService backendService = new GoogleBackendService();
+    backendService.setName("tcp-backend-service");
+    GoogleTcpLoadBalancer loadBalancer = new GoogleTcpLoadBalancer();
+    loadBalancer.setName("tcp-load-balancer");
+    loadBalancer.setBackendService(backendService);
+
+    assertRejectsUtilizationWithGlobalProxyLoadBalancer(loadBalancer.getView());
+  }
+
+  @Test
+  void testRejectsRateWithSslLoadBalancerBeforeGlobalBackendRead() throws IOException {
+    GoogleBackendService backendService = new GoogleBackendService();
+    backendService.setName("ssl-backend-service");
+    GoogleSslLoadBalancer loadBalancer = new GoogleSslLoadBalancer();
+    loadBalancer.setName("ssl-load-balancer");
+    loadBalancer.setBackendService(backendService);
+
+    assertRejectsModeWithGlobalProxyLoadBalancer(
+        loadBalancer.getView(), GoogleLoadBalancingPolicy.BalancingMode.RATE);
+  }
+
+  @Test
+  void testRejectsRateWithTcpLoadBalancerBeforeGlobalBackendRead() throws IOException {
+    GoogleBackendService backendService = new GoogleBackendService();
+    backendService.setName("tcp-backend-service");
+    GoogleTcpLoadBalancer loadBalancer = new GoogleTcpLoadBalancer();
+    loadBalancer.setName("tcp-load-balancer");
+    loadBalancer.setBackendService(backendService);
+
+    assertRejectsModeWithGlobalProxyLoadBalancer(
+        loadBalancer.getView(), GoogleLoadBalancingPolicy.BalancingMode.RATE);
+  }
+
+  @Test
+  void testRejectsHttpAndSslWithRegionalExternalNetworkBeforeAnyBackendRead() throws IOException {
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfo = dualFamilyLoadBalancerInfo(false);
+    GoogleBackendService sslBackendService = new GoogleBackendService();
+    sslBackendService.setName("ssl-backend-service");
+    GoogleSslLoadBalancer sslLoadBalancer = new GoogleSslLoadBalancer();
+    sslLoadBalancer.setName("ssl-load-balancer");
+    sslLoadBalancer.setBackendService(sslBackendService);
+    // dualFamilyLoadBalancerInfo returns a mock, so the SSL family has to be stubbed rather than
+    // set.
+    when(lbInfo.getSslLoadBalancers()).thenReturn(List.of(sslLoadBalancer.getView()));
+    GoogleHttpLoadBalancingPolicy policy = new GoogleHttpLoadBalancingPolicy();
+    policy.setBalancingMode(GoogleLoadBalancingPolicy.BalancingMode.RATE);
+
+    mockDescription.setInstanceMetadata(new HashMap<>());
+    mockDescription.setCredentials(mockCredentials);
+    mockDescription.setZone("us-central1-a");
+    mockedGCEUtil
+        .when(
+            () ->
+                GCEUtil.resolveHttpLoadBalancerNamesMetadata(anyList(), any(), anyString(), any()))
+        .thenReturn(Collections.emptyList());
+    mockedGCEUtil
+        .when(() -> GCEUtil.backendFromLoadBalancingPolicy(any()))
+        .thenReturn(new Backend());
+
+    IllegalArgumentException error =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                basicGoogleDeployHandler.getBackendServiceToUpdate(
+                    mockDescription, "server-group-name", lbInfo, policy, "us-central1"));
+
+    // Pin the three-family rule specifically; a mode-mismatch message would mean a different branch
+    // rejected this and the rule under test could be deleted unnoticed.
+    assertThat(error.getMessage()).contains("no compatible balancing mode");
+    verify(basicGoogleDeployHandler, never()).getBackendServiceFromProvider(any(), any());
+    verify(basicGoogleDeployHandler, never())
+        .getRegionBackendServiceFromProvider(any(), any(), any());
+  }
+
+  @Test
+  void testAllowsRateWithRegionalExternalNetworkLoadBalancer() throws IOException {
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfo = dualFamilyLoadBalancerInfo(false);
+    GoogleHttpLoadBalancingPolicy policy = new GoogleHttpLoadBalancingPolicy();
+    policy.setBalancingMode(GoogleLoadBalancingPolicy.BalancingMode.RATE);
+
+    mockDescription.setInstanceMetadata(new HashMap<>());
+    mockDescription.setCredentials(mockCredentials);
+    mockDescription.setZone("us-central1-a");
+    BackendService httpBackendService = new BackendService().setBackends(new ArrayList<>());
+    BackendService networkBackendService = new BackendService().setBackends(new ArrayList<>());
+    doReturn(httpBackendService, networkBackendService)
+        .when(basicGoogleDeployHandler)
+        .getRegionBackendServiceFromProvider(any(), any(), any());
+    mockedGCEUtil
+        .when(() -> GCEUtil.backendFromLoadBalancingPolicy(any()))
+        .thenReturn(new Backend().setBalancingMode("RATE"));
+
+    List<BackendService> result =
+        basicGoogleDeployHandler.getRegionBackendServicesToUpdate(
+            mockDescription, "server-group-name", lbInfo, policy, "us-central1");
+
+    assertEquals(2, result.size());
+    assertEquals("RATE", result.get(0).getBackends().get(0).getBalancingMode());
+    assertEquals("CONNECTION", result.get(1).getBackends().get(0).getBalancingMode());
+  }
+
+  @Test
+  void testRejectsNonRateForHttpAndMetadataOnlyPassthroughAfterProviderReads() throws IOException {
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfo = httpOnlyLoadBalancerInfo();
+
+    for (String passthroughScheme : List.of("INTERNAL", "EXTERNAL")) {
+      for (GoogleLoadBalancingPolicy.BalancingMode balancingMode :
+          Arrays.asList(
+              GoogleLoadBalancingPolicy.BalancingMode.UTILIZATION,
+              GoogleLoadBalancingPolicy.BalancingMode.CONNECTION,
+              null)) {
+        GoogleHttpLoadBalancingPolicy policy = new GoogleHttpLoadBalancingPolicy();
+        policy.setBalancingMode(balancingMode);
+        configureMetadataOnlyMixedRegionalBackends(passthroughScheme);
+        clearInvocations(basicGoogleDeployHandler);
+
+        IllegalArgumentException error =
+            assertThrows(
+                IllegalArgumentException.class,
+                () ->
+                    basicGoogleDeployHandler.getRegionBackendServicesToUpdate(
+                        mockDescription, "server-group-name", lbInfo, policy, "us-central1"));
+
+        String scenario = "mode=" + balancingMode + ", passthroughScheme=" + passthroughScheme;
+        assertThat(error.getMessage())
+            .as(scenario)
+            .contains(
+                balancingMode == null
+                    ? "No balancing mode was specified"
+                    : "must use RATE for HTTP backends")
+            .contains("RATE for HTTP backends");
+        verify(basicGoogleDeployHandler, times(2))
+            .getRegionBackendServiceFromProvider(any(), any(), any());
+        verify(basicGoogleDeployHandler)
+            .getRegionBackendServiceFromProvider(
+                any(), eq("us-central1"), eq("metadata-managed-backend"));
+        verify(basicGoogleDeployHandler)
+            .getRegionBackendServiceFromProvider(
+                any(), eq("us-central1"), eq("metadata-passthrough-backend"));
+      }
+    }
+  }
+
+  @Test
+  void testAppliesSchemeSpecificModesForHttpAndMetadataOnlyPassthroughWithRate()
+      throws IOException {
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfo = httpOnlyLoadBalancerInfo();
+    GoogleHttpLoadBalancingPolicy policy = new GoogleHttpLoadBalancingPolicy();
+    policy.setBalancingMode(GoogleLoadBalancingPolicy.BalancingMode.RATE);
+    mockedGCEUtil
+        .when(() -> GCEUtil.backendFromLoadBalancingPolicy(any()))
+        .thenReturn(new Backend().setBalancingMode("RATE"));
+
+    for (String passthroughScheme : List.of("INTERNAL", "EXTERNAL")) {
+      configureMetadataOnlyMixedRegionalBackends(passthroughScheme);
+      clearInvocations(basicGoogleDeployHandler);
+
+      List<BackendService> result =
+          basicGoogleDeployHandler.getRegionBackendServicesToUpdate(
+              mockDescription, "server-group-name", lbInfo, policy, "us-central1");
+
+      assertThat(result).hasSize(2);
+      assertThat(backendMode(result, "metadata-managed-backend"))
+          .as("managed backend mode with %s passthrough", passthroughScheme)
+          .isEqualTo("RATE");
+      assertThat(backendMode(result, "metadata-passthrough-backend"))
+          .as("passthrough backend mode for scheme %s", passthroughScheme)
+          .isEqualTo("EXTERNAL".equals(passthroughScheme) ? "CONNECTION" : null);
+      verify(basicGoogleDeployHandler, times(2))
+          .getRegionBackendServiceFromProvider(any(), any(), any());
+    }
+  }
+
+  @Test
+  void testRejectsMissingConnectionForProxyAndSelectedPassthrough() throws IOException {
+    for (GoogleLoadBalancerType proxyType :
+        List.of(GoogleLoadBalancerType.SSL, GoogleLoadBalancerType.TCP)) {
+      BasicGoogleDeployHandler.LoadBalancerInfo lbInfo =
+          proxyWithSelectedPassthroughLoadBalancerInfo(proxyType);
+      GoogleHttpLoadBalancingPolicy policy = new GoogleHttpLoadBalancingPolicy();
+      mockDescription.setInstanceMetadata(new HashMap<>());
+      mockDescription.setCredentials(mockCredentials);
+      mockDescription.setZone("us-central1-a");
+      clearInvocations(basicGoogleDeployHandler);
+
+      IllegalArgumentException error =
+          assertThrows(
+              IllegalArgumentException.class,
+              () ->
+                  basicGoogleDeployHandler.getRegionBackendServicesToUpdate(
+                      mockDescription, "server-group-name", lbInfo, policy, "us-central1"));
+
+      assertThat(error.getMessage())
+          .as("proxyType=%s", proxyType)
+          .contains("No balancing mode was specified")
+          .contains("CONNECTION for SSL/TCP proxy backends");
+      verify(basicGoogleDeployHandler, never())
+          .getRegionBackendServiceFromProvider(any(), any(), any());
+    }
+  }
+
+  @Test
+  void testAppliesRateToMetadataOnlyManagedRegionalBackendWithPassthrough() throws IOException {
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfo = regionalNetworkLoadBalancerInfo();
+    GoogleHttpLoadBalancingPolicy policy = new GoogleHttpLoadBalancingPolicy();
+    policy.setBalancingMode(GoogleLoadBalancingPolicy.BalancingMode.RATE);
+
+    mockDescription.setInstanceMetadata(
+        new HashMap<>(Map.of(GCEUtil.REGION_BACKEND_SERVICE_NAMES, "metadata-managed-backend")));
+    mockDescription.setCredentials(mockCredentials);
+    mockDescription.setZone("us-central1-a");
+    doAnswer(
+            invocation -> {
+              String backendName = invocation.getArgument(2);
+              String scheme =
+                  backendName.equals("metadata-managed-backend") ? "EXTERNAL_MANAGED" : "EXTERNAL";
+              return new BackendService()
+                  .setName(backendName)
+                  .setLoadBalancingScheme(scheme)
+                  .setBackends(new ArrayList<>());
+            })
+        .when(basicGoogleDeployHandler)
+        .getRegionBackendServiceFromProvider(any(), any(), any());
+    mockedGCEUtil
+        .when(() -> GCEUtil.backendFromLoadBalancingPolicy(any()))
+        .thenReturn(new Backend().setBalancingMode("RATE"));
+
+    List<BackendService> result =
+        basicGoogleDeployHandler.getRegionBackendServicesToUpdate(
+            mockDescription, "server-group-name", lbInfo, policy, "us-central1");
+
+    assertEquals(2, result.size());
+    assertEquals("RATE", result.get(0).getBackends().get(0).getBalancingMode());
+    assertEquals("CONNECTION", result.get(1).getBackends().get(0).getBalancingMode());
+  }
+
+  @Test
+  void testRejectsConnectionForMetadataOnlyManagedRegionalBackendAfterClassification()
+      throws IOException {
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfo = regionalNetworkLoadBalancerInfo();
+    GoogleHttpLoadBalancingPolicy policy = new GoogleHttpLoadBalancingPolicy();
+    policy.setBalancingMode(GoogleLoadBalancingPolicy.BalancingMode.CONNECTION);
+
+    mockDescription.setInstanceMetadata(
+        new HashMap<>(Map.of(GCEUtil.REGION_BACKEND_SERVICE_NAMES, "metadata-managed-backend")));
+    mockDescription.setCredentials(mockCredentials);
+    mockDescription.setZone("us-central1-a");
+    doAnswer(
+            invocation ->
+                new BackendService()
+                    .setName(invocation.getArgument(2))
+                    .setLoadBalancingScheme(
+                        invocation.getArgument(2).equals("metadata-managed-backend")
+                            ? "INTERNAL_MANAGED"
+                            : "EXTERNAL")
+                    .setBackends(new ArrayList<>()))
+        .when(basicGoogleDeployHandler)
+        .getRegionBackendServiceFromProvider(any(), any(), any());
+
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            basicGoogleDeployHandler.getRegionBackendServicesToUpdate(
+                mockDescription, "server-group-name", lbInfo, policy, "us-central1"));
+    verify(basicGoogleDeployHandler, times(2))
+        .getRegionBackendServiceFromProvider(any(), any(), any());
+  }
+
+  @Test
+  void testUsesConnectionForMetadataOnlyExternalPassthroughBackend() throws IOException {
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfo = regionalNetworkLoadBalancerInfo();
+    GoogleHttpLoadBalancingPolicy policy = new GoogleHttpLoadBalancingPolicy();
+    policy.setBalancingMode(GoogleLoadBalancingPolicy.BalancingMode.CONNECTION);
+
+    mockDescription.setInstanceMetadata(
+        new HashMap<>(
+            Map.of(GCEUtil.REGION_BACKEND_SERVICE_NAMES, "metadata-passthrough-backend")));
+    mockDescription.setCredentials(mockCredentials);
+    mockDescription.setZone("us-central1-a");
+    doAnswer(
+            invocation ->
+                new BackendService()
+                    .setName(invocation.getArgument(2))
+                    .setLoadBalancingScheme("EXTERNAL")
+                    .setBackends(new ArrayList<>()))
+        .when(basicGoogleDeployHandler)
+        .getRegionBackendServiceFromProvider(any(), any(), any());
+
+    List<BackendService> result =
+        basicGoogleDeployHandler.getRegionBackendServicesToUpdate(
+            mockDescription, "server-group-name", lbInfo, policy, "us-central1");
+
+    assertEquals("CONNECTION", result.get(0).getBackends().get(0).getBalancingMode());
+  }
+
+  @Test
+  void testAllowsConnectionWithSslLoadBalancerAndRegionalExternalNetwork() throws IOException {
+    GoogleBackendService sslBackendService = new GoogleBackendService();
+    sslBackendService.setName("ssl-backend-service");
+    GoogleSslLoadBalancer sslLoadBalancer = new GoogleSslLoadBalancer();
+    sslLoadBalancer.setName("ssl-load-balancer");
+    sslLoadBalancer.setBackendService(sslBackendService);
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfo = regionalNetworkLoadBalancerInfo();
+    lbInfo.setSslLoadBalancers(List.of(sslLoadBalancer.getView()));
+    GoogleHttpLoadBalancingPolicy policy = new GoogleHttpLoadBalancingPolicy();
+    policy.setBalancingMode(GoogleLoadBalancingPolicy.BalancingMode.CONNECTION);
+
+    mockDescription.setInstanceMetadata(new HashMap<>());
+    mockDescription.setCredentials(mockCredentials);
+    mockDescription.setZone("us-central1-a");
+    doReturn(new BackendService().setName("ssl-backend-service").setBackends(new ArrayList<>()))
+        .when(basicGoogleDeployHandler)
+        .getBackendServiceFromProvider(any(), any());
+    mockedGCEUtil
+        .when(
+            () ->
+                GCEUtil.resolveHttpLoadBalancerNamesMetadata(anyList(), any(), anyString(), any()))
+        .thenReturn(Collections.emptyList());
+    mockedGCEUtil
+        .when(() -> GCEUtil.backendFromLoadBalancingPolicy(any()))
+        .thenReturn(new Backend().setBalancingMode("CONNECTION"));
+
+    List<BackendService> result =
+        basicGoogleDeployHandler.getBackendServiceToUpdate(
+            mockDescription, "server-group-name", lbInfo, policy, "us-central1");
+
+    assertEquals(1, result.size());
+    assertEquals("CONNECTION", result.get(0).getBackends().get(0).getBalancingMode());
+  }
+
+  @Test
+  void testAllowsUtilizationWithInternalPassthroughLoadBalancerAlone() throws IOException {
+    GoogleBackendService internalBackendService = new GoogleBackendService();
+    internalBackendService.setName("internal-backend-service");
+    GoogleInternalLoadBalancer internalLoadBalancer = new GoogleInternalLoadBalancer();
+    internalLoadBalancer.setName("internal-load-balancer");
+    internalLoadBalancer.setBackendService(internalBackendService);
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfo =
+        new BasicGoogleDeployHandler.LoadBalancerInfo();
+    lbInfo.setInternalLoadBalancers(List.of(internalLoadBalancer.getView()));
+    GoogleHttpLoadBalancingPolicy policy = new GoogleHttpLoadBalancingPolicy();
+    policy.setBalancingMode(GoogleLoadBalancingPolicy.BalancingMode.UTILIZATION);
+
+    mockDescription.setInstanceMetadata(new HashMap<>());
+    mockDescription.setCredentials(mockCredentials);
+    mockDescription.setZone("us-central1-a");
+    doAnswer(
+            invocation ->
+                new BackendService()
+                    .setName(invocation.getArgument(2))
+                    .setLoadBalancingScheme("INTERNAL")
+                    .setBackends(new ArrayList<>()))
+        .when(basicGoogleDeployHandler)
+        .getRegionBackendServiceFromProvider(any(), any(), any());
+
+    List<BackendService> result =
+        basicGoogleDeployHandler.getRegionBackendServicesToUpdate(
+            mockDescription, "server-group-name", lbInfo, policy, "us-central1");
+
+    // Passthrough alone imposes no MIG-wide mode, and an internal passthrough backend must carry no
+    // balancing mode at all — GCP rejects one on an INTERNAL-scheme backend service.
+    assertEquals(1, result.size());
+    assertNull(result.get(0).getBackends().get(0).getBalancingMode());
+  }
+
+  @Test
+  void testAllowsUtilizationWithBothPassthroughFamilies() throws IOException {
+    GoogleBackendService internalBackendService = new GoogleBackendService();
+    internalBackendService.setName("internal-backend-service");
+    GoogleInternalLoadBalancer internalLoadBalancer = new GoogleInternalLoadBalancer();
+    internalLoadBalancer.setName("internal-load-balancer");
+    internalLoadBalancer.setBackendService(internalBackendService);
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfo = regionalNetworkLoadBalancerInfo();
+    lbInfo.setInternalLoadBalancers(List.of(internalLoadBalancer.getView()));
+    GoogleHttpLoadBalancingPolicy policy = new GoogleHttpLoadBalancingPolicy();
+    policy.setBalancingMode(GoogleLoadBalancingPolicy.BalancingMode.UTILIZATION);
+
+    mockDescription.setInstanceMetadata(new HashMap<>());
+    mockDescription.setCredentials(mockCredentials);
+    mockDescription.setZone("us-central1-a");
+    doAnswer(
+            invocation -> {
+              String backendName = invocation.getArgument(2);
+              return new BackendService()
+                  .setName(backendName)
+                  .setLoadBalancingScheme(
+                      backendName.equals("internal-backend-service") ? "INTERNAL" : "EXTERNAL")
+                  .setBackends(new ArrayList<>());
+            })
+        .when(basicGoogleDeployHandler)
+        .getRegionBackendServiceFromProvider(any(), any(), any());
+
+    List<BackendService> result =
+        basicGoogleDeployHandler.getRegionBackendServicesToUpdate(
+            mockDescription, "server-group-name", lbInfo, policy, "us-central1");
+
+    assertEquals(2, result.size());
+    assertNull(result.get(0).getBackends().get(0).getBalancingMode());
+    assertEquals("CONNECTION", result.get(1).getBackends().get(0).getBalancingMode());
+  }
+
+  @Test
+  void testAllowsRateWithStaleGlobalBackendMetadataAndPassthroughOnly() throws IOException {
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfo = regionalNetworkLoadBalancerInfo();
+    GoogleHttpLoadBalancingPolicy policy = new GoogleHttpLoadBalancingPolicy();
+    policy.setBalancingMode(GoogleLoadBalancingPolicy.BalancingMode.RATE);
+
+    // A leftover global backend-service name makes the guard treat this as an HTTP attachment, so
+    // RATE has to stay accepted even though no HTTP load balancer is selected.
+    mockDescription.setInstanceMetadata(
+        new HashMap<>(Map.of(GCEUtil.BACKEND_SERVICE_NAMES, "stale-global-backend")));
+    mockDescription.setCredentials(mockCredentials);
+    mockDescription.setZone("us-central1-a");
+    doAnswer(
+            invocation ->
+                new BackendService()
+                    .setName(invocation.getArgument(2))
+                    .setLoadBalancingScheme("EXTERNAL")
+                    .setBackends(new ArrayList<>()))
+        .when(basicGoogleDeployHandler)
+        .getRegionBackendServiceFromProvider(any(), any(), any());
+
+    List<BackendService> result =
+        basicGoogleDeployHandler.getRegionBackendServicesToUpdate(
+            mockDescription, "server-group-name", lbInfo, policy, "us-central1");
+
+    assertEquals(1, result.size());
+    assertEquals("CONNECTION", result.get(0).getBackends().get(0).getBalancingMode());
+  }
+
+  @Test
+  void testRejectsConnectionWithStaleGlobalBackendMetadataAndPassthrough() {
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfo = regionalNetworkLoadBalancerInfo();
+    GoogleHttpLoadBalancingPolicy policy = new GoogleHttpLoadBalancingPolicy();
+    policy.setBalancingMode(GoogleLoadBalancingPolicy.BalancingMode.CONNECTION);
+
+    // Only UpsertGoogleHttpLoadBalancerAtomicOperation writes backend-service-names, and
+    // getBackendServicesToUpdate attaches this MIG to every service it names, so the attachment is
+    // real even with no HTTP load balancer selected and GCP would reject anything but RATE.
+    mockDescription.setInstanceMetadata(
+        new HashMap<>(Map.of(GCEUtil.BACKEND_SERVICE_NAMES, "stale-global-backend")));
+    mockDescription.setCredentials(mockCredentials);
+    mockDescription.setZone("us-central1-a");
+
+    IllegalArgumentException error =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                basicGoogleDeployHandler.getRegionBackendServicesToUpdate(
+                    mockDescription, "server-group-name", lbInfo, policy, "us-central1"));
+
+    assertThat(error.getMessage()).contains("must use RATE for HTTP backends");
+  }
+
+  @Test
+  void testRejectsIncompatibleLoadBalancersEvenWhenTrafficIsDisabled() throws IOException {
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfo = dualFamilyLoadBalancerInfo(false);
+    GoogleHttpLoadBalancingPolicy policy = new GoogleHttpLoadBalancingPolicy();
+    policy.setBalancingMode(GoogleLoadBalancingPolicy.BalancingMode.UTILIZATION);
+
+    mockDescription.setInstanceMetadata(new HashMap<>());
+    mockDescription.setCredentials(mockCredentials);
+    mockDescription.setZone("us-central1-a");
+    mockDescription.setDisableTraffic(true);
+
+    // Deliberately fail fast rather than deferring to enable time: disableTraffic only skips the
+    // GCP writes, so the incompatible combination would still be persisted and break the later
+    // enable, where a partial attachment is possible.
+    IllegalArgumentException error =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                basicGoogleDeployHandler.getRegionBackendServicesToUpdate(
+                    mockDescription, "server-group-name", lbInfo, policy, "us-central1"));
+
+    assertThat(error.getMessage()).contains("must use RATE for HTTP backends");
+  }
+
+  @Test
+  void testRejectsMissingBalancingModeWithHttpAndPassthroughNamingRequiredMode() {
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfo = dualFamilyLoadBalancerInfo(false);
+    GoogleHttpLoadBalancingPolicy policy = new GoogleHttpLoadBalancingPolicy();
+
+    mockDescription.setInstanceMetadata(new HashMap<>());
+    mockDescription.setCredentials(mockCredentials);
+    mockDescription.setZone("us-central1-a");
+
+    IllegalArgumentException error =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                basicGoogleDeployHandler.getRegionBackendServicesToUpdate(
+                    mockDescription, "server-group-name", lbInfo, policy, "us-central1"));
+
+    assertThat(error.getMessage())
+        .contains("No balancing mode was specified")
+        .contains("RATE for HTTP backends");
+  }
+
+  private void assertRejectsUtilizationWithGlobalProxyLoadBalancer(
+      GoogleLoadBalancerView globalLoadBalancer) throws IOException {
+    assertRejectsModeWithGlobalProxyLoadBalancer(
+        globalLoadBalancer, GoogleLoadBalancingPolicy.BalancingMode.UTILIZATION);
+  }
+
+  private void assertRejectsModeWithGlobalProxyLoadBalancer(
+      GoogleLoadBalancerView globalLoadBalancer,
+      GoogleLoadBalancingPolicy.BalancingMode balancingMode)
+      throws IOException {
+    GoogleBackendService networkBackendService = new GoogleBackendService();
+    networkBackendService.setName("regional-network-backend-service");
+    GoogleRegionalExternalNetworkLoadBalancer networkLoadBalancer =
+        new GoogleRegionalExternalNetworkLoadBalancer();
+    networkLoadBalancer.setName("regional-network-load-balancer");
+    networkLoadBalancer.setBackendService(networkBackendService);
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfo =
+        new BasicGoogleDeployHandler.LoadBalancerInfo();
+    if (globalLoadBalancer.getLoadBalancerType() == GoogleLoadBalancerType.SSL) {
+      lbInfo.setSslLoadBalancers(List.of(globalLoadBalancer));
+    } else {
+      lbInfo.setTcpLoadBalancers(List.of(globalLoadBalancer));
+    }
+    lbInfo.setRegionalExternalNetworkLoadBalancers(List.of(networkLoadBalancer.getView()));
+    GoogleHttpLoadBalancingPolicy policy = new GoogleHttpLoadBalancingPolicy();
+    policy.setBalancingMode(balancingMode);
+
+    mockDescription.setInstanceMetadata(new HashMap<>());
+    mockDescription.setCredentials(mockCredentials);
+    mockDescription.setZone("us-central1-a");
+    mockedGCEUtil
+        .when(
+            () ->
+                GCEUtil.resolveHttpLoadBalancerNamesMetadata(anyList(), any(), anyString(), any()))
+        .thenReturn(Collections.emptyList());
+    mockedGCEUtil
+        .when(() -> GCEUtil.backendFromLoadBalancingPolicy(any()))
+        .thenReturn(new Backend());
+
+    IllegalArgumentException error =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                basicGoogleDeployHandler.getBackendServiceToUpdate(
+                    mockDescription, "server-group-name", lbInfo, policy, "us-central1"));
+
+    assertThat(error.getMessage()).contains("must use CONNECTION for SSL/TCP proxy backends");
+    verify(basicGoogleDeployHandler, never()).getBackendServiceFromProvider(any(), any());
+  }
+
+  private BasicGoogleDeployHandler.LoadBalancerInfo regionalNetworkLoadBalancerInfo() {
+    GoogleBackendService networkBackendService = new GoogleBackendService();
+    networkBackendService.setName("regional-network-backend-service");
+    GoogleRegionalExternalNetworkLoadBalancer networkLoadBalancer =
+        new GoogleRegionalExternalNetworkLoadBalancer();
+    networkLoadBalancer.setName("regional-network-load-balancer");
+    networkLoadBalancer.setBackendService(networkBackendService);
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfo =
+        new BasicGoogleDeployHandler.LoadBalancerInfo();
+    lbInfo.setRegionalExternalNetworkLoadBalancers(List.of(networkLoadBalancer.getView()));
+    return lbInfo;
+  }
+
+  private BasicGoogleDeployHandler.LoadBalancerInfo httpOnlyLoadBalancerInfo() {
+    GoogleBackendService managedBackendService = new GoogleBackendService();
+    managedBackendService.setName("metadata-managed-backend");
+    GoogleExternalHttpLoadBalancer httpLoadBalancer = new GoogleExternalHttpLoadBalancer();
+    httpLoadBalancer.setName("external-http-load-balancer");
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfo =
+        new BasicGoogleDeployHandler.LoadBalancerInfo();
+    lbInfo.setExternalHttpLoadBalancers(List.of(httpLoadBalancer.getView()));
+    mockedUtils
+        .when(() -> Utils.getBackendServicesFromExternalHttpLoadBalancerView(any()))
+        .thenReturn(List.of(managedBackendService));
+    return lbInfo;
+  }
+
+  private void configureMetadataOnlyMixedRegionalBackends(String passthroughScheme)
+      throws IOException {
+    mockDescription.setInstanceMetadata(
+        new HashMap<>(
+            Map.of(
+                GCEUtil.REGION_BACKEND_SERVICE_NAMES,
+                "metadata-managed-backend,metadata-passthrough-backend")));
+    mockDescription.setCredentials(mockCredentials);
+    mockDescription.setZone("us-central1-a");
+    doAnswer(
+            invocation -> {
+              String backendName = invocation.getArgument(2);
+              return new BackendService()
+                  .setName(backendName)
+                  .setLoadBalancingScheme(
+                      backendName.equals("metadata-managed-backend")
+                          ? "EXTERNAL_MANAGED"
+                          : passthroughScheme)
+                  .setBackends(new ArrayList<>());
+            })
+        .when(basicGoogleDeployHandler)
+        .getRegionBackendServiceFromProvider(any(), any(), any());
+  }
+
+  private String backendMode(List<BackendService> backendServices, String backendServiceName) {
+    return backendServices.stream()
+        .filter(backendService -> backendServiceName.equals(backendService.getName()))
+        .findFirst()
+        .orElseThrow()
+        .getBackends()
+        .get(0)
+        .getBalancingMode();
+  }
+
+  private BasicGoogleDeployHandler.LoadBalancerInfo proxyWithSelectedPassthroughLoadBalancerInfo(
+      GoogleLoadBalancerType proxyType) {
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfo = regionalNetworkLoadBalancerInfo();
+    GoogleBackendService proxyBackendService = new GoogleBackendService();
+    proxyBackendService.setName(proxyType.name().toLowerCase() + "-backend-service");
+    if (proxyType == GoogleLoadBalancerType.SSL) {
+      GoogleSslLoadBalancer sslLoadBalancer = new GoogleSslLoadBalancer();
+      sslLoadBalancer.setName("ssl-load-balancer");
+      sslLoadBalancer.setBackendService(proxyBackendService);
+      lbInfo.setSslLoadBalancers(List.of(sslLoadBalancer.getView()));
+    } else {
+      GoogleTcpLoadBalancer tcpLoadBalancer = new GoogleTcpLoadBalancer();
+      tcpLoadBalancer.setName("tcp-load-balancer");
+      tcpLoadBalancer.setBackendService(proxyBackendService);
+      lbInfo.setTcpLoadBalancers(List.of(tcpLoadBalancer.getView()));
+    }
+    return lbInfo;
+  }
+
+  private BasicGoogleDeployHandler.LoadBalancerInfo dualFamilyLoadBalancerInfo(
+      boolean useInternalPassthrough) {
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfo =
+        mock(BasicGoogleDeployHandler.LoadBalancerInfo.class);
+    when(lbInfo.getInternalHttpLoadBalancers()).thenReturn(new ArrayList<>());
+
+    GoogleBackendService httpBackendService = new GoogleBackendService();
+    httpBackendService.setName("external-http-backend-service");
+    GoogleExternalHttpLoadBalancer externalHttpLoadBalancer = new GoogleExternalHttpLoadBalancer();
+    externalHttpLoadBalancer.setName("external-http-load-balancer");
+    when(lbInfo.getExternalHttpLoadBalancers())
+        .thenReturn(List.of(externalHttpLoadBalancer.getView()));
+    mockedUtils
+        .when(() -> Utils.getBackendServicesFromExternalHttpLoadBalancerView(any()))
+        .thenReturn(List.of(httpBackendService));
+
+    if (useInternalPassthrough) {
+      GoogleBackendService internalBackendService = new GoogleBackendService();
+      internalBackendService.setName("internal-backend-service");
+      GoogleInternalLoadBalancer internalLoadBalancer = new GoogleInternalLoadBalancer();
+      internalLoadBalancer.setName("internal-load-balancer");
+      internalLoadBalancer.setBackendService(internalBackendService);
+      when(lbInfo.getInternalLoadBalancers()).thenReturn(List.of(internalLoadBalancer.getView()));
+    } else {
+      GoogleBackendService networkBackendService = new GoogleBackendService();
+      networkBackendService.setName("regional-network-backend-service");
+      GoogleRegionalExternalNetworkLoadBalancer networkLoadBalancer =
+          new GoogleRegionalExternalNetworkLoadBalancer();
+      networkLoadBalancer.setName("regional-network-load-balancer");
+      networkLoadBalancer.setBackendService(networkBackendService);
+      when(lbInfo.getInternalLoadBalancers()).thenReturn(new ArrayList<>());
+      when(lbInfo.getRegionalExternalNetworkLoadBalancers())
+          .thenReturn(List.of(networkLoadBalancer.getView()));
+    }
+
+    return lbInfo;
   }
 
   @Test
@@ -1645,6 +2614,58 @@ public class BasicGoogleDeployHandlerTest {
     assertEquals("us-central1", labels.get("spinnaker-region"));
     assertEquals("my-server-group", labels.get("spinnaker-server-group"));
     assertThat(mockDescription.getLabels()).isSameAs(labels);
+  }
+
+  @Test
+  void normalizeNullableCollections_defaultsNullCollectionsToEmpty() {
+    // Raw pipeline/REST deploy descriptions can omit these; the compose path dereferences them.
+    mockDescription.setInstanceMetadata(null);
+    mockDescription.setLabels(null);
+    mockDescription.setAuthScopes(null);
+
+    basicGoogleDeployHandler.normalizeNullableCollections(mockDescription);
+
+    assertNotNull(mockDescription.getInstanceMetadata());
+    assertTrue(mockDescription.getInstanceMetadata().isEmpty());
+    assertNotNull(mockDescription.getLabels());
+    assertTrue(mockDescription.getLabels().isEmpty());
+    assertNotNull(mockDescription.getAuthScopes());
+    assertTrue(mockDescription.getAuthScopes().isEmpty());
+  }
+
+  @Test
+  void normalizeNullableCollections_preservesExistingCollections() {
+    Map<String, String> instanceMetadata = new HashMap<>();
+    instanceMetadata.put("startup-script", "echo hi");
+    Map<String, String> labels = new HashMap<>();
+    labels.put("team", "delivery");
+    List<String> authScopes = List.of("compute");
+    mockDescription.setInstanceMetadata(instanceMetadata);
+    mockDescription.setLabels(labels);
+    mockDescription.setAuthScopes(authScopes);
+
+    basicGoogleDeployHandler.normalizeNullableCollections(mockDescription);
+
+    assertEquals(instanceMetadata, mockDescription.getInstanceMetadata());
+    assertEquals(labels, mockDescription.getLabels());
+    assertEquals(authScopes, mockDescription.getAuthScopes());
+  }
+
+  @Test
+  void buildLoadBalancerPolicyFromInput_withNullInstanceMetadata_returnsDefaultAfterNormalize()
+      throws Exception {
+    // Regression: raw deploys can omit instanceMetadata; buildLoadBalancerPolicyFromInput reads it
+    // directly, so normalizeNullableCollections must make it non-null to avoid a
+    // NullPointerException.
+    mockDescription.setInstanceMetadata(null);
+    mockDescription.setLoadBalancingPolicy(null);
+
+    basicGoogleDeployHandler.normalizeNullableCollections(mockDescription);
+    GoogleHttpLoadBalancingPolicy result =
+        basicGoogleDeployHandler.buildLoadBalancerPolicyFromInput(mockDescription);
+
+    assertNotNull(result);
+    assertEquals(GoogleLoadBalancingPolicy.BalancingMode.UTILIZATION, result.getBalancingMode());
   }
 
   @Test
@@ -2627,6 +3648,68 @@ public class BasicGoogleDeployHandlerTest {
   }
 
   @Test
+  void shouldWaitForInstanceGroupManagerCreation_withNullDisableTraffic_doesNotThrow() {
+    // Raw pipeline/REST payloads omit `disableTraffic`; a null value must be treated as
+    // traffic-enabled instead of throwing when the Boolean is unboxed (the regional/zonal MIG
+    // insert paths evaluate this predicate right after creating the instance group).
+    BasicGoogleDeployHandler.LoadBalancerInfo emptyLbInfo =
+        new BasicGoogleDeployHandler.LoadBalancerInfo();
+    mockDescription.setDisableTraffic(null);
+    doReturn(false)
+        .when(basicGoogleDeployHandler)
+        .hasBackedServiceFromInput(mockDescription, emptyLbInfo);
+    doReturn(false).when(basicGoogleDeployHandler).autoscalerIsSpecified(mockDescription);
+
+    assertDoesNotThrow(
+        () ->
+            assertFalse(
+                basicGoogleDeployHandler.shouldWaitForInstanceGroupManagerCreation(
+                    mockDescription, emptyLbInfo)));
+  }
+
+  @Test
+  void shouldWaitForInstanceGroupManagerCreation_withNullDisableTrafficAndBackend_returnsTrue() {
+    // Null disableTraffic means traffic is enabled, so a backend service must trigger the wait.
+    BasicGoogleDeployHandler.LoadBalancerInfo emptyLbInfo =
+        new BasicGoogleDeployHandler.LoadBalancerInfo();
+    mockDescription.setDisableTraffic(null);
+    doReturn(true)
+        .when(basicGoogleDeployHandler)
+        .hasBackedServiceFromInput(mockDescription, emptyLbInfo);
+
+    assertTrue(
+        basicGoogleDeployHandler.shouldWaitForInstanceGroupManagerCreation(
+            mockDescription, emptyLbInfo));
+  }
+
+  @Test
+  void shouldWaitForInstanceGroupManagerCreation_withDisableTrafficTrue_ignoresLoadBalancers() {
+    // With traffic explicitly disabled, backend/load-balancer presence must not force the wait;
+    // only an autoscaler (traffic-independent) should.
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfo =
+        new BasicGoogleDeployHandler.LoadBalancerInfo();
+    lbInfo.internalLoadBalancers.add(mock(GoogleLoadBalancerView.class));
+    mockDescription.setDisableTraffic(true);
+    doReturn(false).when(basicGoogleDeployHandler).autoscalerIsSpecified(mockDescription);
+
+    assertFalse(
+        basicGoogleDeployHandler.shouldWaitForInstanceGroupManagerCreation(
+            mockDescription, lbInfo));
+  }
+
+  @Test
+  void shouldWaitForInstanceGroupManagerCreation_withAutoscaler_returnsTrueEvenIfTrafficDisabled() {
+    BasicGoogleDeployHandler.LoadBalancerInfo emptyLbInfo =
+        new BasicGoogleDeployHandler.LoadBalancerInfo();
+    mockDescription.setDisableTraffic(true);
+    doReturn(true).when(basicGoogleDeployHandler).autoscalerIsSpecified(mockDescription);
+
+    assertTrue(
+        basicGoogleDeployHandler.shouldWaitForInstanceGroupManagerCreation(
+            mockDescription, emptyLbInfo));
+  }
+
+  @Test
   void createInstanceGroupManagerAndWait_withOmittedDisableTraffic_doesNotThrow()
       throws IOException {
     CapturingComputeTransport transport = new CapturingComputeTransport();
@@ -3458,6 +4541,25 @@ public class BasicGoogleDeployHandlerTest {
     input.put("source", source);
 
     return input;
+  }
+
+  private void invokeUpdateRegionalBackendServices(
+      BasicGoogleDeployDescription description,
+      String serverGroupName,
+      String region,
+      List<BackendService> backendServices)
+      throws Exception {
+    Method method =
+        BasicGoogleDeployHandler.class.getDeclaredMethod(
+            "updateRegionalBackendServices",
+            BasicGoogleDeployDescription.class,
+            String.class,
+            String.class,
+            List.class,
+            Task.class);
+    method.setAccessible(true);
+    method.invoke(
+        basicGoogleDeployHandler, description, serverGroupName, region, backendServices, mockTask);
   }
 
   private static void setPrivateField(Object target, String fieldName, Object value) {
