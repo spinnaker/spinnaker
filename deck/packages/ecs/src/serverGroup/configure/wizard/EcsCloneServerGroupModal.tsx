@@ -23,6 +23,7 @@ import {
   WizardPage,
 } from '@spinnaker/core';
 
+import { normalizeEcsDockerImage } from '../dockerImage.util';
 import { EcsClusterReader } from '../../../ecsCluster/ecsCluster.read.service';
 import { IamRoleReader } from '../../../iamRoles/iamRole.read.service';
 import { MetricAlarmReader } from '../../../metricAlarm/metricAlarm.read.service';
@@ -380,38 +381,9 @@ export class EcsCloneServerGroupModalComponent extends React.Component<
       ...command.containerMappings.map((mapping) => mapping.imageDescription),
     ].filter(Boolean);
     return uniqBy(
-      [...images, ...commandImages].map((image) => this.normalizeImage(image)),
+      [...images, ...commandImages].map((image) => normalizeEcsDockerImage(image)),
       (image) => image.imageId || image.id || image.name,
     ).filter(Boolean);
-  }
-
-  private normalizeImage(image: any): IEcsDockerImage {
-    const imageId = this.buildImageId(image);
-    return {
-      ...image,
-      imageId,
-      message: image.message || '',
-      fromTrigger: !!image.fromTrigger,
-      fromContext: !!image.fromContext,
-      stageId: image.stageId || '',
-      imageLabelOrSha: image.imageLabelOrSha || '',
-    };
-  }
-
-  private buildImageId(image: any): string {
-    if (image.imageId) {
-      return image.imageId;
-    }
-    if (image.fromContext) {
-      return image.imageLabelOrSha;
-    }
-    if (image.fromTrigger && !image.tag) {
-      return `${image.registry}/${image.repository} (Tag resolved at runtime)`;
-    }
-    if (image.registry && image.repository && image.tag) {
-      return `${image.registry}/${image.repository}:${image.tag}`;
-    }
-    return image.reference || image.repository || '';
   }
 
   private getSubnetTypes(command: IEcsServerGroupCommand, subnets: ISubnet[]): ISubnet[] {
