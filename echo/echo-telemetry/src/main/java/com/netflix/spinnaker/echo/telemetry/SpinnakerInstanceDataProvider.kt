@@ -23,12 +23,17 @@ import com.netflix.spinnaker.kork.proto.stats.Application
 import com.netflix.spinnaker.kork.proto.stats.DeploymentMethod
 import com.netflix.spinnaker.kork.proto.stats.Event as StatsEvent
 import com.netflix.spinnaker.kork.proto.stats.SpinnakerInstance
+import com.netflix.spinnaker.kork.version.ServiceVersion
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
 @Component
 @ConditionalOnProperty(value = ["stats.enabled"], matchIfMissing = true)
-class SpinnakerInstanceDataProvider(private val config: TelemetryConfigProps, private val instanceIdSupplier: InstanceIdSupplier) : TelemetryEventDataProvider {
+class SpinnakerInstanceDataProvider(
+  private val config: TelemetryConfigProps,
+  private val instanceIdSupplier: InstanceIdSupplier,
+  private val serviceVersion: ServiceVersion
+) : TelemetryEventDataProvider {
   override fun populateData(echoEvent: EchoEvent, statsEvent: StatsEvent): StatsEvent {
 
     // TelemetryEventListener should ensure this is set
@@ -42,10 +47,20 @@ class SpinnakerInstanceDataProvider(private val config: TelemetryConfigProps, pr
     // ULID) provides a good level of randomness as a salt, and is not easily guessable.
     val hashedApplicationId: String = hash(applicationId, instanceId)
 
+    // `stats.spinnaker-version` is not set by the Halyard-free deployment pipeline, so fall back
+    // to the version Gradle stamped into echo's jar manifest (resolved via kork's ServiceVersion,
+    // the same mechanism used for plugin compatibility checks) unless it's been explicitly
+    // overridden in config.
+    val version = if (config.spinnakerVersion != TelemetryConfigProps.DEFAULT_SPINNAKER_VERSION) {
+      config.spinnakerVersion
+    } else {
+      serviceVersion.resolve()
+    }
+
     val application = Application.newBuilder().setId(hashedApplicationId).build()
     val spinnakerInstance: SpinnakerInstance = SpinnakerInstance.newBuilder()
       .setId(hashedInstanceId)
-      .setVersion(config.spinnakerVersion)
+      .setVersion(version)
       .setDeploymentMethod(config.deploymentMethod.toProto())
       .build()
 
