@@ -7,6 +7,7 @@ import type { IAccountDetails } from '@spinnaker/core';
 import { AccountService, HelpField, TetheredSelect } from '@spinnaker/core';
 import { DockerImageReader } from '@spinnaker/docker';
 
+import { normalizeEcsDockerImage } from '../../dockerImage.util';
 import type {
   IEcsDockerImage,
   IEcsServerGroupCommand,
@@ -144,7 +145,7 @@ export class Container extends React.Component<IContainerProps, IContainerState>
     this.props.command.backingData.filtered.images = [];
     this.setState({ selectedDockerAccount: account, dockerImages: [] });
     DockerImageReader.findImages({ provider: 'dockerRegistry', account, count: 50 }).then((images) => {
-      const ecsImages = images as IEcsDockerImage[];
+      const ecsImages = images.map((image) => normalizeEcsDockerImage(image));
       this.props.command.backingData.filtered.images = ecsImages;
       this.setState({ dockerImages: ecsImages });
     });
