@@ -329,6 +329,25 @@ describe('Service: InstanceType', function () {
         'hs1.8xlarge',
       ]);
     });
+
+    it('matches architecture case-insensitively', function () {
+      const service = this.awsInstanceTypeService;
+      const armInstanceTypes = [
+        {
+          account: 'test',
+          region: 'eu-central-1',
+          name: 'm9gd.metal-48xl',
+          defaultVCpus: 192,
+          memoryInGiB: 768,
+          supportedArchitectures: ['ARM64'],
+          supportedVirtualizationTypes: ['hvm'],
+        },
+      ];
+
+      expect(map(service.filterInstanceTypes(armInstanceTypes, 'hvm', true, 'arm64'), 'name')).toEqual([
+        'm9gd.metal-48xl',
+      ]);
+    });
   });
 
   describe('isBurstingSupportedForAllTypes', function () {
