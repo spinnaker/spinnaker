@@ -39,7 +39,7 @@ export class AmazonImageSelectInput extends React.Component<IAmazonImageSelector
     errorMessage: null,
     selectionMode: 'packageImages',
     searchString: '',
-    searchResults: null,
+    searchResults: [],
     isSearching: false,
     packageImages: null,
     isLoadingPackageImages: true,
