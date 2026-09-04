@@ -1,5 +1,5 @@
-import 'brace/mode/json';
-import 'brace/theme/textmate';
+import 'ace-builds/src-noconflict/mode-json';
+import 'ace-builds/src-noconflict/theme-textmate';
 import React from 'react';
 import AceEditor from 'react-ace';
 
@@ -46,6 +46,7 @@ export class JsonEditor extends React.Component<IJsonEditorProps> {
           tabSize: JSON_EDITOR_TAB_SIZE,
           showLineNumbers: false,
           showFoldWidgets: false,
+          useWorker: false,
         }}
         editorProps={{ $blockScrolling: Infinity }}
         className="ace-editor"
