@@ -369,7 +369,7 @@ export class AmazonImageSelectInput extends React.Component<IAmazonImageSelector
             placeholder="Search for an image..."
             filterOptions={false as any}
             noResultsText={searchNoResultsText}
-            options={searchResults}
+            options={searchResults ?? []}
             onInputChange={(searchInput) => {
               this.searchInput$.next(searchInput);
               return searchInput;
