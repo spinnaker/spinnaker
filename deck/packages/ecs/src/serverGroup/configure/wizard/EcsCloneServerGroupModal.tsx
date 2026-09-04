@@ -23,10 +23,10 @@ import {
   WizardPage,
 } from '@spinnaker/core';
 
+import { normalizeEcsDockerImage } from '../dockerImage.util';
 import { EcsClusterReader } from '../../../ecsCluster/ecsCluster.read.service';
 import { IamRoleReader } from '../../../iamRoles/iamRole.read.service';
 import { MetricAlarmReader } from '../../../metricAlarm/metricAlarm.read.service';
-import { normalizeEcsDockerImage } from '../dockerImage.util';
 import { AdvancedSettings } from './pages/AdvancedSettings';
 import { BasicSettings } from './pages/BasicSettings';
 import { ContainerSettings } from './pages/ContainerSettings';
