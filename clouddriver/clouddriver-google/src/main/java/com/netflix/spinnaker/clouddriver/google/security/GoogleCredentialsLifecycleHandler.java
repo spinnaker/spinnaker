@@ -134,6 +134,12 @@ public class GoogleCredentialsLifecycleHandler
       googleCachingAgents.add(
           new GoogleNetworkLoadBalancerCachingAgent(
               clouddriverUserAgentApplicationName, credentials, objectMapper, registry, region));
+      googleCachingAgents.add(
+          new GoogleRegionalExternalTcpLoadBalancerCachingAgent(
+              clouddriverUserAgentApplicationName, credentials, objectMapper, registry, region));
+      googleCachingAgents.add(
+          new GoogleRegionalExternalHttpLoadBalancerCachingAgent(
+              clouddriverUserAgentApplicationName, credentials, objectMapper, registry, region));
       googleServerGroupAgents.add(
           new GoogleRegionalServerGroupCachingAgent(
               credentials,
