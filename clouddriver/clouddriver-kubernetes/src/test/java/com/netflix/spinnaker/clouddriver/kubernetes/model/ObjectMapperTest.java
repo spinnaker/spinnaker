@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.config;
+package com.netflix.spinnaker.clouddriver.kubernetes.model;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.clouddriver.Main;
-import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesJobStatus;
 import io.kubernetes.client.openapi.models.V1Job;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Pod;
@@ -31,20 +29,12 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.context.web.WebAppConfiguration;
 
 @ExtendWith(SpringExtension.class)
-@WebAppConfiguration
-@SpringBootTest(classes = Main.class)
-@TestPropertySource(
-    properties = {
-      "redis.enabled = false",
-      "sql.enabled = false",
-      "spring.application.name = clouddriver"
-    })
+@SpringBootTest(classes = JacksonAutoConfiguration.class)
 public class ObjectMapperTest {
 
   @Autowired private ObjectMapper objectMapper;
