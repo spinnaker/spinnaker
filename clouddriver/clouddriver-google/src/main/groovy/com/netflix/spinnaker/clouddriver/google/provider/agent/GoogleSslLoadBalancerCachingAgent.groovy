@@ -30,7 +30,9 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.*
+import com.netflix.spinnaker.clouddriver.google.provider.agent.util.ForwardingRuleCallbackHelper
 import com.netflix.spinnaker.clouddriver.google.provider.agent.util.GroupHealthRequest
+import com.netflix.spinnaker.clouddriver.google.provider.agent.util.HealthCheckHelper
 import com.netflix.spinnaker.clouddriver.google.provider.agent.util.LoadBalancerHealthResolution
 import com.netflix.spinnaker.clouddriver.google.provider.agent.util.PaginatedRequest
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
@@ -39,13 +41,10 @@ import groovy.util.logging.Slf4j
 import org.slf4j.LoggerFactory
 
 @Slf4j
-class GoogleSslLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachingAgent {
+class GoogleSslLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachingAgentWithHealthChecks {
 
   /**
    * Local cache of BackendServiceGroupHealth keyed by BackendService name.
-   *
-   * It turns out that the types in the GCE Batch callbacks aren't the actual Compute
-   * types for some reason, which is why this map is String -> Object.
    */
   Map<String, Object> bsNameToGroupHealthsMap = [:]
   Set<GroupHealthRequest> queuedBsGroupHealthRequests = new HashSet<>()
@@ -55,11 +54,7 @@ class GoogleSslLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachin
                                     GoogleNamedAccountCredentials credentials,
                                     ObjectMapper objectMapper,
                                     Registry registry) {
-    super(clouddriverUserAgentApplicationName,
-      credentials,
-      objectMapper,
-      registry,
-      "global")
+    super(clouddriverUserAgentApplicationName, credentials, objectMapper, registry, "global")
   }
 
   @Override
@@ -95,10 +90,10 @@ class GoogleSslLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachin
     )
 
     if (onDemandLoadBalancerName) {
-      ForwardingRuleCallbacks.ForwardingRuleSingletonCallback frCallback = forwardingRuleCallbacks.newForwardingRuleSingletonCallback()
+      def frCallback = forwardingRuleCallbacks.newForwardingRuleSingletonCallback()
       forwardingRulesRequest.queue(compute.globalForwardingRules().get(project, onDemandLoadBalancerName), frCallback)
     } else {
-      ForwardingRuleCallbacks.ForwardingRuleListCallback frlCallback = forwardingRuleCallbacks.newForwardingRuleListCallback()
+      def frlCallback = forwardingRuleCallbacks.newForwardingRuleListCallback()
       new PaginatedRequest<ForwardingRuleList>(this) {
         @Override
         ComputeRequest<ForwardingRuleList> request(String pageToken) {
@@ -125,20 +120,13 @@ class GoogleSslLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachin
     return loadBalancers.findAll { !(it.name in failedLoadBalancers) }
   }
 
-  @Override
-  String determineInstanceKey(GoogleLoadBalancer loadBalancer, GoogleLoadBalancerHealth health) {
-    // Ssl load balancers' region is "global", so we have to determine the instance region from its zone.
-    def instanceZone = health.instanceZone
-    def instanceRegion = credentials.regionFromZone(instanceZone)
-
-    return Keys.getInstanceKey(accountName, instanceRegion, health.instanceName)
-  }
+  // determineInstanceKey is inherited from AbstractGoogleLoadBalancerCachingAgentWithHealthChecks
 
   protected static String getFirstSslCertificate(List<String> sslCertificates) {
     return sslCertificates ? sslCertificates[0] : null
   }
 
-  class ForwardingRuleCallbacks {
+  class ForwardingRuleCallbacks extends ForwardingRuleCallbackHelper {
 
     List<GoogleHttpLoadBalancer> loadBalancers
     List<String> failedLoadBalancers = []
@@ -149,54 +137,18 @@ class GoogleSslLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachin
     List<BackendService> projectBackendServices
     List<HealthCheck> projectHealthChecks
 
-    ForwardingRuleSingletonCallback<ForwardingRule> newForwardingRuleSingletonCallback() {
-      return new ForwardingRuleSingletonCallback<ForwardingRule>()
+    @Override
+    protected boolean shouldProcessForwardingRule(ForwardingRule forwardingRule) {
+      return forwardingRule.target && Utils.getTargetProxyType(forwardingRule.target) == GoogleTargetProxyType.SSL
     }
 
-    ForwardingRuleListCallback<ForwardingRuleList> newForwardingRuleListCallback() {
-      return new ForwardingRuleListCallback<ForwardingRuleList>()
+    @Override
+    protected String getFilterErrorMessage() {
+      return "Not responsible for on demand caching of load balancers without target proxy or without SSL proxy type."
     }
 
-    class ForwardingRuleSingletonCallback<ForwardingRule> extends JsonBatchCallback<ForwardingRule> {
-
-      @Override
-      void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
-        // 404 is thrown if the forwarding rule does not exist in the given region. Any other exception needs to be propagated.
-        if (e.code != 404) {
-          def errorJson = new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(e)
-          log.error errorJson
-        }
-      }
-
-      @Override
-      void onSuccess(ForwardingRule forwardingRule, HttpHeaders responseHeaders) throws IOException {
-        if (forwardingRule.target && Utils.getTargetProxyType(forwardingRule.target) == GoogleTargetProxyType.SSL) {
-          cacheRemainderOfLoadBalancerResourceGraph(forwardingRule)
-        } else {
-          throw new IllegalArgumentException("Not responsible for on demand caching of load balancers without target " +
-            "proxy or without SSL proxy type.")
-        }
-      }
-    }
-
-    class ForwardingRuleListCallback<ForwardingRuleList> extends JsonBatchCallback<ForwardingRuleList> implements FailureLogger {
-
-      @Override
-      void onSuccess(ForwardingRuleList forwardingRuleList, HttpHeaders responseHeaders) throws IOException {
-        forwardingRuleList?.items?.each { ForwardingRule forwardingRule ->
-          if (forwardingRule.target && Utils.getTargetProxyType(forwardingRule.target) == GoogleTargetProxyType.SSL) {
-            cacheRemainderOfLoadBalancerResourceGraph(forwardingRule)
-          }
-        }
-      }
-
-      @Override
-      void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
-        LoggerFactory.getLogger(this.class).error e.getMessage()
-      }
-    }
-
-    void cacheRemainderOfLoadBalancerResourceGraph(ForwardingRule forwardingRule) {
+    @Override
+    protected void processForwardingRule(ForwardingRule forwardingRule) {
       def newLoadBalancer = new GoogleSslLoadBalancer(
         name: forwardingRule.name,
         account: accountName,
@@ -305,52 +257,12 @@ class GoogleSslLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachin
           break
         case "healthChecks":
           HealthCheck healthCheck = healthChecks.find { hc -> Utils.getLocalName(hc.getName()) == healthCheckName }
-          handleHealthCheck(healthCheck, googleLoadBalancer.backendService)
+          HealthCheckHelper.handleHealthCheck(healthCheck, googleLoadBalancer.backendService)
           break
         default:
           log.warn("Unknown health check type for health check named: ${healthCheckName}. Not processing the health check.")
           break
       }
-    }
-  }
-
-  private static void handleHealthCheck(HealthCheck healthCheck, GoogleBackendService service) {
-    if (!healthCheck) {
-      return
-    }
-    def port = null
-    def hcType = null
-    def requestPath = null
-    if (healthCheck.tcpHealthCheck) {
-      port = healthCheck.tcpHealthCheck.port
-      hcType = GoogleHealthCheck.HealthCheckType.TCP
-    } else if (healthCheck.sslHealthCheck) {
-      port = healthCheck.sslHealthCheck.port
-      hcType = GoogleHealthCheck.HealthCheckType.SSL
-    } else if (healthCheck.httpHealthCheck) {
-      port = healthCheck.httpHealthCheck.port
-      requestPath = healthCheck.httpHealthCheck.requestPath
-      hcType = GoogleHealthCheck.HealthCheckType.HTTP
-    } else if (healthCheck.httpsHealthCheck) {
-      port = healthCheck.httpsHealthCheck.port
-      requestPath = healthCheck.httpsHealthCheck.requestPath
-      hcType = GoogleHealthCheck.HealthCheckType.HTTPS
-    } else if (healthCheck.udpHealthCheck) {
-      port = healthCheck.udpHealthCheck.port
-      hcType = GoogleHealthCheck.HealthCheckType.UDP
-    }
-
-    if (port && hcType) {
-      service.healthCheck = new GoogleHealthCheck(
-        name: healthCheck.name,
-        healthCheckType: hcType,
-        port: port,
-        requestPath: requestPath ?: "",
-        checkIntervalSec: healthCheck.checkIntervalSec,
-        timeoutSec: healthCheck.timeoutSec,
-        unhealthyThreshold: healthCheck.unhealthyThreshold,
-        healthyThreshold: healthCheck.healthyThreshold,
-      )
     }
   }
 
