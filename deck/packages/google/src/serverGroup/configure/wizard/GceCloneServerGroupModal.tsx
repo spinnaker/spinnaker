@@ -26,9 +26,20 @@ import type {
   IGceServerGroupConfigurationAdapter,
   IGceServerGroupWizardAdapter,
   IGceServerGroupWizardCommandState,
+  ILoadBalancerMetadataReference,
 } from './GceServerGroupWizard.types';
+import { GCE_GLOBAL_LOAD_BALANCER_NAMES, GCE_REGIONAL_LOAD_BALANCER_NAMES } from './GceServerGroupWizard.types';
 import { GceServerGroupWizardAdapter } from './GceServerGroupWizardAdapter';
 import { createGceServerGroupWizardCommandState } from './GceServerGroupWizardPage';
+import {
+  areLoadBalancerSelectionsChanged,
+  getSelectedLoadBalancerSelectionNames,
+  getUnattributedLoadBalancerMetadata,
+  metadataValues,
+  selectionMetadataExplainsUnavailableLoadBalancer,
+} from './gceServerGroupLoadBalancerMetadata';
+import { resolveLoadBalancingPolicy } from './gceServerGroupLoadBalancingPolicy';
+import { GceHttpLoadBalancerUtils } from '../../../loadBalancer/httpLoadBalancerUtils.service';
 import {
   AdvancedSettings,
   GceServerGroupFirewalls,
@@ -39,6 +50,8 @@ import {
   ServerGroupImageSettings,
   ServerGroupInstanceType,
 } from './pages';
+
+const gceHttpLoadBalancerUtils = new GceHttpLoadBalancerUtils();
 
 interface IGceCloneServerGroupModalProps extends IModalComponentProps {
   adapter?: IGceServerGroupWizardAdapter;
@@ -56,14 +69,7 @@ interface IGceCloneServerGroupModalState {
   taskMonitor: TaskMonitor;
 }
 
-const GLOBAL_LOAD_BALANCER_NAMES = 'global-load-balancer-names';
-const REGIONAL_LOAD_BALANCER_NAMES = 'load-balancer-names';
 const BACKEND_SERVICE_NAMES = 'backend-service-names';
-
-interface ILoadBalancerMetadataReference {
-  key: typeof GLOBAL_LOAD_BALANCER_NAMES | typeof REGIONAL_LOAD_BALANCER_NAMES;
-  names: string[];
-}
 
 interface IPersistedSelectionSnapshot {
   autoHealingHealthCheck: any;
@@ -76,6 +82,7 @@ interface IPersistedSelectionSnapshot {
   instanceType: any;
   loadBalancerMetadata: Record<string, string[]>;
   loadBalancerReferences: Record<string, ILoadBalancerMetadataReference>;
+  loadBalancerSelectionMetadata: Record<string, ILoadBalancerMetadataReference>;
   loadBalancers: any[];
   minCpuPlatform: any;
   network: any;
@@ -100,35 +107,36 @@ function loadBalancerName(loadBalancer: any): string {
   return loadBalancer.name || loadBalancer;
 }
 
-function metadataValues(value: any): string[] {
-  if (Array.isArray(value)) {
-    return value;
-  }
-  return typeof value === 'string' ? value.split(',').map((item) => item.trim()) : [];
-}
-
 function metadataSource(command: IGceServerGroupCommand): Record<string, string[]> {
   const loadBalancerMetadata = command.loadBalancerMetadata || {};
   const instanceMetadata = command.instanceMetadata || {};
   return {
-    [GLOBAL_LOAD_BALANCER_NAMES]: metadataValues(
-      loadBalancerMetadata[GLOBAL_LOAD_BALANCER_NAMES] || instanceMetadata[GLOBAL_LOAD_BALANCER_NAMES],
+    [GCE_GLOBAL_LOAD_BALANCER_NAMES]: metadataValues(
+      loadBalancerMetadata[GCE_GLOBAL_LOAD_BALANCER_NAMES] || instanceMetadata[GCE_GLOBAL_LOAD_BALANCER_NAMES],
     ),
-    [REGIONAL_LOAD_BALANCER_NAMES]: metadataValues(
-      loadBalancerMetadata[REGIONAL_LOAD_BALANCER_NAMES] || instanceMetadata[REGIONAL_LOAD_BALANCER_NAMES],
+    [GCE_REGIONAL_LOAD_BALANCER_NAMES]: metadataValues(
+      loadBalancerMetadata[GCE_REGIONAL_LOAD_BALANCER_NAMES] || instanceMetadata[GCE_REGIONAL_LOAD_BALANCER_NAMES],
     ),
   };
 }
+
+// Only metadata that has been re-attributed to the current selection. The source server group's raw
+// instanceMetadata names LBs the user may since have deselected, and Clouddriver appends to whatever
+// we send, so seeding from it silently reattaches them.
 
 function loadBalancerMetadataReference(name: string, loadBalancer: any): ILoadBalancerMetadataReference | undefined {
   if (!loadBalancer) {
     return undefined;
   }
-  if (loadBalancer.loadBalancerType === 'HTTP' || loadBalancer.loadBalancerType === 'INTERNAL_MANAGED') {
+  if (gceHttpLoadBalancerUtils.isHttpLoadBalancer({ ...loadBalancer, provider: 'gce' })) {
     const names = (loadBalancer.listeners || []).map((listener: any) => listener.name).filter(Boolean);
     return names.length
       ? {
-          key: loadBalancer.loadBalancerType === 'HTTP' ? GLOBAL_LOAD_BALANCER_NAMES : REGIONAL_LOAD_BALANCER_NAMES,
+          key:
+            loadBalancer.loadBalancerType === 'HTTP'
+              ? GCE_GLOBAL_LOAD_BALANCER_NAMES
+              : GCE_REGIONAL_LOAD_BALANCER_NAMES,
+          loadBalancerType: loadBalancer.loadBalancerType,
           names,
         }
       : undefined;
@@ -136,8 +144,9 @@ function loadBalancerMetadataReference(name: string, loadBalancer: any): ILoadBa
   return {
     key:
       loadBalancer.loadBalancerType === 'SSL' || loadBalancer.loadBalancerType === 'TCP'
-        ? GLOBAL_LOAD_BALANCER_NAMES
-        : REGIONAL_LOAD_BALANCER_NAMES,
+        ? GCE_GLOBAL_LOAD_BALANCER_NAMES
+        : GCE_REGIONAL_LOAD_BALANCER_NAMES,
+    loadBalancerType: loadBalancer.loadBalancerType,
     names: [name],
   };
 }
@@ -147,18 +156,58 @@ function buildLoadBalancerMetadata(command: IGceServerGroupCommand): Record<stri
   const unavailableLoadBalancers = (command.loadBalancers || []).filter(
     (loadBalancer: any) => !loadBalancer.loadBalancerType && !loadBalancerIndex[loadBalancerName(loadBalancer)],
   );
-  const persistedMetadata = metadataSource(command);
+  const selectionMetadata = command.loadBalancerSelectionMetadata || {};
+  const unattributedMetadata = getUnattributedLoadBalancerMetadata(command);
+  const hasInitialSelectionBaseline = Array.isArray(command.viewState?.initialLoadBalancers);
+  const includeUnattributedMetadata = hasInitialSelectionBaseline
+    ? !areLoadBalancerSelectionsChanged(command)
+    : unavailableLoadBalancers.length > 0;
+  const selectedNames = new Set((command.loadBalancers || []).map(loadBalancerName));
+  const selectedMetadata = (Object.entries(selectionMetadata) as Array<[string, ILoadBalancerMetadataReference]>)
+    .filter(([name]) => selectedNames.has(name))
+    .reduce(
+      (metadata, [, reference]) => ({
+        ...metadata,
+        [reference.key]: unique([...(metadata[reference.key] || []), ...reference.names]),
+      }),
+      {
+        [GCE_GLOBAL_LOAD_BALANCER_NAMES]: [],
+        [GCE_REGIONAL_LOAD_BALANCER_NAMES]: [],
+      } as Record<string, string[]>,
+    );
+  const persistedMetadata = includeUnattributedMetadata
+    ? {
+        [GCE_GLOBAL_LOAD_BALANCER_NAMES]: metadataValues(
+          command.loadBalancerMetadata?.[GCE_GLOBAL_LOAD_BALANCER_NAMES],
+        ).filter(
+          (name) =>
+            selectedMetadata[GCE_GLOBAL_LOAD_BALANCER_NAMES].includes(name) ||
+            unattributedMetadata[GCE_GLOBAL_LOAD_BALANCER_NAMES].includes(name),
+        ),
+        [GCE_REGIONAL_LOAD_BALANCER_NAMES]: metadataValues(
+          command.loadBalancerMetadata?.[GCE_REGIONAL_LOAD_BALANCER_NAMES],
+        ).filter(
+          (name) =>
+            selectedMetadata[GCE_REGIONAL_LOAD_BALANCER_NAMES].includes(name) ||
+            unattributedMetadata[GCE_REGIONAL_LOAD_BALANCER_NAMES].includes(name),
+        ),
+      }
+    : {
+        [GCE_GLOBAL_LOAD_BALANCER_NAMES]: [],
+        [GCE_REGIONAL_LOAD_BALANCER_NAMES]: [],
+      };
   const metadata: Record<string, string[]> = {
-    [GLOBAL_LOAD_BALANCER_NAMES]: unavailableLoadBalancers.length
-      ? [...persistedMetadata[GLOBAL_LOAD_BALANCER_NAMES]]
-      : [],
-    [REGIONAL_LOAD_BALANCER_NAMES]: unavailableLoadBalancers.length
-      ? [...persistedMetadata[REGIONAL_LOAD_BALANCER_NAMES]]
-      : [],
+    [GCE_GLOBAL_LOAD_BALANCER_NAMES]: [...persistedMetadata[GCE_GLOBAL_LOAD_BALANCER_NAMES]],
+    [GCE_REGIONAL_LOAD_BALANCER_NAMES]: [...persistedMetadata[GCE_REGIONAL_LOAD_BALANCER_NAMES]],
   };
 
   (command.loadBalancers || []).forEach((loadBalancer: any) => {
     const name = loadBalancerName(loadBalancer);
+    const selectionReference = selectionMetadata[name];
+    if (selectionReference) {
+      metadata[selectionReference.key].push(...selectionReference.names);
+      return;
+    }
     const loadBalancerDetails = loadBalancer.loadBalancerType ? loadBalancer : loadBalancerIndex[name];
     const reference = loadBalancerMetadataReference(name, loadBalancerDetails);
     if (reference) {
@@ -180,17 +229,108 @@ function buildLoadBalancerMetadata(command: IGceServerGroupCommand): Record<stri
   return compactMetadata(metadata);
 }
 
+function collectLoadBalancerNamesForCommand(
+  loadBalancerIndex: Record<string, any>,
+  loadBalancerMetadata: Record<string, string>,
+  selectedLoadBalancers: any[],
+  selectionMetadata: Record<string, ILoadBalancerMetadataReference>,
+): string[] {
+  const selectedGlobalLoadBalancers = new Set(metadataValues(loadBalancerMetadata[GCE_GLOBAL_LOAD_BALANCER_NAMES]));
+  const candidates = selectedLoadBalancers
+    .map((loadBalancer) =>
+      loadBalancer.loadBalancerType ? loadBalancer : loadBalancerIndex[loadBalancerName(loadBalancer)],
+    )
+    .filter(Boolean);
+  const selectedGlobalNames = (loadBalancerType: 'SSL' | 'TCP') =>
+    unique([
+      ...candidates
+        .filter((loadBalancer: any) => loadBalancer.loadBalancerType === loadBalancerType)
+        .map(loadBalancerName)
+        .filter((name: string) => selectedGlobalLoadBalancers.has(name)),
+      ...selectedLoadBalancers.flatMap((loadBalancer) => {
+        const reference = selectionMetadata[loadBalancerName(loadBalancer)];
+        return reference?.loadBalancerType === loadBalancerType
+          ? reference.names.filter((name) => selectedGlobalLoadBalancers.has(name))
+          : [];
+      }),
+    ]);
+
+  // Persisted metadata already carries the concrete forwarding-rule names behind selections Deck
+  // cannot resolve. Only when it carries nothing would such a selection vanish from the request
+  // entirely, deploying a server group that silently takes no traffic; sending the raw name instead
+  // lets GCEUtil.queryAllLoadBalancers reject the deploy.
+  const unresolvedSelections = selectedLoadBalancers.filter(
+    (loadBalancer: any) => !loadBalancer.loadBalancerType && !loadBalancerIndex[loadBalancerName(loadBalancer)],
+  );
+  const hasSelectionMetadata = Object.keys(selectionMetadata).length > 0;
+  const hasFlatMetadata = Boolean(
+    metadataValues(loadBalancerMetadata[GCE_GLOBAL_LOAD_BALANCER_NAMES]).length ||
+      metadataValues(loadBalancerMetadata[GCE_REGIONAL_LOAD_BALANCER_NAMES]).length,
+  );
+  const legacyMetadataUnambiguouslyExplainsSelection =
+    !hasSelectionMetadata && selectedLoadBalancers.length === 1 && unresolvedSelections.length === 1 && hasFlatMetadata;
+  const unresolvedSelectedNames = unresolvedSelections
+    .filter((loadBalancer: any) => {
+      const name = loadBalancerName(loadBalancer);
+      if (hasSelectionMetadata) {
+        return !selectionMetadataExplainsUnavailableLoadBalancer(name, selectionMetadata);
+      }
+      return !legacyMetadataUnambiguouslyExplainsSelection;
+    })
+    .map(loadBalancerName)
+    .filter(Boolean);
+
+  return unique([
+    ...getSubmittedRegionalLoadBalancerNames(
+      loadBalancerIndex,
+      loadBalancerMetadata,
+      selectedLoadBalancers,
+      selectionMetadata,
+    ),
+    ...selectedGlobalNames('SSL'),
+    ...selectedGlobalNames('TCP'),
+    ...unresolvedSelectedNames,
+  ]);
+}
+
+function getSubmittedRegionalLoadBalancerNames(
+  loadBalancerIndex: Record<string, any>,
+  loadBalancerMetadata: Record<string, string>,
+  selectedLoadBalancers: any[],
+  selectionMetadata: Record<string, ILoadBalancerMetadataReference>,
+): string[] {
+  if (!Object.keys(selectionMetadata).length) {
+    return metadataValues(loadBalancerMetadata[GCE_REGIONAL_LOAD_BALANCER_NAMES]);
+  }
+  return unique(
+    selectedLoadBalancers.flatMap((loadBalancer) => {
+      const name = loadBalancerName(loadBalancer);
+      const loadBalancerDetails = loadBalancer.loadBalancerType ? loadBalancer : loadBalancerIndex[name];
+      const reference = selectionMetadata[name] || loadBalancerMetadataReference(name, loadBalancerDetails);
+      return reference?.key === GCE_REGIONAL_LOAD_BALANCER_NAMES ? reference.names : [];
+    }),
+  );
+}
+
 export function transformGceServerGroupCommand(command: IGceServerGroupCommand): IGceServerGroupCommand {
   const transformed = cloneDeep(command);
   const instanceMetadata = { ...(command.instanceMetadata || {}) };
-  delete instanceMetadata[GLOBAL_LOAD_BALANCER_NAMES];
-  delete instanceMetadata[REGIONAL_LOAD_BALANCER_NAMES];
+  const loadBalancerMetadata = buildLoadBalancerMetadata(command);
+  delete instanceMetadata[GCE_GLOBAL_LOAD_BALANCER_NAMES];
+  delete instanceMetadata[GCE_REGIONAL_LOAD_BALANCER_NAMES];
   delete instanceMetadata[BACKEND_SERVICE_NAMES];
 
   transformed.instanceMetadata = {
     ...instanceMetadata,
-    ...buildLoadBalancerMetadata(command),
+    ...loadBalancerMetadata,
   };
+  // Clouddriver resolves regional HTTP attachments by forwarding-rule name, not Deck's logical URL-map display identity.
+  transformed.loadBalancers = collectLoadBalancerNamesForCommand(
+    command.backingData?.filtered?.loadBalancerIndex || {},
+    loadBalancerMetadata,
+    command.loadBalancers || [],
+    command.loadBalancerSelectionMetadata || {},
+  );
   transformed.tags = (command.tags || []).map((tag: any) => tag.value || tag);
   transformed.targetSize = command.capacity?.desired;
   if (command.autoscalingPolicy) {
@@ -209,8 +349,19 @@ export function transformGceServerGroupCommand(command: IGceServerGroupCommand):
   if (transformed.minCpuPlatform === '(Automatic)') {
     transformed.minCpuPlatform = '';
   }
+  const loadBalancingPolicy = resolveLoadBalancingPolicy(command);
+  if (loadBalancingPolicy) {
+    transformed.loadBalancingPolicy = loadBalancingPolicy;
+  } else {
+    delete transformed.loadBalancingPolicy;
+  }
   delete transformed.loadBalancerMetadata;
+  delete transformed.loadBalancerSelectionMetadata;
   delete transformed.securityGroups;
+  if (transformed.viewState) {
+    const { initialLoadBalancers, loadBalancerSelectionsChanged, ...viewState } = transformed.viewState;
+    transformed.viewState = viewState;
+  }
   return transformed;
 }
 
@@ -232,6 +383,7 @@ export class GceCloneServerGroupModalComponent extends React.Component<
   private configureRequest = 0;
   private applicationRefreshUnsubscribe?: () => void;
   private formik: IWizardPageInjectedProps<IGceServerGroupCommand>['formik'] = null;
+  private readonly originalLoadBalancers: string[];
   private unmounted = false;
 
   public static show(props: IGceCloneServerGroupModalProps, runtimeServices: DeckRuntimeServices): Promise<any> {
@@ -250,6 +402,11 @@ export class GceCloneServerGroupModalComponent extends React.Component<
     super(props, context);
     this.adapter = props.adapter;
     this.command = cloneDeep(props.command);
+    this.originalLoadBalancers = cloneDeep(
+      Array.isArray(this.command.viewState?.initialLoadBalancers)
+        ? this.command.viewState.initialLoadBalancers
+        : getSelectedLoadBalancerSelectionNames(this.command),
+    );
     this.commandState = createGceServerGroupWizardCommandState(this.command);
     this.state = {
       command: this.command,
@@ -299,6 +456,13 @@ export class GceCloneServerGroupModalComponent extends React.Component<
       const refreshedCommand = mergeRefreshedCommand(latestCommand, configured);
       initializeCommand(refreshedCommand, persistedSelections);
       restoreUnavailableSelections(refreshedCommand, persistedSelections);
+      refreshedCommand.viewState = {
+        ...refreshedCommand.viewState,
+        initialLoadBalancers: normalizeLoadBalancerSelectionNames(
+          this.originalLoadBalancers,
+          refreshedCommand.backingData?.filtered?.loadBalancerIndex || {},
+        ),
+      };
       this.command = refreshedCommand;
       this.commandState.command = refreshedCommand;
       this.commandState.formikValues = refreshedCommand;
@@ -536,6 +700,19 @@ function initializeCommand(command: IGceServerGroupCommand, snapshot: IPersisted
 function snapshotPersistedSelections(command: IGceServerGroupCommand): IPersistedSelectionSnapshot {
   const loadBalancers = cloneDeep(command.loadBalancers || []);
   const loadBalancerIndex = command.backingData?.filtered?.loadBalancerIndex || {};
+  const loadBalancerSelectionMetadata = {
+    ...(command.loadBalancerSelectionMetadata || {}),
+  };
+  loadBalancers.forEach((loadBalancer: any) => {
+    const name = loadBalancerName(loadBalancer);
+    const reference = loadBalancerMetadataReference(
+      name,
+      loadBalancer.loadBalancerType ? loadBalancer : indexedLoadBalancer(loadBalancerIndex, name),
+    );
+    if (reference) {
+      loadBalancerSelectionMetadata[name] = reference;
+    }
+  });
   return {
     autoHealingHealthCheck: command.autoHealingPolicy
       ? cloneDeep({
@@ -566,6 +743,7 @@ function snapshotPersistedSelections(command: IGceServerGroupCommand): IPersiste
       },
       {},
     ),
+    loadBalancerSelectionMetadata: cloneDeep(loadBalancerSelectionMetadata),
     loadBalancers,
     minCpuPlatform: command.minCpuPlatform,
     network: command.network,
@@ -707,21 +885,40 @@ function restoreUnavailableSelections(command: IGceServerGroupCommand, snapshot:
     {} as Record<string, string[]>,
   );
   if (unavailableNames.size) {
-    [GLOBAL_LOAD_BALANCER_NAMES, REGIONAL_LOAD_BALANCER_NAMES].forEach((key) => {
+    [GCE_GLOBAL_LOAD_BALANCER_NAMES, GCE_REGIONAL_LOAD_BALANCER_NAMES].forEach((key) => {
       metadata[key].push(
         ...snapshot.loadBalancerMetadata[key].filter((value) => !(attributedMetadata[key] || []).includes(value)),
       );
     });
   }
   command.loadBalancerMetadata = {
-    [GLOBAL_LOAD_BALANCER_NAMES]: unique(metadata[GLOBAL_LOAD_BALANCER_NAMES]),
-    [REGIONAL_LOAD_BALANCER_NAMES]: unique(metadata[REGIONAL_LOAD_BALANCER_NAMES]),
+    [GCE_GLOBAL_LOAD_BALANCER_NAMES]: unique(metadata[GCE_GLOBAL_LOAD_BALANCER_NAMES]),
+    [GCE_REGIONAL_LOAD_BALANCER_NAMES]: unique(metadata[GCE_REGIONAL_LOAD_BALANCER_NAMES]),
   };
   Object.keys(command.loadBalancerMetadata).forEach((key) => {
     if (!command.loadBalancerMetadata[key].length) {
       delete command.loadBalancerMetadata[key];
     }
   });
+
+  const selectionMetadata: Record<string, ILoadBalancerMetadataReference> = {
+    ...(command.loadBalancerSelectionMetadata || {}),
+    ...(snapshot.loadBalancerSelectionMetadata || {}),
+  };
+  (command.loadBalancers || []).forEach((loadBalancer: any) => {
+    const name = loadBalancerName(loadBalancer);
+    const refreshedReference = loadBalancerMetadataReference(name, loadBalancerIndex[name]);
+    if (refreshedReference) {
+      selectionMetadata[name] = refreshedReference;
+    }
+  });
+  unavailableNames.forEach((name) => {
+    const reference = snapshot.loadBalancerReferences[name] || snapshot.loadBalancerSelectionMetadata?.[name];
+    if (reference) {
+      selectionMetadata[name] = reference;
+    }
+  });
+  command.loadBalancerSelectionMetadata = selectionMetadata;
 }
 
 function indexedLoadBalancer(loadBalancerIndex: Record<string, any>, name: string): any {
@@ -731,6 +928,15 @@ function indexedLoadBalancer(loadBalancerIndex: Record<string, any>, name: strin
       (loadBalancer.listeners || []).some((listener: any) => listener.name === name),
     )
   );
+}
+
+function normalizeLoadBalancerSelectionNames(names: string[], loadBalancerIndex: Record<string, any>): string[] {
+  return unique(
+    names.map((name) => {
+      const loadBalancer = indexedLoadBalancer(loadBalancerIndex, name);
+      return loadBalancer ? loadBalancerName(loadBalancer) : name;
+    }),
+  ).sort();
 }
 
 function unique(values: string[]): string[] {
