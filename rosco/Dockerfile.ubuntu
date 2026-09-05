@@ -13,7 +13,13 @@ ARG PACKER_PLUGINS="amazon azure googlecompute"
 
 WORKDIR /packer
 
-RUN apt-get update && apt-get -y install openjdk-17-jre-headless wget unzip curl git openssh-client && \
+# libarchive-tools' bsdtar replaces GNU tar as /usr/bin/tar below: GNU tar (patched for CVE-2025-45582) now
+# extracts via openat2(), which QEMU 7.0.0 (pinned in .github/actions/publish-docker/action.yml as a workaround
+# for a different, unrelated bug - docker/setup-qemu-action#198) doesn't implement, breaking every arm64
+# (QEMU-emulated) build with "tar: ...: Cannot open: Function not implemented". bsdtar doesn't use openat2.
+# See: https://github.com/tonistiigi/binfmt/issues/285, https://github.com/abiosoft/colima/issues/1613
+RUN apt-get update && apt-get -y install openjdk-17-jre-headless wget unzip curl git openssh-client libarchive-tools && \
+  ln -sf "$(command -v bsdtar)" /usr/bin/tar && \
   wget https://releases.hashicorp.com/packer/${PACKER_VERSION}/packer_${PACKER_VERSION}_linux_${TARGETARCH}.zip && \
   unzip packer_${PACKER_VERSION}_linux_${TARGETARCH}.zip && \
   rm packer_${PACKER_VERSION}_linux_${TARGETARCH}.zip
@@ -36,25 +42,25 @@ RUN wget https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get &&
 # DEPRECATED: kustomize v3 is end-of-life upstream; removal planned for the 2026.4.x releases
 RUN mkdir kustomize && \
   curl -s -L https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v${KUSTOMIZE_VERSION}/kustomize_v${KUSTOMIZE_VERSION}_linux_${TARGETARCH}.tar.gz|\
-  tar xvz -C kustomize/ && \
+  tar xvz -f - -C kustomize/ && \
   mv ./kustomize/kustomize /usr/local/bin/kustomize && \
   rm -rf ./kustomize
 
 RUN mkdir kustomize && \
   curl -s -L https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v${KUSTOMIZE4_VERSION}/kustomize_v${KUSTOMIZE4_VERSION}_linux_${TARGETARCH}.tar.gz|\
-  tar xvz -C kustomize/ && \
+  tar xvz -f - -C kustomize/ && \
   mv ./kustomize/kustomize /usr/local/bin/kustomize4 && \
   rm -rf ./kustomize
 
 RUN mkdir kustomize && \
   curl -s -L https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v${KUSTOMIZE5_VERSION}/kustomize_v${KUSTOMIZE5_VERSION}_linux_${TARGETARCH}.tar.gz|\
-  tar xvz -C kustomize/ && \
+  tar xvz -f - -C kustomize/ && \
   mv ./kustomize/kustomize /usr/local/bin/kustomize5 && \
   rm -rf ./kustomize
 
 RUN mkdir helmfile && \
   curl -s -L https://github.com/helmfile/helmfile/releases/download/v${HELMFILE_VERSION}/helmfile_${HELMFILE_VERSION}_linux_${TARGETARCH}.tar.gz|\
-  tar xvz -C helmfile/ && \
+  tar xvz -f - -C helmfile/ && \
   mv ./helmfile/helmfile /usr/local/bin/helmfile && \
   rm -rf ./helmfile
 

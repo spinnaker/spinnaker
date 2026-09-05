@@ -8,6 +8,11 @@ ENV KUBECTL_RELEASES="${KUBECTL_DEFAULT_RELEASE} 1.31.14 1.32.13 1.33.13"
 ENV AWS_CLI_VERSION=2.35.22
 ENV AWS_AIM_AUTHENTICATOR_VERSION=0.7.18
 
+# libarchive-tools' bsdtar replaces GNU tar as /usr/bin/tar below: GNU tar (patched for CVE-2025-45582) now
+# extracts via openat2(), which QEMU 7.0.0 (pinned in .github/actions/publish-docker/action.yml as a workaround
+# for a different, unrelated bug - docker/setup-qemu-action#198) doesn't implement, breaking every arm64
+# (QEMU-emulated) build with "tar: ...: Cannot open: Function not implemented". bsdtar doesn't use openat2.
+# See: https://github.com/tonistiigi/binfmt/issues/285, https://github.com/abiosoft/colima/issues/1613
 RUN apt-get update && apt-get install -y curl gnupg && \
   curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
   echo "deb https://packages.cloud.google.com/apt cloud-sdk  main" > /etc/apt/sources.list.d/cloud-sdk.list && \
@@ -21,7 +26,9 @@ RUN apt-get update && apt-get install -y curl gnupg && \
   python3 \
   git \
   openssh-client \
-  unzip && \
+  unzip \
+  libarchive-tools && \
+  ln -sf "$(command -v bsdtar)" /usr/bin/tar && \
   rm -rf ~/.config/gcloud
 
 # AWS CLI 2
