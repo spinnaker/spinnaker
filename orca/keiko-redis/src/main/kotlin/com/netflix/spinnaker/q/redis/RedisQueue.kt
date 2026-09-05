@@ -89,6 +89,7 @@ class RedisQueue(
   override val attemptsKey = "$queueName.attempts"
 
   override lateinit var readMessageWithLockScriptSha: String
+  private lateinit var ackMessageScriptSha: String
 
   init {
     cacheScript()
@@ -98,6 +99,7 @@ class RedisQueue(
   override fun cacheScript() {
     pool.resource.use { redis ->
       readMessageWithLockScriptSha = redis.scriptLoad(READ_MESSAGE_WITH_LOCK_SRC)
+      ackMessageScriptSha = redis.scriptLoad(ACK_MESSAGE_SRC)
     }
   }
 
@@ -292,17 +294,53 @@ class RedisQueue(
 
   private fun ackMessage(fingerprint: String) {
     pool.resource.use { redis ->
-      if (redis.zismember(queueKey, fingerprint)) {
-        // only remove this message from the unacked queue as a matching one has
-        // been put on the main queue
-        redis.multi {
-          zrem(unackedKey, fingerprint)
-          del("$locksKey:$fingerprint")
-        }
-      } else {
-        redis.removeMessage(fingerprint)
+      when (val result = redis.ackMessageAtomically(fingerprint)) {
+        ACK_RESULT_REMOVED ->
+          log.debug("Acked message $fingerprint on queue $queueName, removing it from the queue")
+        ACK_RESULT_REQUEUED ->
+          log.debug("Acked message $fingerprint on queue $queueName, an identical one stays queued")
+        // Only reachable if ACK_MESSAGE_SRC grows an outcome this branch was not taught about.
+        else ->
+          log.warn("Ack of message $fingerprint on queue $queueName returned unexpected $result")
       }
       fire(MessageAcknowledged)
+    }
+  }
+
+  /**
+   * Clears [fingerprint]'s in-flight state.
+   *
+   * If an identical message has been queued for redelivery, which is the normal case for a
+   * handler that re-pushed its own message before returning, only this delivery's bookkeeping is
+   * cleared; otherwise the message is removed entirely.
+   *
+   * @return [ACK_RESULT_REQUEUED] or [ACK_RESULT_REMOVED], i.e. which of the two the script did.
+   */
+  internal fun ScriptingCommands.ackMessageAtomically(fingerprint: String): String? =
+    ackMessageAtomically(fingerprint, reloadOnNoScript = true)
+
+  /**
+   * [reloadOnNoScript] bounds the NOSCRIPT recovery to a single reload-and-retry. [cacheScript]
+   * loads the script on its own pooled connection rather than this receiver, so a NOSCRIPT that
+   * survives the reload would otherwise recurse without limit, one Redis round-trip per level.
+   */
+  private fun ScriptingCommands.ackMessageAtomically(
+    fingerprint: String,
+    reloadOnNoScript: Boolean
+  ): String? {
+    try {
+      return evalsha(
+        ackMessageScriptSha,
+        listOf(queueKey, unackedKey, locksKey, messagesKey, attemptsKey),
+        listOf(fingerprint)
+      )?.toString()
+    } catch (e: JedisDataException) {
+      if (reloadOnNoScript && (e.message ?: "").startsWith("NOSCRIPT")) {
+        cacheScript()
+        return ackMessageAtomically(fingerprint, reloadOnNoScript = false)
+      } else {
+        throw e
+      }
     }
   }
 
