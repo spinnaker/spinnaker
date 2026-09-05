@@ -15,6 +15,8 @@ describe('core: Project', () => {
     cy.intercept('/projects/kubernetesproject/pipelines*', {
       fixture: 'core/projects/kubernetesproject/pipelines.json',
     });
+    cy.intercept('/pipelineConfigs', { fixture: 'kubernetes/pipelines/pipelineConfigs.json' });
+    cy.intercept('/executions*', { fixture: 'core/projects/kubernetesproject/pipelines.json' });
     cy.intercept('/applications/kubernetesapp/pipelineConfigs', {
       fixture: 'kubernetes/pipelines/pipelineConfigs.json',
     });
@@ -153,22 +155,30 @@ describe('core: Project', () => {
     // Table shows 3 region columns initially (dev/prod/test)
     cy.get('.project-cluster .rollup-details thead').within(() => {
       cy.get('th').contains('Last Push').should('exist');
-      cy.get('th').filter((_, el) => el.innerText.trim() === 'dev').should('have.length', 1);
-      cy.get('th').filter((_, el) => el.innerText.trim() === 'prod').should('have.length', 1);
-      cy.get('th').filter((_, el) => el.innerText.trim() === 'test').should('have.length', 1);
+      cy.get('th')
+        .filter((_, el) => el.innerText.trim() === 'dev')
+        .should('have.length', 1);
+      cy.get('th')
+        .filter((_, el) => el.innerText.trim() === 'prod')
+        .should('have.length', 1);
+      cy.get('th')
+        .filter((_, el) => el.innerText.trim() === 'test')
+        .should('have.length', 1);
     });
 
     // App row basics
-    cy.get('.project-cluster .rollup-details tbody tr').first().within(() => {
-      cy.get('td a.heavy')
-        .should('contain.text', 'KUBERNETESAPP')
-        .and('have.attr', 'href')
-        .and('include', '#/projects/kubernetesproject/applications/kubernetesapp/clusters?acct=k8s-local');
+    cy.get('.project-cluster .rollup-details tbody tr')
+      .first()
+      .within(() => {
+        cy.get('td a.heavy')
+          .should('contain.text', 'KUBERNETESAPP')
+          .and('have.attr', 'href')
+          .and('include', '#/projects/kubernetesproject/applications/kubernetesapp/clusters?acct=k8s-local');
 
-      cy.get('ul.list-unstyled li').should('have.length.at.least', 1);
-      cy.get('ul.list-unstyled').should('contain.text', 'nginx');
-      cy.get('td .small').should('contain.text', 'ago'); // relative time
-    });
+        cy.get('ul.list-unstyled li').should('have.length.at.least', 1);
+        cy.get('ul.list-unstyled').should('contain.text', 'nginx');
+        cy.get('td .small').should('contain.text', 'ago'); // relative time
+      });
 
     // --- Interact with filters ---
 
@@ -183,17 +193,25 @@ describe('core: Project', () => {
 
     // Now table should only show dev + prod region columns
     cy.get('.project-cluster .rollup-details thead').within(() => {
-      cy.get('th').filter((_, el) => el.innerText.trim() === 'dev').should('have.length', 1);
-      cy.get('th').filter((_, el) => el.innerText.trim() === 'prod').should('have.length', 1);
-      cy.get('th').filter((_, el) => el.innerText.trim() === 'test').should('have.length', 0);
+      cy.get('th')
+        .filter((_, el) => el.innerText.trim() === 'dev')
+        .should('have.length', 1);
+      cy.get('th')
+        .filter((_, el) => el.innerText.trim() === 'prod')
+        .should('have.length', 1);
+      cy.get('th')
+        .filter((_, el) => el.innerText.trim() === 'test')
+        .should('have.length', 0);
     });
 
     // And row should only have 2 region links (dev + prod)
-    cy.get('.project-cluster .rollup-details tbody tr').first().within(() => {
-      cy.get('td a[href*="reg="]').should('have.length', 2);
-      cy.get('td a[href*="reg=dev"]').should('have.length', 1);
-      cy.get('td a[href*="reg=prod"]').should('have.length', 1);
-    });
+    cy.get('.project-cluster .rollup-details tbody tr')
+      .first()
+      .within(() => {
+        cy.get('td a[href*="reg="]').should('have.length', 2);
+        cy.get('td a[href*="reg=dev"]').should('have.length', 1);
+        cy.get('td a[href*="reg=prod"]').should('have.length', 1);
+      });
 
     // Now, enable test as well and ensure all 3 links are back
     cy.contains('h3', 'Application Status').find('h6.dropdown-toggle').click();
@@ -204,7 +222,10 @@ describe('core: Project', () => {
 
     cy.get('.project-cluster .rollup-details thead').within(() => {
       ['dev', 'prod', 'test'].forEach((r) =>
-        cy.get('th').filter((_, el) => el.innerText.trim() === r).should('have.length', 1),
+        cy
+          .get('th')
+          .filter((_, el) => el.innerText.trim() === r)
+          .should('have.length', 1),
       );
     });
 
@@ -229,41 +250,58 @@ describe('core: Project', () => {
   it('should show pipeline status', () => {
     cy.visit('#/projects/kubernetesproject/dashboard');
 
-    cy.get('.project-column').eq(1).within(() => {
-      cy.contains('h3', 'Pipeline Status').should('exist');
+    cy.get('.project-column')
+      .eq(1)
+      .within(() => {
+        cy.contains('h3', 'Pipeline Status').should('exist');
 
-      // First pipeline: deployment (3 stages)
-      cy.get('.project-pipeline').eq(0).within(() => {
-        cy.get('.execution-title a').should('contain.text', 'KUBERNETESAPP: deployment');
-        cy.get('.execution-bar .execution-marker')
-          .should('have.length', 3)
-          .each(($m) => cy.wrap($m).should('have.class', 'execution-marker-succeeded'));
-        cy.get('.execution-bar .execution-marker').each(($m) =>
-          cy.wrap($m).should('have.class', 'stage-type-deploymanifest'),
-        );
-        cy.get('.duration').each(($d) => cy.wrap($d).invoke('text').should('match', /\d{2}:\d{2}/));
-      });
+        // Pipelines are grouped by application and sorted by name
+        // First pipeline: bake_and_deploy_manifest (5 stages)
+        cy.get('.project-pipeline')
+          .eq(0)
+          .within(() => {
+            cy.get('.execution-title a').should('contain.text', 'KUBERNETESAPP: bake_and_deploy_manifest');
+            const classes = [
+              'stage-type-deletemanifest',
+              'stage-type-bakemanifest',
+              'stage-type-deploymanifest',
+              'stage-type-rollingrestartmanifest',
+              'stage-type-scalemanifest',
+            ];
+            cy.get('.execution-bar .execution-marker').should('have.length', 5);
+            classes.forEach((cls) => {
+              cy.get(`.execution-bar .execution-marker.${cls}`).should('have.length.at.least', 1);
+            });
+            cy.get('.execution-bar .execution-marker').each(($m) =>
+              cy.wrap($m).should('have.class', 'execution-marker-succeeded'),
+            );
+            cy.get('.duration').each(($d) =>
+              cy
+                .wrap($d)
+                .invoke('text')
+                .should('match', /\d{2}:\d{2}/),
+            );
+          });
 
-      // Second pipeline: bake_and_deploy_manifest (5 stages)
-      cy.get('.project-pipeline').eq(1).within(() => {
-        cy.get('.execution-title a').should('contain.text', 'KUBERNETESAPP: bake_and_deploy_manifest');
-        const classes = [
-          'stage-type-deletemanifest',
-          'stage-type-bakemanifest',
-          'stage-type-deploymanifest',
-          'stage-type-rollingrestartmanifest',
-          'stage-type-scalemanifest',
-        ];
-        cy.get('.execution-bar .execution-marker').should('have.length', 5);
-        classes.forEach((cls) => {
-          cy.get(`.execution-bar .execution-marker.${cls}`).should('have.length.at.least', 1);
-        });
-        cy.get('.execution-bar .execution-marker').each(($m) =>
-          cy.wrap($m).should('have.class', 'execution-marker-succeeded'),
-        );
-        cy.get('.duration').each(($d) => cy.wrap($d).invoke('text').should('match', /\d{2}:\d{2}/));
+        // Second pipeline: deployment (3 stages)
+        cy.get('.project-pipeline')
+          .eq(1)
+          .within(() => {
+            cy.get('.execution-title a').should('contain.text', 'KUBERNETESAPP: deployment');
+            cy.get('.execution-bar .execution-marker')
+              .should('have.length', 3)
+              .each(($m) => cy.wrap($m).should('have.class', 'execution-marker-succeeded'));
+            cy.get('.execution-bar .execution-marker').each(($m) =>
+              cy.wrap($m).should('have.class', 'stage-type-deploymanifest'),
+            );
+            cy.get('.duration').each(($d) =>
+              cy
+                .wrap($d)
+                .invoke('text')
+                .should('match', /\d{2}:\d{2}/),
+            );
+          });
       });
-    });
   });
 
   afterEach(() => {
