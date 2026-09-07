@@ -43,7 +43,7 @@ jobs:
             -repo=ghcr.io/spinnaker/orca \
             -repo=ghcr.io/spinnaker/rosco \
             -grace=48h \
-            -dry-run=false
+            -dry-run=true
 
   gcr-cleaner:
     runs-on: 'ubuntu-latest'
