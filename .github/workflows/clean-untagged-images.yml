@@ -18,24 +18,31 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+
+      - name: Install gcr-cleaner-cli
+        run: go install github.com/GoogleCloudPlatform/gcr-cleaner/cmd/gcr-cleaner-cli@latest
+
       # delete untaggd images older than 48 hours
       - name: Clean images
-        uses: 'docker://us-docker.pkg.dev/gcr-cleaner/gcr-cleaner/gcr-cleaner-cli'
-        with:
-          args: >-
-            -repo=ghcr.io/spinnaker/clouddriver
-            -repo=ghcr.io/spinnaker/deck
-            -repo=ghcr.io/spinnaker/echo
-            -repo=ghcr.io/spinnaker/fiat
-            -repo=ghcr.io/spinnaker/front50
-            -repo=ghcr.io/spinnaker/gate
-            -repo=ghcr.io/spinnaker/halyard
-            -repo=ghcr.io/spinnaker/igor
-            -repo=ghcr.io/spinnaker/kayenta
-            -repo=ghcr.io/spinnaker/keel
-            -repo=ghcr.io/spinnaker/orca
-            -repo=ghcr.io/spinnaker/rosco
-            -grace=48h
+        run: |
+          $(go env GOPATH)/bin/gcr-cleaner-cli \
+            -repo=ghcr.io/spinnaker/clouddriver \
+            -repo=ghcr.io/spinnaker/deck \
+            -repo=ghcr.io/spinnaker/echo \
+            -repo=ghcr.io/spinnaker/fiat \
+            -repo=ghcr.io/spinnaker/front50 \
+            -repo=ghcr.io/spinnaker/gate \
+            -repo=ghcr.io/spinnaker/halyard \
+            -repo=ghcr.io/spinnaker/igor \
+            -repo=ghcr.io/spinnaker/kayenta \
+            -repo=ghcr.io/spinnaker/keel \
+            -repo=ghcr.io/spinnaker/orca \
+            -repo=ghcr.io/spinnaker/rosco \
+            -grace=48h \
             -dry-run=false
 
   gcr-cleaner:
@@ -50,10 +57,18 @@ jobs:
           password: ${{ secrets.GAR_JSON_KEY }}
 
 
-      # delete untaggd images older than 48 hours
-      - uses: 'docker://us-docker.pkg.dev/gcr-cleaner/gcr-cleaner/gcr-cleaner-cli'
+      - name: Set up Go
+        uses: actions/setup-go@v5
         with:
-          args: >-
-            -repo=us-docker.pkg.dev/spinnaker-community/docker
-            -grace=48h
+          go-version: 'stable'
+
+      - name: Install gcr-cleaner-cli
+        run: go install github.com/GoogleCloudPlatform/gcr-cleaner/cmd/gcr-cleaner-cli@latest
+
+      # delete untaggd images older than 48 hours
+      - name: Clean images
+        run: |
+          $(go env GOPATH)/bin/gcr-cleaner-cli \
+            -repo=us-docker.pkg.dev/spinnaker-community/docker \
+            -grace=48h \
             -dry-run=true
