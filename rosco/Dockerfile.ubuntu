@@ -72,7 +72,7 @@ RUN if [ "${TARGETARCH}" = "arm64" ]; then \
   dpkg -i session-manager-plugin.deb && \
   rm session-manager-plugin.deb
 
-RUN adduser --system --uid 10111 --group spinnaker
+RUN adduser --system --uid 10111 --home /home/spinnaker --group spinnaker
 COPY rosco-web/build/install/rosco /opt/rosco
 COPY rosco-web/config              /opt/rosco
 COPY halconfig/packer              /opt/rosco/config/packer
