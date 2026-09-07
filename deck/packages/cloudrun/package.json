@@ -33,7 +33,7 @@
     "react-ace": "6.4.0",
     "react-bootstrap": "0.32.1",
     "react-select": "1.2.1",
-    "rxjs": "6.6.7"
+    "rxjs": "7.8.2"
   },
   "devDependencies": {
     "@spinnaker/eslint-plugin": "workspace:^3.0.2",

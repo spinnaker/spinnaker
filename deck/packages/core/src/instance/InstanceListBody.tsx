@@ -29,7 +29,7 @@ export class InstanceListBodyComponent extends React.Component<
   IInstanceListBodyProps & IRouterInjectedProps,
   IInstanceListBodyState
 > {
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   constructor(props: IInstanceListBodyProps & IRouterInjectedProps) {
     super(props);

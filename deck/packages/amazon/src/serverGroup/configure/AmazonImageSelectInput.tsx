@@ -48,7 +48,7 @@ export class AmazonImageSelectInput extends React.Component<IAmazonImageSelector
   private awsImageReader = new AwsImageReader();
   private props$ = new Subject<IAmazonImageSelectorProps>();
   private searchInput$ = new Subject<string>();
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
   private sortImagesBy$ = new BehaviorSubject<sortImagesByOptions>('ts');
 
   public static makeFakeImage(imageName: string, imageId: string, region: string): IAmazonImage {

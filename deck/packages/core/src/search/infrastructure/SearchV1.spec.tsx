@@ -24,6 +24,13 @@ async function flushPromises(): Promise<void> {
   await Promise.resolve();
 }
 
+// rxjs 7's real AsyncScheduler doesn't reliably advance under jasmine.clock()'s
+// fake timers (a known, unresolved upstream issue: ReactiveX/rxjs#6382), so
+// debounceTime is exercised with a real, short wait instead of a faked tick.
+function tick(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 describe('SearchV1', () => {
   let params$: BehaviorSubject<any>;
   let query: jasmine.Spy;
@@ -48,13 +55,11 @@ describe('SearchV1', () => {
     params$ = new BehaviorSubject({ q: null, route: null });
     query = jasmine.createSpy('query').and.returnValue(Promise.resolve([]));
     go = jasmine.createSpy('go');
-    jasmine.clock().install();
   });
 
   afterEach(() => {
     wrapper?.unmount();
     params$.complete();
-    jasmine.clock().uninstall();
   });
 
   it('requires three characters, debounces valid queries, and replaces q in the URL', async () => {
@@ -67,12 +72,12 @@ describe('SearchV1', () => {
     const instance = wrapper.instance() as SearchV1;
 
     instance.handleQueryChange('ab');
-    jasmine.clock().tick(301);
+    await tick(301);
     expect(query).not.toHaveBeenCalled();
     expect(instance.state.showMinLengthWarning).toBe(true);
 
     instance.handleQueryChange('server');
-    jasmine.clock().tick(301);
+    await tick(301);
     await Promise.resolve();
     await Promise.resolve();
 
@@ -94,9 +99,9 @@ describe('SearchV1', () => {
     const instance = wrapper.instance() as SearchV1;
 
     instance.handleQueryChange('first');
-    jasmine.clock().tick(301);
+    await tick(301);
     instance.handleQueryChange('second');
-    jasmine.clock().tick(301);
+    await tick(301);
     resolveSecond([resultSet('applications', [{ displayName: 'second' }])]);
     await Promise.resolve();
     await Promise.resolve();
@@ -106,7 +111,7 @@ describe('SearchV1', () => {
     expect(instance.state.categories[0].results[0].displayName).toBe('second');
 
     instance.handleQueryChange('third');
-    jasmine.clock().tick(301);
+    await tick(301);
     wrapper.unmount();
     wrapper = undefined;
     resolveThird([]);
@@ -120,7 +125,7 @@ describe('SearchV1', () => {
     const instance = wrapper.instance() as SearchV1;
 
     instance.handleQueryChange('first');
-    jasmine.clock().tick(301);
+    await tick(301);
     instance.handleQueryChange('ab');
     resolveSearch([resultSet('applications', [{ displayName: 'first' }])]);
     await Promise.resolve();
@@ -144,7 +149,7 @@ describe('SearchV1', () => {
     wrapper = renderSearch();
     const instance = wrapper.instance() as SearchV1;
     instance.handleQueryChange('app');
-    jasmine.clock().tick(301);
+    await tick(301);
     await Promise.resolve();
     await Promise.resolve();
     wrapper.update();
@@ -171,12 +176,12 @@ describe('SearchV1', () => {
     const instance = wrapper.instance() as SearchV1;
     const navigateToResult = spyOn<any>(instance, 'navigateToResult');
 
-    jasmine.clock().tick(301);
+    await tick(301);
     await flushPromises();
     expect(navigateToResult).toHaveBeenCalledWith('#/one-shot-result');
 
     instance.handleQueryChange('later');
-    jasmine.clock().tick(301);
+    await tick(301);
     await flushPromises();
     expect(navigateToResult).toHaveBeenCalledTimes(1);
   });
@@ -192,10 +197,10 @@ describe('SearchV1', () => {
     wrapper = renderSearch();
     const instance = wrapper.instance() as SearchV1;
     const navigateToResult = spyOn<any>(instance, 'navigateToResult');
-    jasmine.clock().tick(301);
+    await tick(301);
 
     instance.handleQueryChange('later');
-    jasmine.clock().tick(301);
+    await tick(301);
     resolveInitial([resultSet('applications', [{ displayName: 'initial', href: '#/stale-initial-result' }])]);
     await flushPromises();
     expect(navigateToResult).not.toHaveBeenCalled();
@@ -219,10 +224,10 @@ describe('SearchV1', () => {
     wrapper = renderSearch();
     const instance = wrapper.instance() as SearchV1;
     const navigateToResult = spyOn<any>(instance, 'navigateToResult');
-    jasmine.clock().tick(301);
+    await tick(301);
 
     params$.next({ q: 'later', route: null });
-    jasmine.clock().tick(301);
+    await tick(301);
     resolveInitial([resultSet('applications', [{ displayName: 'initial', href: '#/stale-initial-result' }])]);
     await flushPromises();
     expect(navigateToResult).not.toHaveBeenCalled();

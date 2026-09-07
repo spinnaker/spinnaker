@@ -102,7 +102,7 @@ export const mapStateToProps = (state: ICanaryState, ownProps: IStackdriverMetri
   };
 };
 
-export const mapDispatchToProps = (dispatch: Dispatch<ICanaryState>) => {
+export const mapDispatchToProps = (dispatch: Dispatch) => {
   return {
     load: (filter: string) => {
       dispatch(Creators.updateStackdriverMetricDescriptorFilter({ filter }));

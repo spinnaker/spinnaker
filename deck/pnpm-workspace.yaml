@@ -8,7 +8,18 @@ overrides:
   nth-check: 2.0.1
   react: ^16.14.0
   react-dom: ^16.14.0
-  rxjs: 6.6.7
+  rxjs: ^7.8.2
+  # kayenta's canary epic middleware runs on redux-observable@1.x, whose
+  # latest major (2.x/3.x, needed for rxjs 7) requires redux >=5 and
+  # react-redux 8/9 (React 18+) — a separate migration bundled with the
+  # React major-version upgrade. Pin kayenta's whole rxjs resolution back
+  # to 6.6.7 (rather than just redux-observable's) so it keeps working on
+  # rxjs 6 while everything else moves to rxjs 7: rxjs is only a *peer*
+  # dependency of redux-observable, and pnpm's peer-dependency
+  # auto-install reuses whatever rxjs is nearest in scope (i.e. kayenta's
+  # own) rather than honoring a scoped override on redux-observable
+  # itself.
+  '@spinnaker/kayenta>rxjs': 6.6.7
   typescript: 5.0.4
 allowBuilds:
   bufferutil: true

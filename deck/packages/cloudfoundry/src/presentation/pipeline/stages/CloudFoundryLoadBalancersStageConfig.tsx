@@ -28,7 +28,7 @@ export class CloudFoundryLoadBalancersStageConfig extends React.Component<
   ICloudFoundryLoadBalancerStageConfigProps,
   ICloudFoundryLoadBalancersStageConfigState
 > {
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
   private formikRef = React.createRef<Formik<ICloudFoundryLoadBalancersValues>>();
 
   constructor(props: ICloudFoundryLoadBalancerStageConfigProps) {

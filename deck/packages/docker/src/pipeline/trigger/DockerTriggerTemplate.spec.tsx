@@ -15,6 +15,13 @@ function deferred<T>(): IDeferred<T> {
   return { promise, resolve };
 }
 
+// rxjs 7's real AsyncScheduler doesn't reliably advance under jasmine.clock()'s
+// fake timers (a known, unresolved upstream issue: ReactiveX/rxjs#6382), so
+// debounceTime is exercised with a real, short wait instead of a faked tick.
+function tick(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 describe('<DockerTriggerTemplate/>', () => {
   it('formats Docker trigger labels', async () => {
     await expectAsync(
@@ -77,48 +84,40 @@ describe('<DockerTriggerTemplate/>', () => {
     ]);
   });
   it('aborts superseded and unmounted tag queries without publishing cancellation errors', async () => {
-    jasmine.clock().install();
-    try {
-      const firstRequest = deferred<string[]>();
-      const secondRequest = deferred<string[]>();
-      const findTags = spyOn(DockerImageReader, 'findTags').and.returnValues(
-        firstRequest.promise,
-        secondRequest.promise,
-      );
-      const wrapper = shallow(
-        <DockerTriggerTemplate
-          command={{
-            trigger: { type: 'docker', repository: 'example/service' },
-          }}
-          updateCommand={jasmine.createSpy('updateCommand')}
-        />,
-        { disableLifecycleMethods: true },
-      );
-      const component = wrapper.instance() as DockerTriggerTemplate;
-      const tagLoadSuccess = spyOn(component as any, 'tagLoadSuccess').and.callThrough();
-      const tagLoadFailure = spyOn(component as any, 'tagLoadFailure').and.callThrough();
+    const firstRequest = deferred<string[]>();
+    const secondRequest = deferred<string[]>();
+    const findTags = spyOn(DockerImageReader, 'findTags').and.returnValues(firstRequest.promise, secondRequest.promise);
+    const wrapper = shallow(
+      <DockerTriggerTemplate
+        command={{
+          trigger: { type: 'docker', repository: 'example/service' },
+        }}
+        updateCommand={jasmine.createSpy('updateCommand')}
+      />,
+      { disableLifecycleMethods: true },
+    );
+    const component = wrapper.instance() as DockerTriggerTemplate;
+    const tagLoadSuccess = spyOn(component as any, 'tagLoadSuccess').and.callThrough();
+    const tagLoadFailure = spyOn(component as any, 'tagLoadFailure').and.callThrough();
 
-      (component as any).initialize();
-      jasmine.clock().tick(250);
-      (component as any).searchTags();
-      jasmine.clock().tick(250);
-      const firstSignal = findTags.calls.argsFor(0)[1] as AbortSignal;
-      const secondSignal = findTags.calls.argsFor(1)[1] as AbortSignal;
+    (component as any).initialize();
+    await tick(250);
+    (component as any).searchTags();
+    await tick(250);
+    const firstSignal = findTags.calls.argsFor(0)[1] as AbortSignal;
+    const secondSignal = findTags.calls.argsFor(1)[1] as AbortSignal;
 
-      expect(firstSignal.aborted).toBe(true);
-      expect(secondSignal.aborted).toBe(false);
-      wrapper.unmount();
-      expect(secondSignal.aborted).toBe(true);
+    expect(firstSignal.aborted).toBe(true);
+    expect(secondSignal.aborted).toBe(false);
+    wrapper.unmount();
+    expect(secondSignal.aborted).toBe(true);
 
-      firstRequest.resolve(['stale']);
-      secondRequest.resolve(['late']);
-      await Promise.all([firstRequest.promise, secondRequest.promise]);
-      await Promise.resolve();
+    firstRequest.resolve(['stale']);
+    secondRequest.resolve(['late']);
+    await Promise.all([firstRequest.promise, secondRequest.promise]);
+    await Promise.resolve();
 
-      expect(tagLoadSuccess).not.toHaveBeenCalled();
-      expect(tagLoadFailure).not.toHaveBeenCalled();
-    } finally {
-      jasmine.clock().uninstall();
-    }
+    expect(tagLoadSuccess).not.toHaveBeenCalled();
+    expect(tagLoadFailure).not.toHaveBeenCalled();
   });
 });

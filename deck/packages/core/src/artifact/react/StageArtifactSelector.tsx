@@ -40,7 +40,7 @@ export class StageArtifactSelector extends React.Component<IStageArtifactSelecto
     id: DEFINE_NEW_ARTIFACT,
   };
 
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   constructor(props: IStageArtifactSelectorProps) {
     super(props);

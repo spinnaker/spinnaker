@@ -37,7 +37,7 @@ export class CloudFoundryDeployServiceStageConfig extends React.Component<
       versioned: false,
     },
   };
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   constructor(props: IStageConfigProps) {
     super(props);
