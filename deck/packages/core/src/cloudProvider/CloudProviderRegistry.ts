@@ -1,5 +1,5 @@
 /* tslint:disable: no-console */
-import { cloneDeep, get, isNil, set } from 'lodash';
+import { cloneDeepWith, get, isFunction, isNil, set } from 'lodash';
 
 import { SETTINGS } from '../config/settings';
 
@@ -31,7 +31,16 @@ export class CloudProviderRegistry {
   }
 
   public static getProvider(cloudProvider: string): ICloudProviderConfig {
-    return this.providers.has(cloudProvider) ? cloneDeep(this.providers.get(cloudProvider)) : null;
+    // Registered config values are frequently React components (function components, or
+    // React.forwardRef/memo objects tagged with $$typeof). Deep-cloning those is never what
+    // callers want, and under React 17 lodash's cloneDeep silently drops the outer object's
+    // own properties (e.g. `displayName`) when it recurses into such an object - pass them
+    // through by reference and only clone plain data.
+    return this.providers.has(cloudProvider)
+      ? cloneDeepWith(this.providers.get(cloudProvider), (value) =>
+          isFunction(value) || (value && typeof value === 'object' && '$$typeof' in value) ? value : undefined,
+        )
+      : null;
   }
 
   public static listRegisteredProviders(): string[] {

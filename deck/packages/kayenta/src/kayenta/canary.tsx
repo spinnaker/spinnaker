@@ -1,8 +1,8 @@
 import type { UIRouter } from '@uirouter/core';
 import { UIView } from '@uirouter/react';
 import * as React from 'react';
-import type { Store } from 'react-redux';
 import { Provider } from 'react-redux';
+import type { Store } from 'redux';
 import { applyMiddleware, createStore } from 'redux';
 import { logger } from 'redux-logger';
 
