@@ -9,6 +9,11 @@ overrides:
   react: ^16.14.0
   react-dom: ^16.14.0
   rxjs: 6.6.7
+  # lerna's own inquirer dependency needs a modern rxjs; the blanket
+  # override above must not force it down to 6.6.7 or `lerna publish`
+  # crashes at startup (inquirer's ESM build imports `concatMap` from
+  # 'rxjs', which rxjs 6 only exposes via 'rxjs/operators').
+  inquirer@12>rxjs: ^7.8.2
   typescript: 5.0.4
 allowBuilds:
   bufferutil: true
