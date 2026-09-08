@@ -236,7 +236,7 @@ public class GoogleInternalHttpLoadBalancerCachingAgentTest {
   private void invokeHandleHealthCheck(
       HealthCheck healthCheck, List<GoogleBackendService> googleBackendServices) throws Exception {
     Method handleHealthCheckMethod =
-        GoogleInternalHttpLoadBalancerCachingAgent.class.getDeclaredMethod(
+        AbstractGoogleRegionalHttpLoadBalancerCachingAgent.class.getDeclaredMethod(
             "handleHealthCheck", HealthCheck.class, List.class);
     handleHealthCheckMethod.setAccessible(true);
     handleHealthCheckMethod.invoke(null, healthCheck, googleBackendServices);

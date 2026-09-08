@@ -37,41 +37,20 @@ class GoogleInternalLoadBalancer extends GoogleLoadBalancer {
     new View(this)
   }
 
-  class View extends GoogleLoadBalancerView {
-    GoogleLoadBalancerType loadBalancerType
-    GoogleLoadBalancingScheme loadBalancingScheme
-
-    String name
-    String account
-    String region
-    Long createdTime
-    String ipAddress
-    String ipProtocol
-    String portRange
-
+  class View extends GoogleSimpleLoadBalancerView {
     List<String> ports
     String network
     String subnet
     GoogleBackendService backendService
 
-    Set<LoadBalancerServerGroup> serverGroups
-
-    View(GoogleInternalLoadBalancer googleInternalLoadBalancer){
+    View(GoogleInternalLoadBalancer googleInternalLoadBalancer) {
       loadBalancerType = googleInternalLoadBalancer.type
       loadBalancingScheme = googleInternalLoadBalancer.loadBalancingScheme
-      name = googleInternalLoadBalancer.name
-      account = googleInternalLoadBalancer.account
-      region = googleInternalLoadBalancer.region
-      createdTime = googleInternalLoadBalancer.createdTime
-      ipAddress = googleInternalLoadBalancer.ipAddress
-      ipProtocol = googleInternalLoadBalancer.ipProtocol
-      portRange = googleInternalLoadBalancer.portRange
+      populateCommonFields(googleInternalLoadBalancer)
       ports = googleInternalLoadBalancer.ports
       network = googleInternalLoadBalancer.network
       subnet = googleInternalLoadBalancer.subnet
       backendService = googleInternalLoadBalancer.backendService
-      serverGroups = new HashSet<>()
     }
-
   }
 }

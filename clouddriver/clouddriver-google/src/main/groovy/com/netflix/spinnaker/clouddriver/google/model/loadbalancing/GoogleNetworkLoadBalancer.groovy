@@ -38,40 +38,18 @@ class GoogleNetworkLoadBalancer extends GoogleLoadBalancer {
     new View(this)
   }
 
-  class View extends GoogleLoadBalancerView {
-    GoogleLoadBalancerType loadBalancerType
-    GoogleLoadBalancingScheme loadBalancingScheme
-
-    String name
-    String account
-    String region
-    Long createdTime
-    String ipAddress
-    String ipProtocol
-    String portRange
-
+  class View extends GoogleSimpleLoadBalancerView {
     String targetPool
     String sessionAffinity
-
     GoogleHealthCheck.View healthCheck
 
-    Set<LoadBalancerServerGroup> serverGroups
-
-    View(GoogleNetworkLoadBalancer googleNetworkLoadBalancer){
+    View(GoogleNetworkLoadBalancer googleNetworkLoadBalancer) {
       loadBalancerType = googleNetworkLoadBalancer.type
       loadBalancingScheme = googleNetworkLoadBalancer.loadBalancingScheme
-      name = googleNetworkLoadBalancer.name
-      account = googleNetworkLoadBalancer.account
-      region = googleNetworkLoadBalancer.region
-      createdTime = googleNetworkLoadBalancer.createdTime
-      ipAddress = googleNetworkLoadBalancer.ipAddress
-      ipProtocol = googleNetworkLoadBalancer.ipProtocol
-      portRange = googleNetworkLoadBalancer.portRange
-      targetPool =  googleNetworkLoadBalancer.targetPool
+      populateCommonFields(googleNetworkLoadBalancer)
+      targetPool = googleNetworkLoadBalancer.targetPool
       sessionAffinity = googleNetworkLoadBalancer.sessionAffinity
       healthCheck = googleNetworkLoadBalancer.healthCheck?.view
-      serverGroups = new HashSet<>()
     }
-
   }
 }

@@ -573,6 +573,8 @@ class BasicGoogleDeployHandlerSpec extends Specification {
     lbInfo.getHttpLoadBalancers() >> []
     lbInfo.getInternalLoadBalancers() >> []
     lbInfo.getInternalHttpLoadBalancers() >> []
+    lbInfo.getRegionalExternalTcpLoadBalancers() >> []
+    lbInfo.getRegionalExternalHttpLoadBalancers() >> []
     lbInfo.hasBackedServiceFromInput(mockDescription, lbPolicy) >> false
     
     when:
@@ -616,13 +618,15 @@ class BasicGoogleDeployHandlerSpec extends Specification {
     mockDescription.getCredentials() >> credentials
     mockDescription.getInstanceMetadata() >> instanceMetadata
     
-    // Mock loadbalancer info to return internal load balancers  
+    // Mock loadbalancer info to return internal load balancers
     def mockInternalLB = Mock(GoogleInternalLoadBalancer.View)
     def mockBackendService = Mock(GoogleBackendService)
     mockBackendService.getName() >> "test-regional-backend-service"
     mockInternalLB.getBackendService() >> mockBackendService
     lbInfo.getInternalLoadBalancers() >> [mockInternalLB]
     lbInfo.getInternalHttpLoadBalancers() >> []
+    lbInfo.getRegionalExternalTcpLoadBalancers() >> []
+    lbInfo.getRegionalExternalHttpLoadBalancers() >> []
     
     // Mock regional backend service API to throw IOException
     mockCompute.regionBackendServices() >> mockRegionBackendServices

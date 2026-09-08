@@ -16,6 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.google.model.callbacks
 
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHostRule
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GooglePathMatcher
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GooglePathRule
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleRegionalExternalHttpLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleTargetProxyType
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -143,5 +148,100 @@ class UtilsSpec extends Specification {
       "my-svc-project" | "projects/my-host-project/regions/us-central1/subnetworks/some-subnet" || "my-host-project/some-subnet"
       "my-svc-project" | "projects/my-svc-project/global/networks/some-network"                 || "some-network"
       "my-svc-project" | "projects/my-svc-project/regions/us-central1/subnetworks/some-subnet"  || "some-subnet"
+  }
+
+  def "getBackendServicesFromRegionalExternalHttpLoadBalancerView extracts default service"() {
+    given:
+    def lb = new GoogleRegionalExternalHttpLoadBalancer()
+    def defaultService = new GoogleBackendService(name: "default-backend")
+    lb.defaultService = defaultService
+
+    when:
+    def result = Utils.getBackendServicesFromRegionalExternalHttpLoadBalancerView(lb.view)
+
+    then:
+    result.size() == 1
+    result[0].name == "default-backend"
+  }
+
+  def "getBackendServicesFromRegionalExternalHttpLoadBalancerView extracts services from host rules"() {
+    given:
+    def lb = new GoogleRegionalExternalHttpLoadBalancer()
+    def defaultService = new GoogleBackendService(name: "default-backend")
+    lb.defaultService = defaultService
+
+    def pathMatcherDefaultService = new GoogleBackendService(name: "path-default-backend")
+    def pathRuleService = new GoogleBackendService(name: "api-backend")
+
+    def pathRule = new GooglePathRule(
+      paths: ["/api/*"],
+      backendService: pathRuleService
+    )
+
+    def pathMatcher = new GooglePathMatcher(
+      defaultService: pathMatcherDefaultService,
+      pathRules: [pathRule]
+    )
+
+    def hostRule = new GoogleHostRule(
+      hostPatterns: ["*.example.com"],
+      pathMatcher: pathMatcher
+    )
+
+    lb.hostRules = [hostRule]
+
+    when:
+    def result = Utils.getBackendServicesFromRegionalExternalHttpLoadBalancerView(lb.view)
+
+    then:
+    result.size() == 3
+    result*.name.containsAll(["default-backend", "path-default-backend", "api-backend"])
+  }
+
+  def "getBackendServicesFromRegionalExternalHttpLoadBalancerView handles null host rules"() {
+    given:
+    def lb = new GoogleRegionalExternalHttpLoadBalancer()
+    def defaultService = new GoogleBackendService(name: "default-backend")
+    lb.defaultService = defaultService
+    lb.hostRules = null
+
+    when:
+    def result = Utils.getBackendServicesFromRegionalExternalHttpLoadBalancerView(lb.view)
+
+    then:
+    result.size() == 1
+    result[0].name == "default-backend"
+  }
+
+  def "getBackendServicesFromRegionalExternalHttpLoadBalancerView handles multiple host rules"() {
+    given:
+    def lb = new GoogleRegionalExternalHttpLoadBalancer()
+    def defaultService = new GoogleBackendService(name: "default-backend")
+    lb.defaultService = defaultService
+
+    def service1 = new GoogleBackendService(name: "service-1")
+    def service2 = new GoogleBackendService(name: "service-2")
+
+    def pathMatcher1 = new GooglePathMatcher(defaultService: service1)
+    def pathMatcher2 = new GooglePathMatcher(defaultService: service2)
+
+    def hostRule1 = new GoogleHostRule(
+      hostPatterns: ["api.example.com"],
+      pathMatcher: pathMatcher1
+    )
+
+    def hostRule2 = new GoogleHostRule(
+      hostPatterns: ["web.example.com"],
+      pathMatcher: pathMatcher2
+    )
+
+    lb.hostRules = [hostRule1, hostRule2]
+
+    when:
+    def result = Utils.getBackendServicesFromRegionalExternalHttpLoadBalancerView(lb.view)
+
+    then:
+    result.size() == 3
+    result*.name.containsAll(["default-backend", "service-1", "service-2"])
   }
 }
