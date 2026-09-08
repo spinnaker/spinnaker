@@ -100,7 +100,9 @@ export function EvaluateVariablesStageConfig(props: IStageConfigProps) {
       application={application}
       stage={stage}
       pipeline={pipeline}
-      validate={(stageToValidate) => validateEvaluateVariablesStage(stageToValidate, dashedIdentifiersEnabled)}
+      validate={(stageToValidate) =>
+        validateEvaluateVariablesStage(stageToValidate as IStage, dashedIdentifiersEnabled)
+      }
       onChange={updateStage}
       render={(renderProps) => {
         return (
