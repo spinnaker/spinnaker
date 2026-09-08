@@ -5,45 +5,49 @@ on:
   schedule:
     - cron: '0 0 */1 * *' # runs daily
   workflow_dispatch: # allows for manual invocation
+    inputs:
+      dry-run:
+        description: 'Preview deletions without actually deleting images'
+        type: boolean
+        default: true
 
 jobs:
   ghcr-cleaner:
     runs-on: 'ubuntu-latest'
+    permissions:
+      contents: read
+      packages: read
+      actions: write
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          - clouddriver
+          - deck
+          - echo
+          - fiat
+          - front50
+          - gate
+          - halyard
+          - igor
+          - kayenta
+          - keel
+          - orca
+          - rosco
+    concurrency:
+      group: ghcr-cleanup-manager-spinnaker-${{ matrix.package }}
     steps:
-      # configure based on your registry
-      - name: Login to GHCR
-        uses: docker/login-action@v4 # Use the latest stable version
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: 'stable'
-
-      - name: Install gcr-cleaner-cli
-        run: go install github.com/GoogleCloudPlatform/gcr-cleaner/cmd/gcr-cleaner-cli@latest
-
-      # delete untaggd images older than 48 hours
+      # delete untagged images older than 48 hours
       - name: Clean images
-        run: |
-          $(go env GOPATH)/bin/gcr-cleaner-cli \
-            -repo=ghcr.io/spinnaker/clouddriver \
-            -repo=ghcr.io/spinnaker/deck \
-            -repo=ghcr.io/spinnaker/echo \
-            -repo=ghcr.io/spinnaker/fiat \
-            -repo=ghcr.io/spinnaker/front50 \
-            -repo=ghcr.io/spinnaker/gate \
-            -repo=ghcr.io/spinnaker/halyard \
-            -repo=ghcr.io/spinnaker/igor \
-            -repo=ghcr.io/spinnaker/kayenta \
-            -repo=ghcr.io/spinnaker/keel \
-            -repo=ghcr.io/spinnaker/orca \
-            -repo=ghcr.io/spinnaker/rosco \
-            -grace=48h \
-            -dry-run=true
+        uses: ghcr-manager/ghcr-cleanup-manager@v1.1.12
+        with:
+          command: cleanup
+          token: ${{ secrets.GITHUB_TOKEN }}
+          owner: spinnaker
+          package: ${{ matrix.package }}
+          delete-untagged: true
+          older-than: 48 hours
+          dry-run: ${{ github.event.inputs.dry-run != 'false' }}
 
   gcr-cleaner:
     runs-on: 'ubuntu-latest'
@@ -71,4 +75,4 @@ jobs:
           $(go env GOPATH)/bin/gcr-cleaner-cli \
             -repo=us-docker.pkg.dev/spinnaker-community/docker \
             -grace=48h \
-            -dry-run=true
+            -dry-run=${{ github.event.inputs.dry-run != 'false' }}
