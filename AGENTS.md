@@ -9,12 +9,12 @@
 - **Type:** Monorepo with Gradle composite builds
 - **Backend:** Java/Kotlin (Spring Boot microservices)
 - **Frontend:** TypeScript/React (Deck, including `deck/packages/kayenta`)
-- **Build System:** Gradle (backend), Yarn/Webpack (frontend)
+- **Build System:** Gradle (backend), pnpm/Webpack (frontend)
 - **Storage:** Redis (queues/caching), MySQL/SQL (persistence)
 
 ### Microservices
 
-| Service       | Purpose                       | Debug Port |
+| Service       | Purpose                       | Default Port |
 |---------------|-------------------------------|------------|
 | `clouddriver` | Cloud provider integrations   | 7002       |
 | `orca`        | Orchestration engine          | 8083       |
@@ -25,74 +25,87 @@
 | `fiat`        | Authorization service         | 7003       |
 | `rosco`       | Image bakery (Packer/Helm)    | 8087       |
 | `kayenta`     | Automated canary analysis     | 8090       |
+| `keel`        | Declarative delivery          | 7010       |
 | `kork`        | Shared service libraries      | -          |
 | `deck`        | Spinnaker UI                  | 9000       |
 
 ## Development Environment
 
-### Setup (Backend)
-```bash
-# Build all backend services
-./gradlew build
-```
+### Backend
+Use the repository's Gradle wrapper. No separate backend dependency-install step is required;
+the wrapper resolves Gradle and project dependencies when running the tasks below.
 
-### Setup (Frontend - deck)
+### Frontend (Deck)
+Use the Node and pnpm versions declared in `deck/package.json` (`engines.node` and
+`packageManager`). Deck uses a pnpm workspace and lockfile; don't substitute npm or Yarn.
+
+Run this command from the `deck/` directory to install workspace dependencies:
+
 ```bash
-cd deck
 pnpm install
 pnpm modules
 pnpm build
 ```
 
-### Navigation
-- `/clouddriver/` - Cloud provider service
-- `/orca/` - Orchestration engine
-- `/gate/` - API gateway
-- `/front50/` - Metadata store
-- `/echo/` - Events/notifications
-- `/igor/` - CI integrations
-- `/fiat/` - Authorization
-- `/rosco/` - Image bakery
-- `/kayenta/` - Canary analysis
-- `/kork/` - Shared libraries
-- `/deck/` - UI (React/TypeScript)
-- `/deck/packages/kayenta/` - Canary UI package
-
 ## Build & Test
 
 ### Backend (Gradle)
 ```bash
-./gradlew build          # Build all services
-./gradlew test           # Run all tests
+./gradlew build          # Build all main backend composite builds
+./gradlew test           # Test all main backend composite builds
 ./gradlew :orca:test     # Test single service
 ./gradlew spotlessCheck  # Check code formatting
 ./gradlew spotlessApply  # Apply formatting
 ```
 
+### Running services
+Service-name Gradle tasks such as `./gradlew orca` and the aggregate `./gradlew run` start
+long-running processes. They are not build or test checks; use them only when an intentional
+runtime smoke test requires a running service.
+
 ### Frontend (deck)
+Run these commands from the `deck/` directory.
+
 ```bash
-cd deck
+pnpm modules             # Build Deck workspace modules
 pnpm build               # Production build
-pnpm test                # Run unit tests
-pnpm lint                # ESLint check
+pnpm test                # Run workspace-wide Deck unit tests
+pnpm lint                # Lint all Deck packages
 pnpm prettier:check      # Check formatting
 pnpm prettier            # Apply formatting
 ```
 
-### Frontend (Deck Kayenta)
+### Frontend (Deck Kayenta package)
+Run these commands from the `deck/` directory.
+
 ```bash
-cd deck
-pnpm --filter @spinnaker/kayenta build
-pnpm test
-pnpm lint
+pnpm --filter @spinnaker/kayenta build  # Build only the Kayenta package
+# Kayenta has no package-scoped test or lint scripts; use the root commands above.
 ```
 
 ## Testing Strategy
 - Prefer running single service tests: `./gradlew :servicename:test`
-- Backend uses JUnit 5 (via `useJUnitPlatform()`)
+- Backend tests run on the JUnit Platform; new Java tests use JUnit 5, while some existing suites use Groovy/Spock
 - Frontend uses Karma for Deck packages, including Kayenta
-- Fix all test/type errors before committing
-- Run `spotlessCheck` / `pnpm lint` before commits
+- Kotlin modules can define Detekt checks in addition to Spotless; inspect the target module's
+  Gradle configuration and run them when configured
+- Fix all test/type errors introduced by the change before committing
+- Run the applicable formatting and lint checks before committing: `./gradlew spotlessCheck`
+  for backend changes and `pnpm lint` from `deck/` for frontend changes
+
+### Choosing validation scope
+- Start with the narrowest test or build task that exercises the changed behavior, then expand
+  validation according to the affected dependency graph.
+- Use [`.github/dependencies.yml`](.github/dependencies.yml) as the source of truth for CI
+  service fan-out. Changes to shared builds such as `kork` or `fiat` can require validation
+  of downstream services; a passing shared-module test alone may not be sufficient.
+- Root `./gradlew test` validates the main backend composite builds. Deck, Spin, and
+  `spinnaker-gradle-project` use separate lifecycle and validation commands.
+- Clouddriver conditionally includes provider and artifact subprojects according to
+  `clouddriver/settings.gradle`; inspect that configuration before assuming a subproject is
+  part of the active build.
+- If broader validation fails, determine whether the change introduced the failure. Do not
+  modify unrelated code solely to make a pre-existing failure pass; report it separately.
 
 ## Repository Map
 ```
@@ -106,11 +119,13 @@ pnpm lint
 /fiat/                  # Authorization
 /rosco/                 # Image bakery
 /kayenta/               # Canary analysis
+/keel/                  # Declarative delivery
 /kork/                  # Shared libraries
 /deck/                  # Main UI (React)
 /deck/packages/         # UI workspace packages
 /deck/packages/kayenta/ # Canary UI package
-/spinnaker-gradle-project/ # Gradle plugins
+/spin/                  # Spinnaker CLI; separate build lifecycle
+/spinnaker-gradle-project/ # Gradle plugins; separate build lifecycle
 ```
 
 ## Code Style
@@ -118,16 +133,16 @@ pnpm lint
 - Frontend: Prettier + ESLint for TypeScript/JavaScript
 - Enable Lombok annotation processing in IDE for backend development
 - New UI changes should use React (not Angular)
+- **Before first writing or reviewing code in a session, read [CODE_STYLE.md](CODE_STYLE.md). Revisit relevant sections if the scope changes.** It captures the maintainers' conventions and roadmap constraints (what tooling doesn't enforce), for both writing conforming code and reviewing PRs.
 
 ## Git & PR Policy
-- **Commits:** Ask permission before pushing
+- **Pushes:** Ask permission before pushing
 - **PRs:** Create as drafts (`gh pr create --draft`)
-- Run `./gradlew spotlessCheck` and `pnpm lint` before committing
-- Ensure tests pass locally before pushing
+- Ensure applicable tests pass locally before pushing
 
 ## Security Considerations
 - Never commit secrets, API keys, or credentials
 - Be cautious with cloud provider configurations
 - Review authorization changes in Fiat carefully
 - Validate input in Gate API endpoints
-- Follow OWASP guidelines for web security in deck
+- Follow the [OWASP Top 10](https://owasp.org/www-project-top-ten/) when making security-relevant changes in Deck
