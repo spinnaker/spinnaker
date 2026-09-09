@@ -173,6 +173,11 @@ class McpServerAutoConfigurationTest {
     TaskService taskService() {
       return mock(TaskService.class);
     }
+
+    @Bean
+    ObjectMapper objectMapper() {
+      return new ObjectMapper();
+    }
   }
 
   @Configuration(proxyBeanMethods = false)
@@ -188,11 +193,6 @@ class McpServerAutoConfigurationTest {
     @Bean
     KeelService keelService() {
       return mock(KeelService.class);
-    }
-
-    @Bean
-    ObjectMapper objectMapper() {
-      return new ObjectMapper();
     }
   }
 }
