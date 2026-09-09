@@ -85,9 +85,10 @@ export function EvaluateVariablesStageConfig(props: IStageConfigProps) {
   const [dashedIdentifiersEnabled, setDashedIdentifiersEnabled] = React.useState(false);
 
   React.useEffect(() => {
-    ExpressionCapabilitiesReader.getExpressionCapabilities()
-      .then((capabilities) => setDashedIdentifiersEnabled(capabilities.dashedIdentifiersEnabled))
-      .catch(() => setDashedIdentifiersEnabled(false));
+    ExpressionCapabilitiesReader.getExpressionCapabilities().then(
+      (capabilities) => setDashedIdentifiersEnabled(capabilities.dashedIdentifiersEnabled),
+      () => setDashedIdentifiersEnabled(false),
+    );
   }, []);
 
   const helpMessage =

@@ -7,7 +7,7 @@ export interface IExpressionCapabilities {
 }
 
 export class ExpressionCapabilitiesReader {
-  public static getExpressionCapabilities(): Promise<IExpressionCapabilities> {
+  public static getExpressionCapabilities(): PromiseLike<IExpressionCapabilities> {
     return REST('/capabilities/expressions').useCache(true).get();
   }
 }
