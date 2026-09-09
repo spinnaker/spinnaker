@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.gate.mcp.resources;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.gate.mcp.support.ManualJudgments;
 import com.netflix.spinnaker.gate.services.internal.Front50Service;
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector;
@@ -28,57 +30,70 @@ import org.springaicommunity.mcp.annotation.McpResource;
 /**
  * Read-only MCP resources exposing application, execution, and manual-judgment state for
  * continuous-delivery context gathering (as opposed to tools, which are for taking action).
+ *
+ * <p>{@code @McpResource} methods may only return {@code String}, {@code ResourceContents}, a
+ * {@code List} of those, or {@code ReadResourceResult} - not arbitrary POJOs/Maps - so results are
+ * serialized to a JSON string here.
  */
 public class SpinnakerResources {
 
   private final Front50Service front50Service;
   private final OrcaServiceSelector orcaServiceSelector;
+  private final ObjectMapper objectMapper;
 
   public SpinnakerResources(
-      Front50Service front50Service, OrcaServiceSelector orcaServiceSelector) {
+      Front50Service front50Service,
+      OrcaServiceSelector orcaServiceSelector,
+      ObjectMapper objectMapper) {
     this.front50Service = front50Service;
     this.orcaServiceSelector = orcaServiceSelector;
+    this.objectMapper = objectMapper;
   }
 
   @McpResource(
       uri = "spinnaker://applications/{application}",
       name = "Application detail",
-      description = "Front50 metadata for a single Spinnaker application.")
-  @SuppressWarnings("unchecked")
-  public Map<String, Object> applicationDetail(
+      description = "Front50 metadata for a single Spinnaker application.",
+      mimeType = "application/json")
+  public String applicationDetail(
       @McpArg(name = "application", description = "Application name", required = true)
           String application) {
-    return (Map<String, Object>)
-        Retrofit2SyncCall.execute(front50Service.getApplication(application));
+    return writeValueAsString(
+        Retrofit2SyncCall.execute(front50Service.getApplication(application)));
   }
 
   @McpResource(
       uri = "spinnaker://applications/{application}/pipelines",
       name = "Application recent executions",
-      description = "The most recent pipeline executions for an application, newest first.")
-  public List<Map<String, Object>> applicationPipelines(
+      description = "The most recent pipeline executions for an application, newest first.",
+      mimeType = "application/json")
+  public String applicationPipelines(
       @McpArg(name = "application", description = "Application name", required = true)
           String application) {
-    return Retrofit2SyncCall.execute(
-        orcaServiceSelector.select().getPipelines(application, 20, null, false, null, null));
+    return writeValueAsString(
+        Retrofit2SyncCall.execute(
+            orcaServiceSelector.select().getPipelines(application, 20, null, false, null, null)));
   }
 
   @McpResource(
       uri = "spinnaker://executions/{executionId}",
       name = "Execution detail",
-      description = "Full detail for a single pipeline execution, including all stages.")
-  public Map<String, Object> executionDetail(
+      description = "Full detail for a single pipeline execution, including all stages.",
+      mimeType = "application/json")
+  public String executionDetail(
       @McpArg(name = "executionId", description = "Pipeline execution id", required = true)
           String executionId) {
-    return Retrofit2SyncCall.execute(orcaServiceSelector.select().getPipeline(executionId));
+    return writeValueAsString(
+        Retrofit2SyncCall.execute(orcaServiceSelector.select().getPipeline(executionId)));
   }
 
   @McpResource(
       uri = "spinnaker://applications/{application}/manual-judgments",
       name = "Pending manual judgments",
       description =
-          "Manual judgment stages currently blocking one of this application's running pipeline executions.")
-  public List<Map<String, Object>> applicationManualJudgments(
+          "Manual judgment stages currently blocking one of this application's running pipeline executions.",
+      mimeType = "application/json")
+  public String applicationManualJudgments(
       @McpArg(name = "application", description = "Application name", required = true)
           String application) {
     List<Map<String, Object>> runningExecutions =
@@ -86,6 +101,14 @@ public class SpinnakerResources {
             orcaServiceSelector
                 .select()
                 .getPipelines(application, 100, "RUNNING", true, null, null));
-    return ManualJudgments.findPendingAcross(runningExecutions);
+    return writeValueAsString(ManualJudgments.findPendingAcross(runningExecutions));
+  }
+
+  private String writeValueAsString(Object value) {
+    try {
+      return objectMapper.writeValueAsString(value);
+    } catch (JsonProcessingException e) {
+      throw new IllegalStateException("Failed to serialize MCP resource result", e);
+    }
   }
 }
