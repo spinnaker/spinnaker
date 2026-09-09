@@ -4,6 +4,7 @@ import React from 'react';
 
 import type { IExecutionAndStagePickerProps } from './ExecutionAndStagePicker';
 import { ExecutionAndStagePicker } from './ExecutionAndStagePicker';
+import { ExpressionCapabilitiesReader } from './ExpressionCapabilitiesReader';
 import type { IFormikStageConfigInjectedProps } from '../FormikStageConfig';
 import { FormikStageConfig } from '../FormikStageConfig';
 import type { IStageConfigProps } from '../common';
@@ -31,9 +32,14 @@ export interface IEvaluatedVariable {
   value: string;
 }
 
-const variableNameValidator: IValidator = (val: string, label: string) =>
-  !val.match(/^[a-zA-Z_][a-zA-Z0-9_]*$/) &&
-  errorMessage(`${label} should consist only of letters, numbers, or underscore`);
+const createVariableNameValidator = (dashedIdentifiersEnabled: boolean): IValidator => {
+  const pattern = dashedIdentifiersEnabled ? /^[a-zA-Z_][a-zA-Z0-9_-]*$/ : /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+  const allowedCharacters = dashedIdentifiersEnabled
+    ? 'letters, numbers, underscore, or hyphen'
+    : 'letters, numbers, or underscore';
+  return (val: string, label: string) =>
+    !val.match(pattern) && errorMessage(`${label} should consist only of ${allowedCharacters}`);
+};
 
 const duplicateKeyValidatorFactory = (variables: IEvaluatedVariable[] = []) => {
   const keyCounts = countBy(
@@ -43,9 +49,10 @@ const duplicateKeyValidatorFactory = (variables: IEvaluatedVariable[] = []) => {
   return (key: string) => keyCounts[key] > 1 && `Duplicate key '${key}'`;
 };
 
-export function validateEvaluateVariablesStage(stage: IStage) {
+export function validateEvaluateVariablesStage(stage: IStage, dashedIdentifiersEnabled = false) {
   const formValidator = new FormValidator(stage);
   const duplicateKeyValidator = duplicateKeyValidatorFactory(stage.variables);
+  const variableNameValidator = createVariableNameValidator(dashedIdentifiersEnabled);
   formValidator.field('variables').withValidators(
     formValidator.arrayForEach((item) => {
       item.field('key', 'Variable Name').required().withValidators(variableNameValidator, duplicateKeyValidator);
@@ -75,6 +82,14 @@ function PreviewConfiguration(props: IExecutionAndStagePickerProps) {
 export function EvaluateVariablesStageConfig(props: IStageConfigProps) {
   const { application, stage, pipeline, updateStage } = props;
   const [chosenStage, setChosenStage] = React.useState({} as IStageForSpelPreview);
+  const [dashedIdentifiersEnabled, setDashedIdentifiersEnabled] = React.useState(false);
+
+  React.useEffect(() => {
+    ExpressionCapabilitiesReader.getExpressionCapabilities().then(
+      (capabilities) => setDashedIdentifiersEnabled(capabilities.dashedIdentifiersEnabled),
+      () => setDashedIdentifiersEnabled(false),
+    );
+  }, []);
 
   const helpMessage =
     'Define one or more variables by assigning a **name** _(string)_ and a **value** ' +
@@ -86,7 +101,9 @@ export function EvaluateVariablesStageConfig(props: IStageConfigProps) {
       application={application}
       stage={stage}
       pipeline={pipeline}
-      validate={validateEvaluateVariablesStage}
+      validate={(stageToValidate) =>
+        validateEvaluateVariablesStage(stageToValidate as IStage, dashedIdentifiersEnabled)
+      }
       onChange={updateStage}
       render={(renderProps) => {
         return (
