@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.gate.mcp.resources;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.gate.mcp.support.McpAuditLog;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -33,22 +35,29 @@ import org.springaicommunity.mcp.annotation.McpResource;
  *
  * <p>Entries are process-local and in-memory only (bounded by {@code mcp.server.audit-log-size});
  * see {@link McpAuditLog} for what "recorded" does and doesn't guarantee.
+ *
+ * <p>{@code @McpResource} methods may only return {@code String}, {@code ResourceContents}, a
+ * {@code List} of those, or {@code ReadResourceResult} - not arbitrary POJOs/Maps - so results are
+ * serialized to a JSON string here.
  */
 public class McpAuditLogResource {
 
   private final McpAuditLog auditLog;
+  private final ObjectMapper objectMapper;
 
-  public McpAuditLogResource(McpAuditLog auditLog) {
+  public McpAuditLogResource(McpAuditLog auditLog, ObjectMapper objectMapper) {
     this.auditLog = auditLog;
+    this.objectMapper = objectMapper;
   }
 
   @McpResource(
       uri = "spinnaker://mcp/audit-log",
       name = "MCP audit log",
       description =
-          "Recent mutating actions taken through this MCP server, most recent first, across all applications.")
-  public List<Map<String, Object>> auditLog() {
-    return toResponse(auditLog.recent(null));
+          "Recent mutating actions taken through this MCP server, most recent first, across all applications.",
+      mimeType = "application/json")
+  public String auditLog() {
+    return writeValueAsString(toResponse(auditLog.recent(null)));
   }
 
   @McpResource(
@@ -56,11 +65,20 @@ public class McpAuditLogResource {
       name = "MCP audit log for an application",
       description =
           "Recent mutating actions taken through this MCP server whose target matched this application/resource "
-              + "name, most recent first.")
-  public List<Map<String, Object>> auditLogForApplication(
+              + "name, most recent first.",
+      mimeType = "application/json")
+  public String auditLogForApplication(
       @McpArg(name = "application", description = "Application name", required = true)
           String application) {
-    return toResponse(auditLog.recent(application));
+    return writeValueAsString(toResponse(auditLog.recent(application)));
+  }
+
+  private String writeValueAsString(Object value) {
+    try {
+      return objectMapper.writeValueAsString(value);
+    } catch (JsonProcessingException e) {
+      throw new IllegalStateException("Failed to serialize MCP resource result", e);
+    }
   }
 
   private static List<Map<String, Object>> toResponse(List<McpAuditLog.Entry> entries) {
