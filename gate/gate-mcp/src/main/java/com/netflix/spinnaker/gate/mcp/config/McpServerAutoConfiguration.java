@@ -204,13 +204,15 @@ public class McpServerAutoConfiguration {
 
   @Bean
   public SpinnakerResources spinnakerResources(
-      Front50Service front50Service, OrcaServiceSelector orcaServiceSelector) {
-    return new SpinnakerResources(front50Service, orcaServiceSelector);
+      Front50Service front50Service,
+      OrcaServiceSelector orcaServiceSelector,
+      ObjectMapper objectMapper) {
+    return new SpinnakerResources(front50Service, orcaServiceSelector, objectMapper);
   }
 
   @Bean
-  public McpAuditLogResource mcpAuditLogResource(McpAuditLog auditLog) {
-    return new McpAuditLogResource(auditLog);
+  public McpAuditLogResource mcpAuditLogResource(McpAuditLog auditLog, ObjectMapper objectMapper) {
+    return new McpAuditLogResource(auditLog, objectMapper);
   }
 
   @Bean
