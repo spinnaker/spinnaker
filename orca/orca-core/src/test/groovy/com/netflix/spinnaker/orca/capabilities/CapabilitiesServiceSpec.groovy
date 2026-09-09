@@ -32,6 +32,7 @@ class CapabilitiesServiceSpec extends Specification {
     ExpressionProperties.FeatureFlag featureFlag = new ExpressionProperties.FeatureFlag()
     featureFlag.setEnabled(false) // arbitrary, the tests here don't care
     getDoNotEvalSpel() >> featureFlag
+    getDashedIdentifiers() >> new ExpressionProperties.FeatureFlag().setEnabled(false)
   }
 
   def 'should return valid data'() {
@@ -64,5 +65,23 @@ class CapabilitiesServiceSpec extends Specification {
     spelVersions == supportedSpelEvaluators
     spelVersions.contains(PipelineExpressionEvaluator.SpelEvaluatorVersion.V3.key)
     spelVersions.contains(PipelineExpressionEvaluator.SpelEvaluatorVersion.V4.key)
+  }
+
+  def 'should reflect whether dashed identifier support is enabled'() {
+    given:
+    ExpressionProperties properties = Mock() {
+      getDoNotEvalSpel() >> new ExpressionProperties.FeatureFlag().setEnabled(false)
+      getDashedIdentifiers() >> new ExpressionProperties.FeatureFlag().setEnabled(dashedIdentifiersEnabled)
+    }
+    CapabilitiesService capabilitiesService = new CapabilitiesService([], pluginManager, properties)
+
+    when:
+    ExpressionCapabilityResult capabilities = capabilitiesService.getExpressionCapabilities()
+
+    then:
+    capabilities.dashedIdentifiersEnabled == dashedIdentifiersEnabled
+
+    where:
+    dashedIdentifiersEnabled << [true, false]
   }
 }
