@@ -19,7 +19,6 @@ package com.netflix.spinnaker.gate.security.saml;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -119,8 +118,7 @@ class SecuritySamlPropertiesTest {
 
   private Path keystoreResource() {
     try {
-      return Paths.get(
-          SecuritySamlPropertiesTest.class.getResource("/saml_signing.p12").toURI());
+      return Paths.get(SecuritySamlPropertiesTest.class.getResource("/saml_signing.p12").toURI());
     } catch (URISyntaxException e) {
       throw new RuntimeException(e);
     }

@@ -69,7 +69,6 @@ public class SecuritySamlProperties {
   private String signingKeystorePassword;
   private String signingKeystoreAliasName = "mykey"; // default alias for keytool
 
-
   // the privatekey/cert location files can be generated via
   // openssl req -new -x509 -nodes -keyout private_key.pem -out certificate.pem -subj
   // "/CN=Spinnaker" -days 3650
@@ -115,7 +114,7 @@ public class SecuritySamlProperties {
   }
 
   public Saml2X509Credential getSigningKeystoreCredential()
-    throws IOException, GeneralSecurityException {
+      throws IOException, GeneralSecurityException {
     if (signingKeystore == null) {
       return null;
     }
@@ -123,7 +122,8 @@ public class SecuritySamlProperties {
       signingKeystoreType = "PKCS12";
     }
     KeyStore store = KeyStore.getInstance(signingKeystoreType);
-    char[] password = signingKeystorePassword != null ? signingKeystorePassword.toCharArray() : new char[0];
+    char[] password =
+        signingKeystorePassword != null ? signingKeystorePassword.toCharArray() : new char[0];
     try (var stream = Files.newInputStream(signingKeystore)) {
       store.load(stream, password);
     }
