@@ -13,6 +13,10 @@ on:
         required: true
       spinnaker-previous-version:
         description: Override the previous version used for changelog generation (picks the last patch version if unset)
+      publish-api-docs:
+        description: Publish Gate's OpenAPI spec to the docs site? Only set true for the most current release.
+        type: boolean
+        required: true
 permissions:
   id-token: write
   contents: write
@@ -217,3 +221,4 @@ jobs:
       add-to-versions-yml: ${{ inputs.add-to-versions-yml }}
       spinnaker-version: ${{ inputs.spinnaker-version }}
       spinnaker-previous-version: ${{ inputs.spinnaker-previous-version }}
+      publish-api-docs: ${{ inputs.publish-api-docs }}
