@@ -59,9 +59,15 @@ import org.springframework.validation.annotation.Validated;
 public class SecuritySamlProperties {
   public static final String FILE_PREFIX = "file:";
   private Path keyStore;
+
   private String keyStoreType = "PKCS12";
   private String keyStorePassword;
   private String keyStoreAliasName = "mykey"; // default alias for keytool
+
+  private Path signingKeystore;
+  private String signingKeystoreType = "PKCS12";
+  private String signingKeystorePassword;
+  private String signingKeystoreAliasName = "mykey"; // default alias for keytool
 
   // the privatekey/cert location files can be generated via
   // openssl req -new -x509 -nodes -keyout private_key.pem -out certificate.pem -subj
@@ -105,6 +111,33 @@ public class SecuritySamlProperties {
     var certificate = (X509Certificate) store.getCertificate(alias);
     var privateKey = (PrivateKey) store.getKey(alias, password);
     return Saml2X509Credential.decryption(privateKey, certificate);
+  }
+
+  public Saml2X509Credential getSigningKeystoreCredential()
+      throws IOException, GeneralSecurityException {
+    if (signingKeystore == null) {
+      return null;
+    }
+    if (signingKeystoreType == null) {
+      signingKeystoreType = "PKCS12";
+    }
+    KeyStore store = KeyStore.getInstance(signingKeystoreType);
+    char[] password =
+        signingKeystorePassword != null ? signingKeystorePassword.toCharArray() : new char[0];
+    try (var stream = Files.newInputStream(signingKeystore)) {
+      store.load(stream, password);
+    }
+    String alias = signingKeystoreAliasName;
+    if (!store.containsAlias(alias)) {
+      var aliases = caseInsensitiveSetFromAliasEnumeration(store.aliases());
+      throw new GeneralSecurityException(
+          String.format(
+              "Signing keystore '%s' does not contain alias '%s'; found aliases: %s",
+              signingKeystore, alias, aliases));
+    }
+    var certificate = (X509Certificate) store.getCertificate(alias);
+    var privateKey = (PrivateKey) store.getKey(alias, password);
+    return Saml2X509Credential.signing(privateKey, certificate);
   }
 
   private static String addFilePrefixIfNeeded(String property) {
