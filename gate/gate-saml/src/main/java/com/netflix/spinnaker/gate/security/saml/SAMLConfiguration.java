@@ -43,6 +43,9 @@ import org.springframework.security.saml2.provider.service.registration.RelyingP
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(SecuritySamlProperties.class)
 public class SAMLConfiguration {
@@ -94,9 +97,23 @@ public class SAMLConfiguration {
       // This is used in some identity providers to sign the request.  NOT the response - response
       // is handled via the certs in metadata or up above.  This is keycloak and some others
       // TO USE THIS:  The certificate should be uploaded to the IDP to allow it to decrypt these
-      // requests
+      // requests. 
       if (properties.isSignRequests()) {
-        builder.signingX509Credentials(c -> c.addAll(properties.getSigningCredentials()));
+        // THIS FORCES requests to be signed even if the metadata says they shouldn't be signed
+        // this is an edge case where some providers require signing, but their metadata doesn't set it
+        builder.authnRequestsSigned(true);
+        var signingCredentials = properties.getSigningCredentials();
+        if (!signingCredentials.isEmpty()) {
+          builder.signingX509Credentials(c -> c.addAll(signingCredentials));
+        } else if (properties.getSigningKeystore() != null) {
+          builder.signingX509Credentials(c -> {
+            try {
+              c.add(properties.getSigningKeystoreCredential());
+            } catch (IOException | GeneralSecurityException e) {
+              throw new RuntimeException(e);
+            }
+          });
+        }
       }
       RelyingPartyRegistration registration = builder.build();
       return new InMemoryRelyingPartyRegistrationRepository(registration);
@@ -105,7 +122,8 @@ public class SAMLConfiguration {
     @Bean
     // ManagedDeliverySchemaEndpointConfiguration#schemaSecurityFilterChain should go first
     @Order(3)
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    // Make sure the registration is a bean so someone can overload it IF really needed, and make sure we use the bean generated up above which otherwise isn't needed as a bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, RelyingPartyRegistrationRepository relyingPartyRegistrationRepository) throws Exception {
       authConfig.configure(http);
       HttpSessionRequestCache requestCache = new HttpSessionRequestCache();
       requestCache.setMatchingRequestParameterName(null);
@@ -117,7 +135,7 @@ public class SAMLConfiguration {
               saml ->
                   saml.authenticationManager(new ProviderManager(authenticationProvider))
                       .loginProcessingUrl(properties.getLoginProcessingUrl())
-                      .relyingPartyRegistrationRepository(relyingPartyRegistrationRepository()))
+                      .relyingPartyRegistrationRepository(relyingPartyRegistrationRepository))
           .requestCache(cache -> cache.requestCache(requestCache))
           .build();
     }
