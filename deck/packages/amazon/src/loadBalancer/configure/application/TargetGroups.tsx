@@ -35,7 +35,7 @@ export class TargetGroups
   implements IWizardPageComponent<IAmazonApplicationLoadBalancerUpsertCommand> {
   public protocols = ['HTTP', 'HTTPS'];
   public targetTypes = ['instance', 'ip', 'lambda'];
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   constructor(props: ITargetGroupsProps) {
     super(props);

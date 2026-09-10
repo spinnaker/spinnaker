@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import * as React from 'react';
-import type { Dispatch } from 'react-redux';
 import { connect } from 'react-redux';
+import type { Dispatch } from 'redux';
 
 import * as Creators from '../../actions/creators';
 import ClickableHeader from './clickableHeader';
@@ -59,7 +59,7 @@ const mapStateToProps = (state: ICanaryState): IGroupScoresStateProps => ({
 });
 
 const mapDispatchToProps = (
-  dispatch: Dispatch<ICanaryState>,
+  dispatch: Dispatch,
   ownProps: IGroupScoresOwnProps,
 ): IGroupScoresOwnProps & IGroupScoresDispatchProps => ({
   select: (group: string) => dispatch(Creators.selectReportMetricGroup({ group })),

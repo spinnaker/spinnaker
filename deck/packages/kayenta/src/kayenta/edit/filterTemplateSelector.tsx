@@ -159,7 +159,7 @@ const mapStateToProps = (state: ICanaryState): IFilterTemplateSelectorStateProps
   validation: editingTemplateValidationSelector(state),
 });
 
-const mapDispatchToProps = (dispatch: Dispatch<ICanaryState>): IFilterTemplateSelectorDispatchProps => ({
+const mapDispatchToProps = (dispatch: Dispatch): IFilterTemplateSelectorDispatchProps => ({
   deleteTemplate: (e: any, name: string) => {
     e.stopPropagation();
     dispatch(Creators.selectTemplate({ name: null }));

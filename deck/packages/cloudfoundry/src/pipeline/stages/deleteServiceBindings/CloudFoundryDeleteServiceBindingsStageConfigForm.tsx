@@ -17,7 +17,7 @@ export class CloudFoundryDeleteServiceBindingsStageConfigForm extends React.Comp
   IFormikStageConfigInjectedProps,
   ICloudFoundryDeleteServiceBindingsStageConfigState
 > {
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   constructor(props: IFormikStageConfigInjectedProps, context: any) {
     super(props, context);

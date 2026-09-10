@@ -1,19 +1,34 @@
 packages:
   - 'packages/*'
 overrides:
-  '@types/react': 16.14.10
+  '@types/react': 17.0.93
+  '@types/react-dom': 17.0.26
   '@uirouter/core': 6.0.8
   '@uirouter/react': 1.0.7
   cheerio: 1.0.0-rc.3
   nth-check: 2.0.1
-  react: ^16.14.0
-  react-dom: ^16.14.0
-  rxjs: 6.6.7
-  # lerna's own inquirer dependency needs a modern rxjs; the blanket
-  # override above must not force it down to 6.6.7 or `lerna publish`
-  # crashes at startup (inquirer's ESM build imports `concatMap` from
-  # 'rxjs', which rxjs 6 only exposes via 'rxjs/operators').
-  inquirer@12>rxjs: ^7.8.2
+  react: ^17.0.2
+  react-dom: ^17.0.2
+  # react-bootstrap@0.32.1 and react-bootstrap-typeahead@3.4.7 both pin
+  # react-overlays to ^0.8.0 (effectively 0.8.x-only under real semver
+  # caret rules for a 0.x version), whose RootCloseWrapper fires its
+  # "click outside" handler immediately under React 17's event-delegation
+  # change - dropdowns open and instantly close again. Fixed upstream in
+  # react-overlays 0.9.x (react-bootstrap/react-overlays#889); override
+  # past the ^0.8.0 ceiling since neither consumer's own range reaches it.
+  react-overlays: ^0.9.3
+  rxjs: ^7.8.2
+  # kayenta's canary epic middleware runs on redux-observable@1.x, whose
+  # latest major (2.x/3.x, needed for rxjs 7) requires redux >=5 and
+  # react-redux 8/9 (React 18+) — a separate migration bundled with the
+  # React major-version upgrade. Pin kayenta's whole rxjs resolution back
+  # to 6.6.7 (rather than just redux-observable's) so it keeps working on
+  # rxjs 6 while everything else moves to rxjs 7: rxjs is only a *peer*
+  # dependency of redux-observable, and pnpm's peer-dependency
+  # auto-install reuses whatever rxjs is nearest in scope (i.e. kayenta's
+  # own) rather than honoring a scoped override on redux-observable
+  # itself.
+  '@spinnaker/kayenta>rxjs': 6.6.7
   typescript: 5.0.4
 allowBuilds:
   bufferutil: true

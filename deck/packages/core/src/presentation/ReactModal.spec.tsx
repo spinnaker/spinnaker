@@ -261,8 +261,10 @@ describe('ReactModal router context', () => {
       const rejectionReasons: unknown[] = [];
       modal.catch((reason) => rejectionReasons.push(reason));
 
-      ReactModal.dismissAll('runtime-disposed');
-      ReactModal.dismissAll('ignored-repeat');
+      act(() => {
+        ReactModal.dismissAll('runtime-disposed');
+        ReactModal.dismissAll('ignored-repeat');
+      });
 
       expect(modalRoot.isConnected).toBe(false);
       expect(onModalClose).toHaveBeenCalledTimes(1);

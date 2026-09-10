@@ -33,7 +33,12 @@ describe('infrastructure states', () => {
     const errorBoundary = shallow(React.createElement(view.component));
 
     expect(errorBoundary.type()).toBe(SpinErrorBoundary);
-    expect(errorBoundary.prop('children').type.displayName).toBe(SearchV1.displayName);
+    // React 17's dev-mode forwardRef defines `displayName` as a non-enumerable
+    // getter/setter (for its own dev warnings), so it doesn't survive whatever
+    // enumerable-keys-only copy @uirouter/react's state/view registration does
+    // internally on its way through the state registry. The `render` function
+    // reference is unaffected and reliably identifies the routed component.
+    expect((errorBoundary.prop('children').type as any).render).toBe((SearchV1 as any).render);
     expect(view.$type).toBe('react');
     expect(searchState.url).toContain('&route');
     expect(searchState.params.route.dynamic).toBe(true);
@@ -48,7 +53,8 @@ describe('infrastructure states', () => {
     const errorBoundary = shallow(React.createElement(view.component));
 
     expect(errorBoundary.type()).toBe(SpinErrorBoundary);
-    expect(errorBoundary.prop('children').type.displayName).toBe(SearchV2.displayName);
+    // See the V1 test above for why `render` is compared instead of `displayName`.
+    expect((errorBoundary.prop('children').type as any).render).toBe((SearchV2 as any).render);
     expect(view.$type).toBe('react');
     router.dispose();
   });

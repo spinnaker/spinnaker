@@ -26,7 +26,7 @@ export interface IPipelineOptionsState {
 }
 
 export class PipelineOptions extends React.Component<IPipelineOptionsProps, IPipelineOptionsState> {
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   constructor(props: IPipelineOptionsProps) {
     super(props);

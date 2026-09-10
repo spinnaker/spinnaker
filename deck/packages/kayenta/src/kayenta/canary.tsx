@@ -1,8 +1,8 @@
 import type { UIRouter } from '@uirouter/core';
 import { UIView } from '@uirouter/react';
 import * as React from 'react';
-import type { Store } from 'react-redux';
 import { Provider } from 'react-redux';
+import type { Store } from 'redux';
 import { applyMiddleware, createStore } from 'redux';
 import { logger } from 'redux-logger';
 
@@ -12,7 +12,12 @@ import { INITIALIZE } from './actions';
 import { CanarySettings } from './canary.settings';
 import type { ICanaryConfigSummary, IJudge } from './domain';
 import Styleguide from './layout/styleguide';
-import { actionInterceptingMiddleware, asyncDispatchMiddleware, createKayentaEpicMiddleware } from './middleware';
+import {
+  actionInterceptingMiddleware,
+  asyncDispatchMiddleware,
+  createKayentaEpicMiddleware,
+  createKayentaRootEpic,
+} from './middleware';
 import type { ICanaryState } from './reducers';
 import { rootReducer } from './reducers';
 
@@ -27,11 +32,13 @@ export function initializeCanaryStore(uiRouter: UIRouter): void {
     return;
   }
 
-  const middleware = [createKayentaEpicMiddleware(uiRouter), actionInterceptingMiddleware, asyncDispatchMiddleware];
-  canaryStore = createStore<ICanaryState>(
+  const epicMiddleware = createKayentaEpicMiddleware();
+  const middleware = [epicMiddleware, actionInterceptingMiddleware, asyncDispatchMiddleware];
+  canaryStore = createStore(
     rootReducer,
     applyMiddleware(...(CanarySettings.reduxLogger ? [...middleware, logger] : middleware)),
   );
+  epicMiddleware.run(createKayentaRootEpic(uiRouter));
 }
 
 export default class Canary extends React.Component<ICanaryProps> {
