@@ -41,7 +41,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy;
 
@@ -56,9 +55,14 @@ import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy;
  * to the name of a different pool under {@code sql.connection-pools} stores artifacts in a separate
  * database instead.
  *
- * <p>Schema migrations for the {@code artifact_store} table are self-managed: this class runs its
- * own, independently-scoped {@link SpringLiquibase} against whichever connection pool was selected,
- * rather than requiring every host service to add this module's changelog to its own.
+ * <p>Schema migrations for the {@code artifact_store} table are self-managed: whichever connection
+ * pool was selected gets its own, independently-scoped Liquibase run against a uniquely-named
+ * changelog, rather than requiring every host service to add this module's changelog to its own.
+ * This runs the migration directly (not as a registered {@link SpringLiquibase} bean): {@link
+ * DefaultSqlConfiguration}'s own liquibase bean is
+ * {@code @ConditionalOnMissingBean(SpringLiquibase.class)}, so a second bean of that type here --
+ * even pointed at a different changelog -- could suppress the host service's own migration
+ * depending on configuration-processing order.
  */
 @Configuration
 @Import({DefaultSqlConfiguration.class, EntityStoreConfiguration.class})
@@ -70,35 +74,48 @@ public class SqlArtifactStoreConfiguration {
       ArtifactStoreConfigurationProperties properties,
       SqlProperties sqlProperties,
       DataSourceFactory dataSourceFactory,
-      DataSource dataSource) {
+      DataSource dataSource,
+      @Value("${sql.read-only:false}") boolean sqlReadOnly) {
     String poolName = properties.getSql().getConnectionPool();
+    DataSource artifactStoreDataSource;
     if (poolName == null) {
       // No override: reuse the host's own default pool/database.
-      return dataSource;
+      artifactStoreDataSource = dataSource;
+    } else {
+      ConnectionPoolProperties pool = sqlProperties.getConnectionPools().get(poolName);
+      if (pool == null) {
+        throw new IllegalStateException(
+            "artifact-store.sql.connectionPool '"
+                + poolName
+                + "' is not defined under sql.connection-pools");
+      }
+      artifactStoreDataSource = dataSourceFactory.build("artifact-store-" + poolName, pool);
     }
 
-    ConnectionPoolProperties pool = sqlProperties.getConnectionPools().get(poolName);
-    if (pool == null) {
-      throw new IllegalStateException(
-          "artifact-store.sql.connectionPool '"
-              + poolName
-              + "' is not defined under sql.connection-pools");
-    }
-    return dataSourceFactory.build("artifact-store-" + poolName, pool);
+    migrate(artifactStoreDataSource, sqlReadOnly);
+    return artifactStoreDataSource;
   }
 
-  @Bean(name = "artifactStoreLiquibase")
-  public SpringLiquibase artifactStoreLiquibase(
-      @Qualifier("artifactStoreDataSource") DataSource artifactStoreDataSource,
-      @Value("${sql.read-only:false}") boolean sqlReadOnly) {
+  /**
+   * Runs this module's schema migration directly against the resolved DataSource, rather than
+   * registering a Spring-managed {@link SpringLiquibase} bean (see class javadoc for why).
+   */
+  private static void migrate(DataSource dataSource, boolean sqlReadOnly) {
     SpringLiquibase liquibase = new SpringLiquibase();
-    liquibase.setDataSource(artifactStoreDataSource);
-    liquibase.setChangeLog("classpath:db/changelog-master.yml");
+    liquibase.setDataSource(dataSource);
+    // A uniquely-named file, not the conventional "db/changelog-master.yml" every kork-sql-based
+    // service already uses for its own migrations: this module now lives on the runtime classpath
+    // of services like clouddriver-web/orca-web alongside their own changelog-master.yml, and a
+    // single-resource classpath lookup for that generic name would be ambiguous between the two.
+    liquibase.setChangeLog("classpath:db/artifact-store-changelog-master.yml");
     liquibase.setShouldRun(!sqlReadOnly);
-    return liquibase;
+    try {
+      liquibase.afterPropertiesSet();
+    } catch (Exception e) {
+      throw new IllegalStateException("Failed to run artifact-store schema migration", e);
+    }
   }
 
-  @DependsOn("artifactStoreLiquibase")
   @Bean(name = "artifactStoreJooq")
   public DSLContext artifactStoreJooq(
       @Qualifier("artifactStoreDataSource") DataSource artifactStoreDataSource,

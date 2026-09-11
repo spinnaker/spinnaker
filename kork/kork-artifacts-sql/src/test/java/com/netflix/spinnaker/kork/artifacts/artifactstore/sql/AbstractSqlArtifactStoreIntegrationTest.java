@@ -53,7 +53,7 @@ abstract class AbstractSqlArtifactStoreIntegrationTest {
     db = createDatabase();
     SpringLiquibase liquibase = new SpringLiquibase();
     liquibase.setDataSource(db.dataSource);
-    liquibase.setChangeLog("classpath:db/changelog-master.yml");
+    liquibase.setChangeLog("classpath:db/artifact-store-changelog-master.yml");
     try {
       liquibase.afterPropertiesSet();
     } catch (Exception e) {
