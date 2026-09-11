@@ -47,7 +47,6 @@ import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.data.ArnUtils
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
-import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
@@ -90,7 +89,6 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
   final String region
   final ObjectMapper objectMapper
   final Registry registry
-  final EddaTimeoutConfig eddaTimeoutConfig
   final AmazonCachingAgentFilter amazonCachingAgentFilter
 
   final OnDemandMetricsSupport metricsSupport
@@ -101,7 +99,6 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
                       String region,
                       ObjectMapper objectMapper,
                       Registry registry,
-                      EddaTimeoutConfig eddaTimeoutConfig,
                       AmazonCachingAgentFilter amazonCachingAgentFilter) {
     this.amazonCloudProvider = amazonCloudProvider
     this.amazonClientProvider = amazonClientProvider
@@ -109,7 +106,6 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
     this.region = region
     this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
     this.registry = registry
-    this.eddaTimeoutConfig = eddaTimeoutConfig
     this.metricsSupport = new OnDemandMetricsSupport(registry, this, "${amazonCloudProvider.id}:${OnDemandType.ServerGroup}")
     this.amazonCachingAgentFilter = amazonCachingAgentFilter
   }
@@ -151,9 +147,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
     final Ec2Client amazonEC2
     final CloudWatchClient amazonCloudWatch
 
-    // skipEdda is now unused: v2 clients have no Edda read-through, so there's nothing to skip.
-    // Kept as a parameter to avoid touching every call site (including test call sites).
-    public AmazonClients(AmazonClientProvider amazonClientProvider, NetflixAmazonCredentials account, String region, boolean skipEdda) {
+    public AmazonClients(AmazonClientProvider amazonClientProvider, NetflixAmazonCredentials account, String region) {
       autoScaling = amazonClientProvider.getAutoScalingV2(account, region)
       amazonEC2 = amazonClientProvider.getAmazonEC2V2(account, region)
       amazonCloudWatch = amazonClientProvider.getAmazonCloudWatchV2(account, region)
@@ -208,9 +202,9 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
     String serverGroupName = data.serverGroupName.toString()
 
     Map onDemandData = metricsSupport.readData {
-      def asg = loadAutoScalingGroup(serverGroupName, true)
+      def asg = loadAutoScalingGroup(serverGroupName)
 
-      def clients = new AmazonClients(amazonClientProvider, account, region, true)
+      def clients = new AmazonClients(amazonClientProvider, account, region)
       Map<String, Collection<Map>> scalingPolicies = asg ? loadScalingPolicies(clients, serverGroupName) : [:]
       Map<String, Collection<Map>> scheduledActions = asg ? loadScheduledActions(clients, serverGroupName) : [:]
 
@@ -290,30 +284,17 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
 
     def request = DescribeAutoScalingGroupsRequest.builder().maxRecords(100).build()
 
-    // amazonClientProvider.lastModified is only ever populated by the v1 Edda-intercepting proxy;
-    // v2 clients read directly from AWS, so it's always null here and this always falls through to
-    // the System.currentTimeMillis() fallback below.
-    Long start = account.eddaEnabled ? null : System.currentTimeMillis()
+    Long start = System.currentTimeMillis()
 
     List<AutoScalingGroup> asgs = []
     while (true) {
       def resp = clients.autoScaling.describeAutoScalingGroups(request)
-      if (account.eddaEnabled) {
-        start = amazonClientProvider.lastModified ?: 0
-      }
       asgs.addAll(resp.autoScalingGroups())
       if (resp.nextToken()) {
         request = request.toBuilder().nextToken(resp.nextToken()).build()
       } else {
         break
       }
-    }
-
-    if (!start) {
-      if (account.eddaEnabled && asgs) {
-        log.warn("${agentType} did not receive lastModified value in response metadata")
-      }
-      start = System.currentTimeMillis()
     }
 
     // A non-null status indicates that the ASG is in the process of being destroyed (no sense indexing)
@@ -426,7 +407,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
   CacheResult loadData(ProviderCache providerCache) {
     log.debug("Describing items in ${agentType}")
 
-    def clients = new AmazonClients(amazonClientProvider, account, region, false)
+    def clients = new AmazonClients(amazonClientProvider, account, region)
 
     def autoScalingGroupsResult = loadAutoScalingGroups(clients)
     def scalingPolicies = loadScalingPolicies(clients)
@@ -446,20 +427,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
     def pendingOnDemandRequestsForServerGroups = providerCache.getAll(ON_DEMAND.ns, pendingOnDemandRequestKeys)
     pendingOnDemandRequestsForServerGroups.each {
       if (it.attributes.cacheTime < start && it.attributes.processedCount > 0) {
-        if (account.eddaEnabled && !eddaTimeoutConfig.disabledRegions.contains(region)) {
-          def asgFromEdda = asgs.find { asg -> it.id.endsWith(":${asg.autoScalingGroupName()}") }
-          def asgFromAws = loadAutoScalingGroup(asgFromEdda.autoScalingGroupName(), true)
-
-          if (areSimilarAutoScalingGroups(asgFromEdda, asgFromAws)) {
-            log.info("Evicting previous onDemand value for ${asgFromEdda.autoScalingGroupName()} (processedCount: ${it.attributes.processedCount} ... ${flattenAutoScalingGroup(asgFromEdda)} vs ${flattenAutoScalingGroup(asgFromAws)}")
-            evictableOnDemandCacheDatas << it
-          } else {
-            log.info("Preserving previous onDemand value for ${asgFromEdda.autoScalingGroupName()} (${flattenAutoScalingGroup(asgFromEdda)} vs ${flattenAutoScalingGroup(asgFromAws)}")
-            usableOnDemandCacheDatas << it
-          }
-        } else {
-          evictableOnDemandCacheDatas << it
-        }
+        evictableOnDemandCacheDatas << it
       } else {
         usableOnDemandCacheDatas << it
       }
@@ -697,7 +665,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
     }
   }
 
-  private AutoScalingGroup loadAutoScalingGroup(String autoScalingGroupName, boolean skipEdda) {
+  private AutoScalingGroup loadAutoScalingGroup(String autoScalingGroupName) {
     def autoScaling = amazonClientProvider.getAutoScalingV2(account, region)
     def result = autoScaling.describeAutoScalingGroups(
       DescribeAutoScalingGroupsRequest.builder().autoScalingGroupNames(autoScalingGroupName).build()
@@ -719,23 +687,6 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
       metricAlarms[it.alarmARN()]
     }
     policy
-  }
-
-  private static Map flattenAutoScalingGroup(AutoScalingGroup asg) {
-    if (!asg) {
-      return [:]
-    }
-
-    return [
-      desiredCapacity   : asg.desiredCapacity(),
-      minSize           : asg.minSize(),
-      maxSize           : asg.maxSize(),
-      suspendedProcesses: asg.suspendedProcesses()*.processName().sort()
-    ]
-  }
-
-  private static boolean areSimilarAutoScalingGroups(AutoScalingGroup asg1, AutoScalingGroup asg2) {
-    return flattenAutoScalingGroup(asg1) == flattenAutoScalingGroup(asg2)
   }
 
   private static class AutoScalingGroupsResults {

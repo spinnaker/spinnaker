@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.amazonaws.services.autoscaling.model.DeleteScheduledActionRequest
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
-import com.amazonaws.services.autoscaling.model.DescribeScheduledActionsRequest
-import com.amazonaws.services.autoscaling.model.PutScheduledUpdateGroupActionRequest
-import com.amazonaws.services.autoscaling.model.ScheduledUpdateGroupAction
+import software.amazon.awssdk.services.autoscaling.model.DeleteScheduledActionRequest
+import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsRequest
+import software.amazon.awssdk.services.autoscaling.model.DescribeScheduledActionsRequest
+import software.amazon.awssdk.services.autoscaling.model.PutScheduledUpdateGroupActionRequest
+import software.amazon.awssdk.services.autoscaling.model.ScheduledUpdateGroupAction
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAsgScheduledActionsDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.services.IdGenerator
@@ -69,9 +69,9 @@ class UpsertAsgScheduledActionsOperation implements AtomicOperation<Void> {
 
   private boolean upsertAsgScheduledActions(String asgName, String region) {
     try {
-      def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, region, true)
-      def asgResult = autoScaling.describeAutoScalingGroups(new DescribeAutoScalingGroupsRequest().withAutoScalingGroupNames(asgName))
-      if (!asgResult.autoScalingGroups) {
+      def autoScaling = amazonClientProvider.getAutoScalingV2(description.credentials, region)
+      def asgResult = autoScaling.describeAutoScalingGroups(DescribeAutoScalingGroupsRequest.builder().autoScalingGroupNames(asgName).build())
+      if (!asgResult.autoScalingGroups()) {
         task.updateStatus BASE_PHASE, "No ASG named $asgName found in $region"
         return false
       }
@@ -79,33 +79,35 @@ class UpsertAsgScheduledActionsOperation implements AtomicOperation<Void> {
       def updatedActions = []
 
       description.scheduledActions.each { action ->
-        def existingAction = existingActions.find { it.recurrence == action.recurrence }
+        def existingAction = existingActions.find { it.recurrence() == action.recurrence }
         def actionName = asgName + '-' + idGenerator.nextId()
         def actionDescriptor = existingAction ? 'Updating' : 'Adding'
         if (existingAction) {
-          actionName = existingAction.scheduledActionName
+          actionName = existingAction.scheduledActionName()
           updatedActions << existingAction
         }
-        def request = new PutScheduledUpdateGroupActionRequest()
-            .withAutoScalingGroupName(asgName)
-            .withScheduledActionName(actionName)
-            .withDesiredCapacity(action.desiredCapacity)
-            .withMinSize(action.minSize)
-            .withMaxSize(action.maxSize)
-            .withRecurrence(action.recurrence)
+        def request = PutScheduledUpdateGroupActionRequest.builder()
+            .autoScalingGroupName(asgName)
+            .scheduledActionName(actionName)
+            .desiredCapacity(action.desiredCapacity)
+            .minSize(action.minSize)
+            .maxSize(action.maxSize)
+            .recurrence(action.recurrence)
+            .build()
 
-        task.updateStatus BASE_PHASE, "$actionDescriptor scheduled action ${request.scheduledActionName} - recurrence: ${action.recurrence}, min: ${action.minSize}, max: ${action.maxSize}, desired: ${action.desiredCapacity}"
+        task.updateStatus BASE_PHASE, "$actionDescriptor scheduled action ${request.scheduledActionName()} - recurrence: ${action.recurrence}, min: ${action.minSize}, max: ${action.maxSize}, desired: ${action.desiredCapacity}"
         autoScaling.putScheduledUpdateGroupAction(request)
       }
 
       existingActions.removeAll(updatedActions)
 
       existingActions.each {
-        def request = new DeleteScheduledActionRequest()
-            .withScheduledActionName(it.scheduledActionName)
-            .withAutoScalingGroupName(asgName)
+        def request = DeleteScheduledActionRequest.builder()
+            .scheduledActionName(it.scheduledActionName())
+            .autoScalingGroupName(asgName)
+            .build()
 
-        task.updateStatus BASE_PHASE, "Deleting old scheduled action ${it.scheduledActionName}"
+        task.updateStatus BASE_PHASE, "Deleting old scheduled action ${it.scheduledActionName()}"
         autoScaling.deleteScheduledAction(request)
       }
       return true
@@ -117,12 +119,13 @@ class UpsertAsgScheduledActionsOperation implements AtomicOperation<Void> {
 
   private List<ScheduledUpdateGroupAction> getExistingScheduledActions(String asgName, String region) {
     def actions = []
-    def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, region, true)
-    def result = autoScaling.describeScheduledActions(new DescribeScheduledActionsRequest().withAutoScalingGroupName(asgName))
+    def autoScaling = amazonClientProvider.getAutoScalingV2(description.credentials, region)
+    def request = DescribeScheduledActionsRequest.builder().autoScalingGroupName(asgName).build()
     while (true) {
-      actions.addAll result.scheduledUpdateGroupActions
-      if (result.nextToken) {
-        result.withNextToken(result.nextToken)
+      def result = autoScaling.describeScheduledActions(request)
+      actions.addAll result.scheduledUpdateGroupActions()
+      if (result.nextToken()) {
+        request = request.toBuilder().nextToken(result.nextToken()).build()
       } else {
         break
       }

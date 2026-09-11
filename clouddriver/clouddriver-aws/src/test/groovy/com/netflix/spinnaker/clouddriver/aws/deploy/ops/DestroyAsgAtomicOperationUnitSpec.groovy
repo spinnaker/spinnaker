@@ -15,18 +15,18 @@
  */
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
-import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.autoscaling.model.DeleteAutoScalingGroupRequest
-import com.amazonaws.services.autoscaling.model.DeleteLaunchConfigurationRequest
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
-import com.amazonaws.services.autoscaling.model.Instance
-import com.amazonaws.services.autoscaling.model.LaunchTemplate
-import com.amazonaws.services.autoscaling.model.LaunchTemplateSpecification
-import com.amazonaws.services.autoscaling.model.MixedInstancesPolicy
-import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.DeleteLaunchTemplateRequest
-import com.amazonaws.services.ec2.model.TerminateInstancesRequest
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
+import software.amazon.awssdk.services.autoscaling.model.DeleteAutoScalingGroupRequest
+import software.amazon.awssdk.services.autoscaling.model.DeleteLaunchConfigurationRequest
+import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsResponse
+import software.amazon.awssdk.services.autoscaling.model.Instance
+import software.amazon.awssdk.services.autoscaling.model.LaunchTemplate
+import software.amazon.awssdk.services.autoscaling.model.LaunchTemplateSpecification
+import software.amazon.awssdk.services.autoscaling.model.MixedInstancesPolicy
+import software.amazon.awssdk.services.ec2.Ec2Client
+import software.amazon.awssdk.services.ec2.model.DeleteLaunchTemplateRequest
+import software.amazon.awssdk.services.ec2.model.TerminateInstancesRequest
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DestroyAsgDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
@@ -40,11 +40,11 @@ class DestroyAsgAtomicOperationUnitSpec extends Specification {
     TaskRepository.threadLocalTask.set(Mock(Task))
   }
 
-  def mockAutoScaling = Mock(AmazonAutoScaling)
-  def mockEC2 = Mock(AmazonEC2)
+  def mockAutoScaling = Mock(AutoScalingClient)
+  def mockEC2 = Mock(Ec2Client)
   def provider = Mock(AmazonClientProvider) {
-    getAutoScaling(_, _, true) >> mockAutoScaling
-    getAmazonEC2(_, _, true) >> mockEC2
+    getAutoScalingV2(_, _) >> mockAutoScaling
+    getAmazonEC2V2(_, _) >> mockEC2
   }
 
   void "should not fail delete when ASG does not exist"() {
@@ -62,7 +62,7 @@ class DestroyAsgAtomicOperationUnitSpec extends Specification {
     op.operate([])
 
     then:
-    1 * mockAutoScaling.describeAutoScalingGroups(_) >> new DescribeAutoScalingGroupsResult(autoScalingGroups: [])
+    1 * mockAutoScaling.describeAutoScalingGroups(_) >> DescribeAutoScalingGroupsResponse.builder().autoScalingGroups([]).build()
     0 * mockAutoScaling._
   }
 
@@ -81,17 +81,14 @@ class DestroyAsgAtomicOperationUnitSpec extends Specification {
     op.operate([])
 
     then:
-    1 * mockAutoScaling.describeAutoScalingGroups(_) >> new DescribeAutoScalingGroupsResult(autoScalingGroups: [
-            new AutoScalingGroup(
-                    instances: [new Instance(instanceId: "i-123456")],
-                    launchConfigurationName: "launchConfig-v000"
-            )
-    ])
+    1 * mockAutoScaling.describeAutoScalingGroups(_) >> DescribeAutoScalingGroupsResponse.builder().autoScalingGroups([
+            AutoScalingGroup.builder().instances([Instance.builder().instanceId("i-123456").build()]).launchConfigurationName("launchConfig-v000").build()
+    ]).build()
     1 * mockAutoScaling.deleteAutoScalingGroup(
-            new DeleteAutoScalingGroupRequest(autoScalingGroupName: "my-stack-v000", forceDelete: true))
+            DeleteAutoScalingGroupRequest.builder().autoScalingGroupName("my-stack-v000").forceDelete(true).build())
     1 * mockAutoScaling.deleteLaunchConfiguration(
-            new DeleteLaunchConfigurationRequest(launchConfigurationName: "launchConfig-v000"))
-    1 * mockEC2.terminateInstances(new TerminateInstancesRequest(instanceIds: ["i-123456"]))
+            DeleteLaunchConfigurationRequest.builder().launchConfigurationName("launchConfig-v000").build())
+    1 * mockEC2.terminateInstances(TerminateInstancesRequest.builder().instanceIds(["i-123456"]).build())
     0 * mockAutoScaling._
   }
 
@@ -110,32 +107,18 @@ class DestroyAsgAtomicOperationUnitSpec extends Specification {
     op.operate([])
 
     then:
-    1 * mockAutoScaling.describeAutoScalingGroups(_) >> new DescribeAutoScalingGroupsResult(autoScalingGroups: [asg])
+    1 * mockAutoScaling.describeAutoScalingGroups(_) >> DescribeAutoScalingGroupsResponse.builder().autoScalingGroups([asg]).build()
     1 * mockAutoScaling.deleteAutoScalingGroup(
-      new DeleteAutoScalingGroupRequest(autoScalingGroupName: "my-stack-v000", forceDelete: true))
+      DeleteAutoScalingGroupRequest.builder().autoScalingGroupName("my-stack-v000").forceDelete(true).build())
     1 * mockEC2.deleteLaunchTemplate(
-      new DeleteLaunchTemplateRequest(launchTemplateId: "lt-1"))
-    1 * mockEC2.terminateInstances(new TerminateInstancesRequest(instanceIds: ["i-123456"]))
+      DeleteLaunchTemplateRequest.builder().launchTemplateId("lt-1").build())
+    1 * mockEC2.terminateInstances(TerminateInstancesRequest.builder().instanceIds(["i-123456"]).build())
     0 * mockAutoScaling._
 
     where:
     asg << [
-      new AutoScalingGroup(
-        instances: [new Instance(instanceId: "i-123456")],
-        launchTemplate: new LaunchTemplateSpecification()
-          .withLaunchTemplateId("lt-1")
-          .withVersion("1")
-      ),
-      new AutoScalingGroup(
-        instances: [new Instance(instanceId: "i-123456")],
-        mixedInstancesPolicy: new MixedInstancesPolicy(
-          launchTemplate: new LaunchTemplate(
-            launchTemplateSpecification: new LaunchTemplateSpecification()
-              .withLaunchTemplateId("lt-1")
-              .withVersion("1")
-          )
-        )
-      )
+      AutoScalingGroup.builder().instances([Instance.builder().instanceId("i-123456").build()]).launchTemplate(LaunchTemplateSpecification.builder().launchTemplateId("lt-1").version("1").build()).build(),
+      AutoScalingGroup.builder().instances([Instance.builder().instanceId("i-123456").build()]).mixedInstancesPolicy(MixedInstancesPolicy.builder().launchTemplate(LaunchTemplate.builder().launchTemplateSpecification(LaunchTemplateSpecification.builder().launchTemplateId("lt-1").version("1").build()).build()).build()).build()
     ]
   }
 
@@ -154,14 +137,12 @@ class DestroyAsgAtomicOperationUnitSpec extends Specification {
     op.operate([])
 
     then:
-    1 * mockAutoScaling.describeAutoScalingGroups(_) >> new DescribeAutoScalingGroupsResult(autoScalingGroups: [
-        new AutoScalingGroup(
-            instances: [new Instance(instanceId: "i-123456")]
-        )
-    ])
+    1 * mockAutoScaling.describeAutoScalingGroups(_) >> DescribeAutoScalingGroupsResponse.builder().autoScalingGroups([
+        AutoScalingGroup.builder().instances([Instance.builder().instanceId("i-123456").build()]).build()
+    ]).build()
     1 * mockAutoScaling.deleteAutoScalingGroup(
-        new DeleteAutoScalingGroupRequest(autoScalingGroupName: "my-stack-v000", forceDelete: true))
-    1 * mockEC2.terminateInstances(new TerminateInstancesRequest(instanceIds: ["i-123456"]))
+        DeleteAutoScalingGroupRequest.builder().autoScalingGroupName("my-stack-v000").forceDelete(true).build())
+    1 * mockEC2.terminateInstances(TerminateInstancesRequest.builder().instanceIds(["i-123456"]).build())
     0 * mockAutoScaling._
   }
 
@@ -175,18 +156,18 @@ class DestroyAsgAtomicOperationUnitSpec extends Specification {
         ]],
         credentials: TestCredential.named('baz')))
     op.amazonClientProvider = provider
-    def instances = (100..315).collect { new Instance(instanceId: "i-123${it}") }
+    def instances = (100..315).collect { Instance.builder().instanceId("i-123${it}").build() }
     Set<String> remaining = instances*.instanceId
 
     when:
     op.operate([])
 
     then:
-    1 * mockAutoScaling.describeAutoScalingGroups(_) >> new DescribeAutoScalingGroupsResult(autoScalingGroups: [
-      new AutoScalingGroup(instances: instances)
-    ])
+    1 * mockAutoScaling.describeAutoScalingGroups(_) >> DescribeAutoScalingGroupsResponse.builder().autoScalingGroups([
+      AutoScalingGroup.builder().instances(instances).build()
+    ]).build()
     1 * mockAutoScaling.deleteAutoScalingGroup(
-      new DeleteAutoScalingGroupRequest(autoScalingGroupName: "my-stack-v000", forceDelete: true))
+      DeleteAutoScalingGroupRequest.builder().autoScalingGroupName("my-stack-v000").forceDelete(true).build())
     3 * mockEC2.terminateInstances(_) >> { TerminateInstancesRequest req ->
       assert req.instanceIds.size() <= DestroyAsgAtomicOperation.MAX_SIMULTANEOUS_TERMINATIONS
       assert remaining.removeAll(req.instanceIds)

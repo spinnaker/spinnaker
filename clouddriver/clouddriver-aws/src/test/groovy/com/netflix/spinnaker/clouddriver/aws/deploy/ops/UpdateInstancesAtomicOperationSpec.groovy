@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.autoscaling.model.DescribeLaunchConfigurationsResult
-import com.amazonaws.services.autoscaling.model.Instance
-import com.amazonaws.services.autoscaling.model.LaunchConfiguration
-import com.amazonaws.services.ec2.AmazonEC2
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
+import software.amazon.awssdk.services.autoscaling.model.DescribeLaunchConfigurationsResponse
+import software.amazon.awssdk.services.autoscaling.model.Instance
+import software.amazon.awssdk.services.autoscaling.model.LaunchConfiguration
+import software.amazon.awssdk.services.ec2.Ec2Client
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpdateInstancesDescription
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.services.AsgService
@@ -39,8 +39,8 @@ class UpdateInstancesAtomicOperationSpec extends Specification {
     getName() >> ACCOUNT
   }
   AsgService asgService = Mock(AsgService)
-  AmazonAutoScaling amazonAutoScaling = Mock(AmazonAutoScaling)
-  AmazonEC2 amazonEC2 = Mock(AmazonEC2)
+  AutoScalingClient amazonAutoScaling = Mock(AutoScalingClient)
+  Ec2Client amazonEC2 = Mock(Ec2Client)
   RegionScopedProviderFactory.RegionScopedProvider regionScopedProvider = Stub(RegionScopedProviderFactory.RegionScopedProvider) {
     getAsgService() >> asgService
     getAutoScaling() >> amazonAutoScaling
@@ -74,7 +74,7 @@ class UpdateInstancesAtomicOperationSpec extends Specification {
 
     then:
     thrown IllegalStateException
-    1 * asgService.getAutoScalingGroup("foo-v001") >> new AutoScalingGroup(vPCZoneIdentifier: null)
+    1 * asgService.getAutoScalingGroup("foo-v001") >> AutoScalingGroup.builder().build()
     0 * _
   }
 
@@ -96,13 +96,13 @@ class UpdateInstancesAtomicOperationSpec extends Specification {
     op.operate([])
 
     then:
-    1 * asgService.getAutoScalingGroup("foo-v001") >> new AutoScalingGroup(
-      vPCZoneIdentifier: "vpc-1234",
-      instances: [
-        new Instance(instanceId: "i-1"),
-        new Instance(instanceId: "i-2")
-      ]
-    )
+    1 * asgService.getAutoScalingGroup("foo-v001") >> AutoScalingGroup.builder()
+      .vpcZoneIdentifier("vpc-1234")
+      .instances([
+        Instance.builder().instanceId("i-1").build(),
+        Instance.builder().instanceId("i-2").build()
+      ])
+      .build()
     1 * amazonEC2.modifyInstanceAttribute({it.instanceId == "i-1" && it.groups == ["sg-1"]})
     1 * amazonEC2.modifyInstanceAttribute({it.instanceId == "i-2" && it.groups == ["sg-1"]})
     0 * _
@@ -117,15 +117,15 @@ class UpdateInstancesAtomicOperationSpec extends Specification {
     op.operate([])
 
     then:
-    1 * asgService.getAutoScalingGroup("foo-v001") >> new AutoScalingGroup(
-      vPCZoneIdentifier: "vpc-1234",
-      instances: [
-            new Instance(instanceId: "i-1"),
-            new Instance(instanceId: "i-2")
-      ]
-    )
-    1 * amazonAutoScaling.describeLaunchConfigurations(_) >> new DescribeLaunchConfigurationsResult()
-      .withLaunchConfigurations([new LaunchConfiguration(securityGroups: ["sg-2", "sg-3"])])
+    1 * asgService.getAutoScalingGroup("foo-v001") >> AutoScalingGroup.builder()
+      .vpcZoneIdentifier("vpc-1234")
+      .instances([
+            Instance.builder().instanceId("i-1").build(),
+            Instance.builder().instanceId("i-2").build()
+      ])
+      .build()
+    1 * amazonAutoScaling.describeLaunchConfigurations(_) >> DescribeLaunchConfigurationsResponse.builder()
+      .launchConfigurations([LaunchConfiguration.builder().securityGroups(["sg-2", "sg-3"]).build()]).build()
     1 * amazonEC2.modifyInstanceAttribute({it.instanceId == "i-1" && it.groups == ["sg-1", "sg-2", "sg-3"]})
     1 * amazonEC2.modifyInstanceAttribute({it.instanceId == "i-2" && it.groups == ["sg-1", "sg-2", "sg-3"]})
     0 * _

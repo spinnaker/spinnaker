@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.CreateTagsRequest
-import com.amazonaws.services.ec2.model.Tag
+import software.amazon.awssdk.services.ec2.Ec2Client
+import software.amazon.awssdk.services.ec2.model.CreateTagsRequest
+import software.amazon.awssdk.services.ec2.model.Tag
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmiTagsDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
@@ -27,7 +27,7 @@ import spock.lang.Specification;
 
 class UpsertAmiTagsAtomicOperationSpec extends Specification {
   def task = Mock(Task)
-  def amazonEC2 = Mock(AmazonEC2)
+  def amazonEC2 = Mock(Ec2Client)
   def amazonClientProvider = Mock(AmazonClientProvider)
 
   def setup() {
@@ -45,19 +45,19 @@ class UpsertAmiTagsAtomicOperationSpec extends Specification {
 
     then:
     1 * task.updateStatus("UPSERT_AMI_TAGS", "Skipping empty tags update for my-ami-id in us-west-1")
-    1 * amazonClientProvider.getAmazonEC2(null, "us-west-1") >> { return amazonEC2 }
+    1 * amazonClientProvider.getAmazonEC2V2(null, "us-west-1") >> { return amazonEC2 }
     0 * amazonEC2.createTags(_)
     0 * _
 
     when:
-    operation.upsertAmiTags("us-west-1", "my-ami-id", [new Tag("my-key", "my-value")])
+    operation.upsertAmiTags("us-west-1", "my-ami-id", [Tag.builder().key("my-key").value("my-value").build()])
 
     then:
     1 * task.updateStatus("UPSERT_AMI_TAGS", "Updating tags for my-ami-id in us-west-1...")
     1 * task.updateStatus("UPSERT_AMI_TAGS", "Tags updated for my-ami-id in us-west-1...")
-    1 * amazonClientProvider.getAmazonEC2(null, "us-west-1") >> { return amazonEC2 }
+    1 * amazonClientProvider.getAmazonEC2V2(null, "us-west-1") >> { return amazonEC2 }
     1 * amazonEC2.createTags({ CreateTagsRequest createTagsRequest ->
-      createTagsRequest.tags == [new Tag("my-key", "my-value")]
+      createTagsRequest.tags == [Tag.builder().key("my-key").value("my-value").build()]
       createTagsRequest.resources == ["my-ami-id"]
     })
     0 * _

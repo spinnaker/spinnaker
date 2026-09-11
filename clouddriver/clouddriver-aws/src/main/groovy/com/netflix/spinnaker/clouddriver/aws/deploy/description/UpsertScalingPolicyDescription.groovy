@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
-import com.amazonaws.services.autoscaling.model.StepAdjustment
-import com.amazonaws.services.autoscaling.model.TargetTrackingConfiguration
+import software.amazon.awssdk.services.autoscaling.model.StepAdjustment
+import software.amazon.awssdk.services.autoscaling.model.TargetTrackingConfiguration
 import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupsNameable
 
 class UpsertScalingPolicyDescription extends AbstractAmazonCredentialsDescription implements ServerGroupsNameable {

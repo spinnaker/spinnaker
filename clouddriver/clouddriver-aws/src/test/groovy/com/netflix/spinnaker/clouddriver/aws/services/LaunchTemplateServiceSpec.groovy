@@ -15,42 +15,8 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.services
 
-import com.amazonaws.services.ec2.model.CreateLaunchTemplateRequest
-import com.amazonaws.services.ec2.model.CreateLaunchTemplateResult
-import com.amazonaws.services.ec2.model.CreateLaunchTemplateVersionRequest
-import com.amazonaws.services.ec2.model.CreateLaunchTemplateVersionResult
-import com.amazonaws.services.ec2.model.CreditSpecification
-import com.amazonaws.services.ec2.model.CreditSpecificationRequest
-import com.amazonaws.services.ec2.model.DeleteLaunchTemplateVersionsRequest
-import com.amazonaws.services.ec2.model.DeleteLaunchTemplateVersionsResponseErrorItem
-import com.amazonaws.services.ec2.model.DeleteLaunchTemplateVersionsResponseSuccessItem
-import com.amazonaws.services.ec2.model.DeleteLaunchTemplateVersionsResult
-import com.amazonaws.services.ec2.model.LaunchTemplate
-import com.amazonaws.services.ec2.model.LaunchTemplateBlockDeviceMapping
-import com.amazonaws.services.ec2.model.LaunchTemplateBlockDeviceMappingRequest
-import com.amazonaws.services.ec2.model.LaunchTemplateEbsBlockDevice
-import com.amazonaws.services.ec2.model.LaunchTemplateEbsBlockDeviceRequest
-import com.amazonaws.services.ec2.model.LaunchTemplateEnclaveOptions
-import com.amazonaws.services.ec2.model.LaunchTemplateEnclaveOptionsRequest
-import com.amazonaws.services.ec2.model.LaunchTemplateIamInstanceProfileSpecification
-import com.amazonaws.services.ec2.model.LaunchTemplateIamInstanceProfileSpecificationRequest
-import com.amazonaws.services.ec2.model.LaunchTemplateInstanceMarketOptions
-import com.amazonaws.services.ec2.model.LaunchTemplateInstanceMarketOptionsRequest
-import com.amazonaws.services.ec2.model.LaunchTemplateInstanceMetadataOptions
-import com.amazonaws.services.ec2.model.LaunchTemplateInstanceMetadataOptionsRequest
-import com.amazonaws.services.ec2.model.LaunchTemplateInstanceNetworkInterfaceSpecification
-import com.amazonaws.services.ec2.model.LaunchTemplateInstanceNetworkInterfaceSpecificationRequest
-import com.amazonaws.services.ec2.model.LaunchTemplateSpotMarketOptions
-import com.amazonaws.services.ec2.model.LaunchTemplateSpotMarketOptionsRequest
-import com.amazonaws.services.ec2.model.LaunchTemplateTagSpecificationRequest
-import com.amazonaws.services.ec2.model.LaunchTemplateVersion
-import com.amazonaws.services.ec2.model.LaunchTemplatesMonitoring
-import com.amazonaws.services.ec2.model.LaunchTemplatesMonitoringRequest
-import com.amazonaws.services.ec2.model.RequestLaunchTemplateData
-import com.amazonaws.services.ec2.model.ResponseError
-import com.amazonaws.services.ec2.model.ResponseLaunchTemplateData
-import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.Tag
+import software.amazon.awssdk.services.ec2.Ec2Client
+import software.amazon.awssdk.services.ec2.model.*
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.AmazonResourceTagger
 import com.netflix.spinnaker.clouddriver.aws.deploy.DefaultAmazonResourceTagger
@@ -69,7 +35,7 @@ class LaunchTemplateServiceSpec extends Specification {
   private static final String LT_ID_1 = "lt-1"
   private static final String USER_DATA_STR = "my-userdata"
 
-  def mockEc2 = Mock(AmazonEC2)
+  def mockEc2 = Mock(Ec2Client)
   def mockUserDataAggregator = Mock(UserDataProviderAggregator)
 
   @Shared
@@ -96,7 +62,7 @@ class LaunchTemplateServiceSpec extends Specification {
     def result = launchTemplateService.getLaunchTemplateEbsBlockDeviceRequest(blockDevice)
 
     then:
-    result.getEncrypted() == encrypted && result.getKmsKeyId() == kmsKeyId
+    result.encrypted() == encrypted && result.kmsKeyId() == kmsKeyId
 
     where:
     blockDevice                                             | encrypted | kmsKeyId
@@ -111,7 +77,7 @@ class LaunchTemplateServiceSpec extends Specification {
     def result = launchTemplateService.getLaunchTemplateEbsBlockDeviceRequest(blockDevice)
 
     then:
-    result.getThroughput() == blockDevice.getThroughput()
+    result.throughput() == blockDevice.getThroughput()
 
     where:
     blockDevice                            | _
@@ -148,13 +114,14 @@ class LaunchTemplateServiceSpec extends Specification {
       Optional.empty(),
       Optional.empty(),
       Optional.of(
-        new LaunchTemplateTagSpecificationRequest()
-        .withResourceType("volume")
-          .withTags([
-            new Tag("spinnaker:application", "application"),
-            new Tag("spinnaker:cluster", "application-stack-details"),
-            new Tag("blockKey", "blockValue")
+        LaunchTemplateTagSpecificationRequest.builder()
+          .resourceType("volume")
+          .tags([
+            Tag.builder().key("spinnaker:application").value("application").build(),
+            Tag.builder().key("spinnaker:cluster").value("application-stack-details").build(),
+            Tag.builder().key("blockKey").value("blockValue").build()
           ])
+          .build()
       )
     ]
   }
@@ -191,38 +158,40 @@ class LaunchTemplateServiceSpec extends Specification {
       .spotAllocationStrategy(spotAllocationStrategy)
       .build()
 
-    def expectedLtDataInReq = new RequestLaunchTemplateData(
-      imageId: "ami-1",
-      kernelId: "kernel-id-1",
-      instanceType: "some.type.medium",
-      ramDiskId: "ramdisk-id-1",
-      ebsOptimized: true,
-      keyName: "my-key-name",
-      iamInstanceProfile: new LaunchTemplateIamInstanceProfileSpecificationRequest().withName("my-iam-role"),
-      monitoring: new LaunchTemplatesMonitoringRequest().withEnabled(true),
-      userData: USER_DATA_STR,
-      metadataOptions: new LaunchTemplateInstanceMetadataOptionsRequest().withHttpTokens("required"),
-      instanceMarketOptions:
-        setSpotOptions
-          ? new LaunchTemplateInstanceMarketOptionsRequest().withMarketType("spot").withSpotOptions(new LaunchTemplateSpotMarketOptionsRequest().withMaxPrice("0.5"))
-          : null,
-      creditSpecification: new CreditSpecificationRequest().withCpuCredits("unlimited"),
-      networkInterfaces: [
-        new LaunchTemplateInstanceNetworkInterfaceSpecificationRequest(
-          deviceIndex: 0,
-          groups: ["my-sg"],
-          associatePublicIpAddress: true,
-          ipv6AddressCount: 1
-        )
-      ],
-      blockDeviceMappings: [
-        new LaunchTemplateBlockDeviceMappingRequest(
-          deviceName: "/dev/sdb",
-          ebs: new LaunchTemplateEbsBlockDeviceRequest(volumeSize: 40, volumeType: "standard")
-        )
-      ],
-      enclaveOptions: new LaunchTemplateEnclaveOptionsRequest().withEnabled(true)
-    )
+    def ltDataBuilder = RequestLaunchTemplateData.builder()
+      .imageId("ami-1")
+      .kernelId("kernel-id-1")
+      .instanceType("some.type.medium")
+      .ramDiskId("ramdisk-id-1")
+      .ebsOptimized(true)
+      .keyName("my-key-name")
+      .iamInstanceProfile(LaunchTemplateIamInstanceProfileSpecificationRequest.builder().name("my-iam-role").build())
+      .monitoring(LaunchTemplatesMonitoringRequest.builder().enabled(true).build())
+      .userData(USER_DATA_STR)
+      .metadataOptions(LaunchTemplateInstanceMetadataOptionsRequest.builder().httpTokens("required").build())
+      .creditSpecification(CreditSpecificationRequest.builder().cpuCredits("unlimited").build())
+      .networkInterfaces([
+        LaunchTemplateInstanceNetworkInterfaceSpecificationRequest.builder()
+          .deviceIndex(0)
+          .groups(["my-sg"])
+          .associatePublicIpAddress(true)
+          .ipv6AddressCount(1)
+          .build()
+      ])
+      .blockDeviceMappings([
+        LaunchTemplateBlockDeviceMappingRequest.builder()
+          .deviceName("/dev/sdb")
+          .ebs(LaunchTemplateEbsBlockDeviceRequest.builder().volumeSize(40).volumeType("standard").build())
+          .build()
+      ])
+      .enclaveOptions(LaunchTemplateEnclaveOptionsRequest.builder().enabled(true).build())
+    if (setSpotOptions) {
+      ltDataBuilder.instanceMarketOptions(LaunchTemplateInstanceMarketOptionsRequest.builder()
+        .marketType(MarketType.SPOT)
+        .spotOptions(LaunchTemplateSpotMarketOptionsRequest.builder().maxPrice("0.5").build())
+        .build())
+    }
+    def expectedLtDataInReq = ltDataBuilder.build()
 
     when:
     launchTemplateService.createLaunchTemplate(asgConfig, "myasg-001", "my-lt-001")
@@ -231,12 +200,15 @@ class LaunchTemplateServiceSpec extends Specification {
     1 * mockEc2.createLaunchTemplate(_ as CreateLaunchTemplateRequest) >> { arguments ->
       // assert arguments passed and return dummy result
       CreateLaunchTemplateRequest reqInArg = arguments[0]
-      assert reqInArg.launchTemplateName == "my-lt-001" && reqInArg.launchTemplateData == expectedLtDataInReq ; new CreateLaunchTemplateResult()
-        .withLaunchTemplate(new LaunchTemplate(
-          launchTemplateId: LT_ID_1,
-          launchTemplateName: "my-lt-001",
-          defaultVersionNumber: 1L,
-          latestVersionNumber: 1L))
+      assert reqInArg.launchTemplateName() == "my-lt-001" && reqInArg.launchTemplateData() == expectedLtDataInReq
+      CreateLaunchTemplateResponse.builder()
+        .launchTemplate(LaunchTemplate.builder()
+          .launchTemplateId(LT_ID_1)
+          .launchTemplateName("my-lt-001")
+          .defaultVersionNumber(1L)
+          .latestVersionNumber(1L)
+          .build())
+        .build()
     }
 
     where:
@@ -258,76 +230,79 @@ class LaunchTemplateServiceSpec extends Specification {
       securityGroups: secGroupsInDesc,
     )
 
-    def srcLtVersionDataRespWithSpotOptions = new ResponseLaunchTemplateData(
-      imageId: "ami-1",
-      kernelId: "kernel-id-1",
-      instanceType: "t2.large",
-      ramDiskId: "ramdisk-id-1",
-      ebsOptimized: true,
-      keyName: "my-key-name",
-      iamInstanceProfile: new LaunchTemplateIamInstanceProfileSpecification().withName("my-iam-role"),
-      monitoring: new LaunchTemplatesMonitoring().withEnabled(true),
-      userData: USER_DATA_STR,
-      metadataOptions: new LaunchTemplateInstanceMetadataOptions().withHttpTokens("required"),
-      instanceMarketOptions: new LaunchTemplateInstanceMarketOptions().withMarketType("spot").withSpotOptions(new LaunchTemplateSpotMarketOptions().withMaxPrice("0.5")),
-      creditSpecification: new CreditSpecification().withCpuCredits("standard"),
-      networkInterfaces: [
-        new LaunchTemplateInstanceNetworkInterfaceSpecification(
-          deviceIndex: 0,
-          groups: secGroupsInSrc,
-          associatePublicIpAddress: true,
-          ipv6AddressCount: 1
-        )
-      ],
-      blockDeviceMappings: [
-        new LaunchTemplateBlockDeviceMapping(
-          deviceName: "/dev/sdb",
-          ebs: new LaunchTemplateEbsBlockDevice(volumeSize: 40)
-        )
-      ],
-      enclaveOptions: new LaunchTemplateEnclaveOptions().withEnabled(true)
-    )
+    def srcLtDataBuilder = ResponseLaunchTemplateData.builder()
+      .imageId("ami-1")
+      .kernelId("kernel-id-1")
+      .instanceType("t2.large")
+      .ramDiskId("ramdisk-id-1")
+      .ebsOptimized(true)
+      .keyName("my-key-name")
+      .iamInstanceProfile(LaunchTemplateIamInstanceProfileSpecification.builder().name("my-iam-role").build())
+      .monitoring(LaunchTemplatesMonitoring.builder().enabled(true).build())
+      .userData(USER_DATA_STR)
+      .metadataOptions(LaunchTemplateInstanceMetadataOptions.builder().httpTokens("required").build())
+      .instanceMarketOptions(LaunchTemplateInstanceMarketOptions.builder().marketType("spot").spotOptions(LaunchTemplateSpotMarketOptions.builder().maxPrice("0.5").build()).build())
+      .creditSpecification(CreditSpecification.builder().cpuCredits("standard").build())
+      .networkInterfaces([
+        LaunchTemplateInstanceNetworkInterfaceSpecification.builder()
+          .deviceIndex(0)
+          .groups(secGroupsInSrc)
+          .associatePublicIpAddress(true)
+          .ipv6AddressCount(1)
+          .build()
+      ])
+      .blockDeviceMappings([
+        LaunchTemplateBlockDeviceMapping.builder()
+          .deviceName("/dev/sdb")
+          .ebs(LaunchTemplateEbsBlockDevice.builder().volumeSize(40).build())
+          .build()
+      ])
+      .enclaveOptions(LaunchTemplateEnclaveOptions.builder().enabled(true).build())
+    def srcLtVersionDataRespWithSpotOptions = srcLtDataBuilder.build()
 
-    def sourceLtVersion = new LaunchTemplateVersion(
-      launchTemplateId: LT_ID_1,
-      versionNumber: 1,
-      launchTemplateData: srcLtVersionDataRespWithSpotOptions
-    )
+    def sourceLtVersion = LaunchTemplateVersion.builder()
+      .launchTemplateId(LT_ID_1)
+      .versionNumber(1L)
+      .launchTemplateData(srcLtVersionDataRespWithSpotOptions)
+      .build()
 
     // RequestLaunchTemplateData built in the class under test
-    def expectedNewLtVersionDataReq = new RequestLaunchTemplateData(
-      imageId: "ami-1",
-      kernelId: "kernel-id-1",
-      instanceType: instanceType,
-      ramDiskId: "ramdisk-id-1",
-      ebsOptimized: true,
-      keyName: "my-key-name",
-      iamInstanceProfile: new LaunchTemplateIamInstanceProfileSpecificationRequest().withName("my-iam-role"),
-      monitoring: new LaunchTemplatesMonitoringRequest().withEnabled(true),
-      userData: USER_DATA_STR,
-      metadataOptions: new LaunchTemplateInstanceMetadataOptionsRequest().withHttpTokens("required"),
-      instanceMarketOptions:
-        setSpotOptions
-        ? new LaunchTemplateInstanceMarketOptionsRequest().withMarketType("spot").withSpotOptions(new LaunchTemplateSpotMarketOptionsRequest().withMaxPrice("0.5"))
-        : null,
-      creditSpecification:
-        copyCpuCreditSpecFromSrc ? new CreditSpecificationRequest().withCpuCredits("standard") : null,
-      networkInterfaces: [
-        new LaunchTemplateInstanceNetworkInterfaceSpecificationRequest(
-          deviceIndex: 0,
-          groups: expectedSecGroups,
-          associatePublicIpAddress: true,
-          ipv6AddressCount: 1
-        )
-      ],
-      blockDeviceMappings: [
-        new LaunchTemplateBlockDeviceMappingRequest(
-          deviceName: "/dev/sdb",
-          ebs: new LaunchTemplateEbsBlockDeviceRequest(volumeSize: 40)
-        )
-      ],
-      enclaveOptions: new LaunchTemplateEnclaveOptionsRequest().withEnabled(true)
-    )
+    def expectedBuilder = RequestLaunchTemplateData.builder()
+      .imageId("ami-1")
+      .kernelId("kernel-id-1")
+      .instanceType(instanceType)
+      .ramDiskId("ramdisk-id-1")
+      .ebsOptimized(true)
+      .keyName("my-key-name")
+      .iamInstanceProfile(LaunchTemplateIamInstanceProfileSpecificationRequest.builder().name("my-iam-role").build())
+      .monitoring(LaunchTemplatesMonitoringRequest.builder().enabled(true).build())
+      .userData(USER_DATA_STR)
+      .metadataOptions(LaunchTemplateInstanceMetadataOptionsRequest.builder().httpTokens("required").build())
+      .networkInterfaces([
+        LaunchTemplateInstanceNetworkInterfaceSpecificationRequest.builder()
+          .deviceIndex(0)
+          .groups(expectedSecGroups)
+          .associatePublicIpAddress(true)
+          .ipv6AddressCount(1)
+          .build()
+      ])
+      .blockDeviceMappings([
+        LaunchTemplateBlockDeviceMappingRequest.builder()
+          .deviceName("/dev/sdb")
+          .ebs(LaunchTemplateEbsBlockDeviceRequest.builder().volumeSize(40).build())
+          .build()
+      ])
+      .enclaveOptions(LaunchTemplateEnclaveOptionsRequest.builder().enabled(true).build())
+    if (setSpotOptions) {
+      expectedBuilder.instanceMarketOptions(LaunchTemplateInstanceMarketOptionsRequest.builder()
+        .marketType(MarketType.SPOT)
+        .spotOptions(LaunchTemplateSpotMarketOptionsRequest.builder().maxPrice("0.5").build())
+        .build())
+    }
+    if (copyCpuCreditSpecFromSrc) {
+      expectedBuilder.creditSpecification(CreditSpecificationRequest.builder().cpuCredits("standard").build())
+    }
+    def expectedNewLtVersionDataReq = expectedBuilder.build()
 
     when:
     launchTemplateService.modifyLaunchTemplate(testCredentials, modifyDesc, sourceLtVersion, shouldUseMixedInstancesPolicy)
@@ -336,11 +311,14 @@ class LaunchTemplateServiceSpec extends Specification {
     1 * mockEc2.createLaunchTemplateVersion(_ as CreateLaunchTemplateVersionRequest) >> { arguments ->
       // assert arguments passed and return dummy result
       CreateLaunchTemplateVersionRequest reqInArg = arguments[0]
-      assert reqInArg.launchTemplateId == LT_ID_1 && reqInArg.launchTemplateData == expectedNewLtVersionDataReq ; new CreateLaunchTemplateVersionResult()
-        .withLaunchTemplateVersion(new LaunchTemplateVersion(
-          launchTemplateId: LT_ID_1,
-          versionNumber: 2L,
-          launchTemplateData: new ResponseLaunchTemplateData()))
+      assert reqInArg.launchTemplateId() == LT_ID_1 && reqInArg.launchTemplateData() == expectedNewLtVersionDataReq
+      CreateLaunchTemplateVersionResponse.builder()
+        .launchTemplateVersion(LaunchTemplateVersion.builder()
+          .launchTemplateId(LT_ID_1)
+          .versionNumber(2L)
+          .launchTemplateData(ResponseLaunchTemplateData.builder().build())
+          .build())
+        .build()
     }
 
     where:
@@ -357,29 +335,33 @@ class LaunchTemplateServiceSpec extends Specification {
     def versionToDelete = 2L
 
     DeleteLaunchTemplateVersionsResponseSuccessItem successItem = ltIdSuccess
-      ? new DeleteLaunchTemplateVersionsResponseSuccessItem()
-      .withLaunchTemplateId(ltIdSuccess)
-      .withVersionNumber(versionToDelete)
+      ? DeleteLaunchTemplateVersionsResponseSuccessItem.builder()
+          .launchTemplateId(ltIdSuccess)
+          .versionNumber(versionToDelete)
+          .build()
       : null
 
     DeleteLaunchTemplateVersionsResponseErrorItem errorItem = ltIdFailure
-      ? new DeleteLaunchTemplateVersionsResponseErrorItem()
-      .withLaunchTemplateId(ltIdFailure)
-      .withVersionNumber(versionToDelete)
-      .withResponseError(new ResponseError().withCode(errorCode))
+      ? DeleteLaunchTemplateVersionsResponseErrorItem.builder()
+          .launchTemplateId(ltIdFailure)
+          .versionNumber(versionToDelete)
+          .responseError(ResponseError.builder().code(errorCode).build())
+          .build()
       : null
 
-    DeleteLaunchTemplateVersionsResult result = new DeleteLaunchTemplateVersionsResult()
-      .withSuccessfullyDeletedLaunchTemplateVersions(successItem)
-      .withUnsuccessfullyDeletedLaunchTemplateVersions(errorItem)
+    DeleteLaunchTemplateVersionsResponse result = DeleteLaunchTemplateVersionsResponse.builder()
+      .successfullyDeletedLaunchTemplateVersions(successItem ? [successItem] : [])
+      .unsuccessfullyDeletedLaunchTemplateVersions(errorItem ? [errorItem] : [])
+      .build()
 
     when:
     launchTemplateService.deleteLaunchTemplateVersion(LT_ID_1, versionToDelete)
 
     then:
-    1 * mockEc2.deleteLaunchTemplateVersions(new DeleteLaunchTemplateVersionsRequest()
-      .withLaunchTemplateId(LT_ID_1)
-      .withVersions(String.valueOf(versionToDelete))) >> result
+    1 * mockEc2.deleteLaunchTemplateVersions(DeleteLaunchTemplateVersionsRequest.builder()
+      .launchTemplateId(LT_ID_1)
+      .versions(String.valueOf(versionToDelete))
+      .build()) >> result
 
     and:
     noExceptionThrown()
@@ -397,29 +379,33 @@ class LaunchTemplateServiceSpec extends Specification {
     def versionToDelete = 2L
 
     DeleteLaunchTemplateVersionsResponseSuccessItem successItem = ltIdSuccess
-      ? new DeleteLaunchTemplateVersionsResponseSuccessItem()
-          .withLaunchTemplateId(ltIdSuccess)
-          .withVersionNumber(versionToDelete)
+      ? DeleteLaunchTemplateVersionsResponseSuccessItem.builder()
+          .launchTemplateId(ltIdSuccess)
+          .versionNumber(versionToDelete)
+          .build()
       : null
 
     DeleteLaunchTemplateVersionsResponseErrorItem errorItem = ltIdFailure
-      ? new DeleteLaunchTemplateVersionsResponseErrorItem()
-          .withLaunchTemplateId(ltIdFailure)
-          .withVersionNumber(versionToDelete)
-          .withResponseError(new ResponseError().withCode(errorCode))
+      ? DeleteLaunchTemplateVersionsResponseErrorItem.builder()
+          .launchTemplateId(ltIdFailure)
+          .versionNumber(versionToDelete)
+          .responseError(ResponseError.builder().code(errorCode).build())
+          .build()
       : null
 
-    DeleteLaunchTemplateVersionsResult result = new DeleteLaunchTemplateVersionsResult()
-      .withSuccessfullyDeletedLaunchTemplateVersions(successItem)
-      .withUnsuccessfullyDeletedLaunchTemplateVersions(errorItem)
+    DeleteLaunchTemplateVersionsResponse result = DeleteLaunchTemplateVersionsResponse.builder()
+      .successfullyDeletedLaunchTemplateVersions(successItem ? [successItem] : [])
+      .unsuccessfullyDeletedLaunchTemplateVersions(errorItem ? [errorItem] : [])
+      .build()
 
     when:
     launchTemplateService.deleteLaunchTemplateVersion(LT_ID_1, versionToDelete)
 
     then:
-    1 * mockEc2.deleteLaunchTemplateVersions(new DeleteLaunchTemplateVersionsRequest()
-      .withLaunchTemplateId(LT_ID_1)
-      .withVersions(String.valueOf(versionToDelete))) >> result
+    1 * mockEc2.deleteLaunchTemplateVersions(DeleteLaunchTemplateVersionsRequest.builder()
+      .launchTemplateId(LT_ID_1)
+      .versions(String.valueOf(versionToDelete))
+      .build()) >> result
 
     and:
     def ex = thrown(RuntimeException)

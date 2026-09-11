@@ -15,8 +15,8 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.services
 
-import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.ec2.AmazonEC2
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient
+import software.amazon.awssdk.services.ec2.Ec2Client
 import com.netflix.spinnaker.clouddriver.aws.deploy.AmazonResourceTagger
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.UserDataProviderAggregator
 import com.netflix.spinnaker.config.AwsConfiguration
@@ -76,25 +76,14 @@ class RegionScopedProviderFactory {
       this.region = region
     }
 
-    AmazonEC2 getAmazonEC2() {
-      amazonClientProvider.getAmazonEC2(amazonCredentials, region, true)
+    Ec2Client getAmazonEC2() {
+      amazonClientProvider.getAmazonEC2V2(amazonCredentials, region)
     }
 
-    AmazonAutoScaling getAutoScaling() {
-      amazonClientProvider.getAutoScaling(amazonCredentials, region, true)
+    AutoScalingClient getAutoScaling() {
+      amazonClientProvider.getAutoScalingV2(amazonCredentials, region)
     }
 
-    com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing getAmazonElasticLoadBalancingV2(boolean skipEdda) {
-      amazonClientProvider.getAmazonElasticLoadBalancingV2(amazonCredentials, region, skipEdda)
-    }
-
-    com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing getAmazonElasticLoadBalancing() {
-      amazonClientProvider.getAmazonElasticLoadBalancing(amazonCredentials, region, true)
-    }
-
-    // AWS SDK v2 equivalents. No skipEdda parameter: Edda read-through is v1-only. Kept alongside
-    // the v1 methods above (not replacing them) since some consumers of this class still depend on
-    // the v1 EC2/AutoScaling methods elsewhere in RegionScopedProvider and haven't migrated yet.
     software.amazon.awssdk.services.elasticloadbalancingv2.ElasticLoadBalancingV2Client getElasticLoadBalancingV2Client() {
       amazonClientProvider.getElasticLoadBalancingV2Client(amazonCredentials, region)
     }
@@ -104,7 +93,7 @@ class RegionScopedProviderFactory {
     }
 
     SubnetAnalyzer getSubnetAnalyzer() {
-      SubnetAnalyzer.from(amazonEC2.describeSubnets().subnets)
+      SubnetAnalyzer.from(amazonEC2.describeSubnets().subnets())
     }
 
     SecurityGroupService getSecurityGroupService() {

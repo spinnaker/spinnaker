@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 package com.netflix.spinnaker.clouddriver.aws.services
-import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.*
+import software.amazon.awssdk.services.ec2.Ec2Client
+import software.amazon.awssdk.services.ec2.model.*
 import com.netflix.spinnaker.clouddriver.aws.model.AwsNetworkInterface
 import com.netflix.spinnaker.clouddriver.aws.model.SubnetAnalyzer
 import com.netflix.spinnaker.clouddriver.aws.model.SubnetTarget
@@ -29,23 +29,23 @@ class NetworkInterfaceServiceSpec extends Specification {
   def networkInterfaceService = new NetworkInterfaceService(
     Mock(SecurityGroupService),
     Mock(SubnetAnalyzer),
-    Mock(AmazonEC2))
+    Mock(Ec2Client))
 
   CreateNetworkInterfaceRequest createCommonNetworkInterfaceRequest() {
-    new CreateNetworkInterfaceRequest(
-      subnetId: "subnet-12345678",
-      description: "internal Asgard",
-      privateIpAddress: "127.0.0.1",
-      groups: ["sg-12345678"],
-      privateIpAddresses: [
-        new PrivateIpAddressSpecification(privateIpAddress: "127.0.0.2", primary: false),
-        new PrivateIpAddressSpecification(privateIpAddress: "127.0.0.3", primary: false)
-      ]
-    )
+    CreateNetworkInterfaceRequest.builder()
+      .subnetId("subnet-12345678")
+      .description("internal Asgard")
+      .privateIpAddress("127.0.0.1")
+      .groups(["sg-12345678"])
+      .privateIpAddresses([
+        PrivateIpAddressSpecification.builder().privateIpAddress("127.0.0.2").primary(false).build(),
+        PrivateIpAddressSpecification.builder().privateIpAddress("127.0.0.3").primary(false).build()
+      ])
+      .build()
   }
 
-  CreateNetworkInterfaceResult createNetworkInterfaceWithId(String id) {
-    new CreateNetworkInterfaceResult(networkInterface: new NetworkInterface(networkInterfaceId: id))
+  CreateNetworkInterfaceResponse createNetworkInterfaceWithId(String id) {
+    CreateNetworkInterfaceResponse.builder().networkInterface(NetworkInterface.builder().networkInterfaceId(id).build()).build()
   }
 
   def networkInterface = new AwsNetworkInterface(
@@ -64,7 +64,7 @@ class NetworkInterfaceServiceSpec extends Specification {
     NetworkInterface result = networkInterfaceService.createNetworkInterface("us-east-1a", "internal", networkInterface)
 
     then:
-    result == new NetworkInterface(networkInterfaceId: "new ENI")
+    result == NetworkInterface.builder().networkInterfaceId("new ENI").build()
 
     and:
     with(networkInterfaceService.securityGroupService) {
@@ -76,10 +76,10 @@ class NetworkInterfaceServiceSpec extends Specification {
     }
     with(networkInterfaceService.amazonEC2) {
       1 * createNetworkInterface(createCommonNetworkInterfaceRequest()) >> createNetworkInterfaceWithId("new ENI")
-      1 * createTags(new CreateTagsRequest(resources: ["new ENI"], tags: [
-        new Tag(key: "type", value: "webserver"),
-        new Tag(key: "stack", value: "production")
-      ]))
+      1 * createTags(CreateTagsRequest.builder().resources(["new ENI"]).tags([
+        Tag.builder().key("type").value("webserver").build(),
+        Tag.builder().key("stack").value("production").build()
+      ]).build())
     }
     0 * _
   }
@@ -115,7 +115,7 @@ class NetworkInterfaceServiceSpec extends Specification {
     then:
     TagsNotCreatedException e = thrown()
     e.cause.cause.message == "Uh Oh!"
-    e.objectToTag == new NetworkInterface(networkInterfaceId: "new ENI")
+    e.objectToTag == NetworkInterface.builder().networkInterfaceId("new ENI").build()
 
     and:
     with(networkInterfaceService.securityGroupService) {
@@ -127,10 +127,10 @@ class NetworkInterfaceServiceSpec extends Specification {
     }
     with(networkInterfaceService.amazonEC2) {
       1 * createNetworkInterface(createCommonNetworkInterfaceRequest()) >> createNetworkInterfaceWithId("new ENI")
-      1 * createTags(new CreateTagsRequest(resources: ["new ENI"], tags: [
-        new Tag(key: "type", value: "webserver"),
-        new Tag(key: "stack", value: "production")
-      ])) >> {
+      1 * createTags(CreateTagsRequest.builder().resources(["new ENI"]).tags([
+        Tag.builder().key("type").value("webserver").build(),
+        Tag.builder().key("stack").value("production").build()
+      ]).build()) >> {
         throw new Exception("Uh Oh!")
       }
     }

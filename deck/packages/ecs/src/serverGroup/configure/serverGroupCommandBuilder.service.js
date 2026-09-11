@@ -58,7 +58,8 @@ function findTriggerImages(triggers) {
     }));
 }
 
-function buildNewServerGroupCommand(application, defaults = {}) {
+function buildNewServerGroupCommand(application, defaults) {
+  defaults = defaults || {};
   const defaultCredentials = defaults.account || application.defaultCredentials.ecs;
   const defaultRegion = defaults.region || application.defaultRegions.ecs;
 

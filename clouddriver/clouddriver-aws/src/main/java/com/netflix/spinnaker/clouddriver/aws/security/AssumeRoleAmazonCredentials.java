@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.security;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
@@ -29,14 +28,14 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
  * Provides an Amazon credential pack that uses Assume Role
  * (http://docs.aws.amazon.com/IAM/latest/UserGuide/roles-assume-role.html) to provide API access to
  * the account. This class allows you to use your credentials, provided via the supplied {@link
- * com.amazonaws.auth.AWSCredentialsProvider} to act-as the target account ID with the privileges
- * desribed through the <b>assumeRole</b> role
+ * AwsCredentialsProvider} to act-as the target account ID with the privileges desribed through the
+ * <b>assumeRole</b> role
  */
 public class AssumeRoleAmazonCredentials extends AmazonCredentials {
   static final String DEFAULT_SESSION_NAME = "Spinnaker";
 
-  static AWSCredentialsProvider createSTSCredentialsProvider(
-      AWSCredentialsProvider credentialsProvider,
+  static AwsCredentialsProvider createSTSCredentialsProvider(
+      AwsCredentialsProvider credentialsProvider,
       String accountId,
       String assumeRole,
       String sessionName,
@@ -59,14 +58,13 @@ public class AssumeRoleAmazonCredentials extends AmazonCredentials {
     }
     return credentialsProvider == null
         ? null
-        : new NetflixSTSAssumeRoleSessionCredentialsProvider(
+        : new SpinnakerStsAssumeRoleCredentialsProviderV2(
             credentialsProvider,
+            accountId,
             assumeRoleValue,
             Objects.requireNonNull(sessionName, "sessionName"),
             sessionDurationSeconds,
-            accountId,
-            externalId,
-            awsConfigurationProperties);
+            externalId);
   }
 
   /** The role to assume on the target account. */
@@ -77,12 +75,6 @@ public class AssumeRoleAmazonCredentials extends AmazonCredentials {
   @Getter private final Integer sessionDurationSeconds;
 
   @Getter private final String externalId;
-
-  /**
-   * Lazily-initialised v2 credentials provider. Initialised on first call to {@link
-   * #getV2CredentialsProvider()} using the v2 long-lived credentials exposed by the parent class.
-   */
-  private volatile AwsCredentialsProvider v2CredentialsProvider;
 
   public AssumeRoleAmazonCredentials(
       @JsonProperty("name") String name,
@@ -135,7 +127,7 @@ public class AssumeRoleAmazonCredentials extends AmazonCredentials {
    */
   public AssumeRoleAmazonCredentials(
       AssumeRoleAmazonCredentials copy,
-      AWSCredentialsProvider credentialsProvider,
+      AwsCredentialsProvider credentialsProvider,
       AwsConfigurationProperties awsConfigurationProperties) {
     this(
         copy.getName(),
@@ -171,7 +163,7 @@ public class AssumeRoleAmazonCredentials extends AmazonCredentials {
       Permissions permissions,
       List<LifecycleHook> lifecycleHooks,
       boolean allowPrivateThirdPartyImages,
-      AWSCredentialsProvider credentialsProvider,
+      AwsCredentialsProvider credentialsProvider,
       String assumeRole,
       String sessionName,
       Integer sessionDurationSeconds,
@@ -202,31 +194,5 @@ public class AssumeRoleAmazonCredentials extends AmazonCredentials {
     this.sessionName = sessionName == null ? DEFAULT_SESSION_NAME : sessionName;
     this.sessionDurationSeconds = sessionDurationSeconds;
     this.externalId = externalId;
-  }
-
-  /**
-   * Returns a v2 {@link AwsCredentialsProvider} that assumes the role configured on this account.
-   * The provider is created lazily on first access and cached for the lifetime of this credentials
-   * object. The base v2 credentials are obtained from the parent's {@link
-   * AmazonCredentials#getV2CredentialsProvider()} (the {@link
-   * software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider} chain).
-   */
-  @Override
-  public AwsCredentialsProvider getV2CredentialsProvider() {
-    if (v2CredentialsProvider == null) {
-      synchronized (this) {
-        if (v2CredentialsProvider == null) {
-          v2CredentialsProvider =
-              new SpinnakerStsAssumeRoleCredentialsProviderV2(
-                  super.getV2CredentialsProvider(),
-                  getAccountId(),
-                  assumeRole,
-                  sessionName,
-                  sessionDurationSeconds,
-                  externalId);
-        }
-      }
-    }
-    return v2CredentialsProvider;
   }
 }

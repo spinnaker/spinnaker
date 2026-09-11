@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.aws.security;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import java.util.List;
 import lombok.Getter;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 
 /**
  * @see AssumeRoleAmazonCredentials
@@ -51,8 +51,6 @@ public class NetflixAssumeRoleAmazonCredentials extends NetflixAmazonCredentials
       @JsonProperty("permissions") Permissions permissions,
       @JsonProperty("lifecycleHooks") List<LifecycleHook> lifecycleHooks,
       @JsonProperty("allowPrivateThirdPartyImages") boolean allowPrivateThirdPartyImages,
-      @JsonProperty("edda") String edda,
-      @JsonProperty("eddaEnabled") Boolean eddaEnabled,
       @JsonProperty("discovery") String discovery,
       @JsonProperty("discoveryEnabled") Boolean discoveryEnabled,
       @JsonProperty("front50") String front50,
@@ -78,8 +76,6 @@ public class NetflixAssumeRoleAmazonCredentials extends NetflixAmazonCredentials
         lifecycleHooks,
         allowPrivateThirdPartyImages,
         null,
-        edda,
-        eddaEnabled,
         discovery,
         discoveryEnabled,
         front50,
@@ -106,7 +102,7 @@ public class NetflixAssumeRoleAmazonCredentials extends NetflixAmazonCredentials
    */
   public NetflixAssumeRoleAmazonCredentials(
       NetflixAssumeRoleAmazonCredentials copy,
-      AWSCredentialsProvider credentialsProvider,
+      AwsCredentialsProvider credentialsProvider,
       AwsConfigurationProperties awsConfigurationProperties) {
     this(
         copy.getName(),
@@ -122,8 +118,6 @@ public class NetflixAssumeRoleAmazonCredentials extends NetflixAmazonCredentials
         copy.getLifecycleHooks(),
         copy.getAllowPrivateThirdPartyImages(),
         credentialsProvider,
-        copy.getEdda(),
-        copy.isEddaEnabled(),
         copy.getDiscovery(),
         copy.isDiscoveryEnabled(),
         copy.getFront50(),
@@ -150,9 +144,7 @@ public class NetflixAssumeRoleAmazonCredentials extends NetflixAmazonCredentials
       Permissions permissions,
       List<LifecycleHook> lifecycleHooks,
       boolean allowPrivateThirdPartyImages,
-      AWSCredentialsProvider credentialsProvider,
-      String edda,
-      Boolean eddaEnabled,
+      AwsCredentialsProvider credentialsProvider,
       String discovery,
       Boolean discoveryEnabled,
       String front50,
@@ -185,8 +177,6 @@ public class NetflixAssumeRoleAmazonCredentials extends NetflixAmazonCredentials
             sessionDurationSeconds,
             externalId,
             awsConfigurationProperties),
-        edda,
-        eddaEnabled,
         discovery,
         discoveryEnabled,
         front50,

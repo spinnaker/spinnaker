@@ -27,7 +27,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 
 /**
  * An AWS SDK v2 {@link ExecutionInterceptor} that throttles requests via a Guava {@link
- * RateLimiter}. This is the v2 equivalent of {@link RateLimitingRequestHandler}.
+ * RateLimiter}.
  *
  * <p>The interceptor acquires a permit before each API call and records the wait time (in
  * milliseconds) in a Spectator counter.

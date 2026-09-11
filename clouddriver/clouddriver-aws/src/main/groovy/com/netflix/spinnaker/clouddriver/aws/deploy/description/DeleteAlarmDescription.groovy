@@ -16,11 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
-import com.amazonaws.services.cloudwatch.model.ComparisonOperator
-import com.amazonaws.services.cloudwatch.model.Dimension
-import com.amazonaws.services.cloudwatch.model.StandardUnit
-import com.amazonaws.services.cloudwatch.model.Statistic
-
 class DeleteAlarmDescription extends AbstractAmazonCredentialsDescription {
   Collection<String> names
   String region

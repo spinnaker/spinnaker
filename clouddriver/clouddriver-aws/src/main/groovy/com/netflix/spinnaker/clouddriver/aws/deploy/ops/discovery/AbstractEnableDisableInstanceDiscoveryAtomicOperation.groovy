@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery
 
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.elasticloadbalancing.model.Instance
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
+import software.amazon.awssdk.services.elasticloadbalancing.model.Instance
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.eureka.deploy.ops.AbstractEurekaSupport
@@ -57,12 +57,12 @@ abstract class AbstractEnableDisableInstanceDiscoveryAtomicOperation implements 
 
     def asgService = regionScopedProviderFactory.forRegion(description.credentials, description.region).asgService
     asgService.getAutoScalingGroups(description.asgName ? [description.asgName] : null).each { AutoScalingGroup asg ->
-      def asgInstanceIds = asg.instances.findAll {
-        it.lifecycleState == "InService" || it.lifecycleState.startsWith("Pending")
+      def asgInstanceIds = asg.instances().findAll {
+        it.lifecycleStateAsString() == "InService" || it.lifecycleStateAsString().startsWith("Pending")
       }*.instanceId as Set<String>
       def instancesInAsg = description.instanceIds.findAll {
         asgInstanceIds.contains(it)
-      }.collect { new Instance(it)}
+      }.collect { Instance.builder().instanceId(it).build() }
 
       if (!instancesInAsg) {
         return
@@ -70,7 +70,7 @@ abstract class AbstractEnableDisableInstanceDiscoveryAtomicOperation implements 
 
       def status = isEnable() ? AbstractEurekaSupport.DiscoveryStatus.UP : AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE
       discoverySupport.updateDiscoveryStatusForInstances(
-          description, task, phaseName, status, instancesInAsg*.instanceId, true
+          description, task, phaseName, status, instancesInAsg*.instanceId(), true
       )
     }
 

@@ -1,13 +1,13 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.actions
 
-import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.autoscaling.model.InstancesDistribution
-import com.amazonaws.services.autoscaling.model.LaunchTemplateSpecification
-import com.amazonaws.services.autoscaling.model.MixedInstancesPolicy
-import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
-import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupResult
-import com.amazonaws.services.ec2.model.*
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
+import software.amazon.awssdk.services.autoscaling.model.InstancesDistribution
+import software.amazon.awssdk.services.autoscaling.model.LaunchTemplateSpecification
+import software.amazon.awssdk.services.autoscaling.model.MixedInstancesPolicy
+import software.amazon.awssdk.services.autoscaling.model.UpdateAutoScalingGroupRequest
+import software.amazon.awssdk.services.autoscaling.model.UpdateAutoScalingGroupResponse
+import software.amazon.awssdk.services.ec2.model.*
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.ModifyServerGroupLaunchTemplateDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.ModifyServerGroupLaunchTemplateAtomicOperation
@@ -22,7 +22,7 @@ import spock.lang.Unroll
 
 class UpdateAutoScalingGroupSpec extends Specification {
   def credentials = TestCredential.named("test")
-  def autoScaling = Mock(AmazonAutoScaling)
+  def autoScaling = Mock(AutoScalingClient)
   def ltService = Mock(LaunchTemplateService)
   def asgService = Mock(AsgService)
   def credentialsRepository = Stub(MapBackedCredentialsRepository) {
@@ -43,13 +43,11 @@ class UpdateAutoScalingGroupSpec extends Specification {
   def updateAction = new UpdateAutoScalingGroup(regionScopedProviderFactory, credentialsRepository)
 
   def asgName = "test-v001"
-  def ltVersion = new LaunchTemplateVersion(
-    launchTemplateId: "lt-1",
-    launchTemplateData: new ResponseLaunchTemplateData(
-      imageId: "ami-1",
-    ),
-    versionNumber: 3L
-  )
+  def ltVersion = LaunchTemplateVersion.builder()
+    .launchTemplateId("lt-1")
+    .launchTemplateData(ResponseLaunchTemplateData.builder().imageId("ami-1").build())
+    .versionNumber(3L)
+    .build()
 
   def "should update ASG backed by mixed instances policy correctly"() {
     given:
@@ -66,16 +64,16 @@ class UpdateAutoScalingGroupSpec extends Specification {
     )
 
     and:
-    def asgWithMip = new AutoScalingGroup(
-      autoScalingGroupName: asgName,
-      mixedInstancesPolicy: new MixedInstancesPolicy() // description is already populated with MIP values from existing ASG at this point, use a dummy MIP here
-    )
+    def asgWithMip = AutoScalingGroup.builder()
+      .autoScalingGroupName(asgName)
+      .mixedInstancesPolicy(MixedInstancesPolicy.builder().build()) // description is already populated with MIP values from existing ASG at this point, use a dummy MIP here
+      .build()
 
     and:
     def updateCommand = new UpdateAutoScalingGroup.UpdateAutoScalingGroupCommand.UpdateAutoScalingGroupCommandBuilder()
       .description(modifyDesc)
       .launchTemplateVersion(ltVersion)
-      .newLaunchTemplateVersionNumber(ltVersion.getVersionNumber())
+      .newLaunchTemplateVersionNumber(ltVersion.versionNumber())
       .launchTemplateOverrides(null)
       .isReqToUpgradeAsgToMixedInstancesPolicy(false)
       .build()
@@ -92,18 +90,18 @@ class UpdateAutoScalingGroupSpec extends Specification {
     assert updateReq.autoScalingGroupName == asgName
     assert updateReq.launchTemplate == null
 
-    assert updateReq.mixedInstancesPolicy.instancesDistribution == new InstancesDistribution(
-      onDemandAllocationStrategy: "prioritized",
-      onDemandBaseCapacity: 2,
-      onDemandPercentageAboveBaseCapacity: 50,
-      spotAllocationStrategy: "capacity-optimized",
-      spotInstancePools: null,
-      spotMaxPrice: "1"
-    )
-    assert updateReq.mixedInstancesPolicy.launchTemplate.launchTemplateSpecification == new LaunchTemplateSpecification(
-      launchTemplateId: ltVersion.launchTemplateId,
-      version: String.valueOf(ltVersion.getVersionNumber())
-    )
+    assert updateReq.mixedInstancesPolicy.instancesDistribution == InstancesDistribution.builder()
+      .onDemandAllocationStrategy("prioritized")
+      .onDemandBaseCapacity(2)
+      .onDemandPercentageAboveBaseCapacity(50)
+      .spotAllocationStrategy("capacity-optimized")
+      .spotInstancePools(null)
+      .spotMaxPrice("1")
+      .build()
+    assert updateReq.mixedInstancesPolicy.launchTemplate.launchTemplateSpecification == LaunchTemplateSpecification.builder()
+      .launchTemplateId(ltVersion.launchTemplateId)
+      .version(String.valueOf(ltVersion.versionNumber()))
+      .build()
     }
   }
 
@@ -118,16 +116,16 @@ class UpdateAutoScalingGroupSpec extends Specification {
     )
 
     and:
-    def asgWithLt = new AutoScalingGroup(
-      autoScalingGroupName: asgName,
-      launchTemplate: new LaunchTemplateSpecification(launchTemplateName: ltVersion.launchTemplateId, version: String.valueOf(ltVersion.getVersionNumber()))
-    )
+    def asgWithLt = AutoScalingGroup.builder()
+      .autoScalingGroupName(asgName)
+      .launchTemplate(LaunchTemplateSpecification.builder().launchTemplateName(ltVersion.launchTemplateId).version(String.valueOf(ltVersion.versionNumber())).build())
+      .build()
 
     and:
     def updateCommand = new UpdateAutoScalingGroup.UpdateAutoScalingGroupCommand.UpdateAutoScalingGroupCommandBuilder()
       .description(modifyDesc)
       .launchTemplateVersion(ltVersion)
-      .newLaunchTemplateVersionNumber(ltVersion.getVersionNumber())
+      .newLaunchTemplateVersionNumber(ltVersion.versionNumber())
       .launchTemplateOverrides(null)
       .isReqToUpgradeAsgToMixedInstancesPolicy(false)
       .build()
@@ -145,7 +143,7 @@ class UpdateAutoScalingGroupSpec extends Specification {
       assert updateReq.mixedInstancesPolicy == null
 
       assert updateReq.launchTemplate.launchTemplateId == ltVersion.launchTemplateId
-      assert updateReq.launchTemplate.version == String.valueOf(ltVersion.getVersionNumber()); new UpdateAutoScalingGroupResult()
+      assert updateReq.launchTemplate.version == String.valueOf(ltVersion.versionNumber()); UpdateAutoScalingGroupResponse.builder().build()
     }
   }
 
@@ -161,16 +159,16 @@ class UpdateAutoScalingGroupSpec extends Specification {
     )
 
     and:
-    def asgWithLt = new AutoScalingGroup(
-      autoScalingGroupName: asgName,
-      launchTemplate: new LaunchTemplateSpecification(launchTemplateId: ltVersion.launchTemplateId, version: String.valueOf(ltVersion.getVersionNumber()))
-    )
+    def asgWithLt = AutoScalingGroup.builder()
+      .autoScalingGroupName(asgName)
+      .launchTemplate(LaunchTemplateSpecification.builder().launchTemplateId(ltVersion.launchTemplateId).version(String.valueOf(ltVersion.versionNumber())).build())
+      .build()
 
     and:
     def updateCommand = new UpdateAutoScalingGroup.UpdateAutoScalingGroupCommand.UpdateAutoScalingGroupCommandBuilder()
       .description(modifyDesc)
       .launchTemplateVersion(ltVersion)
-      .newLaunchTemplateVersionNumber(ltVersion.getVersionNumber())
+      .newLaunchTemplateVersionNumber(ltVersion.versionNumber())
       .launchTemplateOverrides(null)
       .isReqToUpgradeAsgToMixedInstancesPolicy(true)
       .build()
@@ -188,20 +186,20 @@ class UpdateAutoScalingGroupSpec extends Specification {
       assert updateReq.launchTemplate == null
 
       // null values will take AWS defaults
-      assert updateReq.mixedInstancesPolicy.instancesDistribution == new InstancesDistribution(
-        onDemandAllocationStrategy: null,
-        onDemandBaseCapacity: null,
-        onDemandPercentageAboveBaseCapacity: null,
-        spotAllocationStrategy: "capacity-optimized",
-        spotInstancePools: null,
-        spotMaxPrice: "1"
-      )
-      assert updateReq.mixedInstancesPolicy.launchTemplate.launchTemplateSpecification == new LaunchTemplateSpecification(
-        launchTemplateId: ltVersion.launchTemplateId,
-        version: String.valueOf(ltVersion.getVersionNumber())
-      )
+      assert updateReq.mixedInstancesPolicy.instancesDistribution == InstancesDistribution.builder()
+        .onDemandAllocationStrategy(null)
+        .onDemandBaseCapacity(null)
+        .onDemandPercentageAboveBaseCapacity(null)
+        .spotAllocationStrategy("capacity-optimized")
+        .spotInstancePools(null)
+        .spotMaxPrice("1")
+        .build()
+      assert updateReq.mixedInstancesPolicy.launchTemplate.launchTemplateSpecification == LaunchTemplateSpecification.builder()
+        .launchTemplateId(ltVersion.launchTemplateId)
+        .version(String.valueOf(ltVersion.versionNumber()))
+        .build()
 
-      assert updateReq.mixedInstancesPolicy.launchTemplate.overrides == []; new UpdateAutoScalingGroupResult()
+      assert updateReq.mixedInstancesPolicy.launchTemplate.overrides == []; UpdateAutoScalingGroupResponse.builder().build()
     }
   }
 
@@ -217,10 +215,10 @@ class UpdateAutoScalingGroupSpec extends Specification {
     )
 
     and:
-    def asgWithLt = new AutoScalingGroup(
-      autoScalingGroupName: asgName,
-      launchTemplate: new LaunchTemplateSpecification(launchTemplateName: ltVersion.launchTemplateId, version: String.valueOf(ltVersion.getVersionNumber()))
-    )
+    def asgWithLt = AutoScalingGroup.builder()
+      .autoScalingGroupName(asgName)
+      .launchTemplate(LaunchTemplateSpecification.builder().launchTemplateName(ltVersion.launchTemplateId).version(String.valueOf(ltVersion.versionNumber())).build())
+      .build()
 
     and:
     def updateCommand = new UpdateAutoScalingGroup.UpdateAutoScalingGroupCommand.UpdateAutoScalingGroupCommandBuilder()

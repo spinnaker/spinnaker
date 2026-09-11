@@ -16,13 +16,14 @@
 
 package com.netflix.spinnaker.clouddriver.aws.agent
 
-import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.autoscaling.model.DescribePoliciesResult
-import com.amazonaws.services.autoscaling.model.ScalingPolicy
-import com.amazonaws.services.cloudwatch.AmazonCloudWatch
-import com.amazonaws.services.cloudwatch.model.DeleteAlarmsRequest
-import com.amazonaws.services.cloudwatch.model.DescribeAlarmsResult
-import com.amazonaws.services.cloudwatch.model.MetricAlarm
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient
+import software.amazon.awssdk.services.autoscaling.model.Alarm
+import software.amazon.awssdk.services.autoscaling.model.DescribePoliciesResponse
+import software.amazon.awssdk.services.autoscaling.model.ScalingPolicy
+import software.amazon.awssdk.services.cloudwatch.CloudWatchClient
+import software.amazon.awssdk.services.cloudwatch.model.DeleteAlarmsRequest
+import software.amazon.awssdk.services.cloudwatch.model.DescribeAlarmsResponse
+import software.amazon.awssdk.services.cloudwatch.model.MetricAlarm
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.credentials.CredentialsRepository
@@ -35,10 +36,10 @@ class CleanupAlarmsAgentSpec extends Specification {
   @Shared
   def test = TestCredential.named('test')
 
-  AmazonAutoScaling autoScalingUSW
-  AmazonAutoScaling autoScalingUSE
-  AmazonCloudWatch cloudWatchUSW
-  AmazonCloudWatch cloudWatchUSE
+  AutoScalingClient autoScalingUSW
+  AutoScalingClient autoScalingUSE
+  CloudWatchClient cloudWatchUSW
+  CloudWatchClient cloudWatchUSE
   AmazonClientProvider amazonClientProvider
   CredentialsRepository credentialsRepository
   CleanupAlarmsAgent agent
@@ -46,16 +47,16 @@ class CleanupAlarmsAgentSpec extends Specification {
   String deletableAlarmName = "clouddriver-test-v123-alarm-" + validUuid
 
   void setup() {
-    autoScalingUSW = Mock(AmazonAutoScaling)
-    autoScalingUSE = Mock(AmazonAutoScaling)
-    cloudWatchUSW = Mock(AmazonCloudWatch)
-    cloudWatchUSE = Mock(AmazonCloudWatch)
+    autoScalingUSW = Mock(AutoScalingClient)
+    autoScalingUSE = Mock(AutoScalingClient)
+    cloudWatchUSW = Mock(CloudWatchClient)
+    cloudWatchUSE = Mock(CloudWatchClient)
 
     amazonClientProvider = Mock(AmazonClientProvider) {
-      1 * getAutoScaling(test, "us-west-1") >> autoScalingUSW
-      1 * getAutoScaling(test, "us-east-1") >> autoScalingUSE
-      1 * getCloudWatch(test, "us-west-1") >> cloudWatchUSW
-      1 * getCloudWatch(test, "us-east-1") >> cloudWatchUSE
+      1 * getAutoScalingV2(test, "us-west-1") >> autoScalingUSW
+      1 * getAutoScalingV2(test, "us-east-1") >> autoScalingUSE
+      1 * getAmazonCloudWatchV2(test, "us-west-1") >> cloudWatchUSW
+      1 * getAmazonCloudWatchV2(test, "us-east-1") >> cloudWatchUSE
       0 * _
     }
 
@@ -72,12 +73,12 @@ class CleanupAlarmsAgentSpec extends Specification {
     agent.run()
 
     then:
-    1 * autoScalingUSW.describePolicies() >> new DescribePoliciesResult()
-    1 * autoScalingUSE.describePolicies() >> new DescribePoliciesResult()
-    1 * cloudWatchUSE.describeAlarms(_) >> new DescribeAlarmsResult().withMetricAlarms([buildAlarm(deletableAlarmName, 92)])
-    1 * cloudWatchUSW.describeAlarms(_) >> new DescribeAlarmsResult().withMetricAlarms([buildAlarm(deletableAlarmName, 92)])
-    1 * cloudWatchUSE.deleteAlarms({ DeleteAlarmsRequest r -> r.alarmNames == [deletableAlarmName]} as DeleteAlarmsRequest)
-    1 * cloudWatchUSW.deleteAlarms({ DeleteAlarmsRequest r -> r.alarmNames == [deletableAlarmName]} as DeleteAlarmsRequest)
+    1 * autoScalingUSW.describePolicies(_) >> DescribePoliciesResponse.builder().build()
+    1 * autoScalingUSE.describePolicies(_) >> DescribePoliciesResponse.builder().build()
+    1 * cloudWatchUSE.describeAlarms(_) >> DescribeAlarmsResponse.builder().metricAlarms([buildAlarm(deletableAlarmName, 92)]).build()
+    1 * cloudWatchUSW.describeAlarms(_) >> DescribeAlarmsResponse.builder().metricAlarms([buildAlarm(deletableAlarmName, 92)]).build()
+    1 * cloudWatchUSE.deleteAlarms({ DeleteAlarmsRequest r -> r.alarmNames() == [deletableAlarmName]} as DeleteAlarmsRequest)
+    1 * cloudWatchUSW.deleteAlarms({ DeleteAlarmsRequest r -> r.alarmNames() == [deletableAlarmName]} as DeleteAlarmsRequest)
   }
 
   void "should not delete alarms that are newer than threshold"() {
@@ -85,11 +86,11 @@ class CleanupAlarmsAgentSpec extends Specification {
     agent.run()
 
     then:
-    1 * autoScalingUSW.describePolicies() >> new DescribePoliciesResult()
-    1 * autoScalingUSE.describePolicies() >> new DescribePoliciesResult()
-    1 * cloudWatchUSE.describeAlarms(_) >> new DescribeAlarmsResult().withMetricAlarms([buildAlarm(deletableAlarmName, 88)])
-    1 * cloudWatchUSW.describeAlarms(_) >> new DescribeAlarmsResult().withMetricAlarms([buildAlarm(deletableAlarmName, 92)])
-    1 * cloudWatchUSW.deleteAlarms({ DeleteAlarmsRequest r -> r.alarmNames == [deletableAlarmName]} as DeleteAlarmsRequest)
+    1 * autoScalingUSW.describePolicies(_) >> DescribePoliciesResponse.builder().build()
+    1 * autoScalingUSE.describePolicies(_) >> DescribePoliciesResponse.builder().build()
+    1 * cloudWatchUSE.describeAlarms(_) >> DescribeAlarmsResponse.builder().metricAlarms([buildAlarm(deletableAlarmName, 88)]).build()
+    1 * cloudWatchUSW.describeAlarms(_) >> DescribeAlarmsResponse.builder().metricAlarms([buildAlarm(deletableAlarmName, 92)]).build()
+    1 * cloudWatchUSW.deleteAlarms({ DeleteAlarmsRequest r -> r.alarmNames() == [deletableAlarmName]} as DeleteAlarmsRequest)
     0 * cloudWatchUSE.deleteAlarms(_)
   }
 
@@ -97,17 +98,17 @@ class CleanupAlarmsAgentSpec extends Specification {
     given:
     MetricAlarm alarmA = buildAlarm(deletableAlarmName, 99)
     MetricAlarm alarmB = buildAlarm(deletableAlarmName, 99)
-    ScalingPolicy policyA = new ScalingPolicy(alarms: [alarmA])
+    ScalingPolicy policyA = ScalingPolicy.builder().alarms([Alarm.builder().alarmName(alarmA.alarmName()).build()]).build()
 
     when:
     agent.run()
 
     then:
-    1 * autoScalingUSW.describePolicies() >> new DescribePoliciesResult()
-    1 * autoScalingUSE.describePolicies() >> new DescribePoliciesResult().withScalingPolicies([policyA])
-    1 * cloudWatchUSE.describeAlarms(_) >> new DescribeAlarmsResult().withMetricAlarms([alarmA])
-    1 * cloudWatchUSW.describeAlarms(_) >> new DescribeAlarmsResult().withMetricAlarms([alarmB])
-    1 * cloudWatchUSW.deleteAlarms({ DeleteAlarmsRequest r -> r.alarmNames == [deletableAlarmName]} as DeleteAlarmsRequest)
+    1 * autoScalingUSW.describePolicies(_) >> DescribePoliciesResponse.builder().build()
+    1 * autoScalingUSE.describePolicies(_) >> DescribePoliciesResponse.builder().scalingPolicies([policyA]).build()
+    1 * cloudWatchUSE.describeAlarms(_) >> DescribeAlarmsResponse.builder().metricAlarms([alarmA]).build()
+    1 * cloudWatchUSW.describeAlarms(_) >> DescribeAlarmsResponse.builder().metricAlarms([alarmB]).build()
+    1 * cloudWatchUSW.deleteAlarms({ DeleteAlarmsRequest r -> r.alarmNames() == [deletableAlarmName]} as DeleteAlarmsRequest)
     0 * cloudWatchUSE.deleteAlarms(_)
   }
 
@@ -120,10 +121,10 @@ class CleanupAlarmsAgentSpec extends Specification {
     agent.run()
 
     then:
-    1 * autoScalingUSE.describePolicies() >> new DescribePoliciesResult()
-    1 * cloudWatchUSE.describeAlarms(_) >> new DescribeAlarmsResult()
-    1 * autoScalingUSW.describePolicies() >> new DescribePoliciesResult()
-    1 * cloudWatchUSW.describeAlarms(_) >> new DescribeAlarmsResult().withMetricAlarms([alarmA, alarmB])
+    1 * autoScalingUSE.describePolicies(_) >> DescribePoliciesResponse.builder().build()
+    1 * cloudWatchUSE.describeAlarms(_) >> DescribeAlarmsResponse.builder().build()
+    1 * autoScalingUSW.describePolicies(_) >> DescribePoliciesResponse.builder().build()
+    1 * cloudWatchUSW.describeAlarms(_) >> DescribeAlarmsResponse.builder().metricAlarms([alarmA, alarmB]).build()
     0 * cloudWatchUSW.deleteAlarms(_)
 
   }
@@ -139,15 +140,15 @@ class CleanupAlarmsAgentSpec extends Specification {
     agent.run()
 
     then:
-    1 * autoScalingUSE.describePolicies() >> new DescribePoliciesResult()
-    1 * cloudWatchUSE.describeAlarms(_) >> new DescribeAlarmsResult()
-    1 * autoScalingUSW.describePolicies() >> new DescribePoliciesResult()
-    1 * cloudWatchUSW.describeAlarms(_) >> new DescribeAlarmsResult().withMetricAlarms([alarmA, alarmB])
+    1 * autoScalingUSE.describePolicies(_) >> DescribePoliciesResponse.builder().build()
+    1 * cloudWatchUSE.describeAlarms(_) >> DescribeAlarmsResponse.builder().build()
+    1 * autoScalingUSW.describePolicies(_) >> DescribePoliciesResponse.builder().build()
+    1 * cloudWatchUSW.describeAlarms(_) >> DescribeAlarmsResponse.builder().metricAlarms([alarmA, alarmB]).build()
     1 * cloudWatchUSW.deleteAlarms({ DeleteAlarmsRequest request ->
-      request.alarmNames == ["some-other-v000-CustomAlarm-${validUuid}"]
+      request.alarmNames() == ["some-other-v000-CustomAlarm-${validUuid}"]
     })
     0 * cloudWatchUSW.deleteAlarms({ DeleteAlarmsRequest request ->
-      request.alarmNames == ["some-other-alarm-v000-${validUuid}"]
+      request.alarmNames() == ["some-other-alarm-v000-${validUuid}"]
     })
   }
 
@@ -163,17 +164,17 @@ class CleanupAlarmsAgentSpec extends Specification {
     agent.run()
 
     then:
-    1 * autoScalingUSE.describePolicies() >> new DescribePoliciesResult()
-    1 * cloudWatchUSE.describeAlarms(_) >> new DescribeAlarmsResult()
-    1 * autoScalingUSW.describePolicies() >> new DescribePoliciesResult()
-    1 * cloudWatchUSW.describeAlarms(_) >> new DescribeAlarmsResult().withMetricAlarms([alarmA, alarmB])
+    1 * autoScalingUSE.describePolicies(_) >> DescribePoliciesResponse.builder().build()
+    1 * cloudWatchUSE.describeAlarms(_) >> DescribeAlarmsResponse.builder().build()
+    1 * autoScalingUSW.describePolicies(_) >> DescribePoliciesResponse.builder().build()
+    1 * cloudWatchUSW.describeAlarms(_) >> DescribeAlarmsResponse.builder().metricAlarms([alarmA, alarmB]).build()
     1 * cloudWatchUSW.deleteAlarms({ DeleteAlarmsRequest request ->
-      request.alarmNames == ["some-other-v000-CustomAlarm-${validUuid}", "some-other-alarm-v000-${validUuid}"]
+      request.alarmNames() == ["some-other-v000-CustomAlarm-${validUuid}", "some-other-alarm-v000-${validUuid}"]
     })
   }
 
   private static MetricAlarm buildAlarm(String name, int dataDays) {
-    new MetricAlarm(alarmName: name, stateUpdatedTimestamp: DateTime.now().minusDays(dataDays).toDate())
+    MetricAlarm.builder().alarmName(name).stateUpdatedTimestamp(DateTime.now().minusDays(dataDays).toDate().toInstant()).build()
   }
 
 

@@ -16,8 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.view
 
-import com.amazonaws.services.cloudwatch.AmazonCloudWatch
-import com.amazonaws.services.cloudwatch.model.*
+import software.amazon.awssdk.services.cloudwatch.CloudWatchClient
+import software.amazon.awssdk.services.cloudwatch.model.Dimension
+import software.amazon.awssdk.services.cloudwatch.model.DimensionFilter
+import software.amazon.awssdk.services.cloudwatch.model.GetMetricStatisticsRequest
+import software.amazon.awssdk.services.cloudwatch.model.GetMetricStatisticsResponse
+import software.amazon.awssdk.services.cloudwatch.model.ListMetricsRequest
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonMetricDescriptor
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonMetricStatistics
@@ -52,10 +56,11 @@ class AmazonCloudMetricProvider implements CloudMetricProvider<AmazonMetricDescr
   @Override
   AmazonMetricDescriptor getMetricDescriptor(String account, String region, Map<String, String> filters) {
     def cloudWatch = getCloudWatch(account, region)
-    def request = new ListMetricsRequest()
-        .withNamespace(filters.namespace)
-        .withMetricName(filters.metricName)
-    def results = cloudWatch.listMetrics(request).metrics
+    def request = ListMetricsRequest.builder()
+        .namespace(filters.namespace)
+        .metricName(filters.metricName)
+        .build()
+    def results = cloudWatch.listMetrics(request).metrics()
     if (!results) {
       return null
     }
@@ -68,22 +73,22 @@ class AmazonCloudMetricProvider implements CloudMetricProvider<AmazonMetricDescr
   @Override
   List<AmazonMetricDescriptor> findMetricDescriptors(String account, String region, Map<String, String> filters) {
     def cloudWatch = getCloudWatch(account, region)
-    def request = new ListMetricsRequest()
+    def requestBuilder = ListMetricsRequest.builder()
     if (filters.namespace) {
-      request.withNamespace(filters.namespace)
+      requestBuilder.namespace(filters.namespace)
     }
     if (filters.name) {
-      request.withMetricName(filters.name)
+      requestBuilder.metricName(filters.name)
     }
 
-    request.withDimensions(filters.findResults {
+    requestBuilder.dimensions(filters.findResults {
       if (it.key != "namespace" && it.key != "name") {
-        new DimensionFilter().withName(it.key).withValue(it.value)
+        DimensionFilter.builder().name(it.key).value(it.value).build()
       } else {
         null
       }
     })
-    def results = cloudWatch.listMetrics(request).metrics
+    def results = cloudWatch.listMetrics(requestBuilder.build()).metrics()
     return results.findResults { AmazonMetricDescriptor.from(it) }
   }
 
@@ -95,30 +100,31 @@ class AmazonCloudMetricProvider implements CloudMetricProvider<AmazonMetricDescr
     if (!filters || !requiredFilters.every({ filters.containsKey(it)})) {
       throw new IllegalArgumentException("Not all required filters (${requiredFilters.join(', ')}) are present")
     }
-    AmazonCloudWatch cloudWatch = getCloudWatch(account, region)
-    GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
-      .withNamespace(filters.namespace)
-      .withMetricName(metricName)
-      .withStartTime(new Date(startTime))
-      .withEndTime(new Date(endTime))
-      .withStatistics(filters.statistics ? filters.statistics.split(",") : "Average")
-      .withPeriod(filters.period ? Integer.parseInt(filters.period) : 600)
-      .withDimensions(filters.findResults {
+    CloudWatchClient cloudWatch = getCloudWatch(account, region)
+    GetMetricStatisticsRequest request = GetMetricStatisticsRequest.builder()
+      .namespace(filters.namespace)
+      .metricName(metricName)
+      .startTime(new Date(startTime).toInstant())
+      .endTime(new Date(endTime).toInstant())
+      .statisticsWithStrings(filters.statistics ? filters.statistics.split(",") as List : ["Average"])
+      .period(filters.period ? Integer.parseInt(filters.period) : 600)
+      .dimensions(filters.findResults {
         if (!requiredFilters.contains(it.key) && !optionalFilters.contains(it.key)) {
-          new Dimension().withName(it.key).withValue(it.value)
+          Dimension.builder().name(it.key).value(it.value).build()
         } else {
           null
         }
       })
-    GetMetricStatisticsResult results = cloudWatch.getMetricStatistics(request)
+      .build()
+    GetMetricStatisticsResponse results = cloudWatch.getMetricStatistics(request)
     return AmazonMetricStatistics.from(results)
   }
 
-  private AmazonCloudWatch getCloudWatch(String account, String region) {
+  private CloudWatchClient getCloudWatch(String account, String region) {
     def credentials = credentialsRepository.getOne(account)
     if (!(credentials instanceof NetflixAmazonCredentials)) {
       throw new IllegalArgumentException("Invalid credentials: ${account}:${region}")
     }
-    amazonClientProvider.getCloudWatch(credentials, region)
+    amazonClientProvider.getAmazonCloudWatchV2(credentials, region)
   }
 }

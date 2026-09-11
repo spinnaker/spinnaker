@@ -16,18 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.autoscaling.model.PutScalingPolicyRequest
-import com.amazonaws.services.autoscaling.model.PutScalingPolicyResult
-import com.amazonaws.services.cloudwatch.AmazonCloudWatch
-import com.amazonaws.services.cloudwatch.model.ComparisonOperator
-import com.amazonaws.services.cloudwatch.model.Dimension
-import com.amazonaws.services.cloudwatch.model.PutMetricAlarmRequest
-import com.amazonaws.services.cloudwatch.model.StandardUnit
-import com.amazonaws.services.cloudwatch.model.Statistic
-import com.amazonaws.services.sns.AmazonSNS
-import com.amazonaws.services.sns.model.ListTopicsResult
-import com.amazonaws.services.sns.model.Topic
+import software.amazon.awssdk.services.cloudwatch.CloudWatchClient
+import software.amazon.awssdk.services.cloudwatch.model.ComparisonOperator
+import software.amazon.awssdk.services.cloudwatch.model.Dimension
+import software.amazon.awssdk.services.cloudwatch.model.PutMetricAlarmRequest
+import software.amazon.awssdk.services.cloudwatch.model.StandardUnit
+import software.amazon.awssdk.services.cloudwatch.model.Statistic
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAlarmDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertScalingPolicyDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
@@ -46,19 +40,19 @@ class UpsertAlarmOperationUnitSpec extends Specification {
   def description = new UpsertAlarmDescription(
     region: "us-west-1",
     alarmDescription: "annoying alarm",
-    comparisonOperator: ComparisonOperator.GreaterThanThreshold,
+    comparisonOperator: ComparisonOperator.GREATER_THAN_THRESHOLD,
     evaluationPeriods: 1,
     period: 2,
     threshold: 10.5,
     namespace: "AWS/EC2",
     metricName: "CPUUtilization",
-    statistic: Statistic.SampleCount,
-    unit: StandardUnit.Percent,
+    statistic: Statistic.SAMPLE_COUNT,
+    unit: StandardUnit.PERCENT,
   )
 
-  def cloudWatch = Mock(AmazonCloudWatch)
+  def cloudWatch = Mock(CloudWatchClient)
   def amazonClientProvider = Stub(AmazonClientProvider) {
-    getCloudWatch(_, _, true) >> cloudWatch
+    getAmazonCloudWatchV2(_, _) >> cloudWatch
   }
 
   @Subject def op = new UpsertAlarmAtomicOperation(description)
@@ -79,19 +73,19 @@ class UpsertAlarmOperationUnitSpec extends Specification {
     op.operate([])
 
     then:
-    1 * cloudWatch.putMetricAlarm(new PutMetricAlarmRequest(
-      alarmName: "alarm-1",
-      actionsEnabled: true,
-      alarmDescription: "annoying alarm",
-      comparisonOperator: "GreaterThanThreshold",
-      evaluationPeriods: 1,
-      period: 2,
-      threshold: 10.5,
-      namespace: "AWS/EC2",
-      metricName: "CPUUtilization",
-      statistic: "SampleCount",
-      unit: "Percent"
-    ))
+    1 * cloudWatch.putMetricAlarm(PutMetricAlarmRequest.builder()
+      .alarmName("alarm-1")
+      .actionsEnabled(true)
+      .alarmDescription("annoying alarm")
+      .comparisonOperator("GreaterThanThreshold")
+      .evaluationPeriods(1)
+      .period(2)
+      .threshold(10.5)
+      .namespace("AWS/EC2")
+      .metricName("CPUUtilization")
+      .statistic("SampleCount")
+      .unit("Percent")
+      .build())
   }
 
   void "updates named alarm"() {
@@ -101,19 +95,19 @@ class UpsertAlarmOperationUnitSpec extends Specification {
     op.operate([])
 
     then:
-    1 * cloudWatch.putMetricAlarm(new PutMetricAlarmRequest(
-      alarmName: "myAlarm",
-      actionsEnabled: true,
-      alarmDescription: "annoying alarm",
-      comparisonOperator: "GreaterThanThreshold",
-      evaluationPeriods: 1,
-      period: 2,
-      threshold: 10.5,
-      namespace: "AWS/EC2",
-      metricName: "CPUUtilization",
-      statistic: "SampleCount",
-      unit: "Percent"
-    ))
+    1 * cloudWatch.putMetricAlarm(PutMetricAlarmRequest.builder()
+      .alarmName("myAlarm")
+      .actionsEnabled(true)
+      .alarmDescription("annoying alarm")
+      .comparisonOperator("GreaterThanThreshold")
+      .evaluationPeriods(1)
+      .period(2)
+      .threshold(10.5)
+      .namespace("AWS/EC2")
+      .metricName("CPUUtilization")
+      .statistic("SampleCount")
+      .unit("Percent")
+      .build())
   }
 
 
@@ -124,22 +118,22 @@ class UpsertAlarmOperationUnitSpec extends Specification {
     op.operate([])
 
     then:
-    1 * cloudWatch.putMetricAlarm(new PutMetricAlarmRequest(
-      alarmName: "kato-main-v000-alarm-1",
-      actionsEnabled: true,
-      alarmDescription: "annoying alarm",
-      comparisonOperator: "GreaterThanThreshold",
-      evaluationPeriods: 1,
-      period: 2,
-      threshold: 10.5,
-      namespace: "AWS/EC2",
-      metricName: "CPUUtilization",
-      statistic: "SampleCount",
-      unit: "Percent",
-      dimensions: [
-              new Dimension(name: "AutoScalingGroupName", value: "kato-main-v000")
-      ]
-    ))
+    1 * cloudWatch.putMetricAlarm(PutMetricAlarmRequest.builder()
+      .alarmName("kato-main-v000-alarm-1")
+      .actionsEnabled(true)
+      .alarmDescription("annoying alarm")
+      .comparisonOperator("GreaterThanThreshold")
+      .evaluationPeriods(1)
+      .period(2)
+      .threshold(10.5)
+      .namespace("AWS/EC2")
+      .metricName("CPUUtilization")
+      .statistic("SampleCount")
+      .unit("Percent")
+      .dimensions([
+              Dimension.builder().name("AutoScalingGroupName").value("kato-main-v000").build()
+      ])
+      .build())
   }
 
 
@@ -150,75 +144,75 @@ class UpsertAlarmOperationUnitSpec extends Specification {
     op.operate([])
 
     then:
-    1 * cloudWatch.putMetricAlarm(new PutMetricAlarmRequest(
-      alarmName: "alarm-1",
-      actionsEnabled: false,
-      alarmDescription: "annoying alarm",
-      comparisonOperator: "GreaterThanThreshold",
-      evaluationPeriods: 1,
-      period: 2,
-      threshold: 10.5,
-      namespace: "AWS/EC2",
-      metricName: "CPUUtilization",
-      statistic: "SampleCount",
-      unit: "Percent"
-    ))
+    1 * cloudWatch.putMetricAlarm(PutMetricAlarmRequest.builder()
+      .alarmName("alarm-1")
+      .actionsEnabled(false)
+      .alarmDescription("annoying alarm")
+      .comparisonOperator("GreaterThanThreshold")
+      .evaluationPeriods(1)
+      .period(2)
+      .threshold(10.5)
+      .namespace("AWS/EC2")
+      .metricName("CPUUtilization")
+      .statistic("SampleCount")
+      .unit("Percent")
+      .build())
   }
 
   void "creates alarm with dimensions"() {
     description.dimensions = [
-            new Dimension(name: "a", value: "1")
+            Dimension.builder().name("a").value("1").build()
     ]
 
     when:
     op.operate([])
 
     then:
-    1 * cloudWatch.putMetricAlarm(new PutMetricAlarmRequest(
-      alarmName: "alarm-1",
-      actionsEnabled: true,
-      alarmDescription: "annoying alarm",
-      comparisonOperator: "GreaterThanThreshold",
-      evaluationPeriods: 1,
-      period: 2,
-      threshold: 10.5,
-      namespace: "AWS/EC2",
-      metricName: "CPUUtilization",
-      statistic: "SampleCount",
-      unit: "Percent",
-      dimensions: [
-        new Dimension(name: "a", value: "1")
-      ]
-    ))
+    1 * cloudWatch.putMetricAlarm(PutMetricAlarmRequest.builder()
+      .alarmName("alarm-1")
+      .actionsEnabled(true)
+      .alarmDescription("annoying alarm")
+      .comparisonOperator("GreaterThanThreshold")
+      .evaluationPeriods(1)
+      .period(2)
+      .threshold(10.5)
+      .namespace("AWS/EC2")
+      .metricName("CPUUtilization")
+      .statistic("SampleCount")
+      .unit("Percent")
+      .dimensions([
+        Dimension.builder().name("a").value("1").build()
+      ])
+      .build())
   }
 
   void "creates alarm with dimensions for ASG"() {
     description.asgName = "kato-main-v000"
     description.dimensions = [
-      new Dimension(name: "a", value: "1")
+      Dimension.builder().name("a").value("1").build()
     ]
 
     when:
     op.operate([])
 
     then:
-    1 * cloudWatch.putMetricAlarm(new PutMetricAlarmRequest(
-      alarmName: "kato-main-v000-alarm-1",
-      actionsEnabled: true,
-      alarmDescription: "annoying alarm",
-      comparisonOperator: "GreaterThanThreshold",
-      evaluationPeriods: 1,
-      period: 2,
-      threshold: 10.5,
-      namespace: "AWS/EC2",
-      metricName: "CPUUtilization",
-      statistic: "SampleCount",
-      unit: "Percent",
-      dimensions: [
-        new Dimension(name: "a", value: "1"),
-        new Dimension(name: "AutoScalingGroupName", value: "kato-main-v000")
-      ],
-    ))
+    1 * cloudWatch.putMetricAlarm(PutMetricAlarmRequest.builder()
+      .alarmName("kato-main-v000-alarm-1")
+      .actionsEnabled(true)
+      .alarmDescription("annoying alarm")
+      .comparisonOperator("GreaterThanThreshold")
+      .evaluationPeriods(1)
+      .period(2)
+      .threshold(10.5)
+      .namespace("AWS/EC2")
+      .metricName("CPUUtilization")
+      .statistic("SampleCount")
+      .unit("Percent")
+      .dimensions([
+        Dimension.builder().name("a").value("1").build(),
+        Dimension.builder().name("AutoScalingGroupName").value("kato-main-v000").build()
+      ])
+      .build())
   }
 
   void "creates alarm with actions"() {
@@ -230,22 +224,22 @@ class UpsertAlarmOperationUnitSpec extends Specification {
     op.operate([])
 
     then:
-    1 * cloudWatch.putMetricAlarm(new PutMetricAlarmRequest(
-      alarmName: "alarm-1",
-      actionsEnabled: true,
-      alarmDescription: "annoying alarm",
-      comparisonOperator: "GreaterThanThreshold",
-      evaluationPeriods: 1,
-      period: 2,
-      threshold: 10.5,
-      namespace: "AWS/EC2",
-      metricName: "CPUUtilization",
-      statistic: "SampleCount",
-      unit: "Percent",
-      alarmActions: ["arn1"],
-      insufficientDataActions: ["arn2", "arn3"],
-      oKActions: ["arn4"]
-    ))
+    1 * cloudWatch.putMetricAlarm(PutMetricAlarmRequest.builder()
+      .alarmName("alarm-1")
+      .actionsEnabled(true)
+      .alarmDescription("annoying alarm")
+      .comparisonOperator("GreaterThanThreshold")
+      .evaluationPeriods(1)
+      .period(2)
+      .threshold(10.5)
+      .namespace("AWS/EC2")
+      .metricName("CPUUtilization")
+      .statistic("SampleCount")
+      .unit("Percent")
+      .alarmActions(["arn1"])
+      .insufficientDataActions(["arn2", "arn3"])
+      .okActions(["arn4"])
+      .build())
   }
 
   void "creates alarm with associated scaling policy in prior output"() {
@@ -256,22 +250,22 @@ class UpsertAlarmOperationUnitSpec extends Specification {
     ])
 
     then:
-    1 * cloudWatch.putMetricAlarm(new PutMetricAlarmRequest(
-      alarmName: "alarm-1",
-      actionsEnabled: true,
-      alarmDescription: "annoying alarm",
-      comparisonOperator: "GreaterThanThreshold",
-      evaluationPeriods: 1,
-      period: 2,
-      threshold: 10.5,
-      namespace: "AWS/EC2",
-      metricName: "CPUUtilization",
-      statistic: "SampleCount",
-      unit: "Percent",
-      alarmActions: [
+    1 * cloudWatch.putMetricAlarm(PutMetricAlarmRequest.builder()
+      .alarmName("alarm-1")
+      .actionsEnabled(true)
+      .alarmDescription("annoying alarm")
+      .comparisonOperator("GreaterThanThreshold")
+      .evaluationPeriods(1)
+      .period(2)
+      .threshold(10.5)
+      .namespace("AWS/EC2")
+      .metricName("CPUUtilization")
+      .statistic("SampleCount")
+      .unit("Percent")
+      .alarmActions([
               "arn"
-      ]
-    ))
+      ])
+      .build())
   }
 
 }

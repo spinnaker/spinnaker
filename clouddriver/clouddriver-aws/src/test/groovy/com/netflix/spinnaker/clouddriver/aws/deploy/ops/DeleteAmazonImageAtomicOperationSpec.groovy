@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.DeregisterImageRequest
+import software.amazon.awssdk.services.ec2.Ec2Client
+import software.amazon.awssdk.services.ec2.model.DeregisterImageRequest
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteAmazonImageDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
@@ -46,9 +46,9 @@ class DeleteAmazonImageAtomicOperationSpec extends Specification {
 
   def "should deregister an image"() {
     given:
-    def ec2 = Mock(AmazonEC2)
+    def ec2 = Mock(Ec2Client)
     def amazonClientProvider = Stub(AmazonClientProvider) {
-      getAmazonEC2(credentials, "us-east-1") >> ec2
+      getAmazonEC2V2(credentials, "us-east-1") >> ec2
     }
 
     and:

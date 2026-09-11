@@ -124,7 +124,6 @@ class ImageCachingAgent implements CachingAgent, AccountAware, DriftMetric, Cust
       return new DefaultCacheResult((IMAGES.ns): [], (NAMED_IMAGES.ns): [])
     }
     log.info("Describing items in ${agentType}")
-    //we read public images directly from AWS instead of having edda cache them:
     def amazonEC2 = amazonClientProvider.getAmazonEC2V2(account, region)
     List<Filter> filters = new ArrayList<>()
     if (includePublicImages) {

@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.ops;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.AsgDescription;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteWarmPoolDescription;
 import com.netflix.spinnaker.clouddriver.aws.services.AsgService;
@@ -29,6 +28,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup;
 
 class DeleteWarmPoolAtomicOperationTest {
 
@@ -58,7 +58,7 @@ class DeleteWarmPoolAtomicOperationTest {
     description.setAsgs(Arrays.asList(asg1, asg2));
     description.setForceDelete(true);
 
-    when(mockAsgService.getAutoScalingGroup("asg1")).thenReturn(new AutoScalingGroup());
+    when(mockAsgService.getAutoScalingGroup("asg1")).thenReturn(AutoScalingGroup.builder().build());
 
     DeleteWarmPoolAtomicOperation operation = new DeleteWarmPoolAtomicOperation(description);
     operation.regionScopedProviderFactory = mockRegionScopedProviderFactory;

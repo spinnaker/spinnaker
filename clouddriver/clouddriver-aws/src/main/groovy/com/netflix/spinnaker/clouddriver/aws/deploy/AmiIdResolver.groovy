@@ -16,46 +16,46 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy
 
-import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.DescribeImagesRequest
-import com.amazonaws.services.ec2.model.Filter
-import com.amazonaws.services.ec2.model.Image
+import software.amazon.awssdk.services.ec2.Ec2Client
+import software.amazon.awssdk.services.ec2.model.DescribeImagesRequest
+import software.amazon.awssdk.services.ec2.model.Filter
+import software.amazon.awssdk.services.ec2.model.Image
 import java.util.regex.Pattern
 
 class AmiIdResolver {
   private static final Pattern amiIdPattern = Pattern.compile('^ami-[0-9a-f]+$')
 
-  private static ResolvedAmiResult resolveAmiId(AmazonEC2 amazonEC2, String region, String nameOrId, String owner = null, String launcher = null) {
-    def req = new DescribeImagesRequest()
+  private static ResolvedAmiResult resolveAmiId(Ec2Client amazonEC2, String region, String nameOrId, String owner = null, String launcher = null) {
+    def reqBuilder = DescribeImagesRequest.builder()
     if (amiIdPattern.matcher(nameOrId).matches()) {
-      req.withImageIds(nameOrId)
+      reqBuilder.imageIds(nameOrId)
     } else {
-      req.withFilters(new Filter('name').withValues(nameOrId))
+      reqBuilder.filters(Filter.builder().name('name').values(nameOrId).build())
     }
 
     if (owner) {
-      req.withOwners(owner)
+      reqBuilder.owners(owner)
     }
     if (launcher) {
-      req.withExecutableUsers(launcher)
+      reqBuilder.executableUsers(launcher)
     }
-    Image resolvedImage = amazonEC2.describeImages(req)?.images?.getAt(0)
+    Image resolvedImage = amazonEC2.describeImages(reqBuilder.build())?.images()?.getAt(0)
     if (resolvedImage) {
       return new ResolvedAmiResult(
         nameOrId,
         region,
         resolvedImage.imageId,
-        resolvedImage.virtualizationType,
+        resolvedImage.virtualizationTypeAsString(),
         resolvedImage.ownerId,
-        resolvedImage.blockDeviceMappings,
-        resolvedImage.public,
-        resolvedImage.architecture)
+        resolvedImage.blockDeviceMappings(),
+        resolvedImage.publicLaunchPermissions(),
+        resolvedImage.architectureAsString())
     }
 
     return null
   }
 
-  public static ResolvedAmiResult resolveAmiIdFromAllSources(AmazonEC2 amazonEC2, String region, String nameOrId, String accountId) {
+  public static ResolvedAmiResult resolveAmiIdFromAllSources(Ec2Client amazonEC2, String region, String nameOrId, String accountId) {
     /* Find am AMI by searching in order:
        1) Explicitly granted launch permission
        2) Owner of the AMI

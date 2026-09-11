@@ -18,6 +18,8 @@ package com.netflix.spinnaker.gate.mcp.resources;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.gate.mcp.support.McpAuditLog;
 import java.util.List;
 import java.util.Map;
@@ -25,14 +27,16 @@ import org.junit.jupiter.api.Test;
 
 class McpAuditLogResourceTest {
 
+  private final ObjectMapper objectMapper = new ObjectMapper();
+
   @Test
-  void auditLogReturnsAllEntriesAsMaps() {
+  void auditLogReturnsAllEntriesAsMaps() throws Exception {
     McpAuditLog auditLog = new McpAuditLog(10);
     auditLog.record("create_application", "app-a");
     auditLog.record("delete_application", "app-b");
-    McpAuditLogResource resource = new McpAuditLogResource(auditLog);
+    McpAuditLogResource resource = new McpAuditLogResource(auditLog, objectMapper);
 
-    List<Map<String, Object>> entries = resource.auditLog();
+    List<Map<String, Object>> entries = readEntries(resource.auditLog());
 
     assertThat(entries).hasSize(2);
     assertThat(entries.get(0))
@@ -43,15 +47,19 @@ class McpAuditLogResourceTest {
   }
 
   @Test
-  void auditLogForApplicationFiltersByTarget() {
+  void auditLogForApplicationFiltersByTarget() throws Exception {
     McpAuditLog auditLog = new McpAuditLog(10);
     auditLog.record("create_application", "app-a");
     auditLog.record("delete_application", "app-b");
-    McpAuditLogResource resource = new McpAuditLogResource(auditLog);
+    McpAuditLogResource resource = new McpAuditLogResource(auditLog, objectMapper);
 
-    List<Map<String, Object>> entries = resource.auditLogForApplication("app-a");
+    List<Map<String, Object>> entries = readEntries(resource.auditLogForApplication("app-a"));
 
     assertThat(entries).hasSize(1);
     assertThat(entries.get(0)).containsEntry("tool", "create_application");
+  }
+
+  private List<Map<String, Object>> readEntries(String json) throws Exception {
+    return objectMapper.readValue(json, new TypeReference<>() {});
   }
 }

@@ -93,9 +93,6 @@ class LaunchConfigCachingAgent implements CachingAgent, AccountAware, DriftMetri
     def request = DescribeLaunchConfigurationsRequest.builder().build()
     while (true) {
       def resp = autoScaling.describeLaunchConfigurations(request)
-      if (account.eddaEnabled) {
-        start = amazonClientProvider.lastModified ?: 0
-      }
       launchConfigs.addAll(resp.launchConfigurations())
       if (resp.nextToken()) {
         request = request.toBuilder().nextToken(resp.nextToken()).build()

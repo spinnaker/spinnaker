@@ -16,26 +16,24 @@
 
 package com.netflix.spinnaker.clouddriver.aws.lifecycle
 
-import com.amazonaws.AmazonServiceException
-import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.autoscaling.model.Activity
-import com.amazonaws.services.autoscaling.model.DescribeScalingActivitiesResult
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.model.EntityTags
 import com.netflix.spinnaker.clouddriver.tags.EntityTagger
 import com.netflix.spinnaker.credentials.CredentialsRepository
+import software.amazon.awssdk.awscore.exception.AwsErrorDetails
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient
+import software.amazon.awssdk.services.autoscaling.model.Activity
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingException
+import software.amazon.awssdk.services.autoscaling.model.DescribeScalingActivitiesResponse
 import spock.lang.Specification
 import spock.lang.Unroll
-
-import java.lang.reflect.InvocationTargetException
-import java.lang.reflect.UndeclaredThrowableException
 
 class LaunchFailureNotificationCleanupAgentSpec extends Specification {
   static final LAUNCH_FAILURE_TAG_NAME = "spinnaker_ui_alert:autoscaling:ec2_instance_launch_error"
 
   def serverGroupTagger = Mock(EntityTagger)
-  def amazonAutoScaling = Mock(AmazonAutoScaling)
+  def amazonAutoScaling = Mock(AutoScalingClient)
   def credentialsRepository = Stub(CredentialsRepository) {
     getOne(_) >> { String name ->
       TestCredential.named(name)
@@ -48,7 +46,7 @@ class LaunchFailureNotificationCleanupAgentSpec extends Specification {
       Mock(AmazonClientProvider), credentialsRepository, serverGroupTagger
     ) {
       @Override
-      protected boolean hasLaunchFailures(AmazonAutoScaling amazonAutoScaling, EntityTags entityTags) {
+      protected boolean hasLaunchFailures(AutoScalingClient amazonAutoScaling, EntityTags entityTags) {
         return entityTags.entityRef.attributes().get("hasLaunchFailures")
       }
     }
@@ -94,7 +92,7 @@ class LaunchFailureNotificationCleanupAgentSpec extends Specification {
     hasLaunchFailures == expectedLaunchFailures
 
     1 * amazonAutoScaling.describeScalingActivities(_) >> {
-      new DescribeScalingActivitiesResult().withActivities(activities)
+      DescribeScalingActivitiesResponse.builder().activities(activities).build()
     }
 
     where:
@@ -114,11 +112,9 @@ class LaunchFailureNotificationCleanupAgentSpec extends Specification {
 
     and:
     1 * amazonAutoScaling.describeScalingActivities(_) >> {
-      throw new UndeclaredThrowableException(
-        new InvocationTargetException(
-          new AmazonServiceException(errorMessage)
-        )
-      )
+      throw AutoScalingException.builder()
+        .awsErrorDetails(AwsErrorDetails.builder().errorMessage(errorMessage).build())
+        .build()
     }
 
     expect:
@@ -137,6 +133,6 @@ class LaunchFailureNotificationCleanupAgentSpec extends Specification {
   }
 
   private static Activity activity(String statusCode) {
-    return new Activity().withStatusCode(statusCode)
+    return Activity.builder().statusCode(statusCode).build()
   }
 }

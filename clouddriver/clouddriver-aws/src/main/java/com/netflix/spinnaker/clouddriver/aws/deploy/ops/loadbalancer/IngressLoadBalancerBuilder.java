@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer;
 
-import com.amazonaws.services.ec2.model.IpPermission;
-import com.amazonaws.services.ec2.model.SecurityGroup;
-import com.amazonaws.services.ec2.model.UserIdGroupPair;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertSecurityGroupDescription;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupIngressConverter;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupLookupFactory;
@@ -26,8 +23,12 @@ import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller;
 import java.util.Collection;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
+import software.amazon.awssdk.services.ec2.model.IpPermission;
+import software.amazon.awssdk.services.ec2.model.SecurityGroup;
+import software.amazon.awssdk.services.ec2.model.UserIdGroupPair;
 
 @Component
 public class IngressLoadBalancerBuilder {
@@ -71,7 +72,7 @@ public class IngressLoadBalancerBuilder {
         SecurityGroupIngressConverter.flattenPermissions(target);
     List<IpPermission> targetPermissions =
         ports.stream()
-            .map(port -> newIpPermissionWithSourceAndPort(source.getGroupId(), port))
+            .map(port -> newIpPermissionWithSourceAndPort(source.groupId(), port))
             .collect(Collectors.toList());
 
     filterOutExistingPermissions(targetPermissions, currentPermissions);
@@ -83,7 +84,7 @@ public class IngressLoadBalancerBuilder {
       }
     }
 
-    return new IngressLoadBalancerGroupResult(source.getGroupId(), source.getGroupName());
+    return new IngressLoadBalancerGroupResult(source.groupId(), source.groupName());
   }
 
   private SecurityGroupLookupFactory.SecurityGroupUpdater getOrCreateSecurityGroup(
@@ -119,26 +120,32 @@ public class IngressLoadBalancerBuilder {
 
   private void filterOutExistingPermissions(
       List<IpPermission> permissionsToAdd, List<IpPermission> existingPermissions) {
-    permissionsToAdd.forEach(
-        permission ->
-            permission
-                .getUserIdGroupPairs()
-                .removeIf(
-                    pair ->
-                        existingPermissions.stream()
-                            .anyMatch(
-                                p ->
-                                    p.getFromPort().equals(permission.getFromPort())
-                                        && p.getToPort().equals(permission.getToPort())
-                                        && pair.getGroupId() != null
-                                        && p.getUserIdGroupPairs().stream()
-                                            .anyMatch(
-                                                gp ->
-                                                    gp.getGroupId() != null
-                                                        && gp.getGroupId()
-                                                            .equals(pair.getGroupId())))));
+    ListIterator<IpPermission> it = permissionsToAdd.listIterator();
+    while (it.hasNext()) {
+      IpPermission permission = it.next();
+      List<UserIdGroupPair> filteredPairs =
+          permission.userIdGroupPairs().stream()
+              .filter(
+                  pair ->
+                      existingPermissions.stream()
+                          .noneMatch(
+                              p ->
+                                  p.fromPort().equals(permission.fromPort())
+                                      && p.toPort().equals(permission.toPort())
+                                      && pair.groupId() != null
+                                      && p.userIdGroupPairs().stream()
+                                          .anyMatch(
+                                              gp ->
+                                                  gp.groupId() != null
+                                                      && gp.groupId().equals(pair.groupId()))))
+              .collect(Collectors.toList());
 
-    permissionsToAdd.removeIf(permission -> permission.getUserIdGroupPairs().isEmpty());
+      if (filteredPairs.isEmpty()) {
+        it.remove();
+      } else {
+        it.set(permission.toBuilder().userIdGroupPairs(filteredPairs).build());
+      }
+    }
   }
 
   public static class IngressLoadBalancerGroupResult {
@@ -152,11 +159,12 @@ public class IngressLoadBalancerBuilder {
   }
 
   private IpPermission newIpPermissionWithSourceAndPort(String sourceGroupId, int port) {
-    return new IpPermission()
-        .withIpProtocol("tcp")
-        .withFromPort(port)
-        .withToPort(port)
-        .withUserIdGroupPairs(new UserIdGroupPair().withGroupId(sourceGroupId));
+    return IpPermission.builder()
+        .ipProtocol("tcp")
+        .fromPort(port)
+        .toPort(port)
+        .userIdGroupPairs(UserIdGroupPair.builder().groupId(sourceGroupId).build())
+        .build();
   }
 
   static class FailedSecurityGroupIngressException extends Exception {

@@ -8,10 +8,7 @@ ENV KUBECTL_RELEASES="${KUBECTL_DEFAULT_RELEASE} 1.31.14 1.32.13 1.33.13"
 ENV AWS_CLI_VERSION=2.35.22
 ENV AWS_AIM_AUTHENTICATOR_VERSION=0.7.18
 
-RUN apt-get update && apt-get install -y curl gnupg && \
-  curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
-  echo "deb https://packages.cloud.google.com/apt cloud-sdk  main" > /etc/apt/sources.list.d/cloud-sdk.list && \
-  apt-get update && \
+RUN apt-get update && \
   apt-get upgrade -y && \
   apt-get install -y \
   curl \

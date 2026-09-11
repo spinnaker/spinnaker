@@ -16,15 +16,15 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.autoscaling.model.DisableMetricsCollectionRequest
-import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
-import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.DescribeImagesRequest
-import com.amazonaws.services.ec2.model.DescribeImagesResult
-import com.amazonaws.services.ec2.model.DescribeVpcClassicLinkResult
-import com.amazonaws.services.ec2.model.Image
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
+import software.amazon.awssdk.services.autoscaling.model.DisableMetricsCollectionRequest
+import software.amazon.awssdk.services.autoscaling.model.UpdateAutoScalingGroupRequest
+import software.amazon.awssdk.services.ec2.Ec2Client
+import software.amazon.awssdk.services.ec2.model.DescribeImagesRequest
+import software.amazon.awssdk.services.ec2.model.DescribeImagesResponse
+import software.amazon.awssdk.services.ec2.model.DescribeVpcClassicLinkResponse
+import software.amazon.awssdk.services.ec2.model.Image
 import com.netflix.spinnaker.clouddriver.aws.userdata.UserDataOverride
 import com.netflix.spinnaker.config.AwsConfiguration
 import com.netflix.spinnaker.clouddriver.aws.deploy.InstanceTypeUtils.BlockDeviceConfig
@@ -32,7 +32,7 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.asg.LaunchConfigurationBuild
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import com.amazonaws.services.ec2.model.VpcClassicLink
+import software.amazon.awssdk.services.ec2.model.VpcClassicLink
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.ModifyAsgLaunchConfigurationDescription
@@ -44,7 +44,7 @@ import spock.lang.Subject
 
 class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
   def lcBuilder = Mock(LaunchConfigurationBuilder)
-  def autoScaling = Mock(AmazonAutoScaling)
+  def autoScaling = Mock(AutoScalingClient)
   def asgService = Mock(AsgService)
 
   def description = new ModifyAsgLaunchConfigurationDescription()
@@ -62,15 +62,15 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
     op.deployDefaults = defaults
     TaskRepository.threadLocalTask.set(task)
 
-    def amazonEC2 = Stub(AmazonEC2) {
+    def amazonEC2 = Stub(Ec2Client) {
       describeImages(_) >> { DescribeImagesRequest req ->
-        new DescribeImagesResult().withImages(req.imageIds.collect { new Image(imageId: it)})
+        DescribeImagesResponse.builder().images(req.imageIds.collect { Image.builder().imageId(it).build()}).build()
       }
       describeVpcClassicLink() >> {
-        new DescribeVpcClassicLinkResult(vpcs: [
-                new VpcClassicLink(vpcId: "vpc-123", classicLinkEnabled: false),
-                new VpcClassicLink(vpcId: "vpc-456", classicLinkEnabled: true),
-        ])
+        DescribeVpcClassicLinkResponse.builder().vpcs([
+                VpcClassicLink.builder().vpcId("vpc-123").classicLinkEnabled(false).build(),
+                VpcClassicLink.builder().vpcId("vpc-456").classicLinkEnabled(true).build(),
+        ]).build()
       }
     }
 
@@ -103,7 +103,7 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
     op.operate([])
 
     then:
-    1 * asgService.getAutoScalingGroup(asgName) >> new AutoScalingGroup().withLaunchConfigurationName(existingLc)
+    1 * asgService.getAutoScalingGroup(asgName) >> AutoScalingGroup.builder().launchConfigurationName(existingLc).build()
     1 * lcBuilder.buildSettingsFromLaunchConfiguration(_, _, _) >> { act, region_local, name ->
       assert act == credential
       assert region_local == region
@@ -153,7 +153,7 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
     op.operate([])
 
     then:
-    1 * asgService.getAutoScalingGroup(asgName) >> new AutoScalingGroup().withLaunchConfigurationName(existingLc)
+    1 * asgService.getAutoScalingGroup(asgName) >> AutoScalingGroup.builder().launchConfigurationName(existingLc).build()
     1 * lcBuilder.buildSettingsFromLaunchConfiguration(_, _, _) >> { act, region_local, name ->
       assert act == credential
       assert region_local == region
@@ -219,7 +219,7 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
     op.operate([])
 
     then:
-    1 * asgService.getAutoScalingGroup(asgName) >> new AutoScalingGroup().withLaunchConfigurationName(existingLc)
+    1 * asgService.getAutoScalingGroup(asgName) >> AutoScalingGroup.builder().launchConfigurationName(existingLc).build()
     1 * lcBuilder.buildSettingsFromLaunchConfiguration(_, _, _) >> { act, region_local, name ->
       assert act == credential
       assert region_local == region
@@ -279,7 +279,7 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
     op.operate([])
 
     then:
-    1 * asgService.getAutoScalingGroup(asgName) >> new AutoScalingGroup().withLaunchConfigurationName(existingLc)
+    1 * asgService.getAutoScalingGroup(asgName) >> AutoScalingGroup.builder().launchConfigurationName(existingLc).build()
     1 * lcBuilder.buildSettingsFromLaunchConfiguration(_, _, _) >> { act, region_local, name ->
       assert act == credential
       assert region_local == region
@@ -333,7 +333,7 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
     op.operate([])
 
     then:
-    1 * asgService.getAutoScalingGroup(asgName) >> new AutoScalingGroup().withLaunchConfigurationName(existingLc)
+    1 * asgService.getAutoScalingGroup(asgName) >> AutoScalingGroup.builder().launchConfigurationName(existingLc).build()
     1 * lcBuilder.buildSettingsFromLaunchConfiguration(_, _, _) >> { act, region_local, name ->
       assert act == credential
       assert region_local == region
@@ -382,7 +382,7 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
     op.operate([])
 
     then:
-    1 * asgService.getAutoScalingGroup(asgName) >> new AutoScalingGroup().withLaunchConfigurationName(existingLc)
+    1 * asgService.getAutoScalingGroup(asgName) >> AutoScalingGroup.builder().launchConfigurationName(existingLc).build()
     1 * lcBuilder.buildSettingsFromLaunchConfiguration(_, _, _) >> { act, region_local, name ->
       assert act == credential
       assert region_local == region
@@ -449,7 +449,7 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
     op.operate([])
 
     then:
-    1 * asgService.getAutoScalingGroup(asgName) >> new AutoScalingGroup().withLaunchConfigurationName(existingLc)
+    1 * asgService.getAutoScalingGroup(asgName) >> AutoScalingGroup.builder().launchConfigurationName(existingLc).build()
     1 * lcBuilder.buildSettingsFromLaunchConfiguration(_, _, _) >> { act, region_local, name ->
       assert act == credential
       assert region_local == region
@@ -518,7 +518,7 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
     op.operate([])
 
     then:
-    1 * asgService.getAutoScalingGroup(asgName) >> new AutoScalingGroup().withLaunchConfigurationName(existingLc)
+    1 * asgService.getAutoScalingGroup(asgName) >> AutoScalingGroup.builder().launchConfigurationName(existingLc).build()
     1 * lcBuilder.buildSettingsFromLaunchConfiguration(_, _, _) >> { act, region_local, name ->
       assert act == credential
       assert region_local == region

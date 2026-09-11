@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery
 
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.autoscaling.model.Instance
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
+import software.amazon.awssdk.services.autoscaling.model.Instance
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.EnableDisableInstanceDiscoveryDescription
 import com.netflix.spinnaker.clouddriver.eureka.deploy.ops.AbstractEurekaSupport.DiscoveryStatus
@@ -29,7 +29,7 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
-import static com.amazonaws.services.autoscaling.model.LifecycleState.*
+import static software.amazon.awssdk.services.autoscaling.model.LifecycleState.*
 
 class EnableDisableInstancesInDiscoveryAtomicOperationUnitSpec extends Specification {
   @Shared
@@ -45,11 +45,9 @@ class EnableDisableInstancesInDiscoveryAtomicOperationUnitSpec extends Specifica
     setup:
     TaskRepository.threadLocalTask.set(Stub(Task))
 
-    def asg = Stub(AutoScalingGroup) {
-      getInstances() >> description.instanceIds.collect {
-        new Instance().withInstanceId(it).withLifecycleState(InService)
-      }
-    }
+    def asg = AutoScalingGroup.builder().instances(description.instanceIds.collect {
+      Instance.builder().instanceId(it).lifecycleState(IN_SERVICE).build()
+    }).build()
     def asgService = Stub(AsgService) {
       getAutoScalingGroups([description.asgName]) >> [asg]
     }
@@ -79,11 +77,9 @@ class EnableDisableInstancesInDiscoveryAtomicOperationUnitSpec extends Specifica
     setup:
     TaskRepository.threadLocalTask.set(Stub(Task))
 
-    def asg = Stub(AutoScalingGroup) {
-      getInstances() >> description.instanceIds.collect {
-        new Instance().withInstanceId(it).withLifecycleState(lifecycleState)
-      }
-    }
+    def asg = AutoScalingGroup.builder().instances(description.instanceIds.collect {
+      Instance.builder().instanceId(it).lifecycleState(lifecycleState).build()
+    }).build()
     def asgService = Stub(AsgService) {
       getAutoScalingGroups([description.asgName]) >> [asg]
     }
@@ -102,15 +98,15 @@ class EnableDisableInstancesInDiscoveryAtomicOperationUnitSpec extends Specifica
     0 * operation.discoverySupport.updateDiscoveryStatusForInstances(*_)
 
     where:
-    lifecycleState     | _
-    Terminated         | _
-    Terminating        | _
-    TerminatingProceed | _
-    TerminatingWait    | _
-    Quarantined        | _
-    Detached           | _
-    Detaching          | _
-    EnteringStandby    | _
-    Standby            | _
+    lifecycleState       | _
+    TERMINATED           | _
+    TERMINATING          | _
+    TERMINATING_PROCEED  | _
+    TERMINATING_WAIT     | _
+    QUARANTINED          | _
+    DETACHED             | _
+    DETACHING            | _
+    ENTERING_STANDBY     | _
+    STANDBY              | _
   }
 }

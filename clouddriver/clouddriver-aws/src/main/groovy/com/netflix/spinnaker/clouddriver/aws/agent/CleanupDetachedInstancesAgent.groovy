@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.aws.agent
 
-import com.amazonaws.services.ec2.model.DescribeInstancesRequest
-import com.amazonaws.services.ec2.model.Filter
-import com.amazonaws.services.ec2.model.Instance
-import com.amazonaws.services.ec2.model.TerminateInstancesRequest
+import software.amazon.awssdk.services.ec2.model.DescribeInstancesRequest
+import software.amazon.awssdk.services.ec2.model.Filter
+import software.amazon.awssdk.services.ec2.model.Instance
+import software.amazon.awssdk.services.ec2.model.TerminateInstancesRequest
 import com.netflix.spinnaker.cats.agent.RunnableAgent
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
@@ -75,30 +75,30 @@ class CleanupDetachedInstancesAgent implements RunnableAgent, CustomScheduledAge
       credentials.regions.each { AmazonCredentials.AWSRegion region ->
         log.info("Looking for instances pending termination in ${credentials.name}:${region.name}")
         try {
-        def amazonEC2 = amazonClientProvider.getAmazonEC2(credentials, region.name, true)
-        def describeInstancesRequest = new DescribeInstancesRequest().withFilters(
-          new Filter("tag-key", [DetachInstancesAtomicOperation.TAG_PENDING_TERMINATION])
-        )
+        def amazonEC2 = amazonClientProvider.getAmazonEC2V2(credentials, region.name)
+        def describeInstancesRequest = DescribeInstancesRequest.builder().filters(
+          Filter.builder().name("tag-key").values([DetachInstancesAtomicOperation.TAG_PENDING_TERMINATION]).build()
+        ).build()
         while (true) {
           def result = amazonEC2.describeInstances(describeInstancesRequest)
 
           def instanceIdsToTerminate = []
-          result.reservations.each {
-            instanceIdsToTerminate.addAll(it.getInstances().findAll { (shouldTerminate(it)) }*.instanceId)
+          result.reservations().each {
+            instanceIdsToTerminate.addAll(it.instances().findAll { (shouldTerminate(it)) }*.instanceId())
           }
 
           if (instanceIdsToTerminate) {
             // terminate up to 20 instances at a time (avoids any AWS limits on # of concurrent terminations)
             instanceIdsToTerminate.collate(20).each {
               log.info("Terminating instances in ${credentials.name}/${region.name} (instanceIds: ${it.join(",")})")
-              amazonEC2.terminateInstances(new TerminateInstancesRequest().withInstanceIds(it))
+              amazonEC2.terminateInstances(TerminateInstancesRequest.builder().instanceIds(it).build())
               Thread.sleep(500)
             }
 
           }
 
-          if (result.nextToken) {
-            describeInstancesRequest.withNextToken(result.nextToken)
+          if (result.nextToken()) {
+            describeInstancesRequest = describeInstancesRequest.toBuilder().nextToken(result.nextToken()).build()
           } else {
             break
           }
@@ -121,12 +121,12 @@ class CleanupDetachedInstancesAgent implements RunnableAgent, CustomScheduledAge
    * - not in an ASG
    */
   static boolean shouldTerminate(Instance instance) {
-    def tags = instance.tags
-    def isInASG = tags.find { it.key.equalsIgnoreCase("aws:autoscaling:groupName") }
+    def tags = instance.tags()
+    def isInASG = tags.find { it.key().equalsIgnoreCase("aws:autoscaling:groupName") }
     def isPendingTermination = tags.find {
-      it.key.equalsIgnoreCase(DetachInstancesAtomicOperation.TAG_PENDING_TERMINATION)
+      it.key().equalsIgnoreCase(DetachInstancesAtomicOperation.TAG_PENDING_TERMINATION)
     }
 
-    return !instance.state?.name?.equalsIgnoreCase("terminated") && !isInASG && isPendingTermination
+    return !instance.state()?.nameAsString()?.equalsIgnoreCase("terminated") && !isInASG && isPendingTermination
   }
 }
