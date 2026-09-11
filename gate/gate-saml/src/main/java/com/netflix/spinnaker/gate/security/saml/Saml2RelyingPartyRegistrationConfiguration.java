@@ -26,6 +26,8 @@ import java.util.Map;
 import java.util.function.Consumer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.context.properties.bind.Bindable;
+import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.boot.ssl.pem.PemContent;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Condition;
@@ -224,11 +226,14 @@ class Saml2RelyingPartyRegistrationConfiguration {
   static class RegistrationConfiguredCondition implements Condition {
     @Override
     public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-      return context
-              .getEnvironment()
-              .getProperty("spring.security.saml2.relyingparty.registration", Map.class, Map.of())
-              .isEmpty()
-          == false;
+      // NB: Environment.getProperty(prefix, Map.class) does NOT collect sub-properties;
+      // bind explicitly like Boot 3's RegistrationConfiguredCondition did.
+      return Binder.get(context.getEnvironment())
+          .bind(
+              "spring.security.saml2.relyingparty.registration",
+              Bindable.mapOf(String.class, Object.class))
+          .map(registrations -> !registrations.isEmpty())
+          .orElse(false);
     }
   }
 }

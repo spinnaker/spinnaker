@@ -49,8 +49,8 @@ dependencies {
   implementation("com.slack.api:bolt-jakarta-servlet:1.45.3")
   implementation("com.graphql-java:graphql-java-extended-scalars:22.0")
 
-  // DGS dependencies - aligned with Spring Boot 3.5.x and graphql-java 24.x
-  implementation(platform('com.netflix.graphql.dgs:graphql-dgs-platform-dependencies:10.6.0'))
+  // DGS 11+ is required for Spring Boot 4 (DGS 10 refuses to boot on Boot 4).
+  implementation(platform('com.netflix.graphql.dgs:graphql-dgs-platform-dependencies:11.1.0'))
   implementation("com.netflix.graphql.dgs:graphql-dgs-spring-graphql-starter")
   implementation("com.netflix.graphql.dgs:dgs-starter")
   implementation("com.netflix.graphql.dgs:graphql-dgs-extended-scalars")
