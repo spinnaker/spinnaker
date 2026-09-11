@@ -1,4 +1,4 @@
-import 'brace/mode/json';
+import 'ace-builds/src-noconflict/mode-json';
 import { cloneDeepWith } from 'lodash';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
