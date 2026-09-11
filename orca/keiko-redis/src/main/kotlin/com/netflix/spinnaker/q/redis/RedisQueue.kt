@@ -316,7 +316,7 @@ class RedisQueue(
    *
    * @return [ACK_RESULT_REQUEUED] or [ACK_RESULT_REMOVED], i.e. which of the two the script did.
    */
-  internal fun ScriptingCommands.ackMessageAtomically(fingerprint: String): String? =
+  internal fun ScriptingKeyCommands.ackMessageAtomically(fingerprint: String): String? =
     ackMessageAtomically(fingerprint, reloadOnNoScript = true)
 
   /**
@@ -324,7 +324,7 @@ class RedisQueue(
    * loads the script on its own pooled connection rather than this receiver, so a NOSCRIPT that
    * survives the reload would otherwise recurse without limit, one Redis round-trip per level.
    */
-  private fun ScriptingCommands.ackMessageAtomically(
+  private fun ScriptingKeyCommands.ackMessageAtomically(
     fingerprint: String,
     reloadOnNoScript: Boolean
   ): String? {
