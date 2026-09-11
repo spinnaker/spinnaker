@@ -31,6 +31,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -87,7 +88,11 @@ class FiatAuthenticationFilterIT {
     }
   }
 
+  // @EnableWebSecurity is required: it registers the HttpSecurity infrastructure
+  // (HttpSecurityConfiguration) this slice's filter chain is built from. Relying on
+  // transitive auto-configuration for it broke under Boot 4.
   @Configuration
+  @EnableWebSecurity
   static class TestSecurityConfig {
 
     @Bean
