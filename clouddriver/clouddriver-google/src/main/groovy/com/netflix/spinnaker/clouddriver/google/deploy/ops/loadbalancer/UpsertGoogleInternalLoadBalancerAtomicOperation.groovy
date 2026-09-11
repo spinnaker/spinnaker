@@ -104,6 +104,9 @@ class UpsertGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
         "$description.loadBalancerName (in region ${GCEUtil.getLocalName(existingForwardingRule.region)}). " +
         "Please specify a different name.")
     } else if (existingForwardingRule && (description.region == GCEUtil.getLocalName(existingForwardingRule.region))) {
+      if (!GCEUtil.isInternalPassthroughForwardingRule(existingForwardingRule)) {
+        throw new GoogleOperationException("There is already a non-internal passthrough load balancer named $description.loadBalancerName in $description.region.")
+      }
       needToUpdateForwardingRule = description.ports != existingForwardingRule.getPorts()
     }
 
@@ -120,6 +123,9 @@ class UpsertGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
       registry
     ) as BackendService
     if (existingBackendService) {
+      if (existingBackendService.loadBalancingScheme != "INTERNAL") {
+        throw new GoogleOperationException("Backend service $backendServiceName is not an INTERNAL regional backend service.")
+      }
       Boolean differentHealthChecks = existingBackendService.getHealthChecks().collect { GCEUtil.getLocalName(it) } != [healthCheckName]
       Boolean differentSessionAffinity = GoogleSessionAffinity.valueOf(existingBackendService.getSessionAffinity()) != description.backendService.sessionAffinity
       if (differentHealthChecks || differentSessionAffinity || existingBackendService.protocol != description.ipProtocol) {

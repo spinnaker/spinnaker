@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.ForceCacheRefreshAware;
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.*;
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import com.netflix.spinnaker.orca.kato.pipeline.Nameable;
 import javax.annotation.Nonnull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +32,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class BulkDestroyServerGroupStage
-    implements StageDefinitionBuilder, Nameable, ForceCacheRefreshAware {
+    implements StageDefinitionBuilder, Nameable, ForceCacheRefreshAware, CloudProviderAware {
   private static final String PIPELINE_CONFIG_TYPE = "bulkDestroyServerGroup";
 
   private final DynamicConfigService dynamicConfigService;
@@ -64,8 +65,15 @@ public class BulkDestroyServerGroupStage
 
     builder
         .withTask("bulkDestroyServerGroup", BulkDestroyServerGroupTask.class)
-        .withTask("monitorServerGroups", MonitorKatoTask.class)
-        .withTask("waitForDestroyedServerGroup", BulkWaitForDestroyedServerGroupTask.class);
+        .withTask("monitorServerGroups", MonitorKatoTask.class);
+
+    if (isForceCacheRefreshEnabled(dynamicConfigService) && "gce".equals(getCloudProvider(stage))) {
+      // GCE reads Compute directly, so force refresh authoritatively evicts deleted server groups;
+      // AWS/Edda may repopulate the cache from stale Edda data instead.
+      builder.withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask.class);
+    }
+
+    builder.withTask("waitForDestroyedServerGroup", BulkWaitForDestroyedServerGroupTask.class);
   }
 
   @Override

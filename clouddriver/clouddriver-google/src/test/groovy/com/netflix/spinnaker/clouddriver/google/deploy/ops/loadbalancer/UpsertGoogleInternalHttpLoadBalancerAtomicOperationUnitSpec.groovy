@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProper
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.converters.UpsertGoogleLoadBalancerAtomicOperationConverter
+import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.model.GoogleNetwork
 import com.netflix.spinnaker.clouddriver.google.model.GoogleSubnet
@@ -200,7 +201,7 @@ class UpsertGoogleInternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       operation.safeRetry = safeRetry
 
     when:
-     operation.operate([])
+      def result = operation.operate([])
 
     then:
 
@@ -246,6 +247,7 @@ class UpsertGoogleInternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       1 * targetHttpProxyOperationGet.execute() >> healthChecksInsertOp
       1 * regionOperations.get(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRuleOperationGet
       1 * forwardingRuleOperationGet.execute() >> forwardingRuleInsertOp
+      result.loadBalancers[REGION].name == LOAD_BALANCER_NAME
   }
 
   void "should create an Internal HTTP Load Balancer with minimal description"() {
@@ -392,6 +394,88 @@ class UpsertGoogleInternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       1 * targetHttpProxyOperationGet.execute() >> healthChecksInsertOp
       1 * regionOperations.get(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRuleOperationGet
       1 * forwardingRuleOperationGet.execute() >> forwardingRuleInsertOp
+  }
+
+  void "throws when existing backend service name belongs to another load balancing scheme"() {
+    setup:
+      def computeMock = Mock(Compute)
+
+      def credentialsRepo = new MapBackedCredentialsRepository(GoogleNamedAccountCredentials.CREDENTIALS_TYPE,
+        new NoopCredentialsLifecycleHandler<>())
+      def credentials = new GoogleNamedAccountCredentials.Builder().name(ACCOUNT_NAME).project(PROJECT_NAME).applicationName("my-application").compute(computeMock).credentials(new FakeGoogleCredentials()).build()
+      credentialsRepo.save(credentials)
+      def converter = new UpsertGoogleLoadBalancerAtomicOperationConverter(
+        credentialsRepository: credentialsRepo
+      )
+
+      def googleNetworkProviderMock = Mock(GoogleNetworkProvider)
+      def networkKeyPattern = "gce:networks:some-network:$ACCOUNT_NAME:global"
+      def googleNetwork = new GoogleNetwork(selfLink: "projects/$PROJECT_NAME/global/networks/some-network")
+
+      def googleSubnetProviderMock = Mock(GoogleSubnetProvider)
+      def subnetKeyPattern = "gce:subnets:some-subnet:$ACCOUNT_NAME:$REGION"
+      def googleSubnet = new GoogleSubnet(selfLink: "projects/$PROJECT_NAME/regions/$REGION/subnetworks/some-subnet")
+
+      def healthChecks = Mock(Compute.RegionHealthChecks)
+      def healthChecksList = Mock(Compute.RegionHealthChecks.List)
+      def backendServices = Mock(Compute.RegionBackendServices)
+      def backendServicesList = Mock(Compute.RegionBackendServices.List)
+      def urlMaps = Mock(Compute.RegionUrlMaps)
+      def urlMapsGet = Mock(Compute.RegionUrlMaps.Get)
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
+
+      def input = [
+        accountName       : ACCOUNT_NAME,
+        "loadBalancerName": LOAD_BALANCER_NAME,
+        "portRange"       : PORT_RANGE,
+        "region"         : REGION,
+        "defaultService"  : [
+          "name"           : DEFAULT_SERVICE,
+          "backends"       : [],
+          "healthCheck"    : hc,
+          "sessionAffinity": "NONE",
+        ],
+        "certificate"     : "",
+        "hostRules"       : null,
+        "network"         : "some-network",
+        "subnet"          : "some-subnet",
+      ]
+      def description = converter.convertDescription(input)
+      @Subject def operation = new UpsertGoogleInternalHttpLoadBalancerAtomicOperation(description)
+      operation.googleNetworkProvider = googleNetworkProviderMock
+      operation.googleSubnetProvider = googleSubnetProviderMock
+      operation.registry = registry
+      operation.safeRetry = safeRetry
+
+    when:
+      operation.operate([])
+
+    then:
+      1 * googleNetworkProviderMock.getAllMatchingKeyPattern(networkKeyPattern) >> [googleNetwork]
+      1 * googleSubnetProviderMock.getAllMatchingKeyPattern(subnetKeyPattern) >> [googleSubnet]
+
+      1 * computeMock.regionHealthChecks() >> healthChecks
+      1 * healthChecks.list(PROJECT_NAME, REGION) >> healthChecksList
+      1 * healthChecksList.execute() >> new HealthCheckList(items: [])
+
+      1 * computeMock.regionBackendServices() >> backendServices
+      1 * backendServices.list(PROJECT_NAME, REGION) >> backendServicesList
+      1 * backendServicesList.execute() >> new BackendServiceList(items: [
+        new BackendService(name: DEFAULT_SERVICE, loadBalancingScheme: "EXTERNAL", sessionAffinity: "NONE")
+      ])
+
+      1 * computeMock.regionUrlMaps() >> urlMaps
+      1 * urlMaps.get(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> urlMapsGet
+      1 * urlMapsGet.execute() >> null
+
+      1 * computeMock.forwardingRules() >> forwardingRules
+      1 * forwardingRules.get(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRulesGet
+      1 * forwardingRulesGet.execute() >> null
+
+      thrown(GoogleOperationException)
+      0 * backendServices.update(_, _, _, _)
+      0 * backendServices.insert(_, _, _)
   }
 
   void "should create an Internal HTTPS Load Balancer when certificate specified"() {
@@ -873,6 +957,197 @@ class UpsertGoogleInternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       operation.operate([])
 
     then:
+
+      1 * googleNetworkProviderMock.getAllMatchingKeyPattern(networkKeyPattern) >> [googleNetwork]
+      1 * googleSubnetProviderMock.getAllMatchingKeyPattern(subnetKeyPattern) >> [googleSubnet]
+      2 * computeMock.regionHealthChecks() >> healthChecks
+      1 * healthChecks.list(PROJECT_NAME, REGION) >> healthChecksList
+      1 * healthChecksList.execute() >> healthCheckListReal
+      1 * healthChecks.insert(PROJECT_NAME, REGION, _) >> healthChecksInsert
+      1 * healthChecksInsert.execute() >> healthChecksInsertOp
+
+      4 * computeMock.regionBackendServices() >> backendServices
+      1 * backendServices.list(PROJECT_NAME, REGION) >> backendServicesList
+      1 * backendServicesList.execute() >> bsListReal
+      2 * backendServices.insert(PROJECT_NAME, REGION, _) >> backendServicesInsert
+      2 * backendServicesInsert.execute() >> backendServicesInsertOp
+      1 * backendServices.update(PROJECT_NAME, REGION, PM_SERVICE, _) >> backendServicesUpdate
+      1 * backendServicesUpdate.execute() >> backendServicesUpdateOp
+
+      2 * computeMock.regionUrlMaps() >> urlMaps
+      1 * urlMaps.get(PROJECT_NAME, REGION, description.loadBalancerName) >> urlMapsGet
+      1 * urlMapsGet.execute() >> null
+      1 * urlMaps.insert(PROJECT_NAME, REGION, _) >> urlMapsInsert
+      1 * urlMapsInsert.execute() >> urlMapsInsertOp
+
+      1 * computeMock.regionTargetHttpProxies() >> targetHttpProxies
+      1 * targetHttpProxies.insert(PROJECT_NAME, REGION, {it.urlMap == urlMapsInsertOp.targetLink}) >> targetHttpProxiesInsert
+      1 * targetHttpProxiesInsert.execute() >> targetHttpProxiesInsertOp
+
+      2 * computeMock.forwardingRules() >> forwardingRules
+      1 * forwardingRules.insert(PROJECT_NAME, REGION, _) >> forwardingRulesInsert
+      1 * forwardingRules.get(PROJECT_NAME, REGION, _) >> forwardingRulesGet
+      1 * forwardingRulesInsert.execute() >> forwardingRuleInsertOp
+      1 * forwardingRulesGet.execute() >> null
+
+      7 * computeMock.regionOperations() >> regionOperations
+      1 * regionOperations.get(PROJECT_NAME, REGION, HEALTH_CHECK_OP_NAME) >> healthCheckOperationGet
+      1 * healthCheckOperationGet.execute() >> healthChecksUpdateOp
+      2 * regionOperations.get(PROJECT_NAME, REGION, BACKEND_SERVICE_OP_NAME) >> backendServiceOperationGet
+      2 * backendServiceOperationGet.execute() >> backendServicesInsertOp
+      1 * regionOperations.get(PROJECT_NAME, REGION, BACKEND_SERVICE_OP_NAME + "update") >> backendServiceOperationGet
+      1 * backendServiceOperationGet.execute() >> backendServicesUpdateOp
+      1 * regionOperations.get(PROJECT_NAME, REGION, URL_MAP_OP_NAME) >> urlMapOperationGet
+      1 * urlMapOperationGet.execute() >> urlMapsInsertOp
+      1 * regionOperations.get(PROJECT_NAME, REGION, TARGET_HTTP_PROXY_OP_NAME) >> targetHttpProxyOperationGet
+      1 * targetHttpProxyOperationGet.execute() >> targetHttpProxiesInsertOp
+      1 * regionOperations.get(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRuleOperationGet
+      1 * forwardingRuleOperationGet.execute() >> forwardingRuleInsertOp
+  }
+
+  void "should not NPE updating a backend service whose existing sessionAffinity is omitted by GCP"() {
+    setup:
+      def computeMock = Mock(Compute)
+
+      def credentialsRepo = new MapBackedCredentialsRepository(GoogleNamedAccountCredentials.CREDENTIALS_TYPE,
+        new NoopCredentialsLifecycleHandler<>())
+      def credentials = new GoogleNamedAccountCredentials.Builder().name(ACCOUNT_NAME).project(PROJECT_NAME).applicationName("my-application").compute(computeMock).credentials(new FakeGoogleCredentials()).build()
+      credentialsRepo.save(credentials)
+      def converter = new UpsertGoogleLoadBalancerAtomicOperationConverter(
+        credentialsRepository: credentialsRepo
+      )
+
+      def regionOperations = Mock(Compute.RegionOperations)
+      def healthCheckOperationGet = Mock(Compute.RegionOperations.Get)
+      def backendServiceOperationGet = Mock(Compute.RegionOperations.Get)
+      def urlMapOperationGet = Mock(Compute.RegionOperations.Get)
+      def targetHttpProxyOperationGet = Mock(Compute.RegionOperations.Get)
+      def forwardingRuleOperationGet = Mock(Compute.RegionOperations.Get)
+
+      def googleNetworkProviderMock = Mock(GoogleNetworkProvider)
+      def networkKeyPattern = "gce:networks:some-network:$ACCOUNT_NAME:global"
+      def googleNetwork = new GoogleNetwork(selfLink: "projects/$PROJECT_NAME/global/networks/some-network")
+
+      def googleSubnetProviderMock = Mock(GoogleSubnetProvider)
+      def subnetKeyPattern = "gce:subnets:some-subnet:$ACCOUNT_NAME:$REGION"
+      def googleSubnet = new GoogleSubnet(selfLink: "projects/$PROJECT_NAME/regions/$REGION/subnetworks/some-subnet")
+
+      def healthChecks = Mock(Compute.RegionHealthChecks)
+      def healthChecksList = Mock(Compute.RegionHealthChecks.List)
+      def healthCheckListReal = new HealthCheckList(items: [])
+      def healthChecksInsert = Mock(Compute.RegionHealthChecks.Insert)
+      def healthChecksInsertOp = new Operation(
+          targetLink: "health-check",
+          name: HEALTH_CHECK_OP_NAME,
+          status: DONE)
+      def healthChecksUpdateOp = new Operation(
+          targetLink: "health-check",
+          name: HEALTH_CHECK_OP_NAME,
+          status: DONE)
+
+      def backendServices = Mock(Compute.RegionBackendServices)
+      def backendServicesList = Mock(Compute.RegionBackendServices.List)
+      // GCP can omit sessionAffinity on an existing regional backend service; the update-comparison
+      // path must not NPE when reading it back.
+      def bsListReal = new BackendServiceList(items: [new BackendService(name: PM_SERVICE)])
+      def backendServicesInsert = Mock(Compute.RegionBackendServices.Insert)
+      def backendServicesInsertOp = new Operation(
+        targetLink: "backend-service",
+        name: BACKEND_SERVICE_OP_NAME,
+        status: DONE)
+      def backendServicesUpdate = Mock(Compute.RegionBackendServices.Update)
+      def backendServicesUpdateOp = new Operation(
+        targetLink: "backend-service",
+        name: BACKEND_SERVICE_OP_NAME + "update",
+        status: DONE)
+
+      def urlMaps = Mock(Compute.RegionUrlMaps)
+      def urlMapsGet = Mock(Compute.RegionUrlMaps.Get)
+      def urlMapsInsert = Mock(Compute.RegionUrlMaps.Insert)
+      def urlMapsInsertOp = new Operation(
+        targetLink: "url-map",
+        name: URL_MAP_OP_NAME,
+        status: DONE)
+
+      def targetHttpProxies = Mock(Compute.RegionTargetHttpProxies)
+      def targetHttpProxiesInsert = Mock(Compute.RegionTargetHttpProxies.Insert)
+      def targetHttpProxiesInsertOp = new Operation(
+        targetLink: "target-proxy",
+        name: TARGET_HTTP_PROXY_OP_NAME,
+        status: DONE)
+
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesInsert = Mock(Compute.ForwardingRules.Insert)
+      def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
+      def forwardingRuleInsertOp = new Operation(
+          targetLink: "forwarding-rule",
+          name: LOAD_BALANCER_NAME,
+          status: DONE)
+
+      def input = [
+        accountName       : ACCOUNT_NAME,
+        "loadBalancerName": LOAD_BALANCER_NAME,
+        "portRange"       : PORT_RANGE,
+        "region"            : REGION,
+        "defaultService"  : [
+          "name"       : DEFAULT_SERVICE,
+          "backends"   : [],
+          "healthCheck": hc,
+          "sessionAffinity": "NONE",
+        ],
+        "certificate"     : "",
+        "hostRules"       : [
+          [
+            "hostPatterns": [
+              "host1.com",
+              "host2.com"
+            ],
+            "pathMatcher" : [
+              "pathRules"     : [
+                [
+                  "paths"         : [
+                    "/path",
+                    "/path2/more"
+                  ],
+                  "backendService": [
+                    "name"       : PM_SERVICE,
+                    "backends"   : [],
+                    "healthCheck": hc,
+                    "sessionAffinity": "NONE",
+                  ]
+                ]
+              ],
+              "defaultService": [
+                "name"       : DEFAULT_PM_SERVICE,
+                "backends"   : [],
+                "healthCheck": hc,
+                "sessionAffinity": "NONE",
+              ]
+            ]
+          ]
+        ],
+        "network"           : "some-network",
+        "subnet"            : "some-subnet",
+      ]
+      def description = converter.convertDescription(input)
+      @Subject def operation = new UpsertGoogleInternalHttpLoadBalancerAtomicOperation(description)
+      operation.googleOperationPoller =
+        new GoogleOperationPoller(
+          googleConfigurationProperties: new GoogleConfigurationProperties(),
+          threadSleeper: threadSleeperMock,
+          registry: registry,
+          safeRetry: safeRetry
+        )
+      operation.googleNetworkProvider = googleNetworkProviderMock
+      operation.googleSubnetProvider = googleSubnetProviderMock
+      operation.registry = registry
+      operation.safeRetry = safeRetry
+
+    when:
+      operation.operate([])
+
+    then:
+      notThrown(NullPointerException)
 
       1 * googleNetworkProviderMock.getAllMatchingKeyPattern(networkKeyPattern) >> [googleNetwork]
       1 * googleSubnetProviderMock.getAllMatchingKeyPattern(subnetKeyPattern) >> [googleSubnet]

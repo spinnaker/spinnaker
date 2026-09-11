@@ -15,6 +15,7 @@ export interface ILoadBalancerStateParams {
   region: string;
   vpcId: string;
   provider: string;
+  loadBalancerType?: string;
 }
 
 registerApplicationState(
@@ -24,6 +25,10 @@ registerApplicationState(
       url: '/loadBalancerDetails/:provider/:accountId/:region/:vpcId/:name',
       params: {
         vpcId: {
+          value: null,
+          squash: true,
+        },
+        loadBalancerType: {
           value: null,
           squash: true,
         },
@@ -45,6 +50,7 @@ registerApplicationState(
               region: $stateParams.region,
               vpcId: $stateParams.vpcId,
               provider: $stateParams.provider,
+              loadBalancerType: $stateParams.loadBalancerType,
             };
           },
         ],

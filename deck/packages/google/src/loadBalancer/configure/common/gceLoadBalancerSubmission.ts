@@ -23,9 +23,15 @@ export type GceLoadBalancerSubmissionResult =
   | GceLoadBalancerOperationList
   | Promise<ITask>;
 
+function isFlattenedHttpLoadBalancerType(loadBalancerType: IGceLoadBalancerCommand['loadBalancerType']): boolean {
+  return (
+    loadBalancerType === 'HTTP' || loadBalancerType === 'INTERNAL_MANAGED' || loadBalancerType === 'EXTERNAL_MANAGED'
+  );
+}
+
 export function buildGceLoadBalancerJobs(command: IGceLoadBalancerCommand): GceLoadBalancerOperationList {
   const serialized = serializeGceLoadBalancerCommand(command);
-  if (command.loadBalancerType !== 'HTTP' && command.loadBalancerType !== 'INTERNAL_MANAGED') {
+  if (!isFlattenedHttpLoadBalancerType(command.loadBalancerType)) {
     return [serialized];
   }
 
@@ -34,6 +40,7 @@ export function buildGceLoadBalancerJobs(command: IGceLoadBalancerCommand): GceL
     healthChecks: _healthChecks,
     hostRules: _hostRules,
     listeners,
+    networkTier: _networkTier,
     ...shared
   } = serialized;
   const backendServices = new Map(
@@ -59,6 +66,7 @@ export function buildGceLoadBalancerJobs(command: IGceLoadBalancerCommand): GceL
 
   const jobs = ((listeners || []) as Array<Record<string, unknown>>).map((listener) => {
     const name = String(listener.name);
+    const networkTier = listener.networkTier as string | undefined;
     return {
       ...shared,
       certificate: listener.certificate || null,
@@ -70,6 +78,7 @@ export function buildGceLoadBalancerJobs(command: IGceLoadBalancerCommand): GceL
       name,
       portRange: listener.portRange,
       ...(listener.subnet ? { subnet: listener.subnet } : {}),
+      ...(command.loadBalancerType === 'EXTERNAL_MANAGED' ? { networkTier } : {}),
       urlMapName: command.name,
     } as IGceSerializedLoadBalancerCommand;
   });
@@ -114,7 +123,7 @@ export function submitGceLoadBalancerCommand(
 ): GceLoadBalancerSubmissionResult {
   const jobs = buildGceLoadBalancerJobs(command);
   if (command.mode === 'pipeline') {
-    return command.loadBalancerType === 'HTTP' || command.loadBalancerType === 'INTERNAL_MANAGED' ? jobs : jobs[0];
+    return isFlattenedHttpLoadBalancerType(command.loadBalancerType) ? jobs : jobs[0];
   }
 
   return Promise.resolve(

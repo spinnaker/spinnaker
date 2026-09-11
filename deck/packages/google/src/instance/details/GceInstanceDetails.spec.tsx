@@ -12,7 +12,10 @@ import {
   RecentHistoryService,
 } from '@spinnaker/core';
 
-import { GceInstanceDetailsComponent as GceInstanceDetails } from './GceInstanceDetails';
+import {
+  GceInstanceDetailsComponent as GceInstanceDetails,
+  normalizeGceInstanceLoadBalancers,
+} from './GceInstanceDetails';
 
 describe('GceInstanceDetails', () => {
   function application(loadBalancers: any[] = []) {
@@ -82,6 +85,33 @@ describe('GceInstanceDetails', () => {
   function labelsFor(loadedInstance: any, app?: any): string[] {
     return actionsFor(loadedInstance, app).map(({ label }) => label);
   }
+
+  it('normalizes attached regional HTTP listener names using account and region scope', () => {
+    const loadBalancers = [
+      {
+        account: 'test-account',
+        listeners: [{ name: 'regional-listener' }],
+        loadBalancerType: 'EXTERNAL_MANAGED',
+        name: 'regional-map (test-account/us-central1/EXTERNAL_MANAGED)',
+        provider: 'gce',
+        region: 'us-central1',
+        urlMapName: 'regional-map',
+      },
+      {
+        account: 'test-account',
+        listeners: [{ name: 'regional-listener' }],
+        loadBalancerType: 'EXTERNAL_MANAGED',
+        name: 'regional-map (test-account/europe-west1/EXTERNAL_MANAGED)',
+        provider: 'gce',
+        region: 'europe-west1',
+        urlMapName: 'regional-map',
+      },
+    ];
+
+    expect(
+      normalizeGceInstanceLoadBalancers(['regional-listener'], 'test-account', 'us-central1', loadBalancers),
+    ).toEqual(['regional-map (test-account/us-central1/EXTERNAL_MANAGED)']);
+  });
 
   it('finds instances through disabled server groups attached to load balancers', () => {
     spyOn(RecentHistoryService, 'addExtraDataToLatest');

@@ -163,6 +163,19 @@ export interface IPersistedReference<T> {
   value: T;
 }
 
+export const GCE_GLOBAL_LOAD_BALANCER_NAMES = 'global-load-balancer-names' as const;
+export const GCE_REGIONAL_LOAD_BALANCER_NAMES = 'load-balancer-names' as const;
+
+export type GceLoadBalancerMetadataKey =
+  | typeof GCE_GLOBAL_LOAD_BALANCER_NAMES
+  | typeof GCE_REGIONAL_LOAD_BALANCER_NAMES;
+
+export interface ILoadBalancerMetadataReference {
+  key: GceLoadBalancerMetadataKey;
+  loadBalancerType?: string;
+  names: string[];
+}
+
 export interface IGceServerGroupCommandValidationErrors {
   application?: string;
   capacity?: { desired?: string };
@@ -170,6 +183,7 @@ export interface IGceServerGroupCommandValidationErrors {
   distributionPolicy?: { zones?: string };
   freeFormDetails?: string;
   image?: string;
+  loadBalancers?: string;
   region?: string;
   stack?: string;
   zone?: string;
