@@ -25,6 +25,9 @@ dependencies {
   testImplementation "org.mockito:mockito-core"
   testImplementation "org.springframework.boot:spring-boot-starter-test"
   testImplementation "org.springframework.boot:spring-boot-starter-webmvc-test"
+  // Runtime need of @AutoConfigureTestRestTemplate (TestRestTemplate bean method
+  // takes a RestTemplateBuilder); not otherwise on this module's test classpath.
+  testImplementation "org.springframework.boot:spring-boot-restclient"
   testImplementation project(":kork-core")
   testImplementation project(":kork-web")
   testImplementation project(":kork-retrofit")

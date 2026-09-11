@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.health.actuate.endpoint.StatusAggregator;
 import org.springframework.boot.health.contributor.HealthContributors;
 import org.springframework.boot.health.contributor.Status;
@@ -65,7 +66,9 @@ public class PipelineController {
       ExecutionRepository executionRepository,
       ObjectMapper kayentaObjectMapper,
       ConfigurableApplicationContext context,
-      HealthContributors healthContributors,
+      // Boot 4 also exposes Cloud's discoveryCompositeHealthContributor as
+      // HealthContributors; qualify the aggregate registry (Boot 3 behavior).
+      @Qualifier("healthContributorRegistry") HealthContributors healthContributors,
       StatusAggregator statusAggregator,
       ScheduledAnnotationBeanPostProcessor postProcessor) {
     this.executionLauncher = executionLauncher;
