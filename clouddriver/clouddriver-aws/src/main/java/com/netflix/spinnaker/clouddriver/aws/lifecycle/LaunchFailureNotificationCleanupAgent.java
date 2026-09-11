@@ -16,12 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.lifecycle;
 
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.services.autoscaling.AmazonAutoScaling;
-import com.amazonaws.services.autoscaling.model.Activity;
-import com.amazonaws.services.autoscaling.model.DescribeScalingActivitiesRequest;
-import com.amazonaws.services.autoscaling.model.DescribeScalingActivitiesResult;
-import com.amazonaws.services.autoscaling.model.ScalingActivityStatusCode;
 import com.netflix.spinnaker.cats.agent.RunnableAgent;
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider;
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider;
@@ -31,14 +25,18 @@ import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent;
 import com.netflix.spinnaker.clouddriver.model.EntityTags;
 import com.netflix.spinnaker.clouddriver.tags.EntityTagger;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.UndeclaredThrowableException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
+import software.amazon.awssdk.services.autoscaling.model.Activity;
+import software.amazon.awssdk.services.autoscaling.model.DescribeScalingActivitiesRequest;
+import software.amazon.awssdk.services.autoscaling.model.DescribeScalingActivitiesResponse;
+import software.amazon.awssdk.services.autoscaling.model.ScalingActivityStatusCode;
 
 public class LaunchFailureNotificationCleanupAgent implements RunnableAgent, CustomScheduledAgent {
   private static final Logger log = LoggerFactory.getLogger(LaunchFailureNotificationAgent.class);
@@ -104,8 +102,8 @@ public class LaunchFailureNotificationCleanupAgent implements RunnableAgent, Cus
             return;
           }
 
-          AmazonAutoScaling amazonAutoScaling =
-              amazonClientProvider.getAutoScaling(credentials.get(), entityRef.getRegion());
+          AutoScalingClient amazonAutoScaling =
+              amazonClientProvider.getAutoScalingV2(credentials.get(), entityRef.getRegion());
 
           try {
             if (hasLaunchFailures(amazonAutoScaling, entityTags)) {
@@ -131,53 +129,26 @@ public class LaunchFailureNotificationCleanupAgent implements RunnableAgent, Cus
    * <p>A successful scaling activity is sufficient to indicate that a server group is no longer
    * having launch failures.
    */
-  protected boolean hasLaunchFailures(AmazonAutoScaling amazonAutoScaling, EntityTags entityTags) {
+  protected boolean hasLaunchFailures(AutoScalingClient amazonAutoScaling, EntityTags entityTags) {
     EntityTags.EntityRef entityRef = entityTags.getEntityRef();
 
     try {
-      DescribeScalingActivitiesResult describeScalingActivitiesResult =
+      DescribeScalingActivitiesResponse describeScalingActivitiesResult =
           amazonAutoScaling.describeScalingActivities(
-              new DescribeScalingActivitiesRequest()
-                  .withAutoScalingGroupName(entityRef.getEntityId()));
+              DescribeScalingActivitiesRequest.builder()
+                  .autoScalingGroupName(entityRef.getEntityId())
+                  .build());
 
-      List<Activity> activities = describeScalingActivitiesResult.getActivities();
+      List<Activity> activities = describeScalingActivitiesResult.activities();
       return !activities.isEmpty()
-          && !activities
-              .get(0)
-              .getStatusCode()
-              .equals(ScalingActivityStatusCode.Successful.toString());
-    } catch (Exception e) {
-      AmazonServiceException amazonServiceException = amazonServiceException(e);
-      if (amazonServiceException != null) {
-        if (amazonServiceException.getErrorMessage().toLowerCase().contains("name not found")) {
-          return false;
-        }
+          && activities.get(0).statusCode() != ScalingActivityStatusCode.SUCCESSFUL;
+    } catch (AwsServiceException e) {
+      String errorMessage = e.awsErrorDetails().errorMessage();
+      if (errorMessage != null && errorMessage.toLowerCase().contains("name not found")) {
+        return false;
       }
 
       throw e;
     }
-  }
-
-  private static AmazonServiceException amazonServiceException(Exception e) {
-    if (e instanceof AmazonServiceException) {
-      return (AmazonServiceException) e;
-    }
-
-    if (!(e instanceof UndeclaredThrowableException)) {
-      return null;
-    }
-
-    UndeclaredThrowableException ute = (UndeclaredThrowableException) e;
-
-    if (!(ute.getUndeclaredThrowable() instanceof InvocationTargetException)) {
-      return null;
-    }
-
-    InvocationTargetException ite = (InvocationTargetException) ute.getUndeclaredThrowable();
-    if (!(ite.getTargetException() instanceof AmazonServiceException)) {
-      return null;
-    }
-
-    return (AmazonServiceException) ite.getTargetException();
   }
 }

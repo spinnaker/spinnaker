@@ -102,7 +102,7 @@ class WaitForUpInstancesTask extends AbstractInstancesCheckTask {
       int targetDesiredSize = calculateTargetDesiredSize(stage, serverGroup, splainer)
       if (targetDesiredSize == 0 && capacitySnapshot != null && !capacitySnapshot.isEmpty()) {
         // if we've seen a non-zero value before, but we are seeing a target size of zero now, assume
-        // it's a transient issue with edda unless we see it repeatedly
+        // it's a transient read issue unless we see it repeatedly
         Integer snapshotDesiredCapacity = capacitySnapshot.get("desiredCapacity") as Integer
         if (snapshotDesiredCapacity != 0) {
           Number seenCount = ((Number) stage.getContext().get("zeroDesiredCapacityCount"))

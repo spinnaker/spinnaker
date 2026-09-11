@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer
 
-import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing
-import com.amazonaws.services.elasticloadbalancing.model.DeleteLoadBalancerRequest
+import software.amazon.awssdk.services.elasticloadbalancing.ElasticLoadBalancingClient
+import software.amazon.awssdk.services.elasticloadbalancing.model.DeleteLoadBalancerRequest
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.data.task.Task
@@ -43,9 +43,9 @@ class DeleteAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
 
   void "should perform deletion when invoked"() {
     setup:
-    def loadBalancing = Mock(AmazonElasticLoadBalancing)
+    def loadBalancing = Mock(ElasticLoadBalancingClient)
     def amazonClientProvider = Stub(AmazonClientProvider)
-    amazonClientProvider.getAmazonElasticLoadBalancing(credz, _, true) >> loadBalancing
+    amazonClientProvider.getAmazonElasticLoadBalancingClassicV2(credz, _) >> loadBalancing
     op.amazonClientProvider = amazonClientProvider
 
     when:
@@ -53,7 +53,7 @@ class DeleteAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
 
     then:
     1 * loadBalancing.deleteLoadBalancer(_) >> { DeleteLoadBalancerRequest req ->
-      assert req.loadBalancerName == description.loadBalancerName
+      assert req.loadBalancerName() == description.loadBalancerName
     }
   }
 }

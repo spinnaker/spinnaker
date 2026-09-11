@@ -16,10 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.controllers.servergroup;
 
-import com.amazonaws.services.ecs.AmazonECS;
-import com.amazonaws.services.ecs.model.DescribeServicesRequest;
-import com.amazonaws.services.ecs.model.DescribeServicesResult;
-import com.amazonaws.services.ecs.model.ServiceEvent;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.ServiceCacheClient;
@@ -33,6 +29,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import software.amazon.awssdk.services.ecs.EcsClient;
+import software.amazon.awssdk.services.ecs.model.DescribeServicesRequest;
+import software.amazon.awssdk.services.ecs.model.DescribeServicesResponse;
+import software.amazon.awssdk.services.ecs.model.ServiceEvent;
 
 @RestController
 @RequestMapping("/applications/{application}/serverGroups/{account}/{serverGroupName}")
@@ -70,7 +70,7 @@ public class EcsServerGroupController {
           String.format("Account %s is not an ECS account", account), HttpStatus.BAD_REQUEST);
     }
 
-    AmazonECS ecs = amazonClientProvider.getAmazonEcs(credentials, region, true);
+    EcsClient ecs = amazonClientProvider.getAmazonEcsV2(credentials, region);
 
     Service cachedService =
         serviceCacheClient.getAll(account, region).stream()
@@ -78,28 +78,29 @@ public class EcsServerGroupController {
             .findFirst()
             .get();
 
-    DescribeServicesResult describeServicesResult =
+    DescribeServicesResponse describeServicesResult =
         ecs.describeServices(
-            new DescribeServicesRequest()
-                .withServices(serverGroupName)
-                .withCluster(cachedService.getClusterArn()));
+            DescribeServicesRequest.builder()
+                .services(serverGroupName)
+                .cluster(cachedService.getClusterArn())
+                .build());
 
-    if (describeServicesResult.getServices().size() == 0) {
+    if (describeServicesResult.services().size() == 0) {
       return new ResponseEntity(
           String.format("Server group %s was not found in account ", serverGroupName, account),
           HttpStatus.NOT_FOUND);
     }
 
-    List<ServiceEvent> rawEvents = describeServicesResult.getServices().get(0).getEvents();
+    List<ServiceEvent> rawEvents = describeServicesResult.services().get(0).events();
 
     List<EcsServerGroupEvent> events = new ArrayList<>();
 
     for (ServiceEvent rawEvent : rawEvents) {
       EcsServerGroupEvent newEvent =
           new EcsServerGroupEvent(
-              rawEvent.getMessage(),
-              rawEvent.getCreatedAt(),
-              rawEvent.getId(),
+              rawEvent.message(),
+              rawEvent.createdAt(),
+              rawEvent.id(),
               statusConverter.inferEventStatus(rawEvent));
       events.add(newEvent);
     }

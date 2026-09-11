@@ -10,6 +10,7 @@ configurations.all {
 dependencies {
   api project(':kayenta-atlas')
   api project(':kayenta-aws')
+  api project(':kayenta-clickhouse')
   api project(':kayenta-core')
   api project(':kayenta-datadog')
   api project(':kayenta-gcs')

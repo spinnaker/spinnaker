@@ -105,7 +105,7 @@ public class PipelineController {
   }
 
   @PreAuthorize("#restricted ? @fiatPermissionEvaluator.storeWholePermission() : true")
-  @PostFilter("#restricted ? hasPermission(filterObject.name, 'APPLICATION', 'READ') : true")
+  @PostFilter("#restricted ? hasPermission(filterObject.application, 'APPLICATION', 'READ') : true")
   @RequestMapping(value = "", method = RequestMethod.GET)
   public Collection<Pipeline> list(
       @RequestParam(required = false, value = "restricted", defaultValue = "true")
@@ -160,7 +160,7 @@ public class PipelineController {
    * @param status the execution status of the pipeline (canceled/suspended/succeeded)
    */
   @PreAuthorize("#restricted ? @fiatPermissionEvaluator.storeWholePermission() : true")
-  @PostFilter("#restricted ? hasPermission(filterObject.name, 'APPLICATION', 'READ') : true")
+  @PostFilter("#restricted ? hasPermission(filterObject.application, 'APPLICATION', 'READ') : true")
   @RequestMapping(
       value = {"triggeredBy/{id:.+}/{status}", "triggeredBy/{id:.+}/{status}/"},
       method = RequestMethod.GET)

@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 package com.netflix.spinnaker.clouddriver.aws.services
-import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
-import com.amazonaws.services.autoscaling.model.DescribeLaunchConfigurationsRequest
-import com.amazonaws.services.autoscaling.model.DescribeLaunchConfigurationsResult
-import com.amazonaws.services.autoscaling.model.LaunchConfiguration
-import com.amazonaws.services.autoscaling.model.ResumeProcessesRequest
-import com.amazonaws.services.autoscaling.model.SuspendProcessesRequest
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
+import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsRequest
+import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsResponse
+import software.amazon.awssdk.services.autoscaling.model.DescribeLaunchConfigurationsRequest
+import software.amazon.awssdk.services.autoscaling.model.DescribeLaunchConfigurationsResponse
+import software.amazon.awssdk.services.autoscaling.model.LaunchConfiguration
+import software.amazon.awssdk.services.autoscaling.model.ResumeProcessesRequest
+import software.amazon.awssdk.services.autoscaling.model.SuspendProcessesRequest
 import com.netflix.spinnaker.clouddriver.aws.model.AutoScalingProcessType
 import com.netflix.spinnaker.clouddriver.aws.services.AsgService
 import spock.lang.Specification
@@ -31,7 +31,7 @@ import spock.lang.Unroll
 
 class AsgServiceSpec extends Specification {
 
-  def mockAmazonAutoScaling = Mock(AmazonAutoScaling)
+  def mockAmazonAutoScaling = Mock(AutoScalingClient)
   @Subject def asgService = new AsgService(mockAmazonAutoScaling)
 
   void 'should get auto scaling groups'() {
@@ -39,11 +39,11 @@ class AsgServiceSpec extends Specification {
     def result = asgService.getAutoScalingGroups(["asg1", "asg2"])
 
     then:
-    result == ["asg1", "asg2"].collect { new AutoScalingGroup(autoScalingGroupName: it)}
+    result == ["asg1", "asg2"].collect { AutoScalingGroup.builder().autoScalingGroupName(it).build()}
 
     and:
-    1 * mockAmazonAutoScaling.describeAutoScalingGroups(new DescribeAutoScalingGroupsRequest(autoScalingGroupNames: ["asg1", "asg2"])) >>
-      new DescribeAutoScalingGroupsResult(autoScalingGroups: ["asg1", "asg2"].collect { new AutoScalingGroup(autoScalingGroupName: it)})
+    1 * mockAmazonAutoScaling.describeAutoScalingGroups(DescribeAutoScalingGroupsRequest.builder().autoScalingGroupNames(["asg1", "asg2"]).build()) >>
+      DescribeAutoScalingGroupsResponse.builder().autoScalingGroups(["asg1", "asg2"].collect { AutoScalingGroup.builder().autoScalingGroupName(it).build()}).build()
     0 * _
   }
 
@@ -52,11 +52,11 @@ class AsgServiceSpec extends Specification {
     def result = asgService.getAutoScalingGroup("asg1")
 
     then:
-    result == new AutoScalingGroup(autoScalingGroupName: "asg1")
+    result == AutoScalingGroup.builder().autoScalingGroupName("asg1").build()
 
     and:
-    1 * mockAmazonAutoScaling.describeAutoScalingGroups(new DescribeAutoScalingGroupsRequest(autoScalingGroupNames: ["asg1"])) >>
-      new DescribeAutoScalingGroupsResult(autoScalingGroups: [new AutoScalingGroup(autoScalingGroupName: "asg1")])
+    1 * mockAmazonAutoScaling.describeAutoScalingGroups(DescribeAutoScalingGroupsRequest.builder().autoScalingGroupNames(["asg1"]).build()) >>
+      DescribeAutoScalingGroupsResponse.builder().autoScalingGroups([AutoScalingGroup.builder().autoScalingGroupName("asg1").build()]).build()
     0 * _
   }
 
@@ -68,8 +68,8 @@ class AsgServiceSpec extends Specification {
     result == null
 
     and:
-    1 * mockAmazonAutoScaling.describeAutoScalingGroups(new DescribeAutoScalingGroupsRequest(autoScalingGroupNames: ["asg1"])) >>
-      new DescribeAutoScalingGroupsResult(autoScalingGroups: [])
+    1 * mockAmazonAutoScaling.describeAutoScalingGroups(DescribeAutoScalingGroupsRequest.builder().autoScalingGroupNames(["asg1"]).build()) >>
+      DescribeAutoScalingGroupsResponse.builder().autoScalingGroups([]).build()
     0 * _
   }
 
@@ -78,11 +78,11 @@ class AsgServiceSpec extends Specification {
     def result = asgService.getLaunchConfigurations(['lc1', 'lc2'])
 
     then:
-    result == ["lc1", "lc2"].collect { new LaunchConfiguration(launchConfigurationName: it)}
+    result == ["lc1", "lc2"].collect { LaunchConfiguration.builder().launchConfigurationName(it).build()}
 
     and:
-    1 * mockAmazonAutoScaling.describeLaunchConfigurations(new DescribeLaunchConfigurationsRequest(launchConfigurationNames: ["lc1", "lc2"])) >>
-      new DescribeLaunchConfigurationsResult(launchConfigurations:  ["lc1", "lc2"].collect { new LaunchConfiguration(launchConfigurationName: it)})
+    1 * mockAmazonAutoScaling.describeLaunchConfigurations(DescribeLaunchConfigurationsRequest.builder().launchConfigurationNames(["lc1", "lc2"]).build()) >>
+      DescribeLaunchConfigurationsResponse.builder().launchConfigurations(["lc1", "lc2"].collect { LaunchConfiguration.builder().launchConfigurationName(it).build()}).build()
     0 * _
   }
 
@@ -91,11 +91,11 @@ class AsgServiceSpec extends Specification {
     def result = asgService.getLaunchConfiguration('lc1')
 
     then:
-    result == new LaunchConfiguration(launchConfigurationName: 'lc1')
+    result == LaunchConfiguration.builder().launchConfigurationName('lc1').build()
 
     and:
-    1 * mockAmazonAutoScaling.describeLaunchConfigurations(new DescribeLaunchConfigurationsRequest(launchConfigurationNames: ["lc1"])) >>
-      new DescribeLaunchConfigurationsResult(launchConfigurations:  [new LaunchConfiguration(launchConfigurationName: 'lc1')])
+    1 * mockAmazonAutoScaling.describeLaunchConfigurations(DescribeLaunchConfigurationsRequest.builder().launchConfigurationNames(["lc1"]).build()) >>
+      DescribeLaunchConfigurationsResponse.builder().launchConfigurations([LaunchConfiguration.builder().launchConfigurationName('lc1').build()]).build()
     0 * _
   }
 
@@ -107,8 +107,8 @@ class AsgServiceSpec extends Specification {
     result == null
 
     and:
-    1 * mockAmazonAutoScaling.describeLaunchConfigurations(new DescribeLaunchConfigurationsRequest(launchConfigurationNames: ["lc1"])) >>
-      new DescribeLaunchConfigurationsResult()
+    1 * mockAmazonAutoScaling.describeLaunchConfigurations(DescribeLaunchConfigurationsRequest.builder().launchConfigurationNames(["lc1"]).build()) >>
+      DescribeLaunchConfigurationsResponse.builder().build()
 
     0 * _
   }
@@ -118,7 +118,7 @@ class AsgServiceSpec extends Specification {
     asgService.suspendProcesses("asg1", AutoScalingProcessType.with { [Launch, Terminate] })
 
     then:
-    1 * mockAmazonAutoScaling.suspendProcesses(new SuspendProcessesRequest(autoScalingGroupName: "asg1", scalingProcesses: ["Launch", "Terminate"]))
+    1 * mockAmazonAutoScaling.suspendProcesses(SuspendProcessesRequest.builder().autoScalingGroupName("asg1").scalingProcesses(["Launch", "Terminate"]).build())
     0 * _
   }
 
@@ -127,7 +127,7 @@ class AsgServiceSpec extends Specification {
     asgService.resumeProcesses("asg1", AutoScalingProcessType.with { [Launch, Terminate] })
 
     then:
-    1 * mockAmazonAutoScaling.resumeProcesses(new ResumeProcessesRequest(autoScalingGroupName: "asg1", scalingProcesses: ["Launch", "Terminate"]))
+    1 * mockAmazonAutoScaling.resumeProcesses(ResumeProcessesRequest.builder().autoScalingGroupName("asg1").scalingProcesses(["Launch", "Terminate"]).build())
     0 * _
   }
 }

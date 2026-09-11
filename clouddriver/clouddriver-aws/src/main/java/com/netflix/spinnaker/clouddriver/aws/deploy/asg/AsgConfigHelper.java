@@ -17,16 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.asg;
 
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup;
-import com.amazonaws.services.autoscaling.model.Ebs;
-import com.amazonaws.services.autoscaling.model.LaunchConfiguration;
-import com.amazonaws.services.autoscaling.model.LaunchTemplateOverrides;
-import com.amazonaws.services.autoscaling.model.LaunchTemplateSpecification;
-import com.amazonaws.services.ec2.model.CreditSpecification;
-import com.amazonaws.services.ec2.model.EbsBlockDevice;
-import com.amazonaws.services.ec2.model.LaunchTemplateBlockDeviceMapping;
-import com.amazonaws.services.ec2.model.LaunchTemplateEbsBlockDevice;
-import com.amazonaws.services.ec2.model.LaunchTemplateVersion;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription;
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice;
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory;
@@ -50,6 +40,16 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup;
+import software.amazon.awssdk.services.autoscaling.model.Ebs;
+import software.amazon.awssdk.services.autoscaling.model.LaunchConfiguration;
+import software.amazon.awssdk.services.autoscaling.model.LaunchTemplateOverrides;
+import software.amazon.awssdk.services.autoscaling.model.LaunchTemplateSpecification;
+import software.amazon.awssdk.services.ec2.model.CreditSpecification;
+import software.amazon.awssdk.services.ec2.model.EbsBlockDevice;
+import software.amazon.awssdk.services.ec2.model.LaunchTemplateBlockDeviceMapping;
+import software.amazon.awssdk.services.ec2.model.LaunchTemplateEbsBlockDevice;
+import software.amazon.awssdk.services.ec2.model.LaunchTemplateVersion;
 
 /**
  * A helper class for utility methods related to {@link AutoScalingWorker.AsgConfiguration} and
@@ -151,36 +151,36 @@ public class AsgConfigHelper {
   public static List<AmazonBlockDevice> getBlockDeviceMappingForAsg(
       final AutoScalingGroup asg,
       RegionScopedProviderFactory.RegionScopedProvider asgRegionScopedProvider) {
-    if (asg.getLaunchConfigurationName() != null) {
+    if (asg.launchConfigurationName() != null) {
       final LaunchConfiguration lc =
           asgRegionScopedProvider
               .getAsgService()
-              .getLaunchConfiguration(asg.getLaunchConfigurationName());
+              .getLaunchConfiguration(asg.launchConfigurationName());
       if (lc == null) {
         throw new IllegalStateException(
             "Launch configuration "
-                + asg.getLaunchConfigurationName()
+                + asg.launchConfigurationName()
                 + " was requested but was not found for ASG with launch configuration "
-                + asg.getAutoScalingGroupName());
+                + asg.autoScalingGroupName());
       }
-      return transformBlockDeviceMapping(lc.getBlockDeviceMappings());
-    } else if (asg.getLaunchTemplate() != null) {
+      return transformBlockDeviceMapping(lc.blockDeviceMappings());
+    } else if (asg.launchTemplate() != null) {
       final LaunchTemplateVersion ltVersion =
           asgRegionScopedProvider
               .getLaunchTemplateService()
-              .getLaunchTemplateVersion(asg.getLaunchTemplate())
+              .getLaunchTemplateVersion(asg.launchTemplate())
               .orElseThrow(
                   () ->
                       new IllegalStateException(
                           "Launch template "
-                              + asg.getLaunchTemplate()
+                              + asg.launchTemplate()
                               + " was requested but was not found for ASG with launch template "
-                              + asg.getAutoScalingGroupName()));
+                              + asg.autoScalingGroupName()));
       return transformLaunchTemplateBlockDeviceMapping(
-          ltVersion.getLaunchTemplateData().getBlockDeviceMappings());
-    } else if (asg.getMixedInstancesPolicy() != null) {
+          ltVersion.launchTemplateData().blockDeviceMappings());
+    } else if (asg.mixedInstancesPolicy() != null) {
       final LaunchTemplateSpecification ltSpec =
-          asg.getMixedInstancesPolicy().getLaunchTemplate().getLaunchTemplateSpecification();
+          asg.mixedInstancesPolicy().launchTemplate().launchTemplateSpecification();
       final LaunchTemplateVersion ltVersion =
           asgRegionScopedProvider
               .getLaunchTemplateService()
@@ -191,14 +191,14 @@ public class AsgConfigHelper {
                           "Launch template "
                               + ltSpec
                               + " was requested but was not found for ASG with mixed instances policy "
-                              + asg.getAutoScalingGroupName()));
+                              + asg.autoScalingGroupName()));
       return transformLaunchTemplateBlockDeviceMapping(
-          ltVersion.getLaunchTemplateData().getBlockDeviceMappings());
+          ltVersion.launchTemplateData().blockDeviceMappings());
     } else {
       throw new IllegalStateException(
           String.format(
               "An AWS ASG %s is expected to have a launch configuration or launch template or mixed instances policy",
-              asg.getAutoScalingGroupName()));
+              asg.autoScalingGroupName()));
     }
   }
 
@@ -214,10 +214,10 @@ public class AsgConfigHelper {
   public static Set<String> getAllowedInstanceTypesForAsg(
       final AutoScalingGroup asg,
       RegionScopedProviderFactory.RegionScopedProvider asgRegionScopedProvider) {
-    if (asg.getMixedInstancesPolicy() != null
-        && asg.getMixedInstancesPolicy().getLaunchTemplate().getOverrides() != null) {
-      return asg.getMixedInstancesPolicy().getLaunchTemplate().getOverrides().stream()
-          .map(override -> override.getInstanceType())
+    if (asg.mixedInstancesPolicy() != null
+        && asg.mixedInstancesPolicy().launchTemplate().overrides() != null) {
+      return asg.mixedInstancesPolicy().launchTemplate().overrides().stream()
+          .map(override -> override.instanceType())
           .collect(Collectors.toSet());
     } else {
       return Collections.singleton(getTopLevelInstanceTypeForAsg(asg, asgRegionScopedProvider));
@@ -239,34 +239,34 @@ public class AsgConfigHelper {
   public static String getTopLevelInstanceTypeForAsg(
       final AutoScalingGroup asg,
       RegionScopedProviderFactory.RegionScopedProvider asgRegionScopedProvider) {
-    if (asg.getLaunchConfigurationName() != null) {
+    if (asg.launchConfigurationName() != null) {
       final LaunchConfiguration lc =
           asgRegionScopedProvider
               .getAsgService()
-              .getLaunchConfiguration(asg.getLaunchConfigurationName());
+              .getLaunchConfiguration(asg.launchConfigurationName());
       if (lc == null) {
         throw new IllegalStateException(
             String.format(
                 "Launch configuration %s was requested but was not found for ASG with launch configuration %s.",
-                asg.getLaunchConfigurationName(), asg.getAutoScalingGroupName()));
+                asg.launchConfigurationName(), asg.autoScalingGroupName()));
       }
-      return lc.getInstanceType();
-    } else if (asg.getLaunchTemplate() != null) {
+      return lc.instanceType();
+    } else if (asg.launchTemplate() != null) {
       final LaunchTemplateVersion ltVersion =
           asgRegionScopedProvider
               .getLaunchTemplateService()
-              .getLaunchTemplateVersion(asg.getLaunchTemplate())
+              .getLaunchTemplateVersion(asg.launchTemplate())
               .orElseThrow(
                   () ->
                       new IllegalStateException(
                           String.format(
                               "Launch template %s was requested but was not found for ASG with launch template %s.",
-                              asg.getLaunchTemplate(), asg.getAutoScalingGroupName())));
+                              asg.launchTemplate(), asg.autoScalingGroupName())));
 
-      return ltVersion.getLaunchTemplateData().getInstanceType();
-    } else if (asg.getMixedInstancesPolicy() != null) {
+      return ltVersion.launchTemplateData().instanceTypeAsString();
+    } else if (asg.mixedInstancesPolicy() != null) {
       final LaunchTemplateSpecification ltSpec =
-          asg.getMixedInstancesPolicy().getLaunchTemplate().getLaunchTemplateSpecification();
+          asg.mixedInstancesPolicy().launchTemplate().launchTemplateSpecification();
       final LaunchTemplateVersion ltVersion =
           asgRegionScopedProvider
               .getLaunchTemplateService()
@@ -276,9 +276,9 @@ public class AsgConfigHelper {
                       new IllegalStateException(
                           String.format(
                               "Launch template %s was requested but was not found for ASG with mixed instances policy %s.",
-                              ltSpec, asg.getAutoScalingGroupName())));
+                              ltSpec, asg.autoScalingGroupName())));
 
-      return ltVersion.getLaunchTemplateData().getInstanceType();
+      return ltVersion.launchTemplateData().instanceTypeAsString();
     } else {
       throw new IllegalStateException(
           "An AWS ASG is expected to include a launch configuration or launch template or mixed instances policy "
@@ -335,27 +335,28 @@ public class AsgConfigHelper {
    * @return list of AmazonBlockDevice
    */
   protected static List<AmazonBlockDevice> transformBlockDeviceMapping(
-      List<com.amazonaws.services.autoscaling.model.BlockDeviceMapping> blockDeviceMappings) {
+      List<software.amazon.awssdk.services.autoscaling.model.BlockDeviceMapping>
+          blockDeviceMappings) {
     return blockDeviceMappings.stream()
         .map(
             bdm -> {
               AmazonBlockDevice amzBd =
                   new AmazonBlockDevice.Builder()
-                      .deviceName(bdm.getDeviceName())
-                      .virtualName(bdm.getVirtualName())
+                      .deviceName(bdm.deviceName())
+                      .virtualName(bdm.virtualName())
                       .build();
 
-              if (bdm.getEbs() != null) {
-                final Ebs ebs = bdm.getEbs();
-                amzBd.setIops(ebs.getIops());
-                amzBd.setThroughput(ebs.getThroughput());
-                amzBd.setDeleteOnTermination(ebs.getDeleteOnTermination());
-                amzBd.setSize(ebs.getVolumeSize());
-                amzBd.setVolumeType(ebs.getVolumeType());
-                amzBd.setSnapshotId(ebs.getSnapshotId());
-                if (ebs.getSnapshotId() == null) {
+              if (bdm.ebs() != null) {
+                final Ebs ebs = bdm.ebs();
+                amzBd.setIops(ebs.iops());
+                amzBd.setThroughput(ebs.throughput());
+                amzBd.setDeleteOnTermination(ebs.deleteOnTermination());
+                amzBd.setSize(ebs.volumeSize());
+                amzBd.setVolumeType(ebs.volumeType());
+                amzBd.setSnapshotId(ebs.snapshotId());
+                if (ebs.snapshotId() == null) {
                   // only set encryption if snapshotId isn't provided. AWS will error out otherwise
-                  amzBd.setEncrypted(ebs.getEncrypted());
+                  amzBd.setEncrypted(ebs.encrypted());
                 }
               }
               return amzBd;
@@ -371,29 +372,29 @@ public class AsgConfigHelper {
    * @return list of AmazonBlockDevice
    */
   protected static List<AmazonBlockDevice> convertBlockDevices(
-      List<com.amazonaws.services.ec2.model.BlockDeviceMapping> blockDeviceMappings) {
+      List<software.amazon.awssdk.services.ec2.model.BlockDeviceMapping> blockDeviceMappings) {
     return blockDeviceMappings.stream()
         .map(
             bdm -> {
               AmazonBlockDevice amzBd =
                   new AmazonBlockDevice.Builder()
-                      .deviceName(bdm.getDeviceName())
-                      .virtualName(bdm.getVirtualName())
+                      .deviceName(bdm.deviceName())
+                      .virtualName(bdm.virtualName())
                       .build();
 
-              if (bdm.getEbs() != null) {
-                final EbsBlockDevice ebs = bdm.getEbs();
-                amzBd.setIops(ebs.getIops());
-                amzBd.setDeleteOnTermination(ebs.getDeleteOnTermination());
-                amzBd.setSize(ebs.getVolumeSize());
-                amzBd.setVolumeType(ebs.getVolumeType());
-                amzBd.setSnapshotId(ebs.getSnapshotId());
-                if (ebs.getKmsKeyId() != null) {
-                  amzBd.setKmsKeyId(ebs.getKmsKeyId());
+              if (bdm.ebs() != null) {
+                final EbsBlockDevice ebs = bdm.ebs();
+                amzBd.setIops(ebs.iops());
+                amzBd.setDeleteOnTermination(ebs.deleteOnTermination());
+                amzBd.setSize(ebs.volumeSize());
+                amzBd.setVolumeType(ebs.volumeTypeAsString());
+                amzBd.setSnapshotId(ebs.snapshotId());
+                if (ebs.kmsKeyId() != null) {
+                  amzBd.setKmsKeyId(ebs.kmsKeyId());
                 }
-                if (ebs.getSnapshotId() == null) {
+                if (ebs.snapshotId() == null) {
                   // only set encryption if snapshotId isn't provided. AWS will error out otherwise
-                  amzBd.setEncrypted(ebs.getEncrypted());
+                  amzBd.setEncrypted(ebs.encrypted());
                 }
               }
               return amzBd;
@@ -415,21 +416,21 @@ public class AsgConfigHelper {
             ltBdm -> {
               AmazonBlockDevice amzBd =
                   new AmazonBlockDevice.Builder()
-                      .deviceName(ltBdm.getDeviceName())
-                      .virtualName(ltBdm.getVirtualName())
+                      .deviceName(ltBdm.deviceName())
+                      .virtualName(ltBdm.virtualName())
                       .build();
 
-              if (ltBdm.getEbs() != null) {
-                final LaunchTemplateEbsBlockDevice ebs = ltBdm.getEbs();
-                amzBd.setIops(ebs.getIops());
-                amzBd.setThroughput(ebs.getThroughput());
-                amzBd.setDeleteOnTermination(ebs.getDeleteOnTermination());
-                amzBd.setSize(ebs.getVolumeSize());
-                amzBd.setVolumeType(ebs.getVolumeType());
-                amzBd.setSnapshotId(ebs.getSnapshotId());
-                if (ebs.getSnapshotId() == null) {
+              if (ltBdm.ebs() != null) {
+                final LaunchTemplateEbsBlockDevice ebs = ltBdm.ebs();
+                amzBd.setIops(ebs.iops());
+                amzBd.setThroughput(ebs.throughput());
+                amzBd.setDeleteOnTermination(ebs.deleteOnTermination());
+                amzBd.setSize(ebs.volumeSize());
+                amzBd.setVolumeType(ebs.volumeTypeAsString());
+                amzBd.setSnapshotId(ebs.snapshotId());
+                if (ebs.snapshotId() == null) {
                   // only set encryption if snapshotId isn't provided. AWS will error out otherwise
-                  amzBd.setEncrypted(ebs.getEncrypted());
+                  amzBd.setEncrypted(ebs.encrypted());
                 }
               }
               return amzBd;
@@ -459,7 +460,7 @@ public class AsgConfigHelper {
     // return non-null unlimitedCpuCredits iff ALL requested instance types (includes changed types,
     // if any) support CPU credits specification, to ensure compatibility
     return isBurstingSupportedByAllTypesRequested
-        ? sourceAsgCreditSpec.getCpuCredits().equals("unlimited") ? true : false
+        ? sourceAsgCreditSpec.cpuCredits().equals("unlimited") ? true : false
         : null;
   }
 
@@ -487,9 +488,10 @@ public class AsgConfigHelper {
         overridesInReq.stream()
             .map(
                 o ->
-                    new LaunchTemplateOverrides()
-                        .withInstanceType(o.getInstanceType())
-                        .withWeightedCapacity(o.getWeightedCapacity()))
+                    LaunchTemplateOverrides.builder()
+                        .instanceType(o.getInstanceType())
+                        .weightedCapacity(o.getWeightedCapacity())
+                        .build())
             .collect(Collectors.toCollection(ArrayList::new));
 
     return ltOverrides;
@@ -518,8 +520,8 @@ public class AsgConfigHelper {
                 ltOv ->
                     new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType
                             .Builder()
-                        .instanceType(ltOv.getInstanceType())
-                        .weightedCapacity(ltOv.getWeightedCapacity())
+                        .instanceType(ltOv.instanceType())
+                        .weightedCapacity(ltOv.weightedCapacity())
                         .priority(priority.getAndIncrement())
                         .build())
             .collect(Collectors.toList());

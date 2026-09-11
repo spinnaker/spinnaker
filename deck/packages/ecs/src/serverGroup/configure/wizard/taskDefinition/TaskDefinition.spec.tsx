@@ -78,8 +78,20 @@ describe('TaskDefinition', () => {
       await flushPromises();
       wrapper.update();
 
-      expect((wrapper.instance() as TaskDefinition).state.dockerImages).toEqual(dockerImages as IEcsDockerImage[]);
-      expect(command.backingData.filtered.images).toEqual(dockerImages as IEcsDockerImage[]);
+      const expectedImages = [
+        {
+          ...dockerImages[0],
+          imageId: 'my-registry/my-repo:latest',
+          message: '',
+          fromTrigger: false,
+          fromContext: false,
+          stageId: '',
+          imageLabelOrSha: '',
+        },
+      ];
+
+      expect((wrapper.instance() as TaskDefinition).state.dockerImages).toEqual(expectedImages as IEcsDockerImage[]);
+      expect(command.backingData.filtered.images).toEqual(expectedImages as IEcsDockerImage[]);
     });
 
     it('clears existing images immediately when account changes', () => {

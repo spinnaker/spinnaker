@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
-import com.amazonaws.services.ec2.model.Address
+import software.amazon.awssdk.services.ec2.model.Address
 import com.netflix.spinnaker.cats.agent.AccountAware
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
@@ -82,14 +82,14 @@ class AmazonElasticIpCachingAgent implements CachingAgent, AccountAware, CustomS
   @Override
   CacheResult loadData(ProviderCache providerCache) {
     log.info("Describing items in ${agentType}")
-    def ec2 = amazonClientProvider.getAmazonEC2(account, region)
-    def eips = ec2.describeAddresses().addresses
+    def ec2 = amazonClientProvider.getAmazonEC2V2(account, region)
+    def eips = ec2.describeAddresses().addresses()
 
     List<CacheData> data = eips.collect { Address address ->
-      new DefaultCacheData(Keys.getElasticIpKey(address.publicIp, region, account.name), [
-        address     : address.publicIp,
-        domain      : address.domain,
-        attachedToId: address.instanceId,
+      new DefaultCacheData(Keys.getElasticIpKey(address.publicIp(), region, account.name), [
+        address     : address.publicIp(),
+        domain      : address.domainAsString(),
+        attachedToId: address.instanceId(),
         accountName : account.name,
         region      : region
       ], [:])

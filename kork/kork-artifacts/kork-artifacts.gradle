@@ -5,7 +5,6 @@ dependencies {
   api(platform(project(":spinnaker-dependencies")))
 
   implementation project(":kork-annotations")
-  implementation project(":kork-aws")
   implementation project(":kork-exceptions")
   implementation project(":kork-security")
   implementation "com.fasterxml.jackson.core:jackson-databind"

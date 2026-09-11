@@ -16,11 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
-import com.amazonaws.services.ec2.model.DescribeInstancesRequest
-import com.amazonaws.services.ec2.model.Instance
-import com.amazonaws.services.ec2.model.InstanceState
-import com.amazonaws.services.ec2.model.InstanceStateName
-import com.amazonaws.services.ec2.model.StateReason
+import software.amazon.awssdk.services.ec2.model.DescribeInstancesRequest
+import software.amazon.awssdk.services.ec2.model.Instance
+import software.amazon.awssdk.services.ec2.model.InstanceLifecycleType
+import software.amazon.awssdk.services.ec2.model.InstanceState
+import software.amazon.awssdk.services.ec2.model.InstanceStateName
+import software.amazon.awssdk.services.ec2.model.StateReason
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
@@ -106,19 +107,16 @@ class InstanceCachingAgent implements CachingAgent, AccountAware, DriftMetric {
   CacheResult loadData(ProviderCache providerCache) {
     log.info("Describing items in ${agentType}")
 
-    def amazonEC2 = amazonClientProvider.getAmazonEC2(account, region)
+    def amazonEC2 = amazonClientProvider.getAmazonEC2V2(account, region)
 
     Long start = null
-    def request = new DescribeInstancesRequest().withMaxResults(500)
+    def request = DescribeInstancesRequest.builder().maxResults(500).build()
     List<Instance> awsInstances = []
     while (true) {
       def resp = amazonEC2.describeInstances(request)
-      if (account.eddaEnabled) {
-        start = amazonClientProvider.lastModified ?: 0
-      }
-      awsInstances.addAll(resp.reservations.collectMany { it.instances })
-      if (resp.nextToken) {
-        request.withNextToken(resp.nextToken)
+      awsInstances.addAll(resp.reservations().collectMany { it.instances() })
+      if (resp.nextToken()) {
+        request = request.toBuilder().nextToken(resp.nextToken()).build()
       } else {
         break
       }
@@ -150,9 +148,9 @@ class InstanceCachingAgent implements CachingAgent, AccountAware, DriftMetric {
         if (data.cache) {
           cacheImage(data, images)
           cacheServerGroup(data, serverGroups)
-          cacheInstance(data, convertedInstancesById.get(data.instance.instanceId), instances)
+          cacheInstance(data, convertedInstancesById.get(data.instance.instanceId()), instances)
         } else {
-          skipIds.add(data.instance.instanceId)
+          skipIds.add(data.instance.instanceId())
         }
       }
     }
@@ -212,26 +210,26 @@ class InstanceCachingAgent implements CachingAgent, AccountAware, DriftMetric {
   }
 
   private Map<String, String>  getAmazonHealth(Instance instance) {
-    InstanceState state = instance.state
-    StateReason stateReason = instance.stateReason
-    HealthState amazonState = state?.name == InstanceStateName.Running.toString() ? HealthState.Unknown : HealthState.Down
+    InstanceState state = instance.state()
+    StateReason stateReason = instance.stateReason()
+    HealthState amazonState = state?.name() == InstanceStateName.RUNNING ? HealthState.Unknown : HealthState.Down
     Map<String, String> awsInstanceHealth = [
       type: 'Amazon',
       healthClass: 'platform',
       state: amazonState.toString()
     ]
     if (stateReason) {
-      awsInstanceHealth.description = stateReason.message
+      awsInstanceHealth.description = stateReason.message()
     }
     awsInstanceHealth
   }
 
   private String getCapacityType(Instance instance) {
-    if (instance.instanceLifecycle == null) {
+    if (instance.instanceLifecycle() == null) {
       return "on-demand"
     }
 
-    if (instance.instanceLifecycle.toString().equalsIgnoreCase("spot")) {
+    if (instance.instanceLifecycle() == InstanceLifecycleType.SPOT) {
       return "spot"
     }
 
@@ -240,8 +238,8 @@ class InstanceCachingAgent implements CachingAgent, AccountAware, DriftMetric {
 
   private static class InstanceData {
     static final String ASG_TAG_NAME = "aws:autoscaling:groupName"
-    static final String SHUTTING_DOWN = InstanceStateName.ShuttingDown.toString()
-    static final String TERMINATED = InstanceStateName.Terminated.toString()
+    static final InstanceStateName SHUTTING_DOWN = InstanceStateName.SHUTTING_DOWN
+    static final InstanceStateName TERMINATED = InstanceStateName.TERMINATED
 
     final Instance instance
     final String instanceId
@@ -251,11 +249,11 @@ class InstanceCachingAgent implements CachingAgent, AccountAware, DriftMetric {
 
     public InstanceData(Instance instance, String account, String region) {
       this.instance = instance
-      cache = !(instance.state.name == SHUTTING_DOWN || instance.state.name == TERMINATED)
-      this.instanceId = Keys.getInstanceKey(instance.instanceId, account, region)
-      String sgTag = instance.tags?.find { it.key == ASG_TAG_NAME }?.value
+      cache = !(instance.state().name() == SHUTTING_DOWN || instance.state().name() == TERMINATED)
+      this.instanceId = Keys.getInstanceKey(instance.instanceId(), account, region)
+      String sgTag = instance.tags()?.find { it.key() == ASG_TAG_NAME }?.value()
       this.serverGroup = sgTag ? Keys.getServerGroupKey(sgTag, account, region) : null
-      this.imageId = Keys.getImageKey(instance.imageId, account, region)
+      this.imageId = Keys.getImageKey(instance.imageId(), account, region)
     }
 
   }

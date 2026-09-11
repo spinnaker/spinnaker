@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.amazonaws.services.autoscaling.model.DescribeLaunchConfigurationsRequest
-import com.amazonaws.services.ec2.model.ModifyInstanceAttributeRequest
+import software.amazon.awssdk.services.autoscaling.model.DescribeLaunchConfigurationsRequest
+import software.amazon.awssdk.services.ec2.model.ModifyInstanceAttributeRequest
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpdateInstancesDescription
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.clouddriver.data.task.Task
@@ -57,24 +57,24 @@ class UpdateInstancesAtomicOperation implements AtomicOperation<Void> {
     if (!asg) {
       throw new IllegalStateException("Cannot find ASG named $serverGroupName in $region")
     }
-    if (!asg.getVPCZoneIdentifier()) {
+    if (!asg.vpcZoneIdentifier()) {
       throw new IllegalStateException("Cannot update security groups on instances in EC2 Classic")
     }
-    def instances = asg.instances.instanceId
+    def instances = asg.instances()*.instanceId()
     // update up to 20 instances at a time (reduce risk of AWS throttling)
     def groups = description.securityGroups
     if (description.securityGroupsAppendOnly) {
       def launchConfigs = regionScopedProvider.autoScaling.describeLaunchConfigurations(
-        new DescribeLaunchConfigurationsRequest().withLaunchConfigurationNames(asg.launchConfigurationName))
-      if (launchConfigs.launchConfigurations.empty) {
-        throw new IllegalStateException("Could not find launch config ${asg.launchConfigurationName}")
+        DescribeLaunchConfigurationsRequest.builder().launchConfigurationNames(asg.launchConfigurationName()).build())
+      if (launchConfigs.launchConfigurations().empty) {
+        throw new IllegalStateException("Could not find launch config ${asg.launchConfigurationName()}")
       }
-      groups = groups + launchConfigs.launchConfigurations.get(0).securityGroups
+      groups = groups + launchConfigs.launchConfigurations().get(0).securityGroups()
     }
     instances.each { instanceId ->
       task.updateStatus PHASE, "Updating security groups for ${instanceId}..."
       try {
-        regionScopedProvider.amazonEC2.modifyInstanceAttribute(new ModifyInstanceAttributeRequest(instanceId: instanceId).withGroups(groups))
+        regionScopedProvider.amazonEC2.modifyInstanceAttribute(ModifyInstanceAttributeRequest.builder().instanceId(instanceId).groups(groups).build())
       } catch (Exception e) {
         task.updateStatus PHASE, "Error updating ${instanceId}: ${e.message}"
       }

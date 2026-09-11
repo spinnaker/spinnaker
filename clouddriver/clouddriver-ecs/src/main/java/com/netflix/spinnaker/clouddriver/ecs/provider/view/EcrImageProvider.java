@@ -16,13 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.provider.view;
 
-import com.amazonaws.services.ecr.AmazonECR;
-import com.amazonaws.services.ecr.model.DescribeImagesRequest;
-import com.amazonaws.services.ecr.model.DescribeImagesResult;
-import com.amazonaws.services.ecr.model.ImageDetail;
-import com.amazonaws.services.ecr.model.ImageIdentifier;
-import com.amazonaws.services.ecr.model.ListImagesRequest;
-import com.amazonaws.services.ecr.model.ListImagesResult;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
@@ -37,6 +30,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import software.amazon.awssdk.services.ecr.EcrClient;
+import software.amazon.awssdk.services.ecr.model.DescribeImagesRequest;
+import software.amazon.awssdk.services.ecr.model.DescribeImagesResponse;
+import software.amazon.awssdk.services.ecr.model.ImageDetail;
+import software.amazon.awssdk.services.ecr.model.ImageIdentifier;
+import software.amazon.awssdk.services.ecr.model.ListImagesRequest;
+import software.amazon.awssdk.services.ecr.model.ListImagesResponse;
 
 @Component
 public class EcrImageProvider implements ImageRepositoryProvider {
@@ -96,20 +96,21 @@ public class EcrImageProvider implements ImageRepositoryProvider {
           "The repository URI provided does not belong to a region that the credentials have access to or the region is not valid.");
     }
 
-    AmazonECR amazonECR = amazonClientProvider.getAmazonEcr(credentials, region, false);
+    EcrClient amazonECR = amazonClientProvider.getAmazonEcrV2(credentials, region);
 
     List<ImageIdentifier> imageIds =
         getImageIdentifiers(amazonECR, accountId, repository, identifier, isTag);
-    DescribeImagesResult imagesResult =
+    DescribeImagesResponse imagesResult =
         amazonECR.describeImages(
-            new DescribeImagesRequest()
-                .withRegistryId(accountId)
-                .withRepositoryName(repository)
-                .withImageIds(imageIds));
+            DescribeImagesRequest.builder()
+                .registryId(accountId)
+                .repositoryName(repository)
+                .imageIds(imageIds)
+                .build());
 
     // TODO - what is the user interface we want to have here?  We should discuss with Lars and
     // Ethan from the community as this whole thing will undergo a big refactoring
-    List<ImageDetail> imagesWithThisIdentifier = imagesResult.getImageDetails();
+    List<ImageDetail> imagesWithThisIdentifier = imagesResult.imageDetails();
 
     if (imagesWithThisIdentifier.size() > 1) {
       throw new IllegalArgumentException(
@@ -126,13 +127,13 @@ public class EcrImageProvider implements ImageRepositoryProvider {
 
     EcsDockerImage ecsDockerImage = new EcsDockerImage();
     ecsDockerImage.setRegion(region);
-    ecsDockerImage.addAmiForRegion(region, matchedImage.getImageDigest());
-    ecsDockerImage.setAttribute("creationDate", matchedImage.getImagePushedAt());
+    ecsDockerImage.addAmiForRegion(region, matchedImage.imageDigest());
+    ecsDockerImage.setAttribute("creationDate", matchedImage.imagePushedAt());
     ecsDockerImage.setImageName(
         buildFullDockerImageUrl(
-            matchedImage.getImageDigest(),
-            matchedImage.getRegistryId(),
-            matchedImage.getRepositoryName(),
+            matchedImage.imageDigest(),
+            matchedImage.registryId(),
+            matchedImage.repositoryName(),
             region));
 
     return Collections.singletonList(ecsDockerImage);
@@ -140,8 +141,8 @@ public class EcrImageProvider implements ImageRepositoryProvider {
 
   private boolean imageFilter(ImageIdentifier imageIdentifier, String identifier, boolean isTag) {
     return isTag
-        ? imageIdentifier.getImageTag() != null && imageIdentifier.getImageTag().equals(identifier)
-        : imageIdentifier.getImageDigest().equals(identifier);
+        ? imageIdentifier.imageTag() != null && imageIdentifier.imageTag().equals(identifier)
+        : imageIdentifier.imageDigest().equals(identifier);
   }
 
   private NetflixAmazonCredentials getCredentials(String accountId, String region) {
@@ -161,23 +162,22 @@ public class EcrImageProvider implements ImageRepositoryProvider {
   }
 
   private List<ImageIdentifier> getImageIdentifiers(
-      AmazonECR ecr, String accountId, String repository, String identifier, boolean isTag) {
+      EcrClient ecr, String accountId, String repository, String identifier, boolean isTag) {
     List<ImageIdentifier> imageIdentifiers = new ArrayList<ImageIdentifier>();
     String token = null;
 
-    ListImagesRequest request =
-        new ListImagesRequest().withRegistryId(accountId).withRepositoryName(repository);
-
     do {
-      ListImagesResult result = ecr.listImages(request);
-      result.getImageIds().stream()
+      ListImagesRequest.Builder requestBuilder =
+          ListImagesRequest.builder().registryId(accountId).repositoryName(repository);
+      if (token != null) {
+        requestBuilder.nextToken(token);
+      }
+      ListImagesResponse result = ecr.listImages(requestBuilder.build());
+      result.imageIds().stream()
           .filter(imageId -> imageFilter(imageId, identifier, isTag))
           .forEachOrdered(imageIdentifiers::add);
 
-      token = result.getNextToken();
-      if (token != null) {
-        request.setNextToken(token);
-      }
+      token = result.nextToken();
     } while (token != null);
 
     return imageIdentifiers;

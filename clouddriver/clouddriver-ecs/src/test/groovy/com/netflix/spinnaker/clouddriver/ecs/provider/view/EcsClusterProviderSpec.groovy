@@ -17,9 +17,9 @@
 package com.netflix.spinnaker.clouddriver.ecs.provider.view
 
 import com.netflix.spinnaker.cats.cache.Cache
-import com.amazonaws.services.ecs.model.Cluster
-import com.amazonaws.services.ecs.AmazonECS;
-import com.amazonaws.services.ecs.model.DescribeClustersResult
+import software.amazon.awssdk.services.ecs.model.Cluster
+import software.amazon.awssdk.services.ecs.EcsClient
+import software.amazon.awssdk.services.ecs.model.DescribeClustersResponse
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
@@ -67,15 +67,16 @@ class EcsClusterProviderSpec extends Specification {
     cacheView.getAll(_, ecsClustersIdentifiers) >> cacheData
 
     for (int x = 0; x < numberOfClusters; x++) {
-      Cluster cluster = new Cluster()
-        .withCapacityProviders("FARGATE", "FARGATE_SPOT").withStatus("ACTIVE")
-        .withDefaultCapacityProviderStrategy().withPendingTasksCount(0)
-        .withActiveServicesCount(0).withClusterArn("arn:aws:ecs:::cluster/" + clusterNames[x]).withClusterName(clusterNames[x])
+      Cluster cluster = Cluster.builder()
+        .capacityProviders("FARGATE", "FARGATE_SPOT").status("ACTIVE")
+        .defaultCapacityProviderStrategy().pendingTasksCount(0)
+        .activeServicesCount(0).clusterArn("arn:aws:ecs:::cluster/" + clusterNames[x]).clusterName(clusterNames[x])
+        .build()
 
       clustersResponse.add(cluster)
     }
     def credentials = Mock(NetflixECSCredentials)
-    def amazonEcs = Mock(AmazonECS)
+    def amazonEcs = Mock(EcsClient)
     mockAwsProvider = Mock(AmazonClientProvider)
     credentialsRepository = Mock(CredentialsRepository)
 
@@ -83,20 +84,20 @@ class EcsClusterProviderSpec extends Specification {
     and:
     ecsClusterProvider.credentialsRepository = credentialsRepository
 
-    mockAwsProvider.getAmazonEcs(_, _, _) >> amazonEcs
+    mockAwsProvider.getAmazonEcsV2(_, _) >> amazonEcs
     and:
     ecsClusterProvider.amazonClientProvider = mockAwsProvider;
 
-    amazonEcs.describeClusters(_) >> new DescribeClustersResult().withClusters(clustersResponse)
+    amazonEcs.describeClusters(_) >> DescribeClustersResponse.builder().clusters(clustersResponse).build()
 
     when:
     def ecsClusters = ecsClusterProvider.getEcsClusterDescriptions(ACCOUNT, REGION)
 
     then:
     ecsClusters.size() == numberOfClusters
-    ecsClusters*.getClusterName().containsAll(clusterNames)
-    ecsClusters*.getCapacityProviders()*.get(0).contains("FARGATE")
-    ecsClusters*.getCapacityProviders()*.get(1).contains("FARGATE_SPOT")
+    ecsClusters*.clusterName().containsAll(clusterNames)
+    ecsClusters*.capacityProviders()*.get(0).contains("FARGATE")
+    ecsClusters*.capacityProviders()*.get(1).contains("FARGATE_SPOT")
   }
 
   def 'should get multiple cluster descriptions filtered based on the account and region'() {
@@ -136,15 +137,16 @@ class EcsClusterProviderSpec extends Specification {
 
     //Adding only two clusters in the response which belongs to the expected region.
     for (int x = 0; x < 2; x++) {
-      Cluster cluster = new Cluster()
-        .withCapacityProviders("FARGATE", "FARGATE_SPOT").withStatus("ACTIVE")
-        .withDefaultCapacityProviderStrategy().withPendingTasksCount(0)
-        .withActiveServicesCount(0).withClusterArn("arn:aws:ecs:::cluster/" + clusterNames[x]).withClusterName(clusterNames[x])
+      Cluster cluster = Cluster.builder()
+        .capacityProviders("FARGATE", "FARGATE_SPOT").status("ACTIVE")
+        .defaultCapacityProviderStrategy().pendingTasksCount(0)
+        .activeServicesCount(0).clusterArn("arn:aws:ecs:::cluster/" + clusterNames[x]).clusterName(clusterNames[x])
+        .build()
 
       clustersResponse.add(cluster)
     }
     def credentials = Mock(NetflixECSCredentials)
-    def amazonEcs = Mock(AmazonECS)
+    def amazonEcs = Mock(EcsClient)
     mockAwsProvider = Mock(AmazonClientProvider)
     credentialsRepository = Mock(CredentialsRepository)
 
@@ -152,11 +154,11 @@ class EcsClusterProviderSpec extends Specification {
     and:
     ecsClusterProvider.credentialsRepository = credentialsRepository
 
-    mockAwsProvider.getAmazonEcs(_, _, _) >> amazonEcs
+    mockAwsProvider.getAmazonEcsV2(_, _) >> amazonEcs
     and:
     ecsClusterProvider.amazonClientProvider = mockAwsProvider;
 
-    amazonEcs.describeClusters(_) >> new DescribeClustersResult().withClusters(clustersResponse)
+    amazonEcs.describeClusters(_) >> DescribeClustersResponse.builder().clusters(clustersResponse).build()
 
     when:
     def ecsClusters = ecsClusterProvider.getEcsClusterDescriptions(ACCOUNT, REGION)
@@ -165,10 +167,10 @@ class EcsClusterProviderSpec extends Specification {
     // numberOfClusters - 1 justifies that we added 3 clusters to the cache, two with the us-west-2 which is the expected region
     // and one with the us-east-1 which will be filtered out from the filtering logic in  ecsClusterProvider.getEcsClusterDescriptions
     ecsClusters.size() == numberOfClusters - 1
-    ecsClusters*.getClusterName().contains(clusterNames[0])
-    ecsClusters*.getClusterName().contains(clusterNames[1])
-    ecsClusters*.getCapacityProviders()*.get(0).contains("FARGATE")
-    ecsClusters*.getCapacityProviders()*.get(1).contains("FARGATE_SPOT")
+    ecsClusters*.clusterName().contains(clusterNames[0])
+    ecsClusters*.clusterName().contains(clusterNames[1])
+    ecsClusters*.capacityProviders()*.get(0).contains("FARGATE")
+    ecsClusters*.capacityProviders()*.get(1).contains("FARGATE_SPOT")
   }
 
   def 'should get no clusters'() {

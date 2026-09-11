@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.ecs.cache.client;
 
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.INSTANCES;
 
-import com.amazonaws.services.ec2.model.Instance;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.clouddriver.aws.data.Keys;
@@ -26,6 +25,7 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
+import software.amazon.awssdk.services.ec2.model.Instance;
 
 @Component
 public class EcsInstanceCacheClient {

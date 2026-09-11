@@ -16,17 +16,19 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.scalingpolicy
 
-import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.autoscaling.model.DescribePoliciesRequest
-import com.amazonaws.services.autoscaling.model.DescribePoliciesResult
-import com.amazonaws.services.autoscaling.model.PutScalingPolicyRequest
-import com.amazonaws.services.autoscaling.model.ScalingPolicy
-import com.amazonaws.services.cloudwatch.AmazonCloudWatch
-import com.amazonaws.services.cloudwatch.model.DescribeAlarmsRequest
-import com.amazonaws.services.cloudwatch.model.DescribeAlarmsResult
-import com.amazonaws.services.cloudwatch.model.Dimension
-import com.amazonaws.services.cloudwatch.model.MetricAlarm
-import com.amazonaws.services.cloudwatch.model.PutMetricAlarmRequest
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient
+import software.amazon.awssdk.services.autoscaling.model.DescribePoliciesRequest
+import software.amazon.awssdk.services.autoscaling.model.DescribePoliciesResponse
+import software.amazon.awssdk.services.autoscaling.model.MetricDimension
+import software.amazon.awssdk.services.autoscaling.model.PutScalingPolicyRequest
+import software.amazon.awssdk.services.autoscaling.model.ScalingPolicy
+import software.amazon.awssdk.services.autoscaling.model.TargetTrackingConfiguration
+import software.amazon.awssdk.services.cloudwatch.CloudWatchClient
+import software.amazon.awssdk.services.cloudwatch.model.DescribeAlarmsRequest
+import software.amazon.awssdk.services.cloudwatch.model.DescribeAlarmsResponse
+import software.amazon.awssdk.services.cloudwatch.model.Dimension
+import software.amazon.awssdk.services.cloudwatch.model.MetricAlarm
+import software.amazon.awssdk.services.cloudwatch.model.PutMetricAlarmRequest
 import com.google.common.collect.Lists
 import com.netflix.spinnaker.clouddriver.aws.model.AwsResultsRetriever
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
@@ -69,9 +71,9 @@ class DefaultScalingPolicyCopier implements ScalingPolicyCopier {
                            NetflixAmazonCredentials targetCredentials,
                            String sourceRegion,
                            String targetRegion) {
-    AmazonAutoScaling sourceAutoScaling = amazonClientProvider.getAutoScaling(sourceCredentials, sourceRegion, true)
-    AmazonAutoScaling targetAutoScaling = amazonClientProvider.getAutoScaling(targetCredentials, targetRegion, true)
-    List<ScalingPolicy> sourceAsgScalingPolicies = new ScalingPolicyRetriever(sourceAutoScaling).retrieve(new DescribePoliciesRequest(autoScalingGroupName: sourceAsgName))
+    AutoScalingClient sourceAutoScaling = amazonClientProvider.getAutoScalingV2(sourceCredentials, sourceRegion)
+    AutoScalingClient targetAutoScaling = amazonClientProvider.getAutoScalingV2(targetCredentials, targetRegion)
+    List<ScalingPolicy> sourceAsgScalingPolicies = new ScalingPolicyRetriever(sourceAutoScaling).retrieve(DescribePoliciesRequest.builder().autoScalingGroupName(sourceAsgName).build())
 
     log.info("Copying scaling policies for $sourceAsgName to $targetAsgName: $sourceAsgScalingPolicies")
 
@@ -82,45 +84,47 @@ class DefaultScalingPolicyCopier implements ScalingPolicyCopier {
       task.updateStatus "AWS_DEPLOY", "Creating scaling policy (${policyRequest}) on ${targetRegion}/${targetAsgName} from ${sourceRegion}/${sourceAsgName}..."
 
       def result = targetAutoScaling.putScalingPolicy(policyRequest)
-      sourcePolicyArnToTargetPolicyArn[sourceAsgScalingPolicy.policyARN] = result.policyARN
+      sourcePolicyArnToTargetPolicyArn[sourceAsgScalingPolicy.policyARN()] = result.policyARN()
 
       task.updateStatus "AWS_DEPLOY", "Created scaling policy (${policyRequest}) on ${targetRegion}/${targetAsgName} from ${sourceRegion}/${sourceAsgName}..."
     }
-    Collection<String> allSourceAlarmNames = sourceAsgScalingPolicies*.alarms*.alarmName.flatten().unique()
+    Collection<String> allSourceAlarmNames = sourceAsgScalingPolicies.collectMany { it.alarms() }*.alarmName().unique()
     if (allSourceAlarmNames) {
       copyAlarmsForAsg(targetAsgName, allSourceAlarmNames, sourcePolicyArnToTargetPolicyArn, sourceCredentials, targetCredentials, sourceRegion, targetRegion)
     }
   }
 
   protected PutScalingPolicyRequest buildNewPolicyRequest(String newPolicyName, ScalingPolicy sourceAsgScalingPolicy, String targetAsgName) {
-    if (sourceAsgScalingPolicy.targetTrackingConfiguration) {
-      if (sourceAsgScalingPolicy.targetTrackingConfiguration.customizedMetricSpecification) {
+    TargetTrackingConfiguration targetTrackingConfiguration = sourceAsgScalingPolicy.targetTrackingConfiguration()
+    if (targetTrackingConfiguration) {
+      if (targetTrackingConfiguration.customizedMetricSpecification()) {
         // update target tracking policies to point to the new ASG
         // this will cause grief if a target tracking policy is configured against a *different* ASG, but we are doing
         // the same thing with simple and step policies and have not had any issues thus far
-        sourceAsgScalingPolicy.targetTrackingConfiguration.customizedMetricSpecification.dimensions
-          .findAll { d ->
-            d.name == DIMENSION_NAME_FOR_ASG
-          }
-          .each { d ->
-            d.value = targetAsgName
-          }
+        List<MetricDimension> newDimensions = targetTrackingConfiguration.customizedMetricSpecification().dimensions().collect { d ->
+          d.name() == DIMENSION_NAME_FOR_ASG ? d.toBuilder().value(targetAsgName).build() : d
+        }
+        targetTrackingConfiguration = targetTrackingConfiguration.toBuilder()
+          .customizedMetricSpecification(targetTrackingConfiguration.customizedMetricSpecification().toBuilder()
+            .dimensions(newDimensions)
+            .build())
+          .build()
       }
     }
-    return new PutScalingPolicyRequest(
-      autoScalingGroupName: targetAsgName,
-      policyName: newPolicyName,
-      policyType: sourceAsgScalingPolicy.policyType,
-      scalingAdjustment: sourceAsgScalingPolicy.scalingAdjustment,
-      adjustmentType: sourceAsgScalingPolicy.adjustmentType,
-      cooldown: sourceAsgScalingPolicy.cooldown,
-      minAdjustmentStep: sourceAsgScalingPolicy.minAdjustmentStep,
-      minAdjustmentMagnitude: sourceAsgScalingPolicy.minAdjustmentMagnitude,
-      metricAggregationType: sourceAsgScalingPolicy.metricAggregationType,
-      stepAdjustments: sourceAsgScalingPolicy.stepAdjustments,
-      estimatedInstanceWarmup: sourceAsgScalingPolicy.estimatedInstanceWarmup,
-      targetTrackingConfiguration: sourceAsgScalingPolicy.targetTrackingConfiguration
-    )
+    return PutScalingPolicyRequest.builder()
+      .autoScalingGroupName(targetAsgName)
+      .policyName(newPolicyName)
+      .policyType(sourceAsgScalingPolicy.policyType())
+      .scalingAdjustment(sourceAsgScalingPolicy.scalingAdjustment())
+      .adjustmentType(sourceAsgScalingPolicy.adjustmentType())
+      .cooldown(sourceAsgScalingPolicy.cooldown())
+      .minAdjustmentStep(sourceAsgScalingPolicy.minAdjustmentStep())
+      .minAdjustmentMagnitude(sourceAsgScalingPolicy.minAdjustmentMagnitude())
+      .metricAggregationType(sourceAsgScalingPolicy.metricAggregationType())
+      .stepAdjustments(sourceAsgScalingPolicy.stepAdjustments())
+      .estimatedInstanceWarmup(sourceAsgScalingPolicy.estimatedInstanceWarmup())
+      .targetTrackingConfiguration((TargetTrackingConfiguration) targetTrackingConfiguration)
+      .build()
   }
 
   Collection<String> replacePolicyArnActions(String sourceRegion,
@@ -151,74 +155,94 @@ class DefaultScalingPolicyCopier implements ScalingPolicyCopier {
                                 NetflixAmazonCredentials targetCredentials,
                                 String sourceRegion,
                                 String targetRegion) {
-    AmazonCloudWatch sourceCloudWatch = amazonClientProvider.getCloudWatch(sourceCredentials, sourceRegion, true)
-    AmazonCloudWatch targetCloudWatch = amazonClientProvider.getCloudWatch(targetCredentials, targetRegion, true)
-    List<MetricAlarm> sourceAlarms = new AlarmRetriever(sourceCloudWatch).retrieve(new DescribeAlarmsRequest(alarmNames: sourceAlarmNames))
+    CloudWatchClient sourceCloudWatch = amazonClientProvider.getAmazonCloudWatchV2(sourceCredentials, sourceRegion)
+    CloudWatchClient targetCloudWatch = amazonClientProvider.getAmazonCloudWatchV2(targetCredentials, targetRegion)
+    List<MetricAlarm> sourceAlarms = new AlarmRetriever(sourceCloudWatch).retrieve(DescribeAlarmsRequest.builder().alarmNames(sourceAlarmNames).build())
 
     log.info("Copying scaling policy alarms for $newAutoScalingGroupName: $sourceAlarms")
 
     sourceAlarms.findAll { shouldCopySourceAlarm(it) }.each { alarm ->
-      List<Dimension> newDimensions = Lists.newArrayList(alarm.dimensions)
-      Dimension asgDimension = newDimensions.find { it.name == DIMENSION_NAME_FOR_ASG }
+      List<Dimension> newDimensions = Lists.newArrayList(alarm.dimensions())
+      Dimension asgDimension = newDimensions.find { it.name() == DIMENSION_NAME_FOR_ASG }
       if (asgDimension) {
         newDimensions.remove(asgDimension)
-        newDimensions.add(new Dimension(name: DIMENSION_NAME_FOR_ASG, value: newAutoScalingGroupName))
+        newDimensions.add(Dimension.builder().name(DIMENSION_NAME_FOR_ASG).value(newAutoScalingGroupName).build())
       }
       String newAlarmName = [newAutoScalingGroupName, 'alarm', idGenerator.nextId()].join('-')
-      def request = new PutMetricAlarmRequest(
-        alarmName: newAlarmName,
-        alarmDescription: alarm.alarmDescription,
-        actionsEnabled: alarm.actionsEnabled,
-        oKActions: replacePolicyArnActions(sourceRegion, targetRegion, sourceCredentials, targetCredentials, sourcePolicyArnToTargetPolicyArn, alarm.oKActions),
-        alarmActions: replacePolicyArnActions(sourceRegion, targetRegion, sourceCredentials, targetCredentials, sourcePolicyArnToTargetPolicyArn, alarm.alarmActions),
-        insufficientDataActions: replacePolicyArnActions(sourceRegion, targetRegion, sourceCredentials, targetCredentials, sourcePolicyArnToTargetPolicyArn, alarm.insufficientDataActions),
-        metricName: alarm.metricName,
-        namespace: alarm.namespace,
-        statistic: alarm.statistic,
-        extendedStatistic: alarm.extendedStatistic,
-        dimensions: newDimensions,
-        period: alarm.period,
-        unit: alarm.unit,
-        evaluationPeriods: alarm.evaluationPeriods,
-        threshold: alarm.threshold,
-        comparisonOperator: alarm.comparisonOperator
-      )
+      def request = PutMetricAlarmRequest.builder()
+        .alarmName(newAlarmName)
+        .alarmDescription(alarm.alarmDescription())
+        .actionsEnabled(alarm.actionsEnabled())
+        .okActions(replacePolicyArnActions(sourceRegion, targetRegion, sourceCredentials, targetCredentials, sourcePolicyArnToTargetPolicyArn, alarm.okActions()))
+        .alarmActions(replacePolicyArnActions(sourceRegion, targetRegion, sourceCredentials, targetCredentials, sourcePolicyArnToTargetPolicyArn, alarm.alarmActions()))
+        .insufficientDataActions(replacePolicyArnActions(sourceRegion, targetRegion, sourceCredentials, targetCredentials, sourcePolicyArnToTargetPolicyArn, alarm.insufficientDataActions()))
+        .metricName(alarm.metricName())
+        .namespace(alarm.namespace())
+        .statistic(alarm.statisticAsString())
+        .extendedStatistic(alarm.extendedStatistic())
+        .dimensions(newDimensions)
+        .period(alarm.period())
+        .unit(alarm.unitAsString())
+        .evaluationPeriods(alarm.evaluationPeriods())
+        .threshold(alarm.threshold())
+        .comparisonOperator(alarm.comparisonOperatorAsString())
+        .build()
       targetCloudWatch.putMetricAlarm(request)
     }
   }
 
   protected boolean shouldCopySourceAlarm(MetricAlarm metricAlarm) {
     // AWS auto-creates TargetTracking alarms, so we don't want to copy them (otherwise, we'll have duplicates)
-    return !metricAlarm.alarmName.startsWith("TargetTracking-")
+    return !metricAlarm.alarmName().startsWith("TargetTracking-")
   }
 
   @Canonical
-  static class ScalingPolicyRetriever extends AwsResultsRetriever<ScalingPolicy, DescribePoliciesRequest, DescribePoliciesResult> {
-    final AmazonAutoScaling autoScaling
+  static class ScalingPolicyRetriever extends AwsResultsRetriever<ScalingPolicy, DescribePoliciesRequest, DescribePoliciesResponse> {
+    final AutoScalingClient autoScaling
 
     @Override
-    protected DescribePoliciesResult makeRequest(DescribePoliciesRequest request) {
+    protected DescribePoliciesResponse makeRequest(DescribePoliciesRequest request) {
       autoScaling.describePolicies(request)
     }
 
     @Override
-    protected List<ScalingPolicy> accessResult(DescribePoliciesResult result) {
-      result.scalingPolicies
+    protected List<ScalingPolicy> accessResult(DescribePoliciesResponse result) {
+      result.scalingPolicies()
+    }
+
+    @Override
+    protected DescribePoliciesRequest setNextToken(DescribePoliciesRequest request, String nextToken) {
+      request.toBuilder().nextToken(nextToken).build()
+    }
+
+    @Override
+    protected String getNextToken(DescribePoliciesResponse result) {
+      result.nextToken()
     }
   }
 
   @Canonical
-  static class AlarmRetriever extends AwsResultsRetriever<MetricAlarm, DescribeAlarmsRequest, DescribeAlarmsResult> {
-    final AmazonCloudWatch cloudWatch
+  static class AlarmRetriever extends AwsResultsRetriever<MetricAlarm, DescribeAlarmsRequest, DescribeAlarmsResponse> {
+    final CloudWatchClient cloudWatch
 
     @Override
-    protected DescribeAlarmsResult makeRequest(DescribeAlarmsRequest request) {
+    protected DescribeAlarmsResponse makeRequest(DescribeAlarmsRequest request) {
       cloudWatch.describeAlarms(request)
     }
 
     @Override
-    protected List<MetricAlarm> accessResult(DescribeAlarmsResult result) {
-      result.metricAlarms
+    protected List<MetricAlarm> accessResult(DescribeAlarmsResponse result) {
+      result.metricAlarms()
+    }
+
+    @Override
+    protected DescribeAlarmsRequest setNextToken(DescribeAlarmsRequest request, String nextToken) {
+      request.toBuilder().nextToken(nextToken).build()
+    }
+
+    @Override
+    protected String getNextToken(DescribeAlarmsResponse result) {
+      result.nextToken()
     }
   }
 
@@ -233,16 +257,16 @@ class DefaultScalingPolicyCopier implements ScalingPolicyCopier {
     }
 
     String generateScalingPolicyName(NetflixAmazonCredentials sourceCredentials, String sourceRegion, String sourceAsgName, String targetAsgName, ScalingPolicy policy) {
-      policy.policyName.replaceAll(sourceAsgName, targetAsgName)
-      String fallback = policy.policyName.contains(sourceAsgName) ?
-        policy.policyName.replaceAll(sourceAsgName, targetAsgName) :
-        [policy.policyName, 'no-alarm', idGenerator.nextId()].join('-')
+      policy.policyName().replaceAll(sourceAsgName, targetAsgName)
+      String fallback = policy.policyName().contains(sourceAsgName) ?
+        policy.policyName().replaceAll(sourceAsgName, targetAsgName) :
+        [policy.policyName(), 'no-alarm', idGenerator.nextId()].join('-')
 
-      if (policy.alarms.isEmpty()) {
+      if (policy.alarms().isEmpty()) {
         return fallback
       }
-      AmazonCloudWatch sourceCloudWatch = amazonClientProvider.getCloudWatch(sourceCredentials, sourceRegion, true)
-      List<MetricAlarm> sourceAlarms = new AlarmRetriever(sourceCloudWatch).retrieve(new DescribeAlarmsRequest(alarmNames: [policy.alarms[0].alarmName]))
+      CloudWatchClient sourceCloudWatch = amazonClientProvider.getAmazonCloudWatchV2(sourceCredentials, sourceRegion)
+      List<MetricAlarm> sourceAlarms = new AlarmRetriever(sourceCloudWatch).retrieve(DescribeAlarmsRequest.builder().alarmNames([policy.alarms()[0].alarmName()]).build())
       if (sourceAlarms.isEmpty()) {
         return fallback
       }
@@ -250,12 +274,12 @@ class DefaultScalingPolicyCopier implements ScalingPolicyCopier {
       // 'PolicyName' cannot contain a ':' character but it is a valid character in Cloudwatch Namespace and Metric names.
       return [
         targetAsgName,
-        alarm.namespace,
-        alarm.metricName,
-        alarm.comparisonOperator,
-        alarm.threshold,
-        alarm.evaluationPeriods,
-        alarm.period,
+        alarm.namespace(),
+        alarm.metricName(),
+        alarm.comparisonOperatorAsString(),
+        alarm.threshold(),
+        alarm.evaluationPeriods(),
+        alarm.period(),
         new Date().getTime()
       ].join('-').replace(':', '-')
     }

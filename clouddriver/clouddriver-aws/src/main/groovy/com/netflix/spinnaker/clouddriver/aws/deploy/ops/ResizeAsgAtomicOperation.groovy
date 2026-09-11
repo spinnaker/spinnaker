@@ -17,9 +17,9 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
 
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
-import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
+import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsRequest
+import software.amazon.awssdk.services.autoscaling.model.UpdateAutoScalingGroupRequest
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.ResizeAsgDescription
 import com.netflix.spinnaker.clouddriver.aws.event.AfterResizeEvent
 import com.netflix.spinnaker.clouddriver.aws.event.AfterResizeEventHandler
@@ -72,30 +72,31 @@ class ResizeAsgAtomicOperation implements AtomicOperation<Void> {
       return
     }
 
-    def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, region, true)
+    def autoScaling = amazonClientProvider.getAutoScalingV2(description.credentials, region)
     def describeAutoScalingGroups = autoScaling.describeAutoScalingGroups(
-      new DescribeAutoScalingGroupsRequest().withAutoScalingGroupNames(asgName)
+      DescribeAutoScalingGroupsRequest.builder().autoScalingGroupNames(asgName).build()
     )
-    if (describeAutoScalingGroups.autoScalingGroups.isEmpty() || describeAutoScalingGroups.autoScalingGroups.get(0).status != null) {
+    if (describeAutoScalingGroups.autoScalingGroups().isEmpty() || describeAutoScalingGroups.autoScalingGroups().get(0).status() != null) {
       task.updateStatus PHASE, "Skipping resize of ${asgName} in ${region}, server group does not exist"
       return
     }
 
-    validateConstraints(constraints, describeAutoScalingGroups.getAutoScalingGroups().get(0))
+    validateConstraints(constraints, describeAutoScalingGroups.autoScalingGroups().get(0))
 
     // min, max and desired may be null
-    def request = new UpdateAutoScalingGroupRequest().withAutoScalingGroupName(asgName)
-        .withMinSize(capacity.min)
-        .withMaxSize(capacity.max)
-        .withDesiredCapacity(capacity.desired)
+    def request = UpdateAutoScalingGroupRequest.builder().autoScalingGroupName(asgName)
+        .minSize(capacity.min)
+        .maxSize(capacity.max)
+        .desiredCapacity(capacity.desired)
+        .build()
 
     autoScaling.updateAutoScalingGroup request
 
     AfterResizeEvent event = new AfterResizeEvent(
       task,
-      amazonClientProvider.getAmazonEC2(description.credentials, region, true),
+      amazonClientProvider.getAmazonEC2V2(description.credentials, region),
       autoScaling,
-      describeAutoScalingGroups.getAutoScalingGroups().get(0) as AutoScalingGroup, capacity
+      describeAutoScalingGroups.autoScalingGroups().get(0) as AutoScalingGroup, capacity
     )
 
     afterResizeEventHandlers.each {

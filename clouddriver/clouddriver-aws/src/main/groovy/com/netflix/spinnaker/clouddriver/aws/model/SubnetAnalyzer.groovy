@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.model
 
-import com.amazonaws.services.ec2.model.Subnet
+import software.amazon.awssdk.services.ec2.model.Subnet
 import com.google.common.base.Function
 import com.google.common.base.Preconditions
 import com.google.common.collect.ImmutableSet

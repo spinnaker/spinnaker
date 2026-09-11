@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.userdata
 
-import com.amazonaws.services.ec2.model.UserData
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.aws.userdata.UserDataInput
 import com.netflix.spinnaker.clouddriver.aws.userdata.UserDataOverride

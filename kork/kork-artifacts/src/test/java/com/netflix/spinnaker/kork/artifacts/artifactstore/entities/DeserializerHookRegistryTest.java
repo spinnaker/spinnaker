@@ -17,7 +17,6 @@ package com.netflix.spinnaker.kork.artifacts.artifactstore.entities;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.amazonaws.util.Base64;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,6 +25,7 @@ import com.netflix.spinnaker.kork.artifacts.ArtifactTypes;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactReferenceURI;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -169,7 +169,7 @@ class DeserializerHookRegistryTest {
         .thenReturn(
             Artifact.builder()
                 .type(ArtifactTypes.EMBEDDED_MAP_BASE64.getMimeType())
-                .reference(Base64.encodeAsString("{\"hello\": \"world!\"}".getBytes()))
+                .reference(Base64.getEncoder().encodeToString("{\"hello\": \"world!\"}".getBytes()))
                 .build());
 
     ObjectMapper mapper = new ObjectMapper();

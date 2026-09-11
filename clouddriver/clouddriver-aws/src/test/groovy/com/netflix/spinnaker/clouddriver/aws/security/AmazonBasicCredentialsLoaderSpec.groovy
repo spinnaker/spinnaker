@@ -17,8 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.security
 
-import com.amazonaws.SDKGlobalConfiguration
-import com.amazonaws.auth.AWSCredentialsProvider
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties
 import com.netflix.spinnaker.clouddriver.aws.security.config.AmazonCredentialsParser
@@ -30,6 +28,8 @@ import com.netflix.spinnaker.credentials.definition.CredentialsDefinitionSource
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider
+import software.amazon.awssdk.core.SdkSystemSetting
 
 import java.util.stream.Collectors
 
@@ -69,8 +69,8 @@ class AmazonBasicCredentialsLoaderSpec extends Specification{
     }
 
     credentialsConfig.getDefaultRegions().size() == 4
-    System.getProperty(SDKGlobalConfiguration.ACCESS_KEY_SYSTEM_PROPERTY) == "accessKey"
-    System.getProperty(SDKGlobalConfiguration.SECRET_KEY_SYSTEM_PROPERTY) == "secret"
+    System.getProperty(SdkSystemSetting.AWS_ACCESS_KEY_ID.property()) == "accessKey"
+    System.getProperty(SdkSystemSetting.AWS_SECRET_ACCESS_KEY.property()) == "secret"
   }
 
   @Unroll("should load and parse a large number of accounts having different regions when default regions: #defaultRegionsInConfig are specified in the config and with multi-threading: #multiThreadingEnabled")
@@ -110,7 +110,7 @@ class AmazonBasicCredentialsLoaderSpec extends Specification{
     }
     AccountsConfiguration accountsConfig = new AccountsConfiguration(accounts: accounts)
 
-    AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
+    AwsCredentialsProvider provider = Mock(AwsCredentialsProvider)
     AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
 
     CredentialsConfig credentialsConfig = new CredentialsConfig(){{

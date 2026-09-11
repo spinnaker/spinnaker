@@ -16,11 +16,6 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops;
 
-import com.amazonaws.services.cloudformation.AmazonCloudFormation;
-import com.amazonaws.services.cloudformation.model.AmazonCloudFormationException;
-import com.amazonaws.services.cloudformation.model.DescribeStacksRequest;
-import com.amazonaws.services.cloudformation.model.ExecuteChangeSetRequest;
-import com.amazonaws.services.cloudformation.model.ExecuteChangeSetResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.ExecuteCloudFormationChangeSetDescription;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
@@ -33,6 +28,10 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import software.amazon.awssdk.services.cloudformation.CloudFormationClient;
+import software.amazon.awssdk.services.cloudformation.model.CloudFormationException;
+import software.amazon.awssdk.services.cloudformation.model.DescribeStacksRequest;
+import software.amazon.awssdk.services.cloudformation.model.ExecuteChangeSetRequest;
 
 @Slf4j
 public class ExecuteCloudFormationChangeSetAtomicOperation implements AtomicOperation<Map> {
@@ -56,38 +55,36 @@ public class ExecuteCloudFormationChangeSetAtomicOperation implements AtomicOper
   public Map operate(List priorOutputs) {
     Task task = TaskRepository.threadLocalTask.get();
     task.updateStatus(BASE_PHASE, "Configuring CloudFormation Stack");
-    AmazonCloudFormation amazonCloudFormation =
-        amazonClientProvider.getAmazonCloudFormation(
+    CloudFormationClient cloudFormationClient =
+        amazonClientProvider.getAmazonCloudFormationV2(
             description.getCredentials(), description.getRegion());
 
-    String stackName = description.getStackName();
-    String changeSetName = description.getChangeSetName();
-
     ExecuteChangeSetRequest executeChangeSetRequest =
-        new ExecuteChangeSetRequest()
-            .withStackName(description.getStackName())
-            .withChangeSetName(description.getChangeSetName());
+        ExecuteChangeSetRequest.builder()
+            .stackName(description.getStackName())
+            .changeSetName(description.getChangeSetName())
+            .build();
     task.updateStatus(BASE_PHASE, "Executing CloudFormation ChangeSet");
     try {
-      ExecuteChangeSetResult executeChangeSetResult =
-          amazonCloudFormation.executeChangeSet(executeChangeSetRequest);
-      return Collections.singletonMap("stackId", getStackId(amazonCloudFormation));
-    } catch (AmazonCloudFormationException e) {
+      cloudFormationClient.executeChangeSet(executeChangeSetRequest);
+      return Collections.singletonMap("stackId", getStackId(cloudFormationClient));
+    } catch (CloudFormationException e) {
       log.error("Error executing change set", e);
       throw e;
     }
   }
 
-  private String getStackId(AmazonCloudFormation amazonCloudFormation) {
-    return amazonCloudFormation
-        .describeStacks(new DescribeStacksRequest().withStackName(description.getStackName()))
-        .getStacks()
+  private String getStackId(CloudFormationClient cloudFormationClient) {
+    return cloudFormationClient
+        .describeStacks(
+            DescribeStacksRequest.builder().stackName(description.getStackName()).build())
+        .stacks()
         .stream()
         .findFirst()
         .orElseThrow(
             () ->
                 new IllegalArgumentException(
                     "No CloudFormation Stack found with stack name " + description.getStackName()))
-        .getStackId();
+        .stackId();
   }
 }

@@ -15,12 +15,12 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.services
 
-import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.CreateSecurityGroupRequest
-import com.amazonaws.services.ec2.model.CreateSecurityGroupResult
-import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest
-import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult
-import com.amazonaws.services.ec2.model.Filter
+import software.amazon.awssdk.services.ec2.Ec2Client
+import software.amazon.awssdk.services.ec2.model.CreateSecurityGroupRequest
+import software.amazon.awssdk.services.ec2.model.CreateSecurityGroupResponse
+import software.amazon.awssdk.services.ec2.model.DescribeSecurityGroupsRequest
+import software.amazon.awssdk.services.ec2.model.DescribeSecurityGroupsResponse
+import software.amazon.awssdk.services.ec2.model.Filter
 import com.netflix.spinnaker.clouddriver.aws.model.SecurityGroupNotFoundException
 import com.netflix.spinnaker.clouddriver.aws.model.SubnetAnalyzer
 
@@ -29,10 +29,10 @@ import java.util.regex.Pattern
 class SecurityGroupService {
   private static final Pattern SG_PATTERN = Pattern.compile(/^sg-[0-9a-f]+$/)
 
-  private final AmazonEC2 amazonEC2
+  private final Ec2Client amazonEC2
   private final SubnetAnalyzer subnetAnalyzer
 
-  SecurityGroupService(AmazonEC2 amazonEC2, SubnetAnalyzer subnetAnalyzer) {
+  SecurityGroupService(Ec2Client amazonEC2, SubnetAnalyzer subnetAnalyzer) {
     this.amazonEC2 = amazonEC2
     this.subnetAnalyzer = subnetAnalyzer
   }
@@ -59,13 +59,14 @@ class SecurityGroupService {
    */
   Map<String, String> getSecurityGroupIds(Collection<String> securityGroupNames, String vpcId = null, boolean failIfNotAllResolved = true) {
     if (!securityGroupNames) { return [:] }
-    def request = new DescribeSecurityGroupsRequest()
-      .withFilters(new Filter("group-name", securityGroupNames.toList()))
-    DescribeSecurityGroupsResult result = amazonEC2.describeSecurityGroups(request)
+    def request = DescribeSecurityGroupsRequest.builder()
+      .filters(Filter.builder().name("group-name").values(securityGroupNames.toList()).build())
+      .build()
+    DescribeSecurityGroupsResponse result = amazonEC2.describeSecurityGroups(request)
     Map<String, String> securityGroups = result
-      .securityGroups
-      .findAll { it.vpcId == vpcId }
-      .collectEntries { [(it.groupName): it.groupId] }
+      .securityGroups()
+      .findAll { it.vpcId() == vpcId }
+      .collectEntries { [(it.groupName()): it.groupId()] }
     if (failIfNotAllResolved && !securityGroups.keySet().containsAll(securityGroupNames)) {
       def missingGroups = securityGroupNames - securityGroups.keySet()
       def ex = new SecurityGroupNotFoundException("Missing security groups: ${missingGroups.join(',')}")
@@ -107,12 +108,12 @@ class SecurityGroupService {
    * @return id of the security group created
    */
   String createSecurityGroupWithVpcId(String applicationName, String vpcId) {
-    CreateSecurityGroupRequest request = new CreateSecurityGroupRequest(applicationName, "Security Group for $applicationName")
+    def requestBuilder = CreateSecurityGroupRequest.builder().groupName(applicationName).description("Security Group for $applicationName")
     if (vpcId) {
-      request.withVpcId(vpcId)
+      requestBuilder.vpcId(vpcId)
     }
-    CreateSecurityGroupResult result = amazonEC2.createSecurityGroup(request)
-    result.groupId
+    CreateSecurityGroupResponse result = amazonEC2.createSecurityGroup(requestBuilder.build())
+    result.groupId()
   }
 
   Map<String, String> getSecurityGroupNamesFromIds(Collection<String> securityGroupIds) {
@@ -120,13 +121,13 @@ class SecurityGroupService {
       return [:]
     }
     def groupIds = new HashSet<>(securityGroupIds)
-    def groups = amazonEC2.describeSecurityGroups(new DescribeSecurityGroupsRequest().withGroupIds(groupIds)).securityGroups
+    def groups = amazonEC2.describeSecurityGroups(DescribeSecurityGroupsRequest.builder().groupIds(groupIds).build()).securityGroups()
     if (groups.size() != groupIds.size()) {
-      def missing = groupIds.findAll { id -> !groups.find { it.groupId == id }}
+      def missing = groupIds.findAll { id -> !groups.find { it.groupId() == id }}
       throw new SecurityGroupNotFoundException("Failed to find groups ${missing}")
     }
     return groups.collectEntries {
-      [(it.groupName): it.groupId]
+      [(it.groupName()): it.groupId()]
     } ?: [:]
   }
 

@@ -16,20 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.lifecycle;
 
-import com.amazonaws.auth.policy.Condition;
-import com.amazonaws.auth.policy.Policy;
-import com.amazonaws.auth.policy.Principal;
-import com.amazonaws.auth.policy.Resource;
-import com.amazonaws.auth.policy.Statement;
-import com.amazonaws.auth.policy.actions.SNSActions;
-import com.amazonaws.auth.policy.actions.SQSActions;
-import com.amazonaws.services.sns.AmazonSNS;
-import com.amazonaws.services.sns.model.SetTopicAttributesRequest;
-import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.model.Message;
-import com.amazonaws.services.sqs.model.ReceiptHandleIsInvalidException;
-import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
-import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.agent.RunnableAgent;
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider;
@@ -41,14 +27,37 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.tags.EntityTagger;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.policybuilder.iam.IamAction;
+import software.amazon.awssdk.policybuilder.iam.IamCondition;
+import software.amazon.awssdk.policybuilder.iam.IamEffect;
+import software.amazon.awssdk.policybuilder.iam.IamPolicy;
+import software.amazon.awssdk.policybuilder.iam.IamPrincipal;
+import software.amazon.awssdk.policybuilder.iam.IamPrincipalType;
+import software.amazon.awssdk.policybuilder.iam.IamResource;
+import software.amazon.awssdk.policybuilder.iam.IamStatement;
+import software.amazon.awssdk.services.sns.SnsClient;
+import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
+import software.amazon.awssdk.services.sns.model.SetTopicAttributesRequest;
+import software.amazon.awssdk.services.sns.model.SubscribeRequest;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
+import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
+import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
+import software.amazon.awssdk.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
+import software.amazon.awssdk.services.sqs.model.QueueDoesNotExistException;
+import software.amazon.awssdk.services.sqs.model.ReceiptHandleIsInvalidException;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
+import software.amazon.awssdk.services.sqs.model.SetQueueAttributesRequest;
 
 /**
  * An Agent that subscribes to a particular SQS queue and tags any server groups that had launch
@@ -121,28 +130,30 @@ class LaunchFailureNotificationAgent implements RunnableAgent, CustomScheduledAg
             .map(AccountCredentials::getAccountId)
             .collect(Collectors.toList());
 
-    AmazonSQS amazonSQS = amazonClientProvider.getAmazonSQS(queueARN.account, queueARN.region);
-    this.queueId = ensureQueueExists(amazonSQS, queueARN, topicARN);
+    SqsClient sqsClient = amazonClientProvider.getAmazonSqsV2(queueARN.account, queueARN.region);
+    this.queueId = ensureQueueExists(sqsClient, queueARN, topicARN);
 
-    AmazonSNS amazonSNS = amazonClientProvider.getAmazonSNS(topicARN.account, topicARN.region);
-    this.topicId = ensureTopicExists(amazonSNS, topicARN, allAccountIds, queueARN);
+    SnsClient snsClient = amazonClientProvider.getAmazonSnsV2(topicARN.account, topicARN.region);
+    this.topicId = ensureTopicExists(snsClient, topicARN, allAccountIds, queueARN);
 
     AtomicInteger messagesProcessed = new AtomicInteger(0);
     while (messagesProcessed.get() < properties.getMaxMessagesPerCycle()) {
-      ReceiveMessageResult receiveMessageResult =
-          amazonSQS.receiveMessage(
-              new ReceiveMessageRequest(queueId)
-                  .withMaxNumberOfMessages(AWS_MAX_NUMBER_OF_MESSAGES)
-                  .withVisibilityTimeout(properties.getVisibilityTimeout())
-                  .withWaitTimeSeconds(properties.getWaitTimeSeconds()));
+      ReceiveMessageResponse receiveMessageResponse =
+          sqsClient.receiveMessage(
+              ReceiveMessageRequest.builder()
+                  .queueUrl(queueId)
+                  .maxNumberOfMessages(AWS_MAX_NUMBER_OF_MESSAGES)
+                  .visibilityTimeout(properties.getVisibilityTimeout())
+                  .waitTimeSeconds(properties.getWaitTimeSeconds())
+                  .build());
 
-      receiveMessageResult
-          .getMessages()
+      receiveMessageResponse
+          .messages()
           .forEach(
               message -> {
                 try {
                   NotificationMessageWrapper notificationMessageWrapper =
-                      objectMapper.readValue(message.getBody(), NotificationMessageWrapper.class);
+                      objectMapper.readValue(message.body(), NotificationMessageWrapper.class);
 
                   NotificationMessage notificationMessage =
                       objectMapper.readValue(
@@ -152,15 +163,14 @@ class LaunchFailureNotificationAgent implements RunnableAgent, CustomScheduledAg
                     handleMessage(serverGroupTagger, notificationMessage);
                   }
                 } catch (IOException e) {
-                  log.error(
-                      "Unable to convert NotificationMessage (body: {})", message.getBody(), e);
+                  log.error("Unable to convert NotificationMessage (body: {})", message.body(), e);
                 }
 
-                deleteMessage(amazonSQS, queueId, message);
+                deleteMessage(sqsClient, queueId, message);
                 messagesProcessed.incrementAndGet();
               });
 
-      if (receiveMessageResult.getMessages().isEmpty()) {
+      if (receiveMessageResponse.messages().isEmpty()) {
         // no messages received, stop polling.
         break;
       }
@@ -202,17 +212,24 @@ class LaunchFailureNotificationAgent implements RunnableAgent, CustomScheduledAg
    * Ensure that the topic exists and has a policy granting all accounts permission to publish
    * messages to it
    */
-  private static String ensureTopicExists(
-      AmazonSNS amazonSNS, ARN topicARN, List<String> allAccountIds, ARN queueARN) {
-    topicARN.arn = amazonSNS.createTopic(topicARN.name).getTopicArn();
+  static String ensureTopicExists(
+      SnsClient snsClient, ARN topicARN, List<String> allAccountIds, ARN queueARN) {
+    topicARN.arn =
+        snsClient.createTopic(CreateTopicRequest.builder().name(topicARN.name).build()).topicArn();
 
-    amazonSNS.setTopicAttributes(
-        new SetTopicAttributesRequest()
-            .withTopicArn(topicARN.arn)
-            .withAttributeName("Policy")
-            .withAttributeValue(buildSNSPolicy(topicARN, allAccountIds).toJson()));
+    snsClient.setTopicAttributes(
+        SetTopicAttributesRequest.builder()
+            .topicArn(topicARN.arn)
+            .attributeName("Policy")
+            .attributeValue(buildSNSPolicy(topicARN, allAccountIds).toJson())
+            .build());
 
-    amazonSNS.subscribe(topicARN.arn, "sqs", queueARN.arn);
+    snsClient.subscribe(
+        SubscribeRequest.builder()
+            .topicArn(topicARN.arn)
+            .protocol("sqs")
+            .endpoint(queueARN.arn)
+            .build());
 
     return topicARN.arn;
   }
@@ -221,52 +238,74 @@ class LaunchFailureNotificationAgent implements RunnableAgent, CustomScheduledAg
    * Ensure that the queue exists and has a policy granting the source topic permission to send
    * messages to it
    */
-  private static String ensureQueueExists(AmazonSQS amazonSQS, ARN queueARN, ARN topicARN) {
+  static String ensureQueueExists(SqsClient sqsClient, ARN queueARN, ARN topicARN) {
     String queueUrl;
 
     try {
-      queueUrl = amazonSQS.getQueueUrl(queueARN.name).getQueueUrl();
-    } catch (Exception e) {
-      queueUrl = amazonSQS.createQueue(queueARN.name).getQueueUrl();
+      queueUrl =
+          sqsClient
+              .getQueueUrl(GetQueueUrlRequest.builder().queueName(queueARN.name).build())
+              .queueUrl();
+    } catch (QueueDoesNotExistException e) {
+      queueUrl =
+          sqsClient
+              .createQueue(CreateQueueRequest.builder().queueName(queueARN.name).build())
+              .queueUrl();
     }
 
-    amazonSQS.setQueueAttributes(
-        queueUrl, Collections.singletonMap("Policy", buildSQSPolicy(queueARN, topicARN).toJson()));
+    sqsClient.setQueueAttributes(
+        SetQueueAttributesRequest.builder()
+            .queueUrl(queueUrl)
+            .attributes(
+                Map.of(QueueAttributeName.POLICY, buildSQSPolicy(queueARN, topicARN).toJson()))
+            .build());
 
     return queueUrl;
   }
 
-  private static Policy buildSNSPolicy(ARN topicARN, List<String> allAccountIds) {
-    Statement statement = new Statement(Statement.Effect.Allow).withActions(SNSActions.Publish);
-    statement.setPrincipals(
-        allAccountIds.stream().map(Principal::new).collect(Collectors.toList()));
-    statement.setResources(Collections.singletonList(new Resource(topicARN.arn)));
+  static IamPolicy buildSNSPolicy(ARN topicARN, List<String> allAccountIds) {
+    List<IamPrincipal> principals =
+        allAccountIds.stream()
+            .map(id -> IamPrincipal.create(IamPrincipalType.AWS, id))
+            .collect(Collectors.toList());
+    IamStatement statement =
+        IamStatement.builder()
+            .effect(IamEffect.ALLOW)
+            .actions(List.of(IamAction.create("SNS:Publish")))
+            .principals(principals)
+            .resources(List.of(IamResource.create(topicARN.arn)))
+            .build();
 
-    return new Policy("allow-remote-account-send", Collections.singletonList(statement));
+    return IamPolicy.builder().id("allow-remote-account-send").addStatement(statement).build();
   }
 
-  private static Policy buildSQSPolicy(ARN queue, ARN topic) {
-    Statement statement = new Statement(Statement.Effect.Allow).withActions(SQSActions.SendMessage);
-    statement.setPrincipals(Principal.All);
-    statement.setResources(Collections.singletonList(new Resource(queue.arn)));
-    statement.setConditions(
-        Collections.singletonList(
-            new Condition()
-                .withType("ArnEquals")
-                .withConditionKey("aws:SourceArn")
-                .withValues(topic.arn)));
+  static IamPolicy buildSQSPolicy(ARN queue, ARN topic) {
+    IamCondition condition =
+        IamCondition.builder().operator("ArnEquals").key("aws:SourceArn").value(topic.arn).build();
+    IamStatement statement =
+        IamStatement.builder()
+            .effect(IamEffect.ALLOW)
+            .actions(List.of(IamAction.create("sqs:SendMessage")))
+            .principals(List.of(IamPrincipal.ALL))
+            .resources(List.of(IamResource.create(queue.arn)))
+            .conditions(List.of(condition))
+            .build();
 
-    return new Policy("allow-sns-topic-send", Collections.singletonList(statement));
+    return IamPolicy.builder().id("allow-sns-topic-send").addStatement(statement).build();
   }
 
-  private static void deleteMessage(AmazonSQS amazonSQS, String queueUrl, Message message) {
+  private static void deleteMessage(SqsClient sqsClient, String queueUrl, Message message) {
     try {
-      amazonSQS.deleteMessage(queueUrl, message.getReceiptHandle());
+      sqsClient.deleteMessage(
+          DeleteMessageRequest.builder()
+              .queueUrl(queueUrl)
+              .receiptHandle(message.receiptHandle())
+              .build());
     } catch (ReceiptHandleIsInvalidException e) {
       log.warn(
           "Error deleting lifecycle message, reason: {} (receiptHandle: {})",
           e.getMessage(),
-          message.getReceiptHandle());
+          message.receiptHandle());
     }
   }
 }

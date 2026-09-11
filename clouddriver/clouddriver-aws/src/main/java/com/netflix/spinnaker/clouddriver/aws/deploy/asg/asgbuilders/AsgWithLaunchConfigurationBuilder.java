@@ -17,14 +17,14 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.asg.asgbuilders;
 
-import com.amazonaws.services.autoscaling.AmazonAutoScaling;
-import com.amazonaws.services.autoscaling.model.CreateAutoScalingGroupRequest;
-import com.amazonaws.services.ec2.AmazonEC2;
 import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AsgLifecycleHookWorker;
 import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AutoScalingWorker.AsgConfiguration;
 import com.netflix.spinnaker.clouddriver.aws.deploy.asg.LaunchConfigurationBuilder;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import lombok.extern.slf4j.Slf4j;
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
+import software.amazon.awssdk.services.autoscaling.model.CreateAutoScalingGroupRequest;
+import software.amazon.awssdk.services.ec2.Ec2Client;
 
 /** A builder used to build an AWS Autoscaling group with launch configuration. */
 @Slf4j
@@ -33,8 +33,8 @@ public class AsgWithLaunchConfigurationBuilder extends AsgBuilder {
 
   public AsgWithLaunchConfigurationBuilder(
       LaunchConfigurationBuilder lcBuilder,
-      AmazonAutoScaling autoScaling,
-      AmazonEC2 ec2,
+      AutoScalingClient autoScaling,
+      Ec2Client ec2,
       AsgLifecycleHookWorker asgLifecycleHookWorker) {
     super(autoScaling, ec2, asgLifecycleHookWorker);
 
@@ -84,6 +84,6 @@ public class AsgWithLaunchConfigurationBuilder extends AsgBuilder {
         taskPhase, "Deploying ASG " + asgName + " with launch configuration " + launchConfigName);
     CreateAutoScalingGroupRequest request = buildPartialRequest(task, taskPhase, asgName, cfg);
 
-    return request.withLaunchConfigurationName(launchConfigName);
+    return request.toBuilder().launchConfigurationName(launchConfigName).build();
   }
 }

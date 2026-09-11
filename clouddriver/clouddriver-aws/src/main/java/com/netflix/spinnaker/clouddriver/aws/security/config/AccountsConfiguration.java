@@ -60,15 +60,11 @@ public class AccountsConfiguration {
     @Include private List<String> defaultSecurityGroups;
     private List<String> requiredGroupMembership = new ArrayList<>();
     @Include private Permissions.Builder permissions = new Permissions.Builder();
-    @Include private String edda;
-    @Include private Boolean eddaEnabled;
     @Include private Boolean lambdaEnabled;
     @Include private String discovery;
     @Include private Boolean discoveryEnabled;
     @Include private String front50;
     @Include private Boolean front50Enabled;
-    @Include private String bastionHost;
-    @Include private Boolean bastionEnabled;
     @Include private String assumeRole;
     @Include private String sessionName;
     @Include private Integer sessionDurationSeconds;
@@ -163,22 +159,6 @@ public class AccountsConfiguration {
       this.permissions = permissions;
     }
 
-    public String getEdda() {
-      return edda;
-    }
-
-    public void setEdda(String edda) {
-      this.edda = edda;
-    }
-
-    public Boolean getEddaEnabled() {
-      return eddaEnabled;
-    }
-
-    public void setEddaEnabled(Boolean eddaEnabled) {
-      this.eddaEnabled = eddaEnabled;
-    }
-
     public String getDiscovery() {
       return discovery;
     }
@@ -209,22 +189,6 @@ public class AccountsConfiguration {
 
     public void setFront50Enabled(Boolean front50Enabled) {
       this.front50Enabled = front50Enabled;
-    }
-
-    public String getBastionHost() {
-      return bastionHost;
-    }
-
-    public void setBastionHost(String bastionHost) {
-      this.bastionHost = bastionHost;
-    }
-
-    public Boolean getBastionEnabled() {
-      return bastionEnabled;
-    }
-
-    public void setBastionEnabled(Boolean bastionEnabled) {
-      this.bastionEnabled = bastionEnabled;
     }
 
     public String getAssumeRole() {

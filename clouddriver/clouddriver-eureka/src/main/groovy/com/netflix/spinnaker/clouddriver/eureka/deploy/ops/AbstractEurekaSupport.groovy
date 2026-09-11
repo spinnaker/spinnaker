@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.clouddriver.eureka.deploy.ops
 
-import com.amazonaws.AmazonServiceException
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.eureka.api.Eureka
 import com.netflix.spinnaker.clouddriver.helpers.EnableDisablePercentageCategorizer
@@ -233,14 +232,6 @@ abstract class AbstractEurekaSupport {
           retryCount++
         } else {
           throw e
-        }
-      } catch (AmazonServiceException ase) {
-        if (ase.statusCode == 503) {
-          AbstractEurekaSupport.log.debug("[$phaseName] - Failed calling AmazonService", ase)
-          retryCount++
-          sleep(getDiscoveryRetryMs())
-        } else {
-          throw ase
         }
       }
     }

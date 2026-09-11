@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.security;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
 import com.google.common.base.Strings;
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider;
 import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties;
@@ -41,6 +40,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Primary;
 import org.springframework.util.CollectionUtils;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 
 @Configuration
 @EnableConfigurationProperties(DefaultAccountConfigurationProperties.class)
@@ -74,7 +74,7 @@ public class AmazonCredentialsInitializer {
   @Bean
   @ConditionalOnMissingBean(name = "amazonCredentialsParser")
   CredentialsParser<Account, NetflixAmazonCredentials> amazonCredentialsParser(
-      AWSCredentialsProvider awsCredentialsProvider,
+      AwsCredentialsProvider awsCredentialsProvider,
       AmazonClientProvider amazonClientProvider,
       AWSAccountInfoLookup awsAccountInfoLookup,
       AWSAccountInfoLookupFactory awsAccountInfoLookupFactory,

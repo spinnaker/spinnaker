@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.amazonaws.services.cloudwatch.AmazonCloudWatch
-import com.amazonaws.services.cloudwatch.model.*
+import software.amazon.awssdk.services.cloudwatch.CloudWatchClient
+import software.amazon.awssdk.services.cloudwatch.model.DeleteAlarmsRequest
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteAlarmDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
@@ -43,9 +43,9 @@ class DeleteAlarmOperationUnitSpec extends Specification {
     credentials: credz
   )
 
-  def cloudWatch = Mock(AmazonCloudWatch)
+  def cloudWatch = Mock(CloudWatchClient)
   def amazonClientProvider = Stub(AmazonClientProvider) {
-    getCloudWatch(credz, "us-west-1", true) >> cloudWatch
+    getAmazonCloudWatchV2(credz, "us-west-1") >> cloudWatch
   }
 
   @Subject def op = new DeleteAlarmAtomicOperation(description)
@@ -60,9 +60,9 @@ class DeleteAlarmOperationUnitSpec extends Specification {
     op.operate([])
 
     then:
-    1 * cloudWatch.deleteAlarms(new DeleteAlarmsRequest(
-      alarmNames: ["alarm1", "alarm2"]
-    ))
+    1 * cloudWatch.deleteAlarms(DeleteAlarmsRequest.builder()
+      .alarmNames(["alarm1", "alarm2"])
+      .build())
   }
 
 }

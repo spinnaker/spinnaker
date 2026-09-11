@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.controllers;
 
-import com.amazonaws.services.ecs.model.Cluster;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.EcsCluster;
 import com.netflix.spinnaker.clouddriver.ecs.provider.view.EcsClusterProvider;
 import java.util.Collection;
@@ -24,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import software.amazon.awssdk.services.ecs.model.Cluster;
 
 @RestController
 public class EcsClusterController {

@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.controllers.servergroup;
 
-import com.amazonaws.services.ecs.model.ServiceEvent;
 import com.netflix.spinnaker.clouddriver.ecs.model.EcsServerGroupEventStatus;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.services.ecs.model.ServiceEvent;
 
 @Service
 public class ServerGroupEventStatusConverter {
@@ -30,7 +30,7 @@ public class ServerGroupEventStatusConverter {
 
   public EcsServerGroupEventStatus inferEventStatus(ServiceEvent event) {
 
-    String message = event.getMessage();
+    String message = event.message();
 
     if (message.contains(ERROR_TYPE_1) || message.contains(ERROR_TYPE_2)) {
       return EcsServerGroupEventStatus.Failure;

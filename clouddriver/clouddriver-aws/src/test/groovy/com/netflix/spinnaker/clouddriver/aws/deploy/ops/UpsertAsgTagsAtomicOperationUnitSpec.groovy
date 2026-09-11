@@ -15,11 +15,11 @@
  */
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
-import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.autoscaling.model.CreateOrUpdateTagsRequest
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
+import software.amazon.awssdk.services.autoscaling.model.CreateOrUpdateTagsRequest
+import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsRequest
+import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsResponse
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTask
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -34,9 +34,9 @@ class UpsertAsgTagsAtomicOperationUnitSpec extends Specification {
 
   void "operation invokes update to autoscaling group"() {
     setup:
-    def mockAutoScaling = Mock(AmazonAutoScaling)
+    def mockAutoScaling = Mock(AutoScalingClient)
     def mockAmazonClientProvider = Mock(AmazonClientProvider)
-    mockAmazonClientProvider.getAutoScaling(_, _, _) >> mockAutoScaling
+    mockAmazonClientProvider.getAutoScalingV2(_, _) >> mockAutoScaling
     def description = new UpsertAsgTagsDescription(
       asgs: [[
         serverGroupName: "myasg-stack-v000",
@@ -54,9 +54,8 @@ class UpsertAsgTagsAtomicOperationUnitSpec extends Specification {
     then:
     1 * mockAutoScaling.describeAutoScalingGroups(_) >> { DescribeAutoScalingGroupsRequest request ->
       assert request.autoScalingGroupNames == ["myasg-stack-v000"]
-      def mock = Mock(AutoScalingGroup)
-      mock.getAutoScalingGroupName() >> "myasg-stack-v000"
-      new DescribeAutoScalingGroupsResult().withAutoScalingGroups(mock)
+      def mock = AutoScalingGroup.builder().autoScalingGroupName("myasg-stack-v000").build()
+      DescribeAutoScalingGroupsResponse.builder().autoScalingGroups(mock).build()
     }
     1 * mockAutoScaling.createOrUpdateTags(_) >> { CreateOrUpdateTagsRequest request ->
       assert request.tags
@@ -68,9 +67,9 @@ class UpsertAsgTagsAtomicOperationUnitSpec extends Specification {
 
   void "should fail task if ASG does not exist"() {
     setup:
-    def mockAutoScaling = Mock(AmazonAutoScaling)
+    def mockAutoScaling = Mock(AutoScalingClient)
     def mockAmazonClientProvider = Mock(AmazonClientProvider)
-    mockAmazonClientProvider.getAutoScaling(_, _, _) >> mockAutoScaling
+    mockAmazonClientProvider.getAutoScalingV2(_, _) >> mockAutoScaling
     def description = new UpsertAsgTagsDescription(
       asgs: [[
         serverGroupName: "myasg-stack-v000",
@@ -87,7 +86,7 @@ class UpsertAsgTagsAtomicOperationUnitSpec extends Specification {
 
     then:
     1 * mockAutoScaling.describeAutoScalingGroups(_) >> { DescribeAutoScalingGroupsRequest request ->
-      new DescribeAutoScalingGroupsResult()
+      DescribeAutoScalingGroupsResponse.builder().build()
     }
     0 * mockAutoScaling.createOrUpdateTags(_)
     TaskRepository.threadLocalTask.get().status.isFailed()

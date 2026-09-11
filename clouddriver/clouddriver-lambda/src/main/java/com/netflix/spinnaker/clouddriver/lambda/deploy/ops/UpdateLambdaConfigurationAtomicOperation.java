@@ -16,15 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.lambda.deploy.ops;
 
-import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing;
-import com.amazonaws.services.elasticloadbalancingv2.model.DeregisterTargetsRequest;
-import com.amazonaws.services.elasticloadbalancingv2.model.DeregisterTargetsResult;
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsRequest;
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsResult;
-import com.amazonaws.services.elasticloadbalancingv2.model.RegisterTargetsRequest;
-import com.amazonaws.services.elasticloadbalancingv2.model.RegisterTargetsResult;
-import com.amazonaws.services.elasticloadbalancingv2.model.TargetDescription;
-import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroup;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.lambda.cache.model.LambdaFunction;
 import com.netflix.spinnaker.clouddriver.lambda.deploy.description.CreateLambdaFunctionConfigurationDescription;
@@ -34,6 +25,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.springframework.util.StringUtils;
+import software.amazon.awssdk.services.elasticloadbalancingv2.ElasticLoadBalancingV2Client;
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.DeregisterTargetsRequest;
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeTargetGroupsRequest;
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeTargetGroupsResponse;
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.RegisterTargetsRequest;
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetDescription;
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetGroup;
 import software.amazon.awssdk.services.lambda.LambdaClient;
 import software.amazon.awssdk.services.lambda.model.Environment;
 import software.amazon.awssdk.services.lambda.model.ListTagsRequest;
@@ -134,25 +132,24 @@ public class UpdateLambdaConfigurationAtomicOperation
     updateTaskStatus("Finished Updating of AWS Lambda Function Configuration Operation...");
     if (StringUtils.isEmpty(description.getTargetGroups())) {
       if (cache.getTargetGroups() != null && !cache.getTargetGroups().isEmpty()) {
-        AmazonElasticLoadBalancing loadBalancingV2 = getAmazonElasticLoadBalancingClient();
+        ElasticLoadBalancingV2Client loadBalancingV2 = getAmazonElasticLoadBalancingClient();
         for (String groupName : cache.getTargetGroups()) {
           deregisterTarget(
               loadBalancingV2,
               cache.getFunctionArn(),
-              retrieveTargetGroup(loadBalancingV2, groupName).getTargetGroupArn());
+              retrieveTargetGroup(loadBalancingV2, groupName).targetGroupArn());
           updateTaskStatus("De-registered the target group...");
         }
       }
 
     } else {
-      AmazonElasticLoadBalancing loadBalancingV2 = getAmazonElasticLoadBalancingClient();
+      ElasticLoadBalancingV2Client loadBalancingV2 = getAmazonElasticLoadBalancingClient();
       List<String> cacheTargetGroups = cache.getTargetGroups();
       if (cacheTargetGroups == null || cacheTargetGroups.isEmpty()) {
         registerTarget(
             loadBalancingV2,
             cache.getFunctionArn(),
-            retrieveTargetGroup(loadBalancingV2, description.getTargetGroups())
-                .getTargetGroupArn());
+            retrieveTargetGroup(loadBalancingV2, description.getTargetGroups()).targetGroupArn());
         updateTaskStatus("Registered the target group...");
       } else {
         for (String groupName : cacheTargetGroups) {
@@ -161,7 +158,7 @@ public class UpdateLambdaConfigurationAtomicOperation
                 loadBalancingV2,
                 cache.getFunctionArn(),
                 retrieveTargetGroup(loadBalancingV2, description.getTargetGroups())
-                    .getTargetGroupArn());
+                    .targetGroupArn());
             updateTaskStatus("Registered the target group...");
           }
         }
@@ -171,16 +168,16 @@ public class UpdateLambdaConfigurationAtomicOperation
   }
 
   private TargetGroup retrieveTargetGroup(
-      AmazonElasticLoadBalancing loadBalancingV2, String targetGroupName) {
+      ElasticLoadBalancingV2Client loadBalancingV2, String targetGroupName) {
 
     DescribeTargetGroupsRequest request =
-        new DescribeTargetGroupsRequest().withNames(targetGroupName);
-    DescribeTargetGroupsResult describeTargetGroupsResult =
+        DescribeTargetGroupsRequest.builder().names(targetGroupName).build();
+    DescribeTargetGroupsResponse describeTargetGroupsResult =
         loadBalancingV2.describeTargetGroups(request);
 
-    if (describeTargetGroupsResult.getTargetGroups().size() == 1) {
-      return describeTargetGroupsResult.getTargetGroups().get(0);
-    } else if (describeTargetGroupsResult.getTargetGroups().size() > 1) {
+    if (describeTargetGroupsResult.targetGroups().size() == 1) {
+      return describeTargetGroupsResult.targetGroups().get(0);
+    } else if (describeTargetGroupsResult.targetGroups().size() > 1) {
       throw new IllegalArgumentException(
           "There are multiple target groups with the name " + targetGroupName + ".");
     } else {
@@ -189,28 +186,28 @@ public class UpdateLambdaConfigurationAtomicOperation
     }
   }
 
-  private AmazonElasticLoadBalancing getAmazonElasticLoadBalancingClient() {
+  private ElasticLoadBalancingV2Client getAmazonElasticLoadBalancingClient() {
     NetflixAmazonCredentials credentialAccount = description.getCredentials();
 
     return getAmazonClientProvider()
-        .getAmazonElasticLoadBalancingV2(credentialAccount, getRegion(), false);
+        .getElasticLoadBalancingV2Client(credentialAccount, getRegion());
   }
 
   private void registerTarget(
-      AmazonElasticLoadBalancing loadBalancingV2, String functionArn, String targetGroupArn) {
-    RegisterTargetsResult result =
-        loadBalancingV2.registerTargets(
-            new RegisterTargetsRequest()
-                .withTargets(new TargetDescription().withId(functionArn))
-                .withTargetGroupArn(targetGroupArn));
+      ElasticLoadBalancingV2Client loadBalancingV2, String functionArn, String targetGroupArn) {
+    loadBalancingV2.registerTargets(
+        RegisterTargetsRequest.builder()
+            .targetGroupArn(targetGroupArn)
+            .targets(TargetDescription.builder().id(functionArn).build())
+            .build());
   }
 
   private void deregisterTarget(
-      AmazonElasticLoadBalancing loadBalancingV2, String functionArn, String targetGroupArn) {
-    DeregisterTargetsResult result =
-        loadBalancingV2.deregisterTargets(
-            new DeregisterTargetsRequest()
-                .withTargetGroupArn(targetGroupArn)
-                .withTargets(new TargetDescription().withId(functionArn)));
+      ElasticLoadBalancingV2Client loadBalancingV2, String functionArn, String targetGroupArn) {
+    loadBalancingV2.deregisterTargets(
+        DeregisterTargetsRequest.builder()
+            .targetGroupArn(targetGroupArn)
+            .targets(TargetDescription.builder().id(functionArn).build())
+            .build());
   }
 }

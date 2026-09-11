@@ -16,11 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer
 
-import com.amazonaws.AmazonServiceException
-import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing
-import com.amazonaws.services.elasticloadbalancing.model.*
-import com.amazonaws.services.shield.AWSShield
-import com.amazonaws.services.shield.model.CreateProtectionRequest
+import software.amazon.awssdk.awscore.exception.AwsErrorDetails
+import software.amazon.awssdk.awscore.exception.AwsServiceException
+import software.amazon.awssdk.services.elasticloadbalancing.ElasticLoadBalancingClient
+import software.amazon.awssdk.services.elasticloadbalancing.model.*
+import software.amazon.awssdk.services.shield.ShieldClient
+import software.amazon.awssdk.services.shield.model.CreateProtectionRequest
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerClassicDescription
 import com.netflix.spinnaker.clouddriver.aws.model.SubnetAnalyzer
@@ -57,11 +58,11 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
           healthCheck: "HTTP:7001/health",
           healthCheckPort: 7001
   )
-  AmazonElasticLoadBalancing loadBalancing = Mock(AmazonElasticLoadBalancing)
-  AWSShield awsShield = Mock(AWSShield)
+  ElasticLoadBalancingClient loadBalancing = Mock(ElasticLoadBalancingClient)
+  ShieldClient awsShield = Mock(ShieldClient)
   def mockAmazonClientProvider = Stub(AmazonClientProvider) {
-    getAmazonElasticLoadBalancing(_, _, true) >> loadBalancing
-    getAmazonShield(_, _) >> awsShield
+    getAmazonElasticLoadBalancingClassicV2(_, _) >> loadBalancing
+    getAmazonShieldV2(_, _) >> awsShield
   }
   def mockSecurityGroupService = Stub(SecurityGroupService) {
     getSecurityGroupIds(["foo"], null) >> ["foo": "sg-1234"]
@@ -107,53 +108,50 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
 
     and:
     1 * mockSubnetAnalyzer.getSubnetIdsForZones(['us-east-1a'], 'internal', SubnetTarget.ELB, 1) >> ["subnet-1"]
-    1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(loadBalancerNames: ["kato-main-frontend"])) >>
-            new DescribeLoadBalancersResult(loadBalancerDescriptions: existingLoadBalancers)
-    1 * loadBalancing.createLoadBalancer(new CreateLoadBalancerRequest(
-            loadBalancerName: "kato-main-frontend",
-            listeners: [
-                    new Listener(protocol: "HTTP", loadBalancerPort: 80, instanceProtocol: "HTTP", instancePort: 8501)
-            ],
-            availabilityZones: [],
-            subnets: ["subnet-1"],
-            securityGroups: ["sg-1234"],
-            scheme: "internal",
-            tags: []
-    )) >> new CreateLoadBalancerResult(dNSName: "dnsName1")
-    1 * loadBalancing.configureHealthCheck(new ConfigureHealthCheckRequest(
-            loadBalancerName: "kato-main-frontend",
-            healthCheck: new HealthCheck(
-                    target: "HTTP:7001/health",
-                    interval: 10,
-                    timeout: 5,
-                    unhealthyThreshold: 2,
-                    healthyThreshold: 10
+    1 * loadBalancing.describeLoadBalancers(DescribeLoadBalancersRequest.builder().loadBalancerNames(["kato-main-frontend"]).build()) >>
+            DescribeLoadBalancersResponse.builder().loadBalancerDescriptions(existingLoadBalancers).build()
+    1 * loadBalancing.createLoadBalancer(CreateLoadBalancerRequest.builder()
+            .loadBalancerName("kato-main-frontend")
+            .listeners(
+                    Listener.builder().protocol("HTTP").loadBalancerPort(80).instanceProtocol("HTTP").instancePort(8501).build()
             )
-    ))
-    1 * loadBalancing.modifyLoadBalancerAttributes(new ModifyLoadBalancerAttributesRequest(
-            loadBalancerName: "kato-main-frontend",
-            loadBalancerAttributes: new LoadBalancerAttributes(
-                    crossZoneLoadBalancing: new CrossZoneLoadBalancing(enabled: true),
-                    connectionDraining: new ConnectionDraining(enabled: false),
-                    additionalAttributes: [],
-                    connectionSettings:  new ConnectionSettings(idleTimeout: 60)
-            )
-    ))
+            .subnets(["subnet-1"])
+            .securityGroups(["sg-1234"])
+            .scheme("internal")
+            .build()) >> CreateLoadBalancerResponse.builder().dnsName("dnsName1").build()
+    1 * loadBalancing.configureHealthCheck(ConfigureHealthCheckRequest.builder()
+            .loadBalancerName("kato-main-frontend")
+            .healthCheck(HealthCheck.builder()
+                    .target("HTTP:7001/health")
+                    .interval(10)
+                    .timeout(5)
+                    .unhealthyThreshold(2)
+                    .healthyThreshold(10)
+                    .build())
+            .build())
+    1 * loadBalancing.modifyLoadBalancerAttributes(ModifyLoadBalancerAttributesRequest.builder()
+            .loadBalancerName("kato-main-frontend")
+            .loadBalancerAttributes(LoadBalancerAttributes.builder()
+                    .crossZoneLoadBalancing(CrossZoneLoadBalancing.builder().enabled(true).build())
+                    .connectionDraining(ConnectionDraining.builder().enabled(false).build())
+                    .connectionSettings(ConnectionSettings.builder().idleTimeout(60).build())
+                    .build())
+            .build())
     0 * _
   }
 
   void "should fail updating a load balancer with no security groups in VPC"() {
     given:
     def existingLoadBalancers = [
-      new LoadBalancerDescription(loadBalancerName: "kato-main-frontend", vPCId: "test-vpc").withListenerDescriptions(
-        new ListenerDescription().withListener(new Listener(protocol: "HTTP", loadBalancerPort: 80, instanceProtocol: "HTTP", instancePort: 8501))
-      )
+      LoadBalancerDescription.builder().loadBalancerName("kato-main-frontend").vpcId("test-vpc").listenerDescriptions(
+        ListenerDescription.builder().listener(Listener.builder().protocol("HTTP").loadBalancerPort(80).instanceProtocol("HTTP").instancePort(8501).build()).build()
+      ).build()
     ]
 
     and:
     loadBalancing.describeLoadBalancers(
-      new DescribeLoadBalancersRequest(loadBalancerNames: ["kato-main-frontend"])
-    ) >> new DescribeLoadBalancersResult(loadBalancerDescriptions: existingLoadBalancers)
+      DescribeLoadBalancersRequest.builder().loadBalancerNames(["kato-main-frontend"]).build()
+    ) >> DescribeLoadBalancersResponse.builder().loadBalancerDescriptions(existingLoadBalancers).build()
 
     and: 'auto-creating groups fails'
     description.securityGroups = []
@@ -167,15 +165,15 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
 
     when: "in EC2 classic"
     existingLoadBalancers = [
-      new LoadBalancerDescription(loadBalancerName: "kato-main-frontend").withListenerDescriptions(
-        new ListenerDescription().withListener(new Listener(protocol: "HTTP", loadBalancerPort: 80, instanceProtocol: "HTTP", instancePort: 8501))
-      )
+      LoadBalancerDescription.builder().loadBalancerName("kato-main-frontend").listenerDescriptions(
+        ListenerDescription.builder().listener(Listener.builder().protocol("HTTP").loadBalancerPort(80).instanceProtocol("HTTP").instancePort(8501).build()).build()
+      ).build()
     ]
 
     and:
     loadBalancing.describeLoadBalancers(
-      new DescribeLoadBalancersRequest(loadBalancerNames: ["kato-main-frontend"])
-    ) >> new DescribeLoadBalancersResult(loadBalancerDescriptions: existingLoadBalancers)
+      DescribeLoadBalancersRequest.builder().loadBalancerNames(["kato-main-frontend"]).build()
+    ) >> DescribeLoadBalancersResponse.builder().loadBalancerDescriptions(existingLoadBalancers).build()
 
     then:
     notThrown(IllegalArgumentException)
@@ -183,10 +181,10 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
 
   void "should update existing load balancer"() {
     def existingLoadBalancers = [
-      new LoadBalancerDescription(loadBalancerName: "kato-main-frontend")
-        .withListenerDescriptions(
-        new ListenerDescription().withListener(new Listener(protocol: "HTTP", loadBalancerPort: 80, instanceProtocol: "HTTP", instancePort: 8501))
-      )
+      LoadBalancerDescription.builder().loadBalancerName("kato-main-frontend")
+        .listenerDescriptions(
+        ListenerDescription.builder().listener(Listener.builder().protocol("HTTP").loadBalancerPort(80).instanceProtocol("HTTP").instancePort(8501).build()).build()
+      ).build()
     ]
 
     given:
@@ -202,49 +200,49 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
     operation.operate([])
 
     then:
-    1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(loadBalancerNames: ["kato-main-frontend"])) >>
-            new DescribeLoadBalancersResult(loadBalancerDescriptions: existingLoadBalancers)
-    1 * loadBalancing.createLoadBalancerListeners(new CreateLoadBalancerListenersRequest(
-            loadBalancerName: "kato-main-frontend",
-            listeners: [ new Listener(protocol: "HTTP", loadBalancerPort: 8080, instanceProtocol: "HTTP", instancePort: 8080) ]
-    ))
-    1 * loadBalancing.applySecurityGroupsToLoadBalancer(new ApplySecurityGroupsToLoadBalancerRequest(
-            loadBalancerName: "kato-main-frontend",
-            securityGroups: ["sg-1234"]
-    ))
-    1 * loadBalancing.configureHealthCheck(new ConfigureHealthCheckRequest(
-            loadBalancerName: "kato-main-frontend",
-            healthCheck: new HealthCheck(
-                    target: "HTTP:7001/health",
-                    interval: 10,
-                    timeout: 5,
-                    unhealthyThreshold: 2,
-                    healthyThreshold: 10
-            )
-    ))
-    1 * loadBalancing.describeLoadBalancerAttributes(new DescribeLoadBalancerAttributesRequest(loadBalancerName: "kato-main-frontend")) >>
-            new DescribeLoadBalancerAttributesResult(loadBalancerAttributes:
-              new LoadBalancerAttributes(
-                crossZoneLoadBalancing: new CrossZoneLoadBalancing(enabled: false),
-                connectionDraining: new ConnectionDraining(enabled: false)))
-    1 * loadBalancing.modifyLoadBalancerAttributes(new ModifyLoadBalancerAttributesRequest(
-            loadBalancerName: "kato-main-frontend",
-            loadBalancerAttributes: new LoadBalancerAttributes(
-                    crossZoneLoadBalancing: new CrossZoneLoadBalancing(enabled: true),
-                    connectionSettings:  new ConnectionSettings(idleTimeout: 60),
-                    additionalAttributes: []
-            )
-    ))
+    1 * loadBalancing.describeLoadBalancers(DescribeLoadBalancersRequest.builder().loadBalancerNames(["kato-main-frontend"]).build()) >>
+            DescribeLoadBalancersResponse.builder().loadBalancerDescriptions(existingLoadBalancers).build()
+    1 * loadBalancing.createLoadBalancerListeners(CreateLoadBalancerListenersRequest.builder()
+            .loadBalancerName("kato-main-frontend")
+            .listeners(Listener.builder().protocol("HTTP").loadBalancerPort(8080).instanceProtocol("HTTP").instancePort(8080).build())
+            .build())
+    1 * loadBalancing.applySecurityGroupsToLoadBalancer(ApplySecurityGroupsToLoadBalancerRequest.builder()
+            .loadBalancerName("kato-main-frontend")
+            .securityGroups(["sg-1234"])
+            .build())
+    1 * loadBalancing.configureHealthCheck(ConfigureHealthCheckRequest.builder()
+            .loadBalancerName("kato-main-frontend")
+            .healthCheck(HealthCheck.builder()
+                    .target("HTTP:7001/health")
+                    .interval(10)
+                    .timeout(5)
+                    .unhealthyThreshold(2)
+                    .healthyThreshold(10)
+                    .build())
+            .build())
+    1 * loadBalancing.describeLoadBalancerAttributes(DescribeLoadBalancerAttributesRequest.builder().loadBalancerName("kato-main-frontend").build()) >>
+            DescribeLoadBalancerAttributesResponse.builder().loadBalancerAttributes(
+              LoadBalancerAttributes.builder()
+                .crossZoneLoadBalancing(CrossZoneLoadBalancing.builder().enabled(false).build())
+                .connectionDraining(ConnectionDraining.builder().enabled(false).build())
+                .build()).build()
+    1 * loadBalancing.modifyLoadBalancerAttributes(ModifyLoadBalancerAttributesRequest.builder()
+            .loadBalancerName("kato-main-frontend")
+            .loadBalancerAttributes(LoadBalancerAttributes.builder()
+                    .crossZoneLoadBalancing(CrossZoneLoadBalancing.builder().enabled(true).build())
+                    .connectionSettings(ConnectionSettings.builder().idleTimeout(60).build())
+                    .build())
+            .build())
     0 * _
   }
 
   @Unroll
   void "should use existing loadbalancer attributes to #desc if not explicitly provided in description"() {
     def existingLoadBalancers = [
-      new LoadBalancerDescription(loadBalancerName: "kato-main-frontend")
-        .withListenerDescriptions(
-        new ListenerDescription().withListener(new Listener(protocol: "HTTP", loadBalancerPort: 80, instanceProtocol: "HTTP", instancePort: 8501))
-      )
+      LoadBalancerDescription.builder().loadBalancerName("kato-main-frontend")
+        .listenerDescriptions(
+        ListenerDescription.builder().listener(Listener.builder().protocol("HTTP").loadBalancerPort(80).instanceProtocol("HTTP").instancePort(8501).build()).build()
+      ).build()
     ]
 
     given:
@@ -256,31 +254,33 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
     operation.operate([])
 
     then:
-    1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(loadBalancerNames: ["kato-main-frontend"])) >>
-      new DescribeLoadBalancersResult(loadBalancerDescriptions: existingLoadBalancers)
-    1 * loadBalancing.applySecurityGroupsToLoadBalancer(new ApplySecurityGroupsToLoadBalancerRequest(
-      loadBalancerName: "kato-main-frontend",
-      securityGroups: ["sg-1234"]
-    ))
-    1 * loadBalancing.configureHealthCheck(new ConfigureHealthCheckRequest(
-      loadBalancerName: "kato-main-frontend",
-      healthCheck: new HealthCheck(
-        target: "HTTP:7001/health",
-        interval: 10,
-        timeout: 5,
-        unhealthyThreshold: 2,
-        healthyThreshold: 10
-      )
-    ))
-    1 * loadBalancing.describeLoadBalancerAttributes(new DescribeLoadBalancerAttributesRequest(loadBalancerName: "kato-main-frontend")) >>
-      new DescribeLoadBalancerAttributesResult(loadBalancerAttributes:
-        new LoadBalancerAttributes(
-          crossZoneLoadBalancing: new CrossZoneLoadBalancing(enabled: existingCrossZone),
-          connectionDraining: new ConnectionDraining(enabled: existingDraining, timeout: existingTimeout),
-          connectionSettings: new ConnectionSettings(idleTimeout: existingIdleTimeout)))
-    expectedInv * loadBalancing.modifyLoadBalancerAttributes(new ModifyLoadBalancerAttributesRequest(
-      loadBalancerName: "kato-main-frontend",
-      loadBalancerAttributes: expectedAttributes))
+    1 * loadBalancing.describeLoadBalancers(DescribeLoadBalancersRequest.builder().loadBalancerNames(["kato-main-frontend"]).build()) >>
+      DescribeLoadBalancersResponse.builder().loadBalancerDescriptions(existingLoadBalancers).build()
+    1 * loadBalancing.applySecurityGroupsToLoadBalancer(ApplySecurityGroupsToLoadBalancerRequest.builder()
+      .loadBalancerName("kato-main-frontend")
+      .securityGroups(["sg-1234"])
+      .build())
+    1 * loadBalancing.configureHealthCheck(ConfigureHealthCheckRequest.builder()
+      .loadBalancerName("kato-main-frontend")
+      .healthCheck(HealthCheck.builder()
+        .target("HTTP:7001/health")
+        .interval(10)
+        .timeout(5)
+        .unhealthyThreshold(2)
+        .healthyThreshold(10)
+        .build())
+      .build())
+    1 * loadBalancing.describeLoadBalancerAttributes(DescribeLoadBalancerAttributesRequest.builder().loadBalancerName("kato-main-frontend").build()) >>
+      DescribeLoadBalancerAttributesResponse.builder().loadBalancerAttributes(
+        LoadBalancerAttributes.builder()
+          .crossZoneLoadBalancing(CrossZoneLoadBalancing.builder().enabled(existingCrossZone).build())
+          .connectionDraining(ConnectionDraining.builder().enabled(existingDraining).timeout(existingTimeout).build())
+          .connectionSettings(ConnectionSettings.builder().idleTimeout(existingIdleTimeout).build())
+          .build()).build()
+    expectedInv * loadBalancing.modifyLoadBalancerAttributes(ModifyLoadBalancerAttributesRequest.builder()
+      .loadBalancerName("kato-main-frontend")
+      .loadBalancerAttributes(expectedAttributes as LoadBalancerAttributes)
+      .build())
     0 * _
 
 
@@ -298,45 +298,45 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
   private LoadBalancerAttributes expectedAttributes(existingCrossZone, descriptionCrossZone, existingDraining, existingTimeout, descriptionDraining, descriptionTimeout, existingIdleTimeout, descriptionIdleTimeout) {
     CrossZoneLoadBalancing czlb = null
     if (existingCrossZone != descriptionCrossZone && descriptionCrossZone != null) {
-      czlb = new CrossZoneLoadBalancing(enabled:  descriptionCrossZone)
+      czlb = CrossZoneLoadBalancing.builder().enabled(descriptionCrossZone).build()
     }
     ConnectionSettings cs = null
     if (existingIdleTimeout != descriptionIdleTimeout) {
-      cs = new ConnectionSettings(idleTimeout: descriptionIdleTimeout)
+      cs = ConnectionSettings.builder().idleTimeout(descriptionIdleTimeout).build()
     }
     ConnectionDraining cd = null
     if ((descriptionDraining != null || descriptionTimeout != null) && (existingDraining != descriptionDraining || existingTimeout != descriptionTimeout)) {
-      cd = new ConnectionDraining(enabled: [descriptionDraining, existingDraining].findResult(Closure.IDENTITY), timeout: [descriptionTimeout, existingTimeout].findResult(Closure.IDENTITY))
+      cd = ConnectionDraining.builder().enabled([descriptionDraining, existingDraining].findResult(Closure.IDENTITY)).timeout([descriptionTimeout, existingTimeout].findResult(Closure.IDENTITY)).build()
     }
     if (cd == null && czlb == null) {
       return null
     }
-    LoadBalancerAttributes lba = new LoadBalancerAttributes().withAdditionalAttributes(Collections.emptyList())
+    def lbaBuilder = LoadBalancerAttributes.builder()
     if (cd != null) {
-      lba.setConnectionDraining(cd)
+      lbaBuilder.connectionDraining(cd)
     }
     if (czlb != null) {
-      lba.setCrossZoneLoadBalancing(czlb)
+      lbaBuilder.crossZoneLoadBalancing(czlb)
     }
     if (cs != null) {
-      lba.setConnectionSettings(cs)
+      lbaBuilder.connectionSettings(cs)
     }
-    return lba
+    return lbaBuilder.build()
   }
 
   void "should restore listener policies when updating an existing load balancer"() {
     given:
-    def httpListener = new Listener(protocol: "HTTP", loadBalancerPort: 80, instanceProtocol: "HTTP", instancePort: 8502)
-    def httpsListener = new Listener(protocol: "HTTPS", loadBalancerPort: 443, instanceProtocol: "HTTP", instancePort: 7001, sSLCertificateId: "foo")
+    def httpListener = Listener.builder().protocol("HTTP").loadBalancerPort(80).instanceProtocol("HTTP").instancePort(8502).build()
+    def httpsListener = Listener.builder().protocol("HTTPS").loadBalancerPort(443).instanceProtocol("HTTP").instancePort(7001).sslCertificateId("foo").build()
     def policies = ["cookiePolicy"]
 
-    def existingLB = new LoadBalancerDescription(
-      loadBalancerName: "kato-main-frontend",
-      listenerDescriptions: [
-        new ListenerDescription(listener: httpListener),
-        new ListenerDescription(listener: httpsListener, policyNames: policies)
-      ]
-    )
+    def existingLB = LoadBalancerDescription.builder()
+      .loadBalancerName("kato-main-frontend")
+      .listenerDescriptions([
+        ListenerDescription.builder().listener(httpListener).build(),
+        ListenerDescription.builder().listener(httpsListener).policyNames(policies).build()
+      ])
+      .build()
 
     and:
     description.subnetType = "internal"
@@ -349,13 +349,13 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
       [
         new UpsertAmazonLoadBalancerClassicDescription.Listener(
           externalProtocol: UpsertAmazonLoadBalancerClassicDescription.Listener.ListenerType.HTTP,
-          externalPort: httpListener.loadBalancerPort,
-          internalPort: httpListener.instancePort
+          externalPort: httpListener.loadBalancerPort(),
+          internalPort: httpListener.instancePort()
         ),
         new UpsertAmazonLoadBalancerClassicDescription.Listener(
           externalProtocol: UpsertAmazonLoadBalancerClassicDescription.Listener.ListenerType.HTTPS,
-          externalPort: httpsListener.loadBalancerPort,
-          internalPort: httpsListener.instancePort,
+          externalPort: httpsListener.loadBalancerPort(),
+          internalPort: httpsListener.instancePort(),
           sslCertificateId: "bar" //updated cert on listener
         )
     ])
@@ -364,55 +364,54 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
     operation.operate([])
 
     then:
-    1 * loadBalancing.describeLoadBalancers(_) >> new DescribeLoadBalancersResult(loadBalancerDescriptions: [existingLB])
-    1 * loadBalancing.describeLoadBalancerAttributes(_) >> new DescribeLoadBalancerAttributesResult()
+    1 * loadBalancing.describeLoadBalancers(_) >> DescribeLoadBalancersResponse.builder().loadBalancerDescriptions([existingLB]).build()
+    1 * loadBalancing.describeLoadBalancerAttributes(_) >> DescribeLoadBalancerAttributesResponse.builder().build()
     1 * loadBalancing.deleteLoadBalancerListeners({
-      it.loadBalancerPorts == [httpsListener.loadBalancerPort]
+      it.loadBalancerPorts() == [httpsListener.loadBalancerPort()]
     } as DeleteLoadBalancerListenersRequest)
 
     1 * loadBalancing.createLoadBalancerListeners(*_) >> { args ->
       def request = args[0] as CreateLoadBalancerListenersRequest
-      assert request.loadBalancerName == description.name
-      assert request.listeners.size() == 1
-      assert request.listeners*.loadBalancerPort == [ httpsListener.loadBalancerPort ]
+      assert request.loadBalancerName() == description.name
+      assert request.listeners().size() == 1
+      assert request.listeners()*.loadBalancerPort() == [ httpsListener.loadBalancerPort() ]
     }
 
-    1 * loadBalancing.configureHealthCheck(new ConfigureHealthCheckRequest(
-      loadBalancerName: "kato-main-frontend",
-      healthCheck: new HealthCheck(
-        target: "HTTP:7001/health",
-        interval: 10,
-        timeout: 5,
-        unhealthyThreshold: 2,
-        healthyThreshold: 10
-      )
-    ))
+    1 * loadBalancing.configureHealthCheck(ConfigureHealthCheckRequest.builder()
+      .loadBalancerName("kato-main-frontend")
+      .healthCheck(HealthCheck.builder()
+        .target("HTTP:7001/health")
+        .interval(10)
+        .timeout(5)
+        .unhealthyThreshold(2)
+        .healthyThreshold(10)
+        .build())
+      .build())
 
-    1 * loadBalancing.modifyLoadBalancerAttributes(new ModifyLoadBalancerAttributesRequest(
-      loadBalancerName: "kato-main-frontend",
-      loadBalancerAttributes: new LoadBalancerAttributes(
-        crossZoneLoadBalancing: new CrossZoneLoadBalancing(enabled: true),
-        connectionDraining: new ConnectionDraining(enabled: false),
-        additionalAttributes: [],
-        connectionSettings:  new ConnectionSettings(idleTimeout: 60)
-      )
-    ))
+    1 * loadBalancing.modifyLoadBalancerAttributes(ModifyLoadBalancerAttributesRequest.builder()
+      .loadBalancerName("kato-main-frontend")
+      .loadBalancerAttributes(LoadBalancerAttributes.builder()
+        .crossZoneLoadBalancing(CrossZoneLoadBalancing.builder().enabled(true).build())
+        .connectionDraining(ConnectionDraining.builder().enabled(false).build())
+        .connectionSettings(ConnectionSettings.builder().idleTimeout(60).build())
+        .build())
+      .build())
 
     1 * loadBalancing.setLoadBalancerPoliciesOfListener(*_) >> { args ->
       def request = args[0] as SetLoadBalancerPoliciesOfListenerRequest
-      assert request.loadBalancerName == description.name
-      assert request.policyNames == policies
-      assert request.loadBalancerPort == httpsListener.loadBalancerPort
+      assert request.loadBalancerName() == description.name
+      assert request.policyNames() == policies
+      assert request.loadBalancerPort() == httpsListener.loadBalancerPort()
     }
   }
 
   void "should attempt to apply all listener modifications regardless of individual failures"() {
     given:
     def existingLoadBalancers = [
-      new LoadBalancerDescription(loadBalancerName: "kato-main-frontend")
-        .withListenerDescriptions(
-        new ListenerDescription().withListener(new Listener(protocol: "HTTP", loadBalancerPort: 80, instanceProtocol: "HTTP", instancePort: 8501))
-      )
+      LoadBalancerDescription.builder().loadBalancerName("kato-main-frontend")
+        .listenerDescriptions(
+        ListenerDescription.builder().listener(Listener.builder().protocol("HTTP").loadBalancerPort(80).instanceProtocol("HTTP").instancePort(8501).build()).build()
+      ).build()
     ]
     description.listeners.clear()
     description.listeners.add(
@@ -434,33 +433,38 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
     then:
     thrown(AtomicOperationException)
 
-    1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(loadBalancerNames: ["kato-main-frontend"])) >>
-      new DescribeLoadBalancersResult(loadBalancerDescriptions: existingLoadBalancers)
-    1 * loadBalancing.createLoadBalancerListeners(new CreateLoadBalancerListenersRequest(
-      loadBalancerName: "kato-main-frontend",
-      listeners: [ new Listener(protocol: "TCP", loadBalancerPort: 22, instanceProtocol: "TCP", instancePort: 22) ]
-    )) >> { throw new AmazonServiceException("AmazonServiceException") }
-    1 * loadBalancing.deleteLoadBalancerListeners(new DeleteLoadBalancerListenersRequest(
-      loadBalancerName: "kato-main-frontend", loadBalancerPorts: [80]
-    ))
-    1 * loadBalancing.createLoadBalancerListeners(new CreateLoadBalancerListenersRequest(
-      loadBalancerName: "kato-main-frontend",
-      listeners: [ new Listener(protocol: "HTTP", loadBalancerPort: 80, instanceProtocol: "HTTP", instancePort: 8502) ]
-    ))
-    1 * loadBalancing.applySecurityGroupsToLoadBalancer(new ApplySecurityGroupsToLoadBalancerRequest(
-      loadBalancerName: "kato-main-frontend",
-      securityGroups: ["sg-1234"]
-    ))
-    1 * loadBalancing.createLoadBalancerListeners(new CreateLoadBalancerListenersRequest(
-      loadBalancerName: 'kato-main-frontend',
-      listeners: [ new Listener(protocol: 'HTTP', loadBalancerPort: 80, instanceProtocol: 'HTTP', instancePort: 8501) ]
-    ))
+    1 * loadBalancing.describeLoadBalancers(DescribeLoadBalancersRequest.builder().loadBalancerNames(["kato-main-frontend"]).build()) >>
+      DescribeLoadBalancersResponse.builder().loadBalancerDescriptions(existingLoadBalancers).build()
+    1 * loadBalancing.createLoadBalancerListeners(CreateLoadBalancerListenersRequest.builder()
+      .loadBalancerName("kato-main-frontend")
+      .listeners(Listener.builder().protocol("TCP").loadBalancerPort(22).instanceProtocol("TCP").instancePort(22).build())
+      .build()) >> {
+        throw AwsServiceException.builder()
+          .message("AmazonServiceException")
+          .awsErrorDetails(AwsErrorDetails.builder().errorMessage("AmazonServiceException").build())
+          .build()
+      }
+    1 * loadBalancing.deleteLoadBalancerListeners(DeleteLoadBalancerListenersRequest.builder()
+      .loadBalancerName("kato-main-frontend").loadBalancerPorts([80]).build()
+    )
+    1 * loadBalancing.createLoadBalancerListeners(CreateLoadBalancerListenersRequest.builder()
+      .loadBalancerName("kato-main-frontend")
+      .listeners(Listener.builder().protocol("HTTP").loadBalancerPort(80).instanceProtocol("HTTP").instancePort(8502).build())
+      .build())
+    1 * loadBalancing.applySecurityGroupsToLoadBalancer(ApplySecurityGroupsToLoadBalancerRequest.builder()
+      .loadBalancerName("kato-main-frontend")
+      .securityGroups(["sg-1234"])
+      .build())
+    1 * loadBalancing.createLoadBalancerListeners(CreateLoadBalancerListenersRequest.builder()
+      .loadBalancerName('kato-main-frontend')
+      .listeners(Listener.builder().protocol('HTTP').loadBalancerPort(80).instanceProtocol('HTTP').instancePort(8501).build())
+      .build())
     0 * _
   }
 
   void "should respect crossZone balancing directive"() {
     given:
-    def loadBalancer = new LoadBalancerDescription(loadBalancerName: "kato-main-frontend")
+    def loadBalancer = LoadBalancerDescription.builder().loadBalancerName("kato-main-frontend").build()
     "when requesting crossZone to be disabled, we'll turn it off"
     description.crossZoneBalancing = false
     description.vpcId = "vpcId"
@@ -469,12 +473,12 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
     operation.operate([])
 
     then:
-    1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(loadBalancerNames: ["kato-main-frontend"])) >>
-            new DescribeLoadBalancersResult(loadBalancerDescriptions: [loadBalancer])
-    1 * loadBalancing.describeLoadBalancerAttributes(new DescribeLoadBalancerAttributesRequest(loadBalancerName: "kato-main-frontend")) >>
-            new DescribeLoadBalancerAttributesResult(loadBalancerAttributes:  new LoadBalancerAttributes(crossZoneLoadBalancing: new CrossZoneLoadBalancing(enabled: true)))
+    1 * loadBalancing.describeLoadBalancers(DescribeLoadBalancersRequest.builder().loadBalancerNames(["kato-main-frontend"]).build()) >>
+            DescribeLoadBalancersResponse.builder().loadBalancerDescriptions([loadBalancer]).build()
+    1 * loadBalancing.describeLoadBalancerAttributes(DescribeLoadBalancerAttributesRequest.builder().loadBalancerName("kato-main-frontend").build()) >>
+            DescribeLoadBalancerAttributesResponse.builder().loadBalancerAttributes(LoadBalancerAttributes.builder().crossZoneLoadBalancing(CrossZoneLoadBalancing.builder().enabled(true).build()).build()).build()
     1 * loadBalancing.modifyLoadBalancerAttributes(_) >> {  ModifyLoadBalancerAttributesRequest request ->
-      assert !request.loadBalancerAttributes.crossZoneLoadBalancing.enabled
+      assert !request.loadBalancerAttributes().crossZoneLoadBalancing().enabled()
     }
   }
 
@@ -491,17 +495,16 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
     1 * ingressLoadBalancerBuilder.ingressApplicationLoadBalancerGroup(_, _, _, _, _, _, _) >> new IngressLoadBalancerBuilder.IngressLoadBalancerGroupResult("sg-1234", "kato-elb")
 
     and:
-    1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(loadBalancerNames: ["kato-main-frontend"])) >> null
-    1 * loadBalancing.createLoadBalancer(new CreateLoadBalancerRequest(
-            loadBalancerName: "kato-main-frontend",
-            listeners: [
-                    new Listener(protocol: "HTTP", loadBalancerPort: 80, instanceProtocol: "HTTP", instancePort: 8501)
-            ],
-            subnets: ["subnet1"],
-            securityGroups: ["sg-1234"],
-            tags: [],
-            scheme: "internal"
-    )) >> new CreateLoadBalancerResult(dNSName: "dnsName1")
+    1 * loadBalancing.describeLoadBalancers(DescribeLoadBalancersRequest.builder().loadBalancerNames(["kato-main-frontend"]).build()) >> null
+    1 * loadBalancing.createLoadBalancer(CreateLoadBalancerRequest.builder()
+            .loadBalancerName("kato-main-frontend")
+            .listeners(
+                    Listener.builder().protocol("HTTP").loadBalancerPort(80).instanceProtocol("HTTP").instancePort(8501).build()
+            )
+            .subnets(["subnet1"])
+            .securityGroups(["sg-1234"])
+            .scheme("internal")
+            .build()) >> CreateLoadBalancerResponse.builder().dnsName("dnsName1").build()
     1 * mockSubnetAnalyzer.getSubnetIdsForZones(["us-east-1a"], "internal", SubnetTarget.ELB, 1) >> ["subnet1"]
   }
 
@@ -518,17 +521,16 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
     1 * ingressLoadBalancerBuilder.ingressApplicationLoadBalancerGroup(_, _, _, _, _, _, _) >> new IngressLoadBalancerBuilder.IngressLoadBalancerGroupResult("sg-1234", "kato-elb")
 
     and:
-    1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(loadBalancerNames: ["kato-main-frontend"])) >> null
-    1 * loadBalancing.createLoadBalancer(new CreateLoadBalancerRequest(
-            loadBalancerName: "kato-main-frontend",
-            listeners: [
-                    new Listener(protocol: "HTTP", loadBalancerPort: 80, instanceProtocol: "HTTP", instancePort: 8501)
-            ],
-            subnets: ["subnet1"],
-            securityGroups: ["sg-1234"],
-            tags: [],
-            scheme: "internal"
-    )) >> new CreateLoadBalancerResult(dNSName: "dnsName1")
+    1 * loadBalancing.describeLoadBalancers(DescribeLoadBalancersRequest.builder().loadBalancerNames(["kato-main-frontend"]).build()) >> null
+    1 * loadBalancing.createLoadBalancer(CreateLoadBalancerRequest.builder()
+            .loadBalancerName("kato-main-frontend")
+            .listeners(
+                    Listener.builder().protocol("HTTP").loadBalancerPort(80).instanceProtocol("HTTP").instancePort(8501).build()
+            )
+            .subnets(["subnet1"])
+            .securityGroups(["sg-1234"])
+            .scheme("internal")
+            .build()) >> CreateLoadBalancerResponse.builder().dnsName("dnsName1").build()
     1 * mockSubnetAnalyzer.getSubnetIdsForZones(["us-east-1a"], "internal", SubnetTarget.ELB, 1) >> ["subnet1"]
   }
 
@@ -545,49 +547,50 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
     1 * ingressLoadBalancerBuilder.ingressApplicationLoadBalancerGroup(_, _, _, _, _, _, _) >> new IngressLoadBalancerBuilder.IngressLoadBalancerGroupResult("sg-1234", "kato-elb")
 
     and:
-    1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(loadBalancerNames: ["kato-test-frontend"])) >>
-            new DescribeLoadBalancersResult(loadBalancerDescriptions: [])
-    1 * loadBalancing.createLoadBalancer() { createLoadBalancerRequest ->
-      createLoadBalancerRequest.loadBalancerName == "kato-test-frontend"
-    } >> new CreateLoadBalancerResult(dNSName: "dnsName1")
+    1 * loadBalancing.describeLoadBalancers(DescribeLoadBalancersRequest.builder().loadBalancerNames(["kato-test-frontend"]).build()) >>
+            DescribeLoadBalancersResponse.builder().loadBalancerDescriptions([]).build()
+    1 * loadBalancing.createLoadBalancer(_ as CreateLoadBalancerRequest) >> { CreateLoadBalancerRequest createLoadBalancerRequest ->
+      assert createLoadBalancerRequest.loadBalancerName() == "kato-test-frontend"
+      CreateLoadBalancerResponse.builder().dnsName("dnsName1").build()
+    }
   }
 
   void "should reset existing listeners on a load balancer that already exists"() {
     given:
-    def listener = new ListenerDescription().withListener(new Listener("HTTP", 111, 80))
-    def loadBalancer = new LoadBalancerDescription(listenerDescriptions: [listener])
+    def listener = ListenerDescription.builder().listener(Listener.builder().protocol("HTTP").loadBalancerPort(111).instancePort(80).build()).build()
+    def loadBalancer = LoadBalancerDescription.builder().listenerDescriptions([listener]).build()
     description.vpcId = "vpcId"
 
     when:
     operation.operate([])
 
     then:
-    1 * loadBalancing.describeLoadBalancers(_) >> new DescribeLoadBalancersResult(loadBalancerDescriptions: [loadBalancer])
-    1 * loadBalancing.describeLoadBalancerAttributes(_) >> new DescribeLoadBalancerAttributesResult()
-    1 * loadBalancing.deleteLoadBalancerListeners(new DeleteLoadBalancerListenersRequest(loadBalancerPorts: [111]))
-    1 * loadBalancing.createLoadBalancerListeners(new CreateLoadBalancerListenersRequest(
-            listeners: [ new Listener(loadBalancerPort: 80, instancePort: 8501, protocol: "HTTP", instanceProtocol: "HTTP") ]
-    ))
+    1 * loadBalancing.describeLoadBalancers(_) >> DescribeLoadBalancersResponse.builder().loadBalancerDescriptions([loadBalancer]).build()
+    1 * loadBalancing.describeLoadBalancerAttributes(_) >> DescribeLoadBalancerAttributesResponse.builder().build()
+    1 * loadBalancing.deleteLoadBalancerListeners(DeleteLoadBalancerListenersRequest.builder().loadBalancerPorts([111]).build())
+    1 * loadBalancing.createLoadBalancerListeners(CreateLoadBalancerListenersRequest.builder()
+            .listeners(Listener.builder().loadBalancerPort(80).instancePort(8501).protocol("HTTP").instanceProtocol("HTTP").build())
+            .build())
   }
 
   void "should ignore the old listener of pre-2012 ELBs"() {
     given:
-    def oldListener = new ListenerDescription().withListener(new Listener(null, 0, 0))
-    def listener = new ListenerDescription().withListener(new Listener("HTTP", 111, 80))
-    def loadBalancer = new LoadBalancerDescription(listenerDescriptions: [oldListener, listener])
+    def oldListener = ListenerDescription.builder().listener(Listener.builder().loadBalancerPort(0).instancePort(0).build()).build()
+    def listener = ListenerDescription.builder().listener(Listener.builder().protocol("HTTP").loadBalancerPort(111).instancePort(80).build()).build()
+    def loadBalancer = LoadBalancerDescription.builder().listenerDescriptions([oldListener, listener]).build()
     description.vpcId = "vpcId"
 
     when:
     operation.operate([])
 
     then:
-    1 * loadBalancing.describeLoadBalancers(_) >> new DescribeLoadBalancersResult(loadBalancerDescriptions: [loadBalancer])
-    1 * loadBalancing.describeLoadBalancerAttributes(_) >> new DescribeLoadBalancerAttributesResult()
-    1 * loadBalancing.deleteLoadBalancerListeners(new DeleteLoadBalancerListenersRequest(loadBalancerPorts: [111]))
+    1 * loadBalancing.describeLoadBalancers(_) >> DescribeLoadBalancersResponse.builder().loadBalancerDescriptions([loadBalancer]).build()
+    1 * loadBalancing.describeLoadBalancerAttributes(_) >> DescribeLoadBalancerAttributesResponse.builder().build()
+    1 * loadBalancing.deleteLoadBalancerListeners(DeleteLoadBalancerListenersRequest.builder().loadBalancerPorts([111]).build())
     0 * loadBalancing.deleteLoadBalancerListeners(_)
-    1 * loadBalancing.createLoadBalancerListeners(new CreateLoadBalancerListenersRequest(
-      listeners: [ new Listener(loadBalancerPort: 80, instancePort: 8501, protocol: "HTTP", instanceProtocol: "HTTP") ]
-    ))
+    1 * loadBalancing.createLoadBalancerListeners(CreateLoadBalancerListenersRequest.builder()
+      .listeners(Listener.builder().loadBalancerPort(80).instancePort(8501).protocol("HTTP").instanceProtocol("HTTP").build())
+      .build())
     0 * loadBalancing.createLoadBalancerListeners(_)
   }
 
@@ -605,11 +608,11 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
     then:
     1 * ingressLoadBalancerBuilder.ingressApplicationLoadBalancerGroup(_, _, _, _, _, _, _) >> new IngressLoadBalancerBuilder.IngressLoadBalancerGroupResult("sg-1234", "kato-elb")
 
-    1 * loadBalancing.createLoadBalancer(_ as CreateLoadBalancerRequest) >> new CreateLoadBalancerResult(dNSName: 'dnsName1')
-    (shouldProtect ? 1 : 0) * awsShield.createProtection(new CreateProtectionRequest(
-      name: 'kato-main-frontend',
-      resourceArn: 'arn:aws:elasticloadbalancing:123456789012bar:us-east-1:loadbalancer/kato-main-frontend'
-    ))
+    1 * loadBalancing.createLoadBalancer(_ as CreateLoadBalancerRequest) >> CreateLoadBalancerResponse.builder().dnsName('dnsName1').build()
+    (shouldProtect ? 1 : 0) * awsShield.createProtection(CreateProtectionRequest.builder()
+      .name('kato-main-frontend')
+      .resourceArn('arn:aws:elasticloadbalancing:123456789012bar:us-east-1:loadbalancer/kato-main-frontend')
+      .build())
 
     where:
     shieldEnabled | descriptionOverride || shouldProtect

@@ -19,13 +19,6 @@ package com.netflix.spinnaker.kork.secrets.engines;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.client.builder.AwsClientBuilder;
-import com.amazonaws.services.secretsmanager.AWSSecretsManager;
-import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
-import com.amazonaws.services.secretsmanager.model.CreateSecretRequest;
-import com.amazonaws.services.secretsmanager.model.Tag;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.secrets.SecretConfiguration;
 import com.netflix.spinnaker.kork.secrets.user.OpaqueUserSecretData;
@@ -37,7 +30,6 @@ import com.netflix.spinnaker.kork.secrets.user.UserSecretMetadataField;
 import com.netflix.spinnaker.kork.secrets.user.UserSecretReference;
 import com.netflix.spinnaker.kork.secrets.user.UserSecretSerde;
 import com.netflix.spinnaker.kork.secrets.user.UserSecretSerdeFactory;
-import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +42,13 @@ import org.springframework.context.annotation.Bean;
 import org.testcontainers.DockerClientFactory;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.utility.DockerImageName;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
+import software.amazon.awssdk.services.secretsmanager.model.CreateSecretRequest;
+import software.amazon.awssdk.services.secretsmanager.model.Tag;
 
 @SpringBootTest(classes = SecretConfiguration.class)
 public class SecretsManagerSecretEngineIntegrationTest {
@@ -68,15 +67,7 @@ public class SecretsManagerSecretEngineIntegrationTest {
 
   @Test
   public void canDecryptUserSecret() {
-    AWSSecretsManager client =
-        AWSSecretsManagerClientBuilder.standard()
-            .withEndpointConfiguration(
-                new AwsClientBuilder.EndpointConfiguration(
-                    container.getEndpoint().toString(), container.getRegion()))
-            .withCredentials(
-                new AWSStaticCredentialsProvider(
-                    new BasicAWSCredentials(container.getAccessKey(), container.getSecretKey())))
-            .build();
+    SecretsManagerClient client = buildLocalstackClient(container);
 
     UserSecretMetadata metadata =
         UserSecretMetadata.builder()
@@ -88,13 +79,14 @@ public class SecretsManagerSecretEngineIntegrationTest {
 
     Map<String, String> secretMap = Map.of("username", "blade", "password", "hunter2");
     UserSecretData data = new OpaqueUserSecretData(secretMap);
-    ByteBuffer serializedSecretPayload = ByteBuffer.wrap(serde.serialize(data, metadata));
+    SdkBytes serializedSecretPayload = SdkBytes.fromByteArray(serde.serialize(data, metadata));
 
     client.createSecret(
-        new CreateSecretRequest()
-            .withName("my-user-secret")
-            .withSecretBinary(serializedSecretPayload)
-            .withTags(tagsForMetadata(metadata)));
+        CreateSecretRequest.builder()
+            .name("my-user-secret")
+            .secretBinary(serializedSecretPayload)
+            .tags(tagsForMetadata(metadata))
+            .build());
 
     var baseRefUri =
         String.format("secret://secrets-manager?r=%s&s=my-user-secret", container.getRegion());
@@ -111,16 +103,25 @@ public class SecretsManagerSecretEngineIntegrationTest {
         });
   }
 
-  private static Collection<Tag> tagsForMetadata(UserSecretMetadata metadata) {
-    return List.of(
-        tagForField(UserSecretMetadataField.TYPE).withValue(metadata.getType()),
-        tagForField(UserSecretMetadataField.ENCODING).withValue(metadata.getEncoding()),
-        tagForField(UserSecretMetadataField.ROLES)
-            .withValue(String.join(", ", metadata.getRoles())));
+  private static SecretsManagerClient buildLocalstackClient(LocalStackContainer container) {
+    return SecretsManagerClient.builder()
+        .endpointOverride(container.getEndpoint())
+        .region(Region.of(container.getRegion()))
+        .credentialsProvider(
+            StaticCredentialsProvider.create(
+                AwsBasicCredentials.create(container.getAccessKey(), container.getSecretKey())))
+        .build();
   }
 
-  private static Tag tagForField(UserSecretMetadataField field) {
-    return new Tag().withKey(field.getTagKey());
+  private static Collection<Tag> tagsForMetadata(UserSecretMetadata metadata) {
+    return List.of(
+        tagForField(UserSecretMetadataField.TYPE, metadata.getType()),
+        tagForField(UserSecretMetadataField.ENCODING, metadata.getEncoding()),
+        tagForField(UserSecretMetadataField.ROLES, String.join(", ", metadata.getRoles())));
+  }
+
+  private static Tag tagForField(UserSecretMetadataField field, String value) {
+    return Tag.builder().key(field.getTagKey()).value(value).build();
   }
 
   @TestConfiguration
@@ -137,15 +138,7 @@ public class SecretsManagerSecretEngineIntegrationTest {
 
     @Bean
     public SecretsManagerClientProvider localstackClientProvider(LocalStackContainer container) {
-      return (params) ->
-          AWSSecretsManagerClientBuilder.standard()
-              .withEndpointConfiguration(
-                  new AwsClientBuilder.EndpointConfiguration(
-                      container.getEndpoint().toString(), container.getRegion()))
-              .withCredentials(
-                  new AWSStaticCredentialsProvider(
-                      new BasicAWSCredentials(container.getAccessKey(), container.getSecretKey())))
-              .build();
+      return (params) -> buildLocalstackClient(container);
     }
 
     @Bean

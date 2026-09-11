@@ -1,8 +1,9 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.actions
 
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.autoscaling.model.LaunchTemplateSpecification
-import com.amazonaws.services.ec2.model.*
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
+import software.amazon.awssdk.services.autoscaling.model.LaunchTemplateOverrides
+import software.amazon.awssdk.services.autoscaling.model.LaunchTemplateSpecification
+import software.amazon.awssdk.services.ec2.model.*
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.ModifyServerGroupLaunchTemplateDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.validators.ModifyServerGroupLaunchTemplateValidator
@@ -17,10 +18,10 @@ class PrepareUpdateAutoScalingGroupSpec extends Specification {
   @Shared
   ModifyServerGroupLaunchTemplateValidator validator
 
-  def autoScalingGroupWithLt = new AutoScalingGroup(
-    autoScalingGroupName: "test-v001",
-    launchTemplate: new LaunchTemplateSpecification(launchTemplateName: "lt-1", version: "1")
-  )
+  def autoScalingGroupWithLt = AutoScalingGroup.builder()
+    .autoScalingGroupName("test-v001")
+    .launchTemplate(LaunchTemplateSpecification.builder().launchTemplateName("lt-1").version("1").build())
+    .build()
 
   def description = new ModifyServerGroupLaunchTemplateDescription(
     region: "us-east-1",
@@ -39,7 +40,7 @@ class PrepareUpdateAutoScalingGroupSpec extends Specification {
     given:
     description.launchTemplateOverridesForInstanceType = descOverrides
 
-    def newDummyVersion = new LaunchTemplateVersion(launchTemplateId: "lt-1", versionNumber: 2L)
+    def newDummyVersion = LaunchTemplateVersion.builder().launchTemplateId("lt-1").versionNumber(2L).build()
     def prepareCommand = new PrepareUpdateAutoScalingGroup.PrepareUpdateAutoScalingGroupCommand.PrepareUpdateAutoScalingGroupCommandBuilder()
       .description(description)
       .launchTemplateVersion(newDummyVersion)
@@ -57,7 +58,7 @@ class PrepareUpdateAutoScalingGroupSpec extends Specification {
     ((UpdateAutoScalingGroup.UpdateAutoScalingGroupCommand) result.nextCommand).newLaunchTemplateVersionNumber == prepareCommand.newLaunchTemplateVersionNumber
 
     if (descOverrides) {
-      ((UpdateAutoScalingGroup.UpdateAutoScalingGroupCommand) result.nextCommand).launchTemplateOverrides == [new LaunchTemplateOverrides().withWeightedCapacity(2).withInstanceType("m5.xlarge")]
+      ((UpdateAutoScalingGroup.UpdateAutoScalingGroupCommand) result.nextCommand).launchTemplateOverrides == [LaunchTemplateOverrides.builder().weightedCapacity("2").instanceType("m5.xlarge").build()]
     } else {
       ((UpdateAutoScalingGroup.UpdateAutoScalingGroupCommand) result.nextCommand).launchTemplateOverrides == null
     }

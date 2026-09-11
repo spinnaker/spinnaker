@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup
 
-import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.*
+import software.amazon.awssdk.services.ec2.Ec2Client
+import software.amazon.awssdk.services.ec2.model.*
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupLookupFactory.SecurityGroupUpdater
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
@@ -28,9 +28,9 @@ import spock.lang.Subject
 
 class SecurityGroupLookupSpec extends Specification {
 
-  def amazonEC2 = Mock(AmazonEC2)
+  def amazonEC2 = Mock(Ec2Client)
   def amazonClientProvider = Stub(AmazonClientProvider) {
-    getAmazonEC2(_, "us-east-1", _) >> amazonEC2
+    getAmazonEC2V2(_, "us-east-1") >> amazonEC2
   }
   def accountCredentialsRepository = Stub(CredentialsRepository) {
     getAll() >> [
@@ -66,16 +66,16 @@ class SecurityGroupLookupSpec extends Specification {
     )
 
     then:
-    1 * amazonEC2.createSecurityGroup(new CreateSecurityGroupRequest(
-      groupName: "wideOpen",
-      description: "desc",
-      vpcId: "vpc-1"
-    )) >> new CreateSecurityGroupResult(
-      groupId: "sg-123"
-    )
+    1 * amazonEC2.createSecurityGroup(CreateSecurityGroupRequest.builder()
+      .groupName("wideOpen")
+      .description("desc")
+      .vpcId("vpc-1")
+      .build()) >> CreateSecurityGroupResponse.builder()
+      .groupId("sg-123")
+      .build()
 
     then:
-    result.securityGroup == new SecurityGroup(ownerId: "id-test", groupId: "sg-123", groupName: "wideOpen", vpcId: "vpc-1", description: "desc")
+    result.securityGroup == SecurityGroup.builder().ownerId("id-test").groupId("sg-123").groupName("wideOpen").vpcId("vpc-1").description("desc").build()
   }
 
   void "should look up security group"() {
@@ -83,14 +83,14 @@ class SecurityGroupLookupSpec extends Specification {
     final result = securityGroupLookup.getSecurityGroupByName("test", "wideOpen", "vpc-1").get()
 
     then:
-    1 * amazonEC2.describeSecurityGroups(_) >> new DescribeSecurityGroupsResult(
-      securityGroups: [
-             new SecurityGroup(ownerId: "id-test", groupId: "sg-123", groupName: "wideOpen", vpcId: "vpc-1")
-      ]
-    )
+    1 * amazonEC2.describeSecurityGroups(_) >> DescribeSecurityGroupsResponse.builder()
+      .securityGroups([
+             SecurityGroup.builder().ownerId("id-test").groupId("sg-123").groupName("wideOpen").vpcId("vpc-1").build()
+      ])
+      .build()
 
     then:
-    result.securityGroup == new SecurityGroup(ownerId: "id-test", groupId: "sg-123", groupName: "wideOpen", vpcId: "vpc-1")
+    result.securityGroup == SecurityGroup.builder().ownerId("id-test").groupId("sg-123").groupName("wideOpen").vpcId("vpc-1").build()
 
   }
 
@@ -99,18 +99,18 @@ class SecurityGroupLookupSpec extends Specification {
     def result = securityGroupLookup.getSecurityGroupByName("test", "wideOpen", "vpc-1").get()
 
     then:
-    1 * amazonEC2.describeSecurityGroups(_) >> new DescribeSecurityGroupsResult(
-      securityGroups: [
-        new SecurityGroup(ownerId: "id-test", groupId: "sg-123", groupName: "wideOpen", vpcId: "vpc-1")
-      ]
-    )
-    result.securityGroup == new SecurityGroup(ownerId: "id-test", groupId: "sg-123", groupName: "wideOpen", vpcId: "vpc-1")
+    1 * amazonEC2.describeSecurityGroups(_) >> DescribeSecurityGroupsResponse.builder()
+      .securityGroups([
+        SecurityGroup.builder().ownerId("id-test").groupId("sg-123").groupName("wideOpen").vpcId("vpc-1").build()
+      ])
+      .build()
+    result.securityGroup == SecurityGroup.builder().ownerId("id-test").groupId("sg-123").groupName("wideOpen").vpcId("vpc-1").build()
 
     when:
     result = securityGroupLookup.getSecurityGroupByName("test", "wideOpen", "vpc-1").get()
 
     then:
-    result.securityGroup == new SecurityGroup(ownerId: "id-test", groupId: "sg-123", groupName: "wideOpen", vpcId: "vpc-1")
+    result.securityGroup == SecurityGroup.builder().ownerId("id-test").groupId("sg-123").groupName("wideOpen").vpcId("vpc-1").build()
     0 * _
   }
 
@@ -119,11 +119,11 @@ class SecurityGroupLookupSpec extends Specification {
     final result = securityGroupLookup.getSecurityGroupByName("test", "wideOpen", "vpc-1")
 
     then:
-    1 * amazonEC2.describeSecurityGroups(_) >> new DescribeSecurityGroupsResult(
-      securityGroups: [
-        new SecurityGroup(groupId: "sg-456", groupName: "NotTheGroupYouWereLokkingFor", vpcId: "vpc-1")
-      ]
-    )
+    1 * amazonEC2.describeSecurityGroups(_) >> DescribeSecurityGroupsResponse.builder()
+      .securityGroups([
+        SecurityGroup.builder().groupId("sg-456").groupName("NotTheGroupYouWereLokkingFor").vpcId("vpc-1").build()
+      ])
+      .build()
 
     then:
     !result.isPresent()
@@ -132,27 +132,27 @@ class SecurityGroupLookupSpec extends Specification {
 
   void "should add and remove ingress"() {
     final securityGroupUpdater = new SecurityGroupUpdater(
-      new SecurityGroup(groupId: "sg-123"), amazonEC2
+      SecurityGroup.builder().groupId("sg-123").build(), amazonEC2
     )
 
     when:
-    securityGroupUpdater.addIngress([new IpPermission(fromPort: 999)])
+    securityGroupUpdater.addIngress([IpPermission.builder().fromPort(999).build()])
 
     then:
-    1 * amazonEC2.authorizeSecurityGroupIngress(new AuthorizeSecurityGroupIngressRequest(
-      groupId: "sg-123",
-      ipPermissions: [new IpPermission(fromPort: 999)]
-    ))
+    1 * amazonEC2.authorizeSecurityGroupIngress(AuthorizeSecurityGroupIngressRequest.builder()
+      .groupId("sg-123")
+      .ipPermissions([IpPermission.builder().fromPort(999).build()])
+      .build())
     0 * _
 
     when:
-    securityGroupUpdater.removeIngress([new IpPermission(fromPort: 111)])
+    securityGroupUpdater.removeIngress([IpPermission.builder().fromPort(111).build()])
 
     then:
-    1 * amazonEC2.revokeSecurityGroupIngress(new RevokeSecurityGroupIngressRequest(
-      groupId: "sg-123",
-      ipPermissions: [new IpPermission(fromPort: 111)]
-    ))
+    1 * amazonEC2.revokeSecurityGroupIngress(RevokeSecurityGroupIngressRequest.builder()
+      .groupId("sg-123")
+      .ipPermissions([IpPermission.builder().fromPort(111).build()])
+      .build())
 
   }
 

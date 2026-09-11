@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.view
 
-import com.amazonaws.services.ec2.model.GetConsoleOutputRequest
+import software.amazon.awssdk.services.ec2.model.GetConsoleOutputRequest
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
@@ -88,7 +88,9 @@ class AmazonInstanceProvider implements InstanceProvider<AmazonInstance, String>
     if (!(credentials instanceof NetflixAmazonCredentials)) {
       throw new IllegalArgumentException("Invalid credentials: ${account}:${region}")
     }
-    amazonClientProvider.getAmazonEC2(credentials, region, true).getConsoleOutput(new GetConsoleOutputRequest(id)).decodedOutput
+    def response = amazonClientProvider.getAmazonEC2V2(credentials, region)
+      .getConsoleOutput(GetConsoleOutputRequest.builder().instanceId(id).build())
+    new String(Base64.decoder.decode(response.output()))
   }
 
 }

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.security;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 
 /**
  * A factory to provide DefaultAWSAccountInfoLookup objects for supporting multiple managing
@@ -27,7 +27,7 @@ public class DefaultAWSAccountInfoLookupFactory implements AWSAccountInfoLookupF
   @Override
   public AWSAccountInfoLookup makeAWSAccountInfoLookup(
       String profileName,
-      AWSCredentialsProvider credentialsProvider,
+      AwsCredentialsProvider credentialsProvider,
       AmazonClientProvider amazonClientProvider) {
     return new DefaultAWSAccountInfoLookup(credentialsProvider, amazonClientProvider);
   }

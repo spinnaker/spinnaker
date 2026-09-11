@@ -16,13 +16,25 @@
 
 package com.netflix.spinnaker.clouddriver.aws.model;
 
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.clouddriver.model.Image;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * The image's own fields (imageId, name, ownerId, etc.) are stored as a flat attribute map rather
+ * than a typed AWS SDK model object, and are unwrapped into/out of the top-level JSON via {@link
+ * JsonAnyGetter}/{@link JsonAnySetter} -- this mirrors exactly what's already stored in the cache
+ * (see ImageCachingAgent), and avoids needing a v2 SDK model type to support Jackson's
+ * {@code @JsonUnwrapped}, which AWS SDK v2's immutable, builder-only model classes don't support
+ * natively.
+ */
 @Data
 @NoArgsConstructor
 public class AmazonImage implements Image {
@@ -30,13 +42,24 @@ public class AmazonImage implements Image {
 
   String region;
   List<AmazonServerGroup> serverGroups = new ArrayList<>();
-  @JsonUnwrapped com.amazonaws.services.ec2.model.Image image;
+
+  @JsonIgnore private final Map<String, Object> imageAttributes = new LinkedHashMap<>();
+
+  @JsonAnySetter
+  public void setImageAttribute(String key, Object value) {
+    imageAttributes.put(key, value);
+  }
+
+  @JsonAnyGetter
+  public Map<String, Object> getImageAttributes() {
+    return imageAttributes;
+  }
 
   public String getName() {
-    return image.getName();
+    return (String) imageAttributes.get("name");
   }
 
   public String getId() {
-    return image.getImageId();
+    return (String) imageAttributes.get("imageId");
   }
 }

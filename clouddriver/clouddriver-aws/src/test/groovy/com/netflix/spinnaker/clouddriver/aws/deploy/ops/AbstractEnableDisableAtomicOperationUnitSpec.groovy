@@ -16,7 +16,7 @@
 
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
 
 class AbstractEnableDisableAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitSpecSupport {
 
@@ -34,8 +34,7 @@ class AbstractEnableDisableAtomicOperationUnitSpec extends EnableDisableAtomicOp
 
   void 'should do nothing without instances'() {
     setup:
-    def asg = Mock(AutoScalingGroup)
-    asg.getAutoScalingGroupName() >> "asg1"
+    def asg = AutoScalingGroup.builder().autoScalingGroupName("asg1").build()
 
     when:
     op.operate([])

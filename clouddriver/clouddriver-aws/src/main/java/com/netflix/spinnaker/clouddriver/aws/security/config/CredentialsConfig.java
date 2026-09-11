@@ -183,9 +183,7 @@ public class CredentialsConfig {
   private List<Region> defaultRegions;
   private List<String> defaultSecurityGroups;
   private List<LifecycleHook> defaultLifecycleHooks;
-  private String defaultEddaTemplate;
   private String defaultFront50Template;
-  private String defaultBastionHostTemplate;
   private String defaultDiscoveryTemplate;
   private String defaultAssumeRole;
   private String defaultSessionName;
@@ -217,28 +215,12 @@ public class CredentialsConfig {
     this.defaultSecurityGroups = defaultSecurityGroups;
   }
 
-  public String getDefaultEddaTemplate() {
-    return defaultEddaTemplate;
-  }
-
-  public void setDefaultEddaTemplate(String defaultEddaTemplate) {
-    this.defaultEddaTemplate = defaultEddaTemplate;
-  }
-
   public String getDefaultFront50Template() {
     return defaultFront50Template;
   }
 
   public void setDefaultFront50Template(String defaultFront50Template) {
     this.defaultFront50Template = defaultFront50Template;
-  }
-
-  public String getDefaultBastionHostTemplate() {
-    return defaultBastionHostTemplate;
-  }
-
-  public void setDefaultBastionHostTemplate(String defaultBastionHostTemplate) {
-    this.defaultBastionHostTemplate = defaultBastionHostTemplate;
   }
 
   public String getDefaultDiscoveryTemplate() {

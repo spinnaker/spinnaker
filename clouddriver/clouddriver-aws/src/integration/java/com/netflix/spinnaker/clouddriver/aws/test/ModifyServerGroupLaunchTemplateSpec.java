@@ -25,7 +25,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
@@ -33,34 +32,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.amazonaws.services.autoscaling.AmazonAutoScaling;
-import com.amazonaws.services.autoscaling.model.AmazonAutoScalingException;
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup;
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest;
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult;
-import com.amazonaws.services.autoscaling.model.InstancesDistribution;
-import com.amazonaws.services.autoscaling.model.LaunchTemplateOverrides;
-import com.amazonaws.services.autoscaling.model.LaunchTemplateSpecification;
-import com.amazonaws.services.autoscaling.model.MixedInstancesPolicy;
-import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest;
-import com.amazonaws.services.ec2.AmazonEC2;
-import com.amazonaws.services.ec2.model.CreateLaunchTemplateVersionRequest;
-import com.amazonaws.services.ec2.model.CreateLaunchTemplateVersionResult;
-import com.amazonaws.services.ec2.model.CreditSpecification;
-import com.amazonaws.services.ec2.model.DeleteLaunchTemplateVersionsRequest;
-import com.amazonaws.services.ec2.model.DeleteLaunchTemplateVersionsResponseErrorItem;
-import com.amazonaws.services.ec2.model.DeleteLaunchTemplateVersionsResponseSuccessItem;
-import com.amazonaws.services.ec2.model.DeleteLaunchTemplateVersionsResult;
-import com.amazonaws.services.ec2.model.DescribeImagesRequest;
-import com.amazonaws.services.ec2.model.DescribeImagesResult;
-import com.amazonaws.services.ec2.model.DescribeLaunchTemplateVersionsRequest;
-import com.amazonaws.services.ec2.model.DescribeLaunchTemplateVersionsResult;
-import com.amazonaws.services.ec2.model.Image;
-import com.amazonaws.services.ec2.model.LaunchTemplateInstanceMarketOptions;
-import com.amazonaws.services.ec2.model.LaunchTemplateSpotMarketOptions;
-import com.amazonaws.services.ec2.model.LaunchTemplateVersion;
-import com.amazonaws.services.ec2.model.ResponseError;
-import com.amazonaws.services.ec2.model.ResponseLaunchTemplateData;
 import com.netflix.spinnaker.clouddriver.aws.AwsBaseSpec;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
@@ -82,6 +53,34 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ActiveProfiles;
 import retrofit2.mock.Calls;
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingException;
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup;
+import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsRequest;
+import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsResponse;
+import software.amazon.awssdk.services.autoscaling.model.InstancesDistribution;
+import software.amazon.awssdk.services.autoscaling.model.LaunchTemplateOverrides;
+import software.amazon.awssdk.services.autoscaling.model.LaunchTemplateSpecification;
+import software.amazon.awssdk.services.autoscaling.model.MixedInstancesPolicy;
+import software.amazon.awssdk.services.autoscaling.model.UpdateAutoScalingGroupRequest;
+import software.amazon.awssdk.services.ec2.Ec2Client;
+import software.amazon.awssdk.services.ec2.model.CreateLaunchTemplateVersionRequest;
+import software.amazon.awssdk.services.ec2.model.CreateLaunchTemplateVersionResponse;
+import software.amazon.awssdk.services.ec2.model.CreditSpecification;
+import software.amazon.awssdk.services.ec2.model.DeleteLaunchTemplateVersionsRequest;
+import software.amazon.awssdk.services.ec2.model.DeleteLaunchTemplateVersionsResponse;
+import software.amazon.awssdk.services.ec2.model.DeleteLaunchTemplateVersionsResponseErrorItem;
+import software.amazon.awssdk.services.ec2.model.DeleteLaunchTemplateVersionsResponseSuccessItem;
+import software.amazon.awssdk.services.ec2.model.DescribeImagesRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeImagesResponse;
+import software.amazon.awssdk.services.ec2.model.DescribeLaunchTemplateVersionsRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeLaunchTemplateVersionsResponse;
+import software.amazon.awssdk.services.ec2.model.Image;
+import software.amazon.awssdk.services.ec2.model.LaunchTemplateInstanceMarketOptions;
+import software.amazon.awssdk.services.ec2.model.LaunchTemplateSpotMarketOptions;
+import software.amazon.awssdk.services.ec2.model.LaunchTemplateVersion;
+import software.amazon.awssdk.services.ec2.model.ResponseError;
+import software.amazon.awssdk.services.ec2.model.ResponseLaunchTemplateData;
 
 /**
  * Test class for general test cases related to CreateServerGroup operation. Note: launch template
@@ -92,39 +91,45 @@ public class ModifyServerGroupLaunchTemplateSpec extends AwsBaseSpec {
   @Autowired ApplicationContext context;
 
   private AsgService mockAsgService = mock(AsgService.class);
-  private AmazonEC2 mockEc2 = mock(AmazonEC2.class);
-  private AmazonAutoScaling mockAutoScaling = mock(AmazonAutoScaling.class);
+  private Ec2Client mockEc2 = mock(Ec2Client.class);
+  private AutoScalingClient mockAutoScaling = mock(AutoScalingClient.class);
 
   private static final String ASG_NAME = "myasg";
 
   // ASG with Launch Template
   private final LaunchTemplateVersion ltVersionOld =
-      new LaunchTemplateVersion()
-          .withLaunchTemplateId("lt-1")
-          .withLaunchTemplateName("lt-1")
-          .withVersionNumber(1L)
-          .withLaunchTemplateData(
-              new ResponseLaunchTemplateData()
-                  .withImageId("ami-12345")
-                  .withInstanceType("t3.large"));
+      LaunchTemplateVersion.builder()
+          .launchTemplateId("lt-1")
+          .launchTemplateName("lt-1")
+          .versionNumber(1L)
+          .launchTemplateData(
+              ResponseLaunchTemplateData.builder()
+                  .imageId("ami-12345")
+                  .instanceType("t3.large")
+                  .build())
+          .build();
 
   private final LaunchTemplateVersion ltVersionNew =
-      new LaunchTemplateVersion()
-          .withLaunchTemplateId("lt-1")
-          .withLaunchTemplateName("lt-1")
-          .withVersionNumber(2L)
-          .withLaunchTemplateData(
-              new ResponseLaunchTemplateData()
-                  .withImageId("ami-12345")
-                  .withInstanceType("t3.large"));
+      LaunchTemplateVersion.builder()
+          .launchTemplateId("lt-1")
+          .launchTemplateName("lt-1")
+          .versionNumber(2L)
+          .launchTemplateData(
+              ResponseLaunchTemplateData.builder()
+                  .imageId("ami-12345")
+                  .instanceType("t3.large")
+                  .build())
+          .build();
 
   private final AutoScalingGroup asgWithLt =
-      new AutoScalingGroup()
-          .withAutoScalingGroupName(ASG_NAME)
-          .withLaunchTemplate(
-              new LaunchTemplateSpecification()
-                  .withLaunchTemplateId(ltVersionOld.getLaunchTemplateId())
-                  .withVersion(String.valueOf(ltVersionOld.getVersionNumber())));
+      AutoScalingGroup.builder()
+          .autoScalingGroupName(ASG_NAME)
+          .launchTemplate(
+              LaunchTemplateSpecification.builder()
+                  .launchTemplateId(ltVersionOld.launchTemplateId())
+                  .version(String.valueOf(ltVersionOld.versionNumber()))
+                  .build())
+          .build();
 
   // ASG with Mixed Instances Policy
   BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType override1 =
@@ -139,39 +144,45 @@ public class ModifyServerGroupLaunchTemplateSpec extends AwsBaseSpec {
           .build();
   List<LaunchTemplateOverrides> ltOverrides =
       Arrays.asList(
-          new LaunchTemplateOverrides()
-              .withInstanceType(override1.getInstanceType())
-              .withWeightedCapacity(override1.getWeightedCapacity()),
-          new LaunchTemplateOverrides()
-              .withInstanceType(override2.getInstanceType())
-              .withWeightedCapacity(override2.getWeightedCapacity()));
+          LaunchTemplateOverrides.builder()
+              .instanceType(override1.getInstanceType())
+              .weightedCapacity(override1.getWeightedCapacity())
+              .build(),
+          LaunchTemplateOverrides.builder()
+              .instanceType(override2.getInstanceType())
+              .weightedCapacity(override2.getWeightedCapacity())
+              .build());
   InstancesDistribution instancesDist =
-      new InstancesDistribution()
-          .withOnDemandBaseCapacity(1)
-          .withOnDemandPercentageAboveBaseCapacity(50)
-          .withSpotInstancePools(5)
-          .withSpotAllocationStrategy("lowest-price")
-          .withSpotMaxPrice("1.5");
+      InstancesDistribution.builder()
+          .onDemandBaseCapacity(1)
+          .onDemandPercentageAboveBaseCapacity(50)
+          .spotInstancePools(5)
+          .spotAllocationStrategy("lowest-price")
+          .spotMaxPrice("1.5")
+          .build();
   private final AutoScalingGroup asgWithMip =
-      new AutoScalingGroup()
-          .withAutoScalingGroupName(ASG_NAME)
-          .withMixedInstancesPolicy(
-              new MixedInstancesPolicy()
-                  .withLaunchTemplate(
-                      new com.amazonaws.services.autoscaling.model.LaunchTemplate()
-                          .withOverrides(ltOverrides)
-                          .withLaunchTemplateSpecification(
-                              new LaunchTemplateSpecification()
-                                  .withLaunchTemplateId(ltVersionOld.getLaunchTemplateId())
-                                  .withVersion("$Latest")))
-                  .withInstancesDistribution(instancesDist));
+      AutoScalingGroup.builder()
+          .autoScalingGroupName(ASG_NAME)
+          .mixedInstancesPolicy(
+              MixedInstancesPolicy.builder()
+                  .launchTemplate(
+                      software.amazon.awssdk.services.autoscaling.model.LaunchTemplate.builder()
+                          .overrides(ltOverrides)
+                          .launchTemplateSpecification(
+                              LaunchTemplateSpecification.builder()
+                                  .launchTemplateId(ltVersionOld.launchTemplateId())
+                                  .version("$Latest")
+                                  .build())
+                          .build())
+                  .instancesDistribution(instancesDist)
+                  .build())
+          .build();
 
   @BeforeEach
   public void setup() {
 
     // mock autoscaling responses
-    when(mockAwsClientProvider.getAutoScaling(
-            any(NetflixAmazonCredentials.class), anyString(), anyBoolean()))
+    when(mockAwsClientProvider.getAutoScalingV2(any(NetflixAmazonCredentials.class), anyString()))
         .thenReturn(mockAutoScaling);
     when(mockRegionScopedProvider.getAsgService()).thenReturn(mockAsgService);
 
@@ -183,17 +194,23 @@ public class ModifyServerGroupLaunchTemplateSpec extends AwsBaseSpec {
 
     // mock EC2 responses
     when(mockRegionScopedProvider.getAmazonEC2()).thenReturn(mockEc2);
-    when(mockAwsClientProvider.getAmazonEC2(
-            any(NetflixAmazonCredentials.class), anyString(), anyBoolean()))
+    when(mockAwsClientProvider.getAmazonEC2V2(any(NetflixAmazonCredentials.class), anyString()))
         .thenReturn(mockEc2);
     when(mockEc2.describeLaunchTemplateVersions(any(DescribeLaunchTemplateVersionsRequest.class)))
         .thenReturn(
-            new DescribeLaunchTemplateVersionsResult().withLaunchTemplateVersions(ltVersionOld));
+            DescribeLaunchTemplateVersionsResponse.builder()
+                .launchTemplateVersions(ltVersionOld)
+                .build());
     when(mockEc2.describeImages(any(DescribeImagesRequest.class)))
-        .thenReturn(new DescribeImagesResult().withImages(new Image().withImageId("ami-12345")));
+        .thenReturn(
+            DescribeImagesResponse.builder()
+                .images(Image.builder().imageId("ami-12345").build())
+                .build());
     when(mockEc2.createLaunchTemplateVersion(any(CreateLaunchTemplateVersionRequest.class)))
         .thenReturn(
-            new CreateLaunchTemplateVersionResult().withLaunchTemplateVersion(ltVersionNew));
+            CreateLaunchTemplateVersionResponse.builder()
+                .launchTemplateVersion(ltVersionNew)
+                .build());
   }
 
   @DisplayName("Given invalid requests, successfully validate with error messages")
@@ -244,13 +261,16 @@ public class ModifyServerGroupLaunchTemplateSpec extends AwsBaseSpec {
             .withValue("instanceType", "c4.large")
             .asMap();
     AutoScalingGroup asgWithLc =
-        new AutoScalingGroup()
-            .withAutoScalingGroupName(ASG_NAME)
-            .withLaunchConfigurationName("some-launch-config");
+        AutoScalingGroup.builder()
+            .autoScalingGroupName(ASG_NAME)
+            .launchConfigurationName("some-launch-config")
+            .build();
     when(mockAutoScaling.describeAutoScalingGroups(
-            new DescribeAutoScalingGroupsRequest()
-                .withAutoScalingGroupNames(Collections.singletonList(ASG_NAME))))
-        .thenReturn(new DescribeAutoScalingGroupsResult().withAutoScalingGroups(asgWithLc));
+            DescribeAutoScalingGroupsRequest.builder()
+                .autoScalingGroupNames(Collections.singletonList(ASG_NAME))
+                .build()))
+        .thenReturn(
+            DescribeAutoScalingGroupsResponse.builder().autoScalingGroups(asgWithLc).build());
 
     // when, then
     given()
@@ -296,9 +316,11 @@ public class ModifyServerGroupLaunchTemplateSpec extends AwsBaseSpec {
             .withValue("instanceType", "t3.large")
             .asMap();
     when(mockAutoScaling.describeAutoScalingGroups(
-            new DescribeAutoScalingGroupsRequest()
-                .withAutoScalingGroupNames(Collections.singletonList(ASG_NAME))))
-        .thenReturn(new DescribeAutoScalingGroupsResult().withAutoScalingGroups(asgWithLt));
+            DescribeAutoScalingGroupsRequest.builder()
+                .autoScalingGroupNames(Collections.singletonList(ASG_NAME))
+                .build()))
+        .thenReturn(
+            DescribeAutoScalingGroupsResponse.builder().autoScalingGroups(asgWithLt).build());
 
     // when, then
     String taskId =
@@ -324,29 +346,25 @@ public class ModifyServerGroupLaunchTemplateSpec extends AwsBaseSpec {
     verify(mockEc2).createLaunchTemplateVersion(createLtVersionArgs.capture());
     CreateLaunchTemplateVersionRequest createLtVersionReq = createLtVersionArgs.getValue();
 
-    assertEquals("lt-1", createLtVersionReq.getLaunchTemplateId());
-    assertEquals("ami-12345", createLtVersionReq.getLaunchTemplateData().getImageId());
-    assertEquals("t3.large", createLtVersionReq.getLaunchTemplateData().getInstanceType());
+    assertEquals("lt-1", createLtVersionReq.launchTemplateId());
+    assertEquals("ami-12345", createLtVersionReq.launchTemplateData().imageId());
+    assertEquals("t3.large", createLtVersionReq.launchTemplateData().instanceTypeAsString());
     assertEquals(
         "spot",
-        createLtVersionReq.getLaunchTemplateData().getInstanceMarketOptions().getMarketType());
+        createLtVersionReq.launchTemplateData().instanceMarketOptions().marketTypeAsString());
     assertEquals(
         "0.5",
-        createLtVersionReq
-            .getLaunchTemplateData()
-            .getInstanceMarketOptions()
-            .getSpotOptions()
-            .getMaxPrice());
+        createLtVersionReq.launchTemplateData().instanceMarketOptions().spotOptions().maxPrice());
 
     ArgumentCaptor<UpdateAutoScalingGroupRequest> updateAsgArgs =
         ArgumentCaptor.forClass(UpdateAutoScalingGroupRequest.class);
     verify(mockAutoScaling).updateAutoScalingGroup(updateAsgArgs.capture());
     UpdateAutoScalingGroupRequest updateAsgReq = updateAsgArgs.getValue();
 
-    assertEquals(ASG_NAME, updateAsgReq.getAutoScalingGroupName());
-    assertEquals("2", updateAsgReq.getLaunchTemplate().getVersion());
+    assertEquals(ASG_NAME, updateAsgReq.autoScalingGroupName());
+    assertEquals("2", updateAsgReq.launchTemplate().version());
 
-    assertNull(updateAsgReq.getMixedInstancesPolicy());
+    assertNull(updateAsgReq.mixedInstancesPolicy());
   }
 
   @DisplayName(
@@ -367,23 +385,27 @@ public class ModifyServerGroupLaunchTemplateSpec extends AwsBaseSpec {
                     Map.of("instanceType", "t3.xlarge", "weightedCapacity", "4")))
             .asMap();
     when(mockAutoScaling.describeAutoScalingGroups(
-            new DescribeAutoScalingGroupsRequest()
-                .withAutoScalingGroupNames(Collections.singletonList(ASG_NAME))))
-        .thenReturn(new DescribeAutoScalingGroupsResult().withAutoScalingGroups(asgWithLt));
+            DescribeAutoScalingGroupsRequest.builder()
+                .autoScalingGroupNames(Collections.singletonList(ASG_NAME))
+                .build()))
+        .thenReturn(
+            DescribeAutoScalingGroupsResponse.builder().autoScalingGroups(asgWithLt).build());
 
     ResponseLaunchTemplateData ltData =
-        ltVersionNew
-            .getLaunchTemplateData()
-            .withCreditSpecification(new CreditSpecification().withCpuCredits("unlimited"));
+        ltVersionNew.launchTemplateData().toBuilder()
+            .creditSpecification(CreditSpecification.builder().cpuCredits("unlimited").build())
+            .build();
     when(mockEc2.createLaunchTemplateVersion(any(CreateLaunchTemplateVersionRequest.class)))
         .thenReturn(
-            new CreateLaunchTemplateVersionResult()
-                .withLaunchTemplateVersion(
-                    new LaunchTemplateVersion()
-                        .withLaunchTemplateData(ltData)
-                        .withLaunchTemplateId("lt-1")
-                        .withLaunchTemplateName("lt-1")
-                        .withVersionNumber(2L)));
+            CreateLaunchTemplateVersionResponse.builder()
+                .launchTemplateVersion(
+                    LaunchTemplateVersion.builder()
+                        .launchTemplateData(ltData)
+                        .launchTemplateId("lt-1")
+                        .launchTemplateName("lt-1")
+                        .versionNumber(2L)
+                        .build())
+                .build());
 
     // when, then
     String taskId =
@@ -409,32 +431,28 @@ public class ModifyServerGroupLaunchTemplateSpec extends AwsBaseSpec {
     verify(mockEc2).createLaunchTemplateVersion(createLtVersionArgs.capture());
     CreateLaunchTemplateVersionRequest createLtVersionReq = createLtVersionArgs.getValue();
 
-    assertEquals("lt-1", createLtVersionReq.getLaunchTemplateId());
+    assertEquals("lt-1", createLtVersionReq.launchTemplateId());
     assertEquals(
-        "unlimited",
-        createLtVersionReq.getLaunchTemplateData().getCreditSpecification().getCpuCredits());
+        "unlimited", createLtVersionReq.launchTemplateData().creditSpecification().cpuCredits());
 
     ArgumentCaptor<UpdateAutoScalingGroupRequest> updateAsgArgs =
         ArgumentCaptor.forClass(UpdateAutoScalingGroupRequest.class);
     verify(mockAutoScaling).updateAutoScalingGroup(updateAsgArgs.capture());
     UpdateAutoScalingGroupRequest updateAsgReq = updateAsgArgs.getValue();
 
-    assertEquals(ASG_NAME, updateAsgReq.getAutoScalingGroupName());
-    assertNull(updateAsgReq.getLaunchTemplate());
+    assertEquals(ASG_NAME, updateAsgReq.autoScalingGroupName());
+    assertNull(updateAsgReq.launchTemplate());
 
-    MixedInstancesPolicy mipInUpdateReq = updateAsgReq.getMixedInstancesPolicy();
+    MixedInstancesPolicy mipInUpdateReq = updateAsgReq.mixedInstancesPolicy();
     assertNotNull(mipInUpdateReq);
     assertEquals(
-        "lt-1",
-        mipInUpdateReq.getLaunchTemplate().getLaunchTemplateSpecification().getLaunchTemplateId());
+        "lt-1", mipInUpdateReq.launchTemplate().launchTemplateSpecification().launchTemplateId());
+    assertEquals("2", mipInUpdateReq.launchTemplate().launchTemplateSpecification().version());
     assertEquals(
-        "2", mipInUpdateReq.getLaunchTemplate().getLaunchTemplateSpecification().getVersion());
+        "capacity-optimized", mipInUpdateReq.instancesDistribution().spotAllocationStrategy());
     assertEquals(
-        "capacity-optimized",
-        mipInUpdateReq.getInstancesDistribution().getSpotAllocationStrategy());
-    assertEquals(
-        "[{InstanceType: t3.large,WeightedCapacity: 2,}, {InstanceType: t3.xlarge,WeightedCapacity: 4,}]",
-        mipInUpdateReq.getLaunchTemplate().getOverrides().toString());
+        "[LaunchTemplateOverrides(InstanceType=t3.large, WeightedCapacity=2), LaunchTemplateOverrides(InstanceType=t3.xlarge, WeightedCapacity=4)]",
+        mipInUpdateReq.launchTemplate().overrides().toString());
   }
 
   @DisplayName(
@@ -457,49 +475,61 @@ public class ModifyServerGroupLaunchTemplateSpec extends AwsBaseSpec {
             .asMap();
 
     LaunchTemplateVersion ltVersionOldLocal =
-        new LaunchTemplateVersion()
-            .withLaunchTemplateId("lt-1")
-            .withLaunchTemplateName("lt-spot-1")
-            .withVersionNumber(1L)
-            .withLaunchTemplateData(
-                new ResponseLaunchTemplateData()
-                    .withImageId("ami-12345")
-                    .withInstanceType("c3.large")
-                    .withInstanceMarketOptions(
-                        new LaunchTemplateInstanceMarketOptions()
-                            .withMarketType("spot")
-                            .withSpotOptions(
-                                new LaunchTemplateSpotMarketOptions().withMaxPrice("0.5"))));
+        LaunchTemplateVersion.builder()
+            .launchTemplateId("lt-1")
+            .launchTemplateName("lt-spot-1")
+            .versionNumber(1L)
+            .launchTemplateData(
+                ResponseLaunchTemplateData.builder()
+                    .imageId("ami-12345")
+                    .instanceType("c3.large")
+                    .instanceMarketOptions(
+                        LaunchTemplateInstanceMarketOptions.builder()
+                            .marketType("spot")
+                            .spotOptions(
+                                LaunchTemplateSpotMarketOptions.builder().maxPrice("0.5").build())
+                            .build())
+                    .build())
+            .build();
 
     LaunchTemplateVersion ltVersionNewLocal =
-        new LaunchTemplateVersion()
-            .withLaunchTemplateId(ltVersionOldLocal.getLaunchTemplateId())
-            .withLaunchTemplateName(ltVersionOldLocal.getLaunchTemplateName())
-            .withVersionNumber(2L)
-            .withLaunchTemplateData(
-                new ResponseLaunchTemplateData()
-                    .withImageId("ami-12345")
-                    .withInstanceType("c3.large"));
+        LaunchTemplateVersion.builder()
+            .launchTemplateId(ltVersionOldLocal.launchTemplateId())
+            .launchTemplateName(ltVersionOldLocal.launchTemplateName())
+            .versionNumber(2L)
+            .launchTemplateData(
+                ResponseLaunchTemplateData.builder()
+                    .imageId("ami-12345")
+                    .instanceType("c3.large")
+                    .build())
+            .build();
 
     AutoScalingGroup asgWithLtSpot =
-        new AutoScalingGroup()
-            .withAutoScalingGroupName(ASG_NAME)
-            .withLaunchTemplate(
-                new LaunchTemplateSpecification()
-                    .withLaunchTemplateId(ltVersionOldLocal.getLaunchTemplateId())
-                    .withVersion(String.valueOf(ltVersionOldLocal.getVersionNumber())));
+        AutoScalingGroup.builder()
+            .autoScalingGroupName(ASG_NAME)
+            .launchTemplate(
+                LaunchTemplateSpecification.builder()
+                    .launchTemplateId(ltVersionOldLocal.launchTemplateId())
+                    .version(String.valueOf(ltVersionOldLocal.versionNumber()))
+                    .build())
+            .build();
 
     when(mockAutoScaling.describeAutoScalingGroups(
-            new DescribeAutoScalingGroupsRequest()
-                .withAutoScalingGroupNames(Collections.singletonList(ASG_NAME))))
-        .thenReturn(new DescribeAutoScalingGroupsResult().withAutoScalingGroups(asgWithLtSpot));
+            DescribeAutoScalingGroupsRequest.builder()
+                .autoScalingGroupNames(Collections.singletonList(ASG_NAME))
+                .build()))
+        .thenReturn(
+            DescribeAutoScalingGroupsResponse.builder().autoScalingGroups(asgWithLtSpot).build());
     when(mockEc2.describeLaunchTemplateVersions(any(DescribeLaunchTemplateVersionsRequest.class)))
         .thenReturn(
-            new DescribeLaunchTemplateVersionsResult()
-                .withLaunchTemplateVersions(ltVersionOldLocal));
+            DescribeLaunchTemplateVersionsResponse.builder()
+                .launchTemplateVersions(ltVersionOldLocal)
+                .build());
     when(mockEc2.createLaunchTemplateVersion(any(CreateLaunchTemplateVersionRequest.class)))
         .thenReturn(
-            new CreateLaunchTemplateVersionResult().withLaunchTemplateVersion(ltVersionNewLocal));
+            CreateLaunchTemplateVersionResponse.builder()
+                .launchTemplateVersion(ltVersionNewLocal)
+                .build());
 
     // when, then
     String taskId =
@@ -525,41 +555,37 @@ public class ModifyServerGroupLaunchTemplateSpec extends AwsBaseSpec {
     verify(mockEc2).createLaunchTemplateVersion(createLtVersionArgs.capture());
     CreateLaunchTemplateVersionRequest createLtVersionReq = createLtVersionArgs.getValue();
 
-    assertEquals("lt-1", createLtVersionReq.getLaunchTemplateId());
+    assertEquals("lt-1", createLtVersionReq.launchTemplateId());
     assertNull(
         createLtVersionReq
-            .getLaunchTemplateData()
-            .getInstanceMarketOptions()); // spotMaxPrice was removed
+            .launchTemplateData()
+            .instanceMarketOptions()); // spotMaxPrice was removed
 
     ArgumentCaptor<UpdateAutoScalingGroupRequest> updateAsgArgs =
         ArgumentCaptor.forClass(UpdateAutoScalingGroupRequest.class);
     verify(mockAutoScaling).updateAutoScalingGroup(updateAsgArgs.capture());
     UpdateAutoScalingGroupRequest updateAsgReq = updateAsgArgs.getValue();
 
-    assertEquals(ASG_NAME, updateAsgReq.getAutoScalingGroupName());
+    assertEquals(ASG_NAME, updateAsgReq.autoScalingGroupName());
     assertNull(
-        updateAsgReq
-            .getLaunchTemplate()); // assert updated ASG uses mixed instances policy instead of
+        updateAsgReq.launchTemplate()); // assert updated ASG uses mixed instances policy instead of
     // launch template
 
-    MixedInstancesPolicy mipInUpdateReq = updateAsgReq.getMixedInstancesPolicy();
+    MixedInstancesPolicy mipInUpdateReq = updateAsgReq.mixedInstancesPolicy();
     assertNotNull(mipInUpdateReq);
     assertEquals(
-        "lt-1",
-        mipInUpdateReq.getLaunchTemplate().getLaunchTemplateSpecification().getLaunchTemplateId());
+        "lt-1", mipInUpdateReq.launchTemplate().launchTemplateSpecification().launchTemplateId());
+    assertEquals("2", mipInUpdateReq.launchTemplate().launchTemplateSpecification().version());
     assertEquals(
-        "2", mipInUpdateReq.getLaunchTemplate().getLaunchTemplateSpecification().getVersion());
-    assertEquals(
-        "capacity-optimized",
-        mipInUpdateReq.getInstancesDistribution().getSpotAllocationStrategy());
+        "capacity-optimized", mipInUpdateReq.instancesDistribution().spotAllocationStrategy());
     assertEquals(
         "0.5",
         mipInUpdateReq
-            .getInstancesDistribution()
-            .getSpotMaxPrice()); // spot max price was moved from LTData to MIP
+            .instancesDistribution()
+            .spotMaxPrice()); // spot max price was moved from LTData to MIP
     assertEquals(
-        "[{InstanceType: t3.large,WeightedCapacity: 2,}, {InstanceType: t3.xlarge,WeightedCapacity: 4,}]",
-        mipInUpdateReq.getLaunchTemplate().getOverrides().toString());
+        "[LaunchTemplateOverrides(InstanceType=t3.large, WeightedCapacity=2), LaunchTemplateOverrides(InstanceType=t3.xlarge, WeightedCapacity=4)]",
+        mipInUpdateReq.launchTemplate().overrides().toString());
   }
 
   @DisplayName(
@@ -582,9 +608,11 @@ public class ModifyServerGroupLaunchTemplateSpec extends AwsBaseSpec {
                     Map.of("instanceType", "c3.xlarge", "weightedCapacity", "4")))
             .asMap();
     when(mockAutoScaling.describeAutoScalingGroups(
-            new DescribeAutoScalingGroupsRequest()
-                .withAutoScalingGroupNames(Collections.singletonList(ASG_NAME))))
-        .thenReturn(new DescribeAutoScalingGroupsResult().withAutoScalingGroups(asgWithMip));
+            DescribeAutoScalingGroupsRequest.builder()
+                .autoScalingGroupNames(Collections.singletonList(ASG_NAME))
+                .build()))
+        .thenReturn(
+            DescribeAutoScalingGroupsResponse.builder().autoScalingGroups(asgWithMip).build());
 
     // when, then
     String taskId =
@@ -614,31 +642,27 @@ public class ModifyServerGroupLaunchTemplateSpec extends AwsBaseSpec {
     verify(mockAutoScaling).updateAutoScalingGroup(updateAsgArgs.capture());
     UpdateAutoScalingGroupRequest updateAsgReq = updateAsgArgs.getValue();
 
-    assertEquals(ASG_NAME, updateAsgReq.getAutoScalingGroupName());
-    assertNull(updateAsgReq.getLaunchTemplate());
+    assertEquals(ASG_NAME, updateAsgReq.autoScalingGroupName());
+    assertNull(updateAsgReq.launchTemplate());
 
-    MixedInstancesPolicy mipInUpdateReq = updateAsgReq.getMixedInstancesPolicy();
+    MixedInstancesPolicy mipInUpdateReq = updateAsgReq.mixedInstancesPolicy();
     assertNotNull(mipInUpdateReq);
     assertEquals(
-        "lt-1",
-        mipInUpdateReq.getLaunchTemplate().getLaunchTemplateSpecification().getLaunchTemplateId());
+        "lt-1", mipInUpdateReq.launchTemplate().launchTemplateSpecification().launchTemplateId());
+    assertEquals("1", mipInUpdateReq.launchTemplate().launchTemplateSpecification().version());
+    assertEquals(2, mipInUpdateReq.instancesDistribution().onDemandBaseCapacity());
+    assertEquals(25, mipInUpdateReq.instancesDistribution().onDemandPercentageAboveBaseCapacity());
     assertEquals(
-        "1", mipInUpdateReq.getLaunchTemplate().getLaunchTemplateSpecification().getVersion());
-    assertEquals(2, mipInUpdateReq.getInstancesDistribution().getOnDemandBaseCapacity());
-    assertEquals(
-        25, mipInUpdateReq.getInstancesDistribution().getOnDemandPercentageAboveBaseCapacity());
-    assertEquals(
-        "capacity-optimized",
-        mipInUpdateReq.getInstancesDistribution().getSpotAllocationStrategy());
-    assertEquals(null, mipInUpdateReq.getInstancesDistribution().getSpotInstancePools());
+        "capacity-optimized", mipInUpdateReq.instancesDistribution().spotAllocationStrategy());
+    assertEquals(null, mipInUpdateReq.instancesDistribution().spotInstancePools());
     assertEquals(
         "1.5",
         mipInUpdateReq
-            .getInstancesDistribution()
-            .getSpotMaxPrice()); // spot max price in MIP wasn't modified
+            .instancesDistribution()
+            .spotMaxPrice()); // spot max price in MIP wasn't modified
     assertEquals(
-        "[{InstanceType: c3.large,WeightedCapacity: 2,}, {InstanceType: c3.xlarge,WeightedCapacity: 4,}]",
-        mipInUpdateReq.getLaunchTemplate().getOverrides().toString());
+        "[LaunchTemplateOverrides(InstanceType=c3.large, WeightedCapacity=2), LaunchTemplateOverrides(InstanceType=c3.xlarge, WeightedCapacity=4)]",
+        mipInUpdateReq.launchTemplate().overrides().toString());
   }
 
   @DisplayName(
@@ -662,9 +686,11 @@ public class ModifyServerGroupLaunchTemplateSpec extends AwsBaseSpec {
                     Map.of("instanceType", "c3.xlarge", "weightedCapacity", "4")))
             .asMap();
     when(mockAutoScaling.describeAutoScalingGroups(
-            new DescribeAutoScalingGroupsRequest()
-                .withAutoScalingGroupNames(Collections.singletonList(ASG_NAME))))
-        .thenReturn(new DescribeAutoScalingGroupsResult().withAutoScalingGroups(asgWithLt));
+            DescribeAutoScalingGroupsRequest.builder()
+                .autoScalingGroupNames(Collections.singletonList(ASG_NAME))
+                .build()))
+        .thenReturn(
+            DescribeAutoScalingGroupsResponse.builder().autoScalingGroups(asgWithLt).build());
 
     // when, then
     String taskId =
@@ -694,23 +720,20 @@ public class ModifyServerGroupLaunchTemplateSpec extends AwsBaseSpec {
     verify(mockAutoScaling).updateAutoScalingGroup(updateAsgArgs.capture());
     UpdateAutoScalingGroupRequest updateAsgReq = updateAsgArgs.getValue();
 
-    assertEquals(ASG_NAME, updateAsgReq.getAutoScalingGroupName());
-    assertNull(updateAsgReq.getLaunchTemplate());
+    assertEquals(ASG_NAME, updateAsgReq.autoScalingGroupName());
+    assertNull(updateAsgReq.launchTemplate());
 
-    MixedInstancesPolicy mipInUpdateReq = updateAsgReq.getMixedInstancesPolicy();
+    MixedInstancesPolicy mipInUpdateReq = updateAsgReq.mixedInstancesPolicy();
     assertNotNull(mipInUpdateReq);
     assertEquals(
-        "lt-1",
-        mipInUpdateReq.getLaunchTemplate().getLaunchTemplateSpecification().getLaunchTemplateId());
+        "lt-1", mipInUpdateReq.launchTemplate().launchTemplateSpecification().launchTemplateId());
+    assertEquals("1", mipInUpdateReq.launchTemplate().launchTemplateSpecification().version());
+    assertEquals("lowest-price", mipInUpdateReq.instancesDistribution().spotAllocationStrategy());
+    assertEquals(6, mipInUpdateReq.instancesDistribution().spotInstancePools());
+    assertEquals("0.5", mipInUpdateReq.instancesDistribution().spotMaxPrice());
     assertEquals(
-        "1", mipInUpdateReq.getLaunchTemplate().getLaunchTemplateSpecification().getVersion());
-    assertEquals(
-        "lowest-price", mipInUpdateReq.getInstancesDistribution().getSpotAllocationStrategy());
-    assertEquals(6, mipInUpdateReq.getInstancesDistribution().getSpotInstancePools());
-    assertEquals("0.5", mipInUpdateReq.getInstancesDistribution().getSpotMaxPrice());
-    assertEquals(
-        "[{InstanceType: c3.large,WeightedCapacity: 2,}, {InstanceType: c4.large,WeightedCapacity: 2,}, {InstanceType: c4.xlarge,WeightedCapacity: 4,}, {InstanceType: c3.xlarge,WeightedCapacity: 4,}]",
-        mipInUpdateReq.getLaunchTemplate().getOverrides().toString());
+        "[LaunchTemplateOverrides(InstanceType=c3.large, WeightedCapacity=2), LaunchTemplateOverrides(InstanceType=c4.large, WeightedCapacity=2), LaunchTemplateOverrides(InstanceType=c4.xlarge, WeightedCapacity=4), LaunchTemplateOverrides(InstanceType=c3.xlarge, WeightedCapacity=4)]",
+        mipInUpdateReq.launchTemplate().overrides().toString());
   }
 
   @DisplayName(
@@ -725,9 +748,11 @@ public class ModifyServerGroupLaunchTemplateSpec extends AwsBaseSpec {
             .withValue("spotPrice", "2")
             .asMap();
     when(mockAutoScaling.describeAutoScalingGroups(
-            new DescribeAutoScalingGroupsRequest()
-                .withAutoScalingGroupNames(Collections.singletonList(ASG_NAME))))
-        .thenReturn(new DescribeAutoScalingGroupsResult().withAutoScalingGroups(asgWithMip));
+            DescribeAutoScalingGroupsRequest.builder()
+                .autoScalingGroupNames(Collections.singletonList(ASG_NAME))
+                .build()))
+        .thenReturn(
+            DescribeAutoScalingGroupsResponse.builder().autoScalingGroups(asgWithMip).build());
 
     // when, then
     String taskId =
@@ -757,12 +782,12 @@ public class ModifyServerGroupLaunchTemplateSpec extends AwsBaseSpec {
     verify(mockAutoScaling).updateAutoScalingGroup(updateAsgArgs.capture());
     UpdateAutoScalingGroupRequest updateAsgReq = updateAsgArgs.getValue();
 
-    assertEquals(ASG_NAME, updateAsgReq.getAutoScalingGroupName());
-    assertNull(updateAsgReq.getLaunchTemplate());
+    assertEquals(ASG_NAME, updateAsgReq.autoScalingGroupName());
+    assertNull(updateAsgReq.launchTemplate());
 
-    MixedInstancesPolicy mipInUpdateReq = updateAsgReq.getMixedInstancesPolicy();
+    MixedInstancesPolicy mipInUpdateReq = updateAsgReq.mixedInstancesPolicy();
     assertNotNull(mipInUpdateReq);
-    assertEquals("2", mipInUpdateReq.getInstancesDistribution().getSpotMaxPrice());
+    assertEquals("2", mipInUpdateReq.instancesDistribution().spotMaxPrice());
   }
 
   @DisplayName(
@@ -777,30 +802,37 @@ public class ModifyServerGroupLaunchTemplateSpec extends AwsBaseSpec {
             .withValue("instanceType", "t3.large")
             .asMap();
     when(mockAutoScaling.describeAutoScalingGroups(
-            new DescribeAutoScalingGroupsRequest()
-                .withAutoScalingGroupNames(Collections.singletonList(ASG_NAME))))
-        .thenReturn(new DescribeAutoScalingGroupsResult().withAutoScalingGroups(asgWithLt));
+            DescribeAutoScalingGroupsRequest.builder()
+                .autoScalingGroupNames(Collections.singletonList(ASG_NAME))
+                .build()))
+        .thenReturn(
+            DescribeAutoScalingGroupsResponse.builder().autoScalingGroups(asgWithLt).build());
 
     UpdateAutoScalingGroupRequest updateAsgReq =
-        new UpdateAutoScalingGroupRequest()
-            .withAutoScalingGroupName(ASG_NAME)
-            .withLaunchTemplate(
-                new LaunchTemplateSpecification()
-                    .withLaunchTemplateId(ltVersionNew.getLaunchTemplateId())
-                    .withVersion(String.valueOf(ltVersionNew.getVersionNumber())));
+        UpdateAutoScalingGroupRequest.builder()
+            .autoScalingGroupName(ASG_NAME)
+            .launchTemplate(
+                LaunchTemplateSpecification.builder()
+                    .launchTemplateId(ltVersionNew.launchTemplateId())
+                    .version(String.valueOf(ltVersionNew.versionNumber()))
+                    .build())
+            .build();
     when(mockAutoScaling.updateAutoScalingGroup(updateAsgReq))
-        .thenThrow(new AmazonAutoScalingException("Something went wrong."));
+        .thenThrow(AutoScalingException.builder().message("Something went wrong.").build());
 
     when(mockEc2.deleteLaunchTemplateVersions(
-            new DeleteLaunchTemplateVersionsRequest()
-                .withLaunchTemplateId(ltVersionNew.getLaunchTemplateId())
-                .withVersions(String.valueOf(ltVersionNew.getVersionNumber()))))
+            DeleteLaunchTemplateVersionsRequest.builder()
+                .launchTemplateId(ltVersionNew.launchTemplateId())
+                .versions(String.valueOf(ltVersionNew.versionNumber()))
+                .build()))
         .thenReturn(
-            new DeleteLaunchTemplateVersionsResult()
-                .withSuccessfullyDeletedLaunchTemplateVersions(
-                    new DeleteLaunchTemplateVersionsResponseSuccessItem()
-                        .withLaunchTemplateId(ltVersionNew.getLaunchTemplateId())
-                        .withVersionNumber(ltVersionNew.getVersionNumber())));
+            DeleteLaunchTemplateVersionsResponse.builder()
+                .successfullyDeletedLaunchTemplateVersions(
+                    DeleteLaunchTemplateVersionsResponseSuccessItem.builder()
+                        .launchTemplateId(ltVersionNew.launchTemplateId())
+                        .versionNumber(ltVersionNew.versionNumber())
+                        .build())
+                .build());
 
     // when, then
     String taskId =
@@ -829,8 +861,7 @@ public class ModifyServerGroupLaunchTemplateSpec extends AwsBaseSpec {
 
     // verify updateAutoScalingGroup throws exception
     assertThrows(
-        AmazonAutoScalingException.class,
-        () -> mockAutoScaling.updateAutoScalingGroup(updateAsgReq));
+        AutoScalingException.class, () -> mockAutoScaling.updateAutoScalingGroup(updateAsgReq));
 
     // verify newly create launch template version was deleted
     ArgumentCaptor<DeleteLaunchTemplateVersionsRequest> deleteLtVersionArgs =
@@ -838,10 +869,10 @@ public class ModifyServerGroupLaunchTemplateSpec extends AwsBaseSpec {
     verify(mockEc2).deleteLaunchTemplateVersions(deleteLtVersionArgs.capture());
     DeleteLaunchTemplateVersionsRequest deleteLtVersionReq = deleteLtVersionArgs.getValue();
 
-    assertEquals(ltVersionNew.getLaunchTemplateId(), deleteLtVersionReq.getLaunchTemplateId());
-    assertEquals(1, deleteLtVersionReq.getVersions().size());
+    assertEquals(ltVersionNew.launchTemplateId(), deleteLtVersionReq.launchTemplateId());
+    assertEquals(1, deleteLtVersionReq.versions().size());
     assertEquals(
-        String.valueOf(ltVersionNew.getVersionNumber()), deleteLtVersionReq.getVersions().get(0));
+        String.valueOf(ltVersionNew.versionNumber()), deleteLtVersionReq.versions().get(0));
   }
 
   @DisplayName(
@@ -857,31 +888,38 @@ public class ModifyServerGroupLaunchTemplateSpec extends AwsBaseSpec {
             .withValue("instanceType", "t3.large")
             .asMap();
     when(mockAutoScaling.describeAutoScalingGroups(
-            new DescribeAutoScalingGroupsRequest()
-                .withAutoScalingGroupNames(Collections.singletonList(ASG_NAME))))
-        .thenReturn(new DescribeAutoScalingGroupsResult().withAutoScalingGroups(asgWithLt));
+            DescribeAutoScalingGroupsRequest.builder()
+                .autoScalingGroupNames(Collections.singletonList(ASG_NAME))
+                .build()))
+        .thenReturn(
+            DescribeAutoScalingGroupsResponse.builder().autoScalingGroups(asgWithLt).build());
 
     UpdateAutoScalingGroupRequest updateAsgReq =
-        new UpdateAutoScalingGroupRequest()
-            .withAutoScalingGroupName(ASG_NAME)
-            .withLaunchTemplate(
-                new LaunchTemplateSpecification()
-                    .withLaunchTemplateId(ltVersionNew.getLaunchTemplateId())
-                    .withVersion(String.valueOf(ltVersionNew.getVersionNumber())));
+        UpdateAutoScalingGroupRequest.builder()
+            .autoScalingGroupName(ASG_NAME)
+            .launchTemplate(
+                LaunchTemplateSpecification.builder()
+                    .launchTemplateId(ltVersionNew.launchTemplateId())
+                    .version(String.valueOf(ltVersionNew.versionNumber()))
+                    .build())
+            .build();
     when(mockAutoScaling.updateAutoScalingGroup(updateAsgReq))
-        .thenThrow(AmazonAutoScalingException.class);
+        .thenThrow(AutoScalingException.builder().build());
 
     when(mockEc2.deleteLaunchTemplateVersions(
-            new DeleteLaunchTemplateVersionsRequest()
-                .withLaunchTemplateId(ltVersionNew.getLaunchTemplateId())
-                .withVersions(String.valueOf(ltVersionNew.getVersionNumber()))))
+            DeleteLaunchTemplateVersionsRequest.builder()
+                .launchTemplateId(ltVersionNew.launchTemplateId())
+                .versions(String.valueOf(ltVersionNew.versionNumber()))
+                .build()))
         .thenReturn(
-            new DeleteLaunchTemplateVersionsResult()
-                .withUnsuccessfullyDeletedLaunchTemplateVersions(
-                    new DeleteLaunchTemplateVersionsResponseErrorItem()
-                        .withLaunchTemplateId(ltVersionNew.getLaunchTemplateId())
-                        .withVersionNumber(ltVersionNew.getVersionNumber())
-                        .withResponseError(new ResponseError().withCode("unexpectedError"))));
+            DeleteLaunchTemplateVersionsResponse.builder()
+                .unsuccessfullyDeletedLaunchTemplateVersions(
+                    DeleteLaunchTemplateVersionsResponseErrorItem.builder()
+                        .launchTemplateId(ltVersionNew.launchTemplateId())
+                        .versionNumber(ltVersionNew.versionNumber())
+                        .responseError(ResponseError.builder().code("unexpectedError").build())
+                        .build())
+                .build());
 
     // when, then
     String taskId =
@@ -903,7 +941,7 @@ public class ModifyServerGroupLaunchTemplateSpec extends AwsBaseSpec {
     assertTrue(
         taskHistory.contains(
             "Orchestration failed: ModifyServerGroupLaunchTemplateAtomicOperation | LaunchTemplateException: "
-                + "[Failed to update server group myasg.Error: null"));
+                + "[Failed to update server group myasg."));
     assertTrue(
         taskHistory.contains(
             "Failed to clean up launch template version! Error: Failed to delete launch template version 2 for launch template ID lt-1 because of error 'unexpectedError'"));
@@ -913,8 +951,7 @@ public class ModifyServerGroupLaunchTemplateSpec extends AwsBaseSpec {
 
     // verify updateAutoScalingGroup throws exception
     assertThrows(
-        AmazonAutoScalingException.class,
-        () -> mockAutoScaling.updateAutoScalingGroup(updateAsgReq));
+        AutoScalingException.class, () -> mockAutoScaling.updateAutoScalingGroup(updateAsgReq));
 
     // verify newly create launch template version was attempted to be deleted
     ArgumentCaptor<DeleteLaunchTemplateVersionsRequest> deleteLtVersionArgs =
@@ -922,9 +959,9 @@ public class ModifyServerGroupLaunchTemplateSpec extends AwsBaseSpec {
     verify(mockEc2).deleteLaunchTemplateVersions(deleteLtVersionArgs.capture());
     DeleteLaunchTemplateVersionsRequest deleteLtVersionReq = deleteLtVersionArgs.getValue();
 
-    assertEquals(ltVersionNew.getLaunchTemplateId(), deleteLtVersionReq.getLaunchTemplateId());
-    assertEquals(1, deleteLtVersionReq.getVersions().size());
+    assertEquals(ltVersionNew.launchTemplateId(), deleteLtVersionReq.launchTemplateId());
+    assertEquals(1, deleteLtVersionReq.versions().size());
     assertEquals(
-        String.valueOf(ltVersionNew.getVersionNumber()), deleteLtVersionReq.getVersions().get(0));
+        String.valueOf(ltVersionNew.versionNumber()), deleteLtVersionReq.versions().get(0));
   }
 }

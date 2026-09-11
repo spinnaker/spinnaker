@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.deploy.ops;
 
-import com.amazonaws.services.applicationautoscaling.AWSApplicationAutoScaling;
-import com.amazonaws.services.ecs.AmazonECS;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
@@ -29,6 +27,8 @@ import com.netflix.spinnaker.clouddriver.ecs.services.ContainerInformationServic
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import software.amazon.awssdk.services.applicationautoscaling.ApplicationAutoScalingClient;
+import software.amazon.awssdk.services.ecs.EcsClient;
 
 public abstract class AbstractEcsAtomicOperation<T extends AbstractECSDescription, K>
     implements AtomicOperation<K> {
@@ -52,18 +52,18 @@ public abstract class AbstractEcsAtomicOperation<T extends AbstractECSDescriptio
     return containerInformationService.getClusterName(service, account, region);
   }
 
-  AmazonECS getAmazonEcsClient() {
+  EcsClient getAmazonEcsClient() {
     String region = getRegion();
     NetflixAmazonCredentials credentialAccount = description.getCredentials();
 
-    return amazonClientProvider.getAmazonEcs(credentialAccount, region, false);
+    return amazonClientProvider.getAmazonEcsV2(credentialAccount, region);
   }
 
-  AWSApplicationAutoScaling getAmazonApplicationAutoScalingClient() {
+  ApplicationAutoScalingClient getAmazonApplicationAutoScalingClient() {
     String region = getRegion();
     NetflixAmazonCredentials credentialAccount = description.getCredentials();
 
-    return amazonClientProvider.getAmazonApplicationAutoScaling(credentialAccount, region, false);
+    return amazonClientProvider.getAmazonApplicationAutoScalingV2(credentialAccount, region);
   }
 
   protected String getRegion() {

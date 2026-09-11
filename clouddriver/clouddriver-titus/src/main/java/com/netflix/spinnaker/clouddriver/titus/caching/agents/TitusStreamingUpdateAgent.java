@@ -34,7 +34,6 @@ import static java.util.Collections.singletonList;
 import static java.util.Collections.unmodifiableSet;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
-import com.amazonaws.services.elasticloadbalancingv2.model.TargetTypeEnum;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -101,6 +100,7 @@ import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetTypeEnum;
 
 public class TitusStreamingUpdateAgent implements CustomScheduledAgent, CachingAgent {
 
@@ -999,7 +999,7 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent, CachingA
                           it,
                           getAwsAccountName(account, region),
                           region,
-                          TargetTypeEnum.Ip.toString(),
+                          TargetTypeEnum.IP.toString(),
                           getAwsVpcId(account, region)))
               .collect(Collectors.toSet());
     }

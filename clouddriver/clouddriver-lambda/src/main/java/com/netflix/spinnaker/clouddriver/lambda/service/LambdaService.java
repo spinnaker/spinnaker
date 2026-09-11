@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.lambda.service;
 
-import com.amazonaws.auth.policy.Policy;
-import com.amazonaws.auth.policy.Statement;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.aws.data.ArnUtils;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
@@ -29,6 +27,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import lombok.extern.log4j.Log4j2;
+import software.amazon.awssdk.policybuilder.iam.IamConditionOperator;
+import software.amazon.awssdk.policybuilder.iam.IamEffect;
+import software.amazon.awssdk.policybuilder.iam.IamPolicy;
+import software.amazon.awssdk.policybuilder.iam.IamStatement;
 import software.amazon.awssdk.services.lambda.LambdaClient;
 import software.amazon.awssdk.services.lambda.model.*;
 import software.amazon.awssdk.services.lambda.paginators.ListFunctionsIterable;
@@ -170,37 +172,35 @@ public class LambdaService extends LambdaClientProvider {
     return null;
   }
 
-  private static final Predicate<Statement> isLambdaInvokeAction =
+  private static final Predicate<IamStatement> isAllowStatement =
+      statement -> IamEffect.ALLOW.equals(statement.effect());
+  private static final Predicate<IamStatement> isLambdaInvokeAction =
       statement ->
-          statement.getActions().stream()
-              .anyMatch(action -> "lambda:InvokeFunction".equals(action.getActionName()));
-  private static final Predicate<Statement> isElbPrincipal =
+          statement.actions().stream()
+              .anyMatch(action -> "lambda:InvokeFunction".equals(action.value()));
+  private static final Predicate<IamStatement> isElbPrincipal =
       statement ->
-          statement.getPrincipals().stream()
-              .anyMatch(
-                  principal -> "elasticloadbalancing.amazonaws.com".equals(principal.getId()));
+          statement.principals().stream()
+              .anyMatch(principal -> "elasticloadbalancing.amazonaws.com".equals(principal.id()));
 
   private List<String> getTargetGroupNames(String functionName) {
     List<String> targetGroupNames = new ArrayList<>();
-    Predicate<Statement> isAllowStatement =
-        statement -> statement.getEffect().toString().equals(Statement.Effect.Allow.toString());
 
     try {
       LambdaClient lambda = getLambdaClient();
       GetPolicyResponse result =
           lambda.getPolicy(GetPolicyRequest.builder().functionName(functionName).build());
-      Policy policy = Policy.fromJson(result.policy());
+      IamPolicy policy = IamPolicy.fromJson(result.policy());
 
       targetGroupNames =
-          policy.getStatements().stream()
+          policy.statements().stream()
               .filter(isAllowStatement.and(isLambdaInvokeAction).and(isElbPrincipal))
-              .flatMap(statement -> statement.getConditions().stream())
+              .flatMap(statement -> statement.conditions().stream())
               .filter(
                   condition ->
-                      "ArnLike".equals(condition.getType())
-                          && "AWS:SourceArn".equals(condition.getConditionKey()))
-              .flatMap(condition -> condition.getValues().stream())
-              .flatMap(value -> ArnUtils.extractTargetGroupName(value).stream())
+                      IamConditionOperator.ARN_LIKE.equals(condition.operator())
+                          && "AWS:SourceArn".equals(condition.key().value()))
+              .flatMap(condition -> ArnUtils.extractTargetGroupName(condition.value()).stream())
               .collect(Collectors.toList());
 
     } catch (NullPointerException | ResourceNotFoundException e) {

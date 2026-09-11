@@ -16,46 +16,52 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.provider.agent
 
-import com.amazonaws.auth.AWSCredentialsProvider
-import com.amazonaws.services.applicationautoscaling.AWSApplicationAutoScaling
-import com.amazonaws.services.applicationautoscaling.model.DescribeScalableTargetsResult
-import com.amazonaws.services.applicationautoscaling.model.ScalableTarget
-import com.amazonaws.services.applicationautoscaling.model.ServiceNamespace
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.netflix.spinnaker.cats.provider.ProviderCache
+import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import software.amazon.awssdk.services.applicationautoscaling.ApplicationAutoScalingClient
+import software.amazon.awssdk.services.applicationautoscaling.model.DescribeScalableTargetsRequest
+import software.amazon.awssdk.services.applicationautoscaling.model.DescribeScalableTargetsResponse
+import software.amazon.awssdk.services.applicationautoscaling.model.ScalableTarget
+import software.amazon.awssdk.services.applicationautoscaling.model.ServiceNamespace
 import spock.lang.Specification
 import spock.lang.Subject
+
+import java.time.Instant
 
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.SCALABLE_TARGETS
 
 class ScalableTargetCachingAgentSpec extends Specification {
-  def autoscaling = Mock(AWSApplicationAutoScaling)
+  def autoscaling = Mock(ApplicationAutoScalingClient)
   def clientProvider = Mock(AmazonClientProvider)
   def providerCache = Mock(ProviderCache)
-  def credentialsProvider = Mock(AWSCredentialsProvider)
+  // mirrors clouddriver's ObjectMapper: AwsSdkV2Module is registered as a Spring Module bean
   def objectMapper = new ObjectMapper()
+    .registerModule(new JavaTimeModule())
+    .registerModule(new AwsSdkV2Module())
     .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
   @Subject
   ScalableTargetsCachingAgent agent = new ScalableTargetsCachingAgent(CommonCachingAgent.netflixAmazonCredentials, 'us-west-1', clientProvider, objectMapper)
 
-  def 'should get a list of cloud watch alarms'() {
+  def 'should get a list of scalable targets'() {
     given:
-    def givenScalableTargets = []
-    0.upto(4, {
-      givenScalableTargets << new ScalableTarget(
-        serviceNamespace: ServiceNamespace.Ecs,
-        resourceId: "service:/test-cluster/test-service-v00${it}",
-        scalableDimension: 'scalable-dimension',
-        minCapacity: 0,
-        maxCapacity: 9001,
-        roleARN: 'role-arn',
-        creationTime: new Date()
-      )
-    })
-    autoscaling.describeScalableTargets(_) >> new DescribeScalableTargetsResult().withScalableTargets(givenScalableTargets)
+    def givenScalableTargets = (0..4).collect {
+      ScalableTarget.builder()
+        .serviceNamespace(ServiceNamespace.ECS)
+        .resourceId("service:/test-cluster/test-service-v00${it}")
+        .scalableDimension("ecs:service:DesiredCount")
+        .minCapacity(0)
+        .maxCapacity(9001)
+        .roleARN("role-arn")
+        .creationTime(Instant.now())
+        .build()
+    }
+    autoscaling.describeScalableTargets(_ as DescribeScalableTargetsRequest) >>
+      DescribeScalableTargetsResponse.builder().scalableTargets(givenScalableTargets).build()
 
     when:
     def retrievedScalableTargets = agent.fetchScalableTargets(autoscaling)
@@ -67,44 +73,45 @@ class ScalableTargetCachingAgentSpec extends Specification {
 
   def 'should generate fresh data'() {
     given:
-    Set givenScalableTargets = []
-    0.upto(4, {
-      givenScalableTargets << new ScalableTarget(
-        serviceNamespace: ServiceNamespace.Ecs,
-        resourceId: "service:/test-cluster/test-service-v00${it}",
-        scalableDimension: 'scalable-dimension',
-        minCapacity: 0,
-        maxCapacity: 9001,
-        roleARN: 'role-arn'
-      )
-    })
+    Set givenScalableTargets = (0..4).collect {
+      ScalableTarget.builder()
+        .serviceNamespace(ServiceNamespace.ECS)
+        .resourceId("service:/test-cluster/test-service-v00${it}")
+        .scalableDimension("ecs:service:DesiredCount")
+        .minCapacity(0)
+        .maxCapacity(9001)
+        .roleARN("role-arn")
+        .creationTime(Instant.now())
+        .build()
+    }.toSet()
 
     when:
     def cacheData = agent.generateFreshData(givenScalableTargets)
 
     then:
+    // the cache serializes attributes to JSON, so they have to survive writeValueAsString
+    cacheData.get(SCALABLE_TARGETS.ns).each { objectMapper.writeValueAsString(it.getAttributes()) }
     cacheData.size() == 1
     cacheData.get(SCALABLE_TARGETS.ns).size() == givenScalableTargets.size()
-    givenScalableTargets*.serviceNamespace.containsAll(cacheData.get(SCALABLE_TARGETS.ns)*.getAttributes().serviceNamespace)
-    givenScalableTargets*.resourceId.containsAll(cacheData.get(SCALABLE_TARGETS.ns)*.getAttributes().resourceId)
-    givenScalableTargets*.scalableDimension.containsAll(cacheData.get(SCALABLE_TARGETS.ns)*.getAttributes().scalableDimension)
-    givenScalableTargets*.minCapacity.containsAll(cacheData.get(SCALABLE_TARGETS.ns)*.getAttributes().minCapacity)
-    givenScalableTargets*.maxCapacity.containsAll(cacheData.get(SCALABLE_TARGETS.ns)*.getAttributes().maxCapacity)
-    givenScalableTargets*.roleARN.containsAll(cacheData.get(SCALABLE_TARGETS.ns)*.getAttributes().roleARN)
+    givenScalableTargets*.resourceId().containsAll(cacheData.get(SCALABLE_TARGETS.ns)*.getAttributes().resourceId)
+    givenScalableTargets*.minCapacity().containsAll(cacheData.get(SCALABLE_TARGETS.ns)*.getAttributes().minCapacity)
+    givenScalableTargets*.maxCapacity().containsAll(cacheData.get(SCALABLE_TARGETS.ns)*.getAttributes().maxCapacity)
+    givenScalableTargets*.roleARN().containsAll(cacheData.get(SCALABLE_TARGETS.ns)*.getAttributes().roleARN)
   }
 
   def 'should use filterIdentifiers with account and region glob for evictions'() {
     given:
-    def givenScalableTarget = new ScalableTarget(
-      serviceNamespace: ServiceNamespace.Ecs,
-      resourceId: "service:/test-cluster/test-service-v001",
-      scalableDimension: 'scalable-dimension',
-      minCapacity: 0,
-      maxCapacity: 9001,
-      roleARN: 'role-arn'
-    )
-    clientProvider.getAmazonApplicationAutoScaling(_, _, _) >> autoscaling
-    autoscaling.describeScalableTargets(_) >> new DescribeScalableTargetsResult().withScalableTargets([givenScalableTarget])
+    def givenScalableTarget = ScalableTarget.builder()
+      .serviceNamespace(ServiceNamespace.ECS)
+      .resourceId("service:/test-cluster/test-service-v001")
+      .scalableDimension("ecs:service:DesiredCount")
+      .minCapacity(0)
+      .maxCapacity(9001)
+      .roleARN("role-arn")
+      .build()
+    clientProvider.getAmazonApplicationAutoScalingV2(_, _) >> autoscaling
+    autoscaling.describeScalableTargets(_ as DescribeScalableTargetsRequest) >>
+      DescribeScalableTargetsResponse.builder().scalableTargets([givenScalableTarget]).build()
 
     def account = 'test-account'
     def region = 'us-west-1'

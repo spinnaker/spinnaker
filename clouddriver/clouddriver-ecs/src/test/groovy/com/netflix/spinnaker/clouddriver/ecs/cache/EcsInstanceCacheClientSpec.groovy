@@ -16,15 +16,19 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.cache
 
-import com.amazonaws.services.ec2.model.Instance
+import software.amazon.awssdk.services.ec2.model.Instance
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
+import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.EcsInstanceCacheClient
 import spock.lang.Specification
 import spock.lang.Subject
+
+import java.time.Instant
 
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.INSTANCES
 
@@ -32,6 +36,8 @@ class EcsInstanceCacheClientSpec extends Specification {
   def cacheView = Mock(Cache)
   def objectMapper = new ObjectMapper()
                           .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                          .registerModule(new AwsSdkV2Module())
+                          .registerModule(new JavaTimeModule())
 
   @Subject
   def client = new EcsInstanceCacheClient(cacheView, objectMapper)
@@ -40,12 +46,12 @@ class EcsInstanceCacheClientSpec extends Specification {
     given:
     def instanceId = 'instance-id'
     def key = Keys.getInstanceKey(instanceId, 'test-account', 'us-west-1')
-    def givenInstance = new Instance(
-      instanceId: instanceId,
-      privateIpAddress: '127.0.0.1',
-      publicDnsName: 'localhost',
-      launchTime: new Date()
-    )
+    def givenInstance = Instance.builder()
+      .instanceId(instanceId)
+      .privateIpAddress('127.0.0.1')
+      .publicDnsName('localhost')
+      .launchTime(Instant.now())
+      .build()
 
     def attributes = objectMapper.convertValue(givenInstance, Map)
     def instanceCache = new DefaultCacheData(key, attributes, [:])
@@ -57,7 +63,16 @@ class EcsInstanceCacheClientSpec extends Specification {
     def foundInstances = client.findAll()
 
     then:
+    // Full-object equality isn't used here: round-tripping through the generic SdkPojo
+    // serializer/deserializer materializes AWS SDK v2's "unset" collection fields (e.g.
+    // blockDeviceMappings) as real empty lists rather than the internal auto-construct sentinel
+    // the builder leaves them as, so the two instances differ in those fields' identity even
+    // though the actual data is equivalent. Compare only the fields this test actually cares about.
     foundInstances.size() == 1
-    foundInstances[0] == givenInstance
+    def foundInstance = foundInstances[0]
+    foundInstance.instanceId() == givenInstance.instanceId()
+    foundInstance.privateIpAddress() == givenInstance.privateIpAddress()
+    foundInstance.publicDnsName() == givenInstance.publicDnsName()
+    foundInstance.launchTime() == givenInstance.launchTime()
   }
 }

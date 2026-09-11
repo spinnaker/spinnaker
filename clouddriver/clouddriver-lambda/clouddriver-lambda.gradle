@@ -7,7 +7,7 @@ dependencies {
   implementation project(":clouddriver-security")
 
   implementation "commons-io:commons-io"
-  implementation "com.amazonaws:aws-java-sdk"
+  implementation "software.amazon.awssdk:iam-policy-builder"
   implementation "com.github.ben-manes.caffeine:guava"
   implementation "com.netflix.awsobjectmapper:awsobjectmapper"
   implementation "io.spinnaker.kork:kork-artifacts"

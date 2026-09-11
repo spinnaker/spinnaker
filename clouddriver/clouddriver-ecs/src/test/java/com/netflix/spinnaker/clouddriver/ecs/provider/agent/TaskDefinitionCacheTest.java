@@ -28,6 +28,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
+import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.TaskDefinitionCacheClient;
 import java.util.*;
@@ -38,7 +39,7 @@ import software.amazon.awssdk.services.ecs.model.TaskDefinition;
 import spock.lang.Subject;
 
 public class TaskDefinitionCacheTest extends CommonCachingAgent {
-  private final ObjectMapper mapper = new ObjectMapper();
+  private final ObjectMapper mapper = new ObjectMapper().registerModule(new AwsSdkV2Module());
 
   @Subject
   private final TaskDefinitionCachingAgent agent =
@@ -85,7 +86,7 @@ public class TaskDefinitionCacheTest extends CommonCachingAgent {
     when(providerCache.get(TASK_DEFINITIONS.toString(), key))
         .thenReturn(
             cacheResult.getCacheResults().get(TASK_DEFINITIONS.toString()).iterator().next());
-    com.amazonaws.services.ecs.model.TaskDefinition retrievedTaskDefinition = client.get(key);
+    TaskDefinition retrievedTaskDefinition = client.get(key);
 
     // Then
     Collection<CacheData> cacheData =
@@ -101,10 +102,10 @@ public class TaskDefinitionCacheTest extends CommonCachingAgent {
     assertNotNull(retrievedTaskDefinition, "Expected task definition to be non-null");
     assertEquals(
         TASK_DEFINITION_ARN_1,
-        retrievedTaskDefinition.getTaskDefinitionArn(),
+        retrievedTaskDefinition.taskDefinitionArn(),
         "Expected the task definition ARN to be "
             + TASK_DEFINITION_ARN_1
             + " but got "
-            + retrievedTaskDefinition.getTaskDefinitionArn());
+            + retrievedTaskDefinition.taskDefinitionArn());
   }
 }

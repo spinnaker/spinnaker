@@ -16,21 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.agent;
 
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.services.ec2.AmazonEC2;
-import com.amazonaws.services.ec2.model.AttachClassicLinkVpcRequest;
-import com.amazonaws.services.ec2.model.ClassicLinkInstance;
-import com.amazonaws.services.ec2.model.DescribeClassicLinkInstancesRequest;
-import com.amazonaws.services.ec2.model.DescribeClassicLinkInstancesResult;
-import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
-import com.amazonaws.services.ec2.model.DescribeInstancesResult;
-import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest;
-import com.amazonaws.services.ec2.model.Filter;
-import com.amazonaws.services.ec2.model.GroupIdentifier;
-import com.amazonaws.services.ec2.model.Instance;
-import com.amazonaws.services.ec2.model.SecurityGroup;
-import com.amazonaws.services.ec2.model.Tag;
-import com.amazonaws.services.ec2.model.VpcClassicLink;
 import com.google.common.base.Strings;
 import com.netflix.frigga.Names;
 import com.netflix.spinnaker.cats.agent.AccountAware;
@@ -41,10 +26,8 @@ import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent;
 import com.netflix.spinnaker.config.AwsConfiguration;
 import java.time.Clock;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -55,6 +38,21 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.services.ec2.Ec2Client;
+import software.amazon.awssdk.services.ec2.model.AttachClassicLinkVpcRequest;
+import software.amazon.awssdk.services.ec2.model.ClassicLinkInstance;
+import software.amazon.awssdk.services.ec2.model.DescribeClassicLinkInstancesRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeClassicLinkInstancesResponse;
+import software.amazon.awssdk.services.ec2.model.DescribeInstancesRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeInstancesResponse;
+import software.amazon.awssdk.services.ec2.model.DescribeSecurityGroupsRequest;
+import software.amazon.awssdk.services.ec2.model.Filter;
+import software.amazon.awssdk.services.ec2.model.GroupIdentifier;
+import software.amazon.awssdk.services.ec2.model.Instance;
+import software.amazon.awssdk.services.ec2.model.SecurityGroup;
+import software.amazon.awssdk.services.ec2.model.Tag;
+import software.amazon.awssdk.services.ec2.model.VpcClassicLink;
 
 public class ReconcileClassicLinkSecurityGroupsAgent
     implements RunnableAgent, CustomScheduledAgent, AccountAware {
@@ -122,11 +120,11 @@ public class ReconcileClassicLinkSecurityGroupsAgent
       return;
     }
     log.info("Checking classic link security groups in {}/{}", account.getName(), region);
-    AmazonEC2 ec2 = amazonClientProvider.getAmazonEC2(account, region, true);
+    Ec2Client ec2 = amazonClientProvider.getAmazonEC2V2(account, region);
     List<String> classicLinkVpcIds =
-        ec2.describeVpcClassicLink().getVpcs().stream()
-            .filter(VpcClassicLink::getClassicLinkEnabled)
-            .map(VpcClassicLink::getVpcId)
+        ec2.describeVpcClassicLink().vpcs().stream()
+            .filter(VpcClassicLink::classicLinkEnabled)
+            .map(VpcClassicLink::vpcId)
             .collect(Collectors.toList());
     if (classicLinkVpcIds.size() > 1) {
       log.warn("Multiple classicLinkVpcs found: {}", classicLinkVpcIds);
@@ -139,41 +137,44 @@ public class ReconcileClassicLinkSecurityGroupsAgent
     String classicLinkVpcId = classicLinkVpcIds.get(0);
 
     final Map<String, ClassicLinkInstance> classicLinkInstances = new HashMap<>();
-    DescribeInstancesRequest describeInstances = new DescribeInstancesRequest().withMaxResults(500);
+    DescribeInstancesRequest describeInstances =
+        DescribeInstancesRequest.builder().maxResults(500).build();
     while (true) {
-      DescribeInstancesResult instanceResult = ec2.describeInstances(describeInstances);
-      instanceResult.getReservations().stream()
-          .flatMap(r -> r.getInstances().stream())
-          .filter(i -> i.getVpcId() == null)
+      DescribeInstancesResponse instanceResult = ec2.describeInstances(describeInstances);
+      instanceResult.reservations().stream()
+          .flatMap(r -> r.instances().stream())
+          .filter(i -> i.vpcId() == null)
           .filter(
               i ->
-                  Optional.ofNullable(i.getState())
-                      .filter(is -> is.getCode() == RUNNING_STATE)
+                  Optional.ofNullable(i.state())
+                      .filter(is -> is.code() == RUNNING_STATE)
                       .isPresent())
           .filter(this::isInstanceOldEnough)
           .map(
               i ->
-                  new ClassicLinkInstance()
-                      .withInstanceId(i.getInstanceId())
-                      .withVpcId(classicLinkVpcId)
-                      .withTags(i.getTags()))
-          .forEach(cli -> classicLinkInstances.put(cli.getInstanceId(), cli));
+                  ClassicLinkInstance.builder()
+                      .instanceId(i.instanceId())
+                      .vpcId(classicLinkVpcId)
+                      .tags(i.tags())
+                      .build())
+          .forEach(cli -> classicLinkInstances.put(cli.instanceId(), cli));
 
-      if (instanceResult.getNextToken() == null) {
+      if (instanceResult.nextToken() == null) {
         break;
       }
-      describeInstances.setNextToken(instanceResult.getNextToken());
+      describeInstances =
+          describeInstances.toBuilder().nextToken(instanceResult.nextToken()).build();
     }
 
     DescribeClassicLinkInstancesRequest request =
-        new DescribeClassicLinkInstancesRequest().withMaxResults(1000);
+        DescribeClassicLinkInstancesRequest.builder().maxResults(1000).build();
     while (true) {
-      DescribeClassicLinkInstancesResult result = ec2.describeClassicLinkInstances(request);
-      result.getInstances().forEach(i -> classicLinkInstances.put(i.getInstanceId(), i));
-      if (result.getNextToken() == null) {
+      DescribeClassicLinkInstancesResponse result = ec2.describeClassicLinkInstances(request);
+      result.instances().forEach(i -> classicLinkInstances.put(i.instanceId(), i));
+      if (result.nextToken() == null) {
         break;
       }
-      request.setNextToken(result.getNextToken());
+      request = request.toBuilder().nextToken(result.nextToken()).build();
     }
 
     log.info(
@@ -185,40 +186,39 @@ public class ReconcileClassicLinkSecurityGroupsAgent
     Map<String, String> groupNamesToIds =
         ec2
             .describeSecurityGroups(
-                new DescribeSecurityGroupsRequest()
-                    .withFilters(new Filter("vpc-id").withValues(classicLinkVpcId)))
-            .getSecurityGroups()
+                DescribeSecurityGroupsRequest.builder()
+                    .filters(Filter.builder().name("vpc-id").values(classicLinkVpcId).build())
+                    .build())
+            .securityGroups()
             .stream()
-            .collect(Collectors.toMap(SecurityGroup::getGroupName, SecurityGroup::getGroupId));
+            .collect(Collectors.toMap(SecurityGroup::groupName, SecurityGroup::groupId));
 
     reconcileInstances(ec2, groupNamesToIds, classicLinkInstances.values());
   }
 
   boolean isInstanceOldEnough(Instance instance) {
-    return Optional.ofNullable(instance.getLaunchTime())
-        .map(Date::getTime)
-        .map(Instant::ofEpochMilli)
+    return Optional.ofNullable(instance.launchTime())
         .map(i -> i.plusMillis(requiredInstanceLifetime))
         .map(i -> clock.instant().isAfter(i))
         .orElse(false);
   }
 
   void reconcileInstances(
-      AmazonEC2 ec2,
+      Ec2Client ec2,
       Map<String, String> groupNamesToIds,
       Collection<ClassicLinkInstance> instances) {
     StringBuilder report = new StringBuilder();
     for (ClassicLinkInstance i : instances) {
       List<String> existingClassicLinkGroups =
-          i.getGroups().stream().map(GroupIdentifier::getGroupId).collect(Collectors.toList());
+          i.groups().stream().map(GroupIdentifier::groupId).collect(Collectors.toList());
 
       int maxNewGroups =
           deployDefaults.getMaxClassicLinkSecurityGroups() - existingClassicLinkGroups.size();
       if (maxNewGroups > 0) {
         String asgName =
-            i.getTags().stream()
-                .filter(t -> AUTOSCALING_TAG.equals(t.getKey()))
-                .map(Tag::getValue)
+            i.tags().stream()
+                .filter(t -> AUTOSCALING_TAG.equals(t.key()))
+                .map(Tag::value)
                 .findFirst()
                 .orElse(null);
 
@@ -238,17 +238,18 @@ public class ReconcileClassicLinkSecurityGroupsAgent
               == AwsConfiguration.DeployDefaults.ReconcileMode.MODIFY) {
             try {
               ec2.attachClassicLinkVpc(
-                  new AttachClassicLinkVpcRequest()
-                      .withVpcId(i.getVpcId())
-                      .withGroups(groupIds)
-                      .withInstanceId(i.getInstanceId()));
-            } catch (AmazonServiceException ase) {
+                  AttachClassicLinkVpcRequest.builder()
+                      .vpcId(i.vpcId())
+                      .groups(groupIds)
+                      .instanceId(i.instanceId())
+                      .build());
+            } catch (AwsServiceException ase) {
               log.warn("Failed calling attachClassicLinkVpc", ase);
             }
           }
           report
               .append("\n\t")
-              .append(Strings.padStart(i.getInstanceId(), 24, ' '))
+              .append(Strings.padStart(i.instanceId(), 24, ' '))
               .append(missingGroupIds);
         }
       }

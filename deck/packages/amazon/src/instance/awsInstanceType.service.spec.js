@@ -329,6 +329,46 @@ describe('Service: InstanceType', function () {
         'hs1.8xlarge',
       ]);
     });
+
+    it('matches architecture case-insensitively', function () {
+      const service = this.awsInstanceTypeService;
+      const armInstanceTypes = [
+        {
+          account: 'test',
+          region: 'eu-central-1',
+          name: 'm9gd.metal-48xl',
+          defaultVCpus: 192,
+          memoryInGiB: 768,
+          supportedArchitectures: ['ARM64'],
+          supportedVirtualizationTypes: ['hvm'],
+        },
+      ];
+
+      expect(map(service.filterInstanceTypes(armInstanceTypes, 'hvm', true, 'arm64'), 'name')).toEqual([
+        'm9gd.metal-48xl',
+      ]);
+    });
+
+    it('matches virtualization type case-insensitively when the AMI attribute is uppercase', function () {
+      const service = this.awsInstanceTypeService;
+      const armInstanceTypes = [
+        {
+          account: 'test',
+          region: 'us-west-2',
+          name: 'x8i.metal-48xl',
+          defaultVCpus: 192,
+          memoryInGiB: 3072,
+          supportedArchitectures: ['X86_64'],
+          supportedVirtualizationTypes: ['hvm'],
+        },
+      ];
+
+      // AMI attributes (e.g. command.virtualizationType / command.amiArchitecture) can come back
+      // uppercase (e.g. 'HVM', 'ARM64') while the instance types API reports lowercase values.
+      expect(map(service.filterInstanceTypes(armInstanceTypes, 'HVM', true, 'X86_64'), 'name')).toEqual([
+        'x8i.metal-48xl',
+      ]);
+    });
   });
 
   describe('isBurstingSupportedForAllTypes', function () {

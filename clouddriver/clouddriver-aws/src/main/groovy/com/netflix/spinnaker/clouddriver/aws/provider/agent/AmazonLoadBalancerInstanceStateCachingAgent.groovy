@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
-import com.amazonaws.services.elasticloadbalancing.model.DescribeInstanceHealthRequest
-import com.amazonaws.services.elasticloadbalancing.model.DescribeInstanceHealthResult
-import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerNotFoundException
+import software.amazon.awssdk.services.elasticloadbalancing.model.DescribeInstanceHealthRequest
+import software.amazon.awssdk.services.elasticloadbalancing.model.DescribeInstanceHealthResponse
+import software.amazon.awssdk.services.elasticloadbalancing.model.LoadBalancerNotFoundException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.spinnaker.cats.agent.AccountAware
@@ -99,7 +99,7 @@ class AmazonLoadBalancerInstanceStateCachingAgent implements CachingAgent, Healt
   @Override
   CacheResult loadData(ProviderCache providerCache) {
     log.info("Describing items in ${agentType}")
-    def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(account, region)
+    def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancingClassicV2(account, region)
     def allVpcsGlob = Keys.getLoadBalancerKey('*', account.name, region, '*', null)
     def nonVpcGlob = Keys.getLoadBalancerKey('*', account.name, region, null, null)
     def loadBalancerKeys = getCacheView()
@@ -117,15 +117,15 @@ class AmazonLoadBalancerInstanceStateCachingAgent implements CachingAgent, Healt
           continue
 
         List<LoadBalancerInstance> loadBalancerInstances = new ArrayList<>()
-        DescribeInstanceHealthResult result = loadBalancing
-          .describeInstanceHealth(new DescribeInstanceHealthRequest(lbName))
+        DescribeInstanceHealthResponse result = loadBalancing
+          .describeInstanceHealth(DescribeInstanceHealthRequest.builder().loadBalancerName(lbName).build())
 
-        for (instanceState in result.instanceStates) {
+        for (instanceState in result.instanceStates()) {
           LoadBalancerInstance loadBalancerInstance = new LoadBalancerInstance(
-            instanceState.instanceId,
-            instanceState.state,
-            instanceState.reasonCode,
-            instanceState.description)
+            instanceState.instanceId(),
+            instanceState.state(),
+            instanceState.reasonCode(),
+            instanceState.description())
           loadBalancerInstances << loadBalancerInstance
 
           // We want to track how long instances remain in a "still registering" state. Logging any time we
@@ -133,8 +133,8 @@ class AmazonLoadBalancerInstanceStateCachingAgent implements CachingAgent, Healt
           // having to do expensive lookups - we can defer this to our logging platform to do the maths.
           // TODO(rz): This kind of metric may be easier to create if we had a method of emitting events when
           //  cache state changes.
-          if (instanceState.description == STILL_REGISTERING_DESCRIPTION) {
-            log.info("Instance '${instanceState.instanceId}' is still registering with load balancer '$lbName'")
+          if (instanceState.description() == STILL_REGISTERING_DESCRIPTION) {
+            log.info("Instance '${instanceState.instanceId()}' is still registering with load balancer '$lbName'")
           }
         }
 

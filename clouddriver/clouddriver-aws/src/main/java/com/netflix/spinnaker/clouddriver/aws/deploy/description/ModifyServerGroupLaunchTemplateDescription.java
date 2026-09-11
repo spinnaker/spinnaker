@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.description;
 
-import com.amazonaws.util.CollectionUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice;
@@ -31,6 +30,7 @@ import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.CollectionUtils;
 
 /**
  * Description type that encapsulates properties associated with 1. EC2 launch template
@@ -154,7 +154,7 @@ public class ModifyServerGroupLaunchTemplateDescription extends AbstractAmazonCr
     if (StringUtils.isNotBlank(this.getInstanceType())) {
       instanceTypes.add(this.getInstanceType());
     }
-    if (!CollectionUtils.isNullOrEmpty(launchTemplateOverridesForInstanceType)) {
+    if (!CollectionUtils.isEmpty(launchTemplateOverridesForInstanceType)) {
       launchTemplateOverridesForInstanceType.forEach(
           override -> instanceTypes.add(override.getInstanceType()));
     }

@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.actions;
 
-import com.amazonaws.services.ec2.model.LaunchTemplateVersion;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
@@ -38,6 +37,7 @@ import lombok.Value;
 import lombok.experimental.NonFinal;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
+import software.amazon.awssdk.services.ec2.model.LaunchTemplateVersion;
 
 /**
  * Action to modify a EC2 launch template i.e. create a new version of the launch template with
@@ -102,7 +102,7 @@ public class ModifyServerGroupLaunchTemplate
         PrepareUpdateAutoScalingGroup.PrepareUpdateAutoScalingGroupCommand.builder()
             .description(description)
             .launchTemplateVersion(newVersion)
-            .newLaunchTemplateVersionNumber(newVersion.getVersionNumber())
+            .newLaunchTemplateVersionNumber(newVersion.versionNumber())
             .isReqToUpgradeAsgToMixedInstancesPolicy(
                 command.isReqToUpgradeAsgToMixedInstancesPolicy)
             .build(),

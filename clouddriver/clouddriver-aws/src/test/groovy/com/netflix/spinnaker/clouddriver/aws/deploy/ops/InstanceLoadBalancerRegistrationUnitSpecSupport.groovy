@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing
+import software.amazon.awssdk.services.elasticloadbalancing.ElasticLoadBalancingClient
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.InstanceLoadBalancerRegistrationDescription
 import com.netflix.spinnaker.clouddriver.aws.services.AsgService
@@ -39,18 +39,18 @@ class InstanceLoadBalancerRegistrationUnitSpecSupport extends Specification {
   AsgService asgService
 
   @Shared
-  AmazonElasticLoadBalancing loadBalancing
+  ElasticLoadBalancingClient loadBalancing
 
   def setup() {
     asgService = Mock(AsgService)
-    loadBalancing = Mock(AmazonElasticLoadBalancing)
+    loadBalancing = Mock(ElasticLoadBalancingClient)
     wireOpMocks(op)
   }
 
   def wireOpMocks(AbstractInstanceLoadBalancerRegistrationAtomicOperation op) {
     def rsp = Stub(RegionScopedProviderFactory.RegionScopedProvider)
     rsp.getAsgService() >> asgService
-    rsp.getAmazonElasticLoadBalancing() >> loadBalancing
+    rsp.getAmazonElasticLoadBalancingClassicV2() >> loadBalancing
 
     def rspf = Mock(RegionScopedProviderFactory)
     rspf.forRegion(_, _) >> rsp

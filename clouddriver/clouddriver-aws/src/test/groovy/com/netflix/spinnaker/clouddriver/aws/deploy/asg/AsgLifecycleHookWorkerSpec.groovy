@@ -16,9 +16,9 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.deploy.asg
 
-import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.autoscaling.model.PutLifecycleHookRequest
-import com.amazonaws.services.autoscaling.model.PutNotificationConfigurationRequest
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient
+import software.amazon.awssdk.services.autoscaling.model.PutLifecycleHookRequest
+import software.amazon.awssdk.services.autoscaling.model.PutNotificationConfigurationRequest
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonAsgLifecycleHook
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
@@ -29,9 +29,9 @@ import spock.lang.Subject
 
 class AsgLifecycleHookWorkerSpec extends Specification {
 
-  def autoScaling = Mock(AmazonAutoScaling)
+  def autoScaling = Mock(AutoScalingClient)
   def amazonClientProvider = Stub(AmazonClientProvider) {
-    getAutoScaling(_, 'us-east-1', true) >> autoScaling
+    getAutoScalingV2(_, 'us-east-1') >> autoScaling
   }
 
   int count = 0
@@ -69,15 +69,15 @@ class AsgLifecycleHookWorkerSpec extends Specification {
     asgLifecycleHookWorker.attach(Mock(Task), [hook], 'asg-foo.bar.baz-v001')
 
     then:
-    1 * autoScaling.putLifecycleHook(new PutLifecycleHookRequest(
-      lifecycleHookName: 'asg-foo_bar_baz-v001-lifecycle-1',
-      autoScalingGroupName: 'asg-foo.bar.baz-v001',
-      lifecycleTransition: 'autoscaling:EC2_INSTANCE_TERMINATING',
-      notificationTargetARN: 'arn:aws:sns:us-east-1:123456789012:my-sns-topic',
-      roleARN: 'arn:aws:iam::123456789012:role/my-notification-role',
-      heartbeatTimeout: 3600,
-      defaultResult: 'ABANDON'
-    ))
+    1 * autoScaling.putLifecycleHook(PutLifecycleHookRequest.builder()
+      .lifecycleHookName('asg-foo_bar_baz-v001-lifecycle-1')
+      .autoScalingGroupName('asg-foo.bar.baz-v001')
+      .lifecycleTransition('autoscaling:EC2_INSTANCE_TERMINATING')
+      .notificationTargetARN('arn:aws:sns:us-east-1:123456789012:my-sns-topic')
+      .roleARN('arn:aws:iam::123456789012:role/my-notification-role')
+      .heartbeatTimeout(3600)
+      .defaultResult('ABANDON')
+      .build())
   }
 
   void 'should create defined lifecycle hooks'() {
@@ -107,29 +107,30 @@ class AsgLifecycleHookWorkerSpec extends Specification {
     asgLifecycleHookWorker.attach(Mock(Task), lifecycleHooks, 'asg-v000')
 
     then:
-    1 * autoScaling.putLifecycleHook(new PutLifecycleHookRequest(
-      lifecycleHookName: 'asg-v000-lifecycle-1',
-      autoScalingGroupName: 'asg-v000',
-      lifecycleTransition: 'autoscaling:EC2_INSTANCE_TERMINATING',
-      notificationTargetARN: 'arn:aws:sns:us-east-1:123456789012:my-sns-topic',
-      roleARN: 'arn:aws:iam::123456789012:role/my-notification-role',
-      heartbeatTimeout: 3600,
-      defaultResult: 'ABANDON'
-    ))
-    1 * autoScaling.putLifecycleHook(new PutLifecycleHookRequest(
-      lifecycleHookName: 'asg-v000-lifecycle-2',
-      autoScalingGroupName: 'asg-v000',
-      lifecycleTransition: 'autoscaling:EC2_INSTANCE_LAUNCHING',
-      notificationTargetARN: 'arn:aws:sns:us-east-1:123456789012:my-sns-topic',
-      roleARN: 'arn:aws:iam::123456789012:role/my-notification-role',
-      heartbeatTimeout: 3600,
-      defaultResult: 'CONTINUE'
-    ))
+    1 * autoScaling.putLifecycleHook(PutLifecycleHookRequest.builder()
+      .lifecycleHookName('asg-v000-lifecycle-1')
+      .autoScalingGroupName('asg-v000')
+      .lifecycleTransition('autoscaling:EC2_INSTANCE_TERMINATING')
+      .notificationTargetARN('arn:aws:sns:us-east-1:123456789012:my-sns-topic')
+      .roleARN('arn:aws:iam::123456789012:role/my-notification-role')
+      .heartbeatTimeout(3600)
+      .defaultResult('ABANDON')
+      .build())
+    1 * autoScaling.putLifecycleHook(PutLifecycleHookRequest.builder()
+      .lifecycleHookName('asg-v000-lifecycle-2')
+      .autoScalingGroupName('asg-v000')
+      .lifecycleTransition('autoscaling:EC2_INSTANCE_LAUNCHING')
+      .notificationTargetARN('arn:aws:sns:us-east-1:123456789012:my-sns-topic')
+      .roleARN('arn:aws:iam::123456789012:role/my-notification-role')
+      .heartbeatTimeout(3600)
+      .defaultResult('CONTINUE')
+      .build())
     1 * autoScaling.putNotificationConfiguration(
-      new PutNotificationConfigurationRequest()
-        .withAutoScalingGroupName('asg-v000')
-        .withNotificationTypes('autoscaling:EC2_INSTANCE_LAUNCH_ERROR')
-        .withTopicARN('arn:aws:sns:us-east-1:123456789012:my-notification-sns-topic')
+      PutNotificationConfigurationRequest.builder()
+        .autoScalingGroupName('asg-v000')
+        .notificationTypes('autoscaling:EC2_INSTANCE_LAUNCH_ERROR')
+        .topicARN('arn:aws:sns:us-east-1:123456789012:my-notification-sns-topic')
+        .build()
     )
   }
 }

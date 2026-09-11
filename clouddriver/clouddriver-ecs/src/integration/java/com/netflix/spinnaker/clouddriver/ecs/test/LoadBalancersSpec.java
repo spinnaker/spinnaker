@@ -21,7 +21,6 @@ import static io.restassured.RestAssured.get;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
-import com.amazonaws.services.ecs.model.LoadBalancer;
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
@@ -37,6 +36,7 @@ import java.util.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import software.amazon.awssdk.services.ecs.model.LoadBalancer;
 
 public class LoadBalancersSpec extends EcsSpec {
 
@@ -125,10 +125,11 @@ public class LoadBalancersSpec extends EcsSpec {
         "TestAgentLB", Collections.singletonList(testNamespaceForLB), testResult);
 
     LoadBalancer loadBalancer =
-        new LoadBalancer()
-            .withLoadBalancerName("testLB")
-            .withTargetGroupArn(
-                "arn:aws:elasticloadbalancing:us-west-2:910995322324:targetgroup/spinnaker-ecs-demo-tg/84e8edbbc69cd97b");
+        LoadBalancer.builder()
+            .loadBalancerName("testLB")
+            .targetGroupArn(
+                "arn:aws:elasticloadbalancing:us-west-2:910995322324:targetgroup/spinnaker-ecs-demo-tg/84e8edbbc69cd97b")
+            .build();
 
     Long createdAtLong = (new Date().getTime());
 

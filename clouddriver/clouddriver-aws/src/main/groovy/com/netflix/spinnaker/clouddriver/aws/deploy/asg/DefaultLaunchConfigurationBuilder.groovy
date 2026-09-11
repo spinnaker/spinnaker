@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.asg
 
-import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.autoscaling.model.AlreadyExistsException
-import com.amazonaws.services.autoscaling.model.BlockDeviceMapping
-import com.amazonaws.services.autoscaling.model.CreateLaunchConfigurationRequest
-import com.amazonaws.services.autoscaling.model.Ebs
-import com.amazonaws.services.autoscaling.model.InstanceMonitoring
-import com.amazonaws.services.autoscaling.model.LaunchConfiguration
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient
+import software.amazon.awssdk.services.autoscaling.model.AlreadyExistsException
+import software.amazon.awssdk.services.autoscaling.model.BlockDeviceMapping
+import software.amazon.awssdk.services.autoscaling.model.CreateLaunchConfigurationRequest
+import software.amazon.awssdk.services.autoscaling.model.Ebs
+import software.amazon.awssdk.services.autoscaling.model.InstanceMonitoring
+import software.amazon.awssdk.services.autoscaling.model.LaunchConfiguration
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.UserDataProviderAggregator
 import com.netflix.spinnaker.clouddriver.aws.userdata.UserDataInput
 import com.netflix.spinnaker.clouddriver.aws.userdata.UserDataOverride
@@ -40,14 +40,14 @@ import org.joda.time.LocalDateTime
 @Slf4j
 class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
 
-  final AmazonAutoScaling autoScaling
+  final AutoScalingClient autoScaling
   final AsgService asgService
   final SecurityGroupService securityGroupService
   final UserDataProviderAggregator userDataProviderAggregator
   final LocalFileUserDataProperties localFileUserDataProperties
   final DeployDefaults deployDefaults
 
-  DefaultLaunchConfigurationBuilder(AmazonAutoScaling autoScaling, AsgService asgService,
+  DefaultLaunchConfigurationBuilder(AutoScalingClient autoScaling, AsgService asgService,
                                     SecurityGroupService securityGroupService,
                                     UserDataProviderAggregator userDataProviderAggregator,
                                     LocalFileUserDataProperties localFileUserDataProperties,
@@ -221,66 +221,64 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
 
   private String createLaunchConfiguration(String name, String userData, LaunchConfigurationSettings settings) {
 
-    CreateLaunchConfigurationRequest request = new CreateLaunchConfigurationRequest()
-      .withImageId(settings.ami)
-      .withIamInstanceProfile(settings.iamRole)
-      .withLaunchConfigurationName(name)
-      .withUserData(userData)
-      .withInstanceType(settings.instanceType)
-      .withSecurityGroups(settings.securityGroups)
-      .withKeyName(settings.keyPair)
-      .withAssociatePublicIpAddress(settings.associatePublicIpAddress)
-      .withKernelId(settings.kernelId ?: null)
-      .withRamdiskId(settings.ramdiskId ?: null)
-      .withEbsOptimized(settings.ebsOptimized)
-      .withSpotPrice(settings.spotMaxPrice)
-      .withClassicLinkVPCId(settings.classicLinkVpcId)
-      .withClassicLinkVPCSecurityGroups(settings.classicLinkVpcSecurityGroups)
-      .withInstanceMonitoring(new InstanceMonitoring(enabled: settings.instanceMonitoring))
+    CreateLaunchConfigurationRequest.Builder request = CreateLaunchConfigurationRequest.builder()
+      .imageId(settings.ami)
+      .iamInstanceProfile(settings.iamRole)
+      .launchConfigurationName(name)
+      .userData(userData)
+      .instanceType(settings.instanceType)
+      .securityGroups(settings.securityGroups)
+      .keyName(settings.keyPair)
+      .associatePublicIpAddress(settings.associatePublicIpAddress)
+      .kernelId(settings.kernelId ?: null)
+      .ramdiskId(settings.ramdiskId ?: null)
+      .ebsOptimized(settings.ebsOptimized)
+      .spotPrice(settings.spotMaxPrice)
+      .classicLinkVPCId(settings.classicLinkVpcId)
+      .classicLinkVPCSecurityGroups(settings.classicLinkVpcSecurityGroups)
+      .instanceMonitoring(InstanceMonitoring.builder().enabled(settings.instanceMonitoring).build())
 
     if (settings.blockDevices) {
       def mappings = []
       for (blockDevice in settings.blockDevices) {
-        def mapping = new BlockDeviceMapping(deviceName: blockDevice.deviceName)
+        def mappingBuilder = BlockDeviceMapping.builder().deviceName(blockDevice.deviceName)
         if (blockDevice.virtualName) {
-          mapping.withVirtualName(blockDevice.virtualName)
+          mappingBuilder.virtualName(blockDevice.virtualName)
         } else {
-          def ebs = new Ebs()
+          def ebsBuilder = Ebs.builder()
           blockDevice.with {
-            ebs.withVolumeSize(size)
+            ebsBuilder.volumeSize(size)
             if (deleteOnTermination != null) {
-              ebs.withDeleteOnTermination(deleteOnTermination)
+              ebsBuilder.deleteOnTermination(deleteOnTermination)
             }
             if (volumeType) {
-              ebs.withVolumeType(volumeType)
+              ebsBuilder.volumeType(volumeType)
             }
             if (iops) {
-              ebs.withIops(iops)
+              ebsBuilder.iops(iops)
             }
             if (throughput) {
-              ebs.withThroughput(throughput)
+              ebsBuilder.throughput(throughput)
             }
             if (snapshotId) {
-              ebs.withSnapshotId(snapshotId)
+              ebsBuilder.snapshotId(snapshotId)
             }
             if (encrypted) {
-              ebs.withEncrypted(encrypted)
+              ebsBuilder.encrypted(encrypted)
             }
           }
-          mapping.withEbs(ebs)
+          mappingBuilder.ebs(ebsBuilder.build())
         }
-        mappings << mapping
+        mappings << mappingBuilder.build()
       }
-      request.withBlockDeviceMappings(mappings)
+      request.blockDeviceMappings(mappings)
     }
 
     try {
       OperationPoller.retryWithBackoff({ o ->
-        CreateLaunchConfigurationRequest debugRequest = request.clone()
-        debugRequest.setUserData(null);
-        log.debug("Creating launch configuration (${name}): ${debugRequest}")
+        log.debug("Creating launch configuration (${name}): ${request.build().toBuilder().userData(null).build()}")
 
-        autoScaling.createLaunchConfiguration(request)
+        autoScaling.createLaunchConfiguration(request.build())
       }, 1500, 3);
     } catch (AlreadyExistsException e) {
       log.debug("Launch configuration already exists, continuing... (${e.message})")

@@ -33,6 +33,7 @@ ext {
     logback          : "1.5.37",
     tomcat           : "10.1.56",
     commonsCompress  : "1.27.1",
+    testcontainersMinio : "2.0.5",
   ]
 }
 
@@ -70,10 +71,14 @@ dependencies {
   // import-order-safety reason as log4j-bom/netty-bom above.
   api(platform("org.apache.httpcomponents.core5:httpcore5-parent:${versions.httpcore5}"))
   api(platform("org.springframework.boot:spring-boot-dependencies:${versions.springBoot}"))
-  api(platform("com.amazonaws:aws-java-sdk-bom:${versions.aws}"))
   api(platform("com.google.protobuf:protobuf-bom:${versions.protobuf}"))
   api(platform("com.google.cloud:libraries-bom:${versions.gcp}"))
   api(platform("software.amazon.awssdk:bom:${versions.awsv2}"))
+  // awspring 3.x (Spring Cloud AWS on AWS SDK v2). Imported AFTER the awssdk BOM
+  // so our pinned AWS SDK v2 version wins Gradle's first-declared conflict
+  // resolution for Maven consumers. Used by kork-cloud-config-server for the
+  // s3:// ResourceLoader (S3ProtocolResolver).
+  api(platform("io.awspring.cloud:spring-cloud-aws-dependencies:3.3.0"))
   api(platform("org.springframework.cloud:spring-cloud-dependencies:${versions.springCloud}"))
   api(platform("io.strikt:strikt-bom:0.31.0"))
   api(platform("org.spockframework:spock-bom:2.4-groovy-4.0"))
@@ -81,7 +86,6 @@ dependencies {
   api(platform("io.arrow-kt:arrow-stack:${versions.arrow}"))
   constraints {
     api("cglib:cglib-nodep:3.3.0")
-    api("com.amazonaws:aws-java-sdk:${versions.aws}")
     api("com.google.api-client:google-api-client:2.4.1")
     api("com.google.apis:google-api-services-admin-directory:directory_v1-rev20240429-2.0.0")
     api("com.google.apis:google-api-services-cloudbuild:v1-rev20240427-2.0.0")
@@ -112,7 +116,6 @@ dependencies {
     api("com.netflix.frigga:frigga:0.28.0")
     api("com.netflix.netflix-commons:netflix-eventbus:0.3.0")
     api("com.netflix.spectator:spectator-api:${versions.spectator}")
-    api("com.netflix.spectator:spectator-ext-aws:${versions.spectator}")
     api("com.netflix.spectator:spectator-ext-aws2:${versions.spectator}")
     api("com.netflix.spectator:spectator-ext-ipc:${versions.spectator}")
     api("com.netflix.spectator:spectator-ext-gc:${versions.spectator}")
@@ -180,6 +183,7 @@ dependencies {
     api("org.pf4j:pf4j:3.14.1")
     api("org.pf4j:pf4j-update:2.3.0")
     api("org.springdoc:springdoc-openapi-starter-webmvc-ui:${versions.springdocs}")
+    api("org.testcontainers:testcontainers-minio:${versions.testcontainersMinio}")
     api("org.threeten:threeten-extra:1.0")
   }
 }
