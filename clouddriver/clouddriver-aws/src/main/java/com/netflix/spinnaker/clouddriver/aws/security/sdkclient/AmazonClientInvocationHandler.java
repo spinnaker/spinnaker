@@ -452,7 +452,7 @@ public class AmazonClientInvocationHandler implements InvocationHandler {
       final AmazonServiceException ex =
           new AmazonServiceException("Edda failed locating the managed objects requested.", e);
       if (e.getCause() instanceof HttpClientErrorException) {
-        ex.setStatusCode(((HttpClientErrorException) e.getCause()).getRawStatusCode());
+        ex.setStatusCode(((HttpClientErrorException) e.getCause()).getStatusCode().value());
       } else {
         ex.setStatusCode(400);
       }

@@ -18,12 +18,10 @@ package com.netflix.spinnaker.front50;
 import com.netflix.spinnaker.kork.boot.DefaultPropertiesBuilder;
 import java.util.Map;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
-import org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration;
-import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration;
-import org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.data.redis.autoconfigure.DataRedisAutoConfiguration;
+import org.springframework.boot.data.redis.autoconfigure.DataRedisRepositoriesAutoConfiguration;
+import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -33,11 +31,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 @EnableAutoConfiguration(
     exclude = {
-      GroovyTemplateAutoConfiguration.class,
-      RedisAutoConfiguration.class,
-      RedisRepositoriesAutoConfiguration.class,
+      DataRedisAutoConfiguration.class,
+      DataRedisRepositoriesAutoConfiguration.class,
       DataSourceAutoConfiguration.class,
-      GsonAutoConfiguration.class
     })
 @ComponentScan({"com.netflix.spinnaker.front50", "com.netflix.spinnaker.config"})
 public class Main extends SpringBootServletInitializer {

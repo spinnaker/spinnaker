@@ -20,7 +20,7 @@ package com.netflix.spinnaker.front50.api.test
 import com.netflix.spinnaker.front50.Main
 import dev.minutest.TestContextBuilder
 import dev.minutest.TestDescriptor
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.TestContextManager
 import org.springframework.test.context.TestPropertySource

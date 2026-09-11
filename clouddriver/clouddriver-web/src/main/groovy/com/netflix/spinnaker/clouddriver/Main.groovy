@@ -27,15 +27,10 @@ import com.netflix.spinnaker.kork.artifacts.artifactstore.entities.SerializerHoo
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.boot.DefaultPropertiesBuilder
 import com.netflix.spinnaker.kork.configserver.ConfigServerBootstrap
-import org.springframework.boot.actuate.autoconfigure.elasticsearch.ElasticsearchRestHealthContributorAutoConfiguration
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
-import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration
-import org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchDataAutoConfiguration
-import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
-import org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
-import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
-import org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+import org.springframework.boot.data.redis.autoconfigure.DataRedisAutoConfiguration
+import org.springframework.boot.data.redis.autoconfigure.DataRedisRepositoriesAutoConfiguration
+import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 import org.springframework.context.annotation.Bean
@@ -59,14 +54,9 @@ import java.security.Security
   'com.netflix.spinnaker.clouddriver.config'
 ])
 @EnableAutoConfiguration(exclude = [
-  BatchAutoConfiguration,
-  GroovyTemplateAutoConfiguration,
-  GsonAutoConfiguration,
   DataSourceAutoConfiguration,
-  ElasticsearchDataAutoConfiguration,
-  ElasticsearchRestHealthContributorAutoConfiguration,
-  RedisAutoConfiguration,
-  RedisRepositoriesAutoConfiguration
+  DataRedisAutoConfiguration,
+  DataRedisRepositoriesAutoConfiguration
 ])
 @EnableScheduling
 class Main extends SpringBootServletInitializer {

@@ -31,7 +31,6 @@ import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.http.HttpHeader;
 import com.github.tomakehurst.wiremock.http.HttpHeaders;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
-import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.google.common.collect.Iterables;
 import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.config.DefaultServiceClientProvider;
@@ -102,11 +101,11 @@ public class EvaluateDeploymentHealthTaskTest {
   private MemoryAppender memoryAppender;
 
   @BeforeAll
-  static void setupOnce(WireMockRuntimeInfo wmRuntimeInfo) {
+  static void setupOnce() {
     DeploymentMonitorDefinition deploymentMonitorDefinition = new DeploymentMonitorDefinition();
     deploymentMonitorDefinition.setId(MONITOR_ID);
     deploymentMonitorDefinition.setName(MONITOR_NAME);
-    deploymentMonitorDefinition.setBaseUrl(wmRuntimeInfo.getHttpBaseUrl());
+    deploymentMonitorDefinition.setBaseUrl(wireMock.baseUrl());
     deploymentMonitorDefinitions = new ArrayList<>();
     deploymentMonitorDefinitions.add(deploymentMonitorDefinition);
   }

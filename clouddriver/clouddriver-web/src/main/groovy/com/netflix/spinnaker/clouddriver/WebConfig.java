@@ -100,10 +100,7 @@ public class WebConfig implements WebMvcConfigurer {
 
   @Override
   public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
-    configurer
-        .defaultContentType(MediaType.APPLICATION_JSON_UTF8)
-        .favorPathExtension(false)
-        .ignoreAcceptHeader(true);
+    configurer.defaultContentType(MediaType.APPLICATION_JSON).ignoreAcceptHeader(true);
   }
 
   @Override

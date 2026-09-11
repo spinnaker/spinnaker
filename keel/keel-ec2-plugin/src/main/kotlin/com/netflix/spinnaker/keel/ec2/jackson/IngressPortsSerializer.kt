@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer
 import com.netflix.spinnaker.keel.api.ec2.AllPorts
 import com.netflix.spinnaker.keel.api.ec2.IngressPorts
 import com.netflix.spinnaker.keel.api.ec2.PortRange
-import org.springframework.boot.jackson.JsonComponent
+import org.springframework.boot.jackson2.JsonComponent
 
 @JsonComponent
 class IngressPortsSerializer : StdSerializer<IngressPorts>(IngressPorts::class.java) {

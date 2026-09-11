@@ -24,7 +24,7 @@ import com.netflix.spinnaker.kork.eureka.EurekaStatusSubscriber
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.micrometer.core.instrument.logging.LoggingMeterRegistry
-import org.springframework.boot.actuate.autoconfigure.health.HealthEndpointAutoConfiguration
+import org.springframework.boot.health.autoconfigure.actuate.endpoint.HealthEndpointAutoConfiguration
 import org.springframework.boot.autoconfigure.AutoConfigurations
 import org.springframework.boot.test.context.assertj.AssertableApplicationContext
 import org.springframework.boot.test.context.runner.ApplicationContextRunner

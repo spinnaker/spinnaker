@@ -22,8 +22,9 @@ apply plugin: 'io.spinnaker.package'
 application.mainClass = 'com.netflix.spinnaker.orca.Main'
 
 dependencies {
-  implementation("org.springframework.boot:spring-boot-starter-web")
+  implementation("org.springframework.boot:spring-boot-starter-webmvc")
   implementation("org.springframework.boot:spring-boot-starter-actuator")
+  compileOnly("org.springframework.boot:spring-boot-starter-jdbc")
   implementation("net.logstash.logback:logstash-logback-encoder")
 
   implementation(project(":keiko-spring"))
@@ -97,7 +98,7 @@ dependencies {
   testImplementation("org.apache.groovy:groovy-json")
   testImplementation("org.mockito.kotlin:mockito-kotlin")
   testImplementation("io.spinnaker.kork:kork-sql-test")
-  testImplementation("org.testcontainers:mysql")
+  testImplementation("org.testcontainers:testcontainers-mysql")
   testImplementation("com.squareup.retrofit2:converter-jackson")
   testImplementation("com.squareup.retrofit2:retrofit-mock")
 }

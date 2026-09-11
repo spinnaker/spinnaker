@@ -51,7 +51,7 @@ dependencies {
 
   integrationImplementation project(":clouddriver-web")
   integrationImplementation "org.springframework:spring-test"
-  integrationImplementation "org.testcontainers:mysql"
+  integrationImplementation "org.testcontainers:testcontainers-mysql"
   integrationImplementation "com.mysql:mysql-connector-j"
   integrationImplementation sourceSets.test.output
   integrationImplementation sourceSets.main.output

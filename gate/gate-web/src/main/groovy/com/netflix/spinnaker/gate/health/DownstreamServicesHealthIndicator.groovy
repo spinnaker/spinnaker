@@ -27,8 +27,8 @@ import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.actuate.health.AbstractHealthIndicator
-import org.springframework.boot.actuate.health.Health
+import org.springframework.boot.health.contributor.AbstractHealthIndicator
+import org.springframework.boot.health.contributor.Health
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import org.springframework.web.context.request.RequestContextHolder

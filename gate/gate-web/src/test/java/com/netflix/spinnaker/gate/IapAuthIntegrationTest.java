@@ -62,10 +62,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import retrofit2.mock.Calls;
 
 /**
@@ -100,11 +100,11 @@ class IapAuthIntegrationTest {
 
   @MockitoBean DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;
 
-  @SpyBean IapAuthenticationFilter iapAuthenticationFilter;
+  @MockitoSpyBean IapAuthenticationFilter iapAuthenticationFilter;
 
   @MockitoBean FiatService fiatService;
 
-  @SpyBean FiatPermissionEvaluator fiatPermissionEvaluator;
+  @MockitoSpyBean FiatPermissionEvaluator fiatPermissionEvaluator;
 
   @MockitoBean Front50Service front50Service;
 

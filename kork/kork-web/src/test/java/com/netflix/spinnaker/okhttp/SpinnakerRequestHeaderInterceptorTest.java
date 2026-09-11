@@ -25,7 +25,6 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
-import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
 import com.netflix.spinnaker.kork.common.Header;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
@@ -73,7 +72,7 @@ class SpinnakerRequestHeaderInterceptorTest {
       WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
 
   @BeforeEach
-  void setup(TestInfo testInfo, WireMockRuntimeInfo wmRuntimeInfo) {
+  void setup(TestInfo testInfo) {
     System.out.println("--------------- Test " + testInfo.getDisplayName());
 
     // set up an arbitrary response to avoid 404s, and so it's possible to

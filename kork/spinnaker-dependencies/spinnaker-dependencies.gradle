@@ -11,7 +11,10 @@ ext {
     awsv2            : "2.23.7",
     bouncycastle     : "1.84", // fixes CVE-2024-34447, CVE-2025-14813
     gcp              : "26.34.0",
-    groovy           : "4.0.15",
+    // Aligned with Spock 2.4-groovy-4.0's required Groovy (4.0.29): keeps the
+    // Groovy 4 line Boot 3 used while staying off Boot 4.1's Groovy 5.0.8,
+    // which Spock 2.4 does not support. Enforced via strictly below.
+    groovy           : "4.0.29",
     jsch             : "0.1.54",
     jschAgentProxy   : "0.0.9",
     log4j            : "2.26.1", // CVEs regularly released, so patch override spring as needed
@@ -22,17 +25,21 @@ ext {
     spek             : "1.1.5",
     elasticsearch    : "8.19.18", // Used by clouddriver, moved here for central dep management
     spek2            : "2.0.9",
-    springdocs          : "2.8.17",
-    springBoot       : "3.5.16",
-    springCloud      : "2025.0.3", // CVE-2026-40982: spring-cloud-config-server 4.3.3+ required
-    // bring in latest, though it's ahead of deps.  This is due to springdocs
-    // https://github.com/springdoc/springdoc-openapi/blob/v2.8.17/springdoc-openapi-starter-common/src/main/java/org/springdoc/core/providers/ObjectMapperProvider.java#L85
-    // referencing a field that didn't come in... until 2.2.30
+    // springdoc-openapi v3 is the Spring Boot 4 line (v2.x targets Boot 3
+    // and references the removed autoconfigure.web.servlet.WebMvcProperties).
+    springdocs          : "3.1.1",
+    springBoot       : "4.1.1",
+    springCloud      : "2025.1.3", // CVE-2026-40982: spring-cloud-config-server 4.3.3+ required
+    // springdoc-openapi v3 needs swagger-core with the jakarta artifacts;
+    // keep ahead of transitive deps as before.
     swagger          : "2.2.49",
     httpcore5        : "5.4.3",
     logback          : "1.5.37",
     tomcat           : "10.1.56",
     commonsCompress  : "1.27.1",
+    // Boot 4.1 manages jOOQ 3.21.7 (Java 21 bytecode, major 65). Keep Java 17 by
+    // pinning the last Java 17-compatible line until the Java floor is raised.
+    jooq             : "3.19.35",
   ]
 }
 
@@ -171,9 +178,30 @@ dependencies {
     // some of the modules would still use <1.70 as they can't be upgraded without upgrading spring boot
     api('org.mockito.kotlin:mockito-kotlin:5.4.0')
     api("com.azure:azure-security-keyvault-keys:4.11.1") // CVE-2026-33117
-    api("org.bouncycastle:bcpkix-jdk18on:${versions.bouncycastle}")
-    api("org.bouncycastle:bcprov-jdk18on:${versions.bouncycastle}")
-    api("org.bouncycastle:bcprov-jdk15to18:${versions.bouncycastle}") // CVE-2025-14813: some transitive deps still pull jdk15to18 artifact
+    // Keep the whole BC family strictly on 1.84: Spring Cloud 2025.1 manages
+    // 1.85, which removed org.bouncycastle.asn1.iana.IANAObjectIdentifiers used
+    // by kork-crypto test fixtures (and mixing 1.84/1.85 within the family breaks
+    // at runtime). See also CVE-2024-34447, CVE-2025-14813 above.
+    api("org.bouncycastle:bcpkix-jdk18on") {
+      version {
+        strictly "${versions.bouncycastle}"
+      }
+    }
+    api("org.bouncycastle:bcprov-jdk18on") {
+      version {
+        strictly "${versions.bouncycastle}"
+      }
+    }
+    api("org.bouncycastle:bcprov-jdk15to18") {
+      version {
+        strictly "${versions.bouncycastle}"
+      }
+    } // CVE-2025-14813: some transitive deps still pull jdk15to18 artifact
+    api("org.bouncycastle:bcutil-jdk18on") {
+      version {
+        strictly "${versions.bouncycastle}"
+      }
+    }
     api("org.jetbrains:annotations:19.0.0")
     api("org.spekframework.spek2:spek-dsl-jvm:${versions.spek2}")
     api("org.spekframework.spek2:spek-runner-junit5:${versions.spek2}")
@@ -181,10 +209,69 @@ dependencies {
     api("org.jetbrains.spek:spek-junit-platform-engine:${versions.spek}")
     api("org.jetbrains.spek:spek-junit-platform-runner:${versions.spek}")
     api("org.jetbrains.spek:spek-subject-extension:${versions.spek}")
+    api("io.rest-assured:rest-assured:5.5.7")
+    // Spock 2.4-groovy-4.0 is incompatible with Groovy 5 (Boot 4 default).
+    // Keep Groovy 4 for tests until Spock supports Groovy 5. Strictly forces
+    // the downgrade from Boot's Groovy 5 line (see jOOQ pin above for Java 17).
+    api("org.apache.groovy:groovy") {
+      version {
+        strictly "${versions.groovy}"
+      }
+    }
+    api("org.apache.groovy:groovy-xml") {
+      version {
+        strictly "${versions.groovy}"
+      }
+    }
+    api("org.apache.groovy:groovy-templates") {
+      version {
+        strictly "${versions.groovy}"
+      }
+    }
+    api("org.apache.groovy:groovy-json") {
+      version {
+        strictly "${versions.groovy}"
+      }
+    }
+    api("org.jooq:jooq:${versions.jooq}")
+    api("org.jooq:jooq-meta:${versions.jooq}")
+    api("org.jooq:jooq-codegen:${versions.jooq}")
+    api("org.jooq:jooq-meta-extensions:${versions.jooq}")
+    api("org.jooq:jooq-kotlin:${versions.jooq}")
+    api("org.wiremock:wiremock:3.10.0")
+    api("org.wiremock:wiremock-jetty12:3.10.0")
+    // Shaded self-contained server; dependencySubstitution in each composite
+    // build swaps the Jetty-based variants above for this on all classpaths.
+    api("org.wiremock:wiremock-standalone:3.10.0")
     api("org.objenesis:objenesis:2.5.1")
     api("org.pf4j:pf4j:3.14.1")
     api("org.pf4j:pf4j-update:2.3.0")
     api("org.springdoc:springdoc-openapi-starter-webmvc-ui:${versions.springdocs}")
     api("org.threeten:threeten-extra:1.0")
+  }
+}
+
+configurations {
+  springBootBaselineCheck {
+    canBeConsumed = false
+    canBeResolved = true
+    extendsFrom(api)
+  }
+}
+
+tasks.register("verifySpringBootBaseline") {
+  doLast {
+    def resolvedCoordinates = configurations.springBootBaselineCheck.incoming.resolutionResult.allComponents
+      .findAll { it.moduleVersion != null }
+      .collect { "${it.moduleVersion.group}:${it.moduleVersion.name}:${it.moduleVersion.version}" } as Set
+    def expectedCoordinates = [
+      "org.springframework.boot:spring-boot-dependencies:4.1.1",
+      "org.springframework.cloud:spring-cloud-dependencies:2025.1.3",
+      "org.jetbrains.kotlin:kotlin-bom:2.3.21",
+    ] as Set
+    def missingCoordinates = expectedCoordinates - resolvedCoordinates
+    if (!missingCoordinates.empty) {
+      throw new GradleException("Spring Boot baseline mismatch; missing resolved coordinates: ${missingCoordinates.sort().join(', ')}")
+    }
   }
 }

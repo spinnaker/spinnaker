@@ -71,7 +71,7 @@ public class KubernetesSecretsEngineTest {
     V1Namespace namespace = new V1Namespace();
     namespace.setMetadata(new V1ObjectMeta());
     namespace.getMetadata().setName("otherns");
-    coreV1Api.createNamespace(namespace, null, null, null, null);
+    coreV1Api.createNamespace(namespace).execute();
     createSecretInNamespace(expectedSecretValue, "otherns", "somesecret", "secret");
 
     byte[] secretValue =
@@ -90,7 +90,7 @@ public class KubernetesSecretsEngineTest {
     secret.putStringDataItem(secretKey, expectedSecretValue);
 
     try {
-      coreV1Api.createNamespacedSecret(namespace, secret, null, null, null, null);
+      coreV1Api.createNamespacedSecret(namespace, secret).execute();
     } catch (ApiException e) {
       System.err.println("Status code: " + e.getCode());
       System.err.println("Response body: " + e.getResponseBody());

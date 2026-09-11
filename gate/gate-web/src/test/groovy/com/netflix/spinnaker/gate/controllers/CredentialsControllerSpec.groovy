@@ -57,7 +57,6 @@ class CredentialsControllerSpec extends Specification {
 
     def contentNegotiationManagerFactoryBean = new ContentNegotiationManagerFactoryBean()
     contentNegotiationManagerFactoryBean.addMediaType("json", MediaType.APPLICATION_JSON)
-    contentNegotiationManagerFactoryBean.favorPathExtension = false
     mockMvc = MockMvcBuilders
       .standaloneSetup(new CredentialsController(
         accountLookupService:  accountLookupService,

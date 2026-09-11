@@ -1,11 +1,11 @@
 dependencies {
   testImplementation "com.fasterxml.jackson.core:jackson-databind"
-  testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
+  testImplementation "org.wiremock:wiremock"
   testImplementation "org.assertj:assertj-core"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
   testImplementation "org.slf4j:slf4j-api"
   testImplementation "org.testcontainers:testcontainers"
-  testImplementation "org.testcontainers:junit-jupiter"
+  testImplementation "org.testcontainers:testcontainers-junit-jupiter"
   testRuntimeOnly "ch.qos.logback:logback-classic"
 }
 

@@ -140,7 +140,7 @@ class SpinnakerRetrofit2ErrorHandleTest {
     SpinnakerHttpException spinnakerHttpException =
         catchThrowableOfType(
             () -> retrofit2Service.getRetrofit2().execute(), SpinnakerHttpException.class);
-    assertThat(spinnakerHttpException.getHeaders().containsKey("Test")).isTrue();
+    assertThat(spinnakerHttpException.getHeaders().containsHeader("Test")).isTrue();
     assertThat(spinnakerHttpException.getHeaders().get("Test").contains("true")).isTrue();
     assertThat(spinnakerHttpException.getUrl())
         .isEqualTo(mockWebServer.url("/retrofit2").toString());

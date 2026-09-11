@@ -70,7 +70,7 @@ dependencies {
   testImplementation("io.spinnaker.kork:kork-retrofit")
   testImplementation("io.spinnaker.kork:kork-security")
   testImplementation("com.squareup.okhttp3:mockwebserver")
-  testImplementation("org.testcontainers:mysql")
+  testImplementation("org.testcontainers:testcontainers-mysql")
   testImplementation("com.networknt:json-schema-validator:1.0.43")
   testImplementation("io.spinnaker.kork:kork-plugins")
   testImplementation("com.graphql-java:graphql-java-extended-scalars")

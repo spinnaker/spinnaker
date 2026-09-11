@@ -19,7 +19,8 @@ dependencies {
   implementation "com.oracle.oci.sdk:oci-java-sdk-objectstorage"
   implementation "org.apache.groovy:groovy"
   implementation "org.springframework.boot:spring-boot-starter-actuator"
-  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "org.springframework.boot:spring-boot-starter-webmvc"
+  implementation "org.springframework.boot:spring-boot-jackson2"
 
   testImplementation "cglib:cglib-nodep"
   testImplementation "org.apache.groovy:groovy-console"

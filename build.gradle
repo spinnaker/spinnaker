@@ -67,6 +67,10 @@ tasks.register('test') { task ->
   }
 }
 
+tasks.register('verifySpringBootBaseline') {
+  dependsOn gradle.includedBuild('kork').task(':spinnaker-dependencies:verifySpringBootBaseline')
+}
+
 // Additional aliases including UI projects
 tasks.register('buildAll') { task ->
   gradle.includedBuilds.each { build ->

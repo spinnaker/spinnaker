@@ -50,7 +50,7 @@ dependencies {
     // avoid circular dependency which breaks Liquibase
     exclude(module: "keel-sql")
   }
-  testImplementation("org.testcontainers:mysql")
+  testImplementation("org.testcontainers:testcontainers-mysql")
 
   jooqGenerator(platform("io.spinnaker.kork:kork-bom"))
   jooqGenerator("com.mysql:mysql-connector-j")
