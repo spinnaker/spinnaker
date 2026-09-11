@@ -134,20 +134,16 @@ public class EcsApplicationProvider implements ApplicationProvider {
     Moniker moniker = service.getMoniker();
 
     String appName = moniker.getApp();
-    String serviceName = service.getServiceName();
     String accountName = service.getAccount();
     attributes.put("name", appName);
 
     HashMap<String, Set<String>> clusterNames = new HashMap<>();
-    HashMap<String, Set<String>> clusterNamesMetadata = new HashMap<>();
 
     if (expand) {
-      clusterNames.put(accountName, Sets.newHashSet(serviceName));
-      clusterNamesMetadata.put(accountName, Sets.newHashSet(moniker.getCluster()));
+      clusterNames.put(accountName, Sets.newHashSet(moniker.getCluster()));
     }
 
-    EcsApplication application =
-        new EcsApplication(appName, attributes, clusterNames, clusterNamesMetadata);
+    EcsApplication application = new EcsApplication(appName, attributes, clusterNames);
 
     if (!applicationHashMap.containsKey(appName)) {
       applicationHashMap.put(appName, application);
@@ -157,11 +153,6 @@ public class EcsApplicationProvider implements ApplicationProvider {
         applicationHashMap
             .get(appName)
             .getClusterNames()
-            .computeIfAbsent(accountName, k -> Sets.newHashSet())
-            .add(serviceName);
-        applicationHashMap
-            .get(appName)
-            .getClusterNameMetadata()
             .computeIfAbsent(accountName, k -> Sets.newHashSet())
             .add(moniker.getCluster());
       }
