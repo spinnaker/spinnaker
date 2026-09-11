@@ -15,6 +15,8 @@ dependencies {
   api "org.springframework.boot:spring-boot-starter-webclient"
   api "org.springframework.boot:spring-boot-starter-security"
   api "org.springframework.boot:spring-boot-jackson2"
+  api "org.springframework.boot:spring-boot-jackson"
+  api "tools.jackson.core:jackson-databind"
   api "org.springframework.security:spring-security-core"
   api "com.netflix.spectator:spectator-api"
   api "com.fasterxml.jackson.core:jackson-annotations"

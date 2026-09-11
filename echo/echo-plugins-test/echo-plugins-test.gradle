@@ -9,6 +9,8 @@ dependencies {
 
   testImplementation("io.spinnaker.kork:kork-plugins")
   testImplementation("io.spinnaker.kork:kork-plugins-tck")
+  // Provides @WebMvcTest/@AutoConfigureMockMvc (Boot 4 repackaged test slices).
+  testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
 
   testRuntimeOnly "org.junit.platform:junit-platform-launcher"
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")

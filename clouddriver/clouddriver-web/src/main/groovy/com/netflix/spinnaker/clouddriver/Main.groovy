@@ -28,8 +28,6 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.boot.DefaultPropertiesBuilder
 import com.netflix.spinnaker.kork.configserver.ConfigServerBootstrap
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
-import org.springframework.boot.data.redis.autoconfigure.DataRedisAutoConfiguration
-import org.springframework.boot.data.redis.autoconfigure.DataRedisRepositoriesAutoConfiguration
 import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
@@ -54,9 +52,14 @@ import java.security.Security
   'com.netflix.spinnaker.clouddriver.config'
 ])
 @EnableAutoConfiguration(exclude = [
-  DataSourceAutoConfiguration,
-  DataRedisAutoConfiguration,
-  DataRedisRepositoriesAutoConfiguration
+  DataSourceAutoConfiguration
+],
+// Excluded by name (not class) so contexts without spring-data-redis on the
+// classpath don't fail annotation introspection with TypeNotPresentException,
+// which discards the whole @EnableAutoConfiguration.
+excludeName = [
+  'org.springframework.boot.data.redis.autoconfigure.DataRedisAutoConfiguration',
+  'org.springframework.boot.data.redis.autoconfigure.DataRedisRepositoriesAutoConfiguration'
 ])
 @EnableScheduling
 class Main extends SpringBootServletInitializer {

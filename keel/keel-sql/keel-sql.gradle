@@ -74,6 +74,11 @@ dependencies {
       strictly "3.19.35"
     }
   }
+  jooqGenerator("org.jooq:jooq") {
+    version {
+      strictly "3.19.35"
+    }
+  }
   jooqGenerator("ch.qos.logback:logback-classic:1.2.3")
 
   liquibaseRuntime(platform("io.spinnaker.kork:kork-bom"))
