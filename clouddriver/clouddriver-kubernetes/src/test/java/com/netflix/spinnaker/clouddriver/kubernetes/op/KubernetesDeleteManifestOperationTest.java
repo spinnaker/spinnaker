@@ -34,9 +34,11 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesAccountProperties.ManagedAccount;
 import com.netflix.spinnaker.clouddriver.kubernetes.converter.manifest.KubernetesDeleteManifestConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.GlobalResourcePropertyRegistry;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesApiGroup;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesDeleteManifestDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKindProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesCustomResourceDefinitionHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesCustomResourceHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesHandler;
@@ -134,13 +136,10 @@ public class KubernetesDeleteManifestOperationTest {
   @ParameterizedTest(name = "deleteUnregisteredCustomResource useNamespace = {0}")
   @ValueSource(booleans = {true, false})
   public void deleteUnregisteredCustomResource(boolean useNamespace) throws IOException {
-    String namespace = "";
-    String namespaceJson = "";
-
-    if (useNamespace) {
-      namespace = "test-namespace";
-      namespaceJson = ", \"location\": \"" + namespace + "\"";
-    }
+    // customResource is namespace-scoped, so when no namespace is supplied on the manifest
+    // coordinate, it resolves to the same "default" namespace kubectl itself would fall back to.
+    String namespace = useNamespace ? "test-namespace" : KubernetesCoordinates.DEFAULT_NAMESPACE;
+    String namespaceJson = useNamespace ? ", \"location\": \"" + namespace + "\"" : "";
 
     String pipelineJSON =
         "{ "
@@ -402,6 +401,16 @@ public class KubernetesDeleteManifestOperationTest {
 
     KubernetesCredentials mockCredentials = mock(KubernetesCredentials.class);
     when(mockCredentials.getResourcePropertyRegistry()).thenReturn(resourcePropertyRegistry);
+    // Custom resource definitions are cluster-scoped; everything else in this test file
+    // (including the ad-hoc "MyCRD" custom resource) is namespace-scoped, matching the real
+    // KindRegistry defaults these tests are standing in for.
+    when(mockCredentials.getKindProperties(any(KubernetesKind.class)))
+        .thenAnswer(
+            invocation -> {
+              KubernetesKind kind = invocation.getArgument(0);
+              return KubernetesKindProperties.create(
+                  kind, !kind.equals(KubernetesKind.CUSTOM_RESOURCE_DEFINITION));
+            });
 
     KubernetesCredentials.Factory credentialFactory = mock(KubernetesCredentials.Factory.class);
     when(credentialFactory.build(managedAccount)).thenReturn(mockCredentials);

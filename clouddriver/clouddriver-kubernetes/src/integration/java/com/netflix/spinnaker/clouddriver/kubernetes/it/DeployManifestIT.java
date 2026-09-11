@@ -180,6 +180,46 @@ public class DeployManifestIT extends BaseTest {
   @DisplayName(
       ".\n===\n"
           + "Given a deployment manifest with no namespace set\n"
+          + "  And no namespace override\n"
+          + "  And the account's namespace allow-list does not include \"default\"\n"
+          + "When sending deploy manifest request\n"
+          + "Then deployment fails with DescriptionValidationException\n===")
+  @Test
+  public void shouldNotDeployToDefaultNsWhenNotListed() throws IOException {
+    // ------------------------- given --------------------------
+    String appName = "namespace-forbidden-default";
+    System.out.println("> Using namespace: default, appName: " + appName);
+    List<Map<String, Object>> manifest =
+        KubeTestUtils.loadYaml("classpath:manifests/deployment.yml")
+            .withValue("metadata.name", DEPLOYMENT_1_NAME)
+            .asList();
+
+    // ------------------------- when --------------------------
+    // account2's namespace allow-list is ["account2-testns00"], so a manifest with no
+    // namespace set (and no override) must be rejected instead of silently landing in the
+    // kubeconfig context's default namespace. See spinnaker/spinnaker#5992.
+    List<Map<String, Object>> body =
+        KubeTestUtils.loadJson("classpath:requests/deploy_manifest.json")
+            .withValue("deployManifest.account", ACCOUNT2_NAME)
+            .withValue("deployManifest.moniker.app", appName)
+            .withValue("deployManifest.manifests", manifest)
+            .asList();
+    Response resp =
+        given()
+            .log()
+            .uri()
+            .contentType("application/json")
+            .body(body)
+            .post(baseUrl() + "/kubernetes/ops");
+
+    // ------------------------- then --------------------------
+    resp.then().statusCode(400);
+    assertTrue(resp.body().asString().contains("wrongNamespace"));
+  }
+
+  @DisplayName(
+      ".\n===\n"
+          + "Given a deployment manifest with no namespace set\n"
           + "When sending deploy manifest request\n"
           + "  And waiting on manifest stable\n"
           + "Then a pod is up and running in the default namespace\n===")
