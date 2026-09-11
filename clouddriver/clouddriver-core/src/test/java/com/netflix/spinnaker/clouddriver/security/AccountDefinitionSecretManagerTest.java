@@ -39,13 +39,13 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
-import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
+import org.springframework.boot.jackson2.autoconfigure.Jackson2AutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 
 @SpringBootTest(classes = AccountDefinitionConfiguration.class)
-@ImportAutoConfiguration(JacksonAutoConfiguration.class)
+@ImportAutoConfiguration(Jackson2AutoConfiguration.class)
 class AccountDefinitionSecretManagerTest {
 
   @MockitoBean UserSecretManager userSecretManager;

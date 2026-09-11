@@ -19,7 +19,7 @@ import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
 import de.huxhorn.sulky.ulid.ULID
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
-import org.springframework.boot.jackson.JsonComponentModule
+import org.springframework.boot.jackson2.JsonComponentModule
 import org.springframework.boot.task.ThreadPoolTaskSchedulerCustomizer
 import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
@@ -30,9 +30,7 @@ import org.springframework.core.annotation.Order
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
-import org.springframework.web.servlet.config.annotation.PathMatchConfigurer
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
-import org.springframework.web.util.pattern.PathPatternParser
 import java.time.Clock
 
 private const val IPC_SERVER_METRIC = "controller.invocations"
@@ -41,13 +39,8 @@ private const val IPC_SERVER_METRIC = "controller.invocations"
 class DefaultConfiguration(
   val spectatorRegistry: Registry
 ) : WebMvcConfigurer {
-  override fun configurePathMatch(configurer: PathMatchConfigurer) {
-    // Keep PathPatternParser but allow an optional trailing “/”
-    val parser = PathPatternParser().apply {
-      isMatchOptionalTrailingSeparator = true   //  ⇦ key line
-    }
-    configurer.patternParser = parser
-  }
+  // NOTE: Spring Framework 7 removed PathPatternParser.matchOptionalTrailingSeparator;
+  // trailing-slash tolerance is provided by kork-web's UrlHandlerFilter instead.
   /**
    * Enable controller metrics
    */

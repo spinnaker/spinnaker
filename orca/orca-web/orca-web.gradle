@@ -82,6 +82,8 @@ dependencies {
 
   testImplementation(project(":orca-test-groovy"))
   testImplementation("org.springframework.boot:spring-boot-starter-test")
+  // Provides @WebMvcTest/@AutoConfigureMockMvc (Boot 4 repackaged test slices).
+  testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
   testImplementation("org.spockframework:spock-core")
   testImplementation("org.spockframework:spock-spring")
   testImplementation("org.springframework:spring-test")

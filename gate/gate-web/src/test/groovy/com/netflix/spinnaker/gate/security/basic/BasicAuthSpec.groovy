@@ -72,10 +72,12 @@ class BasicAuthSpec extends Specification {
     }
 
     when:
+    // Spring Framework 7's MockMvc no longer absolutizes redirect Locations
+    // (real servlet containers still do); assert the relative form here.
     mockMvc.perform(get("/credentials"))
       .andDo(print())
       .andExpect(status().is3xxRedirection())
-      .andExpect(header().string("Location", "http://localhost/login"))
+      .andExpect(header().string("Location", "/login"))
       .andDo(extractSession)
 
     mockMvc.perform(new FormLoginRequestBuilder().user("basic-user")
@@ -83,7 +85,7 @@ class BasicAuthSpec extends Specification {
       .cookie(sessionCookie))
       .andDo(print())
       .andExpect(status().is(302))
-      .andExpect(redirectedUrl("http://localhost/credentials"))
+      .andExpect(redirectedUrl("/credentials"))
       .andDo(extractSession)
 
     def result = mockMvc.perform(get("/credentials").cookie(sessionCookie))
@@ -113,7 +115,7 @@ class BasicAuthSpec extends Specification {
       .header(HttpHeaders.AUTHORIZATION, "Basic " + Base64.getEncoder().encodeToString("basic-user:badbad".getBytes())))
       .andDo(print())
       .andExpect(status().is3xxRedirection())
-      .andExpect(header().string("Location", "http://localhost/login"))
+      .andExpect(header().string("Location", "/login"))
       .andReturn()
 
     then:

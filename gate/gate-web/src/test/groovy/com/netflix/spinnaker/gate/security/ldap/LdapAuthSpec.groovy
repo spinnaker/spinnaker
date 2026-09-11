@@ -88,10 +88,12 @@ class LdapAuthSpec extends Specification {
     }
 
     when:
+    // Spring Framework 7's MockMvc no longer absolutizes redirect Locations
+    // (real servlet containers still do); assert the relative form here.
     mockMvc.perform(get("/credentials"))
            .andDo(print())
            .andExpect(status().is3xxRedirection())
-           .andExpect(header().string("Location", "http://localhost/login"))
+           .andExpect(header().string("Location", "/login"))
            .andDo(extractSession)
 
     mockMvc.perform(new FormLoginRequestBuilder().user("batman")
@@ -99,7 +101,7 @@ class LdapAuthSpec extends Specification {
                                                  .cookie(sessionCookie))
            .andDo(print())
            .andExpect(status().is(302))
-           .andExpect(redirectedUrl("http://localhost/credentials"))
+           .andExpect(redirectedUrl("/credentials"))
            .andDo(extractSession)
 
     def result = mockMvc.perform(get("/credentials").cookie(sessionCookie))
