@@ -1,5 +1,5 @@
-import 'brace/ext/searchbox';
-import 'brace/mode/json';
+import 'ace-builds/src-noconflict/ext-searchbox';
+import 'ace-builds/src-noconflict/mode-json';
 import { get, omit } from 'lodash';
 import * as React from 'react';
 import { Modal } from 'react-bootstrap';
