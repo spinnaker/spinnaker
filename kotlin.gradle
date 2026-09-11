@@ -30,6 +30,10 @@ apply plugin: "kotlin"
 apply plugin: "kotlin-spring"
 
 dependencies {
+  // Spring Framework 7 instantiates Kotlin Spring-factories components via
+  // kotlin-reflect (SpringFactoriesLoader$KotlinDelegate); Boot 3 masked this
+  // via jackson-module-kotlin's transitive dep. Version from the Kotlin BOM.
+  implementation "org.jetbrains.kotlin:kotlin-reflect"
   testImplementation "org.jetbrains.kotlin:kotlin-stdlib"
 
   testImplementation "org.junit.jupiter:junit-jupiter-api"
