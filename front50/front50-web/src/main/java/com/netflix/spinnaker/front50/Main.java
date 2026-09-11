@@ -19,8 +19,6 @@ import com.netflix.spinnaker.kork.boot.DefaultPropertiesBuilder;
 import java.util.Map;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.data.redis.autoconfigure.DataRedisAutoConfiguration;
-import org.springframework.boot.data.redis.autoconfigure.DataRedisRepositoriesAutoConfiguration;
 import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.ComponentScan;
@@ -31,9 +29,14 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 @EnableAutoConfiguration(
     exclude = {
-      DataRedisAutoConfiguration.class,
-      DataRedisRepositoriesAutoConfiguration.class,
       DataSourceAutoConfiguration.class,
+    },
+    // Excluded by name (not class) so contexts without spring-data-redis on the
+    // classpath (e.g. front50-api-tck) don't fail annotation introspection with
+    // TypeNotPresentException, which discards the whole @EnableAutoConfiguration.
+    excludeName = {
+      "org.springframework.boot.data.redis.autoconfigure.DataRedisAutoConfiguration",
+      "org.springframework.boot.data.redis.autoconfigure.DataRedisRepositoriesAutoConfiguration",
     })
 @ComponentScan({"com.netflix.spinnaker.front50", "com.netflix.spinnaker.config"})
 public class Main extends SpringBootServletInitializer {

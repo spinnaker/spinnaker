@@ -54,7 +54,26 @@ dependencies {
 
   jooqGenerator(platform("io.spinnaker.kork:kork-bom"))
   jooqGenerator("com.mysql:mysql-connector-j")
-  jooqGenerator("org.jooq:jooq-meta-extensions:3.19.35")
+  // Pin the whole codegen family to the last Java 17-compatible jOOQ line: the
+  // Boot 4.1 BOM manages 3.21.7 (Java 21 bytecode), which crashes generateJooq
+  // on the Java 17 toolchain with UnsupportedClassVersionError. Plain versions
+  // lose to the BOM platform constraint here, so strictly (the same idiom used
+  // for the Groovy/BouncyCastle downgrades in spinnaker-dependencies) forces it.
+  jooqGenerator("org.jooq:jooq-codegen") {
+    version {
+      strictly "3.19.35"
+    }
+  }
+  jooqGenerator("org.jooq:jooq-meta") {
+    version {
+      strictly "3.19.35"
+    }
+  }
+  jooqGenerator("org.jooq:jooq-meta-extensions") {
+    version {
+      strictly "3.19.35"
+    }
+  }
   jooqGenerator("ch.qos.logback:logback-classic:1.2.3")
 
   liquibaseRuntime(platform("io.spinnaker.kork:kork-bom"))

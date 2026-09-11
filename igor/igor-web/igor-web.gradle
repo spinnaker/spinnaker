@@ -25,6 +25,9 @@ dependencies {
     implementation "commons-io:commons-io"
 
     testImplementation "org.springframework.boot:spring-boot-starter-test"
+    // Provides @WebMvcTest/@AutoConfigureMockMvc (Boot 4 repackaged test slices;
+    // no longer transitively provided for web slice tests).
+    testImplementation "org.springframework.boot:spring-boot-starter-webmvc-test"
     testImplementation "org.spockframework:spock-core"
     testImplementation "org.spockframework:spock-spring"
     testImplementation "org.springframework:spring-test"

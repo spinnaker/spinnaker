@@ -40,7 +40,7 @@ spring:
       org.springframework.boot.actuate.autoconfigure.metrics.JvmMetricsAutoConfiguration,
       org.springframework.boot.actuate.autoconfigure.metrics.LogbackMetricsAutoConfiguration,
       org.springframework.boot.actuate.autoconfigure.metrics.SystemMetricsAutoConfiguration,
-      org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,
+      org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration,
       com.playtika.test.common.properties.InstallPackagePropertiesConfiguration,
 
 management:

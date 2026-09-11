@@ -26,9 +26,9 @@ import org.apache.coyote.http11.AbstractHttp11Protocol;
 import org.junit.jupiter.api.Test;
 
 /**
- * Drives {@link DefaultTomcatConnectorCustomizer} against a real Tomcat HTTP/1.1 protocol handler to
- * verify that {@code relaxedQueryCharacters} is applied to Tomcat's relaxed *query* characters (and
- * not, as a prior copy/paste bug did, to the relaxed *path* characters).
+ * Drives {@link DefaultTomcatConnectorCustomizer} against a real Tomcat HTTP/1.1 protocol handler
+ * to verify that {@code relaxedQueryCharacters} is applied to Tomcat's relaxed *query* characters
+ * (and not, as a prior copy/paste bug did, to the relaxed *path* characters).
  */
 class RelaxedUriPropertiesTest {
 
@@ -48,8 +48,10 @@ class RelaxedUriPropertiesTest {
     AbstractHttp11Protocol<?> protocol = customizeWith(props);
 
     String queryChars = protocol.getRelaxedQueryChars();
-    assertTrue(queryChars.indexOf('[') >= 0, "expected '[' in relaxed query chars but got: " + queryChars);
-    assertTrue(queryChars.indexOf(']') >= 0, "expected ']' in relaxed query chars but got: " + queryChars);
+    assertTrue(
+        queryChars.indexOf('[') >= 0, "expected '[' in relaxed query chars but got: " + queryChars);
+    assertTrue(
+        queryChars.indexOf(']') >= 0, "expected ']' in relaxed query chars but got: " + queryChars);
 
     // Regression guard: the query characters must NOT leak into the path characters,
     // which is what the previous setRelaxedPathChars(getRelaxedPathCharacters()) bug caused.
@@ -68,7 +70,9 @@ class RelaxedUriPropertiesTest {
     AbstractHttp11Protocol<?> protocol = customizeWith(props);
 
     String pathChars = protocol.getRelaxedPathChars();
-    assertTrue(pathChars.indexOf('{') >= 0, "expected '{' in relaxed path chars but got: " + pathChars);
-    assertTrue(pathChars.indexOf('}') >= 0, "expected '}' in relaxed path chars but got: " + pathChars);
+    assertTrue(
+        pathChars.indexOf('{') >= 0, "expected '{' in relaxed path chars but got: " + pathChars);
+    assertTrue(
+        pathChars.indexOf('}') >= 0, "expected '}' in relaxed path chars but got: " + pathChars);
   }
 }

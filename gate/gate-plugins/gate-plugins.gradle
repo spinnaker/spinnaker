@@ -34,4 +34,6 @@ dependencies {
   implementation "org.pf4j:pf4j-update"
 
   testImplementation "com.squareup.retrofit2:retrofit-mock"
+  // Provides @WebMvcTest/@AutoConfigureMockMvc (Boot 4 repackaged test slices).
+  testImplementation "org.springframework.boot:spring-boot-starter-webmvc-test"
 }
