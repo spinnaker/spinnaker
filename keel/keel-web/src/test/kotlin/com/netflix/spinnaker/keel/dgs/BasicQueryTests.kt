@@ -37,14 +37,13 @@ import io.mockk.every
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.graphql.GraphQlAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
 import strikt.api.expectCatching
 import strikt.assertions.isEqualTo
 import strikt.assertions.isSuccess
 
 @SpringBootTest(
-  classes = [DgsTestConfig::class, DgsSpringGraphQLAutoConfiguration::class, GraphQlAutoConfiguration::class]
+  classes = [DgsTestConfig::class, DgsSpringGraphQLAutoConfiguration::class]
 )
 class BasicQueryTests {
 
