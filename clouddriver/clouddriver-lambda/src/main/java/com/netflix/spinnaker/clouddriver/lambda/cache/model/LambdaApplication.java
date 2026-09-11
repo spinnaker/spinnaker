@@ -29,10 +29,8 @@ import lombok.NoArgsConstructor;
 public class LambdaApplication implements Application {
   private String name;
   private Map<String, String> attributes;
-
   // Application.getClusterNames() is documented as never returning null (@Empty); Lambda
   // applications have no ASG-backed clusters, so default to an empty map rather than leaving
   // this null, which previously caused a NullPointerException in ClusterController.mergeClusters.
   private Map<String, Set<String>> clusterNames = new HashMap<>();
-  private Map<String, Set<String>> clusterNameMetadata = new HashMap<>();
 }
