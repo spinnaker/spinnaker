@@ -17,6 +17,9 @@ dependencies {
   api "io.swagger.core.v3:swagger-annotations"
 
   implementation "com.squareup.retrofit2:converter-jackson"
+  // Direct references in KayentaJackson3SubtypeConfiguration.
+  implementation "org.springframework.boot:spring-boot-jackson"
+  implementation "tools.jackson.core:jackson-databind"
 
   testImplementation "io.spinnaker.kork:kork-jedis-test"
   testImplementation "org.mock-server:mockserver-junit-jupiter:5.15.0"

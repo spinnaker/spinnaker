@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.config;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.jackson.autoconfigure.JsonMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,10 +28,16 @@ import tools.jackson.databind.MapperFeature;
  *
  * <p>Jackson 3 enables {@code SORT_PROPERTIES_ALPHABETICALLY} by default, which reorders every
  * serialized API response compared to Boot 3's declaration order. Spinnaker's API consumers and
- * contract tests expect declaration order, so every Boot-built Jackson 3 mapper disables it.
+ * contract tests expect declaration order, so every Boot-built Jackson 3 mapper disables it unless
+ * a service explicitly opts into sorting via {@code
+ * spring.jackson.mapper.SORT_PROPERTIES_ALPHABETICALLY} (e.g. gate, clouddriver).
  */
 @Configuration
 @ConditionalOnClass({JsonMapperBuilderCustomizer.class, tools.jackson.databind.ObjectMapper.class})
+@ConditionalOnProperty(
+    name = "spring.jackson.mapper.SORT_PROPERTIES_ALPHABETICALLY",
+    havingValue = "false",
+    matchIfMissing = true)
 public class Jackson3PropertyOrderConfiguration {
 
   @Bean
