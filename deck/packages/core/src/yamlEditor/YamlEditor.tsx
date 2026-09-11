@@ -1,8 +1,8 @@
-import 'brace/mode/yaml';
-import 'brace/theme/textmate';
+import 'ace-builds/src-noconflict/mode-yaml';
+import 'ace-builds/src-noconflict/theme-textmate';
 import { loadAll, YAMLException } from 'js-yaml';
 import React from 'react';
-import type { Annotation } from 'react-ace';
+import type { IAnnotation } from 'react-ace';
 import AceEditor from 'react-ace';
 
 import { diagnosticLogger } from '../utils/diagnosticLogger';
@@ -31,7 +31,7 @@ export class YamlEditor extends React.Component<IYamlEditorProps> {
       : diagnosticLogger.warn('No `onChange` handler provided for YAML editor.');
   };
 
-  public calculateErrors = (value: string): Annotation[] => {
+  public calculateErrors = (value: string): IAnnotation[] => {
     try {
       loadAll(value, null);
     } catch (e) {
@@ -75,6 +75,7 @@ export class YamlEditor extends React.Component<IYamlEditorProps> {
           tabSize: 2,
           showLineNumbers: false,
           showFoldWidgets: false,
+          useWorker: false,
         }}
         editorProps={{ $blockScrolling: Infinity }}
         className="ace-editor"
