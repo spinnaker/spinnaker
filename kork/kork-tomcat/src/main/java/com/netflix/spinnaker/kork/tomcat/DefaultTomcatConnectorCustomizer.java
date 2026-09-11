@@ -101,7 +101,7 @@ class DefaultTomcatConnectorCustomizer implements TomcatConnectorCustomizer {
         protocol.setRelaxedPathChars(tomcatConfigurationProperties.getRelaxedPathCharacters());
       }
       if (!ObjectUtils.isEmpty(tomcatConfigurationProperties.getRelaxedQueryCharacters())) {
-        protocol.setRelaxedPathChars(tomcatConfigurationProperties.getRelaxedPathCharacters());
+        protocol.setRelaxedQueryChars(tomcatConfigurationProperties.getRelaxedQueryCharacters());
       }
     } else {
       log.warn(
