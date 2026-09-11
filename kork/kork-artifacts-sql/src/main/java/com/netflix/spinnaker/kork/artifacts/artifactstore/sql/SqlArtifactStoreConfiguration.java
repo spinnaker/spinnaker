@@ -55,6 +55,13 @@ import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy;
  * to the name of a different pool under {@code sql.connection-pools} stores artifacts in a separate
  * database instead.
  *
+ * <p><b>Every service that participates in entity storage must point at the same physical
+ * database.</b> Entity storage is only useful cross-service -- e.g. clouddriver stores a deployed
+ * manifest, orca reads it back later in the same pipeline -- exactly like the S3 backend requires
+ * every service to share the same bucket. If clouddriver and orca are each left on their own
+ * separate default pool with no shared database between them, a manifest one service stores simply
+ * won't be found when another service tries to read it back.
+ *
  * <p>Schema migrations for the {@code artifact_store} table are self-managed: whichever connection
  * pool was selected gets its own, independently-scoped Liquibase run against a uniquely-named
  * changelog, rather than requiring every host service to add this module's changelog to its own.
