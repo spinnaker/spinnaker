@@ -96,10 +96,8 @@ public class KubernetesSecretEngine implements SecretEngine {
                 .formatted(namespace));
       }
       V1Secret secret =
-          apiClient
-              .readNamespacedSecret(
-                  encryptedSecret.getParams().get(SECRET_NAME).toLowerCase(), namespace)
-              .execute();
+          apiClient.readNamespacedSecret(
+              encryptedSecret.getParams().get(SECRET_NAME).toLowerCase(), namespace, null);
       return secret.getData().get(encryptedSecret.getParams().get(SECRET_KEY));
     } catch (ApiException e) {
       log.error("Unable to load secret for " + encryptedSecret.getUri(), e);
