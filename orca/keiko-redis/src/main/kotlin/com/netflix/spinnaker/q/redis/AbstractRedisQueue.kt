@@ -137,6 +137,52 @@ internal const val READ_MESSAGE_SRC =
   redis.call("ZADD", unackKey, unackScore, fingerprint)
 """
 
+/**
+ * [ACK_MESSAGE_SRC] clears this delivery's bookkeeping only, leaving an identical queued message
+ * the redelivery the handler or another pod asked for untouched.
+ */
+internal const val ACK_RESULT_REQUEUED = "Requeued"
+
+/**
+ * [ACK_MESSAGE_SRC] deletes every trace of the fingerprint because nothing identical was queued.
+ */
+internal const val ACK_RESULT_REMOVED = "Removed"
+
+/**
+ * Clears a fingerprint's in-flight state, deciding and acting in a single atomic step.
+ *
+ * Whether the message may be deleted depends on whether an identical one is queued for redelivery,
+ * and that decision must not be separable from the deletion it authorizes: another pod can push an
+ * identical, and therefore identically fingerprinted, message in between, and an unconditional
+ * ZREM/HDEL pair would then destroy a live message it never looked at. See RedisQueueAckRaceTest.
+ */
+internal const val ACK_MESSAGE_SRC =
+  """
+  local queueKey = KEYS[1]
+  local unackKey = KEYS[2]
+  local locksKey = KEYS[3]
+  local messagesKey = KEYS[4]
+  local attemptsKey = KEYS[5]
+  local fingerprint = ARGV[1]
+  local lockKey = locksKey .. ":" .. fingerprint
+
+  -- An identical message is already queued, so only this delivery's bookkeeping may be cleared.
+  -- ZRANK returns 0 for the first member, which is truthy in Lua; a missing member comes back as
+  -- false, so this tests presence and not rank.
+  if redis.call("ZRANK", queueKey, fingerprint) then
+    redis.call("ZREM", unackKey, fingerprint)
+    redis.call("DEL", lockKey)
+    return "$ACK_RESULT_REQUEUED"
+  end
+
+  redis.call("ZREM", queueKey, fingerprint)
+  redis.call("ZREM", unackKey, fingerprint)
+  redis.call("HDEL", messagesKey, fingerprint)
+  redis.call("DEL", lockKey)
+  redis.call("HDEL", attemptsKey, fingerprint)
+  return "$ACK_RESULT_REMOVED"
+"""
+
 /* ktlint-disable max-line-length */
 internal const val READ_MESSAGE_WITH_LOCK_SRC =
   """
