@@ -36,11 +36,7 @@ import com.netflix.spinnaker.orca.mine.config.MineConfiguration
 import com.netflix.spinnaker.orca.web.config.WebConfiguration
 import com.netflix.spinnaker.orca.webhook.config.WebhookConfiguration
 import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration
-import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
-import org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
-import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 import org.springframework.context.annotation.Import
@@ -73,7 +69,7 @@ import com.netflix.spinnaker.kork.boot.DefaultPropertiesBuilder
     scanBasePackages = [
         "com.netflix.spinnaker.config"
     ],
-    exclude = [BatchAutoConfiguration, GroovyTemplateAutoConfiguration, DataSourceAutoConfiguration]
+    exclude = [DataSourceAutoConfiguration]
 )
 class Main extends SpringBootServletInitializer {
   static final Map<String, String> DEFAULT_PROPS = new DefaultPropertiesBuilder().property("spring.application.name", "orca").build()

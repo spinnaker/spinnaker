@@ -29,9 +29,12 @@ import com.netflix.spinnaker.cats.test.ManualRunnableScheduler
 import com.netflix.spinnaker.cats.test.TestAgent
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
-import org.springframework.boot.actuate.health.HealthComponent
-import org.springframework.boot.actuate.health.HealthEndpoint
-import org.springframework.boot.actuate.health.Status
+import org.springframework.boot.health.actuate.endpoint.HealthEndpoint
+import org.springframework.boot.health.actuate.endpoint.HealthEndpointGroup
+import org.springframework.boot.health.actuate.endpoint.HealthEndpointGroups
+import org.springframework.boot.health.registry.DefaultHealthContributorRegistry
+import org.springframework.boot.health.registry.DefaultReactiveHealthContributorRegistry
+import org.springframework.boot.health.contributor.Status
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
 import redis.clients.jedis.params.SetParams
@@ -68,11 +71,16 @@ class ClusteredAgentSchedulerSpec extends Specification {
         lockPollingScheduler = new ManualRunnableScheduler()
         agentExecutionScheduler = new ManualRunnableScheduler()
 
-        HealthComponent healthComponent = Stub(HealthComponent)
-        healthComponent.getStatus() >> Status.UP
-
-        healthEndpoint = Stub(HealthEndpoint)
-        healthEndpoint.health() >> healthComponent
+        HealthEndpointGroup healthEndpointGroup = Stub(HealthEndpointGroup)
+        HealthEndpointGroups healthEndpointGroups = Stub(HealthEndpointGroups) {
+          getPrimary() >> healthEndpointGroup
+        }
+        healthEndpoint = new HealthEndpoint(
+          new DefaultHealthContributorRegistry(),
+          new DefaultReactiveHealthContributorRegistry(),
+          healthEndpointGroups,
+          null
+        )
 
         scheduler = new ClusteredAgentScheduler(
           new JedisClientDelegate(jedisPool),

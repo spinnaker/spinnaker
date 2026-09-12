@@ -144,9 +144,7 @@ public class YandexCloudInstance implements Instance {
   }
 
   private static Long calculateInstanceTimestamp(InstanceOuterClass.Instance instance) {
-    return instance.getCreatedAt() != null
-        ? instance.getCreatedAt().getSeconds() * 1000
-        : Long.MAX_VALUE;
+    return instance.hasCreatedAt() ? instance.getCreatedAt().getSeconds() * 1000 : Long.MAX_VALUE;
   }
 
   private static YandexInstanceHealth createInstanceHealth(InstanceOuterClass.Instance instance) {

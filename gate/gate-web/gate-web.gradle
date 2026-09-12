@@ -40,15 +40,15 @@ dependencies {
 
   implementation "org.springframework:spring-web"
   implementation "org.springframework.boot:spring-boot-starter-actuator"
-  implementation "org.springframework.boot:spring-boot-starter-aop"
+  implementation "org.springframework.boot:spring-boot-starter-aspectj"
   implementation "io.github.resilience4j:resilience4j-spring-boot2"
 
-  implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0"
+  implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.1"
   implementation "javax.xml.bind:jaxb-api"
 
-  implementation "io.cloudevents:cloudevents-spring:2.5.0"
-  implementation "io.cloudevents:cloudevents-json-jackson:2.5.0"
-  implementation "io.cloudevents:cloudevents-http-basic:2.5.0"
+  implementation "io.cloudevents:cloudevents-spring:5.0.0"
+  implementation "io.cloudevents:cloudevents-json-jackson:5.0.0"
+  implementation "io.cloudevents:cloudevents-http-basic:5.0.0"
 
   runtimeOnly "io.spinnaker.kork:kork-runtime"
   runtimeOnly "org.springframework.boot:spring-boot-properties-migrator"
@@ -60,7 +60,7 @@ dependencies {
   testImplementation project(":gate-iap")
   testImplementation project(":gate-saml")
   testImplementation project(":gate-x509")
-  testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
+  testImplementation "org.wiremock:wiremock"
   testImplementation "com.squareup.okhttp3:mockwebserver"
 
   testImplementation "org.springframework.security:spring-security-test"
@@ -74,8 +74,9 @@ dependencies {
   testImplementation "com.squareup.retrofit2:retrofit-mock"
   testImplementation "org.springframework.security:spring-security-oauth2-client"
   testImplementation "org.apache.httpcomponents.client5:httpclient5"
+  testImplementation "org.springframework.boot:spring-boot-starter-webmvc-test"
   testImplementation "org.testcontainers:testcontainers"
-  testImplementation "org.testcontainers:junit-jupiter"
+  testImplementation "org.testcontainers:testcontainers-junit-jupiter"
   testImplementation "org.seleniumhq.selenium:selenium-java"
   testImplementation "org.seleniumhq.selenium:htmlunit3-driver:4.41.0"
   testImplementation "org.bouncycastle:bcpkix-jdk18on"

@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.kork.jackson;
 
 import com.fasterxml.jackson.core.StreamReadConstraints;
-import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
+import org.springframework.boot.jackson2.autoconfigure.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 
 /**

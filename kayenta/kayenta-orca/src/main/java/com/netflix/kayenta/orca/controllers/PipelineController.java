@@ -32,9 +32,10 @@ import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.health.HealthContributorRegistry;
-import org.springframework.boot.actuate.health.Status;
-import org.springframework.boot.actuate.health.StatusAggregator;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.health.actuate.endpoint.StatusAggregator;
+import org.springframework.boot.health.contributor.HealthContributors;
+import org.springframework.boot.health.contributor.Status;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -65,7 +66,9 @@ public class PipelineController {
       ExecutionRepository executionRepository,
       ObjectMapper kayentaObjectMapper,
       ConfigurableApplicationContext context,
-      HealthContributorRegistry healthContributorRegistry,
+      // Boot 4 also exposes Cloud's discoveryCompositeHealthContributor as
+      // HealthContributors; qualify the aggregate registry (Boot 3 behavior).
+      @Qualifier("healthContributorRegistry") HealthContributors healthContributors,
       StatusAggregator statusAggregator,
       ScheduledAnnotationBeanPostProcessor postProcessor) {
     this.executionLauncher = executionLauncher;
@@ -73,7 +76,7 @@ public class PipelineController {
     this.kayentaObjectMapper = kayentaObjectMapper;
     this.context = context;
     this.orcaCompositeHealthContributor =
-        new OrcaCompositeHealthContributor(statusAggregator, healthContributorRegistry);
+        new OrcaCompositeHealthContributor(statusAggregator, healthContributors);
     this.postProcessor = postProcessor;
   }
 

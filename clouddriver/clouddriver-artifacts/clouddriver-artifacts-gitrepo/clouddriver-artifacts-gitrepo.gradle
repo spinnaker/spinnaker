@@ -10,8 +10,8 @@ dependencies {
   integrationImplementation project(":clouddriver-artifacts:clouddriver-artifacts-gitrepo")
   integrationImplementation "org.springframework.boot:spring-boot-starter-test"
   integrationImplementation "org.testcontainers:testcontainers"
-  integrationImplementation "org.testcontainers:mysql"
-  integrationImplementation "org.testcontainers:junit-jupiter"
+  integrationImplementation "org.testcontainers:testcontainers-mysql"
+  integrationImplementation "org.testcontainers:testcontainers-junit-jupiter"
   integrationImplementation "com.mysql:mysql-connector-j"
   integrationImplementation "io.rest-assured:rest-assured"
   integrationRuntimeOnly     "org.junit.jupiter:junit-jupiter-engine"

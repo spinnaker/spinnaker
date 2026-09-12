@@ -41,6 +41,9 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-starter-web"
 
   testImplementation "cglib:cglib-nodep"
+  // Explicit: jackson-datatype-jsr310 no longer arrives transitively (aws-java-sdk
+  // v1 removal + Boot 4 Jackson line); ECS cache specs register JavaTimeModule.
+  testImplementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
   testImplementation "org.mockito:mockito-core"
   testImplementation "org.objenesis:objenesis"
   testImplementation "org.spockframework:spock-core"
@@ -50,7 +53,7 @@ dependencies {
 
   integrationImplementation project(":clouddriver-web")
   integrationImplementation "org.springframework:spring-test"
-  integrationImplementation "org.testcontainers:mysql"
+  integrationImplementation "org.testcontainers:testcontainers-mysql"
   integrationImplementation "com.mysql:mysql-connector-j"
   integrationImplementation sourceSets.test.output
   integrationImplementation sourceSets.main.output

@@ -121,7 +121,7 @@ class NotificationService {
       .url(endpointToUse + path)
       .post(RequestBody.create(mediaType, request.body))
 
-    request.getHeaders().each { String name, List values ->
+    request.getHeaders().forEach { String name, List values ->
       values.each { value ->
         log.debug("Relaying request header $name: $value")
         builder.addHeader(name, value.toString())
@@ -134,7 +134,9 @@ class NotificationService {
       // convert retrofit response to Spring format
       String body = response.body().contentLength() > 0 ? response.body().string() : null
       HttpHeaders headers = new HttpHeaders()
-      headers.putAll(response.headers().toMultimap())
+      response.headers().toMultimap().each { name, values ->
+        headers.addAll(name, values)
+      }
       return new ResponseEntity(body, headers, HttpStatus.valueOf(response.code()))
     } catch (SpinnakerServerException e) {
       log.error("Error proxying notification callback to {}: $e", service)

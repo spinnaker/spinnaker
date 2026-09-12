@@ -182,7 +182,7 @@ class TransactionIsolationMysqlTest {
                 + SqlTestUtil.tcJdbcUrl
                 // See
                 // https://java.testcontainers.org/modules/databases/jdbc/#using-a-classpath-init-script
-                + "&TC_INITSCRIPT=mysql-set-session-transaction-isolation.sql")
+                + "?TC_INITSCRIPT=mysql-set-session-transaction-isolation.sql")
         .run(
             ctx -> {
               DataSourceConnectionProvider dataSourceConnectionProvider =

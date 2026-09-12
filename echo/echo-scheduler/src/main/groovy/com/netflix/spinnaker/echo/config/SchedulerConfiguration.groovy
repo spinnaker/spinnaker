@@ -25,8 +25,8 @@ import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
 import org.quartz.JobDetail
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
-import org.springframework.boot.autoconfigure.quartz.QuartzAutoConfiguration
-import org.springframework.boot.autoconfigure.quartz.SchedulerFactoryBeanCustomizer
+import org.springframework.boot.quartz.autoconfigure.QuartzAutoConfiguration
+import org.springframework.boot.quartz.autoconfigure.SchedulerFactoryBeanCustomizer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import

@@ -4,8 +4,8 @@ dependencies {
   api(platform(project(":spinnaker-dependencies")))
   api project(":kork-sql")
 
-  api("org.testcontainers:mysql")
-  api("org.testcontainers:postgresql")
+  api("org.testcontainers:testcontainers-mysql")
+  api("org.testcontainers:testcontainers-postgresql")
 
   // jOOQ's org.jooq.conf.Settings uses jakarta.xml.bind annotations but
   // declares jakarta.xml.bind-api as optional.  Without this, javac warns:

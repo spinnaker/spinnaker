@@ -33,7 +33,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.TestingAuthenticationToken;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import retrofit2.mock.Calls;
@@ -54,7 +54,7 @@ class AdminToolsAuthorizationTest {
   @Mock private OrcaService orcaService;
 
   @Configuration
-  @EnableGlobalMethodSecurity(prePostEnabled = true)
+  @EnableMethodSecurity(prePostEnabled = true)
   static class MethodSecurityConfig {
     @Bean(name = "fiatPermissionEvaluator")
     FakeFiatPermissionEvaluator fiatPermissionEvaluator() {

@@ -27,7 +27,7 @@ import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import groovy.util.logging.Slf4j
 import org.spockframework.spring.SpringBean
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
@@ -72,10 +72,12 @@ class BasicAuthSpec extends Specification {
     }
 
     when:
+    // Spring Framework 7's MockMvc no longer absolutizes redirect Locations
+    // (real servlet containers still do); assert the relative form here.
     mockMvc.perform(get("/credentials"))
       .andDo(print())
       .andExpect(status().is3xxRedirection())
-      .andExpect(header().string("Location", "http://localhost/login"))
+      .andExpect(header().string("Location", "/login"))
       .andDo(extractSession)
 
     mockMvc.perform(new FormLoginRequestBuilder().user("basic-user")
@@ -113,7 +115,7 @@ class BasicAuthSpec extends Specification {
       .header(HttpHeaders.AUTHORIZATION, "Basic " + Base64.getEncoder().encodeToString("basic-user:badbad".getBytes())))
       .andDo(print())
       .andExpect(status().is3xxRedirection())
-      .andExpect(header().string("Location", "http://localhost/login"))
+      .andExpect(header().string("Location", "/login"))
       .andReturn()
 
     then:

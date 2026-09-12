@@ -35,13 +35,14 @@ import org.jooq.impl.DefaultExecuteListenerProvider
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.BeanCreationException
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.actuate.autoconfigure.metrics.jdbc.DataSourcePoolMetricsAutoConfiguration
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
-import org.springframework.boot.autoconfigure.jdbc.metadata.DataSourcePoolMetadataProvidersConfiguration
+import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration
+import org.springframework.boot.jdbc.autoconfigure.DataSourcePoolMetadataProvidersConfiguration
+import org.springframework.boot.jdbc.autoconfigure.metrics.DataSourcePoolMetricsAutoConfiguration
 import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Conditional
 import org.springframework.context.annotation.Configuration
@@ -142,12 +143,14 @@ class DefaultSqlConfiguration {
   @Suppress("UndocumentedPublicFunction")
   @Bean
   @ConditionalOnMissingBean(DataSourceTransactionManager::class)
+  @DependsOnDatabaseInitialization
   fun transactionManager(dataSource: DataSource): DataSourceTransactionManager =
     DataSourceTransactionManager(dataSource)
 
   @Suppress("UndocumentedPublicFunction")
   @Bean
   @ConditionalOnMissingBean(DataSourceConnectionProvider::class)
+  @DependsOnDatabaseInitialization
   fun dataSourceConnectionProvider(dataSource: DataSource, sqlProperties: SqlProperties): DataSourceConnectionProvider =
     object : DataSourceConnectionProvider(TransactionAwareDataSourceProxy(dataSource)) {
       override fun acquire(): Connection = super.acquire().apply {
@@ -162,6 +165,7 @@ class DefaultSqlConfiguration {
   @Suppress("UndocumentedPublicFunction")
   @Bean
   @ConditionalOnMissingBean(DefaultConfiguration::class)
+  @DependsOnDatabaseInitialization
   fun jooqConfiguration(
     connectionProvider: DataSourceConnectionProvider,
     properties: SqlProperties

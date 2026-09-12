@@ -21,9 +21,9 @@ dependencies {
   implementation "io.spinnaker.kork:kork-artifacts"
   implementation "io.spinnaker.kork:kork-core"
   implementation "jakarta.validation:jakarta.validation-api"
-  implementation "io.cloudevents:cloudevents-spring:2.5.0"
-  implementation "io.cloudevents:cloudevents-json-jackson:2.5.0"
-  implementation "io.cloudevents:cloudevents-http-basic:2.5.0"
+  implementation "io.cloudevents:cloudevents-spring:5.0.0"
+  implementation "io.cloudevents:cloudevents-json-jackson:5.0.0"
+  implementation "io.cloudevents:cloudevents-http-basic:5.0.0"
 
   testImplementation "org.junit.jupiter:junit-jupiter-api"
   testImplementation "org.assertj:assertj-core"

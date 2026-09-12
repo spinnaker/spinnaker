@@ -41,7 +41,9 @@ dependencies {
   implementation "org.slf4j:slf4j-api"
   implementation "org.springframework.boot:spring-boot-starter-actuator"
   implementation "org.springframework.boot:spring-boot-starter-json"
-  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "org.springframework.boot:spring-boot-starter-webmvc"
+  compileOnly "org.springframework.boot:spring-boot-starter-data-redis"
+  compileOnly "org.springframework.boot:spring-boot-starter-jdbc"
   implementation "org.springframework.cloud:spring-cloud-context"
 
   runtimeOnly "io.spinnaker.kork:kork-runtime"
@@ -51,7 +53,8 @@ dependencies {
 
   testImplementation "io.spinnaker.kork:kork-test"
   testImplementation "org.springframework.boot:spring-boot-starter-test"
-  testImplementation "org.springframework.security:spring-security-test"
+  testImplementation "org.springframework.boot:spring-boot-starter-webmvc-test"
+  testImplementation "org.springframework.boot:spring-boot-starter-security-test"
   testImplementation "org.spockframework:spock-core"
   // Kubernetes model classes (V1Job, V1Pod, ...) used by ObjectMapperTest; version
   // comes from the spring-cloud BOM.

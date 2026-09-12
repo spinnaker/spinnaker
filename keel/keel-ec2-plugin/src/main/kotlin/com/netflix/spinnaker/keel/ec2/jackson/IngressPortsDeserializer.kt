@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.node.TextNode
 import com.netflix.spinnaker.keel.api.ec2.AllPorts
 import com.netflix.spinnaker.keel.api.ec2.IngressPorts
 import com.netflix.spinnaker.keel.api.ec2.PortRange
-import org.springframework.boot.jackson.JsonComponent
+import org.springframework.boot.jackson2.JsonComponent
 
 @JsonComponent
 class IngressPortsDeserializer : StdNodeBasedDeserializer<IngressPorts>(IngressPorts::class.java) {

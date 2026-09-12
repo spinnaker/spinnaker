@@ -16,11 +16,24 @@
 
 package com.netflix.spinnaker.gate.security;
 
+import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
+import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 
 @Configuration
-@EnableGlobalMethodSecurity(prePostEnabled = true)
+@EnableMethodSecurity(prePostEnabled = true)
 @ConditionalOnBean(annotation = SpinnakerAuthConfig.class)
-public class SpringSecurityAnnotationConfig {}
+public class SpringSecurityAnnotationConfig {
+
+  @Bean
+  static MethodSecurityExpressionHandler methodSecurityExpressionHandler(
+      FiatPermissionEvaluator permissionEvaluator) {
+    var handler = new DefaultMethodSecurityExpressionHandler();
+    handler.setPermissionEvaluator(permissionEvaluator);
+    return handler;
+  }
+}

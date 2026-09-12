@@ -23,7 +23,6 @@ import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.webhook.config.WebhookProperties
 import com.netflix.spinnaker.orca.webhook.service.WebhookService
 import com.netflix.spinnaker.orca.webhook.tasks.MonitorWebhookTask
-import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import spock.lang.Specification
 import spock.lang.Subject
@@ -184,8 +183,7 @@ class PreconfiguredWebhookStageSpec extends Specification {
   }
 
   static WebhookProperties.PreconfiguredWebhook createPreconfiguredWebhook(def label, def description, def type) {
-    def customHeaders = new HttpHeaders()
-    customHeaders.add("header", "value1")
+    def customHeaders = ["header": ["value1"]]
     return new WebhookProperties.PreconfiguredWebhook(
       label: label, description: description, type: type, url: "a", customHeaders: customHeaders, method: HttpMethod.POST, payload: "b",
       failFastStatusCodes: [500, 501], waitForCompletion: true, statusUrlResolution: WebhookProperties.StatusUrlResolution.locationHeader,

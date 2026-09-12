@@ -29,7 +29,7 @@ dependencies {
   implementation "org.apache.commons:commons-lang3"
 
   testImplementation project(':echo-test')
-  testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
+  testImplementation "org.wiremock:wiremock"
   testImplementation "org.springframework.boot:spring-boot-starter-test"
   testImplementation "com.squareup.retrofit2:retrofit-mock"
 }
