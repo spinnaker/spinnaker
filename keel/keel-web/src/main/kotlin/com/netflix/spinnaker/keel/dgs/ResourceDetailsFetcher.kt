@@ -23,7 +23,7 @@ class ResourceDetailsFetcher(
     DgsData(parentType = DgsConstants.MD_RESOURCE.TYPE_NAME, field = DgsConstants.MD_RESOURCE.RawDefinition),
   )
   fun rawDefinition(dfe: DgsDataFetchingEnvironment): String? {
-    val resource: MdResource = dfe.getSource()
+    val resource: MdResource = dfe.getSource()!!
     val config = applicationFetcherSupport.getDeliveryConfigFromContext(dfe)
     return config.resources.find { it.id == resource.id }
       ?.let {
