@@ -23,6 +23,7 @@ import com.netflix.spinnaker.kork.artifacts.ArtifactTypes;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.io.IOException;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.Map;
 
 /** A helper class that helps convert Artifact to and from some class. */
@@ -57,10 +58,49 @@ public class EntityHelper {
   public static Artifact toArtifact(Map<?, ?> manifest, String artifactType) {
     try {
       String ref = Base64.getEncoder().encodeToString(mapper.writeValueAsBytes(manifest));
-      return Artifact.builder().name("stored-entity").type(artifactType).reference(ref).build();
+      Artifact.ArtifactBuilder builder =
+          Artifact.builder().name("stored-entity").type(artifactType).reference(ref);
+      applyManifestIdentity(builder, manifest);
+      return builder.build();
     } catch (JsonProcessingException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  /**
+   * Best-effort: if {@code manifest} looks like a Kubernetes/CloudRun manifest (has a "kind" and
+   * "metadata.name"), surface those on the stored placeholder's name/metadata. Without this, the
+   * placeholder that replaces the manifest in the execution context carries nothing but an opaque
+   * reference, so callers like deck's DeployStatus can't show what was stored without fetching the
+   * full content.
+   */
+  private static void applyManifestIdentity(Artifact.ArtifactBuilder builder, Map<?, ?> manifest) {
+    Object kindObj = manifest.get("kind");
+    Object metadataObj = manifest.get("metadata");
+    if (!(kindObj instanceof String) || !(metadataObj instanceof Map)) {
+      return;
+    }
+
+    Object nameObj = ((Map<?, ?>) metadataObj).get("name");
+    if (!(nameObj instanceof String)) {
+      return;
+    }
+
+    String kind = (String) kindObj;
+    String name = (String) nameObj;
+    Object namespaceObj = ((Map<?, ?>) metadataObj).get("namespace");
+    String namespace = namespaceObj instanceof String ? (String) namespaceObj : null;
+
+    Map<String, Object> identity = new HashMap<>();
+    identity.put("kind", kind);
+    identity.put("name", name);
+    if (namespace != null) {
+      identity.put("namespace", namespace);
+    }
+
+    builder
+        .name(namespace != null ? kind + " " + namespace + "/" + name : kind + " " + name)
+        .metadata(identity);
   }
 
   public static <K, V> Map<K, V> toMap(Artifact artifact) {
