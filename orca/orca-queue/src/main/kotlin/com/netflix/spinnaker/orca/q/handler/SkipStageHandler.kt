@@ -43,6 +43,7 @@ class SkipStageHandler(
   override fun handle(message: SkipStage) {
     message.withStage { stage ->
       if (stage.status in setOf(RUNNING, NOT_STARTED) || stage.isManuallySkipped()) {
+        val originalStatus = stage.status
         stage.status = SKIPPED
         if (stage.isManuallySkipped()) {
           stage.recursiveSyntheticStages().forEach {
@@ -56,7 +57,15 @@ class SkipStageHandler(
         }
         stage.endTime = clock.millis()
         repository.storeStage(stage)
-        stage.startNext()
+        try {
+          stage.startNext()
+        } catch (e: Exception) {
+          // Restore original status so the ack-timeout retried SkipStage
+          // message isn't dropped by the status guard above.
+          stage.status = originalStatus
+          repository.storeStage(stage)
+          throw e
+        }
         publisher.publishEvent(StageComplete(this, stage))
       }
     }

@@ -132,4 +132,9 @@ public class RedisConfiguration {
         Optional.empty(),
         Optional.empty());
   }
+
+  @Bean
+  public JedisExceptionHandler jedisExceptionHandler() {
+    return new JedisExceptionHandler();
+  }
 }

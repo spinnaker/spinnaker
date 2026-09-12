@@ -84,6 +84,7 @@ class CompleteStageHandler(
   override fun handle(message: CompleteStage) {
     message.withStage { stage ->
       if (stage.status in setOf(RUNNING, NOT_STARTED)) {
+        val originalStatus = stage.status
         var status = stage.determineStatus()
         if (stage.shouldFailOnFailedExpressionEvaluation()) {
           log.warn(
@@ -151,20 +152,28 @@ class CompleteStageHandler(
         stage.includeExpressionEvaluationSummary()
         repository.storeStage(stage)
 
-        // When a synthetic stage ends with FAILED_CONTINUE, propagate that status up to the stage's
-        // parent so that no more of the parent's synthetic children will run.
-        if (stage.status == FAILED_CONTINUE && stage.syntheticStageOwner != null && !stage.allowSiblingStagesToContinueOnFailure) {
-          queue.push(message.copy(stageId = stage.parentStageId!!))
-        } else if (stage.status in listOf(SUCCEEDED, FAILED_CONTINUE, SKIPPED)) {
-          stage.startNext()
-        } else {
-          queue.push(CancelStage(message))
-          if (stage.syntheticStageOwner == null) {
-            log.debug("Stage has no synthetic owner and status is '${stage.status}', completing execution (original message: $message)")
-            queue.push(CompleteExecution(message))
-          } else {
+        try {
+          // When a synthetic stage ends with FAILED_CONTINUE, propagate that status up to the stage's
+          // parent so that no more of the parent's synthetic children will run.
+          if (stage.status == FAILED_CONTINUE && stage.syntheticStageOwner != null && !stage.allowSiblingStagesToContinueOnFailure) {
             queue.push(message.copy(stageId = stage.parentStageId!!))
+          } else if (stage.status in listOf(SUCCEEDED, FAILED_CONTINUE, SKIPPED)) {
+            stage.startNext()
+          } else {
+            queue.push(CancelStage(message))
+            if (stage.syntheticStageOwner == null) {
+              log.debug("Stage has no synthetic owner and status is '${stage.status}', completing execution (original message: $message)")
+              queue.push(CompleteExecution(message))
+            } else {
+              queue.push(message.copy(stageId = stage.parentStageId!!))
+            }
           }
+        } catch (e: Exception) {
+          // Restore original status so the ack-timeout retried CompleteStage
+          // message isn't dropped by the status guard above.
+          stage.status = originalStatus
+          repository.storeStage(stage)
+          throw e
         }
 
         publisher.publishEvent(StageComplete(this, stage))
