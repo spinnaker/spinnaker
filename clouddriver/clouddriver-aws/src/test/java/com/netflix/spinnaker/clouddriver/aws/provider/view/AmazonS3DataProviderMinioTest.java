@@ -39,6 +39,7 @@ import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.MinIOContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.ResponseInputStream;
@@ -61,16 +62,23 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
  * kayenta-s3/S3StorageServiceIntegrationTest}) rather than LocalStack -- MinIO is a plain
  * S3-compatible object server with no Lambda/ECS docker-in-docker machinery, so it needs no host
  * docker.sock bind-mount and starts reliably across Docker runtimes (including Colima).
+ *
+ * <p>The image is pulled from Quay.io rather than Docker Hub: MinIO stopped publishing to Docker
+ * Hub, so {@code minio/minio} there is gone. Quay.io has the same tags MinIO used to push to Docker
+ * Hub, including this one.
  */
 @Testcontainers
 class AmazonS3DataProviderMinioTest {
 
-  private static final String MINIO_IMAGE = "minio/minio:RELEASE.2023-09-04T19-57-37Z";
+  private static final String MINIO_IMAGE = "quay.io/minio/minio:RELEASE.2023-09-04T19-57-37Z";
   private static final String BUCKET_NAME = "s3-migration-test-bucket";
   private static final String ACCOUNT_NAME = "test";
   private static final String REGION = "us-east-1";
 
-  @Container static final MinIOContainer minio = new MinIOContainer(MINIO_IMAGE);
+  @Container
+  static final MinIOContainer minio =
+      new MinIOContainer(
+          DockerImageName.parse(MINIO_IMAGE).asCompatibleSubstituteFor("minio/minio"));
 
   private static S3Client s3Client;
   private static AmazonS3DataProvider dataProvider;
