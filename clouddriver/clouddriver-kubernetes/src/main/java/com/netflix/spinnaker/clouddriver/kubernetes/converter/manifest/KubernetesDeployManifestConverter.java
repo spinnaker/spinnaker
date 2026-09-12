@@ -23,6 +23,7 @@ import com.google.common.base.Strings;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation;
 import com.netflix.spinnaker.clouddriver.kubernetes.artifact.ResourceVersioner;
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.converters.KubernetesAtomicOperationConverterHelper;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesDeployManifestDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.OperationResult;
@@ -125,9 +126,17 @@ public class KubernetesDeployManifestConverter
   private KubernetesManifest updateNamespace(
       KubernetesDeployManifestDescription description, KubernetesManifest manifest) {
     KubernetesCredentials credentials = description.getCredentials().getCredentials();
-    if (!StringUtils.isBlank(description.getNamespaceOverride())
-        && credentials.getKindProperties(manifest.getKind()).isNamespaced()) {
+    if (!credentials.getKindProperties(manifest.getKind()).isNamespaced()) {
+      return manifest;
+    }
+    if (!StringUtils.isBlank(description.getNamespaceOverride())) {
       manifest.setNamespace(description.getNamespaceOverride());
+    } else if (StringUtils.isBlank(manifest.getNamespace())) {
+      // kubectl falls back to the kubeconfig context's namespace (typically "default") when a
+      // namespaced manifest omits one; Spinnaker never inspects that target, so it can't be
+      // validated against the account's namespace allow-list. Defaulting explicitly here, before
+      // validation, closes that gap. See spinnaker/spinnaker#5992.
+      manifest.setNamespace(KubernetesCoordinates.DEFAULT_NAMESPACE);
     }
     return manifest;
   }
