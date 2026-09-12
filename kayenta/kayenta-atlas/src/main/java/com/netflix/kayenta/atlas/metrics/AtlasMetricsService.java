@@ -32,6 +32,7 @@ import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
 import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.canary.providers.metrics.AtlasCanaryMetricSetQueryConfig;
+import com.netflix.kayenta.canary.providers.metrics.QueryConfigUtils;
 import com.netflix.kayenta.metrics.MetricSet;
 import com.netflix.kayenta.metrics.MetricsService;
 import com.netflix.kayenta.retrofit.config.RemoteService;
@@ -52,6 +53,7 @@ import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 
 @Builder
 @Slf4j
@@ -88,6 +90,32 @@ public class AtlasMetricsService implements MetricsService {
 
   private AtlasNamedAccountCredentials getCredentials(String accountName) {
     return accountCredentialsRepository.getRequiredOne(accountName);
+  }
+
+  @Override
+  @SuppressWarnings("deprecation")
+  public String buildQuery(
+      String metricsAccountName,
+      CanaryConfig canaryConfig,
+      CanaryMetricConfig canaryMetricConfig,
+      CanaryScope canaryScope) {
+    AtlasCanaryMetricSetQueryConfig atlasMetricSetQuery =
+        (AtlasCanaryMetricSetQueryConfig) canaryMetricConfig.getQuery();
+    AtlasCanaryScope atlasCanaryScope = (AtlasCanaryScope) canaryScope;
+    String[] baseScopeAttributes =
+        new String[] {
+          "type", "deployment", "dataset", "environment", "accountId", "scope", "location"
+        };
+
+    String customFilter =
+        QueryConfigUtils.expandCustomFilter(
+            canaryConfig, atlasMetricSetQuery, atlasCanaryScope, baseScopeAttributes);
+
+    if (StringUtils.isEmpty(customFilter)) {
+      return atlasMetricSetQuery.getQ() + "," + atlasCanaryScope.cq();
+    } else {
+      return customFilter;
+    }
   }
 
   @Override
@@ -195,9 +223,8 @@ public class AtlasMetricsService implements MetricsService {
     AtlasRemoteService atlasRemoteService =
         retrofitClientFactory.createClient(
             AtlasRemoteService.class, atlasSSEConverter, remoteService, okHttpClient);
-    AtlasCanaryMetricSetQueryConfig atlasMetricSetQuery =
-        (AtlasCanaryMetricSetQueryConfig) canaryMetricConfig.getQuery();
-    String decoratedQuery = atlasMetricSetQuery.getQ() + "," + atlasCanaryScope.cq();
+    String decoratedQuery =
+        buildQuery(accountName, canaryConfig, canaryMetricConfig, atlasCanaryScope);
     String isoStep = Duration.of(atlasCanaryScope.getStep(), SECONDS) + "";
 
     long start = registry.clock().monotonicTime();

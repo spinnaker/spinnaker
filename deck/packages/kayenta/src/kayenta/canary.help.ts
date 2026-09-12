@@ -78,9 +78,64 @@ const helpContents: { [key: string]: string } = {
     <p>If no strategy is chosen, the default strategy for the metric will be implemented.</p>
   `,
   'canary.config.filterTemplate': `
-    <p>Templates allow you to compose and parameterize advanced queries against your telemetry provider.</p>
-    <p>Parameterized queries are hydrated by values provided in the canary stage. The <strong>project</strong>, <strong>resourceType</strong>, </string><strong>scope</strong>, and <strong>location</strong> variable bindings are implicitly available.</p>
-    <p>For example, you can interpolate <strong>project</strong> using the following syntax: <strong>\${project}</strong>.</p>
+    <p>Templates let you compose and parameterize advanced queries against your telemetry provider, instead of (or in addition to) using the structured "Guided" form below.</p>
+    <p>Write your query as normal, substituting <strong>\${variable}</strong> for any value you want hydrated at execution time — for example <strong>\${scope}</strong>. Each provider implicitly exposes its own set of variables (shown above the editor); <code>extendedScopeParams</code> can supply additional bindings of your own choosing.</p>
+    <p><strong>Undefined variables fail loudly, not silently:</strong> if your template references a variable that isn't available — implicit or extended — execution throws an error rather than substituting an empty string or leaving the literal <code>\${...}</code> in place. This means typos in variable names are caught immediately rather than producing a subtly wrong query.</p>
+    <p><strong>extendedScopeParams</strong> are user-supplied key/value bindings set on the canary pipeline stage (alongside the scope, region, and other standard fields). They take the highest precedence of any variable binding, letting a single canary config be reused across pipelines that each supply different values for the same template variables.</p>
+    <p>Type your query directly into the template editor below; it's saved as <code>query.template</code> on this metric.</p>
+  `,
+  'canary.config.template.datadog': `
+    <p>Write your own Datadog query. <strong>\${scope}</strong> and <strong>\${location}</strong> are implicitly available, plus any <code>extendedScopeParams</code> you supply.</p>
+    <p><strong>Example:</strong></p>
+    <pre>avg:system.cpu.user{autoscaling_group:\${scope}}</pre>
+  `,
+  'canary.config.template.prometheus': `
+    <p>Write your own PromQL query. <strong>\${project}</strong>, <strong>\${resourceType}</strong>, <strong>\${scope}</strong>, and <strong>\${location}</strong> are implicitly available, plus any <code>extendedScopeParams</code> you supply.</p>
+    <p>Prefix the result with <code>PromQL:</code> to use it as a complete PromQL expression verbatim.</p>
+    <p><strong>Example:</strong></p>
+    <pre>PromQL:sum(rate(http_requests_total{autoscaling_group="\${scope}"}[5m]))</pre>
+  `,
+  'canary.config.template.stackdriver': `
+    <p>Write your own Stackdriver monitoring filter. <strong>\${project}</strong>, <strong>\${resourceType}</strong>, <strong>\${scope}</strong>, and <strong>\${location}</strong> are implicitly available, plus any <code>extendedScopeParams</code> you supply.</p>
+    <p>The expanded result is <strong>ANDed onto</strong> the mandatory <code>metric.type="..." AND resource.type=...</code> base filter — you're extending the base filter, not replacing it.</p>
+    <p><strong>Example:</strong></p>
+    <pre>metadata.user_labels."spinnaker-server-group"=\${scope} AND metadata.user_labels."spinnaker-region"=\${location}</pre>
+  `,
+  'canary.config.template.signalfx': `
+    <p>Write your own SignalFlow program. <strong>\${scope}</strong> and <strong>\${location}</strong> are implicitly available, plus any <code>extendedScopeParams</code> you supply.</p>
+    <p><strong>Example:</strong></p>
+    <pre>data('request.count', filters=filter('cluster', '\${scope}') and filter('region', '\${location}')).sum().publish()</pre>
+  `,
+  'canary.config.template.newrelic': `
+    <p>Write your own NRQL query — it must use the <code>TIMESERIES</code> keyword. <strong>\${scope}</strong>, <strong>\${location}</strong>, <strong>\${startEpochSeconds}</strong>, and <strong>\${endEpochSeconds}</strong> are implicitly available, plus any <code>extendedScopeParams</code> you supply.</p>
+    <p><strong>Example:</strong></p>
+    <pre>SELECT count(*) FROM Transaction TIMESERIES 60 seconds SINCE \${startEpochSeconds} UNTIL \${endEpochSeconds} WHERE autoScalingGroupName LIKE '\${scope}' AND region LIKE '\${location}'</pre>
+  `,
+  'canary.config.template.atlas': `
+    <p>Write a complete Atlas Stack Language query. <strong>\${type}</strong>, <strong>\${deployment}</strong>, <strong>\${dataset}</strong>, <strong>\${environment}</strong>, <strong>\${accountId}</strong>, <strong>\${scope}</strong>, and <strong>\${location}</strong> are implicitly available, plus any <code>extendedScopeParams</code> you supply.</p>
+    <p>This replaces the legacy <code>q</code> + scope composition entirely — there's no separate mandatory filter it gets ANDed onto.</p>
+    <p><strong>Example:</strong></p>
+    <pre>name,requestsPerSecond,:eq,:list,(,nf.cluster,\${scope},:eq,:cq,),:each</pre>
+  `,
+  'canary.config.template.graphite': `
+    <p>Write your own Graphite target path. <strong>\${scope}</strong> and <strong>\${location}</strong> are implicitly available, plus any <code>extendedScopeParams</code> you supply.</p>
+    <p><strong>Example:</strong></p>
+    <pre>servers.\${scope}.cpu</pre>
+  `,
+  'canary.config.template.wavefront': `
+    <p>Write your own Wavefront query. <strong>\${scope}</strong>, <strong>\${location}</strong>, and <strong>\${granularity}</strong> are implicitly available, plus any <code>extendedScopeParams</code> you supply.</p>
+    <p>This replaces the legacy <code>ts(...)</code>/<code>aggregate(...)</code> composition entirely — there's no separate mandatory filter it gets ANDed onto.</p>
+    <p><strong>Example:</strong></p>
+    <pre>avg(ts(requests.count, autoscaling_group=\${scope}))</pre>
+  `,
+  'canary.config.template.influxdb': `
+    <p><strong>InfluxDB has a fixed, different variable vocabulary than every other provider</strong> — its query engine doesn't use arbitrary canary-scope properties, only these three tokens: <strong>\${timeFilter}</strong> and <strong>\${scope}</strong> (both required in every template) and <strong>\${step}</strong> (optional).</p>
+    <p><strong>Example:</strong></p>
+    <pre>SELECT sum(count) FROM cpu WHERE host = 'value1' AND \${scope} AND \${timeFilter} GROUP BY time(1m)</pre>
+  `,
+  'canary.config.guidedModeDeprecated': `
+    <p>The structured "Guided" form remains fully supported for existing metric configs, but it is <strong>deprecated</strong>: it is no longer the default for new metrics, new providers are not gaining guided forms, and it is planned for removal in a future release.</p>
+    <p>Consider migrating this metric to a query <strong>Template</strong> when convenient.</p>
   `,
   'canary.config.signalFx.queryPairs': `
     <p><strong>Query pairs are optional</strong></p>
@@ -105,10 +160,6 @@ const helpContents: { [key: string]: string } = {
     <p>This method is used to construct the compiled SignalFlow program. EX:<pre>data('request.count', filters=filter('uri', 'v1/some-endpoint') and filter('status_code', '5*') and filter('version', '1.0.0') and filter('environment', 'production')).sum(by=['version', 'environment']).publish()</pre>
         Note that the version and environment k,v pairs are sourced from the canary scope. The other k,v pairs come from the metric specific k,v pair list.
     </p>
-  `,
-  'canary.config.prometheus.queryType': `
-    <p>Select <strong>default</strong> to use options from the UI to configure your query.</p>
-    <p>Select <strong>PromQL</strong> to compose a custom PromQL query (see <a target="blank" href="https://prometheus.io/docs/prometheus/latest/querying/basics/">documentation</a>).</p>
   `,
   'canary.config.effectSize.cles': `
     <p>

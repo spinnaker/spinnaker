@@ -36,7 +36,7 @@ class ClickhouseQueryBuilderServiceSpec extends Specification {
     given:
     ClickhouseCanaryMetricSetQueryConfig queryConfig =
       ClickhouseCanaryMetricSetQueryConfig.builder()
-        .customInlineTemplate(
+        .template(
           "SELECT avg(Value) FROM otel_metrics_gauge " +
             "WHERE MetricName = 'requests' " +
             "AND ResourceAttributes['deployment.id'] = '\${scope}' " +

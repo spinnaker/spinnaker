@@ -11,5 +11,6 @@ export * from './ICanaryExecutionStatusResult';
 export * from './IMetricsServiceMetadata';
 export * from './ICanaryConfigUpdateResponse';
 export * from './IKayentaStageConfig';
+export * from './IMetricConfigMode';
 export * from './MetricClassificationLabel';
 export * from './ScoreClassificationLabel';

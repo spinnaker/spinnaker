@@ -54,7 +54,7 @@ class StackdriverCanaryMetricSetQueryConfigSpec extends Specification {
     given:
     CanaryConfig canaryConfig = CanaryConfig.builder().templates(templates).build()
     StackdriverCanaryMetricSetQueryConfig stackdriverCanaryMetricSetQueryConfig =
-      StackdriverCanaryMetricSetQueryConfig.builder().customFilterTemplate(customFilterTemplate).customInlineTemplate(customInlineTemplate).build()
+      StackdriverCanaryMetricSetQueryConfig.builder().customFilterTemplate(customFilterTemplate).template(customInlineTemplate).build()
     StackdriverCanaryScope stackdriverCanaryScope = new StackdriverCanaryScope(extendedScopeParams: scopeParams)
 
     expect:
@@ -74,7 +74,7 @@ class StackdriverCanaryMetricSetQueryConfigSpec extends Specification {
   }
 
   @Unroll
-  void "Missing template, no templates, or missing variable all throw exceptions"() {
+  void "Missing variable throws an exception"() {
     given:
     CanaryConfig canaryConfig = CanaryConfig.builder().templates(templates).build()
     StackdriverCanaryMetricSetQueryConfig stackdriverCanaryMetricSetQueryConfig =
@@ -89,13 +89,33 @@ class StackdriverCanaryMetricSetQueryConfigSpec extends Specification {
 
     where:
     templates                                                 | customFilterTemplate | scopeParams
-    ["my-template-1": 'A test: key1=${key1}.',
-     "my-template-2": 'A test: key2=${key2}.']                | "my-template-x"        | null
-    [:]                                                       | "my-template-x"        | null
     ["my-template": 'A test: key1=${key1} key2=${key2}.']     | "my-template"          | [key3: "value-3",
                                                                                           key4: "value-4"]
     ["my-template": 'A test: key1=$\\{key1} key2=$\\{key2}.'] | "my-template"          | [key3: "value-3",
                                                                                           key4: "value-4"]
+  }
+
+  // AbstractCanaryMetricSetQueryConfig#getTemplate(CanaryConfig) -- which now encapsulates the
+  // customFilterTemplate-vs-template precedence and named-template-map lookup that
+  // QueryConfigUtils#expandCustomFilter delegates to -- resolves an unresolvable
+  // customFilterTemplate (missing map, or name not found) to null rather than throwing, so
+  // expandCustomFilter now simply returns null for these cases instead of raising.
+  @Unroll
+  void "Missing template or no templates returns null instead of expanding"() {
+    given:
+    CanaryConfig canaryConfig = CanaryConfig.builder().templates(templates).build()
+    StackdriverCanaryMetricSetQueryConfig stackdriverCanaryMetricSetQueryConfig =
+      StackdriverCanaryMetricSetQueryConfig.builder().customFilterTemplate(customFilterTemplate).build()
+    StackdriverCanaryScope stackdriverCanaryScope = new StackdriverCanaryScope(extendedScopeParams: scopeParams)
+
+    expect:
+    QueryConfigUtils.expandCustomFilter(canaryConfig, stackdriverCanaryMetricSetQueryConfig, stackdriverCanaryScope) == null
+
+    where:
+    templates                                                 | customFilterTemplate | scopeParams
+    ["my-template-1": 'A test: key1=${key1}.',
+     "my-template-2": 'A test: key2=${key2}.']                | "my-template-x"        | null
+    [:]                                                       | "my-template-x"        | null
     ["my-template": 'A test: key1=$\\{key1} key2=$\\{key2}.'] | 'my-template: ${key1}' | [key3: "value-3",
                                                                                           key4: "value-4"]
   }

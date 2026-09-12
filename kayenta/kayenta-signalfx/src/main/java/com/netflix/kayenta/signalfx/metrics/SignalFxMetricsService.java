@@ -102,6 +102,7 @@ public class SignalFxMetricsService implements MetricsService {
   }
 
   @Override
+  @SuppressWarnings("deprecation")
   public List<MetricSet> queryMetrics(
       String metricsAccountName,
       CanaryConfig canaryConfig,

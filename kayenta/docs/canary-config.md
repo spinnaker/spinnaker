@@ -2,6 +2,14 @@
 
 The purpose of this doc is to describe the schema for Canary Configurations using [Markdown Syntax for Object Notation (MSON)]. 
 
+## Query configuration: `template` is now the recommended approach
+
+Every `CanaryMetricSetQueryConfig` provider supports a template-based query via a single `template` field: a raw query string with `${variable}` placeholders expanded at execution time. This is now the **recommended and default** way to configure a metric's query for every provider (InfluxDB is templated too, but keeps its own smaller, fixed `${timeFilter}`/`${scope}`/`${step}` vocabulary rather than the shared one described here — see its provider doc).
+
+`template` used to be split across two fields, `customInlineTemplate` (a literal per-metric template) and `customFilterTemplate` (a name referencing a shared entry in the top-level `templates` map below) — that split is now retired in favor of the single `template` field. Existing configs keep working with no forced migration: the legacy `customInlineTemplate` JSON key still loads directly into `template` (via `@JsonAlias`), and the legacy `customFilterTemplate` name is still resolved against the `templates` map on read. New configs, and configs re-saved through the API, should just set `template` directly instead.
+
+The older "guided" structured fields (e.g. provider-specific `resourceType`/`metricType` dropdowns) are **deprecated** but remain fully functional for existing configs — nothing breaks, and there is no forced migration. New configs should prefer `template`; each provider's doc under `kayenta-<provider>/docs/metric-set-query-config.md` includes a worked `template` example with that provider's actual variable bindings.
+
 ## Canary Config Object model (object)
 
 The canary config object is how users of the Kayenta API describe how they want Kayenta to compare the canary metrics against the baseline metrics for their applications.
@@ -46,15 +54,15 @@ Metric source interface for describing how to query for a given metric or metric
 ### Properties
 
 - One of
-  - AtlasCanaryMetricSetQueryConfig
-  - DatadogCanaryMetricSetQueryConfig
-  - GraphiteCanaryMetricSetQueryConfig
-  - InfluxdbCanaryMetricSetQueryConfig
+  - [AtlasCanaryMetricSetQueryConfig](../kayenta-atlas/docs/metric-set-query-config.md)
+  - [DatadogCanaryMetricSetQueryConfig](../kayenta-datadog/docs/metric-set-query-config.md)
+  - [GraphiteCanaryMetricSetQueryConfig](../kayenta-graphite/docs/metric-set-query-config.md)
+  - [InfluxdbCanaryMetricSetQueryConfig](../kayenta-influxdb/docs/metric-set-query-config.md)
   - [NewRelicInsightsCanaryMetricSetQueryConfig](../kayenta-newrelic-insights/docs/metric-set-query-config.md)
-  - PrometheusCanaryMetricSetQueryConfig
+  - [PrometheusCanaryMetricSetQueryConfig](../kayenta-prometheus/docs/metric-set-query-config.md)
   - [SignalFxCanaryMetricSetQueryConfig](../kayenta-signalfx/docs/metric-set-query-config.md)
-  - StackdriverCanaryMetricSetQueryConfig
-  - WavefrontCanaryMetricSetQueryConfig
+  - [StackdriverCanaryMetricSetQueryConfig](../kayenta-stackdriver/docs/metric-set-query-config.md)
+  - [WavefrontCanaryMetricSetQueryConfig](../kayenta-wavefront/docs/metric-set-query-config.md)
 
 ## AnalysisConfiguration (object)
 

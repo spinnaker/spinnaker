@@ -77,7 +77,7 @@ public class InfluxDbMetricsService implements MetricsService {
     InfluxdbCanaryMetricSetQueryConfig queryConfig =
         (InfluxdbCanaryMetricSetQueryConfig) canaryMetricConfig.getQuery();
 
-    String query = queryBuilder.build(queryConfig, canaryScope);
+    String query = queryBuilder.build(canaryConfig, queryConfig, canaryScope);
     log.debug("query={}", query);
 
     String metricSetName = canaryMetricConfig.getName();
