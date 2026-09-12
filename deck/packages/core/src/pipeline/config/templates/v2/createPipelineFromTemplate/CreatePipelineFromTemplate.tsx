@@ -45,7 +45,7 @@ export class CreatePipelineFromTemplateComponent extends React.Component<
     submitting: false,
   };
 
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   public componentDidMount() {
     observableFrom(ApplicationReader.listApplications())

@@ -80,7 +80,7 @@ const AddHealthCounts = (
   return class FetchHealthCounts extends React.Component<IServerGroupDataProps, IServerGroupDataState> {
     public state = { serverGroups: [] } as any;
     private results$ = new BehaviorSubject<IServerGroupSearchResult[]>([]);
-    private stop$ = new Subject();
+    private stop$ = new Subject<void>();
 
     constructor(props: any) {
       super(props);

@@ -14,7 +14,7 @@ export class CloudFoundryResizeAsgStageConfig extends React.Component<
   IStageConfigProps,
   ICloudFoundryResizeAsgStageConfigState
 > {
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   constructor(props: IStageConfigProps) {
     super(props);

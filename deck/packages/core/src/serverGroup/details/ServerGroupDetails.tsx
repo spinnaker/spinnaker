@@ -20,8 +20,8 @@ export class ServerGroupDetailsComponent extends React.Component<
   IServerGroupDetailsProps & IRouterInjectedProps,
   IServerGroupDetailsState
 > {
-  private destroy$ = new Subject();
-  private detailsRequest$ = new Subject();
+  private destroy$ = new Subject<void>();
+  private detailsRequest$ = new Subject<void>();
   private detailsRequestGeneration = 0;
   private serverGroupsRefreshUnsubscribe: () => void;
 
