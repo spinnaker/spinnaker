@@ -45,8 +45,8 @@ public class GenericErrorController implements ErrorController {
     Map<String, Object> attributes = errorAttributes.getErrorAttributes(webRequest, options);
 
     Throwable exception = errorAttributes.getError(webRequest);
-    if (exception != null && exception instanceof HasAdditionalAttributes) {
-      attributes.putAll(((HasAdditionalAttributes) exception).getAdditionalAttributes());
+    if (exception != null && exception instanceof HasAdditionalAttributes additionalAttributes) {
+      attributes.putAll(additionalAttributes.getAdditionalAttributes());
     }
 
     return attributes;

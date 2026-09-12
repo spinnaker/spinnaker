@@ -15,8 +15,8 @@
  */
 package com.netflix.spinnaker.kork.artifacts.artifactstore.entities;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
+import tools.jackson.databind.ObjectMapper;
 
 /** ArtifactExpandHandler is a handler that handles expansion of some object. */
 public interface ArtifactExpandHandler extends ArtifactHandler {

@@ -16,10 +16,10 @@
 package com.netflix.spinnaker.kork.plugins.api.httpclient;
 
 import com.netflix.spinnaker.kork.annotations.Beta;
+import jakarta.annotation.Nonnull;
 import java.io.InputStream;
 import java.util.Map;
 import java.util.Optional;
-import javax.annotation.Nonnull;
 
 /** HTTP Response wrapper. */
 @Beta

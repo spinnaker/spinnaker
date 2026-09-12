@@ -20,6 +20,7 @@ dependencies {
   api(platform(project(":spinnaker-dependencies")))
 
   api "org.springframework.boot:spring-boot-autoconfigure"
+  implementation "tools.jackson.core:jackson-databind"
   api "com.netflix.spectator:spectator-api"
   api "com.netflix.spectator:spectator-ext-ipc"
   api "software.amazon.awssdk:arns"

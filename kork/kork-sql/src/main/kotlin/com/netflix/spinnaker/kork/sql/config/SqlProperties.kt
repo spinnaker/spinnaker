@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 package com.netflix.spinnaker.kork.sql.config
-
+import jakarta.validation.Valid
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.validation.annotation.Validated
 import java.sql.Connection
@@ -41,14 +41,14 @@ import kotlin.reflect.KClass
 @SqlProperties.SpinValidated
 @ConfigurationProperties("sql")
 data class SqlProperties(
-  var migration: SqlMigrationProperties = SqlMigrationProperties(),
-  var secondaryMigration: SqlMigrationProperties = SqlMigrationProperties(),
-  var connectionPools: MutableMap<String, ConnectionPoolProperties> = mutableMapOf(),
-  var retries: SqlRetryProperties = SqlRetryProperties(),
+  @Valid var migration: SqlMigrationProperties = SqlMigrationProperties(),
+  @Valid var secondaryMigration: SqlMigrationProperties = SqlMigrationProperties(),
+  @Valid var connectionPools: MutableMap<String, ConnectionPoolProperties> = mutableMapOf(),
+  @Valid var retries: SqlRetryProperties = SqlRetryProperties(),
   var setTransactionIsolation: Boolean = true,
-  var transactionIsolation : Int? = Connection.TRANSACTION_READ_COMMITTED,
+  @Valid var transactionIsolation: Int? = Connection.TRANSACTION_READ_COMMITTED,
 
-  @Deprecated("use named connection pools instead")
+  @Deprecated("use named connection pools instead")@Valid
   var connectionPool: ConnectionPoolProperties? = null
 ) {
 
@@ -82,17 +82,17 @@ data class SqlProperties(
     /**
      * default error message
      */
-    val message: String = "Invalid sql configuration",
+    @Valid val message: String = "Invalid sql configuration",
 
     /**
      * to customize the targeted groups
      */
-    val groups: Array<KClass<out Any>> = [],
+    @Valid val groups: Array<KClass<out Any>> = [],
 
     /**
      * for extensibility
      */
-    val payload: Array<KClass<out Any>> = []
+    @Valid val payload: Array<KClass<out Any>> = []
   )
 
   /**
@@ -100,8 +100,8 @@ data class SqlProperties(
    */
   class Validator : ConstraintValidator<SpinValidated, SqlProperties> {
     override fun isValid(
-      value: SqlProperties,
-      context: ConstraintValidatorContext
+      @Valid value: SqlProperties,
+      @Valid context: ConstraintValidatorContext
     ): Boolean {
       if (value.setTransactionIsolation && (value.transactionIsolation == null)) {
         context.buildConstraintViolationWithTemplate("must specify transactionIsolation if setTransactionIsolation is true")
@@ -113,7 +113,7 @@ data class SqlProperties(
   }
 }
 
-internal class MisconfiguredConnectionPoolsException(message: String) : IllegalStateException(message) {
+internal class MisconfiguredConnectionPoolsException(@Valid message: String) : IllegalStateException(message) {
   companion object {
     val NEITHER_PRESENT = MisconfiguredConnectionPoolsException(
       "Neither 'sql.connectionPools' nor 'sql.connectionPool' have been configured"

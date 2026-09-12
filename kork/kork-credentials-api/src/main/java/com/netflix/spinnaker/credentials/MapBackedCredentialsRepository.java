@@ -17,9 +17,9 @@
 package com.netflix.spinnaker.credentials;
 
 import com.netflix.spinnaker.kork.exceptions.InvalidCredentialsTypeException;
+import jakarta.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import javax.annotation.Nullable;
 import lombok.Getter;
 
 public class MapBackedCredentialsRepository<T extends Credentials>

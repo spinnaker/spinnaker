@@ -18,7 +18,6 @@ package com.netflix.spinnaker.kork.expressions;
 
 import static java.lang.String.format;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.api.expressions.ExpressionFunctionProvider;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.entities.EntityPropertyAccessor;
@@ -51,6 +50,8 @@ import org.pf4j.PluginManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Provides utility support for SpEL integration Supports registering SpEL functions, ACLs to
@@ -58,7 +59,7 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
  */
 public class ExpressionsSupport {
   private static final Logger LOGGER = LoggerFactory.getLogger(ExpressionsSupport.class);
-  private static final ObjectMapper mapper = new ObjectMapper();
+  private static final ObjectMapper mapper = new JsonMapper();
 
   private final Set<Class<?>> allowedReturnTypes;
   private final List<ExpressionFunctionProvider> expressionFunctionProviders;
@@ -254,8 +255,8 @@ public class ExpressionsSupport {
      */
     public static String toJson(Object o) {
       try {
-        if (o instanceof NotEvaluableExpression) {
-          return mapper.writeValueAsString(((NotEvaluableExpression) o).getExpression());
+        if (o instanceof NotEvaluableExpression expression) {
+          return mapper.writeValueAsString(expression.getExpression());
         }
 
         String converted = mapper.writeValueAsString(o);

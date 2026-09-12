@@ -20,8 +20,6 @@ package com.netflix.spinnaker.kork.secrets.user;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.given;
 
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.netflix.spinnaker.kork.secrets.SecretEngine;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,6 +29,8 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.ObjectNode;
 
 @SpringJUnitConfig
 class UserSecretServiceTest {
@@ -59,7 +59,7 @@ class UserSecretServiceTest {
     ObjectNode resource =
         JsonNodeFactory.instance.objectNode().put("id", resourceId).put("secret", uri);
     ObjectNode updated = userSecretService.replaceSecretReferences(resourceId, resource, Set.of());
-    String secretString = updated.required("secret").textValue();
+    String secretString = updated.required("secret").stringValue();
     assertEquals("super-secret", secretString);
     assertTrue(userSecretService.isTrackingUserSecretsForResource(resourceId));
 
@@ -84,11 +84,11 @@ class UserSecretServiceTest {
     ObjectNode updated =
         userSecretService.replaceSecretReferences(resourceId, resource, Set.of("kept-secret"));
     // this secret field is replaced with the secret value
-    String replacedSecretString = updated.required("replaced-secret").textValue();
+    String replacedSecretString = updated.required("replaced-secret").stringValue();
     assertEquals("super-secret", replacedSecretString);
 
     // this one keeps the secret:// URI untouched
-    String keptSecretString = updated.required("kept-secret").textValue();
+    String keptSecretString = updated.required("kept-secret").stringValue();
     assertNotEquals("super-secret", keptSecretString);
     assertEquals(uri, keptSecretString);
   }

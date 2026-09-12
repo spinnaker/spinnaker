@@ -17,9 +17,6 @@ package com.netflix.spinnaker.kork.artifacts.artifactstore.entities;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.ArtifactTypes;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.io.IOException;
@@ -28,6 +25,10 @@ import java.util.List;
 import java.util.Map;
 import lombok.Data;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 class EntityHelperTest {
   @Data
@@ -52,7 +53,7 @@ class EntityHelperTest {
     Artifact artifact =
         EntityHelper.toArtifact(obj, ArtifactTypes.EMBEDDED_MAP_BASE64.getMimeType());
     assertEquals(ArtifactTypes.EMBEDDED_MAP_BASE64.getMimeType(), artifact.getType());
-    ObjectMapper mapper = new ObjectMapper();
+    ObjectMapper mapper = new JsonMapper();
     byte[] reference = Base64.getDecoder().decode(artifact.getReference());
     Map convert = mapper.readValue(reference, Map.class);
     assertEquals(obj, convert);
@@ -69,8 +70,8 @@ class EntityHelperTest {
   }
 
   @Test
-  void to() throws JsonProcessingException {
-    ObjectMapper mapper = new ObjectMapper();
+  void to() throws JacksonException {
+    ObjectMapper mapper = new JsonMapper();
     Mock mock = new Mock("string", 1, new Mock("nested-string", 2, null));
     String b64Str = Base64.getEncoder().encodeToString(mapper.writeValueAsBytes(mock));
     Artifact artifact =

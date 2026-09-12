@@ -19,7 +19,7 @@ package com.netflix.spinnaker.kork.secrets.engines;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.secrets.SecretConfiguration;
 import com.netflix.spinnaker.kork.secrets.user.OpaqueUserSecretData;
 import com.netflix.spinnaker.kork.secrets.user.UserSecret;
@@ -40,7 +40,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.testcontainers.DockerClientFactory;
-import org.testcontainers.containers.localstack.LocalStackContainer;
+import org.testcontainers.localstack.LocalStackContainer;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
@@ -49,6 +49,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.CreateSecretRequest;
 import software.amazon.awssdk.services.secretsmanager.model.Tag;
+import tools.jackson.databind.json.JsonMapper;
 
 @SpringBootTest(classes = SecretConfiguration.class)
 public class SecretsManagerSecretEngineIntegrationTest {
@@ -132,8 +133,7 @@ public class SecretsManagerSecretEngineIntegrationTest {
 
     @Bean(initMethod = "start", destroyMethod = "stop")
     public LocalStackContainer localStackContainer() {
-      return new LocalStackContainer(DOCKER_IMAGE)
-          .withServices(LocalStackContainer.Service.SECRETSMANAGER);
+      return new LocalStackContainer(DOCKER_IMAGE).withServices("secretsmanager");
     }
 
     @Bean
@@ -143,7 +143,7 @@ public class SecretsManagerSecretEngineIntegrationTest {
 
     @Bean
     public ObjectMapper mapper() {
-      return new ObjectMapper();
+      return new JsonMapper();
     }
   }
 }

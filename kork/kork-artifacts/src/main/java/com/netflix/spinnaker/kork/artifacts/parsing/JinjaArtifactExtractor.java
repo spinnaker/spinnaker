@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.kork.artifacts.parsing;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hubspot.jinjava.Jinjava;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.io.*;
@@ -28,6 +26,10 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /** Translates String messages into Spinnaker artifacts using a supplied Jinja template */
 @Slf4j
@@ -67,7 +69,7 @@ public class JinjaArtifactExtractor implements ArtifactExtractor {
   private Map<String, ?> readMapValue(String messagePayload) {
     try {
       return objectMapper.readValue(messagePayload, stringMapReference);
-    } catch (IOException ioe) {
+    } catch (JacksonException ioe) {
       log.error(messagePayload);
       throw new RuntimeException(ioe);
     }
@@ -76,7 +78,7 @@ public class JinjaArtifactExtractor implements ArtifactExtractor {
   private List<Artifact> readArtifactList(String hydratedTemplate) {
     try {
       return objectMapper.readValue(hydratedTemplate, artifactListReference);
-    } catch (IOException ioe) {
+    } catch (JacksonException ioe) {
       // Failure to parse artifacts from the message indicates either
       // the message payload does not match the provided template or
       // there is no template and no artifacts are expected
@@ -88,7 +90,7 @@ public class JinjaArtifactExtractor implements ArtifactExtractor {
   @RequiredArgsConstructor
   public static class Factory {
     private final JinjavaFactory jinjavaFactory;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new JsonMapper();
 
     public JinjaArtifactExtractor create(InputStream templateStream) {
       String template = readTemplateStream(templateStream);

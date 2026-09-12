@@ -40,10 +40,11 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.WebApplicationContext;
 
@@ -55,6 +56,7 @@ public class ProvidedIdRequestFilterTest {
   private static final String TEST_EXECUTION_ID = "test-execution-id";
   private static final String TEST_USER_ID = "test-user-id";
 
+  @Configuration
   @EnableConfigurationProperties(ProvidedIdRequestFilterConfigurationProperties.class)
   static class TestConfig {
     @Bean
@@ -72,7 +74,7 @@ public class ProvidedIdRequestFilterTest {
 
     final org.slf4j.Logger log = LoggerFactory.getLogger(TestController.class);
 
-    @RequestMapping(value = API_PATH, method = RequestMethod.GET)
+    @GetMapping(API_PATH)
     public void api() {
       log.info("MDC: {}", MDC.getCopyOfContextMap());
     }

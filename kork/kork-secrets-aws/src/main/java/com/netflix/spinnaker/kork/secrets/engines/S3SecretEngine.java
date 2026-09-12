@@ -70,8 +70,10 @@ public class S3SecretEngine extends AbstractStorageSecretEngine {
       if (403 == status) {
         sb.append(
             String.format(
-                "Unauthorized access. Check connectivity and permissions to the bucket. -- Bucket: %s, Object: %s, Region: %s.\n"
-                    + "Error: %s ",
+                """
+                Unauthorized access. Check connectivity and permissions to the bucket. -- Bucket: %s, Object: %s, Region: %s.
+                Error: %s\s\
+                """,
                 bucket, objName, region, ex.toString()));
       } else if (404 == status) {
         sb.append(

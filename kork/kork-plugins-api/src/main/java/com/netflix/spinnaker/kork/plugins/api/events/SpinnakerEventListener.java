@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.kork.plugins.api.events;
 
 import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint;
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 
 /**
  * An application event listener for Spinnaker events that can be utilized by plugins.

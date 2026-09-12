@@ -16,15 +16,9 @@
 package com.netflix.spinnaker.config;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
-import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
-import static com.fasterxml.jackson.databind.DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS;
-import static com.fasterxml.jackson.databind.SerializationFeature.FAIL_ON_EMPTY_BEANS;
-import static com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS;
+import static tools.jackson.databind.cfg.DateTimeFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS;
+import static tools.jackson.databind.cfg.DateTimeFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fasterxml.jackson.module.kotlin.KotlinModule;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.plugins.sdk.SdkFactory;
 import com.netflix.spinnaker.kork.plugins.sdk.httpclient.HttpClientSdkFactory;
@@ -42,6 +36,9 @@ import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.module.kotlin.KotlinModule;
 
 @Configuration
 public class HttpClientSdkConfiguration {
@@ -85,15 +82,13 @@ public class HttpClientSdkConfiguration {
 
     // TODO(rz): It'd be nice to make this customizable, but I'm not sure how to do that without
     //  bringing Jackson into the Plugin SDK (quite undesirable).
-    ObjectMapper objectMapper = new ObjectMapper();
-    objectMapper.registerModule(new Jdk8Module());
-    objectMapper.registerModule(new JavaTimeModule());
-    objectMapper.registerModule(kotlinModule);
-    objectMapper.disable(READ_DATE_TIMESTAMPS_AS_NANOSECONDS);
-    objectMapper.disable(WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS);
-    objectMapper.disable(FAIL_ON_UNKNOWN_PROPERTIES);
-    objectMapper.disable(FAIL_ON_EMPTY_BEANS);
-    objectMapper.setSerializationInclusion(NON_NULL);
+    ObjectMapper objectMapper =
+        JsonMapper.builder()
+            .addModule(kotlinModule)
+            .disable(READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
+            .disable(WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS)
+            .serializationInclusion(NON_NULL)
+            .build();
 
     return new HttpClientSdkFactory(
         new CompositeOkHttpClientFactory(factories), environment, objectMapper, config);

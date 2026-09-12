@@ -16,15 +16,15 @@
 
 package com.netflix.spinnaker.kork.secrets.user;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.jackson.UserFriendlyErrorHandler;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.TreeMap;
 import org.springframework.core.NestedExceptionUtils;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.json.JsonFactory;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Maps structured user secret data types to a corresponding {@link UserSecretData} instance using
@@ -77,7 +77,7 @@ public class DefaultUserSecretSerde implements UserSecretSerde {
     UserSecretData data;
     try {
       data = mapper.readValue(encoded, type);
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       throw sanitizedSecretDataException(e);
     }
     return UserSecret.builder().metadata(metadata).data(data).build();
@@ -90,7 +90,7 @@ public class DefaultUserSecretSerde implements UserSecretSerde {
   private static InvalidUserSecretDataException sanitizedSecretDataException(final IOException e) {
     Throwable rootCause = NestedExceptionUtils.getRootCause(e);
     final String suffix;
-    if (rootCause instanceof JsonProcessingException) { // includes JsonParseException
+    if (rootCause instanceof JacksonException) { // includes JsonParseException
       suffix = UserFriendlyErrorHandler.translateJacksonError(rootCause);
     } else {
       suffix = "unknown error encountered while decoding the contents as JSON";
@@ -112,7 +112,7 @@ public class DefaultUserSecretSerde implements UserSecretSerde {
     }
     try {
       return mapper.writeValueAsBytes(secret);
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       throw sanitizedSecretDataException(e);
     }
   }

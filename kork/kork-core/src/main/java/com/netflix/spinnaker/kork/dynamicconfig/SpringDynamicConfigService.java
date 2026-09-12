@@ -17,10 +17,10 @@ package com.netflix.spinnaker.kork.dynamicconfig;
 
 import static java.lang.String.format;
 
+import jakarta.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.function.Supplier;
-import javax.annotation.Nonnull;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.core.env.Environment;
 

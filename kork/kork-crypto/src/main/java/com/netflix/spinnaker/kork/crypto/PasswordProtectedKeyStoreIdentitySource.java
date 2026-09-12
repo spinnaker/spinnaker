@@ -98,11 +98,9 @@ public class PasswordProtectedKeyStoreIdentitySource implements X509IdentitySour
       var alias = aliases.nextElement();
       if (keyStore.isKeyEntry(alias)) {
         var entry = keyStore.getEntry(alias, protectionParameter);
-        if (entry instanceof KeyStore.PrivateKeyEntry) {
-          var privateKeyEntry = (KeyStore.PrivateKeyEntry) entry;
+        if (entry instanceof KeyStore.PrivateKeyEntry privateKeyEntry) {
           var chain = privateKeyEntry.getCertificateChain();
-          if (chain instanceof X509Certificate[]) {
-            X509Certificate[] certificateChain = (X509Certificate[]) chain;
+          if (chain instanceof X509Certificate[] certificateChain) {
             PrivateKey privateKey = privateKeyEntry.getPrivateKey();
             return new StaticX509Identity(privateKey, certificateChain);
           }

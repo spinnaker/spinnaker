@@ -33,7 +33,6 @@ dependencies {
   testImplementation "org.jetbrains.kotlin:kotlin-stdlib"
 
   testImplementation "org.junit.jupiter:junit-jupiter-api"
-  testImplementation "org.junit.platform:junit-platform-runner"
   testImplementation "org.assertj:assertj-core"
   testImplementation "io.strikt:strikt-core"
   testImplementation "dev.minutest:minutest"
@@ -43,7 +42,6 @@ dependencies {
 
   testRuntimeOnly "org.junit.platform:junit-platform-launcher"
   testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
-  testRuntimeOnly "org.jetbrains.spek:spek-junit-platform-engine"
   testRuntimeOnly "org.spekframework.spek2:spek-runner-junit5"
 }
 

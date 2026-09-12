@@ -22,7 +22,6 @@ import java.io.FileNotFoundException
 import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
 import org.pf4j.update.FileDownloader
 import org.slf4j.LoggerFactory
 
@@ -51,7 +50,7 @@ class ProcessFileDownloader(
       command(*config.command.split(" ").toTypedArray())
     }
 
-    val path = Paths.get(processRunner.completeOrTimeout(builder))
+    val path = Path.of(processRunner.completeOrTimeout(builder))
 
     log.debug("Received downloaded plugin path: $path (from $fileUrl)")
 

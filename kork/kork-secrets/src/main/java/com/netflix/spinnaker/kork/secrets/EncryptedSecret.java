@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.kork.secrets;
 
+import jakarta.annotation.Nullable;
 import java.util.Map;
 import java.util.Optional;
-import javax.annotation.Nullable;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -77,7 +77,7 @@ public class EncryptedSecret implements SecretReference {
    * Optional otherwise.
    */
   public static Optional<EncryptedSecret> tryParse(@Nullable Object value) {
-    if (!(value instanceof String && isEncryptedSecret((String) value))) {
+    if (!(value instanceof String string && isEncryptedSecret(string))) {
       return Optional.empty();
     }
     try {

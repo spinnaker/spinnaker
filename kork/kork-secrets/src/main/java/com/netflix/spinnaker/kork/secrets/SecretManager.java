@@ -21,7 +21,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -62,7 +61,7 @@ public class SecretManager {
    */
   public Path decryptAsFile(String filePathOrEncrypted) {
     if (!EncryptedSecret.isEncryptedSecret(filePathOrEncrypted)) {
-      return Paths.get(filePathOrEncrypted);
+      return Path.of(filePathOrEncrypted);
     } else {
       return createTempFile("tmp", decryptAsBytes(filePathOrEncrypted));
     }

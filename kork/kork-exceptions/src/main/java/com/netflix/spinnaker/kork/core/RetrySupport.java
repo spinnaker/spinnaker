@@ -35,8 +35,8 @@ public class RetrySupport {
       try {
         return fn.get();
       } catch (Exception e) {
-        if (e instanceof SpinnakerException) {
-          Boolean retryable = ((SpinnakerException) e).getRetryable();
+        if (e instanceof SpinnakerException exception) {
+          Boolean retryable = exception.getRetryable();
           if (retryable != null && !retryable) {
             throw e;
           }

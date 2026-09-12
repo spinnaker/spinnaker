@@ -23,9 +23,9 @@ import com.netflix.spinnaker.kork.secrets.SecretReference;
 import com.netflix.spinnaker.kork.secrets.user.UserSecret;
 import com.netflix.spinnaker.kork.secrets.user.UserSecretMetadata;
 import com.netflix.spinnaker.kork.secrets.user.UserSecretReference;
+import jakarta.annotation.Nonnull;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import javax.annotation.Nonnull;
 import org.springframework.stereotype.Component;
 
 /**

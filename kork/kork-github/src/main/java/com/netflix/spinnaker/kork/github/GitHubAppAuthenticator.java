@@ -22,7 +22,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.security.PrivateKey;
 import java.time.Instant;
 import java.util.Date;
@@ -390,18 +390,18 @@ public class GitHubAppAuthenticator {
    * @throws RuntimeException if the key cannot be loaded
    */
   private PrivateKey loadPrivateKey(String privateKeyPath) {
-    try (Reader keyReader = Files.newBufferedReader(Paths.get(privateKeyPath));
+    try (Reader keyReader = Files.newBufferedReader(Path.of(privateKeyPath));
         PEMParser pemParser = new PEMParser(keyReader)) {
 
       Object object = pemParser.readObject();
       JcaPEMKeyConverter converter = new JcaPEMKeyConverter();
 
-      if (object instanceof PEMKeyPair) {
+      if (object instanceof PEMKeyPair pair) {
         // For PKCS#1 format (-----BEGIN RSA PRIVATE KEY-----)
-        return converter.getPrivateKey(((PEMKeyPair) object).getPrivateKeyInfo());
-      } else if (object instanceof PrivateKeyInfo) {
+        return converter.getPrivateKey(pair.getPrivateKeyInfo());
+      } else if (object instanceof PrivateKeyInfo info) {
         // For PKCS#8 format (-----BEGIN PRIVATE KEY-----)
-        return converter.getPrivateKey((PrivateKeyInfo) object);
+        return converter.getPrivateKey(info);
       } else {
         throw new IllegalArgumentException(
             "Unsupported PEM format. Expected RSA private key, got: "

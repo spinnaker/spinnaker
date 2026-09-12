@@ -17,9 +17,9 @@
 
 package com.netflix.spinnaker.kork.jackson;
 
-import com.fasterxml.jackson.databind.jsontype.NamedType;
 import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint;
 import java.util.List;
+import tools.jackson.databind.jsontype.NamedType;
 
 /**
  * Bean for providing {@link NamedType} data for type discriminators. When combined with {@link

@@ -43,9 +43,7 @@ class MetricsInterceptor {
     int statusCode = -1;
 
     okhttp3.Interceptor.Chain chain3 =
-        (chainObject instanceof okhttp3.Interceptor.Chain)
-            ? (okhttp3.Interceptor.Chain) chainObject
-            : null;
+        (chainObject instanceof okhttp3.Interceptor.Chain c) ? c : null;
 
     okhttp3.Request request3 = (chain3 != null) ? chain3.request() : null;
 

@@ -15,15 +15,14 @@
  */
 package com.netflix.spinnaker.kork.artifacts.artifactstore;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.netflix.spinnaker.kork.artifacts.ArtifactTypes;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.exceptions.ArtifactStoreIOException;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import java.io.IOException;
 import org.springframework.beans.factory.annotation.Qualifier;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.deser.std.StdDeserializer;
 
 /**
  * ArtifactDeserializer is a custom deserializer that will allow for artifacts to be fetched from
@@ -42,7 +41,7 @@ public class ArtifactDeserializer extends StdDeserializer<Artifact> {
   }
 
   @Override
-  public Artifact deserialize(JsonParser parser, DeserializationContext ctx) throws IOException {
+  public Artifact deserialize(JsonParser parser, DeserializationContext ctx) {
     Artifact artifact = defaultObjectMapper.readValue(parser, Artifact.class);
     if (ArtifactTypes.REMOTE_BASE64.getMimeType().equals(artifact.getType())) {
       return ArtifactStoreIOException.throwIOException(

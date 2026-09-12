@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.kork.plugins.sdk.httpclient
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.exceptions.IntegrationException
 import com.netflix.spinnaker.kork.plugins.api.httpclient.Request
 import dev.minutest.junit.JUnit5Minutests

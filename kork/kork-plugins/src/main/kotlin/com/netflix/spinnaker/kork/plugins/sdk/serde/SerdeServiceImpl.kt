@@ -15,14 +15,13 @@
  */
 package com.netflix.spinnaker.kork.plugins.sdk.serde
 
-import com.fasterxml.jackson.core.JsonProcessingException
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.node.ObjectNode
-import com.fasterxml.jackson.databind.node.TreeTraversingParser
+import tools.jackson.databind.JsonNode
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.node.ObjectNode
+import tools.jackson.databind.node.TreeTraversingParser
 import com.netflix.spinnaker.kork.exceptions.IntegrationException
 import com.netflix.spinnaker.kork.plugins.api.serde.SerdeService
-import java.io.IOException
+import tools.jackson.core.JacksonException
 
 /**
  * The standard [SerdeService] implementation, backed by Jackson.
@@ -34,7 +33,7 @@ class SerdeServiceImpl(
   override fun toJson(obj: Any): String {
     try {
       return objectMapper.writeValueAsString(obj)
-    } catch (e: JsonProcessingException) {
+    } catch (e: JacksonException) {
       throw IntegrationException("Failed serializing object to json", e)
     }
   }
@@ -42,7 +41,7 @@ class SerdeServiceImpl(
   override fun <T : Any> fromJson(json: String, type: Class<T>): T {
     try {
       return objectMapper.readValue(json, type)
-    } catch (e: JsonProcessingException) {
+    } catch (e: JacksonException) {
       throw IntegrationException("Failed deserializing json to class", e)
     }
   }
@@ -60,7 +59,7 @@ class SerdeServiceImpl(
         ),
         type
       )
-    } catch (e: IOException) {
+    } catch (e: JacksonException) {
       throw IntegrationException("Failed mapping object to '$type'", e)
     }
   }

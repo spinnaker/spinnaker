@@ -17,9 +17,6 @@ package com.netflix.spinnaker.kork.test.mimicker;
 
 import static java.lang.String.format;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.TreeTraversingParser;
 import com.netflix.spinnaker.kork.test.KorkTestException;
 import com.netflix.spinnaker.kork.test.MapUtils;
 import java.io.IOException;
@@ -33,13 +30,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.yaml.snakeyaml.Yaml;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.TreeTraversingParser;
 
 public class DataContainer {
 
   private static final Logger log = LoggerFactory.getLogger(DataContainer.class);
 
   private final SecureRandom random = new SecureRandom();
-  private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
+  private final ObjectMapper objectMapper = JsonMapper.builder().findAndAddModules().build();
   private final Yaml yaml = new Yaml();
 
   private final Map<String, Object> data = new HashMap<>();
@@ -101,7 +103,7 @@ public class DataContainer {
             objectMapper.valueToTree(data).at(normalizeKey(key)), objectMapper);
     try {
       return objectMapper.readValue(parser, type);
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       throw new KorkTestException(format("Unable to map '%s' to %s", key, type), e);
     }
   }

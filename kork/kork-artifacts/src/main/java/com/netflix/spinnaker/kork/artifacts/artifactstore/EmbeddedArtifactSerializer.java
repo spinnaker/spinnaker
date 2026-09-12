@@ -15,14 +15,13 @@
  */
 package com.netflix.spinnaker.kork.artifacts.artifactstore;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.netflix.spinnaker.kork.artifacts.ArtifactTypes;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.exceptions.ArtifactStoreIOException;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import java.io.IOException;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ser.std.StdSerializer;
 
 /**
  * EmbeddedArtifactSerializer will store any embedded/base64 artifact into the ArtifactStore
@@ -39,8 +38,7 @@ public class EmbeddedArtifactSerializer extends StdSerializer<Artifact> {
   }
 
   @Override
-  public void serialize(Artifact artifact, JsonGenerator gen, SerializerProvider provider)
-      throws IOException {
+  public void serialize(Artifact artifact, JsonGenerator gen, SerializationContext provider) {
     if (!shouldStoreArtifact(artifact)) {
       defaultObjectMapper.writeValue(gen, artifact);
       return;

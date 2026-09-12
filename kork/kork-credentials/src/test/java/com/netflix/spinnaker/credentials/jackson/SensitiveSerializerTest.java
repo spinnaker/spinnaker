@@ -18,26 +18,26 @@ package com.netflix.spinnaker.credentials.jackson;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.module.SimpleModule;
 
 class SensitiveSerializerTest {
   private ObjectMapper mapper;
 
   @BeforeEach
   void setUp() {
-    mapper = new ObjectMapper();
     SimpleModule module = new SimpleModule();
     module.addSerializer(String.class, new SensitiveSerializer(new SensitiveProperties()));
-    mapper.registerModule(module);
+    mapper = JsonMapper.builder().addModule(module).build();
   }
 
   @Test
-  void masksExplicitSensitiveFields() throws JsonProcessingException {
+  void masksExplicitSensitiveFields() throws JacksonException {
     SensitiveAccount account =
         SensitiveAccount.builder().name("alfred").username("fred").password("hunter2").build();
     assertThat(mapper.writeValueAsString(account))
@@ -46,7 +46,7 @@ class SensitiveSerializerTest {
   }
 
   @Test
-  void masksImplicitSensitiveFieldsInCredentialsDefinition() throws JsonProcessingException {
+  void masksImplicitSensitiveFieldsInCredentialsDefinition() throws JacksonException {
     SensitiveAccount account =
         SensitiveAccount.builder()
             .name("betty")
@@ -59,7 +59,7 @@ class SensitiveSerializerTest {
   }
 
   @Test
-  void doesNotMaskSecretReferences() throws JsonProcessingException {
+  void doesNotMaskSecretReferences() throws JacksonException {
     SensitiveAccount account =
         SensitiveAccount.builder()
             .name("charlie")

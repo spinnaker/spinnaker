@@ -103,8 +103,7 @@ public class MetricsInterceptor implements HandlerInterceptor {
   public void afterCompletion(
       HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
       throws Exception {
-    if (handler instanceof HandlerMethod) {
-      HandlerMethod handlerMethod = (HandlerMethod) handler;
+    if (handler instanceof HandlerMethod handlerMethod) {
 
       String controller = handlerMethod.getMethod().getDeclaringClass().getSimpleName();
       if (controllersToExclude.contains(controller)) {

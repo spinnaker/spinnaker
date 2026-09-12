@@ -14,17 +14,17 @@ ext {
     groovy           : "4.0.15",
     jsch             : "0.1.54",
     jschAgentProxy   : "0.0.9",
-    log4j            : "2.26.1", // CVEs regularly released, so patch override spring as needed
+    log4j            : "2.65.1", // CVEs regularly released, so patch override spring as needed
     log4jKotlin      : "1.5.0",
     protobuf         : "3.25.9",
     retrofit2        : "2.12.0",
     spectator        : "1.7.3", // watch to match what is coming from eureka which defines this, but not ALL the versions
-    spek             : "1.1.5",
+
     elasticsearch    : "8.19.18", // Used by clouddriver, moved here for central dep management
     spek2            : "2.0.9",
-    springdocs          : "2.8.17",
-    springBoot       : "3.5.16",
-    springCloud      : "2025.0.3", // CVE-2026-40982: spring-cloud-config-server 4.3.3+ required
+    springdocs       : "2.8.17",
+    springBoot       : "4.0.7",
+    springCloud      : "2025.1.2",
     // bring in latest, though it's ahead of deps.  This is due to springdocs
     // https://github.com/springdoc/springdoc-openapi/blob/v2.8.17/springdoc-openapi-starter-common/src/main/java/org/springdoc/core/providers/ObjectMapperProvider.java#L85
     // referencing a field that didn't come in... until 2.2.30
@@ -175,10 +175,9 @@ dependencies {
     api("org.jetbrains:annotations:19.0.0")
     api("org.spekframework.spek2:spek-dsl-jvm:${versions.spek2}")
     api("org.spekframework.spek2:spek-runner-junit5:${versions.spek2}")
-    api("org.jetbrains.spek:spek-api:${versions.spek}")
-    api("org.jetbrains.spek:spek-junit-platform-engine:${versions.spek}")
-    api("org.jetbrains.spek:spek-junit-platform-runner:${versions.spek}")
-    api("org.jetbrains.spek:spek-subject-extension:${versions.spek}")
+
+    api("org.wiremock:wiremock:3.10.0")
+    api("com.squareup.okhttp3:mockwebserver3:5.0.0-alpha.14")
     api("org.objenesis:objenesis:2.5.1")
     api("org.pf4j:pf4j:3.14.1")
     api("org.pf4j:pf4j-update:2.3.0")

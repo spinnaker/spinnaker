@@ -178,8 +178,8 @@ public class CertificateIdentity {
       return new JcaContentSignerBuilder("SHA256withECDSA").build(privateKey);
     } catch (OperatorCreationException e) {
       Throwable cause = e.getCause();
-      throw cause instanceof GeneralSecurityException
-          ? new NestedSecurityRuntimeException((GeneralSecurityException) cause)
+      throw cause instanceof GeneralSecurityException gse
+          ? new NestedSecurityRuntimeException(gse)
           : new IllegalArgumentException(e);
     }
   }

@@ -41,8 +41,7 @@ public class SpringEnvironmentPolledConfigurationSource implements PolledConfigu
         .iterator()
         .forEachRemaining(
             source -> {
-              if (source instanceof EnumerablePropertySource) {
-                EnumerablePropertySource<?> enumerable = (EnumerablePropertySource<?>) source;
+              if (source instanceof EnumerablePropertySource<?> enumerable) {
                 for (String key : enumerable.getPropertyNames()) {
                   result.putIfAbsent(key, enumerable.getProperty(key));
                 }

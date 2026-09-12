@@ -21,7 +21,8 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import java.net.URL
-import java.nio.file.Paths
+import java.nio.file.Path
+
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isTrue
@@ -71,7 +72,7 @@ class ProcessFileDownloaderTest : JUnit5Minutests {
     init {
 
       every { processRunner.completeOrTimeout(capture(processBuilderSlot)) } answers {
-        val path = Paths.get(processBuilderSlot.captured.directory().path, "downloaded.zip")
+        val path = Path.of(processBuilderSlot.captured.directory().path, "downloaded.zip")
         path.toFile().writeText("hi")
         path.toString()
       }

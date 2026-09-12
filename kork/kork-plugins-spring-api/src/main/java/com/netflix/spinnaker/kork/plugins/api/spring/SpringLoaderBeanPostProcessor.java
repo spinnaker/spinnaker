@@ -53,8 +53,8 @@ public class SpringLoaderBeanPostProcessor implements BeanPostProcessor {
           || bean.getClass().isAnnotationPresent(RestController.class)) {
         exposeToApp = true;
       } else {
-        if (def instanceof AnnotatedBeanDefinition) {
-          final AnnotationMetadata metadata = ((AnnotatedBeanDefinition) def).getMetadata();
+        if (def instanceof AnnotatedBeanDefinition definition) {
+          final AnnotationMetadata metadata = definition.getMetadata();
           // look for annotation on an enclosing configuration
           if (metadata.hasAnnotation(ExposeToApp.class.getName())) {
             exposeToApp = true;

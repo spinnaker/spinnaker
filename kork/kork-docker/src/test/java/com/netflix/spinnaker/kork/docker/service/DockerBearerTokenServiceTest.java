@@ -45,7 +45,7 @@ import retrofit2.Response;
       okhttp3.OkHttpClient.class,
       com.netflix.spinnaker.config.DefaultServiceClientProvider.class,
       com.netflix.spinnaker.config.okhttp3.DefaultOkHttpClientBuilderProvider.class,
-      com.fasterxml.jackson.databind.ObjectMapper.class
+      tools.jackson.databind.ObjectMapper.class
     },
     webEnvironment = SpringBootTest.WebEnvironment.NONE)
 public class DockerBearerTokenServiceTest {

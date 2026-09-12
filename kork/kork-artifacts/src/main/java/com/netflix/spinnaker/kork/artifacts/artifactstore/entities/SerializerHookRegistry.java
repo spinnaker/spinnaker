@@ -15,20 +15,20 @@
  */
 package com.netflix.spinnaker.kork.artifacts.artifactstore.entities;
 
-import com.fasterxml.jackson.databind.BeanDescription;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializationConfig;
-import com.fasterxml.jackson.databind.ser.BeanSerializerModifier;
-import com.fasterxml.jackson.databind.ser.std.CollectionSerializer;
-import com.fasterxml.jackson.databind.ser.std.MapSerializer;
-import com.fasterxml.jackson.databind.type.CollectionType;
-import com.fasterxml.jackson.databind.type.MapType;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.BeanDescription;
+import tools.jackson.databind.SerializationConfig;
+import tools.jackson.databind.ValueSerializer;
+import tools.jackson.databind.ser.BeanSerializerModifier;
+import tools.jackson.databind.ser.std.CollectionSerializer;
+import tools.jackson.databind.ser.std.MapSerializer;
+import tools.jackson.databind.type.CollectionType;
+import tools.jackson.databind.type.MapType;
 
 /**
  * This is where modifiers get registered for handling various "entities". These modifiers will act
@@ -56,27 +56,26 @@ public class SerializerHookRegistry extends BeanSerializerModifier {
   }
 
   @Override
-  public JsonSerializer<?> modifyMapSerializer(
+  public ValueSerializer<?> modifyMapSerializer(
       SerializationConfig config,
       MapType valueType,
       BeanDescription beanDesc,
-      JsonSerializer<?> serializer) {
-    if (serializer instanceof MapSerializer) {
-      return new MapSerializerHook(
-          this.storage, this.handlers.getMapHandlers(), (MapSerializer) serializer);
+      ValueSerializer<?> serializer) {
+    if (serializer instanceof MapSerializer mapSerializer) {
+      return new MapSerializerHook(this.storage, this.handlers.getMapHandlers(), mapSerializer);
     }
     return serializer;
   }
 
   @Override
-  public JsonSerializer<?> modifyCollectionSerializer(
+  public ValueSerializer<?> modifyCollectionSerializer(
       SerializationConfig config,
       CollectionType valueType,
       BeanDescription beanDesc,
-      JsonSerializer<?> serializer) {
-    if (serializer instanceof CollectionSerializer) {
+      ValueSerializer<?> serializer) {
+    if (serializer instanceof CollectionSerializer collectionSerializer) {
       return new CollectionSerializerHook(
-          this.storage, this.handlers.getCollectionHandlers(), (CollectionSerializer) serializer);
+          this.storage, this.handlers.getCollectionHandlers(), collectionSerializer);
     }
     return serializer;
   }

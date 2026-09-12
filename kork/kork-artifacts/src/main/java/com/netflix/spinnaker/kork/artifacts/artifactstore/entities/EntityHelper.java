@@ -16,19 +16,24 @@
 package com.netflix.spinnaker.kork.artifacts.artifactstore.entities;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.ArtifactTypes;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import java.io.IOException;
 import java.util.Base64;
 import java.util.Map;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /** A helper class that helps convert Artifact to and from some class. */
 public class EntityHelper {
   private static final ObjectMapper mapper =
-      new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
+      JsonMapper.builder()
+          .changeDefaultPropertyInclusion(
+              incl ->
+                  incl.withContentInclusion(JsonInclude.Include.NON_NULL)
+                      .withValueInclusion(JsonInclude.Include.NON_NULL))
+          .build();
   private static final TypeReference<Map> mapType = new TypeReference<Map>() {};
 
   public static boolean isArtifactLike(Object v) {
@@ -58,7 +63,7 @@ public class EntityHelper {
     try {
       String ref = Base64.getEncoder().encodeToString(mapper.writeValueAsBytes(manifest));
       return Artifact.builder().name("stored-entity").type(artifactType).reference(ref).build();
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new RuntimeException(e);
     }
   }
@@ -76,7 +81,7 @@ public class EntityHelper {
     byte[] b = Base64.getDecoder().decode(ref);
     try {
       return (T) mapper.readValue(b, t);
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       throw new RuntimeException(e);
     }
   }

@@ -90,8 +90,8 @@ public class InstrumentedJedisPool extends JedisPool {
   }
 
   private Jedis unwrapResource(Jedis jedis) {
-    if (jedis instanceof InstrumentedJedis) {
-      return ((InstrumentedJedis) jedis).unwrap();
+    if (jedis instanceof InstrumentedJedis instrumentedJedis) {
+      return instrumentedJedis.unwrap();
     }
     return jedis;
   }

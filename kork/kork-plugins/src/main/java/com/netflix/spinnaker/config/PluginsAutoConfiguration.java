@@ -18,7 +18,6 @@ package com.netflix.spinnaker.config;
 import static com.netflix.spinnaker.kork.plugins.PackageKt.FRAMEWORK_V1;
 import static com.netflix.spinnaker.kork.plugins.PackageKt.FRAMEWORK_V2;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.config.PluginsConfigurationProperties.PluginRepositoryProperties;
 import com.netflix.spinnaker.kork.annotations.Beta;
@@ -54,7 +53,6 @@ import com.netflix.spinnaker.kork.version.SpringPackageVersionResolver;
 import com.netflix.spinnaker.kork.version.VersionResolver;
 import java.net.URL;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
@@ -72,11 +70,14 @@ import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
+import tools.jackson.core.type.TypeReference;
 
+@Configuration
 @Import({Front50PluginsConfiguration.class, RemotePluginsConfiguration.class})
 public class PluginsAutoConfiguration {
 
@@ -199,8 +200,8 @@ public class PluginsAutoConfiguration {
     return pluginsConfigurationProperties
             .getPluginsRootPath()
             .equals(PluginsConfigurationProperties.DEFAULT_ROOT_PATH)
-        ? Paths.get(PluginsConfigurationProperties.DEFAULT_ROOT_PATH)
-        : Paths.get(pluginsConfigurationProperties.getPluginsRootPath()).toAbsolutePath();
+        ? Path.of(PluginsConfigurationProperties.DEFAULT_ROOT_PATH)
+        : Path.of(pluginsConfigurationProperties.getPluginsRootPath()).toAbsolutePath();
   }
 
   @Bean

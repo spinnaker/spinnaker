@@ -67,10 +67,10 @@ public class PEMIdentitySource implements X509IdentitySource {
     try (var parser = new PEMParser(Files.newBufferedReader(keyFile))) {
       var object = parser.readObject();
       PrivateKeyInfo keyInfo;
-      if (object instanceof PrivateKeyInfo) {
-        keyInfo = (PrivateKeyInfo) object;
-      } else if (object instanceof PEMKeyPair) {
-        keyInfo = ((PEMKeyPair) object).getPrivateKeyInfo();
+      if (object instanceof PrivateKeyInfo info) {
+        keyInfo = info;
+      } else if (object instanceof PEMKeyPair pair) {
+        keyInfo = pair.getPrivateKeyInfo();
       } else {
         // could be an encrypted private key?
         throw new UnsupportedEncodingException(

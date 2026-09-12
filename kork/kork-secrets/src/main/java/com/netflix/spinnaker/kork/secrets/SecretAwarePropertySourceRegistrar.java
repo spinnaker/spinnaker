@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.kork.secrets;
 
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.springframework.beans.factory.BeanFactory;

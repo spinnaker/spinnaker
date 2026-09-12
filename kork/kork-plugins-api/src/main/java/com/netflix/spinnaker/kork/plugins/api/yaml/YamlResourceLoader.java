@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.kork.plugins.api.yaml;
 
 import com.netflix.spinnaker.kork.annotations.Beta;
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 
 /** Util to load a YML resource and convert to a POJO . */
 @Beta

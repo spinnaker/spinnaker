@@ -17,8 +17,8 @@
 
 package com.netflix.spinnaker.config;
 
+import jakarta.annotation.Nonnull;
 import java.util.Map;
-import javax.annotation.Nonnull;
 
 /** Endpoint config used to build clients. */
 public interface ServiceEndpoint {

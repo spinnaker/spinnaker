@@ -17,9 +17,9 @@
 package com.netflix.spinnaker.kork.secrets;
 
 import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
+import jakarta.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nullable;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

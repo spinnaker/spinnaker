@@ -17,15 +17,15 @@ package com.netflix.spinnaker.kork.artifacts.artifactstore;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.ArtifactTypes;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.json.JsonFactory;
+import tools.jackson.databind.json.JsonMapper;
 
 class ArtifactDeserializerTest {
   private class InMemoryArtifactStore {
@@ -85,12 +85,12 @@ class ArtifactDeserializerTest {
             new InMemoryArtifactStoreGetter(inMemoryArtifactStore),
             new InMemoryArtifactStoreStorer(inMemoryArtifactStore),
             Map.of());
-    ArtifactDeserializer deserializer = new ArtifactDeserializer(new ObjectMapper(), storage);
+    ArtifactDeserializer deserializer = new ArtifactDeserializer(new JsonMapper(), storage);
 
     // We avoid using an object mapper here since the Artifact class has a
     // deserializer annotation which causes our deserializer to be ignored. So
     // rather than using a mixin and setting all that up, this is easier.
-    JsonParser parser = new JsonFactory().createParser(artifactJSON);
+    JsonParser parser = JsonFactory.builder().build().createParser(artifactJSON);
     Artifact receivedArtifact = deserializer.deserialize(parser, null);
     assertNotNull(receivedArtifact);
     assertEquals(expectedArtifact.getReference(), receivedArtifact.getReference());

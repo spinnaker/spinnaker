@@ -17,11 +17,11 @@
 package com.netflix.spinnaker.kork.jackson;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.databind.jsontype.NamedType;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import tools.jackson.databind.jsontype.NamedType;
 
 /**
  * Parses {@link JsonTypeName} annotations on classes to determine the type discriminator used in

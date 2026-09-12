@@ -19,7 +19,6 @@ package com.netflix.spinnaker.kork.configserver;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import lombok.extern.slf4j.Slf4j;
 
@@ -27,7 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ConfigFileUtils {
   static String writeToTempFile(String contents, String resourceName) {
     try {
-      Path tempDirPath = Paths.get(System.getProperty("java.io.tmpdir"), resourceName);
+      Path tempDirPath = Path.of(System.getProperty("java.io.tmpdir"), resourceName);
       createParentDirsIfNecessary(tempDirPath);
       Files.write(
           tempDirPath,

@@ -114,7 +114,7 @@ public class RedisClientConfiguration {
         Optional.ofNullable(rootConfig.connection)
             .map(
                 v -> {
-                  if (!Optional.ofNullable(properties.get("connection")).isPresent()) {
+                  if (Optional.ofNullable(properties.get("connection")).isEmpty()) {
                     properties.put("connection", v);
                   }
                   return v;
@@ -123,7 +123,7 @@ public class RedisClientConfiguration {
         Optional.ofNullable(rootConfig.connectionPrevious)
             .map(
                 v -> {
-                  if (!Optional.ofNullable(properties.get("connection")).isPresent()) {
+                  if (Optional.ofNullable(properties.get("connection")).isEmpty()) {
                     properties.put("connection", v);
                   }
                   return v;
@@ -132,7 +132,7 @@ public class RedisClientConfiguration {
       Optional.ofNullable(rootConfig.timeoutMs)
           .map(
               v -> {
-                if (!Optional.ofNullable(properties.get("timeoutMs")).isPresent()) {
+                if (Optional.ofNullable(properties.get("timeoutMs")).isEmpty()) {
                   properties.put("timeoutMs", v);
                 }
                 return v;

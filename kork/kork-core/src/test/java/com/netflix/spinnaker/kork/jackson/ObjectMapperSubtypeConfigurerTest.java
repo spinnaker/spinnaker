@@ -22,14 +22,15 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer.ClassSubtypeLocator;
 import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer.StringSubtypeLocator;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class ObjectMapperSubtypeConfigurerTest {
 
@@ -37,11 +38,11 @@ public class ObjectMapperSubtypeConfigurerTest {
 
   @BeforeEach
   public void setup() {
-    mapper = new ObjectMapper();
+    mapper = new JsonMapper();
   }
 
   @Test
-  public void shouldRegisterSubtypesByClass() throws JsonProcessingException {
+  public void shouldRegisterSubtypesByClass() throws JacksonException {
     new ObjectMapperSubtypeConfigurer(true)
         .registerSubtype(mapper, new ClassSubtypeLocator(RootType.class, searchPackages()));
 
@@ -49,7 +50,7 @@ public class ObjectMapperSubtypeConfigurerTest {
   }
 
   @Test
-  public void shouldRegisterSubtypesByName() throws JsonProcessingException {
+  public void shouldRegisterSubtypesByName() throws JacksonException {
     new ObjectMapperSubtypeConfigurer(true)
         .registerSubtype(
             mapper,

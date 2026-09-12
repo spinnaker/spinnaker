@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.kork.crypto;
 
+import jakarta.annotation.Nullable;
 import java.nio.charset.StandardCharsets;
 import java.security.DrbgParameters;
 import java.security.NoSuchAlgorithmException;
@@ -23,7 +24,6 @@ import java.security.NoSuchProviderException;
 import java.security.Provider;
 import java.security.SecureRandom;
 import java.security.SecureRandomParameters;
-import javax.annotation.Nullable;
 
 /**
  * Builder class for creating a {@link SecureRandom} instance using a deterministic random bit

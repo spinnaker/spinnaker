@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.security;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 /**
  * Common interface for access-controlled classes which use a permission map of {@link

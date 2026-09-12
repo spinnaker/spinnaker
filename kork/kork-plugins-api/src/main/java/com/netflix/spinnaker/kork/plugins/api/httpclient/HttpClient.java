@@ -16,7 +16,7 @@
 package com.netflix.spinnaker.kork.plugins.api.httpclient;
 
 import com.netflix.spinnaker.kork.annotations.Beta;
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 
 /**
  * A simple HTTP client abstraction for use by plugins to talk to other Spinnaker services.

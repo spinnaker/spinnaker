@@ -24,13 +24,10 @@ import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
 import com.netflix.spinnaker.kork.secrets.SecretConfiguration;
 import com.netflix.spinnaker.kork.secrets.engines.NoopSecretParameter;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @SpringBootTest(classes = SecretConfiguration.class)
-@ExtendWith(SpringExtension.class)
 public class UserSecretManagerTest {
 
   @Autowired UserSecretManager userSecretManager;

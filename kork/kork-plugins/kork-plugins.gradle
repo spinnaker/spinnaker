@@ -27,14 +27,14 @@ dependencies {
   implementation "org.pf4j:pf4j"
   implementation "org.pf4j:pf4j-update"
 
-  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "org.springframework.boot:spring-boot-starter-webmvc"
   implementation "org.springframework.boot:spring-boot-starter-actuator"
   implementation("com.google.guava:guava")
   implementation "jakarta.inject:jakarta.inject-api:2.0.1"
 
-  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
-  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-properties")
-  implementation "com.fasterxml.jackson.module:jackson-module-kotlin"
+  implementation("tools.jackson.dataformat:jackson-dataformat-yaml")
+  implementation("tools.jackson.dataformat:jackson-dataformat-properties")
+  implementation "tools.jackson.module:jackson-module-kotlin"
 
   testImplementation project(":kork-plugins-tck")
   testImplementation project(":kork-secrets")

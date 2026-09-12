@@ -39,7 +39,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.TlsVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -54,7 +53,6 @@ public class DefaultOkHttpClientBuilderProvider implements OkHttpClientBuilderPr
   private final OkHttpClient okHttpClient;
   private final OkHttpClientConfigurationProperties okHttpClientConfigurationProperties;
 
-  @Autowired
   public DefaultOkHttpClientBuilderProvider(
       OkHttpClient okHttpClient,
       OkHttpClientConfigurationProperties okHttpClientConfigurationProperties) {

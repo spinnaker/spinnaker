@@ -15,8 +15,8 @@
  */
 package com.netflix.spinnaker.kork.version;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import org.springframework.core.Ordered;
 
 /** Defines a strategy for resolving a service version. */

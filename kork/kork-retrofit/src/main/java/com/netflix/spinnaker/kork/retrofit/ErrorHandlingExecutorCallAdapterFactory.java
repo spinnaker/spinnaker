@@ -16,18 +16,17 @@
 
 package com.netflix.spinnaker.kork.retrofit;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerConversionException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
+import jakarta.annotation.Nullable;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Objects;
 import java.util.concurrent.Executor;
-import javax.annotation.Nullable;
 import okhttp3.Request;
 import okio.Timeout;
 import retrofit2.Call;
@@ -35,6 +34,7 @@ import retrofit2.CallAdapter;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
+import tools.jackson.core.JacksonException;
 
 /**
  * A Retrofit {@link CallAdapter.Factory} that wraps calls to provide enhanced error handling.
@@ -165,7 +165,7 @@ public class ErrorHandlingExecutorCallAdapterFactory extends CallAdapter.Factory
         if (syncResp.isSuccessful()) {
           return syncResp;
         }
-      } catch (JsonProcessingException jpe) {
+      } catch (JacksonException jpe) {
         throw new SpinnakerConversionException(
             "Failed to process response body: " + jpe.getMessage(), jpe, delegate.request());
       } catch (IOException e) {
@@ -266,8 +266,8 @@ public class ErrorHandlingExecutorCallAdapterFactory extends CallAdapter.Factory
       SpinnakerServerException exception;
       if (t instanceof IOException) {
         exception = new SpinnakerNetworkException(t, call.request());
-      } else if (t instanceof SpinnakerHttpException) {
-        exception = (SpinnakerHttpException) t;
+      } else if (t instanceof SpinnakerHttpException httpException) {
+        exception = httpException;
       } else {
         exception = new SpinnakerServerException(t, call.request());
       }

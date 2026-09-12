@@ -1,8 +1,8 @@
 package com.netflix.spinnaker.kork.api.exceptions;
 
 import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint;
+import jakarta.annotation.Nullable;
 import java.util.Optional;
-import javax.annotation.Nullable;
 
 /**
  * An extension point to create exception messages, typically for end-users. Note that the original

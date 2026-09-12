@@ -19,9 +19,6 @@ package com.netflix.spinnaker.kork.artifacts.model;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.netflix.spinnaker.kork.artifacts.ArtifactTypes;
 import java.io.IOException;
 import java.util.function.Function;
@@ -31,15 +28,20 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.ObjectNode;
 
 final class ExpectedArtifactTest {
-  private static final ObjectMapper objectMapper = new ObjectMapper();
-
-  static {
-    // This avoids needing to write out all null values in our expected JSON and is how the
-    // objectMapper in orca/clouddriver are configured.
-    objectMapper.setSerializationInclusion(Include.NON_NULL);
-  }
+  private static final ObjectMapper objectMapper =
+      JsonMapper.builder()
+          // This avoids needing to write out all null values in our expected JSON and is how the
+          // objectMapper in orca/clouddriver are configured.
+          .changeDefaultPropertyInclusion(
+              incl ->
+                  incl.withContentInclusion(Include.NON_NULL).withValueInclusion(Include.NON_NULL))
+          .build();
 
   private static final JsonNodeFactory jsonFactory = JsonNodeFactory.instance;
 

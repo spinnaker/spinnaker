@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.kork.secrets;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.nio.file.Path;
 import java.util.List;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;

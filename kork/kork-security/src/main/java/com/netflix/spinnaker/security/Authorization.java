@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.security;
 
+import jakarta.annotation.Nullable;
 import java.util.Locale;
-import javax.annotation.Nullable;
 import org.springframework.security.core.Authentication;
 
 /**

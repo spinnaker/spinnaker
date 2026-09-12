@@ -18,11 +18,11 @@ package com.netflix.spinnaker.kork.jackson;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.core.StreamReadConstraints;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
+import tools.jackson.core.StreamReadConstraints;
+import tools.jackson.databind.ObjectMapper;
 
 class JacksonStreamReadConstraintsCustomizerTest {
 

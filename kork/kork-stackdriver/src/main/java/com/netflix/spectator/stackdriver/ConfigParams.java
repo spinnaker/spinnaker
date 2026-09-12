@@ -233,14 +233,11 @@ public class ConfigParams {
 
       GoogleCredential credential;
       if (credentialsPath != null && !credentialsPath.isEmpty()) {
-        FileInputStream stream = new FileInputStream(credentialsPath);
-        try {
+        try (FileInputStream stream = new FileInputStream(credentialsPath)) {
           credential =
               GoogleCredential.fromStream(stream, transport, factory)
                   .createScoped(Collections.singleton(MonitoringScopes.MONITORING));
           log.info("Loaded credentials from from {}", credentialsPath);
-        } finally {
-          stream.close();
         }
       } else {
         log.info(

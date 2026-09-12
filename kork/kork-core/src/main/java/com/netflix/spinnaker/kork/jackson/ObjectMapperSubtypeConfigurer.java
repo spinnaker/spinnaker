@@ -15,13 +15,13 @@
  */
 package com.netflix.spinnaker.kork.jackson;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.jsontype.NamedType;
 import com.netflix.spinnaker.kork.ClassScanner;
+import jakarta.annotation.Nonnull;
 import java.util.List;
 import java.util.Objects;
-import javax.annotation.Nonnull;
 import org.springframework.util.ClassUtils;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.jsontype.NamedType;
 
 /**
  * Handles discovery and registration of ObjectMapper subtypes.

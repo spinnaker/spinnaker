@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.kork.exceptions;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;

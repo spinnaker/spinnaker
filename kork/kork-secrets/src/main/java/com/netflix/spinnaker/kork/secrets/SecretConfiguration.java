@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.kork.secrets;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.cbor.databind.CBORMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.netflix.spinnaker.kork.secrets.user.DefaultUserSecretSerde;
 import com.netflix.spinnaker.kork.secrets.user.UserSecretData;
 import com.netflix.spinnaker.kork.secrets.user.UserSecretSerde;
@@ -33,6 +30,10 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.io.ResourceLoader;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.dataformat.cbor.databind.CBORMapper;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 @AutoConfiguration
 @ComponentScan
@@ -46,7 +47,7 @@ public class SecretConfiguration {
   @Bean
   public UserSecretSerde userSecretSerde(
       final List<UserSecretTypeProvider> userSecretTypeProviders) {
-    List<ObjectMapper> mappers = List.of(new ObjectMapper(), new YAMLMapper(), new CBORMapper());
+    List<ObjectMapper> mappers = List.of(new JsonMapper(), new YAMLMapper(), new CBORMapper());
     Set<Class<? extends UserSecretData>> classes =
         userSecretTypeProviders.stream()
             .flatMap(UserSecretTypeProvider::getUserSecretTypes)

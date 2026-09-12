@@ -18,7 +18,7 @@ package com.netflix.spinnaker.credentials.jackson;
 
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinition;
 import com.netflix.spinnaker.credentials.definition.CredentialsType;
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 import lombok.Builder;
 import lombok.Value;
 import lombok.extern.jackson.Jacksonized;

@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.kork.pubsub.aws
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import spock.lang.Specification
 
 
@@ -45,7 +46,7 @@ class NotificationMessageSpec extends Specification {
       payload,
       [:]
     )
-    def objectMapper = new ObjectMapper()
+    def objectMapper = new JsonMapper()
     String snsMessage = objectMapper.writeValueAsString(notificationMessage)
 
     when:

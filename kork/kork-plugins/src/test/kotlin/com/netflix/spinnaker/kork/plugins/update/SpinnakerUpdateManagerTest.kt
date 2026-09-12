@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.kork.plugins.update
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginManager
 import com.netflix.spinnaker.kork.plugins.SpinnakerServiceVersionManager
 import com.netflix.spinnaker.kork.plugins.bundle.PluginBundleExtractor
@@ -34,7 +35,6 @@ import io.mockk.verify
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 import java.time.Instant
 import java.util.Date
@@ -238,12 +238,12 @@ class SpinnakerUpdateManagerTest : JUnit5Minutests {
             .pluginVersion(plugin.version)
 
           "classes/${plugin.canonicalPluginClass().replace(".", "/")}.class".let {
-            zip.addFile(Paths.get(it), generatedPluginPath.resolve(it).toFile().readBytes())
+            zip.addFile(Path.of(it), generatedPluginPath.resolve(it).toFile().readBytes())
           }
           "classes/${canonicalExtensionClass.replace(".", "/")}.class".let {
-            zip.addFile(Paths.get(it), generatedPluginPath.resolve(it).toFile().readBytes())
+            zip.addFile(Path.of(it), generatedPluginPath.resolve(it).toFile().readBytes())
           }
-          zip.addFile(Paths.get("META-INF/extensions.idx"), canonicalExtensionClass)
+          zip.addFile(Path.of("META-INF/extensions.idx"), canonicalExtensionClass)
 
           zip.build()
 
@@ -279,7 +279,7 @@ class SpinnakerUpdateManagerTest : JUnit5Minutests {
      * Alters the repository without creating a new UpdateRepository within the Fixture.
      */
     fun changeRepository(updateManager: UpdateManager, repositoryPath: Path, plugins: List<PluginInfo>) {
-      repositoryPath.resolve("plugins.json").toFile().writeText(ObjectMapper().writeValueAsString(plugins))
+      repositoryPath.resolve("plugins.json").toFile().writeText(JsonMapper().writeValueAsString(plugins))
       updateManager.repositories.first().refresh()
     }
 

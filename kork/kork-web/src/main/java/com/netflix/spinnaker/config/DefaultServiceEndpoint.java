@@ -17,10 +17,10 @@
 
 package com.netflix.spinnaker.config;
 
+import jakarta.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import javax.annotation.Nonnull;
 
 /**
  * Represents a service endpoint URL and name.

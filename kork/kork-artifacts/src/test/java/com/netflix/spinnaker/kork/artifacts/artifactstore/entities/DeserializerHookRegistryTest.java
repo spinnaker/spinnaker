@@ -19,8 +19,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.netflix.spinnaker.kork.artifacts.ArtifactTypes;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactReferenceURI;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
@@ -36,6 +34,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.module.SimpleModule;
 
 class DeserializerHookRegistryTest {
   @Data
@@ -171,14 +172,13 @@ class DeserializerHookRegistryTest {
                 .type(ArtifactTypes.EMBEDDED_MAP_BASE64.getMimeType())
                 .reference(Base64.getEncoder().encodeToString("{\"hello\": \"world!\"}".getBytes()))
                 .build());
-
-    ObjectMapper mapper = new ObjectMapper();
     SimpleModule module = new SimpleModule();
     List<ArtifactHandler> handlers = List.of(new ExpandToMapHandler());
     module.setDeserializerModifier(
         new DeserializerHookRegistry(
             store, ArtifactHandlerLists.builder().mapHandlers(handlers).build()));
-    mapper.registerModule(module);
+
+    ObjectMapper mapper = JsonMapper.builder().addModule(module).build();
     Object result = mapper.readValue(json, expectedResult.getClass());
     assertEquals(expectedResult, result);
   }

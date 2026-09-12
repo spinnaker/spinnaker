@@ -71,8 +71,7 @@ public class ExpressionTransform {
   }
 
   private static Stream<?> flatten(Object o) {
-    if (o instanceof Map) {
-      Map map = (Map) o;
+    if (o instanceof Map map) {
       List<Object> tokens = new ArrayList<>();
       tokens.addAll(map.keySet());
       tokens.addAll(map.values());
@@ -122,14 +121,14 @@ public class ExpressionTransform {
     Map<String, Object> copy = Collections.unmodifiableMap(source);
     source.forEach(
         (key, value) -> {
-          if (value instanceof Map) {
+          if (value instanceof Map map) {
             result.put(
                 transform(key, evaluationContext, summary, copy).toString(),
-                transformMap((Map) value, evaluationContext, summary));
-          } else if (value instanceof List) {
+                transformMap(map, evaluationContext, summary));
+          } else if (value instanceof List list) {
             result.put(
                 transform(key, evaluationContext, summary, copy).toString(),
-                transformList((List) value, evaluationContext, summary, copy));
+                transformList(list, evaluationContext, summary, copy));
           } else {
             result.put(
                 transform(key, evaluationContext, summary, copy).toString(),
@@ -149,8 +148,8 @@ public class ExpressionTransform {
     for (Object obj : source) {
       if (obj instanceof Map) {
         result.add(transformMap((Map<String, Object>) obj, evaluationContext, summary));
-      } else if (obj instanceof List) {
-        result.add(transformList((List) obj, evaluationContext, summary, additionalContext));
+      } else if (obj instanceof List list) {
+        result.add(transformList(list, evaluationContext, summary, additionalContext));
       } else {
         result.add(transform(obj, evaluationContext, summary, additionalContext));
       }
@@ -179,9 +178,9 @@ public class ExpressionTransform {
       try {
         Expression exp = parser.parseExpression(preprocessed, parserContext);
         escapedExpressionString = escapeExpression(exp);
-        if (exp instanceof CompositeStringExpression) {
+        if (exp instanceof CompositeStringExpression expression) {
           StringBuilder sb = new StringBuilder();
-          Expression[] expressions = ((CompositeStringExpression) exp).getExpressions();
+          Expression[] expressions = expression.getExpressions();
           for (Expression e : expressions) {
             String value = e.getValue(evaluationContext, String.class);
             if (value == null) {
@@ -287,9 +286,9 @@ public class ExpressionTransform {
 
   /** Helper to escape an expression: stripping ${ } */
   private String escapeExpression(Expression expression) {
-    if (expression instanceof CompositeStringExpression) {
+    if (expression instanceof CompositeStringExpression stringExpression) {
       StringBuilder sb = new StringBuilder();
-      for (Expression e : ((CompositeStringExpression) expression).getExpressions()) {
+      for (Expression e : stringExpression.getExpressions()) {
         sb.append(e.getExpressionString());
       }
 

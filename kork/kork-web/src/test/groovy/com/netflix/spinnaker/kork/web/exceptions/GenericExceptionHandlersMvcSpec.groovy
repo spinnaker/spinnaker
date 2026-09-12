@@ -5,8 +5,9 @@ import com.netflix.spinnaker.kork.test.log.MemoryAppender
 import ch.qos.logback.classic.Level;
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.web.client.TestRestTemplate
+import org.springframework.boot.resttestclient.TestRestTemplate
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 import spock.lang.Specification
 
+@AutoConfigureTestRestTemplate
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = TestControllersConfiguration)
 class GenericExceptionHandlersMvcSpec extends Specification {
 
@@ -99,8 +101,8 @@ class GenericExceptionHandlersMvcSpec extends Specification {
     class WebSecurityConfig implements WebMvcConfigurer {
       @Bean
       protected SecurityFilterChain configure(HttpSecurity http) throws Exception {
-        http.csrf().disable().headers().disable()
-        http.authorizeHttpRequests().anyRequest().permitAll()
+          http.csrf({csrf -> csrf.disable()}).headers {headers -> headers.disable()}
+          http.authorizeHttpRequests {requests -> requests.anyRequest().permitAll()}
         return http.build()
       }
     }

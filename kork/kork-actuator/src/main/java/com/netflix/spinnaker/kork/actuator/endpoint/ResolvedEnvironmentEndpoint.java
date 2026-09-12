@@ -26,7 +26,6 @@ import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.endpoint.SanitizableData;
 import org.springframework.boot.actuate.endpoint.Sanitizer;
 import org.springframework.boot.actuate.endpoint.annotation.Endpoint;
@@ -41,7 +40,6 @@ public class ResolvedEnvironmentEndpoint {
       new ActuatorSanitizingFunction();
   private final Environment environment;
 
-  @Autowired
   public ResolvedEnvironmentEndpoint(
       Environment environment, ResolvedEnvironmentConfigurationProperties properties) {
     this.environment = environment;
@@ -73,16 +71,16 @@ public class ResolvedEnvironmentEndpoint {
     SortedSet<String> result = new TreeSet<>();
     MutablePropertySources sources;
 
-    if (environment instanceof ConfigurableEnvironment) {
-      sources = ((ConfigurableEnvironment) environment).getPropertySources();
+    if (environment instanceof ConfigurableEnvironment configurableEnvironment) {
+      sources = configurableEnvironment.getPropertySources();
     } else {
       sources = new StandardEnvironment().getPropertySources();
     }
 
     sources.forEach(
         source -> {
-          if (source instanceof EnumerablePropertySource) {
-            result.addAll(Arrays.asList(((EnumerablePropertySource<?>) source).getPropertyNames()));
+          if (source instanceof EnumerablePropertySource<?> propertySource) {
+            result.addAll(Arrays.asList(propertySource.getPropertyNames()));
           }
         });
 
