@@ -49,10 +49,12 @@ import com.netflix.spinnaker.fiat.shared.FiatService;
 import com.netflix.spinnaker.fiat.shared.FiatStatus;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.dynamicconfig.SpringDynamicConfigService;
+import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,6 +64,9 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureWebMvc;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -134,6 +139,21 @@ class DockerRegistryHelmOciLookupControllerTest {
         .willReturn(Calls.response(createAuthorizedUserPermission()));
     given(fiatService.getUserPermission("userForbidden"))
         .willReturn(Calls.response(createUnauthorizedUserPermission()));
+    mirrorMockUserToMdc();
+  }
+
+  @AfterEach
+  void tearDownMdc() {
+    AuthenticatedRequest.clear();
+  }
+
+  static void mirrorMockUserToMdc() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication != null
+        && authentication.isAuthenticated()
+        && !(authentication instanceof AnonymousAuthenticationToken)) {
+      AuthenticatedRequest.setUser(authentication.getName());
+    }
   }
 
   @Test
