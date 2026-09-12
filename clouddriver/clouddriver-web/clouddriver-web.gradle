@@ -54,7 +54,7 @@ dependencies {
   testImplementation "io.spinnaker.kork:kork-test"
   testImplementation "org.springframework.boot:spring-boot-starter-test"
   testImplementation "org.springframework.boot:spring-boot-starter-webmvc-test"
-  testImplementation "org.springframework.security:spring-security-test"
+  testImplementation "org.springframework.boot:spring-boot-starter-security-test"
   testImplementation "org.spockframework:spock-core"
   // Kubernetes model classes (V1Job, V1Pod, ...) used by ObjectMapperTest; version
   // comes from the spring-cloud BOM.
