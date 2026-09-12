@@ -79,6 +79,9 @@ export class ManifestDetailsLinkComponent extends React.Component<
   }
 
   private loadUrl() {
+    if (!this.props.manifest.manifest) {
+      return;
+    }
     const kind: string = get(this.props, ['manifest', 'manifest', 'kind'], '');
     const { accountId } = this.props;
     AccountService.getAccountDetails(accountId).then((account) => {
