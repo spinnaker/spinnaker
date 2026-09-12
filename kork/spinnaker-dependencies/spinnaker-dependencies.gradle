@@ -41,6 +41,7 @@ ext {
     // GenericContainer wrapper, so the emulator version comes from the image tag
     // (MINISTACK_IMAGE_TAG in the tests), not from here.
     testcontainersMiniStack : "0.1.5",
+    kubernetes       : "19.0.3",
     // Boot 4.1 manages jOOQ 3.21.7 (Java 21 bytecode, major 65). Keep Java 17 by
     // pinning the last Java 17-compatible line until the Java floor is raised.
     jooq             : "3.19.35",
@@ -146,6 +147,7 @@ dependencies {
     api("commons-io:commons-io:2.22.0")
     api("commons-fileupload:commons-fileupload:1.6.0")// Multiple CVEs from 1.4
     api("org.apache.commons:commons-compress:${versions.commonsCompress}")
+    api("io.kubernetes:client-java:${versions.kubernetes}")
     // CVE's in 3.2.1
     api("commons-collections:commons-collections:[3.2.2,3.3)")
     api("org.apache.commons:commons-collections4:4.5.0")
