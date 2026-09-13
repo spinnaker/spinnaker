@@ -7,16 +7,13 @@ dependencies {
     testImplementation "io.micrometer:micrometer-registry-graphite"
     testImplementation "org.springframework.cloud:spring-cloud-starter-bootstrap" // needed for bootstrap phase when all embedded containers are setup
     testImplementation "com.playtika.testcontainers:embedded-redis:3.1.24"
-    testImplementation "com.playtika.testcontainers:embedded-minio:3.1.24"
+    testImplementation "org.ministack:testcontainers-ministack"
     testImplementation "org.testcontainers:testcontainers"
 }
 
 test.testLogging {
     showStandardStreams = true
 }
-
-// MinIO stopped publishing to Docker Hub; Quay.io carries the same release tags.
-test.systemProperty 'embedded.minio.dockerImage', 'quay.io/minio/minio:RELEASE.2023-09-04T19-57-37Z'
 
 gradle.taskGraph.whenReady {
     tasks.test.enabled = (

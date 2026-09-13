@@ -7,13 +7,14 @@ kayenta:
   aws:
     enabled: true
     accounts:
-      - name: minio-store-account
+      - name: s3-store-account
         bucket: kayenta-bucket
         rootFolder: kayenta
-        endpoint: http://${embedded.minio.host}:${embedded.minio.port}
+        endpoint: ${embedded.ministack.endpoint}
+        region: ${embedded.ministack.region}
         explicitCredentials:
-          accessKey: ${embedded.minio.accessKey}
-          secretKey: ${embedded.minio.secretKey}
+          accessKey: ${embedded.ministack.accessKey}
+          secretKey: ${embedded.ministack.secretKey}
         supportedTypes:
           - OBJECT_STORE
           - CONFIGURATION_STORE
