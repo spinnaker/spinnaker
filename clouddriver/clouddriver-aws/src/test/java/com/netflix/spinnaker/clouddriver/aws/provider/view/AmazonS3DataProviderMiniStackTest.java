@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.MinIOContainer;
+import org.ministack.testcontainers.MiniStackContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -57,20 +57,27 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
  * {@link ResponseInputStream} consumption end-to-end through {@link
  * AmazonS3DataProvider#getStaticData} -- not just mocked interactions.
  *
- * <p>Uses testcontainers' MinIO module (same pattern as {@code
- * kayenta-s3/S3StorageServiceIntegrationTest}) rather than LocalStack -- MinIO is a plain
- * S3-compatible object server with no Lambda/ECS docker-in-docker machinery, so it needs no host
- * docker.sock bind-mount and starts reliably across Docker runtimes (including Colima).
+ * <p>Uses the MiniStack emulator (same pattern as {@code
+ * kayenta-s3/S3StorageServiceIntegrationTest}). Its docker-in-docker machinery for RDS/ECS is
+ * opt-in via {@code withRealInfrastructure()}, so plain S3 needs no host docker.sock bind-mount and
+ * starts reliably across Docker runtimes (including Colima).
  */
 @Testcontainers
-class AmazonS3DataProviderMinioTest {
+class AmazonS3DataProviderMiniStackTest {
 
-  private static final String MINIO_IMAGE = "minio/minio:RELEASE.2023-09-04T19-57-37Z";
+  /**
+   * Pinned deliberately: {@code MiniStackContainer}'s no-arg constructor resolves {@code latest},
+   * and the emulator releases weekly, so the tag is the only thing that fixes the version these
+   * tests run against.
+   */
+  private static final String MINISTACK_IMAGE_TAG = "1.5.10";
+
   private static final String BUCKET_NAME = "s3-migration-test-bucket";
   private static final String ACCOUNT_NAME = "test";
   private static final String REGION = "us-east-1";
 
-  @Container static final MinIOContainer minio = new MinIOContainer(MINIO_IMAGE);
+  @Container
+  static final MiniStackContainer ministack = new MiniStackContainer(MINISTACK_IMAGE_TAG);
 
   private static S3Client s3Client;
   private static AmazonS3DataProvider dataProvider;
@@ -79,16 +86,16 @@ class AmazonS3DataProviderMinioTest {
   static void setupOnce() {
     s3Client =
         S3Client.builder()
-            .endpointOverride(URI.create(minio.getS3URL()))
+            .endpointOverride(URI.create(ministack.getEndpoint()))
             .credentialsProvider(
                 StaticCredentialsProvider.create(
-                    AwsBasicCredentials.create(minio.getUserName(), minio.getPassword())))
+                    AwsBasicCredentials.create(ministack.getAccessKey(), ministack.getSecretKey())))
             .region(Region.of(REGION))
             .serviceConfiguration(S3Configuration.builder().pathStyleAccessEnabled(true).build())
             .build();
 
     s3Client.createBucket(CreateBucketRequest.builder().bucket(BUCKET_NAME).build());
-    putString("string-key", "hello from minio s3");
+    putString("string-key", "hello from ministack s3");
     putString("object-key", "{\"foo\":\"bar\"}");
     putString("list-key", "[{\"name\":\"a\"},{\"name\":\"b\"}]");
 
@@ -140,14 +147,15 @@ class AmazonS3DataProviderMinioTest {
         dataProvider.fetchObject(ACCOUNT_NAME, REGION, BUCKET_NAME, "string-key")) {
       ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
       s3Object.transferTo(outputStream);
-      assertThat(outputStream.toString(StandardCharsets.UTF_8)).isEqualTo("hello from minio s3");
+      assertThat(outputStream.toString(StandardCharsets.UTF_8))
+          .isEqualTo("hello from ministack s3");
     }
   }
 
   @Test
   void getStaticDataReturnsRawStringForStringRecords() {
     Object result = dataProvider.getStaticData("stringRecordId", Map.of());
-    assertThat(result).isEqualTo("hello from minio s3");
+    assertThat(result).isEqualTo("hello from ministack s3");
   }
 
   @Test
