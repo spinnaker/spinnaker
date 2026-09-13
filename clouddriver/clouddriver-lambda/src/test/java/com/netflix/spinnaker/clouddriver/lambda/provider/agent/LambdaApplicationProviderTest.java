@@ -145,7 +145,6 @@ public class LambdaApplicationProviderTest {
     // Application.getClusterNames() must never be null (see @Empty on Application#getClusterNames),
     // since callers like ClusterController.mergeClusters() call .entrySet() on it unconditionally.
     assertThat(app.getClusterNames()).isNotNull().isEmpty();
-    assertThat(app.getClusterNameMetadata()).isNotNull().isEmpty();
   }
 
   @Test

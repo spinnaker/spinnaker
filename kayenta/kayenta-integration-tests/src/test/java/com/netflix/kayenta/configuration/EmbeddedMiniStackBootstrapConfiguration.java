@@ -28,9 +28,9 @@ import org.springframework.core.env.ConfigurableEnvironment;
  * Starts the S3 object store backing {@code kayenta.aws.accounts} during the bootstrap phase, so
  * the endpoint and credentials are resolvable by the time the AWS account configuration is bound.
  *
- * <p>Replaces Playtika's {@code embedded-minio} module: MinIO's community edition stopped
- * publishing images, and MiniStack covers the same S3 surface while being the emulator the rest of
- * the repository's AWS integration tests already use.
+ * <p>Replaces Playtika's {@code embedded-minio} module: MinIO's community edition is archived and
+ * no longer published to Docker Hub, and MiniStack covers the same S3 surface while being the
+ * emulator the rest of the repository's AWS integration tests already use.
  */
 @Slf4j
 @Configuration
