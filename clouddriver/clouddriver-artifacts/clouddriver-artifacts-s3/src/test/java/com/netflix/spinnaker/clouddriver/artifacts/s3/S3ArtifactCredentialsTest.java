@@ -27,7 +27,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
@@ -54,13 +53,12 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.ministack.testcontainers.MiniStackContainer;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.testcontainers.DockerClientFactory;
-import org.testcontainers.containers.localstack.LocalStackContainer;
-import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
@@ -81,13 +79,16 @@ class S3ArtifactCredentialsTest {
   private static final org.slf4j.Logger log =
       LoggerFactory.getLogger(S3ArtifactCredentialsTest.class);
 
-  private static DockerImageName localstackImage =
-      DockerImageName.parse(
-          "localstack/localstack:0.12.18"); // 0.12.18 is the latest as of 1-oct-21
+  /**
+   * Pinned deliberately: {@code MiniStackContainer}'s no-arg constructor resolves {@code latest},
+   * and the emulator releases weekly, so the tag is the only thing that fixes the version these
+   * tests run against.
+   */
+  private static final String MINISTACK_IMAGE_TAG = "1.5.10";
 
-  private static LocalStackContainer localstack =
+  private static MiniStackContainer ministack =
       DockerClientFactory.instance().isDockerAvailable()
-          ? new LocalStackContainer(localstackImage).withServices(S3)
+          ? new MiniStackContainer(MINISTACK_IMAGE_TAG)
           : null;
 
   private static S3Client s3Client;
@@ -115,15 +116,14 @@ class S3ArtifactCredentialsTest {
   @BeforeAll
   static void setupOnce() {
     assumeTrue(DockerClientFactory.instance().isDockerAvailable());
-    localstack.start();
+    ministack.start();
     s3Client =
         S3Client.builder()
-            .endpointOverride(URI.create(localstack.getEndpoint().toString()))
-            .region(Region.of(localstack.getRegion()))
+            .endpointOverride(URI.create(ministack.getEndpoint()))
+            .region(Region.of(ministack.getRegion()))
             .credentialsProvider(
                 StaticCredentialsProvider.create(
-                    AwsBasicCredentials.create(
-                        localstack.getAccessKey(), localstack.getSecretKey())))
+                    AwsBasicCredentials.create(ministack.getAccessKey(), ministack.getSecretKey())))
             .forcePathStyle(true)
             .overrideConfiguration(
                 ClientOverrideConfiguration.builder()
