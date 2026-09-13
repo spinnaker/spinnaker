@@ -37,24 +37,39 @@ import com.netflix.spinnaker.kork.secrets.user.UserSecretMetadataField;
 import com.netflix.spinnaker.kork.secrets.user.UserSecretReference;
 import com.netflix.spinnaker.kork.secrets.user.UserSecretSerde;
 import com.netflix.spinnaker.kork.secrets.user.UserSecretSerdeFactory;
+<<<<<<< HEAD
 import java.nio.ByteBuffer;
+=======
+import java.net.URI;
+>>>>>>> ad69f46 (test(aws): replace MinIO and LocalStack with MiniStack in AWS integration tests (#8010))
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.ministack.testcontainers.MiniStackContainer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.testcontainers.DockerClientFactory;
+<<<<<<< HEAD
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.utility.DockerImageName;
+=======
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
+import software.amazon.awssdk.services.secretsmanager.model.CreateSecretRequest;
+import software.amazon.awssdk.services.secretsmanager.model.Tag;
+>>>>>>> ad69f46 (test(aws): replace MinIO and LocalStack with MiniStack in AWS integration tests (#8010))
 
 @SpringBootTest(classes = SecretConfiguration.class)
 public class SecretsManagerSecretEngineIntegrationTest {
 
-  @Autowired private LocalStackContainer container;
+  @Autowired private MiniStackContainer container;
 
   // for setting up test data
   @Autowired private UserSecretSerdeFactory serdeFactory;
@@ -68,6 +83,7 @@ public class SecretsManagerSecretEngineIntegrationTest {
 
   @Test
   public void canDecryptUserSecret() {
+<<<<<<< HEAD
     AWSSecretsManager client =
         AWSSecretsManagerClientBuilder.standard()
             .withEndpointConfiguration(
@@ -77,6 +93,9 @@ public class SecretsManagerSecretEngineIntegrationTest {
                 new AWSStaticCredentialsProvider(
                     new BasicAWSCredentials(container.getAccessKey(), container.getSecretKey())))
             .build();
+=======
+    SecretsManagerClient client = buildMiniStackClient(container);
+>>>>>>> ad69f46 (test(aws): replace MinIO and LocalStack with MiniStack in AWS integration tests (#8010))
 
     UserSecretMetadata metadata =
         UserSecretMetadata.builder()
@@ -111,6 +130,19 @@ public class SecretsManagerSecretEngineIntegrationTest {
         });
   }
 
+<<<<<<< HEAD
+=======
+  private static SecretsManagerClient buildMiniStackClient(MiniStackContainer container) {
+    return SecretsManagerClient.builder()
+        .endpointOverride(URI.create(container.getEndpoint()))
+        .region(Region.of(container.getRegion()))
+        .credentialsProvider(
+            StaticCredentialsProvider.create(
+                AwsBasicCredentials.create(container.getAccessKey(), container.getSecretKey())))
+        .build();
+  }
+
+>>>>>>> ad69f46 (test(aws): replace MinIO and LocalStack with MiniStack in AWS integration tests (#8010))
   private static Collection<Tag> tagsForMetadata(UserSecretMetadata metadata) {
     return List.of(
         tagForField(UserSecretMetadataField.TYPE).withValue(metadata.getType()),
@@ -126,16 +158,20 @@ public class SecretsManagerSecretEngineIntegrationTest {
   @TestConfiguration
   public static class IntegrationTestConfig {
 
-    private static final DockerImageName DOCKER_IMAGE =
-        DockerImageName.parse("localstack/localstack:0.11.3");
+    /**
+     * Pinned deliberately: {@code MiniStackContainer}'s no-arg constructor resolves {@code latest},
+     * and the emulator releases weekly, so the tag is the only thing that fixes the version this
+     * test runs against.
+     */
+    private static final String MINISTACK_IMAGE_TAG = "1.5.10";
 
     @Bean(initMethod = "start", destroyMethod = "stop")
-    public LocalStackContainer localStackContainer() {
-      return new LocalStackContainer(DOCKER_IMAGE)
-          .withServices(LocalStackContainer.Service.SECRETSMANAGER);
+    public MiniStackContainer miniStackContainer() {
+      return new MiniStackContainer(MINISTACK_IMAGE_TAG);
     }
 
     @Bean
+<<<<<<< HEAD
     public SecretsManagerClientProvider localstackClientProvider(LocalStackContainer container) {
       return (params) ->
           AWSSecretsManagerClientBuilder.standard()
@@ -146,6 +182,10 @@ public class SecretsManagerSecretEngineIntegrationTest {
                   new AWSStaticCredentialsProvider(
                       new BasicAWSCredentials(container.getAccessKey(), container.getSecretKey())))
               .build();
+=======
+    public SecretsManagerClientProvider miniStackClientProvider(MiniStackContainer container) {
+      return (params) -> buildMiniStackClient(container);
+>>>>>>> ad69f46 (test(aws): replace MinIO and LocalStack with MiniStack in AWS integration tests (#8010))
     }
 
     @Bean
