@@ -407,7 +407,7 @@
           "marginal": null,
           "pass": null
         },
-        "storageAccountName": "kayenta-s3"
+        "storageAccountName": "kayenta-minio"
       },
       "completeOtherBranchesThenFail": false,
       "continuePipeline": true,

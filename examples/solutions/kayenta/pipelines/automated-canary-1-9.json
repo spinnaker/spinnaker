@@ -335,7 +335,7 @@
           "marginal": "75",
           "pass": "90"
         },
-        "storageAccountName": "kayenta-s3"
+        "storageAccountName": "kayenta-minio"
       },
       "comments": "",
       "completeOtherBranchesThenFail": false,

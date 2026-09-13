@@ -35,7 +35,7 @@ ext {
     commonsCompress  : "1.27.1",
     // Testcontainers module for the MiniStack AWS emulator. The module is a thin
     // GenericContainer wrapper, so the emulator version comes from the image tag
-    // (MINISTACK_IMAGE in the tests), not from here.
+    // (MINISTACK_IMAGE_TAG in the tests), not from here.
     testcontainersMiniStack : "0.1.5",
   ]
 }
