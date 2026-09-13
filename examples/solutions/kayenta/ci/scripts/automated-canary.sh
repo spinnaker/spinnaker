@@ -95,9 +95,9 @@ CANARY_CONFIG_ID=$(curl --fail -sS localhost:8080/gate${EXECUTION_ID}/ \
   | jq -r '.stages[] | select(.name == "Run Canary #1") | .context.canaryConfigId')
 CANARY_PIPELINE_EXECUTION_ID=$(curl --fail -sS localhost:8080/gate${EXECUTION_ID}/ \
   | jq -r '.stages[] | select(.name == "Run Canary #1") | .context.canaryPipelineExecutionId')
-METRIC_SET_PAIR_LIST_ID=$(curl --fail -sS "localhost:8080/gate/v2/canaries/canary/${CANARY_CONFIG_ID}/${CANARY_PIPELINE_EXECUTION_ID}?storageAccountName=kayenta-minio" \
+METRIC_SET_PAIR_LIST_ID=$(curl --fail -sS "localhost:8080/gate/v2/canaries/canary/${CANARY_CONFIG_ID}/${CANARY_PIPELINE_EXECUTION_ID}?storageAccountName=kayenta-s3" \
   | jq -r '.metricSetPairListId')
-curl --fail -sS "localhost:8080/gate/v2/canaries/metricSetPairList/${METRIC_SET_PAIR_LIST_ID}?storageAccountName=kayenta-minio" > metrics.json
+curl --fail -sS "localhost:8080/gate/v2/canaries/metricSetPairList/${METRIC_SET_PAIR_LIST_ID}?storageAccountName=kayenta-s3" > metrics.json
 
 CONTROL_AVG=$(jq -r '.[0].values.control | length as $array_length | add / $array_length' metrics.json)
 EXPERIMENT_AVG=$(jq -r '.[0].values.experiment | length as $array_length | add / $array_length' metrics.json)
@@ -142,9 +142,9 @@ CANARY_CONFIG_ID=$(curl --fail -sS localhost:8080/gate${EXECUTION_ID}/ \
   | jq -r '.stages[] | select(.name == "Run Canary #1") | .context.canaryConfigId')
 CANARY_PIPELINE_EXECUTION_ID=$(curl --fail -sS localhost:8080/gate${EXECUTION_ID}/ \
   | jq -r '.stages[] | select(.name == "Run Canary #1") | .context.canaryPipelineExecutionId')
-METRIC_SET_PAIR_LIST_ID=$(curl --fail -sS "localhost:8080/gate/v2/canaries/canary/${CANARY_CONFIG_ID}/${CANARY_PIPELINE_EXECUTION_ID}?storageAccountName=kayenta-minio" \
+METRIC_SET_PAIR_LIST_ID=$(curl --fail -sS "localhost:8080/gate/v2/canaries/canary/${CANARY_CONFIG_ID}/${CANARY_PIPELINE_EXECUTION_ID}?storageAccountName=kayenta-s3" \
   | jq -r '.metricSetPairListId')
-curl --fail -sS "localhost:8080/gate/v2/canaries/metricSetPairList/${METRIC_SET_PAIR_LIST_ID}?storageAccountName=kayenta-minio" > metrics.json
+curl --fail -sS "localhost:8080/gate/v2/canaries/metricSetPairList/${METRIC_SET_PAIR_LIST_ID}?storageAccountName=kayenta-s3" > metrics.json
 
 CONTROL_AVG=$(jq -r '.[0].values.control | length as $array_length | add / $array_length' metrics.json)
 EXPERIMENT_AVG=$(jq -r '.[0].values.experiment | length as $array_length | add / $array_length' metrics.json)
