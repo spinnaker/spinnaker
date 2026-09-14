@@ -5,4 +5,5 @@ metricStoreConfigStore.register({
   name: 'signalfx',
   metricConfigurer: SignalFxMetricConfigurer,
   queryFinder,
+  useTemplates: true,
 });

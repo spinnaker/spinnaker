@@ -49,37 +49,15 @@ public class QueryConfigUtils {
       String[] baseScopeAttributes) {
     if (metricSetQuery.getCustomFilter() != null) {
       throw new IllegalArgumentException(
-          "CanaryMetricSetQueryConfig.customFilter is deprecated, use CanaryMetricSetQueryConfig.customInlineTemplate instead.");
+          "CanaryMetricSetQueryConfig.customFilter is deprecated, use CanaryMetricSetQueryConfig.template instead.");
     }
 
-    String customInlineTemplate = metricSetQuery.getCustomInlineTemplate();
-    String customFilterTemplate = metricSetQuery.getCustomFilterTemplate();
-    String templateToExpand;
+    String templateToExpand = metricSetQuery.getTemplate(canaryConfig);
 
-    log.debug("customInlineTemplate={}", customInlineTemplate);
-    log.debug("customFilterTemplate={}", customFilterTemplate);
+    log.debug("templateToExpand={}", templateToExpand);
 
-    if (StringUtils.isEmpty(customInlineTemplate) && StringUtils.isEmpty(customFilterTemplate)) {
+    if (StringUtils.isEmpty(templateToExpand)) {
       return null;
-    }
-
-    if (!StringUtils.isEmpty(customInlineTemplate)) {
-      templateToExpand = unescapeTemplate(customInlineTemplate);
-    } else {
-      Map<String, String> templates = canaryConfig.getTemplates();
-
-      // TODO(duftler): Handle this as a config validation step instead.
-      if (CollectionUtils.isEmpty(templates)) {
-        throw new IllegalArgumentException(
-            "Custom filter template '"
-                + customFilterTemplate
-                + "' was referenced, "
-                + "but no templates were defined.");
-      } else if (!templates.containsKey(customFilterTemplate)) {
-        throw new IllegalArgumentException(
-            "Custom filter template '" + customFilterTemplate + "' was not found.");
-      }
-      templateToExpand = unescapeTemplate(templates.get(customFilterTemplate));
     }
 
     log.debug("extendedScopeParams={}", canaryScope.getExtendedScopeParams());
@@ -178,7 +156,7 @@ public class QueryConfigUtils {
     if (!CollectionUtils.isEmpty(canaryConfig.getMetrics())) {
       escapedMetrics =
           canaryConfig.getMetrics().stream()
-              .map(m -> m.toBuilder().query(m.getQuery().cloneWithEscapedInlineTemplate()).build())
+              .map(m -> m.toBuilder().query(m.getQuery().cloneWithEscapedTemplate()).build())
               .collect(Collectors.toList());
     } else {
       escapedMetrics = Collections.emptyList();
