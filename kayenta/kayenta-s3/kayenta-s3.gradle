@@ -5,8 +5,6 @@ dependencies {
   api "com.amazonaws:aws-java-sdk-s3"
   api "org.apache.httpcomponents.client5:httpclient5"
   api "org.apache.httpcomponents.core5:httpcore5"
-<<<<<<< HEAD
-=======
 
   testImplementation project(":kayenta-core")
   testImplementation "org.junit.jupiter:junit-jupiter-api"
@@ -18,5 +16,4 @@ dependencies {
   testImplementation "org.testcontainers:junit-jupiter"
   testImplementation "org.ministack:testcontainers-ministack"
   testRuntimeOnly "ch.qos.logback:logback-classic"
->>>>>>> ad69f46 (test(aws): replace MinIO and LocalStack with MiniStack in AWS integration tests (#8010))
 }

@@ -22,6 +22,12 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.client.builder.AwsClientBuilder;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.model.S3Object;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonS3StaticDataProviderConfiguration.StaticRecord;
 import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonS3StaticDataProviderConfiguration.StaticRecordType;
@@ -29,33 +35,22 @@ import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
 import java.io.ByteArrayOutputStream;
-import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.ministack.testcontainers.MiniStackContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.core.ResponseInputStream;
-import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.S3Configuration;
-import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
-import software.amazon.awssdk.services.s3.model.GetObjectResponse;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 /**
- * Validates that {@link AmazonS3DataProvider}'s AWS SDK v2 {@code fetchObject()} call (added by the
- * S3 v1-&gt;v2 migration) actually round-trips real bytes against an S3-compatible API, exercising
- * the real {@link software.amazon.awssdk.services.s3.model.GetObjectRequest} construction and
- * {@link ResponseInputStream} consumption end-to-end through {@link
- * AmazonS3DataProvider#getStaticData} -- not just mocked interactions.
+ * Validates that {@link AmazonS3DataProvider#fetchObject} round-trips real bytes against an
+ * S3-compatible API, exercising the real {@code GetObject} request construction and {@link
+ * S3Object} consumption end-to-end through {@link AmazonS3DataProvider#getStaticData} -- not just
+ * mocked interactions.
  *
  * <p>Uses the MiniStack emulator (same pattern as {@code
  * kayenta-s3/S3StorageServiceIntegrationTest}). Its docker-in-docker machinery for RDS/ECS is
@@ -79,22 +74,22 @@ class AmazonS3DataProviderMiniStackTest {
   @Container
   static final MiniStackContainer ministack = new MiniStackContainer(MINISTACK_IMAGE_TAG);
 
-  private static S3Client s3Client;
+  private static AmazonS3 s3Client;
   private static AmazonS3DataProvider dataProvider;
 
   @BeforeAll
   static void setupOnce() {
     s3Client =
-        S3Client.builder()
-            .endpointOverride(URI.create(ministack.getEndpoint()))
-            .credentialsProvider(
-                StaticCredentialsProvider.create(
-                    AwsBasicCredentials.create(ministack.getAccessKey(), ministack.getSecretKey())))
-            .region(Region.of(REGION))
-            .serviceConfiguration(S3Configuration.builder().pathStyleAccessEnabled(true).build())
+        AmazonS3ClientBuilder.standard()
+            .withEndpointConfiguration(
+                new AwsClientBuilder.EndpointConfiguration(ministack.getEndpoint(), REGION))
+            .withCredentials(
+                new AWSStaticCredentialsProvider(
+                    new BasicAWSCredentials(ministack.getAccessKey(), ministack.getSecretKey())))
+            .withPathStyleAccessEnabled(true)
             .build();
 
-    s3Client.createBucket(CreateBucketRequest.builder().bucket(BUCKET_NAME).build());
+    s3Client.createBucket(BUCKET_NAME);
     putString("string-key", "hello from ministack s3");
     putString("object-key", "{\"foo\":\"bar\"}");
     putString("list-key", "[{\"name\":\"a\"},{\"name\":\"b\"}]");
@@ -111,7 +106,7 @@ class AmazonS3DataProviderMiniStackTest {
                 NetflixAmazonCredentials.class);
 
     AmazonClientProvider mockAmazonClientProvider = mock(AmazonClientProvider.class);
-    when(mockAmazonClientProvider.getAmazonS3V2(eq(credentials), any())).thenReturn(s3Client);
+    when(mockAmazonClientProvider.getAmazonS3(eq(credentials), any())).thenReturn(s3Client);
 
     @SuppressWarnings("unchecked")
     CredentialsRepository<NetflixAmazonCredentials> mockCredentialsRepository =
@@ -132,9 +127,7 @@ class AmazonS3DataProviderMiniStackTest {
   }
 
   private static void putString(String key, String contents) {
-    s3Client.putObject(
-        PutObjectRequest.builder().bucket(BUCKET_NAME).key(key).build(),
-        RequestBody.fromString(contents, StandardCharsets.UTF_8));
+    s3Client.putObject(BUCKET_NAME, key, contents);
   }
 
   private static StaticRecord staticRecord(String id, StaticRecordType type, String key) {
@@ -142,11 +135,11 @@ class AmazonS3DataProviderMiniStackTest {
   }
 
   @Test
-  void fetchObjectRoundTripsRealBytesThroughAwsSdkV2() throws Exception {
-    try (ResponseInputStream<GetObjectResponse> s3Object =
+  void fetchObjectRoundTripsRealBytesThroughAwsSdk() throws Exception {
+    try (S3Object s3Object =
         dataProvider.fetchObject(ACCOUNT_NAME, REGION, BUCKET_NAME, "string-key")) {
       ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-      s3Object.transferTo(outputStream);
+      IOUtils.copy(s3Object.getObjectContent(), outputStream);
       assertThat(outputStream.toString(StandardCharsets.UTF_8))
           .isEqualTo("hello from ministack s3");
     }

@@ -21,6 +21,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.client.builder.AwsClientBuilder;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.aws.security.AwsNamedAccountCredentials;
 import com.netflix.kayenta.index.CanaryConfigIndex;
@@ -28,7 +33,6 @@ import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.security.MapBackedAccountCredentialsRepository;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
-import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeAll;
@@ -37,12 +41,6 @@ import org.junit.jupiter.api.Test;
 import org.ministack.testcontainers.MiniStackContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.S3Configuration;
-import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 
 @Testcontainers
 class S3StorageServiceIntegrationTest {
@@ -61,7 +59,7 @@ class S3StorageServiceIntegrationTest {
   @Container
   static final MiniStackContainer ministack = new MiniStackContainer(MINISTACK_IMAGE_TAG);
 
-  private static S3Client s3Client;
+  private static AmazonS3 s3Client;
   private static ObjectMapper objectMapper;
 
   private S3StorageService storageService;
@@ -70,16 +68,17 @@ class S3StorageServiceIntegrationTest {
   @BeforeAll
   static void setUpOnce() {
     s3Client =
-        S3Client.builder()
-            .endpointOverride(URI.create(ministack.getEndpoint()))
-            .credentialsProvider(
-                StaticCredentialsProvider.create(
-                    AwsBasicCredentials.create(ministack.getAccessKey(), ministack.getSecretKey())))
-            .region(Region.of(ministack.getRegion()))
-            .serviceConfiguration(S3Configuration.builder().pathStyleAccessEnabled(true).build())
+        AmazonS3ClientBuilder.standard()
+            .withEndpointConfiguration(
+                new AwsClientBuilder.EndpointConfiguration(
+                    ministack.getEndpoint(), ministack.getRegion()))
+            .withCredentials(
+                new AWSStaticCredentialsProvider(
+                    new BasicAWSCredentials(ministack.getAccessKey(), ministack.getSecretKey())))
+            .withPathStyleAccessEnabled(true)
             .build();
 
-    s3Client.createBucket(CreateBucketRequest.builder().bucket(BUCKET).build());
+    s3Client.createBucket(BUCKET);
 
     objectMapper = new ObjectMapper();
   }
@@ -93,7 +92,7 @@ class S3StorageServiceIntegrationTest {
             .bucket(BUCKET)
             .region("us-east-1")
             .rootFolder(ROOT_FOLDER)
-            .s3Client(s3Client)
+            .amazonS3(s3Client)
             .build();
 
     credentialsRepository = new MapBackedAccountCredentialsRepository();
