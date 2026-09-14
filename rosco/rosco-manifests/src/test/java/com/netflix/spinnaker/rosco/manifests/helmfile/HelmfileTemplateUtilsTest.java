@@ -34,6 +34,8 @@ import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreConfigura
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
+import com.netflix.spinnaker.kork.yaml.YamlHelper;
+import com.netflix.spinnaker.kork.yaml.YamlParserProperties;
 import com.netflix.spinnaker.rosco.jobs.BakeRecipe;
 import com.netflix.spinnaker.rosco.manifests.ArtifactDownloader;
 import com.netflix.spinnaker.rosco.manifests.BakeManifestEnvironment;
@@ -93,7 +95,8 @@ final class HelmfileTemplateUtilsTest {
             artifactDownloader,
             Optional.empty(),
             artifactStoreConfig,
-            helmfileConfigurationProperties);
+            helmfileConfigurationProperties,
+            new YamlHelper(new YamlParserProperties()));
     Artifact chartArtifact = Artifact.builder().name("test-artifact").version("3").build();
 
     bakeManifestRequest = new HelmfileBakeManifestRequest();
@@ -194,7 +197,8 @@ final class HelmfileTemplateUtilsTest {
             artifactDownloader,
             Optional.empty(),
             artifactStoreConfig,
-            helmfileConfigurationProperties);
+            helmfileConfigurationProperties,
+            new YamlHelper(new YamlParserProperties()));
 
     String output = helmfileTemplateUtils.removeTestsDirectoryTemplates(inputManifests);
 
@@ -252,7 +256,8 @@ final class HelmfileTemplateUtilsTest {
             artifactDownloader,
             Optional.empty(),
             artifactStoreConfig,
-            helmfileConfigurationProperties);
+            helmfileConfigurationProperties,
+            new YamlHelper(new YamlParserProperties()));
 
     String output = helmfileTemplateUtils.removeTestsDirectoryTemplates(inputManifests);
 
@@ -271,7 +276,8 @@ final class HelmfileTemplateUtilsTest {
             artifactDownloader,
             Optional.empty(),
             artifactStoreConfig,
-            helmfileConfigurationProperties);
+            helmfileConfigurationProperties,
+            new YamlHelper(new YamlParserProperties()));
     RoscoHelmConfigurationProperties helmConfigurationProperties =
         new RoscoHelmConfigurationProperties();
 
@@ -309,7 +315,8 @@ final class HelmfileTemplateUtilsTest {
             artifactDownloader,
             Optional.empty(),
             artifactStoreConfig,
-            helmfileConfigurationProperties);
+            helmfileConfigurationProperties,
+            new YamlHelper(new YamlParserProperties()));
 
     HelmfileBakeManifestRequest request = new HelmfileBakeManifestRequest();
 
@@ -353,7 +360,8 @@ final class HelmfileTemplateUtilsTest {
             artifactDownloader,
             Optional.empty(),
             artifactStoreConfig,
-            helmfileConfigurationProperties);
+            helmfileConfigurationProperties,
+            new YamlHelper(new YamlParserProperties()));
 
     HelmfileBakeManifestRequest request = new HelmfileBakeManifestRequest();
 
@@ -496,7 +504,8 @@ final class HelmfileTemplateUtilsTest {
             artifactDownloader,
             Optional.empty(),
             artifactStoreConfig,
-            helmfileConfigurationProperties);
+            helmfileConfigurationProperties,
+            new YamlHelper(new YamlParserProperties()));
 
     HelmfileBakeManifestRequest request = new HelmfileBakeManifestRequest();
     Artifact artifact = Artifact.builder().build();
@@ -524,7 +533,8 @@ final class HelmfileTemplateUtilsTest {
             artifactDownloader,
             Optional.empty(),
             artifactStoreConfig,
-            helmfileConfigurationProperties);
+            helmfileConfigurationProperties,
+            new YamlHelper(new YamlParserProperties()));
 
     HelmfileBakeManifestRequest request = new HelmfileBakeManifestRequest();
     Artifact artifact = Artifact.builder().build();
@@ -547,7 +557,8 @@ final class HelmfileTemplateUtilsTest {
             artifactDownloader,
             Optional.empty(),
             artifactStoreConfig,
-            helmfileConfigurationProperties);
+            helmfileConfigurationProperties,
+            new YamlHelper(new YamlParserProperties()));
 
     HelmfileBakeManifestRequest request = new HelmfileBakeManifestRequest();
     Artifact artifact = Artifact.builder().build();
@@ -575,7 +586,8 @@ final class HelmfileTemplateUtilsTest {
             artifactDownloader,
             Optional.empty(),
             artifactStoreConfig,
-            helmfileConfigurationProperties);
+            helmfileConfigurationProperties,
+            new YamlHelper(new YamlParserProperties()));
 
     HelmfileBakeManifestRequest request = new HelmfileBakeManifestRequest();
     Artifact artifact = Artifact.builder().build();
@@ -598,7 +610,8 @@ final class HelmfileTemplateUtilsTest {
             artifactDownloader,
             Optional.empty(),
             artifactStoreConfig,
-            helmfileConfigurationProperties);
+            helmfileConfigurationProperties,
+            new YamlHelper(new YamlParserProperties()));
 
     HelmfileBakeManifestRequest request = new HelmfileBakeManifestRequest();
     Artifact artifact = Artifact.builder().build();
@@ -624,7 +637,8 @@ final class HelmfileTemplateUtilsTest {
             artifactDownloader,
             Optional.empty(),
             artifactStoreConfig,
-            helmfileConfigurationProperties);
+            helmfileConfigurationProperties,
+            new YamlHelper(new YamlParserProperties()));
 
     HelmfileBakeManifestRequest request = new HelmfileBakeManifestRequest();
     Artifact artifact = Artifact.builder().build();
@@ -647,7 +661,8 @@ final class HelmfileTemplateUtilsTest {
             artifactDownloader,
             Optional.empty(),
             artifactStoreConfig,
-            helmfileConfigurationProperties);
+            helmfileConfigurationProperties,
+            new YamlHelper(new YamlParserProperties()));
 
     HelmfileBakeManifestRequest request = new HelmfileBakeManifestRequest();
     Artifact artifact = Artifact.builder().build();
@@ -675,7 +690,8 @@ final class HelmfileTemplateUtilsTest {
             artifactDownloader,
             Optional.empty(),
             artifactStoreConfig,
-            helmfileConfigurationProperties);
+            helmfileConfigurationProperties,
+            new YamlHelper(new YamlParserProperties()));
 
     HelmfileBakeManifestRequest request = new HelmfileBakeManifestRequest();
     Artifact artifact = Artifact.builder().build();
@@ -698,7 +714,8 @@ final class HelmfileTemplateUtilsTest {
             artifactDownloader,
             Optional.empty(),
             artifactStoreConfig,
-            helmfileConfigurationProperties);
+            helmfileConfigurationProperties,
+            new YamlHelper(new YamlParserProperties()));
 
     HelmfileBakeManifestRequest request = new HelmfileBakeManifestRequest();
 
@@ -748,7 +765,8 @@ final class HelmfileTemplateUtilsTest {
             artifactDownloader,
             Optional.empty(),
             artifactStoreConfig,
-            helmfileConfigurationProperties);
+            helmfileConfigurationProperties,
+            new YamlHelper(new YamlParserProperties()));
 
     HelmfileBakeManifestRequest request = new HelmfileBakeManifestRequest();
     Artifact artifact = Artifact.builder().build();
@@ -758,6 +776,212 @@ final class HelmfileTemplateUtilsTest {
     try (BakeManifestEnvironment env = BakeManifestEnvironment.create()) {
       BakeRecipe recipe = helmfileTemplateUtils.buildBakeRecipe(env, request);
       assertFalse(recipe.getCommand().contains("--values"));
+    }
+  }
+
+  @Test
+  public void buildBakeRecipeRejectsHooks(@TempDir Path tempDir) throws IOException {
+    addFile(
+        tempDir,
+        "helmfile.yaml",
+        "hooks:\n"
+            + "  - events: [\"prepare\"]\n"
+            + "    command: \"/bin/sh\"\n"
+            + "    args: [\"-c\", \"echo pwned\"]\n"
+            + "releases:\n"
+            + "  - name: test\n"
+            + "    namespace: namespace\n"
+            + "    chart: Chart.yaml\n");
+
+    ArtifactDownloader artifactDownloader = mock(ArtifactDownloader.class);
+    RoscoHelmfileConfigurationProperties helmfileConfigurationProperties =
+        new RoscoHelmfileConfigurationProperties();
+    HelmfileTemplateUtils helmfileTemplateUtils =
+        new HelmfileTemplateUtils(
+            artifactDownloader,
+            Optional.empty(),
+            artifactStoreConfig,
+            helmfileConfigurationProperties,
+            new YamlHelper(new YamlParserProperties()));
+
+    HelmfileBakeManifestRequest request = new HelmfileBakeManifestRequest();
+    Artifact artifact =
+        Artifact.builder().type("git/repo").reference("https://github.com/some/repo.git").build();
+    when(artifactDownloader.downloadArtifact(artifact)).thenReturn(makeTarball(tempDir));
+    request.setInputArtifacts(Collections.singletonList(artifact));
+    request.setOverrides(Collections.emptyMap());
+
+    try (BakeManifestEnvironment env = BakeManifestEnvironment.create()) {
+      IllegalArgumentException thrown =
+          assertThrows(
+              IllegalArgumentException.class,
+              () -> helmfileTemplateUtils.buildBakeRecipe(env, request));
+      assertThat(thrown.getMessage()).contains("hooks");
+    }
+  }
+
+  @Test
+  public void buildBakeRecipeRejectsHelmDefaultsPostRenderers(@TempDir Path tempDir)
+      throws IOException {
+    addFile(
+        tempDir,
+        "helmfile.yaml",
+        "helmDefaults:\n"
+            + "  postRenderers:\n"
+            + "    - binaryPath: \"/bin/sh\"\n"
+            + "      args: [\"-c\", \"echo pwned\"]\n"
+            + "releases:\n"
+            + "  - name: test\n"
+            + "    namespace: namespace\n"
+            + "    chart: Chart.yaml\n");
+
+    ArtifactDownloader artifactDownloader = mock(ArtifactDownloader.class);
+    RoscoHelmfileConfigurationProperties helmfileConfigurationProperties =
+        new RoscoHelmfileConfigurationProperties();
+    HelmfileTemplateUtils helmfileTemplateUtils =
+        new HelmfileTemplateUtils(
+            artifactDownloader,
+            Optional.empty(),
+            artifactStoreConfig,
+            helmfileConfigurationProperties,
+            new YamlHelper(new YamlParserProperties()));
+
+    HelmfileBakeManifestRequest request = new HelmfileBakeManifestRequest();
+    Artifact artifact =
+        Artifact.builder().type("git/repo").reference("https://github.com/some/repo.git").build();
+    when(artifactDownloader.downloadArtifact(artifact)).thenReturn(makeTarball(tempDir));
+    request.setInputArtifacts(Collections.singletonList(artifact));
+    request.setOverrides(Collections.emptyMap());
+
+    try (BakeManifestEnvironment env = BakeManifestEnvironment.create()) {
+      IllegalArgumentException thrown =
+          assertThrows(
+              IllegalArgumentException.class,
+              () -> helmfileTemplateUtils.buildBakeRecipe(env, request));
+      assertThat(thrown.getMessage()).contains("postRenderers");
+    }
+  }
+
+  @Test
+  public void buildBakeRecipeRejectsPostRendererArgFlag(@TempDir Path tempDir) throws IOException {
+    addFile(
+        tempDir,
+        "helmfile.yaml",
+        "releases:\n"
+            + "  - name: test\n"
+            + "    namespace: namespace\n"
+            + "    chart: Chart.yaml\n"
+            + "    args: [\"--post-renderer=/tmp/evil.sh\"]\n");
+
+    ArtifactDownloader artifactDownloader = mock(ArtifactDownloader.class);
+    RoscoHelmfileConfigurationProperties helmfileConfigurationProperties =
+        new RoscoHelmfileConfigurationProperties();
+    HelmfileTemplateUtils helmfileTemplateUtils =
+        new HelmfileTemplateUtils(
+            artifactDownloader,
+            Optional.empty(),
+            artifactStoreConfig,
+            helmfileConfigurationProperties,
+            new YamlHelper(new YamlParserProperties()));
+
+    HelmfileBakeManifestRequest request = new HelmfileBakeManifestRequest();
+    Artifact artifact =
+        Artifact.builder().type("git/repo").reference("https://github.com/some/repo.git").build();
+    when(artifactDownloader.downloadArtifact(artifact)).thenReturn(makeTarball(tempDir));
+    request.setInputArtifacts(Collections.singletonList(artifact));
+    request.setOverrides(Collections.emptyMap());
+
+    try (BakeManifestEnvironment env = BakeManifestEnvironment.create()) {
+      IllegalArgumentException thrown =
+          assertThrows(
+              IllegalArgumentException.class,
+              () -> helmfileTemplateUtils.buildBakeRecipe(env, request));
+      assertThat(thrown.getMessage()).contains("--post-renderer");
+    }
+  }
+
+  @Test
+  public void buildBakeRecipeRejectsHooksInLocalBase(@TempDir Path tempDir) throws IOException {
+    addFile(
+        tempDir,
+        "helmfile.yaml",
+        "bases:\n"
+            + "  - base.yaml\n"
+            + "releases:\n"
+            + "  - name: test\n"
+            + "    chart: Chart.yaml\n");
+    addFile(
+        tempDir,
+        "base.yaml",
+        "hooks:\n"
+            + "  - events: [\"prepare\"]\n"
+            + "    command: \"/bin/sh\"\n"
+            + "    args: [\"-c\", \"echo pwned\"]\n");
+
+    ArtifactDownloader artifactDownloader = mock(ArtifactDownloader.class);
+    RoscoHelmfileConfigurationProperties helmfileConfigurationProperties =
+        new RoscoHelmfileConfigurationProperties();
+    HelmfileTemplateUtils helmfileTemplateUtils =
+        new HelmfileTemplateUtils(
+            artifactDownloader,
+            Optional.empty(),
+            artifactStoreConfig,
+            helmfileConfigurationProperties,
+            new YamlHelper(new YamlParserProperties()));
+
+    HelmfileBakeManifestRequest request = new HelmfileBakeManifestRequest();
+    Artifact artifact =
+        Artifact.builder().type("git/repo").reference("https://github.com/some/repo.git").build();
+    when(artifactDownloader.downloadArtifact(artifact)).thenReturn(makeTarball(tempDir));
+    request.setInputArtifacts(Collections.singletonList(artifact));
+    request.setOverrides(Collections.emptyMap());
+
+    try (BakeManifestEnvironment env = BakeManifestEnvironment.create()) {
+      IllegalArgumentException thrown =
+          assertThrows(
+              IllegalArgumentException.class,
+              () -> helmfileTemplateUtils.buildBakeRecipe(env, request));
+      assertThat(thrown.getMessage()).contains("hooks");
+    }
+  }
+
+  @Test
+  public void buildBakeRecipeAllowsHooksWhenConfiguredToAllowThem(@TempDir Path tempDir)
+      throws IOException {
+    addFile(
+        tempDir,
+        "helmfile.yaml",
+        "hooks:\n"
+            + "  - events: [\"prepare\"]\n"
+            + "    command: \"/bin/sh\"\n"
+            + "    args: [\"-c\", \"echo ok\"]\n"
+            + "releases:\n"
+            + "  - name: test\n"
+            + "    namespace: namespace\n"
+            + "    chart: Chart.yaml\n");
+
+    ArtifactDownloader artifactDownloader = mock(ArtifactDownloader.class);
+    RoscoHelmfileConfigurationProperties helmfileConfigurationProperties =
+        new RoscoHelmfileConfigurationProperties();
+    helmfileConfigurationProperties.setAllowHooksAndPostRenderers(true);
+    HelmfileTemplateUtils helmfileTemplateUtils =
+        new HelmfileTemplateUtils(
+            artifactDownloader,
+            Optional.empty(),
+            artifactStoreConfig,
+            helmfileConfigurationProperties,
+            new YamlHelper(new YamlParserProperties()));
+
+    HelmfileBakeManifestRequest request = new HelmfileBakeManifestRequest();
+    Artifact artifact =
+        Artifact.builder().type("git/repo").reference("https://github.com/some/repo.git").build();
+    when(artifactDownloader.downloadArtifact(artifact)).thenReturn(makeTarball(tempDir));
+    request.setInputArtifacts(Collections.singletonList(artifact));
+    request.setOverrides(Collections.emptyMap());
+
+    try (BakeManifestEnvironment env = BakeManifestEnvironment.create()) {
+      BakeRecipe recipe = helmfileTemplateUtils.buildBakeRecipe(env, request);
+      assertThat(recipe.getCommand()).isNotEmpty();
     }
   }
 }
