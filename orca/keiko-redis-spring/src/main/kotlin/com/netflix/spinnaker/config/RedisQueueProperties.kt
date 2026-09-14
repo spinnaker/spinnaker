@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.config
 
+import com.netflix.spinnaker.q.redis.RedisRetryConfig
 import org.springframework.boot.context.properties.ConfigurationProperties
 
 @ConfigurationProperties("keiko.queue.redis")
@@ -24,4 +25,5 @@ class RedisQueueProperties {
   var deadLetterQueueName: String = "keiko.queue.deadLetters"
   var ackTimeoutSeconds: Int = 60
   var shards: Int = 1
+  var retry: RedisRetryConfig = RedisRetryConfig()
 }
