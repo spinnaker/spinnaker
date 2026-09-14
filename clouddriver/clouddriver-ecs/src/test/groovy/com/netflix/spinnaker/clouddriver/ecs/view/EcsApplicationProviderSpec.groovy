@@ -49,18 +49,13 @@ class EcsApplicationProviderSpec extends Specification {
     def serviceName = appName + '-kcats-liated-v001'
     def monikerCluster = appName + '-kcats-liated'
     Map<String, Set<String>> clusterNames = new HashMap<>()
-    clusterNames.put(accountName, Collections.singleton(serviceName))
-    Map<String, Set<String>> clusterNameMetadata = new HashMap<>()
-    clusterNameMetadata.put(accountName, Collections.singleton(monikerCluster))
-
-
+    clusterNames.put(accountName, Collections.singleton(monikerCluster))
 
     def givenApp = (Application) new EcsApplication(appName,
       [
         name: appName
       ],
-      clusterNames,
-      clusterNameMetadata)
+      clusterNames)
 
     def service = software.amazon.awssdk.services.ecs.model.Service.builder()
       .serviceName(serviceName)

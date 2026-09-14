@@ -150,12 +150,12 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
   Boolean enableEnclave
 
   /**
-   * Launch template placement details, see {@link com.amazonaws.services.ec2.model.LaunchTemplatePlacementRequest}.
+   * Launch template placement details, see {@link software.amazon.awssdk.services.ec2.model.LaunchTemplatePlacementRequest}.
    */
   LaunchTemplatePlacement placement
 
   /**
-   * Launch template license specifications, see {@link com.amazonaws.services.ec2.model.LaunchTemplateLicenseConfigurationRequest}.
+   * Launch template license specifications, see {@link software.amazon.awssdk.services.ec2.model.LaunchTemplateLicenseConfigurationRequest}.
    */
   List<LaunchTemplateLicenseSpecification> licenseSpecifications
 

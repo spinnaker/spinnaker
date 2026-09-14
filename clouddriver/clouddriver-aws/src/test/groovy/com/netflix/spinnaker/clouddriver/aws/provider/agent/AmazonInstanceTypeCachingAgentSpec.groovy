@@ -1,25 +1,27 @@
 package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
-import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.DescribeInstanceTypesResult
-import com.amazonaws.services.ec2.model.InstanceTypeInfo
-import com.amazonaws.services.ec2.model.ProcessorInfo
-import com.amazonaws.services.ec2.model.VCpuInfo
-import com.amazonaws.services.ec2.model.MemoryInfo
-import com.amazonaws.services.ec2.model.InstanceStorageInfo
-import com.amazonaws.services.ec2.model.EbsInfo
-import com.amazonaws.services.ec2.model.EbsOptimizedInfo
-import com.amazonaws.services.ec2.model.NetworkInfo
-import com.amazonaws.services.ec2.model.GpuInfo
-import com.amazonaws.services.ec2.model.GpuDeviceInfo
-import com.amazonaws.services.ec2.model.GpuDeviceMemoryInfo
-import com.amazonaws.services.ec2.model.DiskInfo
-import com.amazonaws.services.ec2.model.NetworkCardInfo
+import software.amazon.awssdk.services.ec2.Ec2Client
+import software.amazon.awssdk.services.ec2.model.DescribeInstanceTypesResponse
+import software.amazon.awssdk.services.ec2.model.InstanceTypeInfo
+import software.amazon.awssdk.services.ec2.model.ProcessorInfo
+import software.amazon.awssdk.services.ec2.model.VCpuInfo
+import software.amazon.awssdk.services.ec2.model.MemoryInfo
+import software.amazon.awssdk.services.ec2.model.InstanceStorageInfo
+import software.amazon.awssdk.services.ec2.model.EbsInfo
+import software.amazon.awssdk.services.ec2.model.EbsOptimizedInfo
+import software.amazon.awssdk.services.ec2.model.NetworkInfo
+import software.amazon.awssdk.services.ec2.model.GpuInfo
+import software.amazon.awssdk.services.ec2.model.GpuDeviceInfo
+import software.amazon.awssdk.services.ec2.model.GpuDeviceMemoryInfo
+import software.amazon.awssdk.services.ec2.model.DiskInfo
+import software.amazon.awssdk.services.ec2.model.NetworkCardInfo
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.cache.Keys
+import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import spock.lang.Shared
@@ -28,7 +30,7 @@ import spock.lang.Subject
 
 class AmazonInstanceTypeCachingAgentSpec extends Specification {
   def region = "us-east-1"
-  def objectMapper = new ObjectMapper()
+  def objectMapper = AmazonObjectMapperConfigurer.createConfigured().registerModule(new AwsSdkV2Module())
   def amazonClientProvider = Mock(AmazonClientProvider)
   def account = "test"
   def credentials = Stub(NetflixAmazonCredentials) {
@@ -42,13 +44,13 @@ class AmazonInstanceTypeCachingAgentSpec extends Specification {
   def agent = new AmazonInstanceTypeCachingAgent(region, amazonClientProvider, credentials, objectMapper)
 
   @Shared
-  AmazonEC2 ec2
+  Ec2Client ec2
 
   @Shared
   def it1, it2
 
   def setup() {
-    ec2 = Mock(AmazonEC2)
+    ec2 = Mock(Ec2Client)
     it1 = getInstanceTypeWithEbs()
     it2 = getInstanceTypeWithGpu()
   }
@@ -59,8 +61,8 @@ class AmazonInstanceTypeCachingAgentSpec extends Specification {
     def cache = result.cacheResults
 
     then:
-    1 * amazonClientProvider.getAmazonEC2(credentials, region) >> ec2
-    1 * ec2.describeInstanceTypes(_) >> new DescribeInstanceTypesResult(instanceTypes: [it1, it2])
+    1 * amazonClientProvider.getAmazonEC2V2(credentials, region) >> ec2
+    1 * ec2.describeInstanceTypes(_) >> DescribeInstanceTypesResponse.builder().instanceTypes([it1, it2]).build()
 
     and:
     cache.size() == 2
@@ -75,8 +77,8 @@ class AmazonInstanceTypeCachingAgentSpec extends Specification {
     def cache = result.cacheResults
 
     then:
-    1 * amazonClientProvider.getAmazonEC2(credentials, region) >> ec2
-    1 * ec2.describeInstanceTypes(_) >> new DescribeInstanceTypesResult(instanceTypes: [it1, it2])
+    1 * amazonClientProvider.getAmazonEC2V2(credentials, region) >> ec2
+    1 * ec2.describeInstanceTypes(_) >> DescribeInstanceTypesResponse.builder().instanceTypes([it1, it2]).build()
 
     and:
     def instanceTypesInfo = cache.get(Keys.Namespace.INSTANCE_TYPES.getNs())
@@ -93,8 +95,8 @@ class AmazonInstanceTypeCachingAgentSpec extends Specification {
     def cache = result.cacheResults
 
     then:
-    1 * amazonClientProvider.getAmazonEC2(credentials, region) >> ec2
-    1 * ec2.describeInstanceTypes(_) >> new DescribeInstanceTypesResult(instanceTypes: [it1, it2])
+    1 * amazonClientProvider.getAmazonEC2V2(credentials, region) >> ec2
+    1 * ec2.describeInstanceTypes(_) >> DescribeInstanceTypesResponse.builder().instanceTypes([it1, it2]).build()
 
     and:
     def metadata = cache.get(agent.getAgentType())?.head()
@@ -105,89 +107,85 @@ class AmazonInstanceTypeCachingAgentSpec extends Specification {
   }
 
   InstanceTypeInfo getInstanceTypeWithEbs() {
-    return new InstanceTypeInfo(
-      instanceType: "test.large",
-      currentGeneration: false,
-      supportedUsageClasses: ["on-demand","spot"],
-      supportedRootDeviceTypes: ["ebs","instance-store"],
-      supportedVirtualizationTypes: ["hvm","paravirtual"],
-      bareMetal: false,
-      hypervisor: "xen",
-      processorInfo: new ProcessorInfo(supportedArchitectures: ["i386","x86_64"], sustainedClockSpeedInGhz: 2.8),
-      vCpuInfo: new VCpuInfo(
-        defaultVCpus: 2,
-        defaultCores: 1,
-        defaultThreadsPerCore: 2,
-        validCores: [1],
-        validThreadsPerCore: [1, 2]
-      ),
-      memoryInfo: new MemoryInfo(sizeInMiB: 3840),
-      instanceStorageSupported: true,
-      instanceStorageInfo: new InstanceStorageInfo(
-        totalSizeInGB: 32,
-        disks: [new DiskInfo(sizeInGB: 16, count: 2, type: "ssd")],
-        nvmeSupport: "unsupported"
-      ),
-      ebsInfo: new EbsInfo(
-        ebsOptimizedSupport: "unsupported",
-        encryptionSupport: "supported",
-        nvmeSupport: "unsupported"
-      ),
-      networkInfo: new NetworkInfo(
-        ipv6Supported: true,
-      ),
-      burstablePerformanceSupported: false)
+    return InstanceTypeInfo.builder()
+      .instanceType("test.large")
+      .currentGeneration(false)
+      .supportedUsageClassesWithStrings("on-demand", "spot")
+      .supportedRootDeviceTypesWithStrings("ebs", "instance-store")
+      .supportedVirtualizationTypesWithStrings("hvm", "paravirtual")
+      .bareMetal(false)
+      .hypervisor("xen")
+      .processorInfo(ProcessorInfo.builder().supportedArchitecturesWithStrings("i386", "x86_64").sustainedClockSpeedInGhz(2.8).build())
+      .vCpuInfo(VCpuInfo.builder()
+        .defaultVCpus(2)
+        .defaultCores(1)
+        .defaultThreadsPerCore(2)
+        .validCores(1)
+        .validThreadsPerCore(1, 2)
+        .build())
+      .memoryInfo(MemoryInfo.builder().sizeInMiB(3840).build())
+      .instanceStorageSupported(true)
+      .instanceStorageInfo(InstanceStorageInfo.builder()
+        .totalSizeInGB(32)
+        .disks(DiskInfo.builder().sizeInGB(16).count(2).type("ssd").build())
+        .nvmeSupport("unsupported")
+        .build())
+      .ebsInfo(EbsInfo.builder()
+        .ebsOptimizedSupport("unsupported")
+        .encryptionSupport("supported")
+        .nvmeSupport("unsupported")
+        .build())
+      .networkInfo(NetworkInfo.builder().ipv6Supported(true).build())
+      .burstablePerformanceSupported(false)
+      .build()
   }
 
   InstanceTypeInfo getInstanceTypeWithGpu() {
-    return new InstanceTypeInfo(
-      instanceType: "test.xlarge",
-      currentGeneration: true,
-      supportedUsageClasses: ["on-demand","spot"],
-      supportedRootDeviceTypes: ["ebs"],
-      supportedVirtualizationTypes: ["hvm"],
-      bareMetal: false,
-      hypervisor: "xen",
-      processorInfo: new ProcessorInfo(
-        supportedArchitectures: ["x86_64"],
-        sustainedClockSpeedInGhz: 2.7
-      ),
-      vCpuInfo: new VCpuInfo(
-        defaultVCpus: 32,
-        defaultCores: 16,
-        defaultThreadsPerCore: 2,
-        validCores: [1,2,3],
-        validThreadsPerCore: [1,2]
-      ),
-      memoryInfo: new MemoryInfo(sizeInMiB: 249856),
-      instanceStorageSupported: false,
-      ebsInfo: new EbsInfo(
-        ebsOptimizedSupport: "default",
-        encryptionSupport: "supported",
-        ebsOptimizedInfo: new EbsOptimizedInfo(
-          baselineBandwidthInMbps: 7000,
-          baselineThroughputInMBps: 875.0,
-          baselineIops: 40000,
-          maximumBandwidthInMbps: 7000,
-          maximumThroughputInMBps: 875.0,
-          maximumIops: 40000
-        ),
-        nvmeSupport: "unsupported"
-      ),
-      networkInfo: new NetworkInfo(
-        ipv6Supported: true,
-      ),
-      gpuInfo: new GpuInfo(
-        gpus: [
-          new GpuDeviceInfo(
-            name: "V100",
-            manufacturer: "NVIDIA",
-            count: 4,
-            memoryInfo: new GpuDeviceMemoryInfo(sizeInMiB: 16384))
-        ],
-        totalGpuMemoryInMiB: 65536
-      ),
-      burstablePerformanceSupported: false,
-    )
+    return InstanceTypeInfo.builder()
+      .instanceType("test.xlarge")
+      .currentGeneration(true)
+      .supportedUsageClassesWithStrings("on-demand", "spot")
+      .supportedRootDeviceTypesWithStrings("ebs")
+      .supportedVirtualizationTypesWithStrings("hvm")
+      .bareMetal(false)
+      .hypervisor("xen")
+      .processorInfo(ProcessorInfo.builder()
+        .supportedArchitecturesWithStrings("x86_64")
+        .sustainedClockSpeedInGhz(2.7)
+        .build())
+      .vCpuInfo(VCpuInfo.builder()
+        .defaultVCpus(32)
+        .defaultCores(16)
+        .defaultThreadsPerCore(2)
+        .validCores(1, 2, 3)
+        .validThreadsPerCore(1, 2)
+        .build())
+      .memoryInfo(MemoryInfo.builder().sizeInMiB(249856).build())
+      .instanceStorageSupported(false)
+      .ebsInfo(EbsInfo.builder()
+        .ebsOptimizedSupport("default")
+        .encryptionSupport("supported")
+        .ebsOptimizedInfo(EbsOptimizedInfo.builder()
+          .baselineBandwidthInMbps(7000)
+          .baselineThroughputInMBps(875.0)
+          .baselineIops(40000)
+          .maximumBandwidthInMbps(7000)
+          .maximumThroughputInMBps(875.0)
+          .maximumIops(40000)
+          .build())
+        .nvmeSupport("unsupported")
+        .build())
+      .networkInfo(NetworkInfo.builder().ipv6Supported(true).build())
+      .gpuInfo(GpuInfo.builder()
+        .gpus(GpuDeviceInfo.builder()
+          .name("V100")
+          .manufacturer("NVIDIA")
+          .count(4)
+          .memoryInfo(GpuDeviceMemoryInfo.builder().sizeInMiB(16384).build())
+          .build())
+        .totalGpuMemoryInMiB(65536)
+        .build())
+      .burstablePerformanceSupported(false)
+      .build()
   }
 }

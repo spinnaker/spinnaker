@@ -31,6 +31,14 @@ public class ExpressionProperties {
   private final FeatureFlag doNotEvalSpel = new FeatureFlag().setEnabled(true);
 
   /**
+   * Flag to enable resolving {@code ${...}} expressions whose entire body is a hyphen-joined
+   * bareword (e.g. {@code ${my-container-name}}) as a literal key lookup, instead of failing
+   * because SpEL interprets the hyphen(s) as subtraction operators. Disabled by default so that
+   * pipelines relying on real SpEL subtraction inside {@code ${...}} expressions are unaffected.
+   */
+  private final FeatureFlag dashedIdentifiers = new FeatureFlag().setEnabled(false);
+
+  /**
    * To set the maximum limit of characters in expression for SpEL evaluation. Default value -1
    * signifies to use default maximum limit of 10,000 characters provided by springframework.
    */

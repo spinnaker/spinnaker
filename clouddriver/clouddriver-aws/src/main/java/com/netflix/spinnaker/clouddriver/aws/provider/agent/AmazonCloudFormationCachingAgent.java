@@ -20,9 +20,6 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITA
 import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.STACKS;
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.ON_DEMAND;
 
-import com.amazonaws.services.cloudformation.AmazonCloudFormation;
-import com.amazonaws.services.cloudformation.model.*;
-import com.amazonaws.services.cloudformation.model.Stack;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.*;
@@ -42,6 +39,19 @@ import java.util.*;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
+import software.amazon.awssdk.services.cloudformation.CloudFormationClient;
+import software.amazon.awssdk.services.cloudformation.model.CloudFormationException;
+import software.amazon.awssdk.services.cloudformation.model.DescribeChangeSetRequest;
+import software.amazon.awssdk.services.cloudformation.model.DescribeChangeSetResponse;
+import software.amazon.awssdk.services.cloudformation.model.DescribeStackEventsRequest;
+import software.amazon.awssdk.services.cloudformation.model.DescribeStacksRequest;
+import software.amazon.awssdk.services.cloudformation.model.DescribeStacksResponse;
+import software.amazon.awssdk.services.cloudformation.model.ListChangeSetsRequest;
+import software.amazon.awssdk.services.cloudformation.model.ListChangeSetsResponse;
+import software.amazon.awssdk.services.cloudformation.model.Output;
+import software.amazon.awssdk.services.cloudformation.model.Stack;
+import software.amazon.awssdk.services.cloudformation.model.StackEvent;
+import software.amazon.awssdk.services.cloudformation.model.Tag;
 
 @Slf4j
 public class AmazonCloudFormationCachingAgent
@@ -100,8 +110,8 @@ public class AmazonCloudFormationCachingAgent
 
       DescribeStacksRequest describeStacksRequest =
           Optional.ofNullable((String) data.get("stackName"))
-              .map(stackName -> new DescribeStacksRequest().withStackName(stackName))
-              .orElse(new DescribeStacksRequest());
+              .map(stackName -> DescribeStacksRequest.builder().stackName(stackName).build())
+              .orElse(DescribeStacksRequest.builder().build());
 
       CacheResult result = queryStacks(providerCache, describeStacksRequest, true);
       Collection<String> keys =
@@ -187,7 +197,7 @@ public class AmazonCloudFormationCachingAgent
     List<String> evictFromOnDemand = new ArrayList<>();
     Long start = System.currentTimeMillis();
 
-    CacheResult stacks = queryStacks(providerCache, new DescribeStacksRequest(), false);
+    CacheResult stacks = queryStacks(providerCache, DescribeStacksRequest.builder().build(), false);
     Collection<String> keys =
         stacks.getCacheResults().get("stacks").stream()
             .map(cachedata -> cachedata.getId())
@@ -227,33 +237,35 @@ public class AmazonCloudFormationCachingAgent
       DescribeStacksRequest describeStacksRequest,
       boolean isPartialResult) {
     log.info("Describing items in {}, partial result: {}", getAgentType(), isPartialResult);
-    AmazonCloudFormation cloudformation =
-        amazonClientProvider.getAmazonCloudFormation(account, region);
+    CloudFormationClient cloudFormationClient =
+        amazonClientProvider.getAmazonCloudFormationV2(account, region);
 
     ArrayList<CacheData> stackCacheData = new ArrayList<>();
 
     try {
-      while (true) {
-        DescribeStacksResult describeStacksResult =
-            cloudformation.describeStacks(describeStacksRequest);
-        List<Stack> stacks = describeStacksResult.getStacks();
+      String nextToken = null;
+      do {
+        DescribeStacksRequest requestToSend =
+            nextToken != null
+                ? describeStacksRequest.toBuilder().nextToken(nextToken).build()
+                : describeStacksRequest;
+
+        DescribeStacksResponse describeStacksResponse =
+            cloudFormationClient.describeStacks(requestToSend);
+        List<Stack> stacks = describeStacksResponse.stacks();
 
         for (Stack stack : stacks) {
-          Map<String, Object> stackAttributes = getStackAttributes(stack, cloudformation);
+          Map<String, Object> stackAttributes = getStackAttributes(stack, cloudFormationClient);
           String stackCacheKey =
-              Keys.getCloudFormationKey(stack.getStackId(), region, account.getName());
+              Keys.getCloudFormationKey(stack.stackId(), region, account.getName());
           Map<String, Collection<String>> relationships = new HashMap<>();
           relationships.put(STACKS.getNs(), Collections.singletonList(stackCacheKey));
           stackCacheData.add(new DefaultCacheData(stackCacheKey, stackAttributes, relationships));
         }
 
-        if (describeStacksResult.getNextToken() != null) {
-          describeStacksRequest.withNextToken(describeStacksResult.getNextToken());
-        } else {
-          break;
-        }
-      }
-    } catch (AmazonCloudFormationException e) {
+        nextToken = describeStacksResponse.nextToken();
+      } while (nextToken != null);
+    } catch (CloudFormationException e) {
       log.error("Error retrieving stacks", e);
     }
 
@@ -263,78 +275,82 @@ public class AmazonCloudFormationCachingAgent
     return new DefaultCacheResult(result, isPartialResult);
   }
 
-  private Map<String, Object> getStackAttributes(Stack stack, AmazonCloudFormation cloudformation) {
+  private Map<String, Object> getStackAttributes(
+      Stack stack, CloudFormationClient cloudFormationClient) {
     Map<String, Object> stackAttributes = new HashMap<>();
-    stackAttributes.put("stackId", stack.getStackId());
+    stackAttributes.put("stackId", stack.stackId());
     stackAttributes.put(
-        "tags", stack.getTags().stream().collect(Collectors.toMap(Tag::getKey, Tag::getValue)));
+        "tags", stack.tags().stream().collect(Collectors.toMap(Tag::key, Tag::value)));
     stackAttributes.put(
         "outputs",
-        stack.getOutputs().stream()
-            .collect(Collectors.toMap(Output::getOutputKey, Output::getOutputValue)));
-    stackAttributes.put("stackName", stack.getStackName());
+        stack.outputs().stream().collect(Collectors.toMap(Output::outputKey, Output::outputValue)));
+    stackAttributes.put("stackName", stack.stackName());
     stackAttributes.put("region", region);
     stackAttributes.put("accountName", account.getName());
     stackAttributes.put("accountId", account.getAccountId());
-    stackAttributes.put("stackStatus", stack.getStackStatus());
-    stackAttributes.put("creationTime", stack.getCreationTime());
-    stackAttributes.put("changeSets", getChangeSets(stack, cloudformation));
-    getStackStatusReason(stack, cloudformation)
+    stackAttributes.put("stackStatus", stack.stackStatusAsString());
+    stackAttributes.put(
+        "creationTime", stack.creationTime() != null ? Date.from(stack.creationTime()) : null);
+    stackAttributes.put("changeSets", getChangeSets(stack, cloudFormationClient));
+    getStackStatusReason(stack, cloudFormationClient)
         .map(statusReason -> stackAttributes.put("stackStatusReason", statusReason));
     return stackAttributes;
   }
 
   private List<Map<String, Object>> getChangeSets(
-      Stack stack, AmazonCloudFormation cloudformation) {
-    ListChangeSetsRequest listChangeSetsRequest =
-        new ListChangeSetsRequest().withStackName(stack.getStackName());
+      Stack stack, CloudFormationClient cloudFormationClient) {
+    ListChangeSetsRequest.Builder listRequestBuilder =
+        ListChangeSetsRequest.builder().stackName(stack.stackName());
 
     List<Map<String, Object>> changeSets = new ArrayList<>();
-    while (true) {
-      ListChangeSetsResult listChangeSetsResult =
-          cloudformation.listChangeSets(listChangeSetsRequest);
+    String nextToken = null;
+    do {
+      if (nextToken != null) {
+        listRequestBuilder.nextToken(nextToken);
+      }
+
+      ListChangeSetsResponse listChangeSetsResponse =
+          cloudFormationClient.listChangeSets(listRequestBuilder.build());
 
       changeSets.addAll(
-          listChangeSetsResult.getSummaries().stream()
+          listChangeSetsResponse.summaries().stream()
               .map(
                   summary -> {
                     Map<String, Object> changeSetAttributes = new HashMap<>();
-                    changeSetAttributes.put("name", summary.getChangeSetName());
-                    changeSetAttributes.put("status", summary.getStatus());
-                    changeSetAttributes.put("statusReason", summary.getStatusReason());
+                    changeSetAttributes.put("name", summary.changeSetName());
+                    changeSetAttributes.put("status", summary.statusAsString());
+                    changeSetAttributes.put("statusReason", summary.statusReason());
                     DescribeChangeSetRequest describeChangeSetRequest =
-                        new DescribeChangeSetRequest()
-                            .withChangeSetName(summary.getChangeSetName())
-                            .withStackName(stack.getStackName());
-                    DescribeChangeSetResult describeChangeSetResult =
-                        cloudformation.describeChangeSet(describeChangeSetRequest);
-                    changeSetAttributes.put("changes", describeChangeSetResult.getChanges());
+                        DescribeChangeSetRequest.builder()
+                            .changeSetName(summary.changeSetName())
+                            .stackName(stack.stackName())
+                            .build();
+                    DescribeChangeSetResponse describeChangeSetResponse =
+                        cloudFormationClient.describeChangeSet(describeChangeSetRequest);
+                    changeSetAttributes.put("changes", describeChangeSetResponse.changes());
                     log.debug(
                         "Adding change set attributes for stack {}: {}",
-                        stack.getStackName(),
+                        stack.stackName(),
                         changeSetAttributes);
                     return changeSetAttributes;
                   })
               .collect(Collectors.toList()));
 
-      if (listChangeSetsResult.getNextToken() != null) {
-        listChangeSetsRequest.withNextToken(listChangeSetsResult.getNextToken());
-      } else {
-        break;
-      }
-    }
+      nextToken = listChangeSetsResponse.nextToken();
+    } while (nextToken != null);
 
     return changeSets;
   }
 
-  private Optional<String> getStackStatusReason(Stack stack, AmazonCloudFormation cloudformation) {
-    if (stack.getStackStatus().endsWith("ROLLBACK_COMPLETE")) {
+  private Optional<String> getStackStatusReason(
+      Stack stack, CloudFormationClient cloudFormationClient) {
+    if (stack.stackStatusAsString().endsWith("ROLLBACK_COMPLETE")) {
       DescribeStackEventsRequest request =
-          new DescribeStackEventsRequest().withStackName(stack.getStackName());
-      return cloudformation.describeStackEvents(request).getStackEvents().stream()
-          .filter(e -> e.getResourceStatus().endsWith("FAILED"))
+          DescribeStackEventsRequest.builder().stackName(stack.stackName()).build();
+      return cloudFormationClient.describeStackEvents(request).stackEvents().stream()
+          .filter(e -> e.resourceStatusAsString().endsWith("FAILED"))
           .findFirst()
-          .map(StackEvent::getResourceStatusReason);
+          .map(StackEvent::resourceStatusReason);
     } else {
       return Optional.empty();
     }

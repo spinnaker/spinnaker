@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.artifacts.config.TokenAuth;
 import com.netflix.spinnaker.clouddriver.artifacts.config.UserInputValidatedArtifactAccount;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
+import com.netflix.spinnaker.kork.github.GitHubAppCredentials;
 import java.util.Optional;
 import javax.annotation.ParametersAreNullableByDefault;
 import lombok.Builder;
@@ -41,12 +42,14 @@ public class GitHubArtifactAccount extends UserInputValidatedArtifactAccount
     - usernamePasswordFile : path to file containing "username:password"
     - token
     - tokenFile : path to file containing token
+    - githubApp : GitHub App credentials (takes precedence over the other auth methods)
   */
   private final Optional<String> username;
   private final Optional<String> password;
   private final Optional<String> usernamePasswordFile;
   private final Optional<String> token;
   private final Optional<String> tokenFile;
+  private final Optional<GitHubAppCredentials> githubApp;
   private final String githubAPIVersion;
   private final boolean useContentAPI;
 
@@ -60,6 +63,7 @@ public class GitHubArtifactAccount extends UserInputValidatedArtifactAccount
       String usernamePasswordFile,
       String token,
       String tokenFile,
+      GitHubAppCredentials githubApp,
       String githubAPIVersion,
       boolean useContentAPI,
       HttpUrlRestrictions urlRestrictions,
@@ -73,6 +77,7 @@ public class GitHubArtifactAccount extends UserInputValidatedArtifactAccount
     this.usernamePasswordFile = Optional.ofNullable(Strings.emptyToNull(usernamePasswordFile));
     this.token = Optional.ofNullable(Strings.emptyToNull(token));
     this.tokenFile = Optional.ofNullable(Strings.emptyToNull(tokenFile));
+    this.githubApp = Optional.ofNullable(githubApp);
     this.githubAPIVersion = StringUtils.defaultString(githubAPIVersion, "v3");
     this.useContentAPI = useContentAPI;
   }

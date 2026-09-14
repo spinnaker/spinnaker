@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.validators;
 
-import com.amazonaws.services.elasticloadbalancingv2.model.AuthenticateOidcActionConfig;
-import com.amazonaws.services.elasticloadbalancingv2.model.TargetTypeEnum;
 import com.netflix.spinnaker.clouddriver.aws.AmazonOperation;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerClassicDescription;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerDescription;
@@ -32,6 +30,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.AuthenticateOidcActionConfig;
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetTypeEnum;
 
 @AmazonOperation(AtomicOperations.UPSERT_LOAD_BALANCER)
 @Component("createAmazonLoadBalancerDescriptionValidator")
@@ -54,7 +54,7 @@ class CreateAmazonLoadBalancerDescriptionValidator
 
       if (action.getType().equals("authenticate-oidc")) {
         AuthenticateOidcActionConfig config = action.getAuthenticateOidcActionConfig();
-        if (config.getClientId() == null) {
+        if (config.clientId() == null) {
           errors.rejectValue(
               "listeners", "createAmazonLoadBalancerDescription.listeners.invalid.oidcConfig");
         }
@@ -142,7 +142,7 @@ class CreateAmazonLoadBalancerDescriptionValidator
             errors.rejectValue(
                 "targetGroups", "createAmazonLoadBalancerDescription.targetGroups.name.missing");
           }
-          if (TargetTypeEnum.Lambda.toString().equalsIgnoreCase(targetGroup.getTargetType())) {
+          if (TargetTypeEnum.LAMBDA.toString().equalsIgnoreCase(targetGroup.getTargetType())) {
             validateLambdaTargetGroup(albDescription, targetGroup, errors);
           } else {
             if (targetGroup.getProtocol() == null) {

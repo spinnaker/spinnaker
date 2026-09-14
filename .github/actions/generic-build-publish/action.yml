@@ -69,6 +69,15 @@ runs:
         distribution: 'zulu'
         cache: ${{ !env.ACT && 'gradle' || '' }}  # Disable Gradle cache when running actions locally
 
+    - name: Cache Gradle build cache
+      if: ${{ !env.ACT }}
+      uses: actions/cache@v4
+      with:
+        path: ~/.gradle/build-cache
+        key: ${{ runner.os }}-gradle-build-cache-${{ inputs.project }}-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-build-cache-${{ inputs.project }}-
+
     # Set up nodejs if a package.json file is present in that project
     - uses: ./.github/actions/setup-node
       with:
@@ -86,7 +95,7 @@ runs:
       run: |
         ## GHA Blocks rebinding attack based which causes some tests to fail.  This changes this
         sudo sh -c 'echo "nameserver 1.1.1.1" > /etc/resolv.conf'
-        ./gradlew ${{ inputs.gradle-cmd-opts }} -Dorg.gradle.daemon=false --stacktrace ':${{ inputs.project }}:build'
+        ./gradlew ${{ inputs.gradle-cmd-opts }} -Dorg.gradle.daemon=false --build-cache --stacktrace ':${{ inputs.project }}:build'
 
     # If configured, build a container, publish it locally, and run its tests
     - name: Run build to produce container artifacts

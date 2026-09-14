@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
-import com.amazonaws.services.ec2.model.Tag
 import com.netflix.spinnaker.clouddriver.security.resources.ResourcesNameable
 import groovy.transform.Canonical
 

@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.ops;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.AsgDescription;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertWarmPoolDescription;
 import com.netflix.spinnaker.clouddriver.aws.services.AsgService;
@@ -29,6 +28,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup;
 
 class UpsertWarmPoolAtomicOperationTest {
 
@@ -61,7 +61,7 @@ class UpsertWarmPoolAtomicOperationTest {
     description.setPoolState("Stopped");
     description.setReuseOnScaleIn(true);
 
-    when(mockAsgService.getAutoScalingGroup("asg1")).thenReturn(new AutoScalingGroup());
+    when(mockAsgService.getAutoScalingGroup("asg1")).thenReturn(AutoScalingGroup.builder().build());
 
     UpsertWarmPoolAtomicOperation operation = new UpsertWarmPoolAtomicOperation(description);
     operation.regionScopedProviderFactory = mockRegionScopedProviderFactory;

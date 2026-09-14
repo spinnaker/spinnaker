@@ -15,22 +15,20 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.services
 
-import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.CreateSecurityGroupRequest
-import com.amazonaws.services.ec2.model.CreateSecurityGroupResult
-import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest
-import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult
-import com.amazonaws.services.ec2.model.Filter
-import com.amazonaws.services.ec2.model.SecurityGroup
+import software.amazon.awssdk.services.ec2.Ec2Client
+import software.amazon.awssdk.services.ec2.model.CreateSecurityGroupRequest
+import software.amazon.awssdk.services.ec2.model.CreateSecurityGroupResponse
+import software.amazon.awssdk.services.ec2.model.DescribeSecurityGroupsRequest
+import software.amazon.awssdk.services.ec2.model.DescribeSecurityGroupsResponse
+import software.amazon.awssdk.services.ec2.model.Filter
+import software.amazon.awssdk.services.ec2.model.SecurityGroup
 import com.netflix.spinnaker.clouddriver.aws.model.SecurityGroupNotFoundException
 import com.netflix.spinnaker.clouddriver.aws.model.SubnetAnalyzer
-import org.hamcrest.Matcher
 import spock.lang.Specification
-import static org.hamcrest.Matchers.*
 
 class SecurityGroupServiceSpec extends Specification {
 
-  def securityGroupService = new SecurityGroupService(Mock(AmazonEC2), Mock(SubnetAnalyzer))
+  def securityGroupService = new SecurityGroupService(Mock(Ec2Client), Mock(SubnetAnalyzer))
 
   void "should get Security Group for Application"() {
     when:
@@ -40,9 +38,9 @@ class SecurityGroupServiceSpec extends Specification {
     result == "sg-123"
 
     and:
-    1 * securityGroupService.amazonEC2.describeSecurityGroups(matchRequest("myApp")) >> new DescribeSecurityGroupsResult(securityGroups: [
-      new SecurityGroup(groupId: "sg-123", groupName: "myApp")
-    ])
+    1 * securityGroupService.amazonEC2.describeSecurityGroups(requestFor("myApp")) >> DescribeSecurityGroupsResponse.builder().securityGroups([
+      SecurityGroup.builder().groupId("sg-123").groupName("myApp").build()
+    ]).build()
     0 * _
   }
 
@@ -54,7 +52,7 @@ class SecurityGroupServiceSpec extends Specification {
     result == null
 
     and:
-    1 * securityGroupService.amazonEC2.describeSecurityGroups(_) >> new DescribeSecurityGroupsResult(securityGroups: [])
+    1 * securityGroupService.amazonEC2.describeSecurityGroups(_) >> DescribeSecurityGroupsResponse.builder().securityGroups([]).build()
     0 * _
   }
 
@@ -69,10 +67,10 @@ class SecurityGroupServiceSpec extends Specification {
     ]
 
     and:
-    1 * securityGroupService.amazonEC2.describeSecurityGroups(matchRequest("myApp", "yourApp")) >> new DescribeSecurityGroupsResult(securityGroups: [
-      new SecurityGroup(groupId: "sg-123", groupName: "myApp"),
-      new SecurityGroup(groupId: "sg-456", groupName: "yourApp")
-    ])
+    1 * securityGroupService.amazonEC2.describeSecurityGroups(requestFor("myApp", "yourApp")) >> DescribeSecurityGroupsResponse.builder().securityGroups([
+      SecurityGroup.builder().groupId("sg-123").groupName("myApp").build(),
+      SecurityGroup.builder().groupId("sg-456").groupName("yourApp").build()
+    ]).build()
     0 * _
   }
 
@@ -84,9 +82,9 @@ class SecurityGroupServiceSpec extends Specification {
     SecurityGroupNotFoundException e = thrown()
 
     and:
-    1 * securityGroupService.amazonEC2.describeSecurityGroups(_) >> new DescribeSecurityGroupsResult(securityGroups: [
-      new SecurityGroup(groupId: "sg-456", groupName: "yourApp")
-    ])
+    1 * securityGroupService.amazonEC2.describeSecurityGroups(_) >> DescribeSecurityGroupsResponse.builder().securityGroups([
+      SecurityGroup.builder().groupId("sg-456").groupName("yourApp").build()
+    ]).build()
     0 * _
   }
 
@@ -99,11 +97,11 @@ class SecurityGroupServiceSpec extends Specification {
 
     and:
     1 * securityGroupService.subnetAnalyzer.getVpcIdForSubnetPurpose("internal") >> "vpc-123"
-    1 * securityGroupService.amazonEC2.createSecurityGroup(new CreateSecurityGroupRequest(
-      groupName: "myApp",
-      description: "Security Group for myApp",
-      vpcId: "vpc-123"
-    )) >> new CreateSecurityGroupResult(groupId: "sg-123")
+    1 * securityGroupService.amazonEC2.createSecurityGroup(CreateSecurityGroupRequest.builder()
+      .groupName("myApp")
+      .description("Security Group for myApp")
+      .vpcId("vpc-123")
+      .build()) >> CreateSecurityGroupResponse.builder().groupId("sg-123").build()
     0 * _
   }
 
@@ -112,10 +110,10 @@ class SecurityGroupServiceSpec extends Specification {
     def result = securityGroupService.getSecurityGroupForApplication("test", null)
 
     then:
-    1 * securityGroupService.amazonEC2.describeSecurityGroups(_) >> new DescribeSecurityGroupsResult(securityGroups: [
-      new SecurityGroup(groupId: "sg-123", groupName: "test", vpcId: "vpc1234"),
-      new SecurityGroup(groupId: "sg-456", groupName: "test", vpcId: null)
-    ])
+    1 * securityGroupService.amazonEC2.describeSecurityGroups(_) >> DescribeSecurityGroupsResponse.builder().securityGroups([
+      SecurityGroup.builder().groupId("sg-123").groupName("test").vpcId("vpc1234").build(),
+      SecurityGroup.builder().groupId("sg-456").groupName("test").vpcId(null).build()
+    ]).build()
     result == "sg-456"
   }
 
@@ -125,10 +123,10 @@ class SecurityGroupServiceSpec extends Specification {
 
     then:
     1 * securityGroupService.subnetAnalyzer.getVpcIdForSubnetPurpose("internal") >> "vpc1234"
-    1 * securityGroupService.amazonEC2.describeSecurityGroups(_) >> new DescribeSecurityGroupsResult(securityGroups: [
-      new SecurityGroup(groupId: "sg-123", groupName: "test", vpcId: "vpc1234"),
-      new SecurityGroup(groupId: "sg-456", groupName: "test", vpcId: null)
-    ])
+    1 * securityGroupService.amazonEC2.describeSecurityGroups(_) >> DescribeSecurityGroupsResponse.builder().securityGroups([
+      SecurityGroup.builder().groupId("sg-123").groupName("test").vpcId("vpc1234").build(),
+      SecurityGroup.builder().groupId("sg-456").groupName("test").vpcId(null).build()
+    ]).build()
     result == "sg-123"
   }
 
@@ -139,9 +137,9 @@ class SecurityGroupServiceSpec extends Specification {
     }
 
     then:
-    1 * securityGroupService.amazonEC2.describeSecurityGroups(_) >> new DescribeSecurityGroupsResult(securityGroups: [
-      new SecurityGroup(groupId: "sg-123", groupName: "test", vpcId: "vpc1234")
-    ])
+    1 * securityGroupService.amazonEC2.describeSecurityGroups(_) >> DescribeSecurityGroupsResponse.builder().securityGroups([
+      SecurityGroup.builder().groupId("sg-123").groupName("test").vpcId("vpc1234").build()
+    ]).build()
     result == ["name", "test"]
   }
 
@@ -152,9 +150,9 @@ class SecurityGroupServiceSpec extends Specification {
     }
 
     then:
-    1 * securityGroupService.amazonEC2.describeSecurityGroups(_) >> new DescribeSecurityGroupsResult(securityGroups: [
-      new SecurityGroup(groupId: "sg-123", groupName: "test", vpcId: "vpc1234")
-    ])
+    1 * securityGroupService.amazonEC2.describeSecurityGroups(_) >> DescribeSecurityGroupsResponse.builder().securityGroups([
+      SecurityGroup.builder().groupId("sg-123").groupName("test").vpcId("vpc1234").build()
+    ]).build()
     result == ["sg-456", "sg-123"]
   }
 
@@ -202,7 +200,9 @@ class SecurityGroupServiceSpec extends Specification {
     0 * _
   }
 
-  private Matcher<DescribeSecurityGroupsRequest> matchRequest(String... groupNames) {
-    hasProperty("filters", contains(new Filter("group-name", groupNames.toList())))
+  private DescribeSecurityGroupsRequest requestFor(String... groupNames) {
+    DescribeSecurityGroupsRequest.builder()
+      .filters(Filter.builder().name("group-name").values(groupNames.toList()).build())
+      .build()
   }
 }

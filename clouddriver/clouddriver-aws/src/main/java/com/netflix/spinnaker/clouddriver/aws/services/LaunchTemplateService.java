@@ -19,9 +19,6 @@ package com.netflix.spinnaker.clouddriver.aws.services;
 
 import static java.util.Comparator.comparing;
 
-import com.amazonaws.services.autoscaling.model.LaunchTemplateSpecification;
-import com.amazonaws.services.ec2.AmazonEC2;
-import com.amazonaws.services.ec2.model.*;
 import com.netflix.spinnaker.clouddriver.aws.deploy.AmazonResourceTagger;
 import com.netflix.spinnaker.clouddriver.aws.deploy.InstanceTypeUtils;
 import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AsgConfigHelper;
@@ -45,10 +42,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import software.amazon.awssdk.services.autoscaling.model.LaunchTemplateSpecification;
+import software.amazon.awssdk.services.ec2.Ec2Client;
+import software.amazon.awssdk.services.ec2.model.*;
 
 @Slf4j
 public class LaunchTemplateService {
-  private final AmazonEC2 ec2;
+  private final Ec2Client ec2;
   private final UserDataProviderAggregator userDataProviderAggregator;
   private final LocalFileUserDataProperties localFileUserDataProperties;
   private final Collection<AmazonResourceTagger> amazonResourceTaggers;
@@ -74,7 +74,7 @@ public class LaunchTemplateService {
   private static final String STANDARD_CPU_CREDITS = "standard";
 
   public LaunchTemplateService(
-      AmazonEC2 ec2,
+      Ec2Client ec2,
       UserDataProviderAggregator userDataProviderAggregator,
       LocalFileUserDataProperties localFileUserDataProperties,
       Collection<AmazonResourceTagger> amazonResourceTaggers) {
@@ -87,30 +87,31 @@ public class LaunchTemplateService {
   public Optional<LaunchTemplateVersion> getLaunchTemplateVersion(
       LaunchTemplateSpecification launchTemplateSpecification) {
     final List<LaunchTemplateVersion> versions = new ArrayList<>();
-    final String version = launchTemplateSpecification.getVersion();
-    final DescribeLaunchTemplateVersionsRequest request =
-        new DescribeLaunchTemplateVersionsRequest()
-            .withLaunchTemplateId(launchTemplateSpecification.getLaunchTemplateId());
+    final String version = launchTemplateSpecification.version();
+    DescribeLaunchTemplateVersionsRequest request =
+        DescribeLaunchTemplateVersionsRequest.builder()
+            .launchTemplateId(launchTemplateSpecification.launchTemplateId())
+            .build();
 
     while (true) {
-      final DescribeLaunchTemplateVersionsResult result =
+      final DescribeLaunchTemplateVersionsResponse result =
           ec2.describeLaunchTemplateVersions(request);
-      versions.addAll(result.getLaunchTemplateVersions());
-      if (result.getNextToken() != null) {
-        request.withNextToken(result.getNextToken());
+      versions.addAll(result.launchTemplateVersions());
+      if (result.nextToken() != null) {
+        request = request.toBuilder().nextToken(result.nextToken()).build();
       } else {
         break;
       }
     }
 
     if ("$Latest".equals(version)) {
-      return versions.stream().max(comparing(LaunchTemplateVersion::getVersionNumber));
+      return versions.stream().max(comparing(LaunchTemplateVersion::versionNumber));
     } else if ("$Default".equals(version)) {
-      return versions.stream().filter(LaunchTemplateVersion::isDefaultVersion).findFirst();
+      return versions.stream().filter(LaunchTemplateVersion::defaultVersion).findFirst();
     }
 
     return versions.stream()
-        .filter(i -> i.getVersionNumber().equals(Long.parseLong(version)))
+        .filter(i -> i.versionNumber().equals(Long.parseLong(version)))
         .findFirst();
   }
 
@@ -122,10 +123,11 @@ public class LaunchTemplateService {
     return retrySupport.retry(
         () -> {
           final CreateLaunchTemplateRequest launchTemplateRequest =
-              new CreateLaunchTemplateRequest()
-                  .withLaunchTemplateName(launchTemplateName)
-                  .withLaunchTemplateData(data);
-          return ec2.createLaunchTemplate(launchTemplateRequest).getLaunchTemplate();
+              CreateLaunchTemplateRequest.builder()
+                  .launchTemplateName(launchTemplateName)
+                  .launchTemplateData(data)
+                  .build();
+          return ec2.createLaunchTemplate(launchTemplateRequest).launchTemplate();
         },
         3,
         Duration.ofMillis(3000),
@@ -141,19 +143,20 @@ public class LaunchTemplateService {
     RequestLaunchTemplateData data =
         buildLaunchTemplateDataForModify(
             credentials, description, sourceLtVersion, shouldUseMixedInstancesPolicy);
-    CreateLaunchTemplateVersionResult result =
+    CreateLaunchTemplateVersionResponse result =
         ec2.createLaunchTemplateVersion(
-            new CreateLaunchTemplateVersionRequest()
-                .withLaunchTemplateId(sourceLtVersion.getLaunchTemplateId())
-                .withLaunchTemplateData(data));
+            CreateLaunchTemplateVersionRequest.builder()
+                .launchTemplateId(sourceLtVersion.launchTemplateId())
+                .launchTemplateData(data)
+                .build());
 
     log.info(
         String.format(
             "Created new launch template version %s for launch template ID %s",
-            result.getLaunchTemplateVersion().getVersionNumber(),
-            result.getLaunchTemplateVersion().getLaunchTemplateId()));
+            result.launchTemplateVersion().versionNumber(),
+            result.launchTemplateVersion().launchTemplateId()));
 
-    return result.getLaunchTemplateVersion();
+    return result.launchTemplateVersion();
   }
 
   /**
@@ -169,17 +172,18 @@ public class LaunchTemplateService {
             "Attempting to delete launch template version %s for launch template ID %s.",
             versionToDelete, launchTemplateId));
 
-    DeleteLaunchTemplateVersionsResult result =
+    DeleteLaunchTemplateVersionsResponse result =
         ec2.deleteLaunchTemplateVersions(
-            new DeleteLaunchTemplateVersionsRequest()
-                .withLaunchTemplateId(launchTemplateId)
-                .withVersions(String.valueOf(versionToDelete)));
+            DeleteLaunchTemplateVersionsRequest.builder()
+                .launchTemplateId(launchTemplateId)
+                .versions(String.valueOf(versionToDelete))
+                .build());
 
-    if (result.getUnsuccessfullyDeletedLaunchTemplateVersions() != null
-        && !result.getUnsuccessfullyDeletedLaunchTemplateVersions().isEmpty()) {
+    if (result.unsuccessfullyDeletedLaunchTemplateVersions() != null
+        && !result.unsuccessfullyDeletedLaunchTemplateVersions().isEmpty()) {
       DeleteLaunchTemplateVersionsResponseErrorItem responseErrorItem =
-          result.getUnsuccessfullyDeletedLaunchTemplateVersions().get(0);
-      ResponseError failureResponseError = responseErrorItem.getResponseError();
+          result.unsuccessfullyDeletedLaunchTemplateVersions().get(0);
+      ResponseError failureResponseError = responseErrorItem.responseError();
 
       // certain error codes can be considered success when they match the desired end state.
       // this also acts as a safety net in retry scenarios.
@@ -187,13 +191,13 @@ public class LaunchTemplateService {
           List.of("launchTemplateIdDoesNotExist", "launchTemplateVersionDoesNotExist");
 
       if (failureResponseError != null
-          && !codesConsideredSuccess.contains(failureResponseError.getCode())) {
+          && !codesConsideredSuccess.contains(failureResponseError.codeAsString())) {
         throw new RuntimeException(
             String.format(
                 "Failed to delete launch template version %s for launch template ID %s because of error '%s'",
-                responseErrorItem.getVersionNumber(),
-                responseErrorItem.getLaunchTemplateId(),
-                failureResponseError.getCode()));
+                responseErrorItem.versionNumber(),
+                responseErrorItem.launchTemplateId(),
+                failureResponseError.codeAsString()));
       }
     }
   }
@@ -207,75 +211,77 @@ public class LaunchTemplateService {
       LaunchTemplateVersion sourceLtVersion,
       boolean shouldUseMixedInstancesPolicy) {
 
-    ResponseLaunchTemplateData sourceLtData = sourceLtVersion.getLaunchTemplateData();
+    ResponseLaunchTemplateData sourceLtData = sourceLtVersion.launchTemplateData();
 
-    RequestLaunchTemplateData request =
-        new RequestLaunchTemplateData()
-            .withImageId(
-                modifyDesc.getImageId() != null
-                    ? modifyDesc.getImageId()
-                    : sourceLtData.getImageId())
-            .withKernelId(
+    RequestLaunchTemplateData.Builder request =
+        RequestLaunchTemplateData.builder()
+            .imageId(
+                modifyDesc.getImageId() != null ? modifyDesc.getImageId() : sourceLtData.imageId())
+            .kernelId(
                 StringUtils.isNotBlank(modifyDesc.getKernelId())
                     ? modifyDesc.getKernelId()
-                    : sourceLtData.getKernelId())
-            .withInstanceType(
+                    : sourceLtData.kernelId())
+            .instanceType(
                 StringUtils.isNotBlank(modifyDesc.getInstanceType())
                     ? modifyDesc.getInstanceType()
-                    : sourceLtData.getInstanceType())
-            .withRamDiskId(
+                    : sourceLtData.instanceTypeAsString())
+            .ramDiskId(
                 StringUtils.isNotBlank(modifyDesc.getRamdiskId())
                     ? modifyDesc.getRamdiskId()
-                    : sourceLtData.getRamDiskId())
-            .withEbsOptimized(
+                    : sourceLtData.ramDiskId())
+            .ebsOptimized(
                 Optional.ofNullable(modifyDesc.getEbsOptimized())
-                    .orElseGet(sourceLtData::getEbsOptimized));
+                    .orElseGet(sourceLtData::ebsOptimized));
 
     // key name
     if (StringUtils.isNotBlank(modifyDesc.getKeyPair())) {
-      request.withKeyName(modifyDesc.getKeyPair());
-    } else if (StringUtils.isNotBlank(sourceLtData.getKeyName())) {
-      request.withKeyName(sourceLtData.getKeyName());
+      request.keyName(modifyDesc.getKeyPair());
+    } else if (StringUtils.isNotBlank(sourceLtData.keyName())) {
+      request.keyName(sourceLtData.keyName());
     }
 
     // iam instance profile
     if (StringUtils.isNotBlank(modifyDesc.getIamRole())) {
-      request.withIamInstanceProfile(
-          new LaunchTemplateIamInstanceProfileSpecificationRequest()
-              .withName(modifyDesc.getIamRole()));
-    } else if (sourceLtData.getIamInstanceProfile() != null
-        && StringUtils.isNotBlank(sourceLtData.getIamInstanceProfile().getName())) {
-      request.withIamInstanceProfile(
-          new LaunchTemplateIamInstanceProfileSpecificationRequest()
-              .withName(sourceLtData.getIamInstanceProfile().getName()));
+      request.iamInstanceProfile(
+          LaunchTemplateIamInstanceProfileSpecificationRequest.builder()
+              .name(modifyDesc.getIamRole())
+              .build());
+    } else if (sourceLtData.iamInstanceProfile() != null
+        && StringUtils.isNotBlank(sourceLtData.iamInstanceProfile().name())) {
+      request.iamInstanceProfile(
+          LaunchTemplateIamInstanceProfileSpecificationRequest.builder()
+              .name(sourceLtData.iamInstanceProfile().name())
+              .build());
     }
 
     // instance monitoring
     if (modifyDesc.getInstanceMonitoring() != null) {
-      request.setMonitoring(
-          new LaunchTemplatesMonitoringRequest().withEnabled(modifyDesc.getInstanceMonitoring()));
-    } else if (sourceLtData.getMonitoring() != null
-        && sourceLtData.getMonitoring().getEnabled() != null) {
-      request.setMonitoring(
-          new LaunchTemplatesMonitoringRequest()
-              .withEnabled(sourceLtData.getMonitoring().getEnabled()));
+      request.monitoring(
+          LaunchTemplatesMonitoringRequest.builder()
+              .enabled(modifyDesc.getInstanceMonitoring())
+              .build());
+    } else if (sourceLtData.monitoring() != null && sourceLtData.monitoring().enabled() != null) {
+      request.monitoring(
+          LaunchTemplatesMonitoringRequest.builder()
+              .enabled(sourceLtData.monitoring().enabled())
+              .build());
     }
 
     // block device mappings
     if (modifyDesc.getBlockDevices() != null) {
-      request.setBlockDeviceMappings(buildDeviceMapping(modifyDesc.getBlockDevices()));
-    } else if (sourceLtData.getBlockDeviceMappings() != null) {
-      request.setBlockDeviceMappings(
+      request.blockDeviceMappings(buildDeviceMapping(modifyDesc.getBlockDevices()));
+    } else if (sourceLtData.blockDeviceMappings() != null) {
+      request.blockDeviceMappings(
           buildDeviceMapping(
               AsgConfigHelper.transformLaunchTemplateBlockDeviceMapping(
-                  sourceLtData.getBlockDeviceMappings())));
+                  sourceLtData.blockDeviceMappings())));
     }
 
     // tags
     Optional<LaunchTemplateTagSpecificationRequest> tagSpecification =
         tagSpecification(amazonResourceTaggers, null, modifyDesc.getAsgName());
     if (tagSpecification.isPresent()) {
-      request = request.withTagSpecifications(tagSpecification.get());
+      request.tagSpecifications(tagSpecification.get());
     }
 
     /*
@@ -284,12 +290,12 @@ public class LaunchTemplateService {
     */
     String base64UserData =
         (localFileUserDataProperties != null && !localFileUserDataProperties.isEnabled())
-            ? sourceLtData.getUserData()
+            ? sourceLtData.userData()
             : null;
     setUserData(
         request,
         modifyDesc.getAsgName(),
-        sourceLtVersion.getLaunchTemplateName(),
+        sourceLtVersion.launchTemplateName(),
         modifyDesc.getRegion(),
         modifyDesc.getAccount(),
         credentials.getEnvironment(),
@@ -302,13 +308,15 @@ public class LaunchTemplateService {
 
     // metadata options
     if (modifyDesc.getRequireIMDV2() != null) {
-      request.setMetadataOptions(
-          new LaunchTemplateInstanceMetadataOptionsRequest()
-              .withHttpTokens(modifyDesc.getRequireIMDV2() ? "required" : ""));
-    } else if (sourceLtData.getMetadataOptions() != null) {
-      request.setMetadataOptions(
-          new LaunchTemplateInstanceMetadataOptionsRequest()
-              .withHttpTokens(sourceLtData.getMetadataOptions().getHttpTokens()));
+      request.metadataOptions(
+          LaunchTemplateInstanceMetadataOptionsRequest.builder()
+              .httpTokens(modifyDesc.getRequireIMDV2() ? "required" : "")
+              .build());
+    } else if (sourceLtData.metadataOptions() != null) {
+      request.metadataOptions(
+          LaunchTemplateInstanceMetadataOptionsRequest.builder()
+              .httpTokens(sourceLtData.metadataOptions().httpTokensAsString())
+              .build());
     }
 
     // set instance market options only when mixed instances policy is NOT used in order to maintain
@@ -321,107 +329,113 @@ public class LaunchTemplateService {
     if (modifyDesc.getUnlimitedCpuCredits() != null) {
       // compatibility is already validated by validator
       setCreditSpecification(request, modifyDesc.getUnlimitedCpuCredits());
-    } else if (sourceLtData.getCreditSpecification() != null) {
+    } else if (sourceLtData.creditSpecification() != null) {
       // The description might include changed instance types.
       // Ensure compatibility before using value from sourceLtData.
       Boolean unlimitedCpuCreditsFromSrcAsg =
           AsgConfigHelper.getUnlimitedCpuCreditsFromAncestorLt(
-              sourceLtData.getCreditSpecification(),
+              sourceLtData.creditSpecification(),
               InstanceTypeUtils.isBurstingSupportedByAllTypes(modifyDesc.getAllInstanceTypes()));
       setCreditSpecification(request, unlimitedCpuCreditsFromSrcAsg);
     }
 
     // network interfaces
     LaunchTemplateInstanceNetworkInterfaceSpecification defaultInterface;
-    if (sourceLtData.getNetworkInterfaces() != null
-        && !sourceLtData.getNetworkInterfaces().isEmpty()) {
+    if (sourceLtData.networkInterfaces() != null && !sourceLtData.networkInterfaces().isEmpty()) {
       defaultInterface =
-          sourceLtData.getNetworkInterfaces().stream()
-              .filter(i -> i.getDeviceIndex() == 0)
+          sourceLtData.networkInterfaces().stream()
+              .filter(i -> i.deviceIndex() == 0)
               .findFirst()
-              .orElseGet(LaunchTemplateInstanceNetworkInterfaceSpecification::new);
+              .orElseGet(
+                  () -> LaunchTemplateInstanceNetworkInterfaceSpecification.builder().build());
     } else {
-      defaultInterface = new LaunchTemplateInstanceNetworkInterfaceSpecification();
+      defaultInterface = LaunchTemplateInstanceNetworkInterfaceSpecification.builder().build();
     }
 
-    request.withNetworkInterfaces(
-        new LaunchTemplateInstanceNetworkInterfaceSpecificationRequest()
-            .withAssociatePublicIpAddress(
+    request.networkInterfaces(
+        LaunchTemplateInstanceNetworkInterfaceSpecificationRequest.builder()
+            .associatePublicIpAddress(
                 Optional.ofNullable(modifyDesc.getAssociatePublicIpAddress())
-                    .orElseGet(() -> defaultInterface.getAssociatePublicIpAddress()))
-            .withIpv6AddressCount(
+                    .orElseGet(() -> defaultInterface.associatePublicIpAddress()))
+            .ipv6AddressCount(
                 modifyDesc.getAssociateIPv6Address() != null
                     ? modifyDesc.getAssociateIPv6Address() ? 1 : 0
-                    : defaultInterface.getIpv6AddressCount() != null
-                            && defaultInterface.getIpv6AddressCount() > 0
+                    : defaultInterface.ipv6AddressCount() != null
+                            && defaultInterface.ipv6AddressCount() > 0
                         ? 1
                         : 0)
-            .withGroups(
+            .groups(
                 modifyDesc.getSecurityGroups() != null && !modifyDesc.getSecurityGroups().isEmpty()
                     ? modifyDesc.getSecurityGroups()
-                    : defaultInterface.getGroups())
-            .withDeviceIndex(0));
+                    : defaultInterface.groups())
+            .deviceIndex(0)
+            .build());
 
     // Nitro Enclave options
     if (modifyDesc.getEnableEnclave() != null) {
-      request.setEnclaveOptions(
-          new LaunchTemplateEnclaveOptionsRequest().withEnabled(modifyDesc.getEnableEnclave()));
-    } else if (sourceLtData.getEnclaveOptions() != null) {
-      request.setEnclaveOptions(
-          new LaunchTemplateEnclaveOptionsRequest()
-              .withEnabled(sourceLtData.getEnclaveOptions().getEnabled()));
+      request.enclaveOptions(
+          LaunchTemplateEnclaveOptionsRequest.builder()
+              .enabled(modifyDesc.getEnableEnclave())
+              .build());
+    } else if (sourceLtData.enclaveOptions() != null) {
+      request.enclaveOptions(
+          LaunchTemplateEnclaveOptionsRequest.builder()
+              .enabled(sourceLtData.enclaveOptions().enabled())
+              .build());
     }
 
-    return request;
+    return request.build();
   }
 
   /** Build launch template data for new launch template creation */
   private RequestLaunchTemplateData buildLaunchTemplateData(
       AsgConfiguration asgConfig, String asgName, String launchTemplateName) {
-    RequestLaunchTemplateData request =
-        new RequestLaunchTemplateData()
-            .withImageId(asgConfig.getAmi())
-            .withKernelId(asgConfig.getKernelId())
-            .withInstanceType(asgConfig.getInstanceType())
-            .withRamDiskId(asgConfig.getRamdiskId())
-            .withEbsOptimized(asgConfig.getEbsOptimized())
-            .withKeyName(asgConfig.getKeyPair())
-            .withIamInstanceProfile(
-                new LaunchTemplateIamInstanceProfileSpecificationRequest()
-                    .withName(asgConfig.getIamRole()))
-            .withMonitoring(
-                new LaunchTemplatesMonitoringRequest()
-                    .withEnabled(asgConfig.getInstanceMonitoring()));
+    RequestLaunchTemplateData.Builder request =
+        RequestLaunchTemplateData.builder()
+            .imageId(asgConfig.getAmi())
+            .kernelId(asgConfig.getKernelId())
+            .instanceType(asgConfig.getInstanceType())
+            .ramDiskId(asgConfig.getRamdiskId())
+            .ebsOptimized(asgConfig.getEbsOptimized())
+            .keyName(asgConfig.getKeyPair())
+            .iamInstanceProfile(
+                LaunchTemplateIamInstanceProfileSpecificationRequest.builder()
+                    .name(asgConfig.getIamRole())
+                    .build())
+            .monitoring(
+                LaunchTemplatesMonitoringRequest.builder()
+                    .enabled(asgConfig.getInstanceMonitoring())
+                    .build());
 
     Optional<LaunchTemplateTagSpecificationRequest> tagSpecification =
         tagSpecification(amazonResourceTaggers, asgConfig.getBlockDeviceTags(), asgName);
     if (tagSpecification.isPresent()) {
-      request = request.withTagSpecifications(tagSpecification.get());
+      request.tagSpecifications(tagSpecification.get());
     }
 
     if (asgConfig.getPlacement() != null) {
-      request =
-          request.withPlacement(
-              new LaunchTemplatePlacementRequest()
-                  .withAffinity(asgConfig.getPlacement().getAffinity())
-                  .withAvailabilityZone(asgConfig.getPlacement().getAvailabilityZone())
-                  .withGroupName(asgConfig.getPlacement().getGroupName())
-                  .withHostId(asgConfig.getPlacement().getHostId())
-                  .withTenancy(asgConfig.getPlacement().getTenancy())
-                  .withHostResourceGroupArn(asgConfig.getPlacement().getHostResourceGroupArn())
-                  .withPartitionNumber(asgConfig.getPlacement().getPartitionNumber())
-                  .withSpreadDomain(asgConfig.getPlacement().getSpreadDomain()));
+      request.placement(
+          LaunchTemplatePlacementRequest.builder()
+              .affinity(asgConfig.getPlacement().getAffinity())
+              .availabilityZone(asgConfig.getPlacement().getAvailabilityZone())
+              .groupName(asgConfig.getPlacement().getGroupName())
+              .hostId(asgConfig.getPlacement().getHostId())
+              .tenancy(asgConfig.getPlacement().getTenancy())
+              .hostResourceGroupArn(asgConfig.getPlacement().getHostResourceGroupArn())
+              .partitionNumber(asgConfig.getPlacement().getPartitionNumber())
+              .spreadDomain(asgConfig.getPlacement().getSpreadDomain())
+              .build());
     }
 
     if (asgConfig.getLicenseSpecifications() != null) {
-      request =
-          request.withLicenseSpecifications(
-              asgConfig.getLicenseSpecifications().stream()
-                  .map(
-                      licenseSpecification ->
-                          new LaunchTemplateLicenseConfigurationRequest()
-                              .withLicenseConfigurationArn(licenseSpecification.getArn()))
-                  .collect(Collectors.toList()));
+      request.licenseSpecifications(
+          asgConfig.getLicenseSpecifications().stream()
+              .map(
+                  licenseSpecification ->
+                      LaunchTemplateLicenseConfigurationRequest.builder()
+                          .licenseConfigurationArn(licenseSpecification.getArn())
+                          .build())
+              .collect(Collectors.toList()));
     }
 
     setUserData(
@@ -440,8 +454,8 @@ public class LaunchTemplateService {
 
     // metadata options
     if (asgConfig.getRequireIMDSv2() != null && asgConfig.getRequireIMDSv2()) {
-      request.setMetadataOptions(
-          new LaunchTemplateInstanceMetadataOptionsRequest().withHttpTokens("required"));
+      request.metadataOptions(
+          LaunchTemplateInstanceMetadataOptionsRequest.builder().httpTokens("required").build());
     }
 
     // set instance market options only when mixed instances policy is NOT used in order to maintain
@@ -453,34 +467,38 @@ public class LaunchTemplateService {
     setCreditSpecification(request, asgConfig.getUnlimitedCpuCredits());
 
     // network interfaces
-    request.withNetworkInterfaces(
-        new LaunchTemplateInstanceNetworkInterfaceSpecificationRequest()
-            .withAssociatePublicIpAddress(asgConfig.getAssociatePublicIpAddress())
-            .withIpv6AddressCount(asgConfig.getAssociateIPv6Address() ? 1 : 0)
-            .withGroups(asgConfig.getSecurityGroups())
-            .withDeviceIndex(0));
+    request.networkInterfaces(
+        LaunchTemplateInstanceNetworkInterfaceSpecificationRequest.builder()
+            .associatePublicIpAddress(asgConfig.getAssociatePublicIpAddress())
+            .ipv6AddressCount(asgConfig.getAssociateIPv6Address() ? 1 : 0)
+            .groups(asgConfig.getSecurityGroups())
+            .deviceIndex(0)
+            .build());
 
     // Nitro Enclave options
     if (asgConfig.getEnableEnclave() != null) {
-      request.setEnclaveOptions(
-          new LaunchTemplateEnclaveOptionsRequest().withEnabled(asgConfig.getEnableEnclave()));
+      request.enclaveOptions(
+          LaunchTemplateEnclaveOptionsRequest.builder()
+              .enabled(asgConfig.getEnableEnclave())
+              .build());
     }
 
     // block device mappings
     if (asgConfig.getBlockDevices() != null && !asgConfig.getBlockDevices().isEmpty()) {
-      request.setBlockDeviceMappings(buildDeviceMapping(asgConfig.getBlockDevices()));
+      request.blockDeviceMappings(buildDeviceMapping(asgConfig.getBlockDevices()));
     }
 
-    return request;
+    return request.build();
   }
 
   /** Set credit option for burstable performance instances to 'unlimited' only if explicitly set */
   private void setCreditSpecification(
-      RequestLaunchTemplateData request, Boolean unlimitedCpuCredits) {
+      RequestLaunchTemplateData.Builder request, Boolean unlimitedCpuCredits) {
     if (unlimitedCpuCredits != null) {
-      request.setCreditSpecification(
-          new CreditSpecificationRequest()
-              .withCpuCredits(unlimitedCpuCredits ? UNLIMITED_CPU_CREDITS : STANDARD_CPU_CREDITS));
+      request.creditSpecification(
+          CreditSpecificationRequest.builder()
+              .cpuCredits(unlimitedCpuCredits ? UNLIMITED_CPU_CREDITS : STANDARD_CPU_CREDITS)
+              .build());
     }
   }
 
@@ -489,18 +507,19 @@ public class LaunchTemplateService {
    * https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-launchtemplatedata-instancemarketoptions.html
    */
   private void setSpotInstanceMarketOptions(
-      RequestLaunchTemplateData request, String maxSpotPrice) {
+      RequestLaunchTemplateData.Builder request, String maxSpotPrice) {
     if (maxSpotPrice != null && StringUtils.isNotEmpty(maxSpotPrice.trim())) {
-      request.setInstanceMarketOptions(
-          new LaunchTemplateInstanceMarketOptionsRequest()
-              .withMarketType(MarketType.Spot)
-              .withSpotOptions(
-                  new LaunchTemplateSpotMarketOptionsRequest().withMaxPrice(maxSpotPrice)));
+      request.instanceMarketOptions(
+          LaunchTemplateInstanceMarketOptionsRequest.builder()
+              .marketType(MarketType.SPOT)
+              .spotOptions(
+                  LaunchTemplateSpotMarketOptionsRequest.builder().maxPrice(maxSpotPrice).build())
+              .build());
     }
   }
 
   private void setUserData(
-      RequestLaunchTemplateData request,
+      RequestLaunchTemplateData.Builder request,
       String asgName,
       String launchTemplateName,
       String region,
@@ -528,7 +547,7 @@ public class LaunchTemplateService {
             .legacyUdf(legacyUdf)
             .build();
 
-    request.setUserData(userDataProviderAggregator.aggregate(userDataRequest));
+    request.userData(userDataProviderAggregator.aggregate(userDataRequest));
   }
 
   private List<LaunchTemplateBlockDeviceMappingRequest> buildDeviceMapping(
@@ -539,52 +558,52 @@ public class LaunchTemplateService {
 
     final List<LaunchTemplateBlockDeviceMappingRequest> mappings = new ArrayList<>();
     for (AmazonBlockDevice blockDevice : amazonBlockDevices) {
-      LaunchTemplateBlockDeviceMappingRequest mapping =
-          new LaunchTemplateBlockDeviceMappingRequest().withDeviceName(blockDevice.getDeviceName());
+      LaunchTemplateBlockDeviceMappingRequest.Builder mapping =
+          LaunchTemplateBlockDeviceMappingRequest.builder().deviceName(blockDevice.getDeviceName());
       if (blockDevice.getVirtualName() != null) {
-        mapping.setVirtualName(blockDevice.getVirtualName());
+        mapping.virtualName(blockDevice.getVirtualName());
       } else {
-        mapping.setEbs(getLaunchTemplateEbsBlockDeviceRequest(blockDevice));
+        mapping.ebs(getLaunchTemplateEbsBlockDeviceRequest(blockDevice));
       }
 
-      mappings.add(mapping);
+      mappings.add(mapping.build());
     }
     return mappings;
   }
 
   private LaunchTemplateEbsBlockDeviceRequest getLaunchTemplateEbsBlockDeviceRequest(
       AmazonBlockDevice blockDevice) {
-    final LaunchTemplateEbsBlockDeviceRequest blockDeviceRequest =
-        new LaunchTemplateEbsBlockDeviceRequest().withVolumeSize(blockDevice.getSize());
+    final LaunchTemplateEbsBlockDeviceRequest.Builder blockDeviceRequest =
+        LaunchTemplateEbsBlockDeviceRequest.builder().volumeSize(blockDevice.getSize());
 
     if (blockDevice.getDeleteOnTermination() != null) {
-      blockDeviceRequest.setDeleteOnTermination(blockDevice.getDeleteOnTermination());
+      blockDeviceRequest.deleteOnTermination(blockDevice.getDeleteOnTermination());
     }
 
     if (blockDevice.getVolumeType() != null) {
-      blockDeviceRequest.setVolumeType(blockDevice.getVolumeType());
+      blockDeviceRequest.volumeType(blockDevice.getVolumeType());
     }
 
     if (blockDevice.getIops() != null) {
-      blockDeviceRequest.setIops(blockDevice.getIops());
+      blockDeviceRequest.iops(blockDevice.getIops());
     }
 
     if (blockDevice.getThroughput() != null) {
-      blockDeviceRequest.setThroughput(blockDevice.getThroughput());
+      blockDeviceRequest.throughput(blockDevice.getThroughput());
     }
 
     if (blockDevice.getSnapshotId() != null) {
-      blockDeviceRequest.setSnapshotId(blockDevice.getSnapshotId());
+      blockDeviceRequest.snapshotId(blockDevice.getSnapshotId());
     }
 
     if (blockDevice.getEncrypted() != null) {
-      blockDeviceRequest.setEncrypted(blockDevice.getEncrypted());
+      blockDeviceRequest.encrypted(blockDevice.getEncrypted());
     }
 
     if (blockDevice.getKmsKeyId() != null) {
-      blockDeviceRequest.setKmsKeyId(blockDevice.getKmsKeyId());
+      blockDeviceRequest.kmsKeyId(blockDevice.getKmsKeyId());
     }
-    return blockDeviceRequest;
+    return blockDeviceRequest.build();
   }
 
   @NotNull
@@ -596,14 +615,15 @@ public class LaunchTemplateService {
       List<Tag> volumeTags =
           amazonResourceTaggers.stream()
               .flatMap(t -> t.volumeTags(blockDeviceTags, serverGroupName).stream())
-              .map(t -> new Tag(t.getKey(), t.getValue()))
+              .map(t -> Tag.builder().key(t.getKey()).value(t.getValue()).build())
               .collect(Collectors.toList());
 
       if (!volumeTags.isEmpty()) {
         return Optional.of(
-            new LaunchTemplateTagSpecificationRequest()
-                .withResourceType("volume")
-                .withTags(volumeTags));
+            LaunchTemplateTagSpecificationRequest.builder()
+                .resourceType("volume")
+                .tags(volumeTags)
+                .build());
       }
     }
 

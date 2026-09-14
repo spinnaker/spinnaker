@@ -16,18 +16,20 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.amazonaws.AmazonServiceException
-import com.amazonaws.services.cloudformation.AmazonCloudFormation
-import com.amazonaws.services.cloudformation.model.ExecuteChangeSetRequest
-import com.amazonaws.services.cloudformation.model.DescribeStacksResult
-import com.amazonaws.services.cloudformation.model.ExecuteChangeSetResult
-import com.amazonaws.services.cloudformation.model.Stack
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.ExecuteCloudFormationChangeSetDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import software.amazon.awssdk.awscore.exception.AwsServiceException
+import software.amazon.awssdk.services.cloudformation.CloudFormationClient
+import software.amazon.awssdk.services.cloudformation.model.CloudFormationException
+import software.amazon.awssdk.services.cloudformation.model.DescribeStacksRequest
+import software.amazon.awssdk.services.cloudformation.model.DescribeStacksResponse
+import software.amazon.awssdk.services.cloudformation.model.ExecuteChangeSetRequest
+import software.amazon.awssdk.services.cloudformation.model.ExecuteChangeSetResponse
+import software.amazon.awssdk.services.cloudformation.model.Stack
 import spock.lang.Specification
 
 class ExecuteCloudFormationChangeSetAtomicOperationSpec extends Specification {
@@ -38,10 +40,8 @@ class ExecuteCloudFormationChangeSetAtomicOperationSpec extends Specification {
   void "should build a executeChangeSetRequest and submit it through aws client"() {
     given:
     def amazonClientProvider = Mock(AmazonClientProvider)
-    def amazonCloudFormation = Mock(AmazonCloudFormation)
-    def executeChangeSetResult = Mock(ExecuteChangeSetResult)
+    def cloudFormationClient = Mock(CloudFormationClient)
 
-    def stackId = "stackId"
     def op = new ExecuteCloudFormationChangeSetAtomicOperation(
       new ExecuteCloudFormationChangeSetDescription(
         [
@@ -59,21 +59,21 @@ class ExecuteCloudFormationChangeSetAtomicOperationSpec extends Specification {
     op.operate([])
 
     then:
-    1 * amazonClientProvider.getAmazonCloudFormation(_, _) >> amazonCloudFormation
-    1 * amazonCloudFormation.describeStacks(_) >> {
-      new DescribeStacksResult().withStacks([new Stack().withStackId("stackId")] as Collection)
+    1 * amazonClientProvider.getAmazonCloudFormationV2(_, _) >> cloudFormationClient
+    1 * cloudFormationClient.describeStacks(_ as DescribeStacksRequest) >> {
+      DescribeStacksResponse.builder().stacks([Stack.builder().stackId("stackId").build()]).build()
     }
-    1 * amazonCloudFormation.executeChangeSet(_) >> { ExecuteChangeSetRequest request ->
-      assert request.getStackName() == "stackTest"
-      assert request.getChangeSetName() == "changeSetName"
-      executeChangeSetResult
+    1 * cloudFormationClient.executeChangeSet(_ as ExecuteChangeSetRequest) >> { ExecuteChangeSetRequest request ->
+      assert request.stackName() == "stackTest"
+      assert request.changeSetName() == "changeSetName"
+      ExecuteChangeSetResponse.builder().build()
     }
   }
 
   void "should propagate exceptions when executing the change set"() {
     given:
     def amazonClientProvider = Mock(AmazonClientProvider)
-    def amazonCloudFormation = Mock(AmazonCloudFormation)
+    def cloudFormationClient = Mock(CloudFormationClient)
     def op = new ExecuteCloudFormationChangeSetAtomicOperation(
       new ExecuteCloudFormationChangeSetDescription(
         [
@@ -85,20 +85,16 @@ class ExecuteCloudFormationChangeSetAtomicOperationSpec extends Specification {
       )
     )
     op.amazonClientProvider = amazonClientProvider
-    def exception = new AmazonServiceException("error")
+    op.objectMapper = new ObjectMapper()
 
     when:
-    try {
-      op.operate([])
-    }
-    catch (Exception e) {
-      e instanceof AmazonServiceException
-    }
+    op.operate([])
 
     then:
-    1 * amazonClientProvider.getAmazonCloudFormation(_, _) >> amazonCloudFormation
-    1 * amazonCloudFormation.executeChangeSet(_) >> {
-      throw exception
+    1 * amazonClientProvider.getAmazonCloudFormationV2(_, _) >> cloudFormationClient
+    1 * cloudFormationClient.executeChangeSet(_ as ExecuteChangeSetRequest) >> {
+      throw CloudFormationException.builder().message("error").build()
     }
+    thrown(CloudFormationException)
   }
 }

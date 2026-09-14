@@ -16,8 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.converters
 
-import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.LaunchTemplatePlacementRequest
+import software.amazon.awssdk.services.ec2.Ec2Client
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.aws.model.SubnetAnalyzer
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
@@ -43,7 +42,7 @@ class BasicAmazonDeployAtomicOperationConverterUnitSpec extends Specification {
   RegionScopedProviderFactory.RegionScopedProvider regionScopedProvider =
     Mock(RegionScopedProviderFactory.RegionScopedProvider)
 
-  SecurityGroupService securityGroupService = new SecurityGroupService(Mock(AmazonEC2), Mock(SubnetAnalyzer))
+  SecurityGroupService securityGroupService = new SecurityGroupService(Mock(Ec2Client), Mock(SubnetAnalyzer))
 
   def setupSpec() {
     def accountCredentialsProvider = Stub(AccountCredentialsProvider) {

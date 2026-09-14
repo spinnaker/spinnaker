@@ -77,7 +77,7 @@ subprojects {
       }
       minHeapSize = "512m"
       maxHeapSize = "1g"
-      maxParallelForks = 4
+      maxParallelForks = Runtime.runtime.availableProcessors()
       jacoco {
         enabled = project.hasProperty('testCoverage')
       }

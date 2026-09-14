@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.amazonaws.services.autoscaling.model.CreateOrUpdateTagsRequest
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
-import com.amazonaws.services.autoscaling.model.Tag
+import software.amazon.awssdk.services.autoscaling.model.CreateOrUpdateTagsRequest
+import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsRequest
+import software.amazon.awssdk.services.autoscaling.model.Tag
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -60,15 +60,15 @@ class UpsertAsgTagsAtomicOperation implements AtomicOperation<Void> {
 
   private boolean upsertAsgTags(String asgName, String region) {
     try {
-      def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, region, true)
-      def result = autoScaling.describeAutoScalingGroups(new DescribeAutoScalingGroupsRequest().withAutoScalingGroupNames(asgName))
-      if (!result.autoScalingGroups) {
+      def autoScaling = amazonClientProvider.getAutoScalingV2(description.credentials, region)
+      def result = autoScaling.describeAutoScalingGroups(DescribeAutoScalingGroupsRequest.builder().autoScalingGroupNames(asgName).build())
+      if (!result.autoScalingGroups()) {
         task.updateStatus BASE_PHASE, "No ASG named $asgName found in $region"
         return false
       }
       task.updateStatus BASE_PHASE, "Preparing tags for $asgName in $region..."
-      def tags = description.tags.collect { k, v -> new Tag().withKey(k).withValue(v).withResourceId(asgName).withResourceType("auto-scaling-group").withPropagateAtLaunch(true) }
-      def createTagsRequest = new CreateOrUpdateTagsRequest().withTags(tags)
+      def tags = description.tags.collect { k, v -> Tag.builder().key(k).value(v).resourceId(asgName).resourceType("auto-scaling-group").propagateAtLaunch(true).build() }
+      def createTagsRequest = CreateOrUpdateTagsRequest.builder().tags(tags).build()
       task.updateStatus BASE_PHASE, "Creating tags for $asgName in $region..."
       autoScaling.createOrUpdateTags(createTagsRequest)
       task.updateStatus BASE_PHASE, "Tags created for $asgName in $region"

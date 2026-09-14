@@ -167,6 +167,13 @@ export class AwsInstanceTypeService {
     vpcConfigured: boolean,
     architecture: string,
   ): IAmazonInstanceType[] {
+    // The casing of virtualizationType/architecture can differ between the AMI attributes we
+    // compare against (e.g. 'HVM', 'ARM64') and the supportedVirtualizationTypes/supportedArchitectures
+    // reported for instance types (e.g. 'hvm', 'X86_64'), depending on the account/provider. Compare
+    // both case-insensitively to avoid filtering out every instance type due to a casing mismatch.
+    const includesIgnoreCase = (values: string[], value: string) =>
+      values.some((v) => v.toLowerCase() === value.toLowerCase());
+
     return _.filter(instanceTypes, (i) => {
       if (virtualizationType === '*' && architecture === '*') {
         // show all instance types
@@ -180,12 +187,12 @@ export class AwsInstanceTypeService {
       if (
         virtualizationType &&
         i.supportedVirtualizationTypes &&
-        !i.supportedVirtualizationTypes.includes(virtualizationType)
+        !includesIgnoreCase(i.supportedVirtualizationTypes, virtualizationType)
       ) {
         return false;
       }
 
-      if (architecture && i.supportedArchitectures && !i.supportedArchitectures.includes(architecture)) {
+      if (architecture && i.supportedArchitectures && !includesIgnoreCase(i.supportedArchitectures, architecture)) {
         return false;
       }
 

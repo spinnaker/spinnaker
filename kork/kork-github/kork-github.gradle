@@ -1,4 +1,5 @@
 apply plugin: "java-library"
+apply plugin: "java-test-fixtures"
 apply from: "$rootDir/../kotlin.gradle"
 apply from: "$rootDir/gradle/detekt.gradle"
 apply from: "$rootDir/gradle/lombok.gradle"
@@ -28,6 +29,7 @@ dependencies {
 
   // Testing
   testImplementation project(":kork-test")
+  testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
   testImplementation "org.junit.jupiter:junit-jupiter"
   testImplementation "org.mockito:mockito-core"
   testImplementation "org.mockito:mockito-junit-jupiter"

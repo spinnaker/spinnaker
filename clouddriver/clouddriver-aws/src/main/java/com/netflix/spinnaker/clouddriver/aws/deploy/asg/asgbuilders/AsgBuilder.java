@@ -17,19 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.asg.asgbuilders;
 
-import com.amazonaws.services.autoscaling.AmazonAutoScaling;
-import com.amazonaws.services.autoscaling.model.AlreadyExistsException;
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup;
-import com.amazonaws.services.autoscaling.model.CreateAutoScalingGroupRequest;
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest;
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult;
-import com.amazonaws.services.autoscaling.model.EnableMetricsCollectionRequest;
-import com.amazonaws.services.autoscaling.model.SuspendProcessesRequest;
-import com.amazonaws.services.autoscaling.model.Tag;
-import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest;
-import com.amazonaws.services.ec2.AmazonEC2;
-import com.amazonaws.services.ec2.model.DescribeSubnetsResult;
-import com.amazonaws.services.ec2.model.Subnet;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AsgLifecycleHookWorker;
 import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AutoScalingWorker.AsgConfiguration;
@@ -50,18 +37,30 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
+import software.amazon.awssdk.services.autoscaling.model.AlreadyExistsException;
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup;
+import software.amazon.awssdk.services.autoscaling.model.CreateAutoScalingGroupRequest;
+import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsRequest;
+import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsResponse;
+import software.amazon.awssdk.services.autoscaling.model.EnableMetricsCollectionRequest;
+import software.amazon.awssdk.services.autoscaling.model.SuspendProcessesRequest;
+import software.amazon.awssdk.services.autoscaling.model.Tag;
+import software.amazon.awssdk.services.autoscaling.model.UpdateAutoScalingGroupRequest;
+import software.amazon.awssdk.services.ec2.Ec2Client;
+import software.amazon.awssdk.services.ec2.model.Subnet;
 
 /** A builder used to build an AWS Autoscaling group. */
 @Slf4j
 public abstract class AsgBuilder {
   private final RetrySupport retrySupport = new RetrySupport();
 
-  private AmazonAutoScaling autoScaling;
-  private AmazonEC2 ec2;
+  private AutoScalingClient autoScaling;
+  private Ec2Client ec2;
   private AsgLifecycleHookWorker asgLifecycleHookWorker;
 
   AsgBuilder(
-      AmazonAutoScaling autoScaling, AmazonEC2 ec2, AsgLifecycleHookWorker asgLifecycleHookWorker) {
+      AutoScalingClient autoScaling, Ec2Client ec2, AsgLifecycleHookWorker asgLifecycleHookWorker) {
     this.autoScaling = autoScaling;
     this.ec2 = ec2;
     this.asgLifecycleHookWorker = asgLifecycleHookWorker;
@@ -93,29 +92,31 @@ public abstract class AsgBuilder {
    */
   protected CreateAutoScalingGroupRequest buildPartialRequest(
       Task task, String taskPhase, String name, AsgConfiguration cfg) {
-    CreateAutoScalingGroupRequest request =
-        new CreateAutoScalingGroupRequest()
-            .withAutoScalingGroupName(name)
-            .withMinSize(cfg.getMinInstances())
-            .withMaxSize(cfg.getMaxInstances())
-            .withDesiredCapacity(cfg.getDesiredInstances())
-            .withLoadBalancerNames(cfg.getClassicLoadBalancers())
-            .withTargetGroupARNs(cfg.getTargetGroupArns())
-            .withDefaultCooldown(cfg.getCooldown())
-            .withHealthCheckGracePeriod(cfg.getHealthCheckGracePeriod())
-            .withHealthCheckType(cfg.getHealthCheckType())
-            .withTerminationPolicies(cfg.getTerminationPolicies());
+    CreateAutoScalingGroupRequest.Builder request =
+        CreateAutoScalingGroupRequest.builder()
+            .autoScalingGroupName(name)
+            .minSize(cfg.getMinInstances())
+            .maxSize(cfg.getMaxInstances())
+            .desiredCapacity(cfg.getDesiredInstances())
+            .loadBalancerNames(cfg.getClassicLoadBalancers())
+            .targetGroupARNs(cfg.getTargetGroupArns())
+            .defaultCooldown(cfg.getCooldown())
+            .healthCheckGracePeriod(cfg.getHealthCheckGracePeriod())
+            .healthCheckType(cfg.getHealthCheckType())
+            .terminationPolicies(cfg.getTerminationPolicies());
 
     if (cfg.getTags() != null && !cfg.getTags().isEmpty()) {
       task.updateStatus(taskPhase, "Adding tags for " + name);
-      cfg.getTags().entrySet().stream()
-          .forEach(
-              e ->
-                  request.withTags(
-                      new Tag()
-                          .withKey(e.getKey())
-                          .withValue(e.getValue())
-                          .withPropagateAtLaunch(true)));
+      request.tags(
+          cfg.getTags().entrySet().stream()
+              .map(
+                  e ->
+                      Tag.builder()
+                          .key(e.getKey())
+                          .value(e.getValue())
+                          .propagateAtLaunch(true)
+                          .build())
+              .collect(Collectors.toList()));
     }
 
     // if we have explicitly specified subnetIds, don't require that they are tagged with a
@@ -135,7 +136,7 @@ public abstract class AsgBuilder {
     List<Subnet> subnets = getSubnets(true, cfg.getSubnetType(), cfg.getAvailabilityZones());
     if (StringUtils.isNotEmpty(subnetIds)) {
       task.updateStatus(taskPhase, " > Deploying to subnetIds: " + subnetIds);
-      request.withVPCZoneIdentifier(subnetIds);
+      request.vpcZoneIdentifier(subnetIds);
     } else if (StringUtils.isNotEmpty(cfg.getSubnetType())
         && (subnets == null || subnets.isEmpty())) {
       throw new RuntimeException(
@@ -144,7 +145,7 @@ public abstract class AsgBuilder {
               cfg.getSubnetType()));
     } else {
       task.updateStatus(taskPhase, "Deploying to availabilityZones: " + cfg.getAvailabilityZones());
-      request.withAvailabilityZones(cfg.getAvailabilityZones());
+      request.availabilityZones(cfg.getAvailabilityZones());
     }
 
     // configure capacity rebalance
@@ -152,15 +153,15 @@ public abstract class AsgBuilder {
       task.updateStatus(
           taskPhase,
           "Setting capacity rebalance to " + cfg.getCapacityRebalance() + " for " + name);
-      request.withCapacityRebalance(cfg.getCapacityRebalance());
+      request.capacityRebalance(cfg.getCapacityRebalance());
     }
 
-    return request;
+    return request.build();
   }
 
   private String createAsg(
       Task task, String taskPhase, CreateAutoScalingGroupRequest request, AsgConfiguration cfg) {
-    final String asgName = request.getAutoScalingGroupName();
+    final String asgName = request.autoScalingGroupName();
 
     // create ASG
     final RuntimeException ex =
@@ -210,9 +211,10 @@ public abstract class AsgBuilder {
       retrySupport.retry(
           () ->
               autoScaling.suspendProcesses(
-                  new SuspendProcessesRequest()
-                      .withAutoScalingGroupName(asgName)
-                      .withScalingProcesses(cfg.getSuspendedProcesses())),
+                  SuspendProcessesRequest.builder()
+                      .autoScalingGroupName(asgName)
+                      .scalingProcesses(cfg.getSuspendedProcesses())
+                      .build()),
           10,
           1000,
           false);
@@ -226,10 +228,11 @@ public abstract class AsgBuilder {
       retrySupport.retry(
           () ->
               autoScaling.enableMetricsCollection(
-                  new EnableMetricsCollectionRequest()
-                      .withAutoScalingGroupName(asgName)
-                      .withGranularity("1Minute")
-                      .withMetrics(cfg.getEnabledMetrics())),
+                  EnableMetricsCollectionRequest.builder()
+                      .autoScalingGroupName(asgName)
+                      .granularity("1Minute")
+                      .metrics(cfg.getEnabledMetrics())
+                      .build()),
           10,
           1000,
           false);
@@ -249,11 +252,12 @@ public abstract class AsgBuilder {
                   cfg.getMaxInstances(),
                   cfg.getDesiredInstances()));
           autoScaling.updateAutoScalingGroup(
-              new UpdateAutoScalingGroupRequest()
-                  .withAutoScalingGroupName(asgName)
-                  .withMinSize(cfg.getMinInstances())
-                  .withMaxSize(cfg.getMaxInstances())
-                  .withDesiredCapacity(cfg.getDesiredInstances()));
+              UpdateAutoScalingGroupRequest.builder()
+                  .autoScalingGroupName(asgName)
+                  .minSize(cfg.getMinInstances())
+                  .maxSize(cfg.getMaxInstances())
+                  .desiredCapacity(cfg.getDesiredInstances())
+                  .build());
           return true;
         },
         10,
@@ -265,15 +269,15 @@ public abstract class AsgBuilder {
   }
 
   private boolean shouldProceedWithExistingState(
-      AmazonAutoScaling autoScaling,
+      AutoScalingClient autoScaling,
       String asgName,
       CreateAutoScalingGroupRequest request,
       Task task,
       String taskPhase) {
-    final DescribeAutoScalingGroupsResult result =
+    final DescribeAutoScalingGroupsResponse result =
         autoScaling.describeAutoScalingGroups(
-            new DescribeAutoScalingGroupsRequest().withAutoScalingGroupNames(asgName));
-    if (result.getAutoScalingGroups().isEmpty()) {
+            DescribeAutoScalingGroupsRequest.builder().autoScalingGroupNames(asgName).build());
+    if (result.autoScalingGroups().isEmpty()) {
       // This will only happen if we get an AlreadyExistsException from AWS, then immediately after
       // describing it, we
       // don't get a result back. We'll continue with trying to create because who knows may as well
@@ -281,58 +285,56 @@ public abstract class AsgBuilder {
       log.error("Attempted to find pre-existing ASG but none was found: " + asgName);
       return true;
     }
-    final AutoScalingGroup existingAsg = result.getAutoScalingGroups().get(0);
+    final AutoScalingGroup existingAsg = result.autoScalingGroups().get(0);
 
     // build predicates and identify failed ones
     List<String> existingAsgSubnetIds = null;
-    if (StringUtils.isNotEmpty(existingAsg.getVPCZoneIdentifier())) {
-      existingAsgSubnetIds = sortList(Arrays.asList(existingAsg.getVPCZoneIdentifier().split(",")));
+    if (StringUtils.isNotEmpty(existingAsg.vpcZoneIdentifier())) {
+      existingAsgSubnetIds = sortList(Arrays.asList(existingAsg.vpcZoneIdentifier().split(",")));
     }
     List<String> requestedSubnetIds = null;
-    if (StringUtils.isNotEmpty(request.getVPCZoneIdentifier())) {
-      requestedSubnetIds = sortList(Arrays.asList(request.getVPCZoneIdentifier().split(",")));
+    if (StringUtils.isNotEmpty(request.vpcZoneIdentifier())) {
+      requestedSubnetIds = sortList(Arrays.asList(request.vpcZoneIdentifier().split(",")));
     }
     Map<String, Boolean> predicates =
         ImmutableMap.<String, Boolean>builder()
             .put(
                 "launch configuration",
                 Objects.equals(
-                    existingAsg.getLaunchConfigurationName(), request.getLaunchConfigurationName()))
+                    existingAsg.launchConfigurationName(), request.launchConfigurationName()))
             .put(
                 "launch template",
-                Objects.equals(existingAsg.getLaunchTemplate(), request.getLaunchTemplate()))
+                Objects.equals(existingAsg.launchTemplate(), request.launchTemplate()))
             .put(
                 "mixed instances policy",
-                Objects.equals(
-                    existingAsg.getMixedInstancesPolicy(), request.getMixedInstancesPolicy()))
+                Objects.equals(existingAsg.mixedInstancesPolicy(), request.mixedInstancesPolicy()))
             .put(
                 "availability zones",
                 Objects.equals(
-                    sortList(existingAsg.getAvailabilityZones()),
-                    sortList(request.getAvailabilityZones())))
+                    sortList(existingAsg.availabilityZones()),
+                    sortList(request.availabilityZones())))
             .put("subnets", Objects.equals(existingAsgSubnetIds, requestedSubnetIds))
             .put(
                 "load balancers",
                 Objects.equals(
-                    sortList(existingAsg.getLoadBalancerNames()),
-                    sortList(request.getLoadBalancerNames())))
+                    sortList(existingAsg.loadBalancerNames()),
+                    sortList(request.loadBalancerNames())))
             .put(
                 "target groups",
                 Objects.equals(
-                    sortList(existingAsg.getTargetGroupARNs()),
-                    sortList(request.getTargetGroupARNs())))
-            .put("cooldown", existingAsg.getDefaultCooldown() == request.getDefaultCooldown())
+                    sortList(existingAsg.targetGroupARNs()), sortList(request.targetGroupARNs())))
+            .put("cooldown", existingAsg.defaultCooldown() == request.defaultCooldown())
             .put(
                 "health check grace period",
-                existingAsg.getHealthCheckGracePeriod() == request.getHealthCheckGracePeriod())
+                existingAsg.healthCheckGracePeriod() == request.healthCheckGracePeriod())
             .put(
                 "health check type",
-                Objects.equals(existingAsg.getHealthCheckType(), request.getHealthCheckType()))
+                Objects.equals(existingAsg.healthCheckType(), request.healthCheckType()))
             .put(
                 "termination policies",
                 Objects.equals(
-                    sortList(existingAsg.getTerminationPolicies()),
-                    sortList(request.getTerminationPolicies())))
+                    sortList(existingAsg.terminationPolicies()),
+                    sortList(request.terminationPolicies())))
             .build();
     final Set<String> failedPredicates =
         predicates.entrySet().stream()
@@ -351,10 +353,7 @@ public abstract class AsgBuilder {
       return false;
     }
 
-    if (existingAsg
-        .getCreatedTime()
-        .toInstant()
-        .isBefore(Instant.now().minus(1, ChronoUnit.HOURS))) {
+    if (existingAsg.createdTime().isBefore(Instant.now().minus(1, ChronoUnit.HOURS))) {
       task.updateStatus(
           taskPhase,
           asgName
@@ -379,7 +378,7 @@ public abstract class AsgBuilder {
       List<String> availabilityZones) {
     final List<String> allSubnetIds =
         allSubnetsForTypeAndAvailabilityZone.stream()
-            .map(s -> s.getSubnetId())
+            .map(s -> s.subnetId())
             .collect(Collectors.toList());
 
     List<String> invalidSubnetIds = null;
@@ -404,12 +403,13 @@ public abstract class AsgBuilder {
       return Collections.emptyList();
     }
 
-    final DescribeSubnetsResult result = ec2.describeSubnets();
+    final software.amazon.awssdk.services.ec2.model.DescribeSubnetsResponse result =
+        ec2.describeSubnets();
     List<Subnet> mySubnets = new ArrayList<>();
-    for (Subnet subnet : result.getSubnets()) {
+    for (Subnet subnet : result.subnets()) {
       if (availabilityZones != null
           && !availabilityZones.isEmpty()
-          && !availabilityZones.contains(subnet.getAvailabilityZone())) {
+          && !availabilityZones.contains(subnet.availabilityZone())) {
         continue;
       }
       if (filterForSubnetPurposeTags) {

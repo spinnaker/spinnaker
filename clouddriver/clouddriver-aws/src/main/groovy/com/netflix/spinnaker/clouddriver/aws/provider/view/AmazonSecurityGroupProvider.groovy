@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.view
 
-import com.amazonaws.services.ec2.model.IpPermission
-import com.amazonaws.services.ec2.model.SecurityGroup
-import com.amazonaws.services.ec2.model.UserIdGroupPair
+import software.amazon.awssdk.services.ec2.model.IpPermission
+import software.amazon.awssdk.services.ec2.model.SecurityGroup
+import software.amazon.awssdk.services.ec2.model.UserIdGroupPair
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
@@ -166,7 +166,7 @@ class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurit
       SecurityGroup amznSecurityGroup = objectMapper.convertValue(securityGroup, SecurityGroup)
       Map<GroupAndProtocol, Map> rules = [:]
       Map<String, Map> ipRangeRules = [:]
-      amznSecurityGroup.ipPermissions.each { permission ->
+      amznSecurityGroup.ipPermissions().each { permission ->
         addIpRangeRules(permission, ipRangeRules)
         addSecurityGroupRules(permission, rules, account, region, securityGroup.vpcId)
       }
@@ -211,7 +211,7 @@ class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurit
   }
 
   private Map<String, String> getIngressGroupNameAndVpcId(UserIdGroupPair sg, String baseAccount, String ingressAccount, String region, String vpcId) {
-    String ingressGroupName = sg.groupName
+    String ingressGroupName = sg.groupName()
     String ingressGroupVpcId = vpcId
     // need to query if there's no name, or if the security groups are in different accounts, since they will have
     // different vpcIds.
@@ -220,7 +220,7 @@ class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurit
       if (baseAccount != ingressAccount) {
         vpcPattern = '*'
       }
-      def keyPattern = Keys.getSecurityGroupKey('*', sg.groupId, region, ingressAccount ?: '*', vpcPattern)
+      def keyPattern = Keys.getSecurityGroupKey('*', sg.groupId(), region, ingressAccount ?: '*', vpcPattern)
       def matches = cacheView.filterIdentifiers(SECURITY_GROUPS.ns, keyPattern)
       if (matches) {
         def parts = Keys.parse(matches[0])
@@ -232,55 +232,55 @@ class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurit
   }
 
   private void addSecurityGroupRules(IpPermission permission, Map<GroupAndProtocol, Map> rules, String account, String region, String vpcId) {
-    permission.userIdGroupPairs.each { sg ->
-      def groupAndProtocol = new GroupAndProtocol(sg.groupId, permission.ipProtocol)
+    permission.userIdGroupPairs().each { sg ->
+      def groupAndProtocol = new GroupAndProtocol(sg.groupId(), permission.ipProtocol())
       if (!rules.containsKey(groupAndProtocol)) {
-        final ingressAccount = credentialsRepository.getAll().find {it.accountId == sg.userId}
+        final ingressAccount = credentialsRepository.getAll().find {it.accountId == sg.userId()}
         Map<String, String> ingressGroupSummary = getIngressGroupNameAndVpcId(sg, account, ingressAccount?.name, region, vpcId)
         rules.put(groupAndProtocol, [
-          protocol     : permission.ipProtocol,
+          protocol     : permission.ipProtocol(),
           securityGroup:
             new AmazonSecurityGroup(
-              id: sg.groupId,
+              id: sg.groupId(),
               name: ingressGroupSummary.name,
-              accountId: sg.userId,
+              accountId: sg.userId(),
               accountName: ingressAccount?.name,
               region: region,
-              vpcId: sg.vpcId ?: ingressGroupSummary.vpcId
+              vpcId: sg.vpcId() ?: ingressGroupSummary.vpcId
             ),
           portRanges   : [] as SortedSet
         ])
       }
-      rules.get(groupAndProtocol).portRanges += new Rule.PortRange(startPort: permission.fromPort, endPort: permission.toPort)
+      rules.get(groupAndProtocol).portRanges += new Rule.PortRange(startPort: permission.fromPort(), endPort: permission.toPort())
     }
   }
 
   private void addIpRangeRules(IpPermission permission, Map<String, Map> rules) {
-    permission.ipv6Ranges.each { ipRange ->
-      String key = "$ipRange:$permission.ipProtocol"
+    permission.ipv6Ranges().each { ipRange ->
+      String key = "$ipRange:${permission.ipProtocol()}"
       if (!rules.containsKey(key)) {
-        def rangeParts = ipRange.cidrIpv6.split('/')
+        def rangeParts = ipRange.cidrIpv6().split('/')
         rules.put(key, [
           range     : new AddressableRange(ip: rangeParts[0], cidr: "/${rangeParts[1]}"),
-          protocol  : permission.ipProtocol,
+          protocol  : permission.ipProtocol(),
           portRanges: [] as SortedSet,
-          description: ipRange.description
+          description: ipRange.description()
         ])
       }
-      rules.get(key).portRanges += new Rule.PortRange(startPort: permission.fromPort, endPort: permission.toPort)
+      rules.get(key).portRanges += new Rule.PortRange(startPort: permission.fromPort(), endPort: permission.toPort())
     }
-    permission.ipv4Ranges.each { ipRange ->
-      String key = "$ipRange:$permission.ipProtocol"
+    permission.ipRanges().each { ipRange ->
+      String key = "$ipRange:${permission.ipProtocol()}"
       if (!rules.containsKey(key)) {
-        def rangeParts = ipRange.cidrIp.split('/')
+        def rangeParts = ipRange.cidrIp().split('/')
         rules.put(key, [
           range     : new AddressableRange(ip: rangeParts[0], cidr: "/${rangeParts[1]}"),
-          protocol  : permission.ipProtocol,
+          protocol  : permission.ipProtocol(),
           portRanges: [] as SortedSet,
-          description: ipRange.description
+          description: ipRange.description()
         ])
       }
-      rules.get(key).portRanges += new Rule.PortRange(startPort: permission.fromPort, endPort: permission.toPort)
+      rules.get(key).portRanges += new Rule.PortRange(startPort: permission.fromPort(), endPort: permission.toPort())
     }
   }
 

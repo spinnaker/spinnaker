@@ -16,13 +16,19 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.deploy.ops;
 
-import com.amazonaws.services.applicationautoscaling.AWSApplicationAutoScaling;
-import com.amazonaws.services.applicationautoscaling.model.*;
-import com.amazonaws.services.ecs.AmazonECS;
-import com.amazonaws.services.ecs.model.UpdateServiceRequest;
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.ModifyServiceDescription;
 import java.util.ArrayList;
 import java.util.List;
+import software.amazon.awssdk.services.applicationautoscaling.ApplicationAutoScalingClient;
+import software.amazon.awssdk.services.applicationautoscaling.model.DescribeScalableTargetsRequest;
+import software.amazon.awssdk.services.applicationautoscaling.model.DescribeScalableTargetsResponse;
+import software.amazon.awssdk.services.applicationautoscaling.model.RegisterScalableTargetRequest;
+import software.amazon.awssdk.services.applicationautoscaling.model.ScalableDimension;
+import software.amazon.awssdk.services.applicationautoscaling.model.ScalableTarget;
+import software.amazon.awssdk.services.applicationautoscaling.model.ServiceNamespace;
+import software.amazon.awssdk.services.applicationautoscaling.model.SuspendedState;
+import software.amazon.awssdk.services.ecs.EcsClient;
+import software.amazon.awssdk.services.ecs.model.UpdateServiceRequest;
 
 public class EnableServiceAtomicOperation
     extends AbstractEcsAtomicOperation<ModifyServiceDescription, Void> {
@@ -39,18 +45,19 @@ public class EnableServiceAtomicOperation
   }
 
   private void enableService() {
-    AmazonECS ecsClient = getAmazonEcsClient();
-    AWSApplicationAutoScaling autoScalingClient = getAmazonApplicationAutoScalingClient();
+    EcsClient ecsClient = getAmazonEcsClient();
+    ApplicationAutoScalingClient autoScalingClient = getAmazonApplicationAutoScalingClient();
 
     String service = description.getServerGroupName();
     String account = description.getAccount();
     String cluster = getCluster(service, account);
 
     UpdateServiceRequest request =
-        new UpdateServiceRequest()
-            .withCluster(cluster)
-            .withService(service)
-            .withDesiredCount(getMaxCapacity(cluster));
+        UpdateServiceRequest.builder()
+            .cluster(cluster)
+            .service(service)
+            .desiredCount(getMaxCapacity(cluster))
+            .build();
 
     updateTaskStatus(String.format("Enabling %s server group for %s.", service, account));
     ecsClient.updateService(request);
@@ -59,15 +66,17 @@ public class EnableServiceAtomicOperation
     updateTaskStatus(
         String.format("Resuming autoscaling on %s server group for %s.", service, account));
     RegisterScalableTargetRequest resumeRequest =
-        new RegisterScalableTargetRequest()
-            .withServiceNamespace(ServiceNamespace.Ecs)
-            .withScalableDimension(ScalableDimension.EcsServiceDesiredCount)
-            .withResourceId(String.format("service/%s/%s", cluster, service))
-            .withSuspendedState(
-                new SuspendedState()
-                    .withDynamicScalingInSuspended(false)
-                    .withDynamicScalingOutSuspended(false)
-                    .withScheduledScalingSuspended(false));
+        RegisterScalableTargetRequest.builder()
+            .serviceNamespace(ServiceNamespace.ECS)
+            .scalableDimension(ScalableDimension.ECS_SERVICE_DESIRED_COUNT)
+            .resourceId(String.format("service/%s/%s", cluster, service))
+            .suspendedState(
+                SuspendedState.builder()
+                    .dynamicScalingInSuspended(false)
+                    .dynamicScalingOutSuspended(false)
+                    .scheduledScalingSuspended(false)
+                    .build())
+            .build();
     autoScalingClient.registerScalableTarget(resumeRequest);
     updateTaskStatus(
         String.format("Autoscaling on server group %s resumed for %s.", service, account));
@@ -76,31 +85,32 @@ public class EnableServiceAtomicOperation
   private Integer getMaxCapacity(String cluster) {
     ScalableTarget target = getScalableTarget(cluster);
     if (target != null) {
-      return target.getMaxCapacity();
+      return target.maxCapacity();
     }
     return 1;
   }
 
   private ScalableTarget getScalableTarget(String cluster) {
-    AWSApplicationAutoScaling appASClient = getAmazonApplicationAutoScalingClient();
+    ApplicationAutoScalingClient appASClient = getAmazonApplicationAutoScalingClient();
 
     List<String> resourceIds = new ArrayList<>();
     resourceIds.add(String.format("service/%s/%s", cluster, description.getServerGroupName()));
 
     DescribeScalableTargetsRequest request =
-        new DescribeScalableTargetsRequest()
-            .withResourceIds(resourceIds)
-            .withScalableDimension(ScalableDimension.EcsServiceDesiredCount)
-            .withServiceNamespace(ServiceNamespace.Ecs);
+        DescribeScalableTargetsRequest.builder()
+            .resourceIds(resourceIds)
+            .scalableDimension(ScalableDimension.ECS_SERVICE_DESIRED_COUNT)
+            .serviceNamespace(ServiceNamespace.ECS)
+            .build();
 
-    DescribeScalableTargetsResult result = appASClient.describeScalableTargets(request);
+    DescribeScalableTargetsResponse result = appASClient.describeScalableTargets(request);
 
-    if (result.getScalableTargets().isEmpty()) {
+    if (result.scalableTargets().isEmpty()) {
       return null;
     }
 
-    if (result.getScalableTargets().size() == 1) {
-      return result.getScalableTargets().get(0);
+    if (result.scalableTargets().size() == 1) {
+      return result.scalableTargets().get(0);
     }
 
     throw new Error("Multiple Scalable Targets found");

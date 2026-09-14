@@ -27,10 +27,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing;
-import com.amazonaws.services.elasticloadbalancing.model.DescribeInstanceHealthRequest;
-import com.amazonaws.services.elasticloadbalancing.model.DescribeInstanceHealthResult;
-import com.amazonaws.services.elasticloadbalancing.model.InstanceState;
 import com.google.common.collect.Iterables;
 import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer;
 import com.netflix.spinnaker.cats.agent.CacheResult;
@@ -47,6 +43,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationContext;
+import software.amazon.awssdk.services.elasticloadbalancing.ElasticLoadBalancingClient;
+import software.amazon.awssdk.services.elasticloadbalancing.model.DescribeInstanceHealthRequest;
+import software.amazon.awssdk.services.elasticloadbalancing.model.DescribeInstanceHealthResponse;
+import software.amazon.awssdk.services.elasticloadbalancing.model.InstanceState;
 
 @ExtendWith(MockitoExtension.class)
 class AmazonLoadBalancerInstanceStateCachingAgentTest {
@@ -58,7 +58,7 @@ class AmazonLoadBalancerInstanceStateCachingAgentTest {
 
   @Mock private NetflixAmazonCredentials creds;
 
-  @Mock private AmazonElasticLoadBalancing loadBalancing;
+  @Mock private ElasticLoadBalancingClient loadBalancing;
 
   @Mock private Cache cache;
 
@@ -67,7 +67,7 @@ class AmazonLoadBalancerInstanceStateCachingAgentTest {
   private AmazonLoadBalancerInstanceStateCachingAgent getAgent() {
     when(creds.getName()).thenReturn(accountName);
     AmazonClientProvider acp = mock(AmazonClientProvider.class);
-    when(acp.getAmazonElasticLoadBalancing(creds, region)).thenReturn(loadBalancing);
+    when(acp.getAmazonElasticLoadBalancingClassicV2(creds, region)).thenReturn(loadBalancing);
     return new AmazonLoadBalancerInstanceStateCachingAgent(
         acp, creds, region, AmazonObjectMapperConfigurer.createConfigured(), ctx);
   }
@@ -90,11 +90,12 @@ class AmazonLoadBalancerInstanceStateCachingAgentTest {
     String description = "description";
 
     InstanceState instanceState =
-        new InstanceState()
-            .withInstanceId(instanceId)
-            .withState(instanceStateString)
-            .withReasonCode(reasonCode)
-            .withDescription(description);
+        InstanceState.builder()
+            .instanceId(instanceId)
+            .state(instanceStateString)
+            .reasonCode(reasonCode)
+            .description(description)
+            .build();
 
     AmazonLoadBalancerInstanceStateCachingAgent agent = getAgent();
 
@@ -108,7 +109,7 @@ class AmazonLoadBalancerInstanceStateCachingAgentTest {
             List.of()); // nonvpc
 
     when(loadBalancing.describeInstanceHealth(any(DescribeInstanceHealthRequest.class)))
-        .thenReturn(new DescribeInstanceHealthResult().withInstanceStates(instanceState));
+        .thenReturn(DescribeInstanceHealthResponse.builder().instanceStates(instanceState).build());
 
     // when
     CacheResult result = agent.loadData(providerCache);

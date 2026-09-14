@@ -187,6 +187,25 @@ func NewGateClient(ui output.Ui, gateEndpoint, defaultHeaders, configLocation st
 		// on every API request, rather than relying solely on session cookies.
 		if gateClient.Config.Auth.OAuth2.CachedToken != nil {
 			gateClient.Context = context.WithValue(gateClient.Context, gate.ContextAccessToken, gateClient.Config.Auth.OAuth2.CachedToken.AccessToken)
+
+			// The generated gate client never consumes ContextAccessToken, so
+			// inject the Bearer header at the transport level for requests to
+			// the gate host. Without this, API calls carry no Authorization
+			// header at all and depend on a session cookie that a gate running
+			// Spring Security oauth2Login() never issues to non-browser clients.
+			if gateURL, err := url.Parse(gateClient.GateEndpoint()); err == nil {
+				oauth2Config := gateClient.Config.Auth.OAuth2
+				httpClient.Transport = &bearerAuthTransport{
+					next:     httpClient.Transport,
+					gateHost: gateURL.Host,
+					tokenFn: func() string {
+						if oauth2Config.CachedToken != nil {
+							return oauth2Config.CachedToken.AccessToken
+						}
+						return ""
+					},
+				}
+			}
 		}
 
 		updatedMessage = "Caching oauth2 token."
@@ -309,6 +328,26 @@ func userConfig(gateClient *GatewayClient, configLocation string) error {
 		gateClient.Config = config.Config{}
 	}
 	return nil
+}
+
+// bearerAuthTransport injects the cached OAuth2 access token as a Bearer
+// Authorization header on requests to the gate host that do not already
+// carry one. Scoped to the gate host so the token is not replayed to other
+// hosts on redirects (e.g. the identity provider).
+type bearerAuthTransport struct {
+	next     http.RoundTripper
+	gateHost string
+	tokenFn  func() string
+}
+
+func (b *bearerAuthTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	if req.Header.Get("Authorization") == "" && req.URL.Host == b.gateHost {
+		if token := b.tokenFn(); token != "" {
+			req = req.Clone(req.Context())
+			req.Header.Set("Authorization", "Bearer "+token)
+		}
+	}
+	return b.next.RoundTrip(req)
 }
 
 // InitializeHTTPClient will return an *http.Client configured with

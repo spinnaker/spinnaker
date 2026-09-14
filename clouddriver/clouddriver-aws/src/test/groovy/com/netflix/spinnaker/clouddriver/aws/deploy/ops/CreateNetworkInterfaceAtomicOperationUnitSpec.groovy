@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
-import com.amazonaws.services.ec2.model.NetworkInterface
+import software.amazon.awssdk.services.ec2.model.NetworkInterface
 import com.google.common.collect.Iterables
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -68,24 +68,24 @@ class CreateNetworkInterfaceAtomicOperationUnitSpec extends Specification {
 
     then:
     result == ResultByZone.of([
-      "us-west-1a": new NetworkInterface(networkInterfaceId: "1"),
-      "us-west-1b": new NetworkInterface(networkInterfaceId: "2"),
-      "us-east-1b": new NetworkInterface(networkInterfaceId: "3"),
-      "us-east-1c": new NetworkInterface(networkInterfaceId: "4")
+      "us-west-1a": NetworkInterface.builder().networkInterfaceId("1").build(),
+      "us-west-1b": NetworkInterface.builder().networkInterfaceId("2").build(),
+      "us-east-1b": NetworkInterface.builder().networkInterfaceId("3").build(),
+      "us-east-1c": NetworkInterface.builder().networkInterfaceId("4").build()
     ], [:])
 
     and:
     1 * mockRegionScopedProviderFactory.forRegion(_, "us-west-1") >> Mock(RegionScopedProviderFactory.RegionScopedProvider) {
       1 * getNetworkInterfaceService() >> mockNetworkInterfaceServiceWest
     }
-    1 * mockNetworkInterfaceServiceWest.createNetworkInterface("us-west-1a", "internal", networkInterfaceTemplate) >> new NetworkInterface(networkInterfaceId: "1")
-    1 * mockNetworkInterfaceServiceWest.createNetworkInterface("us-west-1b", "internal", networkInterfaceTemplate) >> new NetworkInterface(networkInterfaceId: "2")
+    1 * mockNetworkInterfaceServiceWest.createNetworkInterface("us-west-1a", "internal", networkInterfaceTemplate) >> NetworkInterface.builder().networkInterfaceId("1").build()
+    1 * mockNetworkInterfaceServiceWest.createNetworkInterface("us-west-1b", "internal", networkInterfaceTemplate) >> NetworkInterface.builder().networkInterfaceId("2").build()
 
     1 * mockRegionScopedProviderFactory.forRegion(_, "us-east-1") >> Mock(RegionScopedProviderFactory.RegionScopedProvider) {
       1 * getNetworkInterfaceService() >> mockNetworkInterfaceServiceEast
     }
-    1 * mockNetworkInterfaceServiceEast.createNetworkInterface("us-east-1b", "internal", networkInterfaceTemplate) >> new NetworkInterface(networkInterfaceId: "3")
-    1 * mockNetworkInterfaceServiceEast.createNetworkInterface("us-east-1c", "internal", networkInterfaceTemplate) >> new NetworkInterface(networkInterfaceId: "4")
+    1 * mockNetworkInterfaceServiceEast.createNetworkInterface("us-east-1b", "internal", networkInterfaceTemplate) >> NetworkInterface.builder().networkInterfaceId("3").build()
+    1 * mockNetworkInterfaceServiceEast.createNetworkInterface("us-east-1c", "internal", networkInterfaceTemplate) >> NetworkInterface.builder().networkInterfaceId("4").build()
     0 * _
   }
 
@@ -113,7 +113,7 @@ class CreateNetworkInterfaceAtomicOperationUnitSpec extends Specification {
 
     then:
     result.successfulResults == [
-      "us-west-1b": new NetworkInterface(networkInterfaceId: "2")
+      "us-west-1b": NetworkInterface.builder().networkInterfaceId("2").build()
     ]
     Iterables.getOnlyElement(result.failures.keySet()) == "us-west-1a"
     result.failures["us-west-1a"].startsWith("java.lang.Exception: Uh oh!")
@@ -125,7 +125,7 @@ class CreateNetworkInterfaceAtomicOperationUnitSpec extends Specification {
     1 * mockNetworkInterfaceService.createNetworkInterface("us-west-1a", "internal", networkInterfaceTemplate) >> {
       throw new Exception("Uh oh!")
     }
-    1 * mockNetworkInterfaceService.createNetworkInterface("us-west-1b", "internal", networkInterfaceTemplate) >> new NetworkInterface(networkInterfaceId: "2")
+    1 * mockNetworkInterfaceService.createNetworkInterface("us-west-1b", "internal", networkInterfaceTemplate) >> NetworkInterface.builder().networkInterfaceId("2").build()
     0 * _
   }
 
@@ -153,8 +153,8 @@ class CreateNetworkInterfaceAtomicOperationUnitSpec extends Specification {
 
     then:
     result == ResultByZone.of([
-      "us-west-1a": new NetworkInterface(networkInterfaceId: "1"),
-      "us-west-1b": new NetworkInterface(networkInterfaceId: "2")
+      "us-west-1a": NetworkInterface.builder().networkInterfaceId("1").build(),
+      "us-west-1b": NetworkInterface.builder().networkInterfaceId("2").build()
     ], [:])
 
     and:
@@ -162,9 +162,9 @@ class CreateNetworkInterfaceAtomicOperationUnitSpec extends Specification {
       1 * getNetworkInterfaceService() >> mockNetworkInterfaceService
     }
     1 * mockNetworkInterfaceService.createNetworkInterface("us-west-1a", "internal", networkInterfaceTemplate) >> {
-      throw TagsNotCreatedException.of(new Exception("No tags for you!"), new NetworkInterface(networkInterfaceId: "1"))
+      throw TagsNotCreatedException.of(new Exception("No tags for you!"), NetworkInterface.builder().networkInterfaceId("1").build())
     }
-    1 * mockNetworkInterfaceService.createNetworkInterface("us-west-1b", "internal", networkInterfaceTemplate) >> new NetworkInterface(networkInterfaceId: "2")
+    1 * mockNetworkInterfaceService.createNetworkInterface("us-west-1b", "internal", networkInterfaceTemplate) >> NetworkInterface.builder().networkInterfaceId("2").build()
     0 * _
   }
 }

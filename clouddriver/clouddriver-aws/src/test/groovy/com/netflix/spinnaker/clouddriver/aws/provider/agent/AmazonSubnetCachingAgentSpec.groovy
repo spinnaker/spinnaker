@@ -16,12 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
-import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.DescribeSubnetsResult
-import com.amazonaws.services.ec2.model.Subnet
+import software.amazon.awssdk.services.ec2.Ec2Client
+import software.amazon.awssdk.services.ec2.model.DescribeSubnetsResponse
+import software.amazon.awssdk.services.ec2.model.Subnet
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.awsobjectmapper.AmazonObjectMapper
 import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer
+import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
@@ -35,19 +36,19 @@ class AmazonSubnetCachingAgentSpec extends Specification {
   static final String region = 'us-east-1'
 
 
-  AmazonEC2 ec2 = Mock(AmazonEC2)
+  Ec2Client ec2 = Mock(Ec2Client)
 
   NetflixAmazonCredentials creds = Stub(NetflixAmazonCredentials) {
     getName() >> account
   }
 
   AmazonClientProvider amazonClientProvider = Stub(AmazonClientProvider) {
-    getAmazonEC2(creds, region) >> ec2
+    getAmazonEC2V2(creds, region) >> ec2
   }
 
   ProviderCache providerCache = Mock(ProviderCache)
 
-  ObjectMapper amazonObjectMapper = new AmazonObjectMapperConfigurer().createConfigured()
+  ObjectMapper amazonObjectMapper = new AmazonObjectMapperConfigurer().createConfigured().registerModule(new AwsSdkV2Module())
 
   @Subject
   AmazonSubnetCachingAgent agent = new AmazonSubnetCachingAgent(
@@ -58,10 +59,10 @@ class AmazonSubnetCachingAgentSpec extends Specification {
     def result = agent.loadData(providerCache)
 
     then:
-    1 * ec2.describeSubnets() >> new DescribeSubnetsResult(subnets: [
-      new Subnet(subnetId: 'subnetId1'),
-      new Subnet(subnetId: 'subnetId2')
-    ])
+    1 * ec2.describeSubnets() >> DescribeSubnetsResponse.builder().subnets(
+      Subnet.builder().subnetId('subnetId1').build(),
+      Subnet.builder().subnetId('subnetId2').build()
+    ).build()
     0 * _
 
     with (result.cacheResults.get(Keys.Namespace.SUBNETS.ns)) { List<CacheData> cd ->

@@ -334,6 +334,27 @@ class PipelineControllerSpec extends Specification {
     (all.get(0).get().status == 200 && all.get(1).get().status == 400) || (all.get(0).get().status == 400 && all.get(1).get().status == 200)
   }
 
+  @Unroll
+  def "#methodName filters pipelines by application, not by pipeline name"() {
+    // https://github.com/spinnaker/spinnaker/issues/7940
+    // Permission in Spinnaker is granted per-application. A @PostFilter that checks
+    // filterObject.name instead of filterObject.application filters on the wrong field,
+    // which can expose or hide pipelines incorrectly once Fiat is enabled.
+    given:
+    def method = PipelineController.class.getMethod(methodName, *paramTypes)
+    def postFilter = method.getAnnotation(org.springframework.security.access.prepost.PostFilter)
+
+    expect:
+    postFilter != null
+    postFilter.value().contains("filterObject.application")
+    !postFilter.value().contains("filterObject.name")
+
+    where:
+    methodName             | paramTypes
+    "list"                 | [boolean, boolean, Boolean, Boolean, String]
+    "getTriggeredPipelines"| [String, String, boolean, boolean]
+  }
+
   @Configuration
   private static class TestConfiguration {
     DetachedMockFactory detachedMockFactory = new DetachedMockFactory()

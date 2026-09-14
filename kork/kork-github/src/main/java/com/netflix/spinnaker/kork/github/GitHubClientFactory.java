@@ -45,6 +45,14 @@ import org.kohsuke.github.GitHubBuilder;
  *     "67890"
  * );
  * }</pre>
+ *
+ * <p>The methods here cover the <b>pinned</b> mode only, where a single installation ID serves
+ * every request. {@link GitHubAppAuthenticator} additionally supports a <b>derived</b> mode, in
+ * which the installation is resolved from the repository being accessed so that one authenticator
+ * can serve several organizations, optionally restricted by an allowlist. For that mode, construct
+ * a {@link GitHubAppAuthenticator} directly (or via {@link
+ * GitHubAppCredentials#toAuthenticator(String)}) and call {@link
+ * GitHubAppAuthenticator#getInstallationTokenForRepo(String, String)}.
  */
 @Slf4j
 public class GitHubClientFactory {

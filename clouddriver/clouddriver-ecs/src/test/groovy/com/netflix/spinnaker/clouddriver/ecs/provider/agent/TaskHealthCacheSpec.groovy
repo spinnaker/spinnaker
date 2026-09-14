@@ -19,17 +19,16 @@ package com.netflix.spinnaker.clouddriver.ecs.provider.agent
 import software.amazon.awssdk.services.ecs.EcsClient
 import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module
 import software.amazon.awssdk.services.ecs.model.Container
-import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module
-import com.amazonaws.services.ecs.model.ContainerDefinition
-import com.amazonaws.services.ecs.model.LoadBalancer
+import software.amazon.awssdk.services.ecs.model.ContainerDefinition
+import software.amazon.awssdk.services.ecs.model.LoadBalancer
 import software.amazon.awssdk.services.ecs.model.NetworkBinding
-import com.amazonaws.services.ecs.model.PortMapping
-import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetHealthResult
-import com.amazonaws.services.elasticloadbalancingv2.model.TargetDescription
-import com.amazonaws.services.elasticloadbalancingv2.model.TargetHealth
-import com.amazonaws.services.elasticloadbalancingv2.model.TargetHealthDescription
-import com.amazonaws.services.elasticloadbalancingv2.model.TargetHealthStateEnum
+import software.amazon.awssdk.services.ecs.model.PortMapping
+import software.amazon.awssdk.services.elasticloadbalancingv2.ElasticLoadBalancingV2Client
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeTargetHealthResponse
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetDescription
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetHealth
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetHealthDescription
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetHealthStateEnum
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
@@ -57,8 +56,8 @@ class TaskHealthCacheSpec extends Specification {
 
   def 'should retrieve from written cache'() {
     given:
-    AmazonElasticLoadBalancing amazonloadBalancing = Mock(AmazonElasticLoadBalancing)
-    clientProvider.getAmazonElasticLoadBalancingV2(_, _, _) >> amazonloadBalancing
+    ElasticLoadBalancingV2Client amazonloadBalancing = Mock(ElasticLoadBalancingV2Client)
+    clientProvider.getElasticLoadBalancingV2Client(_, _) >> amazonloadBalancing
 
     def targetGroupArn = 'arn:aws:elasticloadbalancing:' + CommonCachingAgent.REGION + ':769716316905:targetgroup/test-target-group/9e8997b7cff00c62'
 
@@ -70,9 +69,9 @@ class TaskHealthCacheSpec extends Specification {
 
     ObjectMapper mapper = new ObjectMapper().registerModule(new AwsSdkV2Module())
     Map<String, Object> containerMap = mapper.convertValue(Container.builder().networkBindings(NetworkBinding.builder().containerPort(1338).hostPort(1338).build()).build(), Map.class)
-    Map<String, Object> loadbalancerMap = mapper.convertValue(new LoadBalancer().withTargetGroupArn(targetGroupArn).withContainerPort(1338), Map.class)
+    Map<String, Object> loadbalancerMap = mapper.convertValue(LoadBalancer.builder().targetGroupArn(targetGroupArn).containerPort(1338).build(), Map.class)
     Map<String, Object> targetHealthMap = mapper.convertValue(
-      new TargetHealthDescription().withTarget(new TargetDescription().withId(CommonCachingAgent.EC2_INSTANCE_ID_1).withPort(1338)).withTargetHealth(new TargetHealth().withState(TargetHealthStateEnum.Healthy)), Map.class)
+      TargetHealthDescription.builder().target(TargetDescription.builder().id(CommonCachingAgent.EC2_INSTANCE_ID_1).port(1338).build()).targetHealth(TargetHealth.builder().state(TargetHealthStateEnum.HEALTHY).build()).build(), Map.class)
 
     def taskAttributes = [
       taskId              : CommonCachingAgent.TASK_ID_1,
@@ -111,16 +110,16 @@ class TaskHealthCacheSpec extends Specification {
     def targetHealthCache = new DefaultCacheData(targetHealthKey, targetHealthAttributes, Collections.emptyMap())
     providerCache.get(TARGET_HEALTHS.toString(), targetHealthKey) >> targetHealthCache
 
-    DescribeTargetHealthResult describeTargetHealthResult = new DescribeTargetHealthResult().withTargetHealthDescriptions(
-      new TargetHealthDescription().withTargetHealth(new TargetHealth().withState(TargetHealthStateEnum.Healthy))
-    )
+    DescribeTargetHealthResponse describeTargetHealthResult = DescribeTargetHealthResponse.builder().targetHealthDescriptions(
+      TargetHealthDescription.builder().targetHealth(TargetHealth.builder().state(TargetHealthStateEnum.HEALTHY).build()).build()
+    ).build()
 
     amazonloadBalancing.describeTargetHealth(_) >> describeTargetHealthResult
     providerCache.getAll(HEALTH.toString()) >> []
 
-    Map<String, Object> containerDefinitionMap = mapper.convertValue(new ContainerDefinition().withPortMappings(
-      new PortMapping().withHostPort(1338)
-    ), Map.class)
+    Map<String, Object> containerDefinitionMap = mapper.convertValue(ContainerDefinition.builder().portMappings(
+      PortMapping.builder().hostPort(1338).build()
+    ).build(), Map.class)
     def taskDefAttributes = [
       taskDefinitionArn    : CommonCachingAgent.TASK_DEFINITION_ARN_1,
       containerDefinitions : [ containerDefinitionMap ]

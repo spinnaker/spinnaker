@@ -15,21 +15,6 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.lifecycle;
 
-import com.amazonaws.auth.policy.Condition;
-import com.amazonaws.auth.policy.Policy;
-import com.amazonaws.auth.policy.Principal;
-import com.amazonaws.auth.policy.Resource;
-import com.amazonaws.auth.policy.Statement;
-import com.amazonaws.auth.policy.Statement.Effect;
-import com.amazonaws.auth.policy.actions.SNSActions;
-import com.amazonaws.auth.policy.actions.SQSActions;
-import com.amazonaws.services.sns.AmazonSNS;
-import com.amazonaws.services.sns.model.SetTopicAttributesRequest;
-import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.model.Message;
-import com.amazonaws.services.sqs.model.ReceiptHandleIsInvalidException;
-import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
-import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.frigga.Names;
 import com.netflix.spectator.api.Id;
@@ -49,16 +34,37 @@ import jakarta.inject.Provider;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import software.amazon.awssdk.policybuilder.iam.IamAction;
+import software.amazon.awssdk.policybuilder.iam.IamCondition;
+import software.amazon.awssdk.policybuilder.iam.IamEffect;
+import software.amazon.awssdk.policybuilder.iam.IamPolicy;
+import software.amazon.awssdk.policybuilder.iam.IamPrincipal;
+import software.amazon.awssdk.policybuilder.iam.IamPrincipalType;
+import software.amazon.awssdk.policybuilder.iam.IamResource;
+import software.amazon.awssdk.policybuilder.iam.IamStatement;
+import software.amazon.awssdk.services.sns.SnsClient;
+import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
+import software.amazon.awssdk.services.sns.model.SetTopicAttributesRequest;
+import software.amazon.awssdk.services.sns.model.SubscribeRequest;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
+import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
+import software.amazon.awssdk.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
+import software.amazon.awssdk.services.sqs.model.ReceiptHandleIsInvalidException;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
+import software.amazon.awssdk.services.sqs.model.SetQueueAttributesRequest;
 
 public class InstanceTerminationLifecycleWorker implements Runnable {
 
@@ -122,39 +128,41 @@ public class InstanceTerminationLifecycleWorker implements Runnable {
   }
 
   private void listenForMessages() {
-    AmazonSQS amazonSQS = amazonClientProvider.getAmazonSQS(queueARN.account, queueARN.region);
-    AmazonSNS amazonSNS = amazonClientProvider.getAmazonSNS(topicARN.account, topicARN.region);
+    SqsClient sqsClient = amazonClientProvider.getAmazonSqsV2(queueARN.account, queueARN.region);
+    SnsClient snsClient = amazonClientProvider.getAmazonSnsV2(topicARN.account, topicARN.region);
 
     Set<? extends AccountCredentials> accountCredentials = credentialsRepository.getAll();
     List<String> allAccountIds = getAllAccountIds(accountCredentials);
 
     this.queueId =
         ensureQueueExists(
-            amazonSQS,
+            sqsClient,
             queueARN,
             topicARN,
             getSourceRoleArns(accountCredentials),
             properties.getSqsMessageRetentionPeriodSeconds());
-    ensureTopicExists(amazonSNS, topicARN, allAccountIds, queueARN);
+    ensureTopicExists(snsClient, topicARN, allAccountIds, queueARN);
 
     while (true) {
-      ReceiveMessageResult receiveMessageResult =
-          amazonSQS.receiveMessage(
-              new ReceiveMessageRequest(queueId)
-                  .withMaxNumberOfMessages(AWS_MAX_NUMBER_OF_MESSAGES)
-                  .withVisibilityTimeout(properties.getVisibilityTimeout())
-                  .withWaitTimeSeconds(properties.getWaitTimeSeconds()));
+      ReceiveMessageResponse receiveMessageResponse =
+          sqsClient.receiveMessage(
+              ReceiveMessageRequest.builder()
+                  .queueUrl(queueId)
+                  .maxNumberOfMessages(AWS_MAX_NUMBER_OF_MESSAGES)
+                  .visibilityTimeout(properties.getVisibilityTimeout())
+                  .waitTimeSeconds(properties.getWaitTimeSeconds())
+                  .build());
 
-      if (receiveMessageResult.getMessages().isEmpty()) {
+      if (receiveMessageResponse.messages().isEmpty()) {
         // No messages
         continue;
       }
 
-      receiveMessageResult
-          .getMessages()
+      receiveMessageResponse
+          .messages()
           .forEach(
               message -> {
-                LifecycleMessage lifecycleMessage = unmarshalLifecycleMessage(message.getBody());
+                LifecycleMessage lifecycleMessage = unmarshalLifecycleMessage(message.body());
 
                 if (lifecycleMessage != null) {
                   if (!SUPPORTED_LIFECYCLE_TRANSITION.equalsIgnoreCase(
@@ -162,19 +170,19 @@ public class InstanceTerminationLifecycleWorker implements Runnable {
                     log.info(
                         "Ignoring unsupported lifecycle transition: "
                             + lifecycleMessage.lifecycleTransition);
-                    deleteMessage(amazonSQS, queueId, message);
+                    deleteMessage(sqsClient, queueId, message);
                     return;
                   }
                   handleMessage(lifecycleMessage);
                 }
 
-                deleteMessage(amazonSQS, queueId, message);
+                deleteMessage(sqsClient, queueId, message);
                 registry.counter(getProcessedMetricId(queueARN.region)).increment();
               });
     }
   }
 
-  private LifecycleMessage unmarshalLifecycleMessage(String messageBody) {
+  LifecycleMessage unmarshalLifecycleMessage(String messageBody) {
     String body = messageBody;
     try {
       NotificationMessageWrapper wrapper =
@@ -201,7 +209,7 @@ public class InstanceTerminationLifecycleWorker implements Runnable {
     return lifecycleMessage;
   }
 
-  private void handleMessage(LifecycleMessage message) {
+  void handleMessage(LifecycleMessage message) {
     NetflixAmazonCredentials credentials = getAccountCredentialsById(message.accountId);
     if (credentials == null) {
       log.error("Unable to find credentials for account id: {}", message.accountId);
@@ -252,14 +260,18 @@ public class InstanceTerminationLifecycleWorker implements Runnable {
     return false;
   }
 
-  private static void deleteMessage(AmazonSQS amazonSQS, String queueUrl, Message message) {
+  private static void deleteMessage(SqsClient sqsClient, String queueUrl, Message message) {
     try {
-      amazonSQS.deleteMessage(queueUrl, message.getReceiptHandle());
+      sqsClient.deleteMessage(
+          DeleteMessageRequest.builder()
+              .queueUrl(queueUrl)
+              .receiptHandle(message.receiptHandle())
+              .build());
     } catch (ReceiptHandleIsInvalidException e) {
       log.warn(
           "Error deleting lifecycle message, reason: {} (receiptHandle: {})",
           e.getMessage(),
-          message.getReceiptHandle());
+          message.receiptHandle());
     }
   }
 
@@ -272,42 +284,64 @@ public class InstanceTerminationLifecycleWorker implements Runnable {
     return null;
   }
 
-  private static String ensureTopicExists(
-      AmazonSNS amazonSNS, ARN topicARN, List<String> allAccountIds, ARN queueARN) {
-    topicARN.arn = amazonSNS.createTopic(topicARN.name).getTopicArn();
+  static String ensureTopicExists(
+      SnsClient snsClient, ARN topicARN, List<String> allAccountIds, ARN queueARN) {
+    topicARN.arn =
+        snsClient.createTopic(CreateTopicRequest.builder().name(topicARN.name).build()).topicArn();
 
-    amazonSNS.setTopicAttributes(
-        new SetTopicAttributesRequest()
-            .withTopicArn(topicARN.arn)
-            .withAttributeName("Policy")
-            .withAttributeValue(buildSNSPolicy(topicARN, allAccountIds).toJson()));
+    snsClient.setTopicAttributes(
+        SetTopicAttributesRequest.builder()
+            .topicArn(topicARN.arn)
+            .attributeName("Policy")
+            .attributeValue(buildSNSPolicy(topicARN, allAccountIds).toJson())
+            .build());
 
-    amazonSNS.subscribe(topicARN.arn, "sqs", queueARN.arn);
+    snsClient.subscribe(
+        SubscribeRequest.builder()
+            .topicArn(topicARN.arn)
+            .protocol("sqs")
+            .endpoint(queueARN.arn)
+            .build());
 
     return topicARN.arn;
   }
 
-  private static Policy buildSNSPolicy(ARN topicARN, List<String> allAccountIds) {
-    Statement statement = new Statement(Statement.Effect.Allow).withActions(SNSActions.Publish);
-    statement.setPrincipals(
-        allAccountIds.stream().map(Principal::new).collect(Collectors.toList()));
-    statement.setResources(Collections.singletonList(new Resource(topicARN.arn)));
+  static IamPolicy buildSNSPolicy(ARN topicARN, List<String> allAccountIds) {
+    List<IamPrincipal> principals =
+        allAccountIds.stream()
+            .map(id -> IamPrincipal.create(IamPrincipalType.AWS, id))
+            .collect(Collectors.toList());
+    IamStatement statement =
+        IamStatement.builder()
+            .effect(IamEffect.ALLOW)
+            .actions(List.of(IamAction.create("SNS:Publish")))
+            .principals(principals)
+            .resources(List.of(IamResource.create(topicARN.arn)))
+            .build();
 
-    return new Policy("allow-remote-account-send", Collections.singletonList(statement));
+    return IamPolicy.builder().id("allow-remote-account-send").addStatement(statement).build();
   }
 
-  private static String ensureQueueExists(
-      AmazonSQS amazonSQS,
+  static String ensureQueueExists(
+      SqsClient sqsClient,
       ARN queueARN,
       ARN topicARN,
       Set<String> terminatingRoleArns,
       int sqsMessageRetentionPeriodSeconds) {
-    String queueUrl = amazonSQS.createQueue(queueARN.name).getQueueUrl();
+    String queueUrl =
+        sqsClient
+            .createQueue(CreateQueueRequest.builder().queueName(queueARN.name).build())
+            .queueUrl();
 
-    HashMap<String, String> attributes = new HashMap<>();
-    attributes.put("Policy", buildSQSPolicy(queueARN, topicARN, terminatingRoleArns).toJson());
-    attributes.put("MessageRetentionPeriod", Integer.toString(sqsMessageRetentionPeriodSeconds));
-    amazonSQS.setQueueAttributes(queueUrl, attributes);
+    Map<QueueAttributeName, String> attributes = new HashMap<>();
+    attributes.put(
+        QueueAttributeName.POLICY,
+        buildSQSPolicy(queueARN, topicARN, terminatingRoleArns).toJson());
+    attributes.put(
+        QueueAttributeName.MESSAGE_RETENTION_PERIOD,
+        Integer.toString(sqsMessageRetentionPeriodSeconds));
+    sqsClient.setQueueAttributes(
+        SetQueueAttributesRequest.builder().queueUrl(queueUrl).attributes(attributes).build());
 
     return queueUrl;
   }
@@ -316,24 +350,35 @@ public class InstanceTerminationLifecycleWorker implements Runnable {
    * This policy allows operators to choose whether or not to have lifecycle hooks to be sent via
    * SNS for fanout, or be sent directly to an SQS queue from the autoscaling group.
    */
-  private static Policy buildSQSPolicy(ARN queue, ARN topic, Set<String> terminatingRoleArns) {
-    Statement snsStatement = new Statement(Effect.Allow).withActions(SQSActions.SendMessage);
-    snsStatement.setPrincipals(Principal.All);
-    snsStatement.setResources(Collections.singletonList(new Resource(queue.arn)));
-    snsStatement.setConditions(
-        Collections.singletonList(
-            new Condition()
-                .withType("ArnEquals")
-                .withConditionKey("aws:SourceArn")
-                .withValues(topic.arn)));
+  static IamPolicy buildSQSPolicy(ARN queue, ARN topic, Set<String> terminatingRoleArns) {
+    IamCondition condition =
+        IamCondition.builder().operator("ArnEquals").key("aws:SourceArn").value(topic.arn).build();
+    IamStatement snsStatement =
+        IamStatement.builder()
+            .effect(IamEffect.ALLOW)
+            .actions(List.of(IamAction.create("sqs:SendMessage")))
+            .principals(List.of(IamPrincipal.ALL))
+            .resources(List.of(IamResource.create(queue.arn)))
+            .conditions(List.of(condition))
+            .build();
 
-    Statement sqsStatement =
-        new Statement(Effect.Allow).withActions(SQSActions.SendMessage, SQSActions.GetQueueUrl);
-    sqsStatement.setPrincipals(
-        terminatingRoleArns.stream().map(Principal::new).collect(Collectors.toList()));
-    sqsStatement.setResources(Collections.singletonList(new Resource(queue.arn)));
+    List<IamPrincipal> rolePrincipals =
+        terminatingRoleArns.stream()
+            .map(arn -> IamPrincipal.create(IamPrincipalType.AWS, arn))
+            .collect(Collectors.toList());
+    IamStatement sqsStatement =
+        IamStatement.builder()
+            .effect(IamEffect.ALLOW)
+            .actions(
+                List.of(IamAction.create("sqs:SendMessage"), IamAction.create("sqs:GetQueueUrl")))
+            .principals(rolePrincipals)
+            .resources(List.of(IamResource.create(queue.arn)))
+            .build();
 
-    return new Policy("allow-sns-or-sqs-send", Arrays.asList(snsStatement, sqsStatement));
+    return IamPolicy.builder()
+        .id("allow-sns-or-sqs-send")
+        .statements(Arrays.asList(snsStatement, sqsStatement))
+        .build();
   }
 
   Id getLagMetricId(String region) {

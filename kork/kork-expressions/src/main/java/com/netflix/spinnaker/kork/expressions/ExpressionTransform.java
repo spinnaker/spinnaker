@@ -41,16 +41,33 @@ public class ExpressionTransform {
   private final ExpressionParser parser;
   private final Function<String, String> stringExpressionPreprocessor;
   private final Collection<Class<?>> typesToStringify;
+  private final boolean dashedIdentifierSupportEnabled;
 
   public ExpressionTransform(
       ParserContext parserContext,
       ExpressionParser parser,
       Function<String, String> stringExpressionPreprocessor,
       Class<?>... typesToStringify) {
+    this(parserContext, parser, stringExpressionPreprocessor, false, typesToStringify);
+  }
+
+  /**
+   * @param dashedIdentifierSupportEnabled when {@code true}, a {@code ${...}} expression that fails
+   *     to evaluate because its entire body is a hyphen-joined bareword (e.g. {@code
+   *     ${my-container-name}}) is retried as a literal key lookup instead of being reported as a
+   *     failure. See {@link DashedIdentifierResolver}.
+   */
+  public ExpressionTransform(
+      ParserContext parserContext,
+      ExpressionParser parser,
+      Function<String, String> stringExpressionPreprocessor,
+      boolean dashedIdentifierSupportEnabled,
+      Class<?>... typesToStringify) {
     this.parserContext = parserContext;
     this.parser = parser;
     this.stringExpressionPreprocessor = stringExpressionPreprocessor;
     this.typesToStringify = Arrays.asList(typesToStringify);
+    this.dashedIdentifierSupportEnabled = dashedIdentifierSupportEnabled;
   }
 
   private static Stream<?> flatten(Object o) {
@@ -179,8 +196,23 @@ public class ExpressionTransform {
           result = exp.getValue(evaluationContext);
         }
       } catch (Exception e) {
-        logger.info("Failed to evaluate {}, returning raw value {}", source, e.getMessage());
-        exception = e;
+        Optional<String> rewritten =
+            dashedIdentifierSupportEnabled
+                ? DashedIdentifierResolver.rewriteHyphenatedBareword(preprocessed)
+                : Optional.empty();
+        if (rewritten.isPresent()) {
+          try {
+            Expression retryExpression = parser.parseExpression(rewritten.get(), parserContext);
+            escapedExpressionString = escapeExpression(retryExpression);
+            result = retryExpression.getValue(evaluationContext);
+          } catch (Exception retryException) {
+            logger.info("Failed to evaluate {}, returning raw value {}", source, e.getMessage());
+            exception = e;
+          }
+        } else {
+          logger.info("Failed to evaluate {}, returning raw value {}", source, e.getMessage());
+          exception = e;
+        }
       } finally {
         Set keys = getKeys(source, additionalContext);
         Object fields = !keys.isEmpty() ? keys : preprocessed;

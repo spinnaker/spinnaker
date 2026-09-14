@@ -27,6 +27,10 @@ export class PipelineConfigService {
     return `${applicationName}:${pipelineName}`;
   }
 
+  public static getAllPipelineConfigs(): Promise<IPipeline[]> {
+    return REST('/pipelineConfigs').get();
+  }
+
   public static getPipelinesForApplication(applicationName: string): Promise<IPipeline[]> {
     return REST('/applications')
       .path(applicationName, 'pipelineConfigs')

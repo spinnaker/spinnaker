@@ -61,8 +61,17 @@ runs:
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
       with:
-        ## Temporary due to bug in qemu:  https://github.com/docker/setup-qemu-action/issues/198
-        image: tonistiigi/binfmt:qemu-v7.0.0-28
+        ## Pinned to a specific tonistiigi/binfmt release rather than `latest`, which is stale by ~2 years:
+        ## https://github.com/tonistiigi/binfmt/issues/165#issuecomment-1996882334
+        ##
+        ## v10.2.3 fixes both:
+        ## - the segfault that qemu-v7.0.0-28 was previously pinned to work around
+        ##   (docker/setup-qemu-action#198, tonistiigi/binfmt#316, fixed upstream in QEMU 10.2.3/10.0.10:
+        ##   https://github.com/qemu/qemu/commit/3b68c2db2392eadfa89c64647e96a69d8490477a)
+        ## - GNU tar (patched for CVE-2025-45582) failing to extract under emulation with
+        ##   "Cannot open: Function not implemented", since it now uses openat2(), which QEMU only gained
+        ##   support for in 9.2 (tonistiigi/binfmt#285, tonistiigi/binfmt#287)
+        image: tonistiigi/binfmt:qemu-v10.2.3-68
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3

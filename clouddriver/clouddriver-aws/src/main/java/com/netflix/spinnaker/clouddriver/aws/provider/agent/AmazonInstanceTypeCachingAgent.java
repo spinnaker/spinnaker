@@ -18,12 +18,6 @@ package com.netflix.spinnaker.clouddriver.aws.provider.agent;
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
 
-import com.amazonaws.services.ec2.AmazonEC2;
-import com.amazonaws.services.ec2.model.DescribeInstanceTypesRequest;
-import com.amazonaws.services.ec2.model.DescribeInstanceTypesResult;
-import com.amazonaws.services.ec2.model.GpuInfo;
-import com.amazonaws.services.ec2.model.InstanceStorageInfo;
-import com.amazonaws.services.ec2.model.InstanceTypeInfo;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.agent.AccountAware;
@@ -48,6 +42,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import software.amazon.awssdk.services.ec2.Ec2Client;
+import software.amazon.awssdk.services.ec2.model.DescribeInstanceTypesRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeInstanceTypesResponse;
+import software.amazon.awssdk.services.ec2.model.GpuInfo;
+import software.amazon.awssdk.services.ec2.model.InstanceStorageInfo;
+import software.amazon.awssdk.services.ec2.model.InstanceTypeInfo;
 
 public class AmazonInstanceTypeCachingAgent implements CachingAgent, AccountAware {
 
@@ -80,7 +80,7 @@ public class AmazonInstanceTypeCachingAgent implements CachingAgent, AccountAwar
 
   @Override
   public CacheResult loadData(ProviderCache providerCache) {
-    AmazonEC2 amazonEC2 = amazonClientProvider.getAmazonEC2(this.account, this.region);
+    Ec2Client amazonEC2 = amazonClientProvider.getAmazonEC2V2(this.account, this.region);
     final List<InstanceTypeInfo> instanceTypesInfo = getInstanceTypes(amazonEC2);
 
     Map<String, Collection<CacheData>> cacheResults = new HashMap<>();
@@ -88,7 +88,7 @@ public class AmazonInstanceTypeCachingAgent implements CachingAgent, AccountAwar
     // cache instance types for key "metadata" for backwards compatibility
     Set<String> instanceTypes =
         instanceTypesInfo.stream()
-            .map(InstanceTypeInfo::getInstanceType)
+            .map(InstanceTypeInfo::instanceTypeAsString)
             .collect(Collectors.toSet());
     DefaultCacheData metadata = buildCacheDataForMetadataKey(providerCache, instanceTypes);
     cacheResults.put(getAgentType(), Collections.singleton(metadata));
@@ -105,49 +105,48 @@ public class AmazonInstanceTypeCachingAgent implements CachingAgent, AccountAwar
                   Map<String, Object> attributes = objectMapper.convertValue(i, ATTRIBUTES);
                   attributes.put("account", account.getName());
                   attributes.put("region", region);
-                  attributes.put("name", i.getInstanceType());
-                  attributes.put("defaultVCpus", i.getVCpuInfo().getDefaultVCpus());
-                  attributes.put("memoryInGiB", i.getMemoryInfo().getSizeInMiB() / 1024);
+                  attributes.put("name", i.instanceTypeAsString());
+                  attributes.put("defaultVCpus", i.vCpuInfo().defaultVCpus());
+                  attributes.put("memoryInGiB", i.memoryInfo().sizeInMiB() / 1024);
                   attributes.put(
-                      "supportedArchitectures", i.getProcessorInfo().getSupportedArchitectures());
+                      "supportedArchitectures", i.processorInfo().supportedArchitectures());
 
-                  if (i.getInstanceStorageInfo() != null) {
-                    InstanceStorageInfo info = i.getInstanceStorageInfo();
+                  if (i.instanceStorageInfo() != null) {
+                    InstanceStorageInfo info = i.instanceStorageInfo();
                     Map<String, Object> instanceStorageAttributes = new HashMap<>();
 
-                    instanceStorageAttributes.put("totalSizeInGB", info.getTotalSizeInGB());
-                    if (info.getDisks() != null && info.getDisks().size() > 0) {
+                    instanceStorageAttributes.put("totalSizeInGB", info.totalSizeInGB());
+                    if (info.disks() != null && info.disks().size() > 0) {
                       instanceStorageAttributes.put(
                           "storageTypes",
-                          info.getDisks().stream()
-                              .map(d -> d.getType())
+                          info.disks().stream()
+                              .map(d -> d.typeAsString())
                               .collect(Collectors.joining(",")));
                     }
-                    if (info.getNvmeSupport() != null) {
-                      instanceStorageAttributes.put("nvmeSupport", info.getNvmeSupport());
+                    if (info.nvmeSupport() != null) {
+                      instanceStorageAttributes.put("nvmeSupport", info.nvmeSupportAsString());
                     }
                     attributes.put("instanceStorageInfo", instanceStorageAttributes);
                   }
 
-                  if (i.getGpuInfo() != null) {
-                    GpuInfo info = i.getGpuInfo();
+                  if (i.gpuInfo() != null) {
+                    GpuInfo info = i.gpuInfo();
                     Map<String, Object> gpuInfoAttributes = new HashMap<>();
 
-                    if (info.getTotalGpuMemoryInMiB() != null) {
-                      gpuInfoAttributes.put("totalGpuMemoryInMiB", info.getTotalGpuMemoryInMiB());
+                    if (info.totalGpuMemoryInMiB() != null) {
+                      gpuInfoAttributes.put("totalGpuMemoryInMiB", info.totalGpuMemoryInMiB());
                     }
-                    if (info.getGpus() != null) {
+                    if (info.gpus() != null) {
                       gpuInfoAttributes.put(
                           "gpus",
-                          info.getGpus().stream()
+                          info.gpus().stream()
                               .map(
                                   g -> {
                                     Map<String, Object> gpuDeviceInfo = new HashMap<>();
-                                    gpuDeviceInfo.put("name", g.getName());
-                                    gpuDeviceInfo.put("manufacturer", g.getManufacturer());
-                                    gpuDeviceInfo.put("count", g.getCount());
-                                    gpuDeviceInfo.put(
-                                        "gpuSizeInMiB", g.getMemoryInfo().getSizeInMiB());
+                                    gpuDeviceInfo.put("name", g.name());
+                                    gpuDeviceInfo.put("manufacturer", g.manufacturer());
+                                    gpuDeviceInfo.put("count", g.count());
+                                    gpuDeviceInfo.put("gpuSizeInMiB", g.memoryInfo().sizeInMiB());
                                     return gpuDeviceInfo;
                                   })
                               .collect(Collectors.toList()));
@@ -155,12 +154,12 @@ public class AmazonInstanceTypeCachingAgent implements CachingAgent, AccountAwar
                     attributes.put("gpuInfo", gpuInfoAttributes);
                   }
 
-                  if (i.getNetworkInfo() != null) {
-                    attributes.put("ipv6Supported", i.getNetworkInfo().getIpv6Supported());
+                  if (i.networkInfo() != null) {
+                    attributes.put("ipv6Supported", i.networkInfo().ipv6Supported());
                   }
 
                   return new DefaultCacheData(
-                      Keys.getInstanceTypeKey(i.getInstanceType(), region, account.getName()),
+                      Keys.getInstanceTypeKey(i.instanceTypeAsString(), region, account.getName()),
                       attributes,
                       Collections.emptyMap());
                 })
@@ -191,14 +190,14 @@ public class AmazonInstanceTypeCachingAgent implements CachingAgent, AccountAwar
         Collections.emptyMap());
   }
 
-  private List<InstanceTypeInfo> getInstanceTypes(AmazonEC2 ec2) {
+  private List<InstanceTypeInfo> getInstanceTypes(Ec2Client ec2) {
     final List<InstanceTypeInfo> instanceTypeInfoList = new ArrayList<>();
-    final DescribeInstanceTypesRequest request = new DescribeInstanceTypesRequest();
+    DescribeInstanceTypesRequest request = DescribeInstanceTypesRequest.builder().build();
     while (true) {
-      final DescribeInstanceTypesResult result = ec2.describeInstanceTypes(request);
-      instanceTypeInfoList.addAll(result.getInstanceTypes());
-      if (result.getNextToken() != null) {
-        request.withNextToken(result.getNextToken());
+      final DescribeInstanceTypesResponse result = ec2.describeInstanceTypes(request);
+      instanceTypeInfoList.addAll(result.instanceTypes());
+      if (result.nextToken() != null) {
+        request = request.toBuilder().nextToken(result.nextToken()).build();
       } else {
         break;
       }

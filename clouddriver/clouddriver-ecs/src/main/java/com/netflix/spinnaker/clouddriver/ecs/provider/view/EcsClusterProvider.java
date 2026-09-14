@@ -16,10 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.provider.view;
 
-import com.amazonaws.services.ecs.AmazonECS;
-import com.amazonaws.services.ecs.model.Cluster;
-import com.amazonaws.services.ecs.model.DescribeClustersRequest;
-import com.amazonaws.services.ecs.model.DescribeClustersResult;
 import com.google.common.collect.Lists;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
@@ -33,6 +29,10 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import software.amazon.awssdk.services.ecs.EcsClient;
+import software.amazon.awssdk.services.ecs.model.Cluster;
+import software.amazon.awssdk.services.ecs.model.DescribeClustersRequest;
+import software.amazon.awssdk.services.ecs.model.DescribeClustersResponse;
 
 @Slf4j
 @Component
@@ -70,7 +70,7 @@ public class EcsClusterProvider {
     List<List<String>> batchClusterList =
         Lists.partition(filteredEcsClusters, EcsClusterDescriptionMaxSize);
     log.info("filteredEcsCluster(s) item(s) split among {} partition(s)", batchClusterList.size());
-    AmazonECS client = getAmazonEcsClient(account, region);
+    EcsClient client = getAmazonEcsClient(account, region);
     for (List<String> batchClusters : batchClusterList) {
       List<Cluster> describeClusterResponse = getDescribeClusters(client, batchClusters);
       if (describeClusterResponse != null) {
@@ -80,28 +80,27 @@ public class EcsClusterProvider {
     return clusters;
   }
 
-  private AmazonECS getAmazonEcsClient(String account, String region) {
+  private EcsClient getAmazonEcsClient(String account, String region) {
     NetflixECSCredentials credentials = credentialsRepository.getOne(account);
     if (!(credentials instanceof NetflixECSCredentials)) {
       throw new IllegalArgumentException("Invalid credentials:" + account + ":" + region);
     }
-    return amazonClientProvider.getAmazonEcs(credentials, region, true);
+    return amazonClientProvider.getAmazonEcsV2(credentials, region);
   }
 
-  private List<Cluster> getDescribeClusters(AmazonECS client, List<String> clusterNames) {
+  private List<Cluster> getDescribeClusters(EcsClient client, List<String> clusterNames) {
     DescribeClustersRequest describeClustersRequest =
-        new DescribeClustersRequest().withClusters(clusterNames);
-    DescribeClustersResult describeClustersResult =
+        DescribeClustersRequest.builder().clusters(clusterNames).build();
+    DescribeClustersResponse describeClustersResult =
         client.describeClusters(describeClustersRequest);
     if (describeClustersResult == null) {
       log.warn(
           "Describe Cluster call returned with empty response. Please check your inputs (account, region and cluster list)");
       return Collections.emptyList();
-    } else if (!describeClustersResult.getFailures().isEmpty()) {
+    } else if (!describeClustersResult.failures().isEmpty()) {
       log.warn(
-          "Describe Cluster call responded with failure(s):"
-              + describeClustersResult.getFailures());
+          "Describe Cluster call responded with failure(s):" + describeClustersResult.failures());
     }
-    return describeClustersResult.getClusters();
+    return describeClustersResult.clusters();
   }
 }

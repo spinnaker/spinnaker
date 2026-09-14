@@ -33,6 +33,7 @@ import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.QueueDoesNotExistException;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 
 /**
  * One subscriber for each subscription. The subscriber makes sure the SQS queue is created,
@@ -146,22 +147,22 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
   @VisibleForTesting
   void listenForMessages() {
     while (isEnabled.get()) {
-      var receiveResponse =
-          sqsClient.receiveMessage(
-              ReceiveMessageRequest.builder()
-                  .queueUrl(this.subscriptionInfo.getQueueUrl())
-                  .maxNumberOfMessages(subscription.getMaxNumberOfMessages())
-                  .visibilityTimeout(subscription.getVisibilityTimeout())
-                  .waitTimeSeconds(subscription.getWaitTimeSeconds())
-                  .messageAttributeNames("All")
-                  .build());
+      ReceiveMessageRequest request =
+          ReceiveMessageRequest.builder()
+              .queueUrl(this.subscriptionInfo.getQueueUrl())
+              .maxNumberOfMessages(subscription.getMaxNumberOfMessages())
+              .visibilityTimeout(subscription.getVisibilityTimeout())
+              .waitTimeSeconds(subscription.getWaitTimeSeconds())
+              .messageAttributeNames("All")
+              .build();
+      ReceiveMessageResponse response = sqsClient.receiveMessage(request);
 
-      if (receiveResponse.messages().isEmpty()) {
+      if (response.messages().isEmpty()) {
         log.debug("Received no messages for queue {}", queueARN);
         continue;
       }
 
-      receiveResponse.messages().forEach(this::handleMessage);
+      response.messages().forEach(this::handleMessage);
     }
   }
 

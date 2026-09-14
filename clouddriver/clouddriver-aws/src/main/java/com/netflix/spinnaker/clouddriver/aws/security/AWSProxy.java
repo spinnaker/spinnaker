@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.security;
 
-import com.amazonaws.ClientConfiguration;
-import com.amazonaws.Protocol;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -118,27 +116,6 @@ public class AWSProxy {
 
   public void setProxyProtocol(String protocol) {
     this.protocol = protocol;
-  }
-
-  public void apply(ClientConfiguration clientConfiguration) {
-
-    clientConfiguration.setProxyHost(proxyHost);
-    clientConfiguration.setProxyPort(Integer.parseInt(proxyPort));
-    clientConfiguration.setProxyUsername(proxyUsername);
-    clientConfiguration.setProxyPassword(proxyPassword);
-
-    Protocol awsProtocol = Protocol.HTTP;
-
-    if ("HTTPS".equalsIgnoreCase(protocol)) {
-      awsProtocol = Protocol.HTTPS;
-    }
-
-    clientConfiguration.setProtocol(awsProtocol);
-
-    if (isNTLMProxy()) {
-      clientConfiguration.setProxyDomain(proxyDomain);
-      clientConfiguration.setProxyWorkstation(proxyWorkstation);
-    }
   }
 
   public boolean isNTLMProxy() {

@@ -19,8 +19,6 @@ package com.netflix.spinnaker.clouddriver.aws.provider.view;
 import static com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonS3StaticDataProviderConfiguration.AdhocRecord;
 import static com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonS3StaticDataProviderConfiguration.StaticRecord;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.S3Object;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -45,6 +43,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Component;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
 @Component
 public class AmazonS3DataProvider implements DataProvider {
@@ -63,7 +65,7 @@ public class AmazonS3DataProvider implements DataProvider {
               new CacheLoader<String, Object>() {
                 public Object load(String id) throws IOException {
                   StaticRecord record = configuration.getStaticRecord(id);
-                  S3Object s3Object =
+                  ResponseInputStream<GetObjectResponse> s3Object =
                       fetchObject(
                           record.getBucketAccount(),
                           record.getBucketRegion(),
@@ -72,12 +74,12 @@ public class AmazonS3DataProvider implements DataProvider {
 
                   switch (record.getType()) {
                     case list:
-                      return objectMapper.readValue(s3Object.getObjectContent(), List.class);
+                      return objectMapper.readValue(s3Object, List.class);
                     case object:
-                      return objectMapper.readValue(s3Object.getObjectContent(), Map.class);
+                      return objectMapper.readValue(s3Object, Map.class);
                   }
 
-                  return IOUtils.toString(s3Object.getObjectContent());
+                  return IOUtils.toString(s3Object);
                 }
               });
 
@@ -144,8 +146,9 @@ public class AmazonS3DataProvider implements DataProvider {
     }
 
     try {
-      S3Object s3Object = fetchObject(bucketAccount, bucketRegion, bucketName, objectId);
-      IOUtils.copy(s3Object.getObjectContent(), outputStream);
+      ResponseInputStream<GetObjectResponse> s3Object =
+          fetchObject(bucketAccount, bucketRegion, bucketName, objectId);
+      IOUtils.copy(s3Object, outputStream);
     } catch (IOException e) {
       throw new IllegalStateException(e);
     }
@@ -180,13 +183,13 @@ public class AmazonS3DataProvider implements DataProvider {
     return staticCache.stats();
   }
 
-  protected S3Object fetchObject(
+  protected ResponseInputStream<GetObjectResponse> fetchObject(
       String bucketAccount, String bucketRegion, String bucketName, String objectId) {
     NetflixAmazonCredentials account =
         (NetflixAmazonCredentials) accountCredentialsRepository.getOne(bucketAccount);
 
-    AmazonS3 amazonS3 = amazonClientProvider.getAmazonS3(account, bucketRegion);
-    return amazonS3.getObject(bucketName, objectId);
+    S3Client amazonS3 = amazonClientProvider.getAmazonS3V2(account, bucketRegion);
+    return amazonS3.getObject(GetObjectRequest.builder().bucket(bucketName).key(objectId).build());
   }
 
   private String getAccountName(String accountIdOrName) {

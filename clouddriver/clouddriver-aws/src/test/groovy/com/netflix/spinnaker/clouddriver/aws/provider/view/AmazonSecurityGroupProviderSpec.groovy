@@ -16,13 +16,19 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.view
 
-import com.amazonaws.services.ec2.model.*
+import software.amazon.awssdk.services.ec2.model.IpPermission
+import software.amazon.awssdk.services.ec2.model.IpRange
+import software.amazon.awssdk.services.ec2.model.Ipv6Range
+import software.amazon.awssdk.services.ec2.model.SecurityGroup
+import software.amazon.awssdk.services.ec2.model.UserIdGroupPair
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.cache.WriteableCache
 import com.netflix.spinnaker.cats.mem.InMemoryCache
 import com.netflix.spinnaker.clouddriver.aws.cache.Keys
+import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonSecurityGroup
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsInfrastructureProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
@@ -40,7 +46,7 @@ class AmazonSecurityGroupProviderSpec extends Specification {
   AmazonSecurityGroupProvider provider
 
   WriteableCache cache = new InMemoryCache()
-  ObjectMapper mapper = new ObjectMapper()
+  ObjectMapper mapper = new AmazonObjectMapperConfigurer().createConfigured().registerModule(new AwsSdkV2Module())
 
   def credential1 = Stub(NetflixAmazonCredentials) {
     getName() >> "accountName1"
@@ -170,23 +176,24 @@ class AmazonSecurityGroupProviderSpec extends Specification {
     String groupId = 'sg-a'
     String groupName = 'name-a'
     String vpcId = null
-    SecurityGroup mixedRangedGroupA = new SecurityGroup(
-      groupId: groupId,
-      groupName: groupName,
-      vpcId: vpcId,
-      description: 'a',
-      ipPermissions: [
-        new IpPermission(
-          ipProtocol: 'tcp',
-          fromPort: 7001,
-          toPort: 8080,
-          ipv4Ranges: [new IpRange(cidrIp: '0.0.0.0/32'), new IpRange(cidrIp: '0.0.0.1/31')],
-          ipv6Ranges: [new Ipv6Range(cidrIpv6: '::/0')],
-          userIdGroupPairs: [
-            new UserIdGroupPair(groupId: 'sg-b', groupName: 'name-b', userId: 'test')
-          ]
-        )
-      ])
+    SecurityGroup mixedRangedGroupA = SecurityGroup.builder()
+      .groupId(groupId)
+      .groupName(groupName)
+      .vpcId(vpcId)
+      .description('a')
+      .ipPermissions(
+        IpPermission.builder()
+          .ipProtocol('tcp')
+          .fromPort(7001)
+          .toPort(8080)
+          .ipRanges(IpRange.builder().cidrIp('0.0.0.0/32').build(), IpRange.builder().cidrIp('0.0.0.1/31').build())
+          .ipv6Ranges(Ipv6Range.builder().cidrIpv6('::/0').build())
+          .userIdGroupPairs(
+            UserIdGroupPair.builder().groupId('sg-b').groupName('name-b').userId('test').build()
+          )
+          .build()
+      )
+      .build()
 
     String account = 'test'
     String region = 'us-east-1'
@@ -213,16 +220,17 @@ class AmazonSecurityGroupProviderSpec extends Specification {
 
   void "should add security group ingress with different protocols"() {
     given:
-    SecurityGroup securityGroupA = new SecurityGroup(ownerId: "accountId1", groupId: 'sg-a', groupName: 'name-a', description: 'a')
-    SecurityGroup securityGroupB = new SecurityGroup(ownerId: "accountId1", groupId: 'sg-b', groupName: 'name-b', description: 'b')
-    securityGroupB.ipPermissions = [
-      new IpPermission(ipProtocol: "TCP", fromPort: 7001, toPort: 7001, userIdGroupPairs: [
-        new UserIdGroupPair(userId: "accountId1", groupId: securityGroupA.groupId, groupName: securityGroupA.groupName)
-      ]),
-      new IpPermission(ipProtocol: "UDP", fromPort: 7001, toPort: 7001, userIdGroupPairs: [
-        new UserIdGroupPair(userId: "accountId1", groupId: securityGroupA.groupId, groupName: securityGroupA.groupName)
-      ])
-    ]
+    SecurityGroup securityGroupA = SecurityGroup.builder().ownerId("accountId1").groupId('sg-a').groupName('name-a').description('a').build()
+    SecurityGroup securityGroupB = SecurityGroup.builder().ownerId("accountId1").groupId('sg-b').groupName('name-b').description('b')
+      .ipPermissions(
+        IpPermission.builder().ipProtocol("TCP").fromPort(7001).toPort(7001).userIdGroupPairs(
+          UserIdGroupPair.builder().userId("accountId1").groupId(securityGroupA.groupId()).groupName(securityGroupA.groupName()).build()
+        ).build(),
+        IpPermission.builder().ipProtocol("UDP").fromPort(7001).toPort(7001).userIdGroupPairs(
+          UserIdGroupPair.builder().userId("accountId1").groupId(securityGroupA.groupId()).groupName(securityGroupA.groupName()).build()
+        ).build()
+      )
+      .build()
     String account = 'test'
     String region = 'us-east-1'
     def key = Keys.getSecurityGroupKey('name-b', 'sg-b', region, account, null)
@@ -269,24 +277,25 @@ class AmazonSecurityGroupProviderSpec extends Specification {
     given:
     String account = 'test'
     String region = 'us-east-1'
-    SecurityGroup group = new SecurityGroup(
-      groupId: 'sg-a',
-      groupName: 'name-a',
-      description: 'a',
-      ipPermissions: [
-        new IpPermission(
-          ipProtocol: 'tcp',
-          fromPort: 7001,
-          toPort: 8080,
-          ipRanges: ['0.0.0.0/32']
-        ),
-        new IpPermission(
-          ipProtocol: 'tcp',
-          fromPort: 7000,
-          toPort: 8000,
-          ipRanges: ['0.0.0.0/32', '0.0.0.1/31']
-        )
-      ])
+    SecurityGroup group = SecurityGroup.builder()
+      .groupId('sg-a')
+      .groupName('name-a')
+      .description('a')
+      .ipPermissions(
+        IpPermission.builder()
+          .ipProtocol('tcp')
+          .fromPort(7001)
+          .toPort(8080)
+          .ipRanges(IpRange.builder().cidrIp('0.0.0.0/32').build())
+          .build(),
+        IpPermission.builder()
+          .ipProtocol('tcp')
+          .fromPort(7000)
+          .toPort(8000)
+          .ipRanges(IpRange.builder().cidrIp('0.0.0.0/32').build(), IpRange.builder().cidrIp('0.0.0.1/31').build())
+          .build()
+      )
+      .build()
     def key = Keys.getSecurityGroupKey('name-a', 'sg-a', region, account, null)
     Map<String, Object> attributes = mapper.convertValue(group, AwsInfrastructureProvider.ATTRIBUTES)
     def cacheData = new DefaultCacheData(key, attributes, [:])
@@ -310,24 +319,25 @@ class AmazonSecurityGroupProviderSpec extends Specification {
     given:
     String account = 'test'
     String region = 'us-east-1'
-    SecurityGroup group = new SecurityGroup(
-      groupId: 'sg-a',
-      groupName: 'name-a',
-      description: 'a',
-      ipPermissions: [
-        new IpPermission(
-          ipProtocol: 'udp',
-          fromPort: 7001,
-          toPort: 8080,
-          ipRanges: ['0.0.0.0/32']
-        ),
-        new IpPermission(
-          ipProtocol: 'tcp',
-          fromPort: 7001,
-          toPort: 8080,
-          ipRanges: ['0.0.0.0/32', '0.0.0.1/31']
-        )
-      ])
+    SecurityGroup group = SecurityGroup.builder()
+      .groupId('sg-a')
+      .groupName('name-a')
+      .description('a')
+      .ipPermissions(
+        IpPermission.builder()
+          .ipProtocol('udp')
+          .fromPort(7001)
+          .toPort(8080)
+          .ipRanges(IpRange.builder().cidrIp('0.0.0.0/32').build())
+          .build(),
+        IpPermission.builder()
+          .ipProtocol('tcp')
+          .fromPort(7001)
+          .toPort(8080)
+          .ipRanges(IpRange.builder().cidrIp('0.0.0.0/32').build(), IpRange.builder().cidrIp('0.0.0.1/31').build())
+          .build()
+      )
+      .build()
     def key = Keys.getSecurityGroupKey('name-a', 'sg-a', region, account, null)
     Map<String, Object> attributes = mapper.convertValue(group, AwsInfrastructureProvider.ATTRIBUTES)
     def cacheData = new DefaultCacheData(key, attributes, [:])
@@ -350,13 +360,14 @@ class AmazonSecurityGroupProviderSpec extends Specification {
     String vpcId = 'vpc-1234'
     String account = 'accountName1'
     String region = 'us-east-1'
-    SecurityGroup securityGroupA = new SecurityGroup(ownerId: account, groupId: 'sg-a', groupName: 'name-a', description: 'a', vpcId: vpcId)
-    SecurityGroup securityGroupB = new SecurityGroup(ownerId: account, groupId: 'sg-b', groupName: 'name-b', description: 'b', vpcId: vpcId)
-    securityGroupA.ipPermissions = [
-        new IpPermission(ipProtocol: "TCP", fromPort: 7001, toPort: 7001, userIdGroupPairs: [
-            new UserIdGroupPair(userId: "accountId1", groupId: securityGroupB.groupId)
-        ])
-    ]
+    SecurityGroup securityGroupB = SecurityGroup.builder().ownerId(account).groupId('sg-b').groupName('name-b').description('b').vpcId(vpcId).build()
+    SecurityGroup securityGroupA = SecurityGroup.builder().ownerId(account).groupId('sg-a').groupName('name-a').description('a').vpcId(vpcId)
+      .ipPermissions(
+        IpPermission.builder().ipProtocol("TCP").fromPort(7001).toPort(7001).userIdGroupPairs(
+          UserIdGroupPair.builder().userId("accountId1").groupId(securityGroupB.groupId()).build()
+        ).build()
+      )
+      .build()
     def keyA = Keys.getSecurityGroupKey('name-a', 'sg-a', region, account, vpcId)
     def keyB = Keys.getSecurityGroupKey('name-b', 'sg-b', region, account, vpcId)
     Map<String, Object> attributesA = mapper.convertValue(securityGroupA, AwsInfrastructureProvider.ATTRIBUTES)
@@ -381,13 +392,14 @@ class AmazonSecurityGroupProviderSpec extends Specification {
     String account1 = 'accountName1'
     String account2 = 'accountName2'
     String region = 'us-east-1'
-    SecurityGroup securityGroupA = new SecurityGroup(ownerId: account1, groupId: 'sg-a', groupName: 'name-a', description: 'a', vpcId: vpcId1)
-    SecurityGroup securityGroupB = new SecurityGroup(ownerId: account2, groupId: 'sg-b', groupName: 'name-b', description: 'b', vpcId: vpcId2)
-    securityGroupA.ipPermissions = [
-        new IpPermission(ipProtocol: "TCP", fromPort: 7001, toPort: 7001, userIdGroupPairs: [
-            new UserIdGroupPair(userId: "accountId2", groupId: securityGroupB.groupId)
-        ])
-    ]
+    SecurityGroup securityGroupB = SecurityGroup.builder().ownerId(account2).groupId('sg-b').groupName('name-b').description('b').vpcId(vpcId2).build()
+    SecurityGroup securityGroupA = SecurityGroup.builder().ownerId(account1).groupId('sg-a').groupName('name-a').description('a').vpcId(vpcId1)
+      .ipPermissions(
+        IpPermission.builder().ipProtocol("TCP").fromPort(7001).toPort(7001).userIdGroupPairs(
+          UserIdGroupPair.builder().userId("accountId2").groupId(securityGroupB.groupId()).build()
+        ).build()
+      )
+      .build()
     def keyA = Keys.getSecurityGroupKey('name-a', 'sg-a', region, account1, vpcId1)
     def keyB = Keys.getSecurityGroupKey('name-b', 'sg-b', region, account2, vpcId2)
     Map<String, Object> attributesA = mapper.convertValue(securityGroupA, AwsInfrastructureProvider.ATTRIBUTES)
@@ -410,22 +422,22 @@ class AmazonSecurityGroupProviderSpec extends Specification {
   Map<String, Map<String, List<SecurityGroup>>> securityGroupMap = [
     prod: [
       'us-east-1': [
-        new SecurityGroup(groupId: 'sg-a', groupName: 'a'),
-        new SecurityGroup(groupId: 'sg-b', groupName: 'b'),
+        SecurityGroup.builder().groupId('sg-a').groupName('a').build(),
+        SecurityGroup.builder().groupId('sg-b').groupName('b').build(),
       ],
       'us-west-1': [
-        new SecurityGroup(groupId: 'sg-a', groupName: 'a'),
-        new SecurityGroup(groupId: 'sg-b', groupName: 'b'),
+        SecurityGroup.builder().groupId('sg-a').groupName('a').build(),
+        SecurityGroup.builder().groupId('sg-b').groupName('b').build(),
       ]
     ],
     test: [
       'us-east-1': [
-        new SecurityGroup(groupId: 'sg-a', groupName: 'a'),
-        new SecurityGroup(groupId: 'sg-b', groupName: 'b'),
+        SecurityGroup.builder().groupId('sg-a').groupName('a').build(),
+        SecurityGroup.builder().groupId('sg-b').groupName('b').build(),
       ],
       'us-west-1': [
-        new SecurityGroup(groupId: 'sg-a', groupName: 'a'),
-        new SecurityGroup(groupId: 'sg-b', groupName: 'b'),
+        SecurityGroup.builder().groupId('sg-a').groupName('a').build(),
+        SecurityGroup.builder().groupId('sg-b').groupName('b').build(),
       ]
     ]
   ]
@@ -435,7 +447,7 @@ class AmazonSecurityGroupProviderSpec extends Specification {
       regions.collect { String region, List<SecurityGroup> groups ->
         groups.collect { SecurityGroup group ->
           Map<String, Object> attributes = mapper.convertValue(group, AwsInfrastructureProvider.ATTRIBUTES)
-          new DefaultCacheData(Keys.getSecurityGroupKey(group.groupName, group.groupId, region, account, group.vpcId), attributes, [:])
+          new DefaultCacheData(Keys.getSecurityGroupKey(group.groupName(), group.groupId(), region, account, group.vpcId()), attributes, [:])
         }
       }.flatten()
     }.flatten()

@@ -16,15 +16,15 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.amazonaws.AmazonServiceException
-import com.amazonaws.services.cloudformation.AmazonCloudFormation
-import com.amazonaws.services.cloudformation.model.DeleteStackRequest
-import com.amazonaws.services.cloudformation.model.DeleteStackResult
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteCloudFormationDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import software.amazon.awssdk.awscore.exception.AwsServiceException
+import software.amazon.awssdk.services.cloudformation.CloudFormationClient
+import software.amazon.awssdk.services.cloudformation.model.DeleteStackRequest
+import software.amazon.awssdk.services.cloudformation.model.DeleteStackResponse
 import spock.lang.Specification
 
 class DeleteCloudFormationAtomicOperationSpec extends Specification {
@@ -35,8 +35,7 @@ class DeleteCloudFormationAtomicOperationSpec extends Specification {
   void "should build a DeleteStackRequest and submit through aws client"() {
     given:
     def amazonClientProvider = Mock(AmazonClientProvider)
-    def amazonCloudFormation = Mock(AmazonCloudFormation)
-    def deleteStackResult = Mock(DeleteStackResult)
+    def cloudFormationClient = Mock(CloudFormationClient)
     def op = new DeleteCloudFormationAtomicOperation(
       new DeleteCloudFormationDescription(
         [
@@ -52,17 +51,17 @@ class DeleteCloudFormationAtomicOperationSpec extends Specification {
     op.operate([])
 
     then:
-    1 * amazonClientProvider.getAmazonCloudFormation(_, _) >> amazonCloudFormation
-    1 * amazonCloudFormation.deleteStack(_) >> { DeleteStackRequest request ->
-      assert request.getStackName() == "stackTest"
-      deleteStackResult
+    1 * amazonClientProvider.getAmazonCloudFormationV2(_, _) >> cloudFormationClient
+    1 * cloudFormationClient.deleteStack(_ as DeleteStackRequest) >> { DeleteStackRequest request ->
+      assert request.stackName() == "stackTest"
+      DeleteStackResponse.builder().build()
     }
   }
 
   void "should propagate exceptions when deleting the stack"() {
     given:
     def amazonClientProvider = Mock(AmazonClientProvider)
-    def amazonCloudFormation = Mock(AmazonCloudFormation)
+    def cloudFormationClient = Mock(CloudFormationClient)
     def op = new DeleteCloudFormationAtomicOperation(
       new DeleteCloudFormationDescription(
         [
@@ -73,22 +72,16 @@ class DeleteCloudFormationAtomicOperationSpec extends Specification {
       )
     )
     op.amazonClientProvider = amazonClientProvider
-    def exception = new AmazonServiceException("error")
+    def exception = AwsServiceException.builder().message("error").build()
 
     when:
-    try {
-      op.operate([])
-    }
-    catch (Exception e) {
-      e instanceof AmazonServiceException
-    }
+    op.operate([])
 
     then:
-    1 * amazonClientProvider.getAmazonCloudFormation(_, _) >> amazonCloudFormation
-    1 * amazonCloudFormation.deleteStack(_) >> {
+    1 * amazonClientProvider.getAmazonCloudFormationV2(_, _) >> cloudFormationClient
+    1 * cloudFormationClient.deleteStack(_ as DeleteStackRequest) >> {
       throw exception
     }
+    thrown(AwsServiceException)
   }
-
-
 }
