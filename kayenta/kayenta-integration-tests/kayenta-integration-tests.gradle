@@ -15,6 +15,9 @@ test.testLogging {
     showStandardStreams = true
 }
 
+// MinIO stopped publishing to Docker Hub; Quay.io carries the same release tags.
+test.systemProperty 'embedded.minio.dockerImage', 'quay.io/minio/minio:RELEASE.2023-09-04T19-57-37Z'
+
 gradle.taskGraph.whenReady {
     tasks.test.enabled = (
       properties.getOrDefault('DISABLE_INTEGRATION_TESTS', 'false') != 'true'
