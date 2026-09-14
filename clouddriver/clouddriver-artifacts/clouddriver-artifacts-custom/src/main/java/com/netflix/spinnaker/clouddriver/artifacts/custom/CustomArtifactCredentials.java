@@ -18,7 +18,7 @@
 package com.netflix.spinnaker.clouddriver.artifacts.custom;
 
 import com.google.common.collect.ImmutableList;
-import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
+import com.netflix.spinnaker.clouddriver.artifacts.config.AbstractArtifactCredentials;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.io.InputStream;
@@ -27,12 +27,13 @@ import lombok.extern.slf4j.Slf4j;
 
 @NonnullByDefault
 @Slf4j
-final class CustomArtifactCredentials implements ArtifactCredentials {
+final class CustomArtifactCredentials extends AbstractArtifactCredentials {
   public static final String CREDENTIALS_TYPE = "artifacts-custom";
   @Getter private final String name;
   @Getter private final ImmutableList<String> types = ImmutableList.of("custom/object");
 
   CustomArtifactCredentials(CustomArtifactAccount account) {
+    super(account);
     name = account.getName();
   }
 
