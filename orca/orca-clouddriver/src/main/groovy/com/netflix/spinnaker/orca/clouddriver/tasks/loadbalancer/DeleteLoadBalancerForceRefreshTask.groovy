@@ -16,8 +16,12 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer
 
+import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
-import com.netflix.spinnaker.orca.api.pipeline.Task
+import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
@@ -25,15 +29,20 @@ import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import retrofit2.Response
 
 import javax.annotation.Nonnull
+import java.util.concurrent.TimeUnit
 
 @Component
-class DeleteLoadBalancerForceRefreshTask implements CloudProviderAware, Task {
+class DeleteLoadBalancerForceRefreshTask implements CloudProviderAware, RetryableTask {
   static final String REFRESH_TYPE = "LoadBalancer"
 
   @Autowired
   CloudDriverCacheService cacheService
+
+  @Autowired
+  ObjectMapper mapper
 
   @Nonnull
   @Override
@@ -45,10 +54,58 @@ class DeleteLoadBalancerForceRefreshTask implements CloudProviderAware, Task {
     String vpcId = stage.context.vpcId ?: ''
     List<String> regions = stage.context.regions
 
-    regions.each { region ->
+    for (String region : regions) {
       def model = [loadBalancerName: name, region: region, account: account, vpcId: vpcId, evict: true] as Map
-      cacheService.forceCacheUpdate(cloudProvider, REFRESH_TYPE, model)
+      Response response
+      try {
+        response = Retrofit2SyncCall.executeCall(cacheService.forceCacheUpdate(cloudProvider, REFRESH_TYPE, model))
+      } catch (SpinnakerNetworkException | IOException e) {
+        return TaskResult.ofStatus(ExecutionStatus.RUNNING)
+      }
+
+      int statusCode = response.code()
+      if (statusCode == HttpURLConnection.HTTP_OK) {
+        continue
+      }
+
+      if (statusCode == HttpURLConnection.HTTP_ACCEPTED) {
+        if (extractRefreshIds(response).isEmpty()) {
+          // Cats reports PENDING with no identifiers only when an atomic agent could not take the
+          // lock, meaning the refresh never ran. Re-POST on the next attempt.
+          return TaskResult.ofStatus(ExecutionStatus.RUNNING)
+        }
+        // Identifiers came back, so a non-atomic agent stored the eviction and will process it.
+        continue
+      }
+
+      if (statusCode == 429 || statusCode >= 500) {
+        return TaskResult.ofStatus(ExecutionStatus.RUNNING)
+      }
+
+      throw new IllegalStateException(
+        "Force cache update for load balancer '${name}' in ${region} (${account}) failed with status ${statusCode}"
+      )
     }
-    TaskResult.ofStatus(ExecutionStatus.SUCCEEDED)
+
+    return TaskResult.ofStatus(ExecutionStatus.SUCCEEDED)
+  }
+
+  private List<String> extractRefreshIds(Response response) {
+    if (!response.body()) {
+      return []
+    }
+
+    Map<String, Object> responseBody = mapper.readValue(response.body().byteStream(), new TypeReference<Map<String, Object>>() {})
+    return (responseBody?.cachedIdentifiersByType?.loadBalancers ?: []) as List<String>
+  }
+
+  @Override
+  long getTimeout() {
+    return TimeUnit.MINUTES.toMillis(10)
+  }
+
+  @Override
+  long getBackoffPeriod() {
+    return TimeUnit.SECONDS.toMillis(5)
   }
 }

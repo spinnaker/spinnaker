@@ -6,8 +6,23 @@ import type {
   IGceServerGroupCommand,
   IGceServerGroupCommandValidationErrors,
   IGceServerGroupWizardPageProps,
+  ILoadBalancerMetadataReference,
 } from '../GceServerGroupWizard.types';
 import { GceServerGroupWizardPage } from '../GceServerGroupWizardPage';
+import {
+  areLoadBalancerSelectionsChanged,
+  validateLoadBalancerMetadataAttribution,
+} from '../gceServerGroupLoadBalancerMetadata';
+import {
+  getBalancingModes,
+  getSelectedLoadBalancerNames,
+  resolveLoadBalancingPolicy,
+  validateLoadBalancingPolicy,
+} from '../gceServerGroupLoadBalancingPolicy';
+import type { ILoadBalancingPolicyErrors } from '../gceServerGroupLoadBalancingPolicy';
+import { GceHttpLoadBalancerUtils } from '../../../../loadBalancer/httpLoadBalancerUtils.service';
+
+const gceHttpLoadBalancerUtils = new GceHttpLoadBalancerUtils();
 
 interface ILoadBalancerOption {
   name: string;
@@ -41,41 +56,20 @@ interface ILoadBalancingPolicy {
   namedPorts?: INamedPort[];
 }
 
-interface ILoadBalancingPolicyErrors {
-  balancingMode?: string;
-  capacityScaler?: string;
-  maxConnectionsPerInstance?: string;
-  maxRatePerInstance?: string;
-  maxUtilization?: string;
-  namedPorts?: Array<{ name?: string; port?: string }>;
-}
-
-interface ILoadBalancerMetadataReference {
-  key: 'global-load-balancer-names' | 'load-balancer-names';
-  names: string[];
-}
+type PreservedField =
+  | 'backendServiceMetadata'
+  | 'backendServices'
+  | 'loadBalancerMetadata'
+  | 'loadBalancerSelectionMetadata'
+  | 'loadBalancers'
+  | 'loadBalancingPolicy';
 
 interface IStringReference {
   unavailable: boolean;
   value: string;
 }
 
-type PreservedField =
-  | 'backendServiceMetadata'
-  | 'backendServices'
-  | 'loadBalancerMetadata'
-  | 'loadBalancers'
-  | 'loadBalancingPolicy';
-
-const HTTP_BALANCING_MODES = ['RATE', 'UTILIZATION'];
-const CONNECTION_BALANCING_MODES = ['CONNECTION', 'UTILIZATION'];
 const MODE_LIMIT_FIELDS = ['maxConnectionsPerInstance', 'maxRatePerInstance', 'maxUtilization'];
-const DEFAULT_LOAD_BALANCING_POLICY = {
-  balancingMode: 'UTILIZATION',
-  capacityScaler: 1,
-  maxUtilization: 0.8,
-  namedPorts: [{ name: 'http', port: 80 }],
-};
 
 function policyErrorId(field: string): string {
   return `gce-load-balancing-policy-${field.replace(/([A-Z])/g, '-$1').toLowerCase()}-error`;
@@ -96,58 +90,29 @@ export class GceServerGroupLoadBalancers extends GceServerGroupWizardPage<IGceSe
     const errors = super.validate(values) as IGceServerGroupCommandValidationErrors & {
       loadBalancingPolicy?: ILoadBalancingPolicyErrors;
     };
-    const policy = values.loadBalancingPolicy as ILoadBalancingPolicy | undefined;
-    if (!policy || !uniqueStrings(values.loadBalancers).length) {
-      return errors;
-    }
-
-    const policyErrors: ILoadBalancingPolicyErrors = {};
-    const balancingModes = getBalancingModes(values);
-    if (!policy.balancingMode || !balancingModes.includes(policy.balancingMode)) {
-      policyErrors.balancingMode = 'Select a balancing mode supported by the selected load balancers.';
-    }
-    if (!isValidBoundedValue(policy.capacityScaler, values, 0, 1)) {
-      policyErrors.capacityScaler = 'Capacity must be between 0 and 100%.';
-    }
-
-    const namedPortErrors = (policy.namedPorts || []).map(({ name, port }) => {
-      const namedPortError: { name?: string; port?: string } = {};
-      if (!name?.trim()) {
-        namedPortError.name = 'Port name required.';
-      }
-      if (!isValidInteger(port, values, 1, 65535)) {
-        namedPortError.port = 'Port must be an integer between 1 and 65535.';
-      }
-      return namedPortError;
-    });
-    if (namedPortErrors.some((namedPortError) => Object.keys(namedPortError).length)) {
-      policyErrors.namedPorts = namedPortErrors;
-    }
-
-    if (policy.balancingMode === 'RATE' && !isValidMinimum(policy.maxRatePerInstance, values, 0)) {
-      policyErrors.maxRatePerInstance = 'Max rate must be a finite number greater than or equal to zero.';
-    }
-    if (policy.balancingMode === 'CONNECTION' && !isValidMinimum(policy.maxConnectionsPerInstance, values, 0)) {
-      policyErrors.maxConnectionsPerInstance = 'Max connections must be a finite number greater than or equal to zero.';
-    }
-    if (policy.balancingMode === 'UTILIZATION' && !isValidBoundedValue(policy.maxUtilization, values, 0, 1)) {
-      policyErrors.maxUtilization = 'Max utilization must be between 0 and 100%.';
-    }
-
-    if (Object.keys(policyErrors).length) {
+    const policyErrors = validateLoadBalancingPolicy(values);
+    if (policyErrors) {
       errors.loadBalancingPolicy = policyErrors;
+    }
+    const loadBalancerMetadataError = validateLoadBalancerMetadataAttribution(values);
+    if (loadBalancerMetadataError) {
+      errors.loadBalancers = loadBalancerMetadataError;
     }
     return errors;
   }
 
   public render(): React.ReactElement {
     const values = this.props.formik.values;
-    const selectedLoadBalancers = uniqueStrings(values.loadBalancers);
+    const selectedLoadBalancers = getSelectedLoadBalancerNames(values);
     const selectedReferences = preserveReferences(getAvailableLoadBalancers(values), selectedLoadBalancers);
-    const policy = (values.loadBalancingPolicy || {}) as ILoadBalancingPolicy;
-    const policyErrors = (this.validate(values) as IGceServerGroupCommandValidationErrors & {
+    const existingPolicy = values.loadBalancingPolicy as ILoadBalancingPolicy | undefined;
+    const policy = (existingPolicy?.balancingMode === ''
+      ? existingPolicy
+      : resolveLoadBalancingPolicy(values) || existingPolicy || {}) as ILoadBalancingPolicy;
+    const validationErrors = this.validate(values) as IGceServerGroupCommandValidationErrors & {
       loadBalancingPolicy?: ILoadBalancingPolicyErrors;
-    }).loadBalancingPolicy || { namedPorts: [] };
+    };
+    const policyErrors = validationErrors.loadBalancingPolicy || { namedPorts: [] };
     const balancingModes = getBalancingModes(values);
 
     return (
@@ -172,6 +137,11 @@ export class GceServerGroupLoadBalancers extends GceServerGroupWizardPage<IGceSe
                 </option>
               ))}
             </select>
+            {validationErrors.loadBalancers && (
+              <span className="help-block" id="gce-server-group-load-balancers-error" role="alert">
+                {validationErrors.loadBalancers}
+              </span>
+            )}
           </div>
           <div className="col-md-1">
             <button
@@ -186,6 +156,15 @@ export class GceServerGroupLoadBalancers extends GceServerGroupWizardPage<IGceSe
         </div>
 
         {selectedLoadBalancers.map((loadBalancerName) => this.renderBackendServiceSelector(values, loadBalancerName))}
+
+        {selectedLoadBalancers.length > 0 && balancingModes.length === 0 && policyErrors.balancingMode && (
+          <div className="form-group">
+            <label className="col-md-3 sm-label-right">Balancing mode</label>
+            <div className="col-md-7">
+              {renderPolicyError(policyErrors.balancingMode, policyErrorId('balancingMode'))}
+            </div>
+          </div>
+        )}
 
         {selectedLoadBalancers.length > 0 && balancingModes.length > 0 && (
           <>
@@ -257,6 +236,10 @@ export class GceServerGroupLoadBalancers extends GceServerGroupWizardPage<IGceSe
     values: IGceServerGroupCommand,
     loadBalancerName: string,
   ): React.ReactElement | null {
+    const loadBalancer = getLoadBalancerIndex(values)[loadBalancerName];
+    if (loadBalancer?.loadBalancerType === 'REGIONAL_EXTERNAL_NETWORK') {
+      return null;
+    }
     const availableBackendServices = getBackendServiceData(values, loadBalancerName).map(({ name }) => name);
     const selectedBackendServices = uniqueStrings(values.backendServices?.[loadBalancerName]);
     if (!availableBackendServices.length && !selectedBackendServices.length) {
@@ -453,15 +436,28 @@ export class GceServerGroupLoadBalancers extends GceServerGroupWizardPage<IGceSe
       },
       {},
     );
+    const loadBalancerSelectionMetadata = reconcileLoadBalancerSelectionMetadata(values, loadBalancers);
     const nextCommand: IGceServerGroupCommand = {
       ...values,
       loadBalancers,
       loadBalancerMetadata: reconcileLoadBalancerMetadata(values, loadBalancers),
+      loadBalancerSelectionMetadata,
       backendServices,
       backendServiceMetadata: uniqueStrings(Object.values(backendServices).flat()),
+      viewState: {
+        ...values.viewState,
+        loadBalancerSelectionsChanged: areLoadBalancerSelectionsChanged({
+          ...values,
+          loadBalancers,
+        }),
+      },
     };
-    nextCommand.loadBalancingPolicy = reconcileLoadBalancingPolicy(nextCommand);
-    void this.applyPageUpdate(nextCommand, ['loadBalancers', 'loadBalancerMetadata', 'loadBalancingPolicy'], true);
+    nextCommand.loadBalancingPolicy = resolveLoadBalancingPolicy(nextCommand);
+    void this.applyPageUpdate(
+      nextCommand,
+      ['loadBalancers', 'loadBalancerMetadata', 'loadBalancerSelectionMetadata', 'loadBalancingPolicy'],
+      true,
+    );
   };
 
   private handleBackendServicesChanged = (
@@ -523,6 +519,7 @@ export class GceServerGroupLoadBalancers extends GceServerGroupWizardPage<IGceSe
       'backendServiceMetadata',
       'loadBalancers',
       'loadBalancerMetadata',
+      'loadBalancerSelectionMetadata',
       'loadBalancingPolicy',
     ]);
   }
@@ -536,7 +533,7 @@ export class GceServerGroupLoadBalancers extends GceServerGroupWizardPage<IGceSe
       const loadBalancerIndex = getLoadBalancerIndex(latestCommand);
       const configurationCommand = {
         ...latestCommand,
-        loadBalancers: uniqueStrings(latestCommand.loadBalancers).filter((name) => Boolean(loadBalancerIndex[name])),
+        loadBalancers: getSelectedLoadBalancerNames(latestCommand).filter((name) => Boolean(loadBalancerIndex[name])),
       };
       const update = await this.adapter.applyConfigurationUpdate(configurationCommand, 'configureLoadBalancerOptions');
       const command: IGceServerGroupCommand = {
@@ -544,6 +541,7 @@ export class GceServerGroupLoadBalancers extends GceServerGroupWizardPage<IGceSe
         loadBalancers: latestCommand.loadBalancers,
         viewState: {
           ...update.command.viewState,
+          ...latestCommand.viewState,
           dirty: update.result.dirty,
         },
       };
@@ -562,14 +560,16 @@ export class GceServerGroupLoadBalancers extends GceServerGroupWizardPage<IGceSe
   }
 
   private handleRefresh = (): void => {
-    const selectedLoadBalancers = uniqueStrings(this.props.formik.values.loadBalancers);
+    const selectedLoadBalancers = uniqueLoadBalancerSelections(this.props.formik.values.loadBalancers);
     void this.runLatestCommandRequest(this.props.formik.values, async (latestCommand) => {
       const update = await this.adapter.applyConfigurationRefresh(latestCommand, 'refreshLoadBalancers');
       return {
         ...update.command,
         loadBalancers: selectedLoadBalancers,
+        loadBalancerSelectionMetadata: latestCommand.loadBalancerSelectionMetadata,
         viewState: {
           ...update.command.viewState,
+          ...latestCommand.viewState,
           dirty: update.result.dirty,
         },
       };
@@ -633,46 +633,23 @@ function getNamedPortNames(command: IGceServerGroupCommand): string[] {
   ).filter(Boolean);
 }
 
-function getBalancingModes(command: IGceServerGroupCommand): string[] {
-  const loadBalancerIndex = getLoadBalancerIndex(command);
-  const modeSets = uniqueStrings(command.loadBalancers)
-    .map((loadBalancerName) => loadBalancerIndex[loadBalancerName]?.loadBalancerType)
-    .filter((loadBalancerType): loadBalancerType is string => Boolean(loadBalancerType))
-    .map((loadBalancerType) =>
-      loadBalancerType === 'HTTP' || loadBalancerType === 'INTERNAL_MANAGED'
-        ? HTTP_BALANCING_MODES
-        : CONNECTION_BALANCING_MODES,
-    );
-  if (!modeSets.length) {
-    const persistedMode = (command.loadBalancingPolicy as ILoadBalancingPolicy | undefined)?.balancingMode;
-    return persistedMode ? [persistedMode] : [];
-  }
-  return modeSets.slice(1).reduce((modes, nextModes) => modes.filter((mode) => nextModes.includes(mode)), modeSets[0]);
-}
-
-function reconcileLoadBalancingPolicy(command: IGceServerGroupCommand): ILoadBalancingPolicy | undefined {
-  const balancingModes = getBalancingModes(command);
-  if (!balancingModes.length) {
-    return undefined;
-  }
-  const existing = command.loadBalancingPolicy as ILoadBalancingPolicy | undefined;
-  const balancingMode =
-    existing?.balancingMode && balancingModes.includes(existing.balancingMode)
-      ? existing.balancingMode
-      : DEFAULT_LOAD_BALANCING_POLICY.balancingMode;
-  const policy: ILoadBalancingPolicy = {
-    ...existing,
-    balancingMode,
-    capacityScaler: existing?.capacityScaler ?? DEFAULT_LOAD_BALANCING_POLICY.capacityScaler,
-    namedPorts: existing?.namedPorts ?? DEFAULT_LOAD_BALANCING_POLICY.namedPorts.map((namedPort) => ({ ...namedPort })),
-  };
-  if (existing?.balancingMode !== balancingMode) {
-    MODE_LIMIT_FIELDS.forEach((field) => delete policy[field]);
-  }
-  if (balancingMode === 'UTILIZATION' && policy.maxUtilization === undefined) {
-    policy.maxUtilization = DEFAULT_LOAD_BALANCING_POLICY.maxUtilization;
-  }
-  return policy;
+function reconcileLoadBalancerSelectionMetadata(
+  command: IGceServerGroupCommand,
+  nextLoadBalancers: string[],
+): Record<string, ILoadBalancerMetadataReference> {
+  const selectionMetadata = { ...(command.loadBalancerSelectionMetadata || {}) };
+  uniqueStrings(command.loadBalancers).forEach((loadBalancerName) => {
+    if (!nextLoadBalancers.includes(loadBalancerName)) {
+      delete selectionMetadata[loadBalancerName];
+    }
+  });
+  nextLoadBalancers.forEach((loadBalancerName) => {
+    const reference = getLoadBalancerMetadataReference(command, loadBalancerName);
+    if (reference) {
+      selectionMetadata[loadBalancerName] = reference;
+    }
+  });
+  return selectionMetadata;
 }
 
 function reconcileLoadBalancerMetadata(
@@ -684,13 +661,17 @@ function reconcileLoadBalancerMetadata(
     {},
   );
   uniqueStrings(command.loadBalancers).forEach((loadBalancerName) => {
-    const reference = getLoadBalancerMetadataReference(command, loadBalancerName);
+    const reference =
+      command.loadBalancerSelectionMetadata?.[loadBalancerName] ||
+      getLoadBalancerMetadataReference(command, loadBalancerName);
     if (reference) {
       metadata[reference.key] = (metadata[reference.key] || []).filter((name) => !reference.names.includes(name));
     }
   });
+  const nextSelectionMetadata = reconcileLoadBalancerSelectionMetadata(command, nextLoadBalancers);
   nextLoadBalancers.forEach((loadBalancerName) => {
-    const reference = getLoadBalancerMetadataReference(command, loadBalancerName);
+    const reference =
+      nextSelectionMetadata[loadBalancerName] || getLoadBalancerMetadataReference(command, loadBalancerName);
     if (reference) {
       metadata[reference.key] = uniqueStrings([...(metadata[reference.key] || []), ...reference.names]);
     }
@@ -706,13 +687,14 @@ function getLoadBalancerMetadataReference(
   if (!loadBalancer) {
     return undefined;
   }
-  if (loadBalancer.loadBalancerType === 'HTTP' || loadBalancer.loadBalancerType === 'INTERNAL_MANAGED') {
+  if (gceHttpLoadBalancerUtils.isHttpLoadBalancer({ ...loadBalancer, provider: 'gce' } as any)) {
     const names = uniqueStrings((loadBalancer.listeners || []).map(({ name }) => name || ''));
     if (!names.length) {
       return undefined;
     }
     return {
       key: loadBalancer.loadBalancerType === 'HTTP' ? 'global-load-balancer-names' : 'load-balancer-names',
+      loadBalancerType: loadBalancer.loadBalancerType,
       names,
     };
   }
@@ -721,6 +703,7 @@ function getLoadBalancerMetadataReference(
       loadBalancer.loadBalancerType === 'SSL' || loadBalancer.loadBalancerType === 'TCP'
         ? 'global-load-balancer-names'
         : 'load-balancer-names',
+    loadBalancerType: loadBalancer.loadBalancerType,
     names: [loadBalancerName],
   };
 }
@@ -754,53 +737,6 @@ function isPipelineMode(command: IGceServerGroupCommand): boolean {
 
 function isExpression(value: unknown): boolean {
   return typeof value === 'string' && /^\s*\$\{.+\}\s*$/.test(value);
-}
-
-function isValidBoundedValue(
-  value: unknown,
-  command: IGceServerGroupCommand,
-  minimum: number,
-  maximum: number,
-): boolean {
-  if (isPipelineMode(command) && isExpression(value)) {
-    return true;
-  }
-  if (!hasNumericValue(value)) {
-    return false;
-  }
-  const numericValue = Number(value);
-  return Number.isFinite(numericValue) && numericValue >= minimum && numericValue <= maximum;
-}
-
-function isValidMinimum(value: unknown, command: IGceServerGroupCommand, minimum: number): boolean {
-  if (isPipelineMode(command) && isExpression(value)) {
-    return true;
-  }
-  if (!hasNumericValue(value)) {
-    return false;
-  }
-  const numericValue = Number(value);
-  return Number.isFinite(numericValue) && numericValue >= minimum;
-}
-
-function isValidInteger(value: unknown, command: IGceServerGroupCommand, minimum: number, maximum: number): boolean {
-  if (isPipelineMode(command) && isExpression(value)) {
-    return true;
-  }
-  if (!hasNumericValue(value)) {
-    return false;
-  }
-  const numericValue = Number(value);
-  return (
-    Number.isFinite(numericValue) &&
-    Number.isInteger(numericValue) &&
-    numericValue >= minimum &&
-    numericValue <= maximum
-  );
-}
-
-function hasNumericValue(value: unknown): boolean {
-  return value !== null && value !== undefined && (typeof value !== 'string' || Boolean(value.trim()));
 }
 
 function parsePercentageValue(value: string): number | string {
@@ -848,4 +784,20 @@ function uniqueStrings(values: unknown): string[] {
     return [];
   }
   return Array.from(new Set(values.filter((value): value is string => typeof value === 'string' && Boolean(value))));
+}
+
+// A selection is either a raw name or an inline-typed object carrying the type the load balancer
+// index cannot supply. Dedupe by name without discarding the objects.
+function uniqueLoadBalancerSelections(values: unknown): any[] {
+  if (!Array.isArray(values)) {
+    return [];
+  }
+  const byName = new Map<string, any>();
+  values.forEach((value: any) => {
+    const name = typeof value === 'string' ? value : value?.name;
+    if (typeof name === 'string' && name && !byName.has(name)) {
+      byName.set(name, value);
+    }
+  });
+  return Array.from(byName.values());
 }

@@ -162,9 +162,12 @@ class DisableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       3 * globalForwardingRules.list(PROJECT_NAME) >> globalForwardingRulesList
       3 * globalForwardingRulesList.execute() >> new ForwardingRuleList(items: [])
 
-      2 * computeMock.forwardingRules() >> forwardingRules
-      2 * forwardingRules.list(PROJECT_NAME, _) >> forwardingRulesList
-      2 * forwardingRulesList.execute() >> new ForwardingRuleList(items: [])
+      // Only the internal passthrough teardown lists regional forwarding rules here. This server group
+      // names no regional external network load balancer, so that teardown has nothing to resolve and
+      // skips the region-wide list entirely.
+      1 * computeMock.forwardingRules() >> forwardingRules
+      1 * forwardingRules.list(PROJECT_NAME, _) >> forwardingRulesList
+      1 * forwardingRulesList.execute() >> new ForwardingRuleList(items: [])
 
       registry.timer(
           GoogleApiTestUtils.makeOkId(

@@ -26,8 +26,11 @@ export interface IGceHttpLoadBalancerEditorProps {
 
 interface IGceHttpLoadBalancerDataItem extends IGceLoadBalancerDataItem {
   account?: string;
+  address?: string;
+  addressType?: string;
   id?: string;
   network?: string;
+  purpose?: string;
   region?: string;
 }
 
@@ -58,16 +61,49 @@ function uniqueOptions<T extends { name?: string }>(options: T[]): Array<T & { n
   );
 }
 
+function uniqueAddressOptions(options: IGceHttpLoadBalancerDataItem[]): IGceHttpLoadBalancerDataItem[] {
+  const seen = new Set<string>();
+  return options.filter((option) => {
+    const key = String(option.address || option.name || '');
+    if (!key || seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
+}
+
 export function buildGceHttpLoadBalancerOptions(
   command: IGceLoadBalancerCommand,
   data: IGceLoadBalancerData,
 ): IGceHttpLoadBalancerOptions {
   const internal = command.loadBalancerType === 'INTERNAL_MANAGED';
+  const externalManaged = command.loadBalancerType === 'EXTERNAL_MANAGED';
   const accountMatches = (item: IGceHttpLoadBalancerDataItem): boolean => item.account === command.credentials;
-  const locationMatches = (item: IGceHttpLoadBalancerDataItem): boolean =>
-    accountMatches(item) &&
-    (internal ? item.region === command.region : item.region === undefined || item.region === 'global');
+  const locationMatches = (item: IGceHttpLoadBalancerDataItem): boolean => {
+    if (!accountMatches(item)) {
+      return false;
+    }
+    if (internal || externalManaged) {
+      return item.region === command.region;
+    }
+    return item.region === undefined || item.region === 'global';
+  };
+  const addressMatches = (item: IGceHttpLoadBalancerDataItem): boolean =>
+    locationMatches(item) && (!externalManaged || item.addressType === 'EXTERNAL');
   const networks = (data.networks as IGceHttpLoadBalancerDataItem[]).filter(accountMatches);
+  const proxyNetworkIds = new Set(
+    (data.subnets as IGceHttpLoadBalancerDataItem[])
+      .filter(
+        (subnet) =>
+          accountMatches(subnet) && subnet.region === command.region && subnet.purpose === 'REGIONAL_MANAGED_PROXY',
+      )
+      .map((subnet) => subnet.network)
+      .filter(Boolean),
+  );
+  const eligibleNetworks = externalManaged
+    ? networks.filter((network) => proxyNetworkIds.has(network.id) || proxyNetworkIds.has(network.name))
+    : networks;
   const selectedNetwork = networks.find(
     (network) => network.name === command.network?.name || network.id === command.network?.name,
   );
@@ -82,9 +118,11 @@ export function buildGceHttpLoadBalancerOptions(
 
   return {
     accounts: mergeGceResourceOptions(data.accounts, command.credentials ? [{ name: command.credentials }] : []),
-    addresses: mergeGceResourceOptions(
-      (data.addresses as IGceHttpLoadBalancerDataItem[]).filter(locationMatches),
-      uniqueOptions(command.listeners.flatMap((listener) => (listener.address ? [listener.address] : []))),
+    addresses: uniqueAddressOptions(
+      mergeGceResourceOptions(
+        (data.addresses as IGceHttpLoadBalancerDataItem[]).filter(addressMatches),
+        uniqueOptions(command.listeners.flatMap((listener) => (listener.address ? [listener.address] : []))),
+      ),
     ),
     backendServices: mergeGceResourceOptions(
       (data.backendServices as IGceHttpLoadBalancerDataItem[]).filter(locationMatches),
@@ -102,7 +140,7 @@ export function buildGceHttpLoadBalancerOptions(
       (data.healthChecks as IGceHttpLoadBalancerDataItem[]).filter(locationMatches),
       uniqueOptions([...command.healthChecks, ...backendHealthChecks]),
     ),
-    networks: mergeGceResourceOptions(networks, command.network ? [command.network] : []),
+    networks: mergeGceResourceOptions(eligibleNetworks, command.network ? [command.network] : []),
     regions: mergeGceResourceOptions(data.regions, command.region ? [{ name: command.region }] : []),
     subnets: mergeGceResourceOptions(
       internal
@@ -119,25 +157,49 @@ export function buildGceHttpLoadBalancerOptions(
 }
 
 export function constrainGceHttpLoadBalancerCommand(command: IGceLoadBalancerCommand): IGceLoadBalancerCommand {
-  const constrainListener = ({ subnet, ...listener }: IGceLoadBalancerListener, keepSubnet: boolean) => {
+  const constrainListener = (
+    { subnet, networkTier, ...listener }: IGceLoadBalancerListener,
+    keepSubnet: boolean,
+    keepNetworkTier: boolean,
+  ) => {
     if (listener.protocol === 'HTTPS') {
-      return { ...listener, portRange: '443', protocol: 'HTTPS' as const, ...(keepSubnet && subnet ? { subnet } : {}) };
+      return {
+        ...listener,
+        portRange: '443',
+        protocol: 'HTTPS' as const,
+        ...(keepSubnet && subnet ? { subnet } : {}),
+        ...(keepNetworkTier && networkTier ? { networkTier } : {}),
+      };
     }
-    const { certificate: _certificate, ...plaintextListener } = listener;
-    return { ...plaintextListener, protocol: 'HTTP' as const, ...(keepSubnet && subnet ? { subnet } : {}) };
+    const { certificate: _certificate, certificateMap: _certificateMap, ...plaintextListener } = listener;
+    return {
+      ...plaintextListener,
+      protocol: 'HTTP' as const,
+      ...(keepSubnet && subnet ? { subnet } : {}),
+      ...(keepNetworkTier && networkTier ? { networkTier } : {}),
+    };
   };
 
   if (command.loadBalancerType === 'INTERNAL_MANAGED') {
     return {
       ...command,
-      listeners: command.listeners.map((listener) => constrainListener(listener, true)),
+      listeners: command.listeners.map((listener) => constrainListener(listener, true, false)),
       region: command.region === 'global' ? '' : command.region,
+    };
+  }
+
+  if (command.loadBalancerType === 'EXTERNAL_MANAGED') {
+    return {
+      ...command,
+      listeners: command.listeners.map((listener) => constrainListener(listener, false, true)),
+      region: command.region === 'global' ? '' : command.region,
+      subnet: undefined,
     };
   }
 
   return {
     ...command,
-    listeners: command.listeners.map((listener) => constrainListener(listener, false)),
+    listeners: command.listeners.map((listener) => constrainListener(listener, false, false)),
     loadBalancerType: 'HTTP',
     network: undefined,
     region: 'global',
@@ -148,15 +210,18 @@ export function constrainGceHttpLoadBalancerCommand(command: IGceLoadBalancerCom
 export function validateGceHttpLoadBalancerCommand(command: IGceLoadBalancerCommand): string[] {
   const errors = new Set<string>();
   const internal = command.loadBalancerType === 'INTERNAL_MANAGED';
+  const externalManaged = command.loadBalancerType === 'EXTERNAL_MANAGED';
 
   if (!command.name.trim()) errors.add('Name is required.');
   if (!command.credentials) errors.add('Account is required.');
-  if (internal) {
+  if (internal || externalManaged) {
     if (!command.region || command.region === 'global') {
-      errors.add('Region is required for INTERNAL_MANAGED load balancers.');
+      errors.add(`Region is required for ${internal ? 'INTERNAL_MANAGED' : 'EXTERNAL_MANAGED'} load balancers.`);
     }
-    if (!command.network?.name) errors.add('Network is required for INTERNAL_MANAGED load balancers.');
-    if (!command.subnet?.name) errors.add('Subnet is required for INTERNAL_MANAGED load balancers.');
+    if (!command.network?.name) {
+      errors.add(`Network is required for ${internal ? 'INTERNAL_MANAGED' : 'EXTERNAL_MANAGED'} load balancers.`);
+    }
+    if (internal && !command.subnet?.name) errors.add('Subnet is required for INTERNAL_MANAGED load balancers.');
   } else if (command.region !== 'global') {
     errors.add('HTTP load balancers must use the global location.');
   }
@@ -175,6 +240,9 @@ export function validateGceHttpLoadBalancerCommand(command: IGceLoadBalancerComm
     }
     if (listener.protocol === 'HTTPS' && listener.portRange !== '443') {
       errors.add('HTTPS listeners must use port 443.');
+    }
+    if (externalManaged && listener.certificateMap) {
+      errors.add('Certificate maps are not supported for EXTERNAL_MANAGED load balancers.');
     }
   });
 
@@ -342,6 +410,7 @@ export function GceHttpLoadBalancerEditor({ command, data, onChange }: IGceHttpL
           >
             <option value="HTTP">HTTP(S)</option>
             <option value="INTERNAL_MANAGED">Internal managed HTTP</option>
+            <option value="EXTERNAL_MANAGED">External managed HTTP(S)</option>
           </select>
         </FormRow>
         <FormRow label="Account">
@@ -361,7 +430,7 @@ export function GceHttpLoadBalancerEditor({ command, data, onChange }: IGceHttpL
             ))}
           </select>
         </FormRow>
-        {command.loadBalancerType === 'INTERNAL_MANAGED' && (
+        {(command.loadBalancerType === 'INTERNAL_MANAGED' || command.loadBalancerType === 'EXTERNAL_MANAGED') && (
           <React.Fragment>
             <FormRow label="Region">
               <select
@@ -396,28 +465,30 @@ export function GceHttpLoadBalancerEditor({ command, data, onChange }: IGceHttpL
                 ))}
               </select>
             </FormRow>
-            <FormRow label="Subnet">
-              <select
-                className="form-control input-sm"
-                data-testid="subnet"
-                required
-                value={command.subnet?.name || ''}
-                onChange={(event) => {
-                  const subnet = selectedReference(event.target.value, options.subnets);
-                  update({
-                    subnet,
-                    listeners: command.listeners.map((listener) => ({ ...listener, subnet })),
-                  });
-                }}
-              >
-                <option value="">Select...</option>
-                {options.subnets.map((subnet) => (
-                  <option key={subnet.name} value={subnet.name}>
-                    {subnet.name}
-                  </option>
-                ))}
-              </select>
-            </FormRow>
+            {command.loadBalancerType === 'INTERNAL_MANAGED' && (
+              <FormRow label="Subnet">
+                <select
+                  className="form-control input-sm"
+                  data-testid="subnet"
+                  required
+                  value={command.subnet?.name || ''}
+                  onChange={(event) => {
+                    const subnet = selectedReference(event.target.value, options.subnets);
+                    update({
+                      subnet,
+                      listeners: command.listeners.map((listener) => ({ ...listener, subnet })),
+                    });
+                  }}
+                >
+                  <option value="">Select...</option>
+                  {options.subnets.map((subnet) => (
+                    <option key={subnet.name} value={subnet.name}>
+                      {subnet.name}
+                    </option>
+                  ))}
+                </select>
+              </FormRow>
+            )}
           </React.Fragment>
         )}
       </section>
