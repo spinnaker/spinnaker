@@ -9,7 +9,7 @@ dependencies {
   api project(":kork-annotations")
   api project(":kork-exceptions")
   api "org.springframework.boot:spring-boot-autoconfigure"
-  api "org.springframework.boot:spring-boot-starter-aop"
+  api "org.springframework.boot:spring-boot-starter-aspectj"
   api "org.springframework.boot:spring-boot-starter-actuator"
   api "com.netflix.spectator:spectator-api"
   api "com.google.code.findbugs:jsr305"
@@ -26,6 +26,8 @@ dependencies {
 
   testImplementation project(":kork-test")
   testImplementation "org.springframework.boot:spring-boot-starter-test"
+  // Provides the Jackson 2 ObjectMapper auto-configuration for @AutoConfigureJson slices.
+  testImplementation "org.springframework.boot:spring-boot-jackson2"
   testImplementation "org.assertj:assertj-core"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
   testImplementation("org.mockito:mockito-core")

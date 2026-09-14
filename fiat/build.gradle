@@ -23,6 +23,19 @@ plugins {
 allprojects {
   apply plugin: 'io.spinnaker.project'
   group = "io.spinnaker.fiat"
+
+  // WireMock 3.10.0's default Jetty 11 server (and the jetty12 variant's Jetty
+  // 12.0.x) conflicts with Boot 4.1's managed Jetty 12.1.x on test classpaths
+  // (HttpServerFactoryLoader finds no loadable factory). The shaded standalone
+  // artifact is self-contained, so substitute it for all WireMock test usage.
+  configurations.all {
+    resolutionStrategy.dependencySubstitution {
+      substitute module("org.wiremock:wiremock") using module(
+          "org.wiremock:wiremock-standalone:3.10.0")
+      substitute module("org.wiremock:wiremock-jetty12") using module(
+          "org.wiremock:wiremock-standalone:3.10.0")
+    }
+  }
 }
 
 subprojects {

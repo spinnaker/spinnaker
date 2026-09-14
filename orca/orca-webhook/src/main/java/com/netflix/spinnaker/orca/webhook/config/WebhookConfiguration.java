@@ -64,7 +64,6 @@ import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.http.client.OkHttp3ClientHttpRequestFactory;
 import org.springframework.http.converter.AbstractHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
@@ -171,7 +170,7 @@ public class WebhookConfiguration {
     }
 
     var client = builder.build();
-    var requestFactory = new OkHttp3ClientHttpRequestFactory(client);
+    var requestFactory = new OkHttpClientHttpRequestFactory(client);
     long readTimeoutMs =
         (environment.containsProperty("webhook.readTimeoutMs")
                 || environment.containsProperty("webhook.read-timeout-ms"))

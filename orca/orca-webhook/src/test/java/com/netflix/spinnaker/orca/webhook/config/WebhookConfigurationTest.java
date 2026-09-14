@@ -45,7 +45,6 @@ import org.springframework.boot.test.context.assertj.AssertableApplicationContex
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.client.OkHttp3ClientHttpRequestFactory;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.web.client.RestTemplate;
 
@@ -262,14 +261,14 @@ class WebhookConfigurationTest {
             });
   }
 
-  /** Retrieve the client member from the OkHttp3ClientHttpRequestFactory bean */
+  /** Retrieve the client member from the OkHttpClientHttpRequestFactory bean */
   private static OkHttpClient getOkHttpClient(AssertableApplicationContext ctx) {
-    OkHttp3ClientHttpRequestFactory requestFactory =
-        ctx.getBean(OkHttp3ClientHttpRequestFactory.class);
+    OkHttpClientHttpRequestFactory requestFactory =
+        ctx.getBean(OkHttpClientHttpRequestFactory.class);
     assertThat(requestFactory).isNotNull();
     Field clientField =
         ReflectionUtils.findField(
-            OkHttp3ClientHttpRequestFactory.class, "client", OkHttpClient.class);
+            OkHttpClientHttpRequestFactory.class, "client", OkHttpClient.class);
     assertThat(clientField).isNotNull();
     clientField.setAccessible(true);
     OkHttpClient client = (OkHttpClient) ReflectionUtils.getField(clientField, requestFactory);

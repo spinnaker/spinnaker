@@ -17,61 +17,48 @@
 package com.netflix.kayenta.config;
 
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.boot.actuate.health.*;
+import org.springframework.boot.health.actuate.endpoint.StatusAggregator;
+import org.springframework.boot.health.contributor.*;
 import org.springframework.cloud.client.discovery.health.DiscoveryCompositeHealthContributor;
 
 public class OrcaCompositeHealthContributor implements CompositeHealthContributor {
 
   private final StatusAggregator statusAggregator;
-  private final Map<String, NamedContributor<HealthContributor>> contributors;
+  private final Map<String, HealthContributor> contributors;
 
   public OrcaCompositeHealthContributor(
-      StatusAggregator statusAggregator, HealthContributorRegistry healthContributorRegistry) {
+      StatusAggregator statusAggregator, HealthContributors healthContributors) {
     this.statusAggregator = statusAggregator;
 
     this.contributors = new LinkedHashMap<>();
-    healthContributorRegistry.forEach(
-        contributor ->
-            contributors.put(
-                contributor.getName(),
-                NamedContributor.of(contributor.getName(), contributor.getContributor())));
+    healthContributors.forEach(entry -> contributors.put(entry.name(), entry.contributor()));
   }
 
   @Override
   public HealthContributor getContributor(String name) {
-    return contributors.get(name).getContributor();
+    return contributors.get(name);
   }
 
   @Override
-  public Stream<NamedContributor<HealthContributor>> stream() {
-    return CompositeHealthContributor.super.stream();
+  public Stream<HealthContributors.Entry> stream() {
+    return contributors.entrySet().stream()
+        .map(e -> new HealthContributors.Entry(e.getKey(), e.getValue()));
   }
 
   @NotNull
   @Override
-  public Iterator<NamedContributor<HealthContributor>> iterator() {
-    return contributors.values().iterator();
-  }
-
-  @Override
-  public void forEach(Consumer<? super NamedContributor<HealthContributor>> action) {
-    CompositeHealthContributor.super.forEach(action);
-  }
-
-  @Override
-  public Spliterator<NamedContributor<HealthContributor>> spliterator() {
-    return CompositeHealthContributor.super.spliterator();
+  public Iterator<HealthContributors.Entry> iterator() {
+    return stream().iterator();
   }
 
   public Status status() {
     Set<Status> statuses =
         this.contributors.values().stream()
-            .filter(c -> c.getContributor() instanceof HealthIndicator)
-            .map(contributor -> ((HealthIndicator) contributor.getContributor()).getHealth(false))
+            .filter(c -> c instanceof HealthIndicator)
+            .map(contributor -> ((HealthIndicator) contributor).health(false))
             .map(Health::getStatus)
             .collect(Collectors.toSet());
     statuses.addAll(getDiscoveryStatuses());
@@ -80,10 +67,10 @@ public class OrcaCompositeHealthContributor implements CompositeHealthContributo
   }
 
   private Set<Status> getDiscoveryStatuses() {
-    NamedContributor<HealthContributor> discoveryComposite = contributors.get("discoveryComposite");
+    HealthContributor discoveryComposite = contributors.get("discoveryComposite");
 
     if (discoveryComposite != null) {
-      return ((DiscoveryCompositeHealthContributor) discoveryComposite.getContributor())
+      return ((DiscoveryCompositeHealthContributor) discoveryComposite)
           .getIndicators().values().stream()
               .map(i -> i.health().getStatus())
               .collect(Collectors.toSet());
