@@ -19,12 +19,7 @@ package com.netflix.spinnaker.rosco.manifests.helmfile;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreConfigurationProperties;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-<<<<<<< HEAD
-=======
-import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.yaml.YamlHelper;
->>>>>>> 1dce54d (fix(rosco): reject helmfile hooks/postRenderers by default to prevent RCE via bake (#8015))
 import com.netflix.spinnaker.rosco.jobs.BakeRecipe;
 import com.netflix.spinnaker.rosco.manifests.ArtifactDownloader;
 import com.netflix.spinnaker.rosco.manifests.BakeManifestEnvironment;
@@ -41,36 +36,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-<<<<<<< HEAD
-=======
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
->>>>>>> 1dce54d (fix(rosco): reject helmfile hooks/postRenderers by default to prevent RCE via bake (#8015))
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
 public class HelmfileTemplateUtils extends HelmBakeTemplateUtils<HelmfileBakeManifestRequest> {
-<<<<<<< HEAD
-=======
-
-  // Environment and namespace are passed directly as arguments to the helmfile executable (see
-  // buildCommand below), so they're restricted to characters that are valid in a Kubernetes
-  // namespace / helmfile environment name.
-  //
-  // Note this is NOT a shell-injection fix: BakeRecipe.command is executed by JobExecutorLocal as
-  // an argv array (commons-exec CommandLine with quote-parsing disabled, ultimately
-  // ProcessBuilder-style execve), never via "sh -c" or any other shell, so metacharacters such as
-  // ";", "|", or "$()" in these values are inert - they can't break out to run another command.
-  // This pattern instead guards against argument injection (e.g. a value beginning with "-" being
-  // misread by helmfile's flag parser as a new flag rather than the value of --environment /
-  // --namespace) and acts as defense-in-depth in case this code path is ever refactored to invoke
-  // a shell.
-  private static final Pattern SAFE_ARGUMENT_PATTERN =
-      Pattern.compile("^[a-zA-Z0-9]([a-zA-Z0-9._-]*[a-zA-Z0-9])?$");
 
   // Matches helm's --post-renderer / --post-renderer-args flags, however helmfile passes them
   // along (a bare "--post-renderer", "--post-renderer=/some/script", or a separate "=value"
@@ -86,21 +61,17 @@ public class HelmfileTemplateUtils extends HelmBakeTemplateUtils<HelmfileBakeMan
   private static final String BASES_KEY = "bases";
   private static final List<String> HELMFILE_FILE_NAMES = List.of("helmfile.yaml", "helmfile.yml");
 
->>>>>>> 1dce54d (fix(rosco): reject helmfile hooks/postRenderers by default to prevent RCE via bake (#8015))
   private final RoscoHelmfileConfigurationProperties helmfileConfigurationProperties;
   private final RoscoHelmConfigurationProperties helmConfigurationProperties =
       new RoscoHelmConfigurationProperties();
-  private final YamlHelper yamlHelper;
 
   public HelmfileTemplateUtils(
       ArtifactDownloader artifactDownloader,
       Optional<ArtifactStore> artifactStore,
       ArtifactStoreConfigurationProperties artifactStoreConfig,
-      RoscoHelmfileConfigurationProperties helmfileConfigurationProperties,
-      YamlHelper yamlHelper) {
+      RoscoHelmfileConfigurationProperties helmfileConfigurationProperties) {
     super(artifactDownloader, artifactStore, artifactStoreConfig.getHelm());
     this.helmfileConfigurationProperties = helmfileConfigurationProperties;
-    this.yamlHelper = yamlHelper;
   }
 
   public BakeRecipe buildBakeRecipe(
@@ -117,41 +88,12 @@ public class HelmfileTemplateUtils extends HelmBakeTemplateUtils<HelmfileBakeMan
         getHelmTypePathFromArtifact(env, inputArtifacts, request.getHelmfileFilePath());
 
     log.info("path to helmfile: {}", helmfileFilePath);
-<<<<<<< HEAD
-    return buildCommand(request, getValuePaths(inputArtifacts, env), helmfileFilePath);
-=======
 
     if (!helmfileConfigurationProperties.isAllowHooksAndPostRenderers()) {
       rejectHooksAndPostRenderers(helmfileFilePath);
     }
 
-    return buildCommand(
-        request,
-        getValuePaths(inputArtifacts, env),
-        getStateValuePaths(request, env),
-        helmfileFilePath);
-  }
-
-  private List<Path> getStateValuePaths(
-      HelmfileBakeManifestRequest request, BakeManifestEnvironment env) {
-    List<Artifact> stateValuesArtifacts = request.getStateValuesArtifacts();
-    if (stateValuesArtifacts == null || stateValuesArtifacts.isEmpty()) {
-      return new ArrayList<>();
-    }
-
-    List<Path> stateValuePaths = new ArrayList<>();
-    try {
-      for (Artifact stateValuesArtifact : stateValuesArtifacts) {
-        stateValuePaths.add(downloadArtifactToTmpFile(env, stateValuesArtifact));
-      }
-    } catch (SpinnakerHttpException e) {
-      throw new SpinnakerHttpException(fetchFailureMessage("state values file", e), e);
-    } catch (IOException | SpinnakerException e) {
-      throw new IllegalStateException(fetchFailureMessage("state values file", e), e);
-    }
-
-    return stateValuePaths;
->>>>>>> 1dce54d (fix(rosco): reject helmfile hooks/postRenderers by default to prevent RCE via bake (#8015))
+    return buildCommand(request, getValuePaths(inputArtifacts, env), helmfileFilePath);
   }
 
   public String fetchFailureMessage(String description, Exception e) {
@@ -212,18 +154,6 @@ public class HelmfileTemplateUtils extends HelmBakeTemplateUtils<HelmfileBakeMan
     result.setCommand(command);
 
     return result;
-  }
-<<<<<<< HEAD
-=======
-
-  private static String validateArgument(String fieldName, String value) {
-    if (!SAFE_ARGUMENT_PATTERN.matcher(value).matches()) {
-      throw new IllegalArgumentException(
-          "The bake request "
-              + fieldName
-              + " field contains invalid characters. Only letters, numbers, '.', '_' and '-' are allowed.");
-    }
-    return value;
   }
 
   /**
@@ -291,7 +221,10 @@ public class HelmfileTemplateUtils extends HelmBakeTemplateUtils<HelmfileBakeMan
 
     Map<String, Object> doc;
     try (Reader reader = Files.newBufferedReader(file)) {
-      Object loaded = yamlHelper.newSafeConstructorYaml().load(reader);
+      // release-2026.1.x's kork YamlHelper predates the instance-based newSafeConstructorYaml()
+      // API added alongside this fix on later branches; use its static equivalent here so this
+      // stays a straight security backport without also pulling in that unrelated kork change.
+      Object loaded = YamlHelper.newYamlSafeConstructor().load(reader);
       if (!(loaded instanceof Map)) {
         return;
       }
@@ -390,5 +323,4 @@ public class HelmfileTemplateUtils extends HelmBakeTemplateUtils<HelmfileBakeMan
             + "source, set helmfile.allow-hooks-and-post-renderers: true in rosco's "
             + "configuration.");
   }
->>>>>>> 1dce54d (fix(rosco): reject helmfile hooks/postRenderers by default to prevent RCE via bake (#8015))
 }
