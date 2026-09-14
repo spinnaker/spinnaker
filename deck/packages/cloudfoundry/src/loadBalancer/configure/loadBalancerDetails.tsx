@@ -27,7 +27,7 @@ export interface ILoadBalancerDetailsState {
 export class LoadBalancerDetails
   extends React.Component<ILoadBalancerDetailsProps, ILoadBalancerDetailsState>
   implements IWizardPageComponent<ICloudFoundryLoadBalancerUpsertCommand> {
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
   public state: ILoadBalancerDetailsState = {
     accounts: undefined,
     availabilityZones: [],

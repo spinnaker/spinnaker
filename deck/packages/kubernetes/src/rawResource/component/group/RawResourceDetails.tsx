@@ -60,7 +60,7 @@ export class RawResourceDetails extends React.Component<IRawResourceDetailsProps
       manifest: null,
     };
   }
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
   private props$ = new Subject<IRawResourceDetailsProps>();
   private unsubscribeManifest?: () => void;
 

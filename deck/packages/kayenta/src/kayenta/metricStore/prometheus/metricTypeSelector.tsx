@@ -133,7 +133,7 @@ const mapStateToProps = (state: ICanaryState, ownProps: IPrometheusMetricTypeSel
   };
 };
 
-const mapDispatchToProps = (dispatch: Dispatch<ICanaryState>) => {
+const mapDispatchToProps = (dispatch: Dispatch) => {
   return {
     load: (filter: string, metricsAccountName: string) => {
       dispatch(Creators.updatePrometheusMetricDescriptorFilter({ filter, metricsAccountName }));

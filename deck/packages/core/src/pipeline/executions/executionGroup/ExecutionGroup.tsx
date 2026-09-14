@@ -70,7 +70,7 @@ export class ExecutionGroupComponent extends React.PureComponent<
   public state: IExecutionGroupState;
   private expandUpdatedSubscription: Subscription;
   private stateChangeSuccessSubscription: Subscription;
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
   private headerRef = React.createRef<HTMLDivElement>();
 
   constructor(props: IExecutionGroupProps & IRouterInjectedProps & IDeckRuntimeServicesInjectedProps) {

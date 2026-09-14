@@ -29,7 +29,7 @@
     "react": "16.14.0",
     "react-bootstrap": "0.32.1",
     "react-select": "1.2.1",
-    "rxjs": "6.6.7"
+    "rxjs": "7.8.2"
   },
   "devDependencies": {
     "@rollup/plugin-alias": "^6.0.0",
