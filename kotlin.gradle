@@ -49,6 +49,13 @@ dependencies {
 
 test {
   useJUnitPlatform()
+
+  // spek-runner-junit5's classpath scanner (classgraph, via an old spek2
+  // dependency) unmaps its memory-mapped jar reads via the terminally
+  // deprecated sun.misc.Unsafe::invokeCleaner, which is noisy on JDK 25.
+  // classgraph has no newer-API fallback for this yet, so silence the
+  // per-JVM warning rather than the underlying (harmless) call.
+  jvmArgs '--sun-misc-unsafe-memory-access=allow'
 }
 
 compileKotlin {
