@@ -33,6 +33,10 @@ ext {
     logback          : "1.5.37",
     tomcat           : "10.1.56",
     commonsCompress  : "1.27.1",
+    // Testcontainers module for the MiniStack AWS emulator. The module is a thin
+    // GenericContainer wrapper, so the emulator version comes from the image tag
+    // (MINISTACK_IMAGE_TAG in the tests), not from here.
+    testcontainersMiniStack : "0.1.5",
   ]
 }
 
@@ -180,6 +184,7 @@ dependencies {
     api("org.pf4j:pf4j:3.14.1")
     api("org.pf4j:pf4j-update:2.3.0")
     api("org.springdoc:springdoc-openapi-starter-webmvc-ui:${versions.springdocs}")
+    api("org.ministack:testcontainers-ministack:${versions.testcontainersMiniStack}")
     api("org.threeten:threeten-extra:1.0")
   }
 }

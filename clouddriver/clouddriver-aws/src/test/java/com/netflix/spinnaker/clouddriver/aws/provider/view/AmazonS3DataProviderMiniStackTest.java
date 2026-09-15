@@ -1,0 +1,169 @@
+/*
+ * Copyright 2026 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.netflix.spinnaker.clouddriver.aws.provider.view;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.client.builder.AwsClientBuilder;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.model.S3Object;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonS3StaticDataProviderConfiguration.StaticRecord;
+import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonS3StaticDataProviderConfiguration.StaticRecordType;
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
+import com.netflix.spinnaker.credentials.CredentialsRepository;
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import org.apache.commons.io.IOUtils;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.ministack.testcontainers.MiniStackContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+
+/**
+ * Validates that {@link AmazonS3DataProvider#fetchObject} round-trips real bytes against an
+ * S3-compatible API, exercising the real {@code GetObject} request construction and {@link
+ * S3Object} consumption end-to-end through {@link AmazonS3DataProvider#getStaticData} -- not just
+ * mocked interactions.
+ *
+ * <p>Uses the MiniStack emulator (same pattern as {@code
+ * kayenta-s3/S3StorageServiceIntegrationTest}). Its docker-in-docker machinery for RDS/ECS is
+ * opt-in via {@code withRealInfrastructure()}, so plain S3 needs no host docker.sock bind-mount and
+ * starts reliably across Docker runtimes (including Colima).
+ */
+@Testcontainers
+class AmazonS3DataProviderMiniStackTest {
+
+  /**
+   * Pinned deliberately: {@code MiniStackContainer}'s no-arg constructor resolves {@code latest},
+   * and the emulator releases weekly, so the tag is the only thing that fixes the version these
+   * tests run against.
+   */
+  private static final String MINISTACK_IMAGE_TAG = "1.5.10";
+
+  private static final String BUCKET_NAME = "s3-migration-test-bucket";
+  private static final String ACCOUNT_NAME = "test";
+  private static final String REGION = "us-east-1";
+
+  @Container
+  static final MiniStackContainer ministack = new MiniStackContainer(MINISTACK_IMAGE_TAG);
+
+  private static AmazonS3 s3Client;
+  private static AmazonS3DataProvider dataProvider;
+
+  @BeforeAll
+  static void setupOnce() {
+    s3Client =
+        AmazonS3ClientBuilder.standard()
+            .withEndpointConfiguration(
+                new AwsClientBuilder.EndpointConfiguration(ministack.getEndpoint(), REGION))
+            .withCredentials(
+                new AWSStaticCredentialsProvider(
+                    new BasicAWSCredentials(ministack.getAccessKey(), ministack.getSecretKey())))
+            .withPathStyleAccessEnabled(true)
+            .build();
+
+    s3Client.createBucket(BUCKET_NAME);
+    putString("string-key", "hello from ministack s3");
+    putString("object-key", "{\"foo\":\"bar\"}");
+    putString("list-key", "[{\"name\":\"a\"},{\"name\":\"b\"}]");
+
+    NetflixAmazonCredentials credentials =
+        new ObjectMapper()
+            .convertValue(
+                Map.of(
+                    "name", ACCOUNT_NAME,
+                    "environment", ACCOUNT_NAME,
+                    "accountType", ACCOUNT_NAME,
+                    "accountId", "123456789012",
+                    "regions", List.of(Map.of("name", REGION, "availabilityZones", List.of()))),
+                NetflixAmazonCredentials.class);
+
+    AmazonClientProvider mockAmazonClientProvider = mock(AmazonClientProvider.class);
+    when(mockAmazonClientProvider.getAmazonS3(eq(credentials), any())).thenReturn(s3Client);
+
+    @SuppressWarnings("unchecked")
+    CredentialsRepository<NetflixAmazonCredentials> mockCredentialsRepository =
+        mock(CredentialsRepository.class);
+    when(mockCredentialsRepository.getOne(ACCOUNT_NAME)).thenReturn(credentials);
+
+    AmazonS3StaticDataProviderConfiguration configuration =
+        new AmazonS3StaticDataProviderConfiguration(
+            List.of(
+                staticRecord("stringRecordId", StaticRecordType.string, "string-key"),
+                staticRecord("objectRecordId", StaticRecordType.object, "object-key"),
+                staticRecord("listRecordId", StaticRecordType.list, "list-key")),
+            Collections.emptyList());
+
+    dataProvider =
+        new AmazonS3DataProvider(
+            new ObjectMapper(), mockAmazonClientProvider, mockCredentialsRepository, configuration);
+  }
+
+  private static void putString(String key, String contents) {
+    s3Client.putObject(BUCKET_NAME, key, contents);
+  }
+
+  private static StaticRecord staticRecord(String id, StaticRecordType type, String key) {
+    return new StaticRecord(id, type, ACCOUNT_NAME, REGION, BUCKET_NAME, key);
+  }
+
+  @Test
+  void fetchObjectRoundTripsRealBytesThroughAwsSdk() throws Exception {
+    try (S3Object s3Object =
+        dataProvider.fetchObject(ACCOUNT_NAME, REGION, BUCKET_NAME, "string-key")) {
+      ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+      IOUtils.copy(s3Object.getObjectContent(), outputStream);
+      assertThat(outputStream.toString(StandardCharsets.UTF_8))
+          .isEqualTo("hello from ministack s3");
+    }
+  }
+
+  @Test
+  void getStaticDataReturnsRawStringForStringRecords() {
+    Object result = dataProvider.getStaticData("stringRecordId", Map.of());
+    assertThat(result).isEqualTo("hello from ministack s3");
+  }
+
+  @Test
+  void getStaticDataParsesJsonObjectForObjectRecords() {
+    Object result = dataProvider.getStaticData("objectRecordId", Map.of());
+    assertThat(result).isInstanceOf(Map.class);
+    assertThat(((Map<?, ?>) result).get("foo")).isEqualTo("bar");
+  }
+
+  @Test
+  void getStaticDataParsesAndFiltersJsonListForListRecords() {
+    Object result = dataProvider.getStaticData("listRecordId", Map.of("name", "b"));
+    assertThat(result).isInstanceOf(List.class);
+    List<?> list = (List<?>) result;
+    assertThat(list).hasSize(1);
+    assertThat(((Map<?, ?>) list.get(0)).get("name")).isEqualTo("b");
+  }
+}
