@@ -166,9 +166,66 @@ jobs:
           draft: false
           prerelease: false
 
+      # Every service's app-dependency (CycloneDX) and container-image (SPDX) SBOMs land here as
+      # workflow artifacts from the reusable per-service workflows invoked earlier in this run.
+      # continue-on-error: this is an enhancement, not something that should ever be able to fail
+      # a real release -- if nothing matches (or the action's zero-match behavior changes), the
+      # "Attach SBOMs" step below already no-ops cleanly on an empty/missing sboms/ directory.
+      - name: Download service SBOMs
+        if: inputs.publish-github-release == true
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          path: sboms
+          pattern: 'sbom-*'
+          merge-multiple: true
+
+      - name: Download image SBOMs
+        if: inputs.publish-github-release == true
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          path: sboms
+          pattern: 'image-sbom-*'
+          merge-multiple: true
+
+      # Uploads each SBOM as a release asset and links (not embeds) them from the release notes,
+      # appended after the changelog actions/create-release already set as the body.
+      - name: Attach SBOMs to release and link them from the release notes
+        if: inputs.publish-github-release == true
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: spinnaker-release-${{ inputs.spinnaker-version }}
+          CHANGELOG: ${{ steps.spinnaker-release-bom.outputs.changelog }}
+        run: |
+          shopt -s nullglob
+          FILES=(sboms/*)
+          if [ ${#FILES[@]} -eq 0 ]; then
+            echo "No SBOM artifacts found for this release; skipping attachment."
+            exit 0
+          fi
+
+          gh release upload "$TAG" "${FILES[@]}" --clobber
+
+          {
+            printf '%s\n\n' "$CHANGELOG"
+            echo "## SBOMs"
+            echo
+            echo "CycloneDX application-dependency and SPDX container-image SBOMs for every service in this release:"
+            echo
+            for f in "${FILES[@]}"; do
+              name=$(basename "$f")
+              echo "- [$name](https://github.com/${{ github.repository }}/releases/download/$TAG/$name)"
+            done
+          } > release-notes-with-sboms.md
+
+          gh release edit "$TAG" --notes-file release-notes-with-sboms.md
+
       - name: Summarize
         shell: bash
         run: |
+          SBOM_COUNT=$(find sboms/ -type f 2>/dev/null | wc -l | tr -d ' ')
           cat <<EOF> "$GITHUB_STEP_SUMMARY"
           ### Release Info
           | | |
@@ -177,6 +234,7 @@ jobs:
           | __BoM__ | ${{ steps.spinnaker-release-bom.outputs.bom-url }} |
           | __Changelog__ | ${{ steps.spinnaker-release-bom.outputs.bom-url }} |
           | __versions.yml__ | ${{ steps.spinnaker-release-bom.outputs.versions-yml-url }} |
+          | __SBOMs attached__ | $SBOM_COUNT |
           <details>
           <summary>BoM Contents</summary>
           

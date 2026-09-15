@@ -150,14 +150,23 @@ runs:
       run: |
         ./gradlew :${{ inputs.project }}:cyclonedxBom
 
+    # Renamed from the generic bom.json/bom.xml so files stay unambiguous once collected
+    # alongside every other service's SBOM (e.g. as release assets).
+    - name: Rename SBOM for upload
+      if: inputs.generate-sbom == 'true'
+      shell: bash
+      run: |
+        cp ${{ inputs.project }}/build/reports/cyclonedx/bom.json ${{ inputs.project }}/build/reports/cyclonedx/${{ inputs.project }}-app-sbom.cdx.json
+        cp ${{ inputs.project }}/build/reports/cyclonedx/bom.xml ${{ inputs.project }}/build/reports/cyclonedx/${{ inputs.project }}-app-sbom.cdx.xml
+
     - name: Upload SBOM artifact
       if: inputs.generate-sbom == 'true'
       uses: actions/upload-artifact@v4
       with:
         name: sbom-${{ inputs.project }}-${{ steps.version.outputs.version }}
         path: |
-          ${{ inputs.project }}/build/reports/cyclonedx/bom.json
-          ${{ inputs.project }}/build/reports/cyclonedx/bom.xml
+          ${{ inputs.project }}/build/reports/cyclonedx/${{ inputs.project }}-app-sbom.cdx.json
+          ${{ inputs.project }}/build/reports/cyclonedx/${{ inputs.project }}-app-sbom.cdx.xml
         if-no-files-found: error
 
     - name: Summarize SBOM
@@ -168,7 +177,7 @@ runs:
         cat <<EOF >> "$GITHUB_STEP_SUMMARY"
         ### SBOM (CycloneDX)
         Generated for \`${{ inputs.project }}\` version \`${{ steps.version.outputs.version }}\`: $COMPONENT_COUNT components.
-        Full bom.json/bom.xml available in the \`sbom-${{ inputs.project }}-${{ steps.version.outputs.version }}\` workflow artifact.
+        Full ${{ inputs.project }}-app-sbom.cdx.json/.cdx.xml available in the \`sbom-${{ inputs.project }}-${{ steps.version.outputs.version }}\` workflow artifact.
         EOF
 
     # Containers should generally be built in PRs to ensure that Dockerfiles are functioning properly

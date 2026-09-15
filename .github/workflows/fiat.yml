@@ -48,6 +48,12 @@ on:
       - 'kork/**'
       - '.github/workflows/fiat.yml'
 
+permissions:
+  id-token: write
+  contents: write
+  packages: write
+  attestations: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
