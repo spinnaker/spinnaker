@@ -17,9 +17,9 @@
 package com.netflix.spinnaker.clouddriver.lambda.provider.agent;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.clouddriver.aws.jackson.AwsObjectMapperFactory;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.agent.AgentProvider;
+import com.netflix.spinnaker.clouddriver.aws.jackson.AwsObjectMapperFactory;
 import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module;
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;

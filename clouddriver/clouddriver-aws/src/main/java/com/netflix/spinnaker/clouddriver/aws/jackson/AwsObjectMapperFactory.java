@@ -23,12 +23,12 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 
 /**
  * Replaces {@code com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer}, which pulled in the
- * entire AWS SDK v1 (2000+ Jackson mixins, one per v1 model class) just to reach these five
- * generic Jackson settings. Its custom {@code PropertyNamingStrategy} is dropped rather than
- * ported: AWS SDK v2 model objects ({@link software.amazon.awssdk.core.SdkPojo}) are (de)serialized
- * by {@link SdkPojoSerializer}/{@link SdkPojoDeserializer} via each field's own {@code
- * memberName()}, bypassing the mapper's naming strategy entirely, so it only ever applied to AWS
- * SDK v1 model classes -- none of which this codebase still constructs.
+ * entire AWS SDK v1 (2000+ Jackson mixins, one per v1 model class) just to reach these five generic
+ * Jackson settings. Its custom {@code PropertyNamingStrategy} is dropped rather than ported: AWS
+ * SDK v2 model objects ({@link software.amazon.awssdk.core.SdkPojo}) are (de)serialized by {@link
+ * SdkPojoSerializer}/{@link SdkPojoDeserializer} via each field's own {@code memberName()},
+ * bypassing the mapper's naming strategy entirely, so it only ever applied to AWS SDK v1 model
+ * classes -- none of which this codebase still constructs.
  */
 public final class AwsObjectMapperFactory {
 
