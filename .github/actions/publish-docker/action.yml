@@ -26,6 +26,9 @@ inputs:
   gar-json-key:
     description: Google Artifact Registry JSON key
     required: true
+  generate-sbom:
+    description: Whether to attach a buildx-generated SBOM attestation to the published container images
+    default: 'false'
 
 runs:
   using: "composite"
@@ -90,6 +93,7 @@ runs:
         file: ${{ inputs.project }}/Dockerfile
         platforms: linux/amd64,linux/arm64
         push: ${{ inputs.push == 'true' }}
+        sbom: ${{ inputs.generate-sbom == 'true' }}
         build-args: ${{ inputs.build-args }}
         secrets: |
           github_token=${{ inputs.github-token }}
@@ -116,6 +120,7 @@ runs:
         file: ${{ inputs.project }}/Dockerfile.slim
         platforms: linux/amd64,linux/arm64
         push: ${{ inputs.push == 'true' }}
+        sbom: ${{ inputs.generate-sbom == 'true' }}
         build-args: ${{ inputs.build-args }}
         secrets: |
           github_token=${{ inputs.github-token }}
@@ -143,6 +148,7 @@ runs:
         file: ${{ inputs.project }}/Dockerfile.ubuntu
         platforms: linux/amd64,linux/arm64
         push: ${{ inputs.push == 'true' }}
+        sbom: ${{ inputs.generate-sbom == 'true' }}
         build-args: ${{ inputs.build-args }}
         secrets: |
           github_token=${{ inputs.github-token }}

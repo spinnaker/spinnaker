@@ -49,6 +49,9 @@ inputs:
   publish-npm:
     description: If publishing, determines whether to publish NPM packages or not
     default: 'false'
+  generate-sbom:
+    description: If publishing containers, whether to attach a buildx-generated SBOM attestation to them
+    default: 'false'
 
 runs:
   using: "composite"
@@ -145,6 +148,7 @@ runs:
         build-url: ${{ steps.version.outputs.build-url }}
         build-command: ${{ inputs.docker-build-command }}
         push: ${{ github.event_name != 'pull_request' && inputs.publish == 'true' && inputs.publish-containers == 'true' }}
+        generate-sbom: ${{ inputs.generate-sbom }}
         gar-json-key: ${{ inputs.gar-json-key }}
         github-token: ${{ inputs.github-token }}
 
