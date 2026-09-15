@@ -168,12 +168,10 @@ jobs:
 
       # Every service's app-dependency (CycloneDX) and container-image (SPDX) SBOMs land here as
       # workflow artifacts from the reusable per-service workflows invoked earlier in this run.
-      # continue-on-error: this is an enhancement, not something that should ever be able to fail
-      # a real release -- if nothing matches (or the action's zero-match behavior changes), the
-      # "Attach SBOMs" step below already no-ops cleanly on an empty/missing sboms/ directory.
+      # No continue-on-error here or below: SBOMs are a compliance requirement for this release,
+      # not a nice-to-have, so a missing/failed SBOM must fail the release rather than skip quietly.
       - name: Download service SBOMs
         if: inputs.publish-github-release == true
-        continue-on-error: true
         uses: actions/download-artifact@v4
         with:
           path: sboms
@@ -182,7 +180,6 @@ jobs:
 
       - name: Download image SBOMs
         if: inputs.publish-github-release == true
-        continue-on-error: true
         uses: actions/download-artifact@v4
         with:
           path: sboms
@@ -193,17 +190,32 @@ jobs:
       # appended after the changelog actions/create-release already set as the body.
       - name: Attach SBOMs to release and link them from the release notes
         if: inputs.publish-github-release == true
-        continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: spinnaker-release-${{ inputs.spinnaker-version }}
           CHANGELOG: ${{ steps.spinnaker-release-bom.outputs.changelog }}
         run: |
           shopt -s nullglob
+
+          # Every Gradle-based service in this release must have produced an app SBOM. A missing
+          # one means SBOM generation silently broke somewhere upstream -- fail loudly rather than
+          # publish a release with incomplete supply-chain documentation.
+          EXPECTED_SERVICES=(clouddriver echo fiat front50 gate igor kayenta keel orca rosco)
+          MISSING=()
+          for svc in "${EXPECTED_SERVICES[@]}"; do
+            if ! compgen -G "sboms/${svc}-app-sbom.cdx.json" > /dev/null; then
+              MISSING+=("$svc")
+            fi
+          done
+          if [ ${#MISSING[@]} -gt 0 ]; then
+            echo "::error::Missing app SBOM for: ${MISSING[*]} -- SBOMs are required for this release."
+            exit 1
+          fi
+
           FILES=(sboms/*)
           if [ ${#FILES[@]} -eq 0 ]; then
-            echo "No SBOM artifacts found for this release; skipping attachment."
-            exit 0
+            echo "::error::No SBOM artifacts found at all -- SBOMs are required for this release."
+            exit 1
           fi
 
           gh release upload "$TAG" "${FILES[@]}" --clobber
