@@ -28,7 +28,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Iterables;
-import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer;
+import com.netflix.spinnaker.clouddriver.aws.jackson.AwsObjectMapperFactory;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
@@ -69,7 +69,7 @@ class AmazonLoadBalancerInstanceStateCachingAgentTest {
     AmazonClientProvider acp = mock(AmazonClientProvider.class);
     when(acp.getAmazonElasticLoadBalancingClassicV2(creds, region)).thenReturn(loadBalancing);
     return new AmazonLoadBalancerInstanceStateCachingAgent(
-        acp, creds, region, AmazonObjectMapperConfigurer.createConfigured(), ctx);
+        acp, creds, region, AwsObjectMapperFactory.createConfigured(), ctx);
   }
 
   @SuppressWarnings("unchecked")

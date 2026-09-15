@@ -27,9 +27,11 @@ import software.amazon.awssdk.services.cloudwatch.model.MetricAlarm
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.credentials.CredentialsRepository
-import org.joda.time.DateTime
 import spock.lang.Shared
 import spock.lang.Specification
+
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 class CleanupAlarmsAgentSpec extends Specification {
 
@@ -174,7 +176,7 @@ class CleanupAlarmsAgentSpec extends Specification {
   }
 
   private static MetricAlarm buildAlarm(String name, int dataDays) {
-    MetricAlarm.builder().alarmName(name).stateUpdatedTimestamp(DateTime.now().minusDays(dataDays).toDate().toInstant()).build()
+    MetricAlarm.builder().alarmName(name).stateUpdatedTimestamp(Instant.now().minus(dataDays, ChronoUnit.DAYS)).build()
   }
 
 
