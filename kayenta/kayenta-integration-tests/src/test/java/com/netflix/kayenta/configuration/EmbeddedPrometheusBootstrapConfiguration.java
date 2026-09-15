@@ -15,7 +15,7 @@
  */
 package com.netflix.kayenta.configuration;
 
-import static com.playtika.test.common.utils.ContainerUtils.containerLogsConsumer;
+import static com.playtika.testcontainer.common.utils.ContainerUtils.containerLogsConsumer;
 
 import com.netflix.kayenta.utils.EnvironmentUtils;
 import java.time.Duration;

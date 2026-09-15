@@ -37,11 +37,7 @@ import com.netflix.spinnaker.kork.secrets.user.UserSecretMetadataField;
 import com.netflix.spinnaker.kork.secrets.user.UserSecretReference;
 import com.netflix.spinnaker.kork.secrets.user.UserSecretSerde;
 import com.netflix.spinnaker.kork.secrets.user.UserSecretSerdeFactory;
-<<<<<<< HEAD
 import java.nio.ByteBuffer;
-=======
-import java.net.URI;
->>>>>>> ad69f46 (test(aws): replace MinIO and LocalStack with MiniStack in AWS integration tests (#8010))
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -53,18 +49,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.testcontainers.DockerClientFactory;
-<<<<<<< HEAD
-import org.testcontainers.containers.localstack.LocalStackContainer;
-import org.testcontainers.utility.DockerImageName;
-=======
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.core.SdkBytes;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
-import software.amazon.awssdk.services.secretsmanager.model.CreateSecretRequest;
-import software.amazon.awssdk.services.secretsmanager.model.Tag;
->>>>>>> ad69f46 (test(aws): replace MinIO and LocalStack with MiniStack in AWS integration tests (#8010))
 
 @SpringBootTest(classes = SecretConfiguration.class)
 public class SecretsManagerSecretEngineIntegrationTest {
@@ -83,19 +67,7 @@ public class SecretsManagerSecretEngineIntegrationTest {
 
   @Test
   public void canDecryptUserSecret() {
-<<<<<<< HEAD
-    AWSSecretsManager client =
-        AWSSecretsManagerClientBuilder.standard()
-            .withEndpointConfiguration(
-                new AwsClientBuilder.EndpointConfiguration(
-                    container.getEndpoint().toString(), container.getRegion()))
-            .withCredentials(
-                new AWSStaticCredentialsProvider(
-                    new BasicAWSCredentials(container.getAccessKey(), container.getSecretKey())))
-            .build();
-=======
-    SecretsManagerClient client = buildMiniStackClient(container);
->>>>>>> ad69f46 (test(aws): replace MinIO and LocalStack with MiniStack in AWS integration tests (#8010))
+    AWSSecretsManager client = buildMiniStackClient(container);
 
     UserSecretMetadata metadata =
         UserSecretMetadata.builder()
@@ -130,19 +102,17 @@ public class SecretsManagerSecretEngineIntegrationTest {
         });
   }
 
-<<<<<<< HEAD
-=======
-  private static SecretsManagerClient buildMiniStackClient(MiniStackContainer container) {
-    return SecretsManagerClient.builder()
-        .endpointOverride(URI.create(container.getEndpoint()))
-        .region(Region.of(container.getRegion()))
-        .credentialsProvider(
-            StaticCredentialsProvider.create(
-                AwsBasicCredentials.create(container.getAccessKey(), container.getSecretKey())))
+  private static AWSSecretsManager buildMiniStackClient(MiniStackContainer container) {
+    return AWSSecretsManagerClientBuilder.standard()
+        .withEndpointConfiguration(
+            new AwsClientBuilder.EndpointConfiguration(
+                container.getEndpoint(), container.getRegion()))
+        .withCredentials(
+            new AWSStaticCredentialsProvider(
+                new BasicAWSCredentials(container.getAccessKey(), container.getSecretKey())))
         .build();
   }
 
->>>>>>> ad69f46 (test(aws): replace MinIO and LocalStack with MiniStack in AWS integration tests (#8010))
   private static Collection<Tag> tagsForMetadata(UserSecretMetadata metadata) {
     return List.of(
         tagForField(UserSecretMetadataField.TYPE).withValue(metadata.getType()),
@@ -171,21 +141,8 @@ public class SecretsManagerSecretEngineIntegrationTest {
     }
 
     @Bean
-<<<<<<< HEAD
-    public SecretsManagerClientProvider localstackClientProvider(LocalStackContainer container) {
-      return (params) ->
-          AWSSecretsManagerClientBuilder.standard()
-              .withEndpointConfiguration(
-                  new AwsClientBuilder.EndpointConfiguration(
-                      container.getEndpoint().toString(), container.getRegion()))
-              .withCredentials(
-                  new AWSStaticCredentialsProvider(
-                      new BasicAWSCredentials(container.getAccessKey(), container.getSecretKey())))
-              .build();
-=======
     public SecretsManagerClientProvider miniStackClientProvider(MiniStackContainer container) {
       return (params) -> buildMiniStackClient(container);
->>>>>>> ad69f46 (test(aws): replace MinIO and LocalStack with MiniStack in AWS integration tests (#8010))
     }
 
     @Bean
