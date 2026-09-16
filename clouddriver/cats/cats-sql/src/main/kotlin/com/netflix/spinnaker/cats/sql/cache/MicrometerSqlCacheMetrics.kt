@@ -18,7 +18,7 @@ package com.netflix.spinnaker.cats.sql.cache
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Tag
 
-class SpectatorSqlCacheMetrics(
+class MicrometerSqlCacheMetrics(
   private val registry: MeterRegistry
 ) : SqlCacheMetrics {
 

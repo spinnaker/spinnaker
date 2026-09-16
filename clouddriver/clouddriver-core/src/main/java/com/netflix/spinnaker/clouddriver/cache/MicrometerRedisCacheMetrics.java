@@ -21,10 +21,10 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import java.util.List;
 
-public class SpectatorRedisCacheMetrics implements CacheMetrics {
+public class MicrometerRedisCacheMetrics implements CacheMetrics {
   private final MeterRegistry registry;
 
-  public SpectatorRedisCacheMetrics(MeterRegistry registry) {
+  public MicrometerRedisCacheMetrics(MeterRegistry registry) {
     this.registry = registry;
   }
 

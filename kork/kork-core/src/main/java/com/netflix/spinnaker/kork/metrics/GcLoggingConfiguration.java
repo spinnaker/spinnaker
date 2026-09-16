@@ -27,7 +27,7 @@ import org.springframework.context.annotation.Configuration;
  * Spring Boot Actuator's JvmMetricsAutoConfiguration onto the Micrometer MeterRegistry bean.
  */
 @Configuration
-@ConfigurationProperties("spectator.gc")
+@ConfigurationProperties("gc-logging")
 public class GcLoggingConfiguration {
   private boolean loggingEnabled = true;
 
@@ -40,7 +40,7 @@ public class GcLoggingConfiguration {
   }
 
   @Bean(destroyMethod = "stop")
-  @ConditionalOnProperty(value = "spectator.gc.logging-enabled", matchIfMissing = true)
+  @ConditionalOnProperty(value = "gc-logging.logging-enabled", matchIfMissing = true)
   GcPauseLogger gcPauseLogger() {
     GcPauseLogger gcPauseLogger = new GcPauseLogger();
     gcPauseLogger.start();

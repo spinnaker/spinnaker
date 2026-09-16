@@ -25,7 +25,7 @@ import java.io.IOException;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
- * Emits a single Spectator counter per inbound HTTP request, tagged with the auth mechanism,
+ * Emits a single Micrometer counter per inbound HTTP request, tagged with the auth mechanism,
  * principal kind, HTTP method, and response status. Resolves auth via {@link AuthTypeResolver}
  * inside a try/finally so the tags reflect the fully populated {@code SecurityContext}.
  *

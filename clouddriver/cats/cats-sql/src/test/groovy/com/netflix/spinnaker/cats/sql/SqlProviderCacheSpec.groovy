@@ -7,7 +7,7 @@ import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.cats.cache.WriteableCache
 import com.netflix.spinnaker.cats.provider.ProviderCacheSpec
-import com.netflix.spinnaker.cats.sql.cache.SpectatorSqlCacheMetrics
+import com.netflix.spinnaker.cats.sql.cache.MicrometerSqlCacheMetrics
 import com.netflix.spinnaker.cats.sql.cache.SqlCache
 import com.netflix.spinnaker.cats.sql.cache.SqlNamedCacheFactory
 import com.netflix.spinnaker.config.SqlConstraintsInitializer
@@ -60,7 +60,7 @@ abstract class SqlProviderCacheSpec extends ProviderCacheSpec {
     def mapper = new ObjectMapper()
     def clock = Clock.fixed(Instant.EPOCH, ZoneId.of("UTC"))
     def sqlRetryProperties = new SqlRetryProperties(new RetryProperties(1, 10), new RetryProperties(1, 10))
-    def sqlMetrics = new SpectatorSqlCacheMetrics(new SimpleMeterRegistry())
+    def sqlMetrics = new MicrometerSqlCacheMetrics(new SimpleMeterRegistry())
     def dynamicConfigService = Mock(DynamicConfigService) {
       getConfig(_ as Class, _ as String, _) >> 10
     }

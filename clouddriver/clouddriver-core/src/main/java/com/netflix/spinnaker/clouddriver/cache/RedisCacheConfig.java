@@ -48,7 +48,7 @@ class RedisCacheConfig {
 
   @Bean
   CacheMetrics cacheMetrics(MeterRegistry registry) {
-    return new SpectatorRedisCacheMetrics(registry);
+    return new MicrometerRedisCacheMetrics(registry);
   }
 
   @Bean

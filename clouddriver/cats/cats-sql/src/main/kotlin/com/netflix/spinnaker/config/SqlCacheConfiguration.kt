@@ -10,7 +10,7 @@ import com.netflix.spinnaker.cats.module.CatsModule
 import com.netflix.spinnaker.cats.provider.Provider
 import com.netflix.spinnaker.cats.provider.ProviderRegistry
 import com.netflix.spinnaker.cats.sql.SqlProviderRegistry
-import com.netflix.spinnaker.cats.sql.cache.SpectatorSqlCacheMetrics
+import com.netflix.spinnaker.cats.sql.cache.MicrometerSqlCacheMetrics
 import com.netflix.spinnaker.cats.sql.cache.SqlCacheMetrics
 import com.netflix.spinnaker.cats.sql.cache.SqlCleanupStaleOnDemandCachesAgent
 import com.netflix.spinnaker.cats.sql.cache.SqlNamedCacheFactory
@@ -63,7 +63,7 @@ class SqlCacheConfiguration {
 
   @Bean
   fun sqlCacheMetrics(registry: MeterRegistry): SqlCacheMetrics {
-    return SpectatorSqlCacheMetrics(registry)
+    return MicrometerSqlCacheMetrics(registry)
   }
 
   @Bean

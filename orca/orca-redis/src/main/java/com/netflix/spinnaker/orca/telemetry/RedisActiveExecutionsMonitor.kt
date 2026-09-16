@@ -42,7 +42,7 @@ import org.springframework.stereotype.Component
  * A monitor that records active executions.
  *
  * On every ExecutionStarted event, a record is added to a Redis hash by its execution ID. In the background, the
- * monitor will update an in-memory snapshot of active executions and register dynamic gauges into Spectator.
+ * monitor will update an in-memory snapshot of active executions and register dynamic gauges into Micrometer.
  *
  * Lastly a slower background job will iterate through all executions it knows about to verify that no active
  * executions have been orphaned by out-of-band failures.

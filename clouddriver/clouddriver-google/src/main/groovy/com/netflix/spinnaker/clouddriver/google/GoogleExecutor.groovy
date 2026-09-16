@@ -28,7 +28,7 @@ import jakarta.annotation.PostConstruct
 import java.util.concurrent.TimeUnit
 
 /**
- * Provides a static-ish means to wrap API execution calls with spectator metrics.
+ * Provides a static-ish means to wrap API execution calls with metrics.
  *
  * Spring makes this ugly.
  *
@@ -79,10 +79,10 @@ class GoogleExecutor {
   final static String SCOPE_REGIONAL = "regional"
   final static String SCOPE_ZONAL = "zonal"
 
-  public static <T> T timeExecuteBatch(MeterRegistry spectator_registry, GoogleBatchRequest batch, String batchContext, String... tags) throws IOException {
+  public static <T> T timeExecuteBatch(MeterRegistry meterRegistry, GoogleBatchRequest batch, String batchContext, String... tags) throws IOException {
      def batchSize = batch.size()
      def success = "false"
-     Clock clock = spectator_registry.config().clock()
+     Clock clock = meterRegistry.config().clock()
      long startTime = clock.monotonicTime()
      int statusCode = 200
 
@@ -96,15 +96,15 @@ class GoogleExecutor {
 
        Tags allTags = Tags.of(tags).and(TAG_BATCH_CONTEXT, batchContext, "success", success, "status", status, "statusCode", statusCode.toString())
        long nanos = clock.monotonicTime() - startTime
-       spectator_registry.timer("google.batchExecute", allTags).record(nanos, TimeUnit.NANOSECONDS)
-       spectator_registry.counter("google.batchSize", allTags).increment(batchSize)
+       meterRegistry.timer("google.batchExecute", allTags).record(nanos, TimeUnit.NANOSECONDS)
+       meterRegistry.counter("google.batchSize", allTags).increment(batchSize)
      }
   }
 
-  public static <T> T timeExecute(MeterRegistry spectator_registry, AbstractGoogleClientRequest<T> request, String metric_name, String api, String... tags) throws IOException {
+  public static <T> T timeExecute(MeterRegistry meterRegistry, AbstractGoogleClientRequest<T> request, String metric_name, String api, String... tags) throws IOException {
      def success = "false"
      T result
-     Clock clock = spectator_registry.config().clock()
+     Clock clock = meterRegistry.config().clock()
      long startTime = clock.monotonicTime()
      int statusCode = -1
 
@@ -120,7 +120,7 @@ class GoogleExecutor {
        def status = statusCode.toString()[0] + "xx"
 
        Tags allTags = Tags.of(tags).and("api", api, "success", success, "status", status, "statusCode", statusCode.toString())
-       spectator_registry.timer(metric_name, allTags).record(nanos, TimeUnit.NANOSECONDS)
+       meterRegistry.timer(metric_name, allTags).record(nanos, TimeUnit.NANOSECONDS)
      }
      return result
   }
