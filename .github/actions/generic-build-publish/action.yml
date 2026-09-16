@@ -71,7 +71,7 @@ runs:
     - uses: actions/setup-java@v4
       with:
         java-version: |
-          17
+          25
         distribution: 'zulu'
         cache: ${{ !env.ACT && 'gradle' || '' }}  # Disable Gradle cache when running actions locally
 

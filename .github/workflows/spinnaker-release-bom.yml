@@ -129,7 +129,7 @@ jobs:
         if: inputs.publish-api-docs == true
         with:
           java-version: |
-            17
+            25
           distribution: 'zulu'
           cache: gradle
 
