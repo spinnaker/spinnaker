@@ -26,7 +26,7 @@ class VerificationRunner(
   private val eventPublisher: ApplicationEventPublisher,
   private val imageFinder: ImageFinder,
   private val enforcer: EnvironmentExclusionEnforcer,
-  override val spectator: MeterRegistry
+  override val meterRegistry: MeterRegistry
 ): BaseActionRunner<Verification>() {
   override fun logSubject() = ActionType.VERIFICATION.name
 

@@ -78,7 +78,7 @@ class CheckScheduler(
   private val agentLockRepository: AgentLockRepository,
   private val clock: Clock,
   private val springEnv: Environment,
-  private val spectator: MeterRegistry
+  private val meterRegistry: MeterRegistry
   ) : CoroutineScope {
   override val coroutineContext: CoroutineContext = Dispatchers.IO
 
@@ -334,7 +334,7 @@ class CheckScheduler(
   }
 
   private fun recordDuration(startTime : Instant, type: String) =
-    spectator.recordDurationPercentile("keel.scheduled.method.duration", clock, startTime, setOf(Tag.of("type", type)))
+    meterRegistry.recordDurationPercentile("keel.scheduled.method.duration", clock, startTime, setOf(Tag.of("type", type)))
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }

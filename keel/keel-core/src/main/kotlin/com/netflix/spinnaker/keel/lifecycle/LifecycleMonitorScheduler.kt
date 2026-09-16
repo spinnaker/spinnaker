@@ -34,7 +34,7 @@ class LifecycleMonitorScheduler(
   val publisher: ApplicationEventPublisher,
   val lifecycleConfig: LifecycleConfig,
   private val clock: Clock,
-  val spectator: MeterRegistry
+  val meterRegistry: MeterRegistry
 ) : CoroutineScope {
   override val coroutineContext: CoroutineContext = Dispatchers.IO
 
@@ -112,5 +112,5 @@ class LifecycleMonitorScheduler(
   }
 
   private fun recordDuration(startTime : Instant, type: String) =
-    spectator.timer(timerMetricName, "type", type).record(Duration.between(startTime, clock.instant()))
+    meterRegistry.timer(timerMetricName, "type", type).record(Duration.between(startTime, clock.instant()))
 }

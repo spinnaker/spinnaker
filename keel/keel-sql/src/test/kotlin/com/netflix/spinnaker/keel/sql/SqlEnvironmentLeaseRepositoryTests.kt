@@ -38,7 +38,7 @@ internal class SqlEnvironmentLeaseRepositoryTests :
     SqlEnvironmentLeaseRepository(
       jooq = jooq,
       clock = clock,
-      spectator = SimpleMeterRegistry(),
+      meterRegistry = SimpleMeterRegistry(),
       leaseDuration = leaseDuration
     )
 

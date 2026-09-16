@@ -56,7 +56,7 @@ open class SqlResourceRepository(
   private val resourceFactory: ResourceFactory,
   private val sqlRetry: SqlRetry,
   private val publisher: ApplicationEventPublisher,
-  private val spectator: MeterRegistry,
+  private val meterRegistry: MeterRegistry,
   private val springEnv: Environment
 ) : ResourceRepository {
 
@@ -176,7 +176,7 @@ open class SqlResourceRepository(
         .execute()
     } catch(e: Exception) {
       log.error("Failed to insert resource version for ${resource.id}: $e", e)
-      spectator.counter(
+      meterRegistry.counter(
         resourceVersionInsertMetricName,
         "success", "false",
         "application", resource.application, // Capture the app on fail cases to help repro
@@ -186,7 +186,7 @@ open class SqlResourceRepository(
       throw e
     }
 
-    spectator.counter(resourceVersionInsertMetricName, "success", "true").increment()
+    meterRegistry.counter(resourceVersionInsertMetricName, "success", "true").increment()
 
     jooq.insertInto(RESOURCE_LAST_CHECKED)
       .set(RESOURCE_LAST_CHECKED.RESOURCE_UID, uid)

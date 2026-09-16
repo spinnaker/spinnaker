@@ -48,7 +48,7 @@ class Notifier(
   private val notificationRepository: NotificationRepository,
   private val keelNotificationConfig: KeelNotificationConfig,
   private val springEnv: Environment,
-  private val spectator: MeterRegistry
+  private val meterRegistry: MeterRegistry
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
   private val NOTIFICATION_SENT_ID = "keel.notification.sent"
@@ -63,7 +63,7 @@ class Notifier(
       if (shouldNotify) {
         notify(event)
         notificationRepository.markSent(event.scope, event.ref, event.type)
-        spectator.counter(
+        meterRegistry.counter(
           NOTIFICATION_SENT_ID,
           listOf(Tag.of("type", event.type.name))
         )

@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory
 abstract class BaseActionRunner<T: Action> {
   abstract val actionRepository: ActionRepository
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
-  abstract val spectator: MeterRegistry
+  abstract val meterRegistry: MeterRegistry
 
   companion object {
     const val ACTION_BLOCKED_COUNTER = "keel.action-runner.blocked.count"
@@ -124,7 +124,7 @@ abstract class BaseActionRunner<T: Action> {
   }
 
   private fun incrementBlockedCounter(context: ArtifactInEnvironmentContext) {
-    spectator.counter(
+    meterRegistry.counter(
       ACTION_BLOCKED_COUNTER,
       listOf(
         Tag.of("type", logSubject()),

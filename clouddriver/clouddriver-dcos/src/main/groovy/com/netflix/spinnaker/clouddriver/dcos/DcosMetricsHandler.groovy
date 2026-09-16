@@ -28,14 +28,14 @@ import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import java.util.concurrent.TimeUnit
 
-class DcosSpectatorHandler implements InvocationHandler {
+class DcosMetricsHandler implements InvocationHandler {
     private final DCOS dcosClient
     private final MeterRegistry registry
     private final Clock clock
     private final String accountName
     private final String regionName
 
-    DcosSpectatorHandler(DCOS dcosClient, String accountName, String regionName, MeterRegistry registry) {
+    DcosMetricsHandler(DCOS dcosClient, String accountName, String regionName, MeterRegistry registry) {
         this.dcosClient = dcosClient
         this.accountName = accountName
         this.regionName = regionName

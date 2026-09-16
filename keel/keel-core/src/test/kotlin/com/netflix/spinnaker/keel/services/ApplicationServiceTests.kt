@@ -213,7 +213,7 @@ class ApplicationServiceTests : JUnit5Minutests {
       } returns true
     }
 
-    val spectator = SimpleMeterRegistry()
+    val meterRegistry = SimpleMeterRegistry()
 
     val artifactVersionLinks = ArtifactVersionLinks(mockScmInfo(), mockCacheFactory())
     val environmentTaskCanceler: EnvironmentTaskCanceler = mockk(relaxUnitFun = true)
@@ -228,7 +228,7 @@ class ApplicationServiceTests : JUnit5Minutests {
       publisher,
       springEnv,
       clock,
-      spectator,
+      meterRegistry,
       ArtifactConfig(),
       artifactVersionLinks,
       environmentTaskCanceler

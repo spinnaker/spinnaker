@@ -87,7 +87,7 @@ class ResourceActuator(
   private val publisher: ApplicationEventPublisher,
   private val clock: Clock,
   private val environmentExclusionEnforcer: EnvironmentExclusionEnforcer,
-  private val spectator: MeterRegistry
+  private val meterRegistry: MeterRegistry
 ) {
   companion object {
     val asyncExecutor: Executor = Executors.newCachedThreadPool()
@@ -96,11 +96,11 @@ class ResourceActuator(
   init {
     val executor = asyncExecutor as ThreadPoolExecutor
     val tags = Tags.of("id", "keel-resource-actuator-thread-pool")
-    spectator.gauge("threadpool.activeCount", tags, executor) { it.activeCount.toDouble() }
-    spectator.gauge("threadpool.maxThreads", tags, executor) { it.maximumPoolSize.toDouble() }
-    spectator.gauge("threadpool.poolSize", tags, executor) { it.poolSize.toDouble() }
-    spectator.gauge("threadpool.corePoolSize", tags, executor) { it.corePoolSize.toDouble() }
-    spectator.gauge("threadpool.queueSize", tags, executor) { it.queue.size.toDouble() }
+    meterRegistry.gauge("threadpool.activeCount", tags, executor) { it.activeCount.toDouble() }
+    meterRegistry.gauge("threadpool.maxThreads", tags, executor) { it.maximumPoolSize.toDouble() }
+    meterRegistry.gauge("threadpool.poolSize", tags, executor) { it.poolSize.toDouble() }
+    meterRegistry.gauge("threadpool.corePoolSize", tags, executor) { it.corePoolSize.toDouble() }
+    meterRegistry.gauge("threadpool.queueSize", tags, executor) { it.queue.size.toDouble() }
   }
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 

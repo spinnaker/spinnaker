@@ -194,10 +194,10 @@ class SqlConfiguration
     clock: Clock,
     properties: SqlProperties,
     objectMapper: ObjectMapper,
-    spectator: MeterRegistry,
+    meterRegistry: MeterRegistry,
     publisher: ApplicationEventPublisher
   ) =
-    SqlLifecycleEventRepository(clock, jooq, SqlRetry(sqlRetryProperties), spectator, publisher)
+    SqlLifecycleEventRepository(clock, jooq, SqlRetry(sqlRetryProperties), meterRegistry, publisher)
 
   @Bean
   fun lifecycleMonitorRepository(

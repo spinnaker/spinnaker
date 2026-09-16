@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component
  */
 @Component
 class SlackTelemetryListener(
-  val spectator: MeterRegistry
+  val meterRegistry: MeterRegistry
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
@@ -21,7 +21,7 @@ class SlackTelemetryListener(
 
   @EventListener(ButtonClickedEvent::class)
   fun onButtonClickedEvent(event: ButtonClickedEvent){
-    spectator.counter(
+    meterRegistry.counter(
       SLACK_STASH_LINK_CLICKED
     )
       .runCatching { increment() }

@@ -32,7 +32,7 @@ class DeliveryConfigImportListener(
   private val front50Cache: Front50Cache,
   private val scmUtils: ScmUtils,
   private val springEnv: Environment,
-  private val spectator: MeterRegistry,
+  private val meterRegistry: MeterRegistry,
   private val eventPublisher: ApplicationEventPublisher,
   private val clock: Clock
 ) {
@@ -139,5 +139,5 @@ class DeliveryConfigImportListener(
     extraTags: Collection<Pair<String, String>>,
     application: String? = null
   ) =
-    spectator.counter(metric, metricTags(application, extraTags)).safeIncrement()
+    meterRegistry.counter(metric, metricTags(application, extraTags)).safeIncrement()
 }

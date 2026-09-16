@@ -43,7 +43,7 @@ internal object SqlUnhappyVetoRepositoryTests :
     resourceFactory,
     sqlRetry,
     publisher = mockk(relaxed = true),
-    spectator = SimpleMeterRegistry(),
+    meterRegistry = SimpleMeterRegistry(),
     springEnv = mockEnvironment()
   )
 

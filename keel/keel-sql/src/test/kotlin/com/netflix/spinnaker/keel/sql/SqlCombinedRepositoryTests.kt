@@ -37,7 +37,7 @@ internal object SqlCombinedRepositoryTests :
       publisher = mockk(relaxed = true))
 
   override fun createResourceRepository(resourceFactory: ResourceFactory): SqlResourceRepository =
-    SqlResourceRepository(jooq, clock, objectMapper, resourceFactory, sqlRetry, publisher = mockk(relaxed = true), spectator = SimpleMeterRegistry(), springEnv = mockEnvironment())
+    SqlResourceRepository(jooq, clock, objectMapper, resourceFactory, sqlRetry, publisher = mockk(relaxed = true), meterRegistry = SimpleMeterRegistry(), springEnv = mockEnvironment())
 
   override fun createArtifactRepository(): SqlArtifactRepository =
     SqlArtifactRepository(jooq, clock, objectMapper, sqlRetry, defaultArtifactSuppliers(), publisher = mockk(relaxed = true))

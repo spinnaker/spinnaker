@@ -25,7 +25,7 @@ class PostDeployActionRunner(
   private val handlers: List<PostDeployActionHandler<*>>,
   private val eventPublisher: ApplicationEventPublisher,
   override val actionRepository: ActionRepository,
-  override val spectator: MeterRegistry
+  override val meterRegistry: MeterRegistry
 ): BaseActionRunner<PostDeployAction>() {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 

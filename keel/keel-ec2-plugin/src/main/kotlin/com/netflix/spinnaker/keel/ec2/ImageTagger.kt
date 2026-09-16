@@ -35,7 +35,7 @@ class ImageTagger(
   private val actionRepository: ActionRepository,
   private val keelRepository: KeelRepository,
   private val springEnv: Environment,
-  private val spectator: MeterRegistry
+  private val meterRegistry: MeterRegistry
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
@@ -90,7 +90,7 @@ class ImageTagger(
         )
       }
       log.debug("Launching task ${task.id} to tag image(s) $names")
-      spectator.counter(
+      meterRegistry.counter(
         TAG_AMI_JOB_LAUNCHED,
         listOf(Tag.of("application", event.application))
       ).increment()

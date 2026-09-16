@@ -62,7 +62,7 @@ class MigratorErrorTests {
     objectMapper = objectMapper,
     sqlRetry = sqlRetry,
     publisher = mockk(relaxed = true),
-    spectator = SimpleMeterRegistry(),
+    meterRegistry = SimpleMeterRegistry(),
     springEnv = mockEnvironment()
   )
 

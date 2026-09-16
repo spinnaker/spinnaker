@@ -27,7 +27,7 @@ import java.time.Instant
 class SqlEnvironmentLeaseRepository(
   private val jooq: DSLContext,
   private val clock: Clock,
-  private val spectator: MeterRegistry,
+  private val meterRegistry: MeterRegistry,
   private val leaseDuration: Duration) : EnvironmentLeaseRepository {
 
   private val leaseCountMetricName = "lease.env.count"
@@ -77,7 +77,7 @@ class SqlEnvironmentLeaseRepository(
             .also { incrementDenied(actionType, deliveryConfig.application, environment.name) }
         }
       }
-      return SqlLease(this, leaseUid, startTime, actionType, spectator, clock)
+      return SqlLease(this, leaseUid, startTime, actionType, meterRegistry, clock)
 
     } catch (e: DataAccessException) {
       recordDeniedLeaseTime(startTime, actionType)
@@ -96,7 +96,7 @@ class SqlEnvironmentLeaseRepository(
     Timer.builder(leaseDurationMetricName)
       .tags("action", actionType, "outcome", "denied")
       .publishPercentileHistogram()
-      .register(spectator)
+      .register(meterRegistry)
       .record(Duration.between(startTime, clock.instant()))
   }
 
@@ -167,7 +167,7 @@ class SqlEnvironmentLeaseRepository(
     increment("denied", "active", actionType, application, environment)
 
   private fun increment(outcome: String, status: String, actionType: String, application: String, environment: String) {
-    spectator.counter(
+    meterRegistry.counter(
       leaseCountMetricName,
       "outcome", outcome,
       "status", status,
@@ -182,7 +182,7 @@ class SqlEnvironmentLeaseRepository(
     val uid: UID,
     private val startTime: Instant,
     private val actionType: String,
-    private val spectator: MeterRegistry,
+    private val meterRegistry: MeterRegistry,
     private val clock: Clock
   ) : Lease {
     override fun close() {
@@ -191,7 +191,7 @@ class SqlEnvironmentLeaseRepository(
       Timer.builder("lease.env.duration")
         .tags("action", actionType, "outcome", "granted")
         .publishPercentileHistogram()
-        .register(spectator)
+        .register(meterRegistry)
         .record(Duration.between(startTime, clock.instant()))
     }
   }

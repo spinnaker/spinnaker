@@ -152,7 +152,7 @@ internal class CheckSchedulerTests : JUnit5Minutests {
         verificationRunner = verificationRunner,
         clock = MutableClock(),
         springEnv = springEnv,
-        spectator = registry
+        meterRegistry = registry
       )
     }
 

@@ -46,7 +46,7 @@ final class UnhappyVeto(
   private val resourceRepository: ResourceRepository,
   private val springEnv: Environment,
   private val config: UnhappyVetoConfig,
-  private val spectator: MeterRegistry,
+  private val meterRegistry: MeterRegistry,
   private val clock: Clock
 ) : Veto {
 
@@ -55,7 +55,7 @@ final class UnhappyVeto(
   private val NUM_VETOS_GAUGE = "keel.vetos.unhappy.num"
 
   init {
-    spectator.gauge(NUM_VETOS_GAUGE, this) { it.numberRejections().toDouble() }
+    meterRegistry.gauge(NUM_VETOS_GAUGE, this) { it.numberRejections().toDouble() }
   }
 
   private val maxRetries: Int

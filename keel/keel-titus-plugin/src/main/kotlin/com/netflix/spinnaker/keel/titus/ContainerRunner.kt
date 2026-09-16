@@ -23,7 +23,7 @@ import org.springframework.stereotype.Component
 class ContainerRunner(
   private val taskLauncher: TaskLauncher,
   private val orca: OrcaService,
-  private val spectator: MeterRegistry
+  private val meterRegistry: MeterRegistry
 ) {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -100,7 +100,7 @@ class ContainerRunner(
   }
 
   private fun incrementContainerLaunchedCounter(application: String, environmentName: String, imageId: String) {
-    spectator.counter(
+    meterRegistry.counter(
       CONTAINER_LAUNCHED_COUNTER_ID,
       listOf(
         Tag.of("application", application),

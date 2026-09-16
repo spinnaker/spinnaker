@@ -32,10 +32,10 @@ import java.time.Instant
 
 internal class ContainerRunnerTests {
   private val taskLauncher: TaskLauncher = mockk()
-  private val spectator = SimpleMeterRegistry()
+  private val meterRegistry = SimpleMeterRegistry()
   private val orca: OrcaService = mockk(relaxUnitFun = true)
 
-  private val subject = ContainerRunner(taskLauncher, orca, spectator)
+  private val subject = ContainerRunner(taskLauncher, orca, meterRegistry)
 
   private val imageId = "my/image:id"
   private val description = "to the moon"

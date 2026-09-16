@@ -42,7 +42,7 @@ class TagAmiHandler(
   override val eventPublisher: EventPublisher,
   private val taskLauncher: TaskLauncher,
   private val orca: OrcaService,
-  private val spectator: MeterRegistry,
+  private val meterRegistry: MeterRegistry,
   private val baseUrlConfig: BaseUrlConfig,
   private val imageFinder: ImageFinder
 ) : PostDeployActionHandler<TagAmiPostDeployAction> {
@@ -81,7 +81,7 @@ class TagAmiHandler(
         )
       }
       log.debug("Launching task ${task.id} to tag image(s) $names")
-      spectator.counter(
+      meterRegistry.counter(
         TAG_AMI_JOB_LAUNCHED,
         listOf(Tag.of("application", context.deliveryConfig.application))
       ).increment()

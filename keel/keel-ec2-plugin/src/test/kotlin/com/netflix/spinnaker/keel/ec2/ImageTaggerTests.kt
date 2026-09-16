@@ -72,7 +72,7 @@ class ImageTaggerTests {
   )
   private val config: DeliveryConfig = deliveryConfig(application = "waffles", configName = "waffles", env = env, artifact = artifact)
 
-  private val spectator: MeterRegistry = SimpleMeterRegistry()
+  private val meterRegistry: MeterRegistry = SimpleMeterRegistry()
   private val keelRepository: KeelRepository = mockk() {
     every { getDeliveryConfigForApplication("waffles") } returns config
   }
@@ -80,7 +80,7 @@ class ImageTaggerTests {
     every { allPassed(any(), ActionType.VERIFICATION) } returns false
   }
 
-  private val tagger: ImageTagger = ImageTagger(mapper, taskLauncher, actionRepository, keelRepository, springEnv, spectator)
+  private val tagger: ImageTagger = ImageTagger(mapper, taskLauncher, actionRepository, keelRepository, springEnv, meterRegistry)
   private val ec2images = listOf(CurrentImages(
     ResourceKind.parseKind("ec2/cluster@v1.1"),
     listOf(ImageInRegion("us-east-1", "my-waffles-are-great", "kitchen")),

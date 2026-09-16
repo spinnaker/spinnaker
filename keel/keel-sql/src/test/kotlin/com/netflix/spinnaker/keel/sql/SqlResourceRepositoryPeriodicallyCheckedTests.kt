@@ -51,7 +51,7 @@ internal object SqlResourceRepositoryPeriodicallyCheckedTests :
       resourceFactory,
       sqlRetry,
       publisher = mockk(relaxed = true),
-      spectator = SimpleMeterRegistry(),
+      meterRegistry = SimpleMeterRegistry(),
       springEnv = mockEnvironment()
     )
   }
@@ -98,7 +98,7 @@ internal object SqlResourceRepositoryPeriodicallyCheckedTests :
         // create a new repository object that is configured with our custom retries
         val repo =
           SqlResourceRepository(jooq, clock, configuredObjectMapper(), resourceFactory,
-            customSqlRetry, publisher = mockk(relaxed = true), spectator = SimpleMeterRegistry(), springEnv = mockEnvironment())
+            customSqlRetry, publisher = mockk(relaxed = true), meterRegistry = SimpleMeterRegistry(), springEnv = mockEnvironment())
         val results = synchronizedSet<Resource<ResourceSpec>>(HashSet())
 
         doInParallel(500) {

@@ -11,11 +11,11 @@ import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 
 @Component
-class BakeryTelemetryListener(private val spectator: MeterRegistry) {
+class BakeryTelemetryListener(private val meterRegistry: MeterRegistry) {
 
   @EventListener(ImageRegionMismatchDetected::class)
   fun onImageRegionMismatchDetected(event: ImageRegionMismatchDetected) {
-    spectator.counter(
+    meterRegistry.counter(
       IMAGE_REGION_MISMATCH_DETECTED_ID,
       listOf(
         Tag.of("appVersion", event.appVersion),
@@ -32,7 +32,7 @@ class BakeryTelemetryListener(private val spectator: MeterRegistry) {
 
   @EventListener(BakeLaunched::class)
   fun onBakeLaunched(event: BakeLaunched) {
-    spectator.counter(
+    meterRegistry.counter(
       BAKE_LAUNCHED_ID,
       listOf(
         Tag.of("appVersion", event.appVersion)
@@ -46,7 +46,7 @@ class BakeryTelemetryListener(private val spectator: MeterRegistry) {
 
   @EventListener(RecurrentBakeDetected::class)
   fun onRecurrentBakeDetected(event: RecurrentBakeDetected) {
-    spectator.counter(
+    meterRegistry.counter(
       RECURRENT_BAKE_DETECTED_ID,
       listOf(
         Tag.of("versions", "${event.appVersion}+${event.baseAmiVersion}")
@@ -56,7 +56,7 @@ class BakeryTelemetryListener(private val spectator: MeterRegistry) {
 
   @EventListener(MissingRegionsDetected::class)
   fun onMissingRegionsDetected(event: MissingRegionsDetected) {
-    spectator.counter(
+    meterRegistry.counter(
       MISSING_REGIONS_DETECTED,
       listOf(
         Tag.of("versions", event.version)

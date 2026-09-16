@@ -39,7 +39,7 @@ class DcosAccountCredentials extends AbstractAccountCredentials<DcosCredentialMa
   final List<String> requiredGroupMembership
   final Permissions permissions
   final List<DcosRegion> regions
-  final MeterRegistry spectatorRegistry
+  final MeterRegistry meterRegistry
   // Not really a fan of creating this just for use within deck, but it works for now
   final List<DcosClusterInfo> dcosClusters
 
@@ -52,7 +52,7 @@ class DcosAccountCredentials extends AbstractAccountCredentials<DcosCredentialMa
                          List<LinkedDockerRegistryConfiguration> dockerRegistries,
                          List<String> requiredGroupMembership,
                          Permissions permissions,
-                         MeterRegistry spectatorRegistry,
+                         MeterRegistry meterRegistry,
                          List<DcosClusterCredentials> clusters) {
     this.name = account
     this.account = account
@@ -61,7 +61,7 @@ class DcosAccountCredentials extends AbstractAccountCredentials<DcosCredentialMa
     this.dockerRegistries = dockerRegistries != null ? dockerRegistries : new ArrayList<>()
     this.requiredGroupMembership = requiredGroupMembership
     this.permissions = permissions
-    this.spectatorRegistry = spectatorRegistry
+    this.meterRegistry = meterRegistry
     this.dcosClusterCredentials = new DcosCredentialMap(clusters)
     this.dcosClusters = clusters.collect({ new DcosClusterInfo(it.name, it.dcosUrl, it.dockerRegistries) })
     this.regions = clusters.collect({ new DcosRegion(it.name) })
@@ -94,7 +94,7 @@ class DcosAccountCredentials extends AbstractAccountCredentials<DcosCredentialMa
     private List<LinkedDockerRegistryConfiguration> dockerRegistries
     private List<String> requiredGroupMembership
     private Permissions permissions
-    private MeterRegistry spectatorRegistry
+    private MeterRegistry meterRegistry
     private List<DcosClusterCredentials> clusterCredentials
 
     Builder account(String account) {
@@ -135,8 +135,8 @@ class DcosAccountCredentials extends AbstractAccountCredentials<DcosCredentialMa
       return this
     }
 
-    Builder spectatorRegistry(MeterRegistry spectatorRegistry) {
-      this.spectatorRegistry = spectatorRegistry
+    Builder meterRegistry(MeterRegistry meterRegistry) {
+      this.meterRegistry = meterRegistry
       return this
     }
 
@@ -162,7 +162,7 @@ class DcosAccountCredentials extends AbstractAccountCredentials<DcosCredentialMa
 
       requiredGroupMembership = requiredGroupMembership ? Collections.unmodifiableList(requiredGroupMembership) : []
 
-      new DcosAccountCredentials(account, environment, accountType, dockerRegistries, requiredGroupMembership, permissions, spectatorRegistry, clusterCredentials)
+      new DcosAccountCredentials(account, environment, accountType, dockerRegistries, requiredGroupMembership, permissions, meterRegistry, clusterCredentials)
     }
 
   }

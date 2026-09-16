@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicReference
 
 @Component
 class TelemetryListener(
-  private val spectator: MeterRegistry,
+  private val meterRegistry: MeterRegistry,
   private val clock: Clock,
   threadPoolTaskSchedulers: List<ThreadPoolTaskScheduler>,
   threadPoolTaskExecutors: List<ThreadPoolTaskExecutor>,
@@ -62,11 +62,11 @@ class TelemetryListener(
 
   private fun attachThreadPoolMonitor(executor: java.util.concurrent.ThreadPoolExecutor, id: String) {
     val tags = Tags.of("id", id)
-    spectator.gauge("threadpool.activeCount", tags, executor) { it.activeCount.toDouble() }
-    spectator.gauge("threadpool.maxThreads", tags, executor) { it.maximumPoolSize.toDouble() }
-    spectator.gauge("threadpool.poolSize", tags, executor) { it.poolSize.toDouble() }
-    spectator.gauge("threadpool.corePoolSize", tags, executor) { it.corePoolSize.toDouble() }
-    spectator.gauge("threadpool.queueSize", tags, executor) { it.queue.size.toDouble() }
+    meterRegistry.gauge("threadpool.activeCount", tags, executor) { it.activeCount.toDouble() }
+    meterRegistry.gauge("threadpool.maxThreads", tags, executor) { it.maximumPoolSize.toDouble() }
+    meterRegistry.gauge("threadpool.poolSize", tags, executor) { it.poolSize.toDouble() }
+    meterRegistry.gauge("threadpool.corePoolSize", tags, executor) { it.corePoolSize.toDouble() }
+    meterRegistry.gauge("threadpool.queueSize", tags, executor) { it.queue.size.toDouble() }
   }
 
   @EventListener(ApplicationUp::class)
@@ -86,7 +86,7 @@ class TelemetryListener(
       return
     }
 
-    spectator.timer(
+    meterRegistry.timer(
       TIME_SINCE_LAST_CHECK,
       listOf(
         Tag.of("identifier", event.identifier ?: "unknown"),
@@ -97,7 +97,7 @@ class TelemetryListener(
 
   @EventListener(ResourceCheckResult::class)
   fun onResourceChecked(event: ResourceCheckResult) {
-    spectator.counter(
+    meterRegistry.counter(
       RESOURCE_CHECKED_COUNTER_ID,
       listOf(
         Tag.of("resourceId", event.id),
@@ -110,7 +110,7 @@ class TelemetryListener(
 
   @EventListener(ResourceCheckSkipped::class)
   fun onResourceCheckSkipped(event: ResourceCheckSkipped) {
-    spectator.counter(
+    meterRegistry.counter(
       RESOURCE_CHECK_SKIPPED_COUNTER_ID,
       listOf(
         Tag.of("resourceId", event.id),
@@ -122,7 +122,7 @@ class TelemetryListener(
 
   @EventListener(ResourceCheckTimedOut::class)
   fun onResourceCheckTimedOut(event: ResourceCheckTimedOut) {
-    spectator.counter(
+    meterRegistry.counter(
       RESOURCE_CHECK_TIMED_OUT_ID,
       listOf(
         Tag.of("kind", event.kind.kind),
@@ -134,12 +134,12 @@ class TelemetryListener(
 
   @EventListener(ResourceLoadFailed::class)
   fun onResourceLoadFailed(event: ResourceLoadFailed) {
-    spectator.counter(RESOURCE_LOAD_FAILED_ID).safeIncrement()
+    meterRegistry.counter(RESOURCE_LOAD_FAILED_ID).safeIncrement()
   }
 
   @EventListener(EnvironmentsCheckTimedOut::class)
   fun onEnvironmentsCheckTimedOut(event: EnvironmentsCheckTimedOut) {
-    spectator.counter(
+    meterRegistry.counter(
       ENVIRONMENT_CHECK_TIMED_OUT_ID,
       listOf(
         Tag.of("application", event.application),
@@ -150,7 +150,7 @@ class TelemetryListener(
 
   @EventListener(ArtifactVersionApproved::class)
   fun onArtifactVersionUpdated(event: ArtifactVersionApproved) {
-    spectator.counter(
+    meterRegistry.counter(
       ARTIFACT_APPROVED_COUNTER_ID,
       listOf(
         Tag.of("application", event.application),
@@ -163,7 +163,7 @@ class TelemetryListener(
 
   @EventListener(ResourceActuationLaunched::class)
   fun onResourceActuationLaunched(event: ResourceActuationLaunched) {
-    spectator.counter(
+    meterRegistry.counter(
       RESOURCE_ACTUATION_LAUNCHED_COUNTER_ID,
       listOf(
         Tag.of("resourceId", event.id),
@@ -180,7 +180,7 @@ class TelemetryListener(
 
   @EventListener(ResourceCheckCompleted::class)
   fun onEnvironmentCheckComplete(event: ResourceCheckCompleted) {
-    spectator.timer(
+    meterRegistry.timer(
       RESOURCE_CHECK_DURATION_ID,
     ).record(event.duration)
   }
@@ -207,7 +207,7 @@ class TelemetryListener(
 
   @EventListener(ArtifactVersionVetoed::class)
   fun onArtifactVersionVetoed(event: ArtifactVersionVetoed) {
-    spectator.counter(
+    meterRegistry.counter(
       ARTIFACT_VERSION_VETOED,
       listOf(Tag.of("application", event.application))
     )
@@ -216,14 +216,14 @@ class TelemetryListener(
 
   @EventListener(ArtifactCheckComplete::class)
   fun onArtifactCheckComplete(event: ArtifactCheckComplete) {
-    spectator.timer(
+    meterRegistry.timer(
       ARTIFACT_CHECK_DURATION_ID,
     ).record(event.duration)
   }
 
   @EventListener(EnvironmentCheckComplete::class)
   fun onEnvironmentCheckComplete(event: EnvironmentCheckComplete) {
-    spectator.timer(
+    meterRegistry.timer(
       ENVIRONMENT_CHECK_DURATION_ID,
       listOf(Tag.of("application", event.application))
     ).record(event.duration)
@@ -231,14 +231,14 @@ class TelemetryListener(
 
   @EventListener(VerificationCheckComplete::class)
   fun onVerificationCheckComplete(event: VerificationCheckComplete) {
-    spectator.timer(
+    meterRegistry.timer(
       VERIFICATION_CHECK_DURATION_ID,
     ).record(event.duration)
   }
 
   @EventListener(AgentInvocationComplete::class)
   fun onAgentInvocationComplete(event: AgentInvocationComplete) {
-    spectator.timer(
+    meterRegistry.timer(
       AGENT_DURATION_ID,
       listOf(Tag.of("agent", event.agentName))
     ).record(event.duration)
@@ -246,7 +246,7 @@ class TelemetryListener(
 
   @EventListener(VerificationCompleted::class)
   fun onVerificationCompleted(event: VerificationCompleted) {
-    spectator.counter(
+    meterRegistry.counter(
       VERIFICATION_COMPLETED_COUNTER_ID,
       listOf(
         Tag.of("application", event.application),
@@ -258,7 +258,7 @@ class TelemetryListener(
 
   @EventListener(VerificationStarted::class)
   fun onVerificationStarted(event: VerificationStarted) {
-    spectator.counter(
+    meterRegistry.counter(
       VERIFICATION_STARTED_COUNTER_ID,
       listOf(
         Tag.of("application", event.application),
@@ -269,7 +269,7 @@ class TelemetryListener(
 
   @EventListener(InvalidVerificationIdSeen::class)
   fun onInvalidVerificationId(event: InvalidVerificationIdSeen) {
-    spectator.counter(
+    meterRegistry.counter(
       INVALID_VERIFICATION_ID_SEEN_COUNTER_ID,
       listOf(
         Tag.of("application", event.application),
@@ -280,14 +280,14 @@ class TelemetryListener(
 
   @EventListener(PostDeployActionCheckComplete::class)
   fun onPostDeployCheckCompleted(event: PostDeployActionCheckComplete) {
-    spectator.timer(
+    meterRegistry.timer(
       POST_DEPLOY_CHECK_DURATION_ID,
     ).record(event.duration)
   }
 
   @EventListener(VerificationBlockedActuation::class)
   fun onBlockedActuation(event: VerificationBlockedActuation) {
-    spectator.counter(
+    meterRegistry.counter(
       BLOCKED_ACTUATION_ID,
       listOf(
         Tag.of("resourceId", event.id),
@@ -299,7 +299,7 @@ class TelemetryListener(
 
   @EventListener(FeatureRolloutAttempted::class)
   fun onFeatureRolloutAttempted(event: FeatureRolloutAttempted) {
-    spectator.counter(
+    meterRegistry.counter(
       FEATURE_ROLLOUT_ATTEMPTED_ID,
       listOf(
         Tag.of("feature", event.feature),
@@ -310,7 +310,7 @@ class TelemetryListener(
 
   @EventListener(FeatureRolloutFailed::class)
   fun onFeatureRolloutFailed(event: FeatureRolloutFailed) {
-    spectator.counter(
+    meterRegistry.counter(
       FEATURE_ROLLOUT_FAILED_ID,
       listOf(
         Tag.of("feature", event.feature),
@@ -327,7 +327,7 @@ class TelemetryListener(
       .div(1000)
 
   private fun createDriftGauge(name: String): AtomicReference<Instant> =
-    spectator.gauge(name, AtomicReference(clock.instant())) { previous ->
+    meterRegistry.gauge(name, AtomicReference(clock.instant())) { previous ->
       when(enabled.get()) {
         true -> secondsSince(previous)
         false -> 0.0

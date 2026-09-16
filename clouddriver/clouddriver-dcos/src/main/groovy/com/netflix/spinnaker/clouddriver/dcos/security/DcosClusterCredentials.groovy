@@ -31,7 +31,7 @@ class DcosClusterCredentials {
   final String secretStore
   final List<DcosConfigurationProperties.LinkedDockerRegistryConfiguration> dockerRegistries
   final Config dcosConfig
-  final MeterRegistry spectatorRegistry
+  final MeterRegistry meterRegistry
 
   private DcosClusterCredentials(Builder builder) {
     name = builder.key.cluster
@@ -41,7 +41,7 @@ class DcosClusterCredentials {
     secretStore = builder.secretStore ? builder.secretStore : DEFAULT_SECRET_STORE
     dockerRegistries = builder.dockerRegistries
     dcosConfig = builder.dcosConfig
-    spectatorRegistry = builder.spectatorRegistry
+    meterRegistry = builder.meterRegistry
   }
 
   public static Builder builder() {
@@ -54,7 +54,7 @@ class DcosClusterCredentials {
     private String secretStore
     private List<DcosConfigurationProperties.LinkedDockerRegistryConfiguration> dockerRegistries
     private Config dcosConfig
-    private MeterRegistry spectatorRegistry
+    private MeterRegistry meterRegistry
 
     public Builder key(DcosClientCompositeKey key) {
       this.key = key
@@ -82,8 +82,8 @@ class DcosClusterCredentials {
     }
 
 
-    public Builder spectatorRegistry(MeterRegistry spectatorRegistry) {
-      this.spectatorRegistry = spectatorRegistry
+    public Builder meterRegistry(MeterRegistry meterRegistry) {
+      this.meterRegistry = meterRegistry
       this
     }
 

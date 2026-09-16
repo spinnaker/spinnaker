@@ -87,7 +87,7 @@ class ApplicationService(
   private val publisher: ApplicationEventPublisher,
   private val springEnv: SpringEnvironment,
   private val clock: Clock,
-  private val spectator: MeterRegistry,
+  private val meterRegistry: MeterRegistry,
   private val artifactConfig: ArtifactConfig,
   private val artifactVersionLinks: ArtifactVersionLinks,
   private val environmentTaskCanceler: EnvironmentTaskCanceler
@@ -245,7 +245,7 @@ class ApplicationService(
       val startTime = now
       val deliveryConfig = repository.getDeliveryConfigForApplication(application)
       val summaries = getResourceSummaries(deliveryConfig)
-      spectator.timer(
+      meterRegistry.timer(
         RESOURCE_SUMMARY_CONSTRUCT_DURATION_ID,
         listOf(Tag.of("application", application))
       ).record(Duration.between(startTime, now))
@@ -285,7 +285,7 @@ class ApplicationService(
       val startTime = now
       val config = repository.getDeliveryConfigForApplication(application)
       val summaries = repository.getEnvironmentSummaries(config)
-      spectator.timer(
+      meterRegistry.timer(
         ENV_SUMMARY_CONSTRUCT_DURATION_ID,
         listOf(Tag.of("application", application))
       ).record(Duration.between(startTime, now))
@@ -322,7 +322,7 @@ class ApplicationService(
   fun getArtifactSummariesFor(application: String, limit: Int): List<ArtifactSummary> {
     val startTime = now
     val environmentSummaries = getEnvironmentSummariesFor(application)
-    spectator.timer(
+    meterRegistry.timer(
       ENV_SUMMARY_CONSTRUCT_DURATION_ID,
       listOf(Tag.of("application", application))
     ).record(Duration.between(startTime, now))
@@ -411,7 +411,7 @@ class ApplicationService(
                       it.addConstraintSummaries(deliveryConfig, environment, artifactVersion.version, artifact)
                     )
                   }
-                spectator.timer(
+                meterRegistry.timer(
                   ARTIFACT_IN_ENV_SUMMARY_CONSTRUCT_DURATION,
                   listOf(Tag.of("application", application))
                 ).record(Duration.between(artifactInEnvStartTime, now))
@@ -426,7 +426,7 @@ class ApplicationService(
           artifactSummariesInEnvironments,
           artifactVersions
         )
-        spectator.timer(
+        meterRegistry.timer(
           ARTIFACT_VERSION_SUMMARY_CONSTRUCT_DURATION_ID,
           listOf(Tag.of("application", application))
         ).record(Duration.between(versionStartTime, now))
@@ -439,7 +439,7 @@ class ApplicationService(
         versions = artifactVersionSummaries.toSet()
       )
     }
-    spectator.timer(
+    meterRegistry.timer(
       ARTIFACT_SUMMARY_CONSTRUCT_DURATION_ID,
       listOf(Tag.of("application", application))
     ).record(Duration.between(startTime, now))

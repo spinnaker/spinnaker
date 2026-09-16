@@ -24,7 +24,7 @@ internal object SqlUnhealthyRepositoryTests : UnhealthyRepositoryTests<SqlUnheal
     resourceFactory,
     sqlRetry,
     publisher = mockk(relaxed = true),
-    spectator = SimpleMeterRegistry(),
+    meterRegistry = SimpleMeterRegistry(),
     springEnv = mockEnvironment()
   )
 

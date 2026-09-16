@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component
 class SlackService(
   private val springEnv: Environment,
   final val slackConfig: SlackConfiguration,
-  private val spectator: MeterRegistry
+  private val meterRegistry: MeterRegistry
 ) {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -50,7 +50,7 @@ class SlackService(
       }
 
       if (response.isOk) {
-        spectator.counter(
+        meterRegistry.counter(
           SLACK_MESSAGE_SENT,
           listOf(
             Tag.of("notificationType", type.first().name),
@@ -61,7 +61,7 @@ class SlackService(
 
       if (!response.isOk) {
         log.warn("slack couldn't send the notification $type for application $application in channel $channel. error is: ${response.error}, response: $response")
-        spectator.counter(
+        meterRegistry.counter(
           SLACK_MESSAGE_FAILED,
           listOf(
             Tag.of("notificationType", type.first().name),
@@ -99,7 +99,7 @@ class SlackService(
     }
 
     if (response.isOk) {
-      spectator.counter(
+      meterRegistry.counter(
         SLACK_MESSAGE_SENT,
         listOf(
           Tag.of("notificationType", "update"),
@@ -110,7 +110,7 @@ class SlackService(
 
     if (!response.isOk) {
       log.error("slack couldn't update the notification at timestamp $timestamp for application $application in channel $channel. error is: ${response.error}, response: $response")
-      spectator.counter(
+      meterRegistry.counter(
         SLACK_MESSAGE_FAILED,
         listOf(
           Tag.of("notificationType", "update"),

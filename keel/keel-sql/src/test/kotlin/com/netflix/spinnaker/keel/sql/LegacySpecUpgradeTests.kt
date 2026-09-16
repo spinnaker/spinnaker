@@ -99,7 +99,7 @@ internal class LegacySpecUpgradeTests : JUnit5Minutests {
       resourceFactory,
       sqlRetry,
       publisher = mockk(relaxed = true),
-      spectator = SimpleMeterRegistry(),
+      meterRegistry = SimpleMeterRegistry(),
       springEnv = mockEnvironment()
     )
 

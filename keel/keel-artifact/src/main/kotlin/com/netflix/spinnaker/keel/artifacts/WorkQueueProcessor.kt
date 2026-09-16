@@ -54,7 +54,7 @@ final class WorkQueueProcessor(
   private val repository: KeelRepository,
   private val artifactSuppliers: List<ArtifactSupplier<*, *>>,
   private val publisher: ApplicationEventPublisher,
-  private val spectator: MeterRegistry,
+  private val meterRegistry: MeterRegistry,
   private val clock: Clock,
   private val springEnv: Environment
 ): CoroutineScope {
@@ -81,7 +81,7 @@ final class WorkQueueProcessor(
     get() = springEnv.getProperty("keel.work-processing.code-event-batch-size", Int::class.java, config.codeEventBatchSize)
 
   init {
-    spectator.gauge(NUMBER_QUEUED_GAUGE, this) { it.queueSize() }
+    meterRegistry.gauge(NUMBER_QUEUED_GAUGE, this) { it.queueSize() }
   }
 
   private val lastArtifactCheck: AtomicReference<Instant> =
@@ -141,7 +141,7 @@ final class WorkQueueProcessor(
             }
         }
       runBlocking { job.join() }
-      spectator.recordDuration(ARTIFACT_PROCESSING_DURATION, clock, startTime)
+      meterRegistry.recordDuration(ARTIFACT_PROCESSING_DURATION, clock, startTime)
     }
   }
 
@@ -186,12 +186,12 @@ final class WorkQueueProcessor(
         }
       }
       runBlocking { job.join() }
-      spectator.recordDuration(CODE_EVENT_PROCESSING_DURATION, clock, startTime)
+      meterRegistry.recordDuration(CODE_EVENT_PROCESSING_DURATION, clock, startTime)
     }
   }
 
   fun incrementUpdatedCount(artifact: PublishedArtifact) {
-    spectator.counter(
+    meterRegistry.counter(
       ARTIFACT_UPDATED_COUNTER_ID,
       listOf(
         Tag.of("artifactName", artifact.name),
@@ -287,7 +287,7 @@ final class WorkQueueProcessor(
   }
 
   private fun createDriftGauge(name: String): AtomicReference<Instant> =
-    spectator.gauge(name, AtomicReference(clock.instant())) { previous ->
+    meterRegistry.gauge(name, AtomicReference(clock.instant())) { previous ->
       when(enabled.get()) {
         true -> secondsSince(previous)
         false -> 0.0

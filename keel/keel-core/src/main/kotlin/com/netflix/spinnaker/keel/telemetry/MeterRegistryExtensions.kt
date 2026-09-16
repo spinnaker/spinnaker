@@ -9,13 +9,13 @@ import java.time.Clock
 import java.time.Duration
 import java.time.Instant
 
-private val spectatorLogger = LoggerFactory.getLogger("com.netflix.keel.spinnaker.telemetry.spectator")
+private val log = LoggerFactory.getLogger("com.netflix.keel.spinnaker.telemetry.MeterRegistryExtensions")
 
 fun Counter.safeIncrement() =
   try {
     increment()
   } catch (ex: Exception) {
-    spectatorLogger.error("Exception incrementing {} counter: {}", id.name, ex.message)
+    log.error("Exception incrementing {} counter: {}", id.name, ex.message)
   }
 
 fun MeterRegistry.recordDurationPercentile(metricName: String, clock: Clock, startTime: Instant, tags: Set<Tag> = emptySet()) =

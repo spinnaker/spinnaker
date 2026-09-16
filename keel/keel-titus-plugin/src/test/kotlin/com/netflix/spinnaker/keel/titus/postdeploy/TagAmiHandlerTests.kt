@@ -116,7 +116,7 @@ internal class TagAmiHandlerTests {
     eventPublisher = mockk(),
     taskLauncher = launcher,
     orca = orca,
-    spectator = SimpleMeterRegistry(),
+    meterRegistry = SimpleMeterRegistry(),
     baseUrlConfig = mockk() { every { baseUrl } returns "https://spin" },
     imageFinder = finder
   )

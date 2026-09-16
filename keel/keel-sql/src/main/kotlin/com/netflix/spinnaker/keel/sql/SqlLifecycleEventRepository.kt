@@ -26,7 +26,7 @@ class SqlLifecycleEventRepository(
   private val clock: Clock,
   private val jooq: DSLContext,
   private val sqlRetry: SqlRetry,
-  private val spectator: MeterRegistry,
+  private val meterRegistry: MeterRegistry,
   private val publisher: ApplicationEventPublisher
 ) : LifecycleEventRepository {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -139,7 +139,7 @@ class SqlLifecycleEventRepository(
     val startTime = clock.instant()
     val events = getEvents(artifact, artifactVersion)
     val steps = calculateSteps(events)
-    spectator.timer(
+    meterRegistry.timer(
       LIFECYCLE_STEP_CALCULATION_DURATION_ID,
       listOf(Tag.of("artifactRef", "${artifact.deliveryConfigName}:${artifact.reference}"))
     ).record(Duration.between(startTime, clock.instant()))
@@ -190,7 +190,7 @@ class SqlLifecycleEventRepository(
     val events = getEvents(artifact)
     val steps = calculateSteps(events)
 
-    spectator.timer(
+    meterRegistry.timer(
       LIFECYCLE_STEP_CALCULATION_ALL_DURATION_ID,
       listOf(Tag.of("artifactRef", "${artifact.deliveryConfigName}:${artifact.reference}"))
     ).record(Duration.between(startTime, clock.instant()))
