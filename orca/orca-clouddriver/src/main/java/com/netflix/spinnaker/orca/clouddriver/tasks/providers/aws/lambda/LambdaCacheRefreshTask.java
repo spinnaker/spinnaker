@@ -116,12 +116,12 @@ public class LambdaCacheRefreshTask implements LambdaStageBaseTask {
                 String respString = response.body().string();
                 OnDemandResponse onDemandRefreshResponse;
                 switch (response.code()) {
-                    // 200 == usually a Delete operation... aka an eviction.
+                  // 200 == usually a Delete operation... aka an eviction.
                   case 200:
                     logger.debug("cache refresh responded with 200");
                     return true;
-                    // Async processing... meaning we have to poll to see when the refresh
-                    // finished....
+                  // Async processing... meaning we have to poll to see when the refresh
+                  // finished....
                   case 202:
                     logger.debug("cache refresh responded with 202");
                     onDemandRefreshResponse =
