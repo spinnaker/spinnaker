@@ -60,7 +60,8 @@ class YamlHelperInjectionTest {
   /** Demonstrates that SafeConstructor blocks ScriptEngineManager instantiation. */
   @Test
   public void safeConstructorBlocksScriptEngineManagerInstantiation() {
-    String maliciousYaml = """
+    String maliciousYaml =
+        """
             !!javax.script.ScriptEngineManager []
             """;
 

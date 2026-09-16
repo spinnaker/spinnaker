@@ -12,7 +12,7 @@ RUN apt-get update && \
   apt-get upgrade -y && \
   apt-get install -y \
   curl \
-  openjdk-17-jre-headless \
+  openjdk-25-jre-headless \
   wget \
   python3-pip \
   python3 \
