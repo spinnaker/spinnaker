@@ -43,18 +43,17 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.ministack.testcontainers.MiniStackContainer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.testcontainers.DockerClientFactory;
-import org.testcontainers.containers.localstack.LocalStackContainer;
-import org.testcontainers.utility.DockerImageName;
 
 @SpringBootTest(classes = SecretConfiguration.class)
 public class SecretsManagerSecretEngineIntegrationTest {
 
-  @Autowired private LocalStackContainer container;
+  @Autowired private MiniStackContainer container;
 
   // for setting up test data
   @Autowired private UserSecretSerdeFactory serdeFactory;
@@ -68,15 +67,7 @@ public class SecretsManagerSecretEngineIntegrationTest {
 
   @Test
   public void canDecryptUserSecret() {
-    AWSSecretsManager client =
-        AWSSecretsManagerClientBuilder.standard()
-            .withEndpointConfiguration(
-                new AwsClientBuilder.EndpointConfiguration(
-                    container.getEndpoint().toString(), container.getRegion()))
-            .withCredentials(
-                new AWSStaticCredentialsProvider(
-                    new BasicAWSCredentials(container.getAccessKey(), container.getSecretKey())))
-            .build();
+    AWSSecretsManager client = buildMiniStackClient(container);
 
     UserSecretMetadata metadata =
         UserSecretMetadata.builder()
@@ -111,6 +102,17 @@ public class SecretsManagerSecretEngineIntegrationTest {
         });
   }
 
+  private static AWSSecretsManager buildMiniStackClient(MiniStackContainer container) {
+    return AWSSecretsManagerClientBuilder.standard()
+        .withEndpointConfiguration(
+            new AwsClientBuilder.EndpointConfiguration(
+                container.getEndpoint(), container.getRegion()))
+        .withCredentials(
+            new AWSStaticCredentialsProvider(
+                new BasicAWSCredentials(container.getAccessKey(), container.getSecretKey())))
+        .build();
+  }
+
   private static Collection<Tag> tagsForMetadata(UserSecretMetadata metadata) {
     return List.of(
         tagForField(UserSecretMetadataField.TYPE).withValue(metadata.getType()),
@@ -126,26 +128,21 @@ public class SecretsManagerSecretEngineIntegrationTest {
   @TestConfiguration
   public static class IntegrationTestConfig {
 
-    private static final DockerImageName DOCKER_IMAGE =
-        DockerImageName.parse("localstack/localstack:0.11.3");
+    /**
+     * Pinned deliberately: {@code MiniStackContainer}'s no-arg constructor resolves {@code latest},
+     * and the emulator releases weekly, so the tag is the only thing that fixes the version this
+     * test runs against.
+     */
+    private static final String MINISTACK_IMAGE_TAG = "1.5.10";
 
     @Bean(initMethod = "start", destroyMethod = "stop")
-    public LocalStackContainer localStackContainer() {
-      return new LocalStackContainer(DOCKER_IMAGE)
-          .withServices(LocalStackContainer.Service.SECRETSMANAGER);
+    public MiniStackContainer miniStackContainer() {
+      return new MiniStackContainer(MINISTACK_IMAGE_TAG);
     }
 
     @Bean
-    public SecretsManagerClientProvider localstackClientProvider(LocalStackContainer container) {
-      return (params) ->
-          AWSSecretsManagerClientBuilder.standard()
-              .withEndpointConfiguration(
-                  new AwsClientBuilder.EndpointConfiguration(
-                      container.getEndpoint().toString(), container.getRegion()))
-              .withCredentials(
-                  new AWSStaticCredentialsProvider(
-                      new BasicAWSCredentials(container.getAccessKey(), container.getSecretKey())))
-              .build();
+    public SecretsManagerClientProvider miniStackClientProvider(MiniStackContainer container) {
+      return (params) -> buildMiniStackClient(container);
     }
 
     @Bean
