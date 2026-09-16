@@ -11,7 +11,7 @@ import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactor
 import com.netflix.spinnaker.clouddriver.saga.flow.SagaAction
 import com.netflix.spinnaker.clouddriver.saga.models.Saga
 import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository
-import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer
+import com.netflix.spinnaker.clouddriver.aws.jackson.AwsObjectMapperFactory
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -84,7 +84,7 @@ class ModifyServerGroupLaunchTemplateSpec extends Specification {
 
   def "should not throw JsonProcessingException when deserializing"() {
     given:
-    def objectMapper = AmazonObjectMapperConfigurer.createConfigured()
+    def objectMapper = AwsObjectMapperFactory.createConfigured()
     def json = objectMapper.writeValueAsString(dummyDescription)
 
     when:

@@ -23,7 +23,6 @@ dependencies {
   // exposing it here transitively). Harmless in the meantime; safe to remove at that point.
   implementation "software.amazon.awssdk:ec2"
   implementation "com.github.ben-manes.caffeine:guava"
-  implementation "com.netflix.awsobjectmapper:awsobjectmapper"
   implementation "com.netflix.frigga:frigga"
   implementation "com.netflix.spectator:spectator-api"
   implementation "io.spinnaker.fiat:fiat-api"
