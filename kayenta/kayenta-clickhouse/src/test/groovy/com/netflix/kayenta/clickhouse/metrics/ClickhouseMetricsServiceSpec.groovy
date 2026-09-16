@@ -8,7 +8,7 @@ import com.netflix.kayenta.clickhouse.security.ClickhouseNamedAccountCredentials
 import com.netflix.kayenta.clickhouse.service.ClickhouseRemoteService
 import com.netflix.kayenta.metrics.MetricSet
 import com.netflix.kayenta.security.AccountCredentialsRepository
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import spock.lang.Specification
 
 import java.time.Instant
@@ -22,7 +22,7 @@ class ClickhouseMetricsServiceSpec extends Specification {
     ClickhouseMetricsService.builder()
       .accountName("my-clickhouse-account")
       .accountCredentialsRepository(accountCredentialsRepository)
-      .registry(new NoopRegistry())
+      .registry(new SimpleMeterRegistry())
       .queryBuilder(new ClickhouseQueryBuilderService())
       .build()
 
