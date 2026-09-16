@@ -20,9 +20,8 @@ package com.netflix.kayenta.signalfx.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.netflix.kayenta.metrics.ConversionException;
-import com.signalfx.signalflow.ChannelMessage;
-import com.signalfx.signalflow.ServerSentEventsTransport;
-import com.signalfx.signalflow.StreamMessage;
+import com.netflix.kayenta.signalfx.service.signalflow.SignalFlowMessage;
+import com.netflix.kayenta.signalfx.service.signalflow.SignalFlowSseParser;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.LinkedList;
@@ -89,14 +88,10 @@ public class SignalFxConverter extends Converter.Factory {
 
     @Override
     public SignalFlowExecutionResult convert(ResponseBody value) {
-      List<ChannelMessage> messages = new LinkedList<>();
-      try (ServerSentEventsTransport.TransportEventStreamParser parser =
-          new ServerSentEventsTransport.TransportEventStreamParser(value.byteStream())) {
-
+      List<SignalFlowMessage> messages = new LinkedList<>();
+      try (SignalFlowSseParser parser = new SignalFlowSseParser(value.byteStream(), objectMapper)) {
         while (parser.hasNext()) {
-          StreamMessage streamMessage = parser.next();
-          ChannelMessage channelMessage = ChannelMessage.decodeStreamMessage(streamMessage);
-          messages.add(channelMessage);
+          messages.add(parser.next());
         }
       } catch (Exception e) {
         throw new ConversionException("There was an issue parsing the SignalFlow response", e);

@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.lambda;
 
-import com.amazonaws.services.lambda.model.AliasConfiguration;
-import com.amazonaws.services.lambda.model.AliasRoutingConfiguration;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
@@ -29,6 +27,7 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.lambda.model.L
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.lambda.model.input.LambdaTrafficUpdateInput;
 import com.netflix.spinnaker.orca.clouddriver.utils.LambdaCloudDriverUtils;
 import java.util.*;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 import org.slf4j.Logger;
@@ -100,22 +99,23 @@ public class LambdaTrafficUpdateVerificationTask implements LambdaStageBaseTask 
   private boolean validateWeights(StageExecution stage) {
     utils.await(
         TimeUnit.SECONDS.toMillis(config.getCloudDriverRetrieveNewPublishedLambdaWaitSeconds()));
-    AliasRoutingConfiguration weights = null;
+    Map<String, Object> weights = null;
     long startTime = System.currentTimeMillis();
     LambdaTrafficUpdateInput inp = utils.getInput(stage, LambdaTrafficUpdateInput.class);
     boolean status = false;
     do {
       utils.await(TimeUnit.SECONDS.toMillis(config.getCacheRefreshRetryWaitTime()));
       LambdaDefinition lf = utils.retrieveLambdaFromCache(stage, false);
-      Optional<AliasConfiguration> aliasConfiguration =
+      Optional<Map<String, Object>> aliasConfiguration =
           lf.getAliasConfigurations().stream()
-              .filter(al -> al.getName().equals(inp.getAliasName()))
+              .filter(al -> inp.getAliasName().equals(al.get("name")))
               .findFirst();
 
       if (aliasConfiguration.isPresent()) {
-        Optional<AliasRoutingConfiguration> opt =
-            Optional.ofNullable(aliasConfiguration.get().getRoutingConfig());
-        weights = opt.orElse(null);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> routingConfig =
+            (Map<String, Object>) aliasConfiguration.get().get("routingConfig");
+        weights = routingConfig;
       }
       if ((System.currentTimeMillis() - startTime)
           > TimeUnit.SECONDS.toMillis(

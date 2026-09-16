@@ -41,7 +41,7 @@ class EcsCredentialsLifeCyclerHandlerSpec extends Specification {
   def 'it should add agents'() {
 
     given:
-    def handler = new EcsCredentialsLifeCycleHandler(ecsProvider, null, null, registry, null, objectMapper, null, ecsAccountMapper)
+    def handler = new EcsCredentialsLifeCycleHandler(ecsProvider, null, registry, null, objectMapper, null, ecsAccountMapper)
     Set<Class> expectedClasses = [ IamRoleCachingAgent.class, EcsClusterCachingAgent.class, ServiceCachingAgent.class,
                          TaskCachingAgent.class, ContainerInstanceCachingAgent.class, TaskDefinitionCachingAgent.class,
                          TaskHealthCachingAgent.class, EcsCloudMetricAlarmCachingAgent.class, ScalableTargetsCachingAgent.class,
@@ -63,8 +63,8 @@ class EcsCredentialsLifeCyclerHandlerSpec extends Specification {
   def 'it should remove agents'() {
 
     given:
-    ecsProvider.addAgents(Collections.singletonList(new TargetHealthCachingAgent(credOne, "region", null, null, objectMapper)))
-    def handler = new EcsCredentialsLifeCycleHandler(ecsProvider, null, null, registry, null, objectMapper, null, ecsAccountMapper)
+    ecsProvider.addAgents(Collections.singletonList(new TargetHealthCachingAgent(credOne, "region", null, objectMapper)))
+    def handler = new EcsCredentialsLifeCycleHandler(ecsProvider, null, registry, null, objectMapper, null, ecsAccountMapper)
 
     when:
     handler.credentialsDeleted(credOne)
@@ -76,8 +76,8 @@ class EcsCredentialsLifeCyclerHandlerSpec extends Specification {
 
   def 'it should update agents'() {
     given:
-    ecsProvider.addAgents(Collections.singletonList(new TargetHealthCachingAgent(credOne, "region", null, null, objectMapper)))
-    def handler = new EcsCredentialsLifeCycleHandler(ecsProvider, null, null, registry, null, objectMapper, null, ecsAccountMapper)
+    ecsProvider.addAgents(Collections.singletonList(new TargetHealthCachingAgent(credOne, "region", null, objectMapper)))
+    def handler = new EcsCredentialsLifeCycleHandler(ecsProvider, null, registry, null, objectMapper, null, ecsAccountMapper)
 
     when:
     handler.credentialsUpdated(credOne)

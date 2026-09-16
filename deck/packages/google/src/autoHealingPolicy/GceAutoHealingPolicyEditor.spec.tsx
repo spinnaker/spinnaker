@@ -117,21 +117,17 @@ describe('GceAutoHealingPolicyEditor', () => {
     });
   });
 
-  it('preserves zero for initial delay and max unavailable', () => {
+  it('preserves zero for initial delay without rendering legacy max unavailable controls', () => {
     const onChange = jasmine.createSpy('onChange');
+    const legacyPolicy = { initialDelaySec: 0, maxUnavailable: { percent: 0 } };
     const wrapper = shallow(
-      <GceAutoHealingPolicyEditor
-        account="my-account"
-        policy={{ initialDelaySec: 0, maxUnavailable: { percent: 0 } }}
-        onChange={onChange}
-      />,
+      <GceAutoHealingPolicyEditor account="my-account" policy={legacyPolicy as any} onChange={onChange} />,
       { disableLifecycleMethods: true },
     );
 
     expect(wrapper.find('[data-testid="initial-delay"]').prop('value')).toBe(0);
-    expect(wrapper.find('[data-testid="max-unavailable"]').prop('value')).toBe(0);
-    wrapper.find('[data-testid="max-unavailable-unit"]').simulate('change', { target: { value: 'fixed' } });
-
-    expect(onChange).toHaveBeenCalledWith({ initialDelaySec: 0, maxUnavailable: { fixed: 0 } });
+    expect(wrapper.find('[data-testid="max-unavailable"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="max-unavailable-unit"]').exists()).toBe(false);
+    expect(wrapper.text()).not.toContain('Max unavailable');
   });
 });

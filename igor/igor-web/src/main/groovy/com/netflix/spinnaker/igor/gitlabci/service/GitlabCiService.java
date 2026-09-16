@@ -29,6 +29,7 @@ import com.netflix.spinnaker.igor.gitlabci.client.model.*;
 import com.netflix.spinnaker.igor.model.BuildServiceProvider;
 import com.netflix.spinnaker.igor.service.BuildOperations;
 import com.netflix.spinnaker.igor.service.BuildProperties;
+import com.netflix.spinnaker.igor.service.StoppableBuildService;
 import com.netflix.spinnaker.igor.travis.client.logparser.PropertyParser;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
@@ -45,7 +46,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
-public class GitlabCiService implements BuildOperations, BuildProperties {
+public class GitlabCiService implements BuildOperations, BuildProperties, StoppableBuildService {
   private final String name;
   private final GitlabCiClient client;
   private final GitlabCiProperties.GitlabCiHost hostConfig;
@@ -104,9 +105,58 @@ public class GitlabCiService implements BuildOperations, BuildProperties {
     throw new UnsupportedOperationException("getJobConfig is not yet implemented for Gitlab CI");
   }
 
+  /**
+   * For GitLab CI, there is no queue concept. The trigger returns the pipeline ID directly, so we
+   * simply return it as the build number to satisfy MonitorQueuedJenkinsJobTask.
+   */
+  @Override
+  public Object queuedBuild(String master, long item) {
+    return Map.of("number", item);
+  }
+
   @Override
   public long triggerBuildWithParameters(String job, Map<String, String> queryParameters) {
-    throw new UnsupportedOperationException();
+    String ref = queryParameters.getOrDefault("ref", "main");
+    String triggerToken = this.hostConfig.getTriggerToken();
+    if (triggerToken == null || triggerToken.isEmpty()) {
+      throw new IllegalStateException(
+          "Cannot trigger GitLab CI pipeline: triggerToken is not configured for master '"
+              + this.name
+              + "'");
+    }
+    Pipeline pipeline = Retrofit2SyncCall.execute(client.triggerPipeline(job, triggerToken, ref));
+    log.info(
+        "Triggered GitLab CI pipeline {} for {} on ref {}",
+        kv("pipelineId", pipeline.getId()),
+        kv("projectId", job),
+        kv("ref", ref));
+    return pipeline.getId();
+  }
+
+  /**
+   * Cancel a running GitLab CI pipeline.
+   *
+   * @param projectId The GitLab project ID
+   * @param pipelineId The pipeline ID to cancel
+   * @return The pipeline object after cancellation
+   */
+  public Pipeline cancelPipeline(String projectId, long pipelineId) {
+    Pipeline pipeline = Retrofit2SyncCall.execute(client.cancelPipeline(projectId, pipelineId));
+    log.info(
+        "Cancelled GitLab CI pipeline {} for {}",
+        kv("pipelineId", pipelineId),
+        kv("projectId", projectId));
+    return pipeline;
+  }
+
+  /**
+   * Implements {@link StoppableBuildService#stopRunningBuild(String, long)} by cancelling the
+   * GitLab CI pipeline. In the GitLab CI context, jobName maps to the project ID and buildNumber
+   * maps to the pipeline ID.
+   */
+  @Override
+  public void stopRunningBuild(String jobName, long buildNumber) {
+    cancelPipeline(jobName, buildNumber);
   }
 
   @Override

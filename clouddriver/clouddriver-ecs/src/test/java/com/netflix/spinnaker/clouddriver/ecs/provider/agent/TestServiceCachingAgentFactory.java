@@ -24,6 +24,6 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 public class TestServiceCachingAgentFactory {
   public static ServiceCachingAgent create(NetflixAmazonCredentials creds, String region) {
     return new ServiceCachingAgent(
-        creds, region, null, null, new SimpleMeterRegistry(), new EcsDefaultNamer());
+        creds, region, null, new SimpleMeterRegistry(), new EcsDefaultNamer());
   }
 }

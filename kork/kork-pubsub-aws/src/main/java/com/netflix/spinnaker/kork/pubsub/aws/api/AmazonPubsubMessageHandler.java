@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.kork.pubsub.aws.api;
 
-import com.amazonaws.services.sqs.model.Message;
 import com.netflix.spinnaker.kork.pubsub.aws.SQSSubscriber;
+import software.amazon.awssdk.services.sqs.model.Message;
 
 /**
  * Each SQSSubscriber will be associated with a single AmazonPubsubMessageHandler

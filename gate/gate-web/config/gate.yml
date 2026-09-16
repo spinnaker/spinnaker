@@ -106,6 +106,21 @@ integrations:
     enabled: false
     baseUrl: https://api.gremlin.com/v1/
 
+# Model Context Protocol (MCP) server, exposing Spinnaker CD operations as MCP
+# tools/resources/prompts. Disabled by default - an operator must opt in.
+mcp:
+  server:
+    enabled: false
+    # When true (the default), mutating tools (application create/delete, orchestration
+    # submission, pipeline triggers/cancels, manual judgment, ...) reject instead of executing.
+    read-only: true
+    # Number of most-recent mutating tool calls retained in-memory for the
+    # spinnaker://mcp/audit-log resource. Oldest entries are dropped once exceeded.
+    audit-log-size: 500
+    # When true (the default) and Echo is configured (services.echo.enabled), every mutating
+    # tool call is also published as an event to Echo, alongside every other Spinnaker write.
+    audit-echo-events: true
+
 spring:
   jackson:
     mapper:
@@ -121,6 +136,11 @@ spring:
   mvc:
     pathmatch:
       matching-strategy: ANT_PATH_MATCHER
+  ai:
+    mcp:
+      server:
+        # Only takes effect once mcp.server.enabled (above) turns on this module's beans.
+        protocol: STREAMABLE
 spring.session.store-type: redis
 
 ---

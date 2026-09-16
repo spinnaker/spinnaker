@@ -15,7 +15,6 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.provider.agent
 
-
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient
 import software.amazon.awssdk.services.secretsmanager.model.ListSecretsResponse
 import software.amazon.awssdk.services.secretsmanager.model.SecretListEntry
@@ -40,12 +39,11 @@ class SecretCachingAgentSpec extends Specification {
     def account = 'test-account'
     def region = 'us-west-1'
     def givenSecrets = []
-    def secretsEntries = []
     0.upto(4, {
       def secretName = "test-secret-${it}"
       givenSecrets << SecretListEntry.builder()
         .name(secretName)
-        .arn("arn:aws:secretsmanager:us-west-1:0123456789012:secret:${secretName}")
+        .arn("arn:aws:secretsmanager:us-west-1:012345678910:secret:${secretName}")
         .build()
     })
     secretsManager.listSecrets(_) >> ListSecretsResponse.builder().secretList(givenSecrets).build()
@@ -68,11 +66,11 @@ class SecretCachingAgentSpec extends Specification {
         account: 'test-account',
         region: 'us-west-1',
         name: secretName,
-        arn: "arn:aws:secretsmanager:us-west-1:0123456789012:secret:${secretName}"
+        arn: "arn:aws:secretsmanager:us-west-1:012345678910:secret:${secretName}"
       )
       secretsEntries << SecretListEntry.builder()
         .name(secretName)
-        .arn("arn:aws:secretsmanager:us-west-1:0123456789012:secret:${secretName}")
+        .arn("arn:aws:secretsmanager:us-west-1:012345678910:secret:${secretName}")
         .build()
     })
 

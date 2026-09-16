@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: stale
-      uses: actions/stale@v10
+      uses: actions/stale@v11
       with:
         exempt-issue-labels: 'beginner friendly,no-lifecycle'
         days-before-issue-stale: 45

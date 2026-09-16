@@ -16,14 +16,14 @@
 
 package com.netflix.spinnaker.clouddriver.aws.event;
 
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup;
-import com.amazonaws.services.autoscaling.model.Instance;
-import com.amazonaws.services.ec2.AmazonEC2;
-import com.amazonaws.services.ec2.model.TerminateInstancesRequest;
 import com.google.common.collect.Lists;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import java.util.List;
 import java.util.stream.Collectors;
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup;
+import software.amazon.awssdk.services.autoscaling.model.Instance;
+import software.amazon.awssdk.services.ec2.Ec2Client;
+import software.amazon.awssdk.services.ec2.model.TerminateInstancesRequest;
 
 public interface AfterResizeEventHandler {
   int MAX_SIMULTANEOUS_TERMINATIONS = 100;
@@ -32,12 +32,12 @@ public interface AfterResizeEventHandler {
   void handle(AfterResizeEvent event);
 
   default void terminateInstancesInAutoScalingGroup(
-      Task task, AmazonEC2 amazonEC2, AutoScalingGroup autoScalingGroup) {
-    String serverGroupName = autoScalingGroup.getAutoScalingGroupName();
+      Task task, Ec2Client amazonEC2, AutoScalingGroup autoScalingGroup) {
+    String serverGroupName = autoScalingGroup.autoScalingGroupName();
 
     List<String> instanceIds =
-        autoScalingGroup.getInstances().stream()
-            .map(Instance::getInstanceId)
+        autoScalingGroup.instances().stream()
+            .map(Instance::instanceId)
             .collect(Collectors.toList());
 
     int terminatedCount = 0;
@@ -49,7 +49,8 @@ public interface AfterResizeEventHandler {
             String.format(
                 "Terminating %d of %d instances in %s",
                 terminatedCount, instanceIds.size(), serverGroupName));
-        amazonEC2.terminateInstances(new TerminateInstancesRequest().withInstanceIds(partition));
+        amazonEC2.terminateInstances(
+            TerminateInstancesRequest.builder().instanceIds(partition).build());
       } catch (Exception e) {
         task.updateStatus(
             PHASE, String.format("Unable to terminate instances, reason: '%s'", e.getMessage()));

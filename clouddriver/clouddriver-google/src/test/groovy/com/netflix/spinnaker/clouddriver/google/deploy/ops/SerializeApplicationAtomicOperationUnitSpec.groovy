@@ -107,7 +107,7 @@ class SerializeApplicationAtomicOperationUnitSpec extends Specification {
       def scheduling = new Scheduling(automaticRestart: SCHEDULING_AUTOMATIC_RESTART,
                                       onHostMaintenance: SCHEDULING_ON_HOST_MAINTENANCE,
                                       preemptible: SCHEDULING_PREEMPTIBLE)
-      def shieldedVmConfig = new ShieldedVmConfig(enableSecureBoot: SHIELDEDVMCONFIG_ENABLE_SECURE_BOOT,
+      def shieldedVmConfig = new ShieldedInstanceConfig(enableSecureBoot: SHIELDEDVMCONFIG_ENABLE_SECURE_BOOT,
                                                   enableVtpm: SHIELDEDVMCONFIG_ENABLE_VTPM,
                                                   enableIntegrityMonitoring: SHIELDEDVMCONFIG_ENABLE_INTEGRITY_MONITORING)
       def disk = new AttachedDisk(autoDelete: DISK_AUTO_DELETE,
@@ -323,5 +323,70 @@ class SerializeApplicationAtomicOperationUnitSpec extends Specification {
     then:
       def e = thrown(GoogleResourceIllegalStateException)
       e.message == "Required instance template not found for server group: ${SERVER_GROUP_NAME}"
+  }
+
+  void "should deserialize shielded config from v1-shaped map key"() {
+    setup:
+      def operation = new SaveSnapshotAtomicOperation(new SaveSnapshotDescription())
+
+    when:
+      def instanceProperties = operation.convertMapToInstanceProperties([
+        shieldedInstanceConfig: [
+          enableSecureBoot: true,
+          enableVtpm: false,
+          enableIntegrityMonitoring: true
+        ]
+      ])
+
+    then:
+      instanceProperties.shieldedInstanceConfig != null
+      instanceProperties.shieldedInstanceConfig.enableSecureBoot
+      !instanceProperties.shieldedInstanceConfig.enableVtpm
+      instanceProperties.shieldedInstanceConfig.enableIntegrityMonitoring
+  }
+
+  void "should deserialize shielded config from legacy map key for backwards compatibility"() {
+    setup:
+      def operation = new SaveSnapshotAtomicOperation(new SaveSnapshotDescription())
+
+    when:
+      def instanceProperties = operation.convertMapToInstanceProperties([
+        shieldedVmConfig: [
+          enableSecureBoot: false,
+          enableVtpm: true,
+          enableIntegrityMonitoring: false
+        ]
+      ])
+
+    then:
+      instanceProperties.shieldedInstanceConfig != null
+      !instanceProperties.shieldedInstanceConfig.enableSecureBoot
+      instanceProperties.shieldedInstanceConfig.enableVtpm
+      !instanceProperties.shieldedInstanceConfig.enableIntegrityMonitoring
+  }
+
+  void "should prefer v1 shieldedInstanceConfig when both keys are present"() {
+    setup:
+      def operation = new SaveSnapshotAtomicOperation(new SaveSnapshotDescription())
+
+    when:
+      def instanceProperties = operation.convertMapToInstanceProperties([
+        shieldedInstanceConfig: [
+          enableSecureBoot: true,
+          enableVtpm: false,
+          enableIntegrityMonitoring: true
+        ],
+        shieldedVmConfig: [
+          enableSecureBoot: false,
+          enableVtpm: true,
+          enableIntegrityMonitoring: false
+        ]
+      ])
+
+    then:
+      instanceProperties.shieldedInstanceConfig != null
+      instanceProperties.shieldedInstanceConfig.enableSecureBoot
+      !instanceProperties.shieldedInstanceConfig.enableVtpm
+      instanceProperties.shieldedInstanceConfig.enableIntegrityMonitoring
   }
 }

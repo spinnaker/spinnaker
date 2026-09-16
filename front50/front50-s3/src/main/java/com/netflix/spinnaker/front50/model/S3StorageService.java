@@ -62,6 +62,13 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.services.s3.model.VersioningConfiguration;
 
+/**
+ * S3-backed Front50 metadata storage.
+ *
+ * @deprecated Front50 is moving to SQL-only persistence. Remains available through Spinnaker
+ *     2027.0.0; scheduled for removal afterward. Prefer {@code SqlStorageService}.
+ */
+@Deprecated
 public class S3StorageService implements StorageService {
   private static final Logger log = LoggerFactory.getLogger(S3StorageService.class);
 

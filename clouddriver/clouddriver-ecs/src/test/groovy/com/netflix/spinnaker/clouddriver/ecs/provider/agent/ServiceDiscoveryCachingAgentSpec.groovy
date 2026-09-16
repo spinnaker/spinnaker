@@ -18,6 +18,8 @@ package com.netflix.spinnaker.clouddriver.ecs.provider.agent
 import software.amazon.awssdk.services.servicediscovery.ServiceDiscoveryClient
 import software.amazon.awssdk.services.servicediscovery.model.ListServicesResponse
 import software.amazon.awssdk.services.servicediscovery.model.ServiceSummary
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.ServiceDiscoveryRegistry
@@ -30,6 +32,8 @@ class ServiceDiscoveryCachingAgentSpec extends Specification {
   def serviceDiscovery = Mock(ServiceDiscoveryClient)
   def clientProvider = Mock(AmazonClientProvider)
   def providerCache = Mock(ProviderCache)
+  def objectMapper = new ObjectMapper()
+    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
   @Subject
   ServiceDiscoveryCachingAgent agent = new ServiceDiscoveryCachingAgent(CommonCachingAgent.netflixAmazonCredentials, 'us-west-1', clientProvider)
@@ -43,7 +47,7 @@ class ServiceDiscoveryCachingAgentSpec extends Specification {
       givenServices << ServiceSummary.builder()
         .name(serviceName)
         .id(serviceId)
-        .arn("arn:aws:servicediscovery:us-west-1:0123456789012:service/${serviceId}")
+        .arn("arn:aws:servicediscovery:us-west-1:012345678910:service/${serviceId}")
         .build()
     })
     serviceDiscovery.listServices(_) >> ListServicesResponse.builder().services(givenServices).build()
@@ -68,12 +72,12 @@ class ServiceDiscoveryCachingAgentSpec extends Specification {
         region: 'us-west-1',
         name: serviceName,
         id: serviceId,
-        arn: "arn:aws:servicediscovery:us-west-1:0123456789012:service/${serviceId}"
+        arn: "arn:aws:servicediscovery:us-west-1:012345678910:service/${serviceId}"
       )
       servicesEntries << ServiceSummary.builder()
         .name(serviceName)
         .id(serviceId)
-        .arn("arn:aws:servicediscovery:us-west-1:0123456789012:service/${serviceId}")
+        .arn("arn:aws:servicediscovery:us-west-1:012345678910:service/${serviceId}")
         .build()
     })
 

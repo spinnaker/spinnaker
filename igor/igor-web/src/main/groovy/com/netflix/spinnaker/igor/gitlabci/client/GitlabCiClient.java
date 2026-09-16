@@ -23,6 +23,7 @@ import java.util.List;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.GET;
+import retrofit2.http.POST;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
 
@@ -55,5 +56,17 @@ public interface GitlabCiClient {
   // GitLabCI pipelines can spawn other child pipelines, which are linked by bridges
   @GET("api/v4/projects/{projectId}/pipelines/{pipelineId}/bridges")
   Call<List<Bridge>> getBridges(
+      @Path("projectId") String projectId, @Path("pipelineId") long pipelineId);
+
+  // Trigger a new pipeline on a given branch using a pipeline trigger token
+  @POST("api/v4/projects/{projectId}/trigger/pipeline")
+  Call<Pipeline> triggerPipeline(
+      @Path("projectId") String projectId,
+      @Query("token") String triggerToken,
+      @Query("ref") String ref);
+
+  // Cancel a running pipeline
+  @POST("api/v4/projects/{projectId}/pipelines/{pipelineId}/cancel")
+  Call<Pipeline> cancelPipeline(
       @Path("projectId") String projectId, @Path("pipelineId") long pipelineId);
 }

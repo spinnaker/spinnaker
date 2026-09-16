@@ -1,1 +1,2 @@
 com.netflix.spinnaker.kork.aws.AwsComponents
+com.netflix.spinnaker.kork.aws.jackson.AwsSdkV2JacksonConfiguration

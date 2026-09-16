@@ -19,14 +19,18 @@ package com.netflix.kayenta.signalfx;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.Main;
 import com.netflix.kayenta.canary.CanaryConfig;
+import com.netflix.kayenta.config.SignalFxMockServiceReportingConfig;
 import java.io.IOException;
 import java.time.Instant;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @ExtendWith(SpringExtension.class)
@@ -41,6 +45,26 @@ public abstract class BaseSignalFxIntegrationTest {
   protected static final String TEST_ID = "test-id";
   protected static final String LOCATION = "us-west-2";
 
+  private static final MockWebServer mockSignalFlowServer;
+
+  static {
+    try {
+      mockSignalFlowServer = SignalFxMockServiceReportingConfig.startMockSignalFlowServer();
+      Runtime.getRuntime()
+          .addShutdownHook(
+              new Thread(
+                  () -> {
+                    try {
+                      mockSignalFlowServer.shutdown();
+                    } catch (IOException ignored) {
+                      // best effort at JVM shutdown
+                    }
+                  }));
+    } catch (IOException e) {
+      throw new ExceptionInInitializerError(e);
+    }
+  }
+
   protected CanaryConfig integrationTestCanaryConfig;
 
   @Autowired protected ObjectMapper objectMapper = new ObjectMapper();
@@ -50,6 +74,11 @@ public abstract class BaseSignalFxIntegrationTest {
   @Autowired protected Instant metricsReportingStartTime;
 
   @LocalServerPort protected int serverPort;
+
+  @DynamicPropertySource
+  static void registerSignalFxProperties(DynamicPropertyRegistry registry) {
+    registry.add("kayenta.signalfx.mockEndpoint", () -> mockSignalFlowServer.url("/").toString());
+  }
 
   protected String getUriTemplate() {
     return "http://localhost:" + serverPort + "%s";

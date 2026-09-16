@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.view
 
-import com.amazonaws.services.ec2.model.Subnet
+import software.amazon.awssdk.services.ec2.model.Subnet
 import com.fasterxml.jackson.core.JsonParseException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
@@ -70,9 +70,9 @@ class AmazonSubnetProvider implements SubnetProvider<AmazonSubnet> {
   AmazonSubnet fromCacheData(CacheData cacheData) {
     def parts = Keys.parse(cacheData.id)
     def subnet = amazonObjectMapper.convertValue(cacheData.attributes, Subnet)
-    def tag = subnet.tags.find { it.key == METADATA_TAG_KEY }
-    def isDeprecated = subnet.tags.find { it.key == DEPRECATED_TAG_KEY }?.value
-    String json = tag?.value
+    def tag = subnet.tags().find { it.key() == METADATA_TAG_KEY }
+    def isDeprecated = subnet.tags().find { it.key() == DEPRECATED_TAG_KEY }?.value()
+    String json = tag?.value()
     String purpose = null
     String target = null
     if (json) {
@@ -89,7 +89,7 @@ class AmazonSubnetProvider implements SubnetProvider<AmazonSubnet> {
       }
     }
 
-    def name = subnet.tags.find { it.key.equalsIgnoreCase(NAME_TAG_KEY) }?.value
+    def name = subnet.tags().find { it.key().equalsIgnoreCase(NAME_TAG_KEY) }?.value()
     if (name && !purpose) {
       def splits = name.split('\\.')
       if (splits.length == 3) {
@@ -99,15 +99,15 @@ class AmazonSubnetProvider implements SubnetProvider<AmazonSubnet> {
 
     new AmazonSubnet(
       type: AmazonCloudProvider.ID,
-      id: subnet.subnetId,
-      state: subnet.state,
-      vpcId: subnet.vpcId,
-      cidrBlock: subnet.cidrBlock,
-      availableIpAddressCount: subnet.availableIpAddressCount,
+      id: subnet.subnetId(),
+      state: subnet.stateAsString(),
+      vpcId: subnet.vpcId(),
+      cidrBlock: subnet.cidrBlock(),
+      availableIpAddressCount: subnet.availableIpAddressCount(),
       account: parts.account,
       accountId: cacheData.attributes.accountId,
       region: parts.region,
-      availabilityZone: subnet.availabilityZone,
+      availabilityZone: subnet.availabilityZone(),
       purpose: purpose,
       target: target,
       deprecated: new Boolean(isDeprecated)

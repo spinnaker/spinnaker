@@ -56,8 +56,7 @@ class UpsertGoogleAutoscalingPolicyDescriptionValidatorSpec extends Specificatio
     customMetricUtilizations: CUSTOM_METRIC_UTILIZATIONS)
   private static final GOOGLE_AUTOHEALING_POLICY = new GoogleAutoHealingPolicy(
     healthCheck: "hc",
-    initialDelaySec: 5,
-    maxUnavailable: new GoogleAutoHealingPolicy.FixedOrPercent(percent: 0.5)
+    initialDelaySec: 5
   )
 
   @Shared
@@ -118,5 +117,28 @@ class UpsertGoogleAutoscalingPolicyDescriptionValidatorSpec extends Specificatio
     1 * errors.rejectValue('region', _)
     1 * errors.rejectValue('serverGroupName', _)
     1 * errors.rejectValue('autoscalingPolicy', _)
+  }
+
+  void "reject autoHealingPolicy maxUnavailable on stable Compute v1"() {
+    setup:
+    def description = new UpsertGoogleAutoscalingPolicyDescription(
+      region: REGION,
+      serverGroupName: SERVER_GROUP_NAME,
+      autoHealingPolicy: new GoogleAutoHealingPolicy(
+        healthCheck: "hc",
+        initialDelaySec: 5,
+        maxUnavailable: new GoogleAutoHealingPolicy.FixedOrPercent(fixed: 3)
+      ),
+      accountName: ACCOUNT_NAME)
+    def errors = Mock(ValidationErrors)
+
+    when:
+    validator.validate([], description, errors)
+
+    then:
+    1 * errors.rejectValue(
+      "autoHealingPolicy.maxUnavailable",
+      "upsertGoogleScalingPolicyDescription.autoHealingPolicy.maxUnavailable.unsupportedOnStableComputeV1",
+      _)
   }
 }

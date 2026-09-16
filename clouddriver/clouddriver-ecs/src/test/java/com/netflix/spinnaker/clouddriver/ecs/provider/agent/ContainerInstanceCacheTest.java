@@ -21,26 +21,25 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import com.amazonaws.services.ecs.model.ContainerInstance;
-import com.amazonaws.services.ecs.model.DescribeContainerInstancesRequest;
-import com.amazonaws.services.ecs.model.DescribeContainerInstancesResult;
-import com.amazonaws.services.ecs.model.ListClustersRequest;
-import com.amazonaws.services.ecs.model.ListClustersResult;
-import com.amazonaws.services.ecs.model.ListContainerInstancesRequest;
-import com.amazonaws.services.ecs.model.ListContainerInstancesResult;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.ContainerInstanceCacheClient;
 import java.util.Collection;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.services.ecs.model.ContainerInstance;
+import software.amazon.awssdk.services.ecs.model.DescribeContainerInstancesRequest;
+import software.amazon.awssdk.services.ecs.model.DescribeContainerInstancesResponse;
+import software.amazon.awssdk.services.ecs.model.ListClustersRequest;
+import software.amazon.awssdk.services.ecs.model.ListClustersResponse;
+import software.amazon.awssdk.services.ecs.model.ListContainerInstancesRequest;
+import software.amazon.awssdk.services.ecs.model.ListContainerInstancesResponse;
 import spock.lang.Subject;
 
 public class ContainerInstanceCacheTest extends CommonCachingAgent {
   @Subject
   private final ContainerInstanceCachingAgent agent =
-      new ContainerInstanceCachingAgent(
-          netflixAmazonCredentials, REGION, clientProvider, credentialsProvider, registry);
+      new ContainerInstanceCachingAgent(netflixAmazonCredentials, REGION, clientProvider, registry);
 
   @Subject
   private final ContainerInstanceCacheClient client =
@@ -51,18 +50,24 @@ public class ContainerInstanceCacheTest extends CommonCachingAgent {
     // Given
     String key = Keys.getContainerInstanceKey(ACCOUNT, REGION, CONTAINER_INSTANCE_ARN_1);
 
-    ContainerInstance containerInstance = new ContainerInstance();
-    containerInstance.setContainerInstanceArn(CONTAINER_INSTANCE_ARN_1);
-    containerInstance.setEc2InstanceId(EC2_INSTANCE_ID_1);
+    ContainerInstance containerInstance =
+        ContainerInstance.builder()
+            .containerInstanceArn(CONTAINER_INSTANCE_ARN_1)
+            .ec2InstanceId(EC2_INSTANCE_ID_1)
+            .build();
 
     when(ecs.listClusters(any(ListClustersRequest.class)))
-        .thenReturn(new ListClustersResult().withClusterArns(CLUSTER_ARN_1));
+        .thenReturn(ListClustersResponse.builder().clusterArns(CLUSTER_ARN_1).build());
     when(ecs.listContainerInstances(any(ListContainerInstancesRequest.class)))
         .thenReturn(
-            new ListContainerInstancesResult().withContainerInstanceArns(CONTAINER_INSTANCE_ARN_1));
+            ListContainerInstancesResponse.builder()
+                .containerInstanceArns(CONTAINER_INSTANCE_ARN_1)
+                .build());
     when(ecs.describeContainerInstances(any(DescribeContainerInstancesRequest.class)))
         .thenReturn(
-            new DescribeContainerInstancesResult().withContainerInstances(containerInstance));
+            DescribeContainerInstancesResponse.builder()
+                .containerInstances(containerInstance)
+                .build());
 
     // When
     CacheResult cacheResult = agent.loadData(providerCache);
@@ -84,15 +89,15 @@ public class ContainerInstanceCacheTest extends CommonCachingAgent {
         "Expected CacheData with ID " + key + " but retrieved ID " + retrievedKey);
 
     assertTrue(
-        containerInstance.getEc2InstanceId().equals(ecsContainerInstance.getEc2InstanceId()),
+        containerInstance.ec2InstanceId().equals(ecsContainerInstance.getEc2InstanceId()),
         "Expected the container instance to have EC2 instance ID of "
-            + containerInstance.getEc2InstanceId()
+            + containerInstance.ec2InstanceId()
             + " but got "
             + ecsContainerInstance.getEc2InstanceId());
     assertTrue(
-        containerInstance.getContainerInstanceArn().equals(ecsContainerInstance.getArn()),
+        containerInstance.containerInstanceArn().equals(ecsContainerInstance.getArn()),
         "Expected the container instance to have the ARN "
-            + containerInstance.getContainerInstanceArn()
+            + containerInstance.containerInstanceArn()
             + " but got "
             + ecsContainerInstance.getArn());
   }

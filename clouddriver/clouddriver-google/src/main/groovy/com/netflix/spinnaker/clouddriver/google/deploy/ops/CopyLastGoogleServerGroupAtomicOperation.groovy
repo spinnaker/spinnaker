@@ -20,6 +20,7 @@ import com.google.api.services.compute.model.AttachedDisk
 import com.google.api.services.compute.model.AutoscalingPolicy
 import com.google.api.services.compute.model.InstanceGroupManagerAutoHealingPolicy
 import com.google.api.services.compute.model.InstanceProperties
+import com.google.api.services.compute.model.ShieldedInstanceConfig
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -35,6 +36,7 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleDisk
 import com.netflix.spinnaker.clouddriver.google.model.GoogleDistributionPolicy
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
+import com.netflix.spinnaker.clouddriver.google.deploy.validators.InstanceFlexibilityPolicyValidationSupport
 import org.springframework.beans.factory.annotation.Autowired
 
 class CopyLastGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<DeploymentResult> {
@@ -69,6 +71,7 @@ class CopyLastGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<Dep
   @Override
   DeploymentResult operate(List priorOutputs) {
     BasicGoogleDeployDescription newDescription = cloneAndOverrideDescription()
+    validateInstanceFlexibilityPolicyConstraints(newDescription)
 
     def credentials = newDescription.credentials
     def project = credentials.project
@@ -87,6 +90,16 @@ class CopyLastGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<Dep
                                   "New server group = $newServerGroupName in ${isRegional ? region : zone}."
 
     result
+  }
+
+  // Defense-in-depth: re-validate the merged description (request overrides + ancestor fallback)
+  // at operation time because the ancestor server group may have changed between the validator
+  // run and operation execution. Throws IllegalArgumentException on the first constraint
+  // violation, preventing the deploy handler from being invoked with an invalid flex policy.
+  private static void validateInstanceFlexibilityPolicyConstraints(
+      BasicGoogleDeployDescription description) {
+    InstanceFlexibilityPolicyValidationSupport.throwFirstIssue(
+      InstanceFlexibilityPolicyValidationSupport.validate(description))
   }
 
   private BasicGoogleDeployDescription cloneAndOverrideDescription() {
@@ -133,7 +146,16 @@ class CopyLastGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<Dep
       description.distributionPolicy != null ?
         description.distributionPolicy :
         ancestorServerGroup.distributionPolicy
-    newDescription.selectZones = description.selectZones ?: ancestorServerGroup.selectZones
+    // If the ancestor has no flexibility policy (e.g. pre-feature or zonal server group),
+    // null propagates safely -- the deploy handler's null check skips the policy entirely.
+    newDescription.instanceFlexibilityPolicy =
+      description.instanceFlexibilityPolicy != null ?
+        description.instanceFlexibilityPolicy :
+        ancestorServerGroup.instanceFlexibilityPolicy
+    newDescription.selectZones =
+      description.selectZones != null
+        ? description.selectZones
+        : ancestorServerGroup.selectZones
 
     def ancestorInstanceTemplate = ancestorServerGroup.launchConfig.instanceTemplate
 
@@ -246,23 +268,27 @@ class CopyLastGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<Dep
           ? description.canIpForward
           : ancestorInstanceProperties.canIpForward
 
-      def shieldedVmConfig = ancestorInstanceProperties.shieldedVmConfig
+      // Dual-key fallback: try v1 key first, then legacy beta key for backward compat
+      // with server groups cached before the v1 migration. Normalize Map/GenericJson wire
+      // values so a direct cast cannot ClassCastException on real API responses.
+      def shieldedInstanceConfig =
+        GCEUtil.resolveShieldedInstanceConfig(ancestorInstanceProperties)
 
-      if (shieldedVmConfig) {
+      if (shieldedInstanceConfig) {
         newDescription.enableSecureBoot =
           description.enableSecureBoot != null
             ? description.enableSecureBoot
-            : shieldedVmConfig.enableSecureBoot
+            : shieldedInstanceConfig.enableSecureBoot
 
         newDescription.enableVtpm =
           description.enableVtpm != null
             ? description.enableVtpm
-            : shieldedVmConfig.enableVtpm
+            : shieldedInstanceConfig.enableVtpm
 
         newDescription.enableIntegrityMonitoring =
           description.enableIntegrityMonitoring != null
             ? description.enableIntegrityMonitoring
-            : shieldedVmConfig.enableIntegrityMonitoring
+            : shieldedInstanceConfig.enableIntegrityMonitoring
       }
     }
 

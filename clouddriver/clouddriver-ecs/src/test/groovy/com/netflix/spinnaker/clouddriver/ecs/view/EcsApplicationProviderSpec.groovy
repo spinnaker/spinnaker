@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.view
 
-import com.amazonaws.services.ecs.model.DeploymentConfiguration
-import com.amazonaws.services.ecs.model.Service
+import software.amazon.awssdk.services.ecs.model.DeploymentConfiguration
+import java.time.Instant
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
@@ -49,27 +49,23 @@ class EcsApplicationProviderSpec extends Specification {
     def serviceName = appName + '-kcats-liated-v001'
     def monikerCluster = appName + '-kcats-liated'
     Map<String, Set<String>> clusterNames = new HashMap<>()
-    clusterNames.put(accountName, Collections.singleton(serviceName))
-    Map<String, Set<String>> clusterNameMetadata = new HashMap<>()
-    clusterNameMetadata.put(accountName, Collections.singleton(monikerCluster))
-
-
+    clusterNames.put(accountName, Collections.singleton(monikerCluster))
 
     def givenApp = (Application) new EcsApplication(appName,
       [
         name: appName
       ],
-      clusterNames,
-      clusterNameMetadata)
+      clusterNames)
 
-    def service = new Service(
-      serviceName: serviceName,
-      deploymentConfiguration: new DeploymentConfiguration()
-        .withMaximumPercent(100)
-        .withMinimumHealthyPercent(0),
-      desiredCount: 1,
-      createdAt: new Date()
-    )
+    def service = software.amazon.awssdk.services.ecs.model.Service.builder()
+      .serviceName(serviceName)
+      .deploymentConfiguration(DeploymentConfiguration.builder()
+        .maximumPercent(100)
+        .minimumHealthyPercent(0)
+        .build())
+      .desiredCount(1)
+      .createdAt(Instant.now())
+      .build()
     def attributes = TestServiceCachingAgentFactory.create(credentials,
       credentials.getRegions()[0].getName()).convertServiceToAttributes(service)
 

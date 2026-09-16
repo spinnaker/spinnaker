@@ -27,7 +27,6 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
 import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.aws.security.AWSAccountInfoLookup;
 import com.netflix.spinnaker.clouddriver.aws.security.AWSAccountInfoLookupFactory;
@@ -46,6 +45,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.io.TempDir;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 
 class AmazonCredentialsParserTest {
 
@@ -90,7 +90,7 @@ class AmazonCredentialsParserTest {
     String alternateAccountId = "696969";
     String regularAccountId = "12345";
 
-    AWSCredentialsProvider provider = mock(AWSCredentialsProvider.class);
+    AwsCredentialsProvider provider = mock(AwsCredentialsProvider.class);
     AmazonClientProvider amazonClientProvider = mock(AmazonClientProvider.class);
     AWSAccountInfoLookup lookup = mock(AWSAccountInfoLookup.class);
     TestAWSAccountInfoLookupFactory lookupFactory =
@@ -191,7 +191,7 @@ class AmazonCredentialsParserTest {
 
     String accountId = "696969";
 
-    AWSCredentialsProvider provider = mock(AWSCredentialsProvider.class);
+    AwsCredentialsProvider provider = mock(AwsCredentialsProvider.class);
     AmazonClientProvider amazonClientProvider = mock(AmazonClientProvider.class);
     AWSAccountInfoLookup lookup = mock(AWSAccountInfoLookup.class);
     AWSAccountInfoLookupFactory lookupFactory = spy(AWSAccountInfoLookupFactory.class);
@@ -249,7 +249,7 @@ class AmazonCredentialsParserTest {
     @Override
     public AWSAccountInfoLookup makeAWSAccountInfoLookup(
         String profileName,
-        AWSCredentialsProvider credentialsProvider,
+        AwsCredentialsProvider credentialsProvider,
         AmazonClientProvider amazonClientProvider) {
       AWSAccountInfoLookup awsAccountInfoLookup = getAWSAccountInfoLookup(profileName);
       assertNotNull(awsAccountInfoLookup);
@@ -264,21 +264,21 @@ class AmazonCredentialsParserTest {
   @NonnullByDefault
   static class TestAWSCredentialsProviderFactory implements AWSCredentialsProviderFactory {
 
-    private final Map<String, AWSCredentialsProvider> awsCredentialsProviderMap = new HashMap<>();
+    private final Map<String, AwsCredentialsProvider> awsCredentialsProviderMap = new HashMap<>();
 
     TestAWSCredentialsProviderFactory(String profileName) {
-      AWSCredentialsProvider awsCredentialsProvider = mock(AWSCredentialsProvider.class);
+      AwsCredentialsProvider awsCredentialsProvider = mock(AwsCredentialsProvider.class);
       awsCredentialsProviderMap.put(profileName, awsCredentialsProvider);
     }
 
     @Override
-    public AWSCredentialsProvider makeAWSCredentialsProvider(String profileName) {
-      AWSCredentialsProvider awsCredentialsProvider = getAWSCredentialsProvider(profileName);
+    public AwsCredentialsProvider makeAWSCredentialsProvider(String profileName) {
+      AwsCredentialsProvider awsCredentialsProvider = getAWSCredentialsProvider(profileName);
       assertNotNull(awsCredentialsProvider);
       return awsCredentialsProvider;
     }
 
-    public AWSCredentialsProvider getAWSCredentialsProvider(String profileName) {
+    public AwsCredentialsProvider getAWSCredentialsProvider(String profileName) {
       return awsCredentialsProviderMap.get(profileName);
     }
   }

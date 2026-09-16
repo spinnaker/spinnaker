@@ -60,6 +60,13 @@ class BasicGoogleDeployAtomicOperationConverter extends AbstractAtomicOperations
       }
     }
 
+    // Saved pipelines may still contain partnerMetadata from older payload shapes. Strip it here so
+    // deploys continue without propagating unsupported partner metadata into instanceTemplates.insert.
+    if (input.containsKey('partnerMetadata')) {
+      log.warn("Stripping partnerMetadata from deploy description; it is not propagated to instanceTemplates.insert.")
+      input.remove('partnerMetadata')
+    }
+
     GoogleAtomicOperationConverterHelper.convertDescription(input, this, BasicGoogleDeployDescription)
   }
 }

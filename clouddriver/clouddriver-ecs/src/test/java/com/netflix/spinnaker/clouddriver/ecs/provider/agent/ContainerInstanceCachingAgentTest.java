@@ -21,13 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import com.amazonaws.services.ecs.model.ContainerInstance;
-import com.amazonaws.services.ecs.model.DescribeContainerInstancesRequest;
-import com.amazonaws.services.ecs.model.DescribeContainerInstancesResult;
-import com.amazonaws.services.ecs.model.ListClustersRequest;
-import com.amazonaws.services.ecs.model.ListClustersResult;
-import com.amazonaws.services.ecs.model.ListContainerInstancesRequest;
-import com.amazonaws.services.ecs.model.ListContainerInstancesResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import java.util.Collection;
 import java.util.HashSet;
@@ -36,13 +29,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.services.ecs.model.ContainerInstance;
+import software.amazon.awssdk.services.ecs.model.DescribeContainerInstancesRequest;
+import software.amazon.awssdk.services.ecs.model.DescribeContainerInstancesResponse;
+import software.amazon.awssdk.services.ecs.model.ListClustersRequest;
+import software.amazon.awssdk.services.ecs.model.ListClustersResponse;
+import software.amazon.awssdk.services.ecs.model.ListContainerInstancesRequest;
+import software.amazon.awssdk.services.ecs.model.ListContainerInstancesResponse;
 import spock.lang.Subject;
 
 public class ContainerInstanceCachingAgentTest extends CommonCachingAgent {
   @Subject
   private final ContainerInstanceCachingAgent agent =
-      new ContainerInstanceCachingAgent(
-          netflixAmazonCredentials, REGION, clientProvider, credentialsProvider, registry);
+      new ContainerInstanceCachingAgent(netflixAmazonCredentials, REGION, clientProvider, registry);
 
   @Test
   public void shouldGetListOfContainerInstances() {
@@ -54,22 +53,24 @@ public class ContainerInstanceCachingAgentTest extends CommonCachingAgent {
 
     Collection<ContainerInstance> containerInstances = new LinkedList<>();
     containerInstances.add(
-        new ContainerInstance().withContainerInstanceArn(CONTAINER_INSTANCE_ARN_1));
+        ContainerInstance.builder().containerInstanceArn(CONTAINER_INSTANCE_ARN_1).build());
     containerInstances.add(
-        new ContainerInstance().withContainerInstanceArn(CONTAINER_INSTANCE_ARN_2));
+        ContainerInstance.builder().containerInstanceArn(CONTAINER_INSTANCE_ARN_2).build());
 
-    ListContainerInstancesResult listContainerInstacesResult =
-        new ListContainerInstancesResult().withContainerInstanceArns(containerInstanceArns);
+    ListContainerInstancesResponse listContainerInstacesResult =
+        ListContainerInstancesResponse.builder()
+            .containerInstanceArns(containerInstanceArns)
+            .build();
     when(ecs.listContainerInstances(any(ListContainerInstancesRequest.class)))
         .thenReturn(listContainerInstacesResult);
 
-    DescribeContainerInstancesResult describeContainerInstanceResult =
-        new DescribeContainerInstancesResult().withContainerInstances(containerInstances);
+    DescribeContainerInstancesResponse describeContainerInstanceResult =
+        DescribeContainerInstancesResponse.builder().containerInstances(containerInstances).build();
     when(ecs.describeContainerInstances(any(DescribeContainerInstancesRequest.class)))
         .thenReturn(describeContainerInstanceResult);
 
     when(ecs.listClusters(any(ListClustersRequest.class)))
-        .thenReturn(new ListClustersResult().withClusterArns(CLUSTER_ARN_1));
+        .thenReturn(ListClustersResponse.builder().clusterArns(CLUSTER_ARN_1).build());
 
     // When
     List<ContainerInstance> returnedContainerInstances = agent.getItems(ecs, providerCache);
@@ -89,11 +90,11 @@ public class ContainerInstanceCachingAgentTest extends CommonCachingAgent {
               + " list but it was not. The container instance is: "
               + containerInstance);
       assertTrue(
-          containerInstanceArns.contains(containerInstance.getContainerInstanceArn()),
+          containerInstanceArns.contains(containerInstance.containerInstanceArn()),
           "Expected the container instance arn to be in  "
               + containerInstanceArns
               + " list but it was not. The container instance ARN is: "
-              + containerInstance.getContainerInstanceArn());
+              + containerInstance.containerInstanceArn());
     }
   }
 
@@ -110,13 +111,15 @@ public class ContainerInstanceCachingAgentTest extends CommonCachingAgent {
 
     Collection<ContainerInstance> containerInstances = new LinkedList<>();
     containerInstances.add(
-        new ContainerInstance()
-            .withContainerInstanceArn(CONTAINER_INSTANCE_ARN_1)
-            .withEc2InstanceId(EC2_INSTANCE_ID_1));
+        ContainerInstance.builder()
+            .containerInstanceArn(CONTAINER_INSTANCE_ARN_1)
+            .ec2InstanceId(EC2_INSTANCE_ID_1)
+            .build());
     containerInstances.add(
-        new ContainerInstance()
-            .withContainerInstanceArn(CONTAINER_INSTANCE_ARN_2)
-            .withEc2InstanceId(EC2_INSTANCE_ID_2));
+        ContainerInstance.builder()
+            .containerInstanceArn(CONTAINER_INSTANCE_ARN_2)
+            .ec2InstanceId(EC2_INSTANCE_ID_2)
+            .build());
 
     // When
     Map<String, Collection<CacheData>> dataMap = agent.generateFreshData(containerInstances);

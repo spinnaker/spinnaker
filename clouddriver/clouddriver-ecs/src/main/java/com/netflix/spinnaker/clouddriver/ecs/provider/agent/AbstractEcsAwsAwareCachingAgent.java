@@ -15,7 +15,6 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.agent.AgentExecution;
 import com.netflix.spinnaker.cats.agent.CacheResult;
@@ -35,11 +34,8 @@ abstract class AbstractEcsAwsAwareCachingAgent<T> extends AbstractEcsCachingAgen
   protected ProviderCache awsProviderCache;
 
   AbstractEcsAwsAwareCachingAgent(
-      NetflixAmazonCredentials account,
-      String region,
-      AmazonClientProvider amazonClientProvider,
-      AWSCredentialsProvider awsCredentialsProvider) {
-    super(account, region, amazonClientProvider, awsCredentialsProvider);
+      NetflixAmazonCredentials account, String region, AmazonClientProvider amazonClientProvider) {
+    super(account, region, amazonClientProvider);
   }
 
   public void setAwsCache(ProviderCache awsCache) {

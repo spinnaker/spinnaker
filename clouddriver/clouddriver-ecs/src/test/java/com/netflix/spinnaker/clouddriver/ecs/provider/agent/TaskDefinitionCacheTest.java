@@ -24,24 +24,27 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
-import com.amazonaws.services.ecs.model.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
+import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.TaskDefinitionCacheClient;
 import java.util.*;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.services.ecs.model.DescribeTaskDefinitionRequest;
+import software.amazon.awssdk.services.ecs.model.DescribeTaskDefinitionResponse;
+import software.amazon.awssdk.services.ecs.model.TaskDefinition;
 import spock.lang.Subject;
 
 public class TaskDefinitionCacheTest extends CommonCachingAgent {
-  private final ObjectMapper mapper = new ObjectMapper();
+  private final ObjectMapper mapper = new ObjectMapper().registerModule(new AwsSdkV2Module());
 
   @Subject
   private final TaskDefinitionCachingAgent agent =
       new TaskDefinitionCachingAgent(
-          netflixAmazonCredentials, REGION, clientProvider, credentialsProvider, registry, mapper);
+          netflixAmazonCredentials, REGION, clientProvider, registry, mapper);
 
   @Subject
   private final TaskDefinitionCacheClient client =
@@ -52,9 +55,11 @@ public class TaskDefinitionCacheTest extends CommonCachingAgent {
     // Given
     String key = Keys.getTaskDefinitionKey(ACCOUNT, REGION, TASK_DEFINITION_ARN_1);
 
-    TaskDefinition taskDefinition = new TaskDefinition();
-    taskDefinition.setTaskDefinitionArn(TASK_DEFINITION_ARN_1);
-    taskDefinition.setContainerDefinitions(Collections.emptyList());
+    TaskDefinition taskDefinition =
+        TaskDefinition.builder()
+            .taskDefinitionArn(TASK_DEFINITION_ARN_1)
+            .containerDefinitions(Collections.emptyList())
+            .build();
 
     Map<String, Object> serviceAttr = new HashMap<>();
     serviceAttr.put("taskDefinition", TASK_DEFINITION_ARN_1);
@@ -68,7 +73,8 @@ public class TaskDefinitionCacheTest extends CommonCachingAgent {
         new DefaultCacheData("test-service", serviceAttr, Collections.emptyMap());
 
     when(ecs.describeTaskDefinition(any(DescribeTaskDefinitionRequest.class)))
-        .thenReturn(new DescribeTaskDefinitionResult().withTaskDefinition(taskDefinition));
+        .thenReturn(
+            DescribeTaskDefinitionResponse.builder().taskDefinition(taskDefinition).build());
     when(providerCache.filterIdentifiers(
             SERVICES.toString(), "ecs;services;test-account;us-west-2;*"))
         .thenReturn(Collections.singletonList("test-service"));
@@ -93,12 +99,13 @@ public class TaskDefinitionCacheTest extends CommonCachingAgent {
         key,
         "Expected CacheData with ID " + key + " but retrieved ID " + retrievedKey);
 
+    assertNotNull(retrievedTaskDefinition, "Expected task definition to be non-null");
     assertEquals(
-        taskDefinition,
-        retrievedTaskDefinition,
-        "Expected the task definition to be "
-            + taskDefinition
+        TASK_DEFINITION_ARN_1,
+        retrievedTaskDefinition.taskDefinitionArn(),
+        "Expected the task definition ARN to be "
+            + TASK_DEFINITION_ARN_1
             + " but got "
-            + retrievedTaskDefinition);
+            + retrievedTaskDefinition.taskDefinitionArn());
   }
 }

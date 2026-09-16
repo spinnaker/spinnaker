@@ -16,19 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.amazonaws.services.cloudformation.AmazonCloudFormation
-import com.amazonaws.services.cloudformation.model.AmazonCloudFormationException
-import com.amazonaws.services.cloudformation.model.ChangeSetType
-import com.amazonaws.services.cloudformation.model.CreateChangeSetRequest
-import com.amazonaws.services.cloudformation.model.CreateChangeSetResult
-import com.amazonaws.services.cloudformation.model.CreateStackRequest
-import com.amazonaws.services.cloudformation.model.CreateStackResult
-import com.amazonaws.services.cloudformation.model.DescribeStacksResult
-import com.amazonaws.services.cloudformation.model.Parameter
-import com.amazonaws.services.cloudformation.model.Stack
-import com.amazonaws.services.cloudformation.model.Tag
-import com.amazonaws.services.cloudformation.model.UpdateStackRequest
-import com.amazonaws.services.cloudformation.model.UpdateStackResult
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
@@ -36,6 +23,21 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeployCloudForma
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import software.amazon.awssdk.services.cloudformation.CloudFormationClient
+import software.amazon.awssdk.services.cloudformation.model.CloudFormationException
+import software.amazon.awssdk.services.cloudformation.model.ChangeSetType
+import software.amazon.awssdk.services.cloudformation.model.CreateChangeSetRequest
+import software.amazon.awssdk.services.cloudformation.model.CreateChangeSetResponse
+import software.amazon.awssdk.services.cloudformation.model.CreateStackRequest
+import software.amazon.awssdk.services.cloudformation.model.CreateStackResponse
+import software.amazon.awssdk.services.cloudformation.model.DescribeStacksRequest
+import software.amazon.awssdk.services.cloudformation.model.DescribeStacksResponse
+import software.amazon.awssdk.services.cloudformation.model.Parameter
+import software.amazon.awssdk.services.cloudformation.model.Stack
+import software.amazon.awssdk.services.cloudformation.model.Tag
+import software.amazon.awssdk.services.cloudformation.model.UpdateStackRequest
+import software.amazon.awssdk.services.cloudformation.model.UpdateStackResponse
+import software.amazon.awssdk.services.cloudformation.model.ValidateTemplateRequest
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -48,8 +50,7 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
   void "should build a CreateStackRequest if stack doesn't exist and submit through aws client"() {
     given:
     def amazonClientProvider = Mock(AmazonClientProvider)
-    def amazonCloudFormation = Mock(AmazonCloudFormation)
-    def createStackResult = Mock(CreateStackResult)
+    def cloudFormationClient = Mock(CloudFormationClient)
     def stackId = "stackId"
     def op = new DeployCloudFormationAtomicOperation(
       new DeployCloudFormationDescription(
@@ -72,18 +73,18 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
     op.operate([])
 
     then:
-    1 * amazonClientProvider.getAmazonCloudFormation(_, _) >> amazonCloudFormation
-    1 * amazonCloudFormation.describeStacks(_) >> { throw new IllegalArgumentException() }
-    1 * amazonCloudFormation.createStack(_) >> { CreateStackRequest request ->
-      assert request.getStackName() == "stackTest"
-      assert request.getTemplateBody() == '{"key":"value"}'
-      assert request.getRoleARN() == expectedRoleARN
-      assert request.getParameters() == [ new Parameter().withParameterKey("key").withParameterValue("value") ]
-      assert request.getTags() == [ new Tag().withKey("key").withValue("value") ]
-      assert request.getCapabilities() == ["cap1", "cap2"]
-      createStackResult
+    1 * amazonClientProvider.getAmazonCloudFormationV2(_, _) >> cloudFormationClient
+    1 * cloudFormationClient.describeStacks(_ as DescribeStacksRequest) >> { throw new IllegalArgumentException() }
+    1 * cloudFormationClient.validateTemplate(_ as ValidateTemplateRequest) >> { null }
+    1 * cloudFormationClient.createStack(_ as CreateStackRequest) >> { CreateStackRequest request ->
+      assert request.stackName() == "stackTest"
+      assert request.templateBody() == '{"key":"value"}'
+      assert request.roleARN() == expectedRoleARN
+      assert request.parameters() == [ Parameter.builder().parameterKey("key").parameterValue("value").build() ]
+      assert request.tags() == [ Tag.builder().key("key").value("value").build() ]
+      assert request.capabilitiesAsStrings() == ["cap1", "cap2"]
+      CreateStackResponse.builder().stackId(stackId).build()
     }
-    1 * createStackResult.getStackId() >> stackId
 
     where:
     roleARN                              || expectedRoleARN
@@ -97,8 +98,7 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
   void "should build an UpdateStackRequest if stack exists and submit through aws client"() {
     given:
     def amazonClientProvider = Mock(AmazonClientProvider)
-    def amazonCloudFormation = Mock(AmazonCloudFormation)
-    def updateStackRequest = Mock(UpdateStackResult)
+    def cloudFormationClient = Mock(CloudFormationClient)
     def stackId = "stackId"
     def op = new DeployCloudFormationAtomicOperation(
       new DeployCloudFormationDescription(
@@ -121,20 +121,20 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
     op.operate([])
 
     then:
-    1 * amazonClientProvider.getAmazonCloudFormation(_, _) >> amazonCloudFormation
-    1 * amazonCloudFormation.describeStacks(_) >> {
-      new DescribeStacksResult().withStacks([new Stack().withStackId("stackId")] as Collection)
+    1 * amazonClientProvider.getAmazonCloudFormationV2(_, _) >> cloudFormationClient
+    1 * cloudFormationClient.describeStacks(_ as DescribeStacksRequest) >> {
+      DescribeStacksResponse.builder().stacks([Stack.builder().stackId("stackId").build()]).build()
     }
-    1 * amazonCloudFormation.updateStack(_) >> { UpdateStackRequest request ->
-      assert request.getStackName() == "stackTest"
-      assert request.getTemplateBody() == '{"key":"value"}'
-      assert request.getRoleARN() == expectedRoleARN
-      assert request.getParameters() == [ new Parameter().withParameterKey("key").withParameterValue("value") ]
-      assert request.getTags() == [ new Tag().withKey("key").withValue("value") ]
-      assert request.getCapabilities() == ["cap1", "cap2"]
-      updateStackRequest
+    1 * cloudFormationClient.validateTemplate(_ as ValidateTemplateRequest) >> { null }
+    1 * cloudFormationClient.updateStack(_ as UpdateStackRequest) >> { UpdateStackRequest request ->
+      assert request.stackName() == "stackTest"
+      assert request.templateBody() == '{"key":"value"}'
+      assert request.roleARN() == expectedRoleARN
+      assert request.parameters() == [ Parameter.builder().parameterKey("key").parameterValue("value").build() ]
+      assert request.tags() == [ Tag.builder().key("key").value("value").build() ]
+      assert request.capabilitiesAsStrings() == ["cap1", "cap2"]
+      UpdateStackResponse.builder().stackId(stackId).build()
     }
-    1 * updateStackRequest.getStackId() >> stackId
 
     where:
     roleARN                              || expectedRoleARN
@@ -145,11 +145,10 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
   }
 
   @Unroll
-  void "should build an CreateChangeSetRequest if it's a changeset and submit though aws client"() {
+  void "should build a CreateChangeSetRequest if it's a changeset and submit through aws client"() {
     given:
     def amazonClientProvider = Mock(AmazonClientProvider)
-    def amazonCloudFormation = Mock(AmazonCloudFormation)
-    def createChangeSetResult = Mock(CreateChangeSetResult)
+    def cloudFormationClient = Mock(CloudFormationClient)
 
     def awsConfigurationProperties = new AwsConfigurationProperties()
 
@@ -178,174 +177,42 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
     op.operate([])
 
     then:
-    1 * amazonClientProvider.getAmazonCloudFormation(_, _) >> amazonCloudFormation
-    1 * amazonCloudFormation.describeStacks(_) >> {
+    1 * amazonClientProvider.getAmazonCloudFormationV2(_, _) >> cloudFormationClient
+    1 * cloudFormationClient.validateTemplate(_ as ValidateTemplateRequest) >> { null }
+    1 * cloudFormationClient.describeStacks(_ as DescribeStacksRequest) >> {
       if (existingStack) {
-        new DescribeStacksResult().withStacks([new Stack().withStackId("stackId")] as Collection)
+        DescribeStacksResponse.builder().stacks([Stack.builder().stackId("stackId").build()]).build()
       } else {
-        new DescribeStacksResult().withStacks([] as Collection)
+        DescribeStacksResponse.builder().stacks([]).build()
       }
     }
-    1* amazonCloudFormation.createChangeSet(_) >> { CreateChangeSetRequest request ->
-      assert request.getStackName() == "stackTest"
-      assert request.getTemplateBody() == 'key: "value"'
-      assert request.getRoleARN() == expectedRoleARN
-      assert request.getParameters() == [ new Parameter().withParameterKey("key").withParameterValue("value") ]
-      assert request.getTags() == [ new Tag().withKey("key").withValue("value") ]
-      assert request.getCapabilities() == ["cap1", "cap2"]
-      assert request.getChangeSetName() == "changeSetTest"
-      assert request.getChangeSetType() == changeSetType
-      assert request.isIncludeNestedStacks() == false
-      createChangeSetResult
+    1 * cloudFormationClient.createChangeSet(_ as CreateChangeSetRequest) >> { CreateChangeSetRequest request ->
+      assert request.stackName() == "stackTest"
+      assert request.templateBody() == 'key: "value"'
+      assert request.roleARN() == expectedRoleARN
+      assert request.parameters() == [ Parameter.builder().parameterKey("key").parameterValue("value").build() ]
+      assert request.tags() == [ Tag.builder().key("key").value("value").build() ]
+      assert request.capabilitiesAsStrings() == ["cap1", "cap2"]
+      assert request.changeSetName() == "changeSetTest"
+      assert request.changeSetType() == expectedChangeSetType
+      assert request.includeNestedStacks() == false
+      CreateChangeSetResponse.builder().stackId(stackId).build()
     }
-    1 * createChangeSetResult.getStackId() >> stackId
 
     where:
-    roleARN                              | expectedRoleARN                      | existingStack || changeSetType
-    "arn:aws:iam:123456789012:role/test" | "arn:aws:iam:123456789012:role/test" | true          || ChangeSetType.UPDATE.toString()
-    ""                                   | null                                 | true          || ChangeSetType.UPDATE.toString()
-    "   "                                | null                                 | true          || ChangeSetType.UPDATE.toString()
-    "arn:aws:iam:123456789012:role/test" | "arn:aws:iam:123456789012:role/test" | true          || ChangeSetType.UPDATE.toString()
-    "arn:aws:iam:123456789012:role/test" | "arn:aws:iam:123456789012:role/test" | false         || ChangeSetType.CREATE.toString()
-  }
-
-  @Unroll
-  void "should build an CreateChangeSetRequest with templateURL if set"() {
-    given:
-    def amazonClientProvider = Mock(AmazonClientProvider)
-    def amazonCloudFormation = Mock(AmazonCloudFormation)
-    def createChangeSetResult = Mock(CreateChangeSetResult)
-
-    def awsConfigurationProperties = new AwsConfigurationProperties()
-
-    def stackId = "stackId"
-    def op = new DeployCloudFormationAtomicOperation(
-      new DeployCloudFormationDescription(
-        [
-          stackName: "stackTest",
-          region: "eu-west-1",
-          templateURL: 's3://my-bucket/cfn/my-template.yaml',
-          roleARN: roleARN,
-          parameters: [ key: "value" ],
-          tags: [ key: "value" ],
-          capabilities: ["cap1", "cap2"],
-          credentials: TestCredential.named("test"),
-          isChangeSet: true,
-          changeSetName: "changeSetTest"
-        ]
-      )
-    )
-    op.amazonClientProvider = amazonClientProvider
-    op.awsConfigurationProperties = awsConfigurationProperties
-    op.objectMapper = new ObjectMapper()
-
-    when:
-    op.operate([])
-
-    then:
-    1 * amazonClientProvider.getAmazonCloudFormation(_, _) >> amazonCloudFormation
-    1 * amazonCloudFormation.describeStacks(_) >> {
-      if (existingStack) {
-        new DescribeStacksResult().withStacks([new Stack().withStackId("stackId")] as Collection)
-      } else {
-        new DescribeStacksResult().withStacks([] as Collection)
-      }
-    }
-    1* amazonCloudFormation.createChangeSet(_) >> { CreateChangeSetRequest request ->
-      assert request.getStackName() == "stackTest"
-      assert request.getTemplateBody() == null
-      assert request.getTemplateURL() == 's3://my-bucket/cfn/my-template.yaml'
-      assert request.getRoleARN() == expectedRoleARN
-      assert request.getParameters() == [ new Parameter().withParameterKey("key").withParameterValue("value") ]
-      assert request.getTags() == [ new Tag().withKey("key").withValue("value") ]
-      assert request.getCapabilities() == ["cap1", "cap2"]
-      assert request.getChangeSetName() == "changeSetTest"
-      assert request.getChangeSetType() == changeSetType
-      assert request.isIncludeNestedStacks() == false
-      createChangeSetResult
-    }
-    1 * createChangeSetResult.getStackId() >> stackId
-
-    where:
-    roleARN                              | expectedRoleARN                      | existingStack || changeSetType
-    "arn:aws:iam:123456789012:role/test" | "arn:aws:iam:123456789012:role/test" | true          || ChangeSetType.UPDATE.toString()
-    ""                                   | null                                 | true          || ChangeSetType.UPDATE.toString()
-    "   "                                | null                                 | true          || ChangeSetType.UPDATE.toString()
-    "arn:aws:iam:123456789012:role/test" | "arn:aws:iam:123456789012:role/test" | true          || ChangeSetType.UPDATE.toString()
-    "arn:aws:iam:123456789012:role/test" | "arn:aws:iam:123456789012:role/test" | false         || ChangeSetType.CREATE.toString()
-  }
-
-  @Unroll
-  void "should build an CreateChangeSetRequest with includeNestedStacks if set"() {
-    given:
-    def amazonClientProvider = Mock(AmazonClientProvider)
-    def amazonCloudFormation = Mock(AmazonCloudFormation)
-    def createChangeSetResult = Mock(CreateChangeSetResult)
-
-    def awsConfigurationProperties = new AwsConfigurationProperties()
-    awsConfigurationProperties.cloudformation.changeSetsIncludeNestedStacks = true
-
-    def stackId = "stackId"
-    def op = new DeployCloudFormationAtomicOperation(
-      new DeployCloudFormationDescription(
-        [
-          stackName: "stackTest",
-          region: "eu-west-1",
-          templateBody: 'key: "value"',
-          roleARN: roleARN,
-          parameters: [ key: "value" ],
-          tags: [ key: "value" ],
-          capabilities: ["cap1", "cap2"],
-          credentials: TestCredential.named("test"),
-          isChangeSet: true,
-          changeSetName: "changeSetTest"
-        ]
-      )
-    )
-    op.amazonClientProvider = amazonClientProvider
-    op.awsConfigurationProperties = awsConfigurationProperties
-    op.objectMapper = new ObjectMapper()
-
-    when:
-    op.operate([])
-
-    then:
-    1 * amazonClientProvider.getAmazonCloudFormation(_, _) >> amazonCloudFormation
-    1 * amazonCloudFormation.describeStacks(_) >> {
-      if (existingStack) {
-        new DescribeStacksResult().withStacks([new Stack().withStackId("stackId")] as Collection)
-      } else {
-        new DescribeStacksResult().withStacks([] as Collection)
-      }
-    }
-    1* amazonCloudFormation.createChangeSet(_) >> { CreateChangeSetRequest request ->
-      assert request.getStackName() == "stackTest"
-      assert request.getTemplateBody() == 'key: "value"'
-      assert request.getRoleARN() == expectedRoleARN
-      assert request.getParameters() == [ new Parameter().withParameterKey("key").withParameterValue("value") ]
-      assert request.getTags() == [ new Tag().withKey("key").withValue("value") ]
-      assert request.getCapabilities() == ["cap1", "cap2"]
-      assert request.getChangeSetName() == "changeSetTest"
-      assert request.getChangeSetType() == changeSetType
-      assert request.isIncludeNestedStacks() == true
-      createChangeSetResult
-    }
-    1 * createChangeSetResult.getStackId() >> stackId
-
-    where:
-    roleARN                              | expectedRoleARN                      | existingStack || changeSetType
-    "arn:aws:iam:123456789012:role/test" | "arn:aws:iam:123456789012:role/test" | true          || ChangeSetType.UPDATE.toString()
-    ""                                   | null                                 | true          || ChangeSetType.UPDATE.toString()
-    "   "                                | null                                 | true          || ChangeSetType.UPDATE.toString()
-    "arn:aws:iam:123456789012:role/test" | "arn:aws:iam:123456789012:role/test" | true          || ChangeSetType.UPDATE.toString()
-    "arn:aws:iam:123456789012:role/test" | "arn:aws:iam:123456789012:role/test" | false         || ChangeSetType.CREATE.toString()
+    roleARN                              | expectedRoleARN                      | existingStack || expectedChangeSetType
+    "arn:aws:iam:123456789012:role/test" | "arn:aws:iam:123456789012:role/test" | true          || ChangeSetType.UPDATE
+    ""                                   | null                                 | true          || ChangeSetType.UPDATE
+    "   "                                | null                                 | true          || ChangeSetType.UPDATE
+    "arn:aws:iam:123456789012:role/test" | "arn:aws:iam:123456789012:role/test" | true          || ChangeSetType.UPDATE
+    "arn:aws:iam:123456789012:role/test" | "arn:aws:iam:123456789012:role/test" | false         || ChangeSetType.CREATE
   }
 
   @Unroll
   void "should fail when AWS fails to update stack"() {
     given:
     def amazonClientProvider = Mock(AmazonClientProvider)
-    def amazonCloudFormation = Mock(AmazonCloudFormation)
+    def cloudFormationClient = Mock(CloudFormationClient)
     def op = new DeployCloudFormationAtomicOperation(
       new DeployCloudFormationDescription(
         [
@@ -367,19 +234,22 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
     op.operate([])
 
     then:
-    1 * amazonClientProvider.getAmazonCloudFormation(_, _) >> amazonCloudFormation
-    1 * amazonCloudFormation.describeStacks(_) >> {
-      new DescribeStacksResult().withStacks([new Stack().withStackId("stackId")] as Collection)
+    1 * amazonClientProvider.getAmazonCloudFormationV2(_, _) >> cloudFormationClient
+    1 * cloudFormationClient.validateTemplate(_ as ValidateTemplateRequest) >> { null }
+    1 * cloudFormationClient.describeStacks(_ as DescribeStacksRequest) >> {
+      DescribeStacksResponse.builder().stacks([Stack.builder().stackId("stackId").build()]).build()
     }
-    1 * amazonCloudFormation.updateStack(_) >> { throw new AmazonCloudFormationException() }
-    thrown(AmazonCloudFormationException)
+    1 * cloudFormationClient.updateStack(_ as UpdateStackRequest) >> {
+      throw CloudFormationException.builder().message("error").build()
+    }
+    thrown(CloudFormationException)
   }
 
   @Unroll
   void "should success when updating stack and no change needed"() {
     given:
     def amazonClientProvider = Mock(AmazonClientProvider)
-    def amazonCloudFormation = Mock(AmazonCloudFormation)
+    def cloudFormationClient = Mock(CloudFormationClient)
     def op = new DeployCloudFormationAtomicOperation(
       new DeployCloudFormationDescription(
         [
@@ -401,18 +271,21 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
     op.operate([])
 
     then:
-    1 * amazonClientProvider.getAmazonCloudFormation(_, _) >> amazonCloudFormation
-    2 * amazonCloudFormation.describeStacks(_) >> {
-      new DescribeStacksResult().withStacks([new Stack().withStackId("stackId")] as Collection)
+    1 * amazonClientProvider.getAmazonCloudFormationV2(_, _) >> cloudFormationClient
+    1 * cloudFormationClient.validateTemplate(_ as ValidateTemplateRequest) >> { null }
+    2 * cloudFormationClient.describeStacks(_ as DescribeStacksRequest) >> {
+      DescribeStacksResponse.builder().stacks([Stack.builder().stackId("stackId").build()]).build()
     }
-    1 * amazonCloudFormation.updateStack(_) >> { throw new AmazonCloudFormationException("No updates are to be performed") }
+    1 * cloudFormationClient.updateStack(_ as UpdateStackRequest) >> {
+      throw CloudFormationException.builder().message("No updates are to be performed").build()
+    }
   }
 
   @Unroll
   void "should fail when invalid template"() {
     given:
     def amazonClientProvider = Mock(AmazonClientProvider)
-    def amazonCloudFormation = Mock(AmazonCloudFormation)
+    def cloudFormationClient = Mock(CloudFormationClient)
     def op = new DeployCloudFormationAtomicOperation(
       new DeployCloudFormationDescription(
         [
@@ -434,9 +307,10 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
     op.operate([])
 
     then:
-    1 * amazonClientProvider.getAmazonCloudFormation(_, _) >> amazonCloudFormation
-    1 * amazonCloudFormation.validateTemplate(_) >> { throw new AmazonCloudFormationException() }
-    thrown(AmazonCloudFormationException)
+    1 * amazonClientProvider.getAmazonCloudFormationV2(_, _) >> cloudFormationClient
+    1 * cloudFormationClient.validateTemplate(_ as ValidateTemplateRequest) >> {
+      throw CloudFormationException.builder().message("invalid template").build()
+    }
+    thrown(CloudFormationException)
   }
-
 }

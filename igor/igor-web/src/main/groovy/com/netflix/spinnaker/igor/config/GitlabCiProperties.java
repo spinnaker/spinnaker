@@ -50,6 +50,7 @@ public class GitlabCiProperties implements BuildServerProperties<GitlabCiPropert
     @NotEmpty private String name;
     @NotEmpty private String address;
     private String privateToken;
+    private String triggerToken;
     private boolean limitByMembership = true;
     private boolean limitByOwnership = false;
     private Integer defaultHttpPageLength = 100;
@@ -81,6 +82,14 @@ public class GitlabCiProperties implements BuildServerProperties<GitlabCiPropert
 
     public void setPrivateToken(String privateToken) {
       this.privateToken = privateToken;
+    }
+
+    public String getTriggerToken() {
+      return triggerToken;
+    }
+
+    public void setTriggerToken(String triggerToken) {
+      this.triggerToken = triggerToken;
     }
 
     public boolean getLimitByMembership() {

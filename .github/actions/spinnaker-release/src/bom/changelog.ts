@@ -4,7 +4,6 @@ import * as git from '../git/git';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as util from '../util';
-import * as uuid from 'uuid';
 import { Version } from '../versions';
 
 const monorepo = util.getInput('monorepo-location');
@@ -211,8 +210,9 @@ export class Changelog {
   }
 
   async publish() {
+    const { v4: uuidv4 } = await import('uuid');
     const [owner, repo] = docsRepo.split('/', 2);
-    const folder = uuid.v4();
+    const folder = uuidv4();
     const tmpdir = process.env.RUNNER_TEMP || os.tmpdir();
 
     // Clone docs repo

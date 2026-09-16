@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.kork.pubsub.aws.api;
 
-import com.amazonaws.services.sqs.model.Message;
 import com.netflix.spinnaker.kork.pubsub.aws.AmazonSubscriptionInformation;
 import com.netflix.spinnaker.kork.pubsub.model.MessageAcknowledger;
+import software.amazon.awssdk.services.sqs.model.Message;
 
 public interface AmazonMessageAcknowledger
     extends MessageAcknowledger<AmazonSubscriptionInformation, Message> {}

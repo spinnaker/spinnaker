@@ -83,11 +83,14 @@ final class RegionGoogleServerGroupManagers implements GoogleServerGroupManagers
         region);
   }
 
+  // Legacy-named update() delegates to the only stable-v1 MIG mutation endpoint (HTTP PATCH /
+  // JSON merge patch). Historically beta "update" was not equivalent to this path.
+  // See: https://cloud.google.com/compute/docs/reference/rest/v1/regionInstanceGroupManagers/patch
   @Override
   public GoogleComputeOperationRequest<ComputeRequest<Operation>> update(
       InstanceGroupManager content) throws IOException {
     return requestFactory.wrapOperationRequest(
-        managers.update(credentials.getProject(), region, instanceGroupName, content),
+        managers.patch(credentials.getProject(), region, instanceGroupName, content),
         "update",
         region);
   }

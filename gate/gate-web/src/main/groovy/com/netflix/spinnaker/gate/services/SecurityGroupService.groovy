@@ -43,7 +43,7 @@ class SecurityGroupService {
    * @return
    */
   Map getById(String id, String selectorKey) {
-    def result = Retrofit2SyncCall.execute(clouddriverServiceSelector.select().search(id, "securityGroups", null, 10000, 1, [:]))[0]
+    def result = Retrofit2SyncCall.execute(clouddriverServiceSelector.select().search(id, ["securityGroups"], null, 10000, 1, [:]))[0]
     if (result.results) {
       Map firstResult = ((List<Map>)result.results)[0]
       String uriString = firstResult.url

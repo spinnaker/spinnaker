@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.extern.log4j.Log4j2;
 
 /**
  * Handles the storage of Kubernetes manifests as artifacts.
@@ -43,9 +44,17 @@ import java.util.Map;
  * and complex, potentially causing performance issues when stored directly in pipeline execution
  * contexts.
  */
+@Log4j2
 public class ManifestMapStorageHandler implements ArtifactStorageHandler {
-  /** The property keys that this handler will look for in maps */
+  /** The property keys that this handler will look for in maps, whose values are manifest lists */
   private List<String> keys = List.of("manifests", "outputs.manifests");
+
+  /**
+   * The property keys that this handler will look for in maps, whose values are a single manifest,
+   * e.g. {@code findArtifactsFromResource} and {@code runJobManifest} stages output a single
+   * manifest under this key rather than a list.
+   */
+  private List<String> singularKeys = List.of("manifest", "outputs.manifest");
 
   /** Filter to determine which applications should be excluded from artifact storage */
   private final ApplicationFilter exclude;
@@ -83,21 +92,32 @@ public class ManifestMapStorageHandler implements ArtifactStorageHandler {
    */
   @Override
   public boolean canHandle(Object v) {
-    if (AuthenticatedRequest.getSpinnakerExecutionId().isEmpty() || this.exclude.shouldFilter()) {
-      return false;
-    }
-
     if (!(v instanceof Map)) {
       return false;
     }
 
     Map m = (Map) v;
-    return this.keys.stream()
-        .anyMatch(
-            k -> {
-              Object o = m.get(k);
-              return isListOfManifests(o);
-            });
+    boolean hasManifestContent =
+        this.keys.stream().anyMatch(k -> isListOfManifests(m.get(k)))
+            || this.singularKeys.stream().anyMatch(k -> isUnstoredManifest(m.get(k)));
+    if (!hasManifestContent) {
+      return false;
+    }
+
+    if (AuthenticatedRequest.getSpinnakerExecutionId().isEmpty()) {
+      log.debug(
+          "found manifest-shaped content but skipping storage: no spinnaker execution id present"
+              + " on AuthenticatedRequest/MDC for the current thread");
+      return false;
+    }
+    if (this.exclude.shouldFilter()) {
+      log.debug(
+          "found manifest-shaped content but skipping storage: application {} is excluded",
+          AuthenticatedRequest.getSpinnakerApplication().orElse(null));
+      return false;
+    }
+
+    return true;
   }
 
   /**
@@ -120,6 +140,17 @@ public class ManifestMapStorageHandler implements ArtifactStorageHandler {
     }
     List l = (List) v;
     return !l.isEmpty() && isProperMapType(l.get(0));
+  }
+
+  /**
+   * Checks if the object is a single manifest map that hasn't already been replaced by an artifact
+   * reference.
+   *
+   * @param v The object to check
+   * @return true if the object is a manifest map eligible for storage, false otherwise
+   */
+  private static boolean isUnstoredManifest(Object v) {
+    return isProperMapType(v) && !EntityHelper.alreadyStored((Map) v);
   }
 
   /**
@@ -179,6 +210,13 @@ public class ManifestMapStorageHandler implements ArtifactStorageHandler {
             m.put((K) k, temp);
           }
         });
+    this.singularKeys.forEach(
+        k -> {
+          V value = m.get(k);
+          if (isUnstoredManifest(value)) {
+            m.put((K) k, this.convert(store, value));
+          }
+        });
 
     return m;
   }
@@ -227,6 +265,11 @@ public class ManifestMapStorageHandler implements ArtifactStorageHandler {
     Artifact artifact = EntityHelper.toArtifact(v, ArtifactTypes.EMBEDDED_MAP_BASE64.getMimeType());
     Artifact stored = store.store(artifact, ArtifactTypeDecorator.toRemote(artifact));
     if (ArtifactTypes.EMBEDDED_MAP_BASE64.getMimeType().equals(stored.getType())) {
+      log.debug(
+          "manifest storage was skipped by the ArtifactStoreStorer (no-op storer, or the"
+              + " application/exclude-filter check in ArtifactStore.store rejected it); leaving"
+              + " content inline for application {}",
+          AuthenticatedRequest.getSpinnakerApplication().orElse(null));
       return t;
     }
     // We can cast directly to T due to our check of canHandle.

@@ -69,6 +69,17 @@ kayenta:
 #          - METRICS_STORE
 #        endpoint.baseUrl: https://app.datadoghq.com
 
+  clickhouse:
+    enabled: false
+#    accounts:
+#      - name: my-clickhouse-account
+#        endpointUrl: https://localhost:8443
+#        username: default
+#        password: xxxx
+#        database: otel # Optional, default database/schema for the connection
+#        supportedTypes:
+#          - METRICS_STORE
+
   graphite:
     enabled: false
 #    accounts:

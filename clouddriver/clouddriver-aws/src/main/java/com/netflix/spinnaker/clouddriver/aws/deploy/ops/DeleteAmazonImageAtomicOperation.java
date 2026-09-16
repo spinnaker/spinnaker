@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops;
 
-import com.amazonaws.services.ec2.model.DeregisterImageRequest;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteAmazonImageDescription;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
@@ -24,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import software.amazon.awssdk.services.ec2.model.DeregisterImageRequest;
 
 public class DeleteAmazonImageAtomicOperation implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "DELETE_IMAGE";
@@ -46,8 +46,9 @@ public class DeleteAmazonImageAtomicOperation implements AtomicOperation<Void> {
         .updateStatus(
             BASE_PHASE, String.format("Initializing Delete Image operation for %s", description));
     amazonClientProvider
-        .getAmazonEC2(description.getCredentials(), description.getRegion())
-        .deregisterImage(new DeregisterImageRequest().withImageId(description.getImageId()));
+        .getAmazonEC2V2(description.getCredentials(), description.getRegion())
+        .deregisterImage(
+            DeregisterImageRequest.builder().imageId(description.getImageId()).build());
 
     getTask()
         .updateStatus(

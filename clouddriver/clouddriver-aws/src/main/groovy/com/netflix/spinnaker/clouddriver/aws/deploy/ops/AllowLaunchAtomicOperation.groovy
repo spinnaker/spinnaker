@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.*
+import software.amazon.awssdk.services.ec2.Ec2Client
+import software.amazon.awssdk.services.ec2.model.*
 import com.netflix.spinnaker.clouddriver.aws.deploy.AmiIdResolver
 import com.netflix.spinnaker.clouddriver.aws.deploy.ResolvedAmiResult
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.AllowLaunchDescription
@@ -59,8 +59,8 @@ class AllowLaunchAtomicOperation implements AtomicOperation<ResolvedAmiResult> {
 
     def sourceCredentials = description.credentials
     def targetCredentials = credentialsRepository.getOne(description.targetAccount)
-    def sourceAmazonEC2 = amazonClientProvider.getAmazonEC2(description.credentials, description.region, true)
-    def targetAmazonEC2 = amazonClientProvider.getAmazonEC2(targetCredentials, description.region, true)
+    def sourceAmazonEC2 = amazonClientProvider.getAmazonEC2V2(description.credentials, description.region)
+    def targetAmazonEC2 = amazonClientProvider.getAmazonEC2V2(targetCredentials, description.region)
 
     def (ResolvedAmiResult resolvedAmi, ResolvedAmiLocation amiLocation) = new RetrySupport().retry({ ->
       resolveAmi(targetCredentials, sourceAmazonEC2, targetAmazonEC2)
@@ -88,7 +88,7 @@ class AllowLaunchAtomicOperation implements AtomicOperation<ResolvedAmiResult> {
         }
       }
       if (ownerCredentials) {
-        ownerAmazonEC2 = amazonClientProvider.getAmazonEC2(ownerCredentials, description.region, true)
+        ownerAmazonEC2 = amazonClientProvider.getAmazonEC2V2(ownerCredentials, description.region)
       }
     }
 
@@ -108,17 +108,21 @@ class AllowLaunchAtomicOperation implements AtomicOperation<ResolvedAmiResult> {
       task.updateStatus BASE_PHASE, "Allowing launch of $description.amiName from $description.account/$description.region to $description.targetAccount"
 
       OperationPoller.retryWithBackoff({ o ->
-          ownerAmazonEC2.modifyImageAttribute(new ModifyImageAttributeRequest().withImageId(resolvedAmi.amiId).withLaunchPermission(
-            new LaunchPermissionModifications().withAdd(new LaunchPermission().withUserId(targetCredentials.accountId))))
+          ownerAmazonEC2.modifyImageAttribute(ModifyImageAttributeRequest.builder()
+            .imageId(resolvedAmi.amiId)
+            .launchPermission(LaunchPermissionModifications.builder()
+              .add(LaunchPermission.builder().userId(targetCredentials.accountId).build())
+              .build())
+            .build())
         }, 500, 3)
     }
 
     if (ownerCredentials == targetCredentials) {
       task.updateStatus BASE_PHASE, "Tag replication not required"
     } else {
-      def request = new DescribeTagsRequest().withFilters(new Filter("resource-id").withValues(resolvedAmi.amiId))
+      def request = DescribeTagsRequest.builder().filters(Filter.builder().name("resource-id").values(resolvedAmi.amiId).build()).build()
       Closure<Set<Tag>> getTags = { DescribeTagsRequest req, TagsRetriever ret ->
-        new HashSet<Tag>(ret.retrieve(req).collect { new Tag(it.key, it.value) })
+        new HashSet<Tag>(ret.retrieve(req).collect { Tag.builder().key(it.key).value(it.value).build() })
       }.curry(request)
       Set<Tag> sourceTags = getTags(new TagsRetriever(ownerAmazonEC2))
       if (sourceTags.isEmpty()) {
@@ -138,11 +142,11 @@ class AllowLaunchAtomicOperation implements AtomicOperation<ResolvedAmiResult> {
 
         if (tagsToRemoveFromTarget) {
           task.updateStatus BASE_PHASE, "Removing tags on target AMI (${tagsToRemoveFromTarget.collect { "${it.key}: ${it.value}" }.join(", ")})."
-          targetAmazonEC2.deleteTags(new DeleteTagsRequest().withResources(resolvedAmi.amiId).withTags(tagsToRemoveFromTarget))
+          targetAmazonEC2.deleteTags(DeleteTagsRequest.builder().resources(resolvedAmi.amiId).tags(tagsToRemoveFromTarget).build())
         }
         if (tagsToAddToTarget) {
           task.updateStatus BASE_PHASE, "Creating tags on target AMI (${tagsToAddToTarget.collect { "${it.key}: ${it.value}" }.join(", ")})."
-          targetAmazonEC2.createTags(new CreateTagsRequest().withResources(resolvedAmi.amiId).withTags(tagsToAddToTarget))
+          targetAmazonEC2.createTags(CreateTagsRequest.builder().resources(resolvedAmi.amiId).tags(tagsToAddToTarget).build())
         }
       }
     }
@@ -157,8 +161,8 @@ class AllowLaunchAtomicOperation implements AtomicOperation<ResolvedAmiResult> {
 
   private Tuple2<ResolvedAmiResult, ResolvedAmiLocation> resolveAmi(
     NetflixAmazonCredentials targetCredentials,
-    AmazonEC2 sourceAmazonEC2,
-    AmazonEC2 targetAmazonEC2
+    Ec2Client sourceAmazonEC2,
+    Ec2Client targetAmazonEC2
   ) {
     task.updateStatus BASE_PHASE, "Looking up AMI imageId '$description.amiName' in target accountId='$targetCredentials.accountId'"
     ResolvedAmiResult resolvedAmi = AmiIdResolver.resolveAmiIdFromAllSources(targetAmazonEC2, description.region, description.amiName, targetCredentials.accountId)
@@ -183,17 +187,22 @@ class AllowLaunchAtomicOperation implements AtomicOperation<ResolvedAmiResult> {
   }
 
   @Canonical
-  static class TagsRetriever extends AwsResultsRetriever<TagDescription, DescribeTagsRequest, DescribeTagsResult> {
-    final AmazonEC2 amazonEC2
+  static class TagsRetriever extends AwsResultsRetriever<TagDescription, DescribeTagsRequest, DescribeTagsResponse> {
+    final Ec2Client amazonEC2
 
     @Override
-    protected DescribeTagsResult makeRequest(DescribeTagsRequest request) {
+    protected DescribeTagsResponse makeRequest(DescribeTagsRequest request) {
       amazonEC2.describeTags(request)
     }
 
     @Override
-    protected List<TagDescription> accessResult(DescribeTagsResult result) {
-      result.tags
+    protected List<TagDescription> accessResult(DescribeTagsResponse result) {
+      result.tags()
+    }
+
+    @Override
+    protected DescribeTagsRequest setNextToken(DescribeTagsRequest request, String nextToken) {
+      request.toBuilder().nextToken(nextToken).build()
     }
   }
 }

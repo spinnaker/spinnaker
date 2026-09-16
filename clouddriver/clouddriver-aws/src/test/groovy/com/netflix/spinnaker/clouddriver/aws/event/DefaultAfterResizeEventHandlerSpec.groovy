@@ -16,14 +16,14 @@
 
 package com.netflix.spinnaker.clouddriver.aws.event
 
-import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.autoscaling.model.DescribeLifecycleHooksRequest
-import com.amazonaws.services.autoscaling.model.DescribeLifecycleHooksResult
-import com.amazonaws.services.autoscaling.model.Instance
-import com.amazonaws.services.autoscaling.model.LifecycleHook
-import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.TerminateInstancesRequest
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
+import software.amazon.awssdk.services.autoscaling.model.DescribeLifecycleHooksRequest
+import software.amazon.awssdk.services.autoscaling.model.DescribeLifecycleHooksResponse
+import software.amazon.awssdk.services.autoscaling.model.Instance
+import software.amazon.awssdk.services.autoscaling.model.LifecycleHook
+import software.amazon.awssdk.services.ec2.Ec2Client
+import software.amazon.awssdk.services.ec2.model.TerminateInstancesRequest
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import spock.lang.Specification
@@ -32,19 +32,21 @@ import spock.lang.Unroll
 
 class DefaultAfterResizeEventHandlerSpec extends Specification {
   def task = Mock(Task)
-  def amazonEC2 = Mock(AmazonEC2)
-  def amazonAutoScaling = Mock(AmazonAutoScaling)
+  def amazonEC2 = Mock(Ec2Client)
+  def amazonAutoScaling = Mock(AutoScalingClient)
 
-  def autoScalingGroup = new AutoScalingGroup().withAutoScalingGroupName("app-v001")
+  def autoScalingGroup = AutoScalingGroup.builder().autoScalingGroupName("app-v001").build()
   def capacity = new ServerGroup.Capacity(0, 100, 0)
 
-  def event = new AfterResizeEvent(
-    task,
-    amazonEC2,
-    amazonAutoScaling,
-    autoScalingGroup,
-    capacity
-  )
+  def event() {
+    new AfterResizeEvent(
+      task,
+      amazonEC2,
+      amazonAutoScaling,
+      autoScalingGroup,
+      capacity
+    )
+  }
 
   @Subject
   def eventHandler = new DefaultAfterResizeEventHandler()
@@ -55,7 +57,7 @@ class DefaultAfterResizeEventHandlerSpec extends Specification {
     capacity.desired = desiredCapacity
 
     when:
-    eventHandler.handle(event)
+    eventHandler.handle(event())
 
     then:
     0 * _
@@ -66,10 +68,10 @@ class DefaultAfterResizeEventHandlerSpec extends Specification {
 
   def "should no-op if load balancers present"() {
     given:
-    autoScalingGroup.withLoadBalancerNames("my-loadbalancer")
+    autoScalingGroup = autoScalingGroup.toBuilder().loadBalancerNames(["my-loadbalancer"]).build()
 
     when:
-    eventHandler.handle(event)
+    eventHandler.handle(event())
 
     then:
     1 * task.updateStatus("RESIZE", "Skipping explicit instance termination, server group is attached to one or more load balancers")
@@ -78,12 +80,13 @@ class DefaultAfterResizeEventHandlerSpec extends Specification {
 
   def "should no-op if terminating lifecycle hook present"() {
     when:
-    eventHandler.handle(event)
+    eventHandler.handle(event())
 
     then:
     1 * amazonAutoScaling.describeLifecycleHooks(_) >> {
-      return new DescribeLifecycleHooksResult()
-        .withLifecycleHooks([new LifecycleHook().withLifecycleTransition("autoscaling:EC2_INSTANCE_TERMINATING")])
+      return DescribeLifecycleHooksResponse.builder()
+        .lifecycleHooks([LifecycleHook.builder().lifecycleTransition("autoscaling:EC2_INSTANCE_TERMINATING").build()])
+        .build()
     }
 
     1 * task.updateStatus("RESIZE", "Skipping explicit instance termination, server group has one or more lifecycle hooks")
@@ -92,13 +95,13 @@ class DefaultAfterResizeEventHandlerSpec extends Specification {
 
   def "should explicitly terminate instances"() {
     given:
-    autoScalingGroup.withInstances(new Instance().withInstanceId("i-12345678"))
+    autoScalingGroup = autoScalingGroup.toBuilder().instances([Instance.builder().instanceId("i-12345678").build()]).build()
 
     when:
-    eventHandler.handle(event)
+    eventHandler.handle(event())
 
     then:
-    1 * amazonAutoScaling.describeLifecycleHooks(_) >> { return new DescribeLifecycleHooksResult() }
+    1 * amazonAutoScaling.describeLifecycleHooks(_) >> { return DescribeLifecycleHooksResponse.builder().build() }
 
     1 * task.updateStatus("RESIZE", "Terminating 1 of 1 instances in app-v001")
     1 * amazonEC2.terminateInstances({ TerminateInstancesRequest r -> r.instanceIds == ["i-12345678"] })

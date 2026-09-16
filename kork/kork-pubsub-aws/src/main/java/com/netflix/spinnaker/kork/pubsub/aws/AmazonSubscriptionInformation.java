@@ -16,17 +16,17 @@
 
 package com.netflix.spinnaker.kork.pubsub.aws;
 
-import com.amazonaws.services.sns.AmazonSNS;
-import com.amazonaws.services.sqs.AmazonSQS;
 import com.netflix.spinnaker.kork.pubsub.aws.config.AmazonPubsubProperties;
 import lombok.Builder;
 import lombok.Data;
+import software.amazon.awssdk.services.sns.SnsClient;
+import software.amazon.awssdk.services.sqs.SqsClient;
 
 @Data
 @Builder
 public class AmazonSubscriptionInformation {
   AmazonPubsubProperties.AmazonPubsubSubscription properties;
-  AmazonSQS amazonSQS;
-  AmazonSNS amazonSNS;
+  SqsClient sqsClient;
+  SnsClient snsClient;
   String queueUrl;
 }

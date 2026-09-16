@@ -21,24 +21,32 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import com.amazonaws.services.ecs.model.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.ServiceCacheClient;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.services.ecs.model.AwsVpcConfiguration;
+import software.amazon.awssdk.services.ecs.model.DeploymentConfiguration;
+import software.amazon.awssdk.services.ecs.model.DescribeServicesRequest;
+import software.amazon.awssdk.services.ecs.model.DescribeServicesResponse;
+import software.amazon.awssdk.services.ecs.model.ListClustersRequest;
+import software.amazon.awssdk.services.ecs.model.ListClustersResponse;
+import software.amazon.awssdk.services.ecs.model.ListServicesRequest;
+import software.amazon.awssdk.services.ecs.model.ListServicesResponse;
+import software.amazon.awssdk.services.ecs.model.NetworkConfiguration;
+import software.amazon.awssdk.services.ecs.model.Service;
 import spock.lang.Subject;
 
 public class ServiceCacheTest extends CommonCachingAgent {
   private final ObjectMapper mapper = new ObjectMapper();
 
   private final ServiceCachingAgent agent =
-      new ServiceCachingAgent(
-          netflixAmazonCredentials, REGION, clientProvider, credentialsProvider, registry);
+      new ServiceCachingAgent(netflixAmazonCredentials, REGION, clientProvider, registry);
   @Subject private final ServiceCacheClient client = new ServiceCacheClient(providerCache, mapper);
 
   @Test
@@ -46,30 +54,38 @@ public class ServiceCacheTest extends CommonCachingAgent {
     // Given
     String key = Keys.getServiceKey(ACCOUNT, REGION, SERVICE_NAME_1);
 
-    Service service = new Service();
-    service.setServiceName(SERVICE_NAME_1);
-    service.setServiceArn(SERVICE_ARN_1);
-    service.setClusterArn(CLUSTER_ARN_1);
-    service.setTaskDefinition(TASK_DEFINITION_ARN_1);
-    service.setRoleArn(ROLE_ARN);
-    service.setDeploymentConfiguration(
-        new DeploymentConfiguration().withMinimumHealthyPercent(50).withMaximumPercent(100));
-    service.setLoadBalancers(Collections.emptyList());
-    service.setNetworkConfiguration(
-        new NetworkConfiguration()
-            .withAwsvpcConfiguration(
-                new AwsVpcConfiguration()
-                    .withSecurityGroups(SECURITY_GROUP_1)
-                    .withSubnets(SUBNET_ID_1)));
-    service.setDesiredCount(1);
-    service.setCreatedAt(new Date());
+    Instant createdAt = Instant.now();
+    Service service =
+        Service.builder()
+            .serviceName(SERVICE_NAME_1)
+            .serviceArn(SERVICE_ARN_1)
+            .clusterArn(CLUSTER_ARN_1)
+            .taskDefinition(TASK_DEFINITION_ARN_1)
+            .roleArn(ROLE_ARN)
+            .deploymentConfiguration(
+                DeploymentConfiguration.builder()
+                    .minimumHealthyPercent(50)
+                    .maximumPercent(100)
+                    .build())
+            .loadBalancers(Collections.emptyList())
+            .networkConfiguration(
+                NetworkConfiguration.builder()
+                    .awsvpcConfiguration(
+                        AwsVpcConfiguration.builder()
+                            .securityGroups(SECURITY_GROUP_1)
+                            .subnets(SUBNET_ID_1)
+                            .build())
+                    .build())
+            .desiredCount(1)
+            .createdAt(createdAt)
+            .build();
 
     when(ecs.listClusters(any(ListClustersRequest.class)))
-        .thenReturn(new ListClustersResult().withClusterArns(CLUSTER_ARN_1));
+        .thenReturn(ListClustersResponse.builder().clusterArns(CLUSTER_ARN_1).build());
     when(ecs.listServices(any(ListServicesRequest.class)))
-        .thenReturn(new ListServicesResult().withServiceArns(SERVICE_ARN_1));
+        .thenReturn(ListServicesResponse.builder().serviceArns(SERVICE_ARN_1).build());
     when(ecs.describeServices(any(DescribeServicesRequest.class)))
-        .thenReturn(new DescribeServicesResult().withServices(service));
+        .thenReturn(DescribeServicesResponse.builder().services(service).build());
 
     // When
     CacheResult cacheResult = agent.loadData(providerCache);
@@ -112,40 +128,40 @@ public class ServiceCacheTest extends CommonCachingAgent {
             + " but got "
             + ecsService.getClusterArn());
     assertTrue(
-        service.getRoleArn().equals(ecsService.getRoleArn()),
+        service.roleArn().equals(ecsService.getRoleArn()),
         "Expected the role ARN of the service to be "
-            + service.getRoleArn()
+            + service.roleArn()
             + " but got "
             + ecsService.getRoleArn());
     assertTrue(
-        service.getTaskDefinition().equals(ecsService.getTaskDefinition()),
+        service.taskDefinition().equals(ecsService.getTaskDefinition()),
         "Expected the task definition of the service to be "
-            + service.getTaskDefinition()
+            + service.taskDefinition()
             + " but got "
             + ecsService.getTaskDefinition());
     assertTrue(
-        service.getDesiredCount() == ecsService.getDesiredCount(),
+        service.desiredCount() == ecsService.getDesiredCount(),
         "Expected the desired count of the service to be "
-            + service.getDesiredCount()
+            + service.desiredCount()
             + " but got "
             + ecsService.getDesiredCount());
     assertTrue(
-        service.getDeploymentConfiguration().getMaximumPercent() == ecsService.getMaximumPercent(),
+        service.deploymentConfiguration().maximumPercent() == ecsService.getMaximumPercent(),
         "Expected the maximum percent of the service to be "
-            + service.getDeploymentConfiguration().getMaximumPercent()
+            + service.deploymentConfiguration().maximumPercent()
             + " but got "
             + ecsService.getMaximumPercent());
     assertTrue(
-        service.getDeploymentConfiguration().getMinimumHealthyPercent()
+        service.deploymentConfiguration().minimumHealthyPercent()
             == ecsService.getMinimumHealthyPercent(),
         "Expected the minimum healthy percent of the service to be "
-            + service.getDeploymentConfiguration().getMinimumHealthyPercent()
+            + service.deploymentConfiguration().minimumHealthyPercent()
             + " but got "
             + ecsService.getMinimumHealthyPercent());
     assertTrue(
-        service.getCreatedAt().getTime() == ecsService.getCreatedAt(),
+        service.createdAt().toEpochMilli() == ecsService.getCreatedAt(),
         "Expected the created at of the service to be "
-            + service.getCreatedAt().getTime()
+            + service.createdAt().toEpochMilli()
             + " but got "
             + ecsService.getCreatedAt());
     assertTrue(

@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.deploy.converters
 
-import com.amazonaws.services.ecs.model.PlacementStrategy
-import com.amazonaws.services.ecs.model.PlacementStrategyType
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.spinnaker.clouddriver.ecs.TestCredential
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.CreateServerGroupDescription
 import com.netflix.spinnaker.clouddriver.ecs.deploy.ops.CreateServerGroupAtomicOperation
@@ -31,7 +31,10 @@ class EcsCreateServerGroupAtomicOperationConverterSpec extends Specification {
 
   def 'should convert'() {
     given:
-    def converter = new EcsCreateServerGroupAtomicOperationConverter(objectMapper: new ObjectMapper())
+    def objectMapper = new ObjectMapper()
+      .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
+      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+    def converter = new EcsCreateServerGroupAtomicOperationConverter(objectMapper: objectMapper)
     converter.accountCredentialsProvider = accountCredentialsProvider
 
     def input = [
@@ -47,7 +50,6 @@ class EcsCreateServerGroupAtomicOperationConverterSpec extends Specification {
       dockerImageAddress       : 'docker-url',
       capacity                 : new ServerGroup.Capacity(0, 2, 1,),
       availabilityZones        : ['us-west-1': ['us-west-1a']],
-      placementStrategySequence: [new PlacementStrategy().withType(PlacementStrategyType.Random)],
       region                   : 'us-west-1',
       credentials              : 'test'
     ]

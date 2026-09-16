@@ -16,9 +16,6 @@
 
 package com.netflix.kayenta.s3.storage;
 
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -34,7 +31,6 @@ import com.netflix.kayenta.storage.StorageService;
 import com.netflix.kayenta.util.Retry;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import jakarta.validation.constraints.NotNull;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.*;
@@ -45,13 +41,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.*;
 
 @Builder
 @Slf4j
 public class S3StorageService implements StorageService {
 
-  public final int MAX_RETRIES = 10; // maximum number of times we'll retry an operation
-  public final long RETRY_BACKOFF = 1000; // time between retries in millis
+  public final int MAX_RETRIES = 10;
+  public final long RETRY_BACKOFF = 1000;
 
   @NotNull private ObjectMapper objectMapper;
 
@@ -73,27 +72,30 @@ public class S3StorageService implements StorageService {
     AwsNamedAccountCredentials credentials =
         accountCredentialsRepository.getRequiredOne(accountName);
 
-    AmazonS3 amazonS3 = credentials.getAmazonS3();
+    S3Client s3Client = credentials.getS3Client();
     String bucket = credentials.getBucket();
     String region = credentials.getRegion();
 
-    HeadBucketRequest request = new HeadBucketRequest(bucket);
-
     try {
-      amazonS3.headBucket(request);
-    } catch (AmazonServiceException e) {
-      if (e.getStatusCode() == 404) {
-        if (com.amazonaws.util.StringUtils.isNullOrEmpty(region)) {
-          log.warn("Bucket {} does not exist. Creating it in default region.", bucket);
-          amazonS3.createBucket(bucket);
-        } else {
-          log.warn("Bucket {} does not exist. Creating it in region {}.", bucket, region);
-          amazonS3.createBucket(bucket, region);
-        }
+      s3Client.headBucket(HeadBucketRequest.builder().bucket(bucket).build());
+    } catch (NoSuchBucketException e) {
+      if (StringUtils.isEmpty(region)) {
+        log.warn("Bucket {} does not exist. Creating it in default region.", bucket);
+        s3Client.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
       } else {
-        log.error("Could not create bucket {}: {}", bucket, e);
-        throw e;
+        log.warn("Bucket {} does not exist. Creating it in region {}.", bucket, region);
+        s3Client.createBucket(
+            CreateBucketRequest.builder()
+                .bucket(bucket)
+                .createBucketConfiguration(
+                    CreateBucketConfiguration.builder()
+                        .locationConstraint(BucketLocationConstraint.fromValue(region))
+                        .build())
+                .build());
       }
+    } catch (S3Exception e) {
+      log.error("Could not create bucket {}: {}", bucket, e);
+      throw e;
     }
   }
 
@@ -102,23 +104,23 @@ public class S3StorageService implements StorageService {
       throws IllegalArgumentException, NotFoundException {
     AwsNamedAccountCredentials credentials =
         accountCredentialsRepository.getRequiredOne(accountName);
-    AmazonS3 amazonS3 = credentials.getAmazonS3();
+    S3Client s3Client = credentials.getS3Client();
     String bucket = credentials.getBucket();
     String path;
 
     try {
-      path = resolveSingularPath(objectType, objectKey, credentials, amazonS3, bucket);
+      path = resolveSingularPath(objectType, objectKey, credentials, s3Client, bucket);
     } catch (IllegalArgumentException e) {
       throw new NotFoundException(e.getMessage());
     }
 
     try {
-      S3Object s3Object = amazonS3.getObject(bucket, path);
-
-      return deserialize(s3Object, (TypeReference<T>) objectType.getTypeReference());
-    } catch (AmazonS3Exception e) {
-      log.error("Failed to load {} {}: {}", objectType.getGroup(), objectKey, e.getStatusCode());
-      if (e.getStatusCode() == 404) {
+      var response =
+          s3Client.getObject(GetObjectRequest.builder().bucket(bucket).key(path).build());
+      return deserialize(response, (TypeReference<T>) objectType.getTypeReference());
+    } catch (S3Exception e) {
+      log.error("Failed to load {} {}: {}", objectType.getGroup(), objectKey, e.statusCode());
+      if (e.statusCode() == 404) {
         throw new NotFoundException("No file at path " + path + ".");
       }
       throw e;
@@ -131,15 +133,20 @@ public class S3StorageService implements StorageService {
       ObjectType objectType,
       String objectKey,
       AwsNamedAccountCredentials credentials,
-      AmazonS3 amazonS3,
+      S3Client s3Client,
       String bucket) {
     String rootFolder = daoRoot(credentials, objectType.getGroup()) + "/" + objectKey;
-    ObjectListing bucketListing =
-        amazonS3.listObjects(new ListObjectsRequest(bucket, rootFolder, null, null, 10000));
-    List<S3ObjectSummary> summaries = bucketListing.getObjectSummaries();
+    ListObjectsV2Response listing =
+        s3Client.listObjectsV2(
+            ListObjectsV2Request.builder()
+                .bucket(bucket)
+                .prefix(rootFolder)
+                .maxKeys(10000)
+                .build());
+    List<S3Object> objects = listing.contents();
 
-    if (summaries != null && summaries.size() == 1) {
-      return summaries.get(0).getKey();
+    if (objects != null && objects.size() == 1) {
+      return objects.get(0).key();
     } else {
       throw new IllegalArgumentException(
           "Unable to resolve singular "
@@ -152,8 +159,11 @@ public class S3StorageService implements StorageService {
     }
   }
 
-  private <T> T deserialize(S3Object s3Object, TypeReference<T> typeReference) throws IOException {
-    return objectMapper.readValue(s3Object.getObjectContent(), typeReference);
+  private <T> T deserialize(
+      software.amazon.awssdk.core.ResponseInputStream<?> inputStream,
+      TypeReference<T> typeReference)
+      throws IOException {
+    return objectMapper.readValue(inputStream, typeReference);
   }
 
   @Override
@@ -166,7 +176,7 @@ public class S3StorageService implements StorageService {
       boolean isAnUpdate) {
     AwsNamedAccountCredentials credentials =
         accountCredentialsRepository.getRequiredOne(accountName);
-    AmazonS3 amazonS3 = credentials.getAmazonS3();
+    S3Client s3Client = credentials.getS3Client();
     String bucket = credentials.getBucket();
     String group = objectType.getGroup();
     String path = buildS3Key(credentials, objectType, group, objectKey, filename);
@@ -186,9 +196,7 @@ public class S3StorageService implements StorageService {
       checkForDuplicateCanaryConfig(canaryConfig, objectKey, credentials);
 
       if (isAnUpdate) {
-        // Storing a canary config while not checking for naming collisions can only be a PUT (i.e.
-        // an update to an existing config).
-        originalPath = resolveSingularPath(objectType, objectKey, credentials, amazonS3, bucket);
+        originalPath = resolveSingularPath(objectType, objectKey, credentials, s3Client, bucket);
       } else {
         originalPath = null;
       }
@@ -223,21 +231,31 @@ public class S3StorageService implements StorageService {
 
     try {
       byte[] bytes = objectMapper.writeValueAsBytes(obj);
-      ObjectMetadata objectMetadata = new ObjectMetadata();
-      objectMetadata.setContentLength(bytes.length);
-      objectMetadata.setContentMD5(
-          new String(org.apache.commons.codec.binary.Base64.encodeBase64(DigestUtils.md5(bytes))));
+      String md5 =
+          new String(org.apache.commons.codec.binary.Base64.encodeBase64(DigestUtils.md5(bytes)));
 
+      final String finalPath = path;
       retry.retry(
-          () -> amazonS3.putObject(bucket, path, new ByteArrayInputStream(bytes), objectMetadata),
+          () ->
+              s3Client.putObject(
+                  PutObjectRequest.builder()
+                      .bucket(bucket)
+                      .key(finalPath)
+                      .contentLength((long) bytes.length)
+                      .contentMD5(md5)
+                      .build(),
+                  RequestBody.fromBytes(bytes)),
           MAX_RETRIES,
           RETRY_BACKOFF);
 
       if (objectType == ObjectType.CANARY_CONFIG) {
-        // This will be true if the canary config is renamed.
         if (originalPath != null && !originalPath.equals(path)) {
           retry.retry(
-              () -> amazonS3.deleteObject(bucket, originalPath), MAX_RETRIES, RETRY_BACKOFF);
+              () ->
+                  s3Client.deleteObject(
+                      DeleteObjectRequest.builder().bucket(bucket).key(originalPath).build()),
+              MAX_RETRIES,
+              RETRY_BACKOFF);
         }
 
         canaryConfigIndex.finishPendingUpdate(
@@ -266,8 +284,6 @@ public class S3StorageService implements StorageService {
     String existingCanaryConfigId =
         canaryConfigIndex.getIdFromName(credentials, canaryConfigName, applications);
 
-    // We want to avoid creating a naming collision due to the renaming of an existing canary
-    // config.
     if (!StringUtils.isEmpty(existingCanaryConfigId)
         && !existingCanaryConfigId.equals(canaryConfigId)) {
       throw new IllegalArgumentException(
@@ -283,9 +299,9 @@ public class S3StorageService implements StorageService {
   public void deleteObject(String accountName, ObjectType objectType, String objectKey) {
     AwsNamedAccountCredentials credentials =
         accountCredentialsRepository.getRequiredOne(accountName);
-    AmazonS3 amazonS3 = credentials.getAmazonS3();
+    S3Client s3Client = credentials.getS3Client();
     String bucket = credentials.getBucket();
-    String path = resolveSingularPath(objectType, objectKey, credentials, amazonS3, bucket);
+    String path = resolveSingularPath(objectType, objectKey, credentials, s3Client, bucket);
 
     long updatedTimestamp = -1;
     String correlationId = null;
@@ -329,7 +345,13 @@ public class S3StorageService implements StorageService {
     }
 
     try {
-      retry.retry(() -> amazonS3.deleteObject(bucket, path), MAX_RETRIES, RETRY_BACKOFF);
+      final String finalPath = path;
+      retry.retry(
+          () ->
+              s3Client.deleteObject(
+                  DeleteObjectRequest.builder().bucket(bucket).key(finalPath).build()),
+          MAX_RETRIES,
+          RETRY_BACKOFF);
 
       if (correlationId != null) {
         canaryConfigIndex.finishPendingUpdate(
@@ -363,52 +385,50 @@ public class S3StorageService implements StorageService {
 
       return Lists.newArrayList(canaryConfigSet);
     } else {
-      AmazonS3 amazonS3 = credentials.getAmazonS3();
+      S3Client s3Client = credentials.getS3Client();
       String bucket = credentials.getBucket();
       String group = objectType.getGroup();
       String prefix = buildTypedFolder(credentials, group);
 
       ensureBucketExists(accountName);
 
-      int skipToOffset = prefix.length() + 1; // + Trailing slash
+      int skipToOffset = prefix.length() + 1;
       List<Map<String, Object>> result = new ArrayList<>();
 
       log.debug("Listing {}", group);
 
-      ObjectListing bucketListing =
-          amazonS3.listObjects(new ListObjectsRequest(bucket, prefix, null, null, 10000));
+      List<S3Object> summaries = new ArrayList<>();
+      ListObjectsV2Request request =
+          ListObjectsV2Request.builder().bucket(bucket).prefix(prefix).maxKeys(10000).build();
+      ListObjectsV2Response listing;
+      do {
+        listing = s3Client.listObjectsV2(request);
+        summaries.addAll(listing.contents());
+        request = request.toBuilder().continuationToken(listing.nextContinuationToken()).build();
+      } while (listing.isTruncated());
 
-      List<S3ObjectSummary> summaries = bucketListing.getObjectSummaries();
+      for (S3Object summary : summaries) {
+        String itemName = summary.key();
+        int indexOfLastSlash = itemName.lastIndexOf("/");
+        Map<String, Object> objectMetadataMap = new HashMap<>();
+        long updatedTimestamp = summary.lastModified().toEpochMilli();
 
-      while (bucketListing.isTruncated()) {
-        bucketListing = amazonS3.listNextBatchOfObjects(bucketListing);
-        summaries.addAll(bucketListing.getObjectSummaries());
-      }
+        objectMetadataMap.put("id", itemName.substring(skipToOffset, indexOfLastSlash));
+        objectMetadataMap.put("updatedTimestamp", updatedTimestamp);
+        objectMetadataMap.put(
+            "updatedTimestampIso", Instant.ofEpochMilli(updatedTimestamp).toString());
 
-      if (summaries != null) {
-        for (S3ObjectSummary summary : summaries) {
-          String itemName = summary.getKey();
-          int indexOfLastSlash = itemName.lastIndexOf("/");
-          Map<String, Object> objectMetadataMap = new HashMap<>();
-          long updatedTimestamp = summary.getLastModified().getTime();
+        if (objectType == ObjectType.CANARY_CONFIG) {
+          String name = itemName.substring(indexOfLastSlash + 1);
 
-          objectMetadataMap.put("id", itemName.substring(skipToOffset, indexOfLastSlash));
-          objectMetadataMap.put("updatedTimestamp", updatedTimestamp);
-          objectMetadataMap.put(
-              "updatedTimestampIso", Instant.ofEpochMilli(updatedTimestamp).toString());
-
-          if (objectType == ObjectType.CANARY_CONFIG) {
-            String name = itemName.substring(indexOfLastSlash + 1);
-
-            if (name.endsWith(".json")) {
-              name = name.substring(0, name.length() - 5);
-            }
-
-            objectMetadataMap.put("name", name);
+          if (name.endsWith(".json")) {
+            name = name.substring(0, name.length() - 5);
           }
 
-          result.add(objectMetadataMap);
+          objectMetadataMap.put("name", name);
         }
+
+        result.add(objectMetadataMap);
       }
 
       return result;

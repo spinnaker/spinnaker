@@ -3,6 +3,7 @@ import { shallow } from 'enzyme';
 import React from 'react';
 
 import type { IGceServerGroupCommand, IGceServerGroupWizardAdapter } from '../GceServerGroupWizard.types';
+import { GceInstanceFlexibilityConfigurer } from '../zones/GceInstanceFlexibilityConfigurer';
 import { ServerGroupCapacity } from './ServerGroupCapacity';
 
 describe('GCE server group Capacity page', () => {
@@ -449,6 +450,134 @@ describe('GCE server group Capacity page', () => {
     expect(
       new ServerGroupCapacity({ app: {} as any, formik } as any).validate({ ...values, selectZones: true }),
     ).toEqual({ distributionPolicy: { zones: 'At least one zone required.' } });
+  });
+
+  it('renders the React instance flexibility configurer and immutably persists policy changes', () => {
+    const instanceFlexibilityPolicy = {
+      instanceSelections: {
+        preferred: { rank: 1, machineTypes: ['n2-standard-8'] },
+      },
+    };
+    const values = command({
+      regional: true,
+      zone: null,
+      distributionPolicy: { zones: [], targetShape: 'BALANCED' },
+      instanceFlexibilityPolicy,
+    });
+    const { formik } = testProps(values);
+    const wrapper = shallow(<ServerGroupCapacity app={{} as any} formik={formik} />);
+    const configurer = wrapper.find(GceInstanceFlexibilityConfigurer);
+
+    expect(configurer.props()).toEqual(
+      jasmine.objectContaining({
+        instanceFlexibilityPolicy,
+        regional: true,
+        targetShape: 'BALANCED',
+      }),
+    );
+
+    const nextPolicy = {
+      instanceSelections: {
+        fallback: { machineTypes: ['e2-standard-8'] },
+      },
+    };
+    configurer.prop('setInstanceFlexibilityPolicy')(nextPolicy);
+
+    expect(formik.setFieldValue).toHaveBeenCalledWith('instanceFlexibilityPolicy', nextPolicy);
+  });
+
+  it('passes the Formik flexibility validation error to the configurer', () => {
+    const values = command({
+      regional: true,
+      zone: null,
+      distributionPolicy: { zones: [], targetShape: 'BALANCED' },
+      instanceFlexibilityPolicy: {
+        instanceSelections: {
+          preferred: { rank: -1, machineTypes: [''] },
+        },
+      },
+    });
+    const { formik } = testProps(values);
+    (formik as any).errors = {
+      instanceFlexibilityPolicy: 'Instance flexibility policy is invalid.',
+    };
+    const wrapper = shallow(<ServerGroupCapacity app={{} as any} formik={formik} />);
+
+    expect(wrapper.find(GceInstanceFlexibilityConfigurer).prop('validationError')).toBe(
+      'Instance flexibility policy is invalid.',
+    );
+  });
+
+  it('blocks invalid enabled flexibility while allowing absent and explicitly empty policies', () => {
+    const { formik } = testProps();
+    const page = new ServerGroupCapacity({ app: {} as any, formik } as any);
+    const enabledPolicy = {
+      instanceSelections: {
+        preferred: { machineTypes: ['n2-standard-8'] },
+      },
+    };
+
+    expect(
+      page.validate(
+        command({
+          regional: false,
+          distributionPolicy: { zones: [], targetShape: 'BALANCED' },
+          instanceFlexibilityPolicy: enabledPolicy,
+        }),
+      ).instanceFlexibilityPolicy,
+    ).toBeDefined();
+    expect(
+      page.validate(
+        command({
+          regional: true,
+          zone: null,
+          distributionPolicy: { zones: [], targetShape: 'EVEN' },
+          instanceFlexibilityPolicy: enabledPolicy,
+        }),
+      ).instanceFlexibilityPolicy,
+    ).toBeDefined();
+
+    ['BALANCED', 'ANY', 'ANY_SINGLE_ZONE'].forEach((targetShape) => {
+      expect(
+        page.validate(
+          command({
+            regional: true,
+            zone: null,
+            distributionPolicy: { zones: [], targetShape },
+            instanceFlexibilityPolicy: enabledPolicy,
+          }),
+        ),
+      ).toEqual({});
+    });
+
+    expect(page.validate(command({ instanceFlexibilityPolicy: undefined }))).toEqual({});
+    expect(
+      page.validate(
+        command({
+          instanceFlexibilityPolicy: { instanceSelections: {} },
+        }),
+      ),
+    ).toEqual({});
+  });
+
+  it('offers every target shape supported by the merged Google contract', () => {
+    const values = command({
+      regional: true,
+      zone: null,
+      backingData: {
+        filtered: { zones: ['known-zone-a', 'known-zone-b'] },
+      },
+    });
+    const { formik } = testProps(values);
+    const wrapper = shallow(<ServerGroupCapacity app={{} as any} formik={formik} />);
+
+    expect(selectOptions(wrapper, 'Target shape')).toEqual([
+      ['', 'Select...'],
+      ['ANY', 'ANY'],
+      ['EVEN', 'EVEN'],
+      ['BALANCED', 'BALANCED'],
+      ['ANY_SINGLE_ZONE', 'ANY_SINGLE_ZONE'],
+    ]);
   });
 });
 

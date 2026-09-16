@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.deploy.validators;
 
-import com.amazonaws.services.ecs.model.PlacementStrategy;
-import com.amazonaws.services.ecs.model.PlacementStrategyType;
 import com.google.common.collect.Sets;
 import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors;
 import com.netflix.spinnaker.clouddriver.ecs.EcsOperation;
@@ -29,6 +27,8 @@ import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
+import software.amazon.awssdk.services.ecs.model.PlacementStrategy;
+import software.amazon.awssdk.services.ecs.model.PlacementStrategyType;
 
 @EcsOperation(AtomicOperations.CREATE_SERVER_GROUP)
 @Component("ecsCreateServerGroupDescriptionValidator")
@@ -85,24 +85,23 @@ public class EcsCreateServerGroupDescriptionValidator extends CommonValidator {
     if (createServerGroupDescription.getPlacementStrategySequence() != null) {
       for (PlacementStrategy placementStrategy :
           createServerGroupDescription.getPlacementStrategySequence()) {
-        PlacementStrategyType type;
-        try {
-          type = PlacementStrategyType.fromValue(placementStrategy.getType());
-        } catch (IllegalArgumentException e) {
+        PlacementStrategyType type =
+            PlacementStrategyType.fromValue(placementStrategy.typeAsString());
+        if (type == PlacementStrategyType.UNKNOWN_TO_SDK_VERSION) {
           rejectValue(errors, "placementStrategySequence.type", "invalid");
           continue;
         }
 
         switch (type) {
-          case Random:
+          case RANDOM:
             break;
-          case Spread:
-            if (!SPREAD_VALUES.contains(placementStrategy.getField())) {
+          case SPREAD:
+            if (!SPREAD_VALUES.contains(placementStrategy.field())) {
               rejectValue(errors, "placementStrategySequence.spread", "invalid");
             }
             break;
-          case Binpack:
-            if (!BINPACK_VALUES.contains(placementStrategy.getField())) {
+          case BINPACK:
+            if (!BINPACK_VALUES.contains(placementStrategy.field())) {
               rejectValue(errors, "placementStrategySequence.binpack", "invalid");
             }
             break;

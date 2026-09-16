@@ -20,15 +20,15 @@ import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASKS;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
-import com.amazonaws.services.ecs.model.Task;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.TaskCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.provider.agent.TaskCachingAgent;
+import java.time.Instant;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.services.ecs.model.Task;
 import spock.lang.Subject;
 
 public class TaskCacheClientTest extends CommonCacheClient {
@@ -44,18 +44,23 @@ public class TaskCacheClientTest extends CommonCacheClient {
     String taskArn = "arn:aws:ecs:" + REGION + ":012345678910:task/" + taskId;
     String availabilityZone = REGION + "a";
 
-    Task task = new Task();
-    task.setClusterArn(clusterArn);
-    task.setTaskArn(taskArn);
-    task.setContainerInstanceArn(
-        "arn:aws:ecs:" + REGION + ":012345678910:container/e09064f7-7361-4c87-8ab9-8d073bbdbcb9");
-    task.setGroup("group:testservice-stack-details-v1");
-    task.setContainers(Collections.emptyList());
-    task.setLastStatus("RUNNING");
-    task.setHealthStatus("HEALTHY");
-    task.setDesiredStatus("RUNNING");
-    task.setStartedAt(new Date());
-    task.setAvailabilityZone(availabilityZone);
+    Instant startedAt = Instant.now();
+    Task task =
+        Task.builder()
+            .clusterArn(clusterArn)
+            .taskArn(taskArn)
+            .containerInstanceArn(
+                "arn:aws:ecs:"
+                    + REGION
+                    + ":012345678910:container/e09064f7-7361-4c87-8ab9-8d073bbdbcb9")
+            .group("group:testservice-stack-details-v1")
+            .containers(Collections.emptyList())
+            .lastStatus("RUNNING")
+            .healthStatus("HEALTHY")
+            .desiredStatus("RUNNING")
+            .startedAt(startedAt)
+            .availabilityZone(availabilityZone)
+            .build();
     Map<String, Object> attributes = TaskCachingAgent.convertTaskToAttributes(task);
 
     when(cacheView.get(TASKS.toString(), key))
@@ -74,52 +79,52 @@ public class TaskCacheClientTest extends CommonCacheClient {
         "Expected the task ARN to be " + taskArn + " but got " + ecsTask.getTaskArn());
 
     assertTrue(
-        task.getContainerInstanceArn().equals(ecsTask.getContainerInstanceArn()),
+        task.containerInstanceArn().equals(ecsTask.getContainerInstanceArn()),
         "Expected the container instance ARN name to be "
-            + task.getContainerInstanceArn()
+            + task.containerInstanceArn()
             + " but got "
             + ecsTask.getContainerInstanceArn());
 
     assertTrue(
-        task.getGroup().equals(ecsTask.getGroup()),
-        "Expected the group to be " + task.getGroup() + " but got " + ecsTask.getGroup());
+        task.group().equals(ecsTask.getGroup()),
+        "Expected the group to be " + task.group() + " but got " + ecsTask.getGroup());
 
     assertTrue(
-        task.getLastStatus().equals(ecsTask.getLastStatus()),
+        task.lastStatus().equals(ecsTask.getLastStatus()),
         "Expected the last status to be "
-            + task.getLastStatus()
+            + task.lastStatus()
             + " but got "
             + ecsTask.getLastStatus());
 
     assertTrue(
-        task.getHealthStatus().equals(ecsTask.getHealthStatus()),
+        task.healthStatusAsString().equals(ecsTask.getHealthStatus()),
         "Expected the health status to be "
-            + task.getHealthStatus()
+            + task.healthStatusAsString()
             + " but got "
             + ecsTask.getHealthStatus());
 
     assertTrue(
-        task.getDesiredStatus().equals(ecsTask.getDesiredStatus()),
+        task.desiredStatus().equals(ecsTask.getDesiredStatus()),
         "Expected the desired status to be "
-            + task.getDesiredStatus()
+            + task.desiredStatus()
             + " but got "
             + ecsTask.getDesiredStatus());
 
     assertTrue(
-        task.getStartedAt().getTime() == ecsTask.getStartedAt(),
+        task.startedAt().toEpochMilli() == ecsTask.getStartedAt(),
         "Expected the started at to be "
-            + task.getStartedAt().getTime()
+            + task.startedAt().toEpochMilli()
             + " but got "
             + ecsTask.getStartedAt());
 
     assertTrue(
-        task.getContainers().size() == 0,
-        "Expected the task to have 0 containers but got " + task.getContainers().size());
+        task.containers().size() == 0,
+        "Expected the task to have 0 containers but got " + task.containers().size());
 
     assertTrue(
-        task.getAvailabilityZone().equals(ecsTask.getAvailabilityZone()),
+        task.availabilityZone().equals(ecsTask.getAvailabilityZone()),
         "Expected the availability zone to be "
-            + task.getAvailabilityZone()
+            + task.availabilityZone()
             + " but got "
             + ecsTask.getAvailabilityZone());
   }

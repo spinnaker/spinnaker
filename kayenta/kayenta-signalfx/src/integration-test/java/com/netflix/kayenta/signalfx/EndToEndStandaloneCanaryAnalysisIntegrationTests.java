@@ -31,16 +31,10 @@ import com.netflix.kayenta.standalonecanaryanalysis.domain.CanaryAnalysisExecuti
 import com.netflix.kayenta.standalonecanaryanalysis.domain.StageMetadata;
 import io.restassured.response.ValidatableResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 @Slf4j
 public class EndToEndStandaloneCanaryAnalysisIntegrationTests extends BaseSignalFxIntegrationTest {
-
-  @BeforeAll
-  public static void beforeClass() {
-    System.setProperty("block.for.metrics", System.getProperty("block.for.metrics", "false"));
-  }
 
   @Test
   public void test_that_a_canary_analysis_execution_can_be_created_healthy()
@@ -64,8 +58,8 @@ public class EndToEndStandaloneCanaryAnalysisIntegrationTests extends BaseSignal
                         .step(1L)
                         .build()))
             .thresholds(CanaryClassifierThresholdsConfig.builder().marginal(50D).pass(75D).build())
-            .lifetimeDurationMins(5L)
-            .analysisIntervalMins(2L)
+            .lifetimeDurationMins(2L)
+            .analysisIntervalMins(1L)
             .build();
 
     request.setExecutionRequest(executionRequest);
@@ -99,7 +93,7 @@ public class EndToEndStandaloneCanaryAnalysisIntegrationTests extends BaseSignal
                       getUriTemplate(), "/standalone_canary_analysis/" + canaryAnalysisExecutionId))
               .then()
               .statusCode(200);
-      Thread.sleep(5000);
+      Thread.sleep(1000);
       log.info("Stage Status");
       response
           .extract()

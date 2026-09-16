@@ -16,11 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup
 
-import com.amazonaws.AmazonServiceException
-import com.amazonaws.services.ec2.model.IpPermission
-import com.amazonaws.services.ec2.model.IpRange
-import com.amazonaws.services.ec2.model.SecurityGroup
-import com.amazonaws.services.ec2.model.UserIdGroupPair
+import software.amazon.awssdk.awscore.exception.AwsErrorDetails
+import software.amazon.awssdk.services.ec2.model.Ec2Exception
+import software.amazon.awssdk.services.ec2.model.IpPermission
+import software.amazon.awssdk.services.ec2.model.IpRange
+import software.amazon.awssdk.services.ec2.model.SecurityGroup
+import software.amazon.awssdk.services.ec2.model.UserIdGroupPair
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertSecurityGroupDescription.IpIngress
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertSecurityGroupDescription.SecurityGroupIngress
@@ -89,7 +90,7 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
     then:
     1 * securityGroupLookup.getAccountIdForName("test") >> "accountId1"
     1 * securityGroupLookup.getSecurityGroupByName("test", "bar", "vpc-123") >> Optional.of(new SecurityGroupUpdater(
-      new SecurityGroup(groupId: "id-bar"),
+      SecurityGroup.builder().groupId("id-bar").build(),
       null
     ))
 
@@ -102,9 +103,9 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
 
     then:
     1 * createdSecurityGroup.addIngress([
-      new IpPermission(ipProtocol: "tcp", fromPort: 111, toPort: 112, userIdGroupPairs: [
-        new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")
-      ])
+      IpPermission.builder().ipProtocol("tcp").fromPort(111).toPort(112).userIdGroupPairs([
+        UserIdGroupPair.builder().userId("accountId1").groupId("id-bar").build()
+      ]).build()
     ])
     1 * createdSecurityGroup.updateTags(description, dynamicConfigService)
   }
@@ -122,7 +123,7 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
     then:
     2 * securityGroupLookup.getAccountIdForName("test") >> "accountId1"
     2 * securityGroupLookup.getSecurityGroupByName("test", "bar", "vpc-123") >> Optional.of(new SecurityGroupUpdater(
-      new SecurityGroup(groupId: "id-bar"),
+      SecurityGroup.builder().groupId("id-bar").build(),
       null
     ))
 
@@ -131,23 +132,23 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
 
     then:
     1 * securityGroupLookup.createSecurityGroup(description) >> {
-      throw new AmazonServiceException("").with {
-        it.errorCode = "InvalidGroup.Duplicate"
-        it
-      }
+      throw Ec2Exception.builder()
+        .message("")
+        .awsErrorDetails(AwsErrorDetails.builder().errorCode("InvalidGroup.Duplicate").errorMessage("").build())
+        .build()
     }
     1 * securityGroupLookup.getSecurityGroupByName("test", "foo", "vpc-123") >> Optional.of(existingSecurityGroup)
-    1 * existingSecurityGroup.getSecurityGroup() >> new SecurityGroup(ipPermissions: [
-      new IpPermission(fromPort: 211, toPort: 212, ipProtocol: "tcp", userIdGroupPairs: [
-        new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")
-      ])
-    ])
+    1 * existingSecurityGroup.getSecurityGroup() >> SecurityGroup.builder().ipPermissions([
+      IpPermission.builder().fromPort(211).toPort(212).ipProtocol("tcp").userIdGroupPairs([
+        UserIdGroupPair.builder().userId("accountId1").groupId("id-bar").build()
+      ]).build()
+    ]).build()
 
     then:
     1 * existingSecurityGroup.addIngress([
-      new IpPermission(ipProtocol: "tcp", fromPort: 111, toPort: 112, userIdGroupPairs: [
-        new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")
-      ])
+      IpPermission.builder().ipProtocol("tcp").fromPort(111).toPort(112).userIdGroupPairs([
+        UserIdGroupPair.builder().userId("accountId1").groupId("id-bar").build()
+      ]).build()
     ])
     1 * existingSecurityGroup.updateTags(description, dynamicConfigService)
   }
@@ -158,7 +159,7 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
 
     then:
     1 * securityGroupLookup.getSecurityGroupByName("test", "foo", "vpc-123") >>
-      Optional.of(new SecurityGroupUpdater(new SecurityGroup(groupId: "id-bar"), null))
+      Optional.of(new SecurityGroupUpdater(SecurityGroup.builder().groupId("id-bar").build(), null))
     0 * _
   }
 
@@ -174,17 +175,17 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
     then:
     1 * securityGroupLookup.getAccountIdForName("test") >> "accountId1"
     1 * securityGroupLookup.getSecurityGroupByName("test", "bar", "vpc-123") >>
-      Optional.of(new SecurityGroupUpdater(new SecurityGroup(groupId: "id-bar"), null))
+      Optional.of(new SecurityGroupUpdater(SecurityGroup.builder().groupId("id-bar").build(), null))
 
     then:
     1 * securityGroupLookup.getSecurityGroupByName("test", "foo", "vpc-123") >> Optional.of(existingSecurityGroup)
-    1 * existingSecurityGroup.getSecurityGroup() >> new SecurityGroup(groupId: "123", ipPermissions: [])
+    1 * existingSecurityGroup.getSecurityGroup() >> SecurityGroup.builder().groupId("123").ipPermissions([]).build()
 
     then:
     1 * existingSecurityGroup.addIngress([
-      new IpPermission(ipProtocol: "tcp", fromPort: 111, toPort: 112, userIdGroupPairs: [
-        new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")
-      ])
+      IpPermission.builder().ipProtocol("tcp").fromPort(111).toPort(112).userIdGroupPairs([
+        UserIdGroupPair.builder().userId("accountId1").groupId("id-bar").build()
+      ]).build()
     ])
     1 * existingSecurityGroup.updateTags(description, dynamicConfigService)
   }
@@ -203,13 +204,13 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
 
     then:
     1 * securityGroupLookup.getSecurityGroupByName("test", "foo", "vpc-123") >> Optional.of(existingSecurityGroup)
-    1 * existingSecurityGroup.getSecurityGroup() >> new SecurityGroup(groupId: "123", ipPermissions: [])
+    1 * existingSecurityGroup.getSecurityGroup() >> SecurityGroup.builder().groupId("123").ipPermissions([]).build()
 
     then:
     1 * existingSecurityGroup.addIngress([
-      new IpPermission(ipProtocol: "tcp", fromPort: 111, toPort: 112, userIdGroupPairs: [
-        new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")
-      ])
+      IpPermission.builder().ipProtocol("tcp").fromPort(111).toPort(112).userIdGroupPairs([
+        UserIdGroupPair.builder().userId("accountId1").groupId("id-bar").build()
+      ]).build()
     ])
     1 * existingSecurityGroup.updateTags(description, dynamicConfigService)
   }
@@ -226,17 +227,17 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
     then:
     1 * securityGroupLookup.getAccountIdForName("prod") >> "accountId2"
     1 * securityGroupLookup.getSecurityGroupByName("prod", "bar", "vpc-123") >>
-      Optional.of(new SecurityGroupUpdater(new SecurityGroup(groupId: "id-bar"), null))
+      Optional.of(new SecurityGroupUpdater(SecurityGroup.builder().groupId("id-bar").build(), null))
 
     then:
     1 * securityGroupLookup.getSecurityGroupByName("test", "foo", "vpc-123") >> Optional.of(existingSecurityGroup)
-    1 * existingSecurityGroup.getSecurityGroup() >> new SecurityGroup(groupId: "123", ipPermissions: [])
+    1 * existingSecurityGroup.getSecurityGroup() >> SecurityGroup.builder().groupId("123").ipPermissions([]).build()
 
     then:
     1 * existingSecurityGroup.addIngress([
-      new IpPermission(ipProtocol: "tcp", fromPort: 111, toPort: 112, userIdGroupPairs: [
-        new UserIdGroupPair(userId: "accountId2", groupId: "id-bar")
-      ])
+      IpPermission.builder().ipProtocol("tcp").fromPort(111).toPort(112).userIdGroupPairs([
+        UserIdGroupPair.builder().userId("accountId2").groupId("id-bar").build()
+      ]).build()
     ])
     1 * existingSecurityGroup.updateTags(description, dynamicConfigService)
   }
@@ -259,34 +260,30 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
     then:
     3 * securityGroupLookup.getAccountIdForName("test") >> "accountId1"
     3 * securityGroupLookup.getSecurityGroupByName("test", "bar", "vpc-123") >> Optional.of(new SecurityGroupUpdater(
-      new SecurityGroup(groupId: "id-bar"),
+      SecurityGroup.builder().groupId("id-bar").build(),
       null
     ))
 
     then:
     1 * securityGroupLookup.getSecurityGroupByName("test", "foo", "vpc-123") >> Optional.of(existingSecurityGroup)
-    1 * existingSecurityGroup.getSecurityGroup() >> new SecurityGroup(groupName: "foo", groupId: "123", ipPermissions: [
-      new IpPermission(fromPort: 80, toPort: 81,
-        userIdGroupPairs: [
-          new UserIdGroupPair(userId: "accountId1", groupId: "grp"),
-          new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")
-        ],
-        ipRanges: ["10.0.0.1/32"], ipProtocol: "tcp"
-      ),
-      new IpPermission(fromPort: 25, toPort: 25,
-        userIdGroupPairs: [new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")], ipProtocol: "tcp"),
-    ])
+    1 * existingSecurityGroup.getSecurityGroup() >> SecurityGroup.builder().groupName("foo").groupId("123").ipPermissions([
+      IpPermission.builder().fromPort(80).toPort(81).userIdGroupPairs([
+          UserIdGroupPair.builder().userId("accountId1").groupId("grp").build(),
+          UserIdGroupPair.builder().userId("accountId1").groupId("id-bar").build()
+        ]).ipRanges([IpRange.builder().cidrIp("10.0.0.1/32").build()]).ipProtocol("tcp").build(),
+      IpPermission.builder().fromPort(25).toPort(25).userIdGroupPairs([UserIdGroupPair.builder().userId("accountId1").groupId("id-bar").build()]).ipProtocol("tcp").build(),
+    ]).build()
 
     then:
     1 * existingSecurityGroup.addIngress([
-      new IpPermission(ipProtocol: "tcp", fromPort: 111, toPort: 112, userIdGroupPairs: [
-        new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")
-      ])
+      IpPermission.builder().ipProtocol("tcp").fromPort(111).toPort(112).userIdGroupPairs([
+        UserIdGroupPair.builder().userId("accountId1").groupId("id-bar").build()
+      ]).build()
     ])
     1 * existingSecurityGroup.removeIngress([
-      new IpPermission(ipProtocol: "tcp", fromPort: 80, toPort: 81, userIdGroupPairs: [
-        new UserIdGroupPair(userId: "accountId1", groupId: "grp")
-      ])
+      IpPermission.builder().ipProtocol("tcp").fromPort(80).toPort(81).userIdGroupPairs([
+        UserIdGroupPair.builder().userId("accountId1").groupId("grp").build()
+      ]).build()
     ])
     2 * existingSecurityGroup.updateTags(description, dynamicConfigService)
   }
@@ -307,29 +304,25 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
     then:
     3 * securityGroupLookup.getAccountIdForName("test") >> "accountId1"
     3 * securityGroupLookup.getSecurityGroupByName("test", "bar", "vpc-123") >> Optional.of(new SecurityGroupUpdater(
-      new SecurityGroup(groupId: "id-bar"),
+      SecurityGroup.builder().groupId("id-bar").build(),
       null
     ))
 
     then:
     1 * securityGroupLookup.getSecurityGroupByName("test", "foo", "vpc-123") >> Optional.of(existingSecurityGroup)
-    1 * existingSecurityGroup.getSecurityGroup() >> new SecurityGroup(groupName: "foo", groupId: "123", ipPermissions: [
-      new IpPermission(fromPort: 80, toPort: 81,
-        userIdGroupPairs: [
-          new UserIdGroupPair(userId: "accountId1", groupId: "grp"),
-          new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")
-        ],
-        ipRanges: ["10.0.0.1/32"], ipProtocol: "tcp"
-      ),
-      new IpPermission(fromPort: 25, toPort: 25,
-        userIdGroupPairs: [new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")], ipProtocol: "tcp"),
-    ])
+    1 * existingSecurityGroup.getSecurityGroup() >> SecurityGroup.builder().groupName("foo").groupId("123").ipPermissions([
+      IpPermission.builder().fromPort(80).toPort(81).userIdGroupPairs([
+          UserIdGroupPair.builder().userId("accountId1").groupId("grp").build(),
+          UserIdGroupPair.builder().userId("accountId1").groupId("id-bar").build()
+        ]).ipRanges([IpRange.builder().cidrIp("10.0.0.1/32").build()]).ipProtocol("tcp").build(),
+      IpPermission.builder().fromPort(25).toPort(25).userIdGroupPairs([UserIdGroupPair.builder().userId("accountId1").groupId("id-bar").build()]).ipProtocol("tcp").build(),
+    ]).build()
 
     then:
     1 * existingSecurityGroup.addIngress([
-      new IpPermission(ipProtocol: "tcp", fromPort: 111, toPort: 112, userIdGroupPairs: [
-        new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")
-      ])
+      IpPermission.builder().ipProtocol("tcp").fromPort(111).toPort(112).userIdGroupPairs([
+        UserIdGroupPair.builder().userId("accountId1").groupId("id-bar").build()
+      ]).build()
     ])
     1 * existingSecurityGroup.updateTags(description, dynamicConfigService)
   }
@@ -369,13 +362,13 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
     and:
     1 * securityGroupLookup.getAccountIdForName("test") >> "accountId1"
     1 * securityGroupLookup.getSecurityGroupByName("test", "foo", "vpc-123") >> Optional.of(createdSecurityGroup)
-    2 * createdSecurityGroup.getSecurityGroup() >> new SecurityGroup(groupId: "id-foo")
+    2 * createdSecurityGroup.getSecurityGroup() >> SecurityGroup.builder().groupId("id-foo").build()
 
     and:
     1 * createdSecurityGroup.addIngress([
-      new IpPermission(ipProtocol: "tcp", fromPort: 111, toPort: 112, userIdGroupPairs: [
-        new UserIdGroupPair(userId: "accountId1", groupId: "id-foo")
-      ])
+      IpPermission.builder().ipProtocol("tcp").fromPort(111).toPort(112).userIdGroupPairs([
+        UserIdGroupPair.builder().userId("accountId1").groupId("id-foo").build()
+      ]).build()
     ])
   }
 
@@ -395,13 +388,13 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
 
     then:
     1 * securityGroupLookup.getSecurityGroupByName("test", "foo", null) >> Optional.of(existingSecurityGroup)
-    1 * existingSecurityGroup.getSecurityGroup() >> new SecurityGroup(groupName: "foo", groupId: "123", ipPermissions: [])
+    1 * existingSecurityGroup.getSecurityGroup() >> SecurityGroup.builder().groupName("foo").groupId("123").ipPermissions([]).build()
 
     then:
     1 * existingSecurityGroup.addIngress([
-      new IpPermission(ipProtocol: "tcp", fromPort: 111, toPort: 112, userIdGroupPairs: [
-        new UserIdGroupPair(userId: "accountId1", groupName: "bar")
-      ])
+      IpPermission.builder().ipProtocol("tcp").fromPort(111).toPort(112).userIdGroupPairs([
+        UserIdGroupPair.builder().userId("accountId1").groupName("bar").build()
+      ]).build()
     ])
     1 * existingSecurityGroup.updateTags(description, dynamicConfigService)
 
@@ -424,11 +417,11 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
 
     then:
     1 * securityGroupLookup.getSecurityGroupByName("test", "foo", null) >> Optional.of(existingSecurityGroup)
-    1 * ingressSecurityGroup.getSecurityGroup() >> new SecurityGroup(groupName: "bar", groupId: "124", vpcId: "vpc-123")
-    1 * existingSecurityGroup.getSecurityGroup() >> new SecurityGroup(groupName: "foo", groupId: "123", vpcId: "vpc-123", ipPermissions: [
-      new IpPermission(ipProtocol: "tcp", fromPort: 111, toPort: 112, userIdGroupPairs: [
-        new UserIdGroupPair(userId: "accountId1", groupName: "baz", groupId: "124", vpcId: "vpc-123", vpcPeeringConnectionId: "pca", peeringStatus: "active")])
-    ])
+    1 * ingressSecurityGroup.getSecurityGroup() >> SecurityGroup.builder().groupName("bar").groupId("124").vpcId("vpc-123").build()
+    1 * existingSecurityGroup.getSecurityGroup() >> SecurityGroup.builder().groupName("foo").groupId("123").vpcId("vpc-123").ipPermissions([
+      IpPermission.builder().ipProtocol("tcp").fromPort(111).toPort(112).userIdGroupPairs([
+        UserIdGroupPair.builder().userId("accountId1").groupName("baz").groupId("124").vpcId("vpc-123").vpcPeeringConnectionId("pca").peeringStatus("active").build()]).build()
+    ]).build()
     0 * _
 
   }
@@ -451,34 +444,30 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
     then:
     3 * securityGroupLookup.getAccountIdForName("test") >> "accountId1"
     3 * securityGroupLookup.getSecurityGroupByName("test", "bar", "vpc-123") >> Optional.of(new SecurityGroupUpdater(
-      new SecurityGroup(groupId: "id-bar"),
+      SecurityGroup.builder().groupId("id-bar").build(),
       null
     ))
 
     then:
     1 * securityGroupLookup.getSecurityGroupByName("test", "foo", "vpc-123") >> Optional.of(existingSecurityGroup)
-    1 * existingSecurityGroup.getSecurityGroup() >> new SecurityGroup(groupName: "foo", groupId: "123", ipPermissions: [
-      new IpPermission(fromPort: 80, toPort: 81,
-        userIdGroupPairs: [
-          new UserIdGroupPair(userId: "accountId1", groupId: "grp", description: "sg description" ),
-          new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")
-        ],
-        ipRanges: ["10.0.0.1/32"], ipProtocol: "tcp"
-      ),
-      new IpPermission(fromPort: 25, toPort: 25,
-        userIdGroupPairs: [new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")], ipProtocol: "tcp"),
-    ])
+    1 * existingSecurityGroup.getSecurityGroup() >> SecurityGroup.builder().groupName("foo").groupId("123").ipPermissions([
+      IpPermission.builder().fromPort(80).toPort(81).userIdGroupPairs([
+          UserIdGroupPair.builder().userId("accountId1").groupId("grp").description("sg description").build(),
+          UserIdGroupPair.builder().userId("accountId1").groupId("id-bar").build()
+        ]).ipRanges([IpRange.builder().cidrIp("10.0.0.1/32").build()]).ipProtocol("tcp").build(),
+      IpPermission.builder().fromPort(25).toPort(25).userIdGroupPairs([UserIdGroupPair.builder().userId("accountId1").groupId("id-bar").build()]).ipProtocol("tcp").build(),
+    ]).build()
 
     then:
     1 * existingSecurityGroup.addIngress([
-      new IpPermission(ipProtocol: "tcp", fromPort: 111, toPort: 112, userIdGroupPairs: [
-        new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")
-      ])
+      IpPermission.builder().ipProtocol("tcp").fromPort(111).toPort(112).userIdGroupPairs([
+        UserIdGroupPair.builder().userId("accountId1").groupId("id-bar").build()
+      ]).build()
     ])
     1 * existingSecurityGroup.removeIngress([
-      new IpPermission(ipProtocol: "tcp", fromPort: 80, toPort: 81, userIdGroupPairs: [
-        new UserIdGroupPair(userId: "accountId1", groupId: "grp", description: "sg description")
-      ])
+      IpPermission.builder().ipProtocol("tcp").fromPort(80).toPort(81).userIdGroupPairs([
+        UserIdGroupPair.builder().userId("accountId1").groupId("grp").description("sg description").build()
+      ]).build()
     ])
     2 * existingSecurityGroup.updateTags(description, dynamicConfigService)
   }
@@ -503,10 +492,10 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
 
     then:
     1 * securityGroupLookup.getSecurityGroupByName("test", "foo", null) >> Optional.of(existingSecurityGroup)
-    1 * ingressSecurityGroup.getSecurityGroup() >> new SecurityGroup(groupName: "bar", groupId: "124", vpcId: "vpc-123")
-    1 * existingSecurityGroup.getSecurityGroup() >> new SecurityGroup(groupName: "foo", groupId: "123", ipPermissions: [
-      new IpPermission(ipProtocol: "tcp", fromPort: 7002, toPort: 7004, ipv4Ranges: [new IpRange(description: "foo", cidrIp:"123.23.45.6/12")])
-    ])
+    1 * ingressSecurityGroup.getSecurityGroup() >> SecurityGroup.builder().groupName("bar").groupId("124").vpcId("vpc-123").build()
+    1 * existingSecurityGroup.getSecurityGroup() >> SecurityGroup.builder().groupName("foo").groupId("123").ipPermissions([
+      IpPermission.builder().ipProtocol("tcp").fromPort(7002).toPort(7004).ipRanges([IpRange.builder().description("foo").cidrIp("123.23.45.6/12").build()]).build()
+    ]).build()
 
     then:
     1 * existingSecurityGroup.addIngress(_)
@@ -527,9 +516,9 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
 
     then:
     1 * securityGroupLookup.getSecurityGroupByName("test", "foo", null) >> Optional.of(existingSecurityGroup)
-    1 * existingSecurityGroup.getSecurityGroup() >> new SecurityGroup(groupName: "foo", groupId: "123", ipPermissions: [
-      new IpPermission(ipProtocol: "tcp", fromPort: 7002, toPort: 7004, ipv4Ranges: [new IpRange(description: "foo", cidrIp:"123.23.45.6/12")])
-    ])
+    1 * existingSecurityGroup.getSecurityGroup() >> SecurityGroup.builder().groupName("foo").groupId("123").ipPermissions([
+      IpPermission.builder().ipProtocol("tcp").fromPort(7002).toPort(7004).ipRanges([IpRange.builder().description("foo").cidrIp("123.23.45.6/12").build()]).build()
+    ]).build()
 
     then:
     1 * existingSecurityGroup.updateIngress(_)
@@ -549,9 +538,9 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
 
     then:
     1 * securityGroupLookup.getSecurityGroupByName("test", "foo", null) >> Optional.of(existingSecurityGroup)
-    1 * existingSecurityGroup.getSecurityGroup() >> new SecurityGroup(groupName: "foo", groupId: "123", ipPermissions: [
-      new IpPermission(ipProtocol: "tcp", fromPort: 7002, toPort: 7004, ipv4Ranges: [new IpRange(description: null, cidrIp:"123.23.45.6/12")])
-    ])
+    1 * existingSecurityGroup.getSecurityGroup() >> SecurityGroup.builder().groupName("foo").groupId("123").ipPermissions([
+      IpPermission.builder().ipProtocol("tcp").fromPort(7002).toPort(7004).ipRanges([IpRange.builder().description(null).cidrIp("123.23.45.6/12").build()]).build()
+    ]).build()
 
     then:
     1 * existingSecurityGroup.updateIngress(_)
@@ -571,9 +560,9 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
 
     then:
     1 * securityGroupLookup.getSecurityGroupByName("test", "foo", null) >> Optional.of(existingSecurityGroup)
-    1 * existingSecurityGroup.getSecurityGroup() >> new SecurityGroup(groupName: "foo", groupId: "123", ipPermissions: [
-      new IpPermission(ipProtocol: "tcp", fromPort: 7002, toPort: 7004, ipv4Ranges: [new IpRange(description: "foo", cidrIp:"123.23.45.6/12")])
-    ])
+    1 * existingSecurityGroup.getSecurityGroup() >> SecurityGroup.builder().groupName("foo").groupId("123").ipPermissions([
+      IpPermission.builder().ipProtocol("tcp").fromPort(7002).toPort(7004).ipRanges([IpRange.builder().description("foo").cidrIp("123.23.45.6/12").build()]).build()
+    ]).build()
 
     then:
     0 * existingSecurityGroup.updateIngress(_)
@@ -600,11 +589,11 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
 
     then:
     1 * securityGroupLookup.getSecurityGroupByName("test", "foo", null) >> Optional.of(existingSecurityGroup)
-    1 * ingressSecurityGroup.getSecurityGroup() >> new SecurityGroup(groupName: "bar", groupId: "124", vpcId: "vpc-123")
-    1 * existingSecurityGroup.getSecurityGroup() >> new SecurityGroup(groupName: "foo", groupId: "123", ipPermissions: [
-      new IpPermission(ipProtocol: "tcp", fromPort: 7002, toPort: 7004, ipv4Ranges: [new IpRange(description: "foo", cidrIp:"123.23.45.6/12")]),
-      new IpPermission(ipProtocol: "tcp", fromPort: 7002, toPort: 7004, ipv4Ranges: [new IpRange(description: "baz", cidrIp:"103.23.45.6/12")])
-    ])
+    1 * ingressSecurityGroup.getSecurityGroup() >> SecurityGroup.builder().groupName("bar").groupId("124").vpcId("vpc-123").build()
+    1 * existingSecurityGroup.getSecurityGroup() >> SecurityGroup.builder().groupName("foo").groupId("123").ipPermissions([
+      IpPermission.builder().ipProtocol("tcp").fromPort(7002).toPort(7004).ipRanges([IpRange.builder().description("foo").cidrIp("123.23.45.6/12").build()]).build(),
+      IpPermission.builder().ipProtocol("tcp").fromPort(7002).toPort(7004).ipRanges([IpRange.builder().description("baz").cidrIp("103.23.45.6/12").build()]).build()
+    ]).build()
 
     then:
     1 * existingSecurityGroup.addIngress(_)

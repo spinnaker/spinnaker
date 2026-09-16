@@ -9,17 +9,17 @@ import com.netflix.spinnaker.front50.jackson.mixins.TimestampedMixins;
 import com.netflix.spinnaker.front50.model.*;
 import com.netflix.spinnaker.front50.plugins.PluginBinaryStorageService;
 import com.netflix.spinnaker.front50.plugins.S3PluginBinaryStorageService;
-import com.netflix.spinnaker.kork.aws.bastion.BastionConfig;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Optional;
 import java.util.concurrent.Executors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
@@ -27,11 +27,19 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sqs.SqsClient;
 
+/**
+ * S3 configuration for Front50.
+ *
+ * <p>S3 <em>metadata</em> storage ({@link S3StorageService} / {@code spinnaker.s3.storage-service})
+ * is deprecated — prefer SQL; see {@link DeprecatedStorageBackend}. S3 plugin-binary storage
+ * ({@code spinnaker.s3.plugin-storage}) is not covered by that deprecation.
+ */
 @Configuration
 @ConditionalOnProperty("spinnaker.s3.enabled")
-@Import(BastionConfig.class)
 @EnableConfigurationProperties({S3MetadataStorageProperties.class, S3PluginStorageProperties.class})
 public class S3Config {
+
+  private static final Logger log = LoggerFactory.getLogger(S3Config.class);
 
   @Bean
   @ConditionalOnProperty(value = "spinnaker.s3.storage-service.enabled", matchIfMissing = true)
@@ -42,8 +50,11 @@ public class S3Config {
 
   @Bean
   @ConditionalOnProperty(value = "spinnaker.s3.storage-service.enabled", matchIfMissing = true)
+  @SuppressWarnings("deprecation")
   public S3StorageService s3StorageService(
       S3Client awsS3MetadataClient, S3MetadataStorageProperties s3Properties) {
+    DeprecatedStorageBackend.warn(log, "S3");
+
     ObjectMapper awsObjectMapper =
         new ObjectMapper()
             .addMixIn(Timestamped.class, TimestampedMixins.class)

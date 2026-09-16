@@ -26,6 +26,7 @@ env:
 jobs:
   it-test-kubernetes:
     strategy:
+      fail-fast: false
       matrix:
         # Node images are the ones shipped with kind v0.31.0 (see KIND_VERSION in
         # clouddriver-kubernetes KubernetesCluster.java); kubectl is the latest patch
@@ -54,10 +55,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@v6
         with:
           java-version: |
-            17
+            25
           distribution: 'zulu'
 
       - name: Cache on push

@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.amazonaws.services.autoscaling.model.PutScalingPolicyRequest
-import com.amazonaws.services.autoscaling.model.PutScalingPolicyResult
+import software.amazon.awssdk.services.autoscaling.model.PutScalingPolicyRequest
+import software.amazon.awssdk.services.autoscaling.model.PutScalingPolicyResponse
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.services.IdGenerator
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
@@ -40,57 +40,57 @@ class UpsertScalingPolicyAtomicOperation implements AtomicOperation<UpsertScalin
   @Override
   UpsertScalingPolicyResult operate(List priorOutputs) {
     final policyName = description.name ?: "${description.serverGroupName}-policy-${idGenerator.nextId()}"
-    final request = new PutScalingPolicyRequest(
-      policyName: policyName,
-      autoScalingGroupName: description.serverGroupName,
-    )
+    final requestBuilder = PutScalingPolicyRequest.builder()
+      .policyName(policyName)
+      .autoScalingGroupName(description.serverGroupName)
+
     if (description.targetTrackingConfiguration) {
-      request.withTargetTrackingConfiguration(description.targetTrackingConfiguration)
-        .withEstimatedInstanceWarmup(description.estimatedInstanceWarmup)
-        .withPolicyType(PolicyType.TargetTrackingScaling.toString())
+      requestBuilder.targetTrackingConfiguration(description.targetTrackingConfiguration)
+        .estimatedInstanceWarmup(description.estimatedInstanceWarmup)
+        .policyType(PolicyType.TargetTrackingScaling.toString())
     } else {
-      request.withAdjustmentType(description.adjustmentType.toString())
-        .withMinAdjustmentMagnitude(description.minAdjustmentMagnitude)
+      requestBuilder.adjustmentType(description.adjustmentType.toString())
+        .minAdjustmentMagnitude(description.minAdjustmentMagnitude)
 
       if (description.step) {
-        request.withPolicyType(PolicyType.StepScaling.toString()).
-          withEstimatedInstanceWarmup(description.step.estimatedInstanceWarmup).
-          withStepAdjustments(description.step.stepAdjustments).
-          withMetricAggregationType(description.step.metricAggregationType.toString())
+        requestBuilder.policyType(PolicyType.StepScaling.toString())
+          .estimatedInstanceWarmup(description.step.estimatedInstanceWarmup)
+          .stepAdjustments(description.step.stepAdjustments)
+          .metricAggregationType(description.step.metricAggregationType.toString())
       } else {
-        request.withPolicyType(PolicyType.SimpleScaling.toString()).
-          withCooldown(description.simple.cooldown).
-          withScalingAdjustment(description.simple.scalingAdjustment)
+        requestBuilder.policyType(PolicyType.SimpleScaling.toString())
+          .cooldown(description.simple.cooldown)
+          .scalingAdjustment(description.simple.scalingAdjustment)
       }
     }
 
-    final autoScaling = amazonClientProvider.getAutoScaling(description.credentials, description.region, true)
-    PutScalingPolicyResult scalingPolicyResult = autoScaling.putScalingPolicy(request)
+    final autoScaling = amazonClientProvider.getAutoScalingV2(description.credentials, description.region)
+    PutScalingPolicyResponse scalingPolicyResult = autoScaling.putScalingPolicy(requestBuilder.build())
 
     if (description.alarm && !description.targetTrackingConfiguration) {
       addAlarm(scalingPolicyResult)
       new UpsertScalingPolicyResult(
           policyName: policyName.toString(),
-          policyArn: scalingPolicyResult?.policyARN,
+          policyArn: scalingPolicyResult?.policyARN(),
           alarmName: description.alarm.name
       )
     } else {
       new UpsertScalingPolicyResult(
           policyName: policyName.toString(),
-          policyArn: scalingPolicyResult?.policyARN
+          policyArn: scalingPolicyResult?.policyARN()
       )
     }
   }
 
-  private void addAlarm(PutScalingPolicyResult scalingPolicyResult) {
+  private void addAlarm(PutScalingPolicyResponse scalingPolicyResult) {
     def alarm = description.alarm
     alarm.name = alarm.name ?: "${description.serverGroupName}-alarm-${description.alarm.metricName}-${idGenerator.nextId()}"
     alarm.alarmActionArns = alarm.alarmActionArns ?: []
-    if (!alarm.alarmActionArns.contains(scalingPolicyResult.policyARN)) {
-      alarm.alarmActionArns.add(scalingPolicyResult.policyARN)
+    if (!alarm.alarmActionArns.contains(scalingPolicyResult.policyARN())) {
+      alarm.alarmActionArns.add(scalingPolicyResult.policyARN())
     }
     def request = description.alarm.buildRequest()
-    def cloudWatch = amazonClientProvider.getCloudWatch(description.credentials, description.region, true)
+    def cloudWatch = amazonClientProvider.getAmazonCloudWatchV2(description.credentials, description.region)
     cloudWatch.putMetricAlarm(request)
   }
 

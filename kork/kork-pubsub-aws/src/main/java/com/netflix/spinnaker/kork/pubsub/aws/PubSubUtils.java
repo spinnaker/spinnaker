@@ -16,26 +16,16 @@
 
 package com.netflix.spinnaker.kork.pubsub.aws;
 
-import com.amazonaws.auth.policy.*;
-import com.amazonaws.auth.policy.actions.SNSActions;
-import com.amazonaws.auth.policy.actions.SQSActions;
-import com.amazonaws.services.sns.AmazonSNS;
-import com.amazonaws.services.sns.model.SetTopicAttributesRequest;
-import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.model.GetQueueUrlRequest;
-import com.amazonaws.services.sqs.model.QueueDoesNotExistException;
 import com.netflix.spinnaker.kork.aws.ARN;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.pubsub.aws.config.AmazonPubsubProperties.AmazonPubsubSubscription;
 import java.time.Duration;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.policybuilder.iam.IamAction;
@@ -48,10 +38,12 @@ import software.amazon.awssdk.policybuilder.iam.IamResource;
 import software.amazon.awssdk.policybuilder.iam.IamStatement;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
+import software.amazon.awssdk.services.sns.model.SetTopicAttributesRequest;
 import software.amazon.awssdk.services.sns.model.SubscribeRequest;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
+import software.amazon.awssdk.services.sqs.model.QueueDoesNotExistException;
 import software.amazon.awssdk.services.sqs.model.SetQueueAttributesRequest;
 
 /** Utils for working with AWS SNS and SQS across services */
@@ -61,22 +53,6 @@ public class PubSubUtils {
   private static final int MAX_RETRIES = 5;
   private static final Duration RETRY_BACKOFF = Duration.ofSeconds(1);
   private static final boolean EXPONENTIAL = true;
-
-  public static String getQueueUrl(AmazonSQS amazonSQS, ARN queueARN) {
-    return retrySupport.retry(
-        () -> {
-          GetQueueUrlRequest request =
-              new GetQueueUrlRequest()
-                  .withQueueName(queueARN.getName())
-                  .withQueueOwnerAWSAccountId(queueARN.getAccount());
-          String queueUrl = amazonSQS.getQueueUrl(request).getQueueUrl();
-          log.debug("Reusing existing queue {}", queueUrl);
-          return queueUrl;
-        },
-        MAX_RETRIES,
-        RETRY_BACKOFF,
-        EXPONENTIAL);
-  }
 
   public static String getQueueUrl(SqsClient sqsClient, ARN queueARN) {
     return retrySupport.retry(
@@ -97,29 +73,11 @@ public class PubSubUtils {
   }
 
   public static String ensureQueueExists(
-      AmazonSQS amazonSQS, ARN queueARN, ARN topicARN, int sqsMessageRetentionPeriodSeconds) {
-    String queueUrl;
-    try {
-      queueUrl = getQueueUrl(amazonSQS, queueARN);
-    } catch (QueueDoesNotExistException e) {
-      queueUrl = amazonSQS.createQueue(queueARN.getName()).getQueueUrl();
-      log.debug("Created queue {}", queueUrl);
-    }
-
-    HashMap<String, String> attributes = new HashMap<>();
-    attributes.put("Policy", buildSQSPolicy(queueARN, topicARN).toJson());
-    attributes.put("MessageRetentionPeriod", Integer.toString(sqsMessageRetentionPeriodSeconds));
-    amazonSQS.setQueueAttributes(queueUrl, attributes);
-
-    return queueUrl;
-  }
-
-  public static String ensureQueueExists(
       SqsClient sqsClient, ARN queueARN, ARN topicARN, int sqsMessageRetentionPeriodSeconds) {
     String queueUrl;
     try {
       queueUrl = getQueueUrl(sqsClient, queueARN);
-    } catch (software.amazon.awssdk.services.sqs.model.QueueDoesNotExistException e) {
+    } catch (QueueDoesNotExistException e) {
       CreateQueueRequest createQueueRequest =
           CreateQueueRequest.builder().queueName(queueARN.getName()).build();
       queueUrl = sqsClient.createQueue(createQueueRequest).queueUrl();
@@ -135,15 +93,6 @@ public class PubSubUtils {
         SetQueueAttributesRequest.builder().queueUrl(queueUrl).attributes(attributes).build());
 
     return queueUrl;
-  }
-
-  /** Returns the subscription arn resulting from subscribing the queueARN to the topicARN */
-  public static String subscribeToTopic(AmazonSNS amazonSNS, ARN topicARN, ARN queueARN) {
-    return retrySupport.retry(
-        () -> amazonSNS.subscribe(topicARN.getArn(), "sqs", queueARN.getArn()).getSubscriptionArn(),
-        MAX_RETRIES,
-        RETRY_BACKOFF,
-        EXPONENTIAL);
   }
 
   /** Returns the subscription arn resulting from subscribing the queueARN to the topicARN */
@@ -164,23 +113,7 @@ public class PubSubUtils {
   }
 
   /** This policy allows messages to be sent from an SNS topic. */
-  public static Policy buildSQSPolicy(ARN queue, ARN topic) {
-    Statement snsStatement =
-        new Statement(Statement.Effect.Allow).withActions(SQSActions.SendMessage);
-    snsStatement.setPrincipals(Principal.All);
-    snsStatement.setResources(Collections.singletonList(new Resource(queue.getArn())));
-    snsStatement.setConditions(
-        Collections.singletonList(
-            new Condition()
-                .withType("ArnEquals")
-                .withConditionKey("aws:SourceArn")
-                .withValues(topic.getArn())));
-
-    return new Policy("allow-sns-send", Collections.singletonList(snsStatement));
-  }
-
-  /** This policy allows messages to be sent from an SNS topic. */
-  public static IamPolicy v2BuildSQSPolicy(ARN queue, ARN topic) {
+  public static IamPolicy buildSQSPolicy(ARN queue, ARN topic) {
     IamAction sendMessage = IamAction.create("sqs:SendMessage");
     IamCondition condition =
         IamCondition.builder()
@@ -205,37 +138,6 @@ public class PubSubUtils {
    * publish messages to it
    */
   public static String ensureTopicExists(
-      AmazonSNS amazonSNS, ARN topicARN, AmazonPubsubSubscription subscription) {
-    String createdTopicARN =
-        retrySupport.retry(
-            () -> amazonSNS.createTopic(topicARN.getName()).getTopicArn(),
-            MAX_RETRIES,
-            RETRY_BACKOFF,
-            EXPONENTIAL);
-
-    log.debug(
-        (createdTopicARN.equals(topicARN.getArn()))
-            ? "Reusing existing topic {}"
-            : "Created topic {}",
-        createdTopicARN);
-
-    if (!subscription.getAccountIds().isEmpty()) {
-      amazonSNS.setTopicAttributes(
-          new SetTopicAttributesRequest()
-              .withTopicArn(createdTopicARN)
-              .withAttributeName("Policy")
-              .withAttributeValue(
-                  buildSNSPolicy(new ARN(createdTopicARN), subscription.getAccountIds()).toJson()));
-    }
-
-    return createdTopicARN;
-  }
-
-  /**
-   * Ensure that the topic exists and has a policy granting the specified accounts permission to
-   * publish messages to it
-   */
-  public static String ensureTopicExists(
       SnsClient snsClient, ARN topicARN, AmazonPubsubSubscription subscription) {
     CreateTopicRequest topicRequest = CreateTopicRequest.builder().name(topicARN.getName()).build();
     String createdTopicARN =
@@ -253,9 +155,9 @@ public class PubSubUtils {
 
     if (!subscription.getAccountIds().isEmpty()) {
       String snsPolicy =
-          v2BuildSNSPolicy(new ARN(createdTopicARN), subscription.getAccountIds()).toJson();
-      software.amazon.awssdk.services.sns.model.SetTopicAttributesRequest topicAttributesRequest =
-          software.amazon.awssdk.services.sns.model.SetTopicAttributesRequest.builder()
+          buildSNSPolicy(new ARN(createdTopicARN), subscription.getAccountIds()).toJson();
+      SetTopicAttributesRequest topicAttributesRequest =
+          SetTopicAttributesRequest.builder()
               .topicArn(createdTopicARN)
               .attributeName("Policy")
               .attributeValue(snsPolicy)
@@ -277,15 +179,8 @@ public class PubSubUtils {
             && discoveryStatus.isEnabled();
   }
 
-  public static Policy buildSNSPolicy(ARN topicARN, List<String> accountIds) {
-    Statement statement = new Statement(Statement.Effect.Allow).withActions(SNSActions.Publish);
-    statement.setPrincipals(accountIds.stream().map(Principal::new).collect(Collectors.toList()));
-    statement.setResources(Collections.singletonList(new Resource(topicARN.getArn())));
-
-    return new Policy("allow-remote-account-send", Collections.singletonList(statement));
-  }
-
-  private static IamPolicy v2BuildSNSPolicy(ARN topicARN, List<String> accountIds) {
+  /** This policy allows specified accounts to publish messages to the topic. */
+  public static IamPolicy buildSNSPolicy(ARN topicARN, List<String> accountIds) {
     List<IamPrincipal> principals =
         accountIds.stream().map(a -> IamPrincipal.create(IamPrincipalType.AWS, a)).toList();
     IamStatement statement =

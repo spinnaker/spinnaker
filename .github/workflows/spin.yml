@@ -48,14 +48,14 @@ jobs:
           version-override: ${{ inputs.version-override }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: actions/setup-go@v6
+      - uses: actions/setup-go@v7
         with:
           go-version-file: spin/go.mod
           cache: false
 
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@v6
         with:
-          java-version: '17'
+          java-version: '25'
           distribution: zulu
           cache: ${{ !env.ACT && 'gradle' || '' }}
 

@@ -28,6 +28,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
 
+/**
+ * OpenStack Swift metadata storage configuration.
+ *
+ * @deprecated Front50 is moving to SQL-only persistence. Swift metadata storage remains available
+ *     through Spinnaker 2027.0.0 and is scheduled for removal afterward. Prefer SQL; see {@link
+ *     DeprecatedStorageBackend}.
+ */
+@Deprecated
 @Configuration
 @ConditionalOnExpression("${spinnaker.swift.enabled:false}")
 @EnableConfigurationProperties(SwiftProperties.class)
@@ -38,7 +46,9 @@ public class SwiftConfig {
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   @Bean
+  @SuppressWarnings("deprecation")
   public SwiftStorageService swiftService(SwiftProperties properties) {
+    DeprecatedStorageBackend.warn(log, "Swift");
     return new SwiftStorageService(
         properties.getContainerName(),
         properties.getIdentityEndpoint(),

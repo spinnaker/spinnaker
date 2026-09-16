@@ -2,6 +2,8 @@ import React from 'react';
 
 import type { GceCommandHandlerName, IGceServerGroupCommand } from '../GceServerGroupWizard.types';
 import { GceServerGroupWizardPage } from '../GceServerGroupWizardPage';
+import type { IGceInstanceFlexibilityPolicy } from '../../../../domain/serverGroup';
+import { GceInstanceFlexibilityConfigurer, hasValidFlexibilityPolicy } from '../zones/GceInstanceFlexibilityConfigurer';
 
 interface ICapacityValidationErrors {
   autoscalingPolicy?: {
@@ -10,6 +12,7 @@ interface ICapacityValidationErrors {
   };
   capacity?: { desired?: string };
   distributionPolicy?: { targetShape?: string; zones?: string };
+  instanceFlexibilityPolicy?: string;
   zone?: string;
 }
 
@@ -59,6 +62,9 @@ export class ServerGroupCapacity extends GceServerGroupWizardPage {
     }
     if (values.regional && values.selectZones && !values.distributionPolicy?.zones?.length) {
       errors.distributionPolicy = { zones: 'At least one zone required.' };
+    }
+    if (!hasValidFlexibilityPolicy(values)) {
+      errors.instanceFlexibilityPolicy = 'Instance flexibility policy is invalid.';
     }
 
     return errors;
@@ -172,6 +178,10 @@ export class ServerGroupCapacity extends GceServerGroupWizardPage {
     this.props.formik.setFieldValue('distributionPolicy', { ...values.distributionPolicy, targetShape });
   };
 
+  private instanceFlexibilityPolicyChanged = (instanceFlexibilityPolicy: IGceInstanceFlexibilityPolicy): void => {
+    this.props.formik.setFieldValue('instanceFlexibilityPolicy', instanceFlexibilityPolicy);
+  };
+
   private renderCapacityInput(label: string, field: 'desired' | 'max' | 'min', value: CapacityValue) {
     const id = `gce-capacity-${field}`;
     const error = capacityError(this.props.formik.errors, field);
@@ -248,7 +258,12 @@ export class ServerGroupCapacity extends GceServerGroupWizardPage {
     const zones = zoneOptions(values.backingData?.filtered?.zones, selectedZones);
     const errors = this.props.formik.errors as any;
     const zonesError = errors?.distributionPolicy?.zones;
-    const targetShapes: string[] = values.backingData?.distributionPolicyTargetShapes || ['ANY', 'EVEN'];
+    const targetShapes: string[] = values.backingData?.distributionPolicyTargetShapes || [
+      'ANY',
+      'EVEN',
+      'BALANCED',
+      'ANY_SINGLE_ZONE',
+    ];
 
     return (
       <div>
@@ -393,6 +408,13 @@ export class ServerGroupCapacity extends GceServerGroupWizardPage {
         </div>
 
         {values.regional ? this.renderRegionalDistribution() : this.renderZonalLocation()}
+        <GceInstanceFlexibilityConfigurer
+          instanceFlexibilityPolicy={values.instanceFlexibilityPolicy}
+          regional={values.regional}
+          setInstanceFlexibilityPolicy={this.instanceFlexibilityPolicyChanged}
+          targetShape={values.distributionPolicy?.targetShape || undefined}
+          validationError={(this.props.formik.errors as any)?.instanceFlexibilityPolicy}
+        />
       </div>
     );
   }

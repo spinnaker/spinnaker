@@ -19,6 +19,9 @@ package com.netflix.spinnaker.rosco.manifests.helmfile;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreConfigurationProperties;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
+import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import com.netflix.spinnaker.rosco.jobs.BakeRecipe;
 import com.netflix.spinnaker.rosco.manifests.ArtifactDownloader;
 import com.netflix.spinnaker.rosco.manifests.BakeManifestEnvironment;
@@ -26,28 +29,69 @@ import com.netflix.spinnaker.rosco.manifests.HelmBakeTemplateUtils;
 import com.netflix.spinnaker.rosco.manifests.config.RoscoHelmConfigurationProperties;
 import com.netflix.spinnaker.rosco.manifests.config.RoscoHelmfileConfigurationProperties;
 import java.io.IOException;
+import java.io.Reader;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
 public class HelmfileTemplateUtils extends HelmBakeTemplateUtils<HelmfileBakeManifestRequest> {
+
+  // Environment and namespace are passed directly as arguments to the helmfile executable (see
+  // buildCommand below), so they're restricted to characters that are valid in a Kubernetes
+  // namespace / helmfile environment name.
+  //
+  // Note this is NOT a shell-injection fix: BakeRecipe.command is executed by JobExecutorLocal as
+  // an argv array (commons-exec CommandLine with quote-parsing disabled, ultimately
+  // ProcessBuilder-style execve), never via "sh -c" or any other shell, so metacharacters such as
+  // ";", "|", or "$()" in these values are inert - they can't break out to run another command.
+  // This pattern instead guards against argument injection (e.g. a value beginning with "-" being
+  // misread by helmfile's flag parser as a new flag rather than the value of --environment /
+  // --namespace) and acts as defense-in-depth in case this code path is ever refactored to invoke
+  // a shell.
+  private static final Pattern SAFE_ARGUMENT_PATTERN =
+      Pattern.compile("^[a-zA-Z0-9]([a-zA-Z0-9._-]*[a-zA-Z0-9])?$");
+
+  // Matches helm's --post-renderer / --post-renderer-args flags, however helmfile passes them
+  // along (a bare "--post-renderer", "--post-renderer=/some/script", or a separate "=value"
+  // form), wherever they appear in a helmDefaults/release "args" list.
+  private static final Pattern POST_RENDERER_FLAG_PATTERN =
+      Pattern.compile("^--post-renderer(-args)?(=.*)?$");
+
+  private static final String HOOKS_KEY = "hooks";
+  private static final String POST_RENDERERS_KEY = "postRenderers";
+  private static final String HELM_DEFAULTS_KEY = "helmDefaults";
+  private static final String ARGS_KEY = "args";
+  private static final String RELEASES_KEY = "releases";
+  private static final String BASES_KEY = "bases";
+  private static final List<String> HELMFILE_FILE_NAMES = List.of("helmfile.yaml", "helmfile.yml");
+
   private final RoscoHelmfileConfigurationProperties helmfileConfigurationProperties;
   private final RoscoHelmConfigurationProperties helmConfigurationProperties =
       new RoscoHelmConfigurationProperties();
+  private final YamlHelper yamlHelper;
 
   public HelmfileTemplateUtils(
       ArtifactDownloader artifactDownloader,
       Optional<ArtifactStore> artifactStore,
       ArtifactStoreConfigurationProperties artifactStoreConfig,
-      RoscoHelmfileConfigurationProperties helmfileConfigurationProperties) {
+      RoscoHelmfileConfigurationProperties helmfileConfigurationProperties,
+      YamlHelper yamlHelper) {
     super(artifactDownloader, artifactStore, artifactStoreConfig.getHelm());
     this.helmfileConfigurationProperties = helmfileConfigurationProperties;
+    this.yamlHelper = yamlHelper;
   }
 
   public BakeRecipe buildBakeRecipe(
@@ -64,7 +108,37 @@ public class HelmfileTemplateUtils extends HelmBakeTemplateUtils<HelmfileBakeMan
         getHelmTypePathFromArtifact(env, inputArtifacts, request.getHelmfileFilePath());
 
     log.info("path to helmfile: {}", helmfileFilePath);
-    return buildCommand(request, getValuePaths(inputArtifacts, env), helmfileFilePath);
+
+    if (!helmfileConfigurationProperties.isAllowHooksAndPostRenderers()) {
+      rejectHooksAndPostRenderers(helmfileFilePath);
+    }
+
+    return buildCommand(
+        request,
+        getValuePaths(inputArtifacts, env),
+        getStateValuePaths(request, env),
+        helmfileFilePath);
+  }
+
+  private List<Path> getStateValuePaths(
+      HelmfileBakeManifestRequest request, BakeManifestEnvironment env) {
+    List<Artifact> stateValuesArtifacts = request.getStateValuesArtifacts();
+    if (stateValuesArtifacts == null || stateValuesArtifacts.isEmpty()) {
+      return new ArrayList<>();
+    }
+
+    List<Path> stateValuePaths = new ArrayList<>();
+    try {
+      for (Artifact stateValuesArtifact : stateValuesArtifacts) {
+        stateValuePaths.add(downloadArtifactToTmpFile(env, stateValuesArtifact));
+      }
+    } catch (SpinnakerHttpException e) {
+      throw new SpinnakerHttpException(fetchFailureMessage("state values file", e), e);
+    } catch (IOException | SpinnakerException e) {
+      throw new IllegalStateException(fetchFailureMessage("state values file", e), e);
+    }
+
+    return stateValuePaths;
   }
 
   public String fetchFailureMessage(String description, Exception e) {
@@ -76,7 +150,10 @@ public class HelmfileTemplateUtils extends HelmBakeTemplateUtils<HelmfileBakeMan
   }
 
   public BakeRecipe buildCommand(
-      HelmfileBakeManifestRequest request, List<Path> valuePaths, Path helmfileFilePath) {
+      HelmfileBakeManifestRequest request,
+      List<Path> valuePaths,
+      List<Path> stateValuePaths,
+      Path helmfileFilePath) {
     BakeRecipe result = new BakeRecipe();
     result.setName(request.getOutputName());
 
@@ -91,20 +168,33 @@ public class HelmfileTemplateUtils extends HelmBakeTemplateUtils<HelmfileBakeMan
     command.add("--helm-binary");
     command.add(getHelmExecutableForRequest(null));
 
+    // --environment is only added when a value is actually supplied (null/empty checks above). If
+    // omitted, helmfile applies its own built-in default environment named "default" - Spinnaker
+    // never passes that value explicitly.
     String environment = request.getEnvironment();
     if (environment != null && !environment.isEmpty()) {
       command.add("--environment");
-      command.add(environment);
+      command.add(validateArgument("environment", environment));
     }
 
+    // --namespace is likewise only added when a value is actually supplied; if omitted, no
+    // --namespace argument is passed to helmfile at all.
     String namespace = request.getNamespace();
     if (namespace != null && !namespace.isEmpty()) {
       command.add("--namespace");
-      command.add(namespace);
+      command.add(validateArgument("namespace", namespace));
     }
 
     if (request.isIncludeCRDs()) {
       command.add("--include-crds");
+    }
+
+    if (stateValuePaths != null && !stateValuePaths.isEmpty()) {
+      stateValuePaths.forEach(
+          path -> {
+            command.add("--state-values-file");
+            command.add(path.toString());
+          });
     }
 
     Map<String, Object> overrides = request.getOverrides();
@@ -125,5 +215,180 @@ public class HelmfileTemplateUtils extends HelmBakeTemplateUtils<HelmfileBakeMan
     result.setCommand(command);
 
     return result;
+  }
+
+  private static String validateArgument(String fieldName, String value) {
+    if (!SAFE_ARGUMENT_PATTERN.matcher(value).matches()) {
+      throw new IllegalArgumentException(
+          "The bake request "
+              + fieldName
+              + " field contains invalid characters. Only letters, numbers, '.', '_' and '-' are allowed.");
+    }
+    return value;
+  }
+
+  /**
+   * Helmfile's `hooks:` (events like `prepare`/`cleanup` fire even for the read-only `template`
+   * command) and `postRenderers:` (equivalently, `helmDefaults.args`/per-release `args` containing
+   * `--post-renderer`/`--post-renderer-args`) both cause helmfile to run an arbitrary local command
+   * as part of baking. Since helmfileFilePath is downloaded from an input artifact that may be less
+   * trusted than the pipeline itself, refuse to bake it if it declares either feature, so a hostile
+   * helmfile.yaml can't get code execution on the rosco host.
+   *
+   * <p>This walks the entry file (or, if helmfileFilePath is a directory, the helmfile.yaml/
+   * helmfile.yml/helmfile.d it resolves to) plus any locally-referenced `bases:`. Remote or
+   * templated bases can't be resolved statically here and are skipped with a warning - helmfile
+   * will still fetch and run them itself.
+   */
+  private void rejectHooksAndPostRenderers(Path helmfileFilePath) {
+    for (Path yamlFile : findHelmfileYamlFiles(helmfileFilePath)) {
+      validateHelmfileYamlFile(yamlFile, new HashSet<>());
+    }
+  }
+
+  private List<Path> findHelmfileYamlFiles(Path path) {
+    if (!Files.isDirectory(path)) {
+      return List.of(path);
+    }
+
+    for (String candidateName : HELMFILE_FILE_NAMES) {
+      Path candidate = path.resolve(candidateName);
+      if (Files.isRegularFile(candidate)) {
+        return List.of(candidate);
+      }
+    }
+
+    // helmfile also accepts a "helmfile.d" directory of fragments, which it merges together.
+    Path helmfileD = path.resolve("helmfile.d");
+    if (Files.isDirectory(helmfileD)) {
+      try (Stream<Path> children = Files.list(helmfileD)) {
+        return children
+            .filter(Files::isRegularFile)
+            .filter(p -> p.toString().endsWith(".yaml") || p.toString().endsWith(".yml"))
+            .sorted(Comparator.comparing(Path::toString))
+            .collect(Collectors.toList());
+      } catch (IOException e) {
+        log.debug(
+            "Unable to list {} while checking for helmfile hooks/postRenderers", helmfileD, e);
+      }
+    }
+
+    return List.of();
+  }
+
+  @SuppressWarnings("unchecked")
+  private void validateHelmfileYamlFile(Path file, Set<Path> visited) {
+    Path real;
+    try {
+      real = file.toRealPath();
+    } catch (IOException e) {
+      // Nothing on disk to validate (e.g. a test double, or a path helmfile itself will
+      // ultimately fail to find); let helmfile report that.
+      return;
+    }
+    if (!visited.add(real)) {
+      return;
+    }
+
+    Map<String, Object> doc;
+    try (Reader reader = Files.newBufferedReader(file)) {
+      Object loaded = yamlHelper.newSafeConstructorYaml().load(reader);
+      if (!(loaded instanceof Map)) {
+        return;
+      }
+      doc = (Map<String, Object>) loaded;
+    } catch (IOException | RuntimeException e) {
+      // Malformed/unreadable YAML isn't this guard's job to report; helmfile will fail on it.
+      log.debug("Skipping hook/postRenderer validation of {}: {}", file, e.toString());
+      return;
+    }
+
+    checkForHooksAndPostRenderers(doc, file);
+
+    Object releases = doc.get(RELEASES_KEY);
+    if (releases instanceof List) {
+      for (Object release : (List<?>) releases) {
+        if (release instanceof Map) {
+          checkForHooksAndPostRenderers((Map<String, Object>) release, file);
+        }
+      }
+    }
+
+    Object bases = doc.get(BASES_KEY);
+    if (bases instanceof List) {
+      for (Object base : (List<?>) bases) {
+        if (!(base instanceof String)) {
+          continue;
+        }
+        String baseRef = (String) base;
+        if (isUnresolvableReference(baseRef)) {
+          log.warn(
+              "helmfile bake: base '{}' referenced from {} is a remote or templated reference "
+                  + "and could not be checked for hooks/postRenderers here; only locally-resolvable "
+                  + "bases are validated before baking.",
+              baseRef,
+              file);
+          continue;
+        }
+        Path basePath = file.getParent().resolve(baseRef).normalize();
+        if (Files.exists(basePath)) {
+          validateHelmfileYamlFile(basePath, visited);
+        }
+      }
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  private void checkForHooksAndPostRenderers(Map<String, Object> section, Path file) {
+    Object hooks = section.get(HOOKS_KEY);
+    if (hooks instanceof List && !((List<?>) hooks).isEmpty()) {
+      throw hookRejection(file, "`" + HOOKS_KEY + "`");
+    }
+
+    Object postRenderers = section.get(POST_RENDERERS_KEY);
+    if (postRenderers instanceof List && !((List<?>) postRenderers).isEmpty()) {
+      throw hookRejection(file, "`" + POST_RENDERERS_KEY + "`");
+    }
+
+    checkArgsForPostRenderer(section.get(ARGS_KEY), file);
+
+    Object helmDefaults = section.get(HELM_DEFAULTS_KEY);
+    if (helmDefaults instanceof Map) {
+      Map<String, Object> helmDefaultsMap = (Map<String, Object>) helmDefaults;
+      Object helmDefaultsPostRenderers = helmDefaultsMap.get(POST_RENDERERS_KEY);
+      if (helmDefaultsPostRenderers instanceof List
+          && !((List<?>) helmDefaultsPostRenderers).isEmpty()) {
+        throw hookRejection(file, "`" + HELM_DEFAULTS_KEY + "." + POST_RENDERERS_KEY + "`");
+      }
+      checkArgsForPostRenderer(helmDefaultsMap.get(ARGS_KEY), file);
+    }
+  }
+
+  private void checkArgsForPostRenderer(Object argsValue, Path file) {
+    if (!(argsValue instanceof List)) {
+      return;
+    }
+    for (Object arg : (List<?>) argsValue) {
+      if (arg instanceof String && POST_RENDERER_FLAG_PATTERN.matcher((String) arg).matches()) {
+        throw hookRejection(file, "an `args` entry containing `" + arg + "`");
+      }
+    }
+  }
+
+  private static boolean isUnresolvableReference(String ref) {
+    return ref.contains("://") || ref.startsWith("git::") || ref.contains("{{");
+  }
+
+  private static IllegalArgumentException hookRejection(Path file, String what) {
+    return new IllegalArgumentException(
+        "The helmfile content at "
+            + file
+            + " declares "
+            + what
+            + ", which helmfile executes as an arbitrary local command/script even during "
+            + "'helmfile template'. Rosco refuses to bake this helmfile by default because its "
+            + "content may not be as trusted as the pipeline referencing it. If you trust this "
+            + "source, set helmfile.allow-hooks-and-post-renderers: true in rosco's "
+            + "configuration.");
   }
 }

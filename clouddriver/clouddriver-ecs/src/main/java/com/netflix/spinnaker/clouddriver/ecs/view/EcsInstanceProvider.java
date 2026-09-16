@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.view;
 
-import com.amazonaws.services.ecs.model.NetworkInterface;
 import com.netflix.spinnaker.clouddriver.ecs.EcsCloudProvider;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.ContainerInstanceCacheClient;
@@ -31,6 +30,7 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import software.amazon.awssdk.services.ecs.model.NetworkInterface;
 
 @Component
 public class EcsInstanceProvider implements InstanceProvider<EcsTask, String> {
@@ -80,8 +80,8 @@ public class EcsInstanceProvider implements InstanceProvider<EcsTask, String> {
     NetworkInterface networkInterface =
         task.getContainers() != null
                 && !task.getContainers().isEmpty()
-                && !task.getContainers().get(0).getNetworkInterfaces().isEmpty()
-            ? task.getContainers().get(0).getNetworkInterfaces().get(0)
+                && !task.getContainers().get(0).networkInterfaces().isEmpty()
+            ? task.getContainers().get(0).networkInterfaces().get(0)
             : null;
 
     Service service = containerInformationService.getService(serviceName, account, region);

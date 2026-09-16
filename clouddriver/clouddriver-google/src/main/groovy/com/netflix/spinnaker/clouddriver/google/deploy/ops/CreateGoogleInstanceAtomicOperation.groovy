@@ -150,8 +150,8 @@ class CreateGoogleInstanceAtomicOperation extends GoogleAtomicOperation<Deployme
                                 serviceAccounts: serviceAccount)
 
     if (GCEUtil.isShieldedVmCompatible(bootImage)) {
-      def shieldedVmConfig = GCEUtil.buildShieldedVmConfig(description)
-      instance.setShieldedVmConfig(shieldedVmConfig)
+      def shieldedInstanceConfig = GCEUtil.buildShieldedInstanceConfig(description)
+      instance.setShieldedInstanceConfig(shieldedInstanceConfig)
     }
 
     if (description.minCpuPlatform) {

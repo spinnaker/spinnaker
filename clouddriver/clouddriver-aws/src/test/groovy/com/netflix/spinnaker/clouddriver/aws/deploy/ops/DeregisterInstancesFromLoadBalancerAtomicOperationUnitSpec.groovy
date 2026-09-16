@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.autoscaling.model.Instance
-import com.amazonaws.services.elasticloadbalancing.model.DeregisterInstancesFromLoadBalancerRequest
-import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRequest
-import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersResult
-import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
+import software.amazon.awssdk.services.autoscaling.model.Instance
+import software.amazon.awssdk.services.elasticloadbalancing.model.DeregisterInstancesFromLoadBalancerRequest
+import software.amazon.awssdk.services.elasticloadbalancing.model.DescribeLoadBalancersRequest
+import software.amazon.awssdk.services.elasticloadbalancing.model.DescribeLoadBalancersResponse
+import software.amazon.awssdk.services.elasticloadbalancing.model.LoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerLookupHelper
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -46,11 +46,10 @@ class DeregisterInstancesFromLoadBalancerAtomicOperationUnitSpec extends Instanc
 
   void 'should deregister instances from load balancers'() {
     setup:
-    def asg = Mock(AutoScalingGroup) {
-      1 * getLoadBalancerNames() >> ["lb1"]
-      1 * getInstances() >> [new Instance().withInstanceId("i-123456")]
-      0 * _._
-    }
+    def asg = AutoScalingGroup.builder()
+      .loadBalancerNames(["lb1"])
+      .instances([Instance.builder().instanceId("i-123456").build()])
+      .build()
 
     when:
     op.operate([])
@@ -58,18 +57,17 @@ class DeregisterInstancesFromLoadBalancerAtomicOperationUnitSpec extends Instanc
     then:
     1 * asgService.getAutoScalingGroup(description.asgName) >> asg
     1 * loadBalancing.deregisterInstancesFromLoadBalancer(_) >> { DeregisterInstancesFromLoadBalancerRequest req ->
-      assert req.instances*.instanceId == description.instanceIds
-      assert req.loadBalancerName == "lb1"
+      assert req.instances()*.instanceId() == description.instanceIds
+      assert req.loadBalancerName() == "lb1"
     }
   }
 
   void 'should noop task if no load balancers found'() {
     setup:
-    def asg = Mock(AutoScalingGroup) {
-      1 * getLoadBalancerNames() >> []
-      1 * getInstances() >> description.instanceIds.collect { new Instance().withInstanceId(it) }
-      0 * _._
-    }
+    def asg = AutoScalingGroup.builder()
+      .loadBalancerNames([])
+      .instances(description.instanceIds.collect { Instance.builder().instanceId(it).build() })
+      .build()
 
     when:
     op.operate([])
@@ -90,10 +88,10 @@ class DeregisterInstancesFromLoadBalancerAtomicOperationUnitSpec extends Instanc
 
     then:
     0 * asgService.getAutoScalingGroup(_)
-    2 * loadBalancing.describeLoadBalancers(_) >> { DescribeLoadBalancersRequest req -> new DescribeLoadBalancersResult().withLoadBalancerDescriptions(new LoadBalancerDescription().withLoadBalancerName(req.loadBalancerNames[0]))}
+    2 * loadBalancing.describeLoadBalancers(_) >> { DescribeLoadBalancersRequest req -> DescribeLoadBalancersResponse.builder().loadBalancerDescriptions(LoadBalancerDescription.builder().loadBalancerName(req.loadBalancerNames()[0]).build()).build()}
     2 * loadBalancing.deregisterInstancesFromLoadBalancer(_) >> { DeregisterInstancesFromLoadBalancerRequest req ->
-      assert req.instances*.instanceId == description.instanceIds
-      assert description.loadBalancerNames.contains(req.loadBalancerName)
+      assert req.instances()*.instanceId() == description.instanceIds
+      assert description.loadBalancerNames.contains(req.loadBalancerName())
     }
   }
 

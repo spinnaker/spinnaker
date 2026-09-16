@@ -1,11 +1,11 @@
 import { Registry } from '@spinnaker/core';
-import { AppengineServerGroupStageConfig } from '../AppengineServerGroupStageConfig';
+import { AppengineServerGroupStageConfigWithHealthOverride } from '../AppengineServerGroupStageConfig';
 
 Registry.pipeline.registerStage({
   provides: 'enableServerGroup',
   key: 'enableServerGroup',
   cloudProvider: 'appengine',
-  component: AppengineServerGroupStageConfig,
+  component: AppengineServerGroupStageConfigWithHealthOverride,
   validators: [
     { type: 'requiredField', fieldName: 'cluster' },
     { type: 'requiredField', fieldName: 'target' },

@@ -10,6 +10,23 @@ export interface IStageManifest {
   };
 }
 
+// A manifest that the artifact-store entity storage feature has replaced with a
+// reference, rather than expanding it back into a real manifest before deck ever
+// sees it (e.g. gate isn't configured to expand these on read).
+export interface IStoredManifestReference {
+  type: string;
+  reference: string;
+}
+
+export function isStoredManifestReference(manifest: unknown): manifest is IStoredManifestReference {
+  return (
+    !!manifest &&
+    typeof manifest === 'object' &&
+    (manifest as IStoredManifestReference).type === 'remote/map/base64' &&
+    typeof (manifest as IStoredManifestReference).reference === 'string'
+  );
+}
+
 export interface IManifestParams {
   account: string;
   location: string;

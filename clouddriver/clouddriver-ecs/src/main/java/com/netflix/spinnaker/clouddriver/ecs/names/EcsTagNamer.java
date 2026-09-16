@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.names;
 
-import com.amazonaws.services.ecs.model.Tag;
 import com.netflix.frigga.Names;
 import com.netflix.spinnaker.clouddriver.names.NamingStrategy;
 import com.netflix.spinnaker.moniker.Moniker;
@@ -30,6 +29,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
+import software.amazon.awssdk.services.ecs.model.Tag;
 
 @Component
 public class EcsTagNamer implements NamingStrategy<EcsResource> {
@@ -122,13 +122,13 @@ public class EcsTagNamer implements NamingStrategy<EcsResource> {
     @NotNull
     @Override
     public Set<Entry<String, String>> entrySet() {
-      return tags.stream().collect(Collectors.toMap(Tag::getKey, Tag::getValue)).entrySet();
+      return tags.stream().collect(Collectors.toMap(Tag::key, Tag::value)).entrySet();
     }
 
     @Override
     public String put(String key, String value) {
       String prev = remove(key);
-      tags.add(new Tag().withKey(key).withValue(value));
+      tags.add(Tag.builder().key(key).value(value).build());
       return prev;
     }
   }

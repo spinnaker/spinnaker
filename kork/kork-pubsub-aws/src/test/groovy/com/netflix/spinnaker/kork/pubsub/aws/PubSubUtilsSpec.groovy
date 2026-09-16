@@ -16,75 +16,95 @@
 
 package com.netflix.spinnaker.kork.pubsub.aws
 
-import com.amazonaws.services.sns.AmazonSNS
-import com.amazonaws.services.sqs.AmazonSQS
-import com.amazonaws.services.sqs.model.CreateQueueResult
-import com.amazonaws.services.sqs.model.GetQueueUrlRequest
-import com.amazonaws.services.sqs.model.GetQueueUrlResult
-import com.amazonaws.services.sqs.model.QueueDoesNotExistException
 import com.netflix.spinnaker.kork.aws.ARN
+import software.amazon.awssdk.services.sqs.SqsClient
+import software.amazon.awssdk.services.sqs.model.CreateQueueRequest
+import software.amazon.awssdk.services.sqs.model.CreateQueueResponse
+import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest
+import software.amazon.awssdk.services.sqs.model.GetQueueUrlResponse
+import software.amazon.awssdk.services.sqs.model.QueueAttributeName
+import software.amazon.awssdk.services.sqs.model.QueueDoesNotExistException
+import software.amazon.awssdk.services.sqs.model.SetQueueAttributesRequest
 import spock.lang.Specification
 
+import java.util.function.Consumer
+
 class PubSubUtilsSpec extends Specification {
-  AmazonSNS amazonSNS = Mock()
-  AmazonSQS amazonSQS = Mock()
+  SqsClient sqsClient = Mock()
 
   ARN queueARN = new ARN("arn:aws:sqs:us-west-2:100:queueName")
   ARN topicARN = new ARN("arn:aws:sns:us-west-2:100:topicName")
 
   def "getQueueUrl returns URL and passes QueueOwnerAWSAccountId"() {
     when:
-    def url = PubSubUtils.getQueueUrl(amazonSQS, queueARN)
+    def url = PubSubUtils.getQueueUrl(sqsClient, queueARN)
 
     then:
     url == "my-queue-url"
-    1 * amazonSQS.getQueueUrl({ GetQueueUrlRequest req ->
-      req.queueName == queueARN.name && req.queueOwnerAWSAccountId == queueARN.account
-    }) >> { new GetQueueUrlResult().withQueueUrl("my-queue-url") }
+    1 * sqsClient.getQueueUrl(_ as Consumer) >> { Consumer<GetQueueUrlRequest.Builder> consumer ->
+      // Verify the consumer sets the right values by building the request
+      def builder = GetQueueUrlRequest.builder()
+      consumer.accept(builder)
+      def req = builder.build()
+      assert req.queueName() == queueARN.name
+      assert req.queueOwnerAWSAccountId() == queueARN.account
+      return GetQueueUrlResponse.builder().queueUrl("my-queue-url").build()
+    }
     0 * _
   }
 
   def "getQueueUrl propagates QueueDoesNotExistException (no createQueue fallback)"() {
     when:
-    PubSubUtils.getQueueUrl(amazonSQS, queueARN)
+    PubSubUtils.getQueueUrl(sqsClient, queueARN)
 
     then:
     // retrySupport retries MAX_RETRIES (=5) times before giving up
-    (1.._) * amazonSQS.getQueueUrl(_ as GetQueueUrlRequest) >> { throw new QueueDoesNotExistException("nope") }
-    0 * amazonSQS.createQueue(_)
+    (1.._) * sqsClient.getQueueUrl(_ as Consumer) >> {
+      throw QueueDoesNotExistException.builder().message("nope").build()
+    }
+    0 * sqsClient.createQueue(_ as CreateQueueRequest)
     thrown(QueueDoesNotExistException)
   }
 
   def "ensureQueueExists does not create queue if it exists"() {
     when:
-    def queueId = PubSubUtils.ensureQueueExists(amazonSQS, queueARN, topicARN, 1)
+    def queueId = PubSubUtils.ensureQueueExists(sqsClient, queueARN, topicARN, 1)
 
     then:
     queueId == "my-queue-url"
-    1 * amazonSQS.getQueueUrl({ GetQueueUrlRequest req ->
-      req.queueName == queueARN.name && req.queueOwnerAWSAccountId == queueARN.account
-    }) >> { new GetQueueUrlResult().withQueueUrl("my-queue-url") }
-    0 * amazonSQS.createQueue(_)
-    1 * amazonSQS.setQueueAttributes("my-queue-url", [
-      "Policy": PubSubUtils.buildSQSPolicy(queueARN, topicARN).toJson(),
-      "MessageRetentionPeriod": "1"
-    ])
+    1 * sqsClient.getQueueUrl(_ as Consumer) >> {
+      GetQueueUrlResponse.builder().queueUrl("my-queue-url").build()
+    }
+    0 * sqsClient.createQueue(_ as CreateQueueRequest)
+    1 * sqsClient.setQueueAttributes(_ as SetQueueAttributesRequest) >> { SetQueueAttributesRequest req ->
+      assert req.queueUrl() == "my-queue-url"
+      assert req.attributes().get(QueueAttributeName.POLICY) == PubSubUtils.buildSQSPolicy(queueARN, topicARN).toJson()
+      assert req.attributes().get(QueueAttributeName.MESSAGE_RETENTION_PERIOD) == "1"
+      return null
+    }
     0 * _
   }
 
   def "ensureQueueExists falls back to createQueue when queue is missing"() {
     when:
-    def queueId = PubSubUtils.ensureQueueExists(amazonSQS, queueARN, topicARN, 1)
+    def queueId = PubSubUtils.ensureQueueExists(sqsClient, queueARN, topicARN, 1)
 
     then:
     queueId == "my-queue-url"
     // retry may re-invoke getQueueUrl before giving up and returning to ensureQueueExists
-    (1.._) * amazonSQS.getQueueUrl(_ as GetQueueUrlRequest) >> { throw new QueueDoesNotExistException("nope") }
-    1 * amazonSQS.createQueue(queueARN.name) >> { new CreateQueueResult().withQueueUrl("my-queue-url") }
-    1 * amazonSQS.setQueueAttributes("my-queue-url", [
-      "Policy": PubSubUtils.buildSQSPolicy(queueARN, topicARN).toJson(),
-      "MessageRetentionPeriod": "1"
-    ])
+    (1.._) * sqsClient.getQueueUrl(_ as Consumer) >> {
+      throw QueueDoesNotExistException.builder().message("nope").build()
+    }
+    1 * sqsClient.createQueue(_ as CreateQueueRequest) >> { CreateQueueRequest req ->
+      assert req.queueName() == queueARN.name
+      return CreateQueueResponse.builder().queueUrl("my-queue-url").build()
+    }
+    1 * sqsClient.setQueueAttributes(_ as SetQueueAttributesRequest) >> { SetQueueAttributesRequest req ->
+      assert req.queueUrl() == "my-queue-url"
+      assert req.attributes().get(QueueAttributeName.POLICY) == PubSubUtils.buildSQSPolicy(queueARN, topicARN).toJson()
+      assert req.attributes().get(QueueAttributeName.MESSAGE_RETENTION_PERIOD) == "1"
+      return null
+    }
     0 * _
   }
 }

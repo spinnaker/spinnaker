@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.deploy.validators
 
-import com.amazonaws.services.ecs.model.CapacityProviderStrategyItem
-import com.amazonaws.services.ecs.model.PlacementStrategy
-import com.amazonaws.services.ecs.model.PlacementStrategyType
+import software.amazon.awssdk.services.ecs.model.CapacityProviderStrategyItem
+import software.amazon.awssdk.services.ecs.model.PlacementStrategy
+import software.amazon.awssdk.services.ecs.model.PlacementStrategyType
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.ecs.TestCredential
@@ -165,9 +165,7 @@ class EcsCreateServergroupDescriptionValidatorSpec extends AbstractValidatorSpec
   void 'target group mappings should fail when load balancer specified but container name is missing'() {
     given:
     def targetGroupMappings = new CreateServerGroupDescription.TargetGroupProperties(
-      containerName: null,
-      containerPort: 1337,
-      targetGroup: 'target-group-arn'
+      containerName: null, containerPort: 1337, targetGroup: 'target-group-arn'
     )
     def description = getDescription()
     description.targetGroup = null
@@ -186,10 +184,10 @@ class EcsCreateServergroupDescriptionValidatorSpec extends AbstractValidatorSpec
 
   void 'should fail when launch type and capacity provider strategy are both defined'() {
     given:
-    def capacityProviderStrategy = new CapacityProviderStrategyItem(
-      capacityProvider: 'FARGATE',
-      weight: 1
-    )
+    def capacityProviderStrategy = CapacityProviderStrategyItem.builder()
+      .capacityProvider('FARGATE')
+      .weight(1)
+      .build()
     def description = getDescription()
     description.capacityProviderStrategy = [capacityProviderStrategy]
     description.launchType = 'FARGATE'
@@ -233,9 +231,7 @@ class EcsCreateServergroupDescriptionValidatorSpec extends AbstractValidatorSpec
   void 'target group mappings should fail when container name is specified but load balancer is missing'() {
     given:
     def targetGroupMappings = new CreateServerGroupDescription.TargetGroupProperties(
-      containerName: 'test-container',
-      containerPort: 1337,
-      targetGroup: null
+      containerName: 'test-container', containerPort: 1337, targetGroup: null
     )
     def description = getDescription()
     description.targetGroup = null
@@ -255,9 +251,7 @@ class EcsCreateServergroupDescriptionValidatorSpec extends AbstractValidatorSpec
   void 'target group mappings should fail when container port is invalid'() {
     given:
     def targetGroupMappings = new CreateServerGroupDescription.TargetGroupProperties(
-      containerName: null,
-      containerPort: -1,
-      targetGroup: 'target-group-arn'
+      containerName: null, containerPort: -1, targetGroup: 'target-group-arn'
     )
     def description = getDescription()
     description.targetGroup = null
@@ -275,9 +269,7 @@ class EcsCreateServergroupDescriptionValidatorSpec extends AbstractValidatorSpec
   void 'target group mappings should fail when container port is missing'() {
     given:
     def targetGroupMappings = new CreateServerGroupDescription.TargetGroupProperties(
-      containerName: null,
-      containerPort: null,
-      targetGroup: 'target-group-arn'
+      containerName: null, containerPort: null, targetGroup: 'target-group-arn'
     )
     def description = getDescription()
     description.targetGroup = null
@@ -295,9 +287,7 @@ class EcsCreateServergroupDescriptionValidatorSpec extends AbstractValidatorSpec
   void 'target group mappings should pass without load balancer if using container inputs'() {
     given:
     def targetGroupMappings = new CreateServerGroupDescription.TargetGroupProperties(
-      containerName: null,
-      containerPort: 1337,
-      targetGroup: 'target-group-arn'
+      containerName: null, containerPort: 1337, targetGroup: 'target-group-arn'
     )
     def description = getDescription()
     description.targetGroup = null
@@ -423,9 +413,9 @@ class EcsCreateServergroupDescriptionValidatorSpec extends AbstractValidatorSpec
     description.getCapacity().setMax(-2)
     description.getCapacity().setMin(-1)
     description.placementStrategySequence = [
-      new PlacementStrategy().withType("invalid-type"),
-      new PlacementStrategy().withType(PlacementStrategyType.Binpack).withField("invalid"),
-      new PlacementStrategy().withType(PlacementStrategyType.Spread).withField("invalid")
+      PlacementStrategy.builder().type("invalid-type").build(),
+      PlacementStrategy.builder().type(PlacementStrategyType.BINPACK).field("invalid").build(),
+      PlacementStrategy.builder().type(PlacementStrategyType.SPREAD).field("invalid").build()
     ]
     return description
   }
@@ -465,7 +455,7 @@ class EcsCreateServergroupDescriptionValidatorSpec extends AbstractValidatorSpec
     description.dockerImageAddress = 'docker-image-url'
     description.capacity = new ServerGroup.Capacity(1, 2, 1)
     description.availabilityZones = ['us-west-1': ['us-west-1a']]
-    description.placementStrategySequence = [new PlacementStrategy().withType(PlacementStrategyType.Random)]
+    description.placementStrategySequence = [PlacementStrategy.builder().type(PlacementStrategyType.RANDOM).build()]
 
     description
   }

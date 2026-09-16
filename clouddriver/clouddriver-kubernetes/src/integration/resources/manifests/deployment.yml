@@ -19,3 +19,6 @@ spec:
             - tail
             - -f
             - /dev/null
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65534

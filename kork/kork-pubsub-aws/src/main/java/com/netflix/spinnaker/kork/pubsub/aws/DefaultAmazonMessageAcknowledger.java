@@ -16,15 +16,15 @@
 
 package com.netflix.spinnaker.kork.pubsub.aws;
 
-import com.amazonaws.services.sqs.model.Message;
-import com.amazonaws.services.sqs.model.ReceiptHandleIsInvalidException;
 import com.netflix.spinnaker.kork.pubsub.aws.api.AmazonMessageAcknowledger;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
+import software.amazon.awssdk.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.model.SqsException;
 
 @Slf4j
 public class DefaultAmazonMessageAcknowledger implements AmazonMessageAcknowledger {
-  private MeterRegistry registry;
+  private final MeterRegistry registry;
 
   public DefaultAmazonMessageAcknowledger(MeterRegistry registry) {
     this.registry = registry;
@@ -32,26 +32,28 @@ public class DefaultAmazonMessageAcknowledger implements AmazonMessageAcknowledg
 
   @Override
   public void ack(AmazonSubscriptionInformation subscription, Message message) {
-    // Delete from queue
     try {
-      subscription.amazonSQS.deleteMessage(subscription.queueUrl, message.getReceiptHandle());
+      subscription
+          .getSqsClient()
+          .deleteMessage(
+              r -> r.queueUrl(subscription.getQueueUrl()).receiptHandle(message.receiptHandle()));
       incrementSuccessCounter(subscription);
-    } catch (ReceiptHandleIsInvalidException e) {
+    } catch (SqsException e) {
       log.warn(
-          "Error deleting message: {}, subscription: {}", message.getMessageId(), subscription, e);
+          "Error deleting message: {}, subscription: {}", message.messageId(), subscription, e);
       incrementErrorCounter(subscription, e);
     }
   }
 
   @Override
   public void nack(AmazonSubscriptionInformation subscription, Message message) {
-    // Do nothing
+    // Do nothing — message will become visible again after visibility timeout
     incrementNackCounter(subscription);
   }
 
   private void incrementSuccessCounter(AmazonSubscriptionInformation subscription) {
     registry
-        .counter("pubsub.amazon.acked", "subscription", subscription.properties.getName())
+        .counter("pubsub.amazon.acked", "subscription", subscription.getProperties().getName())
         .increment();
   }
 
@@ -60,7 +62,7 @@ public class DefaultAmazonMessageAcknowledger implements AmazonMessageAcknowledg
         .counter(
             "pubsub.amazon.ackFailed",
             "subscription",
-            subscription.properties.getName(),
+            subscription.getProperties().getName(),
             "exceptionClass",
             e.getClass().getSimpleName())
         .increment();
@@ -68,7 +70,7 @@ public class DefaultAmazonMessageAcknowledger implements AmazonMessageAcknowledg
 
   private void incrementNackCounter(AmazonSubscriptionInformation subscription) {
     registry
-        .counter("pubsub.amazon.nacked", "subscription", subscription.properties.getName())
+        .counter("pubsub.amazon.nacked", "subscription", subscription.getProperties().getName())
         .increment();
   }
 }

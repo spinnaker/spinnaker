@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.amazonaws.services.autoscaling.model.DisableMetricsCollectionRequest
-import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
+import software.amazon.awssdk.services.autoscaling.model.DisableMetricsCollectionRequest
+import software.amazon.awssdk.services.autoscaling.model.UpdateAutoScalingGroupRequest
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.config.AwsConfiguration
 import com.netflix.spinnaker.clouddriver.aws.deploy.AmiIdResolver
@@ -60,13 +60,13 @@ class ModifyAsgLaunchConfigurationOperation implements AtomicOperation<Void> {
     def lcBuilder = regionScopedProvider.launchConfigurationBuilder
 
     def asg = regionScopedProvider.asgService.getAutoScalingGroup(description.asgName)
-    def existingLc = asg.launchConfigurationName
+    def existingLc = asg.launchConfigurationName()
 
     def settings = lcBuilder.buildSettingsFromLaunchConfiguration(description.credentials, description.region, existingLc)
 
     LaunchConfigurationSettings.LaunchConfigurationSettingsBuilder newSettingsBuilder = settings.toBuilder()
-    if (!asg.getVPCZoneIdentifier() && !settings.classicLinkVpcId) {
-      def classicLinkVpc = regionScopedProvider.amazonEC2.describeVpcClassicLink().vpcs.find { it.classicLinkEnabled }
+    if (!asg.vpcZoneIdentifier() && !settings.classicLinkVpcId) {
+      def classicLinkVpc = regionScopedProvider.amazonEC2.describeVpcClassicLink().vpcs().find { it.classicLinkEnabled }
       if (classicLinkVpc) {
         newSettingsBuilder.classicLinkVpcId(classicLinkVpc.vpcId)
         if (deployDefaults.classicLinkSecurityGroupName) {
@@ -121,14 +121,16 @@ class ModifyAsgLaunchConfigurationOperation implements AtomicOperation<Void> {
 
       if (!newSettings.instanceMonitoring && settings.instanceMonitoring) {
         autoScaling.disableMetricsCollection(
-          new DisableMetricsCollectionRequest()
-            .withAutoScalingGroupName(description.asgName))
+          DisableMetricsCollectionRequest.builder()
+            .autoScalingGroupName(description.asgName)
+            .build())
       }
 
       autoScaling.updateAutoScalingGroup(
-        new UpdateAutoScalingGroupRequest()
-          .withAutoScalingGroupName(description.asgName)
-          .withLaunchConfigurationName(newLc))
+        UpdateAutoScalingGroupRequest.builder()
+          .autoScalingGroupName(description.asgName)
+          .launchConfigurationName(newLc)
+          .build())
     }
 
     task.addResultObjects([[launchConfigurationName: resultLaunchConfigName]])

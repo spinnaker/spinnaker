@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.deploy.description;
 
-import com.amazonaws.services.ecs.model.CapacityProviderStrategyItem;
-import com.amazonaws.services.ecs.model.PlacementConstraint;
-import com.amazonaws.services.ecs.model.PlacementStrategy;
 import com.netflix.spinnaker.clouddriver.model.ServerGroup;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.List;
@@ -27,6 +24,9 @@ import java.util.Set;
 import javax.annotation.Nullable;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import software.amazon.awssdk.services.ecs.model.CapacityProviderStrategyItem;
+import software.amazon.awssdk.services.ecs.model.PlacementConstraint;
+import software.amazon.awssdk.services.ecs.model.PlacementStrategy;
 
 @Data
 @EqualsAndHashCode(callSuper = false)

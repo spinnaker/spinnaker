@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.security;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 
 /** A way to make AWSAccountInfoLookup objects for supporting multiple managing accounts */
 public interface AWSAccountInfoLookupFactory {
@@ -24,12 +24,12 @@ public interface AWSAccountInfoLookupFactory {
    * Create an AWSAccountInfoLookup object
    *
    * @param profileName the profile name associated with the resulting AWSAccountInfoLookup object
-   * @param credentialsProvider the AWSCredentialsProvider to use
+   * @param credentialsProvider the AwsCredentialsProvider to use
    * @param amazonClientProvider the amazonClientProvider to use
    * @return an AWSAccountInfoLookup object
    */
   AWSAccountInfoLookup makeAWSAccountInfoLookup(
       String profileName,
-      AWSCredentialsProvider credentialsProvider,
+      AwsCredentialsProvider credentialsProvider,
       AmazonClientProvider amazonClientProvider);
 }

@@ -19,10 +19,6 @@ package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.ECS_CLUSTERS;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.services.ecs.AmazonECS;
-import com.amazonaws.services.ecs.model.ListClustersRequest;
-import com.amazonaws.services.ecs.model.ListClustersResult;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
@@ -40,6 +36,9 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.ecs.EcsClient;
+import software.amazon.awssdk.services.ecs.model.ListClustersRequest;
+import software.amazon.awssdk.services.ecs.model.ListClustersResponse;
 
 public class EcsClusterCachingAgent extends AbstractEcsCachingAgent<String> {
   private static final Collection<AgentDataType> types =
@@ -48,11 +47,8 @@ public class EcsClusterCachingAgent extends AbstractEcsCachingAgent<String> {
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   public EcsClusterCachingAgent(
-      NetflixAmazonCredentials account,
-      String region,
-      AmazonClientProvider amazonClientProvider,
-      AWSCredentialsProvider awsCredentialsProvider) {
-    super(account, region, amazonClientProvider, awsCredentialsProvider);
+      NetflixAmazonCredentials account, String region, AmazonClientProvider amazonClientProvider) {
+    super(account, region, amazonClientProvider);
   }
 
   @Override
@@ -66,19 +62,19 @@ public class EcsClusterCachingAgent extends AbstractEcsCachingAgent<String> {
   }
 
   @Override
-  protected List<String> getItems(AmazonECS ecs, ProviderCache providerCache) {
+  protected List<String> getItems(EcsClient ecs, ProviderCache providerCache) {
     List<String> allClusterArns = new LinkedList<>();
     String nextToken = null;
     do {
-      ListClustersRequest listClustersRequest = new ListClustersRequest();
+      ListClustersRequest.Builder requestBuilder = ListClustersRequest.builder();
       if (nextToken != null) {
-        listClustersRequest.setNextToken(nextToken);
+        requestBuilder.nextToken(nextToken);
       }
 
-      ListClustersResult listClustersResult = ecs.listClusters(listClustersRequest);
-      allClusterArns.addAll(listClustersResult.getClusterArns());
+      ListClustersResponse listClustersResult = ecs.listClusters(requestBuilder.build());
+      allClusterArns.addAll(listClustersResult.clusterArns());
 
-      nextToken = listClustersResult.getNextToken();
+      nextToken = listClustersResult.nextToken();
     } while (nextToken != null && nextToken.length() != 0);
 
     return allClusterArns;

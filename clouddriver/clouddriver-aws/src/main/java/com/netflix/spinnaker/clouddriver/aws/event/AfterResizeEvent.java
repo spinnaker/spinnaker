@@ -16,23 +16,23 @@
 
 package com.netflix.spinnaker.clouddriver.aws.event;
 
-import com.amazonaws.services.autoscaling.AmazonAutoScaling;
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup;
-import com.amazonaws.services.ec2.AmazonEC2;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.model.ServerGroup;
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup;
+import software.amazon.awssdk.services.ec2.Ec2Client;
 
 public class AfterResizeEvent {
   private final Task task;
-  private final AmazonEC2 amazonEC2;
-  private final AmazonAutoScaling amazonAutoScaling;
+  private final Ec2Client amazonEC2;
+  private final AutoScalingClient amazonAutoScaling;
   private final AutoScalingGroup autoScalingGroup;
   private final ServerGroup.Capacity capacity;
 
   public AfterResizeEvent(
       Task task,
-      AmazonEC2 amazonEC2,
-      AmazonAutoScaling amazonAutoScaling,
+      Ec2Client amazonEC2,
+      AutoScalingClient amazonAutoScaling,
       AutoScalingGroup autoScalingGroup,
       ServerGroup.Capacity capacity) {
     this.task = task;
@@ -46,11 +46,11 @@ public class AfterResizeEvent {
     return task;
   }
 
-  public AmazonEC2 getAmazonEC2() {
+  public Ec2Client getAmazonEC2() {
     return amazonEC2;
   }
 
-  public AmazonAutoScaling getAmazonAutoScaling() {
+  public AutoScalingClient getAmazonAutoScaling() {
     return amazonAutoScaling;
   }
 

@@ -17,14 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.actions;
 
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup;
-import com.amazonaws.services.autoscaling.model.InstancesDistribution;
-import com.amazonaws.services.autoscaling.model.LaunchTemplate;
-import com.amazonaws.services.autoscaling.model.LaunchTemplateOverrides;
-import com.amazonaws.services.autoscaling.model.LaunchTemplateSpecification;
-import com.amazonaws.services.autoscaling.model.MixedInstancesPolicy;
-import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest;
-import com.amazonaws.services.ec2.model.LaunchTemplateVersion;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
@@ -48,6 +40,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup;
+import software.amazon.awssdk.services.autoscaling.model.InstancesDistribution;
+import software.amazon.awssdk.services.autoscaling.model.LaunchTemplate;
+import software.amazon.awssdk.services.autoscaling.model.LaunchTemplateOverrides;
+import software.amazon.awssdk.services.autoscaling.model.LaunchTemplateSpecification;
+import software.amazon.awssdk.services.autoscaling.model.MixedInstancesPolicy;
+import software.amazon.awssdk.services.autoscaling.model.UpdateAutoScalingGroupRequest;
+import software.amazon.awssdk.services.ec2.model.LaunchTemplateVersion;
 
 /** Action to update an AWS EC2 Auto Scaling Group. */
 @Slf4j
@@ -77,44 +77,48 @@ public class UpdateAutoScalingGroup
     saga.log("[SAGA_ACTION] Updating EC2 Auto Scaling Group " + description.getAsgName());
 
     // build update request
-    UpdateAutoScalingGroupRequest updateReq =
-        new UpdateAutoScalingGroupRequest().withAutoScalingGroupName(description.getAsgName());
+    UpdateAutoScalingGroupRequest.Builder updateReq =
+        UpdateAutoScalingGroupRequest.builder().autoScalingGroupName(description.getAsgName());
 
     AutoScalingGroup autoScalingGroup =
         getAutoScalingGroup(description.getAsgName(), regionScopedProvider);
-    boolean isAsgBackedByMip = autoScalingGroup.getMixedInstancesPolicy() != null;
+    boolean isAsgBackedByMip = autoScalingGroup.mixedInstancesPolicy() != null;
 
-    String ltId = command.launchTemplateVersion.getLaunchTemplateId();
-    String ltVersion = String.valueOf(command.launchTemplateVersion.getVersionNumber());
+    String ltId = command.launchTemplateVersion.launchTemplateId();
+    String ltVersion = String.valueOf(command.launchTemplateVersion.versionNumber());
 
     if (isAsgBackedByMip || command.isReqToUpgradeAsgToMixedInstancesPolicy) {
       final MixedInstancesPolicy mip =
-          new MixedInstancesPolicy()
-              .withLaunchTemplate(
-                  new LaunchTemplate()
-                      .withLaunchTemplateSpecification(
-                          new LaunchTemplateSpecification()
-                              .withLaunchTemplateId(ltId)
-                              .withVersion(ltVersion))
-                      .withOverrides(command.launchTemplateOverrides))
-              .withInstancesDistribution(
-                  new InstancesDistribution()
-                      .withOnDemandAllocationStrategy(description.getOnDemandAllocationStrategy())
-                      .withOnDemandBaseCapacity(description.getOnDemandBaseCapacity())
-                      .withOnDemandPercentageAboveBaseCapacity(
+          MixedInstancesPolicy.builder()
+              .launchTemplate(
+                  LaunchTemplate.builder()
+                      .launchTemplateSpecification(
+                          LaunchTemplateSpecification.builder()
+                              .launchTemplateId(ltId)
+                              .version(ltVersion)
+                              .build())
+                      .overrides(command.launchTemplateOverrides)
+                      .build())
+              .instancesDistribution(
+                  InstancesDistribution.builder()
+                      .onDemandAllocationStrategy(description.getOnDemandAllocationStrategy())
+                      .onDemandBaseCapacity(description.getOnDemandBaseCapacity())
+                      .onDemandPercentageAboveBaseCapacity(
                           description.getOnDemandPercentageAboveBaseCapacity())
-                      .withSpotAllocationStrategy(description.getSpotAllocationStrategy())
-                      .withSpotInstancePools(description.getSpotInstancePools())
-                      .withSpotMaxPrice(description.getSpotPrice()));
+                      .spotAllocationStrategy(description.getSpotAllocationStrategy())
+                      .spotInstancePools(description.getSpotInstancePools())
+                      .spotMaxPrice(description.getSpotPrice())
+                      .build())
+              .build();
 
-      updateReq.withMixedInstancesPolicy(mip);
+      updateReq.mixedInstancesPolicy(mip);
     } else {
-      updateReq.withLaunchTemplate(
-          new LaunchTemplateSpecification().withLaunchTemplateId(ltId).withVersion(ltVersion));
+      updateReq.launchTemplate(
+          LaunchTemplateSpecification.builder().launchTemplateId(ltId).version(ltVersion).build());
     }
 
     try {
-      regionScopedProvider.getAutoScaling().updateAutoScalingGroup(updateReq);
+      regionScopedProvider.getAutoScaling().updateAutoScalingGroup(updateReq.build());
     } catch (Exception e) {
       StringBuilder exceptionMsg =
           new StringBuilder(
@@ -134,7 +138,7 @@ public class UpdateAutoScalingGroup
           saga.log("[SAGA_ACTION] Cleaning up to keep the operation atomic.");
           cleanUpOnFailure(
               regionScopedProvider.getLaunchTemplateService(),
-              command.getLaunchTemplateVersion().getLaunchTemplateId(),
+              command.getLaunchTemplateVersion().launchTemplateId(),
               command.getNewLaunchTemplateVersionNumber());
         }
       } catch (Exception ex) {

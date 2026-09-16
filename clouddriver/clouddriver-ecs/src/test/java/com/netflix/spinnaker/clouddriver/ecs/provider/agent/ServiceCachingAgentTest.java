@@ -22,51 +22,50 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import com.amazonaws.services.ecs.model.DeploymentConfiguration;
-import com.amazonaws.services.ecs.model.DescribeServicesRequest;
-import com.amazonaws.services.ecs.model.DescribeServicesResult;
-import com.amazonaws.services.ecs.model.ListClustersRequest;
-import com.amazonaws.services.ecs.model.ListClustersResult;
-import com.amazonaws.services.ecs.model.ListServicesRequest;
-import com.amazonaws.services.ecs.model.ListServicesResult;
-import com.amazonaws.services.ecs.model.Service;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.services.ecs.model.DeploymentConfiguration;
+import software.amazon.awssdk.services.ecs.model.DescribeServicesRequest;
+import software.amazon.awssdk.services.ecs.model.DescribeServicesResponse;
+import software.amazon.awssdk.services.ecs.model.ListClustersRequest;
+import software.amazon.awssdk.services.ecs.model.ListClustersResponse;
+import software.amazon.awssdk.services.ecs.model.ListServicesRequest;
+import software.amazon.awssdk.services.ecs.model.ListServicesResponse;
+import software.amazon.awssdk.services.ecs.model.Service;
 import spock.lang.Subject;
 
 public class ServiceCachingAgentTest extends CommonCachingAgent {
   @Subject
   private final ServiceCachingAgent agent =
-      new ServiceCachingAgent(
-          netflixAmazonCredentials, REGION, clientProvider, credentialsProvider, registry);
+      new ServiceCachingAgent(netflixAmazonCredentials, REGION, clientProvider, registry);
 
   @Test
   public void shouldGetListOfServices() {
     // Given
-    ListServicesResult listServicesResult =
-        new ListServicesResult().withServiceArns(SERVICE_ARN_1, SERVICE_ARN_2);
+    ListServicesResponse listServicesResult =
+        ListServicesResponse.builder().serviceArns(SERVICE_ARN_1, SERVICE_ARN_2).build();
     when(ecs.listServices(any(ListServicesRequest.class))).thenReturn(listServicesResult);
 
     List<Service> services = new LinkedList<>();
-    services.add(new Service().withServiceArn(SERVICE_ARN_1));
-    services.add(new Service().withServiceArn(SERVICE_ARN_2));
+    services.add(Service.builder().serviceArn(SERVICE_ARN_1).build());
+    services.add(Service.builder().serviceArn(SERVICE_ARN_2).build());
 
-    DescribeServicesResult describeServicesResult =
-        new DescribeServicesResult().withServices(services);
+    DescribeServicesResponse describeServicesResult =
+        DescribeServicesResponse.builder().services(services).build();
     when(ecs.describeServices(any(DescribeServicesRequest.class)))
         .thenReturn(describeServicesResult);
 
     when(ecs.listClusters(any(ListClustersRequest.class)))
-        .thenReturn(new ListClustersResult().withClusterArns(CLUSTER_ARN_1));
+        .thenReturn(ListClustersResponse.builder().clusterArns(CLUSTER_ARN_1).build());
 
     // When
     List<Service> returnedServices = agent.getItems(ecs, providerCache);
@@ -102,19 +101,21 @@ public class ServiceCachingAgentTest extends CommonCachingAgent {
       keys.add(Keys.getServiceKey(ACCOUNT, REGION, serviceNames.get(x)));
 
       services.add(
-          new Service()
-              .withClusterArn(CLUSTER_ARN_1)
-              .withServiceArn(serviceArns.get(x))
-              .withServiceName(serviceNames.get(x))
-              .withTaskDefinition(TASK_DEFINITION_ARN_1)
-              .withRoleArn(ROLE_ARN)
-              .withDeploymentConfiguration(
-                  new DeploymentConfiguration()
-                      .withMinimumHealthyPercent(50)
-                      .withMaximumPercent(100))
-              .withLoadBalancers(Collections.emptyList())
-              .withDesiredCount(1)
-              .withCreatedAt(new Date()));
+          Service.builder()
+              .clusterArn(CLUSTER_ARN_1)
+              .serviceArn(serviceArns.get(x))
+              .serviceName(serviceNames.get(x))
+              .taskDefinition(TASK_DEFINITION_ARN_1)
+              .roleArn(ROLE_ARN)
+              .deploymentConfiguration(
+                  DeploymentConfiguration.builder()
+                      .minimumHealthyPercent(50)
+                      .maximumPercent(100)
+                      .build())
+              .loadBalancers(Collections.emptyList())
+              .desiredCount(1)
+              .createdAt(Instant.now())
+              .build());
     }
 
     // When

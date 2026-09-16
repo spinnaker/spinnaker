@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.cache.model;
 
-import com.amazonaws.services.ecs.model.Container;
 import java.util.List;
 import lombok.Data;
+import software.amazon.awssdk.services.ecs.model.Container;
 
 @Data
 public class Task {

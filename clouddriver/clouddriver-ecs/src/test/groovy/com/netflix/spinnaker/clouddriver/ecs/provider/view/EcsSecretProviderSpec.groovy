@@ -52,7 +52,7 @@ class EcsSecretProviderSpec extends Specification {
 
     HashSet keys = [key]
 
-    SecretListEntry secretEntry = SecretListEntry.builder()
+    def secretEntry = SecretListEntry.builder()
       .name(secretName)
       .arn(secretArn)
       .build()
@@ -86,7 +86,7 @@ class EcsSecretProviderSpec extends Specification {
       keys.add(key)
       secretNames.add(secretName)
 
-      SecretListEntry secretEntry = SecretListEntry.builder()
+      def secretEntry = SecretListEntry.builder()
         .name(secretName)
         .arn(secretArn)
         .build()

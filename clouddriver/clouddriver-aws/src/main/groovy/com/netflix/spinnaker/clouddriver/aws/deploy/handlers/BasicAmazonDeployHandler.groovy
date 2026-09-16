@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.handlers
 
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
-import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
+import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsRequest
+import software.amazon.awssdk.services.ec2.model.DescribeSecurityGroupsRequest
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
@@ -140,7 +140,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       List<String> classicLinkVpcSecurityGroups = null
       if (!subnetType) {
         def result = amazonEC2.describeVpcClassicLink()
-        classicLinkVpcId = result.vpcs.find { it.classicLinkEnabled }?.vpcId
+        classicLinkVpcId = result.vpcs().find { it.classicLinkEnabled() }?.vpcId()
         if (classicLinkVpcId) {
           Set<String> classicLinkGroupNames = []
           classicLinkGroupNames.addAll(description.classicLinkVpcSecurityGroups ?: [])
@@ -154,11 +154,11 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
             def groupIds = classicLinkGroupNames.findAll { it.matches(~/sg-[0-9a-f]+/) } ?: []
             classicLinkGroupNames.removeAll(groupIds)
             if (groupIds) {
-              def describeSG = new DescribeSecurityGroupsRequest().withGroupIds(groupIds)
+              def describeSG = DescribeSecurityGroupsRequest.builder().groupIds(groupIds).build()
               def provider = sourceRegionScopedProvider ?: regionScopedProvider
-              def resolvedNames = provider.amazonEC2.describeSecurityGroups(describeSG).securityGroups.findResults {
-                if (it.vpcId == description.classicLinkVpcId && groupIds.contains(it.groupId)) {
-                  return it.groupName
+              def resolvedNames = provider.amazonEC2.describeSecurityGroups(describeSG).securityGroups().findResults {
+                if (it.vpcId() == description.classicLinkVpcId && groupIds.contains(it.groupId())) {
+                  return it.groupName()
                 }
                 return null
               } ?: []
@@ -419,11 +419,11 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
 
     def sourceAutoScaling = sourceRegionScopedProvider.autoScaling
     def ancestorAsgs = sourceAutoScaling.describeAutoScalingGroups(
-      new DescribeAutoScalingGroupsRequest(autoScalingGroupNames: [sourceAsgName])
-    ).autoScalingGroups
+      DescribeAutoScalingGroupsRequest.builder().autoScalingGroupNames([sourceAsgName]).build()
+    ).autoScalingGroups()
     def sourceAsg = ancestorAsgs.getAt(0)
 
-    if (!sourceAsg?.launchConfigurationName && sourceAsg?.launchTemplate == null && sourceAsg?.mixedInstancesPolicy == null) {
+    if (!sourceAsg?.launchConfigurationName() && sourceAsg?.launchTemplate() == null && sourceAsg?.mixedInstancesPolicy() == null) {
       if (useSourceCapacity) {
         throw new IllegalStateException("useSourceCapacity requested, but no source ASG found")
       }
@@ -432,9 +432,9 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
 
     // capacity
     if (useSourceCapacity) {
-      description.capacity.min = sourceAsg.minSize
-      description.capacity.max = sourceAsg.maxSize
-      description.capacity.desired = sourceAsg.desiredCapacity
+      description.capacity.min = sourceAsg.minSize()
+      description.capacity.max = sourceAsg.maxSize()
+      description.capacity.desired = sourceAsg.desiredCapacity()
     }
 
     // block device mappings
@@ -561,10 +561,10 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       def regionScopedProvider = regionScopedProviderFactory.forRegion(sourceAsgCredentials, sourceRegion)
 
       def sourceAsgs = regionScopedProvider.autoScaling.describeAutoScalingGroups(
-        new DescribeAutoScalingGroupsRequest(autoScalingGroupNames: [source.asgName])
+        DescribeAutoScalingGroupsRequest.builder().autoScalingGroupNames([source.asgName]).build()
       )
 
-      if (!sourceAsgs.autoScalingGroups) {
+      if (!sourceAsgs.autoScalingGroups()) {
         task.updateStatus BASE_PHASE, "Unable to locate source asg (${source.account}:${source.region}:${source.asgName})"
         return null
       }

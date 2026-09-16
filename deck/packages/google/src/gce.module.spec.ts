@@ -144,6 +144,18 @@ describe('Google provider registration', () => {
     expect(result[1]).toBe(networkLoadBalancer as any);
   });
 
+  it('constructs the registered server group command builder with the native promise service', () => {
+    googlePackage.registerGoogleProvider();
+
+    const commandBuilder = new ProviderServiceDelegate(nativePromiseService).getDelegate<GceServerGroupCommandBuilder>(
+      'gce',
+      'serverGroup.commandBuilder',
+    );
+
+    expect(commandBuilder.buildNewServerGroupCommand).toEqual(jasmine.any(Function));
+    expect(commandBuilder.buildServerGroupCommandFromExisting).toEqual(jasmine.any(Function));
+  });
+
   it('normalizes HTTP load balancers without constructor dependencies', () => {
     const result = new GceLoadBalancerSetTransformer().normalizeLoadBalancerSet([
       {
@@ -482,6 +494,7 @@ describe('Google provider registration', () => {
       { name: 'fnord' },
       { account: 'test-account', name: 'fnord-v001', region: 'us-central1' },
       commandBuilder as any,
+      runtimeServices,
     );
 
     expect(commandBuilder.buildServerGroupCommandFromExisting).toHaveBeenCalledWith(

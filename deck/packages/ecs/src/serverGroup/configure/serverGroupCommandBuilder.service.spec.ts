@@ -3,6 +3,23 @@ import { AccountService } from '@spinnaker/core';
 import { EcsServerGroupCommandBuilder } from './serverGroupCommandBuilder.service';
 
 describe('EcsServerGroupCommandBuilder', () => {
+  it('builds a new server group command when no defaults are provided (create flow passes null)', async () => {
+    spyOn(AccountService, 'getAvailabilityZonesForAccountAndRegion').and.returnValue(Promise.resolve(['us-west-2a']));
+    spyOn(AccountService, 'getCredentialsKeyedByAccount').and.returnValue(Promise.resolve({}));
+
+    const command = await new EcsServerGroupCommandBuilder().buildNewServerGroupCommand(
+      {
+        defaultCredentials: { ecs: 'ecs-prod' },
+        defaultRegions: { ecs: 'us-west-2' },
+        name: 'api',
+      } as any,
+      null,
+    );
+
+    expect(command.credentials).toBe('ecs-prod');
+    expect(command.region).toBe('us-west-2');
+  });
+
   it('builds pipeline commands when availability zones are missing', async () => {
     spyOn(AccountService, 'getAvailabilityZonesForAccountAndRegion').and.returnValue(Promise.resolve(['us-west-2a']));
     spyOn(AccountService, 'getCredentialsKeyedByAccount').and.returnValue(Promise.resolve({}));

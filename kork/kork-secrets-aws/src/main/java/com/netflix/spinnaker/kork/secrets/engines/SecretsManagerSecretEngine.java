@@ -16,13 +16,6 @@
 
 package com.netflix.spinnaker.kork.secrets.engines;
 
-import com.amazonaws.services.secretsmanager.AWSSecretsManager;
-import com.amazonaws.services.secretsmanager.model.AWSSecretsManagerException;
-import com.amazonaws.services.secretsmanager.model.DescribeSecretRequest;
-import com.amazonaws.services.secretsmanager.model.DescribeSecretResult;
-import com.amazonaws.services.secretsmanager.model.GetSecretValueRequest;
-import com.amazonaws.services.secretsmanager.model.GetSecretValueResult;
-import com.amazonaws.services.secretsmanager.model.Tag;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
@@ -36,7 +29,6 @@ import com.netflix.spinnaker.kork.secrets.user.UserSecretMetadataField;
 import com.netflix.spinnaker.kork.secrets.user.UserSecretReference;
 import com.netflix.spinnaker.kork.secrets.user.UserSecretSerde;
 import com.netflix.spinnaker.kork.secrets.user.UserSecretSerdeFactory;
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
@@ -47,6 +39,14 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.NonNull;
 import org.springframework.stereotype.Component;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
+import software.amazon.awssdk.services.secretsmanager.model.DescribeSecretRequest;
+import software.amazon.awssdk.services.secretsmanager.model.DescribeSecretResponse;
+import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
+import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
+import software.amazon.awssdk.services.secretsmanager.model.SecretsManagerException;
+import software.amazon.awssdk.services.secretsmanager.model.Tag;
 
 /**
  * Secret engine using AWS Secrets Manager. Authentication is performed using the AWS managing
@@ -89,11 +89,11 @@ public class SecretsManagerSecretEngine implements SecretEngine {
   @Override
   public byte[] decrypt(EncryptedSecret encryptedSecret) {
     if (encryptedSecret.isEncryptedFile()) {
-      GetSecretValueResult secretFileValue = getSecretValue(encryptedSecret.getParams());
-      if (secretFileValue.getSecretBinary() != null) {
-        return toByteArray(secretFileValue.getSecretBinary());
+      GetSecretValueResponse secretFileValue = getSecretValue(encryptedSecret.getParams());
+      if (secretFileValue.secretBinary() != null) {
+        return secretFileValue.secretBinary().asByteArray();
       } else {
-        return secretFileValue.getSecretString().getBytes(StandardCharsets.UTF_8);
+        return secretFileValue.secretString().getBytes(StandardCharsets.UTF_8);
       }
     } else {
       return getSecretString(encryptedSecret.getParams());
@@ -106,9 +106,9 @@ public class SecretsManagerSecretEngine implements SecretEngine {
     validate(reference);
     Map<String, String> parameters = reference.getParameters();
     Map<String, String> tags =
-        getSecretDescription(parameters).getTags().stream()
-            .filter(tag -> tag.getKey().startsWith(UserSecretMetadataField.PREFIX))
-            .collect(Collectors.toMap(Tag::getKey, Tag::getValue));
+        getSecretDescription(parameters).tags().stream()
+            .filter(tag -> tag.key().startsWith(UserSecretMetadataField.PREFIX))
+            .collect(Collectors.toMap(Tag::key, Tag::value));
     String type = tags.get(UserSecretMetadataField.TYPE.getTagKey());
     if (type == null) {
       throw new InvalidSecretFormatException(
@@ -122,12 +122,12 @@ public class SecretsManagerSecretEngine implements SecretEngine {
     UserSecretMetadata metadata =
         UserSecretMetadata.builder().type(type).encoding(encoding).roles(roles).build();
     UserSecretSerde serde = userSecretSerdeFactory.serdeFor(metadata);
-    GetSecretValueResult secretValue = getSecretValue(parameters);
-    ByteBuffer secretBinary = secretValue.getSecretBinary();
+    GetSecretValueResponse secretValue = getSecretValue(parameters);
+    SdkBytes secretBinary = secretValue.secretBinary();
     byte[] encodedData =
         secretBinary != null
-            ? toByteArray(secretBinary)
-            : secretValue.getSecretString().getBytes(StandardCharsets.UTF_8);
+            ? secretBinary.asByteArray()
+            : secretValue.secretString().getBytes(StandardCharsets.UTF_8);
     return serde.deserialize(encodedData, metadata);
   }
 
@@ -165,14 +165,14 @@ public class SecretsManagerSecretEngine implements SecretEngine {
     cache.clear();
   }
 
-  protected DescribeSecretResult getSecretDescription(Map<String, String> parameters) {
+  protected DescribeSecretResponse getSecretDescription(Map<String, String> parameters) {
     String secretRegion = parameters.get(SECRET_REGION);
     String secretName = parameters.get(SECRET_NAME);
-    AWSSecretsManager client = clientProvider.getClientForSecretParameters(parameters);
-    var request = new DescribeSecretRequest().withSecretId(secretName);
+    SecretsManagerClient client = clientProvider.getClientForSecretParameters(parameters);
+    DescribeSecretRequest request = DescribeSecretRequest.builder().secretId(secretName).build();
     try {
       return client.describeSecret(request);
-    } catch (AWSSecretsManagerException e) {
+    } catch (SecretsManagerException e) {
       throw new SecretException(
           String.format(
               "An error occurred when using AWS Secrets Manager to describe secret: [secretName: %s, secretRegion: %s]",
@@ -181,17 +181,17 @@ public class SecretsManagerSecretEngine implements SecretEngine {
     }
   }
 
-  protected GetSecretValueResult getSecretValue(Map<String, String> parameters) {
+  protected GetSecretValueResponse getSecretValue(Map<String, String> parameters) {
     String secretRegion = parameters.get(SECRET_REGION);
     String secretName = parameters.get(SECRET_NAME);
-    AWSSecretsManager client = clientProvider.getClientForSecretParameters(parameters);
+    SecretsManagerClient client = clientProvider.getClientForSecretParameters(parameters);
 
     GetSecretValueRequest getSecretValueRequest =
-        new GetSecretValueRequest().withSecretId(secretName);
+        GetSecretValueRequest.builder().secretId(secretName).build();
 
     try {
       return client.getSecretValue(getSecretValueRequest);
-    } catch (AWSSecretsManagerException e) {
+    } catch (SecretsManagerException e) {
       throw new SecretException(
           String.format(
               "An error occurred when using AWS Secrets Manager to fetch: [secretName: %s, secretRegion: %s]",
@@ -203,7 +203,7 @@ public class SecretsManagerSecretEngine implements SecretEngine {
   private byte[] getSecretString(Map<String, String> parameters) {
     String secretKey = parameters.get(SECRET_KEY);
     if (secretKey == null) {
-      return getSecretValue(parameters).getSecretString().getBytes(StandardCharsets.UTF_8);
+      return getSecretValue(parameters).secretString().getBytes(StandardCharsets.UTF_8);
     }
     return Optional.ofNullable(
             cache
@@ -213,7 +213,7 @@ public class SecretsManagerSecretEngine implements SecretEngine {
                       try {
                         return mapper
                             .readerForMapOf(String.class)
-                            .readValue(getSecretValue(parameters).getSecretString());
+                            .readValue(getSecretValue(parameters).secretString());
                       } catch (JsonProcessingException | IllegalArgumentException e) {
                         throw new SecretException(
                             String.format(
@@ -229,11 +229,5 @@ public class SecretsManagerSecretEngine implements SecretEngine {
                     String.format(
                         "Specified key not found in AWS Secrets Manager: %s", parameters)))
         .getBytes(StandardCharsets.UTF_8);
-  }
-
-  private static byte[] toByteArray(ByteBuffer buffer) {
-    byte[] bytes = new byte[buffer.remaining()];
-    buffer.get(bytes);
-    return bytes;
   }
 }

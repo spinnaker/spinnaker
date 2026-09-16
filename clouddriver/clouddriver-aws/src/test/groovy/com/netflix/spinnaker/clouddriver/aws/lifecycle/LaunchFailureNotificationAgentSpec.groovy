@@ -16,30 +16,20 @@
 
 package com.netflix.spinnaker.clouddriver.aws.lifecycle
 
-import com.amazonaws.services.sns.AmazonSNS
-import com.amazonaws.services.sns.model.CreateTopicResult
-import com.amazonaws.services.sns.model.SetTopicAttributesRequest
-import com.amazonaws.services.sqs.AmazonSQS
-import com.amazonaws.services.sqs.model.CreateQueueResult
-import com.amazonaws.services.sqs.model.QueueDoesNotExistException
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.tags.EntityTagger
+import software.amazon.awssdk.services.sns.SnsClient
+import software.amazon.awssdk.services.sns.model.CreateTopicRequest
+import software.amazon.awssdk.services.sns.model.CreateTopicResponse
+import software.amazon.awssdk.services.sns.model.SetTopicAttributesRequest
+import software.amazon.awssdk.services.sns.model.SubscribeRequest
+import software.amazon.awssdk.services.sqs.SqsClient
+import software.amazon.awssdk.services.sqs.model.CreateQueueRequest
+import software.amazon.awssdk.services.sqs.model.CreateQueueResponse
+import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest
+import software.amazon.awssdk.services.sqs.model.QueueDoesNotExistException
+import software.amazon.awssdk.services.sqs.model.SetQueueAttributesRequest
 import spock.lang.Specification
-/*
- * Copyright 2017 Netflix, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 
 class LaunchFailureNotificationAgentSpec extends Specification {
   def mgmtCredentials = Mock(NetflixAmazonCredentials) {
@@ -47,8 +37,8 @@ class LaunchFailureNotificationAgentSpec extends Specification {
     getName() >> { return "mgmt" }
   }
 
-  def amazonSNS = Mock(AmazonSNS)
-  def amazonSQS = Mock(AmazonSQS)
+  def snsClient = Mock(SnsClient)
+  def sqsClient = Mock(SqsClient)
 
   def queueARN = new ARN([mgmtCredentials], "arn:aws:sqs:us-west-2:100:queueName")
   def topicARN = new ARN([mgmtCredentials], "arn:aws:sns:us-west-2:100:topicName")
@@ -56,38 +46,54 @@ class LaunchFailureNotificationAgentSpec extends Specification {
 
   void "should create topic if it does not exist"() {
     when:
-    def topicId = LaunchFailureNotificationAgent.ensureTopicExists(amazonSNS, topicARN, allAccountIds, queueARN)
+    def topicId = LaunchFailureNotificationAgent.ensureTopicExists(snsClient, topicARN, allAccountIds, queueARN)
 
     then:
     topicId == topicARN.arn
 
-    1 * amazonSNS.createTopic(topicARN.name) >> { new CreateTopicResult().withTopicArn(topicARN.arn) }
+    1 * snsClient.createTopic(_ as CreateTopicRequest) >> { CreateTopicRequest request ->
+      assert request.name() == topicARN.name
+      CreateTopicResponse.builder().topicArn(topicARN.arn).build()
+    }
 
     // should attach a policy granting SendMessage rights to the source topic
-    1 * amazonSNS.setTopicAttributes(new SetTopicAttributesRequest()
-      .withTopicArn(topicARN.arn)
-      .withAttributeName("Policy")
-      .withAttributeValue(LaunchFailureNotificationAgent.buildSNSPolicy(topicARN, allAccountIds).toJson()))
+    1 * snsClient.setTopicAttributes(_ as SetTopicAttributesRequest) >> { SetTopicAttributesRequest request ->
+      assert request.topicArn() == topicARN.arn
+      assert request.attributeName() == "Policy"
+      assert request.attributeValue() == LaunchFailureNotificationAgent.buildSNSPolicy(topicARN, allAccountIds).toJson()
+      null
+    }
 
     // should subscribe the queue to this topic
-    1 * amazonSNS.subscribe(topicARN.arn, "sqs", queueARN.arn)
+    1 * snsClient.subscribe(_ as SubscribeRequest) >> { SubscribeRequest request ->
+      assert request.topicArn() == topicARN.arn
+      assert request.protocol() == "sqs"
+      assert request.endpoint() == queueARN.arn
+      null
+    }
     0 * _
   }
 
   void "should create queue if it does not exist"() {
     when:
-    def queueId = LaunchFailureNotificationAgent.ensureQueueExists(amazonSQS, queueARN, topicARN)
+    def queueId = LaunchFailureNotificationAgent.ensureQueueExists(sqsClient, queueARN, topicARN)
 
     then:
     queueId == "my-queue-url"
 
-    1 * amazonSQS.getQueueUrl(_) >> { throw new QueueDoesNotExistException("This queue does not exist")}
-    1 * amazonSQS.createQueue(queueARN.name) >> { new CreateQueueResult().withQueueUrl("my-queue-url") }
+    1 * sqsClient.getQueueUrl(_ as GetQueueUrlRequest) >> {
+      throw QueueDoesNotExistException.builder().message("This queue does not exist").build()
+    }
+    1 * sqsClient.createQueue(_ as CreateQueueRequest) >> { CreateQueueRequest request ->
+      assert request.queueName() == queueARN.name
+      CreateQueueResponse.builder().queueUrl("my-queue-url").build()
+    }
 
     // should attach a policy granting SendMessage rights to the source topic
-    1 * amazonSQS.setQueueAttributes("my-queue-url", [
-        "Policy": LaunchFailureNotificationAgent.buildSQSPolicy(queueARN, topicARN).toJson()
-    ])
+    1 * sqsClient.setQueueAttributes(_ as SetQueueAttributesRequest) >> { SetQueueAttributesRequest request ->
+      assert request.queueUrl() == "my-queue-url"
+      null
+    }
     0 * _
   }
 

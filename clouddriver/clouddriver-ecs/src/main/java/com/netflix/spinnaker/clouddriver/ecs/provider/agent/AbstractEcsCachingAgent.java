@@ -21,10 +21,6 @@ import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.ECS_APP
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.ECS_CLUSTERS;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.IAM_ROLE;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.services.ecs.AmazonECS;
-import com.amazonaws.services.ecs.model.ListClustersRequest;
-import com.amazonaws.services.ecs.model.ListClustersResult;
 import com.netflix.spinnaker.cats.agent.AccountAware;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.agent.CacheResult;
@@ -45,36 +41,34 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.ecs.EcsClient;
+import software.amazon.awssdk.services.ecs.model.ListClustersRequest;
+import software.amazon.awssdk.services.ecs.model.ListClustersResponse;
 
 abstract class AbstractEcsCachingAgent<T> implements CachingAgent, AccountAware {
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   final AmazonClientProvider amazonClientProvider;
-  final AWSCredentialsProvider awsCredentialsProvider;
   final NetflixAmazonCredentials account;
   final String region;
   final String accountName;
 
   AbstractEcsCachingAgent(
-      NetflixAmazonCredentials account,
-      String region,
-      AmazonClientProvider amazonClientProvider,
-      AWSCredentialsProvider awsCredentialsProvider) {
+      NetflixAmazonCredentials account, String region, AmazonClientProvider amazonClientProvider) {
     this.account = account;
     this.accountName = account.getName();
     this.region = region;
     this.amazonClientProvider = amazonClientProvider;
-    this.awsCredentialsProvider = awsCredentialsProvider;
   }
 
   /**
    * Fetches items from the ECS service.
    *
-   * @param ecs The AmazonECS client that will be used to make the queries.
+   * @param ecs The EcsClient that will be used to make the queries.
    * @param providerCache A ProviderCache that is used to access already existing cache.
    * @return A list of generic type objects.
    */
-  protected abstract List<T> getItems(AmazonECS ecs, ProviderCache providerCache);
+  protected abstract List<T> getItems(EcsClient ecs, ProviderCache providerCache);
 
   /**
    * Generates a map of CacheData collections associated to a key namespace from a given collection
@@ -95,7 +89,7 @@ abstract class AbstractEcsCachingAgent<T> implements CachingAgent, AccountAware 
   public CacheResult loadData(ProviderCache providerCache) {
     String authoritativeKeyName = getAuthoritativeKeyName();
 
-    AmazonECS ecs = amazonClientProvider.getAmazonEcs(account, region, false);
+    EcsClient ecs = amazonClientProvider.getAmazonEcsV2(account, region);
     List<T> items = getItems(ecs, providerCache);
     return buildCacheResult(authoritativeKeyName, items, providerCache);
   }
@@ -107,30 +101,32 @@ abstract class AbstractEcsCachingAgent<T> implements CachingAgent, AccountAware 
    * @param providerCache The ProviderCache to retrieve clusters from.
    * @return A set of ECS cluster ARNs.
    */
-  Set<String> getClusters(AmazonECS ecs, ProviderCache providerCache) {
-    Set<String> identifiers =
-        new HashSet<>(
-            providerCache.filterIdentifiers(
-                ECS_CLUSTERS.toString(), Keys.getClusterKey(accountName, region, "*")));
-    if (identifiers.isEmpty()) {
-      identifiers = new HashSet<>();
+  Set<String> getClusters(EcsClient ecs, ProviderCache providerCache) {
+    Set<String> clusters =
+        providerCache
+            .getAll(
+                ECS_CLUSTERS.toString(),
+                providerCache.filterIdentifiers(
+                    ECS_CLUSTERS.toString(), Keys.buildGlob(ECS_CLUSTERS, accountName, region)))
+            .stream()
+            .map(cacheData -> (String) cacheData.getAttributes().get("clusterArn"))
+            .collect(Collectors.toSet());
+
+    if (clusters == null || clusters.isEmpty()) {
+      clusters = new HashSet<>();
       String nextToken = null;
       do {
-        ListClustersRequest listClustersRequest = new ListClustersRequest();
+        ListClustersRequest.Builder requestBuilder = ListClustersRequest.builder();
         if (nextToken != null) {
-          listClustersRequest.setNextToken(nextToken);
+          requestBuilder.nextToken(nextToken);
         }
-        ListClustersResult listClustersResult = ecs.listClusters(listClustersRequest);
-        identifiers.addAll(listClustersResult.getClusterArns());
+        ListClustersResponse listClustersResult = ecs.listClusters(requestBuilder.build());
+        clusters.addAll(listClustersResult.clusterArns());
 
-        nextToken = listClustersResult.getNextToken();
-      } while (nextToken != null && !nextToken.isEmpty());
-      return identifiers;
-    } else {
-      return providerCache.getAll(ECS_CLUSTERS.toString(), identifiers).stream()
-          .map(cacheData -> (String) cacheData.getAttributes().get("clusterArn"))
-          .collect(Collectors.toSet());
+        nextToken = listClustersResult.nextToken();
+      } while (nextToken != null && nextToken.length() != 0);
     }
+    return clusters;
   }
 
   /**

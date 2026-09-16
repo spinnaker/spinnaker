@@ -112,7 +112,8 @@ function CreatableSelect(props: IReactSelectInputProps<any>) {
   const options = React.useMemo(() => {
     const options = props.options ?? [];
     const optionsValues = options.map((o) => o.value);
-    const createdOptions = ((props.value as string[]) ?? [])
+    const currentValues = Array.isArray(props.value) ? props.value : props.value ? [props.value] : [];
+    const createdOptions = currentValues
       .filter((val) => !optionsValues.includes(val))
       .map((opt) => ({ label: opt, value: opt }));
     return options.concat(createdOptions);

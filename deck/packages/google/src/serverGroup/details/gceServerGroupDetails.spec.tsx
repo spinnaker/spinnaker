@@ -5,9 +5,15 @@ import { CloudProviderRegistry, CollapsibleSection, DeckRuntimeContext, ManagedM
 
 import { GceAutoscalingPolicyWriter } from '../../autoscalingPolicy';
 import { registerGoogleProvider } from '../../gce.module';
+import { GceCloneServerGroupModal } from '../configure/wizard/GceCloneServerGroupModal';
 import { GceAutoHealingPolicyDetails } from './autoHealingPolicy';
 import { GceAutoscalingPolicyDetails } from './autoscalingPolicy';
-import { GceServerGroupActions, gceServerGroupDetailsSections } from './gceServerGroupDetails';
+import {
+  GceServerGroupActions,
+  GceServerGroupLaunchConfigSection,
+  gceServerGroupDetailsSections,
+} from './gceServerGroupDetails';
+import { GceInstanceFlexibilityPolicyDetails } from './GceInstanceFlexibilityPolicyDetails';
 import { GceResizeServerGroupModal } from './resize/GceResizeServerGroupModal';
 import { GceRollbackServerGroupModal } from './rollback/GceRollbackServerGroupModal';
 
@@ -129,6 +135,57 @@ describe('GCE server group details integration', () => {
     expect(autoHealing.find('[data-testid="add-auto-healing-policy"]').length).toBe(0);
   });
 
+  it('renders target shape and instance flexibility in the launch configuration without nesting definition lists', () => {
+    const instanceFlexibilityPolicy = {
+      instanceSelections: {
+        preferred: { rank: 1, machineTypes: ['n2-standard-8'] },
+      },
+    };
+    const wrapper = shallow(
+      <GceServerGroupLaunchConfigSection
+        app={app}
+        serverGroup={{
+          ...serverGroup,
+          distributionPolicy: { targetShape: 'BALANCED' },
+          instanceFlexibilityPolicy,
+        }}
+      />,
+    );
+
+    expect(wrapper.find('dt').filterWhere((term) => term.text() === 'Target shape').length).toBe(1);
+    expect(wrapper.find('dd').filterWhere((definition) => definition.text() === 'BALANCED').length).toBe(1);
+    expect(wrapper.find(GceInstanceFlexibilityPolicyDetails).prop('instanceFlexibilityPolicy')).toBe(
+      instanceFlexibilityPolicy,
+    );
+    expect(wrapper.find('dl dl').length).toBe(0);
+  });
+
+  it('renders shielded settings with stable, legacy, then top-level field precedence', () => {
+    const wrapper = shallow(
+      <GceServerGroupLaunchConfigSection
+        app={app}
+        serverGroup={{
+          ...serverGroup,
+          shieldedInstanceConfig: { enableSecureBoot: false },
+          shieldedVmConfig: { enableSecureBoot: true, enableVtpm: false },
+          enableVtpm: true,
+          enableIntegrityMonitoring: false,
+        }}
+      />,
+    );
+    const definitions = (label: string) => {
+      const index = wrapper
+        .find('dt')
+        .map((candidate) => candidate.text())
+        .indexOf(label);
+      return index < 0 ? undefined : wrapper.find('dd').at(index).text();
+    };
+
+    expect(definitions('Secure Boot')).toBe('false');
+    expect(definitions('vTPM')).toBe('false');
+    expect(definitions('Integrity Monitoring')).toBe('false');
+  });
+
   it('adds rollback and resize without changing existing enabled action visibility', () => {
     const wrapper = mount(<GceServerGroupActions app={app} serverGroup={serverGroup} />);
 
@@ -138,6 +195,29 @@ describe('GCE server group details integration', () => {
     expect(linkAction(wrapper, 'Disable').length).toBe(1);
     expect(linkAction(wrapper, 'Enable').length).toBe(0);
     expect(linkAction(wrapper, 'Destroy').length).toBe(1);
+  });
+
+  it('opens clone with the command builder and runtime services from Deck context', async () => {
+    const command = { application: serverGroup.app, stack: 'main' };
+    runtimeServices.serverGroupCommandBuilder = {
+      buildServerGroupCommandFromExisting: jasmine
+        .createSpy('buildServerGroupCommandFromExisting')
+        .and.resolveTo(command),
+    };
+    const show = spyOn(GceCloneServerGroupModal, 'show').and.resolveTo({} as any);
+    const wrapper = mount(<GceServerGroupActions app={app} serverGroup={serverGroup} />);
+
+    linkAction(wrapper, 'Clone').simulate('click');
+    await Promise.resolve();
+
+    expect(runtimeServices.serverGroupCommandBuilder.buildServerGroupCommandFromExisting).toHaveBeenCalledWith(
+      app,
+      serverGroup,
+    );
+    expect(show).toHaveBeenCalledWith(
+      { application: app, command, title: `Clone ${serverGroup.name}` },
+      runtimeServices,
+    );
   });
 
   it('keeps rollback hidden for a disabled server group without changing existing disabled action visibility', () => {

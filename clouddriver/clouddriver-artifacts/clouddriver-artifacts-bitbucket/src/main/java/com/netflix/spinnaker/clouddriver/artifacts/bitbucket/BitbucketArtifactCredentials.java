@@ -24,6 +24,7 @@ import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.clouddriver.artifacts.config.SimpleHttpArtifactCredentials;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
+import java.io.IOException;
 import java.util.Optional;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -45,7 +46,7 @@ public class BitbucketArtifactCredentials
   }
 
   @Override
-  protected Headers getHeaders(BitbucketArtifactAccount account) {
+  protected Headers getHeaders(BitbucketArtifactAccount account) throws IOException {
     Headers.Builder headers = new Headers.Builder();
     Optional<String> token = account.getTokenAsString();
     if (token.isPresent()) {

@@ -16,16 +16,16 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
-import com.amazonaws.services.autoscaling.model.DetachInstancesRequest
-import com.amazonaws.services.autoscaling.model.Instance
-import com.amazonaws.services.autoscaling.model.LifecycleState
-import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
-import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.CreateTagsRequest
-import com.amazonaws.services.ec2.model.TerminateInstancesRequest
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
+import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsResponse
+import software.amazon.awssdk.services.autoscaling.model.DetachInstancesRequest
+import software.amazon.awssdk.services.autoscaling.model.Instance
+import software.amazon.awssdk.services.autoscaling.model.LifecycleState
+import software.amazon.awssdk.services.autoscaling.model.UpdateAutoScalingGroupRequest
+import software.amazon.awssdk.services.ec2.Ec2Client
+import software.amazon.awssdk.services.ec2.model.CreateTagsRequest
+import software.amazon.awssdk.services.ec2.model.TerminateInstancesRequest
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.DetachInstancesAtomicOperation
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
@@ -34,8 +34,8 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.description.DetachInstancesD
 import spock.lang.Specification
 
 class DetachInstancesAtomicOperationSpec extends Specification {
-  def amazonAutoScaling = Mock(AmazonAutoScaling)
-  def amazonEC2 = Mock(AmazonEC2)
+  def amazonAutoScaling = Mock(AutoScalingClient)
+  def amazonEC2 = Mock(Ec2Client)
   def amazonClientProvider = Mock(AmazonClientProvider)
 
   void setupSpec() {
@@ -58,14 +58,14 @@ class DetachInstancesAtomicOperationSpec extends Specification {
     operation.operate([])
 
     then:
-    1 * amazonClientProvider.getAutoScaling(null, null, true) >> { amazonAutoScaling }
-    1 * amazonClientProvider.getAmazonEC2(null, null, true) >> { amazonEC2 }
+    1 * amazonClientProvider.getAutoScalingV2(null, null) >> { amazonAutoScaling }
+    1 * amazonClientProvider.getAmazonEC2V2(null, null) >> { amazonEC2 }
     1 * amazonAutoScaling.describeAutoScalingGroups(_) >> {
-      new DescribeAutoScalingGroupsResult().withAutoScalingGroups(
-        [new AutoScalingGroup().withInstances(
-          new Instance().withInstanceId("i-000001").withLifecycleState(LifecycleState.Standby)
-        ).withMinSize(1).withDesiredCapacity(2)]
-      )
+      DescribeAutoScalingGroupsResponse.builder().autoScalingGroups(
+        [AutoScalingGroup.builder().instances(
+          [Instance.builder().instanceId("i-000001").lifecycleState(LifecycleState.STANDBY).build()]
+        ).minSize(1).desiredCapacity(2).build()]
+      ).build()
     }
     1 * amazonEC2.createTags({ CreateTagsRequest request ->
       request.resources == ["i-000001"] && request.tags*.key.containsAll(["spinnaker:PendingTermination", "spinnaker:Detached"])
@@ -95,17 +95,17 @@ class DetachInstancesAtomicOperationSpec extends Specification {
     operation.operate([])
 
     then:
-    1 * amazonClientProvider.getAutoScaling(null, null, true) >> { amazonAutoScaling }
-    1 * amazonClientProvider.getAmazonEC2(null, null, true) >> { amazonEC2 }
+    1 * amazonClientProvider.getAutoScalingV2(null, null) >> { amazonAutoScaling }
+    1 * amazonClientProvider.getAmazonEC2V2(null, null) >> { amazonEC2 }
     1 * amazonEC2.createTags({ CreateTagsRequest request ->
       request.resources == ["i-000001"] && request.tags*.key.containsAll(["spinnaker:Detached"])
     } as CreateTagsRequest)
     1 * amazonAutoScaling.describeAutoScalingGroups(_) >> {
-      new DescribeAutoScalingGroupsResult().withAutoScalingGroups(
-        [new AutoScalingGroup().withInstances(
-          new Instance().withInstanceId("i-000001").withLifecycleState(LifecycleState.InService)
-        ).withMinSize(1).withDesiredCapacity(2)]
-      )
+      DescribeAutoScalingGroupsResponse.builder().autoScalingGroups(
+        [AutoScalingGroup.builder().instances(
+          [Instance.builder().instanceId("i-000001").lifecycleState(LifecycleState.IN_SERVICE).build()]
+        ).minSize(1).desiredCapacity(2).build()]
+      ).build()
     }
     1 * amazonAutoScaling.detachInstances({ DetachInstancesRequest request ->
       request.instanceIds == ["i-000001"] && !request.shouldDecrementDesiredCapacity
@@ -130,14 +130,14 @@ class DetachInstancesAtomicOperationSpec extends Specification {
     operation.operate([])
 
     then:
-    1 * amazonClientProvider.getAutoScaling(null, null, true) >> { amazonAutoScaling }
-    1 * amazonClientProvider.getAmazonEC2(null, null, true) >> { amazonEC2 }
+    1 * amazonClientProvider.getAutoScalingV2(null, null) >> { amazonAutoScaling }
+    1 * amazonClientProvider.getAmazonEC2V2(null, null) >> { amazonEC2 }
     1 * amazonAutoScaling.describeAutoScalingGroups(_) >> {
-      new DescribeAutoScalingGroupsResult().withAutoScalingGroups(
-        [new AutoScalingGroup().withInstances(
-          new Instance().withInstanceId("i-000001").withLifecycleState(LifecycleState.InService)
-        ).withMinSize(1).withDesiredCapacity(1)]
-      )
+      DescribeAutoScalingGroupsResponse.builder().autoScalingGroups(
+        [AutoScalingGroup.builder().instances(
+          [Instance.builder().instanceId("i-000001").lifecycleState(LifecycleState.IN_SERVICE).build()]
+        ).minSize(1).desiredCapacity(1).build()]
+      ).build()
     }
     1 * amazonEC2.createTags({ CreateTagsRequest request ->
       request.resources == ["i-000001"] && request.tags*.key.containsAll(["spinnaker:Detached"])
@@ -166,15 +166,15 @@ class DetachInstancesAtomicOperationSpec extends Specification {
     operation.operate([])
 
     then:
-    1 * amazonClientProvider.getAutoScaling(null, null, true) >> { amazonAutoScaling }
+    1 * amazonClientProvider.getAutoScalingV2(null, null) >> { amazonAutoScaling }
     1 * amazonAutoScaling.describeAutoScalingGroups(_) >> {
-      new DescribeAutoScalingGroupsResult().withAutoScalingGroups(
-        [new AutoScalingGroup().withInstances(
-          new Instance().withInstanceId("i-000001").withLifecycleState(LifecycleState.InService),
-          new Instance().withInstanceId("i-000002").withLifecycleState(LifecycleState.Pending)
-        ).withMinSize(1).withDesiredCapacity(1)
+      DescribeAutoScalingGroupsResponse.builder().autoScalingGroups(
+        [AutoScalingGroup.builder().instances(
+          [Instance.builder().instanceId("i-000001").lifecycleState(LifecycleState.IN_SERVICE).build(),
+          Instance.builder().instanceId("i-000002").lifecycleState(LifecycleState.PENDING).build()]
+        ).minSize(1).desiredCapacity(1).build()
         ]
-      )
+      ).build()
     }
     thrown(IllegalStateException)
   }

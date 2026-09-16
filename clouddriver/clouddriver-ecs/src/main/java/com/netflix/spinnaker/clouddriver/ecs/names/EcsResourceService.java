@@ -17,9 +17,9 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.names;
 
-import com.amazonaws.services.ecs.model.Service;
-import com.amazonaws.services.ecs.model.Tag;
 import java.util.List;
+import software.amazon.awssdk.services.ecs.model.Service;
+import software.amazon.awssdk.services.ecs.model.Tag;
 
 public class EcsResourceService implements EcsResource {
 
@@ -31,16 +31,18 @@ public class EcsResourceService implements EcsResource {
 
   @Override
   public String getName() {
-    return service.getServiceName();
+    return service.serviceName();
   }
 
   @Override
   public void setName(String name) {
-    service.setServiceName(name);
+    // V2 SDK model objects are immutable; setName is a no-op.
+    // This method exists to satisfy the EcsResource interface contract.
+    throw new UnsupportedOperationException("Cannot set name on immutable v2 Service object");
   }
 
   @Override
   public List<Tag> getResourceTags() {
-    return service.getTags();
+    return service.tags();
   }
 }

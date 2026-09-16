@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.lambda;
 
-import com.amazonaws.services.lambda.model.EventSourceMappingConfiguration;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
@@ -128,25 +127,25 @@ public class LambdaUpdateEventConfigurationTask implements LambdaStageBaseTask {
   }
 
   List<String> getExistingEvents(LambdaDefinition lf, String targetArn) {
-    List<EventSourceMappingConfiguration> esmList = lf.getEventSourceMappings();
+    List<Map<String, Object>> esmList = lf.getEventSourceMappings();
     if (esmList == null) {
       return new ArrayList<>();
     }
     return esmList.stream()
-        .filter(y -> y.getFunctionArn().equals(targetArn))
-        .map(EventSourceMappingConfiguration::getEventSourceArn)
+        .filter(y -> targetArn.equals(y.get("functionArn")))
+        .map(y -> (String) y.get("eventSourceArn"))
         .filter(StringUtils::isNotNullOrEmpty)
         .collect(Collectors.toList());
   }
 
   List<Pair<String, Integer>> getExistingEventsDetails(LambdaDefinition lf) {
-    List<EventSourceMappingConfiguration> esmList = lf.getEventSourceMappings();
+    List<Map<String, Object>> esmList = lf.getEventSourceMappings();
     if (esmList == null) {
       return new ArrayList<>();
     }
     return esmList.stream()
-        .filter(x -> StringUtils.isNotNullOrEmpty(x.getEventSourceArn()))
-        .map(x -> Pair.of(x.getEventSourceArn(), x.getBatchSize()))
+        .filter(x -> StringUtils.isNotNullOrEmpty((String) x.get("eventSourceArn")))
+        .map(x -> Pair.of((String) x.get("eventSourceArn"), (Integer) x.get("batchSize")))
         .collect(Collectors.toList());
   }
 
@@ -156,31 +155,32 @@ public class LambdaUpdateEventConfigurationTask implements LambdaStageBaseTask {
       LambdaDefinition lgo,
       String aliasOrFunctionArn) {
     logger.debug("To be deleted: " + eventArn);
-    List<EventSourceMappingConfiguration> esmList = lgo.getEventSourceMappings();
-    Optional<EventSourceMappingConfiguration> oo =
+    List<Map<String, Object>> esmList = lgo.getEventSourceMappings();
+    Optional<Map<String, Object>> oo =
         esmList.stream()
             .filter(
                 x ->
-                    x.getEventSourceArn().equals(eventArn)
-                        && x.getFunctionArn().equals(aliasOrFunctionArn))
+                    eventArn.equals(x.get("eventSourceArn"))
+                        && aliasOrFunctionArn.equals(x.get("functionArn")))
             .findFirst();
     if (oo.isEmpty()) {
       return;
     }
-    EventSourceMappingConfiguration toDelete = oo.get();
+    Map<String, Object> toDelete = oo.get();
+    String uuid = (String) toDelete.get("uuid");
     LambdaDeleteEventTaskInput inp =
         LambdaDeleteEventTaskInput.builder()
             .account(ti.getAccount())
             .credentials(ti.getCredentials())
             .functionName(ti.getFunctionName())
-            .eventSourceArn(toDelete.getEventSourceArn())
-            .uuid(toDelete.getUUID())
+            .eventSourceArn((String) toDelete.get("eventSourceArn"))
+            .uuid(uuid)
             .region(ti.getRegion())
             .build();
     if (StringUtils.isNotNullOrEmpty(ti.getAliasName())) {
       ti.setQualifier(ti.getAliasName());
     }
-    inp.setUuid(toDelete.getUUID());
+    inp.setUuid(uuid);
 
     deleteLambdaEventConfig(inp);
   }

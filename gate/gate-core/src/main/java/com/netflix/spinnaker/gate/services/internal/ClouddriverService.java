@@ -261,11 +261,18 @@ public interface ClouddriverService {
       @Query("account") String account,
       @Query("repository") String repository);
 
+  /**
+   * Clouddriver's {@code /search} backend ({@code SearchController}) natively supports searching
+   * multiple types in a single call (its {@code type} parameter is a {@code List<String>}, and an
+   * omitted/empty type list searches everything) - {@code type} here must stay a {@code
+   * List<String>} to match, so a multi-type search actually reaches clouddriver as multiple query
+   * values rather than being silently collapsed to one.
+   */
   @Headers("Accept: application/json")
   @GET("search")
   Call<List<Map>> search(
       @Query("q") String query,
-      @Query("type") String type,
+      @Query("type") List<String> type,
       @Query("platform") String platform,
       @Query("pageSize") Integer size,
       @Query("page") Integer offset,

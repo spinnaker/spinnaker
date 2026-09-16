@@ -80,13 +80,6 @@ export class GceAutoHealingPolicyEditor extends React.Component<
 
   public render(): JSX.Element {
     const { policy } = this.props;
-    const maxUnavailableUnit =
-      typeof policy.maxUnavailable?.percent === 'number'
-        ? 'percent'
-        : typeof policy.maxUnavailable?.fixed === 'number'
-        ? 'fixed'
-        : '';
-    const maxUnavailable = maxUnavailableUnit ? policy.maxUnavailable?.[maxUnavailableUnit] : undefined;
 
     return (
       <div className="form-horizontal gce-auto-healing-policy-editor">
@@ -130,38 +123,6 @@ export class GceAutoHealingPolicyEditor extends React.Component<
               onChange={(event) => this.update({ initialDelaySec: numberValue(event.target.value) })}
             />
             <span className="input-group-addon">seconds</span>
-          </div>
-        </div>
-        <div className="form-group">
-          <label className="col-md-4 control-label">Max unavailable</label>
-          <div className="col-md-3">
-            <input
-              className="form-control input-sm"
-              data-testid="max-unavailable"
-              disabled={!maxUnavailableUnit}
-              max={maxUnavailableUnit === 'percent' ? 100 : 2147483647}
-              min={0}
-              type="number"
-              value={maxUnavailable ?? ''}
-              onChange={(event) =>
-                this.update({ maxUnavailable: { [maxUnavailableUnit]: numberValue(event.target.value) } })
-              }
-            />
-          </div>
-          <div className="col-md-3">
-            <select
-              className="form-control input-sm"
-              data-testid="max-unavailable-unit"
-              value={maxUnavailableUnit}
-              onChange={(event) => {
-                const selectedUnit = event.target.value as 'fixed' | 'percent' | '';
-                this.update({ maxUnavailable: selectedUnit ? { [selectedUnit]: maxUnavailable ?? 0 } : {} });
-              }}
-            >
-              <option value="">Select metric</option>
-              <option value="percent">percent</option>
-              <option value="fixed">fixed</option>
-            </select>
           </div>
         </div>
         <div className="form-group">

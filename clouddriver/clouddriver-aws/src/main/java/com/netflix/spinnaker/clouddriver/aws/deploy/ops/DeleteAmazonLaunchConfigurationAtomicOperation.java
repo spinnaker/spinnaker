@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops;
 
-import com.amazonaws.services.autoscaling.AmazonAutoScaling;
-import com.amazonaws.services.autoscaling.model.AmazonAutoScalingException;
-import com.amazonaws.services.autoscaling.model.DeleteLaunchConfigurationRequest;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteAmazonLaunchConfigurationDescription;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
@@ -30,6 +27,9 @@ import com.netflix.spinnaker.kork.exceptions.IntegrationException;
 import java.time.Duration;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingException;
+import software.amazon.awssdk.services.autoscaling.model.DeleteLaunchConfigurationRequest;
 
 public class DeleteAmazonLaunchConfigurationAtomicOperation implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "DELETE_LAUNCH_CONFIGURATION";
@@ -54,8 +54,8 @@ public class DeleteAmazonLaunchConfigurationAtomicOperation implements AtomicOpe
     final NetflixAmazonCredentials credentials = description.getCredentials();
     final String launchConfigurationName = description.getLaunchConfigurationName();
 
-    final AmazonAutoScaling autoScaling =
-        amazonClientProvider.getAutoScaling(credentials, region, true);
+    final AutoScalingClient autoScaling =
+        amazonClientProvider.getAutoScalingV2(credentials, region);
     getTask()
         .updateStatus(
             BASE_PHASE, "Deleting launch config " + launchConfigurationName + " in " + region);
@@ -73,13 +73,14 @@ public class DeleteAmazonLaunchConfigurationAtomicOperation implements AtomicOpe
   }
 
   private Boolean deleteLaunchConfiguration(
-      String launchConfigurationName, AmazonAutoScaling autoScaling) {
+      String launchConfigurationName, AutoScalingClient autoScaling) {
     try {
       autoScaling.deleteLaunchConfiguration(
-          new DeleteLaunchConfigurationRequest()
-              .withLaunchConfigurationName(launchConfigurationName));
+          DeleteLaunchConfigurationRequest.builder()
+              .launchConfigurationName(launchConfigurationName)
+              .build());
       return true;
-    } catch (AmazonAutoScalingException e) {
+    } catch (AutoScalingException e) {
       if (!e.getMessage().toLowerCase().contains("launch configuration name not found")) {
         throw new IntegrationException(e).setRetryable(true);
       }

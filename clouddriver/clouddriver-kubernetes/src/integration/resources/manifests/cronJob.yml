@@ -10,6 +10,7 @@ spec:
         spec:
           securityContext:
             runAsNonRoot: true
+            runAsUser: 65534
           containers:
             - name: myapp
               image: 'index.docker.io/library/alpine:3.12'

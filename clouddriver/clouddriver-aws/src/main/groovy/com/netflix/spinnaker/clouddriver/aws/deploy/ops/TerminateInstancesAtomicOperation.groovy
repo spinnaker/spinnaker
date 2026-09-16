@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.amazonaws.services.ec2.model.TerminateInstancesRequest
+import software.amazon.awssdk.services.ec2.model.TerminateInstancesRequest
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -42,8 +42,8 @@ class TerminateInstancesAtomicOperation implements AtomicOperation<Void> {
   @Override
   Void operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing termination of instances (${description.instanceIds.join(", ")})."
-    def amazonEC2 = amazonClientProvider.getAmazonEC2(description.credentials, description.region, true)
-    amazonEC2.terminateInstances(new TerminateInstancesRequest(instanceIds: description.instanceIds))
+    def amazonEC2 = amazonClientProvider.getAmazonEC2V2(description.credentials, description.region)
+    amazonEC2.terminateInstances(TerminateInstancesRequest.builder().instanceIds(description.instanceIds).build())
     task.updateStatus BASE_PHASE, "Done executing termination of instances (${description.instanceIds.join(", ")})."
     null
   }

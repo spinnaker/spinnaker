@@ -18,8 +18,6 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.lambda;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.amazonaws.services.lambda.model.AliasConfiguration;
-import com.amazonaws.services.lambda.model.AliasRoutingConfiguration;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -36,6 +34,7 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.lambda.model.o
 import com.netflix.spinnaker.orca.clouddriver.utils.LambdaCloudDriverUtils;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -126,9 +125,9 @@ public class LambdaTrafficUpdateVerificationTaskTest {
 
   @Test
   public void execute_UpdateVerification_validateWeights() {
-    // RoutingConfig() will be null ending while loop
-    List<AliasConfiguration> aliasConfigurationList =
-        ImmutableList.of(new AliasConfiguration().withName("develop"));
+    // routingConfig absent => null weights, loop exits immediately
+    List<Map<String, Object>> aliasConfigurationList =
+        ImmutableList.of(new HashMap<>(Map.of("name", "develop")));
 
     LambdaCloudDriverTaskResults lambdaCloudDriverTaskResults =
         LambdaCloudDriverTaskResults.builder()
@@ -152,11 +151,11 @@ public class LambdaTrafficUpdateVerificationTaskTest {
 
   @Test
   public void execute_UpdateVerification_validateWeights_TERMINAL() {
-    List<AliasConfiguration> aliasConfigurationList =
-        ImmutableList.of(
-            new AliasConfiguration()
-                .withRoutingConfig(new AliasRoutingConfiguration())
-                .withName("develop"));
+    // routingConfig present => weights non-null, loop continues until timeout
+    Map<String, Object> alias = new HashMap<>();
+    alias.put("name", "develop");
+    alias.put("routingConfig", Map.of("additionalVersionWeights", Map.of("2", 0.5)));
+    List<Map<String, Object>> aliasConfigurationList = ImmutableList.of(alias);
 
     LambdaCloudDriverTaskResults lambdaCloudDriverTaskResults =
         LambdaCloudDriverTaskResults.builder()

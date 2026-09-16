@@ -21,7 +21,6 @@ import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
-import io.micrometer.core.instrument.MeterRegistry;
 import java.io.InputStream;
 import java.net.URI;
 import java.time.Duration;
@@ -61,32 +60,28 @@ public class S3ArtifactCredentials implements ArtifactCredentials {
   private final Optional<S3ArtifactValidator> s3ArtifactValidator;
   private final S3ArtifactProviderProperties s3ArtifactProviderProperties;
   private final S3ArtifactRequestInterceptor s3ArtifactRequestInterceptor;
-  private final MicrometerExecutionInterceptor micrometerExecutionInterceptor;
 
   private S3Client s3Client;
 
   S3ArtifactCredentials(
       S3ArtifactAccount account,
       Optional<S3ArtifactValidator> s3ArtifactValidator,
-      S3ArtifactProviderProperties s3ArtifactProviderProperties,
-      MeterRegistry registry) {
-    this(account, s3ArtifactValidator, null, s3ArtifactProviderProperties, registry);
+      S3ArtifactProviderProperties s3ArtifactProviderProperties) {
+    this(account, s3ArtifactValidator, null, s3ArtifactProviderProperties);
   }
 
   S3ArtifactCredentials(
       S3ArtifactAccount account,
       @Nullable S3Client s3Client,
-      S3ArtifactProviderProperties s3ArtifactProviderProperties,
-      MeterRegistry registry) {
-    this(account, Optional.empty(), s3Client, s3ArtifactProviderProperties, registry);
+      S3ArtifactProviderProperties s3ArtifactProviderProperties) {
+    this(account, Optional.empty(), s3Client, s3ArtifactProviderProperties);
   }
 
   S3ArtifactCredentials(
       S3ArtifactAccount account,
       Optional<S3ArtifactValidator> s3ArtifactValidator,
       @Nullable S3Client s3Client,
-      S3ArtifactProviderProperties s3ArtifactProviderProperties,
-      MeterRegistry registry)
+      S3ArtifactProviderProperties s3ArtifactProviderProperties)
       throws IllegalArgumentException {
     name = account.getName();
     apiEndpoint = account.getApiEndpoint();
@@ -99,7 +94,6 @@ public class S3ArtifactCredentials implements ArtifactCredentials {
     this.s3ArtifactProviderProperties = s3ArtifactProviderProperties;
     s3ArtifactRequestInterceptor =
         new S3ArtifactRequestInterceptor(name, this.s3ArtifactProviderProperties);
-    micrometerExecutionInterceptor = new MicrometerExecutionInterceptor(registry);
   }
 
   private S3Client getS3Client() {
@@ -116,7 +110,6 @@ public class S3ArtifactCredentials implements ArtifactCredentials {
     ClientOverrideConfiguration.Builder configBuilder = ClientOverrideConfiguration.builder();
     configureClientOverrides(configBuilder);
     configBuilder.addExecutionInterceptor(s3ArtifactRequestInterceptor);
-    configBuilder.addExecutionInterceptor(micrometerExecutionInterceptor);
     builder.overrideConfiguration(configBuilder.build());
 
     if (!apiEndpoint.isEmpty()) {

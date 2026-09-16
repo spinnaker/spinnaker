@@ -15,9 +15,9 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.cache.model;
 
-import com.amazonaws.services.elasticloadbalancingv2.model.TargetHealthDescription;
 import java.util.List;
 import lombok.Data;
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetHealthDescription;
 
 @Data
 public class EcsTargetHealth {

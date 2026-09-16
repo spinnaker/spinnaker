@@ -16,26 +16,28 @@
 
 package com.netflix.spinnaker.kork.aws;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
-import com.amazonaws.metrics.AwsSdkMetrics;
-import com.amazonaws.retry.RetryPolicy;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Metrics;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 
+/**
+ * AWS SDK v2 client metrics (call latency, retry counts, throttling, etc.) are recorded
+ * automatically for every v2 client built anywhere in the JVM via {@link
+ * MicrometerExecutionInterceptor}, registered through the SDK's global execution-interceptor
+ * classpath discovery mechanism (see {@code
+ * software/amazon/awssdk/global/handlers/execution.interceptors} in this module's resources) -- no
+ * per-client wiring needed. It resolves the target registry via {@link Metrics#globalRegistry},
+ * which {@link #registerWithGlobalRegistry} adds every Spinnaker app's own {@code MeterRegistry}
+ * bean to, so metrics land in the same place regardless of whether a caller injects {@code
+ * MeterRegistry} directly.
+ */
 @Configuration
 public class AwsComponents {
-  @Bean
-  @ConditionalOnMissingBean(AWSCredentialsProvider.class)
-  AWSCredentialsProvider awsCredentialsProvider() {
-    return new DefaultAWSCredentialsProviderChain();
-  }
-
   @Bean
   @ConditionalOnMissingBean(AwsCredentialsProvider.class)
   AwsCredentialsProvider v2AwsCredentialsProvider() {
@@ -43,20 +45,7 @@ public class AwsComponents {
   }
 
   @Bean
-  RetryPolicy.RetryCondition instrumentedRetryCondition(MeterRegistry registry) {
-    return new InstrumentedRetryCondition(registry);
-  }
-
-  @Bean
-  RetryPolicy.BackoffStrategy instrumentedBackoffStrategy(MeterRegistry registry) {
-    return new InstrumentedBackoffStrategy(registry);
-  }
-
-  @Bean
-  @ConditionalOnProperty(value = "aws.metrics.enabled", matchIfMissing = true)
-  MicrometerRequestMetricCollector micrometerRequestMetricCollector(MeterRegistry registry) {
-    MicrometerRequestMetricCollector collector = new MicrometerRequestMetricCollector(registry);
-    AwsSdkMetrics.setMetricCollector(collector);
-    return collector;
+  InitializingBean registerWithGlobalRegistry(MeterRegistry meterRegistry) {
+    return () -> Metrics.addRegistry(meterRegistry);
   }
 }

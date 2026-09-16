@@ -17,7 +17,7 @@
 
 package com.netflix.kayenta.signalfx.service;
 
-import com.signalfx.signalflow.ChannelMessage;
+import com.netflix.kayenta.signalfx.service.signalflow.SignalFlowMessage;
 import java.util.List;
 import lombok.Builder;
 import lombok.Data;
@@ -26,5 +26,5 @@ import lombok.Data;
 @Builder
 public class SignalFlowExecutionResult {
 
-  private List<ChannelMessage> channelMessages;
+  private List<SignalFlowMessage> channelMessages;
 }

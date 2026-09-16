@@ -6,6 +6,7 @@ import { CreateEditAccountModal } from './CreateEditAccountModal';
 import { DeleteAccountButton } from './DeleteAccountButton';
 import { ACCOUNT_SAMPLES } from './accountSamples';
 import { CloudProviderRegistry } from '../../cloudProvider/CloudProviderRegistry';
+import { ReactSelectInput } from '../../presentation/forms/inputs/ReactSelectInput';
 
 const PAGE_SIZE = 100;
 
@@ -96,20 +97,17 @@ export function AccountManagementPage() {
 
         <div className="form-group" style={{ maxWidth: 320 }}>
           <label htmlFor="account-type">Account Type</label>
-          <input
+          <ReactSelectInput
             id="account-type"
-            className="form-control"
-            type="text"
-            list="account-type-suggestions"
+            name="account-type"
+            inputClassName="form-control"
+            mode="CREATABLE"
+            stringOptions={providerSuggestions}
             value={accountType}
-            onChange={(e) => setAccountType(e.target.value)}
+            onChange={(e) => setAccountType(e.target.value ?? '')}
+            clearable={false}
             placeholder="e.g. kubernetes"
           />
-          <datalist id="account-type-suggestions">
-            {providerSuggestions.map((provider) => (
-              <option key={provider} value={provider} />
-            ))}
-          </datalist>
           <span className="help-block text-muted">
             Only accounts stored via the account management APIs are listed; accounts from static configuration do not
             appear here.
