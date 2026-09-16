@@ -56,7 +56,7 @@ detekt {
   // detekt scans test code (i.e. src/test/java and src/test/kotlin) by default.
   // See https://detekt.github.io/detekt/changelog.html#notable-changes-2 and
   // https://github.com/detekt/detekt/pull/3649.
-  input = files(
+  source.setFrom(
     "src/main/java",
     "src/main/kotlin"
   )
