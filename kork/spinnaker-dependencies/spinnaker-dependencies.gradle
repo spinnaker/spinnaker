@@ -7,7 +7,6 @@ javaPlatform {
 ext {
   versions = [
     arrow            : "0.13.2",
-    aws              : "1.12.261",
     awsv2            : "2.23.7",
     bouncycastle     : "1.84", // fixes CVE-2024-34447, CVE-2025-14813
     gcp              : "26.34.0",
@@ -113,7 +112,6 @@ dependencies {
     api("org.eclipse.jgit:org.eclipse.jgit.ssh.jsch:7.3.0.202506031305-r")
 
     api("com.netflix.archaius:archaius-core:0.7.7")
-    api("com.netflix.awsobjectmapper:awsobjectmapper:${versions.aws}")
     api("com.netflix.dyno:dyno-jedis:1.7.2")
     api("com.netflix.eureka:eureka-client")
     api("com.netflix.frigga:frigga:0.28.0")
