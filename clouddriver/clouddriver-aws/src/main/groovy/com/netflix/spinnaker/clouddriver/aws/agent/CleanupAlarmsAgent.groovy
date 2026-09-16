@@ -30,8 +30,9 @@ import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent
 import com.netflix.spinnaker.credentials.CredentialsRepository
 import groovy.util.logging.Slf4j
-import org.joda.time.DateTime
 
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 
@@ -90,7 +91,7 @@ class CleanupAlarmsAgent implements RunnableAgent, CustomScheduledAgent {
           def cloudWatch = amazonClientProvider.getAmazonCloudWatchV2(credentials, region.name)
           Set<String> attachedAlarms = getAttachedAlarms(amazonClientProvider.getAutoScalingV2(credentials, region.name))
           def describeAlarmsRequest = DescribeAlarmsRequest.builder().stateValue(StateValue.INSUFFICIENT_DATA).build()
-          def cutoff = DateTime.now().minusDays(daysToLeave).toDate().toInstant()
+          def cutoff = Instant.now().minus(daysToLeave, ChronoUnit.DAYS)
 
           while (true) {
             def result = cloudWatch.describeAlarms(describeAlarmsRequest)
