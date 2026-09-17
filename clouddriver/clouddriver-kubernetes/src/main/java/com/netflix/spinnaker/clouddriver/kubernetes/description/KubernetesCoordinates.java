@@ -21,6 +21,7 @@ import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.kork.annotations.FieldsAreNullableByDefault;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import java.util.List;
@@ -33,6 +34,14 @@ import lombok.Value;
 @NonnullByDefault
 @Value
 public class KubernetesCoordinates {
+  /**
+   * The namespace kubectl falls back to when a namespace-scoped resource is submitted with no
+   * namespace, absent an explicit override. Matches kubectl's own default so that {@link
+   * #withDefaultedNamespace(KubernetesCredentials)} validates the namespace a request will actually
+   * be applied to.
+   */
+  public static final String DEFAULT_NAMESPACE = "default";
+
   private final KubernetesKind kind;
   private final String namespace;
   private final String name;
@@ -85,5 +94,22 @@ public class KubernetesCoordinates {
         .namespace(manifest.getNamespace())
         .name(manifest.getName())
         .build();
+  }
+
+  /**
+   * Returns a copy of these coordinates with the namespace resolved to {@link #DEFAULT_NAMESPACE}
+   * when it is unset and {@link #kind} is namespace-scoped; otherwise returns these coordinates
+   * unchanged.
+   *
+   * <p>When no namespace is supplied, kubectl silently falls back to the namespace of the
+   * kubeconfig context (typically "default"), a target Spinnaker never inspects. Resolving that
+   * same default here - before validating against the account's configured namespace allow-list -
+   * closes that gap instead of allowing an unspecified namespace to bypass the check entirely.
+   */
+  public KubernetesCoordinates withDefaultedNamespace(KubernetesCredentials credentials) {
+    if (!namespace.isEmpty() || !credentials.getKindProperties(kind).isNamespaced()) {
+      return this;
+    }
+    return toBuilder().namespace(DEFAULT_NAMESPACE).build();
   }
 }
