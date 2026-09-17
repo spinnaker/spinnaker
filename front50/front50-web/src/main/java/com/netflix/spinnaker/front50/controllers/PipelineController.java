@@ -544,6 +544,7 @@ public class PipelineController {
 
     // Run stale pipeline definition check
     if (staleCheck
+        && pipelineControllerConfig.getSave().isStaleCheckEnabled()
         && !Strings.isNullOrEmpty(pipeline.getId())
         && pipeline.getLastModified() != null) {
       checkForStalePipeline(pipeline, errors);
