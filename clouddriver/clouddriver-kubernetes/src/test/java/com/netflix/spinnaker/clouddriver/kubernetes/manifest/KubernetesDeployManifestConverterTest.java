@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.MapType;
 import com.google.common.io.CharStreams;
 import com.netflix.spinnaker.clouddriver.kubernetes.converter.manifest.KubernetesDeployManifestConverter;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesDeployManifestDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKindProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
@@ -44,10 +45,20 @@ public class KubernetesDeployManifestConverterTest {
 
   @BeforeAll
   static void setup() {
+    // Namespaced by default: matches the real KindRegistry default for kinds it doesn't
+    // otherwise recognize (built-ins and custom resources alike), and none of the tests below
+    // exercise cluster-scoped-kind behavior.
+    KubernetesKindProperties namespacedProp = Mockito.mock(KubernetesKindProperties.class);
+    Mockito.when(namespacedProp.isNamespaced()).thenReturn(true);
+    KubernetesCredentials credentials = Mockito.mock(KubernetesCredentials.class);
+    Mockito.when(credentials.getKindProperties(Mockito.any())).thenReturn(namespacedProp);
+    KubernetesNamedAccountCredentials accountCredentials =
+        Mockito.mock(KubernetesNamedAccountCredentials.class);
+    Mockito.when(accountCredentials.getCredentials()).thenReturn(credentials);
+
     CredentialsRepository<KubernetesNamedAccountCredentials> credentialsRepository =
         Mockito.mock(CredentialsRepository.class);
-    Mockito.when(credentialsRepository.getOne("kubernetes"))
-        .thenReturn(Mockito.mock(KubernetesNamedAccountCredentials.class));
+    Mockito.when(credentialsRepository.getOne("kubernetes")).thenReturn(accountCredentials);
     converter = new KubernetesDeployManifestConverter(credentialsRepository, null);
     mapper = converter.getObjectMapper();
     mapType = mapper.getTypeFactory().constructMapType(Map.class, String.class, Object.class);
@@ -166,6 +177,39 @@ public class KubernetesDeployManifestConverterTest {
     assertThat(description.getManifests().get(0).getNamespace()).isEqualTo("testNamespace");
     assertThat(description.getManifests().get(1).getNamespace()).isEqualTo("");
     assertThat(description.getManifests().get(2).getNamespace()).isEqualTo("testNamespace");
+  }
+
+  @Test
+  public void manifestWithNoNamespaceAndNoOverrideDefaultsToDefaultNamespace() throws IOException {
+    KubernetesKindProperties namespacedProp = Mockito.mock(KubernetesKindProperties.class);
+    Mockito.when(namespacedProp.isNamespaced()).thenReturn(true);
+    KubernetesCredentials credentials = Mockito.mock(KubernetesCredentials.class);
+    Mockito.when(credentials.getKindProperties(Mockito.any())).thenReturn(namespacedProp);
+    KubernetesNamedAccountCredentials accountCredentials =
+        Mockito.mock(KubernetesNamedAccountCredentials.class);
+    Mockito.when(accountCredentials.getCredentials()).thenReturn(credentials);
+
+    CredentialsRepository<KubernetesNamedAccountCredentials> credentialsRepository =
+        Mockito.mock(CredentialsRepository.class);
+    Mockito.when(credentialsRepository.getOne("kubernetes")).thenReturn(accountCredentials);
+    KubernetesDeployManifestConverter localConverter =
+        new KubernetesDeployManifestConverter(credentialsRepository, null);
+
+    String deploymentJson = getResourceAsString("deployment-manifest.json");
+    Map<String, Object> deploymentMap = mapper.readValue(deploymentJson, mapType);
+
+    Map<String, Object> inputMap =
+        new HashMap<>(
+            Map.of("account", "kubernetes", "manifests", Collections.singletonList(deploymentMap)));
+    KubernetesDeployManifestDescription description = localConverter.convertDescription(inputMap);
+
+    // No namespace was set on the manifest and no namespaceOverride was supplied, so kubectl
+    // would otherwise fall back to whatever the kubeconfig context's default namespace is - a
+    // target Spinnaker never validates against the account's namespace allow-list. Defaulting
+    // explicitly to "default" here closes that gap. See spinnaker/spinnaker#5992.
+    assertThat(description.getManifests()).hasSize(1);
+    assertThat(description.getManifests().get(0).getNamespace())
+        .isEqualTo(KubernetesCoordinates.DEFAULT_NAMESPACE);
   }
 
   protected String getResourceAsString(String name) throws IOException {
