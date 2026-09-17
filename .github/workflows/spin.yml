@@ -75,6 +75,10 @@ jobs:
           version: v2.1.0
           working-directory: spin
 
+      - name: Run go tests
+        working-directory: spin
+        run: go test ./...
+
       - name: Build binaries
         env:
           VERSION: ${{ steps.version.outputs.version }}
