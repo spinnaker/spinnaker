@@ -32,9 +32,8 @@ public class KubernetesServerGroupOperationDescription
 
   @JsonIgnore
   public KubernetesCoordinates getCoordinates() {
-    return KubernetesCoordinates.builder()
-        .namespace(region)
-        .fullResourceName(serverGroupName)
-        .build();
+    KubernetesCoordinates coordinates =
+        KubernetesCoordinates.builder().namespace(region).fullResourceName(serverGroupName).build();
+    return coordinates.withDefaultedNamespace(getCredentials().getCredentials());
   }
 }
