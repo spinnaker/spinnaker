@@ -88,4 +88,16 @@ class SqlArtifactStoreConfigurationTest {
                   .isFalse();
             });
   }
+
+  @Test
+  void testArtifactStoreMigrationUsesDedicatedOverrideCredentials() {
+    // Deliberately wrong: if this weren't actually wired into the Liquibase run -- e.g. if the
+    // migration silently fell back to the host's sql.migration or the RW pool's own credentials
+    // instead -- context startup would succeed rather than fail on this bad URL.
+    runner
+        .withPropertyValues(sqlProperties())
+        .withPropertyValues(
+            "artifact-store.sql.migration.jdbc-url=jdbc:h2:mem:does-not-exist;IFEXISTS=TRUE")
+        .run(ctx -> assertThat(ctx).hasFailed());
+  }
 }

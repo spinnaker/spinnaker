@@ -25,6 +25,7 @@ import com.netflix.spinnaker.kork.sql.JooqToSpringExceptionTransformer;
 import com.netflix.spinnaker.kork.sql.config.ConnectionPoolProperties;
 import com.netflix.spinnaker.kork.sql.config.DataSourceFactory;
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration;
+import com.netflix.spinnaker.kork.sql.config.SqlMigrationProperties;
 import com.netflix.spinnaker.kork.sql.config.SqlProperties;
 import com.netflix.spinnaker.kork.sql.telemetry.JooqSlowQueryLogger;
 import com.netflix.spinnaker.security.UserPermissionEvaluator;
@@ -39,9 +40,11 @@ import org.jooq.impl.DefaultExecuteListenerProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy;
 
 /**
@@ -70,16 +73,38 @@ import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy;
  * {@code @ConditionalOnMissingBean(SpringLiquibase.class)}, so a second bean of that type here --
  * even pointed at a different changelog -- could suppress the host service's own migration
  * depending on configuration-processing order.
+ *
+ * <p>That migration runs against its own dedicated {@link DataSource}, kept separate from the pool
+ * used for the artifact store's own reads/writes ({@code artifactStoreDataSource}), the same way
+ * {@code sql.migration} already keeps a host service's own migration user separate from its RW pool
+ * user -- reusing that same {@link SqlMigrationProperties} shape, bound here under {@code
+ * artifact-store.sql.migration.*} instead. By default this reuses the host's own {@code
+ * sql.migration} credentials when the artifact store lives in the host's default pool, or the
+ * resolved {@code connectionPool}'s own credentials otherwise; {@code
+ * artifact-store.sql.migration.*} overrides any of those fields to point migrations at a distinct,
+ * more-privileged user instead.
  */
 @Configuration
 @Import({DefaultSqlConfiguration.class, EntityStoreConfiguration.class})
 @ConditionalOnProperty(name = "artifact-store.type", havingValue = "sql")
 public class SqlArtifactStoreConfiguration {
 
+  /**
+   * Reuses kork-sql's own {@link SqlMigrationProperties} shape for the artifact store's migration
+   * credentials -- rather than a bespoke, artifact-store-only properties class -- just bound under
+   * this module's own {@code artifact-store.sql.migration} prefix instead of {@code sql.migration}.
+   */
+  @Bean
+  @ConfigurationProperties(prefix = "artifact-store.sql.migration")
+  public SqlMigrationProperties artifactStoreMigrationProperties() {
+    return new SqlMigrationProperties();
+  }
+
   @Bean(name = "artifactStoreDataSource")
   public DataSource artifactStoreDataSource(
       ArtifactStoreConfigurationProperties properties,
       SqlProperties sqlProperties,
+      SqlMigrationProperties artifactStoreMigrationProperties,
       DataSourceFactory dataSourceFactory,
       DataSource dataSource,
       @Value("${sql.read-only:false}") boolean sqlReadOnly) {
@@ -89,27 +114,44 @@ public class SqlArtifactStoreConfiguration {
       // No override: reuse the host's own default pool/database.
       artifactStoreDataSource = dataSource;
     } else {
-      ConnectionPoolProperties pool = sqlProperties.getConnectionPools().get(poolName);
-      if (pool == null) {
-        throw new IllegalStateException(
-            "artifact-store.sql.connectionPool '"
-                + poolName
-                + "' is not defined under sql.connection-pools");
-      }
+      ConnectionPoolProperties pool = resolvePool(properties, sqlProperties);
       artifactStoreDataSource = dataSourceFactory.build("artifact-store-" + poolName, pool);
     }
 
-    migrate(artifactStoreDataSource, sqlReadOnly);
+    migrate(properties, sqlProperties, artifactStoreMigrationProperties, sqlReadOnly);
     return artifactStoreDataSource;
   }
 
+  private static ConnectionPoolProperties resolvePool(
+      ArtifactStoreConfigurationProperties properties, SqlProperties sqlProperties) {
+    String poolName = properties.getSql().getConnectionPool();
+    if (poolName == null) {
+      return sqlProperties.getDefaultConnectionPoolProperties();
+    }
+    ConnectionPoolProperties pool = sqlProperties.getConnectionPools().get(poolName);
+    if (pool == null) {
+      throw new IllegalStateException(
+          "artifact-store.sql.connectionPool '"
+              + poolName
+              + "' is not defined under sql.connection-pools");
+    }
+    return pool;
+  }
+
   /**
-   * Runs this module's schema migration directly against the resolved DataSource, rather than
-   * registering a Spring-managed {@link SpringLiquibase} bean (see class javadoc for why).
+   * Runs this module's schema migration directly against a dedicated {@link DataSource}, rather
+   * than registering a Spring-managed {@link SpringLiquibase} bean (see class javadoc for why), and
+   * rather than reusing {@code artifactStoreDataSource} (see class javadoc for why that pool's own,
+   * potentially DDL-restricted, credentials shouldn't run the migration).
    */
-  private static void migrate(DataSource dataSource, boolean sqlReadOnly) {
+  private static void migrate(
+      ArtifactStoreConfigurationProperties properties,
+      SqlProperties sqlProperties,
+      SqlMigrationProperties artifactStoreMigrationProperties,
+      boolean sqlReadOnly) {
     SpringLiquibase liquibase = new SpringLiquibase();
-    liquibase.setDataSource(dataSource);
+    liquibase.setDataSource(
+        migrationDataSource(properties, sqlProperties, artifactStoreMigrationProperties));
     // A uniquely-named file, not the conventional "db/changelog-master.yml" every kork-sql-based
     // service already uses for its own migrations: this module now lives on the runtime classpath
     // of services like clouddriver-web/orca-web alongside their own changelog-master.yml, and a
@@ -123,16 +165,59 @@ public class SqlArtifactStoreConfiguration {
     }
   }
 
+  /**
+   * Resolves the credentials to run the Liquibase migration with. {@code
+   * artifact-store.sql.migration.*} fields win when set; any left unset fall back per-field to
+   * either the host's own {@code sql.migration} settings (when the artifact store shares the host's
+   * default pool/database, so that already-privileged migration user already applies here too), or
+   * the resolved {@code connectionPool}'s own connection settings otherwise (matching this module's
+   * pre-existing, non-separated behavior for a dedicated pool with no override configured).
+   */
+  private static DataSource migrationDataSource(
+      ArtifactStoreConfigurationProperties properties,
+      SqlProperties sqlProperties,
+      SqlMigrationProperties override) {
+    String poolName = properties.getSql().getConnectionPool();
+
+    String defaultJdbcUrl;
+    String defaultUser;
+    String defaultPassword;
+    String defaultDriver;
+    if (poolName == null) {
+      SqlMigrationProperties hostMigration = sqlProperties.getMigration();
+      defaultJdbcUrl = hostMigration.getJdbcUrl();
+      defaultUser = hostMigration.getUser();
+      defaultPassword = hostMigration.getPassword();
+      defaultDriver = hostMigration.getDriver();
+    } else {
+      ConnectionPoolProperties pool = resolvePool(properties, sqlProperties);
+      defaultJdbcUrl = pool.getJdbcUrl();
+      defaultUser = pool.getUser();
+      defaultPassword = pool.getPassword();
+      defaultDriver = pool.getDriver();
+    }
+
+    String jdbcUrl = override.getJdbcUrl() != null ? override.getJdbcUrl() : defaultJdbcUrl;
+    String user = override.getUser() != null ? override.getUser() : defaultUser;
+    String password = override.getPassword() != null ? override.getPassword() : defaultPassword;
+    String driver = override.getDriver() != null ? override.getDriver() : defaultDriver;
+
+    // Mirrors SpringLiquibaseProxy's own createDataSource(): a single, non-pooled connection is
+    // all a one-shot startup migration needs.
+    SingleConnectionDataSource migrationDataSource =
+        new SingleConnectionDataSource(jdbcUrl, user, password, true);
+    if (driver != null) {
+      migrationDataSource.setDriverClassName(driver);
+    }
+    return migrationDataSource;
+  }
+
   @Bean(name = "artifactStoreJooq")
   public DSLContext artifactStoreJooq(
       @Qualifier("artifactStoreDataSource") DataSource artifactStoreDataSource,
       ArtifactStoreConfigurationProperties properties,
       SqlProperties sqlProperties) {
-    String poolName = properties.getSql().getConnectionPool();
-    ConnectionPoolProperties pool =
-        poolName == null
-            ? sqlProperties.getDefaultConnectionPoolProperties()
-            : sqlProperties.getConnectionPools().get(poolName);
+    ConnectionPoolProperties pool = resolvePool(properties, sqlProperties);
 
     DataSourceConnectionProvider connectionProvider =
         new DataSourceConnectionProvider(
