@@ -31,9 +31,8 @@ public class KubernetesManifestOperationDescription extends KubernetesAtomicOper
 
   @JsonIgnore
   public KubernetesCoordinates getPointCoordinates() {
-    return KubernetesCoordinates.builder()
-        .namespace(location)
-        .fullResourceName(manifestName)
-        .build();
+    KubernetesCoordinates coordinates =
+        KubernetesCoordinates.builder().namespace(location).fullResourceName(manifestName).build();
+    return coordinates.withDefaultedNamespace(getCredentials().getCredentials());
   }
 }
