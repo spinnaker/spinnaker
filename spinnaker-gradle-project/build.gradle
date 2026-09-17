@@ -1,5 +1,5 @@
 plugins {
-  id "com.diffplug.spotless" version "7.2.1" apply false
+  id "com.diffplug.spotless" version "8.10.2" apply false
   id "com.gradle.plugin-publish" version "2.1.1" apply false
 }
 
@@ -21,7 +21,7 @@ subprojects {
 
   spotless {
     java {
-      googleJavaFormat("1.17.0")
+      googleJavaFormat("1.30.0")
       removeUnusedImports()
       trimTrailingWhitespace()
       endWithNewline()
@@ -32,7 +32,7 @@ subprojects {
   group = 'io.spinnaker.gradle'
   java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
+        languageVersion.set(JavaLanguageVersion.of(25))
     }
   }
 
