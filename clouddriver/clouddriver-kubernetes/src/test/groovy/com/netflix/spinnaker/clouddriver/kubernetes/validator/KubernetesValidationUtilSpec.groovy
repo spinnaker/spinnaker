@@ -59,6 +59,12 @@ class KubernetesValidationUtilSpec extends Specification {
     judgement == expectedResult
 
     where:
+    // A blank namespace here models a cluster-scoped resource, for which no namespace check
+    // applies. Callers are responsible for resolving a namespace-scoped resource's blank
+    // namespace to a concrete target (see KubernetesCoordinates#withDefaultedNamespace and
+    // KubernetesDeployManifestConverter#updateNamespace) before reaching this method - otherwise
+    // an unset namespace would silently bypass the allow-list check below. See
+    // spinnaker/spinnaker#5992.
     testNamespace       || expectedResult
     null                || true
     ""                  || true
