@@ -178,7 +178,7 @@ public class PipelineTools {
         Retrofit2SyncCall.execute(
             orcaServiceSelector
                 .select()
-                .getPipelines(application, 1, null, false, pipelineName, null));
+                .getPipelines(application, 1, null, false, pipelineName, null, false));
     Map<String, Object> mostRecent =
         executions.stream()
             .max(Comparator.comparingLong(PipelineTools::startTimeOrZero))

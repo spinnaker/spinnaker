@@ -82,7 +82,8 @@ class PipelineToolsTest {
   void evaluatePipelineExpressionFindsMostRecentExecutionWhenExecutionIdOmitted() {
     Map<String, Object> older = Map.of("id", "exec-old", "startTime", 1000L);
     Map<String, Object> newer = Map.of("id", "exec-new", "startTime", 2000L);
-    when(orcaService.getPipelines(eq("myapp"), eq(1), isNull(), eq(false), isNull(), isNull()))
+    when(orcaService.getPipelines(
+            eq("myapp"), eq(1), isNull(), eq(false), isNull(), isNull(), eq(false)))
         .thenReturn(Calls.response(List.of(older, newer)));
     when(orcaService.evaluateExpressionForExecution(eq("exec-new"), any()))
         .thenReturn(Calls.response(Map.of("result", "ok")));
@@ -95,7 +96,7 @@ class PipelineToolsTest {
   @Test
   void evaluatePipelineExpressionPassesPipelineNameFilterThrough() {
     when(orcaService.getPipelines(
-            eq("myapp"), eq(1), isNull(), eq(false), eq("my-pipeline"), isNull()))
+            eq("myapp"), eq(1), isNull(), eq(false), eq("my-pipeline"), isNull(), eq(false)))
         .thenReturn(Calls.response(List.of(Map.of("id", "exec-1", "startTime", 1000L))));
     when(orcaService.evaluateExpressionForExecution(eq("exec-1"), any()))
         .thenReturn(Calls.response(Map.of("result", "ok")));
@@ -103,7 +104,8 @@ class PipelineToolsTest {
     pipelineTools.evaluatePipelineExpression("${foo}", null, null, "myapp", "my-pipeline");
 
     verify(orcaService)
-        .getPipelines(eq("myapp"), eq(1), isNull(), eq(false), eq("my-pipeline"), isNull());
+        .getPipelines(
+            eq("myapp"), eq(1), isNull(), eq(false), eq("my-pipeline"), isNull(), eq(false));
   }
 
   @Test
@@ -115,7 +117,8 @@ class PipelineToolsTest {
 
   @Test
   void evaluatePipelineExpressionThrowsWhenApplicationHasNoExecutions() {
-    when(orcaService.getPipelines(eq("myapp"), eq(1), isNull(), eq(false), isNull(), isNull()))
+    when(orcaService.getPipelines(
+            eq("myapp"), eq(1), isNull(), eq(false), isNull(), isNull(), eq(false)))
         .thenReturn(Calls.response(List.of()));
 
     assertThatThrownBy(
