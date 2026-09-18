@@ -24,6 +24,33 @@ To enable Pub/Sub support, client code needs to:
 * message deduplication is not supported yet, message handlers needs to be either idempotent or implement their own message deduplication mechanism
 
 
+### Broadcast
+
+Alongside the competing-consumer model above (one message, one subscriber across a fleet of
+instances), this module also defines a broadcast model: one message, delivered to *every*
+listening instance. See `PubsubBroadcastPublisher`, `PubsubBroadcastSubscriber`, and
+`PubsubBroadcastMessageHandler` in `model/`.
+
+Broadcast's delivery guarantee is a property of the backing transport (and, for some transports,
+how it's configured), not a fixed property of "broadcast" as a concept. Implementations report
+this via `getDeliveryGuarantee()`:
+
+* `AT_MOST_ONCE` (the default) - an instance that isn't actively listening when a message is
+  published will never see it. This is appropriate when broadcast is used as a latency
+  optimization layered on top of an already-correct baseline (e.g. nudging every instance to
+  refresh a cache immediately instead of waiting for its next poll), not as the sole delivery
+  mechanism.
+* `AT_LEAST_ONCE` - an instance will eventually see every message published after it started
+  listening, even across a brief disconnect, at the cost of possible duplicate delivery. This
+  requires a transport that persists messages until every listener has consumed them (e.g. a
+  separate consumer group per listening instance on a durable log), which not every
+  implementation offers.
+
+An implementation may also implement `PubsubPublisher`/`PubsubSubscriber` alongside the broadcast
+interfaces, so that generic tooling built against the competing-consumer contract can still
+discover it.
+
+
 ## Operating notes
 
 Consider this reference `pubsub` profile:
