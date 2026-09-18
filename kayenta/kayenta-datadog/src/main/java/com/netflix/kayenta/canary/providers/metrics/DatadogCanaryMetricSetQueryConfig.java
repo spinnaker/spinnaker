@@ -17,39 +17,24 @@
 package com.netflix.kayenta.canary.providers.metrics;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.netflix.kayenta.canary.CanaryMetricSetQueryConfig;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import org.springframework.util.StringUtils;
+import lombok.experimental.SuperBuilder;
 
-@Builder(toBuilder = true)
+@SuperBuilder(toBuilder = true)
 @ToString
 @NoArgsConstructor
-@AllArgsConstructor
 @JsonTypeName("datadog")
-public class DatadogCanaryMetricSetQueryConfig implements CanaryMetricSetQueryConfig {
+public class DatadogCanaryMetricSetQueryConfig extends AbstractCanaryMetricSetQueryConfig {
 
   public static final String SERVICE_TYPE = "datadog";
 
-  @Getter private String metricName;
-
-  @Getter private String customInlineTemplate;
-
-  @Getter private String customFilterTemplate;
-
-  @Override
-  public CanaryMetricSetQueryConfig cloneWithEscapedInlineTemplate() {
-    if (StringUtils.isEmpty(customInlineTemplate)) {
-      return this;
-    } else {
-      return this.toBuilder()
-          .customInlineTemplate(customInlineTemplate.replace("${", "$\\{"))
-          .build();
-    }
-  }
+  /**
+   * @deprecated use {@link #getCustomInlineTemplate()} or {@link #getCustomFilterTemplate()}
+   *     instead; planned for removal in a future release
+   */
+  @Deprecated @Getter private String metricName;
 
   @Override
   public String getServiceType() {

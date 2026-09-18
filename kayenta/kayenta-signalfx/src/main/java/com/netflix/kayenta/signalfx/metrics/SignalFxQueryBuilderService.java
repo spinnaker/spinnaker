@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class SignalFxQueryBuilderService {
 
+  @SuppressWarnings("deprecation")
   public String buildQuery(
       CanaryConfig canaryConfig,
       SignalFxCanaryMetricSetQueryConfig queryConfig,
