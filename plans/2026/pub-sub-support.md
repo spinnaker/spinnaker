@@ -5,8 +5,8 @@
 | Phase | Description | Status |
 |---|---|---|
 | 0 | Valkey test-infra migration (repo-wide) | [PR #8029](https://github.com/spinnaker/spinnaker/pull/8029) (draft) |
-| 1 | `kork-pubsub` base additions (Broadcast interfaces + registries) | Not started |
-| 2 | New `kork-pubsub-redis` module (Single via Streams, Broadcast via Spring Integration) | Not started |
+| 1 | `kork-pubsub` base additions (Broadcast interfaces + registries) | [PR #8030](https://github.com/spinnaker/spinnaker/pull/8030) (draft) |
+| 2 | New `kork-pubsub-redis` module (Single via Streams, Broadcast via Spring Integration) | [PR #8031](https://github.com/spinnaker/spinnaker/pull/8031) (draft, stacked on #8030) |
 | 3 | SNS/SQS broadcast support (per-instance dynamic queues) | Not started |
 | 4 | clouddriver account-refresh consumer wiring | Separate follow-up, not detailed here |
 
