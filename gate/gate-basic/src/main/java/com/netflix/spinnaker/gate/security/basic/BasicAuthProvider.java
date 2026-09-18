@@ -18,7 +18,7 @@ package com.netflix.spinnaker.gate.security.basic;
 import com.netflix.spinnaker.security.User;
 import java.util.ArrayList;
 import java.util.Collections;
-import org.springframework.boot.autoconfigure.security.SecurityProperties;
+import org.springframework.boot.security.autoconfigure.SecurityProperties;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;

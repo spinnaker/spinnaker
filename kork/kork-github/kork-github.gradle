@@ -29,7 +29,7 @@ dependencies {
 
   // Testing
   testImplementation project(":kork-test")
-  testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
+  testImplementation "org.wiremock:wiremock"
   testImplementation "org.junit.jupiter:junit-jupiter"
   testImplementation "org.mockito:mockito-core"
   testImplementation "org.mockito:mockito-junit-jupiter"

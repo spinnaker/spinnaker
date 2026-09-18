@@ -26,6 +26,7 @@ dependencies {
   api "software.amazon.awssdk:auth"
   api "software.amazon.awssdk:sdk-core"
   api "com.fasterxml.jackson.core:jackson-databind"
+  api "tools.jackson.core:jackson-databind"
   api "org.apache.groovy:groovy"
   api "com.hubspot.jinjava:jinjava"
   api "com.jcraft:jsch.agentproxy.jsch"
@@ -42,4 +43,6 @@ dependencies {
   testImplementation "org.junit.jupiter:junit-jupiter-api"
   testImplementation "org.junit.jupiter:junit-jupiter-engine"
   testImplementation "org.junit.jupiter:junit-jupiter-params"
+  // Real SDK model for Jackson 2 vs 3 shape-parity assertions.
+  testImplementation "software.amazon.awssdk:ecs"
 }

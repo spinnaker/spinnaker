@@ -108,7 +108,7 @@ class ApplicationFetcherSupport(
   fun getDiffContext(
     dfe: DataFetchingEnvironment
   ): ArtifactDiffContext {
-    val mdArtifactVersion: MdArtifactVersionInEnvironment = dfe.getLocalContext()
+    val mdArtifactVersion: MdArtifactVersionInEnvironment = dfe.getLocalContext()!!
     val deliveryConfig = getDeliveryConfigFromContext(dfe)
     val applicationContext: ApplicationContext = DgsContext.getCustomContext(dfe) // the artifact versions store context
 
