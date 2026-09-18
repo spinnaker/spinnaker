@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.artifacts.maven;
 
 import com.google.common.collect.ImmutableList;
-import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
+import com.netflix.spinnaker.clouddriver.artifacts.config.AbstractArtifactCredentials;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.io.IOException;
@@ -48,7 +48,7 @@ import org.eclipse.aether.version.VersionConstraint;
 import org.eclipse.aether.version.VersionScheme;
 
 @NonnullByDefault
-public final class MavenArtifactCredentials implements ArtifactCredentials {
+public final class MavenArtifactCredentials extends AbstractArtifactCredentials {
   public static final String CREDENTIALS_TYPE = "artifacts-maven";
   private static final String RELEASE = "RELEASE";
   private static final String SNAPSHOT = "SNAPSHOT";
@@ -64,6 +64,7 @@ public final class MavenArtifactCredentials implements ArtifactCredentials {
   @Getter private final ImmutableList<String> types = TYPES;
 
   public MavenArtifactCredentials(MavenArtifactAccount account, OkHttpClient okHttpClient) {
+    super(account);
     this.account = account;
     this.okHttpClient = okHttpClient;
 

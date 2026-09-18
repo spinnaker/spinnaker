@@ -26,6 +26,7 @@ import static org.mockito.Mockito.when;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
+import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccountAuthorizer;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.artifacts.ArtifactCredentialsFromString;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.cache.CacheRepository;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
@@ -123,7 +124,8 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
               ArtifactCredentialsFromString.ARTIFACT_TYPE, new NoopCredentialsLifecycleHandler<>());
   private final ArtifactCredentialsRepository artifactCredentialsRepository =
       new ArtifactCredentialsRepository(
-          Collections.singletonList(artifactCredentialsFromStringRepository));
+          Collections.singletonList(artifactCredentialsFromStringRepository),
+          new ArtifactAccountAuthorizer(Optional.empty()));
 
   private final CredentialsRepository<CloudFoundryCredentials> credentialsRepository =
       new MapBackedCredentialsRepository<>(CloudFoundryProvider.PROVIDER_ID, null);
