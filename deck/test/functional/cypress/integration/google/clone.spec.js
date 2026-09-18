@@ -828,7 +828,7 @@ describe('google: Server Group Wizard', () => {
         maxUtilization: 0.8,
         namedPorts: [{ name: 'http', port: 80 }],
       });
-      expect(command.loadBalancers).to.include('pipeline-http-lb');
+      expect(command.loadBalancers).to.deep.equal([]);
       expect(command.instanceMetadata).to.include({
         'backend-service-names': 'pipeline-backend',
         'clone-round-trip': 'submitted-value',

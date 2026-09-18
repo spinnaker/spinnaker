@@ -387,6 +387,224 @@ describe('GCE load balancer models', () => {
 
     expect(command.healthChecks).toEqual([{ healthCheckType: 'HTTP', port: 53, requestPath: '/health' }]);
   });
+
+  it('normalizes and serializes EXTERNAL_MANAGED with regional scope, network, address, tier, and certificate', () => {
+    const regionalCertUrl =
+      '//certificatemanager.googleapis.com/projects/test/locations/europe-west1/certificates/regional-cert';
+    const command = normalizeGceLoadBalancerCommand(
+      {
+        account: 'account-a',
+        backendServices: [
+          {
+            healthCheck: 'projects/test/regions/europe-west1/healthChecks/check-a',
+            name: 'backend-a',
+          },
+        ],
+        defaultService: 'backend-a',
+        healthChecks: [{ healthCheckType: 'HTTP', name: 'check-a', port: 80, requestPath: '/health' }],
+        listeners: [
+          {
+            certificate: regionalCertUrl,
+            ipAddress: '203.0.113.10',
+            name: 'app-https',
+            networkTier: 'STANDARD',
+            port: 443,
+            protocol: 'HTTPS',
+          },
+        ],
+        loadBalancerType: 'EXTERNAL_MANAGED',
+        name: 'app-main',
+        network: 'projects/test/global/networks/network-a',
+        region: 'europe-west1',
+        urlMapName: 'app-main',
+      },
+      'edit',
+    );
+
+    expect(command.loadBalancerType).toBe('EXTERNAL_MANAGED');
+    expect(command.region).toBe('europe-west1');
+    expect(command.network).toEqual({
+      name: 'network-a',
+      selfLink: 'projects/test/global/networks/network-a',
+    });
+    expect(command.listeners).toEqual([
+      {
+        address: { name: '203.0.113.10' },
+        certificate: { name: 'regional-cert', selfLink: regionalCertUrl },
+        name: 'app-https',
+        networkTier: 'STANDARD',
+        portRange: '443',
+        protocol: 'HTTPS',
+      },
+    ]);
+    expect(command.listeners[0].certificateMap).toBeUndefined();
+
+    const serialized = serializeGceLoadBalancerCommand(command);
+    expect(serialized).toEqual(
+      jasmine.objectContaining({
+        credentials: 'account-a',
+        loadBalancerType: 'EXTERNAL_MANAGED',
+        network: 'network-a',
+        networkTier: 'STANDARD',
+        region: 'europe-west1',
+        urlMapName: 'app-main',
+      }),
+    );
+    expect(serialized.listeners).toEqual([
+      {
+        certificate: regionalCertUrl,
+        ipAddress: '203.0.113.10',
+        name: 'app-https',
+        networkTier: 'STANDARD',
+        portRange: '443',
+        protocol: 'HTTPS',
+      },
+    ]);
+    expect((serialized.listeners as any[])[0].certificateMap).toBeUndefined();
+  });
+
+  it('preserves EXTERNAL_MANAGED listener identity from a flat pipeline operation', () => {
+    const command = normalizeGceLoadBalancerCommand(
+      {
+        certificate:
+          '//certificatemanager.googleapis.com/projects/test/locations/europe-west1/certificates/regional-cert',
+        credentials: 'account-a',
+        ipAddress: '203.0.113.10',
+        ipProtocol: 'TCP',
+        loadBalancerName: 'app-https',
+        loadBalancerType: 'EXTERNAL_MANAGED',
+        name: 'app-https',
+        network: 'network-a',
+        networkTier: 'STANDARD',
+        portRange: '443',
+        region: 'europe-west1',
+        urlMapName: 'app-main',
+      },
+      'pipeline',
+    );
+
+    expect(command.name).toBe('app-main');
+    expect(command.listeners).toEqual([
+      {
+        address: { name: '203.0.113.10' },
+        certificate: {
+          name: 'regional-cert',
+          selfLink:
+            '//certificatemanager.googleapis.com/projects/test/locations/europe-west1/certificates/regional-cert',
+        },
+        name: 'app-https',
+        networkTier: 'STANDARD',
+        portRange: '443',
+        protocol: 'HTTPS',
+      },
+    ]);
+  });
+
+  it('normalizes and serializes REGIONAL_EXTERNAL_NETWORK with trimmed ports and source immutability', () => {
+    const command = normalizeGceLoadBalancerCommand(
+      {
+        account: 'account-a',
+        backendService: {
+          healthCheck: { healthCheckType: 'TCP', name: 'tcp-check', port: 80 },
+          name: 'app-main',
+          sessionAffinity: 'CLIENT_IP',
+        },
+        ipAddress: '35.1.2.3',
+        ipProtocol: 'TCP',
+        loadBalancerName: 'app-main',
+        loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK',
+        networkTier: 'PREMIUM',
+        ports: ['80', ' 443 '],
+        region: 'europe-west1',
+      },
+      'edit',
+    );
+
+    expect(command.loadBalancerType).toBe('REGIONAL_EXTERNAL_NETWORK');
+    expect(command.listeners).toEqual([
+      {
+        address: { name: '35.1.2.3' },
+        name: 'app-main',
+        portRange: '80,443',
+        protocol: 'TCP',
+      },
+    ]);
+    expect(command.networkTier).toBe('PREMIUM');
+    expect(command.backendServices).toEqual([
+      {
+        healthCheck: { healthCheckType: 'TCP', name: 'tcp-check', port: 80 },
+        name: 'app-main',
+        sessionAffinity: 'CLIENT_IP',
+      },
+    ]);
+    expect(command.original).toEqual({
+      backendServices: command.backendServices,
+      healthChecks: command.healthChecks,
+      listeners: command.listeners,
+    });
+
+    command.listeners[0].protocol = 'UDP';
+    command.backendServices[0].sessionAffinity = 'CLIENT_IP_PROTO';
+
+    expect(command.original?.listeners[0].protocol).toBe('TCP');
+    expect(command.original?.backendServices[0].sessionAffinity).toBe('CLIENT_IP');
+
+    const serialized = serializeGceLoadBalancerCommand(command);
+    expect(serialized).toEqual({
+      backendService: {
+        healthCheck: { healthCheckType: 'TCP', name: 'tcp-check', port: 80 },
+        name: 'app-main',
+        sessionAffinity: 'CLIENT_IP_PROTO',
+      },
+      cloudProvider: 'gce',
+      credentials: 'account-a',
+      ipAddress: '35.1.2.3',
+      ipProtocol: 'UDP',
+      loadBalancerName: 'app-main',
+      loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK',
+      name: 'app-main',
+      networkTier: 'PREMIUM',
+      ports: ['80', '443'],
+      provider: 'gce',
+      region: 'europe-west1',
+      type: 'upsertLoadBalancer',
+    });
+    expect(serialized.portRange).toBeUndefined();
+    expect(serialized.backendServices).toBeUndefined();
+  });
+
+  (['HTTP', 'INTERNAL_MANAGED'] as const).forEach((loadBalancerType) => {
+    it(`normalizes and serializes ${loadBalancerType} without listener networkTier`, () => {
+      const command = normalizeGceLoadBalancerCommand(
+        {
+          account: 'account-a',
+          listeners: [
+            {
+              ipAddress: '203.0.113.10',
+              name: 'frontend',
+              networkTier: 'STANDARD',
+              port: 80,
+              protocol: 'HTTP',
+            },
+          ],
+          loadBalancerType,
+          name: 'web',
+          network: loadBalancerType === 'INTERNAL_MANAGED' ? 'network-a' : undefined,
+          networkTier: 'STANDARD',
+          region: loadBalancerType === 'INTERNAL_MANAGED' ? 'europe-west1' : 'global',
+          subnet: loadBalancerType === 'INTERNAL_MANAGED' ? 'subnet-a' : undefined,
+        },
+        'create',
+      );
+
+      expect(command.listeners[0].networkTier).toBeUndefined();
+      expect(command.networkTier).toBeUndefined();
+
+      const serialized = serializeGceLoadBalancerCommand(command);
+      expect(serialized.networkTier).toBeUndefined();
+      expect((serialized.listeners as any[])[0].networkTier).toBeUndefined();
+    });
+  });
 });
 
 function readerHealthCheck() {

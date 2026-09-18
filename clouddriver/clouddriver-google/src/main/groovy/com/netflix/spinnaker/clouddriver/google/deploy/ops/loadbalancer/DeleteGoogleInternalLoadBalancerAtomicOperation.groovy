@@ -77,14 +77,20 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
     task.updateStatus BASE_PHASE, "Retrieving forwarding rule $forwardingRuleName in $region..."
 
     // NOTE: get all the forwarding rule names to resolve which ones to delete later.
+    // getItems() is null (not empty) when the region has no forwarding rules, e.g. an idempotent
+    // re-delete after the rule is already gone; default to empty so lookups return not-found.
     List<ForwardingRule> projectForwardingRules = timeExecute(
         compute.forwardingRules().list(project, region),
         "compute.forwardingRules.list",
-        TAG_SCOPE, SCOPE_GLOBAL).getItems()
+        TAG_SCOPE, SCOPE_GLOBAL).getItems() ?: []
 
-    ForwardingRule forwardingRule = projectForwardingRules.find { it.name == forwardingRuleName }
+    // Same-name regional forwarding rules can now also be EXTERNAL passthrough LBs. Only the
+    // INTERNAL passthrough shape is owned by this delete operation.
+    ForwardingRule forwardingRule = projectForwardingRules.find {
+      it.name == forwardingRuleName && GCEUtil.isInternalPassthroughForwardingRule(it)
+    }
     if (forwardingRule == null) {
-      GCEUtil.updateStatusAndThrowNotFoundException("Forwarding rule $forwardingRuleName not found in $region for $project",
+      GCEUtil.updateStatusAndThrowNotFoundException("Internal forwarding rule $forwardingRuleName not found in $region for $project",
         task, BASE_PHASE)
     }
 
@@ -94,7 +100,8 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
     List<String> listenersToDelete = []
     projectForwardingRules.each { ForwardingRule rule ->
       try {
-        if (GCEUtil.getLocalName(rule.getBackendService()) == backendServiceName) {
+        if (GCEUtil.isInternalPassthroughForwardingRule(rule) &&
+          GCEUtil.getLocalName(rule.getBackendService()) == backendServiceName) {
           listenersToDelete << rule.getName()
         }
       } catch (GoogleJsonResponseException e) {
@@ -124,6 +131,12 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
     ) as BackendService
     if (backendService == null) {
       GCEUtil.updateStatusAndThrowNotFoundException("Backend service $backendServiceName not found in $region for $project",
+        task, BASE_PHASE)
+    }
+    // Recheck the backend service before deleting the graph so a malformed or colliding forwarding
+    // rule cannot cause this INTERNAL path to remove EXTERNAL passthrough resources.
+    if (backendService.loadBalancingScheme != "INTERNAL") {
+      GCEUtil.updateStatusAndThrowNotFoundException("Internal backend service $backendServiceName not found in $region for $project",
         task, BASE_PHASE)
     }
 
@@ -178,18 +191,21 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
         break
     }
 
-    def healthCheck = safeRetry.doRetry(
-      healthCheckGet,
-      "Health check $healthCheckName",
-      task,
-      [400, 403, 412],
-      [],
-      [action: "get", phase: BASE_PHASE, operation: operationName, (TAG_SCOPE): SCOPE_GLOBAL],
-      registry
-    )
-    if (healthCheck == null) {
-      GCEUtil.updateStatusAndThrowNotFoundException("Health check $healthCheckName not found for $project",
-        task, BASE_PHASE)
+    // Only read and validate the health check when the request allows health-check cleanup.
+    if (description.deleteHealthChecks) {
+      def healthCheck = safeRetry.doRetry(
+        healthCheckGet,
+        "Health check $healthCheckName",
+        task,
+        [400, 403, 412],
+        [],
+        [action: "get", phase: BASE_PHASE, operation: operationName, (TAG_SCOPE): SCOPE_GLOBAL],
+        registry
+      )
+      if (healthCheck == null) {
+        GCEUtil.updateStatusAndThrowNotFoundException("Health check $healthCheckName not found for $project",
+          task, BASE_PHASE)
+      }
     }
 
     // Now delete all the components, waiting for each delete operation to finish.
@@ -276,18 +292,21 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
         log.warn("Unknown health check type for health check named: ${healthCheckName}.")
         break
     }
-    Operation deleteHealthCheckOp = GCEUtil.deleteIfNotInUse(
-      deleteHealthCheckClosure,
-      "Health check $healthCheckName",
-      project,
-      task,
-      [action: 'delete', operation: 'compute.' + healthCheckType + '.delete', phase: BASE_PHASE, (TAG_SCOPE): SCOPE_GLOBAL],
-      safeRetry,
-      this
-    )
-    if (deleteHealthCheckOp) {
-      googleOperationPoller.waitForGlobalOperation(compute, project, deleteHealthCheckOp.getName(),
-        timeoutSeconds, task, "Health check $healthCheckName", BASE_PHASE)
+    // Health checks can be shared, and the delete modal exposes this as an explicit cleanup flag.
+    if (description.deleteHealthChecks) {
+      Operation deleteHealthCheckOp = GCEUtil.deleteIfNotInUse(
+        deleteHealthCheckClosure,
+        "Health check $healthCheckName",
+        project,
+        task,
+        [action: 'delete', operation: 'compute.' + healthCheckType + '.delete', phase: BASE_PHASE, (TAG_SCOPE): SCOPE_GLOBAL],
+        safeRetry,
+        this
+      )
+      if (deleteHealthCheckOp) {
+        googleOperationPoller.waitForGlobalOperation(compute, project, deleteHealthCheckOp.getName(),
+          timeoutSeconds, task, "Health check $healthCheckName", BASE_PHASE)
+      }
     }
 
     task.updateStatus BASE_PHASE, "Done deleting internal load balancer $description.loadBalancerName in $region."
