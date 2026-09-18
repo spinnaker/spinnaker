@@ -17,12 +17,12 @@ package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers;
 import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher.isJsonPathConstraintInPayload;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.WebhookEvent;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -43,7 +43,7 @@ public class WebhookEventHandler extends BaseTriggerEventHandler<WebhookEvent> {
 
   @Autowired
   public WebhookEventHandler(
-      Registry registry,
+      MeterRegistry registry,
       ObjectMapper objectMapper,
       FiatPermissionEvaluator fiatPermissionEvaluator) {
     super(registry, objectMapper, fiatPermissionEvaluator);

@@ -18,7 +18,6 @@
 package com.netflix.spinnaker.clouddriver.aws.provider.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.agent.AgentProvider;
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider;
@@ -37,6 +36,7 @@ import com.netflix.spinnaker.clouddriver.security.ProviderUtils;
 import com.netflix.spinnaker.config.AwsConfiguration;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -62,7 +62,7 @@ public class ProviderHelpers {
       CredentialsRepository<NetflixAmazonCredentials> credentialsRepository,
       AmazonClientProvider amazonClientProvider,
       ObjectMapper amazonObjectMapper,
-      Registry registry,
+      MeterRegistry registry,
       Set<String> regions) {
     Set<String> scheduledAccounts = ProviderUtils.getScheduledAccounts(awsInfrastructureProvider);
     List<Agent> newlyAddedAgents = new ArrayList<>();
@@ -96,7 +96,7 @@ public class ProviderHelpers {
       CredentialsRepository<NetflixAmazonCredentials> credentialsRepository,
       AmazonClientProvider amazonClientProvider,
       ObjectMapper objectMapper,
-      Registry registry,
+      MeterRegistry registry,
       AmazonCachingAgentFilter amazonCachingAgentFilter,
       AwsProvider awsProvider,
       AmazonCloudProvider amazonCloudProvider,

@@ -18,13 +18,13 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.caching.agent;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesResourceProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesSpinnakerKindMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.ResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -43,7 +43,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class KubernetesCachingAgentDispatcher {
   private final ObjectMapper objectMapper;
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final KubernetesConfigurationProperties configurationProperties;
   private final KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap;
   @Nullable private final Front50ApplicationLoader front50ApplicationLoader;
@@ -51,7 +51,7 @@ public class KubernetesCachingAgentDispatcher {
   @Autowired
   public KubernetesCachingAgentDispatcher(
       ObjectMapper objectMapper,
-      Registry registry,
+      MeterRegistry registry,
       KubernetesConfigurationProperties configurationProperties,
       KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap,
       @Nullable Front50ApplicationLoader front50ApplicationLoader) {

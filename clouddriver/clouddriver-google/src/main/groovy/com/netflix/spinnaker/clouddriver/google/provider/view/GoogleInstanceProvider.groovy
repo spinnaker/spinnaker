@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.google.provider.view
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.services.iam.v1.model.ServiceAccount
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
@@ -33,6 +32,7 @@ import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCrede
 import com.netflix.spinnaker.clouddriver.model.InstanceProvider
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import groovy.util.logging.Slf4j
+import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -55,7 +55,7 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance.View, St
   GoogleSecurityGroupProvider securityGroupProvider
 
   @Autowired
-  Registry registry
+  MeterRegistry registry
 
   final String cloudProvider = GoogleCloudProvider.ID
 

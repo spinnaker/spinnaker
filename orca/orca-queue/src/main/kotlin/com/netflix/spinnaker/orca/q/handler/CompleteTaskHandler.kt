@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
-import com.netflix.spectator.api.BasicTag
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.FAILED_CONTINUE
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT_STARTED
@@ -39,6 +37,8 @@ import com.netflix.spinnaker.orca.q.StartTask
 import com.netflix.spinnaker.orca.q.get
 import com.netflix.spinnaker.orca.q.metrics.MetricsTagHelper
 import com.netflix.spinnaker.q.Queue
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tag
 import java.lang.Exception
 import java.time.Clock
 import java.util.concurrent.TimeUnit
@@ -54,7 +54,7 @@ class CompleteTaskHandler(
   override val contextParameterProcessor: ContextParameterProcessor,
   @Qualifier("queueEventPublisher") private val publisher: ApplicationEventPublisher,
   private val clock: Clock,
-  private val registry: Registry
+  private val registry: MeterRegistry
 ) : OrcaMessageHandler<CompleteTask>, ExpressionAware {
 
   override fun handle(message: CompleteTask) {
@@ -127,7 +127,7 @@ class CompleteTaskHandler(
       val elapsedMillis = clock.millis() - (taskModel.startTime ?: 0)
 
       hashMapOf(
-        "task.completions.duration" to commonTags + BasicTag("application", stage.execution.application),
+        "task.completions.duration" to commonTags + Tag.of("application", stage.execution.application),
         "task.completions.duration.withType" to commonTags + detailedTags
       ).forEach { name, tags ->
         registry.timer(name, tags).record(elapsedMillis, TimeUnit.MILLISECONDS)

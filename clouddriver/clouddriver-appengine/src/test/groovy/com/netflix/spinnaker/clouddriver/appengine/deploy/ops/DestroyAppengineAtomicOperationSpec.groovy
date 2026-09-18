@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.appengine.deploy.ops
 
 import com.google.api.services.appengine.v1.Appengine
-import com.netflix.spectator.api.DefaultRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.clouddriver.appengine.deploy.AppengineSafeRetry
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.DestroyAppengineDescription
 import com.netflix.spinnaker.clouddriver.appengine.model.AppengineServerGroup
@@ -39,7 +39,7 @@ class DestroyAppengineAtomicOperationSpec extends Specification {
 
   @Shared
   AppengineSafeRetry safeRetry
-  DefaultRegistry registry = new DefaultRegistry()
+  SimpleMeterRegistry registry = new SimpleMeterRegistry()
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))

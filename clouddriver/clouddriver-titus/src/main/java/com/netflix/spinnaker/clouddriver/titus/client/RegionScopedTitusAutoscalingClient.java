@@ -17,9 +17,9 @@
 package com.netflix.spinnaker.clouddriver.titus.client;
 
 import com.google.protobuf.Empty;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.titus.client.model.GrpcChannelFactory;
 import com.netflix.titus.grpc.protogen.*;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.List;
 
 public class RegionScopedTitusAutoscalingClient implements TitusAutoscalingClient {
@@ -32,7 +32,7 @@ public class RegionScopedTitusAutoscalingClient implements TitusAutoscalingClien
 
   public RegionScopedTitusAutoscalingClient(
       TitusRegion titusRegion,
-      Registry registry,
+      MeterRegistry registry,
       String environment,
       String eurekaName,
       GrpcChannelFactory channelFactory) {

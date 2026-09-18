@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.compute;
 
 import com.google.api.services.compute.ComputeRequest;
-import com.netflix.spectator.api.Registry;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Map;
 
 final class GoogleComputeGetRequestImpl<RequestT extends ComputeRequest<ResponseT>, ResponseT>
@@ -25,7 +25,7 @@ final class GoogleComputeGetRequestImpl<RequestT extends ComputeRequest<Response
     implements GoogleComputeGetRequest<RequestT, ResponseT> {
 
   GoogleComputeGetRequestImpl(
-      RequestT request, Registry registry, String metricName, Map<String, String> tags) {
+      RequestT request, MeterRegistry registry, String metricName, Map<String, String> tags) {
     super(request, registry, metricName, tags);
   }
 }

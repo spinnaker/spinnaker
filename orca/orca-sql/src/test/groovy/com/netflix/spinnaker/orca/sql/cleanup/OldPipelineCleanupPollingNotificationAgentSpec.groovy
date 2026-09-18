@@ -27,7 +27,7 @@ import java.time.Clock
 import java.time.Instant
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
@@ -65,7 +65,7 @@ abstract class OldPipelineCleanupPollingNotificationAgentSpec extends Specificat
     Mock(NotificationClusterLock),
     currentDatabase.context,
     Clock.systemDefaultZone(),
-    new NoopRegistry(),
+    new SimpleMeterRegistry(),
     executionRepository,
     new OldPipelineCleanupAgentConfigurationProperties(
         0L,

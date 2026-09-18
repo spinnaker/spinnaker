@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.igor.jenkins
 
-import com.netflix.spectator.api.BasicTag
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.igor.config.JenkinsProperties
 import com.netflix.spinnaker.igor.history.EchoService
@@ -39,6 +37,8 @@ import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.time.TimeCategory
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tags
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -63,7 +63,7 @@ class JenkinsBuildMonitor extends CommonPollingMonitor<JobDelta, JobPollingDelta
 
     @Autowired
     JenkinsBuildMonitor(IgorConfigurationProperties properties,
-                        Registry registry,
+                        MeterRegistry registry,
                         DynamicConfigService dynamicConfigService,
                         DiscoveryStatusListener discoveryStatusListener,
                         Optional < LockService > lockService,
@@ -108,7 +108,7 @@ class JenkinsBuildMonitor extends CommonPollingMonitor<JobDelta, JobPollingDelta
         log.trace("Checking for new builds for $master")
 
         final List<JobDelta> delta = []
-        registry.timer("pollingMonitor.jenkins.retrieveProjects", [new BasicTag("partition", master)]).record {
+        registry.timer("pollingMonitor.jenkins.retrieveProjects", Tags.of("partition", master)).record {
             JenkinsService jenkinsService = buildServices.getService(master) as JenkinsService
             List<Project> jobs = jenkinsService.getProjects()?.getList() ?:[]
             jobs.forEach( { job -> processBuildsOfProject(jenkinsService, master, job, delta)})
@@ -203,7 +203,7 @@ class JenkinsBuildMonitor extends CommonPollingMonitor<JobDelta, JobPollingDelta
                         postEvent(new Project(name: job.name, lastBuild: build), master)
                         log.debug("[${master}:${job.name}]:${build.number} event posted")
                     } else {
-                      registry.counter(missedNotificationId.withTags("monitor", getName(), "reason", "fastForward")).increment()
+                      registry.counter(missedNotificationId, "monitor", getName(), "reason", "fastForward").increment()
                     }
 
                     cache.setEventPosted(master, job.name, job.cursor, build.number)
@@ -228,7 +228,7 @@ class JenkinsBuildMonitor extends CommonPollingMonitor<JobDelta, JobPollingDelta
     private void postEvent(Project project, String master) {
         if (!echoService.isPresent()) {
             log.warn("Cannot send build notification: Echo is not configured")
-            registry.counter(missedNotificationId.withTag("monitor", getName())).increment()
+            registry.counter(missedNotificationId, "monitor", getName()).increment()
             return
         }
         AuthenticatedRequest.allowAnonymous {

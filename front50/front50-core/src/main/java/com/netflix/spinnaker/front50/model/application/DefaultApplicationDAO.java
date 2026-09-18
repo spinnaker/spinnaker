@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.front50.model.application;
 
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.front50.config.StorageServiceConfigurationProperties;
 import com.netflix.spinnaker.front50.model.ObjectKeyLoader;
 import com.netflix.spinnaker.front50.model.ObjectType;
@@ -24,6 +23,7 @@ import com.netflix.spinnaker.front50.model.StorageService;
 import com.netflix.spinnaker.front50.model.StorageServiceSupport;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.reactivex.rxjava3.core.Scheduler;
 import java.util.Collection;
 import java.util.Map;
@@ -35,7 +35,7 @@ public class DefaultApplicationDAO extends StorageServiceSupport<Application>
       Scheduler scheduler,
       ObjectKeyLoader objectKeyLoader,
       StorageServiceConfigurationProperties.PerObjectType configurationProperties,
-      Registry registry,
+      MeterRegistry registry,
       CircuitBreakerRegistry circuitBreakerRegistry) {
     super(
         ObjectType.APPLICATION,

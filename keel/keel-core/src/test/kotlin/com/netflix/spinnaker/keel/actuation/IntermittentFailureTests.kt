@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.actuation
 
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.config.UnhappyVetoConfig
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
@@ -100,7 +100,7 @@ class IntermittentFailureTests : JUnit5Minutests {
       resourceRepository,
       springEnv,
       config,
-      NoopRegistry(),
+      SimpleMeterRegistry(),
       clock
     )
     val vetoEnforcer = VetoEnforcer(listOf(veto))
@@ -116,7 +116,7 @@ class IntermittentFailureTests : JUnit5Minutests {
       publisher,
       Clock.systemUTC(),
       environmentExclusionEnforcer,
-      NoopRegistry()
+      SimpleMeterRegistry()
     )
     val desired = DummyResourceSpec(data = "fnord")
     val current = DummyResourceSpec()

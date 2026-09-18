@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.requestqueue;
 
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.requestqueue.pooled.PooledRequestQueue;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
@@ -30,7 +30,7 @@ public interface RequestQueue {
 
   static RequestQueue forConfig(
       DynamicConfigService dynamicConfigService,
-      Registry registry,
+      MeterRegistry registry,
       RequestQueueConfiguration config) {
     if (!config.isEnabled()) {
       return noop();
@@ -49,7 +49,7 @@ public interface RequestQueue {
   }
 
   static RequestQueue pooled(
-      DynamicConfigService dynamicConfigService, Registry registry, int poolSize) {
+      DynamicConfigService dynamicConfigService, MeterRegistry registry, int poolSize) {
     return pooled(
         dynamicConfigService,
         registry,
@@ -60,7 +60,7 @@ public interface RequestQueue {
 
   static RequestQueue pooled(
       DynamicConfigService dynamicConfigService,
-      Registry registry,
+      MeterRegistry registry,
       long startWorkTimeoutMillis,
       long timeoutMillis,
       int poolSize) {

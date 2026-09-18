@@ -21,10 +21,10 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.junit.jupiter.api.BeforeAll;
 import software.amazon.awssdk.services.ecs.EcsClient;
 
@@ -69,7 +69,7 @@ public class CommonCachingAgent {
   static final EcsClient ecs = mock(EcsClient.class);
   static final AmazonClientProvider clientProvider = mock(AmazonClientProvider.class);
   final ProviderCache providerCache = mock(ProviderCache.class);
-  final Registry registry = mock(Registry.class);
+  final MeterRegistry registry = mock(MeterRegistry.class);
   static final NetflixAmazonCredentials netflixAmazonCredentials;
 
   static {

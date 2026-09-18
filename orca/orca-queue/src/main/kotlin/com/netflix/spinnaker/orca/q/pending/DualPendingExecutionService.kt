@@ -1,8 +1,8 @@
 package com.netflix.spinnaker.orca.q.pending
 
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.DualPendingExecutionServiceConfiguration
 import com.netflix.spinnaker.q.Message
+import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -44,15 +44,13 @@ import org.springframework.stereotype.Component
 class DualPendingExecutionService(
   config: DualPendingExecutionServiceConfiguration,
   allPendingServices: List<PendingExecutionService>,
-  private val registry: Registry
+  private val registry: MeterRegistry
 ) : PendingExecutionService {
 
   private val log = LoggerFactory.getLogger(javaClass)
 
   lateinit var primary: PendingExecutionService
   lateinit var previous: PendingExecutionService
-
-  private final var hitFromSecondaryId = registry.createId("queue.pending.previous.pop")
 
   init {
     allPendingServices.forEach {
@@ -69,7 +67,7 @@ class DualPendingExecutionService(
   override fun popOldest(pipelineConfigId: String): Message? {
     val message = previous.popOldest(pipelineConfigId)
     return if (message != null) {
-      registry.counter(hitFromSecondaryId).increment()
+      registry.counter("queue.pending.previous.pop").increment()
       log.debug("Found message from previous PendingExecutionService (${previous.javaClass}) for $pipelineConfigId")
       message
     } else {
@@ -80,7 +78,7 @@ class DualPendingExecutionService(
   override fun popNewest(pipelineConfigId: String): Message? {
     val message = previous.popNewest(pipelineConfigId)
     return if (message != null) {
-      registry.counter(hitFromSecondaryId).increment()
+      registry.counter("queue.pending.previous.pop").increment()
       message
     } else {
       primary.popNewest(pipelineConfigId)

@@ -2,7 +2,6 @@ package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
 import com.netflix.spinnaker.keel.api.plugins.PostDeployActionHandler
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
@@ -17,6 +16,7 @@ import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
 import de.huxhorn.sulky.ulid.ULID
+import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.jackson.JsonComponentModule
@@ -39,7 +39,7 @@ private const val IPC_SERVER_METRIC = "controller.invocations"
 
 @Configuration
 class DefaultConfiguration(
-  val spectatorRegistry: Registry
+  val meterRegistry: MeterRegistry
 ) : WebMvcConfigurer {
   override fun configurePathMatch(configurer: PathMatchConfigurer) {
     // Keep PathPatternParser but allow an optional trailing “/”
@@ -66,7 +66,7 @@ class DefaultConfiguration(
     // exclude list copied from fiat: https://github.com/spinnaker/fiat/blob/0d58386152ad78234b2554f5efdf12d26b77d57c/fiat-web/src/main/java/com/netflix/spinnaker/fiat/config/FiatConfig.java#L50
     val exclude = listOf("BasicErrorController")
 
-    val interceptor = MetricsInterceptor(spectatorRegistry, IPC_SERVER_METRIC, pathVarsToTag, queryParamsToTag, exclude)
+    val interceptor = MetricsInterceptor(meterRegistry, IPC_SERVER_METRIC, pathVarsToTag, queryParamsToTag, exclude)
     interceptorRegistry.addInterceptor(interceptor)
   }
 

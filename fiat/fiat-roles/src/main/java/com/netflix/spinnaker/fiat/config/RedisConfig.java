@@ -1,9 +1,9 @@
 package com.netflix.spinnaker.fiat.config;
 
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import com.netflix.spinnaker.kork.jedis.telemetry.InstrumentedJedisPool;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
@@ -52,7 +52,7 @@ public class RedisConfig {
       @Value("${redis.connection:redis://localhost:6379}") String connection,
       @Value("${redis.timeout:2000}") int timeout,
       GenericObjectPoolConfig redisPoolConfig,
-      Registry registry) {
+      MeterRegistry registry) {
 
     log.info(
         "JedisPool Configuration: maxTotal {}, maxIdle {}, minIdle {}, testWhileIdle {}, minEvictableIdle {}, jmxEnabled {}, clientName {}",
@@ -73,7 +73,10 @@ public class RedisConfig {
   }
 
   private static JedisPool createPool(
-      GenericObjectPoolConfig redisPoolConfig, String connection, int timeout, Registry registry) {
+      GenericObjectPoolConfig redisPoolConfig,
+      String connection,
+      int timeout,
+      MeterRegistry registry) {
     URI redisConnection = URI.create(connection);
 
     String host = redisConnection.getHost();

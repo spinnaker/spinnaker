@@ -17,8 +17,6 @@
 package com.netflix.spinnaker.echo.pubsub.aws;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.config.AmazonPubsubProperties;
 import com.netflix.spinnaker.echo.model.pubsub.MessageDescription;
 import com.netflix.spinnaker.echo.model.pubsub.PubsubSystem;
@@ -28,6 +26,7 @@ import com.netflix.spinnaker.echo.pubsub.utils.NodeIdentity;
 import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
 import com.netflix.spinnaker.kork.aws.ARN;
 import com.netflix.spinnaker.kork.pubsub.aws.PubSubUtils;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
@@ -63,7 +62,7 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
 
   private final NodeIdentity identity = new NodeIdentity();
 
-  private final Registry registry;
+  private final MeterRegistry registry;
 
   private final ARN queueARN;
   private final ARN topicARN;
@@ -79,7 +78,7 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
       SnsClient snsClient,
       SqsClient sqsClient,
       Supplier<Boolean> isEnabled,
-      Registry registry) {
+      MeterRegistry registry) {
     this.objectMapper = objectMapper;
     this.subscription = subscription;
     this.pubsubMessageHandler = pubsubMessageHandler;
@@ -210,7 +209,10 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
       pubsubMessageHandler.handleMessage(
           description, acknowledger, identity.getIdentity(), messageId);
     } catch (Exception e) {
-      registry.counter(getFailedToBeHandledMetricId(e)).increment();
+      registry
+          .counter(
+              "echo.pubsub.amazon.failedMessages", "exceptionClass", e.getClass().getSimpleName())
+          .increment();
       log.error("Message {} from queue {} failed to be handled", message, queueId, e);
       // Todo emjburns: add dead-letter queue policy
     }
@@ -256,12 +258,6 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
           "Unable to parse message attributes. Unknown message type. (body: {})", messageBody, e);
     }
     return Collections.emptyMap();
-  }
-
-  private Id getFailedToBeHandledMetricId(Exception e) {
-    return registry
-        .createId("echo.pubsub.amazon.failedMessages")
-        .withTag("exceptionClass", e.getClass().getSimpleName());
   }
 
   private void sleepALittle() {

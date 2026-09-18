@@ -19,7 +19,6 @@ package com.netflix.spinnaker.igor.artifactory;
 import static java.util.Collections.emptyList;
 import static org.jfrog.artifactory.client.aql.AqlItem.aqlItem;
 
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.igor.artifactory.model.ArtifactoryItem;
 import com.netflix.spinnaker.igor.artifactory.model.ArtifactoryRepositoryType;
@@ -37,6 +36,7 @@ import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -70,7 +70,7 @@ public class ArtifactoryBuildMonitor
 
   public ArtifactoryBuildMonitor(
       IgorConfigurationProperties properties,
-      Registry registry,
+      MeterRegistry registry,
       DynamicConfigService dynamicConfigService,
       DiscoveryStatusListener discoveryStatusListener,
       Optional<LockService> lockService,
@@ -208,7 +208,7 @@ public class ArtifactoryBuildMonitor
   private void postEvent(Artifact artifact, String name) {
     if (!echoService.isPresent()) {
       log.warn("Cannot send build notification: Echo is not configured");
-      registry.counter(missedNotificationId.withTag("monitor", getName())).increment();
+      registry.counter(missedNotificationId, "monitor", getName()).increment();
     } else {
       if (artifact != null) {
         AuthenticatedRequest.allowAnonymous(

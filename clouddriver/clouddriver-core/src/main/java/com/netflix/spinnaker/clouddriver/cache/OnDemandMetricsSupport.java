@@ -17,9 +17,9 @@
 
 package com.netflix.spinnaker.clouddriver.cache;
 
-import com.netflix.spectator.api.Counter;
-import com.netflix.spectator.api.Registry;
-import com.netflix.spectator.api.Timer;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
@@ -34,7 +34,7 @@ public class OnDemandMetricsSupport implements OnDemandMetricsSupportable {
   private final Counter onDemandErrors;
   private final Counter onDemandCount;
 
-  public OnDemandMetricsSupport(Registry registry, OnDemandAgent agent, String onDemandType) {
+  public OnDemandMetricsSupport(MeterRegistry registry, OnDemandAgent agent, String onDemandType) {
     final String[] tags =
         new String[] {
           "providerName",

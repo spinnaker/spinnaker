@@ -39,9 +39,9 @@ import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
 import com.netflix.kayenta.storage.StorageServiceRepository;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.util.Arrays;
@@ -76,7 +76,7 @@ public class SynchronousQueryProcessorTest {
   @Mock StorageServiceRepository storageServiceRepository;
 
   @Mock(answer = RETURNS_DEEP_STUBS)
-  Registry registry;
+  MeterRegistry registry;
 
   @InjectMocks SynchronousQueryProcessor processor;
 

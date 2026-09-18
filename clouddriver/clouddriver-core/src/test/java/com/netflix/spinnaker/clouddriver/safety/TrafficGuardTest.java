@@ -29,7 +29,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.clouddriver.config.RetrofitConfig;
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service;
 import com.netflix.spinnaker.clouddriver.model.NoopClusterProvider;
@@ -43,6 +42,7 @@ import com.netflix.spinnaker.moniker.Moniker;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor;
 import com.netflix.spinnaker.okhttp.SpinnakerRequestHeaderInterceptor;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -107,7 +107,7 @@ public class TrafficGuardTest {
         new TrafficGuard(
             List.of(new NoopClusterProvider()),
             Optional.of(front50Service),
-            new NoopRegistry(),
+            new SimpleMeterRegistry(),
             new DynamicConfigService.NoopDynamicConfig());
   }
 

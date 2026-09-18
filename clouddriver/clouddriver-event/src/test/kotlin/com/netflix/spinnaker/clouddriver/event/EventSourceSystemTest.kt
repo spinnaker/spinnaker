@@ -15,12 +15,12 @@
  */
 package com.netflix.spinnaker.clouddriver.event
 
-import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.event.config.EventSourceAutoConfiguration
 import com.netflix.spinnaker.clouddriver.event.persistence.InMemoryEventRepository
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.springframework.boot.autoconfigure.AutoConfigurations
 import org.springframework.boot.test.context.assertj.AssertableApplicationContext
 import org.springframework.boot.test.context.runner.ApplicationContextRunner
@@ -54,6 +54,6 @@ class EventSourceSystemTest : JUnit5Minutests {
   @Configuration
   open class DependencyConfiguration {
     @Bean
-    open fun registry(): Registry = NoopRegistry()
+    open fun registry(): MeterRegistry = SimpleMeterRegistry()
   }
 }

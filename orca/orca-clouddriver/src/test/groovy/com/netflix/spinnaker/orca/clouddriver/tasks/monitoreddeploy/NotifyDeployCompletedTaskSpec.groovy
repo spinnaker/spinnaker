@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.monitoreddeploy
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.config.DeploymentMonitorDefinition
 import com.netflix.spinnaker.orca.deploymentmonitor.DeploymentMonitorServiceProvider
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
@@ -31,6 +30,7 @@ import com.netflix.spinnaker.orca.deploymentmonitor.models.DeploymentCompletedRe
 import com.netflix.spinnaker.orca.deploymentmonitor.models.DeploymentMonitorStageConfig
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import retrofit2.mock.Calls
 import spock.lang.Specification
 
@@ -61,7 +61,7 @@ class NotifyDeployCompletedTaskSpec extends Specification {
       }
     }
 
-    def task = new NotifyDeployCompletedTask(serviceProviderStub, new NoopRegistry())
+    def task = new NotifyDeployCompletedTask(serviceProviderStub, new SimpleMeterRegistry())
 
     MonitoredDeployStageData stageData = new MonitoredDeployStageData()
     stageData.deploymentMonitor = new DeploymentMonitorStageConfig()
@@ -122,7 +122,7 @@ class NotifyDeployCompletedTaskSpec extends Specification {
       }
     }
 
-    def task = new NotifyDeployCompletedTask(serviceProviderStub, new NoopRegistry())
+    def task = new NotifyDeployCompletedTask(serviceProviderStub, new SimpleMeterRegistry())
 
     MonitoredDeployStageData stageData = new MonitoredDeployStageData()
     stageData.deploymentMonitor = new DeploymentMonitorStageConfig()

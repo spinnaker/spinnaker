@@ -20,13 +20,13 @@ package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers;
 import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher.isConstraintInPayload;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.build.BuildInfoService;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.BuildEvent;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -56,7 +56,7 @@ public class BuildEventHandler extends BaseTriggerEventHandler<BuildEvent> {
 
   @Autowired
   public BuildEventHandler(
-      Registry registry,
+      MeterRegistry registry,
       ObjectMapper objectMapper,
       Optional<BuildInfoService> buildInfoService,
       FiatPermissionEvaluator fiatPermissionEvaluator) {

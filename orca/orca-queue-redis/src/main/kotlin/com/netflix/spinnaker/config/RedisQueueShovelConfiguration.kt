@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.jedis.JedisDriverProperties
 import com.netflix.spinnaker.kork.jedis.JedisPoolFactory
@@ -28,6 +27,7 @@ import com.netflix.spinnaker.q.migration.SerializationMigrator
 import com.netflix.spinnaker.q.redis.AbstractRedisQueue
 import com.netflix.spinnaker.q.redis.RedisClusterQueue
 import com.netflix.spinnaker.q.redis.RedisQueue
+import io.micrometer.core.instrument.MeterRegistry
 import java.net.URI
 import java.time.Clock
 import java.time.Duration
@@ -60,7 +60,7 @@ class RedisQueueShovelConfiguration {
     @Value("\${redis.connection-previous:#{null}}") previousConnection: String?,
     @Value("\${redis.timeout:2000}") timeout: Int,
     redisPoolConfig: GenericObjectPoolConfig<Jedis>,
-    registry: Registry
+    registry: MeterRegistry
   ): Pool<Jedis> {
     if (mainConnection == previousConnection) {
       throw BeanInitializationException("previous Redis connection must not be the same as current connection")
@@ -86,7 +86,7 @@ class RedisQueueShovelConfiguration {
     @Value("\${redis.timeout:2000}") timeout: Int,
     @Value("\${redis.maxattempts:4}") maxAttempts: Int,
     redisPoolConfig: GenericObjectPoolConfig<Connection>,
-    registry: Registry
+    registry: MeterRegistry
   ): JedisCluster {
     if (mainConnection == previousConnection) {
       throw BeanInitializationException("previous Redis connection must not be the same as current connection")
@@ -154,7 +154,7 @@ class RedisQueueShovelConfiguration {
   fun redisQueueShovel(
     queue: AbstractRedisQueue,
     @Qualifier("previousQueue") previousQueueImpl: RedisQueue,
-    registry: Registry,
+    registry: MeterRegistry,
     discoveryActivator: Activator,
     dynamicConfigService: DynamicConfigService
   ) =
@@ -172,7 +172,7 @@ class RedisQueueShovelConfiguration {
   fun priorRedisClusterQueueShovel(
     queue: AbstractRedisQueue,
     @Qualifier("previousClusterQueue") previousQueueImpl: AbstractRedisQueue,
-    registry: Registry,
+    registry: MeterRegistry,
     discoveryActivator: Activator,
     dynamicConfigService: DynamicConfigService
   ) =

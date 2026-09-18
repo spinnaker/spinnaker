@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy.ops
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.*
-import com.netflix.spectator.api.DefaultRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
@@ -89,7 +89,7 @@ class EnableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   def description
 
   @Shared SafeRetry safeRetry
-  @Shared def registry = new DefaultRegistry()
+  @Shared def registry = new SimpleMeterRegistry()
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
@@ -184,10 +184,9 @@ class EnableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       3 * computeMock.globalForwardingRules() >> globalForwardingRules
       3 * globalForwardingRules.list(PROJECT_NAME) >> globalForwardingRulesList
       3 * globalForwardingRulesList.execute() >> new ForwardingRuleList(items: [])
-      registry.timer(
-          GoogleApiTestUtils.makeOkId(
-            registry, "compute.targetPools.addInstance",
-            [scope: "regional", region: REGION])
+      GoogleApiTestUtils.okTimer(
+          registry, "compute.targetPools.addInstance",
+          [scope: "regional", region: REGION]
       ).count() == 2
   }
 

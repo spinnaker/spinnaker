@@ -18,9 +18,9 @@ package com.netflix.spinnaker.clouddriver.google.compute;
 
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Image;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.io.IOException;
 
 public class Images {
@@ -31,7 +31,7 @@ public class Images {
   public Images(
       GoogleNamedAccountCredentials credentials,
       GoogleOperationPoller operationPoller,
-      Registry registry) {
+      MeterRegistry registry) {
     this.credentials = credentials;
     this.requestFactory =
         new GlobalGoogleComputeRequestFactory("images", credentials, operationPoller, registry);

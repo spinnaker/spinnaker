@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.q.handler
 
 import ch.qos.logback.classic.Level
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.test.log.MemoryAppender
 import com.netflix.spinnaker.orca.DefaultStageResolver
@@ -113,7 +113,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
       clock,
       listOf(exceptionHandler),
       taskExecutionInterceptors,
-      NoopRegistry(),
+      SimpleMeterRegistry(),
       dynamicConfigService,
       retriableLock
     )

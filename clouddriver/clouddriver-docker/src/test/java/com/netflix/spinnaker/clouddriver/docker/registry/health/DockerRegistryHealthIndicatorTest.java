@@ -22,14 +22,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 import com.google.common.collect.ImmutableList;
-import com.netflix.spectator.api.NoopRegistry;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.docker.registry.DockerRegistryCloudProvider;
 import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryCredentials;
 import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryNamedAccountCredentials;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
 import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository;
 import com.netflix.spinnaker.kork.docker.service.DockerRegistryClient;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -46,7 +46,7 @@ class DockerRegistryHealthIndicatorTest {
   private static final String UNHEALTHY_ACCOUNT_NAME_SECOND = "unhealthy2";
   private static final String CREDENTIALS_TYPE = "dockerRegistry";
 
-  private static final Registry REGISTRY = new NoopRegistry();
+  private static final MeterRegistry REGISTRY = new SimpleMeterRegistry();
 
   @Mock private DockerRegistryNamedAccountCredentials healthyNamedCredentials;
   @Mock private DockerRegistryNamedAccountCredentials unhealthyNamedAccountCredentialsFirst;

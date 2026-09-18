@@ -19,7 +19,8 @@ package com.netflix.spinnaker.gate.security.x509
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
 
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tags
 import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
@@ -84,7 +85,7 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
   FiatStatus fiatStatus
 
   @Autowired
-  Registry registry
+  MeterRegistry registry
 
   RetrySupport retrySupport = new RetrySupport()
 
@@ -164,9 +165,7 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
       }
 
       if (shouldLogin) {
-        def id = registry
-          .createId("fiat.login")
-          .withTag("type", "x509")
+        def tags = Tags.of("type", "x509")
 
         try {
           retrySupport.retry({ ->
@@ -179,7 +178,7 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
             }
           }, 5, Duration.ofSeconds(2), false)
 
-          id = id.withTag("success", true).withTag("fallback", "none")
+          tags = tags.and("success", "true").and("fallback", "none")
         } catch (Exception e) {
           log.debug(
             "Unsuccessful X509 authentication (user: {}, roleCount: {}, roles: {}, legacyFallback: {})",
@@ -189,13 +188,13 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
             fiatClientConfigurationProperties.legacyFallback,
             e
           )
-          id = id.withTag("success", false).withTag("fallback", fiatClientConfigurationProperties.legacyFallback)
+          tags = tags.and("success", "false").and("fallback", fiatClientConfigurationProperties.legacyFallback.toString())
 
           if (!fiatClientConfigurationProperties.legacyFallback) {
             throw e
           }
         } finally {
-          registry.counter(id).increment()
+          registry.counter("fiat.login", tags).increment()
         }
 
         if (loginDebounceEnabled) {

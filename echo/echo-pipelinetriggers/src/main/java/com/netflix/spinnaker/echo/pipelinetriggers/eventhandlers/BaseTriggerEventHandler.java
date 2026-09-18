@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.api.events.Event;
 import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.model.Trigger;
@@ -27,6 +26,7 @@ import com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -48,12 +48,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public abstract class BaseTriggerEventHandler<T extends TriggerEvent>
     implements TriggerEventHandler<T> {
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final FiatPermissionEvaluator fiatPermissionEvaluator;
   protected final ObjectMapper objectMapper;
 
   public BaseTriggerEventHandler(
-      Registry registry,
+      MeterRegistry registry,
       ObjectMapper objectMapper,
       FiatPermissionEvaluator fiatPermissionEvaluator) {
     this.registry = registry;

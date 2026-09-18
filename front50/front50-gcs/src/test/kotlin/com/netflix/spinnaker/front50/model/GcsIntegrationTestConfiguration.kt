@@ -19,13 +19,13 @@ package com.netflix.spinnaker.front50.model
 import com.google.auth.Credentials
 import com.google.cloud.storage.Storage
 import com.google.cloud.storage.StorageOptions
-import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.front50.config.GcsProperties
 import com.netflix.spinnaker.front50.config.StorageServiceConfigurationProperties
 import com.netflix.spinnnaker.front50.model.FakeStorageRpcFactory
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry
 import io.github.resilience4j.circuitbreaker.internal.InMemoryCircuitBreakerRegistry
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import io.mockk.mockk
 import java.time.Clock
 import java.time.Instant
@@ -42,7 +42,7 @@ class GcsIntegrationTestConfiguration {
   private val clock = Clock.fixed(Instant.ofEpochSecond(629528400L), ZoneOffset.UTC)
 
   @Bean
-  fun noopRegistry(): Registry = NoopRegistry()
+  fun noopRegistry(): MeterRegistry = SimpleMeterRegistry()
 
   @Bean
   @Primary

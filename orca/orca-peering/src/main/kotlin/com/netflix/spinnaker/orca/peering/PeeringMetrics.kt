@@ -16,77 +16,72 @@
 
 package com.netflix.spinnaker.orca.peering
 
-import com.netflix.spectator.api.Id
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tags
 import java.time.Duration
 
 open class PeeringMetrics(
   peeredId: String,
-  private val registry: Registry
+  private val registry: MeterRegistry
 ) {
 
-  private val peeringLagTimerId = registry.createId("pollers.peering.lag").withTag("peerId", peeredId)
-  private val peeringNumPeeredId = registry.createId("pollers.peering.numPeered").withTag("peerId", peeredId)
-  private val peeringNumDeletedId = registry.createId("pollers.peering.numDeleted").withTag("peerId", peeredId)
-  private val peeringNumStagesDeletedId = registry.createId("pollers.peering.numStagesDeleted").withTag("peerId", peeredId)
-  private val peeringNumErrorsId = registry.createId("pollers.peering.numErrors").withTag("peerId", peeredId)
-  private val peeringCustomPeererNumErrorsId = registry.createId("pollers.peering.customPeerer.numErrors").withTag("peerId", peeredId)
+  private val peerIdTags = Tags.of("peerId", peeredId)
 
   open fun recordOverallLag(block: () -> Unit) {
     registry
-      .timer(peeringLagTimerId.withTag("executionType", "OVER_ALL"))
-      .record {
-        block()
-      }
+      .timer("pollers.peering.lag", peerIdTags.and("executionType", "OVER_ALL"))
+      .record(Runnable { block() })
   }
 
   open fun recordLag(executionType: ExecutionType, duration: Duration) {
     registry
-      .timer(peeringLagTimerId.tag(executionType))
+      .timer("pollers.peering.lag", peerIdTags.tag(executionType))
       .record(duration)
   }
 
   open fun incrementNumPeered(executionType: ExecutionType, state: ExecutionState, count: Int) {
     registry
-      .counter(peeringNumPeeredId.tag(executionType, state))
-      .increment(count.toLong())
+      .counter("pollers.peering.numPeered", peerIdTags.tag(executionType, state))
+      .increment(count.toDouble())
   }
 
   open fun incrementNumDeleted(executionType: ExecutionType, count: Int) {
     registry
-      .counter(peeringNumDeletedId.tag(executionType))
-      .increment(count.toLong())
+      .counter("pollers.peering.numDeleted", peerIdTags.tag(executionType))
+      .increment(count.toDouble())
   }
 
   open fun incrementNumErrors(executionType: ExecutionType) {
     registry
-      .counter(peeringNumErrorsId.tag(executionType))
+      .counter("pollers.peering.numErrors", peerIdTags.tag(executionType))
       .increment()
   }
 
   open fun incrementNumStagesDeleted(executionType: ExecutionType, count: Int) {
     registry
-      .counter(peeringNumStagesDeletedId.tag(executionType))
-      .increment(count.toLong())
+      .counter("pollers.peering.numStagesDeleted", peerIdTags.tag(executionType))
+      .increment(count.toDouble())
   }
 
   open fun incrementCustomPeererError(peererName: String, exception: Exception) {
     registry
-      .counter(peeringCustomPeererNumErrorsId.withTags("peerer", peererName, "exception", exception.javaClass.simpleName))
+      .counter(
+        "pollers.peering.customPeerer.numErrors",
+        peerIdTags.and("peerer", peererName, "exception", exception.javaClass.simpleName)
+      )
       .increment()
   }
 }
 
-internal fun Id.tag(executionType: ExecutionType): Id {
-  return this
-    .withTag("executionType", executionType.toString())
+internal fun Tags.tag(executionType: ExecutionType): Tags {
+  return this.and("executionType", executionType.toString())
 }
 
-internal fun Id.tag(executionType: ExecutionType, state: ExecutionState): Id {
+internal fun Tags.tag(executionType: ExecutionType, state: ExecutionState): Tags {
   return this
-    .withTag("executionType", executionType.toString())
-    .withTag("state", state.toString())
+    .and("executionType", executionType.toString())
+    .and("state", state.toString())
 }
 
 enum class ExecutionState {

@@ -30,7 +30,6 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
@@ -53,6 +52,7 @@ import com.netflix.spinnaker.orca.q.DummyTask;
 import com.netflix.spinnaker.orca.q.RunTask;
 import com.netflix.spinnaker.orca.retrofit.exceptions.SpinnakerServerExceptionHandler;
 import com.netflix.spinnaker.q.Queue;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -166,7 +166,7 @@ class RunTaskHandlerExceptionHandlerTest {
             clock,
             exceptionHandlers,
             taskExecutionInterceptors,
-            new NoopRegistry(),
+            new SimpleMeterRegistry(),
             dynamicConfigService,
             retriableLock);
 

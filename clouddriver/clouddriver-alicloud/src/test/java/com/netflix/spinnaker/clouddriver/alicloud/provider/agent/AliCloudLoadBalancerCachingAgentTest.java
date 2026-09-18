@@ -28,7 +28,7 @@ import com.aliyuncs.slb.model.v20140515.DescribeLoadBalancerHTTPListenerAttribut
 import com.aliyuncs.slb.model.v20140515.DescribeLoadBalancersResponse;
 import com.aliyuncs.slb.model.v20140515.DescribeLoadBalancersResponse.LoadBalancer;
 import com.aliyuncs.slb.model.v20140515.DescribeVServerGroupsResponse;
-import com.netflix.spectator.api.Registry;
+import io.micrometer.core.instrument.MeterRegistry;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.alicloud.AliCloudProvider;
@@ -58,7 +58,7 @@ public class AliCloudLoadBalancerCachingAgentTest extends CommonCachingAgentTest
 
   @Subject AliCloudProvider aliCloudProvider = mock(AliCloudProvider.class);
 
-  @Subject Registry registry = mock(Registry.class);
+  @Subject MeterRegistry registry = mock(MeterRegistry.class);
 
   @Before
   public void testBefore() throws ClientException {

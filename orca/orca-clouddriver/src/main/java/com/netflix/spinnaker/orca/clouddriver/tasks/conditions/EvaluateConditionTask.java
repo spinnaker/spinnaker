@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.conditions;
 
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -27,6 +25,7 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.conditions.ConditionConfi
 import com.netflix.spinnaker.orca.clouddriver.pipeline.conditions.ConditionSupplier;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.conditions.WaitForConditionStage.WaitForConditionContext;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.conditions.WaitForConditionStage.WaitForConditionContext.Status;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -48,21 +47,19 @@ public class EvaluateConditionTask implements RetryableTask {
   private static final Logger log = LoggerFactory.getLogger(EvaluateConditionTask.class);
   private final ConditionConfigurationProperties conditionsConfigurationProperties;
   private final List<ConditionSupplier> suppliers;
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final Clock clock;
-  private final Id pauseDeployId;
 
   @Autowired
   public EvaluateConditionTask(
       ConditionConfigurationProperties conditionsConfigurationProperties,
       List<ConditionSupplier> suppliers,
-      Registry registry,
+      MeterRegistry registry,
       Clock clock) {
     this.conditionsConfigurationProperties = conditionsConfigurationProperties;
     this.suppliers = suppliers;
     this.registry = registry;
     this.clock = clock;
-    this.pauseDeployId = registry.createId("conditions.deploy.pause");
   }
 
   @Override
@@ -147,13 +144,13 @@ public class EvaluateConditionTask implements RetryableTask {
   private void recordDeployPause(WaitForConditionContext ctx) {
     registry
         .counter(
-            pauseDeployId.withTags(
-                "cluster",
-                ctx.getCluster(),
-                "region",
-                ctx.getRegion(),
-                "account",
-                ctx.getAccount()))
+            "conditions.deploy.pause",
+            "cluster",
+            ctx.getCluster(),
+            "region",
+            ctx.getRegion(),
+            "account",
+            ctx.getAccount())
         .increment();
   }
 

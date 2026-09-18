@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.scm
 
-import com.netflix.spectator.api.Registry
-import com.netflix.spectator.api.Tag
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tag
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactOriginFilter
 import com.netflix.spinnaker.keel.api.artifacts.branchName
 import com.netflix.spinnaker.keel.api.persistence.KeelReadOnlyRepository
@@ -46,7 +46,7 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
     val scmUtils: ScmUtils = mockk()
     val springEnv: Environment = mockk()
     val notificationRepository: DismissibleNotificationRepository = mockk()
-    val spectator: Registry = mockk()
+    val meterRegistry: MeterRegistry = mockk()
     val clock = MutableClock()
     val eventPublisher: ApplicationEventPublisher = mockk()
     val subject = DeliveryConfigImportListener(
@@ -57,7 +57,7 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
       front50Cache = front50Cache,
       scmUtils = scmUtils,
       springEnv = springEnv,
-      spectator = spectator,
+      meterRegistry = meterRegistry,
       eventPublisher = eventPublisher,
       clock = clock
     )
@@ -109,7 +109,7 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
       } returns true
 
       every {
-        spectator.counter(any(), any<Iterable<Tag>>())
+        meterRegistry.counter(any(), any<Iterable<Tag>>())
       } returns mockk {
         every {
           increment()
@@ -214,7 +214,7 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
           test("a successful delivery config retrieval is counted") {
             val tags = mutableListOf<Iterable<Tag>>()
             verify {
-              spectator.counter(CODE_EVENT_COUNTER, capture(tags))
+              meterRegistry.counter(CODE_EVENT_COUNTER, capture(tags))
             }
             expectThat(tags).one {
               contains(DELIVERY_CONFIG_RETRIEVAL_SUCCESS.toTags())
@@ -334,7 +334,7 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
           test("a delivery config retrieval error is counted") {
             val tags = mutableListOf<Iterable<Tag>>()
             verify {
-              spectator.counter(CODE_EVENT_COUNTER, capture(tags))
+              meterRegistry.counter(CODE_EVENT_COUNTER, capture(tags))
             }
             expectThat(tags).one {
               contains(DELIVERY_CONFIG_RETRIEVAL_ERROR.toTags())

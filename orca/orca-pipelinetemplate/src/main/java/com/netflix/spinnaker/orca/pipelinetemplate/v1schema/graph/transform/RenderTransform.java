@@ -16,8 +16,6 @@
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.transform;
 
 import com.google.common.base.Strings;
-import com.netflix.spectator.api.Registry;
-import com.netflix.spectator.api.Timer;
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.IllegalTemplateConfigurationException;
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateRenderException;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.PipelineTemplateVisitor;
@@ -27,6 +25,8 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderUtil;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors.Error;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -40,7 +40,7 @@ public class RenderTransform implements PipelineTemplateVisitor {
 
   Renderer renderer;
 
-  Registry registry;
+  MeterRegistry registry;
 
   Map<String, Object> trigger;
 
@@ -49,7 +49,7 @@ public class RenderTransform implements PipelineTemplateVisitor {
   public RenderTransform(
       TemplateConfiguration templateConfiguration,
       Renderer renderer,
-      Registry registry,
+      MeterRegistry registry,
       Map<String, Object> trigger) {
     this.templateConfiguration = templateConfiguration;
     this.renderer = renderer;
@@ -60,9 +60,9 @@ public class RenderTransform implements PipelineTemplateVisitor {
 
   @Override
   public void visitPipelineTemplate(PipelineTemplate pipelineTemplate) {
-    long start = registry.clock().monotonicTime();
+    long start = registry.config().clock().monotonicTime();
     render(pipelineTemplate);
-    long end = registry.clock().monotonicTime();
+    long end = registry.config().clock().monotonicTime();
     renderTemplateTimer.record(end - start, TimeUnit.NANOSECONDS);
   }
 

@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.gate.health
 
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.actuate.health.AbstractHealthIndicator
 import org.springframework.boot.actuate.health.Health
@@ -52,7 +52,7 @@ class RedisRelaxedHealthIndicator extends AbstractHealthIndicator {
   private final Pool<Jedis> jedisPool
 
   @Autowired
-  RedisRelaxedHealthIndicator(JedisPool jedisPool, Registry registry) {
+  RedisRelaxedHealthIndicator(JedisPool jedisPool, MeterRegistry registry) {
     Assert.notNull(jedisPool, "JedisPool must not be null")
     Assert.notNull(registry, "Registry must not be null")
 

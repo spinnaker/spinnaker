@@ -15,13 +15,13 @@
  */
 package com.netflix.spinnaker.orca.q
 
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.q.Activator
 import com.netflix.spinnaker.q.Message
 import com.netflix.spinnaker.q.Queue
+import io.micrometer.core.instrument.MeterRegistry
 import java.time.Duration
 import java.time.Instant
 import jakarta.annotation.PostConstruct
@@ -42,16 +42,12 @@ private const val workDurationMs = (0.95 * rateMs).toLong()
 class QueueShovel(
   private val queue: Queue,
   private val previousQueue: Queue,
-  private val registry: Registry,
+  private val registry: MeterRegistry,
   private val activator: Activator,
   private val config: DynamicConfigService,
   private val executionRepository: ExecutionRepository?
 ) {
   private val log = LoggerFactory.getLogger(javaClass)
-
-  private val pollOpsRateId = registry.createId("orca.nu.shovel.pollOpsRate")
-  private val shoveledMessageId = registry.createId("orca.nu.shovel.pushedMessageRate")
-  private val shovelErrorId = registry.createId("orca.nu.shovel.pushedMessageErrorRate")
 
   @Scheduled(fixedRate = rateMs)
   fun migrateIfActive() {
@@ -72,7 +68,7 @@ class QueueShovel(
   private fun isActive() = config.getConfig(Boolean::class.java, "queue.shovel.active", false) && activator.enabled
 
   fun migrateOne() {
-    registry.counter(pollOpsRateId).increment()
+    registry.counter("orca.nu.shovel.pollOpsRate").increment()
     previousQueue.poll { message, ack ->
       try {
         log.debug("Shoveling message $message")
@@ -83,17 +79,17 @@ class QueueShovel(
 
         queue.push(message)
         ack.invoke()
-        registry.counter(shoveledMessageId).increment()
+        registry.counter("orca.nu.shovel.pushedMessageRate").increment()
       } catch (e: ExecutionNotFoundException) {
         // no need to log the stack trace on ExecutionNotFoundException, which can be somewhat expected
         log.error(
           "Failed shoveling message from previous queue to active (message: $message) " +
             "because of exception $e"
         )
-        registry.counter(shovelErrorId).increment()
+        registry.counter("orca.nu.shovel.pushedMessageErrorRate").increment()
       } catch (e: Throwable) {
         log.error("Failed shoveling message from previous queue to active (message: $message)", e)
-        registry.counter(shovelErrorId).increment()
+        registry.counter("orca.nu.shovel.pushedMessageErrorRate").increment()
       }
     }
   }

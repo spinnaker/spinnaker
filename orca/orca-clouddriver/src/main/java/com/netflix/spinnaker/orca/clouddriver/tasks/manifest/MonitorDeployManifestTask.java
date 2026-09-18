@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.manifest;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
@@ -35,6 +34,7 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask;
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.model.SystemNotification;
 import groovy.util.logging.Slf4j;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
@@ -53,7 +53,7 @@ public class MonitorDeployManifestTask extends MonitorKatoTask {
   public MonitorDeployManifestTask(
       KatoService katoService,
       OortService oortService,
-      Registry registry,
+      MeterRegistry registry,
       DynamicConfigService dynamicConfigService,
       RetrySupport retrySupport) {
     super(katoService, registry, dynamicConfigService, retrySupport);

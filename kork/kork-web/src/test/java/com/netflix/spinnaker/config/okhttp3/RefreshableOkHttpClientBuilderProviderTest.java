@@ -19,7 +19,6 @@ package com.netflix.spinnaker.config.okhttp3;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.netflix.spinnaker.config.DefaultServiceEndpoint;
-import com.netflix.spinnaker.config.MetricsEndpointConfiguration;
 import com.netflix.spinnaker.config.ServiceEndpoint;
 import com.netflix.spinnaker.kork.crypto.StandardCrypto;
 import com.netflix.spinnaker.kork.crypto.TrustStores;
@@ -27,7 +26,6 @@ import com.netflix.spinnaker.kork.crypto.X509Identity;
 import com.netflix.spinnaker.kork.crypto.X509IdentitySource;
 import com.netflix.spinnaker.kork.crypto.test.CertificateIdentity;
 import com.netflix.spinnaker.kork.crypto.test.TestCrypto;
-import com.netflix.spinnaker.kork.metrics.SpectatorConfiguration;
 import com.sun.net.httpserver.HttpsConfigurator;
 import com.sun.net.httpserver.HttpsServer;
 import java.io.IOException;
@@ -66,8 +64,6 @@ import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.boot.autoconfigure.task.TaskExecutionAutoConfiguration;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.FilterType;
-import org.springframework.context.annotation.Import;
 
 class RefreshableOkHttpClientBuilderProviderTest {
 
@@ -232,13 +228,7 @@ class RefreshableOkHttpClientBuilderProviderTest {
             });
   }
 
-  @Import(SpectatorConfiguration.class)
-  @ComponentScan(
-      basePackages = "com.netflix.spinnaker.config",
-      excludeFilters =
-          @ComponentScan.Filter(
-              type = FilterType.ASSIGNABLE_TYPE,
-              classes = MetricsEndpointConfiguration.class))
+  @ComponentScan(basePackages = "com.netflix.spinnaker.config")
   static class TestConfig {}
 
   private static int findAvailablePort() throws IOException {

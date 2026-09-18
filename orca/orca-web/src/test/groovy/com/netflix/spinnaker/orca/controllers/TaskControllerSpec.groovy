@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.collect.Collections2
-import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.config.TaskControllerConfigurationProperties
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
@@ -46,6 +45,7 @@ import retrofit2.converter.jackson.JacksonConverterFactory
 import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Unroll
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import io.reactivex.rxjava3.core.Observable
 
 import java.time.Clock
@@ -68,7 +68,7 @@ class TaskControllerSpec extends Specification {
   def executionRunner = Mock(ExecutionRunner)
   def executionOperator = Mock(CompoundExecutionOperator)
   def mapper = OrcaObjectMapper.getInstance()
-  def registry = new NoopRegistry()
+  def registry = new SimpleMeterRegistry()
 
   def clock = Clock.fixed(Instant.now(), UTC)
   def taskControllerConfigurationProperties = new TaskControllerConfigurationProperties()

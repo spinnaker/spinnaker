@@ -42,7 +42,6 @@ import com.google.api.services.compute.model.Scheduling;
 import com.google.api.services.compute.model.ServiceAccount;
 import com.google.api.services.compute.model.Tags;
 import com.netflix.frigga.Names;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
@@ -87,6 +86,7 @@ import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import com.netflix.spinnaker.moniker.Moniker;
 import com.netflix.spinnaker.moniker.Namer;
 import groovy.lang.Closure;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.*;
@@ -134,7 +134,7 @@ public class BasicGoogleDeployHandler
 
   @Autowired SafeRetry safeRetry;
 
-  @Autowired Registry registry;
+  @Autowired MeterRegistry registry;
 
   private static Task getTask() {
     return TaskRepository.threadLocalTask.get();
@@ -1721,7 +1721,7 @@ public class BasicGoogleDeployHandler
   }
 
   @Override
-  public Registry getRegistry() {
+  public MeterRegistry getRegistry() {
     return registry;
   }
 

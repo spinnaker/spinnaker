@@ -17,10 +17,10 @@
 package com.netflix.spinnaker.clouddriver.cloudrun.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.cloudrun.provider.CloudrunProvider;
 import com.netflix.spinnaker.clouddriver.cloudrun.provider.agent.CloudrunServerGroupCachingAgent;
 import com.netflix.spinnaker.credentials.CredentialsLifecycleHandler;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Collections;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +33,7 @@ public class CloudrunCredentialsLifecycleHandler
 
   private final CloudrunProvider cloudrunCloudProvider;
   private final ObjectMapper objectMapper;
-  private final Registry registry;
+  private final MeterRegistry registry;
 
   @Override
   public void credentialsAdded(CloudrunNamedAccountCredentials credentials) {

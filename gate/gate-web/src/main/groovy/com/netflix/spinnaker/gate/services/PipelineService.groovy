@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.gate.services
 
-import com.netflix.spectator.api.Registry
-import com.netflix.spectator.api.histogram.PercentileTimer
-import com.netflix.spectator.api.patterns.IntervalCounter;
 import com.netflix.spinnaker.gate.services.internal.EchoService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
@@ -27,6 +24,9 @@ import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import de.huxhorn.sulky.ulid.ULID
 import groovy.util.logging.Slf4j
+import io.micrometer.core.instrument.Counter
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Timer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -55,24 +55,22 @@ class PipelineService {
   private final RetrySupport retrySupport = new RetrySupport()
 
   @Autowired
-  Registry registry
+  MeterRegistry registry
 
   // Echo Event Metrics
-  private IntervalCounter echoEventsIntervalCounter;
-  private PercentileTimer echoEventsPercentileTimer;
-  private IntervalCounter echoEventsErrorIntervalCounter;
+  private Counter echoEventsCounter;
+  private Timer echoEventsPercentileTimer;
+  private Counter echoEventsErrorCounter;
 
   @PostConstruct
   public void postConstruct() {
     // Metrics for Echo Event handling.
     final String idPrefix = "echo.events";
 
-    this.echoEventsIntervalCounter =
-      IntervalCounter.get(this.registry, this.registry.createId(idPrefix + ".count"));
+    this.echoEventsCounter = this.registry.counter(idPrefix + ".count");
     this.echoEventsPercentileTimer =
-      PercentileTimer.get(this.registry, this.registry.createId(idPrefix + ".duration"));
-    this.echoEventsErrorIntervalCounter =
-      IntervalCounter.get(this.registry, this.registry.createId(idPrefix + ".error"));
+      Timer.builder(idPrefix + ".duration").publishPercentileHistogram().register(this.registry);
+    this.echoEventsErrorCounter = this.registry.counter(idPrefix + ".error");
   }
 
   void deleteForApplication(String applicationName, String pipelineName) {
@@ -137,19 +135,19 @@ class PipelineService {
       eventId: eventId
     ]
 
-    final long startTimeNanos = registry.clock().monotonicTime();
+    final long startTimeNanos = registry.config().clock().monotonicTime();
 
     try {
       Retrofit2SyncCall.execute(echoService.postEvent(eventMap))
     } catch (Exception e) {
-      echoEventsErrorIntervalCounter.increment();
+      echoEventsErrorCounter.increment();
       log.error("Event processing failure: eventId={}, event={}", eventId, eventMap, e);
       throw(e)
     }
 
     // Echo Event Metrics
-    final long durationInNanos = registry.clock().monotonicTime() - startTimeNanos;
-    echoEventsIntervalCounter.increment();
+    final long durationInNanos = registry.config().clock().monotonicTime() - startTimeNanos;
+    echoEventsCounter.increment();
     echoEventsPercentileTimer.record(durationInNanos, TimeUnit.NANOSECONDS);
 
     log.debug(

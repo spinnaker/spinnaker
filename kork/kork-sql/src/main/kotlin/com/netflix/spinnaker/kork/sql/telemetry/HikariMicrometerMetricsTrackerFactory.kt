@@ -13,27 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.orca.sql.telemetry
+package com.netflix.spinnaker.kork.sql.telemetry
 
-import com.netflix.spectator.api.Registry
-import com.zaxxer.hikari.metrics.MetricsTracker
+import com.zaxxer.hikari.metrics.IMetricsTracker
 import com.zaxxer.hikari.metrics.MetricsTrackerFactory
 import com.zaxxer.hikari.metrics.PoolStats
+import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.scheduling.annotation.Scheduled
 
-class SpectatorHikariMetricsTrackerFactory(
-  private val registry: Registry
+/**
+ * Records HikariCP metrics into Micrometer.
+ */
+class HikariMicrometerMetricsTrackerFactory(
+  private val registry: MeterRegistry
 ) : MetricsTrackerFactory {
 
-  private val trackers: MutableMap<String, SpectatorHikariMetricsTracker> = mutableMapOf()
+  private val trackers: MutableMap<String, HikariMicrometerMetricsTracker> = mutableMapOf()
 
+  /**
+   * Record all connection pools' statistics.
+   */
   @Scheduled(fixedRate = 5000L)
   fun recordConnectionPoolMetrics() {
     trackers.values.forEach { it.recordPoolStats() }
   }
 
-  override fun create(poolName: String, poolStats: PoolStats): MetricsTracker =
-    SpectatorHikariMetricsTracker(poolName, poolStats, registry).let {
+  override fun create(poolName: String, poolStats: PoolStats): IMetricsTracker =
+    HikariMicrometerMetricsTracker(poolName, poolStats, registry).let {
       trackers.putIfAbsent(poolName, it)
       it
     }

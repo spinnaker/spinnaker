@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.gate.config
 
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.gate.filters.ContentCachingFilter
 import com.netflix.spinnaker.gate.interceptors.RequestContextInterceptor
 import com.netflix.spinnaker.gate.interceptors.ResponseHeaderInterceptor
@@ -25,6 +24,7 @@ import com.netflix.spinnaker.gate.retrofit.UpstreamBadRequest
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.web.context.MdcCopyingAsyncTaskExecutor
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
+import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
@@ -53,13 +53,10 @@ import jakarta.servlet.http.HttpServletResponse
 @EnableConfigurationProperties(ResponseHeaderInterceptorConfigurationProperties.class)
 public class GateWebConfig implements WebMvcConfigurer {
   @Autowired
-  Registry registry
+  MeterRegistry registry
 
   @Autowired
   DynamicConfigService dynamicConfigService
-
-  @Autowired
-  Registry spectatorRegistry
 
   @Value('${rate-limit.learning:true}')
   Boolean rateLimitLearningMode

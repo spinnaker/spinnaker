@@ -17,10 +17,10 @@
 package com.netflix.spinnaker.clouddriver.docker.registry.health;
 
 import com.google.common.collect.ImmutableList;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.core.AccountHealthIndicator;
 import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryNamedAccountCredentials;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Optional;
 
 public class DockerRegistryHealthIndicator
@@ -29,7 +29,7 @@ public class DockerRegistryHealthIndicator
   private final CredentialsRepository<DockerRegistryNamedAccountCredentials> credentialsRepository;
 
   public DockerRegistryHealthIndicator(
-      Registry registry,
+      MeterRegistry registry,
       CredentialsRepository<DockerRegistryNamedAccountCredentials> credentialsRepository) {
     super(ID, registry);
     this.credentialsRepository = credentialsRepository;

@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.kork.pubsub.aws;
 
 import com.google.common.base.Preconditions;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.aws.ARN;
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
@@ -26,6 +25,7 @@ import com.netflix.spinnaker.kork.pubsub.aws.api.AmazonMessageAcknowledger;
 import com.netflix.spinnaker.kork.pubsub.aws.api.AmazonPubsubMessageHandlerFactory;
 import com.netflix.spinnaker.kork.pubsub.aws.config.AmazonPubsubProperties;
 import com.netflix.spinnaker.kork.pubsub.model.PubsubSubscriber;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
@@ -52,7 +52,7 @@ public class SQSSubscriberProvider {
   private final AmazonPubsubProperties properties;
   private final PubsubSubscribers pubsubSubscribers;
   private final AmazonPubsubMessageHandlerFactory pubsubMessageHandlerFactory;
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final DiscoveryStatusListener discoveryStatus;
   private final DynamicConfigService dynamicConfig;
   private final AmazonMessageAcknowledger messageAcknowledger;
@@ -64,7 +64,7 @@ public class SQSSubscriberProvider {
       PubsubSubscribers pubsubSubscribers,
       AmazonPubsubMessageHandlerFactory pubsubMessageHandlerFactory,
       AmazonMessageAcknowledger messageAcknowledger,
-      Registry registry,
+      MeterRegistry registry,
       DiscoveryStatusListener discoveryStatus,
       DynamicConfigService dynamicConfig) {
     this.awsCredentialsProvider = awsCredentialsProvider;

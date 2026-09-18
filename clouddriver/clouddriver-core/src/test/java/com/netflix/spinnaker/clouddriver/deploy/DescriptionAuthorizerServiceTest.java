@@ -26,7 +26,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.netflix.spectator.api.DefaultRegistry;
 import com.netflix.spinnaker.clouddriver.security.AccountDefinitionSecretManager;
 import com.netflix.spinnaker.clouddriver.security.config.SecurityConfig;
 import com.netflix.spinnaker.clouddriver.security.resources.AccountNameable;
@@ -34,6 +33,7 @@ import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable;
 import com.netflix.spinnaker.clouddriver.security.resources.ResourcesNameable;
 import com.netflix.spinnaker.fiat.model.resources.ResourceType;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -54,7 +54,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 public class DescriptionAuthorizerServiceTest {
 
-  private final DefaultRegistry registry = new DefaultRegistry();
+  private final SimpleMeterRegistry registry = new SimpleMeterRegistry();
   private final FiatPermissionEvaluator evaluator = mock(FiatPermissionEvaluator.class);
   private final AccountDefinitionSecretManager secretManager =
       mock(AccountDefinitionSecretManager.class);
@@ -74,7 +74,7 @@ public class DescriptionAuthorizerServiceTest {
 
   @AfterEach
   public void resetRegistry() {
-    registry.reset();
+    registry.clear();
   }
 
   @ParameterizedTest

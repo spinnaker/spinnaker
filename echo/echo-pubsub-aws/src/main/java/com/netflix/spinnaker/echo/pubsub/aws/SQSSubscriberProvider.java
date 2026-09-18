@@ -18,7 +18,6 @@ package com.netflix.spinnaker.echo.pubsub.aws;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.artifacts.MessageArtifactTranslator;
 import com.netflix.spinnaker.echo.config.AmazonPubsubProperties;
 import com.netflix.spinnaker.echo.pubsub.PubsubEventCreator;
@@ -29,6 +28,7 @@ import com.netflix.spinnaker.echo.pubsub.model.PubsubSubscriber;
 import com.netflix.spinnaker.kork.aws.ARN;
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,7 +58,7 @@ public class SQSSubscriberProvider {
   private final AmazonPubsubProperties properties;
   private final PubsubSubscribers pubsubSubscribers;
   private final PubsubMessageHandler.Factory pubsubMessageHandlerFactory;
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final MessageArtifactTranslator.Factory messageArtifactTranslatorFactory;
   private final DynamicConfigService dynamicConfigService;
   private final DiscoveryStatusListener discoveryStatusListener;
@@ -70,7 +70,7 @@ public class SQSSubscriberProvider {
       AmazonPubsubProperties properties,
       PubsubSubscribers pubsubSubscribers,
       PubsubMessageHandler.Factory pubsubMessageHandlerFactory,
-      Registry registry,
+      MeterRegistry registry,
       MessageArtifactTranslator.Factory messageArtifactTranslatorFactory,
       DynamicConfigService dynamicConfigService,
       DiscoveryStatusListener discoveryStatusListener) {

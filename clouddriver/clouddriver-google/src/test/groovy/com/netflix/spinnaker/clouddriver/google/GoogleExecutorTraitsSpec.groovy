@@ -21,9 +21,13 @@ import com.google.api.client.http.HttpResponseException
 import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.googleapis.services.AbstractGoogleClientRequest
 
-import com.netflix.spectator.api.DefaultRegistry
-import com.netflix.spectator.api.ManualClock
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.MockClock
+import io.micrometer.core.instrument.Tag
+import io.micrometer.core.instrument.Tags
+import io.micrometer.core.instrument.Timer
+import io.micrometer.core.instrument.simple.SimpleConfig
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import static com.netflix.spinnaker.clouddriver.google.security.AccountForClient.UNKNOWN_ACCOUNT
 
 import spock.lang.Specification
@@ -43,8 +47,12 @@ import java.util.concurrent.TimeUnit
  */
 class GoogleExecutorTraitsSpec extends Specification {
   class Example implements GoogleExecutorTraits {
-    ManualClock clock = new ManualClock(777, 1000)  // wallTime is not used
-    Registry registry = new DefaultRegistry(clock)
+    MockClock clock = new MockClock()
+    MeterRegistry registry = new SimpleMeterRegistry(SimpleConfig.DEFAULT, clock)
+  }
+
+  private static Tags toTags(Map<String, String> map) {
+    Tags.of(map.collect { k, v -> Tag.of(k.toString(), v.toString()) })
   }
 
   void "increment success timer"() {
@@ -60,16 +68,16 @@ class GoogleExecutorTraitsSpec extends Specification {
 
     when:
       // Put an existing timer with data into the registry to show accumulation
-      registry.timer(registry.createId("google.api", tags)).record(3, TimeUnit.NANOSECONDS)
+      registry.timer("google.api", toTags(tags)).record(3, TimeUnit.NANOSECONDS)
       example.timeExecute(request, "TestApi", "random", "xyz")
 
     then:
       tags == [api: "TestApi", success: "true", statusCode: lastStatusCode, status: lastStatus,
                random: "xyz", account: UNKNOWN_ACCOUNT]
-      1 * request.execute() >> { example.clock.setMonotonicTime(456 + 1000) }
-      registry.timer(registry.createId("google.api", tags)).count() == 1 + 1
-      registry.timer(registry.createId("google.api", tags)).totalTime() == 3 + 456
-      registry.timers().count() == 1
+      1 * request.execute() >> { example.clock.add(456, TimeUnit.NANOSECONDS) }
+      registry.timer("google.api", toTags(tags)).count() == 1 + 1
+      registry.timer("google.api", toTags(tags)).totalTime(TimeUnit.NANOSECONDS) == 3 + 456
+      registry.getMeters().count { it instanceof Timer } == 1
   }
 
   void "increment Exception failure timer"() {
@@ -80,19 +88,19 @@ class GoogleExecutorTraitsSpec extends Specification {
     def tags = GoogleApiTestUtils.makeTraitsTagMap("TestApi", 543, [account: UNKNOWN_ACCOUNT])
 
     when:
-    registry.timer(registry.createId("google.api", tags)).record(3, TimeUnit.NANOSECONDS)
+    registry.timer("google.api", toTags(tags)).record(3, TimeUnit.NANOSECONDS)
     example.timeExecute(request, "TestApi")
 
     then:
     tags == [api: "TestApi", success: "false", statusCode: "543", status: "5xx", account: UNKNOWN_ACCOUNT]
     1 * request.execute() >> {
-        example.clock.setMonotonicTime(123 + 1000);
+        example.clock.add(123, TimeUnit.NANOSECONDS)
         throw GoogleApiTestUtils.makeHttpResponseException(543)
     }
     thrown(HttpResponseException)
-    registry.timer(registry.createId("google.api", tags)).count() == 1 + 1
-    registry.timer(registry.createId("google.api", tags)).totalTime() == 123 + 3
-    registry.timers().count() == 1
+    registry.timer("google.api", toTags(tags)).count() == 1 + 1
+    registry.timer("google.api", toTags(tags)).totalTime(TimeUnit.NANOSECONDS) == 123 + 3
+    registry.getMeters().count { it instanceof Timer } == 1
   }
 
   void "increment generic failure timer and timers accumulate"() {
@@ -103,15 +111,15 @@ class GoogleExecutorTraitsSpec extends Specification {
       def tags = GoogleApiTestUtils.makeTraitsTagMap("TestApi", -1, [account: UNKNOWN_ACCOUNT])
 
     when:
-      registry.timer(registry.createId("google.api", tags)).record(3, TimeUnit.NANOSECONDS)
+      registry.timer("google.api", toTags(tags)).record(3, TimeUnit.NANOSECONDS)
       example.timeExecute(request, "TestApi")
 
     then:
       tags == [api: "TestApi", success: "false", statusCode: "-1", status: "-xx", account: UNKNOWN_ACCOUNT]
-      1 * request.execute() >> { example.clock.setMonotonicTime(123 + 1000); throw new NullPointerException() }
+      1 * request.execute() >> { example.clock.add(123, TimeUnit.NANOSECONDS); throw new NullPointerException() }
       thrown(NullPointerException)
-      registry.timer(registry.createId("google.api", tags)).count() == 1 + 1
-      registry.timer(registry.createId("google.api", tags)).totalTime() == 123 + 3
-      registry.timers().count() == 1
+      registry.timer("google.api", toTags(tags)).count() == 1 + 1
+      registry.timer("google.api", toTags(tags)).totalTime(TimeUnit.NANOSECONDS) == 123 + 3
+      registry.getMeters().count { it instanceof Timer } == 1
   }
 }

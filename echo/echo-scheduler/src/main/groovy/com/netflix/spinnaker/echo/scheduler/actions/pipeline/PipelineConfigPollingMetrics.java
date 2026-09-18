@@ -1,60 +1,58 @@
 package com.netflix.spinnaker.echo.scheduler.actions.pipeline;
 
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class PipelineConfigPollingMetrics {
-  private final Registry registry;
+  private final MeterRegistry registry;
 
-  private final Id triggerCountId;
-  private final Id removeCountId;
-  private final Id removeFailCountId;
-  private final Id failedUpdateCountId;
-  private final Id addCountId;
-  private final Id syncErrorId;
-  private final Id syncTimeId;
+  private final AtomicInteger triggerCount = new AtomicInteger();
+  private final AtomicInteger removeCount = new AtomicInteger();
+  private final AtomicInteger removeFailCount = new AtomicInteger();
+  private final AtomicInteger failedUpdateCount = new AtomicInteger();
+  private final AtomicInteger addCount = new AtomicInteger();
 
   @Autowired
-  public PipelineConfigPollingMetrics(Registry registry) {
+  public PipelineConfigPollingMetrics(MeterRegistry registry) {
     this.registry = registry;
-    triggerCountId = registry.createId("echo.triggers.count");
-    removeCountId = registry.createId("echo.triggers.sync.removeCount");
-    removeFailCountId = registry.createId("echo.triggers.sync.removeFailCount");
-    failedUpdateCountId = registry.createId("echo.triggers.sync.failedUpdateCount");
-    addCountId = registry.createId("echo.triggers.sync.addCount");
-    syncErrorId = registry.createId("echo.triggers.sync.error");
-    syncTimeId = registry.createId("echo.triggers.sync.executionTimeMillis");
+    registry.gauge("echo.triggers.count", triggerCount);
+    registry.gauge("echo.triggers.sync.removeCount", removeCount);
+    registry.gauge("echo.triggers.sync.removeFailCount", removeFailCount);
+    registry.gauge("echo.triggers.sync.failedUpdateCount", failedUpdateCount);
+    registry.gauge("echo.triggers.sync.addCount", addCount);
   }
 
   public void triggerCount(int count) {
-    registry.gauge(triggerCountId).set(count);
+    triggerCount.set(count);
   }
 
   public void incrementTriggerSyncError() {
-    registry.counter(syncErrorId).increment();
+    registry.counter("echo.triggers.sync.error").increment();
   }
 
   public void removeCount(int count) {
-    registry.gauge(removeCountId).set(count);
+    removeCount.set(count);
   }
 
   public void failedRemoveCount(int count) {
-    registry.gauge(removeFailCountId).set(count);
+    removeFailCount.set(count);
   }
 
   public void failedUpdateCount(int count) {
-    registry.gauge(failedUpdateCountId).set(count);
+    failedUpdateCount.set(count);
   }
 
   public void addCount(int count) {
-    registry.gauge(addCountId).set(count);
+    addCount.set(count);
   }
 
   public void recordSyncTime(long elapsedMillis) {
-    registry.timer(syncTimeId).record(elapsedMillis, TimeUnit.MILLISECONDS);
+    registry
+        .timer("echo.triggers.sync.executionTimeMillis")
+        .record(elapsedMillis, TimeUnit.MILLISECONDS);
   }
 }

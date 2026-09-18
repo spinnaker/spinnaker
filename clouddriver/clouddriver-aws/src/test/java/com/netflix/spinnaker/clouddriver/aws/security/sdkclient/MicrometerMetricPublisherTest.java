@@ -18,25 +18,26 @@ package com.netflix.spinnaker.clouddriver.aws.security.sdkclient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.netflix.spectator.api.DefaultRegistry;
-import com.netflix.spectator.api.Registry;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricCollector;
 
-/** Unit tests for {@link SpectatorMetricPublisher}. */
-class SpectatorMetricPublisherTest {
+/** Unit tests for {@link MicrometerMetricPublisher}. */
+class MicrometerMetricPublisherTest {
 
-  private Registry registry;
-  private SpectatorMetricPublisher publisher;
+  private MeterRegistry registry;
+  private MicrometerMetricPublisher publisher;
 
   @BeforeEach
   void setUp() {
-    registry = new DefaultRegistry();
-    publisher = new SpectatorMetricPublisher(registry);
+    registry = new SimpleMeterRegistry();
+    publisher = new MicrometerMetricPublisher(registry);
   }
 
   @Test
@@ -50,13 +51,15 @@ class SpectatorMetricPublisherTest {
     publisher.publish(collection);
 
     long totalTime =
-        registry
-            .timer(
-                registry
-                    .createId("aws.sdk.v2.apiCallDuration")
-                    .withTag("serviceName", "Ecs")
-                    .withTag("operationName", "ListServices"))
-            .totalTime();
+        (long)
+            registry
+                .timer(
+                    "aws.sdk.v2.apiCallDuration",
+                    "serviceName",
+                    "Ecs",
+                    "operationName",
+                    "ListServices")
+                .totalTime(TimeUnit.NANOSECONDS);
     // Timer records in nanoseconds; 250ms = 250_000_000 ns
     assertThat(totalTime).isEqualTo(250_000_000L);
   }
@@ -72,13 +75,15 @@ class SpectatorMetricPublisherTest {
     publisher.publish(collection);
 
     long count =
-        registry
-            .counter(
-                registry
-                    .createId("aws.sdk.v2.retryCount")
-                    .withTag("serviceName", "Ecs")
-                    .withTag("operationName", "DescribeServices"))
-            .count();
+        (long)
+            registry
+                .counter(
+                    "aws.sdk.v2.retryCount",
+                    "serviceName",
+                    "Ecs",
+                    "operationName",
+                    "DescribeServices")
+                .count();
     assertThat(count).isEqualTo(3L);
   }
 
@@ -93,13 +98,11 @@ class SpectatorMetricPublisherTest {
     publisher.publish(collection);
 
     long count =
-        registry
-            .counter(
-                registry
-                    .createId("aws.sdk.v2.retryCount")
-                    .withTag("serviceName", "Ecs")
-                    .withTag("operationName", "ListTasks"))
-            .count();
+        (long)
+            registry
+                .counter(
+                    "aws.sdk.v2.retryCount", "serviceName", "Ecs", "operationName", "ListTasks")
+                .count();
     assertThat(count).isEqualTo(0L);
   }
 
@@ -112,13 +115,15 @@ class SpectatorMetricPublisherTest {
     publisher.publish(collection);
 
     long totalTime =
-        registry
-            .timer(
-                registry
-                    .createId("aws.sdk.v2.apiCallDuration")
-                    .withTag("serviceName", "unknown")
-                    .withTag("operationName", "unknown"))
-            .totalTime();
+        (long)
+            registry
+                .timer(
+                    "aws.sdk.v2.apiCallDuration",
+                    "serviceName",
+                    "unknown",
+                    "operationName",
+                    "unknown")
+                .totalTime(TimeUnit.NANOSECONDS);
     assertThat(totalTime).isEqualTo(100_000_000L);
   }
 
@@ -138,13 +143,15 @@ class SpectatorMetricPublisherTest {
     publisher.publish(collection);
 
     long totalTime =
-        registry
-            .timer(
-                registry
-                    .createId("aws.sdk.v2.apiCallDuration")
-                    .withTag("serviceName", "Ecr")
-                    .withTag("operationName", "GetAuthorizationToken"))
-            .totalTime();
+        (long)
+            registry
+                .timer(
+                    "aws.sdk.v2.apiCallDuration",
+                    "serviceName",
+                    "Ecr",
+                    "operationName",
+                    "GetAuthorizationToken")
+                .totalTime(TimeUnit.NANOSECONDS);
     assertThat(totalTime).isEqualTo(50_000_000L);
   }
 }

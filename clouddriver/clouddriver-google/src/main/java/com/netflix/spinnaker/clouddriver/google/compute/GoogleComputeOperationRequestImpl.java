@@ -18,8 +18,8 @@ package com.netflix.spinnaker.clouddriver.google.compute;
 
 import com.google.api.services.compute.ComputeRequest;
 import com.google.api.services.compute.model.Operation;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.io.IOException;
 import java.util.Map;
 
@@ -36,7 +36,7 @@ final class GoogleComputeOperationRequestImpl<RequestT extends ComputeRequest<Op
 
   GoogleComputeOperationRequestImpl(
       RequestT request,
-      Registry registry,
+      MeterRegistry registry,
       String metricName,
       Map<String, String> tags,
       OperationWaiter operationWaiter) {

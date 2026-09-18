@@ -18,8 +18,6 @@ package com.netflix.spinnaker.fiat.shared;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.fiat.model.Authorization;
 import com.netflix.spinnaker.fiat.model.SpinnakerAuthorities;
 import com.netflix.spinnaker.fiat.model.UserPermission;
@@ -32,6 +30,8 @@ import com.netflix.spinnaker.kork.telemetry.caffeine.CaffeineStatsCounter;
 import com.netflix.spinnaker.security.AccessControlled;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import com.netflix.spinnaker.security.UserPermissionEvaluator;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
@@ -62,13 +62,13 @@ import org.springframework.util.backoff.ExponentialBackOff;
 public class FiatPermissionEvaluator implements UserPermissionEvaluator {
   private static final ThreadLocal<AuthorizationFailure> authorizationFailure = new ThreadLocal<>();
 
-  private final Registry registry;
+  private static final String GET_PERMISSION_METRIC_NAME = "fiat.getPermission";
+
+  private final MeterRegistry registry;
   private final FiatService fiatService;
   private final FiatStatus fiatStatus;
 
   private final Cache<String, UserPermission.View> permissionsCache;
-
-  private final Id getPermissionCounterId;
 
   private final RetryHandler retryHandler;
 
@@ -115,7 +115,7 @@ public class FiatPermissionEvaluator implements UserPermissionEvaluator {
 
   @Autowired
   public FiatPermissionEvaluator(
-      Registry registry,
+      MeterRegistry registry,
       FiatService fiatService,
       FiatClientConfigurationProperties configProps,
       FiatStatus fiatStatus) {
@@ -128,7 +128,7 @@ public class FiatPermissionEvaluator implements UserPermissionEvaluator {
   }
 
   FiatPermissionEvaluator(
-      Registry registry,
+      MeterRegistry registry,
       FiatService fiatService,
       FiatClientConfigurationProperties configProps,
       FiatStatus fiatStatus,
@@ -145,8 +145,6 @@ public class FiatPermissionEvaluator implements UserPermissionEvaluator {
                 configProps.getCache().getExpiresAfterWriteSeconds(), TimeUnit.SECONDS)
             .recordStats(() -> new CaffeineStatsCounter(registry, "fiat.permissionsCache"))
             .build();
-
-    this.getPermissionCounterId = registry.createId("fiat.getPermission");
   }
 
   @Override
@@ -345,10 +343,10 @@ public class FiatPermissionEvaluator implements UserPermissionEvaluator {
       exception.set(e.getCause() != null ? e.getCause() : e);
     }
 
-    Id id =
-        getPermissionCounterId
-            .withTag("cached", cacheHit.get())
-            .withTag("success", successfulLookup.get());
+    Tags tags =
+        Tags.of(
+            "cached", String.valueOf(cacheHit.get()),
+            "success", String.valueOf(successfulLookup.get()));
 
     if (!successfulLookup.get()) {
       log.error(
@@ -356,10 +354,10 @@ public class FiatPermissionEvaluator implements UserPermissionEvaluator {
           username,
           exception.get().getMessage(),
           getAccountsForView(view));
-      id = id.withTag("legacyFallback", legacyFallback.get());
+      tags = tags.and("legacyFallback", String.valueOf(legacyFallback.get()));
     }
 
-    registry.counter(id).increment();
+    registry.counter(GET_PERMISSION_METRIC_NAME, tags).increment();
 
     if (view != null && view.isLegacyFallback() && view.getAccounts().isEmpty()) {
       // rebuild a potentially stale (could have come from the cache) legacy fallback

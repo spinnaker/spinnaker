@@ -19,13 +19,13 @@ package com.netflix.spinnaker.kork.jedis.telemetry;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 
-import com.netflix.spectator.api.Registry;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.junit.jupiter.api.Test;
 import redis.clients.jedis.JedisPool;
 
 public class InstrumentedJedisPoolTest {
 
-  private Registry registry = mock(Registry.class);
+  private MeterRegistry registry = mock(MeterRegistry.class);
 
   private JedisPool jedisPool = new JedisPool();
 

@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.config
 
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.q.Activator
 import com.netflix.spinnaker.q.DeadMessageCallback
 import com.netflix.spinnaker.q.EnabledActivator
@@ -29,6 +28,7 @@ import com.netflix.spinnaker.q.metrics.MonitorableQueue
 import com.netflix.spinnaker.q.metrics.NoopEventPublisher
 import com.netflix.spinnaker.q.metrics.QueueMetricsPublisher
 import com.netflix.spinnaker.q.metrics.QueueMonitor
+import io.micrometer.core.instrument.MeterRegistry
 import java.time.Clock
 import java.time.Duration
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
@@ -101,7 +101,7 @@ class QueueConfiguration {
   @Bean
   @ConditionalOnProperty("queue.metrics.enabled", havingValue = "true", matchIfMissing = true)
   fun queueMonitor(
-    registry: Registry,
+    registry: MeterRegistry,
     clock: Clock,
     queue: MonitorableQueue
   ) = QueueMonitor(registry, clock, queue)
@@ -109,7 +109,7 @@ class QueueConfiguration {
   @Bean
   @ConditionalOnProperty("queue.metrics.enabled", havingValue = "true", matchIfMissing = true)
   fun queueMetricsPublisher(
-    registry: Registry,
+    registry: MeterRegistry,
     clock: Clock
   ): EventPublisher =
     QueueMetricsPublisher(registry, clock)

@@ -18,7 +18,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.security
 
 import com.google.common.collect.ImmutableList
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesAccountProperties.ManagedAccount
 import com.netflix.spinnaker.clouddriver.kubernetes.description.AccountResourcePropertyRegistry
 import com.netflix.spinnaker.clouddriver.kubernetes.description.GlobalResourcePropertyRegistry
@@ -44,7 +44,7 @@ class KubernetesNamedAccountCredentialsSpec extends Specification {
   KubectlJobExecutor mockKubectlJobExecutor = Mock(KubectlJobExecutor)
 
   KubernetesCredentials.Factory credentialFactory = new KubernetesCredentials.Factory(
-    new NoopRegistry(),
+    new SimpleMeterRegistry(),
     namerRegistry,
     mockKubectlJobExecutor,
     configFileService,

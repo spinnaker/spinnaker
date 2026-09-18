@@ -18,14 +18,15 @@ package com.netflix.spinnaker.kork.plugins.proxy.aspects
 
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
-import com.netflix.spectator.api.Clock
-import com.netflix.spectator.api.DefaultRegistry
-import com.netflix.spectator.api.Id
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.annotations.Metered
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginDescriptor
 import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint
 import com.netflix.spinnaker.kork.telemetry.MethodInstrumentation
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tag
+import io.micrometer.core.instrument.Tags
+import io.micrometer.core.instrument.Timer
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import java.util.concurrent.TimeUnit
@@ -41,7 +42,7 @@ import java.util.Locale
  *
  */
 class MetricInvocationAspect(
-  private val registryProvider: ObjectProvider<Registry>
+  private val registryProvider: ObjectProvider<MeterRegistry>
 ) : InvocationAspect<MetricInvocationState> {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -53,18 +54,18 @@ class MetricInvocationAspect(
 
   /**
    * Extensions are loaded early in the Spring application lifecycle, and there's a chance that the
-   * Spectator [Registry] does not yet exist when an extension method is invoked.  This allows us to
+   * MeterRegistry bean does not yet exist when an extension method is invoked. This allows us to
    * fallback to a temporary registry.  Metrics collected in the fallback registry are discarded.
    *
    * Open question - If a fallback registry is returned, can we collect those metrics and then dump
    * them onto the main registry once that exists?
    */
-  private fun ObjectProvider<Registry>.getOrFallback(extensionName: String): Registry {
+  private fun ObjectProvider<MeterRegistry>.getOrFallback(extensionName: String): MeterRegistry {
     val registry = this.ifAvailable
 
     if (registry == null) {
       log.warn("Returning fallback registry for extension={}; metrics collected in fallback are discarded.", extensionName)
-      return DefaultRegistry(Clock.SYSTEM)
+      return SimpleMeterRegistry()
     }
 
     return registry
@@ -82,8 +83,7 @@ class MetricInvocationAspect(
     descriptor: SpinnakerPluginDescriptor
   ): MetricInvocationState {
     val extensionName = target.javaClass.simpleName.toString()
-    val registry = registryProvider.getOrFallback(extensionName)
-    val metricIds = methodMetricIds.getOrPut(target, method, descriptor, registry)
+    val metricIds = methodMetricIds.getOrPut(target, method, descriptor)
 
     return MetricInvocationState(
       extensionName = extensionName,
@@ -103,7 +103,10 @@ class MetricInvocationAspect(
   private fun recordMetrics(result: Result, invocationState: MetricInvocationState) {
     if (invocationState.timingId != null) {
       val registry = registryProvider.getOrFallback(invocationState.extensionName)
-      registry.timer(invocationState.timingId.withTag("result", result.toString()))
+      Timer.builder(invocationState.timingId.name)
+        .tags(invocationState.timingId.tags)
+        .tag("result", result.toString())
+        .register(registry)
         .record(System.currentTimeMillis() - invocationState.startTimeMs, TimeUnit.MILLISECONDS)
     }
   }
@@ -117,8 +120,7 @@ class MetricInvocationAspect(
   private fun Cache<Method, MetricIds>.getOrPut(
     target: Any,
     method: Method,
-    descriptor: SpinnakerPluginDescriptor,
-    registry: Registry
+    descriptor: SpinnakerPluginDescriptor
   ): MetricIds? {
     return this.get(target.javaClass.getMethod(method.name, *method.parameterTypes)) { m ->
       m.declaredAnnotations
@@ -140,14 +142,17 @@ class MetricInvocationAspect(
               )
 
               val metricIds = MetricIds(
-                timingId = registry.createId(toMetricId(m, descriptor.pluginId, metered.metricName, TIMING), tags)
+                timingId = MetricId(
+                  toMetricId(m, descriptor.pluginId, metered.metricName, TIMING),
+                  Tags.of(tags.map { (k, v) -> Tag.of(k, v) })
+                )
               )
 
               for (mutableEntry in this.asMap()) {
-                if (mutableEntry.value.timingId.name() == metricIds.timingId.name()) {
+                if (mutableEntry.value.timingId.name == metricIds.timingId.name) {
                   throw MethodInstrumentation.MetricNameCollisionException(
                     target,
-                    metricIds.timingId.name(), mutableEntry.key, m
+                    metricIds.timingId.name, mutableEntry.key, m
                   )
                 }
               }
@@ -160,13 +165,13 @@ class MetricInvocationAspect(
     }
   }
 
-  private fun toMetricId(method: Method, metricNamespace: String, annotationMetricId: String?, metricName: String): String? {
+  private fun toMetricId(method: Method, metricNamespace: String, annotationMetricId: String?, metricName: String): String {
     val methodMetricId = if (method.parameterCount == 0) method.name else String.format(Locale.US, "%s%d", method.name, method.parameterCount)
     val metricId = if (annotationMetricId.isNullOrEmpty()) methodMetricId else annotationMetricId
     return MethodInstrumentation.toMetricId(metricNamespace, metricId, metricName)
   }
 
-  private data class MetricIds(val timingId: Id)
+  private data class MetricIds(val timingId: MetricId)
 
   /**
    * Helper object for result handling

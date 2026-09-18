@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.verification
 
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.ResourceKind
@@ -41,7 +41,7 @@ internal class VerificationRunnerTests {
   }
 
   private val repository = mockk<ActionRepository>(relaxUnitFun = true)
-  private val specator = NoopRegistry()
+  private val specator = SimpleMeterRegistry()
   private val evaluator = mockk<VerificationEvaluator<DummyVerification>>(relaxUnitFun = true) {
     every { supportedVerification } returns ("dummy" to DummyVerification::class.java)
   }

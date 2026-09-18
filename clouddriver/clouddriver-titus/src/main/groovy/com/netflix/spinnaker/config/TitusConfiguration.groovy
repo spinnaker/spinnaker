@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.config
 
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry;
 import com.netflix.spinnaker.clouddriver.event.SpinnakerEvent
 import com.netflix.spinnaker.clouddriver.saga.config.SagaAutoConfiguration
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
@@ -91,7 +91,7 @@ class TitusConfiguration {
   }
 
   @Bean
-  TitusClientProvider titusClientProvider(Registry registry, Optional<List<TitusJobCustomizer>> titusJobCustomizers, GrpcChannelFactory grpcChannelFactory, RetrySupport retrySupport) {
+  TitusClientProvider titusClientProvider(MeterRegistry registry, Optional<List<TitusJobCustomizer>> titusJobCustomizers, GrpcChannelFactory grpcChannelFactory, RetrySupport retrySupport) {
     return new TitusClientProvider(registry, titusJobCustomizers.orElse(Collections.emptyList()), grpcChannelFactory, retrySupport)
   }
 

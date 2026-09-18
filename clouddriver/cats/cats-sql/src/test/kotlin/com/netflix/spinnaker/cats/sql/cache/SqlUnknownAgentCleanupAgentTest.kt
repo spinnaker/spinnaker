@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.cats.sql.cache
 
-import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
@@ -37,6 +36,7 @@ import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import de.huxhorn.sulky.ulid.ULID
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import io.mockk.every
 import io.mockk.mockk
 import java.util.concurrent.TimeUnit
@@ -417,7 +417,7 @@ class SqlUnknownAgentCleanupAgentTest : JUnit5Minutests {
       listOf(TestProvider(providerAgents as Collection<CachingAgent>)),
       InMemoryNamedCacheFactory()
     )
-    val registry = NoopRegistry()
+    val registry = SimpleMeterRegistry()
 
     fun defaultCleanupProperties(): SqlUnknownAgentCleanupProperties =
       SqlUnknownAgentCleanupProperties().apply { minRecordAgeSeconds = 0 }

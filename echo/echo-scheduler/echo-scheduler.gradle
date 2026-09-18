@@ -19,7 +19,6 @@ dependencies {
   implementation project(':echo-model')
   implementation project(':echo-pipelinetriggers')
 
-  implementation "com.netflix.spectator:spectator-api"
   implementation "io.spinnaker.kork:kork-artifacts"
   implementation "io.spinnaker.kork:kork-retrofit"
   implementation "io.spinnaker.kork:kork-sql"

@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.sql.cleanup
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.config.ExecutionCompressionProperties
 import com.netflix.spinnaker.config.OrcaSqlProperties
 import com.netflix.spinnaker.config.TopApplicationExecutionCleanupAgentConfigurationProperties
@@ -65,7 +65,7 @@ abstract class TopApplicationExecutionCleanupPollingNotificationAgentSpec extend
   def cleanupAgent = new TopApplicationExecutionCleanupPollingNotificationAgent(
     Mock(NotificationClusterLock),
     currentDatabase.context,
-    new NoopRegistry(),
+    new SimpleMeterRegistry(),
     executionRepository,
     new TopApplicationExecutionCleanupAgentConfigurationProperties(
         0L,

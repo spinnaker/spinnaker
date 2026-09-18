@@ -29,7 +29,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
@@ -44,6 +43,7 @@ import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -114,7 +114,7 @@ class DependentPipelineStarterTest {
             new ContextParameterProcessor(),
             Optional.empty(),
             Optional.of(artifactUtils),
-            new NoopRegistry());
+            new SimpleMeterRegistry());
 
     // Test with authenticated user
     PipelineExecution result =
@@ -193,7 +193,7 @@ class DependentPipelineStarterTest {
             new ContextParameterProcessor(),
             Optional.empty(),
             Optional.of(artifactUtils),
-            new NoopRegistry());
+            new SimpleMeterRegistry());
 
     // when
     PipelineExecution result =
@@ -261,7 +261,7 @@ class DependentPipelineStarterTest {
             new ContextParameterProcessor(),
             Optional.empty(),
             Optional.of(artifactUtils),
-            new NoopRegistry());
+            new SimpleMeterRegistry());
 
     // when
     PipelineExecution result =
@@ -316,7 +316,7 @@ class DependentPipelineStarterTest {
             new ContextParameterProcessor(),
             Optional.empty(),
             Optional.of(artifactUtils),
-            new NoopRegistry());
+            new SimpleMeterRegistry());
 
     when(executionLauncher.start(any(), any(), any()))
         .thenAnswer(
@@ -384,7 +384,7 @@ class DependentPipelineStarterTest {
             new ContextParameterProcessor(),
             Optional.empty(),
             Optional.of(artifactUtils),
-            new NoopRegistry());
+            new SimpleMeterRegistry());
 
     when(executionLauncher.start(eq(PIPELINE), any(), any()))
         .thenAnswer(
@@ -472,7 +472,7 @@ class DependentPipelineStarterTest {
             new ContextParameterProcessor(),
             Optional.empty(),
             Optional.of(artifactUtils),
-            new NoopRegistry());
+            new SimpleMeterRegistry());
 
     when(executionLauncher.start(eq(PIPELINE), any(), any()))
         .thenAnswer(
@@ -562,7 +562,7 @@ class DependentPipelineStarterTest {
             new ContextParameterProcessor(),
             Optional.empty(),
             Optional.of(artifactUtils),
-            new NoopRegistry());
+            new SimpleMeterRegistry());
 
     when(executionLauncher.start(eq(PIPELINE), any(), any()))
         .thenAnswer(
@@ -660,7 +660,7 @@ class DependentPipelineStarterTest {
             new ContextParameterProcessor(),
             Optional.empty(),
             Optional.of(artifactUtils),
-            new NoopRegistry());
+            new SimpleMeterRegistry());
 
     when(executionLauncher.start(eq(PIPELINE), any(), any()))
         .thenAnswer(
@@ -744,7 +744,7 @@ class DependentPipelineStarterTest {
             new ContextParameterProcessor(),
             Optional.empty(),
             Optional.of(artifactUtils),
-            new NoopRegistry());
+            new SimpleMeterRegistry());
 
     // Use a list to be able to extract from within a lambda.
     List<Exception> error = new ArrayList<>();
@@ -813,7 +813,7 @@ class DependentPipelineStarterTest {
             new ContextParameterProcessor(),
             Optional.empty(),
             Optional.of(artifactUtils),
-            new NoopRegistry());
+            new SimpleMeterRegistry());
 
     when(executionLauncher.start(eq(PIPELINE), any(), any()))
         .thenAnswer(

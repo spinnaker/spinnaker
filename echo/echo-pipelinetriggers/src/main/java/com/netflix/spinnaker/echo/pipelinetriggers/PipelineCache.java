@@ -22,8 +22,6 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
-import com.netflix.spectator.api.patterns.PolledMeter;
 import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers.BaseTriggerEventHandler;
@@ -32,6 +30,7 @@ import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService;
 import com.netflix.spinnaker.echo.services.Front50Service;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import java.time.Duration;
@@ -66,7 +65,7 @@ public class PipelineCache implements MonitoredPoller {
   private final int pollingSleepMs;
   private final Front50Service front50;
   private final OrcaService orca;
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final ScheduledExecutorService executorService;
   private final ObjectMapper objectMapper;
   private final PipelineCacheConfigurationProperties pipelineCacheConfigurationProperties;
@@ -93,7 +92,7 @@ public class PipelineCache implements MonitoredPoller {
       ObjectMapper objectMapper,
       @NonNull Front50Service front50,
       @NonNull OrcaService orca,
-      @NonNull Registry registry,
+      @NonNull MeterRegistry registry,
       @NonNull List<BaseTriggerEventHandler> triggerHandlers) {
     this(
         Executors.newSingleThreadScheduledExecutor(),
@@ -116,7 +115,7 @@ public class PipelineCache implements MonitoredPoller {
       ObjectMapper objectMapper,
       @NonNull Front50Service front50,
       @NonNull OrcaService orca,
-      @NonNull Registry registry,
+      @NonNull MeterRegistry registry,
       @NonNull List<BaseTriggerEventHandler> triggerHandlers) {
     this.objectMapper = objectMapper;
     this.executorService = executorService;
@@ -174,9 +173,7 @@ public class PipelineCache implements MonitoredPoller {
         pollingIntervalMs,
         TimeUnit.MILLISECONDS);
 
-    PolledMeter.using(registry)
-        .withName("front50.lastPoll")
-        .monitorValue(this, PipelineCache::getDurationSeconds);
+    registry.gauge("front50.lastPoll", this, PipelineCache::getDurationSeconds);
   }
 
   /**

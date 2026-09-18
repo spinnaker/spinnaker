@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.igor.concourse;
 
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.igor.build.model.GenericBuild;
 import com.netflix.spinnaker.igor.build.model.GenericProject;
@@ -37,6 +36,7 @@ import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -63,7 +63,7 @@ public class ConcourseBuildMonitor
 
   public ConcourseBuildMonitor(
       IgorConfigurationProperties properties,
-      Registry registry,
+      MeterRegistry registry,
       DynamicConfigService dynamicConfigService,
       DiscoveryStatusListener discoveryStatusListener,
       Optional<LockService> lockService,
@@ -211,7 +211,7 @@ public class ConcourseBuildMonitor
     } else {
       log.warn("Cannot send build event notification: Echo is not configured");
       log.info("({}) unable to push event for :" + build.getFullDisplayName());
-      registry.counter(missedNotificationId.withTag("monitor", getName())).increment();
+      registry.counter(missedNotificationId, "monitor", getName()).increment();
     }
   }
 

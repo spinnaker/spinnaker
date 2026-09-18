@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.conditions
 
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.pipeline.conditions.Condition
 import com.netflix.spinnaker.orca.clouddriver.pipeline.conditions.ConditionConfigurationProperties
@@ -41,7 +41,7 @@ class EvaluateConditionTaskSpec extends Specification {
   def task = new EvaluateConditionTask(
     conditionsConfigurationProperties,
     [conditionSupplier],
-    new NoopRegistry(),
+    new SimpleMeterRegistry(),
     clock
   )
 

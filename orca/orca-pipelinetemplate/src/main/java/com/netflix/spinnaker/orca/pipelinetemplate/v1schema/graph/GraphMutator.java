@@ -15,12 +15,12 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph;
 
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.PipelineTemplateVisitor;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.transform.*;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +32,7 @@ public class GraphMutator {
   public GraphMutator(
       TemplateConfiguration configuration,
       Renderer renderer,
-      Registry registry,
+      MeterRegistry registry,
       Map<String, Object> trigger) {
     visitors.add(new DefaultVariableAssignmentTransform(configuration));
     visitors.add(new ConfigModuleReplacementTransform(configuration));

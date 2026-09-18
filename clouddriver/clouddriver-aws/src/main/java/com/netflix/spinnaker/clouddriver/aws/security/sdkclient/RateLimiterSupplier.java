@@ -20,9 +20,9 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.RateLimiter;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider;
 import com.netflix.spinnaker.clouddriver.core.limits.ServiceLimitConfiguration;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
@@ -32,7 +32,7 @@ public class RateLimiterSupplier {
   private final LoadingCache<RateLimitKey, RateLimiter> rateLimiters;
 
   public RateLimiterSupplier(
-      ServiceLimitConfiguration serviceLimitConfiguration, Registry registry) {
+      ServiceLimitConfiguration serviceLimitConfiguration, MeterRegistry registry) {
     rateLimiters =
         CacheBuilder.newBuilder()
             .recordStats()

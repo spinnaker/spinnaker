@@ -18,7 +18,7 @@
 package com.netflix.spinnaker.clouddriver.aws.security
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.DefaultRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.cats.agent.AgentProvider
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties
@@ -42,7 +42,7 @@ class AmazonCredentialsLifecycleHandlerSpec extends Specification {
   AwsProvider awsProvider
   Optional<Collection<AgentProvider>> agentProviders = Optional.empty()
   def amazonCloudProvider = new AmazonCloudProvider()
-  def registry = new DefaultRegistry()
+  def registry = new SimpleMeterRegistry()
   def dynamicConfigService = Mock(DynamicConfigService) {
     isEnabled("aws.features.cloud-formation", false) >> false
     isEnabled("aws.features.launch-templates", false) >> false

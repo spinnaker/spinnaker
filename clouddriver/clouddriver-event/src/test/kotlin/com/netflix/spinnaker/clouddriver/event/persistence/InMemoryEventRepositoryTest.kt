@@ -15,13 +15,13 @@
  */
 package com.netflix.spinnaker.clouddriver.event.persistence
 
-import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.clouddriver.event.AbstractSpinnakerEvent
 import com.netflix.spinnaker.clouddriver.event.config.MemoryEventRepositoryConfigProperties
 import com.netflix.spinnaker.clouddriver.event.exceptions.AggregateChangeRejectedException
 import com.netflix.spinnaker.clouddriver.event.persistence.EventRepository.ListAggregatesCriteria
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import io.mockk.confirmVerified
 import io.mockk.mockk
 import io.mockk.verify
@@ -138,7 +138,7 @@ class InMemoryEventRepositoryTest : JUnit5Minutests {
     var subject: EventRepository = InMemoryEventRepository(
       MemoryEventRepositoryConfigProperties(),
       eventPublisher,
-      NoopRegistry()
+      SimpleMeterRegistry()
     )
   }
 

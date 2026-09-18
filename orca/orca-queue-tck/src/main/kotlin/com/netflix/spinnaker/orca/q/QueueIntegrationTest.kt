@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.orca.q
 
-import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.assertj.assertSoftly
 import com.netflix.spinnaker.config.OrcaQueueConfiguration
 import com.netflix.spinnaker.config.QueueConfiguration
@@ -57,6 +55,8 @@ import com.netflix.spinnaker.q.DeadMessageCallback
 import com.netflix.spinnaker.q.Queue
 import com.netflix.spinnaker.q.memory.InMemoryQueue
 import com.netflix.spinnaker.q.metrics.EventPublisher
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argThat
 import org.mockito.kotlin.check
@@ -892,7 +892,7 @@ abstract class QueueIntegrationTest {
 class TestConfig {
 
   @Bean
-  fun registry(): Registry = NoopRegistry()
+  fun registry(): MeterRegistry = SimpleMeterRegistry()
 
   @Bean
   fun dummyTask(): DummyTask = mock {

@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.orchestration
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.clouddriver.config.ExceptionClassifierConfigurationProperties
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTask
 import com.netflix.spinnaker.clouddriver.data.task.SagaId
@@ -27,6 +26,7 @@ import com.netflix.spinnaker.kork.web.context.AuthenticatedRequestContextProvide
 import com.netflix.spinnaker.kork.web.exceptions.ExceptionMessageDecorator
 import com.netflix.spinnaker.kork.web.exceptions.ExceptionSummaryService
 import com.netflix.spinnaker.security.AuthenticatedRequest
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.slf4j.MDC
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory
 import org.springframework.context.ApplicationContext
@@ -67,7 +67,7 @@ class DefaultOrchestrationProcessorSpec extends Specification {
     processor = new DefaultOrchestrationProcessor(
       taskRepository,
       applicationContext,
-      new NoopRegistry(),
+      new SimpleMeterRegistry(),
       Optional.empty(),
       new ObjectMapper(),
       new ExceptionClassifier(new ExceptionClassifierConfigurationProperties(

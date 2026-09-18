@@ -25,10 +25,10 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.netflix.spectator.api.DefaultRegistry;
 import com.netflix.spinnaker.kork.pubsub.aws.api.AmazonMessageAcknowledger;
 import com.netflix.spinnaker.kork.pubsub.aws.api.AmazonPubsubMessageHandler;
 import com.netflix.spinnaker.kork.pubsub.aws.config.AmazonPubsubProperties;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -62,7 +62,7 @@ public class SQSSubscriberTest {
             snsClient(),
             sqsClient(),
             enableOnce(),
-            new DefaultRegistry());
+            new SimpleMeterRegistry());
 
     // when
     subscriber.initializeQueue();
@@ -88,7 +88,7 @@ public class SQSSubscriberTest {
             snsClient(),
             sqsClient(),
             enableOnce(),
-            new DefaultRegistry());
+            new SimpleMeterRegistry());
 
     // when
     subscriber.initializeQueue();
@@ -114,7 +114,7 @@ public class SQSSubscriberTest {
             snsClient(),
             sqsClient,
             disabled,
-            new DefaultRegistry());
+            new SimpleMeterRegistry());
 
     // when
     subscriber.listenForMessages();
@@ -140,7 +140,7 @@ public class SQSSubscriberTest {
             sns,
             sqs,
             enableOnce(),
-            new DefaultRegistry());
+            new SimpleMeterRegistry());
 
     // when
     subscriber.initializeQueue();
@@ -165,7 +165,7 @@ public class SQSSubscriberTest {
             sns,
             sqs,
             enableOnce(),
-            new DefaultRegistry());
+            new SimpleMeterRegistry());
 
     // when
     subscriber.initializeQueue();

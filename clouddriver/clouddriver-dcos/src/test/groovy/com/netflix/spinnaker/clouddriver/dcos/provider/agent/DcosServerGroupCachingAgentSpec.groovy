@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.dcos.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.collect.ImmutableList
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
@@ -75,9 +75,9 @@ class DcosServerGroupCachingAgentSpec extends BaseSpecification {
 
 
   def setup() {
-    registryMock = Mock(Registry)
+    registryMock = Mock(MeterRegistry)
     registryMock.get('id') >> 'id'
-    registryMock.timer(_, _) >> Mock(com.netflix.spectator.api.Timer)
+    registryMock.timer(_, _) >> Mock(io.micrometer.core.instrument.Timer)
     accountCredentialsRepository = Mock(AccountCredentialsRepository)
     credentials = GroovyMock(DcosAccountCredentials)
     credentials.account >> ACCOUNT

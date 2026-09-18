@@ -22,7 +22,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.echo.api.events.Metadata;
 import com.netflix.spinnaker.echo.config.PipelineTriggerConfiguration;
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
@@ -31,6 +30,7 @@ import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.GitEvent;
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -42,7 +42,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 class GitEventHandlerTest {
-  private final NoopRegistry registry = new NoopRegistry();
+  private final SimpleMeterRegistry registry = new SimpleMeterRegistry();
   private final com.fasterxml.jackson.databind.ObjectMapper objectMapper =
       EchoObjectMapper.getInstance();
   private final TestEventHandlerSupport handlerSupport = new TestEventHandlerSupport();

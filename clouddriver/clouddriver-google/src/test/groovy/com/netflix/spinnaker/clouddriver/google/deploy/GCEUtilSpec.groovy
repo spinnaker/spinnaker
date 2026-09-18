@@ -25,8 +25,8 @@ package com.netflix.spinnaker.clouddriver.google.deploy
   import com.google.api.client.json.gson.GsonFactory
   import com.google.api.services.compute.Compute
   import com.google.api.services.compute.model.*
-  import com.netflix.spectator.api.DefaultRegistry
-  import com.netflix.spectator.api.Registry
+  import io.micrometer.core.instrument.simple.SimpleMeterRegistry
+  import io.micrometer.core.instrument.MeterRegistry
   import com.netflix.spinnaker.clouddriver.data.task.Task
   import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
   import com.netflix.spinnaker.clouddriver.google.GoogleExecutorTraits
@@ -48,7 +48,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy
 
   class GCEUtilSpec extends Specification {
   class TestExecutor implements GoogleExecutorTraits {
-    def Registry registry = new DefaultRegistry()
+    def MeterRegistry registry = new SimpleMeterRegistry()
   }
 
   private static final PROJECT_NAME = "my-project"

@@ -16,9 +16,8 @@
 
 package com.netflix.spinnaker.echo.pipelinetriggers;
 
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.config.QuietPeriodIndicatorConfigurationProperties;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,18 +31,16 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class QuietPeriodIndicator {
-  private final Registry registry;
-  private final Id quietPeriodTestId;
+  private final MeterRegistry registry;
 
   private final QuietPeriodIndicatorConfigurationProperties config;
 
   @Autowired
   public QuietPeriodIndicator(
-      @NonNull Registry registry, @NonNull QuietPeriodIndicatorConfigurationProperties config) {
+      @NonNull MeterRegistry registry,
+      @NonNull QuietPeriodIndicatorConfigurationProperties config) {
     this.registry = registry;
     this.config = config;
-
-    quietPeriodTestId = registry.createId("quietPeriod.tests");
   }
 
   public boolean isEnabled() {
@@ -61,7 +58,7 @@ public class QuietPeriodIndicator {
   public boolean inQuietPeriod(long testTime) {
     boolean result =
         isEnabled() && (testTime >= config.getStartTime() && testTime <= config.getEndTime());
-    registry.counter(quietPeriodTestId.withTag("result", result)).increment();
+    registry.counter("quietPeriod.tests", "result", String.valueOf(result)).increment();
 
     return result;
   }

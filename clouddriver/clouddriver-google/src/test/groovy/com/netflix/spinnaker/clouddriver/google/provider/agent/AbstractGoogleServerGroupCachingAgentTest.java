@@ -58,7 +58,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.netflix.spectator.api.DefaultRegistry;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
@@ -76,6 +75,7 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup;
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleInstanceHealth;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
 import com.netflix.spinnaker.kork.client.ServiceClientProvider;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.math.BigInteger;
 import java.util.Collection;
 import java.util.HashMap;
@@ -1123,7 +1123,7 @@ class AbstractGoogleServerGroupCachingAgentTest {
     GoogleComputeApiFactory computeApiFactory =
         new GoogleComputeApiFactory(
             new GoogleOperationPoller(),
-            new DefaultRegistry(),
+            new SimpleMeterRegistry(),
             "user-agent",
             MoreExecutors.listeningDecorator(Executors.newCachedThreadPool()));
     return new TestCachingAgent(credentials, computeApiFactory, instanceGroupManagers, autoscalers);
@@ -1143,7 +1143,7 @@ class AbstractGoogleServerGroupCachingAgentTest {
       super(
           credentials,
           computeApiFactory,
-          new DefaultRegistry(),
+          new SimpleMeterRegistry(),
           REGION,
           new ObjectMapper(),
           serviceClientProvider);

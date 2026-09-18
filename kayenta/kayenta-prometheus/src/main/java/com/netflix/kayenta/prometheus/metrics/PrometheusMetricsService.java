@@ -28,8 +28,7 @@ import com.netflix.kayenta.prometheus.config.PrometheusManagedAccount;
 import com.netflix.kayenta.prometheus.model.PrometheusResults;
 import com.netflix.kayenta.prometheus.service.PrometheusRemoteService;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.validation.constraints.NotNull;
 import java.io.IOException;
 import java.time.Instant;
@@ -57,7 +56,7 @@ public class PrometheusMetricsService implements MetricsService {
 
   @Autowired private final AccountCredentialsRepository accountCredentialsRepository;
 
-  @Autowired private final Registry registry;
+  @Autowired private final MeterRegistry registry;
 
   @Autowired private final PrometheusMetricDescriptorsCache metricDescriptorsCache;
 
@@ -254,7 +253,7 @@ public class PrometheusMetricsService implements MetricsService {
     String query =
         buildQuery(accountName, canaryConfig, canaryMetricConfig, canaryScope).toString();
 
-    long startTime = registry.clock().monotonicTime();
+    long startTime = registry.config().clock().monotonicTime();
     List<PrometheusResults> prometheusResultsList;
 
     try {
@@ -265,11 +264,9 @@ public class PrometheusMetricsService implements MetricsService {
               canaryScope.getEnd().toString(),
               canaryScope.getStep());
     } finally {
-      long endTime = registry.clock().monotonicTime();
+      long endTime = registry.config().clock().monotonicTime();
       // TODO(ewiseblatt/duftler): Add appropriate tags.
-      Id prometheusFetchTimerId = registry.createId("prometheus.fetchTime");
-
-      registry.timer(prometheusFetchTimerId).record(endTime - startTime, TimeUnit.NANOSECONDS);
+      registry.timer("prometheus.fetchTime").record(endTime - startTime, TimeUnit.NANOSECONDS);
     }
 
     List<MetricSet> metricSetList = new ArrayList<>();

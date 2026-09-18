@@ -21,7 +21,6 @@ import com.google.api.services.compute.model.Autoscaler;
 import com.google.api.services.compute.model.Instance;
 import com.google.api.services.compute.model.InstanceGroupManager;
 import com.google.common.collect.ImmutableSet;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.google.cache.Keys;
 import com.netflix.spinnaker.clouddriver.google.compute.GoogleComputeApiFactory;
@@ -29,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.google.compute.RegionAutoscalers;
 import com.netflix.spinnaker.clouddriver.google.compute.RegionInstanceGroupManagers;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
 import com.netflix.spinnaker.kork.client.ServiceClientProvider;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
@@ -44,7 +44,7 @@ public final class GoogleRegionalServerGroupCachingAgent
   public GoogleRegionalServerGroupCachingAgent(
       GoogleNamedAccountCredentials credentials,
       GoogleComputeApiFactory computeApiFactory,
-      Registry registry,
+      MeterRegistry registry,
       String region,
       ObjectMapper objectMapper,
       ServiceClientProvider serviceClientProvider) {

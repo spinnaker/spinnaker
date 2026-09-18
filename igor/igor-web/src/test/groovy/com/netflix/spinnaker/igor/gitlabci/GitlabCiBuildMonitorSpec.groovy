@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.igor.gitlabci
 
-import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.igor.build.BuildCache
 import com.netflix.spinnaker.igor.config.GitlabCiProperties
@@ -28,6 +27,7 @@ import com.netflix.spinnaker.igor.polling.PollContext
 import com.netflix.spinnaker.igor.service.BuildServices
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.springframework.scheduling.TaskScheduler
 import spock.lang.Ignore
 import spock.lang.Specification
@@ -49,7 +49,7 @@ class GitlabCiBuildMonitorSpec extends Specification {
         buildServices.addServices([MASTER: service])
         buildMonitor = new GitlabCiBuildMonitor(
             new IgorConfigurationProperties(),
-            new NoopRegistry(),
+            new SimpleMeterRegistry(),
             new DynamicConfigService.NoopDynamicConfig(),
             new DiscoveryStatusListener(true),
             Optional.empty(),

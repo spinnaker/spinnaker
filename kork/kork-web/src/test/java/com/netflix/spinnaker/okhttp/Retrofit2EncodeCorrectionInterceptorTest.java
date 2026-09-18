@@ -27,13 +27,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.config.DefaultServiceEndpoint;
 import com.netflix.spinnaker.config.OkHttpClientComponents;
 import com.netflix.spinnaker.config.ServiceEndpoint;
 import com.netflix.spinnaker.config.okhttp3.DefaultOkHttpClientBuilderProvider;
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.config.okhttp3.RawOkHttpClientConfiguration;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -62,7 +62,7 @@ import retrofit2.http.Query;
       DefaultOkHttpClientBuilderProvider.class,
       Retrofit2EncodeCorrectionInterceptor.class,
       SimpleAsyncTaskExecutorBuilder.class,
-      NoopRegistry.class
+      SimpleMeterRegistry.class
     })
 class Retrofit2EncodeCorrectionInterceptorTest {
 

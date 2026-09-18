@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.titus.caching
 
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry;
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
@@ -51,7 +51,7 @@ class TitusCachingProviderConfig {
                                             TitusCloudProvider titusCloudProvider,
                                             TitusClientProvider titusClientProvider,
                                             ObjectMapper objectMapper,
-                                            Registry registry,
+                                            MeterRegistry registry,
                                             Provider<AwsLookupUtil> awsLookupUtilProvider,
                                             Provider<CachingSchemaUtil> cachingSchemaUtilProvider,
                                             DynamicConfigService dynamicConfigService) {

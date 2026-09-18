@@ -17,13 +17,13 @@
 package com.netflix.spinnaker.clouddriver.google.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.google.compute.GoogleComputeApiFactory;
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.google.provider.GoogleInfrastructureProvider;
 import com.netflix.spinnaker.clouddriver.google.provider.agent.*;
 import com.netflix.spinnaker.credentials.CredentialsLifecycleHandler;
 import com.netflix.spinnaker.kork.client.ServiceClientProvider;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -37,7 +37,7 @@ public class GoogleCredentialsLifecycleHandler
   private final GoogleConfigurationProperties googleConfigurationProperties;
   private final GoogleComputeApiFactory googleComputeApiFactory;
   private final ObjectMapper objectMapper;
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final String clouddriverUserAgentApplicationName;
   private final ServiceClientProvider serviceClientProvider;
 

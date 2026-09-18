@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.monitoreddeploy;
 
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.config.DeploymentMonitorDefinition;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
@@ -25,6 +24,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.RollbackClusterStage;
 import com.netflix.spinnaker.orca.deploymentmonitor.DeploymentMonitorServiceProvider;
 import com.netflix.spinnaker.orca.deploymentmonitor.models.DeploymentCompletedRequest;
+import io.micrometer.core.instrument.MeterRegistry;
 import javax.annotation.Nonnull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -35,7 +35,7 @@ import org.springframework.stereotype.Component;
 public class NotifyDeployCompletedTask extends MonitoredDeployBaseTask {
   @Autowired
   NotifyDeployCompletedTask(
-      DeploymentMonitorServiceProvider deploymentMonitorServiceProvider, Registry registry) {
+      DeploymentMonitorServiceProvider deploymentMonitorServiceProvider, MeterRegistry registry) {
     super(deploymentMonitorServiceProvider, registry);
   }
 

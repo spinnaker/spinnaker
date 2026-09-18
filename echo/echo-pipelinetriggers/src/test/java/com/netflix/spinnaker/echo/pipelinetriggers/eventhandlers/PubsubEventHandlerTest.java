@@ -23,7 +23,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.echo.api.events.Metadata;
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
 import com.netflix.spinnaker.echo.model.Pipeline;
@@ -35,6 +34,7 @@ import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
@@ -86,7 +86,7 @@ class PubsubEventHandlerTest {
           .expectedArtifactIds(List.of())
           .build();
 
-  private final NoopRegistry registry = new NoopRegistry();
+  private final SimpleMeterRegistry registry = new SimpleMeterRegistry();
   private final ObjectMapper objectMapper = EchoObjectMapper.getInstance();
   private final TestEventHandlerSupport handlerSupport = new TestEventHandlerSupport();
   private final AtomicInteger nextId = new AtomicInteger(1);

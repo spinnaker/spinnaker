@@ -24,12 +24,12 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.config.OkHttpClientComponents;
 import com.netflix.spinnaker.config.RetrofitConfiguration;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.io.IOException;
 import okhttp3.ResponseBody;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,7 +48,7 @@ import retrofit2.converter.jackson.JacksonConverterFactory;
       OkHttpClientComponents.class,
       RetrofitConfiguration.class,
       SimpleAsyncTaskExecutorBuilder.class,
-      NoopRegistry.class
+      SimpleMeterRegistry.class
     })
 public class GoogleChatClientTest {
 

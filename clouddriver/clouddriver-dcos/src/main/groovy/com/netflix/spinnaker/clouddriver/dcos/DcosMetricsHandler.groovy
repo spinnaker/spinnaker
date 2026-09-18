@@ -16,8 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.dcos
 
-import com.netflix.spectator.api.Clock
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.Clock
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tag
+import io.micrometer.core.instrument.Tags
 import mesosphere.dcos.client.DCOS
 import mesosphere.dcos.client.DCOSException
 
@@ -26,18 +28,18 @@ import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import java.util.concurrent.TimeUnit
 
-class DcosSpectatorHandler implements InvocationHandler {
+class DcosMetricsHandler implements InvocationHandler {
     private final DCOS dcosClient
-    private final Registry registry
+    private final MeterRegistry registry
     private final Clock clock
     private final String accountName
     private final String regionName
 
-    DcosSpectatorHandler(DCOS dcosClient, String accountName, String regionName, Registry registry) {
+    DcosMetricsHandler(DCOS dcosClient, String accountName, String regionName, MeterRegistry registry) {
         this.dcosClient = dcosClient
         this.accountName = accountName
         this.regionName = regionName
-        this.clock = registry.clock()
+        this.clock = registry.config().clock()
         this.registry = registry
     }
 
@@ -67,7 +69,7 @@ class DcosSpectatorHandler implements InvocationHandler {
                 tags.put("reason", failure.getClass().getSimpleName())
             }
 
-            registry.timer(registry.createId("dcos.api", tags))
+            registry.timer("dcos.api", Tags.of(tags.collect { k, v -> Tag.of(k, v) }))
                     .record(clock.monotonicTime() - startTime, TimeUnit.NANOSECONDS)
         }
 

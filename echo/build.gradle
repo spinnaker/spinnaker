@@ -67,7 +67,6 @@ subprojects {
 
       implementation "org.apache.groovy:groovy"
       implementation "com.github.ben-manes.caffeine:guava"
-      implementation "com.netflix.spectator:spectator-api"
       implementation "org.slf4j:slf4j-api"
       implementation "net.logstash.logback:logstash-logback-encoder"
       implementation "org.springframework.boot:spring-boot-properties-migrator"

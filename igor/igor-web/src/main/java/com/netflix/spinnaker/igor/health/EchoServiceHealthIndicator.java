@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.igor.health;
 
-import com.netflix.spectator.api.Registry;
-import com.netflix.spectator.api.patterns.PolledMeter;
 import com.netflix.spinnaker.igor.build.model.GenericBuild;
 import com.netflix.spinnaker.igor.build.model.GenericProject;
 import com.netflix.spinnaker.igor.history.EchoService;
@@ -25,6 +23,7 @@ import com.netflix.spinnaker.igor.history.model.GenericBuildContent;
 import com.netflix.spinnaker.igor.history.model.GenericBuildEvent;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -52,11 +51,10 @@ public class EchoServiceHealthIndicator implements HealthIndicator {
   static final GenericBuildEvent event = buildGenericEvent();
 
   @Autowired
-  EchoServiceHealthIndicator(Registry registry, Optional<EchoService> echoService) {
+  EchoServiceHealthIndicator(MeterRegistry registry, Optional<EchoService> echoService) {
     this.echoService = echoService;
     this.upOnce = !echoService.isPresent() ? new AtomicBoolean(true) : new AtomicBoolean(false);
-    this.errors =
-        PolledMeter.using(registry).withName("health.echo.errors").monitorValue(new AtomicLong(0));
+    this.errors = registry.gauge("health.echo.errors", new AtomicLong(0));
   }
 
   @Override

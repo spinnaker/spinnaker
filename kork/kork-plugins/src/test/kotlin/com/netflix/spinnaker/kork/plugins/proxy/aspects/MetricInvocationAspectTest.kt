@@ -16,17 +16,13 @@
 
 package com.netflix.spinnaker.kork.plugins.proxy.aspects
 
-import com.netflix.spectator.api.BasicTag
-import com.netflix.spectator.api.Clock
-import com.netflix.spectator.api.DefaultRegistry
-import com.netflix.spectator.api.Functions
-import com.netflix.spectator.api.Id
-import com.netflix.spectator.api.Registry
-import com.netflix.spectator.api.Timer
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginDescriptor
 import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tag
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import io.mockk.every
 import io.mockk.mockk
 import java.lang.reflect.Method
@@ -50,12 +46,12 @@ class MetricInvocationAspectTest : JUnit5Minutests {
       expectThat(state).isA<MetricInvocationState>()
         .and {
           get { startTimeMs }.isA<Long>()
-          get { timingId }.isA<Id>().and {
-            get { name() }.isEqualTo("$pluginId.helloWorld.timing")
-            get { tags().iterator().asSequence().toList() }.isEqualTo(
+          get { timingId }.isA<MetricId>().and {
+            get { name }.isEqualTo("$pluginId.helloWorld.timing")
+            get { tags.toList() }.isEqualTo(
               listOf(
-                BasicTag("pluginExtension", target.javaClass.simpleName.toString()),
-                BasicTag("pluginVersion", pluginVersion)
+                Tag.of("pluginExtension", target.javaClass.simpleName.toString()),
+                Tag.of("pluginVersion", pluginVersion)
               )
             )
           }
@@ -69,12 +65,12 @@ class MetricInvocationAspectTest : JUnit5Minutests {
       expectThat(state).isA<MetricInvocationState>()
         .and {
           get { startTimeMs }.isA<Long>()
-          get { timingId }.isA<Id>().and {
-            get { name() }.isEqualTo("$pluginId.customId.timing")
-            get { tags().iterator().asSequence().toList() }.isEqualTo(
+          get { timingId }.isA<MetricId>().and {
+            get { name }.isEqualTo("$pluginId.customId.timing")
+            get { tags.toList() }.isEqualTo(
               listOf(
-                BasicTag("pluginExtension", target.javaClass.simpleName.toString()),
-                BasicTag("pluginVersion", pluginVersion)
+                Tag.of("pluginExtension", target.javaClass.simpleName.toString()),
+                Tag.of("pluginVersion", pluginVersion)
               )
             )
           }
@@ -102,7 +98,7 @@ class MetricInvocationAspectTest : JUnit5Minutests {
       val state2 = subject.before(target, proxy, method, args, spinnakerPluginDescriptor)
       subject.after(state2)
 
-      val timerCountSummary = registry.timers().filter(Functions.nameEquals("$pluginId.helloWorld.timing")).collect(Collectors.summarizingLong(Timer::count))
+      val timerCountSummary = registry.find("$pluginId.helloWorld.timing").timers().stream().collect(Collectors.summarizingLong { it.count() })
 
       // There should be two metric points for each meter type
       expectThat(timerCountSummary).get { sum }.isEqualTo(2)
@@ -120,8 +116,8 @@ class MetricInvocationAspectTest : JUnit5Minutests {
     val pluginId: String = "netflix.plugin"
     val pluginVersion: String = "0.0.1"
 
-    val registry: Registry = DefaultRegistry(Clock.SYSTEM)
-    val registryProvider: ObjectProvider<Registry> = mockk(relaxed = true)
+    val registry: MeterRegistry = SimpleMeterRegistry()
+    val registryProvider: ObjectProvider<MeterRegistry> = mockk(relaxed = true)
     val subject = MetricInvocationAspect(registryProvider)
 
     val target: SpinnakerExtensionPoint = SomeExtension()

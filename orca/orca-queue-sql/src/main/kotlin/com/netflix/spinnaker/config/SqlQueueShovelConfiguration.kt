@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.QueueShovel
@@ -26,6 +25,7 @@ import com.netflix.spinnaker.q.metrics.EventPublisher
 import com.netflix.spinnaker.q.migration.SerializationMigrator
 import com.netflix.spinnaker.q.sql.SqlDeadMessageHandler
 import com.netflix.spinnaker.q.sql.SqlQueue
+import io.micrometer.core.instrument.MeterRegistry
 import java.time.Clock
 import java.util.Optional
 import org.jooq.DSLContext
@@ -75,7 +75,7 @@ class SqlQueueShovelConfiguration {
   fun sqlToSqlQueueShovel(
     queue: SqlQueue,
     @Qualifier("previousSqlQueue") previousQueue: SqlQueue,
-    registry: Registry,
+    registry: MeterRegistry,
     @Qualifier("discoveryActivator") activator: Activator,
     config: DynamicConfigService,
     executionRepository: ExecutionRepository

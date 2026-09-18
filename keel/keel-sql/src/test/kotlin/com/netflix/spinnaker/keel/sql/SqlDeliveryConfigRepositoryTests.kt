@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.sql
 
 import com.fasterxml.jackson.databind.jsontype.NamedType
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepositoryTests
@@ -27,7 +27,7 @@ internal object SqlDeliveryConfigRepositoryTests : DeliveryConfigRepositoryTests
     SqlDeliveryConfigRepository(jooq, Clock.systemUTC(), objectMapper, resourceFactory(resourceSpecIdentifier), sqlRetry, defaultArtifactSuppliers(), publisher = publisher)
 
   override fun createResourceRepository(resourceSpecIdentifier: ResourceSpecIdentifier, publisher: ApplicationEventPublisher): SqlResourceRepository =
-    SqlResourceRepository(jooq, Clock.systemUTC(), objectMapper, resourceFactory(resourceSpecIdentifier), sqlRetry, publisher, NoopRegistry(), springEnv = mockEnvironment()
+    SqlResourceRepository(jooq, Clock.systemUTC(), objectMapper, resourceFactory(resourceSpecIdentifier), sqlRetry, publisher, SimpleMeterRegistry(), springEnv = mockEnvironment()
     )
 
   override fun createArtifactRepository(publisher: ApplicationEventPublisher): SqlArtifactRepository =

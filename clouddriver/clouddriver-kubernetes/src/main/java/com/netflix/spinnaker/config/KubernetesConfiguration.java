@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.config;
 
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.KubernetesProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesAccountProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesAccountProperties.ManagedAccount;
@@ -33,6 +32,7 @@ import com.netflix.spinnaker.credentials.definition.BasicCredentialsLoader;
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinitionSource;
 import com.netflix.spinnaker.credentials.definition.CredentialsParser;
 import com.netflix.spinnaker.credentials.poller.Poller;
+import io.micrometer.core.instrument.MeterRegistry;
 import javax.annotation.Nullable;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -66,7 +66,7 @@ public class KubernetesConfiguration {
 
   @Bean
   public KubernetesHealthIndicator kubernetesHealthIndicator(
-      Registry registry,
+      MeterRegistry registry,
       CredentialsRepository<KubernetesNamedAccountCredentials> credentialsRepository,
       KubernetesConfigurationProperties kubernetesConfigurationProperties) {
     return new KubernetesHealthIndicator(

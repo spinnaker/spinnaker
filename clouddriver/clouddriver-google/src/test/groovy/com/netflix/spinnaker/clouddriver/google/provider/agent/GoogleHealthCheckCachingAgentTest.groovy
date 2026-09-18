@@ -25,7 +25,7 @@ import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.*
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
-import com.netflix.spectator.api.DefaultRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -58,7 +58,7 @@ class GoogleHealthCheckCachingAgentTest {
       "app-name",
       credentials,
       objectMapper,
-      new DefaultRegistry(),
+      new SimpleMeterRegistry(),
     )
   }
 

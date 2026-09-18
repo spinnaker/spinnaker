@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.azure.config.view
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.clouddriver.azure.AzureCloudProvider
 import com.netflix.spinnaker.clouddriver.azure.resources.appgateway.cache.AzureAppGatewayCachingAgent
@@ -45,7 +45,7 @@ class AzureInfrastructureProviderConfig {
   AzureInfrastructureProvider azureInfrastructureProvider(AzureCloudProvider azureCloudProvider,
                                                             AccountCredentialsRepository accountCredentialsRepository,
                                                             ObjectMapper objectMapper,
-                                                            Registry registry) {
+                                                            MeterRegistry registry) {
     def azureInfrastructureProvider = new AzureInfrastructureProvider(azureCloudProvider,Collections.newSetFromMap(new ConcurrentHashMap<Agent, Boolean>()))
 
     synchronizeAzureInfrastructureProvider(azureInfrastructureProvider,
@@ -61,7 +61,7 @@ class AzureInfrastructureProviderConfig {
                                                              AzureCloudProvider azureCloudProvider,
                                                              AccountCredentialsRepository accountCredentialsRepository,
                                                              ObjectMapper objectMapper,
-                                                             Registry registry) {
+                                                             MeterRegistry registry) {
     def scheduledAccounts = ProviderUtils.getScheduledAccounts(azureInfrastructureProvider)
     def allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, AzureNamedAccountCredentials)
 

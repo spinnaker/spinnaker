@@ -18,8 +18,6 @@ package com.netflix.spinnaker.kork.web.interceptors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.netflix.spectator.api.Registry;
-import com.netflix.spectator.micrometer.MicrometerRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.search.Search;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
@@ -29,7 +27,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -46,8 +43,7 @@ public class MetricsInterceptorMicrometerTest {
   Collection<String> queryParams = Arrays.asList("param-1", "param-2");
   Collection<String> controllersToExclude = Arrays.asList("ErrorController");
 
-  SimpleMeterRegistry simpleMeterRegistry = new SimpleMeterRegistry();
-  Registry registry = new MicrometerRegistry(simpleMeterRegistry);
+  SimpleMeterRegistry registry = new SimpleMeterRegistry();
   MetricsInterceptor interceptor =
       new MetricsInterceptor(
           registry, "controller.invocations", pathVariables, queryParams, controllersToExclude);
@@ -69,8 +65,8 @@ public class MetricsInterceptorMicrometerTest {
     interceptCall(interceptor, request2, RESPONSE, HANDLER, null);
     interceptCall(interceptor, request2, RESPONSE, HANDLER, new IllegalArgumentException());
 
-    Search actual = simpleMeterRegistry.find("controller.invocations");
-    assertThat(getAllTagsAndRemovePercentileTag(actual))
+    Search actual = registry.find("controller.invocations");
+    assertThat(getAllTags(actual))
         .hasSize(4)
         .containsOnly(
             Arrays.asList(
@@ -82,7 +78,6 @@ public class MetricsInterceptorMicrometerTest {
                 Tag.of("param-2", "None"),
                 Tag.of("path-var-1", "path-val-1"),
                 Tag.of("path-var-2", "None"),
-                Tag.of("statistic", "percentile"),
                 Tag.of("status", "5xx"),
                 Tag.of("statusCode", "500"),
                 Tag.of("success", "false")),
@@ -95,7 +90,6 @@ public class MetricsInterceptorMicrometerTest {
                 Tag.of("param-2", "None"),
                 Tag.of("path-var-1", "None"),
                 Tag.of("path-var-2", "None"),
-                Tag.of("statistic", "percentile"),
                 Tag.of("status", "5xx"),
                 Tag.of("statusCode", "500"),
                 Tag.of("success", "false")),
@@ -108,7 +102,6 @@ public class MetricsInterceptorMicrometerTest {
                 Tag.of("param-2", "None"),
                 Tag.of("path-var-1", "path-val-1"),
                 Tag.of("path-var-2", "None"),
-                Tag.of("statistic", "percentile"),
                 Tag.of("status", "2xx"),
                 Tag.of("statusCode", "200"),
                 Tag.of("success", "true")),
@@ -121,20 +114,13 @@ public class MetricsInterceptorMicrometerTest {
                 Tag.of("param-2", "None"),
                 Tag.of("path-var-1", "None"),
                 Tag.of("path-var-2", "None"),
-                Tag.of("statistic", "percentile"),
                 Tag.of("status", "2xx"),
                 Tag.of("statusCode", "200"),
                 Tag.of("success", "true")));
   }
 
-  private Stream<List<Tag>> getAllTagsAndRemovePercentileTag(Search actual) {
-    return actual.counters().stream()
-        .map(c -> c.getId().getTags())
-        .map(
-            tags ->
-                tags.stream()
-                    .filter(tag -> !tag.getKey().equalsIgnoreCase("percentile"))
-                    .collect(Collectors.toList()));
+  private Stream<List<Tag>> getAllTags(Search actual) {
+    return actual.timers().stream().map(t -> t.getId().getTags());
   }
 
   private void interceptCall(

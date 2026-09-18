@@ -18,13 +18,13 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.converters;
 
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.aws.AmazonOperation;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteAmazonSnapshotDescription;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.DeleteAmazonSnapshotAtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -33,10 +33,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class DeleteAmazonSnapshotAtomicOperationConverter
     extends AbstractAtomicOperationsCredentialsSupport {
-  private final Registry registry;
+  private final MeterRegistry registry;
 
   @Autowired
-  public DeleteAmazonSnapshotAtomicOperationConverter(Registry registry) {
+  public DeleteAmazonSnapshotAtomicOperationConverter(MeterRegistry registry) {
     this.registry = registry;
   }
 

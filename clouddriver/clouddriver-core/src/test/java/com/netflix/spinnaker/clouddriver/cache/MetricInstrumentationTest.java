@@ -17,17 +17,16 @@
 
 package com.netflix.spinnaker.clouddriver.cache;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import com.netflix.spectator.api.DefaultRegistry;
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
-import com.netflix.spectator.api.Timer;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.agent.CachingAgent;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.Collection;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,13 +34,13 @@ import org.junit.jupiter.api.Test;
 
 public class MetricInstrumentationTest {
 
-  private Registry registry;
+  private MeterRegistry registry;
 
   private MetricInstrumentation metricInstrumentation;
 
   @BeforeEach
   void setup() {
-    registry = new DefaultRegistry();
+    registry = new SimpleMeterRegistry();
     metricInstrumentation = new MetricInstrumentation(registry);
   }
 
@@ -74,18 +73,21 @@ public class MetricInstrumentationTest {
           }
         };
 
-    Id expectedId =
-        registry
-            .createId("executionTime")
-            .withTag("className", MetricInstrumentation.class.getSimpleName())
-            .withTag("agent", String.format("TestProvider/%s", agentType))
-            .withTag("success", true);
-
     // when
     metricInstrumentation.executionCompleted(agent, 500L);
 
     // then
-    Timer timer = registry.timer(expectedId);
-    assertEquals(expectedId, timer.id());
+    Timer timer =
+        registry
+            .find("executionTime")
+            .tags(
+                "className",
+                MetricInstrumentation.class.getSimpleName(),
+                "agent",
+                String.format("TestProvider/%s", agentType),
+                "success",
+                "true")
+            .timer();
+    assertNotNull(timer);
   }
 }

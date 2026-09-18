@@ -18,12 +18,12 @@ package com.netflix.spinnaker.orca.interlink;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Counter;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.exceptions.ConfigurationException;
 import com.netflix.spinnaker.kork.pubsub.PubsubPublishers;
 import com.netflix.spinnaker.kork.pubsub.model.PubsubPublisher;
 import com.netflix.spinnaker.orca.interlink.events.InterlinkEvent;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
@@ -39,7 +39,7 @@ public class Interlink {
       PubsubPublishers publishers,
       ObjectMapper objectMapper,
       MessageFlagger flagger,
-      Registry registry) {
+      MeterRegistry registry) {
     this.objectMapper = objectMapper;
     this.flagger = flagger;
 

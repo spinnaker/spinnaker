@@ -22,7 +22,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.echo.api.events.Metadata;
 import com.netflix.spinnaker.echo.build.BuildInfoService;
 import com.netflix.spinnaker.echo.config.IgorConfigurationProperties;
@@ -34,6 +33,7 @@ import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
 import com.netflix.spinnaker.echo.services.IgorService;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -64,7 +64,7 @@ class BuildEventHandlerTest {
           "branch", "^(feature)/.*$" // only trigger on branch name like "feature/***"
           );
 
-  private final NoopRegistry registry = new NoopRegistry();
+  private final SimpleMeterRegistry registry = new SimpleMeterRegistry();
   private final com.fasterxml.jackson.databind.ObjectMapper objectMapper =
       EchoObjectMapper.getInstance();
   private final TestEventHandlerSupport handlerSupport = new TestEventHandlerSupport();

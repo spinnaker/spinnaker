@@ -22,7 +22,7 @@ import software.amazon.awssdk.services.ec2.model.SecurityGroup
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.aws.jackson.AwsObjectMapperFactory
 import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module
-import com.netflix.spectator.api.Spectator
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
@@ -47,7 +47,7 @@ class AmazonSecurityGroupCachingAgentSpec extends Specification {
   ObjectMapper mapper = AwsObjectMapperFactory.createConfigured().registerModule(new AwsSdkV2Module())
 
   @Subject AmazonSecurityGroupCachingAgent agent = new AmazonSecurityGroupCachingAgent(
-    amazonClientProvider, creds, region, mapper, Spectator.registry())
+    amazonClientProvider, creds, region, mapper, new SimpleMeterRegistry())
 
   SecurityGroup securityGroupA = SecurityGroup.builder().groupId('id-a').groupName('name-a').description('a').build()
   SecurityGroup securityGroupB = SecurityGroup.builder().groupId('id-b').groupName('name-b').description('b').build()

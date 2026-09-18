@@ -19,7 +19,7 @@ package com.netflix.spinnaker.front50.controllers
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.config.Front50SqlProperties
 import com.netflix.spinnaker.front50.config.StorageServiceConfigurationProperties
 import com.netflix.spinnaker.front50.model.DefaultObjectKeyLoader
@@ -188,7 +188,7 @@ class SqlNotificationControllerTck extends NotificationControllerTck {
 
   @Override
   NotificationDAO createNotificationDAO() {
-    def registry = new NoopRegistry()
+    def registry = new SimpleMeterRegistry()
 
     def storageService = new SqlStorageService(
       new ObjectMapper(),
@@ -206,7 +206,7 @@ class SqlNotificationControllerTck extends NotificationControllerTck {
       scheduler,
       new DefaultObjectKeyLoader(storageService),
       new StorageServiceConfigurationProperties.PerObjectType(),
-      new NoopRegistry(),
+      new SimpleMeterRegistry(),
       new InMemoryCircuitBreakerRegistry()
     )
   }

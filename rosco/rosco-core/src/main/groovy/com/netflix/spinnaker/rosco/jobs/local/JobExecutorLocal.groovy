@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.rosco.jobs.local
 
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.rosco.api.BakeStatus
 import com.netflix.spinnaker.rosco.jobs.JobExecutor
 import com.netflix.spinnaker.rosco.jobs.JobRequest
@@ -30,6 +29,8 @@ import org.apache.commons.exec.PumpStreamHandler
 import org.apache.commons.exec.Watchdog
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tags
 import io.reactivex.rxjava3.schedulers.Schedulers
 import io.reactivex.rxjava3.core.Scheduler
 import jakarta.annotation.PostConstruct
@@ -43,7 +44,7 @@ class JobExecutorLocal implements JobExecutor {
   long timeoutMinutes
 
   @Autowired
-  Registry registry
+  MeterRegistry registry
 
   Scheduler scheduler = Schedulers.computation()
   Map<String, Map> jobIdToHandlerMap = new ConcurrentHashMap<String, Map>()
@@ -217,7 +218,7 @@ class JobExecutorLocal implements JobExecutor {
   @PostConstruct
   void initializeMetrics() {
     // We need to have at least one tag.
-    registry.gauge(registry.createId("bakesActive", [active: "true"]), jobIdToHandlerMap, new ToDoubleFunction<Map>() {
+    registry.gauge("bakesActive", Tags.of("active", "true"), jobIdToHandlerMap, new ToDoubleFunction<Map>() {
 
       @Override
       double applyAsDouble(Map value) {

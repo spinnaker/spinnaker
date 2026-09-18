@@ -29,7 +29,7 @@ import com.netflix.kayenta.newrelic.security.NewRelicNamedAccountCredentials;
 import com.netflix.kayenta.newrelic.service.NewRelicRemoteService;
 import com.netflix.kayenta.newrelic.service.NewRelicTimeSeries;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
-import com.netflix.spectator.api.Registry;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.validation.constraints.NotNull;
 import java.io.IOException;
 import java.time.Duration;
@@ -54,7 +54,7 @@ public class NewRelicMetricsService implements MetricsService {
 
   @Autowired private final Map<String, NewRelicScopeConfiguration> newrelicScopeConfigurationMap;
 
-  @Autowired private final Registry registry;
+  @Autowired private final MeterRegistry registry;
 
   @Autowired private final NewRelicQueryBuilderService queryBuilder;
 

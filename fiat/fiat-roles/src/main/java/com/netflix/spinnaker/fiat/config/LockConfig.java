@@ -19,10 +19,10 @@ package com.netflix.spinnaker.fiat.config;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import com.netflix.spinnaker.kork.jedis.lock.RedisLockManager;
 import com.netflix.spinnaker.kork.lock.LockManager;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Clock;
 import java.util.Optional;
 import org.springframework.context.annotation.Bean;
@@ -37,7 +37,7 @@ public class LockConfig {
 
   @Bean
   LockManager redisLockManager(
-      Clock clock, Registry registry, RedisClientDelegate redisClientDelegate) {
+      Clock clock, MeterRegistry registry, RedisClientDelegate redisClientDelegate) {
     ObjectMapper objectMapper =
         new ObjectMapper()
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)

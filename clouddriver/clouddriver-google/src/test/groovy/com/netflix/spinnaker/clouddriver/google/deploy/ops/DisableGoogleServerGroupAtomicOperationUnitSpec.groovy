@@ -23,7 +23,7 @@ import com.google.api.services.compute.model.InstanceGroupManagersSetTargetPools
 import com.google.api.services.compute.model.TargetPool
 import com.google.api.services.compute.model.TargetSslProxyList
 import com.google.api.services.compute.model.TargetTcpProxyList
-import com.netflix.spectator.api.DefaultRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
@@ -72,7 +72,7 @@ class DisableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   def credentials
   def description
 
-  @Shared def registry = new DefaultRegistry()
+  @Shared def registry = new SimpleMeterRegistry()
   @Shared SafeRetry safeRetry
 
   def setupSpec() {
@@ -166,10 +166,9 @@ class DisableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       2 * forwardingRules.list(PROJECT_NAME, _) >> forwardingRulesList
       2 * forwardingRulesList.execute() >> new ForwardingRuleList(items: [])
 
-      registry.timer(
-          GoogleApiTestUtils.makeOkId(
-            registry, "compute.targetPools.removeInstance",
-            [scope: "regional", region: REGION])
+      GoogleApiTestUtils.okTimer(
+          registry, "compute.targetPools.removeInstance",
+          [scope: "regional", region: REGION]
       ).count() == 2
   }
 }

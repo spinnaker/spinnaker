@@ -17,7 +17,6 @@ import com.google.api.services.run.v1.model.Revision;
 import com.google.api.services.run.v1.model.Service;
 import com.google.common.collect.ImmutableSet;
 import com.netflix.frigga.Names;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult;
@@ -36,6 +35,7 @@ import com.netflix.spinnaker.clouddriver.cloudrun.provider.view.MutableCacheData
 import com.netflix.spinnaker.clouddriver.cloudrun.security.CloudrunNamedAccountCredentials;
 import groovy.lang.Reference;
 import groovy.util.logging.Slf4j;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -64,7 +64,7 @@ public class CloudrunServerGroupCachingAgent extends AbstractCloudrunCachingAgen
       String accountName,
       CloudrunNamedAccountCredentials credentials,
       ObjectMapper objectMapper,
-      Registry registry) {
+      MeterRegistry registry) {
     super(accountName, objectMapper, credentials);
     this.metricsSupport =
         new OnDemandMetricsSupport(

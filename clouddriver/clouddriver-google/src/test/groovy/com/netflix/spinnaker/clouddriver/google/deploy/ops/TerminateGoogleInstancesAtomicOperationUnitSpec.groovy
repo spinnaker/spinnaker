@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.InstanceGroupManagersRecreateInstancesRequest
-import com.netflix.spectator.api.DefaultRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
@@ -57,7 +57,7 @@ class TerminateGoogleInstancesAtomicOperationUnitSpec extends Specification {
 
   void "should terminate instances without managed instance group"() {
     setup:
-      def registry = new DefaultRegistry()
+      def registry = new SimpleMeterRegistry()
       def computeMock = Mock(Compute)
       def instancesMock = Mock(Compute.Instances)
       def deleteMock = Mock(Compute.Instances.Delete)
@@ -83,7 +83,7 @@ class TerminateGoogleInstancesAtomicOperationUnitSpec extends Specification {
 
   void "should terminate all known instances and fail on all unknown instances without managed instance group"() {
     setup:
-      def registry = new DefaultRegistry()
+      def registry = new SimpleMeterRegistry()
       def computeMock = Mock(Compute)
       def notFoundException = GoogleApiTestUtils.makeHttpResponseException(404)
       def instancesMock = Mock(Compute.Instances)
@@ -111,22 +111,20 @@ class TerminateGoogleInstancesAtomicOperationUnitSpec extends Specification {
         1 * instancesMock.delete(PROJECT_NAME, ZONE, it) >> deleteMock
         1 * deleteMock.execute() >> { throw notFoundException }
       }
-      registry.timer(
-          GoogleApiTestUtils.makeOkId(
-            registry, "compute.instances.delete",
-            [scope: "zonal", zone: ZONE])
+      GoogleApiTestUtils.okTimer(
+          registry, "compute.instances.delete",
+          [scope: "zonal", zone: ZONE]
       ).count() == GOOD_INSTANCE_IDS.size()
-      registry.timer(
-          GoogleApiTestUtils.makeId(
-            registry, "compute.instances.delete", 404,
-            [scope: "zonal", zone: ZONE])
+      GoogleApiTestUtils.timer(
+          registry, "compute.instances.delete", 404,
+          [scope: "zonal", zone: ZONE]
       ).count() == BAD_INSTANCE_IDS.size()
       thrown IOException
   }
 
   void "should recreate instances with managed instance group"() {
     setup:
-      def registry = new DefaultRegistry()
+      def registry = new SimpleMeterRegistry()
       def googleClusterProviderMock = Mock(GoogleClusterProvider)
       def serverGroup = new GoogleServerGroup(
         regional: isRegional,
@@ -141,13 +139,13 @@ class TerminateGoogleInstancesAtomicOperationUnitSpec extends Specification {
       def request = new InstanceGroupManagersRecreateInstancesRequest().setInstances(GOOD_INSTANCE_URLS)
       def regionInstanceGroupManagersMock = Mock(Compute.RegionInstanceGroupManagers)
       def regionInstanceGroupManagersRecreateInstancesMock = Mock(Compute.RegionInstanceGroupManagers.RecreateInstances)
-      def regionalTimerId = GoogleApiTestUtils.makeOkId(
+      def regionalTimer = GoogleApiTestUtils.okTimer(
             registry, "compute.regionInstanceGroupManagers.recreateInstances",
             [scope: "regional", region: REGION])
 
       def instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
       def instanceGroupManagersRecreateInstancesMock = Mock(Compute.InstanceGroupManagers.RecreateInstances)
-      def zonalTimerId = GoogleApiTestUtils.makeOkId(
+      def zonalTimer = GoogleApiTestUtils.okTimer(
             registry, "compute.instanceGroupManagers.recreateInstances",
             [scope: "zonal", zone: ZONE])
 
@@ -182,8 +180,8 @@ class TerminateGoogleInstancesAtomicOperationUnitSpec extends Specification {
                                                         request) >> instanceGroupManagersRecreateInstancesMock
         1 * instanceGroupManagersRecreateInstancesMock.execute()
       }
-      registry.timer(regionalTimerId).count() == (isRegional ? 1 : 0)
-      registry.timer(zonalTimerId).count() == (isRegional ? 0 : 1)
+      regionalTimer.count() == (isRegional ? 1 : 0)
+      zonalTimer.count() == (isRegional ? 0 : 1)
 
     where:
       isRegional | location

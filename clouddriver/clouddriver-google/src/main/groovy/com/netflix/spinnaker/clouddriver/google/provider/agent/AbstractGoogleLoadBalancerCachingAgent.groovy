@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.google.provider.agent
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
@@ -60,7 +60,7 @@ abstract class AbstractGoogleLoadBalancerCachingAgent extends AbstractGoogleCach
   AbstractGoogleLoadBalancerCachingAgent(String clouddriverUserAgentApplicationName,
                                          GoogleNamedAccountCredentials credentials,
                                          ObjectMapper objectMapper,
-                                         Registry registry,
+                                         MeterRegistry registry,
                                          String region) {
     super(clouddriverUserAgentApplicationName,
           credentials,

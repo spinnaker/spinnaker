@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.requestqueue.pooled;
 
-import com.netflix.spectator.api.Counter;
-import com.netflix.spectator.api.Registry;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Collection;
 import java.util.Queue;
 import java.util.concurrent.Executor;
@@ -35,7 +35,7 @@ class RequestDistributor implements Runnable {
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   RequestDistributor(
-      Registry registry,
+      MeterRegistry registry,
       PollCoordinator pollCoordinator,
       Executor executor,
       Collection<Queue<PooledRequest<?>>> requestQueues) {

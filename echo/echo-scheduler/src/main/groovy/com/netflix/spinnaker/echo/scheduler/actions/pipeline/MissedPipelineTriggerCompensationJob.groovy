@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.echo.scheduler.actions.pipeline
 
 import com.google.common.collect.Lists
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.echo.cron.CronExpressionFuzzer
 import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.model.Trigger
@@ -28,6 +27,7 @@ import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService.PipelineResp
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.PipelineInitiator
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import groovy.util.logging.Slf4j
+import io.micrometer.core.instrument.MeterRegistry
 import org.quartz.CronExpression
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -65,7 +65,7 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
   final PipelineCache pipelineCache
   final OrcaService orcaService
   final PipelineInitiator pipelineInitiator
-  final Registry registry
+  final MeterRegistry registry
   final QuietPeriodIndicator quietPeriodIndicator
   final boolean enableRecurring
   final Duration recurringPollInterval
@@ -78,7 +78,7 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
   MissedPipelineTriggerCompensationJob(PipelineCache pipelineCache,
                                        OrcaService orcaService,
                                        PipelineInitiator pipelineInitiator,
-                                       Registry registry,
+                                       MeterRegistry registry,
                                        QuietPeriodIndicator quietPeriodIndicator,
                                        @Value('${scheduler.compensation-job.window-ms:600000}') long compensationWindowMs, // 10 min
                                        @Value('${scheduler.compensation-job.tolerance-ms:30000}') long compensationWindowToleranceMs, // 30 seconds
@@ -94,7 +94,7 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
   MissedPipelineTriggerCompensationJob(PipelineCache pipelineCache,
                                        OrcaService orcaService,
                                        PipelineInitiator pipelineInitiator,
-                                       Registry registry,
+                                       MeterRegistry registry,
                                        QuietPeriodIndicator quietPeriodIndicator,
                                        @Value('${scheduler.compensation-job.window-ms:600000}') long compensationWindowMs, // 10 min
                                        @Value('${scheduler.compensation-job.tolerance-ms:30000}') long compensationWindowToleranceMs, // 30 seconds

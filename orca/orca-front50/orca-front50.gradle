@@ -24,7 +24,6 @@ dependencies {
 
   implementation("io.spinnaker.fiat:fiat-api")
   implementation("io.spinnaker.fiat:fiat-core")
-  implementation("com.netflix.spectator:spectator-api")
   implementation("org.jetbrains:annotations")
   implementation("org.springframework.boot:spring-boot-autoconfigure")
   implementation("org.springframework.security:spring-security-config")

@@ -5,7 +5,7 @@ dependencies {
   api(platform(project(":spinnaker-dependencies")))
   api project(":kork-annotations")
 
-  api "com.netflix.spectator:spectator-api"
+  api "io.micrometer:micrometer-core"
   api "com.github.ben-manes.caffeine:guava"
 
   testImplementation "com.hubspot.jinjava:jinjava"

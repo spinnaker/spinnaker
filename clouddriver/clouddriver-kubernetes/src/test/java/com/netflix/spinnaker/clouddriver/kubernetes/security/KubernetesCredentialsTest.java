@@ -27,12 +27,6 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonSyntaxException;
-import com.netflix.spectator.api.DefaultRegistry;
-import com.netflix.spectator.api.ManualClock;
-import com.netflix.spectator.api.NoopRegistry;
-import com.netflix.spectator.api.Registry;
-import com.netflix.spectator.api.Tag;
-import com.netflix.spectator.api.Timer;
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTask;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesAccountProperties.ManagedAccount;
@@ -49,7 +43,14 @@ import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubectlJobExecutor.Ku
 import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubectlJobExecutor.KubectlNotFoundException;
 import com.netflix.spinnaker.kork.configserver.CloudConfigResourceService;
 import com.netflix.spinnaker.kork.configserver.ConfigFileService;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.MockClock;
+import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.Timer;
+import io.micrometer.core.instrument.simple.SimpleConfig;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.HashMap;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 
 final class KubernetesCredentialsTest {
@@ -59,7 +60,15 @@ final class KubernetesCredentialsTest {
   private final String OP_NAME = "KubernetesCredentialsTest";
   private final Task task = new DefaultTask("task-id");
 
-  private KubernetesCredentials getCredentials(Registry registry, KubectlJobExecutor jobExecutor) {
+  private static ImmutableList<Timer> timers(MeterRegistry registry) {
+    return registry.getMeters().stream()
+        .filter(m -> m instanceof Timer)
+        .map(m -> (Timer) m)
+        .collect(toImmutableList());
+  }
+
+  private KubernetesCredentials getCredentials(
+      MeterRegistry registry, KubectlJobExecutor jobExecutor) {
     KubernetesCredentials.Factory factory =
         new KubernetesCredentials.Factory(
             registry,
@@ -91,16 +100,16 @@ final class KubernetesCredentialsTest {
   @Test
   void metricTagsForSuccessfulDeploy() {
     KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
-    Registry registry = new DefaultRegistry();
+    MeterRegistry registry = new SimpleMeterRegistry();
     KubernetesCredentials credentials = getCredentials(registry, jobExecutor);
     credentials.deploy(getManifest(), task, OP_NAME, new KubernetesSelectorList());
 
-    ImmutableList<Timer> timers = registry.timers().collect(toImmutableList());
+    ImmutableList<Timer> timers = timers(registry);
     assertThat(timers).hasSize(1);
 
     Timer timer = timers.get(0);
-    assertThat(timer.id().name()).isEqualTo("kubernetes.api");
-    assertThat(timer.id().tags())
+    assertThat(timer.getId().getName()).isEqualTo("kubernetes.api");
+    assertThat(timer.getId().getTags())
         .containsExactlyInAnyOrder(
             Tag.of("account", ACCOUNT_NAME),
             Tag.of("action", "deploy"),
@@ -112,17 +121,17 @@ final class KubernetesCredentialsTest {
   @Test
   void metricTagsForSuccessfulList() {
     KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
-    Registry registry = new DefaultRegistry();
+    MeterRegistry registry = new SimpleMeterRegistry();
     KubernetesCredentials credentials = getCredentials(registry, jobExecutor);
     credentials.list(
         ImmutableList.of(KubernetesKind.DEPLOYMENT, KubernetesKind.REPLICA_SET), NAMESPACE);
-    ImmutableList<Timer> timers = registry.timers().collect(toImmutableList());
+    ImmutableList<Timer> timers = timers(registry);
     assertThat(timers).hasSize(1);
 
     Timer timer = timers.get(0);
-    assertThat(timer.id().name()).isEqualTo("kubernetes.api");
+    assertThat(timer.getId().getName()).isEqualTo("kubernetes.api");
 
-    assertThat(timer.id().tags())
+    assertThat(timer.getId().getTags())
         .containsExactlyInAnyOrder(
             Tag.of("account", ACCOUNT_NAME),
             Tag.of("action", "list"),
@@ -134,37 +143,37 @@ final class KubernetesCredentialsTest {
   @Test
   void metricTagsForSuccessfulListNoNamespace() {
     KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
-    Registry registry = new DefaultRegistry();
+    MeterRegistry registry = new SimpleMeterRegistry();
     KubernetesCredentials credentials = getCredentials(registry, jobExecutor);
     credentials.list(ImmutableList.of(KubernetesKind.DEPLOYMENT, KubernetesKind.REPLICA_SET), null);
-    ImmutableList<Timer> timers = registry.timers().collect(toImmutableList());
+    ImmutableList<Timer> timers = timers(registry);
     assertThat(timers).hasSize(1);
 
     Timer timer = timers.get(0);
-    assertThat(timer.id().name()).isEqualTo("kubernetes.api");
+    assertThat(timer.getId().getName()).isEqualTo("kubernetes.api");
 
-    assertThat(timer.id().tags()).contains(Tag.of("namespace", "none"));
+    assertThat(timer.getId().getTags()).contains(Tag.of("namespace", "none"));
   }
 
   @Test
   void metricTagsForSuccessfulListEmptyNamespace() {
     KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
-    Registry registry = new DefaultRegistry();
+    MeterRegistry registry = new SimpleMeterRegistry();
     KubernetesCredentials credentials = getCredentials(registry, jobExecutor);
     credentials.list(ImmutableList.of(KubernetesKind.DEPLOYMENT, KubernetesKind.REPLICA_SET), "");
-    ImmutableList<Timer> timers = registry.timers().collect(toImmutableList());
+    ImmutableList<Timer> timers = timers(registry);
     assertThat(timers).hasSize(1);
 
     Timer timer = timers.get(0);
-    assertThat(timer.id().name()).isEqualTo("kubernetes.api");
+    assertThat(timer.getId().getName()).isEqualTo("kubernetes.api");
 
-    assertThat(timer.id().tags()).contains(Tag.of("namespace", "none"));
+    assertThat(timer.getId().getTags()).contains(Tag.of("namespace", "none"));
   }
 
   @Test
   void returnValueForSuccessfulList() {
     KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
-    Registry registry = new DefaultRegistry();
+    MeterRegistry registry = new SimpleMeterRegistry();
     KubernetesCredentials credentials = getCredentials(registry, jobExecutor);
 
     KubernetesManifest manifest = getManifest();
@@ -180,32 +189,31 @@ final class KubernetesCredentialsTest {
   void timeRecordedForSuccessfulList() {
     KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
 
-    ManualClock clock = new ManualClock();
-    Registry registry = new DefaultRegistry(clock);
+    MockClock clock = new MockClock();
+    MeterRegistry registry = new SimpleMeterRegistry(SimpleConfig.DEFAULT, clock);
     KubernetesCredentials credentials = getCredentials(registry, jobExecutor);
 
-    clock.setMonotonicTime(1000);
     when(jobExecutor.list(eq(credentials), any(), any(), any()))
         .then(
             call -> {
-              clock.setMonotonicTime(1500);
+              clock.add(500, TimeUnit.NANOSECONDS);
               return ImmutableList.of();
             });
     credentials.list(
         ImmutableList.of(KubernetesKind.DEPLOYMENT, KubernetesKind.REPLICA_SET), NAMESPACE);
 
-    ImmutableList<Timer> timers = registry.timers().collect(toImmutableList());
+    ImmutableList<Timer> timers = timers(registry);
     assertThat(timers).hasSize(1);
 
     Timer timer = timers.get(0);
-    assertThat(timer.id().name()).isEqualTo("kubernetes.api");
-    assertThat(timer.totalTime()).isEqualTo(500);
+    assertThat(timer.getId().getName()).isEqualTo("kubernetes.api");
+    assertThat(timer.totalTime(TimeUnit.NANOSECONDS)).isEqualTo(500);
   }
 
   @Test
   void metricTagsForListThrowingKubectlException() {
     KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
-    Registry registry = new DefaultRegistry();
+    MeterRegistry registry = new SimpleMeterRegistry();
     KubernetesCredentials credentials = getCredentials(registry, jobExecutor);
 
     when(jobExecutor.list(eq(credentials), any(), any(), any()))
@@ -219,13 +227,13 @@ final class KubernetesCredentialsTest {
                     ImmutableList.of(KubernetesKind.DEPLOYMENT, KubernetesKind.REPLICA_SET),
                     NAMESPACE))
         .isInstanceOf(KubectlException.class);
-    ImmutableList<Timer> timers = registry.timers().collect(toImmutableList());
+    ImmutableList<Timer> timers = timers(registry);
     assertThat(timers).hasSize(1);
 
     Timer timer = timers.get(0);
-    assertThat(timer.id().name()).isEqualTo("kubernetes.api");
+    assertThat(timer.getId().getName()).isEqualTo("kubernetes.api");
 
-    assertThat(timer.id().tags())
+    assertThat(timer.getId().getTags())
         .containsExactlyInAnyOrder(
             Tag.of("account", ACCOUNT_NAME),
             Tag.of("action", "list"),
@@ -238,7 +246,7 @@ final class KubernetesCredentialsTest {
   @Test
   void propagatedExceptionForListThrowingKubectlException() {
     KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
-    Registry registry = new DefaultRegistry();
+    MeterRegistry registry = new SimpleMeterRegistry();
     KubernetesCredentials credentials = getCredentials(registry, jobExecutor);
 
     KubectlException exception =
@@ -259,15 +267,14 @@ final class KubernetesCredentialsTest {
   void timeRecordedForListThrowingKubectlException() {
     KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
 
-    ManualClock clock = new ManualClock();
-    Registry registry = new DefaultRegistry(clock);
+    MockClock clock = new MockClock();
+    MeterRegistry registry = new SimpleMeterRegistry(SimpleConfig.DEFAULT, clock);
     KubernetesCredentials credentials = getCredentials(registry, jobExecutor);
 
-    clock.setMonotonicTime(1000);
     when(jobExecutor.list(eq(credentials), any(), any(), any()))
         .then(
             call -> {
-              clock.setMonotonicTime(1500);
+              clock.add(500, TimeUnit.NANOSECONDS);
               throw new KubectlException(
                   "Failed to parse kubectl output: failure", new JsonSyntaxException("failure"));
             });
@@ -278,18 +285,18 @@ final class KubernetesCredentialsTest {
                     NAMESPACE))
         .isInstanceOf(KubectlException.class);
 
-    ImmutableList<Timer> timers = registry.timers().collect(toImmutableList());
+    ImmutableList<Timer> timers = timers(registry);
     assertThat(timers).hasSize(1);
 
     Timer timer = timers.get(0);
-    assertThat(timer.id().name()).isEqualTo("kubernetes.api");
-    assertThat(timer.totalTime()).isEqualTo(500);
+    assertThat(timer.getId().getName()).isEqualTo("kubernetes.api");
+    assertThat(timer.totalTime(TimeUnit.NANOSECONDS)).isEqualTo(500);
   }
 
   @Test
   void metricTagsForListThrowingOtherException() {
     KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
-    Registry registry = new DefaultRegistry();
+    MeterRegistry registry = new SimpleMeterRegistry();
     KubernetesCredentials credentials = getCredentials(registry, jobExecutor);
 
     when(jobExecutor.list(eq(credentials), any(), any(), any()))
@@ -301,13 +308,13 @@ final class KubernetesCredentialsTest {
                     ImmutableList.of(KubernetesKind.DEPLOYMENT, KubernetesKind.REPLICA_SET),
                     NAMESPACE))
         .isInstanceOf(CustomException.class);
-    ImmutableList<Timer> timers = registry.timers().collect(toImmutableList());
+    ImmutableList<Timer> timers = timers(registry);
     assertThat(timers).hasSize(1);
 
     Timer timer = timers.get(0);
-    assertThat(timer.id().name()).isEqualTo("kubernetes.api");
+    assertThat(timer.getId().getName()).isEqualTo("kubernetes.api");
 
-    assertThat(timer.id().tags())
+    assertThat(timer.getId().getTags())
         .containsExactlyInAnyOrder(
             Tag.of("account", ACCOUNT_NAME),
             Tag.of("action", "list"),
@@ -321,15 +328,14 @@ final class KubernetesCredentialsTest {
   void timeRecordedForListThrowingOtherException() {
     KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
 
-    ManualClock clock = new ManualClock();
-    Registry registry = new DefaultRegistry(clock);
+    MockClock clock = new MockClock();
+    MeterRegistry registry = new SimpleMeterRegistry(SimpleConfig.DEFAULT, clock);
     KubernetesCredentials credentials = getCredentials(registry, jobExecutor);
 
-    clock.setMonotonicTime(1000);
     when(jobExecutor.list(eq(credentials), any(), any(), any()))
         .then(
             call -> {
-              clock.setMonotonicTime(1500);
+              clock.add(500, TimeUnit.NANOSECONDS);
               throw new CustomException("Kubernetes errror");
             });
     assertThatThrownBy(
@@ -339,18 +345,18 @@ final class KubernetesCredentialsTest {
                     NAMESPACE))
         .isInstanceOf(CustomException.class);
 
-    ImmutableList<Timer> timers = registry.timers().collect(toImmutableList());
+    ImmutableList<Timer> timers = timers(registry);
     assertThat(timers).hasSize(1);
 
     Timer timer = timers.get(0);
-    assertThat(timer.id().name()).isEqualTo("kubernetes.api");
-    assertThat(timer.totalTime()).isEqualTo(500);
+    assertThat(timer.getId().getName()).isEqualTo("kubernetes.api");
+    assertThat(timer.totalTime(TimeUnit.NANOSECONDS)).isEqualTo(500);
   }
 
   @Test
   void propagatedExceptionForListThrowingOtherException() {
     KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
-    Registry registry = new DefaultRegistry();
+    MeterRegistry registry = new SimpleMeterRegistry();
     KubernetesCredentials credentials = getCredentials(registry, jobExecutor);
 
     Exception cause = new CustomException("Kubernetes error");
@@ -370,7 +376,7 @@ final class KubernetesCredentialsTest {
   void replaceWhenResourceExists() {
     KubernetesManifest manifest = getManifest();
     KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
-    KubernetesCredentials credentials = getCredentials(new NoopRegistry(), jobExecutor);
+    KubernetesCredentials credentials = getCredentials(new SimpleMeterRegistry(), jobExecutor);
     KubernetesSelectorList selectorList = new KubernetesSelectorList();
     when(jobExecutor.create(credentials, manifest, task, OP_NAME, selectorList))
         .thenThrow(new KubectlException("Create failed: Error from server (AlreadyExists)"));
@@ -384,7 +390,7 @@ final class KubernetesCredentialsTest {
   void replaceWhenResourceDoesNotExist() {
     KubernetesManifest manifest = getManifest();
     KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
-    KubernetesCredentials credentials = getCredentials(new NoopRegistry(), jobExecutor);
+    KubernetesCredentials credentials = getCredentials(new SimpleMeterRegistry(), jobExecutor);
     KubernetesSelectorList selectorList = new KubernetesSelectorList();
     when(jobExecutor.replace(credentials, manifest, task, OP_NAME))
         .thenThrow(new KubectlNotFoundException("Not found"));

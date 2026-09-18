@@ -15,9 +15,9 @@
  */
 package com.netflix.spinnaker.clouddriver.event.config
 
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.event.persistence.EventRepository
 import com.netflix.spinnaker.clouddriver.event.persistence.InMemoryEventRepository
+import io.micrometer.core.instrument.MeterRegistry
 import java.time.Duration
 import jakarta.validation.Constraint
 import jakarta.validation.ConstraintValidator
@@ -48,7 +48,7 @@ open class MemoryEventRepositoryConfig {
   open fun eventRepository(
     properties: MemoryEventRepositoryConfigProperties,
     applicationEventPublisher: ApplicationEventPublisher,
-    registry: Registry
+    registry: MeterRegistry
   ): EventRepository =
     InMemoryEventRepository(properties, applicationEventPublisher, registry)
 }

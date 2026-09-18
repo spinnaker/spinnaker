@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.monitoreddeploy
 
-import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.config.DeploymentMonitorDefinition
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
@@ -29,6 +28,7 @@ import com.netflix.spinnaker.orca.deploymentmonitor.models.EvaluateHealthRespons
 import com.netflix.spinnaker.orca.deploymentmonitor.models.MonitoredDeployInternalStageData
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import okhttp3.Request
 import retrofit2.mock.Calls
 import spock.lang.Specification
@@ -54,7 +54,7 @@ class EvaluateDeploymentHealthTaskSpec extends Specification {
 
     def serviceProviderStub = getServiceProviderStub(monitorServiceStub)
 
-    def task = new EvaluateDeploymentHealthTask(serviceProviderStub, new NoopRegistry())
+    def task = new EvaluateDeploymentHealthTask(serviceProviderStub, new SimpleMeterRegistry())
 
     MonitoredDeployInternalStageData stageData = new MonitoredDeployInternalStageData()
     stageData.deploymentMonitor = new DeploymentMonitorStageConfig()
@@ -79,7 +79,7 @@ class EvaluateDeploymentHealthTaskSpec extends Specification {
 
     when: 'we ran out of retries and failOnError = false'
     serviceProviderStub = getServiceProviderStub(monitorServiceStub, {DeploymentMonitorDefinition dm -> dm.failOnError = false})
-    task = new EvaluateDeploymentHealthTask(serviceProviderStub, new NoopRegistry())
+    task = new EvaluateDeploymentHealthTask(serviceProviderStub, new SimpleMeterRegistry())
     result = task.execute(stage)
 
     then: 'should return fail_continue'
@@ -119,7 +119,7 @@ class EvaluateDeploymentHealthTaskSpec extends Specification {
 
     def serviceProviderStub = getServiceProviderStub(monitorServiceStub)
 
-    def task = new EvaluateDeploymentHealthTask(serviceProviderStub, new NoopRegistry())
+    def task = new EvaluateDeploymentHealthTask(serviceProviderStub, new SimpleMeterRegistry())
 
     MonitoredDeployInternalStageData stageData = new MonitoredDeployInternalStageData()
     stageData.deploymentMonitor = new DeploymentMonitorStageConfig()
@@ -148,7 +148,7 @@ class EvaluateDeploymentHealthTaskSpec extends Specification {
     def serviceProviderStub = getServiceProviderStub(monitorServiceStub,
       {DeploymentMonitorDefinition deploymentMonitor -> deploymentMonitor.maxAnalysisMinutes = 15})
 
-    def task = new EvaluateDeploymentHealthTask(serviceProviderStub, new NoopRegistry())
+    def task = new EvaluateDeploymentHealthTask(serviceProviderStub, new SimpleMeterRegistry())
 
     MonitoredDeployInternalStageData stageData = new MonitoredDeployInternalStageData()
     stageData.deploymentMonitor = new DeploymentMonitorStageConfig()
@@ -177,7 +177,7 @@ class EvaluateDeploymentHealthTaskSpec extends Specification {
     def serviceProviderStub = getServiceProviderStub(monitorServiceStub,
       {DeploymentMonitorDefinition deploymentMonitor -> deploymentMonitor.failOnError = monitorFailOnError})
 
-    def task = new EvaluateDeploymentHealthTask(serviceProviderStub, new NoopRegistry())
+    def task = new EvaluateDeploymentHealthTask(serviceProviderStub, new SimpleMeterRegistry())
 
     MonitoredDeployInternalStageData stageData = new MonitoredDeployInternalStageData()
     stageData.deploymentMonitor = new DeploymentMonitorStageConfig()

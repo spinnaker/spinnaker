@@ -17,13 +17,13 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.security;
 
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.CloudFoundryProvider;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.agent.CloudFoundryLoadBalancerCachingAgent;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.agent.CloudFoundryServerGroupCachingAgent;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.agent.CloudFoundrySpaceCachingAgent;
 import com.netflix.spinnaker.credentials.CredentialsLifecycleHandler;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Collections;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +38,7 @@ public class CloudFoundryCredentialsLifecycleHandler
   private static final Logger log =
       LoggerFactory.getLogger(CloudFoundryCredentialsLifecycleHandler.class);
   private final CloudFoundryProvider provider;
-  private final Registry registry;
+  private final MeterRegistry registry;
 
   @Override
   public void credentialsAdded(CloudFoundryCredentials credentials) {

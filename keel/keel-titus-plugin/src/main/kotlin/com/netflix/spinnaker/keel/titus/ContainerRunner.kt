@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.titus
 
-import com.netflix.spectator.api.BasicTag
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.Tag
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.keel.api.action.ActionState
 import com.netflix.spinnaker.keel.api.actuation.SubjectType.VERIFICATION
 import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
@@ -23,7 +23,7 @@ import org.springframework.stereotype.Component
 class ContainerRunner(
   private val taskLauncher: TaskLauncher,
   private val orca: OrcaService,
-  private val spectator: Registry
+  private val meterRegistry: MeterRegistry
 ) {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -100,12 +100,12 @@ class ContainerRunner(
   }
 
   private fun incrementContainerLaunchedCounter(application: String, environmentName: String, imageId: String) {
-    spectator.counter(
+    meterRegistry.counter(
       CONTAINER_LAUNCHED_COUNTER_ID,
       listOf(
-        BasicTag("application", application),
-        BasicTag("environmentName", environmentName),
-        BasicTag("imageId", imageId)
+        Tag.of("application", application),
+        Tag.of("environmentName", environmentName),
+        Tag.of("imageId", imageId)
       )
     ).safeIncrement()
   }

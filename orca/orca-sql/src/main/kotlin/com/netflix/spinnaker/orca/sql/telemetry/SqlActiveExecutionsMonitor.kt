@@ -15,10 +15,11 @@
  */
 package com.netflix.spinnaker.orca.sql.telemetry
 
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.ORCHESTRATION
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.sql.pipeline.persistence.ExecutionStatisticsRepository
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tags
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
@@ -26,7 +27,7 @@ import org.slf4j.LoggerFactory
 
 class SqlActiveExecutionsMonitor(
   private val executionRepository: ExecutionStatisticsRepository,
-  registry: Registry,
+  registry: MeterRegistry,
   refreshFrequencyMs: Long
 ) {
 
@@ -35,12 +36,14 @@ class SqlActiveExecutionsMonitor(
   private val executor = Executors.newScheduledThreadPool(1)
 
   private val activePipelineCounter = registry.gauge(
-    registry.createId("executions.active").withTag("executionType", PIPELINE.toString()),
+    "executions.active",
+    Tags.of("executionType", PIPELINE.toString()),
     AtomicInteger(0)
   )
 
   private val activeOrchestrationCounter = registry.gauge(
-    registry.createId("executions.active").withTag("executionType", ORCHESTRATION.toString()),
+    "executions.active",
+    Tags.of("executionType", ORCHESTRATION.toString()),
     AtomicInteger(0)
   )
 

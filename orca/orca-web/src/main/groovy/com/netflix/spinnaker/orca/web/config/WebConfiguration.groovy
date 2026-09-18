@@ -30,12 +30,12 @@ import jakarta.servlet.ServletRequest
 import jakarta.servlet.ServletResponse
 import jakarta.servlet.http.HttpServletResponse
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.fiat.shared.EnableFiatAutoConfig
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import groovy.transform.CompileStatic
+import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
@@ -53,8 +53,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 class WebConfiguration {
 
   @Bean
-  MetricsInterceptor metricsInterceptor(Registry registry) {
-    return  new MetricsInterceptor(registry, "controller.invocations", ["application"], ["BasicErrorController"])
+  MetricsInterceptor metricsInterceptor(MeterRegistry meterRegistry) {
+    return  new MetricsInterceptor(meterRegistry, "controller.invocations", ["application"], ["BasicErrorController"])
   }
 
   @Bean

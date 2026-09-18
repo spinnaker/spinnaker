@@ -17,9 +17,9 @@ package com.netflix.spinnaker.kork.jedis.telemetry;
 
 import static com.netflix.spinnaker.kork.jedis.telemetry.TelemetryHelper.*;
 
-import com.netflix.spectator.api.Registry;
-import com.netflix.spectator.api.histogram.PercentileDistributionSummary;
-import com.netflix.spectator.api.histogram.PercentileTimer;
+import io.micrometer.core.instrument.DistributionSummary;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -50,15 +50,15 @@ import redis.clients.jedis.util.KeyValue;
  */
 public class InstrumentedJedis extends Jedis {
 
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final Jedis delegated;
   private final String poolName;
 
-  public InstrumentedJedis(Registry registry, Jedis delegated) {
+  public InstrumentedJedis(MeterRegistry registry, Jedis delegated) {
     this(registry, delegated, "unnamed");
   }
 
-  public InstrumentedJedis(Registry registry, Jedis delegated, String poolName) {
+  public InstrumentedJedis(MeterRegistry registry, Jedis delegated, String poolName) {
     this.registry = registry;
     this.delegated = delegated;
     this.poolName = poolName;
@@ -80,21 +80,26 @@ public class InstrumentedJedis extends Jedis {
       String command, Optional<Long> payloadSize, Callable<T> action) {
     payloadSize.ifPresent(
         size ->
-            PercentileDistributionSummary.get(
-                    registry, payloadSizeId(registry, poolName, command, false))
+            DistributionSummary.builder(payloadSizeName(command))
+                .tags(commandTags(poolName, false))
+                .publishPercentileHistogram()
+                .register(registry)
                 .record(size));
     try {
-      return PercentileTimer.get(registry, timerId(registry, poolName, command, false))
-          .record(
+      return Timer.builder(timerName(command))
+          .tags(commandTags(poolName, false))
+          .publishPercentileHistogram()
+          .register(registry)
+          .recordCallable(
               () -> {
                 T result = action.call();
                 registry
-                    .counter(invocationId(registry, poolName, command, false, true))
+                    .counter(invocationName(command), invocationTags(poolName, false, true))
                     .increment();
                 return result;
               });
     } catch (Exception e) {
-      registry.counter(invocationId(registry, poolName, command, false, false)).increment();
+      registry.counter(invocationName(command), invocationTags(poolName, false, false)).increment();
       throw new InstrumentedJedisException("could not execute delegate function", e);
     }
   }
@@ -110,20 +115,25 @@ public class InstrumentedJedis extends Jedis {
   private void internalInstrumented(String command, Optional<Long> payloadSize, Runnable action) {
     payloadSize.ifPresent(
         size ->
-            PercentileDistributionSummary.get(
-                    registry, payloadSizeId(registry, poolName, command, false))
+            DistributionSummary.builder(payloadSizeName(command))
+                .tags(commandTags(poolName, false))
+                .publishPercentileHistogram()
+                .register(registry)
                 .record(size));
     try {
-      PercentileTimer.get(registry, timerId(registry, poolName, command, false))
+      Timer.builder(timerName(command))
+          .tags(commandTags(poolName, false))
+          .publishPercentileHistogram()
+          .register(registry)
           .record(
               () -> {
                 action.run();
                 registry
-                    .counter(invocationId(registry, poolName, command, false, true))
+                    .counter(invocationName(command), invocationTags(poolName, false, true))
                     .increment();
               });
     } catch (Exception e) {
-      registry.counter(invocationId(registry, poolName, command, false, false)).increment();
+      registry.counter(invocationName(command), invocationTags(poolName, false, false)).increment();
       throw new InstrumentedJedisException("could not execute delegate function", e);
     }
   }

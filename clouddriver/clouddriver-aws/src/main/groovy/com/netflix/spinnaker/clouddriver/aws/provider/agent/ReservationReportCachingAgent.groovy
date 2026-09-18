@@ -30,8 +30,6 @@ import com.fasterxml.jackson.databind.module.SimpleModule
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
-import com.netflix.spectator.api.Id
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.CachingAgent
@@ -52,6 +50,9 @@ import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent
 import com.netflix.spinnaker.credentials.CredentialsRepository
 import groovy.util.logging.Slf4j
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tag
+import io.micrometer.core.instrument.Tags
 import org.springframework.context.ApplicationContext
 
 import java.util.concurrent.ConcurrentHashMap
@@ -84,10 +85,10 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
   final ObjectMapper objectMapper
   final AccountReservationDetailSerializer accountReservationDetailSerializer
   final MetricsSupport metricsSupport
-  final Registry registry
+  final MeterRegistry registry
 
 
-  ReservationReportCachingAgent(Registry registry,
+  ReservationReportCachingAgent(MeterRegistry registry,
                                 AmazonClientProvider amazonClientProvider,
                                 AmazonS3DataProvider amazonS3DataProvider,
                                 CredentialsRepository<NetflixAmazonCredentials> credentialsRepository,
@@ -338,7 +339,7 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
       }
   }
 
-  static void recordError(Registry registry,
+  static void recordError(MeterRegistry registry,
                           ConcurrentHashMap<String, Collection<String>> errorsByRegion,
                           NetflixAmazonCredentials credentials,
                           String region,
@@ -356,18 +357,18 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
     recordErrorMetric(registry, credentials.name, region)
   }
 
-  static void recordErrorMetric(Registry registry, String account, String region) {
-    def id = registry.createId("reservedInstances.errors")
+  static void recordErrorMetric(MeterRegistry registry, String account, String region) {
+    def tags = Tags.empty()
 
     if (account) {
-      id = id.withTag("account", account)
+      tags = tags.and("account", account)
     }
 
     if (region) {
-      id = id.withTag("region", region)
+      tags = tags.and("region", region)
     }
 
-    registry.counter(id).increment()
+    registry.counter("reservedInstances.errors", tags).increment()
   }
 
   static AmazonReservationReport.OperatingSystemType operatingSystemType(String productDescription) {
@@ -447,23 +448,23 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
         }
       });
 
-    private final Map<String, Id> existingMetricIds = new ConcurrentHashMap<>()
+    private final Set<String> registeredMetricKeys = ConcurrentHashMap.newKeySet()
     private final ObjectMapper objectMapper
-    private final Registry registry
+    private final MeterRegistry registry
     private final Closure<Cache> cache
 
-    MetricsSupport(ObjectMapper objectMapper, Registry registry, Closure<Cache> cache) {
+    MetricsSupport(ObjectMapper objectMapper, MeterRegistry registry, Closure<Cache> cache) {
       this.registry = registry
       this.objectMapper = objectMapper
       this.cache = cache
     }
 
     private void registerMetric(String name, Map<String, String> tags, Closure metricValueClosure) {
-      def id = registry.createId(name).withTags(tags)
-      def existingId = existingMetricIds.putIfAbsent(name + ":" + tags.values().sort().join(":"), id)
+      def metricKey = name + ":" + tags.values().sort().join(":")
 
-      if (!existingId) {
-        registry.gauge(id, reservationReportCache, { LoadingCache<String, AmazonReservationReport> reservationReportCache ->
+      if (registeredMetricKeys.add(metricKey)) {
+        def meterTags = Tags.of(tags.collect { k, v -> Tag.of(k, v) })
+        registry.gauge(name, meterTags, reservationReportCache, { LoadingCache<String, AmazonReservationReport> reservationReportCache ->
           def overallReservationDetail = reservationReportCache.get("v3").reservations.find {
             it.availabilityZone == tags.availabilityZone &&
             it.instanceType == tags.instanceType &&

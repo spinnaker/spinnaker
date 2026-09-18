@@ -18,7 +18,6 @@ package com.netflix.spinnaker.kork.aws;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.netflix.spectator.aws2.SpectatorExecutionInterceptor;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
@@ -26,7 +25,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 
 /**
  * Verifies that {@code software/amazon/awssdk/global/handlers/execution.interceptors} actually
- * makes {@link SpectatorExecutionInterceptor} discoverable through the AWS SDK v2's own global
+ * makes {@link MicrometerExecutionInterceptor} discoverable through the AWS SDK v2's own global
  * interceptor-loading mechanism -- the same mechanism {@code SdkDefaultClientBuilder} uses to
  * attach interceptors to every v2 client built anywhere on this classpath, with no per-client
  * wiring required.
@@ -34,13 +33,13 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 class GlobalExecutionInterceptorTest {
 
   @Test
-  void spectatorExecutionInterceptorIsDiscoveredGlobally() {
+  void micrometerExecutionInterceptorIsDiscoveredGlobally() {
     List<ExecutionInterceptor> globalInterceptors =
         new ClasspathInterceptorChainFactory().getGlobalInterceptors();
 
     assertTrue(
-        globalInterceptors.stream().anyMatch(i -> i instanceof SpectatorExecutionInterceptor),
+        globalInterceptors.stream().anyMatch(i -> i instanceof MicrometerExecutionInterceptor),
         "software/amazon/awssdk/global/handlers/execution.interceptors should make"
-            + " SpectatorExecutionInterceptor discoverable without any per-client wiring");
+            + " MicrometerExecutionInterceptor discoverable without any per-client wiring");
   }
 }

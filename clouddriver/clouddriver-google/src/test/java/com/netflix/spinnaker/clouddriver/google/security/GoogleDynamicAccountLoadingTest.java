@@ -22,7 +22,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.google.GoogleExecutor;
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.google.config.GoogleCredentialsConfiguration;
@@ -35,6 +34,7 @@ import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository;
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinitionSource;
 import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import com.netflix.spinnaker.kork.configserver.ConfigFileService;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -56,7 +56,7 @@ public class GoogleDynamicAccountLoadingTest {
   private GoogleExecutor mockGoogleExecutor;
   private NamerRegistry mockNamerRegistry;
   private ServiceClientProvider mockServiceClientProvider;
-  private Registry mockRegistry;
+  private MeterRegistry mockRegistry;
   private ObjectMapper objectMapper;
 
   @BeforeEach
@@ -69,7 +69,7 @@ public class GoogleDynamicAccountLoadingTest {
     mockGoogleExecutor = mock(GoogleExecutor.class);
     mockNamerRegistry = mock(NamerRegistry.class);
     mockServiceClientProvider = mock(ServiceClientProvider.class);
-    mockRegistry = mock(Registry.class);
+    mockRegistry = mock(MeterRegistry.class);
     objectMapper = new ObjectMapper();
   }
 

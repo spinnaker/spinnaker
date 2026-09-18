@@ -23,7 +23,6 @@ import static java.util.stream.Collectors.toSet;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AccountAware;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.agent.CacheResult;
@@ -36,6 +35,7 @@ import com.netflix.spinnaker.clouddriver.aws.data.Keys;
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -74,7 +74,7 @@ public class AmazonLaunchTemplateCachingAgent implements CachingAgent, AccountAw
       NetflixAmazonCredentials account,
       String region,
       ObjectMapper objectMapper,
-      Registry registry) {
+      MeterRegistry registry) {
     this.amazonClientProvider = amazonClientProvider;
     this.account = account;
     this.region = region;

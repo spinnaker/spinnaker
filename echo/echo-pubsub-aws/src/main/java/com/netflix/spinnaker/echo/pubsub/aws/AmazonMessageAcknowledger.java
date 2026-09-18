@@ -16,9 +16,8 @@
 
 package com.netflix.spinnaker.echo.pubsub.aws;
 
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.pubsub.model.MessageAcknowledger;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.sqs.SqsClient;
@@ -36,14 +35,14 @@ public class AmazonMessageAcknowledger implements MessageAcknowledger {
   private SqsClient sqsClient;
   private String queueUrl;
   private Message message;
-  private Registry registry;
+  private MeterRegistry registry;
   private String subscriptionName;
 
   public AmazonMessageAcknowledger(
       SqsClient sqsClient,
       String queueUrl,
       Message message,
-      Registry registry,
+      MeterRegistry registry,
       String subscriptionName) {
     this.sqsClient = sqsClient;
     this.queueUrl = queueUrl;
@@ -60,7 +59,9 @@ public class AmazonMessageAcknowledger implements MessageAcknowledger {
               .queueUrl(queueUrl)
               .receiptHandle(message.receiptHandle())
               .build());
-      registry.counter(getProcessedMetricId(subscriptionName)).increment();
+      registry
+          .counter("echo.pubsub.amazon.totalProcessed", "subscriptionName", subscriptionName)
+          .increment();
     } catch (SqsException e) {
       log.warn(
           "Error deleting message: {}, queue: {}, reason: {} (receiptHandle: {})",
@@ -75,16 +76,8 @@ public class AmazonMessageAcknowledger implements MessageAcknowledger {
   public void nack() {
     // Do nothing. Message is being processed by another worker,
     // and will be available again in 30 seconds to process
-    registry.counter(getNackMetricId(subscriptionName)).increment();
-  }
-
-  Id getProcessedMetricId(String subscriptionName) {
-    return registry.createId(
-        "echo.pubsub.amazon.totalProcessed", "subscriptionName", subscriptionName);
-  }
-
-  Id getNackMetricId(String subscriptionName) {
-    return registry.createId(
-        "echo.pubsub.amazon.messagesNacked", "subscriptionName", subscriptionName);
+    registry
+        .counter("echo.pubsub.amazon.messagesNacked", "subscriptionName", subscriptionName)
+        .increment();
   }
 }

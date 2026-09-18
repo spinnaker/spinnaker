@@ -18,7 +18,6 @@
 package com.netflix.spinnaker.front50.pipeline;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.config.Front50SqlProperties;
 import com.netflix.spinnaker.front50.config.StorageServiceConfigurationProperties;
 import com.netflix.spinnaker.front50.model.DefaultObjectKeyLoader;
@@ -27,6 +26,7 @@ import com.netflix.spinnaker.front50.model.pipeline.DefaultPipelineDAO;
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties;
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import io.reactivex.rxjava3.core.Scheduler;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.time.Clock;
@@ -43,7 +43,7 @@ public class SqlPipelineDAOTestConfiguration {
     SqlStorageService storageService =
         new SqlStorageService(
             new ObjectMapper(),
-            new NoopRegistry(),
+            new SimpleMeterRegistry(),
             database.context,
             Clock.systemDefaultZone(),
             new SqlRetryProperties(),
@@ -61,7 +61,7 @@ public class SqlPipelineDAOTestConfiguration {
             scheduler,
             new DefaultObjectKeyLoader(storageService),
             pipelineDAOConfigProperties,
-            new NoopRegistry(),
+            new SimpleMeterRegistry(),
             CircuitBreakerRegistry.ofDefaults());
 
     // refreshing to initialize the cache with an empty set

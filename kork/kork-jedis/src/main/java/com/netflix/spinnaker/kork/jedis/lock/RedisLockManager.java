@@ -20,11 +20,11 @@ import static com.netflix.spinnaker.kork.jedis.lock.RedisLockManager.LockScripts
 import static com.netflix.spinnaker.kork.lock.LockManager.LockReleaseStatus.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
-import com.netflix.spectator.api.patterns.LongTaskTimer;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import com.netflix.spinnaker.kork.lock.RefreshableLockManager;
+import io.micrometer.core.instrument.LongTaskTimer;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.PreDestroy;
 import java.io.IOException;
@@ -47,15 +47,10 @@ public class RedisLockManager implements RefreshableLockManager {
 
   private final String ownerName;
   private final Clock clock;
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final ObjectMapper objectMapper;
   private final RedisClientDelegate redisClientDelegate;
   private final ScheduledExecutorService scheduledExecutorService;
-
-  private final Id acquireId;
-  private final Id releaseId;
-  private final Id heartbeatId;
-  private final Id acquireDurationId;
 
   private long heartbeatRateMillis;
   private long leaseDurationMillis;
@@ -64,7 +59,7 @@ public class RedisLockManager implements RefreshableLockManager {
   public RedisLockManager(
       String ownerName,
       Clock clock,
-      Registry registry,
+      MeterRegistry registry,
       ObjectMapper objectMapper,
       RedisClientDelegate redisClientDelegate,
       Optional<Long> heartbeatRateMillis,
@@ -79,17 +74,13 @@ public class RedisLockManager implements RefreshableLockManager {
     this.heartbeatRateMillis = heartbeatRateMillis.orElse(DEFAULT_HEARTBEAT_RATE_MILLIS);
     this.leaseDurationMillis = leaseDurationMillis.orElse(DEFAULT_TTL_MILLIS);
 
-    acquireId = registry.createId(LockMetricsConstants.ACQUIRE);
-    releaseId = registry.createId(LockMetricsConstants.RELEASE);
-    heartbeatId = registry.createId(LockMetricsConstants.HEARTBEATS);
-    acquireDurationId = registry.createId(LockMetricsConstants.ACQUIRE_DURATION);
     scheduleHeartbeats();
   }
 
   public RedisLockManager(
       String ownerName,
       Clock clock,
-      Registry registry,
+      MeterRegistry registry,
       ObjectMapper objectMapper,
       RedisClientDelegate redisClientDelegate) {
     this(
@@ -141,9 +132,11 @@ public class RedisLockManager implements RefreshableLockManager {
   @Override
   public boolean releaseLock(@Nonnull final Lock lock, boolean wasWorkSuccessful) {
     // we are aware that the cardinality can get high. To revisit if concerns arise.
-    Id lockRelease = releaseId.withTag("lockName", lock.getName());
     String status = tryReleaseLock(lock, wasWorkSuccessful);
-    registry.counter(lockRelease.withTag("status", status)).increment();
+    registry
+        .counter(
+            LockMetricsConstants.RELEASE, Tags.of("lockName", lock.getName(), "status", status))
+        .increment();
 
     switch (status) {
       case SUCCESS:
@@ -205,11 +198,13 @@ public class RedisLockManager implements RefreshableLockManager {
       }
 
       LongTaskTimer acquireDurationTimer =
-          LongTaskTimer.get(registry, acquireDurationId.withTag("lockName", lock.getName()));
+          LongTaskTimer.builder(LockMetricsConstants.ACQUIRE_DURATION)
+              .tag("lockName", lock.getName())
+              .register(registry);
 
       status = LockStatus.ACQUIRED;
       log.info("Acquired Lock {}.", lock);
-      long timer = acquireDurationTimer.start();
+      LongTaskTimer.Sample acquireDurationSample = acquireDurationTimer.start();
 
       // Queues the acquired lock to receive heartbeats for the defined max lock duration.
       AtomicInteger heartbeatRetriesOnFailure = new AtomicInteger(MAX_HEARTBEAT_RETRIES);
@@ -233,7 +228,7 @@ public class RedisLockManager implements RefreshableLockManager {
           log.error("Callback failed using lock {}", lock, e);
           throw new LockCallbackException(e);
         } finally {
-          acquireDurationTimer.stop(timer);
+          acquireDurationSample.stop();
         }
       }
 
@@ -256,9 +251,8 @@ public class RedisLockManager implements RefreshableLockManager {
     } finally {
       registry
           .counter(
-              acquireId
-                  .withTag("lockName", lockOptions.getLockName())
-                  .withTag("status", status.toString()))
+              LockMetricsConstants.ACQUIRE,
+              Tags.of("lockName", lockOptions.getLockName(), "status", status.toString()))
           .increment();
     }
   }
@@ -302,9 +296,10 @@ public class RedisLockManager implements RefreshableLockManager {
       heartbeatQueue.remove(heartbeatLockRequest);
       registry
           .counter(
-              heartbeatId
-                  .withTag("lockName", heartbeatLockRequest.getLock().getName())
-                  .withTag("status", LockHeartbeatStatus.MAX_HEARTBEAT_REACHED.toString()))
+              LockMetricsConstants.HEARTBEATS,
+              Tags.of(
+                  "lockName", heartbeatLockRequest.getLock().getName(),
+                  "status", LockHeartbeatStatus.MAX_HEARTBEAT_REACHED.toString()))
           .increment();
     } else {
       try {
@@ -344,25 +339,31 @@ public class RedisLockManager implements RefreshableLockManager {
     // we are aware that the cardinality can get high. To revisit if concerns arise.
     final Lock lock = heartbeatLockRequest.getLock();
     long nextVersion = heartbeatLockRequest.reuseVersion() ? lock.getVersion() : lock.nextVersion();
-    Id lockHeartbeat = heartbeatId.withTag("lockName", lock.getName());
+    Tags lockHeartbeatTags = Tags.of("lockName", lock.getName());
     Lock extendedLock = lock;
     try {
       extendedLock = tryUpdateLock(lock, nextVersion);
       registry
-          .counter(lockHeartbeat.withTag("status", LockHeartbeatStatus.SUCCESS.toString()))
+          .counter(
+              LockMetricsConstants.HEARTBEATS,
+              lockHeartbeatTags.and("status", LockHeartbeatStatus.SUCCESS.toString()))
           .increment();
       return new HeartbeatResponse(extendedLock, LockHeartbeatStatus.SUCCESS);
     } catch (Exception e) {
       if (e instanceof LockExpiredException) {
         registry
-            .counter(lockHeartbeat.withTag("status", LockHeartbeatStatus.EXPIRED.toString()))
+            .counter(
+                LockMetricsConstants.HEARTBEATS,
+                lockHeartbeatTags.and("status", LockHeartbeatStatus.EXPIRED.toString()))
             .increment();
         return new HeartbeatResponse(extendedLock, LockHeartbeatStatus.EXPIRED);
       }
 
       log.error("Heartbeat failed for lock {}", extendedLock, e);
       registry
-          .counter(lockHeartbeat.withTag("status", LockHeartbeatStatus.ERROR.toString()))
+          .counter(
+              LockMetricsConstants.HEARTBEATS,
+              lockHeartbeatTags.and("status", LockHeartbeatStatus.ERROR.toString()))
           .increment();
       return new HeartbeatResponse(extendedLock, LockHeartbeatStatus.ERROR);
     }

@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.orca.qos
 
-import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.BUFFERED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT_STARTED
@@ -26,6 +25,7 @@ import com.netflix.spinnaker.orca.qos.BufferAction.ENQUEUE
 import com.netflix.spinnaker.orca.qos.BufferState.ACTIVE
 import com.netflix.spinnaker.orca.qos.BufferState.INACTIVE
 import com.netflix.spinnaker.orca.qos.bufferstate.BufferStateSupplierProvider
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
@@ -52,7 +52,7 @@ class ExecutionBufferActuatorTest : SubjectSpek<ExecutionBufferActuator>({
   subject(CachingMode.GROUP) {
     ExecutionBufferActuator(
       BufferStateSupplierProvider(listOf(bufferStateSupplier)),
-      configService, NoopRegistry(), listOf(policy1, policy2)
+      configService, SimpleMeterRegistry(), listOf(policy1, policy2)
     )
   }
 

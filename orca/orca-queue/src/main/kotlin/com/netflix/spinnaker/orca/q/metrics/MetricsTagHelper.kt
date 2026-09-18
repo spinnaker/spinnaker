@@ -16,32 +16,32 @@
 
 package com.netflix.spinnaker.orca.q.metrics
 
-import com.netflix.spectator.api.BasicTag
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.TaskExecution
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
+import io.micrometer.core.instrument.Tag
 
 class MetricsTagHelper : CloudProviderAware {
   companion object {
     private val helper = MetricsTagHelper()
 
-    fun commonTags(stage: StageExecution, taskModel: TaskExecution, status: ExecutionStatus): Iterable<BasicTag> =
+    fun commonTags(stage: StageExecution, taskModel: TaskExecution, status: ExecutionStatus): Iterable<Tag> =
       arrayListOf(
-        BasicTag("status", status.toString()),
-        BasicTag("executionType", stage.execution.type.name.capitalize()),
-        BasicTag("isComplete", status.isComplete.toString()),
-        BasicTag("cloudProvider", helper.getCloudProvider(stage).valueOrNa())
+        Tag.of("status", status.toString()),
+        Tag.of("executionType", stage.execution.type.name.capitalize()),
+        Tag.of("isComplete", status.isComplete.toString()),
+        Tag.of("cloudProvider", helper.getCloudProvider(stage).valueOrNa())
       )
 
-    fun detailedTaskTags(stage: StageExecution, taskModel: TaskExecution, status: ExecutionStatus): Iterable<BasicTag> =
+    fun detailedTaskTags(stage: StageExecution, taskModel: TaskExecution, status: ExecutionStatus): Iterable<Tag> =
       arrayListOf(
-        BasicTag("stageType", stage.type),
-        BasicTag("taskType", taskModel.implementingClass),
-        BasicTag("account", helper.getCredentials(stage).valueOrNa()),
+        Tag.of("stageType", stage.type),
+        Tag.of("taskType", taskModel.implementingClass),
+        Tag.of("account", helper.getCredentials(stage).valueOrNa()),
 
         // sorting regions to reduce the metrics cardinality
-        BasicTag(
+        Tag.of(
           "region",
           helper.getRegions(stage).let {
             if (it.isEmpty()) { "n_a" } else { it.sorted().joinToString(",") }

@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.CANCELED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.FAILED_CONTINUE
@@ -36,6 +35,7 @@ import com.netflix.spinnaker.orca.q.CompleteExecution
 import com.netflix.spinnaker.orca.q.StartWaitingExecutions
 import com.netflix.spinnaker.q.AttemptsAttribute
 import com.netflix.spinnaker.q.Queue
+import io.micrometer.core.instrument.MeterRegistry
 import net.logstash.logback.argument.StructuredArguments.kv
 import java.time.Duration
 import org.slf4j.LoggerFactory
@@ -49,13 +49,12 @@ class CompleteExecutionHandler(
   override val queue: Queue,
   override val repository: ExecutionRepository,
   @Qualifier("queueEventPublisher") private val publisher: ApplicationEventPublisher,
-  private val registry: Registry,
+  private val registry: MeterRegistry,
   @Value("\${queue.retry.delay.ms:30000}") retryDelayMs: Long
 ) : OrcaMessageHandler<CompleteExecution> {
 
   private val log = LoggerFactory.getLogger(javaClass)
   private val retryDelay = Duration.ofMillis(retryDelayMs)
-  private val completedId = registry.createId("executions.completed")
 
   override fun handle(message: CompleteExecution) {
     message.withExecution { execution ->
@@ -77,12 +76,11 @@ class CompleteExecutionHandler(
           publisher.publishEvent(ExecutionComplete(this, execution))
 
           registry.counter(
-            completedId.withTags(
-              "status", status.name,
-              "executionType", execution.type.name,
-              "application", execution.application,
-              "origin", execution.origin ?: "unknown"
-            )
+            "executions.completed",
+            "status", status.name,
+            "executionType", execution.type.name,
+            "application", execution.application,
+            "origin", execution.origin ?: "unknown"
           ).increment()
           if (status != SUCCEEDED) {
             execution

@@ -20,7 +20,6 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.services.compute.Compute
 import com.google.common.annotations.VisibleForTesting
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.AccountAware
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
@@ -32,6 +31,7 @@ import com.netflix.spinnaker.clouddriver.google.batch.GoogleBatchRequest
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry
 import com.netflix.spinnaker.moniker.Namer
+import io.micrometer.core.instrument.MeterRegistry
 
 abstract class AbstractGoogleCachingAgent implements CachingAgent, AccountAware, GoogleExecutorTraits {
 
@@ -44,7 +44,7 @@ abstract class AbstractGoogleCachingAgent implements CachingAgent, AccountAware,
   String clouddriverUserAgentApplicationName // "Spinnaker/${version}" HTTP header string
   GoogleNamedAccountCredentials credentials
   ObjectMapper objectMapper
-  Registry registry
+  MeterRegistry registry
 
   @VisibleForTesting
   AbstractGoogleCachingAgent() {
@@ -54,7 +54,7 @@ abstract class AbstractGoogleCachingAgent implements CachingAgent, AccountAware,
   AbstractGoogleCachingAgent(String clouddriverUserAgentApplicationName,
                              GoogleNamedAccountCredentials credentials,
                              ObjectMapper objectMapper,
-                             Registry registry) {
+                             MeterRegistry registry) {
     this.clouddriverUserAgentApplicationName = clouddriverUserAgentApplicationName
     this.credentials = credentials
     this.objectMapper = objectMapper

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.titus
 
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry;
 import com.netflix.spinnaker.clouddriver.titus.client.RegionScopedTitusAutoscalingClient
 import com.netflix.spinnaker.clouddriver.titus.client.RegionScopedTitusClient
 import com.netflix.spinnaker.clouddriver.titus.client.RegionScopedTitusLoadBalancerClient
@@ -37,12 +37,12 @@ class TitusClientProvider {
   private final Map<TitusClientKey, TitusClient> titusClients = new ConcurrentHashMap<>()
   private final Map<TitusClientKey, TitusAutoscalingClient> titusAutoscalingClients = new ConcurrentHashMap<>()
   private final Map<TitusClientKey, TitusLoadBalancerClient> titusLoadBalancerClients = new ConcurrentHashMap<>()
-  private final Registry registry
+  private final MeterRegistry registry
   private final List<TitusJobCustomizer> titusJobCustomizers
   private final GrpcChannelFactory grpcChannelFactory;
   private final RetrySupport retrySupport;
 
-  TitusClientProvider(Registry registry, List<TitusJobCustomizer> titusJobCustomizers, GrpcChannelFactory grpcChannelFactory, RetrySupport retrySupport) {
+  TitusClientProvider(MeterRegistry registry, List<TitusJobCustomizer> titusJobCustomizers, GrpcChannelFactory grpcChannelFactory, RetrySupport retrySupport) {
     this.registry = registry
     this.titusJobCustomizers = titusJobCustomizers == null ? Collections.emptyList() : Collections.unmodifiableList(titusJobCustomizers)
     this.grpcChannelFactory = grpcChannelFactory

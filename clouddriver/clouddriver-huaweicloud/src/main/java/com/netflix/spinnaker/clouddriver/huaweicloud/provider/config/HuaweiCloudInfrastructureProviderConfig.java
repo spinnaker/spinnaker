@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.huaweicloud.provider;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.clouddriver.huaweicloud.provider.agent.HuaweiCloudImageCachingAgent;
 import com.netflix.spinnaker.clouddriver.huaweicloud.provider.agent.HuaweiCloudInstanceTypeCachingAgent;
@@ -27,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.huaweicloud.provider.agent.HuaweiCloudS
 import com.netflix.spinnaker.clouddriver.huaweicloud.security.HuaweiCloudNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -46,7 +46,7 @@ public class HuaweiCloudInfrastructureProviderConfig {
   public HuaweiCloudInfrastructureProvider huaweiCloudInfastructureProvider(
       AccountCredentialsRepository accountCredentialsRepository,
       ObjectMapper objectMapper,
-      Registry registry) {
+      MeterRegistry registry) {
 
     HuaweiCloudInfrastructureProvider provider =
         new HuaweiCloudInfrastructureProvider(
@@ -64,7 +64,7 @@ public class HuaweiCloudInfrastructureProviderConfig {
       HuaweiCloudInfrastructureProvider infastructureProvider,
       AccountCredentialsRepository accountCredentialsRepository,
       ObjectMapper objectMapper,
-      Registry registry) {
+      MeterRegistry registry) {
 
     Set<String> scheduledAccounts = ProviderUtils.getScheduledAccounts(infastructureProvider);
 

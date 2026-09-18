@@ -30,7 +30,9 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
-import com.netflix.spectator.api.Registry;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.Tags;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.io.UncheckedIOException;
@@ -56,13 +58,16 @@ final class BatchComputeRequestImpl<RequestT extends ComputeRequest<ResponseT>, 
   private static final Duration READ_TIMEOUT = Duration.ofMinutes(2);
 
   private final Compute compute;
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final String userAgent;
   private final ListeningExecutorService executor;
   private final List<QueuedRequest<RequestT, ResponseT>> queuedRequests;
 
   BatchComputeRequestImpl(
-      Compute compute, Registry registry, String userAgent, ListeningExecutorService executor) {
+      Compute compute,
+      MeterRegistry registry,
+      String userAgent,
+      ListeningExecutorService executor) {
     this.compute = compute;
     this.registry = registry;
     this.userAgent = userAgent;
@@ -88,7 +93,7 @@ final class BatchComputeRequestImpl<RequestT extends ComputeRequest<ResponseT>, 
 
     var statusCode = "500";
     String success = "false";
-    long start = registry.clock().monotonicTime();
+    long start = registry.config().clock().monotonicTime();
     try {
       executeBatches(queuedBatches);
       success = "true";
@@ -97,7 +102,7 @@ final class BatchComputeRequestImpl<RequestT extends ComputeRequest<ResponseT>, 
       statusCode = Integer.toString(e.getStatusCode());
       throw e;
     } finally {
-      long nanos = registry.clock().monotonicTime() - start;
+      long nanos = registry.config().clock().monotonicTime() - start;
       String status = statusCode.charAt(0) + "xx";
       Map<String, String> tags =
           ImmutableMap.of(
@@ -105,12 +110,13 @@ final class BatchComputeRequestImpl<RequestT extends ComputeRequest<ResponseT>, 
               "success", success,
               "status", status,
               "statusCode", statusCode);
-      registry
-          .timer(registry.createId("google.batchExecute", tags))
-          .record(Duration.ofNanos(nanos));
-      registry
-          .counter(registry.createId("google.batchSize", tags))
-          .increment(queuedRequests.size());
+      Tags allTags =
+          Tags.of(
+              tags.entrySet().stream()
+                  .map(e -> Tag.of(e.getKey(), e.getValue()))
+                  .collect(Collectors.toList()));
+      registry.timer("google.batchExecute", allTags).record(Duration.ofNanos(nanos));
+      registry.counter("google.batchSize", allTags).increment(queuedRequests.size());
     }
   }
 

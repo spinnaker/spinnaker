@@ -18,9 +18,9 @@ package com.netflix.spinnaker.fiat.roles
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.fiat.config.ResourceProvidersHealthIndicator
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig
 import com.netflix.spinnaker.fiat.config.UserRolesSyncerConfig
 import com.netflix.spinnaker.fiat.model.UserPermission
@@ -62,7 +62,10 @@ class UserRolesSyncerSpec extends Specification {
   private static final String UNRESTRICTED = UnrestrictedResourceConfig.UNRESTRICTED_USERNAME
 
   @Shared
-  Registry registry = new NoopRegistry()
+  MeterRegistry registry = new SimpleMeterRegistry()
+
+  @Shared
+  SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry()
 
   LockManager lockManager
 
@@ -102,7 +105,7 @@ class UserRolesSyncerSpec extends Specification {
     lockManager = new RedisLockManager(
             null, // will fall back to running node name
             Clock.systemDefaultZone(),
-            registry,
+            meterRegistry,
             objectMapper,
             new JedisClientDelegate(jedisPool),
             Optional.empty(),

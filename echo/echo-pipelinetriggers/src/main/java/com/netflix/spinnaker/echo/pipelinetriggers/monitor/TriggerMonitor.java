@@ -17,8 +17,6 @@
 package com.netflix.spinnaker.echo.pipelinetriggers.monitor;
 
 import com.google.common.base.Strings;
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.api.events.Event;
 import com.netflix.spinnaker.echo.api.events.EventListener;
 import com.netflix.spinnaker.echo.model.Pipeline;
@@ -27,7 +25,11 @@ import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
 import com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers.TriggerEventHandler;
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.PipelineInitiator;
 import com.netflix.spinnaker.echo.pipelinetriggers.postprocessors.PipelinePostProcessorHandler;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.Tags;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeoutException;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -36,7 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class TriggerMonitor<T extends TriggerEvent> implements EventListener {
   private final PipelineInitiator pipelineInitiator;
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final PipelineCache pipelineCache;
   private final PipelinePostProcessorHandler pipelinePostProcessorHandler;
   private final TriggerEventHandler<T> eventHandler;
@@ -44,7 +46,7 @@ public class TriggerMonitor<T extends TriggerEvent> implements EventListener {
   TriggerMonitor(
       @NonNull PipelineCache pipelineCache,
       @NonNull PipelineInitiator pipelineInitiator,
-      @NonNull Registry registry,
+      @NonNull MeterRegistry registry,
       @NonNull PipelinePostProcessorHandler pipelinePostProcessorHandler,
       @NonNull TriggerEventHandler<T> eventHandler) {
     this.pipelineCache = pipelineCache;
@@ -101,12 +103,13 @@ public class TriggerMonitor<T extends TriggerEvent> implements EventListener {
   }
 
   private void emitMetricsOnMatchingPipeline(Pipeline pipeline) {
-    Id id =
-        registry
-            .createId("pipelines.triggered")
-            .withTag("monitor", eventHandler.getClass().getSimpleName())
-            .withTag("application", pipeline.getApplication())
-            .withTags(eventHandler.getAdditionalTags(pipeline));
-    registry.counter(id).increment();
+    Tags tags =
+        Tags.of(
+            "monitor", eventHandler.getClass().getSimpleName(),
+            "application", pipeline.getApplication());
+    for (Map.Entry<String, String> entry : eventHandler.getAdditionalTags(pipeline).entrySet()) {
+      tags = tags.and(Tag.of(entry.getKey(), entry.getValue()));
+    }
+    registry.counter("pipelines.triggered", tags).increment();
   }
 }

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.requestqueue.pooled;
 
-import com.netflix.spectator.api.Registry;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -52,10 +52,10 @@ class Promise<T> {
   private final CountDownLatch startingLatch = new CountDownLatch(1);
   private final CountDownLatch latch = new CountDownLatch(1);
   private final AtomicReference<Either<T>> result = new AtomicReference<>();
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final String partition;
 
-  Promise(Registry registry, String partition) {
+  Promise(MeterRegistry registry, String partition) {
     this.registry = registry;
     this.partition = partition;
   }
@@ -69,9 +69,7 @@ class Promise<T> {
   }
 
   void complete(T result) {
-    registry
-        .counter(registry.createId("pooledRequestQueue.promise.complete", "partition", partition))
-        .increment();
+    registry.counter("pooledRequestQueue.promise.complete", "partition", partition).increment();
     this.result.compareAndSet(null, Either.forResult(result));
     startingLatch.countDown();
     latch.countDown();
@@ -84,9 +82,7 @@ class Promise<T> {
             .map(Class::getSimpleName)
             .orElse("unknown");
     registry
-        .counter(
-            registry.createId(
-                "pooledRequestQueue.promise.exception", "partition", partition, "cause", cause))
+        .counter("pooledRequestQueue.promise.exception", "partition", partition, "cause", cause)
         .increment();
     this.result.compareAndSet(null, Either.forException(exception));
     startingLatch.countDown();
@@ -98,15 +94,12 @@ class Promise<T> {
       if (startingLatch.await(startWorkTimeout, unit)) {
         if (!latch.await(timeout, unit)) {
           registry
-              .counter(
-                  registry.createId("pooledRequestQueue.promise.timeout", "partition", partition))
+              .counter("pooledRequestQueue.promise.timeout", "partition", partition)
               .increment();
           completeWithException(new PromiseTimeoutException());
         }
       } else {
-        registry
-            .counter(registry.createId("pooledRequest.promise.notStarted", "partition", partition))
-            .increment();
+        registry.counter("pooledRequest.promise.notStarted", "partition", partition).increment();
         completeWithException(new PromiseNotStartedException());
       }
     } catch (Throwable t) {

@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.monitoreddeploy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.config.DeploymentMonitorDefinition;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
@@ -32,6 +31,7 @@ import com.netflix.spinnaker.orca.deploymentmonitor.models.DeploymentStep;
 import com.netflix.spinnaker.orca.deploymentmonitor.models.EvaluateHealthResponse;
 import com.netflix.spinnaker.orca.deploymentmonitor.models.MonitoredDeployInternalStageData;
 import com.netflix.spinnaker.orca.deploymentmonitor.models.StatusExplanation;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -44,14 +44,14 @@ import org.slf4j.LoggerFactory;
 public class MonitoredDeployBaseTask implements RetryableTask {
   static final int MAX_RETRY_COUNT = 3;
   protected final Logger log = LoggerFactory.getLogger(getClass());
-  protected Registry registry;
+  protected MeterRegistry registry;
   private DeploymentMonitorServiceProvider deploymentMonitorServiceProvider;
   private final Map<EvaluateHealthResponse.NextStepDirective, String> summaryMapping =
       new HashMap<>();
   ObjectMapper objectMapper = new ObjectMapper();
 
   MonitoredDeployBaseTask(
-      DeploymentMonitorServiceProvider deploymentMonitorServiceProvider, Registry registry) {
+      DeploymentMonitorServiceProvider deploymentMonitorServiceProvider, MeterRegistry registry) {
     this.deploymentMonitorServiceProvider = deploymentMonitorServiceProvider;
     this.registry = registry;
 

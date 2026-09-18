@@ -24,8 +24,6 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
-import com.netflix.spectator.api.NoopRegistry;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesAccountProperties.ManagedAccount;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
@@ -33,6 +31,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentia
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
 import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -47,7 +47,7 @@ import org.springframework.boot.actuate.health.Status;
 @ExtendWith(MockitoExtension.class)
 final class KubernetesHealthIndicatorTest {
   private static final String ERROR_MESSAGE = "Failed to get namespaces";
-  private static final Registry REGISTRY = new NoopRegistry();
+  private static final MeterRegistry REGISTRY = new SimpleMeterRegistry();
   private static final String HEALTHY_ACCOUNT_NAME = "healthy";
   private static final String UNHEALTHY_ACCOUNT_NAME_FIRST = "unhealthy1";
   private static final String UNHEALTHY_ACCOUNT_NAME_SECOND = "unhealthy2";

@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.orca.sql.cleanup
 
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.OldPipelineCleanupAgentConfigurationProperties
 import com.netflix.spinnaker.config.OrcaSqlProperties
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
 import com.netflix.spinnaker.orca.notifications.scheduling.PipelineDependencyCleanupOperator
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import io.micrometer.core.instrument.MeterRegistry
 import java.time.Clock
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -43,7 +43,7 @@ class OldPipelineCleanupPollingNotificationAgent(
   clusterLock: NotificationClusterLock,
   private val jooq: DSLContext,
   private val clock: Clock,
-  registry: Registry,
+  registry: MeterRegistry,
   private val executionRepository: ExecutionRepository,
   private val configurationProperties: OldPipelineCleanupAgentConfigurationProperties,
   private val orcaSqlProperties: OrcaSqlProperties,
@@ -169,7 +169,7 @@ class OldPipelineCleanupPollingNotificationAgent(
       deletedExecutionCount.addAndGet(ids.size)
       executionRepository.delete(ExecutionType.PIPELINE, ids)
 
-      registry.counter(deletedId.withTag("application", application)).add(ids.size.toDouble())
+      registry.counter(deletedMetricName, "application", application).increment(ids.size.toDouble())
     }
 
     return deletedExecutionCount.toInt()

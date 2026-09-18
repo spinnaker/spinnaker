@@ -15,12 +15,12 @@
  */
 package com.netflix.spinnaker.orca.notifications.scheduling
 
-import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.TaskExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import spock.lang.Specification
 import io.reactivex.rxjava3.core.Observable
 
@@ -43,7 +43,7 @@ class OldPipelineCleanupPollingNotificationAgentSpec extends Specification {
       Mock(NotificationClusterLock),
       Mock(ExecutionRepository),
       clock,
-      new NoopRegistry(),
+      new SimpleMeterRegistry(),
       5000,
       1,
       5,
@@ -81,7 +81,7 @@ class OldPipelineCleanupPollingNotificationAgentSpec extends Specification {
       Mock(NotificationClusterLock),
       Mock(ExecutionRepository),
       Mock(Clock),
-      new NoopRegistry(),
+      new SimpleMeterRegistry(),
       5000,
       1,
       5,
@@ -130,7 +130,7 @@ class OldPipelineCleanupPollingNotificationAgentSpec extends Specification {
       Mock(NotificationClusterLock),
       executionRepository,
       clock,
-      new NoopRegistry(),
+      new SimpleMeterRegistry(),
       5000,
       thresholdDays,
       retain,

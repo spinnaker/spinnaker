@@ -17,8 +17,6 @@
 package com.netflix.spinnaker.fiat.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.fiat.config.FiatServerConfigurationProperties;
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig;
 import com.netflix.spinnaker.fiat.model.Authorization;
@@ -30,6 +28,8 @@ import com.netflix.spinnaker.fiat.providers.ResourcePermissionProvider;
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -49,7 +49,9 @@ import org.springframework.web.server.ResponseStatusException;
 @RequestMapping("/authorize")
 public class AuthorizeController {
 
-  private final Registry registry;
+  private static final String GET_USER_PERMISSION_METRIC_NAME = "fiat.getUserPermission";
+
+  private final MeterRegistry registry;
   private final PermissionsRepository permissionsRepository;
   private final PermissionsResolver permissionsResolver;
   private final FiatServerConfigurationProperties configProps;
@@ -57,11 +59,9 @@ public class AuthorizeController {
   private final ObjectMapper objectMapper;
   private final List<Resource> resources;
 
-  private final Id getUserPermissionCounterId;
-
   @Autowired
   public AuthorizeController(
-      Registry registry,
+      MeterRegistry registry,
       PermissionsRepository permissionsRepository,
       PermissionsResolver permissionsResolver,
       FiatServerConfigurationProperties configProps,
@@ -75,8 +75,6 @@ public class AuthorizeController {
     this.applicationResourcePermissionProvider = applicationResourcePermissionProvider;
     this.resources = resources;
     this.objectMapper = objectMapper;
-
-    this.getUserPermissionCounterId = registry.createId("fiat.getUserPermission");
   }
 
   @Operation(
@@ -273,7 +271,7 @@ public class AuthorizeController {
 
     if (userPermission != null) {
       registry
-          .counter(getUserPermissionCounterId.withTag("success", true).withTag("fallback", false))
+          .counter(GET_USER_PERMISSION_METRIC_NAME, Tags.of("success", "true", "fallback", "false"))
           .increment();
       return Optional.of(userPermission);
     }
@@ -346,9 +344,8 @@ public class AuthorizeController {
 
     registry
         .counter(
-            getUserPermissionCounterId
-                .withTag("success", userPermission != null)
-                .withTag("fallback", true))
+            GET_USER_PERMISSION_METRIC_NAME,
+            Tags.of("success", String.valueOf(userPermission != null), "fallback", "true"))
         .increment();
 
     return Optional.ofNullable(userPermission);

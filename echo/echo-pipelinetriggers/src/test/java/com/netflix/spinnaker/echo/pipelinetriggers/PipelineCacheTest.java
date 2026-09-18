@@ -26,7 +26,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
 import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.model.Trigger;
@@ -34,6 +33,7 @@ import com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers.BaseTriggerEven
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService;
 import com.netflix.spinnaker.echo.services.Front50Service;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.net.HttpURLConnection;
 import java.util.List;
 import java.util.Map;
@@ -63,7 +63,7 @@ public class PipelineCacheTest {
           .withBean(PipelineCache.class)
           .withBean(PipelineCacheConfigurationProperties.class)
           .withBean(ObjectMapper.class)
-          .withBean(NoopRegistry.class)
+          .withBean(SimpleMeterRegistry.class)
           .withConfiguration(UserConfigurations.of(ConfigWithTriggerEventHandlers.class));
 
   @Test
@@ -137,7 +137,7 @@ public class PipelineCacheTest {
 
   private Front50Service front50;
   private OrcaService orca;
-  private NoopRegistry registry;
+  private SimpleMeterRegistry registry;
   private ObjectMapper objectMapper;
   private PipelineCacheConfigurationProperties pipelineCacheConfigurationProperties;
   private PipelineCache pipelineCache;
@@ -146,7 +146,7 @@ public class PipelineCacheTest {
   void setUpDirectUnitTests() {
     front50 = mock(Front50Service.class);
     orca = mock(OrcaService.class);
-    registry = new NoopRegistry();
+    registry = new SimpleMeterRegistry();
     objectMapper = EchoObjectMapper.getInstance();
     pipelineCacheConfigurationProperties = new PipelineCacheConfigurationProperties();
 

@@ -16,16 +16,18 @@
 
 package com.netflix.spinnaker.front50.model
 
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.front50.api.model.Timestamped
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tags
+import java.util.concurrent.atomic.AtomicReference
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 
 class CompositeStorageService(
   private val dynamicConfigService: DynamicConfigService,
-  private val registry: Registry,
+  private val registry: MeterRegistry,
   private val primary: StorageService,
   private val previous: StorageService
 ) : StorageService, BulkStorageService, AdminOperations {
@@ -35,15 +37,15 @@ class CompositeStorageService(
   }
 
   var primaryReadStatusGauge = registry.gauge(
-    registry.createId("compositeStorageService.read")
-      .withTag("type", "primary")
-      .withTag("class", primary.javaClass.simpleName)
-  )
+    "compositeStorageService.read",
+    Tags.of("type", "primary", "class", primary.javaClass.simpleName),
+    AtomicReference(0.0)
+  ) { it.get() }
   var previousReadStatusGauge = registry.gauge(
-    registry.createId("compositeStorageService.read")
-      .withTag("type", "previous")
-      .withTag("class", previous.javaClass.simpleName)
-  )
+    "compositeStorageService.read",
+    Tags.of("type", "previous", "class", previous.javaClass.simpleName),
+    AtomicReference(0.0)
+  ) { it.get() }
 
   override fun supportsEventing(objectType: ObjectType): Boolean {
     if (!isPrimaryReadEnabled()) {
@@ -63,8 +65,8 @@ class CompositeStorageService(
       isPreviousReadEnabled()
     )
 
-    primaryReadStatusGauge.set(if (isPrimaryReadEnabled()) 1.0 else 0.0)
-    previousReadStatusGauge.set(if (isPreviousReadEnabled()) 1.0 else 0.0)
+    primaryReadStatusGauge!!.set(if (isPrimaryReadEnabled()) 1.0 else 0.0)
+    previousReadStatusGauge!!.set(if (isPreviousReadEnabled()) 1.0 else 0.0)
   }
 
   override fun supportsVersioning(): Boolean {

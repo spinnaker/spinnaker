@@ -17,13 +17,13 @@
 package com.netflix.spinnaker.clouddriver.appengine.deploy;
 
 import com.google.common.collect.ImmutableList;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.appengine.deploy.exception.AppengineOperationException;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.googlecommon.deploy.GoogleApiException;
 import com.netflix.spinnaker.clouddriver.googlecommon.deploy.GoogleCommonSafeRetry;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import groovy.lang.Closure;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -68,7 +68,7 @@ public final class AppengineSafeRetry {
       @Nullable Task task,
       List<Integer> retryCodes,
       Map<String, String> tags,
-      Registry registry) {
+      MeterRegistry registry) {
     String action = tags.get("action");
     String description = String.format("%s of %s", action, resource);
     if (task != null) {

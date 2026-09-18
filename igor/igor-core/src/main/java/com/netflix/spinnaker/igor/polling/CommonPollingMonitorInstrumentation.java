@@ -16,84 +16,45 @@
 
 package com.netflix.spinnaker.igor.polling;
 
-import com.netflix.spectator.api.Gauge;
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
-import com.netflix.spectator.api.patterns.PolledMeter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class CommonPollingMonitorInstrumentation {
 
-  private final Registry registry;
-  private final Id itemsCachedId;
-  private final Id itemsOverThresholdId;
-  private final Id pollCycleFailedId;
-  private final Id pollCycleTimingId;
+  public static final String ITEMS_CACHED_METRIC_NAME = "pollingMonitor.newItems";
+  public static final String ITEMS_OVER_THRESHOLD_METRIC_NAME = "pollingMonitor.itemsOverThreshold";
+  public static final String POLL_CYCLE_FAILED_METRIC_NAME = "pollingMonitor.failed";
+  public static final String POLL_CYCLE_TIMING_METRIC_NAME = "pollingMonitor.pollTiming";
 
-  public CommonPollingMonitorInstrumentation(Registry registry) {
+  private final MeterRegistry registry;
+
+  public CommonPollingMonitorInstrumentation(MeterRegistry registry) {
     this.registry = registry;
-    itemsCachedId = registry.createId("pollingMonitor.newItems");
-    itemsOverThresholdId = registry.createId("pollingMonitor.itemsOverThreshold");
-    pollCycleFailedId = registry.createId("pollingMonitor.failed");
-    pollCycleTimingId = registry.createId("pollingMonitor.pollTiming");
   }
 
   public void trackItemsCached(AtomicInteger numberOfItems, String monitor, String partition) {
-    Gauge gauge =
-        (Gauge) registry.get(itemsCachedId.withTags("monitor", monitor, "partition", partition));
-
-    /*
-    Spectator gauges are slightly different from Micrometer ones: the polling gauge
-    has been deprecated in favour of PolledMeter.
-    Previous implementation resulted in NaN most of the times, while we want to store observations
-    on Prometheus. We don't need a DistributionSummary, but just a gauge which doesn't get garbage
-    collected. For a unique combination of (metricName, tags), PolledMeter will sum up the observed
-    values, so to avoid this, we set the gauge ONCE and we pass a strong reference holding the
-    latest value to be observed.
-    */
-
-    if (gauge == null) {
-      PolledMeter.using(registry)
-          .withId(itemsCachedId.withTags("monitor", monitor, "partition", partition))
-          .monitorValue(numberOfItems);
-    }
+    registry.gauge(
+        ITEMS_CACHED_METRIC_NAME,
+        Tags.of("monitor", monitor, "partition", partition),
+        numberOfItems);
   }
 
   public void trackItemsOverThreshold(
       AtomicInteger numberOfItems, String monitor, String partition) {
-    Gauge gauge =
-        (Gauge)
-            registry.get(itemsOverThresholdId.withTags("monitor", monitor, "partition", partition));
-    if (gauge == null) {
-      PolledMeter.using(registry)
-          .withId(itemsOverThresholdId.withTags("monitor", monitor, "partition", partition))
-          .monitorValue(numberOfItems);
-    }
+    registry.gauge(
+        ITEMS_OVER_THRESHOLD_METRIC_NAME,
+        Tags.of("monitor", monitor, "partition", partition),
+        numberOfItems);
   }
 
   public void trackPollCycleTime(String monitor, Runnable lambda) {
-    registry.timer(pollCycleTimingId.withTags("monitor", monitor)).record(lambda);
+    registry.timer(POLL_CYCLE_TIMING_METRIC_NAME, "monitor", monitor).record(lambda);
   }
 
   public void trackPollCycleFailed(String monitor, String partition) {
     registry
-        .counter(getPollCycleFailedId().withTags("monitor", monitor, "partition", partition))
+        .counter(POLL_CYCLE_FAILED_METRIC_NAME, "monitor", monitor, "partition", partition)
         .increment();
-  }
-
-  public Id getItemsCachedId() {
-    return itemsCachedId;
-  }
-
-  public Id getItemsOverThresholdId() {
-    return itemsOverThresholdId;
-  }
-
-  public Id getPollCycleFailedId() {
-    return pollCycleFailedId;
-  }
-
-  public Id getPollCycleTimingId() {
-    return pollCycleTimingId;
   }
 }

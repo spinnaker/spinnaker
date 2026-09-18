@@ -17,9 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.pollers
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.Counter
-import com.netflix.spectator.api.Id
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
@@ -43,10 +41,7 @@ class RestorePinnedServerGroupsPollerSpec extends Specification {
   def retrySupport = Spy(RetrySupport) {
     _ * sleep(_) >> { /* do nothing */ }
   }
-  def registry = Mock(Registry) {
-    createId(_) >> Mock(Id)
-    counter(_) >> Mock(Counter)
-  }
+  def registry = new SimpleMeterRegistry()
 
   def pinnedServerGroupTag1 = new RestorePinnedServerGroupsPoller.PinnedServerGroupTag(
     id: "entity-tags-id-1",

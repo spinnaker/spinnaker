@@ -27,7 +27,6 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
 import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.model.Trigger;
@@ -41,6 +40,7 @@ import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.web.context.AuthenticatedRequestContextProvider;
 import com.netflix.spinnaker.kork.web.context.RequestContext;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -64,7 +64,7 @@ import retrofit2.mock.Calls;
 
 class PipelineInitiatorTest {
 
-  private NoopRegistry registry;
+  private SimpleMeterRegistry registry;
   private DynamicConfigService noopDynamicConfigService;
   private OrcaService orca;
   private FiatPermissionEvaluator fiatPermissionEvaluator;
@@ -81,7 +81,7 @@ class PipelineInitiatorTest {
 
   @BeforeEach
   void setUp() {
-    registry = new NoopRegistry();
+    registry = new SimpleMeterRegistry();
     noopDynamicConfigService = new DynamicConfigService.NoopDynamicConfig();
     orca = mock(OrcaService.class);
     fiatPermissionEvaluator = mock(FiatPermissionEvaluator.class);

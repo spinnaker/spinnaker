@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.gate
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.config.ErrorConfiguration
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
@@ -281,7 +281,7 @@ class FunctionalSpec extends Specification {
     FiatStatus fiatStatus(DynamicConfigService dynamicConfigService,
                           FiatClientConfigurationProperties fiatClientConfigurationProperties) {
       new FiatStatus(
-        new NoopRegistry(),
+        new SimpleMeterRegistry(),
         dynamicConfigService,
         fiatClientConfigurationProperties
       )

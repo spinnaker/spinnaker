@@ -19,13 +19,12 @@ import static com.netflix.spinnaker.gate.filters.RequestLoggingFilter.REQUEST_ST
 import static net.logstash.logback.argument.StructuredArguments.value;
 import static org.springframework.http.HttpStatus.TOO_MANY_REQUESTS;
 
-import com.netflix.spectator.api.BasicTag;
-import com.netflix.spectator.api.Counter;
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
-import com.netflix.spectator.api.Tag;
-import com.netflix.spectator.api.histogram.PercentileTimer;
 import com.netflix.spinnaker.gate.security.RequestIdentityExtractor;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.Tags;
+import io.micrometer.core.instrument.Timer;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpFilter;
@@ -53,17 +52,17 @@ public class RateLimitingFilter extends HttpFilter {
   private static final String UNKNOWN_PRINCIPAL = "unknown";
 
   private final RateLimiter rateLimiter;
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final RateLimitPrincipalProvider rateLimitPrincipalProvider;
   private final List<RequestIdentityExtractor> requestIdentityExtractors;
 
   private final Counter throttlingCounter;
   private final Counter learningThrottlingCounter;
-  private final Id controllerInvocationsId;
+  private final Tags controllerInvocationsTags;
 
   public RateLimitingFilter(
       RateLimiter rateLimiter,
-      Registry registry,
+      MeterRegistry registry,
       RateLimitPrincipalProvider rateLimitPrincipalProvider,
       List<RequestIdentityExtractor> requestIdentityExtractors) {
     this.rateLimiter = rateLimiter;
@@ -75,15 +74,20 @@ public class RateLimitingFilter extends HttpFilter {
     throttlingCounter = registry.counter("rateLimit.throttling");
     learningThrottlingCounter = registry.counter("rateLimit.throttlingLearning");
 
-    this.controllerInvocationsId =
-        registry
-            .createId("controller.invocations")
-            .withTag("controller", "unknown")
-            .withTag("method", "unknown")
-            .withTag("status", "4xx")
-            .withTag("statusCode", "429")
-            .withTag("success", "false")
-            .withTag("cause", "RateLimitingFilter");
+    this.controllerInvocationsTags =
+        Tags.of(
+            "controller",
+            "unknown",
+            "method",
+            "unknown",
+            "status",
+            "4xx",
+            "statusCode",
+            "429",
+            "success",
+            "false",
+            "cause",
+            "RateLimitingFilter");
   }
 
   @Override
@@ -95,7 +99,10 @@ public class RateLimitingFilter extends HttpFilter {
         Optional.ofNullable(MDC.get(REQUEST_START_TIME))
             .ifPresent(
                 startTime -> {
-                  PercentileTimer.get(registry, controllerInvocationsId)
+                  Timer.builder("controller.invocations")
+                      .tags(controllerInvocationsTags)
+                      .publishPercentileHistogram()
+                      .register(registry)
                       .record(
                           System.currentTimeMillis() - Long.parseLong(startTime),
                           TimeUnit.MILLISECONDS);
@@ -229,7 +236,7 @@ public class RateLimitingFilter extends HttpFilter {
   }
 
   private void recordPrincipalMetrics(RateLimitPrincipal principal, Rate rate) {
-    Iterable<Tag> tags = Collections.singletonList(new BasicTag("principal", principal.getName()));
+    Iterable<Tag> tags = Tags.of("principal", principal.getName());
     if (rate.isThrottled()) {
       registry.counter("rateLimit.principal.throttled", tags).increment();
     }

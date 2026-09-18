@@ -23,15 +23,15 @@ import com.google.api.client.http.HttpResponseException
 import com.google.api.client.testing.json.MockJsonFactory
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap;
-import com.netflix.spectator.api.DefaultRegistry;
-import com.netflix.spectator.api.Registry;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import spock.lang.Shared
 import spock.lang.Specification
 
 class GoogleCommonSafeRetrySpec extends Specification {
 
   @Shared
-  Registry registry = new DefaultRegistry()
+  MeterRegistry registry = new SimpleMeterRegistry()
 
   GoogleCommonSafeRetry makeRetrier(int maxRetries) {
     return GoogleCommonSafeRetry.builder().maxWaitInterval(0).maxRetries(maxRetries).build()

@@ -15,12 +15,12 @@
  */
 package com.netflix.spinnaker.config
 
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.qos.DefaultExecutionPromoter
 import com.netflix.spinnaker.orca.qos.PromotionPolicy
+import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -37,7 +37,7 @@ class QosConfiguration {
     executionLauncher: ExecutionLauncher,
     executionRepository: ExecutionRepository,
     policies: List<PromotionPolicy>,
-    registry: Registry,
+    registry: MeterRegistry,
     qosConfigurationProperties: QosConfigurationProperties,
     clusterLock: NotificationClusterLock
   ): DefaultExecutionPromoter {

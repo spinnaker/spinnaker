@@ -6,8 +6,8 @@ dependencies {
   api "com.fasterxml.jackson.core:jackson-annotations"
   api "com.fasterxml.jackson.core:jackson-databind"
   api "org.springframework:spring-context"
+  api "io.micrometer:micrometer-core"
 
-  implementation "com.netflix.spectator:spectator-api"
   implementation "jakarta.annotation:jakarta.annotation-api"
 
   testImplementation project(":keiko-test-common")

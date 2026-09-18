@@ -18,8 +18,6 @@
 package com.netflix.spinnaker.clouddriver.safety
 
 import com.netflix.frigga.Names
-import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service
 import com.netflix.spinnaker.clouddriver.exceptions.TrafficGuardException
 import com.netflix.spinnaker.clouddriver.model.Cluster
@@ -31,6 +29,8 @@ import com.netflix.spinnaker.clouddriver.model.SimpleServerGroup
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.moniker.Moniker
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import okhttp3.MediaType
 import okhttp3.ResponseBody
 import retrofit2.Response
@@ -50,7 +50,7 @@ class TrafficGuardSpec extends Specification {
   }
 
   Front50Service front50Service = Mock(Front50Service)
-  Registry registry = new NoopRegistry()
+  MeterRegistry registry = new SimpleMeterRegistry()
   DynamicConfigService dynamicConfigService = Mock(DynamicConfigService)
 
   @Shared String location = "us-east-1"

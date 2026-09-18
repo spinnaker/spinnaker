@@ -2,7 +2,7 @@ package com.netflix.spinnaker.keel.preview
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.convertValue
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.keel.api.ArtifactReferenceProvider
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Dependent
@@ -62,7 +62,7 @@ class PreviewEnvironmentCodeEventListener(
   private val front50Cache: Front50Cache,
   private val objectMapper: ObjectMapper,
   private val springEnv: Environment,
-  private val spectator: Registry,
+  private val meterRegistry: MeterRegistry,
   private val clock: Clock,
   private val eventPublisher: ApplicationEventPublisher,
   private val scmUtils: ScmUtils,
@@ -458,11 +458,11 @@ class PreviewEnvironmentCodeEventListener(
     this.name == name
 
   private fun CodeEvent.emitCounterMetric(metric: String, extraTags: Collection<Pair<String, String>>, application: String? = null) =
-    spectator.counter(metric, metricTags(application, extraTags) ).safeIncrement()
+    meterRegistry.counter(metric, metricTags(application, extraTags) ).safeIncrement()
 
   private fun CodeEvent.emitCounterMetric(metric: String, extraTag: Pair<String, String>, application: String? = null) =
-    spectator.counter(metric, metricTags(application, setOf(extraTag)) ).safeIncrement()
+    meterRegistry.counter(metric, metricTags(application, setOf(extraTag)) ).safeIncrement()
 
   private fun CodeEvent.emitDurationMetric(metric: String, startTime: Instant, application: String? = null) =
-    spectator.recordDuration(metric, clock, startTime, metricTags(application))
+    meterRegistry.recordDuration(metric, clock, startTime, metricTags(application))
 }

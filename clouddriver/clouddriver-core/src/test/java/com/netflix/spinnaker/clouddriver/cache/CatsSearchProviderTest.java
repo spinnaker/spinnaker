@@ -19,10 +19,10 @@ package com.netflix.spinnaker.clouddriver.cache;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.netflix.spectator.api.NoopRegistry;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.mem.InMemoryCache;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.context.annotation.UserConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
@@ -69,8 +69,8 @@ public class CatsSearchProviderTest {
     }
 
     @Bean
-    Registry registry() {
-      return new NoopRegistry();
+    MeterRegistry registry() {
+      return new SimpleMeterRegistry();
     }
   }
 }

@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.sql
 
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.persistence.ResourceRepositoryTests
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
@@ -35,7 +35,7 @@ internal class SqlResourceRepositoryTests : ResourceRepositoryTests<SqlResourceR
       resourceFactory,
       sqlRetry,
       publisher,
-      NoopRegistry(),
+      SimpleMeterRegistry(),
       springEnv = mockEnvironment()
     )
   }

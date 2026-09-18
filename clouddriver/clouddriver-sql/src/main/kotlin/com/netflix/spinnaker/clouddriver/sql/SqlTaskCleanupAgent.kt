@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.clouddriver.sql
 
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.RunnableAgent
 import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent
 import com.netflix.spinnaker.clouddriver.core.provider.CoreProvider
@@ -24,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskState.FAILED
 import com.netflix.spinnaker.config.ConnectionPools
 import com.netflix.spinnaker.config.SqlTaskCleanupAgentProperties
 import com.netflix.spinnaker.kork.sql.routing.withPool
+import io.micrometer.core.instrument.MeterRegistry
 import java.time.Clock
 import java.util.Arrays
 import java.util.concurrent.TimeUnit
@@ -37,14 +37,14 @@ import org.slf4j.LoggerFactory
 class SqlTaskCleanupAgent(
   private val jooq: DSLContext,
   private val clock: Clock,
-  private val registry: Registry,
+  private val registry: MeterRegistry,
   private val properties: SqlTaskCleanupAgentProperties
 ) : RunnableAgent, CustomScheduledAgent {
 
   private val log = LoggerFactory.getLogger(javaClass)
 
-  private val deletedId = registry.createId("sql.taskCleanupAgent.deleted")
-  private val timingId = registry.createId("sql.taskCleanupAgent.timing")
+  private val deletedMetricName = "sql.taskCleanupAgent.deleted"
+  private val timingMetricName = "sql.taskCleanupAgent.timing"
 
   override fun run() {
     withPool(ConnectionPools.TASKS.value) {
@@ -114,7 +114,7 @@ class SqlTaskCleanupAgent(
           candidates.outputIds.size
         )
 
-        registry.timer(timingId).record {
+        registry.timer(timingMetricName).record(Runnable {
           candidates.resultIds.chunked(properties.batchSize) { chunk ->
             jooq.transactional { ctx ->
               ctx.deleteFrom(taskResultsTable)
@@ -146,9 +146,9 @@ class SqlTaskCleanupAgent(
                 .execute()
             }
           }
-        }
+        })
 
-        registry.counter(deletedId).increment(candidates.taskIds.size.toLong())
+        registry.counter(deletedMetricName).increment(candidates.taskIds.size.toDouble())
       }
     }
   }

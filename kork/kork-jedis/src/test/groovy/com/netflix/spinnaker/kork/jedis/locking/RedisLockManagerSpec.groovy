@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat
 
 import java.util.function.Consumer
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
 import com.netflix.spinnaker.kork.jedis.lock.RedisLockManager
@@ -33,7 +33,7 @@ class RedisLockManagerSpec extends BaseLockManagerSpec<RedisLockManager> {
   @Shared def embeddedRedis = EmbeddedRedis.embed()
   def jedisPool = embeddedRedis.getPool() as JedisPool
   def objectMapper = new ObjectMapper()
-  def registry = new NoopRegistry()
+  def registry = new SimpleMeterRegistry()
   def redisClientDelegate = new JedisClientDelegate(jedisPool)
   def heartbeatRateMillis = 30L
 

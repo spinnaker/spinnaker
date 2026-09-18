@@ -19,7 +19,6 @@ import static com.netflix.spinnaker.kork.plugins.PackageKt.FRAMEWORK_V1;
 import static com.netflix.spinnaker.kork.plugins.PackageKt.FRAMEWORK_V2;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.config.PluginsConfigurationProperties.PluginRepositoryProperties;
 import com.netflix.spinnaker.kork.annotations.Beta;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
@@ -52,6 +51,7 @@ import com.netflix.spinnaker.kork.plugins.v2.SpringPluginFactory;
 import com.netflix.spinnaker.kork.version.ServiceVersion;
 import com.netflix.spinnaker.kork.version.SpringPackageVersionResolver;
 import com.netflix.spinnaker.kork.version.VersionResolver;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -331,7 +331,7 @@ public class PluginsAutoConfiguration {
 
   @Bean
   public static MetricInvocationAspect metricInvocationAspect(
-      ObjectProvider<Registry> registryProvider) {
+      ObjectProvider<MeterRegistry> registryProvider) {
     return new MetricInvocationAspect(registryProvider);
   }
 

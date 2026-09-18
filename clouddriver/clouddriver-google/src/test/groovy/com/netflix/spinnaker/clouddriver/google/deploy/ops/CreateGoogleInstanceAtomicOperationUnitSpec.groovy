@@ -24,7 +24,7 @@ import com.google.api.client.json.gson.GsonFactory
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Image
 import com.google.api.services.compute.model.ImageList
-import com.netflix.spectator.api.DefaultRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.GoogleApiTestUtils
@@ -51,7 +51,7 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification implemen
   private static final ZONE = "us-central1-b"
   private static final BASE_IMAGE_PROJECTS = ["centos-cloud", "ubuntu-os-cloud"]
 
-  def registry = new DefaultRegistry()
+  def registry = new SimpleMeterRegistry()
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
@@ -132,10 +132,9 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification implemen
       1 * googleNetworkProviderMock.getAllMatchingKeyPattern("gce:networks:default:$ACCOUNT_NAME:global") >> [new GoogleNetwork()]
       1 * instancesMock.insert(PROJECT_NAME, ZONE, _) >> instancesInsertMock
       1 * instancesInsertMock.execute()
-      registry.timer(
-          GoogleApiTestUtils.makeOkId(
-            registry, "compute.instances.insert",
-            [scope: "zonal", zone: ZONE])
+      GoogleApiTestUtils.okTimer(
+          registry, "compute.instances.insert",
+          [scope: "zonal", zone: ZONE]
       ).count() == 1
   }
 

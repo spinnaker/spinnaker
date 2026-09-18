@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.events.PersistentEvent.Companion.clock
 import com.netflix.spinnaker.keel.resources.ResourceFactory
@@ -74,7 +74,7 @@ class SqlConfiguration
     resourceFactory: ResourceFactory,
     objectMapper: ObjectMapper,
     publisher: ApplicationEventPublisher,
-    registry: Registry,
+    registry: MeterRegistry,
     springEnv: Environment
   ) =
     SqlResourceRepository(
@@ -194,10 +194,10 @@ class SqlConfiguration
     clock: Clock,
     properties: SqlProperties,
     objectMapper: ObjectMapper,
-    spectator: Registry,
+    meterRegistry: MeterRegistry,
     publisher: ApplicationEventPublisher
   ) =
-    SqlLifecycleEventRepository(clock, jooq, SqlRetry(sqlRetryProperties), spectator, publisher)
+    SqlLifecycleEventRepository(clock, jooq, SqlRetry(sqlRetryProperties), meterRegistry, publisher)
 
   @Bean
   fun lifecycleMonitorRepository(
@@ -219,7 +219,7 @@ class SqlConfiguration
   fun environmentLeaseRepository(
     jooq: DSLContext,
     clock: Clock,
-    registry: Registry
+    registry: MeterRegistry
   ) = SqlEnvironmentLeaseRepository(jooq, clock, registry, environmentExclusionConfig.leaseDuration)
 
   @Bean

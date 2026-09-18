@@ -21,9 +21,9 @@ import com.google.api.services.compute.ComputeRequest;
 import com.google.api.services.compute.model.InstanceGroupManager;
 import com.google.api.services.compute.model.InstanceGroupManagersAbandonInstancesRequest;
 import com.google.api.services.compute.model.Operation;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.io.IOException;
 import java.util.List;
 
@@ -38,7 +38,7 @@ final class ZoneGoogleServerGroupManagers implements GoogleServerGroupManagers {
   ZoneGoogleServerGroupManagers(
       GoogleNamedAccountCredentials credentials,
       GoogleOperationPoller operationPoller,
-      Registry registry,
+      MeterRegistry registry,
       String instanceGroupName,
       String zone) {
     this.credentials = credentials;

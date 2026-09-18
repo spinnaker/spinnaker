@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
 import com.netflix.spinnaker.kork.sql.config.SqlProperties
@@ -38,6 +37,7 @@ import com.netflix.spinnaker.orca.sql.SqlHealthcheckActivator
 import com.netflix.spinnaker.orca.sql.pipeline.persistence.ExecutionStatisticsRepository
 import com.netflix.spinnaker.orca.sql.pipeline.persistence.SqlExecutionRepository
 import com.netflix.spinnaker.orca.sql.telemetry.SqlActiveExecutionsMonitor
+import io.micrometer.core.instrument.MeterRegistry
 import java.time.Clock
 import java.util.Optional
 import javax.sql.DataSource
@@ -76,7 +76,7 @@ class SqlConfiguration {
   fun sqlExecutionRepository(
     dsl: DSLContext,
     mapper: ObjectMapper,
-    registry: Registry,
+    registry: MeterRegistry,
     properties: SqlProperties,
     orcaSqlProperties: OrcaSqlProperties,
     interlink: Optional<Interlink>,
@@ -106,7 +106,7 @@ class SqlConfiguration {
   fun secondarySqlExecutionRepository(
     dsl: DSLContext,
     mapper: ObjectMapper,
-    registry: Registry,
+    registry: MeterRegistry,
     properties: SqlProperties,
     orcaSqlProperties: OrcaSqlProperties,
     @Value("\${execution-repository.sql.secondary.pool-name}") poolName: String,
@@ -133,13 +133,13 @@ class SqlConfiguration {
   @Bean
   fun sqlActiveExecutionsMonitor(
     @Qualifier("sqlExecutionRepository") executionRepository: ExecutionStatisticsRepository,
-    registry: Registry,
+    registry: MeterRegistry,
     @Value("\${monitor.active-executions.refresh.frequency.ms:60000}") refreshFrequencyMs: Long
   ) =
     SqlActiveExecutionsMonitor(executionRepository, registry, refreshFrequencyMs)
 
   @Bean
-  fun sqlHealthcheckActivator(dsl: DSLContext, registry: Registry) =
+  fun sqlHealthcheckActivator(dsl: DSLContext, registry: MeterRegistry) =
     SqlHealthcheckActivator(dsl, registry)
 
   @Bean("dbHealthIndicator")

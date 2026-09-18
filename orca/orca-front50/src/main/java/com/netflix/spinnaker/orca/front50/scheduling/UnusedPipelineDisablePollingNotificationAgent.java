@@ -17,9 +17,6 @@ package com.netflix.spinnaker.orca.front50.scheduling;
 
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE;
 
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.LongTaskTimer;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -27,6 +24,8 @@ import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent;
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
+import io.micrometer.core.instrument.LongTaskTimer;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Clock;
 import java.time.ZoneOffset;
 import java.util.Arrays;
@@ -71,7 +70,7 @@ public class UnusedPipelineDisablePollingNotificationAgent
   private final ExecutionRepository executionRepository;
 
   /** Registry for metrics and monitoring. */
-  private final Registry registry;
+  private final MeterRegistry registry;
 
   /** Polling interval in seconds. */
   private final long pollingIntervalSec;
@@ -85,8 +84,8 @@ public class UnusedPipelineDisablePollingNotificationAgent
    */
   private final boolean dryRun;
 
-  /** Timer ID for long task timer. */
-  private final Id timerId;
+  /** Long task timer. */
+  private final LongTaskTimer timer;
 
   /**
    * Constructor to initialize the agent with required dependencies.
@@ -107,7 +106,7 @@ public class UnusedPipelineDisablePollingNotificationAgent
       ExecutionRepository executionRepository,
       Front50Service front50Service,
       Clock clock,
-      Registry registry,
+      MeterRegistry registry,
       @Value("${pollers.unused-pipelines-disable.interval-sec:3600}") long pollingIntervalSec,
       @Value("${pollers.unused-pipelines-disable.threshold-days:365}") int thresholdDays,
       @Value("${pollers.unused-pipelines-disable.dry-run:true}") boolean dryRun) {
@@ -120,7 +119,7 @@ public class UnusedPipelineDisablePollingNotificationAgent
     this.dryRun = dryRun;
     this.front50service = front50Service;
 
-    timerId = registry.createId("pollers.unusedPipelineDisable.timing");
+    timer = LongTaskTimer.builder("pollers.unusedPipelineDisable.timing").register(registry);
   }
 
   /**
@@ -150,8 +149,7 @@ public class UnusedPipelineDisablePollingNotificationAgent
    */
   @Override
   protected void tick() {
-    LongTaskTimer timer = registry.longTaskTimer(timerId);
-    long timerId = timer.start();
+    LongTaskTimer.Sample sample = timer.start();
     try {
       executionRepository
           .retrieveAllApplicationNames(PIPELINE)
@@ -179,7 +177,7 @@ public class UnusedPipelineDisablePollingNotificationAgent
     } catch (Exception e) {
       log.error("Disabling pipelines failed", e);
     } finally {
-      timer.stop(timerId);
+      sample.stop();
     }
   }
 

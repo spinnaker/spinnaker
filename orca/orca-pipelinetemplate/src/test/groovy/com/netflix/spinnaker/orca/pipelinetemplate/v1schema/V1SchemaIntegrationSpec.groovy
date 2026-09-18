@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.*
 import com.netflix.spinnaker.kork.yaml.YamlHelper
 import com.netflix.spinnaker.kork.yaml.YamlParserProperties
 import com.netflix.spinnaker.orca.clouddriver.OortService
@@ -38,6 +37,8 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfig
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.JinjaRenderer
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.YamlRenderedValueConverter
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.springframework.core.io.Resource
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver
 import org.yaml.snakeyaml.LoaderOptions
@@ -64,14 +65,7 @@ class V1SchemaIntegrationSpec extends Specification {
     new YamlRenderedValueConverter(), objectMapper, Mock(Front50Service), []
   )
 
-  Registry registry = Mock() {
-    clock() >> Mock(Clock) {
-      monotonicTime() >> 0L
-    }
-    timer(_) >> Mock(Timer)
-    createId(_) >> Mock(Id)
-    counter(_) >> Mock(Counter)
-  }
+  MeterRegistry registry = new SimpleMeterRegistry()
 
   @Unroll
   def 'test handler strategy "#integration.name"'() {

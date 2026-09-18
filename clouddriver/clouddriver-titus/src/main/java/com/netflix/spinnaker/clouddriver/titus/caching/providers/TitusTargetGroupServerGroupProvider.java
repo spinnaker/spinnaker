@@ -18,8 +18,6 @@ package com.netflix.spinnaker.clouddriver.titus.caching.providers;
 
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.*;
 
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter;
@@ -29,6 +27,8 @@ import com.netflix.spinnaker.clouddriver.model.LoadBalancerInstance;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup;
 import com.netflix.spinnaker.clouddriver.titus.TitusCloudProvider;
 import com.netflix.spinnaker.clouddriver.titus.caching.Keys;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -39,20 +39,20 @@ import org.springframework.stereotype.Component;
 @Component
 public class TitusTargetGroupServerGroupProvider implements TargetGroupServerGroupProvider {
 
-  private final Cache cacheView;
-  private final Registry registry;
+  private static final String INCONSISTENT_CACHE_METRIC_NAME = "cache.inconsistentData";
 
-  private final Id inconsistentCacheId;
+  private final Cache cacheView;
+  private final MeterRegistry registry;
+
+  private final Tags inconsistentCacheTags;
 
   @Autowired
-  public TitusTargetGroupServerGroupProvider(Cache cacheView, Registry registry) {
+  public TitusTargetGroupServerGroupProvider(Cache cacheView, MeterRegistry registry) {
     this.cacheView = cacheView;
     this.registry = registry;
 
-    inconsistentCacheId =
-        registry
-            .createId("cache.inconsistentData")
-            .withTag("location", TitusTargetGroupServerGroupProvider.class.getSimpleName());
+    inconsistentCacheTags =
+        Tags.of("location", TitusTargetGroupServerGroupProvider.class.getSimpleName());
   }
 
   @Override
@@ -116,7 +116,7 @@ public class TitusTargetGroupServerGroupProvider implements TargetGroupServerGro
               if (instance.isPresent()) {
                 targetGroupInstances.add(instance.get());
               } else {
-                registry.counter(inconsistentCacheId).increment();
+                registry.counter(INCONSISTENT_CACHE_METRIC_NAME, inconsistentCacheTags).increment();
                 log.error(
                     "Detected potentially inconsistent instance cache data (targetGroup: {}, serverGroup: {})",
                     targetGroup,

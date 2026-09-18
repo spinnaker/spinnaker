@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.kork.sql.config
 
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.sql.JooqSqlCommentAppender
 import com.netflix.spinnaker.kork.sql.JooqToSpringExceptionTransformer
 import com.netflix.spinnaker.kork.sql.health.SqlHealthIndicator
@@ -24,6 +23,7 @@ import com.netflix.spinnaker.kork.sql.migration.SpringLiquibaseProxy
 import com.netflix.spinnaker.kork.sql.routing.NamedDataSourceRouter
 import com.netflix.spinnaker.kork.sql.routing.StaticDataSourceLookup
 import com.netflix.spinnaker.kork.sql.telemetry.JooqSlowQueryLogger
+import io.micrometer.core.instrument.MeterRegistry
 import java.sql.Connection
 import javax.sql.DataSource
 import liquibase.integration.spring.SpringLiquibase
@@ -213,7 +213,7 @@ class DefaultSqlConfiguration {
   @Bean
   fun sqlHealthProvider(
     jooq: DSLContext,
-    registry: Registry,
+    registry: MeterRegistry,
     @Value("\${sql.read-only:false}") readOnly: Boolean
   ): SqlHealthProvider =
     SqlHealthProvider(jooq, registry, readOnly)

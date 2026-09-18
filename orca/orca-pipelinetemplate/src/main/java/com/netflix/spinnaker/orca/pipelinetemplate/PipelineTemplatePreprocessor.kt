@@ -16,8 +16,6 @@
 package com.netflix.spinnaker.orca.pipelinetemplate
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.BasicTag
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.api.pipeline.ExecutionPreprocessor
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.PipelineMissingTemplateVariabledException
 import com.netflix.spinnaker.orca.pipelinetemplate.handler.DefaultHandlerChain
@@ -26,6 +24,8 @@ import com.netflix.spinnaker.orca.pipelinetemplate.handler.PipelineTemplateConte
 import com.netflix.spinnaker.orca.pipelinetemplate.handler.PipelineTemplateErrorHandler
 import com.netflix.spinnaker.orca.pipelinetemplate.handler.SchemaVersionHandler
 import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model.V2PipelineTemplate
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tags
 import javax.annotation.Nonnull
 import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
@@ -40,11 +40,10 @@ class PipelineTemplatePreprocessor
   private val pipelineTemplateObjectMapper: ObjectMapper,
   private val schemaVersionHandler: SchemaVersionHandler,
   private val errorHandler: PipelineTemplateErrorHandler,
-  private val registry: Registry
+  private val registry: MeterRegistry
 ) : ExecutionPreprocessor {
 
   private val log = LoggerFactory.getLogger(javaClass)
-  private val requestsId = registry.createId("mpt.requests")
 
   @PostConstruct fun confirmUsage() = log.info("Using ${javaClass.simpleName}")
 
@@ -110,12 +109,11 @@ class PipelineTemplatePreprocessor
 
   private fun recordRequest(context: PipelineTemplateContext, success: Boolean) {
     registry.counter(
-      requestsId.withTags(
-        listOf(
-          BasicTag("status", if (success) "success" else "failure"),
-          BasicTag("schema", context.getRequest().schema ?: "unknown"),
-          BasicTag("plan", context.getRequest().plan.toString())
-        )
+      "mpt.requests",
+      Tags.of(
+        "status", if (success) "success" else "failure",
+        "schema", context.getRequest().schema ?: "unknown",
+        "plan", context.getRequest().plan.toString()
       )
     ).increment()
   }

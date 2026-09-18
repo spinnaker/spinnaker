@@ -46,7 +46,6 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.agent.AgentDataType.Authority;
 import com.netflix.spinnaker.cats.agent.CacheResult;
@@ -71,6 +70,7 @@ import com.netflix.spinnaker.clouddriver.yandex.security.YandexCloudCredentials;
 import com.netflix.spinnaker.clouddriver.yandex.service.YandexCloudFacade;
 import com.netflix.spinnaker.moniker.Moniker;
 import com.netflix.spinnaker.moniker.Namer;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.time.Duration;
@@ -117,7 +117,7 @@ public final class YandexServerGroupCachingAgent
 
   public YandexServerGroupCachingAgent(
       YandexCloudCredentials credentials,
-      Registry registry,
+      MeterRegistry registry,
       ObjectMapper objectMapper,
       YandexCloudFacade yandexCloudFacade) {
     super(credentials, objectMapper, yandexCloudFacade);

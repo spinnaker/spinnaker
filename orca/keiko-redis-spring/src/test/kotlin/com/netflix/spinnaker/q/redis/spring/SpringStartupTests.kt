@@ -1,7 +1,5 @@
 package com.netflix.spinnaker.q.redis.spring
 
-import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.QueueConfiguration
 import com.netflix.spinnaker.config.RedisQueueConfiguration
 import com.netflix.spinnaker.q.Queue
@@ -16,6 +14,8 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import redis.clients.jedis.JedisPool
 
 @ExtendWith(SpringExtension::class)
@@ -36,7 +36,7 @@ internal class SpringStartupTests {
 @Configuration
 internal class TestConfiguration {
   @Bean
-  fun registry(): Registry = NoopRegistry()
+  fun registry(): MeterRegistry = SimpleMeterRegistry()
 
   @Bean
   fun queueRedisPool(): JedisPool = EmbeddedRedis.embed().pool

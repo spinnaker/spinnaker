@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.ExecutionCompressionProperties
 import com.netflix.spinnaker.config.ObjectMapperSubtypeProperties
 import com.netflix.spinnaker.config.OrcaSqlProperties
@@ -49,6 +48,7 @@ import com.netflix.spinnaker.q.metrics.EventPublisher
 import com.netflix.spinnaker.q.metrics.MonitorableQueue
 import com.netflix.spinnaker.q.sql.SqlQueue
 import de.huxhorn.sulky.ulid.ULID
+import io.micrometer.core.instrument.MeterRegistry
 import java.time.Clock
 import java.time.Duration
 import java.util.Optional
@@ -120,7 +120,7 @@ class SqlTestConfig {
   fun sqlExecutionRepository(
     dsl: DSLContext,
     mapper: ObjectMapper,
-    registry: Registry,
+    registry: MeterRegistry,
     properties: SqlProperties,
     orcaSqlProperties: OrcaSqlProperties,
     compressionProperties: ExecutionCompressionProperties,
@@ -145,7 +145,7 @@ class SqlTestConfig {
     repository: ExecutionRepository,
     mapper: ObjectMapper,
     clock: Clock,
-    registry: Registry
+    registry: MeterRegistry
   ) =
     SqlPendingExecutionService(
       "test",

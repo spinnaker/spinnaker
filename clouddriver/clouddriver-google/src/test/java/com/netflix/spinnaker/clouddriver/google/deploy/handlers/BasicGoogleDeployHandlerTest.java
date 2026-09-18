@@ -47,8 +47,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.*;
-import com.netflix.spectator.api.DefaultRegistry;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidationErrors;
@@ -91,6 +89,8 @@ import com.netflix.spinnaker.clouddriver.model.ServerGroup;
 import com.netflix.spinnaker.config.GoogleConfiguration;
 import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository;
 import com.netflix.spinnaker.credentials.NoopCredentialsLifecycleHandler;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -127,7 +127,7 @@ public class BasicGoogleDeployHandlerTest {
   @Mock private Cache cacheView;
   private ObjectMapper objectMapper = new ObjectMapper();
   @Mock private SafeRetry safeRetry;
-  @Mock private Registry registry;
+  @Mock private MeterRegistry registry;
 
   @InjectMocks @Spy private BasicGoogleDeployHandler basicGoogleDeployHandler;
 
@@ -2487,7 +2487,7 @@ public class BasicGoogleDeployHandlerTest {
     mockDescription.setInstanceFlexibilityPolicy(flexPolicy());
     when(mockCredentials.getCompute()).thenReturn(compute);
     when(mockCredentials.getProject()).thenReturn("test-project");
-    injectField("registry", new DefaultRegistry());
+    injectField("registry", new SimpleMeterRegistry());
 
     basicGoogleDeployHandler.createInstanceGroupManagerFromInput(
         mockDescription,
@@ -2545,7 +2545,7 @@ public class BasicGoogleDeployHandlerTest {
     mockDescription.setInstanceFlexibilityPolicy(flexPolicy);
     when(mockCredentials.getCompute()).thenReturn(compute);
     when(mockCredentials.getProject()).thenReturn("test-project");
-    injectField("registry", new DefaultRegistry());
+    injectField("registry", new SimpleMeterRegistry());
 
     basicGoogleDeployHandler.createInstanceGroupManagerFromInput(
         mockDescription,
@@ -2637,7 +2637,7 @@ public class BasicGoogleDeployHandlerTest {
     mockDescription.setZone("us-central1-a");
     when(mockCredentials.getCompute()).thenReturn(compute);
     when(mockCredentials.getProject()).thenReturn("test-project");
-    injectField("registry", new DefaultRegistry());
+    injectField("registry", new SimpleMeterRegistry());
 
     assertDoesNotThrow(
         () ->
@@ -3027,7 +3027,7 @@ public class BasicGoogleDeployHandlerTest {
     description.setDisableTraffic(true);
     when(mockCredentials.getCompute()).thenReturn(compute);
     when(mockCredentials.getProject()).thenReturn("test-project");
-    injectField("registry", new DefaultRegistry());
+    injectField("registry", new SimpleMeterRegistry());
     mockedGCEUtil.when(() -> GCEUtil.buildServiceAccount(any(), any())).thenReturn(List.of());
     mockedGCEUtil.when(() -> GCEUtil.buildTagsFromList(any())).thenReturn(new Tags());
 
@@ -3117,7 +3117,7 @@ public class BasicGoogleDeployHandlerTest {
     description.setDisableTraffic(true);
     when(mockCredentials.getCompute()).thenReturn(compute);
     when(mockCredentials.getProject()).thenReturn("test-project");
-    injectField("registry", new DefaultRegistry());
+    injectField("registry", new SimpleMeterRegistry());
     mockedGCEUtil.when(() -> GCEUtil.buildServiceAccount(any(), any())).thenReturn(List.of());
     mockedGCEUtil.when(() -> GCEUtil.buildTagsFromList(any())).thenReturn(new Tags());
 
@@ -3311,7 +3311,7 @@ public class BasicGoogleDeployHandlerTest {
     // Handler assembly boundary: run the same build helpers plus the regional insert so the
     // outbound request body reflects the fully assembled description. This is where a null/omitted
     // optional field or a missing redistribution contract would surface.
-    injectField("registry", new DefaultRegistry());
+    injectField("registry", new SimpleMeterRegistry());
     mockedGCEUtil.when(() -> GCEUtil.buildServiceAccount(any(), any())).thenReturn(List.of());
     mockedGCEUtil.when(() -> GCEUtil.buildTagsFromList(any())).thenReturn(new Tags());
 

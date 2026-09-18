@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.job;
 
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
@@ -25,6 +24,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.KatoService;
 import com.netflix.spinnaker.orca.clouddriver.model.Task;
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Map;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -42,7 +42,7 @@ public class MonitorJobTask extends MonitorKatoTask {
   @Autowired
   public MonitorJobTask(
       KatoService katoService,
-      Registry registry,
+      MeterRegistry registry,
       JobUtils jobUtils,
       DynamicConfigService dynamicConfigService,
       RetrySupport retrySupport) {
@@ -52,7 +52,7 @@ public class MonitorJobTask extends MonitorKatoTask {
 
   public MonitorJobTask(
       KatoService katoService,
-      Registry registry,
+      MeterRegistry registry,
       DynamicConfigService dynamicConfigService,
       RetrySupport retrySupport) {
     super(katoService, registry, dynamicConfigService, retrySupport);

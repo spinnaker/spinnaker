@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.fiat.shared
 
-import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.fiat.model.UserPermission
 import retrofit2.Call
 import retrofit2.Response
@@ -29,7 +29,7 @@ abstract class FiatSharedSpecification extends Specification {
             execute() >> Response.success(new UserPermission.View(new UserPermission()))
         }
     }
-    Registry registry = new NoopRegistry()
+    MeterRegistry registry = new SimpleMeterRegistry()
     FiatStatus fiatStatus = Mock(FiatStatus) {
         _ * isEnabled() >> { return true }
         _ * isGrantedAuthoritiesEnabled() >> { return true }

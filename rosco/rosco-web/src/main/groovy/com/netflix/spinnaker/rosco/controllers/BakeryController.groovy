@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.rosco.controllers
 
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeOptions
 import com.netflix.spinnaker.rosco.api.BakeRequest
@@ -31,6 +30,7 @@ import com.netflix.spinnaker.rosco.providers.registry.CloudProviderBakeHandlerRe
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
+import io.micrometer.core.instrument.MeterRegistry
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import org.springframework.beans.factory.annotation.Autowired
@@ -55,7 +55,7 @@ class BakeryController {
   CloudProviderBakeHandlerRegistry cloudProviderBakeHandlerRegistry
 
   @Autowired
-  Registry registry
+  MeterRegistry registry
 
   @Value('${default-cloud-provider-type:aws}')
   BakeRequest.CloudProviderType defaultCloudProviderType
@@ -168,7 +168,7 @@ class BakeryController {
       def bakeKey = cloudProviderBakeHandler.produceBakeKey(region, bakeRequest)
 
       if (rebake == "1") {
-        registry.counter(registry.createId("bakesRequested", [flavor: "rebake"])).increment()
+        registry.counter("bakesRequested", "flavor", "rebake").increment()
 
         String bakeId = bakeStore.deleteBakeByKeyPreserveDetails(bakeKey)
 
@@ -179,11 +179,11 @@ class BakeryController {
         def existingBakeStatus = queryExistingBakes(bakeKey)
 
         if (existingBakeStatus) {
-          registry.counter(registry.createId("bakesRequested", [flavor: "duplicate"])).increment()
+          registry.counter("bakesRequested", "flavor", "duplicate").increment()
 
           return existingBakeStatus
         } else {
-          registry.counter(registry.createId("bakesRequested", [flavor: "plain"])).increment()
+          registry.counter("bakesRequested", "flavor", "plain").increment()
         }
       }
 
@@ -327,7 +327,7 @@ class BakeryController {
       // This will have the most up-to-date timestamp.
       BakeStatus bakeStatus = bakeStore.retrieveBakeStatusById(statusId)
       long millis = bakeStatus.updatedTimestamp - bakeStatus.createdTimestamp
-      registry.timer(registry.createId("bakesCompleted", [success: "false", cause: "explicitlyCanceled"])).record(millis, TimeUnit.MILLISECONDS)
+      registry.timer("bakesCompleted", "success", "false", "cause", "explicitlyCanceled").record(millis, TimeUnit.MILLISECONDS)
 
       return "Canceled bake '$statusId'."
     }

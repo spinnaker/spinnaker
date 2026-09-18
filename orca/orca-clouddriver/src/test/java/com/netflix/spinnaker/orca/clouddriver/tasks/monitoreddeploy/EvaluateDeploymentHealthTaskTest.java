@@ -33,7 +33,6 @@ import com.github.tomakehurst.wiremock.http.HttpHeaders;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.google.common.collect.Iterables;
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.config.DefaultServiceClientProvider;
 import com.netflix.spinnaker.config.DeploymentMonitorDefinition;
 import com.netflix.spinnaker.config.ServiceEndpoint;
@@ -48,6 +47,7 @@ import com.netflix.spinnaker.orca.deploymentmonitor.models.DeploymentMonitorStag
 import com.netflix.spinnaker.orca.deploymentmonitor.models.MonitoredDeployInternalStageData;
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -118,7 +118,8 @@ public class EvaluateDeploymentHealthTaskTest {
     DeploymentMonitorServiceProvider deploymentMonitorServiceProvider =
         getDeploymentMonitorServiceProvider();
     evaluateDeploymentHealthTask =
-        new EvaluateDeploymentHealthTask(deploymentMonitorServiceProvider, new NoopRegistry());
+        new EvaluateDeploymentHealthTask(
+            deploymentMonitorServiceProvider, new SimpleMeterRegistry());
 
     MonitoredDeployInternalStageData stageData = new MonitoredDeployInternalStageData();
     DeploymentMonitorStageConfig deploymentMonitorStageConfig = new DeploymentMonitorStageConfig();

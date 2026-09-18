@@ -16,7 +16,6 @@
  */
 package com.netflix.spinnaker.igor.plugins;
 
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.igor.history.EchoService;
 import com.netflix.spinnaker.igor.plugins.front50.PluginReleaseService;
@@ -31,6 +30,7 @@ import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
@@ -49,7 +49,7 @@ public class PluginsBuildMonitor
 
   public PluginsBuildMonitor(
       IgorConfigurationProperties igorProperties,
-      Registry registry,
+      MeterRegistry registry,
       DynamicConfigService dynamicConfigService,
       DiscoveryStatusListener discoveryStatusListener,
       Optional<LockService> lockService,
@@ -110,7 +110,7 @@ public class PluginsBuildMonitor
   private void postEvent(PluginRelease release) {
     if (!echoService.isPresent()) {
       log.warn("Cannot send new plugin notification: Echo is not configured");
-      registry.counter(missedNotificationId.withTag("monitor", getName())).increment();
+      registry.counter(missedNotificationId, "monitor", getName()).increment();
     } else if (release != null) {
       AuthenticatedRequest.allowAnonymous(
           () -> Retrofit2SyncCall.execute(echoService.get().postEvent(new PluginEvent(release))));

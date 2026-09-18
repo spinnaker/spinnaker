@@ -17,10 +17,10 @@
 package com.netflix.spinnaker.clouddriver.aws.security.sdkclient;
 
 import com.google.common.cache.Cache;
-import com.netflix.spectator.api.Registry;
+import io.micrometer.core.instrument.MeterRegistry;
 
 public class LoadingCacheMetrics {
-  public static void instrument(String prefix, Registry registry, Cache<?, ?> cache) {
+  public static void instrument(String prefix, MeterRegistry registry, Cache<?, ?> cache) {
     registry.gauge(prefix + ".averageLoadPenalty", cache, (c) -> c.stats().averageLoadPenalty());
     registry.gauge(prefix + ".evictionCount", cache, (c) -> c.stats().evictionCount());
     registry.gauge(prefix + ".hitCount", cache, (c) -> c.stats().hitCount());

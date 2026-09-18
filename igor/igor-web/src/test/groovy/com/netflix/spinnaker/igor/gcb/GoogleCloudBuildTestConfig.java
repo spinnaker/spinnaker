@@ -24,8 +24,8 @@ import com.google.api.client.googleapis.testing.auth.oauth2.MockTokenServerTrans
 import com.google.api.client.http.HttpTransport;
 import com.google.api.services.cloudbuild.v1.CloudBuildScopes;
 import com.google.auth.oauth2.GoogleCredentials;
-import com.netflix.spectator.api.NoopRegistry;
-import com.netflix.spectator.api.Registry;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.io.IOException;
 import java.io.InputStream;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -39,8 +39,8 @@ public class GoogleCloudBuildTestConfig {
   }
 
   @Bean
-  Registry registry() {
-    return new NoopRegistry();
+  MeterRegistry registry() {
+    return new SimpleMeterRegistry();
   }
 
   @Bean(name = "stubCloudBuildService")

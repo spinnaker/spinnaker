@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.cache;
 
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentLock;
 import com.netflix.spinnaker.cats.agent.AgentScheduler;
 import com.netflix.spinnaker.cats.agent.DefaultAgentScheduler;
@@ -29,6 +28,7 @@ import com.netflix.spinnaker.cats.provider.Provider;
 import com.netflix.spinnaker.cats.provider.ProviderRegistry;
 import com.netflix.spinnaker.clouddriver.search.SearchProvider;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -97,7 +97,7 @@ public class CacheConfig {
   }
 
   @Bean
-  ExecutionInstrumentation metricInstrumentation(Registry registry) {
+  ExecutionInstrumentation metricInstrumentation(MeterRegistry registry) {
     return new MetricInstrumentation(registry);
   }
 

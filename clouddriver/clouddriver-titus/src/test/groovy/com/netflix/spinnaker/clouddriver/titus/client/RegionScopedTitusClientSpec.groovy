@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.titus.client
 
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.clouddriver.titus.client.model.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -33,7 +33,7 @@ class RegionScopedTitusClientSpec extends Specification {
     TitusRegion titusRegion = new TitusRegion(
       "us-east-1", "test", "http://titusapi.mainvpc.us-east-1.dyntest.netflix.net:7001/", "blah", "blah", 7104, []
     );
-    TitusClient titusClient = new RegionScopedTitusClient(titusRegion, new NoopRegistry(), Collections.emptyList(), "test", "titusapigrpc-mcetest-mainvpc");
+    TitusClient titusClient = new RegionScopedTitusClient(titusRegion, new SimpleMeterRegistry(), Collections.emptyList(), "test", "titusapigrpc-mcetest-mainvpc");
 
     // ******************************************************************************************************************
 

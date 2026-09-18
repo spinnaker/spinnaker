@@ -16,7 +16,7 @@
 package com.netflix.spinnaker.kork.jedis;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
@@ -51,7 +51,7 @@ public class JedisClientConfiguration {
       havingValue = "false",
       matchIfMissing = true)
   public JedisClientDelegateFactory jedisClientDelegateFactory(
-      Registry registry, ObjectMapper objectMapper, GenericObjectPoolConfig redisPoolConfig) {
+      MeterRegistry registry, ObjectMapper objectMapper, GenericObjectPoolConfig redisPoolConfig) {
     return new JedisClientDelegateFactory(registry, objectMapper, redisPoolConfig);
   }
 

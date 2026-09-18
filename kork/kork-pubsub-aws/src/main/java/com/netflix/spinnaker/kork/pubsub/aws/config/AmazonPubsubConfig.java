@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.kork.pubsub.aws.config;
 
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.aws.AwsComponents;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
@@ -28,6 +27,7 @@ import com.netflix.spinnaker.kork.pubsub.aws.SNSPublisherProvider;
 import com.netflix.spinnaker.kork.pubsub.aws.SQSSubscriberProvider;
 import com.netflix.spinnaker.kork.pubsub.aws.api.AmazonMessageAcknowledger;
 import com.netflix.spinnaker.kork.pubsub.aws.api.AmazonPubsubMessageHandlerFactory;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -49,7 +49,7 @@ public class AmazonPubsubConfig {
 
   @Bean
   @ConditionalOnMissingBean(AmazonMessageAcknowledger.class)
-  AmazonMessageAcknowledger defaultAmazonMessageAcknowledger(Registry registry) {
+  AmazonMessageAcknowledger defaultAmazonMessageAcknowledger(MeterRegistry registry) {
     return new DefaultAmazonMessageAcknowledger(registry);
   }
 
@@ -60,7 +60,7 @@ public class AmazonPubsubConfig {
       PubsubSubscribers subscribers,
       AmazonPubsubMessageHandlerFactory messageHandlerFactory,
       AmazonMessageAcknowledger messageAcknowledger,
-      Registry registry,
+      MeterRegistry registry,
       DiscoveryStatusListener discoveryStatus,
       DynamicConfigService dynamicConfig) {
     return new SQSSubscriberProvider(
@@ -79,7 +79,7 @@ public class AmazonPubsubConfig {
       AwsCredentialsProvider awsCredentialsProvider,
       AmazonPubsubProperties properties,
       PubsubPublishers pubsubPublishers,
-      Registry registry,
+      MeterRegistry registry,
       RetrySupport retrySupport,
       DiscoveryStatusListener discoveryStatus,
       DynamicConfigService dynamicConfig) {

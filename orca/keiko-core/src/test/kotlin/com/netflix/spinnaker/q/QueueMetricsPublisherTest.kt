@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.q
 
-import com.netflix.spectator.api.DefaultRegistry
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.q.metrics.LockFailed
 import com.netflix.spinnaker.q.metrics.MessageAcknowledged
 import com.netflix.spinnaker.q.metrics.MessageDead
@@ -29,8 +27,11 @@ import com.netflix.spinnaker.q.metrics.QueueMetricsPublisher
 import com.netflix.spinnaker.q.metrics.QueuePolled
 import com.netflix.spinnaker.q.metrics.RetryPolled
 import com.netflix.spinnaker.time.fixedClock
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import java.time.Duration
 import java.time.Instant.now
+import java.util.concurrent.TimeUnit
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
@@ -40,7 +41,7 @@ import org.jetbrains.spek.subject.SubjectSpek
 
 object QueueMetricsPublisherTest : SubjectSpek<QueueMetricsPublisher>({
   val clock = fixedClock(instant = now().minus(Duration.ofHours(1)))
-  val registry: Registry = DefaultRegistry()
+  val registry: MeterRegistry = SimpleMeterRegistry()
 
   subject(GROUP) {
     QueueMetricsPublisher(
@@ -89,8 +90,8 @@ object QueueMetricsPublisherTest : SubjectSpek<QueueMetricsPublisher>({
       }
 
       it("records the lag") {
-        assertThat(registry.timer("queue.message.lag").totalTime())
-          .isEqualTo(event.lag.toNanos())
+        assertThat(registry.timer("queue.message.lag").totalTime(TimeUnit.NANOSECONDS))
+          .isEqualTo(event.lag.toNanos().toDouble())
       }
     }
 
@@ -102,7 +103,7 @@ object QueueMetricsPublisherTest : SubjectSpek<QueueMetricsPublisher>({
       }
 
       it("increments a counter") {
-        assertThat(registry.counter("queue.pushed.messages").count()).isEqualTo(1)
+        assertThat(registry.counter("queue.pushed.messages").count()).isEqualTo(1.0)
       }
     }
 
@@ -114,7 +115,7 @@ object QueueMetricsPublisherTest : SubjectSpek<QueueMetricsPublisher>({
       }
 
       it("increments a counter") {
-        assertThat(registry.counter("queue.acknowledged.messages").count()).isEqualTo(1)
+        assertThat(registry.counter("queue.acknowledged.messages").count()).isEqualTo(1.0)
       }
     }
 
@@ -126,7 +127,7 @@ object QueueMetricsPublisherTest : SubjectSpek<QueueMetricsPublisher>({
       }
 
       it("increments a counter") {
-        assertThat(registry.counter("queue.retried.messages").count()).isEqualTo(1)
+        assertThat(registry.counter("queue.retried.messages").count()).isEqualTo(1.0)
       }
     }
 
@@ -138,7 +139,7 @@ object QueueMetricsPublisherTest : SubjectSpek<QueueMetricsPublisher>({
       }
 
       it("increments a counter") {
-        assertThat(registry.counter("queue.dead.messages").count()).isEqualTo(1)
+        assertThat(registry.counter("queue.dead.messages").count()).isEqualTo(1.0)
       }
     }
 
@@ -156,7 +157,7 @@ object QueueMetricsPublisherTest : SubjectSpek<QueueMetricsPublisher>({
             "messageType", event.payload.javaClass.simpleName
           ).count()
         )
-          .isEqualTo(1)
+          .isEqualTo(1.0)
       }
     }
 
@@ -168,7 +169,7 @@ object QueueMetricsPublisherTest : SubjectSpek<QueueMetricsPublisher>({
       }
 
       it("increments a counter") {
-        assertThat(registry.counter("queue.lock.failed").count()).isEqualTo(1)
+        assertThat(registry.counter("queue.lock.failed").count()).isEqualTo(1.0)
       }
     }
   }

@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.services
 
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.config.ArtifactConfig
 import com.netflix.spinnaker.keel.actuation.EnvironmentTaskCanceler
 import com.netflix.spinnaker.keel.api.DeliveryConfig
@@ -130,7 +130,7 @@ class ComparableLinksTests : JUnit5Minutests {
         getProperty("keel.verifications.summary.enabled", Boolean::class.java, any())
       } returns true
     }
-    val registry = NoopRegistry()
+    val registry = SimpleMeterRegistry()
 
     val environmentTaskCanceler: EnvironmentTaskCanceler = mockk(relaxUnitFun = true)
 
