@@ -37,6 +37,7 @@ def cloudProviderProjects = [
 cloudProviderProjects.put('gcp', cloudProviderProjects['appengine'] + cloudProviderProjects['gce'] + cloudProviderProjects['kubernetes'])
 cloudProviderProjects.put('titus', cloudProviderProjects['aws-minimal'] + ':clouddriver-titus' + ':clouddriver-docker')
 cloudProviderProjects.put('all', cloudProviderProjects.collectMany {_, proj -> proj}) // Include all cloud providers.
+cloudProviderProjects.put('none', []) // Core-only shard — no cloud provider modules
 
 String icp = settings.ext.has('includeCloudProviders') ? settings.ext.get('includeCloudProviders') : 'all'
 
