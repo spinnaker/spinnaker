@@ -4,7 +4,7 @@
 
 | Phase | Description | Status |
 |---|---|---|
-| 0 | Valkey test-infra migration (repo-wide) | Implemented on `valkeyTestInfra` branch, pending PR |
+| 0 | Valkey test-infra migration (repo-wide) | [PR #8029](https://github.com/spinnaker/spinnaker/pull/8029) (draft) |
 | 1 | `kork-pubsub` base additions (Broadcast interfaces + registries) | Not started |
 | 2 | New `kork-pubsub-redis` module (Single via Streams, Broadcast via Spring Integration) | Not started |
 | 3 | SNS/SQS broadcast support (per-instance dynamic queues) | Not started |
