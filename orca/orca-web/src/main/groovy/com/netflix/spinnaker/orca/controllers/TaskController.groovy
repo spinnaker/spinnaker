@@ -464,7 +464,7 @@ class TaskController {
     // Filter by application (and pipeline name, if that parameter has been given in addition to application name)
     List<String> pipelineConfigIds = Collections.emptyList()
     if (application == "*") {
-      pipelineConfigIds = getPipelineConfigIdsOfReadableApplications()
+      pipelineConfigIds = getPipelineConfigIdsOfReadableApplications(pipelineName)
     } else {
       if (pipelineName != null && pipelineName != "") {
         try {
@@ -503,7 +503,7 @@ class TaskController {
     }
 
     int page = 1
-    while (matchingExecutions.size() < size) {
+    while (matchingExecutions.size() < startIndex + size) {
       List<PipelineExecution> executions = executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
           pipelineConfigIds,
           triggerTimeStartBoundary,
@@ -844,7 +844,7 @@ class TaskController {
         String str = new String(decoded, Charset.forName("UTF-8"))
         triggerParams = mapper.readValue(str, Map.class)
       } catch (Exception e) {
-        throw new RuntimeException("Failed to parse encoded trigger", e)
+        throw new IllegalArgumentException("Failed to parse encoded trigger", e)
       }
     } else {
       triggerParams = new HashMap()
@@ -947,10 +947,16 @@ class TaskController {
   }
 
   @PostAuthorize("hasPermission(returnObject.application, 'APPLICATION', 'READ')")
-  private List<String> getPipelineConfigIdsOfReadableApplications() {
+  private List<String> getPipelineConfigIdsOfReadableApplications(String pipelineName = null) {
     List<String> applicationNames = Retrofit2SyncCall.execute(front50Service.getAllApplications())*.name as List<String>
     List<String> pipelineConfigIds = applicationNames.stream()
-      .map { applicationName -> Retrofit2SyncCall.execute(front50Service.getPipelines(applicationName, false))*.id as List<String> }
+      .map { applicationName ->
+        List<Map<String, Object>> pipelines = Retrofit2SyncCall.execute(front50Service.getPipelines(applicationName, false))
+        if (pipelineName != null && pipelineName != "") {
+          pipelines = pipelines.findAll { pipelineName.equals(it.get("name")) }
+        }
+        return pipelines*.id as List<String>
+      }
       .flatMap { c -> c.stream() }
       .collect(Collectors.toList())
 
