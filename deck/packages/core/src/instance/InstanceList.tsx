@@ -38,7 +38,7 @@ export class InstanceListComponent extends React.Component<
 > {
   private instanceGroup: any;
   private clusterFilterModel = ClusterState.filterModel.asFilterModel;
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   constructor(props: IInstanceListProps & IRouterInjectedProps) {
     super(props);

@@ -1,4 +1,4 @@
-import type { Action, Dispatch, Middleware, MiddlewareAPI } from 'redux';
+import type { Action, Dispatch, Middleware } from 'redux';
 
 import type { ICanaryState } from '../reducers/index';
 
@@ -9,9 +9,7 @@ import type { ICanaryState } from '../reducers/index';
  * TODO: type actions to include `asyncDispatch`.
  * */
 
-// TODO: replace the `any` generic passed to MiddlewareAPI with ICanaryState. The Redux typings here are wrong.
-// Should be fixed in this PR: https://github.com/reactjs/redux/pull/2563
-export const asyncDispatchMiddleware: Middleware = (store: MiddlewareAPI<any>) => (next: Dispatch<ICanaryState>) => (
+export const asyncDispatchMiddleware: Middleware<{}, ICanaryState> = (store) => (next: Dispatch) => (
   action: Action & any,
 ) => {
   let syncActivityFinished = false;

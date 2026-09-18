@@ -1,8 +1,8 @@
 import classNames from 'classnames';
 import { chain } from 'lodash';
 import * as React from 'react';
-import type { Dispatch } from 'react-redux';
 import { connect } from 'react-redux';
+import type { Dispatch } from 'redux';
 
 import { BreakString } from '@spinnaker/core';
 
@@ -75,7 +75,7 @@ const mapStateToProps = (state: ICanaryState) => ({
   selectedResult: selectedMetricResultIdSelector(state),
 });
 
-const mapDispatchToProps = (dispatch: Dispatch<ICanaryState>, ownProps: IMultipleResultsTableOwnProps) => ({
+const mapDispatchToProps = (dispatch: Dispatch, ownProps: IMultipleResultsTableOwnProps) => ({
   ...ownProps,
   select: (metricId: string) => dispatch(Creators.selectReportMetric({ metricId })),
 });

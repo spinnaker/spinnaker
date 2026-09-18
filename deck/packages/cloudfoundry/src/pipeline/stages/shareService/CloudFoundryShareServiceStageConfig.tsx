@@ -17,7 +17,7 @@ export class CloudFoundryShareServiceStageConfig extends React.Component<
   IStageConfigProps,
   ICloudFoundryShareServiceStageConfigState
 > {
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   constructor(props: IStageConfigProps) {
     super(props);
