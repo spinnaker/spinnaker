@@ -71,7 +71,7 @@ class StandaloneContainerTest {
   static int front50Port;
 
   private static final GenericContainer redis =
-      new GenericContainer(DockerImageName.parse("library/redis:5-alpine"))
+      new GenericContainer(DockerImageName.parse("valkey/valkey:8"))
           .withNetwork(network)
           .withNetworkAliases(REDIS_NETWORK_ALIAS)
           .withExposedPorts(REDIS_PORT);
