@@ -226,7 +226,7 @@ class InMemoryExecutionRepository : ExecutionRepository {
   ): MutableList<PipelineExecution> {
     return pipelines.values
       .filter { pipelineConfigIds.contains(it.pipelineConfigId) }
-      .filter { it.buildTime in (buildTimeStartBoundary + 1) until buildTimeEndBoundary }
+      .filter { it.buildTime in buildTimeStartBoundary..buildTimeEndBoundary }
       .applyCriteria(executionCriteria)
       .toMutableList()
   }
