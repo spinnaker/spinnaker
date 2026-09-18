@@ -72,7 +72,9 @@ public class SpinnakerResources {
           String application) {
     return writeValueAsString(
         Retrofit2SyncCall.execute(
-            orcaServiceSelector.select().getPipelines(application, 20, null, false, null, null)));
+            orcaServiceSelector
+                .select()
+                .getPipelines(application, 20, null, false, null, null, false)));
   }
 
   @McpResource(
@@ -100,7 +102,7 @@ public class SpinnakerResources {
         Retrofit2SyncCall.execute(
             orcaServiceSelector
                 .select()
-                .getPipelines(application, 100, "RUNNING", true, null, null));
+                .getPipelines(application, 100, "RUNNING", true, null, null, false));
     return writeValueAsString(ManualJudgments.findPendingAcross(runningExecutions));
   }
 

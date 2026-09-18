@@ -53,7 +53,7 @@ public class ManualJudgmentTools {
         Retrofit2SyncCall.execute(
             orcaServiceSelector
                 .select()
-                .getPipelines(application, 100, "RUNNING", true, null, null));
+                .getPipelines(application, 100, "RUNNING", true, null, null, false));
     return ManualJudgments.findPendingAcross(runningExecutions);
   }
 
