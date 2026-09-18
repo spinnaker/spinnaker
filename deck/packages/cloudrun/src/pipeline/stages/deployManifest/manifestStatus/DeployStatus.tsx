@@ -81,6 +81,18 @@ export class DeployStatus extends React.Component<IExecutionDetailsSectionProps,
       .filter(isStoredManifestReference);
   }
 
+  // Best-effort label for a stored manifest reference, built from the kind/name/namespace the
+  // entity store surfaced on the placeholder (see IStoredManifestReference). References stored
+  // before that identity was added carry no metadata, so this renders nothing rather than a
+  // misleading placeholder, leaving just the "Load Manifest Details" link as before.
+  private static storedManifestRefLabel(ref: IStoredManifestReference): string | null {
+    const { kind, name, namespace } = ref.metadata ?? {};
+    if (!kind || !name) {
+      return null;
+    }
+    return namespace ? `${kind} ${namespace}/${name}` : `${kind} ${name}`;
+  }
+
   private stageManifestToIManifest(manifest: IStageManifest, account: string): IManifest {
     return {
       name: get(manifest, 'metadata.name', ''),
@@ -118,15 +130,19 @@ export class DeployStatus extends React.Component<IExecutionDetailsSectionProps,
           <div className="row">
             <div className="col-md-12">
               <div className="well alert alert-info">
-                {this.storedManifestRefs.map((ref, i) => (
-                  <div key={i}>
-                    <ManifestYaml
-                      linkName="Load Manifest Details"
-                      modalTitle="Manifest"
-                      manifestUri={ref.reference.replace(/^ref?:\/\//, '')}
-                    />
-                  </div>
-                ))}
+                {this.storedManifestRefs.map((ref, i) => {
+                  const label = DeployStatus.storedManifestRefLabel(ref);
+                  return (
+                    <div key={i}>
+                      {label && <span>{label} </span>}
+                      <ManifestYaml
+                        linkName="Load Manifest Details"
+                        modalTitle="Manifest"
+                        manifestUri={ref.reference.replace(/^ref?:\/\//, '')}
+                      />
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>

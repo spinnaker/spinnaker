@@ -3,7 +3,8 @@ apply plugin: 'groovy'
 dependencies {
   implementation 'com.github.jk1:gradle-license-report:1.8'
   implementation 'org.owasp:dependency-check-gradle:12.2.1'
-  implementation "com.diffplug.spotless:spotless-plugin-gradle:7.2.1"
+  implementation 'org.cyclonedx:cyclonedx-gradle-plugin:3.4.1'
+  implementation "com.diffplug.spotless:spotless-plugin-gradle:8.10.2"
   implementation 'org.eclipse.jgit:org.eclipse.jgit:7.3.0.202506031305-r'
   implementation("org.eclipse.jgit:org.eclipse.jgit.ssh.jsch:7.3.0.202506031305-r") 
   implementation 'com.netflix.nebula:gradle-ospackage-plugin:12.2.1'
