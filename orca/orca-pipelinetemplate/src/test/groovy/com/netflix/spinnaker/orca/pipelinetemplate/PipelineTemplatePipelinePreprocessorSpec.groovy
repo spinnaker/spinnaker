@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Clock
 import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Id
@@ -44,10 +44,11 @@ import spock.lang.Subject
 import spock.lang.Unroll
 
 import static org.assertj.core.api.Assertions.assertThat
+import tools.jackson.databind.json.JsonMapper
 
 class PipelineTemplatePipelinePreprocessorSpec extends Specification {
 
-  ObjectMapper objectMapper = new ObjectMapper()
+  ObjectMapper objectMapper = JsonMapper.builder().build()
   def oortService = Mock(OortService)
 
   Renderer renderer = new JinjaRenderer(

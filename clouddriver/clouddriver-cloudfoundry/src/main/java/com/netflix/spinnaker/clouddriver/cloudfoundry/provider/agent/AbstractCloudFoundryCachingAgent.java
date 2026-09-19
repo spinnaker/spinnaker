@@ -18,10 +18,6 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.provider.agent;
 
 import static java.util.Collections.emptyMap;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AccountAware;
 import com.netflix.spinnaker.cats.agent.CachingAgent;
@@ -43,6 +39,11 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @Getter
 @Slf4j
@@ -50,7 +51,7 @@ abstract class AbstractCloudFoundryCachingAgent
     implements CachingAgent, OnDemandAgent, AccountAware {
   private final String providerName = CloudFoundryProvider.class.getName();
   private static final ObjectMapper cacheViewMapper =
-      new ObjectMapper().disable(MapperFeature.DEFAULT_VIEW_INCLUSION);
+      JsonMapper.builder().build().disable(MapperFeature.DEFAULT_VIEW_INCLUSION);
 
   private final OnDemandMetricsSupport metricsSupport;
   private final Clock internalClock;
@@ -135,7 +136,7 @@ abstract class AbstractCloudFoundryCachingAgent
               .toJavaMap(),
           emptyMap(),
           this.getInternalClock());
-    } catch (JsonProcessingException serializationException) {
+    } catch (JacksonException serializationException) {
       throw new RuntimeException("cache results serialization failed", serializationException);
     }
   }

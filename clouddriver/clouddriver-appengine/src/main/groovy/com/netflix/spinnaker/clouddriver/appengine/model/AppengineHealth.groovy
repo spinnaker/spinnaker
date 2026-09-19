@@ -16,12 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.appengine.model
 
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.core.type.TypeReference
+import tools.jackson.databind.ObjectMapper
 import com.google.api.services.appengine.v1.model.Service
 import com.google.api.services.appengine.v1.model.Version
 import com.netflix.spinnaker.clouddriver.model.Health
 import com.netflix.spinnaker.clouddriver.model.HealthState
+import tools.jackson.databind.json.JsonMapper
 
 class AppengineHealth implements Health {
   HealthState state
@@ -39,6 +40,6 @@ class AppengineHealth implements Health {
   }
 
   Map<String, String> toMap() {
-    new ObjectMapper().convertValue(this, new TypeReference<Map<String, String>>() {})
+    JsonMapper.builder().build().convertValue(this, new TypeReference<Map<String, String>>() {})
   }
 }

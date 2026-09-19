@@ -16,14 +16,15 @@
 
 package com.netflix.spinnaker.clouddriver.azure.templates
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.SerializationFeature
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancerDescription
+import tools.jackson.databind.json.JsonMapper
 
 class AzureLoadBalancerResourceTemplate {
 
-  static ObjectMapper mapper = new ObjectMapper().configure(SerializationFeature.INDENT_OUTPUT, true)
+  static ObjectMapper mapper = JsonMapper.builder().build().configure(SerializationFeature.INDENT_OUTPUT, true)
 
   static final String DEFAULT_BACKEND_POOL = "default_LB_BAP"
 

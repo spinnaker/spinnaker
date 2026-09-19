@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.artifacts.docker;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.config.ArtifactConfiguration;
 import com.netflix.spinnaker.config.DefaultServiceClientProvider;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
@@ -26,6 +25,7 @@ import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.context.annotation.UserConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import tools.jackson.databind.ObjectMapper;
 
 public class DockerArtifactConfigurationTest {
   private final ApplicationContextRunner runner =

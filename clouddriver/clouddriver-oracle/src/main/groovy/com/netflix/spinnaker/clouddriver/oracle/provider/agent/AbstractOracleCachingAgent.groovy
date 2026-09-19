@@ -9,10 +9,10 @@
 
 package com.netflix.spinnaker.clouddriver.oracle.provider.agent
 
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.ser.FilterProvider
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider
+import tools.jackson.core.type.TypeReference
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.ser.FilterProvider
+import tools.jackson.databind.ser.impl.SimpleFilterProvider
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.clouddriver.oracle.OracleCloudProvider
 import com.netflix.spinnaker.clouddriver.oracle.security.OracleNamedAccountCredentials

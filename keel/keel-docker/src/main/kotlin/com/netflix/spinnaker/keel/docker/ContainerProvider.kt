@@ -17,24 +17,24 @@
  */
 package com.netflix.spinnaker.keel.docker
 
-import com.fasterxml.jackson.databind.JsonDeserializer
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import tools.jackson.databind.ValueDeserializer
+import tools.jackson.databind.annotation.JsonDeserialize
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy
 
 @JsonDeserialize(using = ContainerProviderDeserializer::class)
 sealed class ContainerProvider
 
-@JsonDeserialize(using = JsonDeserializer.None::class)
+@JsonDeserialize(using = ValueDeserializer.None::class)
 data class ReferenceProvider(
   val reference: String
 ) : ContainerProvider()
 
 // used for resources with multiple container references
-@JsonDeserialize(using = JsonDeserializer.None::class)
+@JsonDeserialize(using = ValueDeserializer.None::class)
 data class MultiReferenceContainerProvider(val references : Set<String> = HashSet()) : ContainerProvider()
 
 // used in titus handler as a way to represent a fully specified container
-@JsonDeserialize(using = JsonDeserializer.None::class)
+@JsonDeserialize(using = ValueDeserializer.None::class)
 data class DigestProvider(
   val organization: String, // todo eb: should this be name = org/image instead, for consistency?
   val image: String,
@@ -43,7 +43,7 @@ data class DigestProvider(
   fun repository() = "$organization/$image"
 }
 
-@JsonDeserialize(using = JsonDeserializer.None::class)
+@JsonDeserialize(using = ValueDeserializer.None::class)
 @Deprecated(
   "Non-reference-based artifact providers are no longer supported.",
   replaceWith = ReplaceWith("ReferenceArtifactImageProvider")

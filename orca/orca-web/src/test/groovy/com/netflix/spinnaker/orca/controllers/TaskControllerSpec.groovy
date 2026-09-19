@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.orca.controllers
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.collect.Collections2
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.config.TaskControllerConfigurationProperties
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.front50.Front50Service
@@ -41,11 +41,11 @@ import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
 import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Unroll
 import io.reactivex.rxjava3.core.Observable
+import tools.jackson.databind.ObjectMapper
 
 import java.time.Clock
 import java.time.Instant
@@ -58,6 +58,7 @@ import static java.time.temporal.ChronoUnit.DAYS
 import static java.time.temporal.ChronoUnit.HOURS
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import tools.jackson.databind.json.JsonMapper
 
 class TaskControllerSpec extends Specification {
 
@@ -246,7 +247,7 @@ class TaskControllerSpec extends Specification {
 
     when:
     def response = mockMvc.perform(get("/applications/$app/pipelines")).andReturn().response
-    List results = new ObjectMapper().readValue(response.contentAsString, List)
+    List results = JsonMapper.builder().build().readValue(response.contentAsString, List)
 
     then:
     retrieveConfigIdOne * executionRepository.retrievePipelinesForPipelineConfigId("1", _) >> Observable.fromIterable(pipelines.findAll {
@@ -290,7 +291,7 @@ class TaskControllerSpec extends Specification {
         .param("id", "1")
         .param("expression", '${parameters.param1}'))
       .andReturn().response
-    Map results = new ObjectMapper().readValue(response.contentAsString, Map)
+    Map results = JsonMapper.builder().build().readValue(response.contentAsString, Map)
 
     then:
     1 * executionRepository.retrieve(ExecutionType.PIPELINE, "1") >> {
@@ -324,7 +325,7 @@ class TaskControllerSpec extends Specification {
 
     when:
     def response = mockMvc.perform(get("/pipelines?pipelineConfigIds=1,2")).andReturn().response
-    List results = new ObjectMapper().readValue(response.contentAsString, List)
+    List results = JsonMapper.builder().build().readValue(response.contentAsString, List)
 
     then:
     1 * executionRepository.retrievePipelinesForPipelineConfigId("1", _) >> Observable.fromIterable(pipelines.findAll {
@@ -391,7 +392,7 @@ class TaskControllerSpec extends Specification {
 
     when:
     def response = mockMvc.perform(get("/applications/${app}/pipelines/search")).andReturn().response
-    List results = new ObjectMapper().readValue(response.contentAsString, List)
+    List results = JsonMapper.builder().build().readValue(response.contentAsString, List)
 
     then:
     1 * front50Service.getPipelines(app, false) >> Calls.response([[id: "1"]])
@@ -440,7 +441,7 @@ class TaskControllerSpec extends Specification {
 
     when:
     def response = mockMvc.perform(get("/applications/${app}/pipelines/search?triggerTypes=docker,jenkins")).andReturn().response
-    List results = new ObjectMapper().readValue(response.contentAsString, List)
+    List results = JsonMapper.builder().build().readValue(response.contentAsString, List)
 
     then:
     1 * front50Service.getPipelines(app, false) >> Calls.response([[id: "1"]])
@@ -491,7 +492,7 @@ class TaskControllerSpec extends Specification {
 
     when:
     def response = mockMvc.perform(get("/applications/${app}/pipelines/search?eventId=" + eventId)).andReturn().response
-    List results = new ObjectMapper().readValue(response.contentAsString, List)
+    List results = JsonMapper.builder().build().readValue(response.contentAsString, List)
 
     then:
     1 * executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >> pipelines.findAll {
@@ -535,7 +536,7 @@ class TaskControllerSpec extends Specification {
 
     when:
     def response = mockMvc.perform(get("/applications/${app1}/pipelines/search")).andReturn().response
-    List results = new ObjectMapper().readValue(response.contentAsString, List)
+    List results = JsonMapper.builder().build().readValue(response.contentAsString, List)
 
     then:
     1 * executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >> pipelines.findAll {
@@ -605,7 +606,7 @@ class TaskControllerSpec extends Specification {
 
     when:
     def response = mockMvc.perform(get("/applications/${app}/pipelines/search?pipelineName=pipeline2")).andReturn().response
-    List results = new ObjectMapper().readValue(response.contentAsString, List)
+    List results = JsonMapper.builder().build().readValue(response.contentAsString, List)
 
     then:
     1 * executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["2"], _, _, _) >> pipelines.findAll {
@@ -635,7 +636,7 @@ class TaskControllerSpec extends Specification {
 
     when:
     def response = mockMvc.perform(get("/applications/${app}/pipelines/search?pipelineName=pipeline2")).andReturn().response
-    List results = new ObjectMapper().readValue(response.contentAsString, List)
+    List results = JsonMapper.builder().build().readValue(response.contentAsString, List)
 
     then:
     1 * front50Service.getPipeline(app, 'pipeline2', false) >> Calls.response([id: "2", name: "some-other-name"])
@@ -651,7 +652,7 @@ class TaskControllerSpec extends Specification {
 
     when:
     def response = mockMvc.perform(get("/applications/${app}/pipelines/search?pipelineName=pipeline2")).andReturn().response
-    List results = new ObjectMapper().readValue(response.contentAsString, List)
+    List results = JsonMapper.builder().build().readValue(response.contentAsString, List)
 
     then:
     1 * front50Service.getPipeline(app, 'pipeline2', false) >> { throw makeSpinnakerHttpException(404) }
@@ -696,7 +697,7 @@ class TaskControllerSpec extends Specification {
     when:
     String encodedTriggerParams = new String(Base64.getEncoder().encode('{"account":"test-account","repository":"test-repo","tag":"1"}'.getBytes()))
     def response = mockMvc.perform(get("/applications/${app}/pipelines/search?trigger=${encodedTriggerParams}")).andReturn().response
-    List results = new ObjectMapper().readValue(response.contentAsString, List)
+    List results = JsonMapper.builder().build().readValue(response.contentAsString, List)
 
     then:
     1 * executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >> pipelines.findAll {
@@ -735,11 +736,11 @@ class TaskControllerSpec extends Specification {
     when:
     String encodedTriggerParams1 = new String(Base64.getEncoder().encode('{"artifacts":[{"name":"a","version":"1"},{"name":"a"}]}'.getBytes()))
     def response1 = mockMvc.perform(get("/applications/${app}/pipelines/search?trigger=${encodedTriggerParams1}")).andReturn().response
-    List results1 = new ObjectMapper().readValue(response1.contentAsString, List)
+    List results1 = JsonMapper.builder().build().readValue(response1.contentAsString, List)
 
     String encodedTriggerParams2 = new String(Base64.getEncoder().encode('{"artifacts":[{"name":"a"},{"name":"a","version":"1"}]}'.getBytes()))
     def response2 = mockMvc.perform(get("/applications/${app}/pipelines/search?trigger=${encodedTriggerParams2}")).andReturn().response
-    List results2 = new ObjectMapper().readValue(response2.contentAsString, List)
+    List results2 = JsonMapper.builder().build().readValue(response2.contentAsString, List)
 
     then:
     2 * front50Service.getPipelines(app, false) >> { return Calls.response([[id: "1"]]) }
@@ -781,7 +782,7 @@ class TaskControllerSpec extends Specification {
     when:
     String encodedTriggerParams = new String(Base64.getEncoder().encode('{"payload":{"a":"1","b":"2"}}'.getBytes()))
     def response = mockMvc.perform(get("/applications/${app}/pipelines/search?trigger=${encodedTriggerParams}")).andReturn().response
-    List results = new ObjectMapper().readValue(response.contentAsString, List)
+    List results = JsonMapper.builder().build().readValue(response.contentAsString, List)
 
     then:
     1 * executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >> pipelines.findAll {
@@ -1259,7 +1260,7 @@ class TaskControllerSpec extends Specification {
     Retrofit retrofit =
       new Retrofit.Builder()
         .baseUrl(url)
-        .addConverterFactory(JacksonConverterFactory.create())
+        .addConverterFactory(CustomConverterFactory.create())
         .build();
 
     return new SpinnakerHttpException(retrofit2Response, retrofit)

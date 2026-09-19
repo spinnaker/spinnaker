@@ -20,11 +20,6 @@ import static com.netflix.spinnaker.clouddriver.cloudfoundry.cache.Keys.Namespac
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toSet;
 
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import com.fasterxml.jackson.databind.introspect.AnnotatedClass;
-import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter;
@@ -33,11 +28,17 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.stereotype.Repository;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
+import tools.jackson.databind.introspect.AnnotatedClass;
+import tools.jackson.databind.introspect.JacksonAnnotationIntrospector;
+import tools.jackson.databind.json.JsonMapper;
 
 @Repository
 public class CacheRepository {
   private final ObjectMapper objectMapper =
-      new ObjectMapper().disable(MapperFeature.DEFAULT_VIEW_INCLUSION);
+      JsonMapper.builder().build().disable(MapperFeature.DEFAULT_VIEW_INCLUSION);
 
   private final Cache cacheView;
 

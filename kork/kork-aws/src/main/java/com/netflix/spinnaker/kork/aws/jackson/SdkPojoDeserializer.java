@@ -16,39 +16,9 @@
 
 package com.netflix.spinnaker.kork.aws.jackson;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import java.io.IOException;
-import software.amazon.awssdk.core.SdkPojo;
-import software.amazon.awssdk.utils.builder.SdkBuilder;
-
-/**
- * Deserializes an AWS SDK v2 model type (an {@link SdkPojo}) from JSON. v2 model classes are
- * immutable and builder-only, so Jackson cannot bind them directly. This deserializer instead
- * deserializes into the model's mutable builder — obtained via the static {@code
- * serializableBuilderClass()} method every v2 model exposes — and then calls {@link
- * SdkBuilder#build()}.
- */
-public class SdkPojoDeserializer extends JsonDeserializer<Object> {
-
-  private final Class<?> pojoType;
-
+/** Jackson 3 compatibility name for the AWS SDK v2 deserializer. */
+public class SdkPojoDeserializer extends SdkPojoJackson3Deserializer {
   public SdkPojoDeserializer(Class<?> pojoType) {
-    this.pojoType = pojoType;
-  }
-
-  @Override
-  public Object deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
-    Class<?> builderClass;
-    try {
-      builderClass = (Class<?>) pojoType.getMethod("serializableBuilderClass").invoke(null);
-    } catch (ReflectiveOperationException e) {
-      throw new JsonMappingException(
-          p, "Unable to resolve serializable builder for " + pojoType.getName(), e);
-    }
-    Object builder = ctxt.readValue(p, builderClass);
-    return ((SdkBuilder<?, ?>) builder).build();
+    super(pojoType);
   }
 }

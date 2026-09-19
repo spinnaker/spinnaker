@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.rosco.manifests.kustomize;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.core.RetrySupport;
@@ -35,6 +33,9 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.ResponseBody;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @Component
 @Slf4j
@@ -45,7 +46,7 @@ public class KustomizationFileReader {
       ImmutableList.of("kustomization.yaml", "kustomization.yml", "kustomization");
 
   private static final ObjectMapper objectMapper =
-      new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+      JsonMapper.builder().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
 
   public KustomizationFileReader(ClouddriverService clouddriverService) {
     this.clouddriverService = clouddriverService;

@@ -22,8 +22,6 @@ import static com.netflix.spinnaker.clouddriver.cloudfoundry.cache.Keys.Namespac
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toSet;
 
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
@@ -44,13 +42,16 @@ import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @Getter
 @Slf4j
 public class CloudFoundrySpaceCachingAgent extends AbstractCloudFoundryCachingAgent {
 
   private static final ObjectMapper cacheViewMapper =
-      new ObjectMapper().disable(MapperFeature.DEFAULT_VIEW_INCLUSION);
+      JsonMapper.builder().build().disable(MapperFeature.DEFAULT_VIEW_INCLUSION);
 
   private final Collection<AgentDataType> providedDataTypes =
       Arrays.asList(AUTHORITATIVE.forType(SPACES.getNs()));

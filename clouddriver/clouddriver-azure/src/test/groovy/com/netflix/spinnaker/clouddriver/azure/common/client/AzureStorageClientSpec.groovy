@@ -16,15 +16,16 @@
 
 package com.netflix.spinnaker.clouddriver.azure.common.client
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.azure.client.AzureStorageClient
 import spock.lang.Shared
 import spock.lang.Specification
+import tools.jackson.databind.json.JsonMapper
 
 class AzureStorageClientSpec extends Specification{
 
   @Shared
-  ObjectMapper mapper = new ObjectMapper() //.configure(SerializationFeature.INDENT_OUTPUT, true)
+  ObjectMapper mapper = JsonMapper.builder().build() //.configure(SerializationFeature.INDENT_OUTPUT, true)
 
   void "getAzureCustomVMImage Simple1"() {
     setup:

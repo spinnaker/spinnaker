@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.front50.model
 
-import com.fasterxml.jackson.core.JsonProcessingException
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.core.JacksonException
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.Front50SqlProperties
@@ -157,7 +157,7 @@ class SqlStorageService(
                 this.createdAt = it.getValue(field("created_at", Long::class.java))
                 this.lastModified = it.getValue(field("last_modified_at", Long::class.java))
               }
-            } catch (e: JsonProcessingException) {
+            } catch (e: JacksonException) {
               log.error("unable to deserialize {}", objectType.name, e)
               registry.counter(invalidJsonCounterId.withTag("objectType", objectType.group)).increment();
               null
@@ -220,7 +220,7 @@ class SqlStorageService(
         try {
           val thisObject = objectMapper.readValue(bodyString, objectType.clazz as Class<T>)
           resultMap[insertInto]!!.add(thisObject)
-        } catch (e: JsonProcessingException) {
+        } catch (e: JacksonException) {
           log.error("unable to deserialize {}", objectType.name, e)
           registry.counter(invalidJsonCounterId.withTag("objectType", objectType.group)).increment();
         }

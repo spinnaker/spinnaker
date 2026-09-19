@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.config
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties
 import com.netflix.spinnaker.clouddriver.aws.deploy.InstanceTypeUtils.BlockDeviceConfig
@@ -71,6 +69,8 @@ import org.springframework.context.annotation.*
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.ObjectMapper
 
 @Configuration
 @ConditionalOnProperty('aws.enabled')
@@ -112,8 +112,11 @@ class AwsConfiguration {
 
   @Bean
   @Qualifier("amazonObjectMapper")
-  ObjectMapper amazonObjectMapper() {
-    return new AmazonObjectMapperConfigurer().createConfigured().registerModule(new AwsSdkV2Module())
+  ObjectMapper amazonObjectMapper(ObjectMapper objectMapper) {
+    return objectMapper.rebuild()
+      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+      .addModule(new AwsSdkV2Module())
+      .build()
   }
 
   @Bean

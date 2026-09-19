@@ -17,8 +17,8 @@
 
 package com.netflix.spinnaker.clouddriver.dcos.provider.config
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.SerializationFeature
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.Iterables
 import com.google.common.collect.Multimap
@@ -44,6 +44,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.DependsOn
 
 import java.util.concurrent.ConcurrentHashMap
+import tools.jackson.databind.cfg.DateTimeFeature
 
 @Slf4j
 @Configuration
@@ -71,7 +72,7 @@ class DcosProviderConfig {
 
     Set<DcosAccountCredentials> allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, DcosAccountCredentials)
 
-    objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+    objectMapper.rebuild().enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS).build()
 
     def newlyAddedAgents = []
 

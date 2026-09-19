@@ -16,7 +16,6 @@
 
 package com.netflix.kayenta.blobs.storage;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.BlobProperties;
 import com.microsoft.azure.storage.blob.CloudBlobContainer;
@@ -28,6 +27,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.databind.ObjectMapper;
 
 @Slf4j
 public class TestableBlobsStorageService extends BlobsStorageService {

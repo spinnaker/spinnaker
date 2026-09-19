@@ -1,8 +1,8 @@
 package com.netflix.spinnaker.keel.jackson
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
-import com.fasterxml.jackson.module.kotlin.convertValue
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.dataformat.yaml.YAMLMapper
+import tools.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.keel.exceptions.YamlParsingException
 import com.netflix.spinnaker.kork.yaml.YamlHelper
 import org.yaml.snakeyaml.LoaderOptions

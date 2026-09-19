@@ -18,7 +18,6 @@ dependencies {
   implementation "io.spinnaker.kork:kork-security"
   implementation "org.springframework.boot:spring-boot-starter-actuator"
   implementation "org.springframework.boot:spring-boot-starter-webmvc"
-  implementation "org.springframework.boot:spring-boot-jackson2"
   implementation "com.google.guava:guava"
   implementation "com.tencentcloudapi:tencentcloud-sdk-java:3.1.51"
 

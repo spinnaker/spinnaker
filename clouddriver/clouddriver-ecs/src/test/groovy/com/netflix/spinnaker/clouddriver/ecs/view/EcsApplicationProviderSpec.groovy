@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.ecs.view
 
 import software.amazon.awssdk.services.ecs.model.DeploymentConfiguration
 import java.time.Instant
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.clouddriver.ecs.TestCredential
@@ -32,9 +31,10 @@ import com.netflix.spinnaker.clouddriver.model.Application
 import com.netflix.spinnaker.credentials.CredentialsRepository
 import spock.lang.Specification
 import spock.lang.Subject
+import tools.jackson.databind.json.JsonMapper
 
 class EcsApplicationProviderSpec extends Specification {
-  def mapper = new ObjectMapper()
+  def mapper = JsonMapper.builder().build()
   def cache = Mock(Cache)
   def serviceCacheClient = new ServiceCacheClient(cache, mapper)
   def credentialsRepository = Mock(CredentialsRepository)

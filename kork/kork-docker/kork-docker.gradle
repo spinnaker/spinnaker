@@ -9,8 +9,7 @@ dependencies {
   implementation project(":kork-exceptions")
   implementation project(":kork-web")
 
-  implementation "com.fasterxml.jackson.core:jackson-databind"
-  implementation "com.squareup.retrofit2:converter-jackson"
+  implementation "tools.jackson.core:jackson-databind"
   api "org.slf4j:slf4j-api"
   implementation "org.apache.commons:commons-lang3"
 

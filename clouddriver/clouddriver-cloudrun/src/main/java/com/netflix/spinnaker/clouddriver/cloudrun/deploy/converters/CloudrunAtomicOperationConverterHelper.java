@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.cloudrun.deploy.converters;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.description.AbstractCloudrunCredentialsDescription;
 import com.netflix.spinnaker.clouddriver.cloudrun.security.CloudrunNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsConverter;
 import java.util.Map;
+import tools.jackson.databind.DeserializationFeature;
 
 public class CloudrunAtomicOperationConverterHelper {
   public static <T extends AbstractCloudrunCredentialsDescription> T convertDescription(
@@ -54,8 +54,9 @@ public class CloudrunAtomicOperationConverterHelper {
     T converted =
         credentialsSupport
             .getObjectMapper()
-            .copy()
+            .rebuild()
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+            .build()
             .convertValue(input, targetDescriptionType);
 
     converted.setCredentials((CloudrunNamedAccountCredentials) credentials);

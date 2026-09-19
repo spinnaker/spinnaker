@@ -18,7 +18,6 @@ package com.netflix.spinnaker.front50.config;
 
 import static net.logstash.logback.argument.StructuredArguments.value;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.services.storage.StorageScopes;
 import com.google.auth.Credentials;
 import com.google.auth.oauth2.GoogleCredentials;
@@ -51,6 +50,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * GCS metadata storage configuration.
@@ -95,7 +95,8 @@ public class GcsConfig {
             gcsProperties.getBucketLocation(),
             gcsProperties.getRootFolder(),
             dataFilename,
-            new ObjectMapper()
+            JsonMapper.builder()
+                .build()
                 .addMixIn(Timestamped.class, TimestampedMixins.class)
                 .addMixIn(Pipeline.class, PipelineMixins.class),
             executor);

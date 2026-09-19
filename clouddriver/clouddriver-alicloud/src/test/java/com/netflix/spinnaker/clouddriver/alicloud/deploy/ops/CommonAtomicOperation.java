@@ -20,14 +20,15 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.aliyuncs.IAcsClient;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationFeature;
 import com.netflix.spinnaker.clouddriver.alicloud.common.ClientFactory;
 import com.netflix.spinnaker.clouddriver.alicloud.security.AliCloudCredentials;
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider;
 import java.util.List;
 import spock.lang.Subject;
+import tools.jackson.databind.json.JsonMapper;
 
 public class CommonAtomicOperation {
 
@@ -50,7 +51,7 @@ public class CommonAtomicOperation {
 
   @Subject
   public ObjectMapper objectMapper =
-      new ObjectMapper()
+      JsonMapper.builder().build()
           .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
           .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 }

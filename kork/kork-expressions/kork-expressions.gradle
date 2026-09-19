@@ -10,7 +10,7 @@ dependencies {
   api project(":kork-artifacts")
   api project(":kork-plugins-api")
   api project(":kork-exceptions")
-  api "com.fasterxml.jackson.core:jackson-databind"
+  api "tools.jackson.core:jackson-databind"
   api "org.springframework:spring-context"
   api "org.slf4j:slf4j-api"
 

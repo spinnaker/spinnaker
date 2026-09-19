@@ -21,7 +21,6 @@ import static java.util.stream.Collectors.*;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonView;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.netflix.spinnaker.clouddriver.model.Application;
 import java.util.Map;
 import java.util.Set;
@@ -29,6 +28,7 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import lombok.experimental.Wither;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 @Value
 @EqualsAndHashCode(of = "name")

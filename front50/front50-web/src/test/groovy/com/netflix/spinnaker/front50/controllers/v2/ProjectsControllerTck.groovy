@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.front50.controllers.v2
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.config.Front50SqlProperties
 import com.netflix.spinnaker.front50.config.StorageServiceConfigurationProperties
@@ -45,9 +45,10 @@ import java.util.concurrent.Executors
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import tools.jackson.databind.json.JsonMapper
 
 abstract class ProjectsControllerTck extends Specification {
-  ObjectMapper objectMapper = new ObjectMapper()
+  ObjectMapper objectMapper = JsonMapper.builder().build()
 
   MockMvc mockMvc
 
@@ -68,7 +69,7 @@ abstract class ProjectsControllerTck extends Specification {
       // contract assertions expect Jackson 2 declaration order.
       .setMessageConverters(
         new org.springframework.http.converter.json.MappingJackson2HttpMessageConverter(
-          new ObjectMapper()))
+          JsonMapper.builder().build()))
       .setControllerAdvice(
         new GenericExceptionHandlers(
           new ExceptionMessageDecorator(Mock(ObjectProvider))
@@ -91,7 +92,7 @@ abstract class ProjectsControllerTck extends Specification {
 
     then:
     response.andExpect status().isOk()
-    response.andExpect content().string(new ObjectMapper().writeValueAsString([dao.findByName(project.name)]))
+    response.andExpect content().string(JsonMapper.builder().build().writeValueAsString([dao.findByName(project.name)]))
 
     where:
     criteria       | project
@@ -145,7 +146,7 @@ abstract class ProjectsControllerTck extends Specification {
 
     then:
     response.andExpect status().isOk()
-    response.andExpect content().string(new ObjectMapper().writeValueAsString([dao.findByName("Project1")]))
+    response.andExpect content().string(JsonMapper.builder().build().writeValueAsString([dao.findByName("Project1")]))
 
     when:
     response = mockMvc.perform(
@@ -165,7 +166,7 @@ abstract class ProjectsControllerTck extends Specification {
 
     then:
     response.andExpect status().isOk()
-    response.andExpect content().string(new ObjectMapper().writeValueAsString([dao.findByName("Project")]))
+    response.andExpect content().string(JsonMapper.builder().build().writeValueAsString([dao.findByName("Project")]))
 
     when:
     response = mockMvc.perform(
@@ -174,7 +175,7 @@ abstract class ProjectsControllerTck extends Specification {
 
     then:
     response.andExpect status().isOk()
-    response.andExpect content().string(new ObjectMapper().writeValueAsString([ dao.findByName("Project"), dao.findByName("Project1")]))
+    response.andExpect content().string(JsonMapper.builder().build().writeValueAsString([ dao.findByName("Project"), dao.findByName("Project1")]))
 
 
     when:
@@ -184,7 +185,7 @@ abstract class ProjectsControllerTck extends Specification {
 
     then: "should show the most relevant result"
     response.andExpect status().isOk()
-    response.andExpect content().string(new ObjectMapper().writeValueAsString([ dao.findByName("Project")]))
+    response.andExpect content().string(JsonMapper.builder().build().writeValueAsString([ dao.findByName("Project")]))
 
 
     when:
@@ -194,7 +195,7 @@ abstract class ProjectsControllerTck extends Specification {
 
     then:
     response.andExpect status().isOk()
-    response.andExpect content().string(new ObjectMapper().writeValueAsString([ dao.findByName("Project")]))
+    response.andExpect content().string(JsonMapper.builder().build().writeValueAsString([ dao.findByName("Project")]))
   }
 
   void "should fetch all projects"() {
@@ -206,7 +207,7 @@ abstract class ProjectsControllerTck extends Specification {
     expect:
     mockMvc.perform(
       get("/v2/projects")
-    ).andExpect content().string(new ObjectMapper().writeValueAsString(dao.all()))
+    ).andExpect content().string(JsonMapper.builder().build().writeValueAsString(dao.all()))
   }
 
   @Unroll
@@ -320,7 +321,7 @@ class SqlProjectsControllerTck extends ProjectsControllerTck {
     def registry = new NoopRegistry()
 
     def storageService = new SqlStorageService(
-      new ObjectMapper(),
+      JsonMapper.builder().build(),
       registry,
       currentDatabase.context,
       Clock.systemDefaultZone(),

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.kayenta
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.configureFor
@@ -516,4 +516,3 @@ object KayentaServiceTest : Spek({
     }
   }
 })
-

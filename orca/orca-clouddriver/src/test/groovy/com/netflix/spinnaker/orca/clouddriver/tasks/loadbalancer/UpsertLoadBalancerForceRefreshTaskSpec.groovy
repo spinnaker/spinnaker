@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
@@ -28,6 +28,7 @@ import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
+import tools.jackson.databind.json.JsonMapper
 
 class UpsertLoadBalancerForceRefreshTaskSpec extends Specification {
   def cloudDriverCacheService = Mock(CloudDriverCacheService)
@@ -37,7 +38,7 @@ class UpsertLoadBalancerForceRefreshTaskSpec extends Specification {
   def task = new UpsertLoadBalancerForceRefreshTask(
     cloudDriverCacheService,
     cloudDriverCacheStatusService,
-    new ObjectMapper(),
+    JsonMapper.builder().build(),
     new NoSleepRetry()
   )
 

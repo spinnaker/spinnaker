@@ -17,8 +17,8 @@
 
 package com.netflix.spinnaker.front50.controllers
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.front50.exceptions.InvalidEntityException
 import static com.netflix.spinnaker.front50.api.model.pipeline.Pipeline.TYPE_TEMPLATED;
 import static com.netflix.spinnaker.front50.model.pipeline.TemplateConfiguration.TemplateSource.SPINNAKER_PREFIX;
@@ -31,6 +31,7 @@ import com.netflix.spinnaker.front50.model.pipeline.TemplateConfiguration
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+import tools.jackson.databind.json.JsonMapper
 
 class V2PipelineTemplateControllerSpec extends Specification {
   def pipelineDAO = Mock(PipelineDAO)
@@ -42,7 +43,7 @@ class V2PipelineTemplateControllerSpec extends Specification {
     pipelineTemplateDAO: pipelineTemplateDAO,
     // V2TemplateConfiguration doesn't expect `id` attribute as part of pipeline config.
     // Hence has to ignore unknown properties when converting the value.
-    objectMapper: new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+    objectMapper: JsonMapper.builder().build().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
   )
 
   def template1 = [

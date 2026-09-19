@@ -18,20 +18,21 @@ package com.netflix.spinnaker.clouddriver.azure.resources.common.model
 
 import com.azure.resourcemanager.resources.fluent.models.DeploymentOperationInner
 import com.azure.resourcemanager.resources.models.DeploymentOperation
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+import tools.jackson.databind.json.JsonMapper
 
 @CompileStatic
 @Slf4j
 class AzureDeploymentOperation {
 
   static final Integer AZURE_DEPLOYMENT_OPERATION_STATUS_RETRIES_MAX = 1000
-  static ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+  static ObjectMapper mapper = JsonMapper.builder().build().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
   static AzureDeploymentOperation getObjectFromJson(String responseContent) {
     mapper.readValue(responseContent, AzureDeploymentOperation.class)

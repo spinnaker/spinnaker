@@ -23,7 +23,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.config.ErrorConfiguration;
 import com.netflix.spinnaker.config.RetrofitErrorConfiguration;
 import com.netflix.spinnaker.gate.config.ApplicationConfigurationProperties;
@@ -35,6 +34,7 @@ import com.netflix.spinnaker.gate.services.internal.ClouddriverService;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector;
 import com.netflix.spinnaker.gate.services.internal.Front50Service;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import java.util.List;
 import java.util.Map;
 import okhttp3.ResponseBody;
@@ -51,8 +51,8 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import retrofit2.Response;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
 import retrofit2.mock.Calls;
+import tools.jackson.databind.json.JsonMapper;
 
 @EnableWebMvc
 @SpringBootTest(
@@ -113,7 +113,8 @@ class ApplicationControllerTest {
     verifyNoMoreInteractions(executionHistoryService);
 
     response.andExpect(status().isOk());
-    response.andExpect(content().string(new ObjectMapper().writeValueAsString(pipelines)));
+    response.andExpect(
+        content().string(JsonMapper.builder().build().writeValueAsString(pipelines)));
   }
 
   @Test
@@ -147,7 +148,8 @@ class ApplicationControllerTest {
     verifyNoMoreInteractions(executionHistoryService);
 
     response.andExpect(status().isOk());
-    response.andExpect(content().string(new ObjectMapper().writeValueAsString(pipelines)));
+    response.andExpect(
+        content().string(JsonMapper.builder().build().writeValueAsString(pipelines)));
   }
 
   @Test
@@ -171,7 +173,7 @@ class ApplicationControllerTest {
 
     // and: "we get all configs"
     response.andExpect(status().isOk());
-    response.andExpect(content().string(new ObjectMapper().writeValueAsString(configs)));
+    response.andExpect(content().string(JsonMapper.builder().build().writeValueAsString(configs)));
   }
 
   @Test
@@ -194,7 +196,7 @@ class ApplicationControllerTest {
 
     // and: "only filtered configs are returned"
     response.andExpect(status().isOk());
-    response.andExpect(content().string(new ObjectMapper().writeValueAsString(configs)));
+    response.andExpect(content().string(JsonMapper.builder().build().writeValueAsString(configs)));
   }
 
   @Test
@@ -219,7 +221,8 @@ class ApplicationControllerTest {
         .getPipelineConfigByApplicationAndName("true-app", "some-true-pipeline", true);
     verifyNoMoreInteractions(front50Service);
     response.andExpect(status().isOk());
-    response.andExpect(content().string(new ObjectMapper().writeValueAsString(someTruePipeline)));
+    response.andExpect(
+        content().string(JsonMapper.builder().build().writeValueAsString(someTruePipeline)));
   }
 
   @Test
@@ -304,7 +307,8 @@ class ApplicationControllerTest {
     verify(front50Service).getStrategyConfigs("true-app");
     verifyNoMoreInteractions(front50Service);
     response.andExpect(status().isOk());
-    response.andExpect(content().string(new ObjectMapper().writeValueAsString(configs.get(0))));
+    response.andExpect(
+        content().string(JsonMapper.builder().build().writeValueAsString(configs.get(0))));
   }
 
   @Test
@@ -348,7 +352,7 @@ class ApplicationControllerTest {
     Retrofit retrofit =
         new Retrofit.Builder()
             .baseUrl(url)
-            .addConverterFactory(JacksonConverterFactory.create())
+            .addConverterFactory(CustomConverterFactory.create())
             .build();
 
     return new SpinnakerHttpException(retrofit2Response, retrofit);

@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.titus.jackson
 
-import com.fasterxml.jackson.databind.DeserializationContext
-import com.fasterxml.jackson.databind.JsonNode
+import tools.jackson.databind.DeserializationContext
+import tools.jackson.databind.JsonNode
 import com.netflix.spinnaker.keel.clouddriver.model.TitusScaling
 import com.netflix.spinnaker.keel.jackson.PropertyNamePolymorphicDeserializer
 

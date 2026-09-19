@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.sql
 
-import com.fasterxml.jackson.databind.jsontype.NamedType
+import tools.jackson.databind.jsontype.NamedType
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.keel.core.api.MANUAL_JUDGEMENT_CONSTRAINT_TYPE
 import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
@@ -18,10 +18,13 @@ import java.time.Clock
 internal object SqlCombinedRepositoryTests :
   CombinedRepositoryTests<SqlDeliveryConfigRepository, SqlResourceRepository, SqlArtifactRepository, SqlActionRepository>() {
   private val jooq = testDatabase.context
-  private val objectMapper = configuredTestObjectMapper().apply {
-    registerSubtypes(NamedType(ManualJudgementConstraint::class.java, MANUAL_JUDGEMENT_CONSTRAINT_TYPE))
-    registerSubtypes(NamedType(DummyVerification::class.java, DummyVerification.TYPE))
-  }
+  private val objectMapper = configuredTestObjectMapper()
+    .rebuild()
+    .registerSubtypes(
+      NamedType(ManualJudgementConstraint::class.java, MANUAL_JUDGEMENT_CONSTRAINT_TYPE),
+      NamedType(DummyVerification::class.java, DummyVerification.TYPE)
+    )
+    .build()
   private val retryProperties = RetryProperties(1, 0)
   private val sqlRetry = SqlRetry(SqlRetryProperties(retryProperties, retryProperties))
   private val clock = Clock.systemUTC()

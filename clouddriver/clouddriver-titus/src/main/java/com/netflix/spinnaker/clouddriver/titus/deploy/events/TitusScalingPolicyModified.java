@@ -17,8 +17,6 @@
 package com.netflix.spinnaker.clouddriver.titus.deploy.events;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.netflix.spinnaker.clouddriver.event.EventMetadata;
 import com.netflix.spinnaker.clouddriver.saga.SagaEvent;
 import javax.annotation.Nonnull;
@@ -26,6 +24,8 @@ import lombok.Builder;
 import lombok.Value;
 import lombok.experimental.NonFinal;
 import org.jetbrains.annotations.NotNull;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 @Builder(builderClassName = "TitusScalingPolicyModifiedBuilder", toBuilder = true)
 @JsonDeserialize(builder = TitusScalingPolicyModified.TitusScalingPolicyModifiedBuilder.class)

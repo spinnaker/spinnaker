@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.titus.caching.providers
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonS3DataProvider
 import com.netflix.spinnaker.clouddriver.model.JobProvider
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider

@@ -16,17 +16,18 @@
 
 package com.netflix.spinnaker.fiat.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.fiat.model.resources.Account;
 import com.netflix.spinnaker.fiat.model.resources.Application;
 import com.netflix.spinnaker.fiat.model.resources.BuildService;
 import com.netflix.spinnaker.fiat.providers.*;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import tools.jackson.databind.ObjectMapper;
 
 @Configuration
 class DefaultResourcePermissionConfig {
@@ -99,7 +100,8 @@ class DefaultResourcePermissionConfig {
   @ConditionalOnProperty(value = "auth.permissions.source.application.chaos-monkey.enabled")
   @Order(Ordered.LOWEST_PRECEDENCE - 100)
   public ResourcePermissionSource<Application> chaosMonkeyApplicationResourcePermissionSource(
-      ObjectMapper objectMapper, FiatServerConfigurationProperties configurationProperties) {
+      @Qualifier("objectMapper") ObjectMapper objectMapper,
+      FiatServerConfigurationProperties configurationProperties) {
     return new ChaosMonkeyApplicationResourcePermissionSource(
         configurationProperties.getChaosMonkey().getRoles(), objectMapper);
   }

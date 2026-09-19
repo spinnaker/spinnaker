@@ -17,19 +17,9 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.netflix.spinnaker.kork.artifacts.ArtifactTypes;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.yaml.YamlHelper;
-import java.io.IOException;
 import java.util.Base64;
 import java.util.Map;
 import java.util.Set;
@@ -40,6 +30,18 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.snakeyaml.engine.v2.api.LoadSettings;
+import org.yaml.snakeyaml.LoaderOptions;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.JsonToken;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ValueDeserializer;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.dataformat.yaml.YAMLFactory;
 
 @Slf4j
 @Setter
@@ -95,25 +97,30 @@ public class ServiceManifest {
     String toManifestYml() {
       try {
         return manifestMapper.writeValueAsString(this);
-      } catch (JsonProcessingException e) {
+      } catch (JacksonException e) {
         throw new IllegalArgumentException("Unable to generate Cloud Foundry Manifest", e);
       }
     }
   }
 
   private static class OptionallySerializedMapDeserializer
-      extends JsonDeserializer<Map<String, Object>> {
+      extends ValueDeserializer<Map<String, Object>> {
 
     private final TypeReference<Map<String, Object>> mapTypeReference =
         new TypeReference<Map<String, Object>>() {};
 
     private final ObjectMapper yamlObjectMapper =
-        new ObjectMapper(
-            YAMLFactory.builder().loaderOptions(YamlHelper.getLoaderOptions()).build());
+        JsonMapper.builder(
+                YAMLFactory.builder()
+                    .loadSettings(toLoadSettings(YamlHelper.getLoaderOptions()))
+                    .build())
+            .build();
+
+    private final ObjectMapper jsonObjectMapper = JsonMapper.builder().build();
 
     @Override
     public Map<String, Object> deserialize(JsonParser parser, DeserializationContext context)
-        throws IOException {
+        throws JacksonException {
       JsonToken currentToken = parser.currentToken();
 
       Map<String, Object> deserializedMap = null;
@@ -126,10 +133,7 @@ public class ServiceManifest {
         if (StringUtils.isNotBlank(serizalizedMap)) {
           deserializedMap =
               deserializeWithMappers(
-                  serizalizedMap,
-                  mapTypeReference,
-                  yamlObjectMapper,
-                  (ObjectMapper) parser.getCodec());
+                  serizalizedMap, mapTypeReference, yamlObjectMapper, jsonObjectMapper);
         }
       }
 
@@ -144,19 +148,27 @@ public class ServiceManifest {
      */
     private <T> T deserializeWithMappers(
         String serialized, TypeReference<T> typeReference, ObjectMapper... mappers)
-        throws IOException {
+        throws JacksonException {
 
-      IOException deserializationFailed =
-          new IOException("Could not deserialize value using the provided objectMappers");
+      JacksonException deserializationFailed =
+          tools.jackson.databind.DatabindException.from(
+              (JsonParser) null, "Could not deserialize value using the provided objectMappers");
 
       for (ObjectMapper mapper : mappers) {
         try {
           return mapper.readValue(serialized, typeReference);
-        } catch (IOException e) {
+        } catch (JacksonException e) {
           deserializationFailed.addSuppressed(e);
         }
       }
       throw deserializationFailed;
+    }
+
+    private static LoadSettings toLoadSettings(LoaderOptions loaderOptions) {
+      return LoadSettings.builder()
+          .setMaxAliasesForCollections(loaderOptions.getMaxAliasesForCollections())
+          .setCodePointLimit(loaderOptions.getCodePointLimit())
+          .build();
     }
   }
 }

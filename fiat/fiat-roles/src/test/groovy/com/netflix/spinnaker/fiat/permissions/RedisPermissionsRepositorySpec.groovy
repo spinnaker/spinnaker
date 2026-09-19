@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.fiat.permissions
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig
 import com.netflix.spinnaker.fiat.model.Authorization
 import com.netflix.spinnaker.fiat.model.UserPermission
@@ -42,6 +41,8 @@ import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 
 import java.time.Clock
 import java.time.Duration
@@ -65,7 +66,9 @@ class RedisPermissionsRepositorySpec extends Specification {
   GenericContainer embeddedRedis
 
   @Shared
-  ObjectMapper objectMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL)
+  ObjectMapper objectMapper = JsonMapper.builder()
+      .changeDefaultPropertyInclusion { value -> value.withValueInclusion(JsonInclude.Include.NON_NULL) }
+      .build()
 
   RedisPermissionRepositoryConfigProps configProps = new RedisPermissionRepositoryConfigProps(prefix: "unittests")
 

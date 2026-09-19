@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.description.manifest
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesApiGroup
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind
 import io.kubernetes.client.openapi.models.V1CustomResourceDefinition
@@ -29,9 +29,10 @@ import io.kubernetes.client.openapi.models.V1CustomResourceDefinitionSpecBuilder
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
+import tools.jackson.databind.json.JsonMapper
 
 class KubernetesKindSpec extends Specification {
-  @Shared ObjectMapper objectMapper = new ObjectMapper()
+  @Shared ObjectMapper objectMapper = JsonMapper.builder().build()
   @Shared KubernetesKind CUSTOM_RESOURCE_KIND = KubernetesKind.from("deployment", KubernetesApiGroup.fromString("stable.example.com"))
 
   @Unroll

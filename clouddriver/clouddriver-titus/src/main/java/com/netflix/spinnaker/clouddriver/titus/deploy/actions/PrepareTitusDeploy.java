@@ -18,8 +18,6 @@ package com.netflix.spinnaker.clouddriver.titus.deploy.actions;
 import static java.lang.String.format;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.netflix.frigga.Names;
@@ -68,6 +66,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 @Component
 public class PrepareTitusDeploy extends AbstractTitusDeployAction

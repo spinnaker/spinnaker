@@ -19,12 +19,13 @@ package com.netflix.spinnaker.clouddriver.kubernetes.artifact;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.OptionalInt;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 final class ArtifactConverterTest {
   private static final String ACCOUNT = "my-account";
@@ -32,7 +33,7 @@ final class ArtifactConverterTest {
   private static final String NAME = "my-name";
   private static final String KIND = "Pod";
 
-  private static final ObjectMapper mapper = new ObjectMapper();
+  private static final ObjectMapper mapper = JsonMapper.builder().build();
 
   @Test
   void artifactWithoutVersion() {

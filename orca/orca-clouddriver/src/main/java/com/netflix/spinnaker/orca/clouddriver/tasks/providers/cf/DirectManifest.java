@@ -16,18 +16,24 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.dataformat.yaml.YAMLWriteFeature;
 
 public abstract class DirectManifest {
   static ObjectMapper manifestMapper =
-      new ObjectMapper(
+      JsonMapper.builder(
               new YAMLFactory()
-                  .enable(YAMLGenerator.Feature.MINIMIZE_QUOTES)
-                  .enable(YAMLGenerator.Feature.INDENT_ARRAYS))
-          .setPropertyNamingStrategy(PropertyNamingStrategies.KebabCaseStrategy.INSTANCE);
+                  .rebuild()
+                  .enable(YAMLWriteFeature.MINIMIZE_QUOTES)
+                  .enable(YAMLWriteFeature.INDENT_ARRAYS)
+                  .build())
+          .build()
+          .rebuild()
+          .propertyNamingStrategy(new PropertyNamingStrategies.KebabCaseStrategy())
+          .build();
 
   abstract String toManifestYml();
 }

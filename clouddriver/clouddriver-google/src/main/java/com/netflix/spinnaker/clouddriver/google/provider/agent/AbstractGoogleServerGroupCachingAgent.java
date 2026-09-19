@@ -35,8 +35,6 @@ import static com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil.REGIONAL_L
 import static com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil.REGION_BACKEND_SERVICE_NAMES;
 import static com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil.SELECT_ZONES;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.AttachedDisk;
 import com.google.api.services.compute.model.Autoscaler;
@@ -124,6 +122,8 @@ import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 @Slf4j
 @ParametersAreNonnullByDefault

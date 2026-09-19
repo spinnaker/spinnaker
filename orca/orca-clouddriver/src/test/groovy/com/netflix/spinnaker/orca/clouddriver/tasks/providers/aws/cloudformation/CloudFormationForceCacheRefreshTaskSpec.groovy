@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.cloudformation
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
@@ -32,6 +32,7 @@ import static java.net.HttpURLConnection.HTTP_ACCEPTED
 import static java.net.HttpURLConnection.HTTP_OK
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 import java.time.Instant
+import tools.jackson.databind.json.JsonMapper
 
 class CloudFormationForceCacheRefreshTaskSpec extends Specification {
   static final String CREDENTIALS = "aws-account"
@@ -52,7 +53,7 @@ class CloudFormationForceCacheRefreshTaskSpec extends Specification {
   ]
   def cacheService = Mock(CloudDriverCacheService)
   def cacheStatusService = Mock(CloudDriverCacheStatusService)
-  def objectMapper = new ObjectMapper()
+  def objectMapper = JsonMapper.builder().build()
   def registry = new DefaultRegistry()
   def now = Instant.now()
 

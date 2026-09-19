@@ -16,20 +16,21 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.converters
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.google.deploy.description.RebootGoogleInstancesDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.RebootGoogleInstancesAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.credentials.CredentialsRepository
 import spock.lang.Shared
 import spock.lang.Specification
+import tools.jackson.databind.json.JsonMapper
 
 class RebootGoogleInstancesAtomicOperationConverterUnitSpec extends Specification {
   private static final ACCOUNT_NAME = "auto"
   private static final ZONE = "us-central1-b"
 
   @Shared
-  ObjectMapper mapper = new ObjectMapper()
+  ObjectMapper mapper = JsonMapper.builder().build()
 
   @Shared
   RebootGoogleInstancesAtomicOperationConverter converter

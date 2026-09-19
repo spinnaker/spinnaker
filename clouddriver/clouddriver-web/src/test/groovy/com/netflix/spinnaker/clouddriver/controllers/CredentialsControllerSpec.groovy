@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.controllers
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.configuration.CredentialsConfiguration
 import com.netflix.spinnaker.clouddriver.controllers.resources.DefaultAccountDefinitionService
 import com.netflix.spinnaker.clouddriver.controllers.resources.ManagedAccount
@@ -32,6 +32,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import spock.lang.Shared
 import spock.lang.Specification
+import tools.jackson.databind.json.JsonMapper
 
 class CredentialsControllerSpec extends Specification {
 
@@ -41,7 +42,7 @@ class CredentialsControllerSpec extends Specification {
   void "named credential names are listed"() {
     setup:
 
-    def objectMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
+    def objectMapper = JsonMapper.builder().build().setSerializationInclusion(JsonInclude.Include.NON_NULL);
     def credsRepo = new MapBackedAccountCredentialsRepository()
     def credsProvider = new DefaultAccountCredentialsProvider(credsRepo)
     credsRepo.save("test", new TestNamedAccountCredentials())
@@ -65,7 +66,7 @@ class CredentialsControllerSpec extends Specification {
   void "credentials are listed by type"() {
     setup:
 
-    def objectMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL)
+    def objectMapper = JsonMapper.builder().build().setSerializationInclusion(JsonInclude.Include.NON_NULL)
     def credsRepo = new MapBackedAccountCredentialsRepository()
     def accountDefRepo = new MapBackedAccountDefinitionRepository()
     def credsProvider = new DefaultAccountCredentialsProvider(credsRepo)
@@ -97,7 +98,7 @@ class CredentialsControllerSpec extends Specification {
   void "credentials are listed by type and with limit"() {
     setup:
 
-    def objectMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL)
+    def objectMapper = JsonMapper.builder().build().setSerializationInclusion(JsonInclude.Include.NON_NULL)
     def credsRepo = new MapBackedAccountCredentialsRepository()
     def accountDefRepo = new MapBackedAccountDefinitionRepository()
     def credsProvider = new DefaultAccountCredentialsProvider(credsRepo)
@@ -133,7 +134,7 @@ class CredentialsControllerSpec extends Specification {
   void "credentials are listed by type, startingAccountName and with limit"() {
     setup:
 
-    def objectMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL)
+    def objectMapper = JsonMapper.builder().build().setSerializationInclusion(JsonInclude.Include.NON_NULL)
     def credsRepo = new MapBackedAccountCredentialsRepository()
     def accountDefRepo = new MapBackedAccountDefinitionRepository()
     def credsProvider = new DefaultAccountCredentialsProvider(credsRepo)

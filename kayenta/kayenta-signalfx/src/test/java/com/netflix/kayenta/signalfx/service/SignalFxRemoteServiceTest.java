@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.google.common.io.ByteStreams;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import okhttp3.MediaType;
@@ -28,7 +29,6 @@ import okhttp3.ResponseBody;
 import org.junit.jupiter.api.Test;
 import retrofit2.Converter;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
 
 public class SignalFxRemoteServiceTest {
 
@@ -40,7 +40,7 @@ public class SignalFxRemoteServiceTest {
     Retrofit retrofit =
         new Retrofit.Builder()
             .baseUrl("http://signalfx")
-            .addConverterFactory(JacksonConverterFactory.create())
+            .addConverterFactory(CustomConverterFactory.create())
             .build();
     Converter<ResponseBody, SignalFlowExecutionResult> signalfxResponseConverter =
         (Converter<ResponseBody, SignalFlowExecutionResult>)

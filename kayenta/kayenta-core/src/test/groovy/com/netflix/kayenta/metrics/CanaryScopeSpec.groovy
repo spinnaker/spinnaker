@@ -16,7 +16,7 @@
 
 package com.netflix.kayenta.metrics
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.kayenta.atlas.config.KayentaSerializationConfigurationProperties
 import com.netflix.kayenta.canary.CanaryScope
 import com.netflix.kayenta.config.KayentaConfiguration
@@ -25,6 +25,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 import java.time.Instant
+import tools.jackson.databind.json.JsonMapper
 
 class CanaryScopeSpec extends Specification {
 
@@ -56,7 +57,7 @@ class CanaryScopeSpec extends Specification {
   ObjectMapper objectMapper = myObjectMapper();
 
   private ObjectMapper myObjectMapper() {
-    ObjectMapper objectMapper = new ObjectMapper();
+    ObjectMapper objectMapper = JsonMapper.builder().build();
     KayentaConfiguration.configureObjectMapperFeatures(objectMapper, new KayentaSerializationConfigurationProperties());
     return objectMapper;
   }

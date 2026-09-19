@@ -8,8 +8,8 @@
  */
 package com.netflix.spinnaker.clouddriver.oracle.provider.config
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.SerializationFeature
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.config.OracleConfiguration
@@ -23,6 +23,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.*
 
 import java.util.concurrent.ConcurrentHashMap
+import tools.jackson.databind.cfg.DateTimeFeature
 
 @Configuration
 @Import(OracleConfiguration)
@@ -61,7 +62,7 @@ class OracleInfrastructureProviderConfig {
     def allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository,
       OracleNamedAccountCredentials)
 
-    objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+    objectMapper.rebuild().enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS).build()
 
     allAccounts.each { OracleNamedAccountCredentials credentials ->
       if (!scheduledAccounts.contains(credentials.name)) {

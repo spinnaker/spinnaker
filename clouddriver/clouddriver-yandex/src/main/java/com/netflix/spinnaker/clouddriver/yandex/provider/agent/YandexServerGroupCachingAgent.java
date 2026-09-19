@@ -40,7 +40,6 @@ import static yandex.cloud.api.compute.v1.instancegroup.InstanceGroupOuterClass.
 import static yandex.cloud.api.compute.v1.instancegroup.InstanceGroupOuterClass.ManagedInstancesState;
 import static yandex.cloud.api.compute.v1.instancegroup.InstanceGroupOuterClass.ScalePolicy;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
@@ -89,6 +88,7 @@ import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import lombok.Getter;
 import lombok.Value;
+import tools.jackson.databind.ObjectMapper;
 import yandex.cloud.api.compute.v1.instancegroup.InstanceGroupOuterClass;
 
 @Getter

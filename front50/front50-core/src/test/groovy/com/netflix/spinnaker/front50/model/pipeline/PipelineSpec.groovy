@@ -1,15 +1,16 @@
 package com.netflix.spinnaker.front50.model.pipeline
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline
 import com.netflix.spinnaker.front50.api.model.Timestamped
 import com.netflix.spinnaker.front50.api.model.pipeline.Trigger
 import com.netflix.spinnaker.front50.jackson.mixins.PipelineMixins
 import com.netflix.spinnaker.front50.jackson.mixins.TimestampedMixins
 import spock.lang.Specification
+import tools.jackson.databind.json.JsonMapper
 
 class PipelineSpec extends Specification {
-  ObjectMapper objectMapper = new ObjectMapper()
+  ObjectMapper objectMapper = JsonMapper.builder().build()
 
   void setup() {
     objectMapper.addMixIn(Pipeline.class, PipelineMixins.class)

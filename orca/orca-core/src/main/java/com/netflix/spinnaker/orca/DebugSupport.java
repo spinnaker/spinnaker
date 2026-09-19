@@ -15,8 +15,8 @@
  */
 package com.netflix.spinnaker.orca;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Utility class that aids in debugging Maps in the logs.
@@ -29,7 +29,7 @@ public class DebugSupport {
    */
   public static String prettyPrint(final Map m) {
     try {
-      return new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(m);
+      return JsonMapper.builder().build().writerWithDefaultPrettyPrinter().writeValueAsString(m);
     } catch (Exception ignored) {
     }
 

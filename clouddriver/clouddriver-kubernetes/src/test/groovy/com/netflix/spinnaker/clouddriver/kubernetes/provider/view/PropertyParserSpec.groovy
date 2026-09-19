@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.provider.view
 
-import com.fasterxml.jackson.core.JsonParseException
+import tools.jackson.core.JacksonException
 import spock.lang.Specification
 
 class PropertyParserSpec extends Specification {

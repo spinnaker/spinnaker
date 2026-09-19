@@ -17,15 +17,14 @@
 package com.netflix.spinnaker.echo.jackson;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
-import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
+import static tools.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.StreamReadConstraints;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.netflix.spinnaker.echo.api.events.Event;
 import com.netflix.spinnaker.echo.jackson.mixin.EventMixin;
+import tools.jackson.core.StreamReadConstraints;
+import tools.jackson.core.json.JsonFactory;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class EchoObjectMapper {
   private EchoObjectMapper() {}
@@ -48,12 +47,11 @@ public class EchoObjectMapper {
             .maxDocumentLength(DEFAULT_MAX_DOCUMENT_LENGTH)
             .build();
 
-    return new ObjectMapper(JsonFactory.builder().streamReadConstraints(constraints).build())
+    return JsonMapper.builder(JsonFactory.builder().streamReadConstraints(constraints).build())
         .addMixIn(Event.class, EventMixin.class)
-        .registerModule(new Jdk8Module())
-        .registerModule(new JavaTimeModule())
         .disable(FAIL_ON_UNKNOWN_PROPERTIES)
-        .setSerializationInclusion(NON_NULL);
+        .changeDefaultPropertyInclusion(value -> value.withValueInclusion(NON_NULL))
+        .build();
   }
 
   /**

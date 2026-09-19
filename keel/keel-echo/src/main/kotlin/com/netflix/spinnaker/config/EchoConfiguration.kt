@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.config
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.keel.echo.EchoService
 import com.netflix.spinnaker.keel.retrofit.InstrumentedJacksonConverter

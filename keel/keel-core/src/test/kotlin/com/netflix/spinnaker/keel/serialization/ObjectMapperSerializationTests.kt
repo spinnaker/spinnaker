@@ -28,7 +28,7 @@ class ObjectMapperSerializationTests : JUnit5Minutests {
       // https://dev.mysql.com/doc/refman/8.4/en/date-and-time-type-syntax.html#:~:text=MySQL%20permits%20fractional%20seconds%20for,microseconds%20(6%20digits)%20precision.
       // SO we want to make sure waht we store matches this
       val foramt = DateTimeFormatterBuilder().parseCaseInsensitive().appendInstant(6).parseStrict().toFormatter()
-      assertThat(readBack.date).isEqualTo(foramt.format(sampleObject.date))
+      assertThat(readBack.date).isEqualTo(Instant.parse(foramt.format(sampleObject.date)))
     }
   }
 }

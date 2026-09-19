@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.kubernetes
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.google.common.collect.ImmutableList
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.core.RetrySupport
@@ -31,12 +31,13 @@ import okhttp3.MediaType
 import okhttp3.ResponseBody
 import retrofit2.mock.Calls
 import spock.lang.Specification
+import tools.jackson.databind.json.JsonMapper
 
 class KubernetesJobRunnerSpec extends Specification {
   def "should return a run job operation with all context"() {
     given:
     ArtifactUtils artifactUtils = Mock(ArtifactUtils)
-    ObjectMapper objectMapper = new ObjectMapper()
+    ObjectMapper objectMapper = JsonMapper.builder().build()
     ManifestEvaluator manifestEvaluator = new ManifestEvaluator(
         Mock(ArtifactUtils) {
           getArtifacts(_ as StageExecution) >> ImmutableList.of()
@@ -71,7 +72,7 @@ class KubernetesJobRunnerSpec extends Specification {
   def "getAdditionalOutputs should return manifest log template if present"() {
     given:
     ArtifactUtils artifactUtils = Mock(ArtifactUtils)
-    ObjectMapper objectMapper = new ObjectMapper()
+    ObjectMapper objectMapper = JsonMapper.builder().build()
     ManifestEvaluator manifestEvaluator = new ManifestEvaluator(
         Mock(ArtifactUtils) {
           getArtifacts(_ as StageExecution) >> ImmutableList.of()
@@ -104,7 +105,7 @@ class KubernetesJobRunnerSpec extends Specification {
     given:
     def manifest = [metadata: [name: "manifest"]]
     ArtifactUtils artifactUtils = Mock(ArtifactUtils)
-    ObjectMapper objectMapper = new ObjectMapper()
+    ObjectMapper objectMapper = JsonMapper.builder().build()
     OortService oortService = Mock(OortService)
     ContextParameterProcessor contextParameterProcessor = Mock(ContextParameterProcessor)
     RetrySupport retrySupport = new RetrySupport()

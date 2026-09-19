@@ -16,7 +16,6 @@
 
 package com.netflix.kayenta.influxdb.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.influxdb.model.InfluxDbResult;
 import com.netflix.kayenta.metrics.ConversionException;
 import java.io.BufferedReader;
@@ -35,6 +34,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import retrofit2.Converter;
 import retrofit2.Retrofit;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 @Slf4j

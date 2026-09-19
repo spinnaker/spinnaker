@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.yandex.provider.agent;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.agent.AgentDataType.Authority;
@@ -34,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import tools.jackson.databind.ObjectMapper;
 
 public class YandexInstanceCachingAgent extends AbstractYandexCachingAgent<YandexCloudInstance> {
   private static final String TYPE = Keys.Namespace.INSTANCES.getNs();

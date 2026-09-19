@@ -1,8 +1,8 @@
 package com.netflix.spinnaker.keel.services
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.jsontype.NamedType
-import com.fasterxml.jackson.module.kotlin.convertValue
+import tools.jackson.databind.jsontype.NamedType
+import tools.jackson.module.kotlin.convertValue
+import tools.jackson.dataformat.yaml.YAMLMapper
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
@@ -49,11 +49,9 @@ class DeliveryConfigImporterTests : JUnit5Minutests {
     val submittedDeliveryConfig: SubmittedDeliveryConfig = yamlMapper.convertValue(deliveryConfig)
     val importer = DeliveryConfigImporter(scmService, front50Cache, yamlMapper)
 
-    private fun <T : ObjectMapper> T.registerDummyResource() = apply {
-      registerSubtypes(
-        NamedType(DummyResourceSpec::class.java, "test/whatever@v1")
-      )
-    }
+    private fun YAMLMapper.registerDummyResource(): YAMLMapper = rebuild()
+      .registerSubtypes(NamedType(DummyResourceSpec::class.java, "test/whatever@v1"))
+      .build()
   }
 
   fun tests() = rootContext<Fixture> {

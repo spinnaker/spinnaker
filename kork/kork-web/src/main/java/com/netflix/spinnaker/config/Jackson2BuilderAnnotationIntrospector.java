@@ -33,8 +33,8 @@ public class Jackson2BuilderAnnotationIntrospector extends NopAnnotationIntrospe
 
   @Override
   public Class<?> findPOJOBuilder(MapperConfig<?> config, AnnotatedClass ac) {
-    com.fasterxml.jackson.databind.annotation.JsonDeserialize ann =
-        ac.getAnnotation(com.fasterxml.jackson.databind.annotation.JsonDeserialize.class);
+    tools.jackson.databind.annotation.JsonDeserialize ann =
+        ac.getAnnotation(tools.jackson.databind.annotation.JsonDeserialize.class);
     if (ann == null) {
       return null;
     }
@@ -49,8 +49,8 @@ public class Jackson2BuilderAnnotationIntrospector extends NopAnnotationIntrospe
   @Override
   public tools.jackson.databind.annotation.JsonPOJOBuilder.Value findPOJOBuilderConfig(
       MapperConfig<?> config, AnnotatedClass ac) {
-    com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder ann =
-        ac.getAnnotation(com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder.class);
+    tools.jackson.databind.annotation.JsonPOJOBuilder ann =
+        ac.getAnnotation(tools.jackson.databind.annotation.JsonPOJOBuilder.class);
     if (ann == null) {
       return null;
     }

@@ -17,12 +17,6 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.converters;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.*;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryOperation;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
@@ -45,13 +39,21 @@ import javax.annotation.Nullable;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.JsonToken;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.*;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.dataformat.yaml.YAMLFactory;
 
 @CloudFoundryOperation(AtomicOperations.DEPLOY_SERVICE)
 @Component
 public class DeployCloudFoundryServiceAtomicOperationConverter
     extends AbstractCloudFoundryAtomicOperationConverter {
   private static final ObjectMapper objectMapper =
-      new ObjectMapper()
+      JsonMapper.builder()
+          .build()
           .setPropertyNamingStrategy(PropertyNamingStrategies.KebabCaseStrategy.INSTANCE)
           .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
@@ -262,8 +264,9 @@ public class DeployCloudFoundryServiceAtomicOperationConverter
         new TypeReference<Map<String, Object>>() {};
 
     private final ObjectMapper yamlObjectMapper =
-        new ObjectMapper(
-            YAMLFactory.builder().loaderOptions(YamlHelper.getLoaderOptions()).build());
+        JsonMapper.builder(
+                YAMLFactory.builder().loaderOptions(YamlHelper.getLoaderOptions()).build())
+            .build();
 
     @Override
     public Map<String, Object> deserialize(JsonParser parser, DeserializationContext context)

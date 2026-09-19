@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.view
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheFilter
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
@@ -39,9 +37,6 @@ import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.SE
 
 class AmazonClusterProviderSpec extends Specification {
   def cacheView = Mock(Cache)
-  def objectMapper = new ObjectMapper()
-    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-
   def amazonCloudProvider = Mock(AmazonCloudProvider)
   def awsProvider = Mock(AwsProvider)
 

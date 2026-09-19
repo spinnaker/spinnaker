@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.clouddriver.cloudrun.provider.callbacks;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback;
 import com.google.api.client.googleapis.json.GoogleJsonError;
 import com.google.api.client.http.HttpHeaders;
@@ -8,6 +7,7 @@ import groovy.lang.Closure;
 import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
+import tools.jackson.databind.json.JsonMapper;
 
 @Slf4j
 public class CloudrunCallback<T> extends JsonBatchCallback<T> {
@@ -31,7 +31,8 @@ public class CloudrunCallback<T> extends JsonBatchCallback<T> {
     if (DefaultGroovyMethods.asBoolean(failureCb)) {
       getFailureCb();
     } else {
-      String errorJson = new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(e);
+      String errorJson =
+          JsonMapper.builder().build().writerWithDefaultPrettyPrinter().writeValueAsString(e);
       log.error(errorJson);
     }
   }

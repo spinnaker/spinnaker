@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.clouddriver.titus.deploy.handlers.actions
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.event.CompositeSpinnakerEvent
 import com.netflix.spinnaker.clouddriver.event.EventMetadata
 import com.netflix.spinnaker.clouddriver.event.SpinnakerEvent
@@ -35,6 +35,7 @@ import static com.netflix.spinnaker.clouddriver.titus.deploy.actions.CopyTitusSe
 import static com.netflix.spinnaker.clouddriver.orchestration.sagas.LoadFront50App.Front50App
 import static com.netflix.spinnaker.clouddriver.orchestration.sagas.LoadFront50App.LoadFront50AppCommand
 import static com.netflix.spinnaker.clouddriver.titus.deploy.actions.PrepareTitusDeploy.PrepareTitusDeployCommand
+import tools.jackson.databind.json.JsonMapper
 
 class CommandSerdeSpec extends Specification {
 
@@ -49,7 +50,7 @@ class CommandSerdeSpec extends Specification {
   @Unroll
   def "can serialize and deserialize #command.class.simpleName"() {
     given:
-    ObjectMapper objectMapper = new ObjectMapper()
+    ObjectMapper objectMapper = JsonMapper.builder().build()
     objectMapper
       .findAndRegisterModules()
 

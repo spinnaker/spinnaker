@@ -17,7 +17,7 @@
 
 package com.netflix.kayenta.util
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.kayenta.atlas.config.KayentaSerializationConfigurationProperties
 import com.netflix.kayenta.config.KayentaConfiguration
 import spock.lang.Specification
@@ -25,6 +25,7 @@ import spock.lang.Unroll
 
 import java.time.Duration
 import java.time.Instant
+import tools.jackson.databind.json.JsonMapper
 
 class KayentaSerializationConfigurationPropertiesTest extends Specification {
     private static final String testInstantString = "1970-01-01T01:01:01Z"
@@ -34,7 +35,7 @@ class KayentaSerializationConfigurationPropertiesTest extends Specification {
     @Unroll
     void "Test Data and Duration serialization - #description"() {
         setup:
-        ObjectMapper objectMapper = new ObjectMapper()
+        ObjectMapper objectMapper = JsonMapper.builder().build()
         KayentaSerializationConfigurationProperties properties = new KayentaSerializationConfigurationProperties()
         properties.setWriteDatesAsTimestamps(datesAsTimestamps)
         properties.setWriteDurationsAsTimestamps(durationsAsTimestamps)

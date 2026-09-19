@@ -1,8 +1,8 @@
 package com.netflix.spinnaker.keel.sql
 
-import com.fasterxml.jackson.databind.JsonMappingException
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
+import tools.jackson.databind.DatabindException
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.scm.CodeEvent
 import com.netflix.spinnaker.keel.artifacts.WorkQueueEventType
@@ -48,7 +48,7 @@ class SqlWorkQueueRepository(
 
             try {
               mapper.readValue<CodeEvent>(json)
-            } catch (e: JsonMappingException) {
+            } catch (e: DatabindException) {
               log.warn("Unable to parse queued code event, ignoring: {}", json)
               null
             }
@@ -82,7 +82,7 @@ class SqlWorkQueueRepository(
 
             try {
               mapper.readValue<PublishedArtifact>(json)
-            } catch (e: JsonMappingException) {
+            } catch (e: DatabindException) {
               log.warn("Unable to parse queued published artifact, ignoring: {}", json)
               null
             }

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
-import com.fasterxml.jackson.datatype.guava.GuavaModule
+import tools.jackson.datatype.guava.GuavaModule
 import com.netflix.spinnaker.orca.api.operations.OperationsInput
 import com.netflix.spinnaker.orca.api.operations.OperationsRunner
 import com.netflix.spinnaker.orca.clouddriver.model.KatoOperationsContext

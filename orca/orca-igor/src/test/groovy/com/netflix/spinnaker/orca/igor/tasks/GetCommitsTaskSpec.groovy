@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.orca.igor.tasks
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
@@ -34,14 +34,15 @@ import okhttp3.MediaType
 import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
 import retrofit2.mock.Calls
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+import tools.jackson.databind.ObjectMapper
 
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
+import tools.jackson.databind.json.JsonMapper
 
 class GetCommitsTaskSpec extends Specification {
 
@@ -56,7 +57,7 @@ class GetCommitsTaskSpec extends Specification {
   def pipeline = ExecutionBuilder.pipeline {}
 
   ObjectMapper getObjectMapper() {
-    return new ObjectMapper()
+    return JsonMapper.builder().build()
   }
 
   def "scmService should be optional"() {
@@ -657,7 +658,7 @@ class GetCommitsTaskSpec extends Specification {
     Retrofit retrofit =
         new Retrofit.Builder()
             .baseUrl(url)
-            .addConverterFactory(JacksonConverterFactory.create())
+            .addConverterFactory(CustomConverterFactory.create())
             .build()
 
     return new SpinnakerHttpException(retrofit2Response, retrofit)

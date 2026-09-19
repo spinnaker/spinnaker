@@ -17,12 +17,12 @@
 
 package com.netflix.spinnaker.clouddriver.dcos.deploy.util
 
-import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.core.JsonProcessingException
-import com.fasterxml.jackson.core.TreeNode
-import com.fasterxml.jackson.databind.DeserializationContext
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer
+import tools.jackson.core.JsonParser
+import tools.jackson.core.JacksonException
+import tools.jackson.core.TreeNode
+import tools.jackson.databind.DeserializationContext
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.deser.std.StdDeserializer
 import mesosphere.marathon.client.model.v2.ExternalVolume
 import mesosphere.marathon.client.model.v2.LocalVolume
 import mesosphere.marathon.client.model.v2.PersistentLocalVolume
@@ -35,7 +35,7 @@ class MarathonVolumeDeserializer extends StdDeserializer<Volume> {
   }
 
   @Override
-  Volume deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+  Volume deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JacksonException {
     ObjectMapper mapper = (ObjectMapper) p.getCodec()
     TreeNode node = mapper.readTree(p)
 

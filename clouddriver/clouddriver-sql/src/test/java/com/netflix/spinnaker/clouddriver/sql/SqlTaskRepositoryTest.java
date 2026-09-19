@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.clouddriver.sql;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.core.test.TaskRepositoryTck;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.config.ConnectionPools;
@@ -24,6 +23,7 @@ import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties;
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil;
 import java.time.Clock;
 import org.junit.jupiter.api.AfterEach;
+import tools.jackson.databind.json.JsonMapper;
 
 public class SqlTaskRepositoryTest extends TaskRepositoryTck {
 
@@ -41,7 +41,7 @@ public class SqlTaskRepositoryTest extends TaskRepositoryTck {
 
     return new SqlTaskRepository(
         database.context,
-        new ObjectMapper(),
+        JsonMapper.builder().build(),
         Clock.systemDefaultZone(),
         ConnectionPools.TASKS.getValue());
   }

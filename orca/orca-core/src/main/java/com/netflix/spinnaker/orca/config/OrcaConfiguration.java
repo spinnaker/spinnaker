@@ -18,8 +18,6 @@ package com.netflix.spinnaker.orca.config;
 import static java.time.temporal.ChronoUnit.MINUTES;
 import static org.springframework.context.annotation.AnnotationConfigUtils.EVENT_LISTENER_FACTORY_BEAN_NAME;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.config.PluginsAutoConfiguration;
 import com.netflix.spinnaker.kork.api.expressions.ExpressionFunctionProvider;
@@ -72,6 +70,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.context.event.EventListenerFactory;
 import org.springframework.context.event.SimpleApplicationEventMulticaster;
@@ -79,6 +78,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import tools.jackson.databind.json.JsonMapper;
 
 @Configuration
 @ComponentScan({
@@ -122,16 +122,11 @@ public class OrcaConfiguration {
   }
 
   @Bean(name = {"mapper", "objectMapper"})
-  public ObjectMapper mapper(
+  @Primary
+  public JsonMapper mapper(
       Optional<SerializerHookRegistry> serializerModifier,
       JacksonParserProperties parserProperties) {
-    ObjectMapper mapper = OrcaObjectMapper.newInstance(parserProperties);
-    if (serializerModifier.isPresent()) {
-      SimpleModule module = new SimpleModule();
-      module.setSerializerModifier(serializerModifier.get());
-      mapper.registerModule(module);
-    }
-    return mapper;
+    return (JsonMapper) OrcaObjectMapper.newInstance(parserProperties, serializerModifier);
   }
 
   @Bean

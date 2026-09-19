@@ -16,18 +16,19 @@
 
 package com.netflix.spinnaker.clouddriver.eureka.api
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.MapperFeature
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.MapperFeature
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.eureka.model.EurekaApplication
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Specification
+import tools.jackson.databind.json.JsonMapper
 
 class EurekaTest extends Specification {
 
@@ -42,14 +43,14 @@ class EurekaTest extends Specification {
     mockWebServer = new MockWebServer()
     mockWebServer.start()
 
-    def objectMapper = new ObjectMapper()
+    def objectMapper = JsonMapper.builder().build()
       .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
       .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
       .enable(MapperFeature.AUTO_DETECT_CREATORS)
 
     eurekaApi = new Retrofit.Builder()
       .baseUrl(mockWebServer.url("/"))
-      .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+      .addConverterFactory(CustomConverterFactory.create(objectMapper))
       .build()
       .create(Eureka)
   }

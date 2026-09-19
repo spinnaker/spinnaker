@@ -17,13 +17,13 @@
 package com.netflix.spinnaker.echo.scm;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.echo.api.events.Event;
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
 import java.util.Map;
 import lombok.Data;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 public class GitlabWebhookEventHandler implements GitWebhookHandler {

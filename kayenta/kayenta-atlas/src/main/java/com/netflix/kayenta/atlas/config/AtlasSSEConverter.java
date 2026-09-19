@@ -16,7 +16,6 @@
 
 package com.netflix.kayenta.atlas.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.atlas.model.AtlasResults;
 import com.netflix.kayenta.metrics.FatalQueryException;
 import com.netflix.kayenta.metrics.RetryableQueryException;
@@ -36,6 +35,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import retrofit2.Converter;
 import retrofit2.Retrofit;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 @Slf4j

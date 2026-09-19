@@ -32,19 +32,14 @@ class AwsSdkV2Jackson3ModuleTest {
           .build();
 
   @Test
-  void jackson3OutputMatchesJackson2Shape() throws Exception {
-    String jackson2 =
-        new com.fasterxml.jackson.databind.ObjectMapper()
-            .registerModule(new AwsSdkV2Module())
-            .writeValueAsString(CLUSTER);
-
+  void jackson3OutputUsesSdkProtocolShape() throws Exception {
     tools.jackson.databind.json.JsonMapper mapper3 =
-        tools.jackson.databind.json.JsonMapper.builder()
-            .addModule(new AwsSdkV2Jackson3Module())
-            .build();
+        tools.jackson.databind.json.JsonMapper.builder().addModule(new AwsSdkV2Module()).build();
     String jackson3 = mapper3.writeValueAsString(CLUSTER);
 
-    assertEquals(jackson2, jackson3);
+    assertEquals(
+        "{\"clusterArn\":\"arn:aws:ecs:::cluster/my-cluster\",\"clusterName\":\"my-cluster\",\"status\":\"ACTIVE\",\"statistics\":[],\"tags\":[],\"settings\":[],\"capacityProviders\":[\"FARGATE\",\"FARGATE_SPOT\"],\"defaultCapacityProviderStrategy\":[],\"attachments\":[]}",
+        jackson3);
   }
 
   @Test

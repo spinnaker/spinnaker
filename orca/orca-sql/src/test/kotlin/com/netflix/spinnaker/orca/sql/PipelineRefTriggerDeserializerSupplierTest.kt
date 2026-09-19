@@ -16,9 +16,11 @@
 
 package com.netflix.spinnaker.orca.sql
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.node.JsonNodeFactory
-import com.fasterxml.jackson.databind.node.ObjectNode
+import tools.jackson.databind.node.JsonNodeFactory
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.databind.module.SimpleModule
+import com.netflix.spinnaker.orca.api.pipeline.models.Trigger
+import com.netflix.spinnaker.orca.pipeline.model.support.TriggerDeserializer
 import com.netflix.spinnaker.orca.sql.pipeline.persistence.PipelineRefTrigger
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -61,7 +63,7 @@ class PipelineRefTriggerDeserializerSupplierTest : JUnit5Minutests {
 
       test("predicate is true when the trigger has parentExecution") {
         val node = jsonNodeFactory.objectNode().apply {
-          set<ObjectNode>("parentExecution", jsonNodeFactory.objectNode().put("id", "execution-id"))
+           set("parentExecution", jsonNodeFactory.objectNode().put("id", "execution-id"))
         }
         assertTrue(deserializerSupplier.predicate(node))
       }
@@ -78,23 +80,33 @@ class PipelineRefTriggerDeserializerSupplierTest : JUnit5Minutests {
     context("deserializing pipelineRef") {
       val deserializerSupplier = PipelineRefTriggerDeserializerSupplier(pipelineRefEnabled = true)
       val jsonNodeFactory = JsonNodeFactory.instance
-      val jsonParser =  ObjectMapper().createParser("")
+      val objectMapper = JsonMapper.builder()
+        .addModule(
+          SimpleModule().addDeserializer(Trigger::class.java, TriggerDeserializer())
+        )
+        .build()
 
       test("all fields in pipelineRef are added") {
         val node = jsonNodeFactory.objectNode().apply {
           put("correlationId", "correlation-id")
           put("user", "test-user")
-          set<ObjectNode>("parameters", jsonNodeFactory.objectNode().put("key1", "value1"))
-          set<ObjectNode>("artifacts", jsonNodeFactory.arrayNode().add(jsonNodeFactory.objectNode().put("type", "artifact-type")))
+           set("parameters", jsonNodeFactory.objectNode().put("key1", "value1"))
+           set("artifacts", jsonNodeFactory.arrayNode().add(jsonNodeFactory.objectNode().put("type", "artifact-type")))
           put("rebake", true)
           put("dryRun", false)
           put("strategy", true)
           put("parentExecutionId", "parent-execution-id")
-          set<ObjectNode>("resolvedExpectedArtifacts", jsonNodeFactory.arrayNode().add(jsonNodeFactory.objectNode().put("id", "resolved-artifact-id")))
-          set<ObjectNode>("other", jsonNodeFactory.objectNode().put("extra1", "value1"))
-        }
+           set("resolvedExpectedArtifacts", jsonNodeFactory.arrayNode().add(jsonNodeFactory.objectNode().put("id", "resolved-artifact-id")))
+           set("other", jsonNodeFactory.objectNode().put("extra1", "value1"))
+         }
 
-        val trigger = deserializerSupplier.deserializer(node, jsonParser) as PipelineRefTrigger
+         TriggerDeserializer.customTriggerSuppliers.add(deserializerSupplier)
+         val trigger = try {
+           objectMapper.readValue(objectMapper.writeValueAsString(node), Trigger::class.java)
+             as PipelineRefTrigger
+         } finally {
+           TriggerDeserializer.customTriggerSuppliers.remove(deserializerSupplier)
+         }
 
         assertEquals("correlation-id", trigger.correlationId)
         assertEquals("test-user", trigger.user)
@@ -113,17 +125,23 @@ class PipelineRefTriggerDeserializerSupplierTest : JUnit5Minutests {
         val node = jsonNodeFactory.objectNode().apply {
           put("correlationId", "correlation-id")
           put("user", "test-user")
-          set<ObjectNode>("parameters", jsonNodeFactory.objectNode().put("key1", "value1"))
-          set<ObjectNode>("artifacts", jsonNodeFactory.arrayNode().add(jsonNodeFactory.objectNode().put("type", "artifact-type")))
+           set("parameters", jsonNodeFactory.objectNode().put("key1", "value1"))
+           set("artifacts", jsonNodeFactory.arrayNode().add(jsonNodeFactory.objectNode().put("type", "artifact-type")))
           put("rebake", true)
           put("dryRun", false)
           put("strategy", true)
-          set<ObjectNode>("parentExecution", jsonNodeFactory.objectNode().put("id", "parent-execution-id-from-pipeline-trigger"))
-          set<ObjectNode>("resolvedExpectedArtifacts", jsonNodeFactory.arrayNode().add(jsonNodeFactory.objectNode().put("id", "resolved-artifact-id")))
-          set<ObjectNode>("other", jsonNodeFactory.objectNode().put("extra1", "value1"))
-        }
+           set("parentExecution", jsonNodeFactory.objectNode().put("id", "parent-execution-id-from-pipeline-trigger"))
+           set("resolvedExpectedArtifacts", jsonNodeFactory.arrayNode().add(jsonNodeFactory.objectNode().put("id", "resolved-artifact-id")))
+           set("other", jsonNodeFactory.objectNode().put("extra1", "value1"))
+         }
 
-        val trigger = deserializerSupplier.deserializer(node, jsonParser) as PipelineRefTrigger
+         TriggerDeserializer.customTriggerSuppliers.add(deserializerSupplier)
+         val trigger = try {
+           objectMapper.readValue(objectMapper.writeValueAsString(node), Trigger::class.java)
+             as PipelineRefTrigger
+         } finally {
+           TriggerDeserializer.customTriggerSuppliers.remove(deserializerSupplier)
+         }
 
         assertEquals("correlation-id", trigger.correlationId)
         assertEquals("test-user", trigger.user)

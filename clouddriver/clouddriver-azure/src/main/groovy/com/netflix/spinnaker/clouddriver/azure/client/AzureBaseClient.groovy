@@ -24,12 +24,13 @@ import com.azure.core.management.exception.ManagementException
 import com.azure.core.management.profile.AzureProfile
 import com.azure.identity.ClientSecretCredentialBuilder
 import com.azure.resourcemanager.AzureResourceManager
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.SerializationFeature
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+import tools.jackson.databind.json.JsonMapper
 
 @Slf4j
 @CompileStatic
@@ -45,7 +46,7 @@ abstract class AzureBaseClient {
    */
   protected AzureBaseClient(String subscriptionId, AzureProfile azureProfile, TokenCredential credentials) {
     this.subscriptionId = subscriptionId
-    mapper = new ObjectMapper().configure(SerializationFeature.INDENT_OUTPUT, true)
+    mapper = JsonMapper.builder().build().configure(SerializationFeature.INDENT_OUTPUT, true)
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
     this.azure = initialize(credentials, subscriptionId, azureProfile)
   }

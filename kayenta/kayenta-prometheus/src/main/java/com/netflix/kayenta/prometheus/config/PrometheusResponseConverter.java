@@ -16,7 +16,6 @@
 
 package com.netflix.kayenta.prometheus.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.metrics.ConversionException;
 import com.netflix.kayenta.prometheus.model.PrometheusMetricDescriptorsResponse;
 import com.netflix.kayenta.prometheus.model.PrometheusResults;
@@ -35,6 +34,7 @@ import org.springframework.util.CollectionUtils;
 import retrofit2.Converter;
 import retrofit2.Converter.Factory;
 import retrofit2.Retrofit;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 @Slf4j

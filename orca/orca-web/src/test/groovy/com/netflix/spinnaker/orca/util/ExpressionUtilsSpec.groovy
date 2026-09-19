@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.util
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.pipeline.EvaluateVariablesStage
@@ -26,8 +25,10 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import spock.lang.Specification
+import tools.jackson.databind.ObjectMapper
 
 import javax.annotation.Nonnull
+import tools.jackson.databind.json.JsonMapper
 
 class ExpressionUtilsSpec extends Specification {
   private ExpressionUtils utils = new ExpressionUtils(
@@ -35,7 +36,7 @@ class ExpressionUtilsSpec extends Specification {
     new StageDefinitionBuilderFactory() {
       @Override
       StageDefinitionBuilder builderFor(@Nonnull StageExecution stage) {
-        return new EvaluateVariablesStage(new ObjectMapper())
+        return new EvaluateVariablesStage(JsonMapper.builder().build())
       }
     });
 

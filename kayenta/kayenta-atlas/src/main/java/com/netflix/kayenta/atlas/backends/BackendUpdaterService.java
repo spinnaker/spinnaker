@@ -15,7 +15,6 @@
  */
 package com.netflix.kayenta.atlas.backends;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.retrofit.config.RetrofitClientFactory;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +25,7 @@ import org.springframework.boot.health.contributor.AbstractHealthIndicator;
 import org.springframework.boot.health.contributor.Health;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import tools.jackson.databind.ObjectMapper;
 
 @Service
 @Slf4j

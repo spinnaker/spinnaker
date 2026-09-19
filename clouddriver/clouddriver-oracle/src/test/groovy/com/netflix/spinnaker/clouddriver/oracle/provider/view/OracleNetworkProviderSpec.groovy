@@ -8,19 +8,20 @@
  */
 package com.netflix.spinnaker.clouddriver.oracle.provider.view
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.clouddriver.oracle.OracleCloudProvider
 import com.netflix.spinnaker.clouddriver.oracle.cache.Keys
 import spock.lang.Specification
+import tools.jackson.databind.json.JsonMapper
 
 class OracleNetworkProviderSpec extends Specification {
 
   def "get all networks from cache"() {
     setup:
     def cache = Mock(Cache)
-    def networkProvider = new OracleNetworkProvider(cache, new ObjectMapper())
+    def networkProvider = new OracleNetworkProvider(cache, JsonMapper.builder().build())
     def identifiers = Mock(Collection)
     def attributes = ["displayName": "My Vcn", "id": "ocid.vcn.123"]
     def mockData = Mock(CacheData)

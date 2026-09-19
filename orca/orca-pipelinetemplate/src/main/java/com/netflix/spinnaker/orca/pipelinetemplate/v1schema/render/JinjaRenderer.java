@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hubspot.jinjava.Jinjava;
 import com.hubspot.jinjava.JinjavaConfig;
 import com.hubspot.jinjava.interpret.Context.Library;
@@ -47,6 +46,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.parser.ParserException;
+import tools.jackson.databind.ObjectMapper;
 
 public class JinjaRenderer implements Renderer {
 

@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.ErrorDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Pagination;
 import java.io.IOException;
@@ -30,13 +27,18 @@ import java.util.function.Supplier;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Response;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.json.JsonMapper;
 
 public final class CloudFoundryClientUtils {
   // https://github.com/cloudfoundry/cloud_controller_ng/blob/main/app/models/services/service_binding.rb#L53
   private static final String BINDING_NAME_INVALID_CHARACTER_PATTERN = "[^\\w-]+";
 
   private static final ObjectMapper mapper =
-      new ObjectMapper()
+      JsonMapper.builder()
+          .build()
           .setPropertyNamingStrategy(PropertyNamingStrategies.SnakeCaseStrategy.INSTANCE)
           .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 

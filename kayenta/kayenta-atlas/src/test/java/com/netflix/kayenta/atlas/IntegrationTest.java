@@ -1,6 +1,5 @@
 package com.netflix.kayenta.atlas;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import com.netflix.kayenta.atlas.canary.AtlasCanaryScope;
 import com.netflix.kayenta.atlas.model.AtlasResults;
@@ -33,6 +32,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.configuration.ObjectPostProcessorConfiguration;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import tools.jackson.databind.ObjectMapper;
 
 @Configuration
 @ComponentScan({"com.netflix.kayenta.retrofit.config", "com.netflix.spinnaker.config"})

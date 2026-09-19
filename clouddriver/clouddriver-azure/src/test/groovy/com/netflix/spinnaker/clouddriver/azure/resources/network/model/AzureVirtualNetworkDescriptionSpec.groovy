@@ -17,15 +17,16 @@
 package com.netflix.spinnaker.clouddriver.azure.resources.network.model
 
 import com.azure.resourcemanager.network.fluent.models.VirtualNetworkInner
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.SerializationFeature
 import spock.lang.Shared
 import spock.lang.Specification
+import tools.jackson.databind.json.JsonMapper
 
 class AzureVirtualNetworkDescriptionSpec extends Specification {
 
   @Shared
-  ObjectMapper mapper = new ObjectMapper()
+  ObjectMapper mapper = JsonMapper.builder().build()
 
   VirtualNetworkInner vnet
 

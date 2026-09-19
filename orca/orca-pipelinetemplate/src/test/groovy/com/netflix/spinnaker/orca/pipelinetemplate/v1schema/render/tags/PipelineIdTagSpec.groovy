@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.tags
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.hubspot.jinjava.interpret.FatalTemplateErrorsException
 import com.hubspot.jinjava.interpret.InterpretException
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateRenderException
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.DefaultRenderContext
@@ -29,14 +29,15 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer
 import okhttp3.MediaType
 import okhttp3.ResponseBody
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
 import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 
 class PipelineIdTagSpec extends Specification {
-  ObjectMapper objectMapper = new ObjectMapper()
+  ObjectMapper objectMapper = JsonMapper.builder().build()
   Front50Service front50Service = Mock(Front50Service)
   Renderer renderer = new JinjaRenderer(objectMapper, front50Service, [])
 
@@ -214,7 +215,7 @@ class PipelineIdTagSpec extends Specification {
     Retrofit retrofit =
         new Retrofit.Builder()
             .baseUrl(url)
-            .addConverterFactory(JacksonConverterFactory.create())
+      .addConverterFactory(CustomConverterFactory.create())
             .build();
 
     return new SpinnakerHttpException(retrofit2Response, retrofit)

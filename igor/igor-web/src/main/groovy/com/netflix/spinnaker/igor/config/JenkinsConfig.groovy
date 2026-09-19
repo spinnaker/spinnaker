@@ -16,10 +16,6 @@
 
 package com.netflix.spinnaker.igor.config
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.dataformat.xml.XmlMapper
-import com.fasterxml.jackson.module.jaxb.JaxbAnnotationModule
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.fiat.model.resources.Permissions
 import com.netflix.spinnaker.igor.IgorConfigurationProperties
@@ -29,6 +25,7 @@ import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.service.BuildServices
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -43,7 +40,10 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.dataformat.xml.XmlMapper
+import tools.jackson.module.jakarta.xmlbind.JakartaXmlBindAnnotationModule
 
 import javax.net.ssl.KeyManager
 import javax.net.ssl.KeyManagerFactory
@@ -112,9 +112,10 @@ class JenkinsConfig {
     }
 
     static ObjectMapper getObjectMapper() {
-        return new XmlMapper()
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-            .registerModule(new JaxbAnnotationModule())
+        return XmlMapper.builder()
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .addModule(new JakartaXmlBindAnnotationModule())
+            .build()
     }
 
   static JenkinsClient jenkinsClient(OkHttp3ClientConfiguration okHttpClientConfig,
@@ -180,7 +181,7 @@ class JenkinsConfig {
         new Retrofit.Builder()
             .baseUrl(RetrofitUtils.getBaseUrl(host.address))
             .client(clientBuilder.build())
-            .addConverterFactory(JacksonConverterFactory.create(getObjectMapper()))
+            .addConverterFactory(CustomConverterFactory.create(getObjectMapper()))
             .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
             .build()
             .create(JenkinsClient)

@@ -16,11 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.*;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.retry.RetryInterceptor;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.tokens.AccessTokenAuthenticator;
@@ -28,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.client.tokens.AccessTokenI
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.tokens.AccessTokenProvider;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.config.CloudFoundryConfigurationProperties;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -43,8 +39,12 @@ import okhttp3.OkHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
 import retrofit2.converter.protobuf.ProtoConverterFactory;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Waiting for this issue to be resolved before replacing this class by the CF Java Client:
@@ -88,11 +88,10 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
     this.user = user;
     this.password = password;
 
-    ObjectMapper mapper = new ObjectMapper();
+    ObjectMapper mapper = JsonMapper.builder().build();
     mapper.setPropertyNamingStrategy(PropertyNamingStrategies.SnakeCaseStrategy.INSTANCE);
     mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     mapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
-    mapper.registerModule(new JavaTimeModule());
 
     // The UAA service is built first because the Authenticator interceptor needs it to get tokens
     // from CF.
@@ -104,7 +103,7 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
                     (useHttps ? "https://" : "http://")
                         + this.apiHost.replaceAll("^api\\.", "login.")))
             .client(okHttpClient)
-            .addConverterFactory(JacksonConverterFactory.create(mapper))
+            .addConverterFactory(CustomConverterFactory.create(mapper))
             .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
             .build()
             .create(AuthenticationService.class);
@@ -125,7 +124,7 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
         new Retrofit.Builder()
             .client(okHttpClient)
             .baseUrl(RetrofitUtils.getBaseUrl((useHttps ? "https://" : "http://") + this.apiHost))
-            .addConverterFactory(JacksonConverterFactory.create(mapper))
+            .addConverterFactory(CustomConverterFactory.create(mapper))
             .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
             .build();
 

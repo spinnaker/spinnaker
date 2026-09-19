@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.Mockito.mock;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.clouddriver.azure.AzureCloudProvider;
 import com.netflix.spinnaker.clouddriver.azure.resources.application.view.AzureApplicationProvider;
@@ -29,6 +28,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.context.annotation.UserConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class AzureLoadBalancerProviderTest {
 
@@ -56,7 +57,7 @@ public class AzureLoadBalancerProviderTest {
 
     @Bean
     ObjectMapper getObjectMapper() {
-      return new ObjectMapper();
+      return JsonMapper.builder().build();
     }
   }
 

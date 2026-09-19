@@ -18,10 +18,11 @@ package com.netflix.spinnaker.clouddriver.kubernetes.description.manifest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class KubernetesManifestOwnerRefTest {
 
@@ -33,9 +34,8 @@ public class KubernetesManifestOwnerRefTest {
         "{\"kind\":\"Custom\",\"apiVersion\":\"mygroup/v1\"}|Custom.mygroup",
       },
       delimiter = '|')
-  public void testOwnerRef(String referenceAsJson, String computedKind)
-      throws JsonProcessingException {
-    ObjectMapper objectMapper = new ObjectMapper();
+  public void testOwnerRef(String referenceAsJson, String computedKind) throws JacksonException {
+    ObjectMapper objectMapper = JsonMapper.builder().build();
     KubernetesManifest.OwnerReference ref =
         objectMapper.readValue(referenceAsJson, KubernetesManifest.OwnerReference.class);
     assertThat(ref).isNotNull();

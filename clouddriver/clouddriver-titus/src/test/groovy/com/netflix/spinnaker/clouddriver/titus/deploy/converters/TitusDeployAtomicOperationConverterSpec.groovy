@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.titus.deploy.converters
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.deploy.DeployAtomicOperation
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentia
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.TitusDeployDescription
 import spock.lang.Specification
 import spock.lang.Subject
+import tools.jackson.databind.json.JsonMapper
 
 class TitusDeployAtomicOperationConverterSpec extends Specification {
 
@@ -36,7 +37,7 @@ class TitusDeployAtomicOperationConverterSpec extends Specification {
   @Subject
   AtomicOperationConverter atomicOperationConverter = new TitusDeployAtomicOperationConverter(
     accountCredentialsProvider: accountCredentialsProvider,
-    objectMapper: new ObjectMapper()
+    objectMapper: JsonMapper.builder().build()
   )
 
   void 'convertDescription should return a valid TitusDeployDescription'() {

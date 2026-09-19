@@ -17,8 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.security.config;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties;
@@ -48,6 +46,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.util.CollectionUtils;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @Slf4j
 public class AmazonCredentialsParser<
@@ -106,7 +107,7 @@ public class AmazonCredentialsParser<
     this.awsCredentialsProviderFactory =
         Objects.requireNonNull(awsCredentialsProviderFactory, "awsCredentialsProviderFactory");
     this.templateValues = Collections.emptyMap();
-    this.objectMapper = new ObjectMapper();
+    this.objectMapper = JsonMapper.builder().build();
     this.credentialTranslator = findTranslator(credentialsType, this.objectMapper);
     this.credentialsConfig = credentialsConfig;
 
@@ -601,7 +602,8 @@ public class AmazonCredentialsParser<
     private final Constructor<T> copyConstructor;
 
     public CopyConstructorTranslator(ObjectMapper objectMapper, Class<T> credentialType) {
-      this.objectMapper = objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+      this.objectMapper =
+          objectMapper.rebuild().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
       this.credentialType = credentialType;
       try {
         copyConstructor =

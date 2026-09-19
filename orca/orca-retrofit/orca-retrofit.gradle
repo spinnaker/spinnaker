@@ -31,7 +31,6 @@ dependencies {
   testImplementation("org.mockito:mockito-core")
   testImplementation("org.springframework.boot:spring-boot-test")
   testImplementation("com.squareup.okhttp3:mockwebserver")
-  testImplementation("com.squareup.retrofit2:converter-jackson")
   testImplementation("org.wiremock:wiremock")
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
   testRuntimeOnly "org.junit.platform:junit-platform-launcher"

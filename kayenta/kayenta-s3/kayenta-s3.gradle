@@ -12,7 +12,7 @@ dependencies {
   testImplementation "org.junit.jupiter:junit-jupiter-engine"
   testImplementation "org.assertj:assertj-core"
   testImplementation "org.mockito:mockito-core"
-  testImplementation "com.fasterxml.jackson.core:jackson-databind"
+  testImplementation "tools.jackson.core:jackson-databind"
   testImplementation "org.testcontainers:testcontainers"
   testImplementation "org.testcontainers:junit-jupiter"
   testImplementation "org.ministack:testcontainers-ministack"

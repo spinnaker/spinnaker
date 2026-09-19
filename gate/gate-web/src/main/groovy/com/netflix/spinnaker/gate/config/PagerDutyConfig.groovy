@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.gate.config
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.gate.services.PagerDutyService
 import com.netflix.spinnaker.kork.client.ServiceClientProvider
@@ -28,6 +28,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import tools.jackson.databind.json.JsonMapper
 
 @Configuration
 @CompileStatic
@@ -48,7 +49,7 @@ class PagerDutyConfig {
     return serviceClientProvider.getService(
       PagerDutyService,
       new DefaultServiceEndpoint("pagerduty", pagerBaseUrl),
-      new ObjectMapper(),
+      JsonMapper.builder().build(),
       interceptors)
   }
 

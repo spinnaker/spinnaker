@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.CaptureSourceServerGroupCapacityTask
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Capacity
@@ -27,12 +27,13 @@ import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+import tools.jackson.databind.json.JsonMapper
 
 class CaptureSourceServerGroupCapacityTaskSpec extends Specification {
   CloudDriverService cloudDriverService = Mock()
 
   @Subject
-  def task = new CaptureSourceServerGroupCapacityTask(cloudDriverService: cloudDriverService, objectMapper: new ObjectMapper())
+  def task = new CaptureSourceServerGroupCapacityTask(cloudDriverService: cloudDriverService, objectMapper: JsonMapper.builder().build())
 
   @Unroll
   void "should no-op if useSourceCapacity is false"() {

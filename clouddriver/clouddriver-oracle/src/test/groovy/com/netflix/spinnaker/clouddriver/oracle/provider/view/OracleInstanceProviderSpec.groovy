@@ -9,16 +9,17 @@
 
 package com.netflix.spinnaker.clouddriver.oracle.provider.view
 
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.ser.FilterProvider
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider
+import tools.jackson.core.type.TypeReference
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.ser.FilterProvider
+import tools.jackson.databind.ser.impl.SimpleFilterProvider
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.mem.InMemoryCache
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.oracle.cache.Keys
 import com.oracle.bmc.core.model.Instance
 import spock.lang.Specification
+import tools.jackson.databind.json.JsonMapper
 
 class OracleInstanceProviderSpec extends Specification {
 
@@ -30,7 +31,7 @@ class OracleInstanceProviderSpec extends Specification {
       buildInstanceCacheData(2, "R2", "A2", Instance.LifecycleState.Starting),
       buildInstanceCacheData(3, "R2", "A2", Instance.LifecycleState.Provisioning)
     ])
-    def instanceProvider = new OracleInstanceProvider(cache, new ObjectMapper(), null)
+    def instanceProvider = new OracleInstanceProvider(cache, JsonMapper.builder().build(), null)
 
     expect:
     instanceProvider.getInstance(account, region, id)?.name == res.name
@@ -59,7 +60,7 @@ class OracleInstanceProviderSpec extends Specification {
       .lifecycleState(lifecycleState)
       .build()
       
-    def attributes = new ObjectMapper()
+    def attributes = JsonMapper.builder().build()
       .setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false))
       .convertValue(instance, new TypeReference<Map<String, Object>>() {})
 

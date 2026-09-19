@@ -17,13 +17,14 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.description
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.SerializationFeature
 import spock.lang.Specification
+import tools.jackson.databind.json.JsonMapper
 
 class KubernetesAtomicOperationDescriptionSpec extends Specification {
-  def objectMapper = new ObjectMapper()
+  def objectMapper = JsonMapper.builder().build()
     .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
     .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
     .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)

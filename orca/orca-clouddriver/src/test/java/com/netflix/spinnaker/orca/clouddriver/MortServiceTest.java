@@ -19,20 +19,21 @@ package com.netflix.spinnaker.orca.clouddriver;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import java.util.Map;
 import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class MortServiceTest {
 
@@ -41,7 +42,7 @@ public class MortServiceTest {
       WireMockExtension.newInstance().options(new WireMockConfiguration().dynamicPort()).build();
 
   private static MortService mortService;
-  private final ObjectMapper mapper = new ObjectMapper();
+  private final ObjectMapper mapper = JsonMapper.builder().build();
 
   @BeforeAll
   public static void setup() {
@@ -49,13 +50,13 @@ public class MortServiceTest {
         new Retrofit.Builder()
             .baseUrl(wmMort.baseUrl())
             .client(new OkHttpClient())
-            .addConverterFactory(JacksonConverterFactory.create(new ObjectMapper()))
+            .addConverterFactory(CustomConverterFactory.create(JsonMapper.builder().build()))
             .build()
             .create(MortService.class);
   }
 
   @Test
-  public void handle_Kubernetes_Complex_Description() throws JsonProcessingException {
+  public void handle_Kubernetes_Complex_Description() throws JacksonException {
     JsonNode description =
         mapper.convertValue("{\"account\":null,\"app\":\"sg1\"}", JsonNode.class);
     Map<String, Object> sgMap =
@@ -84,7 +85,7 @@ public class MortServiceTest {
   }
 
   @Test
-  public void handle_normal_string_Description() throws JsonProcessingException {
+  public void handle_normal_string_Description() throws JacksonException {
     Map<String, Object> sgMap =
         Map.of(
             "accountName",

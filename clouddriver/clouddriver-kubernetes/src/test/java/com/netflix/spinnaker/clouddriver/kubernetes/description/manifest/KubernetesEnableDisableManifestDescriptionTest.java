@@ -18,14 +18,15 @@ package com.netflix.spinnaker.clouddriver.kubernetes.description.manifest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.ObjectNode;
 
 final class KubernetesEnableDisableManifestDescriptionTest {
   private static final JsonNodeFactory jsonFactory = JsonNodeFactory.instance;
-  private static final ObjectMapper objectMapper = new ObjectMapper();
+  private static final ObjectMapper objectMapper = JsonMapper.builder().build();
   private static final int DEFAULT_TARGET_PERCENTAGE = 100;
 
   @Test

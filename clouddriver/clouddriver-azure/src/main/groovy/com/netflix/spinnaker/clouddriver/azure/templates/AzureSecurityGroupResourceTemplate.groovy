@@ -16,13 +16,14 @@
 
 package com.netflix.spinnaker.clouddriver.azure.templates
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.SerializationFeature
 import com.netflix.spinnaker.clouddriver.azure.resources.securitygroup.model.AzureSecurityGroupDescription.AzureSGRule
 import com.netflix.spinnaker.clouddriver.azure.resources.securitygroup.model.UpsertAzureSecurityGroupDescription
+import tools.jackson.databind.json.JsonMapper
 
 class AzureSecurityGroupResourceTemplate {
-  static ObjectMapper mapper = new ObjectMapper().configure(SerializationFeature.INDENT_OUTPUT, true)
+  static ObjectMapper mapper = JsonMapper.builder().build().configure(SerializationFeature.INDENT_OUTPUT, true)
 
   static String getTemplate(UpsertAzureSecurityGroupDescription description) {
     SecurityGroupTemplate template = new SecurityGroupTemplate(description)

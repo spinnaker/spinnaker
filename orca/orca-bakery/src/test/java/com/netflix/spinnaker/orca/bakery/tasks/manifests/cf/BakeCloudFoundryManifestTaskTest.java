@@ -22,9 +22,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.orca.bakery.api.BakeryService;
 import com.netflix.spinnaker.orca.bakery.api.manifests.cf.BakeCloudFoundryManifestRequest;
@@ -35,11 +32,19 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class BakeCloudFoundryManifestTaskTest {
 
   private ObjectMapper mapper =
-      new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+      JsonMapper.builder()
+          .build()
+          .rebuild()
+          .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+          .build();
 
   private final BakeryService bakery = mock(BakeryService.class);
   private final ArtifactUtils artifactUtils = mock(ArtifactUtils.class);
@@ -48,7 +53,7 @@ public class BakeCloudFoundryManifestTaskTest {
       new BakeCloudFoundryManifestTask(artifactUtils, Optional.of(bakery));
 
   @Test
-  public void shouldMapStageToContext() throws JsonProcessingException {
+  public void shouldMapStageToContext() throws JacksonException {
     String stageJson =
         "{\"expectedArtifacts\":"
             + "[{\"defaultArtifact\":{\"customKind\":true,\"id\":\"22cee094-0806-43a4-b700-7f2426079984\"},"
@@ -81,7 +86,7 @@ public class BakeCloudFoundryManifestTaskTest {
   }
 
   @Test
-  public void shouldMapContextToBakeCFRequest() throws JsonProcessingException {
+  public void shouldMapContextToBakeCFRequest() throws JacksonException {
     String stageJson =
         "{\n"
             + "  \"expectedArtifacts\": [\n"
@@ -151,7 +156,7 @@ public class BakeCloudFoundryManifestTaskTest {
   }
 
   @Test
-  public void shouldThrowExceptionForEmptyInputArtifacts() throws JsonProcessingException {
+  public void shouldThrowExceptionForEmptyInputArtifacts() throws JacksonException {
     String stageJson =
         "{\n"
             + "  \"inputArtifacts\": [\n"
@@ -180,7 +185,7 @@ public class BakeCloudFoundryManifestTaskTest {
   }
 
   @Test
-  public void shouldThrowExceptionForEmptyProducedArtifact() throws JsonProcessingException {
+  public void shouldThrowExceptionForEmptyProducedArtifact() throws JacksonException {
     String stageJson =
         "{\n"
             + "  \"inputArtifacts\": [\n"
@@ -228,7 +233,7 @@ public class BakeCloudFoundryManifestTaskTest {
   }
 
   @Test
-  public void shouldThrowExceptionForNameMismatch() throws JsonProcessingException {
+  public void shouldThrowExceptionForNameMismatch() throws JacksonException {
     String stageJson =
         "{\n"
             + "  \"expectedArtifacts\": [\n"

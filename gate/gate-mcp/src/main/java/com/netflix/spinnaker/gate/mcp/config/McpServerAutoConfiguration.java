@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.gate.mcp.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.gate.banner.GlobalBannerProperties;
 import com.netflix.spinnaker.gate.banner.GlobalBannerService;
 import com.netflix.spinnaker.gate.mcp.prompts.SpinnakerPrompts;
@@ -50,6 +49,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Wires Gate's MCP server: a curated set of tools/resources/prompts, each backed by the same

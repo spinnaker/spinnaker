@@ -17,13 +17,11 @@
 
 package com.netflix.spinnaker.igor.travis.helpers
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 
 class TestUtils {
   static ObjectMapper createObjectMapper() {
-    ObjectMapper mapper = new ObjectMapper()
-    mapper.registerModule(new JavaTimeModule())
-    mapper
+    JsonMapper.builder().build()
   }
 }

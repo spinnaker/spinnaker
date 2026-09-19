@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.kork.plugins.sdk.serde
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.exceptions.SystemException
 import com.netflix.spinnaker.kork.plugins.sdk.SdkFactory
 import org.pf4j.PluginWrapper

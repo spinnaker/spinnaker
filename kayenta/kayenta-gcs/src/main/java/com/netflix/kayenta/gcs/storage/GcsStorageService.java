@@ -16,9 +16,6 @@
 
 package com.netflix.kayenta.gcs.storage;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.http.ByteArrayContent;
 import com.google.api.client.http.HttpResponseException;
 import com.google.api.services.storage.Storage;
@@ -46,6 +43,9 @@ import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 @Builder
 @Slf4j
@@ -233,7 +233,7 @@ public class GcsStorageService implements StorageService {
 
       try {
         canaryConfigSummaryJson = kayentaObjectMapper.writeValueAsString(canaryConfigSummary);
-      } catch (JsonProcessingException e) {
+      } catch (JacksonException e) {
         throw new IllegalArgumentException(
             "Problem serializing canaryConfigSummary -> " + canaryConfigSummary, e);
       }
@@ -334,7 +334,7 @@ public class GcsStorageService implements StorageService {
 
         try {
           canaryConfigSummaryJson = kayentaObjectMapper.writeValueAsString(canaryConfigSummary);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
           throw new IllegalArgumentException(
               "Problem serializing canaryConfigSummary -> " + canaryConfigSummary, e);
         }

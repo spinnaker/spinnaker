@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.kork.retrofit.exceptions;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.netflix.spinnaker.kork.annotations.NullableByDefault;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
@@ -28,6 +27,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import retrofit2.Converter;
 import retrofit2.Retrofit;
+import tools.jackson.core.type.TypeReference;
 
 /**
  * An exception that exposes the {@link okhttp3.Response} of a given HTTP exception and a detail

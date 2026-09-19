@@ -8,13 +8,13 @@ import software.amazon.awssdk.services.elasticloadbalancing.model.LoadBalancerAt
 import software.amazon.awssdk.services.elasticloadbalancing.model.LoadBalancerDescription
 import software.amazon.awssdk.services.elasticloadbalancing.model.Tag
 import software.amazon.awssdk.services.elasticloadbalancing.model.TagDescription
-import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer
 import com.netflix.spectator.api.Spectator
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
+import tools.jackson.databind.json.JsonMapper
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -53,7 +53,7 @@ class AmazonLoadBalancerCachingAgentSpec extends Specification {
       }
     }
 
-    new AmazonLoadBalancerCachingAgent(cloud, client, creds, region, AmazonObjectMapperConfigurer.createConfigured().registerModule(new AwsSdkV2Module()), Spectator.globalRegistry(), filter)
+    new AmazonLoadBalancerCachingAgent(cloud, client, creds, region, JsonMapper.builder().addModule(new AwsSdkV2Module()).build(), Spectator.globalRegistry(), filter)
   }
 
   void "should filter by tags"() {

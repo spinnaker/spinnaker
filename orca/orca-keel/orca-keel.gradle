@@ -21,13 +21,13 @@ dependencies {
   implementation(project(":orca-core"))
   implementation(project(":orca-retrofit"))
   implementation(project(":orca-igor"))
-  implementation("com.fasterxml.jackson.core:jackson-databind")
-  implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+  implementation("tools.jackson.core:jackson-databind")
+  implementation("tools.jackson.module:jackson-module-kotlin")
   implementation("org.springframework:spring-web")
   implementation("org.springframework.boot:spring-boot-autoconfigure")
   implementation("io.spinnaker.kork:kork-retrofit")
 
-  testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+  testImplementation("tools.jackson.module:jackson-module-kotlin")
   testImplementation("dev.minutest:minutest")
   testImplementation("io.mockk:mockk")
   testImplementation("io.strikt:strikt-jackson")
@@ -38,7 +38,6 @@ dependencies {
   testImplementation("org.wiremock:wiremock")
   testImplementation("org.mockito:mockito-junit-jupiter")
   testImplementation("com.squareup.retrofit2:retrofit-mock")
-  testImplementation("com.squareup.retrofit2:converter-jackson")
 }
 
 test {

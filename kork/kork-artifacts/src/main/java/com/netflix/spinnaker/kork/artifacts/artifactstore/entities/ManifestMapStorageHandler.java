@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.kork.artifacts.artifactstore.entities;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.ArtifactTypeDecorator;
 import com.netflix.spinnaker.kork.artifacts.ArtifactTypes;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
@@ -28,6 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.log4j.Log4j2;
+import tools.jackson.databind.SerializationContext;
 
 /**
  * Handles the storage of Kubernetes manifests as artifacts.
@@ -189,7 +189,7 @@ public class ManifestMapStorageHandler implements ArtifactStorageHandler {
    * @return The processed map with manifest lists replaced by artifact references
    */
   @Override
-  public <V> V handle(ArtifactStore store, V v, ObjectMapper objectMapper) {
+  public <V> V handle(ArtifactStore store, V v, SerializationContext context) {
     return (V) handleMap(store, (Map<?, ?>) v);
   }
 

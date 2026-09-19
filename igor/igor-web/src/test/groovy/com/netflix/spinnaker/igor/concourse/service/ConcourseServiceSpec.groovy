@@ -16,12 +16,6 @@
 
 package com.netflix.spinnaker.igor.concourse.service
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.netflix.spinnaker.igor.config.ConcourseProperties
 import com.netflix.spinnaker.fiat.model.resources.Permissions
 import com.netflix.spinnaker.igor.build.artifact.decorator.DebDetailsDecorator
@@ -43,6 +37,11 @@ import java.util.List
 import reactor.core.publisher.Flux;
 import spock.lang.Shared
 import spock.lang.Specification
+import tools.jackson.core.type.TypeReference
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.PropertyNamingStrategies
+import tools.jackson.databind.json.JsonMapper
 
 import java.time.Instant
 
@@ -65,10 +64,10 @@ class ConcourseServiceSpec extends Specification {
     Optional<ArtifactDecorator> artifactDecorator
 
     void setup() {
-        mapper = new ObjectMapper()
-            .setPropertyNamingStrategy(PropertyNamingStrategies.SnakeCaseStrategy.INSTANCE)
+        mapper = JsonMapper.builder()
+            .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-            .registerModule(new JavaTimeModule());
+            .build()
 
         buildService = Mock()
         eventService = Mock()

@@ -19,8 +19,6 @@ package com.netflix.spinnaker.clouddriver.huaweicloud.provider.agent;
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
 import static com.netflix.spinnaker.clouddriver.huaweicloud.cache.Keys.Namespace.INSTANCE_TYPES;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.huawei.openstack4j.openstack.ecs.v1.domain.Flavor;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.agent.CacheResult;
@@ -36,6 +34,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 public class HuaweiCloudInstanceTypeCachingAgent extends AbstractHuaweiCloudCachingAgent {
 

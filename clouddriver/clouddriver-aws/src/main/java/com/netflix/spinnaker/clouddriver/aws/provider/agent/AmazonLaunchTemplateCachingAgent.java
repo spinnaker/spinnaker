@@ -21,8 +21,6 @@ import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.IM
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.LAUNCH_TEMPLATES;
 import static java.util.stream.Collectors.toSet;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AccountAware;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
@@ -54,6 +52,8 @@ import software.amazon.awssdk.services.ec2.model.DescribeLaunchTemplatesRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeLaunchTemplatesResponse;
 import software.amazon.awssdk.services.ec2.model.LaunchTemplate;
 import software.amazon.awssdk.services.ec2.model.LaunchTemplateVersion;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 public class AmazonLaunchTemplateCachingAgent implements CachingAgent, AccountAware {
   private final Logger log = LoggerFactory.getLogger(getClass());

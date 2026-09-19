@@ -17,9 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.security;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationConverter;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
@@ -28,6 +25,10 @@ import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 public abstract class AbstractAtomicOperationsCredentialsConverter<T extends AccountCredentials<?>>
     implements AtomicOperationConverter {
@@ -36,9 +37,10 @@ public abstract class AbstractAtomicOperationsCredentialsConverter<T extends Acc
 
   @Getter
   private final ObjectMapper objectMapper =
-      new ObjectMapper()
-          .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
-          .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+      JsonMapper.builder()
+          .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
+          .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+          .build();
 
   @NotNull
   public T getCredentialsObject(@NotNull final String name) {

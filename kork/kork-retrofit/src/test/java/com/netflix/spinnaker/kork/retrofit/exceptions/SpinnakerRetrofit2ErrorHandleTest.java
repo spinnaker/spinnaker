@@ -19,8 +19,8 @@ package com.netflix.spinnaker.kork.retrofit.exceptions;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -35,7 +35,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import retrofit2.Call;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
+import tools.jackson.databind.json.JsonMapper;
 
 class SpinnakerRetrofit2ErrorHandleTest {
 
@@ -53,7 +53,7 @@ class SpinnakerRetrofit2ErrorHandleTest {
     Map<String, String> responseBodyMap = new HashMap<>();
     responseBodyMap.put("timestamp", "123123123123");
     responseBodyMap.put("message", "Something happened error message");
-    responseBodyString = new ObjectMapper().writeValueAsString(responseBodyMap);
+    responseBodyString = JsonMapper.builder().build().writeValueAsString(responseBodyMap);
 
     retrofit2Service =
         new Retrofit.Builder()
@@ -64,7 +64,8 @@ class SpinnakerRetrofit2ErrorHandleTest {
                     .connectTimeout(1, TimeUnit.SECONDS)
                     .build())
             .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-            .addConverterFactory(JacksonConverterFactory.create())
+            .addConverterFactory(
+                CustomConverterFactory.createWithJsonStringResponses(JsonMapper.builder().build()))
             .build()
             .create(Retrofit2Service.class);
   }
@@ -203,7 +204,7 @@ class SpinnakerRetrofit2ErrorHandleTest {
     assertThat(spinnakerConversionException)
         .hasMessage(
             "Failed to process response body: Cannot deserialize value of type `java.lang.String` from Object value (token `JsonToken.START_OBJECT`)\n"
-                + " at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 1, column: 1]");
+                + " at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); byte offset: #UNKNOWN]");
     assertThat(spinnakerConversionException.getUrl())
         .isEqualTo(mockWebServer.url("/retrofit2").toString());
   }

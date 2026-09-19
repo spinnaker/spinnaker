@@ -18,8 +18,6 @@ package com.netflix.spinnaker.clouddriver.google.deploy.handlers;
 
 import static com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil.*;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.AttachedDisk;
 import com.google.api.services.compute.model.Autoscaler;
@@ -97,6 +95,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 @Log4j2
@@ -492,7 +492,7 @@ public class BasicGoogleDeployHandler
   }
 
   protected GoogleHttpLoadBalancingPolicy buildLoadBalancerPolicyFromInput(
-      BasicGoogleDeployDescription description) throws JsonProcessingException {
+      BasicGoogleDeployDescription description) throws JacksonException {
     Map<String, String> instanceMetadata = ensureInstanceMetadata(description);
     String sourcePolicyJson = instanceMetadata.get(LOAD_BALANCING_POLICY);
     if (description.getLoadBalancingPolicy() != null

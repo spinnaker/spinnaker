@@ -7,7 +7,6 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
@@ -37,10 +36,12 @@ import software.amazon.awssdk.services.lambda.paginators.ListAliasesIterable;
 import software.amazon.awssdk.services.lambda.paginators.ListEventSourceMappingsIterable;
 import software.amazon.awssdk.services.lambda.paginators.ListFunctionsIterable;
 import software.amazon.awssdk.services.lambda.paginators.ListVersionsByFunctionIterable;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 class LambdaServiceTest {
 
-  private ObjectMapper objectMapper = new ObjectMapper().registerModule(new AwsSdkV2Module());
+  private ObjectMapper objectMapper = JsonMapper.builder().addModule(new AwsSdkV2Module()).build();
   private AmazonClientProvider clientProvider = mock(AmazonClientProvider.class);
   private LambdaServiceConfig lambdaServiceConfig = mock(LambdaServiceConfig.class);
   private ServiceLimitConfiguration serviceLimitConfiguration =

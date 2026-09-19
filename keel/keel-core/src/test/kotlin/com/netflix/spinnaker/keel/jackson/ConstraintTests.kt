@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.jackson
 
-import com.fasterxml.jackson.databind.jsontype.NamedType
-import com.fasterxml.jackson.module.kotlin.readValue
+import tools.jackson.databind.jsontype.NamedType
+import tools.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.Constraint
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
@@ -69,10 +69,13 @@ internal class ConstraintTests : JUnit5Minutests {
   }
 
   data class Fixture(val json: String) {
-    val mapper = configuredObjectMapper().apply {
-      registerSubtypes(NamedType(DependsOnConstraint::class.java, "depends-on"))
-      registerSubtypes(NamedType(ManualJudgementConstraint::class.java, "manual-judgement"))
-    }
+    val mapper = configuredObjectMapper()
+      .rebuild()
+      .registerSubtypes(
+        NamedType(DependsOnConstraint::class.java, "depends-on"),
+        NamedType(ManualJudgementConstraint::class.java, "manual-judgement")
+      )
+      .build()
 
     inline fun <reified T> parse(): T = mapper.readValue<T>(json)
   }

@@ -16,10 +16,6 @@
 
 package com.netflix.spinnaker.orca.pipeline.model.support
 
-import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.databind.DeserializationContext
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.Trigger
 import com.netflix.spinnaker.orca.pipeline.model.ArtifactoryTrigger
@@ -31,6 +27,10 @@ import com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger
 import com.netflix.spinnaker.orca.pipeline.model.NexusTrigger
 import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
 import com.netflix.spinnaker.orca.pipeline.model.PluginTrigger
+import tools.jackson.core.JsonParser
+import tools.jackson.databind.DeserializationContext
+import tools.jackson.databind.JsonNode
+import tools.jackson.databind.deser.std.StdDeserializer
 
 class TriggerDeserializer :
   StdDeserializer<Trigger>(Trigger::class.java) {
@@ -39,8 +39,9 @@ class TriggerDeserializer :
     val customTriggerSuppliers: MutableSet<CustomTriggerDeserializerSupplier> = mutableSetOf()
   }
 
-  override fun deserialize(parser: JsonParser, context: DeserializationContext): Trigger =
-    parser.codec.readTree<JsonNode>(parser).run {
+  override fun deserialize(input: JsonParser, context: DeserializationContext): Trigger =
+    context.let { parser ->
+      context.readTree(input).run {
       return when {
         looksLikeCustom() -> {
           // Custom Trigger Supplier has priority
@@ -190,6 +191,7 @@ class TriggerDeserializer :
             mapValue<Any>(parser).forEach { (k, v) -> other[k] = v }
         }
         resolvedExpectedArtifacts = get("resolvedExpectedArtifacts")?.listValue(parser) ?: mutableListOf()
+      }
       }
     }
 

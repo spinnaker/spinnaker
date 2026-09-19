@@ -20,7 +20,6 @@ dependencies {
   implementation project(":echo-pipelinetriggers")
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "com.squareup.retrofit2:retrofit"
-  implementation "com.squareup.retrofit2:converter-jackson"
   implementation "io.spinnaker.kork:kork-core"
   implementation "io.spinnaker.kork:kork-artifacts"
   implementation "io.spinnaker.kork:kork-retrofit"
@@ -34,6 +33,7 @@ dependencies {
   implementation "org.apache.groovy:groovy-json"
   implementation "io.cloudevents:cloudevents-http-basic:3.0.0"
   implementation "io.cloudevents:cloudevents-json-jackson:3.0.0"
+  implementation "tools.jackson.core:jackson-databind"
   implementation ("dev.cdevents:cdevents-sdk-java:0.3.1")
   implementation "io.opentelemetry:opentelemetry-api"
   implementation "io.opentelemetry:opentelemetry-api-incubator:1.62.0-alpha"

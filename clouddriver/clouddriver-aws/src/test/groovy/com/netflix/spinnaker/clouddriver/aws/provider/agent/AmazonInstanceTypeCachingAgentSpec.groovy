@@ -16,21 +16,20 @@ import software.amazon.awssdk.services.ec2.model.GpuDeviceMemoryInfo
 import software.amazon.awssdk.services.ec2.model.DiskInfo
 import software.amazon.awssdk.services.ec2.model.NetworkCardInfo
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.cache.Keys
 import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
+import tools.jackson.databind.json.JsonMapper
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 
 class AmazonInstanceTypeCachingAgentSpec extends Specification {
   def region = "us-east-1"
-  def objectMapper = AmazonObjectMapperConfigurer.createConfigured().registerModule(new AwsSdkV2Module())
+  def objectMapper = JsonMapper.builder().addModule(new AwsSdkV2Module()).build()
   def amazonClientProvider = Mock(AmazonClientProvider)
   def account = "test"
   def credentials = Stub(NetflixAmazonCredentials) {

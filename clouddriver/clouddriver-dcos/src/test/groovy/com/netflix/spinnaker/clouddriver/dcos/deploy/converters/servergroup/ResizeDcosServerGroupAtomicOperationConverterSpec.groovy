@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.dcos.deploy.converters.servergroup
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.dcos.DcosClientProvider
 import com.netflix.spinnaker.clouddriver.dcos.deploy.util.monitor.PollingDcosDeploymentMonitor
 import com.netflix.spinnaker.clouddriver.dcos.security.DcosAccountCredentials
@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCreden
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import mesosphere.dcos.client.DCOS
 import spock.lang.Subject
+import tools.jackson.databind.json.JsonMapper
 
 class ResizeDcosServerGroupAtomicOperationConverterSpec extends BaseSpecification {
 
@@ -50,7 +51,7 @@ class ResizeDcosServerGroupAtomicOperationConverterSpec extends BaseSpecificatio
   void 'convertDescription should return a valid ResizeDcosServerGroupDescription'() {
     given:
     atomicOperationConverter.accountCredentialsProvider = accountCredentialsProvider
-    atomicOperationConverter.objectMapper = new ObjectMapper()
+    atomicOperationConverter.objectMapper = JsonMapper.builder().build()
     Map input = [
       account: DEFAULT_ACCOUNT,
       cluster: DEFAULT_REGION,
@@ -70,7 +71,7 @@ class ResizeDcosServerGroupAtomicOperationConverterSpec extends BaseSpecificatio
   void 'convertOperation should return a ResizeDcosServerGroupAtomicOperation with ResizeDcosServerGroupDescription'() {
     given:
     atomicOperationConverter.accountCredentialsProvider = accountCredentialsProvider
-    atomicOperationConverter.objectMapper = new ObjectMapper()
+    atomicOperationConverter.objectMapper = JsonMapper.builder().build()
     Map input = [
       account: DEFAULT_ACCOUNT,
       cluster: DEFAULT_REGION,

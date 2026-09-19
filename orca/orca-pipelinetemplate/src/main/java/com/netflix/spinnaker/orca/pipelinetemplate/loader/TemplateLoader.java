@@ -18,10 +18,6 @@ package com.netflix.spinnaker.orca.pipelinetemplate.loader;
 
 import static java.lang.String.format;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateLoaderException;
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateRenderException;
@@ -46,6 +42,9 @@ import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 @Slf4j
@@ -62,10 +61,7 @@ public class TemplateLoader {
       Renderer renderer,
       YamlHelper yamlHelper) {
     this.schemeLoaders = schemeLoaders;
-    this.objectMapper =
-        new ObjectMapper(YAMLFactory.builder().loaderOptions(yamlHelper.loaderOptions()).build())
-            .setConfig(objectMapper.getSerializationConfig())
-            .setConfig(objectMapper.getDeserializationConfig());
+    this.objectMapper = YamlObjectMapperFactory.create(objectMapper, yamlHelper);
     this.renderer = renderer;
   }
 
@@ -157,7 +153,7 @@ public class TemplateLoader {
                   List<Map<String, Object>> stages =
                       objectMapper.readValue(renderedTemplate, new TypeReference<>() {});
                   template.put("stages", stages);
-                } catch (TemplateRenderException | JsonProcessingException e) {
+                } catch (TemplateRenderException | JacksonException e) {
                   log.warn(
                       "Tried to pre-render stages for pipeline {}/{}, but an error occurred during parsing.",
                       tc.getPipeline().getApplication(),

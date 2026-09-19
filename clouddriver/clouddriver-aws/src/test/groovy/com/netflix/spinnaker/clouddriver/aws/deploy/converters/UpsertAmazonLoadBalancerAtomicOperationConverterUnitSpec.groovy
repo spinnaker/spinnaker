@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.converters
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import com.netflix.spinnaker.clouddriver.aws.deploy.converters.UpsertAmazonLoadBalancerAtomicOperationConverter
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerClassicDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerV2Description
@@ -36,7 +36,7 @@ class UpsertAmazonLoadBalancerAtomicOperationConverterUnitSpec extends Specifica
     def accountCredentialsProvider = Stub(AccountCredentialsProvider) {
       getCredentials('test') >> Stub(NetflixAmazonCredentials)
     }
-    this.converter = new UpsertAmazonLoadBalancerAtomicOperationConverter(objectMapper: new ObjectMapper(), accountCredentialsProvider: accountCredentialsProvider)
+    this.converter = new UpsertAmazonLoadBalancerAtomicOperationConverter(objectMapper: JsonMapper.builder().build(), accountCredentialsProvider: accountCredentialsProvider)
   }
 
   void "UpsertAmazonLoadBalancerAtomicOperationConverter convertDescription with no type returns UpsertAmazonLoadBalancerClassicDescription"() {

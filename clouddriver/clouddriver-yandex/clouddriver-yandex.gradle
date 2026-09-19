@@ -45,7 +45,6 @@ dependencies {
   // Provides @WebMvcTest/@AutoConfigureMockMvc (Boot 4 repackaged test slices).
   testImplementation "org.springframework.boot:spring-boot-starter-webmvc-test"
   // Explicit: jackson-datatype-jsr310 no longer arrives transitively.
-  testImplementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
 }
 
 configurations.all {

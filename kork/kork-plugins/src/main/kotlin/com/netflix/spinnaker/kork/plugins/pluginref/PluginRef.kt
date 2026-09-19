@@ -17,7 +17,8 @@
 package com.netflix.spinnaker.kork.plugins.pluginref
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.KotlinModule
 import com.netflix.spinnaker.kork.exceptions.UserException
 import java.io.IOException
 import java.nio.file.Files
@@ -73,7 +74,9 @@ data class PluginRef(
      */
     const val EXTENSION = ".plugin-ref"
 
-    private val mapper = jacksonObjectMapper()
+    private val mapper = JsonMapper.builder()
+      .addModule(KotlinModule.Builder().build())
+      .build()
 
     /**
      * Returns whether or not the provided [path] is a valid [PluginRef].

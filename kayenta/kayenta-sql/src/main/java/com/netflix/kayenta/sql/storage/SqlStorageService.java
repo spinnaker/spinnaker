@@ -16,8 +16,6 @@
 
 package com.netflix.kayenta.sql.storage;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.sql.storage.model.SqlCanaryArchive;
 import com.netflix.kayenta.sql.storage.model.SqlCanaryConfig;
 import com.netflix.kayenta.sql.storage.model.SqlMetricSetPairs;
@@ -41,6 +39,8 @@ import lombok.Getter;
 import lombok.Singular;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 @Builder
 @Service

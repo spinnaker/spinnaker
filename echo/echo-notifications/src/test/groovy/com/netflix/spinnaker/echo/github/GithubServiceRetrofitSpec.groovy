@@ -17,10 +17,10 @@
 package com.netflix.spinnaker.echo.github
 
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -45,7 +45,7 @@ class GithubServiceRetrofitSpec extends Specification {
 
     def retrofit = new Retrofit.Builder()
       .baseUrl(server.url("/"))
-      .addConverterFactory(JacksonConverterFactory.create())
+      .addConverterFactory(CustomConverterFactory.create())
       .build()
 
     githubService = retrofit.create(GithubService)

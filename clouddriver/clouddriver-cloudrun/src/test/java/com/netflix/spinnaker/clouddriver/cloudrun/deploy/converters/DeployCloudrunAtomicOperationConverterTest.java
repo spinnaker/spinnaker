@@ -3,7 +3,6 @@ package com.netflix.spinnaker.clouddriver.cloudrun.deploy.converters;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.ops.DeployCloudrunAtomicOperation;
 import com.netflix.spinnaker.clouddriver.cloudrun.security.CloudrunNamedAccountCredentials;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
@@ -11,6 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.json.JsonMapper;
 
 public class DeployCloudrunAtomicOperationConverterTest {
   DeployCloudrunAtomicOperationConverter deployCloudrunAtomicOperationConverter;
@@ -28,7 +28,7 @@ public class DeployCloudrunAtomicOperationConverterTest {
     deployCloudrunAtomicOperationConverter = new DeployCloudrunAtomicOperationConverter();
     credentialsRepository = mock(CredentialsRepository.class);
     deployCloudrunAtomicOperationConverter.setCredentialsRepository(credentialsRepository);
-    deployCloudrunAtomicOperationConverter.setObjectMapper(new ObjectMapper());
+    deployCloudrunAtomicOperationConverter.setObjectMapper(JsonMapper.builder().build());
     mockCredentials = mock(CloudrunNamedAccountCredentials.class);
   }
 

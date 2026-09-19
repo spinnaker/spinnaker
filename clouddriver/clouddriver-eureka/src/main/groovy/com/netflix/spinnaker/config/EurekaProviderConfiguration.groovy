@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.config
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.MapperFeature
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.MapperFeature
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.eureka.api.EurekaApiFactory
 import com.netflix.spinnaker.clouddriver.eureka.deploy.ops.EurekaSupportConfigurationProperties
@@ -43,6 +43,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.core.env.Environment
 
 import java.util.regex.Pattern
+import tools.jackson.databind.json.JsonMapper
 
 @Configuration
 @EnableConfigurationProperties(EurekaSupportConfigurationProperties)
@@ -76,7 +77,7 @@ class EurekaProviderConfiguration {
   }
 
   private static ObjectMapper getObjectMapper() {
-    new ObjectMapper()
+    JsonMapper.builder().build()
       .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
       .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
       .enable(DeserializationFeature.UNWRAP_ROOT_VALUE)

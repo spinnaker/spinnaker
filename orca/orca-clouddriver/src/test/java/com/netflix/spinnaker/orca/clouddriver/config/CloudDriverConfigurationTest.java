@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.clouddriver.config;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.config.DefaultServiceClientProvider;
 import com.netflix.spinnaker.config.ServiceEndpoint;
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientBuilderProvider;
@@ -38,6 +37,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(
@@ -75,7 +76,7 @@ public class CloudDriverConfigurationTest extends YamlFileApplicationContextInit
     OkHttpClientProvider okHttpClientProvider =
         new OkHttpClientProvider(List.of(okHttpClientBuilderProvider));
 
-    ObjectMapper objectMapper = new ObjectMapper();
+    ObjectMapper objectMapper = JsonMapper.builder().build();
     DefaultServiceClientProvider serviceClientProvider =
         new DefaultServiceClientProvider(
             List.of(new Retrofit2ServiceFactory(okHttpClientProvider)), objectMapper);

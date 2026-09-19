@@ -18,8 +18,6 @@ package com.netflix.spinnaker.orca.sql.pipeline.persistence;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.config.SqlConfiguration;
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil;
@@ -46,6 +44,8 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 @SpringBootTest(
     classes = {
@@ -104,7 +104,7 @@ public class SqlExecutionRepositoryReadReplicaTest {
       stmt.setLong(5, Instant.now().toEpochMilli());
       stmt.setString(6, defaultPoolBody);
       stmt.executeUpdate();
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new RuntimeException(e);
     }
 
@@ -119,7 +119,7 @@ public class SqlExecutionRepositoryReadReplicaTest {
       stmt.setLong(5, Instant.now().toEpochMilli());
       stmt.setString(6, readPoolBody);
       stmt.executeUpdate();
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new RuntimeException(e);
     }
   }

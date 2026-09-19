@@ -1,9 +1,8 @@
 dependencies {
   api(project(":keel-api"))
-  api("com.fasterxml.jackson.core:jackson-databind")
-  api("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
-  api("com.fasterxml.jackson.module:jackson-module-kotlin")
-  api("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+  api("tools.jackson.core:jackson-databind")
+  api("tools.jackson.dataformat:jackson-dataformat-yaml")
+  api("tools.jackson.module:jackson-module-kotlin")
   api("de.danielbechler:java-object-diff")
   api("org.springframework:spring-context")
   api("org.springframework.boot:spring-boot-autoconfigure")
@@ -31,7 +30,6 @@ dependencies {
   testImplementation(project(":keel-test"))
   testImplementation(project(":keel-core-test"))
   testImplementation(project(":keel-ec2-api"))  // needed for resource dependency logic
-  testImplementation("io.strikt:strikt-jackson")
   testImplementation("io.strikt:strikt-mockk")
   testImplementation("dev.minutest:minutest")
 

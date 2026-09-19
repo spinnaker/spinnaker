@@ -20,13 +20,6 @@ package com.netflix.spinnaker.clouddriver.aws.provider.agent
 import software.amazon.awssdk.services.ec2.model.DescribeInstancesRequest
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.core.JsonGenerator
-import com.fasterxml.jackson.core.JsonProcessingException
-import com.fasterxml.jackson.databind.JsonSerializer
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.databind.SerializerProvider
-import com.fasterxml.jackson.databind.module.SimpleModule
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
@@ -53,6 +46,13 @@ import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent
 import com.netflix.spinnaker.credentials.CredentialsRepository
 import groovy.util.logging.Slf4j
 import org.springframework.context.ApplicationContext
+import tools.jackson.core.JacksonException
+import tools.jackson.core.JsonGenerator
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.SerializationContext
+import tools.jackson.databind.ValueSerializer
+import tools.jackson.databind.cfg.DateTimeFeature
+import tools.jackson.databind.module.SimpleModule
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
@@ -64,6 +64,7 @@ import java.util.function.ToDoubleFunction
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.RESERVATION_REPORTS
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.RESERVED_INSTANCES
+import tools.jackson.databind.json.JsonMapper
 
 @Slf4j
 class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgent {
@@ -102,7 +103,7 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
     accountReservationDetailSerializer = new AccountReservationDetailSerializer()
     module.addSerializer(AmazonReservationReport.AccountReservationDetail.class, accountReservationDetailSerializer)
 
-    this.objectMapper = objectMapper.copy().enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS).registerModule(module)
+    this.objectMapper = objectMapper.rebuild().enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS).build().addModule(module).build()
     this.reservationReportPool = reservationReportPool
     this.ctx = ctx
     this.metricsSupport = new MetricsSupport(objectMapper, registry, { getCacheView() })
@@ -399,15 +400,15 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
     this.cacheView
   }
 
-  static class AccountReservationDetailSerializer extends JsonSerializer<AmazonReservationReport.AccountReservationDetail> {
-    ObjectMapper objectMapper = new ObjectMapper()
+  static class AccountReservationDetailSerializer extends ValueSerializer<AmazonReservationReport.AccountReservationDetail> {
+    ObjectMapper objectMapper = JsonMapper.builder().build()
     boolean mergeVpcReservations
 
 
     @Override
     void serialize(AmazonReservationReport.AccountReservationDetail value,
                    JsonGenerator gen,
-                   SerializerProvider serializers) throws IOException, JsonProcessingException {
+                   SerializationContext serializers) throws JacksonException {
       if (mergeVpcReservations) {
         value = new AmazonReservationReport.AccountReservationDetail(
           reserved: new AtomicInteger(value.reserved.intValue() + value.reservedVpc.intValue()),

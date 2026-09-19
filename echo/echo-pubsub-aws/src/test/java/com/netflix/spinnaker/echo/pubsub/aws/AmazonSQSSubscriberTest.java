@@ -25,8 +25,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import ch.qos.logback.classic.Level;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.config.AmazonPubsubProperties;
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
@@ -47,6 +45,8 @@ import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.GetQueueUrlResponse;
 import software.amazon.awssdk.services.sqs.model.SetQueueAttributesRequest;
 import software.amazon.awssdk.services.sqs.model.SetQueueAttributesResponse;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 @ExtendWith(MockitoExtension.class)
 public class AmazonSQSSubscriberTest {
@@ -84,7 +84,7 @@ public class AmazonSQSSubscriberTest {
   }
 
   @Test
-  void shouldUnmarshalSNSNotificationMessage() throws JsonProcessingException {
+  void shouldUnmarshalSNSNotificationMessage() throws JacksonException {
     // Given
     MemoryAppender memoryAppender = new MemoryAppender(SQSSubscriber.class);
 

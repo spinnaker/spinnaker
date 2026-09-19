@@ -17,9 +17,9 @@
 
 package com.netflix.spinnaker.clouddriver.dcos.provider
 
-import com.fasterxml.jackson.databind.JsonDeserializer
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.module.SimpleModule
+import tools.jackson.databind.ValueDeserializer
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.module.SimpleModule
 import com.netflix.frigga.NameValidation
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData

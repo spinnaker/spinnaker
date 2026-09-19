@@ -35,7 +35,6 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.matching.MatchResult;
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
@@ -69,8 +68,9 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import retrofit2.mock.Calls;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 class WebhookServiceTest {
 
@@ -79,7 +79,7 @@ class WebhookServiceTest {
   private static WireMockExtension apiProvider =
       WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
 
-  private ObjectMapper mapper = Jackson2ObjectMapperBuilder.json().build();
+  private ObjectMapper mapper = JsonMapper.builder().build();
 
   private WebhookProperties webhookProperties = new WebhookProperties();
 

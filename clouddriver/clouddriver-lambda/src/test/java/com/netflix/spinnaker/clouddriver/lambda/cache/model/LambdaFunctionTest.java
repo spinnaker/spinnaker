@@ -18,11 +18,12 @@ package com.netflix.spinnaker.clouddriver.lambda.cache.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer;
+import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Verifies that {@link LambdaFunction}'s typed accessors expose the fields that the v1
@@ -31,7 +32,7 @@ import org.junit.jupiter.api.Test;
  */
 class LambdaFunctionTest {
 
-  private final ObjectMapper mapper = AmazonObjectMapperConfigurer.createConfigured();
+  private final ObjectMapper mapper = JsonMapper.builder().addModule(new AwsSdkV2Module()).build();
 
   @Test
   void typedAccessorsRoundTripFromAttributes() {

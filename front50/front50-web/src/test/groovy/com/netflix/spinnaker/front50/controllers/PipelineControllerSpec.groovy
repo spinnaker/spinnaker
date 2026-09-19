@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.front50.controllers
 
-import com.fasterxml.jackson.databind.Module
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.JacksonModule
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline
 import com.netflix.spinnaker.front50.api.validator.PipelineValidator
@@ -34,6 +34,7 @@ import java.util.stream.Collectors
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import tools.jackson.databind.json.JsonMapper
 
 @AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(controllers = [PipelineController])
@@ -91,7 +92,7 @@ class PipelineControllerSpec extends Specification {
     _ * localFiatPermissionEvaluator.hasPermission(_, "test-application", "APPLICATION", "WRITE") >> true
 
     def pipelineController = new PipelineController(
-      pipelineDAO, new ObjectMapper(), Optional.empty(), [], Optional.empty(), pipelineControllerConfig,
+      pipelineDAO, JsonMapper.builder().build(), Optional.empty(), [], Optional.empty(), pipelineControllerConfig,
       localFiatPermissionEvaluator, authorizationSupport)
 
     when: "staleCheck is true and conditions are met"
@@ -142,7 +143,7 @@ class PipelineControllerSpec extends Specification {
     }
 
     def pipelineController = new PipelineController(
-      pipelineDAO, new ObjectMapper(), Optional.empty(), [], Optional.empty(), pipelineControllerConfig,
+      pipelineDAO, JsonMapper.builder().build(), Optional.empty(), [], Optional.empty(), pipelineControllerConfig,
       fiatPermissionEvaluator, authorizationSupport)
 
     when:
@@ -174,7 +175,7 @@ class PipelineControllerSpec extends Specification {
       .perform(
         post("/pipelines")
           .contentType(MediaType.APPLICATION_JSON)
-          .content(new ObjectMapper().writeValueAsString(pipelineData))
+          .content(JsonMapper.builder().build().writeValueAsString(pipelineData))
       )
       .andReturn()
       .response
@@ -199,7 +200,7 @@ class PipelineControllerSpec extends Specification {
       .perform(
         post("/pipelines")
           .contentType(MediaType.APPLICATION_JSON)
-          .content(new ObjectMapper().writeValueAsString(pipelineData))
+          .content(JsonMapper.builder().build().writeValueAsString(pipelineData))
       )
       .andReturn()
       .response
@@ -233,7 +234,7 @@ class PipelineControllerSpec extends Specification {
       .standaloneSetup(
         new PipelineController(
           pipelineDAO,
-          new ObjectMapper(),
+          JsonMapper.builder().build(),
           Optional.empty(),
           [new MockValidator()] as List<PipelineValidator>,
           Optional.empty(),
@@ -254,7 +255,7 @@ class PipelineControllerSpec extends Specification {
       .perform(
         post("/pipelines")
           .contentType(MediaType.APPLICATION_JSON)
-          .content(new ObjectMapper().writeValueAsString(newPipeline))
+          .content(JsonMapper.builder().build().writeValueAsString(newPipeline))
       )
       .andReturn()
       .response
@@ -306,21 +307,21 @@ class PipelineControllerSpec extends Specification {
     def pipelineDAO = new InMemoryPipelineDAO()
     def createPipelineFirstRequest = post("/pipelines")
       .contentType(MediaType.APPLICATION_JSON)
-      .content(new ObjectMapper().writeValueAsString([
+      .content(JsonMapper.builder().build().writeValueAsString([
         id         : "1",
         name       : "pipeline-name",
         application: "application-name",
       ]))
     def createPipelineSecondRequest = post("/pipelines")
       .contentType(MediaType.APPLICATION_JSON)
-      .content(new ObjectMapper().writeValueAsString([
+      .content(JsonMapper.builder().build().writeValueAsString([
         id         : "2",
         name       : "pipeline-name",
         application: "application-name",
       ]))
 
     def mockMvcWithController = MockMvcBuilders.standaloneSetup(new PipelineController(
-      pipelineDAO, new ObjectMapper(), Optional.empty(), [], Optional.empty(), pipelineControllerConfig,
+      pipelineDAO, JsonMapper.builder().build(), Optional.empty(), [], Optional.empty(), pipelineControllerConfig,
       fiatPermissionEvaluator, authorizationSupport
     )).build()
 

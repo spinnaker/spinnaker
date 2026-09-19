@@ -3,11 +3,12 @@ package com.netflix.kayenta.clickhouse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
 import com.netflix.kayenta.canary.providers.metrics.ClickhouseCanaryMetricSetQueryConfig;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Verifies that a canary config referencing {@code "type": "clickhouse"} round-trips through
@@ -32,7 +33,7 @@ public class ClickhouseIntegrationTest {
 
   @Test
   public void loadConfig() throws Exception {
-    ObjectMapper objectMapper = new ObjectMapper();
+    ObjectMapper objectMapper = JsonMapper.builder().build();
     objectMapper.registerSubtypes(ClickhouseCanaryMetricSetQueryConfig.class);
 
     CanaryConfig config = objectMapper.readValue(CANARY_CONFIG_JSON, CanaryConfig.class);

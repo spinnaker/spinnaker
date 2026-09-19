@@ -16,30 +16,5 @@
 
 package com.netflix.spinnaker.kork.aws.jackson;
 
-import com.fasterxml.jackson.databind.BeanDescription;
-import com.fasterxml.jackson.databind.DeserializationConfig;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.deser.BeanDeserializerModifier;
-import software.amazon.awssdk.core.SdkPojo;
-
-public class SdkPojoDeserializerModifier extends BeanDeserializerModifier {
-
-  @Override
-  public JsonDeserializer<?> modifyDeserializer(
-      DeserializationConfig config, BeanDescription beanDesc, JsonDeserializer<?> deserializer) {
-    Class<?> beanClass = beanDesc.getBeanClass();
-    if (SdkPojo.class.isAssignableFrom(beanClass) && hasSerializableBuilder(beanClass)) {
-      return new SdkPojoDeserializer(beanClass);
-    }
-    return deserializer;
-  }
-
-  private static boolean hasSerializableBuilder(Class<?> type) {
-    try {
-      type.getMethod("serializableBuilderClass");
-      return true;
-    } catch (NoSuchMethodException e) {
-      return false;
-    }
-  }
-}
+/** Jackson 3 compatibility name for the AWS SDK v2 deserializer modifier. */
+public class SdkPojoDeserializerModifier extends SdkPojoJackson3DeserializerModifier {}

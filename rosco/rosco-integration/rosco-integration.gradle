@@ -1,6 +1,6 @@
 dependencies {
   testImplementation project(":rosco-manifests")
-  testImplementation "com.fasterxml.jackson.core:jackson-databind"
+  testImplementation "tools.jackson.core:jackson-databind"
   testImplementation "org.wiremock:wiremock"
   testImplementation "commons-io:commons-io"
   testImplementation "io.spinnaker.kork:kork-artifacts"

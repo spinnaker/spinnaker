@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.gate.controllers
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.gate.services.PipelineTemplateService
 import com.netflix.spinnaker.gate.services.TaskService
 import org.springframework.http.MediaType
@@ -26,6 +26,7 @@ import spock.lang.Unroll
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import tools.jackson.databind.json.JsonMapper
 
 class PipelineTemplateControllerSpec extends Specification {
 
@@ -34,7 +35,7 @@ class PipelineTemplateControllerSpec extends Specification {
     given:
     def pipelineTemplateService = Mock(PipelineTemplateService)
     def taskService = Mock(TaskService)
-    MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new PipelineTemplatesController(pipelineTemplateService, taskService, new ObjectMapper())).build()
+    MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new PipelineTemplatesController(pipelineTemplateService, taskService, JsonMapper.builder().build())).build()
 
     and:
     def pipelineTemplate = [
@@ -46,7 +47,7 @@ class PipelineTemplateControllerSpec extends Specification {
     when:
     def response = mockMvc.perform(
       post("/pipelineTemplates").contentType(MediaType.APPLICATION_JSON)
-        .content(new ObjectMapper().writeValueAsString(pipelineTemplate))
+        .content(JsonMapper.builder().build().writeValueAsString(pipelineTemplate))
     ).andReturn().response
 
     then:
@@ -57,7 +58,7 @@ class PipelineTemplateControllerSpec extends Specification {
       job: [
         [
           type: 'createPipelineTemplate',
-          pipelineTemplate: Base64.encoder.encodeToString(new ObjectMapper().writeValueAsString([
+          pipelineTemplate: Base64.encoder.encodeToString(JsonMapper.builder().build().writeValueAsString([
             id: 'foo',
             metadata: metadata,
             configuration: [:]
@@ -79,7 +80,7 @@ class PipelineTemplateControllerSpec extends Specification {
     given:
     def pipelineTemplateService = Mock(PipelineTemplateService)
     def taskService = Mock(TaskService)
-    MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new PipelineTemplatesController(pipelineTemplateService, taskService, new ObjectMapper())).build()
+    MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new PipelineTemplatesController(pipelineTemplateService, taskService, JsonMapper.builder().build())).build()
 
     when:
     def response = mockMvc.perform(

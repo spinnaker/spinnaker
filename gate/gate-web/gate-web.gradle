@@ -16,8 +16,7 @@ dependencies {
   implementation project(":gate-integrations-gremlin")
   implementation project(":gate-mcp")
 
-  implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
-  implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
+  implementation "tools.jackson.dataformat:jackson-dataformat-yaml"
 
   implementation "io.spinnaker.fiat:fiat-core"
   implementation "io.spinnaker.fiat:fiat-api"
@@ -70,7 +69,6 @@ dependencies {
   testImplementation "io.spinnaker.kork:kork-jedis-test"
   testImplementation "io.spinnaker.kork:kork-test"
   testImplementation "org.apache.groovy:groovy-json"
-  testImplementation "com.squareup.retrofit2:converter-jackson"
   testImplementation "com.squareup.retrofit2:retrofit-mock"
   testImplementation "org.springframework.security:spring-security-oauth2-client"
   testImplementation "org.apache.httpcomponents.client5:httpclient5"

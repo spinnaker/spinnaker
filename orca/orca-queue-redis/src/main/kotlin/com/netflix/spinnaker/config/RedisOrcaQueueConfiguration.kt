@@ -15,10 +15,6 @@
  */
 package com.netflix.spinnaker.config
 
-import com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.module.SimpleModule
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.netflix.spinnaker.orca.TaskResolver
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.q.migration.ExecutionTypeDeserializer
@@ -33,7 +29,6 @@ import com.netflix.spinnaker.q.redis.RedisDeadMessageHandler
 import com.netflix.spinnaker.q.redis.RedisQueue
 import java.time.Clock
 import java.util.Optional
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -43,6 +38,11 @@ import org.springframework.context.annotation.Primary
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisCluster
 import redis.clients.jedis.util.Pool
+import tools.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.databind.module.SimpleModule
+import tools.jackson.module.kotlin.KotlinModule
 
 @Configuration
 @EnableConfigurationProperties(ObjectMapperSubtypeProperties::class)
@@ -53,32 +53,35 @@ import redis.clients.jedis.util.Pool
 )
 class RedisOrcaQueueConfiguration : RedisQueueConfiguration() {
 
-  @Autowired
-  fun redisQueueObjectMapper(
-    mapper: ObjectMapper,
+  @Bean
+  @Primary
+  fun orcaRedisQueueObjectMapper(
+    @Qualifier("mapper") mapper: ObjectMapper,
     objectMapperSubtypeProperties: ObjectMapperSubtypeProperties,
     taskResolver: TaskResolver
-  ) {
-    mapper.apply {
-      registerModule(KotlinModule.Builder().build())
-      registerModule(
+  ): ObjectMapper {
+    val configuredMapper = mapper.rebuild<JsonMapper, JsonMapper.Builder>()
+      .addModule(KotlinModule.Builder().build())
+      .addModule(
         SimpleModule()
           .addDeserializer(ExecutionType::class.java, ExecutionTypeDeserializer())
           .addDeserializer(Class::class.java, TaskTypeDeserializer(taskResolver))
       )
-      disable(FAIL_ON_UNKNOWN_PROPERTIES)
+      .disable(FAIL_ON_UNKNOWN_PROPERTIES)
+      .build()
 
-      SpringObjectMapperConfigurer(
-        objectMapperSubtypeProperties.apply {
-          messagePackages += listOf("com.netflix.spinnaker.orca.q")
-          attributePackages += listOf("com.netflix.spinnaker.orca.q")
-        }
-      ).registerSubtypes(this)
-    }
+    return SpringObjectMapperConfigurer(
+      objectMapperSubtypeProperties.apply {
+        messagePackages += listOf("com.netflix.spinnaker.orca.q")
+        attributePackages += listOf("com.netflix.spinnaker.orca.q")
+      }
+    ).registerSubtypes(configuredMapper)
   }
 
   @Bean
-  fun orcaToKeikoSerializationMigrator(objectMapper: ObjectMapper) = OrcaToKeikoSerializationMigrator(objectMapper)
+  fun orcaToKeikoSerializationMigrator(
+    @Qualifier("orcaRedisQueueObjectMapper") objectMapper: ObjectMapper
+  ) = OrcaToKeikoSerializationMigrator(objectMapper)
 
   @Bean
   @ConditionalOnProperty(value = ["redis.cluster-enabled"], havingValue = "false", matchIfMissing = true)
@@ -89,7 +92,7 @@ class RedisOrcaQueueConfiguration : RedisQueueConfiguration() {
     clock: Clock,
     deadMessageHandler: RedisDeadMessageHandler,
     publisher: EventPublisher,
-    mapper: ObjectMapper,
+    @Qualifier("orcaRedisQueueObjectMapper") mapper: ObjectMapper,
     serializationMigrator: Optional<SerializationMigrator>
   ): RedisQueue {
     return super.queue(redisPool, redisQueueProperties, clock, deadMessageHandler, publisher, mapper, serializationMigrator)
@@ -104,7 +107,7 @@ class RedisOrcaQueueConfiguration : RedisQueueConfiguration() {
     clock: Clock,
     deadMessageHandler: RedisClusterDeadMessageHandler,
     publisher: EventPublisher,
-    redisQueueObjectMapper: ObjectMapper,
+    @Qualifier("orcaRedisQueueObjectMapper") redisQueueObjectMapper: ObjectMapper,
     serializationMigrator: Optional<SerializationMigrator>
   ): RedisClusterQueue {
     return super.clusterQueue(
@@ -122,7 +125,7 @@ class RedisOrcaQueueConfiguration : RedisQueueConfiguration() {
   @ConditionalOnProperty(value = ["queue.pending-execution-service.redis.enabled"], matchIfMissing = true)
   fun pendingExecutionService(
     @Qualifier("queueRedisPool") jedisPool: Pool<Jedis>,
-    mapper: ObjectMapper
+    @Qualifier("orcaRedisQueueObjectMapper") mapper: ObjectMapper
   ) =
     RedisPendingExecutionService(jedisPool, mapper)
 }

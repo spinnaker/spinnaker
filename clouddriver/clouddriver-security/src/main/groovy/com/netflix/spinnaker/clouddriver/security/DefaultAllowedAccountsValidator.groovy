@@ -16,17 +16,18 @@
 
 package com.netflix.spinnaker.clouddriver.security
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.security.resources.NonCredentialed
 import com.netflix.spinnaker.fiat.model.Authorization
 import com.netflix.spinnaker.fiat.shared.FiatStatus
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.validation.Errors
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 
 @Slf4j
 class DefaultAllowedAccountsValidator implements AllowedAccountsValidator {
-  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
+  private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder().build()
 
   private final AccountCredentialsProvider accountCredentialsProvider
   private final FiatStatus fiatStatus

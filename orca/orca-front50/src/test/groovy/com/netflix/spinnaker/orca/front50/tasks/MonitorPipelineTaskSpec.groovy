@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.front50.tasks
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.front50.pipeline.MonitorPipelineStage
@@ -33,6 +33,7 @@ import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
+import tools.jackson.databind.json.JsonMapper
 
 class MonitorPipelineTaskSpec extends Specification {
 
@@ -40,7 +41,7 @@ class MonitorPipelineTaskSpec extends Specification {
   StageExecutionImpl stage = new StageExecutionImpl()
 
   @Subject
-  MonitorPipelineTask task = new MonitorPipelineTask(repo, new ObjectMapper())
+  MonitorPipelineTask task = new MonitorPipelineTask(repo, JsonMapper.builder().build())
 
   def setup() {
     stage.context.executionId = 'abc'
@@ -252,7 +253,7 @@ class MonitorPipelineTaskSpec extends Specification {
 
   @Unroll
   def "respect #behavior behavior when monitoring multiple pipelines"() {
-    ObjectMapper objectMapper = new ObjectMapper()
+    ObjectMapper objectMapper = JsonMapper.builder().build()
 
     def child1 = pipeline {
       application = "orca"

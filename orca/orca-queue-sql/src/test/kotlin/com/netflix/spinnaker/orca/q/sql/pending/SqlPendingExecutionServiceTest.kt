@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.orca.q.sql.pending
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.KotlinModule
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.KotlinModule
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
@@ -43,10 +43,10 @@ internal object SqlPendingExecutionServiceTest : SubjectSpek<SqlPendingExecution
 
   val maxDepth = 4
 
-  val mapper = ObjectMapper().apply {
-    registerModule(KotlinModule.Builder().build())
-    registerSubtypes(StartExecution::class.java, RestartStage::class.java)
-  }
+  val mapper = JsonMapper.builder()
+    .addModule(KotlinModule.Builder().build())
+    .registerSubtypes(StartExecution::class.java, RestartStage::class.java)
+    .build()
 
   subject {
     SqlPendingExecutionService(

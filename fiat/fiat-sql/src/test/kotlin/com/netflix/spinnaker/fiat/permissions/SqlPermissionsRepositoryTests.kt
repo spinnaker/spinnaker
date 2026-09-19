@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.fiat.permissions
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig.UNRESTRICTED_USERNAME
 import com.netflix.spinnaker.fiat.model.Authorization
 import com.netflix.spinnaker.fiat.model.UserPermission
@@ -44,6 +43,8 @@ import java.time.ZoneId
 import java.util.*
 import java.util.concurrent.*
 import kotlin.contracts.ExperimentalContracts
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 
 @ExperimentalContracts
 internal object SqlPermissionsRepositoryTests : JUnit5Minutests {
@@ -80,7 +81,9 @@ internal object SqlPermissionsRepositoryTests : JUnit5Minutests {
 
         val clock = TestClock()
 
-        val objectMapper = ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL)
+        val objectMapper = JsonMapper.builder()
+            .changeDefaultPropertyInclusion { value -> value.withValueInclusion(JsonInclude.Include.NON_NULL) }
+            .build()
 
         val extensionResourceType = ResourceType("extension_resource")
 

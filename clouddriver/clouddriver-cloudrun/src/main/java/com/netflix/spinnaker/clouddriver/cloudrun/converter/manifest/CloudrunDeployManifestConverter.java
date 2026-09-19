@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.cloudrun.converter.manifest;
 
 import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.DEPLOY_CLOUDRUN_MANIFEST;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.cloudrun.CloudrunOperation;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.converters.CloudrunAtomicOperationConverterHelper;
 import com.netflix.spinnaker.clouddriver.cloudrun.description.manifest.CloudrunDeployManifestDescription;
@@ -30,6 +29,7 @@ import groovy.util.logging.Slf4j;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
 @CloudrunOperation(DEPLOY_CLOUDRUN_MANIFEST)
 @Component

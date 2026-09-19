@@ -16,16 +16,17 @@
 
 package com.netflix.spinnaker.clouddriver.azure.templates
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.SerializationFeature
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.appgateway.model.AzureAppGatewayDescription
 import groovy.util.logging.Slf4j
+import tools.jackson.databind.json.JsonMapper
 
 @Slf4j
 class AzureAppGatewayResourceTemplate {
 
-  static ObjectMapper mapper = new ObjectMapper()
+  static ObjectMapper mapper = JsonMapper.builder().build()
     .configure(SerializationFeature.INDENT_OUTPUT, true)
     .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
 

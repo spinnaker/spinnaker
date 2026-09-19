@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.echo.microsoftteams;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hubspot.jinjava.Jinjava;
 import com.hubspot.jinjava.JinjavaConfig;
 import com.hubspot.jinjava.interpret.FatalTemplateErrorsException;
@@ -32,6 +31,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Template engine for rendering Microsoft Teams messages using Jinja templates.
@@ -93,7 +94,7 @@ public class MicrosoftTeamsTemplateEngine {
     } catch (FatalTemplateErrorsException e) {
       log.error("Failed to render MS Teams template '{}': {}", templateName, e.getMessage(), e);
       throw new TemplateRenderException("Template rendering failed: " + e.getMessage(), e);
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       log.error(
           "Rendered MS Teams template '{}' produced invalid JSON: {}",
           templateName,

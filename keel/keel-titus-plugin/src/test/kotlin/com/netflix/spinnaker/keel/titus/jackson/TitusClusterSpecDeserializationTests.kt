@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.titus.jackson
 
-import com.fasterxml.jackson.databind.jsontype.NamedType
-import com.fasterxml.jackson.module.kotlin.readValue
+import tools.jackson.databind.jsontype.NamedType
+import tools.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.titus.TitusClusterSpec
 import com.netflix.spinnaker.keel.api.toSimpleLocations
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
@@ -17,9 +17,9 @@ class TitusClusterSpecDeserializationTests : JUnit5Minutests {
   data class Fixture(val manifest: String) {
     val mapper = configuredTestYamlMapper()
       .registerKeelTitusApiModule()
-      .apply {
-        registerSubtypes(NamedType(TitusClusterSpec::class.java, "titus/cluster@v1"))
-      }
+      .rebuild()
+      .registerSubtypes(NamedType(TitusClusterSpec::class.java, "titus/cluster@v1"))
+      .build()
   }
 
   fun tests() = rootContext<Fixture> {

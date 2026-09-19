@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.clouddriver.google.provider.view
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Subnetwork
 import com.netflix.spinnaker.cats.cache.CacheData
@@ -12,13 +12,14 @@ import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvi
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
+import tools.jackson.databind.json.JsonMapper
 
 class GoogleSubnetProviderSpec extends Specification {
   @Subject
   GoogleSubnetProvider provider
 
   WriteableCache cache = new InMemoryCache()
-  ObjectMapper mapper = new ObjectMapper()
+  ObjectMapper mapper = JsonMapper.builder().build()
 
   def setup() {
     def accountCredentialsProvider =  new DefaultAccountCredentialsProvider()

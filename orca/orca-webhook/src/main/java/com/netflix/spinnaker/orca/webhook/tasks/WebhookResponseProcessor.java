@@ -18,8 +18,6 @@ package com.netflix.spinnaker.orca.webhook.tasks;
 
 import static java.lang.String.format;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import com.netflix.spinnaker.kork.exceptions.SystemException;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
@@ -42,6 +40,8 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.HttpStatusCodeException;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 /** Processes responses and errors from webhook stage executions. */
 public class WebhookResponseProcessor {
@@ -249,7 +249,7 @@ public class WebhookResponseProcessor {
       } else if (responseBody.startsWith("[")) {
         body = objectMapper.readValue(responseBody, List.class);
       }
-    } catch (JsonProcessingException ex) {
+    } catch (JacksonException ex) {
       // Just leave body as string, probs not JSON
       log.warn("Failed to parse webhook payload as JSON", ex);
     }

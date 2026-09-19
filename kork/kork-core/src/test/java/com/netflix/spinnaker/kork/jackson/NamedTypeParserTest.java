@@ -19,9 +19,6 @@ package com.netflix.spinnaker.kork.jackson;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.jsontype.NamedType;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -29,11 +26,14 @@ import java.lang.annotation.Target;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.jsontype.NamedType;
 
 class NamedTypeParserTest {
   @Test
-  void customNamedTypeDiscriminator() throws JsonProcessingException {
-    var mapper = new ObjectMapper();
+  void customNamedTypeDiscriminator() throws JacksonException {
+    var mapper = JsonMapper.builder().build();
     NamedTypeParser parser =
         type ->
             Optional.ofNullable(type.getAnnotation(TypeDiscriminator.class))
@@ -41,11 +41,12 @@ class NamedTypeParserTest {
                 .map(name -> new NamedType(type, name))
                 .orElse(null);
 
-    new ObjectMapperSubtypeConfigurer(parser)
-        .registerSubtype(
-            mapper,
-            new ObjectMapperSubtypeConfigurer.ClassSubtypeLocator(
-                UncleType.class, List.of("com.netflix.spinnaker.kork.jackson")));
+    mapper =
+        new ObjectMapperSubtypeConfigurer(parser)
+            .registerSubtype(
+                mapper,
+                new ObjectMapperSubtypeConfigurer.ClassSubtypeLocator(
+                    UncleType.class, List.of("com.netflix.spinnaker.kork.jackson")));
 
     assertEquals("{\"kind\":\"niece\"}", mapper.writeValueAsString(new NieceType()));
   }

@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.config
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.dataformat.yaml.YAMLMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
 import com.netflix.spinnaker.keel.api.plugins.PostDeployActionHandler
@@ -15,11 +15,13 @@ import com.netflix.spinnaker.keel.schema.ResourceKindSchemaCustomizer
 import com.netflix.spinnaker.keel.schema.TagVersionStrategySchemaCustomizer
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
+import com.netflix.spinnaker.keel.ec2.jackson.registerKeelEc2ApiModule
+import com.netflix.spinnaker.keel.titus.jackson.registerKeelTitusApiModule
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
 import de.huxhorn.sulky.ulid.ULID
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
-import org.springframework.boot.jackson2.JsonComponentModule
+import org.springframework.boot.jackson.JacksonComponentModule
 import org.springframework.boot.task.ThreadPoolTaskSchedulerCustomizer
 import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
@@ -82,16 +84,26 @@ class DefaultConfiguration(
   fun idGenerator(): ULID = ULID()
 
   @Bean
-  fun jsonComponentModule() = JsonComponentModule()
+  fun jsonComponentModule() = JacksonComponentModule()
 
   @Bean(name = ["jsonMapper", "objectMapper"])
   @Primary
-  fun objectMapper(jsonComponentModule: JsonComponentModule): ObjectMapper =
-    configuredObjectMapper().registerModule(jsonComponentModule)
+  fun objectMapper(jsonComponentModule: JacksonComponentModule): JsonMapper =
+    configuredObjectMapper()
+      .registerKeelEc2ApiModule()
+      .registerKeelTitusApiModule()
+      .rebuild()
+      .addModule(jsonComponentModule)
+      .build()
 
   @Bean(name = ["yamlMapper"])
-  fun yamlMapper(jsonComponentModule: JsonComponentModule): YAMLMapper =
-    configuredYamlMapper().registerModule(jsonComponentModule) as YAMLMapper
+  fun yamlMapper(jsonComponentModule: JacksonComponentModule): YAMLMapper =
+    configuredYamlMapper()
+      .registerKeelEc2ApiModule()
+      .registerKeelTitusApiModule()
+      .rebuild()
+      .addModule(jsonComponentModule)
+      .build()
 
   @Bean
   @ConditionalOnMissingBean(ResourceHandler::class)

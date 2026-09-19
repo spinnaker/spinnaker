@@ -22,9 +22,6 @@ import static java.util.Collections.*;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonView;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.netflix.frigga.Names;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryCloudProvider;
 import com.netflix.spinnaker.clouddriver.model.Image;
@@ -40,6 +37,10 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import lombok.With;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.json.JsonMapper;
 
 @Value
 @EqualsAndHashCode(of = "id", callSuper = false)
@@ -48,7 +49,7 @@ import lombok.With;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("loadBalancerNames")
 public class CloudFoundryServerGroup extends CloudFoundryModel implements ServerGroup {
-  private static final ObjectMapper IMAGE_MAPPER = new ObjectMapper();
+  private static final ObjectMapper IMAGE_MAPPER = JsonMapper.builder().build();
 
   @JsonView(Views.Cache.class)
   String account;

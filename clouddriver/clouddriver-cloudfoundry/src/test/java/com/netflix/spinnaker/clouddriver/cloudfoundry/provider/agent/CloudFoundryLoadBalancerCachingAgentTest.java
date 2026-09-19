@@ -11,9 +11,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult;
@@ -40,12 +37,16 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 class CloudFoundryLoadBalancerCachingAgentTest {
   private Instant now = Instant.now();
   private String accountName = "account";
   private ObjectMapper objectMapper =
-      new ObjectMapper().disable(MapperFeature.DEFAULT_VIEW_INCLUSION);
+      JsonMapper.builder().build().disable(MapperFeature.DEFAULT_VIEW_INCLUSION);
   private CloudFoundryClient cloudFoundryClient = mock(CloudFoundryClient.class);
   private Registry registry = mock(Registry.class);
   private final Clock internalClock = Clock.fixed(now, ZoneId.systemDefault());
@@ -374,8 +375,7 @@ class CloudFoundryLoadBalancerCachingAgentTest {
   }
 
   @Test
-  void loadDataShouldReturnCacheResultWithDataFromOnDemandNamespace()
-      throws JsonProcessingException {
+  void loadDataShouldReturnCacheResultWithDataFromOnDemandNamespace() throws JacksonException {
 
     CloudFoundryLoadBalancer loadBalancer =
         CloudFoundryLoadBalancer.builder()

@@ -8,8 +8,8 @@
  */
 package com.netflix.spinnaker.clouddriver.oracle.service.servergroup
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.oracle.model.OracleServerGroup
 import com.netflix.spinnaker.clouddriver.oracle.security.OracleNamedAccountCredentials
 import com.oracle.bmc.model.BmcException
@@ -20,6 +20,7 @@ import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
 
 import java.nio.charset.Charset
+import tools.jackson.databind.json.JsonMapper
 
 /**
  * Uses Object Storage as a persistent store for server group data. This is a temporary work around
@@ -55,7 +56,7 @@ class OracleServerGroupPersistence {
 
   private final Charset UTF_8_CHARSET = Charset.forName("UTF-8")
 
-  private final ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+  private final ObjectMapper objectMapper = JsonMapper.builder().build().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
   /**
    * Lists the server group names for the specified account.

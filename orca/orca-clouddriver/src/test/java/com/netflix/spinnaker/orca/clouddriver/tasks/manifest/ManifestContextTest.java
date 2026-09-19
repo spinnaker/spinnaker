@@ -18,10 +18,10 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.manifest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.Collections;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.json.JsonMapper;
 
 class ManifestContextTest {
   @Test
@@ -50,7 +50,8 @@ class ManifestContextTest {
             + "  ]\n"
             + "}";
 
-    DeployManifestContext context = new ObjectMapper().readValue(json, DeployManifestContext.class);
+    DeployManifestContext context =
+        JsonMapper.builder().build().readValue(json, DeployManifestContext.class);
     assertThat(context.getSource()).isEqualTo(ManifestContext.Source.Text);
   }
 
@@ -67,7 +68,8 @@ class ManifestContextTest {
             + "  }\n"
             + "}";
 
-    PatchManifestContext context = new ObjectMapper().readValue(json, PatchManifestContext.class);
+    PatchManifestContext context =
+        JsonMapper.builder().build().readValue(json, PatchManifestContext.class);
     assertThat(context.getSource()).isEqualTo(ManifestContext.Source.Text);
     assertThat(context.getManifestArtifactAccount()).isEqualTo("account");
     assertThat(context.getManifests()).isNotNull();
@@ -91,7 +93,8 @@ class ManifestContextTest {
             + "  ]\n"
             + "}";
 
-    PatchManifestContext context = new ObjectMapper().readValue(json, PatchManifestContext.class);
+    PatchManifestContext context =
+        JsonMapper.builder().build().readValue(json, PatchManifestContext.class);
     assertThat(context.getSource()).isEqualTo(ManifestContext.Source.Text);
     assertThat(context.getManifestArtifactAccount()).isEqualTo("account");
     assertThat(context.getManifests()).isNotNull();

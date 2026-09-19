@@ -17,7 +17,7 @@
  */
 package com.netflix.spinnaker.keel.titus
 
-import com.fasterxml.jackson.module.kotlin.convertValue
+import tools.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.keel.actuation.RolloutLocation
 import com.netflix.spinnaker.keel.actuation.RolloutTarget
 import com.netflix.spinnaker.keel.api.ClusterDeployStrategy

@@ -17,8 +17,6 @@ package com.netflix.kayenta.canary;
 
 import static java.util.Optional.ofNullable;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -35,7 +33,6 @@ import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher;
 import com.netflix.spinnaker.orca.pipeline.model.PipelineBuilder;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import jakarta.validation.constraints.NotNull;
-import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
@@ -47,6 +44,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 @Slf4j
@@ -234,7 +233,7 @@ public class ExecutionMapper {
     try {
       canaryExecutionRequest =
           objectMapper.readValue(canaryExecutionRequestJSON, CanaryExecutionRequest.class);
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       log.error("Cannot deserialize canaryExecutionRequest", e);
       throw new IllegalArgumentException("Cannot deserialize canaryExecutionRequest", e);
     }
@@ -320,7 +319,7 @@ public class ExecutionMapper {
               String scopeJson;
               try {
                 scopeJson = objectMapper.writeValueAsString(scopeModel);
-              } catch (JsonProcessingException e) {
+              } catch (JacksonException e) {
                 throw new IllegalArgumentException(
                     "Cannot render scope to json"); // TODO: this seems like cheating
               }
@@ -356,7 +355,7 @@ public class ExecutionMapper {
       @NotNull String resolvedMetricsAccountName,
       @NotNull String resolvedStorageAccountName,
       @NotNull CanaryExecutionRequest canaryExecutionRequest)
-      throws JsonProcessingException {
+      throws JacksonException {
     registry
         .counter(
             pipelineRunId
@@ -528,7 +527,7 @@ public class ExecutionMapper {
       Double marginalThreshold,
       String resolvedConfigurationAccountName,
       @NotNull String resolvedStorageAccountName)
-      throws JsonProcessingException {
+      throws JacksonException {
     if (StringUtils.isEmpty(application)) {
       application = "kayenta-" + currentInstanceId;
     }

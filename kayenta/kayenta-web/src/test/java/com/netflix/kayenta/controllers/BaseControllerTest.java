@@ -4,7 +4,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.canary.CanaryJudge;
 import com.netflix.kayenta.canary.ExecutionMapper;
 import com.netflix.kayenta.config.WebConfiguration;
@@ -37,6 +36,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import tools.jackson.databind.json.JsonMapper;
 
 @SpringBootTest(
     classes = BaseControllerTest.TestControllersConfiguration.class,
@@ -89,7 +89,7 @@ public abstract class BaseControllerTest {
         ExecutionLauncher executionLauncher,
         Registry registry) {
       return new ExecutionMapper(
-          new ObjectMapper(),
+          JsonMapper.builder().build(),
           registry,
           "",
           Optional.empty(),

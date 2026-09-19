@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.controllers
 
-import com.fasterxml.jackson.core.type.TypeReference
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.config.ExecutionCompressionProperties
 import com.netflix.spinnaker.config.TaskControllerConfigurationProperties
@@ -43,6 +42,7 @@ import retrofit2.mock.Calls
 import strikt.api.expectCatching
 import strikt.assertions.isA
 import strikt.assertions.isFailure
+import tools.jackson.core.type.TypeReference
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId

@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel
 
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
+import tools.jackson.dataformat.yaml.YAMLMapper
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.jackson.readValueInliningAliases
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService

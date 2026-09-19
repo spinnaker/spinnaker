@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.titus.deploy.converters
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonS3DataProvider
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
@@ -27,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.titus.client.model.Task
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
 import spock.lang.Specification
 import spock.lang.Subject
+import tools.jackson.databind.json.JsonMapper
 
 class TitusJobProviderSpec extends Specification {
   TitusClient titusClient = Stub()
@@ -53,7 +54,7 @@ class TitusJobProviderSpec extends Specification {
   TitusJobProvider titusJobProvider = new TitusJobProvider(titusClientProvider)
 
   def setup() {
-    titusJobProvider.objectMapper = new ObjectMapper()
+    titusJobProvider.objectMapper = JsonMapper.builder().build()
     titusJobProvider.accountCredentialsProvider = accountCredentialsProvider
     titusJobProvider.amazonS3DataProvider = amazonS3DataProvider
     accountCredentialsProvider.getCredentials(_) >> mockCredentials

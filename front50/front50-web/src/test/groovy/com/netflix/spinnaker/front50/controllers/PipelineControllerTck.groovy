@@ -36,7 +36,7 @@ import org.springframework.web.util.UriComponentsBuilder
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.Callable
 import java.util.concurrent.Executors
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import groovy.json.JsonSlurper
 
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
@@ -54,6 +54,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import tools.jackson.databind.json.JsonMapper
 
 
 abstract class PipelineControllerTck extends Specification {
@@ -78,7 +79,7 @@ abstract class PipelineControllerTck extends Specification {
   void setup() {
     println "--------------- Test " + specificationContext.currentIteration.name
 
-    this.objectMapper = new ObjectMapper()
+    this.objectMapper = JsonMapper.builder().build()
     this.objectMapper.registerModule(new Front50ApiModule())
 
     this.pipelineDAO = Spy(createPipelineDAO())

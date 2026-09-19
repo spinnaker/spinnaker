@@ -16,46 +16,5 @@
 
 package com.netflix.spinnaker.kork.aws.jackson;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import java.io.IOException;
-import java.lang.reflect.Method;
-import java.util.Optional;
-import software.amazon.awssdk.core.SdkField;
-import software.amazon.awssdk.core.SdkPojo;
-
-public class SdkPojoSerializer extends JsonSerializer<SdkPojo> {
-
-  @Override
-  public void serialize(SdkPojo value, JsonGenerator gen, SerializerProvider serializers)
-      throws IOException {
-    gen.writeStartObject();
-    for (SdkField<?> field : value.sdkFields()) {
-      String memberName = field.memberName();
-      Object fieldValue = getValueForField(value, memberName);
-      if (fieldValue != null) {
-        gen.writeFieldName(toCamelCase(memberName));
-        serializers.defaultSerializeValue(fieldValue, gen);
-      }
-    }
-    gen.writeEndObject();
-  }
-
-  private static Object getValueForField(SdkPojo pojo, String fieldName) {
-    try {
-      Method method = pojo.getClass().getMethod("getValueForField", String.class, Class.class);
-      Optional<?> value = (Optional<?>) method.invoke(pojo, fieldName, Object.class);
-      return value.orElse(null);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  private static String toCamelCase(String name) {
-    if (name == null || name.isEmpty()) {
-      return name;
-    }
-    return Character.toLowerCase(name.charAt(0)) + name.substring(1);
-  }
-}
+/** Jackson 3 compatibility name for the AWS SDK v2 serializer. */
+public class SdkPojoSerializer extends SdkPojoJackson3Serializer {}

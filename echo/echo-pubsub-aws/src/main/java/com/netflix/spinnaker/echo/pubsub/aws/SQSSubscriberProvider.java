@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.echo.pubsub.aws;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.artifacts.MessageArtifactTranslator;
@@ -46,6 +45,7 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sqs.SqsClient;
+import tools.jackson.databind.ObjectMapper;
 
 /** * Starts the individual SQS workers (one for each subscription) */
 @Component

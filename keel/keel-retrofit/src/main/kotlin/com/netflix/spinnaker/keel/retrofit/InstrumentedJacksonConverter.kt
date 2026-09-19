@@ -1,17 +1,17 @@
 package com.netflix.spinnaker.keel.retrofit
 
-import com.fasterxml.jackson.databind.JavaType
-import com.fasterxml.jackson.databind.JsonMappingException
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.ObjectReader
 import com.netflix.spinnaker.kork.exceptions.SystemException
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
 import retrofit2.Converter
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
 import java.io.IOException
 import java.lang.reflect.Type
+import tools.jackson.databind.DatabindException
+import tools.jackson.databind.JavaType
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectReader
 
 class InstrumentedJacksonConverter(private val remoteName: String, private val adapter: ObjectReader) : Converter<ResponseBody, Any> {
 
@@ -19,7 +19,7 @@ class InstrumentedJacksonConverter(private val remoteName: String, private val a
     it.string().let { body ->
       try {
         adapter.readValue<Any?>(body)
-      } catch (ex: JsonMappingException) {
+      } catch (ex: DatabindException) {
         throw UnparseableResponseException(remoteName, adapter.valueType, body, ex)
       }
     }
@@ -27,7 +27,7 @@ class InstrumentedJacksonConverter(private val remoteName: String, private val a
 
   class Factory(private val remoteName: String, private val mapper: ObjectMapper) : Converter.Factory() {
 
-    private val delegate = JacksonConverterFactory.create(mapper)
+    private val delegate = CustomConverterFactory.create(mapper)
 
     override fun responseBodyConverter(
       type: Type,
@@ -53,7 +53,7 @@ class UnparseableResponseException(
   val remoteName: String,
   val targetType: JavaType,
   val body: String,
-  cause: JsonMappingException
+  cause: DatabindException
 ) :
   SystemException("Cannot parse response from $remoteName to ${targetType.simpleSignature}, response body: $body", cause) {
     val targetSimpleSignature: String

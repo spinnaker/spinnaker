@@ -16,18 +16,18 @@
 
 package com.netflix.spinnaker.orca.q.migration
 
-import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.databind.DeserializationContext
-import com.fasterxml.jackson.databind.JsonDeserializer
-import com.fasterxml.jackson.databind.exc.InvalidFormatException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.ORCHESTRATION
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
+import tools.jackson.core.JsonParser
+import tools.jackson.databind.DeserializationContext
+import tools.jackson.databind.deser.std.StdDeserializer
+import tools.jackson.databind.exc.InvalidFormatException
 
 internal const val PIPELINE_CLASS_NAME = "com.netflix.spinnaker.orca.pipeline.model.Pipeline"
 internal const val ORCHESTRATION_CLASS_NAME = "com.netflix.spinnaker.orca.pipeline.model.Orchestration"
 
-class ExecutionTypeDeserializer : JsonDeserializer<ExecutionType>() {
+class ExecutionTypeDeserializer : StdDeserializer<ExecutionType>(ExecutionType::class.java) {
   override fun handledType(): Class<*> = ExecutionType::class.java
 
   override fun deserialize(

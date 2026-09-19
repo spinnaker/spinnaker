@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.gate.controllers
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.gate.services.WebhookService
 import com.netflix.spinnaker.gate.services.internal.EchoService
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
@@ -32,11 +32,12 @@ import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 import spock.lang.Specification
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import tools.jackson.databind.json.JsonMapper
 
 class WebhooksControllerSpec extends Specification {
 
@@ -58,7 +59,7 @@ class WebhooksControllerSpec extends Specification {
       .baseUrl("http://localhost:${localPort}")
       .client(new OkHttpClient())
       .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-      .addConverterFactory(JacksonConverterFactory.create())
+      .addConverterFactory(CustomConverterFactory.create())
       .build()
       .create(EchoService);
 
@@ -150,7 +151,7 @@ class WebhooksControllerSpec extends Specification {
     when:
     mockMvc.perform(post("/webhooks/cdevents/artifactPackaged")
       .headers(headers)
-      .content(new ObjectMapper().writeValueAsString(cdEvent)))
+      .content(JsonMapper.builder().build().writeValueAsString(cdEvent)))
       .andExpect(status().isOk()).andReturn()
 
     then:

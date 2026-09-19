@@ -54,5 +54,4 @@ dependencies {
   testImplementation testFixtures(project(":kork-crypto"))
   testRuntimeOnly "cglib:cglib-nodep"
   testRuntimeOnly "org.objenesis:objenesis"
-  testImplementation "com.squareup.retrofit2:converter-jackson"
 }

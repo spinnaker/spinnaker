@@ -1,9 +1,8 @@
 dependencies {
   api(project(":keel-retrofit"))
-  api("com.fasterxml.jackson.core:jackson-databind")
+  api("tools.jackson.core:jackson-databind")
   api("com.fasterxml.jackson.core:jackson-annotations")
-  api("com.fasterxml.jackson.module:jackson-module-kotlin")
-  api("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+  api("tools.jackson.module:jackson-module-kotlin")
   api(project(":keel-core-test"))
 
   implementation("org.junit.jupiter:junit-jupiter-api")

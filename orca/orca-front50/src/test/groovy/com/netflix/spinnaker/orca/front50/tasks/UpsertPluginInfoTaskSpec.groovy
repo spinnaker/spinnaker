@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.front50.tasks
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.front50.Front50Service
@@ -26,12 +26,13 @@ import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
+import tools.jackson.databind.json.JsonMapper
 
 class UpsertPluginInfoTaskSpec extends Specification {
 
   Front50Service front50Service = Mock()
 
-  ObjectMapper objectMapper = new ObjectMapper()
+  ObjectMapper objectMapper = JsonMapper.builder().build()
 
   @Subject
   UpsertPluginInfoTask task = new UpsertPluginInfoTask(front50Service, objectMapper)

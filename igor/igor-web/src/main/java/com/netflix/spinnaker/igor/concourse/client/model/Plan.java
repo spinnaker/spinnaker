@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.igor.concourse.client.model;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -25,6 +23,8 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.stream.StreamSupport;
 import lombok.Data;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ObjectNode;
 
 @Data
 public class Plan {
@@ -46,7 +46,7 @@ public class Plan {
 
     List<Resource> res = new ArrayList<>();
 
-    Iterator<Entry<String, JsonNode>> fields = o.fields();
+    Iterator<Entry<String, JsonNode>> fields = o.properties().iterator();
     while (fields.hasNext()) {
       Entry<String, JsonNode> f = fields.next();
 

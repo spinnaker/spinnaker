@@ -22,7 +22,6 @@ import static com.netflix.spinnaker.clouddriver.lambda.cache.Keys.Namespace.LAMB
 import static com.netflix.spinnaker.clouddriver.lambda.cache.Keys.Namespace.LAMBDA_FUNCTIONS;
 import static java.util.stream.Collectors.toSet;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CaseFormat;
 import com.netflix.frigga.Names;
@@ -63,6 +62,7 @@ import java.util.stream.Collectors;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.services.lambda.model.ResourceNotFoundException;
+import tools.jackson.databind.ObjectMapper;
 
 @Slf4j
 public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandAgent {

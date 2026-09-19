@@ -18,8 +18,6 @@ package com.netflix.spinnaker.clouddriver.aws.provider.agent;
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.agent.AccountAware;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.agent.CacheResult;
@@ -48,6 +46,8 @@ import software.amazon.awssdk.services.ec2.model.DescribeInstanceTypesResponse;
 import software.amazon.awssdk.services.ec2.model.GpuInfo;
 import software.amazon.awssdk.services.ec2.model.InstanceStorageInfo;
 import software.amazon.awssdk.services.ec2.model.InstanceTypeInfo;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 public class AmazonInstanceTypeCachingAgent implements CachingAgent, AccountAware {
 

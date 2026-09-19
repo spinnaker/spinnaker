@@ -4,7 +4,6 @@ import static com.netflix.spinnaker.clouddriver.google.model.loadbalancing.Googl
 import static com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleTargetProxyType.HTTPS;
 import static java.util.stream.Collectors.toList;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback;
 import com.google.api.client.googleapis.json.GoogleJsonError;
 import com.google.api.client.http.HttpHeaders;
@@ -27,6 +26,8 @@ import java.io.UncheckedIOException;
 import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class GoogleInternalHttpLoadBalancerCachingAgent
     extends AbstractGoogleLoadBalancerCachingAgent {
@@ -270,7 +271,7 @@ public class GoogleInternalHttpLoadBalancerCachingAgent
         // exception needs to be propagated.
         if (e.getCode() != 404) {
           String errorJson =
-              new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(e);
+              JsonMapper.builder().build().writerWithDefaultPrettyPrinter().writeValueAsString(e);
           log.error(errorJson);
         }
       }

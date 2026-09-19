@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.ivy.settings;
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import lombok.Data;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
+import tools.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 @Data
 abstract class Resolver<M extends DependencyResolver> {

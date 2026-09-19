@@ -25,7 +25,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
 import com.netflix.spinnaker.echo.model.Pipeline;
@@ -34,6 +33,7 @@ import com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers.BaseTriggerEven
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService;
 import com.netflix.spinnaker.echo.services.Front50Service;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import java.net.HttpURLConnection;
 import java.util.List;
 import java.util.Map;
@@ -52,8 +52,8 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import retrofit2.Response;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
 import retrofit2.mock.Calls;
+import tools.jackson.databind.ObjectMapper;
 
 public class PipelineCacheTest {
   // minimal set of beans necessary to initialize PipelineCache, with additional
@@ -177,7 +177,7 @@ public class PipelineCacheTest {
                 "{ \"message\": \"arbitrary message\" }", MediaType.get("application/json"))),
         new Retrofit.Builder()
             .baseUrl(URL)
-            .addConverterFactory(JacksonConverterFactory.create())
+            .addConverterFactory(CustomConverterFactory.create())
             .build());
   }
 

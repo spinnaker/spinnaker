@@ -17,9 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.description.manifest;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesResourceAwareNames;
@@ -33,6 +30,10 @@ import java.util.Optional;
 import java.util.OptionalInt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class KubernetesManifestAnnotater {
   private static final Logger log = LoggerFactory.getLogger(KubernetesManifestAnnotater.class);
@@ -61,7 +62,7 @@ public class KubernetesManifestAnnotater {
   private static final String KUBECTL_LAST_APPLIED_CONFIGURATION =
       KUBECTL_ANNOTATION_PREFIX + "/last-applied-configuration";
 
-  private static final ObjectMapper objectMapper = new ObjectMapper();
+  private static final ObjectMapper objectMapper = JsonMapper.builder().build();
 
   private static void storeAnnotation(Map<String, String> annotations, String key, Object value) {
     if (value == null) {
@@ -79,7 +80,7 @@ public class KubernetesManifestAnnotater {
       } else {
         annotations.put(key, objectMapper.writeValueAsString(value));
       }
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new IllegalArgumentException("Illegal annotation value for '" + key + "': " + e);
     }
   }

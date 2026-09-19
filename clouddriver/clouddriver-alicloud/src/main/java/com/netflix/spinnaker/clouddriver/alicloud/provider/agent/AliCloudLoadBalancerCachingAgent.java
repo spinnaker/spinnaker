@@ -25,8 +25,8 @@ import com.aliyuncs.exceptions.ServerException;
 import com.aliyuncs.slb.model.v20140515.*;
 import com.aliyuncs.slb.model.v20140515.DescribeLoadBalancerAttributeResponse.ListenerPortAndProtocal;
 import com.aliyuncs.slb.model.v20140515.DescribeLoadBalancersResponse.LoadBalancer;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.netflix.spectator.api.Registry;
@@ -216,7 +216,7 @@ public class AliCloudLoadBalancerCachingAgent implements CachingAgent, AccountAw
             try {
               map.put(
                   "cacheResults", objectMapper.writeValueAsString(cacheResult.getCacheResults()));
-            } catch (JsonProcessingException exception) {
+            } catch (JacksonException exception) {
               exception.printStackTrace();
             }
 

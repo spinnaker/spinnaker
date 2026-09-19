@@ -10,7 +10,6 @@ dependencies {
   implementation project(":kork-web")
 
   implementation "io.zipkin.brave:brave-instrumentation-okhttp3"
-  implementation "com.squareup.retrofit2:converter-jackson"
   implementation "com.squareup.okhttp3:logging-interceptor"
   implementation "com.google.guava:guava"
 

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.converters
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.CopyLastGoogleServerGroupAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.credentials.CredentialsRepository
 import spock.lang.Shared
 import spock.lang.Specification
+import tools.jackson.databind.json.JsonMapper
 
 class CopyLastGoogleServerGroupAtomicOperationConverterUnitSpec extends Specification {
   private static final APPLICATION = "spinnaker"
@@ -37,7 +38,7 @@ class CopyLastGoogleServerGroupAtomicOperationConverterUnitSpec extends Specific
   private def source = [zone: "us-central1-b", serverGroupName: "myapp-dev-v000"]
 
   @Shared
-  ObjectMapper mapper = new ObjectMapper()
+  ObjectMapper mapper = JsonMapper.builder().build()
 
   @Shared
   CopyLastGoogleServerGroupAtomicOperationConverter converter

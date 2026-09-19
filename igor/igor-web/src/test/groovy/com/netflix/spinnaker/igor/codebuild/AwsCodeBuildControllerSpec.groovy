@@ -16,15 +16,16 @@
 
 package com.netflix.spinnaker.igor.codebuild
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import software.amazon.awssdk.services.codebuild.model.StartBuildRequest
 import spock.lang.Specification
 import spock.lang.Subject
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 
 class AwsCodeBuildControllerSpec extends Specification {
 
   @Subject
-  ObjectMapper objectMapper = new ObjectMapper();
+  ObjectMapper objectMapper = JsonMapper.builder().build();
 
   def "objectMapper should convert a map to a StartBuildRequest"() {
     given:

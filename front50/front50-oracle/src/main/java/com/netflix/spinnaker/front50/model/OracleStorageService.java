@@ -8,10 +8,6 @@
  */
 package com.netflix.spinnaker.front50.model;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ser.FilterProvider;
-import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.netflix.spinnaker.front50.api.model.Timestamped;
 import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.config.OracleProperties;
@@ -47,6 +43,11 @@ import java.util.Map;
 import java.util.function.Supplier;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.ser.FilterProvider;
+import tools.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+import tools.jackson.databind.ser.impl.SimpleFilterProvider;
 
 /**
  * Oracle Object Storage-backed Front50 metadata storage.
@@ -66,7 +67,8 @@ public class OracleStorageService implements StorageService {
   private final String bucketName;
 
   private final ObjectMapper objectMapper =
-      new ObjectMapper()
+      JsonMapper.builder()
+          .build()
           .addMixIn(Timestamped.class, TimestampedMixins.class)
           .addMixIn(Pipeline.class, PipelineMixins.class);
 

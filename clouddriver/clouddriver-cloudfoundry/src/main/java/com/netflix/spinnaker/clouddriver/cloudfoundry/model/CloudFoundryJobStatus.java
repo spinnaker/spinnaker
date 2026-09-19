@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.model;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryCloudProvider;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Task;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Task.State;
@@ -30,6 +29,7 @@ import javax.annotation.Nullable;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 @Data
 @EqualsAndHashCode(callSuper = false)

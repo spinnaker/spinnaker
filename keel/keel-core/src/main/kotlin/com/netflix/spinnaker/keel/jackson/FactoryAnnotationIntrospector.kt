@@ -3,9 +3,9 @@ package com.netflix.spinnaker.keel.jackson
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonCreator.Mode.DISABLED
 import com.fasterxml.jackson.annotation.JsonCreator.Mode.PROPERTIES
-import com.fasterxml.jackson.databind.cfg.MapperConfig
-import com.fasterxml.jackson.databind.introspect.Annotated
-import com.fasterxml.jackson.databind.introspect.NopAnnotationIntrospector
+import tools.jackson.databind.cfg.MapperConfig
+import tools.jackson.databind.introspect.Annotated
+import tools.jackson.databind.introspect.NopAnnotationIntrospector
 import com.netflix.spinnaker.keel.api.schema.Factory
 
 /**

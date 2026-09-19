@@ -17,8 +17,9 @@
 package com.netflix.spinnaker.clouddriver.ecs.cache
 
 import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetTypeEnum
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
@@ -29,8 +30,9 @@ import spock.lang.Subject
 
 class EcsTargetGroupCacheClientSpec extends Specification {
   def cacheView = Mock(Cache)
-  def objectMapper = new ObjectMapper()
-                          .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+  def objectMapper = JsonMapper.builder()
+                          .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                          .build()
 
   @Subject
   EcsTargetGroupCacheClient client = new EcsTargetGroupCacheClient(cacheView, objectMapper)

@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.echo.artifacts;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.echo.config.ArtifactEmitterProperties;
 import com.netflix.spinnaker.echo.model.ArtifactEvent;
 import com.netflix.spinnaker.echo.services.KeelService;
@@ -29,6 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * In an effort to move towards a more artifact centric workflow, this collector will accept

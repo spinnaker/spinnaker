@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.lambda.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.aws.data.ArnUtils;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
@@ -34,6 +33,7 @@ import software.amazon.awssdk.policybuilder.iam.IamStatement;
 import software.amazon.awssdk.services.lambda.LambdaClient;
 import software.amazon.awssdk.services.lambda.model.*;
 import software.amazon.awssdk.services.lambda.paginators.ListFunctionsIterable;
+import tools.jackson.databind.ObjectMapper;
 
 @Log4j2
 public class LambdaService extends LambdaClientProvider {

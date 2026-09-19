@@ -18,7 +18,6 @@ package com.netflix.spinnaker.front50.model;
 
 import static net.logstash.logback.argument.StructuredArguments.value;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.storage.CloudStorageAccount;
 import com.microsoft.azure.storage.ResultContinuation;
 import com.microsoft.azure.storage.ResultSegment;
@@ -37,6 +36,8 @@ import java.util.stream.Collectors;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Azure Blob-backed Front50 metadata storage.
@@ -52,7 +53,8 @@ public class AzureStorageService implements StorageService {
   private CloudBlobClient blobClient = null;
   private CloudBlobContainer blobContainer = null;
   private ObjectMapper objectMapper =
-      new ObjectMapper()
+      JsonMapper.builder()
+          .build()
           .addMixIn(Timestamped.class, TimestampedMixins.class)
           .addMixIn(Pipeline.class, PipelineMixins.class);
 

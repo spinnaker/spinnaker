@@ -19,7 +19,6 @@ package com.netflix.spinnaker.kork.retrofit
 
 import brave.Tracing
 import brave.http.HttpTracing
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.config.okhttp3.DefaultOkHttpClientBuilderProvider
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
@@ -43,6 +42,7 @@ import retrofit2.http.GET
 import strikt.api.expect
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import tools.jackson.databind.ObjectMapper
 
 class Retrofit2ServiceProviderTest : JUnit5Minutests {
 

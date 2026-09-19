@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.cats.redis.cache
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
@@ -31,6 +30,7 @@ import redis.clients.jedis.JedisPool
 import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Unroll
+import tools.jackson.databind.json.JsonMapper
 
 class RedisCacheSpec extends WriteableCacheSpec {
   static int MAX_MSET_SIZE = 2
@@ -57,8 +57,9 @@ class RedisCacheSpec extends WriteableCacheSpec {
       jedis?.close()
     }
 
-    def mapper = new ObjectMapper();
-    mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL)
+    def mapper = JsonMapper.builder()
+      .changeDefaultPropertyInclusion({ value -> value.withValueInclusion(JsonInclude.Include.NON_NULL) })
+      .build()
 
     return new RedisCache('test', new JedisClientDelegate(pool), mapper, RedisCacheOptions.builder().maxMset(MAX_MSET_SIZE).maxMergeBatch(MAX_MERGE_COUNT).build(), cacheMetrics)
   }
@@ -184,8 +185,9 @@ class RedisCacheSpec extends WriteableCacheSpec {
 
   def 'should merge #mergeCount items at a time'() {
     setup:
-    def mapper = new ObjectMapper();
-    mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL)
+    def mapper = JsonMapper.builder()
+      .changeDefaultPropertyInclusion({ value -> value.withValueInclusion(JsonInclude.Include.NON_NULL) })
+      .build()
     def cache = new RedisCache(
       'test',
       new JedisClientDelegate(pool),

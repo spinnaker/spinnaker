@@ -17,11 +17,8 @@
 package com.netflix.kayenta.config;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
-import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
+import static tools.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.collect.ImmutableList;
 import com.netflix.kayenta.atlas.config.KayentaSerializationConfigurationProperties;
 import com.netflix.kayenta.canary.CanaryMetricSetQueryConfig;
@@ -48,6 +45,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.cfg.DateTimeFeature;
 
 @Configuration
 @Slf4j
@@ -121,38 +120,37 @@ public class KayentaConfiguration {
       ObjectMapperSubtypeConfigurer objectMapperSubtypeConfigurer,
       List<ObjectMapperSubtypeConfigurer.SubtypeLocator> subtypeLocators,
       KayentaSerializationConfigurationProperties kayentaSerializationConfigurationProperties) {
-    configureObjectMapper(
+    return configureObjectMapper(
         mapper,
         objectMapperSubtypeConfigurer,
         subtypeLocators,
         kayentaSerializationConfigurationProperties);
-    return mapper;
   }
 
-  public static void configureObjectMapperFeatures(
+  public static ObjectMapper configureObjectMapperFeatures(
       ObjectMapper objectMapper,
       KayentaSerializationConfigurationProperties kayentaSerializationConfigurationProperties) {
-    objectMapper
-        .setSerializationInclusion(NON_NULL)
+    return objectMapper
+        .rebuild()
+        .changeDefaultPropertyInclusion(value -> value.withValueInclusion(NON_NULL))
         .disable(FAIL_ON_UNKNOWN_PROPERTIES)
         .configure(
-            SerializationFeature.WRITE_DATES_AS_TIMESTAMPS,
+            DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS,
             kayentaSerializationConfigurationProperties.isWriteDatesAsTimestamps())
         .configure(
-            SerializationFeature.WRITE_DURATIONS_AS_TIMESTAMPS,
-            kayentaSerializationConfigurationProperties.isWriteDurationsAsTimestamps());
-
-    JavaTimeModule module = new JavaTimeModule();
-    objectMapper.registerModule(module);
+            DateTimeFeature.WRITE_DURATIONS_AS_TIMESTAMPS,
+            kayentaSerializationConfigurationProperties.isWriteDurationsAsTimestamps())
+        .build();
   }
 
-  private void configureObjectMapper(
+  private ObjectMapper configureObjectMapper(
       ObjectMapper objectMapper,
       ObjectMapperSubtypeConfigurer objectMapperSubtypeConfigurer,
       List<ObjectMapperSubtypeConfigurer.SubtypeLocator> subtypeLocators,
       KayentaSerializationConfigurationProperties kayentaSerializationConfigurationProperties) {
-    objectMapperSubtypeConfigurer.registerSubtypes(objectMapper, subtypeLocators);
-    configureObjectMapperFeatures(objectMapper, kayentaSerializationConfigurationProperties);
+    ObjectMapper configured =
+        objectMapperSubtypeConfigurer.registerSubtypes(objectMapper, subtypeLocators);
+    return configureObjectMapperFeatures(configured, kayentaSerializationConfigurationProperties);
   }
 
   @Bean

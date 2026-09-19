@@ -24,7 +24,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 import com.netflix.spectator.api.NoopRegistry;
@@ -40,6 +39,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Stream;
 import okhttp3.OkHttpClient;
+import okhttp3.ResponseBody;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -48,10 +48,12 @@ import org.springframework.boot.task.SimpleAsyncTaskExecutorBuilder;
 import org.springframework.boot.test.context.SpringBootTest;
 import retrofit2.Call;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
 import retrofit2.http.GET;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.NONE,
@@ -146,7 +148,7 @@ class Retrofit2EncodeCorrectionInterceptorTest {
 
   @Test
   public void testRepeatingQueryParams() throws IOException {
-    ObjectMapper objectMapper = new ObjectMapper();
+    ObjectMapper objectMapper = JsonMapper.builder().build();
     List<String> qry1List =
         List.of("/*/action", "/*/build", "/*/property[not(parameterDefinition)");
     String qry2 = "qryVal2";
@@ -179,12 +181,12 @@ class Retrofit2EncodeCorrectionInterceptorTest {
         new Retrofit.Builder()
             .baseUrl(endpoint.getBaseUrl())
             .client(okHttpClient)
-            .addConverterFactory(JacksonConverterFactory.create())
             .build()
             .create(QueryParamTestService.class);
 
-    List<String> result =
+    ResponseBody response =
         service.getQueryParamTestRequest(qry1List, qry2, qry3List).execute().body();
+    List<String> result = objectMapper.readValue(response.string(), new TypeReference<>() {});
 
     assertThat(result).hasSize(6);
     assertThat(result).containsAll(expectedResponse);
@@ -192,7 +194,7 @@ class Retrofit2EncodeCorrectionInterceptorTest {
 
   @Test
   public void testRepeatingQueryParams_withinUrl() throws IOException {
-    ObjectMapper objectMapper = new ObjectMapper();
+    ObjectMapper objectMapper = JsonMapper.builder().build();
     List<String> qry1List =
         List.of("/*/action", "/*/build", "/*/property[not(parameterDefinition)");
     String qry2 = "qryVal2";
@@ -225,11 +227,11 @@ class Retrofit2EncodeCorrectionInterceptorTest {
         new Retrofit.Builder()
             .baseUrl(endpoint.getBaseUrl())
             .client(okHttpClient)
-            .addConverterFactory(JacksonConverterFactory.create())
             .build()
             .create(QueryParamTestService.class);
 
-    List<String> result = service.getQueryParamTestRequest2().execute().body();
+    ResponseBody response = service.getQueryParamTestRequest2().execute().body();
+    List<String> result = objectMapper.readValue(response.string(), new TypeReference<>() {});
 
     assertThat(result).hasSize(6);
     assertThat(result).containsAll(expectedResponse);
@@ -285,13 +287,13 @@ class Retrofit2EncodeCorrectionInterceptorTest {
 
   interface QueryParamTestService {
     @GET("test/get")
-    Call<List<String>> getQueryParamTestRequest(
+    Call<ResponseBody> getQueryParamTestRequest(
         @Query(value = "qry1", encoded = true) List<String> qry1,
         @Query(value = "qry2", encoded = true) String qry2,
         @Query(value = "qry3", encoded = true) List<String> qry3);
 
     @GET(
         "test/get?qry1=/*/action&qry1=/*/build&qry1=/*/property[not(parameterDefinition)&qry2=qryVal2&qry3=foo&qry3=bar")
-    Call<List<String>> getQueryParamTestRequest2();
+    Call<ResponseBody> getQueryParamTestRequest2();
   }
 }

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.dcos.provider.agent
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.google.common.collect.ImmutableList
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
@@ -36,6 +36,7 @@ import mesosphere.dcos.client.model.DCOSAuthCredentials
 import mesosphere.marathon.client.model.v2.App
 import mesosphere.marathon.client.model.v2.GetAppNamespaceResponse
 import spock.lang.Specification
+import tools.jackson.databind.json.JsonMapper
 
 class DcosLoadBalancerCachingAgentSpec extends BaseSpecification {
   static final private String ACCOUNT = "testaccount"
@@ -82,7 +83,7 @@ class DcosLoadBalancerCachingAgentSpec extends BaseSpecification {
 
     dcosClient = Mock(DCOS)
     providerCache = Mock(ProviderCache)
-    objectMapper = new ObjectMapper()
+    objectMapper = JsonMapper.builder().build()
 
     loadBalancerKey = Keys.getLoadBalancerKey(DcosSpinnakerLbId.parseVerbose(MARATHON_APP_ID).get(), REGION)
 
@@ -231,6 +232,6 @@ class DcosLoadBalancerCachingAgentSpec extends BaseSpecification {
     def result = new DefaultCacheResult([
             (Keys.Namespace.LOAD_BALANCERS.ns): cacheData.values()
     ], [:])
-    new ObjectMapper().writeValueAsString(result.cacheResults)
+    JsonMapper.builder().build().writeValueAsString(result.cacheResults)
   }
 }

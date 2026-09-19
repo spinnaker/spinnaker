@@ -22,8 +22,6 @@ import static java.net.HttpURLConnection.HTTP_OK;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
@@ -33,7 +31,6 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService;
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheStatusService;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
-import java.io.IOException;
 import java.time.Clock;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -45,6 +42,9 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.ResponseBody;
 import org.springframework.stereotype.Component;
 import retrofit2.Response;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 @Slf4j
 @Component
@@ -213,7 +213,7 @@ public class CloudFormationForceCacheRefreshTask
       return objectMapper.readValue(
           objectMapper.writeValueAsString(stage.getContext()),
           CloudFormationForceCacheRefreshTask.StageData.class);
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       throw new IllegalStateException(
           "Malformed stage context in " + stage + ": " + e.getMessage(), e);
     }
@@ -229,7 +229,7 @@ public class CloudFormationForceCacheRefreshTask
           objectMapper.readValue(
               responseBody.byteStream(), CloudFormationForceCacheRefreshTask.CachedResponse.class);
       return cachedResponse.getCachedResponseStacks().getStacks().stream().findFirst();
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       throw new IllegalStateException("Malformed response from clouddriver" + e.getMessage(), e);
     }
   }

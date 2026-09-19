@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.model;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.netflix.spinnaker.clouddriver.model.ServicePlan;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 @Value
 @EqualsAndHashCode(callSuper = false)

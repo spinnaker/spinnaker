@@ -18,7 +18,6 @@ package com.netflix.kayenta.graphite;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.netflix.kayenta.canary.CanaryConfig;
@@ -57,6 +56,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.configuration.ObjectPostProcessorConfiguration;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import tools.jackson.databind.ObjectMapper;
 
 @Configuration
 @ComponentScan({"com.netflix.kayenta.retrofit.config", "com.netflix.spinnaker.config"})

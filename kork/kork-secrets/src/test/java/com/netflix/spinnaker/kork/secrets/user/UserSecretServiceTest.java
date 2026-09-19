@@ -20,8 +20,6 @@ package com.netflix.spinnaker.kork.secrets.user;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.given;
 
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.netflix.spinnaker.kork.secrets.SecretEngine;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,6 +29,8 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.ObjectNode;
 
 @SpringJUnitConfig
 class UserSecretServiceTest {
