@@ -17,8 +17,13 @@ package com.netflix.spinnaker.gradle.extension
 
 import tools.jackson.databind.DeserializationFeature
 import tools.jackson.databind.ObjectMapper
-import tools.jackson.module.kotlin.jacksonObjectMapper
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.KotlinModule
 
 internal object PluginObjectMapper {
-  val mapper: ObjectMapper = jacksonObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+  val mapper: ObjectMapper =
+      JsonMapper.builder()
+          .addModule(KotlinModule.Builder().build())
+          .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+          .build()
 }

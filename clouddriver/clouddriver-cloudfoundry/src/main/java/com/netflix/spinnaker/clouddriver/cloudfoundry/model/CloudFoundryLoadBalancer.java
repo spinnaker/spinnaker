@@ -35,10 +35,11 @@ import lombok.EqualsAndHashCode;
 import lombok.Value;
 import lombok.experimental.Wither;
 import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 @Value
 @EqualsAndHashCode(of = "id", callSuper = false)
-@Builder
+@Builder(builderClassName = "CloudFoundryLoadBalancerBuilder")
 @JsonDeserialize(builder = CloudFoundryLoadBalancer.CloudFoundryLoadBalancerBuilder.class)
 @JsonIgnoreProperties("mappedApps")
 public class CloudFoundryLoadBalancer extends CloudFoundryModel implements LoadBalancer, Cloneable {
@@ -114,4 +115,7 @@ public class CloudFoundryLoadBalancer extends CloudFoundryModel implements LoadB
   public String getRegion() {
     return space != null ? space.getRegion() : null;
   }
+
+  @JsonPOJOBuilder(withPrefix = "")
+  public static class CloudFoundryLoadBalancerBuilder {}
 }

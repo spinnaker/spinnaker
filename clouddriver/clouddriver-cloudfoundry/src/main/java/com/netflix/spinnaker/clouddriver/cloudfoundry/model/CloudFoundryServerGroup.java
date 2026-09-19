@@ -40,11 +40,12 @@ import lombok.With;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 import tools.jackson.databind.json.JsonMapper;
 
 @Value
 @EqualsAndHashCode(of = "id", callSuper = false)
-@Builder(toBuilder = true)
+@Builder(toBuilder = true, builderClassName = "CloudFoundryServerGroupBuilder")
 @JsonDeserialize(builder = CloudFoundryServerGroup.CloudFoundryServerGroupBuilder.class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("loadBalancerNames")
@@ -262,4 +263,7 @@ public class CloudFoundryServerGroup extends CloudFoundryModel implements Server
     STOPPED,
     STARTED
   }
+
+  @JsonPOJOBuilder(withPrefix = "")
+  public static class CloudFoundryServerGroupBuilder {}
 }

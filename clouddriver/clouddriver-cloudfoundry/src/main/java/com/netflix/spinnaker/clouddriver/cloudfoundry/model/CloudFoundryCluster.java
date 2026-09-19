@@ -30,12 +30,13 @@ import lombok.EqualsAndHashCode;
 import lombok.Value;
 import lombok.With;
 import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 @Value
 @EqualsAndHashCode(
     of = {"name", "accountName"},
     callSuper = false)
-@Builder
+@Builder(builderClassName = "CloudFoundryClusterBuilder")
 @JsonDeserialize(builder = CloudFoundryCluster.CloudFoundryClusterBuilder.class)
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class CloudFoundryCluster extends CloudFoundryModel implements Cluster {
@@ -70,4 +71,7 @@ public class CloudFoundryCluster extends CloudFoundryModel implements Cluster {
   public String getType() {
     return CloudFoundryCloudProvider.ID;
   }
+
+  @JsonPOJOBuilder(withPrefix = "")
+  public static class CloudFoundryClusterBuilder {}
 }

@@ -19,8 +19,8 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.PropertyNamingStrategies;
 import tools.jackson.dataformat.yaml.YAMLFactory;
-import tools.jackson.dataformat.yaml.YAMLWriteFeature;
 import tools.jackson.dataformat.yaml.YAMLMapper;
+import tools.jackson.dataformat.yaml.YAMLWriteFeature;
 
 public abstract class DirectManifest {
   static ObjectMapper manifestMapper =

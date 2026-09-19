@@ -50,12 +50,10 @@ class CommandSerdeSpec extends Specification {
   @Unroll
   def "can serialize and deserialize #command.class.simpleName"() {
     given:
-    ObjectMapper objectMapper = JsonMapper.builder().build()
-    objectMapper
-      .findAndRegisterModules()
+    ObjectMapper objectMapper = JsonMapper.builder().findAndAddModules().build()
 
     and:
-    registerSubtypes(objectMapper, command)
+    objectMapper = registerSubtypes(objectMapper, command)
     initializeEvent(command)
 
     when:
@@ -98,11 +96,13 @@ class CommandSerdeSpec extends Specification {
     ]
   }
 
-  static void registerSubtypes(ObjectMapper objectMapper, SpinnakerEvent event) {
+  static ObjectMapper registerSubtypes(ObjectMapper objectMapper, SpinnakerEvent event) {
+    def builder = objectMapper.rebuild()
     if (event instanceof CompositeSpinnakerEvent) {
-      objectMapper.registerSubtypes(((CompositeSpinnakerEvent) event).composedEvents.collect { it.class })
+      builder.registerSubtypes(((CompositeSpinnakerEvent) event).composedEvents.collect { it.class })
     }
-    objectMapper.registerSubtypes(event.class)
+    builder.registerSubtypes(event.class)
+    return builder.build()
   }
 
   static void initializeEvent(SpinnakerEvent event) {

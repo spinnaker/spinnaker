@@ -22,12 +22,16 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 @Value
 @EqualsAndHashCode(callSuper = false)
-@Builder
+@Builder(builderClassName = "CloudFoundryServiceBuilder")
 @JsonDeserialize(builder = CloudFoundryService.CloudFoundryServiceBuilder.class)
 public class CloudFoundryService extends CloudFoundryModel implements Service {
   String name;
   Collection<CloudFoundryServicePlan> servicePlans;
+
+  @JsonPOJOBuilder(withPrefix = "")
+  public static class CloudFoundryServiceBuilder {}
 }

@@ -38,9 +38,9 @@ public final class CloudFoundryClientUtils {
 
   private static final ObjectMapper mapper =
       JsonMapper.builder()
-          .build()
-          .setPropertyNamingStrategy(PropertyNamingStrategies.SnakeCaseStrategy.INSTANCE)
-          .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+          .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
+          .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+          .build();
 
   public static <T> Optional<T> safelyCall(Supplier<Call<T>> r) {
     Response<T> response = null;

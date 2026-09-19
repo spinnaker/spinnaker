@@ -51,7 +51,7 @@ import tools.jackson.databind.json.JsonMapper;
 public class CloudFoundrySpaceCachingAgent extends AbstractCloudFoundryCachingAgent {
 
   private static final ObjectMapper cacheViewMapper =
-      JsonMapper.builder().build().disable(MapperFeature.DEFAULT_VIEW_INCLUSION);
+      JsonMapper.builder().disable(MapperFeature.DEFAULT_VIEW_INCLUSION).build();
 
   private final Collection<AgentDataType> providedDataTypes =
       Arrays.asList(AUTHORITATIVE.forType(SPACES.getNs()));

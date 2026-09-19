@@ -87,7 +87,9 @@ public class CredentialsControllerTest {
 
     @Bean
     ObjectMapper objectMapper() {
-      return JsonMapper.builder().changeDefaultPropertyInclusion(v -> v.withValueInclusion(JsonInclude.Include.NON_NULL)).build();
+      return JsonMapper.builder()
+          .changeDefaultPropertyInclusion(v -> v.withValueInclusion(JsonInclude.Include.NON_NULL))
+          .build();
     }
   }
 

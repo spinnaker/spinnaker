@@ -21,10 +21,11 @@ import com.fasterxml.jackson.annotation.JsonView;
 import lombok.Builder;
 import lombok.Value;
 import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 /** The CI build metadata for an app artifact based on the build info produced by Artifactory */
 @Value
-@Builder
+@Builder(builderClassName = "ArtifactInfoBuilder")
 @JsonDeserialize(builder = ArtifactInfo.ArtifactInfoBuilder.class)
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class ArtifactInfo {
@@ -37,4 +38,7 @@ public class ArtifactInfo {
 
   @JsonView(Views.Cache.class)
   String url;
+
+  @JsonPOJOBuilder(withPrefix = "")
+  public static class ArtifactInfoBuilder {}
 }

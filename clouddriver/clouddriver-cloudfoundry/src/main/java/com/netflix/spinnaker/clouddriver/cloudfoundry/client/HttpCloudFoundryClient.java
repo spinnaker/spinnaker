@@ -88,10 +88,12 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
     this.user = user;
     this.password = password;
 
-    ObjectMapper mapper = JsonMapper.builder().build();
-    mapper.setPropertyNamingStrategy(PropertyNamingStrategies.SnakeCaseStrategy.INSTANCE);
-    mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-    mapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+    ObjectMapper mapper =
+        JsonMapper.builder()
+            .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
+            .build();
 
     // The UAA service is built first because the Authenticator interceptor needs it to get tokens
     // from CF.

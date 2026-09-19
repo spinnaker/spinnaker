@@ -22,9 +22,10 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 @Value
-@Builder
+@Builder(builderClassName = "CloudFoundryDomainBuilder")
 @JsonDeserialize(builder = CloudFoundryDomain.CloudFoundryDomainBuilder.class)
 @EqualsAndHashCode(of = "id")
 public class CloudFoundryDomain {
@@ -38,4 +39,7 @@ public class CloudFoundryDomain {
   @JsonView(Views.Cache.class)
   @Nullable
   CloudFoundryOrganization organization;
+
+  @JsonPOJOBuilder(withPrefix = "")
+  public static class CloudFoundryDomainBuilder {}
 }

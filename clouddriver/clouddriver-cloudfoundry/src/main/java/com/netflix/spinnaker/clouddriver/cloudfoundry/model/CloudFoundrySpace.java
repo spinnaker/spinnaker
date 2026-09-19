@@ -21,9 +21,10 @@ import com.fasterxml.jackson.annotation.JsonView;
 import lombok.Builder;
 import lombok.Value;
 import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 @Value
-@Builder
+@Builder(builderClassName = "CloudFoundrySpaceBuilder")
 @JsonDeserialize(builder = CloudFoundrySpace.CloudFoundrySpaceBuilder.class)
 @JsonIgnoreProperties("region")
 public class CloudFoundrySpace {
@@ -66,4 +67,7 @@ public class CloudFoundrySpace {
   public String getRegion() {
     return organization.getName() + " > " + name;
   }
+
+  @JsonPOJOBuilder(withPrefix = "")
+  public static class CloudFoundrySpaceBuilder {}
 }

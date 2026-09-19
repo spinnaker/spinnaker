@@ -28,6 +28,8 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.versioning.ComparableVersion;
+import org.snakeyaml.engine.v2.api.LoadSettings;
+import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.dataformat.yaml.YAMLFactory;
 import tools.jackson.dataformat.yaml.YAMLMapper;
@@ -115,13 +117,20 @@ public class IndexParser {
   private IndexConfig buildIndexConfig(InputStream in) throws IOException {
     ObjectMapper mapper =
         YAMLMapper.builder(
-                YAMLFactory.builder().loaderOptions(YamlHelper.getLoaderOptions()).build())
+                YAMLFactory.builder()
+                    .loadSettings(
+                        LoadSettings.builder()
+                            .setMaxAliasesForCollections(
+                                YamlHelper.getLoaderOptions().getMaxAliasesForCollections())
+                            .setCodePointLimit(YamlHelper.getLoaderOptions().getCodePointLimit())
+                            .build())
+                    .build())
             .build();
     IndexConfig indexConfig;
     try {
       indexConfig = mapper.readValue(in, IndexConfig.class);
-    } catch (IOException e) {
-      throw new IOException("Invalid index.yaml file in repository " + repository);
+    } catch (JacksonException e) {
+      throw new IOException("Invalid index.yaml file in repository " + repository, e);
     }
     return indexConfig;
   }

@@ -29,10 +29,11 @@ import lombok.EqualsAndHashCode;
 import lombok.Value;
 import lombok.experimental.Wither;
 import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 @Value
 @EqualsAndHashCode(of = "name")
-@Builder
+@Builder(builderClassName = "CloudFoundryApplicationBuilder")
 @JsonDeserialize(builder = CloudFoundryApplication.CloudFoundryApplicationBuilder.class)
 @JsonIgnoreProperties("clusters")
 public class CloudFoundryApplication implements Application {
@@ -58,4 +59,7 @@ public class CloudFoundryApplication implements Application {
   public Map<String, String> getAttributes() {
     return emptyMap();
   }
+
+  @JsonPOJOBuilder(withPrefix = "")
+  public static class CloudFoundryApplicationBuilder {}
 }

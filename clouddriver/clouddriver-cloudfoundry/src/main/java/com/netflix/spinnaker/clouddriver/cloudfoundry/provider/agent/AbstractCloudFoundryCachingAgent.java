@@ -31,7 +31,6 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.Views;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.CloudFoundryProvider;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
-import java.io.IOException;
 import java.time.Clock;
 import java.util.Collection;
 import java.util.Collections;
@@ -51,7 +50,7 @@ abstract class AbstractCloudFoundryCachingAgent
     implements CachingAgent, OnDemandAgent, AccountAware {
   private final String providerName = CloudFoundryProvider.class.getName();
   private static final ObjectMapper cacheViewMapper =
-      JsonMapper.builder().build().disable(MapperFeature.DEFAULT_VIEW_INCLUSION);
+      JsonMapper.builder().disable(MapperFeature.DEFAULT_VIEW_INCLUSION).build();
 
   private final OnDemandMetricsSupport metricsSupport;
   private final Clock internalClock;
@@ -64,7 +63,6 @@ abstract class AbstractCloudFoundryCachingAgent
   private AbstractCloudFoundryCachingAgent(
       CloudFoundryCredentials credentials, Registry registry, Clock internalClock) {
     this.credentials = credentials;
-    cacheViewMapper.setConfig(cacheViewMapper.getSerializationConfig().withView(Views.Cache.class));
     this.metricsSupport =
         new OnDemandMetricsSupport(
             registry, this, CloudFoundryProvider.PROVIDER_ID + ":" + OnDemandType.ServerGroup);
@@ -110,7 +108,7 @@ abstract class AbstractCloudFoundryCachingAgent
       return cacheViewMapper.readValue(
           cacheData.getAttributes().get("cacheResults").toString(),
           new TypeReference<Map<String, Collection<ResourceCacheData>>>() {});
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       throw new RuntimeException("Failed to deserialize cache results", e);
     }
   }
@@ -130,7 +128,7 @@ abstract class AbstractCloudFoundryCachingAgent
                   "cacheTime",
                   this.getInternalClock().instant().toEpochMilli(),
                   "cacheResults",
-                  cacheViewMapper.writeValueAsString(cacheResult),
+                  cacheViewMapper.writerWithView(Views.Cache.class).writeValueAsString(cacheResult),
                   "processedCount",
                   0)
               .toJavaMap(),

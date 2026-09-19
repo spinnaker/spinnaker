@@ -51,7 +51,7 @@ import tools.jackson.databind.json.JsonMapper;
 @Slf4j
 public class CloudFoundryLoadBalancerCachingAgent extends AbstractCloudFoundryCachingAgent {
   private static final ObjectMapper cacheViewMapper =
-      JsonMapper.builder().build().disable(MapperFeature.DEFAULT_VIEW_INCLUSION);
+      JsonMapper.builder().disable(MapperFeature.DEFAULT_VIEW_INCLUSION).build();
 
   private final Collection<AgentDataType> providedDataTypes =
       Collections.singletonList(AUTHORITATIVE.forType(LOAD_BALANCERS.getNs()));

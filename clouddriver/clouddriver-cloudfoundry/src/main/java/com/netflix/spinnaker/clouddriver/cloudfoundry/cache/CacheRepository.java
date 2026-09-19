@@ -31,6 +31,7 @@ import org.springframework.stereotype.Repository;
 import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.annotation.JsonPOJOBuilder;
+import tools.jackson.databind.cfg.MapperConfig;
 import tools.jackson.databind.introspect.AnnotatedClass;
 import tools.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import tools.jackson.databind.json.JsonMapper;
@@ -38,21 +39,22 @@ import tools.jackson.databind.json.JsonMapper;
 @Repository
 public class CacheRepository {
   private final ObjectMapper objectMapper =
-      JsonMapper.builder().build().disable(MapperFeature.DEFAULT_VIEW_INCLUSION);
+      JsonMapper.builder()
+          .disable(MapperFeature.DEFAULT_VIEW_INCLUSION)
+          .annotationIntrospector(
+              new JacksonAnnotationIntrospector() {
+                @Override
+                public JsonPOJOBuilder.Value findPOJOBuilderConfig(
+                    MapperConfig<?> config, AnnotatedClass ac) {
+                  return new JsonPOJOBuilder.Value("build", "");
+                }
+              })
+          .build();
 
   private final Cache cacheView;
 
   public CacheRepository(Cache cacheView) {
     this.cacheView = cacheView;
-    this.objectMapper
-        .setConfig(objectMapper.getSerializationConfig().withView(Views.Cache.class))
-        .setAnnotationIntrospector(
-            new JacksonAnnotationIntrospector() {
-              @Override
-              public JsonPOJOBuilder.Value findPOJOBuilderConfig(AnnotatedClass ac) {
-                return new JsonPOJOBuilder.Value("build", "");
-              }
-            });
   }
 
   public Set<CloudFoundrySpace> findSpacesByAccount(String account) {

@@ -180,9 +180,9 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter
       Map<Object, Object> manifestMap) {
     List<CloudFoundryManifest> manifestApps =
         JsonMapper.builder()
-            .build()
-            .setPropertyNamingStrategy(PropertyNamingStrategies.KEBAB_CASE)
+            .propertyNamingStrategy(PropertyNamingStrategies.KEBAB_CASE)
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .build()
             .convertValue(manifestMap.get("applications"), new TypeReference<>() {});
 
     return manifestApps.stream()

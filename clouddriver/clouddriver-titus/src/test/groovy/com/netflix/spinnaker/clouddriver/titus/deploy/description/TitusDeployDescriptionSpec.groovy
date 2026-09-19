@@ -45,7 +45,7 @@ class TitusDeployDescriptionSpec extends Specification {
       messageSignature      : "messageSignatureValue"
     ]
     given:
-    ObjectMapper objectMapper = JsonMapper.builder().build().findAndRegisterModules()
+    ObjectMapper objectMapper = JsonMapper.builder().findAndAddModules().build()
 
     and:
     TitusDeployDescription subject = new TitusDeployDescription(
