@@ -48,7 +48,7 @@ class CloudFoundryServerGroupCachingAgentTest {
   private Instant now = Instant.now();
   private String accountName = "account";
   private ObjectMapper objectMapper =
-      JsonMapper.builder().build().disable(MapperFeature.DEFAULT_VIEW_INCLUSION);
+      JsonMapper.builder().disable(MapperFeature.DEFAULT_VIEW_INCLUSION).build();
   private CloudFoundryClient cloudFoundryClient = mock(CloudFoundryClient.class);
   private CloudFoundryCredentials credentials = mock(CloudFoundryCredentials.class);
   private Registry registry = mock(Registry.class);
