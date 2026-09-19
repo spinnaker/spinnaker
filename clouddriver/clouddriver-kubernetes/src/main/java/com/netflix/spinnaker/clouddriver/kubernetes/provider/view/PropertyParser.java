@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tools.jackson.core.JacksonException;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
@@ -70,12 +71,12 @@ public class PropertyParser {
         try {
           map.putAll(
               objectMapper.readValue(jsonContent, new TypeReference<Map<String, Object>>() {}));
-        } catch (IOException e) {
+        } catch (JacksonException e) {
           log.error(
               "Unable to parse content from {}. Content is: {}",
               MAGIC_JSON_SEARCH_STRING,
               jsonContent);
-          throw e;
+          throw new IOException("Unable to parse content from " + MAGIC_JSON_SEARCH_STRING, e);
         }
       }
     }

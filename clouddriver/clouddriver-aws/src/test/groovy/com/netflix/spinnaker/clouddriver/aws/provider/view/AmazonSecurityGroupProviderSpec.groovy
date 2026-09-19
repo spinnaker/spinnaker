@@ -21,6 +21,8 @@ import software.amazon.awssdk.services.ec2.model.IpRange
 import software.amazon.awssdk.services.ec2.model.Ipv6Range
 import software.amazon.awssdk.services.ec2.model.SecurityGroup
 import software.amazon.awssdk.services.ec2.model.UserIdGroupPair
+import tools.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.clouddriver.aws.jackson.AwsObjectMapperFactory
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.cache.WriteableCache
@@ -34,8 +36,6 @@ import com.netflix.spinnaker.clouddriver.model.securitygroups.IpRangeRule
 import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule
 import com.netflix.spinnaker.clouddriver.model.securitygroups.SecurityGroupRule
 import com.netflix.spinnaker.credentials.CredentialsRepository
-import tools.jackson.databind.ObjectMapper
-import tools.jackson.databind.json.JsonMapper
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -46,7 +46,7 @@ class AmazonSecurityGroupProviderSpec extends Specification {
   AmazonSecurityGroupProvider provider
 
   WriteableCache cache = new InMemoryCache()
-  ObjectMapper mapper = JsonMapper.builder().addModule(new AwsSdkV2Module()).build()
+  ObjectMapper mapper = AwsObjectMapperFactory.createConfigured().rebuild().addModule(new AwsSdkV2Module()).build()
 
   def credential1 = Stub(NetflixAmazonCredentials) {
     getName() >> "accountName1"

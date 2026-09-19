@@ -77,7 +77,7 @@ abstract class ApplicationsControllerTck extends Specification {
   ApplicationDAO dao
 
   void setup() {
-    objectMapper.registerModule(new Front50ApiModule())
+    objectMapper = objectMapper.rebuild().addModule(new Front50ApiModule()).build()
 
     this.dao = createApplicationDAO()
     this.applicationService = new ApplicationService(

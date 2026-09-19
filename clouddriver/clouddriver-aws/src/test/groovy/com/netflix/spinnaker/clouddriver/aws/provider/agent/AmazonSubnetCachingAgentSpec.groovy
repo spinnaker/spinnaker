@@ -19,14 +19,14 @@ package com.netflix.spinnaker.clouddriver.aws.provider.agent
 import software.amazon.awssdk.services.ec2.Ec2Client
 import software.amazon.awssdk.services.ec2.model.DescribeSubnetsResponse
 import software.amazon.awssdk.services.ec2.model.Subnet
+import tools.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.clouddriver.aws.jackson.AwsObjectMapperFactory
 import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.cache.Keys
-import tools.jackson.databind.ObjectMapper
-import tools.jackson.databind.json.JsonMapper
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -47,7 +47,7 @@ class AmazonSubnetCachingAgentSpec extends Specification {
 
   ProviderCache providerCache = Mock(ProviderCache)
 
-  ObjectMapper amazonObjectMapper = JsonMapper.builder().addModule(new AwsSdkV2Module()).build()
+  ObjectMapper amazonObjectMapper = AwsObjectMapperFactory.createConfigured().rebuild().addModule(new AwsSdkV2Module()).build()
 
   @Subject
   AmazonSubnetCachingAgent agent = new AmazonSubnetCachingAgent(

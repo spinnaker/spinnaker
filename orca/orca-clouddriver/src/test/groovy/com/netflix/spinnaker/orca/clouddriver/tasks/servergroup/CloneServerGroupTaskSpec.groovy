@@ -46,7 +46,7 @@ class CloneServerGroupTaskSpec extends Specification {
   ]
 
   def setup() {
-    mapper.registerModule(new GuavaModule())
+    mapper = mapper.rebuild().addModule(new GuavaModule()).build()
 
     task.mapper = mapper
     task.cloneDescriptionDecorators = [new BakeryImageAccessDescriptionDecorator()]

@@ -51,7 +51,8 @@ class HttpStatusCodeSpringObjectMapperTest {
 
   @Test
   void shouldFailToDeserializeInvalidStringStatusCode() {
-    String json = """
+    String json =
+        """
       {
         "statusCode": "InvalidStatusCode"
       }
@@ -64,7 +65,8 @@ class HttpStatusCodeSpringObjectMapperTest {
 
   @Test
   void shouldFailToDeserializeInvalidIntStatusCode() {
-    String json = """
+    String json =
+        """
       {
         "statusCode": 20
       }
@@ -77,7 +79,8 @@ class HttpStatusCodeSpringObjectMapperTest {
 
   @Test
   void shouldDeserializeStringStatusCode() throws JacksonException {
-    String json = """
+    String json =
+        """
       {
         "statusCode": "OK"
       }
@@ -90,7 +93,8 @@ class HttpStatusCodeSpringObjectMapperTest {
 
   @Test
   void shouldDeserializeIntStatusCode() throws JacksonException {
-    String json = """
+    String json =
+        """
       {
         "statusCode": 200
       }

@@ -23,7 +23,7 @@ import com.netflix.appinfo.InstanceInfo;
 import java.util.Map;
 import java.util.Objects;
 import org.springframework.boot.health.actuate.endpoint.StatusAggregator;
-import org.springframework.boot.health.contributor.*;
+import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.HealthIndicator;
 import org.springframework.boot.health.contributor.Status;
 import org.springframework.context.ApplicationListener;

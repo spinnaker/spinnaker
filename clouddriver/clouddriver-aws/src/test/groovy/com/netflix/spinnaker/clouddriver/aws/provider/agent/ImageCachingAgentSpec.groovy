@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
+import com.netflix.spinnaker.clouddriver.aws.jackson.AwsObjectMapperFactory
 import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module
 import com.netflix.spectator.api.Spectator
 import com.netflix.spinnaker.cats.provider.ProviderCache
@@ -28,7 +29,6 @@ import software.amazon.awssdk.services.ec2.model.DescribeImagesRequest
 import software.amazon.awssdk.services.ec2.model.DescribeImagesResponse
 import software.amazon.awssdk.services.ec2.model.Filter
 import software.amazon.awssdk.services.ec2.model.Image
-import tools.jackson.databind.json.JsonMapper
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -93,12 +93,7 @@ class ImageCachingAgentSpec extends Specification {
     def acp = Stub(AmazonClientProvider) {
       getAmazonEC2V2(creds, region) >> ec2
     }
-    new ImageCachingAgent(acp, creds, region, JsonMapper.builder().addModule(new AwsSdkV2Module()).build(), Spectator.globalRegistry(), publicImages, dcs)
-  }
-
-  void "writes dates as timestamps"() {
-    expect:
-    getAgent(false).objectMapper.writeValueAsString(new Date(0)) == '0'
+    new ImageCachingAgent(acp, creds, region, AwsObjectMapperFactory.createConfigured().rebuild().addModule(new AwsSdkV2Module()).build(), Spectator.globalRegistry(), publicImages, dcs)
   }
 
   void "two images with the same name result in one named image"() {

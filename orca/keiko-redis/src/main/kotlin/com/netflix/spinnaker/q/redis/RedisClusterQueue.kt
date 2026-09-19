@@ -53,7 +53,8 @@ class RedisClusterQueue(
   override val ackTimeout: TemporalAmount = Duration.ofMinutes(1),
   override val deadMessageHandlers: List<DeadMessageCallback>,
   override val canPollMany: Boolean = false,
-  override val publisher: EventPublisher
+  override val publisher: EventPublisher,
+  private val retryConfig: RedisRetryConfig = RedisRetryConfig()
 ) : AbstractRedisQueue(
   clock,
   lockTtlSeconds,
@@ -62,7 +63,8 @@ class RedisClusterQueue(
   ackTimeout,
   deadMessageHandlers,
   canPollMany,
-  publisher
+  publisher,
+  retryConfig
 ) {
 
   final override val log: Logger = LoggerFactory.getLogger(javaClass)
@@ -113,17 +115,19 @@ class RedisClusterQueue(
   }
 
   override fun push(message: Message, delay: TemporalAmount) {
-    jedisCluster.firstFingerprint(queueKey, message.fingerprint()).also { fingerprint ->
-      if (fingerprint != null) {
-        log.info(
-          "Re-prioritizing message as an identical one is already on the queue: " +
-            "$fingerprint, message: $message"
-        )
-        jedisCluster.zadd(queueKey, score(delay), fingerprint, zAddParams().xx())
-        fire(MessageDuplicate(message))
-      } else {
-        jedisCluster.queueMessage(message, delay)
-        fire(MessagePushed(message))
+    retry {
+      jedisCluster.firstFingerprint(queueKey, message.fingerprint()).also { fingerprint ->
+        if (fingerprint != null) {
+          log.info(
+            "Re-prioritizing message as an identical one is already on the queue: " +
+              "$fingerprint, message: $message"
+          )
+          jedisCluster.zadd(queueKey, score(delay), fingerprint, zAddParams().xx())
+          fire(MessageDuplicate(message))
+        } else {
+          jedisCluster.queueMessage(message, delay)
+          fire(MessagePushed(message))
+        }
       }
     }
   }

@@ -32,7 +32,7 @@ import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.aws.data.Keys;
-import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module;
+import com.netflix.spinnaker.clouddriver.aws.jackson.AwsObjectMapperFactory;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import java.util.List;
@@ -47,7 +47,6 @@ import software.amazon.awssdk.services.elasticloadbalancing.ElasticLoadBalancing
 import software.amazon.awssdk.services.elasticloadbalancing.model.DescribeInstanceHealthRequest;
 import software.amazon.awssdk.services.elasticloadbalancing.model.DescribeInstanceHealthResponse;
 import software.amazon.awssdk.services.elasticloadbalancing.model.InstanceState;
-import tools.jackson.databind.json.JsonMapper;
 
 @ExtendWith(MockitoExtension.class)
 class AmazonLoadBalancerInstanceStateCachingAgentTest {
@@ -70,7 +69,7 @@ class AmazonLoadBalancerInstanceStateCachingAgentTest {
     AmazonClientProvider acp = mock(AmazonClientProvider.class);
     when(acp.getAmazonElasticLoadBalancingClassicV2(creds, region)).thenReturn(loadBalancing);
     return new AmazonLoadBalancerInstanceStateCachingAgent(
-        acp, creds, region, JsonMapper.builder().addModule(new AwsSdkV2Module()).build(), ctx);
+        acp, creds, region, AwsObjectMapperFactory.createConfigured(), ctx);
   }
 
   @SuppressWarnings("unchecked")

@@ -3,6 +3,7 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.ops.actions
 import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
 import software.amazon.awssdk.services.autoscaling.model.LaunchTemplateSpecification
 import software.amazon.awssdk.services.ec2.model.*
+import tools.jackson.databind.DatabindException
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.ModifyServerGroupLaunchTemplateDescription
 import com.netflix.spinnaker.clouddriver.aws.services.LaunchTemplateService
@@ -10,12 +11,11 @@ import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactor
 import com.netflix.spinnaker.clouddriver.saga.flow.SagaAction
 import com.netflix.spinnaker.clouddriver.saga.models.Saga
 import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository
-import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module
-import tools.jackson.core.JacksonException
-import tools.jackson.databind.json.JsonMapper
+import com.netflix.spinnaker.clouddriver.aws.jackson.AwsObjectMapperFactory
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+import tools.jackson.core.JacksonException
 
 class ModifyServerGroupLaunchTemplateSpec extends Specification {
   def credentials = TestCredential.named("test")
@@ -83,15 +83,15 @@ class ModifyServerGroupLaunchTemplateSpec extends Specification {
       false           |        true               |        false        ||      false           ||      2L            // update ASG LT with new LT version, but don't use MIP
   }
 
-  def "should not throw JsonProcessingException when deserializing"() {
+  def "should not throw JacksonException when deserializing"() {
     given:
-    def objectMapper = JsonMapper.builder().addModule(new AwsSdkV2Module()).build()
+    def objectMapper = AwsObjectMapperFactory.createConfigured()
     def json = objectMapper.writeValueAsString(dummyDescription)
 
     when:
     objectMapper.readValue(json, ModifyServerGroupLaunchTemplateDescription.class)
 
     then:
-    notThrown(JacksonException)
+    notThrown(DatabindException)
   }
 }

@@ -29,8 +29,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 @Slf4j
 @Data
@@ -114,7 +114,7 @@ public class IndexParser {
 
   private IndexConfig buildIndexConfig(InputStream in) throws IOException {
     ObjectMapper mapper =
-        JsonMapper.builder(
+        YAMLMapper.builder(
                 YAMLFactory.builder().loaderOptions(YamlHelper.getLoaderOptions()).build())
             .build();
     IndexConfig indexConfig;

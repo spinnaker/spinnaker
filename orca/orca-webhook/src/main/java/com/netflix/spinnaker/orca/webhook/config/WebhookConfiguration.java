@@ -170,7 +170,7 @@ public class WebhookConfiguration {
     }
 
     var client = builder.build();
-    var requestFactory = new OkHttpClientHttpRequestFactory(client);
+    var requestFactory = new SpinnakerOkHttpClientRequestFactory(client);
     long readTimeoutMs =
         (environment.containsProperty("webhook.readTimeoutMs")
                 || environment.containsProperty("webhook.read-timeout-ms"))
@@ -462,7 +462,7 @@ public class WebhookConfiguration {
     return Optional.empty();
   }
 
-  public class ObjectStringHttpMessageConverter extends StringHttpMessageConverter {
+  public static class ObjectStringHttpMessageConverter extends StringHttpMessageConverter {
     @Override
     public boolean supports(Class<?> clazz) {
       return clazz == Object.class;
@@ -475,7 +475,7 @@ public class WebhookConfiguration {
    * <p>Will only apply if the content type of the request has been explicitly set to
    * application/x-www-form-urlencoded.
    */
-  public class MapToStringHttpMessageConverter
+  public static class MapToStringHttpMessageConverter
       extends AbstractHttpMessageConverter<Map<String, Object>> {
     MapToStringHttpMessageConverter() {
       super(Charset.defaultCharset(), MediaType.APPLICATION_FORM_URLENCODED);

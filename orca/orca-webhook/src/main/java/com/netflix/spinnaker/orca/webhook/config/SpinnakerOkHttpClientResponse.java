@@ -27,15 +27,15 @@ import org.springframework.util.Assert;
 
 /**
  * Vendored from Spring Framework 6.2 {@code OkHttp3ClientHttpResponse} (removed in Spring 7). See
- * {@link OkHttpClientHttpRequestFactory} for rationale.
+ * {@link SpinnakerOkHttpClientRequestFactory} for rationale.
  */
-class OkHttpClientHttpResponse implements org.springframework.http.client.ClientHttpResponse {
+class SpinnakerOkHttpClientResponse implements org.springframework.http.client.ClientHttpResponse {
 
   private final Response response;
 
   @Nullable private volatile HttpHeaders headers;
 
-  public OkHttpClientHttpResponse(Response response) {
+  public SpinnakerOkHttpClientResponse(Response response) {
     Assert.notNull(response, "Response must not be null");
     this.response = response;
   }

@@ -28,8 +28,8 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 @Component
 @Slf4j
@@ -56,7 +56,7 @@ public class HelmTemplateUtils extends HelmBakeTemplateUtils<HelmBakeManifestReq
     super(artifactDownloader, artifactStore, artifactStoreProperties.getHelm());
     this.helmConfigurationProperties = helmConfigurationProperties;
     this.yamlObjectMapper =
-        JsonMapper.builder(
+        YAMLMapper.builder(
                 YAMLFactory.builder()
                     .loadSettings(
                         LoadSettings.builder()

@@ -153,9 +153,9 @@ class DcosProviderUtils {
     }
   }
 
-  static <T> void registerDeserializer(ObjectMapper objectMapper, Class<T> clazz, JsonDeserializer<T> deserializer) {
+  static <T> ObjectMapper registerDeserializer(ObjectMapper objectMapper, Class<T> clazz, ValueDeserializer<T> deserializer) {
     SimpleModule module = new SimpleModule()
     module.addDeserializer(clazz, deserializer)
-    objectMapper.registerModule(module)
+    return objectMapper.rebuild().addModule(module).build()
   }
 }

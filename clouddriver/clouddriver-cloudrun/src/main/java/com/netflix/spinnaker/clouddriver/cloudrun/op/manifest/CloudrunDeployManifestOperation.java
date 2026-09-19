@@ -42,8 +42,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 public class CloudrunDeployManifestOperation implements AtomicOperation<DeploymentResult> {
 
@@ -61,10 +61,10 @@ public class CloudrunDeployManifestOperation implements AtomicOperation<Deployme
 
   CloudrunDeployManifestDescription description;
 
-  private final ObjectMapper objectMapper = JsonMapper.builder().build();
+  private final ObjectMapper objectMapper = YAMLMapper.builder().build();
 
   private final ObjectMapper yamlMapper =
-      JsonMapper.builder(YAMLFactory.builder().loaderOptions(YamlHelper.getLoaderOptions()).build())
+      YAMLMapper.builder(YAMLFactory.builder().loaderOptions(YamlHelper.getLoaderOptions()).build())
           .build();
 
   private CloudrunYmlData ymlData = new CloudrunYmlData();

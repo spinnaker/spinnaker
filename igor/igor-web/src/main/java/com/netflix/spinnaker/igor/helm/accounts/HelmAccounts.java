@@ -29,8 +29,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.snakeyaml.engine.v2.api.LoadSettings;
 import org.springframework.beans.factory.annotation.Autowired;
 import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 @Slf4j
 public class HelmAccounts {
@@ -49,7 +49,7 @@ public class HelmAccounts {
             .setCodePointLimit(loaderOptions.getCodePointLimit())
             .build();
     this.mapper =
-        JsonMapper.builder(YAMLFactory.builder().loadSettings(loadSettings).build()).build();
+        YAMLMapper.builder(YAMLFactory.builder().loadSettings(loadSettings).build()).build();
   }
 
   public HelmIndex getIndex(String account) {

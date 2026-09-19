@@ -883,8 +883,8 @@ class SqlExecutionRepository(
           conditions = {
             var conditions = it.where(
             field("config_id").`in`(*pipelineConfigIds.toTypedArray())
-              .and(field("build_time").gt(buildTimeStartBoundary))
-              .and(field("build_time").lt(buildTimeEndBoundary))
+              .and(field("build_time").ge(buildTimeStartBoundary))
+              .and(field("build_time").le(buildTimeEndBoundary))
             )
 
             if (executionCriteria.statuses.isNotEmpty()) {

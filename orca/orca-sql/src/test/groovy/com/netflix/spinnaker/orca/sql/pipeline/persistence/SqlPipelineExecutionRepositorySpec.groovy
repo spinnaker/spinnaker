@@ -626,8 +626,8 @@ abstract class SqlPipelineExecutionRepositorySpec extends PipelineExecutionRepos
 
     where:
     storeLimit  |  retrieveLimit | compressionEnabled
-    6           | 10             | false
-    6           | 10             | true
+    6           | 12             | false
+    6           | 12             | true
   }
 
   def "can retrieve ALL pipelines by configIds between build time boundaries"() {
@@ -666,16 +666,69 @@ abstract class SqlPipelineExecutionRepositorySpec extends PipelineExecutionRepos
     )
 
     then:
-    forwardResults.size() == 8
+    forwardResults.size() == 10
     forwardResults.first().buildTime == 1
-    backwardsResults.size() == 8
-    backwardsResults.first().buildTime == 4
+    backwardsResults.size() == 10
+    backwardsResults.first().buildTime == 5
 
 
     where:
     storeLimit  | compressionEnabled
     6           | false
     6           | true
+  }
+
+  def "build time boundary is inclusive on both ends"() {
+    given:
+    ExecutionRepository repo = createExecutionRepository("test")
+    (1..5).each { buildTimeValue ->
+      repo.store(pipeline {
+        application = "spinnaker"
+        pipelineConfigId = "foo1"
+        name = "Execution #${buildTimeValue}"
+        buildTime = buildTimeValue
+      })
+    }
+
+    when:
+    def results = repo
+      .retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
+      ["foo1"],
+      2L,
+      4L,
+      new ExecutionCriteria()
+    )
+
+    then:
+    // executions with buildTime exactly equal to either boundary are included,
+    // matching the "at or after"/"at or before" contract of the search API.
+    results*.buildTime.sort() == [2L, 3L, 4L]
+  }
+
+  def "paginating between build time boundaries doesn't skip or duplicate results"() {
+    given:
+    ExecutionRepository repo = createExecutionRepository("test")
+    (1..10).each { buildTimeValue ->
+      repo.store(pipeline {
+        application = "spinnaker"
+        pipelineConfigId = "foo1"
+        name = "Execution #${buildTimeValue}"
+        buildTime = buildTimeValue
+      })
+    }
+
+    when:
+    def page1 = repo.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
+      ["foo1"], 1L, 10L, new ExecutionCriteria().setPageSize(4).setPage(1).setSortType(BUILD_TIME_ASC))
+    def page2 = repo.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
+      ["foo1"], 1L, 10L, new ExecutionCriteria().setPageSize(4).setPage(2).setSortType(BUILD_TIME_ASC))
+    def page3 = repo.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
+      ["foo1"], 1L, 10L, new ExecutionCriteria().setPageSize(4).setPage(3).setSortType(BUILD_TIME_ASC))
+
+    then:
+    page1*.buildTime == [1L, 2L, 3L, 4L]
+    page2*.buildTime == [5L, 6L, 7L, 8L]
+    page3*.buildTime == [9L, 10L]
   }
 
   def "doesn't fail on empty configIds"() {

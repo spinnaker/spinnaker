@@ -1,5 +1,5 @@
 plugins {
-  id("net.ltgt.errorprone") version "4.0.0"
+  id("net.ltgt.errorprone") version "5.1.1"
   id 'com.adarshr.test-logger' version '4.0.0'
 }
 
@@ -48,7 +48,7 @@ tasks.withType(JavaCompile) {
 }
 
 dependencies {
-  errorprone("com.google.errorprone:error_prone_core:2.28.0")
+  errorprone("com.google.errorprone:error_prone_core:2.50.0")
   implementation project(":clouddriver-api")
   implementation project(":clouddriver-artifacts:clouddriver-artifacts-kubernetes")
   implementation project(":clouddriver-core")
@@ -76,19 +76,11 @@ dependencies {
   implementation "io.spinnaker.kork:kork-retrofit"
   implementation "io.spinnaker.kork:kork-secrets"
   implementation "io.spinnaker.kork:kork-security"
-  // Keep the API and fluent artifacts on the same version. Spring Cloud 2025.1 manages
-  // client-java at 24.x, whose generated models reject fields accepted by our existing
-  // Kubernetes manifests; this migration does not require upgrading the Kubernetes SDK.
-  implementation("io.kubernetes:client-java") {
-    version {
-      strictly "19.0.3"
-    }
-  }
-  implementation("io.kubernetes:client-java-api-fluent") {
-    version {
-      strictly "19.0.3"
-    }
-  }
+  // Version comes from the kork-bom platform (spinnaker-dependencies): kept
+  // below Boot's managed 24.x, whose generated models reject fields accepted
+  // by our existing Kubernetes manifests.
+  implementation "io.kubernetes:client-java"
+  implementation "io.kubernetes:client-java-api-fluent"
   implementation "org.apache.commons:commons-lang3"
   implementation "org.springframework.boot:spring-boot-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"

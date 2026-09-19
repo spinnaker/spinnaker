@@ -79,8 +79,7 @@ abstract class PipelineControllerTck extends Specification {
   void setup() {
     println "--------------- Test " + specificationContext.currentIteration.name
 
-    this.objectMapper = JsonMapper.builder().build()
-    this.objectMapper.registerModule(new Front50ApiModule())
+    this.objectMapper = JsonMapper.builder().addModule(new Front50ApiModule()).build()
 
     this.pipelineDAO = Spy(createPipelineDAO())
     this.serviceAccountsService = Mock(ServiceAccountsService)

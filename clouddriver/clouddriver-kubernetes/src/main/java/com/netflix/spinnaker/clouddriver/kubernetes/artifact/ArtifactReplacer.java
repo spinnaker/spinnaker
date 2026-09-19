@@ -67,7 +67,7 @@ public class ArtifactReplacer {
     if (serializer != null) {
       SimpleModule module = new SimpleModule();
       module.setSerializerModifier(serializer);
-      mapper.registerModule(module);
+      mapper = mapper.rebuild().addModule(module).build();
     }
 
     this.mapper = mapper;
@@ -110,7 +110,7 @@ public class ArtifactReplacer {
     try {
       document = JsonPath.using(configuration).parse(mapper.writeValueAsString(input));
     } catch (JacksonException e) {
-      throw new UncheckedIOException("Malformed manifest", e);
+      throw new UncheckedIOException("Malformed manifest", new IOException(e));
     }
 
     ImmutableList<Artifact> filteredArtifacts = filterArtifacts(namespace, account, artifacts);
@@ -125,8 +125,8 @@ public class ArtifactReplacer {
       return new ReplaceResult(
           mapper.readValue(document.jsonString(), KubernetesManifest.class),
           replacedArtifacts.build());
-    } catch (IOException e) {
-      throw new UncheckedIOException("Malformed manifest", e);
+    } catch (JacksonException e) {
+      throw new UncheckedIOException("Malformed manifest", new IOException(e));
     }
   }
 
@@ -136,7 +136,7 @@ public class ArtifactReplacer {
     try {
       document = JsonPath.using(configuration).parse(mapper.writeValueAsString(input));
     } catch (JacksonException e) {
-      throw new UncheckedIOException("Malformed manifest", e);
+      throw new UncheckedIOException("Malformed manifest", new IOException(e));
     }
 
     return replacers.stream()

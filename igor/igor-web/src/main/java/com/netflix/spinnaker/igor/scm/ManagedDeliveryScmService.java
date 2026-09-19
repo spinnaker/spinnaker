@@ -33,8 +33,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.stereotype.Service;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 /** Support for retrieving Managed Delivery-related information from SCM systems. */
 @Service
@@ -65,7 +65,7 @@ public class ManagedDeliveryScmService {
     this.gitHubMaster = gitHubMaster;
     this.gitLabMaster = gitLabMaster;
     this.bitBucketMaster = bitBucketMaster;
-    this.jsonMapper = JsonMapper.builder().build();
+    this.jsonMapper = YAMLMapper.builder().build();
     var loaderOptions = yamlHelper.loaderOptions();
     LoadSettings loadSettings =
         LoadSettings.builder()
@@ -73,7 +73,7 @@ public class ManagedDeliveryScmService {
             .setCodePointLimit(loaderOptions.getCodePointLimit())
             .build();
     this.yamlMapper =
-        JsonMapper.builder(YAMLFactory.builder().loadSettings(loadSettings).build()).build();
+        YAMLMapper.builder(YAMLFactory.builder().loadSettings(loadSettings).build()).build();
   }
 
   /**

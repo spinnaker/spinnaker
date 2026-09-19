@@ -54,7 +54,7 @@ class DcosClusterProvider implements ClusterProvider<DcosCluster> {
 
     // TODO should we be registering this at a higher level? Figured we wanted to isolate as much as possible.
     this.objectMapper = objectMapper.rebuild().build()
-    DcosProviderUtils.registerDeserializer(this.objectMapper, Volume.class, new MarathonVolumeDeserializer())
+    this.objectMapper = DcosProviderUtils.registerDeserializer(this.objectMapper, Volume.class, new MarathonVolumeDeserializer())
   }
 
   @Override

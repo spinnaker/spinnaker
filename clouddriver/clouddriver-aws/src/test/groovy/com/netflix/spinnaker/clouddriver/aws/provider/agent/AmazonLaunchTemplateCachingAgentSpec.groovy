@@ -22,13 +22,14 @@ import software.amazon.awssdk.services.ec2.model.DescribeLaunchTemplatesResponse
 import software.amazon.awssdk.services.ec2.model.LaunchTemplate
 import software.amazon.awssdk.services.ec2.model.LaunchTemplateVersion
 import software.amazon.awssdk.services.ec2.model.ResponseLaunchTemplateData
+import tools.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.clouddriver.aws.jackson.AwsObjectMapperFactory
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
 import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
-import tools.jackson.databind.json.JsonMapper
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -37,7 +38,7 @@ import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.LA
 
 class AmazonLaunchTemplateCachingAgentSpec extends Specification {
   def registry = new NoopRegistry()
-  def objectMapper = JsonMapper.builder().addModule(new AwsSdkV2Module()).build()
+  def objectMapper = AwsObjectMapperFactory.createConfigured().rebuild().addModule(new AwsSdkV2Module()).build()
   def region = "us-east-1"
   def account = "test"
   def amazonClientProvider = Mock(AmazonClientProvider)

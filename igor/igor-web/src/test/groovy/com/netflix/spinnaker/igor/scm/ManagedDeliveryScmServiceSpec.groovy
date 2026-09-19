@@ -33,7 +33,6 @@ import tools.jackson.databind.ObjectMapper
 import tools.jackson.dataformat.yaml.YAMLFactory
 
 import static com.netflix.spinnaker.igor.scm.stash.client.StashMaster.DEFAULT_PAGED_RESPONSE_LIMIT
-import tools.jackson.databind.json.JsonMapper
 import tools.jackson.dataformat.yaml.YAMLMapper
 
 class ManagedDeliveryScmServiceSpec extends Specification {
@@ -43,7 +42,7 @@ class ManagedDeliveryScmServiceSpec extends Specification {
   StashClient client = Mock(StashClient)
   def STASH_ADDRESS = "https://stash.com"
 
-  ObjectMapper jsonMapper = JsonMapper.builder().build()
+  ObjectMapper jsonMapper = YAMLMapper.builder().build()
   ObjectMapper yamlMapper = YAMLMapper.builder().build()
 
   void setup() {

@@ -40,8 +40,8 @@ import tools.jackson.databind.DeserializationContext;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.ValueDeserializer;
 import tools.jackson.databind.annotation.JsonDeserialize;
-import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 @Slf4j
 @Setter
@@ -110,13 +110,13 @@ public class ServiceManifest {
         new TypeReference<Map<String, Object>>() {};
 
     private final ObjectMapper yamlObjectMapper =
-        JsonMapper.builder(
+        YAMLMapper.builder(
                 YAMLFactory.builder()
                     .loadSettings(toLoadSettings(YamlHelper.getLoaderOptions()))
                     .build())
             .build();
 
-    private final ObjectMapper jsonObjectMapper = JsonMapper.builder().build();
+    private final ObjectMapper jsonObjectMapper = YAMLMapper.builder().build();
 
     @Override
     public Map<String, Object> deserialize(JsonParser parser, DeserializationContext context)

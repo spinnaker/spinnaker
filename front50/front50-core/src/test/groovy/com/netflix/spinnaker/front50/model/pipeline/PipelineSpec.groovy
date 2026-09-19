@@ -50,6 +50,30 @@ class PipelineSpec extends Specification {
     pipeline == pipelineJSON
   }
 
+  def 'updateTs from JSON populates lastModified (regression test: this is what makes staleCheck work end to end)'() {
+    given:
+    String pipelineJSON = '{"id":"1","name":"sky","application":"almond","updateTs":"1520879791608"}'
+
+    when:
+    Pipeline pipeline = objectMapper.readValue(pipelineJSON, Pipeline.class)
+
+    then:
+    pipeline.getLastModified() == 1520879791608L
+  }
+
+  def 'a null, blank or unparseable updateTs is treated as no fingerprint supplied, not an error'() {
+    expect:
+    objectMapper.readValue(pipelineJSON, Pipeline.class).getLastModified() == null
+
+    where:
+    pipelineJSON << [
+      '{"id":"1","name":"sky","application":"almond","updateTs":null}',
+      '{"id":"1","name":"sky","application":"almond","updateTs":""}',
+      '{"id":"1","name":"sky","application":"almond","updateTs":"not-a-number"}',
+      '{"id":"1","name":"sky","application":"almond"}',
+    ]
+  }
+
   def 'should grab triggers after deserializing JSON into Pipeline'() {
     given:
     String pipelineJSON = '{"triggers": [{"type": "cron", "id": "a"}, {"type": "cron", "id": "b"}]}'

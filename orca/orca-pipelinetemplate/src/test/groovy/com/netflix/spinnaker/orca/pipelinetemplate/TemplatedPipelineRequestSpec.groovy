@@ -25,10 +25,11 @@ import tools.jackson.databind.json.JsonMapper
 
 class TemplatedPipelineRequestSpec extends Specification {
 
-  def objectMapper = JsonMapper.builder().build()
+  def objectMapper = JsonMapper.builder()
     .enable(SerializationFeature.INDENT_OUTPUT)
     .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-    .registerModule(new KotlinModule.Builder().build())
+    .addModule(new KotlinModule.Builder().build())
+    .build()
 
   @Unroll
   def 'should deserialize config'() {

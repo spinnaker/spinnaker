@@ -679,6 +679,58 @@ class TaskControllerSpec extends Specification {
     e.cause == front50Error
   }
 
+  void '/applications/{application}/pipelines/search with application "*" still filters by pipelineName'() {
+    given:
+    def pipelines = [
+      [pipelineConfigId: "1", id: "test-1", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(2, HOURS).toEpochMilli(),
+       trigger: new DockerTrigger("test-account", "test-repo", "1")
+      ],
+      [pipelineConfigId: "3", id: "test-3", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(2, HOURS).toEpochMilli(),
+       trigger: new DockerTrigger("test-account", "test-repo", "1")
+      ]
+    ]
+
+    when:
+    def response = mockMvc.perform(get("/applications/*/pipelines/search?pipelineName=pipeline-A")).andReturn().response
+    List results = JsonMapper.builder().build().readValue(response.contentAsString, List)
+
+    then:
+    1 * front50Service.getAllApplications() >> Calls.response([[name: "app1"], [name: "app2"]])
+    1 * front50Service.getPipelines("app1", false) >> Calls.response([[id: "1", name: "pipeline-A"], [id: "2", name: "pipeline-B"]])
+    1 * front50Service.getPipelines("app2", false) >> Calls.response([[id: "3", name: "pipeline-A"]])
+    0 * front50Service._
+
+    // pipelineConfigId "2" (name "pipeline-B") must be excluded even though application is "*"
+    1 * executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1", "3"], _, _, _) >> pipelines.collect { config ->
+      PipelineExecutionImpl pipeline = pipeline {
+        id = config.id
+        application = "covfefe"
+        startTime = config.startTime
+        pipelineConfigId = config.pipelineConfigId
+      }
+      pipeline.setTrigger(config.trigger)
+      return pipeline
+    }
+    0 * executionRepository._
+
+    results.id as Set == ['test-1', 'test-3'] as Set
+  }
+
+  void '/applications/{application}/pipelines/search with a malformed trigger param fails with an IllegalArgumentException'() {
+    given:
+    def app = "covfefe"
+
+    when:
+    mockMvc.perform(get("/applications/${app}/pipelines/search?trigger=not-valid-base64!!!"))
+
+    then:
+    0 * front50Service._
+    0 * executionRepository._
+
+    def e = thrown ServletException
+    e.cause instanceof IllegalArgumentException
+  }
+
   void '/applications/{application}/pipelines/search should handle a trigger field that is a string'() {
     given:
     def app = "covfefe"
@@ -804,6 +856,40 @@ class TaskControllerSpec extends Specification {
     0 * front50Service._
 
     results.id == ['test-2', 'test-3']
+  }
+
+  void '/applications/{application}/pipelines/search should fetch enough pages to satisfy startIndex beyond the first page'() {
+    given:
+    def app = "covfefe"
+    def toExecutions = { List<String> ids ->
+      ids.collect { executionId ->
+        PipelineExecutionImpl pipeline = pipeline {
+          id = executionId
+          application = app
+          startTime = clock.instant().minus(daysOfExecutionHistory, DAYS).minus(2, HOURS).toEpochMilli()
+          pipelineConfigId = "1"
+        }
+        pipeline.setTrigger(new DockerTrigger("test-account", "test-repo", "1"))
+        return pipeline
+      }
+    }
+    // First page is a full page (size == pageSize), so the search must keep
+    // fetching a second page to gather enough matches to satisfy startIndex + size.
+    def page1 = toExecutions((1..10).collect { "test-${it}".toString() })
+    def page2 = toExecutions((11..15).collect { "test-${it}".toString() })
+
+    when:
+    def response = mockMvc.perform(get("/applications/${app}/pipelines/search?startIndex=10&size=5")).andReturn().response
+    List results = JsonMapper.builder().build().readValue(response.contentAsString, List)
+
+    then:
+    1 * front50Service.getPipelines(app, false) >> Calls.response([[id: "1"]])
+    0 * front50Service._
+
+    2 * executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >>> [page1, page2]
+    0 * executionRepository._
+
+    results.id == (11..15).collect { "test-${it}".toString() }
   }
 
   void 'checkObjectMatchesSubset matches identical strings'() {

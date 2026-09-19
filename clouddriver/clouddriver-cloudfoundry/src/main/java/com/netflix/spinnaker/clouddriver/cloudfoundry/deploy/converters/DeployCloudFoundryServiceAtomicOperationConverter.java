@@ -44,15 +44,15 @@ import tools.jackson.core.JsonToken;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.*;
 import tools.jackson.databind.annotation.JsonDeserialize;
-import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 @CloudFoundryOperation(AtomicOperations.DEPLOY_SERVICE)
 @Component
 public class DeployCloudFoundryServiceAtomicOperationConverter
     extends AbstractCloudFoundryAtomicOperationConverter {
   private static final ObjectMapper objectMapper =
-      JsonMapper.builder()
+      YAMLMapper.builder()
           .build()
           .setPropertyNamingStrategy(PropertyNamingStrategies.KebabCaseStrategy.INSTANCE)
           .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
@@ -264,7 +264,7 @@ public class DeployCloudFoundryServiceAtomicOperationConverter
         new TypeReference<Map<String, Object>>() {};
 
     private final ObjectMapper yamlObjectMapper =
-        JsonMapper.builder(
+        YAMLMapper.builder(
                 YAMLFactory.builder().loaderOptions(YamlHelper.getLoaderOptions()).build())
             .build();
 

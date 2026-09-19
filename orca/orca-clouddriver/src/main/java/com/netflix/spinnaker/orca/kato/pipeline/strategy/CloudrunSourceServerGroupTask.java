@@ -30,8 +30,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 @Component
 @Slf4j
@@ -61,7 +61,7 @@ public class CloudrunSourceServerGroupTask extends DetermineSourceServerGroupTas
   private void setRegionInContextFromPayload(StageExecution stage) {
 
     ObjectMapper yamlReader =
-        JsonMapper.builder(
+        YAMLMapper.builder(
                 YAMLFactory.builder()
                     .loadSettings(
                         LoadSettings.builder()

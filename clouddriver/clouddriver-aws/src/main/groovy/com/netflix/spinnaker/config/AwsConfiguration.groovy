@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.config
 
+import com.netflix.spinnaker.clouddriver.aws.jackson.AwsObjectMapperFactory
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties
 import com.netflix.spinnaker.clouddriver.aws.deploy.InstanceTypeUtils.BlockDeviceConfig
@@ -112,11 +113,8 @@ class AwsConfiguration {
 
   @Bean
   @Qualifier("amazonObjectMapper")
-  ObjectMapper amazonObjectMapper(ObjectMapper objectMapper) {
-    return objectMapper.rebuild()
-      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-      .addModule(new AwsSdkV2Module())
-      .build()
+  ObjectMapper amazonObjectMapper() {
+    return AwsObjectMapperFactory.createConfigured().rebuild().addModule(new AwsSdkV2Module()).build()
   }
 
   @Bean
