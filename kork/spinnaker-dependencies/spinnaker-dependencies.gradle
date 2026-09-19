@@ -41,10 +41,10 @@ ext {
     // GenericContainer wrapper, so the emulator version comes from the image tag
     // (MINISTACK_IMAGE_TAG in the tests), not from here.
     testcontainersMiniStack : "0.1.5",
+    // Kubernetes SDK pinned below Boot's managed 24.x: the 24.x generated models
+    // reject fields accepted by existing Spinnaker manifests, and upgrading the
+    // SDK is out of scope for the Boot 4 migration.
     kubernetes       : "19.0.3",
-    // Boot 4.1 manages jOOQ 3.21.7 (Java 21 bytecode, major 65). Keep Java 17 by
-    // pinning the last Java 17-compatible line until the Java floor is raised.
-    jooq             : "3.19.35",
   ]
 }
 
@@ -148,13 +148,21 @@ dependencies {
     api("commons-fileupload:commons-fileupload:1.6.0")// Multiple CVEs from 1.4
     api("org.apache.commons:commons-compress:${versions.commonsCompress}")
     api("io.kubernetes:client-java:${versions.kubernetes}")
+    api("io.kubernetes:client-java-api-fluent:${versions.kubernetes}")
     // CVE's in 3.2.1
     api("commons-collections:commons-collections:[3.2.2,3.3)")
     api("org.apache.commons:commons-collections4:4.5.0")
     api("de.danielbechler:java-object-diff:0.95")
+    // CDEvents SDK used by echo-notifications. The io.cloudevents artifacts stay
+    // versioned locally: echo uses the 3.x line (matching cdevents-sdk 0.3.1)
+    // while gate uses 5.x, so they cannot share one constraint.
+    api("dev.cdevents:cdevents-sdk-java:0.3.1")
     api("de.huxhorn.sulky:de.huxhorn.sulky.ulid:8.2.0")
     api("dev.minutest:minutest:1.13.0")
     api("io.mockk:mockk:1.13.17")
+    // Incubator API used by echo-notifications' OTel tracing; not managed by
+    // Boot's BOM, so pin here rather than in the module.
+    api("io.opentelemetry:opentelemetry-api-incubator:1.62.0-alpha")
     api("io.swagger.core.v3:swagger-annotations:${versions.swagger}")
     api("io.swagger.core.v3:swagger-core:${versions.swagger}")
     api("javax.xml.bind:jaxb-api:2.3.1")
@@ -215,7 +223,7 @@ dependencies {
     api("io.rest-assured:rest-assured:5.5.7")
     // Spock 2.4-groovy-4.0 is incompatible with Groovy 5 (Boot 4 default).
     // Keep Groovy 4 for tests until Spock supports Groovy 5. Strictly forces
-    // the downgrade from Boot's Groovy 5 line (see jOOQ pin above for Java 17).
+    // the downgrade from Boot's Groovy 5 line.
     api("org.apache.groovy:groovy") {
       version {
         strictly "${versions.groovy}"
@@ -236,11 +244,14 @@ dependencies {
         strictly "${versions.groovy}"
       }
     }
-    api("org.jooq:jooq:${versions.jooq}")
-    api("org.jooq:jooq-meta:${versions.jooq}")
-    api("org.jooq:jooq-codegen:${versions.jooq}")
-    api("org.jooq:jooq-meta-extensions:${versions.jooq}")
-    api("org.jooq:jooq-kotlin:${versions.jooq}")
+    api("org.jooq:jooq")
+    api("org.jooq:jooq-meta")
+    api("org.jooq:jooq-codegen")
+    api("org.jooq:jooq-meta-extensions")
+    api("org.jooq:jooq-kotlin")
+    // WireMock version is centralized in wiremock-substitution.gradle at the
+    // repo root (single home): the substitution rules there swap these
+    // Jetty-based variants for the shaded standalone artifact.
     api("org.wiremock:wiremock:3.10.0")
     api("org.wiremock:wiremock-jetty12:3.10.0")
     // Shaded self-contained server; dependencySubstitution in each composite

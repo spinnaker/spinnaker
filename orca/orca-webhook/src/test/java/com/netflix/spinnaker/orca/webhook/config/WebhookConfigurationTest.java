@@ -261,14 +261,14 @@ class WebhookConfigurationTest {
             });
   }
 
-  /** Retrieve the client member from the OkHttpClientHttpRequestFactory bean */
+  /** Retrieve the client member from the SpinnakerOkHttpClientRequestFactory bean */
   private static OkHttpClient getOkHttpClient(AssertableApplicationContext ctx) {
-    OkHttpClientHttpRequestFactory requestFactory =
-        ctx.getBean(OkHttpClientHttpRequestFactory.class);
+    SpinnakerOkHttpClientRequestFactory requestFactory =
+        ctx.getBean(SpinnakerOkHttpClientRequestFactory.class);
     assertThat(requestFactory).isNotNull();
     Field clientField =
         ReflectionUtils.findField(
-            OkHttpClientHttpRequestFactory.class, "client", OkHttpClient.class);
+            SpinnakerOkHttpClientRequestFactory.class, "client", OkHttpClient.class);
     assertThat(clientField).isNotNull();
     clientField.setAccessible(true);
     OkHttpClient client = (OkHttpClient) ReflectionUtils.getField(clientField, requestFactory);

@@ -34,10 +34,15 @@ dependencies {
   implementation "org.apache.groovy:groovy-json"
   implementation "io.cloudevents:cloudevents-http-basic:3.0.0"
   implementation "io.cloudevents:cloudevents-json-jackson:3.0.0"
-  implementation ("dev.cdevents:cdevents-sdk-java:0.3.1")
+  // Version managed by the kork-bom platform (spinnaker-dependencies).
+  implementation "dev.cdevents:cdevents-sdk-java"
   implementation "io.opentelemetry:opentelemetry-api"
-  implementation "io.opentelemetry:opentelemetry-api-incubator:1.62.0-alpha"
+  implementation "io.opentelemetry:opentelemetry-api-incubator"
   implementation "io.opentelemetry:opentelemetry-sdk"
+  // OTLP exporter without its okhttp sender: sender-okhttp 1.62 requires
+  // okhttp 5.x while the tree resolves okhttp 4.12.0, and the CDEvents sender
+  // here uses the gRPC exporter, so the okhttp sender is unneeded. A newer
+  // OTel release does not help while the okhttp major versions diverge.
   implementation("io.opentelemetry:opentelemetry-exporter-otlp") {
     exclude group: "io.opentelemetry", module: "opentelemetry-exporter-sender-okhttp"
   }
@@ -47,7 +52,9 @@ dependencies {
   testImplementation "org.spockframework:spock-spring"
   testImplementation "org.springframework:spring-test"
   testImplementation "com.squareup.retrofit2:retrofit-mock"
-  testImplementation "org.wiremock:wiremock"
+  // Shaded standalone directly: self-contained, no Jetty version at odds with
+  // Boot 4.1's Jetty 12.1.x. Version from the kork-bom platform.
+  testImplementation "org.wiremock:wiremock-standalone"
   testImplementation "org.assertj:assertj-core"
   testImplementation "io.opentelemetry:opentelemetry-sdk-testing"
   annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"

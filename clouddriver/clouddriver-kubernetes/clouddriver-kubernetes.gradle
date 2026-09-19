@@ -76,19 +76,11 @@ dependencies {
   implementation "io.spinnaker.kork:kork-retrofit"
   implementation "io.spinnaker.kork:kork-secrets"
   implementation "io.spinnaker.kork:kork-security"
-  // Keep the API and fluent artifacts on the same version. Spring Cloud 2025.1 manages
-  // client-java at 24.x, whose generated models reject fields accepted by our existing
-  // Kubernetes manifests; this migration does not require upgrading the Kubernetes SDK.
-  implementation("io.kubernetes:client-java") {
-    version {
-      strictly "19.0.3"
-    }
-  }
-  implementation("io.kubernetes:client-java-api-fluent") {
-    version {
-      strictly "19.0.3"
-    }
-  }
+  // Version comes from the kork-bom platform (spinnaker-dependencies): kept
+  // below Boot's managed 24.x, whose generated models reject fields accepted
+  // by our existing Kubernetes manifests.
+  implementation "io.kubernetes:client-java"
+  implementation "io.kubernetes:client-java-api-fluent"
   implementation "org.apache.commons:commons-lang3"
   implementation "org.springframework.boot:spring-boot-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"

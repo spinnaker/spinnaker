@@ -43,7 +43,9 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-starter-aspectj"
   implementation "io.github.resilience4j:resilience4j-spring-boot2"
 
-  implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.1"
+  // Version managed by the kork-bom platform (spinnaker-dependencies); gate is
+  // the only consumer of the OpenAPI starter.
+  implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui"
   implementation "javax.xml.bind:jaxb-api"
 
   implementation "io.cloudevents:cloudevents-spring:5.0.0"

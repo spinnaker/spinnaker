@@ -31,23 +31,25 @@ import org.springframework.util.Assert;
 /**
  * Vendored from Spring Framework 6.2 {@code OkHttp3ClientHttpRequestFactory} (removed in Spring 7).
  * Temporary bridge to preserve orca-webhook's OkHttp-based {@code RestTemplate} behavior (custom
- * SSL, interceptors, timeouts) after Spring dropped OkHttp support. Revisit if webhooks migrate to
+ * SSL, interceptors, timeouts) after Spring dropped OkHttp support. Named with the Spinnaker prefix
+ * so it cannot be confused with a Spring-provided factory. Revisit if webhooks migrate to
  * JDK/Jetty/Reactor clients.
  */
-public class OkHttpClientHttpRequestFactory implements ClientHttpRequestFactory, DisposableBean {
+public class SpinnakerOkHttpClientRequestFactory
+    implements ClientHttpRequestFactory, DisposableBean {
 
   private OkHttpClient client;
 
   private final boolean defaultClient;
 
   /** Create a factory with a default {@link OkHttpClient} instance. */
-  public OkHttpClientHttpRequestFactory() {
+  public SpinnakerOkHttpClientRequestFactory() {
     this.client = new OkHttpClient();
     this.defaultClient = true;
   }
 
   /** Create a factory with the given {@link OkHttpClient} instance. */
-  public OkHttpClientHttpRequestFactory(OkHttpClient client) {
+  public SpinnakerOkHttpClientRequestFactory(OkHttpClient client) {
     Assert.notNull(client, "OkHttpClient must not be null");
     this.client = client;
     this.defaultClient = false;
@@ -87,7 +89,7 @@ public class OkHttpClientHttpRequestFactory implements ClientHttpRequestFactory,
 
   @Override
   public ClientHttpRequest createRequest(URI uri, HttpMethod httpMethod) {
-    return new OkHttpClientHttpRequest(this.client, uri, httpMethod);
+    return new SpinnakerOkHttpClientRequest(this.client, uri, httpMethod);
   }
 
   @Override

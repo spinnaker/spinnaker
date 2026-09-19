@@ -170,7 +170,7 @@ public class WebhookConfiguration {
     }
 
     var client = builder.build();
-    var requestFactory = new OkHttpClientHttpRequestFactory(client);
+    var requestFactory = new SpinnakerOkHttpClientRequestFactory(client);
     long readTimeoutMs =
         (environment.containsProperty("webhook.readTimeoutMs")
                 || environment.containsProperty("webhook.read-timeout-ms"))

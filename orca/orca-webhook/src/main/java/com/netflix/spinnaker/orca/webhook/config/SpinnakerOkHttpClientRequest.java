@@ -32,9 +32,9 @@ import org.springframework.util.StringUtils;
 
 /**
  * Vendored from Spring Framework 6.2 {@code OkHttp3ClientHttpRequest} (removed in Spring 7). See
- * {@link OkHttpClientHttpRequestFactory} for rationale.
+ * {@link SpinnakerOkHttpClientRequestFactory} for rationale.
  */
-class OkHttpClientHttpRequest extends AbstractStreamingClientHttpRequest {
+class SpinnakerOkHttpClientRequest extends AbstractStreamingClientHttpRequest {
 
   private final OkHttpClient client;
 
@@ -42,7 +42,7 @@ class OkHttpClientHttpRequest extends AbstractStreamingClientHttpRequest {
 
   private final HttpMethod method;
 
-  public OkHttpClientHttpRequest(OkHttpClient client, URI uri, HttpMethod method) {
+  public SpinnakerOkHttpClientRequest(OkHttpClient client, URI uri, HttpMethod method) {
     this.client = client;
     this.uri = uri;
     this.method = method;
@@ -81,7 +81,7 @@ class OkHttpClientHttpRequest extends AbstractStreamingClientHttpRequest {
           }
         });
     Request request = builder.build();
-    return new OkHttpClientHttpResponse(this.client.newCall(request).execute());
+    return new SpinnakerOkHttpClientResponse(this.client.newCall(request).execute());
   }
 
   private static class BodyRequestBody extends RequestBody {
