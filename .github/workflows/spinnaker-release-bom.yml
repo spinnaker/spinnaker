@@ -129,7 +129,7 @@ jobs:
         if: inputs.publish-api-docs == true
         with:
           java-version: |
-            17
+            25
           distribution: 'zulu'
           cache: gradle
 
@@ -166,9 +166,78 @@ jobs:
           draft: false
           prerelease: false
 
+      # Every service's app-dependency (CycloneDX) and container-image (SPDX) SBOMs land here as
+      # workflow artifacts from the reusable per-service workflows invoked earlier in this run.
+      # No continue-on-error here or below: SBOMs are a compliance requirement for this release,
+      # not a nice-to-have, so a missing/failed SBOM must fail the release rather than skip quietly.
+      - name: Download service SBOMs
+        if: inputs.publish-github-release == true
+        uses: actions/download-artifact@v4
+        with:
+          path: sboms
+          pattern: 'sbom-*'
+          merge-multiple: true
+
+      - name: Download image SBOMs
+        if: inputs.publish-github-release == true
+        uses: actions/download-artifact@v4
+        with:
+          path: sboms
+          pattern: 'image-sbom-*'
+          merge-multiple: true
+
+      # Uploads each SBOM as a release asset and links (not embeds) them from the release notes,
+      # appended after the changelog actions/create-release already set as the body.
+      - name: Attach SBOMs to release and link them from the release notes
+        if: inputs.publish-github-release == true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: spinnaker-release-${{ inputs.spinnaker-version }}
+          CHANGELOG: ${{ steps.spinnaker-release-bom.outputs.changelog }}
+        run: |
+          shopt -s nullglob
+
+          # Every Gradle-based service in this release must have produced an app SBOM. A missing
+          # one means SBOM generation silently broke somewhere upstream -- fail loudly rather than
+          # publish a release with incomplete supply-chain documentation.
+          EXPECTED_SERVICES=(clouddriver echo fiat front50 gate igor kayenta keel orca rosco)
+          MISSING=()
+          for svc in "${EXPECTED_SERVICES[@]}"; do
+            if ! compgen -G "sboms/${svc}-app-sbom.cdx.json" > /dev/null; then
+              MISSING+=("$svc")
+            fi
+          done
+          if [ ${#MISSING[@]} -gt 0 ]; then
+            echo "::error::Missing app SBOM for: ${MISSING[*]} -- SBOMs are required for this release."
+            exit 1
+          fi
+
+          FILES=(sboms/*)
+          if [ ${#FILES[@]} -eq 0 ]; then
+            echo "::error::No SBOM artifacts found at all -- SBOMs are required for this release."
+            exit 1
+          fi
+
+          gh release upload "$TAG" "${FILES[@]}" --clobber
+
+          {
+            printf '%s\n\n' "$CHANGELOG"
+            echo "## SBOMs"
+            echo
+            echo "CycloneDX application-dependency and SPDX container-image SBOMs for every service in this release:"
+            echo
+            for f in "${FILES[@]}"; do
+              name=$(basename "$f")
+              echo "- [$name](https://github.com/${{ github.repository }}/releases/download/$TAG/$name)"
+            done
+          } > release-notes-with-sboms.md
+
+          gh release edit "$TAG" --notes-file release-notes-with-sboms.md
+
       - name: Summarize
         shell: bash
         run: |
+          SBOM_COUNT=$(find sboms/ -type f 2>/dev/null | wc -l | tr -d ' ')
           cat <<EOF> "$GITHUB_STEP_SUMMARY"
           ### Release Info
           | | |
@@ -177,6 +246,7 @@ jobs:
           | __BoM__ | ${{ steps.spinnaker-release-bom.outputs.bom-url }} |
           | __Changelog__ | ${{ steps.spinnaker-release-bom.outputs.bom-url }} |
           | __versions.yml__ | ${{ steps.spinnaker-release-bom.outputs.versions-yml-url }} |
+          | __SBOMs attached__ | $SBOM_COUNT |
           <details>
           <summary>BoM Contents</summary>
           
