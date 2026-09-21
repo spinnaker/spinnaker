@@ -134,7 +134,7 @@ dependencies {
     api("com.netflix.spectator:spectator-web-spring:${versions.spectator}")
     api("com.netflix.spectator:spectator-reg-micrometer:${versions.spectator}")
     api("com.nimbusds:nimbus-jose-jwt:10.9")
-    api("com.ninja-squad:springmockk:5.0.1")  //Compatible with Spring boot 3.x and Java 17+ https://github.com/Ninja-Squad/springmockk?tab=readme-ov-file#versions-compatibility
+    api("com.ninja-squad:springmockk:5.0.1")  //Compatible with Spring boot 4.x and Java 17+ https://github.com/Ninja-Squad/springmockk?tab=readme-ov-file#versions-compatibility
     api("com.squareup.retrofit2:converter-jackson:${versions.retrofit2}")
     api("com.squareup.retrofit2:retrofit-mock:${versions.retrofit2}")
     api("com.squareup.retrofit2:retrofit:${versions.retrofit2}")
@@ -157,7 +157,7 @@ dependencies {
     api("dev.cdevents:cdevents-sdk-java:0.3.1")
     api("de.huxhorn.sulky:de.huxhorn.sulky.ulid:8.2.0")
     api("dev.minutest:minutest:1.13.0")
-    api("io.mockk:mockk:1.13.17")
+    api("io.mockk:mockk:1.14.6")
     // Incubator API used by echo-notifications' OTel tracing; not managed by
     // Boot's BOM, so pin here rather than in the module.
     api("io.opentelemetry:opentelemetry-api-incubator:1.62.0-alpha")
