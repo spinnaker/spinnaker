@@ -144,7 +144,7 @@ describe('GceRegionalExternalNetworkLoadBalancerEditor', () => {
     expect(command.healthChecks[0].name).toBe('old-check');
   });
 
-  it('updates protocol, trimmed ports, and session affinity through normalized editor changes', () => {
+  it('updates protocol, raw ports, and session affinity through editor changes', () => {
     const command = normalizeGceRegionalExternalNetworkLoadBalancerCommand(
       { account: 'account-a', loadBalancerName: 'app-main', region: 'europe-west1' },
       'create',
@@ -158,7 +158,7 @@ describe('GceRegionalExternalNetworkLoadBalancerEditor', () => {
     expect(onChange.calls.mostRecent().args[0].listeners[0].protocol).toBe('UDP');
 
     wrapper.find('[data-field="ports"] input').simulate('change', { target: { value: '80, 443 , 8080' } });
-    expect(onChange.calls.mostRecent().args[0].ports).toEqual(['80', '443', '8080']);
+    expect(onChange.calls.mostRecent().args[0].ports).toEqual(['80', ' 443 ', ' 8080']);
 
     wrapper.find('[data-field="sessionAffinity"] select').simulate('change', {
       target: { value: 'CLIENT_IP_PORT_PROTO' },
@@ -166,7 +166,7 @@ describe('GceRegionalExternalNetworkLoadBalancerEditor', () => {
     expect(onChange.calls.mostRecent().args[0].backendServices[0].sessionAffinity).toBe('CLIENT_IP_PORT_PROTO');
   });
 
-  it('locks identity, region, and preserved edit fields while allowing protocol and port edits', () => {
+  it('locks identity and forwarding-rule fields while allowing backend edits', () => {
     const command = normalizeGceRegionalExternalNetworkLoadBalancerCommand(
       {
         account: 'account-a',
@@ -192,13 +192,13 @@ describe('GceRegionalExternalNetworkLoadBalancerEditor', () => {
       />,
     );
 
-    ['name', 'credentials', 'region', 'address', 'networkTier'].forEach((field) => {
+    ['name', 'credentials', 'region', 'address', 'networkTier', 'protocol', 'ports'].forEach((field) => {
       const control = wrapper.find(`[data-field="${field}"]`);
       expect((control.find('input').exists() ? control.find('input') : control.find('select')).prop('disabled')).toBe(
         true,
       );
     });
-    ['protocol', 'ports', 'sessionAffinity'].forEach((field) => {
+    ['sessionAffinity', 'healthCheckName'].forEach((field) => {
       const control = wrapper.find(`[data-field="${field}"]`);
       expect(
         (control.find('input').exists() ? control.find('input') : control.find('select')).prop('disabled'),
@@ -226,6 +226,7 @@ describe('GceRegionalExternalNetworkLoadBalancerEditor', () => {
       'Backend service name is required.',
       'Each backend service requires a health check.',
       'Health check name is required.',
+      'Health check port must be between 1 and 65535.',
       'Session affinity must be NONE, CLIENT_IP, CLIENT_IP_PROTO, or CLIENT_IP_PORT_PROTO.',
     ]);
   });
@@ -275,6 +276,7 @@ describe('GceRegionalExternalNetworkLoadBalancerEditor', () => {
       expect(validateGceRegionalExternalNetworkLoadBalancerCommand(command)).toEqual([
         'Each backend service requires a health check.',
         'Health check name is required.',
+        'Health check port must be between 1 and 65535.',
       ]);
     });
   });
@@ -318,6 +320,47 @@ describe('GceRegionalExternalNetworkLoadBalancerEditor', () => {
 
     expect(validateGceRegionalExternalNetworkLoadBalancerCommand(command)).toContain(
       'REGIONAL_EXTERNAL_NETWORK load balancers accept between one and five ports.',
+    );
+  });
+
+  it('rejects non-lexical ports, unsupported protocols, and destructive edit changes', () => {
+    const command = normalizeGceRegionalExternalNetworkLoadBalancerCommand(
+      {
+        account: 'account-a',
+        backendService: {
+          healthCheck: { healthCheckType: 'TCP', name: 'tcp-check', port: 80 },
+          name: 'app-main',
+          sessionAffinity: 'NONE',
+        },
+        ipProtocol: 'TCP',
+        loadBalancerName: 'app-main',
+        ports: ['80'],
+        region: 'europe-west1',
+      },
+      'edit',
+    );
+
+    ['0', '65536', '1.5', '1e2', ' 80', '80 ', '', 'abc'].forEach((port) => {
+      command.ports = [port];
+      expect(validateGceRegionalExternalNetworkLoadBalancerCommand(command)).toContain(
+        'Ports must be between 1 and 65535.',
+      );
+    });
+
+    command.ports = ['80'];
+    command.listeners[0].protocol = 'HTTP';
+    expect(validateGceRegionalExternalNetworkLoadBalancerCommand(command)).toEqual(
+      jasmine.arrayContaining([
+        'Protocol must be TCP or UDP.',
+        'Protocol and ports cannot be changed while editing a REGIONAL_EXTERNAL_NETWORK load balancer.',
+      ]),
+    );
+
+    const healthCheck = { ...command.healthChecks[0], port: '1e2' } as any;
+    command.healthChecks = [healthCheck];
+    command.backendServices[0].healthCheck = healthCheck;
+    expect(validateGceRegionalExternalNetworkLoadBalancerCommand(command)).toContain(
+      'Health check port must be between 1 and 65535.',
     );
   });
 });

@@ -93,4 +93,20 @@ describe('GceHttpLoadBalancerUtils', () => {
       'app-main',
     ]);
   });
+
+  it('leaves an ambiguous regional listener name unresolved', () => {
+    const loadBalancers = (['INTERNAL_MANAGED', 'EXTERNAL_MANAGED'] as const).map((loadBalancerType) => ({
+      account: 'account-a',
+      listeners: [{ name: 'shared-listener' }],
+      loadBalancerType,
+      name: `app-main (account-a/us-central1/${loadBalancerType})`,
+      provider: 'gce',
+      region: 'us-central1',
+      urlMapName: 'app-main',
+    })) as IGceLoadBalancer[];
+
+    expect(
+      utils.normalizeLoadBalancerNamesForAccount(['shared-listener'], 'account-a', loadBalancers, 'us-central1'),
+    ).toEqual(['shared-listener']);
+  });
 });

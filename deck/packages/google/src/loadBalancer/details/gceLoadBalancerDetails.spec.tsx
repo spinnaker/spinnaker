@@ -13,6 +13,7 @@ import {
 import { GceLoadBalancerChoiceModal } from '../configure/choice/GceLoadBalancerChoiceModal';
 import {
   GceLoadBalancerActions,
+  GceLoadBalancerInformationSection,
   GceLoadBalancerListenersSection,
   loadGceLoadBalancerDetails,
 } from './gceLoadBalancerDetails';
@@ -168,6 +169,36 @@ describe('loadGceLoadBalancerDetails', () => {
 
     expect(autoClose).toHaveBeenCalled();
     expect(loadBalancerReader.getLoadBalancerDetails).not.toHaveBeenCalled();
+  });
+
+  it('renders REGIONAL_EXTERNAL_NETWORK addresses without an HTTP URL scheme', async () => {
+    const loadBalancer = {
+      account: 'test',
+      loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK',
+      name: 'passthrough-lb',
+      provider: 'gce',
+      region: 'us-central1',
+    };
+    await loadGceLoadBalancerDetails({
+      accountService: { getAccountDetails: () => Promise.resolve({}) } as any,
+      app: { loadBalancers: { data: [loadBalancer] } } as any,
+      autoClose: jasmine.createSpy('autoClose'),
+      loadBalancerParams: {
+        accountId: 'test',
+        name: 'passthrough-lb',
+        provider: 'gce',
+        region: 'us-central1',
+        vpcId: null,
+      },
+      loadBalancerReader: {
+        getLoadBalancerDetails: () => Promise.resolve([{ dnsname: '203.0.113.10' }]),
+      } as any,
+    });
+
+    const wrapper = mount(<GceLoadBalancerInformationSection app={{}} loadBalancer={loadBalancer} />);
+    expect(wrapper.text()).toContain('203.0.113.10');
+    expect(wrapper.text()).not.toContain('http://');
+    expect(wrapper.text()).not.toContain('https://');
   });
 });
 

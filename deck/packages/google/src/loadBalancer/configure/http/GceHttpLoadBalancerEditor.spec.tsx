@@ -10,6 +10,7 @@ import {
   constrainGceHttpLoadBalancerCommand,
   FormRow,
   GceHttpLoadBalancerEditor,
+  validateGceHttpLoadBalancerCommand,
 } from './GceHttpLoadBalancerEditor';
 import { GceHttpLoadBalancerListenerEditor } from './GceHttpLoadBalancerListenerEditor';
 
@@ -566,21 +567,21 @@ describe('GceHttpLoadBalancerEditor', () => {
         { account: 'account-a', name: 'global-check', region: 'global' },
       ],
       networks: [
-        { account: 'account-a', id: 'host-project/network-a', name: 'network-a', region: 'global' },
-        { account: 'account-a', id: 'host-project/network-b', name: 'network-b', region: 'global' },
+        { account: 'account-a', id: 'network-a', name: 'network-a', region: 'global' },
+        { account: 'account-a', id: 'network-b', name: 'network-b', region: 'global' },
       ],
       subnets: [
         {
           account: 'account-a',
           name: 'proxy-subnet',
-          network: 'host-project/network-a',
+          network: 'network-a',
           purpose: 'REGIONAL_MANAGED_PROXY',
           region: 'europe-west1',
         },
         {
           account: 'account-a',
           name: 'internal-subnet',
-          network: 'host-project/network-b',
+          network: 'network-b',
           purpose: 'INTERNAL_HTTPS_LOAD_BALANCER',
           region: 'europe-west1',
         },
@@ -607,6 +608,80 @@ describe('GceHttpLoadBalancerEditor', () => {
     expect(options.backendServices.map(({ name }) => name)).toEqual(['regional-backend']);
     expect(options.networks.map(({ name }) => name)).toEqual(['network-a']);
     expect(options.subnets).toEqual([]);
+  });
+
+  it('rejects Shared VPCs, unsupported backend protocols, and destructive same-name listener edits', () => {
+    const command = normalizeGceLoadBalancerCommand(
+      {
+        account: 'account-a',
+        backendServices: [{ healthCheck: 'check-a', name: 'backend-a', portName: 'http', protocol: 'HTTP2' }],
+        defaultService: 'backend-a',
+        healthChecks: [{ healthCheckType: 'HTTP', name: 'check-a', port: 80, requestPath: '/' }],
+        listeners: [{ name: 'frontend', networkTier: 'PREMIUM', port: 80, protocol: 'HTTP' }],
+        loadBalancerType: 'EXTERNAL_MANAGED',
+        name: 'web',
+        network: 'host-project/shared-network',
+        region: 'europe-west1',
+      },
+      'edit',
+    );
+    command.listeners[0].portRange = '8080';
+
+    expect(validateGceHttpLoadBalancerCommand(command)).toEqual(
+      jasmine.arrayContaining([
+        'Shared VPC networks are not supported for EXTERNAL_MANAGED load balancers.',
+        'Backend service protocol must be HTTP or HTTPS.',
+        'Rename the listener to change its port, address, network tier, or HTTP/HTTPS protocol.',
+      ]),
+    );
+
+    command.network = { name: 'local-network' };
+    command.backendServices[0].protocol = 'HTTPS';
+    command.listeners[0] = { ...command.listeners[0], name: 'replacement' };
+    expect(validateGceHttpLoadBalancerCommand(command)).not.toEqual(
+      jasmine.arrayContaining([
+        'Shared VPC networks are not supported for EXTERNAL_MANAGED load balancers.',
+        'Backend service protocol must be HTTP or HTTPS.',
+        'Rename the listener to change its port, address, network tier, or HTTP/HTTPS protocol.',
+      ]),
+    );
+  });
+
+  it('offers only account-local networks for EXTERNAL_MANAGED', () => {
+    const command = normalizeGceLoadBalancerCommand(
+      {
+        account: 'account-a',
+        loadBalancerType: 'EXTERNAL_MANAGED',
+        name: 'web',
+        region: 'europe-west1',
+      },
+      'create',
+    );
+    const options = buildGceHttpLoadBalancerOptions(command, {
+      ...emptyData,
+      networks: [
+        { account: 'account-a', id: 'local-network', name: 'local-network' },
+        { account: 'account-a', id: 'host-project/shared-network', name: 'shared-network' },
+      ],
+      subnets: [
+        {
+          account: 'account-a',
+          name: 'local-proxy',
+          network: 'local-network',
+          purpose: 'REGIONAL_MANAGED_PROXY',
+          region: 'europe-west1',
+        },
+        {
+          account: 'account-a',
+          name: 'shared-proxy',
+          network: 'host-project/shared-network',
+          purpose: 'REGIONAL_MANAGED_PROXY',
+          region: 'europe-west1',
+        },
+      ],
+    } as any);
+
+    expect(options.networks.map(({ name }) => name)).toEqual(['local-network']);
   });
 
   it('rejects EXTERNAL_MANAGED listeners that use certificate maps', () => {

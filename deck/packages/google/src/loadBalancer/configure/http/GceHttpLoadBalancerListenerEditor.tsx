@@ -51,6 +51,7 @@ export function GceHttpLoadBalancerListenerEditor({
 }: IGceHttpLoadBalancerListenerEditorProps): JSX.Element {
   const protocols = ['HTTP', 'HTTPS'];
   const externalManaged = loadBalancerType === 'EXTERNAL_MANAGED';
+  const reservedNetworkTier = listener.address?.networkTier as string | undefined;
 
   const updateAddress = (name: string): void => {
     const address = selectedReference(name, addresses);
@@ -183,19 +184,6 @@ export function GceHttpLoadBalancerListenerEditor({
               />
             </label>
           )}
-          {externalManaged && (
-            <label>
-              Network tier
-              <select
-                data-testid="listener-network-tier"
-                value={listener.networkTier || 'PREMIUM'}
-                onChange={(event) => onChange({ ...listener, networkTier: event.target.value })}
-              >
-                <option value="PREMIUM">Premium</option>
-                <option value="STANDARD">Standard</option>
-              </select>
-            </label>
-          )}
           {!externalManaged && (
             <label>
               Certificate map
@@ -210,6 +198,20 @@ export function GceHttpLoadBalancerListenerEditor({
             </label>
           )}
         </>
+      )}
+      {externalManaged && (
+        <label>
+          Network tier
+          <select
+            data-testid="listener-network-tier"
+            disabled={Boolean(reservedNetworkTier)}
+            value={reservedNetworkTier || listener.networkTier || 'PREMIUM'}
+            onChange={(event) => onChange({ ...listener, networkTier: event.target.value })}
+          >
+            <option value="PREMIUM">Premium</option>
+            <option value="STANDARD">Standard</option>
+          </select>
+        </label>
       )}
       <button type="button" className="btn btn-sm btn-default" onClick={onRemove}>
         Remove listener

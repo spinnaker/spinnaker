@@ -91,6 +91,9 @@ export function validateGceRegionalExternalNetworkLoadBalancerCommand(
   if (!command.name.trim()) errors.push('Name is required.');
   if (!command.credentials) errors.push('Account is required.');
   if (!command.region) errors.push('Region is required.');
+  if (command.listeners[0]?.protocol !== 'TCP' && command.listeners[0]?.protocol !== 'UDP') {
+    errors.push('Protocol must be TCP or UDP.');
+  }
 
   if (!ports.length) {
     errors.push('Ports must be between 1 and 65535.');
@@ -106,6 +109,22 @@ export function validateGceRegionalExternalNetworkLoadBalancerCommand(
   if (!backend?.name?.trim()) errors.push('Backend service name is required.');
   if (!hasHealthCheck(backend)) errors.push('Each backend service requires a health check.');
   if (!healthCheckName(backend, command.healthChecks[0])) errors.push('Health check name is required.');
+  const backendHealthCheck =
+    backend?.healthCheck && typeof backend.healthCheck === 'object'
+      ? (backend.healthCheck as IGceLoadBalancerHealthCheck)
+      : command.healthChecks[0];
+  if (!validPort(backendHealthCheck?.port)) {
+    errors.push('Health check port must be between 1 and 65535.');
+  }
+  const originalListener = command.original?.listeners[0];
+  if (
+    command.mode === 'edit' &&
+    originalListener &&
+    (command.listeners[0]?.protocol !== originalListener.protocol ||
+      ports.join(',') !== splitPorts(originalListener.portRange).join(','))
+  ) {
+    errors.push('Protocol and ports cannot be changed while editing a REGIONAL_EXTERNAL_NETWORK load balancer.');
+  }
 
   const sessionAffinity = String(backend?.sessionAffinity || 'NONE').toUpperCase();
   if (!SESSION_AFFINITIES.includes(sessionAffinity as GceRegionalExternalNetworkSessionAffinity)) {
@@ -128,7 +147,7 @@ export function GceRegionalExternalNetworkLoadBalancerEditor({
     command.healthChecks[0] ||
     createGceRegionalExternalNetworkHealthCheck(command.name);
   const editing = command.mode === 'edit';
-  const portsValue = (command.ports?.length ? command.ports : splitPorts(listener.portRange)).join(', ');
+  const portsValue = (command.ports?.length ? command.ports : splitPorts(listener.portRange)).join(',');
 
   const update = (updates: Partial<IGceRegionalExternalNetworkLoadBalancerCommand>): void =>
     onChange({ ...command, ...updates } as IGceRegionalExternalNetworkLoadBalancerCommand);
@@ -150,10 +169,7 @@ export function GceRegionalExternalNetworkLoadBalancerEditor({
       backendServices: [{ ...backend, name: backend.name === command.name ? name : backend.name }],
     });
   const updatePorts = (value: string): void => {
-    const ports = value
-      .split(',')
-      .map((port) => port.trim())
-      .filter(Boolean);
+    const ports = value.split(',');
     update({
       ports,
       listeners: [{ ...listener, portRange: ports.join(',') }],
@@ -204,11 +220,11 @@ export function GceRegionalExternalNetworkLoadBalancerEditor({
         listener.protocol,
         PROTOCOLS.map((name) => ({ name })),
         (protocol) => updateListener({ protocol: protocol as GceLoadBalancerProtocol }),
-        false,
+        editing,
         ({ name }) => name,
         false,
       )}
-      {textField('Ports', 'ports', portsValue, updatePorts)}
+      {textField('Ports', 'ports', portsValue, updatePorts, editing)}
       {selectField(
         'Session affinity',
         'sessionAffinity',
@@ -255,7 +271,7 @@ function numberField(
   label: string,
   field: string,
   value: unknown,
-  onChange: (value: number | undefined) => void,
+  onChange: (value: number | string | undefined) => void,
 ): JSX.Element {
   return (
     <div className="form-group" data-field={field}>
@@ -263,8 +279,19 @@ function numberField(
       <div className="col-md-7">
         <input
           className="form-control input-sm"
-          onChange={(event) => onChange(event.target.value === '' ? undefined : Number(event.target.value))}
-          type="number"
+          inputMode="numeric"
+          max={65535}
+          min={1}
+          onChange={(event) =>
+            onChange(
+              event.target.value === ''
+                ? undefined
+                : /^\d+$/.test(event.target.value)
+                ? Number(event.target.value)
+                : event.target.value,
+            )
+          }
+          type="text"
           value={value === undefined || value === null ? '' : String(value)}
         />
       </div>
@@ -314,14 +341,13 @@ function references<T extends IGceLoadBalancerDataItem>(referenceValue?: T): T[]
 }
 
 function splitPorts(value: string | undefined): string[] {
-  return String(value || '')
-    .split(',')
-    .map((port) => port.trim())
-    .filter(Boolean);
+  return String(value || '').split(',');
 }
 
 function validPort(value: unknown): boolean {
-  const port = Number(value);
+  const text = String(value ?? '');
+  if (!/^\d+$/.test(text)) return false;
+  const port = Number(text);
   return Number.isInteger(port) && port >= 1 && port <= 65535;
 }
 

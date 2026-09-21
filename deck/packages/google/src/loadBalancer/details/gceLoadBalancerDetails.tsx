@@ -65,9 +65,16 @@ function uniqBy<T>(items: T[], getKey: (item: T) => string): T[] {
   });
 }
 
-function getProtocol(loadBalancer: any): string {
+function getProtocol(loadBalancer: any, httpFamily = false): string | undefined {
+  if (!httpFamily) {
+    return undefined;
+  }
   const port = loadBalancer?.listenerDescriptions?.[0]?.listener?.loadBalancerPort;
   return port === '443' ? 'https:' : 'http:';
+}
+
+function formatDns(dns: { dnsname: string; protocol?: string }): string {
+  return dns.protocol ? `${dns.protocol}//${dns.dnsname}` : dns.dnsname;
 }
 
 function getBackendServices(loadBalancer: any): any[] {
@@ -141,7 +148,7 @@ async function loadDetails(loadBalancer: any, loadBalancerParams: any, loadBalan
 
     representativeLoadBalancer.dns = uniqBy(
       loadBalancers
-        .map((detail: any) => ({ dnsname: detail.dnsname, protocol: getProtocol(detail) }))
+        .map((detail: any) => ({ dnsname: detail.dnsname, protocol: getProtocol(detail, true) }))
         .filter((detail: any) => detail.dnsname),
       (detail: any) => detail.dnsname,
     );
@@ -158,7 +165,10 @@ async function loadDetails(loadBalancer: any, loadBalancerParams: any, loadBalan
     loadBalancer.name,
   );
   if (details[0]) {
-    details[0].dns = { dnsname: details[0].dnsname, protocol: getProtocol(details[0]) };
+    details[0].dns = {
+      dnsname: details[0].dnsname,
+      protocol: getProtocol(details[0], loadBalancer.loadBalancerType !== 'REGIONAL_EXTERNAL_NETWORK'),
+    };
   }
   return details;
 }
@@ -400,8 +410,8 @@ export function GceLoadBalancerInformationSection({ loadBalancer }: { app: any; 
             <dt>DNS</dt>
             <dd>
               {Array.isArray(loadBalancer.elb.dns)
-                ? loadBalancer.elb.dns.map((dns: any) => `${dns.protocol}//${dns.dnsname}`).join(', ')
-                : `${loadBalancer.elb.dns.protocol}//${loadBalancer.elb.dns.dnsname}`}
+                ? loadBalancer.elb.dns.map(formatDns).join(', ')
+                : formatDns(loadBalancer.elb.dns)}
             </dd>
           </>
         )}

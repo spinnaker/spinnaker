@@ -85,13 +85,17 @@ export function normalizeGceRegionalExternalNetworkLoadBalancerCommand(
 ): IGceRegionalExternalNetworkLoadBalancerCommand {
   const source = persisted || {};
   const backendService = source.backendService || source.backendServices?.[0];
+  const materializeDefaults = mode !== 'edit';
   const normalizedSource: UnknownRecord = {
     ...defaults,
     ...source,
     backendServices: backendService ? [{ ...backendService }] : source.backendServices,
     credentials: source.credentials || source.account || defaults.credentials,
+    ipProtocol: source.ipProtocol || (materializeDefaults ? 'TCP' : undefined),
     loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK',
     name: source.name || source.loadBalancerName || applicationName,
+    networkTier: source.networkTier || (materializeDefaults ? 'PREMIUM' : undefined),
+    ports: source.ports ?? source.portRange ?? (materializeDefaults ? ['80'] : undefined),
   };
 
   const command = normalizeGceLoadBalancerCommand(
@@ -103,7 +107,7 @@ export function normalizeGceRegionalExternalNetworkLoadBalancerCommand(
   let backendServices = command.backendServices;
   let healthChecks = command.healthChecks;
 
-  if (mode === 'create') {
+  if (materializeDefaults) {
     if (backendService && !backendServices.length) {
       backendServices = [
         {
@@ -308,6 +312,9 @@ class GceRegionalExternalNetworkLoadBalancerModalComponent extends React.Compone
   };
 
   private submit = (): void => {
+    if (validateGceRegionalExternalNetworkLoadBalancerCommand(this.state.command).length) {
+      return;
+    }
     if (this.state.command.mode === 'pipeline') {
       this.props.closeModal?.(
         submitGceRegionalExternalNetworkLoadBalancerCommand(this.state.command, {
@@ -337,8 +344,5 @@ export const GceRegionalExternalNetworkLoadBalancerModal = Object.assign(
 );
 
 function splitPorts(value: string | undefined): string[] {
-  return String(value || '')
-    .split(',')
-    .map((port) => port.trim())
-    .filter(Boolean);
+  return String(value || '').split(',');
 }

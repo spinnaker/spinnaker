@@ -268,10 +268,14 @@ describe('GCE load balancer submission', () => {
         account: 'account-a',
         backendServices: [
           {
+            account: 'account-a',
             backends: [],
             healthCheck: 'check-a',
+            kind: 'regionBackendService',
             name: 'backend-a',
             portName: 'http',
+            protocol: 'HTTP',
+            selfLink: 'projects/test/regions/europe-west1/backendServices/backend-a',
             sessionAffinity: 'NONE',
           },
         ],
@@ -281,9 +285,11 @@ describe('GCE load balancer submission', () => {
             checkIntervalSec: 10,
             healthCheckType: 'HTTP',
             healthyThreshold: 2,
+            kind: 'healthCheck',
             name: 'check-a',
             port: 80,
             requestPath: '/health',
+            selfLink: 'projects/test/regions/europe-west1/healthChecks/check-a',
             timeoutSec: 5,
             unhealthyThreshold: 3,
           },
@@ -321,6 +327,7 @@ describe('GCE load balancer submission', () => {
       },
       name: 'backend-a',
       portName: 'http',
+      protocol: 'HTTP',
       sessionAffinity: 'NONE',
     };
 

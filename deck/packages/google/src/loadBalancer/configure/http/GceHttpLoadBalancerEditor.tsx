@@ -102,7 +102,10 @@ export function buildGceHttpLoadBalancerOptions(
       .filter(Boolean),
   );
   const eligibleNetworks = externalManaged
-    ? networks.filter((network) => proxyNetworkIds.has(network.id) || proxyNetworkIds.has(network.name))
+    ? networks.filter(
+        (network) =>
+          isAccountLocalNetwork(network) && (proxyNetworkIds.has(network.id) || proxyNetworkIds.has(network.name)),
+      )
     : networks;
   const selectedNetwork = networks.find(
     (network) => network.name === command.network?.name || network.id === command.network?.name,
@@ -162,13 +165,15 @@ export function constrainGceHttpLoadBalancerCommand(command: IGceLoadBalancerCom
     keepSubnet: boolean,
     keepNetworkTier: boolean,
   ) => {
+    const constrainedNetworkTier =
+      keepNetworkTier && (networkTier || (listener.address?.networkTier as string | undefined) || 'PREMIUM');
     if (listener.protocol === 'HTTPS') {
       return {
         ...listener,
         portRange: '443',
         protocol: 'HTTPS' as const,
         ...(keepSubnet && subnet ? { subnet } : {}),
-        ...(keepNetworkTier && networkTier ? { networkTier } : {}),
+        ...(constrainedNetworkTier ? { networkTier: constrainedNetworkTier } : {}),
       };
     }
     const { certificate: _certificate, certificateMap: _certificateMap, ...plaintextListener } = listener;
@@ -176,7 +181,7 @@ export function constrainGceHttpLoadBalancerCommand(command: IGceLoadBalancerCom
       ...plaintextListener,
       protocol: 'HTTP' as const,
       ...(keepSubnet && subnet ? { subnet } : {}),
-      ...(keepNetworkTier && networkTier ? { networkTier } : {}),
+      ...(constrainedNetworkTier ? { networkTier: constrainedNetworkTier } : {}),
     };
   };
 
@@ -221,6 +226,9 @@ export function validateGceHttpLoadBalancerCommand(command: IGceLoadBalancerComm
     if (!command.network?.name) {
       errors.add(`Network is required for ${internal ? 'INTERNAL_MANAGED' : 'EXTERNAL_MANAGED'} load balancers.`);
     }
+    if (externalManaged && !isAccountLocalNetwork(command.network)) {
+      errors.add('Shared VPC networks are not supported for EXTERNAL_MANAGED load balancers.');
+    }
     if (internal && !command.subnet?.name) errors.add('Subnet is required for INTERNAL_MANAGED load balancers.');
   } else if (command.region !== 'global') {
     errors.add('HTTP load balancers must use the global location.');
@@ -244,6 +252,21 @@ export function validateGceHttpLoadBalancerCommand(command: IGceLoadBalancerComm
     if (externalManaged && listener.certificateMap) {
       errors.add('Certificate maps are not supported for EXTERNAL_MANAGED load balancers.');
     }
+    if (externalManaged && listener.address?.networkTier && listener.networkTier !== listener.address.networkTier) {
+      errors.add('Reserved IP address network tier must match the listener network tier.');
+    }
+    if (externalManaged && command.mode === 'edit') {
+      const original = command.original?.listeners.find(({ name }) => name === listener.name);
+      if (
+        original &&
+        (listener.portRange !== original.portRange ||
+          referenceIdentity(listener.address) !== referenceIdentity(original.address) ||
+          listener.networkTier !== original.networkTier ||
+          listener.protocol !== original.protocol)
+      ) {
+        errors.add('Rename the listener to change its port, address, network tier, or HTTP/HTTPS protocol.');
+      }
+    }
   });
 
   if (!command.backendServices.length) errors.add('At least one backend service is required.');
@@ -251,6 +274,9 @@ export function validateGceHttpLoadBalancerCommand(command: IGceLoadBalancerComm
     if (!backendService.name.trim()) errors.add('Backend service name is required.');
     if (!backendService.healthCheck?.name) errors.add('Each backend service requires a health check.');
     if (!backendService.portName) errors.add('Backend service port name is required.');
+    if (externalManaged && !['HTTP', 'HTTPS'].includes(String(backendService.protocol || 'HTTP'))) {
+      errors.add('Backend service protocol must be HTTP or HTTPS.');
+    }
     if (negative(backendService.connectionDrainingTimeoutSec)) {
       errors.add('Connection draining timeout must be zero or greater.');
     }
@@ -302,10 +328,18 @@ export function validateGceHttpLoadBalancerCommand(command: IGceLoadBalancerComm
 }
 
 function validPort(value: unknown): boolean {
-  const text = String(value ?? '').trim();
+  const text = String(value ?? '');
   if (!/^\d+$/.test(text)) return false;
   const port = Number(text);
   return Number.isInteger(port) && port >= 1 && port <= 65535;
+}
+
+function isAccountLocalNetwork(reference: { id?: unknown; name?: unknown; selfLink?: unknown }): boolean {
+  return !/^[^/]+\/[^/]+$/.test(String(reference.id || reference.selfLink || reference.name || ''));
+}
+
+function referenceIdentity(reference: IGceResourceReference | undefined): string {
+  return String(reference?.selfLink || reference?.name || '');
 }
 
 function negative(value: unknown): boolean {
@@ -550,7 +584,15 @@ export function GceHttpLoadBalancerEditor({ command, data, onChange }: IGceHttpL
           className="add-new btn btn-block"
           onClick={() =>
             update({
-              backendServices: [...command.backendServices, { name: '', portName: 'http', sessionAffinity: 'NONE' }],
+              backendServices: [
+                ...command.backendServices,
+                {
+                  name: '',
+                  portName: 'http',
+                  protocol: command.loadBalancerType === 'EXTERNAL_MANAGED' ? 'HTTP' : undefined,
+                  sessionAffinity: 'NONE',
+                },
+              ],
             })
           }
         >

@@ -1,7 +1,10 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 
-import { GceRegionalExternalNetworkLoadBalancerEditor } from './GceRegionalExternalNetworkLoadBalancerEditor';
+import {
+  GceRegionalExternalNetworkLoadBalancerEditor,
+  validateGceRegionalExternalNetworkLoadBalancerCommand,
+} from './GceRegionalExternalNetworkLoadBalancerEditor';
 import {
   GceRegionalExternalNetworkLoadBalancerModal,
   normalizeGceRegionalExternalNetworkLoadBalancerCommand,
@@ -11,6 +14,25 @@ import {
 
 describe('GceRegionalExternalNetworkLoadBalancerModal', () => {
   const application = { name: 'app' } as any;
+
+  it('materializes the same valid defaults for create and pipeline modes', () => {
+    const defaults = { credentials: 'account-a', region: 'europe-west1' };
+    const create = normalizeGceRegionalExternalNetworkLoadBalancerCommand({}, 'create', 'app-main', defaults);
+    const pipeline = normalizeGceRegionalExternalNetworkLoadBalancerCommand({}, 'pipeline', 'app-main', defaults);
+
+    expect({ ...create, mode: undefined }).toEqual({ ...pipeline, mode: undefined });
+    expect(create).toEqual(
+      jasmine.objectContaining({
+        credentials: 'account-a',
+        name: 'app-main',
+        networkTier: 'PREMIUM',
+        ports: ['80'],
+        region: 'europe-west1',
+      }),
+    );
+    expect(create.listeners).toEqual([{ name: 'app-main', portRange: '80', protocol: 'TCP' }]);
+    expect(validateGceRegionalExternalNetworkLoadBalancerCommand(create)).toEqual([]);
+  });
 
   it('normalizes persisted REGIONAL_EXTERNAL_NETWORK details for edit', () => {
     const command = normalizeGceRegionalExternalNetworkLoadBalancerCommand(
@@ -213,7 +235,7 @@ describe('GceRegionalExternalNetworkLoadBalancerModal', () => {
     expect(payload.ipProtocol).toBe('UDP');
   });
 
-  it('serializes a TCP to UDP protocol edit for Clouddriver forwarding-rule recreation', () => {
+  it('rejects a destructive TCP to UDP protocol edit', () => {
     const command = normalizeGceRegionalExternalNetworkLoadBalancerCommand(
       {
         account: 'account-a',
@@ -238,13 +260,9 @@ describe('GceRegionalExternalNetworkLoadBalancerModal', () => {
     };
     command.ports = ['53'];
 
-    const payload = serializeGceRegionalExternalNetworkLoadBalancerCommand(command);
-
-    expect(payload.ipProtocol).toBe('UDP');
-    expect(payload.ports).toEqual(['53']);
-    expect(payload.ipAddress).toBe('35.1.2.3');
-    expect(payload.networkTier).toBe('PREMIUM');
-    expect(payload.backendService.name).toBe('app-main');
+    expect(validateGceRegionalExternalNetworkLoadBalancerCommand(command)).toContain(
+      'Protocol and ports cannot be changed while editing a REGIONAL_EXTERNAL_NETWORK load balancer.',
+    );
   });
 
   it('executes the direct normalized job in infrastructure create mode', () => {

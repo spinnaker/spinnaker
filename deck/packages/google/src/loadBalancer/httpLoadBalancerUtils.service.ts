@@ -34,7 +34,7 @@ export class GceHttpLoadBalancerUtils {
     // Regional listener names are not globally unique, so account/region must participate in the match.
     const normalizedLoadBalancerNames: string[] = [];
     loadBalancerNames.forEach((loadBalancerName) => {
-      const matchingUrlMap = loadBalancers.find((loadBalancer) => {
+      const matchingUrlMaps = loadBalancers.filter((loadBalancer) => {
         return (
           account === loadBalancer.account &&
           this.isHttpLoadBalancer(loadBalancer) &&
@@ -43,8 +43,9 @@ export class GceHttpLoadBalancerUtils {
         );
       });
 
-      matchingUrlMap
-        ? normalizedLoadBalancerNames.push(matchingUrlMap.name)
+      // A raw listener alias is safe only when account and region identify one logical load balancer.
+      matchingUrlMaps.length === 1
+        ? normalizedLoadBalancerNames.push(matchingUrlMaps[0].name)
         : normalizedLoadBalancerNames.push(loadBalancerName);
     });
     return uniq(normalizedLoadBalancerNames);

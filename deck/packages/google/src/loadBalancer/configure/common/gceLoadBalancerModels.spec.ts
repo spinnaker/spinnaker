@@ -500,7 +500,7 @@ describe('GCE load balancer models', () => {
     ]);
   });
 
-  it('normalizes and serializes REGIONAL_EXTERNAL_NETWORK with trimmed ports and source immutability', () => {
+  it('preserves REGIONAL_EXTERNAL_NETWORK port text for validation and source immutability', () => {
     const command = normalizeGceLoadBalancerCommand(
       {
         account: 'account-a',
@@ -525,7 +525,7 @@ describe('GCE load balancer models', () => {
       {
         address: { name: '35.1.2.3' },
         name: 'app-main',
-        portRange: '80,443',
+        portRange: '80, 443 ',
         protocol: 'TCP',
       },
     ]);
@@ -564,13 +564,80 @@ describe('GCE load balancer models', () => {
       loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK',
       name: 'app-main',
       networkTier: 'PREMIUM',
-      ports: ['80', '443'],
+      ports: ['80', ' 443 '],
       provider: 'gce',
       region: 'europe-west1',
       type: 'upsertLoadBalancer',
     });
     expect(serialized.portRange).toBeUndefined();
     expect(serialized.backendServices).toBeUndefined();
+  });
+
+  it('serializes only V1-owned EXTERNAL_MANAGED backend and health-check fields', () => {
+    const command = normalizeGceLoadBalancerCommand(
+      {
+        account: 'account-a',
+        backendServices: [
+          {
+            account: 'account-a',
+            backends: [],
+            healthCheck: 'check-a',
+            healthCheckLink: 'projects/test/regions/europe-west1/healthChecks/check-a',
+            kind: 'regionBackendService',
+            name: 'backend-a',
+            portName: 'http',
+            protocol: 'HTTPS',
+            region: 'europe-west1',
+            selfLink: 'projects/test/regions/europe-west1/backendServices/backend-a',
+            sessionAffinity: 'NONE',
+            state: 'Up',
+          },
+        ],
+        healthChecks: [
+          {
+            account: 'account-a',
+            checkIntervalSec: 10,
+            healthCheckType: 'HTTPS',
+            kind: 'healthCheck',
+            name: 'check-a',
+            port: 443,
+            region: 'europe-west1',
+            requestPath: '/ready',
+            selfLink: 'projects/test/regions/europe-west1/healthChecks/check-a',
+            state: 'Up',
+            timeoutSec: 5,
+          },
+        ],
+        listeners: [{ name: 'frontend', networkTier: 'PREMIUM', port: 443, protocol: 'HTTPS' }],
+        loadBalancerType: 'EXTERNAL_MANAGED',
+        name: 'web',
+        network: 'network-a',
+        region: 'europe-west1',
+      },
+      'pipeline',
+    );
+
+    const serialized = serializeGceLoadBalancerCommand(command);
+    expect(serialized.backendServices).toEqual([
+      {
+        backends: [],
+        healthCheck: 'check-a',
+        name: 'backend-a',
+        portName: 'http',
+        protocol: 'HTTPS',
+        sessionAffinity: 'NONE',
+      },
+    ]);
+    expect(serialized.healthChecks).toEqual([
+      {
+        checkIntervalSec: 10,
+        healthCheckType: 'HTTPS',
+        name: 'check-a',
+        port: 443,
+        requestPath: '/ready',
+        timeoutSec: 5,
+      },
+    ]);
   });
 
   (['HTTP', 'INTERNAL_MANAGED'] as const).forEach((loadBalancerType) => {
