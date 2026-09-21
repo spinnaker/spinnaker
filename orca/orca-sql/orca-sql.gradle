@@ -54,8 +54,8 @@ dependencies {
   testImplementation("dev.minutest:minutest")
   testImplementation("org.mockito.kotlin:mockito-kotlin")
   testImplementation("org.springframework.boot:spring-boot-starter-test")
-  testImplementation("org.testcontainers:mysql")
-  testImplementation("org.testcontainers:postgresql")
+  testImplementation("org.testcontainers:testcontainers-mysql")
+  testImplementation("org.testcontainers:testcontainers-postgresql")
   testImplementation("io.spinnaker.kork:kork-web")
 
   testRuntimeOnly("com.mysql:mysql-connector-j")

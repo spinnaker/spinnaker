@@ -62,6 +62,13 @@ abstract class ProjectsControllerTck extends Specification {
     this.controller = new ProjectsController(dao)
     this.mockMvc = MockMvcBuilders
       .standaloneSetup(controller)
+      // Pin Jackson 2 explicitly: standalone setups don't load the app context
+      // (so kork's Jackson3PropertyOrderConfiguration doesn't apply), and Boot 4's
+      // default Jackson 3 mapper sorts properties alphabetically while these
+      // contract assertions expect Jackson 2 declaration order.
+      .setMessageConverters(
+        new org.springframework.http.converter.json.MappingJackson2HttpMessageConverter(
+          new ObjectMapper()))
       .setControllerAdvice(
         new GenericExceptionHandlers(
           new ExceptionMessageDecorator(Mock(ObjectProvider))

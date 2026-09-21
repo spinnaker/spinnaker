@@ -34,7 +34,6 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.http.HttpHeaders;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
-import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.orca.KeelService;
@@ -86,10 +85,10 @@ public class ImportDeliveryConfigTaskTest {
   private static final int keelPort = 8087;
 
   @BeforeAll
-  static void setupOnce(WireMockRuntimeInfo wmRuntimeInfo) {
+  static void setupOnce() {
     keelService =
         new Retrofit.Builder()
-            .baseUrl(wmRuntimeInfo.getHttpBaseUrl())
+            .baseUrl("http://localhost:" + keelPort)
             .client(new OkHttpClient())
             .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
             .addConverterFactory(JacksonConverterFactory.create(objectMapper))
