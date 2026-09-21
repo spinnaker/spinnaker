@@ -211,7 +211,7 @@ dependencies {
         strictly "${versions.bouncycastle}"
       }
     }
-    api("org.jetbrains:annotations:19.0.0")
+    api("org.jetbrains:annotations:26.1.0")
     api("org.spekframework.spek2:spek-dsl-jvm:${versions.spek2}")
     api("org.spekframework.spek2:spek-runner-junit5:${versions.spek2}")
     api("org.jetbrains.spek:spek-api:${versions.spek}")
