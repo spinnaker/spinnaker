@@ -29,9 +29,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.http.client.ClientHttpRequestFactorySettings;
+import org.springframework.boot.http.client.HttpClientSettings;
+import org.springframework.boot.http.client.HttpRedirects;
+import org.springframework.boot.resttestclient.TestRestTemplate;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -50,6 +52,7 @@ import redis.clients.jedis.JedisPool;
  * populates the {@link org.springframework.security.core.context.SecurityContext} before any /login
  * redirect can fire.
  */
+@AutoConfigureTestRestTemplate
 @SpringBootTest(
     classes = {Main.class, BasicAuthWithApiTokenIntegrationTest.TestConfiguration.class},
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -95,12 +98,10 @@ class BasicAuthWithApiTokenIntegrationTest {
   void unauthenticatedRequestRedirects() {
     var response =
         restTemplate
-            .withRequestFactorySettings(
-                new ClientHttpRequestFactorySettings(
-                    ClientHttpRequestFactorySettings.Redirects.DONT_FOLLOW,
-                    Duration.ofMillis(500),
-                    Duration.ofMillis(500),
-                    null))
+            .withClientSettings(
+                HttpClientSettings.defaults()
+                    .withRedirects(HttpRedirects.DONT_FOLLOW)
+                    .withTimeouts(Duration.ofMillis(500), Duration.ofMillis(500)))
             .exchange("/hello", HttpMethod.GET, null, String.class);
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);

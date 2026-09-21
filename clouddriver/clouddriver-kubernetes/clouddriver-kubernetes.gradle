@@ -76,11 +76,11 @@ dependencies {
   implementation "io.spinnaker.kork:kork-retrofit"
   implementation "io.spinnaker.kork:kork-secrets"
   implementation "io.spinnaker.kork:kork-security"
+  // Version comes from the kork-bom platform (spinnaker-dependencies): kept
+  // below Boot's managed 24.x, whose generated models reject fields accepted
+  // by our existing Kubernetes manifests.
   implementation "io.kubernetes:client-java"
-  // client-java-api-fluent is not managed by the spring-cloud BOM (which supplies the
-  // client-java version above), so keep this pinned to the same version client-java
-  // resolves to.
-  implementation "io.kubernetes:client-java-api-fluent:19.0.3"
+  implementation "io.kubernetes:client-java-api-fluent"
   implementation "org.apache.commons:commons-lang3"
   implementation "org.springframework.boot:spring-boot-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
@@ -111,8 +111,8 @@ dependencies {
   integrationImplementation project(":clouddriver-web")
   integrationImplementation "org.springframework.boot:spring-boot-starter-test"
   integrationImplementation "org.testcontainers:testcontainers"
-  integrationImplementation "org.testcontainers:mysql"
-  integrationImplementation "org.testcontainers:junit-jupiter"
+  integrationImplementation "org.testcontainers:testcontainers-mysql"
+  integrationImplementation "org.testcontainers:testcontainers-junit-jupiter"
   integrationImplementation "com.mysql:mysql-connector-j"
   integrationImplementation "io.rest-assured:rest-assured"
   integrationImplementation "org.yaml:snakeyaml"

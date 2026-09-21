@@ -12,6 +12,7 @@ dependencies {
   implementation("io.spinnaker.kork:kork-web")
   implementation("org.springframework:spring-context")
   implementation("org.springframework.boot:spring-boot-autoconfigure")
+  implementation("org.springframework.boot:spring-boot-jackson2")
   implementation("com.netflix.frigga:frigga")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j")
   implementation("io.swagger.core.v3:swagger-annotations")
@@ -31,6 +32,6 @@ dependencies {
     // avoid circular dependency
     exclude(module: "keel-ec2-plugin")
   }
-  testImplementation("org.testcontainers:mysql")
+  testImplementation("org.testcontainers:testcontainers-mysql")
   testImplementation(project(":keel-sql"))
 }
