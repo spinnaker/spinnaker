@@ -44,7 +44,6 @@ import com.netflix.spinnaker.orca.webhook.config.WebhookProperties
 import com.netflix.spinnaker.orca.webhook.service.WebhookService
 import groovy.json.JsonSlurper
 import org.slf4j.MDC
-import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
@@ -765,8 +764,7 @@ class OperationsControllerSpec extends Specification {
 
   static WebhookProperties.PreconfiguredWebhook createPreconfiguredWebhook(
     def label, def description, def type, def permissions) {
-    def customHeaders = new HttpHeaders()
-    customHeaders.put("header", ["value1"])
+    def customHeaders = ["header": ["value1"]]
     return new WebhookProperties.PreconfiguredWebhook(
       label: label, description: description, type: type,
       url: "a", customHeaders: customHeaders, method: HttpMethod.POST, payload: "b",

@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.deser.std.StdNodeBasedDeserializer
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.netflix.spinnaker.keel.api.ec2.ServerGroup.ActiveServerGroupImage
 import com.netflix.spinnaker.keel.clouddriver.model.extractBaseImageName
-import org.springframework.boot.jackson.JsonComponent
+import org.springframework.boot.jackson2.JsonComponent
 
 @JsonComponent
 class ActiveServerGroupImageDeserializer :
