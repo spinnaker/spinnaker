@@ -45,7 +45,7 @@ Deck is a React application. New changes to Deck should use React.
 
 To run the tests within the application, run `pnpm test`.
 
-Developing things locally? You may want to run [gate](https://github.com/spinnaker/gate) locally (which runs on port 8084) as well.
+Developing things locally? You may want to run [gate](../gate) locally (which runs on port 8084) as well.
 Gate is the service that hosts the spinnaker REST API.
 Then run deck like this:
 
@@ -65,12 +65,13 @@ To generate the TS types and the Apollo hooks, run `pnpm graphql:generate` from 
 
 ## Conventions
 
-It's a work in progress, but please try to follow the [conventions here](https://github.com/spinnaker/deck/wiki/Conventions).
+It's a work in progress, but please try to follow the conventions demonstrated across the
+existing [packages](packages/).
 
 ## Customizing the UI
 
 It's certainly doable - we're in the middle of some significant changes to our build process, which should make it easier.
-For now, you can look at the [all modules](https://github.com/spinnaker/deck/tree/master/packages/) to
+For now, you can look at the [all modules](packages/) to
 get an idea how we are customizing Deck internally. Expect a lot of this to change, though, as we figure out better, cleaner
 hooks and integration points. And we're happy to provide new integration points (or accept pull requests) following
 those existing conventions if you need an integration point that doesn't already exist.
