@@ -33,6 +33,9 @@ final class GoogleLoadBalancerCacheSupport {
    */
   static boolean isRegionalManagedHttpForwardingRule(
       ForwardingRule forwardingRule, String loadBalancingScheme) {
+    if (forwardingRule == null) {
+      return false;
+    }
     GoogleTargetProxyType type =
         forwardingRule.getTarget() != null
             ? Utils.getTargetProxyType(forwardingRule.getTarget())

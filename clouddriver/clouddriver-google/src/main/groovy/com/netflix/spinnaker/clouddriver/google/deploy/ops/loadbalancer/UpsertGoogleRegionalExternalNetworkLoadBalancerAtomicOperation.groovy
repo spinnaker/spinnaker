@@ -70,6 +70,7 @@ class UpsertGoogleRegionalExternalNetworkLoadBalancerAtomicOperation extends Goo
     def compute = description.credentials.compute
     def project = description.credentials.project
     def region = description.region
+    List<String> listenersToDelete = validateListenersToDeleteRequest()
     GoogleHealthCheck descriptionHealthCheck = description.backendService.healthCheck
     String backendServiceName = description.backendService.name
     String healthCheckName = descriptionHealthCheck.name
@@ -84,11 +85,8 @@ class UpsertGoogleRegionalExternalNetworkLoadBalancerAtomicOperation extends Goo
     BackendService existingBackendService
     HealthCheck existingHealthCheck
 
-    boolean needToUpdateForwardingRule = false
     boolean needToUpdateBackendService = false
     boolean needToUpdateHealthCheck = false
-    boolean forwardingRuleDeleted = false
-    Set<String> listenersDeletedBeforeBackendUpdate = []
 
     if (existingForwardingRule && (description.region != GCEUtil.getLocalName(existingForwardingRule.region))) {
       throw new GoogleOperationException("There is already a load balancer named " +
@@ -100,13 +98,24 @@ class UpsertGoogleRegionalExternalNetworkLoadBalancerAtomicOperation extends Goo
       if (!GCEUtil.isRegionalExternalNetworkPassthroughForwardingRule(existingForwardingRule)) {
         throw new GoogleOperationException("There is already a non-regional-external-network load balancer named $description.loadBalancerName in $description.region.")
       }
-      // Treat omitted IP/tier as "preserve current value" so edits do not churn static/ephemeral
-      // address assignment or network tier unless the caller explicitly changes them.
-      needToUpdateForwardingRule = description.ports != existingForwardingRule.getPorts() ||
-        description.ipProtocol != existingForwardingRule.getIPProtocol() ||
-        backendServiceName != existingForwardingRuleBackendServiceName ||
-        (description.ipAddress && description.ipAddress != existingForwardingRule.getIPAddress()) ||
-        (description.networkTier && description.networkTier != existingForwardingRule.getNetworkTier())
+      rejectImmutableListenerChange(
+        existingForwardingRule,
+        description.ports != existingForwardingRule.getPorts() ||
+          description.ipProtocol != existingForwardingRule.getIPProtocol() ||
+          backendServiceName != existingForwardingRuleBackendServiceName ||
+          (description.ipAddress && description.ipAddress != existingForwardingRule.getIPAddress()) ||
+          (description.networkTier && description.networkTier != existingForwardingRule.getNetworkTier()))
+    }
+
+    List<String> existingListenersToDelete = listenersToDelete.findAll { String forwardingRuleName ->
+      ForwardingRule forwardingRule =
+        getRegionalForwardingRule(compute, project, region, forwardingRuleName)
+      if (!forwardingRule) {
+        return false
+      }
+      validateOwnedRegionalForwardingRule(
+        forwardingRule, forwardingRuleName, listenersToDeleteBackendServiceName)
+      return true
     }
 
     existingBackendService = safeRetry.doRetry(
@@ -188,24 +197,6 @@ class UpsertGoogleRegionalExternalNetworkLoadBalancerAtomicOperation extends Goo
         null, task, "regional health check " + healthCheckName, BASE_PHASE)
     }
 
-    // GCP requires a forwarding rule and its backend service to use the same protocol. When an edit
-    // changes the protocol on the backend service already referenced by this rule, delete the rule
-    // first so the backend update is not rejected for temporarily disagreeing with a live listener.
-    boolean protocolChangeOnReferencedBackend = existingForwardingRule &&
-      existingBackendService &&
-      needToUpdateBackendService &&
-      description.ipProtocol != existingForwardingRule.getIPProtocol() &&
-      backendServiceName == existingForwardingRuleBackendServiceName
-    if (protocolChangeOnReferencedBackend) {
-      deleteRegionalForwardingRule(compute, project, region, existingForwardingRule.getName())
-      forwardingRuleDeleted = true
-      description.listenersToDelete?.each { String forwardingRuleName ->
-        deleteOwnedRegionalForwardingRule(
-          compute, project, region, forwardingRuleName, listenersToDeleteBackendServiceName)
-        listenersDeletedBeforeBackendUpdate.add(forwardingRuleName)
-      }
-    }
-
     def backendServiceOp = null
     if (!existingBackendService) {
       task.updateStatus BASE_PHASE, "Creating regional external backend service ${description.backendService.name}..."
@@ -253,36 +244,26 @@ class UpsertGoogleRegionalExternalNetworkLoadBalancerAtomicOperation extends Goo
     }
 
     if (!existingForwardingRule) {
-      insertRegionalForwardingRule(compute, project, region, buildForwardingRule(project, region, null))
-    } else if (needToUpdateForwardingRule) {
-      if (!forwardingRuleDeleted) {
-        deleteRegionalForwardingRule(compute, project, region, existingForwardingRule.getName())
-      }
-      insertRegionalForwardingRule(compute, project, region, buildForwardingRule(project, region, existingForwardingRule))
+      insertRegionalForwardingRule(compute, project, region, buildForwardingRule(project, region))
     }
 
-    description.listenersToDelete?.findAll {
-      !(it in listenersDeletedBeforeBackendUpdate)
-    }?.each { String forwardingRuleName ->
-      deleteOwnedRegionalForwardingRule(
-        compute, project, region, forwardingRuleName, listenersToDeleteBackendServiceName)
+    existingListenersToDelete.each { String forwardingRuleName ->
+      deleteRegionalForwardingRule(compute, project, region, forwardingRuleName)
     }
 
     task.updateStatus BASE_PHASE, "Done upserting load balancer $description.loadBalancerName in $region."
     return [loadBalancers: [(region): [name: description.loadBalancerName]]]
   }
 
-  private ForwardingRule buildForwardingRule(String project, String region, ForwardingRule existingForwardingRule) {
-    // Updating ports requires forwarding-rule recreation. Preserve IP/tier from the deleted rule
-    // when the request omits them; ephemeral IP preservation remains best-effort on GCP's side.
+  private ForwardingRule buildForwardingRule(String project, String region) {
     new ForwardingRule(
       name: description.loadBalancerName,
       loadBalancingScheme: 'EXTERNAL',
       backendService: GCEUtil.buildRegionBackendServiceUrl(project, region, description.backendService.name),
       IPProtocol: description.ipProtocol,
-      IPAddress: description.ipAddress ?: existingForwardingRule?.IPAddress,
+      IPAddress: description.ipAddress,
       ports: description.ports,
-      networkTier: description.networkTier ?: existingForwardingRule?.networkTier
+      networkTier: description.networkTier
     )
   }
 
@@ -307,9 +288,9 @@ class UpsertGoogleRegionalExternalNetworkLoadBalancerAtomicOperation extends Goo
     }
   }
 
-  private void deleteOwnedRegionalForwardingRule(
-    compute, String project, String region, String forwardingRuleName, String expectedBackendServiceName) {
-    ForwardingRule forwardingRule = safeRetry.doRetry(
+  private ForwardingRule getRegionalForwardingRule(
+    compute, String project, String region, String forwardingRuleName) {
+    safeRetry.doRetry(
       { timeExecute(
         compute.forwardingRules().get(project, region, forwardingRuleName),
         "compute.forwardingRules.get",
@@ -321,17 +302,43 @@ class UpsertGoogleRegionalExternalNetworkLoadBalancerAtomicOperation extends Goo
       [action: "get", phase: BASE_PHASE, operation: "compute.forwardingRules.get", (TAG_SCOPE): SCOPE_REGIONAL, (TAG_REGION): region],
       registry
     ) as ForwardingRule
+  }
 
-    if (!forwardingRule) {
-      return
-    }
+  private void validateOwnedRegionalForwardingRule(
+    ForwardingRule forwardingRule,
+    String forwardingRuleName,
+    String expectedBackendServiceName) {
     if (!GCEUtil.isRegionalExternalNetworkPassthroughForwardingRule(forwardingRule) ||
       GCEUtil.getLocalName(forwardingRule.backendService) != expectedBackendServiceName) {
       throw new GoogleOperationException(
         "Listener $forwardingRuleName is not owned by regional external network load balancer $description.loadBalancerName.")
     }
+  }
 
-    deleteRegionalForwardingRule(compute, project, region, forwardingRuleName)
+  private List<String> validateListenersToDeleteRequest() {
+    List<String> listenersToDelete = description.listenersToDelete ?: []
+    Set<String> uniqueListeners = []
+    listenersToDelete.each { String forwardingRuleName ->
+      if (!forwardingRuleName?.trim()) {
+        throw new GoogleOperationException("listenersToDelete contains a blank listener name.")
+      }
+      if (forwardingRuleName == description.loadBalancerName) {
+        throw new GoogleOperationException(
+          "listenersToDelete cannot contain the current listener $description.loadBalancerName.")
+      }
+      if (!uniqueListeners.add(forwardingRuleName)) {
+        throw new GoogleOperationException(
+          "listenersToDelete contains duplicate listener $forwardingRuleName.")
+      }
+    }
+    listenersToDelete.asImmutable()
+  }
+
+  private void rejectImmutableListenerChange(ForwardingRule existingRule, boolean changed) {
+    if (changed) {
+      throw new GoogleOperationException(
+        "Immutable listener fields cannot change for same-name listener ${existingRule.name}; rename or recreate the listener.")
+    }
   }
 
   private void insertRegionalForwardingRule(compute, String project, String region, forwardingRule) {

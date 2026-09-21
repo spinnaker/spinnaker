@@ -34,10 +34,14 @@ class DeleteGoogleExternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
   private static final PROJECT_NAME = "my_project"
   private static final REGION = "us-central1"
   private static final LOAD_BALANCER_NAME = "external-listener"
+  private static final SECOND_LISTENER_NAME = "external-listener-2"
   private static final INTERNAL_LISTENER_NAME = "internal-listener"
   private static final TARGET_HTTP_PROXY_NAME = "target-http-proxy"
   private static final TARGET_HTTP_PROXY_URL =
     "projects/" + PROJECT_NAME + "/regions/" + REGION + "/targetHttpProxies/" + TARGET_HTTP_PROXY_NAME
+  private static final SECOND_TARGET_HTTP_PROXY_NAME = "target-http-proxy-2"
+  private static final SECOND_TARGET_HTTP_PROXY_URL =
+    "projects/" + PROJECT_NAME + "/regions/" + REGION + "/targetHttpProxies/" + SECOND_TARGET_HTTP_PROXY_NAME
   private static final INTERNAL_TARGET_HTTP_PROXY_URL =
     "projects/" + PROJECT_NAME + "/regions/" + REGION + "/targetHttpProxies/internal-target-http-proxy"
   private static final URL_MAP_NAME = "shared-url-map"
@@ -82,10 +86,12 @@ class DeleteGoogleExternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       def compute = Mock(Compute)
       def forwardingRules = Mock(Compute.ForwardingRules)
       def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
+      def secondForwardingRulesGet = Mock(Compute.ForwardingRules.Get)
       def forwardingRulesList = Mock(Compute.ForwardingRules.List)
       def forwardingRulesDelete = Mock(Compute.ForwardingRules.Delete)
       def targetHttpProxies = Mock(Compute.RegionTargetHttpProxies)
       def targetHttpProxiesGet = Mock(Compute.RegionTargetHttpProxies.Get)
+      def secondTargetHttpProxiesGet = Mock(Compute.RegionTargetHttpProxies.Get)
       def internalTargetHttpProxiesGet = Mock(Compute.RegionTargetHttpProxies.Get)
       def targetHttpProxiesDelete = Mock(Compute.RegionTargetHttpProxies.Delete)
       def urlMaps = Mock(Compute.RegionUrlMaps)
@@ -101,6 +107,10 @@ class DeleteGoogleExternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       def forwardingRule = new ForwardingRule(
         name: LOAD_BALANCER_NAME,
         target: TARGET_HTTP_PROXY_URL,
+        loadBalancingScheme: "EXTERNAL_MANAGED")
+      def secondForwardingRule = new ForwardingRule(
+        name: SECOND_LISTENER_NAME,
+        target: SECOND_TARGET_HTTP_PROXY_URL,
         loadBalancingScheme: "EXTERNAL_MANAGED")
       def internalForwardingRule = new ForwardingRule(
         name: INTERNAL_LISTENER_NAME,
@@ -121,30 +131,37 @@ class DeleteGoogleExternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
         credentials: credentials,
         deleteHealthChecks: true)
       @Subject def operation = new DeleteGoogleExternalHttpLoadBalancerAtomicOperation(description)
-      setPrivateField(operation, DeleteGoogleInternalHttpLoadBalancerAtomicOperation, "googleOperationPoller", poller)
+      setPrivateField(operation, AbstractDeleteGoogleRegionalHttpLoadBalancerAtomicOperation, "googleOperationPoller", poller)
       operation.registry = new DefaultRegistry()
       operation.safeRetry = safeRetry
 
     when:
-      operation.operate([])
+      def result = operation.operate([])
 
     then:
       _ * compute.forwardingRules() >> forwardingRules
       1 * forwardingRules.list(PROJECT_NAME, REGION) >> forwardingRulesList
-      1 * forwardingRulesList.execute() >> new ForwardingRuleList(items: [forwardingRule, internalForwardingRule, unrelatedL4Rule])
+      1 * forwardingRulesList.execute() >> new ForwardingRuleList(
+        items: [forwardingRule, secondForwardingRule, internalForwardingRule, unrelatedL4Rule])
       1 * forwardingRules.get(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRulesGet
       1 * forwardingRulesGet.execute() >> forwardingRule
+      1 * forwardingRules.get(PROJECT_NAME, REGION, SECOND_LISTENER_NAME) >> secondForwardingRulesGet
+      1 * secondForwardingRulesGet.execute() >> secondForwardingRule
       1 * forwardingRules.delete(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRulesDelete
-      1 * forwardingRulesDelete.execute() >> operationResult
+      1 * forwardingRules.delete(PROJECT_NAME, REGION, SECOND_LISTENER_NAME) >> forwardingRulesDelete
+      2 * forwardingRulesDelete.execute() >> operationResult
       0 * forwardingRules.delete(PROJECT_NAME, REGION, INTERNAL_LISTENER_NAME)
 
       _ * compute.regionTargetHttpProxies() >> targetHttpProxies
       2 * targetHttpProxies.get(PROJECT_NAME, REGION, TARGET_HTTP_PROXY_NAME) >> targetHttpProxiesGet
       2 * targetHttpProxiesGet.execute() >> targetHttpProxy
+      1 * targetHttpProxies.get(PROJECT_NAME, REGION, SECOND_TARGET_HTTP_PROXY_NAME) >> secondTargetHttpProxiesGet
+      1 * secondTargetHttpProxiesGet.execute() >> targetHttpProxy
       1 * targetHttpProxies.get(PROJECT_NAME, REGION, "internal-target-http-proxy") >> internalTargetHttpProxiesGet
       1 * internalTargetHttpProxiesGet.execute() >> targetHttpProxy
       1 * targetHttpProxies.delete(PROJECT_NAME, REGION, TARGET_HTTP_PROXY_NAME) >> targetHttpProxiesDelete
-      1 * targetHttpProxiesDelete.execute() >> operationResult
+      1 * targetHttpProxies.delete(PROJECT_NAME, REGION, SECOND_TARGET_HTTP_PROXY_NAME) >> targetHttpProxiesDelete
+      2 * targetHttpProxiesDelete.execute() >> operationResult
 
       _ * compute.regionUrlMaps() >> urlMaps
       1 * urlMaps.list(PROJECT_NAME, REGION) >> urlMapsList
@@ -155,7 +172,8 @@ class DeleteGoogleExternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       1 * backendServicesGet.execute() >> backendService
       0 * backendServices.delete(PROJECT_NAME, REGION, BACKEND_SERVICE_NAME)
       0 * healthChecks.delete(PROJECT_NAME, REGION, HEALTH_CHECK_NAME)
-      1 * poller.waitForRegionalOperation(*_)
+      2 * poller.waitForRegionalOperation(*_)
+      result.deletedLoadBalancerNames == [LOAD_BALANCER_NAME, SECOND_LISTENER_NAME]
   }
 
   private static void setPrivateField(Object target, Class owner, String fieldName, Object value) {

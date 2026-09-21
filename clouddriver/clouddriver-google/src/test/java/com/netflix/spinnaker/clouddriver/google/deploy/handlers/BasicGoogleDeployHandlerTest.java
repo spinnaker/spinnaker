@@ -1341,6 +1341,16 @@ public class BasicGoogleDeployHandlerTest {
     mockedGCEUtil
         .when(() -> GCEUtil.backendFromLoadBalancingPolicy(any()))
         .thenReturn(new Backend());
+    mockedGCEUtil
+        .when(
+            () ->
+                GCEUtil.updateMetadataWithLoadBalancingPolicy(
+                    eq(policyMock), eq(instanceMetadata), any()))
+        .thenAnswer(
+            invocation -> {
+              instanceMetadata.put(GCEUtil.LOAD_BALANCING_POLICY, "serialized-policy");
+              return null;
+            });
     GoogleBackendService googleBackendService = new GoogleBackendService();
     googleBackendService.setName("external-backend-service");
     mockedUtils
@@ -1355,6 +1365,7 @@ public class BasicGoogleDeployHandlerTest {
     assertEquals(1, result.size());
     assertEquals("external-http-load-balancer", instanceMetadata.get("load-balancer-names"));
     assertEquals("external-backend-service", instanceMetadata.get("region-backend-service-names"));
+    assertEquals("serialized-policy", instanceMetadata.get(GCEUtil.LOAD_BALANCING_POLICY));
   }
 
   @Test

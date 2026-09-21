@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.client.json.gson.GsonFactory
 import com.google.api.services.compute.Compute
+import com.google.api.services.compute.model.BackendService
 import com.google.api.services.compute.model.ForwardingRule
 import com.google.api.services.compute.model.TargetHttpProxy
 import com.netflix.spectator.api.DefaultRegistry
@@ -33,6 +34,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleL
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.model.GoogleNetwork
 import com.netflix.spinnaker.clouddriver.google.model.GoogleSubnet
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleInternalHttpLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleNetworkProvider
@@ -166,6 +168,32 @@ class UpsertGoogleExternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       thrown IllegalArgumentException
   }
 
+  void "resolveSubnet rejects a Shared VPC network before reading proxy-only subnets"() {
+    setup:
+      def subnetProvider = Mock(GoogleSubnetProvider)
+      def description = new UpsertGoogleLoadBalancerDescription(
+        accountName: ACCOUNT_NAME,
+        credentials: Mock(GoogleNamedAccountCredentials) {
+          getProject() >> PROJECT_NAME
+        },
+        region: REGION,
+        network: "host-project/default")
+      @Subject def operation = new UpsertGoogleExternalHttpLoadBalancerAtomicOperation(description)
+      operation.googleSubnetProvider = subnetProvider
+      def network = new GoogleNetwork(
+        name: "default",
+        id: "host-project/default",
+        selfLink: "https://compute.googleapis.com/compute/v1/projects/host-project/global/networks/default")
+
+    when:
+      operation.resolveSubnet(network)
+
+    then:
+      def exception = thrown IllegalArgumentException
+      exception.message.contains("account project")
+      0 * subnetProvider._
+  }
+
   void "resolveSubnet fails when proxy-only subnet is missing"() {
     setup:
       def subnetProvider = Mock(GoogleSubnetProvider)
@@ -231,6 +259,24 @@ class UpsertGoogleExternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       operation.loadBalancerDescriptionLabel == "Regional External HTTP(S) load balancer"
   }
 
+  void "external managed defaults and compares backend protocol as HTTP"() {
+    given:
+      @Subject def operation = new UpsertGoogleExternalHttpLoadBalancerAtomicOperation(
+        new UpsertGoogleLoadBalancerDescription())
+      def desired = new GoogleBackendService()
+      def target = new BackendService()
+
+    expect:
+      !operation.backendProtocolNeedsUpdate(new BackendService(), desired)
+      operation.backendProtocolNeedsUpdate(new BackendService(protocol: "HTTPS"), desired)
+
+    when:
+      operation.configureBackendProtocol(target, desired)
+
+    then:
+      target.protocol == "HTTP"
+  }
+
   void "buildCertificateUrl preserves certificate manager regional resource URLs"() {
     setup:
       @Subject def operation = new UpsertGoogleExternalHttpLoadBalancerAtomicOperation(
@@ -273,6 +319,30 @@ class UpsertGoogleExternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       rejectsMalformedCertificateManagerResource(operation, "projects/${PROJECT_NAME}/locations/${REGION}/certificates")
       rejectsMalformedCertificateManagerResource(operation, "projects/${PROJECT_NAME}/locations/${REGION}/certificates/")
       rejectsMalformedCertificateManagerResource(operation, "projects/${PROJECT_NAME}/locations/${REGION}/certificates/cm-cert/extra")
+  }
+
+  void "buildCertificateUrl rejects certificates outside the exact project and region"() {
+    setup:
+      @Subject def operation = new UpsertGoogleExternalHttpLoadBalancerAtomicOperation(
+        new UpsertGoogleLoadBalancerDescription())
+
+    when:
+      operation.buildCertificateUrl(
+        PROJECT_NAME,
+        REGION,
+        "projects/other-project/locations/${REGION}/certificates/cm-cert")
+
+    then:
+      thrown IllegalArgumentException
+
+    when:
+      operation.buildCertificateUrl(
+        PROJECT_NAME,
+        REGION,
+        "https://compute.googleapis.com/compute/v1/projects/${PROJECT_NAME}/global/sslCertificates/global-cert")
+
+    then:
+      thrown IllegalArgumentException
   }
 
   private static boolean rejectsMalformedCertificateManagerResource(
@@ -363,6 +433,7 @@ class UpsertGoogleExternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
         certificate: CERT_URL,
         defaultService: [
           name: EXTERNAL_BS,
+          protocol: "HTTPS",
           backends: [],
           healthCheck: hc,
           sessionAffinity: "NONE",
@@ -418,6 +489,7 @@ class UpsertGoogleExternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       def backendServiceBody = objectMapper.readTree(
         transport.findPostTo("/backendServices").orElseThrow().body())
       backendServiceBody.path("loadBalancingScheme").asText() == "EXTERNAL_MANAGED"
+      backendServiceBody.path("protocol").asText() == "HTTPS"
       backendServiceBody.path("healthChecks").get(0).asText().contains("/healthChecks/${EXTERNAL_HC}")
 
       def healthCheckBody = objectMapper.readTree(
@@ -531,7 +603,7 @@ class UpsertGoogleExternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
     UpsertGoogleExternalHttpLoadBalancerAtomicOperation operation,
     GoogleOperationPoller poller) {
     def pollerField =
-      UpsertGoogleInternalHttpLoadBalancerAtomicOperation.getDeclaredField("googleOperationPoller")
+      AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperation.getDeclaredField("googleOperationPoller")
     pollerField.accessible = true
     pollerField.set(operation, poller)
   }

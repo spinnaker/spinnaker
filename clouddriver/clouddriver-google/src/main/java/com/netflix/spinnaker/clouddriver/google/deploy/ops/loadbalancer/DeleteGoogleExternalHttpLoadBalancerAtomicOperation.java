@@ -26,7 +26,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleL
  * another regional HTTP-family load balancer's resources.
  */
 public class DeleteGoogleExternalHttpLoadBalancerAtomicOperation
-    extends DeleteGoogleInternalHttpLoadBalancerAtomicOperation {
+    extends AbstractDeleteGoogleRegionalHttpLoadBalancerAtomicOperation {
   public DeleteGoogleExternalHttpLoadBalancerAtomicOperation(
       DeleteGoogleLoadBalancerDescription description) {
     super(description);

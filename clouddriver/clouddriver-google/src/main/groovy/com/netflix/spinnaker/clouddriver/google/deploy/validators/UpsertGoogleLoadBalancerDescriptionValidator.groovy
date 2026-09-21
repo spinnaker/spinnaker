@@ -40,6 +40,7 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
     DescriptionValidator<UpsertGoogleLoadBalancerDescription> {
   private static final List<String> SUPPORTED_IP_PROTOCOLS = ["TCP", "UDP"]
   private static final List<String> SUPPORTED_NETWORK_TIERS = ["PREMIUM", "STANDARD"]
+  private static final List<String> SUPPORTED_MANAGED_BACKEND_PROTOCOLS = ["HTTP", "HTTPS"]
   private static final List<GoogleSessionAffinity> SUPPORTED_PASSTHROUGH_SESSION_AFFINITY = [
     GoogleSessionAffinity.NONE,
     GoogleSessionAffinity.CLIENT_IP,
@@ -64,6 +65,14 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
 
     helper.validateCredentials(description.accountName, credentialsRepository)
     helper.validateName(description.loadBalancerName, "loadBalancerName")
+
+    if (description.loadBalancerType in [
+      GoogleLoadBalancerType.INTERNAL_MANAGED,
+      GoogleLoadBalancerType.EXTERNAL_MANAGED,
+      GoogleLoadBalancerType.REGIONAL_EXTERNAL_NETWORK
+    ]) {
+      validateListenersToDelete(description, errors)
+    }
 
     switch (description.loadBalancerType) {
       case GoogleLoadBalancerType.NETWORK:
@@ -96,13 +105,7 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
           }
         }
 
-        // portRange must be a single port.
-        try {
-          Integer.parseInt(description.portRange)
-        } catch (NumberFormatException _) {
-          errors.rejectValue("portRange",
-            "upsertGoogleLoadBalancerDescription.portRange.requireSinglePort")
-        }
+        validatePort(description.portRange, "portRange", errors)
 
         // Each backend service must have a health check.
         def googleHttpLoadBalancer = new GoogleHttpLoadBalancer(
@@ -122,6 +125,7 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
               "upsertGoogleLoadBalancerDescription.backendServices.healthCheckRequired")
           }
         }
+        validateManagedBackendServices(description, services, errors)
         break
       case GoogleLoadBalancerType.INTERNAL_MANAGED:
         if (description.certificate && description.certificateMap) {
@@ -137,13 +141,7 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
             "upsertGoogleLoadBalancerDescription.certificateMap.internalManagedNotSupported")
         }
 
-        // portRange must be a single port.
-        try {
-          Integer.parseInt(description.portRange)
-        } catch (NumberFormatException _) {
-          errors.rejectValue("portRange",
-            "upsertGoogleLoadBalancerDescription.portRange.requireSinglePort")
-        }
+        validatePort(description.portRange, "portRange", errors)
 
         // Each backend service must have a health check.
         def googleInternalHttpLoadBalancer = new GoogleInternalHttpLoadBalancer(
@@ -229,6 +227,7 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
               "upsertGoogleLoadBalancerDescription.backendServices.healthCheckRequired")
           }
         }
+        validateManagedBackendServices(description, externalServices, errors)
         break
       case GoogleLoadBalancerType.INTERNAL:
         helper.validateRegion(description.region, description.credentials)
@@ -276,7 +275,7 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
         if (!description.ports) {
           errors.rejectValue("ports",
             "upsertGoogleLoadBalancerDescription.ports.required")
-        } else if (description.ports.size() > 5 || description.ports.any { !(it ==~ /\d+/) }) {
+        } else if (description.ports.size() > 5 || description.ports.any { !isValidPort(it) }) {
           errors.rejectValue("ports",
             "upsertGoogleLoadBalancerDescription.ports.invalid")
         }
@@ -300,6 +299,11 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
           !SUPPORTED_PASSTHROUGH_SESSION_AFFINITY.contains(description.backendService.sessionAffinity)) {
           errors.rejectValue("backendService.sessionAffinity",
             "upsertGoogleLoadBalancerDescription.backendService.sessionAffinity.notSupported")
+        }
+        if (description.backendService?.healthCheck &&
+          !isValidPort(description.backendService.healthCheck.port)) {
+          errors.rejectValue("backendService.healthCheck.port",
+            "upsertGoogleLoadBalancerDescription.healthCheck.port.invalid")
         }
         break
       case GoogleLoadBalancerType.SSL:
@@ -364,6 +368,68 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
       default:
         // TODO(jacobkiefer): Fail here once frontend calls are modified.
         break
+    }
+  }
+
+  private static void validateManagedBackendServices(
+    UpsertGoogleLoadBalancerDescription description,
+    List<GoogleBackendService> services,
+    ValidationErrors errors) {
+    services?.findAll { it != null }?.each { GoogleBackendService service ->
+      String fieldPrefix = service.is(description.defaultService) ? "defaultService" : "hostRules.backendService"
+      if (!SUPPORTED_MANAGED_BACKEND_PROTOCOLS.contains(service.protocol)) {
+        errors.rejectValue("${fieldPrefix}.protocol",
+          "upsertGoogleLoadBalancerDescription.backendService.protocol.notSupported")
+      }
+      if (service.healthCheck && !isValidPort(service.healthCheck.port)) {
+        errors.rejectValue("${fieldPrefix}.healthCheck.port",
+          "upsertGoogleLoadBalancerDescription.healthCheck.port.invalid")
+      }
+    }
+  }
+
+  private static void validateListenersToDelete(
+    UpsertGoogleLoadBalancerDescription description,
+    ValidationErrors errors) {
+    List<String> listenersToDelete = description.listenersToDelete
+    if (!listenersToDelete) {
+      return
+    }
+    if (listenersToDelete.any { !it?.trim() }) {
+      errors.rejectValue(
+        "listenersToDelete",
+        "upsertGoogleLoadBalancerDescription.listenersToDelete.blank")
+      return
+    }
+    if (listenersToDelete.size() != listenersToDelete.toSet().size()) {
+      errors.rejectValue(
+        "listenersToDelete",
+        "upsertGoogleLoadBalancerDescription.listenersToDelete.duplicate")
+      return
+    }
+    if (listenersToDelete.contains(description.loadBalancerName)) {
+      errors.rejectValue(
+        "listenersToDelete",
+        "upsertGoogleLoadBalancerDescription.listenersToDelete.currentListener")
+    }
+  }
+
+  private static void validatePort(Object value, String field, ValidationErrors errors) {
+    if (!isValidPort(value)) {
+      errors.rejectValue(field, "upsertGoogleLoadBalancerDescription.portRange.invalid")
+    }
+  }
+
+  private static boolean isValidPort(Object value) {
+    String text = value?.toString()
+    if (!(text ==~ /\d+/)) {
+      return false
+    }
+    try {
+      long port = Long.parseLong(text)
+      return port >= 1 && port <= 65535
+    } catch (NumberFormatException ignored) {
+      return false
     }
   }
 }

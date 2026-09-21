@@ -55,6 +55,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy
   }
 
   private static final PROJECT_NAME = "my-project"
+  private static final ACCOUNT_NAME = "test-account"
   private static final REGION = "us-central1"
   private static final ZONE = "us-central1-f"
   private static final IMAGE_NAME = "some-image-name"
@@ -693,6 +694,8 @@ package com.netflix.spinnaker.clouddriver.google.deploy
       def serverGroup = serverGroupView("server-group-v001", "regional-external-lb")
       def loadBalancer = new GoogleRegionalExternalNetworkLoadBalancer(
         name: "regional-external-lb",
+        account: ACCOUNT_NAME,
+        region: REGION,
         backendService: new GoogleBackendService(name: "backend-service")
       )
 
@@ -721,6 +724,47 @@ package com.netflix.spinnaker.clouddriver.google.deploy
       1 * googleOperationPoller.waitForRegionalOperation(compute, PROJECT_NAME, REGION, "update-backend-service", null, taskMock, "compute.${REGION}.backendServices.update", PHASE)
   }
 
+  @Unroll
+  void "add regional external network backend ignores cached load balancer from wrong #scopeField"() {
+    setup:
+      def compute = Mock(Compute)
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
+      def googleOperationPoller = Mock(GoogleOperationPoller)
+      def googleLoadBalancerProvider = Mock(GoogleLoadBalancerProvider)
+      def serverGroup = serverGroupView("server-group-v001", "regional-external-lb")
+      def loadBalancer = new GoogleRegionalExternalNetworkLoadBalancer(
+        name: "regional-external-lb",
+        account: cachedAccount,
+        region: cachedRegion,
+        backendService: new GoogleBackendService(name: "backend-service")
+      )
+
+    when:
+      GCEUtil.addRegionalExternalNetworkLoadBalancerBackends(
+        compute,
+        PROJECT_NAME,
+        serverGroup,
+        googleLoadBalancerProvider,
+        taskMock,
+        PHASE,
+        googleOperationPoller,
+        executor)
+
+    then:
+      1 * googleLoadBalancerProvider.getApplicationLoadBalancers("") >> [loadBalancer.view]
+      1 * compute.forwardingRules() >> forwardingRules
+      1 * forwardingRules.list(PROJECT_NAME, REGION) >> forwardingRulesList
+      1 * forwardingRulesList.execute() >> new ForwardingRuleList()
+      0 * compute.regionBackendServices()
+      0 * googleOperationPoller._
+
+    where:
+      scopeField | cachedAccount | cachedRegion
+      "account"  | "other-account" | REGION
+      "region"   | ACCOUNT_NAME    | "us-east1"
+  }
+
   void "add regional external network backend is idempotent when the server group is already attached"() {
     setup:
       def compute = Mock(Compute)
@@ -740,6 +784,8 @@ package com.netflix.spinnaker.clouddriver.google.deploy
       def serverGroup = serverGroupView("server-group-v001", "regional-external-lb")
       def loadBalancer = new GoogleRegionalExternalNetworkLoadBalancer(
         name: "regional-external-lb",
+        account: ACCOUNT_NAME,
+        region: REGION,
         backendService: new GoogleBackendService(name: "backend-service")
       )
       def updateOp = new Operation(name: "update-backend-service")
@@ -779,7 +825,8 @@ package com.netflix.spinnaker.clouddriver.google.deploy
       def googleOperationPoller = Mock(GoogleOperationPoller)
       def googleLoadBalancerProvider = Mock(GoogleLoadBalancerProvider)
       def serverGroup = serverGroupView("server-group-v001", "shared-lb-name")
-      def httpLoadBalancer = new GoogleExternalHttpLoadBalancer(name: "shared-lb-name")
+      def httpLoadBalancer = new GoogleExternalHttpLoadBalancer(
+        name: "shared-lb-name", account: ACCOUNT_NAME, region: REGION)
 
     when:
       GCEUtil.addRegionalExternalNetworkLoadBalancerBackends(
@@ -822,7 +869,8 @@ package com.netflix.spinnaker.clouddriver.google.deploy
       def googleOperationPoller = Mock(GoogleOperationPoller)
       def googleLoadBalancerProvider = Mock(GoogleLoadBalancerProvider)
       def serverGroup = serverGroupView("server-group-v001", "shared-lb-name")
-      def httpLoadBalancer = new GoogleExternalHttpLoadBalancer(name: "shared-lb-name")
+      def httpLoadBalancer = new GoogleExternalHttpLoadBalancer(
+        name: "shared-lb-name", account: ACCOUNT_NAME, region: REGION)
       def liveBackend = new BackendService(
         name: "live-service", loadBalancingScheme: "EXTERNAL", backends: [])
 
@@ -900,6 +948,8 @@ package com.netflix.spinnaker.clouddriver.google.deploy
       def serverGroup = serverGroupView("server-group-v001", "dup-lb", "dup-lb")
       def cachedLoadBalancer = new GoogleRegionalExternalNetworkLoadBalancer(
         name: "dup-lb",
+        account: ACCOUNT_NAME,
+        region: REGION,
         backendService: new GoogleBackendService(name: "dup-service")
       )
       def cachedBackend = new BackendService(
@@ -947,6 +997,8 @@ package com.netflix.spinnaker.clouddriver.google.deploy
       def serverGroup = serverGroupView("server-group-v001", "cached-lb", "missing-lb")
       def cachedLoadBalancer = new GoogleRegionalExternalNetworkLoadBalancer(
         name: "cached-lb",
+        account: ACCOUNT_NAME,
+        region: REGION,
         backendService: new GoogleBackendService(name: "cached-service")
       )
       def cachedBackend = new BackendService(
@@ -1008,6 +1060,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy
       def googleLoadBalancerProvider = Mock(GoogleLoadBalancerProvider)
       def serverGroup = new GoogleServerGroup(
         name: "server-group-v001",
+        account: ACCOUNT_NAME,
         region: REGION,
         regional: true,
         asg: [(GCEUtil.REGIONAL_LOAD_BALANCER_NAMES): ["cached-lb-a", "cached-lb-b"]]
@@ -1017,6 +1070,8 @@ package com.netflix.spinnaker.clouddriver.google.deploy
       def loadBalancers = ["cached-lb-a", "cached-lb-b"].collect { String loadBalancerName ->
         new GoogleRegionalExternalNetworkLoadBalancer(
           name: loadBalancerName,
+          account: ACCOUNT_NAME,
+          region: REGION,
           backendService: new GoogleBackendService(name: "shared-service")
         ).view
       }
@@ -1146,6 +1201,8 @@ package com.netflix.spinnaker.clouddriver.google.deploy
       def serverGroup = serverGroupView("server-group-v001", "regional-external-lb")
       def loadBalancer = new GoogleRegionalExternalNetworkLoadBalancer(
         name: "regional-external-lb",
+        account: ACCOUNT_NAME,
+        region: REGION,
         backendService: new GoogleBackendService(name: "backend-service")
       )
 
@@ -1180,7 +1237,8 @@ package com.netflix.spinnaker.clouddriver.google.deploy
       def googleOperationPoller = Mock(GoogleOperationPoller)
       def googleLoadBalancerProvider = Mock(GoogleLoadBalancerProvider)
       def serverGroup = serverGroupView("server-group-v001", "shared-lb-name")
-      def httpLoadBalancer = new GoogleExternalHttpLoadBalancer(name: "shared-lb-name")
+      def httpLoadBalancer = new GoogleExternalHttpLoadBalancer(
+        name: "shared-lb-name", account: ACCOUNT_NAME, region: REGION)
 
     when:
       GCEUtil.destroyRegionalExternalNetworkLoadBalancerBackends(
@@ -1222,7 +1280,8 @@ package com.netflix.spinnaker.clouddriver.google.deploy
       def googleOperationPoller = Mock(GoogleOperationPoller)
       def googleLoadBalancerProvider = Mock(GoogleLoadBalancerProvider)
       def serverGroup = serverGroupView("server-group-v001", "shared-lb-name")
-      def httpLoadBalancer = new GoogleExternalHttpLoadBalancer(name: "shared-lb-name")
+      def httpLoadBalancer = new GoogleExternalHttpLoadBalancer(
+        name: "shared-lb-name", account: ACCOUNT_NAME, region: REGION)
       def liveBackend = new BackendService(
         name: "live-service",
         loadBalancingScheme: "EXTERNAL",
@@ -1308,6 +1367,8 @@ package com.netflix.spinnaker.clouddriver.google.deploy
       def serverGroup = serverGroupView("server-group-v001", "cached-lb", "missing-lb")
       def cachedLoadBalancer = new GoogleRegionalExternalNetworkLoadBalancer(
         name: "cached-lb",
+        account: ACCOUNT_NAME,
+        region: REGION,
         backendService: new GoogleBackendService(name: "cached-service")
       )
       def cachedBackend = new BackendService(
@@ -1372,6 +1433,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy
       def groupUrl = GCEUtil.buildRegionalServerGroupUrl(PROJECT_NAME, REGION, "server-group-v001")
       def serverGroup = new GoogleServerGroup(
         name: "server-group-v001",
+        account: ACCOUNT_NAME,
         region: REGION,
         regional: true,
         asg: [(GCEUtil.GLOBAL_LOAD_BALANCER_NAMES): ["cached-lb-a", "cached-lb-b"]]
@@ -1383,6 +1445,8 @@ package com.netflix.spinnaker.clouddriver.google.deploy
       def loadBalancers = ["cached-lb-a", "cached-lb-b"].collect { String loadBalancerName ->
         new GoogleRegionalExternalNetworkLoadBalancer(
           name: loadBalancerName,
+          account: ACCOUNT_NAME,
+          region: REGION,
           backendService: new GoogleBackendService(name: "shared-service")
         ).view
       }
@@ -1636,6 +1700,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy
   private static GoogleServerGroup.View serverGroupView(String serverGroupName, String... loadBalancerNames) {
     new GoogleServerGroup(
       name: serverGroupName,
+      account: ACCOUNT_NAME,
       region: REGION,
       regional: true,
       launchConfig: [

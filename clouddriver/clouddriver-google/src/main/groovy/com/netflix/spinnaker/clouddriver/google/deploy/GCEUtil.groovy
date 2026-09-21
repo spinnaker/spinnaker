@@ -1163,6 +1163,7 @@ class GCEUtil {
         "compute.forwardingRules.list",
         executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region
       ).getItems()
+      // Only INTERNAL passthrough listeners own this existing-family attachment path.
       internalBackendServiceNames = projectRegionalForwardingRules.findAll { ForwardingRule forwardingRule ->
         isInternalPassthroughForwardingRule(forwardingRule) && forwardingRule.name in serverGroup.loadBalancers
       }.collect { ForwardingRule forwardingRule ->
@@ -1216,7 +1217,9 @@ class GCEUtil {
     def regionalLoadBalancersInMetadata = metadataMap?.get(REGIONAL_LOAD_BALANCER_NAMES)?.tokenize(",") ?: []
     def selectedLoadBalancerNames = regionalLoadBalancersInMetadata ?: (serverGroup.loadBalancers ?: [])
     def cachedLoadBalancers = googleLoadBalancerProvider.getApplicationLoadBalancers("").findAll {
-      it.name in selectedLoadBalancerNames
+      it.account == serverGroup.account &&
+        it.region == region &&
+        it.name in selectedLoadBalancerNames
     }
     def foundLoadBalancers = cachedLoadBalancers.findAll {
       it.loadBalancerType == GoogleLoadBalancerType.REGIONAL_EXTERNAL_NETWORK
@@ -1448,7 +1451,9 @@ class GCEUtil {
       (serverGroup.loadBalancers ?: [])
 
     def queriedLoadBalancers = googleLoadBalancerProvider.getApplicationLoadBalancers("").findAll {
-      it.name in externalHttpLoadBalancersInMetadata
+      it.account == serverGroup.account &&
+        it.region == region &&
+        it.name in externalHttpLoadBalancersInMetadata
     }
     def externalHttpLoadBalancersToAddTo = queriedLoadBalancers
       .findAll { it.loadBalancerType == GoogleLoadBalancerType.EXTERNAL_MANAGED }
@@ -1847,6 +1852,7 @@ class GCEUtil {
         executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region
       ).getItems()
 
+      // Only INTERNAL passthrough listeners own this existing-family detach path.
       def matchingForwardingRules = projectForwardingRules.findAll { ForwardingRule forwardingRule ->
         isInternalPassthroughForwardingRule(forwardingRule) && forwardingRule.name in internalLoadBalancersInMetadata
       }
@@ -1892,7 +1898,9 @@ class GCEUtil {
     def loadBalancersInMetadata = serverGroup?.asg?.get(REGIONAL_LOAD_BALANCER_NAMES) ?:
       (serverGroup.loadBalancers ?: [])
     def cachedLoadBalancers = googleLoadBalancerProvider.getApplicationLoadBalancers("").findAll {
-      it.name in loadBalancersInMetadata
+      it.account == serverGroup.account &&
+        it.region == region &&
+        it.name in loadBalancersInMetadata
     }
     def foundLoadBalancers = cachedLoadBalancers.findAll {
       it.loadBalancerType == GoogleLoadBalancerType.REGIONAL_EXTERNAL_NETWORK
@@ -2106,7 +2114,9 @@ class GCEUtil {
 
     log.debug("Looking up the following External Http load balancers in the cache: ${httpLoadBalancersInMetadata}")
     def queriedLoadBalancers = googleLoadBalancerProvider.getApplicationLoadBalancers("").findAll {
-      it.name in httpLoadBalancersInMetadata
+      it.account == serverGroup.account &&
+        it.region == region &&
+        it.name in httpLoadBalancersInMetadata
     }
     def foundExternalHttpLoadBalancers = queriedLoadBalancers.findAll {
       it.name in httpLoadBalancersInMetadata && it.loadBalancerType == GoogleLoadBalancerType.EXTERNAL_MANAGED
@@ -2770,10 +2780,17 @@ class GCEUtil {
   }
 
   static List<BackendService> fetchRegionBackendServices(GoogleExecutorTraits agent, Compute compute, String project, String region) {
-    return agent.timeExecute(
-      compute.regionBackendServices().list(project, region),
-      "compute.regionBackendServices.list",
-      agent.TAG_SCOPE, agent.SCOPE_REGIONAL, agent.TAG_REGION, region).getItems()
+    String nextPageToken = null
+    List<BackendService> backendServices = []
+    do {
+      BackendServiceList page = agent.timeExecute(
+        compute.regionBackendServices().list(project, region).setPageToken(nextPageToken),
+        "compute.regionBackendServices.list",
+        agent.TAG_SCOPE, agent.SCOPE_REGIONAL, agent.TAG_REGION, region)
+      backendServices.addAll(page?.items ?: [])
+      nextPageToken = page?.nextPageToken
+    } while (nextPageToken)
+    return backendServices
   }
 
   static List<HttpHealthCheck> fetchHttpHealthChecks(GoogleExecutorTraits agent, Compute compute, String project) {

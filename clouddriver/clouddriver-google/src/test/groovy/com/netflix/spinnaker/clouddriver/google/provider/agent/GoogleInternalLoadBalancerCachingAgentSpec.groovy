@@ -106,6 +106,7 @@ class GoogleInternalLoadBalancerCachingAgentSpec extends Specification {
     then:
     (1.._) * compute.regionBackendServices() >> regionBackendServices
     1 * regionBackendServices.list(PROJECT, REGION) >> backendServicesList
+    1 * backendServicesList.setPageToken(null) >> backendServicesList
     1 * backendServicesList.execute() >> new BackendServiceList(items: [
       new BackendService(
         name: "backend-service",

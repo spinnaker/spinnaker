@@ -649,6 +649,8 @@ abstract class AbstractGoogleRegionalHttpLoadBalancerCachingAgent<T extends Goog
               : GoogleSessionAffinity.NONE);
       service.setAffinityCookieTtlSec(backendService.getAffinityCookieTtlSec());
       service.setEnableCDN(backendService.getEnableCDN());
+      service.setProtocol(
+          backendService.getProtocol() != null ? backendService.getProtocol() : "HTTP");
       String name = backendService.getPortName();
       service.setPortName(
           name != null ? name : GoogleHttpLoadBalancingPolicy.HTTP_DEFAULT_PORT_NAME);

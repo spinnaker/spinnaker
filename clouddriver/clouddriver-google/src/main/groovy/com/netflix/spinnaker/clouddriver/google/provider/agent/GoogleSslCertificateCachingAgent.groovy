@@ -17,13 +17,16 @@
 package com.netflix.spinnaker.clouddriver.google.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.api.services.compute.ComputeRequest
 import com.google.api.services.compute.model.SslCertificate
+import com.google.api.services.compute.model.SslCertificateList
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
+import com.netflix.spinnaker.clouddriver.google.provider.agent.util.PaginatedRequest
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import groovy.util.logging.Slf4j
 
@@ -69,16 +72,36 @@ class GoogleSslCertificateCachingAgent extends AbstractGoogleCachingAgent  {
   }
 
   List<SslCertificate> loadSslCertificates() {
-    // GCP list responses omit `items` entirely (null) when a region/project has no SSL
-    // certificates, so default to an empty list before the cache builder iterates.
     if (region) {
-      return (timeExecute(compute.regionSslCertificates().list(project, region),
-        "compute.regionSslCertificates.list", TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region
-      ).items ?: []) as List
+      return new PaginatedRequest<SslCertificateList>(this) {
+        @Override
+        protected ComputeRequest<SslCertificateList> request(String pageToken) {
+          compute.regionSslCertificates().list(project, region).setPageToken(pageToken)
+        }
+
+        @Override
+        protected String getNextPageToken(SslCertificateList page) {
+          page?.nextPageToken
+        }
+      }.timeExecute(
+        { SslCertificateList page -> page?.items },
+        "compute.regionSslCertificates.list",
+        TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
     }
-    return (timeExecute(compute.sslCertificates().list(project),
-      "compute.sslCertificates.list", TAG_SCOPE, SCOPE_GLOBAL
-    ).items ?: []) as List
+    return new PaginatedRequest<SslCertificateList>(this) {
+      @Override
+      protected ComputeRequest<SslCertificateList> request(String pageToken) {
+        compute.sslCertificates().list(project).setPageToken(pageToken)
+      }
+
+      @Override
+      protected String getNextPageToken(SslCertificateList page) {
+        page?.nextPageToken
+      }
+    }.timeExecute(
+      { SslCertificateList page -> page?.items },
+      "compute.sslCertificates.list",
+      TAG_SCOPE, SCOPE_GLOBAL)
   }
 
   private CacheResult buildCacheResult(ProviderCache _, List<SslCertificate> sslCertificateList) {

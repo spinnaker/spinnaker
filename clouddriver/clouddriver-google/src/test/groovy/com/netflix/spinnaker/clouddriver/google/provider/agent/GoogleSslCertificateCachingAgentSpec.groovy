@@ -47,6 +47,7 @@ class GoogleSslCertificateCachingAgentSpec extends Specification {
     then:
     1 * compute.regionSslCertificates() >> regionSslCertificates
     1 * regionSslCertificates.list(PROJECT, REGION) >> regionSslCertificatesList
+    1 * regionSslCertificatesList.setPageToken(null) >> regionSslCertificatesList
     1 * regionSslCertificatesList.execute() >> new SslCertificateList(items: [new SslCertificate(name: "regional-cert")])
     0 * compute.sslCertificates()
 
@@ -70,6 +71,7 @@ class GoogleSslCertificateCachingAgentSpec extends Specification {
     then:
     1 * compute.sslCertificates() >> sslCertificates
     1 * sslCertificates.list(PROJECT) >> sslCertificatesList
+    1 * sslCertificatesList.setPageToken(null) >> sslCertificatesList
     1 * sslCertificatesList.execute() >> new SslCertificateList(items: [new SslCertificate(name: "global-cert")])
     0 * compute.regionSslCertificates()
 
@@ -121,10 +123,39 @@ class GoogleSslCertificateCachingAgentSpec extends Specification {
     then: "Compute omits items entirely rather than returning an empty list"
     1 * compute.regionSslCertificates() >> regionSslCertificates
     1 * regionSslCertificates.list(PROJECT, REGION) >> regionSslCertificatesList
+    1 * regionSslCertificatesList.setPageToken(null) >> regionSslCertificatesList
     1 * regionSslCertificatesList.execute() >> new SslCertificateList()
 
     noExceptionThrown()
     !cacheResult.cacheResults[SSL_CERTIFICATES.ns]
+  }
+
+  void "regional agent caches certificates from every page"() {
+    given:
+    def compute = Mock(Compute)
+    def regionSslCertificates = Mock(Compute.RegionSslCertificates)
+    def firstRequest = Mock(Compute.RegionSslCertificates.List)
+    def secondRequest = Mock(Compute.RegionSslCertificates.List)
+    @Subject def agent = createAgent(compute, REGION)
+
+    when:
+    def cacheResult = agent.loadData(Mock(ProviderCache))
+
+    then:
+    2 * compute.regionSslCertificates() >> regionSslCertificates
+    2 * regionSslCertificates.list(PROJECT, REGION) >>> [firstRequest, secondRequest]
+    1 * firstRequest.setPageToken(null) >> firstRequest
+    1 * secondRequest.setPageToken("next") >> secondRequest
+    1 * firstRequest.execute() >> new SslCertificateList(
+      items: [new SslCertificate(name: "first")],
+      nextPageToken: "next")
+    1 * secondRequest.execute() >> new SslCertificateList(
+      items: [new SslCertificate(name: "second")])
+
+    cacheResult.cacheResults[SSL_CERTIFICATES.ns]*.id as Set == [
+      Keys.getSslCertificateKey(ACCOUNT, REGION, "first"),
+      Keys.getSslCertificateKey(ACCOUNT, REGION, "second")
+    ] as Set
   }
 
   private static GoogleSslCertificateCachingAgent createAgent(Compute compute, String region) {

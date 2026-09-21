@@ -277,15 +277,8 @@ public class BasicGoogleDeployHandler
   }
 
   /**
-   * Deploy descriptions created outside the Deck server-group wizard (raw pipeline stages or direct
-   * REST payloads) can omit collection-valued fields, leaving them null. Several compose steps
-   * below dereference these collections directly: {@code buildServiceAccountFromInput} calls {@code
-   * authScopes.isEmpty()}, the moniker step writes into the {@code labels} map, and the
-   * load-balancer policy/backend-service steps read {@code instanceMetadata}. Default them to empty
-   * once here so raw-JSON deploys don't fail with a NullPointerException. Writing the map back
-   * (rather than defaulting locally) also lets {@code setupMonikerForOperation} and the
-   * instance-template labels share a single map instance, so moniker-derived labels are preserved
-   * instead of silently dropped when {@code labels} started out null.
+   * Raw pipeline and REST payloads may omit collection-valued fields that the compose path
+   * dereferences. Normalize them once so direct API use follows the same contract as Deck.
    */
   protected void normalizeNullableCollections(BasicGoogleDeployDescription description) {
     if (description.getInstanceMetadata() == null) {
@@ -313,8 +306,7 @@ public class BasicGoogleDeployHandler
   }
 
   protected String getLocationFromInput(BasicGoogleDeployDescription description, String region) {
-    // `regional` is nullable on raw pipeline/REST payloads (the Deck wizard always sets it); a
-    // null value means a zonal deploy, so compare via Boolean.TRUE rather than unboxing.
+    // Raw pipeline and REST payloads may omit `regional`; null retains the established zonal path.
     return Boolean.TRUE.equals(description.getRegional()) ? region : description.getZone();
   }
 
@@ -759,6 +751,11 @@ public class BasicGoogleDeployHandler
               .anyMatch(BasicGoogleDeployHandler::isPassthroughRegionalBackendService);
       validateLoadBalancingPolicyCompatibility(
           description, lbInfo, policy, hasManagedRegionalBackend, hasPassthroughRegionalBackend);
+      if (!externalHttpLbBackendServices.isEmpty()) {
+        // Enable reconstructs managed backend settings from instance-template metadata after a
+        // disable. Persist the selected external-managed policy while composing that template.
+        GCEUtil.updateMetadataWithLoadBalancingPolicy(policy, instanceMetadata, objectMapper);
+      }
 
       resolvedBackendServices.forEach(
           (backendServiceName, backendService) -> {

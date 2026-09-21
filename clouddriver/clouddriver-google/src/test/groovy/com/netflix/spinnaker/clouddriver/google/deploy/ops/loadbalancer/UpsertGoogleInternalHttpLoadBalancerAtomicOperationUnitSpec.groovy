@@ -26,10 +26,12 @@ import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProper
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.converters.UpsertGoogleLoadBalancerAtomicOperationConverter
+import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.model.GoogleNetwork
 import com.netflix.spinnaker.clouddriver.google.model.GoogleSubnet
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleNetworkProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSubnetProvider
 import com.netflix.spinnaker.clouddriver.google.security.FakeGoogleCredentials
@@ -71,6 +73,24 @@ class UpsertGoogleInternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
         "unhealthyThreshold": 1
     ]
     safeRetry = SafeRetry.withoutDelay()
+  }
+
+  void "internal managed leaves backend protocol absent and ignores protocol differences"() {
+    given:
+      @Subject def operation = new UpsertGoogleInternalHttpLoadBalancerAtomicOperation(
+        new UpsertGoogleLoadBalancerDescription())
+      def desired = new GoogleBackendService()
+      def target = new BackendService()
+
+    expect:
+      !operation.backendProtocolNeedsUpdate(
+        new BackendService(protocol: "HTTPS"), desired)
+
+    when:
+      operation.configureBackendProtocol(target, desired)
+
+    then:
+      target.protocol == null
   }
 
   void "should create an Internal HTTP Load Balancer with host rule, path matcher, path rules, etc with no existing infrastructure"() {
@@ -217,7 +237,7 @@ class UpsertGoogleInternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       4 * computeMock.regionBackendServices() >> backendServices
       1 * backendServices.list(PROJECT_NAME, REGION) >> backendServicesList
       1 * backendServicesList.execute() >> bsListReal
-      3 * backendServices.insert(PROJECT_NAME, REGION, _) >> backendServicesInsert
+      3 * backendServices.insert(PROJECT_NAME, REGION, { it.protocol == null }) >> backendServicesInsert
       3 * backendServicesInsert.execute() >> backendServicesInsertOp
 
       2 * computeMock.regionUrlMaps() >> urlMaps

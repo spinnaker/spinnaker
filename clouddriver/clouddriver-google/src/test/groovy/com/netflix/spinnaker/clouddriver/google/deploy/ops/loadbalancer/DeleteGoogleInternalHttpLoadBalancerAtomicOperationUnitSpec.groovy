@@ -131,7 +131,7 @@ class DeleteGoogleInternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       operation.safeRetry = safeRetry
 
     when:
-      operation.operate([])
+      def result = operation.operate([])
 
     then:
       3 * computeMock.forwardingRules() >> regionForwardingRules
@@ -170,6 +170,7 @@ class DeleteGoogleInternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       1 * backendServicesOperationGet.execute() >> backendServicesDeleteOp
       1 * regionOperations.get(PROJECT_NAME, REGION, HEALTH_CHECK_DELETE_OP_NAME) >> healthChecksOperationGet
       1 * healthChecksOperationGet.execute() >> healthChecksDeleteOp
+      result.deletedLoadBalancerNames == [HTTP_LOAD_BALANCER_NAME]
   }
 
   void "should delete Internal Http Load Balancer with multiple backend services/health checks"() {

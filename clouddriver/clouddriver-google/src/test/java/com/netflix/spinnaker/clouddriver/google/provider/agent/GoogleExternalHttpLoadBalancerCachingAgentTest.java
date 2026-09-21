@@ -389,6 +389,7 @@ public class GoogleExternalHttpLoadBalancerCachingAgentTest {
         mock(Compute.RegionBackendServices.GetHealth.class);
     when(compute.regionBackendServices()).thenReturn(regionBackendServices);
     when(regionBackendServices.list(PROJECT, REGION)).thenReturn(listBackendServices);
+    when(listBackendServices.setPageToken(null)).thenReturn(listBackendServices);
     when(listBackendServices.execute())
         .thenReturn(
             new BackendServiceList()
@@ -516,6 +517,7 @@ public class GoogleExternalHttpLoadBalancerCachingAgentTest {
         mock(Compute.RegionBackendServices.List.class);
     when(compute.regionBackendServices()).thenReturn(regionBackendServices);
     when(regionBackendServices.list(PROJECT, REGION)).thenReturn(listBackendServices);
+    when(listBackendServices.setPageToken(null)).thenReturn(listBackendServices);
     when(listBackendServices.execute())
         .thenReturn(
             new BackendServiceList()

@@ -28,7 +28,9 @@ import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleExtern
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleInternalHttpLoadBalancer;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Upserts regional external Application Load Balancers using the regional HTTP operation shape.
@@ -39,7 +41,7 @@ import java.util.Set;
  * attach regional Certificate Manager certificate resources through `sslCertificates`.
  */
 public class UpsertGoogleExternalHttpLoadBalancerAtomicOperation
-    extends UpsertGoogleInternalHttpLoadBalancerAtomicOperation {
+    extends AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperation {
   static final String PROXY_ONLY_SUBNET_PURPOSE = "REGIONAL_MANAGED_PROXY";
 
   public UpsertGoogleExternalHttpLoadBalancerAtomicOperation(
@@ -67,6 +69,7 @@ public class UpsertGoogleExternalHttpLoadBalancerAtomicOperation
 
   @Override
   protected GoogleSubnet resolveSubnet(GoogleNetwork network) {
+    requireAccountLocalNetwork(network);
     // EXTERNAL_MANAGED forwarding rules attach to the VPC network rather than a user subnet, but
     // the regional external Application Load Balancer still requires a REGIONAL_MANAGED_PROXY
     // subnet in that VPC and region for Google-managed proxies.
@@ -81,6 +84,7 @@ public class UpsertGoogleExternalHttpLoadBalancerAtomicOperation
             .anyMatch(
                 subnet ->
                     PROXY_ONLY_SUBNET_PURPOSE.equals(subnet.getPurpose())
+                        && description.getAccountName().equals(subnet.getAccount())
                         && isSameNetwork(subnet, network));
     if (!hasProxyOnlySubnet) {
       throw new IllegalArgumentException(
@@ -124,6 +128,11 @@ public class UpsertGoogleExternalHttpLoadBalancerAtomicOperation
   }
 
   @Override
+  protected boolean managesBackendProtocol() {
+    return true;
+  }
+
+  @Override
   protected String buildCertificateUrl(String project, String region, String certificate) {
     // Regional target HTTPS proxies use sslCertificates for both regional Compute SSL certificates
     // and Certificate Manager certificates. Certificate Manager resources must keep their API
@@ -131,6 +140,15 @@ public class UpsertGoogleExternalHttpLoadBalancerAtomicOperation
     String certificateManagerCertificate =
         GCEUtil.normalizeRegionalCertificateManagerCertificate(certificate);
     if (certificateManagerCertificate != null) {
+      String expectedScope = "/projects/" + project + "/locations/" + region + "/certificates/";
+      if (!certificateManagerCertificate.contains(expectedScope)) {
+        throw new IllegalArgumentException(
+            "Certificate Manager certificate must belong to project "
+                + project
+                + " and region "
+                + region
+                + ".");
+      }
       return certificateManagerCertificate;
     }
     if (looksLikeCertificateManagerCertificate(certificate)) {
@@ -138,7 +156,19 @@ public class UpsertGoogleExternalHttpLoadBalancerAtomicOperation
           "Certificate Manager certificates must use projects/{project}/locations/{region}/certificates/{name} "
               + "or //certificatemanager.googleapis.com/projects/{project}/locations/{region}/certificates/{name}.");
     }
-    return GCEUtil.buildRegionalCertificateUrl(project, region, certificate);
+    String regionalCertificate = GCEUtil.buildRegionalCertificateUrl(project, region, certificate);
+    String expectedScope = "/projects/" + project + "/regions/" + region + "/sslCertificates/";
+    if (certificate != null
+        && certificate.contains("/")
+        && !regionalCertificate.contains(expectedScope)) {
+      throw new IllegalArgumentException(
+          "Compute SSL certificate must belong to project "
+              + project
+              + " and region "
+              + region
+              + ".");
+    }
+    return regionalCertificate;
   }
 
   private boolean looksLikeCertificateManagerCertificate(String certificate) {
@@ -174,21 +204,37 @@ public class UpsertGoogleExternalHttpLoadBalancerAtomicOperation
   @Override
   protected void configureForwardingRule(
       ForwardingRule rule, GoogleInternalHttpLoadBalancer loadBalancer, String targetProxyUrl) {
-    super.configureForwardingRule(rule, loadBalancer, targetProxyUrl);
-    rule.setSubnetwork(null);
+    rule.setName(loadBalancer.getName());
+    rule.setLoadBalancingScheme(getLoadBalancingScheme());
+    rule.setIPAddress(loadBalancer.getIpAddress());
     rule.setIPProtocol("TCP");
+    rule.setNetwork(loadBalancer.getNetwork());
+    rule.setPortRange(
+        StringUtils.isNotBlank(loadBalancer.getCertificate())
+            ? "443"
+            : loadBalancer.getPortRange());
+    rule.setTarget(targetProxyUrl);
     rule.setNetworkTier(description.getNetworkTier());
   }
 
+  private void requireAccountLocalNetwork(GoogleNetwork network) {
+    String selectedProject = networkProject(network.getSelfLink());
+    if (selectedProject == null) {
+      selectedProject = networkProject(network.getId());
+    }
+    String accountProject =
+        description.getCredentials() != null
+            ? description.getCredentials().getProject()
+            : selectedProject;
+    if (selectedProject != null && !Objects.equals(accountProject, selectedProject)) {
+      throw new IllegalArgumentException(
+          "EXTERNAL_MANAGED only supports VPC networks in account project " + accountProject + ".");
+    }
+  }
+
   private boolean isSameNetwork(GoogleSubnet subnet, GoogleNetwork network) {
-    // GoogleSubnetProvider.deriveNetworkId stores a cached subnet's network as a bare local name
-    // (e.g. "default") for the account's own project and as "<project>/<name>" for XPN host-project
-    // subnets, never as a full "projects/.../networks/..." URL. Match on the local network name
-    // and,
-    // when both sides expose a project, require the projects to agree. Comparing projects keeps a
-    // same-named network in another XPN project from being wrongly accepted, while a bare local
-    // name
-    // (no project) is treated as belonging to the selected network's project.
+    // Bare cached network names are account-local; qualified names must resolve to this account's
+    // project so a same-named Shared VPC cannot satisfy the proxy-only subnet requirement.
     String subnetNetwork = subnet.getNetwork();
     if (subnetNetwork == null) {
       return false;
@@ -202,8 +248,7 @@ public class UpsertGoogleExternalHttpLoadBalancerAtomicOperation
     String subnetProject = networkProject(subnetNetwork);
     String selectedProject = networkProject(network.getSelfLink());
     return subnetProject == null
-        || selectedProject == null
-        || subnetProject.equals(selectedProject);
+        || (selectedProject != null && selectedProject.equals(subnetProject));
   }
 
   private String networkProject(String networkReference) {
@@ -215,10 +260,8 @@ public class UpsertGoogleExternalHttpLoadBalancerAtomicOperation
     }
     int lastSlash = networkReference.lastIndexOf('/');
     if (lastSlash > 0) {
-      // "<project>/<name>" shape produced for XPN host-project subnets.
       return networkReference.substring(0, lastSlash);
     }
-    // Bare local name: the project is implicitly the account's/selected network's project.
     return null;
   }
 }

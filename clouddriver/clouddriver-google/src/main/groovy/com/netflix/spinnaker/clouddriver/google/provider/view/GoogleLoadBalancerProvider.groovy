@@ -277,7 +277,7 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
                                                             String region,
                                                             String name) {
     GoogleLoadBalancerView view = getApplicationLoadBalancers(name).find { view ->
-      view.account == account && view.region == region
+      view.account == account && view.region == region && view.name == name
     }
 
     if (!view) {

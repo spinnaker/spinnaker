@@ -46,6 +46,7 @@ class GoogleLoadBalancerProviderSpec extends Specification {
       def googleLoadBalancerView = Mock(CacheData)
       def attributes = [
         type: GoogleLoadBalancerType.NETWORK,
+        name: LOAD_BALANCER_NAME,
         account: ACCOUNT_NAME,
         region: REGION_EUROPE,
         sessionAffinity: GoogleSessionAffinity.CLIENT_IP_PORT_PROTO
@@ -67,6 +68,23 @@ class GoogleLoadBalancerProviderSpec extends Specification {
       1 * serverGroup.getRelationships() >> serverGroupRelationships
       details.size() == 1
       details[0].sessionAffinity == "CLIENT_IP_PORT_PROTO"
+  }
+
+  void "exact-name details lookup does not return a prefixed load balancer"() {
+    given:
+      def prefixed = Mock(GoogleLoadBalancerView) {
+        getName() >> "foo-alt"
+        getAccount() >> ACCOUNT_NAME
+        getRegion() >> REGION_EUROPE
+      }
+      @Subject def provider = Spy(GoogleLoadBalancerProvider)
+
+    when:
+      def details = provider.byAccountAndRegionAndName(ACCOUNT_NAME, REGION_EUROPE, "foo")
+
+    then:
+      1 * provider.getApplicationLoadBalancers("foo") >> [prefixed]
+      details == []
   }
 
   void "should deserialize external managed HTTP load balancer details"() {

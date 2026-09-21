@@ -1064,6 +1064,61 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
   }
 
   @Unroll
+  void "managed backend protocol #protocol is accepted=#accepted"() {
+    given:
+      def description = new UpsertGoogleLoadBalancerDescription(
+        loadBalancerType: GoogleLoadBalancerType.EXTERNAL_MANAGED,
+        loadBalancerName: LOAD_BALANCER_NAME,
+        region: REGION,
+        accountName: ACCOUNT_NAME,
+        network: "default",
+        portRange: "80",
+        defaultService: new GoogleBackendService(
+          name: "backend",
+          protocol: protocol,
+          healthCheck: new GoogleHealthCheck(name: "health-check", port: 80)),
+        hostRules: [])
+      def errors = Mock(ValidationErrors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      expectedRejections * errors.rejectValue(
+        "defaultService.protocol",
+        "upsertGoogleLoadBalancerDescription.backendService.protocol.notSupported")
+
+    where:
+      protocol | accepted || expectedRejections
+      "HTTP"   | true     || 0
+      "HTTPS"  | true     || 0
+      "HTTP2"  | false    || 1
+      "GRPC"   | false    || 1
+  }
+
+  @Unroll
+  void "regional listenersToDelete rejects #scenario"() {
+    given:
+      def description = regionalExternalNetworkDescription()
+      description.listenersToDelete = listeners
+      def errors = Mock(ValidationErrors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue(
+        "listenersToDelete",
+        "upsertGoogleLoadBalancerDescription.listenersToDelete.${errorCode}")
+
+    where:
+      scenario       | listeners                    | errorCode
+      "blank names"  | [" "]                        | "blank"
+      "duplicates"   | ["old-listener", "old-listener"] | "duplicate"
+      "current name" | [LOAD_BALANCER_NAME]         | "currentListener"
+  }
+
+  @Unroll
   void "fail regional external network validation for #field"() {
     setup:
       def description = regionalExternalNetworkDescription()
@@ -1081,10 +1136,13 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
       "ipProtocol"                     | "upsertGoogleLoadBalancerDescription.ipProtocol.notSupported"                     | { it.ipProtocol = "ESP" }
       "ports"                          | "upsertGoogleLoadBalancerDescription.ports.invalid"                               | { it.ports = ["1", "2", "3", "4", "5", "6"] }
       "ports"                          | "upsertGoogleLoadBalancerDescription.ports.invalid"                               | { it.ports = ["abc"] }
+      "ports"                          | "upsertGoogleLoadBalancerDescription.ports.invalid"                               | { it.ports = ["0"] }
+      "ports"                          | "upsertGoogleLoadBalancerDescription.ports.invalid"                               | { it.ports = ["65536"] }
       "portRange"                      | "upsertGoogleLoadBalancerDescription.portRange.notSupported"                      | { it.portRange = "80-90" }
       "networkTier"                    | "upsertGoogleLoadBalancerDescription.networkTier.notSupported"                    | { it.networkTier = "FIXED" }
       "backendService.sessionAffinity" | "upsertGoogleLoadBalancerDescription.backendService.sessionAffinity.notSupported" | { it.backendService.sessionAffinity = GoogleSessionAffinity.GENERATED_COOKIE }
       "ipAddress"                      | "upsertGoogleLoadBalancerDescription.ipAddress.ipv6NotSupported"                  | { it.ipAddress = "2001:db8::1" }
+      "backendService.healthCheck.port" | "upsertGoogleLoadBalancerDescription.healthCheck.port.invalid"                  | { it.backendService.healthCheck.port = 0 }
   }
 
   private static UpsertGoogleLoadBalancerDescription regionalExternalNetworkDescription() {

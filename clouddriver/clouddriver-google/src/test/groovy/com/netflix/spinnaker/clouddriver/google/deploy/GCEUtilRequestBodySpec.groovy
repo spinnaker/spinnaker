@@ -38,6 +38,7 @@ import spock.lang.Specification
 
 class GCEUtilRequestBodySpec extends Specification {
   private static final String PROJECT = "test-project"
+  private static final String ACCOUNT = "test-account"
   private static final String REGION = "us-central1"
   private static final String SERVER_GROUP = "server-group-v001"
   private static final String PHASE = "TEST-PHASE"
@@ -56,6 +57,8 @@ class GCEUtilRequestBodySpec extends Specification {
       def task = Mock(Task)
       def loadBalancer = new GoogleRegionalExternalNetworkLoadBalancer(
         name: "network-lb",
+        account: ACCOUNT,
+        region: REGION,
         backendService: new GoogleBackendService(name: "network-backend"))
       def serverGroup = serverGroupView("network-lb")
 
@@ -96,6 +99,8 @@ class GCEUtilRequestBodySpec extends Specification {
       def task = Mock(Task)
       def loadBalancer = new GoogleExternalHttpLoadBalancer(
         name: "external-lb",
+        account: ACCOUNT,
+        region: REGION,
         defaultService: new GoogleBackendService(name: "external-backend"))
       def policy = new GoogleHttpLoadBalancingPolicy(
         balancingMode: GoogleLoadBalancingPolicy.BalancingMode.UTILIZATION,
@@ -144,6 +149,7 @@ class GCEUtilRequestBodySpec extends Specification {
     def metadata = [(GCEUtil.REGIONAL_LOAD_BALANCER_NAMES): loadBalancerName] + additionalMetadata
     new GoogleServerGroup(
       name: SERVER_GROUP,
+      account: ACCOUNT,
       region: REGION,
       regional: true,
       launchConfig: [
