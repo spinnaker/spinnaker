@@ -961,4 +961,215 @@ final class HelmfileTemplateUtilsTest {
       assertThat(recipe.getCommand()).isNotEmpty();
     }
   }
+
+  /**
+   * Builds a hostile helmfile.yaml whose {@code hooks:} declaration is buried past SnakeYAML's
+   * default 50-level nesting limit, by wrapping it in nested single-key maps. The content is still
+   * valid, parseable YAML overall - only the specific mapping containing {@code hooks:} is deeply
+   * nested - so helmfile's own (unlimited-depth) parser will read it and run the hook, even though
+   * rosco's guard fails to descend far enough to see it.
+   */
+  private String hooksBuriedPastNestingLimit(int depth) {
+    StringBuilder sb = new StringBuilder();
+    sb.append("releases:\n  - name: test\n    chart: Chart.yaml\n");
+    for (int i = 0; i < depth; i++) {
+      sb.append("  ".repeat(i)).append("nested").append(i).append(":\n");
+    }
+    sb.append("  ".repeat(depth)).append("hooks:\n");
+    sb.append("  ".repeat(depth)).append("  - events: [\"prepare\"]\n");
+    sb.append("  ".repeat(depth)).append("    command: \"/bin/sh\"\n");
+    sb.append("  ".repeat(depth)).append("    args: [\"-c\", \"echo pwned\"]\n");
+    return sb.toString();
+  }
+
+  private HelmfileTemplateUtils newHelmfileTemplateUtils(
+      ArtifactDownloader artifactDownloader,
+      RoscoHelmfileConfigurationProperties helmfileConfigurationProperties) {
+    return new HelmfileTemplateUtils(
+        artifactDownloader,
+        Optional.empty(),
+        artifactStoreConfig,
+        helmfileConfigurationProperties,
+        new YamlHelper(new YamlParserProperties()));
+  }
+
+  private HelmfileBakeManifestRequest requestForTarball(
+      ArtifactDownloader artifactDownloader, Path tempDir) throws IOException {
+    HelmfileBakeManifestRequest request = new HelmfileBakeManifestRequest();
+    Artifact artifact =
+        Artifact.builder().type("git/repo").reference("https://github.com/some/repo.git").build();
+    when(artifactDownloader.downloadArtifact(artifact)).thenReturn(makeTarball(tempDir));
+    request.setInputArtifacts(Collections.singletonList(artifact));
+    request.setOverrides(Collections.emptyMap());
+    return request;
+  }
+
+  @Test
+  public void buildBakeRecipeDoesNotCatchHooksBuriedPastNestingLimit(@TempDir Path tempDir)
+      throws IOException {
+    // Demonstrates the gap: SnakeYAML's default nestingDepthLimit is 50, but helmfile's own Go
+    // YAML parser has no such limit, so content nested past 50 levels is silently skipped by
+    // rosco's guard (caught as a RuntimeException and logged at debug) while helmfile itself
+    // still parses and executes the buried hooks.
+    addFile(tempDir, "helmfile.yaml", hooksBuriedPastNestingLimit(60));
+
+    ArtifactDownloader artifactDownloader = mock(ArtifactDownloader.class);
+    HelmfileTemplateUtils helmfileTemplateUtils =
+        newHelmfileTemplateUtils(artifactDownloader, new RoscoHelmfileConfigurationProperties());
+    HelmfileBakeManifestRequest request = requestForTarball(artifactDownloader, tempDir);
+
+    try (BakeManifestEnvironment env = BakeManifestEnvironment.create()) {
+      // Today this does NOT throw, because the guard's YAML parse fails on content past the
+      // nesting limit and the failure is swallowed rather than rejected. Once the guard is fixed
+      // to fail closed, this must throw instead.
+      IllegalArgumentException thrown =
+          assertThrows(
+              IllegalArgumentException.class,
+              () -> helmfileTemplateUtils.buildBakeRecipe(env, request));
+      assertThat(thrown.getMessage()).contains("hooks");
+    }
+  }
+
+  @Test
+  public void buildBakeRecipeRejectsUnparseableHelmfileContent(@TempDir Path tempDir)
+      throws IOException {
+    // Go template control-flow blocks (e.g. "{{- if }}") are not valid YAML on their own, even
+    // though helmfile's own templating pass resolves them before parsing. A hostile helmfile.yaml
+    // can hide hooks/postRenderers inside such a block so that SnakeYAML throws while parsing it,
+    // which today causes the guard to skip validation entirely (fail open) instead of refusing to
+    // bake content it could not fully inspect.
+    addFile(
+        tempDir,
+        "helmfile.yaml",
+        "{{- if eq .Environment.Name \"prod\" }}\n"
+            + "hooks:\n"
+            + "  - events: [\"prepare\"]\n"
+            + "    command: \"/bin/sh\"\n"
+            + "    args: [\"-c\", \"echo pwned\"]\n"
+            + "{{- end }}\n"
+            + "releases:\n"
+            + "  - name: test\n"
+            + "    chart: Chart.yaml\n");
+
+    ArtifactDownloader artifactDownloader = mock(ArtifactDownloader.class);
+    HelmfileTemplateUtils helmfileTemplateUtils =
+        newHelmfileTemplateUtils(artifactDownloader, new RoscoHelmfileConfigurationProperties());
+    HelmfileBakeManifestRequest request = requestForTarball(artifactDownloader, tempDir);
+
+    try (BakeManifestEnvironment env = BakeManifestEnvironment.create()) {
+      // Today this does NOT throw either: SnakeYAML rejects the "{{- if }}" as invalid YAML, and
+      // the guard swallows that parse failure instead of refusing to bake unparseable content.
+      assertThrows(
+          IllegalArgumentException.class,
+          () -> helmfileTemplateUtils.buildBakeRecipe(env, request));
+    }
+  }
+
+  @Test
+  public void buildBakeRecipeRejectsHooksInLocalHelmfilesEntry(@TempDir Path tempDir)
+      throws IOException {
+    // helmfile's "helmfiles:" key nests other complete helmfile.yaml state files (distinct from
+    // "bases:", which merges YAML fragments). The guard never recurses into "helmfiles:" today.
+    addFile(
+        tempDir,
+        "helmfile.yaml",
+        "helmfiles:\n" + "  - sub-helmfile.yaml\n" + "releases:\n" + "  - name: test\n");
+    addFile(
+        tempDir,
+        "sub-helmfile.yaml",
+        "hooks:\n"
+            + "  - events: [\"prepare\"]\n"
+            + "    command: \"/bin/sh\"\n"
+            + "    args: [\"-c\", \"echo pwned\"]\n"
+            + "releases:\n"
+            + "  - name: test-sub\n"
+            + "    chart: Chart.yaml\n");
+
+    ArtifactDownloader artifactDownloader = mock(ArtifactDownloader.class);
+    HelmfileTemplateUtils helmfileTemplateUtils =
+        newHelmfileTemplateUtils(artifactDownloader, new RoscoHelmfileConfigurationProperties());
+    HelmfileBakeManifestRequest request = requestForTarball(artifactDownloader, tempDir);
+
+    try (BakeManifestEnvironment env = BakeManifestEnvironment.create()) {
+      // Today this does NOT throw, since "helmfiles:" entries are never inspected.
+      IllegalArgumentException thrown =
+          assertThrows(
+              IllegalArgumentException.class,
+              () -> helmfileTemplateUtils.buildBakeRecipe(env, request));
+      assertThat(thrown.getMessage()).contains("hooks");
+    }
+  }
+
+  @Test
+  public void buildBakeRecipeRejectsRemoteBaseByDefault(@TempDir Path tempDir) throws IOException {
+    // Remote/templated "bases:" are currently only log.warn'd and skipped, never rejected, so
+    // rosco bakes them without ever inspecting their content for hooks/postRenderers.
+    addFile(
+        tempDir,
+        "helmfile.yaml",
+        "bases:\n"
+            + "  - https://evil.example.com/base.yaml\n"
+            + "releases:\n"
+            + "  - name: test\n"
+            + "    chart: Chart.yaml\n");
+
+    ArtifactDownloader artifactDownloader = mock(ArtifactDownloader.class);
+    HelmfileTemplateUtils helmfileTemplateUtils =
+        newHelmfileTemplateUtils(artifactDownloader, new RoscoHelmfileConfigurationProperties());
+    HelmfileBakeManifestRequest request = requestForTarball(artifactDownloader, tempDir);
+
+    try (BakeManifestEnvironment env = BakeManifestEnvironment.create()) {
+      // Today this does NOT throw: unresolvable references are skipped with a warning rather than
+      // rejected, so remote content of unknown trustworthiness/content is baked unchecked.
+      IllegalArgumentException thrown =
+          assertThrows(
+              IllegalArgumentException.class,
+              () -> helmfileTemplateUtils.buildBakeRecipe(env, request));
+      assertThat(thrown.getMessage()).contains("remote");
+    }
+  }
+
+  @Test
+  public void buildBakeRecipeDisablesInsecureHelmfileFeaturesByDefault(@TempDir Path tempDir)
+      throws IOException {
+    // hooks:/postRenderers: are guarded above by static YAML inspection, but helmfile's
+    // exec/envExec/readFile/readDir/readDirEntries template functions, and its fetching of remote
+    // bases:/helmfiles:/values:/chart repos, are neither expressible as a YAML key rosco can look
+    // for nor blocked by that guard. Assert the subprocess env vars that gate those features off
+    // are set by default.
+    addFile(tempDir, "helmfile.yaml", "releases:\n  - name: test\n    chart: Chart.yaml\n");
+
+    ArtifactDownloader artifactDownloader = mock(ArtifactDownloader.class);
+    HelmfileTemplateUtils helmfileTemplateUtils =
+        newHelmfileTemplateUtils(artifactDownloader, new RoscoHelmfileConfigurationProperties());
+    HelmfileBakeManifestRequest request = requestForTarball(artifactDownloader, tempDir);
+
+    try (BakeManifestEnvironment env = BakeManifestEnvironment.create()) {
+      BakeRecipe recipe = helmfileTemplateUtils.buildBakeRecipe(env, request);
+      assertThat(recipe.getEnv())
+          .containsEntry("HELMFILE_DISABLE_HOOKS", "true")
+          .containsEntry("HELMFILE_DISABLE_INSECURE_FEATURES", "true");
+    }
+  }
+
+  @Test
+  public void buildBakeRecipeLeavesInsecureHelmfileFeaturesEnabledWhenOptedIn(@TempDir Path tempDir)
+      throws IOException {
+    // Operators who trust a helmfile source can opt back into hooks/postRenderers/exec/remote
+    // fetching wholesale via the same allowHooksAndPostRenderers flag.
+    addFile(tempDir, "helmfile.yaml", "releases:\n  - name: test\n    chart: Chart.yaml\n");
+
+    RoscoHelmfileConfigurationProperties helmfileConfigurationProperties =
+        new RoscoHelmfileConfigurationProperties();
+    helmfileConfigurationProperties.setAllowHooksAndPostRenderers(true);
+    ArtifactDownloader artifactDownloader = mock(ArtifactDownloader.class);
+    HelmfileTemplateUtils helmfileTemplateUtils =
+        newHelmfileTemplateUtils(artifactDownloader, helmfileConfigurationProperties);
+    HelmfileBakeManifestRequest request = requestForTarball(artifactDownloader, tempDir);
+
+    try (BakeManifestEnvironment env = BakeManifestEnvironment.create()) {
+      BakeRecipe recipe = helmfileTemplateUtils.buildBakeRecipe(env, request);
+      assertThat(recipe.getEnv()).isEmpty();
+    }
+  }
 }
