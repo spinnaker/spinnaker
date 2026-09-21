@@ -1,0 +1,40 @@
+/*
+ * Copyright 2026 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// Single home for the WireMock version used with Spring Boot 4.1. Each
+// composite build applies this script from its root build.gradle:
+//
+//   apply from: "../wiremock-substitution.gradle"
+//
+// WireMock 3.x's default Jetty 11 server (and the jetty12 variant's Jetty
+// 12.0.x) conflicts with Boot 4.1's managed Jetty 12.1.x on test classpaths
+// (HttpServerFactoryLoader finds no loadable factory); newer 3.x releases
+// still default to Jetty 11, so the conflict persists there. The shaded
+// standalone artifact is self-contained, so substitute it for all WireMock
+// usage. The kork-bom platform (spinnaker-dependencies) constrains these
+// artifacts to the same version for dependency resolution.
+def wiremockVersion = "3.10.0"
+
+allprojects {
+  configurations.all {
+    resolutionStrategy.dependencySubstitution {
+      substitute(module("org.wiremock:wiremock")).using(
+          module("org.wiremock:wiremock-standalone:${wiremockVersion}"))
+      substitute(module("org.wiremock:wiremock-jetty12")).using(
+          module("org.wiremock:wiremock-standalone:${wiremockVersion}"))
+    }
+  }
+}

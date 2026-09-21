@@ -54,8 +54,8 @@ import org.jooq.impl.DataSourceConnectionProvider;
 import org.jooq.impl.DefaultConfiguration;
 import org.jooq.impl.DefaultDSLContext;
 import org.testcontainers.containers.JdbcDatabaseContainer;
-import org.testcontainers.containers.MySQLContainer;
-import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.mysql.MySQLContainer;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 
 public class SqlTestUtil {
 
@@ -80,7 +80,7 @@ public class SqlTestUtil {
     // name in the JDBC url
     // when implicitly starting a container from a testcontainers-driver-prefixed JDBC URL
     PostgreSQLContainer container =
-        new PostgreSQLContainer<>("postgres:16.13")
+        new PostgreSQLContainer("postgres:16.13")
             .withDatabaseName("test")
             .withUsername("test")
             .withPassword("test");

@@ -28,9 +28,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.cloud.context.scope.refresh.RefreshScopeRefreshedEvent;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -56,7 +56,7 @@ public class KubernetesCustomPropertyBindingRefreshTest {
 
   @Autowired private WebApplicationContext webApplicationContext;
 
-  @SpyBean private ConfigurationRefreshListener listener;
+  @MockitoSpyBean private ConfigurationRefreshListener listener;
 
   @BeforeEach
   void setup(TestInfo testInfo) {

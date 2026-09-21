@@ -60,6 +60,23 @@ public class ArtifactStoreConfigurationProperties {
     private boolean expandOverrides = false;
   }
 
+  /** Configuration for a SQL-backed artifact store. */
+  @Data
+  public static class SqlClientConfig {
+    /**
+     * The name of a pool under `sql.connection-pools` that the artifact store should use. When
+     * unset, the host service's default connection pool is reused, i.e. the artifact store lives in
+     * the same database as the service's own SQL persistence. Set this to the name of a different
+     * pool to store artifacts in a separate database.
+     *
+     * <p>Every service that participates in entity storage (e.g. both clouddriver and orca) must
+     * resolve to the same physical database here, the same way they'd need to share one S3 bucket:
+     * otherwise an artifact one service stores won't be found when another tries to read it back.
+     */
+    private String connectionPool = null;
+  }
+
   private S3ClientConfig s3 = new S3ClientConfig();
   private HelmConfig helm = new HelmConfig();
+  private SqlClientConfig sql = new SqlClientConfig();
 }
