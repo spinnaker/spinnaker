@@ -31,10 +31,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.security.SecurityProperties;
-import org.springframework.boot.http.client.ClientHttpRequestFactorySettings;
+import org.springframework.boot.http.client.HttpClientSettings;
+import org.springframework.boot.http.client.HttpRedirects;
+import org.springframework.boot.resttestclient.TestRestTemplate;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
+import org.springframework.boot.security.autoconfigure.SecurityProperties;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -54,6 +56,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+@AutoConfigureTestRestTemplate
 @SpringBootTest(
     classes = {Main.class, AuthConfigTest.TestConfiguration.class},
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -141,12 +144,10 @@ class AuthConfigTest {
     // Verify the redirect behavior
     final ResponseEntity<Object> response =
         restTemplate
-            .withRequestFactorySettings(
-                new ClientHttpRequestFactorySettings(
-                    ClientHttpRequestFactorySettings.Redirects.DONT_FOLLOW,
-                    Duration.ofMillis(500),
-                    Duration.ofMillis(500),
-                    null))
+            .withClientSettings(
+                HttpClientSettings.defaults()
+                    .withRedirects(HttpRedirects.DONT_FOLLOW)
+                    .withTimeouts(Duration.ofMillis(500), Duration.ofMillis(500)))
             .withBasicAuth(TEST_USER, TEST_PASSWORD)
             .exchange("/forward", HttpMethod.GET, null, Object.class);
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
