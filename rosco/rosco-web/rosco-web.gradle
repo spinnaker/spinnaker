@@ -27,6 +27,7 @@ dependencies {
   testImplementation "org.springframework.boot:spring-boot-starter-test"
   testImplementation "org.objenesis:objenesis"
   testImplementation "com.squareup.retrofit2:retrofit"
+
   testImplementation "org.wiremock:wiremock"
   testImplementation "org.apache.commons:commons-compress"
   testImplementation "org.assertj:assertj-core"

@@ -11,6 +11,7 @@ import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.jackson.JacksonComponent
 
+
 @JacksonComponent
 @ConditionalOnMissingBean(name = ["securityGroupRuleDeserializer"])
 class DefaultSecurityGroupRuleDeserializer : SecurityGroupRuleDeserializer() {

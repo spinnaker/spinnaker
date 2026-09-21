@@ -34,6 +34,7 @@ dependencies {
   implementation "io.cloudevents:cloudevents-http-basic:3.0.0"
   implementation "io.cloudevents:cloudevents-json-jackson:3.0.0"
   implementation "tools.jackson.core:jackson-databind"
+
   // Version managed by the kork-bom platform (spinnaker-dependencies).
   implementation "dev.cdevents:cdevents-sdk-java"
   implementation "io.opentelemetry:opentelemetry-api"

@@ -26,6 +26,7 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-starter-aspectj"
   implementation "org.springframework.boot:spring-boot-starter-webmvc"
   implementation "tools.jackson.core:jackson-databind"
+
   implementation "org.lz4:lz4-java:1.7.1"
 
   implementation "io.spinnaker.kork:kork-jedis"

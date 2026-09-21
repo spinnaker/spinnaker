@@ -40,6 +40,7 @@ class AwsSdkV2Jackson3ModuleTest {
     assertEquals(
         "{\"clusterArn\":\"arn:aws:ecs:::cluster/my-cluster\",\"clusterName\":\"my-cluster\",\"status\":\"ACTIVE\",\"statistics\":[],\"tags\":[],\"settings\":[],\"capacityProviders\":[\"FARGATE\",\"FARGATE_SPOT\"],\"defaultCapacityProviderStrategy\":[],\"attachments\":[]}",
         jackson3);
+
   }
 
   @Test

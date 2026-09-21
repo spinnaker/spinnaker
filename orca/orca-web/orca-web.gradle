@@ -58,6 +58,7 @@ dependencies {
   implementation(project(":orca-remote-stage"))
   implementation(project(":orca-sql"))
   implementation(project(":orca-webhook"))
+  implementation("io.spinnaker.kork:kork-artifacts-sql")
   implementation("io.spinnaker.kork:kork-config")
   implementation("io.spinnaker.kork:kork-exceptions")
   implementation("io.spinnaker.kork:kork-web")
@@ -101,6 +102,7 @@ dependencies {
   testImplementation("org.mockito.kotlin:mockito-kotlin")
   testImplementation("io.spinnaker.kork:kork-sql-test")
   testImplementation("org.testcontainers:testcontainers-mysql")
+
   testImplementation("com.squareup.retrofit2:retrofit-mock")
 }
 

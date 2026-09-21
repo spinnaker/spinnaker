@@ -18,6 +18,7 @@ package com.netflix.spinnaker.config;
 
 import com.netflix.spinnaker.kork.jackson.JacksonStreamReadConstraintsCustomizer;
 import org.springframework.boot.jackson.autoconfigure.JsonFactoryBuilderCustomizer;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

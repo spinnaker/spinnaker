@@ -12,6 +12,7 @@ import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
 import com.netflix.spinnaker.keel.core.name
 import org.springframework.boot.jackson.JacksonComponent
 
+
 @JacksonComponent
 class SecurityGroupSpecDeserializer : StdNodeBasedDeserializer<SecurityGroupSpec>(SecurityGroupSpec::class.java) {
   override fun convert(root: JsonNode, context: DeserializationContext): SecurityGroupSpec {

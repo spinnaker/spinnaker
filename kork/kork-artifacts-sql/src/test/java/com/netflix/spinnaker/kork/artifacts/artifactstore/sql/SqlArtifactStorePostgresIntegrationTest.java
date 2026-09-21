@@ -1,5 +1,5 @@
 /*
- * Copyright 2026 Harness, Inc.
+ * Copyright 2026 McIntosh.farm
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.netflix.spinnaker.kork.artifacts.artifactstore.sql;
 
-package com.netflix.spinnaker.kork.aws.jackson;
+import com.netflix.spinnaker.kork.sql.test.SqlTestUtil;
 
-/** Jackson 3 compatibility name for the AWS SDK v2 deserializer modifier. */
-public class SdkPojoDeserializerModifier extends SdkPojoJackson3DeserializerModifier {}
+class SqlArtifactStorePostgresIntegrationTest extends AbstractSqlArtifactStoreIntegrationTest {
+  @Override
+  protected SqlTestUtil.TestDatabase createDatabase() {
+    return SqlTestUtil.initTcPostgresDatabase();
+  }
+}

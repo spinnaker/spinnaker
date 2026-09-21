@@ -27,6 +27,7 @@ import tools.jackson.databind.json.JsonMapper;
 class Jackson2CompatibilityConfigurationTest {
 
   @tools.jackson.databind.annotation.JsonDeserialize(builder = Widget.WidgetBuilder.class)
+
   public static class Widget {
     public final String name;
     public final Map<String, Object> metadata;
@@ -37,6 +38,7 @@ class Jackson2CompatibilityConfigurationTest {
     }
 
     @tools.jackson.databind.annotation.JsonPOJOBuilder(withPrefix = "")
+
     @com.fasterxml.jackson.annotation.JsonIgnoreProperties("kind")
     public static class WidgetBuilder {
       private String name;

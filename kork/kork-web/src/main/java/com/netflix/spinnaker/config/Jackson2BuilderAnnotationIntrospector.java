@@ -35,6 +35,7 @@ public class Jackson2BuilderAnnotationIntrospector extends NopAnnotationIntrospe
   public Class<?> findPOJOBuilder(MapperConfig<?> config, AnnotatedClass ac) {
     tools.jackson.databind.annotation.JsonDeserialize ann =
         ac.getAnnotation(tools.jackson.databind.annotation.JsonDeserialize.class);
+
     if (ann == null) {
       return null;
     }
@@ -51,6 +52,7 @@ public class Jackson2BuilderAnnotationIntrospector extends NopAnnotationIntrospe
       MapperConfig<?> config, AnnotatedClass ac) {
     tools.jackson.databind.annotation.JsonPOJOBuilder ann =
         ac.getAnnotation(tools.jackson.databind.annotation.JsonPOJOBuilder.class);
+
     if (ann == null) {
       return null;
     }

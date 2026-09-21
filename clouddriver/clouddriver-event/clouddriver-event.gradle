@@ -39,4 +39,5 @@ dependencies {
   testImplementation "io.mockk:mockk"
   // Needed by ObjectMappingTest's findAndRegisterModules() for Instant fields;
   // in Boot 3 this arrived transitively via the Jackson starter.
+
 }

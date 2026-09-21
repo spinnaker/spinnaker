@@ -25,6 +25,7 @@ dependencies {
   api "software.amazon.awssdk:arns"
   api "software.amazon.awssdk:auth"
   api "software.amazon.awssdk:sdk-core"
+
   api "tools.jackson.core:jackson-databind"
   api "org.apache.groovy:groovy"
   api "com.hubspot.jinjava:jinjava"

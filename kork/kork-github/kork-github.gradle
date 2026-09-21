@@ -30,6 +30,7 @@ dependencies {
   // Testing
   testImplementation project(":kork-test")
   testImplementation "tools.jackson.core:jackson-databind"
+
   testImplementation "org.wiremock:wiremock"
   testImplementation "org.junit.jupiter:junit-jupiter"
   testImplementation "org.mockito:mockito-core"

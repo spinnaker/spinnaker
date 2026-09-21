@@ -70,6 +70,7 @@ abstract class ProjectsControllerTck extends Specification {
       .setMessageConverters(
         new org.springframework.http.converter.json.MappingJackson2HttpMessageConverter(
           JsonMapper.builder().build()))
+
       .setControllerAdvice(
         new GenericExceptionHandlers(
           new ExceptionMessageDecorator(Mock(ObjectProvider))

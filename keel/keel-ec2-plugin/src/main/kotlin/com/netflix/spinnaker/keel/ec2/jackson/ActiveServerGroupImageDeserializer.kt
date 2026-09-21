@@ -8,6 +8,7 @@ import com.netflix.spinnaker.keel.api.ec2.ServerGroup.ActiveServerGroupImage
 import com.netflix.spinnaker.keel.clouddriver.model.extractBaseImageName
 import org.springframework.boot.jackson.JacksonComponent
 
+
 @JacksonComponent
 class ActiveServerGroupImageDeserializer :
   StdNodeBasedDeserializer<ActiveServerGroupImage>(ActiveServerGroupImage::class.java) {

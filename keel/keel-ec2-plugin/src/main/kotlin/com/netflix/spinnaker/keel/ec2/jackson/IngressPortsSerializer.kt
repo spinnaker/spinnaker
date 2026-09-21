@@ -8,6 +8,7 @@ import com.netflix.spinnaker.keel.api.ec2.IngressPorts
 import com.netflix.spinnaker.keel.api.ec2.PortRange
 import org.springframework.boot.jackson.JacksonComponent
 
+
 @JacksonComponent
 class IngressPortsSerializer : StdSerializer<IngressPorts>(IngressPorts::class.java) {
   override fun serialize(value: IngressPorts, gen: JsonGenerator, provider: SerializationContext) {
