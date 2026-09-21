@@ -7,7 +7,7 @@ javaPlatform {
 ext {
   versions = [
     arrow            : "0.13.2",
-    awsv2            : "2.23.7",
+    awsv2            : "2.55.1",
     bouncycastle     : "1.84", // fixes CVE-2024-34447, CVE-2025-14813
     gcp              : "26.34.0",
     // Aligned with Spock 2.4-groovy-4.0's required Groovy (4.0.29): keeps the
