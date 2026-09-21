@@ -6,12 +6,14 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.mockk
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration
+import org.springframework.boot.graphql.autoconfigure.GraphQlAutoConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 
 @Configuration
+@ImportAutoConfiguration(GraphQlAutoConfiguration::class)
 @ComponentScan(basePackages = ["com.netflix.spinnaker.keel.dgs"])
 class DgsTestConfig {
 
@@ -22,4 +24,3 @@ class DgsTestConfig {
   fun applicationFetcherSupport() = ApplicationFetcherSupport(cloudDriverService, bakeryMetadataService)
 
 }
-
