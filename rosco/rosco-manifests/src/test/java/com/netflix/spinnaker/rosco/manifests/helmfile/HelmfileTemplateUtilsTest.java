@@ -986,11 +986,7 @@ final class HelmfileTemplateUtilsTest {
       ArtifactDownloader artifactDownloader,
       RoscoHelmfileConfigurationProperties helmfileConfigurationProperties) {
     return new HelmfileTemplateUtils(
-        artifactDownloader,
-        Optional.empty(),
-        artifactStoreConfig,
-        helmfileConfigurationProperties,
-        new YamlHelper(new YamlParserProperties()));
+        artifactDownloader, Optional.empty(), artifactStoreConfig, helmfileConfigurationProperties);
   }
 
   private HelmfileBakeManifestRequest requestForTarball(
