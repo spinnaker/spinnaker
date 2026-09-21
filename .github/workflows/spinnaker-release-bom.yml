@@ -197,10 +197,11 @@ jobs:
         run: |
           shopt -s nullglob
 
-          # Every Gradle-based service in this release must have produced an app SBOM. A missing
-          # one means SBOM generation silently broke somewhere upstream -- fail loudly rather than
-          # publish a release with incomplete supply-chain documentation.
-          EXPECTED_SERVICES=(clouddriver echo fiat front50 gate igor kayenta keel orca rosco)
+          # Every service in this release (Gradle-based backend services plus deck's npm build)
+          # must have produced an app SBOM. A missing one means SBOM generation silently broke
+          # somewhere upstream -- fail loudly rather than publish a release with incomplete
+          # supply-chain documentation.
+          EXPECTED_SERVICES=(clouddriver deck echo fiat front50 gate igor kayenta keel orca rosco)
           MISSING=()
           for svc in "${EXPECTED_SERVICES[@]}"; do
             if ! compgen -G "sboms/${svc}-app-sbom.cdx.json" > /dev/null; then
