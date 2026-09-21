@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.kork.plugins.api.spring;
 
 import org.springframework.beans.BeansException;
-import org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext;
+import org.springframework.boot.web.context.servlet.AnnotationConfigServletWebApplicationContext;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -27,11 +27,11 @@ public abstract class SpringLoaderCustomInit implements ApplicationContextAware 
   @Override
   public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
     init(
-        (AnnotationConfigServletWebServerApplicationContext) applicationContext.getParent(),
+        (AnnotationConfigServletWebApplicationContext) applicationContext.getParent(),
         (AnnotationConfigApplicationContext) applicationContext);
   }
 
   protected abstract void init(
-      AnnotationConfigServletWebServerApplicationContext appContext,
+      AnnotationConfigServletWebApplicationContext appContext,
       AnnotationConfigApplicationContext pluginContext);
 }
