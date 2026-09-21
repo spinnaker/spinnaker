@@ -199,7 +199,7 @@ public class OAuth2IntegrationWithWireMockTest {
         noRedirectRestTemplate.exchange(
             "http://localhost:" + appPort + "/credentials", HttpMethod.GET, request, String.class);
 
-    assertThat(response.getStatusCodeValue()).isEqualTo(200);
+    assertThat(response.getStatusCode().value()).isEqualTo(200);
     assertThat(response.getBody()).isNotNull();
     githubMockServer.verify(getRequestedFor(urlPathEqualTo("/login/oauth/user")));
   }
@@ -239,7 +239,7 @@ public class OAuth2IntegrationWithWireMockTest {
         noRedirectRestTemplate.exchange(
             "http://localhost:" + appPort + "/login", HttpMethod.GET, request, String.class);
 
-    assertThat(response.getStatusCodeValue()).isEqualTo(302);
+    assertThat(response.getStatusCode().value()).isEqualTo(302);
     assertThat(response.getHeaders().getLocation().toString())
         .isEqualTo("http://localhost:" + appPort + "/");
     githubMockServer.verify(getRequestedFor(urlPathEqualTo("/login/oauth/user")));
@@ -266,7 +266,7 @@ public class OAuth2IntegrationWithWireMockTest {
     // authorization endpoint (/login/oauth/authorize with client_id and response_type params).
     // On the oauth2Login() stack, /login redirects to Spring's intermediate authorization
     // request endpoint (/oauth2/authorization/github), which then redirects to the provider.
-    assertThat(response.getStatusCodeValue()).isEqualTo(302);
+    assertThat(response.getStatusCode().value()).isEqualTo(302);
     assertThat(response.getHeaders().getLocation().toString())
         .contains("/oauth2/authorization/github");
     githubMockServer.verify(0, getRequestedFor(urlPathEqualTo("/login/oauth/user")));
