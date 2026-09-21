@@ -15,6 +15,8 @@
  */
 package com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer
 
+import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
@@ -30,6 +32,7 @@ class UpsertLoadBalancersTaskSpec extends Specification {
 
   def stage = new StageExecutionImpl(type: "")
   def taskId = new TaskId(UUID.randomUUID().toString())
+  def mapper = new ObjectMapper()
 
   def insertLoadBalancerConfig = [
       type: "upsertLoadBalancers",
@@ -135,6 +138,73 @@ class UpsertLoadBalancersTaskSpec extends Specification {
         it[i].listeners == this.insertLoadBalancerConfig.loadBalancers[i].listeners
       }
     }
+  }
+
+  def "emits one target-local identity per operation through JSON"() {
+    given:
+    stage.context = [
+      cloudProvider: "gce",
+      credentials: "stage-account",
+      loadBalancerType: "HTTP",
+      loadBalancers: [
+        [
+          account: "account-a",
+          region: "us-central1",
+          availabilityZones: ["us-central1": ["us-central1-a"]],
+          loadBalancerType: "EXTERNAL_MANAGED",
+          name: "listener-a",
+          urlMapName: "shared-map",
+        ],
+        [
+          credentials: "account-b",
+          region: "us-east1",
+          regionZones: ["us-east1-b"],
+          loadBalancerType: "REGIONAL_EXTERNAL_NETWORK",
+          loadBalancerName: "listener-b",
+          name: "display-alias-must-not-win",
+        ],
+      ],
+    ]
+    task.kato = Stub(KatoService) {
+      requestOperations("gce", _) >> taskId
+    }
+
+    when:
+    def result = task.execute(stage)
+    List<Map> targets = mapper.readValue(
+      mapper.writeValueAsString(result.context.targets),
+      new TypeReference<List<Map>>() {}
+    )
+
+    then:
+    targets*.subMap([
+      "credentials",
+      "account",
+      "region",
+      "loadBalancerType",
+      "loadBalancerName",
+      "name",
+      "urlMapName",
+    ]) == [
+      [
+        credentials: "account-a",
+        account: "account-a",
+        region: "us-central1",
+        loadBalancerType: "EXTERNAL_MANAGED",
+        loadBalancerName: "listener-a",
+        name: "listener-a",
+        urlMapName: "shared-map",
+      ],
+      [
+        credentials: "account-b",
+        account: "account-b",
+        region: "us-east1",
+        loadBalancerType: "REGIONAL_EXTERNAL_NETWORK",
+        loadBalancerName: "listener-b",
+        name: "listener-b",
+        urlMapName: null,
+      ],
+    ]
   }
 
 }

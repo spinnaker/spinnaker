@@ -19,11 +19,13 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
+import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import okhttp3.MediaType
 import okhttp3.Request
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Response
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -122,6 +124,75 @@ class DeleteLoadBalancerForceRefreshTaskSpec extends Specification {
     1 * refreshCall.execute() >> Response.success(null)
     1 * refreshCall.execute() >> Response.success(HTTP_ACCEPTED, pendingBody([]))
     result.status == ExecutionStatus.RUNNING
+  }
+
+  void "refreshes every trusted deleted listener and preserves completed progress"() {
+    given:
+    stage.context.loadBalancerName = "listener-a"
+    stage.context."kato.last.task.id" = new TaskId("delete-task")
+    stage.context."kato.tasks" = [[
+      id: "delete-task",
+      status: [completed: true, failed: false],
+      resultObjects: [[deletedLoadBalancerNames: ["listener-a", "listener-b"]]],
+    ]]
+
+    when:
+    def firstResult = task.execute(stage)
+
+    then:
+    1 * task.cacheService.forceCacheUpdate('aws', 'LoadBalancer', { it.loadBalancerName == "listener-a" }) >>
+      Calls.response(null)
+    1 * task.cacheService.forceCacheUpdate('aws', 'LoadBalancer', { it.loadBalancerName == "listener-b" }) >>
+      Calls.response(Response.success(HTTP_ACCEPTED, pendingBody([])))
+    firstResult.status == ExecutionStatus.RUNNING
+    firstResult.context.deleteRefreshState.completedTargets == [
+      "fzlem|us-west-1|listener-a"
+    ]
+
+    when:
+    stage.context.putAll(firstResult.context)
+    def secondResult = task.execute(stage)
+
+    then:
+    1 * task.cacheService.forceCacheUpdate('aws', 'LoadBalancer', { it.loadBalancerName == "listener-b" }) >>
+      Calls.response(null)
+    0 * task.cacheService._
+    secondResult.status == ExecutionStatus.SUCCEEDED
+  }
+
+  void "ignores untrusted client listener names"() {
+    given:
+    stage.context.deletedLoadBalancerNames = ["untrusted-listener"]
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    1 * task.cacheService.forceCacheUpdate('aws', 'LoadBalancer', {
+      it.loadBalancerName == config.loadBalancerName
+    }) >> Calls.response(null)
+    0 * task.cacheService._
+    result.status == ExecutionStatus.SUCCEEDED
+  }
+
+  void "ignores listener names from a different Kato task"() {
+    given:
+    stage.context."kato.last.task.id" = new TaskId("current-task")
+    stage.context."kato.tasks" = [[
+      id: "different-task",
+      status: [completed: true, failed: false],
+      resultObjects: [[deletedLoadBalancerNames: ["untrusted-listener"]]],
+    ]]
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    1 * task.cacheService.forceCacheUpdate('aws', 'LoadBalancer', {
+      it.loadBalancerName == config.loadBalancerName
+    }) >> Calls.response(null)
+    0 * task.cacheService._
+    result.status == ExecutionStatus.SUCCEEDED
   }
 
   @Unroll

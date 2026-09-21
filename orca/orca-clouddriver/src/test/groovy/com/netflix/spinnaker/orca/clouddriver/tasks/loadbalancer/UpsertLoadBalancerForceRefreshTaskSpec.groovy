@@ -23,7 +23,9 @@ import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheStatusService
+import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.OortService
+import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import okhttp3.MediaType
 import okhttp3.Request
 import okhttp3.ResponseBody
@@ -75,6 +77,18 @@ class UpsertLoadBalancerForceRefreshTaskSpec extends Specification {
       MediaType.parse("application/json"),
       "{\"cachedIdentifiersByType\":{\"loadBalancers\":${identifiers.collect { "\"${it}\"" }}}}"
     )
+  }
+
+  static Map visibleLoadBalancer(String name,
+                                 String loadBalancerType = "REGIONAL_EXTERNAL_NETWORK",
+                                 String account = "spinnaker",
+                                 String region = "us-west-1") {
+    [
+      name            : name,
+      loadBalancerType: loadBalancerType,
+      account         : account,
+      region          : region,
+    ]
   }
 
   static SpinnakerHttpException httpException(int statusCode) {
@@ -319,7 +333,8 @@ class UpsertLoadBalancerForceRefreshTaskSpec extends Specification {
     result = task.execute(stage)
 
     then:
-    1 * oortService.getLoadBalancerDetails('gce', 'spinnaker', 'us-west-1', 'flapjack-frontend') >> Calls.response([[name: "flapjack-frontend"]])
+    1 * oortService.getLoadBalancerDetails('gce', 'spinnaker', 'us-west-1', 'flapjack-frontend') >>
+      Calls.response([visibleLoadBalancer("flapjack-frontend")])
     result.status == ExecutionStatus.SUCCEEDED
   }
 
@@ -344,7 +359,8 @@ class UpsertLoadBalancerForceRefreshTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    1 * oortService.getLoadBalancerDetails('gce', 'spinnaker', 'us-west-1', 'flapjack-frontend') >> Calls.response([[name: "flapjack-frontend"]])
+    1 * oortService.getLoadBalancerDetails('gce', 'spinnaker', 'us-west-1', 'flapjack-frontend') >>
+      Calls.response([visibleLoadBalancer("flapjack-frontend")])
     1 * oortService.getLoadBalancerDetails('gce', 'spinnaker', 'us-east-1', 'flapjack-frontend') >> Calls.response([])
     result.status == ExecutionStatus.RUNNING
   }
@@ -408,7 +424,7 @@ class UpsertLoadBalancerForceRefreshTaskSpec extends Specification {
     completionCase                          | cloudProvider | loadBalancerType            | targetName          | allAreComplete | seenPending | attempt                                                   | oortCalls | oortDetails                    || expectedStatus
     "gce HTTP all-complete"                 | "gce"         | "HTTP"                      | "flapjack-urlmap"   | true           | true        | 0                                                         | 0         | null                           || ExecutionStatus.SUCCEEDED
     "gce regional all-complete, Oort miss"  | "gce"         | "REGIONAL_EXTERNAL_NETWORK" | "flapjack-frontend" | true           | true        | 0                                                         | 1         | []                             || ExecutionStatus.RUNNING
-    "gce regional all-complete, Oort hit"   | "gce"         | "REGIONAL_EXTERNAL_NETWORK" | "flapjack-frontend" | true           | true        | 0                                                         | 1         | [[name: "flapjack-frontend"]]  || ExecutionStatus.SUCCEEDED
+    "gce regional all-complete, Oort hit"   | "gce"         | "REGIONAL_EXTERNAL_NETWORK" | "flapjack-frontend" | true           | true        | 0                                                         | 1         | [visibleLoadBalancer("flapjack-frontend")] || ExecutionStatus.SUCCEEDED
     "non-gce pending short circuit"         | "aws"         | null                        | "flapjack-frontend" | false          | false       | UpsertLoadBalancerForceRefreshTask.MAX_CHECK_FOR_PENDING | 0         | null                           || ExecutionStatus.SUCCEEDED
   }
 
@@ -507,6 +523,291 @@ class UpsertLoadBalancerForceRefreshTaskSpec extends Specification {
     0 * cloudDriverCacheStatusService.pendingForceCacheUpdates(_, _)
     1 * oortService.getLoadBalancerDetails('gce', 'spinnaker', 'us-west-1', 'flapjack-frontend') >> Calls.response([])
     result.status == ExecutionStatus.RUNNING
+  }
+
+  @Unroll
+  void "requires exact target-local visibility for #targetType with #visibilityCase"() {
+    given:
+    stage.context = [
+      cloudProvider: "gce",
+      loadBalancerType: "HTTP",
+      targets: [[
+        credentials: "account-a",
+        account: "account-a",
+        region: "us-central1",
+        availabilityZones: ["us-central1": []],
+        loadBalancerType: targetType,
+        loadBalancerName: "listener-a",
+        name: "listener-a",
+        urlMapName: "shared-map",
+      ]],
+      refreshState: [
+        hasRequested: true,
+        seenPendingCacheUpdates: true,
+        attempt: 0,
+        allAreComplete: true,
+        refreshIds: [],
+      ],
+    ]
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    1 * oortService.getLoadBalancerDetails(
+      "gce",
+      "account-a",
+      "us-central1",
+      "listener-a"
+    ) >> Calls.response(details)
+    result.status == expectedStatus
+
+    where:
+    targetType                  | visibilityCase | details                                                                                               || expectedStatus
+    "REGIONAL_EXTERNAL_NETWORK" | "exact match"  | [visibleLoadBalancer("listener-a", "REGIONAL_EXTERNAL_NETWORK", "account-a", "us-central1")]             || ExecutionStatus.SUCCEEDED
+    "EXTERNAL_MANAGED"          | "exact match"  | [visibleLoadBalancer("listener-a", "EXTERNAL_MANAGED", "account-a", "us-central1")]                      || ExecutionStatus.SUCCEEDED
+    "EXTERNAL_MANAGED"          | "wrong name"   | [visibleLoadBalancer("listener-b", "EXTERNAL_MANAGED", "account-a", "us-central1")]                      || ExecutionStatus.RUNNING
+    "EXTERNAL_MANAGED"          | "wrong family" | [visibleLoadBalancer("listener-a", "INTERNAL_MANAGED", "account-a", "us-central1")]                      || ExecutionStatus.RUNNING
+    "EXTERNAL_MANAGED"          | "wrong account" | [visibleLoadBalancer("listener-a", "EXTERNAL_MANAGED", "account-b", "us-central1")]                     || ExecutionStatus.RUNNING
+    "EXTERNAL_MANAGED"          | "wrong region" | [visibleLoadBalancer("listener-a", "EXTERNAL_MANAGED", "account-a", "us-east1")]                         || ExecutionStatus.RUNNING
+    "EXTERNAL_MANAGED"          | "absent"       | []                                                                                                    || ExecutionStatus.RUNNING
+  }
+
+  @Unroll
+  void "preserves historical visibility behavior for #cloudProvider #loadBalancerType"() {
+    given:
+    stage.context = [
+      cloudProvider: cloudProvider,
+      loadBalancerType: loadBalancerType,
+      targets: [[
+        credentials: "spinnaker",
+        availabilityZones: ["us-west-1": []],
+        name: "flapjack-frontend",
+      ]],
+      refreshState: [
+        hasRequested: true,
+        seenPendingCacheUpdates: true,
+        attempt: 0,
+        allAreComplete: true,
+        refreshIds: [],
+      ],
+    ]
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    0 * oortService._
+    result.status == ExecutionStatus.SUCCEEDED
+
+    where:
+    cloudProvider | loadBalancerType
+    "gce"         | "NETWORK"
+    "gce"         | "INTERNAL"
+    "gce"         | "INTERNAL_MANAGED"
+    "aws"         | "EXTERNAL_MANAGED"
+  }
+
+  void "uses serialized plural producer output for target-local refresh and visibility"() {
+    given:
+    def producer = new UpsertLoadBalancersTask(
+      kato: Stub(KatoService) {
+        requestOperations("gce", _) >> new TaskId("task-id")
+      }
+    )
+    def producerResult = producer.execute(stage {
+      context = [
+        cloudProvider: "gce",
+        credentials: "stage-account",
+        loadBalancerType: "HTTP",
+        loadBalancers: [
+          [
+            account: "account-a",
+            region: "us-central1",
+            loadBalancerType: "EXTERNAL_MANAGED",
+            name: "listener-a",
+            urlMapName: "shared-map",
+          ],
+          [
+            credentials: "account-b",
+            region: "us-east1",
+            loadBalancerType: "REGIONAL_EXTERNAL_NETWORK",
+            name: "listener-b",
+          ],
+        ],
+      ]
+    })
+    List<Map> serializedTargets = new ObjectMapper().readValue(
+      new ObjectMapper().writeValueAsString(producerResult.context.targets),
+      List
+    ) as List<Map>
+    stage.context = [
+      cloudProvider: "gce",
+      loadBalancerType: "HTTP",
+      targets: serializedTargets,
+    ]
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    1 * cloudDriverCacheService.forceCacheUpdate("gce", "LoadBalancer", [
+      loadBalancerName: "listener-a",
+      region: "us-central1",
+      account: "account-a",
+      loadBalancerType: "EXTERNAL_MANAGED",
+    ]) >> Calls.response(null)
+    1 * cloudDriverCacheService.forceCacheUpdate("gce", "LoadBalancer", [
+      loadBalancerName: "listener-b",
+      region: "us-east1",
+      account: "account-b",
+      loadBalancerType: "REGIONAL_EXTERNAL_NETWORK",
+    ]) >> Calls.response(null)
+    1 * oortService.getLoadBalancerDetails("gce", "account-a", "us-central1", "listener-a") >>
+      Calls.response([visibleLoadBalancer(
+        "listener-a",
+        "EXTERNAL_MANAGED",
+        "account-a",
+        "us-central1"
+      )])
+    1 * oortService.getLoadBalancerDetails("gce", "account-b", "us-east1", "listener-b") >>
+      Calls.response([visibleLoadBalancer(
+        "listener-b",
+        "REGIONAL_EXTERNAL_NETWORK",
+        "account-b",
+        "us-east1"
+      )])
+    0 * cloudDriverCacheService._
+    0 * oortService._
+    result.status == ExecutionStatus.SUCCEEDED
+  }
+
+  void "uses per-target refresh state for new regional families"() {
+    given:
+    stage.context = [
+      cloudProvider: "gce",
+      targets: [
+        [
+          account: "account-a",
+          region: "us-central1",
+          availabilityZones: ["us-central1": []],
+          loadBalancerType: "EXTERNAL_MANAGED",
+          loadBalancerName: "listener-a",
+          name: "listener-a",
+          urlMapName: "shared-map",
+        ],
+        [
+          account: "account-b",
+          region: "us-east1",
+          availabilityZones: ["us-east1": []],
+          loadBalancerType: "REGIONAL_EXTERNAL_NETWORK",
+          loadBalancerName: "listener-b",
+          name: "listener-b",
+          urlMapName: "shared-map",
+        ],
+      ],
+    ]
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    1 * cloudDriverCacheService.forceCacheUpdate("gce", "LoadBalancer", {
+      it.loadBalancerName == "listener-a" &&
+        it.account == "account-a" &&
+        it.region == "us-central1" &&
+        it.loadBalancerType == "EXTERNAL_MANAGED"
+    }) >> Calls.response(null)
+    1 * cloudDriverCacheService.forceCacheUpdate("gce", "LoadBalancer", {
+      it.loadBalancerName == "listener-b" &&
+        it.account == "account-b" &&
+        it.region == "us-east1" &&
+        it.loadBalancerType == "REGIONAL_EXTERNAL_NETWORK"
+    }) >> Calls.response(Response.success(
+      HTTP_ACCEPTED,
+      pendingBody(["gce:loadBalancers:account-b:us-east1:listener-b"])
+    ))
+    result.status == ExecutionStatus.RUNNING
+    result.context.refreshState.targetStates*.hasRequested == [true, true]
+    result.context.refreshState.targetStates*.allAreComplete == [true, false]
+  }
+
+  void "falls back to exact Oort verification when accepted identifiers never appear"() {
+    given:
+    Map targetContext = [
+      cloudProvider: "gce",
+      targets: [[
+        account: "account-a",
+        region: "us-central1",
+        availabilityZones: ["us-central1": []],
+        loadBalancerType: "EXTERNAL_MANAGED",
+        loadBalancerName: "listener-a",
+        name: "listener-a",
+      ]],
+    ]
+    stage.context = new HashMap(targetContext)
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    1 * cloudDriverCacheService.forceCacheUpdate("gce", "LoadBalancer", _) >>
+      Calls.response(Response.success(
+        HTTP_ACCEPTED,
+        pendingBody(["gce:loadBalancers:account-a:us-central1:listener-a"])
+      ))
+    result.status == ExecutionStatus.RUNNING
+
+    when:
+    stage.context = new HashMap(targetContext)
+    stage.context.putAll(result.context)
+    result = task.execute(stage)
+
+    then:
+    1 * cloudDriverCacheStatusService.pendingForceCacheUpdates("gce", "LoadBalancer") >>
+      Calls.response([])
+    result.status == ExecutionStatus.RUNNING
+    result.context.refreshState.attempt == 1
+
+    when:
+    stage.context = new HashMap(targetContext)
+    stage.context.putAll(result.context)
+    result = task.execute(stage)
+
+    then:
+    1 * cloudDriverCacheStatusService.pendingForceCacheUpdates("gce", "LoadBalancer") >>
+      Calls.response([])
+    result.status == ExecutionStatus.RUNNING
+    result.context.refreshState.attempt == 2
+
+    when:
+    stage.context = new HashMap(targetContext)
+    stage.context.putAll(result.context)
+    result = task.execute(stage)
+
+    then:
+    1 * cloudDriverCacheStatusService.pendingForceCacheUpdates("gce", "LoadBalancer") >>
+      Calls.response([])
+    1 * oortService.getLoadBalancerDetails("gce", "account-a", "us-central1", "listener-a") >>
+      Calls.response([])
+    result.status == ExecutionStatus.RUNNING
+    result.context.refreshState.allAreComplete == true
+
+    when:
+    stage.context = new HashMap(targetContext)
+    stage.context.putAll(result.context)
+    result = task.execute(stage)
+
+    then:
+    0 * cloudDriverCacheStatusService._
+    1 * oortService.getLoadBalancerDetails("gce", "account-a", "us-central1", "listener-a") >>
+      Calls.response([visibleLoadBalancer(
+        "listener-a",
+        "EXTERNAL_MANAGED",
+        "account-a",
+        "us-central1"
+      )])
+    result.status == ExecutionStatus.SUCCEEDED
   }
 
   @Unroll
