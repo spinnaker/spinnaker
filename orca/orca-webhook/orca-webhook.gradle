@@ -33,7 +33,7 @@ dependencies {
   implementation("com.squareup.okhttp3:okhttp")
   implementation("net.logstash.logback:logstash-logback-encoder")
 
-  testImplementation("com.github.tomakehurst:wiremock-jre8-standalone")
+  testImplementation("org.wiremock:wiremock")
   testImplementation("com.squareup.retrofit2:retrofit-mock")
   testImplementation("com.squareup.okhttp3:mockwebserver")
   testImplementation("io.spinnaker.kork:kork-test")

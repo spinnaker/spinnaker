@@ -2,8 +2,8 @@ package com.netflix.spinnaker.clouddriver.config;
 
 import com.netflix.spinnaker.kork.annotations.Alpha;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
-import org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration;
+import org.springframework.boot.data.redis.autoconfigure.DataRedisAutoConfiguration;
+import org.springframework.boot.data.redis.autoconfigure.DataRedisRepositoriesAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -28,6 +28,6 @@ import org.springframework.context.annotation.Import;
 @Configuration
 @ComponentScan(basePackages = "com.netflix.spinnaker.cats.pubsub")
 @ConditionalOnProperty("cats.pubsub.enabled")
-@Import({RedisAutoConfiguration.class, RedisRepositoriesAutoConfiguration.class})
+@Import({DataRedisAutoConfiguration.class, DataRedisRepositoriesAutoConfiguration.class})
 @Alpha
 public class PubSubSchedulerConfig {}
