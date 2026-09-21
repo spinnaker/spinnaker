@@ -637,11 +637,11 @@ class WebhookServiceTest {
 
     String path = "/some/path";
     String url = apiProvider.baseUrl() + path;
+    String responseBody = "test response body ".repeat(20);
 
     apiProvider.stubFor(
         get(urlMatching(path))
-            .willReturn(
-                aResponse().withStatus(HttpStatus.OK.value()).withBody("test response body")));
+            .willReturn(aResponse().withStatus(HttpStatus.OK.value()).withBody(responseBody)));
 
     // The StageExecutionImpl constructor mutates the map, so use a mutable map.
     Map<String, Object> webhookStageData =

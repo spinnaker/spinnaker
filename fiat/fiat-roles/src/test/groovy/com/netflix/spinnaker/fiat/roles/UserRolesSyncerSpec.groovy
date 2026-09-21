@@ -41,7 +41,7 @@ import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
 import com.netflix.spinnaker.kork.jedis.lock.RedisLockManager
 import com.netflix.spinnaker.kork.lock.LockManager
 import io.github.resilience4j.retry.RetryRegistry
-import org.springframework.boot.actuate.health.Health
+import org.springframework.boot.health.contributor.Health
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.utility.DockerImageName
 import redis.clients.jedis.Jedis
