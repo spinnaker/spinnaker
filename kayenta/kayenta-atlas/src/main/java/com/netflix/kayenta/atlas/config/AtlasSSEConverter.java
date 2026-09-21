@@ -35,6 +35,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import retrofit2.Converter;
 import retrofit2.Retrofit;
+import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
 @Component
@@ -171,7 +172,7 @@ public class AtlasSSEConverter extends Converter.Factory {
         }
 
         return atlasResults;
-      } catch (IOException e) {
+      } catch (JacksonException e) {
         log.error("Cannot process Atlas results", e);
         return null;
       }

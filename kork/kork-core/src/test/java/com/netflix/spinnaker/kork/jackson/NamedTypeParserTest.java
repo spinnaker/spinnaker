@@ -27,13 +27,14 @@ import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.jsontype.NamedType;
 
 class NamedTypeParserTest {
   @Test
   void customNamedTypeDiscriminator() throws JacksonException {
-    var mapper = JsonMapper.builder().build();
+    ObjectMapper mapper = JsonMapper.builder().build();
     NamedTypeParser parser =
         type ->
             Optional.ofNullable(type.getAnnotation(TypeDiscriminator.class))

@@ -21,7 +21,7 @@ class LemurCertificateTests {
   @Test
   fun `can parse a lemur certificate payload`() {
     expectCatching {
-      mapper.readValue<LemurCertificateResponse>(certificateJson)
+      mapper.readValue<LemurCertificateResponse>(certificateJson.readText())
     }
       .isSuccess()
       .and {

@@ -51,9 +51,10 @@ public class UpsertEntityTagsAtomicOperationConverter
       ElasticSearchEntityTagsProvider entityTagsProvider) {
     this.objectMapper =
         objectMapper
-            .copy()
-            .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            .rebuild()
+            .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .build();
 
     this.retrySupport = retrySupport;
     this.front50Service = front50Service;

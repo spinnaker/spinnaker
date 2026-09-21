@@ -84,6 +84,9 @@ private class ContextAttributeInjectableValues : InjectableValues() {
     useInput: Boolean?
   ): Any? {
     if (valueId == null) return null
+    java.io.File("/tmp/injectable-debug.txt")
+        .appendText(
+            "valueId=$valueId forProperty=${forProperty.name} type=${forProperty.type} raw=${forProperty.type?.rawClass} optional=$optional useInput=$useInput\n")
     val value = context.getAttribute(valueId).let {
       if (it is SubnetAwareLocations && forProperty.type.isTypeOrSubTypeOf(SimpleLocations::class.java)) {
         it.toSimpleLocations()
