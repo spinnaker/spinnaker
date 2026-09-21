@@ -128,7 +128,7 @@ class ApplicationFetcher(
     DgsData(parentType = DgsConstants.MD_ENVIRONMENT.TYPE_NAME, field = DgsConstants.MD_ENVIRONMENT.GitMetadata)
   )
   fun environmentGitMetadata(dfe: DgsDataFetchingEnvironment): MdGitMetadata? {
-    val env: Environment = dfe.getLocalContext()
+    val env: Environment = dfe.getLocalContext()!!
     return if (env.isPreview) {
       MdGitMetadata(
         repoName = env.repoKey,
@@ -153,7 +153,7 @@ class ApplicationFetcher(
     DgsData(parentType = DgsConstants.MD_APPLICATION.TYPE_NAME, field = DgsConstants.MD_APPLICATION.IsPaused),
   )
   fun isPaused(dfe: DgsDataFetchingEnvironment): Boolean {
-    val app: MdApplication = dfe.getSource()
+    val app: MdApplication = dfe.getSource()!!
     return actuationPauser.applicationIsPaused(app.name)
   }
 
@@ -162,7 +162,7 @@ class ApplicationFetcher(
     DgsData(parentType = DgsConstants.MD_APPLICATION.TYPE_NAME, field = DgsConstants.MD_APPLICATION.PausedInfo),
   )
   fun pausedInfo(dfe: DgsDataFetchingEnvironment): MdPausedInfo? {
-    val app: MdApplication = dfe.getSource()
+    val app: MdApplication = dfe.getSource()!!
     return actuationPauser.getApplicationPauseInfo(app.name)?.toDgsPaused()
   }
 
@@ -177,7 +177,7 @@ class ApplicationFetcher(
     @InputArgument("limit") limit: Int?
   ): CompletableFuture<List<DataFetcherResult<MdArtifactVersionInEnvironment>>>? {
     val dataLoader: DataLoader<ArtifactAndEnvironment, List<MdArtifactVersionInEnvironment>> = dfe.getDataLoader(ArtifactInEnvironmentDataLoader.Descriptor.name)
-    val artifact: MdArtifact = dfe.getSource()
+    val artifact: MdArtifact = dfe.getSource()!!
     val config = applicationFetcherSupport.getDeliveryConfigFromContext(dfe)
     val applicationContext: ApplicationContext = DgsContext.getCustomContext(dfe)
     if (statuses != null && applicationContext.requestedStatuses == null) {
@@ -247,7 +247,7 @@ class ApplicationFetcher(
   )
   fun lifecycleSteps(dfe: DataFetchingEnvironment): CompletableFuture<List<MdLifecycleStep>>? {
     val dataLoader: DataLoader<ArtifactAndVersion, List<MdLifecycleStep>> = dfe.getDataLoader(LifecycleEventsByVersionDataLoader.Descriptor.name)
-    val artifact: MdArtifactVersionInEnvironment = dfe.getSource()
+    val artifact: MdArtifactVersionInEnvironment = dfe.getSource()!!
     val config = applicationFetcherSupport.getDeliveryConfigFromContext(dfe)
     val deliveryArtifact = config.matchingArtifactByReference(artifact.reference) ?: return null
     return dataLoader.load(
@@ -264,7 +264,7 @@ class ApplicationFetcher(
   )
   fun pinnedVersion(dfe: DataFetchingEnvironment): CompletableFuture<MdPinnedVersion>? {
     val dataLoader: DataLoader<PinnedArtifactAndEnvironment, MdPinnedVersion> = dfe.getDataLoader(PinnedVersionInEnvironmentDataLoader.Descriptor.name)
-    val artifact: MdArtifact = dfe.getSource()
+    val artifact: MdArtifact = dfe.getSource()!!
     val config = applicationFetcherSupport.getDeliveryConfigFromContext(dfe)
     val deliveryArtifact = config.matchingArtifactByReference(artifact.reference) ?: return null
     return dataLoader.load(PinnedArtifactAndEnvironment(
@@ -278,7 +278,7 @@ class ApplicationFetcher(
     DgsData(parentType = DgsConstants.MD_ARTIFACT.TYPE_NAME, field = DgsConstants.MD_ARTIFACT.LatestApprovedVersion),
   )
   fun latestApprovedVersion(dfe: DataFetchingEnvironment): MdArtifactVersionInEnvironment? {
-    val artifact: MdArtifact = dfe.getSource()
+    val artifact: MdArtifact = dfe.getSource()!!
     val config = applicationFetcherSupport.getDeliveryConfigFromContext(dfe)
     val deliveryArtifact = config.matchingArtifactByReference(artifact.reference) ?: return null
 
@@ -298,7 +298,7 @@ class ApplicationFetcher(
   )
   fun artifactConstraints(dfe: DataFetchingEnvironment): CompletableFuture<List<MdConstraint>>? {
     val dataLoader: DataLoader<EnvironmentArtifactAndVersion, List<MdConstraint>> = dfe.getDataLoader(ConstraintsDataLoader.Descriptor.name)
-    val artifact: MdArtifactVersionInEnvironment = dfe.getSource()
+    val artifact: MdArtifactVersionInEnvironment = dfe.getSource()!!
     return artifact.environment?.let { environmentName ->
       dataLoader.load(
         EnvironmentArtifactAndVersion(
@@ -316,7 +316,7 @@ class ApplicationFetcher(
   )
   fun artifactVerifications(dfe: DataFetchingEnvironment): CompletableFuture<List<MdAction>>? {
     val dataLoader: DataLoader<EnvironmentArtifactAndVersion, List<MdAction>> = dfe.getDataLoader(ActionsDataLoader.Descriptor.name)
-    val artifact: MdArtifactVersionInEnvironment = dfe.getSource()
+    val artifact: MdArtifactVersionInEnvironment = dfe.getSource()!!
     return artifact.environment?.let { environmentName ->
       dataLoader.load(
         EnvironmentArtifactAndVersion(
@@ -335,7 +335,7 @@ class ApplicationFetcher(
   )
   fun artifactPostDeploy(dfe: DataFetchingEnvironment): CompletableFuture<List<MdAction>>? {
     val dataLoader: DataLoader<EnvironmentArtifactAndVersion, List<MdAction>> = dfe.getDataLoader(ActionsDataLoader.Descriptor.name)
-    val artifact: MdArtifactVersionInEnvironment = dfe.getSource()
+    val artifact: MdArtifactVersionInEnvironment = dfe.getSource()!!
     return artifact.environment?.let { environmentName ->
       dataLoader.load(
         EnvironmentArtifactAndVersion(
@@ -355,7 +355,7 @@ class ApplicationFetcher(
   fun versionVetoed(dfe: DataFetchingEnvironment): CompletableFuture<MdVersionVeto?>? {
     val config = applicationFetcherSupport.getDeliveryConfigFromContext(dfe)
     val dataLoader: DataLoader<EnvironmentArtifactAndVersion, MdVersionVeto?> = dfe.getDataLoader(VetoedDataLoader.Descriptor.name)
-    val artifact: MdArtifactVersionInEnvironment = dfe.getSource()
+    val artifact: MdArtifactVersionInEnvironment = dfe.getSource()!!
     return artifact.environment?.let { environmentName ->
       dataLoader.load(
         EnvironmentArtifactAndVersion(

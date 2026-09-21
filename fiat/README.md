@@ -1,7 +1,7 @@
 Spinnaker Auth Service
 ----------------------
 
-[![Build Status](https://api.travis-ci.org/spinnaker/fiat.svg?branch=master)](https://travis-ci.org/spinnaker/fiat)
+[![Build Status](https://github.com/spinnaker/spinnaker/actions/workflows/fiat.yml/badge.svg)](https://github.com/spinnaker/spinnaker/actions/workflows/fiat.yml)
 
 ```
    ____ _         ____ __    ___               _            ______                  _
@@ -43,17 +43,17 @@ Currently supported user role providers are:
 
 ### Modular builds
 By default, Fiat is built with all authorization providers included. To build only a subset of
-providers, use the `includeProviders` flag:
+providers, use the `includeProviders` flag (run from the monorepo root):
  ```
-./gradlew -PincludeProviders=google-groups,ldap clean build
+./gradlew :fiat:clean :fiat:build -PincludeProviders=google-groups,ldap
 ```
  You can view the list of all providers in `gradle.properties`.
 
 ### Debugging
 
-To start the JVM in debug mode, set the Java system property `DEBUG=true`:
+To start the JVM in debug mode, set the Java system property `DEBUG=true` (run from the monorepo root):
 ```
-./gradlew -DDEBUG=true
+./gradlew fiat -DDEBUG=true
 ```
 
 The JVM will then listen for a debugger to be attached on port 7103.  The JVM will _not_ wait for the debugger

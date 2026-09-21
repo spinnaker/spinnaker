@@ -34,8 +34,10 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.PermissionEvaluator;
+import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
+import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.authentication.TestingAuthenticationToken;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import retrofit2.mock.Calls;
@@ -44,8 +46,8 @@ import retrofit2.mock.Calls;
  * Verifies that {@code list_applications} is actually filtered by Fiat's {@code @PostFilter}
  * annotation when invoked through a real Spring AOP proxy - the exact mechanism that protects it in
  * production (gate-core's {@code SpringSecurityAnnotationConfig} enables
- * {@code @EnableGlobalMethodSecurity(prePostEnabled = true)} globally, and {@code ApplicationTools}
- * is registered as a Spring bean by {@code McpServerAutoConfiguration}).
+ * {@code @EnableMethodSecurity(prePostEnabled = true)} globally, and {@code ApplicationTools} is
+ * registered as a Spring bean by {@code McpServerAutoConfiguration}).
  *
  * <p>{@link ApplicationToolsTest#listApplicationsFiltersByOwner} calls the method directly on a
  * plain object and so cannot exercise the AOP proxy; this test stands up a minimal Spring context
@@ -59,8 +61,16 @@ class ApplicationToolsAuthorizationTest {
   @Mock private TaskService taskService;
 
   @Configuration
-  @EnableGlobalMethodSecurity(prePostEnabled = true)
+  @EnableMethodSecurity(prePostEnabled = true)
   static class MethodSecurityConfig {
+    @Bean
+    static MethodSecurityExpressionHandler methodSecurityExpressionHandler(
+        PermissionEvaluator permissionEvaluator) {
+      var handler = new DefaultMethodSecurityExpressionHandler();
+      handler.setPermissionEvaluator(permissionEvaluator);
+      return handler;
+    }
+
     @Bean
     PermissionEvaluator permissionEvaluator() {
       return new PermissionEvaluator() {
