@@ -1,6 +1,5 @@
 # Echo
-[![Build Status](https://api.travis-ci.org/spinnaker/echo.svg?branch=master)](https://travis-ci.org/spinnaker/echo)
-[![Mergify Status](https://img.shields.io/endpoint.svg?url=https://gh.mergify.io/badges/spinnaker/echo&style=flat)](https://mergify.io)
+[![Build Status](https://github.com/spinnaker/spinnaker/actions/workflows/echo.yml/badge.svg)](https://github.com/spinnaker/spinnaker/actions/workflows/echo.yml)
 
 `Echo` serves as two purposes within Spinnaker:  
 1. a router for events (e.g. a new build is detected by Igor which should trigger a pipeline)
@@ -10,7 +9,7 @@ The following high level diagram shows how events flow through `echo`:
 ![echo high level architecture](docs/echo.png)
   
 
-1. `igor` sends events to `echo` when it discovers a delta in a service that it monitors (see [igor readme](https://github.com/spinnaker/igor/#common-polling-architecture) for more details)  
+1. `igor` sends events to `echo` when it discovers a delta in a service that it monitors (see [igor readme](../igor/README.md#common-polling-architecture) for more details)  
     e.g. A new build has completed or a new docker image was found in the docker registry
 
 2. `gate` sends events to `echo` as a result of user triggered actions  
@@ -49,10 +48,10 @@ You can extend the way in which `echo` events are sent by implementing the `Even
 
 
 ## Event Types
-Currently, `echo` receives build events from [igor](http://www.github.com/spinnaker/igor) and orchestration events from [orca](http://www.github.com/spinnaker/orca).
+Currently, `echo` receives build events from [igor](../igor) and orchestration events from [orca](../orca).
 
 ## Incoming Events
-Echo also integrates with [igor](http://www.github.com/spinnaker/igor), [front50](http://www.github.com/spinnaker/front50) and [orca](http://www.github.com/spinnaker/orca) to trigger pipeline executions.
+Echo also integrates with [igor](../igor), [front50](../front50) and [orca](../orca) to trigger pipeline executions.
 
 It does so via two modules:
 
@@ -60,12 +59,12 @@ It does so via two modules:
 * `scheduler`: Triggers pipelines off cron expressions. Support for cron expressions is provided by [quartz](http://www.quartz-scheduler.org)
 
 ## Running Echo
-This can be done locally via `./gradlew bootRun`, which will start with an embedded cassandra instance. Or by following the instructions using the [Spinnaker installation scripts](http://www.github.com/spinnaker/spinnaker).
+This can be done locally via `./gradlew echo` (run from the monorepo root), which will start with an embedded cassandra instance. See [CLAUDE.md](../CLAUDE.md) for the full set of build/run commands.
 
 ### Debugging
-To start the JVM in debug mode, set the Java system property `DEBUG=true`:
+To start the JVM in debug mode, set the Java system property `DEBUG=true` (run from the monorepo root):
 ```
-./gradlew -DDEBUG=true
+./gradlew echo -DDEBUG=true
 ```
 
 The JVM will then listen for a debugger to be attached on port 8189.  The JVM will _not_ wait for
