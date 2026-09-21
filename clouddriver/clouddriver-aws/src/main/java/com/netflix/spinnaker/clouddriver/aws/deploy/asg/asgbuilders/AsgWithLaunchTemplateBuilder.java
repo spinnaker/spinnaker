@@ -17,11 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.asg.asgbuilders;
 
-import com.amazonaws.services.autoscaling.AmazonAutoScaling;
-import com.amazonaws.services.autoscaling.model.CreateAutoScalingGroupRequest;
-import com.amazonaws.services.autoscaling.model.LaunchTemplateSpecification;
-import com.amazonaws.services.ec2.AmazonEC2;
-import com.amazonaws.services.ec2.model.LaunchTemplate;
 import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AsgConfigHelper;
 import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AsgLifecycleHookWorker;
 import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AutoScalingWorker.AsgConfiguration;
@@ -30,6 +25,11 @@ import com.netflix.spinnaker.clouddriver.aws.services.SecurityGroupService;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.config.AwsConfiguration.DeployDefaults;
 import lombok.extern.slf4j.Slf4j;
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
+import software.amazon.awssdk.services.autoscaling.model.CreateAutoScalingGroupRequest;
+import software.amazon.awssdk.services.autoscaling.model.LaunchTemplateSpecification;
+import software.amazon.awssdk.services.ec2.Ec2Client;
+import software.amazon.awssdk.services.ec2.model.LaunchTemplate;
 
 /** A builder used to build an AWS Autoscaling group with launch template. */
 @Slf4j
@@ -42,8 +42,8 @@ public class AsgWithLaunchTemplateBuilder extends AsgBuilder {
       LaunchTemplateService ltService,
       SecurityGroupService securityGroupService,
       DeployDefaults deployDefaults,
-      AmazonAutoScaling autoScaling,
-      AmazonEC2 ec2,
+      AutoScalingClient autoScaling,
+      Ec2Client ec2,
       AsgLifecycleHookWorker asgLifecycleHookWorker) {
     super(autoScaling, ec2, asgLifecycleHookWorker);
 
@@ -63,15 +63,15 @@ public class AsgWithLaunchTemplateBuilder extends AsgBuilder {
         ltService.createLaunchTemplate(config, asgName, AsgConfigHelper.createName(asgName, null));
 
     final LaunchTemplateSpecification ltSpec =
-        (new LaunchTemplateSpecification()
-            .withLaunchTemplateId(lt.getLaunchTemplateId())
-            .withVersion(lt.getLatestVersionNumber().toString()));
+        LaunchTemplateSpecification.builder()
+            .launchTemplateId(lt.launchTemplateId())
+            .version(lt.latestVersionNumber().toString())
+            .build();
 
     task.updateStatus(
-        taskPhase,
-        "Deploying ASG " + asgName + " with launch template " + lt.getLaunchTemplateId());
+        taskPhase, "Deploying ASG " + asgName + " with launch template " + lt.launchTemplateId());
     CreateAutoScalingGroupRequest request = buildPartialRequest(task, taskPhase, asgName, config);
 
-    return request.withLaunchTemplate(ltSpec);
+    return request.toBuilder().launchTemplate(ltSpec).build();
   }
 }

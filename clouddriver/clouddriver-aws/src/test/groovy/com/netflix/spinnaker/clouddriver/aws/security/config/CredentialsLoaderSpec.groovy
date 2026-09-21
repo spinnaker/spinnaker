@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.security.config
 
-import com.amazonaws.auth.AWSCredentialsProvider
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider
 import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties
 import com.netflix.spinnaker.clouddriver.aws.security.AWSAccountInfoLookup
 import com.netflix.spinnaker.clouddriver.aws.security.AWSAccountInfoLookupFactory
@@ -42,7 +42,6 @@ class CredentialsLoaderSpec extends Specification {
                 new Region(name: 'us-east-1', availabilityZones: ['us-east-1c', 'us-east-1d', 'us-east-1e']),
                 new Region(name: 'us-west-2', availabilityZones: ['us-west-2a', 'us-west-2b'])],
                 defaultKeyPairTemplate: 'nf-{{name}}-keypair-a',
-                defaultEddaTemplate: 'http://edda-main.%s.{{name}}.netflix.net',
                 defaultFront50Template: 'http://front50.prod.netflix.net/{{name}}',
                 defaultDiscoveryTemplate: 'http://%s.discovery{{name}}.netflix.net',
                 defaultAssumeRole: 'role/asgard'
@@ -54,7 +53,7 @@ class CredentialsLoaderSpec extends Specification {
           new Account(name: 'prod', accountId: 67890)
         ])
 
-        AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
+        AwsCredentialsProvider provider = Mock(AwsCredentialsProvider)
         AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
         AmazonClientProvider amazonClientProvider = Mock(AmazonClientProvider)
         AWSAccountInfoLookupFactory lookupFactory = Mock(AWSAccountInfoLookupFactory)
@@ -101,7 +100,7 @@ class CredentialsLoaderSpec extends Specification {
         def config = new CredentialsConfig()
         def accountsConfig = new AccountsConfiguration(accounts: [new Account(name: 'default')])
 
-        AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
+        AwsCredentialsProvider provider = Mock(AwsCredentialsProvider)
         AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
         AmazonClientProvider amazonClientProvider = Mock(AmazonClientProvider)
         AWSAccountInfoLookupFactory lookupFactory = Mock(AWSAccountInfoLookupFactory)
@@ -140,7 +139,7 @@ class CredentialsLoaderSpec extends Specification {
         setup:
         def config = new CredentialsConfig()
         def accountsConfig = new AccountsConfiguration(accounts: [new Account(name: 'default')])
-        AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
+        AwsCredentialsProvider provider = Mock(AwsCredentialsProvider)
         AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
         AmazonClientProvider amazonClientProvider = Mock(AmazonClientProvider)
         AWSAccountInfoLookupFactory lookupFactory = Mock(AWSAccountInfoLookupFactory)
@@ -182,7 +181,7 @@ class CredentialsLoaderSpec extends Specification {
         def accountsConfig = new AccountsConfiguration(accounts: [
           new Account(name: 'default', accountId: 1), new Account(name: 'other', accountId: 2)
         ])
-        AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
+        AwsCredentialsProvider provider = Mock(AwsCredentialsProvider)
         AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
         AmazonClientProvider amazonClientProvider = Mock(AmazonClientProvider)
         AWSAccountInfoLookupFactory lookupFactory = Mock(AWSAccountInfoLookupFactory)
@@ -220,7 +219,7 @@ class CredentialsLoaderSpec extends Specification {
             accountId: 1,
             regions: [ new Region(name: 'us-west-2')])]
         )
-        AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
+        AwsCredentialsProvider provider = Mock(AwsCredentialsProvider)
         AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
         AmazonClientProvider amazonClientProvider = Mock(AmazonClientProvider)
         AWSAccountInfoLookupFactory lookupFactory = Mock(AWSAccountInfoLookupFactory)
@@ -256,7 +255,6 @@ class CredentialsLoaderSpec extends Specification {
                 new Region(name: 'us-east-1', availabilityZones: ['us-east-1c', 'us-east-1d', 'us-east-1e']),
                 new Region(name: 'us-west-2', availabilityZones: ['us-west-2a', 'us-west-2b'])],
                 defaultKeyPairTemplate: 'nf-{{name}}-keypair-a',
-                defaultEddaTemplate: 'http://edda-main.%s.{{name}}.netflix.net',
                 defaultFront50Template: 'http://front50.prod.netflix.net/{{name}}',
                 defaultDiscoveryTemplate: 'http://%s.discovery{{name}}.netflix.net',
                 defaultAssumeRole: 'role/asgard',
@@ -269,7 +267,6 @@ class CredentialsLoaderSpec extends Specification {
             accountId: 12345,
             regions: [new Region(name: 'us-west-1', availabilityZones: ['us-west-1a'])],
             discovery: 'us-west-1.discoveryqa.netflix.net',
-            eddaEnabled: false,
             defaultKeyPair: 'oss-{{accountId}}-keypair',
             lifecycleHooks: [
               new LifecycleHook(
@@ -279,7 +276,7 @@ class CredentialsLoaderSpec extends Specification {
               )
             ])
         ])
-        AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
+        AwsCredentialsProvider provider = Mock(AwsCredentialsProvider)
         AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
         AmazonClientProvider amazonClientProvider = Mock(AmazonClientProvider)
         AWSAccountInfoLookupFactory lookupFactory = Mock(AWSAccountInfoLookupFactory)
@@ -306,8 +303,6 @@ class CredentialsLoaderSpec extends Specification {
             cred.defaultKeyPair == 'oss-12345-keypair'
             cred.discovery == 'us-west-1.discoveryqa.netflix.net'
             cred.discoveryEnabled
-            cred.edda == 'http://edda-main.%s.test.netflix.net'
-            !cred.eddaEnabled
             cred.front50 == 'http://front50.prod.netflix.net/test'
             cred.front50Enabled
             cred.regions.size() == 1
@@ -330,7 +325,7 @@ class CredentialsLoaderSpec extends Specification {
                 defaultRegions: [new Region(name: 'us-east-1', availabilityZones: ['us-east-1a'])])
 
         def accountsConfig = new AccountsConfiguration(accounts: [new Account(name: 'gonnaFail')])
-        AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
+        AwsCredentialsProvider provider = Mock(AwsCredentialsProvider)
         AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
         AmazonClientProvider amazonClientProvider = Mock(AmazonClientProvider)
         AWSAccountInfoLookupFactory lookupFactory = Mock(AWSAccountInfoLookupFactory)
@@ -386,7 +381,7 @@ class CredentialsLoaderSpec extends Specification {
         ])
     ])
 
-    AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
+    AwsCredentialsProvider provider = Mock(AwsCredentialsProvider)
     AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
     AmazonClientProvider amazonClientProvider = Mock(AmazonClientProvider)
     AWSAccountInfoLookupFactory lookupFactory = Mock(AWSAccountInfoLookupFactory)
@@ -434,7 +429,6 @@ class CredentialsLoaderSpec extends Specification {
       new Region(name: 'us-east-1', availabilityZones: ['us-east-1c', 'us-east-1d', 'us-east-1e']),
       new Region(name: 'us-west-2', availabilityZones: ['us-west-2a', 'us-west-2b'])],
       defaultKeyPairTemplate: 'nf-{{name}}-keypair-a',
-      defaultEddaTemplate: 'http://edda-main.%s.{{name}}.netflix.net',
       defaultFront50Template: 'http://front50.prod.netflix.net/{{name}}',
       defaultDiscoveryTemplate: 'http://%s.discovery{{name}}.netflix.net',
       defaultAssumeRole: 'role/asgard',
@@ -444,7 +438,7 @@ class CredentialsLoaderSpec extends Specification {
     def accountsConfig = new AccountsConfiguration(accounts: [
       new Account(name: 'prod', accountId: 67890)
     ])
-    AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
+    AwsCredentialsProvider provider = Mock(AwsCredentialsProvider)
     AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
     AmazonClientProvider amazonClientProvider = Mock(AmazonClientProvider)
     AWSAccountInfoLookupFactory lookupFactory = Mock(AWSAccountInfoLookupFactory)

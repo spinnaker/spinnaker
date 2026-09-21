@@ -24,17 +24,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.amazonaws.services.applicationautoscaling.AWSApplicationAutoScalingClient;
-import com.amazonaws.services.applicationautoscaling.model.Alarm;
-import com.amazonaws.services.applicationautoscaling.model.DescribeScalingPoliciesRequest;
-import com.amazonaws.services.applicationautoscaling.model.DescribeScalingPoliciesResult;
-import com.amazonaws.services.applicationautoscaling.model.PutScalingPolicyRequest;
-import com.amazonaws.services.applicationautoscaling.model.PutScalingPolicyResult;
-import com.amazonaws.services.applicationautoscaling.model.ScalingPolicy;
-import com.amazonaws.services.cloudwatch.AmazonCloudWatch;
-import com.amazonaws.services.cloudwatch.model.DescribeAlarmsRequest;
-import com.amazonaws.services.cloudwatch.model.DescribeAlarmsResult;
-import com.amazonaws.services.cloudwatch.model.MetricAlarm;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.EcsSpec;
 import io.restassured.http.ContentType;
@@ -47,9 +36,19 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.stubbing.Answer;
 import software.amazon.awssdk.services.applicationautoscaling.ApplicationAutoScalingClient;
+import software.amazon.awssdk.services.applicationautoscaling.model.Alarm;
 import software.amazon.awssdk.services.applicationautoscaling.model.DescribeScalableTargetsRequest;
 import software.amazon.awssdk.services.applicationautoscaling.model.DescribeScalableTargetsResponse;
+import software.amazon.awssdk.services.applicationautoscaling.model.DescribeScalingPoliciesRequest;
+import software.amazon.awssdk.services.applicationautoscaling.model.DescribeScalingPoliciesResponse;
+import software.amazon.awssdk.services.applicationautoscaling.model.PutScalingPolicyRequest;
+import software.amazon.awssdk.services.applicationautoscaling.model.PutScalingPolicyResponse;
 import software.amazon.awssdk.services.applicationautoscaling.model.ScalableTarget;
+import software.amazon.awssdk.services.applicationautoscaling.model.ScalingPolicy;
+import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
+import software.amazon.awssdk.services.cloudwatch.model.DescribeAlarmsRequest;
+import software.amazon.awssdk.services.cloudwatch.model.DescribeAlarmsResponse;
+import software.amazon.awssdk.services.cloudwatch.model.MetricAlarm;
 import software.amazon.awssdk.services.ecs.EcsClient;
 import software.amazon.awssdk.services.ecs.model.*;
 import software.amazon.awssdk.services.elasticloadbalancingv2.ElasticLoadBalancingV2Client;
@@ -62,9 +61,7 @@ public class CreateServerGroupWithAppAutoScalingSpec extends EcsSpec {
   private EcsClient mockEcsV2 = mock(EcsClient.class);
   private ElasticLoadBalancingV2Client mockELB = mock(ElasticLoadBalancingV2Client.class);
   private ApplicationAutoScalingClient mockAutoScalingV2 = mock(ApplicationAutoScalingClient.class);
-  private AWSApplicationAutoScalingClient mockAWSApplicationAutoScalingClient =
-      mock(AWSApplicationAutoScalingClient.class);
-  private AmazonCloudWatch mockAmazonCloudWatchClient = mock(AmazonCloudWatch.class);
+  private CloudWatchClient mockAmazonCloudWatchClient = mock(CloudWatchClient.class);
 
   @BeforeEach
   public void setup() {
@@ -129,45 +126,44 @@ public class CreateServerGroupWithAppAutoScalingSpec extends EcsSpec {
             any(NetflixAmazonCredentials.class), anyString()))
         .thenReturn(mockAutoScalingV2);
 
-    // mock v1 Application Auto Scaling + CloudWatch used by
+    // mock Application Auto Scaling + CloudWatch used by
     // EcsCloudMetricService.copyScalingPolicies
-    when(mockAWSApplicationAutoScalingClient.describeScalingPolicies(
-            any(DescribeScalingPoliciesRequest.class)))
+    when(mockAutoScalingV2.describeScalingPolicies(any(DescribeScalingPoliciesRequest.class)))
         .thenAnswer(
-            (Answer<DescribeScalingPoliciesResult>)
+            (Answer<DescribeScalingPoliciesResponse>)
                 invocation -> {
                   Alarm alarm =
-                      new Alarm()
-                          .withAlarmARN("arn:aws:cloudwatch:us-east-1:123456789012:alarm:testAlarm")
-                          .withAlarmName("testAlarm");
+                      Alarm.builder()
+                          .alarmARN("arn:aws:cloudwatch:us-east-1:123456789012:alarm:testAlarm")
+                          .alarmName("testAlarm")
+                          .build();
                   ScalingPolicy scalablePolicy =
-                      new ScalingPolicy()
-                          .withResourceId("service/default/sample-webapp")
-                          .withPolicyName("ecsTestPolicy")
-                          .withPolicyARN(
+                      ScalingPolicy.builder()
+                          .resourceId("service/default/sample-webapp")
+                          .policyName("ecsTestPolicy")
+                          .policyARN(
                               "arn:aws:autoscaling:us-west-2:012345678910:scalingPolicy:6d8972f3-efc8-437c-92d1-6270f29a66e7:resource/ecs/service/default/web-app:policyName/web-app-cpu-gt-75")
-                          .withAlarms(Arrays.asList(alarm));
-                  return new DescribeScalingPoliciesResult()
-                      .withScalingPolicies(Arrays.asList(scalablePolicy));
+                          .alarms(Arrays.asList(alarm))
+                          .build();
+                  return DescribeScalingPoliciesResponse.builder()
+                      .scalingPolicies(Arrays.asList(scalablePolicy))
+                      .build();
                 });
 
-    when(mockAWSApplicationAutoScalingClient.putScalingPolicy(any(PutScalingPolicyRequest.class)))
+    when(mockAutoScalingV2.putScalingPolicy(any(PutScalingPolicyRequest.class)))
         .thenReturn(
-            new PutScalingPolicyResult()
-                .withPolicyARN(
-                    "arn:aws:autoscaling:us-west-2:012345678910:scalingPolicy:6d8972f3-efc8-437c-92d1-6270f29a66e7:resource/ecs/service/default/web-app:policyName/web-app-cpu-gt-75"));
+            PutScalingPolicyResponse.builder()
+                .policyARN(
+                    "arn:aws:autoscaling:us-west-2:012345678910:scalingPolicy:6d8972f3-efc8-437c-92d1-6270f29a66e7:resource/ecs/service/default/web-app:policyName/web-app-cpu-gt-75")
+                .build());
 
     when(mockAmazonCloudWatchClient.describeAlarms(any(DescribeAlarmsRequest.class)))
         .thenReturn(
-            new DescribeAlarmsResult()
-                .withMetricAlarms(Arrays.asList(new MetricAlarm().withAlarmName("testAlarm"))));
+            DescribeAlarmsResponse.builder()
+                .metricAlarms(Arrays.asList(MetricAlarm.builder().alarmName("testAlarm").build()))
+                .build());
 
-    when(mockAwsProvider.getAmazonApplicationAutoScaling(
-            any(NetflixAmazonCredentials.class), anyString(), anyBoolean()))
-        .thenReturn(mockAWSApplicationAutoScalingClient);
-
-    when(mockAwsProvider.getAmazonCloudWatch(
-            any(NetflixAmazonCredentials.class), anyString(), anyBoolean()))
+    when(mockAwsProvider.getAmazonCloudWatchV2(any(NetflixAmazonCredentials.class), anyString()))
         .thenReturn(mockAmazonCloudWatchClient);
   }
 
@@ -256,16 +252,16 @@ public class CreateServerGroupWithAppAutoScalingSpec extends EcsSpec {
 
     assertTrue(
         describeAlarmsRequestArgsCaptor.getAllValues().stream()
-            .anyMatch(alarm -> alarm.getAlarmNames().contains("testAlarm")));
+            .anyMatch(alarm -> alarm.alarmNames().contains("testAlarm")));
 
     ArgumentCaptor<DescribeScalingPoliciesRequest> describeScalingPoliciesRequestArgumentCaptor =
         ArgumentCaptor.forClass(DescribeScalingPoliciesRequest.class);
-    verify(mockAWSApplicationAutoScalingClient)
+    verify(mockAutoScalingV2)
         .describeScalingPolicies(describeScalingPoliciesRequestArgumentCaptor.capture());
     DescribeScalingPoliciesRequest seenDescribePoliciesRequest =
         describeScalingPoliciesRequestArgumentCaptor.getValue();
 
-    assertEquals("service/default/sample-webapp", seenDescribePoliciesRequest.getResourceId());
+    assertEquals("service/default/sample-webapp", seenDescribePoliciesRequest.resourceId());
 
     ArgumentCaptor<DescribeScalableTargetsRequest> describeScalableTargetsRequestArgumentCaptor =
         ArgumentCaptor.forClass(DescribeScalableTargetsRequest.class);
@@ -281,13 +277,12 @@ public class CreateServerGroupWithAppAutoScalingSpec extends EcsSpec {
 
     ArgumentCaptor<PutScalingPolicyRequest> putScalingPolicyRequestArgumentCaptor =
         ArgumentCaptor.forClass(PutScalingPolicyRequest.class);
-    verify(mockAWSApplicationAutoScalingClient)
-        .putScalingPolicy(putScalingPolicyRequestArgumentCaptor.capture());
+    verify(mockAutoScalingV2).putScalingPolicy(putScalingPolicyRequestArgumentCaptor.capture());
     PutScalingPolicyRequest seenPutScalingPolicyRequest =
         putScalingPolicyRequestArgumentCaptor.getValue();
-    assertEquals("createdServiceTestPolicy", seenPutScalingPolicyRequest.getPolicyName());
+    assertEquals("createdServiceTestPolicy", seenPutScalingPolicyRequest.policyName());
     assertEquals(
         "service/integInputsEc2TargetGroupMappingsWithAppAutoScaling-cluster/createdService",
-        seenPutScalingPolicyRequest.getResourceId());
+        seenPutScalingPolicyRequest.resourceId());
   }
 }

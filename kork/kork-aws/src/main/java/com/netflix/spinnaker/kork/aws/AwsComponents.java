@@ -16,48 +16,29 @@
 
 package com.netflix.spinnaker.kork.aws;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
-import com.amazonaws.metrics.AwsSdkMetrics;
-import com.amazonaws.retry.RetryPolicy;
-import com.netflix.spectator.api.Registry;
-import com.netflix.spectator.aws.SpectatorMetricCollector;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 
+/**
+ * AWS SDK v2 client metrics (call latency, retry counts, throttling, etc.) are recorded
+ * automatically for every v2 client built anywhere in the JVM via {@code
+ * com.netflix.spectator.aws2.SpectatorExecutionInterceptor}, registered through the SDK's global
+ * execution-interceptor classpath discovery mechanism (see {@code
+ * software/amazon/awssdk/global/handlers/execution.interceptors} in this module's resources). This
+ * is the v2-native equivalent of v1's {@code AwsSdkMetrics.setMetricCollector} global hook -- no
+ * per-client wiring needed. It resolves the target registry via {@code Spectator.globalRegistry()},
+ * which every Spinnaker app's own {@code Registry} bean is added to (see kork-core's {@code
+ * SpectatorConfiguration}), so metrics land in the same place regardless of whether a caller
+ * injects {@code Registry} directly.
+ */
 @Configuration
 public class AwsComponents {
-  @Bean
-  @ConditionalOnMissingBean(AWSCredentialsProvider.class)
-  AWSCredentialsProvider awsCredentialsProvider() {
-    return new DefaultAWSCredentialsProviderChain();
-  }
-
   @Bean
   @ConditionalOnMissingBean(AwsCredentialsProvider.class)
   AwsCredentialsProvider v2AwsCredentialsProvider() {
     return DefaultCredentialsProvider.builder().build();
-  }
-
-  @Bean
-  RetryPolicy.RetryCondition instrumentedRetryCondition(Registry registry) {
-    return new InstrumentedRetryCondition(registry);
-  }
-
-  @Bean
-  RetryPolicy.BackoffStrategy instrumentedBackoffStrategy(Registry registry) {
-    return new InstrumentedBackoffStrategy(registry);
-  }
-
-  @Bean
-  @ConditionalOnProperty(value = "aws.metrics.enabled", matchIfMissing = true)
-  SpectatorMetricCollector spectatorMetricsCollector(Registry registry) {
-    SpectatorMetricCollector collector = new SpectatorMetricCollector(registry);
-    AwsSdkMetrics.setMetricCollector(collector);
-    return collector;
   }
 }

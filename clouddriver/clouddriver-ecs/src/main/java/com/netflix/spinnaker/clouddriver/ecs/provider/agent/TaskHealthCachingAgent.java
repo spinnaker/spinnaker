@@ -20,10 +20,6 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITA
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASKS;
 
-import com.amazonaws.services.ecs.model.ContainerDefinition;
-import com.amazonaws.services.ecs.model.LoadBalancer;
-import com.amazonaws.services.ecs.model.PortMapping;
-import com.amazonaws.services.ecs.model.TaskDefinition;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.cache.CacheData;
@@ -48,8 +44,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.ecs.EcsClient;
 import software.amazon.awssdk.services.ecs.model.Container;
+import software.amazon.awssdk.services.ecs.model.ContainerDefinition;
+import software.amazon.awssdk.services.ecs.model.LoadBalancer;
 import software.amazon.awssdk.services.ecs.model.NetworkBinding;
 import software.amazon.awssdk.services.ecs.model.NetworkInterface;
+import software.amazon.awssdk.services.ecs.model.PortMapping;
+import software.amazon.awssdk.services.ecs.model.TaskDefinition;
 import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetHealthDescription;
 
 public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
@@ -183,16 +183,16 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
 
     TaskHealth overallTaskHealth = null;
     for (LoadBalancer loadBalancer : loadBalancers) {
-      if (loadBalancer.getTargetGroupArn() == null) {
+      if (loadBalancer.targetGroupArn() == null) {
         log.debug("LoadBalancer does not contain a target group arn.");
         continue;
       }
 
       if (!isContainerPortPresent(
-          taskDefinition.getContainerDefinitions(), loadBalancer.getContainerPort())) {
+          taskDefinition.containerDefinitions(), loadBalancer.containerPort())) {
         log.debug(
             "Container does not contain a port mapping with load balanced container port: {}.",
-            loadBalancer.getContainerPort());
+            loadBalancer.containerPort());
         continue;
       }
 
@@ -211,9 +211,9 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
               targetHealthCacheClient,
               task,
               serviceName,
-              loadBalancer.getTargetGroupArn(),
+              loadBalancer.targetGroupArn(),
               networkInterface.privateIpv4Address(),
-              loadBalancer.getContainerPort(),
+              loadBalancer.containerPort(),
               overallTaskHealth);
     }
     return overallTaskHealth;
@@ -252,7 +252,7 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
 
     TaskHealth overallTaskHealth = null;
     for (LoadBalancer loadBalancer : loadBalancers) {
-      if (loadBalancer.getTargetGroupArn() == null) {
+      if (loadBalancer.targetGroupArn() == null) {
         log.debug("LoadBalancer does not contain a target group arn.");
         continue;
       }
@@ -262,12 +262,11 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
         continue;
       }
 
-      Optional<Integer> hostPort =
-          getHostPort(task.getContainers(), loadBalancer.getContainerPort());
+      Optional<Integer> hostPort = getHostPort(task.getContainers(), loadBalancer.containerPort());
       if (!hostPort.isPresent()) {
         log.debug(
             "Container does not contain a port mapping with load balanced container port: {}.",
-            loadBalancer.getContainerPort());
+            loadBalancer.containerPort());
         continue;
       }
 
@@ -276,7 +275,7 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
               targetHealthCacheClient,
               task,
               serviceName,
-              loadBalancer.getTargetGroupArn(),
+              loadBalancer.targetGroupArn(),
               containerInstance.getEc2InstanceId(),
               hostPort.get(),
               overallTaskHealth);
@@ -352,8 +351,8 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
   private boolean isContainerPortPresent(
       List<ContainerDefinition> containerDefinitions, Integer containerPort) {
     for (ContainerDefinition containerDefinition : containerDefinitions) {
-      for (PortMapping portMapping : containerDefinition.getPortMappings()) {
-        if (portMapping.getContainerPort().intValue() == containerPort.intValue()) {
+      for (PortMapping portMapping : containerDefinition.portMappings()) {
+        if (portMapping.containerPort().intValue() == containerPort.intValue()) {
           log.debug("Load balanced containerPort: {} found for container.", containerPort);
           return true;
         }

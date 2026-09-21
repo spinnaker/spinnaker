@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.ResumeAsgProcessesAtomicOperation
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTask
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -64,9 +64,9 @@ class ResumeAsgProcessesAtomicOperationSpec extends Specification {
     when:
     operation.operate([])
 
-    then: 1 * mockAsgService.getAutoScalingGroup('asg1') >> new AutoScalingGroup()
+    then: 1 * mockAsgService.getAutoScalingGroup('asg1') >> AutoScalingGroup.builder().build()
     then: 1 * mockAsgService.resumeProcesses("asg1", [Launch, Terminate])
-    then: 1 * mockAsgService.getAutoScalingGroup('asg1') >> new AutoScalingGroup()
+    then: 1 * mockAsgService.getAutoScalingGroup('asg1') >> AutoScalingGroup.builder().build()
     then: 1 * mockAsgService.resumeProcesses("asg1", [Launch, Terminate])
 
     and:
@@ -101,7 +101,7 @@ class ResumeAsgProcessesAtomicOperationSpec extends Specification {
     operation.operate([])
 
     then: 1 * mockAsgService.getAutoScalingGroup('asg1')
-    then: 1 * mockAsgService.getAutoScalingGroup('asg1') >> new AutoScalingGroup()
+    then: 1 * mockAsgService.getAutoScalingGroup('asg1') >> AutoScalingGroup.builder().build()
     then: 1 * mockAsgService.resumeProcesses("asg1", [Launch, Terminate])
 
     and:
@@ -135,11 +135,11 @@ class ResumeAsgProcessesAtomicOperationSpec extends Specification {
     when:
     operation.operate([])
 
-    then: 1 * mockAsgService.getAutoScalingGroup('asg1') >> new AutoScalingGroup()
+    then: 1 * mockAsgService.getAutoScalingGroup('asg1') >> AutoScalingGroup.builder().build()
     then: 1 * mockAsgService.resumeProcesses("asg1", [Launch, Terminate]) >> {
       throw new Exception('Uh oh!')
     }
-    then: 1 * mockAsgService.getAutoScalingGroup('asg1') >> new AutoScalingGroup()
+    then: 1 * mockAsgService.getAutoScalingGroup('asg1') >> AutoScalingGroup.builder().build()
     then: 1 * mockAsgService.resumeProcesses("asg1", [Launch, Terminate])
 
     and:

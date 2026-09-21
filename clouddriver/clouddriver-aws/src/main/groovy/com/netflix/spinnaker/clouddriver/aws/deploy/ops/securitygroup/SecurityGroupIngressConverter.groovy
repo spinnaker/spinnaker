@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup
 
-import com.amazonaws.services.ec2.model.IpPermission
-import com.amazonaws.services.ec2.model.IpRange
-import com.amazonaws.services.ec2.model.Ipv6Range
-import com.amazonaws.services.ec2.model.SecurityGroup
-import com.amazonaws.services.ec2.model.UserIdGroupPair
+import software.amazon.awssdk.services.ec2.model.IpPermission
+import software.amazon.awssdk.services.ec2.model.IpRange
+import software.amazon.awssdk.services.ec2.model.Ipv6Range
+import software.amazon.awssdk.services.ec2.model.SecurityGroup
+import software.amazon.awssdk.services.ec2.model.UserIdGroupPair
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertSecurityGroupDescription.SecurityGroupIngress
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupLookupFactory.SecurityGroupLookup
@@ -59,13 +59,13 @@ class SecurityGroupIngressConverter {
                                                         UpsertSecurityGroupDescription description) {
     List<SecurityGroupIngress> missing = []
     List<IpPermission> ipPermissions = description.ipIngress.collect { ingress ->
-      IpPermission permission = new IpPermission(ipProtocol: ingress.ipProtocol, fromPort: ingress.startPort, toPort: ingress.endPort)
+      def permissionBuilder = IpPermission.builder().ipProtocol(ingress.ipProtocol).fromPort(ingress.startPort).toPort(ingress.endPort)
       if (ingress.cidr?.contains(':')) {
-        permission.ipv6Ranges = [new Ipv6Range().withCidrIpv6(ingress.cidr).withDescription(ingress.description)]
+        permissionBuilder.ipv6Ranges([Ipv6Range.builder().cidrIpv6(ingress.cidr).description(ingress.description).build()])
       } else {
-        permission.ipv4Ranges = [new IpRange().withCidrIp(ingress.cidr).withDescription(ingress.description)]
+        permissionBuilder.ipRanges([IpRange.builder().cidrIp(ingress.cidr).description(ingress.description).build()])
       }
-      permission
+      permissionBuilder.build()
     }
     description.securityGroupIngress.each { ingress ->
       final accountName = ingress.accountName ?: description.account
@@ -73,24 +73,24 @@ class SecurityGroupIngressConverter {
       final vpcId = ingress.vpcId ?: description.vpcId
       def newUserIdGroupPair = null
       if (ingress.id) {
-        newUserIdGroupPair = new UserIdGroupPair(userId: accountId, groupId: ingress.id, vpcId: ingress.vpcId)
+        newUserIdGroupPair = UserIdGroupPair.builder().userId(accountId).groupId(ingress.id).vpcId(ingress.vpcId).build()
       } else {
         final ingressSecurityGroup = securityGroupLookup.getSecurityGroupByName(accountName, ingress.name, vpcId)
         if (ingressSecurityGroup.present) {
-          final groupId = ingressSecurityGroup.get().getSecurityGroup().groupId
-          newUserIdGroupPair = new UserIdGroupPair(userId: accountId, groupId: groupId, vpcId: ingress.vpcId)
+          final groupId = ingressSecurityGroup.get().getSecurityGroup().groupId()
+          newUserIdGroupPair = UserIdGroupPair.builder().userId(accountId).groupId(groupId).vpcId(ingress.vpcId).build()
         } else {
           if (description.vpcId) {
             missing.add(ingress)
           } else {
-            newUserIdGroupPair = new UserIdGroupPair(userId: accountId, groupName: ingress.name)
+            newUserIdGroupPair = UserIdGroupPair.builder().userId(accountId).groupName(ingress.name).build()
           }
         }
       }
 
       if (newUserIdGroupPair) {
-        def newIpPermission = new IpPermission(ipProtocol: ingress.ipProtocol, fromPort: ingress.startPort,
-          toPort: ingress.endPort, userIdGroupPairs: [newUserIdGroupPair])
+        def newIpPermission = IpPermission.builder().ipProtocol(ingress.ipProtocol).fromPort(ingress.startPort)
+          .toPort(ingress.endPort).userIdGroupPairs([newUserIdGroupPair]).build()
         ipPermissions.add(newIpPermission)
       }
     }
@@ -101,29 +101,30 @@ class SecurityGroupIngressConverter {
   }
 
   static List<IpPermission> flattenPermissions(SecurityGroup securityGroup) {
-    Collection<IpPermission> ipPermissions = securityGroup.ipPermissions
+    Collection<IpPermission> ipPermissions = securityGroup.ipPermissions()
     ipPermissions.collect { IpPermission ipPermission ->
-      ipPermission.userIdGroupPairs.collect {
-        it.groupName = null
-        it.peeringStatus = null
-        it.vpcPeeringConnectionId = null
-        new IpPermission()
-          .withFromPort(ipPermission.fromPort)
-          .withToPort(ipPermission.toPort)
-          .withIpProtocol(ipPermission.ipProtocol)
-          .withUserIdGroupPairs(it)
-      } + ipPermission.ipv4Ranges.collect {
-        new IpPermission()
-          .withFromPort(ipPermission.fromPort)
-          .withToPort(ipPermission.toPort)
-          .withIpProtocol(ipPermission.ipProtocol)
-          .withIpv4Ranges(it)
-      } + ipPermission.ipv6Ranges.collect {
-        new IpPermission()
-          .withFromPort(ipPermission.fromPort)
-          .withToPort(ipPermission.toPort)
-          .withIpProtocol(ipPermission.ipProtocol)
-          .withIpv6Ranges(it)
+      ipPermission.userIdGroupPairs().collect {
+        def cleaned = it.toBuilder().groupName(null).peeringStatus(null).vpcPeeringConnectionId(null).build()
+        IpPermission.builder()
+          .fromPort(ipPermission.fromPort())
+          .toPort(ipPermission.toPort())
+          .ipProtocol(ipPermission.ipProtocol())
+          .userIdGroupPairs(cleaned)
+          .build()
+      } + ipPermission.ipRanges().collect {
+        IpPermission.builder()
+          .fromPort(ipPermission.fromPort())
+          .toPort(ipPermission.toPort())
+          .ipProtocol(ipPermission.ipProtocol())
+          .ipRanges(it)
+          .build()
+      } + ipPermission.ipv6Ranges().collect {
+        IpPermission.builder()
+          .fromPort(ipPermission.fromPort())
+          .toPort(ipPermission.toPort())
+          .ipProtocol(ipPermission.ipProtocol())
+          .ipv6Ranges(it)
+          .build()
       }
     }.flatten().unique()
   }
@@ -144,13 +145,13 @@ class SecurityGroupIngressConverter {
     List<IpPermission> tobeAdded = new ArrayList<>()
     List<IpPermission> tobeRemoved = new ArrayList<>()
     List<IpPermission> tobeUpdated = new ArrayList<>()
-    List<IpPermission> filteredNewList = newList.findAll { ipPermission -> ipPermission.userIdGroupPairs.isEmpty() }
-    List<IpPermission> filteredExistingRuleList = existingRules.findAll { existingRule -> existingRule.userIdGroupPairs.isEmpty()}
+    List<IpPermission> filteredNewList = newList.findAll { ipPermission -> ipPermission.userIdGroupPairs().isEmpty() }
+    List<IpPermission> filteredExistingRuleList = existingRules.findAll { existingRule -> existingRule.userIdGroupPairs().isEmpty()}
     filteredNewList.forEach({ newListEntry ->
       IpPermission match = findIpPermission(filteredExistingRuleList, newListEntry)
       if (match) {
-        if (newListEntry.ipv4Ranges.collect { it.description }.any()
-          || newListEntry.ipv6Ranges.collect { it.description }.any()) {
+        if (newListEntry.ipRanges().collect { it.description }.any()
+          || newListEntry.ipv6Ranges().collect { it.description }.any()) {
           tobeUpdated.add(newListEntry) // matches old rule , needs an update for description
         }
         filteredExistingRuleList.remove(match) // remove from future processing
@@ -164,14 +165,14 @@ class SecurityGroupIngressConverter {
 
   static IpPermission findIpPermission(List<IpPermission> existingList, IpPermission ipPermission) {
     existingList.find { it ->
-      (((it.ipv4Ranges.collect { it.cidrIp }.sort() == ipPermission.ipv4Ranges.collect { it.cidrIp }.sort()
-        && it.fromPort == ipPermission.fromPort
-        && it.toPort == ipPermission.toPort
-        && it.ipProtocol == ipPermission.ipProtocol) && !ipPermission.ipv4Ranges.isEmpty())
-        || ((it.ipv6Ranges.collect { it.cidrIpv6 }.sort() == ipPermission.ipv6Ranges.collect { it.cidrIpv6 }.sort()
-        && it.fromPort == ipPermission.fromPort
-        && it.toPort == ipPermission.toPort
-        && it.ipProtocol == ipPermission.ipProtocol) && !ipPermission.ipv6Ranges.isEmpty()))
+      (((it.ipRanges().collect { it.cidrIp }.sort() == ipPermission.ipRanges().collect { it.cidrIp }.sort()
+        && it.fromPort() == ipPermission.fromPort()
+        && it.toPort() == ipPermission.toPort()
+        && it.ipProtocol() == ipPermission.ipProtocol()) && !ipPermission.ipRanges().isEmpty())
+        || ((it.ipv6Ranges().collect { it.cidrIpv6 }.sort() == ipPermission.ipv6Ranges().collect { it.cidrIpv6 }.sort()
+        && it.fromPort() == ipPermission.fromPort()
+        && it.toPort() == ipPermission.toPort()
+        && it.ipProtocol() == ipPermission.ipProtocol()) && !ipPermission.ipv6Ranges().isEmpty()))
     }
   }
 

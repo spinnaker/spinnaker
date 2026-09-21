@@ -7,10 +7,18 @@ import { AwsImageReader } from './image';
 import { AwsInstanceTypeService } from './instance/awsInstanceType.service';
 import { AwsLoadBalancerTransformer } from './loadBalancer';
 import { AmazonStageConfig, getAmazonStageFields } from './pipeline/stages/AmazonStageConfig';
+import { awsBakeStage, AwsBakeStageConfig } from './pipeline/stages/bake/AwsBakeStageConfig';
+import { AwsCloneServerGroupStageConfig } from './pipeline/stages/cloneServerGroup/AwsCloneServerGroupStageConfig';
 import { DeployCloudFormationStackStageConfig } from './pipeline/stages/deployCloudFormation/DeployCloudFormationStackStageConfig';
+import { AwsDisableAsgStageConfig } from './pipeline/stages/disableAsg/AwsDisableAsgStageConfig';
+import { AwsDisableClusterStageConfig } from './pipeline/stages/disableCluster/AwsDisableClusterStageConfig';
+import { AwsEnableAsgStageConfig } from './pipeline/stages/enableAsg/AwsEnableAsgStageConfig';
 import { AwsFindImageFromTagsStageConfig } from './pipeline/stages/findImageFromTags/AwsFindImageFromTagsStageConfig';
 import { ModifyScalingProcessStageConfig } from './pipeline/stages/modifyScalingProcess/ModifyScalingProcessStageConfig';
 import { AwsResizeAsgStageConfig } from './pipeline/stages/resizeAsg/AwsResizeAsgStageConfig';
+import { AwsRollbackClusterStageConfig } from './pipeline/stages/rollbackCluster/AwsRollbackClusterStageConfig';
+import { AwsScaleDownClusterStageConfig } from './pipeline/stages/scaleDownCluster/AwsScaleDownClusterStageConfig';
+import { AwsShrinkClusterStageConfig } from './pipeline/stages/shrinkCluster/AwsShrinkClusterStageConfig';
 import { AwsTagImageStageConfig } from './pipeline/stages/tagImage/awsTagImageStage';
 import { registerAmazonPipelineStages } from './aws.module';
 import { AwsSecurityGroupReader } from './securityGroup/securityGroup.reader';
@@ -173,8 +181,28 @@ describe('Amazon package registration', () => {
         key: string;
       }> = [
         {
+          key: 'bake',
+          component: AwsBakeStageConfig,
+        },
+        {
+          key: 'cloneServerGroup',
+          component: AwsCloneServerGroupStageConfig,
+        },
+        {
           key: 'deployCloudFormation',
           component: DeployCloudFormationStackStageConfig,
+        },
+        {
+          key: 'disableServerGroup',
+          component: AwsDisableAsgStageConfig,
+        },
+        {
+          key: 'disableCluster',
+          component: AwsDisableClusterStageConfig,
+        },
+        {
+          key: 'enableServerGroup',
+          component: AwsEnableAsgStageConfig,
         },
         {
           key: 'upsertImageTags',
@@ -187,6 +215,18 @@ describe('Amazon package registration', () => {
         {
           key: 'resizeServerGroup',
           component: AwsResizeAsgStageConfig,
+        },
+        {
+          key: 'rollbackCluster',
+          component: AwsRollbackClusterStageConfig,
+        },
+        {
+          key: 'scaleDownCluster',
+          component: AwsScaleDownClusterStageConfig,
+        },
+        {
+          key: 'shrinkCluster',
+          component: AwsShrinkClusterStageConfig,
         },
         {
           key: 'modifyAwsScalingProcess',
@@ -207,18 +247,7 @@ describe('Amazon package registration', () => {
         .withContext('aws deployCloudFormation React execution details')
         .toBeGreaterThan(0);
 
-      [
-        'bake',
-        'cloneServerGroup',
-        'destroyServerGroup',
-        'disableCluster',
-        'disableServerGroup',
-        'enableServerGroup',
-        'findImage',
-        'rollbackCluster',
-        'scaleDownCluster',
-        'shrinkCluster',
-      ].forEach((key) => {
+      ['destroyServerGroup', 'findImage'].forEach((key) => {
         const stage = awsStages.find((candidate) => (candidate.key || candidate.provides) === key);
         expect(stage?.component).withContext(`aws ${key} generic stage component`).toBe(AmazonStageConfig);
       });
@@ -255,12 +284,13 @@ describe('Amazon package registration', () => {
   });
 
   it('renders required AWS stage-specific config fields', () => {
-    expect(getAmazonStageFields({ type: 'bake' } as any).map((field) => field.fieldName)).toContain('package');
+    expect(awsBakeStage.validators.map((validator: any) => validator.fieldName)).toContain('package');
     expect(getAmazonStageFields({ type: 'findImage' } as any).map((field) => field.fieldName)).toEqual([
       'credentials',
       'regions',
       'cluster',
       'selectionStrategy',
+      'onlyEnabled',
     ]);
   });
 });

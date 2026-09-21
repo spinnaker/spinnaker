@@ -39,6 +39,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.check
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.isA
 import org.mockito.kotlin.mock
@@ -48,6 +49,7 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
+import redis.clients.jedis.exceptions.JedisConnectionException
 import java.util.UUID
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.dsl.describe
@@ -576,6 +578,42 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
         }
       }
 
+    }
+  }
+
+  describe("handling transient Redis exceptions") {
+    given("a JedisConnectionException is thrown during queue.push(StartStage)") {
+      val pipeline = pipeline {
+        stage {
+          type = singleTaskStage.type
+        }
+      }
+      val message = StartExecution(pipeline)
+
+      beforeGroup {
+        whenever(repository.retrieve(message.executionType, message.executionId)) doReturn pipeline
+        whenever(queue.push(isA<StartStage>())) doThrow JedisConnectionException("Read timed out")
+      }
+
+      afterGroup(::resetMocks)
+
+      var thrownException: Exception? = null
+
+      on("receiving a message") {
+        try {
+          subject.handle(message)
+        } catch (e: Exception) {
+          thrownException = e
+        }
+      }
+
+      it("rethrows the exception so the message is not acked") {
+        assertThat(thrownException).isInstanceOf(JedisConnectionException::class.java)
+      }
+
+      it("restores execution status to NOT_STARTED") {
+        assertThat(pipeline.status).isEqualTo(NOT_STARTED)
+      }
     }
   }
 })

@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery
 
-import com.amazonaws.services.ec2.model.DescribeInstancesRequest
-import com.amazonaws.services.ec2.model.Instance
-import com.amazonaws.services.ec2.model.InstanceStateName
+import software.amazon.awssdk.services.ec2.model.DescribeInstancesRequest
+import software.amazon.awssdk.services.ec2.model.Instance
+import software.amazon.awssdk.services.ec2.model.InstanceStateName
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.clouddriver.eureka.api.Eureka
@@ -53,41 +53,41 @@ class AwsEurekaSupport extends AbstractEurekaSupport {
     if (asgName) {
       def asgService = regionScopedProvider.asgService
       def autoScalingGroup = asgService.getAutoScalingGroup(asgName)
-      if (!autoScalingGroup || autoScalingGroup.status) {
+      if (!autoScalingGroup || autoScalingGroup.status()) {
         // ASG does not exist or is in the process of being deleted
         return false
       }
       log.info("AutoScalingGroup (${asgName}) exists")
 
-      if (!autoScalingGroup.instances.find { it.instanceId == instanceId }) {
+      if (!autoScalingGroup.instances().find { it.instanceId == instanceId }) {
         return false
       }
       log.info("AutoScalingGroup (${asgName}) contains instance (${instanceId})")
 
-      if (autoScalingGroup.desiredCapacity == 0) {
+      if (autoScalingGroup.desiredCapacity() == 0) {
         return false
       }
-      log.info("AutoScalingGroup (${asgName}) has non-zero desired capacity (desiredCapacity: ${autoScalingGroup.desiredCapacity})")
+      log.info("AutoScalingGroup (${asgName}) has non-zero desired capacity (desiredCapacity: ${autoScalingGroup.desiredCapacity()})")
     }
 
     if (instanceId) {
       def amazonEC2 = regionScopedProvider.getAmazonEC2()
       def instances = amazonEC2.describeInstances(
-        new DescribeInstancesRequest().withInstanceIds(instanceId)
-      ).reservations*.instances.flatten()
+        DescribeInstancesRequest.builder().instanceIds(instanceId).build()
+      ).reservations()*.instances().flatten()
 
-      Instance instance = instances.find { it.instanceId == instanceId }
+      Instance instance = instances.find { it.instanceId() == instanceId }
       if (!instance) {
         return false
       }
 
       def isRunning = [
-        InstanceStateName.Running.toString(),
-        InstanceStateName.Pending.toString()
-      ].contains(instance.getState().getName())
+        InstanceStateName.RUNNING,
+        InstanceStateName.PENDING
+      ].contains(instance.state().name())
 
       if (!isRunning) {
-        log.info("Instance exists but is not running (instanceId: ${instanceId}) state: ${instance.getState().getName()})")
+        log.info("Instance exists but is not running (instanceId: ${instanceId}) state: ${instance.state().nameAsString()})")
         return false
       }
 

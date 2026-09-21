@@ -1,7 +1,14 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import type { IStageConfigProps } from '@spinnaker/core';
-import { AccountService } from '@spinnaker/core';
+import {
+  AccountRegionClusterSelector,
+  AccountService,
+  PlatformHealthOverride,
+  StageConfigField,
+  StageConstants,
+  TargetSelect,
+} from '@spinnaker/core';
 
 import { AppengineHealth } from '../../common/appengineHealth';
 import type { IAppengineAccount } from '../../domain';
@@ -12,6 +19,7 @@ export function getAppengineAccountRegion(accounts: IAppengineAccount[], credent
 
 export function initializeAppengineServerGroupStage(stage: any, application: any): void {
   stage.cloudProvider = 'appengine';
+  stage.cloudProviderType = 'appengine';
 
   if (
     stage.isNew &&
@@ -22,14 +30,25 @@ export function initializeAppengineServerGroupStage(stage: any, application: any
   }
 }
 
-type AppengineStageConfigProps = Pick<IStageConfigProps, 'application' | 'stage' | 'updateStage'>;
+type AppengineStageConfigProps = Pick<IStageConfigProps, 'application' | 'pipeline' | 'stage' | 'updateStage'> & {
+  showHealthOverride?: boolean;
+};
 
-export function AppengineServerGroupStageConfig({ application, stage, updateStage }: AppengineStageConfigProps) {
+export function AppengineServerGroupStageConfig({
+  application,
+  pipeline,
+  stage,
+  updateStage,
+  showHealthOverride = false,
+}: AppengineStageConfigProps) {
+  const [accounts, setAccounts] = useState<IAppengineAccount[]>([]);
+
   useEffect(() => {
     initializeAppengineServerGroupStage(stage, application);
-    AccountService.listAccounts('appengine').then((accounts: IAppengineAccount[]) => {
+    AccountService.listAccounts('appengine').then((loadedAccounts: IAppengineAccount[]) => {
+      setAccounts(loadedAccounts);
       const credentials = stage.credentials || application?.defaultCredentials?.appengine;
-      const region = getAppengineAccountRegion(accounts, credentials);
+      const region = getAppengineAccountRegion(loadedAccounts, credentials);
       if (credentials || region) {
         stage.credentials = credentials || stage.credentials;
         stage.region = region || stage.region;
@@ -38,62 +57,60 @@ export function AppengineServerGroupStageConfig({ application, stage, updateStag
     });
   }, []);
 
-  const update = (field: string, value: any) => {
-    stage[field] = value;
-    updateStage(stage);
-  };
-
-  const updateCredentials = (credentials: string) => {
-    stage.credentials = credentials;
+  const onAccountUpdate = (credentials: string) => {
     AccountService.getAccountDetails(credentials).then((accountDetails: IAppengineAccount) => {
-      stage.region = accountDetails.region || stage.region;
+      stage.region = accountDetails?.region || stage.region;
       updateStage(stage);
     });
-    updateStage(stage);
   };
 
   return (
     <div className="form-horizontal">
-      <div className="form-group">
-        <label className="col-md-3 sm-label-right">Account</label>
-        <div className="col-md-7">
-          <input
-            className="form-control input-sm"
-            onChange={(event) => updateCredentials(event.target.value)}
-            value={stage.credentials || ''}
-          />
-        </div>
-      </div>
-      <div className="form-group">
-        <label className="col-md-3 sm-label-right">Cluster</label>
-        <div className="col-md-7">
-          <input
-            className="form-control input-sm"
-            onChange={(event) => update('cluster', event.target.value)}
-            value={stage.cluster || ''}
-          />
-        </div>
-      </div>
-      <div className="form-group">
-        <label className="col-md-3 sm-label-right">Target</label>
-        <div className="col-md-7">
-          <select
-            className="form-control input-sm"
-            onChange={(event) => update('target', event.target.value)}
-            value={stage.target || ''}
-          >
-            <option value="">Select...</option>
-            <option value="current_asg_dynamic">Current Server Group</option>
-            <option value="ancestor_asg_dynamic">Previous Server Group</option>
-            <option value="oldest_asg_dynamic">Oldest Server Group</option>
-          </select>
-        </div>
-      </div>
+      {!pipeline?.strategy && (
+        <AccountRegionClusterSelector
+          accounts={accounts}
+          application={application}
+          component={stage}
+          disableRegionSelect={true}
+          onAccountUpdate={onAccountUpdate}
+          onComponentUpdate={updateStage}
+          singleRegion="true"
+        />
+      )}
+      <StageConfigField label="Target">
+        <TargetSelect
+          model={{ target: stage.target }}
+          onChange={(target: string) => {
+            stage.target = target;
+            updateStage(stage);
+          }}
+          options={StageConstants.TARGET_LIST}
+        />
+      </StageConfigField>
+      {showHealthOverride && application?.attributes?.platformHealthOnlyShowOverride && (
+        <PlatformHealthOverride
+          interestingHealthProviderNames={stage.interestingHealthProviderNames || []}
+          onChange={(interestingHealthProviderNames) => {
+            stage.interestingHealthProviderNames = interestingHealthProviderNames;
+            updateStage(stage);
+          }}
+          platformHealthType={AppengineHealth.PLATFORM}
+        />
+      )}
     </div>
   );
 }
 
-export function AppengineShrinkClusterStageConfig({ application, stage, updateStage }: AppengineStageConfigProps) {
+export function AppengineServerGroupStageConfigWithHealthOverride(props: AppengineStageConfigProps) {
+  return <AppengineServerGroupStageConfig {...props} showHealthOverride={true} />;
+}
+
+export function AppengineShrinkClusterStageConfig({
+  application,
+  pipeline,
+  stage,
+  updateStage,
+}: AppengineStageConfigProps) {
   useEffect(() => {
     initializeAppengineServerGroupStage(stage, application);
     if (stage.shrinkToSize === undefined) {
@@ -116,7 +133,12 @@ export function AppengineShrinkClusterStageConfig({ application, stage, updateSt
 
   return (
     <div className="form-horizontal">
-      <AppengineServerGroupStageConfig application={application} stage={stage} updateStage={updateStage} />
+      <AppengineServerGroupStageConfig
+        application={application}
+        pipeline={pipeline}
+        stage={stage}
+        updateStage={updateStage}
+      />
       <div className="form-group">
         <label className="col-md-3 sm-label-right">Shrink Options</label>
         <div className="col-md-7 form-inline">
@@ -153,6 +175,16 @@ export function AppengineShrinkClusterStageConfig({ application, stage, updateSt
           </label>
         </div>
       </div>
+      {application?.attributes?.platformHealthOnlyShowOverride && (
+        <PlatformHealthOverride
+          interestingHealthProviderNames={stage.interestingHealthProviderNames || []}
+          onChange={(interestingHealthProviderNames) => {
+            stage.interestingHealthProviderNames = interestingHealthProviderNames;
+            updateStage(stage);
+          }}
+          platformHealthType={AppengineHealth.PLATFORM}
+        />
+      )}
     </div>
   );
 }

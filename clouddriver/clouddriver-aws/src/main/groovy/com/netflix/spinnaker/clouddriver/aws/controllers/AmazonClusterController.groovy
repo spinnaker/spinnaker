@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.aws.controllers
 
-import com.amazonaws.services.autoscaling.model.Activity
-import com.amazonaws.services.autoscaling.model.DescribeScalingActivitiesRequest
+import software.amazon.awssdk.services.autoscaling.model.Activity
+import software.amazon.awssdk.services.autoscaling.model.DescribeScalingActivitiesRequest
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.credentials.CredentialsRepository
@@ -44,14 +44,14 @@ class AmazonClusterController {
     if (credentials == null) {
       return new ResponseEntity([message: "bad credentials"], HttpStatus.BAD_REQUEST)
     }
-    def autoScaling = amazonClientProvider.getAutoScaling(credentials, region)
-    def request = new DescribeScalingActivitiesRequest(autoScalingGroupName: serverGroupName)
+    def autoScaling = amazonClientProvider.getAutoScalingV2(credentials, region)
+    def request = DescribeScalingActivitiesRequest.builder().autoScalingGroupName(serverGroupName).build()
     def response = autoScaling.describeScalingActivities(request)
     List<Activity> scalingActivities = []
     while (scalingActivities.size() < MAX_SCALING_ACTIVITIES) {
-      scalingActivities.addAll response.activities
-      if (response.nextToken && scalingActivities.size() < MAX_SCALING_ACTIVITIES) {
-        response = autoScaling.describeScalingActivities(request.withNextToken(response.nextToken))
+      scalingActivities.addAll response.activities()
+      if (response.nextToken() && scalingActivities.size() < MAX_SCALING_ACTIVITIES) {
+        response = autoScaling.describeScalingActivities(request.toBuilder().nextToken(response.nextToken()).build())
       } else {
         break
       }

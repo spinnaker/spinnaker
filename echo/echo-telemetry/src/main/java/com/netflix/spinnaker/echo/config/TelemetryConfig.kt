@@ -69,12 +69,13 @@ open class TelemetryConfig {
 
     companion object {
       const val DEFAULT_TELEMETRY_ENDPOINT = "https://stats.spinnaker.io"
+      const val DEFAULT_SPINNAKER_VERSION = "unknown"
     }
 
     var enabled = false
     var endpoint = DEFAULT_TELEMETRY_ENDPOINT
     var instanceId = ULID().nextULID()
-    var spinnakerVersion = "unknown"
+    var spinnakerVersion = DEFAULT_SPINNAKER_VERSION
     var deploymentMethod = DeploymentMethod()
     var connectionTimeoutMillis = 3000
     var readTimeoutMillis = 5000

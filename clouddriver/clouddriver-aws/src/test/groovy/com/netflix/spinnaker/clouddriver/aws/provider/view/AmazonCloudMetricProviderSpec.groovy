@@ -16,8 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.view
 
-import com.amazonaws.services.cloudwatch.AmazonCloudWatch
-import com.amazonaws.services.cloudwatch.model.*
+import software.amazon.awssdk.services.cloudwatch.CloudWatchClient
+import software.amazon.awssdk.services.cloudwatch.model.Dimension
+import software.amazon.awssdk.services.cloudwatch.model.GetMetricStatisticsRequest
+import software.amazon.awssdk.services.cloudwatch.model.GetMetricStatisticsResponse
+import software.amazon.awssdk.services.cloudwatch.model.ListMetricsResponse
+import software.amazon.awssdk.services.cloudwatch.model.Metric
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonMetricDescriptor
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
@@ -33,15 +37,15 @@ class AmazonCloudMetricProviderSpec extends Specification {
   AmazonCloudMetricProvider provider
 
   @Shared
-  AmazonCloudWatch cloudWatch
+  CloudWatchClient cloudWatch
 
   def setup() {
-    cloudWatch = Mock(AmazonCloudWatch)
+    cloudWatch = Mock(CloudWatchClient)
     CredentialsRepository credentialsRepository = Stub(CredentialsRepository) {
       getOne(_) >> Stub(NetflixAmazonCredentials)
     }
     AmazonClientProvider amazonClientProvider = Stub(AmazonClientProvider) {
-      getCloudWatch(_, _) >> cloudWatch
+      getAmazonCloudWatchV2(_, _) >> cloudWatch
     }
     AmazonCloudProvider amazonCloudProvider = Mock(AmazonCloudProvider)
     provider = new AmazonCloudMetricProvider(amazonClientProvider, credentialsRepository, amazonCloudProvider)
@@ -53,7 +57,7 @@ class AmazonCloudMetricProviderSpec extends Specification {
 
     then:
     result == null
-    1 * cloudWatch.listMetrics(_) >> new ListMetricsResult().withMetrics([])
+    1 * cloudWatch.listMetrics(_) >> ListMetricsResponse.builder().metrics([]).build()
   }
 
   void "getMetrics throws exception when multiple results found"() {
@@ -62,12 +66,12 @@ class AmazonCloudMetricProviderSpec extends Specification {
 
     then:
     thrown(IllegalArgumentException)
-    1 * cloudWatch.listMetrics(_) >> new ListMetricsResult().withMetrics([ new Metric(), new Metric() ])
+    1 * cloudWatch.listMetrics(_) >> ListMetricsResponse.builder().metrics([ Metric.builder().build(), Metric.builder().build() ]).build()
   }
 
   void "getMetrics returns a metric when one found"() {
     given:
-    Dimension dimension = new Dimension().withName("AutoScalingGroupName").withValue("asg-v001")
+    Dimension dimension = Dimension.builder().name("AutoScalingGroupName").value("asg-v001").build()
     def filters = [name: "expectedMetric", namespace: "space"]
 
     when:
@@ -78,12 +82,13 @@ class AmazonCloudMetricProviderSpec extends Specification {
     result.name == "expectedMetric"
     result.namespace == "space"
     result.dimensions == [ dimension ]
-    1 * cloudWatch.listMetrics(_) >> new ListMetricsResult().withMetrics([
-        new Metric()
-            .withMetricName("expectedMetric")
-            .withNamespace("space")
-            .withDimensions(dimension)
-    ])
+    1 * cloudWatch.listMetrics(_) >> ListMetricsResponse.builder().metrics([
+        Metric.builder()
+            .metricName("expectedMetric")
+            .namespace("space")
+            .dimensions(dimension)
+            .build()
+    ]).build()
   }
 
   void "getStatistics sends defaults for statistics, period"() {
@@ -97,13 +102,13 @@ class AmazonCloudMetricProviderSpec extends Specification {
     then:
     1 * cloudWatch.getMetricStatistics(_) >> { arguments ->
       request = arguments[0]
-      return new GetMetricStatisticsResult().withDatapoints([])
+      return GetMetricStatisticsResponse.builder().datapoints([]).build()
     }
     request != null
-    request.startTime == new Date(0)
-    request.endTime == new Date(1)
-    request.period == 600
-    request.statistics == ["Average"]
+    request.startTime() == new Date(0).toInstant()
+    request.endTime() == new Date(1).toInstant()
+    request.period() == 600
+    request.statisticsAsStrings() == ["Average"]
   }
 
   void "getStatistics throws exception if namespace is missing"() {
@@ -130,12 +135,12 @@ class AmazonCloudMetricProviderSpec extends Specification {
     then:
     1 * cloudWatch.getMetricStatistics(_) >> { arguments ->
       request = arguments[0]
-      return new GetMetricStatisticsResult().withDatapoints([])
+      return GetMetricStatisticsResponse.builder().datapoints([]).build()
     }
     request != null
-    request.dimensions.size() == 1
-    request.dimensions[0].name == "someDimension"
-    request.dimensions[0].value == "dimension!"
+    request.dimensions().size() == 1
+    request.dimensions()[0].name() == "someDimension"
+    request.dimensions()[0].value() == "dimension!"
   }
 
 

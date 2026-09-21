@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.RebootInstancesRequest
+import software.amazon.awssdk.services.ec2.Ec2Client
+import software.amazon.awssdk.services.ec2.model.RebootInstancesRequest
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -26,9 +26,9 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.description.RebootInstancesD
 import spock.lang.Specification
 
 class RebootInstancesAtomicOperationUnitSpec extends Specification {
-  def mockAmazonEC2 = Mock(AmazonEC2)
+  def mockAmazonEC2 = Mock(Ec2Client)
   def mockAmazonClientProvider = Mock(AmazonClientProvider) {
-    getAmazonEC2(_, _, true) >> mockAmazonEC2
+    getAmazonEC2V2(_, _) >> mockAmazonEC2
   }
 
   def setup() {
@@ -49,7 +49,7 @@ class RebootInstancesAtomicOperationUnitSpec extends Specification {
     then:
     with(mockAmazonEC2) {
       0 * _
-      1 * rebootInstances(new RebootInstancesRequest(instanceIds: instanceIds))
+      1 * rebootInstances(RebootInstancesRequest.builder().instanceIds(instanceIds).build())
     }
 
     where:

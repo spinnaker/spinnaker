@@ -16,13 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.lambda.deploy.ops;
 
-import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing;
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsRequest;
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsResult;
-import com.amazonaws.services.elasticloadbalancingv2.model.RegisterTargetsRequest;
-import com.amazonaws.services.elasticloadbalancingv2.model.RegisterTargetsResult;
-import com.amazonaws.services.elasticloadbalancingv2.model.TargetDescription;
-import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroup;
 import com.netflix.frigga.Names;
 import com.netflix.spinnaker.clouddriver.lambda.deploy.description.CreateLambdaFunctionDescription;
 import com.netflix.spinnaker.clouddriver.lambda.names.LambdaTagNamer;
@@ -33,6 +26,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
+import software.amazon.awssdk.services.elasticloadbalancingv2.ElasticLoadBalancingV2Client;
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeTargetGroupsRequest;
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeTargetGroupsResponse;
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.RegisterTargetsRequest;
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.RegisterTargetsResponse;
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetDescription;
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetGroup;
 import software.amazon.awssdk.services.lambda.LambdaClient;
 import software.amazon.awssdk.services.lambda.model.AddPermissionRequest;
 import software.amazon.awssdk.services.lambda.model.CreateFunctionRequest;
@@ -143,16 +143,17 @@ public class CreateLambdaAtomicOperation
     }
   }
 
-  private RegisterTargetsResult registerTargetGroup(String functionArn, LambdaClient lambdaClient) {
+  private RegisterTargetsResponse registerTargetGroup(
+      String functionArn, LambdaClient lambdaClient) {
 
-    AmazonElasticLoadBalancing loadBalancingV2 = getAmazonElasticLoadBalancingClient();
+    ElasticLoadBalancingV2Client loadBalancingV2 = getAmazonElasticLoadBalancingClient();
     TargetGroup targetGroup = retrieveTargetGroup(loadBalancingV2);
 
     AddPermissionRequest addPermissionRequest =
         AddPermissionRequest.builder()
             .functionName(functionArn)
             .action("lambda:InvokeFunction")
-            .sourceArn(targetGroup.getTargetGroupArn())
+            .sourceArn(targetGroup.targetGroupArn())
             .principal("elasticloadbalancing.amazonaws.com")
             .statementId(UUID.randomUUID().toString())
             .build();
@@ -162,31 +163,32 @@ public class CreateLambdaAtomicOperation
     updateTaskStatus(
         String.format(
             "Lambda (%s) invoke permissions added to Target group (%s).",
-            functionArn, targetGroup.getTargetGroupArn()));
+            functionArn, targetGroup.targetGroupArn()));
 
-    RegisterTargetsResult result =
+    RegisterTargetsResponse result =
         loadBalancingV2.registerTargets(
-            new RegisterTargetsRequest()
-                .withTargets(new TargetDescription().withId(functionArn))
-                .withTargetGroupArn(targetGroup.getTargetGroupArn()));
+            RegisterTargetsRequest.builder()
+                .targetGroupArn(targetGroup.targetGroupArn())
+                .targets(TargetDescription.builder().id(functionArn).build())
+                .build());
 
     updateTaskStatus(
         String.format(
             "Registered the Lambda (%s) with Target group (%s).",
-            functionArn, targetGroup.getTargetGroupArn()));
+            functionArn, targetGroup.targetGroupArn()));
     return result;
   }
 
-  private TargetGroup retrieveTargetGroup(AmazonElasticLoadBalancing loadBalancingV2) {
+  private TargetGroup retrieveTargetGroup(ElasticLoadBalancingV2Client loadBalancingV2) {
 
     DescribeTargetGroupsRequest request =
-        new DescribeTargetGroupsRequest().withNames(description.getTargetGroups());
-    DescribeTargetGroupsResult describeTargetGroupsResult =
+        DescribeTargetGroupsRequest.builder().names(description.getTargetGroups()).build();
+    DescribeTargetGroupsResponse describeTargetGroupsResult =
         loadBalancingV2.describeTargetGroups(request);
 
-    if (describeTargetGroupsResult.getTargetGroups().size() == 1) {
-      return describeTargetGroupsResult.getTargetGroups().get(0);
-    } else if (describeTargetGroupsResult.getTargetGroups().size() > 1) {
+    if (describeTargetGroupsResult.targetGroups().size() == 1) {
+      return describeTargetGroupsResult.targetGroups().get(0);
+    } else if (describeTargetGroupsResult.targetGroups().size() > 1) {
       throw new IllegalArgumentException(
           "There are multiple target groups with the name " + description.getTargetGroups() + ".");
     } else {
@@ -195,9 +197,9 @@ public class CreateLambdaAtomicOperation
     }
   }
 
-  private AmazonElasticLoadBalancing getAmazonElasticLoadBalancingClient() {
+  private ElasticLoadBalancingV2Client getAmazonElasticLoadBalancingClient() {
 
     return getAmazonClientProvider()
-        .getAmazonElasticLoadBalancingV2(description.getCredentials(), getRegion(), false);
+        .getElasticLoadBalancingV2Client(description.getCredentials(), getRegion());
   }
 }

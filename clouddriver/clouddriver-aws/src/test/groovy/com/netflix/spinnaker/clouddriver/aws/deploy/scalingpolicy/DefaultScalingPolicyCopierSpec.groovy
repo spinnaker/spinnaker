@@ -16,20 +16,20 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.scalingpolicy
 
-import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.autoscaling.model.Alarm
-import com.amazonaws.services.autoscaling.model.DescribePoliciesRequest
-import com.amazonaws.services.autoscaling.model.DescribePoliciesResult
-import com.amazonaws.services.autoscaling.model.PutScalingPolicyRequest
-import com.amazonaws.services.autoscaling.model.PutScalingPolicyResult
-import com.amazonaws.services.autoscaling.model.ScalingPolicy
-import com.amazonaws.services.autoscaling.model.StepAdjustment
-import com.amazonaws.services.cloudwatch.AmazonCloudWatch
-import com.amazonaws.services.cloudwatch.model.DescribeAlarmsRequest
-import com.amazonaws.services.cloudwatch.model.DescribeAlarmsResult
-import com.amazonaws.services.cloudwatch.model.Dimension
-import com.amazonaws.services.cloudwatch.model.MetricAlarm
-import com.amazonaws.services.cloudwatch.model.PutMetricAlarmRequest
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient
+import software.amazon.awssdk.services.autoscaling.model.Alarm
+import software.amazon.awssdk.services.autoscaling.model.DescribePoliciesRequest
+import software.amazon.awssdk.services.autoscaling.model.DescribePoliciesResponse
+import software.amazon.awssdk.services.autoscaling.model.PutScalingPolicyRequest
+import software.amazon.awssdk.services.autoscaling.model.PutScalingPolicyResponse
+import software.amazon.awssdk.services.autoscaling.model.ScalingPolicy
+import software.amazon.awssdk.services.autoscaling.model.StepAdjustment
+import software.amazon.awssdk.services.cloudwatch.CloudWatchClient
+import software.amazon.awssdk.services.cloudwatch.model.DescribeAlarmsRequest
+import software.amazon.awssdk.services.cloudwatch.model.DescribeAlarmsResponse
+import software.amazon.awssdk.services.cloudwatch.model.Dimension
+import software.amazon.awssdk.services.cloudwatch.model.MetricAlarm
+import software.amazon.awssdk.services.cloudwatch.model.PutMetricAlarmRequest
 import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AsgReferenceCopier
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
@@ -40,21 +40,21 @@ import spock.lang.Subject
 
 class DefaultScalingPolicyCopierSpec extends Specification {
 
-  def sourceAutoScaling = Mock(AmazonAutoScaling)
-  def targetAutoScaling = Mock(AmazonAutoScaling)
+  def sourceAutoScaling = Mock(AutoScalingClient)
+  def targetAutoScaling = Mock(AutoScalingClient)
   def sourceCredentials = Stub(NetflixAmazonCredentials) {
     getAccountId() >> 'abc'
   }
   def targetCredentials = Stub(NetflixAmazonCredentials) {
     getAccountId() >> 'def'
   }
-  def sourceCloudWatch = Mock(AmazonCloudWatch)
-  def targetCloudWatch = Mock(AmazonCloudWatch)
+  def sourceCloudWatch = Mock(CloudWatchClient)
+  def targetCloudWatch = Mock(CloudWatchClient)
   def amazonClientProvider = Stub(AmazonClientProvider) {
-    getAutoScaling(_, 'us-east-1', true) >> sourceAutoScaling
-    getAutoScaling(_, 'us-west-1', true) >> targetAutoScaling
-    getCloudWatch(_, 'us-east-1', true) >> sourceCloudWatch
-    getCloudWatch(_, 'us-west-1', true) >> targetCloudWatch
+    getAutoScalingV2(_, 'us-east-1') >> sourceAutoScaling
+    getAutoScalingV2(_, 'us-west-1') >> targetAutoScaling
+    getAmazonCloudWatchV2(_, 'us-east-1') >> sourceCloudWatch
+    getAmazonCloudWatchV2(_, 'us-west-1') >> targetCloudWatch
   }
   String newPolicyName = 'new_policy_name'
 
@@ -80,8 +80,8 @@ class DefaultScalingPolicyCopierSpec extends Specification {
     scalingPolicyCopier.copyScalingPolicies(Mock(Task), 'asgard-v000', 'asgard-v001', sourceCredentials, targetCredentials, 'us-east-1', 'us-west-1')
 
     then:
-    1 * sourceAutoScaling.describePolicies(new DescribePoliciesRequest(autoScalingGroupName: 'asgard-v000')) >>
-      new DescribePoliciesResult(scalingPolicies: [])
+    1 * sourceAutoScaling.describePolicies(DescribePoliciesRequest.builder().autoScalingGroupName('asgard-v000').build()) >>
+      DescribePoliciesResponse.builder().scalingPolicies([]).build()
     0 * targetAutoScaling.putScalingPolicy(_)
     0 * sourceCloudWatch.describeAlarms(_)
     0 * targetCloudWatch.putMetricAlarm(_)
@@ -101,35 +101,10 @@ class DefaultScalingPolicyCopierSpec extends Specification {
 
   void 'generates a semantically meaningful alarm name'() {
     given:
-    ScalingPolicy policy = new ScalingPolicy(
-      policyARN: 'oldPolicyARN1',
-      autoScalingGroupName: 'asgard-v000',
-      policyName: 'policy1',
-      scalingAdjustment: 5,
-      adjustmentType: 'ChangeInCapacity',
-      cooldown: 100,
-      minAdjustmentStep: 2,
-      alarms: [new Alarm(alarmName: 'alarm1')]
-    )
-    MetricAlarm alarm = new MetricAlarm(
-        alarmName: 'alarm1',
-        alarmDescription: 'alarm 1 description',
-        actionsEnabled: true,
-        oKActions: [],
-        alarmActions: ['oldPolicyARN1'],
-        insufficientDataActions: [],
-        metricName: 'metric1',
-        namespace: 'namespace1',
-        statistic: 'statistic1',
-        dimensions: [
-          new Dimension(name: AsgReferenceCopier.DIMENSION_NAME_FOR_ASG, value: 'asgard-v000')
-        ],
-        period: 1,
-        unit: 'unit1',
-        evaluationPeriods: 2,
-        threshold: 4.2,
-        comparisonOperator: 'GreaterThanOrEqualToThreshold'
-      )
+    ScalingPolicy policy = ScalingPolicy.builder().policyARN('oldPolicyARN1').autoScalingGroupName('asgard-v000').policyName('policy1').scalingAdjustment(5).adjustmentType('ChangeInCapacity').cooldown(100).minAdjustmentStep(2).alarms([Alarm.builder().alarmName('alarm1').build()]).build()
+    MetricAlarm alarm = MetricAlarm.builder().alarmName('alarm1').alarmDescription('alarm 1 description').actionsEnabled(true).okActions([]).alarmActions(['oldPolicyARN1']).insufficientDataActions([]).metricName('metric1').namespace('namespace1').statistic('statistic1').dimensions([
+          Dimension.builder().name(AsgReferenceCopier.DIMENSION_NAME_FOR_ASG).value('asgard-v000').build()
+        ]).period(1).unit('unit1').evaluationPeriods(2).threshold(4.2).comparisonOperator('GreaterThanOrEqualToThreshold').build()
 
     DefaultScalingPolicyCopier.PolicyNameGenerator generator = new DefaultScalingPolicyCopier.PolicyNameGenerator(idGenerator, amazonClientProvider)
 
@@ -138,42 +113,17 @@ class DefaultScalingPolicyCopierSpec extends Specification {
 
     then:
     result.startsWith('asgard-v011-namespace1-metric1-GreaterThanOrEqualToThreshold-4.2-2-1-')
-    1 * sourceCloudWatch.describeAlarms(new DescribeAlarmsRequest(alarmNames: ['alarm1'])) >> new DescribeAlarmsResult(metricAlarms: [
+    1 * sourceCloudWatch.describeAlarms(DescribeAlarmsRequest.builder().alarmNames(['alarm1']).build()) >> DescribeAlarmsResponse.builder().metricAlarms([
       alarm
-    ])
+    ]).build()
   }
 
   void 'generates a valid Scaling Policy Name'() {
     given:
-    ScalingPolicy policy = new ScalingPolicy(
-      policyARN: 'oldPolicyARN1',
-      autoScalingGroupName: 'asgard-v000',
-      policyName: 'policy1',
-      scalingAdjustment: 5,
-      adjustmentType: 'ChangeInCapacity',
-      cooldown: 100,
-      minAdjustmentStep: 2,
-      alarms: [new Alarm(alarmName: 'alarm1')]
-    )
-    MetricAlarm alarm = new MetricAlarm(
-        alarmName: 'alarm1',
-        alarmDescription: 'alarm 1 description',
-        actionsEnabled: true,
-        oKActions: [],
-        alarmActions: ['oldPolicyARN1'],
-        insufficientDataActions: [],
-        metricName: 'Metric1.with-all_acceptable/special#chars:defined',
-        namespace: 'Namespace1.with-all_acceptable/special#chars:defined',
-        statistic: 'statistic1',
-        dimensions: [
-          new Dimension(name: AsgReferenceCopier.DIMENSION_NAME_FOR_ASG, value: 'asgard-v000')
-        ],
-        period: 1,
-        unit: 'unit1',
-        evaluationPeriods: 2,
-        threshold: 4.2,
-        comparisonOperator: 'GreaterThanOrEqualToThreshold'
-      )
+    ScalingPolicy policy = ScalingPolicy.builder().policyARN('oldPolicyARN1').autoScalingGroupName('asgard-v000').policyName('policy1').scalingAdjustment(5).adjustmentType('ChangeInCapacity').cooldown(100).minAdjustmentStep(2).alarms([Alarm.builder().alarmName('alarm1').build()]).build()
+    MetricAlarm alarm = MetricAlarm.builder().alarmName('alarm1').alarmDescription('alarm 1 description').actionsEnabled(true).okActions([]).alarmActions(['oldPolicyARN1']).insufficientDataActions([]).metricName('Metric1.with-all_acceptable/special#chars:defined').namespace('Namespace1.with-all_acceptable/special#chars:defined').statistic('statistic1').dimensions([
+          Dimension.builder().name(AsgReferenceCopier.DIMENSION_NAME_FOR_ASG).value('asgard-v000').build()
+        ]).period(1).unit('unit1').evaluationPeriods(2).threshold(4.2).comparisonOperator('GreaterThanOrEqualToThreshold').build()
 
     DefaultScalingPolicyCopier.PolicyNameGenerator generator = new DefaultScalingPolicyCopier.PolicyNameGenerator(idGenerator, amazonClientProvider)
 
@@ -182,23 +132,14 @@ class DefaultScalingPolicyCopierSpec extends Specification {
 
     then:
     result.startsWith('asgard-v011-Namespace1.with-all_acceptable/special#chars-defined-Metric1.with-all_acceptable/special#chars-defined-GreaterThanOrEqualToThreshold-4.2-2-1-')
-    1 * sourceCloudWatch.describeAlarms(new DescribeAlarmsRequest(alarmNames: ['alarm1'])) >> new DescribeAlarmsResult(metricAlarms: [
+    1 * sourceCloudWatch.describeAlarms(DescribeAlarmsRequest.builder().alarmNames(['alarm1']).build()) >> DescribeAlarmsResponse.builder().metricAlarms([
       alarm
-    ])
+    ]).build()
   }
 
   void 'falls back to asg name replacement when no alarms found'() {
     given:
-    ScalingPolicy policy = new ScalingPolicy(
-      policyARN: 'oldPolicyARN1',
-      autoScalingGroupName: 'asgard-v000',
-      policyName: 'asgard-v010-blah-blah-blah',
-      scalingAdjustment: 5,
-      adjustmentType: 'ChangeInCapacity',
-      cooldown: 100,
-      minAdjustmentStep: 2,
-      alarms: []
-    )
+    ScalingPolicy policy = ScalingPolicy.builder().policyARN('oldPolicyARN1').autoScalingGroupName('asgard-v000').policyName('asgard-v010-blah-blah-blah').scalingAdjustment(5).adjustmentType('ChangeInCapacity').cooldown(100).minAdjustmentStep(2).alarms([]).build()
     DefaultScalingPolicyCopier.PolicyNameGenerator generator = new DefaultScalingPolicyCopier.PolicyNameGenerator(idGenerator, amazonClientProvider)
 
     when:
@@ -213,182 +154,35 @@ class DefaultScalingPolicyCopierSpec extends Specification {
     scalingPolicyCopier.copyScalingPolicies(Mock(Task), 'asgard-v000', 'asgard-v001', sourceCredentials, targetCredentials, 'us-east-1', 'us-west-1')
 
     then:
-    1 * sourceAutoScaling.describePolicies(new DescribePoliciesRequest(autoScalingGroupName: 'asgard-v000')) >>
-      new DescribePoliciesResult(scalingPolicies: [
-        new ScalingPolicy(
-          policyARN: 'oldPolicyARN1',
-          autoScalingGroupName: 'asgard-v000',
-          policyName: 'policy1',
-          scalingAdjustment: 5,
-          adjustmentType: 'ChangeInCapacity',
-          cooldown: 100,
-          minAdjustmentStep: 2,
-          alarms: ['alarm1', 'alarm2'].collect { new Alarm(alarmName: it) }
-        ),
-        new ScalingPolicy(
-          policyARN: 'oldPolicyARN2',
-          autoScalingGroupName: 'asgard-v000',
-          policyName: 'policy2',
-          scalingAdjustment: 10,
-          adjustmentType: 'PercentChangeInCapacity',
-          cooldown: 200,
-          minAdjustmentStep: 3,
-          minAdjustmentMagnitude: 20,
-          metricAggregationType: "Average",
-          estimatedInstanceWarmup: 30,
-          stepAdjustments: [
-            new StepAdjustment(
-              metricIntervalLowerBound: 10.5,
-              metricIntervalUpperBound: 11.5,
-              scalingAdjustment: 90,
-            )
-          ],
-          policyType: "StepScaling",
-          alarms: ['alarm2', 'alarm3'].collect { new Alarm(alarmName: it) }
-        )
-      ]
-      )
-    1 * targetAutoScaling.putScalingPolicy(new PutScalingPolicyRequest(
-      autoScalingGroupName: 'asgard-v001',
-      policyName: newPolicyName,
-      scalingAdjustment: 5,
-      adjustmentType: 'ChangeInCapacity',
-      cooldown: 100,
-      minAdjustmentStep: 2
-    )) >> new PutScalingPolicyResult(policyARN: 'newPolicyARN1')
-    1 * targetAutoScaling.putScalingPolicy(new PutScalingPolicyRequest(
-      autoScalingGroupName: 'asgard-v001',
-      policyName: newPolicyName,
-      scalingAdjustment: 10,
-      adjustmentType: 'PercentChangeInCapacity',
-      cooldown: 200,
-      minAdjustmentStep: 3,
-      minAdjustmentMagnitude: 20,
-      metricAggregationType: "Average",
-      estimatedInstanceWarmup: 30,
-      stepAdjustments: [
-        new StepAdjustment(
-          metricIntervalLowerBound: 10.5,
-          metricIntervalUpperBound: 11.5,
-          scalingAdjustment: 90,
-        )
-      ],
-      policyType: "StepScaling",
-    )) >> new PutScalingPolicyResult(policyARN: 'newPolicyARN2')
+    1 * sourceAutoScaling.describePolicies(DescribePoliciesRequest.builder().autoScalingGroupName('asgard-v000').build()) >>
+      DescribePoliciesResponse.builder().scalingPolicies([
+        ScalingPolicy.builder().policyARN('oldPolicyARN1').autoScalingGroupName('asgard-v000').policyName('policy1').scalingAdjustment(5).adjustmentType('ChangeInCapacity').cooldown(100).minAdjustmentStep(2).alarms(['alarm1', 'alarm2'].collect { Alarm.builder().alarmName(it).build() }).build(),
+        ScalingPolicy.builder().policyARN('oldPolicyARN2').autoScalingGroupName('asgard-v000').policyName('policy2').scalingAdjustment(10).adjustmentType('PercentChangeInCapacity').cooldown(200).minAdjustmentStep(3).minAdjustmentMagnitude(20).metricAggregationType("Average").estimatedInstanceWarmup(30).stepAdjustments([
+            StepAdjustment.builder().metricIntervalLowerBound(10.5).metricIntervalUpperBound(11.5).scalingAdjustment(90).build()
+          ]).policyType("StepScaling").alarms(['alarm2', 'alarm3'].collect { Alarm.builder().alarmName(it).build() }).build()
+      ]).build()
+    1 * targetAutoScaling.putScalingPolicy(PutScalingPolicyRequest.builder().autoScalingGroupName('asgard-v001').policyName(newPolicyName).scalingAdjustment(5).adjustmentType('ChangeInCapacity').cooldown(100).minAdjustmentStep(2).build()) >> PutScalingPolicyResponse.builder().policyARN('newPolicyARN1').build()
+    1 * targetAutoScaling.putScalingPolicy(PutScalingPolicyRequest.builder().autoScalingGroupName('asgard-v001').policyName(newPolicyName).scalingAdjustment(10).adjustmentType('PercentChangeInCapacity').cooldown(200).minAdjustmentStep(3).minAdjustmentMagnitude(20).metricAggregationType("Average").estimatedInstanceWarmup(30).stepAdjustments([
+        StepAdjustment.builder().metricIntervalLowerBound(10.5).metricIntervalUpperBound(11.5).scalingAdjustment(90).build()
+      ]).policyType("StepScaling").build()) >> PutScalingPolicyResponse.builder().policyARN('newPolicyARN2').build()
 
-    1 * sourceCloudWatch.describeAlarms(new DescribeAlarmsRequest(alarmNames: ['alarm1', 'alarm2', 'alarm3'])) >> new DescribeAlarmsResult(metricAlarms: [
-      new MetricAlarm(
-        alarmName: 'alarm1',
-        alarmDescription: 'alarm 1 description',
-        actionsEnabled: true,
-        oKActions: [],
-        alarmActions: ['oldPolicyARN1'],
-        insufficientDataActions: [],
-        metricName: 'metric1',
-        namespace: 'namespace1',
-        statistic: 'statistic1',
-        dimensions: [
-          new Dimension(name: AsgReferenceCopier.DIMENSION_NAME_FOR_ASG, value: 'asgard-v000')
-        ],
-        period: 1,
-        unit: 'unit1',
-        evaluationPeriods: 2,
-        threshold: 4.2,
-        comparisonOperator: 'GreaterThanOrEqualToThreshold'
-      ),
-      new MetricAlarm(
-        alarmName: 'alarm2',
-        alarmDescription: 'alarm 2 description',
-        actionsEnabled: true,
-        oKActions: [],
-        alarmActions: ['oldPolicyARN1', 'oldPolicyARN2', 'action1'],
-        insufficientDataActions: [],
-        metricName: 'metric2',
-        namespace: 'namespace2',
-        statistic: 'statistic2',
-        dimensions: [
-          new Dimension(name: AsgReferenceCopier.DIMENSION_NAME_FOR_ASG, value: 'asgard-v000'),
-          new Dimension(name: 'other', value: 'dimension1')
-        ],
-        period: 10,
-        unit: 'unit2',
-        evaluationPeriods: 20,
-        threshold: 40.2,
-        comparisonOperator: 'LessThanOrEqualToThreshold'
-      ),
-      new MetricAlarm(
-        alarmName: 'alarm3',
-        alarmDescription: 'alarm 3 description',
-        actionsEnabled: false,
-        oKActions: [],
-        alarmActions: [],
-        insufficientDataActions: ['oldPolicyARN2'],
-        metricName: 'metric3',
-        namespace: 'namespace3',
-        statistic: 'statistic3',
-        dimensions: [],
-        period: 31,
-        unit: 'unit3',
-        evaluationPeriods: 32,
-        threshold: 34,
-        comparisonOperator: 'GreaterThanThreshold'
-      ),
-    ])
-    1 * targetCloudWatch.putMetricAlarm(new PutMetricAlarmRequest(
-      alarmName: 'asgard-v001-alarm-1',
-      alarmDescription: 'alarm 1 description',
-      actionsEnabled: true,
-      oKActions: [],
-      alarmActions: ['newPolicyARN1'],
-      insufficientDataActions: [],
-      metricName: 'metric1',
-      namespace: 'namespace1',
-      statistic: 'statistic1',
-      dimensions: [
-        new Dimension(name: AsgReferenceCopier.DIMENSION_NAME_FOR_ASG, value: 'asgard-v001')
-      ],
-      period: 1,
-      unit: 'unit1',
-      evaluationPeriods: 2,
-      threshold: 4.2,
-      comparisonOperator: 'GreaterThanOrEqualToThreshold'
-    ))
-    1 * targetCloudWatch.putMetricAlarm(new PutMetricAlarmRequest(
-      alarmName: 'asgard-v001-alarm-2',
-      alarmDescription: 'alarm 2 description',
-      actionsEnabled: true,
-      oKActions: [],
-      alarmActions: ['action1', 'newPolicyARN1', 'newPolicyARN2'],
-      insufficientDataActions: [],
-      metricName: 'metric2',
-      namespace: 'namespace2',
-      statistic: 'statistic2',
-      dimensions: [
-        new Dimension(name: 'other', value: 'dimension1'),
-        new Dimension(name: AsgReferenceCopier.DIMENSION_NAME_FOR_ASG, value: 'asgard-v001')
-      ],
-      period: 10,
-      unit: 'unit2',
-      evaluationPeriods: 20,
-      threshold: 40.2,
-      comparisonOperator: 'LessThanOrEqualToThreshold'
-    ))
-    1 * targetCloudWatch.putMetricAlarm(new PutMetricAlarmRequest(
-      alarmName: 'asgard-v001-alarm-3',
-      alarmDescription: 'alarm 3 description',
-      actionsEnabled: false,
-      oKActions: [],
-      alarmActions: [],
-      insufficientDataActions: ['newPolicyARN2'],
-      metricName: 'metric3',
-      namespace: 'namespace3',
-      statistic: 'statistic3',
-      dimensions: [],
-      period: 31,
-      unit: 'unit3',
-      evaluationPeriods: 32,
-      threshold: 34,
-      comparisonOperator: 'GreaterThanThreshold'
-    ))
+    1 * sourceCloudWatch.describeAlarms(DescribeAlarmsRequest.builder().alarmNames(['alarm1', 'alarm2', 'alarm3']).build()) >> DescribeAlarmsResponse.builder().metricAlarms([
+      MetricAlarm.builder().alarmName('alarm1').alarmDescription('alarm 1 description').actionsEnabled(true).okActions([]).alarmActions(['oldPolicyARN1']).insufficientDataActions([]).metricName('metric1').namespace('namespace1').statistic('statistic1').dimensions([
+          Dimension.builder().name(AsgReferenceCopier.DIMENSION_NAME_FOR_ASG).value('asgard-v000').build()
+        ]).period(1).unit('unit1').evaluationPeriods(2).threshold(4.2).comparisonOperator('GreaterThanOrEqualToThreshold').build(),
+      MetricAlarm.builder().alarmName('alarm2').alarmDescription('alarm 2 description').actionsEnabled(true).okActions([]).alarmActions(['oldPolicyARN1', 'oldPolicyARN2', 'action1']).insufficientDataActions([]).metricName('metric2').namespace('namespace2').statistic('statistic2').dimensions([
+          Dimension.builder().name(AsgReferenceCopier.DIMENSION_NAME_FOR_ASG).value('asgard-v000').build(),
+          Dimension.builder().name('other').value('dimension1').build()
+        ]).period(10).unit('unit2').evaluationPeriods(20).threshold(40.2).comparisonOperator('LessThanOrEqualToThreshold').build(),
+      MetricAlarm.builder().alarmName('alarm3').alarmDescription('alarm 3 description').actionsEnabled(false).okActions([]).alarmActions([]).insufficientDataActions(['oldPolicyARN2']).metricName('metric3').namespace('namespace3').statistic('statistic3').dimensions([]).period(31).unit('unit3').evaluationPeriods(32).threshold(34).comparisonOperator('GreaterThanThreshold').build(),
+    ]).build()
+    1 * targetCloudWatch.putMetricAlarm(PutMetricAlarmRequest.builder().alarmName('asgard-v001-alarm-1').alarmDescription('alarm 1 description').actionsEnabled(true).okActions([]).alarmActions(['newPolicyARN1']).insufficientDataActions([]).metricName('metric1').namespace('namespace1').statistic('statistic1').dimensions([
+        Dimension.builder().name(AsgReferenceCopier.DIMENSION_NAME_FOR_ASG).value('asgard-v001').build()
+      ]).period(1).unit('unit1').evaluationPeriods(2).threshold(4.2).comparisonOperator('GreaterThanOrEqualToThreshold').build())
+    1 * targetCloudWatch.putMetricAlarm(PutMetricAlarmRequest.builder().alarmName('asgard-v001-alarm-2').alarmDescription('alarm 2 description').actionsEnabled(true).okActions([]).alarmActions(['action1', 'newPolicyARN1', 'newPolicyARN2']).insufficientDataActions([]).metricName('metric2').namespace('namespace2').statistic('statistic2').dimensions([
+        Dimension.builder().name('other').value('dimension1').build(),
+        Dimension.builder().name(AsgReferenceCopier.DIMENSION_NAME_FOR_ASG).value('asgard-v001').build()
+      ]).period(10).unit('unit2').evaluationPeriods(20).threshold(40.2).comparisonOperator('LessThanOrEqualToThreshold').build())
+    1 * targetCloudWatch.putMetricAlarm(PutMetricAlarmRequest.builder().alarmName('asgard-v001-alarm-3').alarmDescription('alarm 3 description').actionsEnabled(false).okActions([]).alarmActions([]).insufficientDataActions(['newPolicyARN2']).metricName('metric3').namespace('namespace3').statistic('statistic3').dimensions([]).period(31).unit('unit3').evaluationPeriods(32).threshold(34).comparisonOperator('GreaterThanThreshold').build())
   }
 }

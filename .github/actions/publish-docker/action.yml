@@ -26,6 +26,9 @@ inputs:
   gar-json-key:
     description: Google Artifact Registry JSON key
     required: true
+  generate-sbom:
+    description: Whether to attach a buildx-generated SBOM attestation to the published container images
+    default: 'false'
 
 runs:
   using: "composite"
@@ -61,8 +64,17 @@ runs:
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
       with:
-        ## Temporary due to bug in qemu:  https://github.com/docker/setup-qemu-action/issues/198
-        image: tonistiigi/binfmt:qemu-v7.0.0-28
+        ## Pinned to a specific tonistiigi/binfmt release rather than `latest`, which is stale by ~2 years:
+        ## https://github.com/tonistiigi/binfmt/issues/165#issuecomment-1996882334
+        ##
+        ## v10.2.3 fixes both:
+        ## - the segfault that qemu-v7.0.0-28 was previously pinned to work around
+        ##   (docker/setup-qemu-action#198, tonistiigi/binfmt#316, fixed upstream in QEMU 10.2.3/10.0.10:
+        ##   https://github.com/qemu/qemu/commit/3b68c2db2392eadfa89c64647e96a69d8490477a)
+        ## - GNU tar (patched for CVE-2025-45582) failing to extract under emulation with
+        ##   "Cannot open: Function not implemented", since it now uses openat2(), which QEMU only gained
+        ##   support for in 9.2 (tonistiigi/binfmt#285, tonistiigi/binfmt#287)
+        image: tonistiigi/binfmt:qemu-v10.2.3-68
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
@@ -81,6 +93,7 @@ runs:
         file: ${{ inputs.project }}/Dockerfile
         platforms: linux/amd64,linux/arm64
         push: ${{ inputs.push == 'true' }}
+        sbom: ${{ inputs.generate-sbom == 'true' }}
         build-args: ${{ inputs.build-args }}
         secrets: |
           github_token=${{ inputs.github-token }}
@@ -95,6 +108,28 @@ runs:
           "org.opencontainers.image.version=${{ inputs.version }}"
           "io.spinnaker.ci-build=${{ inputs.build-url }}"
 
+    - name: Extract standard image SBOM
+      if: env.has-standard == 'true' && inputs.push == 'true' && inputs.generate-sbom == 'true'
+      shell: bash
+      run: |
+        docker buildx imagetools inspect "ghcr.io/spinnaker/${{ inputs.project }}@${{ steps.docker-standard.outputs.digest }}" --format '{{json .SBOM.SPDX}}' > ${{ inputs.project }}-standard-image-sbom.spdx.json
+
+    - name: Attest standard image app SBOM
+      if: env.has-standard == 'true' && inputs.push == 'true' && inputs.generate-sbom == 'true'
+      uses: actions/attest-sbom@v1
+      with:
+        subject-name: ghcr.io/spinnaker/${{ inputs.project }}
+        subject-digest: ${{ steps.docker-standard.outputs.digest }}
+        sbom-path: ${{ inputs.project }}/build/reports/cyclonedx/${{ inputs.project }}-app-sbom.cdx.json
+
+    - name: Attest standard image OS-layer SBOM
+      if: env.has-standard == 'true' && inputs.push == 'true' && inputs.generate-sbom == 'true'
+      uses: actions/attest-sbom@v1
+      with:
+        subject-name: ghcr.io/spinnaker/${{ inputs.project }}
+        subject-digest: ${{ steps.docker-standard.outputs.digest }}
+        sbom-path: ${{ inputs.project }}-standard-image-sbom.spdx.json
+
     - name: Build and publish slim container image
       if: env.has-slim == 'true'
       uses: docker/build-push-action@v6
@@ -107,6 +142,7 @@ runs:
         file: ${{ inputs.project }}/Dockerfile.slim
         platforms: linux/amd64,linux/arm64
         push: ${{ inputs.push == 'true' }}
+        sbom: ${{ inputs.generate-sbom == 'true' }}
         build-args: ${{ inputs.build-args }}
         secrets: |
           github_token=${{ inputs.github-token }}
@@ -122,6 +158,28 @@ runs:
           "org.opencontainers.image.version=${{ inputs.version }}"
           "io.spinnaker.ci-build=${{ inputs.build-url }}"
 
+    - name: Extract slim image SBOM
+      if: env.has-slim == 'true' && inputs.push == 'true' && inputs.generate-sbom == 'true'
+      shell: bash
+      run: |
+        docker buildx imagetools inspect "ghcr.io/spinnaker/${{ inputs.project }}@${{ steps.docker-slim.outputs.digest }}" --format '{{json .SBOM.SPDX}}' > ${{ inputs.project }}-slim-image-sbom.spdx.json
+
+    - name: Attest slim image app SBOM
+      if: env.has-slim == 'true' && inputs.push == 'true' && inputs.generate-sbom == 'true'
+      uses: actions/attest-sbom@v1
+      with:
+        subject-name: ghcr.io/spinnaker/${{ inputs.project }}
+        subject-digest: ${{ steps.docker-slim.outputs.digest }}
+        sbom-path: ${{ inputs.project }}/build/reports/cyclonedx/${{ inputs.project }}-app-sbom.cdx.json
+
+    - name: Attest slim image OS-layer SBOM
+      if: env.has-slim == 'true' && inputs.push == 'true' && inputs.generate-sbom == 'true'
+      uses: actions/attest-sbom@v1
+      with:
+        subject-name: ghcr.io/spinnaker/${{ inputs.project }}
+        subject-digest: ${{ steps.docker-slim.outputs.digest }}
+        sbom-path: ${{ inputs.project }}-slim-image-sbom.spdx.json
+
     - name: Build and publish ubuntu container image
       if: env.has-ubuntu == 'true'
       uses: docker/build-push-action@v6
@@ -134,6 +192,7 @@ runs:
         file: ${{ inputs.project }}/Dockerfile.ubuntu
         platforms: linux/amd64,linux/arm64
         push: ${{ inputs.push == 'true' }}
+        sbom: ${{ inputs.generate-sbom == 'true' }}
         build-args: ${{ inputs.build-args }}
         secrets: |
           github_token=${{ inputs.github-token }}
@@ -146,6 +205,36 @@ runs:
           "org.opencontainers.image.revision=${{ github.sha }}"
           "org.opencontainers.image.version=${{ inputs.version }}"
           "io.spinnaker.ci-build=${{ inputs.build-url }}"
+
+    - name: Extract ubuntu image SBOM
+      if: env.has-ubuntu == 'true' && inputs.push == 'true' && inputs.generate-sbom == 'true'
+      shell: bash
+      run: |
+        docker buildx imagetools inspect "ghcr.io/spinnaker/${{ inputs.project }}@${{ steps.docker-ubuntu.outputs.digest }}" --format '{{json .SBOM.SPDX}}' > ${{ inputs.project }}-ubuntu-image-sbom.spdx.json
+
+    - name: Attest ubuntu image app SBOM
+      if: env.has-ubuntu == 'true' && inputs.push == 'true' && inputs.generate-sbom == 'true'
+      uses: actions/attest-sbom@v1
+      with:
+        subject-name: ghcr.io/spinnaker/${{ inputs.project }}
+        subject-digest: ${{ steps.docker-ubuntu.outputs.digest }}
+        sbom-path: ${{ inputs.project }}/build/reports/cyclonedx/${{ inputs.project }}-app-sbom.cdx.json
+
+    - name: Attest ubuntu image OS-layer SBOM
+      if: env.has-ubuntu == 'true' && inputs.push == 'true' && inputs.generate-sbom == 'true'
+      uses: actions/attest-sbom@v1
+      with:
+        subject-name: ghcr.io/spinnaker/${{ inputs.project }}
+        subject-digest: ${{ steps.docker-ubuntu.outputs.digest }}
+        sbom-path: ${{ inputs.project }}-ubuntu-image-sbom.spdx.json
+
+    - name: Upload image SBOM artifacts
+      if: inputs.generate-sbom == 'true' && inputs.push == 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: image-sbom-${{ inputs.project }}-${{ inputs.version }}
+        path: ${{ inputs.project }}-*-image-sbom.spdx.json
+        if-no-files-found: ignore
 
     - name: Summarize
       shell: bash

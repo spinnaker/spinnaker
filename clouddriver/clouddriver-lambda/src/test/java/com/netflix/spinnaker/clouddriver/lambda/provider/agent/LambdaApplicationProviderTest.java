@@ -141,6 +141,10 @@ public class LambdaApplicationProviderTest {
     assertThat(app.getAttributes()).containsEntry("region", "us-west-2");
     assertThat(app.getAttributes()).containsEntry("accountId", "123456789");
     assertThat(app.getAttributes()).containsEntry("count", "42");
+
+    // Application.getClusterNames() must never be null (see @Empty on Application#getClusterNames),
+    // since callers like ClusterController.mergeClusters() call .entrySet() on it unconditionally.
+    assertThat(app.getClusterNames()).isNotNull().isEmpty();
   }
 
   @Test

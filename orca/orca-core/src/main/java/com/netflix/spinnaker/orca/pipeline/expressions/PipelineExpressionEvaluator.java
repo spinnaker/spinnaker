@@ -134,6 +134,7 @@ public class PipelineExpressionEvaluator {
   private final ExpressionParser parser;
   private final ParserContext parserContext = new TemplateParserContext("${", "}");
   private final ExpressionsSupport support;
+  private final boolean dashedIdentifierSupportEnabled;
 
   @Getter private final Set<String> executionAwareFunctions = new HashSet<String>();
 
@@ -154,6 +155,7 @@ public class PipelineExpressionEvaluator {
                 ? new SpelParserConfiguration(
                     null, null, false, false, 0, expressionProperties.getMaxExpressionLength())
                 : new SpelParserConfiguration());
+    this.dashedIdentifierSupportEnabled = expressionProperties.getDashedIdentifiers().isEnabled();
   }
 
   public Map<String, Object> evaluate(
@@ -164,7 +166,11 @@ public class PipelineExpressionEvaluator {
     StandardEvaluationContext evaluationContext =
         support.buildEvaluationContext(rootObject, allowUnknownKeys);
     return new ExpressionTransform(
-            parserContext, parser, includeExecutionParameter, ExecutionStatus.class)
+            parserContext,
+            parser,
+            includeExecutionParameter,
+            dashedIdentifierSupportEnabled,
+            ExecutionStatus.class)
         .transformMap(source, evaluationContext, summary);
   }
 

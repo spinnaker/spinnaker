@@ -16,10 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.services;
 
-import com.amazonaws.services.ec2.model.Instance;
-import com.amazonaws.services.ecs.model.ContainerDefinition;
-import com.amazonaws.services.ecs.model.LoadBalancer;
-import com.amazonaws.services.ecs.model.TaskDefinition;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.ContainerInstanceCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.EcsInstanceCacheClient;
@@ -42,7 +38,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import software.amazon.awssdk.services.ec2.model.Instance;
+import software.amazon.awssdk.services.ecs.model.ContainerDefinition;
+import software.amazon.awssdk.services.ecs.model.LoadBalancer;
 import software.amazon.awssdk.services.ecs.model.NetworkBinding;
+import software.amazon.awssdk.services.ecs.model.TaskDefinition;
 
 @Component
 public class ContainerInformationService {
@@ -114,7 +114,7 @@ public class ContainerInformationService {
         LoadBalancer loadBalancer = service.getLoadBalancers().stream().findFirst().orElse(null);
         if (loadBalancer != null) {
           String targetGroupKey =
-              Keys.getTargetHealthKey(accountName, region, loadBalancer.getTargetGroupArn());
+              Keys.getTargetHealthKey(accountName, region, loadBalancer.targetGroupArn());
           targetHealth = targetHealthCacheClient.get(targetGroupKey);
         }
       }
@@ -140,9 +140,9 @@ public class ContainerInformationService {
       TaskDefinition taskDefinition = taskDefinitionCacheClient.get(taskDefinitionCacheKey);
 
       if (taskDefinition != null) {
-        for (ContainerDefinition containerDefinition : taskDefinition.getContainerDefinitions()) {
-          if (containerDefinition.getHealthCheck() != null
-              && containerDefinition.getHealthCheck().getCommand() != null) {
+        for (ContainerDefinition containerDefinition : taskDefinition.containerDefinitions()) {
+          if (containerDefinition.healthCheck() != null
+              && containerDefinition.healthCheck().command() != null) {
             return true;
           }
         }
@@ -244,7 +244,7 @@ public class ContainerInformationService {
       return null;
     }
 
-    String hostPrivateIpAddress = instance.getPrivateIpAddress();
+    String hostPrivateIpAddress = instance.privateIpAddress();
     if (hostPrivateIpAddress == null || hostPrivateIpAddress.isEmpty()) {
       return null;
     }
@@ -254,8 +254,8 @@ public class ContainerInformationService {
 
   public String getTaskZone(String accountName, String region, Task task) {
     Instance ec2Instance = getEc2Instance(accountName, region, task);
-    if (ec2Instance != null && ec2Instance.getPlacement() != null) {
-      return ec2Instance.getPlacement().getAvailabilityZone();
+    if (ec2Instance != null && ec2Instance.placement() != null) {
+      return ec2Instance.placement().availabilityZone();
     }
 
     // TODO for tasks not placed on an instance (e.g. Fargate), determine the zone from the network

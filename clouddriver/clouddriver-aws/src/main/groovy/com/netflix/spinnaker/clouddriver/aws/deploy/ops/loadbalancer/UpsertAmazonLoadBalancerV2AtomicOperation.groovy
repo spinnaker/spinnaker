@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer
 
-import com.amazonaws.AmazonServiceException
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeLoadBalancersRequest
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeLoadBalancersResult
-import com.amazonaws.services.elasticloadbalancingv2.model.LoadBalancer
-import com.amazonaws.services.shield.AWSShield
-import com.amazonaws.services.shield.model.CreateProtectionRequest
+import software.amazon.awssdk.awscore.exception.AwsServiceException
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeLoadBalancersRequest
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeLoadBalancersResponse
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.LoadBalancer
+import software.amazon.awssdk.services.shield.ShieldClient
+import software.amazon.awssdk.services.shield.model.CreateProtectionRequest
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerDescription
@@ -89,7 +89,7 @@ class UpsertAmazonLoadBalancerV2AtomicOperation implements AtomicOperation<Upser
 
       task.updateStatus BASE_PHASE, "Beginning deployment to $region in $availabilityZones for $loadBalancerName"
 
-      def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancingV2(description.credentials, region, true)
+      def loadBalancing = amazonClientProvider.getElasticLoadBalancingV2Client(description.credentials, region)
 
       // Set up security groups
       def securityGroups = regionScopedProvider.securityGroupService.
@@ -98,9 +98,9 @@ class UpsertAmazonLoadBalancerV2AtomicOperation implements AtomicOperation<Upser
       // Check if load balancer already exists
       LoadBalancer loadBalancer
       try {
-        DescribeLoadBalancersResult result = loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(names: [loadBalancerName]))
-        loadBalancer = result.loadBalancers.size() > 0 ? result.loadBalancers.get(0) : null
-      } catch (AmazonServiceException ignore) {
+        DescribeLoadBalancersResponse result = loadBalancing.describeLoadBalancers(DescribeLoadBalancersRequest.builder().names([loadBalancerName]).build())
+        loadBalancer = result.loadBalancers().size() > 0 ? result.loadBalancers().get(0) : null
+      } catch (AwsServiceException ignore) {
       }
 
       // Create/Update load balancer
@@ -114,18 +114,19 @@ class UpsertAmazonLoadBalancerV2AtomicOperation implements AtomicOperation<Upser
         }
         handleSecurityGroupIngress(region, securityGroups)
         loadBalancer = LoadBalancerV2UpsertHandler.createLoadBalancer(loadBalancing, loadBalancerName, isInternal, subnetIds, securityGroups, description.targetGroups, description.listeners, deployDefaults, description.loadBalancerType.toString(), description.idleTimeout, description.deletionProtection, !!description.loadBalancingCrossZone, description.ipAddressType)
-        dnsName = loadBalancer.DNSName
+        dnsName = loadBalancer.dnsName()
 
         // Enable AWS shield. We only do this on creation. The ELB must be external, the account must be enabled with
         // AWS Shield Protection and the description must not opt out of protection.
         if (!description.isInternal && description.credentials.shieldEnabled && description.shieldProtectionEnabled) {
           task.updateStatus BASE_PHASE, "Configuring AWS Shield for ${loadBalancerName} in ${region}..."
           try {
-            AWSShield shieldClient = amazonClientProvider.getAmazonShield(description.credentials, region)
+            ShieldClient shieldClient = amazonClientProvider.getAmazonShieldV2(description.credentials, region)
             shieldClient.createProtection(
-              new CreateProtectionRequest()
-                .withName(loadBalancerName)
-                .withResourceArn(loadBalancer.getLoadBalancerArn())
+              CreateProtectionRequest.builder()
+                .name(loadBalancerName)
+                .resourceArn(loadBalancer.loadBalancerArn())
+                .build()
             )
             task.updateStatus BASE_PHASE, "AWS Shield configured for ${loadBalancerName} in ${region}."
           } catch (Exception e) {
@@ -135,7 +136,7 @@ class UpsertAmazonLoadBalancerV2AtomicOperation implements AtomicOperation<Upser
         }
       } else {
         task.updateStatus BASE_PHASE, "Found existing load balancer named ${loadBalancerName} in ${region}... Using that."
-        dnsName = loadBalancer.DNSName
+        dnsName = loadBalancer.dnsName()
         LoadBalancerV2UpsertHandler.updateLoadBalancer(loadBalancing, loadBalancer, securityGroups, description.targetGroups, description.listeners, deployDefaults, description.idleTimeout, description.deletionProtection, description.loadBalancingCrossZone, description.ipAddressType)
       }
 

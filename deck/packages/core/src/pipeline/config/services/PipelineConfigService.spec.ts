@@ -145,6 +145,25 @@ describe('PipelineConfigService', () => {
     });
   });
 
+  describe('getAllPipelineConfigs', () => {
+    it('loads all pipeline configs visible to the current user', async () => {
+      const http = mockHttpClient();
+      const fromServer = [
+        buildPipeline({
+          id: 'payments-deploy',
+          application: 'payments',
+          tags: [{ name: 'project', value: 'commerce' }],
+        }),
+      ];
+      http.expectGET('/pipelineConfigs').respond(200, fromServer);
+
+      const request = PipelineConfigService.getAllPipelineConfigs();
+      await http.flush();
+
+      expect(await request).toEqual(fromServer);
+    });
+  });
+
   describe('stage dependencies', () => {
     let a: IStage, b: IStage, c: IStage, d: IStage;
     let pipeline: IPipeline;

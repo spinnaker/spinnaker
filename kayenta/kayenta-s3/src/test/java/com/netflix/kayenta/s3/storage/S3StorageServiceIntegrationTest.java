@@ -34,7 +34,7 @@ import java.util.Map;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.MinIOContainer;
+import org.ministack.testcontainers.MiniStackContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -47,12 +47,19 @@ import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 @Testcontainers
 class S3StorageServiceIntegrationTest {
 
-  private static final String MINIO_IMAGE = "minio/minio:RELEASE.2023-09-04T19-57-37Z";
+  /**
+   * Pinned deliberately: {@code MiniStackContainer}'s no-arg constructor resolves {@code latest},
+   * and the emulator releases weekly, so the tag is the only thing that fixes the version these
+   * tests run against.
+   */
+  private static final String MINISTACK_IMAGE_TAG = "1.5.10";
+
   private static final String ACCOUNT_NAME = "test-account";
   private static final String BUCKET = "kayenta-test";
   private static final String ROOT_FOLDER = "kayenta";
 
-  @Container static final MinIOContainer minio = new MinIOContainer(MINIO_IMAGE);
+  @Container
+  static final MiniStackContainer ministack = new MiniStackContainer(MINISTACK_IMAGE_TAG);
 
   private static S3Client s3Client;
   private static ObjectMapper objectMapper;
@@ -64,11 +71,11 @@ class S3StorageServiceIntegrationTest {
   static void setUpOnce() {
     s3Client =
         S3Client.builder()
-            .endpointOverride(URI.create(minio.getS3URL()))
+            .endpointOverride(URI.create(ministack.getEndpoint()))
             .credentialsProvider(
                 StaticCredentialsProvider.create(
-                    AwsBasicCredentials.create(minio.getUserName(), minio.getPassword())))
-            .region(Region.US_EAST_1)
+                    AwsBasicCredentials.create(ministack.getAccessKey(), ministack.getSecretKey())))
+            .region(Region.of(ministack.getRegion()))
             .serviceConfiguration(S3Configuration.builder().pathStyleAccessEnabled(true).build())
             .build();
 

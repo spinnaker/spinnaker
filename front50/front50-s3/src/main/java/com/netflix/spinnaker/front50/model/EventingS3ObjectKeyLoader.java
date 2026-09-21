@@ -33,6 +33,7 @@ import jakarta.annotation.PreDestroy;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -42,7 +43,6 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.sqs.model.Message;
@@ -215,16 +215,16 @@ public class EventingS3ObjectKeyLoader implements ObjectKeyLoader, Runnable {
 
           String eventType = record.eventName;
           KeyWithObjectType keyWithObjectType = buildObjectKey(rootFolder, record.s3.object.key);
-          DateTime eventTime = new DateTime(record.eventTime);
+          long eventTimeMillis = Instant.parse(record.eventTime).toEpochMilli();
 
           log.debug(
               "Received Event (objectType: {}, type: {}, key: {}, delta: {})",
               value("objectType", keyWithObjectType.objectType),
               value("type", eventType),
               value("key", keyWithObjectType.key),
-              value("delta", System.currentTimeMillis() - eventTime.getMillis()));
+              value("delta", System.currentTimeMillis() - eventTimeMillis));
 
-          objectKeysByLastModifiedCache.put(keyWithObjectType, eventTime.getMillis());
+          objectKeysByLastModifiedCache.put(keyWithObjectType, eventTimeMillis);
         });
   }
 
