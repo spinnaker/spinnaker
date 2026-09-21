@@ -38,8 +38,6 @@ import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor
 import okhttp3.OkHttpClient
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
-import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
-import org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration
 import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
@@ -102,6 +100,7 @@ class FunctionalSpec extends Specification {
     clouddriverService = Mock(ClouddriverService)
     clouddriverServiceSelector = Mock(ClouddriverServiceSelector)
     orcaService = Mock(OrcaService)
+    front50Service = Mock(Front50Service)
     credentialsService = Mock(CredentialsService)
     accountLookupService = Mock(AccountLookupService)
     pipelineService = Mock(PipelineService)
@@ -190,7 +189,7 @@ class FunctionalSpec extends Specification {
 
   @Order(10)
   @Import(ErrorConfiguration)
-  @EnableAutoConfiguration(exclude = [GroovyTemplateAutoConfiguration, GsonAutoConfiguration])
+  @EnableAutoConfiguration
   private static class FunctionalConfiguration{
 
     @Bean
@@ -300,7 +299,7 @@ class FunctionalSpec extends Specification {
     @Bean
     SecurityFilterChain configure(HttpSecurity http) throws Exception {
       return http
-        .csrf().disable()
+        .csrf { it.disable() }
         .authorizeHttpRequests(
           (authz) -> authz.requestMatchers("/**").permitAll())
         .build()
