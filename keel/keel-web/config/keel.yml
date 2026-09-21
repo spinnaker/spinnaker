@@ -1,6 +1,12 @@
 spinnaker:
   baseUrl: www.spinnaker.com # the user facing url for deck goes her for creating contextual links
 
+spring:
+  # Keel's API serializers and mixins currently use Jackson 2.
+  http:
+    converters:
+      preferred-json-mapper: jackson2
+
 eureka:
   enabled: false
 

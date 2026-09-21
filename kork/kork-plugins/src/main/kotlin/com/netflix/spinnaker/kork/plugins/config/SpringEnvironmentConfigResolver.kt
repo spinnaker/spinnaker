@@ -93,7 +93,9 @@ class SpringEnvironmentConfigResolver(
 
     val tree = mapper.valueToTree<ObjectNode>(propertySourcesAsMap()).at(pointer)
 
-    if (tree is MissingNode) {
+    // Boot 4 binds empty YAML maps (e.g. `repositories: {}`) as empty-string
+    // properties where Boot 3 dropped them entirely; treat both as missing.
+    if (tree is MissingNode || (tree.isTextual && tree.asText().isEmpty())) {
       log.debug("Missing configuration for '$coordinates': Loading default")
       return missingCallback()
     }
