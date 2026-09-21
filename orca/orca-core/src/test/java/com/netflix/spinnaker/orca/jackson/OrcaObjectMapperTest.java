@@ -21,7 +21,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.Trigger;
-
 import com.netflix.spinnaker.orca.config.JacksonParserProperties;
 import com.netflix.spinnaker.orca.pipeline.model.DefaultTrigger;
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl;
@@ -135,5 +134,4 @@ class OrcaObjectMapperTest {
     assertThat(mapper.readValue("404", HttpStatusCode.class).value()).isEqualTo(404);
     assertThat(mapper.readValue("\"500\"", HttpStatusCode.class).value()).isEqualTo(500);
   }
-
 }

@@ -28,7 +28,6 @@ import tools.jackson.databind.ValueSerializer;
 import tools.jackson.databind.ser.jdk.StringSerializer;
 import tools.jackson.databind.ser.std.StdScalarSerializer;
 
-
 /**
  * Sensitive string serializer for Jackson. Used to help prevent accidental leakage of sensitive
  * secrets. Properties annotated with {@link Sensitive} or having a likely-sensitive property name

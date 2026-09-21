@@ -26,7 +26,6 @@ import static tools.jackson.databind.cfg.DateTimeFeature.WRITE_DATES_AS_TIMESTAM
 import static tools.jackson.databind.cfg.DateTimeFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS;
 import static tools.jackson.databind.cfg.EnumFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE;
 
-
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
@@ -101,7 +100,6 @@ public class OrcaObjectMapper {
             .disable(USE_GETTERS_AS_SETTERS)
             .enable(ALLOW_FINAL_FIELDS_AS_MUTATORS)
             .changeDefaultPropertyInclusion(value -> value.withValueInclusion(NON_NULL));
-
 
     // Jackson cannot deserialize an interface. For interfaces defined by orca-api, we need to tell
     // Jackson the singular class that implement these interfaces.

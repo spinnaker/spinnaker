@@ -20,7 +20,6 @@ import org.springframework.boot.jackson.autoconfigure.JsonFactoryBuilderCustomiz
 import tools.jackson.core.StreamReadConstraints;
 import tools.jackson.core.json.JsonFactoryBuilder;
 
-
 /**
  * Customizes every Spring Boot {@code ObjectMapper} with relaxed {@link StreamReadConstraints} to
  * avoid deserialization failures on large JSON payloads that exceed Jackson 2.15+ defaults.

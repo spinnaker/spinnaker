@@ -22,7 +22,6 @@ import org.springframework.context.annotation.Configuration;
 /**
  * Spring Boot configuration that registers the AWS SDK v2 Jackson 3 module as a bean. Any Jackson 3
  * mapper auto-configured by Spring Boot will pick this module up automatically.
-
  */
 @Configuration
 public class AwsSdkV2JacksonConfiguration {
