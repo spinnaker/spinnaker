@@ -14,7 +14,9 @@ ext {
     // Groovy 4 line Boot 3 used while staying off Boot 4.1's Groovy 5.0.8,
     // which Spock 2.4 does not support. Enforced via strictly below.
     groovy           : "4.0.29",
-    jsch             : "0.1.54",
+    jsch             : "2.28.7",
+    // agentproxy artifacts are only published under com.jcraft (project
+    // ymnk/jsch-agent-proxy); the com.github.mwiede fork provides jsch only.
     jschAgentProxy   : "0.0.9",
     log4j            : "2.26.1", // CVEs regularly released, so patch override spring as needed
     log4jKotlin      : "1.5.0",
@@ -109,8 +111,7 @@ dependencies {
     api("com.google.code.findbugs:jsr305:3.0.2")
     api("com.google.guava:guava:33.7.1-jre")
     api("com.hubspot.jinjava:jinjava:2.8.3") // fixes CVE-2026-25526
-    //TODO:  jsch moved to com.github.mwiede/jsch
-    api("com.jcraft:jsch:${versions.jsch}")
+    api("com.github.mwiede:jsch:${versions.jsch}")
     api("org.elasticsearch:elasticsearch:${versions.elasticsearch}")
     api("com.jcraft:jsch.agentproxy.connector-factory:${versions.jschAgentProxy}")
     api("com.jcraft:jsch.agentproxy.jsch:${versions.jschAgentProxy}")
@@ -164,7 +165,13 @@ dependencies {
     api("io.swagger.core.v3:swagger-annotations:${versions.swagger}")
     api("io.swagger.core.v3:swagger-core:${versions.swagger}")
     api("javax.xml.bind:jaxb-api:2.3.1")
-    api("net.logstash.logback:logstash-logback-encoder:4.11")
+    // Upgraded from the long-stale 4.11 pin. 9.0 needs a Java 17+ baseline (we run
+    // Java 25), logback 1.5.x (we pin ${versions.logback}), and Jackson 3
+    // (tools.jackson:* 3.0.x). Spring Boot 4.1.1 manages tools.jackson via jackson-bom
+    // 3.1.5, and kork already consumes tools.jackson.core:jackson-databind (kork-web,
+    // kork-aws, kork-secrets-api) alongside the legacy com.fasterxml.jackson 2.x line
+    // (managed via jackson-2-bom 2.21.5), so the Jackson 3 dependency resolves cleanly.
+    api("net.logstash.logback:logstash-logback-encoder:9.0")
     // No official logback BOM exists (qos-ch/logback removed logback-bom in 2017; the
     // internal logback-parent reactor POM is not documented/published for external
     // consumers to import as a platform), so we keep pinning these two explicitly.
