@@ -19,7 +19,7 @@ export function ManifestStatus({ account, manifest }: IManifestStatusProps) {
   return (
     <>
       <dl className="manifest-status" key="manifest-status">
-        <dt>{manifest.manifest.kind}</dt>
+        <dt>{`${manifest.manifest.kind} ${manifest.manifest.metadata.name}`}</dt>
         <dd>
           <CopyToClipboard
             displayText={true}
