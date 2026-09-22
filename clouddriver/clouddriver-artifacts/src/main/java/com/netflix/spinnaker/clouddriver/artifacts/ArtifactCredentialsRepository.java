@@ -36,12 +36,11 @@ public class ArtifactCredentialsRepository
   }
 
   /**
-   * The single choke point shared by the HTTP fetch endpoint and in-process atomic operations
-   * (e.g. cloud-provider deploy converters) that resolve artifact credentials by account name --
-   * enforced here, rather than only at HTTP controller boundaries, so a new caller can't
-   * accidentally bypass authorization the way {@code
-   * DeployCloudFoundryServerGroupAtomicOperationConverter} used to by calling {@code
-   * getFirstCredentialsWithName} directly.
+   * The single choke point shared by the HTTP fetch endpoint and in-process atomic operations (e.g.
+   * cloud-provider deploy converters) that resolve artifact credentials by account name -- enforced
+   * here, rather than only at HTTP controller boundaries, so a new caller can't accidentally bypass
+   * authorization the way {@code DeployCloudFoundryServerGroupAtomicOperationConverter} used to by
+   * calling {@code getFirstCredentialsWithName} directly.
    */
   @PreAuthorize("hasPermission(#name, 'artifact_account', 'WRITE')")
   public ArtifactCredentials getCredentialsForType(String name, String artifactType) {

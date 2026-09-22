@@ -76,9 +76,9 @@ public class ArtifactController {
 
   /**
    * Unfiltered account listing consumed by Fiat's {@code ArtifactAccountResourceProvider} to sync
-   * artifact accounts as a Fiat resource type, the same way cloud-provider accounts are synced
-   * from the unfiltered {@code /credentials} endpoint. Not intended for end-user callers -- use
-   * {@link #list()} for that.
+   * artifact accounts as a Fiat resource type, the same way cloud-provider accounts are synced from
+   * the unfiltered {@code /credentials} endpoint. Not intended for end-user callers -- use {@link
+   * #list()} for that.
    */
   @RequestMapping(method = RequestMethod.GET, value = "/credentials/all")
   List<ArtifactCredentials> listAll() {
