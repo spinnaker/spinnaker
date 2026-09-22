@@ -119,7 +119,6 @@ class OrcaExecutionStagesDeserializer : StdNodeBasedDeserializer<OrcaExecutionSt
 
 class ExecutionDetailResponseDeserializer : StdNodeBasedDeserializer<ExecutionDetailResponse>(ExecutionDetailResponse::class.java) {
   private val stageListType = object : TypeReference<List<Map<String, Any>>>() {}
-  private val keyValueListType = object : TypeReference<List<KeyValuePair>>() {}
 
   override fun convert(root: JsonNode, ctxt: DeserializationContext): ExecutionDetailResponse {
     // Parse execution node
@@ -148,17 +147,23 @@ class ExecutionDetailResponseDeserializer : StdNodeBasedDeserializer<ExecutionDe
 
     // Parse variables node
     val variablesNode = root.path("variables")
-    val variables = if (variablesNode.isMissingNode || variablesNode.isNull) {
-      null
-    } else {
-      try {
-        ctxt.readTreeAsValue(variablesNode, ctxt.typeFactory.constructType(keyValueListType))
-      } catch (e: Exception) {
-        System.err.println("DBG-VARIABLES-FAIL: " + e)
-        e.printStackTrace()
-        null
-      }
-    }
+    val variables: List<KeyValuePair>? =
+        if (variablesNode.isMissingNode || variablesNode.isNull) {
+          null
+        } else {
+          try {
+            if (!variablesNode.isArray) error("variables is not an array")
+            buildList {
+              for (child in variablesNode) {
+                add(
+                    ctxt.readTreeAsValue<KeyValuePair>(child, KeyValuePair::class.java)
+                        ?: error("null variable"))
+              }
+            }
+          } catch (e: Exception) {
+            null
+          }
+        }
 
     // Parse required string fields with null safety
     val idNode = root.path("id")
