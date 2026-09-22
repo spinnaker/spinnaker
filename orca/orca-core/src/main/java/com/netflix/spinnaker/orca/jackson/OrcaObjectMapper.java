@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.orca.jackson;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
+import static tools.jackson.databind.DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES;
 import static tools.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 import static tools.jackson.databind.MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS;
 import static tools.jackson.databind.MapperFeature.ALLOW_FINAL_FIELDS_AS_MUTATORS;
@@ -94,6 +95,7 @@ public class OrcaObjectMapper {
             .disable(WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS)
             .enable(WRITE_DATES_AS_TIMESTAMPS)
             .disable(FAIL_ON_UNKNOWN_PROPERTIES)
+            .disable(FAIL_ON_NULL_FOR_PRIMITIVES)
             .disable(SORT_PROPERTIES_ALPHABETICALLY)
             .enable(READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE)
             .enable(ACCEPT_CASE_INSENSITIVE_ENUMS)

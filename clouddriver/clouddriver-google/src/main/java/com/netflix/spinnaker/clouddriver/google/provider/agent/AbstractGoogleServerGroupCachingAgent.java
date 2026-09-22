@@ -123,6 +123,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import tools.jackson.core.type.TypeReference;
+import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
 @Slf4j
@@ -220,9 +221,9 @@ public abstract class AbstractGoogleServerGroupCachingAgent
               });
 
       return cacheResult;
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       // CatsOnDemandCacheUpdater handles this
-      throw new UncheckedIOException(e);
+      throw new UncheckedIOException(new IOException(e));
     }
   }
 
@@ -939,7 +940,7 @@ public abstract class AbstractGoogleServerGroupCachingAgent
               LOAD_BALANCING_POLICY,
               objectMapper.readValue(
                   metadata.get(LOAD_BALANCING_POLICY), GoogleHttpLoadBalancingPolicy.class));
-        } catch (IOException e) {
+        } catch (JacksonException e) {
           log.warn("Error parsing load balancing policy", e);
         }
       }

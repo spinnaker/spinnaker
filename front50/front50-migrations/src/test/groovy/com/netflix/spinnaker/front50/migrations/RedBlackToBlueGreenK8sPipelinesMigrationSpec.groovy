@@ -33,10 +33,11 @@ class RedBlackToBlueGreenK8sPipelinesMigrationSpec extends Specification {
   def pipelineWithHighlanderStrategy = "{\"id\":\"pipeline-1\",\"name\":null,\"application\":\"application1\",\"type\":null,\"schema\":\"1\",\"config\":null,\"triggers\":[],\"index\":null,\"updateTs\":null,\"lastModifiedBy\":null,\"lastModified\":null,\"email\":null,\"disabled\":null,\"template\":null,\"roles\":null,\"serviceAccount\":null,\"executionEngine\":null,\"stageCounter\":null,\"stages\":[{\"cloudProvider\":\"kubernetes\",\"trafficManagement\":{\"options\":{\"strategy\":\"highlander\"},\"enabled\":true},\"type\":\"deployManifest\"}],\"constraints\":null,\"payloadConstraints\":null,\"keepWaitingPipelines\":null,\"limitConcurrent\":null,\"maxConcurrentExecutions\":null,\"parameterConfig\":null,\"spelEvaluator\":null,\"any\":{},\"createdAt\":null}"
 
   def pipelineDAO = Mock(PipelineDAO)
-  def objectMapper = JsonMapper.builder().build()
-    .setDefaultPropertyInclusion(JsonInclude.Include.ALWAYS)
+  def objectMapper = JsonMapper.builder()
+    .changeDefaultPropertyInclusion({ value -> value.withValueInclusion(JsonInclude.Include.ALWAYS) })
     .addMixIn(Timestamped.class, TimestampedMixins.class)
     .addMixIn(Pipeline.class, PipelineMixins.class)
+    .build()
 
   @Subject
   def migration = new RedBlackToBlueGreenK8sPipelinesMigration(pipelineDAO)

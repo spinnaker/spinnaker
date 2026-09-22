@@ -55,9 +55,9 @@ public class V2PipelineTemplateSourceToArtifactMigration implements Migration {
     this.pipelineDAO = pipelineDAO;
     this.objectMapper =
         JsonMapper.builder()
-            .build()
             .addMixIn(Timestamped.class, TimestampedMixins.class)
-            .addMixIn(Pipeline.class, PipelineMixins.class);
+            .addMixIn(Pipeline.class, PipelineMixins.class)
+            .build();
   }
 
   @Override

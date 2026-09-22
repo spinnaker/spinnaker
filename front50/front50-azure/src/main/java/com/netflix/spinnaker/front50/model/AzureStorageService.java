@@ -54,9 +54,9 @@ public class AzureStorageService implements StorageService {
   private CloudBlobContainer blobContainer = null;
   private ObjectMapper objectMapper =
       JsonMapper.builder()
-          .build()
           .addMixIn(Timestamped.class, TimestampedMixins.class)
-          .addMixIn(Pipeline.class, PipelineMixins.class);
+          .addMixIn(Pipeline.class, PipelineMixins.class)
+          .build();
 
   private static final String LAST_MODIFIED_FILENAME = "last_modified";
   private static final String LAST_MODIFIED_METADATA_NAME = "lastmodifydate";
