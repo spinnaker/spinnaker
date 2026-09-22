@@ -26,6 +26,7 @@ dependencies {
   // Logging
   implementation "org.slf4j:slf4j-api"
   implementation "com.google.guava:guava"
+  api "com.google.code.findbugs:jsr305"
 
   // Testing
   testImplementation project(":kork-test")
