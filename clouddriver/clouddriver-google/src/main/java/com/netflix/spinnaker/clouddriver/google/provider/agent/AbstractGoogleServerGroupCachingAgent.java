@@ -221,7 +221,7 @@ public abstract class AbstractGoogleServerGroupCachingAgent
               });
 
       return cacheResult;
-    } catch (JacksonException e) {
+    } catch (JacksonException | IOException e) {
       // CatsOnDemandCacheUpdater handles this
       throw new UncheckedIOException(new IOException(e));
     }
@@ -285,9 +285,9 @@ public abstract class AbstractGoogleServerGroupCachingAgent
             new DefaultCacheResult(ImmutableMap.of()),
             ImmutableMap.of(SERVER_GROUPS.getNs(), ImmutableList.copyOf(existingIdentifiers)));
       }
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       // CatsOnDemandCacheUpdater handles this
-      throw new UncheckedIOException(e);
+      throw new UncheckedIOException(new IOException(e));
     }
   }
 

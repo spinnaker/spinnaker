@@ -43,6 +43,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
+import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.ser.FilterProvider;
@@ -145,7 +146,7 @@ public class OracleStorageService implements StorageService {
       try {
         byte[] bytes = objectMapper.writer(filters).writeValueAsBytes(createBucketDetails);
         wr.post(new String(bytes, StandardCharsets.UTF_8));
-      } catch (IOException e) {
+      } catch (JacksonException e) {
         throw new RuntimeException(e);
       }
     } else if (rsp.getStatus() != 200) {
@@ -218,7 +219,7 @@ public class OracleStorageService implements StorageService {
     try {
       byte[] bytes = objectMapper.writer(filters).writeValueAsBytes(item);
       wr.put(new String(bytes, StandardCharsets.UTF_8));
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       throw new RuntimeException(e);
     }
 
@@ -275,7 +276,7 @@ public class OracleStorageService implements StorageService {
     try {
       byte[] bytes = objectMapper.writer(filters).writeValueAsBytes(new LastModified());
       wr.put(new String(bytes, StandardCharsets.UTF_8));
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       throw new RuntimeException(e);
     }
   }
