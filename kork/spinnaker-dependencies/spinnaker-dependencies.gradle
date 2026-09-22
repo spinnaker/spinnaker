@@ -164,7 +164,13 @@ dependencies {
     api("io.swagger.core.v3:swagger-annotations:${versions.swagger}")
     api("io.swagger.core.v3:swagger-core:${versions.swagger}")
     api("javax.xml.bind:jaxb-api:2.3.1")
-    api("net.logstash.logback:logstash-logback-encoder:4.11")
+    // Upgraded from the long-stale 4.11 pin. 9.0 needs a Java 17+ baseline (we run
+    // Java 25), logback 1.5.x (we pin ${versions.logback}), and Jackson 3
+    // (tools.jackson:* 3.0.x). Spring Boot 4.1.1 manages tools.jackson via jackson-bom
+    // 3.1.5, and kork already consumes tools.jackson.core:jackson-databind (kork-web,
+    // kork-aws, kork-secrets-api) alongside the legacy com.fasterxml.jackson 2.x line
+    // (managed via jackson-2-bom 2.21.5), so the Jackson 3 dependency resolves cleanly.
+    api("net.logstash.logback:logstash-logback-encoder:9.0")
     // No official logback BOM exists (qos-ch/logback removed logback-bom in 2017; the
     // internal logback-parent reactor POM is not documented/published for external
     // consumers to import as a platform), so we keep pinning these two explicitly.
