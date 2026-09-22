@@ -29,9 +29,12 @@ public class CanaryConfigReader {
   private static ObjectMapper objectMapper = getObjectMapper();
 
   private static ObjectMapper getObjectMapper() {
-    ObjectMapper objectMapper = JsonMapper.builder().build();
-    objectMapper.registerSubtypes(PrometheusCanaryMetricSetQueryConfig.class);
-    objectMapper.registerSubtypes(GraphiteCanaryMetricSetQueryConfig.class);
+    ObjectMapper objectMapper =
+        JsonMapper.builder()
+            .registerSubtypes(
+                PrometheusCanaryMetricSetQueryConfig.class,
+                GraphiteCanaryMetricSetQueryConfig.class)
+            .build();
     return objectMapper;
   }
 

@@ -91,8 +91,11 @@ public class IntegrationTest {
 
   @Autowired ObjectMapper objectMapper;
 
-  private void configureObjectMapper(ObjectMapper objectMapper) {
-    objectMapper.registerSubtypes(GraphiteCanaryMetricSetQueryConfig.class);
+  private ObjectMapper configureObjectMapper(ObjectMapper objectMapper) {
+    return objectMapper
+        .rebuild()
+        .registerSubtypes(GraphiteCanaryMetricSetQueryConfig.class)
+        .build();
   }
 
   private String getFileContent(String filename) throws IOException {
@@ -104,7 +107,7 @@ public class IntegrationTest {
 
   private CanaryConfig getConfig(String filename) throws IOException {
     String contents = getFileContent(filename);
-    configureObjectMapper(objectMapper);
+    objectMapper = configureObjectMapper(objectMapper);
     return objectMapper.readValue(contents, CanaryConfig.class);
   }
 

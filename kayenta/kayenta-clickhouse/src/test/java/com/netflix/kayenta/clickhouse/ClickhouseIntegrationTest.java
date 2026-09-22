@@ -33,8 +33,8 @@ public class ClickhouseIntegrationTest {
 
   @Test
   public void loadConfig() throws Exception {
-    ObjectMapper objectMapper = JsonMapper.builder().build();
-    objectMapper.registerSubtypes(ClickhouseCanaryMetricSetQueryConfig.class);
+    ObjectMapper objectMapper =
+        JsonMapper.builder().registerSubtypes(ClickhouseCanaryMetricSetQueryConfig.class).build();
 
     CanaryConfig config = objectMapper.readValue(CANARY_CONFIG_JSON, CanaryConfig.class);
 
