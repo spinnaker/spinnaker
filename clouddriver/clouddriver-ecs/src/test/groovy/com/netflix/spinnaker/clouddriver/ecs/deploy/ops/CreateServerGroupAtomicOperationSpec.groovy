@@ -1634,6 +1634,221 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     result.executionRoleArn() == "arn:aws-us-gov:iam:123123123123:role/test-role"
   }
 
+  def 'should use explicit monitoring configuration from the description'() {
+    given:
+    def explicitMonitoring = MonitoringConfiguration.builder()
+      .metricConfigurations(MetricConfiguration.builder()
+        .metricNames('CPUUtilization')
+        .resolutionSeconds(20)
+        .build())
+      .build()
+    def description = createMonitoringDescription(monitoringConfiguration: explicitMonitoring)
+    def operation = createMonitoringOperation(description)
+
+    when:
+    def result = operation.operate([])
+
+    then:
+    interaction {
+      stubCommonServiceCreationCalls()
+      stubSourceService(sourceServiceWithRevision('source-revision-arn'))
+    }
+    ecs.describeServiceRevisions(_ as DescribeServiceRevisionsRequest) >> DescribeServiceRevisionsResponse.builder()
+      .serviceRevisions(ServiceRevision.builder()
+        .serviceRevisionArn('source-revision-arn')
+        .monitoring(sourceMonitoringConfiguration())
+        .build())
+      .build()
+    1 * ecs.createService(_) >> { arguments ->
+      CreateServiceRequest request = arguments.get(0)
+      assert request.monitoring() == explicitMonitoring
+      CreateServiceResponse.builder().service(service).build()
+    }
+    result.getServerGroupNames().contains("us-west-1:" + serviceName + "-v008")
+  }
+
+  def 'should copy monitoring configuration from the source service revision'() {
+    given:
+    def description = createMonitoringDescription([:])
+    def operation = createMonitoringOperation(description)
+
+    when:
+    def result = operation.operate([])
+
+    then:
+    interaction {
+      stubCommonServiceCreationCalls()
+      stubSourceService(sourceServiceWithRevision('source-revision-arn'))
+    }
+    1 * ecs.describeServiceRevisions({ DescribeServiceRevisionsRequest request ->
+      request.serviceRevisionArns() == ['source-revision-arn']
+    } as DescribeServiceRevisionsRequest) >> DescribeServiceRevisionsResponse.builder()
+      .serviceRevisions(ServiceRevision.builder()
+        .serviceRevisionArn('source-revision-arn')
+        .monitoring(sourceMonitoringConfiguration())
+        .build())
+      .build()
+    1 * ecs.createService(_) >> { arguments ->
+      CreateServiceRequest request = arguments.get(0)
+      assert request.monitoring() == sourceMonitoringConfiguration()
+      assert request.monitoring().metricConfigurations().size() == 1
+      assert request.monitoring().metricConfigurations().get(0).metricNames() == ['CPUUtilization', 'MemoryUtilization']
+      assert request.monitoring().metricConfigurations().get(0).resolutionSeconds() == 20
+      CreateServiceResponse.builder().service(service).build()
+    }
+    result.getServerGroupNames().contains("us-west-1:" + serviceName + "-v008")
+  }
+
+  def 'should not copy monitoring configuration when copySourceMonitoringConfiguration is disabled'() {
+    given:
+    def description = createMonitoringDescription(copySourceMonitoringConfiguration: false)
+    def operation = createMonitoringOperation(description)
+
+    when:
+    def result = operation.operate([])
+
+    then:
+    interaction {
+      stubCommonServiceCreationCalls()
+      stubSourceService(sourceServiceWithRevision('source-revision-arn'))
+    }
+    0 * ecs.describeServiceRevisions(_)
+    1 * ecs.createService(_) >> { arguments ->
+      CreateServiceRequest request = arguments.get(0)
+      assert request.monitoring() == null
+      CreateServiceResponse.builder().service(service).build()
+    }
+    result.getServerGroupNames().contains("us-west-1:" + serviceName + "-v008")
+  }
+
+  def 'should create the service without monitoring configuration when the source has no revisions'() {
+    given:
+    def description = createMonitoringDescription([:])
+    def operation = createMonitoringOperation(description)
+
+    when:
+    def result = operation.operate([])
+
+    then:
+    interaction {
+      stubCommonServiceCreationCalls()
+      stubSourceService(Service.builder()
+        .serviceName("${serviceName}-v007".toString())
+        .createdAt(java.time.Instant.now())
+        .desiredCount(3)
+        .status('ACTIVE')
+        .tags([])
+        .build())
+    }
+    0 * ecs.describeServiceRevisions(_)
+    1 * ecs.createService(_) >> { arguments ->
+      CreateServiceRequest request = arguments.get(0)
+      assert request.monitoring() == null
+      CreateServiceResponse.builder().service(service).build()
+    }
+    result.getServerGroupNames().contains("us-west-1:" + serviceName + "-v008")
+  }
+
+  def 'should create the service without monitoring configuration when describing source revisions fails'() {
+    given:
+    def description = createMonitoringDescription([:])
+    def operation = createMonitoringOperation(description)
+
+    when:
+    def result = operation.operate([])
+
+    then:
+    interaction {
+      stubCommonServiceCreationCalls()
+      stubSourceService(sourceServiceWithRevision('source-revision-arn'))
+    }
+    1 * ecs.describeServiceRevisions(_ as DescribeServiceRevisionsRequest) >> {
+      throw EcsException.builder().message('describeServiceRevisions failed').build()
+    }
+    1 * ecs.createService(_) >> { arguments ->
+      CreateServiceRequest request = arguments.get(0)
+      assert request.monitoring() == null
+      CreateServiceResponse.builder().service(service).build()
+    }
+    result.getServerGroupNames().contains("us-west-1:" + serviceName + "-v008")
+  }
+
+  private CreateServerGroupDescription createMonitoringDescription(Map overrides) {
+    def properties = [
+      credentials      : TestCredential.named('Test', [:]),
+      application      : applicationName,
+      stack            : stack,
+      freeFormDetails  : detail,
+      ecsClusterName   : 'test-cluster',
+      iamRole          : 'test-role',
+      containerPort    : 1337,
+      targetGroup      : 'target-group-arn',
+      portProtocol     : 'tcp',
+      computeUnits     : 9001,
+      reservedMemory   : 9002,
+      dockerImageAddress: 'docker-image-url',
+      capacity         : new ServerGroup.Capacity(1, 1, 1),
+      availabilityZones: ['us-west-1': ['us-west-1a', 'us-west-1b', 'us-west-1c']],
+      source           : source
+    ]
+    properties.putAll(overrides)
+    return new CreateServerGroupDescription(properties)
+  }
+
+  private CreateServerGroupAtomicOperation createMonitoringOperation(CreateServerGroupDescription description) {
+    def operation = new CreateServerGroupAtomicOperation(description)
+    operation.amazonClientProvider = amazonClientProvider
+    operation.ecsCloudMetricService = Mock(EcsCloudMetricService)
+    operation.iamPolicyReader = iamPolicyReader
+    operation.credentialsRepository = credentialsRepository
+    operation.containerInformationService = containerInformationService
+    return operation
+  }
+
+  private void stubCommonServiceCreationCalls() {
+    ecs.listAccountSettings(_) >> ListAccountSettingsResponse.builder().settings(
+      Setting.builder().name(SettingName.TASK_LONG_ARN_FORMAT).value("enabled").build(),
+      Setting.builder().name(SettingName.SERVICE_LONG_ARN_FORMAT).value("enabled").build()
+    ).build()
+    ecs.registerTaskDefinition(_) >> RegisterTaskDefinitionResponse.builder().taskDefinition(taskDefinition).build()
+    iamClient.getRole(_) >> GetRoleResponse.builder().role(role).build()
+    iamPolicyReader.getTrustedEntities(_) >> trustRelationships
+    loadBalancingV2.describeTargetGroups(_) >> DescribeTargetGroupsResponse.builder().targetGroups(targetGroup).build()
+    autoScalingClient.describeScalableTargets(_) >> DescribeScalableTargetsResponse.builder()
+      .scalableTargets(ScalableTarget.builder()
+        .resourceId("service/test-cluster/${serviceName}-v007")
+        .minCapacity(2)
+        .maxCapacity(4)
+        .build())
+      .build()
+  }
+
+  private void stubSourceService(Service sourceService) {
+    ecs.describeServices({ DescribeServicesRequest req ->
+      req.services().any { it.contains('v007') }
+    } as DescribeServicesRequest) >> DescribeServicesResponse.builder().services([sourceService]).build()
+  }
+
+  private Service sourceServiceWithRevision(String revisionArn) {
+    return Service.builder()
+      .serviceName("${serviceName}-v007".toString())
+      .createdAt(java.time.Instant.now())
+      .desiredCount(3)
+      .status('ACTIVE')
+      .tags([])
+      .currentServiceRevisions(ServiceCurrentRevisionSummary.builder().arn(revisionArn).build())
+      .build()
+  }
+
+  private static MonitoringConfiguration sourceMonitoringConfiguration() {
+    return MonitoringConfiguration.builder()
+      .metricConfigurations(MetricConfiguration.builder()
+        .metricNames('CPUUtilization', 'MemoryUtilization')
+        .resolutionSeconds(20)
+        .build())
+      .build()
+  }
+
   def createResolvedArtifact (){
     return  Artifact.builder()
       .name("taskdef.json")
