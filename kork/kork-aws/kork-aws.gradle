@@ -29,8 +29,8 @@ dependencies {
   api "tools.jackson.core:jackson-databind"
   api "org.apache.groovy:groovy"
   api "com.hubspot.jinjava:jinjava"
-  api "com.jcraft:jsch.agentproxy.jsch"
-  api "com.jcraft:jsch.agentproxy.connector-factory"
+  api "com.github.mwiede:jsch.agentproxy.jsch"
+  api "com.github.mwiede:jsch.agentproxy.connector-factory"
 
   api("com.netflix.spectator:spectator-ext-aws2") {
     // exclude transitives to keep spectator's version of the aws sdk from
