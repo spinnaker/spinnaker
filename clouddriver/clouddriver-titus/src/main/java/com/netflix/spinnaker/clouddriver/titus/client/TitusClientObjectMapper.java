@@ -34,9 +34,17 @@ public class TitusClientObjectMapper {
 
   public static ObjectMapper configure(Optional<ObjectMapper> objectMapper) {
     return objectMapper
-        .map(ObjectMapper::copy)
-        .orElse(JsonMapper.builder().build())
-        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-        .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+        .map(
+            m ->
+                m.rebuild()
+                    .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                    .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
+                    .build())
+        .orElseGet(
+            () ->
+                JsonMapper.builder()
+                    .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                    .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
+                    .build());
   }
 }

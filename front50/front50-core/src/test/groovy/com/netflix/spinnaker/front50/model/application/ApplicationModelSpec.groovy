@@ -60,7 +60,7 @@ class ApplicationModelSpec extends Specification {
     application.setLastModifiedBy("foo")
     application.setLastModified(new Long(1))
 
-    ObjectMapper mapper = JsonMapper.builder().build().addMixIn(Timestamped.class, TimestampedMixins.class)
+    ObjectMapper mapper = JsonMapper.builder().addMixIn(Timestamped.class, TimestampedMixins.class).build()
     String appJSON = mapper.writeValueAsString(application)
 
     expect:

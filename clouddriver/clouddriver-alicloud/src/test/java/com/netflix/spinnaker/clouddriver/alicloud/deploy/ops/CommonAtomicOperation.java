@@ -51,7 +51,7 @@ public class CommonAtomicOperation {
 
   @Subject
   public ObjectMapper objectMapper =
-      JsonMapper.builder().build()
-          .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
-          .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+      JsonMapper.builder()
+          .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
+          .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
 }

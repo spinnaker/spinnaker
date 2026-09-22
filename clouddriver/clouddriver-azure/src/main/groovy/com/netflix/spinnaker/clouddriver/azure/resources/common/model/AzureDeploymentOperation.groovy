@@ -32,7 +32,7 @@ import tools.jackson.databind.json.JsonMapper
 class AzureDeploymentOperation {
 
   static final Integer AZURE_DEPLOYMENT_OPERATION_STATUS_RETRIES_MAX = 1000
-  static ObjectMapper mapper = JsonMapper.builder().build().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+  static ObjectMapper mapper = JsonMapper.builder().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
 
   static AzureDeploymentOperation getObjectFromJson(String responseContent) {
     mapper.readValue(responseContent, AzureDeploymentOperation.class)

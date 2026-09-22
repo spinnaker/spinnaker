@@ -24,10 +24,10 @@ import spock.lang.Specification
 import tools.jackson.databind.json.JsonMapper
 
 class KubernetesAtomicOperationDescriptionSpec extends Specification {
-  def objectMapper = JsonMapper.builder().build()
-    .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
-    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+  def objectMapper = JsonMapper.builder()
+    .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
+    .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+    .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build()
 
   def "correctly deserializes the account field"() {
     when:

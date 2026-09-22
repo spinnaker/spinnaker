@@ -64,9 +64,7 @@ public class SqlStorageServiceTest {
 
   @MockitoBean private SqlMetricSetsRepo sqlMetricSetsRepo;
   private static ObjectMapper objectMapper =
-      JsonMapper.builder()
-          .build()
-          .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+      JsonMapper.builder().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
 
   @TestConfiguration
   static class SqlStorageServiceTestConfig {

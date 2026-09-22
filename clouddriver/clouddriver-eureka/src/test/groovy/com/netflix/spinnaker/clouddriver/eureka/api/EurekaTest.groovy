@@ -43,10 +43,13 @@ class EurekaTest extends Specification {
     mockWebServer = new MockWebServer()
     mockWebServer.start()
 
-    def objectMapper = JsonMapper.builder().build()
+    def objectMapper = JsonMapper.builder()
       .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
       .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
-      .enable(MapperFeature.AUTO_DETECT_CREATORS)
+      .changeDefaultVisibility {
+        it.withCreatorVisibility(com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY)
+      }
+      .build()
 
     eurekaApi = new Retrofit.Builder()
       .baseUrl(mockWebServer.url("/"))

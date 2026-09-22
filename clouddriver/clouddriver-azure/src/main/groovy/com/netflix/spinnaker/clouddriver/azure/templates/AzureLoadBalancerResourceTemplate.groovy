@@ -24,7 +24,7 @@ import tools.jackson.databind.json.JsonMapper
 
 class AzureLoadBalancerResourceTemplate {
 
-  static ObjectMapper mapper = JsonMapper.builder().build().configure(SerializationFeature.INDENT_OUTPUT, true)
+  static ObjectMapper mapper = JsonMapper.builder().enable(SerializationFeature.INDENT_OUTPUT)
 
   static final String DEFAULT_BACKEND_POOL = "default_LB_BAP"
 

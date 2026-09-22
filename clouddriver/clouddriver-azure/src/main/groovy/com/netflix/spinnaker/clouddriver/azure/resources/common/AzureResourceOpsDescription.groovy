@@ -23,7 +23,7 @@ import com.netflix.spinnaker.orchestration.OperationDescription
 import tools.jackson.databind.json.JsonMapper
 
 class AzureResourceOpsDescription  implements OperationDescription {
-  static ObjectMapper mapper = JsonMapper.builder().build().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+  static ObjectMapper mapper = JsonMapper.builder().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
 
   String name
   String cloudProvider

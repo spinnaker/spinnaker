@@ -56,7 +56,7 @@ class OracleServerGroupPersistence {
 
   private final Charset UTF_8_CHARSET = Charset.forName("UTF-8")
 
-  private final ObjectMapper objectMapper = JsonMapper.builder().build().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+  private final ObjectMapper objectMapper = JsonMapper.builder().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
 
   /**
    * Lists the server group names for the specified account.

@@ -10,11 +10,14 @@ import spock.lang.Specification
 import tools.jackson.databind.json.JsonMapper
 
 class PipelineSpec extends Specification {
-  ObjectMapper objectMapper = JsonMapper.builder().build()
+  ObjectMapper objectMapper
 
   void setup() {
-    objectMapper.addMixIn(Pipeline.class, PipelineMixins.class)
-    objectMapper.addMixIn(Timestamped.class, TimestampedMixins.class)
+    objectMapper =
+        JsonMapper.builder()
+            .addMixIn(Pipeline.class, PipelineMixins.class)
+            .addMixIn(Timestamped.class, TimestampedMixins.class)
+            .build()
   }
 
   def 'should set any additional pipeline properties when deserializing JSON to Pipeline'() {

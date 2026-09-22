@@ -47,9 +47,9 @@ class AzureServerGroupResourceTemplate {
   static final String STORAGE_ACCOUNT_SUFFIX = "sa"
   static String LB_NAME = null
 
-  protected static ObjectMapper mapper = JsonMapper.builder().build()
-    .configure(SerializationFeature.INDENT_OUTPUT, true)
-    .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
+  protected static ObjectMapper mapper = JsonMapper.builder()
+    .enable(SerializationFeature.INDENT_OUTPUT)
+    .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS).build()
 
   /**
    * Build the resource manager template that will create the Azure equivalent (VM Scale Set)

@@ -26,9 +26,9 @@ import tools.jackson.databind.json.JsonMapper
 @Slf4j
 class AzureAppGatewayResourceTemplate {
 
-  static ObjectMapper mapper = JsonMapper.builder().build()
-    .configure(SerializationFeature.INDENT_OUTPUT, true)
-    .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
+  static ObjectMapper mapper = JsonMapper.builder()
+    .enable(SerializationFeature.INDENT_OUTPUT)
+    .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS).build()
 
   /**
    * Build the resource manager template that will create an Azure Application Gateway resource

@@ -154,6 +154,8 @@ class ExecutionDetailResponseDeserializer : StdNodeBasedDeserializer<ExecutionDe
       try {
         ctxt.readTreeAsValue(variablesNode, ctxt.typeFactory.constructType(keyValueListType))
       } catch (e: Exception) {
+        System.err.println("DBG-VARIABLES-FAIL: " + e)
+        e.printStackTrace()
         null
       }
     }

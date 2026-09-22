@@ -77,11 +77,14 @@ class EurekaProviderConfiguration {
   }
 
   private static ObjectMapper getObjectMapper() {
-    JsonMapper.builder().build()
+    return JsonMapper.builder()
       .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
       .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
       .enable(DeserializationFeature.UNWRAP_ROOT_VALUE)
-      .enable(MapperFeature.AUTO_DETECT_CREATORS)
+      .changeDefaultVisibility {
+        it.withCreatorVisibility(com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY)
+      }
+      .build()
   }
 
   @Value('${eureka.poll-interval-millis:15000}')

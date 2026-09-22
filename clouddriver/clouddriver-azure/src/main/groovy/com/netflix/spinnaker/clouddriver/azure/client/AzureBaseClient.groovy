@@ -46,8 +46,11 @@ abstract class AzureBaseClient {
    */
   protected AzureBaseClient(String subscriptionId, AzureProfile azureProfile, TokenCredential credentials) {
     this.subscriptionId = subscriptionId
-    mapper = JsonMapper.builder().build().configure(SerializationFeature.INDENT_OUTPUT, true)
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+    mapper =
+        JsonMapper.builder()
+            .enable(SerializationFeature.INDENT_OUTPUT)
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .build()
     this.azure = initialize(credentials, subscriptionId, azureProfile)
   }
 

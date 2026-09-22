@@ -8,7 +8,6 @@ import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
-import java.io.IOException;
 import java.time.Duration;
 import java.util.Map;
 import javax.annotation.Nonnull;
@@ -16,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
 
 @Component
 @Slf4j
@@ -60,7 +60,7 @@ public class ClickhouseFetchTask implements RetryableTask {
       canaryScope =
           kayentaObjectMapper.readValue(
               (String) stage.getContext().get("canaryScope"), CanaryScope.class);
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       log.warn("Unable to parse JSON scope", e);
       throw new RuntimeException(e);
     }

@@ -37,8 +37,8 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
   }
   void setup() {
     description = createDescription(false)
-    objectMapper = JsonMapper.builder().build().configure(SerializationFeature.INDENT_OUTPUT, true)
-    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+    objectMapper = JsonMapper.builder().enable(SerializationFeature.INDENT_OUTPUT)
+    objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
   }
 
   def 'should generate correct ServerGroup resource template'() {
