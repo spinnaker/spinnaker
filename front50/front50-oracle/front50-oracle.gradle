@@ -2,6 +2,7 @@ dependencies {
   implementation project(":front50-core")
   implementation project(":front50-api")
 
+  implementation "com.fasterxml.jackson.core:jackson-databind"
   implementation "com.github.ben-manes.caffeine:guava"
   implementation "io.spinnaker.kork:kork-core"
   implementation 'com.oracle.oci.sdk:oci-java-sdk-objectstorage'
