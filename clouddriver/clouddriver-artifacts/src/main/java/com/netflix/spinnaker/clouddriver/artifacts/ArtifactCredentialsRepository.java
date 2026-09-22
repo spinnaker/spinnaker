@@ -18,28 +18,32 @@
 package com.netflix.spinnaker.clouddriver.artifacts;
 
 import com.google.common.base.Strings;
-import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccountAuthorizer;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.credentials.CompositeCredentialsRepository;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
 import com.netflix.spinnaker.kork.exceptions.MissingCredentialsException;
-import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 @Slf4j
 public class ArtifactCredentialsRepository
     extends CompositeCredentialsRepository<ArtifactCredentials> {
 
-  private final ArtifactAccountAuthorizer authorizer;
-
   public ArtifactCredentialsRepository(
-      List<CredentialsRepository<? extends ArtifactCredentials>> repositories,
-      ArtifactAccountAuthorizer authorizer) {
+      List<CredentialsRepository<? extends ArtifactCredentials>> repositories) {
     super(repositories);
-    this.authorizer = authorizer;
   }
 
+  /**
+   * The single choke point shared by the HTTP fetch endpoint and in-process atomic operations
+   * (e.g. cloud-provider deploy converters) that resolve artifact credentials by account name --
+   * enforced here, rather than only at HTTP controller boundaries, so a new caller can't
+   * accidentally bypass authorization the way {@code
+   * DeployCloudFoundryServerGroupAtomicOperationConverter} used to by calling {@code
+   * getFirstCredentialsWithName} directly.
+   */
+  @PreAuthorize("hasPermission(#name, 'artifact_account', 'WRITE')")
   public ArtifactCredentials getCredentialsForType(String name, String artifactType) {
     if (Strings.isNullOrEmpty(name)) {
       String message = "An artifact account must be supplied to download this artifact: " + name;
@@ -47,31 +51,16 @@ public class ArtifactCredentialsRepository
       throw new IllegalArgumentException(message);
     }
 
-    ArtifactCredentials credentials =
-        getAllCredentials().stream()
-            .filter(a -> a.getName().equals(name) && a.handlesType(artifactType))
-            .findFirst()
-            .orElseThrow(
-                () ->
-                    new MissingCredentialsException(
-                        "Credentials '"
-                            + name
-                            + "' supporting artifact type '"
-                            + artifactType
-                            + "' cannot be found"));
-
-    String username = AuthenticatedRequest.getSpinnakerUser().orElse("anonymous");
-    if (!authorizer.canUse(username, credentials)) {
-      // Same exception as "not found" so an unauthorized caller can't distinguish a restricted
-      // account from one that doesn't exist.
-      throw new MissingCredentialsException(
-          "Credentials '"
-              + name
-              + "' supporting artifact type '"
-              + artifactType
-              + "' cannot be found");
-    }
-
-    return credentials;
+    return getAllCredentials().stream()
+        .filter(a -> a.getName().equals(name) && a.handlesType(artifactType))
+        .findFirst()
+        .orElseThrow(
+            () ->
+                new MissingCredentialsException(
+                    "Credentials '"
+                        + name
+                        + "' supporting artifact type '"
+                        + artifactType
+                        + "' cannot be found"));
   }
 }

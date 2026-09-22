@@ -19,22 +19,21 @@ package com.netflix.spinnaker.clouddriver.controllers;
 
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactDownloader;
-import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccountAuthorizer;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreURIBuilder;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.exceptions.MissingCredentialsException;
-import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -53,31 +52,40 @@ public class ArtifactController {
   private ArtifactDownloader artifactDownloader;
   private final ArtifactStore storage;
   private final ArtifactStoreURIBuilder artifactStoreURIBuilder;
-  private final ArtifactAccountAuthorizer artifactAccountAuthorizer;
 
   @Autowired
   public ArtifactController(
       Optional<ArtifactCredentialsRepository> artifactCredentialsRepository,
       Optional<ArtifactDownloader> artifactDownloader,
       Optional<ArtifactStore> storage,
-      Optional<ArtifactStoreURIBuilder> artifactStoreURIBuilder,
-      ArtifactAccountAuthorizer artifactAccountAuthorizer) {
+      Optional<ArtifactStoreURIBuilder> artifactStoreURIBuilder) {
     this.artifactCredentialsRepository = artifactCredentialsRepository.orElse(null);
     this.artifactDownloader = artifactDownloader.orElse(null);
     this.storage = storage.orElse(null);
     this.artifactStoreURIBuilder = artifactStoreURIBuilder.orElse(null);
-    this.artifactAccountAuthorizer = artifactAccountAuthorizer;
   }
 
   @RequestMapping(method = RequestMethod.GET, value = "/credentials")
+  @PostFilter("hasPermission(filterObject.name, 'artifact_account', 'READ')")
   List<ArtifactCredentials> list() {
     if (artifactCredentialsRepository == null) {
       return Collections.emptyList();
     }
-    String username = AuthenticatedRequest.getSpinnakerUser().orElse("anonymous");
-    return artifactCredentialsRepository.getAllCredentials().stream()
-        .filter(credentials -> artifactAccountAuthorizer.canRead(username, credentials))
-        .collect(Collectors.toList());
+    return artifactCredentialsRepository.getAllCredentials();
+  }
+
+  /**
+   * Unfiltered account listing consumed by Fiat's {@code ArtifactAccountResourceProvider} to sync
+   * artifact accounts as a Fiat resource type, the same way cloud-provider accounts are synced
+   * from the unfiltered {@code /credentials} endpoint. Not intended for end-user callers -- use
+   * {@link #list()} for that.
+   */
+  @RequestMapping(method = RequestMethod.GET, value = "/credentials/all")
+  List<ArtifactCredentials> listAll() {
+    if (artifactCredentialsRepository == null) {
+      return Collections.emptyList();
+    }
+    return artifactCredentialsRepository.getAllCredentials();
   }
 
   // PUT because we need to send a body, which GET does not allow for spring/retrofit
@@ -128,4 +136,10 @@ public class ArtifactController {
   @ExceptionHandler(MissingCredentialsException.class)
   @ResponseStatus(HttpStatus.NOT_FOUND)
   public void handleMissingCredentials() {}
+
+  // Same status as a missing account so an unauthorized caller can't distinguish a restricted
+  // artifact account from one that doesn't exist.
+  @ExceptionHandler(AccessDeniedException.class)
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  public void handleAccessDenied() {}
 }

@@ -26,7 +26,6 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
-import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccountAuthorizer;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.artifacts.ArtifactCredentialsFromString;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.cache.CacheRepository;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
@@ -106,8 +105,7 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
 
   private final ArtifactCredentialsRepository artifactCredentialsRepository =
       new ArtifactCredentialsRepository(
-          Collections.singletonList(artifactCredentialsFromStringCredentialsRepository),
-          new ArtifactAccountAuthorizer(Optional.empty()));
+          Collections.singletonList(artifactCredentialsFromStringCredentialsRepository));
 
   private final CredentialsRepository<CloudFoundryCredentials> credentialsRepository =
       new MapBackedCredentialsRepository<>(CloudFoundryProvider.PROVIDER_ID, null);

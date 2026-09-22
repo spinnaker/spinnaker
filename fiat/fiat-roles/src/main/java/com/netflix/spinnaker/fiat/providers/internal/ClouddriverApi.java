@@ -18,6 +18,7 @@ package com.netflix.spinnaker.fiat.providers.internal;
 
 import com.netflix.spinnaker.fiat.model.resources.Account;
 import com.netflix.spinnaker.fiat.model.resources.Application;
+import com.netflix.spinnaker.fiat.model.resources.ArtifactAccount;
 import java.util.List;
 import retrofit2.Call;
 import retrofit2.http.GET;
@@ -28,4 +29,7 @@ public interface ClouddriverApi {
 
   @GET("applications?restricted=false&expand=false")
   Call<List<Application>> getApplications();
+
+  @GET("artifacts/credentials/all")
+  Call<List<ArtifactAccount>> getArtifactAccounts();
 }
