@@ -24,8 +24,8 @@ import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import java.time.Duration;
 import java.util.Map;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
-import net.logstash.logback.encoder.org.apache.commons.lang.StringUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -75,7 +75,7 @@ public class RestEventService {
    */
   public CircuitBreaker getCircuitBreakerInstance(RestUrls.Service service) {
     String circuitBreakerInstance =
-        StringUtils.defaultString(service.getConfig().getEventName(), "sendEvent");
+        Objects.requireNonNullElse(service.getConfig().getEventName(), "sendEvent");
 
     return circuitBreakerRegistry.circuitBreaker(circuitBreakerInstance);
   }
