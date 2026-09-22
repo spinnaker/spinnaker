@@ -247,7 +247,7 @@ internal object SqlPermissionsRepositoryTests : JUnit5Minutests {
                 expectThat(resourceBody(jooq, "testuser", app1.resourceType, app1.name).get())
                     .isEqualTo("""{"details":{},"name":"app","permissions":{}}""")
                 expectThat(resourceBody(jooq, "testuser", serviceAccount1.resourceType, serviceAccount1.name.toLowerCase()).get())
-                    .isEqualTo("""{"name":"serviceAccount","memberOf":["role1"]}""")
+                    .isEqualTo("""{"memberOf":["role1"],"name":"serviceAccount"}""")
                 expectThat(resourceBody(jooq, "testuser", role1.resourceType, role1.name).get())
                     .isEqualTo("""{"name":"role1"}""")
             }
