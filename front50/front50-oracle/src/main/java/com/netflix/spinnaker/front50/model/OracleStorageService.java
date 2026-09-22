@@ -128,7 +128,6 @@ public class OracleStorageService implements StorageService {
     ClientConfig clientConfig = new DefaultClientConfig();
     client = new Client(new URLConnectionClientHandler(), clientConfig);
     client.addFilter(new OracleStorageService.RequestSigningFilter(requestSigner));
-
   }
 
   public void ensureBucketExists() {
