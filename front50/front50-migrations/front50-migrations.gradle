@@ -18,6 +18,7 @@ dependencies {
   implementation project(":front50-core")
   implementation project(":front50-api")
 
+  implementation "com.fasterxml.jackson.core:jackson-databind"
   implementation "io.spinnaker.fiat:fiat-core"
   implementation "io.spinnaker.kork:kork-core"
   implementation "org.apache.commons:commons-lang3"

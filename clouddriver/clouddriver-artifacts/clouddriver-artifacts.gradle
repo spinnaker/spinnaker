@@ -26,7 +26,7 @@ allprojects {
     implementation "io.spinnaker.kork:kork-credentials"
     implementation "org.springframework.boot:spring-boot-starter-web"
 
-    testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
+    testImplementation "org.wiremock:wiremock"
     testImplementation "com.squareup.okhttp3:mockwebserver"
     testImplementation "org.assertj:assertj-core"
     testImplementation "org.junit-pioneer:junit-pioneer:0.3.0"
