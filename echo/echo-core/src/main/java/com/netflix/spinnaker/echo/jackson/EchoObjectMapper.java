@@ -25,6 +25,7 @@ import tools.jackson.core.StreamReadConstraints;
 import tools.jackson.core.json.JsonFactory;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.module.kotlin.KotlinModule;
 
 public class EchoObjectMapper {
   private EchoObjectMapper() {}
@@ -49,6 +50,7 @@ public class EchoObjectMapper {
 
     return JsonMapper.builder(JsonFactory.builder().streamReadConstraints(constraints).build())
         .addMixIn(Event.class, EventMixin.class)
+        .addModule(new KotlinModule.Builder().build())
         .disable(FAIL_ON_UNKNOWN_PROPERTIES)
         .changeDefaultPropertyInclusion(value -> value.withValueInclusion(NON_NULL))
         .build();
