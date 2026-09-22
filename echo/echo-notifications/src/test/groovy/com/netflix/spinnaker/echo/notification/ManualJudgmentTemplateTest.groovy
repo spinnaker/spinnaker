@@ -19,7 +19,7 @@ package com.netflix.spinnaker.echo.notification
 import com.netflix.spinnaker.echo.api.Notification
 import org.spockframework.spring.EnableSharedInjection
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration
+import org.springframework.boot.freemarker.autoconfigure.FreeMarkerAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
 import spock.lang.Shared
 import spock.lang.Specification
