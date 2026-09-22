@@ -29,8 +29,14 @@ dependencies {
   api "tools.jackson.core:jackson-databind"
   api "org.apache.groovy:groovy"
   api "com.hubspot.jinjava:jinjava"
-  api "com.github.mwiede:jsch.agentproxy.jsch"
-  api "com.github.mwiede:jsch.agentproxy.connector-factory"
+  // agentproxy is only published under com.jcraft (ymnk/jsch-agent-proxy).
+  // Exclude its transitive com.jcraft:jsch so the com.github.mwiede:jsch fork
+  // (managed in spinnaker-dependencies) is the single provider of the
+  // com.jcraft.jsch.* classes.
+  api("com.jcraft:jsch.agentproxy.jsch") {
+    exclude group: "com.jcraft", module: "jsch"
+  }
+  api "com.jcraft:jsch.agentproxy.connector-factory"
 
   api("com.netflix.spectator:spectator-ext-aws2") {
     // exclude transitives to keep spectator's version of the aws sdk from

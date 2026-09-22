@@ -15,8 +15,13 @@ dependencies {
   implementation "javax.servlet:javax.servlet-api"
 
   implementation 'com.aestasit.infrastructure.sshoogr:sshoogr:0.9.27'
-  implementation 'com.github.mwiede:jsch.agentproxy.jsch'
-  implementation 'com.github.mwiede:jsch.agentproxy.connector-factory'
+  // agentproxy is only published under com.jcraft (ymnk/jsch-agent-proxy).
+  // Exclude its transitive com.jcraft:jsch so the com.github.mwiede:jsch fork
+  // is the single provider of the com.jcraft.jsch.* classes.
+  implementation('com.jcraft:jsch.agentproxy.jsch') {
+    exclude group: 'com.jcraft', module: 'jsch'
+  }
+  implementation 'com.jcraft:jsch.agentproxy.connector-factory'
   implementation 'com.aliyun:aliyun-java-sdk-core:4.4.2'
   implementation 'com.aliyun:aliyun-java-sdk-slb:3.2.9'
   implementation 'com.aliyun:aliyun-java-sdk-vpc:3.0.6'

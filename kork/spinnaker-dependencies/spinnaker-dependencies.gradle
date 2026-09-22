@@ -15,7 +15,9 @@ ext {
     // which Spock 2.4 does not support. Enforced via strictly below.
     groovy           : "4.0.29",
     jsch             : "2.28.7",
-    jschAgentProxy   : "2.28.7",
+    // agentproxy artifacts are only published under com.jcraft (project
+    // ymnk/jsch-agent-proxy); the com.github.mwiede fork provides jsch only.
+    jschAgentProxy   : "0.0.9",
     log4j            : "2.26.1", // CVEs regularly released, so patch override spring as needed
     log4jKotlin      : "1.5.0",
     protobuf         : "3.25.9",
@@ -111,8 +113,8 @@ dependencies {
     api("com.hubspot.jinjava:jinjava:2.8.3") // fixes CVE-2026-25526
     api("com.github.mwiede:jsch:${versions.jsch}")
     api("org.elasticsearch:elasticsearch:${versions.elasticsearch}")
-    api("com.github.mwiede:jsch.agentproxy.connector-factory:${versions.jschAgentProxy}")
-    api("com.github.mwiede:jsch.agentproxy.jsch:${versions.jschAgentProxy}")
+    api("com.jcraft:jsch.agentproxy.connector-factory:${versions.jschAgentProxy}")
+    api("com.jcraft:jsch.agentproxy.jsch:${versions.jschAgentProxy}")
 
     // Used in appengine.  Make sure to match the gradle plugin version.
     api('org.eclipse.jgit:org.eclipse.jgit:7.3.0.202506031305-r')
