@@ -55,6 +55,8 @@ private fun createQueue(clock: Clock,
      mapper = JsonMapper.builder()
        .addModule(KotlinModule.Builder().build())
        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+       // Jackson 3 default changed: merge into getter-only collections (message attributes).
+       .enable(tools.jackson.databind.MapperFeature.USE_GETTERS_AS_SETTERS)
        .registerSubtypes(TestMessage::class.java)
        .registerSubtypes(
          MaxAttemptsAttribute::class.java,

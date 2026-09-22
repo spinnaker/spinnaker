@@ -35,6 +35,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Primary
 import tools.jackson.databind.DeserializationFeature
 import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.MapperFeature
 import tools.jackson.databind.json.JsonMapper
 import tools.jackson.databind.module.SimpleModule
 import tools.jackson.module.kotlin.KotlinModule
@@ -56,6 +57,9 @@ class SqlOrcaQueueConfiguration : SqlQueueConfiguration() {
     taskResolver: TaskResolver
   ): ObjectMapper {
     val configuredMapper = mapper.rebuild<JsonMapper, JsonMapper.Builder>()
+      // Jackson 3 no longer merges into getter-only collections by default; the queue
+      // relies on it for message attributes (e.g. ack counting).
+      .enable(MapperFeature.USE_GETTERS_AS_SETTERS)
       .addModule(KotlinModule.Builder().build())
       .addModule(
         SimpleModule()

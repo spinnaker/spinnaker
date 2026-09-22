@@ -40,6 +40,7 @@ import redis.clients.jedis.JedisCluster
 import redis.clients.jedis.util.Pool
 import tools.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.MapperFeature
 import tools.jackson.databind.json.JsonMapper
 import tools.jackson.databind.module.SimpleModule
 import tools.jackson.module.kotlin.KotlinModule
@@ -61,6 +62,9 @@ class RedisOrcaQueueConfiguration : RedisQueueConfiguration() {
     taskResolver: TaskResolver
   ): ObjectMapper {
     val configuredMapper = mapper.rebuild<JsonMapper, JsonMapper.Builder>()
+      // Jackson 3 no longer merges into getter-only collections by default; the queue
+      // relies on it for message attributes (e.g. ack counting).
+      .enable(MapperFeature.USE_GETTERS_AS_SETTERS)
       .addModule(KotlinModule.Builder().build())
       .addModule(
         SimpleModule()

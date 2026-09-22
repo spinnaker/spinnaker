@@ -273,7 +273,7 @@ class RedisPermissionsRepositorySpec extends Specification {
     getCompressed("unittests:permissions-v2:testuser:accounts") ==
         '{"account":{"name":"account","permissions":{}}}'
     getCompressed("unittests:permissions-v2:testuser:applications") ==
-        '{"app":{"name":"app","permissions":{},"details":{}}}'
+        '{"app":{"details":{},"name":"app","permissions":{}}}'
     getCompressed("unittests:permissions-v2:testuser:service_accounts") ==
         '{"serviceAccount":{"name":"serviceAccount","memberOf":["role1"]}}'
     getCompressed("unittests:permissions-v2:testuser:roles") ==

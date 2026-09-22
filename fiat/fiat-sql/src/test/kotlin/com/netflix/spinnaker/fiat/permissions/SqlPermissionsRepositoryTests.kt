@@ -245,7 +245,7 @@ internal object SqlPermissionsRepositoryTests : JUnit5Minutests {
                 expectThat(resourceBody(jooq, "testuser", account1.resourceType, account1.name).get())
                     .isEqualTo("""{"name":"account","permissions":{}}""")
                 expectThat(resourceBody(jooq, "testuser", app1.resourceType, app1.name).get())
-                    .isEqualTo("""{"name":"app","permissions":{},"details":{}}""")
+                    .isEqualTo("""{"details":{},"name":"app","permissions":{}}""")
                 expectThat(resourceBody(jooq, "testuser", serviceAccount1.resourceType, serviceAccount1.name.toLowerCase()).get())
                     .isEqualTo("""{"name":"serviceAccount","memberOf":["role1"]}""")
                 expectThat(resourceBody(jooq, "testuser", role1.resourceType, role1.name).get())
@@ -734,7 +734,7 @@ internal object SqlPermissionsRepositoryTests : JUnit5Minutests {
 
                 expectThat(
                         resourceBody(jooq, "testuser", application1.resourceType, application1.name.toLowerCase()).get()
-                ).isEqualTo("""{"name":"APP","permissions":{"EXECUTE":["abc"]},"details":{}}""")
+                ).isEqualTo("""{"details":{},"name":"APP","permissions":{"EXECUTE":["abc"]}}""")
 
                 expectThat(
                         jooq.select(PERMISSION.RESOURCE_TYPE).from(PERMISSION).where(PERMISSION.USER_ID.eq("testuser").and(PERMISSION.RESOURCE_NAME.eq("app"))).count()
