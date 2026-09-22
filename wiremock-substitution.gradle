@@ -26,7 +26,7 @@
 // standalone artifact is self-contained, so substitute it for all WireMock
 // usage. The kork-bom platform (spinnaker-dependencies) constrains these
 // artifacts to the same version for dependency resolution.
-def wiremockVersion = "3.10.0"
+def wiremockVersion = "3.13.2"
 
 allprojects {
   configurations.all {
