@@ -134,7 +134,7 @@ dependencies {
     api("com.netflix.spectator:spectator-web-spring:${versions.spectator}")
     api("com.netflix.spectator:spectator-reg-micrometer:${versions.spectator}")
     api("com.nimbusds:nimbus-jose-jwt:10.10")
-    api("com.ninja-squad:springmockk:4.0.2")  //Compatible with Spring boot 3.x and Java 17+ https://github.com/Ninja-Squad/springmockk?tab=readme-ov-file#versions-compatibility
+    api("com.ninja-squad:springmockk:5.0.1")  //Compatible with Spring boot 4.x and Java 17+ https://github.com/Ninja-Squad/springmockk?tab=readme-ov-file#versions-compatibility
     api("com.squareup.retrofit2:converter-jackson:${versions.retrofit2}")
     api("com.squareup.retrofit2:retrofit-mock:${versions.retrofit2}")
     api("com.squareup.retrofit2:retrofit:${versions.retrofit2}")
@@ -250,11 +250,11 @@ dependencies {
     // WireMock version is centralized in wiremock-substitution.gradle at the
     // repo root (single home): the substitution rules there swap these
     // Jetty-based variants for the shaded standalone artifact.
-    api("org.wiremock:wiremock:3.10.0")
-    api("org.wiremock:wiremock-jetty12:3.10.0")
+    api("org.wiremock:wiremock:3.13.2")
+    api("org.wiremock:wiremock-jetty12:3.13.2")
     // Shaded self-contained server; dependencySubstitution in each composite
     // build swaps the Jetty-based variants above for this on all classpaths.
-    api("org.wiremock:wiremock-standalone:3.10.0")
+    api("org.wiremock:wiremock-standalone:3.13.2")
     api("org.objenesis:objenesis:3.6")
     api("org.pf4j:pf4j:3.15.1")
     api("org.pf4j:pf4j-update:2.3.0")
