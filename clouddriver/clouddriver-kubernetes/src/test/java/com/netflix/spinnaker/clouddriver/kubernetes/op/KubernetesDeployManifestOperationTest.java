@@ -373,9 +373,9 @@ final class KubernetesDeployManifestOperationTest {
         ManifestFetcher.getManifest(KubernetesDeployManifestOperationTest.class, manifestFile)
             .get(1);
     existingConfigMap.setName("myconfig-v001");
-    Map<KubernetesKind, Artifact> existingArtifacts =
+    Map<KubernetesManifest, Artifact> existingArtifacts =
         ImmutableMap.of(
-            KubernetesKind.CONFIG_MAP,
+            description.getManifests().get(1),
             Artifact.builder()
                 .type("kubernetes/configMap")
                 .name("myconfig")
@@ -596,10 +596,10 @@ final class KubernetesDeployManifestOperationTest {
   private static OperationResult deploy(KubernetesDeployManifestDescription description) {
     ArtifactProvider artifactProvider = mock(ArtifactProvider.class);
     when(artifactProvider.getArtifacts(
-            any(KubernetesKind.class),
+            any(KubernetesManifest.class),
             any(String.class),
-            any(String.class),
-            any(KubernetesCredentials.class)))
+            any(KubernetesCredentials.class),
+            any(KubernetesSelectorList.class)))
         .thenReturn(ImmutableList.of());
     ResourceVersioner resourceVersioner = new ResourceVersioner(artifactProvider);
     return new KubernetesDeployManifestOperation(description, resourceVersioner)
@@ -608,20 +608,20 @@ final class KubernetesDeployManifestOperationTest {
 
   private static OperationResult deploy(
       KubernetesDeployManifestDescription description,
-      Map<KubernetesKind, Artifact> artifactsByKind) {
+      Map<KubernetesManifest, Artifact> artifactsByManifest) {
     ArtifactProvider artifactProvider = mock(ArtifactProvider.class);
     when(artifactProvider.getArtifacts(
-            any(KubernetesKind.class),
+            any(KubernetesManifest.class),
             any(String.class),
-            any(String.class),
-            any(KubernetesCredentials.class)))
+            any(KubernetesCredentials.class),
+            any(KubernetesSelectorList.class)))
         .thenReturn(ImmutableList.of());
-    for (Map.Entry<KubernetesKind, Artifact> entry : artifactsByKind.entrySet()) {
+    for (Map.Entry<KubernetesManifest, Artifact> entry : artifactsByManifest.entrySet()) {
       when(artifactProvider.getArtifacts(
               eq(entry.getKey()),
               any(String.class),
-              any(String.class),
-              any(KubernetesCredentials.class)))
+              any(KubernetesCredentials.class),
+              any(KubernetesSelectorList.class)))
           .thenReturn(ImmutableList.of(entry.getValue()));
     }
     ResourceVersioner resourceVersioner = new ResourceVersioner(artifactProvider);

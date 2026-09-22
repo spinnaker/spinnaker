@@ -420,7 +420,7 @@ public class KubectlJobExecutor {
   @Nullable
   public KubernetesManifest get(
       KubernetesCredentials credentials, KubernetesKind kind, String namespace, String name) {
-    log.debug(
+    log.info(
         "Getting information for {} of Kind {} in namespace {}", name, kind.toString(), namespace);
     List<String> command = kubectlNamespacedGet(credentials, ImmutableList.of(kind), namespace);
     command.add(name);
@@ -499,10 +499,10 @@ public class KubectlJobExecutor {
       List<KubernetesKind> kinds,
       String namespace,
       KubernetesSelectorList selectors) {
-    log.debug("Getting list of kinds {} in namespace {}", kinds, namespace);
+    log.info("Getting list of kinds {} in namespace {}", kinds, namespace);
     List<String> command = kubectlNamespacedGet(credentials, kinds, namespace);
     if (selectors.isNotEmpty()) {
-      log.debug("with selectors: {}", selectors.toString());
+      log.info("with selectors: {}", selectors.toString());
       command.add("-l=" + selectors.toString());
     }
 

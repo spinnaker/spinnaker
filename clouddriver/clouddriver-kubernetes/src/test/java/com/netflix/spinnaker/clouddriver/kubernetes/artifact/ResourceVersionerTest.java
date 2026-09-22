@@ -25,9 +25,9 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider.ArtifactProvider;
-import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesSelectorList;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.OptionalInt;
 import java.util.stream.Stream;
@@ -53,6 +53,7 @@ final class ResourceVersionerTest {
   @Mock private KubernetesCredentials mockCredentials;
   @Mock private ArtifactProvider artifactProvider;
   private ResourceVersioner versioner;
+  private final KubernetesSelectorList selectorList = new KubernetesSelectorList();
 
   @BeforeEach
   void setUp() {
@@ -63,12 +64,12 @@ final class ResourceVersionerTest {
   void findsMatchingVersionByEquality() {
     KubernetesManifest manifest1 = getStubManifest();
     KubernetesManifest manifest2 = getStubManifest();
+
     // Add some random data so that the two manifests are different.
     manifest1.put("data", ImmutableMap.of("key", 1));
     manifest2.put("data", ImmutableMap.of("key", 3));
 
-    when(artifactProvider.getArtifacts(
-            KubernetesKind.fromString(KIND), NAME, NAMESPACE, mockCredentials))
+    when(artifactProvider.getArtifacts(manifest1, NAME, mockCredentials, selectorList))
         .thenReturn(
             ImmutableList.of(
                 Artifact.builder()
@@ -82,21 +83,21 @@ final class ResourceVersionerTest {
                     .version("v002")
                     .build()));
 
-    OptionalInt version = versioner.getVersion(manifest1, mockCredentials);
+    OptionalInt version = versioner.getVersion(manifest1, mockCredentials, selectorList);
     assertThat(version).hasValue(1);
   }
 
   @ParameterizedTest
   @MethodSource("versionTestCases")
   void correctlyPicksNextVersion(VersionTestCase testCase) {
-    when(artifactProvider.getArtifacts(
-            KubernetesKind.fromString(KIND), NAME, NAMESPACE, mockCredentials))
+    KubernetesManifest manifest = getStubManifest();
+    when(artifactProvider.getArtifacts(manifest, NAME, mockCredentials, selectorList))
         .thenReturn(
             testCase.getExistingVersions().stream()
                 .map(v -> Artifact.builder().putMetadata("account", ACCOUNT).version(v).build())
                 .collect(toImmutableList()));
 
-    OptionalInt version = versioner.getVersion(getStubManifest(), mockCredentials);
+    OptionalInt version = versioner.getVersion(manifest, mockCredentials, selectorList);
     assertThat(version).hasValue(testCase.getNextVersion());
   }
 
