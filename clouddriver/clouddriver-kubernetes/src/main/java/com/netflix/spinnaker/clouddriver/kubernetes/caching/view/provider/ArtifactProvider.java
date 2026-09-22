@@ -41,13 +41,11 @@ public class ArtifactProvider {
    * 'test-configmap-v002', 'test-configmap-v003' in the namespace. This method will return the
    * above 3 configmaps.
    *
-   * <p>The filtering logic supports two techniques:
-   * 1. (Default) search for all resources of the
+   * <p>The filtering logic supports two techniques: 1. (Default) search for all resources of the
    * target Kind in the namespace. Create Artifact resources from them and return those that match
    * the provided name. This is the most accurate solution, but is resource inefficient, especially
    * in namespaces that have a lot of resources of the target Kind, since this does a kubectl get of
-   * all resources under the covers.
-   * 2. (Optimized) If a label selector map is provided, then a
+   * all resources under the covers. 2. (Optimized) If a label selector map is provided, then a
    * kubectl call is made using that label selector. This works well resource efficiency wise, since
    * kubectl get -l works better than doing a kubectl get and then filtering the result.
    *
