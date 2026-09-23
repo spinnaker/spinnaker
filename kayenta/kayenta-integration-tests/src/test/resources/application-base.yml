@@ -1,5 +1,6 @@
 
 redis.connection: redis://${embedded.redis.user}:${embedded.redis.password}@localhost:${embedded.redis.port}
+embedded.redis.dockerImage: valkey/valkey:8
 
 kayenta:
   standaloneCanaryAnalysis.enabled: true
