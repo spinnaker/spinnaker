@@ -44,6 +44,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -349,7 +350,6 @@ public abstract class KubernetesCachingAgent
   protected CacheResult buildCacheResult(Map<KubernetesKind, List<KubernetesManifest>> resources) {
     if (resources.isEmpty()) {
       log.info("{} did not find anything to cache", getAgentType());
-      return new DefaultCacheResult(Map.of());
     }
 
     KubernetesCacheData kubernetesCacheData = new KubernetesCacheData();
@@ -392,6 +392,17 @@ public abstract class KubernetesCachingAgent
             });
 
     Map<String, Collection<CacheData>> entries = kubernetesCacheData.toStratifiedCacheData();
+
+    // Ensure every kind this agent is authoritative for has an entry in the result, even one
+    // with zero items. groupingBy above (and in toStratifiedCacheData) only emits a key when at
+    // least one live manifest of that kind was found this cycle, so a kind that just dropped to
+    // zero live resources (e.g. the last Deployment in a namespace was deleted) would otherwise
+    // be silently absent from the CacheResult. SqlProviderCache/SqlCache only run their
+    // existingIds-minus-currentIds eviction diff for types present in this map, so without a
+    // placeholder here, the deleted resource's cached row is never cleaned up until a resource
+    // of that same kind reappears in a later cycle.
+    filteredPrimaryKinds().forEach(kind -> entries.putIfAbsent(kind.toString(), new ArrayList<>()));
+
     int total = resources.values().stream().mapToInt(List::size).sum();
     int cachedEntriesTotal = entries.values().stream().mapToInt(Collection::size).sum();
     log.info(

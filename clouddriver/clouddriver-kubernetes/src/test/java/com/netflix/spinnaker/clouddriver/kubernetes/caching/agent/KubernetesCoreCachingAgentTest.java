@@ -131,8 +131,14 @@ final class KubernetesCoreCachingAgentTest {
     return storageClass;
   }
 
-  /** Returns a mock KubernetesCredentials object */
-  private static KubernetesCredentials mockKubernetesCredentials(String deploymentName) {
+  /**
+   * Returns a mock KubernetesCredentials object. When {@code includeDeployment} is false, {@code
+   * list()} never returns the test Deployment manifest -- simulating the account having zero live
+   * Deployments this cycle (e.g. the last one was just deleted), while other kinds (StorageClass)
+   * are still found.
+   */
+  private static KubernetesCredentials mockKubernetesCredentials(
+      String deploymentName, boolean includeDeployment) {
     KubernetesCredentials credentials = mock(KubernetesCredentials.class);
     when(credentials.getGlobalKinds()).thenReturn(kindProperties.keySet().asList());
     when(credentials.getKindProperties(any(KubernetesKind.class)))
@@ -161,7 +167,9 @@ final class KubernetesCoreCachingAgentTest {
                       ImmutableSet.copyOf((List<KubernetesKind>) args[0]);
                   String namespace = (String) args[1];
                   ImmutableList.Builder<KubernetesManifest> result = new ImmutableList.Builder<>();
-                  if (kinds.contains(KubernetesKind.DEPLOYMENT) && NAMESPACE1.equals(namespace)) {
+                  if (includeDeployment
+                      && kinds.contains(KubernetesKind.DEPLOYMENT)
+                      && NAMESPACE1.equals(namespace)) {
                     result.add(deploymentManifest(deploymentName));
                   }
                   if (kinds.contains(KubernetesKind.STORAGE_CLASS)) {
@@ -191,10 +199,21 @@ final class KubernetesCoreCachingAgentTest {
    */
   private static KubernetesNamedAccountCredentials getNamedAccountCredentials(
       String deploymentName) {
+    return getNamedAccountCredentials(deploymentName, true);
+  }
+
+  /**
+   * Returns a KubernetesNamedAccountCredentials backed by a mock KubernetesCredentials object. When
+   * {@code includeDeployment} is false, the account is set up to report zero live Deployments, as
+   * though the last one was just deleted.
+   */
+  private static KubernetesNamedAccountCredentials getNamedAccountCredentials(
+      String deploymentName, boolean includeDeployment) {
     ManagedAccount managedAccount = new ManagedAccount();
     managedAccount.setName(ACCOUNT);
 
-    KubernetesCredentials mockCredentials = mockKubernetesCredentials(deploymentName);
+    KubernetesCredentials mockCredentials =
+        mockKubernetesCredentials(deploymentName, includeDeployment);
     KubernetesCredentials.Factory credentialFactory = mock(KubernetesCredentials.Factory.class);
     when(credentialFactory.build(managedAccount)).thenReturn(mockCredentials);
     return new KubernetesNamedAccountCredentials(managedAccount, credentialFactory);
@@ -326,6 +345,39 @@ final class KubernetesCoreCachingAgentTest {
 
     // storage class kind should be cached
     validateStorageClassInCacheResult(storageClassKey, loadDataResult.getResults());
+  }
+
+  /**
+   * Regression test for a stale-cache bug: if the last live resource of an authoritative kind (e.g.
+   * the last Deployment in a namespace) is deleted, that kind must still show up in the CacheResult
+   * with an empty entry. Downstream caches (SqlCache in particular) only run their
+   * existingIds-minus-currentIds eviction diff for types present in the CacheResult; if the kind is
+   * silently absent instead, the deleted resource's row is never cleaned up until a resource of
+   * that same kind reappears in the namespace in a later cycle.
+   */
+  @ParameterizedTest
+  @ValueSource(ints = {1, 2, 10})
+  public void loadDataStillReportsAuthoritativeKindWhenNoLiveResourcesFound(int numAgents) {
+    KubernetesConfigurationProperties configurationProperties =
+        new KubernetesConfigurationProperties();
+    configurationProperties.getCache().setCacheAll(true);
+
+    KubernetesNamedAccountCredentials namedAccountCredentials =
+        getNamedAccountCredentials(DEPLOYMENT_NAME, /* includeDeployment= */ false);
+
+    ImmutableCollection<KubernetesCoreCachingAgent> cachingAgents =
+        createCachingAgents(namedAccountCredentials, numAgents, configurationProperties);
+
+    // Inspect each agent's raw CacheResult directly: a Guava Multimap (used by the
+    // extractCacheResults test helper elsewhere in this file) cannot represent a key with zero
+    // values, so it isn't suitable for asserting presence of an empty entry -- go straight to
+    // CacheResult#getCacheResults() instead.
+    for (KubernetesCoreCachingAgent cachingAgent : cachingAgents) {
+      ProviderCache providerCache = new DefaultProviderCache(new InMemoryCache());
+      CacheResult result = cachingAgent.loadData(providerCache);
+      assertThat(result.getCacheResults()).containsKey(DEPLOYMENT_KIND);
+      assertThat(result.getCacheResults().get(DEPLOYMENT_KIND)).isEmpty();
+    }
   }
 
   @ParameterizedTest
