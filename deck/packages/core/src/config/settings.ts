@@ -96,6 +96,7 @@ export interface ISpinnakerSettings {
   banners?: IBannerSettings[];
   checkForUpdates: boolean;
   debugEnabled: boolean;
+  displayExecutionDeploymentTargets?: boolean;
   maxRunningExecutionsToRetrieve: number;
   defaultInstancePort: number;
   defaultProviders: string[];
