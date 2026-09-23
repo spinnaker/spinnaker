@@ -97,7 +97,7 @@ class StandaloneContainerTest {
   private static final ObjectMapper mapper = JsonMapper.builder().build();
 
   private static GenericContainer redis =
-      new GenericContainer(DockerImageName.parse("library/redis:5-alpine"))
+      new GenericContainer(DockerImageName.parse("valkey/valkey:8"))
           .withNetwork(network)
           .withNetworkAliases(REDIS_NETWORK_ALIAS)
           .withExposedPorts(REDIS_PORT);
