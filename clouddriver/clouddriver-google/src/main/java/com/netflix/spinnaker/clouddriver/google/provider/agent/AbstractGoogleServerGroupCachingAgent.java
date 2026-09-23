@@ -247,7 +247,7 @@ public abstract class AbstractGoogleServerGroupCachingAgent
       Optional<GoogleServerGroup> serverGroup =
           getMetricsSupport().readData(() -> getServerGroup(serverGroupName, providerCache));
 
-      CacheResultBuilder cacheResultBuilder = new CacheResultBuilder();
+      CacheResultBuilder cacheResultBuilder = new CacheResultBuilder(DATA_TYPES);
 
       if (serverGroup.isPresent()) {
         String serverGroupKey = getServerGroupKey(serverGroup.get());
