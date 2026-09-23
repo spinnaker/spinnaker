@@ -71,7 +71,7 @@ class SqlCacheConfiguration {
     providers: List<Provider>,
     executionInstrumentation: List<ExecutionInstrumentation>,
     cacheFactory: NamedCacheFactory,
-    agentScheduler: AgentScheduler<*>
+    agentScheduler: AgentScheduler
   ): CatsModule {
     return CatsModule.Builder()
       .providerRegistry(SqlProviderRegistry(providers, cacheFactory))

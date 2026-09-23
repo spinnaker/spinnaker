@@ -2,7 +2,6 @@ package com.netflix.spinnaker.cats.pubsub;
 
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.agent.AgentExecution;
-import com.netflix.spinnaker.cats.agent.AgentLock;
 import com.netflix.spinnaker.cats.agent.AgentScheduler;
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation;
 import com.netflix.spinnaker.cats.cluster.AgentIntervalProvider;
@@ -58,8 +57,7 @@ import org.springframework.util.StopWatch;
 @ConditionalOnProperty("cats.pubsub.enabled")
 @Log4j2
 @Alpha
-public class PubSubAgentScheduler extends CatsModuleAware
-    implements Runnable, AgentScheduler<AgentLock> {
+public class PubSubAgentScheduler extends CatsModuleAware implements Runnable, AgentScheduler {
 
   public static final Set<StateMachine.State> QUEUEABLE_STATES =
       Set.of(
