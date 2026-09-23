@@ -58,7 +58,7 @@ class RedisCacheSpec extends WriteableCacheSpec {
     }
 
     def mapper = JsonMapper.builder()
-      .changeDefaultPropertyInclusion({ value -> value.withValueInclusion(JsonInclude.Include.NON_NULL) })
+      .changeDefaultPropertyInclusion({ value -> value.withValueInclusion(JsonInclude.Include.NON_NULL).withContentInclusion(JsonInclude.Include.NON_NULL) })
       .build()
 
     return new RedisCache('test', new JedisClientDelegate(pool), mapper, RedisCacheOptions.builder().maxMset(MAX_MSET_SIZE).maxMergeBatch(MAX_MERGE_COUNT).build(), cacheMetrics)
@@ -186,7 +186,7 @@ class RedisCacheSpec extends WriteableCacheSpec {
   def 'should merge #mergeCount items at a time'() {
     setup:
     def mapper = JsonMapper.builder()
-      .changeDefaultPropertyInclusion({ value -> value.withValueInclusion(JsonInclude.Include.NON_NULL) })
+      .changeDefaultPropertyInclusion({ value -> value.withValueInclusion(JsonInclude.Include.NON_NULL).withContentInclusion(JsonInclude.Include.NON_NULL) })
       .build()
     def cache = new RedisCache(
       'test',

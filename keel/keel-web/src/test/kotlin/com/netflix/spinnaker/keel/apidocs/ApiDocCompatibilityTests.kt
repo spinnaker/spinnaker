@@ -1,8 +1,8 @@
 package com.netflix.spinnaker.keel.apidocs
 
-import tools.jackson.databind.JsonNode as Jackson2JsonNode
-import tools.jackson.databind.ObjectMapper as Jackson2ObjectMapper
-import tools.jackson.dataformat.yaml.YAMLMapper as Jackson2YamlMapper
+import com.fasterxml.jackson.databind.JsonNode as Jackson2JsonNode
+import com.fasterxml.jackson.databind.ObjectMapper as Jackson2ObjectMapper
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper as Jackson2YamlMapper
 import com.netflix.spinnaker.keel.api.support.ExtensionRegistry
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.ec2.jackson.registerEc2Subtypes

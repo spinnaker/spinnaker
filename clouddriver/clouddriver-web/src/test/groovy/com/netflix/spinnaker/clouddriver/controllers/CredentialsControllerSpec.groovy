@@ -42,7 +42,7 @@ class CredentialsControllerSpec extends Specification {
   void "named credential names are listed"() {
     setup:
 
-    def objectMapper = JsonMapper.builder().changeDefaultPropertyInclusion({ value -> value.withValueInclusion(JsonInclude.Include.NON_NULL) }).build();
+    def objectMapper = JsonMapper.builder().changeDefaultPropertyInclusion({ value -> value.withValueInclusion(JsonInclude.Include.NON_NULL).withContentInclusion(JsonInclude.Include.NON_NULL) }).build();
     def credsRepo = new MapBackedAccountCredentialsRepository()
     def credsProvider = new DefaultAccountCredentialsProvider(credsRepo)
     credsRepo.save("test", new TestNamedAccountCredentials())
@@ -66,7 +66,7 @@ class CredentialsControllerSpec extends Specification {
   void "credentials are listed by type"() {
     setup:
 
-    def objectMapper = JsonMapper.builder().changeDefaultPropertyInclusion({ value -> value.withValueInclusion(JsonInclude.Include.NON_NULL) }).build()
+    def objectMapper = JsonMapper.builder().changeDefaultPropertyInclusion({ value -> value.withValueInclusion(JsonInclude.Include.NON_NULL).withContentInclusion(JsonInclude.Include.NON_NULL) }).build()
     def credsRepo = new MapBackedAccountCredentialsRepository()
     def accountDefRepo = new MapBackedAccountDefinitionRepository()
     def credsProvider = new DefaultAccountCredentialsProvider(credsRepo)
@@ -98,7 +98,7 @@ class CredentialsControllerSpec extends Specification {
   void "credentials are listed by type and with limit"() {
     setup:
 
-    def objectMapper = JsonMapper.builder().changeDefaultPropertyInclusion({ value -> value.withValueInclusion(JsonInclude.Include.NON_NULL) }).build()
+    def objectMapper = JsonMapper.builder().changeDefaultPropertyInclusion({ value -> value.withValueInclusion(JsonInclude.Include.NON_NULL).withContentInclusion(JsonInclude.Include.NON_NULL) }).build()
     def credsRepo = new MapBackedAccountCredentialsRepository()
     def accountDefRepo = new MapBackedAccountDefinitionRepository()
     def credsProvider = new DefaultAccountCredentialsProvider(credsRepo)
@@ -134,7 +134,7 @@ class CredentialsControllerSpec extends Specification {
   void "credentials are listed by type, startingAccountName and with limit"() {
     setup:
 
-    def objectMapper = JsonMapper.builder().changeDefaultPropertyInclusion({ value -> value.withValueInclusion(JsonInclude.Include.NON_NULL) }).build()
+    def objectMapper = JsonMapper.builder().changeDefaultPropertyInclusion({ value -> value.withValueInclusion(JsonInclude.Include.NON_NULL).withContentInclusion(JsonInclude.Include.NON_NULL) }).build()
     def credsRepo = new MapBackedAccountCredentialsRepository()
     def accountDefRepo = new MapBackedAccountDefinitionRepository()
     def credsProvider = new DefaultAccountCredentialsProvider(credsRepo)

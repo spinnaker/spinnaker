@@ -29,7 +29,6 @@ import com.netflix.spinnaker.front50.config.S3MetadataStorageProperties;
 import com.netflix.spinnaker.front50.model.events.S3Event;
 import com.netflix.spinnaker.front50.model.events.S3EventWrapper;
 import jakarta.annotation.PreDestroy;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.time.Instant;
@@ -45,6 +44,7 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.sqs.model.Message;
+import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
 /**
@@ -261,14 +261,14 @@ public class EventingS3ObjectKeyLoader implements ObjectKeyLoader, Runnable {
     S3EventWrapper s3EventWrapper;
     try {
       s3EventWrapper = objectMapper.readValue(messageBody, S3EventWrapper.class);
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       log.debug("Unable unmarshal S3EventWrapper (body: {})", value("message", messageBody), e);
       return null;
     }
 
     try {
       return objectMapper.readValue(s3EventWrapper.message, S3Event.class);
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       log.debug("Unable unmarshal S3Event (body: {})", value("body", s3EventWrapper.message), e);
       return null;
     }
