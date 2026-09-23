@@ -23,7 +23,7 @@ import com.netflix.spinnaker.clouddriver.azure.resources.securitygroup.model.Ups
 import tools.jackson.databind.json.JsonMapper
 
 class AzureSecurityGroupResourceTemplate {
-  static ObjectMapper mapper = JsonMapper.builder().enable(SerializationFeature.INDENT_OUTPUT)
+  static ObjectMapper mapper = JsonMapper.builder().enable(SerializationFeature.INDENT_OUTPUT).build()
 
   static String getTemplate(UpsertAzureSecurityGroupDescription description) {
     SecurityGroupTemplate template = new SecurityGroupTemplate(description)
@@ -230,4 +230,3 @@ class AzureSecurityGroupResourceTemplate {
     String id = "[resourceId(parameters('networkSecurityGroupResourceGroupName'), 'Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroupName'))]"
   }
 }
-

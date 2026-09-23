@@ -95,9 +95,9 @@ public class S3StorageService implements StorageService {
       ServerSideEncryption serverSideEncryption) {
     this.objectMapper =
         JsonMapper.builder()
-            .build()
             .addMixIn(Timestamped.class, TimestampedMixins.class)
-            .addMixIn(Pipeline.class, PipelineMixins.class);
+            .addMixIn(Pipeline.class, PipelineMixins.class)
+            .build();
     this.s3Client = s3Client;
     this.bucket = bucket;
     this.rootFolder = rootFolder;

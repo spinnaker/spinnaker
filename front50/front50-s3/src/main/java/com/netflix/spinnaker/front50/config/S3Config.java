@@ -58,9 +58,9 @@ public class S3Config {
 
     ObjectMapper awsObjectMapper =
         JsonMapper.builder()
-            .build()
             .addMixIn(Timestamped.class, TimestampedMixins.class)
-            .addMixIn(Pipeline.class, PipelineMixins.class);
+            .addMixIn(Pipeline.class, PipelineMixins.class)
+            .build();
 
     S3StorageService service =
         new S3StorageService(

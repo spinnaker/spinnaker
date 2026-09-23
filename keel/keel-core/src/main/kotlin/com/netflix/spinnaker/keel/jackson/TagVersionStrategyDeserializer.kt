@@ -10,7 +10,7 @@ internal object TagVersionStrategyDeserializer : StdDeserializer<TagVersionStrat
     val value = p.text
     return TagVersionStrategy
       .values()
-      .find { it.friendlyName == value }
+      .find { it.friendlyName == value || it.name == value }
       ?: throw ctxt.weirdStringException(value, TagVersionStrategy::class.java, "not one of the values accepted for Enum class: %s")
   }
 }

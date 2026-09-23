@@ -132,7 +132,8 @@ public class KayentaConfiguration {
       KayentaSerializationConfigurationProperties kayentaSerializationConfigurationProperties) {
     return objectMapper
         .rebuild()
-        .changeDefaultPropertyInclusion(value -> value.withValueInclusion(NON_NULL))
+        .changeDefaultPropertyInclusion(
+            value -> value.withValueInclusion(NON_NULL).withContentInclusion(NON_NULL))
         .disable(FAIL_ON_UNKNOWN_PROPERTIES)
         .configure(
             DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS,

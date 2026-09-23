@@ -17,6 +17,7 @@ import tools.jackson.databind.DeserializationContext
 import tools.jackson.databind.cfg.DateTimeFeature
 import tools.jackson.databind.cfg.MapperBuilder
 import tools.jackson.databind.InjectableValues
+import tools.jackson.databind.MapperFeature.ALLOW_FINAL_FIELDS_AS_MUTATORS
 import tools.jackson.databind.module.SimpleModule
 import tools.jackson.databind.ser.std.ToStringSerializer
 import tools.jackson.databind.json.JsonMapper
@@ -63,6 +64,9 @@ fun <M : ObjectMapper, B : MapperBuilder<M, B>> B.configureForKeel(): B {
     addModule(precisionModule)
     injectableValues(ContextAttributeInjectableValues())
     disable(FAIL_ON_UNKNOWN_PROPERTIES)
+    // DismissibleNotification and other model bases expose inherited read-only
+    // properties that are updated from persisted JSON (e.g. SQL JSON_SET).
+    enable(ALLOW_FINAL_FIELDS_AS_MUTATORS)
     enable(ACCEPT_CASE_INSENSITIVE_ENUMS)
     changeDefaultPropertyInclusion { it.withValueInclusion(NON_NULL).withContentInclusion(NON_NULL) }
     enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
