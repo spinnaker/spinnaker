@@ -9,7 +9,7 @@ ext {
     arrow            : "0.13.2",
     awsv2            : "2.55.1",
     bouncycastle     : "1.84", // fixes CVE-2024-34447, CVE-2025-14813
-    gcp              : "26.34.0",
+    gcp              : "26.84.0",
     // Aligned with Spock 2.4-groovy-4.0's required Groovy (4.0.29): keeps the
     // Groovy 4 line Boot 3 used while staying off Boot 4.1's Groovy 5.0.8,
     // which Spock 2.4 does not support. Enforced via strictly below.
@@ -98,15 +98,15 @@ dependencies {
   api(platform("io.arrow-kt:arrow-stack:${versions.arrow}"))
   constraints {
     api("cglib:cglib-nodep:3.3.0")
-    api("com.google.api-client:google-api-client:2.4.1")
-    api("com.google.apis:google-api-services-admin-directory:directory_v1-rev20240429-2.0.0")
-    api("com.google.apis:google-api-services-cloudbuild:v1-rev20240427-2.0.0")
-    api("com.google.apis:google-api-services-compute:v1-rev20250415-2.0.0")
-    api("com.google.apis:google-api-services-iam:v1-rev20240502-2.0.0")
-    api("com.google.apis:google-api-services-monitoring:v3-rev20240427-2.0.0")
-    api("com.google.apis:google-api-services-storage:v1-rev20240319-2.0.0")
-    api("com.google.apis:google-api-services-appengine:v1-rev20240415-2.0.0")
-    api("com.google.apis:google-api-services-run:v1-rev20240426-2.0.0")
+    api("com.google.api-client:google-api-client:2.9.1")
+    api("com.google.apis:google-api-services-admin-directory:directory_v1-rev20260531-2.0.0")
+    api("com.google.apis:google-api-services-cloudbuild:v1-rev20260511-2.0.0")
+    api("com.google.apis:google-api-services-compute:v1-rev20260520-2.0.0")
+    api("com.google.apis:google-api-services-iam:v1-rev20250516-2.0.0")
+    api("com.google.apis:google-api-services-monitoring:v3-rev20250515-2.0.0")
+    api("com.google.apis:google-api-services-storage:v1-rev20260524-2.0.0")
+    api("com.google.apis:google-api-services-appengine:v1-rev20260429-2.0.0")
+    api("com.google.apis:google-api-services-run:v1-rev20260529-2.0.0")
     api("com.google.cloud:google-cloud-secretmanager:2.37.0")
     api("com.google.code.findbugs:jsr305:3.0.2")
     api("com.google.guava:guava:33.7.1-jre")
