@@ -20,6 +20,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.caching.agent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AccountAware;
@@ -51,11 +52,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.Getter;
 import org.slf4j.Logger;
@@ -176,34 +177,82 @@ public abstract class KubernetesCachingAgent
     return filteredPrimaryKinds;
   }
 
-  private ImmutableList<KubernetesManifest> loadResources(
+  /**
+   * The result of listing a set of kinds: the manifests found, plus any of the requested kinds that
+   * could not be confirmed one way or the other this cycle (currently: because kubectl reported a
+   * permission error for the batch). Callers must not treat a kind in {@link #unconfirmedKinds} as
+   * having zero live resources just because it's absent from {@link #manifests} -- we simply don't
+   * know.
+   */
+  private static final class ResourceListResult {
+    private static final ResourceListResult EMPTY =
+        new ResourceListResult(ImmutableList.of(), ImmutableSet.of());
+
+    private final ImmutableList<KubernetesManifest> manifests;
+    private final ImmutableSet<KubernetesKind> unconfirmedKinds;
+
+    private ResourceListResult(
+        ImmutableList<KubernetesManifest> manifests,
+        ImmutableSet<KubernetesKind> unconfirmedKinds) {
+      this.manifests = manifests;
+      this.unconfirmedKinds = unconfirmedKinds;
+    }
+
+    private static ResourceListResult concat(ResourceListResult a, ResourceListResult b) {
+      return new ResourceListResult(
+          ImmutableList.<KubernetesManifest>builder()
+              .addAll(a.manifests)
+              .addAll(b.manifests)
+              .build(),
+          ImmutableSet.<KubernetesKind>builder()
+              .addAll(a.unconfirmedKinds)
+              .addAll(b.unconfirmedKinds)
+              .build());
+    }
+  }
+
+  @Nonnull
+  private ResourceListResult loadResources(
       @Nonnull Iterable<KubernetesKind> kubernetesKinds, Optional<String> optionalNamespace) {
     String namespace = optionalNamespace.orElse(null);
-    return credentials.list(ImmutableList.copyOf(kubernetesKinds), namespace);
+    ImmutableList<KubernetesKind> kinds = ImmutableList.copyOf(kubernetesKinds);
+    try {
+      return new ResourceListResult(
+          credentials.listAuthoritative(kinds, namespace), ImmutableSet.of());
+    } catch (KubectlJobExecutor.KubectlForbiddenException e) {
+      log.warn(
+          "{}: permission denied listing {} in namespace '{}'; treating {} as unconfirmed this"
+              + " cycle rather than risking eviction of resources we simply can't see: {}",
+          getAgentType(),
+          kinds,
+          namespace,
+          e.getRequestedKinds(),
+          e.getMessage());
+      return new ResourceListResult(
+          e.getPartialResults(), ImmutableSet.copyOf(e.getRequestedKinds()));
+    }
   }
 
   @Nonnull
-  private ImmutableList<KubernetesManifest> loadNamespaceScopedResources(
+  private ResourceListResult loadNamespaceScopedResources(
       @Nonnull Iterable<KubernetesKind> kubernetesKinds) {
-    return getNamespaces()
-        // Not using parallelStream. In ForkJoin.commonPool, the number of threads == (CPU cores -
-        // 1). Since we're already running in the AgentExecutionAction thread pool and the number of
-        // threads to compute namespaces is already configurable at account level, this is not
-        // needed and most importantly, avoids contention in the common pool, increasing
-        // performance.
-        .stream()
+    // Not using parallelStream. In ForkJoin.commonPool, the number of threads == (CPU cores -
+    // 1). Since we're already running in the AgentExecutionAction thread pool and the number of
+    // threads to compute namespaces is already configurable at account level, this is not
+    // needed and most importantly, avoids contention in the common pool, increasing
+    // performance.
+    return getNamespaces().stream()
         .map(n -> loadResources(kubernetesKinds, Optional.of(n)))
-        .flatMap(Collection::stream)
-        .collect(ImmutableList.toImmutableList());
+        .reduce(ResourceListResult.EMPTY, ResourceListResult::concat);
   }
 
   @Nonnull
-  private ImmutableList<KubernetesManifest> loadClusterScopedResources(
+  private ResourceListResult loadClusterScopedResources(
       @Nonnull Iterable<KubernetesKind> kubernetesKinds) {
     if (handleClusterScopedResources()) {
       return loadResources(kubernetesKinds, Optional.empty());
     } else {
-      return ImmutableList.of();
+      return ResourceListResult.EMPTY;
     }
   }
 
@@ -214,18 +263,44 @@ public abstract class KubernetesCachingAgent
                 k -> credentials.getKindProperties(k).getResourceScope(), Function.identity()));
   }
 
-  protected Map<KubernetesKind, List<KubernetesManifest>> loadPrimaryResourceList() {
+  /**
+   * The result of {@link #loadPrimaryResourceList()}: the manifests found, grouped by kind, plus
+   * any authoritative kinds that could not be confirmed this cycle and so must be excluded from the
+   * empty-placeholder backfill in {@link #buildCacheResult(Map, Set)} -- see {@link
+   * ResourceListResult}.
+   */
+  protected static final class PrimaryResourceList {
+    private final Map<KubernetesKind, List<KubernetesManifest>> resources;
+    private final ImmutableSet<KubernetesKind> unconfirmedKinds;
+
+    private PrimaryResourceList(
+        Map<KubernetesKind, List<KubernetesManifest>> resources,
+        ImmutableSet<KubernetesKind> unconfirmedKinds) {
+      this.resources = resources;
+      this.unconfirmedKinds = unconfirmedKinds;
+    }
+
+    public Map<KubernetesKind, List<KubernetesManifest>> getResources() {
+      return resources;
+    }
+
+    public ImmutableSet<KubernetesKind> getUnconfirmedKinds() {
+      return unconfirmedKinds;
+    }
+  }
+
+  protected PrimaryResourceList loadPrimaryResourceList() {
     ImmutableSetMultimap<ResourceScope, KubernetesKind> kindsByScope = primaryKindsByScope();
 
+    ResourceListResult listResult =
+        ResourceListResult.concat(
+            loadClusterScopedResources(
+                kindsByScope.get(KubernetesKindProperties.ResourceScope.CLUSTER)),
+            loadNamespaceScopedResources(
+                kindsByScope.get(KubernetesKindProperties.ResourceScope.NAMESPACE)));
+
     Map<KubernetesKind, List<KubernetesManifest>> result =
-        Stream.concat(
-                loadClusterScopedResources(
-                    kindsByScope.get(KubernetesKindProperties.ResourceScope.CLUSTER))
-                    .stream(),
-                loadNamespaceScopedResources(
-                    kindsByScope.get(KubernetesKindProperties.ResourceScope.NAMESPACE))
-                    .stream())
-            .collect(Collectors.groupingBy(KubernetesManifest::getKind));
+        listResult.manifests.stream().collect(Collectors.groupingBy(KubernetesManifest::getKind));
 
     for (KubernetesCachingPolicy policy : credentials.getCachingPolicies()) {
       KubernetesKind policyKind = KubernetesKind.fromString(policy.getKubernetesKind());
@@ -249,7 +324,7 @@ public abstract class KubernetesCachingAgent
       }
     }
 
-    return result;
+    return new PrimaryResourceList(result, listResult.unconfirmedKinds);
   }
 
   /**
@@ -272,13 +347,15 @@ public abstract class KubernetesCachingAgent
     Map<String, Object> details = defaultIntrospectionDetails();
 
     long start = System.currentTimeMillis();
-    Map<KubernetesKind, List<KubernetesManifest>> primaryResourceList = loadPrimaryResourceList();
+    PrimaryResourceList primaryResourceList = loadPrimaryResourceList();
     details.put("timeSpentInKubectlMs", System.currentTimeMillis() - start);
-    return buildCacheResult(primaryResourceList);
+    return buildCacheResult(
+        primaryResourceList.getResources(), primaryResourceList.getUnconfirmedKinds());
   }
 
   protected CacheResult buildCacheResult(KubernetesManifest resource) {
-    return buildCacheResult(ImmutableMap.of(resource.getKind(), ImmutableList.of(resource)));
+    return buildCacheResult(
+        ImmutableMap.of(resource.getKind(), ImmutableList.of(resource)), ImmutableSet.of());
   }
 
   /**
@@ -348,6 +425,12 @@ public abstract class KubernetesCachingAgent
   }
 
   protected CacheResult buildCacheResult(Map<KubernetesKind, List<KubernetesManifest>> resources) {
+    return buildCacheResult(resources, ImmutableSet.of());
+  }
+
+  protected CacheResult buildCacheResult(
+      Map<KubernetesKind, List<KubernetesManifest>> resources,
+      Set<KubernetesKind> unconfirmedKinds) {
     if (resources.isEmpty()) {
       log.info("{} did not find anything to cache", getAgentType());
     }
@@ -401,7 +484,21 @@ public abstract class KubernetesCachingAgent
     // existingIds-minus-currentIds eviction diff for types present in this map, so without a
     // placeholder here, the deleted resource's cached row is never cleaned up until a resource
     // of that same kind reappears in a later cycle.
-    filteredPrimaryKinds().forEach(kind -> entries.putIfAbsent(kind.toString(), new ArrayList<>()));
+    //
+    // Kinds in unconfirmedKinds are excluded: their absence from `resources` this cycle might
+    // mean zero live resources, or it might mean we couldn't list them at all (e.g. a permission
+    // error -- see KubectlJobExecutor#listAuthoritative). We can't tell which, so we skip the
+    // placeholder rather than risk evicting resources we simply failed to see.
+    if (!unconfirmedKinds.isEmpty()) {
+      log.warn(
+          "{}: skipping empty-cache backfill for {} this cycle; their live/dead state could not"
+              + " be confirmed, so any previously cached entries for them are left untouched",
+          getAgentType(),
+          unconfirmedKinds);
+    }
+    filteredPrimaryKinds().stream()
+        .filter(kind -> !unconfirmedKinds.contains(kind))
+        .forEach(kind -> entries.putIfAbsent(kind.toString(), new ArrayList<>()));
 
     int total = resources.values().stream().mapToInt(List::size).sum();
     int cachedEntriesTotal = entries.values().stream().mapToInt(Collection::size).sum();
