@@ -24,7 +24,6 @@ import static java.util.stream.Collectors.toSet;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.CaseFormat;
 import com.netflix.frigga.Names;
 import com.netflix.spectator.api.DefaultRegistry;
 import com.netflix.spectator.api.Registry;
@@ -246,11 +245,8 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandA
     cacheResults.put(LAMBDA_APPLICATIONS.ns, appCacheData);
     cacheResults.put(ON_DEMAND.ns, processedOnDemandCache);
 
-    Map<String, Collection<String>> evictions =
-        computeEvictableData(lambdaCacheData.values(), providerCache);
-
     log.info("Caching {} items in {}", String.valueOf(lambdaCacheData.size()), getAgentType());
-    return new DefaultCacheResult(cacheResults, evictions);
+    return new DefaultCacheResult(cacheResults);
   }
 
   void buildCacheData(
@@ -416,44 +412,5 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandA
         .filter(agentDataType -> agentDataType.getAuthority().equals(AUTHORITATIVE))
         .map(AgentDataType::getTypeName)
         .collect(Collectors.toSet());
-  }
-
-  Map<String, Collection<String>> computeEvictableData(
-      Collection<CacheData> newData, ProviderCache providerCache) {
-
-    // Only compute evictions for LAMBDA_FUNCTIONS namespace
-    // LAMBDA_APPLICATIONS namespace is evicted separately by application cleanup agents
-    String lambdaFunctionsNamespace = LAMBDA_FUNCTIONS.ns;
-    Set<String> oldKeys =
-        providerCache.getIdentifiers(lambdaFunctionsNamespace).stream()
-            .filter(
-                key -> {
-                  Map<String, String> keyParts = Keys.parse(key);
-                  return keyParts.get("account").equalsIgnoreCase(account.getName())
-                      && keyParts.get("region").equalsIgnoreCase(region);
-                })
-            .collect(Collectors.toSet());
-
-    // New data can only come from the current account and region, no need to filter.
-    Set<String> newKeys = newData.stream().map(CacheData::getId).collect(Collectors.toSet());
-
-    Set<String> evictedKeys =
-        oldKeys.stream().filter(oldKey -> !newKeys.contains(oldKey)).collect(Collectors.toSet());
-
-    Map<String, Collection<String>> evictionsByKey = new HashMap<>();
-    evictionsByKey.put(lambdaFunctionsNamespace, evictedKeys);
-    String prettyKeyName =
-        CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, lambdaFunctionsNamespace);
-
-    log.info(
-        "Evicting "
-            + evictedKeys.size()
-            + " "
-            + prettyKeyName
-            + (evictedKeys.size() > 1 ? "s" : "")
-            + " in "
-            + getAgentType());
-
-    return evictionsByKey;
   }
 }
