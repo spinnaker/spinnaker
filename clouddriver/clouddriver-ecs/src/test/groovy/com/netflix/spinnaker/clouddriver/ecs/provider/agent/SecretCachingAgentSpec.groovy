@@ -88,26 +88,16 @@ class SecretCachingAgentSpec extends Specification {
     givenSecrets*.arn.containsAll(cacheData.get(SECRETS.ns)*.getAttributes().secretArn)
   }
 
-  def 'should use filterIdentifiers with account and region glob for evictions'() {
+  def 'should still report the secrets namespace with an empty list when there are no live secrets'() {
     given:
-    def givenSecret = SecretListEntry.builder()
-      .name("test-secret")
-      .arn("arn:aws:secretsmanager:us-west-1:0123456789012:secret:test-secret")
-      .build()
     clientProvider.getAmazonSecretsManagerV2(_, _) >> secretsManager
-    secretsManager.listSecrets(_) >> ListSecretsResponse.builder().secretList([givenSecret]).build()
-
-    def account = 'test-account'
-    def region = 'us-west-1'
-    def expectedGlob = com.netflix.spinnaker.clouddriver.ecs.cache.Keys.buildGlob(SECRETS, account, region)
-    def oldIdentifiers = ['ecs;secrets;test-account;us-west-1;old-secret']
-    providerCache.filterIdentifiers(SECRETS.ns, expectedGlob) >> oldIdentifiers
+    secretsManager.listSecrets(_) >> ListSecretsResponse.builder().secretList([]).build()
 
     when:
     def result = agent.loadData(providerCache)
 
     then:
-    result.evictions[SECRETS.ns] != null
-    result.evictions[SECRETS.ns].containsAll(oldIdentifiers)
+    result.cacheResults.containsKey(SECRETS.ns)
+    result.cacheResults[SECRETS.ns].isEmpty()
   }
 }

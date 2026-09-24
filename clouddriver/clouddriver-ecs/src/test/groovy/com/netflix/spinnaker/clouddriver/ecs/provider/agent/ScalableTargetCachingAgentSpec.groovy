@@ -93,8 +93,9 @@ class ScalableTargetCachingAgentSpec extends Specification {
     givenScalableTargets*.roleARN.containsAll(cacheData.get(SCALABLE_TARGETS.ns)*.getAttributes().roleARN)
   }
 
-  def 'should use filterIdentifiers with account and region glob for evictions'() {
+  def 'should still report the scalable targets namespace with an empty list when there are no live scalable targets'() {
     given:
+<<<<<<< HEAD
     def givenScalableTarget = new ScalableTarget(
       serviceNamespace: ServiceNamespace.Ecs,
       resourceId: "service:/test-cluster/test-service-v001",
@@ -111,12 +112,17 @@ class ScalableTargetCachingAgentSpec extends Specification {
     def expectedGlob = com.netflix.spinnaker.clouddriver.ecs.cache.Keys.buildGlob(SCALABLE_TARGETS, account, region)
     def oldIdentifiers = ['ecs;scalable-targets;test-account;us-west-1;old-target']
     providerCache.filterIdentifiers(SCALABLE_TARGETS.ns, expectedGlob) >> oldIdentifiers
+=======
+    clientProvider.getAmazonApplicationAutoScalingV2(_, _) >> autoscaling
+    autoscaling.describeScalableTargets(_ as DescribeScalableTargetsRequest) >>
+      DescribeScalableTargetsResponse.builder().scalableTargets([]).build()
+>>>>>>> 57e4556 (fix(ecs): opt in to full cache eviction and delete redundant manual eviction (#8072))
 
     when:
     def result = agent.loadData(providerCache)
 
     then:
-    result.evictions[SCALABLE_TARGETS.ns] != null
-    result.evictions[SCALABLE_TARGETS.ns].containsAll(oldIdentifiers)
+    result.cacheResults.containsKey(SCALABLE_TARGETS.ns)
+    result.cacheResults[SCALABLE_TARGETS.ns].isEmpty()
   }
 }
