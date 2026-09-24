@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider
 
+import com.netflix.spinnaker.cats.provider.ProviderCacheConfiguration
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.credentials.CredentialsRepository
 import spock.lang.Specification
@@ -247,5 +248,16 @@ class AwsProviderSpec extends Specification {
 
     then:
     result == "aws:health:i-032:my-qa-account:us-east-1:jkl"
+  }
+
+  // SqlProviderRegistry only wires a provider's ProviderCacheConfiguration into its SqlCache when
+  // the provider implements the interface; otherwise SqlCache falls back to a default that
+  // disables full eviction, and every EC2 caching agent's always-present-key CacheResult is
+  // silently discarded before its eviction diff can run. A regression here would reintroduce the
+  // stale-cache bug for every EC2 account on the SQL cache backend.
+  def "supports full eviction"() {
+    expect:
+    awsProvider instanceof ProviderCacheConfiguration
+    awsProvider.supportsFullEviction()
   }
 }
