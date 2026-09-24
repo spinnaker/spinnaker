@@ -51,6 +51,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.ResourceProperty
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.*;
 import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesManifestNamer;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.*;
+import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.model.Front50Application;
@@ -159,25 +160,26 @@ final class KubernetesCoreCachingAgentTest {
                 .name(STORAGE_CLASS_NAME)
                 .build()))
         .thenReturn(storageClassManifest());
-    when(credentials.list(any(List.class), any()))
-        .thenAnswer(
-            (Answer<ImmutableList<KubernetesManifest>>)
-                invocation -> {
-                  Object[] args = invocation.getArguments();
-                  ImmutableSet<KubernetesKind> kinds =
-                      ImmutableSet.copyOf((List<KubernetesKind>) args[0]);
-                  String namespace = (String) args[1];
-                  ImmutableList.Builder<KubernetesManifest> result = new ImmutableList.Builder<>();
-                  if (includeDeployment
-                      && kinds.contains(KubernetesKind.DEPLOYMENT)
-                      && NAMESPACE1.equals(namespace)) {
-                    result.add(deploymentManifest(deploymentName));
-                  }
-                  if (kinds.contains(KubernetesKind.STORAGE_CLASS)) {
-                    result.add(storageClassManifest());
-                  }
-                  return result.build();
-                });
+    Answer<ImmutableList<KubernetesManifest>> listAnswer =
+        invocation -> {
+          Object[] args = invocation.getArguments();
+          ImmutableSet<KubernetesKind> kinds = ImmutableSet.copyOf((List<KubernetesKind>) args[0]);
+          String namespace = (String) args[1];
+          ImmutableList.Builder<KubernetesManifest> result = new ImmutableList.Builder<>();
+          if (includeDeployment
+              && kinds.contains(KubernetesKind.DEPLOYMENT)
+              && NAMESPACE1.equals(namespace)) {
+            result.add(deploymentManifest(deploymentName));
+          }
+          if (kinds.contains(KubernetesKind.STORAGE_CLASS)) {
+            result.add(storageClassManifest());
+          }
+          return result.build();
+        };
+    when(credentials.list(any(List.class), any())).thenAnswer(listAnswer);
+    // KubernetesCachingAgent#loadResources calls listAuthoritative, not list, when driving cache
+    // eviction -- see KubectlJobExecutor#listAuthoritative.
+    when(credentials.listAuthoritative(any(List.class), any())).thenAnswer(listAnswer);
     when(credentials.getNamer()).thenReturn(new KubernetesManifestNamer());
     when(credentials.isValidKind(any(KubernetesKind.class))).thenReturn(true);
     when(credentials.getKubernetesSpinnakerKindMap())
@@ -379,6 +381,82 @@ final class KubernetesCoreCachingAgentTest {
       assertThat(result.getCacheResults()).containsKey(DEPLOYMENT_KIND);
       assertThat(result.getCacheResults().get(DEPLOYMENT_KIND)).isEmpty();
     }
+  }
+
+  /**
+   * Regression test for a follow-up gap: a kind absent from a cycle's listing because kubectl hit a
+   * permission ("forbidden") error looks identical, from loadPrimaryResourceList's perspective, to
+   * that kind genuinely having zero live resources. If treated the same as a real empty kind, the
+   * empty-cache backfill above would make SqlCache evict any previously cached entries for it --
+   * even though we simply failed to observe them, not confirmed they're gone.
+   *
+   * <p>KubernetesCachingAgent#loadResources must instead catch {@link
+   * KubectlJobExecutor.KubectlForbiddenException} and exclude every kind in that failed batch from
+   * the backfill, leaving their cache entries untouched, while kinds fetched via a separate,
+   * successful call (e.g. cluster-scoped StorageClass here) are unaffected.
+   */
+  @Test
+  public void loadDataDoesNotBackfillKindsDeniedByPermissionError() {
+    KubernetesConfigurationProperties configurationProperties =
+        new KubernetesConfigurationProperties();
+    configurationProperties.getCache().setCacheAll(true);
+
+    KubernetesCredentials credentials = mock(KubernetesCredentials.class);
+    when(credentials.getGlobalKinds()).thenReturn(kindProperties.keySet().asList());
+    when(credentials.getKindProperties(any(KubernetesKind.class)))
+        .thenAnswer(invocation -> kindProperties.get(invocation.getArgument(0)));
+    when(credentials.getDeclaredNamespaces()).thenReturn(ImmutableList.of(NAMESPACE1, NAMESPACE2));
+    when(credentials.getResourcePropertyRegistry()).thenReturn(resourcePropertyRegistry);
+    when(credentials.getNamer()).thenReturn(new KubernetesManifestNamer());
+    when(credentials.isValidKind(any(KubernetesKind.class))).thenReturn(true);
+    when(credentials.getKubernetesSpinnakerKindMap())
+        .thenReturn(
+            new KubernetesSpinnakerKindMap(
+                List.of(new KubernetesDeploymentHandler(), new KubernetesStorageClassHandler())));
+    // Namespace-scoped kinds (Deployment, Pod, ReplicaSet) are all requested together in one
+    // batch per namespace; simulate the account lacking permission to list that batch entirely.
+    // Cluster-scoped kinds (StorageClass, Namespace) are requested separately and still succeed.
+    when(credentials.listAuthoritative(any(List.class), any()))
+        .thenAnswer(
+            invocation -> {
+              Object[] args = invocation.getArguments();
+              List<KubernetesKind> kinds = (List<KubernetesKind>) args[0];
+              String namespace = (String) args[1];
+              if (namespace != null) {
+                throw new KubectlJobExecutor.KubectlForbiddenException(
+                    "simulated permission error listing " + kinds + " in " + namespace,
+                    ImmutableList.copyOf(kinds),
+                    ImmutableList.of());
+              }
+              ImmutableList.Builder<KubernetesManifest> result = new ImmutableList.Builder<>();
+              if (kinds.contains(KubernetesKind.STORAGE_CLASS)) {
+                result.add(storageClassManifest());
+              }
+              return result.build();
+            });
+
+    ManagedAccount managedAccount = new ManagedAccount();
+    managedAccount.setName(ACCOUNT);
+    KubernetesCredentials.Factory credentialFactory = mock(KubernetesCredentials.Factory.class);
+    when(credentialFactory.build(managedAccount)).thenReturn(credentials);
+    KubernetesNamedAccountCredentials namedAccountCredentials =
+        new KubernetesNamedAccountCredentials(managedAccount, credentialFactory);
+
+    KubernetesCoreCachingAgent cachingAgent =
+        createCachingAgents(namedAccountCredentials, 1, configurationProperties).asList().get(0);
+
+    ProviderCache providerCache = new DefaultProviderCache(new InMemoryCache());
+    CacheResult result = cachingAgent.loadData(providerCache);
+
+    // The namespace-scoped kinds hit the simulated permission error, so their live/dead state is
+    // unconfirmed this cycle -- they must not appear at all (neither with data nor as an empty
+    // placeholder), since either would let SqlCache's eviction diff run against them.
+    assertThat(result.getCacheResults()).doesNotContainKey(DEPLOYMENT_KIND);
+    assertThat(result.getCacheResults()).doesNotContainKey(KubernetesKind.POD.toString());
+    assertThat(result.getCacheResults()).doesNotContainKey(KubernetesKind.REPLICA_SET.toString());
+
+    // The cluster-scoped StorageClass call succeeded independently and is unaffected.
+    assertThat(result.getCacheResults()).containsKey(STORAGE_CLASS_KIND);
   }
 
   @ParameterizedTest

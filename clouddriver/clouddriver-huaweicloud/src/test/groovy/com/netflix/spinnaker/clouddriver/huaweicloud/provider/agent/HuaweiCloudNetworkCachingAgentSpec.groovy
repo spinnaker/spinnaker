@@ -74,4 +74,25 @@ class HuaweiCloudNetworkCachingAgentSpec extends Specification {
         cd.id.containsAll([keyGroupA, keyGroupB])
       }
   }
+
+  void "should still report the networks namespace with an empty list when there are no live networks"() {
+    setup:
+      def cloudClient = Mock(HuaweiCloudClient)
+      def credentials = Mock(HuaweiCloudNamedAccountCredentials)
+      credentials.cloudClient >> cloudClient
+      credentials.name >> ACCOUNT_NAME
+      def ProviderCache providerCache = Mock(ProviderCache)
+
+      @Subject
+      HuaweiCloudNetworkCachingAgent agent = new HuaweiCloudNetworkCachingAgent(
+          credentials, new ObjectMapper(), REGION)
+
+    when:
+      def cache = agent.loadData(providerCache)
+
+    then:
+      1 * cloudClient.getVpcs(REGION) >> []
+      cache.cacheResults.containsKey(Keys.Namespace.NETWORKS.ns)
+      cache.cacheResults.get(Keys.Namespace.NETWORKS.ns).isEmpty()
+  }
 }

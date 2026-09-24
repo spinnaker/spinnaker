@@ -108,7 +108,7 @@ class GoogleImageCachingAgent extends AbstractGoogleCachingAgent {
   private CacheResult buildCacheResult(ProviderCache _, List<Image> imageList) {
     log.debug("Describing items in ${agentType}")
 
-    def cacheResultBuilder = new CacheResultBuilder()
+    def cacheResultBuilder = new CacheResultBuilder(providedDataTypes)
 
     imageList.each { Image image ->
       def imageKey = Keys.getImageKey(accountName, image.getName())

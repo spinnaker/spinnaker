@@ -64,7 +64,7 @@ class GoogleSslCertificateCachingAgent extends AbstractGoogleCachingAgent  {
   private CacheResult buildCacheResult(ProviderCache _, List<SslCertificate> sslCertificateList) {
     log.debug("Describing items in ${agentType}")
 
-    def cacheResultBuilder = new CacheResultBuilder()
+    def cacheResultBuilder = new CacheResultBuilder(providedDataTypes)
 
     sslCertificateList.each { SslCertificate sslCertificate ->
       def sslCertificateKey = Keys.getSslCertificateKey(accountName, sslCertificate.getName())

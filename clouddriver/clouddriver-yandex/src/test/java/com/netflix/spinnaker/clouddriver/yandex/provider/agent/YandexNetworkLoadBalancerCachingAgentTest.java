@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.yandex.provider.agent;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -26,13 +27,16 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.netflix.spectator.api.NoopRegistry;
+import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.cache.WriteableCache;
 import com.netflix.spinnaker.cats.mem.InMemoryCache;
 import com.netflix.spinnaker.cats.provider.DefaultProviderCache;
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent;
 import com.netflix.spinnaker.clouddriver.yandex.model.YandexCloudLoadBalancer;
+import com.netflix.spinnaker.clouddriver.yandex.provider.Keys;
 import com.netflix.spinnaker.clouddriver.yandex.security.YandexCloudCredentials;
 import com.netflix.spinnaker.clouddriver.yandex.service.YandexCloudFacade;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
@@ -82,6 +86,24 @@ class YandexNetworkLoadBalancerCachingAgentTest {
     assertNotNull(result);
     assertFalse(result.getCacheResult().getCacheResults().isEmpty());
     assertTrue(result.getCacheResult().getEvictions().isEmpty());
+  }
+
+  @Test
+  void loadDataStillReportsLoadBalancersNamespaceWhenNoneAreLive() {
+    YandexCloudCredentials cred = mock(YandexCloudCredentials.class);
+    when(cred.getName()).thenReturn(ACCOUNT_NAME);
+    YandexCloudFacade facade = mock(YandexCloudFacade.class);
+    when(facade.getLoadBalancers(any())).thenReturn(Collections.emptyList());
+    YandexNetworkLoadBalancerCachingAgent agent =
+        new YandexNetworkLoadBalancerCachingAgent(
+            cred, new ObjectMapper(), new NoopRegistry(), facade);
+    WriteableCache cache = new InMemoryCache();
+    DefaultProviderCache providerCache = new DefaultProviderCache(cache);
+
+    CacheResult result = agent.loadData(providerCache);
+
+    assertThat(result.getCacheResults()).containsKey(Keys.Namespace.LOAD_BALANCERS.getNs());
+    assertThat(result.getCacheResults().get(Keys.Namespace.LOAD_BALANCERS.getNs())).isEmpty();
   }
 
   @NotNull

@@ -65,7 +65,7 @@ public class HuaweiCloudSubnetCachingAgent extends AbstractHuaweiCloudCachingAge
   }
 
   private CacheResult buildCacheResult(List<? extends Subnet> subnets) {
-    CacheResultBuilder cacheResultBuilder = new CacheResultBuilder(0);
+    CacheResultBuilder cacheResultBuilder = new CacheResultBuilder(0, getProvidedDataTypes());
     NamespaceCache nsCache = cacheResultBuilder.getNamespaceCache(SUBNETS.ns);
 
     TypeReference<Map<String, Object>> typeRef = new TypeReference<Map<String, Object>>() {};

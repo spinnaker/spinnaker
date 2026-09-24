@@ -38,7 +38,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.applicationautoscaling.ApplicationAutoScalingClient;
@@ -95,31 +94,8 @@ public class ScalableTargetsCachingAgent implements CachingAgent, AccountAware {
 
     Set<ScalableTarget> scalableTargets = fetchScalableTargets(autoScalingClient);
     Map<String, Collection<CacheData>> newDataMap = generateFreshData(scalableTargets);
-    Collection<CacheData> newData = newDataMap.get(SCALABLE_TARGETS.toString());
 
-    Set<String> oldKeys =
-        new HashSet<>(
-            providerCache.filterIdentifiers(
-                SCALABLE_TARGETS.toString(),
-                Keys.buildGlob(SCALABLE_TARGETS, accountName, region)));
-
-    Map<String, Collection<String>> evictionsByKey = computeEvictableData(newData, oldKeys);
-
-    return new DefaultCacheResult(newDataMap, evictionsByKey);
-  }
-
-  private Map<String, Collection<String>> computeEvictableData(
-      Collection<CacheData> newData, Collection<String> oldKeys) {
-    Set<String> newKeys = newData.stream().map(CacheData::getId).collect(Collectors.toSet());
-    Set<String> evictedKeys =
-        oldKeys.stream().filter(oldKey -> !newKeys.contains(oldKey)).collect(Collectors.toSet());
-
-    Map<String, Collection<String>> evictionsByKey = new HashMap<>();
-    evictionsByKey.put(SCALABLE_TARGETS.toString(), evictedKeys);
-    if (log.isInfoEnabled()) {
-      log.info("Evicting {} scalable targets in {}", evictedKeys.size(), getAgentType());
-    }
-    return evictionsByKey;
+    return new DefaultCacheResult(newDataMap);
   }
 
   Map<String, Collection<CacheData>> generateFreshData(Set<ScalableTarget> scalableTargets) {

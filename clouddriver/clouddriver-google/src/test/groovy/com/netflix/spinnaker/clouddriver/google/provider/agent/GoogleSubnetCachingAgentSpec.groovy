@@ -54,4 +54,34 @@ class GoogleSubnetCachingAgentSpec extends Specification {
     }
   }
 
+  void "should still report the SUBNETS namespace with an empty list when there are no live subnets"() {
+    // Regression test: the last live subnet in a namespace being deleted must still evict its
+    // stale cache entry, not leave it stuck forever. That only happens if the namespace's key is
+    // present in the CacheResult even when nothing was found this cycle -- see
+    // CacheResultBuilder's dataTypes-arg constructor and GoogleInfrastructureProvider's
+    // ProviderCacheConfiguration opt-in.
+    setup:
+    def registry = new DefaultRegistry()
+    def computeMock = Mock(Compute)
+    def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).name(ACCOUNT_NAME).compute(computeMock).build()
+    def subnetsMock = Mock(Compute.Subnetworks)
+    def subnetworksListMock = Mock(Compute.Subnetworks.List)
+    def emptySubnetsListReal = new SubnetworkList(items: [])
+    def ProviderCache providerCache = Mock(ProviderCache)
+    @Subject GoogleSubnetCachingAgent agent = new GoogleSubnetCachingAgent("testApplicationName",
+      credentials,
+      new ObjectMapper(),
+      registry, REGION)
+
+    when:
+    def cache = agent.loadData(providerCache)
+
+    then:
+    1 * computeMock.subnetworks() >> subnetsMock
+    1 * subnetsMock.list(PROJECT_NAME, REGION) >> subnetworksListMock
+    1 * subnetworksListMock.execute() >> emptySubnetsListReal
+    cache.cacheResults.containsKey(Keys.Namespace.SUBNETS.ns)
+    cache.cacheResults.get(Keys.Namespace.SUBNETS.ns).isEmpty()
+  }
+
 }
