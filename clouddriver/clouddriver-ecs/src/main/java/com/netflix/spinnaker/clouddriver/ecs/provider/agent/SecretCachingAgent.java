@@ -35,7 +35,6 @@ import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.provider.EcsProvider;
 import java.util.*;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,8 +78,8 @@ public class SecretCachingAgent implements CachingAgent, AccountAware {
 
     Set<SecretListEntry> secrets = fetchSecrets(secretsManagerClient);
     Map<String, Collection<CacheData>> newDataMap = generateFreshData(secrets);
-    Collection<CacheData> newData = newDataMap.get(SECRETS.toString());
 
+<<<<<<< HEAD
     Set<String> oldKeys =
         providerCache.getAll(SECRETS.toString()).stream()
             .map(CacheData::getId)
@@ -102,6 +101,9 @@ public class SecretCachingAgent implements CachingAgent, AccountAware {
     evictionsByKey.put(SECRETS.toString(), evictedKeys);
     log.info("Evicting " + evictedKeys.size() + " secrets in " + getAgentType());
     return evictionsByKey;
+=======
+    return new DefaultCacheResult(newDataMap);
+>>>>>>> 57e4556 (fix(ecs): opt in to full cache eviction and delete redundant manual eviction (#8072))
   }
 
   Map<String, Collection<CacheData>> generateFreshData(Set<SecretListEntry> secrets) {

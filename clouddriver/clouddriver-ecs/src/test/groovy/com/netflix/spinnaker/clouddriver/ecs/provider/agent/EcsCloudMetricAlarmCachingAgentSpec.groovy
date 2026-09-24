@@ -80,7 +80,7 @@ class EcsCloudMetricAlarmCachingAgentSpec extends Specification {
     metricAlarms*.region.containsAll(cacheData.get(Keys.Namespace.ALARMS.ns)*.getAttributes().region)
   }
 
-  def 'should evict old keys when id is appended'() {
+  def 'loadData caches alarms with the expected keys and attributes'() {
     given:
     def metricAlarm1 = new MetricAlarm().withAlarmName("alarm-name-1").withAlarmArn("alarmArn-1").withDimensions([new Dimension().withName("ClusterName").withValue("my-cluster")])
     def metricAlarm2 = new MetricAlarm().withAlarmName("alarm-name-2").withAlarmArn("alarmArn-2").withDimensions([new Dimension().withName("ClusterName").withValue("my-cluster")])
@@ -91,6 +91,7 @@ class EcsCloudMetricAlarmCachingAgentSpec extends Specification {
     cloudWatch.describeAlarms(_) >> describeAlarmsResult
     clientProvider.getAmazonCloudWatch(_, _, _) >> cloudWatch
 
+<<<<<<< HEAD
     def oldKey1 = Keys.buildKey(Keys.Namespace.ALARMS.ns, ACCOUNT, REGION, metricAlarm1.getAlarmArn())
     def oldKey2 = Keys.buildKey(Keys.Namespace.ALARMS.ns, ACCOUNT, REGION, metricAlarm2.getAlarmArn())
     def oldData = [new DefaultCacheData(oldKey1, attributes1, [:]), new DefaultCacheData(oldKey2, attributes2, [:])]
@@ -98,16 +99,34 @@ class EcsCloudMetricAlarmCachingAgentSpec extends Specification {
 
     def newKey1 = Keys.getAlarmKey(ACCOUNT, REGION, metricAlarm1.getAlarmArn(), "my-cluster")
     def newKey2 = Keys.getAlarmKey(ACCOUNT, REGION, metricAlarm2.getAlarmArn(), "my-cluster")
+=======
+    def newKey1 = Keys.getAlarmKey(ACCOUNT, REGION, metricAlarm1.alarmArn(), "my-cluster")
+    def newKey2 = Keys.getAlarmKey(ACCOUNT, REGION, metricAlarm2.alarmArn(), "my-cluster")
+>>>>>>> 57e4556 (fix(ecs): opt in to full cache eviction and delete redundant manual eviction (#8072))
 
     when:
     def cacheResult = agent.loadData(providerCache)
 
     then:
-    cacheResult.evictions[Keys.Namespace.ALARMS.ns].size() == 2
-    cacheResult.evictions[Keys.Namespace.ALARMS.ns].containsAll([oldKey1, oldKey2])
     cacheResult.cacheResults[Keys.Namespace.ALARMS.ns].size() == 2
     cacheResult.cacheResults[Keys.Namespace.ALARMS.ns]*.id.containsAll([newKey1, newKey2])
     cacheResult.cacheResults[Keys.Namespace.ALARMS.ns]*.attributes.containsAll([attributes1, attributes2])
   }
 
+<<<<<<< HEAD
+=======
+  def 'should still report the alarms namespace with an empty list when there are no live alarms'() {
+    given:
+    clientProvider.getAmazonCloudWatchV2(_, _) >> cloudWatch
+    cloudWatch.describeAlarms(_ as DescribeAlarmsRequest) >> DescribeAlarmsResponse.builder().metricAlarms([]).build()
+
+    when:
+    def result = agent.loadData(providerCache)
+
+    then:
+    result.cacheResults.containsKey(Keys.Namespace.ALARMS.ns)
+    result.cacheResults[Keys.Namespace.ALARMS.ns].isEmpty()
+  }
+
+>>>>>>> 57e4556 (fix(ecs): opt in to full cache eviction and delete redundant manual eviction (#8072))
 }

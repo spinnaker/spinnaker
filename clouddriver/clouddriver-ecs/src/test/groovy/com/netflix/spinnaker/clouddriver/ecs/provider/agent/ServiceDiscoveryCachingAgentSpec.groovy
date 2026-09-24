@@ -96,4 +96,20 @@ class ServiceDiscoveryCachingAgentSpec extends Specification {
     givenServices*.arn.containsAll(cacheData.get(SERVICE_DISCOVERY_REGISTRIES.ns)*.getAttributes().serviceArn)
     givenServices*.id.containsAll(cacheData.get(SERVICE_DISCOVERY_REGISTRIES.ns)*.getAttributes().serviceId)
   }
+<<<<<<< HEAD
+=======
+
+  def 'should still report the service discovery registries namespace with an empty list when there are no live registries'() {
+    given:
+    clientProvider.getAmazonServiceDiscoveryV2(_, _) >> serviceDiscovery
+    serviceDiscovery.listServices(_) >> ListServicesResponse.builder().services([]).build()
+
+    when:
+    def result = agent.loadData(providerCache)
+
+    then:
+    result.cacheResults.containsKey(SERVICE_DISCOVERY_REGISTRIES.ns)
+    result.cacheResults[SERVICE_DISCOVERY_REGISTRIES.ns].isEmpty()
+  }
+>>>>>>> 57e4556 (fix(ecs): opt in to full cache eviction and delete redundant manual eviction (#8072))
 }

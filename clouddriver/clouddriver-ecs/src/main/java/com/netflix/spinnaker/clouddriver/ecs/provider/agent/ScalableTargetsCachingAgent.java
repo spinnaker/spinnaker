@@ -44,7 +44,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -89,8 +88,8 @@ public class ScalableTargetsCachingAgent implements CachingAgent, AccountAware {
 
     Set<ScalableTarget> scalableTargets = fetchScalableTargets(autoScalingClient);
     Map<String, Collection<CacheData>> newDataMap = generateFreshData(scalableTargets);
-    Collection<CacheData> newData = newDataMap.get(SCALABLE_TARGETS.toString());
 
+<<<<<<< HEAD
     Set<String> oldKeys =
         providerCache.getAll(SCALABLE_TARGETS.toString()).stream()
             .map(CacheData::getId)
@@ -112,6 +111,9 @@ public class ScalableTargetsCachingAgent implements CachingAgent, AccountAware {
     evictionsByKey.put(SCALABLE_TARGETS.toString(), evictedKeys);
     log.info("Evicting " + evictedKeys.size() + " scalable targets in " + getAgentType());
     return evictionsByKey;
+=======
+    return new DefaultCacheResult(newDataMap);
+>>>>>>> 57e4556 (fix(ecs): opt in to full cache eviction and delete redundant manual eviction (#8072))
   }
 
   Map<String, Collection<CacheData>> generateFreshData(Set<ScalableTarget> scalableTargets) {

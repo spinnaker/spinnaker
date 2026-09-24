@@ -85,11 +85,32 @@ class ScalableTargetCachingAgentSpec extends Specification {
     then:
     cacheData.size() == 1
     cacheData.get(SCALABLE_TARGETS.ns).size() == givenScalableTargets.size()
+<<<<<<< HEAD
     givenScalableTargets*.serviceNamespace.containsAll(cacheData.get(SCALABLE_TARGETS.ns)*.getAttributes().serviceNamespace)
     givenScalableTargets*.resourceId.containsAll(cacheData.get(SCALABLE_TARGETS.ns)*.getAttributes().resourceId)
     givenScalableTargets*.scalableDimension.containsAll(cacheData.get(SCALABLE_TARGETS.ns)*.getAttributes().scalableDimension)
     givenScalableTargets*.minCapacity.containsAll(cacheData.get(SCALABLE_TARGETS.ns)*.getAttributes().minCapacity)
     givenScalableTargets*.maxCapacity.containsAll(cacheData.get(SCALABLE_TARGETS.ns)*.getAttributes().maxCapacity)
     givenScalableTargets*.roleARN.containsAll(cacheData.get(SCALABLE_TARGETS.ns)*.getAttributes().roleARN)
+=======
+    givenScalableTargets*.resourceId().containsAll(cacheData.get(SCALABLE_TARGETS.ns)*.getAttributes().resourceId)
+    givenScalableTargets*.minCapacity().containsAll(cacheData.get(SCALABLE_TARGETS.ns)*.getAttributes().minCapacity)
+    givenScalableTargets*.maxCapacity().containsAll(cacheData.get(SCALABLE_TARGETS.ns)*.getAttributes().maxCapacity)
+    givenScalableTargets*.roleARN().containsAll(cacheData.get(SCALABLE_TARGETS.ns)*.getAttributes().roleARN)
+  }
+
+  def 'should still report the scalable targets namespace with an empty list when there are no live scalable targets'() {
+    given:
+    clientProvider.getAmazonApplicationAutoScalingV2(_, _) >> autoscaling
+    autoscaling.describeScalableTargets(_ as DescribeScalableTargetsRequest) >>
+      DescribeScalableTargetsResponse.builder().scalableTargets([]).build()
+
+    when:
+    def result = agent.loadData(providerCache)
+
+    then:
+    result.cacheResults.containsKey(SCALABLE_TARGETS.ns)
+    result.cacheResults[SCALABLE_TARGETS.ns].isEmpty()
+>>>>>>> 57e4556 (fix(ecs): opt in to full cache eviction and delete redundant manual eviction (#8072))
   }
 }

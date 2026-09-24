@@ -190,4 +190,29 @@ public class IamRoleCachingAgentTest extends CommonCachingAgent {
         actualRegionName,
         "Expected region to equal " + expectedRegionName + ", but got " + actualRegionName);
   }
+<<<<<<< HEAD
+=======
+
+  @Test
+  public void loadDataStillReportsIamRoleNamespaceWhenNoLiveRolesFound() {
+    // given
+    ProviderCache providerCache = mock(ProviderCache.class);
+
+    when(clientProvider.getIamV2(any(NetflixAmazonCredentials.class), anyString())).thenReturn(iam);
+    when(iam.listRoles(any(ListRolesRequest.class)))
+        .thenReturn(
+            ListRolesResponse.builder().roles(Collections.emptyList()).isTruncated(false).build());
+
+    // when
+    CacheResult result = agent.loadData(providerCache);
+
+    // then
+    assertTrue(
+        result.getCacheResults().containsKey(IAM_ROLE.toString()),
+        "Expected cacheResults to contain the IAM_ROLE namespace even with no live roles");
+    assertTrue(
+        result.getCacheResults().get(IAM_ROLE.toString()).isEmpty(),
+        "Expected the IAM_ROLE namespace to be empty");
+  }
+>>>>>>> 57e4556 (fix(ecs): opt in to full cache eviction and delete redundant manual eviction (#8072))
 }

@@ -87,4 +87,20 @@ class SecretCachingAgentSpec extends Specification {
     givenSecrets*.name.containsAll(cacheData.get(SECRETS.ns)*.getAttributes().secretName)
     givenSecrets*.arn.containsAll(cacheData.get(SECRETS.ns)*.getAttributes().secretArn)
   }
+<<<<<<< HEAD
+=======
+
+  def 'should still report the secrets namespace with an empty list when there are no live secrets'() {
+    given:
+    clientProvider.getAmazonSecretsManagerV2(_, _) >> secretsManager
+    secretsManager.listSecrets(_) >> ListSecretsResponse.builder().secretList([]).build()
+
+    when:
+    def result = agent.loadData(providerCache)
+
+    then:
+    result.cacheResults.containsKey(SECRETS.ns)
+    result.cacheResults[SECRETS.ns].isEmpty()
+  }
+>>>>>>> 57e4556 (fix(ecs): opt in to full cache eviction and delete redundant manual eviction (#8072))
 }

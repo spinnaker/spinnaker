@@ -45,7 +45,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,50 +84,26 @@ public class IamRoleCachingAgent implements CachingAgent, AccountAware {
 
     Set<IamRole> cacheableRoles = fetchIamRoles(iam, accountName);
     Map<String, Collection<CacheData>> newDataMap = generateFreshData(cacheableRoles);
-    Collection<CacheData> newData = newDataMap.get(IAM_ROLE.toString());
 
+<<<<<<< HEAD
     Set<String> oldKeys =
         providerCache.getAll(IAM_ROLE.toString()).stream()
             .map(CacheData::getId)
             .filter(this::keyAccountFilter)
             .collect(Collectors.toSet());
     Map<String, Collection<String>> evictionsByKey = computeEvictableData(newData, oldKeys);
+=======
+    logUpcomingActions(newDataMap);
+>>>>>>> 57e4556 (fix(ecs): opt in to full cache eviction and delete redundant manual eviction (#8072))
 
-    logUpcomingActions(newDataMap, evictionsByKey);
-
-    return new DefaultCacheResult(newDataMap, evictionsByKey);
+    return new DefaultCacheResult(newDataMap);
   }
 
-  private void logUpcomingActions(
-      Map<String, Collection<CacheData>> newDataMap,
-      Map<String, Collection<String>> evictionsByKey) {
+  private void logUpcomingActions(Map<String, Collection<CacheData>> newDataMap) {
     log.info(
         String.format(
             "Caching %s IAM roles in %s for account %s",
             newDataMap.get(IAM_ROLE.toString()).size(), getAgentType(), accountName));
-
-    if (evictionsByKey.get(IAM_ROLE.toString()).size() > 0) {
-      log.info(
-          String.format(
-              "Evicting %s IAM roles in %s for account %s",
-              evictionsByKey.get(IAM_ROLE.toString()).size(), getAgentType(), accountName));
-    }
-  }
-
-  private Map<String, Collection<String>> computeEvictableData(
-      Collection<CacheData> newData, Collection<String> oldKeys) {
-
-    Set<String> newKeys = newData.stream().map(CacheData::getId).collect(Collectors.toSet());
-
-    Set<String> evictedKeys = new HashSet<>();
-    for (String oldKey : oldKeys) {
-      if (!newKeys.contains(oldKey)) {
-        evictedKeys.add(oldKey);
-      }
-    }
-    Map<String, Collection<String>> evictionsByKey = new HashMap<>();
-    evictionsByKey.put(IAM_ROLE.toString(), evictedKeys);
-    return evictionsByKey;
   }
 
   protected String getIamRegion() {

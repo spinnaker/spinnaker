@@ -88,8 +88,8 @@ public class EcsCloudMetricAlarmCachingAgent implements CachingAgent, AccountAwa
 
     Set<MetricAlarm> cacheableMetricAlarm = fetchMetricAlarms(cloudWatch);
     Map<String, Collection<CacheData>> newDataMap = generateFreshData(cacheableMetricAlarm);
-    Collection<CacheData> newData = newDataMap.get(ALARMS.toString());
 
+<<<<<<< HEAD
     Set<String> oldKeys =
         providerCache.getAll(ALARMS.toString()).stream()
             .map(CacheData::getId)
@@ -111,6 +111,9 @@ public class EcsCloudMetricAlarmCachingAgent implements CachingAgent, AccountAwa
     evictionsByKey.put(ALARMS.toString(), evictedKeys);
     log.info("Evicting " + evictedKeys.size() + " cloud metrics alarms in " + getAgentType());
     return evictionsByKey;
+=======
+    return new DefaultCacheResult(newDataMap);
+>>>>>>> 57e4556 (fix(ecs): opt in to full cache eviction and delete redundant manual eviction (#8072))
   }
 
   Map<String, Collection<CacheData>> generateFreshData(Set<MetricAlarm> cacheableMetricAlarm) {
