@@ -22,6 +22,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
@@ -141,7 +142,7 @@ public class SignalFlowSseParser implements Iterator<SignalFlowMessage>, AutoClo
     JsonNode payload;
     try {
       payload = objectMapper.readTree(data);
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       throw new SignalFlowParseException(
           "Failed parsing SignalFlow JSON payload for event '" + eventName + "'", e);
     }

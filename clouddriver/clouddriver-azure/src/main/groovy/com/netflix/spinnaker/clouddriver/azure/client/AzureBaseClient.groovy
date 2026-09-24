@@ -25,6 +25,7 @@ import com.azure.core.management.profile.AzureProfile
 import com.azure.identity.ClientSecretCredentialBuilder
 import com.azure.resourcemanager.AzureResourceManager
 import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.MapperFeature
 import tools.jackson.databind.ObjectMapper
 import tools.jackson.databind.SerializationFeature
 
@@ -50,6 +51,8 @@ abstract class AzureBaseClient {
         JsonMapper.builder()
             .enable(SerializationFeature.INDENT_OUTPUT)
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+            .disable(MapperFeature.SORT_CREATOR_PROPERTIES_FIRST)
             .build()
     this.azure = initialize(credentials, subscriptionId, azureProfile)
   }

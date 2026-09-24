@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.azure.resources.network.model
 
 import com.azure.resourcemanager.network.fluent.models.VirtualNetworkInner
+import tools.jackson.databind.MapperFeature
 import tools.jackson.databind.ObjectMapper
 import tools.jackson.databind.SerializationFeature
 import spock.lang.Shared
@@ -26,15 +27,18 @@ import tools.jackson.databind.json.JsonMapper
 class AzureVirtualNetworkDescriptionSpec extends Specification {
 
   @Shared
-  ObjectMapper mapper = JsonMapper.builder().build()
+  ObjectMapper mapper =
+      JsonMapper.builder()
+          .enable(SerializationFeature.INDENT_OUTPUT)
+          .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
+          .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+          .disable(MapperFeature.SORT_CREATOR_PROPERTIES_FIRST)
+          .build()
 
   VirtualNetworkInner vnet
 
   void "Create a simple AzureVirtualNetworkDescription from a given input"() {
     setup:
-    mapper.configure(SerializationFeature.INDENT_OUTPUT, true)
-    mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
-
     def input = [
       name: "vnet-test-westus",
       location: "westus",
@@ -52,9 +56,6 @@ class AzureVirtualNetworkDescriptionSpec extends Specification {
 
   void "Create a full AzureVirtualNetworkDescription from a given input and calculate next subnet address prefix"() {
     setup:
-    mapper.configure(SerializationFeature.INDENT_OUTPUT, true)
-    mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
-
     String input =
       '''
         {

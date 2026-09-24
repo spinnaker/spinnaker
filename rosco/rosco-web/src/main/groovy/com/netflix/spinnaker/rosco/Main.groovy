@@ -107,7 +107,10 @@ class Main extends SpringBootServletInitializer {
   }
 
   @Bean
-  ObjectMapper objectMapper(JsonMapper.Builder builder, EmbeddedArtifactSerializer serializer) {
+  JsonMapper objectMapper(JsonMapper.Builder builder, EmbeddedArtifactSerializer serializer) {
+    // Declared as JsonMapper (not ObjectMapper) so Boot 4's JacksonAutoConfiguration backs off
+    // its own jacksonJsonMapper bean; otherwise JsonMapper injection points silently receive
+    // Boot's vanilla mapper instead of this artifact-aware one.
     SimpleModule module = new SimpleModule("artifact")
     module.addSerializer(Artifact.class, serializer)
     return builder.addModule(module).build()

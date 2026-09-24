@@ -34,6 +34,7 @@ import org.springframework.util.CollectionUtils;
 import retrofit2.Converter;
 import retrofit2.Converter.Factory;
 import retrofit2.Retrofit;
+import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
 @Component
@@ -119,7 +120,7 @@ public class PrometheusResponseConverter extends Factory {
         }
 
         return prometheusResultsList;
-      } catch (IOException e) {
+      } catch (JacksonException e) {
         throw new ConversionException("Failed to parse response from Prometheus", e);
       }
     }

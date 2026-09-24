@@ -31,7 +31,6 @@ import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import jakarta.validation.constraints.NotNull;
-import java.io.IOException;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -304,7 +303,7 @@ public class ConfigBinStorageService implements StorageService {
           pageId = response.nextPageId;
           ids.addAll(
               response.nameVersions.stream().map(nv -> nv.configName).collect(Collectors.toList()));
-        } catch (IOException e) {
+        } catch (JacksonException e) {
           log.error("List failed on path {}", ownerApp, e);
           return Collections.emptyList();
         }

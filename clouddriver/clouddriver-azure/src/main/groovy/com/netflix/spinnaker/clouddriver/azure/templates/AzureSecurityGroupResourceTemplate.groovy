@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.azure.templates
 
+import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.JsonPropertyOrder
+import tools.jackson.databind.MapperFeature
 import tools.jackson.databind.ObjectMapper
 import tools.jackson.databind.SerializationFeature
 import com.netflix.spinnaker.clouddriver.azure.resources.securitygroup.model.AzureSecurityGroupDescription.AzureSGRule
@@ -23,15 +26,17 @@ import com.netflix.spinnaker.clouddriver.azure.resources.securitygroup.model.Ups
 import tools.jackson.databind.json.JsonMapper
 
 class AzureSecurityGroupResourceTemplate {
-  static ObjectMapper mapper = JsonMapper.builder().enable(SerializationFeature.INDENT_OUTPUT).build()
+  static ObjectMapper mapper = JsonMapper.builder().enable(SerializationFeature.INDENT_OUTPUT).disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY).disable(MapperFeature.SORT_CREATOR_PROPERTIES_FIRST).build()
 
   static String getTemplate(UpsertAzureSecurityGroupDescription description) {
     SecurityGroupTemplate template = new SecurityGroupTemplate(description)
     mapper.writeValueAsString(template)
   }
 
+  @JsonPropertyOrder(['$schema'])
   static class SecurityGroupTemplate{
     //TODO: Make this configurable for AZURE_US_GOVERNMENT
+    @JsonProperty('$schema')
     String $schema = "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#"
     String contentVersion = "1.0.0.0"
 
@@ -198,6 +203,7 @@ class AzureSecurityGroupResourceTemplate {
   }
 
   static class SecurityGroupSubnetPropertiesNestedTemplate {
+    @JsonProperty('$schema')
     String $schema
     String contentVersion
     ArrayList<Resource> resources = []

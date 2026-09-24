@@ -276,7 +276,7 @@ internal class ImportDeliveryConfigTaskTests : JUnit5Minutests {
     }
 
     context("with detailed git info in payload field") {
-      val trigger = objectMapper.readValue(javaClass.getResource("/trigger.json"), Trigger::class.java)
+      val trigger = objectMapper.readValue(javaClass.getResource("/trigger.json").readText(), Trigger::class.java)
       fixture {
         Fixture(
           trigger

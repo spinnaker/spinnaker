@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.azure.resources.appgateway.deploy.ops
 
+import tools.jackson.databind.MapperFeature
 import tools.jackson.databind.ObjectMapper
 import tools.jackson.databind.SerializationFeature
 import com.netflix.spinnaker.clouddriver.azure.resources.appgateway.model.AzureAppGatewayDescription
@@ -30,7 +31,13 @@ import tools.jackson.databind.json.JsonMapper
 class DeleteAzureAppGatewayAtomicOperationSpec extends Specification{
 
   @Shared
-  ObjectMapper mapper = JsonMapper.builder().build()
+  ObjectMapper mapper =
+      JsonMapper.builder()
+          .enable(SerializationFeature.INDENT_OUTPUT)
+          .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
+          .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+          .disable(MapperFeature.SORT_CREATOR_PROPERTIES_FIRST)
+          .build()
 
   @Shared DeleteAzureAppGatewayAtomicOperationConverter converter
 
@@ -44,8 +51,6 @@ class DeleteAzureAppGatewayAtomicOperationSpec extends Specification{
 
   void "Create deleteAzureAppGatewayAtomicOperation object - simple test"() {
     setup:
-    mapper.configure(SerializationFeature.INDENT_OUTPUT, true)
-    mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
     def input = '''{ "cloudProvider" : "azure", "appName" : "testappgw", "loadBalancerName" : "testappgw-lb1-d1", "credentials" : "myazure-account", "region" : "westus", "name" : "testappgw-lb1-d1", "user" : "[anonymous]" }'''
 
     when:

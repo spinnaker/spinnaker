@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.azure.resources.appgateway.deploy.ops
 
+import tools.jackson.databind.MapperFeature
 import tools.jackson.databind.ObjectMapper
 import tools.jackson.databind.SerializationFeature
 import com.netflix.spinnaker.clouddriver.azure.resources.appgateway.model.AzureAppGatewayDescription
@@ -29,7 +30,13 @@ import tools.jackson.databind.json.JsonMapper
 
 class UpsertAzureAppGatewayAtomicOperationSpec extends Specification{
   @Shared
-  ObjectMapper mapper = JsonMapper.builder().build()
+  ObjectMapper mapper =
+      JsonMapper.builder()
+          .enable(SerializationFeature.INDENT_OUTPUT)
+          .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
+          .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+          .disable(MapperFeature.SORT_CREATOR_PROPERTIES_FIRST)
+          .build()
 
   @Shared UpsertAzureLoadBalancerAtomicOperationConverter converter
 
@@ -43,8 +50,6 @@ class UpsertAzureAppGatewayAtomicOperationSpec extends Specification{
 
   void "Create UpsertAzureAppGatewayAtomicOperation object - simple test"() {
     setup:
-    mapper.configure(SerializationFeature.INDENT_OUTPUT, true)
-    mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
     def input = '''{ "cloudProvider" : "azure", "appName" : "testappgw", "loadBalancerName" : "testappgw-lb1-d1", "loadBalancerType" : "Azure Application Gateway", "stack" : "lb1", "detail" : "d1", "credentials" : "myazure-account", "region" : "westus", "probes" : [ { "probeName" : "healthcheck1", "probeProtocol" : "HTTP", "probePath" : "/healthcheck", "probeInterval" : 120, "unhealthyThreshold" : 8, "timeout" : 30 } ], "loadBalancingRules" : [ { "ruleName" : "lbRule1", "protocol" : "HTTP", "externalPort" : "80", "backendPort" : "8080" } ], "name" : "testappgw-lb1-d1", "user" : "[anonymous]" }'''
 
     when:

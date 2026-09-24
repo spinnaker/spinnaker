@@ -26,7 +26,11 @@ import com.netflix.spinnaker.keel.core.api.SubmittedResource
 class SubmittedEnvironmentDeserializer : StdNodeBasedDeserializer<SubmittedEnvironment>(SubmittedEnvironment::class.java) {
   override fun convert(root: JsonNode, context: DeserializationContext): SubmittedEnvironment {
     val typeFactory = context.typeFactory
-    val name = root.path("name").textValue()
+    // Jackson 3 throws when reading a String value from a missing/non-textual node,
+    // while Jackson 2 returned null. Preserve the null so a missing name still fails
+    // via SubmittedEnvironment construction (mapped to INVALID_VALUE downstream).
+    val nameNode = root.path("name")
+    val name = if (nameNode.isTextual) nameNode.stringValue() else null
     val constraints: Set<Constraint> = context.convert(
       root,
       "constraints",
@@ -55,7 +59,9 @@ class SubmittedEnvironmentDeserializer : StdNodeBasedDeserializer<SubmittedEnvir
       typeFactory.constructType(object : TypeReference<Set<SubmittedResource<*>>>() {})
     ) ?: emptySet()
     return try {
-      SubmittedEnvironment(name, resources, constraints, verifyWith, notifications, postDeploy, locations)
+      // name!! restores the Jackson 2 behavior where a missing name produced null and failed
+      // here; the resulting exception is mapped to INVALID_VALUE downstream.
+      SubmittedEnvironment(name!!, resources, constraints, verifyWith, notifications, postDeploy, locations)
     } catch (e: Exception) {
       throw context.instantiationException<SubmittedEnvironment>(e)
     }
@@ -64,6 +70,11 @@ class SubmittedEnvironmentDeserializer : StdNodeBasedDeserializer<SubmittedEnvir
   private fun <T> DeserializationContext.convert(root: JsonNode, path: String, type: JavaType): T? =
     try {
       readTreeAsValue(root.path(path), type)
+    } catch (e: JacksonException) {
+      // Jackson 3 databind failures are unchecked JacksonExceptions (Jackson 2 raised
+      // IOExceptions surfaced here as IllegalArgumentException); re-wrap with the
+      // property path so error details keep the full path.
+      throw JacksonException.wrapWithPath(e, root, path)
     } catch (e: IllegalArgumentException) {
       throw JacksonException.wrapWithPath(e, root, path)
     }

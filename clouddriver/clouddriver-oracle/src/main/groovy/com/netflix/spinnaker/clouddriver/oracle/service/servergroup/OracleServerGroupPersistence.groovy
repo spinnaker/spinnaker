@@ -9,6 +9,7 @@
 package com.netflix.spinnaker.clouddriver.oracle.service.servergroup
 
 import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.MapperFeature
 import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.oracle.model.OracleServerGroup
 import com.netflix.spinnaker.clouddriver.oracle.security.OracleNamedAccountCredentials
@@ -56,7 +57,7 @@ class OracleServerGroupPersistence {
 
   private final Charset UTF_8_CHARSET = Charset.forName("UTF-8")
 
-  private final ObjectMapper objectMapper = JsonMapper.builder().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build()
+  private final ObjectMapper objectMapper = JsonMapper.builder().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY).disable(MapperFeature.SORT_CREATOR_PROPERTIES_FIRST).build()
 
   /**
    * Lists the server group names for the specified account.

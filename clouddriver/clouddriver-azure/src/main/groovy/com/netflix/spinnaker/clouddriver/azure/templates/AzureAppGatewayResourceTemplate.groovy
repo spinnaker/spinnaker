@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.azure.templates
 
+import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.JsonPropertyOrder
+import tools.jackson.databind.MapperFeature
 import tools.jackson.databind.ObjectMapper
 import tools.jackson.databind.SerializationFeature
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
@@ -28,7 +31,9 @@ class AzureAppGatewayResourceTemplate {
 
   static ObjectMapper mapper = JsonMapper.builder()
     .enable(SerializationFeature.INDENT_OUTPUT)
-    .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS).build()
+    .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
+    .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+    .disable(MapperFeature.SORT_CREATOR_PROPERTIES_FIRST).build()
 
   /**
    * Build the resource manager template that will create an Azure Application Gateway resource
@@ -44,8 +49,10 @@ class AzureAppGatewayResourceTemplate {
     mapper.writeValueAsString(template)
   }
 
+  @JsonPropertyOrder(['$schema'])
   static class AppGatewayTemplate {
     //TODO: Make this configurable for AZURE_US_GOVERNMENT
+    @JsonProperty('$schema')
     String $schema = "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#"
     String contentVersion = "1.0.0.0"
 

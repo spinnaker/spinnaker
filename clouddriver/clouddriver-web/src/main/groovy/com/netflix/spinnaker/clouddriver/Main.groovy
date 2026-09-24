@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver
 
-import tools.jackson.databind.ObjectMapper
 import tools.jackson.databind.annotation.JsonDeserialize
 import tools.jackson.databind.module.SimpleModule
 import com.netflix.spinnaker.clouddriver.security.config.SecurityConfig
@@ -84,7 +83,9 @@ class Main extends SpringBootServletInitializer {
 
   @Bean
   @Primary
-  ObjectMapper objectMapper(JsonMapper.Builder builder, Optional<DeserializerHookRegistry> deserializerHook, Optional<SerializerHookRegistry> serializerHook) {
+  JsonMapper objectMapper(JsonMapper.Builder builder, Optional<DeserializerHookRegistry> deserializerHook, Optional<SerializerHookRegistry> serializerHook) {
+    // Declared as JsonMapper (not ObjectMapper) so Boot 4's JacksonAutoConfiguration backs off
+    // its own jacksonJsonMapper bean; otherwise two primaries collide at injection points.
     builder.addMixIn(Artifact.class, ArtifactMixin.class);
 
     SimpleModule module = new SimpleModule("registryHook")

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.azure.common
 
 import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.MapperFeature
 import tools.jackson.databind.ObjectMapper
 import tools.jackson.databind.SerializationFeature
 import com.netflix.spinnaker.clouddriver.azure.resources.common.model.KeyVaultSecret
@@ -28,8 +29,13 @@ class AzureUtilitiesSpec extends Specification {
   ObjectMapper objectMapper
 
   void setup() {
-    objectMapper = JsonMapper.builder().enable(SerializationFeature.INDENT_OUTPUT)
-    objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+    objectMapper =
+        JsonMapper.builder()
+            .enable(SerializationFeature.INDENT_OUTPUT)
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+            .disable(MapperFeature.SORT_CREATOR_PROPERTIES_FIRST)
+            .build()
   }
 
   def "CompareIpv4AddrPrefixes == 0"() {

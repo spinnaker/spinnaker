@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.cfg.DateTimeFeature;
@@ -40,7 +41,12 @@ public abstract class AbstractYandexDeployTest {
   protected AccountCredentialsProvider accountCredentialsProvider =
       new DefaultAccountCredentialsProvider(accountCredentialsRepository);
   protected ObjectMapper objectMapper =
-      JsonMapper.builder().disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS).build();
+      JsonMapper.builder()
+          // Jackson 3 fails on nulls for primitives by default (Jackson 2 was lenient);
+          // test descriptors omit optional booleans.
+          .disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
+          .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+          .build();
 
   protected AbstractYandexDeployTest() {
     ACCOUNTS.forEach(
