@@ -20,6 +20,7 @@ import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.agent.AgentSchedulerAware;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
+import com.netflix.spinnaker.cats.provider.ProviderCacheConfiguration;
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider;
 import java.util.*;
 import lombok.AllArgsConstructor;
@@ -27,7 +28,7 @@ import lombok.Getter;
 
 @Getter
 public class YandexInfrastructureProvider extends AgentSchedulerAware
-    implements SearchableProvider {
+    implements SearchableProvider, ProviderCacheConfiguration {
   private final Collection<Agent> agents;
   private final String providerName = YandexInfrastructureProvider.class.getName();
   private final Set<String> defaultCaches =
@@ -76,6 +77,18 @@ public class YandexInfrastructureProvider extends AgentSchedulerAware
   @Override
   public Map<String, String> parseKey(String key) {
     return Keys.parse(key);
+  }
+
+  /**
+   * CacheResultBuilder now backfills an empty placeholder entry for every authoritative type (see
+   * CacheResultBuilder#build), so the SQL cache's existingIds-minus-currentIds eviction diff always
+   * runs, even when a type has dropped to zero live resources this cycle. Without opting in here,
+   * SqlCache's default safeguard against ever evicting the last item of a type discards that
+   * placeholder before the diff can run, and the stale entry is never cleaned up.
+   */
+  @Override
+  public boolean supportsFullEviction() {
+    return true;
   }
 
   @AllArgsConstructor
