@@ -88,6 +88,7 @@ import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import lombok.Getter;
 import lombok.Value;
+import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import yandex.cloud.api.compute.v1.instancegroup.InstanceGroupOuterClass;
 
@@ -239,9 +240,9 @@ public final class YandexServerGroupCachingAgent
             new DefaultCacheResult(ImmutableMap.of()),
             ImmutableMap.of(TYPE, ImmutableList.copyOf(existingIdentifiers)));
       }
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       // CatsOnDemandCacheUpdater handles this
-      throw new UncheckedIOException(e);
+      throw new UncheckedIOException(new IOException(e));
     }
   }
 

@@ -11,7 +11,7 @@ package com.netflix.spinnaker.clouddriver.oracle.provider.view
 
 import tools.jackson.core.type.TypeReference
 import tools.jackson.databind.ObjectMapper
-import tools.jackson.databind.ser.impl.SimpleFilterProvider
+import tools.jackson.databind.ser.std.SimpleFilterProvider
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.mem.InMemoryCache
 import com.netflix.spinnaker.clouddriver.oracle.OracleCloudProvider
@@ -25,7 +25,7 @@ import tools.jackson.databind.json.JsonMapper
 
 class OracleSecurityGroupProviderSpec extends Specification {
 
-  ObjectMapper objectMapper = JsonMapper.builder().build().setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false))
+  ObjectMapper objectMapper = JsonMapper.builder().filterProvider(new SimpleFilterProvider().setFailOnUnknownId(false)).build()
 
   def "get all"() {
     setup:

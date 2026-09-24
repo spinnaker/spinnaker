@@ -343,13 +343,13 @@ private fun <T : JsonNode> Assertion.Builder<T>.path(fieldName: String): Asserti
   get { path(fieldName) }
 
 private fun <T : JsonNode> Assertion.Builder<T>.textValue(): Assertion.Builder<String?> =
-  get { textValue() }
+  get { if (isMissingNode) null else asText() }
 
 private fun <T : JsonNode> Assertion.Builder<T>.booleanValue(): Assertion.Builder<Boolean> =
-  get { booleanValue() }
+  get { if (isMissingNode) false else asBoolean() }
 
 private fun <T : JsonNode> Assertion.Builder<T>.textValues(): Assertion.Builder<List<String?>> =
-  get { values().map { it.textValue() } }
+  get { values().map { if (it.isMissingNode) null else it.asText() } }
 
 private fun <T : JsonNode> Assertion.Builder<T>.findValuesAsText(fieldName: String): Assertion.Builder<List<String>> =
   get { findValuesAsString(fieldName) }

@@ -136,16 +136,9 @@ pnpm --filter @spinnaker/kayenta build  # Build only the Kayenta package
 - **Before first writing or reviewing code in a session, read [CODE_STYLE.md](CODE_STYLE.md). Revisit relevant sections if the scope changes.** It captures the maintainers' conventions and roadmap constraints (what tooling doesn't enforce), for both writing conforming code and reviewing PRs.
 
 ## Git & PR Policy
-- **Commit before no-mistakes validation:** Commit task changes locally on a feature branch,
-  then run `no-mistakes axi run --intent "<user goal>"` and drive its gates to a passing
-  outcome. The commit is local validation input; it does not authorize publication.
-- **Push only after the gate passes:** Do not push or update a PR until no-mistakes reports
-  `checks-passed` or `passed`, and the user has authorized pushing. A request to push this
-  task is authorization for that task only.
 - **Pushes:** Ask permission before pushing
 - **PRs:** Create as drafts (`gh pr create --draft`)
-- Run affected tests and formatting checks before the local commit; no-mistakes validates the
-  committed result before publication.
+- Ensure applicable tests pass locally before pushing
 
 ## Security Considerations
 - Never commit secrets, API keys, or credentials

@@ -39,7 +39,7 @@ class KayentaSerializationConfigurationPropertiesTest extends Specification {
         KayentaSerializationConfigurationProperties properties = new KayentaSerializationConfigurationProperties()
         properties.setWriteDatesAsTimestamps(datesAsTimestamps)
         properties.setWriteDurationsAsTimestamps(durationsAsTimestamps)
-        KayentaConfiguration.configureObjectMapperFeatures(objectMapper, properties)
+        objectMapper = KayentaConfiguration.configureObjectMapperFeatures(objectMapper, properties)
 
         when:
         StringWriter jsonStream = new StringWriter()

@@ -12,7 +12,7 @@ package com.netflix.spinnaker.clouddriver.oracle.provider.agent
 import tools.jackson.core.type.TypeReference
 import tools.jackson.databind.ObjectMapper
 import tools.jackson.databind.ser.FilterProvider
-import tools.jackson.databind.ser.impl.SimpleFilterProvider
+import tools.jackson.databind.ser.std.SimpleFilterProvider
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.clouddriver.oracle.OracleCloudProvider
 import com.netflix.spinnaker.clouddriver.oracle.security.OracleNamedAccountCredentials
@@ -36,6 +36,6 @@ abstract class AbstractOracleCachingAgent implements CachingAgent {
     //Alternatives of adding explicitlySetFilter:
     //- FilterProvider filters = new SimpleFilterProvider().addFilter("explicitlySetFilter", (SimpleBeanPropertyFilter) SimpleBeanPropertyFilter.serializeAllExcept(['__explicitlySet__'].toSet()));
     //- FilterProvider filters = new SimpleFilterProvider().addFilter("explicitlySetFilter", (SimpleBeanPropertyFilter) com.oracle.bmc.http.internal.ExplicitlySetFilter.INSTANCE)
-    this.objectMapper = objectMapper.setFilterProvider(filters)
+    this.objectMapper = objectMapper.rebuild().filterProvider(filters).build()
   }
 }
