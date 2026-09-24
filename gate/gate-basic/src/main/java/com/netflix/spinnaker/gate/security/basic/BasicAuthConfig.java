@@ -25,7 +25,6 @@ import org.springframework.boot.security.autoconfigure.SecurityProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
@@ -66,7 +65,17 @@ public class BasicAuthConfig {
     // See: https://stackoverflow.com/a/75228661
     HttpSessionRequestCache requestCache = new HttpSessionRequestCache();
     requestCache.setMatchingRequestParameterName(null);
-    http.formLogin(Customizer.withDefaults())
+    http.formLogin(
+            form ->
+                form
+                    // Serve the branded Spinnaker login page (see LoginController) instead of the
+                    // default Spring Security one. POST /login still processes the
+                    // username/password
+                    // form. permitAll() grants access to the login page, the login processing URL
+                    // and
+                    // the failure URL.
+                    .loginPage("/login")
+                    .permitAll())
         .requestCache(cache -> cache.requestCache(requestCache))
         .authenticationProvider(authProvider)
         .httpBasic(
