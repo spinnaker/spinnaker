@@ -43,6 +43,7 @@ import jakarta.servlet.http.Cookie
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
+import static org.hamcrest.Matchers.containsString
 
 @Slf4j
 @GateSystemTest
@@ -120,6 +121,34 @@ class BasicAuthSpec extends Specification {
 
     then:
     result.response.status == 302
+  }
+
+  def "should serve the branded Spinnaker login page instead of the default one"() {
+    when:
+    mockMvc.perform(get("/login"))
+      .andDo(print())
+      .andExpect(status().isOk())
+      .andExpect(content().contentTypeCompatibleWith("text/html"))
+      .andExpect(content().string(containsString("Sign in · Spinnaker")))
+      .andExpect(content().string(containsString('<form action="/login" method="post"')))
+      .andExpect(content().string(containsString('name="username"')))
+      .andExpect(content().string(containsString('name="password"')))
+      .andExpect(content().string(containsString("Sign in")))
+
+    then:
+    notThrown(Exception)
+  }
+
+  def "should show an error message on the login page after a failed login"() {
+    when:
+    mockMvc.perform(get("/login?error"))
+      .andDo(print())
+      .andExpect(status().isOk())
+      .andExpect(content().string(containsString("Invalid username or password.")))
+      .andExpect(content().string(containsString("banner-error")))
+
+    then:
+    notThrown(Exception)
   }
 
   static class BasicTestConfig {
