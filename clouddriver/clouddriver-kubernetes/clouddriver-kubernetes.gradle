@@ -103,6 +103,17 @@ dependencies {
   testImplementation "org.springframework.boot:spring-boot-test"
   testImplementation "org.apache.groovy:groovy-templates"
   testImplementation "com.squareup.retrofit2:retrofit-mock"
+
+  // Real-SQL-cache-backed test coverage (KubernetesCachingAgentSqlIntegrationTest): runs the
+  // caching agent against a real SqlCache/SqlProviderCache backed by a MySQL testcontainer, the
+  // same way cats-sql's own MySqlCacheSpec/MySqlProviderCacheSpec do.
+  testImplementation project(":cats:cats-sql")
+  testImplementation "org.jooq:jooq"
+  testImplementation "io.spinnaker.kork:kork-core"
+  testImplementation "io.spinnaker.kork:kork-sql"
+  testImplementation "io.spinnaker.kork:kork-sql-test"
+  testImplementation "org.testcontainers:mysql"
+  testImplementation "com.mysql:mysql-connector-j"
   integrationImplementation 'org.springframework.security:spring-security-test'
 
   integrationImplementation project(":clouddriver-web")
