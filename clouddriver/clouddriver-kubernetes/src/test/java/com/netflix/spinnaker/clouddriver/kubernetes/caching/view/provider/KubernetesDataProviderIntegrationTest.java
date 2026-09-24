@@ -52,6 +52,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.AccountResourceP
 import com.netflix.spinnaker.clouddriver.kubernetes.description.GlobalResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesSpinnakerKindMap;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesApiVersion;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesManifestNamer;
@@ -80,6 +81,7 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.configserver.CloudConfigResourceService;
 import com.netflix.spinnaker.kork.configserver.ConfigFileService;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -464,9 +466,14 @@ final class KubernetesDataProviderIntegrationTest {
 
   @Test
   void getArtifacts(SoftAssertions softly) {
+    KubernetesManifest manifest =
+        getKubernetesManifest("backend", "backend-ns", KubernetesKind.REPLICA_SET);
     List<Artifact> artifacts =
         artifactProvider.getArtifacts(
-            KubernetesKind.REPLICA_SET, "backend", "backend-ns", credentials.getCredentials());
+            manifest,
+            manifest.getName(),
+            credentials.getCredentials(),
+            new KubernetesSelectorList());
     softly.assertThat(artifacts).hasSize(2);
     softly
         .assertThat(artifacts)
@@ -486,17 +493,21 @@ final class KubernetesDataProviderIntegrationTest {
 
   @Test
   void getArtifactsWrongType(SoftAssertions softly) {
+    KubernetesManifest manifest =
+        getKubernetesManifest("backend", "backend-ns", KubernetesKind.DEPLOYMENT);
     List<Artifact> artifacts =
         artifactProvider.getArtifacts(
-            KubernetesKind.DEPLOYMENT, "backend", "backend-ns", credentials.getCredentials());
+            manifest, "backend", credentials.getCredentials(), new KubernetesSelectorList());
     softly.assertThat(artifacts).isEmpty();
   }
 
   @Test
   void getArtifactsWrongNamespace(SoftAssertions softly) {
+    KubernetesManifest manifest =
+        getKubernetesManifest("backend", "frontend-ns", KubernetesKind.REPLICA_SET);
     List<Artifact> artifacts =
         artifactProvider.getArtifacts(
-            KubernetesKind.REPLICA_SET, "backend", "frontend-ns", credentials.getCredentials());
+            manifest, "backend", credentials.getCredentials(), new KubernetesSelectorList());
     softly.assertThat(artifacts).isEmpty();
   }
 
@@ -1153,5 +1164,16 @@ final class KubernetesDataProviderIntegrationTest {
     if (clusterNames != null) {
       softly.assertThat(clusterNames).containsExactlyInAnyOrder("replicaSet backend");
     }
+  }
+
+  private KubernetesManifest getKubernetesManifest(
+      String name, String namespace, KubernetesKind kind) {
+    KubernetesManifest manifest = new KubernetesManifest();
+    manifest.put("metadata", new HashMap<>());
+    manifest.setNamespace(namespace);
+    manifest.setKind(kind);
+    manifest.setApiVersion(KubernetesApiVersion.APPS_V1);
+    manifest.setName(name);
+    return manifest;
   }
 }

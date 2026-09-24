@@ -21,7 +21,6 @@ import com.netflix.spinnaker.clouddriver.jobs.JobExecutor;
 import com.netflix.spinnaker.clouddriver.jobs.JobRequest;
 import com.netflix.spinnaker.clouddriver.jobs.JobResult;
 import java.io.*;
-import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -60,8 +59,7 @@ public class JobExecutorLocal implements JobExecutor {
 
   private <T> JobResult<T> executeWrapper(
       final JobRequest jobRequest, RequestExecutor<T> requestExecutor) {
-    log.debug(String.format("Starting job: '%s'...", jobRequest.toString()));
-    final String jobId = UUID.randomUUID().toString();
+    log.info(String.format("Starting job: '%s'...", jobRequest.toString()));
 
     JobResult<T> jobResult;
     try {
@@ -72,7 +70,9 @@ public class JobExecutorLocal implements JobExecutor {
     }
 
     if (jobResult.isKilled()) {
-      log.warn(String.format("Job %s timed out (after %d minutes)", jobId, timeoutMinutes));
+      log.warn(
+          String.format(
+              "Job %s timed out (after %d minutes)", jobRequest.toString(), timeoutMinutes));
     }
 
     return jobResult;

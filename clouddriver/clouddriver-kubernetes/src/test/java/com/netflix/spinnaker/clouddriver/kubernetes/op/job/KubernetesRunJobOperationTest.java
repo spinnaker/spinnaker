@@ -180,10 +180,10 @@ final class KubernetesRunJobOperationTest {
   private static OperationResult operate(KubernetesRunJobOperationDescription description) {
     ArtifactProvider artifactProvider = mock(ArtifactProvider.class);
     when(artifactProvider.getArtifacts(
-            any(KubernetesKind.class),
+            any(KubernetesManifest.class),
             any(String.class),
-            any(String.class),
-            any(KubernetesCredentials.class)))
+            any(KubernetesCredentials.class),
+            any(KubernetesSelectorList.class)))
         .thenReturn(ImmutableList.of());
     ResourceVersioner resourceVersioner = new ResourceVersioner(artifactProvider);
     return new KubernetesRunJobOperation(description, resourceVersioner)

@@ -20,6 +20,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.description;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesSelectorList;
 import com.netflix.spinnaker.clouddriver.security.resources.CredentialsNameable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -40,6 +41,7 @@ public class KubernetesAtomicOperationDescription
   }
 
   KubernetesNamedAccountCredentials credentials;
+  private KubernetesSelectorList labelSelectors = new KubernetesSelectorList();
 
   @Override
   public boolean requiresApplicationRestriction() {

@@ -93,7 +93,8 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
 
                   OptionalInt version =
                       isVersioned(properties, strategy)
-                          ? resourceVersioner.getVersion(manifest, credentials)
+                          ? resourceVersioner.getVersion(
+                              manifest, credentials, description.getLabelSelectors())
                           : OptionalInt.empty();
 
                   Moniker moniker = cloneMoniker(description.getMoniker());
@@ -118,7 +119,8 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
 
                   KubernetesHandler deployer = properties.getHandler();
                   if (strategy.isUseSourceCapacity() && deployer instanceof CanScale) {
-                    OptionalInt latestVersion = latestVersion(manifest, version);
+                    OptionalInt latestVersion =
+                        latestVersion(manifest, version, description.getLabelSelectors());
                     Integer replicas =
                         KubernetesSourceCapacity.getSourceCapacity(
                             manifest, credentials, latestVersion);
@@ -212,11 +214,13 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
   }
 
   @NotNull
-  private OptionalInt latestVersion(KubernetesManifest manifest, OptionalInt version) {
+  private OptionalInt latestVersion(
+      KubernetesManifest manifest, OptionalInt version, KubernetesSelectorList labelSelectors) {
     if (version.isEmpty()) {
       return OptionalInt.empty();
     }
-    OptionalInt latestVersion = resourceVersioner.getLatestVersion(manifest, credentials);
+    OptionalInt latestVersion =
+        resourceVersioner.getLatestVersion(manifest, credentials, labelSelectors);
     return latestVersion;
   }
 
@@ -224,7 +228,7 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
   private List<KubernetesManifest> getManifestsFromDescription() {
     List<KubernetesManifest> inputManifests = description.getManifests();
     if (inputManifests == null || inputManifests.isEmpty()) {
-      // The stage currently only supports using the `manifests` field but we need to continue to
+      // The stage currently only supports using the `manifests` field, but we need to continue to
       // check `manifest` for backwards compatibility until all existing stages have been updated.
       @SuppressWarnings("deprecation")
       KubernetesManifest manifest = description.getManifest();
