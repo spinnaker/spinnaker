@@ -78,7 +78,7 @@ class GoogleNetworkCachingAgent extends AbstractGoogleCachingAgent {
   private CacheResult buildCacheResult(ProviderCache _, List<Network> networkList) {
     log.debug("Describing items in ${agentType}")
 
-    def cacheResultBuilder = new CacheResultBuilder()
+    def cacheResultBuilder = new CacheResultBuilder(providedDataTypes)
 
     networkList.each { Network network ->
       def networkKey = Keys.getNetworkKey(deriveNetworkId(network), "global", accountName)
