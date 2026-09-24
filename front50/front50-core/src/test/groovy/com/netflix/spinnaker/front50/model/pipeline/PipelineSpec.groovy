@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.front50.model.pipeline
 
+import tools.jackson.databind.MapperFeature
 import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline
 import com.netflix.spinnaker.front50.api.model.Timestamped
@@ -17,6 +18,8 @@ class PipelineSpec extends Specification {
         JsonMapper.builder()
             .addMixIn(Pipeline.class, PipelineMixins.class)
             .addMixIn(Timestamped.class, TimestampedMixins.class)
+            .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+            .disable(MapperFeature.SORT_CREATOR_PROPERTIES_FIRST)
             .build()
   }
 

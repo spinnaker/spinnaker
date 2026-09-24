@@ -41,6 +41,7 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Primary
 import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Primary
 import org.springframework.scheduling.annotation.EnableScheduling
@@ -107,10 +108,12 @@ class Main extends SpringBootServletInitializer {
   }
 
   @Bean
+  @Primary
   JsonMapper objectMapper(JsonMapper.Builder builder, EmbeddedArtifactSerializer serializer) {
     // Declared as JsonMapper (not ObjectMapper) so Boot 4's JacksonAutoConfiguration backs off
-    // its own jacksonJsonMapper bean; otherwise JsonMapper injection points silently receive
-    // Boot's vanilla mapper instead of this artifact-aware one.
+    // its own jacksonJsonMapper bean, and @Primary so Boot's message-converter customizers (which
+    // inject JsonMapper by type) resolve to this artifact-aware mapper instead of failing on
+    // multiple candidates.
     SimpleModule module = new SimpleModule("artifact")
     module.addSerializer(Artifact.class, serializer)
     return builder.addModule(module).build()

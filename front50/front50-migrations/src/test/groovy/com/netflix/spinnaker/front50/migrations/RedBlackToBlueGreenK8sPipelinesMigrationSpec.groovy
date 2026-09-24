@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.front50.migrations
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import tools.jackson.databind.MapperFeature
 import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.front50.api.model.Timestamped
 import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline
@@ -37,6 +38,8 @@ class RedBlackToBlueGreenK8sPipelinesMigrationSpec extends Specification {
     .changeDefaultPropertyInclusion({ value -> value.withValueInclusion(JsonInclude.Include.ALWAYS) })
     .addMixIn(Timestamped.class, TimestampedMixins.class)
     .addMixIn(Pipeline.class, PipelineMixins.class)
+    .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+    .disable(MapperFeature.SORT_CREATOR_PROPERTIES_FIRST)
     .build()
 
   @Subject
@@ -100,7 +103,7 @@ class RedBlackToBlueGreenK8sPipelinesMigrationSpec extends Specification {
   def "should migrate K8s pipeline that is using redblack strategy"() {
     given:
     def pipelineWithRedBlackStrategy = "{\"id\":\"pipeline-2\",\"name\":null,\"application\":\"application2\",\"type\":null,\"schema\":\"1\",\"config\":null,\"triggers\":[],\"index\":null,\"updateTs\":null,\"lastModifiedBy\":null,\"lastModified\":null,\"email\":null,\"disabled\":null,\"template\":null,\"roles\":null,\"serviceAccount\":null,\"executionEngine\":null,\"stageCounter\":null,\"stages\":[{\"cloudProvider\":\"kubernetes\",\"trafficManagement\":{\"options\":{\"strategy\":\"redblack\"},\"enabled\":true},\"type\":\"deployManifest\"}],\"constraints\":null,\"payloadConstraints\":null,\"keepWaitingPipelines\":null,\"limitConcurrent\":null,\"maxConcurrentExecutions\":null,\"parameterConfig\":null,\"spelEvaluator\":null,\"any\":{},\"createdAt\":null}"
-    def expectedPipelineBlueGreenStrategy = "{\"id\":\"pipeline-2\",\"application\":\"application2\",\"schema\":\"1\",\"triggers\":[],\"stages\":[{\"cloudProvider\":\"kubernetes\",\"trafficManagement\":{\"options\":{\"strategy\":\"bluegreen\"},\"enabled\":true},\"type\":\"deployManifest\"}],\"lastModified\":null}"
+    def expectedPipelineBlueGreenStrategy = "{\"id\":\"pipeline-2\",\"application\":\"application2\",\"schema\":\"1\",\"triggers\":[],\"stages\":[{\"cloudProvider\":\"kubernetes\",\"trafficManagement\":{\"options\":{\"strategy\":\"bluegreen\"},\"enabled\":true},\"type\":\"deployManifest\"}],\"lastModified\":null,\"any\":{}}"
     def pipeline = this.objectMapper.readValue(pipelineWithRedBlackStrategy, Pipeline.class)
     def inputPipeline
 
