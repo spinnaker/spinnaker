@@ -112,7 +112,7 @@ dependencies {
   testImplementation "io.spinnaker.kork:kork-core"
   testImplementation "io.spinnaker.kork:kork-sql"
   testImplementation "io.spinnaker.kork:kork-sql-test"
-  testImplementation "org.testcontainers:testcontainers-mysql"
+  testImplementation "org.testcontainers:mysql"
   testImplementation "com.mysql:mysql-connector-j"
   integrationImplementation 'org.springframework.security:spring-security-test'
 
