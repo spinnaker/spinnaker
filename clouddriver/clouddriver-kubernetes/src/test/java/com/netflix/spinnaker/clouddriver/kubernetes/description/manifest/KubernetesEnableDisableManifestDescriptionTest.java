@@ -22,7 +22,6 @@ import org.junit.jupiter.api.Test;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.node.JsonNodeFactory;
-import tools.jackson.databind.node.ObjectNode;
 
 final class KubernetesEnableDisableManifestDescriptionTest {
   private static final JsonNodeFactory jsonFactory = JsonNodeFactory.instance;
@@ -42,10 +41,7 @@ final class KubernetesEnableDisableManifestDescriptionTest {
   @Test
   void deserializeNullLoadBalancers() throws Exception {
     String serialized =
-        jsonFactory
-            .objectNode()
-            .<ObjectNode>set("loadBalancers", jsonFactory.nullNode())
-            .toString();
+        jsonFactory.objectNode().set("loadBalancers", jsonFactory.nullNode()).toString();
     KubernetesEnableDisableManifestDescription description =
         objectMapper.readValue(serialized, KubernetesEnableDisableManifestDescription.class);
     assertThat(description.getLoadBalancers()).isNotNull();
@@ -55,10 +51,7 @@ final class KubernetesEnableDisableManifestDescriptionTest {
   @Test
   void deserializEmptyLoadBalancers() throws Exception {
     String serialized =
-        jsonFactory
-            .objectNode()
-            .<ObjectNode>set("loadBalancers", jsonFactory.arrayNode())
-            .toString();
+        jsonFactory.objectNode().set("loadBalancers", jsonFactory.arrayNode()).toString();
     KubernetesEnableDisableManifestDescription description =
         objectMapper.readValue(serialized, KubernetesEnableDisableManifestDescription.class);
     assertThat(description.getLoadBalancers()).isNotNull();
@@ -70,7 +63,7 @@ final class KubernetesEnableDisableManifestDescriptionTest {
     String serialized =
         jsonFactory
             .objectNode()
-            .<ObjectNode>set("loadBalancers", jsonFactory.arrayNode().add("abc").add("def"))
+            .set("loadBalancers", jsonFactory.arrayNode().add("abc").add("def"))
             .toString();
     KubernetesEnableDisableManifestDescription description =
         objectMapper.readValue(serialized, KubernetesEnableDisableManifestDescription.class);

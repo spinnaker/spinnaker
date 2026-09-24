@@ -31,7 +31,6 @@ import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.PropertyNamingStrategies;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.node.JsonNodeFactory;
-import tools.jackson.databind.node.ObjectNode;
 
 final class ArtifactTest {
   // This avoids needing to write out all null values in our expected JSON and is how the
@@ -278,7 +277,7 @@ final class ArtifactTest {
     String json =
         jsonFactory
             .objectNode()
-            .<ObjectNode>set("metadata", jsonFactory.objectNode().<ObjectNode>set("key", null))
+            .set("metadata", jsonFactory.objectNode().set("key", null))
             .toString();
     Artifact result = objectMapper.readValue(json, Artifact.class);
     assertThat(result.getMetadata("key")).isNull();
@@ -286,7 +285,7 @@ final class ArtifactTest {
 
   @Test
   void deserializeNullUnknownKey() throws IOException {
-    String json = jsonFactory.objectNode().<ObjectNode>set("key", null).toString();
+    String json = jsonFactory.objectNode().set("key", null).toString();
     Artifact result = objectMapper.readValue(json, Artifact.class);
     assertThat(result.getMetadata("key")).isNull();
   }
@@ -303,7 +302,7 @@ final class ArtifactTest {
         .put("artifactAccount", "my-account")
         .put("provenance", "history")
         .put("uuid", "6b9a5d0b-5706-41da-b379-234c27971482")
-        .<ObjectNode>set("metadata", jsonFactory.objectNode().put("test", "123"))
+        .set("metadata", jsonFactory.objectNode().put("test", "123"))
         .toString();
   }
 
@@ -313,7 +312,7 @@ final class ArtifactTest {
     return jsonFactory
         .objectNode()
         .put("customKind", false)
-        .<ObjectNode>set("metadata", jsonFactory.objectNode())
+        .set("metadata", jsonFactory.objectNode())
         .toString();
   }
 

@@ -32,7 +32,6 @@ import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.node.JsonNodeFactory;
-import tools.jackson.databind.node.ObjectNode;
 
 final class ExpectedArtifactTest {
   // This avoids needing to write out all null values in our expected JSON and is how the
@@ -104,10 +103,10 @@ final class ExpectedArtifactTest {
         .put("useDefaultArtifact", false)
         // We're using valueToTree rather than writing out the serialization of the Artifact class
         // on the assumption that the serialization of Artifact is separately tested.
-        .<ObjectNode>set(
+        .set(
             "matchArtifact",
             objectMapper.valueToTree(Artifact.builder().type("gcs/object").build()))
-        .<ObjectNode>set(
+        .set(
             "boundArtifact",
             objectMapper.valueToTree(
                 Artifact.builder().type("gcs/object").name("my-artifact").build()))

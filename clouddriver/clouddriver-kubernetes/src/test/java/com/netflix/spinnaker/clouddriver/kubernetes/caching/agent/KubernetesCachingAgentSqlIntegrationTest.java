@@ -22,7 +22,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spectator.api.NoopRegistry;
@@ -63,6 +62,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
 import org.testcontainers.DockerClientFactory;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Regression coverage for the stale-cache bug fixed across #8054/#8055 and this session's
@@ -105,7 +105,7 @@ class KubernetesCachingAgentSqlIntegrationTest {
     SqlNamedCacheFactory cacheFactory =
         new SqlNamedCacheFactory(
             testDatabase.context,
-            new ObjectMapper(),
+            JsonMapper.builder().build(),
             null,
             Clock.systemUTC(),
             new SqlRetryProperties(new RetryProperties(1, 10), new RetryProperties(1, 10)),
@@ -189,7 +189,7 @@ class KubernetesCachingAgentSqlIntegrationTest {
 
     return new KubernetesCoreCachingAgent(
         namedAccountCredentials,
-        new ObjectMapper(),
+        JsonMapper.builder().build(),
         new NoopRegistry(),
         0,
         1,

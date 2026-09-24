@@ -308,7 +308,7 @@ final class KubernetesCoreCachingAgentTest {
                 return objectMapper.readValue(
                     (String) cacheData.getAttributes().get("cacheResults"),
                     new TypeReference<Map<String, Collection<DefaultJsonCacheData>>>() {});
-              } catch (IOException e) {
+              } catch (JacksonException e) {
                 throw new RuntimeException(e);
               }
             })
