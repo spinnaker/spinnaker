@@ -73,7 +73,7 @@ class EcsCloudMetricAlarmCachingAgentSpec extends Specification {
     cacheData.get(Keys.Namespace.ALARMS.ns).size() == metricAlarms.size()
   }
 
-  def 'should evict old keys when id is appended'() {
+  def 'loadData caches alarms with the expected keys and attributes'() {
     given:
     def metricAlarm1 = MetricAlarm.builder().alarmName("alarm-name-1").alarmArn("alarmArn-1")
       .dimensions([Dimension.builder().name("ClusterName").value("my-cluster").build()])
@@ -87,11 +87,6 @@ class EcsCloudMetricAlarmCachingAgentSpec extends Specification {
     cloudWatch.describeAlarms(_ as DescribeAlarmsRequest) >> DescribeAlarmsResponse.builder().metricAlarms(metricAlarms).build()
     clientProvider.getAmazonCloudWatchV2(_, _) >> cloudWatch
 
-    def oldKey1 = Keys.buildKey(Keys.Namespace.ALARMS.ns, ACCOUNT, REGION, metricAlarm1.alarmArn())
-    def oldKey2 = Keys.buildKey(Keys.Namespace.ALARMS.ns, ACCOUNT, REGION, metricAlarm2.alarmArn())
-    def expectedGlob = Keys.buildGlob(Keys.Namespace.ALARMS, ACCOUNT, REGION)
-    providerCache.filterIdentifiers(Keys.Namespace.ALARMS.ns, expectedGlob) >> [oldKey1, oldKey2]
-
     def newKey1 = Keys.getAlarmKey(ACCOUNT, REGION, metricAlarm1.alarmArn(), "my-cluster")
     def newKey2 = Keys.getAlarmKey(ACCOUNT, REGION, metricAlarm2.alarmArn(), "my-cluster")
 
@@ -99,30 +94,22 @@ class EcsCloudMetricAlarmCachingAgentSpec extends Specification {
     def cacheResult = agent.loadData(providerCache)
 
     then:
-    cacheResult.evictions[Keys.Namespace.ALARMS.ns].size() == 2
-    cacheResult.evictions[Keys.Namespace.ALARMS.ns].containsAll([oldKey1, oldKey2])
     cacheResult.cacheResults[Keys.Namespace.ALARMS.ns].size() == 2
     cacheResult.cacheResults[Keys.Namespace.ALARMS.ns]*.id.containsAll([newKey1, newKey2])
     cacheResult.cacheResults[Keys.Namespace.ALARMS.ns]*.attributes.containsAll([attributes1, attributes2])
   }
 
-  def 'should use filterIdentifiers with account and region glob for evictions'() {
+  def 'should still report the alarms namespace with an empty list when there are no live alarms'() {
     given:
-    def metricAlarm = MetricAlarm.builder().alarmName("alarm-name").alarmArn("alarmArn").build()
     clientProvider.getAmazonCloudWatchV2(_, _) >> cloudWatch
-    cloudWatch.describeAlarms(_ as DescribeAlarmsRequest) >> DescribeAlarmsResponse.builder().metricAlarms([metricAlarm]).build()
-
-    def expectedGlob = Keys.buildGlob(Keys.Namespace.ALARMS, ACCOUNT, REGION)
-    def oldKey = Keys.getAlarmKey(ACCOUNT, REGION, "old-alarm", "")
-    def oldIdentifiers = [oldKey]
-    providerCache.filterIdentifiers(Keys.Namespace.ALARMS.ns, expectedGlob) >> oldIdentifiers
+    cloudWatch.describeAlarms(_ as DescribeAlarmsRequest) >> DescribeAlarmsResponse.builder().metricAlarms([]).build()
 
     when:
     def result = agent.loadData(providerCache)
 
     then:
-    result.evictions[Keys.Namespace.ALARMS.ns] != null
-    result.evictions[Keys.Namespace.ALARMS.ns].containsAll(oldIdentifiers)
+    result.cacheResults.containsKey(Keys.Namespace.ALARMS.ns)
+    result.cacheResults[Keys.Namespace.ALARMS.ns].isEmpty()
   }
 
 }
