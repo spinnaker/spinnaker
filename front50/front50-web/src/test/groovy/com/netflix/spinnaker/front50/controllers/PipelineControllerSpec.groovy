@@ -5,6 +5,7 @@ import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline
 import com.netflix.spinnaker.front50.api.validator.PipelineValidator
 import com.netflix.spinnaker.front50.api.validator.ValidatorErrors
+import com.netflix.spinnaker.front50.config.Front50CoreConfiguration
 import com.netflix.spinnaker.front50.config.controllers.PipelineControllerConfig
 import com.netflix.spinnaker.front50.exceptions.DuplicateEntityException
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
@@ -35,7 +36,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 @AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(controllers = [PipelineController])
-@ContextConfiguration(classes = [TestConfiguration, AuthorizationSupport, PipelineController, PipelineControllerConfig])
+@ContextConfiguration(classes = [TestConfiguration, AuthorizationSupport, PipelineController, PipelineControllerConfig, Front50CoreConfiguration])
 class PipelineControllerSpec extends Specification {
 
   @Autowired
@@ -49,10 +50,12 @@ class PipelineControllerSpec extends Specification {
 
   @Autowired
   private AuthorizationSupport authorizationSupport
+  @Autowired ObjectMapper objectMapper
 
   @Unroll
   def "should fail the pipeline when staleCheck is true and conditions are met"() {
     given:
+    pipelineControllerConfig.getSave().staleCheckEnabled = true
     def staleCheck_true = true
     def staleCheck_false = false
     def localFiatPermissionEvaluator = Mock(FiatPermissionEvaluator)
@@ -116,6 +119,49 @@ class PipelineControllerSpec extends Specification {
     response.failed_pipelines_count == 0
     response.successful_pipelines_count == 1
 
+    cleanup:
+    pipelineControllerConfig.getSave().staleCheckEnabled = false
+  }
+
+  @Unroll
+  def "staleCheck has no effect when controller.pipeline.save.stale-check-enabled is off"() {
+    given: "the config flag is at its default value (off)"
+    pipelineControllerConfig.getSave().staleCheckEnabled = false
+    def localFiatPermissionEvaluator = Mock(FiatPermissionEvaluator)
+    def pipelinesBatch = [
+      [      id          : "1",
+             name        : "test-pipeline",
+             application : "test-application",
+             lastModified: 1662644108666
+      ]
+    ]
+    def pipelineDAO = new InMemoryPipelineDAO(){
+      @Override
+      Pipeline findById(String id) throws NotFoundException {
+        return new Pipeline([
+          id          : "1",
+          name        : "test-pipeline",
+          application : "test-application",
+          lastModified: 1772644108777
+        ])
+      }
+
+      @Override
+      void bulkImport(Collection<Pipeline> items) {}
+    }
+
+    _ * localFiatPermissionEvaluator.hasPermission(_, "test-application", "APPLICATION", "WRITE") >> true
+
+    def pipelineController = new PipelineController(
+      pipelineDAO, new ObjectMapper(), Optional.empty(), [], Optional.empty(), pipelineControllerConfig,
+      localFiatPermissionEvaluator, authorizationSupport)
+
+    when: "staleCheck=true is requested but the mismatched lastModified would otherwise reject it"
+    def response = pipelineController.batchUpdate(pipelinesBatch, true)
+
+    then: "the save still succeeds, preserving current (pre-fix) behavior"
+    response.failed_pipelines_count == 0
+    response.successful_pipelines_count == 1
   }
 
   @Unroll
@@ -295,6 +341,54 @@ class PipelineControllerSpec extends Specification {
     response.contentAsString.contains("\"name\":\"test-pipeline\"")
     response.contentAsString.contains("\"application\":\"test-application\"")
     response.contentAsString.contains("\"updateTs\":\"1662644108709\"")
+  }
+
+  def "the updateTs an HTTP client receives round trips back into a staleCheck save (regression test)"() {
+    // Uses the real, mixin-registered `objectMapper` bean and a real POST body -- unlike the
+    // batchUpdate()-based staleCheck tests above, this is what actually exercises the Jackson
+    // wire format and would have caught the updateTs/lastModified deserialization regression.
+    given:
+    pipelineControllerConfig.getSave().staleCheckEnabled = true
+    def pipelineDAO = new InMemoryPipelineDAO()
+    pipelineDAO.create("1", new Pipeline([
+      id          : "1",
+      name        : "test-pipeline",
+      application : "test-application",
+      lastModified: 1772644108777
+    ]))
+
+    def mockMvcWithController = MockMvcBuilders.standaloneSetup(new PipelineController(
+      pipelineDAO, objectMapper, Optional.empty(), [], Optional.empty(), pipelineControllerConfig,
+      fiatPermissionEvaluator, authorizationSupport
+    )).setControllerAdvice(
+      new GenericExceptionHandlers(new ExceptionMessageDecorator(Mock(ObjectProvider)))
+    ).build()
+
+    when: "saving with the current updateTs, as if freshly fetched from the server"
+    def freshResponse = mockMvcWithController
+      .perform(post("/pipelines?staleCheck=true")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content('{"id":"1","name":"test-pipeline","application":"test-application","updateTs":"1772644108777"}'))
+      .andReturn()
+      .response
+
+    then: "the save succeeds"
+    freshResponse.status == HttpStatus.OK.value()
+
+    when: "saving with a stale updateTs, as if fetched before someone else's write"
+    def staleResponse = mockMvcWithController
+      .perform(post("/pipelines?staleCheck=true")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content('{"id":"1","name":"test-pipeline","application":"test-application","updateTs":"1662644108666"}'))
+      .andReturn()
+      .response
+
+    then: "the save is rejected"
+    staleResponse.status == HttpStatus.BAD_REQUEST.value()
+    staleResponse.errorMessage.contains("is stale")
+
+    cleanup:
+    pipelineControllerConfig.getSave().staleCheckEnabled = false
   }
 
   @Unroll
