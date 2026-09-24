@@ -46,9 +46,8 @@ export default function ClickhouseMetricConfigurer() {
         <p className="body-small color-text-caption">
           Define this metric&apos;s query in the SQL template field below. Available template variables:{' '}
           <code>{'${scope}'}</code>, <code>{'${location}'}</code>, <code>{'${step}'}</code>,{' '}
-          <code>{'${startEpochSeconds}'}</code>, and <code>{'${endEpochSeconds}'}</code>. The query must return a
-          single numeric column with one row per step, ordered by time ascending - Kayenta does not re-bin or
-          gap-fill results.
+          <code>{'${startEpochSeconds}'}</code>, and <code>{'${endEpochSeconds}'}</code>. The query must return a single
+          numeric column with one row per step, ordered by time ascending - Kayenta does not re-bin or gap-fill results.
         </p>
         {Object.entries(EXAMPLE_QUERIES).map(([label, query]) => (
           <div key={label} style={{ marginBottom: '10px' }}>
