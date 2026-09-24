@@ -34,6 +34,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Lazy
 import org.springframework.context.annotation.Primary
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisCluster
@@ -59,7 +60,10 @@ class RedisOrcaQueueConfiguration : RedisQueueConfiguration() {
   fun orcaRedisQueueObjectMapper(
     @Qualifier("mapper") mapper: ObjectMapper,
     objectMapperSubtypeProperties: ObjectMapperSubtypeProperties,
-    taskResolver: TaskResolver
+    // TaskResolver depends on tasks that (transitively) need an ObjectMapper; resolve it lazily
+    // to avoid a circular reference, since this is the primary ObjectMapper candidate.
+    // It is only used at queue deserialization time, long after the context is complete.
+    @Lazy taskResolver: TaskResolver
   ): ObjectMapper {
     val configuredMapper = mapper.rebuild<JsonMapper, JsonMapper.Builder>()
       // Jackson 3 no longer merges into getter-only collections by default; the queue

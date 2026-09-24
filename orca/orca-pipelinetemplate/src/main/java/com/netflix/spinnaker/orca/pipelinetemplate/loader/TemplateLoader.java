@@ -118,7 +118,7 @@ public class TemplateLoader {
             template -> {
               try {
                 return objectMapper.convertValue(template, PipelineTemplate.class);
-              } catch (IllegalArgumentException e) {
+              } catch (IllegalArgumentException | JacksonException e) {
                 throw new TemplateLoaderException(e);
               }
             })

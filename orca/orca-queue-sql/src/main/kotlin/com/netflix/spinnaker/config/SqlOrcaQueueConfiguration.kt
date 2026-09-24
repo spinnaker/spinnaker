@@ -32,6 +32,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Lazy
 import org.springframework.context.annotation.Primary
 import tools.jackson.databind.DeserializationFeature
 import tools.jackson.databind.ObjectMapper
@@ -54,7 +55,9 @@ class SqlOrcaQueueConfiguration : SqlQueueConfiguration() {
   fun orcaSqlQueueObjectMapper(
     @Qualifier("mapper") mapper: ObjectMapper,
     objectMapperSubtypeProperties: ObjectMapperSubtypeProperties,
-    taskResolver: TaskResolver
+    // Same circular-reference avoidance as RedisOrcaQueueConfiguration: TaskResolver's graph
+    // transitively needs the primary ObjectMapper.
+    @Lazy taskResolver: TaskResolver
   ): ObjectMapper {
     val configuredMapper = mapper.rebuild<JsonMapper, JsonMapper.Builder>()
       // Jackson 3 no longer merges into getter-only collections by default; the queue

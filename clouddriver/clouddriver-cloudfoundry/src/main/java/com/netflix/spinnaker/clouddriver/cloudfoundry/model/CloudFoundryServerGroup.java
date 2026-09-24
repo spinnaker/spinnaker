@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.model;
 import static com.netflix.spinnaker.clouddriver.model.HealthState.*;
 import static java.util.Collections.*;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonView;
@@ -155,7 +156,11 @@ public class CloudFoundryServerGroup extends CloudFoundryModel implements Server
                 return droplet == null ? "unknown" : droplet.getId();
               }
 
+              // Serializing this summary must not include "image" itself: getImage()
+              // converts this same object, so including it recurses infinitely (the image
+              // details could never be serialized).
               @Override
+              @JsonIgnore
               public Map<String, Object> getImage() {
                 return IMAGE_MAPPER.convertValue(this, new TypeReference<>() {});
               }

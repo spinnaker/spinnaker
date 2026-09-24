@@ -347,7 +347,7 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
         JsonMapper.builder()
             .build()
             .convertValue(
-                Collections.singletonMap("mapField", "{\"key1\": \"value1\"}}"), WithMap.class);
+                Collections.singletonMap("mapField", "{\"key1\": \"value1\"}"), WithMap.class);
 
     assertThat(result).usingRecursiveComparison().isEqualTo(new WithMap("key1", "value1"));
   }

@@ -70,7 +70,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Primary;
 import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.context.event.EventListenerFactory;
 import org.springframework.context.event.SimpleApplicationEventMulticaster;
@@ -122,7 +121,6 @@ public class OrcaConfiguration {
   }
 
   @Bean(name = {"mapper", "objectMapper"})
-  @Primary
   public JsonMapper mapper(
       Optional<SerializerHookRegistry> serializerModifier,
       JacksonParserProperties parserProperties) {
