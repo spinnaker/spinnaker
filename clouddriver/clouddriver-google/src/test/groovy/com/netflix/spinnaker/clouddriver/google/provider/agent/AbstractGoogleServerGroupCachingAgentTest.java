@@ -105,7 +105,20 @@ class AbstractGoogleServerGroupCachingAgentTest {
 
   @BeforeEach
   void createTestObjects() {
-    objectMapper = JsonMapper.builder().build();
+    objectMapper =
+        JsonMapper.builder()
+            .polymorphicTypeValidator(
+                new tools.jackson.databind.jsontype.PolymorphicTypeValidator.Base() {
+                  @Override
+                  public tools.jackson.databind.jsontype.PolymorphicTypeValidator.Validity
+                      validateBaseType(
+                          tools.jackson.databind.DatabindContext ctxt,
+                          tools.jackson.databind.JavaType baseType) {
+                    return tools.jackson.databind.jsontype.PolymorphicTypeValidator.Validity
+                        .ALLOWED;
+                  }
+                })
+            .build();
   }
 
   @Test

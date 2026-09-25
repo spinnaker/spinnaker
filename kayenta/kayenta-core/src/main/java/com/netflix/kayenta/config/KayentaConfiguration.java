@@ -63,6 +63,31 @@ import tools.jackson.databind.cfg.DateTimeFeature;
 @EnableConfigurationProperties(MetricsRetryConfigurationProperties.class)
 public class KayentaConfiguration {
 
+  private static final String[][] METRIC_QUERY_SUBTYPES = {
+    {
+      "com.netflix.kayenta.canary.providers.metrics.PrometheusCanaryMetricSetQueryConfig",
+      "prometheus"
+    },
+    {"com.netflix.kayenta.canary.providers.metrics.GraphiteCanaryMetricSetQueryConfig", "graphite"},
+    {
+      "com.netflix.kayenta.canary.providers.metrics.StackdriverCanaryMetricSetQueryConfig",
+      "stackdriver"
+    },
+    {"com.netflix.kayenta.canary.providers.metrics.SignalFxCanaryMetricSetQueryConfig", "signalfx"},
+    {"com.netflix.kayenta.canary.providers.metrics.DatadogCanaryMetricSetQueryConfig", "datadog"},
+    {"com.netflix.kayenta.canary.providers.metrics.NewRelicCanaryMetricSetQueryConfig", "newrelic"},
+    {"com.netflix.kayenta.canary.providers.metrics.AtlasCanaryMetricSetQueryConfig", "atlas"},
+    {"com.netflix.kayenta.canary.providers.metrics.InfluxdbCanaryMetricSetQueryConfig", "influxdb"},
+    {
+      "com.netflix.kayenta.canary.providers.metrics.WavefrontCanaryMetricSetQueryConfig",
+      "wavefront"
+    },
+    {
+      "com.netflix.kayenta.canary.providers.metrics.ClickhouseCanaryMetricSetQueryConfig",
+      "clickhouse"
+    },
+  };
+
   @Bean
   @ConditionalOnMissingBean(AccountCredentialsRepository.class)
   AccountCredentialsRepository accountCredentialsRepository() {
@@ -158,7 +183,20 @@ public class KayentaConfiguration {
     // rebuild does not keep subtype registrations applied to a previously built instance.
     ObjectMapper featured =
         configureObjectMapperFeatures(objectMapper, kayentaSerializationConfigurationProperties);
-    return objectMapperSubtypeConfigurer.registerSubtypes(featured, subtypeLocators);
+    ObjectMapper withScanned =
+        objectMapperSubtypeConfigurer.registerSubtypes(featured, subtypeLocators);
+    // Classpath scanning misses provider jars in some Boot 4 layouts. Register the known metric
+    // query configs explicitly when they are present.
+    var builder = withScanned.rebuild();
+    for (String[] subtype : METRIC_QUERY_SUBTYPES) {
+      try {
+        builder.registerSubtypes(
+            new tools.jackson.databind.jsontype.NamedType(Class.forName(subtype[0]), subtype[1]));
+      } catch (ClassNotFoundException ignored) {
+        // Provider module not on this classpath.
+      }
+    }
+    return builder.build();
   }
 
   @Bean

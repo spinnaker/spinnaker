@@ -275,7 +275,6 @@ class EurekaApiTest extends Specification {
       .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
       .enable(DeserializationFeature.UNWRAP_ROOT_VALUE)
       .build()
-      .enable(MapperFeature.AUTO_DETECT_CREATORS)
 
     def shortTimeoutRetrofit = new Retrofit.Builder()
       .baseUrl(tempMockWebServer.url("/"))
