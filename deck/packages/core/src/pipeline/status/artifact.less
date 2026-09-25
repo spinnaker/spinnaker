@@ -12,6 +12,7 @@
 .artifact-detail {
   display: inline-flex;
   padding: 0.1px;
+  align-items: baseline;
 
   .artifact-icon {
     padding-right: 4px;
@@ -27,11 +28,8 @@
   }
 }
 
-.artifact-name {
-  padding-right: 2px;
-  float: left;
-}
-
-.artifact-version {
-  float: left;
+.artifact-value {
+  display: inline-flex;
+  align-items: baseline;
+  overflow-wrap: break-word;
 }
