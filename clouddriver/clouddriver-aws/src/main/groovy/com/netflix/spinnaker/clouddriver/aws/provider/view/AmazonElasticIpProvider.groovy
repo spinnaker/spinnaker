@@ -53,7 +53,11 @@ class AmazonElasticIpProvider implements ElasticIpProvider<AmazonElasticIp> {
 
   Set<AmazonElasticIp> loadResults(Collection<String> identifiers) {
     cacheView.getAll(ELASTIC_IPS.ns, identifiers, RelationshipCacheFilter.none()).collect { CacheData data ->
-      objectMapper.convertValue(data.attributes, AmazonElasticIp)
+      // Construct explicitly: AmazonElasticIp is @Immutable (tuple + Map constructors only).
+      // Jackson 2 resolved the Map constructor implicitly, but Jackson 3 selects the tuple
+      // constructor and yields null fields, so bypass databind here.
+      def attrs = data.attributes
+      new AmazonElasticIp(attrs.address, attrs.domain, attrs.attachedToId, attrs.accountName, attrs.region)
     }
   }
 }

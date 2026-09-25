@@ -227,6 +227,7 @@ public class CloudFoundryServerGroup extends CloudFoundryModel implements Server
 
   @Override
   public InstanceCounts getInstanceCounts() {
+    Set<CloudFoundryInstance> instances = getInstances();
     return new InstanceCounts(
         instances.size(),
         (int) instances.stream().filter(in -> Up.equals(in.getHealthState())).count(),
@@ -238,7 +239,8 @@ public class CloudFoundryServerGroup extends CloudFoundryModel implements Server
 
   @Override
   public Capacity getCapacity() {
-    return new ServerGroup.Capacity(instances.size(), instances.size(), instances.size());
+    int size = getInstances().size();
+    return new ServerGroup.Capacity(size, size, size);
   }
 
   public String getStack() {

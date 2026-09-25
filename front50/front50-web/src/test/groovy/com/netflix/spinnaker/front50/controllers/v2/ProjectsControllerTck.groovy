@@ -45,6 +45,7 @@ import java.util.concurrent.Executors
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import tools.jackson.databind.MapperFeature
 import tools.jackson.databind.json.JsonMapper
 
 abstract class ProjectsControllerTck extends Specification {
@@ -63,13 +64,16 @@ abstract class ProjectsControllerTck extends Specification {
     this.controller = new ProjectsController(dao)
     this.mockMvc = MockMvcBuilders
       .standaloneSetup(controller)
-      // Pin Jackson 2 explicitly: standalone setups don't load the app context
-      // (so kork's Jackson3PropertyOrderConfiguration doesn't apply), and Boot 4's
+      // Pin declaration order explicitly: standalone setups don't load the app context
+      // (so kork's Jackson3PropertyOrderConfiguration doesn't apply), and the
       // default Jackson 3 mapper sorts properties alphabetically while these
       // contract assertions expect Jackson 2 declaration order.
       .setMessageConverters(
-        new org.springframework.http.converter.json.MappingJackson2HttpMessageConverter(
-          JsonMapper.builder().build()))
+        new org.springframework.http.converter.json.JacksonJsonHttpMessageConverter(
+          JsonMapper.builder()
+            .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+            .disable(MapperFeature.SORT_CREATOR_PROPERTIES_FIRST)
+            .build()))
 
       .setControllerAdvice(
         new GenericExceptionHandlers(

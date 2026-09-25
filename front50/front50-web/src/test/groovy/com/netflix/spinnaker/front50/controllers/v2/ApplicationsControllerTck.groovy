@@ -45,7 +45,7 @@ import io.github.resilience4j.circuitbreaker.internal.InMemoryCircuitBreakerRegi
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.context.support.StaticMessageSource
 import org.springframework.http.MediaType
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import io.reactivex.rxjava3.schedulers.Schedulers
@@ -59,10 +59,16 @@ import java.util.concurrent.Executors
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import tools.jackson.databind.MapperFeature
 import tools.jackson.databind.json.JsonMapper
 
 abstract class ApplicationsControllerTck extends Specification {
-  ObjectMapper objectMapper = JsonMapper.builder().build()
+  // Jackson 3 sorts properties alphabetically by default; contract assertions expect
+  // Jackson 2 declaration order.
+  ObjectMapper objectMapper = JsonMapper.builder()
+    .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+    .disable(MapperFeature.SORT_CREATOR_PROPERTIES_FIRST)
+    .build()
 
   MockMvc mockMvc
   ApplicationsController controller
@@ -100,8 +106,7 @@ abstract class ApplicationsControllerTck extends Specification {
       applicationService
     )
 
-    MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter = new MappingJackson2HttpMessageConverter();
-    mappingJackson2HttpMessageConverter.setObjectMapper(objectMapper)
+    JacksonJsonHttpMessageConverter mappingJackson2HttpMessageConverter = new JacksonJsonHttpMessageConverter(objectMapper)
 
     this.mockMvc = MockMvcBuilders
       .standaloneSetup(controller)

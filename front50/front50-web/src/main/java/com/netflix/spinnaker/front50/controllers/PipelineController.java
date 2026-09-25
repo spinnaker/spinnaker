@@ -67,6 +67,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import tools.jackson.core.JacksonException;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 
@@ -474,7 +475,7 @@ public class PipelineController {
             } else {
               pipelines.add(pipeline);
             }
-          } catch (IllegalArgumentException e) {
+          } catch (IllegalArgumentException | JacksonException e) {
             log.error(
                 "Failed to deserialize pipeline map from the provided json: {}", pipelineMap, e);
             pipelineMap.put(

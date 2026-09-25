@@ -33,7 +33,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Lazy
-import org.springframework.context.annotation.Primary
 import tools.jackson.databind.DeserializationFeature
 import tools.jackson.databind.ObjectMapper
 import tools.jackson.databind.MapperFeature
@@ -50,13 +49,13 @@ import tools.jackson.module.kotlin.KotlinModule
 )
 class SqlOrcaQueueConfiguration : SqlQueueConfiguration() {
 
+  // Not primary: see RedisOrcaQueueConfiguration - OrcaConfiguration.mapper is primary.
   @Bean
-  @Primary
   fun orcaSqlQueueObjectMapper(
     @Qualifier("mapper") mapper: ObjectMapper,
     objectMapperSubtypeProperties: ObjectMapperSubtypeProperties,
     // Same circular-reference avoidance as RedisOrcaQueueConfiguration: TaskResolver's graph
-    // transitively needs the primary ObjectMapper.
+    // transitively needs an ObjectMapper.
     @Lazy taskResolver: TaskResolver
   ): ObjectMapper {
     val configuredMapper = mapper.rebuild<JsonMapper, JsonMapper.Builder>()

@@ -30,7 +30,7 @@ import com.netflix.spinnaker.kork.web.exceptions.ExceptionMessageDecorator
 import com.netflix.spinnaker.kork.web.exceptions.GenericExceptionHandlers
 import org.hamcrest.Matchers
 import org.springframework.beans.factory.ObjectProvider
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter
 import org.springframework.web.util.UriComponentsBuilder
 
 import java.nio.charset.StandardCharsets
@@ -54,6 +54,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import tools.jackson.databind.MapperFeature
 import tools.jackson.databind.json.JsonMapper
 
 
@@ -79,7 +80,10 @@ abstract class PipelineControllerTck extends Specification {
   void setup() {
     println "--------------- Test " + specificationContext.currentIteration.name
 
-    this.objectMapper = JsonMapper.builder().addModule(new Front50ApiModule()).build()
+    this.objectMapper = JsonMapper.builder()
+      .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+      .disable(MapperFeature.SORT_CREATOR_PROPERTIES_FIRST)
+      .addModule(new Front50ApiModule()).build()
 
     this.pipelineDAO = Spy(createPipelineDAO())
     this.serviceAccountsService = Mock(ServiceAccountsService)
@@ -87,8 +91,7 @@ abstract class PipelineControllerTck extends Specification {
     this.fiatPermissionEvaluator = Mock(FiatPermissionEvaluator)
     this.authorizationSupport = Spy(new AuthorizationSupport(fiatPermissionEvaluator))
 
-    MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter = new MappingJackson2HttpMessageConverter();
-    mappingJackson2HttpMessageConverter.setObjectMapper(objectMapper)
+    JacksonJsonHttpMessageConverter mappingJackson2HttpMessageConverter = new JacksonJsonHttpMessageConverter(objectMapper)
 
     mockMvc = MockMvcBuilders
       .standaloneSetup(

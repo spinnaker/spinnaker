@@ -75,7 +75,7 @@ public class BlobsStorageService implements StorageService {
 
     try {
       return deserialize(blobItem, (TypeReference<T>) objectType.getTypeReference());
-    } catch (IOException | StorageException e) {
+    } catch (IOException | StorageException | JacksonException e) {
       throw new IllegalStateException("Unable to deserialize object (key: " + objectKey + ")", e);
     }
   }

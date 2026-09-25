@@ -17,6 +17,7 @@ import okhttp3.ResponseBody;
 import org.junit.jupiter.api.Test;
 import retrofit2.Converter;
 import retrofit2.Retrofit;
+import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.json.JsonMapper;
 
 public class AtlasSSEConverterTest {
@@ -30,7 +31,13 @@ public class AtlasSSEConverterTest {
       "data: {\"type\":\"error\",\"message\":\"something went wrong\"}\n";
 
   private List<AtlasResults> atlasResultsFromSSE(String sse) throws IOException {
-    AtlasSSEConverter atlasSSEConverter = new AtlasSSEConverter(JsonMapper.builder().build());
+    // Jackson 3 enables FAIL_ON_NULL_FOR_PRIMITIVES by default (Jackson 2 had it disabled);
+    // Atlas messages routinely omit primitives (e.g. close messages carry only "type").
+    AtlasSSEConverter atlasSSEConverter =
+        new AtlasSSEConverter(
+            JsonMapper.builder()
+                .disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
+                .build());
     Retrofit retrofit =
         new Retrofit.Builder()
             .baseUrl("http://atlas")

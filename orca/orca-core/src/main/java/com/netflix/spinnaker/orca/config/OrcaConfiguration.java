@@ -70,6 +70,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.context.event.EventListenerFactory;
 import org.springframework.context.event.SimpleApplicationEventMulticaster;
@@ -120,7 +121,12 @@ public class OrcaConfiguration {
     return Schedulers.io();
   }
 
+  // Single primary for the whole orca context (queue mappers are qualified, non-primary).
+  // Declared as JsonMapper so Boot 4's JacksonAutoConfiguration backs off its own
+  // jacksonJsonMapper; otherwise two primaries collide at injection points. This mirrors the
+  // Boot 3 shape, where unqualified injections resolved to this mapper.
   @Bean(name = {"mapper", "objectMapper"})
+  @Primary
   public JsonMapper mapper(
       Optional<SerializerHookRegistry> serializerModifier,
       JacksonParserProperties parserProperties) {

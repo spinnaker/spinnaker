@@ -17,6 +17,7 @@
 package com.netflix.kayenta.config;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
+import static tools.jackson.databind.DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES;
 import static tools.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 
 import com.google.common.collect.ImmutableList;
@@ -135,6 +136,9 @@ public class KayentaConfiguration {
         .changeDefaultPropertyInclusion(
             value -> value.withValueInclusion(NON_NULL).withContentInclusion(NON_NULL))
         .disable(FAIL_ON_UNKNOWN_PROPERTIES)
+        // Jackson 3 enables FAIL_ON_NULL_FOR_PRIMITIVES by default (Jackson 2 had it
+        // disabled); missing primitives (e.g. Atlas close messages) must stay lenient.
+        .disable(FAIL_ON_NULL_FOR_PRIMITIVES)
         .configure(
             DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS,
             kayentaSerializationConfigurationProperties.isWriteDatesAsTimestamps())

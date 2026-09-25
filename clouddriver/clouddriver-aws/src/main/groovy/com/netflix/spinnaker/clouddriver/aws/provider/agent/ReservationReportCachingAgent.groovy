@@ -103,7 +103,7 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
     accountReservationDetailSerializer = new AccountReservationDetailSerializer()
     module.addSerializer(AmazonReservationReport.AccountReservationDetail.class, accountReservationDetailSerializer)
 
-    this.objectMapper = objectMapper.rebuild().enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS).build().addModule(module).build()
+    this.objectMapper = objectMapper.rebuild().enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS).addModule(module).build()
     this.reservationReportPool = reservationReportPool
     this.ctx = ctx
     this.metricsSupport = new MetricsSupport(objectMapper, registry, { getCacheView() })

@@ -55,14 +55,14 @@ import tools.jackson.module.kotlin.KotlinModule
 )
 class RedisOrcaQueueConfiguration : RedisQueueConfiguration() {
 
+  // Not primary: OrcaConfiguration.mapper is the single primary for the context. All queue
+  // wiring refers to this bean via @Qualifier, so the queue still gets its purpose-built mapper.
   @Bean
-  @Primary
   fun orcaRedisQueueObjectMapper(
     @Qualifier("mapper") mapper: ObjectMapper,
     objectMapperSubtypeProperties: ObjectMapperSubtypeProperties,
-    // TaskResolver depends on tasks that (transitively) need an ObjectMapper; resolve it lazily
-    // to avoid a circular reference, since this is the primary ObjectMapper candidate.
-    // It is only used at queue deserialization time, long after the context is complete.
+    // TaskResolver's graph transitively needs an ObjectMapper; resolve it lazily to avoid any
+    // circular reference. It is only used at queue deserialization time.
     @Lazy taskResolver: TaskResolver
   ): ObjectMapper {
     val configuredMapper = mapper.rebuild<JsonMapper, JsonMapper.Builder>()

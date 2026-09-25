@@ -48,6 +48,7 @@ import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
@@ -99,8 +100,11 @@ class AmazonS3DataProviderMiniStackTest {
     putString("object-key", "{\"foo\":\"bar\"}");
     putString("list-key", "[{\"name\":\"a\"},{\"name\":\"b\"}]");
 
+    // Jackson 3 enables FAIL_ON_NULL_FOR_PRIMITIVES by default (Jackson 2 had it disabled);
+    // the sparse credential map omits primitives.
     NetflixAmazonCredentials credentials =
         JsonMapper.builder()
+            .disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
             .build()
             .convertValue(
                 Map.of(
@@ -129,7 +133,9 @@ class AmazonS3DataProviderMiniStackTest {
 
     dataProvider =
         new AmazonS3DataProvider(
-            JsonMapper.builder().build(),
+            JsonMapper.builder()
+                .disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
+                .build(),
             mockAmazonClientProvider,
             mockCredentialsRepository,
             configuration);
