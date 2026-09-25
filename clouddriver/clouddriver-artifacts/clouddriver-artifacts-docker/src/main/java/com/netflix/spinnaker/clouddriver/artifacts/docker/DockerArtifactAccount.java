@@ -18,12 +18,15 @@
 package com.netflix.spinnaker.clouddriver.artifacts.docker;
 
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccount;
+import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import lombok.Value;
 
 @NonnullByDefault
 @Value
 final class DockerArtifactAccount implements ArtifactAccount {
+  private final Permissions.Builder permissions = new Permissions.Builder();
+
   @Override
   public String getName() {
     return "docker-registry";

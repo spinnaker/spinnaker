@@ -28,7 +28,7 @@ import com.google.api.services.storage.StorageScopes;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.common.collect.ImmutableList;
-import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
+import com.netflix.spinnaker.clouddriver.artifacts.config.AbstractArtifactCredentials;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.io.FileInputStream;
@@ -42,7 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @NonnullByDefault
 @Slf4j
-public class GcsArtifactCredentials implements ArtifactCredentials {
+public class GcsArtifactCredentials extends AbstractArtifactCredentials {
   public static final String CREDENTIALS_TYPE = "artifacts-gcs";
   @Getter private final String name;
   @Getter private final ImmutableList<String> types = ImmutableList.of("gcs/object");
@@ -51,6 +51,7 @@ public class GcsArtifactCredentials implements ArtifactCredentials {
 
   GcsArtifactCredentials(String applicationName, GcsArtifactAccount account)
       throws IOException, GeneralSecurityException {
+    super(account);
     HttpTransport transport = GoogleNetHttpTransport.newTrustedTransport();
     JsonFactory jsonFactory = GsonFactory.getDefaultInstance();
     Optional<String> credentialsPath = account.getJsonPath();

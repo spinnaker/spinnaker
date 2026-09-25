@@ -21,7 +21,9 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccount;
 import com.netflix.spinnaker.clouddriver.artifacts.ivy.settings.IvySettings;
+import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNullableByDefault;
 import lombok.Builder;
@@ -33,6 +35,7 @@ import org.springframework.boot.context.properties.bind.ConstructorBinding;
 public class IvyArtifactAccount implements ArtifactAccount {
   private final String name;
   @Nullable private final IvySettings settings;
+  private final Permissions.Builder permissions;
 
   @JsonIgnore
   private final ImmutableList<String> resolveConfigurations = ImmutableList.of("master");
@@ -40,8 +43,9 @@ public class IvyArtifactAccount implements ArtifactAccount {
   @Builder
   @ConstructorBinding
   @ParametersAreNullableByDefault
-  public IvyArtifactAccount(String name, IvySettings settings) {
+  public IvyArtifactAccount(String name, IvySettings settings, Permissions.Builder permissions) {
     this.name = Strings.nullToEmpty(name);
     this.settings = settings;
+    this.permissions = Optional.ofNullable(permissions).orElseGet(Permissions.Builder::new);
   }
 }

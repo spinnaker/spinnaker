@@ -29,6 +29,7 @@ public class ResourceType {
       new ResourceType("service_account"); // Fiat service account.
   public static ResourceType ROLE = new ResourceType("role");
   public static ResourceType BUILD_SERVICE = new ResourceType("build_service");
+  public static ResourceType ARTIFACT_ACCOUNT = new ResourceType("artifact_account");
 
   public ResourceType(String name) {
     this.name = name.toLowerCase();
