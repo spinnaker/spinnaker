@@ -27,6 +27,7 @@ def cloudProviderProjects = [
   'cloudfoundry': [':clouddriver-cloudfoundry'],
 //  'dcos': [':clouddriver-dcos'],
   'gce': [':clouddriver-consul', ':clouddriver-google', ':clouddriver-google-common'],
+  'haproxy': [':clouddriver-haproxy'],
   'huaweicloud': [':clouddriver-huaweicloud'],
   'kubernetes': [':clouddriver-kubernetes'],
   'oracle': [':clouddriver-oracle'],

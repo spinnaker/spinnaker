@@ -1,0 +1,101 @@
+// The HAProxy Data Plane API client is generated at build time from the vendored OpenAPI spec
+// in specification/dataplane_spec.yaml (see specification/README.md for provenance/updates).
+buildscript {
+  repositories {
+    gradlePluginPortal()
+  }
+  dependencies {
+    classpath "org.openapitools:openapi-generator-gradle-plugin:7.10.0"
+  }
+}
+
+apply plugin: "org.openapi.generator"
+
+def dataplaneGeneratedDir = layout.buildDirectory.dir("generated/dataplaneapi").get().asFile
+def dataplaneSpecDir = layout.buildDirectory.dir("dataplane-spec").get().asFile
+
+// The upstream spec declares a relative server url (/v3), which the generated ApiClient rejects
+// at construction time (okhttp requires an absolute base url). Rewrite it to an absolute
+// placeholder; accounts override the base url with their real endpoint.
+tasks.register("prepareDataplaneSpec", Copy) {
+  from("$projectDir/specification/dataplane_spec.yaml")
+  into(dataplaneSpecDir)
+  filter { line -> line.replace("- url: /v3", "- url: http://localhost:5555/v3") }
+}
+
+openApiGenerate {
+  generatorName = "java"
+  library = "retrofit2"
+  inputSpec = "${dataplaneSpecDir.path}/dataplane_spec.yaml"
+  outputDir = dataplaneGeneratedDir.path
+  invokerPackage = "com.netflix.spinnaker.clouddriver.haproxy.dataplane"
+  apiPackage = "com.netflix.spinnaker.clouddriver.haproxy.dataplane.api"
+  modelPackage = "com.netflix.spinnaker.clouddriver.haproxy.dataplane.model"
+  skipValidateSpec = true
+  generateApiTests = false
+  generateModelTests = false
+  generateApiDocumentation = false
+  generateModelDocumentation = false
+  configOptions = [
+    dateLibrary                   : "java8",
+    hideGenerationTimestamp       : "true",
+    useJakartaEe                  : "true",
+    openApiNullable               : "false",
+    serializationLibrary          : "jackson",
+    // Lombok @Builder/@NoArgsConstructor collide with the explicit constructors the jackson
+    // templates emit for models with required fields; use the generator's own builders instead.
+    generateBuilders              : "true",
+  ]
+}
+
+sourceSets.main.java.srcDir "${dataplaneGeneratedDir.path}/src/main/java"
+// The generated OAuth helper needs org.apache.oltu; the Data Plane API only uses basic auth.
+sourceSets.main.java.exclude "**/dataplane/auth/OAuthOkHttpClient.java"
+tasks.named("openApiGenerate") { dependsOn "prepareDataplaneSpec" }
+compileJava.dependsOn "openApiGenerate"
+
+// Generated sources are not subject to formatting/license checks.
+plugins.withId("com.diffplug.spotless") {
+  spotless {
+    java {
+      targetExclude "build/generated/**"
+    }
+  }
+}
+
+dependencies {
+  implementation project(":clouddriver-core")
+  implementation project(":clouddriver-security")
+  implementation project(":clouddriver-api")
+  implementation project(":cats:cats-core")
+
+  implementation "com.netflix.frigga:frigga"
+  implementation "io.spinnaker.kork:kork-moniker"
+
+  // Dependencies of the generated Data Plane API client (java/retrofit2 generator, jackson).
+  implementation "com.squareup.retrofit2:retrofit"
+  implementation "com.squareup.retrofit2:converter-jackson"
+  // Not managed by the kork BOM; keep in lockstep with the BOM's retrofit2 version.
+  implementation "com.squareup.retrofit2:converter-scalars:2.12.0"
+  implementation "com.squareup.okhttp3:okhttp"
+  implementation "com.squareup.okhttp3:logging-interceptor"
+  implementation "jakarta.annotation:jakarta.annotation-api"
+  implementation "jakarta.ws.rs:jakarta.ws.rs-api"
+
+  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "io.spinnaker.kork:kork-web"
+  implementation "io.spinnaker.kork:kork-credentials"
+  implementation "io.spinnaker.kork:kork-security"
+  implementation "io.spinnaker.kork:kork-exceptions"
+  implementation "com.fasterxml.jackson.core:jackson-databind"
+  implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
+
+  compileOnly "org.projectlombok:lombok"
+  annotationProcessor "org.projectlombok:lombok"
+
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
+  testImplementation "com.squareup.okhttp3:mockwebserver"
+
+  testCompileOnly "org.projectlombok:lombok"
+  testAnnotationProcessor "org.projectlombok:lombok"
+}

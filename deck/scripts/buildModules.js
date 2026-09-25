@@ -27,6 +27,7 @@ async function buildModules() {
         'cloudrun',
         'docker',
         'google',
+        'haproxy',
         'huaweicloud',
         'kubernetes',
         'oracle',
