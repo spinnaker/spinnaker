@@ -970,6 +970,39 @@ describe('GceCloneServerGroupModal', () => {
     expect(props.closeModal).toHaveBeenCalledWith(jasmine.objectContaining({ stack: 'edited' }));
   });
 
+  it('submits concrete new-family attachment names without changing existing-family identities', () => {
+    const transformed = transformGceServerGroupCommand(
+      buildCommand({
+        backingData: {
+          filtered: {
+            loadBalancerIndex: {
+              'external-managed': {
+                listeners: [{ name: 'external-http' }, { name: 'external-https' }],
+                loadBalancerType: 'EXTERNAL_MANAGED',
+                name: 'external-managed',
+              },
+              'regional-network': {
+                loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK',
+                name: 'regional-network',
+              },
+              'existing-tcp': {
+                loadBalancerType: 'TCP',
+                name: 'existing-tcp',
+              },
+            },
+          },
+        },
+        loadBalancers: ['external-managed', 'regional-network', 'existing-tcp'],
+      }),
+    );
+
+    expect(transformed.loadBalancers).toEqual(['external-http', 'external-https', 'regional-network', 'existing-tcp']);
+    expect(transformed.instanceMetadata).toEqual({
+      'global-load-balancer-names': 'existing-tcp',
+      'load-balancer-names': 'external-http,external-https,regional-network',
+    });
+  });
+
   it('merges refreshed backing data and handlers into edits made while loading', async () => {
     const command = buildCommand({ stack: 'old', unknownReference: 'keep-me' });
     const request = deferred<IGceServerGroupCommand>();

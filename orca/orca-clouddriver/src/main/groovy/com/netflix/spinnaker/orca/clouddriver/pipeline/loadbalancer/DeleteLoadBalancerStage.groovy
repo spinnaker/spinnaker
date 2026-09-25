@@ -33,7 +33,7 @@ class DeleteLoadBalancerStage implements StageDefinitionBuilder {
   void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
     builder
       .withTask("deleteLoadBalancer", DeleteLoadBalancerTask)
-      .withTask("forceCacheRefresh", DeleteLoadBalancerForceRefreshTask)
       .withTask("monitorDelete", MonitorKatoTask)
+      .withTask("forceCacheRefresh", DeleteLoadBalancerForceRefreshTask)
   }
 }

@@ -23,9 +23,11 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleExternalHttpLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleInternalHttpLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleSessionAffinity
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.credentials.CredentialsRepository
@@ -37,6 +39,14 @@ import org.springframework.stereotype.Component
 class UpsertGoogleLoadBalancerDescriptionValidator extends
     DescriptionValidator<UpsertGoogleLoadBalancerDescription> {
   private static final List<String> SUPPORTED_IP_PROTOCOLS = ["TCP", "UDP"]
+  private static final List<String> SUPPORTED_NETWORK_TIERS = ["PREMIUM", "STANDARD"]
+  private static final List<String> SUPPORTED_MANAGED_BACKEND_PROTOCOLS = ["HTTP", "HTTPS"]
+  private static final List<GoogleSessionAffinity> SUPPORTED_PASSTHROUGH_SESSION_AFFINITY = [
+    GoogleSessionAffinity.NONE,
+    GoogleSessionAffinity.CLIENT_IP,
+    GoogleSessionAffinity.CLIENT_IP_PROTO,
+    GoogleSessionAffinity.CLIENT_IP_PORT_PROTO
+  ]
 
   private static final List<Integer> SUPPORTED_SSL_PROXY_PORTS = [25, 43, 110, 143, 195, 443, 465, 587, 700, 993, 995]
   private static final List<Integer> SUPPORTED_TCP_PROXY_PORTS = [25, 43, 110, 143, 195, 443, 465, 587, 700, 993, 995]
@@ -55,6 +65,14 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
 
     helper.validateCredentials(description.accountName, credentialsRepository)
     helper.validateName(description.loadBalancerName, "loadBalancerName")
+
+    if (description.loadBalancerType in [
+      GoogleLoadBalancerType.INTERNAL_MANAGED,
+      GoogleLoadBalancerType.EXTERNAL_MANAGED,
+      GoogleLoadBalancerType.REGIONAL_EXTERNAL_NETWORK
+    ]) {
+      validateListenersToDelete(description, errors)
+    }
 
     switch (description.loadBalancerType) {
       case GoogleLoadBalancerType.NETWORK:
@@ -87,13 +105,7 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
           }
         }
 
-        // portRange must be a single port.
-        try {
-          Integer.parseInt(description.portRange)
-        } catch (NumberFormatException _) {
-          errors.rejectValue("portRange",
-            "upsertGoogleLoadBalancerDescription.portRange.requireSinglePort")
-        }
+        validatePort(description.portRange, "portRange", errors)
 
         // Each backend service must have a health check.
         def googleHttpLoadBalancer = new GoogleHttpLoadBalancer(
@@ -113,6 +125,7 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
               "upsertGoogleLoadBalancerDescription.backendServices.healthCheckRequired")
           }
         }
+        validateManagedBackendServices(description, services, errors)
         break
       case GoogleLoadBalancerType.INTERNAL_MANAGED:
         if (description.certificate && description.certificateMap) {
@@ -128,13 +141,7 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
             "upsertGoogleLoadBalancerDescription.certificateMap.internalManagedNotSupported")
         }
 
-        // portRange must be a single port.
-        try {
-          Integer.parseInt(description.portRange)
-        } catch (NumberFormatException _) {
-          errors.rejectValue("portRange",
-            "upsertGoogleLoadBalancerDescription.portRange.requireSinglePort")
-        }
+        validatePort(description.portRange, "portRange", errors)
 
         // Each backend service must have a health check.
         def googleInternalHttpLoadBalancer = new GoogleInternalHttpLoadBalancer(
@@ -154,6 +161,73 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
               "upsertGoogleLoadBalancerDescription.backendServices.healthCheckRequired")
           }
         }
+        break
+      case GoogleLoadBalancerType.EXTERNAL_MANAGED:
+        helper.validateRegion(description.region, description.credentials)
+
+        if (description.certificate && description.certificateMap) {
+          errors.rejectValue("certificate OR certificateMap",
+            "upsertGoogleLoadBalancerDescription.certificateAndCertificateMap.mutuallyExclusive")
+        }
+        if (description.certificateMap) {
+          errors.rejectValue("certificateMap",
+            "upsertGoogleLoadBalancerDescription.certificateMap.regionalManagedNotSupported")
+        }
+        if (!description.network) {
+          errors.rejectValue("network",
+            "upsertGoogleLoadBalancerDescription.network.required")
+        }
+        if (description.networkTier && !SUPPORTED_NETWORK_TIERS.contains(description.networkTier)) {
+          errors.rejectValue("networkTier",
+            "upsertGoogleLoadBalancerDescription.networkTier.notSupported")
+        }
+        if (description.ipProtocol && description.ipProtocol != "TCP") {
+          errors.rejectValue("ipProtocol",
+            "upsertGoogleLoadBalancerDescription.ipProtocol.tcpRequired")
+        }
+
+        // GCP does support IPv6 here, but only for a forwarding rule created with ipVersion IPV6
+        // against a dual-stack or IPv6-only subnet, and this operation sets neither. Reject up
+        // front so the request fails before any health check, backend service, url map or proxy
+        // is created; the forwarding rule is built last, so GCP rejecting it there would strand
+        // everything already written.
+        if (description.ipAddress?.contains(":")) {
+          errors.rejectValue("ipAddress",
+            "upsertGoogleLoadBalancerDescription.ipAddress.ipv6NotSupported")
+        }
+
+        // portRange must be a single port.
+        try {
+          Integer.parseInt(description.portRange)
+        } catch (NumberFormatException _) {
+          errors.rejectValue("portRange",
+            "upsertGoogleLoadBalancerDescription.portRange.requireSinglePort")
+        }
+
+        if (!description.defaultService) {
+          errors.rejectValue("defaultService",
+            "upsertGoogleLoadBalancerDescription.backendServiceRequired")
+        }
+
+        // Each backend service must have a health check.
+        def googleExternalHttpLoadBalancer = new GoogleExternalHttpLoadBalancer(
+            name: description.loadBalancerName,
+            defaultService: description.defaultService,
+            hostRules: description.hostRules,
+            certificate: description.certificate,
+            ipAddress: description.ipAddress,
+            ipProtocol: description.ipProtocol,
+            portRange: description.portRange,
+            network: description.network
+        )
+        List<GoogleBackendService> externalServices = Utils.getBackendServicesFromExternalHttpLoadBalancerView(googleExternalHttpLoadBalancer.view)
+        externalServices?.findAll { it != null }?.each { GoogleBackendService service ->
+          if (!service.healthCheck) {
+            errors.rejectValue("defaultService OR hostRules.pathMatcher.defaultService OR hostRules.pathMatcher.pathRules.backendService",
+              "upsertGoogleLoadBalancerDescription.backendServices.healthCheckRequired")
+          }
+        }
+        validateManagedBackendServices(description, externalServices, errors)
         break
       case GoogleLoadBalancerType.INTERNAL:
         helper.validateRegion(description.region, description.credentials)
@@ -179,6 +253,57 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
         if (!description.network || !description.subnet) {
           errors.rejectValue("network OR subnet",
             "upsertGoogleLoadBalancerDescription.networkOrSubnet.networkAndSubnetRequired")
+        }
+        break
+      case GoogleLoadBalancerType.REGIONAL_EXTERNAL_NETWORK:
+        helper.validateRegion(description.region, description.credentials)
+
+        if (description.ipProtocol && !SUPPORTED_IP_PROTOCOLS.contains(description.ipProtocol)) {
+          errors.rejectValue("ipProtocol",
+            "upsertGoogleLoadBalancerDescription.ipProtocol.notSupported")
+        }
+
+        def bs = description.backendService
+        if (!bs) {
+          errors.rejectValue("backendService",
+            "upsertGoogleLoadBalancerDescription.backendServiceRequired")
+        } else if (!bs.healthCheck) {
+          errors.rejectValue("backendService.healthCheck",
+            "upsertGoogleLoadBalancerDescription.backendService.healthCheckRequired")
+        }
+
+        if (!description.ports) {
+          errors.rejectValue("ports",
+            "upsertGoogleLoadBalancerDescription.ports.required")
+        } else if (description.ports.size() > 5 || description.ports.any { !isValidPort(it) }) {
+          errors.rejectValue("ports",
+            "upsertGoogleLoadBalancerDescription.ports.invalid")
+        }
+
+        if (description.portRange) {
+          errors.rejectValue("portRange",
+            "upsertGoogleLoadBalancerDescription.portRange.notSupported")
+        }
+
+        if (description.networkTier && !SUPPORTED_NETWORK_TIERS.contains(description.networkTier)) {
+          errors.rejectValue("networkTier",
+            "upsertGoogleLoadBalancerDescription.networkTier.notSupported")
+        }
+
+        if (description.ipAddress?.contains(":")) {
+          errors.rejectValue("ipAddress",
+            "upsertGoogleLoadBalancerDescription.ipAddress.ipv6NotSupported")
+        }
+
+        if (description.backendService?.sessionAffinity &&
+          !SUPPORTED_PASSTHROUGH_SESSION_AFFINITY.contains(description.backendService.sessionAffinity)) {
+          errors.rejectValue("backendService.sessionAffinity",
+            "upsertGoogleLoadBalancerDescription.backendService.sessionAffinity.notSupported")
+        }
+        if (description.backendService?.healthCheck &&
+          !isValidPort(description.backendService.healthCheck.port)) {
+          errors.rejectValue("backendService.healthCheck.port",
+            "upsertGoogleLoadBalancerDescription.healthCheck.port.invalid")
         }
         break
       case GoogleLoadBalancerType.SSL:
@@ -243,6 +368,68 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
       default:
         // TODO(jacobkiefer): Fail here once frontend calls are modified.
         break
+    }
+  }
+
+  private static void validateManagedBackendServices(
+    UpsertGoogleLoadBalancerDescription description,
+    List<GoogleBackendService> services,
+    ValidationErrors errors) {
+    services?.findAll { it != null }?.each { GoogleBackendService service ->
+      String fieldPrefix = service.is(description.defaultService) ? "defaultService" : "hostRules.backendService"
+      if (!SUPPORTED_MANAGED_BACKEND_PROTOCOLS.contains(service.protocol)) {
+        errors.rejectValue("${fieldPrefix}.protocol",
+          "upsertGoogleLoadBalancerDescription.backendService.protocol.notSupported")
+      }
+      if (service.healthCheck && !isValidPort(service.healthCheck.port)) {
+        errors.rejectValue("${fieldPrefix}.healthCheck.port",
+          "upsertGoogleLoadBalancerDescription.healthCheck.port.invalid")
+      }
+    }
+  }
+
+  private static void validateListenersToDelete(
+    UpsertGoogleLoadBalancerDescription description,
+    ValidationErrors errors) {
+    List<String> listenersToDelete = description.listenersToDelete
+    if (!listenersToDelete) {
+      return
+    }
+    if (listenersToDelete.any { !it?.trim() }) {
+      errors.rejectValue(
+        "listenersToDelete",
+        "upsertGoogleLoadBalancerDescription.listenersToDelete.blank")
+      return
+    }
+    if (listenersToDelete.size() != listenersToDelete.toSet().size()) {
+      errors.rejectValue(
+        "listenersToDelete",
+        "upsertGoogleLoadBalancerDescription.listenersToDelete.duplicate")
+      return
+    }
+    if (listenersToDelete.contains(description.loadBalancerName)) {
+      errors.rejectValue(
+        "listenersToDelete",
+        "upsertGoogleLoadBalancerDescription.listenersToDelete.currentListener")
+    }
+  }
+
+  private static void validatePort(Object value, String field, ValidationErrors errors) {
+    if (!isValidPort(value)) {
+      errors.rejectValue(field, "upsertGoogleLoadBalancerDescription.portRange.invalid")
+    }
+  }
+
+  private static boolean isValidPort(Object value) {
+    String text = value?.toString()
+    if (!(text ==~ /\d+/)) {
+      return false
+    }
+    try {
+      long port = Long.parseLong(text)
+      return port >= 1 && port <= 65535
+    } catch (NumberFormatException ignored) {
+      return false
     }
   }
 }

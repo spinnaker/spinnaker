@@ -124,7 +124,11 @@ function loadBalancerMetadataReference(name: string, loadBalancer: any): ILoadBa
   if (!loadBalancer) {
     return undefined;
   }
-  if (loadBalancer.loadBalancerType === 'HTTP' || loadBalancer.loadBalancerType === 'INTERNAL_MANAGED') {
+  if (
+    loadBalancer.loadBalancerType === 'HTTP' ||
+    loadBalancer.loadBalancerType === 'INTERNAL_MANAGED' ||
+    loadBalancer.loadBalancerType === 'EXTERNAL_MANAGED'
+  ) {
     const names = (loadBalancer.listeners || []).map((listener: any) => listener.name).filter(Boolean);
     return names.length
       ? {
@@ -180,6 +184,24 @@ function buildLoadBalancerMetadata(command: IGceServerGroupCommand): Record<stri
   return compactMetadata(metadata);
 }
 
+function getSubmittedLoadBalancerNames(command: IGceServerGroupCommand): string[] {
+  const loadBalancerIndex = command.backingData?.filtered?.loadBalancerIndex || {};
+  return Array.from(
+    new Set(
+      (command.loadBalancers || []).flatMap((selection: any) => {
+        const name = loadBalancerName(selection);
+        const loadBalancer = selection.loadBalancerType ? selection : loadBalancerIndex[name];
+        if (loadBalancer?.loadBalancerType === 'EXTERNAL_MANAGED') {
+          // Clouddriver attaches regional managed LBs by forwarding-rule listener name.
+          const listeners = (loadBalancer.listeners || []).map((listener: any) => listener.name).filter(Boolean);
+          return listeners.length ? listeners : [name];
+        }
+        return [name];
+      }),
+    ),
+  );
+}
+
 export function transformGceServerGroupCommand(command: IGceServerGroupCommand): IGceServerGroupCommand {
   const transformed = cloneDeep(command);
   const instanceMetadata = { ...(command.instanceMetadata || {}) };
@@ -191,6 +213,7 @@ export function transformGceServerGroupCommand(command: IGceServerGroupCommand):
     ...instanceMetadata,
     ...buildLoadBalancerMetadata(command),
   };
+  transformed.loadBalancers = getSubmittedLoadBalancerNames(command);
   transformed.tags = (command.tags || []).map((tag: any) => tag.value || tag);
   transformed.targetSize = command.capacity?.desired;
   if (command.autoscalingPolicy) {

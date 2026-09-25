@@ -43,6 +43,7 @@ class GoogleBackendService {
   GoogleSessionAffinity sessionAffinity
   Integer affinityCookieTtlSec
   GoogleLoadBalancingScheme loadBalancingScheme
+  String protocol = "HTTP"
 
   /**
    * The portName this backend service will forward traffic to.

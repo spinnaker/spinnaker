@@ -550,6 +550,122 @@ describe('GCE server group Load Balancers page', () => {
       },
     });
   });
+
+  it('rejects ambiguous cross-scope names and mixed passthrough attachments', () => {
+    const ambiguous = command({
+      loadBalancers: ['shared-name'],
+      backingData: {
+        ...command().backingData,
+        loadBalancers: [
+          {
+            accounts: [
+              {
+                name: 'account-a',
+                regions: [
+                  {
+                    loadBalancers: [
+                      { loadBalancerType: 'TCP', name: 'shared-name', region: 'global' },
+                      {
+                        loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK',
+                        name: 'shared-name',
+                        region: 'us-central1',
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    });
+    const page = shallow(
+      <GceServerGroupLoadBalancers app={{} as any} formik={testProps(ambiguous).formik} />,
+    ).instance() as GceServerGroupLoadBalancers;
+
+    expect(page.validate(ambiguous).loadBalancers).toBe(
+      'The selected load balancer name is ambiguous across account or regional scopes. Rename it or select an unambiguous load balancer.',
+    );
+
+    const mixedPassthrough = command({
+      loadBalancers: ['regional-network', 'regional-lb'],
+      backingData: {
+        ...command().backingData,
+        filtered: {
+          loadBalancerIndex: {
+            'regional-lb': command().backingData.filtered.loadBalancerIndex['regional-lb'],
+            'regional-network': {
+              loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK',
+              name: 'regional-network',
+            },
+          },
+        },
+      },
+    });
+    expect(page.validate(mixedPassthrough).loadBalancers).toBe(
+      'REGIONAL_EXTERNAL_NETWORK load balancers cannot be combined with other load balancer families in this editor.',
+    );
+  });
+
+  it('treats EXTERNAL_MANAGED as HTTP and REGIONAL_EXTERNAL_NETWORK as policy-free', () => {
+    const externalManaged = command({
+      loadBalancers: ['external-managed'],
+      loadBalancingPolicy: {
+        balancingMode: 'RATE',
+        capacityScaler: 1,
+        maxRatePerInstance: 50,
+        namedPorts: [{ name: 'http', port: 80 }],
+      },
+      backingData: {
+        ...command().backingData,
+        filtered: {
+          loadBalancerIndex: {
+            'external-managed': {
+              backendServices: [{ name: 'backend-a', portName: 'http' }],
+              listeners: [{ name: 'frontend' }],
+              loadBalancerType: 'EXTERNAL_MANAGED',
+              name: 'external-managed',
+            },
+          },
+        },
+      },
+    });
+    const externalWrapper = shallow(
+      <GceServerGroupLoadBalancers app={{} as any} formik={testProps(externalManaged).formik} />,
+    );
+    expect(selectOptions(externalWrapper, 'Balancing mode')).toEqual([
+      ['RATE', 'RATE'],
+      ['UTILIZATION', 'UTILIZATION'],
+    ]);
+
+    const passthrough = command({
+      loadBalancers: ['regional-network'],
+      loadBalancingPolicy: {
+        balancingMode: 'UTILIZATION',
+        capacityScaler: 1,
+        maxUtilization: 0.8,
+        namedPorts: [{ name: 'http', port: 80 }],
+      },
+      backingData: {
+        ...command().backingData,
+        filtered: {
+          loadBalancerIndex: {
+            'regional-network': {
+              backendServices: ['backend-a'],
+              loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK',
+              name: 'regional-network',
+            },
+          },
+        },
+      },
+    });
+    const passthroughWrapper = shallow(
+      <GceServerGroupLoadBalancers app={{} as any} formik={testProps(passthrough).formik} />,
+    );
+    expect(passthroughWrapper.find('select[aria-label="Balancing mode"]').exists()).toBe(false);
+    expect(passthroughWrapper.find('select[aria-label="Backend services for regional-network"]').exists()).toBe(false);
+    expect((passthroughWrapper.instance() as GceServerGroupLoadBalancers).validate(passthrough)).toEqual({});
+  });
 });
 
 function selectOptions(wrapper: ReturnType<typeof shallow>, ariaLabel = 'Load balancers'): string[][] {

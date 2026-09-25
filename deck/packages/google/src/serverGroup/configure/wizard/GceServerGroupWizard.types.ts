@@ -170,6 +170,7 @@ export interface IGceServerGroupCommandValidationErrors {
   distributionPolicy?: { zones?: string };
   freeFormDetails?: string;
   image?: string;
+  loadBalancers?: string;
   region?: string;
   stack?: string;
   zone?: string;

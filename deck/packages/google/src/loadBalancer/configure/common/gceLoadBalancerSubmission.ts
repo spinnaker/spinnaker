@@ -10,7 +10,11 @@ import type {
   IGceResourceReference,
   IGceSerializedLoadBalancerCommand,
 } from './gceLoadBalancerModels';
-import { serializeGceLoadBalancerCommand } from './gceLoadBalancerModels';
+import {
+  serializeGceBackendService,
+  serializeGceHealthCheck,
+  serializeGceLoadBalancerCommand,
+} from './gceLoadBalancerModels';
 
 export interface IGceLoadBalancerSubmissionDependencies {
   application: Application;
@@ -23,9 +27,15 @@ export type GceLoadBalancerSubmissionResult =
   | GceLoadBalancerOperationList
   | Promise<ITask>;
 
+function isFlattenedHttpLoadBalancerType(loadBalancerType: IGceLoadBalancerCommand['loadBalancerType']): boolean {
+  return (
+    loadBalancerType === 'HTTP' || loadBalancerType === 'INTERNAL_MANAGED' || loadBalancerType === 'EXTERNAL_MANAGED'
+  );
+}
+
 export function buildGceLoadBalancerJobs(command: IGceLoadBalancerCommand): GceLoadBalancerOperationList {
   const serialized = serializeGceLoadBalancerCommand(command);
-  if (command.loadBalancerType !== 'HTTP' && command.loadBalancerType !== 'INTERNAL_MANAGED') {
+  if (!isFlattenedHttpLoadBalancerType(command.loadBalancerType)) {
     return [serialized];
   }
 
@@ -34,10 +44,14 @@ export function buildGceLoadBalancerJobs(command: IGceLoadBalancerCommand): GceL
     healthChecks: _healthChecks,
     hostRules: _hostRules,
     listeners,
+    networkTier: _networkTier,
     ...shared
   } = serialized;
   const backendServices = new Map(
-    command.backendServices.map((service) => [service.name, serializeBackendService(service, command.healthChecks)]),
+    command.backendServices.map((service) => [
+      service.name,
+      serializeBackendService(service, command.healthChecks, command.loadBalancerType === 'EXTERNAL_MANAGED'),
+    ]),
   );
   const defaultService = resolveBackendService(command.defaultService, backendServices);
   const hostRules = command.hostRules.flatMap((hostRule) =>
@@ -59,6 +73,7 @@ export function buildGceLoadBalancerJobs(command: IGceLoadBalancerCommand): GceL
 
   const jobs = ((listeners || []) as Array<Record<string, unknown>>).map((listener) => {
     const name = String(listener.name);
+    const networkTier = listener.networkTier as string | undefined;
     return {
       ...shared,
       certificate: listener.certificate || null,
@@ -70,6 +85,7 @@ export function buildGceLoadBalancerJobs(command: IGceLoadBalancerCommand): GceL
       name,
       portRange: listener.portRange,
       ...(listener.subnet ? { subnet: listener.subnet } : {}),
+      ...(command.loadBalancerType === 'EXTERNAL_MANAGED' ? { networkTier } : {}),
       urlMapName: command.name,
     } as IGceSerializedLoadBalancerCommand;
   });
@@ -82,7 +98,13 @@ export function buildGceLoadBalancerJobs(command: IGceLoadBalancerCommand): GceL
       .filter((name) => !listenerNames.has(name));
     jobs[0].backendServiceDiff = command.original.backendServices
       .filter((service) => !isEqual(service, currentBackendServices.get(service.name)))
-      .map((service) => serializeBackendService(service, command.original!.healthChecks));
+      .map((service) =>
+        serializeBackendService(
+          service,
+          command.original!.healthChecks,
+          command.loadBalancerType === 'EXTERNAL_MANAGED',
+        ),
+      );
   }
 
   return jobs;
@@ -91,10 +113,17 @@ export function buildGceLoadBalancerJobs(command: IGceLoadBalancerCommand): GceL
 function serializeBackendService(
   service: IGceLoadBalancerBackendService,
   healthChecks: IGceLoadBalancerHealthCheck[],
+  boundToV1Fields = false,
 ): Record<string, unknown> {
   const healthCheck = service.healthCheck
     ? healthChecks.find(({ name }) => name === service.healthCheck?.name) || service.healthCheck
     : undefined;
+  if (boundToV1Fields) {
+    return {
+      ...serializeGceBackendService(service),
+      ...(healthCheck ? { healthCheck: serializeGceHealthCheck(healthCheck as IGceLoadBalancerHealthCheck) } : {}),
+    };
+  }
   return {
     ...service,
     ...(healthCheck ? { healthCheck: { ...healthCheck } } : {}),
@@ -114,7 +143,7 @@ export function submitGceLoadBalancerCommand(
 ): GceLoadBalancerSubmissionResult {
   const jobs = buildGceLoadBalancerJobs(command);
   if (command.mode === 'pipeline') {
-    return command.loadBalancerType === 'HTTP' || command.loadBalancerType === 'INTERNAL_MANAGED' ? jobs : jobs[0];
+    return isFlattenedHttpLoadBalancerType(command.loadBalancerType) ? jobs : jobs[0];
   }
 
   return Promise.resolve(

@@ -32,6 +32,7 @@ class UpsertGoogleLoadBalancerDescription extends AbstractGoogleCredentialsDescr
   List<String> instances // The local names of the instances.
   String ipAddress
   String ipProtocol
+  String networkTier
   String portRange
   String region
   String accountName

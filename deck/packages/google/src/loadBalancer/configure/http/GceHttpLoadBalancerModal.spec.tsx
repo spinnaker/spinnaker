@@ -228,6 +228,92 @@ describe('GceHttpLoadBalancerModal', () => {
     ]);
   });
 
+  it('flattens EXTERNAL_MANAGED pipeline payloads with regional network tier and certificate URL', () => {
+    const closeModal = jasmine.createSpy('closeModal');
+    const regionalCertUrl =
+      '//certificatemanager.googleapis.com/projects/test/locations/europe-west1/certificates/regional-cert';
+    const modal = new GceHttpLoadBalancerModal({
+      app: application,
+      closeModal,
+      dismissModal: jasmine.createSpy('dismissModal'),
+      forPipelineConfig: true,
+      loadBalancer: {
+        account: 'account-a',
+        backendServices: [{ healthCheck: 'check-a', name: 'backend-a', portName: 'http' }],
+        defaultService: 'backend-a',
+        healthChecks: [{ healthCheckType: 'HTTPS', name: 'check-a', port: 443, requestPath: '/health' }],
+        listeners: [
+          {
+            certificate: regionalCertUrl,
+            ipAddress: '203.0.113.10',
+            name: 'external-https',
+            networkTier: 'STANDARD',
+            port: 443,
+            protocol: 'HTTPS',
+          },
+        ],
+        loadBalancerType: 'EXTERNAL_MANAGED',
+        name: 'test-app-external',
+        network: 'network-a',
+        region: 'europe-west1',
+      },
+    } as any);
+
+    (modal as any).submit();
+
+    expect(closeModal).toHaveBeenCalledWith([
+      jasmine.objectContaining({
+        certificate: regionalCertUrl,
+        loadBalancerName: 'external-https',
+        loadBalancerType: 'EXTERNAL_MANAGED',
+        network: 'network-a',
+        networkTier: 'STANDARD',
+        portRange: '443',
+        region: 'europe-west1',
+        urlMapName: 'test-app-external',
+      }),
+    ]);
+    const operations = closeModal.calls.mostRecent().args[0];
+    expect((operations as any[])[0].certificateMap).toBeUndefined();
+    expect((operations as any[])[0].listeners).toBeUndefined();
+  });
+
+  it('initializes persisted EXTERNAL_MANAGED data with raw listener identity and regional certificate URL', () => {
+    const regionalCertUrl =
+      '//certificatemanager.googleapis.com/projects/test/locations/europe-west1/certificates/regional-cert';
+    const command = initializeGceHttpLoadBalancerCommand(
+      {
+        account: 'account-a',
+        listeners: [
+          {
+            certificate: regionalCertUrl,
+            ipAddress: '203.0.113.10',
+            name: 'external-https',
+            networkTier: 'STANDARD',
+            port: 443,
+            protocol: 'HTTPS',
+          },
+        ],
+        loadBalancerType: 'EXTERNAL_MANAGED',
+        urlMapName: 'test-app-external',
+      },
+      'edit',
+      application,
+    );
+
+    expect(command.name).toBe('test-app-external');
+    expect(command.loadBalancerType).toBe('EXTERNAL_MANAGED');
+    expect(command.listeners[0]).toEqual({
+      address: { name: '203.0.113.10' },
+      certificate: { name: 'regional-cert', selfLink: regionalCertUrl },
+      name: 'external-https',
+      networkTier: 'STANDARD',
+      portRange: '443',
+      protocol: 'HTTPS',
+    });
+    expect(command.listeners[0].certificateMap).toBeUndefined();
+  });
+
   (['HTTP', 'INTERNAL_MANAGED'] as const).forEach((loadBalancerType) => {
     ['pipeline', 'infrastructure'].forEach((submissionMode) => {
       it(`rejects ${loadBalancerType} ${submissionMode} commands with an unresolved path default and non-443 HTTPS port`, () => {

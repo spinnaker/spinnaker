@@ -10,6 +10,8 @@ import type {
 import { GceServerGroupWizardPage } from '../GceServerGroupWizardPage';
 
 interface ILoadBalancerOption {
+  loadBalancerType?: string;
+  listeners?: Array<{ name?: string }>;
   name: string;
   region?: string;
 }
@@ -96,8 +98,15 @@ export class GceServerGroupLoadBalancers extends GceServerGroupWizardPage<IGceSe
     const errors = super.validate(values) as IGceServerGroupCommandValidationErrors & {
       loadBalancingPolicy?: ILoadBalancingPolicyErrors;
     };
+    if (hasAmbiguousSelectedName(values)) {
+      errors.loadBalancers =
+        'The selected load balancer name is ambiguous across account or regional scopes. Rename it or select an unambiguous load balancer.';
+    } else if (hasMixedRegionalExternalNetworkSelection(values)) {
+      errors.loadBalancers =
+        'REGIONAL_EXTERNAL_NETWORK load balancers cannot be combined with other load balancer families in this editor.';
+    }
     const policy = values.loadBalancingPolicy as ILoadBalancingPolicy | undefined;
-    if (!policy || !uniqueStrings(values.loadBalancers).length) {
+    if (!policy || !getBalancingModes(values).length) {
       return errors;
     }
 
@@ -145,9 +154,10 @@ export class GceServerGroupLoadBalancers extends GceServerGroupWizardPage<IGceSe
     const selectedLoadBalancers = uniqueStrings(values.loadBalancers);
     const selectedReferences = preserveReferences(getAvailableLoadBalancers(values), selectedLoadBalancers);
     const policy = (values.loadBalancingPolicy || {}) as ILoadBalancingPolicy;
-    const policyErrors = (this.validate(values) as IGceServerGroupCommandValidationErrors & {
+    const validationErrors = this.validate(values) as IGceServerGroupCommandValidationErrors & {
       loadBalancingPolicy?: ILoadBalancingPolicyErrors;
-    }).loadBalancingPolicy || { namedPorts: [] };
+    };
+    const policyErrors = validationErrors.loadBalancingPolicy || { namedPorts: [] };
     const balancingModes = getBalancingModes(values);
 
     return (
@@ -172,6 +182,11 @@ export class GceServerGroupLoadBalancers extends GceServerGroupWizardPage<IGceSe
                 </option>
               ))}
             </select>
+            {validationErrors.loadBalancers && (
+              <span className="help-block" id="gce-server-group-load-balancers-error" role="alert">
+                {validationErrors.loadBalancers}
+              </span>
+            )}
           </div>
           <div className="col-md-1">
             <button
@@ -257,6 +272,9 @@ export class GceServerGroupLoadBalancers extends GceServerGroupWizardPage<IGceSe
     values: IGceServerGroupCommand,
     loadBalancerName: string,
   ): React.ReactElement | null {
+    if (getLoadBalancerIndex(values)[loadBalancerName]?.loadBalancerType === 'REGIONAL_EXTERNAL_NETWORK') {
+      return null;
+    }
     const availableBackendServices = getBackendServiceData(values, loadBalancerName).map(({ name }) => name);
     const selectedBackendServices = uniqueStrings(values.backendServices?.[loadBalancerName]);
     if (!availableBackendServices.length && !selectedBackendServices.length) {
@@ -578,18 +596,9 @@ export class GceServerGroupLoadBalancers extends GceServerGroupWizardPage<IGceSe
 }
 
 function getAvailableLoadBalancers(command: IGceServerGroupCommand): ILoadBalancerOption[] {
-  const rawLoadBalancers = command.backingData?.loadBalancers;
-  if (Array.isArray(rawLoadBalancers)) {
-    return uniqueLoadBalancers(
-      rawLoadBalancers
-        .flatMap((provider: any) => (Array.isArray(provider?.accounts) ? provider.accounts : []))
-        .filter((account: any) => account?.name === command.credentials)
-        .flatMap((account: any) => (Array.isArray(account?.regions) ? account.regions : []))
-        .flatMap((region: any) => (Array.isArray(region?.loadBalancers) ? region.loadBalancers : []))
-        .filter((loadBalancer: any) => isLoadBalancerInRegion(loadBalancer, command))
-        .map(toLoadBalancerOption)
-        .filter((loadBalancer): loadBalancer is ILoadBalancerOption => Boolean(loadBalancer)),
-    );
+  const scopedLoadBalancers = getScopedLoadBalancers(command);
+  if (scopedLoadBalancers) {
+    return uniqueLoadBalancers(scopedLoadBalancers);
   }
 
   const filteredLoadBalancers = command.backingData?.filtered?.loadBalancers;
@@ -635,14 +644,17 @@ function getNamedPortNames(command: IGceServerGroupCommand): string[] {
 
 function getBalancingModes(command: IGceServerGroupCommand): string[] {
   const loadBalancerIndex = getLoadBalancerIndex(command);
-  const modeSets = uniqueStrings(command.loadBalancers)
+  const loadBalancerTypes = uniqueStrings(command.loadBalancers)
     .map((loadBalancerName) => loadBalancerIndex[loadBalancerName]?.loadBalancerType)
-    .filter((loadBalancerType): loadBalancerType is string => Boolean(loadBalancerType))
-    .map((loadBalancerType) =>
-      loadBalancerType === 'HTTP' || loadBalancerType === 'INTERNAL_MANAGED'
-        ? HTTP_BALANCING_MODES
-        : CONNECTION_BALANCING_MODES,
-    );
+    .filter((loadBalancerType): loadBalancerType is string => Boolean(loadBalancerType));
+  if (loadBalancerTypes.includes('REGIONAL_EXTERNAL_NETWORK')) {
+    return [];
+  }
+  const modeSets = loadBalancerTypes.map((loadBalancerType) =>
+    loadBalancerType === 'HTTP' || loadBalancerType === 'INTERNAL_MANAGED' || loadBalancerType === 'EXTERNAL_MANAGED'
+      ? HTTP_BALANCING_MODES
+      : CONNECTION_BALANCING_MODES,
+  );
   if (!modeSets.length) {
     const persistedMode = (command.loadBalancingPolicy as ILoadBalancingPolicy | undefined)?.balancingMode;
     return persistedMode ? [persistedMode] : [];
@@ -706,7 +718,11 @@ function getLoadBalancerMetadataReference(
   if (!loadBalancer) {
     return undefined;
   }
-  if (loadBalancer.loadBalancerType === 'HTTP' || loadBalancer.loadBalancerType === 'INTERNAL_MANAGED') {
+  if (
+    loadBalancer.loadBalancerType === 'HTTP' ||
+    loadBalancer.loadBalancerType === 'INTERNAL_MANAGED' ||
+    loadBalancer.loadBalancerType === 'EXTERNAL_MANAGED'
+  ) {
     const names = uniqueStrings((loadBalancer.listeners || []).map(({ name }) => name || ''));
     if (!names.length) {
       return undefined;
@@ -828,13 +844,54 @@ function isLoadBalancerInRegion(loadBalancer: any, command: IGceServerGroupComma
   return loadBalancer?.region === command.region || loadBalancer?.region === 'global';
 }
 
+function getScopedLoadBalancers(command: IGceServerGroupCommand): ILoadBalancerOption[] | undefined {
+  const rawLoadBalancers = command.backingData?.loadBalancers;
+  if (!Array.isArray(rawLoadBalancers)) {
+    return undefined;
+  }
+  return rawLoadBalancers
+    .flatMap((provider: any) => (Array.isArray(provider?.accounts) ? provider.accounts : []))
+    .filter((account: any) => account?.name === command.credentials)
+    .flatMap((account: any) => (Array.isArray(account?.regions) ? account.regions : []))
+    .flatMap((region: any) => (Array.isArray(region?.loadBalancers) ? region.loadBalancers : []))
+    .filter((loadBalancer: any) => isLoadBalancerInRegion(loadBalancer, command))
+    .map(toLoadBalancerOption)
+    .filter((loadBalancer): loadBalancer is ILoadBalancerOption => Boolean(loadBalancer));
+}
+
+function hasAmbiguousSelectedName(command: IGceServerGroupCommand): boolean {
+  const selectedNames = new Set(uniqueStrings(command.loadBalancers));
+  const identitiesByName = (getScopedLoadBalancers(command) || []).reduce<Map<string, Set<string>>>(
+    (identities, loadBalancer) => {
+      const identity = `${loadBalancer.region || ''}:${loadBalancer.loadBalancerType || ''}`;
+      [loadBalancer.name, ...(loadBalancer.listeners || []).map(({ name }) => name)]
+        .filter((name): name is string => Boolean(name))
+        .forEach((name) => {
+          const values = identities.get(name) || new Set<string>();
+          values.add(identity);
+          identities.set(name, values);
+        });
+      return identities;
+    },
+    new Map(),
+  );
+  return Array.from(selectedNames).some((name) => (identitiesByName.get(name)?.size || 0) > 1);
+}
+
+function hasMixedRegionalExternalNetworkSelection(command: IGceServerGroupCommand): boolean {
+  const selectedTypes = uniqueStrings(command.loadBalancers)
+    .map((name) => getLoadBalancerIndex(command)[name]?.loadBalancerType)
+    .filter(Boolean);
+  return selectedTypes.includes('REGIONAL_EXTERNAL_NETWORK') && selectedTypes.length > 1;
+}
+
 function toLoadBalancerOption(loadBalancer: unknown): ILoadBalancerOption | null {
   if (typeof loadBalancer === 'string') {
     return { name: loadBalancer };
   }
   if (loadBalancer && typeof (loadBalancer as ILoadBalancerOption).name === 'string') {
-    const { name, region } = loadBalancer as ILoadBalancerOption;
-    return { name, region };
+    const { listeners, loadBalancerType, name, region } = loadBalancer as ILoadBalancerOption;
+    return { listeners, loadBalancerType, name, region };
   }
   return null;
 }

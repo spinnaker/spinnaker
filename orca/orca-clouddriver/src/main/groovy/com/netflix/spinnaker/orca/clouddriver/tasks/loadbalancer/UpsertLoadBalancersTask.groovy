@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
@@ -48,9 +47,6 @@ class UpsertLoadBalancersTask implements CloudProviderAware, RetryableTask {
   @Autowired
   KatoService kato
 
-  @Autowired
-  ObjectMapper mapper
-
   @Override
   TaskResult execute(StageExecution stage) {
     String cloudProvider = getCloudProvider(stage)
@@ -73,12 +69,7 @@ class UpsertLoadBalancersTask implements CloudProviderAware, RetryableTask {
             "kato.result.expected": true,
             "kato.last.task.id"   : taskId,
             "targets"             : operations.collect {
-              [
-                      credentials      : it[CLOUD_OPERATION_TYPE].account,
-                      availabilityZones: it[CLOUD_OPERATION_TYPE].availabilityZones,
-                      vpcId            : it[CLOUD_OPERATION_TYPE].vpcId,
-                      name             : it[CLOUD_OPERATION_TYPE].name,
-              ]
+              LoadBalancerTarget.fromOperation(it[CLOUD_OPERATION_TYPE] as Map)
             }
     ]
     TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build()

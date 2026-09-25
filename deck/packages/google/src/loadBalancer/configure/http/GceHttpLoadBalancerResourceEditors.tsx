@@ -12,6 +12,11 @@ function numberValue(value: string): number | undefined {
   return value === '' ? undefined : Number(value);
 }
 
+function portValue(value: string): number | string | undefined {
+  if (value === '') return undefined;
+  return /^\d+$/.test(value) ? Number(value) : value;
+}
+
 function selectedReference(name: string, options: IGceLoadBalancerDataItem[]): IGceResourceReference | undefined {
   if (!name) {
     return undefined;
@@ -117,9 +122,10 @@ export function GceHttpLoadBalancerHealthCheckEditor({
           max={65535}
           min={1}
           required
-          type="number"
+          inputMode="numeric"
+          type="text"
           value={healthCheck.port ?? ''}
-          onChange={(event) => updateNumber('port', event.target.value)}
+          onChange={(event) => onChange({ ...healthCheck, port: portValue(event.target.value) })}
         />
       </label>
       {[
@@ -239,6 +245,27 @@ export function GceHttpLoadBalancerBackendServiceEditor({
           onChange={(event) => onChange({ ...backendService, portName: event.target.value })}
         />
       </label>
+      {loadBalancerType === 'EXTERNAL_MANAGED' && (
+        <label>
+          Protocol
+          <select
+            data-testid="backend-service-protocol"
+            value={backendService.protocol || 'HTTP'}
+            onChange={(event) =>
+              onChange({
+                ...backendService,
+                protocol: event.target.value as IGceLoadBalancerBackendService['protocol'],
+              })
+            }
+          >
+            {['HTTP', 'HTTPS'].map((protocol) => (
+              <option key={protocol} value={protocol}>
+                {protocol}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
       <label>
         Connection draining timeout
         <input
