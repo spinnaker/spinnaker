@@ -15,12 +15,13 @@
  */
 package com.netflix.kayenta.utils;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.providers.metrics.GraphiteCanaryMetricSetQueryConfig;
 import com.netflix.kayenta.canary.providers.metrics.PrometheusCanaryMetricSetQueryConfig;
-import java.io.IOException;
 import lombok.experimental.UtilityClass;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @UtilityClass
 public class CanaryConfigReader {
@@ -28,9 +29,12 @@ public class CanaryConfigReader {
   private static ObjectMapper objectMapper = getObjectMapper();
 
   private static ObjectMapper getObjectMapper() {
-    ObjectMapper objectMapper = new ObjectMapper();
-    objectMapper.registerSubtypes(PrometheusCanaryMetricSetQueryConfig.class);
-    objectMapper.registerSubtypes(GraphiteCanaryMetricSetQueryConfig.class);
+    ObjectMapper objectMapper =
+        JsonMapper.builder()
+            .registerSubtypes(
+                PrometheusCanaryMetricSetQueryConfig.class,
+                GraphiteCanaryMetricSetQueryConfig.class)
+            .build();
     return objectMapper;
   }
 
@@ -38,7 +42,7 @@ public class CanaryConfigReader {
     try {
       return objectMapper.readValue(
           CanaryConfigReader.class.getClassLoader().getResourceAsStream(name), CanaryConfig.class);
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       throw new IllegalStateException("Failed to get canary config file: " + name, e);
     }
   }

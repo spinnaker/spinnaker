@@ -16,8 +16,6 @@
 
 package com.netflix.kayenta.index;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.index.config.IndexConfigurationProperties;
@@ -38,6 +36,8 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.exceptions.JedisException;
 import redis.clients.jedis.params.SetParams;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 @Slf4j
 public class CanaryConfigIndexingAgent extends AbstractHealthIndicator {
@@ -198,7 +198,7 @@ public class CanaryConfigIndexingAgent extends AbstractHealthIndicator {
               try {
                 applicationToSerializedCanaryConfigListMap.put(
                     entry.getKey(), kayentaObjectMapper.writeValueAsString(entry.getValue()));
-              } catch (JsonProcessingException e) {
+              } catch (JacksonException e) {
                 log.error(
                     "Problem serializing applicationToCanaryConfigListMap entry -> {}: {}",
                     entry.getValue(),

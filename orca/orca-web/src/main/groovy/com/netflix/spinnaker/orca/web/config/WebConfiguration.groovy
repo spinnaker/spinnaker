@@ -29,7 +29,6 @@ import jakarta.servlet.ServletException
 import jakarta.servlet.ServletRequest
 import jakarta.servlet.ServletResponse
 import jakarta.servlet.http.HttpServletResponse
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.fiat.shared.EnableFiatAutoConfig
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
@@ -43,6 +42,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.core.Ordered
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
+import tools.jackson.databind.ObjectMapper
 
 @Configuration
 @ComponentScan(['com.netflix.spinnaker.orca.controllers', 'com.netflix.spinnaker.orca.util'])

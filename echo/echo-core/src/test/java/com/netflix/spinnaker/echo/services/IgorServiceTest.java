@@ -30,6 +30,7 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -40,7 +41,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
 
 public class IgorServiceTest {
   private static WireMockServer wireMockServer;
@@ -62,7 +62,7 @@ public class IgorServiceTest {
             .baseUrl(RetrofitUtils.getBaseUrl(baseUrl))
             .client(new OkHttpClient())
             .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-            .addConverterFactory(JacksonConverterFactory.create())
+            .addConverterFactory(CustomConverterFactory.create())
             .build()
             .create(IgorService.class);
   }

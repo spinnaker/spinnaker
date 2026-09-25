@@ -17,8 +17,6 @@
 package com.netflix.spinnaker.clouddriver.cloudrun.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.services.run.v1.model.Service;
 import com.netflix.spinnaker.clouddriver.cloudrun.CloudrunCloudProvider;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer;
@@ -29,6 +27,8 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.Data;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -61,7 +61,8 @@ public class CloudrunLoadBalancer implements LoadBalancer, Serializable {
       this.split
           .getTrafficTargets()
           .addAll(
-              new ObjectMapper()
+              JsonMapper.builder()
+                  .build()
                   .convertValue(
                       service.getStatus().getTraffic(),
                       new TypeReference<List<CloudrunTrafficSplit.TrafficTarget>>() {}));

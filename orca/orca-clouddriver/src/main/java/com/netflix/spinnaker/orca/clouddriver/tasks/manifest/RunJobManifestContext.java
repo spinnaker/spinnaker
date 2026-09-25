@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.manifest;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.Arrays;
 import java.util.List;
@@ -25,6 +23,8 @@ import java.util.Map;
 import javax.annotation.Nullable;
 import lombok.Builder;
 import lombok.Value;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 @Builder(builderClassName = "RunJobManifestContextBuilder", toBuilder = true)
 @JsonDeserialize(builder = RunJobManifestContext.RunJobManifestContextBuilder.class)

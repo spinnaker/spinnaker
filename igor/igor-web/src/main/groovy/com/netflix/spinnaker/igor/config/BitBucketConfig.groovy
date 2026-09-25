@@ -19,6 +19,7 @@ package com.netflix.spinnaker.igor.config
 import com.netflix.spinnaker.igor.scm.bitbucket.client.BitBucketClient
 import com.netflix.spinnaker.igor.scm.bitbucket.client.BitBucketMaster
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import groovy.transform.CompileStatic
@@ -32,7 +33,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
 import jakarta.validation.Valid
 
 /**
@@ -57,7 +57,7 @@ class BitBucketConfig {
     new Retrofit.Builder()
       .baseUrl(RetrofitUtils.getBaseUrl(address))
       .client(okHttpClientConfig.createForRetrofit2().addInterceptor(new BasicAuthRequestInterceptor(username, password)).build())
-      .addConverterFactory(JacksonConverterFactory.create())
+      .addConverterFactory(CustomConverterFactory.create())
       .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
       .build()
       .create(BitBucketClient)

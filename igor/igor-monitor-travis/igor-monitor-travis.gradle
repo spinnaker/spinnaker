@@ -26,14 +26,13 @@ dependencies {
   implementation "io.spinnaker.kork:kork-retrofit"
 
   implementation "com.squareup.retrofit2:retrofit"
-  implementation "com.squareup.retrofit2:converter-jackson"
-  implementation "com.fasterxml.jackson.core:jackson-databind"
-  implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-xml"
-  implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
+  implementation "tools.jackson.core:jackson-databind"
+  implementation "tools.jackson.dataformat:jackson-dataformat-xml"
+  implementation "tools.jackson.dataformat:jackson-dataformat-yaml"
   implementation "io.github.resilience4j:resilience4j-vavr"
   implementation "io.reactivex.rxjava3:rxjava" // TODO(jervi): get rid of this dependency
   implementation "jakarta.validation:jakarta.validation-api"
-  implementation "javax.xml.bind:jaxb-api"
+  implementation "jakarta.xml.bind:jakarta.xml.bind-api"
 
   testImplementation "com.squareup.okhttp3:mockwebserver"
   testImplementation "com.squareup.retrofit2:retrofit-mock"

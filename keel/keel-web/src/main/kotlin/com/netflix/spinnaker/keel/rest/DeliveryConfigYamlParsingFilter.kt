@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.rest
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.jackson.writeYamlAsJsonString
 import org.springframework.http.HttpStatus
 import java.io.ByteArrayInputStream

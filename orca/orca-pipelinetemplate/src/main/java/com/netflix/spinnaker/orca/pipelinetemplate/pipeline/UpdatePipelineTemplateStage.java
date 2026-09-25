@@ -15,8 +15,6 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.pipeline;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner;
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
@@ -34,6 +32,8 @@ import java.util.*;
 import javax.annotation.Nonnull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 public class UpdatePipelineTemplateStage implements StageDefinitionBuilder {
@@ -94,7 +94,7 @@ public class UpdatePipelineTemplateStage implements StageDefinitionBuilder {
           "pipeline",
           Base64.getEncoder()
               .encodeToString(pipelineTemplateObjectMapper.writeValueAsBytes(pipeline)));
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new RuntimeException(
           String.format("Failed converting pipeline to JSON: %s", pipeline.get("id")), e);
     }

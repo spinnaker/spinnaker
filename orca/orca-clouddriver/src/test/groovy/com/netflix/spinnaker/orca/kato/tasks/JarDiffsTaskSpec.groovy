@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
@@ -35,6 +35,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
+import tools.jackson.databind.json.JsonMapper
 
 class JarDiffsTaskSpec extends Specification {
   @Subject task = Spy(JarDiffsTask)
@@ -48,7 +49,7 @@ class JarDiffsTaskSpec extends Specification {
 
   def setup() {
     GroovyMock(OortHelper, global: true)
-    task.objectMapper = new ObjectMapper()
+    task.objectMapper = JsonMapper.builder().build()
     task.comparableLooseVersion = new DefaultComparableLooseVersion()
   }
 

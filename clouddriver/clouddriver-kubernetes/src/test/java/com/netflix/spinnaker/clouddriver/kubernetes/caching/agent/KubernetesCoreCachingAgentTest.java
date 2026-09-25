@@ -26,9 +26,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -69,6 +66,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.stubbing.Answer;
 import retrofit2.mock.Calls;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 final class KubernetesCoreCachingAgentTest {
   private static final String ACCOUNT = "my-account";
@@ -97,7 +98,7 @@ final class KubernetesCoreCachingAgentTest {
               KubernetesKindProperties.create(KubernetesKind.REPLICA_SET, true))
           .build();
 
-  private static final ObjectMapper objectMapper = new ObjectMapper();
+  private static final ObjectMapper objectMapper = JsonMapper.builder().build();
   private static final ResourcePropertyRegistry resourcePropertyRegistry =
       new GlobalResourcePropertyRegistry(
           ImmutableList.of(), new KubernetesUnregisteredCustomResourceHandler());
@@ -307,7 +308,7 @@ final class KubernetesCoreCachingAgentTest {
                 return objectMapper.readValue(
                     (String) cacheData.getAttributes().get("cacheResults"),
                     new TypeReference<Map<String, Collection<DefaultJsonCacheData>>>() {});
-              } catch (IOException e) {
+              } catch (JacksonException e) {
                 throw new RuntimeException(e);
               }
             })
@@ -461,7 +462,7 @@ final class KubernetesCoreCachingAgentTest {
   @ParameterizedTest
   @ValueSource(booleans = {true, false})
   public void testCheckingOfApplicationsInFront50ForLoadData(boolean checkApplicationInFront50)
-      throws JsonProcessingException {
+      throws JacksonException {
     // setup:
     String deploymentKey =
         Keys.InfrastructureCacheKey.createKey(
@@ -497,7 +498,7 @@ final class KubernetesCoreCachingAgentTest {
 
   @Test
   public void testK8sManifestWithNoApplicationInFront50ShouldNotBeCachedInLoadData()
-      throws JsonProcessingException {
+      throws JacksonException {
     // setup:
     String deploymentName = "some-name-not-in-front50";
 
@@ -723,7 +724,7 @@ final class KubernetesCoreCachingAgentTest {
   }
 
   private Set<Front50Application> getApplicationsFromFront50(String fileName)
-      throws JsonProcessingException {
+      throws JacksonException {
     return objectMapper.readValue(
         getResource(fileName), new TypeReference<Set<Front50Application>>() {});
   }

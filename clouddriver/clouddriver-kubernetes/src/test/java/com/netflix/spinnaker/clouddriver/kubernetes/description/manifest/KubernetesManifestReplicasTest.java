@@ -18,55 +18,54 @@ package com.netflix.spinnaker.clouddriver.kubernetes.description.manifest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.JsonNodeFactory;
 
 public class KubernetesManifestReplicasTest {
   private static final JsonNodeFactory jsonFactory = JsonNodeFactory.instance;
-  private static final ObjectMapper objectMapper = new ObjectMapper();
+  private static final ObjectMapper objectMapper = JsonMapper.builder().build();
 
   @Test
-  public void replicasValueShouldBeNullWithoutSpecDefined() throws JsonProcessingException {
+  public void replicasValueShouldBeNullWithoutSpecDefined() throws JacksonException {
     String serialized = jsonFactory.objectNode().toString();
     KubernetesManifest manifest = objectMapper.readValue(serialized, KubernetesManifest.class);
     assertThat(manifest.getReplicas()).isNull();
   }
 
   @Test
-  public void replicasValueShouldBeNullWithoutReplicasDefined() throws JsonProcessingException {
-    String serialized =
-        jsonFactory.objectNode().<ObjectNode>set("spec", jsonFactory.objectNode()).toString();
+  public void replicasValueShouldBeNullWithoutReplicasDefined() throws JacksonException {
+    String serialized = jsonFactory.objectNode().set("spec", jsonFactory.objectNode()).toString();
     KubernetesManifest manifest = objectMapper.readValue(serialized, KubernetesManifest.class);
     assertThat(manifest.getReplicas()).isNull();
   }
 
   @Test
-  public void shouldGetReplicasDoubleValue() throws JsonProcessingException {
+  public void shouldGetReplicasDoubleValue() throws JacksonException {
     String serialized =
         jsonFactory
             .objectNode()
-            .<ObjectNode>set("spec", jsonFactory.objectNode().put("replicas", 2.0))
+            .set("spec", jsonFactory.objectNode().put("replicas", 2.0))
             .toString();
     KubernetesManifest manifest = objectMapper.readValue(serialized, KubernetesManifest.class);
     assertThat(manifest.getReplicas()).isEqualTo(2);
   }
 
   @Test
-  public void shouldGetReplicasIntegerValue() throws JsonProcessingException {
+  public void shouldGetReplicasIntegerValue() throws JacksonException {
     String serialized =
         jsonFactory
             .objectNode()
-            .<ObjectNode>set("spec", jsonFactory.objectNode().put("replicas", 2))
+            .set("spec", jsonFactory.objectNode().put("replicas", 2))
             .toString();
     KubernetesManifest manifest = objectMapper.readValue(serialized, KubernetesManifest.class);
     assertThat(manifest.getReplicas()).isEqualTo(2);
   }
 
   @Test
-  public void replicasValueShouldRemainUnsetWithoutSpecDefined() throws JsonProcessingException {
+  public void replicasValueShouldRemainUnsetWithoutSpecDefined() throws JacksonException {
     String serialized = jsonFactory.objectNode().toString();
     KubernetesManifest manifest = objectMapper.readValue(serialized, KubernetesManifest.class);
 
@@ -76,11 +75,11 @@ public class KubernetesManifestReplicasTest {
   }
 
   @Test
-  public void replicasValueShouldBeSetWithReplicasDefined() throws JsonProcessingException {
+  public void replicasValueShouldBeSetWithReplicasDefined() throws JacksonException {
     String serialized =
         jsonFactory
             .objectNode()
-            .<ObjectNode>set("spec", jsonFactory.objectNode().put("replicas", 1))
+            .set("spec", jsonFactory.objectNode().put("replicas", 1))
             .toString();
     KubernetesManifest manifest = objectMapper.readValue(serialized, KubernetesManifest.class);
 
@@ -90,9 +89,8 @@ public class KubernetesManifestReplicasTest {
   }
 
   @Test
-  public void replicasValueShouldBeSetWithReplicasUnDefined() throws JsonProcessingException {
-    String serialized =
-        jsonFactory.objectNode().<ObjectNode>set("spec", jsonFactory.objectNode()).toString();
+  public void replicasValueShouldBeSetWithReplicasUnDefined() throws JacksonException {
+    String serialized = jsonFactory.objectNode().set("spec", jsonFactory.objectNode()).toString();
     KubernetesManifest manifest = objectMapper.readValue(serialized, KubernetesManifest.class);
 
     manifest.setReplicas(2.0);

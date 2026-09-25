@@ -16,18 +16,19 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.converters
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeployCloudFormationDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.DeployCloudFormationAtomicOperation
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import spock.lang.Shared
 import spock.lang.Specification
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 
 class DeployCloudFormationAtomicOperationConverterSpec extends Specification {
 
   @Shared
-  ObjectMapper mapper = new ObjectMapper()
+  ObjectMapper mapper = JsonMapper.builder().build()
 
   @Shared
   DeployCloudFormationAtomicOperationConverter converter

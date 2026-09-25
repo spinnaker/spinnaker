@@ -22,11 +22,11 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,7 +38,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @SpringBootTest(classes = SubnetController.class)
 class SubnetControllerTest {
@@ -54,7 +55,7 @@ class SubnetControllerTest {
   static WireMockExtension wmClouddriver =
       WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
 
-  private ObjectMapper objectMapper = new ObjectMapper();
+  private ObjectMapper objectMapper = JsonMapper.builder().build();
 
   @BeforeEach
   void setup(TestInfo testInfo) {
@@ -63,7 +64,7 @@ class SubnetControllerTest {
     clouddriverService =
         new Retrofit.Builder()
             .baseUrl(wmClouddriver.baseUrl())
-            .addConverterFactory(JacksonConverterFactory.create())
+            .addConverterFactory(CustomConverterFactory.create())
             .build()
             .create(ClouddriverService.class);
 

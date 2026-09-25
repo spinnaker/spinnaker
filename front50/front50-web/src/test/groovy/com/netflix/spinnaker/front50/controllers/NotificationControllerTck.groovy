@@ -17,8 +17,8 @@
 
 package com.netflix.spinnaker.front50.controllers
 
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.core.type.TypeReference
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.config.Front50SqlProperties
 import com.netflix.spinnaker.front50.config.StorageServiceConfigurationProperties
@@ -46,9 +46,10 @@ import java.util.concurrent.Executors
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
+import tools.jackson.databind.json.JsonMapper
 
 abstract class NotificationControllerTck extends Specification {
-  ObjectMapper objectMapper = new ObjectMapper()
+  ObjectMapper objectMapper = JsonMapper.builder().build()
 
   MockMvc mockMvc
 
@@ -191,7 +192,7 @@ class SqlNotificationControllerTck extends NotificationControllerTck {
     def registry = new NoopRegistry()
 
     def storageService = new SqlStorageService(
-      new ObjectMapper(),
+      JsonMapper.builder().build(),
       registry,
       currentDatabase.context,
       Clock.systemDefaultZone(),

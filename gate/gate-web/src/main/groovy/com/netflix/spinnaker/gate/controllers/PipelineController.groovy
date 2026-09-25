@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.gate.controllers
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.gate.config.controllers.PipelineControllerConfigProperties
 import com.netflix.spinnaker.gate.services.PipelineService
 import com.netflix.spinnaker.gate.services.TaskService

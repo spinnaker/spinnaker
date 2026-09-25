@@ -19,7 +19,6 @@ package com.netflix.spinnaker.echo.pubsub.aws;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.mockito.Mockito.mock;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.echo.artifacts.MessageArtifactTranslator;
 import com.netflix.spinnaker.echo.config.AmazonPubsubConfig;
@@ -34,6 +33,7 @@ import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import tools.jackson.databind.ObjectMapper;
 
 public class SQSSubscriberProviderBeanTest {
   private final ApplicationContextRunner contextRunner =

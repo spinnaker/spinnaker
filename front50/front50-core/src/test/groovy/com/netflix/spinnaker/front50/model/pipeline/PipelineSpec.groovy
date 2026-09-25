@@ -1,19 +1,26 @@
 package com.netflix.spinnaker.front50.model.pipeline
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.MapperFeature
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline
 import com.netflix.spinnaker.front50.api.model.Timestamped
 import com.netflix.spinnaker.front50.api.model.pipeline.Trigger
 import com.netflix.spinnaker.front50.jackson.mixins.PipelineMixins
 import com.netflix.spinnaker.front50.jackson.mixins.TimestampedMixins
 import spock.lang.Specification
+import tools.jackson.databind.json.JsonMapper
 
 class PipelineSpec extends Specification {
-  ObjectMapper objectMapper = new ObjectMapper()
+  ObjectMapper objectMapper
 
   void setup() {
-    objectMapper.addMixIn(Pipeline.class, PipelineMixins.class)
-    objectMapper.addMixIn(Timestamped.class, TimestampedMixins.class)
+    objectMapper =
+        JsonMapper.builder()
+            .addMixIn(Pipeline.class, PipelineMixins.class)
+            .addMixIn(Timestamped.class, TimestampedMixins.class)
+            .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+            .disable(MapperFeature.SORT_CREATOR_PROPERTIES_FIRST)
+            .build()
   }
 
   def 'should set any additional pipeline properties when deserializing JSON to Pipeline'() {

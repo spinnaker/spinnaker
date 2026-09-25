@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.yandex.provider.agent;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.yandex.model.YandexCloudSubnet;
 import com.netflix.spinnaker.clouddriver.yandex.provider.Keys;
 import com.netflix.spinnaker.clouddriver.yandex.security.YandexCloudCredentials;
 import com.netflix.spinnaker.clouddriver.yandex.service.YandexCloudFacade;
 import java.util.List;
+import tools.jackson.databind.ObjectMapper;
 
 public class YandexSubnetCachingAgent extends AbstractYandexCachingAgent<YandexCloudSubnet> {
   public static final String TYPE = Keys.Namespace.SUBNETS.getNs();

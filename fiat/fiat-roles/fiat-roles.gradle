@@ -25,7 +25,8 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-starter-actuator"
   implementation "org.springframework.boot:spring-boot-starter-aspectj"
   implementation "org.springframework.boot:spring-boot-starter-webmvc"
-  implementation "org.springframework.boot:spring-boot-jackson2"
+  implementation "tools.jackson.core:jackson-databind"
+
   implementation "org.lz4:lz4-java:1.7.1"
 
   implementation "io.spinnaker.kork:kork-jedis"
@@ -36,5 +37,6 @@ dependencies {
   implementation "com.google.api-client:google-api-client"
 
   testImplementation "org.apache.commons:commons-collections4"
+  testImplementation "com.fasterxml.jackson.core:jackson-annotations"
   testImplementation "org.testcontainers:testcontainers"
 }

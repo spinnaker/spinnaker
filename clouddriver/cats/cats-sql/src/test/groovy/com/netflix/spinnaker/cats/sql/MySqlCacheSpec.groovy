@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.cats.sql
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.WriteableCache
 import com.netflix.spinnaker.cats.sql.cache.SqlCache
@@ -33,6 +32,8 @@ import spock.lang.Requires
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 
 @Requires({ DockerClientFactory.instance().isDockerAvailable() })
 class MySqlCacheSpec extends SqlCacheSpec {
@@ -40,7 +41,7 @@ class MySqlCacheSpec extends SqlCacheSpec {
 
   @Override
   Cache getSubject() {
-    def mapper = new ObjectMapper()
+    def mapper = JsonMapper.builder().build()
     def clock = Clock.fixed(Instant.EPOCH, ZoneId.of("UTC"))
     def sqlRetryProperties = new SqlRetryProperties(new RetryProperties(1, 10), new RetryProperties(1, 10))
 

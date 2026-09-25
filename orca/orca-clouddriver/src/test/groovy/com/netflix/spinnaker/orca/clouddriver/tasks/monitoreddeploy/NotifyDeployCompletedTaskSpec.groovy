@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.monitoreddeploy
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.config.DeploymentMonitorDefinition
 import com.netflix.spinnaker.orca.deploymentmonitor.DeploymentMonitorServiceProvider
@@ -35,9 +35,10 @@ import retrofit2.mock.Calls
 import spock.lang.Specification
 
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
+import tools.jackson.databind.json.JsonMapper
 
 class NotifyDeployCompletedTaskSpec extends Specification {
-  ObjectMapper mapper = new ObjectMapper()
+  ObjectMapper mapper = JsonMapper.builder().build()
   PipelineExecutionImpl pipe = pipeline {
   }
 
@@ -169,5 +170,4 @@ class NotifyDeployCompletedTaskSpec extends Specification {
     result.status == ExecutionStatus.SUCCEEDED
   }
 }
-
 

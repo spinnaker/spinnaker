@@ -20,6 +20,7 @@ import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.igor.config.BitBucketProperties
 import com.netflix.spinnaker.igor.scm.AbstractScmMaster
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
 import okhttp3.Credentials
 import okhttp3.Interceptor
@@ -28,7 +29,6 @@ import okhttp3.Response
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
 
 import jakarta.validation.Valid
 
@@ -52,7 +52,7 @@ class BitBucketMaster extends AbstractScmMaster {
     new Retrofit.Builder()
       .baseUrl(RetrofitUtils.getBaseUrl(address))
       .client(okHttpClientConfig.createForRetrofit2().addInterceptor(new BasicAuthRequestInterceptor(username, password)).build())
-      .addConverterFactory(JacksonConverterFactory.create())
+      .addConverterFactory(CustomConverterFactory.create())
       .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
       .build()
       .create(BitBucketClient)

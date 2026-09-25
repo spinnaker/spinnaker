@@ -19,7 +19,6 @@ package com.netflix.spinnaker.config;
 
 import static java.lang.String.format;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.client.ServiceClientFactory;
 import com.netflix.spinnaker.kork.client.ServiceClientProvider;
@@ -28,6 +27,7 @@ import java.util.List;
 import okhttp3.Interceptor;
 import org.springframework.stereotype.Component;
 import retrofit2.Converter;
+import tools.jackson.databind.ObjectMapper;
 
 /** Provider that returns a suitable service client capable of making http calls. */
 @NonnullByDefault

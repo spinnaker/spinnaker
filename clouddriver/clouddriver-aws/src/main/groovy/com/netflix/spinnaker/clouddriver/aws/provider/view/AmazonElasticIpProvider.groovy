@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.view
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
@@ -53,7 +53,10 @@ class AmazonElasticIpProvider implements ElasticIpProvider<AmazonElasticIp> {
 
   Set<AmazonElasticIp> loadResults(Collection<String> identifiers) {
     cacheView.getAll(ELASTIC_IPS.ns, identifiers, RelationshipCacheFilter.none()).collect { CacheData data ->
-      objectMapper.convertValue(data.attributes, AmazonElasticIp)
+      // AmazonElasticIp is @Immutable (tuple + Map constructors). Jackson 3 selects the tuple
+      // constructor and drops fields; a positional call with nulls is also ambiguous with the
+      // Map constructor. Pass the attribute map explicitly.
+      new AmazonElasticIp(data.attributes)
     }
   }
 }

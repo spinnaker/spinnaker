@@ -20,6 +20,7 @@ import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.igor.scm.stash.client.StashClient
 import com.netflix.spinnaker.igor.scm.stash.client.StashMaster
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -32,7 +33,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory;
 
 import jakarta.validation.Valid
 
@@ -59,7 +59,7 @@ class StashConfig {
         new Retrofit.Builder()
             .baseUrl(RetrofitUtils.getBaseUrl(address))
             .client(okHttpClientConfig.createForRetrofit2().addInterceptor(new BasicAuthRequestInterceptor(username, password)).build())
-            .addConverterFactory(JacksonConverterFactory.create())
+            .addConverterFactory(CustomConverterFactory.create())
             .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
             .build()
             .create(StashClient)

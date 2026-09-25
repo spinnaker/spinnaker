@@ -23,8 +23,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.artifacts.ArtifactCredentialsFromString;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.cache.CacheRepository;
@@ -47,6 +45,8 @@ import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.json.JsonMapper;
 
 class DeployCloudFoundryServiceAtomicOperationConverterTest {
 
@@ -334,7 +334,8 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
   @Test
   void deserializeYamlSerializedMap() {
     final WithMap result =
-        new ObjectMapper()
+        JsonMapper.builder()
+            .build()
             .convertValue(Collections.singletonMap("mapField", "key1: value1"), WithMap.class);
 
     assertThat(result).usingRecursiveComparison().isEqualTo(new WithMap("key1", "value1"));
@@ -343,9 +344,10 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
   @Test
   void deserializeJsonSerializedMap() {
     final WithMap result =
-        new ObjectMapper()
+        JsonMapper.builder()
+            .build()
             .convertValue(
-                Collections.singletonMap("mapField", "{\"key1\": \"value1\"}}"), WithMap.class);
+                Collections.singletonMap("mapField", "{\"key1\": \"value1\"}"), WithMap.class);
 
     assertThat(result).usingRecursiveComparison().isEqualTo(new WithMap("key1", "value1"));
   }
@@ -353,7 +355,8 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
   @Test
   void deserializeAlreadyDeserializedMap() {
     final WithMap result =
-        new ObjectMapper()
+        JsonMapper.builder()
+            .build()
             .convertValue(
                 Collections.singletonMap("mapField", Collections.singletonMap("key1", "value1")),
                 WithMap.class);
@@ -364,7 +367,9 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
   @Test
   void deserializeEmptyStringAsMap() {
     final WithMap result =
-        new ObjectMapper().convertValue(Collections.singletonMap("mapField", ""), WithMap.class);
+        JsonMapper.builder()
+            .build()
+            .convertValue(Collections.singletonMap("mapField", ""), WithMap.class);
 
     assertThat(result).usingRecursiveComparison().isEqualTo(new WithMap());
   }
@@ -372,7 +377,9 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
   @Test
   void deserializeNullStringAsMap() {
     final WithMap result =
-        new ObjectMapper().convertValue(Collections.singletonMap("mapField", null), WithMap.class);
+        JsonMapper.builder()
+            .build()
+            .convertValue(Collections.singletonMap("mapField", null), WithMap.class);
 
     assertThat(result).usingRecursiveComparison().isEqualTo(new WithMap());
   }

@@ -18,8 +18,6 @@ package com.netflix.spinnaker.echo.scm.bitbucket.server;
 
 import static org.assertj.core.api.Assertions.*;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.echo.api.events.Event;
 import com.netflix.spinnaker.echo.api.events.Metadata;
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
@@ -31,6 +29,8 @@ import java.util.Map;
 import java.util.Objects;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 class BitbucketServerEventHandlerTest {
 

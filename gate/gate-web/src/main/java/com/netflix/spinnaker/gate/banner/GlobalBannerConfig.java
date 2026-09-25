@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.gate.banner;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import redis.clients.jedis.JedisPool;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Registers all global-banner beans when {@code global-banner.enabled=true}. All banner state is

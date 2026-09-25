@@ -19,8 +19,6 @@ package com.netflix.spinnaker.igor.jenkins.service;
 import static net.logstash.logback.argument.StructuredArguments.kv;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.igor.build.model.GenericBuild;
 import com.netflix.spinnaker.igor.build.model.GenericGitRevision;
@@ -69,10 +67,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.util.UriUtils;
 import org.yaml.snakeyaml.Yaml;
 import retrofit2.Response;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @Slf4j
 public class JenkinsService implements BuildOperations, BuildProperties, StoppableBuildService {
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper = JsonMapper.builder().build();
   private final String serviceName;
   private final JenkinsClient jenkinsClient;
   private final Boolean csrf;

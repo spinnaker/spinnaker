@@ -21,7 +21,6 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.SERVER_GROUPS;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.Compute.InstanceGroupManagers;
 import com.google.api.services.compute.Compute.InstanceGroupManagers.Get;
@@ -46,6 +45,7 @@ import java.util.Map;
 import java.util.Optional;
 import javax.annotation.ParametersAreNonnullByDefault;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.databind.ObjectMapper;
 
 @Slf4j
 @ParametersAreNonnullByDefault

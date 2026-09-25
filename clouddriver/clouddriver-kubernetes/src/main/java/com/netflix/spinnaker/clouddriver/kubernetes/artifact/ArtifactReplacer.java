@@ -20,9 +20,6 @@ package com.netflix.spinnaker.clouddriver.kubernetes.artifact;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
@@ -46,7 +43,10 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import lombok.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.module.SimpleModule;
 
 @ParametersAreNonnullByDefault
 public class ArtifactReplacer {
@@ -62,12 +62,12 @@ public class ArtifactReplacer {
 
   public ArtifactReplacer(Collection<Replacer> replacers) {
     this.replacers = ImmutableList.copyOf(replacers);
-    ObjectMapper mapper = Jackson2ObjectMapperBuilder.json().build();
+    ObjectMapper mapper = JsonMapper.builder().build();
     SerializerHookRegistry serializer = SerializerHookRegistry.getINSTANCE();
     if (serializer != null) {
       SimpleModule module = new SimpleModule();
       module.setSerializerModifier(serializer);
-      mapper.registerModule(module);
+      mapper = mapper.rebuild().addModule(module).build();
     }
 
     this.mapper = mapper;
@@ -109,8 +109,8 @@ public class ArtifactReplacer {
     DocumentContext document;
     try {
       document = JsonPath.using(configuration).parse(mapper.writeValueAsString(input));
-    } catch (JsonProcessingException e) {
-      throw new UncheckedIOException("Malformed manifest", e);
+    } catch (JacksonException e) {
+      throw new UncheckedIOException("Malformed manifest", new IOException(e));
     }
 
     ImmutableList<Artifact> filteredArtifacts = filterArtifacts(namespace, account, artifacts);
@@ -125,8 +125,8 @@ public class ArtifactReplacer {
       return new ReplaceResult(
           mapper.readValue(document.jsonString(), KubernetesManifest.class),
           replacedArtifacts.build());
-    } catch (IOException e) {
-      throw new UncheckedIOException("Malformed manifest", e);
+    } catch (JacksonException e) {
+      throw new UncheckedIOException("Malformed manifest", new IOException(e));
     }
   }
 
@@ -135,8 +135,8 @@ public class ArtifactReplacer {
     DocumentContext document;
     try {
       document = JsonPath.using(configuration).parse(mapper.writeValueAsString(input));
-    } catch (JsonProcessingException e) {
-      throw new UncheckedIOException("Malformed manifest", e);
+    } catch (JacksonException e) {
+      throw new UncheckedIOException("Malformed manifest", new IOException(e));
     }
 
     return replacers.stream()

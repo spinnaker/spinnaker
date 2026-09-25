@@ -18,17 +18,13 @@ package com.netflix.spinnaker.igor.jenkins.service;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.fasterxml.jackson.module.jaxb.JaxbAnnotationModule;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient;
 import com.netflix.spinnaker.igor.model.Crumb;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import okhttp3.OkHttpClient;
@@ -36,7 +32,11 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.dataformat.xml.XmlMapper;
+import tools.jackson.module.jakarta.xmlbind.JakartaXmlBindAnnotationModule;
 
 public class JenkinsServiceTest {
 
@@ -51,15 +51,16 @@ public class JenkinsServiceTest {
   @BeforeAll
   public static void setup() {
     objectMapper =
-        new XmlMapper()
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-            .registerModule(new JaxbAnnotationModule());
+        XmlMapper.builder()
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .addModule(new JakartaXmlBindAnnotationModule())
+            .build();
     jenkinsClient =
         new Retrofit.Builder()
             .baseUrl(RetrofitUtils.getBaseUrl(wmJenkins.baseUrl()))
             .client(new OkHttpClient())
             .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-            .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+            .addConverterFactory(CustomConverterFactory.create(objectMapper))
             .build()
             .create(JenkinsClient.class);
     CircuitBreakerRegistry circuitBreakerRegistry = CircuitBreakerRegistry.ofDefaults();
@@ -73,7 +74,7 @@ public class JenkinsServiceTest {
   }
 
   @Test
-  public void testJenkinsJobBuild() throws JsonProcessingException {
+  public void testJenkinsJobBuild() throws JacksonException {
     Crumb crumb = new Crumb();
     crumb.setCrumb("crumb");
     wmJenkins.stubFor(

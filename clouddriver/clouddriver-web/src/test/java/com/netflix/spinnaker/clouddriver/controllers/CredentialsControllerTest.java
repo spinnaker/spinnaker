@@ -22,7 +22,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.configuration.CredentialsConfiguration;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
@@ -42,6 +41,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @AutoConfigureMockMvc
 @SpringBootTest(
@@ -86,7 +87,9 @@ public class CredentialsControllerTest {
 
     @Bean
     ObjectMapper objectMapper() {
-      return new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
+      return JsonMapper.builder()
+          .changeDefaultPropertyInclusion(v -> v.withValueInclusion(JsonInclude.Include.NON_NULL))
+          .build();
     }
   }
 

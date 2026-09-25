@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.cats.sql.cache
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.NamedCacheFactory
 import com.netflix.spinnaker.cats.cache.WriteableCache
 import com.netflix.spinnaker.cats.provider.ProviderCacheConfiguration
@@ -11,6 +10,7 @@ import java.time.Clock
 import kotlin.contracts.ExperimentalContracts
 import kotlin.coroutines.CoroutineContext
 import org.jooq.DSLContext
+import tools.jackson.databind.ObjectMapper
 
 class SqlNamedCacheFactory(
   private val jooq: DSLContext,

@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.bakery.tasks
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
@@ -42,6 +41,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import tools.jackson.databind.ObjectMapper
 
 
 import static com.netflix.spinnaker.kork.web.selector.v2.SelectableService.*

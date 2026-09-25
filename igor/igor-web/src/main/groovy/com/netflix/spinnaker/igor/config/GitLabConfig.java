@@ -20,6 +20,7 @@ import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.igor.scm.gitlab.client.GitLabClient;
 import com.netflix.spinnaker.igor.scm.gitlab.client.GitLabMaster;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
 import jakarta.validation.Valid;
 import java.io.IOException;
@@ -33,7 +34,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
 
 @Configuration
 @ConditionalOnProperty("gitlab.base-url")
@@ -60,7 +60,7 @@ public class GitLabConfig {
                 .createForRetrofit2()
                 .addInterceptor(new PrivateTokenRequestInterceptor(privateToken))
                 .build())
-        .addConverterFactory(JacksonConverterFactory.create())
+        .addConverterFactory(CustomConverterFactory.create())
         .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
         .build()
         .create(GitLabClient.class);

@@ -17,15 +17,16 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.model;
 
 import com.fasterxml.jackson.annotation.JsonView;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Builder;
 import lombok.Value;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 /*
  * A package is an application's 'source code'; either raw bits for your application or a pointer to these bits.
  */
 @Value
-@Builder
+@Builder(builderClassName = "CloudFoundryPackageBuilder")
 @JsonDeserialize(builder = CloudFoundryPackage.CloudFoundryPackageBuilder.class)
 public class CloudFoundryPackage {
   /*
@@ -39,4 +40,7 @@ public class CloudFoundryPackage {
 
   @JsonView(Views.Cache.class)
   String checksum;
+
+  @JsonPOJOBuilder(withPrefix = "")
+  public static class CloudFoundryPackageBuilder {}
 }

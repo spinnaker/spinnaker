@@ -19,7 +19,6 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.gce;
 import static java.util.stream.Collectors.toMap;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.frigga.ami.AppVersion;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
@@ -34,6 +33,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 public class GoogleImageFinder implements ImageFinder {

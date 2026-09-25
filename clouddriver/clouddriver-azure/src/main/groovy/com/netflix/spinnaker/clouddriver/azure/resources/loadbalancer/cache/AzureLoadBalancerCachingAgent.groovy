@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.cache
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.SerializationFeature
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.AccountAware
 import com.netflix.spinnaker.cats.agent.AgentDataType
@@ -41,6 +41,7 @@ import groovy.transform.WithWriteLock
 import groovy.util.logging.Slf4j
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
+import tools.jackson.databind.cfg.DateTimeFeature
 
 @Slf4j
 class AzureLoadBalancerCachingAgent implements CachingAgent, OnDemandAgent, AccountAware {
@@ -67,7 +68,7 @@ class AzureLoadBalancerCachingAgent implements CachingAgent, OnDemandAgent, Acco
     this.accountName = accountName
     this.creds = creds
     this.region = region
-    this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+    this.objectMapper = objectMapper.rebuild().enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS).build()
     this.registry = registry
     this.metricsSupport = new OnDemandMetricsSupport(registry, this, "${azureCloudProvider.id}:${OnDemandType.LoadBalancer}")
   }

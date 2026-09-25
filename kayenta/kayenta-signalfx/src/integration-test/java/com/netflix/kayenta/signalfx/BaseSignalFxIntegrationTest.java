@@ -16,7 +16,6 @@
 
 package com.netflix.kayenta.signalfx;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.Main;
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.config.SignalFxMockServiceReportingConfig;
@@ -32,6 +31,8 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Main.class)
@@ -67,7 +68,7 @@ public abstract class BaseSignalFxIntegrationTest {
 
   protected CanaryConfig integrationTestCanaryConfig;
 
-  @Autowired protected ObjectMapper objectMapper = new ObjectMapper();
+  @Autowired protected ObjectMapper objectMapper = JsonMapper.builder().build();
 
   @Autowired protected String testId;
 

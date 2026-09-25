@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.elasticsearch.model
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service
 import com.netflix.spinnaker.clouddriver.model.EntityTags
 import com.netflix.spinnaker.config.ElasticSearchConfig
@@ -39,6 +39,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 import java.util.function.Supplier
+import tools.jackson.databind.json.JsonMapper
 
 @Requires({ DockerClientFactory.instance().isDockerAvailable() })
 class ElasticSearchEntityTagsProviderSpec extends Specification {
@@ -55,7 +56,7 @@ class ElasticSearchEntityTagsProviderSpec extends Specification {
     _ * sleep(_) >> { /* do nothing */ }
   }
 
-  ObjectMapper objectMapper = new ObjectMapper()
+  ObjectMapper objectMapper = JsonMapper.builder().build()
   Front50Service front50Service = Mock(Front50Service)
   ElasticSearchEntityTagsProvider entityTagsProvider
   ElasticSearchEntityTagsReconciler entityTagsReconciler = Mock(ElasticSearchEntityTagsReconciler)

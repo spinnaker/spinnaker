@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.config
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -35,6 +34,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import tools.jackson.databind.ObjectMapper
 
 const val SOURCE_POOL_NAME_PROPERTY = "queue.shovel.source-pool-name"
 

@@ -17,7 +17,6 @@ package com.netflix.spinnaker.gate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.gate.config.AuthConfig;
 import com.netflix.spinnaker.gate.health.DownstreamServicesHealthIndicator;
 import com.netflix.spinnaker.gate.security.basic.BasicAuthConfig;
@@ -55,6 +54,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import tools.jackson.databind.ObjectMapper;
 
 @AutoConfigureTestRestTemplate
 @SpringBootTest(

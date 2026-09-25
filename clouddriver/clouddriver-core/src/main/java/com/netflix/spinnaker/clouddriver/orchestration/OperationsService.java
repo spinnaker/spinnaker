@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.clouddriver.orchestration;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Splitter;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
@@ -53,6 +52,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ResolvableType;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ObjectError;
+import tools.jackson.databind.ObjectMapper;
 
 @Slf4j
 public class OperationsService {

@@ -17,8 +17,9 @@ package com.netflix.spinnaker.clouddriver.aws.model
 
 import software.amazon.awssdk.services.ec2.model.Subnet
 import software.amazon.awssdk.services.ec2.model.Tag
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import groovy.transform.Immutable
+import tools.jackson.databind.json.JsonMapper
 
 /**
  * Immutable Wrapper for an AWS Subnet.
@@ -65,7 +66,7 @@ class SubnetData {
       tag.key == METADATA_TAG_KEY
     }
     String json = tag?.value
-    ObjectMapper objectMapper = new ObjectMapper()
+    ObjectMapper objectMapper = JsonMapper.builder().build()
 
     String purpose = null
     SubnetTarget target = null

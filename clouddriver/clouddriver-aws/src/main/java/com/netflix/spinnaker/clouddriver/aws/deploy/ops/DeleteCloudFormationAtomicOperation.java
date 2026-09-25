@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteCloudFormationDescription;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
@@ -31,6 +30,7 @@ import org.springframework.util.StringUtils;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.services.cloudformation.CloudFormationClient;
 import software.amazon.awssdk.services.cloudformation.model.DeleteStackRequest;
+import tools.jackson.databind.ObjectMapper;
 
 @Slf4j
 public class DeleteCloudFormationAtomicOperation implements AtomicOperation<Map> {

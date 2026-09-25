@@ -17,8 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.op.manifest;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
@@ -37,13 +35,16 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class KubernetesPatchManifestOperation implements AtomicOperation<OperationResult> {
   private final KubernetesPatchManifestDescription description;
   private final KubernetesCredentials credentials;
   private static final String OP_NAME = "PATCH_KUBERNETES_MANIFEST";
 
-  private static final ObjectMapper objectMapper = new ObjectMapper();
+  private static final ObjectMapper objectMapper = JsonMapper.builder().build();
 
   public KubernetesPatchManifestOperation(KubernetesPatchManifestDescription description) {
     this.description = description;

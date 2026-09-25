@@ -1,6 +1,6 @@
 package  com.netflix.spinnaker.echo.scheduler
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
 import org.springframework.test.web.servlet.MvcResult
 import spock.lang.Shared

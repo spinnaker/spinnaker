@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.yandex.provider.view;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.clouddriver.model.SubnetProvider;
 import com.netflix.spinnaker.clouddriver.yandex.YandexCloudProvider;
@@ -25,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.yandex.provider.Keys;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 public class YandexSubnetProvider implements SubnetProvider<YandexCloudSubnet> {

@@ -19,8 +19,6 @@ import static com.netflix.spinnaker.clouddriver.titus.deploy.actions.AttachTitus
 import static com.netflix.spinnaker.clouddriver.titus.deploy.actions.CopyTitusServiceScalingPolicies.CopyTitusServiceScalingPoliciesCommand;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.TargetGroupLookupHelper;
 import com.netflix.spinnaker.clouddriver.event.EventMetadata;
 import com.netflix.spinnaker.clouddriver.orchestration.sagas.LoadFront50App;
@@ -52,6 +50,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 @Component
 public class SubmitTitusJob extends AbstractTitusDeployAction

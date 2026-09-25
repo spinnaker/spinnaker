@@ -27,11 +27,6 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TreeTraversingParser;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -42,7 +37,6 @@ import com.netflix.spinnaker.orca.api.pipeline.models.*;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import com.netflix.spinnaker.orca.pipeline.model.support.RequisiteStageRefIdDeserializer;
 import de.huxhorn.sulky.ulid.ULID;
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 import java.util.function.Predicate;
@@ -51,6 +45,12 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.TreeTraversingParser;
 
 @Slf4j
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
@@ -653,10 +653,9 @@ public class StageExecutionImpl implements StageExecution, Serializable {
   public <O> O mapTo(@Nullable String pointer, @Nonnull Class<O> type) {
     try {
       return objectMapper.readValue(
-          new TreeTraversingParser(
-              getPointer(pointer != null ? pointer : "", contextToNode()), objectMapper),
+          new TreeTraversingParser(getPointer(pointer != null ? pointer : "", contextToNode())),
           type);
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       throw new IllegalArgumentException(format("Unable to map context to %s", type), e);
     }
   }
@@ -670,18 +669,17 @@ public class StageExecutionImpl implements StageExecution, Serializable {
     byte[] data;
     try {
       TreeTraversingParser parser =
-          new TreeTraversingParser(
-              getPointer(pointer != null ? pointer : "", contextToNode()), objectMapper);
+          new TreeTraversingParser(getPointer(pointer != null ? pointer : "", contextToNode()));
       parser.nextToken();
       data = Base64.getDecoder().decode(parser.getText());
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       throw new IllegalArgumentException(
           "Value in stage context at pointer " + pointer + " is not base 64 encoded", e);
     }
 
     try {
       return objectMapper.readValue(data, type);
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       throw new RuntimeException(
           "Could not convert " + new String(data, UTF_8) + " to " + type.getSimpleName(), e);
     }

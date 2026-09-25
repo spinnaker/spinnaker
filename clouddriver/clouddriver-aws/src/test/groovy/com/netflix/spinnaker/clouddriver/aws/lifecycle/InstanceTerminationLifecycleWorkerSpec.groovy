@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.lifecycle
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery.AwsEurekaSupport
@@ -36,6 +35,7 @@ import software.amazon.awssdk.services.sqs.SqsClient
 import software.amazon.awssdk.services.sqs.model.CreateQueueRequest
 import software.amazon.awssdk.services.sqs.model.CreateQueueResponse
 import software.amazon.awssdk.services.sqs.model.SetQueueAttributesRequest
+import tools.jackson.databind.json.JsonMapper
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -67,7 +67,7 @@ class InstanceTerminationLifecycleWorkerSpec extends Specification {
   def topicARN = new ARN([mgmtCredentials, testCredentials], "arn:aws:sns:us-west-2:100:topicName")
 
   @Shared
-  def objectMapper = new ObjectMapper()
+  def objectMapper = JsonMapper.builder().build()
 
   @Subject
   def subject = new InstanceTerminationLifecycleWorker(

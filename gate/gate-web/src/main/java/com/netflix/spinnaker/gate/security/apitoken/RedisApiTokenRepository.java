@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.gate.security.apitoken;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -36,6 +34,8 @@ import redis.clients.jedis.Transaction;
 import redis.clients.jedis.params.ScanParams;
 import redis.clients.jedis.params.SetParams;
 import redis.clients.jedis.resps.ScanResult;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Manages all Redis I/O for API tokens.
@@ -463,7 +463,7 @@ public class RedisApiTokenRepository {
   private String toJson(TokenRecord record) {
     try {
       return objectMapper.writeValueAsString(record);
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new IllegalStateException("Failed to serialize TokenRecord", e);
     }
   }

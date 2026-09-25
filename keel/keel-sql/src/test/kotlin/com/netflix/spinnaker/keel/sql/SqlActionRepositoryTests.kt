@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.sql
 
-import com.fasterxml.jackson.databind.jsontype.NamedType
+import tools.jackson.databind.jsontype.NamedType
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
 import com.netflix.spinnaker.keel.artifacts.DockerArtifactSupplier
@@ -30,9 +30,9 @@ internal class SqlActionRepositoryTests :
 
   private val mapper = configuredObjectMapper()
     .registerKeelApiModule()
-    .apply {
-      registerSubtypes(NamedType(DummyVerification::class.java, "dummy"))
-    }
+    .rebuild()
+    .registerSubtypes(NamedType(DummyVerification::class.java, "dummy"))
+    .build()
 
   private val deliveryConfigRepository = SqlDeliveryConfigRepository(
     jooq = jooq,

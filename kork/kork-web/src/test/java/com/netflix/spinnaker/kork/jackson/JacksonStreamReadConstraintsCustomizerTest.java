@@ -18,23 +18,26 @@ package com.netflix.spinnaker.kork.jackson;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.core.StreamReadConstraints;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.jackson2.autoconfigure.Jackson2ObjectMapperBuilderCustomizer;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
+import org.springframework.boot.jackson.autoconfigure.JsonFactoryBuilderCustomizer;
+import tools.jackson.core.StreamReadConstraints;
+import tools.jackson.core.json.JsonFactory;
+import tools.jackson.core.json.JsonFactoryBuilder;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 class JacksonStreamReadConstraintsCustomizerTest {
 
   @Test
   void customizerAppliesRelaxedStreamReadConstraints() {
-    Jackson2ObjectMapperBuilder builder = new Jackson2ObjectMapperBuilder();
-    Jackson2ObjectMapperBuilderCustomizer customizer = new JacksonStreamReadConstraintsCustomizer();
+    JsonFactoryBuilder builder = JsonFactory.builder();
+    JsonFactoryBuilderCustomizer customizer = new JacksonStreamReadConstraintsCustomizer();
     customizer.customize(builder);
 
-    ObjectMapper mapper = builder.build();
+    JsonFactory factory = builder.build();
+    ObjectMapper mapper = JsonMapper.builder(factory).build();
 
-    StreamReadConstraints constraints = mapper.getFactory().streamReadConstraints();
+    StreamReadConstraints constraints = mapper.tokenStreamFactory().streamReadConstraints();
     assertThat(constraints.getMaxNameLength()).isEqualTo(200_000);
     assertThat(constraints.getMaxStringLength()).isEqualTo(50_000_000);
     assertThat(constraints.getMaxNestingDepth()).isEqualTo(2_000);
@@ -44,11 +47,11 @@ class JacksonStreamReadConstraintsCustomizerTest {
 
   @Test
   void customizerAllowsDeserializationOfLargeKeys() throws Exception {
-    Jackson2ObjectMapperBuilder builder = new Jackson2ObjectMapperBuilder();
-    Jackson2ObjectMapperBuilderCustomizer customizer = new JacksonStreamReadConstraintsCustomizer();
+    JsonFactoryBuilder builder = JsonFactory.builder();
+    JsonFactoryBuilderCustomizer customizer = new JacksonStreamReadConstraintsCustomizer();
     customizer.customize(builder);
 
-    ObjectMapper mapper = builder.build();
+    ObjectMapper mapper = JsonMapper.builder(builder.build()).build();
 
     String largeKey = "x".repeat(60_000);
     String json = "{\"" + largeKey + "\":\"value\"}";

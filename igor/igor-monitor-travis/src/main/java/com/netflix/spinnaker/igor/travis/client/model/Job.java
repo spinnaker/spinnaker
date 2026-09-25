@@ -20,7 +20,7 @@ package com.netflix.spinnaker.igor.travis.client.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import javax.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import lombok.Data;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)

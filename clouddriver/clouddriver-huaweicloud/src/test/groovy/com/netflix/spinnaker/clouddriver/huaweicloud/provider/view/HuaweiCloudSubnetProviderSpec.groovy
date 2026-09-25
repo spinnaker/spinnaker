@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.huaweicloud.provider.view
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.huawei.openstack4j.openstack.vpc.v1.domain.Subnet
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.huaweicloud.cache.Keys
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
+import tools.jackson.databind.json.JsonMapper
 
 class HuaweiCloudSubnetProviderSpec extends Specification {
 
@@ -33,7 +34,7 @@ class HuaweiCloudSubnetProviderSpec extends Specification {
   HuaweiCloudSubnetProvider provider
 
   WriteableCache cache = new InMemoryCache()
-  ObjectMapper mapper = new ObjectMapper()
+  ObjectMapper mapper = JsonMapper.builder().build()
 
   def setup() {
     provider = new HuaweiCloudSubnetProvider(cache, mapper)

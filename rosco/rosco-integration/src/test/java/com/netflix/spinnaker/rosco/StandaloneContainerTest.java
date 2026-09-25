@@ -23,9 +23,6 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
@@ -75,6 +72,10 @@ import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @Testcontainers
 class StandaloneContainerTest {
@@ -93,7 +94,7 @@ class StandaloneContainerTest {
 
   static int clouddriverPort;
 
-  private static final ObjectMapper mapper = new ObjectMapper();
+  private static final ObjectMapper mapper = JsonMapper.builder().build();
 
   private static GenericContainer redis =
       new GenericContainer(DockerImageName.parse("valkey/valkey:8"))
@@ -152,7 +153,7 @@ class StandaloneContainerTest {
   }
 
   private static String getSpringApplicationJson(int overridesFileThreshold)
-      throws JsonProcessingException {
+      throws JacksonException {
     String redisUrl = "redis://" + REDIS_NETWORK_ALIAS + ":" + REDIS_PORT;
     logger.info("redisUrl: '{}'", redisUrl);
     Map<String, String> properties =

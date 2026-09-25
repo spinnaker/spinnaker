@@ -9,7 +9,7 @@ dependencies {
   api project(":kork-core")
   api "com.netflix.spectator:spectator-api"
 
-  implementation "com.fasterxml.jackson.core:jackson-databind"
+  implementation "tools.jackson.core:jackson-databind"
   implementation "org.apache.commons:commons-lang3"
 
   testImplementation "com.hubspot.jinjava:jinjava"

@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.ivy.settings;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Path;
@@ -28,6 +25,10 @@ import lombok.Data;
 import org.apache.ivy.Ivy;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.util.url.CredentialsStore;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.dataformat.xml.XmlMapper;
+import tools.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 @JacksonXmlRootElement(localName = "ivysettings")
 @Data
@@ -39,11 +40,12 @@ public final class IvySettings {
 
   public static IvySettings parse(String xml) {
     try {
-      return new XmlMapper()
+      return XmlMapper.builder()
           .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+          .build()
           .readValue(xml, IvySettings.class);
-    } catch (IOException e) {
-      throw new UncheckedIOException("Unable to read Ivy settings", e);
+    } catch (JacksonException e) {
+      throw new UncheckedIOException("Unable to read Ivy settings", new IOException(e));
     }
   }
 

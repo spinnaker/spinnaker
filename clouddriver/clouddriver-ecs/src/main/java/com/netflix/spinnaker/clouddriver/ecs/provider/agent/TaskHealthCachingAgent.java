@@ -20,7 +20,6 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITA
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASKS;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
@@ -51,6 +50,7 @@ import software.amazon.awssdk.services.ecs.model.NetworkInterface;
 import software.amazon.awssdk.services.ecs.model.PortMapping;
 import software.amazon.awssdk.services.ecs.model.TaskDefinition;
 import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetHealthDescription;
+import tools.jackson.databind.ObjectMapper;
 
 public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
     implements HealthProvidingCachingAgent {

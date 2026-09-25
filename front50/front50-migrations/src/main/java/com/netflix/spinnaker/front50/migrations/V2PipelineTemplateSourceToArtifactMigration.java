@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.front50.migrations;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.front50.api.model.Timestamped;
 import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.jackson.mixins.PipelineMixins;
@@ -35,6 +34,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @Component
 @Slf4j
@@ -53,9 +54,10 @@ public class V2PipelineTemplateSourceToArtifactMigration implements Migration {
       PipelineDAO pipelineDAO, ObjectMapper objectMapper) {
     this.pipelineDAO = pipelineDAO;
     this.objectMapper =
-        new ObjectMapper()
+        JsonMapper.builder()
             .addMixIn(Timestamped.class, TimestampedMixins.class)
-            .addMixIn(Pipeline.class, PipelineMixins.class);
+            .addMixIn(Pipeline.class, PipelineMixins.class)
+            .build();
   }
 
   @Override

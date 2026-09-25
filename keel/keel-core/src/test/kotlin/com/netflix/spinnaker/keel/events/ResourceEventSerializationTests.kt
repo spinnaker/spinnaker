@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.events
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.node.ObjectNode
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.node.ObjectNode
 import com.netflix.spinnaker.keel.core.ResourceCurrentlyUnresolvable
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
@@ -12,9 +12,7 @@ import dev.minutest.rootContext
 import java.time.Clock
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
-import strikt.jackson.has
-import strikt.jackson.path
-import strikt.jackson.textValue
+import strikt.assertions.isTrue
 
 internal class ResourceEventSerializationTests : JUnit5Minutests {
   companion object {
@@ -68,6 +66,7 @@ internal class ResourceEventSerializationTests : JUnit5Minutests {
       "type" to event.javaClass.simpleName,
       "kind" to event.kind,
       "id" to event.id,
+      "version" to event.version,
       "application" to event.application,
       "timestamp" to event.timestamp,
       "message" to event.message
@@ -88,15 +87,12 @@ internal class ResourceEventSerializationTests : JUnit5Minutests {
 
         test("can serialize a ${event.javaClass.simpleName} event") {
           val json = mapper.valueToTree<ObjectNode>(event)
-          expectThat(json)
-            .has("id")
-            .has("kind")
-            .has("application")
-            .has("timestamp")
-            .has("type")
-            .path("type")
-            .textValue()
-            .isEqualTo(event.javaClass.simpleName)
+          expectThat(json.has("id")).isTrue()
+          expectThat(json.has("kind")).isTrue()
+          expectThat(json.has("application")).isTrue()
+          expectThat(json.has("timestamp")).isTrue()
+          expectThat(json.has("type")).isTrue()
+          expectThat(json.get("type").textValue()).isEqualTo(event.javaClass.simpleName)
         }
 
         test("can deserialize a ${event.javaClass.simpleName} event") {
@@ -112,15 +108,12 @@ internal class ResourceEventSerializationTests : JUnit5Minutests {
 
         test("can serialize a ${event.javaClass.simpleName} event") {
           val json = mapper.valueToTree<ObjectNode>(event)
-          expectThat(json)
-            .has("id")
-            .has("kind")
-            .has("application")
-            .has("timestamp")
-            .has("type")
-            .path("type")
-            .textValue()
-            .isEqualTo(event.javaClass.simpleName)
+          expectThat(json.has("id")).isTrue()
+          expectThat(json.has("kind")).isTrue()
+          expectThat(json.has("application")).isTrue()
+          expectThat(json.has("timestamp")).isTrue()
+          expectThat(json.has("type")).isTrue()
+          expectThat(json.get("type").textValue()).isEqualTo(event.javaClass.simpleName)
         }
 
         test("can deserialize a ${event.javaClass.simpleName} event") {

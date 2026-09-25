@@ -42,6 +42,7 @@ import com.netflix.kayenta.storage.StorageServiceRepository;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.util.Arrays;
@@ -58,7 +59,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
 
 @ExtendWith(MockitoExtension.class)
 public class SynchronousQueryProcessorTest {
@@ -272,7 +272,7 @@ public class SynchronousQueryProcessorTest {
     Retrofit retrofit =
         new Retrofit.Builder()
             .baseUrl(url)
-            .addConverterFactory(JacksonConverterFactory.create())
+            .addConverterFactory(CustomConverterFactory.create())
             .build();
 
     return new SpinnakerHttpException(retrofit2Response, retrofit);

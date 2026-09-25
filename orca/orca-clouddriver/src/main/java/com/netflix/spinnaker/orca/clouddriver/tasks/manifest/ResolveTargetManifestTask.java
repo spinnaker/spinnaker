@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.manifest;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
@@ -28,13 +27,14 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.model.ManifestCoordinates;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
-import java.io.IOException;
 import java.util.Map;
 import javax.annotation.Nonnull;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 public class ResolveTargetManifestTask implements CloudProviderAware, Task {
@@ -88,7 +88,7 @@ public class ResolveTargetManifestTask implements CloudProviderAware, Task {
     try {
       return objectMapper.readValue(
           objectMapper.writeValueAsString(stage.getContext()), StageData.class);
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       throw new IllegalStateException(
           "Malformed stage context in " + stage + ": " + e.getMessage(), e);
     }

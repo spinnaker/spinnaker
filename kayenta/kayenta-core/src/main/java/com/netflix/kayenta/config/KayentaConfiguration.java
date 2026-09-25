@@ -17,11 +17,9 @@
 package com.netflix.kayenta.config;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
-import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
+import static tools.jackson.databind.DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES;
+import static tools.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.collect.ImmutableList;
 import com.netflix.kayenta.atlas.config.KayentaSerializationConfigurationProperties;
 import com.netflix.kayenta.canary.CanaryMetricSetQueryConfig;
@@ -41,13 +39,17 @@ import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.jsontype.NamedType;
 
 @Configuration
 @Slf4j
@@ -63,6 +65,35 @@ import org.springframework.context.annotation.Primary;
 })
 @EnableConfigurationProperties(MetricsRetryConfigurationProperties.class)
 public class KayentaConfiguration {
+
+  static String[][] metricQuerySubtypes() {
+    return METRIC_QUERY_SUBTYPES;
+  }
+
+  private static final String[][] METRIC_QUERY_SUBTYPES = {
+    {
+      "com.netflix.kayenta.canary.providers.metrics.PrometheusCanaryMetricSetQueryConfig",
+      "prometheus"
+    },
+    {"com.netflix.kayenta.canary.providers.metrics.GraphiteCanaryMetricSetQueryConfig", "graphite"},
+    {
+      "com.netflix.kayenta.canary.providers.metrics.StackdriverCanaryMetricSetQueryConfig",
+      "stackdriver"
+    },
+    {"com.netflix.kayenta.canary.providers.metrics.SignalFxCanaryMetricSetQueryConfig", "signalfx"},
+    {"com.netflix.kayenta.canary.providers.metrics.DatadogCanaryMetricSetQueryConfig", "datadog"},
+    {"com.netflix.kayenta.canary.providers.metrics.NewRelicCanaryMetricSetQueryConfig", "newrelic"},
+    {"com.netflix.kayenta.canary.providers.metrics.AtlasCanaryMetricSetQueryConfig", "atlas"},
+    {"com.netflix.kayenta.canary.providers.metrics.InfluxdbCanaryMetricSetQueryConfig", "influxdb"},
+    {
+      "com.netflix.kayenta.canary.providers.metrics.WavefrontCanaryMetricSetQueryConfig",
+      "wavefront"
+    },
+    {
+      "com.netflix.kayenta.canary.providers.metrics.ClickhouseCanaryMetricSetQueryConfig",
+      "clickhouse"
+    },
+  };
 
   @Bean
   @ConditionalOnMissingBean(AccountCredentialsRepository.class)
@@ -114,45 +145,83 @@ public class KayentaConfiguration {
     return new ObjectMapperSubtypeConfigurer(true);
   }
 
-  @Primary
+  // Orca's primary mapper is injected wherever a parameter is not qualified. Rebuild it with
+  // metric subtypes so canary config conversion does not depend on each injection site.
+  @Bean
+  static BeanPostProcessor kayentaMetricSubtypePostProcessor() {
+    return new BeanPostProcessor() {
+      @Override
+      public Object postProcessAfterInitialization(Object bean, String beanName) {
+        if (!(bean instanceof JsonMapper mapper) || "kayentaObjectMapper".equals(beanName)) {
+          return bean;
+        }
+        return registerKnownMetricSubtypes(mapper);
+      }
+    };
+  }
+
+  // Not @Primary: Orca's mapper is the primary JsonMapper when Kayenta embeds Orca (integration
+  // tests). A second primary ObjectMapper fails every ObjectMapper injection. Inject this bean
+  // by name where Kayenta-specific settings are required.
   @Bean
   ObjectMapper kayentaObjectMapper(
       ObjectMapper mapper,
       ObjectMapperSubtypeConfigurer objectMapperSubtypeConfigurer,
       List<ObjectMapperSubtypeConfigurer.SubtypeLocator> subtypeLocators,
       KayentaSerializationConfigurationProperties kayentaSerializationConfigurationProperties) {
-    configureObjectMapper(
+    return configureObjectMapper(
         mapper,
         objectMapperSubtypeConfigurer,
         subtypeLocators,
         kayentaSerializationConfigurationProperties);
-    return mapper;
   }
 
-  public static void configureObjectMapperFeatures(
+  public static ObjectMapper configureObjectMapperFeatures(
       ObjectMapper objectMapper,
       KayentaSerializationConfigurationProperties kayentaSerializationConfigurationProperties) {
-    objectMapper
-        .setSerializationInclusion(NON_NULL)
+    return objectMapper
+        .rebuild()
+        .changeDefaultPropertyInclusion(
+            value -> value.withValueInclusion(NON_NULL).withContentInclusion(NON_NULL))
         .disable(FAIL_ON_UNKNOWN_PROPERTIES)
+        // Jackson 3 enables FAIL_ON_NULL_FOR_PRIMITIVES by default (Jackson 2 had it
+        // disabled); missing primitives (e.g. Atlas close messages) must stay lenient.
+        .disable(FAIL_ON_NULL_FOR_PRIMITIVES)
         .configure(
-            SerializationFeature.WRITE_DATES_AS_TIMESTAMPS,
+            DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS,
             kayentaSerializationConfigurationProperties.isWriteDatesAsTimestamps())
         .configure(
-            SerializationFeature.WRITE_DURATIONS_AS_TIMESTAMPS,
-            kayentaSerializationConfigurationProperties.isWriteDurationsAsTimestamps());
-
-    JavaTimeModule module = new JavaTimeModule();
-    objectMapper.registerModule(module);
+            DateTimeFeature.WRITE_DURATIONS_AS_TIMESTAMPS,
+            kayentaSerializationConfigurationProperties.isWriteDurationsAsTimestamps())
+        .build();
   }
 
-  private void configureObjectMapper(
+  private ObjectMapper configureObjectMapper(
       ObjectMapper objectMapper,
       ObjectMapperSubtypeConfigurer objectMapperSubtypeConfigurer,
       List<ObjectMapperSubtypeConfigurer.SubtypeLocator> subtypeLocators,
       KayentaSerializationConfigurationProperties kayentaSerializationConfigurationProperties) {
-    objectMapperSubtypeConfigurer.registerSubtypes(objectMapper, subtypeLocators);
-    configureObjectMapperFeatures(objectMapper, kayentaSerializationConfigurationProperties);
+    // Register subtypes last. configureObjectMapperFeatures() rebuilds the mapper, and a
+    // rebuild does not keep subtype registrations applied to a previously built instance.
+    ObjectMapper featured =
+        configureObjectMapperFeatures(objectMapper, kayentaSerializationConfigurationProperties);
+    ObjectMapper withScanned =
+        objectMapperSubtypeConfigurer.registerSubtypes(featured, subtypeLocators);
+    // Classpath scanning misses provider jars in some Boot 4 layouts. Register the known metric
+    // query configs explicitly when they are present.
+    return registerKnownMetricSubtypes(withScanned);
+  }
+
+  private static ObjectMapper registerKnownMetricSubtypes(ObjectMapper mapper) {
+    var builder = mapper.rebuild();
+    for (String[] subtype : METRIC_QUERY_SUBTYPES) {
+      try {
+        builder.registerSubtypes(new NamedType(Class.forName(subtype[0]), subtype[1]));
+      } catch (ClassNotFoundException ignored) {
+        // Provider module not on this classpath.
+      }
+    }
+    return builder.build();
   }
 
   @Bean

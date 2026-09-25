@@ -16,12 +16,12 @@
  */
 package com.netflix.spinnaker.clouddriver.kubernetes.deploy.converters;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesAtomicOperationDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsConverter;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
+import tools.jackson.databind.DeserializationFeature;
 
 public class KubernetesAtomicOperationConverterHelper {
   public static <T extends KubernetesAtomicOperationDescription> T convertDescription(
@@ -40,8 +40,9 @@ public class KubernetesAtomicOperationConverterHelper {
     T converted =
         credentialsSupport
             .getObjectMapper()
-            .copy()
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+            .rebuild()
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .build()
             .convertValue(input, targetDescriptionType);
 
     // Re-assign the credentials.

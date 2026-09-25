@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.igor.scm
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.netflix.spinnaker.igor.config.ManagedDeliveryConfigProperties
 import com.netflix.spinnaker.igor.scm.stash.client.StashClient
 import com.netflix.spinnaker.igor.scm.stash.client.StashMaster
@@ -31,8 +29,11 @@ import com.netflix.spinnaker.igor.scm.stash.client.model.TextLinesResponse
 import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.dataformat.yaml.YAMLFactory
 
 import static com.netflix.spinnaker.igor.scm.stash.client.StashMaster.DEFAULT_PAGED_RESPONSE_LIMIT
+import tools.jackson.dataformat.yaml.YAMLMapper
 
 class ManagedDeliveryScmServiceSpec extends Specification {
   @Subject
@@ -41,8 +42,8 @@ class ManagedDeliveryScmServiceSpec extends Specification {
   StashClient client = Mock(StashClient)
   def STASH_ADDRESS = "https://stash.com"
 
-  ObjectMapper jsonMapper = new ObjectMapper()
-  ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory())
+  ObjectMapper jsonMapper = YAMLMapper.builder().build()
+  ObjectMapper yamlMapper = YAMLMapper.builder().build()
 
   void setup() {
       service = new ManagedDeliveryScmService(

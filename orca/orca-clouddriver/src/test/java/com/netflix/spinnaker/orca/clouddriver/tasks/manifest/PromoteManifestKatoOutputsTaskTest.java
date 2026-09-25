@@ -19,7 +19,6 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.manifest;
 import static com.netflix.spinnaker.orca.TestUtils.getResource;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
@@ -36,6 +35,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.junit.jupiter.MockitoExtension;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @ExtendWith(MockitoExtension.class)
 public class PromoteManifestKatoOutputsTaskTest {
@@ -47,7 +48,7 @@ public class PromoteManifestKatoOutputsTaskTest {
   @BeforeEach
   public void setup() {
     configService = new TaskConfigurationProperties();
-    objectMapper = new ObjectMapper();
+    objectMapper = JsonMapper.builder().build();
   }
 
   @DisplayName("test to see how keys in the outputs object are filtered based on the inputs")

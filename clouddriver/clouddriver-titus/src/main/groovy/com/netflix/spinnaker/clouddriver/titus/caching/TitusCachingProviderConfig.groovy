@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.titus.caching
 
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository

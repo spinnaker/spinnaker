@@ -20,8 +20,6 @@ import static com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.Rollba
 import static com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.rollback.PreviousImageRollbackSupport.*;
 import static java.lang.String.format;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.moniker.Moniker;
@@ -54,6 +52,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * The {@code DetermineRollbackCandidatesTask} task determines how one or more regions of a cluster

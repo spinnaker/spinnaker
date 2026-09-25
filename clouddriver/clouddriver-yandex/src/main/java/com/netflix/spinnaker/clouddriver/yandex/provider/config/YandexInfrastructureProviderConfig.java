@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.yandex.provider.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
@@ -32,6 +30,8 @@ import java.util.Set;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.cfg.DateTimeFeature;
 
 @Configuration
 public class YandexInfrastructureProviderConfig {
@@ -42,7 +42,7 @@ public class YandexInfrastructureProviderConfig {
       YandexCloudFacade yandexCloudFacade,
       ObjectMapper objectMapper,
       Registry registry) {
-    objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    objectMapper.rebuild().enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS).build();
 
     Set<YandexCloudCredentials> allAccounts =
         ProviderUtils.buildThreadSafeSetOfAccounts(

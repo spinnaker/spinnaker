@@ -15,13 +15,13 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateRenderException;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import org.apache.commons.lang3.math.NumberUtils;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 public class JsonRenderedValueConverter implements RenderedValueConverter {
 
@@ -52,7 +52,7 @@ public class JsonRenderedValueConverter implements RenderedValueConverter {
     JsonNode node;
     try {
       node = pipelineTemplateObjectMapper.readTree(rendered);
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       throw new TemplateRenderException("template produced invalid json", e);
     }
 
@@ -81,7 +81,7 @@ public class JsonRenderedValueConverter implements RenderedValueConverter {
       if (node.isNull()) {
         return null;
       }
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       throw new TemplateRenderException("template produced invalid json", e);
     }
 

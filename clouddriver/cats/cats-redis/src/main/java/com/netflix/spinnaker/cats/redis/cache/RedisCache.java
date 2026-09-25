@@ -15,15 +15,12 @@
  */
 package com.netflix.spinnaker.cats.redis.cache;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.hash.Hashing;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -39,6 +36,8 @@ import java.util.NavigableMap;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 public class RedisCache extends AbstractRedisCache {
 
@@ -313,7 +312,7 @@ public class RedisCache extends AbstractRedisCache {
 
       return new DefaultCacheData(id, attributes, relationships);
 
-    } catch (IOException deserializationException) {
+    } catch (JacksonException deserializationException) {
       throw new RuntimeException("Deserialization failed", deserializationException);
     }
   }
@@ -346,7 +345,7 @@ public class RedisCache extends AbstractRedisCache {
       } else {
         serializedAttributes = objectMapper.writeValueAsString(cacheData.getAttributes());
       }
-    } catch (JsonProcessingException serializationException) {
+    } catch (JacksonException serializationException) {
       throw new RuntimeException("Attribute serialization failed", serializationException);
     }
 
@@ -370,7 +369,7 @@ public class RedisCache extends AbstractRedisCache {
         try {
           relationshipValue =
               objectMapper.writeValueAsString(new LinkedHashSet<>(relationship.getValue()));
-        } catch (JsonProcessingException serializationException) {
+        } catch (JacksonException serializationException) {
           throw new RuntimeException("Relationship serialization failed", serializationException);
         }
         if (hashCheck(

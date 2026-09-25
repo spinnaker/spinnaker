@@ -18,14 +18,14 @@ package com.netflix.spinnaker.clouddriver.kubernetes.description.manifest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.JsonNodeFactory;
 
 final class KubernetesEnableDisableManifestDescriptionTest {
   private static final JsonNodeFactory jsonFactory = JsonNodeFactory.instance;
-  private static final ObjectMapper objectMapper = new ObjectMapper();
+  private static final ObjectMapper objectMapper = JsonMapper.builder().build();
   private static final int DEFAULT_TARGET_PERCENTAGE = 100;
 
   @Test
@@ -41,10 +41,7 @@ final class KubernetesEnableDisableManifestDescriptionTest {
   @Test
   void deserializeNullLoadBalancers() throws Exception {
     String serialized =
-        jsonFactory
-            .objectNode()
-            .<ObjectNode>set("loadBalancers", jsonFactory.nullNode())
-            .toString();
+        jsonFactory.objectNode().set("loadBalancers", jsonFactory.nullNode()).toString();
     KubernetesEnableDisableManifestDescription description =
         objectMapper.readValue(serialized, KubernetesEnableDisableManifestDescription.class);
     assertThat(description.getLoadBalancers()).isNotNull();
@@ -54,10 +51,7 @@ final class KubernetesEnableDisableManifestDescriptionTest {
   @Test
   void deserializEmptyLoadBalancers() throws Exception {
     String serialized =
-        jsonFactory
-            .objectNode()
-            .<ObjectNode>set("loadBalancers", jsonFactory.arrayNode())
-            .toString();
+        jsonFactory.objectNode().set("loadBalancers", jsonFactory.arrayNode()).toString();
     KubernetesEnableDisableManifestDescription description =
         objectMapper.readValue(serialized, KubernetesEnableDisableManifestDescription.class);
     assertThat(description.getLoadBalancers()).isNotNull();
@@ -69,7 +63,7 @@ final class KubernetesEnableDisableManifestDescriptionTest {
     String serialized =
         jsonFactory
             .objectNode()
-            .<ObjectNode>set("loadBalancers", jsonFactory.arrayNode().add("abc").add("def"))
+            .set("loadBalancers", jsonFactory.arrayNode().add("abc").add("def"))
             .toString();
     KubernetesEnableDisableManifestDescription description =
         objectMapper.readValue(serialized, KubernetesEnableDisableManifestDescription.class);

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.applications.tasks
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.pipeline.model.TaskExecutionImpl
@@ -25,6 +25,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
+import tools.jackson.databind.json.JsonMapper
 
 class VerifyApplicationHasNoDependenciesTaskSpec extends Specification {
   @Shared
@@ -50,7 +51,7 @@ class VerifyApplicationHasNoDependenciesTaskSpec extends Specification {
         return fixedSecurityGroups
       }
     }
-    task.objectMapper = new ObjectMapper()
+    task.objectMapper = JsonMapper.builder().build()
     task.cloudDriverService = cloudDriverService
     cloudDriverService.getApplication(_) >> [clusters: fixedClusters]
 

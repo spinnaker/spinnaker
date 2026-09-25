@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.yandex.provider.agent;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.agent.AccountAware;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.agent.CacheResult;
@@ -40,6 +38,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.Getter;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 @Getter
 public abstract class AbstractYandexCachingAgent<T> implements CachingAgent, AccountAware {

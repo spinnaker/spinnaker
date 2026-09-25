@@ -30,13 +30,13 @@ import com.netflix.spinnaker.kork.web.exceptions.ExceptionMessageDecorator
 import com.netflix.spinnaker.kork.web.exceptions.GenericExceptionHandlers
 import org.hamcrest.Matchers
 import org.springframework.beans.factory.ObjectProvider
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter
 import org.springframework.web.util.UriComponentsBuilder
 
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.Callable
 import java.util.concurrent.Executors
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import groovy.json.JsonSlurper
 
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
@@ -54,6 +54,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import tools.jackson.databind.MapperFeature
+import tools.jackson.databind.json.JsonMapper
 
 
 abstract class PipelineControllerTck extends Specification {
@@ -78,8 +80,10 @@ abstract class PipelineControllerTck extends Specification {
   void setup() {
     println "--------------- Test " + specificationContext.currentIteration.name
 
-    this.objectMapper = new ObjectMapper()
-    this.objectMapper.registerModule(new Front50ApiModule())
+    this.objectMapper = JsonMapper.builder()
+      .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+      .disable(MapperFeature.SORT_CREATOR_PROPERTIES_FIRST)
+      .addModule(new Front50ApiModule()).build()
 
     this.pipelineDAO = Spy(createPipelineDAO())
     this.serviceAccountsService = Mock(ServiceAccountsService)
@@ -87,8 +91,7 @@ abstract class PipelineControllerTck extends Specification {
     this.fiatPermissionEvaluator = Mock(FiatPermissionEvaluator)
     this.authorizationSupport = Spy(new AuthorizationSupport(fiatPermissionEvaluator))
 
-    MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter = new MappingJackson2HttpMessageConverter();
-    mappingJackson2HttpMessageConverter.setObjectMapper(objectMapper)
+    JacksonJsonHttpMessageConverter mappingJackson2HttpMessageConverter = new JacksonJsonHttpMessageConverter(objectMapper)
 
     mockMvc = MockMvcBuilders
       .standaloneSetup(
@@ -571,9 +574,9 @@ abstract class PipelineControllerTck extends Specification {
           application : "test_app",
           triggers    : [:],
           errorMsg    : "Failed to deserialize the pipeline json into a valid pipeline: " +
-            "java.lang.IllegalArgumentException: Cannot deserialize value of type " +
+            "tools.jackson.databind.exc.MismatchedInputException: Cannot deserialize value of type " +
             "`java.util.ArrayList<com.netflix.spinnaker.front50.api.model.pipeline.Trigger>` " +
-            "from Object value (token `JsonToken.START_OBJECT`)\n at [Source: UNKNOWN; byte offset: #UNKNOWN] " +
+            "from Object value (token `JsonToken.START_OBJECT`)\n at [No location information] " +
             "(through reference chain: com.netflix.spinnaker.front50.api.model.pipeline.Pipeline[\"triggers\"])"
         ],
         [

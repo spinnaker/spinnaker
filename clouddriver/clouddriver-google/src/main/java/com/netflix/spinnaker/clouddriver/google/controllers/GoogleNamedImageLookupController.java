@@ -18,8 +18,6 @@ package com.netflix.spinnaker.clouddriver.google.controllers;
 
 import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.IMAGES;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.compute.model.Image;
 import com.google.common.annotations.VisibleForTesting;
@@ -48,6 +46,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import tools.jackson.core.json.JsonWriteFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @Slf4j
 @RestController
@@ -57,7 +58,7 @@ public class GoogleNamedImageLookupController {
   private final Cache cacheView;
   private final GsonFactory jsonMapper = new GsonFactory();
   private final ObjectMapper objectMapper =
-      new ObjectMapper().configure(JsonGenerator.Feature.WRITE_NUMBERS_AS_STRINGS, true);
+      JsonMapper.builder().enable(JsonWriteFeature.WRITE_NUMBERS_AS_STRINGS).build();
 
   @Autowired
   private GoogleNamedImageLookupController(Cache cacheView) {

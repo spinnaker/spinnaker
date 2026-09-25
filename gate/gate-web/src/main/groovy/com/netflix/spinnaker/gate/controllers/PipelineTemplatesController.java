@@ -17,7 +17,6 @@ package com.netflix.spinnaker.gate.controllers;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.gate.services.PipelineTemplateService;
 import com.netflix.spinnaker.gate.services.PipelineTemplateService.PipelineTemplateDependent;
 import com.netflix.spinnaker.gate.services.TaskService;
@@ -39,6 +38,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import tools.jackson.databind.ObjectMapper;
 
 @RestController
 @RequestMapping(value = "/pipelineTemplates")

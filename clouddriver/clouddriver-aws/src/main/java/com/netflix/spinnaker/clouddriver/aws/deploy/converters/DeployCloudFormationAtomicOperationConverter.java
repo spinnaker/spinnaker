@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.deploy.converters;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.netflix.spinnaker.clouddriver.aws.AmazonOperation;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeployCloudFormationDescription;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.DeployCloudFormationAtomicOperation;
@@ -24,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
 import java.util.Map;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
 
 @AmazonOperation(AtomicOperations.DEPLOY_CLOUDFORMATION_STACK)
 @Component("deployCloudFormationDescription")
@@ -50,7 +50,7 @@ public class DeployCloudFormationAtomicOperationConverter
       String template;
       try {
         template = getObjectMapper().writeValueAsString(input.get("templateBody"));
-      } catch (JsonProcessingException e) {
+      } catch (JacksonException e) {
         throw new IllegalArgumentException(
             "Could not serialize CloudFormation Stack template body", e);
       }

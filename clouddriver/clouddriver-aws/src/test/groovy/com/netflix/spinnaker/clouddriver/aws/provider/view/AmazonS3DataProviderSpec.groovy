@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.view
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.credentials.CredentialsRepository
+import tools.jackson.databind.json.JsonMapper
 import org.springframework.security.access.AccessDeniedException
 import software.amazon.awssdk.core.ResponseInputStream
 import software.amazon.awssdk.services.s3.model.GetObjectResponse
@@ -35,7 +35,7 @@ import static com.netflix.spinnaker.clouddriver.model.DataProvider.IdentifierTyp
 import static com.netflix.spinnaker.clouddriver.model.DataProvider.IdentifierType.Static
 
 class AmazonS3DataProviderSpec extends Specification {
-  def objectMapper = new ObjectMapper()
+  def objectMapper = JsonMapper.builder().build()
   def amazonClientProvider = Mock(AmazonClientProvider)
   def accountCredentialsRepository = Stub(CredentialsRepository)
   def configuration = new AmazonS3StaticDataProviderConfiguration([

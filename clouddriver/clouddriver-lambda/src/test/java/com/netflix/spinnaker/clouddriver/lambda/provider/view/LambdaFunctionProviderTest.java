@@ -9,14 +9,20 @@ import static org.mockito.Mockito.*;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
+import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module;
 import com.netflix.spinnaker.clouddriver.lambda.cache.Keys;
 import com.netflix.spinnaker.clouddriver.lambda.deploy.ops.LambdaTestingDefaults;
 import com.netflix.spinnaker.clouddriver.model.Function;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 class LambdaFunctionProviderTest implements LambdaTestingDefaults {
+
+  private final ObjectMapper objectMapper =
+      JsonMapper.builder().addModule(new AwsSdkV2Module()).build();
 
   @Test
   void getApplicationFunctionsWithApp() {
@@ -36,7 +42,7 @@ class LambdaFunctionProviderTest implements LambdaTestingDefaults {
                 appKey, ImmutableMap.of(LAMBDA_FUNCTIONS.ns, functionKey), emptyMap()));
 
     Set<Function> applicationFunctions =
-        new LambdaFunctionProvider(cache).getApplicationFunctions(applicationName);
+        new LambdaFunctionProvider(cache, objectMapper).getApplicationFunctions(applicationName);
 
     assertEquals(1, applicationFunctions.size());
     verify(cache, times(1)).get(LAMBDA_APPLICATIONS.ns, appKey);
@@ -61,7 +67,7 @@ class LambdaFunctionProviderTest implements LambdaTestingDefaults {
                     ImmutableMap.of(LAMBDA_FUNCTIONS.ns, List.of(functionKey)))));
 
     Set<Function> applicationFunctions =
-        new LambdaFunctionProvider(cache).getApplicationFunctions(applicationName);
+        new LambdaFunctionProvider(cache, objectMapper).getApplicationFunctions(applicationName);
 
     assertEquals(1, applicationFunctions.size());
     verify(cache, times(1)).get(LAMBDA_APPLICATIONS.ns, appKey);

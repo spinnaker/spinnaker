@@ -153,6 +153,9 @@ public final class Replacer {
     } catch (PathNotFoundException e) {
       return false;
     }
+    // ArrayNode is deliberately com.fasterxml.jackson (not tools.jackson): jayway's
+    // JacksonJsonNodeJsonProvider produces Jackson 2 nodes, so the instanceof check must match
+    // them, otherwise empty matches fall through to set() and throw PathNotFoundException.
     if (get == null || (get instanceof ArrayNode && ((ArrayNode) get).size() == 0)) {
       return false;
     }

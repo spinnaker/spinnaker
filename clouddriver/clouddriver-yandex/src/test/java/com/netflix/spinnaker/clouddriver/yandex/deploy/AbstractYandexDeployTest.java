@@ -16,10 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.yandex.deploy;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
@@ -32,7 +28,11 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 public abstract class AbstractYandexDeployTest {
   private static final List<String> ACCOUNTS = Collections.singletonList("test-cred");
@@ -41,9 +41,11 @@ public abstract class AbstractYandexDeployTest {
   protected AccountCredentialsProvider accountCredentialsProvider =
       new DefaultAccountCredentialsProvider(accountCredentialsRepository);
   protected ObjectMapper objectMapper =
-      Jackson2ObjectMapperBuilder.json()
-          .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-          .modules(new JavaTimeModule())
+      JsonMapper.builder()
+          // Jackson 3 fails on nulls for primitives by default (Jackson 2 was lenient);
+          // test descriptors omit optional booleans.
+          .disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
+          .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
           .build();
 
   protected AbstractYandexDeployTest() {

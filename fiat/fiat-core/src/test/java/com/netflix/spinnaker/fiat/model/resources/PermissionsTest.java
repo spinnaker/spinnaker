@@ -22,11 +22,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.fasterxml.jackson.core.PrettyPrinter;
-import com.fasterxml.jackson.core.util.DefaultIndenter;
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.netflix.spinnaker.fiat.YamlFileApplicationContextInitializer;
 import com.netflix.spinnaker.fiat.model.Authorization;
 import java.util.Map;
@@ -39,6 +34,12 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import tools.jackson.core.PrettyPrinter;
+import tools.jackson.core.util.DefaultIndenter;
+import tools.jackson.core.util.DefaultPrettyPrinter;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(
@@ -58,9 +59,10 @@ public class PermissionsTest {
       new DefaultPrettyPrinter().withObjectIndenter(new DefaultIndenter().withLinefeed("\n"));
 
   private final ObjectMapper mapper =
-      new ObjectMapper()
+      JsonMapper.builder()
           .enable(SerializationFeature.INDENT_OUTPUT)
-          .enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);
+          .enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS)
+          .build();
 
   private final String permissionJson =
       "{\n  \"READ\" : [ \"foo\" ],\n  \"WRITE\" : [ \"bar\" ]\n}";
@@ -89,7 +91,7 @@ public class PermissionsTest {
     Permissions.Builder b = new Permissions.Builder();
     b.set(Map.of(R, Set.of("foo"), W, Set.of("bar")));
 
-    assertEquals(permissionSerialized, mapper.writer(printer).writeValueAsString(b.build()));
+    assertEquals(permissionSerialized, mapper.writer().with(printer).writeValueAsString(b.build()));
   }
 
   @Test

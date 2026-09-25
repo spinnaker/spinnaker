@@ -17,9 +17,9 @@
  */
 package com.netflix.spinnaker.keel.sql
 
-import com.fasterxml.jackson.databind.JsonMappingException
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
+import tools.jackson.databind.DatabindException
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.exceptions.ArtifactParsingException
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
@@ -74,7 +74,7 @@ fun mapToArtifact(
         it["deliveryConfigName"] = deliveryConfigName
       }
     return objectMapper.convertValue(artifactAsMap, artifactSupplier.supportedArtifact.artifactClass)
-  } catch (e: JsonMappingException) {
+  } catch (e: DatabindException) {
     throw ArtifactParsingException(name, type, json, e)
   }
 }

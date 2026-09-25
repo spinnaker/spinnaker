@@ -1,9 +1,9 @@
 package com.netflix.spinnaker.echo.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.echo.services.KeelService;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,7 +11,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
 
 @Configuration
 @Slf4j
@@ -26,7 +25,7 @@ public class KeelConfig {
         .baseUrl(RetrofitUtils.getBaseUrl(keelBaseUrl))
         .client(okHttpClientConfig.createForRetrofit2().build())
         .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-        .addConverterFactory(JacksonConverterFactory.create(new ObjectMapper()))
+        .addConverterFactory(CustomConverterFactory.create())
         .build()
         .create(KeelService.class);
   }

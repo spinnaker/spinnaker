@@ -18,13 +18,14 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonView;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Builder;
 import lombok.Value;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 /** The CI build metadata for an app artifact based on the build info produced by Artifactory */
 @Value
-@Builder
+@Builder(builderClassName = "CloudFoundryBuildInfoBuilder")
 @JsonDeserialize(builder = CloudFoundryBuildInfo.CloudFoundryBuildInfoBuilder.class)
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class CloudFoundryBuildInfo {
@@ -37,4 +38,7 @@ public class CloudFoundryBuildInfo {
 
   @JsonView(Views.Cache.class)
   String jobUrl;
+
+  @JsonPOJOBuilder(withPrefix = "")
+  public static class CloudFoundryBuildInfoBuilder {}
 }

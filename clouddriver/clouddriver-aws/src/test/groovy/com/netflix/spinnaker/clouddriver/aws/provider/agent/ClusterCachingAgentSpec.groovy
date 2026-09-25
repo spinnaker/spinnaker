@@ -77,7 +77,7 @@ class ClusterCachingAgentSpec extends Specification {
     def client = Stub(AmazonClientProvider) {
       getAmazonEC2V2(creds, region) >> ec2
     }
-    new ClusterCachingAgent(cloud, client, creds, region, AwsObjectMapperFactory.createConfigured().registerModule(new AwsSdkV2Module()), Spectator.globalRegistry(), filter)
+    new ClusterCachingAgent(cloud, client, creds, region, AwsObjectMapperFactory.createConfigured().rebuild().addModule(new AwsSdkV2Module()).build(), Spectator.globalRegistry(), filter)
   }
 
   @Unroll

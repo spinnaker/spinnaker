@@ -15,7 +15,6 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.security
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.ecs.TestCredential
 import com.netflix.spinnaker.clouddriver.ecs.provider.EcsProvider
@@ -24,11 +23,13 @@ import com.netflix.spinnaker.clouddriver.ecs.provider.view.EcsAccountMapper
 import spock.lang.Specification
 
 import java.util.stream.Collectors
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 
 class EcsCredentialsLifeCyclerHandlerSpec extends Specification {
 
   EcsProvider ecsProvider
-  def objectMapper = new ObjectMapper()
+  def objectMapper = JsonMapper.builder().build()
   def registry = new DefaultRegistry()
 
   def setup() {

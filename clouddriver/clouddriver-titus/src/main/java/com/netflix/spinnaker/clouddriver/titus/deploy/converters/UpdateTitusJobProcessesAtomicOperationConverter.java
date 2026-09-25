@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.titus.deploy.converters;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
@@ -26,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.titus.deploy.ops.UpdateTitusJobProcesse
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
 @TitusOperation(AtomicOperations.UPDATE_JOB_PROCESSES)
 @Component

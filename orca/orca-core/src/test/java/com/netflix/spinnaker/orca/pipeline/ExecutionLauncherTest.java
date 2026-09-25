@@ -19,7 +19,6 @@ package com.netflix.spinnaker.orca.pipeline;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.web.filters.ProvidedIdRequestFilterConfigurationProperties;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.config.ExecutionConfigurationProperties;
@@ -33,6 +32,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.slf4j.MDC;
 import org.springframework.context.ApplicationEventPublisher;
+import tools.jackson.databind.ObjectMapper;
 
 public class ExecutionLauncherTest {
 

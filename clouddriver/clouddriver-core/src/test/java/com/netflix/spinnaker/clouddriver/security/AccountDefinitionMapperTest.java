@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.netflix.spinnaker.clouddriver.config.AccountDefinitionConfiguration;
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinition;
 import com.netflix.spinnaker.fiat.model.Authorization;
@@ -30,13 +29,14 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
-import org.springframework.boot.jackson2.autoconfigure.Jackson2AutoConfiguration;
+import org.springframework.boot.jackson.autoconfigure.JacksonAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.TestPropertySource;
+import tools.jackson.core.JacksonException;
 
 @SpringBootTest(classes = AccountDefinitionConfiguration.class)
-@ImportAutoConfiguration(Jackson2AutoConfiguration.class)
+@ImportAutoConfiguration(JacksonAutoConfiguration.class)
 @TestPropertySource(
     properties = "account.storage.additionalScanPackages = io.spinnaker.test.security")
 @ComponentScan("com.netflix.spinnaker.kork.secrets")
@@ -45,7 +45,7 @@ class AccountDefinitionMapperTest {
   @Autowired AccountDefinitionMapper mapper;
 
   @Test
-  void canConvertAdditionalAccountTypes() throws JsonProcessingException {
+  void canConvertAdditionalAccountTypes() throws JacksonException {
     var account = new TestAccount();
     account.setData("name", "foo");
     account.getPermissions().add(Authorization.READ, Set.of("dev", "sre"));
@@ -55,7 +55,7 @@ class AccountDefinitionMapperTest {
   }
 
   @Test
-  void canConvertJacksonizedAccountTypes() throws JsonProcessingException {
+  void canConvertJacksonizedAccountTypes() throws JacksonException {
     var account = ValueAccount.builder().name("james").value("meowth").build();
     assertEquals(account, mapper.deserialize(mapper.serialize(account)));
   }

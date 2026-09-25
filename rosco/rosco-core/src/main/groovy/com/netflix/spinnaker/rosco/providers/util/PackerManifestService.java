@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.rosco.providers.util;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.rosco.providers.util.PackerManifest.PackerBuild;
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -24,10 +23,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class PackerManifestService {
   private Path tempDir = Paths.get(System.getProperty("java.io.tmpdir"));
-  private ObjectMapper objectMapper = new ObjectMapper();
+  private ObjectMapper objectMapper = JsonMapper.builder().build();
 
   public String getManifestFileName(String bakeId) {
     return getManifestPath(bakeId).toString();

@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.op.handler
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.artifacts.kubernetes.KubernetesArtifactType
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
@@ -27,9 +27,10 @@ import org.yaml.snakeyaml.constructor.SafeConstructor
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
+import tools.jackson.databind.json.JsonMapper
 
 class KubernetesHorizontalPodAutoscalerHandlerSpec extends Specification {
-  def objectMapper = new ObjectMapper()
+  def objectMapper = JsonMapper.builder().build()
   def yaml = new Yaml(new SafeConstructor(new LoaderOptions()))
   def handler = new KubernetesHorizontalPodAutoscalerHandler()
   def ACCOUNT = "my-account"

@@ -15,12 +15,13 @@
  */
 package com.netflix.spinnaker.clouddriver.titus.deploy.description
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.orchestration.SagaContextAware
 import com.netflix.spinnaker.clouddriver.titus.client.model.MigrationPolicy
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
 import spock.lang.Specification
 import spock.lang.Unroll
+import tools.jackson.databind.json.JsonMapper
 
 class TitusDeployDescriptionSpec extends Specification {
 
@@ -44,7 +45,7 @@ class TitusDeployDescriptionSpec extends Specification {
       messageSignature      : "messageSignatureValue"
     ]
     given:
-    ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules()
+    ObjectMapper objectMapper = JsonMapper.builder().findAndAddModules().build()
 
     and:
     TitusDeployDescription subject = new TitusDeployDescription(

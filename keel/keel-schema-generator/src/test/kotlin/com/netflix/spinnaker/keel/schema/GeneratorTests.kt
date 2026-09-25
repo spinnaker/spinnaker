@@ -4,8 +4,8 @@ package com.netflix.spinnaker.keel.schema
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
-import com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import tools.jackson.databind.SerializationFeature.INDENT_OUTPUT
+import tools.jackson.module.kotlin.jacksonMapperBuilder
 import com.netflix.spinnaker.keel.api.schema.Description
 import com.netflix.spinnaker.keel.api.schema.Discriminator
 import com.netflix.spinnaker.keel.api.schema.Factory
@@ -55,9 +55,10 @@ internal class GeneratorTests {
       generator
         .generateSchema<T>()
         .also {
-          jacksonObjectMapper()
-            .setDefaultPropertyInclusion(NON_NULL)
+          jacksonMapperBuilder()
+            .changeDefaultPropertyInclusion { it.withValueInclusion(NON_NULL) }
             .enable(INDENT_OUTPUT)
+            .build()
             .writeValueAsString(it)
             .also(::println)
         }

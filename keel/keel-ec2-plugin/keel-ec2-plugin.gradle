@@ -21,10 +21,9 @@ dependencies {
   testImplementation(project(":keel-retrofit-test-support"))
   testImplementation(project(":keel-spring-test-support"))
   testImplementation("io.spinnaker.kork:kork-plugins")
-  testImplementation("io.strikt:strikt-jackson")
   testImplementation("io.strikt:strikt-jvm")
   testImplementation("dev.minutest:minutest")
-  testImplementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
+  testImplementation("tools.jackson.dataformat:jackson-dataformat-yaml")
   testImplementation("org.apache.commons:commons-lang3")
 
   // the following are needed to use keel's real(-ish) Spring configuration

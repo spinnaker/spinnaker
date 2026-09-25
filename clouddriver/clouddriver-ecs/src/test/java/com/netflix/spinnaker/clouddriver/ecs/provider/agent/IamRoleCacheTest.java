@@ -23,7 +23,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
@@ -39,6 +38,7 @@ import software.amazon.awssdk.services.iam.model.ListRolesRequest;
 import software.amazon.awssdk.services.iam.model.ListRolesResponse;
 import software.amazon.awssdk.services.iam.model.Role;
 import spock.lang.Subject;
+import tools.jackson.databind.json.JsonMapper;
 
 public class IamRoleCacheTest extends CommonCachingAgent {
   @Subject private final IamRoleCacheClient client = new IamRoleCacheClient(providerCache);
@@ -53,7 +53,7 @@ public class IamRoleCacheTest extends CommonCachingAgent {
   public void shouldRetrieveFromWrittenCache() {
     // Given
     when(clientProvider.getIamV2(any(NetflixAmazonCredentials.class), anyString())).thenReturn(iam);
-    ObjectMapper mapper = new ObjectMapper();
+    var mapper = JsonMapper.builder().build();
     String name = "iam-role-name";
     String roleArn = "iam-role-arn";
     String key = Keys.getIamRoleKey(ACCOUNT, name);

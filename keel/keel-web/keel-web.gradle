@@ -55,8 +55,7 @@ dependencies {
   implementation("com.netflix.graphql.dgs:dgs-starter")
   implementation("com.netflix.graphql.dgs:graphql-dgs-extended-scalars")
   implementation("org.springframework.boot:spring-boot-starter-graphql")
-  implementation 'com.fasterxml.jackson.datatype:jackson-datatype-joda'
-  implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+  implementation("tools.jackson.module:jackson-module-kotlin")
 
   runtimeOnly("io.spinnaker.kork:kork-runtime")
 
@@ -65,8 +64,7 @@ dependencies {
   testImplementation(project(":keel-spring-test-support"))
   testImplementation(project(":keel-retrofit"))
   testImplementation(project(":keel-clouddriver"))
-  testImplementation("io.strikt:strikt-jackson")
-  testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+  testImplementation("tools.jackson.module:jackson-module-kotlin")
   testImplementation("io.spinnaker.kork:kork-retrofit")
   testImplementation("io.spinnaker.kork:kork-security")
   testImplementation("com.squareup.okhttp3:mockwebserver")

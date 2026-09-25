@@ -21,8 +21,6 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import java.net.URI;
@@ -45,6 +43,9 @@ import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @Testcontainers
 class StandaloneContainerTest {
@@ -111,7 +112,7 @@ class StandaloneContainerTest {
     echoContainer.followOutput(logConsumer);
   }
 
-  private static String getSpringApplicationJson() throws JsonProcessingException {
+  private static String getSpringApplicationJson() throws JacksonException {
     String redisUrl = "redis://" + REDIS_NETWORK_ALIAS + ":" + REDIS_PORT;
     logger.info("redisUrl: '{}'", redisUrl);
     Map<String, String> properties =
@@ -122,7 +123,7 @@ class StandaloneContainerTest {
             "true",
             "services.front50.baseUrl",
             "http://" + GenericContainer.INTERNAL_HOST_HOSTNAME + ":" + front50Port);
-    ObjectMapper mapper = new ObjectMapper();
+    ObjectMapper mapper = JsonMapper.builder().build();
     return mapper.writeValueAsString(properties);
   }
 

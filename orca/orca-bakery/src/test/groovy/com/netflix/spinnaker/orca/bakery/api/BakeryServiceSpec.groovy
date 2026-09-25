@@ -151,7 +151,7 @@ class BakeryServiceSpec extends Specification {
     then:
     verify(
         postRequestedFor(urlPathEqualTo(bakeManifestPath))
-            .withRequestBody(equalTo(mapper.writeValueAsString(kustomizeBakeManifestRequest))))
+            .withRequestBody(equalToJson(mapper.writeValueAsString(kustomizeBakeManifestRequest))))
   }
 
   def "can lookup a bake status"() {

@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.lifecycle;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
@@ -29,6 +28,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import tools.jackson.databind.ObjectMapper;
 
 @Configuration
 @EnableConfigurationProperties({

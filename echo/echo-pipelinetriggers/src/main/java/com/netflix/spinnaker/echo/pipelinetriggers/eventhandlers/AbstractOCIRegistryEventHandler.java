@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.AbstractOCIRegistryEvent;
@@ -28,6 +27,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.PatternSyntaxException;
 import org.apache.commons.lang3.StringUtils;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Abstract base class for Docker-like event handlers that share common functionality. This includes

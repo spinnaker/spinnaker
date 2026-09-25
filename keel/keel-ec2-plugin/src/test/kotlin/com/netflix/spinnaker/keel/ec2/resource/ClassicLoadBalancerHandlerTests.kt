@@ -1,7 +1,5 @@
 package com.netflix.spinnaker.keel.ec2.resource
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerSpec
@@ -74,7 +72,6 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
     publisher,
     springEnv
   )
-  private val mapper = ObjectMapper().registerKotlinModule()
   private val yamlMapper = configuredYamlMapper()
 
   private val normalizers: List<Resolver<*>> = listOf(

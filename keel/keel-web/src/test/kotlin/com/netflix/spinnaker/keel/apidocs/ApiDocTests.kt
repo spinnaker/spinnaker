@@ -1,11 +1,9 @@
 package com.netflix.spinnaker.keel.apidocs
 
-import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT
-import com.fasterxml.jackson.databind.node.BooleanNode
-import com.fasterxml.jackson.databind.node.MissingNode
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import tools.jackson.databind.JsonNode
+import tools.jackson.databind.SerializationFeature.INDENT_OUTPUT
+import tools.jackson.databind.node.BooleanNode
+import tools.jackson.databind.node.MissingNode
 import com.netflix.spinnaker.keel.api.Constraint
 import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.ResourceSpec
@@ -21,6 +19,7 @@ import com.netflix.spinnaker.keel.docker.ContainerProvider
 import com.netflix.spinnaker.keel.ec2.jackson.registerEc2Subtypes
 import com.netflix.spinnaker.keel.schema.Generator
 import com.netflix.spinnaker.keel.schema.generateSchema
+import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import dev.minutest.experimental.SKIP
 import dev.minutest.experimental.minus
 import dev.minutest.junit.JUnit5Minutests
@@ -37,18 +36,8 @@ import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
+import strikt.assertions.get
 import strikt.assertions.one
-import strikt.jackson.at
-import strikt.jackson.booleanValue
-import strikt.jackson.findValuesAsText
-import strikt.jackson.has
-import strikt.jackson.isArray
-import strikt.jackson.isMissing
-import strikt.jackson.isObject
-import strikt.jackson.isTextual
-import strikt.jackson.path
-import strikt.jackson.textValue
-import strikt.jackson.textValues
 import kotlin.reflect.KClass
 
 @SpringBootTest(
@@ -83,13 +72,14 @@ class ApiDocTests
     fixture {
       val api = generator.generateSchema<SubmittedDeliveryConfig>()
         .also {
-          jacksonObjectMapper()
-            .setSerializationInclusion(NON_NULL)
+          configuredObjectMapper()
+            .rebuild()
             .enable(INDENT_OUTPUT)
+            .build()
             .writeValueAsString(it)
             .also(::println)
         }
-        .let { jacksonObjectMapper().valueToTree<JsonNode>(it) }
+        .let { configuredObjectMapper().valueToTree<JsonNode>(it) }
       expectThat(api).describedAs("API Docs response")
     }
 
@@ -345,3 +335,51 @@ class ApiDocTests
     }
   }
 }
+
+private fun <T : JsonNode> Assertion.Builder<T>.at(pointer: String): Assertion.Builder<JsonNode> =
+  get { at(pointer) }
+
+private fun <T : JsonNode> Assertion.Builder<T>.path(fieldName: String): Assertion.Builder<JsonNode> =
+  get { path(fieldName) }
+
+private fun <T : JsonNode> Assertion.Builder<T>.textValue(): Assertion.Builder<String?> =
+  get { if (isMissingNode) null else asText() }
+
+private fun <T : JsonNode> Assertion.Builder<T>.booleanValue(): Assertion.Builder<Boolean> =
+  get { if (isMissingNode) false else asBoolean() }
+
+private fun <T : JsonNode> Assertion.Builder<T>.textValues(): Assertion.Builder<List<String?>> =
+  get { values().map { if (it.isMissingNode) null else it.asText() } }
+
+private fun <T : JsonNode> Assertion.Builder<T>.findValuesAsText(fieldName: String): Assertion.Builder<List<String>> =
+  get { findValuesAsString(fieldName) }
+
+private fun <T : JsonNode> Assertion.Builder<T>.has(fieldName: String): Assertion.Builder<T> =
+  assert("has property '$fieldName'") { node ->
+    if (node.has(fieldName)) pass() else fail(node, "property was absent")
+  }
+
+private fun <T : JsonNode> Assertion.Builder<T>.isArray(): Assertion.Builder<T> =
+  assert("is an array") { node ->
+    if (node.isArray) pass() else fail(node, "was %s")
+  }
+
+private fun <T : JsonNode> Assertion.Builder<T>.isObject(): Assertion.Builder<T> =
+  assert("is an object") { node ->
+    if (node.isObject) pass() else fail(node, "was %s")
+  }
+
+private fun <T : JsonNode> Assertion.Builder<T>.isMissing(): Assertion.Builder<T> =
+  assert("is missing") { node ->
+    if (node.isMissingNode) pass() else fail(node, "was %s")
+  }
+
+private fun <T : JsonNode> Assertion.Builder<T>.isTextual(): Assertion.Builder<T> =
+  assert("is textual") { node ->
+    if (node.isTextual) pass() else fail(node, "was %s")
+  }
+
+private fun <T : JsonNode> Assertion.Builder<T>.hasSize(expected: Int): Assertion.Builder<T> =
+  assert("has size $expected") { node ->
+    if (node.size() == expected) pass() else fail(node, "was %s")
+  }

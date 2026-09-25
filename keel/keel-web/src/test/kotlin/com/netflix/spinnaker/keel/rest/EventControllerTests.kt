@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.rest
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.module.kotlin.readValue
+import tools.jackson.databind.JsonNode
+import tools.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.actuation.Task
@@ -42,9 +42,9 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.hasSize
+import strikt.assertions.isEqualTo
+import strikt.assertions.isTrue
 import strikt.assertions.map
-import strikt.jackson.hasSize
-import strikt.jackson.isArray
 import java.net.URI
 import java.time.Clock
 import java.time.Duration
@@ -124,9 +124,8 @@ internal class EventControllerTests
               .andExpect(status().isOk)
               .andExpect(content().contentTypeCompatibleWith(accept))
               .andReturn()
-            expectThat(result.response.contentAsTree)
-              .isArray()
-              .hasSize(10)
+            expectThat(result.response.contentAsTree.isArray).isTrue()
+            expectThat(result.response.contentAsTree.size()).isEqualTo(10)
           }
 
           test("every event specifies its type") {
@@ -164,9 +163,8 @@ internal class EventControllerTests
           .perform(request)
           .andExpect(status().isOk)
           .andReturn()
-        expectThat(result.response.contentAsTree)
-          .isArray()
-          .hasSize(limit)
+        expectThat(result.response.contentAsTree.isArray).isTrue()
+        expectThat(result.response.contentAsTree.size()).isEqualTo(limit)
       }
     }
 

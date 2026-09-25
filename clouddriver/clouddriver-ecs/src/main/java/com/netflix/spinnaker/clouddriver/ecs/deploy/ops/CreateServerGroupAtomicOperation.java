@@ -16,10 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.deploy.ops;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactDownloader;
-import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials;
 import com.netflix.spinnaker.clouddriver.aws.security.AssumeRoleAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
@@ -54,6 +51,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import software.amazon.awssdk.services.applicationautoscaling.ApplicationAutoScalingClient;
 import software.amazon.awssdk.services.applicationautoscaling.model.DescribeScalableTargetsRequest;
 import software.amazon.awssdk.services.applicationautoscaling.model.DescribeScalableTargetsResponse;
@@ -71,6 +69,7 @@ import software.amazon.awssdk.services.iam.IamClient;
 import software.amazon.awssdk.services.iam.model.GetRoleRequest;
 import software.amazon.awssdk.services.iam.model.GetRoleResponse;
 import software.amazon.awssdk.services.iam.model.Role;
+import tools.jackson.databind.ObjectMapper;
 
 public class CreateServerGroupAtomicOperation
     extends AbstractEcsAtomicOperation<CreateServerGroupDescription, DeploymentResult> {
@@ -88,10 +87,9 @@ public class CreateServerGroupAtomicOperation
   protected static final String DOCKER_LABEL_KEY_STACK = "spinnaker.stack";
   protected static final String DOCKER_LABEL_KEY_DETAIL = "spinnaker.detail";
 
-  protected ObjectMapper mapper =
-      new ObjectMapper()
-          .enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-          .registerModule(new AwsSdkV2Module());
+  @Autowired
+  @Qualifier("amazonObjectMapper")
+  protected ObjectMapper mapper;
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -357,11 +355,7 @@ public class CreateServerGroupAtomicOperation
   private RegisterTaskDefinitionRequest getArtifactFromFile() {
     File artifactFile =
         downloadTaskDefinitionArtifact(description.getResolvedTaskDefinitionArtifact());
-    try {
-      return mapper.readValue(artifactFile, RegisterTaskDefinitionRequest.class);
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
+    return mapper.readValue(artifactFile, RegisterTaskDefinitionRequest.class);
   }
 
   protected RegisterTaskDefinitionRequest makeTaskDefinitionRequestFromArtifact(

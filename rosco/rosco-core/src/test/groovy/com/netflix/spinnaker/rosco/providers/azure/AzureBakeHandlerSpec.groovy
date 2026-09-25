@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.rosco.providers.azure
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeOptions
 import com.netflix.spinnaker.rosco.api.BakeRequest
@@ -27,6 +27,7 @@ import com.netflix.spinnaker.rosco.providers.util.TestDefaults
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
+import tools.jackson.databind.json.JsonMapper
 
 class AzureBakeHandlerSpec extends Specification implements TestDefaults{
 
@@ -127,8 +128,8 @@ class AzureBakeHandlerSpec extends Specification implements TestDefaults{
       ]
     ]
 
-    azureBakeryDefaults = new ObjectMapper().convertValue(azureBakeryDefaultsJson, RoscoAzureConfiguration.AzureBakeryDefaults)
-    azureConfigurationProperties = new ObjectMapper().convertValue(azureConfigurationPropertiesJson, RoscoAzureConfiguration.AzureConfigurationProperties)
+    azureBakeryDefaults = JsonMapper.builder().build().convertValue(azureBakeryDefaultsJson, RoscoAzureConfiguration.AzureBakeryDefaults)
+    azureConfigurationProperties = JsonMapper.builder().build().convertValue(azureConfigurationPropertiesJson, RoscoAzureConfiguration.AzureConfigurationProperties)
   }
 
   void 'can scrape packer logs for image name'() {

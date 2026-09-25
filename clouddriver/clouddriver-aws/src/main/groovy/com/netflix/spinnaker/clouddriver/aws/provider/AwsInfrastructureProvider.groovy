@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider
 
-import com.fasterxml.jackson.core.type.TypeReference
 import com.netflix.spinnaker.cats.provider.ProviderCacheConfiguration
+import tools.jackson.core.type.TypeReference
 import com.netflix.spinnaker.clouddriver.aws.cache.Keys
 import com.netflix.spinnaker.clouddriver.cache.KeyParser
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider

@@ -1,8 +1,8 @@
 package com.netflix.spinnaker.keel.rest
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
-import com.fasterxml.jackson.module.kotlin.readValue
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.dataformat.yaml.YAMLMapper
+import tools.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.api.PreviewEnvironmentSpec
 import com.netflix.spinnaker.keel.api.artifacts.BranchFilter
@@ -63,8 +63,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import retrofit2.Response
 import retrofit2.Retrofit
 import strikt.api.expectThat
-import strikt.jackson.at
-import strikt.jackson.isMissing
+import strikt.assertions.isTrue
 
 
 @SpringBootTest(
@@ -172,7 +171,7 @@ internal class DeliveryConfigControllerTests
 
           test("the response does not contain inlined resources") {
             val content = andReturn().response.contentAsString.let { mapper.readTree(it) }
-            expectThat(content).at("/resources").isMissing()
+            expectThat(content.at("/resources").isMissingNode).isTrue()
           }
         }
       }

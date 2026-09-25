@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.converters
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.aws.AmazonOperation
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAsgLifecycleHookDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.UpsertAsgLifecycleHookAtomicOperation
@@ -25,6 +23,8 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.ObjectMapper
 
 @Component('upsertAsgLifecycleHookDescription')
 class UpsertAsgLifecycleHookDescriptionAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
@@ -39,8 +39,9 @@ class UpsertAsgLifecycleHookDescriptionAtomicOperationConverter extends Abstract
 
   @Override
   UpsertAsgLifecycleHookDescription convertDescription(Map input) {
-    def converted = objectMapper.copy()
-      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+    def converted = objectMapper.rebuild()
+      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+      .build()
       .convertValue(input, UpsertAsgLifecycleHookDescription)
     converted.credentials = getCredentialsObject(input.credentials as String)
     converted

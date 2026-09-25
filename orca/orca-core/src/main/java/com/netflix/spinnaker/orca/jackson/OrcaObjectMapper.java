@@ -16,29 +16,17 @@
 package com.netflix.spinnaker.orca.jackson;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
-import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
-import static com.fasterxml.jackson.databind.DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS;
-import static com.fasterxml.jackson.databind.DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE;
-import static com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS;
+import static tools.jackson.databind.DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES;
+import static tools.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
+import static tools.jackson.databind.MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS;
+import static tools.jackson.databind.MapperFeature.ALLOW_FINAL_FIELDS_AS_MUTATORS;
+import static tools.jackson.databind.MapperFeature.SORT_PROPERTIES_ALPHABETICALLY;
+import static tools.jackson.databind.MapperFeature.USE_GETTERS_AS_SETTERS;
+import static tools.jackson.databind.cfg.DateTimeFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS;
+import static tools.jackson.databind.cfg.DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS;
+import static tools.jackson.databind.cfg.DateTimeFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS;
+import static tools.jackson.databind.cfg.EnumFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.StreamReadConstraints;
-import com.fasterxml.jackson.core.Version;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.module.SimpleAbstractTypeResolver;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.datatype.guava.GuavaModule;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fasterxml.jackson.module.kotlin.KotlinModule;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
@@ -51,10 +39,28 @@ import com.netflix.spinnaker.orca.jackson.mixin.TriggerMixin;
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.model.TaskExecutionImpl;
-import java.io.IOException;
+import java.util.Optional;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.StreamReadConstraints;
+import tools.jackson.core.Version;
+import tools.jackson.core.json.JsonFactory;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ValueSerializer;
+import tools.jackson.databind.deser.std.StdDeserializer;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.module.SimpleAbstractTypeResolver;
+import tools.jackson.databind.module.SimpleModule;
+import tools.jackson.databind.ser.ValueSerializerModifier;
+import tools.jackson.datatype.guava.GuavaModule;
+import tools.jackson.module.kotlin.KotlinModule;
 
 public class OrcaObjectMapper {
   private OrcaObjectMapper() {}
@@ -66,6 +72,12 @@ public class OrcaObjectMapper {
   }
 
   public static ObjectMapper newInstance(JacksonParserProperties parserProperties) {
+    return newInstance(parserProperties, Optional.empty());
+  }
+
+  public static ObjectMapper newInstance(
+      JacksonParserProperties parserProperties,
+      Optional<? extends ValueSerializerModifier> serializerModifier) {
     StreamReadConstraints constraints =
         StreamReadConstraints.builder()
             .maxNameLength(parserProperties.getMaxNameLength())
@@ -75,18 +87,21 @@ public class OrcaObjectMapper {
             .maxDocumentLength(parserProperties.getMaxDocumentLength())
             .build();
 
-    ObjectMapper instance =
-        new ObjectMapper(JsonFactory.builder().streamReadConstraints(constraints).build());
-    instance.registerModule(new Jdk8Module());
-    instance.registerModule(new GuavaModule());
-    instance.registerModule(new JavaTimeModule());
-    instance.registerModule(new KotlinModule.Builder().build());
-    instance.disable(READ_DATE_TIMESTAMPS_AS_NANOSECONDS);
-    instance.disable(WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS);
-    instance.disable(FAIL_ON_UNKNOWN_PROPERTIES);
-    instance.enable(READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE);
-    instance.enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS);
-    instance.setDefaultPropertyInclusion(NON_NULL);
+    JsonMapper.Builder builder =
+        JsonMapper.builder(JsonFactory.builder().streamReadConstraints(constraints).build())
+            .addModule(new GuavaModule())
+            .addModule(new KotlinModule.Builder().build())
+            .disable(READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
+            .disable(WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS)
+            .enable(WRITE_DATES_AS_TIMESTAMPS)
+            .disable(FAIL_ON_UNKNOWN_PROPERTIES)
+            .disable(FAIL_ON_NULL_FOR_PRIMITIVES)
+            .disable(SORT_PROPERTIES_ALPHABETICALLY)
+            .enable(READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE)
+            .enable(ACCEPT_CASE_INSENSITIVE_ENUMS)
+            .disable(USE_GETTERS_AS_SETTERS)
+            .enable(ALLOW_FINAL_FIELDS_AS_MUTATORS)
+            .changeDefaultPropertyInclusion(value -> value.withValueInclusion(NON_NULL));
 
     // Jackson cannot deserialize an interface. For interfaces defined by orca-api, we need to tell
     // Jackson the singular class that implement these interfaces.
@@ -100,7 +115,7 @@ public class OrcaObjectMapper {
     module.setMixInAnnotation(PipelineExecution.class, PipelineExecutionMixin.class);
     module.setAbstractTypes(resolver);
 
-    instance.registerModule(module);
+    builder.addModule(module);
 
     // Custom (de)serializers added to ensure HttpMethod values are always uppercase.
     // This restores the behavior that existed before Spring Boot 3 upgrade:
@@ -111,9 +126,12 @@ public class OrcaObjectMapper {
     httpMethodModule.addSerializer(HttpMethod.class, new HttpMethodSerializer());
     httpMethodModule.addDeserializer(HttpMethod.class, new HttpMethodDeserializer());
     httpMethodModule.addDeserializer(HttpStatusCode.class, new HttpStatusCodeDeserializer());
-    instance.registerModule(httpMethodModule);
+    builder.addModule(httpMethodModule);
 
-    return instance;
+    serializerModifier.ifPresent(
+        modifier -> builder.addModule(new SimpleModule().setSerializerModifier(modifier)));
+
+    return builder.build();
   }
 
   /**
@@ -132,10 +150,10 @@ public class OrcaObjectMapper {
    *
    * <p>Converts the enum value to an uppercase string (e.g., {@code GET}).
    */
-  static class HttpMethodSerializer extends JsonSerializer<HttpMethod> {
+  static class HttpMethodSerializer extends ValueSerializer<HttpMethod> {
     @Override
-    public void serialize(HttpMethod value, JsonGenerator gen, SerializerProvider serializer)
-        throws IOException {
+    public void serialize(HttpMethod value, JsonGenerator gen, SerializationContext serializers)
+        throws JacksonException {
       gen.writeString(value.name().toUpperCase());
     }
   }
@@ -146,9 +164,14 @@ public class OrcaObjectMapper {
    * <p>Converts JSON strings (e.g., {@code get}, {@code Get}, {@code GET}) into uppercase before
    * resolving the corresponding {@link HttpMethod}.
    */
-  static class HttpMethodDeserializer extends JsonDeserializer<HttpMethod> {
+  static class HttpMethodDeserializer extends StdDeserializer<HttpMethod> {
+    HttpMethodDeserializer() {
+      super(HttpMethod.class);
+    }
+
     @Override
-    public HttpMethod deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+    public HttpMethod deserialize(JsonParser p, DeserializationContext ctxt)
+        throws JacksonException {
       return HttpMethod.valueOf(p.getText().toUpperCase());
     }
   }
@@ -174,13 +197,16 @@ public class OrcaObjectMapper {
    *
    * <p>All valid inputs are normalized to {@link HttpStatusCode#valueOf(int)}.
    */
-  static class HttpStatusCodeDeserializer extends JsonDeserializer<HttpStatusCode> {
+  static class HttpStatusCodeDeserializer extends StdDeserializer<HttpStatusCode> {
+    HttpStatusCodeDeserializer() {
+      super(HttpStatusCode.class);
+    }
 
     @Override
     public HttpStatusCode deserialize(JsonParser p, DeserializationContext ctxt)
-        throws IOException {
+        throws JacksonException {
 
-      JsonNode node = p.getCodec().readTree(p);
+      JsonNode node = ctxt.readTree(p);
 
       // Case 1: numeric status code (200)
       if (node.isInt()) {

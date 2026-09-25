@@ -21,6 +21,7 @@ import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.echo.rest.RestService;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -37,7 +38,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
 
 /** Rest endpoint configuration */
 @Configuration
@@ -121,7 +121,7 @@ public class RestConfig {
               // URL as part of the rest call in RestService
               .client(okHttpClient)
               .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-              .addConverterFactory(JacksonConverterFactory.create());
+              .addConverterFactory(CustomConverterFactory.create());
 
       RestUrls.Service service =
           RestUrls.Service.builder()

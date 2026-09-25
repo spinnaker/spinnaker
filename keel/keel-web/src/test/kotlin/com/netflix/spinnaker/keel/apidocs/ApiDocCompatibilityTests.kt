@@ -1,15 +1,14 @@
 package com.netflix.spinnaker.keel.apidocs
 
-import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.databind.JsonNode as Jackson2JsonNode
+import com.fasterxml.jackson.databind.ObjectMapper as Jackson2ObjectMapper
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper as Jackson2YamlMapper
 import com.netflix.spinnaker.keel.api.support.ExtensionRegistry
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.ec2.jackson.registerEc2Subtypes
 import com.netflix.spinnaker.keel.schema.Generator
 import com.netflix.spinnaker.keel.schema.generateSchema
+import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.networknt.schema.JsonSchema
 import com.networknt.schema.JsonSchemaFactory
 import com.networknt.schema.SpecVersion.VersionFlag.V201909
@@ -30,19 +29,21 @@ class ApiDocCompatibilityTests
 @Autowired constructor(val extensionRegistry: ExtensionRegistry, val generator: Generator) {
 
   val schemaFactory: JsonSchemaFactory = JsonSchemaFactory.getInstance(V201909)
+  private val jackson2Mapper = Jackson2ObjectMapper()
   val api by lazy {
     extensionRegistry.registerEc2Subtypes()
     generator.generateSchema<SubmittedDeliveryConfig>()
       .also {
-        jacksonObjectMapper()
-          .setSerializationInclusion(NON_NULL)
-          .enable(INDENT_OUTPUT)
+        configuredObjectMapper()
+          .rebuild()
+          .enable(tools.jackson.databind.SerializationFeature.INDENT_OUTPUT)
+          .build()
           .writeValueAsString(it)
           .also(::println)
       }
   }
   val schema: JsonSchema by lazy {
-    schemaFactory.getSchema(jacksonObjectMapper().valueToTree<JsonNode>(api))
+    schemaFactory.getSchema(jackson2Mapper.readTree(configuredObjectMapper().writeValueAsString(api)))
   }
 
   @TestFactory
@@ -80,9 +81,9 @@ class ApiDocCompatibilityTests
       }
     }
 
-  private fun loadExample(path: String): JsonNode =
+  private fun loadExample(path: String): Jackson2JsonNode =
     javaClass.getResource(path)?.let { url ->
-      YAMLMapper().readTree(url)
+      Jackson2YamlMapper().readTree(url)
     } ?: error("Unable to load resource at $path")
 }
 

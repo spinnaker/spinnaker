@@ -20,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.StageResolver;
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.api.test.OrcaFixture;
@@ -36,6 +35,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import tools.jackson.databind.ObjectMapper;
 
 @AutoConfigureMockMvc
 public class LambdaTrafficRoutingStageTest extends OrcaFixture {
@@ -88,7 +88,7 @@ public class LambdaTrafficRoutingStageTest extends OrcaFixture {
                     .contentType(MediaType.APPLICATION_JSON))
             .andReturn();
     MockHttpServletResponse response = postResults.getResponse();
-    assertEquals(response.getStatus(), 200);
+    assertEquals(200, response.getStatus(), response.getContentAsString());
 
     Map map = mapper.readValue(response.getContentAsString(), Map.class);
     final MvcResult getResults =

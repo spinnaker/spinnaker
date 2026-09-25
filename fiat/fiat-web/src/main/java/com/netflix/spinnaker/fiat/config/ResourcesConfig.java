@@ -16,15 +16,16 @@
 
 package com.netflix.spinnaker.fiat.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.fiat.providers.ProviderHealthTracker;
 import com.netflix.spinnaker.fiat.providers.internal.*;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -35,13 +36,16 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.Scope;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
+import tools.jackson.databind.ObjectMapper;
 
 @Configuration
 @EnableConfigurationProperties(ProviderCacheConfig.class)
 @PropertySource("classpath:resilience4j-defaults.properties")
 public class ResourcesConfig {
-  @Autowired @Setter private ObjectMapper objectMapper;
+  @Autowired
+  @Setter
+  @Qualifier("objectMapper")
+  private ObjectMapper objectMapper;
 
   @Autowired @Setter private OkHttpClientProvider clientProvider;
 
@@ -63,7 +67,7 @@ public class ResourcesConfig {
         .baseUrl(RetrofitUtils.getBaseUrl(front50Endpoint))
         .client(okHttpClientConfig.createForRetrofit2().build())
         .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-        .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+        .addConverterFactory(CustomConverterFactory.create(objectMapper))
         .build()
         .create(Front50Api.class);
   }
@@ -93,7 +97,7 @@ public class ResourcesConfig {
         .baseUrl(RetrofitUtils.getBaseUrl(clouddriverEndpoint))
         .client(okHttpClientConfig.createForRetrofit2().build())
         .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-        .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+        .addConverterFactory(CustomConverterFactory.create(objectMapper))
         .build()
         .create(ClouddriverApi.class);
   }
@@ -147,7 +151,7 @@ public class ResourcesConfig {
         .baseUrl(RetrofitUtils.getBaseUrl(igorEndpoint))
         .client(okHttpClientConfig.createForRetrofit2().build())
         .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-        .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+        .addConverterFactory(CustomConverterFactory.create(objectMapper))
         .build()
         .create(IgorApi.class);
   }

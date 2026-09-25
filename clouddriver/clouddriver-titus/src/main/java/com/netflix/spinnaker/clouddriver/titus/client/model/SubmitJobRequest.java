@@ -18,8 +18,6 @@ package com.netflix.spinnaker.clouddriver.titus.client.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,6 +26,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.Value;
 import lombok.experimental.Wither;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 @JsonDeserialize(builder = SubmitJobRequest.SubmitJobRequestBuilder.class)
 @Builder(builderClassName = "SubmitJobRequestBuilder", toBuilder = true)

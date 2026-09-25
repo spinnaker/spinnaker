@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.appengine.provider.agent
 
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.core.type.TypeReference
+import tools.jackson.databind.ObjectMapper
 import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.http.HttpHeaders

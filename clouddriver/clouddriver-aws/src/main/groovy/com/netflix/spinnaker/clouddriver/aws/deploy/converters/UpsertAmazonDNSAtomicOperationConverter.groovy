@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.converters
 
-import com.fasterxml.jackson.databind.DeserializationFeature
+import tools.jackson.databind.DeserializationFeature
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonDNSDescription
@@ -32,8 +32,9 @@ class UpsertAmazonDNSAtomicOperationConverter extends AbstractAtomicOperationsCr
 
   @Override
   UpsertAmazonDNSDescription convertDescription(Map input) {
-    def converted = objectMapper.copy()
-      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+    def converted = objectMapper.rebuild()
+      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+      .build()
       .convertValue(input, UpsertAmazonDNSDescription)
     converted.credentials = getCredentialsObject(input.credentials as String)
     converted

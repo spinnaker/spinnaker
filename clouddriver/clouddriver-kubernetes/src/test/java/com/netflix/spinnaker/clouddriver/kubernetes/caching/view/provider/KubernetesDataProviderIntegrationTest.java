@@ -26,7 +26,6 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -91,12 +90,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.internal.stubbing.defaultanswers.ReturnsSmartNulls;
 import org.mockito.stubbing.Answer;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @ExtendWith(SoftAssertionsExtension.class)
 final class KubernetesDataProviderIntegrationTest {
   private static final String ACCOUNT_NAME = "my-account";
   private static final Registry registry = new NoopRegistry();
-  private static final ObjectMapper objectMapper = new ObjectMapper();
+  private static final ObjectMapper objectMapper = JsonMapper.builder().build();
   private static final KubernetesProvider kubernetesProvider = new KubernetesProvider();
   private static final ImmutableList<KubernetesHandler> handlers =
       ImmutableList.of(

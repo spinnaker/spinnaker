@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.bakery.artifact
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.BaseUrlConfig
 import com.netflix.spinnaker.config.LifecycleConfig
 import com.netflix.spinnaker.keel.api.TaskStatus

@@ -17,12 +17,6 @@
 package com.netflix.spinnaker.clouddriver.config;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.Module;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.datatype.joda.JodaModule;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fasterxml.jackson.module.kotlin.KotlinModule;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation;
@@ -119,7 +113,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.jackson2.autoconfigure.Jackson2ObjectMapperBuilderCustomizer;
+import org.springframework.boot.jackson.autoconfigure.JsonMapperBuilderCustomizer;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -128,6 +122,11 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.client.RestTemplate;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.JacksonModule;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.module.kotlin.KotlinModule;
 
 @Configuration
 @Import({
@@ -154,19 +153,18 @@ class CloudDriverConfig {
   }
 
   @Bean
-  Jackson2ObjectMapperBuilderCustomizer defaultObjectMapperCustomizer(List<Module> modules) {
-    return jacksonObjectMapperBuilder -> {
-      modules.addAll(
-          List.of(
-              new Jdk8Module(),
-              new JavaTimeModule(),
-              new JodaModule(),
-              new KotlinModule.Builder().build(),
-              new ClouddriverApiModule()));
-      jacksonObjectMapperBuilder.serializationInclusion(JsonInclude.Include.NON_NULL);
-      jacksonObjectMapperBuilder.failOnEmptyBeans(false);
-      jacksonObjectMapperBuilder.failOnUnknownProperties(false);
-      jacksonObjectMapperBuilder.modules(modules);
+  JsonMapperBuilderCustomizer defaultObjectMapperCustomizer(List<JacksonModule> modules) {
+    return jsonMapperBuilder -> {
+      jsonMapperBuilder.addModules(modules);
+      jsonMapperBuilder.addModule(new KotlinModule.Builder().build());
+      jsonMapperBuilder.addModule(new ClouddriverApiModule());
+      jsonMapperBuilder.changeDefaultPropertyInclusion(
+          value ->
+              value
+                  .withValueInclusion(JsonInclude.Include.NON_NULL)
+                  .withContentInclusion(JsonInclude.Include.NON_NULL));
+      jsonMapperBuilder.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+      jsonMapperBuilder.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     };
   }
 

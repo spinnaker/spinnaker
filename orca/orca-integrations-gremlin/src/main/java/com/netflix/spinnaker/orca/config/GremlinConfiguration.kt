@@ -1,8 +1,5 @@
 package com.netflix.spinnaker.orca.config
 
-import com.fasterxml.jackson.databind.PropertyNamingStrategies
-import com.fasterxml.jackson.databind.PropertyNamingStrategy
-import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.kork.client.ServiceClientProvider
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
@@ -12,6 +9,9 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
+import tools.jackson.databind.PropertyNamingStrategies
+import tools.jackson.databind.cfg.DateTimeFeature
+import tools.jackson.databind.json.JsonMapper
 
 
 @Configuration
@@ -28,10 +28,10 @@ class GremlinConfiguration {
   ): GremlinService {
     val mapper = OrcaObjectMapper
       .newInstance()
-      .setPropertyNamingStrategy(
-        PropertyNamingStrategies.SnakeCaseStrategy.INSTANCE
-      )
-      .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS) // we want Instant serialized as ISO string
+      .rebuild<JsonMapper, JsonMapper.Builder>()
+      .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
+      .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS) // we want Instant serialized as ISO string
+      .build()
 
     return serviceClientProvider.getService(
       GremlinService::class.java,

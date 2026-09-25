@@ -21,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -33,6 +32,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import tools.jackson.databind.json.JsonMapper;
 
 public class GenerateCanaryAnalysisResultTaskTest {
 
@@ -51,7 +51,7 @@ public class GenerateCanaryAnalysisResultTaskTest {
 
   @BeforeEach
   public void before() {
-    task = new GenerateCanaryAnalysisResultTask(new ObjectMapper());
+    task = new GenerateCanaryAnalysisResultTask(JsonMapper.builder().build());
   }
 
   @Test

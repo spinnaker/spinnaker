@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.transform
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Clock
 import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.Timer
@@ -34,10 +34,11 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateModule
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.JinjaRenderer
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer
 import spock.lang.Specification
+import tools.jackson.databind.json.JsonMapper
 
 class RenderTransformSpec extends Specification {
 
-  ObjectMapper objectMapper = new ObjectMapper()
+  ObjectMapper objectMapper = JsonMapper.builder().build()
 
   Renderer renderer = new JinjaRenderer(objectMapper, Mock(Front50Service), [])
 

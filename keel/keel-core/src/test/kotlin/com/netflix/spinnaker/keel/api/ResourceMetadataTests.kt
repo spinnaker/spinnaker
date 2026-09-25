@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.api
 
-import com.fasterxml.jackson.module.kotlin.readValue
+import tools.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.TEST_API_V1

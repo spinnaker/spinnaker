@@ -20,7 +20,7 @@ import software.amazon.awssdk.services.ecs.EcsClient
 import software.amazon.awssdk.services.ecs.model.ContainerDefinition
 import software.amazon.awssdk.services.ecs.model.LoadBalancer
 import software.amazon.awssdk.services.ecs.model.PortMapping
-import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module
+import com.netflix.spinnaker.kork.aws.jackson.AwsSdkV2Module
 import software.amazon.awssdk.services.ecs.model.Container
 import software.amazon.awssdk.services.ecs.model.NetworkBinding
 import software.amazon.awssdk.services.ecs.model.NetworkInterface
@@ -28,7 +28,8 @@ import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetDescri
 import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetHealth
 import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetHealthDescription
 import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetHealthStateEnum
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
@@ -48,7 +49,7 @@ class TaskHealthCachingAgentSpec extends Specification {
   def clientProvider = Mock(AmazonClientProvider)
   def providerCache = Mock(ProviderCache)
   def targetGroupArn = 'arn:aws:elasticloadbalancing:' + CommonCachingAgent.REGION + ':' + CommonCachingAgent.ACCOUNT_ID + ':targetgroup/test-target-group/9e8997b7cff00c62'
-  ObjectMapper mapper = new ObjectMapper().registerModule(new AwsSdkV2Module())
+  ObjectMapper mapper = JsonMapper.builder().addModule(new AwsSdkV2Module()).build()
 
 
   @Subject
@@ -60,7 +61,7 @@ class TaskHealthCachingAgentSpec extends Specification {
     def containerInstanceKey = Keys.getContainerInstanceKey(CommonCachingAgent.ACCOUNT, CommonCachingAgent.REGION, CommonCachingAgent.CONTAINER_INSTANCE_ARN_1)
     def targetHealthKey = Keys.getTargetHealthKey(CommonCachingAgent.ACCOUNT, CommonCachingAgent.REGION, targetGroupArn)
 
-    ObjectMapper mapper = new ObjectMapper().registerModule(new AwsSdkV2Module())
+    ObjectMapper mapper = JsonMapper.builder().addModule(new AwsSdkV2Module()).build()
     Map<String, Object> loadbalancerMap = mapper.convertValue(LoadBalancer.builder().targetGroupArn(targetGroupArn).containerPort(1338).build(), Map.class)
     Map<String, Object> targetHealthMap = mapper.convertValue(
       TargetHealthDescription.builder().target(TargetDescription.builder().id(CommonCachingAgent.EC2_INSTANCE_ID_1).port(1338).build()).targetHealth(TargetHealth.builder().state(TargetHealthStateEnum.HEALTHY).build()).build(), Map.class)
@@ -101,7 +102,7 @@ class TaskHealthCachingAgentSpec extends Specification {
 
   def 'should get a list of task health'() {
     given:
-    ObjectMapper mapper = new ObjectMapper().registerModule(new AwsSdkV2Module())
+    ObjectMapper mapper = JsonMapper.builder().addModule(new AwsSdkV2Module()).build()
     Map<String, Object> containerMap = mapper.convertValue(Container.builder().networkBindings(NetworkBinding.builder().containerPort(1338).hostPort(1338).build()).build(), Map.class)
     def taskAttributes = [
       taskId               : CommonCachingAgent.TASK_ID_1,
@@ -143,7 +144,7 @@ class TaskHealthCachingAgentSpec extends Specification {
 
   def 'should get a list of task health with host port mapping of 0'() {
     given:
-    ObjectMapper mapper = new ObjectMapper().registerModule(new AwsSdkV2Module())
+    ObjectMapper mapper = JsonMapper.builder().addModule(new AwsSdkV2Module()).build()
     Map<String, Object> containerMap = mapper.convertValue(
       Container.builder().networkBindings(
         NetworkBinding.builder().containerPort(1338).hostPort(1338).build()).build(), Map.class)
@@ -187,7 +188,7 @@ class TaskHealthCachingAgentSpec extends Specification {
 
   def 'should get a list of task health for tasks with multiple network bindings'() {
     given:
-    ObjectMapper mapper = new ObjectMapper().registerModule(new AwsSdkV2Module())
+    ObjectMapper mapper = JsonMapper.builder().addModule(new AwsSdkV2Module()).build()
     Map<String, Object> containerMap = mapper.convertValue(Container.builder().networkBindings(
       NetworkBinding.builder().containerPort(1337).hostPort(1337).build(),
       NetworkBinding.builder().containerPort(1338).hostPort(1338).build()
@@ -232,7 +233,7 @@ class TaskHealthCachingAgentSpec extends Specification {
 
   def 'should skip tasks with a non-cached container instance'() {
     given:
-    ObjectMapper mapper = new ObjectMapper().registerModule(new AwsSdkV2Module())
+    ObjectMapper mapper = JsonMapper.builder().addModule(new AwsSdkV2Module()).build()
     Map<String, Object> containerMap = mapper.convertValue(Container.builder().networkBindings(NetworkBinding.builder().containerPort(1337).hostPort(1337).build()).build(), Map.class)
     def taskAttributes = [
       taskId              : CommonCachingAgent.TASK_ID_1,
@@ -255,7 +256,7 @@ class TaskHealthCachingAgentSpec extends Specification {
 
   def 'should get a list of task health for aws-vpc mode'() {
     given:
-    ObjectMapper mapper = new ObjectMapper().registerModule(new AwsSdkV2Module())
+    ObjectMapper mapper = JsonMapper.builder().addModule(new AwsSdkV2Module()).build()
     Map<String, Object> containerMap = mapper.convertValue(Container.builder().networkInterfaces(
       NetworkInterface.builder().privateIpv4Address("192.168.0.100").build()).build(),
       Map.class)
@@ -297,7 +298,7 @@ class TaskHealthCachingAgentSpec extends Specification {
 
   def 'should skip tasks with a non-cached task definition and aws-vpc mode'() {
     given:
-    ObjectMapper mapper = new ObjectMapper().registerModule(new AwsSdkV2Module())
+    ObjectMapper mapper = JsonMapper.builder().addModule(new AwsSdkV2Module()).build()
     Map<String, Object> containerMap = mapper.convertValue(Container.builder().networkInterfaces(
             NetworkInterface.builder().privateIpv4Address("192.168.0.100").build()).build(),
             Map.class)
@@ -321,7 +322,7 @@ class TaskHealthCachingAgentSpec extends Specification {
 
   def 'should skip tasks with no networking'() {
     given:
-    ObjectMapper mapper = new ObjectMapper().registerModule(new AwsSdkV2Module())
+    ObjectMapper mapper = JsonMapper.builder().addModule(new AwsSdkV2Module()).build()
     Map<String, Object> containerMap = mapper.convertValue(Container.builder().build(), Map.class)
     def taskAttributes = [
       taskId               : CommonCachingAgent.TASK_ID_1,
@@ -351,7 +352,7 @@ class TaskHealthCachingAgentSpec extends Specification {
 
   def 'should skip tasks with null network bindings'() {
     given:
-    ObjectMapper mapper = new ObjectMapper().registerModule(new AwsSdkV2Module())
+    ObjectMapper mapper = JsonMapper.builder().addModule(new AwsSdkV2Module()).build()
     Map<String, Object> containerMap = [networkBindings: null]
     def taskAttributes = [
       taskId               : CommonCachingAgent.TASK_ID_1,
@@ -381,7 +382,7 @@ class TaskHealthCachingAgentSpec extends Specification {
 
   def 'should skip tasks with null network interfaces'() {
     given:
-    ObjectMapper mapper = new ObjectMapper().registerModule(new AwsSdkV2Module())
+    ObjectMapper mapper = JsonMapper.builder().addModule(new AwsSdkV2Module()).build()
     Map<String, Object> containerMap = [networkInterfaces: null]
     def taskAttributes = [
       taskId               : CommonCachingAgent.TASK_ID_1,
@@ -411,7 +412,7 @@ class TaskHealthCachingAgentSpec extends Specification {
 
   def 'should get task health for task with some non-networked containers'() {
     given:
-    ObjectMapper mapper = new ObjectMapper().registerModule(new AwsSdkV2Module())
+    ObjectMapper mapper = JsonMapper.builder().addModule(new AwsSdkV2Module()).build()
     Map<String, Object> containerMap1 = mapper.convertValue(Container.builder().name('noports').build(), Map.class)
     Map<String, Object> containerMap2 = mapper.convertValue(Container.builder().name('withports').networkBindings(
       NetworkBinding.builder().containerPort(1338).hostPort(1338).build()

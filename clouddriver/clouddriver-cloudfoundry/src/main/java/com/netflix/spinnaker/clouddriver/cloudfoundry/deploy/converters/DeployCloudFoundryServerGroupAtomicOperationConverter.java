@@ -20,10 +20,6 @@ import static io.vavr.API.*;
 import static java.util.stream.Collectors.toList;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.google.common.collect.Lists;
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
@@ -51,6 +47,10 @@ import javax.annotation.Nullable;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.json.JsonMapper;
 
 @CloudFoundryOperation(AtomicOperations.CREATE_SERVER_GROUP)
 @Component
@@ -179,9 +179,10 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter
   DeployCloudFoundryServerGroupDescription.ApplicationAttributes convertManifest(
       Map<Object, Object> manifestMap) {
     List<CloudFoundryManifest> manifestApps =
-        new ObjectMapper()
-            .setPropertyNamingStrategy(PropertyNamingStrategies.KEBAB_CASE)
+        JsonMapper.builder()
+            .propertyNamingStrategy(PropertyNamingStrategies.KEBAB_CASE)
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .build()
             .convertValue(manifestMap.get("applications"), new TypeReference<>() {});
 
     return manifestApps.stream()

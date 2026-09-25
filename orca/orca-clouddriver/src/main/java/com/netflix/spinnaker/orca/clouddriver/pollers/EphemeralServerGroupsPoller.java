@@ -19,7 +19,6 @@ package com.netflix.spinnaker.orca.clouddriver.pollers;
 import static com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.EphemeralServerGroupEntityTagGenerator.TTL_TAG;
 import static java.lang.String.format;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spectator.api.Counter;
 import com.netflix.spectator.api.Id;
@@ -52,6 +51,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
 @Slf4j
 @Component

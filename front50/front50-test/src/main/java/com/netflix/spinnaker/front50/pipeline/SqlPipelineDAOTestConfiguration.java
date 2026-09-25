@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.front50.pipeline;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.config.Front50SqlProperties;
 import com.netflix.spinnaker.front50.config.StorageServiceConfigurationProperties;
@@ -31,6 +30,7 @@ import io.reactivex.rxjava3.core.Scheduler;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.time.Clock;
 import java.util.concurrent.Executors;
+import tools.jackson.databind.json.JsonMapper;
 
 public class SqlPipelineDAOTestConfiguration {
 
@@ -42,7 +42,7 @@ public class SqlPipelineDAOTestConfiguration {
 
     SqlStorageService storageService =
         new SqlStorageService(
-            new ObjectMapper(),
+            JsonMapper.builder().build(),
             new NoopRegistry(),
             database.context,
             Clock.systemDefaultZone(),

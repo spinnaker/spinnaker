@@ -2,8 +2,6 @@ package com.netflix.spinnaker.orca.clouddriver.model;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.netflix.spinnaker.moniker.Moniker;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.RollbackServerGroupStage;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup;
@@ -12,6 +10,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.Builder;
 import lombok.Data;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Data

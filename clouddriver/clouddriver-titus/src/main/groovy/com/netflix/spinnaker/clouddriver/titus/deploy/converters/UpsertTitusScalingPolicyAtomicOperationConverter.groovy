@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.titus.deploy.converters
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
@@ -46,8 +46,7 @@ class UpsertTitusScalingPolicyAtomicOperationConverter extends AbstractAtomicOpe
 
   @Override
   UpsertTitusScalingPolicyDescription convertDescription(Map input) {
-    UpsertTitusScalingPolicyDescription converted = objectMapper.copy()
-      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+    UpsertTitusScalingPolicyDescription converted = objectMapper.rebuild().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build()
       .convertValue(input, UpsertTitusScalingPolicyDescription)
     converted.credentials = getCredentialsObject(input.credentials as String)
 

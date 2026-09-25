@@ -29,7 +29,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
 import ch.qos.logback.classic.Level;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.clouddriver.Main;
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
@@ -53,6 +52,7 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.web.context.WebApplicationContext;
+import tools.jackson.databind.ObjectMapper;
 
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration

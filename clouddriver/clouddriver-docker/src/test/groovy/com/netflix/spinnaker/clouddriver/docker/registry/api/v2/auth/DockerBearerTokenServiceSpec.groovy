@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.docker.registry.api.v2.auth
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.DefaultServiceClientProvider
 import com.netflix.spinnaker.config.okhttp3.DefaultOkHttpClientBuilderProvider
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider

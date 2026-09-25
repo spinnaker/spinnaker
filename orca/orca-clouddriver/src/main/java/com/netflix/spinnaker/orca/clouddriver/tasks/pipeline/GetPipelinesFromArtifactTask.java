@@ -16,8 +16,6 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.pipeline;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
@@ -42,6 +40,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 @ConditionalOnProperty("front50.enabled")
@@ -97,7 +98,7 @@ public class GetPipelinesFromArtifactTask implements Task {
     try {
       pipelinesFromArtifact =
           objectMapper.readValue(pipelinesText, new TypeReference<Map<String, List<Map>>>() {});
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       log.warn("Failure parsing pipelines from {}", pipelinesArtifact, e);
       throw new IllegalStateException(e); // forces a retry
     }

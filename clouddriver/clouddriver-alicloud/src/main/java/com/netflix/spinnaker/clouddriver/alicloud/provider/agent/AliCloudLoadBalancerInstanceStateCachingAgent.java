@@ -24,7 +24,7 @@ import com.aliyuncs.exceptions.ClientException;
 import com.aliyuncs.exceptions.ServerException;
 import com.aliyuncs.slb.model.v20140515.DescribeHealthStatusRequest;
 import com.aliyuncs.slb.model.v20140515.DescribeHealthStatusResponse;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.agent.CachingAgent;

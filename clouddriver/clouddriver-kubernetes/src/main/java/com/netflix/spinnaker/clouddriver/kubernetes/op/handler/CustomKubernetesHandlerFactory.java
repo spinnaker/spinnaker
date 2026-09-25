@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.op.handler;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.CustomKubernetesCachingAgentFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.Front50ApplicationLoader;
@@ -33,6 +32,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.model.Manifest.Status;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import javax.annotation.Nonnull;
 import org.springframework.lang.Nullable;
+import tools.jackson.databind.ObjectMapper;
 
 public class CustomKubernetesHandlerFactory {
   public static KubernetesHandler create(

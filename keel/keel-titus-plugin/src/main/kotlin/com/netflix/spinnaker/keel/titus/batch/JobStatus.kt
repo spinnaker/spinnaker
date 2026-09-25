@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.titus.batch
 
-import com.fasterxml.jackson.module.kotlin.convertValue
+import tools.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.keel.orca.ExecutionDetailResponse
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 

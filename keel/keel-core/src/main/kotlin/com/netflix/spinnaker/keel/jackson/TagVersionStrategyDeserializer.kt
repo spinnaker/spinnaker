@@ -1,8 +1,8 @@
 package com.netflix.spinnaker.keel.jackson
 
-import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.databind.DeserializationContext
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer
+import tools.jackson.core.JsonParser
+import tools.jackson.databind.DeserializationContext
+import tools.jackson.databind.deser.std.StdDeserializer
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy
 
 internal object TagVersionStrategyDeserializer : StdDeserializer<TagVersionStrategy>(TagVersionStrategy::class.java) {
@@ -10,7 +10,7 @@ internal object TagVersionStrategyDeserializer : StdDeserializer<TagVersionStrat
     val value = p.text
     return TagVersionStrategy
       .values()
-      .find { it.friendlyName == value }
+      .find { it.friendlyName == value || it.name == value }
       ?: throw ctxt.weirdStringException(value, TagVersionStrategy::class.java, "not one of the values accepted for Enum class: %s")
   }
 }

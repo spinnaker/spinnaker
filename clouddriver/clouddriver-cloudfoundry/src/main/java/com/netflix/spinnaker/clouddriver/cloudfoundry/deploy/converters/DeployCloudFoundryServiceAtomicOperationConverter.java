@@ -17,12 +17,6 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.converters;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.*;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryOperation;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
@@ -34,7 +28,6 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCrede
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import com.netflix.spinnaker.kork.yaml.YamlHelper;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -44,16 +37,27 @@ import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
+import org.snakeyaml.engine.v2.api.LoadSettings;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.JsonToken;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.*;
+import tools.jackson.databind.DatabindException;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 @CloudFoundryOperation(AtomicOperations.DEPLOY_SERVICE)
 @Component
 public class DeployCloudFoundryServiceAtomicOperationConverter
     extends AbstractCloudFoundryAtomicOperationConverter {
   private static final ObjectMapper objectMapper =
-      new ObjectMapper()
-          .setPropertyNamingStrategy(PropertyNamingStrategies.KebabCaseStrategy.INSTANCE)
-          .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+      YAMLMapper.builder()
+          .propertyNamingStrategy(PropertyNamingStrategies.KEBAB_CASE)
+          .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+          .build();
 
   private final Pattern r = Pattern.compile(".*?-v(\\d+)");
 
@@ -256,18 +260,26 @@ public class DeployCloudFoundryServiceAtomicOperationConverter
   }
 
   public static class OptionallySerializedMapDeserializer
-      extends JsonDeserializer<Map<String, Object>> {
+      extends ValueDeserializer<Map<String, Object>> {
 
     private final TypeReference<Map<String, Object>> mapTypeReference =
         new TypeReference<Map<String, Object>>() {};
 
     private final ObjectMapper yamlObjectMapper =
-        new ObjectMapper(
-            YAMLFactory.builder().loaderOptions(YamlHelper.getLoaderOptions()).build());
+        YAMLMapper.builder(
+                YAMLFactory.builder()
+                    .loadSettings(
+                        LoadSettings.builder()
+                            .setMaxAliasesForCollections(
+                                YamlHelper.getLoaderOptions().getMaxAliasesForCollections())
+                            .setCodePointLimit(YamlHelper.getLoaderOptions().getCodePointLimit())
+                            .build())
+                    .build())
+            .build();
 
     @Override
     public Map<String, Object> deserialize(JsonParser parser, DeserializationContext context)
-        throws IOException {
+        throws JacksonException {
       JsonToken currentToken = parser.currentToken();
 
       Map<String, Object> deserializedMap = null;
@@ -279,11 +291,7 @@ public class DeployCloudFoundryServiceAtomicOperationConverter
         String serizalizedMap = parser.getValueAsString();
         if (StringUtils.isNotBlank(serizalizedMap)) {
           deserializedMap =
-              deserializeWithMappers(
-                  serizalizedMap,
-                  mapTypeReference,
-                  yamlObjectMapper,
-                  (ObjectMapper) parser.getCodec());
+              deserializeWithMappers(serizalizedMap, mapTypeReference, yamlObjectMapper);
         }
       }
 
@@ -294,19 +302,20 @@ public class DeployCloudFoundryServiceAtomicOperationConverter
      * Deserialize a String trying with multiple {@link ObjectMapper}.
      *
      * @return The value returned by the first mapper successfully deserializing the input.
-     * @throws IOException When all ObjectMappers fail to deserialize the input.
+     * @throws JacksonException When all ObjectMappers fail to deserialize the input.
      */
     private <T> T deserializeWithMappers(
         String serialized, TypeReference<T> typeReference, ObjectMapper... mappers)
-        throws IOException {
+        throws JacksonException {
 
-      IOException deserializationFailed =
-          new IOException("Could not deserialize value using the provided objectMappers");
+      JacksonException deserializationFailed =
+          DatabindException.from(
+              (JsonParser) null, "Could not deserialize value using the provided objectMappers");
 
       for (ObjectMapper mapper : mappers) {
         try {
           return mapper.readValue(serialized, typeReference);
-        } catch (IOException e) {
+        } catch (JacksonException e) {
           deserializationFailed.addSuppressed(e);
         }
       }

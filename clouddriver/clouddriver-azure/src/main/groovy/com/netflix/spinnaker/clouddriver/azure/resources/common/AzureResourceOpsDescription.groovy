@@ -16,13 +16,15 @@
 
 package com.netflix.spinnaker.clouddriver.azure.resources.common
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.MapperFeature
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials
 import com.netflix.spinnaker.orchestration.OperationDescription
+import tools.jackson.databind.json.JsonMapper
 
 class AzureResourceOpsDescription  implements OperationDescription {
-  static ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+  static ObjectMapper mapper = JsonMapper.builder().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY).disable(MapperFeature.SORT_CREATOR_PROPERTIES_FIRST).build()
 
   String name
   String cloudProvider

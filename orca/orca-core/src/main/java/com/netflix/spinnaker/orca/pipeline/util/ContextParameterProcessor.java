@@ -21,8 +21,6 @@ import static java.util.Collections.EMPTY_MAP;
 import static java.util.Collections.emptyList;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.netflix.spinnaker.kork.api.expressions.ExpressionFunctionProvider;
@@ -43,6 +41,8 @@ import org.pf4j.DefaultPluginManager;
 import org.pf4j.PluginManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Common methods for dealing with passing context parameters used by both Script and Jenkins stages

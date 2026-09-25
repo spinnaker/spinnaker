@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.rosco.providers.util;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
@@ -26,11 +25,13 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class PackerArtifactService {
 
   private Path tempDir = Paths.get(System.getProperty("java.io.tmpdir"));
-  private ObjectMapper objectMapper = new ObjectMapper();
+  private ObjectMapper objectMapper = JsonMapper.builder().build();
 
   public PackerArtifactService() throws IOException {
     if (!Files.isDirectory(tempDir)) {

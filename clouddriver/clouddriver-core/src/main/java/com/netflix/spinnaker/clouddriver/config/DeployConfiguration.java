@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.data.task.InMemoryTaskRepository;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
@@ -47,6 +46,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import tools.jackson.databind.ObjectMapper;
 
 @Configuration
 @ComponentScan("com.netflix.spinnaker.clouddriver.orchestration.sagas")

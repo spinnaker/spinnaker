@@ -19,10 +19,10 @@ package com.netflix.spinnaker.orca.clouddriver.model;
 import static com.netflix.spinnaker.orca.TestUtils.getResource;
 import static org.assertj.core.api.Java6Assertions.assertThat;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import java.io.IOException;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
 
 final class TaskOwnerTest {
   private static final ObjectMapper objectMapper = OrcaObjectMapper.newInstance();

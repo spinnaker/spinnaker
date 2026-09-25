@@ -1,11 +1,12 @@
 package com.netflix.spinnaker.keel.titus.jackson
 
-import com.fasterxml.jackson.module.kotlin.readValue
+import tools.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.clouddriver.model.CustomizedMetricSpecificationModel
 import com.netflix.spinnaker.keel.clouddriver.model.TargetPolicyDescriptor
 import com.netflix.spinnaker.keel.clouddriver.model.TitusActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.TitusScaling
-import com.netflix.spinnaker.keel.jackson.KeelApiModule
+import com.netflix.spinnaker.keel.jackson.registerKeelApiModule
+import com.netflix.spinnaker.keel.titus.jackson.registerKeelTitusApiModule
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import org.junit.jupiter.api.Test
 import strikt.api.expectCatching
@@ -17,8 +18,8 @@ import strikt.assertions.isSuccess
 class TitusActiveServerGroupDeserializationTests {
 
   val mapper = configuredObjectMapper()
-    .registerModule(KeelApiModule)
-    .registerModule(KeelTitusApiModule)
+    .registerKeelApiModule()
+    .registerKeelTitusApiModule()
 
   @Test
   fun `can deserialize a server group with a scaling policy`() {
@@ -56,7 +57,7 @@ class TitusActiveServerGroupDeserializationTests {
   }
 
   private inline fun <reified T> readResource(path: String) =
-    mapper.readValue<T>(resource(path))
+    resource(path).openStream().use { mapper.readValue<T>(it) }
 
   private fun resource(path: String) = checkNotNull(javaClass.getResource(path)) {
     "Resource $path not found"

@@ -17,8 +17,6 @@
 
 package com.netflix.kayenta.config;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
@@ -34,6 +32,9 @@ import okhttp3.mockwebserver.RecordedRequest;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Spring Test Config for the SignalFx integration tests.
@@ -90,7 +91,7 @@ public class SignalFxMockServiceReportingConfig {
   }
 
   private static final class SignalFlowDispatcher extends Dispatcher {
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = JsonMapper.builder().build();
 
     @NotNull
     @Override
@@ -166,7 +167,7 @@ public class SignalFxMockServiceReportingConfig {
       String json;
       try {
         json = objectMapper.writeValueAsString(payload);
-      } catch (JsonProcessingException e) {
+      } catch (JacksonException e) {
         throw new IllegalStateException("Failed to serialize mock SignalFlow payload", e);
       }
       sb.append("event: ").append(eventName).append('\n');

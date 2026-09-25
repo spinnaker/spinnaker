@@ -1,12 +1,12 @@
 package com.netflix.spinnaker.clouddriver.security;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationConverter;
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationFeature;
 
 public abstract class AbstractAtomicOperationsCredentialsSupport
     implements AtomicOperationConverter {
@@ -21,8 +21,10 @@ public abstract class AbstractAtomicOperationsCredentialsSupport
     //  than modifying a singleton, global object mapper after injecting it somewhere.
     this.objectMapper =
         objectMapper
-            .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            .rebuild()
+            .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .build();
   }
 
   public <T extends AccountCredentials> T getCredentialsObject(final String name) {

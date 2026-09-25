@@ -24,8 +24,8 @@ import org.springframework.context.ApplicationEventPublisher
 
 import javax.annotation.Nonnull
 import java.time.Clock
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.test.TestConfiguration
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
@@ -36,7 +36,7 @@ import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPEL
 
 class PipelineExecutionLauncherSpec extends Specification {
 
-  @Shared def objectMapper = new ObjectMapper()
+  @Shared def objectMapper = OrcaObjectMapper.newInstance()
   def executionRunner = Mock(ExecutionRunner)
   def executionRepository = Mock(ExecutionRepository)
   def pipelineValidator = Stub(PipelineValidator)

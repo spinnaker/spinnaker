@@ -15,8 +15,8 @@
  */
 package com.netflix.spinnaker.orca.sql.pipeline.persistence
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.KotlinModule
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.module.kotlin.KotlinModule
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.config.ExecutionCompressionProperties
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
@@ -58,10 +58,9 @@ import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 abstract class SqlPipelineExecutionRepositorySpec extends PipelineExecutionRepositoryTck<ExecutionRepository> {
 
   @Shared
-  ObjectMapper mapper = OrcaObjectMapper.newInstance().with {
-    registerModule(new KotlinModule.Builder().build())
-    it
-  }
+  ObjectMapper mapper = OrcaObjectMapper.newInstance().rebuild()
+    .addModule(new KotlinModule.Builder().build())
+    .build()
 
   def ulid = new ULID()
 

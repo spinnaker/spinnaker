@@ -192,7 +192,7 @@ class DeleteGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
     def patchRequest = transport.findPatchTo(expectedPath).orElseThrow()
     patchRequest.method() == "PATCH"
     new URI(patchRequest.url()).path == expectedPath
-    def body = new com.fasterxml.jackson.databind.ObjectMapper().readTree(patchRequest.body())
+    def body = new tools.jackson.databind.ObjectMapper().readTree(patchRequest.body())
     body.path("autoHealingPolicies").isArray()
     body.path("autoHealingPolicies").size() == 1
     body.path("autoHealingPolicies").get(0).isObject()

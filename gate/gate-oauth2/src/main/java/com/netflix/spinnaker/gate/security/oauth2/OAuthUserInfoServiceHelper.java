@@ -18,8 +18,6 @@ package com.netflix.spinnaker.gate.security.oauth2;
 
 import static net.logstash.logback.argument.StructuredArguments.entries;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties;
 import com.netflix.spinnaker.gate.security.AllowedAccountsSupport;
@@ -49,6 +47,9 @@ import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * A helper class to handle common user loading logic for both OAuth2 and OIDC authentication. This
@@ -352,10 +353,10 @@ public class OAuthUserInfoServiceHelper {
   }
 
   private List<String> parseJsonRoles(String jsonString) {
-    ObjectMapper objectMapper = new ObjectMapper();
+    ObjectMapper objectMapper = JsonMapper.builder().build();
     try {
       return objectMapper.readValue(jsonString, List.class);
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       log.warn("Failed to parse JSON roles: {}", jsonString, e);
       return List.of();
     }

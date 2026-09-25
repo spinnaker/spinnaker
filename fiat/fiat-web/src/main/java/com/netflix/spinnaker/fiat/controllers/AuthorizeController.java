@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.fiat.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.fiat.config.FiatServerConfigurationProperties;
@@ -40,9 +39,11 @@ import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import tools.jackson.databind.ObjectMapper;
 
 @Slf4j
 @RestController
@@ -67,7 +68,7 @@ public class AuthorizeController {
       FiatServerConfigurationProperties configProps,
       ResourcePermissionProvider<Application> applicationResourcePermissionProvider,
       List<Resource> resources,
-      ObjectMapper objectMapper) {
+      @Qualifier("objectMapper") ObjectMapper objectMapper) {
     this.registry = registry;
     this.permissionsRepository = permissionsRepository;
     this.permissionsResolver = permissionsResolver;

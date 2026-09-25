@@ -16,7 +16,6 @@
  */
 package com.netflix.spinnaker.orca.webhook.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.crypto.StandardCrypto;
 import com.netflix.spinnaker.kork.crypto.StaticX509Identity;
 import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions;
@@ -53,7 +52,8 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.springframework.boot.task.SimpleAsyncTaskExecutorBuilder;
 import org.springframework.context.annotation.Bean;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 class MtlsConfigurationTestBase {
 
@@ -68,7 +68,7 @@ class MtlsConfigurationTestBase {
   static File clientIdentityCertPemFile;
 
   static MockWebServer mockWebServer;
-  static final ObjectMapper mapper = Jackson2ObjectMapperBuilder.json().build();
+  static final ObjectMapper mapper = JsonMapper.builder().build();
 
   static class TestConfigurationBase {
     @Bean

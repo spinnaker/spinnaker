@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.orca.front50.tasks
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.google.common.collect.ImmutableMap
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
@@ -28,6 +28,7 @@ import retrofit2.Response
 import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
+import tools.jackson.databind.json.JsonMapper
 
 class DeletePipelineTaskSpec extends Specification {
 
@@ -35,7 +36,7 @@ class DeletePipelineTaskSpec extends Specification {
 
   PipelineModelMutator mutator = Mock()
 
-  ObjectMapper objectMapper = new ObjectMapper()
+  ObjectMapper objectMapper = JsonMapper.builder().build()
 
   @Subject
   SavePipelineTask sTask = new SavePipelineTask(Optional.of(front50Service), Optional.of([mutator]), objectMapper)

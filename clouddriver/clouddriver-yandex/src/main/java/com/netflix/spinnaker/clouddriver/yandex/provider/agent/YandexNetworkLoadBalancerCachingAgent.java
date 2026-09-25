@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.yandex.provider.agent;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
@@ -46,6 +44,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 @Getter
 public class YandexNetworkLoadBalancerCachingAgent
@@ -122,7 +122,7 @@ public class YandexNetworkLoadBalancerCachingAgent
   private String asString(CacheResult result) {
     try {
       return getObjectMapper().writeValueAsString(result.getCacheResults());
-    } catch (JsonProcessingException ignored) {
+    } catch (JacksonException ignored) {
       return null;
     }
   }

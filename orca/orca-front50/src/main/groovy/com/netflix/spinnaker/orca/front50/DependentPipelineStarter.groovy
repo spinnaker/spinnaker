@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.front50
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.artifacts.model.Artifact

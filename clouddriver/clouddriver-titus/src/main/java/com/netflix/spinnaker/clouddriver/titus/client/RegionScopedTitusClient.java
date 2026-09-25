@@ -19,7 +19,6 @@ package com.netflix.spinnaker.clouddriver.titus.client;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.Empty;
 import com.netflix.frigga.Names;
 import com.netflix.spectator.api.Registry;
@@ -69,6 +68,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tools.jackson.databind.ObjectMapper;
 
 public class RegionScopedTitusClient implements TitusClient {
 

@@ -16,15 +16,17 @@
 
 package com.netflix.spinnaker.orca.validation
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.MapperFeature
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+import tools.jackson.databind.json.JsonMapper
 
 class StageValidatorSpec extends Specification {
-  def objectMapper = new ObjectMapper()
+  def objectMapper = JsonMapper.builder().build().rebuild().enable(MapperFeature.DEFAULT_VIEW_INCLUSION).build()
 
   @Subject
   def stageValidator = new StageValidator(objectMapper)

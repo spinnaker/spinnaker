@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.igor.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.igor.polling.LockService;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
@@ -29,6 +28,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import tools.jackson.databind.ObjectMapper;
 
 @Configuration
 @ConditionalOnProperty("locking.enabled")

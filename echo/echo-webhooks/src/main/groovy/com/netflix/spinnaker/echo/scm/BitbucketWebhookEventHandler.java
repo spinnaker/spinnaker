@@ -19,7 +19,6 @@ package com.netflix.spinnaker.echo.scm;
 import static net.logstash.logback.argument.StructuredArguments.kv;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.echo.api.events.Event;
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
 import com.netflix.spinnaker.echo.scm.bitbucket.server.BitbucketServerEventHandler;
@@ -30,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 @Slf4j

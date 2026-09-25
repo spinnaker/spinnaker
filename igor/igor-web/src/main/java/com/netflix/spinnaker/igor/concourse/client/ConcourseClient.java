@@ -16,15 +16,12 @@
 
 package com.netflix.spinnaker.igor.concourse.client;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.igor.concourse.client.model.ClusterInfo;
 import com.netflix.spinnaker.igor.concourse.client.model.Token;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
 import com.vdurmont.semver4j.Semver;
 import java.io.IOException;
@@ -36,7 +33,10 @@ import okhttp3.Request;
 import okhttp3.ResponseBody;
 import retrofit2.Response;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.json.JsonMapper;
 
 public class ConcourseClient {
   private final String host;
@@ -50,7 +50,7 @@ public class ConcourseClient {
   private final TokenService tokenServiceV1;
   private final TokenServiceV2 tokenServiceV2;
   private final TokenServiceV3 tokenServiceV3;
-  private final JacksonConverterFactory jacksonConverterFactory;
+  private final CustomConverterFactory converterFactory;
 
   @Getter private ClusterInfoService clusterInfoService;
 
@@ -92,10 +92,10 @@ public class ConcourseClient {
     this.okHttpClientConfig = okHttpClientConfig;
 
     ObjectMapper mapper =
-        new ObjectMapper()
-            .setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
+        JsonMapper.builder()
+            .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-            .registerModule(new JavaTimeModule());
+            .build();
 
     OkHttpClient tokenClient =
         OkHttpClientBuilder.retryingClient3(okHttpClientConfig, this::refreshToken)
@@ -111,13 +111,13 @@ public class ConcourseClient {
                 })
             .build();
 
-    this.jacksonConverterFactory = JacksonConverterFactory.create(mapper);
+    this.converterFactory = CustomConverterFactory.create(mapper);
 
     Retrofit.Builder tokenRestBuilder =
         new Retrofit.Builder()
             .baseUrl(RetrofitUtils.getBaseUrl(host))
             .client(tokenClient)
-            .addConverterFactory(jacksonConverterFactory)
+            .addConverterFactory(converterFactory)
             .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance());
 
     this.clusterInfoService =
@@ -125,7 +125,7 @@ public class ConcourseClient {
             .baseUrl(RetrofitUtils.getBaseUrl(host))
             .client(
                 OkHttpClientBuilder.retryingClient3(okHttpClientConfig, this::refreshToken).build())
-            .addConverterFactory(jacksonConverterFactory)
+            .addConverterFactory(converterFactory)
             .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
             .build()
             .create(ClusterInfoService.class);
@@ -211,7 +211,7 @@ public class ConcourseClient {
     return new Retrofit.Builder()
         .baseUrl(RetrofitUtils.getBaseUrl(host))
         .client(okHttpClient)
-        .addConverterFactory(jacksonConverterFactory)
+        .addConverterFactory(converterFactory)
         .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
         .build()
         .create(serviceClass);

@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesAccountProperties;
@@ -34,11 +33,13 @@ import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.lang.Nullable;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class KubernetesUnregisteredCustomResourceCachingAgentTest {
 
   private static final String ACCOUNT = "my-account";
-  private static final ObjectMapper objectMapper = new ObjectMapper();
+  private static final ObjectMapper objectMapper = JsonMapper.builder().build();
   private static final String CRD_NAME = "myCustomKind.my.group";
 
   /**

@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.sql
 
-import com.fasterxml.jackson.databind.jsontype.NamedType
+import tools.jackson.databind.jsontype.NamedType
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
@@ -13,13 +13,19 @@ import com.netflix.spinnaker.keel.test.resourceFactory
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
-import org.junit.jupiter.api.BeforeAll
 import org.springframework.context.ApplicationEventPublisher
 import java.time.Clock
 
 internal object SqlDeliveryConfigRepositoryTests : DeliveryConfigRepositoryTests<SqlDeliveryConfigRepository, SqlResourceRepository, SqlArtifactRepository, SqlPausedRepository>() {
   private val jooq = testDatabase.context
   private val objectMapper = configuredTestObjectMapper()
+    .rebuild()
+    .registerSubtypes(
+      NamedType(DependsOnConstraint::class.java, "depends-on"),
+      NamedType(ManualJudgementConstraint::class.java, "manual-judgement"),
+      NamedType(DummyVerification::class.java, "verification")
+    )
+    .build()
   private val retryProperties = RetryProperties(1, 0)
   private val sqlRetry = SqlRetry(SqlRetryProperties(retryProperties, retryProperties))
 
@@ -40,13 +46,4 @@ internal object SqlDeliveryConfigRepositoryTests : DeliveryConfigRepositoryTests
     cleanupDb(jooq)
   }
 
-  @JvmStatic
-  @BeforeAll
-  fun registerConstraintSubtypes() {
-    with(objectMapper) {
-      registerSubtypes(NamedType(DependsOnConstraint::class.java, "depends-on"))
-      registerSubtypes(NamedType(ManualJudgementConstraint::class.java, "manual-judgement"))
-      registerSubtypes(NamedType(DummyVerification::class.java, "verification"))
-    }
-  }
 }

@@ -25,7 +25,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Trigger;
@@ -38,6 +37,8 @@ import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class AbstractOCIRegistryEventHandlerTest {
 
@@ -51,7 +52,7 @@ public class AbstractOCIRegistryEventHandlerTest {
   @BeforeEach
   public void setUp() {
     registry = new NoopRegistry();
-    objectMapper = new ObjectMapper();
+    objectMapper = JsonMapper.builder().build();
     fiatPermissionEvaluator = mock(FiatPermissionEvaluator.class);
     when(fiatPermissionEvaluator.hasPermission(anyString(), any(), any(), any())).thenReturn(true);
 

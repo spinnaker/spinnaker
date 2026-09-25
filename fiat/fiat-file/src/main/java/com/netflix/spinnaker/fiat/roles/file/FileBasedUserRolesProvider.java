@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.fiat.roles.file;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.permissions.ExternalUser;
 import com.netflix.spinnaker.fiat.roles.UserRolesProvider;
@@ -35,6 +33,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 @Slf4j
 @Component
@@ -48,7 +48,7 @@ public class FileBasedUserRolesProvider implements UserRolesProvider {
   }
 
   private Map<String, List<Role>> parse(Reader source) throws IOException {
-    ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+    ObjectMapper mapper = YAMLMapper.builder().build();
     return mapper.readValue(source, UserRolesMapping.class).toMap();
   }
 

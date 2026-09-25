@@ -15,13 +15,13 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.filters;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hubspot.jinjava.interpret.InterpretException;
 import com.hubspot.jinjava.interpret.JinjavaInterpreter;
 import com.hubspot.jinjava.lib.filter.Filter;
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateRenderException;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors.Error;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 public class JsonFilter implements Filter {
 
@@ -39,7 +39,7 @@ public class JsonFilter implements Filter {
 
     try {
       return objectMapper.writeValueAsString(var);
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw TemplateRenderException.fromError(
           new Error()
               .withMessage("failed converting object to json")

@@ -21,7 +21,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.kork.core.RetrySupport;
@@ -41,6 +40,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 final class ResolveDeploySourceManifestTaskTest {
 
@@ -60,7 +61,7 @@ final class ResolveDeploySourceManifestTaskTest {
 
   @BeforeEach
   public void setup() {
-    objectMapper = new ObjectMapper();
+    objectMapper = JsonMapper.builder().build();
     artifactUtils = new ArtifactUtils(objectMapper, executionRepository, contextParameterProcessor);
     manifestEvaluator =
         new ManifestEvaluator(

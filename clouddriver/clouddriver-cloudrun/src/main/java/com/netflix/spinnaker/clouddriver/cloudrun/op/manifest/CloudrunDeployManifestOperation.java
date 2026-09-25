@@ -17,10 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.cloudrun.op.manifest;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.netflix.spinnaker.clouddriver.cloudrun.CloudrunJobExecutor;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.CloudrunServerGroupNameResolver;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.exception.CloudrunOperationException;
@@ -43,7 +39,12 @@ import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.snakeyaml.engine.v2.api.LoadSettings;
 import org.springframework.beans.factory.annotation.Autowired;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 public class CloudrunDeployManifestOperation implements AtomicOperation<DeploymentResult> {
 
@@ -61,10 +62,19 @@ public class CloudrunDeployManifestOperation implements AtomicOperation<Deployme
 
   CloudrunDeployManifestDescription description;
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper = YAMLMapper.builder().build();
 
   private final ObjectMapper yamlMapper =
-      new ObjectMapper(YAMLFactory.builder().loaderOptions(YamlHelper.getLoaderOptions()).build());
+      YAMLMapper.builder(
+              YAMLFactory.builder()
+                  .loadSettings(
+                      LoadSettings.builder()
+                          .setMaxAliasesForCollections(
+                              YamlHelper.getLoaderOptions().getMaxAliasesForCollections())
+                          .setCodePointLimit(YamlHelper.getLoaderOptions().getCodePointLimit())
+                          .build())
+                  .build())
+          .build();
 
   private CloudrunYmlData ymlData = new CloudrunYmlData();
 
@@ -212,7 +222,7 @@ public class CloudrunDeployManifestOperation implements AtomicOperation<Deployme
                   }
                 }
                 return yamlMapper.writeValueAsString(ymlData);
-              } catch (JsonProcessingException e) {
+              } catch (JacksonException e) {
                 throw new RuntimeException(e);
               }
             })
@@ -239,7 +249,7 @@ public class CloudrunDeployManifestOperation implements AtomicOperation<Deployme
                   }
                 }
                 return yamlMapper.writeValueAsString(yamlObj);
-              } catch (JsonProcessingException e) {
+              } catch (JacksonException e) {
                 throw new RuntimeException(e);
               }
             })
@@ -304,15 +314,13 @@ public class CloudrunDeployManifestOperation implements AtomicOperation<Deployme
     }
   }
 
-  private void populateCloudrunYmlData(List<CloudrunService> configFiles)
-      throws JsonProcessingException {
+  private void populateCloudrunYmlData(List<CloudrunService> configFiles) throws JacksonException {
 
     for (CloudrunService configFile : configFiles) {
       CloudrunService yamlObj = configFile;
       if (yamlObj != null && yamlObj.getMetadata() != null && yamlObj.getSpec() != null) {
         ymlData.setKind(yamlObj.getKind());
         ymlData.setApiVersion(yamlObj.getApiVersion());
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         String metaDataJson = objectMapper.writeValueAsString(yamlObj.getMetadata());
         CloudrunMetaData cloudrunMetaData =
             objectMapper.readValue(metaDataJson, CloudrunMetaData.class);

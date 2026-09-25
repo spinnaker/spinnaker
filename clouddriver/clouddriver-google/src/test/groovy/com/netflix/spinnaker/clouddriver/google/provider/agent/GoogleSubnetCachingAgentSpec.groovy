@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.clouddriver.google.provider.agent
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Subnetwork
 import com.google.api.services.compute.model.SubnetworkList
@@ -11,6 +11,7 @@ import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import spock.lang.Specification
 import spock.lang.Subject
+import tools.jackson.databind.json.JsonMapper
 
 class GoogleSubnetCachingAgentSpec extends Specification {
   static final String PROJECT_NAME = "my-project"
@@ -33,7 +34,7 @@ class GoogleSubnetCachingAgentSpec extends Specification {
     def ProviderCache providerCache = Mock(ProviderCache)
     @Subject GoogleSubnetCachingAgent agent = new GoogleSubnetCachingAgent("testApplicationName",
       credentials,
-      new ObjectMapper(),
+      JsonMapper.builder().build(),
       registry,REGION)
 
     when:
@@ -69,7 +70,7 @@ class GoogleSubnetCachingAgentSpec extends Specification {
     def ProviderCache providerCache = Mock(ProviderCache)
     @Subject GoogleSubnetCachingAgent agent = new GoogleSubnetCachingAgent("testApplicationName",
       credentials,
-      new ObjectMapper(),
+      JsonMapper.builder().build(),
       registry, REGION)
 
     when:

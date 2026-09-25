@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.cats.sql.cache
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.CacheFilter
 import com.netflix.spinnaker.cats.cache.DefaultJsonCacheData
@@ -47,6 +46,7 @@ import org.jooq.impl.DSL.table
 import org.jooq.util.mysql.MySQLDSL
 import org.slf4j.LoggerFactory
 import org.springframework.jdbc.BadSqlGrammarException
+import tools.jackson.databind.ObjectMapper
 
 @ExperimentalContracts
 class SqlCache(

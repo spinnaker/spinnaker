@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.converters
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import com.netflix.spinnaker.clouddriver.aws.deploy.converters.ModifyAsgAtomicOperationConverter
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
@@ -30,7 +31,7 @@ class ModifyAsgAtomicOperationConverterUnitSpec extends Specification {
   ModifyAsgAtomicOperationConverter converter
 
   @Shared
-  ObjectMapper mapper = new ObjectMapper()
+  ObjectMapper mapper = JsonMapper.builder().build()
 
   void setupSpec() {
     def accountCredentialsProvider = Stub(AccountCredentialsProvider) {

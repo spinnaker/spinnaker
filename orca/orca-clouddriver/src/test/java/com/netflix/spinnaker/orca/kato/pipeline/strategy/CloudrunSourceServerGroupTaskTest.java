@@ -20,8 +20,6 @@ package com.netflix.spinnaker.orca.kato.pipeline.strategy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import com.netflix.spinnaker.kork.yaml.YamlParserProperties;
 import com.netflix.spinnaker.orca.kato.pipeline.support.SourceResolver;
@@ -34,6 +32,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @ExtendWith(MockitoExtension.class)
 final class CloudrunSourceServerGroupTaskTest {
@@ -43,7 +44,11 @@ final class CloudrunSourceServerGroupTaskTest {
   @Mock private SourceResolver sourceResolver;
 
   private ObjectMapper mapper =
-      new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+      JsonMapper.builder()
+          .build()
+          .rebuild()
+          .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+          .build();
 
   @BeforeEach
   void setUp() {

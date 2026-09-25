@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.gate.mcp.resources;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.gate.mcp.support.ManualJudgments;
 import com.netflix.spinnaker.gate.services.internal.Front50Service;
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector;
@@ -26,6 +24,8 @@ import java.util.List;
 import java.util.Map;
 import org.springaicommunity.mcp.annotation.McpArg;
 import org.springaicommunity.mcp.annotation.McpResource;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Read-only MCP resources exposing application, execution, and manual-judgment state for
@@ -107,7 +107,7 @@ public class SpinnakerResources {
   private String writeValueAsString(Object value) {
     try {
       return objectMapper.writeValueAsString(value);
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new IllegalStateException("Failed to serialize MCP resource result", e);
     }
   }

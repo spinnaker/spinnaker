@@ -16,9 +16,10 @@
 
 package com.netflix.spinnaker.orca.q.migration
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.module.SimpleModule
-import com.fasterxml.jackson.module.kotlin.KotlinModule
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.databind.module.SimpleModule
+import tools.jackson.module.kotlin.KotlinModule
 import com.netflix.spinnaker.orca.TaskResolver
 import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
@@ -31,13 +32,13 @@ import org.jetbrains.spek.api.dsl.describe
 object TaskTypeDeserializerTest : Spek({
   val taskResolver = TaskResolver(TasksProvider(listOf(DummyTask())), false)
 
-  val objectMapper = ObjectMapper().apply {
-    registerModule(KotlinModule.Builder().build())
-    registerModule(
-      SimpleModule()
-        .addDeserializer(Class::class.java, TaskTypeDeserializer(taskResolver))
-    )
-  }
+   val objectMapper = JsonMapper.builder()
+     .addModule(KotlinModule.Builder().build())
+     .addModule(
+       SimpleModule()
+         .addDeserializer(Class::class.java, TaskTypeDeserializer(taskResolver))
+     )
+     .build()
 
   describe("when 'taskType' is deserialized") {
     val canonicalJson =

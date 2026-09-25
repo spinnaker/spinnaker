@@ -16,18 +16,17 @@
 
 package com.netflix.spinnaker.orca.pipelinetemplate.loader;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateLoaderException;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.net.URI;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 public class FileTemplateSchemeLoader implements TemplateSchemeLoader {
@@ -39,10 +38,7 @@ public class FileTemplateSchemeLoader implements TemplateSchemeLoader {
       ObjectMapper pipelineTemplateObjectMapper, YamlHelper yamlHelper) {
     this.jsonObjectMapper = pipelineTemplateObjectMapper;
 
-    this.yamlObjectMapper =
-        new ObjectMapper(YAMLFactory.builder().loaderOptions(yamlHelper.loaderOptions()).build())
-            .setConfig(jsonObjectMapper.getSerializationConfig())
-            .setConfig(jsonObjectMapper.getDeserializationConfig());
+    this.yamlObjectMapper = YamlObjectMapperFactory.create(jsonObjectMapper, yamlHelper);
   }
 
   @Override
@@ -62,7 +58,7 @@ public class FileTemplateSchemeLoader implements TemplateSchemeLoader {
     try {
       ObjectMapper objectMapper = isJson(uri) ? jsonObjectMapper : yamlObjectMapper;
       return objectMapper.readValue(templateFile, new TypeReference<>() {});
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       throw new TemplateLoaderException(e);
     }
   }

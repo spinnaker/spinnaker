@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.gate.controllers
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.gate.services.BuildService
 import com.netflix.spinnaker.gate.services.internal.GoogleCloudBuildTrigger
 import com.netflix.spinnaker.gate.services.internal.IgorService
@@ -29,12 +29,13 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import retrofit2.Response
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 import retrofit2.mock.Calls
 import spock.lang.Shared
 import spock.lang.Specification
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import tools.jackson.databind.json.JsonMapper
 
 class GoogleCloudBuildControllerSpec extends Specification {
 
@@ -44,7 +45,7 @@ class GoogleCloudBuildControllerSpec extends Specification {
 
   def server = new MockWebServer()
 
-  @Shared def objectMapper = new ObjectMapper()
+  @Shared def objectMapper = JsonMapper.builder().build()
   @Shared def ACCOUNT = 'myAccount'
 
   void cleanup() {
@@ -114,7 +115,7 @@ class GoogleCloudBuildControllerSpec extends Specification {
     Retrofit retrofit =
       new Retrofit.Builder()
         .baseUrl(url)
-        .addConverterFactory(JacksonConverterFactory.create())
+        .addConverterFactory(CustomConverterFactory.create())
         .build();
 
     return new SpinnakerHttpException(retrofit2Response, retrofit);

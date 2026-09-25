@@ -17,10 +17,10 @@
 package com.netflix.spinnaker.rosco.providers.util;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import java.util.List;
 import lombok.Data;
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.annotation.JsonNaming;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)

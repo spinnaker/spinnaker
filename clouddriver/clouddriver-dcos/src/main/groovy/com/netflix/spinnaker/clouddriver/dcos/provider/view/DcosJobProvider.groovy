@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.dcos.provider.view
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.dcos.DcosClientProvider
 import com.netflix.spinnaker.clouddriver.dcos.DcosCloudProvider
 import com.netflix.spinnaker.clouddriver.dcos.deploy.util.id.DcosSpinnakerJobId

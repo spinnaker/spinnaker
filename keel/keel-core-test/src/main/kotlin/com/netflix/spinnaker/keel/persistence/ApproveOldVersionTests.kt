@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.persistence
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.jsontype.NamedType
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.jsontype.NamedType
 import com.netflix.spinnaker.config.ArtifactConfig
 import com.netflix.spinnaker.keel.actuation.EnvironmentConstraintRunner
 import com.netflix.spinnaker.keel.actuation.EnvironmentPromotionChecker
@@ -51,9 +51,10 @@ abstract class ApproveOldVersionTests<T : KeelRepository> : JUnit5Minutests {
     val repositoryProvider: (ResourceFactory, ObjectMapper) -> T
   ) {
 
-    val mapper: ObjectMapper = configuredTestObjectMapper().apply {
-      registerSubtypes(NamedType(ManualJudgementConstraint::class.java, "manual-judgement"))
-    }
+    val mapper: ObjectMapper = configuredTestObjectMapper()
+      .rebuild()
+      .registerSubtypes(NamedType(ManualJudgementConstraint::class.java, "manual-judgement"))
+      .build()
 
     private val resourceSpecIdentifier: ResourceSpecIdentifier =
       ResourceSpecIdentifier(

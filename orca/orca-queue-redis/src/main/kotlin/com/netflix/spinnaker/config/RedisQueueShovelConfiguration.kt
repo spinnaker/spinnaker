@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.config
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.jedis.JedisDriverProperties
@@ -47,6 +46,7 @@ import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisCluster
 import redis.clients.jedis.Protocol
 import redis.clients.jedis.util.Pool
+import tools.jackson.databind.ObjectMapper
 
 @Configuration
 @ConditionalOnProperty(value = ["queue.redis.enabled"], matchIfMissing = true)

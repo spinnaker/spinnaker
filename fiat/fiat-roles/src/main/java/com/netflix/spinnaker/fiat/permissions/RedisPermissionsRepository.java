@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.fiat.permissions;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig;
@@ -46,6 +44,8 @@ import net.jpountz.lz4.*;
 import redis.clients.jedis.*;
 import redis.clients.jedis.commands.JedisBinaryCommands;
 import redis.clients.jedis.util.SafeEncoder;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * This Redis-backed permission repository is structured in a way to optimized reading types of

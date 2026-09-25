@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.clouddriver.orchestration
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
 import com.netflix.spinnaker.clouddriver.deploy.DefaultDescriptionAuthorizer
@@ -30,6 +30,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+import tools.jackson.databind.json.JsonMapper
 
 class OperationsServiceSpec extends Specification {
 
@@ -48,7 +49,7 @@ class OperationsServiceSpec extends Specification {
     Mock(AccountCredentialsRepository),
     Optional.of(Mock(SagaRepository)),
     new NoopRegistry(),
-    new ObjectMapper(),
+    JsonMapper.builder().build(),
     exceptionMessageDecorator
   )
 
@@ -134,7 +135,7 @@ class OperationsServiceSpec extends Specification {
     }
 
     Provider2DeployDescription convertDescription(Map input) {
-      return new ObjectMapper().convertValue(input, Provider2DeployDescription)
+      return JsonMapper.builder().build().convertValue(input, Provider2DeployDescription)
     }
   }
 

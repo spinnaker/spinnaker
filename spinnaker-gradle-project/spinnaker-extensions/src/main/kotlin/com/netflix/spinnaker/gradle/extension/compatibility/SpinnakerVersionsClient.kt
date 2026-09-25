@@ -16,18 +16,21 @@
 
 package com.netflix.spinnaker.gradle.extension.compatibility
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
-import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.fasterxml.jackson.module.kotlin.readValue
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.dataformat.yaml.YAMLFactory
+import tools.jackson.module.kotlin.KotlinModule
+import tools.jackson.module.kotlin.readValue
 import java.lang.IllegalArgumentException
 import java.net.URL
+import tools.jackson.dataformat.yaml.YAMLMapper
 
 class DefaultSpinnakerVersionsClient(private val baseURL: String) : SpinnakerVersionsClient {
 
-  private val mapper = ObjectMapper(YAMLFactory()).registerKotlinModule().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+  private val mapper = YAMLMapper.builder(YAMLFactory())
+    .addModule(KotlinModule.Builder().build())
+    .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+    .build()
 
   override fun getSpinnakerBOM(version: String): SpinnakerBOM =
     URL("$baseURL/bom/$version.yml").openStream().use {

@@ -8,13 +8,14 @@
  */
 package com.netflix.spinnaker.clouddriver.oracle.deploy.converter
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.oracle.deploy.description.ResizeOracleServerGroupDescription
 import com.netflix.spinnaker.clouddriver.oracle.deploy.op.ResizeOracleServerGroupAtomicOperation
 import com.netflix.spinnaker.clouddriver.oracle.security.OracleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import spock.lang.Shared
 import spock.lang.Specification
+import tools.jackson.databind.json.JsonMapper
 
 class ResizeOracleServerGroupAtomicOperationConverterUnitSpec extends Specification {
 
@@ -25,7 +26,7 @@ class ResizeOracleServerGroupAtomicOperationConverterUnitSpec extends Specificat
   private static final ACCOUNT_NAME = "auto"
 
   @Shared
-  ObjectMapper mapper = new ObjectMapper()
+  ObjectMapper mapper = JsonMapper.builder().build()
 
   void "resizeOracleServerGroupDescription type returns ResizeOracleServerGroupDescription and ResizeOracleServerGroupAtomicOperation"() {
     setup:

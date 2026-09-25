@@ -1,7 +1,5 @@
 package com.netflix.spinnaker.q.sql
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
 import com.google.common.hash.Hashing
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.q.DeadMessageCallback
@@ -23,6 +21,9 @@ import org.jooq.exception.SQLDialectNotSupportedException
 import org.jooq.impl.DSL
 import org.jooq.util.mysql.MySQLDSL
 import org.slf4j.LoggerFactory
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.SerializationFeature
+import tools.jackson.databind.json.JsonMapper
 
 class SqlDeadMessageHandler(
   deadLetterQueueName: String,
@@ -35,9 +36,9 @@ class SqlDeadMessageHandler(
 
   companion object {
     @Suppress("UnstableApiUsage")
-    private val hashObjectMapper = ObjectMapper().copy().apply {
-      enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS)
-    }
+    private val hashObjectMapper = JsonMapper.builder()
+      .enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS)
+      .build()
 
     private val nameSanitization =
       """[^A-Za-z0-9_]""".toRegex()

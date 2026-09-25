@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.aws.provider.view;
 
 import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.STACKS;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter;
 import com.netflix.spinnaker.clouddriver.aws.cache.Keys;
@@ -31,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
 @Slf4j
 @Component

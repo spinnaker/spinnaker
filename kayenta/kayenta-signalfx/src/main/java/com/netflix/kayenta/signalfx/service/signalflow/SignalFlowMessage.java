@@ -15,11 +15,11 @@
  */
 package com.netflix.kayenta.signalfx.service.signalflow;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import lombok.Getter;
+import tools.jackson.databind.JsonNode;
 
 /**
  * Internal replacement for the {@code ChannelMessage} hierarchy from the archived

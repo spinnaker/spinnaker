@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.lemur
 
-import com.fasterxml.jackson.module.kotlin.readValue
+import tools.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import org.junit.jupiter.api.Test
 import strikt.api.expectCatching
@@ -21,7 +21,7 @@ class LemurCertificateTests {
   @Test
   fun `can parse a lemur certificate payload`() {
     expectCatching {
-      mapper.readValue<LemurCertificateResponse>(certificateJson)
+      mapper.readValue<LemurCertificateResponse>(certificateJson.readText())
     }
       .isSuccess()
       .and {

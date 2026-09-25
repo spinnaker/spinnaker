@@ -20,7 +20,6 @@ dependencies {
   implementation "io.spinnaker.fiat:fiat-api"
   implementation "io.spinnaker.fiat:fiat-core"
   implementation "com.squareup.retrofit2:retrofit"
-  implementation "com.squareup.retrofit2:converter-jackson"
   implementation "io.spinnaker.kork:kork-retrofit"
   implementation "io.spinnaker.kork:kork-web"
 
@@ -31,7 +30,7 @@ dependencies {
   implementation "io.spinnaker.kork:kork-expressions"
 
   implementation "org.springframework.boot:spring-boot-starter-web"
-  implementation "com.fasterxml.jackson.core:jackson-databind"
+  implementation "tools.jackson.core:jackson-databind"
   implementation "org.springframework:spring-context"
   implementation "com.netflix.spectator:spectator-api"
   implementation "org.apache.commons:commons-lang3"

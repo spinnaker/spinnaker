@@ -15,17 +15,15 @@
 
 package com.netflix.spinnaker.igor.concourse.service
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.netflix.spinnaker.igor.concourse.client.model.Plan
 import com.netflix.spinnaker.igor.concourse.client.model.Resource
 import java.util.List
 import spock.lang.Shared
 import spock.lang.Specification
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.PropertyNamingStrategies
+import tools.jackson.databind.json.JsonMapper
 
 import java.time.Instant
 
@@ -35,10 +33,10 @@ class PlanSpec extends Specification {
     ObjectMapper mapper
 
     void setup() {
-        mapper = new ObjectMapper()
-            .setPropertyNamingStrategy(PropertyNamingStrategies.SnakeCaseStrategy.INSTANCE)
+        mapper = JsonMapper.builder()
+            .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-            .registerModule(new JavaTimeModule());
+            .build()
 
     }
 
