@@ -1,0 +1,49 @@
+/*
+ * Copyright 2026 McIntosh.farm
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+apply plugin: 'java-library'
+apply from: "$rootDir/gradle/lombok.gradle"
+
+dependencies {
+  api(platform(project(':spinnaker-dependencies')))
+
+  implementation project(':kork-core')
+  implementation project(':kork-pubsub')
+
+  implementation 'org.springframework.boot:spring-boot-autoconfigure'
+  implementation 'jakarta.validation:jakarta.validation-api'
+
+  // spring-boot-starter-data-redis (not bare spring-data-redis) is required to pull in the
+  // Lettuce client - without it Spring's RedisAutoConfiguration can't build a
+  // RedisConnectionFactory/StringRedisTemplate. Matches clouddriver's cats-pubsub module, the only
+  // other place in this monorepo doing Redis Streams consumer-group work.
+  api 'org.springframework.boot:spring-boot-starter-data-redis'
+  // Broadcast (native Redis pub/sub) is built on Spring Integration's mature Redis channel
+  // adapters (RedisInboundChannelAdapter / RedisPublishingMessageHandler) rather than hand-rolled
+  // RedisMessageListenerContainer wiring - see package-level docs in .redis.broadcast for why this
+  // was NOT also adopted for the Streams/consumer-group side.
+  api 'org.springframework.integration:spring-integration-redis'
+  api 'io.micrometer:micrometer-core'
+  api 'org.slf4j:slf4j-api'
+
+  testImplementation project(':kork-jedis-test')
+  testImplementation 'org.testcontainers:testcontainers'
+  testImplementation 'org.testcontainers:junit-jupiter'
+  testImplementation 'org.assertj:assertj-core'
+  testImplementation 'org.mockito:mockito-core'
+  testImplementation 'org.junit.jupiter:junit-jupiter-api'
+  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+}
