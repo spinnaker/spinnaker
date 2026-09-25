@@ -80921,7 +80921,153 @@ module.exports = Queue;
 
 /***/ }),
 
+<<<<<<< HEAD
 /***/ 55203:
+=======
+/***/ 9480:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ApiDocs = exports.gateSource = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+const fs = __importStar(__nccwpck_require__(7147));
+const os = __importStar(__nccwpck_require__(2037));
+const git = __importStar(__nccwpck_require__(574));
+const util = __importStar(__nccwpck_require__(2629));
+const docsRepo = util.getInput('docs-repo-location');
+function gateSource() {
+    return {
+        service: 'gate',
+        specPath: util.getInput('swagger-json-path'),
+        docsRepoTargetPath: 'static/docs/reference/api/swagger.json',
+    };
+}
+exports.gateSource = gateSource;
+class ApiDocs {
+    version;
+    sources;
+    prUrl;
+    constructor(version, sources) {
+        this.version = version;
+        this.sources = sources;
+        this.prUrl = '';
+    }
+    // Read + validate each spec up front so we fail loudly instead of publishing garbage
+    loadSpecs() {
+        return this.sources.map((source) => {
+            const contents = fs.readFileSync(source.specPath, 'utf-8');
+            try {
+                JSON.parse(contents);
+            }
+            catch (e) {
+                throw new Error(`Spec at ${source.specPath} for ${source.service} is not valid JSON: ${e}`);
+            }
+            return { source, contents };
+        });
+    }
+    async publish() {
+        const { v4: uuidv4 } = await __nccwpck_require__.e(/* import() */ 167).then(__nccwpck_require__.bind(__nccwpck_require__, 9167));
+        const specs = this.loadSpecs();
+        const [owner, repo] = docsRepo.split('/', 2);
+        const folder = uuidv4();
+        const tmpdir = process.env.RUNNER_TEMP || os.tmpdir();
+        // Clone docs repo
+        git.gitCmd(`git clone https://github.com/${docsRepo} ${folder}`, {
+            cwd: tmpdir,
+        });
+        const docsCwd = `${tmpdir}/${folder}`;
+        git.gitCmd(`git config user.email "${util.getInput('git-email')}"`, {
+            cwd: docsCwd,
+        });
+        git.gitCmd(`git config user.name "${util.getInput('git-name')}"`, {
+            cwd: docsCwd,
+        });
+        const branch = `auto-api-docs-spinnaker-${this.version}`;
+        git.gitCmd(`git checkout -b ${branch}`, { cwd: docsCwd });
+        for (const { source, contents } of specs) {
+            const target = `${docsCwd}/${source.docsRepoTargetPath}`;
+            fs.writeFileSync(target, contents);
+            core.info(`Wrote ${source.service} spec to ${source.docsRepoTargetPath}`);
+        }
+        const commitMsg = `Automatic API docs update for Spinnaker ${this.version}`;
+        git.gitCmd(`git add --all`, { cwd: docsCwd });
+        // If the spec(s) didn't actually change (e.g. Gate's API was untouched this release),
+        // there's nothing to commit, and pushing an empty branch would fail PR creation below
+        // with "No commits between master and <branch>".
+        const staged = git.gitCmdMulti(`git diff --cached --name-only`, {
+            cwd: docsCwd,
+        });
+        if (!staged?.length) {
+            core.info('No API docs changes to publish - skipping PR');
+            return;
+        }
+        git.gitCmd(`git commit -a -m '${commitMsg}'`, { cwd: docsCwd });
+        const ghPat = util.getInput('github-pat');
+        git.gitCmd(`git remote set-url origin https://${ghPat}@github.com/${docsRepo}.git`, { cwd: docsCwd });
+        git.gitCmd(`git push -f origin HEAD:${branch}`, { cwd: docsCwd });
+        git.gitCmd(`git remote set-url origin https://github.com/${docsRepo}.git`, {
+            cwd: docsCwd,
+        });
+        // Check if PR already exists
+        const existingPrs = await git.github.rest.pulls.list({
+            owner,
+            repo,
+            head: branch,
+            base: 'master',
+        });
+        if (existingPrs.data.length > 0) {
+            // Close it
+            await git.github.rest.pulls.update({
+                owner,
+                repo,
+                pull_number: existingPrs.data[0].number,
+                state: 'closed',
+            });
+        }
+        // Create PR
+        const pull = await git.github.rest.pulls.create({
+            owner,
+            repo,
+            head: branch,
+            base: 'master',
+            title: commitMsg,
+        });
+        this.prUrl = pull.data.html_url;
+        return pull;
+    }
+}
+exports.ApiDocs = ApiDocs;
+
+
+/***/ }),
+
+/***/ 5203:
+>>>>>>> e75d8c7 (fix(ci): skip API docs PR when Gate's OpenAPI spec is unchanged (#8089))
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
