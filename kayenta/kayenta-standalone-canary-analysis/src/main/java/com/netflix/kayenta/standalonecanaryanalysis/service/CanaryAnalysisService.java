@@ -46,6 +46,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -71,7 +72,7 @@ public class CanaryAnalysisService {
       ExecutionLauncher executionLauncher,
       ExecutionRepository executionRepository,
       StorageServiceRepository storageServiceRepository,
-      ObjectMapper kayentaObjectMapper,
+      @Qualifier("kayentaObjectMapper") ObjectMapper kayentaObjectMapper,
       AccountCredentialsRepository accountCredentialsRepository,
       @Value("${kayenta.include-spring-security-authentication-in-pipeline-context:false}")
           boolean includeAuthentication) {

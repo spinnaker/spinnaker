@@ -43,8 +43,7 @@ public class KayentaJacksonMessageConverterConfiguration implements WebMvcConfig
     for (String[] subtype : KayentaConfiguration.metricQuerySubtypes()) {
       try {
         builder.registerSubtypes(
-            new tools.jackson.databind.jsontype.NamedType(
-                Class.forName(subtype[0]), subtype[1]));
+            new tools.jackson.databind.jsontype.NamedType(Class.forName(subtype[0]), subtype[1]));
       } catch (ClassNotFoundException ignored) {
         // Provider module not on this classpath.
       }
