@@ -24,7 +24,6 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
-import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.cats.mem.InMemoryCache;
 import com.netflix.spinnaker.cats.provider.DefaultProviderCache;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
@@ -37,8 +36,6 @@ import com.netflix.spinnaker.config.LambdaServiceConfig;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -81,60 +78,18 @@ public class LambdaCachingAgentTest {
   }
 
   @Test
-  public void shouldReturnEvictions() {
+  public void loadDataStillReportsLambdaNamespacesWhenNoLiveFunctionsFound() {
     when(netflixAmazonCredentials.getName()).thenReturn("test-account");
+    LambdaService lambdaService = mock(LambdaService.class);
+    when(lambdaService.getAllFunctions()).thenReturn(Collections.emptyList());
+    lambdaCachingAgent.setLambdaService(lambdaService);
 
-    Map<String, Object> attributes = new HashMap<>();
-    attributes.put("functionName", "function-3");
-    Collection<CacheData> data = new HashSet<>();
-    data.add(
-        new DefaultCacheData(
-            Keys.getLambdaFunctionKey(netflixAmazonCredentials.getName(), REGION, "function-3"),
-            attributes,
-            Collections.emptyMap()));
+    CacheResult result = lambdaCachingAgent.loadData(cache);
 
-    HashSet<String> oldKeys = new HashSet<>();
-    oldKeys.add(
-        Keys.getLambdaFunctionKey(netflixAmazonCredentials.getName(), REGION, "function-1"));
-    oldKeys.add(
-        Keys.getLambdaFunctionKey(netflixAmazonCredentials.getName(), REGION, "function-2"));
-
-    when(cache.getIdentifiers(any())).thenReturn(oldKeys);
-
-    Map<String, Collection<String>> evictions =
-        lambdaCachingAgent.computeEvictableData(data, cache);
-
-    assertThat(evictions.get("lambdaFunctions").size()).isEqualTo(2);
-    assertThat(evictions.get("lambdaFunctions")).isEqualTo(oldKeys);
-  }
-
-  @Test
-  public void shouldNotEvictionNewData() {
-    when(netflixAmazonCredentials.getName()).thenReturn("test-account");
-
-    Map<String, Object> attributes = new HashMap<>();
-    attributes.put("functionName", "function-1");
-    Collection<CacheData> data = new HashSet<>();
-    data.add(
-        new DefaultCacheData(
-            Keys.getLambdaFunctionKey(netflixAmazonCredentials.getName(), REGION, "function-1"),
-            attributes,
-            Collections.emptyMap()));
-
-    Collection<String> oldKeys =
-        List.of(
-            Keys.getLambdaFunctionKey(netflixAmazonCredentials.getName(), REGION, "function-1"),
-            Keys.getLambdaFunctionKey(netflixAmazonCredentials.getName(), REGION, "function-2"));
-
-    when(cache.getIdentifiers(any())).thenReturn(oldKeys);
-
-    Map<String, Collection<String>> evictions =
-        lambdaCachingAgent.computeEvictableData(data, cache);
-
-    assertThat(evictions.get("lambdaFunctions").size()).isEqualTo(1);
-    assertThat(evictions.get("lambdaFunctions").stream().findAny().get())
-        .isNotEqualTo(
-            Keys.getLambdaFunctionKey(netflixAmazonCredentials.getName(), REGION, "function-1"));
+    assertThat(result.getCacheResults()).containsKey(Keys.Namespace.LAMBDA_FUNCTIONS.ns);
+    assertThat(result.getCacheResults().get(Keys.Namespace.LAMBDA_FUNCTIONS.ns)).isEmpty();
+    assertThat(result.getCacheResults()).containsKey(Keys.Namespace.LAMBDA_APPLICATIONS.ns);
+    assertThat(result.getCacheResults().get(Keys.Namespace.LAMBDA_APPLICATIONS.ns)).isEmpty();
   }
 
   @Test
