@@ -1,7 +1,7 @@
 import { chain } from 'lodash';
 import * as React from 'react';
-import type { Dispatch } from 'react-redux';
 import { connect } from 'react-redux';
+import type { Dispatch } from 'redux';
 
 import * as Creators from '../actions/creators';
 import { CanarySettings } from '../canary.settings';
@@ -58,7 +58,7 @@ const mapStateToProps = (state: ICanaryState): IMetricStoreSelectorStateProps =>
   };
 };
 
-const mapDispatchToProps = (dispatch: Dispatch<ICanaryState>): IMetricStoreSelectorDispatchProps => {
+const mapDispatchToProps = (dispatch: Dispatch): IMetricStoreSelectorDispatchProps => {
   return {
     select: (event: any) => dispatch(Creators.selectMetricStore({ store: event.target.value })),
   };

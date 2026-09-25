@@ -40,7 +40,7 @@ export class SearchV2Component extends React.Component<SearchV2Props, ISearchV2S
     results: [],
   }));
 
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   constructor(props: SearchV2Props) {
     super(props);

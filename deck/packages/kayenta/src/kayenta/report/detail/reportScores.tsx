@@ -1,8 +1,8 @@
 import classNames from 'classnames';
 import { sortBy } from 'lodash';
 import * as React from 'react';
-import type { Dispatch } from 'react-redux';
 import { connect } from 'react-redux';
+import type { Dispatch } from 'redux';
 
 import * as Creators from '../../actions/creators';
 import AllMetricResultsHeader from './allMetricResultsHeader';
@@ -74,7 +74,7 @@ const mapStateToProps = (state: ICanaryState): IReportScoresStateProps => ({
   selectedGroup: state.selectedRun.selectedGroup,
 });
 
-const mapDispatchToProps = (dispatch: Dispatch<ICanaryState>): IReportScoresDispatchProps => ({
+const mapDispatchToProps = (dispatch: Dispatch): IReportScoresDispatchProps => ({
   clearSelectedGroup: () => dispatch(Creators.selectReportMetricGroup({ group: null })),
 });
 

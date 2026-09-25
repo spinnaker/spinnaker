@@ -1,6 +1,4 @@
 /* eslint-disable @spinnaker/import-sort */
-import 'rxjs-compat';
-
 import '@spinnaker/docker';
 import '@spinnaker/amazon';
 import '@spinnaker/appengine';
