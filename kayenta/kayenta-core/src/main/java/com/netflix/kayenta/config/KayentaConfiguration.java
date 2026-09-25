@@ -63,6 +63,10 @@ import tools.jackson.databind.cfg.DateTimeFeature;
 @EnableConfigurationProperties(MetricsRetryConfigurationProperties.class)
 public class KayentaConfiguration {
 
+  static String[][] metricQuerySubtypes() {
+    return METRIC_QUERY_SUBTYPES;
+  }
+
   private static final String[][] METRIC_QUERY_SUBTYPES = {
     {
       "com.netflix.kayenta.canary.providers.metrics.PrometheusCanaryMetricSetQueryConfig",

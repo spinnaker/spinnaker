@@ -28,6 +28,7 @@ dependencies {
   implementation "io.spinnaker.fiat:fiat-api"
   implementation "io.spinnaker.fiat:fiat-core"
   implementation "io.spinnaker.kork:kork-artifacts"
+  implementation "io.spinnaker.kork:kork-aws"
   implementation "io.spinnaker.kork:kork-credentials"
   implementation "io.spinnaker.kork:kork-credentials-api"
   implementation "io.spinnaker.kork:kork-exceptions"
