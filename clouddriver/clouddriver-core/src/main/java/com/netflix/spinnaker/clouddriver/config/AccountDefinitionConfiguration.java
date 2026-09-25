@@ -57,6 +57,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.type.filter.AssignableTypeFilter;
 import org.springframework.util.ClassUtils;
+import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.jsontype.NamedType;
 
@@ -104,8 +105,12 @@ public class AccountDefinitionConfiguration {
       ObjectMapper mapper,
       AccountDefinitionSecretManager accountDefinitionSecretManager,
       SecretManager secretManager) {
+    // Permissions.Builder is populated through its getter. Jackson 2 did that by default;
+    // Jackson 3 requires USE_GETTERS_AS_SETTERS.
     return new AccountDefinitionMapper(
-        mapper, accountDefinitionSecretManager, new SecretSession(secretManager));
+        mapper.rebuild().enable(MapperFeature.USE_GETTERS_AS_SETTERS).build(),
+        accountDefinitionSecretManager,
+        new SecretSession(secretManager));
   }
 
   @Bean

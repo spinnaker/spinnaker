@@ -35,6 +35,7 @@ import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Primary
+import tools.jackson.databind.MapperFeature
 import tools.jackson.databind.json.JsonMapper
 import org.springframework.scheduling.annotation.EnableScheduling
 
@@ -87,6 +88,8 @@ class Main extends SpringBootServletInitializer {
     // Declared as JsonMapper (not ObjectMapper) so Boot 4's JacksonAutoConfiguration backs off
     // its own jacksonJsonMapper bean; otherwise two primaries collide at injection points.
     builder.addMixIn(Artifact.class, ArtifactMixin.class);
+    // Jackson 2 merged JSON into getter-only collections (e.g. KubernetesSelectorList).
+    builder.enable(MapperFeature.USE_GETTERS_AS_SETTERS)
 
     SimpleModule module = new SimpleModule("registryHook")
     if (deserializerHook.isPresent()) {

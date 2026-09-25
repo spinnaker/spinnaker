@@ -40,6 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
@@ -136,7 +137,8 @@ public class SqlExecutionRepositoryReadReplicaTest {
 
   @TestConfiguration
   static class SqlExecutionRepositoryReadReplicaTestConfiguration {
-    @Bean
+    @Bean(name = {"mapper", "objectMapper"})
+    @Primary
     ObjectMapper orcaObjectMapper() {
       return OrcaObjectMapper.getInstance();
     }

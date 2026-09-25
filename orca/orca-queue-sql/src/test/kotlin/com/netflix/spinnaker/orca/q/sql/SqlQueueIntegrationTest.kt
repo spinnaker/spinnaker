@@ -55,6 +55,7 @@ import java.time.Duration
 import java.util.Optional
 import org.jooq.DSLContext
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -77,6 +78,9 @@ class SqlTestConfig {
     taskResolver: TaskResolver
   ): ObjectMapper {
     val configuredMapper = mapper.rebuild<JsonMapper, JsonMapper.Builder>()
+      // Jackson 3 writes enums via toString()/lowercase; queue messages must stay name()-compatible.
+      .disable(tools.jackson.databind.cfg.EnumFeature.WRITE_ENUMS_USING_TO_STRING)
+      .disable(tools.jackson.databind.cfg.EnumFeature.WRITE_ENUMS_TO_LOWERCASE)
       .addModule(KotlinModule.Builder().build())
       .addModule(
         SimpleModule()
@@ -98,7 +102,7 @@ class SqlTestConfig {
   fun queue(
     jooq: DSLContext,
     clock: Clock,
-    mapper: ObjectMapper,
+    @Qualifier("sqlQueueObjectMapper") mapper: ObjectMapper,
     publisher: EventPublisher
   ): MonitorableQueue =
     SqlQueue(
@@ -144,7 +148,7 @@ class SqlTestConfig {
     jooq: DSLContext,
     queue: Queue,
     repository: ExecutionRepository,
-    mapper: ObjectMapper,
+    @Qualifier("sqlQueueObjectMapper") mapper: ObjectMapper,
     clock: Clock,
     registry: Registry
   ) =

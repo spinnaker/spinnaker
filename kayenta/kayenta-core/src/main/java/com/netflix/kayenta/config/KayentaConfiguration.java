@@ -45,7 +45,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.cfg.DateTimeFeature;
 
@@ -114,7 +113,9 @@ public class KayentaConfiguration {
     return new ObjectMapperSubtypeConfigurer(true);
   }
 
-  @Primary
+  // Not @Primary: Orca's mapper is the primary JsonMapper when Kayenta embeds Orca (integration
+  // tests). A second primary ObjectMapper fails every ObjectMapper injection. Inject this bean
+  // by name where Kayenta-specific settings are required.
   @Bean
   ObjectMapper kayentaObjectMapper(
       ObjectMapper mapper,

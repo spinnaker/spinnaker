@@ -121,10 +121,8 @@ public class OrcaConfiguration {
     return Schedulers.io();
   }
 
-  // Single primary for the whole orca context (queue mappers are qualified, non-primary).
-  // Declared as JsonMapper so Boot 4's JacksonAutoConfiguration backs off its own
-  // jacksonJsonMapper; otherwise two primaries collide at injection points. This mirrors the
-  // Boot 3 shape, where unqualified injections resolved to this mapper.
+  // Single primary JsonMapper so Boot 4 backs off and MVC has one candidate. Kayenta must not
+  // also mark an ObjectMapper @Primary; that collides here when Kayenta embeds Orca.
   @Bean(name = {"mapper", "objectMapper"})
   @Primary
   public JsonMapper mapper(
