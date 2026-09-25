@@ -96,7 +96,7 @@ class YandexNetworkLoadBalancerCachingAgentTest {
     when(facade.getLoadBalancers(any())).thenReturn(Collections.emptyList());
     YandexNetworkLoadBalancerCachingAgent agent =
         new YandexNetworkLoadBalancerCachingAgent(
-            cred, new ObjectMapper(), new NoopRegistry(), facade);
+            cred, JsonMapper.builder().build(), new NoopRegistry(), facade);
     WriteableCache cache = new InMemoryCache();
     DefaultProviderCache providerCache = new DefaultProviderCache(cache);
 

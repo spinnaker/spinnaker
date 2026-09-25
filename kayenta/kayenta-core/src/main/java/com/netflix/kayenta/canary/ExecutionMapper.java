@@ -41,6 +41,7 @@ import java.util.stream.IntStream;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -66,7 +67,7 @@ public class ExecutionMapper {
 
   @Autowired
   public ExecutionMapper(
-      ObjectMapper objectMapper,
+      @Qualifier("kayentaObjectMapper") ObjectMapper objectMapper,
       Registry registry,
       String currentInstanceId,
       Optional<List<CanaryScopeFactory>> canaryScopeFactories,

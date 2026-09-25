@@ -70,7 +70,7 @@ class GoogleSubnetCachingAgentSpec extends Specification {
     def ProviderCache providerCache = Mock(ProviderCache)
     @Subject GoogleSubnetCachingAgent agent = new GoogleSubnetCachingAgent("testApplicationName",
       credentials,
-      new ObjectMapper(),
+      JsonMapper.builder().build(),
       registry, REGION)
 
     when:

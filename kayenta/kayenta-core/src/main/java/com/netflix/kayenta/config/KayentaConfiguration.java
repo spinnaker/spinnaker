@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -47,6 +48,8 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.jsontype.NamedType;
 
 @Configuration
 @Slf4j
@@ -142,6 +145,21 @@ public class KayentaConfiguration {
     return new ObjectMapperSubtypeConfigurer(true);
   }
 
+  // Orca's primary mapper is injected wherever a parameter is not qualified. Rebuild it with
+  // metric subtypes so canary config conversion does not depend on each injection site.
+  @Bean
+  static BeanPostProcessor kayentaMetricSubtypePostProcessor() {
+    return new BeanPostProcessor() {
+      @Override
+      public Object postProcessAfterInitialization(Object bean, String beanName) {
+        if (!(bean instanceof JsonMapper mapper) || "kayentaObjectMapper".equals(beanName)) {
+          return bean;
+        }
+        return registerKnownMetricSubtypes(mapper);
+      }
+    };
+  }
+
   // Not @Primary: Orca's mapper is the primary JsonMapper when Kayenta embeds Orca (integration
   // tests). A second primary ObjectMapper fails every ObjectMapper injection. Inject this bean
   // by name where Kayenta-specific settings are required.
@@ -191,11 +209,14 @@ public class KayentaConfiguration {
         objectMapperSubtypeConfigurer.registerSubtypes(featured, subtypeLocators);
     // Classpath scanning misses provider jars in some Boot 4 layouts. Register the known metric
     // query configs explicitly when they are present.
-    var builder = withScanned.rebuild();
+    return registerKnownMetricSubtypes(withScanned);
+  }
+
+  private static ObjectMapper registerKnownMetricSubtypes(ObjectMapper mapper) {
+    var builder = mapper.rebuild();
     for (String[] subtype : METRIC_QUERY_SUBTYPES) {
       try {
-        builder.registerSubtypes(
-            new tools.jackson.databind.jsontype.NamedType(Class.forName(subtype[0]), subtype[1]));
+        builder.registerSubtypes(new NamedType(Class.forName(subtype[0]), subtype[1]));
       } catch (ClassNotFoundException ignored) {
         // Provider module not on this classpath.
       }

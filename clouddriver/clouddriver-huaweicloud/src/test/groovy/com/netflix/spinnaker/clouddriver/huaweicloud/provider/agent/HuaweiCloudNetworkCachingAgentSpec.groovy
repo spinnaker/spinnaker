@@ -85,7 +85,7 @@ class HuaweiCloudNetworkCachingAgentSpec extends Specification {
 
       @Subject
       HuaweiCloudNetworkCachingAgent agent = new HuaweiCloudNetworkCachingAgent(
-          credentials, new ObjectMapper(), REGION)
+          credentials, tools.jackson.databind.json.JsonMapper.builder().build(), REGION)
 
     when:
       def cache = agent.loadData(providerCache)
