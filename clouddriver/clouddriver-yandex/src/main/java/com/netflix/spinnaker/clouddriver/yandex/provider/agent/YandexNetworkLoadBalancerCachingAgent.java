@@ -173,7 +173,7 @@ public class YandexNetworkLoadBalancerCachingAgent
 
   @Override
   public CacheResult loadData(ProviderCache providerCache) {
-    final CacheResultBuilder cacheResultBuilder = new CacheResultBuilder();
+    final CacheResultBuilder cacheResultBuilder = new CacheResultBuilder(getProvidedDataTypes());
     cacheResultBuilder.setStartTime(System.currentTimeMillis());
 
     List<YandexCloudLoadBalancer> loadBalancers = loadEntities(providerCache);
