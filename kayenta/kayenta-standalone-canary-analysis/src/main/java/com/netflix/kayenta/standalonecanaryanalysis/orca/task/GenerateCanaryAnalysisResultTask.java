@@ -42,6 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
@@ -55,7 +56,8 @@ public class GenerateCanaryAnalysisResultTask implements Task {
   private final ObjectMapper kayentaObjectMapper;
 
   @Autowired
-  public GenerateCanaryAnalysisResultTask(ObjectMapper kayentaObjectMapper) {
+  public GenerateCanaryAnalysisResultTask(
+      @Qualifier("kayentaObjectMapper") ObjectMapper kayentaObjectMapper) {
     this.kayentaObjectMapper = kayentaObjectMapper;
   }
 

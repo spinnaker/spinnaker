@@ -26,6 +26,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.SerializationFeature;
 import tools.jackson.databind.json.JsonMapper;
@@ -40,6 +41,9 @@ public abstract class AbstractAtomicOperationsCredentialsConverter<T extends Acc
       JsonMapper.builder()
           .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
           .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+          // Jackson 2 used getters to populate collection properties. Jackson 3 does not, so
+          // getter-only lists such as KubernetesSelectorList stay empty without this.
+          .enable(MapperFeature.USE_GETTERS_AS_SETTERS)
           .build();
 
   @NotNull

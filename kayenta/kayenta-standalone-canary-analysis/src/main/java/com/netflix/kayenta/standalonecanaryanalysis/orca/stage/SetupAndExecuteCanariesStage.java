@@ -40,6 +40,7 @@ import java.util.Optional;
 import javax.annotation.Nonnull;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
@@ -60,7 +61,8 @@ public class SetupAndExecuteCanariesStage implements StageDefinitionBuilder {
   private final ObjectMapper kayentaObjectMapper;
 
   @Autowired
-  public SetupAndExecuteCanariesStage(Clock clock, ObjectMapper kayentaObjectMapper) {
+  public SetupAndExecuteCanariesStage(
+      Clock clock, @Qualifier("kayentaObjectMapper") ObjectMapper kayentaObjectMapper) {
 
     this.clock = clock;
     this.kayentaObjectMapper = kayentaObjectMapper;

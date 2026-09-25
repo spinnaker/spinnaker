@@ -30,6 +30,7 @@ import java.util.Map;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
@@ -44,7 +45,7 @@ public class PrometheusFetchTask implements RetryableTask {
 
   @Autowired
   public PrometheusFetchTask(
-      ObjectMapper kayentaObjectMapper,
+      @Qualifier("kayentaObjectMapper") ObjectMapper kayentaObjectMapper,
       AccountCredentialsRepository accountCredentialsRepository,
       SynchronousQueryProcessor synchronousQueryProcessor) {
     this.kayentaObjectMapper = kayentaObjectMapper;

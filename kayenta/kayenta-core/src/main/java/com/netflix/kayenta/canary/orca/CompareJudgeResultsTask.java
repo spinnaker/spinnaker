@@ -32,6 +32,7 @@ import java.util.Map;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.ObjectMapper;
@@ -52,7 +53,7 @@ public class CompareJudgeResultsTask implements RetryableTask {
       AccountCredentialsRepository accountCredentialsRepository,
       StorageServiceRepository storageServiceRepository,
       List<CanaryJudge> canaryJudges,
-      ObjectMapper kayentaObjectMapper,
+      @Qualifier("kayentaObjectMapper") ObjectMapper kayentaObjectMapper,
       ExecutionMapper executionMapper) {
     this.accountCredentialsRepository = accountCredentialsRepository;
     this.storageServiceRepository = storageServiceRepository;

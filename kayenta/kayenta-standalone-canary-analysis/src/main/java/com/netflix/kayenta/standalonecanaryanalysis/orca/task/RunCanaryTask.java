@@ -33,6 +33,7 @@ import java.util.Optional;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.ObjectMapper;
@@ -53,7 +54,7 @@ public class RunCanaryTask implements Task {
   public RunCanaryTask(
       AccountCredentialsRepository accountCredentialsRepository,
       ExecutionMapper executionMapper,
-      ObjectMapper kayentaObjectMapper) {
+      @Qualifier("kayentaObjectMapper") ObjectMapper kayentaObjectMapper) {
 
     this.accountCredentialsRepository = accountCredentialsRepository;
     this.executionMapper = executionMapper;

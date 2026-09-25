@@ -47,6 +47,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @SpringBootTest(
     classes = {
@@ -139,8 +140,10 @@ public class SqlExecutionRepositoryReadReplicaTest {
   static class SqlExecutionRepositoryReadReplicaTestConfiguration {
     @Bean(name = {"mapper", "objectMapper"})
     @Primary
-    ObjectMapper orcaObjectMapper() {
-      return OrcaObjectMapper.getInstance();
+    JsonMapper orcaObjectMapper() {
+      // Declared as JsonMapper so Boot's jacksonJsonMapper backs off. An ObjectMapper return type
+      // leaves both beans @Primary and the context fails to start.
+      return (JsonMapper) OrcaObjectMapper.getInstance();
     }
   }
 }
