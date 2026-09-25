@@ -1,7 +1,9 @@
 import React from 'react';
 
+import { artifactDelimiter, artifactName } from '../../artifact';
 import { ArtifactIconService } from '../../artifact';
 import type { IArtifact } from '../../domain';
+import { CopyToClipboard } from '../../utils';
 
 import './artifact.less';
 
@@ -34,7 +36,9 @@ export class Artifact extends React.Component<IArtifactProps> {
 
   public render() {
     const { artifact, isDefault } = this.props;
-    const { name, reference, version, type } = artifact;
+    const { type } = artifact;
+    const name = artifactName(artifact);
+    const copyToClipboardText = artifactDelimiter(artifact) === ':' ? name : '';
 
     return (
       <div className="artifact-details">
@@ -42,14 +46,22 @@ export class Artifact extends React.Component<IArtifactProps> {
           <div className="artifact-detail">
             <dt>
               {ArtifactIconService.getPath(type) ? (
-                <img className="artifact-icon" src={ArtifactIconService.getPath(type)} width="18" height="18" />
+                <img
+                  className="artifact-icon"
+                  alt={type}
+                  src={ArtifactIconService.getPath(type)}
+                  width="18"
+                  height="18"
+                />
               ) : (
                 <span>[{type}] </span>
               )}
             </dt>
             <dd>
-              <div className="artifact-name">{name || reference}</div>
-              {version && <div className="artifact-version"> - {version}</div>}
+              <div className="artifact-value">
+                <span>{name}</span>
+                {copyToClipboardText && <CopyToClipboard text={copyToClipboardText} toolTip="Copy to clipboard" />}
+              </div>
             </dd>
           </div>
         </dl>
