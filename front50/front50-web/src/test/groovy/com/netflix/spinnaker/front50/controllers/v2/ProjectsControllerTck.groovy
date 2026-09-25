@@ -49,7 +49,12 @@ import tools.jackson.databind.MapperFeature
 import tools.jackson.databind.json.JsonMapper
 
 abstract class ProjectsControllerTck extends Specification {
-  ObjectMapper objectMapper = JsonMapper.builder().build()
+  // Match the message-converter mapper below: Jackson 3 sorts alphabetically by default,
+  // contract assertions expect Jackson 2 declaration order.
+  ObjectMapper objectMapper = JsonMapper.builder()
+    .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+    .disable(MapperFeature.SORT_CREATOR_PROPERTIES_FIRST)
+    .build()
 
   MockMvc mockMvc
 
@@ -97,7 +102,7 @@ abstract class ProjectsControllerTck extends Specification {
 
     then:
     response.andExpect status().isOk()
-    response.andExpect content().string(JsonMapper.builder().build().writeValueAsString([dao.findByName(project.name)]))
+    response.andExpect content().string(objectMapper.writeValueAsString([dao.findByName(project.name)]))
 
     where:
     criteria       | project
@@ -151,7 +156,7 @@ abstract class ProjectsControllerTck extends Specification {
 
     then:
     response.andExpect status().isOk()
-    response.andExpect content().string(JsonMapper.builder().build().writeValueAsString([dao.findByName("Project1")]))
+    response.andExpect content().string(objectMapper.writeValueAsString([dao.findByName("Project1")]))
 
     when:
     response = mockMvc.perform(
@@ -171,7 +176,7 @@ abstract class ProjectsControllerTck extends Specification {
 
     then:
     response.andExpect status().isOk()
-    response.andExpect content().string(JsonMapper.builder().build().writeValueAsString([dao.findByName("Project")]))
+    response.andExpect content().string(objectMapper.writeValueAsString([dao.findByName("Project")]))
 
     when:
     response = mockMvc.perform(
@@ -180,7 +185,7 @@ abstract class ProjectsControllerTck extends Specification {
 
     then:
     response.andExpect status().isOk()
-    response.andExpect content().string(JsonMapper.builder().build().writeValueAsString([ dao.findByName("Project"), dao.findByName("Project1")]))
+    response.andExpect content().string(objectMapper.writeValueAsString([ dao.findByName("Project"), dao.findByName("Project1")]))
 
 
     when:
@@ -190,7 +195,7 @@ abstract class ProjectsControllerTck extends Specification {
 
     then: "should show the most relevant result"
     response.andExpect status().isOk()
-    response.andExpect content().string(JsonMapper.builder().build().writeValueAsString([ dao.findByName("Project")]))
+    response.andExpect content().string(objectMapper.writeValueAsString([ dao.findByName("Project")]))
 
 
     when:
@@ -200,7 +205,7 @@ abstract class ProjectsControllerTck extends Specification {
 
     then:
     response.andExpect status().isOk()
-    response.andExpect content().string(JsonMapper.builder().build().writeValueAsString([ dao.findByName("Project")]))
+    response.andExpect content().string(objectMapper.writeValueAsString([ dao.findByName("Project")]))
   }
 
   void "should fetch all projects"() {
@@ -212,7 +217,7 @@ abstract class ProjectsControllerTck extends Specification {
     expect:
     mockMvc.perform(
       get("/v2/projects")
-    ).andExpect content().string(JsonMapper.builder().build().writeValueAsString(dao.all()))
+    ).andExpect content().string(objectMapper.writeValueAsString(dao.all()))
   }
 
   @Unroll

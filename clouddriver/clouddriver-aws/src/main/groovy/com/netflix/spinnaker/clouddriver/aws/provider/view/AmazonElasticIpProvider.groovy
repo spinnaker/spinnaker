@@ -57,7 +57,14 @@ class AmazonElasticIpProvider implements ElasticIpProvider<AmazonElasticIp> {
       // Jackson 2 resolved the Map constructor implicitly, but Jackson 3 selects the tuple
       // constructor and yields null fields, so bypass databind here.
       def attrs = data.attributes
-      new AmazonElasticIp(attrs.address, attrs.domain, attrs.attachedToId, attrs.accountName, attrs.region)
+      new AmazonElasticIp(
+        attrs.type ?: "aws",
+        attrs.address,
+        attrs.domain,
+        attrs.attachedToId,
+        attrs.accountName,
+        attrs.region
+      )
     }
   }
 }

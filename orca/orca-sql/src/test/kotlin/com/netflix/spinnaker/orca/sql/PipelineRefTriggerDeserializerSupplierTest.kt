@@ -88,6 +88,9 @@ class PipelineRefTriggerDeserializerSupplierTest : JUnit5Minutests {
 
       test("all fields in pipelineRef are added") {
         val node = jsonNodeFactory.objectNode().apply {
+          // Stored pipelineRef triggers carry their type; it is also what routes this node
+          // to the custom supplier during full deserialization.
+          put("type", "pipelineRef")
           put("correlationId", "correlation-id")
           put("user", "test-user")
            set("parameters", jsonNodeFactory.objectNode().put("key1", "value1"))

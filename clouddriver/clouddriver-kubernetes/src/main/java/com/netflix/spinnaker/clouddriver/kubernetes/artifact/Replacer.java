@@ -20,6 +20,8 @@ package com.netflix.spinnaker.clouddriver.kubernetes.artifact;
 import static com.jayway.jsonpath.Criteria.where;
 import static com.jayway.jsonpath.Filter.filter;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Streams;
@@ -43,8 +45,6 @@ import lombok.Builder;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.ArrayNode;
 
 @NonnullByDefault
 public final class Replacer {
@@ -153,6 +153,9 @@ public final class Replacer {
     } catch (PathNotFoundException e) {
       return false;
     }
+    // ArrayNode is deliberately com.fasterxml.jackson (not tools.jackson): jayway's
+    // JacksonJsonNodeJsonProvider produces Jackson 2 nodes, so the instanceof check must match
+    // them, otherwise empty matches fall through to set() and throw PathNotFoundException.
     if (get == null || (get instanceof ArrayNode && ((ArrayNode) get).size() == 0)) {
       return false;
     }

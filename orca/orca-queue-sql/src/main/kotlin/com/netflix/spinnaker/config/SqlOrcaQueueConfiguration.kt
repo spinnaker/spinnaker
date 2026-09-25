@@ -36,6 +36,7 @@ import org.springframework.context.annotation.Lazy
 import tools.jackson.databind.DeserializationFeature
 import tools.jackson.databind.ObjectMapper
 import tools.jackson.databind.MapperFeature
+import tools.jackson.databind.cfg.EnumFeature
 import tools.jackson.databind.json.JsonMapper
 import tools.jackson.databind.module.SimpleModule
 import tools.jackson.module.kotlin.KotlinModule
@@ -62,6 +63,10 @@ class SqlOrcaQueueConfiguration : SqlQueueConfiguration() {
       // Jackson 3 no longer merges into getter-only collections by default; the queue
       // relies on it for message attributes (e.g. ack counting).
       .enable(MapperFeature.USE_GETTERS_AS_SETTERS)
+      // Jackson 3 serializes enums via toString()/lowercase by default; the queue must stay
+      // byte-compatible with Jackson 2 output (name()), which old messages and readers use.
+      .disable(EnumFeature.WRITE_ENUMS_USING_TO_STRING)
+      .disable(EnumFeature.WRITE_ENUMS_TO_LOWERCASE)
       .addModule(KotlinModule.Builder().build())
       .addModule(
         SimpleModule()

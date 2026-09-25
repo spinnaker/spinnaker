@@ -58,10 +58,9 @@ import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 abstract class SqlPipelineExecutionRepositorySpec extends PipelineExecutionRepositoryTck<ExecutionRepository> {
 
   @Shared
-  ObjectMapper mapper = OrcaObjectMapper.newInstance().with {
-    registerModule(new KotlinModule.Builder().build())
-    it
-  }
+  ObjectMapper mapper = OrcaObjectMapper.newInstance().rebuild()
+    .addModule(new KotlinModule.Builder().build())
+    .build()
 
   def ulid = new ULID()
 

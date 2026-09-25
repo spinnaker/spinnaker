@@ -33,13 +33,20 @@ class ExecutionTypeDeserializer : StdDeserializer<ExecutionType>(ExecutionType::
   override fun deserialize(
     p: JsonParser,
     ctxt: DeserializationContext
-  ) = when (p.valueAsString) {
-    PIPELINE_CLASS_NAME, PIPELINE.name -> PIPELINE
-    ORCHESTRATION_CLASS_NAME, ORCHESTRATION.name -> ORCHESTRATION
-    else -> throw InvalidFormatException(
+  ): ExecutionType {
+    val value = p.valueAsString
+    // Jackson 3 serializes enums via toString() (lowercase here) by default, while Jackson 2
+    // used name(); accept both so old and new queue messages deserialize.
+    if (value == PIPELINE_CLASS_NAME || PIPELINE.name.equals(value, ignoreCase = true)) {
+      return PIPELINE
+    }
+    if (value == ORCHESTRATION_CLASS_NAME || ORCHESTRATION.name.equals(value, ignoreCase = true)) {
+      return ORCHESTRATION
+    }
+    throw InvalidFormatException(
       p,
       "Invalid value for ExecutionType",
-      p.valueAsString,
+      value,
       ExecutionType::class.java
     )
   }

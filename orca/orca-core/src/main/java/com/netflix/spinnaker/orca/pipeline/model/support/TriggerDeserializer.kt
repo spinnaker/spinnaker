@@ -183,12 +183,12 @@ class TriggerDeserializer :
         )
       }.apply {
 
-        val otherFieldRule = customTriggerSuppliers.find { it.type == this.type }
-        if (otherFieldRule != null) {
-            other = mutableMapOf()
-          }
-          else  {
-            mapValue<Any>(parser).forEach { (k, v) -> other[k] = v }
+        // A custom supplier populates `other` itself (e.g. PipelineRefTriggerDeserializerSupplier
+        // extracts the nested "other" object); only fall back to copying every field when no
+        // custom rule owns this trigger type. Never blank a supplier-provided value: stored
+        // executions round-trip through here on every read.
+        if (customTriggerSuppliers.none { it.type == this.type }) {
+          mapValue<Any>(parser).forEach { (k, v) -> other[k] = v }
         }
         resolvedExpectedArtifacts = get("resolvedExpectedArtifacts")?.listValue(parser) ?: mutableListOf()
       }

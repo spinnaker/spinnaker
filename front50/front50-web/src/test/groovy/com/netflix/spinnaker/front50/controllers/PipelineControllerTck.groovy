@@ -574,9 +574,9 @@ abstract class PipelineControllerTck extends Specification {
           application : "test_app",
           triggers    : [:],
           errorMsg    : "Failed to deserialize the pipeline json into a valid pipeline: " +
-            "java.lang.IllegalArgumentException: Cannot deserialize value of type " +
+            "tools.jackson.databind.exc.MismatchedInputException: Cannot deserialize value of type " +
             "`java.util.ArrayList<com.netflix.spinnaker.front50.api.model.pipeline.Trigger>` " +
-            "from Object value (token `JsonToken.START_OBJECT`)\n at [Source: UNKNOWN; byte offset: #UNKNOWN] " +
+            "from Object value (token `JsonToken.START_OBJECT`)\n at [No location information] " +
             "(through reference chain: com.netflix.spinnaker.front50.api.model.pipeline.Pipeline[\"triggers\"])"
         ],
         [

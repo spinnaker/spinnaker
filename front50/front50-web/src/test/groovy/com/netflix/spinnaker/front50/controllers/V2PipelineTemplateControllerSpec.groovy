@@ -43,7 +43,7 @@ class V2PipelineTemplateControllerSpec extends Specification {
     pipelineTemplateDAO: pipelineTemplateDAO,
     // V2TemplateConfiguration doesn't expect `id` attribute as part of pipeline config.
     // Hence has to ignore unknown properties when converting the value.
-    objectMapper: JsonMapper.builder().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+    objectMapper: JsonMapper.builder().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build()
   )
 
   def template1 = [
