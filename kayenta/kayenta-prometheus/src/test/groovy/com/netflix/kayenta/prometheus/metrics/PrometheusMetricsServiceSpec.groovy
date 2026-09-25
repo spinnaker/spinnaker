@@ -44,7 +44,7 @@ class PrometheusMetricsServiceSpec extends Specification {
         .metricName("some-metric-name")
         .labelBindings(labelBindings)
         .customFilterTemplate(customFilterTemplate)
-        .customInlineTemplate(customInlineTemplate)
+        .template(customInlineTemplate)
         .build()
     CanaryMetricConfig canaryMetricConfig =
       CanaryMetricConfig.builder()

@@ -84,6 +84,7 @@ public class StackdriverMetricsService implements MetricsService {
   }
 
   @Override
+  @SuppressWarnings("deprecation")
   public String buildQuery(
       String metricsAccountName,
       CanaryConfig canaryConfig,
@@ -261,6 +262,7 @@ public class StackdriverMetricsService implements MetricsService {
   }
 
   @Override
+  @SuppressWarnings("deprecation")
   public List<MetricSet> queryMetrics(
       String metricsAccountName,
       CanaryConfig canaryConfig,
