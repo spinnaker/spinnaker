@@ -45,6 +45,7 @@ class EurekaApiTest extends Specification {
 
     def objectMapper = JsonMapper.builder()
       .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+      .disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
       .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
       .enable(DeserializationFeature.UNWRAP_ROOT_VALUE)
       .changeDefaultVisibility {
@@ -270,6 +271,7 @@ class EurekaApiTest extends Specification {
     when: "calling loadEurekaApplications with short timeout"
     def objectMapper = JsonMapper.builder()
       .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+      .disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
       .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
       .enable(DeserializationFeature.UNWRAP_ROOT_VALUE)
       .build()

@@ -1499,8 +1499,8 @@ public class BasicGoogleDeployHandlerTest {
             .path("metadata")
             .path("items");
 
-    assertThat(metadataItems.findValuesAsText("key")).containsExactly("unrelated-key");
-    assertThat(metadataItems.findValuesAsText("value")).containsExactly("unrelated-value");
+    assertThat(metadataItems.findValuesAsString("key")).containsExactly("unrelated-key");
+    assertThat(metadataItems.findValuesAsString("value")).containsExactly("unrelated-value");
     assertThat(insertRequest.body()).doesNotContain("select-zones");
   }
 

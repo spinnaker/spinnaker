@@ -45,6 +45,7 @@ class EurekaTest extends Specification {
 
     def objectMapper = JsonMapper.builder()
       .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+      .disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
       .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
       .changeDefaultVisibility {
         it.withCreatorVisibility(com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY)

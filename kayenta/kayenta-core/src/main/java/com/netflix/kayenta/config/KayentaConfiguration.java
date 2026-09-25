@@ -154,9 +154,11 @@ public class KayentaConfiguration {
       ObjectMapperSubtypeConfigurer objectMapperSubtypeConfigurer,
       List<ObjectMapperSubtypeConfigurer.SubtypeLocator> subtypeLocators,
       KayentaSerializationConfigurationProperties kayentaSerializationConfigurationProperties) {
-    ObjectMapper configured =
-        objectMapperSubtypeConfigurer.registerSubtypes(objectMapper, subtypeLocators);
-    return configureObjectMapperFeatures(configured, kayentaSerializationConfigurationProperties);
+    // Register subtypes last. configureObjectMapperFeatures() rebuilds the mapper, and a
+    // rebuild does not keep subtype registrations applied to a previously built instance.
+    ObjectMapper featured =
+        configureObjectMapperFeatures(objectMapper, kayentaSerializationConfigurationProperties);
+    return objectMapperSubtypeConfigurer.registerSubtypes(featured, subtypeLocators);
   }
 
   @Bean
