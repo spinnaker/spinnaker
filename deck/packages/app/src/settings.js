@@ -270,7 +270,12 @@ window.spinnakerSettings = {
         region: 'cn-north-1',
       },
     },
-    kubernetes: {},
+    kubernetes: {
+      defaults: {
+        internalDNSNameTemplate:
+          '{{displayName}}.{{namespace}}.svc.{{account | replace:"-cluster":""}}.custom.cluster.local',
+      },
+    },
     oracle: {
       defaults: {
         account: 'DEFAULT',
