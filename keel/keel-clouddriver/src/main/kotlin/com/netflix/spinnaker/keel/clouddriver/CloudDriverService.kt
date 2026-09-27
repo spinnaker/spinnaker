@@ -29,8 +29,6 @@ import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.ServerGroupCollection
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
-import com.netflix.spinnaker.keel.clouddriver.model.TitusActiveServerGroup
-import com.netflix.spinnaker.keel.clouddriver.model.TitusServerGroup
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.tags.EntityTags
 import retrofit2.http.GET
@@ -126,15 +124,6 @@ interface CloudDriverService {
     @Path("cloudProvider") cloudProvider: String = "aws"
   ): ServerGroupCollection<ServerGroup>
 
-  @GET("applications/{app}/clusters/{account}/{cluster}/{cloudProvider}")
-  suspend fun listTitusServerGroups(
-    @Header("X-SPINNAKER-USER") user: String,
-    @Path("app") app: String,
-    @Path("account") account: String,
-    @Path("cluster") cluster: String,
-    @Path("cloudProvider") cloudProvider: String = "titus"
-  ): ServerGroupCollection<TitusServerGroup>
-
   /**
    * Note: This endpoint does not get the latest healthy cluster, only the latest enabled cluster
    */
@@ -147,18 +136,6 @@ interface CloudDriverService {
     @Path("region") region: String,
     @Path("cloudProvider") cloudProvider: String
   ): ActiveServerGroup
-
-  // todo eb: titus has different fields than [ActiveServerGroup], so right now this is a separate call
-  // make above call general and roll titus into it.
-  @GET("applications/{app}/clusters/{account}/{cluster}/{cloudProvider}/{region}/serverGroups/target/current_asg_dynamic?onlyEnabled=true")
-  suspend fun titusActiveServerGroup(
-    @Header("X-SPINNAKER-USER") user: String,
-    @Path("app") app: String,
-    @Path("account") account: String,
-    @Path("cluster") cluster: String,
-    @Path("region") region: String,
-    @Path("cloudProvider") cloudProvider: String = "titus"
-  ): TitusActiveServerGroup
 
   @GET("aws/images/find")
   suspend fun namedImages(
