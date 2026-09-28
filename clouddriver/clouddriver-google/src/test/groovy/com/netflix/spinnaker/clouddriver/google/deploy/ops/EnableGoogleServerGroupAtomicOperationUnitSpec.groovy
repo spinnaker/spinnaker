@@ -191,6 +191,68 @@ class EnableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       ).count() == 2
   }
 
+  void "should register only target pools and skip regional external listeners, including removed ones"() {
+    setup:
+      def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
+      def globalForwardingRulesList = Mock(Compute.GlobalForwardingRules.List)
+      def taggedTemplate = new InstanceTemplate(
+        name: INSTANCE_TEMPLATE_NAME,
+        properties: new InstanceProperties(metadata: GCEUtil.buildMetadataFromMap(INSTANCE_METADATA + [
+          "load-balancer-names": "$FORWARDING_RULE_1,managed-listener,removed-listener",
+          (GCEUtil.REGIONAL_EXTERNAL_LOAD_BALANCER_NAMES): "managed-listener,removed-listener",
+        ])))
+      def listedRules = new ForwardingRuleList(items: [
+        new ForwardingRule(name: FORWARDING_RULE_1, target: TARGET_POOL_URL_1),
+        new ForwardingRule(
+          name: "managed-listener",
+          loadBalancingScheme: "EXTERNAL_MANAGED",
+          target: "https://compute.googleapis.com/compute/v1/projects/shared-spinnaker/regions/us-central1/targetHttpProxies/managed-listener-target-http-proxy")
+      ])
+      @Subject def operation = new EnableGoogleServerGroupAtomicOperation(description)
+      operation.registry = registry
+      operation.googleClusterProvider = googleClusterProviderMock
+      operation.googleLoadBalancerProvider = googleLoadBalancerProviderMock
+      operation.objectMapper = objectMapperMock
+      operation.safeRetry = safeRetry
+
+    when:
+      operation.operate([])
+
+    then:
+      1 * googleClusterProviderMock.getServerGroup(ACCOUNT_NAME, REGION, SERVER_GROUP_NAME) >> serverGroup
+
+      1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
+      1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, SERVER_GROUP_NAME) >> instanceGroupManagersGetMock
+      1 * instanceGroupManagersGetMock.execute() >> instanceGroupManager
+
+      1 * computeMock.instanceGroups() >> instanceGroupsMock
+      1 * instanceGroupsMock.listInstances(PROJECT_NAME, ZONE, SERVER_GROUP_NAME, _) >> instanceGroupsListInstancesMock
+      1 * instanceGroupsListInstancesMock.execute() >> instanceGroupsListInstances
+
+      1 * computeMock.instanceTemplates() >> instanceTemplatesMock
+      1 * instanceTemplatesMock.get(PROJECT_NAME, INSTANCE_TEMPLATE_NAME) >> instanceTemplatesGetMock
+      1 * instanceTemplatesGetMock.execute() >> taggedTemplate
+
+      3 * computeMock.forwardingRules() >> forwardingRulesMock
+      3 * forwardingRulesMock.list(PROJECT_NAME, REGION) >> forwardingRulesListMock
+      3 * forwardingRulesListMock.execute() >> listedRules
+
+      1 * computeMock.targetPools() >> targetPoolsMock
+      1 * targetPoolsMock.addInstance(PROJECT_NAME, REGION, TARGET_POOL_NAME_1, _) >> targetPoolsAddInstanceMock
+      1 * targetPoolsAddInstanceMock.execute()
+      0 * targetPoolsMock.addInstance(PROJECT_NAME, REGION, "managed-listener-target-http-proxy", _)
+
+      1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
+      1 * instanceGroupManagersMock.setTargetPools(PROJECT_NAME, ZONE, SERVER_GROUP_NAME, { request ->
+        !request.targetPools.any { it.contains("/targetHttpProxies/") }
+      }) >> instanceGroupManagersSetTargetPoolsMock
+      1 * instanceGroupManagersSetTargetPoolsMock.execute()
+
+      3 * computeMock.globalForwardingRules() >> globalForwardingRules
+      3 * globalForwardingRules.list(PROJECT_NAME) >> globalForwardingRulesList
+      3 * globalForwardingRulesList.execute() >> new ForwardingRuleList(items: [])
+  }
+
   void "should fail if load balancers cannot be resolved"() {
     setup:
       def globalForwardingRules = Mock(Compute.GlobalForwardingRules)

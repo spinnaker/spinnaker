@@ -385,6 +385,9 @@ abstract class AbstractEnableDisableAtomicOperation extends GoogleAtomicOperatio
           newForwardingRuleNames = item.value.split(",") as List
         }
       }
+      // Regional external names are never target pools: passthrough rules have no target, managed
+      // listeners target regional proxies, and a removed listener no longer exists at all.
+      newForwardingRuleNames -= metadataMap?.get(GCEUtil.REGIONAL_EXTERNAL_LOAD_BALANCER_NAMES)?.tokenize(",") ?: []
 
       def forwardingRules = GCEUtil.queryRegionalForwardingRules(project, region, newForwardingRuleNames, compute, task, phaseName, safeRetry, this)
 
