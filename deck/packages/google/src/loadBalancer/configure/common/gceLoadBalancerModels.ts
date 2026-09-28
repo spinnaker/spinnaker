@@ -1,13 +1,17 @@
-export const GCE_LOAD_BALANCER_TYPES = ['NETWORK', 'INTERNAL', 'TCP', 'SSL', 'HTTP', 'INTERNAL_MANAGED'] as const;
+export const GCE_LOAD_BALANCER_TYPES = [
+  'NETWORK',
+  'INTERNAL',
+  'TCP',
+  'SSL',
+  'HTTP',
+  'INTERNAL_MANAGED',
+  'EXTERNAL_MANAGED',
+  'REGIONAL_EXTERNAL_NETWORK',
+] as const;
 
-export const EXTENDED_GCE_LOAD_BALANCER_TYPES = ['EXTERNAL_MANAGED', 'REGIONAL_EXTERNAL_NETWORK'] as const;
-
-export type GceLoadBalancerType =
-  | typeof GCE_LOAD_BALANCER_TYPES[number]
-  | typeof EXTENDED_GCE_LOAD_BALANCER_TYPES[number];
+export type GceLoadBalancerType = typeof GCE_LOAD_BALANCER_TYPES[number];
 export type GceLoadBalancerEditorMode = 'create' | 'edit' | 'pipeline';
 export type GceLoadBalancerProtocol = 'TCP' | 'UDP' | 'HTTP' | 'HTTPS' | 'HTTP2' | 'GRPC' | 'SSL';
-export type GceLoadBalancerBackendProtocol = 'HTTP' | 'HTTPS';
 
 export interface IGceLoadBalancerCapabilities {
   address: boolean;
@@ -19,10 +23,7 @@ export interface IGceLoadBalancerCapabilities {
   subnet: boolean;
 }
 
-export const GCE_LOAD_BALANCER_CAPABILITIES: Record<
-  typeof GCE_LOAD_BALANCER_TYPES[number],
-  IGceLoadBalancerCapabilities
-> = {
+export const GCE_LOAD_BALANCER_CAPABILITIES: Record<GceLoadBalancerType, IGceLoadBalancerCapabilities> = {
   NETWORK: capabilities({ address: true, healthChecks: true }),
   INTERNAL: capabilities({
     address: true,
@@ -49,12 +50,6 @@ export const GCE_LOAD_BALANCER_CAPABILITIES: Record<
     network: true,
     subnet: true,
   }),
-};
-
-const EXTENDED_GCE_LOAD_BALANCER_CAPABILITIES: Record<
-  typeof EXTENDED_GCE_LOAD_BALANCER_TYPES[number],
-  IGceLoadBalancerCapabilities
-> = {
   EXTERNAL_MANAGED: capabilities({
     address: true,
     backendServices: true,
@@ -69,13 +64,6 @@ const EXTENDED_GCE_LOAD_BALANCER_CAPABILITIES: Record<
     healthChecks: true,
   }),
 };
-
-function capabilitiesForType(type: GceLoadBalancerType): IGceLoadBalancerCapabilities {
-  if ((EXTENDED_GCE_LOAD_BALANCER_TYPES as readonly string[]).includes(type)) {
-    return EXTENDED_GCE_LOAD_BALANCER_CAPABILITIES[type as typeof EXTENDED_GCE_LOAD_BALANCER_TYPES[number]];
-  }
-  return GCE_LOAD_BALANCER_CAPABILITIES[type as typeof GCE_LOAD_BALANCER_TYPES[number]];
-}
 
 export interface IGceResourceReference {
   name: string;
@@ -158,7 +146,6 @@ interface IGceLoadBalancerCommandBase {
   network?: IGceResourceReference;
   original?: IGceLoadBalancerOriginalState;
   networkTier?: string;
-  preservedNetworkTier?: string;
   subnet?: IGceResourceReference;
 }
 
@@ -206,9 +193,7 @@ export function normalizeGceLoadBalancerCommand(
   const topLevelListener = {
     address: persisted.ipAddress || persisted.address,
     certificate: persisted.certificate,
-    name: isHttpType(loadBalancerType)
-      ? persisted.loadBalancerName || persisted.name || name
-      : persisted.loadBalancerName || persisted.name || name,
+    name: isHttpType(loadBalancerType) ? persisted.loadBalancerName || persisted.name || name : name,
     networkTier: loadBalancerType === 'EXTERNAL_MANAGED' ? persisted.networkTier : undefined,
     portRange: persisted.portRange || persisted.ports,
     protocol:
@@ -243,9 +228,6 @@ export function normalizeGceLoadBalancerCommand(
       healthChecks,
       listeners: command.listeners,
     });
-    if (loadBalancerType === 'REGIONAL_EXTERNAL_NETWORK' && command.networkTier) {
-      command.preservedNetworkTier = command.networkTier;
-    }
   }
   return command;
 }
@@ -255,7 +237,7 @@ export function serializeGceLoadBalancerCommand(command: IGceLoadBalancerCommand
     return serializeRegionalExternalNetworkCommand(command);
   }
 
-  const typeCapabilities = capabilitiesForType(command.loadBalancerType);
+  const typeCapabilities = GCE_LOAD_BALANCER_CAPABILITIES[command.loadBalancerType];
   const listener = command.listeners[0];
   const serialized: IGceSerializedLoadBalancerCommand = {
     cloudProvider: 'gce',
@@ -272,13 +254,6 @@ export function serializeGceLoadBalancerCommand(command: IGceLoadBalancerCommand
     serialized.listeners = command.listeners.map((currentListener) =>
       serializeListener(currentListener, typeCapabilities, command.loadBalancerType),
     );
-    if (command.loadBalancerType === 'EXTERNAL_MANAGED') {
-      serialized.urlMapName = command.name;
-      const networkTier = command.listeners.find(({ networkTier: tier }) => tier)?.networkTier;
-      if (networkTier) {
-        serialized.networkTier = networkTier;
-      }
-    }
   } else if (listener) {
     serialized.ipProtocol = listener.protocol;
     serialized.portRange = listener.portRange;
@@ -290,15 +265,10 @@ export function serializeGceLoadBalancerCommand(command: IGceLoadBalancerCommand
     serialized.certificate = serializeCertificateName(listener.certificate);
   }
   if (typeCapabilities.healthChecks && command.healthChecks.length) {
-    serialized.healthChecks =
-      command.loadBalancerType === 'EXTERNAL_MANAGED'
-        ? command.healthChecks.map(serializeGceHealthCheck)
-        : command.healthChecks.map((healthCheck) => ({ ...healthCheck }));
+    serialized.healthChecks = command.healthChecks.map((healthCheck) => ({ ...healthCheck }));
   }
   if (typeCapabilities.backendServices && command.backendServices.length) {
-    serialized.backendServices = command.backendServices.map((service) =>
-      serializeBackendService(service, command.loadBalancerType),
-    );
+    serialized.backendServices = command.backendServices.map(serializeBackendService);
   }
   if (typeCapabilities.hostRules && command.hostRules.length) {
     serialized.hostRules = command.hostRules.map(serializeHostRule);
@@ -332,10 +302,7 @@ function capabilities(overrides: Partial<IGceLoadBalancerCapabilities>): IGceLoa
 function normalizeLoadBalancerType(value: unknown): GceLoadBalancerType {
   const normalized = asString(value).toUpperCase() as GceLoadBalancerType;
   if ((GCE_LOAD_BALANCER_TYPES as readonly string[]).includes(normalized)) {
-    return normalized as typeof GCE_LOAD_BALANCER_TYPES[number];
-  }
-  if ((EXTENDED_GCE_LOAD_BALANCER_TYPES as readonly string[]).includes(normalized)) {
-    return normalized as typeof EXTENDED_GCE_LOAD_BALANCER_TYPES[number];
+    return normalized;
   }
   return 'NETWORK';
 }
@@ -427,7 +394,7 @@ function normalizeBackendService(
     normalized.healthCheck = healthCheck;
   }
   if (loadBalancerType === 'EXTERNAL_MANAGED') {
-    normalized.protocol = (asString(service.protocol).toUpperCase() || 'HTTP') as GceLoadBalancerBackendProtocol;
+    normalized.protocol = (asString(service.protocol).toUpperCase() || 'HTTP') as GceLoadBalancerProtocol;
   }
   delete normalized.healthCheckLink;
   return normalized;
@@ -581,17 +548,10 @@ function serializeListener(
   return serialized;
 }
 
-function serializeBackendService(
-  service: IGceLoadBalancerBackendService,
-  loadBalancerType: GceLoadBalancerType,
-): UnknownRecord {
-  const serialized: UnknownRecord =
-    loadBalancerType === 'EXTERNAL_MANAGED' ? serializeGceBackendService(service) : { ...service };
+function serializeBackendService(service: IGceLoadBalancerBackendService): UnknownRecord {
+  const serialized: UnknownRecord = { ...service };
   if (service.healthCheck) {
     serialized.healthCheck = serializeHealthCheckName(service.healthCheck);
-  }
-  if (loadBalancerType === 'EXTERNAL_MANAGED' && !serialized.protocol) {
-    serialized.protocol = 'HTTP';
   }
   return serialized;
 }
@@ -655,10 +615,9 @@ function normalizePorts(value: string): string[] {
 
 function serializeRegionalExternalNetworkCommand(command: IGceLoadBalancerCommand): IGceSerializedLoadBalancerCommand {
   const listener = command.listeners[0];
-  const originalListener = command.original?.listeners[0];
   const backendService = command.backendServices[0];
-  const address = listener?.address ?? originalListener?.address;
-  const networkTier = command.networkTier || command.preservedNetworkTier || undefined;
+  const address = listener?.address;
+  const networkTier = command.networkTier || undefined;
 
   return {
     cloudProvider: 'gce',

@@ -46,7 +46,6 @@ export interface IGcePathRule {
 export interface IGceListener {
   certificate?: string | null;
   certificateMap?: string | null;
-  certificateSource?: 'certificate' | 'certificateMap';
   name: string;
   port: string;
   ipAddress: string;

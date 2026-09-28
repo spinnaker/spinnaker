@@ -44,7 +44,6 @@ export function buildGceLoadBalancerJobs(command: IGceLoadBalancerCommand): GceL
     healthChecks: _healthChecks,
     hostRules: _hostRules,
     listeners,
-    networkTier: _networkTier,
     ...shared
   } = serialized;
   const backendServices = new Map(

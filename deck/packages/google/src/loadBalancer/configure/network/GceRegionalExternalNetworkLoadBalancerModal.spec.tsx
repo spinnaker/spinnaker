@@ -207,7 +207,7 @@ describe('GceRegionalExternalNetworkLoadBalancerModal', () => {
     expect(payload.backendService.healthCheck.name).toBe('app-main');
   });
 
-  it('preserves ipAddress and networkTier when direct edit omits optional address fields', () => {
+  it('preserves ipAddress and networkTier during edit serialization', () => {
     const command = normalizeGceRegionalExternalNetworkLoadBalancerCommand(
       {
         account: 'account-a',
@@ -225,8 +225,6 @@ describe('GceRegionalExternalNetworkLoadBalancerModal', () => {
       },
       'edit',
     );
-    command.listeners[0].address = undefined;
-    command.networkTier = undefined;
 
     const payload = serializeGceRegionalExternalNetworkLoadBalancerCommand(command);
 

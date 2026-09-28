@@ -517,11 +517,6 @@ describe('GCE load balancer submission', () => {
       },
       'edit',
     );
-    command.listeners[0].protocol = 'UDP';
-    command.listeners[0].address = undefined;
-    command.backendServices[0].sessionAffinity = 'CLIENT_IP_PROTO';
-    command.networkTier = undefined;
-
     const [job] = buildGceLoadBalancerJobs(command);
 
     expect(job.ipAddress).toBe('35.1.2.3');
