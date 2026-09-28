@@ -5,7 +5,6 @@ import type { IGceHttpLoadBalancer, IGceLoadBalancer } from '../domain/loadBalan
 export class GceHttpLoadBalancerUtils {
   public static REGION = 'global';
   public static HTTP_LOAD_BALANCER_TYPES = ['HTTP', 'INTERNAL_MANAGED', 'EXTERNAL_MANAGED'];
-  public REGION = GceHttpLoadBalancerUtils.REGION;
 
   public isHttpLoadBalancer(lb: IGceLoadBalancer): lb is IGceHttpLoadBalancer {
     const loadBalancer = lb as any;
@@ -19,10 +18,6 @@ export class GceHttpLoadBalancerUtils {
     return this.isHttpLoadBalancer(lb) && lb.loadBalancerType !== 'HTTP';
   }
 
-  public isExternalHttpLoadBalancer(lb: IGceLoadBalancer): lb is IGceHttpLoadBalancer {
-    return this.isHttpLoadBalancer(lb) && lb.loadBalancerType !== 'INTERNAL_MANAGED';
-  }
-
   public normalizeLoadBalancerNamesForAccount(
     loadBalancerNames: string[],
     account: string,
@@ -31,22 +26,29 @@ export class GceHttpLoadBalancerUtils {
   ): string[] {
     // Assume that loadBalancers is a list of all GCE load balancers in an application
     // (but possibly from several accounts), and has already been normalized (listener names mapped to URL map names).
-    // Regional listener names are not globally unique, so account/region must participate in the match.
     const normalizedLoadBalancerNames: string[] = [];
+    const hasListener = (loadBalancer: IGceLoadBalancer, loadBalancerName: string) =>
+      account === loadBalancer.account &&
+      this.isHttpLoadBalancer(loadBalancer) &&
+      loadBalancer.listeners.map((listener) => listener.name).includes(loadBalancerName);
     loadBalancerNames.forEach((loadBalancerName) => {
-      const matchingUrlMaps = loadBalancers.filter((loadBalancer) => {
-        return (
-          account === loadBalancer.account &&
-          this.isHttpLoadBalancer(loadBalancer) &&
-          (!this.isRegionalHttpLoadBalancer(loadBalancer) || !region || loadBalancer.region === region) &&
-          loadBalancer.listeners.map((listener) => listener.name).includes(loadBalancerName)
-        );
-      });
+      const matchingUrlMap = loadBalancers.find(
+        (loadBalancer) =>
+          loadBalancer.loadBalancerType !== 'EXTERNAL_MANAGED' && hasListener(loadBalancer, loadBalancerName),
+      );
+      // EXTERNAL_MANAGED listener names repeat across regions, so a raw alias maps only when the
+      // account and region identify one load balancer.
+      const externalMatches = matchingUrlMap
+        ? []
+        : loadBalancers.filter(
+            (loadBalancer) =>
+              loadBalancer.loadBalancerType === 'EXTERNAL_MANAGED' &&
+              (!region || loadBalancer.region === region) &&
+              hasListener(loadBalancer, loadBalancerName),
+          );
+      const match = matchingUrlMap || (externalMatches.length === 1 ? externalMatches[0] : undefined);
 
-      // A raw listener alias is safe only when account and region identify one logical load balancer.
-      matchingUrlMaps.length === 1
-        ? normalizedLoadBalancerNames.push(matchingUrlMaps[0].name)
-        : normalizedLoadBalancerNames.push(loadBalancerName);
+      match ? normalizedLoadBalancerNames.push(match.name) : normalizedLoadBalancerNames.push(loadBalancerName);
     });
     return uniq(normalizedLoadBalancerNames);
   }

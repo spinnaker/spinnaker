@@ -18,7 +18,7 @@ describe('GceServerGroupConfigurationService', () => {
   });
 
   describe('configureLoadBalancerOptions', () => {
-    it('scopes EXTERNAL_MANAGED listener normalization and backend mapping by account and region', () => {
+    it('scopes EXTERNAL_MANAGED listener normalization by account and region without seeding global backends', () => {
       const command = {
         credentials: 'account-a',
         region: 'europe-west1',
@@ -67,9 +67,7 @@ describe('GceServerGroupConfigurationService', () => {
       service.configureLoadBalancerOptions(command);
 
       expect(command.loadBalancers).toEqual(['app-main (account-a/europe-west1/EXTERNAL_MANAGED)']);
-      expect(command.backendServices).toEqual({
-        'app-main (account-a/europe-west1/EXTERNAL_MANAGED)': ['europe-backend'],
-      });
+      expect(command.backendServices).toBeUndefined();
     });
   });
 

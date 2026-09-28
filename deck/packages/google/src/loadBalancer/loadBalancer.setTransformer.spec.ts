@@ -113,6 +113,32 @@ describe('GceLoadBalancerSetTransformer', () => {
     expect((result[0] as any).listeners.map((listener: any) => listener.port)).toEqual(['80', '443']);
   });
 
+  it('keeps INTERNAL_MANAGED names as the raw url map name that Clouddriver attaches by', () => {
+    const [internalManaged, externalManaged] = transformer.normalizeLoadBalancerSet([
+      {
+        account: 'test',
+        loadBalancerType: 'INTERNAL_MANAGED',
+        name: 'internal-listener',
+        portRange: '80-80',
+        provider: 'gce',
+        region: 'us-central1',
+        urlMapName: 'shared-map',
+      },
+      {
+        account: 'test',
+        loadBalancerType: 'EXTERNAL_MANAGED',
+        name: 'external-listener',
+        portRange: '80-80',
+        provider: 'gce',
+        region: 'us-central1',
+        urlMapName: 'shared-map',
+      },
+    ] as any);
+
+    expect(internalManaged.name).toBe('shared-map');
+    expect(externalManaged.name).toBe('shared-map (test/us-central1/EXTERNAL_MANAGED)');
+  });
+
   it('does not group REGIONAL_EXTERNAL_NETWORK load balancers with regional HTTP families', () => {
     const networkLoadBalancer = {
       account: 'test',

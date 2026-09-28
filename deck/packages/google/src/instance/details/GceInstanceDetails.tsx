@@ -14,7 +14,6 @@ import {
 } from '@spinnaker/core';
 
 import { GceXpnNamingService } from '../../common/xpnNaming.gce.service';
-import { GceHttpLoadBalancerUtils } from '../../loadBalancer/httpLoadBalancerUtils.service';
 
 interface IGceInstanceDetailsProps extends IRouterInjectedProps {
   app: any;
@@ -84,24 +83,6 @@ function findInstanceSummary(app: any, instanceId: string): any {
 function projectFromSelfLink(selfLink: string): string | undefined {
   const match = /\/projects\/([^/]+)/.exec(selfLink || '');
   return match?.[1];
-}
-
-export function normalizeGceInstanceLoadBalancers(
-  loadBalancerNames: string[],
-  account: string,
-  region: string,
-  loadBalancers: any[],
-): string[] {
-  if (!loadBalancerNames?.length || !loadBalancers?.length) {
-    return loadBalancerNames || [];
-  }
-
-  return new GceHttpLoadBalancerUtils().normalizeLoadBalancerNamesForAccount(
-    loadBalancerNames,
-    account,
-    loadBalancers,
-    region,
-  );
 }
 
 export function decorateInstance(instance: any): any {
@@ -343,21 +324,7 @@ export function GceInstanceDetailsComponent(props: IGceInstanceDetailsProps): JS
         if (cancelled) {
           return;
         }
-        setInstance(
-          decorateInstance({
-            ...summary,
-            ...details,
-            account,
-            instanceId: params.instanceId,
-            loadBalancers: normalizeGceInstanceLoadBalancers(
-              summary?.loadBalancers || details.loadBalancers || [],
-              account,
-              region,
-              props.app?.loadBalancers?.data || [],
-            ),
-            region,
-          }),
-        );
+        setInstance(decorateInstance({ ...summary, ...details, account, instanceId: params.instanceId, region }));
         setLoading(false);
       },
       () => {

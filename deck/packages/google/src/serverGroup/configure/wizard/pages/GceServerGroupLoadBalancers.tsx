@@ -100,7 +100,7 @@ export class GceServerGroupLoadBalancers extends GceServerGroupWizardPage<IGceSe
     };
     if (hasAmbiguousSelectedName(values)) {
       errors.loadBalancers =
-        'The selected load balancer name is ambiguous across account or regional scopes. Rename it or select an unambiguous load balancer.';
+        'The selected load balancer name is ambiguous across regions or load balancer types. Rename it or select an unambiguous load balancer.';
     } else if (hasMixedRegionalExternalNetworkSelection(values)) {
       errors.loadBalancers =
         'REGIONAL_EXTERNAL_NETWORK load balancers cannot be combined with other load balancer families in this editor.';
@@ -272,7 +272,9 @@ export class GceServerGroupLoadBalancers extends GceServerGroupWizardPage<IGceSe
     values: IGceServerGroupCommand,
     loadBalancerName: string,
   ): React.ReactElement | null {
-    if (getLoadBalancerIndex(values)[loadBalancerName]?.loadBalancerType === 'REGIONAL_EXTERNAL_NETWORK') {
+    // Clouddriver attaches every backend service of a regional external load balancer.
+    const loadBalancerType = getLoadBalancerIndex(values)[loadBalancerName]?.loadBalancerType;
+    if (loadBalancerType === 'REGIONAL_EXTERNAL_NETWORK' || loadBalancerType === 'EXTERNAL_MANAGED') {
       return null;
     }
     const availableBackendServices = getBackendServiceData(values, loadBalancerName).map(({ name }) => name);
@@ -598,7 +600,9 @@ export class GceServerGroupLoadBalancers extends GceServerGroupWizardPage<IGceSe
 function getAvailableLoadBalancers(command: IGceServerGroupCommand): ILoadBalancerOption[] {
   const scopedLoadBalancers = getScopedLoadBalancers(command);
   if (scopedLoadBalancers) {
-    return uniqueLoadBalancers(scopedLoadBalancers);
+    return uniqueLoadBalancers(
+      scopedLoadBalancers.map((loadBalancer) => toIndexedExternalManagedOption(command, loadBalancer)),
+    );
   }
 
   const filteredLoadBalancers = command.backingData?.filtered?.loadBalancers;
@@ -610,6 +614,23 @@ function getAvailableLoadBalancers(command: IGceServerGroupCommand): ILoadBalanc
       .map(toLoadBalancerOption)
       .filter((loadBalancer): loadBalancer is ILoadBalancerOption => Boolean(loadBalancer)),
   );
+}
+
+// Clouddriver summarizes EXTERNAL_MANAGED per listener, while the wizard indexes it by the URL-map
+// display name that clone submission expands back into listener names.
+function toIndexedExternalManagedOption(
+  command: IGceServerGroupCommand,
+  loadBalancer: ILoadBalancerOption,
+): ILoadBalancerOption {
+  if (loadBalancer.loadBalancerType !== 'EXTERNAL_MANAGED') {
+    return loadBalancer;
+  }
+  const indexed = Object.values(getLoadBalancerIndex(command)).find(
+    (candidate) =>
+      candidate.loadBalancerType === 'EXTERNAL_MANAGED' &&
+      (candidate.listeners || []).some(({ name }) => name === loadBalancer.name),
+  );
+  return indexed?.name ? { ...loadBalancer, name: indexed.name } : loadBalancer;
 }
 
 function getLoadBalancerIndex(command: IGceServerGroupCommand): Record<string, ILoadBalancerData> {

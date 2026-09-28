@@ -17,7 +17,6 @@ describe('GceHttpLoadBalancerUtils', () => {
 
     expect(utils.isHttpLoadBalancer(externalManaged)).toBe(true);
     expect(utils.isRegionalHttpLoadBalancer(externalManaged)).toBe(true);
-    expect(utils.isExternalHttpLoadBalancer(externalManaged)).toBe(true);
   });
 
   it('keeps global HTTP and INTERNAL_MANAGED classification unchanged', () => {
@@ -43,7 +42,6 @@ describe('GceHttpLoadBalancerUtils', () => {
 
     expect(utils.isHttpLoadBalancer(internalManaged)).toBe(true);
     expect(utils.isRegionalHttpLoadBalancer(internalManaged)).toBe(true);
-    expect(utils.isExternalHttpLoadBalancer(internalManaged)).toBe(false);
   });
 
   it('scopes regional listener normalization by account and region', () => {
@@ -94,19 +92,35 @@ describe('GceHttpLoadBalancerUtils', () => {
     ]);
   });
 
-  it('leaves an ambiguous regional listener name unresolved', () => {
-    const loadBalancers = (['INTERNAL_MANAGED', 'EXTERNAL_MANAGED'] as const).map((loadBalancerType) => ({
+  it('keeps the first INTERNAL_MANAGED url map for a listener name regardless of region', () => {
+    const loadBalancers = ['us-central1', 'europe-west1'].map((region) => ({
       account: 'account-a',
       listeners: [{ name: 'shared-listener' }],
-      loadBalancerType,
-      name: `app-main (account-a/us-central1/${loadBalancerType})`,
+      loadBalancerType: 'INTERNAL_MANAGED',
+      name: `app-internal-${region}`,
       provider: 'gce',
-      region: 'us-central1',
-      urlMapName: 'app-main',
+      region,
+      urlMapName: `app-internal-${region}`,
     })) as IGceLoadBalancer[];
 
     expect(
-      utils.normalizeLoadBalancerNamesForAccount(['shared-listener'], 'account-a', loadBalancers, 'us-central1'),
-    ).toEqual(['shared-listener']);
+      utils.normalizeLoadBalancerNamesForAccount(['shared-listener'], 'account-a', loadBalancers, 'europe-west1'),
+    ).toEqual(['app-internal-us-central1']);
+  });
+
+  it('leaves an EXTERNAL_MANAGED listener name unresolved when regions make it ambiguous', () => {
+    const loadBalancers = ['us-central1', 'europe-west1'].map((region) => ({
+      account: 'account-a',
+      listeners: [{ name: 'shared-listener' }],
+      loadBalancerType: 'EXTERNAL_MANAGED',
+      name: `app-main (account-a/${region}/EXTERNAL_MANAGED)`,
+      provider: 'gce',
+      region,
+      urlMapName: 'app-main',
+    })) as IGceLoadBalancer[];
+
+    expect(utils.normalizeLoadBalancerNamesForAccount(['shared-listener'], 'account-a', loadBalancers)).toEqual([
+      'shared-listener',
+    ]);
   });
 });

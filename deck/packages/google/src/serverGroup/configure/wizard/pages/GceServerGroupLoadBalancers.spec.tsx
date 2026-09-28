@@ -584,7 +584,7 @@ describe('GCE server group Load Balancers page', () => {
     ).instance() as GceServerGroupLoadBalancers;
 
     expect(page.validate(ambiguous).loadBalancers).toBe(
-      'The selected load balancer name is ambiguous across account or regional scopes. Rename it or select an unambiguous load balancer.',
+      'The selected load balancer name is ambiguous across regions or load balancer types. Rename it or select an unambiguous load balancer.',
     );
 
     const mixedPassthrough = command({
