@@ -12,11 +12,6 @@ function numberValue(value: string): number | undefined {
   return value === '' ? undefined : Number(value);
 }
 
-function portValue(value: string): number | string | undefined {
-  if (value === '') return undefined;
-  return /^\d+$/.test(value) ? Number(value) : value;
-}
-
 function selectedReference(name: string, options: IGceLoadBalancerDataItem[]): IGceResourceReference | undefined {
   if (!name) {
     return undefined;
@@ -122,10 +117,9 @@ export function GceHttpLoadBalancerHealthCheckEditor({
           max={65535}
           min={1}
           required
-          inputMode="numeric"
-          type="text"
+          type="number"
           value={healthCheck.port ?? ''}
-          onChange={(event) => onChange({ ...healthCheck, port: portValue(event.target.value) })}
+          onChange={(event) => updateNumber('port', event.target.value)}
         />
       </label>
       {[

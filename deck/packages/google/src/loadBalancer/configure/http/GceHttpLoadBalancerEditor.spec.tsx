@@ -602,7 +602,9 @@ describe('GceHttpLoadBalancerEditor', () => {
     );
 
     const options = buildGceHttpLoadBalancerOptions(command, data);
-    expect(options.addresses.map(({ name, address }) => address || name)).toEqual(['203.0.113.10']);
+    expect(options.addresses.filter(({ address }) => address).map(({ address }) => address)).toEqual(['203.0.113.10']);
+    // The listener select value is the persisted IP, so it must stay selectable next to the named address.
+    expect(options.addresses.map(({ name }) => name)).toContain('203.0.113.10');
     expect(options.certificates.map(({ name }) => name)).toEqual(['regional-cert']);
     expect(options.healthChecks.map(({ name }) => name)).toEqual(['regional-check']);
     expect(options.backendServices.map(({ name }) => name)).toEqual(['regional-backend']);
@@ -645,6 +647,19 @@ describe('GceHttpLoadBalancerEditor', () => {
         'Rename the listener to change its port, address, network tier, or HTTP/HTTPS protocol.',
       ]),
     );
+  });
+
+  it('reports a missing network for a new EXTERNAL_MANAGED load balancer instead of throwing', () => {
+    const command = normalizeGceLoadBalancerCommand(
+      { account: 'account-a', loadBalancerType: 'EXTERNAL_MANAGED', region: 'europe-west1' },
+      'create',
+    );
+    command.network = undefined;
+
+    const errors = validateGceHttpLoadBalancerCommand(command);
+
+    expect(errors).toContain('Network is required for EXTERNAL_MANAGED load balancers.');
+    expect(errors).not.toContain('Shared VPC networks are not supported for EXTERNAL_MANAGED load balancers.');
   });
 
   it('offers only account-local networks for EXTERNAL_MANAGED', () => {

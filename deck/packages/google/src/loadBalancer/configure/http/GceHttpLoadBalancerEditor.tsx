@@ -61,18 +61,6 @@ function uniqueOptions<T extends { name?: string }>(options: T[]): Array<T & { n
   );
 }
 
-function uniqueAddressOptions(options: IGceHttpLoadBalancerDataItem[]): IGceHttpLoadBalancerDataItem[] {
-  const seen = new Set<string>();
-  return options.filter((option) => {
-    const key = String(option.address || option.name || '');
-    if (!key || seen.has(key)) {
-      return false;
-    }
-    seen.add(key);
-    return true;
-  });
-}
-
 export function buildGceHttpLoadBalancerOptions(
   command: IGceLoadBalancerCommand,
   data: IGceLoadBalancerData,
@@ -121,11 +109,9 @@ export function buildGceHttpLoadBalancerOptions(
 
   return {
     accounts: mergeGceResourceOptions(data.accounts, command.credentials ? [{ name: command.credentials }] : []),
-    addresses: uniqueAddressOptions(
-      mergeGceResourceOptions(
-        (data.addresses as IGceHttpLoadBalancerDataItem[]).filter(addressMatches),
-        uniqueOptions(command.listeners.flatMap((listener) => (listener.address ? [listener.address] : []))),
-      ),
+    addresses: mergeGceResourceOptions(
+      (data.addresses as IGceHttpLoadBalancerDataItem[]).filter(addressMatches),
+      uniqueOptions(command.listeners.flatMap((listener) => (listener.address ? [listener.address] : []))),
     ),
     backendServices: mergeGceResourceOptions(
       (data.backendServices as IGceHttpLoadBalancerDataItem[]).filter(locationMatches),
@@ -226,7 +212,7 @@ export function validateGceHttpLoadBalancerCommand(command: IGceLoadBalancerComm
     if (!command.network?.name) {
       errors.add(`Network is required for ${internal ? 'INTERNAL_MANAGED' : 'EXTERNAL_MANAGED'} load balancers.`);
     }
-    if (externalManaged && !isAccountLocalNetwork(command.network)) {
+    if (externalManaged && command.network && !isAccountLocalNetwork(command.network)) {
       errors.add('Shared VPC networks are not supported for EXTERNAL_MANAGED load balancers.');
     }
     if (internal && !command.subnet?.name) errors.add('Subnet is required for INTERNAL_MANAGED load balancers.');
@@ -328,7 +314,7 @@ export function validateGceHttpLoadBalancerCommand(command: IGceLoadBalancerComm
 }
 
 function validPort(value: unknown): boolean {
-  const text = String(value ?? '');
+  const text = String(value ?? '').trim();
   if (!/^\d+$/.test(text)) return false;
   const port = Number(text);
   return Number.isInteger(port) && port >= 1 && port <= 65535;
@@ -589,7 +575,7 @@ export function GceHttpLoadBalancerEditor({ command, data, onChange }: IGceHttpL
                 {
                   name: '',
                   portName: 'http',
-                  protocol: command.loadBalancerType === 'EXTERNAL_MANAGED' ? 'HTTP' : undefined,
+                  ...(command.loadBalancerType === 'EXTERNAL_MANAGED' ? { protocol: 'HTTP' as const } : {}),
                   sessionAffinity: 'NONE',
                 },
               ],

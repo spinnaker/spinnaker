@@ -280,8 +280,6 @@ function numberField(
         <input
           className="form-control input-sm"
           inputMode="numeric"
-          max={65535}
-          min={1}
           onChange={(event) =>
             onChange(
               event.target.value === ''
