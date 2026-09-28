@@ -32,42 +32,66 @@ class UpsertLoadBalancerTaskSpec extends Specification {
   @Subject
   def task = new UpsertLoadBalancerTask(kato: kato)
 
-  def "emits target-local concrete listener identity through JSON"() {
-    given:
-    def executionStage = stage {
-      context = [
-        cloudProvider: "gce",
-        credentials: "legacy-stage-account",
-        account: "target-account",
-        region: "us-central1",
-        regionZones: ["us-central1-a"],
-        loadBalancerType: "EXTERNAL_MANAGED",
-        loadBalancerName: "listener-443",
-        name: "display-alias-must-not-win",
-        urlMapName: "shared-url-map",
-        vpcId: "network-a",
-      ]
-    }
-    kato.requestOperations("gce", _) >> new TaskId("task-id")
-
-    when:
-    def result = task.execute(executionStage)
-    List<Map> targets = mapper.readValue(
+  List<Map> serializedTargets(Map context) {
+    kato.requestOperations(context.cloudProvider, _) >> new TaskId("task-id")
+    def result = task.execute(stage { delegate.context = context })
+    return mapper.readValue(
       mapper.writeValueAsString(result.context.targets),
       new TypeReference<List<Map>>() {}
     )
+  }
+
+  def "emits the concrete regional listener identity through JSON"() {
+    when:
+    def targets = serializedTargets([
+      cloudProvider: "gce",
+      credentials: "stage-account",
+      account: "target-account",
+      region: "us-central1",
+      regionZones: ["us-central1-a"],
+      loadBalancerType: "EXTERNAL_MANAGED",
+      loadBalancerName: "listener-443",
+      name: "display-alias",
+      urlMapName: "shared-url-map",
+    ])
 
     then:
     targets == [[
       credentials: "target-account",
+      availabilityZones: ["us-central1": ["us-central1-a"]],
+      vpcId: null,
+      name: "display-alias",
       account: "target-account",
       region: "us-central1",
-      availabilityZones: ["us-central1": ["us-central1-a"]],
       loadBalancerType: "EXTERNAL_MANAGED",
       loadBalancerName: "listener-443",
-      name: "listener-443",
-      urlMapName: "shared-url-map",
-      vpcId: "network-a",
     ]]
+  }
+
+  def "keeps the historical target shape for other load balancer families"() {
+    when:
+    def targets = serializedTargets([
+      cloudProvider: cloudProvider,
+      credentials: "stage-account",
+      region: "us-west-1",
+      regionZones: ["us-west-1a"],
+      loadBalancerType: loadBalancerType,
+      name: "flapjack-frontend",
+      vpcId: "vpc-1",
+    ])
+
+    then:
+    targets == [[
+      credentials: "stage-account",
+      availabilityZones: ["us-west-1": ["us-west-1a"]],
+      vpcId: "vpc-1",
+      name: "flapjack-frontend",
+    ]]
+
+    where:
+    cloudProvider | loadBalancerType
+    "aws"         | "application"
+    "aws"         | "EXTERNAL_MANAGED"
+    "gce"         | "INTERNAL_MANAGED"
   }
 }

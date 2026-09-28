@@ -17,27 +17,34 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer
 
 final class LoadBalancerTarget {
+  private static final Set<String> REGIONAL_FAMILY_TYPES = [
+    "EXTERNAL_MANAGED",
+    "REGIONAL_EXTERNAL_NETWORK",
+  ] as Set<String>
+
   private LoadBalancerTarget() {}
 
-  static Map<String, Object> fromOperation(Map operation, String fallbackAccount = null) {
-    String account = (operation.account ?: operation.credentials ?: fallbackAccount) as String
-    String region = operation.region as String
-    String loadBalancerName = (operation.loadBalancerName ?: operation.name) as String
-    Map availabilityZones = operation.availabilityZones as Map
-    if (!availabilityZones && region) {
-      availabilityZones = [(region): operation.regionZones]
-    }
+  static boolean isRegionalFamilyType(String loadBalancerType) {
+    return REGIONAL_FAMILY_TYPES.any { it.equalsIgnoreCase(loadBalancerType) }
+  }
 
-    return [
-      credentials      : account,
-      account          : account,
-      region           : region,
-      availabilityZones: availabilityZones,
-      loadBalancerType : operation.loadBalancerType,
-      loadBalancerName : loadBalancerName,
-      name             : loadBalancerName,
-      urlMapName       : operation.urlMapName,
+  static boolean isRegionalFamily(String cloudProvider, String loadBalancerType) {
+    return "gce".equalsIgnoreCase(cloudProvider) && isRegionalFamilyType(loadBalancerType)
+  }
+
+  static Map<String, Object> fromOperation(String cloudProvider, Map operation, String credentials) {
+    Map<String, Object> target = [
+      credentials      : credentials,
+      availabilityZones: operation.availabilityZones,
       vpcId            : operation.vpcId,
+      name             : operation.name,
     ]
+    if (isRegionalFamily(cloudProvider, operation.loadBalancerType as String)) {
+      target.account = (operation.account ?: operation.credentials ?: credentials) as String
+      target.region = operation.region
+      target.loadBalancerType = operation.loadBalancerType
+      target.loadBalancerName = (operation.loadBalancerName ?: operation.name) as String
+    }
+    return target
   }
 }

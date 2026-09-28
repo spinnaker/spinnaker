@@ -177,33 +177,47 @@ class UpsertLoadBalancersTaskSpec extends Specification {
     )
 
     then:
-    targets*.subMap([
-      "credentials",
-      "account",
-      "region",
-      "loadBalancerType",
-      "loadBalancerName",
-      "name",
-      "urlMapName",
-    ]) == [
+    targets == [
       [
         credentials: "account-a",
+        availabilityZones: ["us-central1": ["us-central1-a"]],
+        vpcId: null,
+        name: "listener-a",
         account: "account-a",
         region: "us-central1",
         loadBalancerType: "EXTERNAL_MANAGED",
         loadBalancerName: "listener-a",
-        name: "listener-a",
-        urlMapName: "shared-map",
       ],
       [
-        credentials: "account-b",
+        credentials: null,
+        availabilityZones: ["us-east1": ["us-east1-b"]],
+        vpcId: null,
+        name: "display-alias-must-not-win",
         account: "account-b",
         region: "us-east1",
         loadBalancerType: "REGIONAL_EXTERNAL_NETWORK",
         loadBalancerName: "listener-b",
-        name: "listener-b",
-        urlMapName: null,
       ],
+    ]
+  }
+
+  def "keeps the historical target shape for other load balancer families"() {
+    given:
+    task.kato = Stub(KatoService) {
+      requestOperations("aws", _) >> taskId
+    }
+
+    when:
+    def result = task.execute(stage)
+    List<Map> targets = mapper.readValue(
+      mapper.writeValueAsString(result.context.targets),
+      new TypeReference<List<Map>>() {}
+    )
+
+    then:
+    targets == [
+      [credentials: null, availabilityZones: ["us-west-2": ["us-west-2b"]], vpcId: null, name: "test-loadbalancer-1"],
+      [credentials: null, availabilityZones: ["us-west-2": ["us-west-2b"]], vpcId: null, name: "test-loadbalancer-2"],
     ]
   }
 

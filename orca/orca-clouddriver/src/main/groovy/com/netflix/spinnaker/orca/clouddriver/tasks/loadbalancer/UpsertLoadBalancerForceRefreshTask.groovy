@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.core.RetrySupport
@@ -47,11 +48,6 @@ public class UpsertLoadBalancerForceRefreshTask implements CloudProviderAware, R
 
   static final int MAX_CHECK_FOR_PENDING = 3
 
-  static final Set<String> VISIBILITY_CHECKED_LOAD_BALANCER_TYPES = [
-    "REGIONAL_EXTERNAL_NETWORK",
-    "EXTERNAL_MANAGED",
-  ] as Set<String>
-
   private final CloudDriverCacheService cacheService
   private final CloudDriverCacheStatusService cacheStatusService
   private final ObjectMapper mapper
@@ -74,34 +70,25 @@ public class UpsertLoadBalancerForceRefreshTask implements CloudProviderAware, R
   @Override
   TaskResult execute(StageExecution stage) {
     LBUpsertContext context = stage.mapTo(LBUpsertContext.class)
-    String cloudProvider = getCloudProvider(stage)
 
-    if (usesTargetRefreshState(stage, cloudProvider)) {
-      return executeWithTargetRefreshState(stage, context, cloudProvider)
+    if (usesTargetRefreshState(stage)) {
+      return executeWithTargetRefreshState(stage, context)
     }
 
-    return executeLegacy(stage, context, cloudProvider)
-  }
-
-  private TaskResult executeLegacy(StageExecution stage, LBUpsertContext context, String cloudProvider) {
     if (!context.refreshState.hasRequested) {
-      return requestCacheUpdates(stage, context, cloudProvider)
-    }
-
-    if (context.refreshState.allAreComplete) {
-      return succeedWhenReady(stage, context, cloudProvider)
+      return requestCacheUpdates(stage, context)
     }
 
     if (!context.refreshState.seenPendingCacheUpdates && context.refreshState.attempt >= MAX_CHECK_FOR_PENDING) {
       log.info("Failed to see pending cache updates in {} attempts, short circuiting", MAX_CHECK_FOR_PENDING)
-      return succeedWhenReady(stage, context, cloudProvider)
+      return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(getOutput(context)).build()
     }
 
-    checkPending(stage, context, cloudProvider)
+    checkPending(stage, context)
     if (context.refreshState.allAreComplete) {
-      return succeedWhenReady(stage, context, cloudProvider)
+      return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(getOutput(context)).build()
     }
-    return TaskResult.builder(ExecutionStatus.RUNNING).context(getOutput(context)).build()
+    TaskResult.builder(ExecutionStatus.RUNNING).context(getOutput(context)).build()
   }
 
   @Override
@@ -117,33 +104,105 @@ public class UpsertLoadBalancerForceRefreshTask implements CloudProviderAware, R
   @Override
   long getDynamicBackoffPeriod(StageExecution stage, Duration taskDuration) {
     LBUpsertContext context = stage.mapTo(LBUpsertContext.class)
-    if (context.refreshState.seenPendingCacheUpdates ||
-        context.refreshState.allAreComplete ||
-        context.refreshState.attempt >= MAX_CHECK_FOR_PENDING) {
-      // Either we are polling pending updates, or the pending check is over and every remaining
-      // attempt only waits on provider visibility. Neither justifies a one-second poll.
+    if (context.refreshState.seenPendingCacheUpdates) {
       return getBackoffPeriod()
+    } else if (usesTargetRefreshState(stage) &&
+      (context.refreshState.allAreComplete || context.refreshState.attempt >= MAX_CHECK_FOR_PENDING)) {
+      // Once the pending check is over, regional families only wait on Oort visibility.
+      return getBackoffPeriod()
+    } else {
+      // Some LB types don't support onDemand updates and we'll never observe a pending update for their keys,
+      // this ensures quicker short circuiting in that case.
+      return TimeUnit.SECONDS.toMillis(1)
     }
-    // Some LB types don't support onDemand updates and we'll never observe a pending update for their keys,
-    // this ensures quicker short circuiting in that case.
-    return TimeUnit.SECONDS.toMillis(1)
   }
 
-  private static boolean usesTargetRefreshState(StageExecution stage, String cloudProvider) {
-    if (!isGce(cloudProvider)) {
-      return false
+  private TaskResult requestCacheUpdates(StageExecution stage, LBUpsertContext context) {
+    String cloudProvider = getCloudProvider(stage)
+
+    List<Boolean> requestStatuses = new ArrayList<>()
+
+    stage.context.targets.each { Map target ->
+      target.availabilityZones.keySet().each { String region ->
+        Response response = retrySupport.retry({
+          Retrofit2SyncCall.executeCall(
+              cacheService.forceCacheUpdate(
+                cloudProvider,
+                REFRESH_TYPE,
+                [loadBalancerName: target.name,
+                 region          : region,
+                 account         : target.credentials,
+                 loadBalancerType: stage.context.loadBalancerType] as Map
+          ))
+        }, 3, 1000, false)
+
+        if (response != null && response.code() != HttpURLConnection.HTTP_OK) {
+          requestStatuses.add(false)
+
+          Map<String, Object> responseBody = mapper.readValue(response.body().byteStream(), new TypeReference<Map<String, Object>>() {})
+
+          if (responseBody?.cachedIdentifiersByType?.loadBalancers) {
+            context.refreshState.refreshIds.addAll(
+              responseBody["cachedIdentifiersByType"]["loadBalancers"] as List<String>
+            )
+          }
+        } else {
+          requestStatuses.add(true)
+        }
+      }
     }
-    if (isVisibilityCheckedType(stage.context.loadBalancerType as String)) {
+
+    context.refreshState.hasRequested = true
+    if (requestStatuses.every { it } || context.refreshState.refreshIds.isEmpty()) {
+      context.refreshState.allAreComplete = true
+      return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(getOutput(context)).build()
+    } else {
+      return TaskResult.builder(ExecutionStatus.RUNNING).context(getOutput(context)).build()
+    }
+  }
+
+  private void checkPending(StageExecution stage, LBUpsertContext context) {
+    String cloudProvider = getCloudProvider(stage)
+
+    Collection<Map> pendingCacheUpdates = retrySupport.retry({
+      Retrofit2SyncCall.execute(cacheStatusService.pendingForceCacheUpdates(cloudProvider, REFRESH_TYPE))
+    }, 3, 1000, false)
+
+    if (!pendingCacheUpdates.isEmpty() && !context.refreshState.seenPendingCacheUpdates) {
+      if (context.refreshState.refreshIds.every { refreshId ->
+        pendingCacheUpdates.any { it.id as String == refreshId as String}
+      }) {
+        context.refreshState.seenPendingCacheUpdates = true
+      }
+    }
+
+    if (context.refreshState.seenPendingCacheUpdates) {
+      if (pendingCacheUpdates.isEmpty()) {
+        context.refreshState.allAreComplete = true
+      } else {
+        if (!pendingCacheUpdates.any {
+          context.refreshState.refreshIds.contains(it.id as String)
+        }) {
+          context.refreshState.allAreComplete = true
+        }
+      }
+    } else {
+      context.refreshState.attempt++
+    }
+  }
+
+  private boolean usesTargetRefreshState(StageExecution stage) {
+    String cloudProvider = getCloudProvider(stage)
+    if (LoadBalancerTarget.isRegionalFamily(cloudProvider, stage.context.loadBalancerType as String)) {
       return true
     }
     return ((stage.context.targets as List<Map>) ?: []).any { Map target ->
-      isVisibilityCheckedType((target.loadBalancerType ?: stage.context.loadBalancerType) as String)
+      LoadBalancerTarget.isRegionalFamily(cloudProvider, target.loadBalancerType as String)
     }
   }
 
-  private TaskResult executeWithTargetRefreshState(StageExecution stage,
-                                                   LBUpsertContext context,
-                                                   String cloudProvider) {
+  private TaskResult executeWithTargetRefreshState(StageExecution stage, LBUpsertContext context) {
+    String cloudProvider = getCloudProvider(stage)
     List<TargetRefreshState> targetStates = initializeTargetStates(stage, context)
 
     if (targetStates.any { !it.hasRequested }) {
@@ -168,7 +227,6 @@ public class UpsertLoadBalancerForceRefreshTask implements CloudProviderAware, R
     }
 
     List<TargetRefreshState> existingStates = context.refreshState.targetStates ?: []
-    boolean migrateLegacyState = existingStates.isEmpty() && context.refreshState.hasRequested
     List<TargetRefreshState> initializedStates = []
 
     targets.eachWithIndex { Map target, int targetIndex ->
@@ -191,30 +249,13 @@ public class UpsertLoadBalancerForceRefreshTask implements CloudProviderAware, R
 
       regions.each { String region ->
         String key = "${targetIndex}|${account}|${region}|${loadBalancerType ?: ''}|${loadBalancerName}"
-        TargetRefreshState state = existingStates.find { it.key == key }
-        if (!state) {
-          state = new TargetRefreshState()
-          if (migrateLegacyState) {
-            state.hasRequested = context.refreshState.hasRequested
-            state.seenPendingCacheUpdates = context.refreshState.seenPendingCacheUpdates
-            state.attempt = context.refreshState.attempt
-            state.allAreComplete = context.refreshState.allAreComplete ||
-              (!context.refreshState.seenPendingCacheUpdates &&
-                context.refreshState.attempt >= MAX_CHECK_FOR_PENDING)
-            state.refreshIds = new ArrayList<>(context.refreshState.refreshIds ?: [])
-            if (state.seenPendingCacheUpdates) {
-              state.observedRefreshIds = new ArrayList<>(state.refreshIds)
-            }
-          }
-        }
-        state.key = key
-        state.account = account
-        state.region = region
-        state.loadBalancerType = loadBalancerType
-        state.loadBalancerName = loadBalancerName
-        state.attempt = state.attempt ?: 0
-        state.refreshIds = new ArrayList<>(state.refreshIds ?: [])
-        state.observedRefreshIds = new ArrayList<>(state.observedRefreshIds ?: [])
+        TargetRefreshState state = existingStates.find { it.key == key } ?: new TargetRefreshState(
+          key: key,
+          account: account,
+          region: region,
+          loadBalancerType: loadBalancerType,
+          loadBalancerName: loadBalancerName
+        )
         initializedStates.add(state)
       }
     }
@@ -240,28 +281,30 @@ public class UpsertLoadBalancerForceRefreshTask implements CloudProviderAware, R
         response = retrySupport.retry({
           Retrofit2SyncCall.executeCall(cacheService.forceCacheUpdate(cloudProvider, REFRESH_TYPE, model))
         }, 3, 1000, false)
-      } catch (SpinnakerNetworkException | IOException e) {
+      } catch (SpinnakerHttpException e) {
+        if (e.responseCode == 429 || e.responseCode >= 500) {
+          return targetResult(ExecutionStatus.RUNNING, context)
+        }
+        throw new IllegalStateException(
+          "Force cache update for load balancer '${targetState.loadBalancerName}' in " +
+            "${targetState.region} (${targetState.account}) failed with status ${e.responseCode}",
+          e
+        )
+      } catch (SpinnakerNetworkException e) {
         return targetResult(ExecutionStatus.RUNNING, context)
       }
 
-      int statusCode = response.code()
-      if (statusCode == HttpURLConnection.HTTP_OK) {
-        targetState.hasRequested = true
-        targetState.allAreComplete = true
-      } else if (statusCode == HttpURLConnection.HTTP_ACCEPTED) {
+      if (response.code() == HttpURLConnection.HTTP_ACCEPTED) {
         List<String> refreshIds = extractRefreshIds(response)
         if (refreshIds.isEmpty()) {
+          // An atomic scheduler could not take the agent lock, so the refresh did not run.
           return targetResult(ExecutionStatus.RUNNING, context)
         }
         targetState.hasRequested = true
         targetState.refreshIds = refreshIds
-      } else if (statusCode == 429 || statusCode >= 500) {
-        return targetResult(ExecutionStatus.RUNNING, context)
       } else {
-        throw new IllegalStateException(
-          "Force cache update for load balancer '${targetState.loadBalancerName}' in " +
-            "${targetState.region} (${targetState.account}) failed with status ${statusCode}"
-        )
+        targetState.hasRequested = true
+        targetState.allAreComplete = true
       }
     }
 
@@ -292,8 +335,8 @@ public class UpsertLoadBalancerForceRefreshTask implements CloudProviderAware, R
       } else if (!targetState.seenPendingCacheUpdates) {
         targetState.attempt++
         if (targetState.attempt >= MAX_CHECK_FOR_PENDING) {
-          // The accepted identifiers never became observable. New regional families still have to
-          // pass exact Oort verification before this task can report success.
+          // The accepted identifiers never became observable; success still requires exact Oort
+          // visibility below.
           targetState.allAreComplete = true
         }
       }
@@ -303,7 +346,7 @@ public class UpsertLoadBalancerForceRefreshTask implements CloudProviderAware, R
 
   private TaskResult succeedTargetRefreshWhenVisible(LBUpsertContext context,
                                                      List<TargetRefreshState> targetStates) {
-    if (!targetStates.findAll { isVisibilityCheckedType(it.loadBalancerType) }.every {
+    if (!targetStates.findAll { LoadBalancerTarget.isRegionalFamilyType(it.loadBalancerType) }.every {
       isLoadBalancerVisible(it)
     }) {
       return targetResult(ExecutionStatus.RUNNING, context)
@@ -313,6 +356,7 @@ public class UpsertLoadBalancerForceRefreshTask implements CloudProviderAware, R
 
   private boolean isLoadBalancerVisible(TargetRefreshState targetState) {
     try {
+      // The request path scopes the lookup to the target account and region.
       List<Map> details = Retrofit2SyncCall.execute(
         oortService.getLoadBalancerDetails(
           "gce",
@@ -324,9 +368,7 @@ public class UpsertLoadBalancerForceRefreshTask implements CloudProviderAware, R
       return details?.any { Map detail ->
         String detailName = (detail.loadBalancerName ?: detail.name) as String
         detailName == targetState.loadBalancerName &&
-          detail.loadBalancerType?.toString()?.equalsIgnoreCase(targetState.loadBalancerType) &&
-          detail.account == targetState.account &&
-          detail.region == targetState.region
+          detail.loadBalancerType?.toString()?.equalsIgnoreCase(targetState.loadBalancerType)
       } ?: false
     } catch (SpinnakerHttpException e) {
       if (e.responseCode == 429 || e.responseCode >= 500) {
@@ -339,12 +381,6 @@ public class UpsertLoadBalancerForceRefreshTask implements CloudProviderAware, R
       )
     } catch (SpinnakerNetworkException | SpinnakerServerException e) {
       return false
-    }
-  }
-
-  private static boolean isVisibilityCheckedType(String loadBalancerType) {
-    return VISIBILITY_CHECKED_LOAD_BALANCER_TYPES.any {
-      it.equalsIgnoreCase(loadBalancerType)
     }
   }
 
@@ -362,56 +398,6 @@ public class UpsertLoadBalancerForceRefreshTask implements CloudProviderAware, R
     context.refreshState.refreshIds = targetStates.collectMany { it.refreshIds ?: [] }.unique()
   }
 
-  private TaskResult requestCacheUpdates(StageExecution stage, LBUpsertContext context, String cloudProvider) {
-    List<Boolean> requestStatuses = new ArrayList<>()
-
-    for (Map target : stage.context.targets as List<Map>) {
-      for (String region : (target.availabilityZones as Map).keySet()) {
-        Map model = [
-          loadBalancerName: target.name,
-          region            : region,
-          account           : target.credentials,
-          loadBalancerType  : stage.context.loadBalancerType
-        ] as Map
-
-        Response response
-        try {
-          response = retrySupport.retry({
-            Retrofit2SyncCall.executeCall(cacheService.forceCacheUpdate(cloudProvider, REFRESH_TYPE, model))
-          }, 3, 1000, false)
-        } catch (SpinnakerNetworkException | IOException e) {
-          return TaskResult.builder(ExecutionStatus.RUNNING).context(getOutput(context)).build()
-        }
-
-        int statusCode = response.code()
-        if (statusCode == HttpURLConnection.HTTP_OK) {
-          requestStatuses.add(true)
-        } else if (statusCode == HttpURLConnection.HTTP_ACCEPTED) {
-          List<String> refreshIds = extractRefreshIds(response)
-          if (refreshIds.isEmpty()) {
-            // Cats atomic-agent lock contention; re-POST on the next task attempt.
-            return TaskResult.builder(ExecutionStatus.RUNNING).context(getOutput(context)).build()
-          }
-          context.refreshState.refreshIds.addAll(refreshIds)
-          requestStatuses.add(false)
-        } else if (statusCode == 429 || statusCode >= 500) {
-          return TaskResult.builder(ExecutionStatus.RUNNING).context(getOutput(context)).build()
-        } else {
-          throw new IllegalStateException(
-            "Force cache update for load balancer '${target.name}' in ${region} (${target.credentials}) failed with status ${statusCode}"
-          )
-        }
-      }
-    }
-
-    context.refreshState.hasRequested = true
-    if (requestStatuses.every { it }) {
-      context.refreshState.allAreComplete = true
-      return succeedWhenReady(stage, context, cloudProvider)
-    }
-    return TaskResult.builder(ExecutionStatus.RUNNING).context(getOutput(context)).build()
-  }
-
   private List<String> extractRefreshIds(Response response) {
     if (!response.body()) {
       return []
@@ -421,51 +407,9 @@ public class UpsertLoadBalancerForceRefreshTask implements CloudProviderAware, R
     return (responseBody?.cachedIdentifiersByType?.loadBalancers ?: []) as List<String>
   }
 
-  private void checkPending(StageExecution stage, LBUpsertContext context, String cloudProvider) {
-    Collection<Map> pendingCacheUpdates = retrySupport.retry({
-      Retrofit2SyncCall.execute(cacheStatusService.pendingForceCacheUpdates(cloudProvider, REFRESH_TYPE))
-    }, 3, 1000, false)
-
-    if (!context.refreshState.refreshIds.isEmpty() &&
-        !pendingCacheUpdates.isEmpty() &&
-        !context.refreshState.seenPendingCacheUpdates) {
-      if (context.refreshState.refreshIds.every { refreshId ->
-        pendingCacheUpdates.any { pendingUpdateMatchesRefreshId(it, refreshId) }
-      }) {
-        context.refreshState.seenPendingCacheUpdates = true
-      }
-    }
-
-    if (context.refreshState.seenPendingCacheUpdates) {
-      if (pendingCacheUpdates.isEmpty()) {
-        context.refreshState.allAreComplete = true
-      } else {
-        if (!pendingCacheUpdates.any {
-          context.refreshState.refreshIds.any { refreshId ->
-            pendingUpdateMatchesRefreshId(it, refreshId)
-          }
-        }) {
-          context.refreshState.allAreComplete = true
-        }
-      }
-    } else {
-      context.refreshState.attempt++
-    }
-  }
-
-  private TaskResult succeedWhenReady(StageExecution stage, LBUpsertContext context, String cloudProvider) {
-    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(getOutput(context)).build()
-  }
-
-  private static boolean isGce(String cloudProvider) {
-    return "gce".equalsIgnoreCase(cloudProvider)
-  }
-
   /**
-   * Cats normally returns the cache identifier as {@code id}. Some non-atomic pending rows expose
-   * only their request details, so the fallback reconstructs the documented
-   * provider:type:account:region:name identity emitted by Clouddriver. Keep this fallback in sync
-   * with the force-cache response contract rather than importing provider cache-key code into Orca.
+   * GCE pending rows expose only their parsed key details, so the fallback reconstructs the
+   * provider:type:account:region:name identity Clouddriver returns from the force-cache request.
    */
   private static boolean pendingUpdateMatchesRefreshId(Map pendingUpdate, String refreshId) {
     if (pendingUpdate.id as String == refreshId) {
@@ -491,6 +435,7 @@ public class UpsertLoadBalancerForceRefreshTask implements CloudProviderAware, R
     Integer attempt = 0
     Boolean allAreComplete = false
     List<String> refreshIds = new ArrayList<>()
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     List<TargetRefreshState> targetStates = new ArrayList<>()
   }
 
