@@ -16,6 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer
 
+import com.google.api.client.googleapis.json.GoogleJsonError
+import com.google.api.client.googleapis.json.GoogleJsonResponseException
+import com.google.api.client.http.HttpHeaders
+import com.google.api.client.http.HttpResponseException
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.BackendService
 import com.google.api.services.compute.model.ForwardingRule
@@ -54,7 +58,7 @@ class DeleteGoogleRegionalExternalNetworkLoadBalancerAtomicOperationUnitSpec ext
     safeRetry = SafeRetry.withoutDelay()
   }
 
-  void "deletes all regional external passthrough listeners sharing the backend service and skips health checks when not requested"() {
+  void "deletes only the requested passthrough listener and keeps a backend service another listener still uses"() {
     setup:
       def compute = Mock(Compute)
       def forwardingRules = Mock(Compute.ForwardingRules)
@@ -66,7 +70,6 @@ class DeleteGoogleRegionalExternalNetworkLoadBalancerAtomicOperationUnitSpec ext
       def regionOperations = Mock(Compute.RegionOperations)
       def regionOperationsGet = Mock(Compute.RegionOperations.Get)
       def deleteForwardingRuleOp = new Operation(name: "delete-forwarding-rule", status: "DONE")
-      def deleteBackendServiceOp = new Operation(name: "delete-backend-service", status: "DONE")
       def description = description(compute, false)
       @Subject def operation = operation(description)
 
@@ -74,9 +77,8 @@ class DeleteGoogleRegionalExternalNetworkLoadBalancerAtomicOperationUnitSpec ext
       def result = operation.operate([])
 
     then:
-      // Orca evicts exactly these names, so every sibling listener deleted here must be reported.
-      result == [deletedLoadBalancerNames: [LOAD_BALANCER, OTHER_LISTENER]]
-      3 * compute.forwardingRules() >> forwardingRules
+      result == [deletedLoadBalancerNames: [LOAD_BALANCER]]
+      2 * compute.forwardingRules() >> forwardingRules
       1 * forwardingRules.list(PROJECT, REGION) >> forwardingRulesList
       1 * forwardingRulesList.execute() >> new ForwardingRuleList(items: [
         forwardingRule(LOAD_BALANCER, "TCP", BACKEND_SERVICE_URL, "EXTERNAL"),
@@ -84,22 +86,22 @@ class DeleteGoogleRegionalExternalNetworkLoadBalancerAtomicOperationUnitSpec ext
         forwardingRule("internal-listener", "TCP", BACKEND_SERVICE_URL, "INTERNAL")
       ])
       1 * forwardingRules.delete(PROJECT, REGION, LOAD_BALANCER) >> forwardingRulesDelete
-      1 * forwardingRules.delete(PROJECT, REGION, OTHER_LISTENER) >> forwardingRulesDelete
-      2 * forwardingRulesDelete.execute() >> deleteForwardingRuleOp
+      0 * forwardingRules.delete(PROJECT, REGION, OTHER_LISTENER)
+      1 * forwardingRulesDelete.execute() >> deleteForwardingRuleOp
 
-      2 * compute.regionBackendServices() >> backendServices
+      _ * compute.regionBackendServices() >> backendServices
       1 * backendServices.get(PROJECT, REGION, BACKEND_SERVICE) >> backendServicesGet
       1 * backendServicesGet.execute() >> new BackendService(
         name: BACKEND_SERVICE,
         loadBalancingScheme: "EXTERNAL",
         healthChecks: [HEALTH_CHECK_URL]
       )
-      1 * backendServices.delete(PROJECT, REGION, BACKEND_SERVICE) >> backendServicesDelete
-      1 * backendServicesDelete.execute() >> deleteBackendServiceOp
+      (1.._) * backendServices.delete(PROJECT, REGION, BACKEND_SERVICE) >> backendServicesDelete
+      (1.._) * backendServicesDelete.execute() >> { throw resourceInUse(BACKEND_SERVICE) }
 
-      3 * compute.regionOperations() >> regionOperations
-      3 * regionOperations.get(PROJECT, REGION, _) >> regionOperationsGet
-      3 * regionOperationsGet.execute() >>> [deleteForwardingRuleOp, deleteForwardingRuleOp, deleteBackendServiceOp]
+      1 * compute.regionOperations() >> regionOperations
+      1 * regionOperations.get(PROJECT, REGION, _) >> regionOperationsGet
+      1 * regionOperationsGet.execute() >> deleteForwardingRuleOp
 
       0 * compute.regionHealthChecks()
   }
@@ -268,6 +270,17 @@ class DeleteGoogleRegionalExternalNetworkLoadBalancerAtomicOperationUnitSpec ext
       "internal scheme"      | forwardingRule(LOAD_BALANCER, "TCP", BACKEND_SERVICE_URL, "INTERNAL")
       "target proxy"         | forwardingRule(LOAD_BALANCER, "TCP", BACKEND_SERVICE_URL, "EXTERNAL", "targetHttpProxies/proxy")
       "unsupported protocol" | forwardingRule(LOAD_BALANCER, "ESP", BACKEND_SERVICE_URL, "EXTERNAL")
+  }
+
+  private static GoogleJsonResponseException resourceInUse(String resourceName) {
+    def message = "The resource '$resourceName' is already in use by another resource."
+    def details = new GoogleJsonError(
+      code: 400,
+      errors: [new GoogleJsonError.ErrorInfo(domain: "global", message: message, reason: "resourceInUseByAnotherResource")],
+      message: message)
+    new GoogleJsonResponseException(
+      new HttpResponseException.Builder(400, "Bad Request", new HttpHeaders()).setMessage("400 Bad Request"),
+      details)
   }
 
   private static ForwardingRule forwardingRule(
