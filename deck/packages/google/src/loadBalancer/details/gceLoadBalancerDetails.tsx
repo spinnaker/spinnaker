@@ -37,20 +37,21 @@ function isSameVpc(candidate: any, params: any): boolean {
 }
 
 function findLoadBalancerInList(loadBalancers: any[], params: any): any {
-  return (loadBalancers || []).find((candidate: any) => {
-    const nameMatches =
-      candidate.name === params.name ||
-      (gceHttpLoadBalancerUtils.isRegionalHttpLoadBalancer(candidate) && candidate.urlMapName === params.name);
-    const typeMatches = !params.loadBalancerType || candidate.loadBalancerType === params.loadBalancerType;
-
-    return (
-      nameMatches &&
-      typeMatches &&
+  const inScope = (loadBalancers || []).filter(
+    (candidate: any) =>
       candidate.account === params.accountId &&
       (candidate.region === params.region || candidate.region === 'global') &&
-      isSameVpc(candidate, params)
-    );
-  });
+      isSameVpc(candidate, params),
+  );
+  // EXTERNAL_MANAGED rows carry a decorated display name; links built from the raw URL map name
+  // still resolve once no exact name matches.
+  return (
+    inScope.find((candidate: any) => candidate.name === params.name) ||
+    inScope.find(
+      (candidate: any) =>
+        gceHttpLoadBalancerUtils.isRegionalHttpLoadBalancer(candidate) && candidate.urlMapName === params.name,
+    )
+  );
 }
 
 function uniqBy<T>(items: T[], getKey: (item: T) => string): T[] {
@@ -276,9 +277,9 @@ function deleteGceHttpLoadBalancer(loadBalancer: any, app: any, params: any = {}
 
   return TaskExecutor.executeTask({
     application: app,
-    description: `Delete load balancer: ${loadBalancer.urlMapName || loadBalancer.name} in ${
-      loadBalancer.account
-    }:${region}`,
+    description: `Delete load balancer: ${loadBalancer.urlMapName || loadBalancer.name} in ${loadBalancer.account}:${
+      loadBalancer.loadBalancerType === 'EXTERNAL_MANAGED' ? region : 'global'
+    }`,
     job: [job],
   });
 }
@@ -316,7 +317,7 @@ function GceLoadBalancerDeleteOptions({
   const hasHealthChecks =
     gceHttpLoadBalancerUtils.isHttpLoadBalancer(loadBalancer) ||
     !!loadBalancer.healthCheck ||
-    !!loadBalancer.backendService?.healthCheck;
+    (loadBalancer.loadBalancerType === 'REGIONAL_EXTERNAL_NETWORK' && !!loadBalancer.backendService?.healthCheck);
   if (!hasHealthChecks) {
     return null;
   }
@@ -420,14 +421,6 @@ export function GceLoadBalancerInformationSection({ loadBalancer }: { app: any; 
   );
 }
 
-function showsNamedPortHelp(loadBalancerType: string): boolean {
-  return (
-    gceHttpLoadBalancerUtils.isHttpLoadBalancer({ loadBalancerType, provider: 'gce' } as any) ||
-    loadBalancerType === 'SSL' ||
-    loadBalancerType === 'TCP'
-  );
-}
-
 function formatListenerDescription(description: any): string {
   const listener = description.listener || description;
   return `${listener.protocol}:${listener.loadBalancerPort} → ${listener.instanceProtocol}:${listener.instancePort}`;
@@ -453,6 +446,25 @@ function getListenerDisplayRows(loadBalancer: any): string[] {
 }
 
 export function GceLoadBalancerListenersSection({ loadBalancer }: { app: any; loadBalancer: any }): JSX.Element {
+  if (
+    loadBalancer.loadBalancerType !== 'EXTERNAL_MANAGED' &&
+    loadBalancer.loadBalancerType !== 'REGIONAL_EXTERNAL_NETWORK'
+  ) {
+    return (
+      <CollapsibleSection heading="Listeners" defaultExpanded={true}>
+        {(loadBalancer.listeners || []).length ? (
+          <ul>
+            {loadBalancer.listeners.map((listener: any, index: number) => (
+              <li key={index}>{[listener.protocol, listener.port || listener.portRange].filter(Boolean).join(':')}</li>
+            ))}
+          </ul>
+        ) : (
+          <span>No listeners configured</span>
+        )}
+      </CollapsibleSection>
+    );
+  }
+
   const listenerRows = getListenerDisplayRows(loadBalancer);
 
   return (
@@ -461,7 +473,7 @@ export function GceLoadBalancerListenersSection({ loadBalancer }: { app: any; lo
         <dl>
           <dt>
             Load Balancer → Instance
-            {showsNamedPortHelp(loadBalancer.loadBalancerType) && <HelpField id="gce.httpLoadBalancer.namedPort" />}
+            {loadBalancer.loadBalancerType === 'EXTERNAL_MANAGED' && <HelpField id="gce.httpLoadBalancer.namedPort" />}
           </dt>
           {listenerRows.map((listenerRow, index) => (
             <dd key={index}>{listenerRow}</dd>

@@ -77,7 +77,7 @@ describe('GceLoadBalancerActions', () => {
 });
 
 describe('loadGceLoadBalancerDetails', () => {
-  it('matches scoped regional HTTP load balancers by raw urlMapName and loadBalancerType', async () => {
+  it('matches scoped regional HTTP load balancers by raw urlMapName', async () => {
     const normalizedLoadBalancer = {
       account: 'test',
       defaultService: { healthCheck: { name: 'hc-default' }, name: 'backend-default' },
@@ -111,7 +111,6 @@ describe('loadGceLoadBalancerDetails', () => {
       autoClose,
       loadBalancerParams: {
         accountId: 'test',
-        loadBalancerType: 'EXTERNAL_MANAGED',
         name: 'regional-url-map',
         provider: 'gce',
         region: 'us-central1',
@@ -133,42 +132,61 @@ describe('loadGceLoadBalancerDetails', () => {
     expect((loadBalancer as any).logsLink).not.toContain('(test/us-central1/EXTERNAL_MANAGED)');
   });
 
-  it('rejects same-name regional HTTP families when loadBalancerType does not match', async () => {
+  it('prefers an exact name over a regional URL-map alias', async () => {
     const autoClose = jasmine.createSpy('autoClose');
     const loadBalancerReader = {
-      getLoadBalancerDetails: jasmine.createSpy('getLoadBalancerDetails'),
+      getLoadBalancerDetails: jasmine.createSpy('getLoadBalancerDetails').and.returnValue(Promise.resolve([])),
+    };
+    const accountService = {
+      getAccountDetails: jasmine.createSpy('getAccountDetails').and.returnValue(Promise.resolve({})),
+    };
+    const internalManaged = {
+      account: 'test',
+      listeners: [{ name: 'internal-listener' }],
+      loadBalancerType: 'INTERNAL_MANAGED',
+      name: 'shared-map',
+      provider: 'gce',
+      region: 'us-central1',
+      urlMapName: 'shared-map',
     };
 
-    await loadGceLoadBalancerDetails({
+    const loadBalancer = await loadGceLoadBalancerDetails({
       app: {
         loadBalancers: {
           data: [
             {
               account: 'test',
-              listeners: [{ name: 'internal-listener' }],
-              loadBalancerType: 'INTERNAL_MANAGED',
-              name: 'shared-map (test/us-central1/INTERNAL_MANAGED)',
+              listeners: [{ name: 'external-listener' }],
+              loadBalancerType: 'EXTERNAL_MANAGED',
+              name: 'shared-map (test/us-central1/EXTERNAL_MANAGED)',
               provider: 'gce',
               region: 'us-central1',
               urlMapName: 'shared-map',
             },
+            internalManaged,
           ],
         },
       } as any,
       autoClose,
       loadBalancerParams: {
         accountId: 'test',
-        loadBalancerType: 'EXTERNAL_MANAGED',
         name: 'shared-map',
         provider: 'gce',
         region: 'us-central1',
         vpcId: null,
       },
       loadBalancerReader: loadBalancerReader as any,
+      accountService: accountService as any,
     });
 
-    expect(autoClose).toHaveBeenCalled();
-    expect(loadBalancerReader.getLoadBalancerDetails).not.toHaveBeenCalled();
+    expect(autoClose).not.toHaveBeenCalled();
+    expect(loadBalancer).toBe(internalManaged as any);
+    expect(loadBalancerReader.getLoadBalancerDetails).toHaveBeenCalledWith(
+      'gce',
+      'test',
+      'us-central1',
+      'internal-listener',
+    );
   });
 
   it('renders REGIONAL_EXTERNAL_NETWORK addresses without an HTTP URL scheme', async () => {
@@ -284,6 +302,15 @@ describe('GceLoadBalancerActions delete behavior', () => {
       .filterWhere((item) => item.prop('children') === 'Delete Load Balancer')
       .prop('onClick')();
     expect(shallow(confirmSpy.calls.all()[1].args[0].bodyContent).find('input[type="checkbox"]').exists()).toBe(true);
+
+    // Legacy INTERNAL deletes always remove unused health checks, so no option is offered.
+    mount(
+      <GceLoadBalancerActions app={app} loadBalancer={{ ...regionalExternalNetwork, loadBalancerType: 'INTERNAL' }} />,
+    )
+      .find(ManagedMenuItem)
+      .filterWhere((item) => item.prop('children') === 'Delete Load Balancer')
+      .prop('onClick')();
+    expect(shallow(confirmSpy.calls.all()[2].args[0].bodyContent).find('input[type="checkbox"]').exists()).toBe(false);
   });
 });
 
@@ -294,67 +321,43 @@ describe('GceLoadBalancerListenersSection', () => {
     return shallow(<GceLoadBalancerListenersSection app={app} loadBalancer={loadBalancer} />);
   }
 
-  it('renders NETWORK listenerDescriptions with load balancer and instance protocol/port mapping', () => {
-    const wrapper = renderListeners({
+  it('keeps the historical listener list for existing load balancer families', () => {
+    const network = renderListeners({
       loadBalancerType: 'NETWORK',
       listeners: [{ port: '8080' }],
       elb: {
         listenerDescriptions: [
-          {
-            listener: {
-              instancePort: '8080',
-              instanceProtocol: 'TCP',
-              loadBalancerPort: '8080',
-              protocol: 'TCP',
-            },
-          },
+          { listener: { instancePort: '8080', instanceProtocol: 'TCP', loadBalancerPort: '8080', protocol: 'TCP' } },
+        ],
+      },
+    });
+    const http = renderListeners({
+      loadBalancerType: 'HTTP',
+      listeners: [{ port: '80' }, { port: '443', protocol: 'HTTPS' }],
+      provider: 'gce',
+    });
+
+    expect(network.find('li').map((node) => node.text())).toEqual(['8080']);
+    expect(network.find('dd').exists()).toBe(false);
+    expect(http.find('li').map((node) => node.text())).toEqual(['80', 'HTTPS:443']);
+    expect(http.find(HelpField).exists()).toBe(false);
+  });
+
+  it('renders REGIONAL_EXTERNAL_NETWORK listenerDescriptions without named-port help', () => {
+    const wrapper = renderListeners({
+      loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK',
+      elb: {
+        listenerDescriptions: [
+          { listener: { instancePort: '8080', instanceProtocol: 'TCP', loadBalancerPort: '8080', protocol: 'TCP' } },
         ],
       },
     });
 
     expect(wrapper.find('dd').text()).toBe('TCP:8080 → TCP:8080');
-    expect(wrapper.find('li').exists()).toBe(false);
+    expect(wrapper.find(HelpField).exists()).toBe(false);
   });
 
-  it('renders TCP and SSL listenerDescriptions with load balancer and instance protocol/port mapping', () => {
-    const tcp = renderListeners({
-      loadBalancerType: 'TCP',
-      elb: {
-        listenerDescriptions: [
-          {
-            listener: {
-              instancePort: '8443',
-              instanceProtocol: 'TCP',
-              loadBalancerPort: '443',
-              protocol: 'TCP',
-            },
-          },
-        ],
-      },
-    });
-    const ssl = renderListeners({
-      loadBalancerType: 'SSL',
-      elb: {
-        listenerDescriptions: [
-          {
-            listener: {
-              instancePort: '8443',
-              instanceProtocol: 'TCP',
-              loadBalancerPort: '443',
-              protocol: 'SSL',
-            },
-          },
-        ],
-      },
-    });
-
-    expect(tcp.find('dd').text()).toBe('TCP:443 → TCP:8443');
-    expect(ssl.find('dd').text()).toBe('SSL:443 → TCP:8443');
-    expect(tcp.find(HelpField).prop('id')).toBe('gce.httpLoadBalancer.namedPort');
-    expect(ssl.find(HelpField).prop('id')).toBe('gce.httpLoadBalancer.namedPort');
-  });
-
-  it('prefers HTTP-family elb.listenerDescriptions over normalized listeners', () => {
+  it('prefers EXTERNAL_MANAGED elb.listenerDescriptions over normalized listeners', () => {
     const wrapper = renderListeners({
       loadBalancerType: 'EXTERNAL_MANAGED',
       listeners: [{ port: '80' }, { port: '443' }],
@@ -378,9 +381,9 @@ describe('GceLoadBalancerListenersSection', () => {
     expect(wrapper.find(HelpField).prop('id')).toBe('gce.httpLoadBalancer.namedPort');
   });
 
-  it('falls back to normalized HTTP listeners only when elb.listenerDescriptions are absent', () => {
+  it('falls back to normalized EXTERNAL_MANAGED listeners only when elb.listenerDescriptions are absent', () => {
     const wrapper = renderListeners({
-      loadBalancerType: 'HTTP',
+      loadBalancerType: 'EXTERNAL_MANAGED',
       listeners: [
         { port: '80', name: 'frontend-80' },
         { port: '443', certificate: 'projects/p/certificates/cert', name: 'frontend-443' },
@@ -391,9 +394,9 @@ describe('GceLoadBalancerListenersSection', () => {
     expect(wrapper.find('dd').map((node) => node.text())).toEqual(['HTTP:80', 'HTTPS:443']);
   });
 
-  it('shows no listeners configured when neither descriptions nor HTTP fallback listeners exist', () => {
+  it('shows no listeners configured when a regional external network load balancer has no descriptions', () => {
     const wrapper = renderListeners({
-      loadBalancerType: 'NETWORK',
+      loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK',
       listeners: [{ port: '8080' }],
     });
 
