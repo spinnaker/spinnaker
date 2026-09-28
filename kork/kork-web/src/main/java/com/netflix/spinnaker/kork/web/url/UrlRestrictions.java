@@ -33,7 +33,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import okhttp3.HttpUrl;
 import org.springframework.security.web.util.matcher.IpAddressMatcher;
@@ -60,17 +59,6 @@ import org.springframework.security.web.util.matcher.IpAddressMatcher;
 @Getter
 public final class UrlRestrictions {
 
-  /** Excludes anything without a dot, since k8s resolves single-word names. */
-  public static final String DEFAULT_ALLOWED_HOSTNAMES_REGEX = ".*\\..+";
-
-  public static final List<String> DEFAULT_ALLOWED_SCHEMES = List.of("http", "https");
-
-  /** Excludes any hostname that ends with the excluded domain. */
-  public static final String DEFAULT_EXCLUDED_DOMAIN_TEMPLATE = "(?=.+\\.%s$).*\\..+";
-
-  public static final List<String> DEFAULT_EXCLUDED_DOMAINS =
-      List.of("spinnaker", "local", "localdomain", "internal");
-
   /** Resolves a hostname (or IP literal) to every address it maps to. */
   @FunctionalInterface
   public interface HostResolver {
@@ -94,69 +82,52 @@ public final class UrlRestrictions {
   @Getter(AccessLevel.NONE)
   private final HostResolver hostResolver;
 
-  /**
-   * Every argument is optional; a null argument takes the default documented on the matching {@code
-   * DEFAULT_*} constant, or {@code true} for the {@code reject*} flags and empty for the lists.
-   *
-   * @param excludedDomainsFromEnvironment names of environment variables whose values are added to
-   *     the excluded domains, e.g. {@code POD_NAMESPACE} to exclude the current k8s namespace
-   * @param environment looks up environment variables; defaults to {@link System#getenv(String)}
-   * @throws IllegalArgumentException if a regex or CIDR range is invalid
-   */
-  @Builder
-  private UrlRestrictions(
-      @Nullable String allowedHostnamesRegex,
-      @Nullable Collection<String> allowedSchemes,
-      @Nullable Boolean rejectLocalhost,
-      @Nullable Boolean rejectLinkLocal,
-      @Nullable Boolean rejectVerbatimIps,
-      @Nullable Collection<String> rejectedIps,
-      @Nullable Collection<String> allowedDomains,
-      @Nullable String excludedDomainTemplate,
-      @Nullable Collection<String> excludedDomains,
-      @Nullable Collection<String> excludedDomainsFromEnvironment,
-      @Nullable Collection<String> extraExcludedPatterns,
-      @Nullable Function<String, String> environment,
-      @Nullable HostResolver hostResolver) {
+  /** Use {@link UrlRestrictionsProperties#toUrlRestrictions()}. */
+  UrlRestrictions(
+      UrlRestrictionsProperties properties,
+      Function<String, String> environment,
+      HostResolver hostResolver) {
     this.allowedHostnames =
         Pattern.compile(
-            Optional.ofNullable(allowedHostnamesRegex).orElse(DEFAULT_ALLOWED_HOSTNAMES_REGEX));
+            Optional.ofNullable(properties.getAllowedHostnamesRegex())
+                .orElse(UrlRestrictionsProperties.DEFAULT_ALLOWED_HOSTNAMES_REGEX));
     this.allowedSchemes =
-        Optional.ofNullable(allowedSchemes).orElse(DEFAULT_ALLOWED_SCHEMES).stream()
+        copyOf(properties.getAllowedSchemes()).stream()
             .map(String::toLowerCase)
             .collect(Collectors.toUnmodifiableSet());
-    this.rejectLocalhost = !Boolean.FALSE.equals(rejectLocalhost);
-    this.rejectLinkLocal = !Boolean.FALSE.equals(rejectLinkLocal);
-    this.rejectVerbatimIps = !Boolean.FALSE.equals(rejectVerbatimIps);
-    this.rejectedIps = copyOf(rejectedIps);
+    this.rejectLocalhost = properties.isRejectLocalhost();
+    this.rejectLinkLocal = properties.isRejectLinkLocal();
+    this.rejectVerbatimIps = properties.isRejectVerbatimIps();
+    this.rejectedIps = copyOf(properties.getRejectedIps());
     this.rejectedIpMatchers =
         this.rejectedIps.stream()
             .map(IpAddressMatcher::new)
             .collect(Collectors.toUnmodifiableList());
-    this.allowedDomains = copyOf(allowedDomains);
-    this.hostResolver = Optional.ofNullable(hostResolver).orElse(HostResolver.SYSTEM);
+    this.allowedDomains = copyOf(properties.getAllowedDomains());
+    this.hostResolver = Objects.requireNonNull(hostResolver);
 
-    Function<String, String> env = Optional.ofNullable(environment).orElse(System::getenv);
-    List<String> allExcludedDomains =
-        new ArrayList<>(Optional.ofNullable(excludedDomains).orElse(DEFAULT_EXCLUDED_DOMAINS));
-    copyOf(excludedDomainsFromEnvironment).stream()
-        .map(env)
+    List<String> allExcludedDomains = new ArrayList<>(copyOf(properties.getExcludedDomains()));
+    copyOf(properties.getExcludedDomainsFromEnvironment()).stream()
+        .map(environment)
         .filter(Objects::nonNull)
         .forEach(allExcludedDomains::add);
 
     String template =
-        Optional.ofNullable(excludedDomainTemplate).orElse(DEFAULT_EXCLUDED_DOMAIN_TEMPLATE);
+        Optional.ofNullable(properties.getExcludedDomainTemplate())
+            .orElse(UrlRestrictionsProperties.DEFAULT_EXCLUDED_DOMAIN_TEMPLATE);
     List<Pattern> patterns = new ArrayList<>();
     allExcludedDomains.stream()
         .map(domain -> Pattern.compile(String.format(template, Pattern.quote(domain))))
         .forEach(patterns::add);
-    copyOf(extraExcludedPatterns).stream().map(Pattern::compile).forEach(patterns::add);
+    copyOf(properties.getExtraExcludedPatterns()).stream()
+        .map(Pattern::compile)
+        .forEach(patterns::add);
     this.excludedPatterns = List.copyOf(patterns);
   }
 
   /** Restrictions with every default applied. */
   public static UrlRestrictions defaults() {
-    return builder().build();
+    return new UrlRestrictionsProperties().toUrlRestrictions();
   }
 
   public URI validateURI(@Nullable String url) throws IllegalArgumentException {

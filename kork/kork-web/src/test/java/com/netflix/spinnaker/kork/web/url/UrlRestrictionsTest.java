@@ -55,13 +55,17 @@ class UrlRestrictionsTest {
     };
   }
 
-  private static UrlRestrictions.UrlRestrictionsBuilder builder() {
-    return builder(Map.of());
+  private static UrlRestrictionsProperties.UrlRestrictionsPropertiesBuilder builder() {
+    return UrlRestrictionsProperties.builder();
   }
 
-  private static UrlRestrictions.UrlRestrictionsBuilder builder(
-      Map<String, List<String>> overrides) {
-    return UrlRestrictions.builder().hostResolver(resolver(overrides));
+  private static UrlRestrictions restrictions(UrlRestrictionsProperties properties) {
+    return restrictions(properties, Map.of());
+  }
+
+  private static UrlRestrictions restrictions(
+      UrlRestrictionsProperties properties, Map<String, List<String>> overrides) {
+    return properties.toUrlRestrictions(name -> null, resolver(overrides));
   }
 
   @ParameterizedTest
@@ -74,7 +78,7 @@ class UrlRestrictionsTest {
         "HTTPS://example.com"
       })
   void allowsExternalUrlsByDefault(String url) {
-    assertThat(builder().build().validateURI(url)).isNotNull();
+    assertThat(restrictions(builder().build()).validateURI(url)).isNotNull();
   }
 
   @ParameterizedTest
@@ -93,20 +97,20 @@ class UrlRestrictionsTest {
         "http://host.localdomain"
       })
   void rejectsInternalNamesByDefault(String url) {
-    assertThatThrownBy(() -> builder().build().validateURI(url))
+    assertThatThrownBy(() -> restrictions(builder().build()).validateURI(url))
         .isInstanceOf(IllegalArgumentException.class);
   }
 
   @ParameterizedTest
   @ValueSource(strings = {"ftp://example.com", "file:///etc/hosts", "gopher://example.com"})
   void rejectsDisallowedSchemes(String url) {
-    assertThatThrownBy(() -> builder().build().validateURI(url))
+    assertThatThrownBy(() -> restrictions(builder().build()).validateURI(url))
         .isInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
   void rejectsMissingOrMalformedUrls() {
-    UrlRestrictions restrictions = builder().build();
+    UrlRestrictions restrictions = restrictions(builder().build());
     assertThatThrownBy(() -> restrictions.validateURI((String) null))
         .isInstanceOf(IllegalArgumentException.class);
     assertThatThrownBy(() -> restrictions.validateURI("not a url"))
@@ -117,14 +121,18 @@ class UrlRestrictionsTest {
   @ValueSource(
       strings = {"https://www.test.com", "https://foobar.com", "https://www.test_underscore.com"})
   void honorsCustomHostnameRegex(String url) {
-    assertThat(builder().allowedHostnamesRegex("^(.+).(.+).com(.*)$").build().validateURI(url))
+    assertThat(
+            restrictions(builder().allowedHostnamesRegex("^(.+).(.+).com(.*)$").build())
+                .validateURI(url))
         .isNotNull();
   }
 
   @Test
   void rejectsEverythingWhenNoHostnamesAreAllowed() {
     assertThatThrownBy(
-            () -> builder().allowedHostnamesRegex("").build().validateURI("https://example.com"))
+            () ->
+                restrictions(builder().allowedHostnamesRegex("").build())
+                    .validateURI("https://example.com"))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("allowedHostnamesRegex");
   }
@@ -133,9 +141,7 @@ class UrlRestrictionsTest {
   void authorityBypassIsRejectedWhenHostnameDoesNotMatch() {
     assertThatThrownBy(
             () ->
-                builder()
-                    .allowedHostnamesRegex("example.com")
-                    .build()
+                restrictions(builder().allowedHostnamesRegex("example.com").build())
                     .validateURI("https://example.com:badpassword@host_with_underscore.com"))
         .isInstanceOf(IllegalArgumentException.class);
   }
@@ -143,9 +149,7 @@ class UrlRestrictionsTest {
   @Test
   void authorityBypassIsAllowedWhenHostnameMatches() {
     assertThat(
-            builder()
-                .allowedHostnamesRegex("host_with_underscore.com")
-                .build()
+            restrictions(builder().allowedHostnamesRegex("host_with_underscore.com").build())
                 .validateURI("https://example.com:badpassword@host_with_underscore.com"))
         .isNotNull();
   }
@@ -161,7 +165,7 @@ class UrlRestrictionsTest {
         "https://[fd12:3456:789a:1::1]:8080"
       })
   void rejectsVerbatimIpsByDefault(String url) {
-    assertThatThrownBy(() -> builder().build().validateURI(url))
+    assertThatThrownBy(() -> restrictions(builder().build()).validateURI(url))
         .isInstanceOf(IllegalArgumentException.class);
   }
 
@@ -176,14 +180,16 @@ class UrlRestrictionsTest {
         "https://[fc12:3456:789a:1::1]:8080"
       })
   void allowsVerbatimIpsWhenConfigured(String url) {
-    assertThat(builder().rejectVerbatimIps(false).build().validateURI(url)).isNotNull();
+    assertThat(restrictions(builder().rejectVerbatimIps(false).build()).validateURI(url))
+        .isNotNull();
   }
 
   @ParameterizedTest
   @ValueSource(
       strings = {"https://localhost", "http://localhost", "http://127.0.0.1", "https://[::1]"})
   void rejectsLocalhostByDefault(String url) {
-    assertThatThrownBy(() -> builder().rejectVerbatimIps(false).build().validateURI(url))
+    assertThatThrownBy(
+            () -> restrictions(builder().rejectVerbatimIps(false).build()).validateURI(url))
         .isInstanceOf(IllegalArgumentException.class);
   }
 
@@ -191,10 +197,11 @@ class UrlRestrictionsTest {
   @ValueSource(strings = {"https://localhost", "http://localhost"})
   void allowsLocalhostWhenConfiguredRegardlessOfNameFilter(String url) {
     assertThat(
-            builder()
-                .allowedHostnamesRegex("this_definitely_doesnt_match_localhost")
-                .rejectLocalhost(false)
-                .build()
+            restrictions(
+                    builder()
+                        .allowedHostnamesRegex("this_definitely_doesnt_match_localhost")
+                        .rejectLocalhost(false)
+                        .build())
                 .validateURI(url))
         .isNotNull();
   }
@@ -208,7 +215,7 @@ class UrlRestrictionsTest {
     "v6linklocal.example.com, fe80::1"
   })
   void rejectsHostnamesResolvingToLocalOrLinkLocalAddresses(String host, String address) {
-    UrlRestrictions restrictions = builder(Map.of(host, List.of(address))).build();
+    UrlRestrictions restrictions = restrictions(builder().build(), Map.of(host, List.of(address)));
     assertThatThrownBy(() -> restrictions.validateURI("https://" + host + "/"))
         .isInstanceOf(IllegalArgumentException.class);
   }
@@ -217,10 +224,11 @@ class UrlRestrictionsTest {
   @ValueSource(strings = {"https://192.168.16.22", "https://10.1.2.3"})
   void rejectedIpsBlockVerbatimIps(String url) {
     UrlRestrictions restrictions =
-        builder()
-            .rejectVerbatimIps(false)
-            .rejectedIps(List.of("192.168.0.0/16", "10.0.0.0/8"))
-            .build();
+        restrictions(
+            builder()
+                .rejectVerbatimIps(false)
+                .rejectedIps(List.of("192.168.0.0/16", "10.0.0.0/8"))
+                .build());
     assertThatThrownBy(() -> restrictions.validateURI(url))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("Address not allowed");
@@ -229,9 +237,9 @@ class UrlRestrictionsTest {
   @Test
   void rejectedIpsBlockHostnamesResolvingIntoTheRange() {
     UrlRestrictions restrictions =
-        builder(Map.of("internal.example.com", List.of("10.1.2.3")))
-            .rejectedIps(List.of("10.0.0.0/8"))
-            .build();
+        restrictions(
+            builder().rejectedIps(List.of("10.0.0.0/8")).build(),
+            Map.of("internal.example.com", List.of("10.1.2.3")));
     assertThatThrownBy(() -> restrictions.validateURI("https://internal.example.com/"))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("Address not allowed");
@@ -239,7 +247,8 @@ class UrlRestrictionsTest {
 
   @Test
   void rejectedIpsAllowHostnamesResolvingOutsideTheRange() {
-    UrlRestrictions restrictions = builder().rejectedIps(List.of("10.0.0.0/8")).build();
+    UrlRestrictions restrictions =
+        restrictions(builder().rejectedIps(List.of("10.0.0.0/8")).build());
     assertThat(restrictions.validateURI("https://public.example.com/"))
         .hasHost("public.example.com");
   }
@@ -247,9 +256,9 @@ class UrlRestrictionsTest {
   @Test
   void rejectedIpsCheckEveryResolvedAddress() {
     UrlRestrictions restrictions =
-        builder(Map.of("mixed.example.com", List.of(PUBLIC_IP, "10.1.2.3")))
-            .rejectedIps(List.of("10.0.0.0/8"))
-            .build();
+        restrictions(
+            builder().rejectedIps(List.of("10.0.0.0/8")).build(),
+            Map.of("mixed.example.com", List.of(PUBLIC_IP, "10.1.2.3")));
     assertThatThrownBy(() -> restrictions.validateURI("https://mixed.example.com/"))
         .isInstanceOf(IllegalArgumentException.class);
   }
@@ -257,9 +266,9 @@ class UrlRestrictionsTest {
   @Test
   void rejectedIpsMatchIpv6Ranges() {
     UrlRestrictions restrictions =
-        builder(Map.of("ula.example.com", List.of("fd12:3456:789a:1::1")))
-            .rejectedIps(List.of("fc00::/7"))
-            .build();
+        restrictions(
+            builder().rejectedIps(List.of("fc00::/7")).build(),
+            Map.of("ula.example.com", List.of("fd12:3456:789a:1::1")));
     assertThatThrownBy(() -> restrictions.validateURI("https://ula.example.com/"))
         .isInstanceOf(IllegalArgumentException.class);
   }
@@ -267,28 +276,30 @@ class UrlRestrictionsTest {
   @Test
   void privateAddressesAreAllowedWhenNoRangesAreRejected() {
     UrlRestrictions restrictions =
-        builder(Map.of("internal.example.com", List.of("10.1.2.3"))).build();
+        restrictions(builder().build(), Map.of("internal.example.com", List.of("10.1.2.3")));
     assertThat(restrictions.validateURI("https://internal.example.com/"))
         .hasHost("internal.example.com");
   }
 
   @Test
   void rejectsUnresolvableHosts() {
-    assertThatThrownBy(() -> builder().build().validateURI("https://unresolvable.example.com/"))
+    assertThatThrownBy(
+            () -> restrictions(builder().build()).validateURI("https://unresolvable.example.com/"))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("Unable to resolve host");
   }
 
   @Test
   void rejectsInvalidRangesWhenBuilt() {
-    assertThatThrownBy(() -> builder().rejectedIps(List.of("not-a-range")).build())
+    assertThatThrownBy(() -> restrictions(builder().rejectedIps(List.of("not-a-range")).build()))
         .isInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
   void allowedDomainsWorkWithoutAHostnameRegex() {
     UrlRestrictions restrictions =
-        builder().allowedHostnamesRegex("").allowedDomains(List.of("google.com")).build();
+        restrictions(
+            builder().allowedHostnamesRegex("").allowedDomains(List.of("google.com")).build());
     assertThat(restrictions.validateURI("http://google.com")).hasHost("google.com");
     assertThatThrownBy(() -> restrictions.validateURI("http://microsoft.com"))
         .isInstanceOf(IllegalArgumentException.class);
@@ -296,7 +307,8 @@ class UrlRestrictionsTest {
 
   @Test
   void allowedDomainsBlockEverythingElse() {
-    UrlRestrictions restrictions = builder().allowedDomains(List.of("example.com")).build();
+    UrlRestrictions restrictions =
+        restrictions(builder().allowedDomains(List.of("example.com")).build());
     assertThat(restrictions.validateURI("http://example.com")).hasHost("example.com");
     assertThatThrownBy(() -> restrictions.validateURI("http://google.com"))
         .isInstanceOf(IllegalArgumentException.class);
@@ -319,8 +331,8 @@ class UrlRestrictionsTest {
     UrlRestrictions restrictions =
         builder()
             .excludedDomainsFromEnvironment(List.of("POD_NAMESPACE", "ISTIO_META_MESH_ID"))
-            .environment(environment)
-            .build();
+            .build()
+            .toUrlRestrictions(environment, resolver(Map.of()));
     if (allowed) {
       assertThat(restrictions.validateURI(url)).isNotNull();
     } else {
@@ -332,7 +344,7 @@ class UrlRestrictionsTest {
   @Test
   void excludesExtraPatterns() {
     UrlRestrictions restrictions =
-        builder().extraExcludedPatterns(List.of(".+\\d+.+", ".+-+.+")).build();
+        restrictions(builder().extraExcludedPatterns(List.of(".+\\d+.+", ".+-+.+")).build());
     for (String url : Arrays.asList("http://asdf2345.com", "https://foo-bar.com")) {
       assertThatThrownBy(() -> restrictions.validateURI(url))
           .isInstanceOf(IllegalArgumentException.class);
