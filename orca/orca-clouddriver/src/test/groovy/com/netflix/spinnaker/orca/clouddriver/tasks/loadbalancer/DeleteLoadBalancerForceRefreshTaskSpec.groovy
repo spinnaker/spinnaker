@@ -139,11 +139,12 @@ class DeleteLoadBalancerForceRefreshTaskSpec extends Specification {
     result.status == expectedStatus
 
     where:
-    responseCase        | response                                                                                              || expectedStatus
-    "200 complete"      | Response.success(null)                                                                                || ExecutionStatus.SUCCEEDED
-    "202 empty IDs"     | Response.success(HTTP_ACCEPTED, pendingBody([]))                                                       || ExecutionStatus.RUNNING
-    // A populated 202 means a non-atomic agent stored the eviction, so re-POSTing would never finish.
-    "202 populated IDs" | Response.success(HTTP_ACCEPTED, pendingBody(["gce:loadBalancers:test-account:us-central1:listener-a"])) || ExecutionStatus.SUCCEEDED
+    responseCase               | response                                                                                                    || expectedStatus
+    "200 complete"             | Response.success(null)                                                                                      || ExecutionStatus.SUCCEEDED
+    "202 empty IDs"            | Response.success(HTTP_ACCEPTED, pendingBody([]))                                                             || ExecutionStatus.RUNNING
+    // Clouddriver returns IDs only for rows an agent cached, so the deleted load balancer was written back.
+    "202 re-cached target"     | Response.success(HTTP_ACCEPTED, pendingBody(["gce:loadBalancers:test-account:us-central1:listener-a"]))     || ExecutionStatus.RUNNING
+    "202 other cached row"     | Response.success(HTTP_ACCEPTED, pendingBody(["gce:loadBalancers:test-account:us-central1:other-listener"])) || ExecutionStatus.SUCCEEDED
   }
 
   @Unroll

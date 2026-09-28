@@ -101,9 +101,14 @@ class DeleteLoadBalancerForceRefreshTask implements CloudProviderAware, Retryabl
           return result(ExecutionStatus.RUNNING, refreshState)
         }
 
-        if (response.code() == HttpURLConnection.HTTP_ACCEPTED && extractRefreshIds(response).isEmpty()) {
-          // An atomic scheduler could not take the agent lock, so the eviction did not run.
-          return result(ExecutionStatus.RUNNING, refreshState)
+        if (response.code() == HttpURLConnection.HTTP_ACCEPTED) {
+          List<String> refreshIds = extractRefreshIds(response)
+          // Empty IDs mean an atomic scheduler could not take the agent lock, so the eviction did
+          // not run. Clouddriver reports IDs only for rows it cached, so this load balancer's own
+          // key means an agent still found it and wrote it back.
+          if (refreshIds.isEmpty() || refreshIds.contains(loadBalancerKey(cloudProvider, account, region, name))) {
+            return result(ExecutionStatus.RUNNING, refreshState)
+          }
         }
         completedTargets.add(targetKey)
       }
@@ -137,6 +142,10 @@ class DeleteLoadBalancerForceRefreshTask implements CloudProviderAware, Retryabl
 
     Map<String, Object> responseBody = mapper.readValue(response.body().byteStream(), new TypeReference<Map<String, Object>>() {})
     return (responseBody?.cachedIdentifiersByType?.loadBalancers ?: []) as List<String>
+  }
+
+  private static String loadBalancerKey(String cloudProvider, String account, String region, String name) {
+    "${cloudProvider}:loadBalancers:${account}:${region}:${name}"
   }
 
   private static TaskResult result(ExecutionStatus status, Map refreshState) {
