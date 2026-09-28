@@ -426,6 +426,64 @@ describe('GceHttpLoadBalancerEditor', () => {
     );
   });
 
+  it('locks the EXTERNAL_MANAGED network while editing because existing listeners keep their network', () => {
+    const onChange = jasmine.createSpy('onChange');
+    const command = (loadBalancerType: 'EXTERNAL_MANAGED' | 'INTERNAL_MANAGED', mode: 'create' | 'edit') =>
+      normalizeGceLoadBalancerCommand(
+        {
+          account: 'account-a',
+          loadBalancerType,
+          name: 'web',
+          network: 'network-a',
+          region: 'europe-west1',
+          subnet: 'subnet-a',
+        },
+        mode,
+      );
+    const networkDisabled = (loadBalancerType: 'EXTERNAL_MANAGED' | 'INTERNAL_MANAGED', mode: 'create' | 'edit') =>
+      shallow(
+        <GceHttpLoadBalancerEditor command={command(loadBalancerType, mode)} data={emptyData} onChange={onChange} />,
+      )
+        .find('[data-testid="network"]')
+        .prop('disabled');
+
+    expect(networkDisabled('EXTERNAL_MANAGED', 'edit')).toBe(true);
+    expect(networkDisabled('EXTERNAL_MANAGED', 'create')).toBe(false);
+    expect(networkDisabled('INTERNAL_MANAGED', 'edit')).toBe(false);
+  });
+
+  it('drops EXTERNAL_MANAGED listener addresses when the account or region changes', () => {
+    const scopedCommand = (loadBalancerType: 'EXTERNAL_MANAGED' | 'INTERNAL_MANAGED') =>
+      normalizeGceLoadBalancerCommand(
+        {
+          account: 'account-a',
+          listeners: [{ ipAddress: '203.0.113.10', name: 'frontend', port: 80, protocol: 'HTTP', subnet: 'subnet-a' }],
+          loadBalancerType,
+          name: 'web',
+          network: 'network-a',
+          region: 'europe-west1',
+          subnet: 'subnet-a',
+        },
+        'create',
+      );
+    const onChange = jasmine.createSpy('onChange');
+    const external = shallow(
+      <GceHttpLoadBalancerEditor command={scopedCommand('EXTERNAL_MANAGED')} data={emptyData} onChange={onChange} />,
+    );
+
+    external.find('[data-testid="credentials"]').simulate('change', { target: { value: 'account-b' } });
+    expect(onChange.calls.mostRecent().args[0].listeners[0].address).toBeUndefined();
+    external.find('[data-testid="region"]').simulate('change', { target: { value: 'us-central1' } });
+    expect(onChange.calls.mostRecent().args[0].listeners[0].address).toBeUndefined();
+
+    shallow(
+      <GceHttpLoadBalancerEditor command={scopedCommand('INTERNAL_MANAGED')} data={emptyData} onChange={onChange} />,
+    )
+      .find('[data-testid="region"]')
+      .simulate('change', { target: { value: 'us-central1' } });
+    expect(onChange.calls.mostRecent().args[0].listeners[0].address).toEqual({ name: '203.0.113.10' });
+  });
+
   it('restores account, region, network, subnet, and composite type controls', () => {
     const onChange = jasmine.createSpy('onChange');
     const command = normalizeGceLoadBalancerCommand(

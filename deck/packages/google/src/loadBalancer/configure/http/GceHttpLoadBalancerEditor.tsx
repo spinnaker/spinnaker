@@ -356,6 +356,13 @@ export function GceHttpLoadBalancerEditor({ command, data, onChange }: IGceHttpL
   const update = (updates: Partial<IGceLoadBalancerCommand>): void => {
     onChange(constrainGceHttpLoadBalancerCommand({ ...command, ...updates } as IGceLoadBalancerCommand));
   };
+  // EXTERNAL_MANAGED reserved addresses belong to one account and region, so a scope change drops them.
+  const updateScope = (updates: Partial<IGceLoadBalancerCommand>): void =>
+    update(
+      command.loadBalancerType === 'EXTERNAL_MANAGED'
+        ? { ...updates, listeners: command.listeners.map((listener) => ({ ...listener, address: undefined })) }
+        : updates,
+    );
 
   const updateBackendService = (
     index: number,
@@ -440,7 +447,7 @@ export function GceHttpLoadBalancerEditor({ command, data, onChange }: IGceHttpL
             disabled={editing}
             required
             value={command.credentials}
-            onChange={(event) => update({ credentials: event.target.value })}
+            onChange={(event) => updateScope({ credentials: event.target.value })}
           >
             <option value="">Select...</option>
             {options.accounts.map((account) => (
@@ -459,7 +466,7 @@ export function GceHttpLoadBalancerEditor({ command, data, onChange }: IGceHttpL
                 disabled={editing}
                 required
                 value={command.region}
-                onChange={(event) => update({ region: event.target.value })}
+                onChange={(event) => updateScope({ region: event.target.value })}
               >
                 <option value="">Select...</option>
                 {options.regions.map((region) => (
@@ -473,6 +480,7 @@ export function GceHttpLoadBalancerEditor({ command, data, onChange }: IGceHttpL
               <select
                 className="form-control input-sm"
                 data-testid="network"
+                disabled={editing && command.loadBalancerType === 'EXTERNAL_MANAGED'}
                 required
                 value={command.network?.name || ''}
                 onChange={(event) => update({ network: selectedReference(event.target.value, options.networks) })}
