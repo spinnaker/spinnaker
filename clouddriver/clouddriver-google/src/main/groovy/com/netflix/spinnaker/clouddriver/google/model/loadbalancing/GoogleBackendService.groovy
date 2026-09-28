@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.model.loadbalancing
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.google.common.collect.ImmutableList
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import groovy.transform.Canonical
@@ -43,7 +44,9 @@ class GoogleBackendService {
   GoogleSessionAffinity sessionAffinity
   Integer affinityCookieTtlSec
   GoogleLoadBalancingScheme loadBalancingScheme
-  String protocol = "HTTP"
+  // Only EXTERNAL_MANAGED reads and writes this; unset means HTTP.
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  String protocol
 
   /**
    * The portName this backend service will forward traffic to.

@@ -119,9 +119,6 @@ class GoogleSslCertificateCachingAgent extends AbstractGoogleCachingAgent  {
 
       cacheResultBuilder.namespace(SSL_CERTIFICATES.ns).keep(sslCertificateKey).with {
         attributes.name = sslCertificate.name
-        if (region) {
-          attributes.region = region
-        }
       }
     }
 

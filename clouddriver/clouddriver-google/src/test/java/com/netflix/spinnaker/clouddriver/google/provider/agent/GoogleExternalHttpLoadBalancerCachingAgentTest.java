@@ -66,7 +66,8 @@ public class GoogleExternalHttpLoadBalancerCachingAgentTest {
   private static final String REGION = "us-central1";
 
   @Test
-  void isExternalManagedHttpForwardingRule_acceptsOnlyExternalManagedHttpProxies() {
+  void isOwnedForwardingRule_acceptsOnlyExternalManagedHttpProxies() {
+    GoogleExternalHttpLoadBalancerCachingAgent agent = createAgent(mock(Compute.class));
     ForwardingRule externalManagedHttp =
         new ForwardingRule()
             .setLoadBalancingScheme("EXTERNAL_MANAGED")
@@ -85,26 +86,11 @@ public class GoogleExternalHttpLoadBalancerCachingAgentTest {
             .setTarget("projects/test/regions/us-central1/targetSslProxies/ssl-proxy");
     ForwardingRule missingTarget = new ForwardingRule().setLoadBalancingScheme("EXTERNAL_MANAGED");
 
-    assertThat(
-            GoogleExternalHttpLoadBalancerCachingAgent.isExternalManagedHttpForwardingRule(
-                externalManagedHttp))
-        .isTrue();
-    assertThat(
-            GoogleExternalHttpLoadBalancerCachingAgent.isExternalManagedHttpForwardingRule(
-                externalManagedHttps))
-        .isTrue();
-    assertThat(
-            GoogleExternalHttpLoadBalancerCachingAgent.isExternalManagedHttpForwardingRule(
-                internalManagedHttp))
-        .isFalse();
-    assertThat(
-            GoogleExternalHttpLoadBalancerCachingAgent.isExternalManagedHttpForwardingRule(
-                externalManagedSsl))
-        .isFalse();
-    assertThat(
-            GoogleExternalHttpLoadBalancerCachingAgent.isExternalManagedHttpForwardingRule(
-                missingTarget))
-        .isFalse();
+    assertThat(agent.isOwnedForwardingRule(externalManagedHttp)).isTrue();
+    assertThat(agent.isOwnedForwardingRule(externalManagedHttps)).isTrue();
+    assertThat(agent.isOwnedForwardingRule(internalManagedHttp)).isFalse();
+    assertThat(agent.isOwnedForwardingRule(externalManagedSsl)).isFalse();
+    assertThat(agent.isOwnedForwardingRule(missingTarget)).isFalse();
   }
 
   @Test
@@ -453,7 +439,8 @@ public class GoogleExternalHttpLoadBalancerCachingAgentTest {
     List<GoogleLoadBalancer> loadBalancers = agent.constructLoadBalancers("good-lb");
 
     assertThat(loadBalancers).hasSize(1);
-    assertThat(loadBalancers.get(0).getHealths()).isNotEmpty();
+    // One instance behind a backend service referenced twice must still report one health entry.
+    assertThat(loadBalancers.get(0).getHealths()).hasSize(1);
     assertThat(loadBalancers.get(0).getHealths().get(0).getInstanceName())
         .isEqualTo("server-group-v000");
     assertThat(loadBalancers.get(0).getHealths().get(0).getStatus().name()).isEqualTo("HEALTHY");

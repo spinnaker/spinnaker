@@ -2,7 +2,6 @@ package com.netflix.spinnaker.clouddriver.google.provider.agent;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.services.compute.model.ForwardingRule;
-import com.google.api.services.compute.model.HealthCheck;
 import com.google.api.services.compute.model.TargetHttpsProxy;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils;
@@ -38,17 +37,6 @@ public class GoogleInternalHttpLoadBalancerCachingAgent
         : null;
   }
 
-  static boolean isInternalManagedHttpForwardingRule(ForwardingRule forwardingRule) {
-    return GoogleLoadBalancerCacheSupport.isRegionalManagedHttpForwardingRule(
-        forwardingRule, "INTERNAL_MANAGED");
-  }
-
-  static void handleHealthCheck(
-      final HealthCheck healthCheck, List<GoogleBackendService> googleBackendServices) {
-    AbstractGoogleRegionalHttpLoadBalancerCachingAgent.handleHealthCheck(
-        healthCheck, googleBackendServices);
-  }
-
   @Override
   protected String getInstrumentationPrefix() {
     return "InternalHttpLoadBalancerCaching";
@@ -57,11 +45,6 @@ public class GoogleInternalHttpLoadBalancerCachingAgent
   @Override
   protected String getLoadBalancingScheme() {
     return GoogleLoadBalancerType.INTERNAL_MANAGED.name();
-  }
-
-  @Override
-  protected boolean isOwnedForwardingRule(ForwardingRule forwardingRule) {
-    return isInternalManagedHttpForwardingRule(forwardingRule);
   }
 
   @Override
@@ -122,12 +105,5 @@ public class GoogleInternalHttpLoadBalancerCachingAgent
             + healthCheckName
             + " for "
             + loadBalancer.getName());
-  }
-
-  @Override
-  protected String getWrongSchemeMessage() {
-    return "Not responsible for on demand caching of load balancers without "
-        + GoogleLoadBalancerType.INTERNAL_MANAGED
-        + " HTTP(S) target proxy.";
   }
 }

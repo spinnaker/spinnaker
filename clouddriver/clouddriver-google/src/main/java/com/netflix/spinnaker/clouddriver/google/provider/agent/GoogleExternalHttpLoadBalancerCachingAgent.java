@@ -54,11 +54,6 @@ public class GoogleExternalHttpLoadBalancerCachingAgent
     super(clouddriverUserAgentApplicationName, credentials, objectMapper, registry, region);
   }
 
-  static boolean isExternalManagedHttpForwardingRule(ForwardingRule forwardingRule) {
-    return GoogleLoadBalancerCacheSupport.isRegionalManagedHttpForwardingRule(
-        forwardingRule, "EXTERNAL_MANAGED");
-  }
-
   static String getFirstSslCertificateForExternalManaged(TargetHttpsProxy targetHttpsProxy) {
     if (targetHttpsProxy == null
         || targetHttpsProxy.getSslCertificates() == null
@@ -81,11 +76,6 @@ public class GoogleExternalHttpLoadBalancerCachingAgent
   @Override
   protected String getLoadBalancingScheme() {
     return GoogleLoadBalancerType.EXTERNAL_MANAGED.name();
-  }
-
-  @Override
-  protected boolean isOwnedForwardingRule(ForwardingRule forwardingRule) {
-    return isExternalManagedHttpForwardingRule(forwardingRule);
   }
 
   @Override
@@ -143,12 +133,5 @@ public class GoogleExternalHttpLoadBalancerCachingAgent
         "Could not enrich regional external HTTP load balancer {} because health check {} was missing.",
         loadBalancer.getName(),
         healthCheckName);
-  }
-
-  @Override
-  protected String getWrongSchemeMessage() {
-    return "Not responsible for on demand caching of load balancers without "
-        + GoogleLoadBalancerType.EXTERNAL_MANAGED
-        + " HTTP(S) target proxy.";
   }
 }

@@ -134,6 +134,42 @@ class GoogleLoadBalancerProviderSpec extends Specification {
       details[0].backendServiceHealthChecks.keySet() == ["external-backend-service"] as Set
   }
 
+  void "describes an external managed HTTP load balancer whose backend health check is not cached yet"() {
+    setup:
+      def cacheView = Mock(Cache)
+      def serverGroup = Mock(CacheData)
+      def googleLoadBalancerView = Mock(CacheData)
+      googleLoadBalancerView.getAttributes() >> [
+        type               : GoogleLoadBalancerType.EXTERNAL_MANAGED,
+        loadBalancingScheme: GoogleLoadBalancingScheme.EXTERNAL_MANAGED,
+        name               : LOAD_BALANCER_NAME,
+        account            : ACCOUNT_NAME,
+        region             : REGION_EUROPE,
+        portRange          : "80",
+        urlMapName         : "external-url-map",
+        defaultService     : [name: "external-backend-service"],
+        hostRules          : [],
+        healths            : []
+      ]
+      googleLoadBalancerView.getRelationships() >> [(SERVER_GROUPS.ns): []]
+
+      @Subject def provider = new GoogleLoadBalancerProvider()
+      provider.cacheView = cacheView
+      provider.objectMapper = new ObjectMapper()
+
+    when:
+      def details = provider.byAccountAndRegionAndName(ACCOUNT_NAME, REGION_EUROPE, LOAD_BALANCER_NAME)
+
+    then:
+      _ * cacheView.filterIdentifiers(LOAD_BALANCERS.ns, _) >> ["external_lb_identifier"]
+      1 * cacheView.getAll(LOAD_BALANCERS.ns, _, _) >> [googleLoadBalancerView]
+      1 * cacheView.filterIdentifiers(SERVER_GROUPS.ns, _) >> SERVER_GROUP_IDS
+      1 * cacheView.getAll(SERVER_GROUPS.ns, SERVER_GROUP_IDS) >> [serverGroup]
+      1 * serverGroup.getRelationships() >> [(LOAD_BALANCERS.ns): ["external_lb_identifier"]]
+      details.size() == 1
+      details[0].backendServiceHealthChecks == ["external-backend-service": null]
+  }
+
   void "should deserialize regional external network load balancer details"() {
     setup:
       def cacheView = Mock(Cache)

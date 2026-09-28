@@ -314,7 +314,8 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
         loadBalancerPort = Utils.derivePortOrPortRange(view.portRange)
         GoogleExternalHttpLoadBalancer.ExternalHttpLbView httpView = view as GoogleExternalHttpLoadBalancer.ExternalHttpLbView
         List<GoogleBackendService> backendServices = Utils.getBackendServicesFromExternalHttpLoadBalancerView(httpView)
-        backendServiceHealthChecks = backendServices.collectEntries { [it.name, it.healthCheck.view] }
+        // The external agent keeps load balancers whose health check could not be read yet.
+        backendServiceHealthChecks = backendServices.collectEntries { [it.name, it.healthCheck?.view] }
         break
       case GoogleLoadBalancerType.INTERNAL:
         GoogleInternalLoadBalancer.View ilbView = view as GoogleInternalLoadBalancer.View

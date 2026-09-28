@@ -146,7 +146,7 @@ abstract class AbstractGoogleRegionalPassthroughLoadBalancerCachingAgent<T exten
   /**
    * Fetches the typed health-check lookup that {@link #attachHealthChecks} consumes, read once per
    * refresh. The type is subclass-private and the base never inspects it: internal passthrough
-   * returns a map of legacy HTTP/HTTPS/generic health checks, while regional external network
+   * returns its legacy HTTP/HTTPS/generic health checks together, while regional external network
    * returns a flat list of regional health checks.
    */
   abstract H fetchHealthCheckContext()

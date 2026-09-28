@@ -221,7 +221,10 @@ abstract class AbstractGoogleRegionalHttpLoadBalancerCachingAgent<T extends Goog
    * target proxy belong to this subclass). The base only walks owned rules, so this guard keeps the
    * internal-managed and external-managed graphs from caching each other.
    */
-  protected abstract boolean isOwnedForwardingRule(ForwardingRule forwardingRule);
+  boolean isOwnedForwardingRule(ForwardingRule forwardingRule) {
+    return GoogleLoadBalancerCacheSupport.isRegionalManagedHttpForwardingRule(
+        forwardingRule, getLoadBalancingScheme());
+  }
 
   /** Creates the scheme-specific model and seeds its common forwarding-rule fields. */
   protected abstract T newLoadBalancer(ForwardingRule forwardingRule);
@@ -257,8 +260,16 @@ abstract class AbstractGoogleRegionalHttpLoadBalancerCachingAgent<T extends Goog
    */
   protected abstract void handleMissingHealthCheck(String healthCheckName, T loadBalancer);
 
-  /** Message thrown when an on-demand refresh is asked to cache a rule this scheme does not own. */
-  protected abstract String getWrongSchemeMessage();
+  private String getWrongSchemeMessage() {
+    return "Not responsible for on demand caching of load balancers without "
+        + getLoadBalancingScheme()
+        + " HTTP(S) target proxy.";
+  }
+
+  // INTERNAL_MANAGED views keep their historical shape without a backend protocol.
+  private boolean reportsBackendProtocol() {
+    return "EXTERNAL_MANAGED".equals(getLoadBalancingScheme());
+  }
 
   private boolean isMalformedOwnedSchemeRule(ForwardingRule forwardingRule) {
     if (!getLoadBalancingScheme().equals(forwardingRule.getLoadBalancingScheme())) {
@@ -349,12 +360,8 @@ abstract class AbstractGoogleRegionalHttpLoadBalancerCachingAgent<T extends Goog
                     failedLoadBalancers));
             break;
           default:
-            failedLoadBalancers.add(loadBalancer.getName());
-            log.warn(
-                "Ignoring regional {} forwarding rule {} because target {} is not HTTP(S).",
-                getLoadBalancingScheme(),
-                forwardingRule.getName(),
-                forwardingRule.getTarget());
+            // Unreachable: only owned HTTP(S) proxy rules reach this graph walk.
+            break;
         }
       } catch (IOException e) {
         throw new UncheckedIOException(e);
@@ -649,8 +656,10 @@ abstract class AbstractGoogleRegionalHttpLoadBalancerCachingAgent<T extends Goog
               : GoogleSessionAffinity.NONE);
       service.setAffinityCookieTtlSec(backendService.getAffinityCookieTtlSec());
       service.setEnableCDN(backendService.getEnableCDN());
-      service.setProtocol(
-          backendService.getProtocol() != null ? backendService.getProtocol() : "HTTP");
+      if (reportsBackendProtocol()) {
+        service.setProtocol(
+            backendService.getProtocol() != null ? backendService.getProtocol() : "HTTP");
+      }
       String name = backendService.getPortName();
       service.setPortName(
           name != null ? name : GoogleHttpLoadBalancingPolicy.HTTP_DEFAULT_PORT_NAME);
@@ -666,11 +675,20 @@ abstract class AbstractGoogleRegionalHttpLoadBalancerCachingAgent<T extends Goog
                       GoogleLoadBalancedBackend googleBackend = new GoogleLoadBalancedBackend();
                       googleBackend.setPolicy(GCEUtil.loadBalancingPolicyFromBackend(backend));
                       googleBackend.setServerGroupUrl(backend.getGroup());
-                      queueBackendHealth(loadBalancer, backendService, backend, groupHealthRequest);
                       return googleBackend;
                     })
                 .collect(toList()));
       }
+    }
+
+    // Queue health only after every view entry is updated: resolutions hash the whole load
+    // balancer, so adding one between mutations would store duplicates.
+    if (backendService.getBackends() != null) {
+      backendService.getBackends().stream()
+          .filter(backend -> backend.getGroup() != null)
+          .forEach(
+              backend ->
+                  queueBackendHealth(loadBalancer, backendService, backend, groupHealthRequest));
     }
 
     if (backendService.getHealthChecks() != null) {

@@ -55,7 +55,7 @@ class GoogleSslCertificateCachingAgentSpec extends Specification {
     cacheData.size() == 1
     cacheData[0].id == Keys.getSslCertificateKey(ACCOUNT, REGION, "regional-cert")
     cacheData[0].attributes.name == "regional-cert"
-    cacheData[0].attributes.region == REGION
+    Keys.parse(cacheData[0].id).region == REGION
   }
 
   void "global agent reads global certificates and keys them without a region"() {

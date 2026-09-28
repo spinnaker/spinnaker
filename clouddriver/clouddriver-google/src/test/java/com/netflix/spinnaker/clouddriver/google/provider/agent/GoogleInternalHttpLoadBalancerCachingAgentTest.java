@@ -29,7 +29,6 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -213,7 +212,8 @@ public class GoogleInternalHttpLoadBalancerCachingAgentTest {
   }
 
   @Test
-  void isInternalManagedHttpForwardingRule_rejectsOtherManagedSchemes() {
+  void isOwnedForwardingRule_rejectsOtherManagedSchemes() {
+    GoogleInternalHttpLoadBalancerCachingAgent agent = createAgent(mock(Compute.class));
     ForwardingRule internalManagedRule =
         new ForwardingRule()
             .setLoadBalancingScheme("INTERNAL_MANAGED")
@@ -227,18 +227,9 @@ public class GoogleInternalHttpLoadBalancerCachingAgentTest {
             .setLoadBalancingScheme("INTERNAL_MANAGED")
             .setTarget("projects/test/regions/us-central1/targetSslProxies/ssl-proxy");
 
-    assertThat(
-            GoogleInternalHttpLoadBalancerCachingAgent.isInternalManagedHttpForwardingRule(
-                internalManagedRule))
-        .isTrue();
-    assertThat(
-            GoogleInternalHttpLoadBalancerCachingAgent.isInternalManagedHttpForwardingRule(
-                externalManagedRule))
-        .isFalse();
-    assertThat(
-            GoogleInternalHttpLoadBalancerCachingAgent.isInternalManagedHttpForwardingRule(
-                sslProxyRule))
-        .isFalse();
+    assertThat(agent.isOwnedForwardingRule(internalManagedRule)).isTrue();
+    assertThat(agent.isOwnedForwardingRule(externalManagedRule)).isFalse();
+    assertThat(agent.isOwnedForwardingRule(sslProxyRule)).isFalse();
   }
 
   @Test
@@ -335,14 +326,10 @@ public class GoogleInternalHttpLoadBalancerCachingAgentTest {
     }
   }
 
-  /** Helper method to invoke the private static handleHealthCheck method using reflection */
   private void invokeHandleHealthCheck(
-      HealthCheck healthCheck, List<GoogleBackendService> googleBackendServices) throws Exception {
-    Method handleHealthCheckMethod =
-        GoogleInternalHttpLoadBalancerCachingAgent.class.getDeclaredMethod(
-            "handleHealthCheck", HealthCheck.class, List.class);
-    handleHealthCheckMethod.setAccessible(true);
-    handleHealthCheckMethod.invoke(null, healthCheck, googleBackendServices);
+      HealthCheck healthCheck, List<GoogleBackendService> googleBackendServices) {
+    AbstractGoogleRegionalHttpLoadBalancerCachingAgent.handleHealthCheck(
+        healthCheck, googleBackendServices);
   }
 
   private static GoogleInternalHttpLoadBalancerCachingAgent createAgent(Compute compute) {
