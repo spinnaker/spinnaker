@@ -197,6 +197,7 @@ public class BasicGoogleDeployHandler
       List<BackendService> regionBackendServicesToUpdate =
           getRegionBackendServicesToUpdate(
               description, nextServerGroupName, lbToUpdate, lbPolicy, region);
+      recordRegionalExternalLoadBalancerNames(description, lbToUpdate);
 
       String now = String.valueOf(System.currentTimeMillis());
       String suffix = now.substring(now.length() - TEMPLATE_UUID_SIZE);
@@ -803,6 +804,40 @@ public class BasicGoogleDeployHandler
         && balancingMode != GoogleLoadBalancingPolicy.BalancingMode.CONNECTION) {
       throw new IllegalArgumentException(
           "The same instance group must use CONNECTION for SSL/TCP proxy backends when it also attaches to a regional passthrough load balancer backend.");
+    }
+  }
+
+  /**
+   * Tags which regional load balancer names are EXTERNAL_MANAGED or REGIONAL_EXTERNAL_NETWORK, so
+   * enable can skip them in the existing families' strict lookups after a listener is removed.
+   * Names carried from a clone source are kept only while they are still regional names.
+   */
+  protected void recordRegionalExternalLoadBalancerNames(
+      BasicGoogleDeployDescription description, LoadBalancerInfo lbInfo) {
+    Map<String, String> instanceMetadata = ensureInstanceMetadata(description);
+    Set<String> regionalExternalNames = new LinkedHashSet<>();
+    if (instanceMetadata.get(REGIONAL_EXTERNAL_LOAD_BALANCER_NAMES) != null) {
+      regionalExternalNames.addAll(
+          Arrays.asList(instanceMetadata.get(REGIONAL_EXTERNAL_LOAD_BALANCER_NAMES).split(",")));
+    }
+    Stream.of(
+            lbInfo.getExternalHttpLoadBalancers(), lbInfo.getRegionalExternalNetworkLoadBalancers())
+        .filter(Objects::nonNull)
+        .flatMap(Collection::stream)
+        .map(GoogleLoadBalancerView::getName)
+        .forEach(regionalExternalNames::add);
+    if (instanceMetadata.get(REGIONAL_LOAD_BALANCER_NAMES) != null) {
+      regionalExternalNames.retainAll(
+          Arrays.asList(instanceMetadata.get(REGIONAL_LOAD_BALANCER_NAMES).split(",")));
+    } else {
+      regionalExternalNames.clear();
+    }
+
+    if (regionalExternalNames.isEmpty()) {
+      instanceMetadata.remove(REGIONAL_EXTERNAL_LOAD_BALANCER_NAMES);
+    } else {
+      instanceMetadata.put(
+          REGIONAL_EXTERNAL_LOAD_BALANCER_NAMES, String.join(",", regionalExternalNames));
     }
   }
 

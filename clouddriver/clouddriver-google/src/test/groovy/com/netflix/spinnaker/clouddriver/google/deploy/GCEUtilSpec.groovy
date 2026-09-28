@@ -1612,13 +1612,10 @@ package com.netflix.spinnaker.clouddriver.google.deploy
       def forwardingRulesList = Mock(Compute.ForwardingRules.List)
       def googleLoadBalancerProvider = Mock(GoogleLoadBalancerProvider)
       def googleOperationPoller = Mock(GoogleOperationPoller)
-      def serverGroup = serverGroupView("server-group-v001", "regional-external-lb")
-      def regionalExternalLoadBalancer = new GoogleRegionalExternalNetworkLoadBalancer(
-        name: "regional-external-lb",
-        account: ACCOUNT_NAME,
-        region: REGION,
-        backendService: new GoogleBackendService(name: "backend-service")
-      )
+      def serverGroup = serverGroupViewWithMetadata("server-group-v001", [
+        (GCEUtil.REGIONAL_LOAD_BALANCER_NAMES): "regional-external-lb",
+        (GCEUtil.REGIONAL_EXTERNAL_LOAD_BALANCER_NAMES): "regional-external-lb",
+      ])
 
     when:
       GCEUtil.addInternalLoadBalancerBackends(
@@ -1632,8 +1629,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy
         executor)
 
     then:
-      // Every metadata name must resolve in the cache; the GCP lookup runs when none is INTERNAL.
-      1 * googleLoadBalancerProvider.getApplicationLoadBalancers("") >> [regionalExternalLoadBalancer.view]
+      1 * googleLoadBalancerProvider.getApplicationLoadBalancers("") >> []
       1 * compute.forwardingRules() >> forwardingRules
       1 * forwardingRules.list(PROJECT_NAME, REGION) >> forwardingRulesList
       1 * forwardingRulesList.execute() >> new ForwardingRuleList(items: [
@@ -1680,6 +1676,149 @@ package com.netflix.spinnaker.clouddriver.google.deploy
         )
       ])
       0 * compute.regionBackendServices()
+  }
+
+  @Unroll
+  void "#helper skips a removed listener that metadata tags as regional external"() {
+    setup:
+      def compute = Mock(Compute)
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
+      def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
+      def globalForwardingRulesList = Mock(Compute.GlobalForwardingRules.List)
+      def googleLoadBalancerProvider = Mock(GoogleLoadBalancerProvider)
+      def googleOperationPoller = Mock(GoogleOperationPoller)
+      def serverGroup = serverGroupViewWithMetadata("server-group-v001", [
+        (GCEUtil.REGIONAL_LOAD_BALANCER_NAMES): "live-listener,removed-listener",
+        (GCEUtil.REGIONAL_EXTERNAL_LOAD_BALANCER_NAMES): "live-listener,removed-listener",
+      ])
+      def liveListener = new GoogleExternalHttpLoadBalancer(name: "live-listener", account: ACCOUNT_NAME, region: REGION)
+
+    when:
+      invokeLegacyAddHelper(helper, compute, serverGroup, googleLoadBalancerProvider, googleOperationPoller)
+
+    then:
+      notThrown(GoogleResourceNotFoundException)
+      1 * googleLoadBalancerProvider.getApplicationLoadBalancers("") >> [liveListener.view]
+      _ * compute.forwardingRules() >> forwardingRules
+      _ * forwardingRules.list(PROJECT_NAME, REGION) >> forwardingRulesList
+      _ * forwardingRulesList.execute() >> new ForwardingRuleList(items: [])
+      _ * compute.globalForwardingRules() >> globalForwardingRules
+      _ * globalForwardingRules.list(PROJECT_NAME) >> globalForwardingRulesList
+      _ * globalForwardingRulesList.execute() >> new ForwardingRuleList(items: [])
+      0 * compute.backendServices()
+      0 * compute.regionBackendServices()
+
+    where:
+      helper << LEGACY_ADD_HELPERS
+  }
+
+  @Unroll
+  void "#helper still fails when an untagged regional name is missing from the cache"() {
+    setup:
+      def compute = Mock(Compute)
+      def googleLoadBalancerProvider = Mock(GoogleLoadBalancerProvider)
+      def serverGroup = serverGroupViewWithMetadata("server-group-v001", [
+        (GCEUtil.REGIONAL_LOAD_BALANCER_NAMES): "live-listener,removed-listener",
+      ])
+      def liveListener = new GoogleExternalHttpLoadBalancer(name: "live-listener", account: ACCOUNT_NAME, region: REGION)
+
+    when:
+      invokeLegacyAddHelper(helper, compute, serverGroup, googleLoadBalancerProvider, Mock(GoogleOperationPoller))
+
+    then:
+      1 * googleLoadBalancerProvider.getApplicationLoadBalancers("") >> [liveListener.view]
+      def exc = thrown(GoogleResourceNotFoundException)
+      exc.message == "Load balancers [removed-listener] not found."
+
+    where:
+      helper << LEGACY_ADD_HELPERS
+  }
+
+  void "add external http backend attaches the live listener when metadata still lists a removed listener"() {
+    setup:
+      def compute = Mock(Compute)
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
+      def backendServices = Mock(Compute.RegionBackendServices)
+      def backendServicesGet = Mock(Compute.RegionBackendServices.Get)
+      def backendServicesUpdate = Mock(Compute.RegionBackendServices.Update)
+      def googleLoadBalancerProvider = Mock(GoogleLoadBalancerProvider)
+      def googleOperationPoller = Mock(GoogleOperationPoller)
+      def serverGroup = serverGroupViewWithMetadata("server-group-v001", [
+        (GCEUtil.REGIONAL_LOAD_BALANCER_NAMES): "live-listener,removed-listener",
+        (GCEUtil.REGIONAL_EXTERNAL_LOAD_BALANCER_NAMES): "live-listener,removed-listener",
+        (GCEUtil.LOAD_BALANCING_POLICY): '{"balancingMode": "UTILIZATION", "maxUtilization": 0.80, "capacityScaler": 1.0}',
+      ])
+      def liveListener = new GoogleExternalHttpLoadBalancer(
+        name: "live-listener",
+        account: ACCOUNT_NAME,
+        region: REGION,
+        defaultService: new GoogleBackendService(name: "managed-backend"),
+        hostRules: [])
+      def backendService = new BackendService(name: "managed-backend", loadBalancingScheme: "EXTERNAL_MANAGED", backends: [])
+      def serverGroupUrl = GCEUtil.buildRegionalServerGroupUrl(PROJECT_NAME, REGION, "server-group-v001")
+
+    when:
+      GCEUtil.addExternalHttpLoadBalancerBackends(
+        compute,
+        new ObjectMapper(),
+        PROJECT_NAME,
+        serverGroup,
+        googleLoadBalancerProvider,
+        taskMock,
+        PHASE,
+        googleOperationPoller,
+        executor)
+
+    then:
+      1 * googleLoadBalancerProvider.getApplicationLoadBalancers("") >> [liveListener.view]
+      1 * compute.forwardingRules() >> forwardingRules
+      1 * forwardingRules.list(PROJECT_NAME, REGION) >> forwardingRulesList
+      1 * forwardingRulesList.execute() >> new ForwardingRuleList(items: [])
+      2 * compute.regionBackendServices() >> backendServices
+      1 * backendServices.get(PROJECT_NAME, REGION, "managed-backend") >> backendServicesGet
+      1 * backendServicesGet.execute() >> backendService
+      1 * backendServices.update(PROJECT_NAME, REGION, "managed-backend", { BackendService updated ->
+        updated.backends*.group == [serverGroupUrl]
+      }) >> backendServicesUpdate
+      1 * backendServicesUpdate.execute() >> new Operation(name: "update-backend-service")
+      1 * googleOperationPoller.waitForRegionalOperation(compute, PROJECT_NAME, REGION, "update-backend-service", null, taskMock, "compute.regionBackendService.update", PHASE)
+  }
+
+  private static final List<String> LEGACY_ADD_HELPERS = [
+    "addHttpLoadBalancerBackends",
+    "addInternalHttpLoadBalancerBackends",
+    "addInternalLoadBalancerBackends",
+    "addSslLoadBalancerBackends",
+    "addTcpLoadBalancerBackends",
+  ]
+
+  private void invokeLegacyAddHelper(String helper,
+                                     Compute compute,
+                                     GoogleServerGroup.View serverGroup,
+                                     GoogleLoadBalancerProvider googleLoadBalancerProvider,
+                                     GoogleOperationPoller googleOperationPoller) {
+    if (helper == "addInternalLoadBalancerBackends") {
+      GCEUtil.addInternalLoadBalancerBackends(
+        compute, PROJECT_NAME, serverGroup, googleLoadBalancerProvider, taskMock, PHASE, googleOperationPoller, executor)
+    } else {
+      GCEUtil."$helper"(
+        compute, new ObjectMapper(), PROJECT_NAME, serverGroup, googleLoadBalancerProvider, taskMock, PHASE, googleOperationPoller, executor)
+    }
+  }
+
+  private static GoogleServerGroup.View serverGroupViewWithMetadata(String serverGroupName, Map<String, String> metadata) {
+    new GoogleServerGroup(
+      name: serverGroupName,
+      account: ACCOUNT_NAME,
+      region: REGION,
+      regional: true,
+      launchConfig: [
+        instanceTemplate: new InstanceTemplate(properties: new InstanceProperties(metadata: GCEUtil.buildMetadataFromMap(metadata)))
+      ],
+      asg: [(GCEUtil.REGIONAL_LOAD_BALANCER_NAMES): metadata[GCEUtil.REGIONAL_LOAD_BALANCER_NAMES]?.tokenize(",") ?: []]
+    ).view
   }
 
   private static GoogleServerGroup.View serverGroupView(String serverGroupName, String... loadBalancerNames) {

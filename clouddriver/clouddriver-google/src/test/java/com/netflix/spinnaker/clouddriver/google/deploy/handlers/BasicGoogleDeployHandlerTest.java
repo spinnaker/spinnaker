@@ -1400,6 +1400,79 @@ public class BasicGoogleDeployHandlerTest {
   }
 
   @Test
+  void testRecordRegionalExternalLoadBalancerNamesTagsOnlyNewFamilies() {
+    GoogleInternalLoadBalancer internalLoadBalancer = new GoogleInternalLoadBalancer();
+    internalLoadBalancer.setName("internal-lb");
+    GoogleExternalHttpLoadBalancer externalHttpLoadBalancer = new GoogleExternalHttpLoadBalancer();
+    externalHttpLoadBalancer.setName("external-listener");
+    GoogleRegionalExternalNetworkLoadBalancer networkLoadBalancer =
+        new GoogleRegionalExternalNetworkLoadBalancer();
+    networkLoadBalancer.setName("passthrough-lb");
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfo =
+        new BasicGoogleDeployHandler.LoadBalancerInfo();
+    lbInfo.setInternalLoadBalancers(List.of(internalLoadBalancer.getView()));
+    lbInfo.setExternalHttpLoadBalancers(List.of(externalHttpLoadBalancer.getView()));
+    lbInfo.setRegionalExternalNetworkLoadBalancers(List.of(networkLoadBalancer.getView()));
+    Map<String, String> instanceMetadata =
+        new HashMap<>(
+            Map.of(
+                GCEUtil.REGIONAL_LOAD_BALANCER_NAMES,
+                "internal-lb,external-listener,passthrough-lb"));
+    mockDescription.setInstanceMetadata(instanceMetadata);
+
+    basicGoogleDeployHandler.recordRegionalExternalLoadBalancerNames(mockDescription, lbInfo);
+
+    assertEquals(
+        "external-listener,passthrough-lb",
+        instanceMetadata.get(GCEUtil.REGIONAL_EXTERNAL_LOAD_BALANCER_NAMES));
+  }
+
+  @Test
+  void testRecordRegionalExternalLoadBalancerNamesDropsNamesNoLongerSelected() {
+    GoogleExternalHttpLoadBalancer externalHttpLoadBalancer = new GoogleExternalHttpLoadBalancer();
+    externalHttpLoadBalancer.setName("live-listener");
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfo =
+        new BasicGoogleDeployHandler.LoadBalancerInfo();
+    lbInfo.setExternalHttpLoadBalancers(List.of(externalHttpLoadBalancer.getView()));
+    Map<String, String> instanceMetadata =
+        new HashMap<>(
+            Map.of(
+                GCEUtil.REGIONAL_LOAD_BALANCER_NAMES,
+                "live-listener,carried-listener",
+                GCEUtil.REGIONAL_EXTERNAL_LOAD_BALANCER_NAMES,
+                "carried-listener,deselected-listener"));
+    mockDescription.setInstanceMetadata(instanceMetadata);
+
+    basicGoogleDeployHandler.recordRegionalExternalLoadBalancerNames(mockDescription, lbInfo);
+
+    assertEquals(
+        "carried-listener,live-listener",
+        instanceMetadata.get(GCEUtil.REGIONAL_EXTERNAL_LOAD_BALANCER_NAMES));
+  }
+
+  @Test
+  void testRecordRegionalExternalLoadBalancerNamesLeavesExistingFamiliesUntagged() {
+    GoogleInternalLoadBalancer internalLoadBalancer = new GoogleInternalLoadBalancer();
+    internalLoadBalancer.setName("internal-lb");
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfo =
+        new BasicGoogleDeployHandler.LoadBalancerInfo();
+    lbInfo.setInternalLoadBalancers(List.of(internalLoadBalancer.getView()));
+    Map<String, String> instanceMetadata =
+        new HashMap<>(
+            Map.of(
+                GCEUtil.REGIONAL_LOAD_BALANCER_NAMES,
+                "internal-lb",
+                GCEUtil.REGIONAL_EXTERNAL_LOAD_BALANCER_NAMES,
+                "stale-listener"));
+    mockDescription.setInstanceMetadata(instanceMetadata);
+
+    basicGoogleDeployHandler.recordRegionalExternalLoadBalancerNames(mockDescription, lbInfo);
+
+    assertThat(instanceMetadata)
+        .containsOnly(Map.entry(GCEUtil.REGIONAL_LOAD_BALANCER_NAMES, "internal-lb"));
+  }
+
+  @Test
   void testMetadataOnlyRegionalBackendServiceIsNotAttached() throws IOException {
     Map<String, String> instanceMetadata =
         new HashMap<>(Map.of(GCEUtil.REGION_BACKEND_SERVICE_NAMES, "metadata-backend"));
