@@ -93,6 +93,7 @@ import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.Data;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
@@ -147,7 +148,6 @@ public class BasicGoogleDeployHandler
     Task task = getTask();
 
     try {
-      normalizeNullableCollections(description);
       String region = getRegionFromInput(description);
       String location = getLocationFromInput(description, region);
       GCEServerGroupNameResolver nameResolver = getServerGroupNameResolver(description, region);
@@ -263,7 +263,12 @@ public class BasicGoogleDeployHandler
       updateBackendServices(
           description, lbToUpdate, nextServerGroupName, backendServicesToUpdate, task);
       updateRegionalBackendServices(
-          description, nextServerGroupName, region, regionBackendServicesToUpdate, task);
+          description,
+          lbToUpdate,
+          nextServerGroupName,
+          region,
+          regionBackendServicesToUpdate,
+          task);
 
       DeploymentResult deploymentResult = new DeploymentResult();
       deploymentResult.setServerGroupNames(
@@ -273,22 +278,6 @@ public class BasicGoogleDeployHandler
 
     } catch (IOException e) {
       throw new IllegalStateException("Unexpected error in handler: " + e.getMessage());
-    }
-  }
-
-  /**
-   * Raw pipeline and REST payloads may omit collection-valued fields that the compose path
-   * dereferences. Normalize them once so direct API use follows the same contract as Deck.
-   */
-  protected void normalizeNullableCollections(BasicGoogleDeployDescription description) {
-    if (description.getInstanceMetadata() == null) {
-      description.setInstanceMetadata(new HashMap<>());
-    }
-    if (description.getLabels() == null) {
-      description.setLabels(new HashMap<>());
-    }
-    if (description.getAuthScopes() == null) {
-      description.setAuthScopes(new ArrayList<>());
     }
   }
 
@@ -306,7 +295,6 @@ public class BasicGoogleDeployHandler
   }
 
   protected String getLocationFromInput(BasicGoogleDeployDescription description, String region) {
-    // Raw pipeline and REST payloads may omit `regional`; null retains the established zonal path.
     return Boolean.TRUE.equals(description.getRegional()) ? region : description.getZone();
   }
 
@@ -629,16 +617,12 @@ public class BasicGoogleDeployHandler
       LoadBalancerInfo lbInfo,
       GoogleHttpLoadBalancingPolicy policy,
       String region) {
-    validateLoadBalancingPolicyCompatibility(description, lbInfo, policy);
-    Map<String, String> instanceMetadata = description.getInstanceMetadata();
-    if ((instanceMetadata != null
-            && StringUtils.isNotBlank(instanceMetadata.get(REGION_BACKEND_SERVICE_NAMES)))
-        || !CollectionUtils.isEmpty(lbInfo.getInternalLoadBalancers())
+    if (!CollectionUtils.isEmpty(lbInfo.getInternalLoadBalancers())
         || !CollectionUtils.isEmpty(lbInfo.getInternalHttpLoadBalancers())
         || !CollectionUtils.isEmpty(lbInfo.getExternalHttpLoadBalancers())
         || !CollectionUtils.isEmpty(lbInfo.getRegionalExternalNetworkLoadBalancers())) {
       List<BackendService> regionBackendServicesToUpdate = new ArrayList<>();
-      instanceMetadata = ensureInstanceMetadata(description);
+      Map<String, String> instanceMetadata = ensureInstanceMetadata(description);
       List<String> existingRegionalLbs =
           instanceMetadata.get(REGIONAL_LOAD_BALANCER_NAMES) != null
               ? new ArrayList<>(
@@ -654,6 +638,8 @@ public class BasicGoogleDeployHandler
               .map(lb -> (GoogleInternalLoadBalancer.View) lb)
               .map(it -> it.getBackendService().getName())
               .collect(Collectors.toList());
+      ilbServices.addAll(regionBackendServices);
+      ilbServices.stream().distinct().collect(Collectors.toList());
       List<String> ilbNames =
           lbInfo.getInternalLoadBalancers().stream()
               .map(GoogleLoadBalancerView::getName)
@@ -683,18 +669,14 @@ public class BasicGoogleDeployHandler
           });
       instanceMetadata.put(REGIONAL_LOAD_BALANCER_NAMES, String.join(",", existingRegionalLbs));
 
-      List<String> internalHttpLbBackendServicesFromLoadBalancers =
+      List<String> internalHttpLbBackendServices =
           lbInfo.getInternalHttpLoadBalancers().stream()
               .map(lb -> (GoogleInternalHttpLoadBalancer.InternalHttpLbView) lb)
               .map(Utils::getBackendServicesFromInternalHttpLoadBalancerView)
               .flatMap(Collection::stream)
               .map(GoogleBackendService::getName)
               .collect(Collectors.toList());
-      List<String> internalHttpLbBackendServices =
-          internalHttpLbBackendServicesFromLoadBalancers.stream()
-              .distinct()
-              .collect(Collectors.toList());
-      List<String> externalHttpLbBackendServicesFromLoadBalancers =
+      List<String> externalHttpLbBackendServices =
           CollectionUtils.isEmpty(lbInfo.getExternalHttpLoadBalancers())
               ? Collections.emptyList()
               : lbInfo.getExternalHttpLoadBalancers().stream()
@@ -702,11 +684,8 @@ public class BasicGoogleDeployHandler
                   .map(Utils::getBackendServicesFromExternalHttpLoadBalancerView)
                   .flatMap(Collection::stream)
                   .map(GoogleBackendService::getName)
+                  .distinct()
                   .collect(Collectors.toList());
-      List<String> externalHttpLbBackendServices =
-          externalHttpLbBackendServicesFromLoadBalancers.stream()
-              .distinct()
-              .collect(Collectors.toList());
       List<String> regionalExternalNetworkLbBackendServices =
           CollectionUtils.isEmpty(lbInfo.getRegionalExternalNetworkLoadBalancers())
               ? Collections.emptyList()
@@ -715,132 +694,94 @@ public class BasicGoogleDeployHandler
                   .map(it -> it.getBackendService().getName())
                   .distinct()
                   .collect(Collectors.toList());
-      // Regional HTTP-family LBs attach server groups through regional backend services, not
-      // forwarding rules. Include services from the selected LB views so first deploys can attach
-      // without requiring backend-service metadata to already exist on the instance template.
-      ilbServices.addAll(regionBackendServices);
-      ilbServices.addAll(internalHttpLbBackendServices);
-      ilbServices.addAll(externalHttpLbBackendServices);
-      ilbServices.addAll(regionalExternalNetworkLbBackendServices);
-      ilbServices = ilbServices.stream().distinct().collect(Collectors.toList());
-      if (!ilbServices.isEmpty()) {
-        // Regional HTTP(S) load balancers use the same server-group metadata keys for internal
-        // and external managed schemes. Writing the backend services discovered from selected
-        // LBs lets enable/disable/destroy find the right regional backend services later.
-        instanceMetadata.put(REGION_BACKEND_SERVICE_NAMES, String.join(",", ilbServices));
+      if (!externalHttpLbBackendServices.isEmpty()
+          || !regionalExternalNetworkLbBackendServices.isEmpty()) {
+        // Regional external LBs attach every backend service of the selected LB; enable, disable,
+        // and destroy find those backend services again through this metadata key. Clones carry
+        // the same names in metadata, so each backend service is added once.
+        Stream.concat(
+                externalHttpLbBackendServices.stream(),
+                regionalExternalNetworkLbBackendServices.stream())
+            .filter(name -> !ilbServices.contains(name))
+            .forEach(ilbServices::add);
+        Set<String> recordedBackendServices = new LinkedHashSet<>(regionBackendServices);
+        recordedBackendServices.addAll(externalHttpLbBackendServices);
+        recordedBackendServices.addAll(regionalExternalNetworkLbBackendServices);
+        instanceMetadata.put(
+            REGION_BACKEND_SERVICE_NAMES, String.join(",", recordedBackendServices));
       }
-
-      Map<String, BackendService> resolvedBackendServices = new LinkedHashMap<>();
-      ilbServices.forEach(
-          backendServiceName -> {
-            try {
-              resolvedBackendServices.put(
-                  backendServiceName,
-                  getRegionBackendServiceFromProvider(
-                      description.getCredentials(), region, backendServiceName));
-            } catch (IOException e) {
-              log.error(e.getMessage());
-            }
-          });
-
-      boolean hasManagedRegionalBackend =
-          resolvedBackendServices.values().stream()
-              .anyMatch(BasicGoogleDeployHandler::isManagedRegionalBackendService);
-      boolean hasPassthroughRegionalBackend =
-          resolvedBackendServices.values().stream()
-              .anyMatch(BasicGoogleDeployHandler::isPassthroughRegionalBackendService);
-      validateLoadBalancingPolicyCompatibility(
-          description, lbInfo, policy, hasManagedRegionalBackend, hasPassthroughRegionalBackend);
       if (!externalHttpLbBackendServices.isEmpty()) {
         // Enable reconstructs managed backend settings from instance-template metadata after a
         // disable. Persist the selected external-managed policy while composing that template.
         GCEUtil.updateMetadataWithLoadBalancingPolicy(policy, instanceMetadata, objectMapper);
       }
 
-      resolvedBackendServices.forEach(
-          (backendServiceName, backendService) -> {
-            boolean usesHttpPolicy =
-                internalHttpLbBackendServices.contains(backendServiceName)
-                    || externalHttpLbBackendServices.contains(backendServiceName)
-                    || isManagedRegionalBackendService(backendService);
-            Backend backendToAdd;
-            if (usesHttpPolicy) {
-              backendToAdd = GCEUtil.backendFromLoadBalancingPolicy(policy);
-            } else {
-              backendToAdd = new Backend();
-              if (regionalExternalNetworkLbBackendServices.contains(backendServiceName)
-                  || "EXTERNAL".equals(backendService.getLoadBalancingScheme())) {
-                backendToAdd.setBalancingMode("CONNECTION");
+      // Process each regional backend service for internal load balancers.
+      // Regional backend services handle traffic within a specific GCP region.
+      ilbServices.forEach(
+          backendServiceName -> {
+            try {
+              BackendService backendService =
+                  getRegionBackendServiceFromProvider(
+                      description.getCredentials(), region, backendServiceName);
+              Backend backendToAdd;
+              if (internalHttpLbBackendServices.contains(backendServiceName)
+                  || externalHttpLbBackendServices.contains(backendServiceName)) {
+                backendToAdd = GCEUtil.backendFromLoadBalancingPolicy(policy);
+              } else {
+                backendToAdd = new Backend();
+                // Regional external passthrough backend services only accept CONNECTION.
+                if (regionalExternalNetworkLbBackendServices.contains(backendServiceName)
+                    || "EXTERNAL".equals(backendService.getLoadBalancingScheme())) {
+                  backendToAdd.setBalancingMode("CONNECTION");
+                }
               }
-            }
-            if (Boolean.TRUE.equals(description.getRegional())) {
-              backendToAdd.setGroup(
-                  GCEUtil.buildRegionalServerGroupUrl(
-                      description.getCredentials().getProject(), region, serverGroupName));
-            } else {
-              backendToAdd.setGroup(
-                  GCEUtil.buildZonalServerGroupUrl(
-                      description.getCredentials().getProject(),
-                      description.getZone(),
-                      serverGroupName));
-            }
+              if (Boolean.TRUE.equals(description.getRegional())) {
+                backendToAdd.setGroup(
+                    GCEUtil.buildRegionalServerGroupUrl(
+                        description.getCredentials().getProject(), region, serverGroupName));
+              } else {
+                backendToAdd.setGroup(
+                    GCEUtil.buildZonalServerGroupUrl(
+                        description.getCredentials().getProject(),
+                        description.getZone(),
+                        serverGroupName));
+              }
 
-            if (backendService.getBackends() == null) {
-              backendService.setBackends(new ArrayList<>());
+              if (backendService.getBackends() == null) {
+                backendService.setBackends(new ArrayList<>());
+              }
+              backendService.getBackends().add(backendToAdd);
+              regionBackendServicesToUpdate.add(backendService);
+            } catch (IOException e) {
+              log.error(e.getMessage());
             }
-            backendService.getBackends().add(backendToAdd);
-            regionBackendServicesToUpdate.add(backendService);
           });
       return regionBackendServicesToUpdate;
     }
     return Collections.emptyList();
   }
 
-  protected void validateLoadBalancingPolicyCompatibility(
-      BasicGoogleDeployDescription description,
-      LoadBalancerInfo lbInfo,
-      GoogleHttpLoadBalancingPolicy policy) {
-    validateLoadBalancingPolicyCompatibility(description, lbInfo, policy, false, false);
-  }
-
   /**
-   * The resolved* flags carry what only a provider read can establish: the load balancing scheme of
-   * regional backend services named by instance metadata rather than by a selected load balancer.
-   * Callers that have not read the provider pass false, so both the pre-read and post-read guards
-   * derive every other signal from the same place.
+   * A regional external passthrough backend requires CONNECTION, so every other backend the same
+   * instance group joins must use a balancing mode GCP allows alongside it.
    */
   protected void validateLoadBalancingPolicyCompatibility(
       BasicGoogleDeployDescription description,
       LoadBalancerInfo lbInfo,
-      GoogleHttpLoadBalancingPolicy policy,
-      boolean resolvedHttpBackend,
-      boolean resolvedPassthroughBackend) {
+      GoogleHttpLoadBalancingPolicy policy) {
+    if (CollectionUtils.isEmpty(lbInfo.getRegionalExternalNetworkLoadBalancers())) {
+      return;
+    }
     Map<String, String> instanceMetadata = description.getInstanceMetadata();
     boolean hasHttpBackend =
         (instanceMetadata != null
                 && StringUtils.isNotBlank(instanceMetadata.get(BACKEND_SERVICE_NAMES)))
             || !CollectionUtils.isEmpty(lbInfo.getInternalHttpLoadBalancers())
-            || !CollectionUtils.isEmpty(lbInfo.getExternalHttpLoadBalancers())
-            || resolvedHttpBackend;
+            || !CollectionUtils.isEmpty(lbInfo.getExternalHttpLoadBalancers());
     boolean hasConnectionProxyBackend =
         !CollectionUtils.isEmpty(lbInfo.getSslLoadBalancers())
             || !CollectionUtils.isEmpty(lbInfo.getTcpLoadBalancers());
-    boolean hasPassthroughBackend =
-        !CollectionUtils.isEmpty(lbInfo.getInternalLoadBalancers())
-            || !CollectionUtils.isEmpty(lbInfo.getRegionalExternalNetworkLoadBalancers())
-            || resolvedPassthroughBackend;
-    validateLoadBalancingPolicyCompatibility(
-        policy, hasHttpBackend, hasConnectionProxyBackend, hasPassthroughBackend);
-  }
-
-  private void validateLoadBalancingPolicyCompatibility(
-      GoogleHttpLoadBalancingPolicy policy,
-      boolean hasHttpBackend,
-      boolean hasConnectionProxyBackend,
-      boolean hasPassthroughBackend) {
-    if (!hasPassthroughBackend) {
-      return;
-    }
     if (hasHttpBackend && hasConnectionProxyBackend) {
       throw new IllegalArgumentException(
           "The same instance group cannot attach HTTP backends, SSL/TCP proxy backends, and regional passthrough backends because they have no compatible balancing mode.");
@@ -863,16 +804,6 @@ public class BasicGoogleDeployHandler
       throw new IllegalArgumentException(
           "The same instance group must use CONNECTION for SSL/TCP proxy backends when it also attaches to a regional passthrough load balancer backend.");
     }
-  }
-
-  private static boolean isManagedRegionalBackendService(BackendService backendService) {
-    return "INTERNAL_MANAGED".equals(backendService.getLoadBalancingScheme())
-        || "EXTERNAL_MANAGED".equals(backendService.getLoadBalancingScheme());
-  }
-
-  private static boolean isPassthroughRegionalBackendService(BackendService backendService) {
-    return "INTERNAL".equals(backendService.getLoadBalancingScheme())
-        || "EXTERNAL".equals(backendService.getLoadBalancingScheme());
   }
 
   private Map<String, String> ensureInstanceMetadata(BasicGoogleDeployDescription description) {
@@ -1454,12 +1385,16 @@ public class BasicGoogleDeployHandler
 
   private void updateRegionalBackendServices(
       BasicGoogleDeployDescription description,
+      LoadBalancerInfo lbInfo,
       String serverGroupName,
       String region,
       List<BackendService> regionBackendServicesToUpdate,
       Task task) {
     if (!Boolean.TRUE.equals(description.getDisableTraffic())
-        && !regionBackendServicesToUpdate.isEmpty()) {
+        && (!lbInfo.internalLoadBalancers.isEmpty()
+            || !lbInfo.internalHttpLoadBalancers.isEmpty()
+            || !lbInfo.externalHttpLoadBalancers.isEmpty()
+            || !lbInfo.regionalExternalNetworkLoadBalancers.isEmpty())) {
       regionBackendServicesToUpdate.forEach(
           backendService -> {
             Operation backendServiceOperation =
@@ -1471,7 +1406,7 @@ public class BasicGoogleDeployHandler
                             backendService.getName(),
                             backendService,
                             region),
-                        "Regional load balancer backend service",
+                        "Internal load balancer backend service",
                         task,
                         List.of(400, 412),
                         Collections.emptyList(),
@@ -1569,24 +1504,14 @@ public class BasicGoogleDeployHandler
   }
 
   /**
-   * Determines whether server-group creation must block on the managed instance group becoming
-   * available before backend services or autoscalers are wired up.
-   *
-   * <p>{@code disableTraffic} is nullable: the Deck wizard always populates it, but raw
-   * pipeline/REST payloads may omit it. A null value means traffic is enabled ({@code false}), so
-   * it is compared via {@link Boolean#TRUE} rather than unboxed. The regional and zonal insert
-   * paths share this predicate so the null-safety and the load-balancer conditions stay in sync.
+   * Returns whether dependent backend-service or autoscaler operations require the MIG insert to
+   * complete first. An omitted {@code disableTraffic} value preserves the traffic-enabled default.
    */
   protected boolean shouldWaitForInstanceGroupManagerCreation(
       BasicGoogleDeployDescription description, LoadBalancerInfo lbInfo) {
-    boolean trafficEnabled = !Boolean.TRUE.equals(description.getDisableTraffic());
-    return (trafficEnabled && hasBackedServiceFromInput(description, lbInfo))
-        || autoscalerIsSpecified(description)
-        || (trafficEnabled
-            && (!lbInfo.internalLoadBalancers.isEmpty()
-                || !lbInfo.internalHttpLoadBalancers.isEmpty()
-                || !lbInfo.regionalExternalNetworkLoadBalancers.isEmpty()
-                || !lbInfo.externalHttpLoadBalancers.isEmpty()));
+    return autoscalerIsSpecified(description)
+        || (!Boolean.TRUE.equals(description.getDisableTraffic())
+            && hasBackedServiceFromInput(description, lbInfo));
   }
 
   protected String createRegionalInstanceGroupManagerAndWait(

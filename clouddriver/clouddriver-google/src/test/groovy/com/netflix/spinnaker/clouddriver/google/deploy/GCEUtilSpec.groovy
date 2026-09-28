@@ -105,12 +105,6 @@ package com.netflix.spinnaker.clouddriver.google.deploy
         "https://certificatemanager.googleapis.com/projects/${PROJECT_NAME}/locations/${REGION}/certificates/my-cert") == certificateUrl
   }
 
-  void "buildRegionalCertificateManagerCertificateUrl builds regional Certificate Manager certificate URL"() {
-    expect:
-      GCEUtil.buildRegionalCertificateManagerCertificateUrl(PROJECT_NAME, REGION, "my-cert") ==
-        "//certificatemanager.googleapis.com/projects/${PROJECT_NAME}/locations/${REGION}/certificates/my-cert"
-  }
-
   void "query source images should succeed"() {
     setup:
       def executorMock = Mock(GoogleExecutorTraits)
@@ -817,11 +811,9 @@ package com.netflix.spinnaker.clouddriver.google.deploy
       backendService.backends*.group == [groupUrl]
   }
 
-  void "add regional external network backend falls back past a cached wrong-family name without mutating it"() {
+  void "add regional external network backend does not query GCP for a name cached as another family"() {
     setup:
       def compute = Mock(Compute)
-      def forwardingRules = Mock(Compute.ForwardingRules)
-      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
       def googleOperationPoller = Mock(GoogleOperationPoller)
       def googleLoadBalancerProvider = Mock(GoogleLoadBalancerProvider)
       def serverGroup = serverGroupView("server-group-v001", "shared-lb-name")
@@ -841,24 +833,12 @@ package com.netflix.spinnaker.clouddriver.google.deploy
 
     then:
       1 * googleLoadBalancerProvider.getApplicationLoadBalancers("") >> [httpLoadBalancer.view]
-      // A cache entry of another family no longer suppresses the GCP lookup, so a genuine NLB that
-      // happens to share the name is still found. The same-named proxy rule carries a target and is
-      // therefore not a passthrough rule, so nothing is attached here.
-      1 * compute.forwardingRules() >> forwardingRules
-      1 * forwardingRules.list(PROJECT_NAME, REGION) >> forwardingRulesList
-      1 * forwardingRulesList.execute() >> new ForwardingRuleList(items: [
-        new ForwardingRule(
-          name: "shared-lb-name",
-          loadBalancingScheme: "EXTERNAL",
-          target: "projects/${PROJECT_NAME}/regions/${REGION}/targetHttpProxies/shared-lb-proxy",
-          IPProtocol: "TCP"
-        )
-      ])
+      0 * compute.forwardingRules()
       0 * compute.regionBackendServices()
       0 * googleOperationPoller._
   }
 
-  void "add regional external network backend attaches a live NLB whose cached entry is another family"() {
+  void "add regional external network backend falls back only for names absent from the cache"() {
     setup:
       def compute = Mock(Compute)
       def forwardingRules = Mock(Compute.ForwardingRules)
@@ -868,11 +848,11 @@ package com.netflix.spinnaker.clouddriver.google.deploy
       def backendServicesUpdate = Mock(Compute.RegionBackendServices.Update)
       def googleOperationPoller = Mock(GoogleOperationPoller)
       def googleLoadBalancerProvider = Mock(GoogleLoadBalancerProvider)
-      def serverGroup = serverGroupView("server-group-v001", "shared-lb-name")
+      def serverGroup = serverGroupView("server-group-v001", "shared-lb-name", "missing-lb")
       def httpLoadBalancer = new GoogleExternalHttpLoadBalancer(
         name: "shared-lb-name", account: ACCOUNT_NAME, region: REGION)
-      def liveBackend = new BackendService(
-        name: "live-service", loadBalancingScheme: "EXTERNAL", backends: [])
+      def fallbackBackend = new BackendService(
+        name: "fallback-service", loadBalancingScheme: "EXTERNAL", backends: [])
 
     when:
       GCEUtil.addRegionalExternalNetworkLoadBalancerBackends(
@@ -886,8 +866,6 @@ package com.netflix.spinnaker.clouddriver.google.deploy
         executor)
 
     then:
-      // The cache holds an unrelated load balancer under the selected name. Suppressing the GCP
-      // lookup on that basis would silently deploy a server group that takes no traffic.
       1 * googleLoadBalancerProvider.getApplicationLoadBalancers("") >> [httpLoadBalancer.view]
       1 * compute.forwardingRules() >> forwardingRules
       1 * forwardingRules.list(PROJECT_NAME, REGION) >> forwardingRulesList
@@ -895,19 +873,26 @@ package com.netflix.spinnaker.clouddriver.google.deploy
         new ForwardingRule(
           name: "shared-lb-name",
           loadBalancingScheme: "EXTERNAL",
-          backendService: "projects/${PROJECT_NAME}/regions/${REGION}/backendServices/live-service",
+          backendService: "projects/${PROJECT_NAME}/regions/${REGION}/backendServices/shadowed-service",
+          IPProtocol: "TCP"
+        ),
+        new ForwardingRule(
+          name: "missing-lb",
+          loadBalancingScheme: "EXTERNAL",
+          backendService: "projects/${PROJECT_NAME}/regions/${REGION}/backendServices/fallback-service",
           IPProtocol: "TCP"
         )
       ])
       2 * compute.regionBackendServices() >> backendServices
-      1 * backendServices.get(PROJECT_NAME, REGION, "live-service") >> backendServicesGet
-      1 * backendServicesGet.execute() >> liveBackend
-      1 * backendServices.update(PROJECT_NAME, REGION, "live-service", {
+      1 * backendServices.get(PROJECT_NAME, REGION, "fallback-service") >> backendServicesGet
+      0 * backendServices.get(PROJECT_NAME, REGION, "shadowed-service")
+      1 * backendServicesGet.execute() >> fallbackBackend
+      1 * backendServices.update(PROJECT_NAME, REGION, "fallback-service", {
         it.backends*.group == [GCEUtil.buildRegionalServerGroupUrl(PROJECT_NAME, REGION, "server-group-v001")]
       }) >> backendServicesUpdate
-      1 * backendServicesUpdate.execute() >> new Operation(name: "live-update")
+      1 * backendServicesUpdate.execute() >> new Operation(name: "fallback-update")
       1 * googleOperationPoller.waitForRegionalOperation(
-        compute, PROJECT_NAME, REGION, "live-update", null, taskMock,
+        compute, PROJECT_NAME, REGION, "fallback-update", null, taskMock,
         "compute.${REGION}.backendServices.update", PHASE)
   }
 
@@ -1229,11 +1214,9 @@ package com.netflix.spinnaker.clouddriver.google.deploy
       1 * googleOperationPoller.waitForRegionalOperation(compute, PROJECT_NAME, REGION, "update-backend-service", null, taskMock, "compute.${REGION}.backendServices.update", PHASE)
   }
 
-  void "destroy regional external network backend falls back past a cached wrong-family name without mutating it"() {
+  void "destroy regional external network backend does not query GCP for a name cached as another family"() {
     setup:
       def compute = Mock(Compute)
-      def forwardingRules = Mock(Compute.ForwardingRules)
-      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
       def googleOperationPoller = Mock(GoogleOperationPoller)
       def googleLoadBalancerProvider = Mock(GoogleLoadBalancerProvider)
       def serverGroup = serverGroupView("server-group-v001", "shared-lb-name")
@@ -1253,23 +1236,12 @@ package com.netflix.spinnaker.clouddriver.google.deploy
 
     then:
       1 * googleLoadBalancerProvider.getApplicationLoadBalancers("") >> [httpLoadBalancer.view]
-      // Same as the add direction: the lookup runs, but a same-named proxy rule is not a
-      // passthrough rule, so no backend service is detached.
-      1 * compute.forwardingRules() >> forwardingRules
-      1 * forwardingRules.list(PROJECT_NAME, REGION) >> forwardingRulesList
-      1 * forwardingRulesList.execute() >> new ForwardingRuleList(items: [
-        new ForwardingRule(
-          name: "shared-lb-name",
-          loadBalancingScheme: "EXTERNAL",
-          target: "projects/${PROJECT_NAME}/regions/${REGION}/targetHttpProxies/shared-lb-proxy",
-          IPProtocol: "TCP"
-        )
-      ])
+      0 * compute.forwardingRules()
       0 * compute.regionBackendServices()
       0 * googleOperationPoller._
   }
 
-  void "destroy regional external network backend detaches a live NLB whose cached entry is another family"() {
+  void "destroy regional external network backend falls back only for names absent from the cache"() {
     setup:
       def compute = Mock(Compute)
       def forwardingRules = Mock(Compute.ForwardingRules)
@@ -1279,11 +1251,11 @@ package com.netflix.spinnaker.clouddriver.google.deploy
       def backendServicesUpdate = Mock(Compute.RegionBackendServices.Update)
       def googleOperationPoller = Mock(GoogleOperationPoller)
       def googleLoadBalancerProvider = Mock(GoogleLoadBalancerProvider)
-      def serverGroup = serverGroupView("server-group-v001", "shared-lb-name")
+      def serverGroup = serverGroupView("server-group-v001", "shared-lb-name", "missing-lb")
       def httpLoadBalancer = new GoogleExternalHttpLoadBalancer(
         name: "shared-lb-name", account: ACCOUNT_NAME, region: REGION)
-      def liveBackend = new BackendService(
-        name: "live-service",
+      def fallbackBackend = new BackendService(
+        name: "fallback-service",
         loadBalancingScheme: "EXTERNAL",
         backends: [new Backend(
           group: GCEUtil.buildRegionalServerGroupUrl(PROJECT_NAME, REGION, "server-group-v001"))]
@@ -1301,7 +1273,6 @@ package com.netflix.spinnaker.clouddriver.google.deploy
         executor)
 
     then:
-      // Without the fallback the destroyed server group stays attached to a live NLB.
       1 * googleLoadBalancerProvider.getApplicationLoadBalancers("") >> [httpLoadBalancer.view]
       1 * compute.forwardingRules() >> forwardingRules
       1 * forwardingRules.list(PROJECT_NAME, REGION) >> forwardingRulesList
@@ -1309,19 +1280,26 @@ package com.netflix.spinnaker.clouddriver.google.deploy
         new ForwardingRule(
           name: "shared-lb-name",
           loadBalancingScheme: "EXTERNAL",
-          backendService: "projects/${PROJECT_NAME}/regions/${REGION}/backendServices/live-service",
+          backendService: "projects/${PROJECT_NAME}/regions/${REGION}/backendServices/shadowed-service",
+          IPProtocol: "TCP"
+        ),
+        new ForwardingRule(
+          name: "missing-lb",
+          loadBalancingScheme: "EXTERNAL",
+          backendService: "projects/${PROJECT_NAME}/regions/${REGION}/backendServices/fallback-service",
           IPProtocol: "TCP"
         )
       ])
       2 * compute.regionBackendServices() >> backendServices
-      1 * backendServices.get(PROJECT_NAME, REGION, "live-service") >> backendServicesGet
-      1 * backendServicesGet.execute() >> liveBackend
-      1 * backendServices.update(PROJECT_NAME, REGION, "live-service", {
+      1 * backendServices.get(PROJECT_NAME, REGION, "fallback-service") >> backendServicesGet
+      0 * backendServices.get(PROJECT_NAME, REGION, "shadowed-service")
+      1 * backendServicesGet.execute() >> fallbackBackend
+      1 * backendServices.update(PROJECT_NAME, REGION, "fallback-service", {
         it.backends.isEmpty()
       }) >> backendServicesUpdate
-      1 * backendServicesUpdate.execute() >> new Operation(name: "live-update")
+      1 * backendServicesUpdate.execute() >> new Operation(name: "fallback-update")
       1 * googleOperationPoller.waitForRegionalOperation(
-        compute, PROJECT_NAME, REGION, "live-update", null, taskMock,
+        compute, PROJECT_NAME, REGION, "fallback-update", null, taskMock,
         "compute.${REGION}.backendServices.update", PHASE)
   }
 
@@ -1635,6 +1613,12 @@ package com.netflix.spinnaker.clouddriver.google.deploy
       def googleLoadBalancerProvider = Mock(GoogleLoadBalancerProvider)
       def googleOperationPoller = Mock(GoogleOperationPoller)
       def serverGroup = serverGroupView("server-group-v001", "regional-external-lb")
+      def regionalExternalLoadBalancer = new GoogleRegionalExternalNetworkLoadBalancer(
+        name: "regional-external-lb",
+        account: ACCOUNT_NAME,
+        region: REGION,
+        backendService: new GoogleBackendService(name: "backend-service")
+      )
 
     when:
       GCEUtil.addInternalLoadBalancerBackends(
@@ -1648,7 +1632,8 @@ package com.netflix.spinnaker.clouddriver.google.deploy
         executor)
 
     then:
-      1 * googleLoadBalancerProvider.getApplicationLoadBalancers("") >> []
+      // Every metadata name must resolve in the cache; the GCP lookup runs when none is INTERNAL.
+      1 * googleLoadBalancerProvider.getApplicationLoadBalancers("") >> [regionalExternalLoadBalancer.view]
       1 * compute.forwardingRules() >> forwardingRules
       1 * forwardingRules.list(PROJECT_NAME, REGION) >> forwardingRulesList
       1 * forwardingRulesList.execute() >> new ForwardingRuleList(items: [

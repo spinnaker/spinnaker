@@ -106,8 +106,7 @@ class DeleteGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
         region: REGION,
         loadBalancerType: INTERNAL,
         accountName: ACCOUNT_NAME,
-        credentials: credentials,
-        deleteHealthChecks: true)
+        credentials: credentials)
       @Subject def operation = new DeleteGoogleInternalLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller = new GoogleOperationPoller(
           googleConfigurationProperties: new GoogleConfigurationProperties(),
@@ -149,77 +148,6 @@ class DeleteGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
       1 * computeMock.globalOperations() >> globalOperations
       1 * globalOperations.get(PROJECT_NAME, HEALTH_CHECK_DELETE_OP_NAME) >> healthCheckOperationGet
       1 * healthCheckOperationGet.execute() >> healthChecksDeleteOp
-  }
-
-  void "should leave internal health check when deleteHealthChecks is false"() {
-    setup:
-      def computeMock = Mock(Compute)
-      def regionOperations = Mock(Compute.RegionOperations)
-      def forwardingRuleOperationGet = Mock(Compute.RegionOperations.Get)
-      def backendServiceOperationGet = Mock(Compute.RegionOperations.Get)
-
-      def forwardingRules = Mock(Compute.ForwardingRules)
-      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
-      def forwardingRulesDelete = Mock(Compute.ForwardingRules.Delete)
-      def forwardingRulesDeleteOp = new Operation(
-        name: FORWARDING_RULE_DELETE_OP_NAME,
-        status: "DONE")
-      def forwardingRule = new ForwardingRule(backendService: BS_URL, loadBalancingScheme: INTERNAL, name: LOAD_BALANCER_NAME, region: REGION)
-
-      def backendServices = Mock(Compute.RegionBackendServices)
-      def backendServicesGet = Mock(Compute.RegionBackendServices.Get)
-      def backendServicesDelete = Mock(Compute.RegionBackendServices.Delete)
-      def backendServicesDeleteOp = new Operation(
-        name: BS_DELETE_OP,
-        status: "DONE")
-      def backendService = new BackendService(
-        loadBalancingScheme: INTERNAL,
-        name: BS_NAME,
-        healthChecks: [HTTP_HC_URL]
-      )
-
-      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
-      def description = new DeleteGoogleLoadBalancerDescription(
-        loadBalancerName: LOAD_BALANCER_NAME,
-        region: REGION,
-        loadBalancerType: INTERNAL,
-        accountName: ACCOUNT_NAME,
-        credentials: credentials,
-        deleteHealthChecks: false)
-      @Subject def operation = new DeleteGoogleInternalLoadBalancerAtomicOperation(description)
-      operation.googleOperationPoller = new GoogleOperationPoller(
-        googleConfigurationProperties: new GoogleConfigurationProperties(),
-        threadSleeper: threadSleeperMock,
-        registry: registry,
-        safeRetry: safeRetry
-      )
-      operation.registry = registry
-      operation.safeRetry = safeRetry
-
-    when:
-      operation.operate([])
-
-    then:
-      2 * computeMock.forwardingRules() >> forwardingRules
-      1 * forwardingRules.list(PROJECT_NAME, REGION) >> forwardingRulesList
-      1 * forwardingRulesList.execute() >> [items: [forwardingRule]]
-      1 * forwardingRules.delete(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRulesDelete
-      1 * forwardingRulesDelete.execute() >> forwardingRulesDeleteOp
-
-      2 * computeMock.regionBackendServices() >> backendServices
-      1 * backendServices.get(PROJECT_NAME, REGION, BS_NAME) >> backendServicesGet
-      1 * backendServicesGet.execute() >> backendService
-      1 * backendServices.delete(PROJECT_NAME, REGION, BS_NAME) >> backendServicesDelete
-      1 * backendServicesDelete.execute() >> backendServicesDeleteOp
-
-      2 * computeMock.regionOperations() >> regionOperations
-      1 * regionOperations.get(PROJECT_NAME, REGION, FORWARDING_RULE_DELETE_OP_NAME) >> forwardingRuleOperationGet
-      1 * forwardingRuleOperationGet.execute() >> forwardingRulesDeleteOp
-      1 * regionOperations.get(PROJECT_NAME, REGION, BS_DELETE_OP) >> backendServiceOperationGet
-      1 * backendServiceOperationGet.execute() >> backendServicesDeleteOp
-
-      0 * computeMock.httpHealthChecks()
-      0 * computeMock.globalOperations()
   }
 
   void "should delete an Internal Load Balancer with https health check"() {
@@ -265,8 +193,7 @@ class DeleteGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
         region: REGION,
         loadBalancerType: INTERNAL,
         accountName: ACCOUNT_NAME,
-        credentials: credentials,
-        deleteHealthChecks: true)
+        credentials: credentials)
       @Subject def operation = new DeleteGoogleInternalLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller = new GoogleOperationPoller(
         googleConfigurationProperties: new GoogleConfigurationProperties(),
@@ -353,8 +280,7 @@ class DeleteGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
         region: REGION,
         loadBalancerType: INTERNAL,
         accountName: ACCOUNT_NAME,
-        credentials: credentials,
-        deleteHealthChecks: true)
+        credentials: credentials)
       @Subject def operation = new DeleteGoogleInternalLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller = new GoogleOperationPoller(
         googleConfigurationProperties: new GoogleConfigurationProperties(),
@@ -452,8 +378,7 @@ class DeleteGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
         region: REGION,
         loadBalancerType: INTERNAL,
         accountName: ACCOUNT_NAME,
-        credentials: credentials,
-        deleteHealthChecks: true)
+        credentials: credentials)
       @Subject def operation = new DeleteGoogleInternalLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller = new GoogleOperationPoller(
         googleConfigurationProperties: new GoogleConfigurationProperties(),
@@ -546,8 +471,7 @@ class DeleteGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
         region: REGION,
         loadBalancerType: INTERNAL,
         accountName: ACCOUNT_NAME,
-        credentials: credentials,
-        deleteHealthChecks: true)
+        credentials: credentials)
       @Subject def operation = new DeleteGoogleInternalLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller = new GoogleOperationPoller(
         googleConfigurationProperties: new GoogleConfigurationProperties(),

@@ -777,10 +777,6 @@ class GCEUtil {
     return CERTIFICATE_MANAGER_API_PREFIX + "$projectName/locations/global/certificateMaps/$mapName"
   }
 
-  static String buildRegionalCertificateManagerCertificateUrl(String projectName, String region, String certName) {
-    return CERTIFICATE_MANAGER_API_PREFIX + "$projectName/locations/$region/certificates/$certName"
-  }
-
   static String normalizeRegionalCertificateManagerCertificate(String certName) {
     if (!certName) {
       return null
@@ -1151,36 +1147,29 @@ class GCEUtil {
     Metadata instanceMetadata = serverGroup?.launchConfig?.instanceTemplate?.properties?.metadata
     Map metadataMap = buildMapFromMetadata(instanceMetadata)
     def regionalLoadBalancersInMetadata = metadataMap?.get(REGIONAL_LOAD_BALANCER_NAMES)?.tokenize(",") ?: []
-    def internalBackendServiceNames = googleLoadBalancerProvider.getApplicationLoadBalancers("").findAll {
-      it.name in regionalLoadBalancersInMetadata
-    }
+    def internalLoadBalancersToAddTo = queryAllLoadBalancers(googleLoadBalancerProvider, regionalLoadBalancersInMetadata, task, phase)
       .findAll { it.loadBalancerType == GoogleLoadBalancerType.INTERNAL }
-      .collect { GoogleInternalLoadBalancer.View view -> view.backendService.name }
-    if (!internalBackendServiceNames) {
+    if (!internalLoadBalancersToAddTo) {
       log.warn("Cache call missed for internal load balancer, making a call to GCP")
       List<ForwardingRule> projectRegionalForwardingRules = executor.timeExecute(
         compute.forwardingRules().list(project, region),
         "compute.forwardingRules.list",
         executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region
       ).getItems()
-      // Only INTERNAL passthrough listeners own this existing-family attachment path.
-      internalBackendServiceNames = projectRegionalForwardingRules.findAll { ForwardingRule forwardingRule ->
-        isInternalPassthroughForwardingRule(forwardingRule) && forwardingRule.name in serverGroup.loadBalancers
-      }.collect { ForwardingRule forwardingRule ->
-        getLocalName(forwardingRule.backendService)
+      internalLoadBalancersToAddTo = projectRegionalForwardingRules.findAll {
+        // Regional external passthrough rules also point at backend services; only INTERNAL ones belong here.
+        isInternalPassthroughForwardingRule(it) && it.name in serverGroup.loadBalancers
       }
     }
 
-    if (internalBackendServiceNames) {
-      internalBackendServiceNames.each { String backendServiceName ->
+    if (internalLoadBalancersToAddTo) {
+      internalLoadBalancersToAddTo.each { GoogleLoadBalancerView loadBalancerView ->
+        def ilbView = loadBalancerView as GoogleInternalLoadBalancer.View
+        def backendServiceName = ilbView.backendService.name
         BackendService backendService = executor.timeExecute(
           compute.regionBackendServices().get(project, region, backendServiceName),
           "compute.regionBackendServices",
           executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region)
-        // Guard fallback lookups against same-named regional external passthrough backend services.
-        if (backendService.loadBalancingScheme != "INTERNAL") {
-          return
-        }
         Backend backendToAdd = new Backend(balancingMode: 'CONNECTION')
         if (serverGroup.regional) {
           backendToAdd.setGroup(buildRegionalServerGroupUrl(project, region, serverGroupName))
@@ -1227,10 +1216,9 @@ class GCEUtil {
     def backendServiceNames = foundLoadBalancers.collect {
       GoogleRegionalExternalNetworkLoadBalancer.View view -> view.backendService.name
     }
-    // Subtract the names we resolved as regional external NLBs, not every cached name: a stale or
-    // same-named entry of another family would otherwise suppress the GCP fallback and silently
-    // skip the attachment. The per-service scheme guard below still blocks wrong-family mutation.
-    def missingLoadBalancerNames = selectedLoadBalancerNames - foundLoadBalancers*.name
+    // Only names absent from the cache fall back to GCP, so server groups attached to other
+    // families do not pay a forwarding-rule list on every enable.
+    def missingLoadBalancerNames = selectedLoadBalancerNames - cachedLoadBalancers*.name
     if (missingLoadBalancerNames) {
       log.warn("Cache call missed for regional external network load balancers ${missingLoadBalancerNames}, making a call to GCP")
       List<ForwardingRule> projectRegionalForwardingRules = executor.timeExecute(
@@ -1357,58 +1345,40 @@ class GCEUtil {
     String region = serverGroup.region
     Metadata instanceMetadata = serverGroup?.launchConfig?.instanceTemplate?.properties?.metadata
     Map<String, String> metadataMap = buildMapFromMetadata(instanceMetadata)
-    def internalHttpLoadBalancersInMetadata = metadataMap?.get(REGIONAL_LOAD_BALANCER_NAMES)?.tokenize(",") ?:
-      (serverGroup.loadBalancers ?: [])
+    def internalHttpLoadBalancersInMetadata = metadataMap?.get(REGIONAL_LOAD_BALANCER_NAMES)?.tokenize(",") ?: []
 
-    def queriedLoadBalancers = googleLoadBalancerProvider.getApplicationLoadBalancers("").findAll {
-      it.name in internalHttpLoadBalancersInMetadata
-    }
-    def internalHttpLoadBalancersToAddTo = queriedLoadBalancers
+    def internalHttpLoadBalancersToAddTo = queryAllLoadBalancers(googleLoadBalancerProvider, internalHttpLoadBalancersInMetadata, task, phase)
       .findAll { it.loadBalancerType == GoogleLoadBalancerType.INTERNAL_MANAGED }
-    def cachedInternalNames = internalHttpLoadBalancersToAddTo.collect { it.name }
-    def fallbackInternalNames = internalHttpLoadBalancersInMetadata.findAll {
-      !(it in cachedInternalNames)
-    }
-    List<String> fallbackInternalBackendServiceNames = []
-    if (fallbackInternalNames) {
-      log.warn("Cache call missed for Internal Http load balancers ${fallbackInternalNames}, making a call to GCP")
+    if (!internalHttpLoadBalancersToAddTo) {
+      log.warn("Cache call missed for Internal Http load balancers ${internalHttpLoadBalancersInMetadata}, making a call to GCP")
       List<ForwardingRule> projectForwardingRules = executor.timeExecute(
         compute.forwardingRules().list(project, region),
         "compute.forwardingRules.list",
         executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region
       ).getItems()
-      def matchingRules = projectForwardingRules.findAll { ForwardingRule forwardingRule ->
+      internalHttpLoadBalancersToAddTo = projectForwardingRules.findAll { ForwardingRule forwardingRule ->
+        // EXTERNAL_MANAGED listeners also target regional HTTP(S) proxies; only INTERNAL_MANAGED ones belong here.
         forwardingRule.loadBalancingScheme == "INTERNAL_MANAGED" &&
-          forwardingRule.name in fallbackInternalNames && forwardingRule.target &&
+          forwardingRule.name in serverGroup.loadBalancers && forwardingRule.target &&
           Utils.getTargetProxyType(forwardingRule.target) in [GoogleTargetProxyType.HTTP, GoogleTargetProxyType.HTTPS]
       }
-      fallbackInternalBackendServiceNames = getRegionHttpBackendServiceNamesFromForwardingRules(compute, project, region, matchingRules, executor)
     }
 
-    if (internalHttpLoadBalancersToAddTo || fallbackInternalBackendServiceNames) {
+    if (internalHttpLoadBalancersToAddTo) {
       String policyJson = metadataMap?.get(LOAD_BALANCING_POLICY)
       if (!policyJson) {
         updateStatusAndThrowNotFoundException("Load Balancing Policy not found for server group ${serverGroupName}", task, phase)
       }
       GoogleHttpLoadBalancingPolicy policy = objectMapper.readValue(policyJson, GoogleHttpLoadBalancingPolicy)
 
-      List<String> internalBackendServiceNames = internalHttpLoadBalancersToAddTo
-        .collectMany { GoogleInternalHttpLoadBalancer.InternalHttpLbView view ->
-          Utils.getBackendServicesFromInternalHttpLoadBalancerView(view).collect { it.name }
-        }
-      internalBackendServiceNames.addAll(fallbackInternalBackendServiceNames)
-      internalBackendServiceNames = internalBackendServiceNames
-        .unique()
-      List<String> configuredBackendServiceNames = metadataMap?.get(REGION_BACKEND_SERVICE_NAMES)?.split(",") ?: []
-      List<String> backendServiceNames = configuredBackendServiceNames ?
-        configuredBackendServiceNames.findAll { it in internalBackendServiceNames } :
-        internalBackendServiceNames
+      List<String> backendServiceNames = metadataMap?.get(REGION_BACKEND_SERVICE_NAMES)?.split(",") ?: []
       if (backendServiceNames) {
         backendServiceNames.each { String backendServiceName ->
           BackendService backendService = executor.timeExecute(
             compute.regionBackendServices().get(project, region, backendServiceName),
             "compute.regionBackendServices.get",
             executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region)
+          // The shared metadata key also lists regional external backend services.
           if (backendService.loadBalancingScheme != "INTERNAL_MANAGED") {
             return
           }
@@ -1426,7 +1396,7 @@ class GCEUtil {
             compute.regionBackendServices().update(project, region, backendServiceName, backendService),
             "compute.regionBackendServices.update",
             executor.TAG_SCOPE, executor.SCOPE_REGIONAL)
-          googleOperationPoller.waitForRegionalOperation(compute, project, region, updateOp.getName(), null,
+          googleOperationPoller.waitForGlobalOperation(compute, project, updateOp.getName(), null,
             task, 'compute.regionBackendService.update', phase)
           task.updateStatus phase, "Enabled backend for server group ${serverGroupName} in Internal Http(s) load balancer backend service ${backendServiceName}."
         }
@@ -1457,10 +1427,9 @@ class GCEUtil {
     }
     def externalHttpLoadBalancersToAddTo = queriedLoadBalancers
       .findAll { it.loadBalancerType == GoogleLoadBalancerType.EXTERNAL_MANAGED }
-    def cachedExternalNames = externalHttpLoadBalancersToAddTo.collect { it.name }
-    def fallbackExternalNames = externalHttpLoadBalancersInMetadata.findAll {
-      !(it in cachedExternalNames)
-    }
+    // Only names absent from the cache fall back to GCP, so server groups attached to other
+    // families do not pay a forwarding-rule list on every enable.
+    def fallbackExternalNames = externalHttpLoadBalancersInMetadata - queriedLoadBalancers*.name
     List<String> fallbackExternalBackendServiceNames = []
     if (fallbackExternalNames) {
       // A regional forwarding rule can exist before Spinnaker has a normalized LB cache entry.
@@ -1835,10 +1804,8 @@ class GCEUtil {
                                                   GoogleExecutorTraits executor) {
     def serverGroupName = serverGroup.name
     def region = serverGroup.region
-    def internalLoadBalancersInMetadata = serverGroup?.asg?.get(REGIONAL_LOAD_BALANCER_NAMES) ?:
-      (serverGroup.loadBalancers ?: [])
     def foundInternalLoadBalancers = googleLoadBalancerProvider.getApplicationLoadBalancers("").findAll {
-      it.name in internalLoadBalancersInMetadata && it.loadBalancerType == GoogleLoadBalancerType.INTERNAL
+      it.name in serverGroup.loadBalancers && it.loadBalancerType == GoogleLoadBalancerType.INTERNAL
     }
 
     List<String> backendServicesToDeleteFrom = []
@@ -1852,9 +1819,9 @@ class GCEUtil {
         executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region
       ).getItems()
 
-      // Only INTERNAL passthrough listeners own this existing-family detach path.
       def matchingForwardingRules = projectForwardingRules.findAll { ForwardingRule forwardingRule ->
-        isInternalPassthroughForwardingRule(forwardingRule) && forwardingRule.name in internalLoadBalancersInMetadata
+        // Regional external passthrough rules also point at backend services; only INTERNAL ones belong here.
+        isInternalPassthroughForwardingRule(forwardingRule) && forwardingRule.name in serverGroup.loadBalancers
       }
       backendServicesToDeleteFrom = matchingForwardingRules.collect { ForwardingRule forwardingRule ->
         getLocalName(forwardingRule.getBackendService())
@@ -1867,18 +1834,14 @@ class GCEUtil {
         compute.regionBackendServices().get(project, region, backendServiceName),
         "compute.regionBackendServices.get",
         executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region)
-      // Guard fallback lookups against same-named regional external passthrough backend services.
-      if (backendService.loadBalancingScheme != "INTERNAL") {
-        return
-      }
       backendService?.backends?.removeAll { Backend backend ->
         (getLocalName(backend.group) == serverGroupName) &&
           (Utils.getRegionFromGroupUrl(backend.group) == region)
       }
       def updateOp = executor.timeExecute(
         compute.regionBackendServices().update(project, region, backendServiceName, backendService),
-        "compute.regionBackendServices.update",
-        executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region)
+        "compute.backendServices.update",
+        executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
       googleOperationPoller.waitForRegionalOperation(compute, project, region, updateOp.getName(), null,
         task, "compute.${region}.backendServices.update", phase)
       task.updateStatus phase, "Deleted backend for server group ${serverGroupName} from internal load balancer backend service ${backendServiceName}."
@@ -1908,11 +1871,9 @@ class GCEUtil {
 
     List<String> backendServicesToDeleteFrom =
       foundLoadBalancers.collect { lb -> lb.backendService.name }
-    // Subtract the names we resolved as regional external NLBs, not every cached name: a stale or
-    // same-named entry of another family would otherwise suppress the GCP fallback and leave the
-    // destroyed server group attached to a live NLB. The per-service scheme guard below still
-    // blocks wrong-family mutation.
-    def missingLoadBalancerNames = loadBalancersInMetadata - foundLoadBalancers*.name
+    // Only names absent from the cache fall back to GCP, so server groups attached to other
+    // families do not pay a forwarding-rule list on every disable or destroy.
+    def missingLoadBalancerNames = loadBalancersInMetadata - cachedLoadBalancers*.name
     if (missingLoadBalancerNames) {
       log.warn("Cache call missed for regional external network load balancers ${missingLoadBalancerNames}, making a call to GCP")
       List<ForwardingRule> projectForwardingRules = executor.timeExecute(
@@ -2024,61 +1985,44 @@ class GCEUtil {
                                                       GoogleExecutorTraits executor) {
     def serverGroupName = serverGroup.name
     def region = serverGroup.region
-    def httpLoadBalancersInMetadata = serverGroup?.asg?.get(REGIONAL_LOAD_BALANCER_NAMES) ?:
-      (serverGroup.loadBalancers ?: [])
+    def httpLoadBalancersInMetadata = serverGroup?.asg?.get(REGIONAL_LOAD_BALANCER_NAMES) ?: []
     log.debug("Attempting to delete backends for ${serverGroup.name} from the following Internal Http load balancers: ${httpLoadBalancersInMetadata}")
 
     log.debug("Looking up the following Internal Http load balancers in the cache: ${httpLoadBalancersInMetadata}")
     def foundInternalHttpLoadBalancers = googleLoadBalancerProvider.getApplicationLoadBalancers("").findAll {
-      it.name in httpLoadBalancersInMetadata && it.loadBalancerType == GoogleLoadBalancerType.INTERNAL_MANAGED
+      it.name in serverGroup.loadBalancers && it.loadBalancerType == GoogleLoadBalancerType.INTERNAL_MANAGED
     }
-    def cachedInternalNames = foundInternalHttpLoadBalancers.collect { it.name }
-    def fallbackInternalNames = httpLoadBalancersInMetadata.findAll {
-      !(it in cachedInternalNames)
-    }
-    List<String> fallbackInternalBackendServiceNames = []
-    List<String> fallbackResolvedNames = []
-    if (fallbackInternalNames) {
-      log.warn("Cache call missed for Internal Http load balancers ${fallbackInternalNames}, making a call to GCP")
+    if (!foundInternalHttpLoadBalancers) {
+      log.warn("Cache call missed for Internal Http load balancers ${httpLoadBalancersInMetadata}, making a call to GCP")
       List<ForwardingRule> projectForwardingRules = executor.timeExecute(
         compute.forwardingRules().list(project, region),
         "compute.forwardingRules",
         executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region
-      ).getItems() ?: []
-      def matchingRules = projectForwardingRules.findAll { ForwardingRule forwardingRule ->
+      ).getItems()
+      foundInternalHttpLoadBalancers = projectForwardingRules.findAll { ForwardingRule forwardingRule ->
+        // EXTERNAL_MANAGED listeners also target regional HTTP(S) proxies; only INTERNAL_MANAGED ones belong here.
         forwardingRule.loadBalancingScheme == "INTERNAL_MANAGED" &&
           forwardingRule.target && Utils.getTargetProxyType(forwardingRule.target) in [GoogleTargetProxyType.HTTP, GoogleTargetProxyType.HTTPS] &&
-          forwardingRule.name in fallbackInternalNames
+          forwardingRule.name in serverGroup.loadBalancers
       }
-      fallbackResolvedNames = matchingRules*.name
-      fallbackInternalBackendServiceNames = getRegionHttpBackendServiceNamesFromForwardingRules(compute, project, region, matchingRules, executor)
     }
 
-    def notDeleted = httpLoadBalancersInMetadata - cachedInternalNames - fallbackResolvedNames
+    def notDeleted = httpLoadBalancersInMetadata - (foundInternalHttpLoadBalancers.collect { it.name })
     if (notDeleted) {
       log.warn("Could not locate the following Internal Http load balancers: ${notDeleted}. Proceeding with other backend deletions without mutating them.")
     }
 
-    if (foundInternalHttpLoadBalancers || fallbackInternalBackendServiceNames) {
+    if (foundInternalHttpLoadBalancers) {
       Metadata instanceMetadata = serverGroup?.launchConfig?.instanceTemplate?.properties?.metadata
       Map metadataMap = buildMapFromMetadata(instanceMetadata)
-      List<String> internalBackendServiceNames = foundInternalHttpLoadBalancers
-        .collectMany { GoogleInternalHttpLoadBalancer.InternalHttpLbView view ->
-          Utils.getBackendServicesFromInternalHttpLoadBalancerView(view).collect { it.name }
-        }
-      internalBackendServiceNames.addAll(fallbackInternalBackendServiceNames)
-      internalBackendServiceNames = internalBackendServiceNames
-        .unique()
-      List<String> configuredBackendServiceNames = metadataMap?.get(REGION_BACKEND_SERVICE_NAMES)?.split(",") ?: []
-      List<String> backendServiceNames = configuredBackendServiceNames ?
-        configuredBackendServiceNames.findAll { it in internalBackendServiceNames } :
-        internalBackendServiceNames
+      List<String> backendServiceNames = metadataMap?.get(REGION_BACKEND_SERVICE_NAMES)?.split(",")
       if (backendServiceNames) {
         backendServiceNames.each { String backendServiceName ->
           BackendService backendService = executor.timeExecute(
             compute.regionBackendServices().get(project, region, backendServiceName),
             "compute.regionBackendService.get",
             executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region)
+          // The shared metadata key also lists regional external backend services.
           if (backendService.loadBalancingScheme != "INTERNAL_MANAGED") {
             return
           }
@@ -2119,12 +2063,11 @@ class GCEUtil {
         it.name in httpLoadBalancersInMetadata
     }
     def foundExternalHttpLoadBalancers = queriedLoadBalancers.findAll {
-      it.name in httpLoadBalancersInMetadata && it.loadBalancerType == GoogleLoadBalancerType.EXTERNAL_MANAGED
+      it.loadBalancerType == GoogleLoadBalancerType.EXTERNAL_MANAGED
     }
-    def cachedExternalNames = foundExternalHttpLoadBalancers.collect { it.name }
-    def fallbackExternalNames = httpLoadBalancersInMetadata.findAll {
-      !(it in cachedExternalNames)
-    }
+    // Only names absent from the cache fall back to GCP, so server groups attached to other
+    // families do not pay a forwarding-rule list on every disable or destroy.
+    def fallbackExternalNames = httpLoadBalancersInMetadata - queriedLoadBalancers*.name
     List<String> fallbackExternalBackendServiceNames = []
     List<String> fallbackResolvedNames = []
     if (fallbackExternalNames) {
@@ -2146,7 +2089,7 @@ class GCEUtil {
       fallbackExternalBackendServiceNames = getRegionHttpBackendServiceNamesFromForwardingRules(compute, project, region, matchingRules, executor)
     }
 
-    def notDeleted = httpLoadBalancersInMetadata - cachedExternalNames - fallbackResolvedNames
+    def notDeleted = fallbackExternalNames - fallbackResolvedNames
     if (notDeleted) {
       log.warn("Could not locate the following External Http load balancers: ${notDeleted}. Proceeding with other backend deletions without mutating them.")
     }
@@ -2780,17 +2723,10 @@ class GCEUtil {
   }
 
   static List<BackendService> fetchRegionBackendServices(GoogleExecutorTraits agent, Compute compute, String project, String region) {
-    String nextPageToken = null
-    List<BackendService> backendServices = []
-    do {
-      BackendServiceList page = agent.timeExecute(
-        compute.regionBackendServices().list(project, region).setPageToken(nextPageToken),
-        "compute.regionBackendServices.list",
-        agent.TAG_SCOPE, agent.SCOPE_REGIONAL, agent.TAG_REGION, region)
-      backendServices.addAll(page?.items ?: [])
-      nextPageToken = page?.nextPageToken
-    } while (nextPageToken)
-    return backendServices
+    return agent.timeExecute(
+      compute.regionBackendServices().list(project, region),
+      "compute.regionBackendServices.list",
+      agent.TAG_SCOPE, agent.SCOPE_REGIONAL, agent.TAG_REGION, region).getItems()
   }
 
   static List<HttpHealthCheck> fetchHttpHealthChecks(GoogleExecutorTraits agent, Compute compute, String project) {

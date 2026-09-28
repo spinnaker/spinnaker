@@ -90,7 +90,7 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
       it.name == forwardingRuleName && GCEUtil.isInternalPassthroughForwardingRule(it)
     }
     if (forwardingRule == null) {
-      GCEUtil.updateStatusAndThrowNotFoundException("Internal forwarding rule $forwardingRuleName not found in $region for $project",
+      GCEUtil.updateStatusAndThrowNotFoundException("Forwarding rule $forwardingRuleName not found in $region for $project",
         task, BASE_PHASE)
     }
 
@@ -191,21 +191,18 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
         break
     }
 
-    // Only read and validate the health check when the request allows health-check cleanup.
-    if (description.deleteHealthChecks) {
-      def healthCheck = safeRetry.doRetry(
-        healthCheckGet,
-        "Health check $healthCheckName",
-        task,
-        [400, 403, 412],
-        [],
-        [action: "get", phase: BASE_PHASE, operation: operationName, (TAG_SCOPE): SCOPE_GLOBAL],
-        registry
-      )
-      if (healthCheck == null) {
-        GCEUtil.updateStatusAndThrowNotFoundException("Health check $healthCheckName not found for $project",
-          task, BASE_PHASE)
-      }
+    def healthCheck = safeRetry.doRetry(
+      healthCheckGet,
+      "Health check $healthCheckName",
+      task,
+      [400, 403, 412],
+      [],
+      [action: "get", phase: BASE_PHASE, operation: operationName, (TAG_SCOPE): SCOPE_GLOBAL],
+      registry
+    )
+    if (healthCheck == null) {
+      GCEUtil.updateStatusAndThrowNotFoundException("Health check $healthCheckName not found for $project",
+        task, BASE_PHASE)
     }
 
     // Now delete all the components, waiting for each delete operation to finish.
@@ -292,21 +289,18 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
         log.warn("Unknown health check type for health check named: ${healthCheckName}.")
         break
     }
-    // Health checks can be shared, and the delete modal exposes this as an explicit cleanup flag.
-    if (description.deleteHealthChecks) {
-      Operation deleteHealthCheckOp = GCEUtil.deleteIfNotInUse(
-        deleteHealthCheckClosure,
-        "Health check $healthCheckName",
-        project,
-        task,
-        [action: 'delete', operation: 'compute.' + healthCheckType + '.delete', phase: BASE_PHASE, (TAG_SCOPE): SCOPE_GLOBAL],
-        safeRetry,
-        this
-      )
-      if (deleteHealthCheckOp) {
-        googleOperationPoller.waitForGlobalOperation(compute, project, deleteHealthCheckOp.getName(),
-          timeoutSeconds, task, "Health check $healthCheckName", BASE_PHASE)
-      }
+    Operation deleteHealthCheckOp = GCEUtil.deleteIfNotInUse(
+      deleteHealthCheckClosure,
+      "Health check $healthCheckName",
+      project,
+      task,
+      [action: 'delete', operation: 'compute.' + healthCheckType + '.delete', phase: BASE_PHASE, (TAG_SCOPE): SCOPE_GLOBAL],
+      safeRetry,
+      this
+    )
+    if (deleteHealthCheckOp) {
+      googleOperationPoller.waitForGlobalOperation(compute, project, deleteHealthCheckOp.getName(),
+        timeoutSeconds, task, "Health check $healthCheckName", BASE_PHASE)
     }
 
     task.updateStatus BASE_PHASE, "Done deleting internal load balancer $description.loadBalancerName in $region."

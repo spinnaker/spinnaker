@@ -182,16 +182,16 @@ class UtilsSpec extends Specification {
       !Utils.determineRegionalExternalNetworkLoadBalancerDisabledState(loadBalancer, serverGroup)
   }
 
-  void "should tolerate malformed internal load balancer disabled state"() {
+  void "should report a listed server group disabled for an internal load balancer without a backend service"() {
     given:
       def loadBalancer = new GoogleInternalLoadBalancer(name: LOAD_BALANCER_NAME)
       def serverGroup = new GoogleServerGroup(
         name: SERVER_GROUP_NAME,
         region: REGION,
-        asg: [(GCEUtil.REGIONAL_LOAD_BALANCER_NAMES): LOAD_BALANCER_NAME]
+        asg: [(GCEUtil.REGIONAL_LOAD_BALANCER_NAMES): [LOAD_BALANCER_NAME]]
       )
 
     expect:
-      !Utils.determineInternalLoadBalancerDisabledState(loadBalancer, serverGroup)
+      Utils.determineInternalLoadBalancerDisabledState(loadBalancer, serverGroup)
   }
 }
