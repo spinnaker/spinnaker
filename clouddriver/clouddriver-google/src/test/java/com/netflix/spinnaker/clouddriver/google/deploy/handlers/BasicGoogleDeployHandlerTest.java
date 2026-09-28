@@ -1451,6 +1451,24 @@ public class BasicGoogleDeployHandlerTest {
   }
 
   @Test
+  void testRecordRegionalExternalLoadBalancerNamesTagsSelectedNamesBeforeRegionalNamesAreWritten() {
+    GoogleRegionalExternalNetworkLoadBalancer networkLoadBalancer =
+        new GoogleRegionalExternalNetworkLoadBalancer();
+    networkLoadBalancer.setName("passthrough-lb");
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfo =
+        new BasicGoogleDeployHandler.LoadBalancerInfo();
+    lbInfo.setRegionalExternalNetworkLoadBalancers(List.of(networkLoadBalancer.getView()));
+    Map<String, String> instanceMetadata =
+        new HashMap<>(Map.of(GCEUtil.REGIONAL_EXTERNAL_LOAD_BALANCER_NAMES, "carried-listener"));
+    mockDescription.setInstanceMetadata(instanceMetadata);
+
+    basicGoogleDeployHandler.recordRegionalExternalLoadBalancerNames(mockDescription, lbInfo);
+
+    assertEquals(
+        "passthrough-lb", instanceMetadata.get(GCEUtil.REGIONAL_EXTERNAL_LOAD_BALANCER_NAMES));
+  }
+
+  @Test
   void testRecordRegionalExternalLoadBalancerNamesLeavesExistingFamiliesUntagged() {
     GoogleInternalLoadBalancer internalLoadBalancer = new GoogleInternalLoadBalancer();
     internalLoadBalancer.setName("internal-lb");

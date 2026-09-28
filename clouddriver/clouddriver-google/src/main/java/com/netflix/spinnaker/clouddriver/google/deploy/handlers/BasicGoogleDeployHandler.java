@@ -816,9 +816,12 @@ public class BasicGoogleDeployHandler
       BasicGoogleDeployDescription description, LoadBalancerInfo lbInfo) {
     Map<String, String> instanceMetadata = ensureInstanceMetadata(description);
     Set<String> regionalExternalNames = new LinkedHashSet<>();
-    if (instanceMetadata.get(REGIONAL_EXTERNAL_LOAD_BALANCER_NAMES) != null) {
+    if (instanceMetadata.get(REGIONAL_EXTERNAL_LOAD_BALANCER_NAMES) != null
+        && instanceMetadata.get(REGIONAL_LOAD_BALANCER_NAMES) != null) {
       regionalExternalNames.addAll(
           Arrays.asList(instanceMetadata.get(REGIONAL_EXTERNAL_LOAD_BALANCER_NAMES).split(",")));
+      regionalExternalNames.retainAll(
+          Arrays.asList(instanceMetadata.get(REGIONAL_LOAD_BALANCER_NAMES).split(",")));
     }
     Stream.of(
             lbInfo.getExternalHttpLoadBalancers(), lbInfo.getRegionalExternalNetworkLoadBalancers())
@@ -826,12 +829,6 @@ public class BasicGoogleDeployHandler
         .flatMap(Collection::stream)
         .map(GoogleLoadBalancerView::getName)
         .forEach(regionalExternalNames::add);
-    if (instanceMetadata.get(REGIONAL_LOAD_BALANCER_NAMES) != null) {
-      regionalExternalNames.retainAll(
-          Arrays.asList(instanceMetadata.get(REGIONAL_LOAD_BALANCER_NAMES).split(",")));
-    } else {
-      regionalExternalNames.clear();
-    }
 
     if (regionalExternalNames.isEmpty()) {
       instanceMetadata.remove(REGIONAL_EXTERNAL_LOAD_BALANCER_NAMES);
