@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
@@ -25,6 +26,8 @@ import okhttp3.Request
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
 import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
@@ -45,6 +48,14 @@ class DeleteLoadBalancerForceRefreshTaskSpec extends Specification {
     loadBalancerName: 'flapjack-main-frontend'
   ]
 
+  def regionalConfig = [
+    cloudProvider   : 'gce',
+    loadBalancerType: 'EXTERNAL_MANAGED',
+    regions         : ["us-central1"],
+    credentials     : "test-account",
+    loadBalancerName: 'listener-a'
+  ]
+
   def setup() {
     stage.context.putAll(config)
     task.cacheService = Mock(CloudDriverCacheService)
@@ -58,13 +69,25 @@ class DeleteLoadBalancerForceRefreshTaskSpec extends Specification {
     )
   }
 
-  @Unroll
-  void "maps #responseCase force-cache response to #expectedStatus"() {
-    given:
-    def refreshCall = Mock(Call)
+  static SpinnakerHttpException httpException(int statusCode) {
+    def response = Response.error(
+      statusCode,
+      ResponseBody.create(MediaType.parse("application/json"), '{"message":"force cache failed"}')
+    )
+    def retrofit = new Retrofit.Builder()
+      .baseUrl("http://clouddriver/")
+      .addConverterFactory(JacksonConverterFactory.create())
+      .build()
+    new SpinnakerHttpException(response, retrofit)
+  }
 
+  void useRegionalContext() {
+    stage.context = new HashMap(regionalConfig)
+  }
+
+  void "should force cache refresh server groups via oort when clusterName provided"() {
     when:
-    def result = task.execute(stage)
+    task.execute(stage)
 
     then:
     1 * task.cacheService.forceCacheUpdate(stage.context.cloudProvider, DeleteLoadBalancerForceRefreshTask.REFRESH_TYPE, _) >> {
@@ -74,61 +97,138 @@ class DeleteLoadBalancerForceRefreshTaskSpec extends Specification {
       assert body.account == config.credentials
       assert body.region == "us-west-1"
       assert body.evict == true
+    }
+  }
+
+  @Unroll
+  void "succeeds for #cloudProvider deletes that send no regions"() {
+    given:
+    stage.context = [cloudProvider: cloudProvider, credentials: "fzlem", loadBalancerName: "lb", region: "r1"]
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    0 * task.cacheService._
+    result.status == ExecutionStatus.SUCCEEDED
+
+    where:
+    cloudProvider << ["azure", "appengine", "cloudrun", "dcos"]
+  }
+
+  @Unroll
+  void "maps regional #responseCase force-cache response to #expectedStatus"() {
+    given:
+    useRegionalContext()
+    def refreshCall = Mock(Call)
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    1 * task.cacheService.forceCacheUpdate('gce', DeleteLoadBalancerForceRefreshTask.REFRESH_TYPE, _) >> {
+      String cloudProvider, String type, Map<String, Object> body ->
+
+      assert body.loadBalancerName == regionalConfig.loadBalancerName
+      assert body.account == regionalConfig.credentials
+      assert body.region == "us-central1"
+      assert body.evict == true
       refreshCall
     }
     1 * refreshCall.execute() >> response
     result.status == expectedStatus
 
     where:
-    responseCase        | response                                                                                                             || expectedStatus
-    "200 complete"      | Response.success(null)                                                                                               || ExecutionStatus.SUCCEEDED
-    "202 empty IDs"     | Response.success(HTTP_ACCEPTED, pendingBody([]))                                                                      || ExecutionStatus.RUNNING
+    responseCase        | response                                                                                              || expectedStatus
+    "200 complete"      | Response.success(null)                                                                                || ExecutionStatus.SUCCEEDED
+    "202 empty IDs"     | Response.success(HTTP_ACCEPTED, pendingBody([]))                                                       || ExecutionStatus.RUNNING
     // A populated 202 means a non-atomic agent stored the eviction, so re-POSTing would never finish.
-    "202 populated IDs" | Response.success(HTTP_ACCEPTED, pendingBody(["aws:loadBalancers:fzlem:us-west-1:flapjack-main-frontend"]))              || ExecutionStatus.SUCCEEDED
-    "429 throttled"     | Response.error(429, ResponseBody.create(MediaType.parse("application/json"), "{}"))                                   || ExecutionStatus.RUNNING
-    "500 server error"  | Response.error(500, ResponseBody.create(MediaType.parse("application/json"), "{}"))                                   || ExecutionStatus.RUNNING
-    "503 server error"  | Response.error(503, ResponseBody.create(MediaType.parse("application/json"), "{}"))                                   || ExecutionStatus.RUNNING
+    "202 populated IDs" | Response.success(HTTP_ACCEPTED, pendingBody(["gce:loadBalancers:test-account:us-central1:listener-a"])) || ExecutionStatus.SUCCEEDED
   }
 
-  void "retries until clouddriver accepts the refresh"() {
+  @Unroll
+  void "retries regional refresh on retryable Clouddriver status #statusCode"() {
     given:
+    useRegionalContext()
     def refreshCall = Mock(Call)
+    task.cacheService.forceCacheUpdate('gce', 'LoadBalancer', _) >> refreshCall
+    refreshCall.execute() >> { throw httpException(statusCode) }
+
+    expect:
+    task.execute(stage).status == ExecutionStatus.RUNNING
+
+    where:
+    statusCode << [429, 500, 503]
+  }
+
+  @Unroll
+  void "fails regional refresh with context on terminal Clouddriver status #statusCode"() {
+    given:
+    useRegionalContext()
+    def refreshCall = Mock(Call)
+    task.cacheService.forceCacheUpdate('gce', 'LoadBalancer', _) >> refreshCall
+    refreshCall.execute() >> { throw httpException(statusCode) }
 
     when:
-    def result = task.execute(stage)
+    task.execute(stage)
 
     then:
-    1 * task.cacheService.forceCacheUpdate('aws', 'LoadBalancer', _) >> refreshCall
-    1 * refreshCall.execute() >> Response.success(HTTP_ACCEPTED, pendingBody([]))
-    result.status == ExecutionStatus.RUNNING
+    def error = thrown(IllegalStateException)
+    error.message.contains(statusCode.toString())
+    error.message.contains('listener-a')
+    error.message.contains('us-central1')
+    error.message.contains('test-account')
+
+    where:
+    statusCode << [HTTP_BAD_REQUEST, 404]
+  }
+
+  void "retries regional refresh on network failures"() {
+    given:
+    useRegionalContext()
+    def refreshCall = Mock(Call)
+    task.cacheService.forceCacheUpdate('gce', 'LoadBalancer', _) >> refreshCall
+    // Retrofit2SyncCall reads the request off the call to build the SpinnakerNetworkException.
+    refreshCall.request() >> new Request.Builder().url("http://clouddriver/cache/gce/LoadBalancer").build()
+    refreshCall.execute() >> { throw new IOException("connection reset") }
+
+    expect:
+    task.execute(stage).status == ExecutionStatus.RUNNING
+  }
+
+  void "requires a region for regional deletes"() {
+    given:
+    useRegionalContext()
+    stage.context.remove("regions")
 
     when:
-    result = task.execute(stage)
+    task.execute(stage)
 
     then:
-    1 * task.cacheService.forceCacheUpdate('aws', 'LoadBalancer', _) >> refreshCall
-    1 * refreshCall.execute() >> Response.success(null)
-    result.status == ExecutionStatus.SUCCEEDED
+    thrown(IllegalArgumentException)
+    0 * task.cacheService._
   }
 
   void "reposts when a later region has not run the refresh yet"() {
     given:
-    stage.context.regions = ["us-west-1", "us-east-1"]
+    useRegionalContext()
+    stage.context.regions = ["us-central1", "us-east1"]
     def refreshCall = Mock(Call)
 
     when:
     def result = task.execute(stage)
 
     then:
-    2 * task.cacheService.forceCacheUpdate('aws', 'LoadBalancer', _) >> refreshCall
+    2 * task.cacheService.forceCacheUpdate('gce', 'LoadBalancer', _) >> refreshCall
     1 * refreshCall.execute() >> Response.success(null)
     1 * refreshCall.execute() >> Response.success(HTTP_ACCEPTED, pendingBody([]))
     result.status == ExecutionStatus.RUNNING
+    result.context.deleteRefreshState.completedTargets == ["test-account|us-central1|listener-a"]
   }
 
   void "refreshes every trusted deleted listener and preserves completed progress"() {
     given:
-    stage.context.loadBalancerName = "listener-a"
+    useRegionalContext()
     stage.context."kato.last.task.id" = new TaskId("delete-task")
     stage.context."kato.tasks" = [[
       id: "delete-task",
@@ -140,13 +240,13 @@ class DeleteLoadBalancerForceRefreshTaskSpec extends Specification {
     def firstResult = task.execute(stage)
 
     then:
-    1 * task.cacheService.forceCacheUpdate('aws', 'LoadBalancer', { it.loadBalancerName == "listener-a" }) >>
+    1 * task.cacheService.forceCacheUpdate('gce', 'LoadBalancer', { it.loadBalancerName == "listener-a" }) >>
       Calls.response(null)
-    1 * task.cacheService.forceCacheUpdate('aws', 'LoadBalancer', { it.loadBalancerName == "listener-b" }) >>
+    1 * task.cacheService.forceCacheUpdate('gce', 'LoadBalancer', { it.loadBalancerName == "listener-b" }) >>
       Calls.response(Response.success(HTTP_ACCEPTED, pendingBody([])))
     firstResult.status == ExecutionStatus.RUNNING
     firstResult.context.deleteRefreshState.completedTargets == [
-      "fzlem|us-west-1|listener-a"
+      "test-account|us-central1|listener-a"
     ]
 
     when:
@@ -154,7 +254,7 @@ class DeleteLoadBalancerForceRefreshTaskSpec extends Specification {
     def secondResult = task.execute(stage)
 
     then:
-    1 * task.cacheService.forceCacheUpdate('aws', 'LoadBalancer', { it.loadBalancerName == "listener-b" }) >>
+    1 * task.cacheService.forceCacheUpdate('gce', 'LoadBalancer', { it.loadBalancerName == "listener-b" }) >>
       Calls.response(null)
     0 * task.cacheService._
     secondResult.status == ExecutionStatus.SUCCEEDED
@@ -162,14 +262,15 @@ class DeleteLoadBalancerForceRefreshTaskSpec extends Specification {
 
   void "ignores untrusted client listener names"() {
     given:
+    useRegionalContext()
     stage.context.deletedLoadBalancerNames = ["untrusted-listener"]
 
     when:
     def result = task.execute(stage)
 
     then:
-    1 * task.cacheService.forceCacheUpdate('aws', 'LoadBalancer', {
-      it.loadBalancerName == config.loadBalancerName
+    1 * task.cacheService.forceCacheUpdate('gce', 'LoadBalancer', {
+      it.loadBalancerName == regionalConfig.loadBalancerName
     }) >> Calls.response(null)
     0 * task.cacheService._
     result.status == ExecutionStatus.SUCCEEDED
@@ -177,6 +278,7 @@ class DeleteLoadBalancerForceRefreshTaskSpec extends Specification {
 
   void "ignores listener names from a different Kato task"() {
     given:
+    useRegionalContext()
     stage.context."kato.last.task.id" = new TaskId("current-task")
     stage.context."kato.tasks" = [[
       id: "different-task",
@@ -188,43 +290,10 @@ class DeleteLoadBalancerForceRefreshTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    1 * task.cacheService.forceCacheUpdate('aws', 'LoadBalancer', {
-      it.loadBalancerName == config.loadBalancerName
+    1 * task.cacheService.forceCacheUpdate('gce', 'LoadBalancer', {
+      it.loadBalancerName == regionalConfig.loadBalancerName
     }) >> Calls.response(null)
     0 * task.cacheService._
     result.status == ExecutionStatus.SUCCEEDED
-  }
-
-  @Unroll
-  void "fails with context on terminal client status #statusCode"() {
-    given:
-    def refreshCall = Mock(Call)
-    task.cacheService.forceCacheUpdate('aws', 'LoadBalancer', _) >> refreshCall
-    refreshCall.execute() >> Response.error(statusCode, ResponseBody.create(MediaType.parse("application/json"), "{}"))
-
-    when:
-    task.execute(stage)
-
-    then:
-    def error = thrown(IllegalStateException)
-    error.message.contains(statusCode.toString())
-    error.message.contains('flapjack-main-frontend')
-    error.message.contains('us-west-1')
-    error.message.contains('fzlem')
-
-    where:
-    statusCode << [HTTP_BAD_REQUEST, 404]
-  }
-
-  void "retries on network failures"() {
-    given:
-    def refreshCall = Mock(Call)
-    task.cacheService.forceCacheUpdate('aws', 'LoadBalancer', _) >> refreshCall
-    // Retrofit2SyncCall reads the request off the call to build the SpinnakerNetworkException.
-    refreshCall.request() >> new Request.Builder().url("http://clouddriver/cache/aws/LoadBalancer").build()
-    refreshCall.execute() >> { throw new IOException("connection reset") }
-
-    expect:
-    task.execute(stage).status == ExecutionStatus.RUNNING
   }
 }

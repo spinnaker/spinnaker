@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
@@ -51,12 +52,27 @@ class DeleteLoadBalancerForceRefreshTask implements CloudProviderAware, Retryabl
     String cloudProvider = getCloudProvider(stage)
     String account = getCredentials(stage)
 
+    if (LoadBalancerTarget.isRegionalFamily(cloudProvider, stage.context.loadBalancerType as String)) {
+      return refreshRegionalFamily(stage, cloudProvider, account)
+    }
+
+    String name = stage.context.loadBalancerName
     String vpcId = stage.context.vpcId ?: ''
+    List<String> regions = stage.context.regions
+
+    regions.each { region ->
+      def model = [loadBalancerName: name, region: region, account: account, vpcId: vpcId, evict: true] as Map
+      cacheService.forceCacheUpdate(cloudProvider, REFRESH_TYPE, model)
+    }
+    TaskResult.ofStatus(ExecutionStatus.SUCCEEDED)
+  }
+
+  private TaskResult refreshRegionalFamily(StageExecution stage, String cloudProvider, String account) {
     List<String> regions = (stage.context.regions ?: []) as List<String>
-    List<String> names = deletedLoadBalancerNames(stage)
     if (!regions) {
       throw new IllegalArgumentException("Delete load balancer cache refresh requires at least one region")
     }
+    List<String> names = deletedLoadBalancerNames(stage)
 
     Map refreshState = new LinkedHashMap(stage.context.deleteRefreshState as Map ?: [:])
     List<String> completedTargets = new ArrayList<>(refreshState.completedTargets as Collection<String> ?: [])
@@ -69,44 +85,34 @@ class DeleteLoadBalancerForceRefreshTask implements CloudProviderAware, Retryabl
           continue
         }
 
-        def model = [loadBalancerName: name, region: region, account: account, vpcId: vpcId, evict: true] as Map
+        def model = [loadBalancerName: name, region: region, account: account, evict: true] as Map
         Response response
         try {
           response = Retrofit2SyncCall.executeCall(cacheService.forceCacheUpdate(cloudProvider, REFRESH_TYPE, model))
-        } catch (SpinnakerNetworkException | IOException e) {
-          return result(ExecutionStatus.RUNNING, refreshState)
-        }
-
-        int statusCode = response.code()
-        if (statusCode == HttpURLConnection.HTTP_OK) {
-          completedTargets.add(targetKey)
-          continue
-        }
-
-        if (statusCode == HttpURLConnection.HTTP_ACCEPTED) {
-          if (extractRefreshIds(response).isEmpty()) {
-            // Cats accepted no identifiers because the refresh did not run; retry this target.
+        } catch (SpinnakerHttpException e) {
+          if (e.responseCode == 429 || e.responseCode >= 500) {
             return result(ExecutionStatus.RUNNING, refreshState)
           }
-          // Cats returned identifiers for the stored eviction; do not submit this target again.
-          completedTargets.add(targetKey)
-          continue
-        }
-
-        if (statusCode == 429 || statusCode >= 500) {
+          throw new IllegalStateException(
+            "Force cache update for load balancer '${name}' in ${region} (${account}) failed with status ${e.responseCode}",
+            e
+          )
+        } catch (SpinnakerNetworkException e) {
           return result(ExecutionStatus.RUNNING, refreshState)
         }
 
-        throw new IllegalStateException(
-          "Force cache update for load balancer '${name}' in ${region} (${account}) failed with status ${statusCode}"
-        )
+        if (response.code() == HttpURLConnection.HTTP_ACCEPTED && extractRefreshIds(response).isEmpty()) {
+          // An atomic scheduler could not take the agent lock, so the eviction did not run.
+          return result(ExecutionStatus.RUNNING, refreshState)
+        }
+        completedTargets.add(targetKey)
       }
     }
 
     return result(ExecutionStatus.SUCCEEDED, refreshState)
   }
 
-  private List<String> deletedLoadBalancerNames(StageExecution stage) {
+  private static List<String> deletedLoadBalancerNames(StageExecution stage) {
     List<Object> candidates = [stage.context.loadBalancerName]
     TaskId lastTaskId = stage.context."kato.last.task.id" as TaskId
     List<Map> katoTasks = stage.context."kato.tasks" as List<Map> ?: []
