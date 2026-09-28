@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer;
 
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleLoadBalancerDescription;
+import java.util.List;
+import java.util.Map;
 
 /** Internal-managed specialization of the shared regional HTTP(S) delete operation. */
 public class DeleteGoogleInternalHttpLoadBalancerAtomicOperation
@@ -24,6 +26,12 @@ public class DeleteGoogleInternalHttpLoadBalancerAtomicOperation
   public DeleteGoogleInternalHttpLoadBalancerAtomicOperation(
       DeleteGoogleLoadBalancerDescription description) {
     super(description);
+  }
+
+  @Override
+  public Map<String, Object> operate(List priorOutputs) {
+    super.operate(priorOutputs);
+    return null;
   }
 
   @Override

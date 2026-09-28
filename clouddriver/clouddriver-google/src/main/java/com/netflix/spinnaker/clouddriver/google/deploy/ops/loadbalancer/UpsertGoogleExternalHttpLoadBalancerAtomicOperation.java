@@ -22,12 +22,8 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil;
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleLoadBalancerDescription;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleNetwork;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleSubnet;
-import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils;
-import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService;
-import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleExternalHttpLoadBalancer;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleInternalHttpLoadBalancer;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
@@ -57,14 +53,6 @@ public class UpsertGoogleExternalHttpLoadBalancerAtomicOperation
   @Override
   protected String getLoadBalancerDescriptionLabel() {
     return "Regional External HTTP(S) load balancer";
-  }
-
-  @Override
-  public Map operate(List priorOutputs) {
-    if (description.getCertificateMap() != null) {
-      throw new IllegalArgumentException("certificateMap is not supported for EXTERNAL_MANAGED.");
-    }
-    return super.operate(priorOutputs);
   }
 
   @Override
@@ -105,21 +93,6 @@ public class UpsertGoogleExternalHttpLoadBalancerAtomicOperation
   protected void configureLoadBalancerNetwork(
       GoogleInternalHttpLoadBalancer loadBalancer, GoogleNetwork network, GoogleSubnet subnet) {
     loadBalancer.setNetwork(network.getSelfLink());
-  }
-
-  @Override
-  protected List<GoogleBackendService> getBackendServicesFromLoadBalancer(
-      GoogleInternalHttpLoadBalancer loadBalancer) {
-    GoogleExternalHttpLoadBalancer externalLoadBalancer = new GoogleExternalHttpLoadBalancer();
-    externalLoadBalancer.setName(loadBalancer.getName());
-    externalLoadBalancer.setDefaultService(loadBalancer.getDefaultService());
-    externalLoadBalancer.setHostRules(loadBalancer.getHostRules());
-    externalLoadBalancer.setCertificate(loadBalancer.getCertificate());
-    externalLoadBalancer.setIpAddress(loadBalancer.getIpAddress());
-    externalLoadBalancer.setIpProtocol(loadBalancer.getIpProtocol());
-    externalLoadBalancer.setPortRange(loadBalancer.getPortRange());
-    externalLoadBalancer.setNetwork(loadBalancer.getNetwork());
-    return Utils.getBackendServicesFromExternalHttpLoadBalancerView(externalLoadBalancer.getView());
   }
 
   @Override

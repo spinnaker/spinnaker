@@ -148,7 +148,8 @@ public abstract class AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperatio
     Compute compute = description.getCredentials().getCompute();
     String project = description.getCredentials().getProject();
     String region = description.getRegion();
-    List<String> listenersToDelete = validateListenersToDeleteRequest();
+    List<String> listenersToDelete =
+        Optional.ofNullable(description.getListenersToDelete()).orElseGet(List::of);
     if (StringUtils.isNotBlank(description.getCertificate())) {
       buildCertificateUrl(project, region, description.getCertificate());
     }
@@ -168,7 +169,10 @@ public abstract class AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperatio
     // service/hc exists or
     // needs updated by _name_ later.
     List<GoogleBackendService> backendServicesFromDescription =
-        ImmutableSet.copyOf(getBackendServicesFromLoadBalancer(internalHttpLoadBalancer)).asList();
+        ImmutableSet.copyOf(
+                Utils.getBackendServicesFromInternalHttpLoadBalancerView(
+                    internalHttpLoadBalancer.getView()))
+            .asList();
     List<GoogleHealthCheck> healthChecksFromDescription =
         backendServicesFromDescription.stream()
             .map(GoogleBackendService::getHealthCheck)
@@ -267,7 +271,9 @@ public abstract class AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperatio
                   + getLoadBalancingScheme()
                   + ".");
         }
-        validateImmutableListener(existingRule, internalHttpLoadBalancer);
+        if (isExternalManaged()) {
+          validateImmutableListener(existingRule, internalHttpLoadBalancer);
+        }
         String targetProxyName = GCEUtil.getLocalName(existingRule.getTarget());
         switch (Utils.getTargetProxyType(existingRule.getTarget())) {
           case HTTP:
@@ -430,8 +436,11 @@ public abstract class AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperatio
                 });
       }
 
-      for (String forwardingRuleName : listenersToDelete) {
-        validateRegionalListenerOwnership(compute, project, region, forwardingRuleName, urlMapName);
+      if (isExternalManaged()) {
+        for (String forwardingRuleName : listenersToDelete) {
+          validateRegionalListenerOwnership(
+              compute, project, region, forwardingRuleName, urlMapName);
+        }
       }
 
       // Step 1: If there are no existing components in GCE, insert the new L7 components.
@@ -629,7 +638,9 @@ public abstract class AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperatio
           String pathMatcherName = PATH_MATCHER_PREFIX + "-" + UUID.randomUUID().toString();
           GooglePathMatcher pathMatcher = hostRule.getPathMatcher();
           PathMatcher matcher = new PathMatcher();
-          matcher.setName(pathMatcherName);
+          if (isExternalManaged()) {
+            matcher.setName(pathMatcherName);
+          }
           matcher.setDefaultService(
               GCEUtil.buildRegionBackendServiceUrl(
                   project, region, pathMatcher.getDefaultService().getName()));
@@ -869,7 +880,9 @@ public abstract class AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperatio
         getTask()
             .updateStatus(
                 getBasePhase(),
-                "Creating internal forwarding rule "
+                (isExternalManaged()
+                        ? "Creating forwarding rule "
+                        : "Creating internal forwarding rule ")
                     + internalHttpLoadBalancerName
                     + " in "
                     + region
@@ -945,7 +958,30 @@ public abstract class AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperatio
             .updateStatus(
                 getBasePhase(),
                 "Deleting listener " + forwardingRuleName + " in " + region + "...");
-        deleteRegionalListenerIfOwned(compute, project, region, forwardingRuleName, urlMapName);
+        if (!isExternalManaged()) {
+          GCEUtil.deleteRegionalListener(
+              compute,
+              project,
+              region,
+              forwardingRuleName,
+              getBasePhase(),
+              getSafeRetry(),
+              AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperation.this);
+          continue;
+        }
+        Operation deleteProxyOp =
+            deleteRegionalListenerIfOwned(compute, project, region, forwardingRuleName, urlMapName);
+        if (deleteProxyOp != null) {
+          googleOperationPoller.waitForRegionalOperation(
+              compute,
+              project,
+              region,
+              deleteProxyOp.getName(),
+              null,
+              getTask(),
+              "listener " + forwardingRuleName,
+              getBasePhase());
+        }
       }
       getTask()
           .updateStatus(
@@ -960,7 +996,7 @@ public abstract class AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperatio
       Map<String, String> lb = new HashMap<>(1);
       lb.put("name", internalHttpLoadBalancerName);
       Map<String, Map<String, String>> regionToLb = new HashMap<>(1);
-      regionToLb.put(region, lb);
+      regionToLb.put(isExternalManaged() ? region : "region", lb);
 
       Map<String, Map<String, Map<String, String>>> lbs = new HashMap<>(1);
       lbs.put("loadBalancers", regionToLb);
@@ -1268,32 +1304,13 @@ public abstract class AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperatio
     return true;
   }
 
-  private List<String> validateListenersToDeleteRequest() {
-    List<String> listenersToDelete = description.getListenersToDelete();
-    if (listenersToDelete == null || listenersToDelete.isEmpty()) {
-      return List.of();
-    }
-
-    Set<String> uniqueListeners = new HashSet<>();
-    for (String forwardingRuleName : listenersToDelete) {
-      if (StringUtils.isBlank(forwardingRuleName)) {
-        throw new GoogleOperationException("listenersToDelete contains a blank listener name.");
-      }
-      if (forwardingRuleName.equals(description.getLoadBalancerName())) {
-        throw new GoogleOperationException(
-            "listenersToDelete cannot contain the current listener "
-                + description.getLoadBalancerName()
-                + ".");
-      }
-      if (!uniqueListeners.add(forwardingRuleName)) {
-        throw new GoogleOperationException(
-            "listenersToDelete contains duplicate listener " + forwardingRuleName + ".");
-      }
-    }
-    return List.copyOf(listenersToDelete);
+  // INTERNAL_MANAGED keeps its historical upsert contract; listener guards apply to the external
+  // scheme only.
+  private boolean isExternalManaged() {
+    return "EXTERNAL_MANAGED".equals(getLoadBalancingScheme());
   }
 
-  protected void validateImmutableListener(
+  private void validateImmutableListener(
       ForwardingRule existingRule, GoogleInternalHttpLoadBalancer desired) {
     String existingPort = normalizeSinglePort(existingRule.getPortRange());
     String desiredPort =
@@ -1362,9 +1379,6 @@ public abstract class AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperatio
 
   protected abstract void configureLoadBalancerNetwork(
       GoogleInternalHttpLoadBalancer loadBalancer, GoogleNetwork network, GoogleSubnet subnet);
-
-  protected abstract List<GoogleBackendService> getBackendServicesFromLoadBalancer(
-      GoogleInternalHttpLoadBalancer loadBalancer);
 
   protected abstract String getLoadBalancingScheme();
 

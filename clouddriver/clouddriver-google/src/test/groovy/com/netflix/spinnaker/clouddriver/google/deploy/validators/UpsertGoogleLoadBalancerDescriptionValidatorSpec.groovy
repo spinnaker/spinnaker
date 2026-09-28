@@ -1097,10 +1097,21 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
   }
 
   @Unroll
-  void "regional listenersToDelete rejects #scenario"() {
+  void "external managed listenersToDelete rejects #scenario"() {
     given:
-      def description = regionalExternalNetworkDescription()
-      description.listenersToDelete = listeners
+      def description = new UpsertGoogleLoadBalancerDescription(
+        loadBalancerType: GoogleLoadBalancerType.EXTERNAL_MANAGED,
+        loadBalancerName: LOAD_BALANCER_NAME,
+        region: REGION,
+        accountName: ACCOUNT_NAME,
+        network: "default",
+        portRange: "80",
+        defaultService: new GoogleBackendService(
+          name: "backend",
+          protocol: "HTTP",
+          healthCheck: new GoogleHealthCheck(name: "health-check", port: 80)),
+        hostRules: [],
+        listenersToDelete: listeners)
       def errors = Mock(ValidationErrors)
 
     when:

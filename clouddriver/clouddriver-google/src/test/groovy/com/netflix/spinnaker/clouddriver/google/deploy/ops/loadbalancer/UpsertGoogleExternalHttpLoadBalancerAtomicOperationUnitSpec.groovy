@@ -356,18 +356,6 @@ class UpsertGoogleExternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
     }
   }
 
-  void "operate rejects certificateMap defensively"() {
-    setup:
-      @Subject def operation = new UpsertGoogleExternalHttpLoadBalancerAtomicOperation(
-        new UpsertGoogleLoadBalancerDescription(certificateMap: "my-map"))
-
-    when:
-      operation.operate([])
-
-    then:
-      thrown IllegalArgumentException
-  }
-
   void "deleteRegionalListenerIfOwned rejects listener from another URL map"() {
     setup:
       def compute = Mock(Compute)

@@ -66,11 +66,7 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
     helper.validateCredentials(description.accountName, credentialsRepository)
     helper.validateName(description.loadBalancerName, "loadBalancerName")
 
-    if (description.loadBalancerType in [
-      GoogleLoadBalancerType.INTERNAL_MANAGED,
-      GoogleLoadBalancerType.EXTERNAL_MANAGED,
-      GoogleLoadBalancerType.REGIONAL_EXTERNAL_NETWORK
-    ]) {
+    if (description.loadBalancerType == GoogleLoadBalancerType.EXTERNAL_MANAGED) {
       validateListenersToDelete(description, errors)
     }
 
@@ -105,7 +101,13 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
           }
         }
 
-        validatePort(description.portRange, "portRange", errors)
+        // portRange must be a single port.
+        try {
+          Integer.parseInt(description.portRange)
+        } catch (NumberFormatException _) {
+          errors.rejectValue("portRange",
+            "upsertGoogleLoadBalancerDescription.portRange.requireSinglePort")
+        }
 
         // Each backend service must have a health check.
         def googleHttpLoadBalancer = new GoogleHttpLoadBalancer(
@@ -125,7 +127,6 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
               "upsertGoogleLoadBalancerDescription.backendServices.healthCheckRequired")
           }
         }
-        validateManagedBackendServices(description, services, errors)
         break
       case GoogleLoadBalancerType.INTERNAL_MANAGED:
         if (description.certificate && description.certificateMap) {
@@ -141,7 +142,13 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
             "upsertGoogleLoadBalancerDescription.certificateMap.internalManagedNotSupported")
         }
 
-        validatePort(description.portRange, "portRange", errors)
+        // portRange must be a single port.
+        try {
+          Integer.parseInt(description.portRange)
+        } catch (NumberFormatException _) {
+          errors.rejectValue("portRange",
+            "upsertGoogleLoadBalancerDescription.portRange.requireSinglePort")
+        }
 
         // Each backend service must have a health check.
         def googleInternalHttpLoadBalancer = new GoogleInternalHttpLoadBalancer(
@@ -191,18 +198,12 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
         // front so the request fails before any health check, backend service, url map or proxy
         // is created; the forwarding rule is built last, so GCP rejecting it there would strand
         // everything already written.
-        if (description.ipAddress?.contains(":")) {
+        if (isIpv6Literal(description.ipAddress)) {
           errors.rejectValue("ipAddress",
             "upsertGoogleLoadBalancerDescription.ipAddress.ipv6NotSupported")
         }
 
-        // portRange must be a single port.
-        try {
-          Integer.parseInt(description.portRange)
-        } catch (NumberFormatException _) {
-          errors.rejectValue("portRange",
-            "upsertGoogleLoadBalancerDescription.portRange.requireSinglePort")
-        }
+        validatePort(description.portRange, "portRange", errors)
 
         if (!description.defaultService) {
           errors.rejectValue("defaultService",
@@ -290,7 +291,7 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
             "upsertGoogleLoadBalancerDescription.networkTier.notSupported")
         }
 
-        if (description.ipAddress?.contains(":")) {
+        if (isIpv6Literal(description.ipAddress)) {
           errors.rejectValue("ipAddress",
             "upsertGoogleLoadBalancerDescription.ipAddress.ipv6NotSupported")
         }
@@ -377,7 +378,7 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
     ValidationErrors errors) {
     services?.findAll { it != null }?.each { GoogleBackendService service ->
       String fieldPrefix = service.is(description.defaultService) ? "defaultService" : "hostRules.backendService"
-      if (!SUPPORTED_MANAGED_BACKEND_PROTOCOLS.contains(service.protocol)) {
+      if (service.protocol && !SUPPORTED_MANAGED_BACKEND_PROTOCOLS.contains(service.protocol)) {
         errors.rejectValue("${fieldPrefix}.protocol",
           "upsertGoogleLoadBalancerDescription.backendService.protocol.notSupported")
       }
@@ -412,6 +413,11 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
         "listenersToDelete",
         "upsertGoogleLoadBalancerDescription.listenersToDelete.currentListener")
     }
+  }
+
+  // Address names and URLs are not IPv6 literals even when a URL contains a scheme separator.
+  private static boolean isIpv6Literal(String ipAddress) {
+    return ipAddress?.contains(":") && !ipAddress.contains("/")
   }
 
   private static void validatePort(Object value, String field, ValidationErrors errors) {

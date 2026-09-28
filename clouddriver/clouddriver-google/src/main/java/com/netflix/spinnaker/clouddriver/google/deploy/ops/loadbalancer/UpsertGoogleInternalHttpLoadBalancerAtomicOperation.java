@@ -22,8 +22,6 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil;
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleLoadBalancerDescription;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleNetwork;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleSubnet;
-import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils;
-import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleInternalHttpLoadBalancer;
 import java.util.List;
 import org.codehaus.groovy.runtime.StringGroovyMethods;
@@ -62,12 +60,6 @@ public class UpsertGoogleInternalHttpLoadBalancerAtomicOperation
       GoogleInternalHttpLoadBalancer loadBalancer, GoogleNetwork network, GoogleSubnet subnet) {
     loadBalancer.setNetwork(network.getSelfLink());
     loadBalancer.setSubnet(subnet.getSelfLink());
-  }
-
-  @Override
-  protected List<GoogleBackendService> getBackendServicesFromLoadBalancer(
-      GoogleInternalHttpLoadBalancer loadBalancer) {
-    return Utils.getBackendServicesFromInternalHttpLoadBalancerView(loadBalancer.getView());
   }
 
   @Override

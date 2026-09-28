@@ -44,7 +44,6 @@ class DeleteGoogleLoadBalancerDescriptionValidator extends
     if (loadBalancerType == GoogleLoadBalancerType.NETWORK ||
         loadBalancerType == GoogleLoadBalancerType.INTERNAL ||
         loadBalancerType == GoogleLoadBalancerType.REGIONAL_EXTERNAL_NETWORK ||
-        loadBalancerType == GoogleLoadBalancerType.INTERNAL_MANAGED ||
         loadBalancerType == GoogleLoadBalancerType.EXTERNAL_MANAGED) {
       helper.validateRegion(description.region, description.credentials)
     }

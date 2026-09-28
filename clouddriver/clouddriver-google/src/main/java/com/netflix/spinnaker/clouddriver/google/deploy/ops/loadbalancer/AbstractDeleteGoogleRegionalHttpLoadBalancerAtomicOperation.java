@@ -92,14 +92,16 @@ public abstract class AbstractDeleteGoogleRegionalHttpLoadBalancerAtomicOperatio
     List<ForwardingRule> projectForwardingRules = null;
     try {
       projectForwardingRules =
-          timeExecute(
-                  compute.forwardingRules().list(project, region),
-                  "compute.forwardingRules.list",
-                  TAG_SCOPE,
-                  SCOPE_REGIONAL,
-                  TAG_REGION,
-                  region)
-              .getItems();
+          Optional.ofNullable(
+                  timeExecute(
+                          compute.forwardingRules().list(project, region),
+                          "compute.forwardingRules.list",
+                          TAG_SCOPE,
+                          SCOPE_REGIONAL,
+                          TAG_REGION,
+                          region)
+                      .getItems())
+              .orElse(Collections.emptyList());
 
       ForwardingRule forwardingRule =
           projectForwardingRules.stream()
@@ -137,6 +139,11 @@ public abstract class AbstractDeleteGoogleRegionalHttpLoadBalancerAtomicOperatio
       final List<String> listenersToDelete = new ArrayList<String>();
       for (ForwardingRule rule : projectForwardingRules) {
         if (!getLoadBalancingScheme().equals(rule.getLoadBalancingScheme())) continue;
+        GoogleTargetProxyType ruleProxyType = Utils.getTargetProxyType(rule.getTarget());
+        if (ruleProxyType != GoogleTargetProxyType.HTTP
+            && ruleProxyType != GoogleTargetProxyType.HTTPS) {
+          continue;
+        }
 
         try {
           GenericJson proxy =
@@ -149,8 +156,8 @@ public abstract class AbstractDeleteGoogleRegionalHttpLoadBalancerAtomicOperatio
                       getBasePhase(),
                       getSafeRetry(),
                       AbstractDeleteGoogleRegionalHttpLoadBalancerAtomicOperation.this);
-          if (GCEUtil.getLocalName((proxy == null ? null : (String) proxy.get("urlMap")))
-              .equals(urlMapName)) {
+          if (proxy != null
+              && urlMapName.equals(GCEUtil.getLocalName((String) proxy.get("urlMap")))) {
             listenersToDelete.add(rule.getName());
           }
         } catch (GoogleOperationException e) {
@@ -166,154 +173,6 @@ public abstract class AbstractDeleteGoogleRegionalHttpLoadBalancerAtomicOperatio
         }
       }
       List<String> deletedLoadBalancerNames = new ArrayList<>();
-
-      boolean urlMapUsedByOtherSchemes = false;
-      for (ForwardingRule rule : projectForwardingRules) {
-        if (getLoadBalancingScheme().equals(rule.getLoadBalancingScheme())) continue;
-        GoogleTargetProxyType proxyType = Utils.getTargetProxyType(rule.getTarget());
-        if (proxyType != GoogleTargetProxyType.HTTP && proxyType != GoogleTargetProxyType.HTTPS) {
-          continue;
-        }
-
-        try {
-          GenericJson proxy =
-              (GenericJson)
-                  GCEUtil.getRegionTargetProxyFromRule(
-                      compute,
-                      project,
-                      region,
-                      rule,
-                      getBasePhase(),
-                      getSafeRetry(),
-                      AbstractDeleteGoogleRegionalHttpLoadBalancerAtomicOperation.this);
-          if (urlMapName.equals(
-              GCEUtil.getLocalName((proxy == null ? null : (String) proxy.get("urlMap"))))) {
-            urlMapUsedByOtherSchemes = true;
-            break;
-          }
-        } catch (GoogleOperationException e) {
-          if (!(e.getCause() instanceof GoogleApiException.NotFoundException)) {
-            throw e;
-          }
-        }
-      }
-
-      if (urlMapUsedByOtherSchemes) {
-        // Regional internal and external managed HTTP(S) LBs can reference the same URL map.
-        // Validate that the shared backend services are detached first; then delete only the
-        // listeners/proxies owned by this scheme. The URL map, backend services, and health checks
-        // remain available to the other regional HTTP-family scheme.
-        getTask()
-            .updateStatus(
-                getBasePhase(), "Retrieving URL map " + urlMapName + " in " + region + "...");
-        UrlMapList mapList =
-            timeExecute(
-                compute.regionUrlMaps().list(project, region),
-                "compute.regionUrlMaps.list",
-                TAG_SCOPE,
-                SCOPE_REGIONAL);
-        List<UrlMap> projectUrlMaps = mapList.getItems();
-        UrlMap urlMap =
-            projectUrlMaps.stream()
-                .filter(u -> u.getName().equals(urlMapName))
-                .findFirst()
-                .orElseThrow(
-                    () -> new IllegalStateException(format("urlMap %s not found.", urlMapName)));
-        List<String> backendServiceUrls = new ArrayList<>();
-        backendServiceUrls.add(urlMap.getDefaultService());
-        addServicesFromPathMatchers(backendServiceUrls, urlMap.getPathMatchers());
-        backendServiceUrls = ImmutableSet.copyOf(backendServiceUrls).asList();
-        for (String backendServiceUrl : backendServiceUrls) {
-          final String backendServiceName = GCEUtil.getLocalName(backendServiceUrl);
-          BackendService backendService =
-              safeRetry.doRetry(
-                  new Closure<BackendService>(this, this) {
-                    @Override
-                    public BackendService call() {
-                      try {
-                        return timeExecute(
-                            compute
-                                .regionBackendServices()
-                                .get(project, region, backendServiceName),
-                            "compute.regionBackendServices.get",
-                            TAG_SCOPE,
-                            SCOPE_REGIONAL);
-                      } catch (IOException e) {
-                        throw new UncheckedIOException(e);
-                      }
-                    }
-                  },
-                  "Region Backend service " + backendServiceName,
-                  getTask(),
-                  ImmutableList.of(400, 403, 412),
-                  new ArrayList<>(),
-                  ImmutableMap.of(
-                      "action",
-                      "get",
-                      "phase",
-                      getBasePhase(),
-                      "operation",
-                      "compute.backendServices.get",
-                      TAG_SCOPE,
-                      SCOPE_REGIONAL,
-                      TAG_REGION,
-                      region),
-                  getRegistry());
-          if (backendService != null
-              && backendService.getBackends() != null
-              && backendService.getBackends().size() > 0) {
-            getTask()
-                .updateStatus(
-                    getBasePhase(),
-                    "Server groups still associated with "
-                        + getLoadBalancerDescriptionLabel()
-                        + " "
-                        + description.getLoadBalancerName()
-                        + ". Failing...");
-            throw new IllegalStateException(
-                "Server groups still associated with "
-                    + getLoadBalancerDescriptionLabel()
-                    + ": "
-                    + description.getLoadBalancerName()
-                    + ".");
-          }
-        }
-
-        final Long timeoutSeconds = description.getDeleteOperationTimeoutSeconds();
-        for (String ruleName : listenersToDelete) {
-          getTask()
-              .updateStatus(
-                  getBasePhase(), "Deleting listener " + ruleName + " in " + region + "...");
-
-          Operation operation =
-              GCEUtil.deleteRegionalListener(
-                  compute,
-                  project,
-                  region,
-                  ruleName,
-                  getBasePhase(),
-                  getSafeRetry(),
-                  AbstractDeleteGoogleRegionalHttpLoadBalancerAtomicOperation.this);
-
-          googleOperationPoller.waitForRegionalOperation(
-              compute,
-              project,
-              region,
-              operation.getName(),
-              timeoutSeconds,
-              getTask(),
-              "listener " + ruleName,
-              getBasePhase());
-          deletedLoadBalancerNames.add(ruleName);
-        }
-        getTask()
-            .updateStatus(
-                getBasePhase(),
-                "Skipping deletion of shared URL map "
-                    + urlMapName
-                    + " because it is still used by another regional HTTP(S) scheme.");
-        return deleteResult(deletedLoadBalancerNames);
-      }
 
       // URL map.
       getTask().updateStatus(getBasePhase(), "Retrieving URL map " + urlMapName + "...");

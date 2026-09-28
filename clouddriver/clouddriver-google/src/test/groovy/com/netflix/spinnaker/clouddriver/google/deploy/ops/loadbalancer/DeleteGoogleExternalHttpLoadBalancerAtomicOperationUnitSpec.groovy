@@ -81,7 +81,7 @@ class DeleteGoogleExternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       operation.loadBalancerDescriptionLabel == "Regional External HTTP(S) load balancer"
   }
 
-  void "deletes only external managed listeners for a shared regional url map"() {
+  void "deletes every external managed listener on the url map and reports their names"() {
     setup:
       def compute = Mock(Compute)
       def forwardingRules = Mock(Compute.ForwardingRules)
@@ -92,7 +92,6 @@ class DeleteGoogleExternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       def targetHttpProxies = Mock(Compute.RegionTargetHttpProxies)
       def targetHttpProxiesGet = Mock(Compute.RegionTargetHttpProxies.Get)
       def secondTargetHttpProxiesGet = Mock(Compute.RegionTargetHttpProxies.Get)
-      def internalTargetHttpProxiesGet = Mock(Compute.RegionTargetHttpProxies.Get)
       def targetHttpProxiesDelete = Mock(Compute.RegionTargetHttpProxies.Delete)
       def urlMaps = Mock(Compute.RegionUrlMaps)
       def urlMapsList = Mock(Compute.RegionUrlMaps.List)
@@ -157,8 +156,7 @@ class DeleteGoogleExternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       2 * targetHttpProxiesGet.execute() >> targetHttpProxy
       1 * targetHttpProxies.get(PROJECT_NAME, REGION, SECOND_TARGET_HTTP_PROXY_NAME) >> secondTargetHttpProxiesGet
       1 * secondTargetHttpProxiesGet.execute() >> targetHttpProxy
-      1 * targetHttpProxies.get(PROJECT_NAME, REGION, "internal-target-http-proxy") >> internalTargetHttpProxiesGet
-      1 * internalTargetHttpProxiesGet.execute() >> targetHttpProxy
+      0 * targetHttpProxies.get(PROJECT_NAME, REGION, "internal-target-http-proxy")
       1 * targetHttpProxies.delete(PROJECT_NAME, REGION, TARGET_HTTP_PROXY_NAME) >> targetHttpProxiesDelete
       1 * targetHttpProxies.delete(PROJECT_NAME, REGION, SECOND_TARGET_HTTP_PROXY_NAME) >> targetHttpProxiesDelete
       2 * targetHttpProxiesDelete.execute() >> operationResult
@@ -166,13 +164,18 @@ class DeleteGoogleExternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       _ * compute.regionUrlMaps() >> urlMaps
       1 * urlMaps.list(PROJECT_NAME, REGION) >> urlMapsList
       1 * urlMapsList.execute() >> new UrlMapList(items: [urlMap])
-      0 * urlMaps.delete(PROJECT_NAME, REGION, URL_MAP_NAME)
+      1 * urlMaps.delete(PROJECT_NAME, REGION, URL_MAP_NAME) >> urlMapsDelete
+      1 * urlMapsDelete.execute() >> operationResult
       _ * compute.regionBackendServices() >> backendServices
       1 * backendServices.get(PROJECT_NAME, REGION, BACKEND_SERVICE_NAME) >> backendServicesGet
       1 * backendServicesGet.execute() >> backendService
-      0 * backendServices.delete(PROJECT_NAME, REGION, BACKEND_SERVICE_NAME)
-      0 * healthChecks.delete(PROJECT_NAME, REGION, HEALTH_CHECK_NAME)
-      2 * poller.waitForRegionalOperation(*_)
+      1 * backendServices.delete(PROJECT_NAME, REGION, BACKEND_SERVICE_NAME) >> backendServicesDelete
+      1 * backendServicesDelete.execute() >> operationResult
+      _ * compute.regionHealthChecks() >> healthChecks
+      1 * healthChecks.delete(PROJECT_NAME, REGION, HEALTH_CHECK_NAME) >> healthChecksDelete
+      1 * healthChecksDelete.execute() >> operationResult
+      // Two listener proxies, the URL map, the backend service and the health check.
+      5 * poller.waitForRegionalOperation(*_)
       result.deletedLoadBalancerNames == [LOAD_BALANCER_NAME, SECOND_LISTENER_NAME]
   }
 
