@@ -503,44 +503,9 @@ class UpsertGoogleExternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
   void "operate accepts omitted optional external managed fields on create without NPE"() {
     setup:
       CapturingComputeTransport transport = new CapturingComputeTransport()
-      Compute compute = new Compute.Builder(
-        transport, GsonFactory.getDefaultInstance(), null).setApplicationName("test").build()
-      def credentialsRepo = new MapBackedCredentialsRepository(
-        GoogleNamedAccountCredentials.CREDENTIALS_TYPE, new NoopCredentialsLifecycleHandler<>())
-      credentialsRepo.save(new GoogleNamedAccountCredentials.Builder()
-        .name(ACCOUNT_NAME)
-        .project(PROJECT_NAME)
-        .compute(compute)
-        .credentials(new FakeGoogleCredentials())
-        .build())
-      def converter = new UpsertGoogleLoadBalancerAtomicOperationConverter(
-        credentialsRepository: credentialsRepo)
       def googleNetworkProviderMock = Mock(GoogleNetworkProvider)
       def googleSubnetProviderMock = Mock(GoogleSubnetProvider)
-      def description = converter.convertDescription([
-        accountName: ACCOUNT_NAME,
-        loadBalancerType: GoogleLoadBalancerType.EXTERNAL_MANAGED,
-        loadBalancerName: "external-http-minimal",
-        region: REGION,
-        network: "default",
-        portRange: PORT_RANGE,
-        defaultService: [
-          name: "minimal-backend",
-          backends: [],
-          healthCheck: hc,
-        ],
-        hostRules: null,
-      ])
-      @Subject def operation = new UpsertGoogleExternalHttpLoadBalancerAtomicOperation(description)
-      setGoogleOperationPoller(operation, new GoogleOperationPoller(
-        googleConfigurationProperties: new GoogleConfigurationProperties(),
-        threadSleeper: threadSleeperMock,
-        registry: registry,
-        safeRetry: safeRetry))
-      operation.googleNetworkProvider = googleNetworkProviderMock
-      operation.googleSubnetProvider = googleSubnetProviderMock
-      operation.registry = registry
-      operation.safeRetry = safeRetry
+      @Subject def operation = minimalExternalManagedOperation(transport, googleNetworkProviderMock, googleSubnetProviderMock)
 
     when:
       operation.operate([])
@@ -556,6 +521,84 @@ class UpsertGoogleExternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       ]
       transport.findPostTo("/targetHttpProxies").isPresent()
       !transport.findPostTo("/targetHttpsProxies").isPresent()
+  }
+
+  void "operate re-applies a request without urlMapName to the listener it created"() {
+    setup:
+      String regionPath = "https://compute.googleapis.com/compute/v1/projects/${PROJECT_NAME}/regions/${REGION}"
+      CapturingComputeTransport transport = new CapturingComputeTransport()
+        .registerGetResponse("/forwardingRules/external-http-minimal", """{
+          "name": "external-http-minimal",
+          "loadBalancingScheme": "EXTERNAL_MANAGED",
+          "portRange": "${PORT_RANGE}-${PORT_RANGE}",
+          "target": "${regionPath}/targetHttpProxies/external-http-minimal-target-http-proxy"
+        }""")
+        .registerGetResponse("/targetHttpProxies/external-http-minimal-target-http-proxy", """{
+          "name": "external-http-minimal-target-http-proxy",
+          "urlMap": "${regionPath}/urlMaps/external-http-minimal"
+        }""")
+      def googleNetworkProviderMock = Mock(GoogleNetworkProvider)
+      def googleSubnetProviderMock = Mock(GoogleSubnetProvider)
+      @Subject def operation = minimalExternalManagedOperation(transport, googleNetworkProviderMock, googleSubnetProviderMock)
+
+    when:
+      operation.operate([])
+
+    then:
+      notThrown(IllegalStateException)
+      _ * googleNetworkProviderMock.getAllMatchingKeyPattern(_) >> [
+        new GoogleNetwork(
+          name: "default",
+          selfLink: "https://compute.googleapis.com/compute/v1/projects/${PROJECT_NAME}/global/networks/default")
+      ]
+      _ * googleSubnetProviderMock.getAllMatchingKeyPattern(_) >> [
+        new GoogleSubnet(account: ACCOUNT_NAME, region: REGION, network: "default", purpose: "REGIONAL_MANAGED_PROXY")
+      ]
+      !transport.findPostTo("/forwardingRules").isPresent()
+      !transport.findPostTo("/targetHttpProxies").isPresent()
+  }
+
+  private UpsertGoogleExternalHttpLoadBalancerAtomicOperation minimalExternalManagedOperation(
+    CapturingComputeTransport transport,
+    GoogleNetworkProvider googleNetworkProvider,
+    GoogleSubnetProvider googleSubnetProvider) {
+    Compute compute = new Compute.Builder(
+      transport, GsonFactory.getDefaultInstance(), null).setApplicationName("test").build()
+    def credentialsRepo = new MapBackedCredentialsRepository(
+      GoogleNamedAccountCredentials.CREDENTIALS_TYPE, new NoopCredentialsLifecycleHandler<>())
+    credentialsRepo.save(new GoogleNamedAccountCredentials.Builder()
+      .name(ACCOUNT_NAME)
+      .project(PROJECT_NAME)
+      .compute(compute)
+      .credentials(new FakeGoogleCredentials())
+      .build())
+    def converter = new UpsertGoogleLoadBalancerAtomicOperationConverter(
+      credentialsRepository: credentialsRepo)
+    def description = converter.convertDescription([
+      accountName: ACCOUNT_NAME,
+      loadBalancerType: GoogleLoadBalancerType.EXTERNAL_MANAGED,
+      loadBalancerName: "external-http-minimal",
+      region: REGION,
+      network: "default",
+      portRange: PORT_RANGE,
+      defaultService: [
+        name: "minimal-backend",
+        backends: [],
+        healthCheck: hc,
+      ],
+      hostRules: null,
+    ])
+    def operation = new UpsertGoogleExternalHttpLoadBalancerAtomicOperation(description)
+    setGoogleOperationPoller(operation, new GoogleOperationPoller(
+      googleConfigurationProperties: new GoogleConfigurationProperties(),
+      threadSleeper: threadSleeperMock,
+      registry: registry,
+      safeRetry: safeRetry))
+    operation.googleNetworkProvider = googleNetworkProvider
+    operation.googleSubnetProvider = googleSubnetProvider
+    operation.registry = registry
+    operation.safeRetry = safeRetry
+    operation
   }
 
   void "deleteRegionalListenerIfOwned ignores missing listener"() {

@@ -316,9 +316,12 @@ public abstract class AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperatio
             break;
         }
         targetProxyExists = existingProxy != null;
+        // EXTERNAL_MANAGED accepts requests without urlMapName, so re-applying one must compare
+        // against the URL map name it defaulted to on create.
+        String expectedUrlMapName = isExternalManaged() ? urlMapName : description.getUrlMapName();
         if (targetProxyExists
             && !GCEUtil.getLocalName((String) existingProxy.get("urlMap"))
-                .equals(description.getUrlMapName())) {
+                .equals(expectedUrlMapName)) {
           throw new IllegalStateException(
               "Listener with name "
                   + existingRule.getName()
@@ -326,7 +329,7 @@ public abstract class AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperatio
                   + GCEUtil.getLocalName((String) existingProxy.get("urlMap"))
                   + ","
                   + " which is different from the description url map: "
-                  + description.getUrlMapName()
+                  + expectedUrlMapName
                   + ".");
         }
       }
