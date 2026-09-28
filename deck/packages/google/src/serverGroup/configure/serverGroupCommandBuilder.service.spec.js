@@ -153,6 +153,26 @@ describe('GceServerGroupCommandBuilder', () => {
     expect(serverGroup.instanceFlexibilityPolicy.instanceSelections.preferred.machineTypes).toEqual(['n2-standard-8']);
   });
 
+  it('keeps Clouddriver-managed load balancer metadata out of clone instance metadata', async () => {
+    const promiseService = { all: (values) => Promise.all(values), resolve: (value) => Promise.resolve(value) };
+    const defaultHiddenKeysBuilder = new GceServerGroupCommandBuilder(
+      promiseService,
+      instanceTypeService,
+      customInstanceBuilder,
+      xpnNamingService,
+    );
+    const serverGroup = buildServerGroup();
+    serverGroup.launchConfig.instanceTemplate.properties.metadata.items = [
+      { key: 'load-balancer-names', value: 'listener-a,listener-b' },
+      { key: 'regional-external-load-balancer-names', value: 'listener-a,listener-b' },
+      { key: 'team', value: 'payments' },
+    ];
+
+    const command = await defaultHiddenKeysBuilder.buildServerGroupCommandFromExisting(application(), serverGroup);
+
+    expect(command.instanceMetadata).toEqual({ team: 'payments' });
+  });
+
   it('preserves absent versus explicitly empty clone flexibility policies', async () => {
     const absent = buildServerGroup();
     const empty = buildServerGroup();
