@@ -750,6 +750,44 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
       exc.message == "There is already a regional external network load balancer named $LOAD_BALANCER_NAME in $REGION_US."
   }
 
+  void "should not recreate a same-name regional external managed listener as a target-pool load balancer"() {
+    setup:
+      def computeMock = Mock(Compute)
+      def regions = Mock(Compute.Regions)
+      def regionsList = Mock(Compute.Regions.List)
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
+      def description = new UpsertGoogleLoadBalancerDescription(
+          loadBalancerName: LOAD_BALANCER_NAME,
+          region: REGION_US,
+          accountName: ACCOUNT_NAME,
+          credentials: credentials)
+      @Subject def operation = new UpsertGoogleLoadBalancerAtomicOperation(description)
+      operation.registry = registry
+      operation.safeRetry = safeRetry
+
+    when:
+      operation.operate([])
+
+    then:
+      1 * computeMock.regions() >> regions
+      1 * regions.list(PROJECT_NAME) >> regionsList
+      1 * regionsList.execute() >> new RegionList(items: [new Region(name: REGION_US)])
+      1 * computeMock.forwardingRules() >> forwardingRules
+      1 * forwardingRules.get(PROJECT_NAME, REGION_US, LOAD_BALANCER_NAME) >> forwardingRulesGet
+      1 * forwardingRulesGet.execute() >> new ForwardingRule(
+          name: LOAD_BALANCER_NAME,
+          region: REGION_US,
+          loadBalancingScheme: "EXTERNAL_MANAGED",
+          target: "projects/$PROJECT_NAME/regions/$REGION_US/targetHttpProxies/listener-target-http-proxy",
+          IPProtocol: "TCP",
+          portRange: "80-80")
+      0 * computeMock.targetPools()
+      GoogleOperationException exc = thrown()
+      exc.message == "There is already a regional external managed load balancer listener named $LOAD_BALANCER_NAME in $REGION_US."
+  }
+
   void "should update health check if specified properties differ from existing"() {
     setup:
       def computeMock = Mock(Compute)

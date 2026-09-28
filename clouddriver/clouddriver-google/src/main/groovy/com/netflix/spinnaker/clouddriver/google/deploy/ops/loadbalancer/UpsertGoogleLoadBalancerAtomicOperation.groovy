@@ -122,10 +122,14 @@ class UpsertGoogleLoadBalancerAtomicOperation extends GoogleAtomicOperation<Map>
           "Please specify a different name.")
       }
 
-      // Recreating a regional external passthrough rule as a target-pool rule would delete that
-      // load balancer's forwarding rule.
+      // Recreating a regional external passthrough or managed rule as a target-pool rule would
+      // delete that load balancer's forwarding rule.
       if (GCEUtil.isRegionalExternalNetworkPassthroughForwardingRule(existingForwardingRule)) {
         throw new GoogleOperationException("There is already a regional external network load balancer named " +
+          "$description.loadBalancerName in $description.region.")
+      }
+      if (existingForwardingRule.loadBalancingScheme == "EXTERNAL_MANAGED") {
+        throw new GoogleOperationException("There is already a regional external managed load balancer listener named " +
           "$description.loadBalancerName in $description.region.")
       }
 
