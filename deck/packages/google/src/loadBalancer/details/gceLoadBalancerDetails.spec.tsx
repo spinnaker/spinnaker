@@ -13,6 +13,7 @@ import {
 import { GceLoadBalancerChoiceModal } from '../configure/choice/GceLoadBalancerChoiceModal';
 import {
   GceLoadBalancerActions,
+  GceLoadBalancerBackendServicesSection,
   GceLoadBalancerInformationSection,
   GceLoadBalancerListenersSection,
   loadGceLoadBalancerDetails,
@@ -217,6 +218,36 @@ describe('loadGceLoadBalancerDetails', () => {
     expect(wrapper.text()).toContain('203.0.113.10');
     expect(wrapper.text()).not.toContain('http://');
     expect(wrapper.text()).not.toContain('https://');
+  });
+
+  it('reads back the REGIONAL_EXTERNAL_NETWORK backend service and health check', async () => {
+    const loadBalancer = {
+      account: 'test',
+      backendService: { name: 'passthrough-backend', healthCheck: { name: 'tcp-hc' } },
+      loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK',
+      name: 'passthrough-lb',
+      provider: 'gce',
+      region: 'us-central1',
+    };
+    await loadGceLoadBalancerDetails({
+      accountService: { getAccountDetails: () => Promise.resolve({}) } as any,
+      app: { loadBalancers: { data: [loadBalancer] } } as any,
+      autoClose: jasmine.createSpy('autoClose'),
+      loadBalancerParams: {
+        accountId: 'test',
+        name: 'passthrough-lb',
+        provider: 'gce',
+        region: 'us-central1',
+        vpcId: null,
+      },
+      loadBalancerReader: {
+        getLoadBalancerDetails: () => Promise.resolve([{ dnsname: '203.0.113.10' }]),
+      } as any,
+    });
+
+    const wrapper = mount(<GceLoadBalancerBackendServicesSection app={{}} loadBalancer={loadBalancer} />);
+    expect(wrapper.text()).toContain('passthrough-backend');
+    expect(wrapper.text()).toContain('tcp-hc');
   });
 });
 

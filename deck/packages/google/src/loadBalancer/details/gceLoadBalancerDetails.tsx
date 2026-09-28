@@ -201,6 +201,11 @@ export async function loadGceLoadBalancerDetails({
         loadBalancer.elb.backendServices.map((backendService: any) => backendService.healthCheck).filter(Boolean),
         (healthCheck: any) => healthCheck.name || healthCheck.selfLink || '',
       );
+    } else if (loadBalancer.loadBalancerType === 'REGIONAL_EXTERNAL_NETWORK' && loadBalancer.backendService) {
+      loadBalancer.elb.backendServices = [loadBalancer.backendService];
+      loadBalancer.elb.healthChecks = loadBalancer.backendService.healthCheck
+        ? [loadBalancer.backendService.healthCheck]
+        : [];
     }
   }
 
