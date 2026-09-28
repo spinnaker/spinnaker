@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer;
 
+import static com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil.REGIONAL_EXTERNAL_LOAD_BALANCER_NAMES;
 import static com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil.REGIONAL_LOAD_BALANCER_NAMES;
 import static com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil.REGION_BACKEND_SERVICE_NAMES;
 import static java.util.stream.Collectors.toList;
@@ -1103,6 +1104,20 @@ public abstract class AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperatio
           instanceMetadata.put(
               REGIONAL_LOAD_BALANCER_NAMES,
               regionalLbs.stream().distinct().collect(Collectors.joining(",")));
+          if (isExternalManaged()) {
+            // Enable skips tagged names in the existing families' strict lookups, so a listener
+            // added here and removed later does not block enabling this server group.
+            String regionalExternalLbStr =
+                instanceMetadata.get(REGIONAL_EXTERNAL_LOAD_BALANCER_NAMES);
+            List<String> regionalExternalLbs =
+                regionalExternalLbStr != null
+                    ? new ArrayList<>(Arrays.asList(regionalExternalLbStr.split(",")))
+                    : new ArrayList<>();
+            regionalExternalLbs.add(loadBalancerName);
+            instanceMetadata.put(
+                REGIONAL_EXTERNAL_LOAD_BALANCER_NAMES,
+                regionalExternalLbs.stream().distinct().collect(Collectors.joining(",")));
+          }
 
           String backendsStr = instanceMetadata.get(REGION_BACKEND_SERVICE_NAMES);
           List<String> bsNames =
@@ -1114,9 +1129,12 @@ public abstract class AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperatio
               REGION_BACKEND_SERVICE_NAMES,
               bsNames.stream().distinct().collect(Collectors.joining(",")));
         } else {
-          Map<String, String> instanceMetadata = new HashMap<>(2);
+          Map<String, String> instanceMetadata = new HashMap<>(3);
           instanceMetadata.put(REGIONAL_LOAD_BALANCER_NAMES, loadBalancerName);
           instanceMetadata.put(REGION_BACKEND_SERVICE_NAMES, backendService.getName());
+          if (isExternalManaged()) {
+            instanceMetadata.put(REGIONAL_EXTERNAL_LOAD_BALANCER_NAMES, loadBalancerName);
+          }
           templateOpMap.put("instanceMetadata", instanceMetadata);
         }
 

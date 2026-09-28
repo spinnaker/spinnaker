@@ -19,13 +19,20 @@ package com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.client.json.gson.GsonFactory
 import com.google.api.services.compute.Compute
+import com.google.api.services.compute.model.AttachedDisk
+import com.google.api.services.compute.model.AttachedDiskInitializeParams
 import com.google.api.services.compute.model.BackendService
 import com.google.api.services.compute.model.ForwardingRule
+import com.google.api.services.compute.model.InstanceGroupManager
+import com.google.api.services.compute.model.InstanceProperties
+import com.google.api.services.compute.model.InstanceTemplate
+import com.google.api.services.compute.model.NetworkInterface
 import com.google.api.services.compute.model.TargetHttpProxy
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
+import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.converters.UpsertGoogleLoadBalancerAtomicOperationConverter
@@ -36,17 +43,23 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleNetwork
 import com.netflix.spinnaker.clouddriver.google.model.GoogleSubnet
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleInternalHttpLoadBalancer
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancedBackend
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleNetworkProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSubnetProvider
 import com.netflix.spinnaker.clouddriver.google.security.FakeGoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.google.test.CapturingComputeTransport
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationConverter
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationsRegistry
+import com.netflix.spinnaker.clouddriver.orchestration.OrchestrationProcessor
 import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository
 import com.netflix.spinnaker.credentials.NoopCredentialsLifecycleHandler
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 import static com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.UpsertGoogleHttpLoadBalancerTestConstants.*
 
@@ -599,6 +612,82 @@ class UpsertGoogleExternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
     operation.registry = registry
     operation.safeRetry = safeRetry
     operation
+  }
+
+  @Unroll
+  void "fixBackendMetadata tags a listener added by the upsert only for #loadBalancerType"() {
+    setup:
+      def compute = Mock(Compute)
+      def regionInstanceGroupManagers = Mock(Compute.RegionInstanceGroupManagers)
+      def regionInstanceGroupManagersGet = Mock(Compute.RegionInstanceGroupManagers.Get)
+      def instanceTemplates = Mock(Compute.InstanceTemplates)
+      def instanceTemplatesGet = Mock(Compute.InstanceTemplates.Get)
+      def atomicOperationsRegistry = Mock(AtomicOperationsRegistry)
+      def converter = Mock(AtomicOperationConverter)
+      def orchestrationProcessor = Mock(OrchestrationProcessor)
+      def credentials = new GoogleNamedAccountCredentials.Builder()
+        .name(ACCOUNT_NAME)
+        .project(PROJECT_NAME)
+        .compute(compute)
+        .credentials(new FakeGoogleCredentials())
+        .build()
+      def operation = operationFactory(new UpsertGoogleLoadBalancerDescription())
+      operation.registry = registry
+      def backendService = new GoogleBackendService(
+        name: "managed-backend",
+        backends: [new GoogleLoadBalancedBackend(
+          serverGroupUrl: "https://compute.googleapis.com/compute/v1/projects/${PROJECT_NAME}/regions/${REGION}/instanceGroupManagers/app-v001")])
+      def templateMetadata = [(GCEUtil.REGIONAL_LOAD_BALANCER_NAMES): "listener-a"]
+      if (initialTag) {
+        templateMetadata[GCEUtil.REGIONAL_EXTERNAL_LOAD_BALANCER_NAMES] = initialTag
+      }
+      def template = new InstanceTemplate(
+        name: "app-v001-template",
+        properties: new InstanceProperties(
+          machineType: "e2-standard-2",
+          disks: [new AttachedDisk(
+            boot: true,
+            autoDelete: true,
+            initializeParams: new AttachedDiskInitializeParams(
+              sourceImage: "projects/debian-cloud/global/images/debian-12",
+              diskType: "pd-standard",
+              diskSizeGb: 10))],
+          networkInterfaces: [new NetworkInterface(network: "projects/${PROJECT_NAME}/global/networks/default")],
+          metadata: GCEUtil.buildMetadataFromMap(templateMetadata)))
+      Map templateOperation = null
+
+    when:
+      def fixBackendMetadata = AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperation.getDeclaredMethod(
+        "fixBackendMetadata",
+        Compute,
+        GoogleNamedAccountCredentials,
+        String,
+        AtomicOperationsRegistry,
+        OrchestrationProcessor,
+        String,
+        GoogleBackendService)
+      fixBackendMetadata.accessible = true
+      fixBackendMetadata.invoke(
+        operation, compute, credentials, PROJECT_NAME, atomicOperationsRegistry, orchestrationProcessor, "listener-b", backendService)
+
+    then:
+      1 * compute.regionInstanceGroupManagers() >> regionInstanceGroupManagers
+      1 * regionInstanceGroupManagers.get(PROJECT_NAME, REGION, "app-v001") >> regionInstanceGroupManagersGet
+      1 * regionInstanceGroupManagersGet.execute() >> new InstanceGroupManager(
+        instanceTemplate: "projects/${PROJECT_NAME}/global/instanceTemplates/app-v001-template")
+      1 * compute.instanceTemplates() >> instanceTemplates
+      1 * instanceTemplates.get(PROJECT_NAME, "app-v001-template") >> instanceTemplatesGet
+      1 * instanceTemplatesGet.execute() >> template
+      1 * atomicOperationsRegistry.getAtomicOperationConverter("modifyGoogleServerGroupInstanceTemplateDescription", "gce") >> converter
+      1 * converter.convertOperation(_) >> { Map input -> templateOperation = input; Mock(AtomicOperation) }
+      1 * orchestrationProcessor.process("gce", _, _)
+      templateOperation.instanceMetadata[GCEUtil.REGIONAL_LOAD_BALANCER_NAMES] == "listener-a,listener-b"
+      templateOperation.instanceMetadata[GCEUtil.REGIONAL_EXTERNAL_LOAD_BALANCER_NAMES] == expectedTag
+
+    where:
+      loadBalancerType   | operationFactory                                                          | initialTag   || expectedTag
+      "EXTERNAL_MANAGED" | { d -> new UpsertGoogleExternalHttpLoadBalancerAtomicOperation(d) }        | "listener-a" || "listener-a,listener-b"
+      "INTERNAL_MANAGED" | { d -> new UpsertGoogleInternalHttpLoadBalancerAtomicOperation(d) }        | null         || null
   }
 
   void "deleteRegionalListenerIfOwned ignores missing listener"() {
