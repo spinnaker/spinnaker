@@ -70,7 +70,6 @@ class UpsertGoogleRegionalExternalNetworkLoadBalancerAtomicOperation extends Goo
     def compute = description.credentials.compute
     def project = description.credentials.project
     def region = description.region
-    List<String> listenersToDelete = validateListenersToDeleteRequest()
     GoogleHealthCheck descriptionHealthCheck = description.backendService.healthCheck
     String backendServiceName = description.backendService.name
     String healthCheckName = descriptionHealthCheck.name
@@ -80,8 +79,6 @@ class UpsertGoogleRegionalExternalNetworkLoadBalancerAtomicOperation extends Goo
     ForwardingRule existingForwardingRule = GCEUtil.queryRegionalForwardingRule(project, description.loadBalancerName, compute, task, BASE_PHASE, this)
     String existingForwardingRuleBackendServiceName =
       GCEUtil.getLocalName(existingForwardingRule?.getBackendService())
-    String listenersToDeleteBackendServiceName =
-      existingForwardingRuleBackendServiceName ?: backendServiceName
     BackendService existingBackendService
     HealthCheck existingHealthCheck
 
@@ -105,17 +102,6 @@ class UpsertGoogleRegionalExternalNetworkLoadBalancerAtomicOperation extends Goo
           backendServiceName != existingForwardingRuleBackendServiceName ||
           (description.ipAddress && description.ipAddress != existingForwardingRule.getIPAddress()) ||
           (description.networkTier && description.networkTier != existingForwardingRule.getNetworkTier()))
-    }
-
-    List<String> existingListenersToDelete = listenersToDelete.findAll { String forwardingRuleName ->
-      ForwardingRule forwardingRule =
-        getRegionalForwardingRule(compute, project, region, forwardingRuleName)
-      if (!forwardingRule) {
-        return false
-      }
-      validateOwnedRegionalForwardingRule(
-        forwardingRule, forwardingRuleName, listenersToDeleteBackendServiceName)
-      return true
     }
 
     existingBackendService = safeRetry.doRetry(
@@ -247,10 +233,6 @@ class UpsertGoogleRegionalExternalNetworkLoadBalancerAtomicOperation extends Goo
       insertRegionalForwardingRule(compute, project, region, buildForwardingRule(project, region))
     }
 
-    existingListenersToDelete.each { String forwardingRuleName ->
-      deleteRegionalForwardingRule(compute, project, region, forwardingRuleName)
-    }
-
     task.updateStatus BASE_PHASE, "Done upserting load balancer $description.loadBalancerName in $region."
     return [loadBalancers: [(region): [name: description.loadBalancerName]]]
   }
@@ -265,73 +247,6 @@ class UpsertGoogleRegionalExternalNetworkLoadBalancerAtomicOperation extends Goo
       ports: description.ports,
       networkTier: description.networkTier
     )
-  }
-
-  private void deleteRegionalForwardingRule(compute, String project, String region, String forwardingRuleName) {
-    task.updateStatus BASE_PHASE, "Deleting listener ${forwardingRuleName}..."
-    Operation deleteForwardingRuleOp = safeRetry.doRetry(
-      { timeExecute(
-        compute.forwardingRules().delete(project, region, forwardingRuleName),
-        "compute.forwardingRules.delete",
-        TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region) },
-      "Regional forwarding rule $forwardingRuleName",
-      task,
-      [400, 412],
-      [404],
-      [action: "delete", phase: BASE_PHASE, operation: "compute.forwardingRules.delete", (TAG_SCOPE): SCOPE_REGIONAL, (TAG_REGION): region],
-      registry
-    ) as Operation
-
-    if (deleteForwardingRuleOp) {
-      googleOperationPoller.waitForRegionalOperation(compute, project, region, deleteForwardingRuleOp.getName(),
-        30, task, "Regional forwarding rule $forwardingRuleName", BASE_PHASE)
-    }
-  }
-
-  private ForwardingRule getRegionalForwardingRule(
-    compute, String project, String region, String forwardingRuleName) {
-    safeRetry.doRetry(
-      { timeExecute(
-        compute.forwardingRules().get(project, region, forwardingRuleName),
-        "compute.forwardingRules.get",
-        TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region) },
-      "Regional forwarding rule $forwardingRuleName",
-      task,
-      [400, 412],
-      [404],
-      [action: "get", phase: BASE_PHASE, operation: "compute.forwardingRules.get", (TAG_SCOPE): SCOPE_REGIONAL, (TAG_REGION): region],
-      registry
-    ) as ForwardingRule
-  }
-
-  private void validateOwnedRegionalForwardingRule(
-    ForwardingRule forwardingRule,
-    String forwardingRuleName,
-    String expectedBackendServiceName) {
-    if (!GCEUtil.isRegionalExternalNetworkPassthroughForwardingRule(forwardingRule) ||
-      GCEUtil.getLocalName(forwardingRule.backendService) != expectedBackendServiceName) {
-      throw new GoogleOperationException(
-        "Listener $forwardingRuleName is not owned by regional external network load balancer $description.loadBalancerName.")
-    }
-  }
-
-  private List<String> validateListenersToDeleteRequest() {
-    List<String> listenersToDelete = description.listenersToDelete ?: []
-    Set<String> uniqueListeners = []
-    listenersToDelete.each { String forwardingRuleName ->
-      if (!forwardingRuleName?.trim()) {
-        throw new GoogleOperationException("listenersToDelete contains a blank listener name.")
-      }
-      if (forwardingRuleName == description.loadBalancerName) {
-        throw new GoogleOperationException(
-          "listenersToDelete cannot contain the current listener $description.loadBalancerName.")
-      }
-      if (!uniqueListeners.add(forwardingRuleName)) {
-        throw new GoogleOperationException(
-          "listenersToDelete contains duplicate listener $forwardingRuleName.")
-      }
-    }
-    listenersToDelete.asImmutable()
   }
 
   private void rejectImmutableListenerChange(ForwardingRule existingRule, boolean changed) {

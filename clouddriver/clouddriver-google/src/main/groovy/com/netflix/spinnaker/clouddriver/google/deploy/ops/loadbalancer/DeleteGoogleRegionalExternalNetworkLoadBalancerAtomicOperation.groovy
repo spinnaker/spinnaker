@@ -37,7 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired
  * service, and optionally the regional health check when the request allows health-check cleanup.
  */
 @Slf4j
-class DeleteGoogleRegionalExternalNetworkLoadBalancerAtomicOperation extends GoogleAtomicOperation<Void> {
+class DeleteGoogleRegionalExternalNetworkLoadBalancerAtomicOperation extends GoogleAtomicOperation<Map<String, Object>> {
   private static final String BASE_PHASE = "DELETE_REGIONAL_EXTERNAL_NETWORK_LOAD_BALANCER"
 
   @Autowired
@@ -62,7 +62,7 @@ class DeleteGoogleRegionalExternalNetworkLoadBalancerAtomicOperation extends Goo
   }
 
   @Override
-  Void operate(List priorOutputs) {
+  Map<String, Object> operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing deletion of load balancer $description.loadBalancerName in $description.region..."
 
     if (!description.credentials) {
@@ -180,6 +180,6 @@ class DeleteGoogleRegionalExternalNetworkLoadBalancerAtomicOperation extends Goo
     }
 
     task.updateStatus BASE_PHASE, "Done deleting load balancer $description.loadBalancerName in $region."
-    null
+    return [deletedLoadBalancerNames: listenersToDelete]
   }
 }

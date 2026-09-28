@@ -71,9 +71,11 @@ class DeleteGoogleRegionalExternalNetworkLoadBalancerAtomicOperationUnitSpec ext
       @Subject def operation = operation(description)
 
     when:
-      operation.operate([])
+      def result = operation.operate([])
 
     then:
+      // Orca evicts exactly these names, so every sibling listener deleted here must be reported.
+      result == [deletedLoadBalancerNames: [LOAD_BALANCER, OTHER_LISTENER]]
       3 * compute.forwardingRules() >> forwardingRules
       1 * forwardingRules.list(PROJECT, REGION) >> forwardingRulesList
       1 * forwardingRulesList.execute() >> new ForwardingRuleList(items: [
