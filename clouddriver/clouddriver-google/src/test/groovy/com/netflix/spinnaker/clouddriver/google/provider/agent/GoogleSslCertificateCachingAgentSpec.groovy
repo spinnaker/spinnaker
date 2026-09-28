@@ -71,7 +71,7 @@ class GoogleSslCertificateCachingAgentSpec extends Specification {
     then:
     1 * compute.sslCertificates() >> sslCertificates
     1 * sslCertificates.list(PROJECT) >> sslCertificatesList
-    1 * sslCertificatesList.setPageToken(null) >> sslCertificatesList
+    0 * sslCertificatesList.setPageToken(_)
     1 * sslCertificatesList.execute() >> new SslCertificateList(items: [new SslCertificate(name: "global-cert")])
     0 * compute.regionSslCertificates()
 

@@ -348,8 +348,8 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
 
     def isDisabled = true
     // TODO: Extend this for future load balancers that calculate disabled state after caching.
-    def anyDisabledStates = internalDisabledStates || httpDisabledStates || internalHttpDisabledStates || externalHttpDisabledStates || regionalExternalNetworkDisabledStates || sslDisabledStates || tcpDisabledStates
-    def disabledStatesSizeMatch = internalDisabledStates.size() + httpDisabledStates.size() + internalHttpDisabledStates.size() + externalHttpDisabledStates.size() + regionalExternalNetworkDisabledStates.size() + sslDisabledStates.size() + tcpDisabledStates.size() == loadBalancers.size()
+    def anyDisabledStates = internalDisabledStates || httpDisabledStates || externalHttpDisabledStates || regionalExternalNetworkDisabledStates || sslDisabledStates || tcpDisabledStates
+    def disabledStatesSizeMatch = internalDisabledStates.size() + httpDisabledStates.size() + externalHttpDisabledStates.size() + regionalExternalNetworkDisabledStates.size() + sslDisabledStates.size() + tcpDisabledStates.size() == loadBalancers.size()
     def excludesNetwork = anyDisabledStates && disabledStatesSizeMatch
 
     if (httpDisabledStates) {

@@ -88,20 +88,9 @@ class GoogleSslCertificateCachingAgent extends AbstractGoogleCachingAgent  {
         "compute.regionSslCertificates.list",
         TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
     }
-    return new PaginatedRequest<SslCertificateList>(this) {
-      @Override
-      protected ComputeRequest<SslCertificateList> request(String pageToken) {
-        compute.sslCertificates().list(project).setPageToken(pageToken)
-      }
-
-      @Override
-      protected String getNextPageToken(SslCertificateList page) {
-        page?.nextPageToken
-      }
-    }.timeExecute(
-      { SslCertificateList page -> page?.items },
-      "compute.sslCertificates.list",
-      TAG_SCOPE, SCOPE_GLOBAL)
+    timeExecute(compute.sslCertificates().list(project),
+                "compute.sslCertificates.list", TAG_SCOPE, SCOPE_GLOBAL
+    ).items as List
   }
 
   private CacheResult buildCacheResult(ProviderCache _, List<SslCertificate> sslCertificateList) {
