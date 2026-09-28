@@ -206,6 +206,75 @@ describe('GceRegionalExternalNetworkLoadBalancerEditor', () => {
     });
   });
 
+  it('drops the selected address when the account or region changes', () => {
+    const command = normalizeGceRegionalExternalNetworkLoadBalancerCommand(
+      { account: 'account-a', ipAddress: '35.1.2.3', loadBalancerName: 'app-main', region: 'europe-west1' },
+      'create',
+    );
+    const onChange = jasmine.createSpy('onChange');
+    const wrapper = shallow(
+      <GceRegionalExternalNetworkLoadBalancerEditor command={command} data={emptyData()} onChange={onChange} />,
+    );
+
+    wrapper.find('[data-field="credentials"] select').simulate('change', { target: { value: 'account-b' } });
+    expect(onChange.calls.mostRecent().args[0].credentials).toBe('account-b');
+    expect(onChange.calls.mostRecent().args[0].listeners[0].address).toBeUndefined();
+
+    wrapper.find('[data-field="region"] select').simulate('change', { target: { value: 'us-central1' } });
+    expect(onChange.calls.mostRecent().args[0].region).toBe('us-central1');
+    expect(onChange.calls.mostRecent().args[0].listeners[0].address).toBeUndefined();
+  });
+
+  it('lets an ephemeral address choose its network tier and derives it from a reserved address', () => {
+    const onChange = jasmine.createSpy('onChange');
+    const ephemeral = normalizeGceRegionalExternalNetworkLoadBalancerCommand(
+      { account: 'account-a', loadBalancerName: 'app-main', region: 'europe-west1' },
+      'create',
+    );
+    const ephemeralTier = shallow(
+      <GceRegionalExternalNetworkLoadBalancerEditor command={ephemeral} data={emptyData()} onChange={onChange} />,
+    ).find('[data-field="networkTier"] select');
+
+    expect(ephemeralTier.prop('disabled')).toBe(false);
+    expect(ephemeralTier.find('option').map((option) => option.prop('value'))).toEqual(['PREMIUM', 'STANDARD']);
+    ephemeralTier.simulate('change', { target: { value: 'STANDARD' } });
+    expect(onChange.calls.mostRecent().args[0].networkTier).toBe('STANDARD');
+
+    const reserved = normalizeGceRegionalExternalNetworkLoadBalancerCommand(
+      { account: 'account-a', ipAddress: '35.1.2.3', loadBalancerName: 'app-main', region: 'europe-west1' },
+      'create',
+    );
+    expect(
+      shallow(
+        <GceRegionalExternalNetworkLoadBalancerEditor command={reserved} data={emptyData()} onChange={onChange} />,
+      )
+        .find('[data-field="networkTier"] select')
+        .prop('disabled'),
+    ).toBe(true);
+  });
+
+  it('associates every field label with its control', () => {
+    const command = normalizeGceRegionalExternalNetworkLoadBalancerCommand(
+      { account: 'account-a', loadBalancerName: 'app-main', region: 'europe-west1' },
+      'create',
+    );
+    const wrapper = shallow(
+      <GceRegionalExternalNetworkLoadBalancerEditor
+        command={command}
+        data={emptyData()}
+        onChange={jasmine.createSpy()}
+      />,
+    );
+
+    const labels = wrapper.find('label');
+    expect(labels.length).toBeGreaterThan(0);
+    labels.forEach((label) => {
+      const id = label.prop('htmlFor');
+      expect(id).toBeTruthy();
+      expect(wrapper.find(`#${id}`).length).toBe(1);
+    });
+  });
+
   it('validates required discrete ports, protocol, health check, and supported session affinity', () => {
     const command = normalizeGceRegionalExternalNetworkLoadBalancerCommand(
       {

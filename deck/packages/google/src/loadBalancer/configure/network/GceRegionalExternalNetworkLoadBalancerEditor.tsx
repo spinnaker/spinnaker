@@ -49,6 +49,7 @@ const SESSION_AFFINITIES: GceRegionalExternalNetworkSessionAffinity[] = [
   'CLIENT_IP_PORT_PROTO',
 ];
 const PROTOCOLS: GceLoadBalancerProtocol[] = ['TCP', 'UDP'];
+const NETWORK_TIERS = ['PREMIUM', 'STANDARD'];
 const MAX_PORTS = 5;
 
 export function createGceRegionalExternalNetworkHealthCheck(name: string): IGceLoadBalancerHealthCheck {
@@ -151,6 +152,9 @@ export function GceRegionalExternalNetworkLoadBalancerEditor({
 
   const update = (updates: Partial<IGceRegionalExternalNetworkLoadBalancerCommand>): void =>
     onChange({ ...command, ...updates } as IGceRegionalExternalNetworkLoadBalancerCommand);
+  // Reserved addresses belong to one account and region, so a scope change drops the selection.
+  const updateScope = (updates: Partial<IGceRegionalExternalNetworkLoadBalancerCommand>): void =>
+    update({ ...updates, listeners: [{ ...listener, address: undefined }] });
   const updateListener = (updates: Partial<typeof listener>): void =>
     update({ listeners: [{ ...listener, ...updates }] });
   const updateBackend = (updates: Record<string, unknown>): void =>
@@ -200,10 +204,10 @@ export function GceRegionalExternalNetworkLoadBalancerEditor({
         'credentials',
         command.credentials,
         options.accounts,
-        (credentials) => update({ credentials }),
+        (credentials) => updateScope({ credentials }),
         editing,
       )}
-      {selectField('Region', 'region', command.region, options.regions, (region) => update({ region }), editing)}
+      {selectField('Region', 'region', command.region, options.regions, (region) => updateScope({ region }), editing)}
       {selectField(
         'IP address',
         'address',
@@ -213,7 +217,16 @@ export function GceRegionalExternalNetworkLoadBalancerEditor({
         editing,
         (item) => item.address || item.name,
       )}
-      {textField('Network tier', 'networkTier', command.networkTier || '', () => undefined, true)}
+      {selectField(
+        'Network tier',
+        'networkTier',
+        command.networkTier || 'PREMIUM',
+        NETWORK_TIERS.map((name) => ({ name })),
+        (networkTier) => update({ networkTier }),
+        editing || Boolean(listener.address),
+        ({ name }) => name,
+        false,
+      )}
       {selectField(
         'Protocol',
         'protocol',
@@ -254,11 +267,14 @@ function textField(
 ): JSX.Element {
   return (
     <div className="form-group" data-field={field}>
-      <label className="col-md-3 sm-label-right">{label}</label>
+      <label className="col-md-3 sm-label-right" htmlFor={controlId(field)}>
+        {label}
+      </label>
       <div className="col-md-7">
         <input
           className="form-control input-sm"
           disabled={disabled}
+          id={controlId(field)}
           onChange={(event) => onChange(event.target.value)}
           value={value || ''}
         />
@@ -275,10 +291,13 @@ function numberField(
 ): JSX.Element {
   return (
     <div className="form-group" data-field={field}>
-      <label className="col-md-3 sm-label-right">{label}</label>
+      <label className="col-md-3 sm-label-right" htmlFor={controlId(field)}>
+        {label}
+      </label>
       <div className="col-md-7">
         <input
           className="form-control input-sm"
+          id={controlId(field)}
           inputMode="numeric"
           onChange={(event) =>
             onChange(
@@ -309,11 +328,14 @@ function selectField(
 ): JSX.Element {
   return (
     <div className="form-group" data-field={field}>
-      <label className="col-md-3 sm-label-right">{label}</label>
+      <label className="col-md-3 sm-label-right" htmlFor={controlId(field)}>
+        {label}
+      </label>
       <div className="col-md-7">
         <select
           className="form-control input-sm"
           disabled={disabled}
+          id={controlId(field)}
           onChange={(event) => onChange(event.target.value)}
           value={value || ''}
         >
@@ -330,6 +352,10 @@ function selectField(
       </div>
     </div>
   );
+}
+
+function controlId(field: string): string {
+  return `gce-regional-external-network-${field}`;
 }
 
 function references<T extends IGceLoadBalancerDataItem>(referenceValue?: T): T[] {
