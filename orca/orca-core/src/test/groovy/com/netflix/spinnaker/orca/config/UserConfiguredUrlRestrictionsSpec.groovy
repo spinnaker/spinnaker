@@ -1,26 +1,26 @@
 package com.netflix.spinnaker.orca.config
 
+import com.google.common.net.InetAddresses
+import com.netflix.spinnaker.kork.web.url.UrlRestrictions
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import java.net.InetAddress
+
 class UserConfiguredUrlRestrictionsSpec extends Specification {
 
-  // Don't try to actually resolve hosts, and control the result of determining whether a host is localhost or link local
-  def spyOn(UserConfiguredUrlRestrictions subject, isLocalhost = false, isLinkLocal = false, isValidIpAddress = true) {
-    def spy = Spy(subject)
-    spy.resolveHost(_) >> null
-    spy.isLocalhost(_) >> isLocalhost
-    spy.isLinkLocal(_) >> isLinkLocal
-    spy.isValidIpAddress(_) >> isValidIpAddress
-    spy
+  // Don't try to actually resolve hosts: IP literals resolve to themselves, names to a public address
+  UserConfiguredUrlRestrictions withoutDns(UserConfiguredUrlRestrictions.Builder builder) {
+    builder.withHostResolver({ String host ->
+      [InetAddresses.isInetAddress(host) ? InetAddresses.forString(host) : InetAddresses.forString("93.184.215.14")] as InetAddress[]
+    } as UrlRestrictions.HostResolver).build()
   }
 
   @Unroll
   def 'should verify uri #uri as per restrictions provided'() {
     given:
-    UserConfiguredUrlRestrictions config = spyOn(new UserConfiguredUrlRestrictions.Builder()
-         .withAllowedHostnamesRegex('^(.+).(.+).com(.*)$')
-         .build())
+    UserConfiguredUrlRestrictions config = withoutDns(new UserConfiguredUrlRestrictions.Builder()
+         .withAllowedHostnamesRegex('^(.+).(.+).com(.*)$'))
 
     when:
     URI validatedUri = config.validateURI(uri)
@@ -36,9 +36,8 @@ class UserConfiguredUrlRestrictionsSpec extends Specification {
   @Unroll
   def 'should verify allowedHostnamesRegex is set'() {
     given:
-    UserConfiguredUrlRestrictions config = spyOn(new UserConfiguredUrlRestrictions.Builder()
-        .withAllowedHostnamesRegex("")
-        .build())
+    UserConfiguredUrlRestrictions config = withoutDns(new UserConfiguredUrlRestrictions.Builder()
+        .withAllowedHostnamesRegex(""))
 
     when:
     config.validateURI(uri)
@@ -53,7 +52,7 @@ class UserConfiguredUrlRestrictionsSpec extends Specification {
   @Unroll
   def 'should exclude common internal URL schemes by default'() {
     given:
-    UserConfiguredUrlRestrictions config = spyOn(new UserConfiguredUrlRestrictions.Builder().build())
+    UserConfiguredUrlRestrictions config = withoutDns(new UserConfiguredUrlRestrictions.Builder())
 
     when:
     config.validateURI(uri)
@@ -95,7 +94,7 @@ class UserConfiguredUrlRestrictionsSpec extends Specification {
   @Unroll
   def 'should allow non-internal URLs by default'() {
     given:
-    UserConfiguredUrlRestrictions config = spyOn(new UserConfiguredUrlRestrictions.Builder().build())
+    UserConfiguredUrlRestrictions config = withoutDns(new UserConfiguredUrlRestrictions.Builder())
 
     when:
     URI validatedUri = config.validateURI(uri)
@@ -147,7 +146,7 @@ class UserConfiguredUrlRestrictionsSpec extends Specification {
   @Unroll
   def 'rejects verbatim IP addresses by default'() {
     given:
-    UserConfiguredUrlRestrictions config = spyOn(new UserConfiguredUrlRestrictions.Builder().build())
+    UserConfiguredUrlRestrictions config = withoutDns(new UserConfiguredUrlRestrictions.Builder())
 
     when:
     config.validateURI(uri)
@@ -169,7 +168,7 @@ class UserConfiguredUrlRestrictionsSpec extends Specification {
   @Unroll
   def 'validate authority bypass is rejected when hostname does not match'() {
     given:
-    UserConfiguredUrlRestrictions config = spyOn(new UserConfiguredUrlRestrictions.Builder().withAllowedHostnamesRegex("example.com").build())
+    UserConfiguredUrlRestrictions config = withoutDns(new UserConfiguredUrlRestrictions.Builder().withAllowedHostnamesRegex("example.com"))
 
     when:
     config.validateURI(uri)
@@ -185,7 +184,7 @@ class UserConfiguredUrlRestrictionsSpec extends Specification {
   @Unroll
   def 'validate authority bypass is allowed when hostname matches'() {
     given:
-    UserConfiguredUrlRestrictions config = spyOn(new UserConfiguredUrlRestrictions.Builder().withAllowedHostnamesRegex("host_with_underscore.com").build())
+    UserConfiguredUrlRestrictions config = withoutDns(new UserConfiguredUrlRestrictions.Builder().withAllowedHostnamesRegex("host_with_underscore.com"))
 
     when:
     URI validatedUri = config.validateURI(uri)
@@ -203,9 +202,8 @@ class UserConfiguredUrlRestrictionsSpec extends Specification {
   @Unroll
   def 'allows verbatim IP addresses if configured'() {
     given:
-    UserConfiguredUrlRestrictions config = spyOn(new UserConfiguredUrlRestrictions.Builder()
-        .withRejectVerbatimIps(false)
-        .build())
+    UserConfiguredUrlRestrictions config = withoutDns(new UserConfiguredUrlRestrictions.Builder()
+        .withRejectVerbatimIps(false))
 
     when:
     URI validatedUri = config.validateURI(uri)
@@ -233,12 +231,11 @@ class UserConfiguredUrlRestrictionsSpec extends Specification {
     given:
     UserConfiguredUrlRestrictions.Builder builder = Spy(new UserConfiguredUrlRestrictions.Builder())
     builder.getEnvValue(envVar) >> envVal
-    UserConfiguredUrlRestrictions config = spyOn(builder
+    UserConfiguredUrlRestrictions config = withoutDns(builder
         .withExcludedDomainsFromEnvironment(List.of(
             "POD_NAMESPACE",
             "ISTIO_META_MESH_ID"
-        ))
-        .build())
+        )))
 
     when:
     def isValidated = true
@@ -265,10 +262,9 @@ class UserConfiguredUrlRestrictionsSpec extends Specification {
   @Unroll
   def 'excludes based on arbitrary extra patterns'() {
     given:
-    UserConfiguredUrlRestrictions config = spyOn(new UserConfiguredUrlRestrictions.Builder()
+    UserConfiguredUrlRestrictions config = withoutDns(new UserConfiguredUrlRestrictions.Builder()
         // Test patterns that exclude any number and any hyphen
-        .withExtraExcludedPatterns(List.of(".+\\d+.+", ".+-+.+"))
-        .build())
+        .withExtraExcludedPatterns(List.of(".+\\d+.+", ".+-+.+")))
 
     when:
     config.validateURI(uri)
@@ -286,9 +282,8 @@ class UserConfiguredUrlRestrictionsSpec extends Specification {
   @Unroll
   def 'validate normal URLs when arbitrary extra patterns are specified'() {
     given:
-    UserConfiguredUrlRestrictions config = spyOn(new UserConfiguredUrlRestrictions.Builder()
-        .withExtraExcludedPatterns(List.of("\\d+", "-+"))
-        .build())
+    UserConfiguredUrlRestrictions config = withoutDns(new UserConfiguredUrlRestrictions.Builder()
+        .withExtraExcludedPatterns(List.of("\\d+", "-+")))
 
     when:
     URI validatedUri = config.validateURI(uri)
