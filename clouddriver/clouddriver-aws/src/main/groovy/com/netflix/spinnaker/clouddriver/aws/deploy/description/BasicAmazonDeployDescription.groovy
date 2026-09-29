@@ -150,6 +150,30 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
   Boolean enableEnclave
 
   /**
+   * Idle timeout (seconds) for tracked TCP connections in an established state on the primary
+   * network interface. Valid range: 60 - 432000. When null, the AWS default applies: 350 seconds
+   * on Nitro v6 instance types (excluding P6e-GB200), 432000 seconds on all other instance types.
+   * This is a Launch Template only feature.
+   * * https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ConnectionTrackingSpecificationRequest.html
+   */
+  Integer tcpEstablishedTimeout
+
+  /**
+   * Idle timeout (seconds) for tracked UDP flows classified as streams on the primary network
+   * interface. Valid range: 60 - 180. When null, the AWS default (180 seconds) applies.
+   * This is a Launch Template only feature.
+   */
+  Integer udpStreamTimeout
+
+  /**
+   * Idle timeout (seconds) for tracked UDP flows that have seen traffic in a single direction or a
+   * single request-response transaction. Valid range: 30 - 60. When null, the AWS default
+   * (30 seconds) applies.
+   * This is a Launch Template only feature.
+   */
+  Integer udpTimeout
+
+  /**
    * Launch template placement details, see {@link software.amazon.awssdk.services.ec2.model.LaunchTemplatePlacementRequest}.
    */
   LaunchTemplatePlacement placement
@@ -212,7 +236,8 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
     return ["requireIMDSv2", "associateIPv6Address", "unlimitedCpuCredits",
             "placement", "licenseSpecifications", "onDemandAllocationStrategy",
             "onDemandBaseCapacity", "onDemandPercentageAboveBaseCapacity", "spotAllocationStrategy",
-            "spotInstancePools", "launchTemplateOverridesForInstanceType", "enableEnclave"].toSet()
+            "spotInstancePools", "launchTemplateOverridesForInstanceType", "enableEnclave",
+            "tcpEstablishedTimeout", "udpStreamTimeout", "udpTimeout"].toSet()
   }
 
   static Set<String> getMixedInstancesPolicyFieldNames() {
