@@ -41,6 +41,12 @@ public class KubernetesAtomicOperationDescription
 
   KubernetesNamedAccountCredentials credentials;
 
+  @JsonProperty("provenance.deployedBy")
+  private String deployedBy;
+
+  @JsonProperty("provenance.executionId")
+  private String executionId;
+
   @Override
   public boolean requiresApplicationRestriction() {
     return false;
