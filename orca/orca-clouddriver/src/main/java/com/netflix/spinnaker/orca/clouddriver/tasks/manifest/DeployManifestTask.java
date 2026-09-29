@@ -73,6 +73,8 @@ public final class DeployManifestTask implements CloudProviderAware, Task {
       task.put("enableTraffic", true);
     }
 
+    ManifestProvenance.addProvenance(task, stage);
+
     return ImmutableMap.of(TASK_NAME, task);
   }
 
