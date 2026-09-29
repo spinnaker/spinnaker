@@ -35,6 +35,8 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import retrofit2.mock.Calls;
 
 final class WaitForManifestStableTaskTest {
@@ -333,6 +335,58 @@ final class WaitForManifestStableTaskTest {
     assertThat(task.getDynamicTimeout(stage)).isEqualTo(TimeUnit.MINUTES.toMillis(45));
   }
 
+  @Test
+  void failureMessageFromTheClusterIsRenderedLiterally() {
+    OortService oortService = mock(OortService.class);
+    WaitForManifestStableTask task = new WaitForManifestStableTask(oortService);
+
+    StageExecutionImpl myStage =
+        createStageWithManifests(ImmutableMap.of(NAMESPACE, ImmutableList.of(MANIFEST_1)));
+
+    String clusterMessage =
+        "Degraded: [details](https://example.com)\n\n![x](https://example.com/x.png)";
+    Manifest.Status status =
+        Manifest.Status.builder()
+            .stable(Manifest.Condition.emptyFalse())
+            .failed(new Manifest.Condition(true, clusterMessage))
+            .build();
+    when(oortService.getManifest(ACCOUNT, NAMESPACE, MANIFEST_1, false))
+        .thenReturn(Calls.response(Manifest.builder().status(status).build()));
+
+    TaskResult result = task.execute(myStage);
+
+    String expected =
+        String.format(
+            "'%s' in '%s' for account %s: `Degraded: [details](https://example.com) ![x](https://example.com/x.png)`",
+            MANIFEST_1, NAMESPACE, ACCOUNT);
+    AssertionsForClassTypes.assertThat(result.getStatus()).isEqualTo(ExecutionStatus.TERMINAL);
+    assertThat(getMessages(result)).containsExactly(expected);
+    assertThat(getErrors(result)).containsExactly(expected);
+  }
+
+  @ParameterizedTest
+  @CsvSource(
+      delimiter = '|',
+      value = {
+        "plain text | `plain text`",
+        "uses `kubectl` here | ``uses `kubectl` here``",
+        "```fenced``` and `one` | ```` ```fenced``` and `one` ````",
+        "`starts with a tick | `` `starts with a tick ``",
+        "ends with a tick` | `` ends with a tick` ``",
+        "<b>html</b> & *emphasis* | `<b>html</b> & *emphasis*`",
+      })
+  void asInlineCodeProducesALiteralCodeSpan(String message, String expected) {
+    assertThat(WaitForManifestStableTask.asInlineCode(message)).isEqualTo(expected);
+  }
+
+  @Test
+  void asInlineCodeFlattensLineBreaksAndLeavesEmptyMessagesAlone() {
+    assertThat(WaitForManifestStableTask.asInlineCode("first\r\n\nsecond"))
+        .isEqualTo("`first second`");
+    assertThat(WaitForManifestStableTask.asInlineCode(null)).isNull();
+    assertThat(WaitForManifestStableTask.asInlineCode("  ")).isEqualTo("  ");
+  }
+
   private static String waitingToStabilizeMessage(String manifest) {
     return String.format(
         "'%s' in '%s' for account %s: waiting for manifest to stabilize",
@@ -341,7 +395,7 @@ final class WaitForManifestStableTaskTest {
 
   private static String failedMessage(String manifest) {
     return String.format(
-        "'%s' in '%s' for account %s: manifest failed", manifest, NAMESPACE, ACCOUNT);
+        "'%s' in '%s' for account %s: `manifest failed`", manifest, NAMESPACE, ACCOUNT);
   }
 
   private StageExecutionImpl createStageWithManifests(
