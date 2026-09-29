@@ -76,6 +76,8 @@ public class HelmfileTemplateUtils extends HelmBakeTemplateUtils<HelmfileBakeMan
   private static final String ARGS_KEY = "args";
   private static final String RELEASES_KEY = "releases";
   private static final String BASES_KEY = "bases";
+  private static final String HELMFILES_KEY = "helmfiles";
+  private static final String HELMFILES_PATH_KEY = "path";
   private static final List<String> HELMFILE_FILE_NAMES = List.of("helmfile.yaml", "helmfile.yml");
 
   private final RoscoHelmfileConfigurationProperties helmfileConfigurationProperties;
@@ -214,6 +216,19 @@ public class HelmfileTemplateUtils extends HelmBakeTemplateUtils<HelmfileBakeMan
 
     result.setCommand(command);
 
+    if (!helmfileConfigurationProperties.isAllowHooksAndPostRenderers()) {
+      // hooks:/postRenderers: are guarded above by static YAML inspection, but helmfile's
+      // exec/envExec/readFile/readDir/readDirEntries template functions - and its fetching of
+      // remote bases:/helmfiles:/values:/chart repos - are neither expressible as a YAML key
+      // rosco can look for nor blocked by that guard. These two env vars are helmfile's own
+      // opt-in flags for disabling exactly those features; set them on the subprocess unless the
+      // operator has already opted this helmfile source into full trust.
+      result.setEnv(
+          Map.of(
+              "HELMFILE_DISABLE_HOOKS", "true",
+              "HELMFILE_DISABLE_INSECURE_FEATURES", "true"));
+    }
+
     return result;
   }
 
@@ -236,9 +251,12 @@ public class HelmfileTemplateUtils extends HelmBakeTemplateUtils<HelmfileBakeMan
    * helmfile.yaml can't get code execution on the rosco host.
    *
    * <p>This walks the entry file (or, if helmfileFilePath is a directory, the helmfile.yaml/
-   * helmfile.yml/helmfile.d it resolves to) plus any locally-referenced `bases:`. Remote or
-   * templated bases can't be resolved statically here and are skipped with a warning - helmfile
-   * will still fetch and run them itself.
+   * helmfile.yml/helmfile.d it resolves to) plus any locally-referenced `bases:`/`helmfiles:`.
+   * Content this guard can't fully resolve and inspect - a remote or templated `bases:`/
+   * `helmfiles:` reference, or a file that fails to parse as YAML (e.g. nested past SnakeYAML's
+   * default depth limit, or containing unresolved Go template control-flow syntax) - is rejected
+   * outright rather than skipped, since rosco can't vouch for content it never examined and
+   * helmfile's own parser has no equivalent limits.
    */
   private void rejectHooksAndPostRenderers(Path helmfileFilePath) {
     for (Path yamlFile : findHelmfileYamlFiles(helmfileFilePath)) {
@@ -298,9 +316,13 @@ public class HelmfileTemplateUtils extends HelmBakeTemplateUtils<HelmfileBakeMan
       }
       doc = (Map<String, Object>) loaded;
     } catch (IOException | RuntimeException e) {
-      // Malformed/unreadable YAML isn't this guard's job to report; helmfile will fail on it.
-      log.debug("Skipping hook/postRenderer validation of {}: {}", file, e.toString());
-      return;
+      // This guard can only vouch for content it could fully parse and inspect. Content that
+      // fails to parse here - whether genuinely malformed, nested past SnakeYAML's default
+      // 50-level limit, or containing Go template control-flow syntax (e.g. "{{- if }}") that
+      // isn't valid YAML until helmfile's own templating pass resolves it - could just as easily
+      // be hiding a hooks/postRenderers declaration helmfile's own (unlimited-depth) parser would
+      // still execute. Refuse to bake it rather than silently skipping validation.
+      throw hookRejection(file, "content that rosco could not fully parse (" + e.toString() + ")");
     }
 
     checkForHooksAndPostRenderers(doc, file);
@@ -314,28 +336,57 @@ public class HelmfileTemplateUtils extends HelmBakeTemplateUtils<HelmfileBakeMan
       }
     }
 
-    Object bases = doc.get(BASES_KEY);
-    if (bases instanceof List) {
-      for (Object base : (List<?>) bases) {
-        if (!(base instanceof String)) {
+    for (String refBase : resolveLocalReferences(doc.get(BASES_KEY), file)) {
+      validateHelmfileYamlFile(Path.of(refBase), visited);
+    }
+    for (String refHelmfile : resolveLocalReferences(doc.get(HELMFILES_KEY), file)) {
+      validateHelmfileYamlFile(Path.of(refHelmfile), visited);
+    }
+  }
+
+  /**
+   * Resolves the local-file entries of a {@code bases:} or {@code helmfiles:} list against {@code
+   * file}'s parent directory, rejecting the bake outright if any entry is remote or templated
+   * rather than silently skipping it - rosco has no way to inspect content it never fetches, so it
+   * can't vouch for a helmfile that references such content unless the operator has explicitly
+   * opted in via {@code helmfile.allow-hooks-and-post-renderers}.
+   *
+   * <p>{@code helmfiles:} entries may be a bare string path or a map with a {@code path} key;
+   * {@code bases:} entries are always bare strings.
+   */
+  @SuppressWarnings("unchecked")
+  private List<String> resolveLocalReferences(Object refsValue, Path file) {
+    if (!(refsValue instanceof List)) {
+      return List.of();
+    }
+    List<String> resolved = new ArrayList<>();
+    for (Object ref : (List<?>) refsValue) {
+      String refPath;
+      if (ref instanceof String) {
+        refPath = (String) ref;
+      } else if (ref instanceof Map) {
+        Object pathValue = ((Map<String, Object>) ref).get(HELMFILES_PATH_KEY);
+        if (!(pathValue instanceof String)) {
           continue;
         }
-        String baseRef = (String) base;
-        if (isUnresolvableReference(baseRef)) {
-          log.warn(
-              "helmfile bake: base '{}' referenced from {} is a remote or templated reference "
-                  + "and could not be checked for hooks/postRenderers here; only locally-resolvable "
-                  + "bases are validated before baking.",
-              baseRef,
-              file);
-          continue;
-        }
-        Path basePath = file.getParent().resolve(baseRef).normalize();
-        if (Files.exists(basePath)) {
-          validateHelmfileYamlFile(basePath, visited);
-        }
+        refPath = (String) pathValue;
+      } else {
+        continue;
+      }
+
+      if (isUnresolvableReference(refPath)) {
+        throw hookRejection(
+            file,
+            "a remote or templated reference ('"
+                + refPath
+                + "') whose content rosco cannot fetch and inspect for hooks/postRenderers");
+      }
+      Path resolvedPath = file.getParent().resolve(refPath).normalize();
+      if (Files.exists(resolvedPath)) {
+        resolved.add(resolvedPath.toString());
       }
     }
+    return resolved;
   }
 
   @SuppressWarnings("unchecked")
@@ -383,12 +434,12 @@ public class HelmfileTemplateUtils extends HelmBakeTemplateUtils<HelmfileBakeMan
     return new IllegalArgumentException(
         "The helmfile content at "
             + file
-            + " declares "
+            + " contains "
             + what
-            + ", which helmfile executes as an arbitrary local command/script even during "
-            + "'helmfile template'. Rosco refuses to bake this helmfile by default because its "
-            + "content may not be as trusted as the pipeline referencing it. If you trust this "
-            + "source, set helmfile.allow-hooks-and-post-renderers: true in rosco's "
-            + "configuration.");
+            + ". Rosco refuses to bake helmfile content it cannot fully validate for "
+            + "hooks/postRenderers - both of which helmfile executes as an arbitrary local "
+            + "command/script even during 'helmfile template' - because its content may not be "
+            + "as trusted as the pipeline referencing it. If you trust this source, set "
+            + "helmfile.allow-hooks-and-post-renderers: true in rosco's configuration.");
   }
 }

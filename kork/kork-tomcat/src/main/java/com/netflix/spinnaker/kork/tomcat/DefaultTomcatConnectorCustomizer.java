@@ -27,11 +27,11 @@ import org.apache.tomcat.util.net.SSLHostConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
-import org.springframework.boot.web.embedded.tomcat.TomcatConnectorCustomizer;
-import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
+import org.springframework.boot.tomcat.TomcatConnectorCustomizer;
+import org.springframework.boot.tomcat.servlet.TomcatServletWebServerFactory;
 import org.springframework.boot.web.server.Ssl;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
+import org.springframework.util.ObjectUtils;
 
 @Component
 class DefaultTomcatConnectorCustomizer implements TomcatConnectorCustomizer {
@@ -90,20 +90,18 @@ class DefaultTomcatConnectorCustomizer implements TomcatConnectorCustomizer {
   }
 
   void applyRelaxedURIProperties(Connector connector) {
-    if (StringUtils.isEmpty(tomcatConfigurationProperties.getRelaxedPathCharacters())
-        && StringUtils.isEmpty(tomcatConfigurationProperties.getRelaxedQueryCharacters())) {
+    if (ObjectUtils.isEmpty(tomcatConfigurationProperties.getRelaxedPathCharacters())
+        && ObjectUtils.isEmpty(tomcatConfigurationProperties.getRelaxedQueryCharacters())) {
       return;
     }
 
     ProtocolHandler protocolHandler = connector.getProtocolHandler();
-    if (protocolHandler instanceof AbstractHttp11Protocol) {
-      if (!StringUtils.isEmpty(tomcatConfigurationProperties.getRelaxedPathCharacters())) {
-        ((AbstractHttp11Protocol) protocolHandler)
-            .setRelaxedPathChars(tomcatConfigurationProperties.getRelaxedPathCharacters());
+    if (protocolHandler instanceof AbstractHttp11Protocol protocol) {
+      if (!ObjectUtils.isEmpty(tomcatConfigurationProperties.getRelaxedPathCharacters())) {
+        protocol.setRelaxedPathChars(tomcatConfigurationProperties.getRelaxedPathCharacters());
       }
-      if (!StringUtils.isEmpty(tomcatConfigurationProperties.getRelaxedQueryCharacters())) {
-        ((AbstractHttp11Protocol) protocolHandler)
-            .setRelaxedPathChars(tomcatConfigurationProperties.getRelaxedPathCharacters());
+      if (!ObjectUtils.isEmpty(tomcatConfigurationProperties.getRelaxedQueryCharacters())) {
+        protocol.setRelaxedQueryChars(tomcatConfigurationProperties.getRelaxedQueryCharacters());
       }
     } else {
       log.warn(
@@ -118,8 +116,8 @@ class DefaultTomcatConnectorCustomizer implements TomcatConnectorCustomizer {
     }
 
     ProtocolHandler protocolHandler = connector.getProtocolHandler();
-    if (protocolHandler instanceof AbstractHttp11Protocol) {
-      ((AbstractHttp11Protocol<?>) protocolHandler).setRejectIllegalHeader(rejectIllegalHeader);
+    if (protocolHandler instanceof AbstractHttp11Protocol<?> protocol) {
+      protocol.setRejectIllegalHeader(rejectIllegalHeader);
       log.debug("Set rejectIllegalHeader to {} for connector", rejectIllegalHeader);
     } else {
       log.warn(

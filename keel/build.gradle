@@ -10,9 +10,14 @@ plugins {
   id 'io.spinnaker.project' apply false
 }
 
+// WireMock standalone substitution is centralized in wiremock-substitution.gradle
+// at the repo root (single home for the version).
+apply from: "../wiremock-substitution.gradle"
+
 allprojects {
   group = "io.spinnaker.keel"
   apply plugin: 'io.spinnaker.project'
+
 
   if (name != "keel-bom") {
     apply(plugin: "java")

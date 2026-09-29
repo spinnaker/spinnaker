@@ -1,6 +1,6 @@
 # spinnaker-gradle-project
 
-[![Build Status](https://travis-ci.org/spinnaker/spinnaker-gradle-project.svg)](https://travis-ci.org/spinnaker/spinnaker-gradle-project)
+[![Build Status](https://github.com/spinnaker/spinnaker/actions/workflows/spinnaker-gradle-project.yml/badge.svg)](https://github.com/spinnaker/spinnaker/actions/workflows/spinnaker-gradle-project.yml)
 
 Build conventions for spinnaker Gradle projects
 

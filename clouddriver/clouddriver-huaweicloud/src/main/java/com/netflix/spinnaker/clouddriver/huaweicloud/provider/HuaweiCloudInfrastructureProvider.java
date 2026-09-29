@@ -24,6 +24,7 @@ import static com.netflix.spinnaker.clouddriver.huaweicloud.cache.Keys.Namespace
 
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.agent.AgentSchedulerAware;
+import com.netflix.spinnaker.cats.provider.ProviderCacheConfiguration;
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider;
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider.SearchableResource;
 import com.netflix.spinnaker.clouddriver.huaweicloud.cache.Keys;
@@ -36,7 +37,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 @ConditionalOnProperty("huaweicloud.enabled")
 public class HuaweiCloudInfrastructureProvider extends AgentSchedulerAware
-    implements SearchableProvider {
+    implements SearchableProvider, ProviderCacheConfiguration {
 
   private final Collection<Agent> agents;
 
@@ -88,5 +89,17 @@ public class HuaweiCloudInfrastructureProvider extends AgentSchedulerAware
   @Override
   public Map<String, String> parseKey(String key) {
     return Keys.parse(key);
+  }
+
+  /**
+   * CacheResultBuilder now backfills an empty placeholder entry for every authoritative type (see
+   * CacheResultBuilder#build), so the SQL cache's existingIds-minus-currentIds eviction diff always
+   * runs, even when a type has dropped to zero live resources this cycle. Without opting in here,
+   * SqlCache's default safeguard against ever evicting the last item of a type discards that
+   * placeholder before the diff can run, and the stale entry is never cleaned up.
+   */
+  @Override
+  public boolean supportsFullEviction() {
+    return true;
   }
 }

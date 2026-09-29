@@ -16,8 +16,8 @@
 package com.netflix.spinnaker.kork.sql.health
 
 import org.jooq.SQLDialect
-import org.springframework.boot.actuate.health.AbstractHealthIndicator
-import org.springframework.boot.actuate.health.Health
+import org.springframework.boot.health.contributor.AbstractHealthIndicator
+import org.springframework.boot.health.contributor.Health
 
 /**
  * Utilizes the [SqlHealthProvider] to indicate health of the application.

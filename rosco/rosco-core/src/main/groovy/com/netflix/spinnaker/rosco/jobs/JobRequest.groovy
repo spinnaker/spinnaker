@@ -31,6 +31,8 @@ class JobRequest {
   String executionId
   /** Whether to merge command output and error streams. */
   boolean combineStdOutAndErr = true
+  /** Environment variables to set (in addition to the job executor's own environment). */
+  Map<String, String> env = [:]
 
   List<String> getMaskedTokenizedCommand() {
     return tokenizedCommand.collect { String masked ->

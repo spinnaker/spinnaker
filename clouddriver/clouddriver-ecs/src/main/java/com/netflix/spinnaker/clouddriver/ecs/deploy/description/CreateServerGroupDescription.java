@@ -25,6 +25,7 @@ import javax.annotation.Nullable;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import software.amazon.awssdk.services.ecs.model.CapacityProviderStrategyItem;
+import software.amazon.awssdk.services.ecs.model.MonitoringConfiguration;
 import software.amazon.awssdk.services.ecs.model.PlacementConstraint;
 import software.amazon.awssdk.services.ecs.model.PlacementStrategy;
 
@@ -66,7 +67,19 @@ public class CreateServerGroupDescription extends AbstractECSDescription {
   Map<String, List<String>> availabilityZones;
 
   boolean copySourceScalingPoliciesAndActions = true;
+
+  /**
+   * When true and no explicit {@link #monitoringConfiguration} is given, the monitoring
+   * configuration (e.g. 20-second high-resolution CPU/Memory metrics) of the source service's
+   * active revision is copied onto the new service so that high-resolution target tracking scaling
+   * policies keep working after a deploy.
+   */
+  boolean copySourceMonitoringConfiguration = true;
+
   Source source = new Source();
+
+  /** Explicit service-level monitoring configuration; takes precedence over the source's. */
+  @Nullable MonitoringConfiguration monitoringConfiguration;
 
   List<PlacementStrategy> placementStrategySequence;
   List<PlacementConstraint> placementConstraints;

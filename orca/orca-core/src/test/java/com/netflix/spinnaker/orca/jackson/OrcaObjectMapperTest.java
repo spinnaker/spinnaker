@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.core.StreamReadConstraints;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
 import com.netflix.spinnaker.orca.config.JacksonParserProperties;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -68,5 +69,13 @@ class OrcaObjectMapperTest {
     assertThat(constraints.getMaxNestingDepth()).isEqualTo(3_000);
     assertThat(constraints.getMaxNumberLength()).isEqualTo(10_000);
     assertThat(constraints.getMaxDocumentLength()).isEqualTo(1_000_000_000L);
+  }
+
+  @Test
+  void canDeserializeLowercaseExecutionType() throws Exception {
+    ObjectMapper mapper = OrcaObjectMapper.newInstance();
+
+    assertThat(mapper.readValue("\"pipeline\"", ExecutionType.class))
+        .isEqualTo(ExecutionType.PIPELINE);
   }
 }

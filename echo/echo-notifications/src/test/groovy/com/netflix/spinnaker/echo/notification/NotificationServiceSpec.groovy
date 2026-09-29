@@ -15,7 +15,7 @@
  */
 
 package com.netflix.spinnaker.echo.notification
-import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration
+import org.springframework.boot.freemarker.autoconfigure.FreeMarkerAutoConfiguration
 import com.netflix.spinnaker.echo.api.Notification
 import com.netflix.spinnaker.echo.twilio.TwilioNotificationService
 import com.netflix.spinnaker.echo.twilio.TwilioService

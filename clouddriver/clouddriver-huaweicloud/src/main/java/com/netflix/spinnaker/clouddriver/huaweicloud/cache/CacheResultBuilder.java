@@ -16,14 +16,19 @@
 
 package com.netflix.spinnaker.clouddriver.huaweicloud.cache;
 
+import com.netflix.spinnaker.cats.agent.AgentDataType;
+import com.netflix.spinnaker.cats.agent.AgentDataType.Authority;
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.Getter;
 
 public class CacheResultBuilder {
@@ -32,10 +37,27 @@ public class CacheResultBuilder {
 
   private final CacheMutation onDemand = new CacheMutation();
 
+  private final Set<String> authoritativeTypes;
+
   private final Map<String, NamespaceCache> namespaceBuilders = new HashMap();
 
   public CacheResultBuilder(long startTime) {
+    this(startTime, Collections.emptyList());
+  }
+
+  /**
+   * Any authoritative type in dataTypes is guaranteed to have a key in the built result, even with
+   * zero items, so that SqlCache's existingIds-minus-currentIds eviction diff (which only runs for
+   * types present in the result) can clean up a type's last cached item once nothing live remains
+   * for it.
+   */
+  public CacheResultBuilder(long startTime, Collection<AgentDataType> dataTypes) {
     this.startTime = startTime;
+    this.authoritativeTypes =
+        dataTypes.stream()
+            .filter(dataType -> dataType.getAuthority().equals(Authority.AUTHORITATIVE))
+            .map(AgentDataType::getTypeName)
+            .collect(Collectors.toSet());
   }
 
   public long getStartTime() {
@@ -58,6 +80,8 @@ public class CacheResultBuilder {
   public DefaultCacheResult build() {
     Map<String, Collection<String>> evict = new HashMap();
     Map<String, Collection<CacheData>> keep = new HashMap();
+
+    authoritativeTypes.forEach(namespace -> keep.put(namespace, new ArrayList<>()));
 
     if (!onDemand.getToKeep().isEmpty()) {
       keep.put(Keys.Namespace.ON_DEMAND.ns, onDemand.getToKeep().values());

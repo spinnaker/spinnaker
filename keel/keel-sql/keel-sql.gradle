@@ -50,11 +50,14 @@ dependencies {
     // avoid circular dependency which breaks Liquibase
     exclude(module: "keel-sql")
   }
-  testImplementation("org.testcontainers:mysql")
+  testImplementation("org.testcontainers:testcontainers-mysql")
 
   jooqGenerator(platform("io.spinnaker.kork:kork-bom"))
   jooqGenerator("com.mysql:mysql-connector-j")
-  jooqGenerator("org.jooq:jooq-meta-extensions:3.19.35")
+  jooqGenerator("org.jooq:jooq-codegen")
+  jooqGenerator("org.jooq:jooq-meta")
+  jooqGenerator("org.jooq:jooq-meta-extensions")
+  jooqGenerator("org.jooq:jooq")
   jooqGenerator("ch.qos.logback:logback-classic:1.2.3")
 
   liquibaseRuntime(platform("io.spinnaker.kork:kork-bom"))
@@ -107,8 +110,9 @@ afterEvaluate {
 }
 
 jooq {
-  // Match the jOOQ version provided by kork-bom so code generation and runtime stay aligned
-  version = "3.19.35"
+  // Follows the jOOQ version managed by the Boot BOM via kork-bom (3.21.7):
+  // the toolchain is Java 25 so Java 21 bytecode is fine.
+  version = "3.21.7"
 
   configurations {
     main {

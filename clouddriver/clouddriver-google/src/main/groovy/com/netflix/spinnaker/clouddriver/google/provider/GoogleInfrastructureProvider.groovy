@@ -20,6 +20,7 @@ import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.AgentSchedulerAware
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
+import com.netflix.spinnaker.cats.provider.ProviderCacheConfiguration
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
@@ -30,9 +31,22 @@ import groovy.json.JsonOutput
 import static com.netflix.spinnaker.clouddriver.cache.SearchableProvider.SearchableResource
 import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.*
 
-class GoogleInfrastructureProvider extends BaseProvider implements SearchableProvider {
+class GoogleInfrastructureProvider extends BaseProvider implements SearchableProvider, ProviderCacheConfiguration {
 
   final String providerName = GoogleInfrastructureProvider.name
+
+  /**
+   * Every caching agent's CacheResultBuilder now backfills an empty placeholder entry for each
+   * authoritative type it's responsible for, so the SQL cache's existingIds-minus-currentIds
+   * eviction diff always runs, even when a type has dropped to zero live resources this cycle.
+   * Without opting in here, SqlCache's default safeguard against ever evicting the last item of a
+   * type discards that placeholder before the diff can run, and the stale entry is never cleaned
+   * up.
+   */
+  @Override
+  boolean supportsFullEviction() {
+    return true
+  }
 
   final Set<String> defaultCaches = [
       ADDRESSES.ns,

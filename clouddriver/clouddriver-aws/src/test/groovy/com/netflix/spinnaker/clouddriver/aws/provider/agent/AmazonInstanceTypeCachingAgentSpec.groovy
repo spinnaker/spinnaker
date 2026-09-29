@@ -89,6 +89,23 @@ class AmazonInstanceTypeCachingAgentSpec extends Specification {
     it2Result != null
   }
 
+  def "should still report the INSTANCE_TYPES namespace with an empty list when there are no live instance types"() {
+    // Regression test: the last live instance type in a region being deleted must still evict its
+    // stale cache entry, not leave it stuck forever. That only happens if the namespace's key is
+    // present in the CacheResult even when nothing was found this cycle.
+    when:
+    def result = agent.loadData(providerCache)
+    def cache = result.cacheResults
+
+    then:
+    1 * amazonClientProvider.getAmazonEC2V2(credentials, region) >> ec2
+    1 * ec2.describeInstanceTypes(_) >> DescribeInstanceTypesResponse.builder().instanceTypes([]).build()
+
+    and:
+    cache.containsKey(Keys.Namespace.INSTANCE_TYPES.getNs())
+    cache.get(Keys.Namespace.INSTANCE_TYPES.getNs()).isEmpty()
+  }
+
   def "should cache a list of instance types under metadata"() {
     when:
     def result = agent.loadData(providerCache)

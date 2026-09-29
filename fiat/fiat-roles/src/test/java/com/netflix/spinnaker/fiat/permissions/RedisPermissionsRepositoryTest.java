@@ -69,8 +69,7 @@ class RedisPermissionsRepositoryTest {
         DockerClientFactory.instance().isDockerAvailable(),
         "Docker is required for RedisPermissionsRepositoryTest");
     embeddedRedis =
-        new GenericContainer<>(DockerImageName.parse("library/redis:5-alpine"))
-            .withExposedPorts(6379);
+        new GenericContainer<>(DockerImageName.parse("valkey/valkey:8")).withExposedPorts(6379);
     embeddedRedis.start();
 
     jedisPool = new JedisPool(embeddedRedis.getHost(), embeddedRedis.getMappedPort(6379));

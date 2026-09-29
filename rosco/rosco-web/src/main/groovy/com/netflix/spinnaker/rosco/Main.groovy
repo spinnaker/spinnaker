@@ -37,8 +37,6 @@ import com.netflix.spinnaker.rosco.providers.tencentcloud.config.RoscoTencentClo
 import com.netflix.spinnaker.rosco.services.ServiceConfig
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
-import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration
-import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 import org.springframework.context.annotation.Bean
@@ -82,7 +80,7 @@ import jakarta.servlet.Filter
   LocalJobConfig,
   ArtifactStoreConfiguration
 ])
-@EnableAutoConfiguration(exclude = [BatchAutoConfiguration, GroovyTemplateAutoConfiguration])
+@EnableAutoConfiguration
 @EnableScheduling
 class Main extends SpringBootServletInitializer {
 

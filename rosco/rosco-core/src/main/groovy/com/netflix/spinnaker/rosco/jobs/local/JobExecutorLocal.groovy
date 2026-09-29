@@ -106,7 +106,17 @@ class JobExecutorLocal implements JobExecutor {
           Executor executor = new DefaultExecutor()
           executor.setStreamHandler(pumpStreamHandler)
           executor.setWatchdog(watchdog)
-          executor.execute(commandLine, resultHandler)
+
+          if (jobRequest.env) {
+            // commons-exec has no "inherit and override" mode: passing an environment map
+            // replaces the subprocess's environment entirely, so start from the JVM's own
+            // environment and layer jobRequest.env on top.
+            Map<String, String> environment = new HashMap<>(System.getenv())
+            environment.putAll(jobRequest.env)
+            executor.execute(commandLine, environment, resultHandler)
+          } else {
+            executor.execute(commandLine, resultHandler)
+          }
 
           // Give the job some time to spin up.
           sleep(500)
