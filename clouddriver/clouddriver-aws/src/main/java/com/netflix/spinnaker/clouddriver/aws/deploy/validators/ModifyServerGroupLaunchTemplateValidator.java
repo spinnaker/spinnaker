@@ -105,6 +105,13 @@ public class ModifyServerGroupLaunchTemplateValidator
           "modifyservergrouplaunchtemplatedescription.bursting.not.supported.by.instanceType");
     }
 
+    ConnectionTrackingTimeoutRules.validate(
+        "modifyservergrouplaunchtemplatedescription",
+        description.getTcpEstablishedTimeout(),
+        description.getUdpStreamTimeout(),
+        description.getUdpTimeout(),
+        errors);
+
     // spotInstancePools is applicable only for 'lowest-price' spotAllocationStrategy
     if (description.getSpotInstancePools() != null
         && description.getSpotInstancePools() > 0
