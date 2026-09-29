@@ -1,7 +1,7 @@
 import { has, sortBy } from 'lodash';
 import React from 'react';
 
-import { HelpField } from '@spinnaker/core';
+import { CopyToClipboard, HelpField } from '@spinnaker/core';
 
 export interface IContainer {
   name: string;
@@ -47,16 +47,26 @@ export const ManifestImageDetails = ({ manifest }: IManifestImageDetailsProps) =
     <ul>
       {hasBothContainerTypes && <strong>Containers</strong>}
       {containers.map((container) => (
-        <li key={container.image} title={normalizeImage(container.image)} className="break-word">
+        <li key={container.image} title={normalizeImage(container.image)} className="break-word-wrap">
+          <CopyToClipboard
+            className="sp-margin-s-right copy-to-clipboard copy-to-clipboard-sm"
+            text={normalizeImage(container.image)}
+            toolTip="Copy to clipboard"
+          />{' '}
           {normalizeImage(container.image)}{' '}
-          <HelpField content={`This is container <strong>${container.name}</strong>'s image.`} />
+          <HelpField placement="left" content={`This is container <strong>${container.name}</strong>'s image.`} />
         </li>
       ))}
       {hasBothContainerTypes && <strong>Init Containers</strong>}
       {initContainers.map((container) => (
-        <li key={container.image} className="break-word" title={normalizeImage(container.image)}>
+        <li key={container.image} className="break-word-wrap" title={normalizeImage(container.image)}>
+          <CopyToClipboard
+            className="sp-margin-s-right copy-to-clipboard copy-to-clipboard-sm"
+            text={normalizeImage(container.image)}
+            toolTip="Copy to clipboard"
+          />{' '}
           {normalizeImage(container.image)}{' '}
-          <HelpField content={`This is init container <strong>${container.name}</strong>'s image.`} />
+          <HelpField placement="left" content={`This is init container <strong>${container.name}</strong>'s image.`} />
         </li>
       ))}
     </ul>
