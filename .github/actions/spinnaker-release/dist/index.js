@@ -81013,6 +81013,16 @@ class ApiDocs {
         }
         const commitMsg = `Automatic API docs update for Spinnaker ${this.version}`;
         git.gitCmd(`git add --all`, { cwd: docsCwd });
+        // If the spec(s) didn't actually change (e.g. Gate's API was untouched this release),
+        // there's nothing to commit, and pushing an empty branch would fail PR creation below
+        // with "No commits between master and <branch>".
+        const staged = git.gitCmdMulti(`git diff --cached --name-only`, {
+            cwd: docsCwd,
+        });
+        if (!staged?.length) {
+            core.info('No API docs changes to publish - skipping PR');
+            return;
+        }
         git.gitCmd(`git commit -a -m '${commitMsg}'`, { cwd: docsCwd });
         const ghPat = util.getInput('github-pat');
         git.gitCmd(`git remote set-url origin https://${ghPat}@github.com/${docsRepo}.git`, { cwd: docsCwd });

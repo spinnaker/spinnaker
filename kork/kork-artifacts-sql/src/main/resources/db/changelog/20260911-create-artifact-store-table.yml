@@ -1,0 +1,37 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-artifact-store-table
+      author: jasonmcintosh
+      changes:
+        - createTable:
+            tableName: artifact_store
+            columns:
+              - column:
+                  name: application
+                  type: varchar(255)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: hash
+                  type: varchar(64)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: body
+                  type: longtext
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: bigint
+                  constraints:
+                    nullable: false
+        - modifySql:
+            dbms: mysql
+            append:
+              value: " engine innodb DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci"
+      rollback:
+        - dropTable:
+            tableName: artifact_store

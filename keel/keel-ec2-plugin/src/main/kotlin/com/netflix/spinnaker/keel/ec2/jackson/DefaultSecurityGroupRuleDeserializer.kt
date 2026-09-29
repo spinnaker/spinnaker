@@ -9,7 +9,7 @@ import com.netflix.spinnaker.keel.api.ec2.PrefixListRule
 import com.netflix.spinnaker.keel.api.ec2.ReferenceRule
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
-import org.springframework.boot.jackson.JsonComponent
+import org.springframework.boot.jackson2.JsonComponent
 
 @JsonComponent
 @ConditionalOnMissingBean(name = ["securityGroupRuleDeserializer"])

@@ -96,7 +96,7 @@ class GoogleSslCertificateCachingAgent extends AbstractGoogleCachingAgent  {
   private CacheResult buildCacheResult(ProviderCache _, List<SslCertificate> sslCertificateList) {
     log.debug("Describing items in ${agentType}")
 
-    def cacheResultBuilder = new CacheResultBuilder()
+    def cacheResultBuilder = new CacheResultBuilder(providedDataTypes)
 
     sslCertificateList.each { SslCertificate sslCertificate ->
       // Global and regional Compute SSL certificates share the cache namespace, but regional

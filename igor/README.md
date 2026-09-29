@@ -1,6 +1,4 @@
-[![Build Status](https://api.travis-ci.org/spinnaker/igor.svg?branch=master)](https://travis-ci.org/spinnaker/igor)
-
-[![](https://github.com/spinnaker/igor/workflows/Igor%20CI/badge.svg)](https://github.com/spinnaker/igor/actions?query=workflow%3A%22Igor+CI%22+branch%3Amaster)
+[![Build Status](https://github.com/spinnaker/spinnaker/actions/workflows/igor.yml/badge.svg)](https://github.com/spinnaker/spinnaker/actions/workflows/igor.yml)
 
 Igor is a service that provides a single point of integration with Continuous Integration (CI) and Source Control Management (SCM) services for Spinnaker.
 
@@ -204,14 +202,14 @@ Relevant properties:
 
 Igor requires redis server to be up and running.
 
-Start igor via `./gradlew bootRun`. Or by following the instructions using the [Spinnaker installation scripts](https://www.github.com/spinnaker/spinnaker).
+Start igor via `./gradlew igor` (run from the monorepo root). See [CLAUDE.md](../CLAUDE.md) for the full set of build/run commands.
 
 
 ## Debugging
 
-To start the JVM in debug mode, set the Java system property `DEBUG=true`:
+To start the JVM in debug mode, set the Java system property `DEBUG=true` (run from the monorepo root):
 ```
-./gradlew -DDEBUG=true
+./gradlew igor -DDEBUG=true
 ```
 
 The JVM will then listen for a debugger to be attached on port 8188.  The JVM will _not_ wait for the debugger to be attached before starting igor; the relevant JVM arguments can be seen and modified as needed in `build.gradle`.

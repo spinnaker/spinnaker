@@ -35,7 +35,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -140,7 +139,7 @@ public class TaskCachingAgent extends AbstractEcsOnDemandAgent<Task> {
           "processedTime",
           onDemand.getAttributes().get("processedTime") != null
               ? onDemand.getAttributes().get("processedTime")
-              : new Date());
+              : System.currentTimeMillis());
 
       returnResults.add(result);
     }
@@ -154,7 +153,7 @@ public class TaskCachingAgent extends AbstractEcsOnDemandAgent<Task> {
           String keyString =
               Keys.getServiceKey(accountName, region, (String) data.get("serverGroupName"));
           Map<String, Object> att = new HashMap<>();
-          att.put("cacheTime", new Date());
+          att.put("cacheTime", System.currentTimeMillis());
           CacheData cacheData = new DefaultCacheData(keyString, att, Collections.emptyMap());
           providerCache.putCacheData(ON_DEMAND.toString(), cacheData);
           return null;

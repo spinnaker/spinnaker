@@ -57,13 +57,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.MediaType;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedCredentialsNotFoundException;
 import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import retrofit2.mock.Calls;
 
 /**
@@ -98,7 +98,7 @@ public class HeaderAuthTest {
   /** To prevent periodic calls to service's /health endpoints */
   @MockitoBean DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;
 
-  @SpyBean RequestHeaderAuthenticationFilter requestHeaderAuthenticationFilter;
+  @MockitoSpyBean RequestHeaderAuthenticationFilter requestHeaderAuthenticationFilter;
 
   @MockitoBean FiatService fiatService;
 
@@ -106,7 +106,7 @@ public class HeaderAuthTest {
 
   @MockitoBean OrcaService orcaService;
 
-  @SpyBean FiatPermissionEvaluator fiatPermissionEvaluator;
+  @MockitoSpyBean FiatPermissionEvaluator fiatPermissionEvaluator;
 
   @BeforeEach
   void init(TestInfo testInfo) {

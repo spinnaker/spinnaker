@@ -17,10 +17,11 @@
 package com.netflix.kayenta.sql.config;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration;
+import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @Configuration
@@ -28,4 +29,5 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @ComponentScan({"com.netflix.kayenta.sql"})
 @EntityScan({"com.netflix.kayenta.sql"})
 @EnableJpaRepositories({"com.netflix.kayenta.sql"})
-public class SqlConfiguration extends DataSourceAutoConfiguration {}
+@Import(DataSourceAutoConfiguration.class)
+public class SqlConfiguration {}

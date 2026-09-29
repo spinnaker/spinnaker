@@ -1317,6 +1317,7 @@ describe('EcsCloneServerGroupModal', () => {
       capacity: { desired: 3, max: 5, min: 2 },
       computeOption: 'launchType',
       copySourceScalingPoliciesAndActions: true,
+      copySourceMonitoringConfiguration: true,
       launchType: 'FARGATE',
       useSourceCapacity: false,
     });
@@ -1337,6 +1338,7 @@ describe('EcsCloneServerGroupModal', () => {
     expect(findByTestId(page, 'ServerGroup.capacity.max').prop('value')).toBe(5);
     expect(findByTestId(page, 'ServerGroup.useSourceCapacity').prop('checked')).toBe(false);
     expect(findByTestId(page, 'ServerGroup.copySourceScalingPoliciesAndActions').prop('checked')).toBe(true);
+    expect(findByTestId(page, 'ServerGroup.copySourceMonitoringConfiguration').prop('checked')).toBe(true);
 
     findByTestId(page, 'ServerGroup.computeOptionsCapacityProviders').simulate('change');
     expect(onFieldChange).toHaveBeenCalledWith('computeOption', 'capacityProviders');
@@ -1351,6 +1353,72 @@ describe('EcsCloneServerGroupModal', () => {
       }),
     );
     expect(capacityProviderPage.find(EcsCapacityProvider).exists()).toBe(true);
+  });
+
+  it('restores Horizontal Scaling monitoring controls and toggles high-resolution metrics', () => {
+    const renderPage = (command: IEcsServerGroupCommand, onFieldChange: jasmine.Spy) =>
+      shallow(
+        React.createElement(HorizontalScalingSettings as any, {
+          application: buildProps(command).application,
+          command,
+          configureCommand: jasmine.createSpy('configureCommand').and.returnValue(Promise.resolve()),
+          onFieldChange,
+        }),
+      );
+
+    const defaultOnFieldChange = jasmine.createSpy('onFieldChange');
+    const defaultPage = renderPage(buildCommand({ copySourceMonitoringConfiguration: true }), defaultOnFieldChange);
+    expect(findByTestId(defaultPage, 'ServerGroup.copySourceMonitoringConfiguration').prop('checked')).toBe(true);
+    expect(findByTestId(defaultPage, 'ServerGroup.monitoringConfiguration.CPUUtilization').prop('checked')).toBe(false);
+    expect(findByTestId(defaultPage, 'ServerGroup.monitoringConfiguration.MemoryUtilization').prop('checked')).toBe(
+      false,
+    );
+
+    findByTestId(defaultPage, 'ServerGroup.copySourceMonitoringConfiguration').simulate('change', {
+      target: { checked: false },
+    });
+    expect(defaultOnFieldChange).toHaveBeenCalledWith('copySourceMonitoringConfiguration', false);
+
+    findByTestId(defaultPage, 'ServerGroup.monitoringConfiguration.CPUUtilization').simulate('change', {
+      target: { checked: true },
+    });
+    expect(defaultOnFieldChange).toHaveBeenCalledWith('monitoringConfiguration', {
+      metricConfigurations: [{ metricNames: ['CPUUtilization'], resolutionSeconds: 20 }],
+    });
+
+    const cpuOnFieldChange = jasmine.createSpy('onFieldChange');
+    const cpuPage = renderPage(
+      buildCommand({
+        monitoringConfiguration: { metricConfigurations: [{ metricNames: ['CPUUtilization'], resolutionSeconds: 20 }] },
+      }),
+      cpuOnFieldChange,
+    );
+    expect(findByTestId(cpuPage, 'ServerGroup.monitoringConfiguration.CPUUtilization').prop('checked')).toBe(true);
+    expect(findByTestId(cpuPage, 'ServerGroup.monitoringConfiguration.MemoryUtilization').prop('checked')).toBe(false);
+
+    findByTestId(cpuPage, 'ServerGroup.monitoringConfiguration.MemoryUtilization').simulate('change', {
+      target: { checked: true },
+    });
+    expect(cpuOnFieldChange).toHaveBeenCalledWith('monitoringConfiguration', {
+      metricConfigurations: [{ metricNames: ['CPUUtilization', 'MemoryUtilization'], resolutionSeconds: 20 }],
+    });
+
+    findByTestId(cpuPage, 'ServerGroup.monitoringConfiguration.CPUUtilization').simulate('change', {
+      target: { checked: false },
+    });
+    expect(cpuOnFieldChange).toHaveBeenCalledWith('monitoringConfiguration', undefined);
+
+    const standardResolutionPage = renderPage(
+      buildCommand({
+        monitoringConfiguration: {
+          metricConfigurations: [{ metricNames: ['CPUUtilization', 'MemoryUtilization'], resolutionSeconds: 60 }],
+        },
+      }),
+      jasmine.createSpy('onFieldChange'),
+    );
+    expect(
+      findByTestId(standardResolutionPage, 'ServerGroup.monitoringConfiguration.CPUUtilization').prop('checked'),
+    ).toBe(false);
   });
 
   it('restores Logging driver and option-map controls', () => {

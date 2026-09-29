@@ -5,6 +5,7 @@ dependencies {
   implementation("com.h2database:h2")
 
   api("org.springframework.boot:spring-boot-starter-test")
+  api("org.springframework.boot:spring-boot-starter-jdbc-test")
   api("dev.minutest:minutest")
 
   testImplementation(project(":front50-core"))

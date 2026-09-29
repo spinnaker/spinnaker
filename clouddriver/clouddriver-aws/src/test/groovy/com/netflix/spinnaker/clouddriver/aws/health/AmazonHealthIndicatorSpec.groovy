@@ -26,7 +26,7 @@ import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.credentials.CredentialsRepository
-import org.springframework.boot.actuate.health.Status
+import org.springframework.boot.health.contributor.Status
 import spock.lang.Specification
 import spock.lang.Unroll
 

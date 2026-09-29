@@ -24,6 +24,7 @@ import com.netflix.spinnaker.rosco.jobs.JobRequest;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.UUID;
 
 public abstract class BakeManifestService<T extends BakeManifestRequest> {
@@ -46,7 +47,8 @@ public abstract class BakeManifestService<T extends BakeManifestRequest> {
             new ArrayList<>(),
             UUID.randomUUID().toString(),
             AuthenticatedRequest.getSpinnakerExecutionId().orElse(null),
-            false);
+            false,
+            recipe.getEnv() != null ? recipe.getEnv() : Map.of());
 
     String jobId = jobExecutor.startJob(jobRequest);
     BakeStatus bakeStatus = jobExecutor.updateJob(jobId);

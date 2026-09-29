@@ -273,7 +273,7 @@ class GoogleHealthCheckCachingAgent extends AbstractGoogleCachingAgent {
   private CacheResult buildCacheResult(ProviderCache _, List<GoogleHealthCheck> healthCheckList) {
     log.debug("Describing items in ${agentType}")
 
-    def cacheResultBuilder = new CacheResultBuilder()
+    def cacheResultBuilder = new CacheResultBuilder(providedDataTypes)
 
     healthCheckList.each { GoogleHealthCheck healthCheck ->
       def healthCheckKey = Keys.getHealthCheckKey(accountName, healthCheck.kind as String, healthCheck.getName())

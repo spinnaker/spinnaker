@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.actuate.health.HealthEndpoint;
+import org.springframework.boot.health.actuate.endpoint.HealthEndpoint;
 import redis.clients.jedis.params.SetParams;
 
 public class ClusteredAgentScheduler extends CatsModuleAware

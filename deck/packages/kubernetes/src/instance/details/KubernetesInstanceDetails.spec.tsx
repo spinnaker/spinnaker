@@ -5,6 +5,7 @@ import {
   AccountTag,
   CollapsibleSection,
   ConsoleOutputLink,
+  CopyToClipboard,
   InstanceDetailsHeader,
   InstanceLinks,
   InstanceReader,
@@ -22,6 +23,7 @@ import { AnnotationCustomSections } from '../../manifest/AnnotationCustomSection
 import { ManifestLabels } from '../../manifest/ManifestLabels';
 import { ManifestQos } from '../../manifest/ManifestQos';
 import { ManifestResources } from '../../manifest/ManifestResources';
+import { ManifestArtifact } from '../../manifest/artifact/ManifestArtifact';
 import { ManifestEvents } from '../../pipelines/stages/deployManifest/manifestStatus/ManifestEvents';
 import { ManifestCondition } from '../../manifest';
 
@@ -208,6 +210,40 @@ describe('<KubernetesInstanceDetails />', () => {
     expect(informationSectionText(component)).not.toContain('Pod IP');
   });
 
+  it('renders an Images section with copy-to-clipboard for each manifest artifact', async () => {
+    (ManifestReader.getManifest as jasmine.Spy).and.returnValue(
+      Promise.resolve(
+        manifestDetails({
+          artifacts: [
+            { id: '1', type: 'docker/image', reference: 'gcr.io/project/backend@sha256:abc123' },
+            { id: '2', type: 'docker/image', reference: 'gcr.io/project/worker@sha256:def456' },
+          ],
+        }),
+      ) as any,
+    );
+    const component = shallow(<KubernetesInstanceDetails {...props} />);
+
+    await settle();
+    component.update();
+
+    const imagesSection = imagesSectionText(component);
+    expect(imagesSection.find('li').length).toEqual(2);
+    expect(imagesSection.find(CopyToClipboard).map((node) => node.prop('text'))).toEqual([
+      'gcr.io/project/backend@sha256:abc123',
+      'gcr.io/project/worker@sha256:def456',
+    ]);
+    expect(imagesSection.find(ManifestArtifact).length).toEqual(2);
+  });
+
+  it('omits the Images section when the manifest has no artifacts', async () => {
+    const component = shallow(<KubernetesInstanceDetails {...props} />);
+
+    await settle();
+    component.update();
+
+    expect(component.find(CollapsibleSection).map((section) => section.prop('heading'))).not.toContain('Images');
+  });
+
   it('auto-closes when the instance cannot be found in application infrastructure', async () => {
     const autoClose = jasmine.createSpy('autoClose');
     const component = shallow(
@@ -369,6 +405,16 @@ const settle = () => new Promise((resolve) => setTimeout(resolve));
 const informationSectionText = (component: any) =>
   shallow(<div>{component.find(CollapsibleSection).at(0).prop('children')}</div>).text();
 
+const imagesSectionText = (component: any) =>
+  shallow(
+    <div>
+      {component
+        .find(CollapsibleSection)
+        .filterWhere((section) => section.prop('heading') === 'Images')
+        .prop('children')}
+    </div>,
+  );
+
 function deferred<T>() {
   let resolve!: (value: T | PromiseLike<T>) => void;
   let reject!: (reason?: any) => void;
@@ -425,7 +471,7 @@ const instanceDetails = (overrides: any = {}) =>
     ...overrides,
   } as any);
 
-const manifestDetails = () =>
+const manifestDetails = (overrides: any = {}) =>
   ({
     account: 'k8s-local',
     metrics: [{ containerName: 'backend', metrics: { 'CPU(cores)': '1', 'MEMORY(bytes)': '1Gi' } }],
@@ -448,4 +494,5 @@ const manifestDetails = () =>
       },
     },
     events: [],
+    ...overrides,
   } as any);
