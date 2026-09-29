@@ -48,5 +48,4 @@ public class RedisConfigurationProperties {
   private int timeout = 2000;
 
   private String scheduler = "default";
-  private int parallelism = -1;
 }
