@@ -50,7 +50,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAcco
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesSelectorList;
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.moniker.Namer;
-import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -108,16 +107,38 @@ final class KubernetesRunJobOperationTest {
     assertThat(job).startsWith(DEPLOYED_JOB);
   }
 
+  @Test
+  void appliesProvenanceAnnotationsWhenFlagEnabled() {
+    KubernetesRunJobOperationDescription runJobDescription =
+        baseJobDescription("job.yml", new KubernetesManifestNamer(true, "", true));
+    runJobDescription.setDeployedBy("user@example.com");
+    runJobDescription.setExecutionId("exec-123");
+    OperationResult result = operate(runJobDescription);
+
+    KubernetesManifest manifest = result.getManifests().iterator().next();
+    assertThat(manifest.getAnnotations())
+        .containsEntry("provenance.spinnaker.io/deployed-by", "user@example.com");
+    assertThat(manifest.getAnnotations())
+        .containsEntry("provenance.spinnaker.io/execution-id", "exec-123");
+  }
+
   private static KubernetesRunJobOperationDescription baseJobDescription(String manifest) {
+    return baseJobDescription(manifest, NAMER);
+  }
+
+  private static KubernetesRunJobOperationDescription baseJobDescription(
+      String manifest, Namer<KubernetesManifest> namer) {
     KubernetesRunJobOperationDescription runJobDescription =
         new KubernetesRunJobOperationDescription()
             .setManifest(
-                ManifestFetcher.getManifest(KubernetesRunJobOperationTest.class, manifest).get(0));
-    runJobDescription.setCredentials(getNamedAccountCredentials());
+                ManifestFetcher.getManifest(KubernetesRunJobOperationTest.class, manifest)
+                    .getFirst());
+    runJobDescription.setCredentials(getNamedAccountCredentials(namer));
     return runJobDescription;
   }
 
-  private static KubernetesNamedAccountCredentials getNamedAccountCredentials() {
+  private static KubernetesNamedAccountCredentials getNamedAccountCredentials(
+      Namer<KubernetesManifest> namer) {
     ManagedAccount managedAccount = new ManagedAccount();
     managedAccount.setName("my-account");
 
@@ -126,13 +147,14 @@ final class KubernetesRunJobOperationTest {
         .withAccount(managedAccount.getName())
         .setNamer(KubernetesManifest.class, new KubernetesManifestNamer());
 
-    KubernetesCredentials mockCredentials = getMockKubernetesCredential();
+    KubernetesCredentials mockCredentials = getMockKubernetesCredential(namer);
     KubernetesCredentials.Factory credentialFactory = mock(KubernetesCredentials.Factory.class);
     when(credentialFactory.build(managedAccount)).thenReturn(mockCredentials);
     return new KubernetesNamedAccountCredentials(managedAccount, credentialFactory);
   }
 
-  private static KubernetesCredentials getMockKubernetesCredential() {
+  private static KubernetesCredentials getMockKubernetesCredential(
+      Namer<KubernetesManifest> namer) {
     KubernetesCredentials credentialsMock = mock(KubernetesCredentials.class);
     when(credentialsMock.getKindProperties(any(KubernetesKind.class)))
         .thenAnswer(
@@ -168,12 +190,11 @@ final class KubernetesRunJobOperationTest {
               KubernetesManifest result =
                   invocation.getArgument(0, KubernetesManifest.class).clone();
               if (Strings.isNullOrEmpty(result.getName())) {
-                Map<String, String> metadata = (Map<String, String>) result.get("metadata");
-                metadata.put("name", metadata.get("generateName") + GENERATE_SUFFIX);
+                result.setName(result.getGenerateName() + GENERATE_SUFFIX);
               }
               return result;
             });
-    when(credentialsMock.getNamer()).thenReturn(NAMER);
+    when(credentialsMock.getNamer()).thenReturn(namer);
     return credentialsMock;
   }
 
