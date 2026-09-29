@@ -304,6 +304,9 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         .setLaunchTemplate(description.setLaunchTemplate)
         .requireIMDSv2(description.requireIMDSv2)
         .enableEnclave(description.enableEnclave)
+        .tcpEstablishedTimeout(description.tcpEstablishedTimeout)
+        .udpStreamTimeout(description.udpStreamTimeout)
+        .udpTimeout(description.udpTimeout)
         .associateIPv6Address(description.associateIPv6Address)
         .unlimitedCpuCredits(description.unlimitedCpuCredits != null
           ? description.unlimitedCpuCredits

@@ -368,6 +368,12 @@ public class LaunchTemplateService {
                 modifyDesc.getSecurityGroups() != null && !modifyDesc.getSecurityGroups().isEmpty()
                     ? modifyDesc.getSecurityGroups()
                     : defaultInterface.groups())
+            .connectionTrackingSpecification(
+                buildConnectionTrackingSpecification(
+                    modifyDesc.getTcpEstablishedTimeout(),
+                    modifyDesc.getUdpStreamTimeout(),
+                    modifyDesc.getUdpTimeout(),
+                    defaultInterface.connectionTrackingSpecification()))
             .deviceIndex(0)
             .build());
 
@@ -472,6 +478,12 @@ public class LaunchTemplateService {
             .associatePublicIpAddress(asgConfig.getAssociatePublicIpAddress())
             .ipv6AddressCount(asgConfig.getAssociateIPv6Address() ? 1 : 0)
             .groups(asgConfig.getSecurityGroups())
+            .connectionTrackingSpecification(
+                buildConnectionTrackingSpecification(
+                    asgConfig.getTcpEstablishedTimeout(),
+                    asgConfig.getUdpStreamTimeout(),
+                    asgConfig.getUdpTimeout(),
+                    null))
             .deviceIndex(0)
             .build());
 
@@ -500,6 +512,43 @@ public class LaunchTemplateService {
               .cpuCredits(unlimitedCpuCredits ? UNLIMITED_CPU_CREDITS : STANDARD_CPU_CREDITS)
               .build());
     }
+  }
+
+  /**
+   * Build the security group connection tracking specification for the primary network interface.
+   *
+   * <p>Each requested timeout wins; any timeout that is not requested is carried over from the
+   * source launch template's interface (when modifying an existing launch template), so a modify or
+   * clone does not silently revert it to the AWS default. Returns null when nothing is requested or
+   * inherited, which leaves the AWS default in place (350 seconds for established TCP on Nitro v6
+   * instance types, 432000 seconds elsewhere).
+   *
+   * <p>https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ConnectionTrackingSpecificationRequest.html
+   */
+  @Nullable
+  static ConnectionTrackingSpecificationRequest buildConnectionTrackingSpecification(
+      @Nullable Integer tcpEstablishedTimeout,
+      @Nullable Integer udpStreamTimeout,
+      @Nullable Integer udpTimeout,
+      @Nullable ConnectionTrackingSpecification source) {
+    Integer tcp =
+        tcpEstablishedTimeout != null
+            ? tcpEstablishedTimeout
+            : source != null ? source.tcpEstablishedTimeout() : null;
+    Integer udpStream =
+        udpStreamTimeout != null
+            ? udpStreamTimeout
+            : source != null ? source.udpStreamTimeout() : null;
+    Integer udp = udpTimeout != null ? udpTimeout : source != null ? source.udpTimeout() : null;
+
+    if (tcp == null && udpStream == null && udp == null) {
+      return null;
+    }
+    return ConnectionTrackingSpecificationRequest.builder()
+        .tcpEstablishedTimeout(tcp)
+        .udpStreamTimeout(udpStream)
+        .udpTimeout(udp)
+        .build();
   }
 
   /**
