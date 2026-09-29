@@ -32,17 +32,21 @@ import org.springframework.stereotype.Component;
 public class KubernetesManifestNamer implements NamingStrategy<KubernetesManifest> {
   private final boolean applyAppLabels;
   private final String managedBySuffix;
+  private final boolean applyProvenanceAnnotations;
 
   @Autowired
   public KubernetesManifestNamer(
       @Value("${kubernetes.v2.apply-app-labels:true}") boolean applyAppLabels,
-      @Value("${kubernetes.v2.managed-by-suffix:}") String managedBySuffix) {
+      @Value("${kubernetes.v2.managed-by-suffix:}") String managedBySuffix,
+      @Value("${kubernetes.v2.apply-provenance-annotations:false}")
+          boolean applyProvenanceAnnotations) {
     this.applyAppLabels = applyAppLabels;
     this.managedBySuffix = managedBySuffix;
+    this.applyProvenanceAnnotations = applyProvenanceAnnotations;
   }
 
   public KubernetesManifestNamer() {
-    this(true, "");
+    this(true, "", false);
   }
 
   @Override
@@ -87,11 +91,19 @@ public class KubernetesManifestNamer implements NamingStrategy<KubernetesManifes
       KubernetesDeployManifestDescription kubernetesDeployManifestDescription =
           (KubernetesDeployManifestDescription) description;
       boolean skipSpecTemplateLabels =
-          (kubernetesDeployManifestDescription != null)
-              ? kubernetesDeployManifestDescription.isSkipSpecTemplateLabels()
-              : false;
+          kubernetesDeployManifestDescription != null
+              && kubernetesDeployManifestDescription.isSkipSpecTemplateLabels();
       KubernetesManifestLabeler.labelManifest(
           managedBySuffix, obj, moniker, skipSpecTemplateLabels);
+    }
+
+    if (applyProvenanceAnnotations
+        && description
+            instanceof KubernetesDeployManifestDescription kubernetesDeployManifestDescription) {
+      KubernetesManifestAnnotater.annotateProvenance(
+          obj,
+          kubernetesDeployManifestDescription.getDeployedBy(),
+          kubernetesDeployManifestDescription.getExecutionId());
     }
   }
 
