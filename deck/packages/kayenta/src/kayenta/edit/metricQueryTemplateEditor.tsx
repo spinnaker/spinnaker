@@ -97,7 +97,7 @@ const mapStateToProps = (state: ICanaryState): IMetricQueryTemplateEditorStatePr
   transformValueForSave: transformInlineTemplateForSave(state),
 });
 
-const mapDispatchToProps = (dispatch: Dispatch<ICanaryState>): IMetricQueryTemplateEditorDispatchProps => ({
+const mapDispatchToProps = (dispatch: Dispatch): IMetricQueryTemplateEditorDispatchProps => ({
   editInlineTemplate: (value: string) => dispatch(Creators.editInlineTemplate({ value })),
 });
 
