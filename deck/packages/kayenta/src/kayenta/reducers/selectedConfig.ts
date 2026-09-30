@@ -7,7 +7,6 @@ import * as Actions from '../actions';
 import { AsyncRequestState } from './asyncRequest';
 import { CanarySettings } from '../canary.settings';
 import type { ICanaryConfig, ICanaryJudgeConfig, ICanaryMetricConfig, IGroupWeights } from '../domain/ICanaryConfig';
-import type { IJudge } from '../domain/IJudge';
 import { ALL } from '../edit/groupTabs';
 import { JudgeSelectRenderState } from '../edit/judgeSelect';
 import type { IEditingTemplateState } from './editingTemplate';
@@ -289,7 +288,7 @@ const json = combineReducers<IJsonState>({
 const judge = combineReducers<IJudgeState>({
   judgeConfig: handleActions(
     {
-      [Actions.SELECT_JUDGE_NAME]: (state: IJudge, action: Action & any) => ({
+      [Actions.SELECT_JUDGE_NAME]: (state: ICanaryJudgeConfig, action: Action & any) => ({
         ...state,
         name: action.payload.judge.name,
       }),
