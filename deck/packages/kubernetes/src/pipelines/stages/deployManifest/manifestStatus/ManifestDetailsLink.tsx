@@ -22,8 +22,15 @@ export class ManifestDetailsLinkComponent extends React.Component<
 > {
   private spinnakerKindStateMap: { [k: string]: string } = {
     // keys from clouddriver's KubernetesSpinnakerKindMap
+    // values are the state names to navigate to
     serverGroupManagers: 'serverGroupManager',
     serverGroups: 'serverGroup',
+  };
+
+  // Map of state names to their URL parameter names
+  // Most states use the state name as the parameter, but serverGroupManager uses 'name'
+  private stateParamMap: { [k: string]: string } = {
+    serverGroupManager: 'name',
   };
 
   constructor(props: IManifestDetailsProps & IRouterInjectedProps) {
@@ -53,12 +60,14 @@ export class ManifestDetailsLinkComponent extends React.Component<
     const kind = this.props.manifest.manifest.kind.toLowerCase();
     const name = this.props.manifest.manifest.metadata.name;
     const region = this.resourceRegion();
+    // Use the mapped parameter name if it exists, otherwise use the state key
+    const paramKey = this.stateParamMap[stateKey] || stateKey;
     const params: { [k: string]: string } = {
       accountId: this.props.accountId,
       provider: 'kubernetes',
       region,
       reg: region, // Filters the list of clusters on the Clusters screen to those in the same namespace
-      [stateKey]: `${kind} ${name}`,
+      [paramKey]: `${kind} ${name}`,
     };
     if (!params.region && kind === 'namespace' && stateKey === UNMAPPED_K8S_RESOURCE_STATE_KEY) {
       params.region = name;
@@ -70,6 +79,9 @@ export class ManifestDetailsLinkComponent extends React.Component<
   }
 
   private loadUrl() {
+    if (!this.props.manifest.manifest) {
+      return;
+    }
     const kind: string = get(this.props, ['manifest', 'manifest', 'kind'], '');
     const { accountId } = this.props;
     AccountService.getAccountDetails(accountId).then((account) => {

@@ -33,7 +33,7 @@ public class PrometheusStandaloneCanaryAnalysisTest extends BaseIntegrationTest 
         steps.createCanaryAnalysis(
             "cpu-successful-analysis-case",
             "prometheus-account",
-            "minio-store-account",
+            "s3-store-account",
             "canary-configs/prometheus/integration-test-cpu.json");
 
     ValidatableResponse response =
@@ -55,7 +55,7 @@ public class PrometheusStandaloneCanaryAnalysisTest extends BaseIntegrationTest 
         steps.createCanaryAnalysis(
             "cpu-marginal-analysis-case",
             "prometheus-account",
-            "minio-store-account",
+            "s3-store-account",
             "canary-configs/prometheus/integration-test-cpu.json");
 
     ValidatableResponse response =
@@ -77,7 +77,7 @@ public class PrometheusStandaloneCanaryAnalysisTest extends BaseIntegrationTest 
         steps.createCanaryAnalysis(
             "muted-metric-analysis-case",
             "prometheus-account",
-            "minio-store-account",
+            "s3-store-account",
             "canary-configs/prometheus/muted-metric.json");
 
     ValidatableResponse response =

@@ -56,7 +56,6 @@ import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
@@ -64,6 +63,7 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import retrofit2.mock.Calls;
 
 /**
@@ -100,7 +100,7 @@ public class HeaderAuthWiremockTest {
   /** To prevent periodic calls to service's /health endpoints */
   @MockitoBean DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;
 
-  @SpyBean RequestHeaderAuthenticationFilter requestHeaderAuthenticationFilter;
+  @MockitoSpyBean RequestHeaderAuthenticationFilter requestHeaderAuthenticationFilter;
 
   /** See https://wiremock.org/docs/junit-jupiter/#advanced-usage---programmatic */
   @RegisterExtension

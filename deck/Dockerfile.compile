@@ -1,6 +1,6 @@
 FROM alpine:3.24
 RUN apk add --update \
-    openjdk17-jre-headless \
+    openjdk25-jre-headless \
     git \
     && rm -rf /var/cache/apk
 

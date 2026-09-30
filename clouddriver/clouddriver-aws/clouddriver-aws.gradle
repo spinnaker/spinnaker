@@ -55,7 +55,6 @@ dependencies {
   implementation "software.amazon.awssdk:sts"
   implementation "software.amazon.awssdk:apache-client"
   implementation "com.github.ben-manes.caffeine:guava"
-  implementation "com.netflix.awsobjectmapper:awsobjectmapper"
   implementation "com.netflix.frigga:frigga"
   implementation "commons-io:commons-io"
   implementation "io.spinnaker.fiat:fiat-api"
@@ -92,7 +91,7 @@ dependencies {
   testImplementation "org.springframework:spring-test"
   testImplementation "org.testcontainers:testcontainers"
   testImplementation "org.testcontainers:junit-jupiter"
-  testImplementation "org.testcontainers:testcontainers-minio"
+  testImplementation "org.ministack:testcontainers-ministack"
   testImplementation "com.squareup.retrofit2:retrofit-mock"
 
   integrationImplementation project(":clouddriver-web")

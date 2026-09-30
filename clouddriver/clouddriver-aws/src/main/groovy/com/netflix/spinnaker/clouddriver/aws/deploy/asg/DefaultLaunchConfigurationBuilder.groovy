@@ -35,7 +35,9 @@ import com.netflix.spinnaker.clouddriver.aws.services.SecurityGroupService
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller
 
 import groovy.util.logging.Slf4j
-import org.joda.time.LocalDateTime
+
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 @Slf4j
 class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
@@ -143,7 +145,7 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
   }
 
   private static String createDefaultSuffix() {
-    new LocalDateTime().toString("MMddYYYYHHmmss")
+    LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMddYYYYHHmmss"))
   }
 
   static String createName(LaunchConfigurationSettings settings) {

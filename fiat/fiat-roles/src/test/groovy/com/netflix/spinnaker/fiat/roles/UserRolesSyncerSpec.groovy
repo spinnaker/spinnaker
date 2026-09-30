@@ -41,7 +41,7 @@ import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
 import com.netflix.spinnaker.kork.jedis.lock.RedisLockManager
 import com.netflix.spinnaker.kork.lock.LockManager
 import io.github.resilience4j.retry.RetryRegistry
-import org.springframework.boot.actuate.health.Health
+import org.springframework.boot.health.contributor.Health
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.utility.DockerImageName
 import redis.clients.jedis.Jedis
@@ -83,7 +83,7 @@ class UserRolesSyncerSpec extends Specification {
   RedisPermissionsRepository repo
 
   def setupSpec() {
-    embeddedRedis = new GenericContainer(DockerImageName.parse("library/redis:5-alpine")).withExposedPorts(6379)
+    embeddedRedis = new GenericContainer(DockerImageName.parse("valkey/valkey:8")).withExposedPorts(6379)
     embeddedRedis.start()
     jedisPool = new JedisPool(embeddedRedis.host, embeddedRedis.getMappedPort(6379))
     jedis = jedisPool.getResource()

@@ -19,9 +19,8 @@ import com.netflix.graphql.dgs.springgraphql.autoconfig.DgsSpringGraphQLAutoConf
 import com.netflix.spinnaker.config.PluginsAutoConfiguration
 import com.netflix.spinnaker.kork.PlatformComponents
 import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.boot.autoconfigure.graphql.GraphQlAutoConfiguration
 import org.springframework.boot.builder.SpringApplicationBuilder
-import org.springframework.boot.web.servlet.ServletComponentScan
+import org.springframework.boot.web.server.servlet.context.ServletComponentScan
 import org.springframework.context.annotation.Import
 import org.springframework.scheduling.annotation.EnableAsync
 
@@ -47,8 +46,8 @@ private val DEFAULT_PROPS = mapOf(
 @Import(
   PlatformComponents::class,
   PluginsAutoConfiguration::class,
-  DgsSpringGraphQLAutoConfiguration::class,
-  GraphQlAutoConfiguration::class
+  // Boot 4 removed its GraphQL auto-configuration; DGS (10.x) is self-sufficient.
+  DgsSpringGraphQLAutoConfiguration::class
 )
 @EnableAsync
 @ServletComponentScan

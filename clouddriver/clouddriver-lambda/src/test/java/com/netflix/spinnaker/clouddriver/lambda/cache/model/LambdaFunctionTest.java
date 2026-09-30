@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.lambda.cache.model;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer;
+import com.netflix.spinnaker.clouddriver.aws.jackson.AwsObjectMapperFactory;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -31,7 +31,7 @@ import org.junit.jupiter.api.Test;
  */
 class LambdaFunctionTest {
 
-  private final ObjectMapper mapper = AmazonObjectMapperConfigurer.createConfigured();
+  private final ObjectMapper mapper = AwsObjectMapperFactory.createConfigured();
 
   @Test
   void typedAccessorsRoundTripFromAttributes() {

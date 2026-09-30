@@ -23,7 +23,7 @@ import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import okhttp3.MediaType
 import okhttp3.Request
 import okhttp3.ResponseBody
-import org.springframework.boot.actuate.health.Health
+import org.springframework.boot.health.contributor.Health
 import org.springframework.web.context.request.RequestContextHolder
 import org.springframework.web.context.request.ServletWebRequest
 import retrofit2.Retrofit

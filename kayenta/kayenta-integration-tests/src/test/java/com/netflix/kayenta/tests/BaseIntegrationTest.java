@@ -19,12 +19,10 @@ import com.netflix.kayenta.Main;
 import com.netflix.kayenta.configuration.MetricsReportingConfiguration;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.autoconfigure.actuate.observability.AutoConfigureObservability;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@AutoConfigureObservability
 @SpringBootTest(
     classes = {MetricsReportingConfiguration.class, Main.class},
     webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT,

@@ -15,6 +15,6 @@ dependencies {
   testImplementation "com.fasterxml.jackson.core:jackson-databind"
   testImplementation "org.testcontainers:testcontainers"
   testImplementation "org.testcontainers:junit-jupiter"
-  testImplementation "org.testcontainers:testcontainers-minio"
+  testImplementation "org.ministack:testcontainers-ministack"
   testRuntimeOnly "ch.qos.logback:logback-classic"
 }

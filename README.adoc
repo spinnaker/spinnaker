@@ -8,7 +8,11 @@ Spinnaker is an open-source continuous delivery platform for releasing software 
 
 = Project status and updates
 
-Note that this repo is only used for issue tracking across the various services at this time.  Releases are not managed here nor are updates regularly made to this repository.  Please see the following for more information about spinnaker and it's state:
+This repository is the Spinnaker monorepo: it holds the source for every core microservice
+(`clouddriver`, `deck`, `echo`, `fiat`, `front50`, `gate`, `igor`, `kayenta`, `keel`, `kork`,
+`orca`, `rosco`, `spin`) and is where builds, releases, and issue tracking all happen. See
+link:MONOREPO.md[MONOREPO.md] for how the monorepo is structured and built. Please see the
+following for more information about spinnaker and its state:
 
 - https://spinnaker.io/docs/releases/versions/[Current available versions]
 - https://join.slack.com/t/spinnakerteam/shared_invite/zt-7juwxmx0-nQ4Ud4pJcbuPykX3SXwQrg[The spinnaker slack for help and discussions around spinnaker]
@@ -50,8 +54,8 @@ prebuilt definitions and move changes through environments via a visual interfac
 
 '''
 
-This repository centralizes issue tracking across Spinnaker for each microservice.
-The core code making up Spinnaker’s microservices is found in the other https://github.com/spinnaker[Spinnaker repositories].
+This repository is the monorepo containing the source for every core Spinnaker microservice,
+alongside issue tracking for the project as a whole.
 
 = Using Spinnaker
 

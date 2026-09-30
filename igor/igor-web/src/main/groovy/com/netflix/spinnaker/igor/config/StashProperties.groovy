@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.igor.config
 
 import groovy.transform.CompileStatic
-import org.hibernate.validator.constraints.NotEmpty
+import jakarta.validation.constraints.NotEmpty
 import org.springframework.boot.context.properties.ConfigurationProperties
 
 /**

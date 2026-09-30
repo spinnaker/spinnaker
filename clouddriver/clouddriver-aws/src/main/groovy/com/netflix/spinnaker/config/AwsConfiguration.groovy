@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer
+import com.netflix.spinnaker.clouddriver.aws.jackson.AwsObjectMapperFactory
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties
 import com.netflix.spinnaker.clouddriver.aws.deploy.InstanceTypeUtils.BlockDeviceConfig
@@ -113,7 +113,7 @@ class AwsConfiguration {
   @Bean
   @Qualifier("amazonObjectMapper")
   ObjectMapper amazonObjectMapper() {
-    return new AmazonObjectMapperConfigurer().createConfigured().registerModule(new AwsSdkV2Module())
+    return AwsObjectMapperFactory.createConfigured().registerModule(new AwsSdkV2Module())
   }
 
   @Bean

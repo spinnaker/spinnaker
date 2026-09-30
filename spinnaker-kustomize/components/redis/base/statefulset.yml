@@ -9,7 +9,7 @@ spec:
     spec:
       containers:
       - name: redis
-        image: redis:5
+        image: valkey/valkey:8
         ports:
         - name: redis
           containerPort: 6379
@@ -20,7 +20,7 @@ spec:
         readinessProbe:
           exec:
             command:
-            - redis-cli
+            - valkey-cli
             - ping
         resources:
           requests:

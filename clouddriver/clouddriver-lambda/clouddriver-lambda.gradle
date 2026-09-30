@@ -9,7 +9,6 @@ dependencies {
   implementation "commons-io:commons-io"
   implementation "software.amazon.awssdk:iam-policy-builder"
   implementation "com.github.ben-manes.caffeine:guava"
-  implementation "com.netflix.awsobjectmapper:awsobjectmapper"
   implementation "io.spinnaker.kork:kork-artifacts"
   implementation "io.spinnaker.kork:kork-core"
   implementation "io.spinnaker.kork:kork-moniker"

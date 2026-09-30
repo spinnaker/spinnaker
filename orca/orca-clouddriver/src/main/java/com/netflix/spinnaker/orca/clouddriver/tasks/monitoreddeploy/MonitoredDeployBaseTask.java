@@ -294,12 +294,12 @@ public class MonitoredDeployBaseTask implements RetryableTask {
       //
       // To maintain that behavior, build our own string representation of the headers.
       headers =
-          httpException.getHeaders().entrySet().stream()
+          httpException.getHeaders().headerNames().stream()
               .map(
-                  entry -> {
-                    List<String> values = entry.getValue();
+                  headerName -> {
+                    List<String> values = httpException.getHeaders().get(headerName);
                     return values.stream()
-                        .map(value -> entry.getKey() + ": " + value)
+                        .map(value -> headerName + ": " + value)
                         .collect(Collectors.toList());
                   })
               .flatMap(List::stream)

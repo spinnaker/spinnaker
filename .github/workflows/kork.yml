@@ -22,4 +22,5 @@ jobs:
           project: kork
           publish: false
           integration-test: false
+          generate-sbom: 'true'
           github-token: ${{ secrets.GITHUB_TOKEN }}

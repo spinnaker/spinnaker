@@ -17,7 +17,7 @@ import software.amazon.awssdk.services.ec2.model.DiskInfo
 import software.amazon.awssdk.services.ec2.model.NetworkCardInfo
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer
+import com.netflix.spinnaker.clouddriver.aws.jackson.AwsObjectMapperFactory
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.cache.Keys
@@ -30,7 +30,7 @@ import spock.lang.Subject
 
 class AmazonInstanceTypeCachingAgentSpec extends Specification {
   def region = "us-east-1"
-  def objectMapper = AmazonObjectMapperConfigurer.createConfigured().registerModule(new AwsSdkV2Module())
+  def objectMapper = AwsObjectMapperFactory.createConfigured().registerModule(new AwsSdkV2Module())
   def amazonClientProvider = Mock(AmazonClientProvider)
   def account = "test"
   def credentials = Stub(NetflixAmazonCredentials) {
@@ -87,6 +87,23 @@ class AmazonInstanceTypeCachingAgentSpec extends Specification {
     it1Result != null
     def it2Result = instanceTypesInfo.find{ it.attributes.name == "test.xlarge" }
     it2Result != null
+  }
+
+  def "should still report the INSTANCE_TYPES namespace with an empty list when there are no live instance types"() {
+    // Regression test: the last live instance type in a region being deleted must still evict its
+    // stale cache entry, not leave it stuck forever. That only happens if the namespace's key is
+    // present in the CacheResult even when nothing was found this cycle.
+    when:
+    def result = agent.loadData(providerCache)
+    def cache = result.cacheResults
+
+    then:
+    1 * amazonClientProvider.getAmazonEC2V2(credentials, region) >> ec2
+    1 * ec2.describeInstanceTypes(_) >> DescribeInstanceTypesResponse.builder().instanceTypes([]).build()
+
+    and:
+    cache.containsKey(Keys.Namespace.INSTANCE_TYPES.getNs())
+    cache.get(Keys.Namespace.INSTANCE_TYPES.getNs()).isEmpty()
   }
 
   def "should cache a list of instance types under metadata"() {

@@ -330,6 +330,108 @@ class LaunchTemplateServiceSpec extends Specification {
   }
 
   @Unroll
+  void 'should set connection tracking timeouts on the primary network interface, for create operation'() {
+    given:
+    def asgConfig = AutoScalingWorker.AsgConfiguration.builder()
+      .setLaunchTemplate(true)
+      .credentials(testCredentials)
+      .legacyUdf(false)
+      .application("myasg-001")
+      .region("us-east-1")
+      .instanceType("m9g.large")
+      .securityGroups(["my-sg"])
+      .ami("ami-1")
+      .base64UserData(USER_DATA_STR)
+      .associateIPv6Address(false)
+      .tcpEstablishedTimeout(tcp)
+      .udpStreamTimeout(udpStream)
+      .udpTimeout(udp)
+      .build()
+
+    when:
+    launchTemplateService.createLaunchTemplate(asgConfig, "myasg-001", "my-lt-001")
+
+    then:
+    1 * mockEc2.createLaunchTemplate(_ as CreateLaunchTemplateRequest) >> { arguments ->
+      CreateLaunchTemplateRequest reqInArg = arguments[0]
+      def networkInterfaces = reqInArg.launchTemplateData().networkInterfaces()
+      assert networkInterfaces.size() == 1
+      assert networkInterfaces[0].deviceIndex() == 0
+      assert networkInterfaces[0].connectionTrackingSpecification() == expected
+      CreateLaunchTemplateResponse.builder()
+        .launchTemplate(LaunchTemplate.builder().launchTemplateId(LT_ID_1).launchTemplateName("my-lt-001").build())
+        .build()
+    }
+
+    where:
+    tcp    | udpStream | udp  || expected
+    3600   | null      | null || ConnectionTrackingSpecificationRequest.builder().tcpEstablishedTimeout(3600).build()
+    432000 | 120       | 45   || ConnectionTrackingSpecificationRequest.builder().tcpEstablishedTimeout(432000).udpStreamTimeout(120).udpTimeout(45).build()
+    null   | null      | null || null // not requested: leave the AWS default in place
+  }
+
+  @Unroll
+  void 'should keep source connection tracking timeouts unless the modify description overrides them'() {
+    given:
+    def modifyDesc = new ModifyServerGroupLaunchTemplateDescription(
+      region: "us-east-1",
+      asgName: "myasg",
+      amiName: "ami-1",
+      credentials: testCredentials,
+      instanceType: "m9g.large",
+      tcpEstablishedTimeout: descTcp,
+      udpTimeout: descUdp,
+    )
+
+    def srcInterface = LaunchTemplateInstanceNetworkInterfaceSpecification.builder()
+      .deviceIndex(0)
+      .groups(["src-sg-1"])
+    if (srcTcp != null || srcUdpStream != null) {
+      srcInterface.connectionTrackingSpecification(ConnectionTrackingSpecification.builder()
+        .tcpEstablishedTimeout(srcTcp)
+        .udpStreamTimeout(srcUdpStream)
+        .build())
+    }
+    def sourceLtVersion = LaunchTemplateVersion.builder()
+      .launchTemplateId(LT_ID_1)
+      .versionNumber(1L)
+      .launchTemplateData(ResponseLaunchTemplateData.builder()
+        .imageId("ami-1")
+        .instanceType("m9g.large")
+        .userData(USER_DATA_STR)
+        .networkInterfaces([srcInterface.build()])
+        .build())
+      .build()
+
+    when:
+    launchTemplateService.modifyLaunchTemplate(testCredentials, modifyDesc, sourceLtVersion, false)
+
+    then:
+    1 * mockEc2.createLaunchTemplateVersion(_ as CreateLaunchTemplateVersionRequest) >> { arguments ->
+      CreateLaunchTemplateVersionRequest reqInArg = arguments[0]
+      def networkInterfaces = reqInArg.launchTemplateData().networkInterfaces()
+      assert networkInterfaces.size() == 1
+      assert networkInterfaces[0].groups() == ["src-sg-1"]
+      assert networkInterfaces[0].connectionTrackingSpecification() == expected
+      CreateLaunchTemplateVersionResponse.builder()
+        .launchTemplateVersion(LaunchTemplateVersion.builder()
+          .launchTemplateId(LT_ID_1)
+          .versionNumber(2L)
+          .launchTemplateData(ResponseLaunchTemplateData.builder().build())
+          .build())
+        .build()
+    }
+
+    where:
+    descTcp | descUdp | srcTcp | srcUdpStream || expected
+    null    | null    | 3600   | 120          || ConnectionTrackingSpecificationRequest.builder().tcpEstablishedTimeout(3600).udpStreamTimeout(120).build() // regression: source kept, not dropped
+    7200    | null    | 3600   | 120          || ConnectionTrackingSpecificationRequest.builder().tcpEstablishedTimeout(7200).udpStreamTimeout(120).build() // description wins per field
+    null    | 45      | 3600   | null         || ConnectionTrackingSpecificationRequest.builder().tcpEstablishedTimeout(3600).udpTimeout(45).build()
+    7200    | null    | null   | null         || ConnectionTrackingSpecificationRequest.builder().tcpEstablishedTimeout(7200).build()
+    null    | null    | null   | null         || null
+  }
+
+  @Unroll
   void 'delete launch template version success scenarios are handled as expected'() {
     given:
     def versionToDelete = 2L

@@ -43,14 +43,23 @@ class AbortStageHandler(
   override fun handle(message: AbortStage) {
     message.withStage { stage ->
       if (stage.status in setOf(RUNNING, NOT_STARTED)) {
+        val originalStatus = stage.status
         stage.status = TERMINAL
         stage.endTime = clock.millis()
         repository.storeStage(stage)
-        queue.push(CancelStage(message))
-        if (stage.parentStageId == null) {
-          queue.push(CompleteExecution(message))
-        } else {
-          queue.push(CompleteStage(stage.parent()))
+        try {
+          queue.push(CancelStage(message))
+          if (stage.parentStageId == null) {
+            queue.push(CompleteExecution(message))
+          } else {
+            queue.push(CompleteStage(stage.parent()))
+          }
+        } catch (e: Exception) {
+          // Restore original status so the ack-timeout retried AbortStage
+          // message isn't dropped by the status guard above.
+          stage.status = originalStatus
+          repository.storeStage(stage)
+          throw e
         }
         publisher.publishEvent(StageComplete(this, stage))
       }

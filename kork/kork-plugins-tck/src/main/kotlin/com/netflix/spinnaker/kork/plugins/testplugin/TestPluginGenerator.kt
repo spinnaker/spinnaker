@@ -108,6 +108,10 @@ class TestPluginGenerator(
     sfm.setLocation(StandardLocation.CLASS_OUTPUT, listOf(classesDir))
     sfm.setLocation(StandardLocation.SOURCE_PATH, listOf(generated.first.toFile()))
     sfm.setLocation(StandardLocation.CLASS_PATH, systemClasspath())
+    // Newer javac (JDK 21+) no longer implicitly discovers annotation processors from the
+    // classpath, so PF4J's ExtensionAnnotationProcessor (which generates META-INF/extensions.idx)
+    // must be pointed to explicitly, or generated plugins silently end up with no extension index.
+    sfm.setLocation(StandardLocation.ANNOTATION_PROCESSOR_PATH, systemClasspath())
     val javaFiles = sfm.getJavaFileObjects(*generated.second)
     return CompilerSetup(
       task = compiler.getTask(null, sfm, diag, null, null, javaFiles),

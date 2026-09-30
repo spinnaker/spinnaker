@@ -5,9 +5,9 @@ dependencies {
   testImplementation "org.junit.jupiter:junit-jupiter-api"
   testImplementation "org.postgresql:postgresql"
   testImplementation "org.slf4j:slf4j-api"
-  testImplementation "org.testcontainers:junit-jupiter"
-  testImplementation "org.testcontainers:mysql"
-  testImplementation "org.testcontainers:postgresql"
+  testImplementation "org.testcontainers:testcontainers-junit-jupiter"
+  testImplementation "org.testcontainers:testcontainers-mysql"
+  testImplementation "org.testcontainers:testcontainers-postgresql"
   testImplementation "org.testcontainers:testcontainers"
   testRuntimeOnly "ch.qos.logback:logback-classic"
 }

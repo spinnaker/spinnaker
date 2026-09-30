@@ -80,7 +80,7 @@ class GoogleSubnetCachingAgent extends AbstractGoogleCachingAgent {
   private CacheResult buildCacheResult(ProviderCache _, List<Subnetwork> subnetList) {
     log.debug("Describing items in ${agentType}")
 
-    def cacheResultBuilder = new CacheResultBuilder()
+    def cacheResultBuilder = new CacheResultBuilder(providedDataTypes)
 
     subnetList.each { Subnetwork subnet ->
       def subnetKey = Keys.getSubnetKey(deriveSubnetId(subnet), region, accountName)

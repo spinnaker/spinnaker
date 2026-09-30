@@ -480,6 +480,27 @@ public class KubernetesCredentials {
     }
   }
 
+  /**
+   * Like {@link #list(List, String)}, but for callers that use the absence of a kind from the
+   * result to drive cache eviction. See {@link KubectlJobExecutor#listAuthoritative} for why this
+   * throws {@link KubectlJobExecutor.KubectlForbiddenException} on a permission error instead of
+   * silently returning partial results.
+   */
+  @Nonnull
+  public ImmutableList<KubernetesManifest> listAuthoritative(
+      List<KubernetesKind> kinds, String namespace) {
+    if (kinds.isEmpty()) {
+      return ImmutableList.of();
+    } else {
+      return runAndRecordMetrics(
+          "list",
+          kinds,
+          namespace,
+          () ->
+              jobExecutor.listAuthoritative(this, kinds, namespace, new KubernetesSelectorList()));
+    }
+  }
+
   /** Deprecated in favor of {@link KubernetesCredentials#eventsFor(KubernetesCoordinates)}. */
   @Deprecated
   @Nonnull

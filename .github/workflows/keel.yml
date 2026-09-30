@@ -50,6 +50,12 @@ on:
       - 'kork/**'
       - '.github/workflows/keel.yml'
 
+permissions:
+  id-token: write
+  contents: write
+  packages: write
+  attestations: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -61,6 +67,7 @@ jobs:
           publish: ${{ github.event_name != 'pull_request' }}
           publish-containers: ${{ github.event_name == 'push' || inputs.publish-containers == true }}
           publish-debs: ${{ inputs.publish-debs == true }}
+          generate-sbom: 'true'
           version-override: ${{ inputs.version-override }}
           publish-halconfig: false
           integration-test: false

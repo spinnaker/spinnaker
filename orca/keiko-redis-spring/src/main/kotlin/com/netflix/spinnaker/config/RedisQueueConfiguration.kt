@@ -111,7 +111,8 @@ class RedisQueueConfiguration {
       deadMessageHandlers = listOf(deadMessageHandler),
       publisher = publisher,
       ackTimeout = Duration.ofSeconds(redisQueueProperties.ackTimeoutSeconds.toLong()),
-      serializationMigrator = serializationMigrator
+      serializationMigrator = serializationMigrator,
+      retryConfig = redisQueueProperties.retry
     )
 
   @Bean
@@ -175,7 +176,8 @@ class RedisQueueConfiguration {
       deadMessageHandlers = listOf(deadMessageHandler),
       publisher = publisher,
       ackTimeout = Duration.ofSeconds(redisQueueProperties.ackTimeoutSeconds.toLong()),
-      serializationMigrator = serializationMigrator
+      serializationMigrator = serializationMigrator,
+      retryConfig = redisQueueProperties.retry
     )
 
   @Bean

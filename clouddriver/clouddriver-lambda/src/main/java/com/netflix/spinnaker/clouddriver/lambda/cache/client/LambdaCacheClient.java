@@ -19,9 +19,9 @@ package com.netflix.spinnaker.clouddriver.lambda.cache.client;
 import static com.netflix.spinnaker.clouddriver.lambda.cache.Keys.Namespace.LAMBDA_FUNCTIONS;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
+import com.netflix.spinnaker.clouddriver.aws.jackson.AwsObjectMapperFactory;
 import com.netflix.spinnaker.clouddriver.lambda.cache.model.LambdaFunction;
 import com.netflix.spinnaker.clouddriver.model.Function;
 import java.util.*;
@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class LambdaCacheClient extends AbstractCacheClient<Function> {
-  private final ObjectMapper objectMapper = AmazonObjectMapperConfigurer.createConfigured();
+  private final ObjectMapper objectMapper = AwsObjectMapperFactory.createConfigured();
 
   @Autowired
   public LambdaCacheClient(Cache cacheView) {

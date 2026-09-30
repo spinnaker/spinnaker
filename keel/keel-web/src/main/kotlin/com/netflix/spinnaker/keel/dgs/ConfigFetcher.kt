@@ -46,7 +46,7 @@ class ConfigFetcher(
     DgsData(parentType = DgsConstants.MD_CONFIG.TYPE_NAME, field = DgsConstants.MD_CONFIG.RawConfig),
   )
   fun rawConfig(dfe: DgsDataFetchingEnvironment): String? {
-    val rawConfig = dfe.getSource<MdConfig>().rawConfig
+    val rawConfig = dfe.getSource<MdConfig>()!!.rawConfig
     val config = applicationFetcherSupport.getDeliveryConfigFromContext(dfe)
     // If the raw config is empty or if it was imported via orca (orca adds the gitMetadata to the metadata) we fetch it again from stash
     // TODO: remove this once we removed the import pipeline completely

@@ -10,7 +10,7 @@ dependencies {
   api "org.springframework:spring-jdbc"
   api "org.springframework:spring-tx"
   api "org.jooq:jooq"
-  api "org.liquibase:liquibase-core"
+  api "org.springframework.boot:spring-boot-starter-liquibase"
   api "com.zaxxer:HikariCP"
 
   implementation 'com.github.blagerweij:liquibase-sessionlock:1.6.9'
@@ -19,7 +19,7 @@ dependencies {
 
   testImplementation project(":kork-sql-test")
   testImplementation "org.springframework.boot:spring-boot-starter-actuator"
-  testImplementation "org.springframework.boot:spring-boot-starter-web"
+  testImplementation "org.springframework.boot:spring-boot-starter-webmvc"
   testImplementation "org.springframework.boot:spring-boot-starter-test"
 
   testRuntimeOnly project(":kork-web")

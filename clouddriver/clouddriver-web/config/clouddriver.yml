@@ -8,7 +8,6 @@ server:
 redis:
   connection: ${services.redis.baseUrl:redis://localhost:6379}
   scheduler: default
-  parallelism: -1
 
 services:
   front50:
@@ -256,6 +255,10 @@ kubernetes:
   enabled: false
   v2:
     applyAppLabels: true
+    # Annotate deployed resources with provenance.spinnaker.io/deployed-by and
+    # provenance.spinnaker.io/execution-id so a running workload can be traced
+    # back to the Spinnaker user and pipeline execution that deployed it.
+    applyProvenanceAnnotations: false
 
 dockerRegistry:
   enabled: ${DOCKER_REGISTRY_ENABLED:false}

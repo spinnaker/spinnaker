@@ -16,13 +16,26 @@
 
 package com.netflix.spinnaker.clouddriver.appengine.provider
 
+import com.netflix.spinnaker.cats.provider.ProviderCacheConfiguration
 import com.netflix.spinnaker.clouddriver.appengine.AppengineCloudProvider
 import com.netflix.spinnaker.clouddriver.appengine.cache.Keys
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider
 import com.netflix.spinnaker.clouddriver.security.BaseProvider
 
-class AppengineProvider extends BaseProvider implements SearchableProvider {
+class AppengineProvider extends BaseProvider implements SearchableProvider, ProviderCacheConfiguration {
   public static final String PROVIDER_NAME = AppengineProvider.name
+
+  /**
+   * Every caching agent here always reports its authoritative namespace's key in the
+   * CacheResult, even with an empty list when there's no live data this cycle, so the SQL
+   * cache's existingIds-minus-currentIds eviction diff can always run. Without opting in here,
+   * SqlCache's default safeguard against ever evicting the last item of a type discards that
+   * entry before the diff can run, and the stale entry is never cleaned up.
+   */
+  @Override
+  boolean supportsFullEviction() {
+    return true
+  }
 
   final Map<String, String> urlMappingTemplates = Collections.emptyMap()
   final Map<SearchableProvider.SearchableResource, SearchableProvider.SearchResultHydrator> searchResultHydrators = Collections.emptyMap()

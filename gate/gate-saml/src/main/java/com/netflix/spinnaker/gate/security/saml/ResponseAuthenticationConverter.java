@@ -29,8 +29,8 @@ import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.saml2.provider.service.authentication.OpenSaml4AuthenticationProvider;
-import org.springframework.security.saml2.provider.service.authentication.OpenSaml4AuthenticationProvider.ResponseToken;
+import org.springframework.security.saml2.provider.service.authentication.OpenSaml5AuthenticationProvider;
+import org.springframework.security.saml2.provider.service.authentication.OpenSaml5AuthenticationProvider.ResponseToken;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal;
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
@@ -88,7 +88,7 @@ public class ResponseAuthenticationConverter
   }
 
   private static final Converter<ResponseToken, Saml2Authentication> DEFAULT_CONVERTER =
-      OpenSaml4AuthenticationProvider.createDefaultResponseAuthenticationConverter();
+      OpenSaml5AuthenticationProvider.createDefaultResponseAuthenticationConverter();
 
   private static Saml2Authentication convertToken(ResponseToken token) {
     Saml2Authentication authentication = DEFAULT_CONVERTER.convert(token);

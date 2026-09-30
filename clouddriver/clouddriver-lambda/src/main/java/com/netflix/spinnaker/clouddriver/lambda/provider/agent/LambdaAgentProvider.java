@@ -17,9 +17,9 @@
 package com.netflix.spinnaker.clouddriver.lambda.provider.agent;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.agent.AgentProvider;
+import com.netflix.spinnaker.clouddriver.aws.jackson.AwsObjectMapperFactory;
 import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module;
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
@@ -50,7 +50,7 @@ public class LambdaAgentProvider implements AgentProvider {
     // (e.g. FunctionConfiguration, AliasConfiguration) produce the expected JSON. v2 models are
     // not standard Jackson beans, so without this the default mapper emits empty/incorrect output.
     this.objectMapper =
-        AmazonObjectMapperConfigurer.createConfigured().registerModule(new AwsSdkV2Module());
+        AwsObjectMapperFactory.createConfigured().registerModule(new AwsSdkV2Module());
     this.amazonClientProvider = amazonClientProvider;
     this.lambdaServiceConfig = lambdaServiceConfig;
     this.serviceLimitConfiguration = serviceLimitConfiguration;

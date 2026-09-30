@@ -41,8 +41,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.actuate.health.Health;
-import org.springframework.boot.actuate.health.Status;
+import org.springframework.boot.health.contributor.Health;
+import org.springframework.boot.health.contributor.Status;
 
 @ExtendWith(MockitoExtension.class)
 final class KubernetesHealthIndicatorTest {
@@ -92,7 +92,7 @@ final class KubernetesHealthIndicatorTest {
         new KubernetesHealthIndicator(REGISTRY, repository, kubernetesConfigurationProperties);
 
     healthIndicator.checkHealth();
-    Health result = healthIndicator.getHealth(true);
+    Health result = healthIndicator.health(true);
 
     assertThat(result.getStatus()).isEqualTo(Status.UP);
     assertThat(result.getDetails()).isEmpty();
@@ -107,7 +107,7 @@ final class KubernetesHealthIndicatorTest {
         new KubernetesHealthIndicator(REGISTRY, repository, kubernetesConfigurationProperties);
 
     healthIndicator.checkHealth();
-    Health result = healthIndicator.getHealth(true);
+    Health result = healthIndicator.health(true);
 
     assertThat(result.getStatus()).isEqualTo(Status.UP);
     assertThat(result.getDetails()).isEmpty();
@@ -125,7 +125,7 @@ final class KubernetesHealthIndicatorTest {
         new KubernetesHealthIndicator(REGISTRY, repository, kubernetesConfigurationProperties);
 
     healthIndicator.checkHealth();
-    Health result = healthIndicator.getHealth(true);
+    Health result = healthIndicator.health(true);
 
     assertThat(result.getStatus()).isEqualTo(Status.UP);
     if (verifyAccountHealth) {
@@ -149,7 +149,7 @@ final class KubernetesHealthIndicatorTest {
         new KubernetesHealthIndicator(REGISTRY, repository, kubernetesConfigurationProperties);
 
     healthIndicator.checkHealth();
-    Health result = healthIndicator.getHealth(true);
+    Health result = healthIndicator.health(true);
 
     assertThat(result.getStatus()).isEqualTo(Status.UP);
     assertThat(result.getDetails())

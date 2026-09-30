@@ -503,9 +503,16 @@ public class CreateServerGroupAtomicOperation
       desiredCount = sourceService.desiredCount();
     }
 
+    MonitoringConfiguration monitoringConfiguration = resolveMonitoringConfiguration(sourceService);
+
     CreateServiceRequest request =
         makeServiceRequest(
-            taskDefinitionArn, newServerGroupName, desiredCount, namer, isTaggingEnabled(ecs));
+            taskDefinitionArn,
+            newServerGroupName,
+            desiredCount,
+            namer,
+            isTaggingEnabled(ecs),
+            monitoringConfiguration);
 
     updateTaskStatus(
         String.format(
@@ -530,6 +537,17 @@ public class CreateServerGroupAtomicOperation
       Integer desiredCount,
       Namer<EcsResource> namer,
       boolean taggingEnabled) {
+    return makeServiceRequest(
+        taskDefinitionArn, newServerGroupName, desiredCount, namer, taggingEnabled, null);
+  }
+
+  protected CreateServiceRequest makeServiceRequest(
+      String taskDefinitionArn,
+      EcsServerGroupName newServerGroupName,
+      Integer desiredCount,
+      Namer<EcsResource> namer,
+      boolean taggingEnabled,
+      MonitoringConfiguration monitoringConfiguration) {
     Collection<ServiceRegistry> serviceRegistries = new LinkedList<>();
     if (description.getServiceDiscoveryAssociations() != null) {
       for (ServiceDiscoveryAssociation config : description.getServiceDiscoveryAssociations()) {
@@ -663,7 +681,83 @@ public class CreateServerGroupAtomicOperation
       requestBuilder.healthCheckGracePeriodSeconds(description.getHealthCheckGracePeriodSeconds());
     }
 
+    if (monitoringConfiguration != null) {
+      requestBuilder.monitoring(monitoringConfiguration);
+    }
+
     return requestBuilder.build();
+  }
+
+  /**
+   * Resolves the monitoring configuration to apply to the new service: an explicitly supplied one
+   * takes precedence, otherwise the source service's configuration is copied when enabled.
+   */
+  private MonitoringConfiguration resolveMonitoringConfiguration(Service sourceService) {
+    if (description.getMonitoringConfiguration() != null) {
+      updateTaskStatus("Using monitoring configuration from the deployment description.");
+      return description.getMonitoringConfiguration();
+    }
+
+    if (sourceService == null || !description.isCopySourceMonitoringConfiguration()) {
+      return null;
+    }
+
+    MonitoringConfiguration sourceConfiguration = getSourceMonitoringConfiguration(sourceService);
+    if (sourceConfiguration != null) {
+      updateTaskStatus(
+          String.format(
+              "Copying monitoring configuration from source service %s...",
+              sourceService.serviceName()));
+    }
+    return sourceConfiguration;
+  }
+
+  /**
+   * The monitoring configuration is not part of {@link Service}; it is only exposed on the service
+   * revision, so look it up via DescribeServiceRevisions on the source service's active revision.
+   */
+  private MonitoringConfiguration getSourceMonitoringConfiguration(Service sourceService) {
+    try {
+      String revisionArn = getActiveServiceRevisionArn(sourceService);
+      if (revisionArn == null) {
+        log.debug(
+            "No active service revision found for source service {}, not copying monitoring configuration.",
+            sourceService.serviceName());
+        return null;
+      }
+
+      DescribeServiceRevisionsResponse response =
+          getSourceAmazonEcsClient()
+              .describeServiceRevisions(
+                  DescribeServiceRevisionsRequest.builder()
+                      .serviceRevisionArns(revisionArn)
+                      .build());
+
+      if (response.serviceRevisions() == null || response.serviceRevisions().isEmpty()) {
+        return null;
+      }
+
+      return response.serviceRevisions().get(0).monitoring();
+    } catch (RuntimeException e) {
+      String message =
+          String.format(
+              "Unable to look up monitoring configuration of source service %s, continuing without it: %s",
+              sourceService.serviceName(), e.getMessage());
+      log.warn(message, e);
+      updateTaskStatus(message);
+      return null;
+    }
+  }
+
+  private String getActiveServiceRevisionArn(Service sourceService) {
+    if (!sourceService.hasCurrentServiceRevisions()) {
+      return null;
+    }
+    return sourceService.currentServiceRevisions().stream()
+        .map(ServiceCurrentRevisionSummary::arn)
+        .filter(Objects::nonNull)
+        .findFirst()
+        .orElse(null);
   }
 
   private boolean isTaggingEnabled(EcsClient ecs) {

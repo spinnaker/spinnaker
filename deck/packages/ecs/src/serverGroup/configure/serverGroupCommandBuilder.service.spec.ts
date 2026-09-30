@@ -18,6 +18,9 @@ describe('EcsServerGroupCommandBuilder', () => {
 
     expect(command.credentials).toBe('ecs-prod');
     expect(command.region).toBe('us-west-2');
+    expect(command.copySourceScalingPoliciesAndActions).toBe(true);
+    expect(command.copySourceMonitoringConfiguration).toBe(true);
+    expect(command.monitoringConfiguration).toBeUndefined();
   });
 
   it('builds pipeline commands when availability zones are missing', async () => {

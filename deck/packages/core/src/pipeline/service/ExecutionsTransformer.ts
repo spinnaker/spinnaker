@@ -2,6 +2,7 @@ import type { Dictionary } from 'lodash';
 import { find, findLast, get, has, maxBy, sortBy, uniq } from 'lodash';
 
 import type { Application } from '../../application';
+import { SETTINGS } from '../../config';
 import { ExecutionBarLabel } from '../config/stages/common/ExecutionBarLabel';
 import { ExecutionMarkerIcon } from '../config/stages/common/ExecutionMarkerIcon';
 import type { IExecution, IExecutionStage, IExecutionStageSummary, IOrchestratedItem, IStage } from '../../domain';
@@ -18,6 +19,12 @@ export class ExecutionsTransformer {
   ];
 
   private static addDeploymentTargets(execution: IExecution): void {
+    // Check if deployment targets should be displayed (default: true for backward compatibility)
+    if (SETTINGS.displayExecutionDeploymentTargets === false) {
+      execution.deploymentTargets = [];
+      return;
+    }
+
     const targets: string[] = [];
     execution.stages.forEach((stage) => {
       const stageConfig = Registry.pipeline.getStageConfig(stage);
@@ -27,6 +34,7 @@ export class ExecutionsTransformer {
     });
     execution.deploymentTargets = uniq(targets)
       .filter((a) => !!a)
+      .filter((a) => !a.includes('${')) // Filter out SpEL expressions
       .sort();
   }
 

@@ -230,8 +230,7 @@ public class AwsSdkV2ClientSupplier {
       if (httpClientBuilder != null
           && builder
               instanceof
-              software.amazon.awssdk.core.client.builder.SdkSyncClientBuilder<?, ?>
-              syncBuilder) {
+              software.amazon.awssdk.core.client.builder.SdkSyncClientBuilder<?, ?> syncBuilder) {
         syncBuilder.httpClient(httpClientBuilder.build());
       }
 

@@ -26,16 +26,11 @@ public class EcsApplication implements Application {
   private String name;
   Map<String, String> attributes;
   Map<String, Set<String>> clusterNames;
-  Map<String, Set<String>> clusterNameMetadata;
 
   public EcsApplication(
-      String name,
-      Map<String, String> attributes,
-      Map<String, Set<String>> clusterNames,
-      Map<String, Set<String>> getClusterNameMetadata) {
+      String name, Map<String, String> attributes, Map<String, Set<String>> clusterNames) {
     this.name = name;
     this.attributes = attributes;
     this.clusterNames = clusterNames;
-    this.clusterNameMetadata = getClusterNameMetadata;
   }
 }

@@ -1,7 +1,7 @@
 #
 # Builder Image
 #
-FROM gradle:9.6.1-jdk17 AS builder
+FROM gradle:9.6.1-jdk25 AS builder
 
 # Prep build environment
 ENV GRADLE_USER_HOME=cache
@@ -23,7 +23,7 @@ FROM alpine:3.24
 
 LABEL maintainer="delivery-engineering@netflix.com"
 
-RUN apk --no-cache add --update openjdk17-jre
+RUN apk --no-cache add --update openjdk25-jre
 
 # Set where to look for config from
 ENV KAYENTA_OPTS=-Dspring.config.location=file:/opt/kayenta/config/kayenta.yml

@@ -15,7 +15,7 @@ public class EmbeddedRedis implements AutoCloseable {
 
   private EmbeddedRedis() {
     redisContainer =
-        new GenericContainer<>(DockerImageName.parse("library/redis:5-alpine"))
+        new GenericContainer<>(DockerImageName.parse("valkey/valkey:8"))
             .withExposedPorts(REDIS_PORT);
     redisContainer.start();
   }

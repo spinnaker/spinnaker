@@ -64,6 +64,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          path: ./deck
+          format: cyclonedx-json
+          output-file: deck-app-sbom.cdx.json
+          artifact-name: sbom-deck
+
+      - name: Summarize SBOM
+        shell: bash
+        run: |
+          COMPONENT_COUNT=$(jq '.components | length' deck-app-sbom.cdx.json)
+          cat <<EOF >> "$GITHUB_STEP_SUMMARY"
+          ### SBOM (CycloneDX)
+          Generated for \`deck\`: $COMPONENT_COUNT components.
+          Full deck-app-sbom.cdx.json available in the \`sbom-deck\` workflow artifact.
+          EOF
+
       - uses: ./.github/actions/generic-build-publish
         with:
           project: deck

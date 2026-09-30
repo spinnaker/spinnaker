@@ -28,8 +28,8 @@ class SpinnakerBaseProjectConventionsPlugin implements Plugin<Project> {
     project.plugins.withType(JavaBasePlugin) {
       project.plugins.apply(MavenPublishPlugin)
       project.extensions.getByType(JavaPluginExtension).with {
-        it.setSourceCompatibility(JavaVersion.VERSION_17)
-        it.setTargetCompatibility(JavaVersion.VERSION_17)
+        it.setSourceCompatibility(JavaVersion.VERSION_25)
+        it.setTargetCompatibility(JavaVersion.VERSION_25)
       }
     }
     // with out these two compile blocks, bean discovery fails BADLY on multiple conflicting objects.  See
