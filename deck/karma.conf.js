@@ -74,8 +74,6 @@ const webpackConfig = {
       '@spinnaker/oracle': path.resolve(`${MODULES_ROOT}/oracle/src`),
       tencentcloud: path.resolve(`${MODULES_ROOT}/tencentcloud/src`),
       '@spinnaker/tencentcloud': path.resolve(`${MODULES_ROOT}/tencentcloud/src`),
-      titus: path.resolve(`${MODULES_ROOT}/titus/src`),
-      '@spinnaker/titus': path.resolve(`${MODULES_ROOT}/titus/src`),
     },
   },
   plugins: [
