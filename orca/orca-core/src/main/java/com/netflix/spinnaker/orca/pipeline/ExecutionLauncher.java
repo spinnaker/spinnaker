@@ -296,7 +296,7 @@ public class ExecutionLauncher {
       String type = context.remove("type").toString();
 
       String providerType = getString(context, "providerType");
-      if (providerType != null && !providerType.equals("aws") && !providerType.equals("titus")) {
+      if (providerType != null && !providerType.equals("aws")) {
         type += format("_%s", providerType);
       }
 
