@@ -31,7 +31,7 @@ describe('<AccountSelectInput/>', () => {
 
   const allAccounts: { [provider: string]: IAccountDetails[] } = {
     aws: [makeAccount('prod', 'aws', true), makeAccount('backup', 'aws', false)],
-    titus: [makeAccount('titusprod', 'titus', true), makeAccount('titusbackup', 'titus', false)],
+    kubernetes: [makeAccount('prodk8s', 'kubernetes', true), makeAccount('backupk8s', 'kubernetes', false)],
   };
 
   beforeEach(() => {
@@ -48,12 +48,12 @@ describe('<AccountSelectInput/>', () => {
   }
 
   it('groups accounts by primary field when provider not specified', async () => {
-    const accounts = allAccounts.aws.concat(allAccounts.titus);
+    const accounts = allAccounts.aws.concat(allAccounts.kubernetes);
     component = shallow(<AccountSelectInput accounts={accounts} provider={null} value="prod" />);
     await settleComponent();
 
-    expect(component.state().primaryAccounts).toEqual(['prod', 'titusprod']);
-    expect(component.state().secondaryAccounts).toEqual(['backup', 'titusbackup']);
+    expect(component.state().primaryAccounts).toEqual(['prod', 'prodk8s']);
+    expect(component.state().secondaryAccounts).toEqual(['backup', 'backupk8s']);
   });
 
   it('groups accounts by primary field when only one provider available', async () => {

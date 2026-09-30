@@ -18,9 +18,9 @@ package com.netflix.spinnaker.orca.plugins.test
 
 import com.netflix.spinnaker.kork.plugins.tck.PluginsTck
 import com.netflix.spinnaker.kork.plugins.tck.serviceFixture
-import com.netflix.spinnaker.orca.api.preconfigured.jobs.TitusPreconfiguredJobProperties
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.plugins.ManifestPreconfiguredJobProperties
 import com.netflix.spinnaker.orca.plugins.StageDefinitionBuilderExtension
 import com.netflix.spinnaker.orca.plugins.TaskExtension1
 import com.netflix.spinnaker.orca.plugins.TaskExtension2
@@ -47,16 +47,16 @@ class OrcaPluginsTest : PluginsTck<OrcaPluginsFixture>() {
       defaultPluginTests()
 
       test("preconfigured job configuration is correctly loaded from extension") {
-        val titusPreconfiguredJobProperties = objectMapper
+        val preconfiguredJobProperties = objectMapper
           .readValue(
             this::class.java.getResource("/preconfigured.yml").readText(),
-            TitusPreconfiguredJobProperties::class.java
+            ManifestPreconfiguredJobProperties::class.java
           )
 
         expect {
           that(jobService.preconfiguredStages).hasSize(1)
           jobService.preconfiguredStages.first().let { preconfiguredStage ->
-            that(preconfiguredStage).isEqualTo(titusPreconfiguredJobProperties)
+            that(preconfiguredStage).isEqualTo(preconfiguredJobProperties)
           }
         }
       }
