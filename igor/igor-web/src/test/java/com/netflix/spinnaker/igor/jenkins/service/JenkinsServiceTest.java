@@ -94,7 +94,7 @@ public class JenkinsServiceTest {
     wmJenkins.verify(1, WireMock.postRequestedFor(WireMock.urlEqualTo("/job/job1/build")));
   }
 
-  private void stubCrumb() throws JsonProcessingException {
+  private void stubCrumb() throws JacksonException {
     Crumb crumb = new Crumb();
     crumb.setCrumb("crumb");
     wmJenkins.stubFor(
@@ -103,7 +103,7 @@ public class JenkinsServiceTest {
   }
 
   @Test
-  public void triggerBuildWithParametersReturnsQueueIdWhenQueued() throws JsonProcessingException {
+  public void triggerBuildWithParametersReturnsQueueIdWhenQueued() throws JacksonException {
     stubCrumb();
     wmJenkins.stubFor(
         WireMock.post(WireMock.urlPathEqualTo("/job/queued/buildWithParameters"))
@@ -117,7 +117,7 @@ public class JenkinsServiceTest {
 
   @Test
   public void triggerBuildWithParametersReusesExistingQueueItemOnRedirect()
-      throws JsonProcessingException {
+      throws JacksonException {
     stubCrumb();
     wmJenkins.stubFor(
         WireMock.post(WireMock.urlPathEqualTo("/job/busy/buildWithParameters"))
@@ -132,7 +132,7 @@ public class JenkinsServiceTest {
   }
 
   @Test
-  public void triggerBuildWithParametersRejectsOtherStatuses() throws JsonProcessingException {
+  public void triggerBuildWithParametersRejectsOtherStatuses() throws JacksonException {
     stubCrumb();
     wmJenkins.stubFor(
         WireMock.post(WireMock.urlPathEqualTo("/job/odd/buildWithParameters"))

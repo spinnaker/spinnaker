@@ -16,7 +16,6 @@ import com.netflix.spinnaker.keel.schema.TagVersionStrategySchemaCustomizer
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 import com.netflix.spinnaker.keel.ec2.jackson.registerKeelEc2ApiModule
-import com.netflix.spinnaker.keel.titus.jackson.registerKeelTitusApiModule
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
 import de.huxhorn.sulky.ulid.ULID
 import org.springframework.beans.factory.annotation.Value
@@ -92,7 +91,6 @@ class DefaultConfiguration(
   fun objectMapper(jsonComponentModule: JacksonComponentModule): JsonMapper =
     configuredObjectMapper()
       .registerKeelEc2ApiModule()
-      .registerKeelTitusApiModule()
       .rebuild()
       .addModule(jsonComponentModule)
       .build()
@@ -101,7 +99,6 @@ class DefaultConfiguration(
   fun yamlMapper(jsonComponentModule: JacksonComponentModule): YAMLMapper =
     configuredYamlMapper()
       .registerKeelEc2ApiModule()
-      .registerKeelTitusApiModule()
       .rebuild()
       .addModule(jsonComponentModule)
       .build()
