@@ -1,13 +1,22 @@
 packages:
   - 'packages/*'
 overrides:
-  '@types/react': 16.14.10
+  '@types/react': 17.0.93
+  '@types/react-dom': 17.0.26
   '@uirouter/core': 6.0.8
   '@uirouter/react': 1.0.7
   cheerio: 1.0.0-rc.3
   nth-check: 2.0.1
-  react: ^16.14.0
-  react-dom: ^16.14.0
+  react: ^17.0.2
+  react-dom: ^17.0.2
+  # react-bootstrap@0.32.1 and react-bootstrap-typeahead@3.4.7 both pin
+  # react-overlays to ^0.8.0 (effectively 0.8.x-only under real semver
+  # caret rules for a 0.x version), whose RootCloseWrapper fires its
+  # "click outside" handler immediately under React 17's event-delegation
+  # change - dropdowns open and instantly close again. Fixed upstream in
+  # react-overlays 0.9.x (react-bootstrap/react-overlays#889); override
+  # past the ^0.8.0 ceiling since neither consumer's own range reaches it.
+  react-overlays: ^0.9.3
   rxjs: ^7.8.2
   # kayenta's canary epic middleware runs on redux-observable@1.x, whose
   # latest major (2.x/3.x, needed for rxjs 7) requires redux >=5 and
