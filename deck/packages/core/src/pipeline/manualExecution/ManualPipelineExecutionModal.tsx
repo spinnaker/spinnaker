@@ -65,7 +65,7 @@ const TRIGGER_FIELDS_TO_EXCLUDE = ['correlationId', 'eventId', 'executionId'];
 
 export class ManualExecutionModal extends React.Component<IManualExecutionModalProps, IManualExecutionModalState> {
   private formikRef = React.createRef<Formik<any>>();
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   constructor(props: IManualExecutionModalProps) {
     super(props);
