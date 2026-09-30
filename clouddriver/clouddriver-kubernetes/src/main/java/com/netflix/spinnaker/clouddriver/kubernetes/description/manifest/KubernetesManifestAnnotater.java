@@ -105,7 +105,7 @@ public class KubernetesManifestAnnotater {
       } else {
         annotations.put(key, objectMapper.writeValueAsString(value));
       }
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new IllegalArgumentException("Illegal annotation value for '" + key + "': " + e);
     }
   }
