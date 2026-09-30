@@ -1,13 +1,13 @@
-label: Custom Deploy
-description: Runs a custom deploy
-type: customDeploy
+label: Publish Assets
+description: Publishes static assets built by the pipeline
+type: publishAssets
 waitForCompletion: true
-uiType: CUSTOM
+uiType: BASIC
 parameters:
   - name: buildFolder
     mapping: manifest.spec.template.spec.containers[0].env[0].value
     defaultValue: build
-    description: The folder to deploy (from the Jenkins Job)
+    description: The folder to publish (from the Jenkins Job)
     label: Build Folder
     order: 0
   - name: account
@@ -21,15 +21,15 @@ manifest:
   apiVersion: batch/v1
   kind: Job
   metadata:
-    name: custom-deploy
+    name: publish-assets
   spec:
     backoffLimit: 2
     template:
       spec:
         restartPolicy: Never
         containers:
-          - name: custom-deploy
-            image: example/custom-deploy:latest
+          - name: publish-assets
+            image: example/publish-assets:latest
             env:
               - name: BUILD_FOLDER
                 value: build

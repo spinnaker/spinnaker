@@ -10,7 +10,6 @@ import './canary/canary.module';
 import '@spinnaker/kubernetes';
 import '@spinnaker/oracle';
 import '@spinnaker/kayenta';
-import '@spinnaker/titus';
 import '@spinnaker/ecs';
 import '@spinnaker/cloudrun';
 import '@spinnaker/cloudfoundry';
