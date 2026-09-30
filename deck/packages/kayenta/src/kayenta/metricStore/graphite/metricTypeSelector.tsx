@@ -69,7 +69,7 @@ export const mapStateToProps = (state: ICanaryState, ownProps: IGraphiteMetricTy
   };
 };
 
-export const mapDispatchToProps = (dispatch: Dispatch<ICanaryState>) => {
+export const mapDispatchToProps = (dispatch: Dispatch) => {
   return {
     load: (filter: string) => {
       dispatch(Creators.updateGraphiteMetricDescriptorFilter({ filter }));
