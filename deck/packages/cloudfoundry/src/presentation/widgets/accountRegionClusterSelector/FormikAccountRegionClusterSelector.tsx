@@ -31,7 +31,7 @@ export class FormikAccountRegionClusterSelector extends React.Component<
   IFormikAccountRegionClusterSelectorProps,
   IFormikAccountRegionClusterSelectorState
 > {
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   constructor(props: IFormikAccountRegionClusterSelectorProps) {
     super(props);

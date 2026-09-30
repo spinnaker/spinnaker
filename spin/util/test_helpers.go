@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 	"testing"
 
@@ -59,6 +60,30 @@ func NewTestBufferHandlerFunc(method string, requestBuffer io.Writer, responseHe
 		}
 
 		// Empty response body. Status: 200 Success
+		w.Header().Add("content-type", "application/json")
+		w.WriteHeader(responseHeader)
+		fmt.Fprintln(w, responseBody)
+	})
+}
+
+// NewTestBufferHandlerFuncCapturingQuery behaves like NewTestBufferHandlerFunc, but also
+// records the request's query string into queryCapture.
+func NewTestBufferHandlerFuncCapturingQuery(method string, requestBuffer io.Writer, queryCapture *url.Values, responseHeader int, responseBody string) http.Handler {
+	buffer := requestBuffer
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != method {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		*queryCapture = r.URL.Query()
+
+		defer r.Body.Close()
+		_, err := io.Copy(buffer, r.Body)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Failed to copy body to buffer: %v", err), http.StatusInternalServerError)
+			return
+		}
+
 		w.Header().Add("content-type", "application/json")
 		w.WriteHeader(responseHeader)
 		fmt.Fprintln(w, responseBody)

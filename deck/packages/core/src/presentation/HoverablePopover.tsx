@@ -66,8 +66,8 @@ export class HoverablePopover extends React.Component<IHoverablePopoverProps, IH
   };
 
   private mouseEvents$ = new Subject<React.SyntheticEvent<any>>();
-  private hidePopoverEvents$ = new Subject();
-  private destroy$ = new Subject();
+  private hidePopoverEvents$ = new Subject<void>();
+  private destroy$ = new Subject<void>();
   private targetRef = React.createRef<HTMLElement>();
 
   constructor(props: IHoverablePopoverProps) {
