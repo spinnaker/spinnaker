@@ -21,6 +21,13 @@ overrides:
   # itself.
   '@spinnaker/kayenta>rxjs': 6.6.7
   typescript: 5.0.4
+packageExtensions:
+  # rxjs-compat imports 'rxjs' without declaring it, so it otherwise resolves whichever rxjs pnpm
+  # hoists. With inquirer's rxjs 7 in the graph, that can be 7.x, which breaks the rxjs-5 style
+  # imports (e.g. 'rxjs/observable/from') used by kayenta. Pin it to the rxjs 6 line it belongs to.
+  rxjs-compat@6.6.7:
+    dependencies:
+      rxjs: 6.6.7
 allowBuilds:
   bufferutil: true
   core-js: true
