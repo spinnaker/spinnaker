@@ -34,8 +34,6 @@ keel:
       enabled: true
     deliveryConfig:
       enabled: true
-    titus:
-      enabled: false
   constraints:
     manual-judgement:
       interactive-notifications:
