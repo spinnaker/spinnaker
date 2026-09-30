@@ -25,13 +25,13 @@ describe('ApplicationWriter', function () {
 
       const application: IApplicationAttributes = {
         name: 'foo',
-        cloudProviders: ['titus', 'cf'],
+        cloudProviders: ['ecs', 'cf'],
       };
 
       ApplicationWriter.updateApplication(application);
 
       expect(job).not.toBe(null);
-      expect(job.application.cloudProviders).toBe('titus,cf');
+      expect(job.application.cloudProviders).toBe('ecs,cf');
     });
   });
 
