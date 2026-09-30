@@ -27,6 +27,7 @@ type updateOptions struct {
 	enabled     bool
 	application string
 	name        string
+	staleCheck  bool
 }
 
 const (
@@ -55,6 +56,8 @@ func NewUpdateCmd(pipelineOptions *PipelineOptions) *cobra.Command {
 	cobra.MarkFlagRequired(cmd.PersistentFlags(), "name")
 	cmd.PersistentFlags().BoolVarP(&options.disabled, "disabled", "d", false, "enable or disable pipeline")
 	cmd.PersistentFlags().BoolVarP(&options.enabled, "enabled", "e", false, "enable or disable pipeline")
+	cmd.PersistentFlags().BoolVar(&options.staleCheck, "stale-check", true,
+		"fail instead of overwriting if the pipeline changed in Spinnaker after this command read it")
 
 	return cmd
 }
@@ -63,7 +66,12 @@ func updatePipeline(cmd *cobra.Command, options *updateOptions) error {
 	application := options.application
 	pipelineName := options.name
 
-	foundPipeline, queryResp, _ := options.GateClient.ApplicationControllerAPI.GetPipelineConfig(options.GateClient.Context, application, pipelineName).Execute()
+	foundPipeline, queryResp, queryErr := options.GateClient.ApplicationControllerAPI.
+		GetPipelineConfig(options.GateClient.Context, application, pipelineName).Execute()
+	if queryResp == nil {
+		return fmt.Errorf("failed to look up pipeline %q in application %q: %w", pipelineName, application, queryErr)
+	}
+	defer queryResp.Body.Close()
 	if queryResp.StatusCode == http.StatusNotFound {
 		return fmt.Errorf("Pipeline %s not found under application %s", pipelineName, application)
 	}
@@ -82,13 +90,19 @@ func updatePipeline(cmd *cobra.Command, options *updateOptions) error {
 		foundPipeline["disabled"] = !options.enabled
 	}
 
-	saveResp, err := options.GateClient.PipelineControllerAPI.SavePipeline(options.GateClient.Context).RequestBody(foundPipeline).Execute()
-	if err != nil {
-		return err
+	// foundPipeline is the map we just fetched, so it already carries the server's
+	// updateTs fingerprint through to the save.
+	saveReq := options.GateClient.PipelineControllerAPI.SavePipeline(options.GateClient.Context).RequestBody(foundPipeline)
+	if options.staleCheck {
+		saveReq = saveReq.StaleCheck(true)
 	}
 
+	saveResp, err := saveReq.Execute()
+	if err != nil {
+		return savePipelineError(application, pipelineName, saveResp, err)
+	}
 	if saveResp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Encountered an error saving pipeline, status code: %d\n", saveResp.StatusCode)
+		return savePipelineError(application, pipelineName, saveResp, nil)
 	}
 
 	options.Ui.Success("Pipeline update succeeded")
