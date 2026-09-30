@@ -5,7 +5,7 @@ import { buildDelegateService } from '../service/delegateFactory';
 
 export interface IMetricStoreConfig {
   name: string;
-  metricConfigurer: React.ComponentType;
+  metricConfigurer: React.ComponentType<any>;
   queryFinder: (metric: ICanaryMetricConfig) => string;
   useTemplates?: boolean;
 }
