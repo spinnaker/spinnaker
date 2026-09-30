@@ -72,12 +72,12 @@ describe('SearchV1', () => {
     const instance = wrapper.instance() as SearchV1;
 
     instance.handleQueryChange('ab');
-    await tick(301);
+    await tick(350);
     expect(query).not.toHaveBeenCalled();
     expect(instance.state.showMinLengthWarning).toBe(true);
 
     instance.handleQueryChange('server');
-    await tick(301);
+    await tick(350);
     await Promise.resolve();
     await Promise.resolve();
 
@@ -99,9 +99,9 @@ describe('SearchV1', () => {
     const instance = wrapper.instance() as SearchV1;
 
     instance.handleQueryChange('first');
-    await tick(301);
+    await tick(350);
     instance.handleQueryChange('second');
-    await tick(301);
+    await tick(350);
     resolveSecond([resultSet('applications', [{ displayName: 'second' }])]);
     await Promise.resolve();
     await Promise.resolve();
@@ -111,7 +111,7 @@ describe('SearchV1', () => {
     expect(instance.state.categories[0].results[0].displayName).toBe('second');
 
     instance.handleQueryChange('third');
-    await tick(301);
+    await tick(350);
     wrapper.unmount();
     wrapper = undefined;
     resolveThird([]);
@@ -125,7 +125,7 @@ describe('SearchV1', () => {
     const instance = wrapper.instance() as SearchV1;
 
     instance.handleQueryChange('first');
-    await tick(301);
+    await tick(350);
     instance.handleQueryChange('ab');
     resolveSearch([resultSet('applications', [{ displayName: 'first' }])]);
     await Promise.resolve();
@@ -149,7 +149,7 @@ describe('SearchV1', () => {
     wrapper = renderSearch();
     const instance = wrapper.instance() as SearchV1;
     instance.handleQueryChange('app');
-    await tick(301);
+    await tick(350);
     await Promise.resolve();
     await Promise.resolve();
     wrapper.update();
@@ -176,12 +176,12 @@ describe('SearchV1', () => {
     const instance = wrapper.instance() as SearchV1;
     const navigateToResult = spyOn<any>(instance, 'navigateToResult');
 
-    await tick(301);
+    await tick(350);
     await flushPromises();
     expect(navigateToResult).toHaveBeenCalledWith('#/one-shot-result');
 
     instance.handleQueryChange('later');
-    await tick(301);
+    await tick(350);
     await flushPromises();
     expect(navigateToResult).toHaveBeenCalledTimes(1);
   });
@@ -197,10 +197,10 @@ describe('SearchV1', () => {
     wrapper = renderSearch();
     const instance = wrapper.instance() as SearchV1;
     const navigateToResult = spyOn<any>(instance, 'navigateToResult');
-    await tick(301);
+    await tick(350);
 
     instance.handleQueryChange('later');
-    await tick(301);
+    await tick(350);
     resolveInitial([resultSet('applications', [{ displayName: 'initial', href: '#/stale-initial-result' }])]);
     await flushPromises();
     expect(navigateToResult).not.toHaveBeenCalled();
@@ -224,10 +224,10 @@ describe('SearchV1', () => {
     wrapper = renderSearch();
     const instance = wrapper.instance() as SearchV1;
     const navigateToResult = spyOn<any>(instance, 'navigateToResult');
-    await tick(301);
+    await tick(350);
 
     params$.next({ q: 'later', route: null });
-    await tick(301);
+    await tick(350);
     resolveInitial([resultSet('applications', [{ displayName: 'initial', href: '#/stale-initial-result' }])]);
     await flushPromises();
     expect(navigateToResult).not.toHaveBeenCalled();
