@@ -1,0 +1,198 @@
+databaseChangeLog:
+- changeSet:
+    id: remove-titus-resources
+    author: jmcintosh
+    comment: >
+      The Titus provider has been removed. Delete any titus/* resources so they no longer fail to
+      deserialize. Mirrors SqlResourceRepository.delete; resource_version, environment_resource,
+      resource_last_checked, unhappy_veto and unhealthy rows are removed via ON DELETE CASCADE.
+    changes:
+    - sql:
+        sql: delete from event where scope = 'RESOURCE' and ref in (select id from resource where kind like 'titus/%')
+    - sql:
+        sql: delete from diff_fingerprint where entity_id in (select id from resource where kind like 'titus/%')
+    - sql:
+        sql: delete from paused where scope = 'RESOURCE' and name in (select id from resource where kind like 'titus/%')
+    - sql:
+        sql: delete from resource where kind like 'titus/%'
+- changeSet:
+    id: remove-titus-verifications-and-post-deploy-actions
+    author: jmcintosh
+    comment: >
+      The Titus test-container verification and promote-candidate-jar post-deploy action were
+      provided by the removed Titus plugin; their types are no longer registered, so stored
+      environments that reference them would fail to deserialize. Only the matching JSON array
+      elements are removed; any other verifications/post-deploy actions (including plugin-provided
+      ones) are left untouched and in order. MySQL 5.7 has no JSON_TABLE, so each statement removes
+      one matching element per row and the verification removal is repeated a bounded number of
+      times; the following changeset halts the migration if any test-container entries remain.
+      promote-candidate-jar is unique per environment (its id is its type), so one pass suffices.
+    changes:
+    - sql:
+        sql: >
+          update environment set verifications = json_remove(
+            verifications,
+            substring_index(json_unquote(json_search(verifications, 'one', 'test-container', null, '$[*].type')), '.', 1)
+          )
+          where json_search(verifications, 'one', 'test-container', null, '$[*].type') is not null
+    - sql:
+        sql: >
+          update environment set verifications = json_remove(
+            verifications,
+            substring_index(json_unquote(json_search(verifications, 'one', 'test-container', null, '$[*].type')), '.', 1)
+          )
+          where json_search(verifications, 'one', 'test-container', null, '$[*].type') is not null
+    - sql:
+        sql: >
+          update environment set verifications = json_remove(
+            verifications,
+            substring_index(json_unquote(json_search(verifications, 'one', 'test-container', null, '$[*].type')), '.', 1)
+          )
+          where json_search(verifications, 'one', 'test-container', null, '$[*].type') is not null
+    - sql:
+        sql: >
+          update environment set verifications = json_remove(
+            verifications,
+            substring_index(json_unquote(json_search(verifications, 'one', 'test-container', null, '$[*].type')), '.', 1)
+          )
+          where json_search(verifications, 'one', 'test-container', null, '$[*].type') is not null
+    - sql:
+        sql: >
+          update environment set verifications = json_remove(
+            verifications,
+            substring_index(json_unquote(json_search(verifications, 'one', 'test-container', null, '$[*].type')), '.', 1)
+          )
+          where json_search(verifications, 'one', 'test-container', null, '$[*].type') is not null
+    - sql:
+        sql: >
+          update environment set verifications = json_remove(
+            verifications,
+            substring_index(json_unquote(json_search(verifications, 'one', 'test-container', null, '$[*].type')), '.', 1)
+          )
+          where json_search(verifications, 'one', 'test-container', null, '$[*].type') is not null
+    - sql:
+        sql: >
+          update environment set verifications = json_remove(
+            verifications,
+            substring_index(json_unquote(json_search(verifications, 'one', 'test-container', null, '$[*].type')), '.', 1)
+          )
+          where json_search(verifications, 'one', 'test-container', null, '$[*].type') is not null
+    - sql:
+        sql: >
+          update environment set verifications = json_remove(
+            verifications,
+            substring_index(json_unquote(json_search(verifications, 'one', 'test-container', null, '$[*].type')), '.', 1)
+          )
+          where json_search(verifications, 'one', 'test-container', null, '$[*].type') is not null
+    - sql:
+        sql: >
+          update environment set verifications = json_remove(
+            verifications,
+            substring_index(json_unquote(json_search(verifications, 'one', 'test-container', null, '$[*].type')), '.', 1)
+          )
+          where json_search(verifications, 'one', 'test-container', null, '$[*].type') is not null
+    - sql:
+        sql: >
+          update environment set verifications = json_remove(
+            verifications,
+            substring_index(json_unquote(json_search(verifications, 'one', 'test-container', null, '$[*].type')), '.', 1)
+          )
+          where json_search(verifications, 'one', 'test-container', null, '$[*].type') is not null
+    - sql:
+        sql: >
+          update preview_environment set verifications = json_remove(
+            verifications,
+            substring_index(json_unquote(json_search(verifications, 'one', 'test-container', null, '$[*].type')), '.', 1)
+          )
+          where json_search(verifications, 'one', 'test-container', null, '$[*].type') is not null
+    - sql:
+        sql: >
+          update preview_environment set verifications = json_remove(
+            verifications,
+            substring_index(json_unquote(json_search(verifications, 'one', 'test-container', null, '$[*].type')), '.', 1)
+          )
+          where json_search(verifications, 'one', 'test-container', null, '$[*].type') is not null
+    - sql:
+        sql: >
+          update preview_environment set verifications = json_remove(
+            verifications,
+            substring_index(json_unquote(json_search(verifications, 'one', 'test-container', null, '$[*].type')), '.', 1)
+          )
+          where json_search(verifications, 'one', 'test-container', null, '$[*].type') is not null
+    - sql:
+        sql: >
+          update preview_environment set verifications = json_remove(
+            verifications,
+            substring_index(json_unquote(json_search(verifications, 'one', 'test-container', null, '$[*].type')), '.', 1)
+          )
+          where json_search(verifications, 'one', 'test-container', null, '$[*].type') is not null
+    - sql:
+        sql: >
+          update preview_environment set verifications = json_remove(
+            verifications,
+            substring_index(json_unquote(json_search(verifications, 'one', 'test-container', null, '$[*].type')), '.', 1)
+          )
+          where json_search(verifications, 'one', 'test-container', null, '$[*].type') is not null
+    - sql:
+        sql: >
+          update preview_environment set verifications = json_remove(
+            verifications,
+            substring_index(json_unquote(json_search(verifications, 'one', 'test-container', null, '$[*].type')), '.', 1)
+          )
+          where json_search(verifications, 'one', 'test-container', null, '$[*].type') is not null
+    - sql:
+        sql: >
+          update preview_environment set verifications = json_remove(
+            verifications,
+            substring_index(json_unquote(json_search(verifications, 'one', 'test-container', null, '$[*].type')), '.', 1)
+          )
+          where json_search(verifications, 'one', 'test-container', null, '$[*].type') is not null
+    - sql:
+        sql: >
+          update preview_environment set verifications = json_remove(
+            verifications,
+            substring_index(json_unquote(json_search(verifications, 'one', 'test-container', null, '$[*].type')), '.', 1)
+          )
+          where json_search(verifications, 'one', 'test-container', null, '$[*].type') is not null
+    - sql:
+        sql: >
+          update preview_environment set verifications = json_remove(
+            verifications,
+            substring_index(json_unquote(json_search(verifications, 'one', 'test-container', null, '$[*].type')), '.', 1)
+          )
+          where json_search(verifications, 'one', 'test-container', null, '$[*].type') is not null
+    - sql:
+        sql: >
+          update preview_environment set verifications = json_remove(
+            verifications,
+            substring_index(json_unquote(json_search(verifications, 'one', 'test-container', null, '$[*].type')), '.', 1)
+          )
+          where json_search(verifications, 'one', 'test-container', null, '$[*].type') is not null
+    - sql:
+        sql: >
+          update environment set post_deploy_actions = json_remove(
+            post_deploy_actions,
+            substring_index(json_unquote(json_search(post_deploy_actions, 'one', 'promote-candidate-jar', null, '$[*].type')), '.', 1)
+          )
+          where json_search(post_deploy_actions, 'one', 'promote-candidate-jar', null, '$[*].type') is not null
+- changeSet:
+    id: verify-titus-verifications-removed
+    author: jmcintosh
+    preConditions:
+      - onFail: HALT
+      - onFailMessage: >
+          Environments still reference the removed Titus 'test-container' verification (or the
+          'promote-candidate-jar' post-deploy action). Remove those entries from the environment /
+          preview_environment tables (or re-submit the affected delivery configs) and restart.
+      - sqlCheck:
+          expectedResult: 0
+          sql: >
+            select
+                (select count(*) from environment
+                  where json_search(verifications, 'one', 'test-container', null, '$[*].type') is not null
+                     or json_search(post_deploy_actions, 'one', 'promote-candidate-jar', null, '$[*].type') is not null)
+                + (select count(*) from preview_environment
+                  where json_search(verifications, 'one', 'test-container', null, '$[*].type') is not null)
+    changes:
+    - tagDatabase:
+        tag: titus-removed

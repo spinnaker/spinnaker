@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.igor.jenkins.service;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -26,11 +28,13 @@ import com.fasterxml.jackson.module.jaxb.JaxbAnnotationModule;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
+import com.netflix.spinnaker.igor.exceptions.BuildJobError;
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient;
 import com.netflix.spinnaker.igor.model.Crumb;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import java.util.Map;
 import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -87,5 +91,54 @@ public class JenkinsServiceTest {
 
     wmJenkins.verify(1, WireMock.getRequestedFor(WireMock.urlEqualTo("/crumbIssuer/api/xml")));
     wmJenkins.verify(1, WireMock.postRequestedFor(WireMock.urlEqualTo("/job/job1/build")));
+  }
+
+  private void stubCrumb() throws JsonProcessingException {
+    Crumb crumb = new Crumb();
+    crumb.setCrumb("crumb");
+    wmJenkins.stubFor(
+        WireMock.get("/crumbIssuer/api/xml")
+            .willReturn(WireMock.aResponse().withBody(objectMapper.writeValueAsString(crumb))));
+  }
+
+  @Test
+  public void triggerBuildWithParametersReturnsQueueIdWhenQueued() throws JsonProcessingException {
+    stubCrumb();
+    wmJenkins.stubFor(
+        WireMock.post(WireMock.urlPathEqualTo("/job/queued/buildWithParameters"))
+            .willReturn(
+                WireMock.aResponse()
+                    .withStatus(201)
+                    .withHeader("Location", wmJenkins.baseUrl() + "/queue/item/42/")));
+
+    assertEquals(42L, jenkinsService.triggerBuildWithParameters("queued", Map.of("a", "b")));
+  }
+
+  @Test
+  public void triggerBuildWithParametersReusesExistingQueueItemOnRedirect()
+      throws JsonProcessingException {
+    stubCrumb();
+    wmJenkins.stubFor(
+        WireMock.post(WireMock.urlPathEqualTo("/job/busy/buildWithParameters"))
+            .willReturn(
+                WireMock.aResponse()
+                    .withStatus(303)
+                    .withHeader("Location", wmJenkins.baseUrl() + "/queue/item/99/")));
+    wmJenkins.stubFor(
+        WireMock.get("/queue/item/99/").willReturn(WireMock.aResponse().withStatus(200)));
+
+    assertEquals(99L, jenkinsService.triggerBuildWithParameters("busy", Map.of("a", "b")));
+  }
+
+  @Test
+  public void triggerBuildWithParametersRejectsOtherStatuses() throws JsonProcessingException {
+    stubCrumb();
+    wmJenkins.stubFor(
+        WireMock.post(WireMock.urlPathEqualTo("/job/odd/buildWithParameters"))
+            .willReturn(WireMock.aResponse().withStatus(200)));
+
+    assertThrows(
+        BuildJobError.class,
+        () -> jenkinsService.triggerBuildWithParameters("odd", Map.of("a", "b")));
   }
 }
