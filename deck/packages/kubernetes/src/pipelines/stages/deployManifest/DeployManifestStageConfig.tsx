@@ -16,7 +16,7 @@ interface IDeployManifestStageConfigState {
 
 export class DeployManifestStageConfig extends React.Component<IStageConfigProps, IDeployManifestStageConfigState> {
   private stage: IStage;
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   public constructor(props: IStageConfigProps) {
     super(props);
