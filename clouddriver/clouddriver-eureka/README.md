@@ -81,5 +81,4 @@ The eureka account name (`eureka.provider.accounts[].name`) must match the
 name of the AWS account (`aws.enabled.accounts[].name`) with which it
 shares the same Eureka.
 Please note that `eureka.provider.allowMultipleEurekaPerAccount` only works
-with AWS as the cloud provider. Additionally, this feature is not supported
-in the titus integration.
+with AWS as the cloud provider.

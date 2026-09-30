@@ -283,13 +283,6 @@ window.spinnakerSettings = {
         region: 'us-phoenix-1',
       },
     },
-    titus: {
-      defaults: {
-        account: 'titustestvpc',
-        iamProfile: '{{application}}InstanceProfile',
-        region: 'us-east-1',
-      },
-    },
     tencentcloud: {
       defaults: {
         account: 'test',

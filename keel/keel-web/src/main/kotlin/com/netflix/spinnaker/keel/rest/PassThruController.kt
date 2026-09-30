@@ -36,7 +36,6 @@ class PassThruController(
     runBlocking {
       when (cloudProvider) {
         "aws" -> getActiveAwsServerGroups(app, account, cluster)
-        "titus" -> getActiveTitusServerGroups(app, account, cluster)
         else -> throw UserException("Unknown cloud provider: $cloudProvider")
       }
     }
@@ -48,14 +47,5 @@ class PassThruController(
         c.serverGroups
           .filterNot { it.disabled }
           .map { it.toActive(c.accountName) }
-      }
-
-  suspend fun getActiveTitusServerGroups(app: String, account: String, cluster: String) =
-    cloudDriverService
-      .listTitusServerGroups(DEFAULT_SERVICE_ACCOUNT, app, account, cluster, "titus")
-      .let { c ->
-        c.serverGroups
-          .filterNot { it.disabled }
-          .map { it.toActive() }
       }
 }
