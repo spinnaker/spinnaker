@@ -192,7 +192,7 @@ internal class DeliveryConfigControllerTests
         |environments:
         |- name: test
         |  locations: &locations
-        |    account: "titustestvpc"
+        |    account: "testvpc"
         |    regions:
         |      - name: us-west-2
         |  resources:

@@ -62,6 +62,7 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.Headers;
 import okhttp3.ResponseBody;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.util.UriUtils;
@@ -188,22 +189,61 @@ public class JenkinsService implements BuildOperations, BuildProperties, Stoppab
 
   @Override
   public long triggerBuildWithParameters(String job, Map<String, String> queryParameters) {
-    Response<Void> response = buildWithParameters(job, queryParameters);
-    if (response.code() != 201) {
-      throw new BuildJobError("Received a non-201 status when submitting job '" + job + "'");
+    return queueIdFromSubmission(job, buildWithParameters(job, queryParameters));
+  }
+
+  /**
+   * Determines the queue item id from the response to a job submission.
+   *
+   * @throws BuildJobError if Jenkins neither queued a new build (201) nor redirected (303) to an
+   *     existing queue item
+   */
+  public static long queueIdFromSubmission(String job, Response<Void> response) {
+    okhttp3.Response redirect = findSeeOtherRedirect(response.raw());
+    Headers headers;
+    if (response.code() == 201) {
+      // Jenkins accepted the request and queued a new build.
+      log.info("Submitted build job '{}'", kv("job", job));
+      headers = response.headers();
+    } else if (redirect != null) {
+      // Jenkins answers 303 See Other, pointing at the existing queue item, when the job is not
+      // concurrent and a build is already queued or running. OkHttp follows the redirect, so the
+      // final response is the queue item itself (200) and the queue id is in the 303's Location.
+      log.warn(
+          "Jenkins redirected the submission of job '{}' to an existing queue item; reusing it",
+          kv("job", job));
+      headers = redirect.headers();
+    } else {
+      throw new BuildJobError(
+          "Received an unexpected status ("
+              + response.code()
+              + ") when submitting job '"
+              + job
+              + "': expected 201 (queued) or 303 (redirected to an existing queue item)");
     }
 
-    log.info("Submitted build job '{}'", kv("job", job));
     String queuedLocation =
-        response.headers().values("location").stream()
+        headers.values("location").stream()
             .findFirst()
             .orElseThrow(
                 () ->
                     new QueuedJobDeterminationError(
                         "Could not find Location header for job '" + job + "'"));
 
-    int lastSlash = queuedLocation.lastIndexOf('/');
-    return Long.parseLong(queuedLocation.substring(lastSlash + 1));
+    String trimmedLocation = queuedLocation.replaceAll("/+$", "");
+    return Long.parseLong(trimmedLocation.substring(trimmedLocation.lastIndexOf('/') + 1));
+  }
+
+  /** Returns the 303 in the chain of redirects that led to {@code response}, if there was one. */
+  private static okhttp3.Response findSeeOtherRedirect(okhttp3.Response response) {
+    for (okhttp3.Response prior = response.priorResponse();
+        prior != null;
+        prior = prior.priorResponse()) {
+      if (prior.code() == 303) {
+        return prior;
+      }
+    }
+    return null;
   }
 
   @Override

@@ -12,9 +12,11 @@ overrides:
   nth-check: 2.0.1
   react: ^16.14.0
   react-dom: ^16.14.0
-  rxjs: 6.6.7
-  inquirer@12>rxjs: ^7.8.2
+  rxjs: ^7.8.2
+  '@spinnaker/kayenta>rxjs': 6.6.7
   typescript: 5.0.4
+
+packageExtensionsChecksum: sha256-ULNR/xvigRvN9K2mgVWqBxPXP1ZGMwbv3wDORkpBp3M=
 
 importers:
 
@@ -193,8 +195,8 @@ importers:
         specifier: 3.1.3
         version: 3.1.3(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
       rxjs:
-        specifier: 6.6.7
-        version: 6.6.7
+        specifier: ^7.8.2
+        version: 7.8.2
     devDependencies:
       '@spinnaker/eslint-plugin':
         specifier: workspace:^3.0.2
@@ -280,9 +282,6 @@ importers:
       '@spinnaker/styleguide':
         specifier: ^2.0.0
         version: 2.0.0
-      '@spinnaker/titus':
-        specifier: workspace:^0.5.44
-        version: link:../titus
       core-js:
         specifier: 2.6.12
         version: 2.6.12
@@ -298,9 +297,6 @@ importers:
       react:
         specifier: ^16.14.0
         version: 16.14.0
-      rxjs-compat:
-        specifier: 6.6.7
-        version: 6.6.7
     devDependencies:
       '@babel/core':
         specifier: 7.9.6
@@ -456,8 +452,8 @@ importers:
         specifier: 0.32.1
         version: 0.32.1(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
       rxjs:
-        specifier: 6.6.7
-        version: 6.6.7
+        specifier: ^7.8.2
+        version: 7.8.2
     devDependencies:
       '@spinnaker/eslint-plugin':
         specifier: workspace:^3.0.2
@@ -511,8 +507,8 @@ importers:
         specifier: 1.2.1
         version: 1.2.1(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
       rxjs:
-        specifier: 6.6.7
-        version: 6.6.7
+        specifier: ^7.8.2
+        version: 7.8.2
     devDependencies:
       '@spinnaker/eslint-plugin':
         specifier: workspace:^3.0.2
@@ -572,8 +568,8 @@ importers:
         specifier: 1.2.1
         version: 1.2.1(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
       rxjs:
-        specifier: 6.6.7
-        version: 6.6.7
+        specifier: ^7.8.2
+        version: 7.8.2
     devDependencies:
       '@rollup/plugin-alias':
         specifier: ^6.0.0
@@ -654,8 +650,8 @@ importers:
         specifier: 1.2.1
         version: 1.2.1(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
       rxjs:
-        specifier: 6.6.7
-        version: 6.6.7
+        specifier: ^7.8.2
+        version: 7.8.2
     devDependencies:
       '@spinnaker/eslint-plugin':
         specifier: workspace:^3.0.2
@@ -721,8 +717,8 @@ importers:
         specifier: 1.0.7
         version: 1.0.7(react@16.14.0)
       '@uirouter/rx':
-        specifier: 0.6.5
-        version: 0.6.5(@uirouter/core@6.0.8)(rxjs@6.6.7)
+        specifier: 1.0.0
+        version: 1.0.0(@uirouter/core@6.0.8)(rxjs@7.8.2)
       '@uirouter/visualizer':
         specifier: 7.2.1
         version: 7.2.1(@uirouter/core@6.0.8)
@@ -856,8 +852,8 @@ importers:
         specifier: ^3.0.1
         version: 3.0.1
       rxjs:
-        specifier: 6.6.7
-        version: 6.6.7
+        specifier: ^7.8.2
+        version: 7.8.2
       source-sans:
         specifier: 3.46.0
         version: 3.46.0
@@ -983,8 +979,8 @@ importers:
         specifier: ^16.14.0
         version: 16.14.0
       rxjs:
-        specifier: 6.6.7
-        version: 6.6.7
+        specifier: ^7.8.2
+        version: 7.8.2
     devDependencies:
       '@spinnaker/eslint-plugin':
         specifier: workspace:^3.0.2
@@ -1023,8 +1019,8 @@ importers:
         specifier: 1.2.1
         version: 1.2.1(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
       rxjs:
-        specifier: 6.6.7
-        version: 6.6.7
+        specifier: ^7.8.2
+        version: 7.8.2
     devDependencies:
       '@spinnaker/eslint-plugin':
         specifier: workspace:^3.0.2
@@ -1075,8 +1071,8 @@ importers:
         specifier: 1.2.1
         version: 1.2.1(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
       rxjs:
-        specifier: 6.6.7
-        version: 6.6.7
+        specifier: ^7.8.2
+        version: 7.8.2
     devDependencies:
       '@spinnaker/eslint-plugin':
         specifier: workspace:^3.0.2
@@ -1194,8 +1190,8 @@ importers:
         specifier: 1.2.1
         version: 1.2.1(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
       rxjs:
-        specifier: 6.6.7
-        version: 6.6.7
+        specifier: ^7.8.2
+        version: 7.8.2
     devDependencies:
       '@spinnaker/eslint-plugin':
         specifier: workspace:^3.0.2
@@ -1320,7 +1316,7 @@ importers:
         version: 2.1.0
       react-redux:
         specifier: 5.0.7
-        version: 5.0.7(react@16.14.0)(redux@3.7.2)
+        version: 5.0.7(react@16.14.0)(redux@4.2.1)
       react-select:
         specifier: 1.2.1
         version: 1.2.1(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
@@ -1349,8 +1345,8 @@ importers:
         specifier: ^0.0.10
         version: 0.0.10(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
       redux:
-        specifier: ^3.7.2
-        version: 3.7.2
+        specifier: ^4.2.1
+        version: 4.2.1
       redux-actions:
         specifier: 2.2.1
         version: 2.2.1
@@ -1358,8 +1354,8 @@ importers:
         specifier: ^3.0.6
         version: 3.0.6
       redux-observable:
-        specifier: ^0.14.1
-        version: 0.14.1(redux@3.7.2)(rxjs@6.6.7)
+        specifier: ^1.2.0
+        version: 1.2.0(redux@4.2.1)(rxjs@6.6.7)
       reselect:
         specifier: ^3.0.1
         version: 3.0.1
@@ -1488,8 +1484,8 @@ importers:
         specifier: 1.2.1
         version: 1.2.1(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
       rxjs:
-        specifier: 6.6.7
-        version: 6.6.7
+        specifier: ^7.8.2
+        version: 7.8.2
     devDependencies:
       '@spinnaker/eslint-plugin':
         specifier: workspace:^3.0.2
@@ -1555,8 +1551,8 @@ importers:
         specifier: ^16.14.0
         version: 16.14.0
       rxjs:
-        specifier: 6.6.7
-        version: 6.6.7
+        specifier: ^7.8.2
+        version: 7.8.2
     devDependencies:
       '@spinnaker/eslint-plugin':
         specifier: workspace:^3.0.2
@@ -1701,8 +1697,8 @@ importers:
         specifier: ^5.14.0
         version: 5.14.0(rollup@4.60.4)
       rxjs:
-        specifier: 6.6.7
-        version: 6.6.7
+        specifier: ^7.8.2
+        version: 7.8.2
       shx:
         specifier: 0.3.3
         version: 0.3.3
@@ -1875,76 +1871,6 @@ importers:
       '@types/react':
         specifier: 16.14.10
         version: 16.14.10
-      shx:
-        specifier: 0.3.3
-        version: 0.3.3
-      typescript:
-        specifier: 5.0.4
-        version: 5.0.4
-
-  packages/titus:
-    dependencies:
-      '@spinnaker/amazon':
-        specifier: workspace:^0.14.5
-        version: link:../amazon
-      '@spinnaker/core':
-        specifier: workspace:^0.29.1
-        version: link:../core
-      '@spinnaker/docker':
-        specifier: workspace:^0.0.147
-        version: link:../docker
-      '@spinnaker/mocks':
-        specifier: workspace:1.0.7
-        version: link:../mocks
-      '@uirouter/react':
-        specifier: 1.0.7
-        version: 1.0.7(react@16.14.0)
-      formik:
-        specifier: 1.5.1
-        version: 1.5.1(react@16.14.0)
-      lodash:
-        specifier: 4.18.1
-        version: 4.18.1
-      luxon:
-        specifier: 1.28.1
-        version: 1.28.1
-      pretty-ms:
-        specifier: 5.0.0
-        version: 5.0.0
-      react:
-        specifier: ^16.14.0
-        version: 16.14.0
-      react-bootstrap:
-        specifier: 0.32.1
-        version: 0.32.1(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
-      react-select:
-        specifier: 1.2.1
-        version: 1.2.1(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
-      rxjs:
-        specifier: 6.6.7
-        version: 6.6.7
-    devDependencies:
-      '@spinnaker/eslint-plugin':
-        specifier: workspace:^3.0.2
-        version: link:../eslint-plugin
-      '@spinnaker/scripts':
-        specifier: workspace:^0.4.0
-        version: link:../scripts
-      '@types/lodash':
-        specifier: 4.14.64
-        version: 4.14.64
-      '@types/luxon':
-        specifier: 1.11.1
-        version: 1.11.1
-      '@types/react':
-        specifier: 16.14.10
-        version: 16.14.10
-      '@types/react-bootstrap':
-        specifier: 0.32.5
-        version: 0.32.5
-      '@types/react-select':
-        specifier: 1.3.4
-        version: 1.3.4
       shx:
         specifier: 0.3.3
         version: 0.3.3
@@ -4793,11 +4719,11 @@ packages:
     peerDependencies:
       react: ^16.14.0
 
-  '@uirouter/rx@0.6.5':
-    resolution: {integrity: sha512-srGdX+BAVTfpZ1Kl7tvdEN1ss8yctKO4YrGyy9E/4s80bGFp4KMe9Qf2L3UHn0iugBZlX7Nbmp305AQSzWXYrw==}
+  '@uirouter/rx@1.0.0':
+    resolution: {integrity: sha512-dqPmLFC+qqF6RIdJVKktXSON6WILy2oyLhADDk74F3GAUZ/VvOu3QSPLDtZEP3LMSo6vkGQvwcUdjgNVWL3YJA==}
     peerDependencies:
       '@uirouter/core': 6.0.8
-      rxjs: 6.6.7
+      rxjs: ^7.8.2
 
   '@uirouter/visualizer@7.2.1':
     resolution: {integrity: sha512-Q6kyXHPiHZPsFbI8vuaVmC9WZCSHg11CeqE/WJStQ48DHI32qDW0AGyHZWX+HPonaDRNH/m+9gnfR/HQUSk/3g==}
@@ -9190,10 +9116,6 @@ packages:
     resolution: {integrity: sha512-ayCKvm/phCGxOkYRSCM82iDwct8/EonSEgCSxWxD7ve6jHggsFl4fZVQBPRNgQoKiuV/odhFrGzQXZwbifC8Rg==}
     engines: {node: '>=8'}
 
-  parse-ms@2.1.0:
-    resolution: {integrity: sha512-kHt7kzLoS9VBZfUsiKjv43mr91ea+U05EyKkEtqp7vNbHxmaVuEqN7XxeEVnGrMtYOAxGrDElSi96K7EgO1zCA==}
-    engines: {node: '>=6'}
-
   parse-node-version@1.0.1:
     resolution: {integrity: sha512-3YHlOa/JgH6Mnpr05jP9eDG254US9ek25LyIxZlDItp2iJtwyaXQb57lBYLdT3MowkUFYEV2XXNAYIPlESvJlA==}
     engines: {node: '>= 0.10'}
@@ -9606,10 +9528,6 @@ packages:
   pretty-format@29.7.0:
     resolution: {integrity: sha512-Pdlw/oPxN+aXdmM9R00JVC9WVFoCLTKJvDVLgmJ+qAffBMxsV85l/Lu7sNx4zSzPyoL2euImuEwHhOXdEgNFZQ==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
-
-  pretty-ms@5.0.0:
-    resolution: {integrity: sha512-94VRYjL9k33RzfKiGokPBPpsmloBYSf5Ri+Pq19zlsEcUKFob+admeXr5eFDRuPjFmEOcjJvPGdillYOJyvZ7Q==}
-    engines: {node: '>=8'}
 
   pretty-quick@3.1.0:
     resolution: {integrity: sha512-DtxIxksaUWCgPFN7E1ZZk4+Aav3CCuRdhrDSFZENb404sYMtuo9Zka823F+Mgeyt8Zt3bUiCjFzzWYE9LYqkmQ==}
@@ -10052,14 +9970,17 @@ packages:
   redux-logger@3.0.6:
     resolution: {integrity: sha512-JoCIok7bg/XpqA1JqCqXFypuqBbQzGQySrhFzewB7ThcnysTO30l4VCst86AuB9T9tuT03MAA56Jw2PNhRSNCg==}
 
-  redux-observable@0.14.1:
-    resolution: {integrity: sha512-g4pdofpxL0l+8ga1KMMccU2w9eMrogOvzTmOS3QdsgqT6Y0oC9iVTkF0MlAc91rYFUv+DL79WofUHaYqKzb1zg==}
+  redux-observable@1.2.0:
+    resolution: {integrity: sha512-yeR90RP2WzZzCxxnQPlh2uFzyfFLsfXu8ROh53jGDPXVqj71uNDMmvi/YKQkd9ofiVoO4OYb1snbowO49tCEMg==}
     peerDependencies:
-      redux: 3.*
-      rxjs: 6.6.7
+      redux: '>=4 <5'
+      rxjs: ^7.8.2
 
   redux@3.7.2:
     resolution: {integrity: sha512-pNqnf9q1hI5HHZRBkj3bAngGZW/JMCmexDlOxw4XagXY2o1327nHH54LoTjiPJ0gizoqPDRqWyX/00g0hD6w+A==}
+
+  redux@4.2.1:
+    resolution: {integrity: sha512-LAUYz4lc+Do8/g7aeRa8JkyDErK6ekstQaqWQrNRW//MY1TvCEpMtpTWvlQ+FPbWCx+Xixu/6SHt5N0HR+SB4w==}
 
   redux@5.0.1:
     resolution: {integrity: sha512-M9/ELqF6fy8FwmkpnF0S3YKOqMyoWJ4+CS5Efg2ct3oY9daQvd/Pc71FpGZsVsbl3Cpb+IIcjBDUnnyBdQbq4w==}
@@ -10333,9 +10254,6 @@ packages:
 
   run-parallel@1.2.0:
     resolution: {integrity: sha512-5l4VyZR86LZ/lDxZTR6jqL8AFE2S0IFLMP26AbjsLVADxHdhB/c0GUsH+y39UfCi3dzz8OlQuPmnaJOMoDHQBA==}
-
-  rxjs-compat@6.6.7:
-    resolution: {integrity: sha512-szN4fK+TqBPOFBcBcsR0g2cmTTUF/vaFEOZNuSdfU8/pGFnNmmn2u8SystYXG1QMrjOPBc6XTKHMVfENDf6hHw==}
 
   rxjs@6.6.7:
     resolution: {integrity: sha512-hTdwr+7yYNIT5n4AMYp85KA6yw2Va0FLa3Rguvbpa4W3I5xynaBZo41cM3XM+4Q6fRMj3sBYIR1VAmZMXYJvRQ==}
@@ -13080,7 +12998,7 @@ snapshots:
       lodash.get: 4.4.2
       make-error: 1.3.6
       ts-node: 9.1.1(typescript@5.0.4)
-      tslib: 2.2.0
+      tslib: 2.8.1
     transitivePeerDependencies:
       - typescript
 
@@ -14653,11 +14571,11 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.60.4':
     optional: true
 
-  '@samverschueren/stream-to-observable@0.3.1(rxjs@6.6.7)':
+  '@samverschueren/stream-to-observable@0.3.1(rxjs@7.8.2)':
     dependencies:
-      any-observable: 0.3.0(rxjs@6.6.7)
+      any-observable: 0.3.0(rxjs@7.8.2)
     optionalDependencies:
-      rxjs: 6.6.7
+      rxjs: 7.8.2
     transitivePeerDependencies:
       - zenObservable
 
@@ -15465,10 +15383,10 @@ snapshots:
       prop-types: 15.6.1
       react: 16.14.0
 
-  '@uirouter/rx@0.6.5(@uirouter/core@6.0.8)(rxjs@6.6.7)':
+  '@uirouter/rx@1.0.0(@uirouter/core@6.0.8)(rxjs@7.8.2)':
     dependencies:
       '@uirouter/core': 6.0.8
-      rxjs: 6.6.7
+      rxjs: 7.8.2
 
   '@uirouter/visualizer@7.2.1(@uirouter/core@6.0.8)':
     dependencies:
@@ -15734,9 +15652,9 @@ snapshots:
 
   ansi_up@5.1.0: {}
 
-  any-observable@0.3.0(rxjs@6.6.7):
+  any-observable@0.3.0(rxjs@7.8.2):
     optionalDependencies:
-      rxjs: 6.6.7
+      rxjs: 7.8.2
 
   anymatch@3.1.3:
     dependencies:
@@ -16168,7 +16086,7 @@ snapshots:
   camel-case@4.1.2:
     dependencies:
       pascal-case: 3.1.2
-      tslib: 2.2.0
+      tslib: 2.8.1
 
   camelcase@5.3.1: {}
 
@@ -16247,7 +16165,7 @@ snapshots:
       path-case: 3.0.4
       sentence-case: 3.0.4
       snake-case: 3.0.4
-      tslib: 2.2.0
+      tslib: 2.8.1
 
   char-regex@1.0.2: {}
 
@@ -17168,7 +17086,7 @@ snapshots:
   dot-case@3.0.4:
     dependencies:
       no-case: 3.0.4
-      tslib: 2.2.0
+      tslib: 2.8.1
 
   dotenv-expand@12.0.3:
     dependencies:
@@ -18765,7 +18683,7 @@ snapshots:
       lodash: 4.18.1
       mute-stream: 0.0.8
       run-async: 2.4.1
-      rxjs: 6.6.7
+      rxjs: 7.8.2
       string-width: 4.2.3
       strip-ansi: 6.0.1
       through: 2.3.8
@@ -18912,7 +18830,7 @@ snapshots:
 
   is-lower-case@2.0.2:
     dependencies:
-      tslib: 2.2.0
+      tslib: 2.8.1
 
   is-map@2.0.3: {}
 
@@ -19011,7 +18929,7 @@ snapshots:
 
   is-upper-case@2.0.2:
     dependencies:
-      tslib: 2.2.0
+      tslib: 2.8.1
 
   is-vendor-prefixed@3.5.0:
     dependencies:
@@ -19854,7 +19772,7 @@ snapshots:
       log-update: 4.0.0
       p-map: 4.0.0
       rfdc: 1.4.1
-      rxjs: 6.6.7
+      rxjs: 7.8.2
       through: 2.3.8
       wrap-ansi: 7.0.0
     optionalDependencies:
@@ -19862,7 +19780,7 @@ snapshots:
 
   listr@0.14.3:
     dependencies:
-      '@samverschueren/stream-to-observable': 0.3.1(rxjs@6.6.7)
+      '@samverschueren/stream-to-observable': 0.3.1(rxjs@7.8.2)
       is-observable: 1.1.0
       is-promise: 2.2.2
       is-stream: 1.1.0
@@ -19870,7 +19788,7 @@ snapshots:
       listr-update-renderer: 0.5.0(listr@0.14.3)
       listr-verbose-renderer: 0.5.0
       p-map: 2.1.0
-      rxjs: 6.6.7
+      rxjs: 7.8.2
     transitivePeerDependencies:
       - zen-observable
       - zenObservable
@@ -20002,11 +19920,11 @@ snapshots:
 
   lower-case-first@2.0.2:
     dependencies:
-      tslib: 2.2.0
+      tslib: 2.8.1
 
   lower-case@2.0.2:
     dependencies:
-      tslib: 2.2.0
+      tslib: 2.8.1
 
   lowercase-keys@1.0.1: {}
 
@@ -20845,7 +20763,7 @@ snapshots:
   param-case@3.0.4:
     dependencies:
       dot-case: 3.0.4
-      tslib: 2.2.0
+      tslib: 2.8.1
 
   parent-module@1.0.1:
     dependencies:
@@ -20870,8 +20788,6 @@ snapshots:
       json-parse-even-better-errors: 2.3.1
       lines-and-columns: 1.2.4
 
-  parse-ms@2.1.0: {}
-
   parse-node-version@1.0.1: {}
 
   parse-path@7.1.0:
@@ -20891,7 +20807,7 @@ snapshots:
   pascal-case@3.1.2:
     dependencies:
       no-case: 3.0.4
-      tslib: 2.2.0
+      tslib: 2.8.1
 
   path-case@3.0.4:
     dependencies:
@@ -21262,10 +21178,6 @@ snapshots:
       ansi-styles: 5.2.0
       react-is: 18.3.1
 
-  pretty-ms@5.0.0:
-    dependencies:
-      parse-ms: 2.1.0
-
   pretty-quick@3.1.0(prettier@2.1.2):
     dependencies:
       chalk: 3.0.0
@@ -21549,7 +21461,7 @@ snapshots:
       react: 16.14.0
       warning: 3.0.0
 
-  react-redux@5.0.7(react@16.14.0)(redux@3.7.2):
+  react-redux@5.0.7(react@16.14.0)(redux@4.2.1):
     dependencies:
       hoist-non-react-statics: 2.5.5
       invariant: 2.2.4
@@ -21558,7 +21470,7 @@ snapshots:
       loose-envify: 1.4.0
       prop-types: 15.6.1
       react: 16.14.0
-      redux: 3.7.2
+      redux: 4.2.1
 
   react-redux@5.1.2(react@16.14.0)(redux@5.0.1):
     dependencies:
@@ -21803,9 +21715,9 @@ snapshots:
     dependencies:
       deep-diff: 0.3.8
 
-  redux-observable@0.14.1(redux@3.7.2)(rxjs@6.6.7):
+  redux-observable@1.2.0(redux@4.2.1)(rxjs@6.6.7):
     dependencies:
-      redux: 3.7.2
+      redux: 4.2.1
       rxjs: 6.6.7
 
   redux@3.7.2:
@@ -21814,6 +21726,10 @@ snapshots:
       lodash-es: 4.18.1
       loose-envify: 1.4.0
       symbol-observable: 1.2.0
+
+  redux@4.2.1:
+    dependencies:
+      '@babel/runtime': 7.29.7
 
   redux@5.0.1: {}
 
@@ -22121,8 +22037,6 @@ snapshots:
   run-parallel@1.2.0:
     dependencies:
       queue-microtask: 1.2.3
-
-  rxjs-compat@6.6.7: {}
 
   rxjs@6.6.7:
     dependencies:
@@ -22570,7 +22484,7 @@ snapshots:
 
   sponge-case@1.0.1:
     dependencies:
-      tslib: 2.2.0
+      tslib: 2.8.1
 
   sprintf-js@1.0.3: {}
 
@@ -22766,7 +22680,7 @@ snapshots:
 
   swap-case@2.0.2:
     dependencies:
-      tslib: 2.2.0
+      tslib: 2.8.1
 
   symbol-observable@1.2.0: {}
 
@@ -22874,7 +22788,7 @@ snapshots:
 
   title-case@3.0.3:
     dependencies:
-      tslib: 2.2.0
+      tslib: 2.8.1
 
   tmp@0.0.33:
     dependencies:
@@ -23111,11 +23025,11 @@ snapshots:
 
   upper-case-first@2.0.2:
     dependencies:
-      tslib: 2.2.0
+      tslib: 2.8.1
 
   upper-case@2.0.2:
     dependencies:
-      tslib: 2.2.0
+      tslib: 2.8.1
 
   uri-js@4.4.1:
     dependencies:

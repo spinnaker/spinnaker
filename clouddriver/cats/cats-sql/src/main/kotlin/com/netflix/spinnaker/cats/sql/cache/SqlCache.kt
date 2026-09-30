@@ -1109,10 +1109,10 @@ class SqlCache(
 
     /*
       select body, null as id, null as rel_id, null as rel_type from cats_v1_b_instances
-        where application = 'titusagent'
+        where application = 'myapp'
           UNION ALL
       select null as body, rel.id, rel.rel_id, rel.rel_type from cats_v1_b_instances as r
-        left join cats_v1_b_instances_rel as rel on rel.id=r.id where r.application = "titusagent"
+        left join cats_v1_b_instances_rel as rel on rel.id=r.id where r.application = "myapp"
         group by rel.rel_id, rel.id, rel.rel_type;
      */
     val cacheData = mutableListOf<CacheData>()

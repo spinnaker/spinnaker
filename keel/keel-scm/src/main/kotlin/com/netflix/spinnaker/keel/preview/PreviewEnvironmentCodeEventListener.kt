@@ -11,8 +11,6 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactOriginFilter
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
-import com.netflix.spinnaker.keel.api.titus.TitusClusterSpec
-import com.netflix.spinnaker.keel.docker.ReferenceProvider
 import com.netflix.spinnaker.keel.front50.Front50Cache
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
 import com.netflix.spinnaker.keel.notifications.DeliveryConfigImportFailed
@@ -374,13 +372,7 @@ class PreviewEnvironmentCodeEventListener(
         "Replacing artifact reference in resource ${this.id}.")
       copy(
         spec = spec.toMutableMap().let { newSpec ->
-          val containerSpec = (spec as? TitusClusterSpec)?.container as? ReferenceProvider
-          if (containerSpec != null) {
-            // TODO: it'd be nice if the titus spec followed the convention
-            newSpec["container"] = containerSpec.copy(reference = artifactFromBranch.reference)
-          } else {
-            newSpec["artifactReference"] = artifactFromBranch.reference
-          }
+          newSpec["artifactReference"] = artifactFromBranch.reference
           objectMapper.convertValue(newSpec, spec::class.java)
         }
       )

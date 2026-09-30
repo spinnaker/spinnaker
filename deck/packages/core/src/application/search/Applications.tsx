@@ -48,7 +48,7 @@ export class ApplicationsComponent extends React.Component<IRouterInjectedProps,
   private filter$ = new BehaviorSubject<string>(null);
   private sort$ = new BehaviorSubject<string>(null);
   private pagination$ = new BehaviorSubject<IApplicationPagination>(this.getDefaultPagination());
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   constructor(props: IRouterInjectedProps) {
     super(props);

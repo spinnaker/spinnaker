@@ -106,7 +106,6 @@ class EurekaCachingAgentSpec extends Specification {
       id,
       timestamp,
       "$app-v000",
-      null,
       id)
   }
 

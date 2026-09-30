@@ -15,7 +15,6 @@ import com.netflix.spinnaker.keel.api.support.extensionsOf
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
-import com.netflix.spinnaker.keel.docker.ContainerProvider
 import com.netflix.spinnaker.keel.ec2.jackson.registerEc2Subtypes
 import com.netflix.spinnaker.keel.schema.Generator
 import com.netflix.spinnaker.keel.schema.generateSchema
@@ -61,9 +60,6 @@ class ApiDocTests
 
   val securityGroupRuleTypes
     get() = extensionRegistry.extensionsOf<SecurityGroupRule>().values
-
-  val containerProviderTypes
-    get() = ContainerProvider::class.sealedSubclasses.map(KClass<*>::java)
 
   val artifactTypes
     get() = extensionRegistry.extensionsOf<DeliveryArtifact>().values.toList()
@@ -191,26 +187,6 @@ class ApiDocTests
         )
     }
 
-    containerProviderTypes.map(Class<*>::getSimpleName)
-      .forEach { type ->
-        test("ContainerProvider sub-type $type has its own schema") {
-          at("/\$defs/$type")
-            .isObject()
-        }
-      }
-
-    test("schema for ContainerProvider is oneOf the sub-types") {
-      at("/\$defs/ContainerProvider")
-        .isObject()
-        .has("oneOf")
-        .path("oneOf")
-        .isArray()
-        .findValuesAsText("\$ref")
-        .containsExactlyInAnyOrder(
-          containerProviderTypes.map { "#/\$defs/${it.simpleName}" }
-        )
-    }
-
     test("schemas for DeliveryArtifact sub-types specify the fixed discriminator value") {
       at("/\$defs/DebianArtifact/properties/type/const")
         .textValue()
@@ -325,11 +301,6 @@ class ApiDocTests
     ).forEach { propertyName ->
       test("ClusterSpec does not contain transient property $propertyName used for image resolution") {
         at("/\$defs/ClusterSpec/properties/$propertyName")
-          .isA<MissingNode>()
-      }
-
-      test("TitusClusterSpec does not contain transient property $propertyName used for image resolution") {
-        at("/\$defs/TitusClusterSpec/properties/$propertyName")
           .isA<MissingNode>()
       }
     }

@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.tasks.job.JobRunner;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestEvaluator;
+import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestProvenance;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.RunJobManifestContext;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils;
 import java.util.*;
@@ -53,6 +54,8 @@ public class KubernetesJobRunner implements JobRunner {
     operation.putAll(getManifestFields(stage));
 
     KubernetesContainerFinder.populateFromStage(operation, stage, artifactUtils);
+
+    ManifestProvenance.addProvenance(operation, stage);
 
     Map<String, Object> task = new HashMap<>();
     task.put(OPERATION, operation);

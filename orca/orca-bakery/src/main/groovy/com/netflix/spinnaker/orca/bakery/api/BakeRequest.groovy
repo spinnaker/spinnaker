@@ -102,7 +102,7 @@ class BakeRequest {
   }
 
   static enum CloudProviderType {
-    aws, azure, docker, gce, openstack, titus, oracle, alicloud, huaweicloud, tencentcloud
+    aws, azure, docker, gce, openstack, oracle, alicloud, huaweicloud, tencentcloud
   }
 
   static enum VmType {

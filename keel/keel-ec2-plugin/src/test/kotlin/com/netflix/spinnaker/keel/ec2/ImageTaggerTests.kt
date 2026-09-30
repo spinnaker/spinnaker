@@ -87,8 +87,8 @@ class ImageTaggerTests {
     "my-resource"
   ))
 
-  private val titusImages = listOf(CurrentImages(
-    ResourceKind.parseKind("titus/cluster@v1.1"),
+  private val nonEc2Images = listOf(CurrentImages(
+    ResourceKind.parseKind("ecs/cluster@v1"),
     listOf(ImageInRegion("us-east-1", "my-waffles-are-great", "kitchen")),
     "my-resource"
   ))
@@ -115,7 +115,7 @@ class ImageTaggerTests {
     metadata = mapOf(
       "taste" to "excellent",
       "task" to "eater=emily",
-      "images" to titusImages
+      "images" to nonEc2Images
     )
   )
   private val malformedImagesEvent = eventWithImages.copy(metadata = mapOf("images" to "pictures"))
