@@ -88,28 +88,8 @@ public class EcsCloudMetricAlarmCachingAgent implements CachingAgent, AccountAwa
 
     Set<MetricAlarm> cacheableMetricAlarm = fetchMetricAlarms(cloudWatch);
     Map<String, Collection<CacheData>> newDataMap = generateFreshData(cacheableMetricAlarm);
-    Collection<CacheData> newData = newDataMap.get(ALARMS.toString());
 
-    Set<String> oldKeys =
-        new HashSet<>(
-            providerCache.filterIdentifiers(
-                ALARMS.toString(), Keys.buildGlob(ALARMS, accountName, region)));
-
-    Map<String, Collection<String>> evictionsByKey = computeEvictableData(newData, oldKeys);
-
-    return new DefaultCacheResult(newDataMap, evictionsByKey);
-  }
-
-  private Map<String, Collection<String>> computeEvictableData(
-      Collection<CacheData> newData, Collection<String> oldKeys) {
-    Set<String> newKeys = newData.stream().map(CacheData::getId).collect(Collectors.toSet());
-    Set<String> evictedKeys =
-        oldKeys.stream().filter(oldKey -> !newKeys.contains(oldKey)).collect(Collectors.toSet());
-
-    Map<String, Collection<String>> evictionsByKey = new HashMap<>();
-    evictionsByKey.put(ALARMS.toString(), evictedKeys);
-    log.info("Evicting " + evictedKeys.size() + " cloud metrics alarms in " + getAgentType());
-    return evictionsByKey;
+    return new DefaultCacheResult(newDataMap);
   }
 
   Map<String, Collection<CacheData>> generateFreshData(Set<MetricAlarm> cacheableMetricAlarm) {

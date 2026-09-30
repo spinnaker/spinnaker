@@ -1,6 +1,6 @@
 # Front50
 
-[![Build Status](https://api.travis-ci.org/spinnaker/front50.svg?branch=master)](https://travis-ci.org/spinnaker/front50)
+[![Build Status](https://github.com/spinnaker/spinnaker/actions/workflows/front50.yml/badge.svg)](https://github.com/spinnaker/spinnaker/actions/workflows/front50.yml)
 
 Front50 is the system of record for all Spinnaker metadata, including: application, pipeline and service account configurations.
 
@@ -31,7 +31,7 @@ https://spinnaker.io/docs/setup/productionize/persistence/front50-sql/
 
 ### Metadata
 
-The following types are represented in Front50 ([data models](https://github.com/spinnaker/front50/tree/master/front50-core/src/main/groovy/com/netflix/spinnaker/front50/model)):
+The following types are represented in Front50 ([data models](https://github.com/spinnaker/spinnaker/tree/main/front50/front50-core/src/main/groovy/com/netflix/spinnaker/front50/model)):
 
 |         *Type*         |                                                                 *Description*                                                                  |
 | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -64,9 +64,9 @@ The following metrics are relevant to overall `Front50` health:
 
 ## Debugging
 
-To start the JVM in debug mode, set the Java system property `DEBUG=true`:
+To start the JVM in debug mode, set the Java system property `DEBUG=true` (run from the monorepo root):
 ```
-./gradlew -DDEBUG=true
+./gradlew front50 -DDEBUG=true
 ```
 
 The JVM will then listen for a debugger to be attached on port 8180.  The JVM will _not_ wait for
@@ -78,10 +78,10 @@ modified as needed in `build.gradle`.
 ### Modular builds
 
 By default, Front50 is built with all storage providers included. To build only a subset of
-providers, use the `includeProviders` flag:
+providers, use the `includeProviders` flag (run from the monorepo root):
 
 ```
-./gradlew -PincludeProviders=s3,gcs clean build
+./gradlew :front50:clean :front50:build -PincludeProviders=s3,gcs
 ```
 
 You can view the list of all providers in `gradle.properties`.

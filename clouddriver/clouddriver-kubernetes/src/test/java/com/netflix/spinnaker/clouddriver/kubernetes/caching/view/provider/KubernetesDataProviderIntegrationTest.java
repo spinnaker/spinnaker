@@ -90,6 +90,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.internal.stubbing.defaultanswers.ReturnsSmartNulls;
+import org.mockito.stubbing.Answer;
 
 @ExtendWith(SoftAssertionsExtension.class)
 final class KubernetesDataProviderIntegrationTest {
@@ -576,21 +577,30 @@ final class KubernetesDataProviderIntegrationTest {
 
   private static KubectlJobExecutor getJobExecutor() {
     KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class, new ReturnsSmartNulls());
+    Answer<ImmutableList<KubernetesManifest>> listAnswer =
+        invocation ->
+            manifestsByNamespace.get(invocation.getArgument(2, String.class)).stream()
+                .map(
+                    file ->
+                        ManifestFetcher.getManifest(
+                                KubernetesDataProviderIntegrationTest.class, file)
+                            .get(0))
+                .filter(m -> invocation.getArgument(1, List.class).contains(m.getKind()))
+                .collect(toImmutableList());
     when(jobExecutor.list(
             any(KubernetesCredentials.class),
             anyList(),
             any(String.class),
             any(KubernetesSelectorList.class)))
-        .thenAnswer(
-            invocation ->
-                manifestsByNamespace.get(invocation.getArgument(2, String.class)).stream()
-                    .map(
-                        file ->
-                            ManifestFetcher.getManifest(
-                                    KubernetesDataProviderIntegrationTest.class, file)
-                                .get(0))
-                    .filter(m -> invocation.getArgument(1, List.class).contains(m.getKind()))
-                    .collect(toImmutableList()));
+        .thenAnswer(listAnswer);
+    // KubernetesCachingAgent#loadResources calls listAuthoritative, not list, when driving cache
+    // eviction -- see KubectlJobExecutor#listAuthoritative.
+    when(jobExecutor.listAuthoritative(
+            any(KubernetesCredentials.class),
+            anyList(),
+            any(String.class),
+            any(KubernetesSelectorList.class)))
+        .thenAnswer(listAnswer);
     return jobExecutor;
   }
 

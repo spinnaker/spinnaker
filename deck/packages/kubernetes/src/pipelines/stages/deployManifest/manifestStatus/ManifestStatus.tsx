@@ -19,9 +19,10 @@ export function ManifestStatus({ account, manifest }: IManifestStatusProps) {
   return (
     <>
       <dl className="manifest-status" key="manifest-status">
-        <dt>{manifest.manifest.kind}</dt>
+        <dt>{`${manifest.manifest.kind} ${manifest.manifest.metadata.name}`}</dt>
         <dd>
           <CopyToClipboard
+            className="sp-margin-s-right copy-to-clipboard copy-to-clipboard-sm"
             displayText={true}
             text={manifest.manifest.metadata.name}
             toolTip={`Copy ${manifest.manifest.metadata.name}`}

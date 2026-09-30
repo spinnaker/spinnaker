@@ -93,8 +93,19 @@ export interface IEcsCapacityProviderStrategyItem {
   weight: number;
 }
 
+export interface IEcsMetricConfiguration {
+  metricNames: string[];
+  resolutionSeconds: number;
+}
+
+export interface IEcsMonitoringConfiguration {
+  metricConfigurations: IEcsMetricConfiguration[];
+}
+
 export interface IEcsServerGroupCommand {
   [key: string]: any;
+  copySourceMonitoringConfiguration?: boolean;
+  monitoringConfiguration?: IEcsMonitoringConfiguration;
   associatePublicIpAddress: boolean;
   backingData: IEcsServerGroupCommandBackingData;
   computeUnits: number;

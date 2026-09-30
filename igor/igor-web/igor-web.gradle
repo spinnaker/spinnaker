@@ -14,7 +14,8 @@ dependencies {
     implementation project(":igor-monitor-travis")
 
     implementation "org.springframework.boot:spring-boot-starter-actuator"
-    implementation "org.springframework.boot:spring-boot-starter-web"
+    implementation "org.springframework.boot:spring-boot-starter-webmvc"
+    implementation "org.springframework.boot:spring-boot-starter-groovy-templates"
 
     implementation "javax.xml.bind:jaxb-api"
     implementation "com.sun.xml.bind:jaxb-core:2.3.0.1"
@@ -24,6 +25,9 @@ dependencies {
     implementation "commons-io:commons-io"
 
     testImplementation "org.springframework.boot:spring-boot-starter-test"
+    // Provides @WebMvcTest/@AutoConfigureMockMvc (Boot 4 repackaged test slices;
+    // no longer transitively provided for web slice tests).
+    testImplementation "org.springframework.boot:spring-boot-starter-webmvc-test"
     testImplementation "org.spockframework:spock-core"
     testImplementation "org.spockframework:spock-spring"
     testImplementation "org.springframework:spring-test"
@@ -85,6 +89,6 @@ dependencies {
     testImplementation "org.assertj:assertj-core"
 
     testImplementation "com.squareup.retrofit2:retrofit-mock"
-    testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
+    testImplementation "org.wiremock:wiremock"
     testImplementation "com.netflix.spectator:spectator-reg-micrometer"
 }

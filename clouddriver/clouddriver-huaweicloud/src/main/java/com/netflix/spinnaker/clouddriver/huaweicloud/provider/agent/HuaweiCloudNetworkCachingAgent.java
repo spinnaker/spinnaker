@@ -65,7 +65,7 @@ public class HuaweiCloudNetworkCachingAgent extends AbstractHuaweiCloudCachingAg
 
   private CacheResult buildCacheResult(List<? extends Vpc> vpcs) {
 
-    CacheResultBuilder cacheResultBuilder = new CacheResultBuilder(0);
+    CacheResultBuilder cacheResultBuilder = new CacheResultBuilder(0, getProvidedDataTypes());
     NamespaceCache nsCache = cacheResultBuilder.getNamespaceCache(NETWORKS.ns);
 
     TypeReference<Map<String, Object>> typeRef = new TypeReference<Map<String, Object>>() {};

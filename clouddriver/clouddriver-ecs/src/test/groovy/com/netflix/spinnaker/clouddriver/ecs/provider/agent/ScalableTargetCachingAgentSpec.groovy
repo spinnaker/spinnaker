@@ -99,31 +99,17 @@ class ScalableTargetCachingAgentSpec extends Specification {
     givenScalableTargets*.roleARN().containsAll(cacheData.get(SCALABLE_TARGETS.ns)*.getAttributes().roleARN)
   }
 
-  def 'should use filterIdentifiers with account and region glob for evictions'() {
+  def 'should still report the scalable targets namespace with an empty list when there are no live scalable targets'() {
     given:
-    def givenScalableTarget = ScalableTarget.builder()
-      .serviceNamespace(ServiceNamespace.ECS)
-      .resourceId("service:/test-cluster/test-service-v001")
-      .scalableDimension("ecs:service:DesiredCount")
-      .minCapacity(0)
-      .maxCapacity(9001)
-      .roleARN("role-arn")
-      .build()
     clientProvider.getAmazonApplicationAutoScalingV2(_, _) >> autoscaling
     autoscaling.describeScalableTargets(_ as DescribeScalableTargetsRequest) >>
-      DescribeScalableTargetsResponse.builder().scalableTargets([givenScalableTarget]).build()
-
-    def account = 'test-account'
-    def region = 'us-west-1'
-    def expectedGlob = com.netflix.spinnaker.clouddriver.ecs.cache.Keys.buildGlob(SCALABLE_TARGETS, account, region)
-    def oldIdentifiers = ['ecs;scalable-targets;test-account;us-west-1;old-target']
-    providerCache.filterIdentifiers(SCALABLE_TARGETS.ns, expectedGlob) >> oldIdentifiers
+      DescribeScalableTargetsResponse.builder().scalableTargets([]).build()
 
     when:
     def result = agent.loadData(providerCache)
 
     then:
-    result.evictions[SCALABLE_TARGETS.ns] != null
-    result.evictions[SCALABLE_TARGETS.ns].containsAll(oldIdentifiers)
+    result.cacheResults.containsKey(SCALABLE_TARGETS.ns)
+    result.cacheResults[SCALABLE_TARGETS.ns].isEmpty()
   }
 }

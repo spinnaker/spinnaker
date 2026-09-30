@@ -29,7 +29,9 @@ public class Main {
   private static final Map<String, Object> DEFAULT_PROPS =
       new DefaultPropertiesBuilder()
           .property("spring.application.name", "kayenta")
-          .property("spring.jackson.serialization.WRITE_DATES_AS_TIMESTAMPS", "false")
+          // Jackson 3 moved WRITE_DATES_AS_TIMESTAMPS from SerializationFeature to
+          // DateTimeFeature; the old key no longer binds (hard startup failure).
+          .property("spring.jackson.datatype.datetime.write-dates-as-timestamps", "false")
           .property("spring.jackson.default-property-inclusion", "non_null")
           .build();
 

@@ -29,6 +29,7 @@ dependencies {
   }
 
   implementation "org.springframework:spring-context-support"
+  implementation "org.springframework.boot:spring-boot-starter-quartz"
   implementation ("org.quartz-scheduler:quartz") {
     exclude group: 'com.zaxxer', module: 'HikariCP-java7'
   }

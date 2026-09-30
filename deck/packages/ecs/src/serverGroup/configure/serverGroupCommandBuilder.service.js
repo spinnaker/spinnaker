@@ -91,6 +91,7 @@ function buildNewServerGroupCommand(application, defaults) {
       ecsClusterName: '',
       targetGroup: '',
       copySourceScalingPoliciesAndActions: true,
+      copySourceMonitoringConfiguration: true,
       preferSourceCapacity: true,
       useSourceCapacity: true,
       enableDeploymentCircuitBreaker: false,

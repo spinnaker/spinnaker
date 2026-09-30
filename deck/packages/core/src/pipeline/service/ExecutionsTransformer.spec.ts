@@ -2,7 +2,9 @@ import { map } from 'lodash';
 
 import { ExecutionsTransformer } from './ExecutionsTransformer';
 import type { Application } from '../../application';
-import type { IExecution } from '../../domain';
+import { SETTINGS } from '../../config';
+import type { IExecution, IStageTypeConfig } from '../../domain';
+import { Registry } from '../../registry';
 
 describe('ExecutionTransformerService', function () {
   describe('transformExecution', () => {
@@ -411,6 +413,57 @@ describe('ExecutionTransformerService', function () {
       const execution = { stages: [deployStage] } as IExecution;
       ExecutionsTransformer.transformExecution({} as Application, execution);
       expect(execution.buildInfo).toEqual({ number: 3, url: 'http://custom/url' });
+    });
+  });
+
+  describe('deploymentTargets', () => {
+    let deployStageConfig: IStageTypeConfig;
+    const originalSetting = SETTINGS.displayExecutionDeploymentTargets;
+
+    beforeEach(() => {
+      deployStageConfig = {
+        key: 'deploy',
+        label: 'Deploy',
+        description: 'Deploy',
+        accountExtractor: (stage: any) => (stage.context.clusters || []).map((cluster: any) => cluster.account),
+      } as IStageTypeConfig;
+      Registry.pipeline.registerStage(deployStageConfig);
+    });
+
+    afterEach(() => {
+      Registry.pipeline.unregisterStage(deployStageConfig);
+      SETTINGS.displayExecutionDeploymentTargets = originalSetting;
+    });
+
+    const buildExecution = (accounts: string[]) =>
+      ({
+        stages: [{ id: '1', type: 'deploy', context: { clusters: accounts.map((account) => ({ account })) } }],
+      } as IExecution);
+
+    it('sorts and dedupes resolved deployment target accounts', () => {
+      const execution = buildExecution(['prod', 'test', 'prod']);
+      ExecutionsTransformer.transformExecution({} as Application, execution);
+      expect(execution.deploymentTargets).toEqual(['prod', 'test']);
+    });
+
+    it('filters out unresolved SpEL expressions', () => {
+      const execution = buildExecution(['prod', '${parameters.account}']);
+      ExecutionsTransformer.transformExecution({} as Application, execution);
+      expect(execution.deploymentTargets).toEqual(['prod']);
+    });
+
+    it('returns an empty list when displayExecutionDeploymentTargets is disabled', () => {
+      SETTINGS.displayExecutionDeploymentTargets = false;
+      const execution = buildExecution(['prod', 'test']);
+      ExecutionsTransformer.transformExecution({} as Application, execution);
+      expect(execution.deploymentTargets).toEqual([]);
+    });
+
+    it('resolves deployment targets when displayExecutionDeploymentTargets is enabled', () => {
+      SETTINGS.displayExecutionDeploymentTargets = true;
+      const execution = buildExecution(['prod', 'test']);
+      ExecutionsTransformer.transformExecution({} as Application, execution);
+      expect(execution.deploymentTargets).toEqual(['prod', 'test']);
     });
   });
 });

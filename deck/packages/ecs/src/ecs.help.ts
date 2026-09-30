@@ -39,6 +39,10 @@ const helpContents: { [key: string]: string } = {
   'ecs.enableDeploymentCircuitBreaker': '<p>Enable circuit breaker for the ECS service.</p>',
   'ecs.capacity.copySourceScalingPoliciesAndActions':
     '<p>Copy Application Autoscaling policies and their associated alarms from the previous ECS service.</p>',
+  'ecs.capacity.copySourceMonitoringConfiguration':
+    "<p>Copy the previous ECS service's monitoring configuration (CloudWatch metric resolution) to the new service.</p><p>High-resolution (20-second) CPUUtilization and MemoryUtilization metrics are required by the <code>ECSServiceAverageCPUUtilizationHighResolution</code> and <code>ECSServiceAverageMemoryUtilizationHighResolution</code> target tracking scaling policies. Without them, copied high-resolution policies will not scale the new service.</p><p>An explicit high-resolution metrics selection below overrides the copied configuration.</p>",
+  'ecs.capacity.monitoringConfiguration':
+    '<p>Explicitly enable high-resolution (20-second) CloudWatch metrics for the new ECS service. Unselected metrics keep the standard 60-second resolution.</p><p>High-resolution metrics are required by the <code>ECSServiceAverageCPUUtilizationHighResolution</code> and <code>ECSServiceAverageMemoryUtilizationHighResolution</code> target tracking scaling policies and incur additional CloudWatch charges.</p><p>When at least one metric is selected, this setting takes precedence over the monitoring configuration copied from the previous server group. See <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/cloudwatch-metrics.html" target="_blank">AWS documentation</a> for more details.</p>',
   'ecs.launchtype': '<p>Launch service tasks on your own EC2 instances or on Fargate.</p>',
   'ecs.healthgraceperiod':
     '<p>How long a container will be kept alive despite the load balancer health checks, in seconds.</p>',

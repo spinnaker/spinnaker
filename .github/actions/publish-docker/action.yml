@@ -112,7 +112,7 @@ runs:
       if: env.has-standard == 'true' && inputs.push == 'true' && inputs.generate-sbom == 'true'
       shell: bash
       run: |
-        docker buildx imagetools inspect "ghcr.io/spinnaker/${{ inputs.project }}@${{ steps.docker-standard.outputs.digest }}" --format '{{json .SBOM.SPDX}}' > ${{ inputs.project }}-standard-image-sbom.spdx.json
+        docker buildx imagetools inspect "ghcr.io/spinnaker/${{ inputs.project }}@${{ steps.docker-standard.outputs.digest }}" --format '{{json (index .SBOM "linux/amd64").SPDX}}' > ${{ inputs.project }}-standard-image-sbom.spdx.json
 
     - name: Attest standard image app SBOM
       if: env.has-standard == 'true' && inputs.push == 'true' && inputs.generate-sbom == 'true'
@@ -162,7 +162,7 @@ runs:
       if: env.has-slim == 'true' && inputs.push == 'true' && inputs.generate-sbom == 'true'
       shell: bash
       run: |
-        docker buildx imagetools inspect "ghcr.io/spinnaker/${{ inputs.project }}@${{ steps.docker-slim.outputs.digest }}" --format '{{json .SBOM.SPDX}}' > ${{ inputs.project }}-slim-image-sbom.spdx.json
+        docker buildx imagetools inspect "ghcr.io/spinnaker/${{ inputs.project }}@${{ steps.docker-slim.outputs.digest }}" --format '{{json (index .SBOM "linux/amd64").SPDX}}' > ${{ inputs.project }}-slim-image-sbom.spdx.json
 
     - name: Attest slim image app SBOM
       if: env.has-slim == 'true' && inputs.push == 'true' && inputs.generate-sbom == 'true'
@@ -210,7 +210,7 @@ runs:
       if: env.has-ubuntu == 'true' && inputs.push == 'true' && inputs.generate-sbom == 'true'
       shell: bash
       run: |
-        docker buildx imagetools inspect "ghcr.io/spinnaker/${{ inputs.project }}@${{ steps.docker-ubuntu.outputs.digest }}" --format '{{json .SBOM.SPDX}}' > ${{ inputs.project }}-ubuntu-image-sbom.spdx.json
+        docker buildx imagetools inspect "ghcr.io/spinnaker/${{ inputs.project }}@${{ steps.docker-ubuntu.outputs.digest }}" --format '{{json (index .SBOM "linux/amd64").SPDX}}' > ${{ inputs.project }}-ubuntu-image-sbom.spdx.json
 
     - name: Attest ubuntu image app SBOM
       if: env.has-ubuntu == 'true' && inputs.push == 'true' && inputs.generate-sbom == 'true'

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.aws.provider
 
 import com.fasterxml.jackson.core.type.TypeReference
+import com.netflix.spinnaker.cats.provider.ProviderCacheConfiguration
 import com.netflix.spinnaker.clouddriver.aws.cache.Keys
 import com.netflix.spinnaker.clouddriver.cache.KeyParser
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider
@@ -24,10 +25,23 @@ import com.netflix.spinnaker.clouddriver.security.BaseProvider
 
 import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.SECURITY_GROUPS
 
-class AwsInfrastructureProvider extends BaseProvider implements SearchableProvider {
+class AwsInfrastructureProvider extends BaseProvider implements SearchableProvider, ProviderCacheConfiguration {
   public static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {}
 
   public static final String PROVIDER_NAME = AwsInfrastructureProvider.name
+
+  /**
+   * Every caching agent here always reports its authoritative namespace's key in the
+   * CacheResult, even with an empty list when there's no live data this cycle (see
+   * AmazonInstanceTypeCachingAgent's fix in this same change for the one exception), so the SQL
+   * cache's existingIds-minus-currentIds eviction diff can always run. Without opting in here,
+   * SqlCache's default safeguard against ever evicting the last item of a type discards that
+   * entry before the diff can run, and the stale entry is never cleaned up.
+   */
+  @Override
+  boolean supportsFullEviction() {
+    return true
+  }
 
   private final KeyParser keyParser = new Keys()
 
