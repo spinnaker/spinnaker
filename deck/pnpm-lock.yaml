@@ -16,6 +16,8 @@ overrides:
   inquirer@12>rxjs: ^7.8.2
   typescript: 5.0.4
 
+packageExtensionsChecksum: sha256-ULNR/xvigRvN9K2mgVWqBxPXP1ZGMwbv3wDORkpBp3M=
+
 importers:
 
   .:
@@ -280,9 +282,6 @@ importers:
       '@spinnaker/styleguide':
         specifier: ^2.0.0
         version: 2.0.0
-      '@spinnaker/titus':
-        specifier: workspace:^0.5.44
-        version: link:../titus
       core-js:
         specifier: 2.6.12
         version: 2.6.12
@@ -1875,76 +1874,6 @@ importers:
       '@types/react':
         specifier: 16.14.10
         version: 16.14.10
-      shx:
-        specifier: 0.3.3
-        version: 0.3.3
-      typescript:
-        specifier: 5.0.4
-        version: 5.0.4
-
-  packages/titus:
-    dependencies:
-      '@spinnaker/amazon':
-        specifier: workspace:^0.14.5
-        version: link:../amazon
-      '@spinnaker/core':
-        specifier: workspace:^0.29.1
-        version: link:../core
-      '@spinnaker/docker':
-        specifier: workspace:^0.0.147
-        version: link:../docker
-      '@spinnaker/mocks':
-        specifier: workspace:1.0.7
-        version: link:../mocks
-      '@uirouter/react':
-        specifier: 1.0.7
-        version: 1.0.7(react@16.14.0)
-      formik:
-        specifier: 1.5.1
-        version: 1.5.1(react@16.14.0)
-      lodash:
-        specifier: 4.18.1
-        version: 4.18.1
-      luxon:
-        specifier: 1.28.1
-        version: 1.28.1
-      pretty-ms:
-        specifier: 5.0.0
-        version: 5.0.0
-      react:
-        specifier: ^16.14.0
-        version: 16.14.0
-      react-bootstrap:
-        specifier: 0.32.1
-        version: 0.32.1(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
-      react-select:
-        specifier: 1.2.1
-        version: 1.2.1(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
-      rxjs:
-        specifier: 6.6.7
-        version: 6.6.7
-    devDependencies:
-      '@spinnaker/eslint-plugin':
-        specifier: workspace:^3.0.2
-        version: link:../eslint-plugin
-      '@spinnaker/scripts':
-        specifier: workspace:^0.4.0
-        version: link:../scripts
-      '@types/lodash':
-        specifier: 4.14.64
-        version: 4.14.64
-      '@types/luxon':
-        specifier: 1.11.1
-        version: 1.11.1
-      '@types/react':
-        specifier: 16.14.10
-        version: 16.14.10
-      '@types/react-bootstrap':
-        specifier: 0.32.5
-        version: 0.32.5
-      '@types/react-select':
-        specifier: 1.3.4
-        version: 1.3.4
       shx:
         specifier: 0.3.3
         version: 0.3.3
@@ -9190,10 +9119,6 @@ packages:
     resolution: {integrity: sha512-ayCKvm/phCGxOkYRSCM82iDwct8/EonSEgCSxWxD7ve6jHggsFl4fZVQBPRNgQoKiuV/odhFrGzQXZwbifC8Rg==}
     engines: {node: '>=8'}
 
-  parse-ms@2.1.0:
-    resolution: {integrity: sha512-kHt7kzLoS9VBZfUsiKjv43mr91ea+U05EyKkEtqp7vNbHxmaVuEqN7XxeEVnGrMtYOAxGrDElSi96K7EgO1zCA==}
-    engines: {node: '>=6'}
-
   parse-node-version@1.0.1:
     resolution: {integrity: sha512-3YHlOa/JgH6Mnpr05jP9eDG254US9ek25LyIxZlDItp2iJtwyaXQb57lBYLdT3MowkUFYEV2XXNAYIPlESvJlA==}
     engines: {node: '>= 0.10'}
@@ -9606,10 +9531,6 @@ packages:
   pretty-format@29.7.0:
     resolution: {integrity: sha512-Pdlw/oPxN+aXdmM9R00JVC9WVFoCLTKJvDVLgmJ+qAffBMxsV85l/Lu7sNx4zSzPyoL2euImuEwHhOXdEgNFZQ==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
-
-  pretty-ms@5.0.0:
-    resolution: {integrity: sha512-94VRYjL9k33RzfKiGokPBPpsmloBYSf5Ri+Pq19zlsEcUKFob+admeXr5eFDRuPjFmEOcjJvPGdillYOJyvZ7Q==}
-    engines: {node: '>=8'}
 
   pretty-quick@3.1.0:
     resolution: {integrity: sha512-DtxIxksaUWCgPFN7E1ZZk4+Aav3CCuRdhrDSFZENb404sYMtuo9Zka823F+Mgeyt8Zt3bUiCjFzzWYE9LYqkmQ==}
@@ -20870,8 +20791,6 @@ snapshots:
       json-parse-even-better-errors: 2.3.1
       lines-and-columns: 1.2.4
 
-  parse-ms@2.1.0: {}
-
   parse-node-version@1.0.1: {}
 
   parse-path@7.1.0:
@@ -21261,10 +21180,6 @@ snapshots:
       '@jest/schemas': 29.6.3
       ansi-styles: 5.2.0
       react-is: 18.3.1
-
-  pretty-ms@5.0.0:
-    dependencies:
-      parse-ms: 2.1.0
 
   pretty-quick@3.1.0(prettier@2.1.2):
     dependencies:
@@ -22122,7 +22037,9 @@ snapshots:
     dependencies:
       queue-microtask: 1.2.3
 
-  rxjs-compat@6.6.7: {}
+  rxjs-compat@6.6.7:
+    dependencies:
+      rxjs: 6.6.7
 
   rxjs@6.6.7:
     dependencies:
