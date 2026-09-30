@@ -1,11 +1,8 @@
 import type { UIRouter } from '@uirouter/core';
-import type { Action, MiddlewareAPI } from 'redux';
-import type { EpicMiddleware } from 'redux-observable';
+import type { Action } from 'redux';
+import type { ActionsObservable, Epic, EpicMiddleware, StateObservable } from 'redux-observable';
 import { combineEpics, createEpicMiddleware } from 'redux-observable';
-import type { Observable } from 'rxjs';
-import { forkJoin } from 'rxjs/observable/forkJoin';
-import { from } from 'rxjs/observable/from';
-import { of } from 'rxjs/observable/of';
+import { forkJoin, from, of } from 'rxjs';
 import { catchError, concatMap, debounceTime, filter, map, mapTo } from 'rxjs/operators';
 
 import * as Actions from '../actions';
@@ -27,7 +24,7 @@ import { listMetricsServiceMetadata } from '../service/metricsServiceMetadata.se
 
 const typeMatches = (...actions: string[]) => (action: Action & any) => actions.includes(action.type);
 
-const loadConfigEpic = (action$: Observable<Action & any>) =>
+const loadConfigEpic = (action$: ActionsObservable<Action & any>) =>
   action$.pipe(
     filter(typeMatches(Actions.LOAD_CONFIG_REQUEST, Actions.SAVE_CONFIG_SUCCESS)),
     concatMap((action) =>
@@ -38,20 +35,20 @@ const loadConfigEpic = (action$: Observable<Action & any>) =>
     ),
   );
 
-const selectConfigEpic = (action$: Observable<Action & any>) =>
+const selectConfigEpic = (action$: ActionsObservable<Action & any>) =>
   action$.pipe(
     filter(typeMatches(Actions.LOAD_CONFIG_SUCCESS)),
     map((action) => Creators.selectConfig({ config: action.payload.config })),
   );
 
 const saveConfigEpic = (uiRouter: UIRouter) => (
-  action$: Observable<Action & any>,
-  store: MiddlewareAPI<ICanaryState>,
+  action$: ActionsObservable<Action & any>,
+  state$: StateObservable<ICanaryState>,
 ) =>
   action$.pipe(
     filter(typeMatches(Actions.SAVE_CONFIG_REQUEST)),
     concatMap(() => {
-      const config = mapStateToConfig(store.getState());
+      const config = mapStateToConfig(state$.value);
       let saveAction: Promise<ICanaryConfigUpdateResponse>;
       if (config.isNew) {
         delete config.isNew;
@@ -64,7 +61,7 @@ const saveConfigEpic = (uiRouter: UIRouter) => (
         concatMap(({ canaryConfigId }) =>
           forkJoin(
             uiRouter.stateService.go('^.configDetail', { id: canaryConfigId, copy: false, new: false }),
-            store.getState().data.application.getDataSource('canaryConfigs').refresh(true),
+            state$.value.data.application.getDataSource('canaryConfigs').refresh(true),
           ).pipe(mapTo(Creators.saveConfigSuccess({ id: canaryConfigId }))),
         ),
         catchError((error: Error) => of(Creators.saveConfigFailure({ error }))),
@@ -72,11 +69,11 @@ const saveConfigEpic = (uiRouter: UIRouter) => (
     }),
   );
 
-const deleteConfigRequestEpic = (action$: Observable<Action & any>, store: MiddlewareAPI<ICanaryState>) =>
+const deleteConfigRequestEpic = (action$: ActionsObservable<Action & any>, state$: StateObservable<ICanaryState>) =>
   action$.pipe(
     filter(typeMatches(Actions.DELETE_CONFIG_REQUEST)),
     concatMap(() =>
-      from(deleteCanaryConfig(store.getState().selectedConfig.config.id)).pipe(
+      from(deleteCanaryConfig(state$.value.selectedConfig.config.id)).pipe(
         mapTo(Creators.deleteConfigSuccess()),
         catchError((error: Error) => of(Creators.deleteConfigFailure({ error }))),
       ),
@@ -84,8 +81,8 @@ const deleteConfigRequestEpic = (action$: Observable<Action & any>, store: Middl
   );
 
 const deleteConfigSuccessEpic = (uiRouter: UIRouter) => (
-  action$: Observable<Action & any>,
-  store: MiddlewareAPI<ICanaryState>,
+  action$: ActionsObservable<Action & any>,
+  state$: StateObservable<ICanaryState>,
 ) =>
   action$.pipe(
     filter(typeMatches(Actions.DELETE_CONFIG_SUCCESS)),
@@ -93,13 +90,13 @@ const deleteConfigSuccessEpic = (uiRouter: UIRouter) => (
       forkJoin(
         uiRouter.stateService.go('^.configDefault'),
         // TODO: handle config summary load failure (in general, not just here).
-        store.getState().data.application.getDataSource('canaryConfigs').refresh(true),
+        state$.value.data.application.getDataSource('canaryConfigs').refresh(true),
       ),
     ),
     mapTo(Creators.closeDeleteConfigModal()),
   );
 
-const loadCanaryRunRequestEpic = (action$: Observable<Action & any>) =>
+const loadCanaryRunRequestEpic = (action$: ActionsObservable<Action & any>) =>
   action$.pipe(
     filter(typeMatches(Actions.LOAD_RUN_REQUEST)),
     concatMap((action) =>
@@ -110,11 +107,11 @@ const loadCanaryRunRequestEpic = (action$: Observable<Action & any>) =>
     ),
   );
 
-const loadMetricSetPairEpic = (action$: Observable<Action & any>, store: MiddlewareAPI<ICanaryState>) =>
+const loadMetricSetPairEpic = (action$: ActionsObservable<Action & any>, state$: StateObservable<ICanaryState>) =>
   action$.pipe(
     filter(typeMatches(Actions.LOAD_METRIC_SET_PAIR_REQUEST)),
     concatMap((action) => {
-      const run = runSelector(store.getState());
+      const run = runSelector(state$.value);
       return from(getMetricSetPair(run.metricSetPairListId, action.payload.pairId)).pipe(
         map((metricSetPair) => Creators.loadMetricSetPairSuccess({ metricSetPair })),
         catchError((error: Error) => of(Creators.loadMetricSetPairFailure({ error }))),
@@ -122,7 +119,7 @@ const loadMetricSetPairEpic = (action$: Observable<Action & any>, store: Middlew
     }),
   );
 
-const updatePrometheusMetricDescriptionFilterEpic = (action$: Observable<Action & any>) =>
+const updatePrometheusMetricDescriptionFilterEpic = (action$: ActionsObservable<Action & any>) =>
   action$.pipe(
     filter(typeMatches(Actions.UPDATE_PROMETHEUS_METRIC_DESCRIPTOR_FILTER)),
     filter((action) => action.payload.filter && action.payload.filter.length > 2),
@@ -136,17 +133,16 @@ const updatePrometheusMetricDescriptionFilterEpic = (action$: Observable<Action 
   );
 
 const updateStackdriverMetricDescriptionFilterEpic = (
-  action$: Observable<Action & any>,
-  store: MiddlewareAPI<ICanaryState>,
+  action$: ActionsObservable<Action & any>,
+  state$: StateObservable<ICanaryState>,
 ) =>
   action$.pipe(
     filter(typeMatches(Actions.UPDATE_STACKDRIVER_METRIC_DESCRIPTOR_FILTER)),
     filter((action) => action.payload.filter && action.payload.filter.length > 2),
     debounceTime(200 /* milliseconds */),
     map((action) => {
-      const [metricsAccountName] = store
-        .getState()
-        .data.kayentaAccounts.data.filter(
+      const [metricsAccountName] = state$.value.data.kayentaAccounts.data
+        .filter(
           (account) =>
             account.supportedTypes.includes(KayentaAccountType.MetricsStore) &&
             account.metricsStoreType === 'stackdriver',
@@ -161,17 +157,16 @@ const updateStackdriverMetricDescriptionFilterEpic = (
   );
 
 const updateGraphiteMetricDescriptionFilterEpic = (
-  action$: Observable<Action & any>,
-  store: MiddlewareAPI<ICanaryState>,
+  action$: ActionsObservable<Action & any>,
+  state$: StateObservable<ICanaryState>,
 ) =>
   action$.pipe(
     filter(typeMatches(Actions.UPDATE_GRAPHITE_METRIC_DESCRIPTOR_FILTER)),
     filter((action) => action.payload.filter && action.payload.filter.length > 2),
     debounceTime(200 /* milliseconds */),
     map((action) => {
-      const [metricsAccountName] = store
-        .getState()
-        .data.kayentaAccounts.data.filter(
+      const [metricsAccountName] = state$.value.data.kayentaAccounts.data
+        .filter(
           (account) => account.supportedTypes.includes(KayentaAccountType.MetricsStore) && account.type === 'graphite',
         )
         .map((account) => account.name);
@@ -184,17 +179,16 @@ const updateGraphiteMetricDescriptionFilterEpic = (
   );
 
 const updateDatadogMetricDescriptionFilterEpic = (
-  action$: Observable<Action & any>,
-  store: MiddlewareAPI<ICanaryState>,
+  action$: ActionsObservable<Action & any>,
+  state$: StateObservable<ICanaryState>,
 ) =>
   action$.pipe(
     filter(typeMatches(Actions.UPDATE_DATADOG_METRIC_DESCRIPTOR_FILTER)),
     filter((action) => action.payload.filter && action.payload.filter.length > 2),
     debounceTime(200 /* milliseconds */),
     map((action) => {
-      const [metricsAccountName] = store
-        .getState()
-        .data.kayentaAccounts.data.filter(
+      const [metricsAccountName] = state$.value.data.kayentaAccounts.data
+        .filter(
           (account) => account.supportedTypes.includes(KayentaAccountType.MetricsStore) && account.type === 'datadog',
         )
         .map((account) => account.name);
@@ -206,7 +200,7 @@ const updateDatadogMetricDescriptionFilterEpic = (
     }),
   );
 
-const loadMetricsServiceMetadataEpic = (action$: Observable<Action & any>) =>
+const loadMetricsServiceMetadataEpic = (action$: ActionsObservable<Action & any>) =>
   action$.pipe(
     filter(typeMatches(Actions.LOAD_METRICS_SERVICE_METADATA_REQUEST)),
     concatMap((action) =>
@@ -217,7 +211,7 @@ const loadMetricsServiceMetadataEpic = (action$: Observable<Action & any>) =>
     ),
   );
 
-const loadKayentaAccountsEpic = (action$: Observable<Action & any>) =>
+const loadKayentaAccountsEpic = (action$: ActionsObservable<Action & any>) =>
   action$.pipe(
     filter(typeMatches(Actions.LOAD_KAYENTA_ACCOUNTS_REQUEST, Actions.INITIALIZE)),
     concatMap(() =>
@@ -228,21 +222,22 @@ const loadKayentaAccountsEpic = (action$: Observable<Action & any>) =>
     ),
   );
 
-export const createKayentaEpicMiddleware = (uiRouter: UIRouter): EpicMiddleware<Action & any, ICanaryState> =>
-  createEpicMiddleware(
-    combineEpics(
-      loadConfigEpic,
-      selectConfigEpic,
-      saveConfigEpic(uiRouter),
-      deleteConfigRequestEpic,
-      deleteConfigSuccessEpic(uiRouter),
-      loadCanaryRunRequestEpic,
-      loadMetricSetPairEpic,
-      updateGraphiteMetricDescriptionFilterEpic,
-      updatePrometheusMetricDescriptionFilterEpic,
-      updateStackdriverMetricDescriptionFilterEpic,
-      updateDatadogMetricDescriptionFilterEpic,
-      loadMetricsServiceMetadataEpic,
-      loadKayentaAccountsEpic,
-    ),
+export const createKayentaRootEpic = (uiRouter: UIRouter): Epic<Action & any, Action & any, ICanaryState> =>
+  combineEpics(
+    loadConfigEpic,
+    selectConfigEpic,
+    saveConfigEpic(uiRouter),
+    deleteConfigRequestEpic,
+    deleteConfigSuccessEpic(uiRouter),
+    loadCanaryRunRequestEpic,
+    loadMetricSetPairEpic,
+    updateGraphiteMetricDescriptionFilterEpic,
+    updatePrometheusMetricDescriptionFilterEpic,
+    updateStackdriverMetricDescriptionFilterEpic,
+    updateDatadogMetricDescriptionFilterEpic,
+    loadMetricsServiceMetadataEpic,
+    loadKayentaAccountsEpic,
   );
+
+export const createKayentaEpicMiddleware = (): EpicMiddleware<Action & any, Action & any, ICanaryState> =>
+  createEpicMiddleware();
