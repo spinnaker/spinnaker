@@ -314,6 +314,8 @@ Already **removed** (do not use at all in new code):
 - **Old Kubernetes API types** — `extensions/v1beta1` and `networking.k8s.io/v1beta1` are gone.
 - **Custom SAML config** — moved to native Spring Security SAML; don't add to the old
   Spinnaker-specific SAML properties.
+- **Titus cloud provider** — removed from clouddriver, orca, deck and keel (including orca's
+  `TitusPreconfiguredJobProperties` plugin type). Don't add `titus` provider branches or examples.
 
 Deprecated and **on a removal timeline** — prefer the replacement, don't extend the old one:
 
@@ -322,15 +324,12 @@ Deprecated and **on a removal timeline** — prefer the replacement, don't exten
 | Spectator metrics | Micrometer (native Spring metrics) | 2027.0.0 (stackdriver feeds 2026.4.0) |
 | Redis storage for Orca **executions** | SQL | 2027.0.0 |
 | Non-SQL Front50 storage (S3/GCS/blob) for pipelines/templates | SQL | 2027.0.0 |
-| Titus cloud provider | — (being retired) | 2027.0.0 |
 | Kustomize 3 | Kustomize 4 or 5 | 2027.0.0 |
 
 Notes:
 - **Metrics:** new instrumentation should use the Micrometer `MeterRegistry`, not `Registry`
   (Spectator). This was already flagged in review before it hit the roadmap. If you must touch
   Spectator code, leave a `TODO` pointing at the Micrometer migration (see §10).
-- **Titus:** don't build new features on the Titus provider; it's deprecated with no active
-  contribution.
 - Redis is still the recommended **queue** backend — only *execution/pipeline storage* is
   moving to SQL. Don't conflate the two.
 - **Artifact credentials:** `BaseHttpArtifactCredentials.getHeaders(account)` now declares
@@ -338,10 +337,9 @@ Notes:
   auth material that depends on the fetched URL. Override the URL-aware method when auth is
   URL-dependent; keep `throws IOException` on overrides.
 
-**Review check:** Flag any new `com.amazonaws`, AngularJS, Halyard, or removed-K8s-API usage
-outright. Flag new Spectator `Registry` instrumentation (suggest Micrometer), new non-SQL
-storage code paths, and new feature work on the Titus provider. Flag new Kustomize-3-only
-assumptions.
+**Review check:** Flag any new `com.amazonaws`, AngularJS, Halyard, Titus, or removed-K8s-API
+usage outright. Flag new Spectator `Registry` instrumentation (suggest Micrometer), new non-SQL
+storage code paths, and new Kustomize-3-only assumptions.
 
 ---
 

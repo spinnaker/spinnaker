@@ -1,20 +1,18 @@
 import { set } from 'lodash';
 import * as React from 'react';
-import { CheckboxInput, HelpField, NumberInput } from '@spinnaker/core';
+import { CheckboxInput, NumberInput } from '@spinnaker/core';
 import type { IUpsertScalingPolicyCommand } from '../ScalingPolicyWriter';
 
 import './TargetTrackingAdditionalSettings.less';
 
 export interface ITargetTrackingAdditionalSettingsProps {
   command: IUpsertScalingPolicyCommand;
-  cooldowns?: boolean;
   policyName?: string;
   updateCommand: (command: IUpsertScalingPolicyCommand) => void;
 }
 
 export const TargetTrackingAdditionalSettings = ({
   command,
-  cooldowns,
   policyName,
   updateCommand,
 }: ITargetTrackingAdditionalSettingsProps) => {
@@ -81,42 +79,6 @@ export const TargetTrackingAdditionalSettings = ({
           )}
         </div>
       </div>
-      {cooldowns && !scaleInDisabled && (
-        <div className="row">
-          <div className="col-md-3 sm-label-right">
-            <span className="sp-margin-xs-right">Scale In Cooldown</span>
-            <HelpField id="titus.autoscaling.scaleIn.cooldown" />
-          </div>
-          <div className="col-md-9 horizontal middle">
-            <NumberInput
-              value={command.targetTrackingConfiguration.scaleInCooldown}
-              onChange={(e) =>
-                setCommandField('targetTrackingConfiguration.scaleInCooldown', Number.parseInt(e.target.value))
-              }
-              inputClassName="sp-margin-xs-xaxis number-input-sm"
-            />
-            <span className="input-label"> seconds </span>
-          </div>
-        </div>
-      )}
-      {cooldowns && (
-        <div className="row">
-          <div className="col-md-3 sm-label-right">
-            <span className="sp-margin-xs-right">Scale Out Cooldown</span>
-            <HelpField id="titus.autoscaling.scaleOut.cooldown" />
-          </div>
-          <div className="col-md-9 horizontal middle">
-            <NumberInput
-              value={command.targetTrackingConfiguration.scaleOutCooldown}
-              onChange={(e) =>
-                setCommandField('targetTrackingConfiguration.scaleOutCooldown', Number.parseInt(e.target.value))
-              }
-              inputClassName="sp-margin-xs-xaxis number-input-sm"
-            />
-            <span className="input-label"> seconds </span>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

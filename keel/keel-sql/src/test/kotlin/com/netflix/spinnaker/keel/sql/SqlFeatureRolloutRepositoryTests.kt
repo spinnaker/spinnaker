@@ -20,7 +20,7 @@ internal class SqlFeatureRolloutRepositoryTests {
   private val subject = SqlFeatureRolloutRepository(jooq, sqlRetry, Clock.systemDefaultZone())
 
   private val feature = "commencement-of-eschaton"
-  private val resourceId = "titus:cluster:prod:fnord-main"
+  private val resourceId = "ec2:cluster:prod:fnord-main"
 
   @AfterEach
   fun flush() {
@@ -88,7 +88,7 @@ internal class SqlFeatureRolloutRepositoryTests {
   fun `does not mix the counts for different resources`() {
     with(subject) {
       markRolloutStarted(feature, resourceId)
-      rolloutStatus(feature, "titus:cluster:test:fnord-test")
+      rolloutStatus(feature, "ec2:cluster:test:fnord-test")
         .also { result ->
           expectThat(result) isEqualTo (NOT_STARTED to 0)
         }
