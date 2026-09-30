@@ -169,7 +169,7 @@ class ApplicationsControllerSpec extends Specification {
 
     where:
     cloudProvider1 | cloudProvider2 || expectedCloudProviders
-    "aws"          | "titus"        || "aws,titus"
+    "aws"          | "ecs"          || "aws,ecs"
     "aws"          | "aws"          || "aws"
   }
 }
