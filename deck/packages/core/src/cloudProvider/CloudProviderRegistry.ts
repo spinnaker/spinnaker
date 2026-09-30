@@ -33,9 +33,9 @@ export class CloudProviderRegistry {
   public static getProvider(cloudProvider: string): ICloudProviderConfig {
     // Registered config values are frequently React components (function components, or
     // React.forwardRef/memo objects tagged with $$typeof). Deep-cloning those is never what
-    // callers want, and under React 17 lodash's cloneDeep silently drops the outer object's
-    // own properties (e.g. `displayName`) when it recurses into such an object - pass them
-    // through by reference and only clone plain data.
+    // callers want, and under React 17 dev-mode `displayName` on such objects is a
+    // non-enumerable accessor, which lodash's cloneDeep (own enumerable props only) drops -
+    // pass them through by reference and only clone plain data.
     return this.providers.has(cloudProvider)
       ? cloneDeepWith(this.providers.get(cloudProvider), (value) =>
           isFunction(value) || (value && typeof value === 'object' && '$$typeof' in value) ? value : undefined,
