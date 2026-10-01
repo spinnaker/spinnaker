@@ -23,7 +23,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.http.Fault;
-import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions;
+import com.netflix.spinnaker.kork.web.url.UrlRestrictions;
+import com.netflix.spinnaker.orca.config.UserConfiguredHttpClientProperties;
 import java.io.IOException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,8 +38,8 @@ public class HttpClientUtilsTest {
   private final int port = 8080;
   private final String resource = "/v1/text";
   private final String redirectUrl = "https://spinnaker.io/";
-  private final UserConfiguredUrlRestrictions.Builder config =
-      new UserConfiguredUrlRestrictions.Builder();
+  private UserConfiguredHttpClientProperties httpClientProperties =
+      new UserConfiguredHttpClientProperties();
 
   WireMockServer wireMockServer = new WireMockServer();
 
@@ -56,9 +57,9 @@ public class HttpClientUtilsTest {
   @Test
   public void testZeroRetryFor503StatusCode() {
     // given:
-    config.setHttpClientProperties(
-        UserConfiguredUrlRestrictions.HttpClientProperties.builder().enableRetry(false).build());
-    HttpClientUtils httpClientUtils = new HttpClientUtils(config.build());
+    httpClientProperties = UserConfiguredHttpClientProperties.builder().enableRetry(false).build();
+    HttpClientUtils httpClientUtils =
+        new HttpClientUtils(UrlRestrictions.defaults(), httpClientProperties);
     stubFor(get(resource).willReturn(aResponse().withStatus(503)));
 
     // when:
@@ -75,7 +76,8 @@ public class HttpClientUtilsTest {
   @Test
   public void testDefaultRetryForSocketException() {
     // given:
-    HttpClientUtils httpClientUtils = new HttpClientUtils(config.build());
+    HttpClientUtils httpClientUtils =
+        new HttpClientUtils(UrlRestrictions.defaults(), httpClientProperties);
     stubFor(get(resource).willReturn(aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER)));
 
     // when:
@@ -92,12 +94,10 @@ public class HttpClientUtilsTest {
   @Test
   public void testTwoRetryForSocketException() {
     // given:
-    config.setHttpClientProperties(
-        UserConfiguredUrlRestrictions.HttpClientProperties.builder()
-            .enableRetry(true)
-            .maxRetryAttempts(2)
-            .build());
-    HttpClientUtils httpClientUtils = new HttpClientUtils(config.build());
+    httpClientProperties =
+        UserConfiguredHttpClientProperties.builder().enableRetry(true).maxRetryAttempts(2).build();
+    HttpClientUtils httpClientUtils =
+        new HttpClientUtils(UrlRestrictions.defaults(), httpClientProperties);
     stubFor(get(resource).willReturn(aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER)));
 
     // when:
@@ -115,10 +115,10 @@ public class HttpClientUtilsTest {
   @ValueSource(ints = {301, 302})
   public void testRedirectWithRetryEnabled(int httpStatus) throws IOException {
     // Set up the configuration to enable retry functionality
-    config.setHttpClientProperties(
-        UserConfiguredUrlRestrictions.HttpClientProperties.builder().enableRetry(true).build());
+    httpClientProperties = UserConfiguredHttpClientProperties.builder().enableRetry(true).build();
     // Create the HttpClientUtils instance with the configuration
-    HttpClientUtils httpClientUtils = new HttpClientUtils(config.build());
+    HttpClientUtils httpClientUtils =
+        new HttpClientUtils(UrlRestrictions.defaults(), httpClientProperties);
 
     stubFor(
         get(resource)
@@ -137,10 +137,10 @@ public class HttpClientUtilsTest {
   @ValueSource(ints = {301, 302})
   public void testRedirectWithRetryDisabled(int httpStatus) throws IOException {
     // Set up the configuration to enable retry functionality
-    config.setHttpClientProperties(
-        UserConfiguredUrlRestrictions.HttpClientProperties.builder().enableRetry(false).build());
+    httpClientProperties = UserConfiguredHttpClientProperties.builder().enableRetry(false).build();
     // Create the HttpClientUtils instance with the configuration
-    HttpClientUtils httpClientUtils = new HttpClientUtils(config.build());
+    HttpClientUtils httpClientUtils =
+        new HttpClientUtils(UrlRestrictions.defaults(), httpClientProperties);
 
     stubFor(
         get(resource)
@@ -159,10 +159,10 @@ public class HttpClientUtilsTest {
   @ValueSource(strings = {"192.168.1.1", "127.0.0.1"})
   void testRedirectThrowsRetryRequestExceptionForInvalidUrl(String invalidUrl) {
     // Set up the configuration to enable retry functionality
-    config.setHttpClientProperties(
-        UserConfiguredUrlRestrictions.HttpClientProperties.builder().enableRetry(true).build());
+    httpClientProperties = UserConfiguredHttpClientProperties.builder().enableRetry(true).build();
     // Create the HttpClientUtils instance with the configuration
-    HttpClientUtils httpClientUtils = new HttpClientUtils(config.build());
+    HttpClientUtils httpClientUtils =
+        new HttpClientUtils(UrlRestrictions.defaults(), httpClientProperties);
 
     stubFor(
         get(invalidUrl)
