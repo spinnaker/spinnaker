@@ -9,7 +9,9 @@
 | 2 | SQL ordering + concurrency fix (sequence column, per-task row lock, terminal immutability) | Not started |
 | 3 | Redis hardening (status-write isolation, atomic and idempotent writes) | Not started |
 | 4 | `DefaultOrchestrationProcessor` fixes (stop after failure, bounded executor) | Not started |
-| 5 | Optional queued dispatch on kork-pubsub "Single" (Redis Streams), opt-in | Not started; depends on [#8031](https://github.com/spinnaker/spinnaker/pull/8031) |
+| 5a | SQL execution leases + reaper (fast detection of lost work, no dispatch change) | Not started; depends on Phase 2 |
+| 5b | SQL-backed dispatch (pending state, claim, bounded workers, draining), opt-in | Not started; depends on 5a |
+| 5c | Optional broadcast "work available" nudge to cut claim latency | Not started; depends on 5b + [#8031](https://github.com/spinnaker/spinnaker/pull/8031) |
 
 Update this table as each phase lands. Link the PR and note any deviations.
 
@@ -85,9 +87,11 @@ clocks disagree, produce the wrong "latest" row.
 2. **Make SQL the recommended production backend** once Phase 2 lands. Document the Redis repository
    as "single Redis, no HA guarantees". Its shape (no atomic multi-key reads, which `JedisTask`'s own
    Javadoc admits) limits how correct it can become.
-3. **Build a Redis Streams *dispatch* layer as an opt-in Phase 5**, not as a replacement task store.
-   It is worth having for backpressure, draining, and rolling deploys (P2, P3). It is not a fix for
-   R1/S1–S5.
+3. **Build dispatch on the SQL task repository (Phase 5), not on Redis Streams.** SQL can provide
+   restart recovery, failover handling and work distribution (P2, P3). It also avoids a dual write
+   between SQL and Redis, and keeps leases and fencing in the same transactional store as task
+   status. See [Phase 5](#phase-5-sql-backed-execution-leases-and-dispatch). Streams stays an optional
+   latency optimization (5c), not a requirement.
 
 ## Phase 0: TCK regression tests
 
@@ -205,29 +209,134 @@ fencing mechanism. Any queue design must:
 - On reclaim: if the task never reached "Processing op", run it. If it is saga-backed, resume the
   saga. **Otherwise mark it `FAILED` ("worker lost before completion"). Never re-run it blindly.**
 
-### Proposed Phase 5 design (opt-in, `clouddriver.operations.dispatch: queued`)
+### Why SQL rather than Streams for dispatch
 
-1. `POST /ops`: `TaskRepository.create()` (SQL), then `XADD clouddriver:operations {taskId, cloudProvider, serialized description, auth context}`, then return the task ID. If the stream is unavailable, return 503 and leave the task un-started (the Orca retry dedupes on `clientRequestId`).
-   - The serialized payload is the raw description list that `OperationsService` converts. Converting
-     happens on the consumer, so credentials resolve where the work runs.
-   - The auth context (user, allowed accounts) must travel with the message and be re-applied on the
-     consumer, as `DefaultOrchestrationProcessor` does today through `propagate()`.
-2. Each pod runs a bounded `RedisStreamsSubscriber` (kork-pubsub-redis) in consumer group
-   `clouddriver-operations`. The handler acquires the SQL lease, runs the existing processor body
-   (extracted from the `Callable`), and `XACK`s only after a terminal status is written.
-3. Lease heartbeat while running. The reclaim loop uses `XPENDING`/`XCLAIM` plus the lease and
-   reclaim rules above.
-4. The default stays `inline` (today's behaviour). The two modes share everything except dispatch.
+Every Streams design above still needs SQL for the lease, the fencing token and the task status. So
+Streams would only add a push wake-up, and it would bring problems SQL avoids:
 
-Alternative worth costing before building: SQL-only dispatch (`SELECT … FOR UPDATE SKIP LOCKED` on a
-`pending` state) gets bounded workers and draining with no new runtime dependency. It suits installs
-that already moved tasks to SQL to get off Redis. If the dispatcher is written against the kork-pubsub
-`PubsubPublisher`/`PubsubSubscriber` contract, either backend (or SQS) can sit behind it.
+- **Dual write.** "Create task in SQL, then `XADD`" isn't atomic. A crash between the two leaves a task
+  that never runs, or a message for a task that doesn't exist, so it needs an outbox table in SQL
+  anyway. With SQL dispatch, creating and enqueueing the task is one transaction.
+- **Two failure domains.** Dispatch would depend on Redis *and* SQL being up.
+- **Redelivery semantics.** `XCLAIM` is last-claim-wins, so SQL fencing is needed regardless.
+- **Throughput isn't a constraint.** Clouddriver handles at most tens of operations per second.
+  keiko-sql already runs orca's far busier work queue on the same databases
+  (`orca/keiko-sql/.../SqlQueue.kt`).
 
-**Recommendation:** proceed with Phase 5 only after Phases 1–2 land and #8031 merges, and only as
-opt-in. Phases 1–4 address every confirmed failure on their own.
+What Streams would still add is sub-second wake-up without polling. 5c covers that as an optional
+nudge on top of SQL, not as the source of truth.
+
+Redis-only installs don't get Phase 5. Dispatch requires the SQL task repository. Document that
+alongside "SQL is the recommended backend".
+
+## Phase 5: SQL-backed execution leases and dispatch
+
+Prerequisites: Phase 2 (`seq` ordering, per-task row lock, terminal immutability, `tasks.current_state`)
+and Phase 1's working SQL retries. Target databases: MySQL 8.0 and Postgres 16, matching
+`kork-sql-test`.
+
+### Schema additions (`tasks` table, plus one new table)
+
+| Column | Purpose |
+|---|---|
+| `current_state` | From Phase 2, with a new `PENDING` value for accepted-but-unclaimed work (5b). |
+| `lease_owner` | Instance ID currently executing the task (separate from `owner_id`, which stays "who accepted it" for display/compatibility). |
+| `lease_expires_at` | Set from **DB time** (`CURRENT_TIMESTAMP(3)` / `clock_timestamp()`), never from the pod clock. S1 showed what pod clocks do to ordering. |
+| `lease_version` | Fencing token, incremented on every claim. Every status write from an executor includes `AND lease_version = ?`. Zero rows updated means the lease was lost, so the executor stops. |
+| `progress` | Checkpoint: index of the last atomic operation that *finished*, plus whether one is in flight. The reaper uses it to decide what's safe to do. |
+| `available_at` | DB time from which a `PENDING` task may be claimed (supports delayed retry/backoff). |
+
+New table `task_payloads(task_id, cloud_provider, body, auth_context)`. It stores the raw request
+body and the request's user/allowed accounts, and is deleted when the task reaches a terminal state.
+Index: `(current_state, available_at)` for claiming, `(current_state, lease_expires_at)` for the
+reaper.
+
+Operation descriptions can carry sensitive values (for example manifests). Keep payload rows only
+while needed, delete them on terminal state, and evaluate encrypting `body` at rest before 5b ships.
+
+### 5a: Leases + reaper (no change to who runs the work)
+
+This alone fixes the worst restart behaviour (P3) without changing dispatch.
+
+- The accepting pod claims the lease at `create()`, in the same transaction, and heartbeats it
+  (default TTL 2 min, heartbeat every 20 s) for as long as the operation runs.
+- A **reaper** runs on every pod, using a small `LIMIT` and conditional updates so pods don't
+  collide. It finds `STARTED` tasks whose `lease_expires_at < now()` (DB time) and claims each with
+  `UPDATE … SET lease_version = lease_version + 1 … WHERE id = ? AND lease_version = ?`. Only the
+  winner acts:
+  - **Saga-backed:** set `FAILED_RETRYABLE`. Orca's existing `MonitorKatoTask` → `:resume` path
+    resumes the saga, on whichever pod Orca's request reaches.
+  - **Otherwise:** set `FAILED` with "clouddriver instance executing this task stopped before it
+    completed". **Never re-run a non-idempotent operation blindly.**
+- Result: a pod that crashes, is OOM-killed or loses its node turns its tasks into fast, explicit
+  failures within about one lease TTL. Today Orca waits for its 1 h `MonitorKatoTask` timeout.
+- **Zombie protection:** a pod that was partitioned and comes back finds its fenced writes rejected
+  and abandons the task. Fencing can't recall a cloud API call already sent, which is exactly why
+  non-saga work is failed rather than re-run.
+- **Graceful shutdown** (`@PreDestroy`): stop heartbeating after `shutdownWaitSeconds`. Tasks still
+  running are released immediately (lease expiry set to now) instead of waiting out the TTL.
+
+### 5b: SQL dispatch (opt-in, `clouddriver.operations.dispatch: queued`)
+
+**Accepting work (`POST /ops`):**
+1. Validate and authorize synchronously on the receiving pod, exactly as today
+   (`OperationsService.collectAtomicOperations`). Bad requests still get an immediate 400.
+2. In one transaction, insert the task (`current_state = PENDING`) and its `task_payloads` row. Dedupe
+   on `clientRequestId` through the Phase 2 unique index.
+3. **Local-first fast path:** if this pod has a free worker slot, claim the task inside the same
+   transaction and start it immediately. In the common case that's the same latency as today, and
+   other pods only see work that overflowed or was orphaned.
+4. Return the task ID. If the DB is unavailable, return 503 and nothing is created (Orca retries).
+
+**Claiming (each pod, bounded by `clouddriver.operations.max-concurrent`):**
+- Poll only while there are free slots: every 1 s with jitter, backing off to 5 s when idle.
+- Claim with keiko-sql's pattern: select candidate IDs
+  (`current_state = PENDING AND available_at <= now()`, ordered by `seq`, `LIMIT slots * 3`), then
+  claim each by primary key with
+  `UPDATE … SET current_state = 'STARTED', lease_owner = ?, lease_version = lease_version + 1,
+  lease_expires_at = now() + ttl WHERE id = ? AND current_state = 'PENDING'`. It works on both
+  databases and holds no long locks. `SELECT … FOR UPDATE SKIP LOCKED` is an equivalent option on
+  MySQL 8 / PG 16. Choose one after testing under contention.
+- The worker reloads the payload, re-runs `collectAtomicOperations` with the stored user/accounts
+  context (re-checking authorization at execution time), and runs the existing processor body,
+  extracted from `DefaultOrchestrationProcessor`'s `Callable`.
+- Write the `progress` checkpoint before and after each atomic operation, with fencing.
+
+**What this provides:**
+
+| Need | How SQL dispatch covers it |
+|---|---|
+| **Distribution** | Work goes to pods with free slots instead of whichever pod the load balancer picked. Per-pod caps replace the unbounded thread pool (P2). Optional fairness later: claim queries can cap in-flight tasks per account or provider. |
+| **Graceful restart / rolling deploy** | A pod stops claiming at shutdown. `PENDING` work isn't owned by anyone, so other pods pick it up. In-flight work is handled by 5a's release rules. |
+| **Crash / node loss** | Lease expiry and the reaper. Tasks with no op in flight (`progress` shows the next op not started) go back to `PENDING` and **are safely re-run elsewhere**, including the rest of a multi-op task after its last checkpoint. An op caught in flight is resumed if saga-backed, otherwise failed explicitly. |
+| **Network partition** | Fencing tokens. The partitioned pod's writes are rejected, and it stops at the next checkpoint. |
+| **DB failover** (e.g. Aurora writer failover, roughly 30–60 s) | Working SQL retries (Phase 1). The lease TTL is set longer than the failover window so heartbeats survive it. In-flight operations keep running and their status writes retry. Leases use the DB's clock, so pod clock skew doesn't matter. A clock jump on the new writer is small compared with the TTL. Tradeoff: a longer TTL means slower crash detection. Both are configurable. |
+| **Backpressure to Orca** | When every pod is saturated, `PENDING` work waits in the table rather than being refused. Add a configurable max `PENDING` depth above which `POST /ops` returns 503 so Orca backs off. |
+
+**Latency cost:** with local-first, only overflow and orphaned work waits for a poll, up to about 1 s
+plus jitter. That is negligible against cloud operations that take seconds to minutes, and 5c can
+remove it.
+
+### 5c (optional): wake-up nudge
+
+After committing a `PENDING` task that the accepting pod couldn't claim locally, publish a
+best-effort "work available" message on a kork-pubsub **broadcast** channel (#8031). Idle pods poll
+immediately on receipt. The message carries no task data and SQL stays the only source of truth, so a
+lost message only costs one poll interval. Build this only if the polling latency is measured to
+matter.
+
+### Testing
+
+- Extend the Phase 0 TCK: claim exclusivity under concurrent claimers, fencing rejection after lease
+  loss, reaper outcomes for each `progress` state (not started / in flight with saga / in flight
+  without saga), and lease expiry driven by DB time with skewed pod clocks.
+- MySQL and Postgres via `kork-sql-test`. Run with `--max-workers=1` locally.
+- A chaos-style integration test: two clouddriver contexts on one DB. Kill one mid-operation and
+  assert the task is resumed (saga), re-run (op not started) or failed (op in flight), each within
+  one TTL.
 
 ## PR sequencing
 
 Independent first: Phase 1 items (each its own PR) → Phase 0 tests (can be folded into each fix's PR)
-→ Phase 4 `break` + Phase 2 (land together, see risk note) → Phase 3 → Phase 5.
+→ Phase 4 `break` + Phase 2 (land together, see risk note) → Phase 3 (Redis installs only, can run in
+parallel with 5) → 5a → 5b → 5c (only if measured latency warrants it).
