@@ -51,6 +51,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifestTraffic;
 import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesManifestNamer;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.*;
+import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.CustomResourceStatusEvaluator;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.manifest.KubernetesDeployManifestOperation;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
@@ -76,7 +77,8 @@ final class KubernetesDeployManifestOperationTest {
               new KubernetesReplicaSetHandler(),
               new KubernetesServiceHandler(),
               new KubernetesConfigMapHandler()),
-          new KubernetesUnregisteredCustomResourceHandler());
+          new KubernetesUnregisteredCustomResourceHandler(
+              CustomResourceStatusEvaluator.disabled()));
   private static final Namer<KubernetesManifest> NAMER = new KubernetesManifestNamer();
   private static final String ACCOUNT = "my-account";
 

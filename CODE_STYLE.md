@@ -283,7 +283,7 @@ Recent fixes centered on two recurring security mistakes:
   auth. New read/write surfaces must go through the same authorization as their existing
   equivalents.
 - **Unvalidated redirects (SSRF).** HTTP redirect `Location` headers must be validated against
-  the configured `HttpUrlRestrictions`; an allowed external host must not be a pivot to
+  the configured kork `UrlRestrictions`; an allowed external host must not be a pivot to
   internal endpoints. `urlRestrictions` must actually be wired (not left null).
 
 **Review check:** For any new endpoint, MCP tool, or artifact fetcher, confirm it enforces the

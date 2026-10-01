@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
 import com.netflix.spinnaker.config.ArtifactConfiguration;
+import okhttp3.HttpUrl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,5 +34,18 @@ class GitHubArtifactConfigurationTest {
         .contains("http", "https");
     assertThat(credentialsForType.getAccount().getUrlRestrictions().getAllowedDomains())
         .contains("github.com");
+  }
+
+  @Test
+  public void configBoundRestrictionsValidateUrls() {
+    GitHubArtifactCredentials credentialsForType =
+        (GitHubArtifactCredentials)
+            credentialsRepository.getCredentialsForType("test", "github/file");
+    assertThat(
+            credentialsForType
+                .getAccount()
+                .getUrlRestrictions()
+                .validateURI(HttpUrl.parse("https://github.com/spinnaker/spinnaker")))
+        .hasHost("github.com");
   }
 }

@@ -25,6 +25,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonSyntaxException;
 import com.netflix.spectator.api.DefaultRegistry;
@@ -35,20 +36,25 @@ import com.netflix.spectator.api.Tag;
 import com.netflix.spectator.api.Timer;
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTask;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
+import com.netflix.spinnaker.clouddriver.kubernetes.config.CustomKubernetesResource;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesAccountProperties.ManagedAccount;
+import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.AccountResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.GlobalResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesSpinnakerKindMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
+import com.netflix.spinnaker.clouddriver.kubernetes.model.Manifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesManifestNamer;
 import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesNamerRegistry;
+import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.CustomResourceStatusEvaluator;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesUnregisteredCustomResourceHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubectlJobExecutor.KubectlException;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubectlJobExecutor.KubectlNotFoundException;
 import com.netflix.spinnaker.kork.configserver.CloudConfigResourceService;
 import com.netflix.spinnaker.kork.configserver.ConfigFileService;
+import io.kubernetes.client.util.Yaml;
 import java.util.HashMap;
 import org.junit.jupiter.api.Test;
 
@@ -60,6 +66,25 @@ final class KubernetesCredentialsTest {
   private final Task task = new DefaultTask("task-id");
 
   private KubernetesCredentials getCredentials(Registry registry, KubectlJobExecutor jobExecutor) {
+    ManagedAccount managedAccount = new ManagedAccount();
+    managedAccount.setName("my-account");
+    return getCredentials(
+        registry,
+        jobExecutor,
+        managedAccount,
+        CustomResourceStatusEvaluator.disabled(),
+        new GlobalResourcePropertyRegistry(
+            ImmutableList.of(),
+            new KubernetesUnregisteredCustomResourceHandler(
+                CustomResourceStatusEvaluator.disabled())));
+  }
+
+  private KubernetesCredentials getCredentials(
+      Registry registry,
+      KubectlJobExecutor jobExecutor,
+      ManagedAccount managedAccount,
+      CustomResourceStatusEvaluator statusEvaluator,
+      GlobalResourcePropertyRegistry globalResourcePropertyRegistry) {
     KubernetesCredentials.Factory factory =
         new KubernetesCredentials.Factory(
             registry,
@@ -68,15 +93,105 @@ final class KubernetesCredentialsTest {
             new ConfigFileService(new CloudConfigResourceService()),
             new AccountResourcePropertyRegistry.Factory(
                 new GlobalResourcePropertyRegistry(
-                    ImmutableList.of(), new KubernetesUnregisteredCustomResourceHandler())),
+                    ImmutableList.of(),
+                    new KubernetesUnregisteredCustomResourceHandler(
+                        CustomResourceStatusEvaluator.disabled()))),
             new KubernetesKindRegistry.Factory(
                 new GlobalKubernetesKindRegistry(ImmutableList.of())),
             new KubernetesSpinnakerKindMap(ImmutableList.of()),
-            new GlobalResourcePropertyRegistry(
-                ImmutableList.of(), new KubernetesUnregisteredCustomResourceHandler()));
-    ManagedAccount managedAccount = new ManagedAccount();
-    managedAccount.setName("my-account");
+            globalResourcePropertyRegistry,
+            statusEvaluator);
     return factory.build(managedAccount);
+  }
+
+  private static final KubernetesKind WIDGET = KubernetesKind.fromString("Widget.example.com");
+
+  private static CustomResourceStatusEvaluator enabledStatusEvaluator() {
+    KubernetesConfigurationProperties properties = new KubernetesConfigurationProperties();
+    properties.getCustomResourceStatus().setEnabled(true);
+    return new CustomResourceStatusEvaluator(properties);
+  }
+
+  private static KubernetesManifest yamlManifest(String yaml) {
+    return new ObjectMapper()
+        .convertValue(Yaml.getSnakeYaml(null).load(yaml), KubernetesManifest.class);
+  }
+
+  private static KubernetesManifest stalledWidget() {
+    return yamlManifest(
+        "apiVersion: example.com/v1\n"
+            + "kind: Widget\n"
+            + "metadata: {name: my-widget, namespace: default}\n"
+            + "status:\n"
+            + "  conditions: [{type: Stalled, status: \"True\", message: invalid spec}]\n");
+  }
+
+  @Test
+  void configuredCustomResourcesUseTheStatusEvaluator() {
+    CustomKubernetesResource widget = new CustomKubernetesResource();
+    widget.setKubernetesKind(WIDGET.toString());
+    ManagedAccount managedAccount = new ManagedAccount();
+    managedAccount.setName(ACCOUNT_NAME);
+    managedAccount.setCustomResources(ImmutableList.of(widget));
+
+    KubernetesCredentials credentials =
+        getCredentials(
+            new NoopRegistry(),
+            mock(KubectlJobExecutor.class),
+            managedAccount,
+            enabledStatusEvaluator(),
+            new GlobalResourcePropertyRegistry(
+                ImmutableList.of(),
+                new KubernetesUnregisteredCustomResourceHandler(
+                    CustomResourceStatusEvaluator.disabled())));
+
+    Manifest.Status status =
+        credentials.getResourcePropertyRegistry().get(WIDGET).getHandler().status(stalledWidget());
+
+    assertThat(status.getFailed().isState()).isTrue();
+    assertThat(status.getFailed().getMessage()).isEqualTo("invalid spec");
+  }
+
+  @Test
+  void discoveredCustomResourcesUseTheStatusEvaluator() {
+    ManagedAccount managedAccount = new ManagedAccount();
+    managedAccount.setName(ACCOUNT_NAME);
+    // listing kinds explicitly makes them valid without probing the cluster for permissions
+    managedAccount.setKinds(
+        ImmutableList.of(KubernetesKind.CUSTOM_RESOURCE_DEFINITION.toString(), WIDGET.toString()));
+    KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
+    GlobalResourcePropertyRegistry globalResourcePropertyRegistry =
+        new GlobalResourcePropertyRegistry(
+            ImmutableList.of(),
+            new KubernetesUnregisteredCustomResourceHandler(
+                CustomResourceStatusEvaluator.disabled()));
+    KubernetesCredentials credentials =
+        getCredentials(
+            new NoopRegistry(),
+            jobExecutor,
+            managedAccount,
+            enabledStatusEvaluator(),
+            globalResourcePropertyRegistry);
+    when(jobExecutor.list(eq(credentials), any(), any(), any()))
+        .thenReturn(
+            ImmutableList.of(
+                yamlManifest(
+                    "apiVersion: apiextensions.k8s.io/v1\n"
+                        + "kind: CustomResourceDefinition\n"
+                        + "metadata: {name: widgets.example.com}\n"
+                        + "spec:\n"
+                        + "  group: example.com\n"
+                        + "  scope: Namespaced\n"
+                        + "  names: {kind: Widget, plural: widgets, singular: widget}\n"
+                        + "  versions: [{name: v1, served: true, storage: true}]\n")));
+
+    assertThat(credentials.getCrds()).containsExactly(WIDGET);
+
+    Manifest.Status status =
+        globalResourcePropertyRegistry.get(WIDGET).getHandler().status(stalledWidget());
+
+    assertThat(status.getFailed().isState()).isTrue();
+    assertThat(status.getFailed().getMessage()).isEqualTo("invalid spec");
   }
 
   private KubernetesManifest getManifest() {
