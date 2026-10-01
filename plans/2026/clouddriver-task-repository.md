@@ -1,19 +1,23 @@
-# Clouddriver task repository: Redis/SQL failure modes, fixes, and a queued (pub/sub) dispatch option
+# Clouddriver task repository: failure modes, fixes, and a SQL task queue
 
-**Status**: Planned. No phase implemented yet.
+**Status**: Planned. No PR landed yet. Focus is the SQL task repository and SQL task queue. Redis
+repository hardening (Phase 3) is deprioritized. The caching agent scheduler question is split out
+to [`cats-scheduler-scaling.md`](cats-scheduler-scaling.md) (deferred).
 
-| Phase | Description | Status |
-|---|---|---|
-| 0 | Shared TCK regression tests that reproduce each finding | Not started |
-| 1 | Small independent fixes (503 mapping, SQL retry no-op, Redis saga IDs / key TTL / null tasks) | Not started |
-| 2 | SQL ordering + concurrency fix (sequence column, per-task row lock, terminal immutability) | Not started |
-| 3 | Redis hardening (status-write isolation, atomic and idempotent writes) | Not started |
-| 4 | `DefaultOrchestrationProcessor` fixes (stop after failure, bounded executor) | Not started |
-| 5a | SQL execution leases + reaper (fast detection of lost work, no dispatch change) | Not started; depends on Phase 2 |
-| 5b | SQL-backed dispatch (pending state, claim, bounded workers, draining), opt-in | Not started; depends on 5a |
-| 5c | Optional broadcast "work available" nudge to cut claim latency | Not started; depends on 5b + [#8031](https://github.com/spinnaker/spinnaker/pull/8031) |
+The phases describe *what* changes. The [Work plan](#work-plan) at the end turns them into an ordered
+PR list. Track status there.
 
-Update this table as each phase lands. Link the PR and note any deviations.
+| Phase | Description |
+|---|---|
+| 0 | Shared TCK regression tests that reproduce each finding |
+| 1 | Small independent fixes (503 mapping, SQL retry no-op, Redis saga IDs / key TTL / null tasks) |
+| 2 | SQL ordering + concurrency fix (per-task sequence, `current_state`, row lock, terminal immutability, cleanup) |
+| 3 | Redis hardening. **Deprioritized**: recommend moving to SQL via `DualTaskRepository` instead |
+| 4 | `DefaultOrchestrationProcessor` fixes (stop after failure, atomic completion, bounded executor) |
+| 5a | Per-instance execution leases + reaper (fast detection of lost work, no dispatch change) |
+| 5b | SQL task queue: pending state, claim, bounded workers, draining. Opt-in |
+| 5c | Optional broadcast "work available" nudge. Only if measured latency warrants it |
+| 6 | Scale hardening of the read/write path (status-write coalescing, read-pool reads for polling) |
 
 ## Context: clouddriver has a task *store*, not a task *queue*
 
@@ -34,6 +38,19 @@ How Orca reacts (this determines how bad a storage failure becomes):
 - After that, `BaseRetrofitExceptionHandler.shouldRetry` retries a GET only on network errors,
   502/503/504, or 429. It retries **any** method on 503. **A 500 is not retried, so the stage goes
   TERMINAL.**
+
+## Target scale
+
+Design for **500–2,000+ operations per minute** (8–33/s), with operations running from seconds to
+several minutes. By Little's law that's **500–4,000 operations in flight** across the fleet.
+
+| Load source | Estimate | Design consequence |
+|---|---|---|
+| Status history inserts (about 20 per operation) | 160–660 inserts/s | The largest write load. Coalesce bursts (Phase 6). |
+| Orca polling `GET /task/{id}` (5 s backoff) | about 800 reads/s, each a 4-way `UNION` | The largest read load. Serve it from a read pool (Phase 6). |
+| `task_states` growth, kept 4 days (`completedTtlMs`) | 14–57M rows/day → **55–230M rows** | No full scans or `MAX()` self-joins on `task_states`. Schema changes must be online/instant. `current_state` and cleanup indexing are required, not optional. |
+| Per-task lease heartbeats (if leases were per task) | 4,000 ÷ 20 s = 200 writes/s | Use **one lease per instance** instead: about 2 writes/s fleet-wide (5a). |
+| Claims (5b) | 8–33/s, mostly local-first | Trivial for SQL. Streams adds nothing measurable. |
 
 ## Findings
 
@@ -92,6 +109,9 @@ clocks disagree, produce the wrong "latest" row.
    between SQL and Redis, and keeps leases and fencing in the same transactional store as task
    status. See [Phase 5](#phase-5-sql-backed-execution-leases-and-dispatch). Streams stays an optional
    latency optimization (5c), not a requirement.
+4. **Design every SQL change for the [target scale](#target-scale).** That means instant or online
+   schema changes only, indexed lookups only on `task_states`, and per-instance (not per-task)
+   heartbeats.
 
 ## Phase 0: TCK regression tests
 
@@ -122,37 +142,59 @@ container. Use Valkey per the project test-infra standard.
    `SqlTask.addSagaId`.
 4. **Redis key hygiene (R6, R7).** Put `TASK_TTL` on `kato:taskmap:*` at `setnx` time (`SET NX EX`).
    Filter nulls in `list()` and `SREM` their IDs when `get()` finds no hash.
-5. **SQL cleanup (S9).** Include `FAILED_RETRYABLE` with its own, longer TTL property.
+
+(The SQL cleanup fix for S9 moved to Phase 2: at the target scale it needs `current_state` to avoid
+scanning `task_states`.)
 
 ## Phase 2: SQL ordering and concurrency fix
 
-Schema (Liquibase, MySQL + Postgres):
-- Add `seq BIGINT` to `task_states` and `task_outputs`. Use `AUTO_INCREMENT` with a unique key on
-  MySQL and `GENERATED BY DEFAULT AS IDENTITY` on Postgres. The ALTER backfills existing rows in
-  PK/ULID order, which matches current behaviour. The DB assigns the order, so pod clocks no longer
-  matter.
-- Make `tasks.request_id` unique. The migration first collapses existing duplicates (keep the
-  earliest task). `create()` catches `DuplicateKeyException` and returns the existing task (S7).
-- Optional: add `tasks.current_state` (denormalized, updated in the same transaction). It turns
-  `runningTaskIds` into an indexed lookup instead of the `MAX()` self-join.
+**Schema** (Liquibase, MySQL 8 + Postgres 16). At 55–230M `task_states` rows, nothing here may
+rewrite `task_states`. Adding an `AUTO_INCREMENT`/identity column would copy the whole table on MySQL,
+so ordering uses a **per-task sequence** instead:
+- `tasks.next_seq BIGINT NULL` and `task_states.seq BIGINT NULL` (and `task_outputs.seq`). Nullable
+  `ADD COLUMN` is instant on MySQL 8.0.29+ and metadata-only on Postgres 11+.
+- Each write transaction already locks the task row (below), so it reads `next_seq`, uses it as the new
+  row's `seq`, and increments it. That gives an exact per-task order with no clock involved, which is
+  all ordering needs (nothing compares order across tasks).
+- Legacy rows (`seq IS NULL`) sort first, by the old `(created_at, id)`. They belong to tasks created
+  before the upgrade, which almost all reach a terminal state, and are cleaned up, within the 4-day TTL.
+- `tasks.current_state VARCHAR NULL` plus `tasks.completed_at BIGINT NULL`, written in the same
+  transaction as every state change. **Required** at this scale. A batched backfill (an agent, not
+  Liquibase) fills legacy non-terminal tasks. Until it finishes, `NULL` falls back to the legacy
+  latest-state lookup for that task only.
+- Indexes: `tasks(current_state, owner_id)` for running-task lookups, `tasks(current_state,
+  completed_at)` for cleanup, and `task_states(task_id, seq)`. Build them online: MySQL
+  `ALGORITHM=INPLACE, LOCK=NONE`; Postgres `CREATE INDEX CONCURRENTLY`, which means Liquibase
+  `runInTransaction: false`.
+- `tasks.request_id` becomes unique. A preparatory step collapses existing duplicates (keep the
+  earliest task) before the online unique index build. `create()` catches `DuplicateKeyException`
+  and returns the existing task (S7).
 
-Code:
-- Order by `seq` everywhere: history (add an explicit `ORDER BY` to the `task_states` branch, or sort
-  in `TaskMapper`), `selectLatestState`, and `runningTaskIds` (`MAX(seq)` or `current_state`). Fixes
-  S1–S3.
-- Serialize writes per task with `SELECT … FROM tasks WHERE id = ? FOR UPDATE` at the start of every
-  mutating transaction (S5).
+**Code:**
+- Every mutating transaction starts with `SELECT … FROM tasks WHERE id = ? FOR UPDATE` (S5). The
+  statement also returns `next_seq` and `current_state`, so the same round trip serves the immutability
+  check and the sequence.
+- Order by `seq` everywhere: history (an explicit `ORDER BY`, or sort in `TaskMapper`) and latest
+  state. `runningTaskIds` uses `current_state` and never touches `task_states`. Fixes S1–S3.
 - Enforce terminal immutability in the repository, matching Redis. `updateCurrentStatus`/`updateState`
   reject writes on a terminal task. The only allowed transition out of a terminal state is
-  `FAILED_RETRYABLE → STARTED` through `retry()` (S4). Fix the `addResultObjects` guard to check the
-  latest state (S8).
+  `FAILED_RETRYABLE → STARTED` through `retry()` (S4). Fix the `addResultObjects` guard to check
+  `current_state` (S8).
+- **Cleanup (S9):** select expired task IDs from `tasks` by `(current_state, completed_at)`, including
+  `FAILED_RETRYABLE` with its own longer TTL property, then delete child rows by `task_id` in batches.
+  Stop scanning `task_states` by `state`.
 - `created_at` stays for display and TTL, but nothing orders by it any more.
 
 Risk: P1 currently "works" on SQL because there is no immutability. Land Phase 4's `break` with or
 before the immutability change so multi-op requests fail cleanly instead of throwing from
 `updateStatus`.
 
-## Phase 3: Redis hardening (for installs that stay on Redis)
+## Phase 3: Redis hardening (deprioritized)
+
+Only worth doing if a significant number of installs must stay on the Redis task repository. The
+recommended path is moving to SQL with `DualTaskRepository`. Phase 1 already covers the worst
+Redis failures (R1, R5–R7).
+
 
 - **Isolate status writes from operation outcome (R2).** Route non-terminal `updateStatus`/`updateOutput`
   through a small per-task ordered buffer that retries in the background with backoff. A failed
@@ -178,7 +220,8 @@ before the immutability change so multi-op requests fail cleanly instead of thro
 ## Pub/sub evaluation
 
 **Question:** could a Redis Streams–based task queue (kork-pubsub "Single", PR #8031) handle this
-better than the current Redis/SQL repositories?
+better than the current Redis/SQL repositories? (The same question for the caching agent scheduler,
+at 80k agents, is in [`cats-scheduler-scaling.md`](cats-scheduler-scaling.md).)
 
 **What Streams would fix:**
 - **Backpressure / bounded concurrency (P2).** Each pod consumes at most N operations from a
@@ -203,9 +246,8 @@ deploy redelivered after a crash in the middle of `operate()` could create a sec
 fencing mechanism. Any queue design must:
 - Treat the task store (SQL) as the source of truth and Redis Streams as dispatch only. This is the
   split `cats-pubsub` already uses (Streams for scheduling, SQL `pubsub_agent_state` for state).
-- Fence execution with a lease in SQL: `UPDATE tasks SET owner_id = ?, lease_expires_at = ? WHERE id
-  = ? AND (lease_expires_at < now() OR owner_id = ?)`, with DB time. A reclaimer only runs work it
-  wins the lease for.
+- Fence execution with a lease in SQL, using DB time, so a reclaimer only runs work it wins. See
+  [5a](#5a-per-instance-leases--reaper-no-change-to-who-runs-the-work) for the per-instance design.
 - On reclaim: if the task never reached "Processing op", run it. If it is saga-backed, resume the
   saga. **Otherwise mark it `FAILED` ("worker lost before completion"). Never re-run it blindly.**
 
@@ -231,50 +273,69 @@ alongside "SQL is the recommended backend".
 
 ## Phase 5: SQL-backed execution leases and dispatch
 
-Prerequisites: Phase 2 (`seq` ordering, per-task row lock, terminal immutability, `tasks.current_state`)
+Prerequisites: Phase 2 (per-task `seq` ordering, row lock, terminal immutability, `tasks.current_state`)
 and Phase 1's working SQL retries. Target databases: MySQL 8.0 and Postgres 16, matching
 `kork-sql-test`.
 
-### Schema additions (`tasks` table, plus one new table)
+### Schema additions
+
+New table `clouddriver_instances`, holding **one lease per instance**:
+
+| Column | Purpose |
+|---|---|
+| `instance_id` | `ClouddriverHostname.ID`. |
+| `epoch` | Incremented each time the instance (re-)registers. A pod declared dead must re-register with a new epoch, so writes it makes under the old epoch are fenced out. |
+| `lease_expires_at` | Set from **DB time** (`CURRENT_TIMESTAMP(3)` / `clock_timestamp()`), never the pod clock. S1 showed what pod clocks do. |
+| `state` | `ACTIVE`, `DRAINING` or `DEAD`. |
+
+New `tasks` columns (all nullable, so instant adds):
 
 | Column | Purpose |
 |---|---|
 | `current_state` | From Phase 2, with a new `PENDING` value for accepted-but-unclaimed work (5b). |
-| `lease_owner` | Instance ID currently executing the task (separate from `owner_id`, which stays "who accepted it" for display/compatibility). |
-| `lease_expires_at` | Set from **DB time** (`CURRENT_TIMESTAMP(3)` / `clock_timestamp()`), never from the pod clock. S1 showed what pod clocks do to ordering. |
-| `lease_version` | Fencing token, incremented on every claim. Every status write from an executor includes `AND lease_version = ?`. Zero rows updated means the lease was lost, so the executor stops. |
+| `lease_owner`, `lease_epoch` | Instance and epoch executing the task (separate from `owner_id`, which stays "who accepted it" for display/compatibility). |
 | `progress` | Checkpoint: index of the last atomic operation that *finished*, plus whether one is in flight. The reaper uses it to decide what's safe to do. |
 | `available_at` | DB time from which a `PENDING` task may be claimed (supports delayed retry/backoff). |
 
-New table `task_payloads(task_id, cloud_provider, body, auth_context)`. It stores the raw request
-body and the request's user/allowed accounts, and is deleted when the task reaches a terminal state.
-Index: `(current_state, available_at)` for claiming, `(current_state, lease_expires_at)` for the
-reaper.
+New table `task_payloads(task_id, cloud_provider, body, auth_context)` (5b only). It stores the raw
+request body and the request's user/allowed accounts, and is deleted when the task reaches a terminal
+state. Indexes: `tasks(current_state, available_at)` for claiming and `tasks(lease_owner,
+lease_epoch)` for the reaper.
 
 Operation descriptions can carry sensitive values (for example manifests). Keep payload rows only
 while needed, delete them on terminal state, and evaluate encrypting `body` at rest before 5b ships.
 
-### 5a: Leases + reaper (no change to who runs the work)
+### 5a: Per-instance leases + reaper (no change to who runs the work)
 
 This alone fixes the worst restart behaviour (P3) without changing dispatch.
 
-- The accepting pod claims the lease at `create()`, in the same transaction, and heartbeats it
-  (default TTL 2 min, heartbeat every 20 s) for as long as the operation runs.
-- A **reaper** runs on every pod, using a small `LIMIT` and conditional updates so pods don't
-  collide. It finds `STARTED` tasks whose `lease_expires_at < now()` (DB time) and claims each with
-  `UPDATE … SET lease_version = lease_version + 1 … WHERE id = ? AND lease_version = ?`. Only the
-  winner acts:
-  - **Saga-backed:** set `FAILED_RETRYABLE`. Orca's existing `MonitorKatoTask` → `:resume` path
-    resumes the saga, on whichever pod Orca's request reaches.
-  - **Otherwise:** set `FAILED` with "clouddriver instance executing this task stopped before it
-    completed". **Never re-run a non-idempotent operation blindly.**
-- Result: a pod that crashes, is OOM-killed or loses its node turns its tasks into fast, explicit
-  failures within about one lease TTL. Today Orca waits for its 1 h `MonitorKatoTask` timeout.
-- **Zombie protection:** a pod that was partitioned and comes back finds its fenced writes rejected
-  and abandons the task. Fencing can't recall a cloud API call already sent, which is exactly why
-  non-saga work is failed rather than re-run.
-- **Graceful shutdown** (`@PreDestroy`): stop heartbeating after `shutdownWaitSeconds`. Tasks still
-  running are released immediately (lease expiry set to now) instead of waiting out the TTL.
+- **Registration:** on startup each pod registers (or bumps its epoch) in `clouddriver_instances`. It
+  then heartbeats that single row (default TTL 2 min, every 20 s). At 50 pods that's about 2–3
+  writes/s fleet-wide, however many tasks are running. A per-task heartbeat would be about 200
+  writes/s at the target scale.
+- **Ownership:** `create()` stamps `lease_owner`/`lease_epoch` in the same transaction.
+- **Fencing:** every write already takes the task row lock (Phase 2), so it also checks
+  `lease_owner = me AND lease_epoch = myEpoch`. On a mismatch the write is rejected and the executor
+  abandons the task.
+- **Reaper** (every pod, low frequency). It finds instances whose lease expired (DB time) and declares
+  each `DEAD` with a conditional `UPDATE … WHERE instance_id = ? AND epoch = ? AND lease_expires_at <
+  now()`, so only one pod wins. The winner processes that instance's non-terminal tasks in batches:
+  - **Nothing in flight** (`progress` shows the next op not started): back to `PENDING` in queued
+    mode (5b). In inline mode, `FAILED`, since only queued mode can re-run elsewhere.
+  - **Saga-backed op in flight:** set `FAILED_RETRYABLE`. Orca's existing `MonitorKatoTask` →
+    `:resume` path resumes the saga, on whichever pod Orca's request reaches.
+  - **Non-saga op in flight:** set `FAILED` with "clouddriver instance executing this task stopped
+    before it completed". **Never re-run a non-idempotent operation blindly.**
+- **Result:** a crashed, OOM-killed or partitioned pod's tasks become fast, explicit outcomes within
+  about one lease TTL. Today Orca waits for its 1 h `MonitorKatoTask` timeout.
+- **Zombie protection:** a partitioned pod that comes back finds its old-epoch writes rejected and
+  abandons its tasks. Fencing can't recall a cloud API call already sent, which is why non-saga work
+  is failed rather than re-run.
+- **Graceful shutdown** (`@PreDestroy`): mark the instance `DRAINING` and stop accepting or claiming.
+  After `shutdownWaitSeconds`, apply the reaper rules to its own remaining tasks and mark it `DEAD`,
+  instead of leaving them for TTL expiry.
+- **Out of scope:** a single hung operation on a live instance. The instance lease stays healthy, so
+  the reaper doesn't see it. Orca's stage timeout still covers it, as today.
 
 ### 5b: SQL dispatch (opt-in, `clouddriver.operations.dispatch: queued`)
 
@@ -291,12 +352,12 @@ This alone fixes the worst restart behaviour (P3) without changing dispatch.
 **Claiming (each pod, bounded by `clouddriver.operations.max-concurrent`):**
 - Poll only while there are free slots: every 1 s with jitter, backing off to 5 s when idle.
 - Claim with keiko-sql's pattern: select candidate IDs
-  (`current_state = PENDING AND available_at <= now()`, ordered by `seq`, `LIMIT slots * 3`), then
-  claim each by primary key with
-  `UPDATE … SET current_state = 'STARTED', lease_owner = ?, lease_version = lease_version + 1,
-  lease_expires_at = now() + ttl WHERE id = ? AND current_state = 'PENDING'`. It works on both
-  databases and holds no long locks. `SELECT … FOR UPDATE SKIP LOCKED` is an equivalent option on
-  MySQL 8 / PG 16. Choose one after testing under contention.
+  (`current_state = PENDING AND available_at <= now()`, ordered by `available_at, id`; the ID is a
+  time-ordered ULID; `LIMIT slots * 3`). Then claim each by primary key with
+  `UPDATE … SET current_state = 'STARTED', lease_owner = ?, lease_epoch = ? WHERE id = ? AND
+  current_state = 'PENDING'`. It works on both databases and holds no long locks.
+  `SELECT … FOR UPDATE SKIP LOCKED` is an equivalent option on MySQL 8 / PG 16. Choose one in the
+  load test. At 8–33 claims/s, contention is not expected to matter.
 - The worker reloads the payload, re-runs `collectAtomicOperations` with the stored user/accounts
   context (re-checking authorization at execution time), and runs the existing processor body,
   extracted from `DefaultOrchestrationProcessor`'s `Callable`.
@@ -310,7 +371,7 @@ This alone fixes the worst restart behaviour (P3) without changing dispatch.
 | **Graceful restart / rolling deploy** | A pod stops claiming at shutdown. `PENDING` work isn't owned by anyone, so other pods pick it up. In-flight work is handled by 5a's release rules. |
 | **Crash / node loss** | Lease expiry and the reaper. Tasks with no op in flight (`progress` shows the next op not started) go back to `PENDING` and **are safely re-run elsewhere**, including the rest of a multi-op task after its last checkpoint. An op caught in flight is resumed if saga-backed, otherwise failed explicitly. |
 | **Network partition** | Fencing tokens. The partitioned pod's writes are rejected, and it stops at the next checkpoint. |
-| **DB failover** (e.g. Aurora writer failover, roughly 30–60 s) | Working SQL retries (Phase 1). The lease TTL is set longer than the failover window so heartbeats survive it. In-flight operations keep running and their status writes retry. Leases use the DB's clock, so pod clock skew doesn't matter. A clock jump on the new writer is small compared with the TTL. Tradeoff: a longer TTL means slower crash detection. Both are configurable. |
+| **DB failover** (e.g. Aurora writer failover, roughly 30–60 s) | Working SQL retries (Phase 1). The instance lease TTL is set longer than the failover window so heartbeats survive it. In-flight operations keep running and their status writes retry. Leases use the DB's clock, so pod clock skew doesn't matter. A clock jump on the new writer is small compared with the TTL. Tradeoff: a longer TTL means slower crash detection. Both are configurable. |
 | **Backpressure to Orca** | When every pod is saturated, `PENDING` work waits in the table rather than being refused. Add a configurable max `PENDING` depth above which `POST /ops` returns 503 so Orca backs off. |
 
 **Latency cost:** with local-first, only overflow and orphaned work waits for a poll, up to about 1 s
@@ -327,16 +388,53 @@ matter.
 
 ### Testing
 
-- Extend the Phase 0 TCK: claim exclusivity under concurrent claimers, fencing rejection after lease
-  loss, reaper outcomes for each `progress` state (not started / in flight with saga / in flight
-  without saga), and lease expiry driven by DB time with skewed pod clocks.
+- Extend the Phase 0 TCK: claim exclusivity under concurrent claimers, fencing rejection after an
+  epoch change, reaper outcomes for each `progress` state (not started / in flight with saga / in
+  flight without saga), and lease expiry driven by DB time with skewed pod clocks.
+- **Load test at the target scale** before 5b leaves opt-in: about 33 ops/s, about 4,000 in flight,
+  about 800 polling reads/s, against a `task_states` table pre-seeded to about 200M rows. Measure
+  claim latency, lock waits, replication lag, and cleanup duration.
 - MySQL and Postgres via `kork-sql-test`. Run with `--max-workers=1` locally.
 - A chaos-style integration test: two clouddriver contexts on one DB. Kill one mid-operation and
   assert the task is resumed (saga), re-run (op not started) or failed (op in flight), each within
   one TTL.
 
-## PR sequencing
+## Phase 6: scale hardening of the read/write path
 
-Independent first: Phase 1 items (each its own PR) → Phase 0 tests (can be folded into each fix's PR)
-→ Phase 4 `break` + Phase 2 (land together, see risk note) → Phase 3 (Redis installs only, can run in
-parallel with 5) → 5a → 5b → 5c (only if measured latency warrants it).
+Independent of dispatch. It can land any time after Phase 2.
+
+- **Status-write coalescing.** Buffer rapid non-terminal `updateStatus`/`updateOutput` calls per task
+  and flush them as one multi-row insert (for example every 250 ms, and always before a terminal
+  transition or result write). This cuts the 160–660 inserts/s by several times. Terminal
+  transitions are never delayed.
+- **Polling reads from a read pool.** Optionally route `GET /task/{id}` and `GET /task` to a
+  configurable read pool or replica (kork-sql's named pools). Replica lag only shows a stale "still
+  running" status, and Orca polls again. A just-created task missing on the replica shows as a 404,
+  which Orca already tolerates 30 times. Every read inside a write path stays on the primary.
+- **Query shape.** Keep `retrieveInternal`'s 4-way `UNION` on `task_id` indexes only. Revisit splitting
+  history reads from result and output reads if polling profiles show the `UNION` dominating.
+
+## Work plan
+
+One PR per row, in order within each track. Tracks A and B can start in parallel. Every PR carries the
+Phase 0 TCK cases for the findings it fixes (no separate tests-only PR). Run the TCK on MySQL and
+Postgres (`kork-sql-test`, `--max-workers=1` locally). Update **Status** as PRs open and land.
+
+| # | Track | PR | Covers | Depends on | Status |
+|---|---|---|---|---|---|
+| 1 | A: correctness | Return 503 (not 500) when the task store is unavailable | R1 | – | Not started |
+| 2 | A: correctness | Make the SQL `sqlTransaction`/`sqlRead` retries actually run | S6 | – | Not started |
+| 3 | A: correctness | Redis: persist saga IDs, TTL on `kato:taskmap:*`, null-safe `list()` | R5, R6, R7 | – | Not started |
+| 4 | B: SQL foundation | Schema: per-task `seq`, `current_state`/`completed_at`, online indexes, `request_id` dedupe + unique index, backfill agent | S1–S3, S7, S9 (schema) | – | Not started |
+| 5 | B: SQL foundation | Repository: row lock, `seq` ordering, `current_state` maintenance, terminal immutability, `addResultObjects` guard, duplicate-key `create()`. **Plus** processor `break` after failure (must land together) | S1–S5, S7, S8, P1 | 4 | Not started |
+| 6 | B: SQL foundation | Cleanup driven by `tasks(current_state, completed_at)`, `FAILED_RETRYABLE` TTL | S9 | 5 | Not started |
+| 7 | B: SQL foundation | Processor: repository-side atomic "complete if not terminal"; bounded executor with 503 + `Retry-After` when saturated | P2, R2 (SQL side) | 5 | Not started |
+| 8 | C: scale | Status-write coalescing; optional read-pool routing for task polling | Phase 6 | 5 | Not started |
+| 9 | D: task queue | `clouddriver_instances` + per-instance leases, fencing on every write, `progress` checkpoints, reaper, graceful-shutdown release (inline mode) | 5a, P3 | 5, 2 | Not started |
+| 10 | D: task queue | Refactor: extract the processor's execution body into an executor component (no behaviour change) | 5b prep | 7 | Not started |
+| 11 | D: task queue | `task_payloads`, `PENDING`, local-first claim, claim loop, `PENDING`-depth 503, `clouddriver.operations.dispatch: queued` flag (default `inline`) | 5b | 9, 10 | Not started |
+| 12 | D: task queue | Multi-instance chaos test + target-scale load test; operator docs (TTL vs failover tradeoff, migrating Redis → SQL) | 5b exit criteria | 11 | Not started |
+| – | Later | Broadcast wake-up nudge (only if measured claim latency matters) | 5c | 11, #8031 | Deferred |
+| – | Later | Redis repository hardening | Phase 3 | – | Deprioritized |
+
+**Critical path:** 4 → 5 → 9 → 11 → 12. Track A PRs are small and independent, so land them first.
