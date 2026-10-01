@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.sql;
 
+import static org.jooq.impl.DSL.field;
+import static org.jooq.impl.DSL.table;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -119,6 +121,56 @@ class SqlTaskRepositoryKnownIssuesTest {
         "S2",
         listedAsRunning,
         "completed tasks are still listed as running when their last two states share a millisecond");
+  }
+
+  /**
+   * S3: a task's history is read with no {@code ORDER BY}, and {@code getStatus()} reports the last
+   * row returned. When two states share a millisecond, MySQL returns them in primary-key (ULID)
+   * order, and ULIDs generated within the same millisecond are random relative to each other. So
+   * about half the time a task completed in the same millisecond as its previous status reports
+   * itself as still running, and Orca polls it until the stage times out.
+   *
+   * <p>Two real writes can't be forced into one millisecond with a chosen ID order, so the
+   * completion row is written directly: same {@code created_at} as the STARTED row, and an ID that
+   * sorts below it.
+   */
+  @Test
+  void s3CompletedTaskReportsCompletedWhenItsStatesShareAMillisecond() {
+    Instant now = Instant.now();
+    SqlTaskRepository repository = repository(Clock.fixed(now, ZoneOffset.UTC));
+
+    int reportedAsRunning = 0;
+    for (int i = 0; i < ATTEMPTS; i++) {
+      Task task = repository.create("ORCHESTRATION", "Initializing");
+      database
+          .context
+          .insertInto(table("task_states"))
+          .columns(
+              field("id"),
+              field("task_id"),
+              field("created_at"),
+              field("state"),
+              field("phase"),
+              field("status"))
+          .values(
+              String.format("%026d", i),
+              task.getId(),
+              now.toEpochMilli(),
+              "COMPLETED",
+              "ORCHESTRATION",
+              "Orchestration completed.")
+          .execute();
+
+      if (!repository.get(task.getId()).getStatus().isCompleted()) {
+        reportedAsRunning++;
+      }
+    }
+
+    knownIssue(
+        "S3",
+        reportedAsRunning,
+        "completed tasks report STARTED from get() when the completion shares a millisecond with "
+            + "the previous state and its ID sorts lower");
   }
 
   private SqlTaskRepository repository(Clock clock) {
