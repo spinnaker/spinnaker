@@ -59,7 +59,9 @@ public class JobExecutorLocal implements JobExecutor {
 
   private <T> JobResult<T> executeWrapper(
       final JobRequest jobRequest, RequestExecutor<T> requestExecutor) {
-    log.info(String.format("Starting job: '%s'...", jobRequest.toString()));
+    if (log.isDebugEnabled()) {
+      log.debug(String.format("Starting job: '%s'...", jobRequest.toString()));
+    }
 
     JobResult<T> jobResult;
     try {
@@ -72,7 +74,7 @@ public class JobExecutorLocal implements JobExecutor {
     if (jobResult.isKilled()) {
       log.warn(
           String.format(
-              "Job %s timed out (after %d minutes)", jobRequest.toString(), timeoutMinutes));
+              "Job `%s` timed out (after %d minutes)", jobRequest.toString(), timeoutMinutes));
     }
 
     return jobResult;

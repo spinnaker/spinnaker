@@ -29,6 +29,7 @@ import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.Comparator;
 import java.util.Optional;
+import javax.annotation.Nullable;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -60,9 +61,9 @@ public class ArtifactProvider {
       KubernetesManifest manifest,
       String name,
       KubernetesCredentials credentials,
-      KubernetesSelectorList labelSelectors) {
+      @Nullable KubernetesSelectorList labelSelectors) {
     ImmutableList<KubernetesManifest> candidateManifests;
-    if (labelSelectors.isEmpty()) {
+    if (labelSelectors == null || labelSelectors.isEmpty()) {
       candidateManifests = credentials.list(manifest.getKind(), manifest.getNamespace());
     } else {
       candidateManifests =
