@@ -86,7 +86,7 @@ jobs:
       - uses: ./.github/actions/generic-build-publish
         with:
           project: deck
-          docker-build-command: ':deck:webpack'
+          docker-build-command: ':deck:viteBuild'
           publish: ${{ github.event_name != 'pull_request' }}
           publish-containers: ${{ github.event_name == 'push' || inputs.publish-containers == true }}
           publish-debs: ${{ inputs.publish-debs == true }}
