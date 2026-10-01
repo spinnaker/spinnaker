@@ -231,8 +231,8 @@ describe('Service: Cluster', function () {
       account: 'test',
       region: 'us-east-1',
       category: 'serverGroup',
-      cloudProvider: 'titus',
-      type: 'titus',
+      cloudProvider: 'ecs',
+      type: 'ecs',
       instances: [],
       instanceCounts: { total: 1, up: 1, down: 0, starting: 0, succeeded: 0, failed: 0, unknown: 0, outOfService: 0 },
     });

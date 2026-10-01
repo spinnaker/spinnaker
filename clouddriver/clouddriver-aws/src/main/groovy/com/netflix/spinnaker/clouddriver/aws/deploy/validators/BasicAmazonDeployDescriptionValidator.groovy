@@ -85,6 +85,9 @@ class BasicAmazonDeployDescriptionValidator extends AmazonDescriptionValidationS
       errors.rejectValue "unlimitedCpuCredits", "basicAmazonDeployDescription.bursting.not.supported.by.instanceType"
     }
 
+    ConnectionTrackingTimeoutRules.validate("basicAmazonDeployDescription",
+      description.tcpEstablishedTimeout, description.udpStreamTimeout, description.udpTimeout, errors)
+
     // spotInstancePools is applicable only for 'lowest-price' spotAllocationStrategy
     if (description.spotInstancePools && description.spotInstancePools > 0 && description.spotAllocationStrategy != "lowest-price") {
       errors.rejectValue "spotInstancePools", "basicAmazonDeployDescription.spotInstancePools.not.supported.for.spotAllocationStrategy"
