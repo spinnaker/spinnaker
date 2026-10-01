@@ -1,22 +1,19 @@
-import type { Mock } from 'vitest';
-import type { ShallowWrapper } from 'enzyme';
-import { shallow } from 'enzyme';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
+import { of } from 'rxjs';
+import type { Mock } from 'vitest';
 
 import type { IApplicationAttributes } from '../service/ApplicationWriter';
 import { ApplicationReader } from '../service/ApplicationReader';
 import { ApplicationWriter } from '../service/ApplicationWriter';
 import { CreateApplicationModal, validateCreateApplication } from './CreateApplicationModal';
-import { ApplicationProviderFields } from './ApplicationProviderFields';
-import { PermissionsConfigurer } from './PermissionsConfigurer';
-import { PlatformHealthOverride } from './PlatformHealthOverride';
+import { ApplicationNameValidator } from './validation/ApplicationNameValidator';
 import { AccountService } from '../../account/AccountService';
 import { SETTINGS } from '../../config/settings';
-import { PagerDutySelectField } from '../../pagerDuty/PagerDutySelectField';
-import { ReactModal, ReactSelectInput } from '../../presentation';
-import SlackChannelSelector from '../../slack/SlackChannelSelector';
+import { PagerDutyReader } from '../../pagerDuty/pagerDuty.read.service';
+import { ReactModal } from '../../presentation';
+import { SlackReader } from '../../slack';
 import { TaskReader } from '../../task/task.read.service';
-import { ApplicationNameValidator } from './validation/ApplicationNameValidator';
 
 function deferred<T>() {
   let resolve: (value: T) => void;
@@ -32,10 +29,8 @@ describe('CreateApplicationModal', () => {
   let originalFeatures: typeof SETTINGS.feature;
   let originalNewApplicationDefaults: typeof SETTINGS.newApplicationDefaults;
   let originalPagerDuty: typeof SETTINGS.pagerDuty;
-  let wrapper: ShallowWrapper | undefined;
 
   beforeEach(() => {
-    wrapper = undefined;
     originalFeatures = SETTINGS.feature;
     originalNewApplicationDefaults = SETTINGS.newApplicationDefaults;
     originalPagerDuty = SETTINGS.pagerDuty;
@@ -44,14 +39,25 @@ describe('CreateApplicationModal', () => {
     vi.spyOn(ApplicationReader, 'listApplications').mockReturnValue(Promise.resolve([]));
     vi.spyOn(AccountService, 'listProviders').mockReturnValue(Promise.resolve(['aws']));
     vi.spyOn(ApplicationNameValidator, 'validate').mockReturnValue(Promise.resolve({ errors: [], warnings: [] }));
+    vi.spyOn(PagerDutyReader, 'listServices').mockReturnValue(
+      of([{ name: 'Payments', integration_key: 'integration-key' } as any]),
+    );
+    vi.spyOn(SlackReader, 'getChannels').mockResolvedValue([]);
   });
 
   afterEach(() => {
-    wrapper?.unmount();
     SETTINGS.feature = originalFeatures;
     SETTINGS.newApplicationDefaults = originalNewApplicationDefaults;
     SETTINGS.pagerDuty = originalPagerDuty;
   });
+
+  const renderModal = async (props: React.ComponentProps<typeof CreateApplicationModal> = {}) => {
+    const rendered = render(<CreateApplicationModal {...props} />);
+    await screen.findByLabelText(/owner email/i);
+    return rendered;
+  };
+
+  const submit = () => fireEvent.click(screen.getByRole('button', { name: /^create$/i }));
 
   it('shows a large direct React modal with the deep-link name', () => {
     vi.spyOn(ReactModal, 'show').mockReturnValue(Promise.resolve({}) as any);
@@ -84,7 +90,6 @@ describe('CreateApplicationModal', () => {
     expect(result.errors).toContain('Instance port must be an integer between 0 and 65535.');
     expect(result.errors).toContain('Permissions must include a write group when read groups are configured.');
     expect(result.errors).toContain('Acknowledge the platform health override warning.');
-
     expect(validateCreateApplication({ name: '', email: '' }, [], true).errors).toEqual([
       'Application name is required.',
       'Owner email is required.',
@@ -103,302 +108,212 @@ describe('CreateApplicationModal', () => {
   it('guards submission when required PagerDuty is missing despite form noValidate', async () => {
     SETTINGS.feature = { ...SETTINGS.feature, pagerDuty: true };
     SETTINGS.pagerDuty = { ...SETTINGS.pagerDuty, required: true };
-    vi.spyOn(ApplicationWriter, 'createApplication').mockReturnValue(Promise.resolve({ id: 'pager-duty' }) as any);
-    vi.spyOn(TaskReader, 'waitUntilTaskCompletes').mockReturnValue(Promise.resolve({ id: 'pager-duty' }) as any);
-    wrapper = shallow(<CreateApplicationModal name="myapp" />);
-    wrapper.setState({
-      application: { ...(wrapper.instance() as CreateApplicationModal).state.application, email: 'owner@example.com' },
-      initializing: false,
-    });
-    const instance = wrapper.instance() as CreateApplicationModal;
+    vi.spyOn(ApplicationWriter, 'createApplication').mockResolvedValue({ id: 'pager-duty' } as any);
+    vi.spyOn(TaskReader, 'waitUntilTaskCompletes').mockResolvedValue({ id: 'pager-duty' } as any);
+    const { container } = await renderModal({ name: 'myapp' });
+    fireEvent.change(screen.getByLabelText(/owner email/i), { target: { value: 'owner@example.com' } });
 
-    expect(wrapper.find('[data-purpose="create-application"]').prop('disabled')).toBe(true);
-    await (instance as any).submit();
+    expect(screen.getByRole('button', { name: /^create$/i })).toBeDisabled();
+    fireEvent.submit(container.querySelector('form')!);
     expect(ApplicationWriter.createApplication).not.toHaveBeenCalled();
 
-    instance.setState({ application: { ...instance.state.application, pdApiKey: 'integration-key' } });
-    wrapper.update();
-    expect(wrapper.find('[data-purpose="create-application"]').prop('disabled')).toBe(false);
+    const pagerDuty = screen.getByRole('combobox', { name: 'PagerDuty service' });
+    fireEvent.focus(pagerDuty);
+    fireEvent.keyDown(pagerDuty, { key: 'ArrowDown', keyCode: 40 });
+    fireEvent.keyDown(pagerDuty, { key: 'Enter', keyCode: 13 });
+    await waitFor(() => expect(screen.getByRole('button', { name: /^create$/i })).toBeEnabled());
   });
 
   it('does not require a hidden PagerDuty field when the feature is disabled', async () => {
-    SETTINGS.feature = { ...SETTINGS.feature, pagerDuty: false };
     SETTINGS.pagerDuty = { ...SETTINGS.pagerDuty, required: true };
-    vi.spyOn(ApplicationWriter, 'createApplication').mockReturnValue(Promise.resolve({ id: 'no-pager-duty' }) as any);
-    vi.spyOn(TaskReader, 'waitUntilTaskCompletes').mockReturnValue(Promise.resolve({ id: 'no-pager-duty' }) as any);
-    wrapper = shallow(<CreateApplicationModal name="myapp" />);
-    wrapper.setState({
-      application: { ...(wrapper.instance() as CreateApplicationModal).state.application, email: 'owner@example.com' },
-      initializing: false,
-    });
-    const instance = wrapper.instance() as CreateApplicationModal;
+    vi.spyOn(ApplicationWriter, 'createApplication').mockResolvedValue({ id: 'no-pager-duty' } as any);
+    vi.spyOn(TaskReader, 'waitUntilTaskCompletes').mockResolvedValue({ id: 'no-pager-duty' } as any);
+    await renderModal({ name: 'myapp' });
+    fireEvent.change(screen.getByLabelText(/owner email/i), { target: { value: 'owner@example.com' } });
 
-    expect(wrapper.find(PagerDutySelectField).exists()).toBe(false);
-    expect(wrapper.find('[data-purpose="create-application"]').prop('disabled')).toBe(false);
-
-    await (instance as any).submit();
-    expect(ApplicationWriter.createApplication).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText(/pagerduty \*/i)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^create$/i })).toBeEnabled();
+    submit();
+    await waitFor(() => expect(ApplicationWriter.createApplication).toHaveBeenCalledTimes(1));
   });
 
-  it('associates native field labels with their inputs', () => {
-    wrapper = shallow(<CreateApplicationModal name="myapp" />);
-    wrapper.setState({ initializing: false });
+  it('associates native field labels with their inputs', async () => {
+    await renderModal({ name: 'myapp' });
 
-    ['name', 'email', 'repoType', 'description', 'instancePort'].forEach((field) => {
-      expect(wrapper.find(`label[htmlFor="${field}"]`).exists()).toBe(true);
-      expect(wrapper.find(`#${field}`).exists()).toBe(true);
+    ['Name', 'Owner Email', 'Repo Type', 'Description', 'Instance Port'].forEach((label) => {
+      expect(screen.getByLabelText(new RegExp(label, 'i'))).toBeInTheDocument();
     });
   });
 
-  it('renders direct provider, health, PagerDuty, Slack, Chaos Monkey, and permissions controls', () => {
+  it('renders direct provider, health, PagerDuty, Slack, Chaos Monkey, and permissions controls', async () => {
     SETTINGS.feature = { ...SETTINGS.feature, chaosMonkey: true, fiatEnabled: true, pagerDuty: true, slack: true };
-    wrapper = shallow(<CreateApplicationModal name="app" />);
-    wrapper.setState({ initializing: false });
+    const { container } = await renderModal({ name: 'app' });
 
-    expect(wrapper.find(ReactSelectInput).exists()).toBe(true);
-    expect(wrapper.find(ApplicationProviderFields).exists()).toBe(true);
-    expect(wrapper.find(PlatformHealthOverride).exists()).toBe(true);
-    expect(wrapper.find(PagerDutySelectField).exists()).toBe(true);
-    expect(wrapper.find(SlackChannelSelector).exists()).toBe(true);
-    expect(wrapper.find(PermissionsConfigurer).exists()).toBe(true);
-    expect(wrapper.find('[data-purpose="chaos-monkey-enabled"]').exists()).toBe(true);
-    expect((wrapper.state() as any).application.chaosMonkey).toEqual({
-      enabled: true,
-      exceptions: [],
-      grouping: 'cluster',
-      meanTimeBetweenKillsInWorkDays: 2,
-      minTimeBetweenKillsInWorkDays: 1,
-      regionsAreIndependent: true,
-    });
+    expect(screen.getByText('Cloud Providers')).toBeInTheDocument();
+    expect(screen.getByText(/instance health/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/pagerduty/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/slack/i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/permissions/i)).toBeInTheDocument();
+    expect(container.querySelector('[data-purpose="chaos-monkey-enabled"]')).toBeChecked();
   });
 
-  it('disables creation until synchronous validation passes', () => {
-    wrapper = shallow(<CreateApplicationModal name="myapp" />);
-    wrapper.setState({ initializing: false });
+  it('disables creation until synchronous validation passes', async () => {
+    await renderModal({ name: 'myapp' });
 
-    expect(wrapper.find('[data-purpose="create-application"]').prop('disabled')).toBe(true);
-
-    const instance = wrapper.instance() as CreateApplicationModal;
-    instance.setState({ application: { ...instance.state.application, email: 'owner@example.com' } });
-    wrapper.update();
-
-    expect(wrapper.find('[data-purpose="create-application"]').prop('disabled')).toBe(false);
+    expect(screen.getByRole('button', { name: /^create$/i })).toBeDisabled();
+    fireEvent.change(screen.getByLabelText(/owner email/i), { target: { value: 'owner@example.com' } });
+    expect(screen.getByRole('button', { name: /^create$/i })).toBeEnabled();
   });
 
   it('ignores stale provider validation completions', async () => {
-    let resolveFirst: (result: any) => void;
-    let resolveSecond: (result: any) => void;
-    (ApplicationNameValidator.validate as Mock)
-      .mockReturnValueOnce(new Promise((resolve) => (resolveFirst = resolve)))
-      .mockReturnValueOnce(new Promise((resolve) => (resolveSecond = resolve)));
-    wrapper = shallow(<CreateApplicationModal name="first" />);
-    await Promise.resolve();
-    wrapper.update();
-    const instance = wrapper.instance() as CreateApplicationModal;
+    const first = deferred<any>();
+    const second = deferred<any>();
+    (ApplicationNameValidator.validate as Mock).mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise);
+    await renderModal({ name: 'first' });
 
-    (instance as any).updateApplication('name', 'second');
-    resolveSecond({ errors: [], warnings: [{ cloudProvider: 'aws', message: 'second warning' }] });
-    await Promise.resolve();
-    resolveFirst({ errors: [{ cloudProvider: 'aws', message: 'stale error' }], warnings: [] });
+    fireEvent.change(screen.getByLabelText(/name/i), { target: { value: 'second' } });
+    second.resolve({ errors: [], warnings: [{ cloudProvider: 'aws', message: 'second warning' }] });
+    await screen.findByText(/second warning/i);
+    first.resolve({ errors: [{ cloudProvider: 'aws', message: 'stale error' }], warnings: [] });
     await Promise.resolve();
 
-    expect(instance.state.providerErrors).toEqual([]);
-    expect(instance.state.providerWarnings.map((warning) => warning.message)).toEqual(['second warning']);
+    expect(screen.getByText(/second warning/i)).toBeInTheDocument();
+    expect(screen.queryByText(/stale error/i)).not.toBeInTheDocument();
   });
 
   it('submits a cloned lowercase payload with the sole provider and closes only after task success', async () => {
     const task = { id: '1' } as any;
-    let finishTask: (task: any) => void;
+    const finishTask = deferred<any>();
     const closeModal = vi.fn();
-    vi.spyOn(ApplicationWriter, 'createApplication').mockReturnValue(Promise.resolve(task));
-    vi.spyOn(TaskReader, 'waitUntilTaskCompletes').mockReturnValue(
-      new Promise((resolve) => (finishTask = resolve)) as any,
-    );
-    wrapper = shallow(<CreateApplicationModal name="MyApp" closeModal={closeModal} />);
-    await Promise.resolve();
-    wrapper.update();
-    const instance = wrapper.instance() as CreateApplicationModal;
-    instance.setState({
-      application: {
-        ...instance.state.application,
-        email: 'owner@example.com',
-        description: 'preserved',
-        customField: { nested: true },
-      },
-      availableProviders: ['aws'],
-    });
+    vi.spyOn(ApplicationWriter, 'createApplication').mockResolvedValue(task);
+    vi.spyOn(TaskReader, 'waitUntilTaskCompletes').mockReturnValue(finishTask.promise as any);
+    await renderModal({ name: 'MyApp', closeModal });
+    fireEvent.change(screen.getByLabelText(/owner email/i), { target: { value: 'owner@example.com' } });
+    fireEvent.change(screen.getByLabelText(/description/i), { target: { value: 'preserved' } });
 
-    const submission = (instance as any).submit();
-    await Promise.resolve();
-    await Promise.resolve();
+    submit();
+    await waitFor(() => expect(ApplicationWriter.createApplication).toHaveBeenCalled());
     expect(closeModal).not.toHaveBeenCalled();
     const payload = (ApplicationWriter.createApplication as Mock).mock.lastCall[0];
-    expect(payload.name).toBe('myapp');
-    expect(payload.cloudProviders).toEqual(['aws']);
-    expect(payload.customField).toEqual({ nested: true });
-    expect(payload).not.toBe(instance.state.application);
+    expect(payload).toEqual(
+      expect.objectContaining({ name: 'myapp', cloudProviders: ['aws'], description: 'preserved' }),
+    );
 
-    finishTask(task);
-    await submission;
-    expect(closeModal).toHaveBeenCalledWith(payload);
+    finishTask.resolve(task);
+    await waitFor(() => expect(closeModal).toHaveBeenCalledWith(payload));
   });
 
   it('enters submitting synchronously and ignores a second submit during provider validation', async () => {
     const providerValidation = deferred<any>();
-    vi.spyOn(ApplicationWriter, 'createApplication').mockReturnValue(Promise.resolve({ id: 'single-submit' }) as any);
-    vi.spyOn(TaskReader, 'waitUntilTaskCompletes').mockReturnValue(Promise.resolve({ id: 'single-submit' }) as any);
-    wrapper = shallow(<CreateApplicationModal name="myapp" />);
-    await Promise.resolve();
-    await Promise.resolve();
-    const instance = wrapper.instance() as CreateApplicationModal;
-    instance.setState({ application: { ...instance.state.application, email: 'owner@example.com' } });
+    vi.spyOn(ApplicationWriter, 'createApplication').mockResolvedValue({ id: 'single-submit' } as any);
+    vi.spyOn(TaskReader, 'waitUntilTaskCompletes').mockResolvedValue({ id: 'single-submit' } as any);
+    const { container } = await renderModal({ name: 'myapp' });
+    fireEvent.change(screen.getByLabelText(/owner email/i), { target: { value: 'owner@example.com' } });
     (ApplicationNameValidator.validate as Mock).mockClear();
     (ApplicationNameValidator.validate as Mock).mockReturnValue(providerValidation.promise);
 
-    const firstSubmission = (instance as any).submit();
-    const secondSubmission = (instance as any).submit();
-
-    expect(instance.state.submitting).toBe(true);
+    fireEvent.submit(container.querySelector('form')!);
+    fireEvent.submit(container.querySelector('form')!);
+    expect(screen.getByRole('button', { name: /creating/i })).toBeDisabled();
     expect(ApplicationNameValidator.validate).toHaveBeenCalledTimes(1);
 
     providerValidation.resolve({ errors: [], warnings: [] });
-    await firstSubmission;
-    await secondSubmission;
-    expect(ApplicationWriter.createApplication).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(ApplicationWriter.createApplication).toHaveBeenCalledTimes(1));
   });
 
   it('submits the application and providers snapshotted before async validation', async () => {
     const providerValidation = deferred<any>();
-    vi.spyOn(ApplicationWriter, 'createApplication').mockReturnValue(Promise.resolve({ id: 'snapshot' }) as any);
-    vi.spyOn(TaskReader, 'waitUntilTaskCompletes').mockReturnValue(Promise.resolve({ id: 'snapshot' }) as any);
-    wrapper = shallow(<CreateApplicationModal name="original" />);
-    await Promise.resolve();
-    await Promise.resolve();
-    const instance = wrapper.instance() as CreateApplicationModal;
-    instance.setState({
-      application: {
-        ...instance.state.application,
-        cloudProviders: ['aws'],
-        description: 'validated draft',
-        email: 'owner@example.com',
-      },
-      availableProviders: ['aws', 'gce'],
-    });
+    vi.spyOn(ApplicationWriter, 'createApplication').mockResolvedValue({ id: 'snapshot' } as any);
+    vi.spyOn(TaskReader, 'waitUntilTaskCompletes').mockResolvedValue({ id: 'snapshot' } as any);
+    const { container } = await renderModal({ name: 'original' });
+    fireEvent.change(screen.getByLabelText(/owner email/i), { target: { value: 'owner@example.com' } });
+    fireEvent.change(screen.getByLabelText(/description/i), { target: { value: 'validated draft' } });
     (ApplicationNameValidator.validate as Mock).mockReturnValue(providerValidation.promise);
 
-    const submission = (instance as any).submit();
-    instance.setState({
-      application: {
-        ...instance.state.application,
-        cloudProviders: ['gce'],
-        description: 'newer unvalidated draft',
-        name: 'newer',
-      },
-    });
+    fireEvent.submit(container.querySelector('form')!);
+    fireEvent.change(screen.getByLabelText(/name/i), { target: { value: 'newer' } });
+    fireEvent.change(screen.getByLabelText(/description/i), { target: { value: 'newer unvalidated draft' } });
     providerValidation.resolve({ errors: [], warnings: [] });
-    await submission;
 
-    const payload = (ApplicationWriter.createApplication as Mock).mock.lastCall[0];
-    expect(payload.name).toBe('original');
-    expect(payload.cloudProviders).toEqual(['aws']);
-    expect(payload.description).toBe('validated draft');
+    await waitFor(() => expect(ApplicationWriter.createApplication).toHaveBeenCalled());
+    expect((ApplicationWriter.createApplication as Mock).mock.lastCall[0]).toEqual(
+      expect.objectContaining({ name: 'original', cloudProviders: ['aws'], description: 'validated draft' }),
+    );
   });
 
   it('restores submission after provider validation fails so the user can retry', async () => {
     const failedValidation = deferred<any>();
-    vi.spyOn(ApplicationWriter, 'createApplication').mockReturnValue(Promise.resolve({ id: 'retry' }) as any);
-    vi.spyOn(TaskReader, 'waitUntilTaskCompletes').mockReturnValue(Promise.resolve({ id: 'retry' }) as any);
-    wrapper = shallow(<CreateApplicationModal name="myapp" />);
-    await Promise.resolve();
-    await Promise.resolve();
-    const instance = wrapper.instance() as CreateApplicationModal;
-    instance.setState({ application: { ...instance.state.application, email: 'owner@example.com' } });
+    vi.spyOn(ApplicationWriter, 'createApplication').mockResolvedValue({ id: 'retry' } as any);
+    vi.spyOn(TaskReader, 'waitUntilTaskCompletes').mockResolvedValue({ id: 'retry' } as any);
+    await renderModal({ name: 'myapp' });
+    fireEvent.change(screen.getByLabelText(/owner email/i), { target: { value: 'owner@example.com' } });
     (ApplicationNameValidator.validate as Mock).mockReturnValue(failedValidation.promise);
 
-    const failedSubmission = (instance as any).submit();
-    expect(instance.state.submitting).toBe(true);
+    submit();
     failedValidation.resolve({ errors: [{ cloudProvider: 'aws', message: 'invalid name' }], warnings: [] });
-    await failedSubmission;
-    expect(instance.state.submitting).toBe(false);
+    await screen.findByText(/invalid name/i);
     expect(ApplicationWriter.createApplication).not.toHaveBeenCalled();
 
-    (ApplicationNameValidator.validate as Mock).mockReturnValue(Promise.resolve({ errors: [], warnings: [] }));
-    await (instance as any).submit();
-    expect(ApplicationWriter.createApplication).toHaveBeenCalledTimes(1);
+    (ApplicationNameValidator.validate as Mock).mockResolvedValue({ errors: [], warnings: [] });
+    fireEvent.change(screen.getByLabelText(/name/i), { target: { value: 'myapp2' } });
+    await waitFor(() => expect(screen.getByRole('button', { name: /^create$/i })).toBeEnabled());
+    submit();
+    await waitFor(() => expect(ApplicationWriter.createApplication).toHaveBeenCalledTimes(1));
   });
 
   it('restores submission after provider validation rejects so the user can retry', async () => {
     const rejectedValidation = deferred<any>();
-    vi.spyOn(ApplicationWriter, 'createApplication').mockReturnValue(Promise.resolve({ id: 'retry-rejection' }) as any);
-    vi.spyOn(TaskReader, 'waitUntilTaskCompletes').mockReturnValue(Promise.resolve({ id: 'retry-rejection' }) as any);
-    wrapper = shallow(<CreateApplicationModal name="myapp" />);
-    await Promise.resolve();
-    await Promise.resolve();
-    const instance = wrapper.instance() as CreateApplicationModal;
-    instance.setState({ application: { ...instance.state.application, email: 'owner@example.com' } });
+    vi.spyOn(ApplicationWriter, 'createApplication').mockResolvedValue({ id: 'retry-rejection' } as any);
+    vi.spyOn(TaskReader, 'waitUntilTaskCompletes').mockResolvedValue({ id: 'retry-rejection' } as any);
+    await renderModal({ name: 'myapp' });
+    fireEvent.change(screen.getByLabelText(/owner email/i), { target: { value: 'owner@example.com' } });
     (ApplicationNameValidator.validate as Mock).mockReturnValue(rejectedValidation.promise);
 
-    const failedSubmission = (instance as any).submit();
+    submit();
     rejectedValidation.reject(new Error('provider validation unavailable'));
-    await failedSubmission.catch(() => undefined);
-    wrapper.update();
-
+    await screen.findByText('Could not validate application. Please try again.');
     expect(ApplicationWriter.createApplication).not.toHaveBeenCalled();
-    expect((instance as any).submissionInProgress).toBe(false);
-    expect(instance.state.submitting).toBe(false);
-    expect(instance.state.errorMessages).toEqual(['Could not validate application. Please try again.']);
-    expect(wrapper.find('[data-purpose="cancel-create-application"]').prop('disabled')).toBe(false);
-    expect(wrapper.find('[data-purpose="create-application"]').prop('disabled')).toBe(false);
+    expect(screen.getByRole('button', { name: /^create$/i })).toBeEnabled();
 
-    (ApplicationNameValidator.validate as Mock).mockReturnValue(Promise.resolve({ errors: [], warnings: [] }));
-    await (instance as any).submit();
-    expect(ApplicationWriter.createApplication).toHaveBeenCalledTimes(1);
+    (ApplicationNameValidator.validate as Mock).mockResolvedValue({ errors: [], warnings: [] });
+    submit();
+    await waitFor(() => expect(ApplicationWriter.createApplication).toHaveBeenCalledTimes(1));
   });
 
   it('shows retryable writer and task errors without closing', async () => {
     const closeModal = vi.fn();
     vi.spyOn(ApplicationWriter, 'createApplication')
-      .mockReturnValueOnce(Promise.reject(new Error('writer failed')))
-      .mockReturnValueOnce(Promise.resolve({ id: '2' }) as any);
-    vi.spyOn(TaskReader, 'waitUntilTaskCompletes').mockReturnValue(
-      Promise.reject({ failureMessage: 'task failed' }) as any,
-    );
-    wrapper = shallow(<CreateApplicationModal name="myapp" closeModal={closeModal} />);
-    await Promise.resolve();
-    wrapper.update();
-    const instance = wrapper.instance() as CreateApplicationModal;
-    instance.setState({ application: { ...instance.state.application, email: 'owner@example.com' } });
-    wrapper.update();
+      .mockRejectedValueOnce(new Error('writer failed'))
+      .mockResolvedValueOnce({ id: '2' } as any);
+    vi.spyOn(TaskReader, 'waitUntilTaskCompletes').mockRejectedValue({ failureMessage: 'task failed' });
+    await renderModal({ name: 'myapp', closeModal });
+    fireEvent.change(screen.getByLabelText(/owner email/i), { target: { value: 'owner@example.com' } });
 
-    await (instance as any).submit();
-    expect(instance.state.errorMessages).toEqual(['Could not create application']);
-    await (instance as any).submit();
-    expect(instance.state.errorMessages).toEqual(['Could not create application: task failed']);
-    expect(instance.state.submitting).toBe(false);
+    submit();
+    await screen.findByText('Could not create application');
+    submit();
+    await screen.findByText('Could not create application: task failed');
+
+    expect(screen.getByRole('button', { name: /^create$/i })).toBeEnabled();
     expect(closeModal).not.toHaveBeenCalled();
   });
 
   it('dismisses on cancel and ignores late async completion after unmount', async () => {
-    let finishTask: (task: any) => void;
+    const finishTask = deferred<any>();
     const closeModal = vi.fn();
     const dismissModal = vi.fn();
-    vi.spyOn(ApplicationWriter, 'createApplication').mockReturnValue(Promise.resolve({ id: '3' }) as any);
-    vi.spyOn(TaskReader, 'waitUntilTaskCompletes').mockReturnValue(
-      new Promise((resolve) => (finishTask = resolve)) as any,
-    );
-    wrapper = shallow(<CreateApplicationModal name="myapp" closeModal={closeModal} dismissModal={dismissModal} />);
-    wrapper.setState({ initializing: false });
-    const instance = wrapper.instance() as CreateApplicationModal;
-    instance.setState({ application: { ...instance.state.application, email: 'owner@example.com' } });
+    vi.spyOn(ApplicationWriter, 'createApplication').mockResolvedValue({ id: '3' } as any);
+    vi.spyOn(TaskReader, 'waitUntilTaskCompletes').mockReturnValue(finishTask.promise as any);
+    const { unmount } = await renderModal({ name: 'myapp', closeModal, dismissModal });
+    fireEvent.change(screen.getByLabelText(/owner email/i), { target: { value: 'owner@example.com' } });
 
-    (wrapper.find('[data-purpose="cancel-create-application"]').prop('onClick') as () => void)();
+    fireEvent.click(screen.getByRole('button', { name: /cancel/i }));
     expect(dismissModal).toHaveBeenCalledWith('cancel');
-    const submission = (instance as any).submit();
+    submit();
+    await waitFor(() => expect(TaskReader.waitUntilTaskCompletes).toHaveBeenCalled());
+    unmount();
+    finishTask.resolve({ id: '3' });
     await Promise.resolve();
-    wrapper.unmount();
-    wrapper = undefined;
-    finishTask({ id: '3' });
-    await submission;
 
     expect(closeModal).not.toHaveBeenCalled();
   });

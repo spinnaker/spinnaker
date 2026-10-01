@@ -1,7 +1,7 @@
 import type { Mock } from 'vitest';
 import { StateRegistry, UrlService } from '@uirouter/core';
 import { UIRouterContext, UIRouterReact } from '@uirouter/react';
-import { mount } from 'enzyme';
+import { render } from '@testing-library/react';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { act } from 'react-dom/test-utils';
@@ -267,7 +267,7 @@ describe('bootstrapDeck', () => {
     const host = createRoot(true);
     const router = createConfiguredRouter();
     const runtime = createDeckRuntime();
-    const wrapper = mount(createDeckRoot(router, runtime), { attachTo: host });
+    const rendered = render(createDeckRoot(router, runtime), { container: host });
 
     const mainView = host.querySelector('.spinnaker-main-view') as HTMLElement;
     expect(mainView).not.toBeNull();
@@ -279,7 +279,7 @@ describe('bootstrapDeck', () => {
     expect(window.getComputedStyle(routedChild).display).toBe('block');
     expect(window.getComputedStyle(routedChild).overflowY).toBe('visible');
 
-    wrapper.unmount();
+    rendered.unmount();
     runtime.dispose();
   });
 

@@ -1,10 +1,48 @@
-import { shallow } from 'enzyme';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 
 import type { IGceServerGroupCommand } from '../GceServerGroupWizard.types';
-import { Policies } from './Policies';
-import { GceAutoHealingPolicyEditor } from '../../../../autoHealingPolicy';
-import { GceAutoscalingPolicyEditor } from '../../../../autoscalingPolicy';
+import { Policies, validateGceServerGroupPolicies } from './Policies';
+
+vi.mock('../../../../autoscalingPolicy', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../../../autoscalingPolicy')>();
+  return {
+    ...actual,
+    GceAutoscalingPolicyEditor: ({ onChange, policy }: any) => (
+      <div>
+        <output aria-label="Autoscaling policy">{JSON.stringify(policy)}</output>
+        <button
+          onClick={() =>
+            onChange({
+              minNumReplicas: 2,
+              maxNumReplicas: 6,
+              coolDownPeriodSec: 90,
+              cpuUtilization: { utilizationTarget: 0.7 },
+            })
+          }
+          type="button"
+        >
+          Edit autoscaling policy
+        </button>
+      </div>
+    ),
+  };
+});
+
+vi.mock('../../../../autoHealingPolicy', () => ({
+  GceAutoHealingPolicyEditor: ({ policy, reader }: any) => {
+    const [healthChecks, setHealthChecks] = React.useState<any[]>([]);
+    return (
+      <div>
+        <output aria-label="Autohealing policy">{JSON.stringify(policy)}</output>
+        <button onClick={() => reader.listHealthChecks().then(setHealthChecks)} type="button">
+          Load health checks
+        </button>
+        <output aria-label="Health checks">{JSON.stringify(healthChecks)}</output>
+      </div>
+    );
+  },
+}));
 
 describe('GCE server group Policies page', () => {
   it('reuses the policy editors and supplies autohealing health checks from filtered backing data', async () => {
@@ -27,13 +65,15 @@ describe('GCE server group Policies page', () => {
         },
       },
     });
-    const wrapper = shallow(<Policies app={{} as any} formik={formik(values)} />);
+    renderPolicies(values);
 
-    expect(wrapper.find(GceAutoscalingPolicyEditor).prop('policy')).toBe(values.autoscalingPolicy);
-    expect(wrapper.find(GceAutoHealingPolicyEditor).prop('policy')).toBe(values.autoHealingPolicy);
-
-    const reader = wrapper.find(GceAutoHealingPolicyEditor).prop('reader') as any;
-    expect(await reader.listHealthChecks()).toEqual([
+    expect(screen.getByLabelText('Autoscaling policy')).toHaveTextContent('unknownPolicyField');
+    expect(screen.getByLabelText('Autohealing policy')).toHaveTextContent('unknownPolicyField');
+    fireEvent.click(screen.getByRole('button', { name: 'Load health checks' }));
+    await waitFor(() =>
+      expect(screen.getByLabelText('Health checks')).toHaveTextContent('https://compute/healthChecks/check'),
+    );
+    expect(JSON.parse(screen.getByLabelText('Health checks').textContent || '[]')).toEqual([
       expect.objectContaining({ account: 'account', name: 'check', selfLink: 'https://compute/healthChecks/check' }),
     ]);
   });
@@ -47,10 +87,9 @@ describe('GCE server group Policies page', () => {
       source: { region: 'us-central1', serverGroupName: 'app-v001', useSourceCapacity: true },
       viewState: { mode: 'clone', useSimpleCapacity: false, unrelated: 'keep' },
     });
-    const persistedFormik = formik(persisted);
-    const persistedPage = shallow(<Policies app={{} as any} formik={persistedFormik} />);
+    const page = renderPolicies(persisted);
 
-    persistedPage.find('[data-testid="enable-autoscaling"]').simulate('change', { target: { checked: false } });
+    fireEvent.click(screen.getByTestId('enable-autoscaling'));
 
     expect(persisted.enableAutoScaling).toBe(false);
     expect(persisted.autoscalingPolicy).toBeNull();
@@ -63,8 +102,8 @@ describe('GCE server group Policies page', () => {
     expect(persisted.viewState).toEqual({ mode: 'clone', useSimpleCapacity: true, unrelated: 'keep' });
     expect(persisted.capacity).toEqual({ min: 2, max: 2, desired: 2 });
 
-    persistedPage.setProps({ formik: persistedFormik });
-    persistedPage.find('[data-testid="enable-autoscaling"]').simulate('change', { target: { checked: true } });
+    page.rerenderPage(persisted);
+    fireEvent.click(screen.getByTestId('enable-autoscaling'));
 
     expect(persisted.enableAutoScaling).toBe(true);
     expect(persisted.overwriteAncestorAutoscalingPolicy).toBe(false);
@@ -85,9 +124,9 @@ describe('GCE server group Policies page', () => {
         autoscalingPolicy: { minNumReplicas: 1, maxNumReplicas: 4 },
         viewState: { mode },
       });
-      const wrapper = shallow(<Policies app={{} as any} formik={formik(values)} />);
+      renderPolicies(values);
 
-      wrapper.find('[data-testid="enable-autoscaling"]').simulate('change', { target: { checked: false } });
+      fireEvent.click(screen.getByTestId('enable-autoscaling'));
 
       expect(values.overwriteAncestorAutoscalingPolicy).toBe(false);
     });
@@ -96,17 +135,18 @@ describe('GCE server group Policies page', () => {
   it('preserves autohealing policy fields and limits ancestor overwrite to clone disables', () => {
     const policy = { healthCheck: 'check', initialDelaySec: 300, unknownPolicyField: 'keep' };
     const clone = command({ enableAutoHealing: true, autoHealingPolicy: policy, viewState: { mode: 'clone' } });
-    const clonePage = shallow(<Policies app={{} as any} formik={formik(clone)} />);
+    const page = renderPolicies(clone);
 
-    clonePage.find('[data-testid="enable-autohealing"]').simulate('change', { target: { checked: false } });
+    fireEvent.click(screen.getByTestId('enable-autohealing'));
 
     expect(clone.enableAutoHealing).toBe(false);
     expect(clone.overwriteAncestorAutoHealingPolicy).toBe(true);
     expect(clone.autoHealingPolicy).toBe(policy);
 
     const create = command({ enableAutoHealing: true, autoHealingPolicy: policy, viewState: { mode: 'create' } });
-    const createPage = shallow(<Policies app={{} as any} formik={formik(create)} />);
-    createPage.find('[data-testid="enable-autohealing"]').simulate('change', { target: { checked: false } });
+    page.unmount();
+    renderPolicies(create);
+    fireEvent.click(screen.getByTestId('enable-autohealing'));
 
     expect(create.overwriteAncestorAutoHealingPolicy).toBe(false);
   });
@@ -122,10 +162,11 @@ describe('GCE server group Policies page', () => {
       source: { useSourceCapacity: true },
       viewState: { mode: 'clone' },
     });
-    const wrapper = shallow(<Policies app={{} as any} formik={formik(values)} />);
+    const page = renderPolicies(values);
 
-    wrapper.find('[data-testid="enable-autoscaling"]').simulate('change', { target: { checked: true } });
-    wrapper.find('[data-testid="enable-autohealing"]').simulate('change', { target: { checked: true } });
+    fireEvent.click(screen.getByTestId('enable-autoscaling'));
+    page.rerenderPage(values);
+    fireEvent.click(screen.getByTestId('enable-autohealing'));
 
     expect(values.autoscalingPolicy).toEqual({
       minNumReplicas: 3,
@@ -141,18 +182,17 @@ describe('GCE server group Policies page', () => {
   });
 
   it('derives autoscaling rendering and validation from canonical policy presence', () => {
-    const page = new Policies({ app: {} as any, formik: formik(command()) } as any);
     const canonical = command({
       enableAutoScaling: false,
       autoscalingPolicy: { minNumReplicas: 3, maxNumReplicas: 2, cpuUtilization: {} },
     });
-    const canonicalWrapper = shallow(<Policies app={{} as any} formik={formik(canonical)} />);
+    renderPolicies(canonical);
 
-    expect(canonicalWrapper.find('[data-testid="enable-autoscaling"]').prop('checked')).toBe(true);
-    expect(canonicalWrapper.find(GceAutoscalingPolicyEditor).exists()).toBe(true);
+    expect(screen.getByTestId('enable-autoscaling')).toBeChecked();
+    expect(screen.getByLabelText('Autoscaling policy')).toBeInTheDocument();
 
     expect(
-      page.validate({
+      validateGceServerGroupPolicies({
         ...canonical,
         enableAutoHealing: true,
         autoHealingPolicy: {
@@ -174,7 +214,7 @@ describe('GCE server group Policies page', () => {
       },
     });
     expect(
-      page.validate(
+      validateGceServerGroupPolicies(
         command({
           enableAutoScaling: true,
           autoscalingPolicy: null,
@@ -198,17 +238,16 @@ describe('GCE server group Policies page', () => {
       source: { useSourceCapacity: true },
       viewState: { mode: 'editPipeline', useSimpleCapacity: true, unrelated: 'keep' },
     });
-    const wrapper = shallow(<Policies app={{} as any} formik={formik(values)} />);
-    const policy = {
+    renderPolicies(values);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit autoscaling policy' }));
+
+    expect(values.autoscalingPolicy).toEqual({
       minNumReplicas: 2,
       maxNumReplicas: 6,
       coolDownPeriodSec: 90,
       cpuUtilization: { utilizationTarget: 0.7 },
-    };
-
-    wrapper.find(GceAutoscalingPolicyEditor).prop('onChange')(policy);
-
-    expect(values.autoscalingPolicy).toBe(policy);
+    });
     expect(values.capacity).toEqual({ min: 2, max: 6, desired: 3 });
     expect(values.enableAutoScaling).toBe(true);
     expect(values.source.useSourceCapacity).toBe(false);
@@ -216,10 +255,8 @@ describe('GCE server group Policies page', () => {
   });
 
   it('requires autoscaling capacity, cooldown, and real metric values', () => {
-    const page = new Policies({ app: {} as any, formik: formik(command()) } as any);
-
     expect(
-      page.validate(
+      validateGceServerGroupPolicies(
         command({
           enableAutoScaling: true,
           autoscalingPolicy: {
@@ -240,7 +277,6 @@ describe('GCE server group Policies page', () => {
   });
 
   it('matches autoscaling schedule and scale-in validation from the completed modal', () => {
-    const page = new Policies({ app: {} as any, formik: formik(command()) } as any);
     const values = command({
       enableAutoScaling: true,
       autoscalingPolicy: {
@@ -253,7 +289,7 @@ describe('GCE server group Policies page', () => {
       },
     });
 
-    expect(page.validate(values)).toEqual({
+    expect(validateGceServerGroupPolicies(values)).toEqual({
       autoscalingPolicy: {
         scalingSchedules: 'Every scaling schedule must be complete and within supported bounds.',
         scaleInControl: 'Scale-in control values are outside supported bounds.',
@@ -262,10 +298,8 @@ describe('GCE server group Policies page', () => {
   });
 
   it('accepts complete policies at modal boundary values', () => {
-    const page = new Policies({ app: {} as any, formik: formik(command()) } as any);
-
     expect(
-      page.validate(
+      validateGceServerGroupPolicies(
         command({
           enableAutoScaling: true,
           autoscalingPolicy: {
@@ -296,6 +330,17 @@ describe('GCE server group Policies page', () => {
     ).toEqual({});
   });
 });
+
+function renderPolicies(values: IGceServerGroupCommand) {
+  const pageProps = { app: {} as any, formik: formik(values) };
+  const rendered = render(<Policies {...pageProps} />);
+  return {
+    ...rendered,
+    rerenderPage(nextValues: IGceServerGroupCommand) {
+      rendered.rerender(<Policies {...pageProps} formik={formik(nextValues)} />);
+    },
+  };
+}
 
 function command(overrides: Partial<IGceServerGroupCommand> = {}): IGceServerGroupCommand {
   return {

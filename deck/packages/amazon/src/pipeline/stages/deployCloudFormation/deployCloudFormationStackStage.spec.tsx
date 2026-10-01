@@ -1,72 +1,80 @@
-import { mount, shallow } from 'enzyme';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import React from 'react';
 
-import {
-  AccountSelectInput,
-  AccountService,
-  CheckboxInput,
-  ChecklistInput,
-  MapEditor,
-  ReactSelectInput,
-  Registry,
-  StageArtifactSelectorDelegate,
-  StageConfigField,
-  TextInput,
-  YamlEditor,
-} from '@spinnaker/core';
+import { AccountService, DeckRuntimeContext, Registry } from '@spinnaker/core';
+import { getFormGroupByLabel } from '../../../../../core/src/utils/testUtils/rtl';
 
 import { AmazonStageConfig } from '../AmazonStageConfig';
 import { CloudFormationChangeSetInfo } from './CloudFormationChangeSetInfo';
 import { DeployCloudFormationStackStageConfig } from './DeployCloudFormationStackStageConfig';
 import { registerDeployCloudFormationStackStage } from './deployCloudFormationStackStage';
 
+vi.mock('@spinnaker/core', async (importOriginal) => {
+  const actual = await importOriginal<any>();
+  const ReactModule = await import('react');
+
+  return {
+    ...actual,
+    YamlEditor: ({ ariaLabel, onChange, value }: any) =>
+      ReactModule.createElement('textarea', {
+        'aria-label': ariaLabel,
+        onChange: (event: React.ChangeEvent<HTMLTextAreaElement>) =>
+          onChange(event.target.value, actual.yamlStringToDocuments(event.target.value)),
+        value: value ?? '',
+      }),
+  };
+});
+
 describe('Deploy CloudFormation stack stage', () => {
   beforeEach(() => {
-    vi.spyOn(AccountService, 'getAllAccountDetailsForProvider').mockReturnValue(Promise.resolve([]));
-    vi.spyOn(AccountService, 'getArtifactAccounts').mockReturnValue(Promise.resolve([]));
-    vi.spyOn(AccountService, 'getUniqueAttributeForAllAccounts').mockReturnValue(Promise.resolve([]));
+    vi.spyOn(AccountService, 'getAllAccountDetailsForProvider').mockResolvedValue([]);
+    vi.spyOn(AccountService, 'getArtifactAccounts').mockResolvedValue([]);
+    vi.spyOn(AccountService, 'getUniqueAttributeForAllAccounts').mockResolvedValue([]);
   });
 
-  function renderEditor(stage: any = {}, application: any = {}) {
+  function renderEditor(stageOverrides: any = {}, application: any = {}, pipelineOverrides: any = {}) {
+    const initialStage = { type: 'deployCloudFormation', ...stageOverrides };
     const updateStageField = vi.fn();
-    const wrapper = shallow(
-      <DeployCloudFormationStackStageConfig
-        application={application}
-        pipeline={{ expectedArtifacts: [] } as any}
-        stage={{ type: 'deployCloudFormation', ...stage }}
-        updateStageField={updateStageField}
-      />,
-    );
-    return { updateStageField, wrapper };
-  }
-
-  function mountEditor(stage: any = {}, application: any = {}) {
-    const updateStageField = vi.fn();
-    const wrapper = mount(
-      <DeployCloudFormationStackStageConfig
-        application={application}
-        pipeline={{ expectedArtifacts: [] } as any}
-        stage={{ type: 'deployCloudFormation', ...stage }}
-        updateStageField={updateStageField}
-      />,
-    );
-    return { updateStageField, wrapper };
+    let replaceStage: React.Dispatch<React.SetStateAction<any>>;
+    function StageHarness() {
+      const [stage, setStage] = React.useState(initialStage);
+      replaceStage = setStage;
+      const update = (changes: any) => {
+        updateStageField(changes);
+        setStage((current: any) => ({ ...current, ...changes }));
+      };
+      return (
+        <DeployCloudFormationStackStageConfig
+          application={application}
+          pipeline={{ expectedArtifacts: [], ...pipelineOverrides } as any}
+          stage={stage}
+          updateStageField={update}
+        />
+      );
+    }
+    return {
+      initialStage,
+      replaceStage: (stage: any) => act(() => replaceStage(stage)),
+      updateStageField,
+      ...render(
+        <DeckRuntimeContext.Provider value={{ services: { executionService: {} } } as any}>
+          <StageHarness />
+        </DeckRuntimeContext.Provider>,
+      ),
+    };
   }
 
   it('registers a dedicated stage editor', () => {
     const registerStage = vi.spyOn(Registry.pipeline, 'registerStage').mockReturnValue(undefined);
-
     registerDeployCloudFormationStackStage();
-
     expect(registerStage.mock.lastCall[0].component).not.toBe(AmazonStageConfig);
   });
 
-  it('renders all text-template settings without changing the stage on mount', () => {
+  it('renders all text-template settings without changing persisted values on mount', async () => {
     const parameters = { Environment: 'production' };
     const tags = { Team: 'payments' };
-    const templateBody = { Resources: { Queue: { Type: 'AWS::SQS::Queue' } } };
     const capabilities = ['CAPABILITY_IAM', 'CAPABILITY_AUTO_EXPAND'];
-    const { updateStageField, wrapper } = renderEditor({
+    const rendered = renderEditor({
       account: 'test-account',
       cloudProvider: 'aws',
       credentials: 'test-account',
@@ -74,38 +82,33 @@ describe('Deploy CloudFormation stack stage', () => {
       stackName: 'payment-stack',
       roleARN: 'arn:aws:iam::123456789012:role/cloudformation',
       source: 'text',
-      templateBody,
+      templateBody: 'Resources:\n  Queue:\n    Type: AWS::SQS::Queue',
       parameters,
       tags,
       capabilities,
     });
 
-    expect(wrapper.find(AccountSelectInput).exists()).toBe(true);
-    if (!wrapper.find(AccountSelectInput).exists()) {
-      return;
-    }
-    expect(wrapper.find(AccountSelectInput).prop('value')).toBe('test-account');
-    expect(wrapper.find(ChecklistInput).prop('value')).toEqual(['eu-west-1']);
-    expect(wrapper.find('input[name="stackName"]').prop('value')).toBe('payment-stack');
-    expect(wrapper.find('input[name="roleARN"]').prop('value')).toBe('arn:aws:iam::123456789012:role/cloudformation');
-    expect(wrapper.find('input[name="source"][value="text"]').prop('checked')).toBe(true);
-    expect(wrapper.find(YamlEditor).prop('value')).toContain('AWS::SQS::Queue');
-    expect(wrapper.find(MapEditor).at(0).prop('model')).toBe(parameters);
-    expect(wrapper.find(MapEditor).at(1).prop('model')).toBe(tags);
-    expect(wrapper.find(ReactSelectInput).prop('value')).toBe(capabilities);
-    expect(updateStageField).not.toHaveBeenCalled();
+    await screen.findByRole('option', { name: 'test-account' });
+    expect(within(getFormGroupByLabel('Account')).getByRole('combobox')).toHaveValue('test-account');
+    expect(screen.getByRole('checkbox', { name: 'eu-west-1' })).toBeChecked();
+    expect(within(getFormGroupByLabel('Stack name')).getByRole('textbox')).toHaveValue('payment-stack');
+    expect(within(getFormGroupByLabel('IAM role ARN')).getByRole('textbox')).toHaveValue(
+      'arn:aws:iam::123456789012:role/cloudformation',
+    );
+    expect(screen.getByRole('radio', { name: 'Text' })).toBeChecked();
+    expect(within(getFormGroupByLabel('Parameters')).getByLabelText('Key')).toHaveValue('Environment');
+    expect(within(getFormGroupByLabel('Tags')).getByLabelText('Key')).toHaveValue('Team');
+    capabilities.forEach((capability) => expect(screen.getByText(capability)).toBeInTheDocument());
+    expect(rendered.updateStageField).not.toHaveBeenCalled();
   });
 
   it('initializes only missing required fields for a new stage', () => {
-    const { updateStageField } = mountEditor(
+    const rendered = renderEditor(
       {},
-      {
-        defaultCredentials: { aws: 'default-account' },
-        defaultRegions: { aws: 'eu-west-1' },
-      },
+      { defaultCredentials: { aws: 'default-account' }, defaultRegions: { aws: 'eu-west-1' } },
     );
 
-    expect(updateStageField.mock.calls).toEqual([
+    expect(rendered.updateStageField.mock.calls).toEqual([
       [
         {
           account: 'default-account',
@@ -122,113 +125,143 @@ describe('Deploy CloudFormation stack stage', () => {
   });
 
   it('preserves explicit persisted-stage values without repeating initialization', () => {
-    const stage = {
-      account: 'persisted-account',
+    const rendered = renderEditor(
+      {
+        account: 'persisted-account',
+        capabilities: [],
+        cloudProvider: 'persisted-provider',
+        credentials: 'persisted-credentials',
+        parameters: {},
+        regions: [],
+        source: 'artifact',
+        tags: {},
+      },
+      { defaultCredentials: { aws: 'default-account' }, defaultRegions: { aws: 'eu-west-1' } },
+    );
+
+    expect(rendered.updateStageField).not.toHaveBeenCalled();
+    expect(screen.getByRole('radio', { name: 'Artifact' })).toBeChecked();
+    expect(getFormGroupByLabel('Expected Artifact')).toBeInTheDocument();
+  });
+
+  it('updates stack identity, account, regions, and source through public controls', async () => {
+    vi.spyOn(AccountService, 'getAllAccountDetailsForProvider').mockResolvedValue([{ name: 'other-account' }] as any);
+    vi.spyOn(AccountService, 'getUniqueAttributeForAllAccounts').mockResolvedValue(['us-east-1']);
+    const rendered = renderEditor({
+      account: 'test-account',
       capabilities: [],
-      cloudProvider: 'persisted-provider',
-      credentials: 'persisted-credentials',
+      cloudProvider: 'aws',
+      credentials: 'test-account',
       parameters: {},
       regions: [],
-      source: 'artifact',
+      source: 'text',
       tags: {},
-    };
-    const application = {
-      defaultCredentials: { aws: 'default-account' },
-      defaultRegions: { aws: 'eu-west-1' },
-    };
-    const { updateStageField, wrapper } = mountEditor(stage, application);
+    });
+    await screen.findByRole('option', { name: 'other-account' });
+    rendered.updateStageField.mockClear();
 
-    wrapper.setProps({ application: { ...application }, stage: { ...stage } });
+    fireEvent.change(within(getFormGroupByLabel('Account')).getByRole('combobox'), {
+      target: { value: 'other-account' },
+    });
+    fireEvent.click(await screen.findByRole('checkbox', { name: 'us-east-1' }));
+    fireEvent.change(within(getFormGroupByLabel('Stack name')).getByRole('textbox'), {
+      target: { value: 'other-stack' },
+    });
+    fireEvent.change(within(getFormGroupByLabel('IAM role ARN')).getByRole('textbox'), {
+      target: { value: 'other-role' },
+    });
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Create CloudFormation ChangeSet' }));
+    fireEvent.click(screen.getByRole('radio', { name: 'Artifact' }));
 
-    expect(updateStageField).not.toHaveBeenCalled();
-    expect(wrapper.find('input[name="source"][value="artifact"]').prop('checked')).toBe(true);
-  });
-
-  it('preserves a string template body in the YAML editor', () => {
-    const templateBody = 'Resources:\n  Queue:\n    Type: AWS::SQS::Queue';
-
-    const { wrapper } = renderEditor({ source: 'text', templateBody });
-
-    expect(wrapper.find(YamlEditor).exists()).toBe(true);
-    if (!wrapper.find(YamlEditor).exists()) {
-      return;
-    }
-    expect(wrapper.find(YamlEditor).prop('value')).toBe(templateBody);
-  });
-
-  it('updates stack identity and template source fields', () => {
-    const { updateStageField, wrapper } = renderEditor();
-
-    expect(wrapper.find(AccountSelectInput).exists()).toBe(true);
-    if (!wrapper.find(AccountSelectInput).exists()) {
-      return;
-    }
-    wrapper.find(AccountSelectInput).prop('onChange')({ target: { value: 'other-account' } } as any);
-    wrapper.find(ChecklistInput).prop('onChange')({ target: { value: ['us-east-1'] } } as any);
-    wrapper.find('input[name="stackName"]').simulate('change', { target: { value: 'other-stack' } });
-    wrapper.find('input[name="roleARN"]').simulate('change', { target: { value: 'other-role' } });
-    wrapper.find('input[name="isChangeSet"]').simulate('change', { target: { checked: true } });
-    wrapper.find('input[name="source"][value="artifact"]').simulate('change');
-
-    expect(updateStageField.mock.calls).toEqual([
+    [
       [{ credentials: 'other-account', account: 'other-account' }],
       [{ regions: ['us-east-1'] }],
       [{ stackName: 'other-stack' }],
       [{ roleARN: 'other-role' }],
       [{ isChangeSet: true }],
       [{ source: 'artifact' }],
+    ].forEach((call) => expect(rendered.updateStageField.mock.calls).toContainEqual(call));
+  });
+
+  it('round-trips parameters and tags without coercing values', () => {
+    const rendered = renderEditor({
+      capabilities: [],
+      cloudProvider: 'aws',
+      parameters: { Environment: 'production' },
+      regions: [],
+      source: 'text',
+      tags: { Team: 'payments' },
+    });
+    rendered.updateStageField.mockClear();
+
+    fireEvent.input(within(getFormGroupByLabel('Parameters')).getAllByRole('textbox')[1], {
+      target: { value: '${ parameters.environment }' },
+    });
+    fireEvent.input(within(getFormGroupByLabel('Tags')).getAllByRole('textbox')[1], {
+      target: { value: 'platform' },
+    });
+
+    expect(rendered.updateStageField.mock.calls).toEqual([
+      [{ parameters: { Environment: '${ parameters.environment }' } }],
+      [{ tags: { Team: 'platform' } }],
     ]);
   });
 
-  it('retains valid raw YAML formatting and comments after a parent rerender', () => {
-    const stage = {
+  it('writes and clears the artifact execution contract when switching sources', () => {
+    const rendered = renderEditor({
       capabilities: [],
       cloudProvider: 'aws',
       parameters: {},
       regions: [],
-      source: 'text',
+      source: 'artifact',
+      stackArtifactId: 'expected-artifact-id',
+      stackArtifactAccount: 'artifact-account',
+      stackArtifact: { type: 's3/object', reference: 's3://bucket/template.yml' },
       tags: {},
-      templateBody: [{ Resources: {} }],
-    };
+    });
+    rendered.updateStageField.mockClear();
+
+    expect(getFormGroupByLabel('Expected Artifact')).toHaveTextContent('Expected Artifact');
+    fireEvent.click(screen.getByRole('radio', { name: 'Text' }));
+
+    expect(rendered.updateStageField).toHaveBeenCalledWith({
+      source: 'text',
+      stackArtifactId: null,
+      stackArtifactAccount: null,
+      stackArtifact: null,
+    });
+  });
+
+  it('updates change-set name and execution through the controlled form', () => {
+    const updateStageField = vi.fn();
+    render(
+      <CloudFormationChangeSetInfo
+        stage={{ changeSetName: 'existing-change-set', executeChangeSet: true, actionOnReplacement: 'ask' } as any}
+        updateStageField={updateStageField}
+      />,
+    );
+
+    fireEvent.change(within(getFormGroupByLabel('ChangeSet Name')).getByRole('textbox'), {
+      target: { value: 'new-change-set' },
+    });
+    fireEvent.keyDown(within(getFormGroupByLabel('If ChangeSet contains a replacement')).getByRole('combobox'), {
+      key: 'ArrowDown',
+      keyCode: 40,
+    });
+    fireEvent.mouseDown(screen.getByText('skip it'));
+    fireEvent.click(within(getFormGroupByLabel('Execute ChangeSet')).getByRole('checkbox'));
+
+    expect(updateStageField.mock.calls).toEqual([
+      [{ changeSetName: 'new-change-set' }],
+      [{ actionOnReplacement: 'skip' }],
+      [{ executeChangeSet: false }],
+    ]);
+  });
+
+  it('retains valid raw YAML formatting across parent updates', () => {
     const parsedTemplate = [{ Resources: { Queue: { Type: 'AWS::SQS::Queue' } } }];
     const rawTemplateBody = '# queue template\nResources:\n  Queue: { Type: AWS::SQS::Queue }\n';
-    const { updateStageField, wrapper } = mountEditor(stage);
-
-    wrapper.find(YamlEditor).prop('onChange')(rawTemplateBody, parsedTemplate);
-    wrapper.setProps({
-      stage: { type: 'deployCloudFormation', ...stage, templateBody: parsedTemplate },
-    });
-
-    expect(updateStageField.mock.calls).toEqual([[{ templateBody: parsedTemplate }]]);
-    expect(wrapper.find(YamlEditor).prop('value')).toBe(rawTemplateBody);
-    wrapper.unmount();
-  });
-
-  it('retains invalid raw YAML after a parent rerender without changing templateBody', () => {
-    const stage = {
-      capabilities: [],
-      cloudProvider: 'aws',
-      parameters: {},
-      regions: [],
-      source: 'text',
-      tags: {},
-      templateBody: [{ Resources: {} }],
-    };
-    const rawTemplateBody = '# incomplete edit\nResources: [';
-    const { updateStageField, wrapper } = mountEditor(stage);
-
-    wrapper.find(YamlEditor).prop('onChange')(rawTemplateBody, null);
-    wrapper.setProps({
-      stage: { type: 'deployCloudFormation', ...stage },
-    });
-
-    expect(updateStageField).not.toHaveBeenCalled();
-    expect(wrapper.find(YamlEditor).prop('value')).toBe(rawTemplateBody);
-    wrapper.unmount();
-  });
-
-  it('resets raw YAML when the stage refId changes without updating the new stage', () => {
-    const firstStage = {
+    const rendered = renderEditor({
       capabilities: [],
       cloudProvider: 'aws',
       parameters: {},
@@ -237,167 +270,171 @@ describe('Deploy CloudFormation stack stage', () => {
       source: 'text',
       tags: {},
       templateBody: [{ Resources: {} }],
-    };
-    const firstRawTemplateBody = '# first stage\nResources:\n  First: {}\n';
+    });
+    const editor = screen.getByRole('textbox', { name: 'CloudFormation template YAML' });
+
+    fireEvent.change(editor, { target: { value: rawTemplateBody } });
+    expect(rendered.updateStageField).toHaveBeenCalledWith({ templateBody: parsedTemplate });
+    rendered.replaceStage({ ...rendered.initialStage, templateBody: parsedTemplate });
+
+    expect(screen.getByRole('textbox', { name: 'CloudFormation template YAML' })).toHaveValue(rawTemplateBody);
+  });
+
+  it('retains invalid raw YAML without changing the persisted template', () => {
+    const rawTemplateBody = '# incomplete edit\nResources: [';
+    const rendered = renderEditor({
+      capabilities: [],
+      cloudProvider: 'aws',
+      parameters: {},
+      refId: '1',
+      regions: [],
+      source: 'text',
+      tags: {},
+      templateBody: [{ Resources: {} }],
+    });
+
+    fireEvent.change(screen.getByRole('textbox', { name: 'CloudFormation template YAML' }), {
+      target: { value: rawTemplateBody },
+    });
+    rendered.replaceStage({ ...rendered.initialStage });
+
+    expect(rendered.updateStageField).not.toHaveBeenCalled();
+    expect(screen.getByRole('textbox', { name: 'CloudFormation template YAML' })).toHaveValue(rawTemplateBody);
+  });
+
+  it('resets raw YAML when refId changes without updating the new stage', () => {
+    const rendered = renderEditor({
+      capabilities: [],
+      cloudProvider: 'aws',
+      parameters: {},
+      refId: 'stage-a',
+      regions: [],
+      source: 'text',
+      tags: {},
+      templateBody: [{ Resources: {} }],
+    });
+    fireEvent.change(screen.getByRole('textbox', { name: 'CloudFormation template YAML' }), {
+      target: { value: '# first stage\nResources:\n  First: {}\n' },
+    });
+    rendered.updateStageField.mockClear();
+
     const secondRawTemplateBody = '# second stage\nResources:\n  Second: {}\n';
-    const secondParsedTemplate = [{ Resources: { Second: {} } }];
-    const { updateStageField, wrapper } = mountEditor(firstStage);
+    rendered.replaceStage({ ...rendered.initialStage, refId: 'stage-b', templateBody: secondRawTemplateBody });
 
-    wrapper.find(YamlEditor).prop('onChange')(firstRawTemplateBody, [{ Resources: { First: {} } }]);
-    updateStageField.mockClear();
-    wrapper.setProps({
-      stage: {
-        type: 'deployCloudFormation',
-        ...firstStage,
-        refId: '2',
-        templateBody: secondRawTemplateBody,
-      },
-    });
-
-    expect(wrapper.find(YamlEditor).prop('value')).toBe(secondRawTemplateBody);
-    expect(updateStageField).not.toHaveBeenCalled();
-
-    wrapper.find(YamlEditor).prop('onChange')(secondRawTemplateBody, secondParsedTemplate);
-
-    expect(updateStageField.mock.calls).toEqual([[{ templateBody: secondParsedTemplate }]]);
-    wrapper.unmount();
+    expect(screen.getByRole('textbox', { name: 'CloudFormation template YAML' })).toHaveValue(secondRawTemplateBody);
+    expect(rendered.updateStageField).not.toHaveBeenCalled();
   });
 
-  it('updates parameters, tags, and capabilities without coercing their values', () => {
-    const parameters = '${parameters.cloudFormationParameters}';
-    const tags = { Team: 'payments' };
-    const capabilities = ['CAPABILITY_NAMED_IAM'];
-    const { updateStageField, wrapper } = renderEditor({ parameters, tags, capabilities });
-
-    expect(wrapper.find(MapEditor).length).toBe(2);
-    if (wrapper.find(MapEditor).length !== 2) {
-      return;
-    }
-    wrapper.find(MapEditor).at(0).prop('onChange')(parameters, false);
-    wrapper.find(MapEditor).at(1).prop('onChange')(tags, false);
-    wrapper.find(ReactSelectInput).prop('onChange')({ target: { value: capabilities } } as any);
-
-    expect(updateStageField.mock.calls).toEqual([[{ parameters }], [{ tags }], [{ capabilities }]]);
-  });
-
-  it('renders and updates an artifact template reference', () => {
-    const stackArtifact = { type: 's3/object', reference: 's3://bucket/template.yml' };
-    const { updateStageField, wrapper } = renderEditor({
-      source: 'artifact',
-      stackArtifactId: 'expected-artifact-id',
-      stackArtifact,
-    });
-    const selector = wrapper.find(StageArtifactSelectorDelegate);
-
-    expect(selector.exists()).toBe(true);
-    if (!selector.exists()) {
-      return;
-    }
-    expect(selector.prop('expectedArtifactId')).toBe('expected-artifact-id');
-    expect(selector.prop('artifact')).toBe(stackArtifact);
-    selector.prop('onExpectedArtifactSelected')({
+  it('selects an expected artifact through the public selector', () => {
+    const expectedArtifact = {
+      displayName: 'Pipeline template',
       id: 'replacement-id',
-      matchArtifact: { artifactAccount: 'artifact-account' },
-    } as any);
-    selector.prop('onArtifactEdited')({ type: 'http/file', reference: 'https://example.test/template.yml' } as any);
-
-    expect(updateStageField.mock.calls).toEqual([
-      [{ stackArtifactId: 'replacement-id', stackArtifactAccount: 'artifact-account', stackArtifact: null }],
-      [
-        {
-          stackArtifactId: null,
-          stackArtifact: { type: 'http/file', reference: 'https://example.test/template.yml' },
-        },
-      ],
-    ]);
-  });
-
-  it('writes the artifact execution contract and clears it when switching to text', () => {
-    const { updateStageField, wrapper } = renderEditor({ source: 'artifact' });
-    const selector = wrapper.find(StageArtifactSelectorDelegate);
-
-    expect(selector.exists()).toBe(true);
-    if (!selector.exists()) {
-      return;
-    }
-    selector.prop('onExpectedArtifactSelected')({
-      id: 'expected-artifact-id',
-      matchArtifact: { artifactAccount: 'artifact-account' },
-    } as any);
-    wrapper.find('input[name="source"][value="text"]').simulate('change');
-
-    expect(updateStageField.mock.calls).toEqual([
-      [
-        {
-          stackArtifactId: 'expected-artifact-id',
-          stackArtifactAccount: 'artifact-account',
-          stackArtifact: null,
-        },
-      ],
-      [
-        {
-          source: 'text',
-          stackArtifactId: null,
-          stackArtifactAccount: null,
-          stackArtifact: null,
-        },
-      ],
-    ]);
-  });
-
-  it('passes the stage update contract to change-set settings', () => {
-    const { updateStageField, wrapper } = renderEditor({ isChangeSet: true, changeSetName: 'existing-change-set' });
-
-    expect(wrapper.find(CloudFormationChangeSetInfo).exists()).toBe(true);
-    if (!wrapper.find(CloudFormationChangeSetInfo).exists()) {
-      return;
-    }
-    expect(wrapper.find(CloudFormationChangeSetInfo).props()).toEqual(
-      expect.objectContaining({
-        stage: expect.objectContaining({ changeSetName: 'existing-change-set' }),
-        updateStageField,
-      }),
+      matchArtifact: { artifactAccount: 'artifact-account', type: 's3/object' },
+    };
+    const rendered = renderEditor(
+      {
+        capabilities: [],
+        cloudProvider: 'aws',
+        parameters: {},
+        regions: [],
+        source: 'artifact',
+        tags: {},
+      },
+      {},
+      { expectedArtifacts: [expectedArtifact] },
     );
+    rendered.updateStageField.mockClear();
+
+    const selector = within(getFormGroupByLabel('Expected Artifact')).getByRole('combobox');
+    fireEvent.keyDown(selector, { key: 'ArrowDown', keyCode: 40 });
+    fireEvent.mouseDown(screen.getByText('Pipeline template'));
+
+    expect(rendered.updateStageField).toHaveBeenCalledWith({
+      stackArtifactId: 'replacement-id',
+      stackArtifactAccount: 'artifact-account',
+      stackArtifact: null,
+    });
   });
 
-  it('updates change-set settings through the direct stage contract', () => {
-    const updateStageField = vi.fn();
-    const wrapper = shallow(
-      <CloudFormationChangeSetInfo
-        {...({
-          stage: {
-            changeSetName: 'existing-change-set',
-            executeChangeSet: true,
-            actionOnReplacement: 'ask',
-          },
-          updateStageField,
-        } as any)}
-      />,
-    );
+  it('starts editing an inline artifact through the public selector', () => {
+    const rendered = renderEditor({
+      capabilities: [],
+      cloudProvider: 'aws',
+      parameters: {},
+      regions: [],
+      source: 'artifact',
+      tags: {},
+    });
+    rendered.updateStageField.mockClear();
 
-    expect(wrapper.find(TextInput).prop('value')).toBe('existing-change-set');
-    expect(
-      wrapper
-        .find(StageConfigField)
-        .filterWhere((field) => field.prop('label') === 'If ChangeSet contains a replacement')
-        .prop('helpKey'),
-    ).toBe('aws.cloudformation.changeSet.options');
-    let contractError: Error;
-    try {
-      wrapper.find(TextInput).prop('onChange')({ target: { value: 'new-change-set' } } as any);
-      wrapper.find(CheckboxInput).prop('onChange')({ target: { checked: false } } as any);
-      wrapper.find(ReactSelectInput).prop('onChange')({ target: { value: 'skip' } } as any);
-    } catch (error) {
-      contractError = error;
-    }
-    expect(contractError).toBeUndefined();
-    if (contractError) {
-      return;
-    }
-    expect(updateStageField.mock.calls).toEqual([
-      [{ changeSetName: 'new-change-set' }],
-      [{ executeChangeSet: false }],
-      [{ actionOnReplacement: 'skip' }],
+    const selector = within(getFormGroupByLabel('Expected Artifact')).getByRole('combobox');
+    fireEvent.keyDown(selector, { key: 'ArrowDown', keyCode: 40 });
+    fireEvent.mouseDown(screen.getByText('Define a new artifact...'));
+
+    expect(rendered.updateStageField).toHaveBeenCalledWith({
+      stackArtifactId: null,
+      stackArtifact: expect.objectContaining({ customKind: true }),
+    });
+  });
+
+  it('forwards the exact concrete inline artifact after editing its reference', async () => {
+    vi.spyOn(AccountService, 'getArtifactAccounts').mockResolvedValue([
+      { name: 'custom-artifact', types: ['custom/object'] },
     ]);
+    const rendered = renderEditor({
+      capabilities: [],
+      cloudProvider: 'aws',
+      parameters: {},
+      regions: [],
+      source: 'artifact',
+      tags: {},
+    });
+    rendered.updateStageField.mockClear();
+
+    const selector = within(getFormGroupByLabel('Expected Artifact')).getByRole('combobox');
+    fireEvent.keyDown(selector, { key: 'ArrowDown', keyCode: 40 });
+    fireEvent.mouseDown(screen.getByText('Define a new artifact...'));
+
+    const expectedArtifactGroup = getFormGroupByLabel('Expected Artifact');
+    await waitFor(() => getFormGroupByLabel('Reference', expectedArtifactGroup));
+    fireEvent.change(within(getFormGroupByLabel('Type', expectedArtifactGroup)).getByRole('textbox'), {
+      target: { value: 's3/object' },
+    });
+    const currentArtifact = rendered.updateStageField.mock.lastCall?.[0].stackArtifact;
+    rendered.updateStageField.mockClear();
+    fireEvent.change(within(getFormGroupByLabel('Reference', expectedArtifactGroup)).getByRole('textbox'), {
+      target: { value: 's3://templates/production.yml' },
+    });
+
+    const expectedUpdate = {
+      stackArtifactId: null,
+      stackArtifact: {
+        ...currentArtifact,
+        artifactAccount: 'custom-artifact',
+        customKind: true,
+        reference: 's3://templates/production.yml',
+        type: 's3/object',
+      },
+    };
+    expect(rendered.updateStageField).toHaveBeenCalled();
+    rendered.updateStageField.mock.calls.forEach(([update]) => expect(update).toStrictEqual(expectedUpdate));
+  });
+
+  it('updates capabilities through the public selector', () => {
+    const rendered = renderEditor({
+      capabilities: [],
+      cloudProvider: 'aws',
+      parameters: {},
+      regions: [],
+      source: 'text',
+      tags: {},
+    });
+    rendered.updateStageField.mockClear();
+
+    const selector = within(getFormGroupByLabel('Capabilities')).getByRole('combobox');
+    fireEvent.keyDown(selector, { key: 'ArrowDown', keyCode: 40 });
+    fireEvent.mouseDown(screen.getByText('CAPABILITY_NAMED_IAM'));
+
+    expect(rendered.updateStageField).toHaveBeenCalledWith({ capabilities: ['CAPABILITY_NAMED_IAM'] });
   });
 });

@@ -264,6 +264,7 @@ export class AmazonRollbackServerGroupModal extends React.Component<
       ));
     return (
       <select
+        aria-label="Server group to restore"
         className="form-control input-sm"
         name="restoreServerGroupName"
         onChange={(event) => setFieldValue('restoreServerGroupName', event.target.value || undefined)}
@@ -375,6 +376,7 @@ export class AmazonRollbackServerGroupModal extends React.Component<
                     <div className="col-sm-11 col-sm-offset-1">
                       Wait{' '}
                       <input
+                        aria-label="Delay before disabling"
                         className="form-control input-sm inline-number"
                         min={0}
                         name="delayBeforeDisableSeconds"
@@ -397,6 +399,7 @@ export class AmazonRollbackServerGroupModal extends React.Component<
                     <div className="col-sm-11 col-sm-offset-1">
                       Consider rollback successful when{' '}
                       <input
+                        aria-label="Target healthy rollback percentage"
                         className="form-control input-sm inline-number"
                         max={100}
                         min={0}

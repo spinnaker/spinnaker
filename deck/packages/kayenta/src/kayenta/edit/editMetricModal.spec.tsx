@@ -1,4 +1,5 @@
-import { mount } from 'enzyme';
+import { render, screen, within } from '@testing-library/react';
+import { setupUser } from '../../../../core/src/utils/testUtils/userEvent';
 import * as Creators from '../actions/creators';
 import { KayentaAccountType } from '../domain';
 import type { ICanaryMetricConfig } from '../domain/ICanaryConfig';
@@ -56,6 +57,7 @@ describe('EditMetricModal', () => {
     },
     selectedConfig: {
       editingMetric: {
+        id: '1',
         name: 'Test Metric',
         query: {
           serviceType: 'prometheus',
@@ -77,69 +79,80 @@ describe('EditMetricModal', () => {
   beforeEach(() => dispatch.mockClear());
 
   const buildComponent = (props: object) =>
-    mount(
+    render(
       <Provider store={store}>
         <EditMetricModal {...mockProps} {...props} />
       </Provider>,
-    ).find(EditMetricModal);
+    );
+  const getDialog = () => screen.getByRole('dialog', { name: 'Configure Metric' });
 
   it('renders without crashing', () => {
-    const component = buildComponent({});
-    expect(component.exists()).toBe(true);
+    buildComponent({});
+
+    expect(getDialog()).toBeVisible();
+    expect(within(getDialog()).getByText('Configure Metric')).toBeVisible();
   });
 
-  it('calls cancel when the cancel button is clicked', () => {
-    const component = buildComponent({});
-    const cancelBtn = component
-      .find('button')
-      .filterWhere((btn) => btn.text().trim() === 'Cancel')
-      .at(0);
-    cancelBtn.simulate('click');
+  it('calls cancel when the cancel button is clicked', async () => {
+    const user = setupUser();
+    buildComponent({});
+
+    await user.click(within(getDialog()).getByRole('button', { name: 'Cancel' }));
+
     expect(store.dispatch).toHaveBeenCalledWith(Creators.editMetricCancel());
   });
 
-  it('calls confirm when the confirm button is clicked', () => {
-    const component = buildComponent({});
-    const confirmBtn = component
-      .find('button')
-      .filterWhere((btn) => btn.text().trim() === 'OK')
-      .at(0);
-    confirmBtn.simulate('click');
+  it('calls confirm when the confirm button is clicked', async () => {
+    const user = setupUser();
+    buildComponent({});
+
+    await user.click(within(getDialog()).getByRole('button', { name: 'OK' }));
+
     expect(store.dispatch).toHaveBeenCalledWith(Creators.editMetricConfirm());
   });
 
-  it('calls updateDirection when a direction radio button is clicked', () => {
-    const component = buildComponent({});
-    const changeDirectionEvent = { target: { value: 'increase', dataset: { id: '1' } } };
-    component.find('input[name="direction"][value="increase"]').simulate('change', changeDirectionEvent);
+  it('calls updateDirection when a direction radio button is clicked', async () => {
+    const user = setupUser();
+    buildComponent({});
+
+    await user.click(within(getDialog()).getByRole('radio', { name: 'Increase' }));
+
     expect(store.dispatch).toHaveBeenCalledWith(Creators.updateMetricDirection({ id: '1', direction: 'increase' }));
   });
 
-  it('calls updateNanStrategy when the nan strategy is changed', () => {
-    const component = buildComponent({});
-    const changeNanStrategyEvent = { target: { value: 'replace', dataset: { id: '1' } } };
-    component.find('input[name="nanStrategy"][value="replace"]').simulate('change', changeNanStrategyEvent);
+  it('calls updateNanStrategy when the nan strategy is changed', async () => {
+    const user = setupUser();
+    buildComponent({});
+
+    await user.click(within(getDialog()).getByRole('radio', { name: 'Replace with zero' }));
+
     expect(store.dispatch).toHaveBeenCalledWith(Creators.updateMetricNanStrategy({ id: '1', strategy: 'replace' }));
   });
 
-  it('calls updateOutlierStrategy when the outlier strategy is changed', () => {
-    const component = buildComponent({});
-    const changeOutlierStrategyEvent = { target: { value: 'remove', dataset: { id: '1' } } };
-    component.find('input[name="outlierStrategy"][value="remove"]').simulate('change', changeOutlierStrategyEvent);
+  it('calls updateOutlierStrategy when the outlier strategy is changed', async () => {
+    const user = setupUser();
+    buildComponent({});
+
+    await user.click(within(getDialog()).getAllByRole('radio', { name: 'Remove' })[1]);
+
     expect(store.dispatch).toHaveBeenCalledWith(Creators.updateMetricOutlierStrategy({ id: '1', strategy: 'remove' }));
   });
 
-  it('calls updateCriticality when the criticality checkbox is changed', () => {
-    const component = buildComponent({});
-    const changeCriticalityEvent = { target: { checked: true, dataset: { id: '1' } } };
-    component.find('input[type="checkbox"][name="criticality"]').simulate('change', changeCriticalityEvent);
+  it('calls updateCriticality when the criticality checkbox is changed', async () => {
+    const user = setupUser();
+    buildComponent({});
+
+    await user.click(within(getDialog()).getByRole('checkbox', { name: 'Fail the canary if this metric fails' }));
+
     expect(store.dispatch).toHaveBeenCalledWith(Creators.updateMetricCriticality({ id: '1', critical: true }));
   });
 
-  it('calls updateDataRequired when the data required checkbox is changed', () => {
-    const component = buildComponent({ disableEdit: true });
-    const changeDataRequiredEvent = { target: { checked: true, dataset: { id: '1' } } };
-    component.find('input[type="checkbox"][name="dataRequired"]').simulate('change', changeDataRequiredEvent);
+  it('calls updateDataRequired when the data required checkbox is changed', async () => {
+    const user = setupUser();
+    buildComponent({ disableEdit: true });
+
+    await user.click(within(getDialog()).getByRole('checkbox', { name: 'Fail the metric if data is missing' }));
+
     expect(store.dispatch).toHaveBeenCalledWith(Creators.updateMetricDataRequired({ id: '1', mustHaveData: true }));
   });
 });

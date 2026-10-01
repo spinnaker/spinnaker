@@ -1,94 +1,90 @@
 import type { Mock } from 'vitest';
-import type { ReactWrapper } from 'enzyme';
-import { mount } from 'enzyme';
+import { render, screen } from '@testing-library/react';
+import { setupUser } from '../utils/testUtils/userEvent';
 import React from 'react';
-import { Button } from 'react-bootstrap';
 
-import type { IInsightMenuProps, IInsightMenuState } from './InsightMenu';
+import type { IInsightMenuProps } from './InsightMenu';
 import { InsightMenuComponent } from './InsightMenu';
 import { CreateApplicationModal } from '../application/modal/CreateApplicationModal';
 import type { CacheInitializerService } from '../cache/cacheInitializer.service';
 
 describe('<InsightMenu />', () => {
-  let component: ReactWrapper<IInsightMenuProps, IInsightMenuState>;
   let go: Mock;
 
   beforeEach(() => (go = vi.fn()));
 
-  function getNewMenu(params: object): ReactWrapper<IInsightMenuProps, any> {
+  function renderMenu(params: IInsightMenuProps) {
     // Set defaults to zero so we only need to pass in the prop we want rendered
     const mergedParams = { ...{ createApp: false, createProject: false, refreshCaches: false }, ...params };
-    return mount(
+    return render(
       <InsightMenuComponent
         createApp={mergedParams.createApp}
         createProject={mergedParams.createProject}
         refreshCaches={mergedParams.refreshCaches}
-        deckRuntimeServices={{ cacheInitializer: {} as CacheInitializerService } as any}
-        router={{} as any}
+        deckRuntimeServices={
+          { cacheInitializer: {} as CacheInitializerService } as React.ComponentProps<
+            typeof InsightMenuComponent
+          >['deckRuntimeServices']
+        }
+        router={{} as React.ComponentProps<typeof InsightMenuComponent>['router']}
         stateParams={{}}
-        stateService={{ go } as any}
+        stateService={{ go } as React.ComponentProps<typeof InsightMenuComponent>['stateService']}
       />,
     );
   }
 
   it('should only render create application button when initialized', () => {
-    component = getNewMenu({ createApp: true });
-    const btn = component.find(Button);
+    renderMenu({ createApp: true });
+    const buttons = screen.getAllByRole('link');
 
-    expect(btn.length).toBe(1);
-    expect(btn.text()).toEqual('Create Application');
+    expect(buttons).toHaveLength(1);
+    expect(buttons[0]).toHaveTextContent('Create Application');
     // Button should always be primary for create application
     // FIXME: when this project moves to v1+ of react-bootstrap this prop will need to change.
-    expect(btn.prop('bsStyle')).toEqual('primary');
+    expect(buttons[0]).toHaveClass('btn-primary');
   });
 
   it('should only render create project button when initialized', () => {
-    component = getNewMenu({ createProject: true });
+    renderMenu({ createProject: true });
+    const buttons = screen.getAllByRole('link');
 
-    const btn = component.find(Button);
-
-    expect(btn.length).toBe(1);
-    expect(btn.text()).toEqual('Create Project');
+    expect(buttons).toHaveLength(1);
+    expect(buttons[0]).toHaveTextContent('Create Project');
     // If project is the only button rendered, it should be primary.
     // FIXME: when this project moves to v1+ of react-bootstrap this prop will need to change.
-    expect(btn.prop('bsStyle')).toEqual('primary');
+    expect(buttons[0]).toHaveClass('btn-primary');
   });
 
   it('should only render refresh cache button when initialized', () => {
     // note: this test doesn't validate the state changes that could occur w/
     //       the refresh button in particular.
-    component = getNewMenu({ refreshCaches: true });
+    renderMenu({ refreshCaches: true });
 
-    const btn = component.find(Button);
-
-    expect(btn.length).toBe(1);
-    expect(btn.text()).toMatch('Refresh');
+    expect(screen.getAllByRole('link')).toHaveLength(1);
+    expect(screen.getByRole('link')).toHaveTextContent('Refresh');
   });
 
   it('should only render create application as primary when multiple buttons are rendered', () => {
-    component = getNewMenu({ createApp: true, createProject: true });
+    renderMenu({ createApp: true, createProject: true });
+    const buttons = screen.getAllByRole('link');
 
-    const btns = component.find(Button);
-    const proj = btns.at(0);
-    const app = btns.at(1);
-
-    expect(btns.length).toBe(2);
+    expect(buttons).toHaveLength(2);
     // Project button should be first
-    expect(proj.text()).toEqual('Create Project');
+    expect(buttons[0]).toHaveTextContent('Create Project');
     // FIXME: when this project moves to v1+ of react-bootstrap this prop will need to change.
-    expect(proj.prop('bsStyle')).toEqual('default');
+    expect(buttons[0]).toHaveClass('btn-default');
     // Application button should be second, so that it renders furthest to the right
-    expect(app.text()).toEqual('Create Application');
+    expect(buttons[1]).toHaveTextContent('Create Application');
     // FIXME: when this project moves to v1+ of react-bootstrap this prop will need to change.
-    expect(app.prop('bsStyle')).toEqual('primary');
+    expect(buttons[1]).toHaveClass('btn-primary');
   });
 
   it('opens the direct application modal and routes after creation', async () => {
-    vi.spyOn(CreateApplicationModal, 'show').mockReturnValue(Promise.resolve({ name: 'myapp' }) as any);
-    component = getNewMenu({ createApp: true });
+    const user = setupUser();
+    vi.spyOn(CreateApplicationModal, 'show').mockResolvedValue({ name: 'myapp' });
+    renderMenu({ createApp: true });
 
-    component.find(Button).simulate('click');
-    await Promise.resolve();
+    await user.click(screen.getByRole('link', { name: 'Create Application' }));
 
     expect(CreateApplicationModal.show).toHaveBeenCalledWith();
     expect(go).toHaveBeenCalledWith('home.applications.application', { application: 'myapp' });

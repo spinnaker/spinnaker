@@ -8,9 +8,10 @@ export interface IRadioChoiceProps {
   name: string;
   current: string;
   action: (event: any) => void;
+  metricId?: string;
 }
 
-export default function RadioChoice({ value, label, name, current, action }: IRadioChoiceProps) {
+export default function RadioChoice({ value, label, name, current, action, metricId }: IRadioChoiceProps) {
   return (
     <div className="radio-inline">
       <label style={{ fontWeight: 'normal', marginRight: '1em' }}>
@@ -18,6 +19,7 @@ export default function RadioChoice({ value, label, name, current, action }: IRa
           type="radio"
           name={name}
           value={value}
+          data-id={metricId}
           onChange={action}
           checked={value === current}
           disabledStateKeys={[DISABLE_EDIT_CONFIG]}

@@ -1,7 +1,5 @@
-import { shallow } from 'enzyme';
+import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
-
-import { Markdown } from '@spinnaker/core';
 
 import { CanaryExecutionSummaryComponent } from './CanaryExecutionSummary';
 
@@ -24,7 +22,7 @@ describe('CanaryExecutionSummary', () => {
 
   it('renders comments through sanitized Markdown', () => {
     const comments = '<img src=x onerror=alert(1)> reviewer note';
-    const component = shallow(
+    const { container } = render(
       <CanaryExecutionSummaryComponent
         {...({ router: {}, stateParams: {}, stateService: {} } as any)}
         {...summaryProps}
@@ -32,13 +30,13 @@ describe('CanaryExecutionSummary', () => {
       />,
     );
 
-    expect(component.find(Markdown).prop('message')).toBe(comments);
-    expect(component.findWhere((node) => !!node.prop('dangerouslySetInnerHTML')).exists()).toBe(false);
+    expect(screen.getByText('reviewer note')).toBeVisible();
+    expect(container.querySelector('img')).not.toHaveAttribute('onerror');
   });
 
   it('navigates step details through the injected route', () => {
     const go = vi.fn();
-    const component = shallow(
+    render(
       <CanaryExecutionSummaryComponent
         {...summaryProps}
         {...({
@@ -49,7 +47,7 @@ describe('CanaryExecutionSummary', () => {
       />,
     );
 
-    component.find('tbody tr').first().simulate('click');
+    fireEvent.click(screen.getByRole('row', { name: /Canary Summary/ }));
 
     expect(go).toHaveBeenCalledWith('.', { stage: 3, step: 2, subStage: 4 });
   });

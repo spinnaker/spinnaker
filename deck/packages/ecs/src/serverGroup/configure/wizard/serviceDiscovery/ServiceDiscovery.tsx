@@ -31,19 +31,41 @@ interface IServiceDiscoveryState {
   useTaskDefinitionArtifact: boolean;
 }
 
+const normalizeEcsServiceDiscoveryAssociations = (
+  associations: IEcsServiceDiscoveryRegistryAssociation[],
+  useTaskDefinitionArtifact: boolean,
+): IEcsServiceDiscoveryRegistryAssociation[] => {
+  const normalized = associations.map((association) => ({
+    ...association,
+    containerName: useTaskDefinitionArtifact ? association.containerName || '' : null,
+  }));
+  return isEqual(associations, normalized) ? associations : normalized;
+};
+
+const mergeEcsServiceDiscoveryRegistries = (
+  available: IEcsServiceDiscoveryRegistry[],
+  associations: IEcsServiceDiscoveryRegistryAssociation[],
+): IEcsServiceDiscoveryRegistry[] => {
+  const registries = new Map<string, IEcsServiceDiscoveryRegistry>();
+  [...available, ...associations.map((association) => association.registry)].filter(Boolean).forEach((registry) => {
+    registries.set(registry.displayName, registry as IEcsServiceDiscoveryRegistry);
+  });
+  return Array.from(registries.values());
+};
+
 export class ServiceDiscovery extends React.Component<IServiceDiscoveryProps, IServiceDiscoveryState> {
   constructor(props: IServiceDiscoveryProps) {
     super(props);
     const cmd = this.props.command;
 
-    const serviceDiscoveryAssociations = this.normalizeContainerNames(
+    const serviceDiscoveryAssociations = normalizeEcsServiceDiscoveryAssociations(
       cmd.serviceDiscoveryAssociations || [],
       cmd.useTaskDefinitionArtifact,
     );
     cmd.serviceDiscoveryAssociations = serviceDiscoveryAssociations;
     this.state = {
       serviceDiscoveryAssociations,
-      serviceDiscoveryRegistriesAvailable: this.mergeRegistries(
+      serviceDiscoveryRegistriesAvailable: mergeEcsServiceDiscoveryRegistries(
         cmd.backingData?.filtered?.serviceDiscoveryRegistries || [],
         serviceDiscoveryAssociations,
       ),
@@ -54,7 +76,7 @@ export class ServiceDiscovery extends React.Component<IServiceDiscoveryProps, IS
   public componentDidMount() {
     this.props.configureCommand('1').then(() => {
       this.setState({
-        serviceDiscoveryRegistriesAvailable: this.mergeRegistries(
+        serviceDiscoveryRegistriesAvailable: mergeEcsServiceDiscoveryRegistries(
           this.props.command.backingData.filtered.serviceDiscoveryRegistries || [],
           this.state.serviceDiscoveryAssociations,
         ),
@@ -65,7 +87,7 @@ export class ServiceDiscovery extends React.Component<IServiceDiscoveryProps, IS
   public componentDidUpdate() {
     const cmd = this.props.command;
     const currentAssociations = cmd.serviceDiscoveryAssociations || [];
-    const serviceDiscoveryAssociations = this.normalizeContainerNames(
+    const serviceDiscoveryAssociations = normalizeEcsServiceDiscoveryAssociations(
       currentAssociations,
       cmd.useTaskDefinitionArtifact,
     );
@@ -75,7 +97,7 @@ export class ServiceDiscovery extends React.Component<IServiceDiscoveryProps, IS
     }
     const nextState: IServiceDiscoveryState = {
       serviceDiscoveryAssociations,
-      serviceDiscoveryRegistriesAvailable: this.mergeRegistries(
+      serviceDiscoveryRegistriesAvailable: mergeEcsServiceDiscoveryRegistries(
         cmd.backingData?.filtered?.serviceDiscoveryRegistries || [],
         serviceDiscoveryAssociations,
       ),
@@ -86,17 +108,6 @@ export class ServiceDiscovery extends React.Component<IServiceDiscoveryProps, IS
     }
   }
 
-  private normalizeContainerNames = (
-    associations: IEcsServiceDiscoveryRegistryAssociation[],
-    useTaskDefinitionArtifact: boolean,
-  ): IEcsServiceDiscoveryRegistryAssociation[] => {
-    const normalized = associations.map((association) => ({
-      ...association,
-      containerName: useTaskDefinitionArtifact ? association.containerName || '' : null,
-    }));
-    return isEqual(associations, normalized) ? associations : normalized;
-  };
-
   private getNameToRegistryMap = (): Map<string, IEcsServiceDiscoveryRegistry> => {
     const displayNameToRegistry = new Map<string, IEcsServiceDiscoveryRegistry>();
     this.state.serviceDiscoveryRegistriesAvailable.forEach((e) => {
@@ -104,17 +115,6 @@ export class ServiceDiscovery extends React.Component<IServiceDiscoveryProps, IS
     });
 
     return displayNameToRegistry;
-  };
-
-  private mergeRegistries = (
-    available: IEcsServiceDiscoveryRegistry[],
-    associations: IEcsServiceDiscoveryRegistryAssociation[],
-  ): IEcsServiceDiscoveryRegistry[] => {
-    const registries = new Map<string, IEcsServiceDiscoveryRegistry>();
-    [...available, ...associations.map((association) => association.registry)].filter(Boolean).forEach((registry) => {
-      registries.set(registry.displayName, registry as IEcsServiceDiscoveryRegistry);
-    });
-    return Array.from(registries.values());
   };
 
   private getEmptyRegistry = (): IEcsServiceDiscoveryRegistry => {
@@ -201,7 +201,7 @@ export class ServiceDiscovery extends React.Component<IServiceDiscoveryProps, IS
           )}
           <td data-test-id="ServiceDiscovery.registry">
             <TetheredSelect
-              inputProps={{ 'aria-label': `Service registry ${index + 1}` }}
+              aria-label={`Service registry ${index + 1}`}
               placeholder="Select a registry..."
               options={registriesAvailable}
               value={mapping.registry.displayName.toString()}

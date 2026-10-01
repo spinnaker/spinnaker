@@ -1,4 +1,4 @@
-import { find, get, has, isEmpty } from 'lodash';
+import { find, get, isEmpty } from 'lodash';
 import { Duration } from 'luxon';
 import React from 'react';
 
@@ -10,7 +10,7 @@ import { ExecutionDetailsSection } from '../common';
 import { StageFailureMessage } from '../../../details/StageFailureMessage';
 import { ViewChangesLink } from '../../../../diffs/ViewChangesLink';
 import type { IViewChangesConfig } from '../../../../diffs/ViewChangesLink';
-import type { IExecutionDetailsProps, IExecutionStage, IJenkinsInfo } from '../../../../domain';
+import type { IExecutionDetailsProps, IExecutionStage, IJenkinsInfo, IServerGroup } from '../../../../domain';
 import { HealthCounts } from '../../../../healthCounts/HealthCounts';
 import { HelpContentsRegistry } from '../../../../help';
 import { NameUtils } from '../../../../naming/nameUtils';
@@ -67,6 +67,32 @@ export function areJarDiffsEmpty(jarDiffs: any): boolean {
 export function hasDeployChanges(stage: IExecutionStage): boolean {
   const context = stage.context || {};
   return (context.commits && context.commits.length > 0) || !areJarDiffsEmpty(context.jarDiffs);
+}
+
+function buildDeployChangesConfig(stage: IExecutionStage, jenkins?: IJenkinsInfo): IViewChangesConfig {
+  const context = stage.context || {};
+  return {
+    buildInfo: {
+      ...(context.buildInfo || {}),
+      ...(jenkins && { jenkins }),
+    },
+    commits: context.commits,
+    jarDiffs: context.jarDiffs,
+  };
+}
+
+interface ISourceRequestState {
+  mounted: boolean;
+  request: number;
+  currentRequest: number;
+}
+
+function getCurrentSourceJenkins(
+  serverGroup: Pick<IServerGroup, 'buildInfo'>,
+  requestState: ISourceRequestState,
+): IJenkinsInfo | undefined {
+  const { currentRequest, mounted, request } = requestState;
+  return mounted && request === currentRequest ? get(serverGroup, 'buildInfo.jenkins') : undefined;
 }
 
 export function getDeployedServerGroups(stage: IExecutionStage, project: string): IDeployedServerGroup[] {
@@ -367,8 +393,13 @@ export class DeployChangesExecutionDetails extends React.Component<
     if (source) {
       ServerGroupReader.getServerGroup(source[0], source[1], source[2], source[3])
         .then((serverGroup) => {
-          if (this.mounted && sourceRequest === this.sourceRequest && has(serverGroup, 'buildInfo.jenkins')) {
-            this.setState({ jenkins: serverGroup.buildInfo.jenkins });
+          const jenkins = getCurrentSourceJenkins(serverGroup, {
+            mounted: this.mounted,
+            request: sourceRequest,
+            currentRequest: this.sourceRequest,
+          });
+          if (jenkins) {
+            this.setState({ jenkins });
           }
         })
         .catch(() => {});
@@ -376,15 +407,7 @@ export class DeployChangesExecutionDetails extends React.Component<
   }
 
   public render(): React.ReactNode {
-    const context = this.props.stage.context || {};
-    const changeConfig: IViewChangesConfig = {
-      buildInfo: {
-        ...(context.buildInfo || {}),
-        ...(this.state.jenkins && { jenkins: this.state.jenkins }),
-      },
-      commits: context.commits,
-      jarDiffs: context.jarDiffs,
-    };
+    const changeConfig = buildDeployChangesConfig(this.props.stage, this.state.jenkins);
 
     return (
       <ExecutionDetailsSection name={this.props.name} current={this.props.current}>

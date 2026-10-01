@@ -5,7 +5,6 @@ overrides:
   '@types/react-dom': 17.0.26
   '@uirouter/core': 6.0.8
   '@uirouter/react': 1.0.7
-  cheerio: 1.0.0-rc.3
   nth-check: 2.0.1
   react: ^17.0.2
   react-dom: ^17.0.2

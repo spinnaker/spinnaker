@@ -8,6 +8,7 @@ import { AuthenticationService } from '../../../../authentication';
 import { DeckRuntimeContext } from '../../../../bootstrap/DeckRuntimeContext';
 import type { IExecution, IExecutionStage } from '../../../../domain';
 import { ManualJudgmentService } from './manualJudgment.service';
+import { isManualJudgmentStageNotAuthorized } from './manualJudgmentAuthorization';
 import { Markdown } from '../../../../presentation/Markdown';
 import { Spinner } from '../../../../widgets/spinners/Spinner';
 
@@ -75,40 +76,19 @@ export class ManualJudgmentApproval extends React.Component<
   }
 
   private isManualJudgmentStageNotAuthorized(): boolean {
-    let isStageNotAuthorized = true;
-    let returnOnceFalse = true;
     const { applicationRoles, userRoles } = this.state;
     const stageRoles = this.props.stage?.context?.selectedStageRoles || [];
-    if (!stageRoles.length) {
-      isStageNotAuthorized = false;
-      return isStageNotAuthorized;
-    }
-
     const preventSelfApproval = this.props.stage?.context?.preventSelfApproval || false;
     const triggeredBy = this.props.execution?.user || this.props.execution?.authentication?.user;
     const currentUser = AuthenticationService.getAuthenticatedUser().name;
-    if (preventSelfApproval) {
-      if (!triggeredBy || !currentUser || triggeredBy === currentUser) {
-        return isStageNotAuthorized;
-      }
-    }
-
-    const { CREATE, EXECUTE, WRITE } = applicationRoles;
-    userRoles.forEach((userRole) => {
-      if (returnOnceFalse) {
-        if (stageRoles.includes(userRole)) {
-          isStageNotAuthorized =
-            (WRITE || []).includes(userRole) || (EXECUTE || []).includes(userRole) || (CREATE || []).includes(userRole);
-          if (isStageNotAuthorized) {
-            isStageNotAuthorized = false;
-            returnOnceFalse = false;
-          } else {
-            isStageNotAuthorized = true;
-          }
-        }
-      }
+    return isManualJudgmentStageNotAuthorized({
+      applicationRoles,
+      currentUser,
+      preventSelfApproval,
+      stageRoles,
+      triggeredBy,
+      userRoles,
     });
-    return isStageNotAuthorized;
   }
 
   private isSubmitting(decision: string): boolean {

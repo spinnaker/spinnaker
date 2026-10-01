@@ -1,62 +1,53 @@
-import { mount } from 'enzyme';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import { RadioButtonInput } from './RadioButtonInput';
 
 const noop = () => {};
+const options = ['a', 'b', 'c', 'd'];
 
 describe('<RadioButtonInput />', () => {
   it('renders radio button inputs', () => {
-    const value = 'b';
-    const options = ['a', 'b', 'c', 'd'];
-    const wrapper = mount(<RadioButtonInput value={value} stringOptions={options} onChange={noop} />);
-    expect(wrapper.find('.RadioButtonInput').length).toBe(1);
-    expect(wrapper.find('input[type="radio"]').length).toBe(4);
+    render(<RadioButtonInput value="b" stringOptions={options} onChange={noop} />);
+
+    expect(screen.getAllByRole('radio')).toHaveLength(4);
   });
 
   it('updates the selected item using the value prop', () => {
-    const value = 'b';
-    const options = ['a', 'b', 'c', 'd'];
-    const wrapper = mount(<RadioButtonInput value={value} stringOptions={options} onChange={noop} />);
-    expect(wrapper.find('input[type="radio"][checked=true]').getDOMNode<any>().value).toBe('b');
-    wrapper.setProps({ value: 'c' });
-    expect(wrapper.find('input[type="radio"][checked=true]').getDOMNode<any>().value).toBe('c');
+    const { rerender } = render(<RadioButtonInput value="b" stringOptions={options} onChange={noop} />);
+    expect(screen.getByRole('radio', { name: 'b' })).toBeChecked();
+
+    rerender(<RadioButtonInput value="c" stringOptions={options} onChange={noop} />);
+
+    expect(screen.getByRole('radio', { name: 'c' })).toBeChecked();
   });
 
-  it('wires the onChange handler to the radios', () => {
-    const value = 'b';
-    const options = ['a', 'b', 'c', 'd'];
-    const spy = vi.fn();
-    const wrapper = mount(<RadioButtonInput value={value} stringOptions={options} onChange={spy} />);
-    wrapper.find('input[type="radio"][value="c"]').simulate('change', { target: { value: 'c' } });
-    expect(spy).toHaveBeenCalledTimes(1);
+  it('wires the onChange handler to the radios', async () => {
+    const values: string[] = [];
+    const onChange = vi.fn((event) => values.push(event.target.value));
+    render(<RadioButtonInput value="b" stringOptions={options} onChange={onChange} />);
+
+    await userEvent.click(screen.getByRole('radio', { name: 'c' }));
+
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(values).toEqual(['c']);
   });
 
   describe('defaultValue prop', () => {
-    it('causes the onChange handler to be called with a default value when no value is set', () => {
-      const value = undefined as string;
-      const options = ['a', 'b', 'c', 'd'];
-      const spy = vi.fn();
-      mount(<RadioButtonInput value={value} defaultValue={options[0]} stringOptions={options} onChange={spy} />);
-      expect(spy).toHaveBeenCalledTimes(1);
-      expect(spy.mock.lastCall[0].target.value).toBe('a');
-    });
+    it.each([undefined, 'x'])('uses the default value when the current value is %s', (value) => {
+      const onChange = vi.fn();
+      render(<RadioButtonInput value={value} defaultValue="a" stringOptions={options} onChange={onChange} />);
 
-    it('causes the onChange handler to be called with a default value when an invalid value is set', () => {
-      const value = 'x';
-      const options = ['a', 'b', 'c', 'd'];
-      const spy = vi.fn();
-      mount(<RadioButtonInput value={value} defaultValue={options[0]} stringOptions={options} onChange={spy} />);
-      expect(spy).toHaveBeenCalledTimes(1);
-      expect(spy.mock.lastCall[0].target.value).toBe('a');
+      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(onChange.mock.lastCall[0].target.value).toBe('a');
     });
 
     it('does not call the onChange handler if no defaultValue is provided', () => {
-      const value = 'x';
-      const options = ['a', 'b', 'c', 'd'];
-      const spy = vi.fn();
-      mount(<RadioButtonInput value={value} stringOptions={options} onChange={spy} />);
-      expect(spy).not.toHaveBeenCalled();
+      const onChange = vi.fn();
+      render(<RadioButtonInput value="x" stringOptions={options} onChange={onChange} />);
+
+      expect(onChange).not.toHaveBeenCalled();
     });
   });
 });

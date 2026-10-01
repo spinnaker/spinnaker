@@ -27,7 +27,7 @@ export class JobStageExecutionLogs extends React.Component<IJobStageExecutionLog
     manifest: {} as IManifest,
   };
 
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   public componentDidMount() {
     const { account, location, deployedName } = this.props;
@@ -37,6 +37,11 @@ export class JobStageExecutionLogs extends React.Component<IJobStageExecutionLog
         (manifest) => this.setState({ manifest }),
         () => {},
       );
+  }
+
+  public componentWillUnmount() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private renderExternalLink(link: string, manifest: IManifest): string {

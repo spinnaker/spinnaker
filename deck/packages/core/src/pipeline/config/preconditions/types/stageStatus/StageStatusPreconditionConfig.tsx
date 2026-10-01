@@ -22,6 +22,7 @@ export function StageStatusPreconditionConfig({
         input={(inputProps) => (
           <ReactSelectInput
             {...inputProps}
+            aria-label="Stage"
             clearable={false}
             options={upstreamStages.map((stage) => ({ value: stage.name, label: stage.name }))}
           />
@@ -42,7 +43,9 @@ export function StageStatusPreconditionConfig({
         value={get(preconditionContext, 'stageName', null)}
       />
       <FormField
-        input={(inputProps) => <ReactSelectInput {...inputProps} clearable={false} options={STATUS_OPTIONS} />}
+        input={(inputProps) => (
+          <ReactSelectInput {...inputProps} aria-label="Status" clearable={false} options={STATUS_OPTIONS} />
+        )}
         label="Status"
         onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
           updatePreconditionContext({

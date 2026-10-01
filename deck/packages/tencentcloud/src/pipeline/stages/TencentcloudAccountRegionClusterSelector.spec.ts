@@ -1,4 +1,4 @@
-import { shallow } from 'enzyme';
+import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 
 import type { Application, IAccountDetails, IMoniker, IServerGroup } from '@spinnaker/core';
@@ -10,7 +10,7 @@ import {
 } from './TencentcloudAccountRegionClusterSelector';
 
 describe('<TencentcloudAccountRegionClusterSelector />', () => {
-  it('does not mutate the cached server group moniker when storing the selected cluster moniker', () => {
+  it('does not mutate the cached server group moniker when storing the selected cluster moniker', async () => {
     const cachedMoniker: IMoniker = { app: 'fnord', cluster: 'fnord-prod', stack: 'prod', sequence: 7 };
     const application = {
       ready: () => Promise.resolve(),
@@ -20,7 +20,7 @@ describe('<TencentcloudAccountRegionClusterSelector />', () => {
     } as Application;
     const setFieldValue = vi.fn();
 
-    const component = shallow(
+    render(
       React.createElement(TencentcloudAccountRegionClusterSelector, {
         accounts: [],
         application,
@@ -29,14 +29,15 @@ describe('<TencentcloudAccountRegionClusterSelector />', () => {
       }),
     );
 
-    component.find('select').simulate('change', { target: { value: 'fnord-prod' } });
+    const clusterOption = await screen.findByRole('option', { name: 'fnord-prod' });
+    fireEvent.change(clusterOption.closest('select'), { target: { value: 'fnord-prod' } });
 
     expect(cachedMoniker.sequence).toBe(7);
     expect(setFieldValue).toHaveBeenCalledWith('moniker', { ...cachedMoniker, sequence: null });
     expect(setFieldValue.mock.lastCall[1]).not.toBe(cachedMoniker);
   });
 
-  it('updates custom cluster text without recalculating the moniker until blur', () => {
+  it('updates custom cluster text without recalculating the moniker until blur', async () => {
     const cachedMoniker: IMoniker = { app: 'fnord', cluster: 'fnord-prod', stack: 'prod', sequence: 7 };
     const application = {
       ready: () => Promise.resolve(),
@@ -45,7 +46,7 @@ describe('<TencentcloudAccountRegionClusterSelector />', () => {
       }),
     } as Application;
     const setFieldValue = vi.fn();
-    const component = shallow(
+    render(
       React.createElement(TencentcloudAccountRegionClusterSelector, {
         accounts: [],
         application,
@@ -54,13 +55,14 @@ describe('<TencentcloudAccountRegionClusterSelector />', () => {
       }),
     );
 
-    component.find('a').simulate('click', { preventDefault: vi.fn() });
+    fireEvent.click(screen.getByRole('link', { name: 'Toggle for text input' }));
     setFieldValue.mockClear();
-    component.find('input').simulate('change', { target: { value: 'fnord' } });
+    const clusterInput = await screen.findByRole('textbox');
+    fireEvent.change(clusterInput, { target: { value: 'fnord' } });
 
     expect(setFieldValue.mock.calls).toEqual([['cluster', 'fnord']]);
 
-    component.find('input').simulate('blur', { target: { value: 'fnord-prod' } });
+    fireEvent.blur(clusterInput, { target: { value: 'fnord-prod' } });
 
     expect(setFieldValue).toHaveBeenCalledWith('moniker', { ...cachedMoniker, sequence: null });
   });

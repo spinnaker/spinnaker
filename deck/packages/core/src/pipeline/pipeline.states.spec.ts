@@ -1,9 +1,9 @@
 import type { Mock } from 'vitest';
 import type { Transition } from '@uirouter/core';
 import { UIRouterReact, UIView } from '@uirouter/react';
-import { shallow } from 'enzyme';
 import React from 'react';
 
+import type { Application } from '../application';
 import { ApplicationReader } from '../application/service/ApplicationReader';
 import { createDeckRuntime } from '../bootstrap/DeckRuntime';
 import { setDirectRouter } from '../navigation/directRouter';
@@ -44,14 +44,21 @@ describe('pipeline states', () => {
     const router = createRouter();
     const pipelinesState = router.stateRegistry.get('home.applications.application.pipelines');
     const RoutedPipelineInsight = pipelinesState.views.insight.component;
-    const errorBoundary = shallow(React.createElement(RoutedPipelineInsight, { className: 'secondary-panel' }));
-    const PipelineInsightView = errorBoundary.find(SpinErrorBoundary).prop('children').type;
+    const routedElement = React.createElement(RoutedPipelineInsight, { className: 'secondary-panel' });
+    const errorBoundary = (routedElement.type as React.FunctionComponent)(routedElement.props) as React.ReactElement;
+    expect(errorBoundary.type).toBe(SpinErrorBoundary);
 
-    const wrapper = shallow(React.createElement(PipelineInsightView, { className: 'secondary-panel' }));
+    const pipelineInsightElement = errorBoundary.props.children as React.ReactElement;
+    const wrapper = (pipelineInsightElement.type as React.FunctionComponent)(
+      pipelineInsightElement.props,
+    ) as React.ReactElement;
+    expect(wrapper.type).toBe('div');
+    expect(wrapper.props.className).toBe('flex-fill secondary-panel');
 
-    expect(wrapper.hasClass('secondary-panel')).toBe(true);
-    expect(wrapper.find(UIView).prop('name')).toBe('pipelines');
-    expect(wrapper.find(UIView).prop('className')).toBe('flex-fill');
+    const container = React.Children.only(wrapper.props.children) as React.ReactElement;
+    const view = React.Children.only(container.props.children) as React.ReactElement;
+    expect(view.type).toBe(UIView);
+    expect(view.props).toEqual(expect.objectContaining({ name: 'pipelines', className: 'flex-fill' }));
   });
 
   describe('executionLookup', () => {
@@ -110,7 +117,7 @@ describe('pipeline states', () => {
       vi.spyOn(ApplicationReader, 'getApplication').mockResolvedValue({
         name: execution.application,
         dataSources: [],
-      } as any);
+      } as Application);
       const router = createRouter(getExecution);
 
       await router.stateService.go('home.executionLookup', params, { location: false });

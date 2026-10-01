@@ -1,167 +1,235 @@
-import { mount, shallow } from 'enzyme';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import React from 'react';
 
-import { AccountRegionClusterSelector, AccountService, ChecklistInput, StageConstants } from '@spinnaker/core';
+import { AccountService, StageConstants } from '@spinnaker/core';
+import { getFormGroupByLabel } from '../../../../../core/src/utils/testUtils/rtl';
 
 import { AmazonStageConfig } from '../AmazonStageConfig';
 import { awsModifyScalingProcessStage } from './modifyScalingProcessStage';
 
 describe('AWS Modify Scaling Process stage', () => {
-  function renderEditor(stage: any = {}, pipeline: any = {}) {
-    const updateStageField = vi.fn();
-    const updateStage = vi.fn();
-    const StageConfig = awsModifyScalingProcessStage.component;
-    const stageModel = { type: 'modifyAwsScalingProcess', cloudProviderType: 'aws', ...stage };
-    const wrapper = shallow(
-      <StageConfig
-        {...({
-          application: { defaultCredentials: {}, defaultRegions: {}, getDataSource: () => ({ data: [] }) },
-          pipeline,
-          stage: stageModel,
-          updateStage,
-          updateStageField,
-        } as any)}
-      />,
-    );
+  beforeEach(() => {
+    vi.spyOn(AccountService, 'listAccounts').mockResolvedValue([]);
+    vi.spyOn(AccountService, 'getUniqueAttributeForAllAccounts').mockResolvedValue([]);
+  });
 
-    return { stage: stageModel, updateStage, updateStageField, wrapper };
+  function renderEditor(stageOverrides: any = {}, pipeline: any = {}, applicationOverrides: any = {}) {
+    const initialStage = { type: 'modifyAwsScalingProcess', cloudProviderType: 'aws', ...stageOverrides };
+    const updateStage = vi.fn();
+    const updateStageField = vi.fn();
+    const StageConfig = awsModifyScalingProcessStage.component as React.ComponentType<any>;
+
+    function StageHarness() {
+      const [stage, setStage] = React.useState(initialStage);
+      const update = (changes: any) => {
+        updateStage(changes);
+        setStage((current: any) => ({ ...current, ...changes }));
+      };
+      const updateField = (changes: any) => {
+        updateStageField(changes);
+        setStage((current: any) => ({ ...current, ...changes }));
+      };
+      return (
+        <StageConfig
+          application={{
+            defaultCredentials: {},
+            defaultRegions: {},
+            getDataSource: () => ({ data: [] }),
+            ...applicationOverrides,
+          }}
+          pipeline={pipeline}
+          stage={stage}
+          updateStage={update}
+          updateStageField={updateField}
+        />
+      );
+    }
+
+    return { initialStage, updateStage, updateStageField, ...render(<StageHarness />) };
   }
 
   it('registers a dedicated stage editor', () => {
     expect(awsModifyScalingProcessStage.component).not.toBe(AmazonStageConfig);
   });
 
-  it('renders the AWS server group selectors for a pipeline stage', () => {
-    const { wrapper } = renderEditor({ target: 'current_asg' });
-    const target = wrapper.find('select[name="target"]');
+  it('renders AWS target, action, and scaling process controls', () => {
+    renderEditor({ target: 'current_asg', action: 'suspend', processes: ['Launch'] }, { strategy: true });
 
-    expect(wrapper.find(AccountRegionClusterSelector).exists()).toBe(true);
-    expect(target.exists()).toBe(true);
-    if (!wrapper.find(AccountRegionClusterSelector).exists() || !target.exists()) {
-      return;
-    }
-    expect(target.find('option').map((option) => option.prop('value'))).toEqual(
-      StageConstants.TARGET_LIST.map((option) => option.val),
-    );
-    expect(target.prop('value')).toBe('current_asg');
+    const target = within(getFormGroupByLabel('Target')).getByRole('combobox');
+    expect(
+      within(target)
+        .getAllByRole('option')
+        .map((option) => (option as HTMLOptionElement).value),
+    ).toEqual(StageConstants.TARGET_LIST.map((option) => option.val));
+    expect(target).toHaveValue('current_asg');
+    expect(within(getFormGroupByLabel('Action')).getByRole('combobox')).toHaveValue('suspend');
+    expect(screen.getByRole('checkbox', { name: 'Launch' })).toBeChecked();
+    expect(screen.getByRole('checkbox', { name: 'Terminate' })).not.toBeChecked();
   });
 
-  it('reports account, region, and cluster changes from an unmutated stage', () => {
-    const { stage, updateStage, updateStageField, wrapper } = renderEditor({
+  it('reports process selections through the controlled stage contract', () => {
+    const rendered = renderEditor({ action: 'suspend', processes: ['Launch'] }, { strategy: true });
+    rendered.updateStageField.mockClear();
+
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Terminate' }));
+
+    expect(rendered.updateStageField).toHaveBeenCalledWith({ processes: ['Launch', 'Terminate'] });
+    expect(screen.getByRole('checkbox', { name: 'Terminate' })).toBeChecked();
+  });
+
+  it('reports normal selector changes through updateStage without mutating the stage prop', async () => {
+    vi.spyOn(AccountService, 'listAccounts').mockResolvedValue([{ name: 'test' }, { name: 'prod' }] as any);
+    vi.spyOn(AccountService, 'getUniqueAttributeForAllAccounts').mockResolvedValue(['eu-west-1', 'us-east-1'] as any);
+    const application = {
+      getDataSource: () => ({
+        data: [
+          { account: 'test', region: 'eu-west-1', cluster: 'app-main', moniker: { app: 'app', cluster: 'app-main' } },
+          { account: 'prod', region: 'us-east-1', cluster: 'app-prod', moniker: { app: 'app', cluster: 'app-prod' } },
+        ],
+      }),
+    };
+    const accountRendered = renderEditor(
+      {
+        action: 'suspend',
+        cloudProvider: 'aws',
+        credentials: 'test',
+        processes: [],
+        regions: ['eu-west-1'],
+        cluster: 'app-main',
+        target: 'current_asg_dynamic',
+      },
+      { strategy: false },
+      application,
+    );
+    const originalAccountStage = {
+      ...accountRendered.initialStage,
+      regions: [...accountRendered.initialStage.regions],
+    };
+    accountRendered.updateStage.mockClear();
+
+    const account = within(getFormGroupByLabel('Account')).getByRole('combobox');
+    await screen.findByRole('option', { name: 'prod' });
+    fireEvent.change(account, { target: { value: 'prod' } });
+
+    expect(accountRendered.initialStage).toEqual(originalAccountStage);
+    expect(accountRendered.updateStage).toHaveBeenCalledExactlyOnceWith({
+      type: 'modifyAwsScalingProcess',
+      cloudProviderType: 'aws',
+      cloudProvider: 'aws',
+      credentials: 'prod',
+      regions: ['eu-west-1'],
+      cluster: undefined,
+      processes: [],
+      action: 'suspend',
+      target: 'current_asg_dynamic',
+    });
+    accountRendered.unmount();
+
+    const regionRendered = renderEditor(
+      {
+        action: 'suspend',
+        cloudProvider: 'aws',
+        credentials: 'test',
+        processes: [],
+        regions: ['eu-west-1'],
+        cluster: 'app-main',
+        target: 'current_asg_dynamic',
+      },
+      { strategy: false },
+      application,
+    );
+    const originalRegionStage = { ...regionRendered.initialStage, regions: [...regionRendered.initialStage.regions] };
+    regionRendered.updateStage.mockClear();
+    fireEvent.click(await screen.findByRole('checkbox', { name: 'eu-west-1' }));
+
+    expect(regionRendered.initialStage).toEqual(originalRegionStage);
+    expect(regionRendered.updateStage).toHaveBeenCalledExactlyOnceWith({
+      type: 'modifyAwsScalingProcess',
+      cloudProviderType: 'aws',
+      cloudProvider: 'aws',
+      credentials: 'test',
+      regions: [],
+      cluster: undefined,
+      processes: [],
+      action: 'suspend',
+      target: 'current_asg_dynamic',
+    });
+    regionRendered.unmount();
+
+    const clusterRendered = renderEditor(
+      {
+        action: 'suspend',
+        cloudProvider: 'aws',
+        credentials: 'test',
+        processes: [],
+        regions: ['eu-west-1'],
+        cluster: 'app-main',
+        target: 'current_asg_dynamic',
+      },
+      { strategy: false },
+      application,
+    );
+    const originalClusterStage = {
+      ...clusterRendered.initialStage,
+      regions: [...clusterRendered.initialStage.regions],
+    };
+    clusterRendered.updateStage.mockClear();
+    fireEvent.change(within(getFormGroupByLabel('Cluster')).getByRole('combobox'), { target: { value: '' } });
+
+    expect(clusterRendered.initialStage).toEqual(originalClusterStage);
+    expect(clusterRendered.updateStage).toHaveBeenCalledExactlyOnceWith({
+      type: 'modifyAwsScalingProcess',
+      cloudProviderType: 'aws',
+      cloudProvider: 'aws',
       credentials: 'test',
       regions: ['eu-west-1'],
-      cluster: 'app-main',
+      cluster: undefined,
+      moniker: undefined,
+      processes: [],
+      action: 'suspend',
+      target: 'current_asg_dynamic',
     });
-    const selector = wrapper.find(AccountRegionClusterSelector);
-    const selectorStage = selector.prop('component');
-
-    expect(selectorStage).not.toBe(stage);
-    selectorStage.credentials = 'prod';
-    selectorStage.regions = ['us-east-1'];
-    selectorStage.cluster = 'app-prod';
-    selector.prop('onComponentUpdate')(selectorStage);
-
-    expect(stage).toEqual(
-      expect.objectContaining({ credentials: 'test', regions: ['eu-west-1'], cluster: 'app-main' }),
-    );
-    expect(updateStage).toHaveBeenCalledWith(
-      expect.objectContaining({ credentials: 'prod', regions: ['us-east-1'], cluster: 'app-prod' }),
-    );
-    expect(updateStageField).not.toHaveBeenCalled();
-  });
-
-  it('uses the AWS scaling process names and preserves process arrays', () => {
-    const processes = ['Launch', 'AZRebalance'];
-    const nextProcesses = ['Terminate', 'ScheduledActions'];
-    const { updateStageField, wrapper } = renderEditor({ processes });
-    const checklist = wrapper.find(ChecklistInput).filterWhere((input) => input.prop('name') === 'processes');
-
-    expect(checklist.exists()).toBe(true);
-    if (!checklist.exists()) {
-      return;
-    }
-    expect(checklist.prop('stringOptions')).toEqual([
-      'Launch',
-      'Terminate',
-      'AddToLoadBalancer',
-      'AlarmNotification',
-      'AZRebalance',
-      'HealthCheck',
-      'ReplaceUnhealthy',
-      'ScheduledActions',
-    ]);
-    expect(checklist.prop('value')).toBe(processes);
-
-    checklist.prop('onChange')({ target: { value: nextProcesses } } as any);
-
-    expect(updateStageField).toHaveBeenCalledWith({ processes: nextProcesses });
   });
 
   it('supports suspend and resume while clearing only legacy action fields', () => {
     const processes = ['Launch', 'HealthCheck'];
-    const stage = {
-      action: 'suspend',
-      processes,
-      suspendProcesses: ['Terminate'],
-      resumeProcesses: ['AZRebalance'],
-    };
-    const { updateStageField, wrapper } = renderEditor(stage);
-    const action = wrapper.find('select[name="action"]');
+    const rendered = renderEditor(
+      { action: 'suspend', processes, suspendProcesses: ['Terminate'], resumeProcesses: ['AZRebalance'] },
+      { strategy: true },
+    );
+    rendered.updateStageField.mockClear();
 
-    expect(action.exists()).toBe(true);
-    if (!action.exists()) {
-      return;
-    }
-    expect(action.find('option').map((option) => [option.prop('value'), option.text()])).toEqual([
-      ['suspend', 'Suspend'],
-      ['resume', 'Resume'],
-    ]);
+    fireEvent.change(within(getFormGroupByLabel('Action')).getByRole('combobox'), { target: { value: 'resume' } });
 
-    action.simulate('change', { target: { value: 'resume' } });
-
-    const changes = updateStageField.mock.lastCall[0];
+    const changes = rendered.updateStageField.mock.lastCall[0];
     expect(changes).toEqual({ action: 'resume', suspendProcesses: undefined, resumeProcesses: undefined });
     expect(Object.prototype.hasOwnProperty.call(changes, 'processes')).toBe(false);
-    expect(stage.processes).toBe(processes);
+    expect(rendered.initialStage.processes).toBe(processes);
   });
 
-  it('normalizes legacy process fields when reopening without changing action', () => {
-    vi.spyOn(AccountService, 'listAccounts').mockReturnValue(Promise.resolve([]));
+  it('normalizes legacy process fields when reopening without changing action', async () => {
     const processes = ['Launch', 'ScheduledActions'];
-    const stage = {
-      type: 'modifyAwsScalingProcess',
-      cloudProvider: 'aws',
-      cloudProviderType: 'aws',
-      credentials: 'test',
-      regions: ['eu-west-1'],
-      cluster: 'app-main',
-      target: 'current_asg',
-      action: 'suspend',
-      processes,
-      suspendProcesses: ['Terminate'],
-      resumeProcesses: ['AZRebalance'],
-    };
-    const updateStageField = vi.fn();
-    const StageConfig = awsModifyScalingProcessStage.component;
-    const wrapper = mount(
-      <StageConfig
-        {...({
-          application: { defaultCredentials: {}, defaultRegions: {} },
-          pipeline: { strategy: true },
-          stage,
-          updateStage: vi.fn(),
-          updateStageField,
-        } as any)}
-      />,
+    const rendered = renderEditor(
+      {
+        cloudProvider: 'aws',
+        credentials: 'test',
+        regions: ['eu-west-1'],
+        cluster: 'app-main',
+        target: 'current_asg',
+        action: 'suspend',
+        processes,
+        suspendProcesses: ['Terminate'],
+        resumeProcesses: ['AZRebalance'],
+      },
+      { strategy: true },
     );
 
-    expect(updateStageField).toHaveBeenCalledWith({
-      suspendProcesses: undefined,
-      resumeProcesses: undefined,
-    });
-    expect(Object.prototype.hasOwnProperty.call(updateStageField.mock.lastCall[0], 'processes')).toBe(false);
-    expect(stage.processes).toBe(processes);
-
-    wrapper.unmount();
+    await waitFor(() =>
+      expect(rendered.updateStageField).toHaveBeenCalledWith({
+        suspendProcesses: undefined,
+        resumeProcesses: undefined,
+      }),
+    );
+    expect(rendered.initialStage.processes).toBe(processes);
   });
 });

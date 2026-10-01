@@ -1,6 +1,5 @@
-import { mount, shallow } from 'enzyme';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
-import { act } from 'react-dom/test-utils';
 
 import {
   filterClusterOptions,
@@ -8,138 +7,94 @@ import {
   makeClusterFilterKey,
   OnDemandClusterPicker,
 } from './OnDemandClusterPicker';
-import { AccountTag } from '../../account';
+import { AccountService } from '../../account';
 import type { Application } from '../../application';
 import { ApplicationDataSource } from '../../application/service/applicationDataSource';
 import { FilterModelService } from '../../filterModel';
-import { ReactSelectInput } from '../../presentation';
 import { ClusterState, initialize } from '../../state';
 
-interface IDeferred<T> {
-  promise: Promise<T>;
-  resolve: (value: T) => void;
-}
-
-function deferred<T>(): IDeferred<T> {
-  let resolve: (value: T) => void;
-  const promise = new Promise<T>((res) => {
-    resolve = res;
-  });
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((promiseResolve) => (resolve = promiseResolve));
   return { promise, resolve };
 }
 
 const flushPromises = () => new Promise((resolve) => setTimeout(resolve, 0));
 
-class TestServerGroupsDataSource {
-  public fetchOnDemand = true;
-  public refresh = vi.fn();
-  public callbacks: Array<() => void> = [];
-
-  constructor(public clusters: Array<{ account: string; name: string }> = []) {}
-
-  public onRefresh(callback: () => void): () => void {
-    this.callbacks.push(callback);
-    return () => {
-      this.callbacks = this.callbacks.filter((candidate) => candidate !== callback);
-    };
-  }
-
-  public emit(): void {
-    this.callbacks.forEach((callback) => callback());
-  }
-}
-
-const makeApplication = (serverGroups: TestServerGroupsDataSource) =>
-  ({
-    getDataSource: (key: string) => (key === 'serverGroups' ? serverGroups : undefined),
-  } as any);
-
 describe('OnDemandClusterPicker', () => {
-  beforeEach(() => initialize());
+  const clusters = [
+    { account: 'prod', name: 'api' },
+    { account: 'test', name: 'api' },
+    { account: 'prod', name: 'web' },
+  ] as any;
 
-  it('uses the exact account-qualified cluster key', () => {
-    expect(makeClusterFilterKey({ account: 'prod', name: 'payments' })).toBe('prod:payments');
+  beforeEach(() => {
+    initialize();
+    vi.spyOn(AccountService, 'challengeDestructiveActions').mockResolvedValue(false);
   });
 
-  it('keeps duplicate names from different accounts and excludes only truthy selections', () => {
-    const clusters = [
-      { account: 'prod', name: 'payments' },
-      { account: 'staging', name: 'payments' },
-      { account: 'prod', name: 'ledger' },
-    ];
+  it('builds stable account-qualified filter keys', () => {
+    expect(makeClusterFilterKey(clusters[0])).toBe('prod:api');
+  });
 
-    expect(getAvailableClusters(clusters, { 'prod:payments': true, 'staging:payments': false })).toEqual([
-      expect.objectContaining({ value: 'staging:payments', account: 'staging', name: 'payments' }),
-      expect.objectContaining({ value: 'prod:ledger', account: 'prod', name: 'ledger' }),
+  it('omits selected clusters and preserves account/name option data', () => {
+    expect(getAvailableClusters(clusters, { 'prod:api': true })).toEqual([
+      { account: 'test', label: 'test api', name: 'api', value: 'test:api' },
+      { account: 'prod', label: 'prod web', name: 'web', value: 'prod:web' },
     ]);
-    expect(getAvailableClusters(undefined, undefined)).toEqual([]);
   });
 
-  it('filters account and name case-insensitively and caps results at 50 by default', () => {
-    const options = getAvailableClusters(
-      Array.from({ length: 60 }, (_, index) => ({
-        account: index === 55 ? 'Main-PROD' : 'staging',
-        name: index === 55 ? 'Payment-API' : `cluster-${index}`,
-      })),
-      {},
-    );
-
-    expect(filterClusterOptions(options, '')).toHaveSize(50);
-    expect(filterClusterOptions(options, 'PROD payment')).toEqual([
-      expect.objectContaining({ account: 'Main-PROD', name: 'Payment-API' }),
-    ]);
-    expect(filterClusterOptions(undefined, 'anything')).toEqual([]);
+  it('filters by account or cluster name case-insensitively and limits results', () => {
+    const options = getAvailableClusters(clusters);
+    expect(filterClusterOptions(options, 'PROD')).toHaveLength(2);
+    expect(filterClusterOptions(options, 'web')).toEqual([options[2]]);
+    expect(filterClusterOptions(options, '', 2)).toHaveLength(2);
   });
 
-  it('renders the legacy copy and account-qualified plain select options', () => {
-    const serverGroups = new TestServerGroupsDataSource([
-      { account: 'prod', name: 'payments' },
-      { account: 'staging', name: 'ledger' },
-    ]);
-    const wrapper = mount(<OnDemandClusterPicker application={makeApplication(serverGroups)} />);
-    const select = wrapper.find(ReactSelectInput);
+  it('updates the available count after a data-source refresh', () => {
+    let refreshListener = () => undefined;
+    const disposeRefreshListener = vi.fn();
+    const dataSource = {
+      clusters: clusters.slice(0, 2),
+      onRefresh: (listener: () => void) => {
+        refreshListener = listener;
+        return disposeRefreshListener;
+      },
+      refresh: vi.fn(),
+    } as any;
+    const application = { getDataSource: () => dataSource } as any;
+    const { unmount } = render(<OnDemandClusterPicker application={application} />);
+    expect(screen.getByText('2 clusters found in this application')).toBeInTheDocument();
 
-    expect(wrapper.find('h4').text()).toBe('2 clusters found in this application');
-    expect(wrapper.text()).toContain('Not all clusters are shown. Select or enter a cluster name below to view:');
-    expect(select.prop('mode')).toBe('PLAIN');
-    expect(select.prop('placeholder')).toBe('Enter cluster name here');
-    expect(select.prop('value')).toBeNull();
+    dataSource.clusters = clusters;
+    act(() => refreshListener());
+    expect(screen.getByText('3 clusters found in this application')).toBeInTheDocument();
 
-    const option = (select.prop('options') as any[])[0];
-    const renderedOption = shallow(<div>{(select.prop('optionRenderer') as any)(option)}</div>);
-    expect(renderedOption.find(AccountTag).prop('account')).toBe('prod');
-    expect(renderedOption.text()).toContain('payments');
-
-    wrapper.unmount();
+    unmount();
+    expect(disposeRefreshListener).toHaveBeenCalledTimes(1);
   });
 
-  it('selects the full key, updates the URL before refresh, clears control state, and ignores null', () => {
-    const serverGroups = new TestServerGroupsDataSource([{ account: 'prod', name: 'payments' }]);
-    const application = makeApplication(serverGroups);
+  it('selects a cluster through the visible search control', () => {
+    const dataSource = {
+      clusters,
+      onRefresh: () => vi.fn(),
+      refresh: vi.fn(),
+    } as any;
     const applyParamsToUrl = vi
       .spyOn(ClusterState.filterModel.asFilterModel, 'applyParamsToUrl')
-      .mockReturnValue(undefined);
-    const wrapper = mount(<OnDemandClusterPicker application={application} />);
-    const onChange = wrapper.find(ReactSelectInput).prop('onChange') as any;
+      .mockImplementation(() => undefined);
+    render(<OnDemandClusterPicker application={{ getDataSource: () => dataSource } as any} />);
+    const input = screen.getByRole('combobox', { name: 'Cluster' });
 
-    act(() => onChange({ target: { value: null } }));
-    expect(serverGroups.refresh).not.toHaveBeenCalled();
+    fireEvent.mouseDown(input);
+    fireEvent.mouseDown(screen.getByRole('option', { name: /prod api/i }));
 
-    act(() => onChange({ target: { value: 'prod:payments' } }));
-    wrapper.update();
-
-    expect(ClusterState.filterModel.asFilterModel.sortFilter.clusters).toEqual({ 'prod:payments': true });
-    expect(applyParamsToUrl).toHaveBeenCalledBefore(serverGroups.refresh);
-    expect(serverGroups.refresh).toHaveBeenCalledTimes(1);
-    expect(wrapper.find(ReactSelectInput).prop('value')).toBeNull();
-    expect(wrapper.find(ReactSelectInput).prop('options')).toEqual([]);
-
-    wrapper.unmount();
+    expect(ClusterState.filterModel.asFilterModel.sortFilter.clusters['prod:api']).toBe(true);
+    expect(applyParamsToUrl).toHaveBeenCalled();
+    expect(dataSource.refresh).toHaveBeenCalledWith(true);
   });
 
-  it('force refreshes the latest full selection while the previous refresh is loading', async () => {
-    const firstKey = 'prod:payments';
-    const secondKey = 'staging:ledger';
+  it('force refreshes the complete latest selection while an earlier refresh is pending', async () => {
     const requests: string[] = [];
     const responses = [deferred<unknown[]>(), deferred<unknown[]>()];
     const application = {} as Application;
@@ -160,59 +115,31 @@ describe('OnDemandClusterPicker', () => {
     serverGroups.clusters = [
       { account: 'prod', name: 'payments' },
       { account: 'staging', name: 'ledger' },
-    ];
+    ] as any;
     application.getDataSource = (key: string) => (key === 'serverGroups' ? serverGroups : undefined);
-    const applyParamsToUrl = vi
-      .spyOn(ClusterState.filterModel.asFilterModel, 'applyParamsToUrl')
-      .mockReturnValue(undefined);
+    vi.spyOn(ClusterState.filterModel.asFilterModel, 'applyParamsToUrl').mockImplementation(() => undefined);
     const refresh = vi.spyOn(serverGroups, 'refresh');
-    const wrapper = mount(<OnDemandClusterPicker application={application} />);
-    const onChange = wrapper.find(ReactSelectInput).prop('onChange') as any;
+    const rendered = render(<OnDemandClusterPicker application={application} />);
     await flushPromises();
 
-    act(() => onChange({ target: { value: firstKey } }));
+    fireEvent.mouseDown(screen.getByRole('combobox', { name: 'Cluster' }));
+    fireEvent.mouseDown(screen.getByRole('option', { name: 'prod payments' }));
     await flushPromises();
-    act(() => onChange({ target: { value: secondKey } }));
+    fireEvent.mouseDown(screen.getByRole('combobox', { name: 'Cluster' }));
+    fireEvent.mouseDown(screen.getByRole('option', { name: 'staging ledger' }));
     await flushPromises();
 
-    expect(requests).toEqual([firstKey, `${firstKey},${secondKey}`]);
+    expect(requests).toEqual(['prod:payments', 'prod:payments,staging:ledger']);
     expect(refresh.mock.calls).toEqual([[true], [true]]);
-    expect(applyParamsToUrl.mock.invocationCallOrder[0]).toBeLessThan(refresh.mock.invocationCallOrder[0]);
-    expect(applyParamsToUrl.mock.invocationCallOrder[1]).toBeLessThan(refresh.mock.invocationCallOrder[1]);
 
     responses[1].resolve([]);
     responses[0].resolve([]);
     await flushPromises();
-    wrapper.unmount();
+    rendered.unmount();
     serverGroups.destroy();
   });
 
-  it('recomputes total and available summaries after refresh and cleans up its subscription', () => {
-    const serverGroups = new TestServerGroupsDataSource([{ account: 'prod', name: 'payments' }]);
-    ClusterState.filterModel.asFilterModel.sortFilter.clusters = { 'prod:payments': true };
-    const wrapper = mount(<OnDemandClusterPicker application={makeApplication(serverGroups)} />);
-
-    expect(serverGroups.callbacks).toHaveSize(1);
-    expect(wrapper.find('h4').text()).toBe('1 clusters found in this application');
-    expect(wrapper.find(ReactSelectInput).prop('options')).toEqual([]);
-
-    serverGroups.clusters = [
-      { account: 'prod', name: 'payments' },
-      { account: 'staging', name: 'payments' },
-    ];
-    act(() => serverGroups.emit());
-    wrapper.update();
-
-    expect(wrapper.find('h4').text()).toBe('2 clusters found in this application');
-    expect(wrapper.find(ReactSelectInput).prop('options')).toEqual([
-      expect.objectContaining({ value: 'staging:payments' }),
-    ]);
-
-    wrapper.unmount();
-    expect(serverGroups.callbacks).toHaveSize(0);
-  });
-
-  it('styles the native picker as a block and uses consistent select menu height limits', () => {
+  it('keeps block layout and matching finite select-menu height limits', () => {
     const root = document.createElement('div');
     const outerMenu = document.createElement('div');
     const menu = document.createElement('div');

@@ -1,12 +1,10 @@
-import type { ReactWrapper } from 'enzyme';
-import { mount } from 'enzyme';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
-import { act } from 'react-dom/test-utils';
 
-import type { Application, TetheredSelect as TetheredSelectType } from '@spinnaker/core';
-import { TetheredSelect } from '@spinnaker/core';
+import type { Application } from '@spinnaker/core';
 
 import { AmazonImageSelectInput } from './AmazonImageSelectInput';
+import { setupUser } from '../../../../core/src/utils/testUtils/userEvent';
 import type { IAmazonImage } from '../../image';
 import { AwsImageReader } from '../../image';
 
@@ -24,29 +22,14 @@ describe('AmazonImageSelectInput', () => {
   const image2 = makeImage('app-package-2.0', 'ami-222');
 
   beforeEach(() => {
-    vi.spyOn(AwsImageReader.prototype, 'findImages').mockReturnValue(Promise.resolve([image1, image2]));
+    vi.spyOn(AwsImageReader.prototype, 'findImages').mockImplementation(({ q }: { q: string }) =>
+      Promise.resolve(q === 'app-package-2' ? [image2] : [image1, image2]),
+    );
     vi.spyOn(AwsImageReader.prototype, 'getImage').mockReturnValue(Promise.resolve(null));
   });
 
-  async function settle(component: ReactWrapper): Promise<void> {
-    await act(async () => {
-      await Promise.resolve();
-      await Promise.resolve();
-    });
-    component.update();
-  }
-
-  // The package-images dropdown's menu is only rendered by the underlying react-select
-  // instance once it's open, which normally happens via a real focus/mousedown DOM event.
-  // Driving the TetheredSelect instance directly is more reliable than simulating focus in a
-  // detached test DOM, and it's how a user's click on the control ultimately manifests anyway.
-  function openMenu(component: ReactWrapper): void {
-    (component.find(TetheredSelect).instance() as TetheredSelectType).setState({ isOpen: true });
-    component.update();
-  }
-
-  function mountInput(onChange: (image: IAmazonImage) => void, value: IAmazonImage = null) {
-    return mount(
+  function renderInput(onChange: (image: IAmazonImage) => void, value: IAmazonImage = null) {
+    return render(
       <AmazonImageSelectInput
         onChange={onChange}
         value={value}
@@ -57,68 +40,67 @@ describe('AmazonImageSelectInput', () => {
     );
   }
 
+  async function waitForPackageImages(): Promise<void> {
+    expect(await screen.findByText('Pick an image')).toBeInTheDocument();
+  }
+
+  function openMenu(container: HTMLElement): void {
+    fireEvent.mouseDown(container.querySelector('.Select-control'));
+  }
+
   it('renders a single options menu wrapper, not a nested duplicate', async () => {
-    const component = mountInput(vi.fn());
-    await settle(component);
-    openMenu(component);
+    const { container } = renderInput(vi.fn());
+    await waitForPackageImages();
+    openMenu(container);
 
     // Regression test: buildImageMenu used to re-wrap its options in a second
     // ".Select-menu-outer > .Select-menu" pair on top of react-select's own wrapper. The inner
     // duplicate kept its default `position: absolute` styling instead of the `position: static`
     // override TetheredSelect applies to the outermost wrapper, which broke the sizing/hit-testing
     // of the real, Tether-positioned menu: the list was visible but clicks landed on nothing.
-    expect(component.find('.Select-menu-outer').length).toBe(1);
+    expect(await screen.findAllByRole('option')).toHaveLength(2);
+    expect(document.querySelectorAll('.Select-menu-outer')).toHaveLength(1);
   });
 
   it('selects the clicked image from the package images dropdown', async () => {
     const onChange = vi.fn();
-    const component = mountInput(onChange);
-    await settle(component);
-    openMenu(component);
+    const { container } = renderInput(onChange);
+    await waitForPackageImages();
+    openMenu(container);
 
-    const options = component.find('.Select-option');
-    expect(options.length).toBe(2);
-    options.first().simulate('mousedown');
+    const options = await screen.findAllByRole('option');
+    expect(options).toHaveLength(2);
+    fireEvent.mouseDown(screen.getByRole('option', { name: new RegExp(image1.imageName) }));
 
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ imageName: image1.imageName }));
   });
 
   it('provides a way back from "Search All Images" to the package images dropdown', async () => {
-    const component = mountInput(vi.fn());
-    await settle(component);
+    const user = setupUser();
+    renderInput(vi.fn());
+    await waitForPackageImages();
 
-    expect(component.text()).toContain('Pick an image');
-
-    component.find('button.link').simulate('click');
-    component.update();
-    expect(component.text()).toContain('Search for an image');
+    await user.click(screen.getByRole('button', { name: 'Search All Images' }));
+    expect(screen.getByText('Search for an image...')).toBeInTheDocument();
 
     // Regression test: there used to be no control to switch back out of search-all-images mode.
-    const backButton = component.find('button.link');
-    expect(backButton.text()).toContain('Back to Package Images');
-    backButton.simulate('click');
-    component.update();
+    await user.click(screen.getByRole('button', { name: 'Back to Package Images' }));
 
-    expect(component.text()).toContain('Pick an image');
+    expect(screen.getByText('Pick an image')).toBeInTheDocument();
   });
 
   it('selects the clicked image while searching all images', async () => {
+    const user = setupUser();
     const onChange = vi.fn();
-    const component = mountInput(onChange);
-    await settle(component);
+    const { container } = renderInput(onChange);
+    await waitForPackageImages();
 
-    component.find('button.link').simulate('click');
-    component.update();
+    await user.click(screen.getByRole('button', { name: 'Search All Images' }));
+    await user.type(screen.getByRole('combobox'), 'app-package-2');
 
-    // Populate search results directly, bypassing the debounced RxJS search pipeline, which is
-    // not what this test is exercising.
-    (component.instance() as AmazonImageSelectInput).setState({ searchString: 'app', searchResults: [image2] });
-    component.update();
-    openMenu(component);
-
-    const options = component.find('.Select-option');
-    expect(options.length).toBe(1);
-    options.first().simulate('mousedown');
+    await waitFor(() => expect(screen.getAllByRole('option')).toHaveLength(1), { timeout: 2000 });
+    expect(container.querySelector('.Select')).toHaveClass('is-open');
+    fireEvent.mouseDown(screen.getByRole('option', { name: new RegExp(image2.imageName) }));
 
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ imageName: image2.imageName }));
   });

@@ -1,7 +1,5 @@
+import { fireEvent, render, within } from '@testing-library/react';
 import React from 'react';
-import { shallow } from 'enzyme';
-
-import type { IGceLoadBalancerData } from '../common';
 
 import {
   buildGceNetworkLoadBalancerOptions,
@@ -9,6 +7,7 @@ import {
   validateGceNetworkLoadBalancerCommand,
 } from './GceNetworkLoadBalancerEditor';
 import { normalizeGceNetworkLoadBalancerCommand } from './GceNetworkLoadBalancerModal';
+import type { IGceLoadBalancerData } from '../common';
 
 describe('GceNetworkLoadBalancerEditor', () => {
   it('keeps unavailable persisted address and network references in scoped options', () => {
@@ -57,7 +56,9 @@ describe('GceNetworkLoadBalancerEditor', () => {
       },
       'edit',
     );
-    const wrapper = shallow(<GceNetworkLoadBalancerEditor command={command} data={emptyData()} onChange={vi.fn()} />);
+    const { container } = render(
+      <GceNetworkLoadBalancerEditor command={command} data={emptyData()} onChange={vi.fn()} />,
+    );
 
     [
       'name',
@@ -76,25 +77,15 @@ describe('GceNetworkLoadBalancerEditor', () => {
       'checkIntervalSec',
       'healthyThreshold',
       'unhealthyThreshold',
-    ].forEach((field) => expect(wrapper.find(`[data-field="${field}"]`).exists()).toBe(true));
-    ['name', 'credentials', 'region', 'network', 'targetPool', 'sessionAffinity'].forEach((field) => {
-      const control = wrapper.find(`[data-field="${field}"]`);
-      expect((control.find('input').exists() ? control.find('input') : control.find('select')).prop('disabled')).toBe(
-        true,
-      );
+    ].forEach((name) => expect(field(container, name)).toBeInTheDocument());
+    ['name', 'credentials', 'region', 'network', 'targetPool', 'sessionAffinity'].forEach((name) => {
+      expect(fieldControl(container, name)).toBeDisabled();
     });
-    ['address', 'protocol', 'portRange', 'healthCheckPort'].forEach((field) => {
-      const control = wrapper.find(`[data-field="${field}"]`);
-      expect(
-        (control.find('input').exists() ? control.find('input') : control.find('select')).prop('disabled'),
-      ).not.toBe(true);
+    ['address', 'protocol', 'portRange', 'healthCheckPort'].forEach((name) => {
+      expect(fieldControl(container, name)).not.toBeDisabled();
     });
-    expect(wrapper.find('[data-field="protocol"] option').map((option) => option.prop('value'))).toEqual([
-      '',
-      'TCP',
-      'UDP',
-    ]);
-    expect(wrapper.find('[data-field="sessionAffinity"] option').map((option) => option.prop('value'))).toEqual([
+    expect(optionValues(fieldControl(container, 'protocol'))).toEqual(['', 'TCP', 'UDP']);
+    expect(optionValues(fieldControl(container, 'sessionAffinity'))).toEqual([
       '',
       'NONE',
       'CLIENT_IP',
@@ -108,20 +99,22 @@ describe('GceNetworkLoadBalancerEditor', () => {
       'create',
     );
     const onChange = vi.fn();
-    const wrapper = shallow(<GceNetworkLoadBalancerEditor command={command} data={emptyData()} onChange={onChange} />);
+    const { container } = render(
+      <GceNetworkLoadBalancerEditor command={command} data={emptyData()} onChange={onChange} />,
+    );
 
-    wrapper.find('[data-field="protocol"] select').simulate('change', { target: { value: 'UDP' } });
+    fireEvent.change(fieldControl(container, 'protocol'), { target: { value: 'UDP' } });
     expect(onChange.mock.lastCall[0].listeners[0].protocol).toBe('UDP');
 
-    wrapper.find('[data-field="sessionAffinity"] select').simulate('change', {
+    fireEvent.change(fieldControl(container, 'sessionAffinity'), {
       target: { value: 'CLIENT_IP_PROTO' },
     });
     expect(onChange.mock.lastCall[0].sessionAffinity).toBe('CLIENT_IP_PROTO');
 
-    wrapper.find('[data-field="requestPath"] input').simulate('change', { target: { value: 'status' } });
+    fireEvent.change(fieldControl(container, 'requestPath'), { target: { value: 'status' } });
     expect(onChange.mock.lastCall[0].healthChecks[0].requestPath).toBe('/status');
 
-    wrapper.find('[data-field="healthCheckEnabled"] input').simulate('change', { target: { checked: false } });
+    fireEvent.click(fieldControl(container, 'healthCheckEnabled'));
     expect(onChange.mock.lastCall[0].healthChecks).toEqual([]);
   });
 
@@ -170,4 +163,22 @@ function emptyData(): IGceLoadBalancerData {
     regions: [],
     subnets: [],
   };
+}
+
+function field(container: HTMLElement, name: string): HTMLElement | null {
+  return container.querySelector(`[data-field="${name}"]`);
+}
+
+function fieldControl(container: HTMLElement, name: string): HTMLInputElement | HTMLSelectElement {
+  const control = field(container, name)?.querySelector('input, select');
+  if (!(control instanceof HTMLInputElement || control instanceof HTMLSelectElement)) {
+    throw new Error(`No control found for ${name}`);
+  }
+  return control;
+}
+
+function optionValues(select: HTMLElement): string[] {
+  return within(select)
+    .getAllByRole('option')
+    .map((option) => (option as HTMLOptionElement).value);
 }

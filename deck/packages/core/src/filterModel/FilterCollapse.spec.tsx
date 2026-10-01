@@ -1,33 +1,31 @@
-import { shallow } from 'enzyme';
+import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 
 import { FilterCollapse } from './FilterCollapse';
-import { Tooltip } from '../presentation';
 
 describe('FilterCollapse', () => {
   it('renders and toggles solely from controlled expansion state', () => {
     const onToggle = vi.fn();
-    const wrapper = shallow(<FilterCollapse filtersExpanded={false} onToggle={onToggle} />);
+    const { container, rerender } = render(<FilterCollapse filtersExpanded={false} onToggle={onToggle} />);
 
-    expect(wrapper.find('.filters-hidden').length).toBe(1);
-    expect(wrapper.find(Tooltip).prop('value')).toBe('Show filters');
-    expect(wrapper.find('button').type()).toBe('button');
-    expect(wrapper.find('button').hasClass('pin')).toBe(true);
-    expect(wrapper.find('.fa-forward').length).toBe(1);
-    expect(wrapper.find('.show-filter-text').text()).toContain('Show filters');
+    const button = screen.getByRole('button');
+    expect(container.querySelector('.filters-hidden')).toBeInTheDocument();
+    expect(button).toHaveAttribute('type', 'button');
+    expect(button).toHaveClass('pin');
+    expect(container.querySelector('.fa-forward')).toBeInTheDocument();
+    expect(container.querySelector('.show-filter-text')).toHaveTextContent('Show filters');
 
-    wrapper.find('button').simulate('click');
+    fireEvent.click(button);
     expect(onToggle).toHaveBeenCalledTimes(1);
 
-    wrapper.setProps({ filtersExpanded: true });
-    expect(wrapper.find('.filters-open').length).toBe(1);
-    expect(wrapper.find(Tooltip).prop('value')).toBe('Hide filters');
-    expect(wrapper.find('button').type()).toBe('button');
-    expect(wrapper.find('button').hasClass('unpin')).toBe(true);
-    expect(wrapper.find('.fa-backward').length).toBe(1);
-    expect(wrapper.text()).toContain('Filters');
+    rerender(<FilterCollapse filtersExpanded={true} onToggle={onToggle} />);
+    const expandedButton = screen.getByRole('button');
+    expect(container.querySelector('.filters-open')).toBeInTheDocument();
+    expect(expandedButton).toHaveClass('unpin');
+    expect(container.querySelector('.fa-backward')).toBeInTheDocument();
+    expect(container).toHaveTextContent('Filters');
 
-    wrapper.find('button').simulate('click');
+    fireEvent.click(expandedButton);
     expect(onToggle).toHaveBeenCalledTimes(2);
   });
 });

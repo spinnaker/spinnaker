@@ -1,6 +1,6 @@
+import { fireEvent, render, screen } from '@testing-library/react';
+import { setupUser } from '../../../../../core/src/utils/testUtils/userEvent';
 import type { Mock } from 'vitest';
-import type { ShallowWrapper } from 'enzyme';
-import { shallow } from 'enzyme';
 import React from 'react';
 
 import type { ILabelEditorProps } from './LabelEditor';
@@ -9,8 +9,6 @@ import LabelEditor from './LabelEditor';
 describe('<LabelEditor />', () => {
   let onChangeSpy: Mock;
   let props: ILabelEditorProps;
-  let component: ShallowWrapper<LabelEditor>;
-
   beforeEach(() => {
     onChangeSpy = vi.fn();
     props = {
@@ -28,25 +26,24 @@ describe('<LabelEditor />', () => {
       ],
       onLabelSelectorsChange: onChangeSpy,
     };
-    component = shallow(<LabelEditor {...props} />);
+    render(<LabelEditor {...props} />);
   });
 
   describe('view', () => {
     it('renders a row for each label selector', () => {
-      expect(component.find('.label-editor-selector-row').length).toEqual(props.labelSelectors.length);
+      expect(screen.getAllByRole('row')).toHaveLength(props.labelSelectors.length + 2);
     });
     it('renders selector values as comma-separated lists', () => {
-      expect(component.find('.label-editor-values-input').at(0).props().value).toEqual('my-value-1, my-value-2');
-      expect(component.find('.label-editor-values-input').at(1).props().value).toEqual('my-value-3');
+      const inputs = screen.getAllByRole('textbox');
+      expect(inputs[1]).toHaveValue('my-value-1, my-value-2');
+      expect(inputs[3]).toHaveValue('my-value-3');
     });
   });
 
   describe('functionality', () => {
     it('calls `props.onLabelSelectorsChange` when selector properties are changed', () => {
-      component
-        .find('.label-editor-key-input')
-        .at(0)
-        .simulate('change', { target: { value: 'my-label-1-edited' } });
+      const inputs = screen.getAllByRole('textbox');
+      fireEvent.change(inputs[0], { target: { value: 'my-label-1-edited' } });
       expect(onChangeSpy).toHaveBeenCalledWith([
         {
           ...props.labelSelectors[0],
@@ -54,10 +51,7 @@ describe('<LabelEditor />', () => {
         },
         props.labelSelectors[1],
       ]);
-      component
-        .find('.label-editor-values-input')
-        .at(1)
-        .simulate('change', { target: { value: 'my-value-3, my-value-4' } });
+      fireEvent.change(inputs[3], { target: { value: 'my-value-3, my-value-4' } });
       expect(onChangeSpy).toHaveBeenCalledWith([
         props.labelSelectors[0],
         {
@@ -66,12 +60,14 @@ describe('<LabelEditor />', () => {
         },
       ]);
     });
-    it('handles adding label selectors', () => {
-      component.find('.add-new').simulate('click');
+    it('handles adding label selectors', async () => {
+      const user = setupUser();
+      await user.click(screen.getByRole('button', { name: 'Add Label' }));
       expect(onChangeSpy).toHaveBeenCalledWith([...props.labelSelectors, { key: '', kind: 'EQUALS', values: [] }]);
     });
-    it('handles removing label selectors', () => {
-      component.find('.label-editor-remove').at(1).simulate('click');
+    it('handles removing label selectors', async () => {
+      const user = setupUser();
+      await user.click(screen.getAllByRole('button', { name: 'Remove field' })[1]);
       expect(onChangeSpy).toHaveBeenCalledWith([
         {
           ...props.labelSelectors[0],

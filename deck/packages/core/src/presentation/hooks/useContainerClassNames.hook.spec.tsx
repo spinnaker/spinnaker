@@ -1,12 +1,5 @@
-import { mount } from 'enzyme';
-import React from 'react';
-
+import { renderHookHarness } from '../../utils/testUtils/hookHarness';
 import { useContainerClassNames } from './useContainerClassNames.hook';
-
-const TestComponent = ({ classNames }: { classNames: string[] }) => {
-  useContainerClassNames(classNames);
-  return null as JSX.Element;
-};
 
 const containerClassName = 'spinnaker-container';
 const testClassNames = ['testClass1', 'testClass2'];
@@ -22,7 +15,7 @@ describe('useContainerClassNames', () => {
   it('should add class names to the container element when mounted', () => {
     vi.spyOn(document, 'querySelector').mockReturnValue(containerElement);
 
-    mount(<TestComponent classNames={testClassNames} />);
+    renderHookHarness(({ classNames }) => useContainerClassNames(classNames), { classNames: testClassNames });
 
     expect(containerElement.classList.contains(testClassNames[0])).toBe(true);
     expect(containerElement.classList.contains(testClassNames[1])).toBe(true);
@@ -31,10 +24,11 @@ describe('useContainerClassNames', () => {
   it('should remove class names from the container element when unmounted', () => {
     vi.spyOn(document, 'querySelector').mockReturnValue(containerElement);
 
-    const component = mount(<TestComponent classNames={testClassNames} />);
+    const rendered = renderHookHarness(({ classNames }) => useContainerClassNames(classNames), {
+      classNames: testClassNames,
+    });
 
-    component.render();
-    component.unmount();
+    rendered.unmount();
 
     expect(containerElement.classList.contains(testClassNames[0])).toBe(false);
     expect(containerElement.classList.contains(testClassNames[1])).toBe(false);
@@ -43,27 +37,26 @@ describe('useContainerClassNames', () => {
   it('should add and remove class names when the elements in "classNames" change', () => {
     vi.spyOn(document, 'querySelector').mockReturnValue(containerElement);
 
-    const component = mount(<TestComponent classNames={testClassNames} />);
+    const rendered = renderHookHarness(({ classNames }) => useContainerClassNames(classNames), {
+      classNames: testClassNames,
+    });
 
     expect(containerElement.classList.contains(testClassNames[0])).toBe(true);
     expect(containerElement.classList.contains(testClassNames[1])).toBe(true);
 
-    component.setProps({ classNames: testClassNames.concat('additionalClass') });
-    component.render();
+    rendered.rerenderHook({ classNames: testClassNames.concat('additionalClass') });
 
     expect(containerElement.classList.contains(testClassNames[0])).toBe(true);
     expect(containerElement.classList.contains(testClassNames[1])).toBe(true);
     expect(containerElement.classList.contains('additionalClass')).toBe(true);
 
-    component.setProps({ classNames: [testClassNames[0]] });
-    component.render();
+    rendered.rerenderHook({ classNames: [testClassNames[0]] });
 
     expect(containerElement.classList.contains(testClassNames[0])).toBe(true);
     expect(containerElement.classList.contains(testClassNames[1])).toBe(false);
     expect(containerElement.classList.contains('additionalClass')).toBe(false);
 
-    component.setProps({ classNames: [] });
-    component.render();
+    rendered.rerenderHook({ classNames: [] });
 
     expect(containerElement.classList.contains(testClassNames[0])).toBe(false);
   });
@@ -71,6 +64,8 @@ describe('useContainerClassNames', () => {
   it('should silently do nothing when the container element does not exist', () => {
     vi.spyOn(document, 'querySelector').mockReturnValue(null);
 
-    expect(() => mount(<TestComponent classNames={testClassNames} />)).not.toThrow();
+    expect(() =>
+      renderHookHarness(({ classNames }) => useContainerClassNames(classNames), { classNames: testClassNames }),
+    ).not.toThrow();
   });
 });

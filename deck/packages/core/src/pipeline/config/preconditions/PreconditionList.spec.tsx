@@ -1,4 +1,5 @@
-import { mount } from 'enzyme';
+import { render, screen, within } from '@testing-library/react';
+import { setupUser } from '../../../utils/testUtils/userEvent';
 import React from 'react';
 
 import { EditPreconditionModal } from './EditPreconditionModal';
@@ -21,24 +22,24 @@ describe('<PreconditionList />', () => {
   });
 
   it('renders precondition type, context details, and fail pipeline value', () => {
-    const component = mount(<PreconditionList {...createProps()} />);
+    render(<PreconditionList {...createProps()} />);
 
-    const rowText = component.find('tbody tr').at(0).text();
+    const row = screen.getAllByRole('row')[1];
 
-    expect(rowText).toContain('Expression');
-    expect(rowText).toContain('Expression: ${foo}');
-    expect(rowText).toContain('Failure Message: stop');
-    expect(rowText).toContain('Fail Pipeline: true');
+    expect(row).toHaveTextContent('Expression');
+    expect(row).toHaveTextContent('Expression: ${foo}');
+    expect(row).toHaveTextContent('Failure Message: stop');
+    expect(row).toHaveTextContent('Fail Pipeline: true');
   });
 
   it('adds a precondition from the edit modal result', async () => {
+    const user = setupUser();
     const props = createProps({ preconditions: [] });
     const newPrecondition = { type: 'expression', failPipeline: true, context: { expression: '${bar}' } };
     vi.spyOn(EditPreconditionModal, 'show').mockReturnValue(Promise.resolve(newPrecondition));
-    const component = mount(<PreconditionList {...props} />);
+    render(<PreconditionList {...props} />);
 
-    component.find('button.add-new').simulate('click');
-    await Promise.resolve();
+    await user.click(screen.getByRole('button', { name: /Add Precondition/ }));
 
     expect(EditPreconditionModal.show).toHaveBeenCalledWith({
       application: props.application,
@@ -50,13 +51,13 @@ describe('<PreconditionList />', () => {
   });
 
   it('edits a precondition from the edit modal result', async () => {
+    const user = setupUser();
     const props = createProps();
     const updatedPrecondition = { type: 'expression', failPipeline: false, context: { expression: '${updated}' } };
     vi.spyOn(EditPreconditionModal, 'show').mockReturnValue(Promise.resolve(updatedPrecondition));
-    const component = mount(<PreconditionList {...props} />);
+    render(<PreconditionList {...props} />);
 
-    component.find('button[data-action="edit"]').simulate('click');
-    await Promise.resolve();
+    await user.click(within(screen.getAllByRole('row')[1]).getByRole('button', { name: 'Edit precondition' }));
 
     expect(EditPreconditionModal.show).toHaveBeenCalledWith({
       application: props.application,
@@ -67,11 +68,12 @@ describe('<PreconditionList />', () => {
     expect(props.onChange).toHaveBeenCalledWith([updatedPrecondition]);
   });
 
-  it('removes a precondition', () => {
+  it('removes a precondition', async () => {
+    const user = setupUser();
     const props = createProps();
-    const component = mount(<PreconditionList {...props} />);
+    render(<PreconditionList {...props} />);
 
-    component.find('button[data-action="remove"]').simulate('click');
+    await user.click(within(screen.getAllByRole('row')[1]).getByRole('button', { name: 'Remove precondition' }));
 
     expect(props.onChange).toHaveBeenCalledWith([]);
   });

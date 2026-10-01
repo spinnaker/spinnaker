@@ -1,4 +1,4 @@
-import { mount, shallow } from 'enzyme';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 
 import {
@@ -47,13 +47,6 @@ async function importDcosEntrypoint() {
   const entrypoint = await import('./index');
   registerDcosPipelineStages();
   return entrypoint;
-}
-
-function setStateSynchronously(component: React.Component<any, any>) {
-  vi.spyOn(component, 'setState').mockImplementation((updater: any) => {
-    const nextState = typeof updater === 'function' ? updater(component.state, component.props) : updater;
-    component.state = { ...component.state, ...nextState };
-  });
 }
 
 function buildLoadedDataSource(data: any[], refresh = vi.fn()) {
@@ -196,10 +189,10 @@ describe('DC/OS provider registration', () => {
     });
   });
 
-  it('does not overwrite DC/OS label values when renaming a key to an existing key', () => {
+  it('does not overwrite DC/OS label values when renaming a key to an existing key', async () => {
     vi.spyOn(AccountService, 'getCredentialsKeyedByAccount').mockReturnValue(new Promise(() => null) as any);
     const updateStage = vi.fn();
-    const wrapper = mount(
+    render(
       React.createElement(DcosRunJobStageConfig, {
         application: {},
         stage: {
@@ -211,14 +204,9 @@ describe('DC/OS provider registration', () => {
       } as any),
     );
 
-    wrapper
-      .find('input')
-      .filterWhere((input) => input.prop('value') === 'keyA')
-      .first()
-      .simulate('change', { target: { value: 'keyB' } });
+    fireEvent.change(await screen.findByDisplayValue('keyA'), { target: { value: 'keyB' } });
 
     expect(updateStage).not.toHaveBeenCalled();
-    wrapper.unmount();
   });
 
   it('adds DC/OS key/value entries without overwriting an existing key placeholder', () => {
@@ -249,7 +237,7 @@ describe('DC/OS provider registration', () => {
     );
     const updateStage = vi.fn();
     const application = { name: 'dcosapp', defaultCredentials: { dcos: 'test-account' } } as any;
-    const wrapper = mount(
+    const rendered = render(
       React.createElement(DcosRunJobStageConfig, {
         application,
         stage: { propertyFile: 'initial' },
@@ -257,28 +245,32 @@ describe('DC/OS provider registration', () => {
       } as any),
     );
 
-    wrapper.setProps({ stage: { propertyFile: 'edited', customField: 'preserved' } });
+    rendered.rerender(
+      React.createElement(DcosRunJobStageConfig, {
+        application,
+        stage: { propertyFile: 'edited', customField: 'preserved' },
+        updateStage,
+      } as any),
+    );
     resolveCredentials({
       'test-account': {
         dcosClusters: [{ name: 'test-cluster' }],
         dockerRegistries: [{ accountName: 'docker-registry' }],
       },
     });
-    await Promise.resolve();
-    await Promise.resolve();
+    await waitFor(() => expect(updateStage).toHaveBeenCalled());
 
     const initializedStage = updateStage.mock.lastCall[0];
     expect(initializedStage.propertyFile).toBe('edited');
     expect(initializedStage.customField).toBe('preserved');
     expect(initializedStage.cloudProvider).toBe('dcos');
     expect(initializedStage.account).toBe('test-account');
-    wrapper.unmount();
   });
 
   it('initializes DC/OS stage defaults without mutating stage props', async () => {
     const stage = { type: 'resizeServerGroup', cluster: 'test-cluster' } as any;
     const updateStage = vi.fn();
-    const wrapper = mount(
+    render(
       React.createElement(DcosStageConfig, {
         application: { defaultCredentials: { dcos: 'test-account' }, defaultRegions: { dcos: 'test-region' } },
         stage,
@@ -286,7 +278,7 @@ describe('DC/OS provider registration', () => {
       } as any),
     );
 
-    await Promise.resolve();
+    await waitFor(() => expect(updateStage).toHaveBeenCalled());
 
     const initializedStage = updateStage.mock.lastCall[0];
     expect(initializedStage).not.toBe(stage);
@@ -301,10 +293,10 @@ describe('DC/OS provider registration', () => {
     );
     expect(initializedStage.regions).toEqual(['test-region']);
     expect(stage).toEqual({ type: 'resizeServerGroup', cluster: 'test-cluster' });
-    wrapper.unmount();
   });
 
   it('confirms before terminating a DC/OS instance', async () => {
+    vi.spyOn(AccountService, 'challengeDestructiveActions').mockReturnValue(Promise.resolve(false));
     const confirmSpy = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(undefined);
     vi.spyOn(InstanceWriter, 'terminateInstance').mockReturnValue(Promise.resolve() as any);
     const refresh = vi.fn();
@@ -313,14 +305,14 @@ describe('DC/OS provider registration', () => {
       refresh,
     );
     const app = { getDataSource: vi.fn().mockReturnValue(dataSource) } as any;
-    const wrapper = shallow(
+    render(
       React.createElement(DcosInstanceDetails, {
         app,
         instance: { instanceId: 'instance-1', account: 'test-account', region: 'test-cluster' },
       }),
     );
 
-    wrapper.find('button').simulate('click');
+    fireEvent.click(screen.getByRole('button', { name: 'Terminate' }));
 
     expect(confirmSpy).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -341,9 +333,9 @@ describe('DC/OS provider registration', () => {
     vi.spyOn(LoadBalancerWriter, 'deleteLoadBalancer').mockReturnValue(Promise.resolve() as any);
     const app = { loadBalancers: { refresh: vi.fn() } } as any;
     const loadBalancer = { name: 'lb-1', account: 'test-account', region: 'test-cluster' } as any;
-    const wrapper = shallow(React.createElement(DcosLoadBalancerActions, { app, loadBalancer } as any));
+    render(React.createElement(DcosLoadBalancerActions, { app, loadBalancer } as any));
 
-    wrapper.find('a').at(1).simulate('click');
+    fireEvent.click(screen.getByText('Delete'));
 
     expect(confirmSpy).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -368,22 +360,27 @@ describe('DC/OS provider registration', () => {
   });
 
   it('ignores invalid DC/OS load balancer ports from free text input', () => {
-    const modal = new DcosCreateLoadBalancerModal({} as any);
-    setStateSynchronously(modal);
+    const closeModal = vi.fn();
+    render(React.createElement(DcosCreateLoadBalancerModal, { closeModal } as any));
 
-    (modal as any).updatePorts('80, abc, 443');
+    const ports = screen.getByText('Ports', { selector: 'label' }).parentElement.querySelector('input');
+    fireEvent.change(ports, { target: { value: '80, abc, 443' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
 
-    expect(modal.state.command.ports).toEqual([80, 443]);
+    expect(closeModal).toHaveBeenCalledWith(expect.objectContaining({ ports: [80, 443] }));
   });
 
   it('adds DC/OS load balancer map entries without overwriting sparse placeholder keys', () => {
-    const modal = new DcosCreateLoadBalancerModal({ loadBalancer: { labels: { key2: 'prod' } } } as any);
-    setStateSynchronously(modal);
-    const wrapper = shallow((modal as any).renderMap('Labels', 'labels'));
+    render(
+      React.createElement(DcosCreateLoadBalancerModal, {
+        loadBalancer: { labels: { key2: 'prod' } },
+      } as any),
+    );
 
-    wrapper.find('button').simulate('click');
+    fireEvent.click(screen.getByRole('button', { name: 'Add Labels' }));
 
-    expect(modal.state.command.labels).toEqual({ key2: 'prod', key: '' });
+    expect(screen.getByDisplayValue('key2')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('key')).toBeInTheDocument();
   });
 
   it('keeps the DC/OS load balancer modal open until upsert and refresh complete', async () => {
@@ -394,12 +391,14 @@ describe('DC/OS provider registration', () => {
     const refresh = vi.fn().mockReturnValue(Promise.resolve());
     vi.spyOn(LoadBalancerWriter, 'upsertLoadBalancer').mockReturnValue(upsert as any);
     const closeModal = vi.fn();
-    const modal = new DcosCreateLoadBalancerModal({
-      app: { loadBalancers: { refresh } },
-      closeModal,
-    } as any);
+    render(
+      React.createElement(DcosCreateLoadBalancerModal, {
+        app: { loadBalancers: { refresh } },
+        closeModal,
+      } as any),
+    );
 
-    (modal as any).submit();
+    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
 
     expect(closeModal).not.toHaveBeenCalled();
 
@@ -417,12 +416,14 @@ describe('DC/OS provider registration', () => {
     const upsert = Promise.reject(new Error('upsert failed'));
     vi.spyOn(LoadBalancerWriter, 'upsertLoadBalancer').mockReturnValue(upsert as any);
     const closeModal = vi.fn();
-    const modal = new DcosCreateLoadBalancerModal({
-      app: { loadBalancers: { refresh: vi.fn() } },
-      closeModal,
-    } as any);
+    render(
+      React.createElement(DcosCreateLoadBalancerModal, {
+        app: { loadBalancers: { refresh: vi.fn() } },
+        closeModal,
+      } as any),
+    );
 
-    (modal as any).submit();
+    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
     await upsert.catch(() => undefined);
     await Promise.resolve();
 
@@ -430,12 +431,18 @@ describe('DC/OS provider registration', () => {
   });
 
   it('adds DC/OS clone server group map entries without overwriting sparse placeholder keys', () => {
-    const modal = new DcosCloneServerGroupModal({ command: { labels: { key2: 'prod' } } } as any);
-    setStateSynchronously(modal);
-    const wrapper = shallow((modal as any).renderMap('Labels', 'labels'));
+    render(
+      React.createElement(DcosCloneServerGroupModal, {
+        application: {},
+        closeModal: vi.fn(),
+        command: { labels: { key2: 'prod' } },
+        dismissModal: vi.fn(),
+      } as any),
+    );
 
-    wrapper.find('button').simulate('click');
+    fireEvent.click(screen.getByRole('button', { name: 'Add Labels' }));
 
-    expect(modal.state.command.labels).toEqual({ key2: 'prod', key: '' });
+    expect(screen.getByDisplayValue('key2')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('key')).toBeInTheDocument();
   });
 });

@@ -1,13 +1,13 @@
-import type { Mock } from 'vitest';
-import { mount } from 'enzyme';
+import { render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
-import { act } from 'react-dom/test-utils';
+import type { Mock } from 'vitest';
 
 import { ConsoleOutputModal } from './ConsoleOutputModal';
 import { InstanceReader } from '../../InstanceReader';
-import { ModalContext } from '../../../presentation/modal/ModalContext';
 import { SETTINGS } from '../../../config/settings';
 import type { IInstance } from '../../../domain';
+import { ModalContext } from '../../../presentation/modal/ModalContext';
+import { setupUser } from '../../../utils/testUtils';
 
 const mockInstance: IInstance = {
   account: 'test-account',
@@ -29,19 +29,15 @@ function wrapWithModalContext(node: React.ReactElement) {
   return <ModalContext.Provider value={modalContextValue}>{node}</ModalContext.Provider>;
 }
 
-// Flush microtask queue so useData resolves
-const flushMicrotasks = () =>
-  act(async () => {
-    await Promise.resolve();
-  });
-
-function makeWrapper(usesMultiOutput = false) {
-  return mount(
+function renderModal(usesMultiOutput = false) {
+  return render(
     wrapWithModalContext(
       <ConsoleOutputModal instance={mockInstance} usesMultiOutput={usesMultiOutput} dismissModal={() => {}} />,
     ),
   );
 }
+
+const findButton = (name: string) => screen.findByRole('button', { name });
 
 describe('ConsoleOutputModal', () => {
   let getConsoleOutputSpy: Mock;
@@ -53,149 +49,101 @@ describe('ConsoleOutputModal', () => {
 
   afterEach(() => {
     SETTINGS.resetToOriginal();
-    try {
-      vi.useRealTimers();
-    } catch (_) {}
   });
 
   describe('rendering', () => {
     it('shows a spinner while loading', () => {
       getConsoleOutputSpy.mockReturnValue(new Promise(() => {}));
-      const wrapper = makeWrapper();
-      expect(wrapper.find('Spinner').exists()).toBe(true);
-      wrapper.unmount();
+      const { container } = renderModal();
+      expect(container.querySelector('.spinner-container .load')).toBeInTheDocument();
     });
 
     it('renders single-output log content when not multi-output', async () => {
-      const wrapper = makeWrapper();
-      await flushMicrotasks();
-      wrapper.update();
-      expect(wrapper.find('pre').text()).toContain('some log output');
-      wrapper.unmount();
+      renderModal();
+      const log = await screen.findByText('some log output');
+      expect(log.tagName).toBe('PRE');
     });
 
     it('renders tabs for multi-output logs', async () => {
       getConsoleOutputSpy.mockReturnValue(Promise.resolve(multiOutput));
-      const wrapper = makeWrapper(true);
-      await flushMicrotasks();
-      wrapper.update();
-      const tabs = wrapper.find('.console-output-tab');
-      expect(tabs.length).toBe(2);
-      expect(tabs.at(0).text()).toBe('container-1');
-      expect(tabs.at(1).text()).toBe('container-2');
-      wrapper.unmount();
+      const { container } = renderModal(true);
+      await screen.findByText('container-1');
+      const tabs = Array.from(container.querySelectorAll('.console-output-tab'));
+      expect(tabs.map((tab) => tab.textContent)).toEqual(['container-1', 'container-2']);
     });
 
     it('shows Refresh and Auto-Refresh buttons when output is available', async () => {
-      const wrapper = makeWrapper();
-      await flushMicrotasks();
-      wrapper.update();
-      const labels = wrapper.find('button').map((b: any) => b.text());
-      expect(labels).toContain('Refresh');
-      expect(labels).toContain('Auto-Refresh: Off');
-      wrapper.unmount();
+      renderModal();
+      expect(await findButton('Refresh')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Auto-Refresh: Off' })).toBeInTheDocument();
     });
 
     it('does not show Refresh or Auto-Refresh buttons while loading', () => {
       getConsoleOutputSpy.mockReturnValue(new Promise(() => {}));
-      const wrapper = makeWrapper();
-      const labels = wrapper.find('button').map((b: any) => b.text());
-      expect(labels).not.toContain('Refresh');
-      expect(labels).not.toContain('Auto-Refresh: Off');
-      wrapper.unmount();
+      renderModal();
+      expect(screen.queryByRole('button', { name: 'Refresh' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Auto-Refresh: Off' })).not.toBeInTheDocument();
     });
   });
 
   describe('manual refresh', () => {
     it('calls getConsoleOutput again when Refresh button is clicked', async () => {
-      const wrapper = makeWrapper();
-      await flushMicrotasks();
-      wrapper.update();
+      const user = setupUser();
+      renderModal();
+      const refresh = await findButton('Refresh');
 
       getConsoleOutputSpy.mockClear();
-      wrapper
-        .find('button')
-        .filterWhere((b: any) => b.text() === 'Refresh')
-        .simulate('click');
-      expect(getConsoleOutputSpy).toHaveBeenCalledTimes(1);
-      wrapper.unmount();
+      await user.click(refresh);
+      await waitFor(() => expect(getConsoleOutputSpy).toHaveBeenCalledTimes(1));
     });
   });
 
   describe('auto-refresh toggle', () => {
     it('toggles button label when Auto-Refresh is clicked', async () => {
-      const wrapper = makeWrapper();
-      await flushMicrotasks();
-      wrapper.update();
+      const user = setupUser();
+      renderModal();
 
-      const autoRefreshBtn = () => wrapper.find('button').filterWhere((b: any) => b.text().startsWith('Auto-Refresh'));
-      expect(autoRefreshBtn().text()).toBe('Auto-Refresh: Off');
-
-      // Use act to flush state update from the click
-      act(() => {
-        autoRefreshBtn().simulate('click');
-      });
-      wrapper.update();
-      expect(autoRefreshBtn().text()).toBe('Auto-Refresh: On');
-      wrapper.unmount();
+      await user.click(await findButton('Auto-Refresh: Off'));
+      expect(screen.getByRole('button', { name: 'Auto-Refresh: On' })).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Auto-Refresh: Off' })).not.toBeInTheDocument();
     });
 
     it('registers a setInterval with the configured refresh interval when auto-refresh is enabled', async () => {
-      const setIntervalSpy = vi.spyOn(window, 'setInterval');
-      const wrapper = makeWrapper();
-      await flushMicrotasks();
-      wrapper.update();
+      const user = setupUser();
+      const setIntervalSpy = vi.spyOn(globalThis, 'setInterval');
+      renderModal();
 
-      act(() => {
-        wrapper
-          .find('button')
-          .filterWhere((b: any) => b.text() === 'Auto-Refresh: Off')
-          .simulate('click');
-      });
-      wrapper.update();
+      await user.click(await findButton('Auto-Refresh: Off'));
 
-      expect(setIntervalSpy).toHaveBeenCalledWith(expect.any(Function), 30000);
-      wrapper.unmount();
+      await waitFor(() => expect(setIntervalSpy).toHaveBeenCalledWith(expect.any(Function), 30000));
     });
 
     it('clears the interval when auto-refresh is toggled off', async () => {
-      const clearIntervalSpy = vi.spyOn(window, 'clearInterval');
-      const wrapper = makeWrapper();
-      await flushMicrotasks();
-      wrapper.update();
+      const user = setupUser();
+      const setIntervalSpy = vi.spyOn(globalThis, 'setInterval');
+      const clearIntervalSpy = vi.spyOn(globalThis, 'clearInterval');
+      renderModal();
 
-      const autoRefreshBtn = () => wrapper.find('button').filterWhere((b: any) => b.text().startsWith('Auto-Refresh'));
+      await user.click(await findButton('Auto-Refresh: Off'));
+      await waitFor(() => expect(setIntervalSpy).toHaveBeenCalledWith(expect.any(Function), 30000));
+      const autoRefreshCall = setIntervalSpy.mock.calls.findIndex(([, delay]) => delay === 30000);
+      const intervalId = setIntervalSpy.mock.results[autoRefreshCall].value;
 
-      act(() => {
-        autoRefreshBtn().simulate('click');
-      }); // on
-      wrapper.update();
-      act(() => {
-        autoRefreshBtn().simulate('click');
-      }); // off
-      wrapper.update();
+      await user.click(screen.getByRole('button', { name: 'Auto-Refresh: On' }));
 
-      expect(clearIntervalSpy).toHaveBeenCalled();
-      wrapper.unmount();
+      expect(screen.getByRole('button', { name: 'Auto-Refresh: Off' })).toBeInTheDocument();
+      await waitFor(() => expect(clearIntervalSpy).toHaveBeenCalledWith(intervalId));
     });
 
     it('respects consoleLogRefreshIntervalMs setting', async () => {
+      const user = setupUser();
       SETTINGS.consoleLogRefreshIntervalMs = 10000;
-      const setIntervalSpy = vi.spyOn(window, 'setInterval');
-      const wrapper = makeWrapper();
-      await flushMicrotasks();
-      wrapper.update();
+      const setIntervalSpy = vi.spyOn(globalThis, 'setInterval');
+      renderModal();
 
-      act(() => {
-        wrapper
-          .find('button')
-          .filterWhere((b: any) => b.text() === 'Auto-Refresh: Off')
-          .simulate('click');
-      });
-      wrapper.update();
+      await user.click(await findButton('Auto-Refresh: Off'));
 
-      expect(setIntervalSpy).toHaveBeenCalledWith(expect.any(Function), 10000);
-      wrapper.unmount();
+      await waitFor(() => expect(setIntervalSpy).toHaveBeenCalledWith(expect.any(Function), 10000));
     });
   });
 });

@@ -1,6 +1,7 @@
-import { mount } from 'enzyme';
+import { act, waitFor } from '@testing-library/react';
 import React from 'react';
 
+import { renderHookHarness } from '../../utils/testUtils/hookHarness';
 import type { IUseLatestPromiseResult } from './useLatestPromise.hook';
 import { useLatestPromise } from './useLatestPromise.hook';
 
@@ -11,18 +12,26 @@ describe('useLatestPromise hook', () => {
     return state;
   }
 
-  function Component(props: any) {
-    const { promiseFactory, deps, onChange } = props;
-    const useLatestPromiseResult: IUseLatestPromiseResult<any> = useLatestPromise(promiseFactory, deps);
-    const { status, result, error, requestId } = useLatestPromiseResult;
-
-    React.useEffect(() => onChange(useLatestPromiseResult), [status, result, error, requestId]);
-    return <></>;
+  interface IHookProps {
+    promiseFactory: () => PromiseLike<any>;
+    deps: any[];
+    onChange: (result: IUseLatestPromiseResult<any>) => void;
   }
 
-  function defer() {
-    let resolve: Function, reject: Function;
-    const promise = new Promise((_resolve, _reject) => {
+  function renderLatestPromise(props: IHookProps) {
+    return renderHookHarness(({ promiseFactory, deps, onChange }: IHookProps) => {
+      const hookResult = useLatestPromise(promiseFactory, deps);
+      const { status, result, error, requestId } = hookResult;
+
+      React.useEffect(() => onChange(hookResult), [status, result, error, requestId]);
+      return hookResult;
+    }, props);
+  }
+
+  function defer<T>() {
+    let resolve!: (value: T) => void;
+    let reject!: (reason: any) => void;
+    const promise = new Promise<T>((_resolve, _reject) => {
       resolve = _resolve;
       reject = _reject;
     });
@@ -31,121 +40,144 @@ describe('useLatestPromise hook', () => {
 
   it('has status NONE if no promise has been returned', () => {
     const spy = vi.fn();
-    mount(<Component promiseFactory={() => null as any} deps={[]} onChange={spy} />);
+    const rendered = renderLatestPromise({ promiseFactory: () => null as any, deps: [], onChange: spy });
     expect(spy).toHaveBeenCalledTimes(1);
 
-    const result: IUseLatestPromiseResult<any> = spy.mock.lastCall[0];
-    expect(promiseState(result)).toEqual({ status: 'NONE', result: undefined, error: undefined, requestId: 0 });
+    expect(promiseState(rendered.result.current)).toEqual({
+      status: 'NONE',
+      result: undefined,
+      error: undefined,
+      requestId: 0,
+    });
   });
 
   it('has status PENDING if a promise has been returned but has not yet resolved', () => {
     const spy = vi.fn();
-    const deferred = defer();
-    mount(<Component promiseFactory={() => deferred.promise} deps={[]} onChange={spy} />);
+    const deferred = defer<string>();
+    const rendered = renderLatestPromise({ promiseFactory: () => deferred.promise, deps: [], onChange: spy });
     expect(spy).toHaveBeenCalledTimes(2);
 
-    const result: IUseLatestPromiseResult<any> = spy.mock.lastCall[0];
-    expect(promiseState(result)).toEqual({ status: 'PENDING', result: undefined, error: undefined, requestId: 0 });
+    expect(promiseState(rendered.result.current)).toEqual({
+      status: 'PENDING',
+      result: undefined,
+      error: undefined,
+      requestId: 0,
+    });
   });
 
   it('has status RESOLVED if a promise resolved', async () => {
     const spy = vi.fn();
-    const deferred = defer();
-    const component = mount(<Component promiseFactory={() => deferred.promise} deps={[]} onChange={spy} />);
+    const deferred = defer<string>();
+    const rendered = renderLatestPromise({ promiseFactory: () => deferred.promise, deps: [], onChange: spy });
     expect(spy).toHaveBeenCalledTimes(2);
 
-    deferred.resolve('payload');
-    await deferred.promise;
-    component.setProps({});
+    await act(async () => {
+      deferred.resolve('payload');
+      await deferred.promise;
+    });
+    await waitFor(() => expect(rendered.result.current.status).toBe('RESOLVED'));
 
     expect(spy).toHaveBeenCalledTimes(3);
-    const result: IUseLatestPromiseResult<any> = spy.mock.lastCall[0];
-    expect(promiseState(result)).toEqual({ status: 'RESOLVED', result: 'payload', error: undefined, requestId: 0 });
+    expect(promiseState(rendered.result.current)).toEqual({
+      status: 'RESOLVED',
+      result: 'payload',
+      error: undefined,
+      requestId: 0,
+    });
   });
 
   it('has status REJECTED if a promise rejected', async () => {
     const spy = vi.fn();
-    const deferred = defer();
-    const component = mount(<Component promiseFactory={() => deferred.promise} deps={[]} onChange={spy} />);
+    const deferred = defer<string>();
+    const rendered = renderLatestPromise({ promiseFactory: () => deferred.promise, deps: [], onChange: spy });
     expect(spy).toHaveBeenCalledTimes(2);
 
-    deferred.reject('error');
-    let caught = false;
-    try {
-      await deferred.promise;
-    } catch (error) {
-      caught = true;
-    }
-    expect(caught).toBe(true);
-    component.setProps({});
+    await act(async () => {
+      deferred.reject('error');
+      await expect(deferred.promise).rejects.toBe('error');
+    });
+    await waitFor(() => expect(rendered.result.current.status).toBe('REJECTED'));
 
     expect(spy).toHaveBeenCalledTimes(3);
-    const result: IUseLatestPromiseResult<any> = spy.mock.lastCall[0];
-    expect(promiseState(result)).toEqual({ status: 'REJECTED', result: undefined, error: 'error', requestId: 0 });
+    expect(promiseState(rendered.result.current)).toEqual({
+      status: 'REJECTED',
+      result: undefined,
+      error: 'error',
+      requestId: 0,
+    });
   });
 
   it('only handles the latest promise when multiple promises are pending', async () => {
     const spy = vi.fn();
-    const deferred1 = defer();
-    const component = mount(<Component promiseFactory={() => deferred1.promise} deps={[1]} onChange={spy} />);
+    const deferred1 = defer<string>();
+    const rendered = renderLatestPromise({ promiseFactory: () => deferred1.promise, deps: [1], onChange: spy });
     expect(spy).toHaveBeenCalledTimes(2);
 
-    const deferred2 = defer();
-    component.setProps({ promiseFactory: () => deferred2.promise, deps: [2] });
-    component.setProps({});
+    const deferred2 = defer<string>();
+    rendered.rerenderHook({ promiseFactory: () => deferred2.promise, deps: [2], onChange: spy });
     expect(spy).toHaveBeenCalledTimes(3);
-    expect(spy.mock.lastCall[0].status).toEqual('PENDING');
+    expect(rendered.result.current.status).toEqual('PENDING');
 
-    deferred1.resolve('payload1');
-    await deferred1.promise;
-    component.setProps({});
+    await act(async () => {
+      deferred1.resolve('payload1');
+      await deferred1.promise;
+    });
 
     expect(spy).toHaveBeenCalledTimes(3);
-    expect(spy.mock.lastCall[0].status).toEqual('PENDING');
+    expect(rendered.result.current.status).toEqual('PENDING');
 
-    deferred2.resolve('payload2');
-    await deferred2.promise;
-    component.setProps({});
+    await act(async () => {
+      deferred2.resolve('payload2');
+      await deferred2.promise;
+    });
+    await waitFor(() => expect(rendered.result.current.status).toBe('RESOLVED'));
 
     expect(spy).toHaveBeenCalledTimes(4);
-    const result: IUseLatestPromiseResult<any> = spy.mock.lastCall[0];
-    expect(promiseState(result)).toEqual({ status: 'RESOLVED', result: 'payload2', error: undefined, requestId: 1 });
+    expect(promiseState(rendered.result.current)).toEqual({
+      status: 'RESOLVED',
+      result: 'payload2',
+      error: undefined,
+      requestId: 1,
+    });
   });
 
   it('gets a new promise if refresh() is called', async () => {
     const spy = vi.fn();
-    const deferred = defer();
+    const deferred = defer<string>();
     const promiseFactorySpy = vi.fn().mockImplementation(() => deferred.promise);
-    const component = mount(<Component promiseFactory={promiseFactorySpy} deps={[]} onChange={spy} />);
+    const rendered = renderLatestPromise({ promiseFactory: promiseFactorySpy, deps: [], onChange: spy });
     expect(promiseFactorySpy).toHaveBeenCalledTimes(1);
 
     // initial promise is resolved.
-    deferred.resolve('payload');
-    await deferred.promise;
-    component.setProps({});
+    await act(async () => {
+      deferred.resolve('payload');
+      await deferred.promise;
+    });
 
-    spy.mock.lastCall[0].refresh();
-    component.setProps({});
+    act(() => rendered.result.current.refresh());
     expect(promiseFactorySpy).toHaveBeenCalledTimes(2);
   });
 
   it('ignores old pending results if a newer promise is being processed', async () => {
     const spy = vi.fn();
-    const deferred1 = defer();
-    const deferred2 = defer();
-    const component = mount(<Component promiseFactory={() => deferred1.promise} deps={[1]} onChange={spy} />);
+    const deferred1 = defer<string>();
+    const deferred2 = defer<string>();
+    const rendered = renderLatestPromise({ promiseFactory: () => deferred1.promise, deps: [1], onChange: spy });
 
-    component.setProps({ promiseFactory: () => deferred2.promise, deps: [2] });
+    rendered.rerenderHook({ promiseFactory: () => deferred2.promise, deps: [2], onChange: spy });
 
     // The first promise is resolved.
-    deferred1.resolve('payload1');
-    await deferred1.promise;
-    component.setProps({});
+    await act(async () => {
+      deferred1.resolve('payload1');
+      await deferred1.promise;
+    });
 
     // The second promise is resolved.
-    deferred2.resolve('payload2');
-    await deferred2.promise;
-    component.setProps({});
+    await act(async () => {
+      deferred2.resolve('payload2');
+      await deferred2.promise;
+    });
+    await waitFor(() => expect(rendered.result.current.status).toBe('RESOLVED'));
 
     expect(spy).toHaveBeenCalledTimes(4);
     const allCalls = spy.mock.calls.map((args) => promiseState(args[0]));

@@ -21,6 +21,35 @@ import { Search } from '../widgets';
 // These state parameters are passed through to Gate's search API
 const API_PARAMS = ['key', 'name', 'account', 'region', 'stack'];
 
+export const getInfrastructureSearchApiFilterParams = (params: IQueryParams): IQueryParams =>
+  pickBy(
+    params,
+    (value, key) =>
+      API_PARAMS.includes(key) &&
+      value !== null &&
+      value !== undefined &&
+      !(typeof value === 'string' && value.trim() === ''),
+  );
+
+export const selectSearchResultTab = (resultSets: ISearchResultSet[]): string | null => {
+  const order = (resultSet: ISearchResultSet) => (resultSet.type.id === 'applications' ? -1 : resultSet.type.order);
+  const tabs = resultSets.slice().sort((a, b) => order(a) - order(b));
+  return tabs.reduce(
+    (selection, tab) => {
+      if (selection.tabId || selection.unfinished) {
+        return selection;
+      }
+      return { unfinished: tab.status !== SearchStatus.FINISHED, tabId: tab.results.length ? tab.type.id : null };
+    },
+    { tabId: null as string | null, unfinished: false },
+  ).tabId;
+};
+
+export const getInfrastructureSearchParamsFromFilters = (filters: ITag[]): IQueryParams => {
+  const blankParams = API_PARAMS.reduce((params, key) => ({ ...params, [key]: undefined }), {});
+  return filters.reduce((params, filter) => ({ ...params, [filter.key]: filter.text }), blankParams);
+};
+
 export interface ISearchV2State {
   selectedTab: string;
   params: { [key: string]: any };
@@ -59,24 +88,13 @@ export class SearchV2Component extends React.Component<SearchV2Props, ISearchV2S
     });
   }
 
-  // returns parameter values that are OK to send through to the back end search API as filters
-  private getApiFilterParams(params: IQueryParams): IQueryParams {
-    const isValidApiParam = (val: any, key: string) => {
-      return (
-        API_PARAMS.includes(key) && val !== null && val !== undefined && !(typeof val === 'string' && val.trim() === '')
-      );
-    };
-
-    return pickBy(params, isValidApiParam);
-  }
-
   public componentDidMount() {
     // auto-navigation only happens via shortcut links, and we only do it if there is exactly one result, e.g
     // when searching for an instance ID
     const autoNavigate = window.location.href.endsWith('route=true');
     this.props.router.globals.params$
       .pipe(
-        map((stateParams) => this.getApiFilterParams(stateParams)),
+        map(getInfrastructureSearchApiFilterParams),
         tap((params: IQueryParams) => this.setState({ params })),
         distinctUntilChanged((a, b) => API_PARAMS.every((key) => a[key] === b[key])),
         tap(() => this.setState({ resultSets: this.INITIAL_RESULTS, isSearching: true })),
@@ -133,22 +151,9 @@ export class SearchV2Component extends React.Component<SearchV2Props, ISearchV2S
   /** Select the first tab with results */
   private selectTab(resultSets: ISearchResultSet[]): void {
     // Prioritize applications tab over all others
-    const order = (rs: ISearchResultSet) => (rs.type.id === 'applications' ? -1 : rs.type.order);
-    const tabs = resultSets.slice().sort((a, b) => order(a) - order(b));
-
-    // Scan all tabs in order.  Find the first tab that has results.  Stop scanning when a tab with unfinished results is encountered.
-    const found = tabs.reduce(
-      (previous, tab) => {
-        const resultAlreadyFound = previous.tabId || previous.unfinished;
-        const unfinished = tab.status !== SearchStatus.FINISHED;
-        const tabId = tab.results.length ? tab.type.id : null;
-        return resultAlreadyFound ? previous : { ...previous, unfinished, tabId };
-      },
-      { tabId: null, unfinished: false },
-    );
-
-    if (found.tabId) {
-      this.props.stateService.go('.', { tab: found.tabId });
+    const selectedTab = selectSearchResultTab(resultSets);
+    if (selectedTab) {
+      this.props.stateService.go('.', { tab: selectedTab });
     }
   }
 
@@ -157,9 +162,7 @@ export class SearchV2Component extends React.Component<SearchV2Props, ISearchV2S
   }
 
   public handleFilterChange = (filters: ITag[]) => {
-    const blankApiParams = API_PARAMS.reduce((acc, key) => ({ ...acc, [key]: undefined }), {});
-    const newParams = filters.reduce((params, filter) => ({ ...params, [filter.key]: filter.text }), blankApiParams);
-    this.props.stateService.go('.', newParams, { location: 'replace' });
+    this.props.stateService.go('.', getInfrastructureSearchParamsFromFilters(filters), { location: 'replace' });
   };
 
   public render() {

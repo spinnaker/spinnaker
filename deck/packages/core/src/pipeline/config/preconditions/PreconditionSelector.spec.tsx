@@ -1,12 +1,16 @@
-import { mount } from 'enzyme';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { setupUser } from '../../../utils/testUtils/userEvent';
 import React from 'react';
 
 import { AccountService } from '../../../account/AccountService';
-import { ScopeClusterSelector } from '../../../widgets/ScopeClusterSelector';
 import { PreconditionSelector } from './PreconditionSelector';
-import { StageStatusPreconditionConfig } from './types/stageStatus/StageStatusPreconditionConfig';
 
 describe('<PreconditionSelector />', () => {
+  const getClusterControl = () => {
+    const toggle = screen.getByRole('button', { name: /Toggle for/ });
+    return toggle.parentElement.previousElementSibling.querySelector('select, input') as HTMLInputElement;
+  };
+
   beforeEach(() => {
     vi.spyOn(AccountService, 'listAccounts').mockReturnValue(Promise.resolve([]) as any);
   });
@@ -23,7 +27,7 @@ describe('<PreconditionSelector />', () => {
   it('initializes missing precondition fields using the first registered type', () => {
     const props = createProps();
 
-    mount(<PreconditionSelector {...props} />);
+    render(<PreconditionSelector {...props} />);
 
     expect(props.onChange).toHaveBeenCalledWith({
       context: {},
@@ -40,9 +44,9 @@ describe('<PreconditionSelector />', () => {
         type: 'expression',
       },
     });
-    const component = mount(<PreconditionSelector {...props} />);
+    const { container } = render(<PreconditionSelector {...props} />);
 
-    component.find('select[name="preconditionType"]').simulate('change', { target: { value: 'stageStatus' } });
+    fireEvent.change(container.querySelector('select[name="preconditionType"]'), { target: { value: 'stageStatus' } });
 
     expect(props.onChange).toHaveBeenCalledWith({
       context: null,
@@ -59,9 +63,9 @@ describe('<PreconditionSelector />', () => {
         type: 'expression',
       },
     });
-    const component = mount(<PreconditionSelector {...props} />);
+    const { container } = render(<PreconditionSelector {...props} />);
 
-    component.find('textarea[name="expression"]').simulate('change', { target: { value: '${bar}' } });
+    fireEvent.change(container.querySelector('textarea[name="expression"]'), { target: { value: '${bar}' } });
 
     expect(props.onChange).toHaveBeenCalledWith({
       context: { expression: '${bar}', failureMessage: 'stop' },
@@ -78,9 +82,9 @@ describe('<PreconditionSelector />', () => {
         type: 'expression',
       },
     });
-    const component = mount(<PreconditionSelector {...props} />);
+    const { container } = render(<PreconditionSelector {...props} />);
 
-    component.find('input[name="failPipeline"]').simulate('change', { target: { checked: false } });
+    fireEvent.click(container.querySelector('input[name="failPipeline"]'));
 
     expect(props.onChange).toHaveBeenCalledWith({
       context: { expression: '${foo}' },
@@ -97,9 +101,9 @@ describe('<PreconditionSelector />', () => {
         type: 'expression',
       },
     });
-    const component = mount(<PreconditionSelector {...props} />);
+    const { container } = render(<PreconditionSelector {...props} />);
 
-    component.find('textarea[name="failureMessage"]').simulate('change', { target: { value: 'keep going' } });
+    fireEvent.change(container.querySelector('textarea[name="failureMessage"]'), { target: { value: 'keep going' } });
 
     expect(props.onChange).toHaveBeenCalledWith({
       context: { expression: '${foo}', failureMessage: 'keep going' },
@@ -108,8 +112,10 @@ describe('<PreconditionSelector />', () => {
     });
   });
 
-  it('renders the stage status editor and forwards context updates', () => {
+  it('renders the stage status editor and forwards context updates', async () => {
+    const user = setupUser();
     const upstreamStages = [{ name: 'Bake' }, { name: 'Deploy' }] as any[];
+    const onChange = vi.fn();
     const props = createProps({
       precondition: {
         context: { stageName: 'Bake', stageStatus: 'SUCCEEDED' },
@@ -117,25 +123,38 @@ describe('<PreconditionSelector />', () => {
         type: 'stageStatus',
       },
       upstreamStages,
+      onChange,
     });
-    const component = mount(<PreconditionSelector {...props} />);
+    const ControlledSelector = () => {
+      const [precondition, setPrecondition] = React.useState(props.precondition);
+      return (
+        <PreconditionSelector
+          {...props}
+          precondition={precondition}
+          onChange={(updated) => {
+            onChange(updated);
+            setPrecondition(updated);
+          }}
+        />
+      );
+    };
+    render(<ControlledSelector />);
 
-    const editor = component.find(StageStatusPreconditionConfig);
+    expect(screen.getByRole('option', { name: 'Bake' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('option', { name: 'Succeeded' })).toHaveAttribute('aria-selected', 'true');
+    await user.click(screen.getByRole('combobox', { name: 'Stage' }));
+    await user.click(screen.getByText('Deploy'));
+    await user.click(screen.getByRole('combobox', { name: 'Status' }));
+    await user.click(screen.getByText('Terminal'));
 
-    expect(editor.length).toBe(1);
-    expect(editor.prop('preconditionContext')).toEqual({ stageName: 'Bake', stageStatus: 'SUCCEEDED' });
-    expect(editor.prop('upstreamStages')).toBe(upstreamStages);
-
-    editor.prop('updatePreconditionContext')({ stageName: 'Deploy', stageStatus: 'TERMINAL' });
-
-    expect(props.onChange).toHaveBeenCalledWith({
+    expect(onChange).toHaveBeenLastCalledWith({
       context: { stageName: 'Deploy', stageStatus: 'TERMINAL' },
       failPipeline: true,
       type: 'stageStatus',
     });
   });
 
-  it('updates the cluster size account and clears the selected cluster', () => {
+  it('updates the cluster size account and clears the selected cluster', async () => {
     const props = createProps({
       precondition: {
         cloudProvider: 'aws',
@@ -144,16 +163,15 @@ describe('<PreconditionSelector />', () => {
         type: 'clusterSize',
       },
     });
-    const component = mount(<PreconditionSelector {...props} />);
+    vi.mocked(AccountService.listAccounts).mockResolvedValue([
+      { name: 'prod', type: 'aws' },
+      { name: 'test', type: 'aws' },
+      { name: 'cf-prod', type: 'cloudfoundry' },
+    ] as any);
+    const { container } = render(<PreconditionSelector {...props} />);
 
-    component.setState({
-      accounts: [
-        { name: 'prod', type: 'aws' },
-        { name: 'test', type: 'aws' },
-        { name: 'cf-prod', type: 'cloudfoundry' },
-      ],
-    });
-    component.find('select[name="credentials"]').simulate('change', { target: { value: 'prod' } });
+    await waitFor(() => expect(screen.getByRole('option', { name: 'prod' })).toBeInTheDocument());
+    fireEvent.change(container.querySelector('select[name="credentials"]'), { target: { value: 'prod' } });
 
     expect(props.onChange).toHaveBeenCalledWith({
       cloudProvider: 'aws',
@@ -187,11 +205,9 @@ describe('<PreconditionSelector />', () => {
         type: 'clusterSize',
       },
     });
-    const component = mount(<PreconditionSelector {...props} />);
+    const { container } = render(<PreconditionSelector {...props} />);
 
-    component.find('input[name="regions"][value="us-east-1"]').simulate('change', {
-      target: { checked: true, value: 'us-east-1' },
-    });
+    fireEvent.click(container.querySelector('input[name="regions"][value="us-east-1"]'));
 
     expect(props.onChange).toHaveBeenCalledWith({
       cloudProvider: 'aws',
@@ -225,15 +241,12 @@ describe('<PreconditionSelector />', () => {
         type: 'clusterSize',
       },
     });
-    const component = mount(<PreconditionSelector {...props} />);
+    const { container } = render(<PreconditionSelector {...props} />);
 
-    const clusterSelector = component.find(ScopeClusterSelector);
-
-    expect(clusterSelector.length).toBe(1);
-    if (clusterSelector.length) {
-      expect(clusterSelector.prop('clusters')).toEqual(['api']);
-      expect(clusterSelector.prop('model')).toBe('');
-    }
+    const clusterSelector = getClusterControl();
+    expect(clusterSelector).toHaveValue('');
+    expect(clusterSelector.querySelectorAll('option')).toHaveLength(2);
+    expect(screen.getByRole('option', { name: 'api' })).toBeInTheDocument();
   });
 
   it('renders the cluster dropdown for a new empty cluster-size precondition', () => {
@@ -245,12 +258,9 @@ describe('<PreconditionSelector />', () => {
         type: 'clusterSize',
       },
     });
-    const component = mount(<PreconditionSelector {...props} />);
+    const { container } = render(<PreconditionSelector {...props} />);
 
-    const clusterSelector = component.find(ScopeClusterSelector);
-
-    expect(clusterSelector.find('select').length).toBe(1);
-    expect(clusterSelector.find('input[type="text"]').length).toBe(0);
+    expect(getClusterControl()).toBeInstanceOf(HTMLSelectElement);
   });
 
   it('updates the cluster size cluster and matching moniker without sequence', () => {
@@ -275,16 +285,9 @@ describe('<PreconditionSelector />', () => {
         type: 'clusterSize',
       },
     });
-    const component = mount(<PreconditionSelector {...props} />);
+    const { container } = render(<PreconditionSelector {...props} />);
 
-    const clusterSelector = component.find(ScopeClusterSelector);
-
-    expect(clusterSelector.length).toBe(1);
-    if (!clusterSelector.length) {
-      return;
-    }
-
-    clusterSelector.prop('onChange')({ clusterName: 'api' });
+    fireEvent.change(getClusterControl(), { target: { value: 'api' } });
 
     expect(props.onChange).toHaveBeenCalledWith({
       cloudProvider: 'aws',
@@ -300,7 +303,8 @@ describe('<PreconditionSelector />', () => {
   });
 
   ['custom-cluster', '${parameters.cluster}'].forEach((cluster) => {
-    it(`accepts the free-form cluster value ${cluster} and clears the moniker`, () => {
+    it(`accepts the free-form cluster value ${cluster} and clears the moniker`, async () => {
+      const user = setupUser();
       const application = {
         getDataSource: () => ({
           data: [
@@ -327,20 +331,28 @@ describe('<PreconditionSelector />', () => {
           type: 'clusterSize',
         },
       });
-      const component = mount(<PreconditionSelector {...props} />);
+      const onChange = vi.fn();
+      const ControlledSelector = () => {
+        const [precondition, setPrecondition] = React.useState(props.precondition);
+        return (
+          <PreconditionSelector
+            {...props}
+            precondition={precondition}
+            onChange={(updated) => {
+              onChange(updated);
+              setPrecondition(updated);
+            }}
+          />
+        );
+      };
+      render(<ControlledSelector />);
 
-      const clusterSelector = component.find(ScopeClusterSelector);
+      const clusterInput = getClusterControl();
+      expect(clusterInput).toHaveValue(cluster);
+      await user.clear(clusterInput);
+      await user.paste(cluster);
 
-      expect(clusterSelector.length).toBe(1);
-      if (!clusterSelector.length) {
-        return;
-      }
-
-      expect(clusterSelector.prop('model')).toBe(cluster);
-      expect(clusterSelector.find('input[type="text"]').length).toBe(1);
-      clusterSelector.prop('onChange')({ clusterName: cluster });
-
-      expect(props.onChange).toHaveBeenCalledWith({
+      expect(onChange).toHaveBeenLastCalledWith({
         cloudProvider: 'aws',
         context: {
           cluster,
@@ -363,9 +375,9 @@ describe('<PreconditionSelector />', () => {
         type: 'clusterSize',
       },
     });
-    const component = mount(<PreconditionSelector {...props} />);
+    const { container } = render(<PreconditionSelector {...props} />);
 
-    component.find('select[name="comparison"]').simulate('change', { target: { value: '>=' } });
+    fireEvent.change(container.querySelector('select[name="comparison"]'), { target: { value: '>=' } });
 
     expect(props.onChange).toHaveBeenCalledWith({
       cloudProvider: 'aws',
@@ -375,7 +387,7 @@ describe('<PreconditionSelector />', () => {
     });
 
     props.onChange.mockClear();
-    component.find('input[name="expected"]').simulate('change', { target: { value: '4' } });
+    fireEvent.change(container.querySelector('input[name="expected"]'), { target: { value: '4' } });
 
     expect(props.onChange).toHaveBeenCalledWith({
       cloudProvider: 'aws',
@@ -395,13 +407,13 @@ describe('<PreconditionSelector />', () => {
       },
       strategy: true,
     });
-    const component = mount(<PreconditionSelector {...props} />);
+    const { container } = render(<PreconditionSelector {...props} />);
 
-    expect(component.find('select[name="credentials"]').length).toBe(0);
-    expect(component.find('input[name="regions"]').length).toBe(0);
-    expect(component.find('select[name="cluster"]').length).toBe(0);
-    expect(component.find('select[name="comparison"]').length).toBe(1);
-    expect(component.find('input[name="expected"]').length).toBe(1);
+    expect(container.querySelector('select[name="credentials"]')).not.toBeInTheDocument();
+    expect(container.querySelector('input[name="regions"]')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Toggle for/ })).not.toBeInTheDocument();
+    expect(container.querySelector('select[name="comparison"]')).toBeInTheDocument();
+    expect(container.querySelector('input[name="expected"]')).toBeInTheDocument();
   });
 
   it('updates the fail pipeline flag for cluster size preconditions', () => {
@@ -413,9 +425,9 @@ describe('<PreconditionSelector />', () => {
         type: 'clusterSize',
       },
     });
-    const component = mount(<PreconditionSelector {...props} />);
+    const { container } = render(<PreconditionSelector {...props} />);
 
-    component.find('input[name="failPipeline"]').simulate('change', { target: { checked: false } });
+    fireEvent.click(container.querySelector('input[name="failPipeline"]'));
 
     expect(props.onChange).toHaveBeenCalledWith({
       cloudProvider: 'aws',

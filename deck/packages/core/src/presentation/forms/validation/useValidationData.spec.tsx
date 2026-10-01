@@ -1,41 +1,17 @@
-import { mount } from 'enzyme';
 import React from 'react';
 
+import { renderHookHarness } from '../../../utils/testUtils/hookHarness';
 import { asyncMessage, errorMessage, infoMessage, messageMessage, successMessage, warningMessage } from './categories';
 import type { IValidationData } from './useValidationData';
 import { useValidationData } from './useValidationData';
 
-interface IComponentProps {
-  validationMessage: React.ReactNode;
-  touched: boolean;
-  callback: Function;
-}
-
 describe('useValidationData hook', () => {
-  function Component({ validationMessage, touched, callback }: IComponentProps) {
-    callback(useValidationData(validationMessage, touched));
-    return <></>;
-  }
-
   function runUseValidationDataHook(validationMessage?: React.ReactNode, touched = true): IValidationData {
-    let ran = false;
-    let data = null;
-    const callback = (result: IValidationData) => {
-      if (ran) {
-        throw new Error('already ran');
-      }
-
-      data = result;
-      ran = true;
-    };
-
-    mount(<Component validationMessage={validationMessage} touched={touched} callback={callback} />);
-
-    if (!ran) {
-      throw new Error('Callback never ran');
-    }
-
-    return data;
+    return renderHookHarness(
+      (props: { validationMessage?: React.ReactNode; touched: boolean }) =>
+        useValidationData(props.validationMessage, props.touched),
+      { validationMessage, touched },
+    ).result.current;
   }
 
   it('should default to error category', () => {

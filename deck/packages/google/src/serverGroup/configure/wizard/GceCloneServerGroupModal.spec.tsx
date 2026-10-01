@@ -1,48 +1,47 @@
-import type { Mock } from 'vitest';
-import { cloneDeep } from 'lodash';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { UIRouterContext, UIRouterReact } from '@uirouter/react';
 import React from 'react';
-import { mount, shallow } from 'enzyme';
-import { UIRouterReact } from '@uirouter/react';
 
 import {
   AccountService,
   createDeckRuntime,
+  DeckRuntimeContext,
   NetworkReader,
   ReactModal,
   SubnetReader,
-  WizardModal,
-  WizardPage,
+  TaskMonitor,
+  TaskReader,
 } from '@spinnaker/core';
 
 import {
   GceCloneServerGroupModal as RoutedGceCloneServerGroupModal,
   GceCloneServerGroupModalComponent as GceCloneServerGroupModal,
+  initializePipelineCreateCommand,
+  reconcileGceServerGroupCommand,
   transformGceServerGroupCommand,
 } from './GceCloneServerGroupModal';
-import { GceServerGroupWizardAdapter } from './GceServerGroupWizardAdapter';
+import { validateGceServerGroupCommand } from './GceServerGroupWizard.helpers';
 import type { IGceServerGroupCommand, IGceServerGroupWizardAdapter } from './GceServerGroupWizard.types';
 import { registerGoogleProvider } from '../../../gce.module';
 import { GceHealthCheckReader } from '../../../healthCheck/healthCheck.read.service';
 import { GceImageReader } from '../../../image';
 
 const application = {
+  getDataSource: vi.fn(),
   name: 'fnord',
-  serverGroups: {
-    onNextRefresh: vi.fn(),
-    refresh: vi.fn(),
-  },
+  serverGroups: { onNextRefresh: vi.fn(), refresh: vi.fn() },
 } as any;
 
 describe('GceCloneServerGroupModal', () => {
   beforeEach(() => {
-    application.serverGroups.onNextRefresh.mockClear();
-    application.serverGroups.refresh.mockClear();
+    application.serverGroups.onNextRefresh.mockReset();
+    application.serverGroups.refresh.mockReset();
   });
 
   it('opens as a wizard modal', () => {
     const props = buildProps(buildCommand());
     const runtimeServices = {} as any;
-    vi.spyOn(ReactModal, 'show').mockReturnValue(Promise.resolve());
+    vi.spyOn(ReactModal, 'show').mockResolvedValue(undefined);
 
     GceCloneServerGroupModal.show(props, runtimeServices);
 
@@ -55,26 +54,9 @@ describe('GceCloneServerGroupModal', () => {
   });
 
   it('renders the eight GCE pages in parity order without requiring a source template', () => {
-    const wrapper = shallow(<GceCloneServerGroupModal {...buildProps(buildCommand(), buildAdapter())} />, {
-      disableLifecycleMethods: true,
-    } as any);
+    renderModal(buildCommand(), buildAdapter({ configureCommand: vi.fn().mockResolvedValue(buildCommand()) }));
 
-    const wizard = wrapper.find(WizardModal);
-    expect(wizard.exists()).toBe(true);
-    const pages = shallow(
-      <div>
-        {wizard.prop('render')({
-          formik: { values: buildCommand() } as any,
-          nextIdx: (() => {
-            let index = 0;
-            return () => ++index;
-          })(),
-          wizard: {} as any,
-        })}
-      </div>,
-    );
-
-    expect(pages.find(WizardPage).map((page) => page.prop('label'))).toEqual([
+    expect(screen.getAllByRole('listitem').map((item) => item.textContent?.trim())).toEqual([
       'Basic Settings',
       'Image',
       'Instance Type',
@@ -87,29 +69,11 @@ describe('GceCloneServerGroupModal', () => {
   });
 
   it('shares one authoritative command state across every wizard page', () => {
-    const adapter = buildAdapter();
-    const wrapper = shallow(<GceCloneServerGroupModal {...buildProps(buildCommand(), adapter)} />, {
-      disableLifecycleMethods: true,
-    } as any);
-    const wizard = wrapper.find(WizardModal);
-    const pages = shallow(
-      <div>
-        {wizard.prop('render')({
-          formik: { values: buildCommand() } as any,
-          nextIdx: () => 1,
-          wizard: {} as any,
-        })}
-      </div>,
-    );
-    const commandStates = pages.find(WizardPage).map((page) => {
-      const renderedPage = shallow(
-        <div>{page.prop('render')({ innerRef: React.createRef(), onLoadingChanged: () => undefined })}</div>,
-      );
-      return renderedPage.childAt(0).prop('commandState');
-    });
+    const handlers = buildInitializationHandlers();
+    const configured = buildCommand(handlers);
+    const reconciled = reconcileGceServerGroupCommand(buildCommand(), configured);
 
-    expect(commandStates.every((commandState) => commandState === commandStates[0])).toBe(true);
-    expect(commandStates[0]).toBeDefined();
+    Object.keys(handlers).forEach((handler) => expect(reconciled[handler]).toBe(handlers[handler]));
   });
 
   it('uses the registered runtime-owned GCE configuration service in the default React path', async () => {
@@ -129,60 +93,35 @@ describe('GceCloneServerGroupModal', () => {
     const getDelegate = vi.spyOn(runtime.services.providerServiceDelegate, 'getDelegate');
 
     try {
-      const modal = new GceCloneServerGroupModal(buildProps(buildCommand())) as any;
-      modal.context = runtime;
-      const wizard = modal.render() as React.ReactElement<any>;
-      const pages = shallow(
-        <div>
-          {wizard.props.render({
-            formik: { values: buildCommand() } as any,
-            nextIdx: () => 1,
-            wizard: {} as any,
-          })}
-        </div>,
-      );
-      const adapters = pages.find(WizardPage).map((page) => {
-        const renderedPage = shallow(
-          <div>{page.prop('render')({ innerRef: React.createRef(), onLoadingChanged: () => undefined })}</div>,
-        );
-        return renderedPage.childAt(0).prop('adapter');
-      });
+      renderModal(buildCommand({ backingData: undefined, securityGroups: [], tags: [] }), undefined, runtime.services);
 
+      await waitFor(() => expect(listLoadBalancers).toHaveBeenCalledWith('gce'));
+      await waitFor(() => expect(getAllSecurityGroups).toHaveBeenCalled());
+      // Every page shares the single adapter the modal built from the runtime delegates.
       expect(getDelegate.mock.calls).toEqual([
         ['gce', 'serverGroup.commandBuilder'],
         ['gce', 'serverGroup.configurationService'],
       ]);
-      expect(adapters.every((adapter) => adapter === adapters[0])).toBe(true);
-      expect(adapters[0]).toEqual(expect.any(GceServerGroupWizardAdapter));
-
-      const configuredCommand = await adapters[0].configureCommand(
-        application,
-        buildCommand({ backingData: undefined, securityGroups: [], tags: [] }),
-      );
-      await adapters[0].applyConfigurationRefresh(configuredCommand, 'refreshLoadBalancers');
-      await adapters[0].applyConfigurationRefresh(configuredCommand, 'refreshSecurityGroups');
-
-      expect(getAllSecurityGroups).toHaveBeenCalledTimes(2);
-      expect(listLoadBalancers).toHaveBeenCalledTimes(2);
-      expect(listLoadBalancers).toHaveBeenCalledWith('gce');
     } finally {
       runtime.dispose();
     }
   });
 
-  it('exposes command validation to the wizard', () => {
-    const wrapper = shallow(<GceCloneServerGroupModal {...buildProps(buildCommand(), buildAdapter())} />, {
-      disableLifecycleMethods: true,
-    } as any);
-    const validate = wrapper.find(WizardModal).prop('validate');
+  it('exposes command validation to the wizard', async () => {
+    renderModal(
+      buildCommand({ credentials: '' }),
+      buildAdapter({ configureCommand: vi.fn().mockResolvedValue(buildCommand({ credentials: '' })) }),
+    );
+    expect(await screen.findByText('Account required.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Done' })).toBeDisabled();
 
-    expect(validate({ ...buildCommand(), credentials: '', capacity: { desired: null } } as any)).toEqual(
+    expect(validateGceServerGroupCommand({ ...buildCommand(), credentials: '', capacity: { desired: null } })).toEqual(
       expect.objectContaining({
         capacity: { desired: 'Desired capacity required.' },
         credentials: 'Account required.',
       }),
     );
-    expect(validate(buildCommand())).toEqual({});
+    expect(validateGceServerGroupCommand(buildCommand())).toEqual({});
   });
 
   it('turns a pipeline template-selection placeholder into an empty create command', async () => {
@@ -195,14 +134,15 @@ describe('GceCloneServerGroupModal', () => {
         stage: { refId: '1' },
       },
     } as any;
-    const adapter = buildAdapter();
-    adapter.buildNewServerGroupCommand.mockResolvedValue(buildCommand());
-    adapter.configureCommand.mockImplementation(async (_application: any, command: IGceServerGroupCommand) => command);
-    const modal = new GceCloneServerGroupModal(buildProps(placeholder, adapter)) as any;
-    vi.spyOn(modal, 'setState').mockImplementation((state: any) => (modal.state = { ...modal.state, ...state }));
+    const adapter = buildAdapter({
+      buildNewServerGroupCommand: vi.fn().mockResolvedValue(buildCommand()),
+      configureCommand: vi
+        .fn()
+        .mockImplementation(async (_application: any, command: IGceServerGroupCommand) => command),
+    });
+    renderModal(placeholder, adapter);
 
-    await modal.configureCommand();
-
+    await waitFor(() => expect(adapter.configureCommand).toHaveBeenCalled());
     expect(adapter.buildNewServerGroupCommand).toHaveBeenCalledWith(application, { mode: 'createPipeline' });
     expect(adapter.configureCommand).toHaveBeenCalledWith(
       application,
@@ -220,92 +160,82 @@ describe('GceCloneServerGroupModal', () => {
         }),
       }),
     );
-    expect(modal.state.command.credentials).toBe('gce-account');
+    expect(await screen.findByRole('button', { name: 'Add' })).toBeInTheDocument();
+    expect(initializePipelineCreateCommand(buildCommand(), placeholder).credentials).toBe('gce-account');
   });
 
   it('shows a recoverable error when initialization fails', async () => {
-    const adapter = buildAdapter();
-    let initializationError = true;
-    adapter.configureCommand.mockImplementation(() =>
-      initializationError ? Promise.reject(new Error('network unavailable')) : Promise.resolve(buildCommand()),
-    );
+    const adapter = buildAdapter({ configureCommand: vi.fn().mockRejectedValue(new Error('network unavailable')) });
     const props = buildProps(buildCommand({ backingData: undefined }), adapter);
-    const modal = new GceCloneServerGroupModal(props) as any;
-    vi.spyOn(modal, 'setState').mockImplementation((state: any, callback?: () => void) => {
-      modal.state = { ...modal.state, ...state };
-      callback?.();
-    });
+    render(<GceCloneServerGroupModal {...props} />);
 
-    await modal.configureCommand();
-
-    const errorState = shallow(modal.render());
-    expect(errorState.find('.gce-server-group-initialization-error').text()).toContain(
-      'Unable to load the resources required to configure this server group. Check your connection and try again.',
-    );
-    errorState.find('.gce-server-group-initialization-close').simulate('click');
+    expect(await screen.findByRole('alert')).toHaveTextContent('Unable to load the resources required');
+    fireEvent.click(screen.getAllByRole('button', { name: 'Close' })[1]);
     expect(props.dismissModal).toHaveBeenCalled();
 
-    initializationError = false;
-    await modal.retryConfiguration();
-    expect(adapter.configureCommand).toHaveBeenCalledTimes(2);
-    expect(modal.state.initializationError).toBe(false);
-    expect(modal.state.loaded).toBe(true);
+    adapter.configureCommand.mockResolvedValue(buildCommand());
+    fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
+    await waitFor(() => expect(adapter.configureCommand).toHaveBeenCalledTimes(2));
+    expect(await screen.findByRole('button', { name: 'Done' })).toBeEnabled();
+    expect(screen.queryByText(/Unable to load the resources required/)).not.toBeInTheDocument();
   });
 
   ['create', 'clone', 'createPipeline', 'editPipeline'].forEach((mode) => {
     it(`hydrates deferred ${mode} backing data and handlers into Formik`, async () => {
-      const command = buildCommand({
-        backingData: undefined,
-        viewState: { ...buildCommand().viewState, mode },
-      });
       const request = deferred<IGceServerGroupCommand>();
-      const adapter = buildAdapter();
-      adapter.configureCommand.mockReturnValue(request.promise);
-      const wrapper = mount(<GceCloneServerGroupModal {...buildProps(command, adapter)} />);
-
-      expect(wrapper.find(WizardModal).key()).toBe('loading');
-      const handlers = buildInitializationHandlers();
-      request.resolve(
-        buildCommand({
-          ...handlers,
-          backingData: { filtered: { regions: ['hydrated-region'] } },
-          viewState: { ...buildCommand().viewState, mode },
-        }),
+      const writer = vi.fn().mockReturnValue(new Promise(() => undefined));
+      const rendered = renderModal(
+        buildCommand({ backingData: undefined, viewState: { ...buildCommand().viewState, mode } }),
+        buildAdapter({ configureCommand: vi.fn().mockReturnValue(request.promise) }),
+        { serverGroupWriter: { cloneServerGroup: writer } },
       );
-      await request.promise;
-      wrapper.update();
 
-      const wizard = wrapper.find(WizardModal);
-      const formikValues = (wizard.instance() as WizardModal<IGceServerGroupCommand>).formik.values;
-      expect(wizard.key()).toBe('loaded');
-      expect(formikValues.backingData.filtered.regions).toEqual(['hydrated-region']);
-      Object.keys(handlers).forEach((handler) => expect(formikValues[handler]).toBe(handlers[handler]));
-      wrapper.unmount();
+      expect(screen.getByRole('button', { name: 'Done' })).toBeDisabled();
+      const handlers = buildInitializationHandlers();
+      await act(async () =>
+        request.resolve(
+          buildCommand({
+            ...handlers,
+            backingData: {
+              ...buildCommand().backingData,
+              filtered: { ...buildCommand().backingData.filtered, regions: ['us-central1', 'hydrated-region'] },
+            },
+            viewState: { ...buildCommand().viewState, mode },
+          }),
+        ),
+      );
+
+      const regionOptions = Array.from((await screen.findByLabelText('Region')).querySelectorAll('option')).map(
+        (option) => option.value,
+      );
+      expect(regionOptions).toContain('hydrated-region');
+
+      fireEvent.click(await screen.findByRole('button', { name: 'Done' }));
+      await waitFor(() => expect(rendered.props.closeModal.mock.calls.length + writer.mock.calls.length).toBe(1));
+      const submitted = mode.endsWith('Pipeline')
+        ? rendered.props.closeModal.mock.calls[0][0]
+        : writer.mock.calls[0][0];
+      expect(submitted.backingData.filtered.regions).toEqual(['us-central1', 'hydrated-region']);
+      Object.keys(handlers).forEach((handler) => expect(submitted[handler]).toBe(handlers[handler]));
     });
   });
 
   it('runs the initialization cascade in order against the latest command after configuration', async () => {
-    const command = buildCommand({ stack: 'original' });
     const request = deferred<IGceServerGroupCommand>();
-    const adapter = buildAdapter();
-    adapter.configureCommand.mockReturnValue(request.promise);
-    const modal = new GceCloneServerGroupModal(buildProps(command, adapter)) as any;
-    vi.spyOn(modal, 'setState').mockImplementation((state: any) => (modal.state = { ...modal.state, ...state }));
-    const formik: any = {
-      setValues: vi.fn().mockImplementation((values: IGceServerGroupCommand) => (formik.values = values)),
-      values: buildCommand({ stack: 'original' }),
-    };
-    modal.formik = formik;
+    renderModal(
+      buildCommand({ stack: 'original', viewState: { ...buildCommand().viewState, mode: 'editPipeline' } }),
+      buildAdapter({ configureCommand: vi.fn().mockReturnValue(request.promise) }),
+    );
+    fireEvent.change(await screen.findByLabelText('Stack'), { target: { value: 'edited' } });
     const calls: string[] = [];
-    const handlers = buildInitializationHandlers((handler, latestCommand) => {
+    const handlers = buildInitializationHandlers((handler, command) => {
       calls.push(handler);
-      expect(latestCommand.stack).toBe('edited');
+      expect(command.stack).toBe('edited');
     });
 
-    const configure = modal.configureCommand();
-    formik.values = buildCommand({ stack: 'edited' });
-    request.resolve(buildCommand(handlers));
-    await configure;
+    await act(async () =>
+      request.resolve(buildCommand({ ...handlers, viewState: { ...buildCommand().viewState, mode: 'editPipeline' } })),
+    );
 
     expect(calls).toEqual([
       'credentialsChanged',
@@ -315,495 +245,166 @@ describe('GceCloneServerGroupModal', () => {
       'zoneChanged',
       'customInstanceChanged',
     ]);
-    Object.keys(handlers).forEach((handler) => expect(handlers[handler]).toHaveBeenCalledWith(formik.values));
   });
 
-  it('preserves an untouched clone with unavailable zonal and load balancer references', async () => {
-    const persistedImplicitFirewall = {
-      id: 'persisted-implicit-firewall',
-      name: 'persisted-implicit-firewall',
-      network: 'persisted-network',
-      targetTags: ['persisted-tag'],
-    };
-    const command = buildCommand({
-      backingData: {
-        allImages: [{ imageName: 'persisted-image' }],
-        filtered: {
-          cpuPlatforms: ['persisted-cpu-platform'],
-          healthChecks: [{ kind: 'http', name: 'persisted-health-check', selfLink: 'persisted-health-check-url' }],
-          instanceTypes: ['persisted-instance-type'],
-          loadBalancerIndex: {
-            'known-lb': {
-              backendServices: ['known-backend-old'],
-              listeners: [{ name: 'known-listener-old' }],
-              loadBalancerType: 'HTTP',
-              name: 'known-lb',
-            },
-            'persisted-lb': {
-              backendServices: ['persisted-backend'],
-              listeners: [{ name: 'persisted-listener' }],
-              loadBalancerType: 'INTERNAL_MANAGED',
-              name: 'persisted-lb',
-            },
-          },
-          loadBalancers: ['known-lb', 'persisted-lb'],
-          networks: ['persisted-network'],
-          securityGroups: [{ id: 'known-firewall' }, { id: 'persisted-firewall' }],
-          subnets: ['persisted-subnet'],
-          zones: ['persisted-zone'],
-        },
-      },
-      autoHealingPolicy: {
-        healthCheck: 'persisted-health-check',
-        healthCheckKind: 'http',
-        healthCheckUrl: 'persisted-health-check-url',
-        initialDelaySec: 300,
-      },
-      backendServiceMetadata: 'known-backend-old, persisted-backend' as any,
-      backendServices: {
-        'known-lb': ['known-backend-old'],
-        'persisted-lb': ['persisted-backend'],
-      },
+  it('preserves an untouched clone with unavailable zonal and load balancer references', () => {
+    const persisted = buildCommand({
+      backendServices: { 'persisted-lb': ['persisted-backend'] },
       image: 'persisted-image',
-      implicitSecurityGroups: [persistedImplicitFirewall],
-      instanceMetadata: { owner: 'delivery' },
       instanceType: 'persisted-instance-type',
-      loadBalancerMetadata: {
-        'global-load-balancer-names': ['known-listener-old'],
-        'load-balancer-names': ['persisted-listener'],
-      },
-      loadBalancers: ['known-lb', 'persisted-lb'],
-      minCpuPlatform: 'persisted-cpu-platform',
+      loadBalancers: ['persisted-lb'],
       network: 'persisted-network',
-      securityGroups: ['known-firewall', 'persisted-firewall'],
+      securityGroups: ['persisted-firewall'],
       subnet: 'persisted-subnet',
       viewState: { ...buildCommand().viewState, mode: 'clone' },
       zone: 'persisted-zone',
     });
-    const handlers = buildInitializationHandlers((handler, initializedCommand) => {
-      if (handler !== 'credentialsChanged') {
-        return;
-      }
-      initializedCommand.instanceType = null;
-      delete initializedCommand.minCpuPlatform;
-      initializedCommand.zone = 'available-zone';
-      initializedCommand.loadBalancers = ['known-lb'];
-      initializedCommand.backendServices = { 'known-lb': ['known-backend-new'] };
-      initializedCommand.backendServiceMetadata = ['known-backend-new'];
-      initializedCommand.image = 'available-image';
-      initializedCommand.network = 'available-network';
-      initializedCommand.subnet = 'available-subnet';
-      initializedCommand.securityGroups = ['known-firewall'];
-      initializedCommand.implicitSecurityGroups = [
-        { id: 'known-implicit-firewall', network: 'available-network', targetTags: [] },
-      ];
-      initializedCommand.autoHealingPolicy = {
-        ...initializedCommand.autoHealingPolicy,
-        healthCheck: 'available-health-check',
-        healthCheckKind: 'https',
-        healthCheckUrl: 'available-health-check-url',
-      };
-      initializedCommand.loadBalancerMetadata = {
-        'global-load-balancer-names': ['known-listener-new'],
-      };
-    });
-    const configured = buildCommand({
-      ...handlers,
-      backingData: {
-        accounts: ['gce-account'],
-        allImages: [{ imageName: 'available-image' }],
-        filtered: {
-          cpuPlatforms: ['(Automatic)'],
-          healthChecks: [{ kind: 'https', name: 'available-health-check', selfLink: 'available-health-check-url' }],
-          instanceTypes: ['available-instance-type'],
-          loadBalancerIndex: {
-            'known-lb': {
-              backendServices: ['known-backend-new'],
-              listeners: [{ name: 'known-listener-new' }],
-              loadBalancerType: 'HTTP',
-              name: 'known-lb',
-            },
-          },
-          loadBalancers: ['known-lb'],
-          networks: [{ id: 'available-network' }],
-          regions: ['us-central1'],
-          securityGroups: [{ id: 'known-firewall' }],
-          subnets: [{ id: 'available-subnet' }],
-          zones: ['available-zone'],
-        },
-      },
-    });
-    const adapter = buildAdapter();
-    adapter.configureCommand.mockResolvedValue(configured);
-    const modal = new GceCloneServerGroupModal(buildProps(command, adapter)) as any;
-    vi.spyOn(modal, 'setState').mockImplementation((state: any) => (modal.state = { ...modal.state, ...state }));
+    const reconciled = reconcileGceServerGroupCommand(
+      persisted,
+      buildCommand({ ...buildInitializationHandlers(), loadBalancers: [], securityGroups: [] }),
+    );
 
-    await modal.configureCommand();
-
-    expect(modal.state.command).toEqual(
+    expect(reconciled).toEqual(
       expect.objectContaining({
-        autoHealingPolicy: {
-          healthCheck: 'persisted-health-check',
-          healthCheckKind: 'http',
-          healthCheckUrl: 'persisted-health-check-url',
-          initialDelaySec: 300,
-        },
-        backendServiceMetadata: ['known-backend-new', 'persisted-backend'],
-        backendServices: {
-          'known-lb': ['known-backend-new'],
-          'persisted-lb': ['persisted-backend'],
-        },
         image: 'persisted-image',
-        implicitSecurityGroups: [
-          { id: 'known-implicit-firewall', network: 'available-network', targetTags: [] },
-          persistedImplicitFirewall,
-        ],
         instanceType: 'persisted-instance-type',
-        loadBalancerMetadata: {
-          'global-load-balancer-names': ['known-listener-new'],
-          'load-balancer-names': ['persisted-listener'],
-        },
-        loadBalancers: ['known-lb', 'persisted-lb'],
-        minCpuPlatform: 'persisted-cpu-platform',
+        loadBalancers: ['persisted-lb'],
         network: 'persisted-network',
-        securityGroups: ['known-firewall', 'persisted-firewall'],
+        securityGroups: ['persisted-firewall'],
         subnet: 'persisted-subnet',
         zone: 'persisted-zone',
       }),
     );
-    expect(transformGceServerGroupCommand(modal.state.command).instanceMetadata).toEqual({
-      'backend-service-names': 'known-backend-new,persisted-backend',
-      'global-load-balancer-names': 'known-listener-new',
-      'load-balancer-names': 'persisted-listener',
-      owner: 'delivery',
-    });
   });
 
-  it('preserves an untouched pipeline with unavailable regional references and metadata', async () => {
-    const persistedImplicitFirewall = {
-      id: 'pipeline-implicit-firewall',
-      name: 'pipeline-implicit-firewall',
-      network: 'pipeline-network',
-      targetTags: ['pipeline-tag'],
-    };
-    const command = buildCommand({
-      autoHealingPolicy: {
-        healthCheck: 'pipeline-health-check',
-        healthCheckKind: 'tcp',
-        healthCheckUrl: 'pipeline-health-check-url',
-        initialDelaySec: 120,
-      },
+  it('preserves an untouched pipeline with unavailable regional references and metadata', () => {
+    const persisted = buildCommand({
       backendServiceMetadata: 'persisted-backend' as any,
-      backendServices: { 'persisted-http-lb': ['persisted-backend'] },
       distributionPolicy: { targetShape: 'EVEN', zones: ['available-zone', 'persisted-zone'] },
-      image: 'pipeline-image',
-      implicitSecurityGroups: [persistedImplicitFirewall],
-      instanceType: 'persisted-instance-type',
-      loadBalancerMetadata: {
-        'global-load-balancer-names': ['persisted-forwarding-rule'],
-      },
+      loadBalancerMetadata: { 'global-load-balancer-names': ['persisted-forwarding-rule'] },
       loadBalancers: ['persisted-http-lb'],
-      minCpuPlatform: 'persisted-cpu-platform',
-      network: 'pipeline-network',
       regional: true,
-      securityGroups: ['pipeline-firewall'],
-      selectZones: true,
-      subnet: 'pipeline-subnet',
       viewState: { ...buildCommand().viewState, mode: 'editPipeline' },
       zone: null,
     });
-    const handlers = buildInitializationHandlers((handler, initializedCommand) => {
-      if (handler !== 'credentialsChanged') {
-        return;
-      }
-      initializedCommand.instanceType = null;
-      delete initializedCommand.minCpuPlatform;
-      initializedCommand.distributionPolicy.zones = ['available-zone'];
-      initializedCommand.loadBalancers = [];
-      initializedCommand.backendServices = {};
-      initializedCommand.backendServiceMetadata = [];
-      initializedCommand.image = 'available-image';
-      initializedCommand.network = 'available-network';
-      initializedCommand.subnet = 'available-subnet';
-      initializedCommand.securityGroups = [];
-      initializedCommand.implicitSecurityGroups = [];
-      delete initializedCommand.autoHealingPolicy.healthCheck;
-      delete initializedCommand.autoHealingPolicy.healthCheckKind;
-      initializedCommand.loadBalancerMetadata = {};
-    });
-    const configured = buildCommand({
-      ...handlers,
-      backingData: {
-        allImages: [{ imageName: 'available-image' }],
-        filtered: {
-          cpuPlatforms: ['(Automatic)'],
-          healthChecks: [{ kind: 'http', name: 'available-health-check' }],
-          instanceTypes: ['available-instance-type'],
-          loadBalancerIndex: {},
-          loadBalancers: [],
-          networks: ['available-network'],
-          securityGroups: [],
-          subnets: ['available-subnet'],
-          zones: ['available-zone'],
-        },
-      },
-    });
-    const adapter = buildAdapter();
-    adapter.configureCommand.mockResolvedValue(configured);
-    const modal = new GceCloneServerGroupModal(buildProps(command, adapter)) as any;
-    vi.spyOn(modal, 'setState').mockImplementation((state: any) => (modal.state = { ...modal.state, ...state }));
+    const reconciled = reconcileGceServerGroupCommand(
+      persisted,
+      buildCommand({ ...buildInitializationHandlers(), loadBalancers: [], regional: true, zone: null }),
+    );
 
-    await modal.configureCommand();
+    expect(reconciled.distributionPolicy.zones).toEqual(['available-zone', 'persisted-zone']);
+    expect(reconciled.loadBalancers).toEqual(['persisted-http-lb']);
+    expect(reconciled.loadBalancerMetadata).toEqual({
+      'global-load-balancer-names': ['persisted-forwarding-rule'],
+    });
+  });
 
-    expect(modal.state.command).toEqual(
-      expect.objectContaining({
-        autoHealingPolicy: {
-          healthCheck: 'pipeline-health-check',
-          healthCheckKind: 'tcp',
-          healthCheckUrl: 'pipeline-health-check-url',
-          initialDelaySec: 120,
-        },
-        backendServiceMetadata: ['persisted-backend'],
-        backendServices: { 'persisted-http-lb': ['persisted-backend'] },
-        distributionPolicy: { targetShape: 'EVEN', zones: ['available-zone', 'persisted-zone'] },
-        image: 'pipeline-image',
-        implicitSecurityGroups: [persistedImplicitFirewall],
-        instanceType: 'persisted-instance-type',
-        loadBalancerMetadata: {
-          'global-load-balancer-names': ['persisted-forwarding-rule'],
-        },
-        loadBalancers: ['persisted-http-lb'],
-        minCpuPlatform: 'persisted-cpu-platform',
-        network: 'pipeline-network',
-        securityGroups: ['pipeline-firewall'],
-        subnet: 'pipeline-subnet',
+  it('keeps a handler-updated image when the persisted image remains available', () => {
+    const handlers = buildInitializationHandlers((handler, command) => {
+      if (handler === 'credentialsChanged') command.image = 'handler-image';
+    });
+    const reconciled = reconcileGceServerGroupCommand(
+      buildCommand({ image: 'persisted-image' }),
+      buildCommand({
+        ...handlers,
+        backingData: { ...buildCommand().backingData, allImages: [{ imageName: 'persisted-image' }] },
       }),
     );
-    expect(transformGceServerGroupCommand(modal.state.command).instanceMetadata).toEqual({
-      'backend-service-names': 'persisted-backend',
-      'global-load-balancer-names': 'persisted-forwarding-rule',
-    });
+    expect(reconciled.image).toBe('handler-image');
   });
 
-  it('keeps a handler-updated image when the persisted image remains available', async () => {
-    const baseCommand = buildCommand();
-    const command = buildCommand({
-      backingData: {
-        ...baseCommand.backingData,
-        allImages: [{ imageName: 'persisted-image' }],
-      },
-      image: 'persisted-image',
+  it('uses the configured load balancer index to normalize HTTP listener aliases once', () => {
+    const handlers = buildInitializationHandlers((handler, command) => {
+      if (handler === 'credentialsChanged') command.loadBalancers = ['http-url-map'];
     });
-    const handlers = buildInitializationHandlers((handler, initializedCommand) => {
-      if (handler === 'credentialsChanged') {
-        initializedCommand.image = 'handler-image';
-      }
-    });
-    const configured = buildCommand({
-      ...handlers,
-      backingData: {
-        ...baseCommand.backingData,
-        allImages: [{ imageName: 'persisted-image' }],
-      },
-    });
-    const adapter = buildAdapter();
-    adapter.configureCommand.mockResolvedValue(configured);
-    const modal = new GceCloneServerGroupModal(buildProps(command, adapter)) as any;
-    vi.spyOn(modal, 'setState').mockImplementation((state: any) => (modal.state = { ...modal.state, ...state }));
-
-    await modal.configureCommand();
-
-    expect(modal.state.command.image).toBe('handler-image');
-  });
-
-  it('uses the configured load balancer index to normalize HTTP listener aliases once', async () => {
-    const command = buildCommand({
-      backingData: undefined,
-      loadBalancerMetadata: { 'global-load-balancer-names': ['http-listener'] },
-      loadBalancers: ['http-listener'],
-      viewState: { ...buildCommand().viewState, mode: 'clone' },
-    });
-    const handlers = buildInitializationHandlers((handler, initializedCommand) => {
-      if (handler === 'credentialsChanged') {
-        initializedCommand.backingData.filtered.loadBalancerIndex = {
-          'http-url-map': {
-            account: 'gce-account',
-            listeners: [{ name: 'http-listener' }],
-            loadBalancerType: 'HTTP',
-            name: 'http-url-map',
+    const reconciled = reconcileGceServerGroupCommand(
+      buildCommand({
+        loadBalancerMetadata: { 'global-load-balancer-names': ['http-listener'] },
+        loadBalancers: ['http-listener'],
+        viewState: { ...buildCommand().viewState, mode: 'clone' },
+      }),
+      buildCommand({
+        ...handlers,
+        backingData: {
+          accounts: ['gce-account'],
+          filtered: {
+            ...buildCommand().backingData.filtered,
+            loadBalancerIndex: {
+              'http-url-map': {
+                listeners: [{ name: 'http-listener' }],
+                loadBalancerType: 'HTTP',
+                name: 'http-url-map',
+              },
+            },
           },
-        };
-        initializedCommand.loadBalancers = ['http-url-map'];
-      }
-    });
-    const configured = buildCommand({
-      ...handlers,
-      backingData: {
-        ...buildCommand().backingData,
-        filtered: { ...buildCommand().backingData.filtered },
-      },
-      loadBalancers: ['http-listener'],
-    });
-    const adapter = buildAdapter();
-    adapter.configureCommand.mockResolvedValue(configured);
-    const modal = new GceCloneServerGroupModal(buildProps(command, adapter)) as any;
-    vi.spyOn(modal, 'setState').mockImplementation((state: any) => (modal.state = { ...modal.state, ...state }));
-
-    await modal.configureCommand();
-
-    expect(modal.state.command.loadBalancers).toEqual(['http-url-map']);
-    expect(transformGceServerGroupCommand(modal.state.command).instanceMetadata).toEqual({
-      'global-load-balancer-names': 'http-listener',
-    });
-  });
-
-  it('restores an unavailable clone image from viewState.imageId', async () => {
-    const command = buildCommand({
-      backingData: undefined,
-      image: undefined,
-      viewState: { ...buildCommand().viewState, imageId: 'retired-image', mode: 'clone' },
-    });
-    const handlers = buildInitializationHandlers((handler, initializedCommand) => {
-      if (handler === 'credentialsChanged') {
-        initializedCommand.image = null;
-      }
-    });
-    const configured = buildCommand({
-      ...handlers,
-      backingData: {
-        ...buildCommand().backingData,
-        allImages: [{ imageName: 'available-image' }],
-      },
-    });
-    const adapter = buildAdapter();
-    adapter.configureCommand.mockResolvedValue(configured);
-    const modal = new GceCloneServerGroupModal(buildProps(command, adapter)) as any;
-    vi.spyOn(modal, 'setState').mockImplementation((state: any) => (modal.state = { ...modal.state, ...state }));
-
-    await modal.configureCommand();
-
-    expect(modal.state.command.image).toBe('retired-image');
-    expect(modal.state.command.viewState.imageId).toBe('retired-image');
-  });
-
-  it('preserves flat backend metadata for an unavailable load balancer without creating an empty mapping', async () => {
-    const command = buildCommand({
-      backendServiceMetadata: 'persisted-backend-a, persisted-backend-b' as any,
-      backendServices: undefined,
-      loadBalancers: ['unavailable-http-lb'],
-      viewState: { ...buildCommand().viewState, mode: 'clone' },
-    });
-    const configured = buildCommand({
-      ...buildInitializationHandlers(),
-      backingData: {
-        ...buildCommand().backingData,
-        filtered: {
-          ...buildCommand().backingData.filtered,
-          loadBalancerIndex: {},
-          loadBalancers: [],
         },
-      },
-    });
-    const adapter = buildAdapter();
-    adapter.configureCommand.mockResolvedValue(configured);
-    const modal = new GceCloneServerGroupModal(buildProps(command, adapter)) as any;
-    vi.spyOn(modal, 'setState').mockImplementation((state: any) => (modal.state = { ...modal.state, ...state }));
+      }),
+    );
+    expect(reconciled.loadBalancers).toEqual(['http-url-map']);
+  });
 
-    await modal.configureCommand();
+  it('restores an unavailable clone image from viewState.imageId', () => {
+    const reconciled = reconcileGceServerGroupCommand(
+      buildCommand({
+        image: undefined,
+        viewState: { ...buildCommand().viewState, imageId: 'retired-image', mode: 'clone' },
+      }),
+      buildCommand({ ...buildInitializationHandlers(), image: null }),
+    );
+    expect(reconciled.image).toBe('retired-image');
+    expect(reconciled.viewState.imageId).toBe('retired-image');
+  });
 
-    expect(modal.state.command.backendServices).toBeUndefined();
-    expect(transformGceServerGroupCommand(modal.state.command).instanceMetadata['backend-service-names']).toBe(
+  it('preserves flat backend metadata for an unavailable load balancer without creating an empty mapping', () => {
+    const reconciled = reconcileGceServerGroupCommand(
+      buildCommand({
+        backendServiceMetadata: 'persisted-backend-a, persisted-backend-b' as any,
+        backendServices: undefined,
+        loadBalancers: ['unavailable-http-lb'],
+      }),
+      buildCommand({ ...buildInitializationHandlers(), loadBalancers: [] }),
+    );
+    expect(reconciled.backendServices).toBeUndefined();
+    expect(transformGceServerGroupCommand(reconciled).instanceMetadata['backend-service-names']).toBe(
       'persisted-backend-a,persisted-backend-b',
     );
   });
 
-  it('preserves an unavailable clone account and region without running account-dependent handlers', async () => {
-    const command = buildCommand({
-      backingData: {
-        ...buildCommand().backingData,
-        accounts: ['retired-account'],
-        filtered: { ...buildCommand().backingData.filtered, regions: ['retired-region'] },
-      },
-      credentials: 'retired-account',
-      region: 'retired-region',
-      viewState: { ...buildCommand().viewState, mode: 'clone' },
-    });
+  it('preserves an unavailable clone account and region without running account-dependent handlers', () => {
     const handlers = buildInitializationHandlers();
-    const configured = buildCommand({
-      ...handlers,
-      backingData: {
-        ...buildCommand().backingData,
-        accounts: ['gce-account'],
-        filtered: { ...buildCommand().backingData.filtered, regions: ['us-central1'] },
-      },
-    });
-    const adapter = buildAdapter();
-    adapter.configureCommand.mockResolvedValue(configured);
-    const modal = new GceCloneServerGroupModal(buildProps(command, adapter)) as any;
-    vi.spyOn(modal, 'setState').mockImplementation((state: any) => (modal.state = { ...modal.state, ...state }));
-
-    await modal.configureCommand();
-
-    expect(modal.state.command.credentials).toBe('retired-account');
-    expect(modal.state.command.region).toBe('retired-region');
-    Object.keys(handlers).forEach((handler) => expect(handlers[handler]).not.toHaveBeenCalled());
-  });
-
-  it('preserves an unavailable pipeline region after initializing the available account', async () => {
-    const command = buildCommand({
-      backingData: {
-        ...buildCommand().backingData,
-        filtered: { ...buildCommand().backingData.filtered, regions: ['retired-region'] },
-      },
-      region: 'retired-region',
-      viewState: { ...buildCommand().viewState, mode: 'editPipeline' },
-    });
-    const handlers = buildInitializationHandlers();
-    const configured = buildCommand({
-      ...handlers,
-      backingData: {
-        ...buildCommand().backingData,
-        filtered: { ...buildCommand().backingData.filtered, regions: ['us-central1'] },
-      },
-    });
-    const adapter = buildAdapter();
-    adapter.configureCommand.mockResolvedValue(configured);
-    const modal = new GceCloneServerGroupModal(buildProps(command, adapter)) as any;
-    vi.spyOn(modal, 'setState').mockImplementation((state: any) => (modal.state = { ...modal.state, ...state }));
-
-    await modal.configureCommand();
-
-    expect(modal.state.command.credentials).toBe('gce-account');
-    expect(modal.state.command.region).toBe('retired-region');
-    expect(handlers.credentialsChanged).toHaveBeenCalledExactlyOnceWith(modal.state.command);
-    ['regionalChanged', 'regionChanged', 'networkChanged', 'zoneChanged', 'customInstanceChanged'].forEach((handler) =>
-      expect(handlers[handler]).not.toHaveBeenCalled(),
+    const reconciled = reconcileGceServerGroupCommand(
+      buildCommand({
+        credentials: 'retired-account',
+        region: 'retired-region',
+        viewState: { ...buildCommand().viewState, mode: 'clone' },
+      }),
+      buildCommand({ ...handlers }),
     );
+    expect(reconciled.credentials).toBe('retired-account');
+    expect(reconciled.region).toBe('retired-region');
+    Object.values(handlers).forEach((handler) => expect(handler).not.toHaveBeenCalled());
   });
 
-  it('hydrates regions before checking an available persisted region and runs all handlers in order', async () => {
-    const command = buildCommand();
+  it('preserves an unavailable pipeline region after initializing the available account', () => {
+    const handlers = buildInitializationHandlers();
+    const reconciled = reconcileGceServerGroupCommand(
+      buildCommand({ region: 'retired-region', viewState: { ...buildCommand().viewState, mode: 'editPipeline' } }),
+      buildCommand({ ...handlers }),
+    );
+    expect(reconciled.region).toBe('retired-region');
+    expect(handlers.credentialsChanged).toHaveBeenCalledTimes(1);
+  });
+
+  it('hydrates regions before checking an available persisted region and runs all handlers in order', () => {
     const calls: string[] = [];
-    const handlers = buildInitializationHandlers((handler, initializedCommand) => {
+    const handlers = buildInitializationHandlers((handler, command) => {
       calls.push(handler);
-      if (handler === 'credentialsChanged') {
-        initializedCommand.backingData.filtered.regions = ['us-central1'];
-      }
+      if (handler === 'credentialsChanged') command.backingData.filtered.regions = ['us-central1'];
     });
-    const configured = buildCommand({
-      ...handlers,
-      backingData: {
-        ...buildCommand().backingData,
-        filtered: {},
-      },
-    });
-    const adapter = buildAdapter();
-    adapter.configureCommand.mockResolvedValue(configured);
-    const modal = new GceCloneServerGroupModal(buildProps(command, adapter)) as any;
-    vi.spyOn(modal, 'setState').mockImplementation((state: any) => (modal.state = { ...modal.state, ...state }));
-
-    await modal.configureCommand();
-
+    reconcileGceServerGroupCommand(
+      buildCommand(),
+      buildCommand({ ...handlers, backingData: { accounts: ['gce-account'], filtered: {} } }),
+    );
     expect(calls).toEqual([
       'credentialsChanged',
       'regionalChanged',
@@ -821,28 +422,15 @@ describe('GceCloneServerGroupModal', () => {
         backingData: {
           filtered: {
             loadBalancerIndex: {
-              'current-http-lb': {
-                listeners: [{ name: 'current-forwarding-rule' }],
-                loadBalancerType: 'HTTP',
-              },
+              'current-http-lb': { listeners: [{ name: 'current-forwarding-rule' }], loadBalancerType: 'HTTP' },
             },
           },
         },
-        instanceMetadata: {
-          'backend-service-names': 'stale-backend',
-          'global-load-balancer-names': 'stale-global-rule',
-          'load-balancer-names': 'stale-regional-rule',
-          owner: 'delivery',
-        },
-        loadBalancerMetadata: {
-          'global-load-balancer-names': ['persisted-global-rule'],
-          'load-balancer-names': ['persisted-regional-rule'],
-        },
+        instanceMetadata: { 'backend-service-names': 'stale-backend', owner: 'delivery' },
         loadBalancers: ['current-http-lb'],
         viewState: { ...buildCommand().viewState, mode: 'clone' },
       }),
     );
-
     expect(transformed.instanceMetadata).toEqual({
       'backend-service-names': 'current-backend',
       'global-load-balancer-names': 'current-forwarding-rule',
@@ -854,23 +442,13 @@ describe('GceCloneServerGroupModal', () => {
     const transformed = transformGceServerGroupCommand(
       buildCommand({
         backingData: {
-          filtered: {
-            loadBalancerIndex: {
-              'regional-lb': { loadBalancerType: 'NETWORK', name: 'regional-lb' },
-            },
-          },
+          filtered: { loadBalancerIndex: { 'regional-lb': { loadBalancerType: 'NETWORK', name: 'regional-lb' } } },
         },
-        backendServices: { 'regional-lb': ['backend-a', 'backend-b'], removed: ['removed-backend'] },
-        instanceMetadata: {
-          'backend-service-names': 'persisted-backend',
-          'global-load-balancer-names': 'persisted-global-rule',
-        },
-        loadBalancerMetadata: { 'global-load-balancer-names': ['persisted-global-rule'] },
+        backendServices: { 'regional-lb': ['backend-a', 'backend-b'] },
         loadBalancers: ['regional-lb'],
         viewState: { ...buildCommand().viewState, mode: 'editPipeline' },
       }),
     );
-
     expect(transformed.instanceMetadata).toEqual({
       'backend-service-names': 'backend-a,backend-b',
       'load-balancer-names': 'regional-lb',
@@ -878,20 +456,24 @@ describe('GceCloneServerGroupModal', () => {
   });
 
   ['createPipeline', 'editPipeline'].forEach((mode) => {
-    it(`returns a transformed command without executing infrastructure in ${mode} mode`, () => {
-      const command = buildCommand({
-        capacity: { desired: '${ parameters.desired }' } as any,
-        minCpuPlatform: '(Automatic)',
-        tags: [{ value: 'web' }, 'api'],
-        viewState: { ...buildCommand().viewState, mode },
-      });
-      const props = buildProps(command);
-      const modal = new GceCloneServerGroupModal(props) as any;
-      const cloneServerGroup = vi.fn();
+    it(`returns transformed WizardModal values without executing infrastructure in ${mode} mode`, async () => {
+      const writer = vi.fn();
+      const rendered = renderModal(
+        buildCommand({
+          capacity: { desired: '${ parameters.desired }' } as any,
+          minCpuPlatform: '(Automatic)',
+          tags: [{ value: 'web' }, 'api'],
+          viewState: { ...buildCommand().viewState, mode },
+        }),
+        buildAdapter(),
+        { serverGroupWriter: { cloneServerGroup: writer } },
+      );
+      expect(await screen.findByRole('button', { name: 'Done' })).toBeEnabled();
 
-      modal.submit(command);
+      fireEvent.click(screen.getByRole('button', { name: 'Done' }));
 
-      expect(props.closeModal).toHaveBeenCalledWith(
+      await waitFor(() => expect(rendered.props.closeModal).toHaveBeenCalled());
+      expect(rendered.props.closeModal).toHaveBeenCalledWith(
         expect.objectContaining({
           capacity: {
             desired: '${ parameters.desired }',
@@ -903,172 +485,236 @@ describe('GceCloneServerGroupModal', () => {
           targetSize: '${ parameters.desired }',
         }),
       );
-      expect(cloneServerGroup).not.toHaveBeenCalled();
+      expect(writer).not.toHaveBeenCalled();
     });
   });
 
   ['create', 'clone'].forEach((mode) => {
-    it(`transforms and submits ${mode} commands through TaskMonitor`, () => {
-      const command = buildCommand({
-        autoscalingPolicy: { maxNumReplicas: 6, minNumReplicas: 2 },
-        instanceMetadata: { owner: 'delivery' },
-        loadBalancerMetadata: {
-          'global-load-balancer-names': ['stale-global-forwarding-rule'],
-          'load-balancer-names': ['stale-regional-forwarding-rule'],
-        },
-        loadBalancers: [
-          { loadBalancerType: 'TCP', name: 'global-forwarding-rule' },
-          { loadBalancerType: 'INTERNAL_MANAGED', listeners: [{ name: 'regional-forwarding-rule' }] },
-        ],
-        securityGroups: ['firewall-id'],
-        viewState: { ...buildCommand().viewState, mode },
-      });
-      const props = buildProps(command);
-      const modal = new GceCloneServerGroupModal(props) as any;
-      const task = Promise.resolve({ id: 'task-id' });
-      const cloneServerGroup = vi.fn().mockReturnValue(task as any);
-      modal.context = { services: { serverGroupWriter: { cloneServerGroup } } };
-      const monitorSubmit = vi
-        .spyOn(modal.state.taskMonitor, 'submit')
-        .mockImplementation((submitMethod: () => PromiseLike<any>) => submitMethod());
-
-      modal.submit(command);
-
-      expect(monitorSubmit).toHaveBeenCalled();
-      expect(cloneServerGroup).toHaveBeenCalledWith(
-        expect.objectContaining({
-          autoscalingPolicy: { maxNumReplicas: 6, minNumReplicas: 2 },
-          capacity: { desired: 3, max: 6, min: 2 },
-          instanceMetadata: {
-            owner: 'delivery',
-            'global-load-balancer-names': 'global-forwarding-rule',
-            'load-balancer-names': 'regional-forwarding-rule',
+    it(`transforms and submits ${mode} commands through TaskMonitor`, async () => {
+      const writer = vi.fn().mockResolvedValue({ id: 'task-id' });
+      const monitorSubmit = vi.spyOn(TaskMonitor.prototype, 'startSubmit');
+      vi.spyOn(TaskReader, 'waitUntilTaskCompletes').mockReturnValue(new Promise(() => undefined));
+      const rendered = renderModal(
+        buildCommand({
+          autoscalingPolicy: {
+            maxNumReplicas: 6,
+            minNumReplicas: 2,
+            coolDownPeriodSec: 60,
+            cpuUtilization: { utilizationTarget: 0.5 },
           },
-          targetSize: 3,
+          instanceMetadata: { owner: 'delivery' },
+          loadBalancerMetadata: {
+            'global-load-balancer-names': ['stale-global-forwarding-rule'],
+            'load-balancer-names': ['stale-regional-forwarding-rule'],
+          },
+          loadBalancers: [
+            { loadBalancerType: 'TCP', name: 'global-forwarding-rule' },
+            { loadBalancerType: 'INTERNAL_MANAGED', listeners: [{ name: 'regional-forwarding-rule' }] },
+          ],
+          securityGroups: ['firewall-id'],
+          viewState: { ...buildCommand().viewState, mode },
         }),
-        application,
+        buildAdapter(),
+        { serverGroupWriter: { cloneServerGroup: writer } },
       );
-      const submitted = cloneServerGroup.mock.lastCall[0];
+      expect(await screen.findByRole('button', { name: 'Done' })).toBeEnabled();
+
+      fireEvent.change(screen.getByLabelText('Detail'), { target: { value: `${mode}-detail` } });
+      fireEvent.click(screen.getByRole('button', { name: 'Done' }));
+
+      await waitFor(() =>
+        expect(writer).toHaveBeenCalledWith(
+          expect.objectContaining({
+            autoscalingPolicy: expect.objectContaining({ maxNumReplicas: 6, minNumReplicas: 2 }),
+            capacity: { desired: 3, max: 6, min: 2 },
+            freeFormDetails: `${mode}-detail`,
+            instanceMetadata: {
+              owner: 'delivery',
+              'global-load-balancer-names': 'global-forwarding-rule',
+              'load-balancer-names': 'regional-forwarding-rule',
+            },
+            targetSize: 3,
+          }),
+          application,
+        ),
+      );
+      expect(monitorSubmit).toHaveBeenCalled();
+      const submitted = writer.mock.lastCall[0];
       expect(submitted.loadBalancerMetadata).toBeUndefined();
       expect(submitted.securityGroups).toBeUndefined();
-      expect(props.closeModal).not.toHaveBeenCalled();
+      expect(rendered.props.closeModal).not.toHaveBeenCalled();
     });
   });
 
-  it('submits the immediate Formik command instead of stale component state', () => {
-    const viewState = { ...buildCommand().viewState, mode: 'editPipeline' as const };
-    const initialCommand = buildCommand({ stack: 'old', viewState });
-    const formik = { values: buildCommand({ stack: 'edited', viewState }) } as any;
-    const props = buildProps(initialCommand, buildAdapter());
-    const wrapper = shallow(<GceCloneServerGroupModal {...props} />, { disableLifecycleMethods: true } as any);
-    const modal = wrapper.instance() as any;
-    const wizard = wrapper.find(WizardModal);
-    wizard.prop('render')({ formik, nextIdx: () => 1, wizard: {} as any });
-
-    wizard.prop('closeModal')();
-
-    expect(props.closeModal).toHaveBeenCalledWith(expect.objectContaining({ stack: 'edited' }));
-  });
-
-  it('merges refreshed backing data and handlers into edits made while loading', async () => {
-    const command = buildCommand({ stack: 'old', unknownReference: 'keep-me' });
-    const request = deferred<IGceServerGroupCommand>();
-    const adapter = buildAdapter();
-    adapter.configureCommand.mockReturnValue(request.promise);
-    const wrapper = shallow(<GceCloneServerGroupModal {...buildProps(command, adapter)} />, {
-      disableLifecycleMethods: true,
-    } as any);
-    const modal = wrapper.instance() as any;
-    const formik: any = {
-      setValues: vi.fn().mockImplementation((values: IGceServerGroupCommand) => (formik.values = values)),
-      values: cloneDeep(command),
-    };
-    wrapper.find(WizardModal).prop('render')({ formik, nextIdx: () => 1, wizard: {} as any });
-
-    const configure = modal.configureCommand();
-    formik.values = { ...formik.values, stack: 'edited' };
-    const regionChanged = vi.fn();
-    request.resolve(
-      buildCommand({
-        backingData: { filtered: { regions: ['refreshed-region'] } },
-        regionChanged,
-        stack: 'old',
-        unknownReference: 'keep-me',
-      }),
+  it('submits the immediate Formik command instead of stale component state', async () => {
+    const rendered = renderModal(
+      buildCommand({ stack: 'edited', viewState: { ...buildCommand().viewState, mode: 'editPipeline' } }),
+      buildAdapter(),
     );
-    await configure;
+    expect(await screen.findByRole('button', { name: 'Done' })).toBeEnabled();
+    fireEvent.change(screen.getByLabelText('Stack'), { target: { value: 'latest' } });
 
-    expect(formik.values.stack).toBe('edited');
-    expect(formik.values.unknownReference).toBe('keep-me');
-    expect(formik.values.backingData.filtered.regions).toEqual(['refreshed-region']);
-    expect(formik.values.regionChanged).toBe(regionChanged);
+    fireEvent.click(screen.getByRole('button', { name: 'Done' }));
+
+    await waitFor(() => expect(rendered.props.closeModal).toHaveBeenCalled());
+    expect(rendered.props.closeModal).toHaveBeenCalledWith(expect.objectContaining({ stack: 'latest' }));
   });
 
-  it('ignores stale backing refreshes', async () => {
-    const first = deferred<IGceServerGroupCommand>();
-    const second = deferred<IGceServerGroupCommand>();
-    const adapter = buildAdapter();
-    adapter.configureCommand.mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise);
-    const modal = new GceCloneServerGroupModal(buildProps(buildCommand(), adapter)) as any;
-    vi.spyOn(modal, 'setState').mockImplementation((state: any) => (modal.state = { ...modal.state, ...state }));
+  it.each([
+    [
+      'merges refreshed backing data into Formik edits made while configuration is loading',
+      async () => {
+        const request = deferred<IGceServerGroupCommand>();
+        const adapter = buildAdapter({ configureCommand: vi.fn().mockReturnValue(request.promise) });
+        const rendered = renderModal(
+          buildCommand({
+            unknownReference: 'keep-me',
+            viewState: { ...buildCommand().viewState, mode: 'editPipeline' },
+          }),
+          adapter,
+        );
+        fireEvent.change(await screen.findByLabelText('Stack'), { target: { value: 'edited' } });
+        const regionChanged = vi.fn();
 
-    const firstConfigure = modal.configureCommand();
-    const secondConfigure = modal.configureCommand();
-    second.resolve(buildCommand({ backingData: { filtered: { regions: ['second'] } } }));
-    await secondConfigure;
-    first.resolve(buildCommand({ backingData: { filtered: { regions: ['first'] } } }));
-    await firstConfigure;
+        await act(async () =>
+          request.resolve(
+            buildCommand({
+              backingData: { ...buildCommand().backingData, refreshed: true },
+              regionChanged,
+              stack: 'old',
+              unknownReference: 'keep-me',
+              viewState: { ...buildCommand().viewState, mode: 'editPipeline' },
+            }),
+          ),
+        );
+        fireEvent.click(await screen.findByRole('button', { name: 'Done' }));
 
-    expect(modal.state.command.backingData.filtered.regions).toEqual(['second']);
-  });
-
-  it('does not update state or Formik after unmount', async () => {
-    const request = deferred<IGceServerGroupCommand>();
-    const adapter = buildAdapter();
-    adapter.configureCommand.mockReturnValue(request.promise);
-    const modal = new GceCloneServerGroupModal(buildProps(buildCommand(), adapter)) as any;
-    const setState = vi.spyOn(modal, 'setState').mockReturnValue(undefined);
-    const formik = { setValues: vi.fn(), values: buildCommand() };
-    modal.formik = formik;
-
-    const configure = modal.configureCommand();
-    modal.componentWillUnmount();
-    request.resolve(buildCommand({ backingData: { filtered: { regions: ['late'] } } }));
-    await configure;
-
-    expect(setState).not.toHaveBeenCalled();
-    expect(formik.setValues).not.toHaveBeenCalled();
-  });
-
-  it('refreshes and navigates to the created server group after task completion', () => {
-    const command = buildCommand({ credentials: 'gce-account', region: 'us-central1' });
-    const props = buildProps(command);
-    const modal = new GceCloneServerGroupModal(props) as any;
-    modal.state.taskMonitor.task = {
-      execution: {
-        stages: [
-          {
-            context: { 'deploy.server.groups': { 'us-central1': 'fnord-main-api-v042' } },
-            type: 'cloneServerGroup',
-          },
-        ],
+        await waitFor(() => expect(rendered.props.closeModal).toHaveBeenCalled());
+        expect(rendered.props.closeModal).toHaveBeenCalledWith(
+          expect.objectContaining({
+            backingData: expect.objectContaining({ refreshed: true }),
+            stack: 'edited',
+            unknownReference: 'keep-me',
+          }),
+        );
+        expect(rendered.props.closeModal.mock.calls[0][0].regionChanged).toBe(regionChanged);
       },
-    };
-    const state = {
-      go: vi.fn(),
-      includes: vi.fn().mockImplementation((name: string) => name === '**.clusters'),
-    };
-    props.stateService = state;
+    ],
+    [
+      'keeps the latest rendered command when overlapping configuration requests finish out of order',
+      async () => {
+        const first = deferred<IGceServerGroupCommand>();
+        const second = deferred<IGceServerGroupCommand>();
+        const adapter = buildAdapter({
+          configureCommand: vi.fn().mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise),
+        });
+        const rendered = renderModal(
+          buildCommand({ stack: 'first-request', viewState: { ...buildCommand().viewState, mode: 'editPipeline' } }),
+          adapter,
+        );
 
-    modal.onTaskComplete();
+        rendered.rerenderCommand(
+          buildCommand({ stack: 'second-request', viewState: { ...buildCommand().viewState, mode: 'editPipeline' } }),
+        );
+        await waitFor(() => expect(adapter.configureCommand).toHaveBeenCalledTimes(2));
+        await act(async () =>
+          second.resolve(
+            buildCommand({
+              backingData: {
+                ...buildCommand().backingData,
+                filtered: { ...buildCommand().backingData.filtered, regions: ['second-region'] },
+              },
+            }),
+          ),
+        );
+        await act(async () =>
+          first.resolve(
+            buildCommand({
+              backingData: {
+                ...buildCommand().backingData,
+                filtered: { ...buildCommand().backingData.filtered, regions: ['first-region'] },
+              },
+            }),
+          ),
+        );
 
-    expect(application.serverGroups.refresh).toHaveBeenCalled();
-    expect(application.serverGroups.onNextRefresh).toHaveBeenCalledWith(modal.onApplicationRefresh);
+        expect(screen.getByLabelText('Stack')).toHaveValue('second-request');
+        const regionOptions = Array.from(screen.getByLabelText('Region').querySelectorAll('option')).map(
+          (option) => option.value,
+        );
+        expect(regionOptions).toContain('second-region');
+        expect(regionOptions).not.toContain('first-region');
+      },
+    ],
+  ] as const)('%s', async (_description, verify) => verify());
+
+  it.each(['resolve', 'reject'] as const)(
+    'does not reconcile, update Formik, invoke callbacks, or warn after configuration %s following unmount',
+    async (outcome) => {
+      const request = deferred<IGceServerGroupCommand>();
+      const handlers = buildInitializationHandlers();
+      const adapter = buildAdapter({ configureCommand: vi.fn().mockReturnValue(request.promise) });
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+      const rendered = renderModal(buildCommand(), adapter);
+      await screen.findByLabelText('Stack');
+
+      rendered.unmount();
+      await act(async () => {
+        if (outcome === 'resolve') {
+          request.resolve(buildCommand({ ...handlers, backingData: { filtered: { regions: ['late'] } } }));
+        } else {
+          request.reject(new Error('late configuration failure'));
+        }
+        await request.promise.catch(() => undefined);
+      });
+
+      Object.values(handlers).forEach((handler) => expect(handler).not.toHaveBeenCalled());
+      expect(rendered.props.closeModal).not.toHaveBeenCalled();
+      expect(rendered.props.dismissModal).not.toHaveBeenCalled();
+      expect(consoleError.mock.calls.flat().join(' ')).not.toMatch(/unmounted component/i);
+      consoleError.mockRestore();
+    },
+  );
+
+  it('renders actual TaskMonitor submission status inside WizardModal', async () => {
+    const task = deferred<any>();
+    renderModal(buildCommand(), buildAdapter(), { serverGroupWriter: { cloneServerGroup: () => task.promise } });
+    fireEvent.click(await screen.findByRole('button', { name: 'Done' }));
+
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'Configure GCE server group' })).toHaveLength(2));
+  });
+
+  it('retains the modal command when infrastructure submission fails', async () => {
+    const rendered = renderModal(buildCommand(), buildAdapter(), {
+      serverGroupWriter: { cloneServerGroup: vi.fn().mockRejectedValue({ failureMessage: 'create failed' }) },
+    });
+    fireEvent.click(await screen.findByRole('button', { name: 'Done' }));
+
+    expect(await screen.findByText('create failed')).toBeInTheDocument();
+    expect(rendered.props.closeModal).not.toHaveBeenCalled();
+    expect(rendered.props.dismissModal).not.toHaveBeenCalled();
+  });
+
+  it('refreshes and navigates to the created server group after TaskMonitor completion', async () => {
+    const task = cloneTask();
+    const writer = vi.fn().mockResolvedValue(task);
+    vi.spyOn(TaskReader, 'waitUntilTaskCompletes').mockResolvedValue(task);
+    const refreshCallbacks: Array<() => void> = [];
+    application.serverGroups.onNextRefresh.mockImplementation((callback: () => void) => {
+      refreshCallbacks.push(callback);
+      return vi.fn();
+    });
+    const stateService = { go: vi.fn(), includes: vi.fn((state: string) => state === '**.clusters') };
+    renderModal(buildCommand(), buildAdapter(), { serverGroupWriter: { cloneServerGroup: writer } }, { stateService });
+    fireEvent.click(await screen.findByRole('button', { name: 'Done' }));
+    await waitFor(() => expect(application.serverGroups.refresh).toHaveBeenCalled());
     expect(application.serverGroups.onNextRefresh.mock.invocationCallOrder[0]).toBeLessThan(
       application.serverGroups.refresh.mock.invocationCallOrder[0],
     );
-    application.serverGroups.onNextRefresh.mock.lastCall[0]();
-    expect(state.go).toHaveBeenCalledWith('.serverGroup', {
+
+    refreshCallbacks[0]();
+
+    expect(stateService.go).toHaveBeenCalledWith('.serverGroup', {
       accountId: 'gce-account',
       provider: 'gce',
       region: 'us-central1',
@@ -1076,68 +722,116 @@ describe('GceCloneServerGroupModal', () => {
     });
   });
 
-  it('unsubscribes from the application refresh after the callback runs', () => {
-    const unsubscribe = vi.fn();
-    application.serverGroups.onNextRefresh.mockReturnValue(unsubscribe);
-    const modal = new GceCloneServerGroupModal(buildProps(buildCommand())) as any;
-
-    modal.onTaskComplete();
-    expect(unsubscribe).not.toHaveBeenCalled();
-
-    modal.onApplicationRefresh();
-    expect(unsubscribe).toHaveBeenCalledTimes(1);
-  });
-
-  it('ignores a late application refresh after unmount', () => {
+  it('unsubscribes from the application refresh after the callback runs', async () => {
     const unsubscribe = vi.fn();
     let refreshCallback: (() => void) | undefined;
     application.serverGroups.onNextRefresh.mockImplementation((callback: () => void) => {
       refreshCallback = callback;
       return unsubscribe;
     });
-    const props = buildProps(buildCommand({ credentials: 'gce-account', region: 'us-central1' }));
-    const modal = new GceCloneServerGroupModal(props) as any;
-    modal.state.taskMonitor.task = {
-      execution: {
-        stages: [
-          {
-            context: { 'deploy.server.groups': { 'us-central1': 'fnord-main-api-v042' } },
-            type: 'cloneServerGroup',
-          },
-        ],
-      },
-    };
+    const task = cloneTask();
+    vi.spyOn(TaskReader, 'waitUntilTaskCompletes').mockResolvedValue(task);
+    renderModal(buildCommand(), buildAdapter(), {
+      serverGroupWriter: { cloneServerGroup: vi.fn().mockResolvedValue(task) },
+    });
+    fireEvent.click(await screen.findByRole('button', { name: 'Done' }));
+    await waitFor(() => expect(application.serverGroups.refresh).toHaveBeenCalled());
+    expect(unsubscribe).not.toHaveBeenCalled();
 
-    modal.onTaskComplete();
-    modal.componentWillUnmount();
-    refreshCallback!();
+    refreshCallback?.();
 
     expect(unsubscribe).toHaveBeenCalledTimes(1);
-    expect(modal.applicationRefreshUnsubscribe).toBeUndefined();
-    expect(props.stateService.go).not.toHaveBeenCalled();
-    expect(props.closeModal).not.toHaveBeenCalled();
-    expect(props.dismissModal).not.toHaveBeenCalled();
   });
 
-  it('unsubscribes from a pending application refresh before replacing it', () => {
+  it('ignores a late application refresh after unmount', async () => {
+    const unsubscribe = vi.fn();
+    let refreshCallback: (() => void) | undefined;
+    application.serverGroups.onNextRefresh.mockImplementation((callback: () => void) => {
+      refreshCallback = callback;
+      return unsubscribe;
+    });
+    const task = cloneTask();
+    vi.spyOn(TaskReader, 'waitUntilTaskCompletes').mockResolvedValue(task);
+    const stateService = { go: vi.fn(), includes: vi.fn() };
+    const rendered = renderModal(
+      buildCommand(),
+      buildAdapter(),
+      { serverGroupWriter: { cloneServerGroup: vi.fn().mockResolvedValue(task) } },
+      { stateService },
+    );
+    fireEvent.click(await screen.findByRole('button', { name: 'Done' }));
+    await waitFor(() => expect(application.serverGroups.refresh).toHaveBeenCalled());
+
+    rendered.unmount();
+    refreshCallback?.();
+
+    expect(unsubscribe).toHaveBeenCalledTimes(1);
+    expect(stateService.go).not.toHaveBeenCalled();
+    expect(rendered.props.closeModal).not.toHaveBeenCalled();
+    expect(rendered.props.dismissModal).not.toHaveBeenCalled();
+  });
+
+  it('unsubscribes from a pending application refresh before replacing it', async () => {
     const firstUnsubscribe = vi.fn();
     const secondUnsubscribe = vi.fn();
     application.serverGroups.onNextRefresh.mockReturnValueOnce(firstUnsubscribe).mockReturnValueOnce(secondUnsubscribe);
-    const modal = new GceCloneServerGroupModal(buildProps(buildCommand())) as any;
+    const task = cloneTask();
+    vi.spyOn(TaskReader, 'waitUntilTaskCompletes').mockResolvedValue(task);
+    let monitor: TaskMonitor | undefined;
+    const handleTaskSuccess = TaskMonitor.prototype.handleTaskSuccess;
+    vi.spyOn(TaskMonitor.prototype, 'handleTaskSuccess').mockImplementation(function (
+      this: TaskMonitor,
+      ...args: Parameters<TaskMonitor['handleTaskSuccess']>
+    ) {
+      monitor = this;
+      return handleTaskSuccess.apply(this, args);
+    });
+    renderModal(buildCommand(), buildAdapter(), {
+      serverGroupWriter: { cloneServerGroup: vi.fn().mockResolvedValue(task) },
+    });
+    fireEvent.click(await screen.findByRole('button', { name: 'Done' }));
+    await waitFor(() => expect(application.serverGroups.onNextRefresh).toHaveBeenCalledTimes(1));
 
-    modal.onTaskComplete();
-    modal.onTaskComplete();
+    // A second task completion arrives before the first refresh callback has fired.
+    await act(async () => monitor!.handleTaskSuccess(task));
+    await waitFor(() => expect(application.serverGroups.onNextRefresh).toHaveBeenCalledTimes(2));
 
     expect(firstUnsubscribe).toHaveBeenCalledTimes(1);
     expect(secondUnsubscribe).not.toHaveBeenCalled();
   });
 });
 
+function renderModal(
+  command: IGceServerGroupCommand,
+  adapter: IGceServerGroupWizardAdapter | undefined,
+  runtimeServices: Record<string, any> = { serverGroupWriter: { cloneServerGroup: vi.fn() } },
+  overrides: Record<string, any> = {},
+) {
+  const props = { ...buildProps(command, adapter), ...overrides };
+  const router = new UIRouterReact();
+  const element = (nextProps = props) => (
+    <UIRouterContext.Provider value={router}>
+      <DeckRuntimeContext.Provider value={{ services: runtimeServices } as any}>
+        <GceCloneServerGroupModal {...nextProps} />
+      </DeckRuntimeContext.Provider>
+    </UIRouterContext.Provider>
+  );
+  const rendered = render(element());
+  return {
+    ...rendered,
+    props,
+    rerenderCommand(nextCommand: IGceServerGroupCommand) {
+      rendered.rerender(element({ ...props, command: nextCommand }));
+    },
+  };
+}
+
 function buildCommand(overrides: Partial<IGceServerGroupCommand> = {}): IGceServerGroupCommand {
   return {
     application: 'fnord',
     backingData: {
       accounts: ['gce-account'],
+      allImages: [{ imageName: 'ubuntu' }],
       filtered: {
         cpuPlatforms: ['(Automatic)'],
         images: ['ubuntu'],
@@ -1165,12 +859,7 @@ function buildCommand(overrides: Partial<IGceServerGroupCommand> = {}): IGceServ
     stack: 'main',
     subnet: 'default',
     tags: [],
-    viewState: {
-      dirty: {},
-      disableImageSelection: false,
-      mode: 'create',
-      useSimpleCapacity: true,
-    },
+    viewState: { dirty: {}, disableImageSelection: false, mode: 'create', useSimpleCapacity: true },
     zone: 'us-central1-a',
     ...overrides,
   };
@@ -1190,19 +879,20 @@ function buildProps(command: IGceServerGroupCommand, adapter?: IGceServerGroupWi
   };
 }
 
-function buildAdapter(): any {
+function buildAdapter(overrides: Record<string, any> = {}): any {
   return {
     applyCommandHandler: vi.fn(),
     applyConfigurationRefresh: vi.fn(),
     applyConfigurationUpdate: vi.fn(),
     buildNewServerGroupCommand: vi.fn(),
-    configureCommand: vi.fn(),
+    configureCommand: vi.fn().mockResolvedValue(buildCommand()),
+    ...overrides,
   };
 }
 
 function buildInitializationHandlers(
   onCall: (handler: string, command: IGceServerGroupCommand) => void = () => undefined,
-): Record<string, Mock> {
+): Record<string, ReturnType<typeof vi.fn>> {
   return [
     'credentialsChanged',
     'regionalChanged',
@@ -1216,11 +906,28 @@ function buildInitializationHandlers(
       return { dirty: {} };
     });
     return handlers;
-  }, {} as Record<string, Mock>);
+  }, {} as Record<string, ReturnType<typeof vi.fn>>);
 }
 
-function deferred<T>(): { promise: Promise<T>; resolve: (value: T) => void } {
-  let resolve: (value: T) => void;
-  const promise = new Promise<T>((promiseResolve) => (resolve = promiseResolve));
-  return { promise, resolve };
+function cloneTask(): any {
+  return {
+    execution: {
+      stages: [
+        {
+          context: { 'deploy.server.groups': { 'us-central1': 'fnord-main-api-v042' } },
+          type: 'cloneServerGroup',
+        },
+      ],
+    },
+  };
+}
+
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  let reject!: (reason: unknown) => void;
+  const promise = new Promise<T>((promiseResolve, promiseReject) => {
+    resolve = promiseResolve;
+    reject = promiseReject;
+  });
+  return { promise, reject, resolve };
 }

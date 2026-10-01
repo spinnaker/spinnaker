@@ -202,6 +202,7 @@ export function DeployCloudFormationStackStageConfig({
 
       {source === 'text' && (
         <YamlEditor
+          ariaLabel="CloudFormation template YAML"
           onChange={(raw, templateBody) => {
             setTemplateEditorState({ refId: stage.refId, rawTemplateBody: raw });
             if (templateBody !== null) {

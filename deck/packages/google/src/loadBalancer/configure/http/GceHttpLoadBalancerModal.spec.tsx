@@ -1,9 +1,11 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { fireEvent, screen } from '@testing-library/react';
 
 import { TaskExecutor } from '@spinnaker/core';
+import { renderWithRouter } from '../../../../../core/src/utils/testUtils/rtl';
 
 import { buildGceLoadBalancerJobs } from '../common';
+import { validateGceHttpLoadBalancerCommand } from './GceHttpLoadBalancerEditor';
 import { GceHttpLoadBalancerModal, initializeGceHttpLoadBalancerCommand } from './GceHttpLoadBalancerModal';
 
 describe('GceHttpLoadBalancerModal', () => {
@@ -77,37 +79,41 @@ describe('GceHttpLoadBalancerModal', () => {
   it('returns exact operations without executing a task in pipeline-edit mode', () => {
     const closeModal = vi.fn();
     const executeTask = vi.spyOn(TaskExecutor, 'executeTask').mockReturnValue(undefined);
-    const modal = new GceHttpLoadBalancerModal({
-      app: application,
-      closeModal,
-      dismissModal: vi.fn(),
-      forPipelineConfig: true,
-      isNew: false,
-      loadBalancer: {
-        account: 'account-a',
-        backendServices: [{ healthCheck: 'check-a', name: 'backend-a', portName: 'http' }],
-        defaultService: 'backend-a',
-        healthChecks: [{ healthCheckType: 'HTTP', name: 'check-a', port: 80, requestPath: '/health' }],
-        hostRules: [
-          {
-            hostPatterns: ['api.example.com'],
-            pathMatcher: {
-              defaultService: 'backend-a',
-              pathRules: [{ backendService: 'backend-a', paths: ['/v1'] }],
-            },
+    const loadBalancer = {
+      account: 'account-a',
+      backendServices: [{ healthCheck: 'check-a', name: 'backend-a', portName: 'http' }],
+      defaultService: 'backend-a',
+      healthChecks: [{ healthCheckType: 'HTTP', name: 'check-a', port: 80, requestPath: '/health' }],
+      hostRules: [
+        {
+          hostPatterns: ['api.example.com'],
+          pathMatcher: {
+            defaultService: 'backend-a',
+            pathRules: [{ backendService: 'backend-a', paths: ['/v1'] }],
           },
-        ],
-        listeners: [{ ipAddress: 'address-a', name: 'frontend', port: 80, protocol: 'HTTP' }],
-        loadBalancerType: 'HTTP',
-        name: 'test-app-main',
-      },
-      mode: 'edit',
-    } as any);
-    const expectedOperations = buildGceLoadBalancerJobs((modal as any).state.command);
+        },
+      ],
+      listeners: [{ ipAddress: 'address-a', name: 'frontend', port: 80, protocol: 'HTTP' }],
+      loadBalancerType: 'HTTP',
+      name: 'test-app-main',
+    };
+    const expectedOperations = buildGceLoadBalancerJobs(
+      initializeGceHttpLoadBalancerCommand(loadBalancer, 'pipeline', application),
+    );
+    renderWithRouter(
+      <GceHttpLoadBalancerModal
+        app={application}
+        closeModal={closeModal}
+        data={emptyData}
+        dismissModal={vi.fn()}
+        forPipelineConfig={true}
+        isNew={false}
+        loadBalancer={loadBalancer}
+      />,
+    );
 
-    (modal as any).submit();
+    fireEvent.click(screen.getByRole('button', { name: 'Done' }));
 
-    expect((modal as any).state.command.mode).toBe('pipeline');
     expect(executeTask).not.toHaveBeenCalled();
     expect(closeModal).toHaveBeenCalledExactlyOnceWith(expectedOperations);
     expect(expectedOperations.map(({ loadBalancerName }) => loadBalancerName)).toEqual(['frontend']);
@@ -115,29 +121,33 @@ describe('GceHttpLoadBalancerModal', () => {
 
   it('executes an update task instead of returning operations in infrastructure-edit mode', () => {
     const closeModal = vi.fn();
-    const executeTask = vi.spyOn(TaskExecutor, 'executeTask').mockReturnValue(Promise.resolve({ id: 'task' }) as any);
-    const modal = new GceHttpLoadBalancerModal({
-      app: application,
-      closeModal,
-      dismissModal: vi.fn(),
-      forPipelineConfig: false,
-      isNew: false,
-      loadBalancer: {
-        account: 'account-a',
-        backendServices: [{ healthCheck: 'check-a', name: 'backend-a', portName: 'http' }],
-        defaultService: 'backend-a',
-        healthChecks: [{ healthCheckType: 'HTTP', name: 'check-a', port: 80, requestPath: '/health' }],
-        listeners: [{ ipAddress: 'address-a', name: 'frontend', port: 80, protocol: 'HTTP' }],
-        loadBalancerType: 'HTTP',
-        name: 'test-app-main',
-      },
-      mode: 'edit',
-    } as any);
-    const expectedOperations = buildGceLoadBalancerJobs((modal as any).state.command);
+    const executeTask = vi.fn().mockReturnValue(Promise.resolve({ id: 'task' }));
+    const loadBalancer = {
+      account: 'account-a',
+      backendServices: [{ healthCheck: 'check-a', name: 'backend-a', portName: 'http' }],
+      defaultService: 'backend-a',
+      healthChecks: [{ healthCheckType: 'HTTP', name: 'check-a', port: 80, requestPath: '/health' }],
+      listeners: [{ ipAddress: 'address-a', name: 'frontend', port: 80, protocol: 'HTTP' }],
+      loadBalancerType: 'HTTP',
+      name: 'test-app-main',
+    };
+    const expectedOperations = buildGceLoadBalancerJobs(
+      initializeGceHttpLoadBalancerCommand(loadBalancer, 'edit', application),
+    );
+    renderWithRouter(
+      <GceHttpLoadBalancerModal
+        app={application}
+        closeModal={closeModal}
+        data={emptyData}
+        dismissModal={vi.fn()}
+        executeTask={executeTask}
+        isNew={false}
+        loadBalancer={loadBalancer}
+      />,
+    );
 
-    (modal as any).submit();
+    fireEvent.click(screen.getByRole('button', { name: 'Update' }));
 
-    expect((modal as any).state.command.mode).toBe('edit');
     expect(closeModal).not.toHaveBeenCalled();
     expect(executeTask).toHaveBeenCalledExactlyOnceWith({
       application,
@@ -148,30 +158,33 @@ describe('GceHttpLoadBalancerModal', () => {
 
   it('executes normalized listener jobs in infrastructure mode', () => {
     const executeTask = vi.fn().mockReturnValue(Promise.resolve({ id: 'task' }));
-    const modal = new GceHttpLoadBalancerModal({
-      app: application,
-      closeModal: vi.fn(),
-      dismissModal: vi.fn(),
-      executeTask,
-      loadBalancer: {
-        account: 'account-a',
-        backendServices: [{ healthCheck: 'check-a', name: 'backend-a', portName: 'http' }],
-        defaultService: 'backend-a',
-        healthChecks: [{ healthCheckType: 'HTTP', name: 'check-a', port: 80, requestPath: '/health' }],
-        listeners: [
-          { ipAddress: 'address-a', name: 'frontend-a', port: 80, protocol: 'HTTP' },
-          { ipAddress: 'address-b', name: 'frontend-b', port: 8080, protocol: 'HTTP' },
-        ],
-        loadBalancerType: 'INTERNAL_MANAGED',
-        name: 'test-app-main',
-        network: 'network-a',
-        region: 'europe-west1',
-        subnet: 'subnet-a',
-      },
-      mode: 'create',
-    } as any);
+    renderWithRouter(
+      <GceHttpLoadBalancerModal
+        app={application}
+        closeModal={vi.fn()}
+        data={emptyData}
+        dismissModal={vi.fn()}
+        executeTask={executeTask}
+        loadBalancer={{
+          account: 'account-a',
+          backendServices: [{ healthCheck: 'check-a', name: 'backend-a', portName: 'http' }],
+          defaultService: 'backend-a',
+          healthChecks: [{ healthCheckType: 'HTTP', name: 'check-a', port: 80, requestPath: '/health' }],
+          listeners: [
+            { ipAddress: 'address-a', name: 'frontend-a', port: 80, protocol: 'HTTP' },
+            { ipAddress: 'address-b', name: 'frontend-b', port: 8080, protocol: 'HTTP' },
+          ],
+          loadBalancerType: 'INTERNAL_MANAGED',
+          name: 'test-app-main',
+          network: 'network-a',
+          region: 'europe-west1',
+          subnet: 'subnet-a',
+        }}
+        mode="create"
+      />,
+    );
 
-    (modal as any).submit();
+    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
 
     expect(executeTask).toHaveBeenCalled();
     const jobs = executeTask.mock.lastCall[0].job;
@@ -190,34 +203,37 @@ describe('GceHttpLoadBalancerModal', () => {
 
   it('serializes INTERNAL_MANAGED HTTPS listeners with certificates', () => {
     const closeModal = vi.fn();
-    const modal = new GceHttpLoadBalancerModal({
-      app: application,
-      closeModal,
-      dismissModal: vi.fn(),
-      forPipelineConfig: true,
-      loadBalancer: {
-        account: 'account-a',
-        backendServices: [{ healthCheck: 'check-a', name: 'backend-a', portName: 'http' }],
-        defaultService: 'backend-a',
-        healthChecks: [{ healthCheckType: 'HTTPS', name: 'check-a', port: 443, requestPath: '/health' }],
-        listeners: [
-          {
-            certificate: 'regional-cert',
-            name: 'internal-https',
-            port: 443,
-            protocol: 'HTTPS',
-            subnet: 'subnet-a',
-          },
-        ],
-        loadBalancerType: 'INTERNAL_MANAGED',
-        name: 'test-app-internal',
-        network: 'network-a',
-        region: 'europe-west1',
-        subnet: 'subnet-a',
-      },
-    } as any);
+    renderWithRouter(
+      <GceHttpLoadBalancerModal
+        app={application}
+        closeModal={closeModal}
+        data={emptyData}
+        dismissModal={vi.fn()}
+        forPipelineConfig={true}
+        loadBalancer={{
+          account: 'account-a',
+          backendServices: [{ healthCheck: 'check-a', name: 'backend-a', portName: 'http' }],
+          defaultService: 'backend-a',
+          healthChecks: [{ healthCheckType: 'HTTPS', name: 'check-a', port: 443, requestPath: '/health' }],
+          listeners: [
+            {
+              certificate: 'regional-cert',
+              name: 'internal-https',
+              port: 443,
+              protocol: 'HTTPS',
+              subnet: 'subnet-a',
+            },
+          ],
+          loadBalancerType: 'INTERNAL_MANAGED',
+          name: 'test-app-internal',
+          network: 'network-a',
+          region: 'europe-west1',
+          subnet: 'subnet-a',
+        }}
+      />,
+    );
 
-    (modal as any).submit();
+    fireEvent.click(screen.getByRole('button', { name: 'Done' }));
 
     expect(closeModal).toHaveBeenCalledWith([
       expect.objectContaining({
@@ -255,25 +271,24 @@ describe('GceHttpLoadBalancerModal', () => {
           },
           mode: submissionMode === 'infrastructure' ? 'create' : undefined,
         } as any;
-        const wrapper = shallow(<GceHttpLoadBalancerModal {...props} />);
-        const modal = wrapper.instance() as any;
-        modal.setState({
-          command: {
-            ...modal.state.command,
-            listeners: [{ ...modal.state.command.listeners[0], portRange: '8443' }],
-          },
-        });
-        wrapper.update();
-
-        modal.submit();
+        const command = initializeGceHttpLoadBalancerCommand(
+          props.loadBalancer,
+          submissionMode === 'pipeline' ? 'pipeline' : 'create',
+          application,
+        );
+        command.listeners = [{ ...command.listeners[0], portRange: '8443' }];
+        expect(validateGceHttpLoadBalancerCommand(command)).toEqual(
+          expect.arrayContaining([
+            'Path matcher default backend service is required.',
+            'HTTPS listeners must use port 443.',
+          ]),
+        );
+        renderWithRouter(<GceHttpLoadBalancerModal {...props} />);
 
         expect(executeTask).not.toHaveBeenCalled();
         expect(closeModal).not.toHaveBeenCalled();
-        expect(wrapper.find('.gce-http-validation-errors').text()).toContain(
-          'Path matcher default backend service is required.',
-        );
-        expect(wrapper.find('.gce-http-validation-errors').text()).toContain('HTTPS listeners must use port 443.');
-        expect(wrapper.find('.btn-primary').prop('disabled')).toBe(true);
+        expect(screen.getByText('Path matcher default backend service is required.')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: submissionMode === 'pipeline' ? 'Done' : 'Create' })).toBeDisabled();
       });
     });
   });
@@ -297,20 +312,17 @@ describe('GceHttpLoadBalancerModal', () => {
         },
         mode: submissionMode === 'infrastructure' ? 'create' : undefined,
       } as any;
-      const modal = new GceHttpLoadBalancerModal(props);
-      const wrapper = shallow(<GceHttpLoadBalancerModal {...props} />);
-
-      (modal as any).submit();
+      renderWithRouter(<GceHttpLoadBalancerModal {...props} />);
 
       expect(executeTask).not.toHaveBeenCalled();
       expect(closeModal).not.toHaveBeenCalled();
-      expect(wrapper.find('.gce-http-validation-errors').exists()).toBe(true);
-      expect(wrapper.find('.btn-primary').prop('disabled')).toBe(true);
+      expect(screen.getByText('Name is required.')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: submissionMode === 'pipeline' ? 'Done' : 'Create' })).toBeDisabled();
     });
   });
 
   it('renders modal controls as non-submit buttons', () => {
-    const wrapper = shallow(
+    const { container } = renderWithRouter(
       <GceHttpLoadBalancerModal
         app={application}
         closeModal={vi.fn()}
@@ -321,6 +333,8 @@ describe('GceHttpLoadBalancerModal', () => {
       />,
     );
 
-    expect(wrapper.find('button').everyWhere((button) => button.prop('type') === 'button')).toBe(true);
+    expect(
+      Array.from(container.querySelectorAll('button')).every((button) => button.getAttribute('type') === 'button'),
+    ).toBe(true);
   });
 });

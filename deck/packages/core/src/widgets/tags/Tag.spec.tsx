@@ -1,93 +1,49 @@
-import type { ReactWrapper } from 'enzyme';
-import { mount } from 'enzyme';
+import { fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import { Key } from '../Keys';
-import type { ITag, ITagProps } from './Tag';
+import type { ITag } from './Tag';
 import { DeleteType, Tag } from './Tag';
 
+const tag: ITag = { key: 'key', text: 'some_text' };
+
 describe('<Tag/>', () => {
-  let component: ReactWrapper<ITagProps, any>;
+  it('displays a tag', () => {
+    render(<Tag tag={tag} />);
 
-  function getNewTag(): ITag {
-    return {
-      key: 'key',
-      text: 'some_text',
-    };
-  }
-
-  function getNewTagComponent(
-    tag: ITag,
-    onDelete: (t: ITag, deleteType: DeleteType) => void,
-    onKeyUp: (t: ITag, key: Key) => void,
-  ): ReactWrapper<ITagProps, any> {
-    return mount(<Tag tag={tag} onDelete={onDelete} onKeyUp={onKeyUp} />);
-  }
-
-  it('should display a tag', () => {
-    const tag = getNewTag();
-    component = getNewTagComponent(tag, undefined, undefined);
-
-    expect(component.find('div.tag__category').text()).toBe(tag.key.toLocaleUpperCase());
-    expect(component.find('div.tag__label').text()).toBe(tag.text);
+    expect(screen.getByText('KEY')).toBeInTheDocument();
+    expect(screen.getByText('some_text')).toBeInTheDocument();
   });
 
-  describe('tag callback event handling', () => {
-    let tag: ITag;
-    beforeEach(() => {
-      tag = getNewTag();
-    });
+  it.each([Key.LEFT_ARROW, Key.RIGHT_ARROW])('calls the keyUp handler with %s', (key) => {
+    const onKeyUp = vi.fn();
+    render(<Tag tag={tag} onKeyUp={onKeyUp} />);
 
-    describe('handle key up event', () => {
-      it('should call the keyUp handler with the left arrow key', () =>
-        new Promise((done, reject) => {
-          function handleKeyUp(t: ITag, key: Key): void {
-            expect(t.key).toBe(tag.key);
-            expect(t.text).toBe(tag.text);
-            expect(key).toBe(Key.LEFT_ARROW);
-            done();
-          }
-          component = getNewTagComponent(tag, undefined, handleKeyUp);
-          component.simulate('keyup', { key: Key.LEFT_ARROW });
-        }));
+    fireEvent.keyUp(screen.getByText('some_text').closest('.tag'), { key });
 
-      it('should call the keyUp handler with the right arrow key', () =>
-        new Promise((done, reject) => {
-          function handleKeyUp(t: ITag, key: Key): void {
-            expect(t.key).toBe(tag.key);
-            expect(t.text).toBe(tag.text);
-            expect(key).toBe(Key.RIGHT_ARROW);
-            done();
-          }
-          component = getNewTagComponent(tag, undefined, handleKeyUp);
-          component.simulate('keyup', { key: Key.RIGHT_ARROW });
-        }));
-    });
+    expect(onKeyUp).toHaveBeenCalledWith(tag, key);
+  });
 
-    describe('handle remove click event', () => {
-      it('should call the delete handler with the deletion type of backspace when the backspace key is pressed', () =>
-        new Promise((done, reject) => {
-          function handleDelete(t: ITag, deleteType: DeleteType) {
-            expect(t.key).toBe(tag.key);
-            expect(t.text).toBe(tag.text);
-            expect(deleteType).toBe(DeleteType.BACKSPACE);
-            done();
-          }
-          component = getNewTagComponent(tag, handleDelete, undefined);
-          component.simulate('keyup', { key: Key.BACKSPACE });
-        }));
+  it.each([Key.BACKSPACE, Key.DELETE])('calls the delete handler with backspace deletion for %s', (key) => {
+    const onDelete = vi.fn();
+    render(<Tag tag={tag} onDelete={onDelete} />);
 
-      it('should call the delete handler with the deletion type of backspace when the delete key is pressed', () =>
-        new Promise((done, reject) => {
-          function handleDelete(t: ITag, deleteType: DeleteType) {
-            expect(t.key).toBe(tag.key);
-            expect(t.text).toBe(tag.text);
-            expect(deleteType).toBe(DeleteType.BACKSPACE);
-            done();
-          }
-          component = getNewTagComponent(tag, handleDelete, undefined);
-          component.simulate('keyup', { key: Key.DELETE });
-        }));
-    });
+    fireEvent.keyUp(screen.getByText('some_text').closest('.tag'), { key });
+
+    expect(onDelete).toHaveBeenCalledWith(tag, DeleteType.BACKSPACE);
+  });
+
+  it('removes the tag through a named, keyboard-focusable button', async () => {
+    const onDelete = vi.fn();
+    render(<Tag tag={tag} onDelete={onDelete} />);
+
+    const remove = screen.getByRole('button', { name: 'Remove some_text tag' });
+    remove.focus();
+    expect(remove).toHaveFocus();
+    await userEvent.click(remove);
+
+    expect(onDelete).toHaveBeenCalledTimes(1);
+    expect(onDelete).toHaveBeenCalledWith(tag, DeleteType.REMOVE);
   });
 });

@@ -1,8 +1,8 @@
-import { mount } from 'enzyme';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { setupUser } from '../../../utils/testUtils/userEvent';
 import React from 'react';
 
 import { EditPreconditionModal } from './EditPreconditionModal';
-import { PreconditionSelector } from './PreconditionSelector';
 import { AccountService } from '../../../account/AccountService';
 
 describe('<EditPreconditionModal />', () => {
@@ -26,19 +26,18 @@ describe('<EditPreconditionModal />', () => {
     ...overrides,
   });
 
-  it('edits a cloned precondition and submits the edited copy', () => {
+  it('edits a cloned precondition and submits the edited copy', async () => {
+    const user = setupUser();
     const props = createProps();
-    const component = mount(<EditPreconditionModal {...props} />);
     const updatedPrecondition = { type: 'expression', failPipeline: false, context: { expression: '${bar}' } };
+    render(<EditPreconditionModal {...props} />);
 
-    const selector = component.find(PreconditionSelector);
-    expect(selector.prop('precondition')).not.toBe(props.precondition);
-
-    selector.prop('onChange')(updatedPrecondition);
-    const submitButton = component.find('button[data-purpose="submit"]');
-
-    expect(submitButton.prop('disabled')).toBe(false);
-    submitButton.simulate('click');
+    const expression = screen.getByRole('textbox', { name: 'Expression' });
+    fireEvent.change(expression, { target: { value: updatedPrecondition.context.expression } });
+    await user.click(screen.getByRole('checkbox', { name: 'Fail Pipeline' }));
+    const submitButton = screen.getByRole('button', { name: /Update/ });
+    expect(submitButton).toBeEnabled();
+    await user.click(submitButton);
 
     expect(props.precondition.context.expression).toBe('${foo}');
     expect(props.closeModal).toHaveBeenCalledWith(updatedPrecondition);
@@ -52,9 +51,9 @@ describe('<EditPreconditionModal />', () => {
         context: {},
       },
     });
-    const component = mount(<EditPreconditionModal {...props} />);
+    render(<EditPreconditionModal {...props} />);
 
-    expect(component.find('button[data-purpose="submit"]').prop('disabled')).toBe(true);
+    expect(screen.getByRole('button', { name: /Update/ })).toBeDisabled();
   });
 
   it('disables submit when a cluster size precondition is missing required fields', () => {
@@ -65,9 +64,9 @@ describe('<EditPreconditionModal />', () => {
         context: { comparison: '==' },
       },
     });
-    const component = mount(<EditPreconditionModal {...props} />);
+    render(<EditPreconditionModal {...props} />);
 
-    expect(component.find('button[data-purpose="submit"]').prop('disabled')).toBe(true);
+    expect(screen.getByRole('button', { name: /Update/ })).toBeDisabled();
   });
 
   it('disables submit when a stage status precondition is missing stage status fields', () => {
@@ -78,8 +77,8 @@ describe('<EditPreconditionModal />', () => {
         context: { stageName: 'Bake' },
       },
     });
-    const component = mount(<EditPreconditionModal {...props} />);
+    render(<EditPreconditionModal {...props} />);
 
-    expect(component.find('button[data-purpose="submit"]').prop('disabled')).toBe(true);
+    expect(screen.getByRole('button', { name: /Update/ })).toBeDisabled();
   });
 });

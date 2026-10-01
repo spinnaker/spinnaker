@@ -1,5 +1,5 @@
 import { UIRouter, UIRouterReact } from '@uirouter/react';
-import { mount } from 'enzyme';
+import { render } from '@testing-library/react';
 import React from 'react';
 import { RecoilRoot } from 'recoil';
 
@@ -21,7 +21,7 @@ describe('SpinnakerHeader', () => {
     const runtime = createDeckRuntime(router);
     router.disposable(runtime);
     configureRouter(router, runtime.services, runtime.routingState);
-    const wrapper = mount(
+    const { container, unmount } = render(
       <UIRouter router={router}>
         <DeckRuntimeContext.Provider value={runtime}>
           <RecoilRoot>
@@ -31,10 +31,8 @@ describe('SpinnakerHeader', () => {
       </UIRouter>,
     );
 
-    const primaryNav = wrapper.find('ul.page-nav');
-
-    expect(primaryNav.hasClass('navbar-nav')).toBe(true);
-    wrapper.unmount();
+    expect(container.querySelector('ul.page-nav')).toHaveClass('navbar-nav');
+    unmount();
     router.dispose();
   });
 });

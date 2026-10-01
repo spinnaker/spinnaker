@@ -189,6 +189,7 @@ export class ServerGroupLoadBalancers extends AzureWizardPage {
           <div className="col-md-3 sm-label-right">Load Balancer</div>
           <div className="col-md-7">
             <select
+              aria-label="Load Balancer"
               className="form-control input-sm"
               onChange={(event) => this.loadBalancerChanged(event.target.value, true)}
               value={this.props.formik.values.loadBalancerName || ''}

@@ -21,8 +21,8 @@ const keysToHide = new Set<string>([
   'name',
 ]);
 
-function makeCleanStageCopy(stage: IStage): Record<string, any> {
-  const stageCopy = cloneDeep(stage || {}) as Record<string, any>;
+function makeCleanStageCopy(stage: IStage): Record<string, unknown> {
+  const stageCopy = cloneDeep(stage || {}) as Record<string, unknown>;
   keysToHide.forEach((key) => {
     if (stageCopy[key] !== undefined) {
       delete stageCopy[key];
@@ -31,40 +31,64 @@ function makeCleanStageCopy(stage: IStage): Record<string, any> {
   return stageCopy;
 }
 
+function getUnmatchedStageJson(stage: IStage): string {
+  return JsonUtils.makeSortedStringFromObject(makeCleanStageCopy(stage));
+}
+
+interface IUnmatchedStageJsonResult {
+  errorMessage: string;
+  stage?: IStage;
+  stageJson: string;
+}
+
+function parseUnmatchedStageJson(stage: IStage, stageJson: string): IUnmatchedStageJsonResult {
+  let parsedStage: IStage;
+  try {
+    parsedStage = JSON.parse(stageJson);
+  } catch (error) {
+    return { errorMessage: error.message, stageJson };
+  }
+
+  if (!parsedStage.type) {
+    return { errorMessage: 'Cannot delete property type.', stageJson };
+  }
+
+  const nextStage = cloneDeep(stage);
+  Object.keys(nextStage).forEach((key) => {
+    if (!keysToHide.has(key)) {
+      delete nextStage[key];
+    }
+  });
+  Object.assign(nextStage, parsedStage);
+
+  const cleanStageCopy = makeCleanStageCopy(nextStage);
+  return {
+    errorMessage: null,
+    stage: nextStage,
+    stageJson: isEqual(cleanStageCopy, parsedStage) ? stageJson : JsonUtils.makeStringFromObject(cleanStageCopy),
+  };
+}
+
 export function UnmatchedStageTypeStageConfig({ stage, stageFieldUpdated }: IStageConfigProps) {
-  const [stageJson, setStageJson] = React.useState(() =>
-    JsonUtils.makeSortedStringFromObject(makeCleanStageCopy(stage)),
-  );
+  const [stageJson, setStageJson] = React.useState(() => getUnmatchedStageJson(stage));
   const [errorMessage, setErrorMessage] = React.useState<string>(null);
 
   const updateStage = (nextStageJson: string) => {
     setStageJson(nextStageJson);
-    setErrorMessage(null);
-
-    let parsedStage: IStage;
-    try {
-      parsedStage = JSON.parse(nextStageJson);
-    } catch (error) {
-      setErrorMessage(error.message);
-      return;
-    }
-
-    if (!parsedStage.type) {
-      setErrorMessage('Cannot delete property type.');
+    const result = parseUnmatchedStageJson(stage, nextStageJson);
+    setErrorMessage(result.errorMessage);
+    if (!result.stage) {
       return;
     }
 
     Object.keys(stage).forEach((key) => {
-      if (!keysToHide.has(key)) {
-        delete stage[key];
-      }
+      delete stage[key];
     });
-    Object.assign(stage, parsedStage);
+    Object.assign(stage, result.stage);
     stageFieldUpdated();
 
-    const cleanStageCopy = makeCleanStageCopy(stage);
-    if (!isEqual(cleanStageCopy, parsedStage)) {
-      setStageJson(JsonUtils.makeStringFromObject(cleanStageCopy));
+    if (result.stageJson !== nextStageJson) {
+      setStageJson(result.stageJson);
     }
   };
 

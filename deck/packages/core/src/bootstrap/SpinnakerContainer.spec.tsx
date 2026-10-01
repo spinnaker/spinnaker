@@ -1,5 +1,5 @@
 import { UIRouterContext, UIRouterReact } from '@uirouter/react';
-import { mount } from 'enzyme';
+import { act, render } from '@testing-library/react';
 import React from 'react';
 
 import { createDeckRuntime } from './DeckRuntime';
@@ -24,7 +24,7 @@ describe('SpinnakerContainer', () => {
         dispose();
       };
     });
-    const wrapper = mount(
+    const { container, unmount } = render(
       <DeckRuntimeContext.Provider value={runtime}>
         <UIRouterContext.Provider value={router}>
           <SpinnakerContainer authenticating={false} routingState={routingState} />
@@ -32,17 +32,18 @@ describe('SpinnakerContainer', () => {
       </DeckRuntimeContext.Provider>,
     );
 
-    expect(wrapper.find('.transition-overlay').exists()).toBe(false);
+    expect(container.querySelector('.transition-overlay')).not.toBeInTheDocument();
 
-    const finish = routingState.begin();
-    wrapper.update();
-    expect(wrapper.find('.transition-overlay').exists()).toBe(true);
+    let finish: () => void;
+    act(() => {
+      finish = routingState.begin();
+    });
+    expect(container.querySelector('.transition-overlay')).toBeInTheDocument();
 
-    finish();
-    wrapper.update();
-    expect(wrapper.find('.transition-overlay').exists()).toBe(false);
+    act(() => finish());
+    expect(container.querySelector('.transition-overlay')).not.toBeInTheDocument();
 
-    wrapper.unmount();
+    unmount();
     expect(unsubscribe).toHaveBeenCalledTimes(1);
 
     router.dispose();

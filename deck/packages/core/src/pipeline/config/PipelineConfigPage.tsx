@@ -331,6 +331,7 @@ function PipelineStageConfig({
   updateStageDependencies,
   updateStageField,
 }: IPipelineStageConfigProps) {
+  const [providerSelectionError, setProviderSelectionError] = React.useState('');
   const [stageRoleOptions, setStageRoleOptions] = React.useState<any[]>([]);
   const lastAppliedDefaultsKey = React.useRef<string>();
   const canResolveStageTypes = accounts !== null && accounts.length > 0 && !accountLoadError;
@@ -473,8 +474,12 @@ function PipelineStageConfig({
       (candidate) => candidate.cloudProvider === provider || candidate.providesFor?.includes(provider),
     );
     if (!selectedConfig) {
-      throw new Error(`No provider implementation found for stage type "${baseStageType}" and provider "${provider}".`);
+      setProviderSelectionError(
+        `No provider implementation found for stage type "${baseStageType}" and provider "${provider}".`,
+      );
+      return;
     }
+    setProviderSelectionError('');
     retainStageFields(stage, COMMON_STAGE_FIELDS, {
       type: selectedConfig.key || selectedConfig.provides || stage.type,
       cloudProvider: provider,
@@ -556,6 +561,7 @@ function PipelineStageConfig({
             readOnly={!stage.isNew}
             onProviderChange={selectProvider}
           />
+          {providerSelectionError && <div className="alert alert-danger">{providerSelectionError}</div>}
           {stageConfig}
           {selectedProvider && !stageConfig && (
             <div className="alert alert-warning">
@@ -603,6 +609,7 @@ function PipelineStageConfig({
                 autoFocus={true}
                 clearable={false}
                 inputClassName="pipeline-stage-type-select"
+                mode="VIRTUALIZED"
                 name="type"
                 onChange={(event) => selectStageType(event.target.value)}
                 optionRenderer={renderStageTypeOption}

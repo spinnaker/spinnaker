@@ -1,8 +1,9 @@
-import { mount } from 'enzyme';
-import React from 'react';
+import { act } from '@testing-library/react';
 import { BehaviorSubject } from 'rxjs';
 
 import { ExecutionDetailsTasks } from '@spinnaker/core';
+
+import { renderHookHarness } from '../../../../../core/src/utils/testUtils/hookHarness';
 
 import {
   CloudrunEditLoadBalancerExecutionDetails,
@@ -179,27 +180,17 @@ describe('Cloud Run edit load balancer stage', () => {
         ready: vi.fn().mockReturnValue(Promise.resolve()),
       },
     } as any;
-    const onChange = vi.fn();
     const loadBalancerParams = { name: 'default', accountId: 'test', region: 'us-central1' } as any;
-
-    function TestComponent() {
-      const details = useCloudrunLoadBalancerDetails({
-        app,
-        loadBalancerParams,
-        autoClose: vi.fn(),
-      } as any);
-      React.useEffect(() => onChange(details), [details.data, details.loading, details.error]);
-      return null;
-    }
-
-    const wrapper = mount(React.createElement(TestComponent));
-    await Promise.resolve();
-    wrapper.setProps({});
+    const hook = renderHookHarness(useCloudrunLoadBalancerDetails, {
+      app,
+      loadBalancerParams,
+      autoClose: vi.fn(),
+    } as any);
+    await act(() => Promise.resolve());
 
     app.loadBalancers.data = [refreshedLoadBalancer];
-    status$.next({ status: 'FETCHED', loaded: true, lastRefresh: 2, data: [refreshedLoadBalancer] });
-    wrapper.setProps({});
+    act(() => status$.next({ status: 'FETCHED', loaded: true, lastRefresh: 2, data: [refreshedLoadBalancer] }));
 
-    expect(onChange.mock.lastCall[0].data).toBe(refreshedLoadBalancer);
+    expect(hook.result.current.data).toBe(refreshedLoadBalancer);
   });
 });

@@ -1,121 +1,100 @@
-import { mount } from 'enzyme';
-import React from 'react';
-import { act } from 'react-dom/test-utils';
+import { act } from '@testing-library/react';
 
-import type { Application } from '../application';
-import { ClusterState, initialize } from '../state';
 import { useClusterMasterState } from './ClusterMaster';
+import { ClusterState, initialize } from '../state';
+import { renderHookHarness } from '../utils/testUtils/hookHarness';
 
-interface IDeferred<T> {
-  promise: Promise<T>;
-  reject: (error: Error) => void;
-  resolve: (value: T) => void;
-}
+describe('useClusterMasterState', () => {
+  beforeEach(() => initialize());
 
-function deferred<T>(): IDeferred<T> {
-  let resolve: (value: T) => void;
-  let reject: (error: Error) => void;
-  const promise = new Promise<T>((res, rej) => {
-    resolve = res;
-    reject = rej;
-  });
-  return { promise, resolve, reject };
-}
+  const createApp = () => {
+    let resolve!: () => void;
+    let reject!: (error: Error) => void;
+    const promise = new Promise<void>((promiseResolve, promiseReject) => {
+      resolve = promiseResolve;
+      reject = promiseReject;
+    });
+    const ready = { promise, resolve, reject };
+    let refreshListener: () => void = () => undefined;
+    const unsubscribe = vi.fn();
+    const app = {
+      serverGroups: {
+        ready: () => ready.promise,
+        onRefresh: (listener: () => void) => {
+          refreshListener = listener;
+          return unsubscribe;
+        },
+      },
+      setActiveState: vi.fn(),
+    } as any;
+    return { app, ready, refresh: () => refreshListener(), unsubscribe };
+  };
 
-class TestServerGroupsDataSource {
-  public callbacks: Array<() => void> = [];
-  public onRefresh = vi.fn().mockImplementation((callback: () => void) => {
-    this.callbacks.push(callback);
-    return () => {
-      this.callbacks = this.callbacks.filter((candidate) => candidate !== callback);
-    };
-  });
-  public ready = vi.fn().mockImplementation(() => this.readiness.promise);
+  it('activates filtering, updates groups after readiness and refresh, then cleans up', async () => {
+    const fixture = createApp();
+    const updateClusterGroups = vi.fn();
+    const activate = vi.fn();
+    const clearAll = vi.fn();
+    ClusterState.filterService = { updateClusterGroups } as any;
+    ClusterState.filterModel = { activate } as any;
+    ClusterState.multiselectModel = { clearAll } as any;
+    const harness = renderHookHarness(({ app }) => useClusterMasterState(app), { app: fixture.app });
 
-  constructor(private readiness: IDeferred<unknown>) {}
+    expect(harness.result.current).toEqual({ initialized: false, loadError: false });
+    expect(fixture.app.setActiveState).toHaveBeenCalledWith(fixture.app.serverGroups);
+    expect(activate).toHaveBeenCalled();
 
-  public emit(): void {
-    this.callbacks.forEach((callback) => callback());
-  }
-}
+    await act(async () => fixture.ready.resolve());
+    expect(harness.result.current).toEqual({ initialized: true, loadError: false });
+    expect(updateClusterGroups).toHaveBeenCalledWith(fixture.app);
 
-function StateHarness({ app }: { app: Application }): JSX.Element {
-  const state = useClusterMasterState(app);
-  return <span>{`${state.initialized}:${state.loadError}`}</span>;
-}
-
-const makeApplication = (serverGroups: TestServerGroupsDataSource) =>
-  (({
-    serverGroups,
-    setActiveState: vi.fn(),
-  } as any) as Application);
-
-describe('ClusterMaster lifecycle', () => {
-  beforeEach(() => {
-    initialize();
-    // Materialize lodash-decorators' lazy @Debounce getter before vi.spyOn inspects it.
-    void ClusterState.filterService.updateClusterGroups;
-  });
-
-  it('activates filters and server groups, subscribes before readiness, and updates groups initially and on refresh', async () => {
-    const readiness = deferred<unknown>();
-    const serverGroups = new TestServerGroupsDataSource(readiness);
-    const app = makeApplication(serverGroups);
-    const activate = vi.spyOn(ClusterState.filterModel, 'activate').mockReturnValue(undefined);
-    const updateClusterGroups = vi.spyOn(ClusterState.filterService, 'updateClusterGroups').mockReturnValue(undefined);
-    const clearAll = vi.spyOn(ClusterState.multiselectModel, 'clearAll').mockReturnValue(undefined);
-    const wrapper = mount(<StateHarness app={app} />);
-
-    expect(app.setActiveState).toHaveBeenCalledWith(serverGroups as any);
-    expect(activate).toHaveBeenCalledTimes(1);
-    expect(serverGroups.onRefresh).toHaveBeenCalledBefore(serverGroups.ready);
-    expect(wrapper.text()).toBe('false:false');
-
-    await act(async () => readiness.resolve(undefined));
-    wrapper.update();
-
-    expect(wrapper.text()).toBe('true:false');
-    expect(updateClusterGroups).toHaveBeenCalledTimes(1);
-
-    act(() => serverGroups.emit());
+    act(() => fixture.refresh());
     expect(updateClusterGroups).toHaveBeenCalledTimes(2);
 
-    wrapper.unmount();
-    expect(serverGroups.callbacks).toHaveSize(0);
-    expect(app.setActiveState).toHaveBeenCalledWith();
-    expect(clearAll).toHaveBeenCalledTimes(1);
+    harness.unmount();
+    expect(fixture.unsubscribe).toHaveBeenCalled();
+    expect(fixture.app.setActiveState).toHaveBeenLastCalledWith();
+    expect(clearAll).toHaveBeenCalled();
   });
 
-  it('initializes with a load error when server-group readiness rejects', async () => {
-    const readiness = deferred<unknown>();
-    const serverGroups = new TestServerGroupsDataSource(readiness);
-    const wrapper = mount(<StateHarness app={makeApplication(serverGroups)} />);
+  it('reports a ready failure without updating groups', async () => {
+    const fixture = createApp();
+    const updateClusterGroups = vi.fn();
+    ClusterState.filterService = { updateClusterGroups } as any;
+    ClusterState.filterModel = { activate: vi.fn() } as any;
+    ClusterState.multiselectModel = { clearAll: vi.fn() } as any;
+    const harness = renderHookHarness(({ app }) => useClusterMasterState(app), { app: fixture.app });
 
-    await act(async () => readiness.reject(new Error('load failed')));
-    wrapper.update();
+    await act(async () => fixture.ready.reject(new Error('load failed')));
 
-    expect(wrapper.text()).toBe('true:true');
-    wrapper.unmount();
+    expect(harness.result.current).toEqual({ initialized: true, loadError: true });
+    expect(updateClusterGroups).not.toHaveBeenCalled();
+    harness.unmount();
   });
 
-  it('ignores late readiness resolution and rejection after unmount', async () => {
-    const updateClusterGroups = vi.spyOn(ClusterState.filterService, 'updateClusterGroups').mockReturnValue(undefined);
-    const resolvingReadiness = deferred<unknown>();
-    const resolvingWrapper = mount(
-      <StateHarness app={makeApplication(new TestServerGroupsDataSource(resolvingReadiness))} />,
-    );
-    resolvingWrapper.unmount();
+  it('ignores late readiness resolution, rejection, and refresh callbacks after unmount', async () => {
+    const updateClusterGroups = vi.fn();
+    ClusterState.filterService = { updateClusterGroups } as any;
+    ClusterState.filterModel = { activate: vi.fn() } as any;
+    ClusterState.multiselectModel = { clearAll: vi.fn() } as any;
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
 
-    await act(async () => resolvingReadiness.resolve(undefined));
+    const resolving = createApp();
+    const resolvingHarness = renderHookHarness(({ app }) => useClusterMasterState(app), { app: resolving.app });
+    resolvingHarness.unmount();
+    consoleError.mockClear();
+    await act(async () => resolving.ready.resolve());
+    act(() => resolving.refresh());
+
+    const rejecting = createApp();
+    const rejectingHarness = renderHookHarness(({ app }) => useClusterMasterState(app), { app: rejecting.app });
+    rejectingHarness.unmount();
+    await act(async () => rejecting.ready.reject(new Error('late failure')));
+    act(() => rejecting.refresh());
+
     expect(updateClusterGroups).not.toHaveBeenCalled();
-
-    const rejectingReadiness = deferred<unknown>();
-    const rejectingWrapper = mount(
-      <StateHarness app={makeApplication(new TestServerGroupsDataSource(rejectingReadiness))} />,
-    );
-    rejectingWrapper.unmount();
-
-    await act(async () => rejectingReadiness.reject(new Error('late failure')));
-    expect(updateClusterGroups).not.toHaveBeenCalled();
+    expect(resolving.unsubscribe).toHaveBeenCalledTimes(1);
+    expect(rejecting.unsubscribe).toHaveBeenCalledTimes(1);
+    expect(consoleError).not.toHaveBeenCalled();
   });
 });

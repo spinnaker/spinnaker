@@ -21,13 +21,23 @@ export function LoadBalancerDetailsContent({
   const autoClose = () => {
     go('^', { allowModalToStayOpen: true }, { location: 'replace' });
   };
-  const { data: loadBalancer, loading } = useDetails({ app, loadBalancerParams: params, autoClose });
+  const { data: loadBalancer, error, loading } = useDetails({ app, loadBalancerParams: params, autoClose });
 
   useEffect(() => {
     if (loadBalancer) {
       setInitialized(true);
     }
   }, [loading]);
+
+  if (error) {
+    return (
+      <Details loading={false}>
+        <div className="alert alert-danger" role="alert">
+          {error}
+        </div>
+      </Details>
+    );
+  }
 
   if (!initialized) return <Details loading={loading} />;
 

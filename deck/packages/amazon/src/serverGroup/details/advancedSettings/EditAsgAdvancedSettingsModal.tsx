@@ -23,7 +23,7 @@ export interface IEditAsgAdvancedSettingsModalProps extends IModalComponentProps
   serverGroup: IAmazonServerGroup;
 }
 
-function validateRequiredNonNegativeNumber(value: unknown): string | undefined {
+export function validateRequiredNonNegativeNumber(value: unknown): string | undefined {
   return typeof value !== 'number' || !Number.isFinite(value) || value < 0
     ? 'Enter a finite non-negative number'
     : undefined;
@@ -57,7 +57,7 @@ export class EditAsgAdvancedSettingsModal extends React.Component<IEditAsgAdvanc
           label="Cooldown"
           name="cooldown"
           help="Seconds"
-          input={(props) => <NumberInput {...props} min={0} />}
+          input={(props) => <NumberInput {...props} aria-label="Cooldown" min={0} />}
           required={true}
           validate={validateRequiredNonNegativeNumber}
         />
@@ -65,20 +65,32 @@ export class EditAsgAdvancedSettingsModal extends React.Component<IEditAsgAdvanc
           label="Enabled Metrics"
           name="enabledMetrics"
           help={<HelpField id="aws.serverGroup.enabledMetrics" />}
-          input={(props) => <ReactSelectInput {...props} multi={true} stringOptions={backingData.enabledMetrics} />}
+          input={(props) => (
+            <ReactSelectInput
+              {...props}
+              aria-label="Enabled Metrics"
+              multi={true}
+              stringOptions={backingData.enabledMetrics}
+            />
+          )}
         />
         <FormikFormField
           label="Health Check Type"
           name="healthCheckType"
           input={(props) => (
-            <ReactSelectInput {...props} clearable={false} stringOptions={backingData.healthCheckTypes} />
+            <ReactSelectInput
+              {...props}
+              aria-label="Health Check Type"
+              clearable={false}
+              stringOptions={backingData.healthCheckTypes}
+            />
           )}
         />
         <FormikFormField
           label="Health Check Grace Period"
           name="healthCheckGracePeriod"
           help="Seconds"
-          input={(props) => <NumberInput {...props} min={0} />}
+          input={(props) => <NumberInput {...props} aria-label="Health Check Grace Period" min={0} />}
           required={true}
           validate={validateRequiredNonNegativeNumber}
         />
@@ -86,7 +98,12 @@ export class EditAsgAdvancedSettingsModal extends React.Component<IEditAsgAdvanc
           label="Termination Policies"
           name="terminationPolicies"
           input={(props) => (
-            <ReactSelectInput {...props} multi={true} stringOptions={backingData.terminationPolicies} />
+            <ReactSelectInput
+              {...props}
+              aria-label="Termination Policies"
+              multi={true}
+              stringOptions={backingData.terminationPolicies}
+            />
           )}
         />
         <FormikFormField

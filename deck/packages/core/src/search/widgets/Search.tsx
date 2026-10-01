@@ -334,7 +334,9 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
               onFocus={this.handleFocus}
               onKeyUp={this.handleKeyUpFromInput}
             />
-            <i className="fa fa-times" onClick={this.handleClearClick} />
+            <button aria-label="Clear search" className="search__clear" onClick={this.handleClearClick} type="button">
+              <i aria-hidden="true" className="fa fa-times" />
+            </button>
             <Filters
               activeFilter={activeFilter}
               isOpen={isOpen}

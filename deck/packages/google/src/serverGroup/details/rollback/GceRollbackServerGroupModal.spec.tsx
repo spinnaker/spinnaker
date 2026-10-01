@@ -1,13 +1,27 @@
-import { shallow } from 'enzyme';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 
-import { PlatformHealthOverride, TaskReason, UserVerification } from '@spinnaker/core';
+import { AccountService } from '@spinnaker/core';
 
 import {
   buildGceRollbackJob,
   GceRollbackServerGroupModal,
   getGceRollbackCandidates,
 } from './GceRollbackServerGroupModal';
+
+vi.mock('@spinnaker/core', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@spinnaker/core')>();
+  const ReactModule = await import('react');
+  return {
+    ...actual,
+    TaskMonitorWrapper: ({ monitor }: any) =>
+      ReactModule.createElement(
+        'button',
+        { onClick: () => monitor.closeModal(), type: 'button' },
+        'Close monitored task',
+      ),
+  };
+});
 
 describe('GceRollbackServerGroupModal', () => {
   const application = { name: 'fnord' } as any;
@@ -18,6 +32,8 @@ describe('GceRollbackServerGroupModal', () => {
     name: 'fnord-main-v004',
     region: 'us-central1',
   } as any;
+
+  beforeEach(() => vi.spyOn(AccountService, 'challengeDestructiveActions').mockResolvedValue(true));
 
   it('keeps only disabled candidates in the same application, cluster, account, and region', () => {
     const eligible = {
@@ -78,7 +94,7 @@ describe('GceRollbackServerGroupModal', () => {
   });
 
   it('renders reason, account verification, and the Google platform-health override', () => {
-    const wrapper = shallow(
+    render(
       <GceRollbackServerGroupModal
         application={
           {
@@ -93,17 +109,12 @@ describe('GceRollbackServerGroupModal', () => {
       />,
     );
 
-    expect(wrapper.find(TaskReason).exists()).toBe(true);
-    expect(wrapper.find(UserVerification).prop('account')).toBe('prod');
-    expect(wrapper.find(PlatformHealthOverride).props()).toEqual(
-      expect.objectContaining({
-        interestingHealthProviderNames: ['Google'],
-        platformHealthType: 'Google',
-      }),
-    );
+    expect(screen.getByRole('textbox', { name: 'Reason' })).toBeInTheDocument();
+    expect(screen.getByText(/Type the name of the account/)).toHaveTextContent('prod');
+    expect(screen.getByRole('checkbox', { name: 'Consider only Google health' })).toBeChecked();
   });
 
-  it('submits the exact rollback writer job only after account verification', () => {
+  it('submits the exact rollback writer job only after account verification', async () => {
     const applicationWithHealthOverride = {
       attributes: { platformHealthOnly: true, platformHealthOnlyShowOverride: true },
       name: 'fnord',
@@ -117,8 +128,8 @@ describe('GceRollbackServerGroupModal', () => {
       name: 'fnord-main-v003',
       region: 'us-central1',
     } as any;
-    const rollbackServerGroup = vi.fn().mockReturnValue(Promise.resolve({}));
-    const wrapper = shallow(
+    const rollbackServerGroup = vi.fn().mockReturnValue(new Promise(() => undefined));
+    render(
       <GceRollbackServerGroupModal
         application={applicationWithHealthOverride}
         dismissModal={vi.fn()}
@@ -127,15 +138,13 @@ describe('GceRollbackServerGroupModal', () => {
         serverGroupWriter={{ rollbackServerGroup }}
       />,
     );
-    const monitor = (wrapper.state() as any).taskMonitor;
-    vi.spyOn(monitor, 'submit').mockImplementation((submitMethod: () => PromiseLike<any>) => submitMethod());
+    fireEvent.change(screen.getByRole('combobox', { name: 'Restore to' }), { target: { value: candidate.name } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Reason' }), { target: { value: 'bad release' } });
+    expect(screen.getByRole('button', { name: 'Submit' })).toBeDisabled();
 
-    wrapper.find('select').simulate('change', { target: { value: candidate.name } });
-    wrapper.find(TaskReason).prop('onChange')('bad release');
-    expect(wrapper.find('button.btn-primary').prop('disabled')).toBe(true);
-
-    wrapper.find(UserVerification).prop('onValidChange')(true);
-    wrapper.find('button.btn-primary').simulate('click');
+    fireEvent.change(screen.getByRole('textbox', { name: 'Confirm account prod' }), { target: { value: 'prod' } });
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Submit' })).toBeEnabled());
+    fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
 
     expect(rollbackServerGroup).toHaveBeenCalledWith(serverGroup, applicationWithHealthOverride, {
       interestingHealthProviderNames: ['Google'],
@@ -151,7 +160,7 @@ describe('GceRollbackServerGroupModal', () => {
 
   it('dismisses the modal from the task monitor', () => {
     const dismissModal = vi.fn();
-    const wrapper = shallow(
+    render(
       <GceRollbackServerGroupModal
         application={{ name: 'fnord', serverGroups: { refresh: vi.fn() } } as any}
         dismissModal={dismissModal}
@@ -161,7 +170,7 @@ describe('GceRollbackServerGroupModal', () => {
       />,
     );
 
-    (wrapper.state() as any).taskMonitor.closeModal();
+    fireEvent.click(screen.getByRole('button', { name: 'Close monitored task' }));
 
     expect(dismissModal).toHaveBeenCalled();
   });

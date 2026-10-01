@@ -1,18 +1,16 @@
-import { mount, shallow } from 'enzyme';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import React from 'react';
 
-import type { Action } from '@spinnaker/core';
 import {
   AccountService,
   ConfirmationModalService,
   Details,
-  InstanceActions,
   InstanceReader,
   InstanceWriter,
   RecentHistoryService,
 } from '@spinnaker/core';
 
-import { GceInstanceDetailsComponent as GceInstanceDetails } from './GceInstanceDetails';
+import { GceInstanceActionsComponent, GceInstanceDetailsComponent as GceInstanceDetails } from './GceInstanceDetails';
 
 describe('GceInstanceDetails', () => {
   function application(loadBalancers: any[] = []) {
@@ -57,30 +55,27 @@ describe('GceInstanceDetails', () => {
     };
   }
 
-  function actionsFor(
+  function renderActionsFor(
     loadedInstance: any,
     app = application([networkLoadBalancer()]),
     stateService = { go: vi.fn(), includes: () => false },
-  ): Action[] {
-    const wrapper = shallow(
-      <GceInstanceDetails
+  ) {
+    return render(
+      <GceInstanceActionsComponent
         app={app}
-        initialInstance={loadedInstance}
+        instance={loadedInstance}
         router={{} as any}
         stateParams={{}}
         stateService={stateService as any}
       />,
     );
-    const renderedActions = shallow(wrapper.find(Details.Header).prop('actions') as React.ReactElement);
-    const actionMenu = renderedActions.is(InstanceActions) ? renderedActions : renderedActions.find(InstanceActions);
-    const actions = actionMenu.exists() ? actionMenu.prop('actions') : [];
-    renderedActions.unmount();
-    wrapper.unmount();
-    return actions;
   }
 
   function labelsFor(loadedInstance: any, app?: any): string[] {
-    return actionsFor(loadedInstance, app).map(({ label }) => label);
+    const rendered = renderActionsFor(loadedInstance, app);
+    const labels = Array.from(rendered.container.querySelectorAll('li a')).map((action) => action.textContent || '');
+    rendered.unmount();
+    return labels;
   }
 
   it('finds instances through disabled server groups attached to load balancers', () => {
@@ -108,7 +103,7 @@ describe('GceInstanceDetails', () => {
       }),
     ]);
 
-    const wrapper = mount(
+    const rendered = render(
       <GceInstanceDetails
         app={app}
         instance={{ account: 'route-account', instanceId: 'instance-1', region: 'route-region' }}
@@ -119,7 +114,7 @@ describe('GceInstanceDetails', () => {
     );
 
     expect(InstanceReader.getInstanceDetails).toHaveBeenCalledWith('test-account', 'us-central1', 'instance-1');
-    wrapper.unmount();
+    rendered.unmount();
   });
 
   it('clears actions on instance identity changes and ignores stale responses', async () => {
@@ -152,39 +147,39 @@ describe('GceInstanceDetails', () => {
         stateService={{} as any}
       />
     );
-    const wrapper = mount(
+    const rendered = render(
       <RoutedDetails routedInstance={{ account: 'test-account', instanceId: 'instance-1', region: 'us-central1' }} />,
     );
-    await settle();
-    wrapper.update();
-    expect(wrapper.find('.test-instance-header').text()).toContain('instance-1');
-    expect(wrapper.find(InstanceActions).exists()).toBe(true);
+    await waitFor(() =>
+      expect(rendered.container.querySelector('.test-instance-header')).toHaveTextContent('instance-1'),
+    );
+    expect(within(rendered.container).getByText('Instance Actions')).toBeInTheDocument();
 
-    wrapper.setProps({
-      routedInstance: { account: 'test-account', instanceId: 'instance-2', region: 'us-central1' },
-    });
-    wrapper.update();
-    expect(wrapper.find('.test-instance-header').exists()).toBe(false);
-    expect(wrapper.find(InstanceActions).exists()).toBe(false);
+    rendered.rerender(
+      <RoutedDetails routedInstance={{ account: 'test-account', instanceId: 'instance-2', region: 'us-central1' }} />,
+    );
+    expect(rendered.container.querySelector('.test-instance-header')).not.toBeInTheDocument();
+    expect(within(rendered.container).queryByText('Instance Actions')).not.toBeInTheDocument();
 
-    wrapper.setProps({
-      routedInstance: { account: 'test-account', instanceId: 'instance-3', region: 'us-central1' },
-    });
-    wrapper.update();
-    expect(wrapper.find('.test-instance-header').exists()).toBe(false);
-    expect(wrapper.find(InstanceActions).exists()).toBe(false);
+    rendered.rerender(
+      <RoutedDetails routedInstance={{ account: 'test-account', instanceId: 'instance-3', region: 'us-central1' }} />,
+    );
+    expect(rendered.container.querySelector('.test-instance-header')).not.toBeInTheDocument();
+    expect(within(rendered.container).queryByText('Instance Actions')).not.toBeInTheDocument();
 
-    oldRequest.resolve(instance({ id: 'instance-2', instanceId: 'instance-2', name: 'instance-2' }));
-    await settle();
-    wrapper.update();
-    expect(wrapper.find('.test-instance-header').exists()).toBe(false);
-    expect(wrapper.find(InstanceActions).exists()).toBe(false);
+    await act(async () =>
+      oldRequest.resolve(instance({ id: 'instance-2', instanceId: 'instance-2', name: 'instance-2' })),
+    );
+    expect(rendered.container.querySelector('.test-instance-header')).not.toBeInTheDocument();
+    expect(within(rendered.container).queryByText('Instance Actions')).not.toBeInTheDocument();
 
-    newRequest.resolve(instance({ id: 'instance-3', instanceId: 'instance-3', name: 'instance-3' }));
-    await settle();
-    wrapper.update();
-    expect(wrapper.find('.test-instance-header').text()).toContain('instance-3');
-    wrapper.unmount();
+    await act(async () =>
+      newRequest.resolve(instance({ id: 'instance-3', instanceId: 'instance-3', name: 'instance-3' })),
+    );
+    await waitFor(() =>
+      expect(rendered.container.querySelector('.test-instance-header')).toHaveTextContent('instance-3'),
+    );
+    rendered.unmount();
   });
 
   it('shows discovery actions only for their historical health states', () => {
@@ -250,9 +245,9 @@ describe('GceInstanceDetails', () => {
       loadBalancers: ['network-lb', 'http-lb', 'other-network-lb'],
     });
 
-    const actions = actionsFor(loadedInstance, app);
-    actions.find(({ label }) => label === 'Register with Load Balancer')!.triggerAction();
-    actions.find(({ label }) => label === 'Deregister from Load Balancer')!.triggerAction();
+    const rendered = renderActionsFor(loadedInstance, app);
+    fireEvent.click(within(rendered.container).getByText('Register with Load Balancer'));
+    fireEvent.click(within(rendered.container).getByText('Deregister from Load Balancer'));
     const reason = { reason: 'operator requested' };
     confirmation.mock.calls
       .map((args, __i) => ({
@@ -295,12 +290,10 @@ describe('GceInstanceDetails', () => {
       ],
     });
 
-    const actions = actionsFor(loadedInstance, app, $state);
-    expect(actions.length).toBe(7);
-    if (!actions.length) {
-      return;
-    }
-    actions.forEach(({ triggerAction }) => triggerAction());
+    const rendered = renderActionsFor(loadedInstance, app, $state);
+    const actions = Array.from(rendered.container.querySelectorAll('li a'));
+    expect(actions).toHaveLength(7);
+    actions.forEach((action) => fireEvent.click(action));
 
     expect(confirmation).toHaveBeenCalledTimes(7);
     const confirmations = confirmation.mock.calls
@@ -352,8 +345,6 @@ describe('GceInstanceDetails', () => {
     expect($state.go).toHaveBeenCalledWith('^');
   });
 });
-
-const settle = () => new Promise((resolve) => setTimeout(resolve));
 
 function deferred<T>() {
   let resolve!: (value: T | PromiseLike<T>) => void;

@@ -1,10 +1,9 @@
 import type { Mock } from 'vitest';
-import { mount } from 'enzyme';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { setupUser } from '../../../../utils/testUtils/userEvent';
 import React from 'react';
-import { act } from 'react-dom/test-utils';
 
 import { ApplicationReader } from '../../../../application/service/ApplicationReader';
-import { ReactSelectInput } from '../../../../presentation';
 import { PipelineConfigService } from '../../services/PipelineConfigService';
 import { PipelineStageConfig } from './PipelineStageConfig';
 import type { IPipeline, IStage } from '../../../../domain';
@@ -21,6 +20,8 @@ describe('PipelineStageConfig', () => {
   });
 
   it('uses a searchable virtualized application selector for static application values', async () => {
+    const user = setupUser();
+    vi.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockReturnValue(320);
     (ApplicationReader.listApplications as Mock).mockReturnValue(
       Promise.resolve([{ name: 'app' }, { name: 'zzz-app' }]) as any,
     );
@@ -29,7 +30,7 @@ describe('PipelineStageConfig', () => {
     const updateStageField = vi.fn();
     vi.spyOn(PipelineConfigService, 'getPipelinesForApplication').mockReturnValue(Promise.resolve([]) as any);
 
-    const wrapper = mount(
+    render(
       <PipelineStageConfig
         application={{ name: 'app' } as any}
         pipeline={parentPipeline}
@@ -38,24 +39,12 @@ describe('PipelineStageConfig', () => {
       />,
     );
 
-    await act(async () => {
-      await flush();
-    });
-    wrapper.update();
-
-    const applicationSelect = wrapper.find(ReactSelectInput).filterWhere((node) => node.prop('name') === 'application');
-    expect(applicationSelect.exists()).toBe(true);
-    expect(applicationSelect.prop('mode')).toBe('VIRTUALIZED');
-    expect(applicationSelect.prop('stringOptions')).toEqual(['app', 'zzz-app']);
-
-    await act(async () => {
-      applicationSelect.prop('onChange')({ target: { value: 'zzz-app' } } as any);
-      await flush();
-    });
+    await waitFor(() => expect(ApplicationReader.listApplications).toHaveBeenCalled());
+    const applicationSelect = screen.getAllByRole('combobox')[0];
+    await user.click(applicationSelect);
+    await user.click(await screen.findByText('zzz-app'));
 
     expect(updateStageField).toHaveBeenCalledWith({ application: 'zzz-app' });
-
-    wrapper.unmount();
   });
 
   it('keeps option parameter SpeL values editable', async () => {
@@ -82,7 +71,7 @@ describe('PipelineStageConfig', () => {
       Promise.resolve([childPipeline]) as any,
     );
 
-    const wrapper = mount(
+    render(
       <PipelineStageConfig
         application={{ name: 'app' } as any}
         pipeline={parentPipeline}
@@ -91,22 +80,10 @@ describe('PipelineStageConfig', () => {
       />,
     );
 
-    await act(async () => {
-      await flush();
-    });
-    wrapper.update();
-
-    const parameterInput = wrapper.find('.well input.form-control').filterWhere((node) => !node.prop('disabled'));
-    expect(parameterInput.exists()).toBe(true);
-    expect(parameterInput.prop('value')).toBe('${ trigger.properties.choice }');
-
-    await act(async () => {
-      parameterInput.prop('onChange')({ target: { value: '${ parameters.choice }' } } as any);
-      await flush();
-    });
+    const parameterInput = await screen.findByDisplayValue('${ trigger.properties.choice }');
+    fireEvent.change(parameterInput, { target: { value: '${ parameters.choice }' } });
+    await flush();
 
     expect(updateStageField).toHaveBeenCalledWith({ pipelineParameters: { choice: '${ parameters.choice }' } });
-
-    wrapper.unmount();
   });
 });

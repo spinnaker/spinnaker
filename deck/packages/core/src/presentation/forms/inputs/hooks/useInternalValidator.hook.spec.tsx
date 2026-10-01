@@ -1,15 +1,17 @@
 import type { Mock } from 'vitest';
-import { mount } from 'enzyme';
-import React from 'react';
 
 import type { IValidator } from '../../../forms/validation';
+import { renderHookHarness } from '../../../../utils/testUtils/hookHarness';
 import type { IFormInputProps, IFormInputValidation } from '../interface';
 import { useInternalValidator } from './useInternalValidator.hook';
 
-function TestInputComponent(props: IFormInputProps & { validator?: IValidator; revalidateDeps?: any[] }) {
-  const { validator = () => null as string, validation, revalidateDeps = [], ...rest } = props;
-  useInternalValidator(validation, validator, revalidateDeps);
-  return <input type="text" {...rest} />;
+type IHookProps = IFormInputProps & { validator?: IValidator; revalidateDeps?: any[] };
+
+function renderInternalValidator(props: IHookProps) {
+  return renderHookHarness((hookProps: IHookProps) => {
+    const { validator = () => null as string, validation, revalidateDeps = [] } = hookProps;
+    return useInternalValidator(validation, validator, revalidateDeps);
+  }, props);
 }
 
 interface IFormInputValidationMock extends IFormInputValidation {
@@ -34,7 +36,7 @@ describe('useInternalValidator', () => {
   it('should call addValidator once when mounted', () => {
     const validation = validationMock();
 
-    mount(<TestInputComponent validation={validation} />);
+    renderInternalValidator({ validation });
     expect(validation.addValidator).toHaveBeenCalledTimes(1);
     expect(validation.removeValidator).toHaveBeenCalledTimes(0);
   });
@@ -42,21 +44,21 @@ describe('useInternalValidator', () => {
   it('should call revalidate when the deps list changes', () => {
     const validation = validationMock();
 
-    const component = mount(<TestInputComponent validation={validation} revalidateDeps={['a', 'b']} />);
+    const rendered = renderInternalValidator({ validation, revalidateDeps: ['a', 'b'] });
     expect(validation.revalidate).toHaveBeenCalledTimes(0);
 
-    component.setProps({ revalidateDeps: ['c', 'd'] });
+    rendered.rerenderHook({ validation, revalidateDeps: ['c', 'd'] });
     expect(validation.revalidate).toHaveBeenCalledTimes(1);
   });
 
   it('should call removeValidator when unmounted', () => {
     const validation = validationMock();
 
-    const component = mount(<TestInputComponent validation={validation} />);
+    const rendered = renderInternalValidator({ validation });
     expect(validation.addValidator).toHaveBeenCalledTimes(1);
     expect(validation.removeValidator).toHaveBeenCalledTimes(0);
 
-    component.unmount();
+    rendered.unmount();
     expect(validation.addValidator).toHaveBeenCalledTimes(1);
     expect(validation.removeValidator).toHaveBeenCalledTimes(1);
   });
@@ -68,8 +70,8 @@ describe('useInternalValidator', () => {
     validation.addValidator.mockImplementation((arg: any) => (addedValidator = arg));
     validation.removeValidator.mockImplementation((arg: any) => (removedValidator = arg));
 
-    const component = mount(<TestInputComponent validation={validation} />);
-    component.unmount();
+    const rendered = renderInternalValidator({ validation });
+    rendered.unmount();
     expect(validation.addValidator).toHaveBeenCalledTimes(1);
     expect(validation.removeValidator).toHaveBeenCalledTimes(1);
     expect(addedValidator).toBe(removedValidator);
@@ -82,10 +84,10 @@ describe('useInternalValidator', () => {
     validation.addValidator.mockImplementation((arg: any) => (addedValidator = arg));
     validation.removeValidator.mockImplementation((arg: any) => (removedValidator = arg));
 
-    const component = mount(<TestInputComponent validation={validation} />);
-    component.render();
-    component.render();
-    component.unmount();
+    const rendered = renderInternalValidator({ validation });
+    rendered.rerenderHook({ validation });
+    rendered.rerenderHook({ validation });
+    rendered.unmount();
     expect(validation.addValidator).toHaveBeenCalledTimes(1);
     expect(validation.removeValidator).toHaveBeenCalledTimes(1);
     expect(addedValidator).toBe(removedValidator);
@@ -99,13 +101,13 @@ describe('useInternalValidator', () => {
     validation.revalidate.mockImplementation(() => validators.forEach((v) => v(null, null)));
 
     const initialValidator: IValidator = vi.fn();
-    const component = mount(<TestInputComponent validation={validation} validator={initialValidator} />);
+    const rendered = renderInternalValidator({ validation, validator: initialValidator });
 
     validation.revalidate();
     expect(initialValidator).toHaveBeenCalledTimes(1);
 
     const updatedValidator: IValidator = vi.fn();
-    component.setProps({ validator: updatedValidator });
+    rendered.rerenderHook({ validation, validator: updatedValidator });
     validation.revalidate();
 
     expect(initialValidator).toHaveBeenCalledTimes(1); // Didn't get called again
@@ -119,11 +121,11 @@ describe('useInternalValidator', () => {
     validation.addValidator.mockImplementation((arg: any) => (addedValidator = arg));
     validation.removeValidator.mockImplementation((arg: any) => (removedValidator = arg));
 
-    const component = mount(<TestInputComponent validation={validation} validator={() => 'Error: 1'} />);
-    component.render();
-    component.setProps({ validator: () => 'Error: 2' });
-    component.render();
-    component.unmount();
+    const rendered = renderInternalValidator({ validation, validator: () => 'Error: 1' });
+    rendered.rerenderHook({ validation, validator: () => 'Error: 1' });
+    rendered.rerenderHook({ validation, validator: () => 'Error: 2' });
+    rendered.rerenderHook({ validation, validator: () => 'Error: 2' });
+    rendered.unmount();
     expect(validation.addValidator).toHaveBeenCalledTimes(1);
     expect(validation.removeValidator).toHaveBeenCalledTimes(1);
     expect(addedValidator).toBe(removedValidator);

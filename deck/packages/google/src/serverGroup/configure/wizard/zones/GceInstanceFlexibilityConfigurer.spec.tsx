@@ -1,13 +1,15 @@
-import { shallow } from 'enzyme';
+import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 
-import { HelpField } from '@spinnaker/core';
+import { HelpTextExpandedContext } from '@spinnaker/core';
 
 import {
   GceInstanceFlexibilityConfigurer,
   hasValidFlexibilityPolicy,
   nextSelectionName,
 } from './GceInstanceFlexibilityConfigurer';
+import { setupUser } from '../../../../../../core/src/utils/testUtils/userEvent';
+import '../../../../help/gce.help';
 
 describe('GceInstanceFlexibilityConfigurer', () => {
   const policy = {
@@ -17,15 +19,19 @@ describe('GceInstanceFlexibilityConfigurer', () => {
   };
 
   it('links the flexibility editor to its help content', () => {
-    const wrapper = shallow(
-      <GceInstanceFlexibilityConfigurer
-        regional={true}
-        targetShape="BALANCED"
-        setInstanceFlexibilityPolicy={vi.fn()}
-      />,
+    render(
+      <HelpTextExpandedContext.Provider value={true}>
+        <GceInstanceFlexibilityConfigurer
+          regional={true}
+          targetShape="BALANCED"
+          setInstanceFlexibilityPolicy={vi.fn()}
+        />
+      </HelpTextExpandedContext.Provider>,
     );
 
-    expect(wrapper.find(HelpField).prop('id')).toBe('gce.serverGroup.instanceFlexibilityPolicy');
+    expect(
+      screen.getByText(/Defines named sets of acceptable machine types for a regional managed instance group/),
+    ).toBeInTheDocument();
   });
 
   it('allows EVEN when flexibility is absent', () => {
@@ -124,7 +130,7 @@ describe('GceInstanceFlexibilityConfigurer', () => {
       }),
     ).toBe(false);
 
-    const wrapper = shallow(
+    render(
       <GceInstanceFlexibilityConfigurer
         instanceFlexibilityPolicy={duplicatePolicy}
         regional={true}
@@ -132,8 +138,7 @@ describe('GceInstanceFlexibilityConfigurer', () => {
         setInstanceFlexibilityPolicy={vi.fn()}
       />,
     );
-    expect(wrapper.text()).toContain('Machine types must be unique across instance selections.');
-    expect(wrapper.find('[role="alert"]').text()).toBe('Machine types must be unique across instance selections.');
+    expect(screen.getByRole('alert')).toHaveTextContent(/^Machine types must be unique across instance selections\.$/);
   });
 
   it('accepts distinct machine types across selections', () => {
@@ -168,7 +173,7 @@ describe('GceInstanceFlexibilityConfigurer', () => {
   });
 
   it('announces submission errors and associates malformed persisted controls', () => {
-    const wrapper = shallow(
+    render(
       <GceInstanceFlexibilityConfigurer
         instanceFlexibilityPolicy={{
           instanceSelections: {
@@ -181,19 +186,18 @@ describe('GceInstanceFlexibilityConfigurer', () => {
         setInstanceFlexibilityPolicy={vi.fn()}
       />,
     );
-    const errorId = 'gce-instance-flexibility-error';
-    const rankInput = wrapper.find('#instance-flexibility-selection-preferred-rank');
-    const blankMachineType = wrapper.find('input[aria-label="Machine type 1 for selection preferred"]');
-    const validMachineType = wrapper.find('input[aria-label="Machine type 2 for selection preferred"]');
+    const alert = screen.getByRole('alert');
+    const rankInput = screen.getByLabelText('Rank (optional)');
+    const blankMachineType = screen.getByRole('textbox', { name: 'Machine type 1 for selection preferred' });
+    const validMachineType = screen.getByRole('textbox', { name: 'Machine type 2 for selection preferred' });
 
-    expect(wrapper.find(`#${errorId}`).prop('role')).toBe('alert');
-    expect(wrapper.find(`#${errorId}`).text()).toBe('Instance flexibility policy is invalid.');
-    expect(rankInput.prop('aria-invalid')).toBe(true);
-    expect(rankInput.prop('aria-describedby')).toBe(errorId);
-    expect(blankMachineType.prop('aria-invalid')).toBe(true);
-    expect(blankMachineType.prop('aria-describedby')).toBe(errorId);
-    expect(validMachineType.prop('aria-invalid')).toBe(false);
-    expect(validMachineType.prop('aria-describedby')).toBeUndefined();
+    expect(alert).toHaveTextContent(/^Instance flexibility policy is invalid\.$/);
+    expect(rankInput).toBeInvalid();
+    expect(rankInput).toHaveAccessibleDescription('Instance flexibility policy is invalid.');
+    expect(blankMachineType).toBeInvalid();
+    expect(blankMachineType).toHaveAccessibleDescription('Instance flexibility policy is invalid.');
+    expect(validMachineType).toBeValid();
+    expect(validMachineType).not.toHaveAttribute('aria-describedby');
   });
 
   it('accepts regional BALANCED/ANY/ANY_SINGLE_ZONE with rankless selections', () => {
@@ -221,9 +225,10 @@ describe('GceInstanceFlexibilityConfigurer', () => {
     expect(nextSelectionName(['selection-2'])).toBe('selection-1');
   });
 
-  it('adds a named selection through the configurer', () => {
+  it('adds a named selection through the configurer', async () => {
+    const user = setupUser();
     const setPolicy = vi.fn();
-    const wrapper = shallow(
+    render(
       <GceInstanceFlexibilityConfigurer
         instanceFlexibilityPolicy={undefined}
         regional={true}
@@ -232,7 +237,7 @@ describe('GceInstanceFlexibilityConfigurer', () => {
       />,
     );
 
-    wrapper.find('button').simulate('click');
+    await user.click(screen.getByRole('button', { name: 'Add flexibility policy' }));
 
     expect(setPolicy).toHaveBeenCalledWith({
       instanceSelections: {
@@ -241,9 +246,10 @@ describe('GceInstanceFlexibilityConfigurer', () => {
     });
   });
 
-  it('does not overwrite an existing renamed selection when adding another', () => {
+  it('does not overwrite an existing renamed selection when adding another', async () => {
+    const user = setupUser();
     const setPolicy = vi.fn();
-    const wrapper = shallow(
+    render(
       <GceInstanceFlexibilityConfigurer
         instanceFlexibilityPolicy={{
           instanceSelections: {
@@ -256,7 +262,7 @@ describe('GceInstanceFlexibilityConfigurer', () => {
       />,
     );
 
-    wrapper.find('button').last().simulate('click');
+    await user.click(screen.getByRole('button', { name: 'Add selection' }));
 
     expect(setPolicy).toHaveBeenCalledWith({
       instanceSelections: {
@@ -266,9 +272,10 @@ describe('GceInstanceFlexibilityConfigurer', () => {
     });
   });
 
-  it('sends an explicit empty policy when the final selection is removed', () => {
+  it('sends an explicit empty policy when the final selection is removed', async () => {
+    const user = setupUser();
     const setPolicy = vi.fn();
-    const wrapper = shallow(
+    render(
       <GceInstanceFlexibilityConfigurer
         instanceFlexibilityPolicy={policy}
         regional={true}
@@ -277,17 +284,14 @@ describe('GceInstanceFlexibilityConfigurer', () => {
       />,
     );
 
-    wrapper
-      .find('button')
-      .filterWhere((button) => button.text() === 'Remove')
-      .simulate('click');
+    await user.click(screen.getByRole('button', { name: 'Remove selection preferred' }));
 
     expect(setPolicy).toHaveBeenCalledWith({ instanceSelections: {} });
   });
 
   it('only persists finite non-negative integer ranks and supports rank zero and clearing', () => {
     const setPolicy = vi.fn();
-    const wrapper = shallow(
+    render(
       <GceInstanceFlexibilityConfigurer
         instanceFlexibilityPolicy={policy}
         regional={true}
@@ -295,16 +299,17 @@ describe('GceInstanceFlexibilityConfigurer', () => {
         setInstanceFlexibilityPolicy={setPolicy}
       />,
     );
-    const rankInput = wrapper.find('input[type="number"]');
+    const rankInput = screen.getByRole('spinbutton', { name: 'Rank (optional)' });
 
-    expect(rankInput.prop('step')).toBe(1);
+    expect(rankInput).toHaveAttribute('step', '1');
 
-    rankInput.simulate('change', { target: { value: '1.5' } });
-    rankInput.simulate('change', { target: { value: '-1' } });
-    rankInput.simulate('change', { target: { value: 'not-a-number' } });
+    // Non-numeric text cannot be entered into a number input (the DOM sanitizes it to ''), so only
+    // fractional and negative values are exercised as rejected ranks.
+    fireEvent.change(rankInput, { target: { value: '1.5' } });
+    fireEvent.change(rankInput, { target: { value: '-1' } });
     expect(setPolicy).not.toHaveBeenCalled();
 
-    rankInput.simulate('change', { target: { value: '0' } });
+    fireEvent.change(rankInput, { target: { value: '0' } });
     expect(setPolicy).toHaveBeenCalledWith({
       instanceSelections: {
         preferred: { rank: 0, machineTypes: ['n2-standard-8'] },
@@ -312,7 +317,7 @@ describe('GceInstanceFlexibilityConfigurer', () => {
     });
 
     setPolicy.mockClear();
-    rankInput.simulate('change', { target: { value: '' } });
+    fireEvent.change(rankInput, { target: { value: '' } });
     expect(setPolicy).toHaveBeenCalledWith({
       instanceSelections: {
         preferred: { machineTypes: ['n2-standard-8'] },
@@ -320,9 +325,10 @@ describe('GceInstanceFlexibilityConfigurer', () => {
     });
   });
 
-  it('resets blank and duplicate rename drafts to the current valid selection name', () => {
+  it('resets blank and duplicate rename drafts to the current valid selection name', async () => {
+    const user = setupUser();
     const setPolicy = vi.fn();
-    const wrapper = shallow(
+    render(
       <GceInstanceFlexibilityConfigurer
         instanceFlexibilityPolicy={{
           instanceSelections: {
@@ -335,19 +341,22 @@ describe('GceInstanceFlexibilityConfigurer', () => {
         setInstanceFlexibilityPolicy={setPolicy}
       />,
     );
-    const preferredNameInput = wrapper.find('input').filterWhere((input) => input.prop('defaultValue') === 'preferred');
-    const blankDraft = { value: ' ' };
-    const duplicateDraft = { value: 'fallback' };
+    const preferredNameInput = screen.getByDisplayValue('preferred');
 
-    preferredNameInput.simulate('blur', { currentTarget: blankDraft, target: blankDraft });
-    expect(blankDraft.value).toBe('preferred');
-    preferredNameInput.simulate('blur', { currentTarget: duplicateDraft, target: duplicateDraft });
-    expect(duplicateDraft.value).toBe('preferred');
+    await user.clear(preferredNameInput);
+    await user.type(preferredNameInput, ' ');
+    await user.tab();
+    expect(preferredNameInput).toHaveValue('preferred');
+
+    await user.clear(preferredNameInput);
+    await user.type(preferredNameInput, 'fallback');
+    await user.tab();
+    expect(preferredNameInput).toHaveValue('preferred');
     expect(setPolicy).not.toHaveBeenCalled();
   });
 
   it('associates labels and contextual accessible names with selection controls', () => {
-    const wrapper = shallow(
+    render(
       <GceInstanceFlexibilityConfigurer
         instanceFlexibilityPolicy={policy}
         regional={true}
@@ -357,34 +366,48 @@ describe('GceInstanceFlexibilityConfigurer', () => {
     );
     const selectionId = 'instance-flexibility-selection-preferred';
 
-    expect(wrapper.find(`label[htmlFor="${selectionId}-name"]`).text()).toBe('Selection name');
-    expect(wrapper.find(`input#${selectionId}-name`).exists()).toBe(true);
-    expect(wrapper.find(`label[htmlFor="${selectionId}-rank"]`).text()).toBe('Rank (optional)');
-    expect(wrapper.find(`input#${selectionId}-rank`).exists()).toBe(true);
-    expect(wrapper.find(`input[aria-label="Machine type 1 for selection preferred"]`).prop('id')).toBe(
+    expect(screen.getByRole('textbox', { name: 'Selection name' })).toHaveAttribute('id', `${selectionId}-name`);
+    expect(screen.getByRole('spinbutton', { name: 'Rank (optional)' })).toHaveAttribute('id', `${selectionId}-rank`);
+    expect(screen.getByRole('textbox', { name: 'Machine type 1 for selection preferred' })).toHaveAttribute(
+      'id',
       `${selectionId}-machine-type-0`,
     );
-    expect(wrapper.find('button[aria-label="Remove selection preferred"]').exists()).toBe(true);
-    expect(wrapper.find('button[aria-label="Remove machine type 1 from selection preferred"]').exists()).toBe(true);
+    expect(screen.getByRole('button', { name: 'Remove selection preferred' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Remove machine type 1 from selection preferred' })).toBeInTheDocument();
   });
 
   it('rerenders when policy and sibling primitive props change identity', () => {
-    const wrapper = shallow(
+    const setPolicy = vi.fn();
+    const { rerender } = render(
       <GceInstanceFlexibilityConfigurer
         instanceFlexibilityPolicy={undefined}
         regional={true}
         targetShape="BALANCED"
-        setInstanceFlexibilityPolicy={vi.fn()}
+        setInstanceFlexibilityPolicy={setPolicy}
       />,
     );
 
-    expect(wrapper.text()).toContain('Add flexibility policy');
+    expect(screen.getByRole('button', { name: 'Add flexibility policy' })).toBeInTheDocument();
 
-    wrapper.setProps({ instanceFlexibilityPolicy: policy });
-    expect(wrapper.find('button[aria-label="Remove selection preferred"]').exists()).toBe(true);
+    rerender(
+      <GceInstanceFlexibilityConfigurer
+        instanceFlexibilityPolicy={policy}
+        regional={true}
+        targetShape="BALANCED"
+        setInstanceFlexibilityPolicy={setPolicy}
+      />,
+    );
+    expect(screen.getByRole('button', { name: 'Remove selection preferred' })).toBeInTheDocument();
 
-    wrapper.setProps({ regional: false, targetShape: 'EVEN' });
-    expect(wrapper.text()).toContain('Flexibility requires a regional server group.');
-    expect(wrapper.text()).toContain('not EVEN');
+    rerender(
+      <GceInstanceFlexibilityConfigurer
+        instanceFlexibilityPolicy={policy}
+        regional={false}
+        targetShape="EVEN"
+        setInstanceFlexibilityPolicy={setPolicy}
+      />,
+    );
+    expect(screen.getByText('Flexibility requires a regional server group.')).toBeInTheDocument();
+    expect(screen.getByText(/not EVEN/)).toBeInTheDocument();
   });
 });

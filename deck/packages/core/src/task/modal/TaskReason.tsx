@@ -13,6 +13,7 @@ export class TaskReason extends React.Component<ITaskReasonProps> {
         <div className="col-md-3 sm-label-right">Reason</div>
         <div className="col-md-7">
           <textarea
+            aria-label="Reason"
             className="form-control"
             value={this.props.reason}
             onChange={(event) => this.props.onChange(event.target.value)}

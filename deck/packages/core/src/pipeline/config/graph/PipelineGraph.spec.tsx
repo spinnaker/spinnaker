@@ -1,5 +1,5 @@
 import type { Mock } from 'vitest';
-import { mount } from 'enzyme';
+import { act, render, screen } from '@testing-library/react';
 import React from 'react';
 
 import type { IPipeline } from '../../../domain';
@@ -49,43 +49,45 @@ describe('PipelineGraph', () => {
   });
 
   it('recalculates graph layout when the element receives width after mounting', () => {
-    const wrapper = mount(
+    const { unmount } = render(
       <PipelineGraph pipeline={pipeline} viewState={{ section: 'triggers' } as any} onNodeClick={vi.fn()} />,
-      { attachTo: container },
+      { container },
     );
-    const graph = wrapper.find(PipelineGraph).instance() as PipelineGraph;
+    const graphContainer = container.querySelector('div.pipeline-graph');
+    const graph = container.querySelector('svg.pipeline-graph') as SVGElement;
 
     expect(resizeCallback).toBeDefined();
-    expect(graph.state.graphWidth).not.toBe('100%');
+    expect(graph).toBeVisible();
+    expect(graph.style.width).not.toBe('100%');
+    expect(screen.getByText('Bake')).toBeVisible();
 
     container.style.width = '600px';
-    resizeCallback(
-      [{ target: wrapper.find('div.pipeline-graph').getDOMNode(), contentRect: { width: 600 } } as any],
-      {} as any,
-    );
-    wrapper.update();
+    act(() => {
+      resizeCallback([{ target: graphContainer, contentRect: { width: 600 } } as any], {} as any);
+    });
 
-    expect(graph.state.graphWidth).toBe('100%');
+    expect(graph.style.width).toBe('100%');
+    expect(screen.getByText('Bake')).toBeVisible();
 
-    wrapper.unmount();
+    unmount();
   });
 
   it('retries layout when mounted before the element has width', () => {
-    const wrapper = mount(
+    const { unmount } = render(
       <PipelineGraph pipeline={pipeline} viewState={{ section: 'triggers' } as any} onNodeClick={vi.fn()} />,
-      { attachTo: container },
+      { container },
     );
-    const graph = wrapper.find(PipelineGraph).instance() as PipelineGraph;
+    const graph = container.querySelector('svg.pipeline-graph') as SVGElement;
 
-    expect(graph.state.graphWidth).not.toBe('100%');
+    expect(graph.style.width).not.toBe('100%');
     expect(requestAnimationFrameSpy).toHaveBeenCalled();
 
     container.style.width = '600px';
-    requestAnimationFrameSpy.mock.lastCall[0](0);
-    wrapper.update();
+    act(() => requestAnimationFrameSpy.mock.lastCall[0](0));
 
-    expect(graph.state.graphWidth).toBe('100%');
+    expect(graph.style.width).toBe('100%');
+    expect(screen.getByText('Bake')).toBeVisible();
 
-    wrapper.unmount();
+    unmount();
   });
 });

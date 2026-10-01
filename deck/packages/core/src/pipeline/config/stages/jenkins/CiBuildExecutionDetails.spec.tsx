@@ -1,11 +1,11 @@
-import { mount } from 'enzyme';
+import { render, screen } from '@testing-library/react';
 import React from 'react';
 
 import { CiBuildExecutionDetails } from './CiBuildExecutionDetails';
 
 describe('<CiBuildExecutionDetails />', () => {
   it('renders test result URL names as human-readable text', () => {
-    const component = mount(
+    render(
       <CiBuildExecutionDetails
         name="jenkinsConfig"
         current="jenkinsConfig"
@@ -25,7 +25,9 @@ describe('<CiBuildExecutionDetails />', () => {
       />,
     );
 
-    const testResultLink = component.find('a[href="https://build.example/some_test_name"]');
-    expect(testResultLink.text().trim()).toBe('Some Test Name');
+    expect(screen.getByRole('link', { name: 'Some Test Name' })).toHaveAttribute(
+      'href',
+      'https://build.example/some_test_name',
+    );
   });
 });

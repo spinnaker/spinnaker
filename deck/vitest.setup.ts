@@ -2,8 +2,8 @@
 // Must be first: sets the jQuery globals before Bootstrap/@spinnaker/core are evaluated.
 import './test/vitest/globals';
 
-import { configure } from 'enzyme';
-import Adapter from '@wojtekmaj/enzyme-adapter-react-17';
+import '@testing-library/jest-dom/vitest';
+import { cleanup } from '@testing-library/react';
 import { UIRouterReact } from '@uirouter/react';
 import { afterEach, beforeEach } from 'vitest';
 
@@ -20,7 +20,6 @@ import { installCssVarResolver } from './test/vitest/cssVars';
 import { installJsdomLayout } from './test/vitest/jsdomLayout';
 import { registerVitestCompat } from './test/vitest/matchers';
 
-configure({ adapter: new Adapter() });
 Error.stackTraceLimit = Infinity;
 
 registerVitestCompat();
@@ -45,6 +44,7 @@ beforeEach(() => {
   setDirectRouter(directTestRouter);
 });
 afterEach(() => {
+  cleanup();
   if (getDirectRouter() === directTestRouter) {
     setDirectRouter(null);
   }

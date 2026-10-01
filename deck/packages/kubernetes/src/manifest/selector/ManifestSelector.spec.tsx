@@ -1,195 +1,176 @@
-import type { Mock } from 'vitest';
-import { mount } from 'enzyme';
-import type { ReactWrapper } from 'enzyme';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import React from 'react';
-import { act } from 'react-dom/test-utils';
-import type { Option } from 'react-select';
-import Select, { Creatable } from 'react-select';
 
-import {
-  AccountSelectInput,
-  AccountService,
-  createFakeReactSyntheticEvent,
-  noop,
-  ScopeClusterSelector,
-} from '@spinnaker/core';
+import { AccountService } from '@spinnaker/core';
 
-import type { IManifestLabelSelector } from './IManifestLabelSelector';
+import type { IManifestSelector } from './IManifestSelector';
 import { SelectorMode } from './IManifestSelector';
 import { ManifestKindSearchService } from '../ManifestKindSearch';
-import type { IManifestSelectorState } from './ManifestSelector';
 import { ManifestSelector } from './ManifestSelector';
-import LabelEditor from './labelEditor/LabelEditor';
-
-import Spy = Mock;
+import { getFormGroupByLabel } from '../../../../core/src/utils/testUtils/rtl';
+import { setupUser } from '../../../../core/src/utils/testUtils/userEvent';
 
 describe('<ManifestSelector />', () => {
-  let accountService: Spy;
-  let mountedComponents: Array<ReactWrapper<ManifestSelector>>;
-  let searchService: Spy;
+  const accounts = [
+    {
+      name: 'my-account',
+      namespaces: ['default', 'kube-system', 'other-default'],
+      spinnakerKindMap: {
+        configMap: 'unclassified',
+        deployment: 'serverGroupManagers',
+        replicaSet: 'serverGroups',
+        statefulSet: 'serverGroups',
+      },
+    },
+    {
+      name: 'my-other-account',
+      namespaces: ['other-default'],
+      spinnakerKindMap: { deployment: 'serverGroupManagers' },
+    },
+  ] as any;
+  let accountService: ReturnType<typeof vi.spyOn>;
+  let searchService: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
-    mountedComponents = [];
-    searchService = vi.spyOn(ManifestKindSearchService, 'search').mockReturnValue(Promise.resolve([]));
-    accountService = vi.spyOn(AccountService, 'getAllAccountDetailsForProvider').mockReturnValue(Promise.resolve([]));
+    searchService = vi
+      .spyOn(ManifestKindSearchService, 'search')
+      .mockResolvedValue([{ name: 'configMap my-config-map' }, { name: 'deployment my-deployment' }] as any);
+    accountService = vi.spyOn(AccountService, 'getAllAccountDetailsForProvider').mockResolvedValue(accounts);
   });
 
-  afterEach(async () => {
-    await act(async () => {
-      await Promise.all(
-        searchService.mock.calls
-          .map((args, __i) => ({
-            args,
-            returnValue: searchService.mock.results[__i].value,
-            invocationOrder: searchService.mock.invocationCallOrder[__i],
-          }))
-          .map(({ returnValue }) => returnValue),
-      );
-      mountedComponents.splice(0).forEach((wrapper) => wrapper.unmount());
-    });
-  });
-
-  const component = async (selector: any, props: any = {}) => {
-    const wrapper = mount<ManifestSelector>(
-      (<ManifestSelector onChange={noop} selector={selector} {...props} />) as any,
+  const renderSelector = async (
+    selector: Partial<IManifestSelector>,
+    props: Partial<React.ComponentProps<typeof ManifestSelector>> = {},
+  ) => {
+    const onChange = props.onChange || vi.fn();
+    const rendered = render(
+      <ManifestSelector onChange={onChange} selector={selector as IManifestSelector} {...props} />,
     );
-    mountedComponents.push(wrapper);
+    await waitFor(() => expect(accountService).toHaveBeenCalled());
+    await waitFor(() =>
+      expect(within(getFormGroupByLabel('Account', rendered.container)).getByRole('combobox')).toBeInTheDocument(),
+    );
+    return { ...rendered, onChange };
+  };
 
-    await act(async () => {
-      await accountService.mock.results.at(-1).value;
-      await Promise.resolve();
-    });
-    wrapper.update();
-    return wrapper;
+  const getField = (label: string, root: HTMLElement) => getFormGroupByLabel(label, root);
+  const getSelectedValue = (label: string, value: string, root: HTMLElement) =>
+    within(getField(label, root)).getByText(value, { selector: '.Select-value-label' });
+
+  const chooseReactSelectOption = async (label: string, option: string, root: HTMLElement) => {
+    const user = setupUser();
+    const field = getField(label, root);
+    await user.click(within(field).getByRole('combobox'));
+    await user.click(within(field).getByText(option, { selector: '.Select-option' }));
   };
 
   describe('initialization', () => {
     it('renders namespace from input props', async () => {
-      const wrapper = await component({
+      const { container } = await renderSelector({
         manifestName: 'configMap my-config-map',
         account: 'my-account',
         location: 'default',
       });
 
-      const namespace = wrapper.find({ label: 'Namespace' }).find(Creatable).first();
-      expect((namespace.props().value as Option).value).toEqual('default');
+      expect(getSelectedValue('Namespace', 'default', container)).toBeInTheDocument();
     });
 
     it('renders kind from input props', async () => {
-      const wrapper = await component({
+      const { container } = await renderSelector({
         manifestName: 'configMap my-config-map',
         account: 'my-account',
         location: 'default',
       });
 
-      const kind = wrapper.find({ label: 'Kind' }).find(Creatable).first();
-      expect((kind.props().value as Option).value).toEqual('configMap');
+      expect(getSelectedValue('Kind', 'configMap', container)).toBeInTheDocument();
     });
 
     it('renders name from input props', async () => {
-      const wrapper = await component({
+      const { container } = await renderSelector({
         manifestName: 'configMap my-config-map',
         account: 'my-account',
         location: 'default',
       });
 
-      const name = wrapper.find({ label: 'Name' }).find(Creatable).first();
-      expect((name.props().value as Option).value).toEqual('my-config-map');
+      expect(getSelectedValue('Name', 'my-config-map', container)).toBeInTheDocument();
     });
 
     it('renders kinds from input props', async () => {
-      const wrapper = await component({
+      const { container } = await renderSelector({
         account: 'my-account',
         kinds: ['configMap', 'deployment'],
         location: 'default',
         mode: SelectorMode.Label,
       });
 
-      const kinds = wrapper.find({ label: 'Kinds' }).find(Select).first();
-      expect(kinds.props().value).toEqual(['configMap', 'deployment']);
+      const kinds = getField('Kinds', container);
+      expect(within(kinds).getByText('configMap', { selector: '.Select-value-label' })).toBeInTheDocument();
+      expect(within(kinds).getByText('deployment', { selector: '.Select-value-label' })).toBeInTheDocument();
     });
 
     it('renders labels from input props', async () => {
-      const labelSelectors: IManifestLabelSelector[] = [
-        {
-          key: 'label-key',
-          kind: 'EQUALS',
-          values: ['label-value'],
-        },
-      ];
-      const wrapper = await component({
+      const { container } = await renderSelector({
         account: 'my-account',
         kinds: ['configMap', 'deployment'],
         labelSelectors: {
-          selectors: labelSelectors,
+          selectors: [{ key: 'label-key', kind: 'EQUALS', values: ['label-value'] }],
         },
         location: 'default',
         mode: SelectorMode.Label,
       });
 
-      const labelEditor = wrapper.find(LabelEditor);
-      expect(labelEditor.prop('labelSelectors')).toEqual(labelSelectors);
+      const labels = getField('Labels', container);
+      expect(within(labels).getByDisplayValue('label-key')).toBeInTheDocument();
+      expect(within(labels).getByDisplayValue('label-value')).toBeInTheDocument();
     });
 
     describe('cluster dropdown', () => {
       const buildPropsWithApplicationData = (data: any[]) => ({
         modes: [SelectorMode.Static, SelectorMode.Dynamic],
-        application: { getDataSource: () => ({ data }) },
+        application: { getDataSource: () => ({ data }) } as any,
       });
 
+      const clusterOptions = async (selector: Partial<IManifestSelector>, data: any[]) => {
+        const { container } = await renderSelector(selector, buildPropsWithApplicationData(data));
+        return within(getField('Cluster', container));
+      };
+
       it("includes cluster if selected kind matches the cluster's server groups' kind", async () => {
-        const wrapper = await component(
-          {
-            kind: 'replicaSet',
-            account: 'my-account',
-            location: 'default',
-            mode: SelectorMode.Dynamic,
-          },
-          buildPropsWithApplicationData([
+        const cluster = await clusterOptions(
+          { kind: 'replicaSet', account: 'my-account', location: 'default', mode: SelectorMode.Dynamic },
+          [
             {
               name: 'replicaSet my-replica-set-v000',
               account: 'my-account',
               region: 'default',
               cluster: 'replicaSet my-replica-set',
             },
-          ]),
+          ],
         );
 
-        const cluster = wrapper.find({ label: 'Cluster' }).find(ScopeClusterSelector).first();
-        expect(cluster.props().clusters).toEqual(['replicaSet my-replica-set']);
+        expect(cluster.getByRole('option', { name: 'replicaSet my-replica-set' })).toBeInTheDocument();
       });
 
       it("does not include cluster if selected kind does not match cluster's server groups' kind", async () => {
-        const wrapper = await component(
-          {
-            kind: 'statefulSet',
-            account: 'my-account',
-            location: 'default',
-            mode: SelectorMode.Dynamic,
-          },
-          buildPropsWithApplicationData([
+        const cluster = await clusterOptions(
+          { kind: 'statefulSet', account: 'my-account', location: 'default', mode: SelectorMode.Dynamic },
+          [
             {
               name: 'replicaSet my-replica-set-v000',
               account: 'my-account',
               region: 'default',
               cluster: 'replicaSet my-replica-set',
             },
-          ]),
+          ],
         );
 
-        const cluster = wrapper.find({ label: 'Cluster' }).find(ScopeClusterSelector).first();
-        expect(cluster.props().clusters).toEqual([]);
+        expect(cluster.queryByRole('option', { name: 'replicaSet my-replica-set' })).not.toBeInTheDocument();
       });
 
       it('handles case in which a cluster has two different kinds of server groups', async () => {
-        const wrapper = await component(
-          {
-            kind: 'statefulSet',
-            account: 'my-account',
-            location: 'default',
-            mode: SelectorMode.Dynamic,
-          },
-          buildPropsWithApplicationData([
+        const cluster = await clusterOptions(
+          { kind: 'statefulSet', account: 'my-account', location: 'default', mode: SelectorMode.Dynamic },
+          [
             {
               name: 'replicaSet my-replica-set-v000',
               account: 'my-account',
@@ -202,22 +183,16 @@ describe('<ManifestSelector />', () => {
               region: 'default',
               cluster: 'my-cluster',
             },
-          ]),
+          ],
         );
 
-        const cluster = wrapper.find({ label: 'Cluster' }).find(ScopeClusterSelector).first();
-        expect(cluster.props().clusters).toEqual(['my-cluster']);
+        expect(cluster.getByRole('option', { name: 'my-cluster' })).toBeInTheDocument();
       });
 
       it("does not include cluster if the cluster's server groups are managed", async () => {
-        const wrapper = await component(
-          {
-            kind: 'replicaSet',
-            account: 'my-account',
-            location: 'default',
-            mode: SelectorMode.Dynamic,
-          },
-          buildPropsWithApplicationData([
+        const cluster = await clusterOptions(
+          { kind: 'replicaSet', account: 'my-account', location: 'default', mode: SelectorMode.Dynamic },
+          [
             {
               name: 'replicaSet my-replica-set-v000',
               account: 'my-account',
@@ -225,241 +200,286 @@ describe('<ManifestSelector />', () => {
               cluster: 'my-cluster',
               serverGroupManagers: ['deployment my-deployment'],
             },
-          ]),
+          ],
         );
 
-        const cluster = wrapper.find({ label: 'Cluster' }).find(ScopeClusterSelector).first();
-        expect(cluster.props().clusters).toEqual([]);
+        expect(cluster.queryByRole('option', { name: 'my-cluster' })).not.toBeInTheDocument();
       });
 
       it('filters clusters by account', async () => {
-        const wrapper = await component(
-          {
-            kind: 'replicaSet',
-            account: 'my-other-account',
-            location: 'default',
-            mode: SelectorMode.Dynamic,
-          },
-          buildPropsWithApplicationData([
+        const cluster = await clusterOptions(
+          { kind: 'replicaSet', account: 'my-other-account', location: 'other-default', mode: SelectorMode.Dynamic },
+          [
             {
               name: 'replicaSet my-replica-set-v000',
               account: 'my-account',
               region: 'default',
               cluster: 'my-cluster',
             },
-          ]),
+          ],
         );
 
-        const cluster = wrapper.find({ label: 'Cluster' }).find(ScopeClusterSelector).first();
-        expect(cluster.props().clusters).toEqual([]);
+        expect(cluster.queryByRole('option', { name: 'my-cluster' })).not.toBeInTheDocument();
       });
 
       it('filters clusters by namespace', async () => {
-        const wrapper = await component(
-          {
-            kind: 'replicaSet',
-            account: 'my-account',
-            location: 'my-other-namespace',
-            mode: SelectorMode.Dynamic,
-          },
-          buildPropsWithApplicationData([
+        const cluster = await clusterOptions(
+          { kind: 'replicaSet', account: 'my-account', location: 'kube-system', mode: SelectorMode.Dynamic },
+          [
             {
               name: 'replicaSet my-replica-set-v000',
               account: 'my-account',
               region: 'default',
               cluster: 'my-cluster',
             },
-          ]),
+          ],
         );
 
-        const cluster = wrapper.find({ label: 'Cluster' }).find(ScopeClusterSelector).first();
-        expect(cluster.props().clusters).toEqual([]);
+        expect(cluster.queryByRole('option', { name: 'my-cluster' })).not.toBeInTheDocument();
       });
     });
   });
 
   describe('change handlers', () => {
-    it('calls the search service after updating the `Kind` field', async () => {
-      const wrapper = await component({
+    it('calls the search service after updating the Kind field', async () => {
+      const { container } = await renderSelector({
         manifestName: 'configMap my-config-map',
         account: 'my-account',
         location: 'default',
+        mode: SelectorMode.Static,
       });
+      searchService.mockClear();
 
-      const kind = wrapper.find({ label: 'Kind' }).find(Creatable).first();
-      kind.props().onChange({ value: 'deployment', label: 'deployment' });
+      await chooseReactSelectOption('Kind', 'deployment', container);
+
       expect(searchService).toHaveBeenCalledWith('deployment', 'default', 'my-account');
     });
 
-    it('calls the search service after updating the `Namespace` field', async () => {
-      const wrapper = await component({
+    it('calls the search service after updating the Namespace field', async () => {
+      const { container } = await renderSelector({
         manifestName: 'configMap my-config-map',
         account: 'my-account',
         location: 'default',
+        mode: SelectorMode.Static,
       });
+      searchService.mockClear();
 
-      const namespace = wrapper.find({ label: 'Namespace' }).find(Creatable).first();
-      namespace.props().onChange({ value: 'kube-system', label: 'kube-system' });
+      await chooseReactSelectOption('Namespace', 'kube-system', container);
+
       expect(searchService).toHaveBeenCalledWith('configMap', 'kube-system', 'my-account');
     });
 
-    it('calls the search service after updating the `Account` field', async () => {
-      const wrapper = await component({
+    it('uses the Kubernetes provider and searches after updating the Account field', async () => {
+      const { container } = await renderSelector({
         manifestName: 'configMap my-config-map',
         account: 'my-account',
-        location: 'default',
+        location: 'other-default',
+        mode: SelectorMode.Static,
       });
-      wrapper.setState({
-        accounts: [
-          { name: 'my-account', namespaces: ['default'] },
-          { name: 'my-other-account', namespaces: ['default'] },
-        ],
-      } as IManifestSelectorState);
+      await waitFor(() => expect(accountService).toHaveBeenCalledTimes(2));
+      expect(accountService.mock.calls.every(([provider]) => provider === 'kubernetes')).toBe(true);
+      searchService.mockClear();
 
-      const account = wrapper.find(AccountSelectInput).first();
-      account.props().onChange(createFakeReactSyntheticEvent({ value: 'my-other-account' }));
-      expect(searchService).toHaveBeenCalledWith('configMap', 'default', 'my-other-account');
+      fireEvent.change(within(getField('Account', container)).getByRole('combobox'), {
+        target: { value: 'my-other-account' },
+      });
+
+      expect(searchService).toHaveBeenCalledWith('configMap', 'other-default', 'my-other-account');
     });
 
     it('waits for complete manifest search criteria', async () => {
-      const wrapper = await component({ mode: SelectorMode.Static });
-      wrapper.setState({
-        accounts: [{ name: 'my-account', namespaces: ['default'] }],
-      } as IManifestSelectorState);
+      const { container } = await renderSelector({ account: 'my-account', mode: SelectorMode.Static });
       searchService.mockClear();
 
-      const account = wrapper.find(AccountSelectInput).first();
-      account.props().onChange(createFakeReactSyntheticEvent({ value: 'my-account' }));
+      fireEvent.change(within(getField('Account', container)).getByRole('combobox'), {
+        target: { value: 'my-other-account' },
+      });
       expect(searchService).not.toHaveBeenCalled();
 
-      const namespace = wrapper.find({ label: 'Namespace' }).find(Creatable).first();
-      namespace.props().onChange({ value: 'default', label: 'default' });
+      await chooseReactSelectOption('Namespace', 'other-default', container);
       expect(searchService).not.toHaveBeenCalled();
 
-      const kind = wrapper.find({ label: 'Kind' }).find(Creatable).first();
-      kind.props().onChange({ value: 'deployment', label: 'deployment' });
-      expect(searchService).toHaveBeenCalledExactlyOnceWith('deployment', 'default', 'my-account');
+      await chooseReactSelectOption('Kind', 'deployment', container);
+      expect(searchService).toHaveBeenCalledExactlyOnceWith('deployment', 'other-default', 'my-other-account');
     });
 
     it('clears namespace when changing account if account does not have selected namespace', async () => {
-      const wrapper = await component({
+      const { container } = await renderSelector({
         manifestName: 'configMap my-config-map',
         account: 'my-account',
         location: 'default',
+        mode: SelectorMode.Static,
       });
-      wrapper.setState({
-        accounts: [
-          { name: 'my-account', namespaces: ['default'] },
-          { name: 'my-other-account', namespaces: ['other-default'] },
-        ],
-      } as IManifestSelectorState);
+      expect(getSelectedValue('Namespace', 'default', container)).toBeInTheDocument();
 
-      const account = wrapper.find(AccountSelectInput).first();
-      account.props().onChange(createFakeReactSyntheticEvent({ value: 'my-other-account' }));
-      expect(wrapper.instance().state.selector.location).toBeFalsy();
+      fireEvent.change(within(getField('Account', container)).getByRole('combobox'), {
+        target: { value: 'my-other-account' },
+      });
+
+      expect(
+        within(getField('Namespace', container)).queryByText('default', { selector: '.Select-value-label' }),
+      ).not.toBeInTheDocument();
     });
   });
 
   describe('mode change', () => {
-    it('handles kind during static -> dynamic mode transition', async () => {
-      const wrapper = await component(
+    const modes = [SelectorMode.Dynamic, SelectorMode.Static, SelectorMode.Label];
+
+    it('renders the static kind in dynamic mode after a static to dynamic transition', async () => {
+      const user = setupUser();
+      const { container, onChange } = await renderSelector(
         {
           manifestName: 'configMap my-config-map',
           account: 'my-account',
           location: 'default',
+          mode: SelectorMode.Static,
         },
-        { modes: [SelectorMode.Dynamic, SelectorMode.Static] },
+        { modes },
       );
 
-      wrapper.find({ id: 'dynamic' }).first().props().onChange();
-      expect(wrapper.state().selector.kind).toEqual('configMap');
+      await user.click(screen.getByRole('radio', { name: 'Choose a target dynamically' }));
+
+      expect(onChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({ kind: 'configMap', mode: SelectorMode.Dynamic }),
+      );
+      expect(getSelectedValue('Kind', 'configMap', container)).toBeInTheDocument();
+      expect(screen.getByText('Cluster', { selector: '.label-text' })).toBeInTheDocument();
+      expect(screen.queryByText('Name', { selector: '.label-text' })).not.toBeInTheDocument();
     });
 
-    it('handles kind during static -> label mode transition', async () => {
-      const wrapper = await component(
+    it('renders label fields after a static to label transition', async () => {
+      const user = setupUser();
+      const { container, onChange } = await renderSelector(
         {
           manifestName: 'configMap my-config-map',
           account: 'my-account',
           location: 'default',
+          mode: SelectorMode.Static,
         },
-        { modes: [SelectorMode.Dynamic, SelectorMode.Static, SelectorMode.Label] },
+        { modes },
       );
+      (onChange as ReturnType<typeof vi.fn>).mockClear();
 
-      wrapper.find({ id: 'label' }).first().props().onChange();
-      expect(wrapper.state().selector.kind).toBeNull();
-      expect(wrapper.state().selector.kinds).toEqual([]);
-      expect(wrapper.state().selector.manifestName).toBeNull();
+      await user.click(screen.getByRole('radio', { name: 'Match target(s) by label' }));
+
+      expect(within(container).getByText('Kinds', { selector: '.label-text' })).toBeInTheDocument();
+      expect(within(container).getByText('Labels', { selector: '.label-text' })).toBeInTheDocument();
+      expect(within(container).queryByText('Name', { selector: '.label-text' })).not.toBeInTheDocument();
+      expect(onChange).toHaveBeenLastCalledWith({
+        account: 'my-account',
+        cluster: null,
+        criteria: null,
+        kind: null,
+        kinds: [],
+        labelSelectors: { selectors: [] },
+        location: 'default',
+        manifestName: null,
+        mode: SelectorMode.Label,
+      });
     });
 
-    it('handles kind during dynamic -> static mode transition', async () => {
-      const wrapper = await component(
-        {
-          account: 'my-account',
-          location: 'default',
-          kind: 'configMap',
-          mode: SelectorMode.Dynamic,
-        },
-        { modes: [SelectorMode.Dynamic, SelectorMode.Static] },
+    it('renders a static name after a dynamic to static transition', async () => {
+      const user = setupUser();
+      const { container, onChange } = await renderSelector(
+        { account: 'my-account', location: 'default', kind: 'configMap', mode: SelectorMode.Dynamic },
+        { modes },
       );
+      (onChange as ReturnType<typeof vi.fn>).mockClear();
 
-      wrapper.find({ id: 'static' }).first().props().onChange();
-      // `manifestName` is composed of `${kind} ${resourceName}`
-      expect(wrapper.state().selector.manifestName).toEqual('configMap');
+      await user.click(screen.getByRole('radio', { name: 'Choose a static target' }));
+
+      expect(within(container).getByText('Name', { selector: '.label-text' })).toBeInTheDocument();
+      expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ manifestName: 'configMap' }));
     });
 
-    it('handles kind during dynamic -> label mode transition', async () => {
-      const wrapper = await component(
-        {
-          account: 'my-account',
-          location: 'default',
-          kind: 'configMap',
-          mode: SelectorMode.Dynamic,
-        },
-        { modes: [SelectorMode.Dynamic, SelectorMode.Static, SelectorMode.Label] },
+    it('renders label fields after a dynamic to label transition', async () => {
+      const user = setupUser();
+      const { container, onChange } = await renderSelector(
+        { account: 'my-account', location: 'default', kind: 'configMap', mode: SelectorMode.Dynamic },
+        { modes },
       );
+      (onChange as ReturnType<typeof vi.fn>).mockClear();
 
-      wrapper.find({ id: 'label' }).first().props().onChange();
-      expect(wrapper.state().selector.kind).toBeNull();
-      expect(wrapper.state().selector.kinds).toEqual([]);
-      expect(wrapper.state().selector.manifestName).toBeNull();
+      await user.click(screen.getByRole('radio', { name: 'Match target(s) by label' }));
+
+      expect(within(container).getByText('Kinds', { selector: '.label-text' })).toBeInTheDocument();
+      expect(within(container).getByText('Labels', { selector: '.label-text' })).toBeInTheDocument();
+      expect(onChange).toHaveBeenLastCalledWith({
+        account: 'my-account',
+        cluster: null,
+        criteria: null,
+        kind: null,
+        kinds: [],
+        labelSelectors: { selectors: [] },
+        location: 'default',
+        manifestName: null,
+        mode: SelectorMode.Label,
+      });
     });
 
-    it('handles kind during label -> static mode transition', async () => {
-      const wrapper = await component(
+    it('renders static fields after a label to static transition', async () => {
+      const user = setupUser();
+      const { container, onChange } = await renderSelector(
         {
           account: 'my-account',
           location: 'default',
           kinds: ['configMap'],
-          labelSelectors: {
-            selectors: [],
-          },
+          labelSelectors: { selectors: [] },
           mode: SelectorMode.Label,
         },
-        { modes: [SelectorMode.Dynamic, SelectorMode.Static, SelectorMode.Label] },
+        { modes },
       );
+      (onChange as ReturnType<typeof vi.fn>).mockClear();
 
-      wrapper.find({ id: 'static' }).first().props().onChange();
-      expect(wrapper.state().selector.kind).toBeNull();
-      expect(wrapper.state().selector.kinds).toBeNull();
+      await user.click(screen.getByRole('radio', { name: 'Choose a static target' }));
+
+      expect(within(container).getByText('Name', { selector: '.label-text' })).toBeInTheDocument();
+      expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ kind: null, kinds: null }));
     });
 
-    it('handles kind during label -> dynamic mode transition', async () => {
-      const wrapper = await component(
+    it('renders dynamic fields after a label to dynamic transition', async () => {
+      const user = setupUser();
+      const { container, onChange } = await renderSelector(
         {
           account: 'my-account',
           location: 'default',
           kinds: ['configMap'],
-          labelSelectors: {
-            selectors: [],
-          },
+          labelSelectors: { selectors: [] },
           mode: SelectorMode.Label,
         },
-        { modes: [SelectorMode.Dynamic, SelectorMode.Static, SelectorMode.Label] },
+        { modes },
       );
+      (onChange as ReturnType<typeof vi.fn>).mockClear();
 
-      wrapper.find({ id: 'dynamic' }).first().props().onChange();
-      expect(wrapper.state().selector.kind).toBeNull();
-      expect(wrapper.state().selector.kinds).toBeNull();
+      await user.click(screen.getByRole('radio', { name: 'Choose a target dynamically' }));
+
+      expect(within(container).getByText('Cluster', { selector: '.label-text' })).toBeInTheDocument();
+      expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ kind: null, kinds: null }));
+    });
+
+    it('does not mutate prior callback payloads during later mode transitions', async () => {
+      const user = setupUser();
+      const onChange = vi.fn();
+      await renderSelector(
+        {
+          manifestName: 'configMap my-config-map',
+          account: 'my-account',
+          location: 'default',
+          mode: SelectorMode.Static,
+        },
+        { modes, onChange },
+      );
+      onChange.mockClear();
+
+      await user.click(screen.getByRole('radio', { name: 'Choose a target dynamically' }));
+      const dynamicPayload = onChange.mock.calls.at(-1)![0];
+      expect(dynamicPayload.mode).toBe(SelectorMode.Dynamic);
+
+      await user.click(screen.getByRole('radio', { name: 'Match target(s) by label' }));
+
+      expect(dynamicPayload.mode).toBe(SelectorMode.Dynamic);
+      expect(dynamicPayload.kinds).toBeNull();
+      expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ mode: SelectorMode.Label, kinds: [] }));
     });
   });
 });

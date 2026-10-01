@@ -12,12 +12,18 @@
       &:hover,
       &.current {
         background-color: var(--color-accent-g2);
-        a {
+        button {
           color: var(--color-primary);
         }
         font-weight: 600;
       }
-      a {
+      button {
+        background: none;
+        border: 0;
+        color: var(--color-accent);
+        font: inherit;
+        text-align: left;
+        width: 100%;
         &:focus {
           color: var(--color-accent);
         }

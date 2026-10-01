@@ -1,7 +1,6 @@
+import { fireEvent, render } from '@testing-library/react';
 import React from 'react';
-import { shallow } from 'enzyme';
 
-import { normalizeGceLoadBalancerCommand } from './gceLoadBalancerModels';
 import {
   applyGceProxyTypeConstraints,
   GCE_PROXY_TYPE_CONFIG,
@@ -9,6 +8,7 @@ import {
   getGceProxyResourceOptions,
   validateGceProxyLoadBalancerCommand,
 } from './GceProxyLoadBalancerEditor';
+import { normalizeGceLoadBalancerCommand } from './gceLoadBalancerModels';
 
 describe('GceProxyLoadBalancerEditor', () => {
   it('defines frontend and backend protocols that match each Clouddriver proxy contract', () => {
@@ -203,13 +203,15 @@ describe('GceProxyLoadBalancerEditor', () => {
         'create',
       ),
     );
-    const wrapper = shallow(<GceProxyLoadBalancerEditor command={command} data={emptyData()} onChange={vi.fn()} />);
+    const { container } = render(
+      <GceProxyLoadBalancerEditor command={command} data={emptyData()} onChange={vi.fn()} />,
+    );
 
-    expect(wrapper.find('[data-field="certificate"]').exists()).toBe(true);
-    expect(wrapper.find('[data-field="portName"]').exists()).toBe(true);
-    expect(wrapper.find('[data-field="connectionDrainingTimeoutSec"]').exists()).toBe(true);
-    expect(wrapper.find('[data-field="network"]').exists()).toBe(false);
-    expect(wrapper.find('[data-field="subnet"]').exists()).toBe(false);
+    expect(field(container, 'certificate')).toBeInTheDocument();
+    expect(field(container, 'portName')).toBeInTheDocument();
+    expect(field(container, 'connectionDrainingTimeoutSec')).toBeInTheDocument();
+    expect(field(container, 'network')).not.toBeInTheDocument();
+    expect(field(container, 'subnet')).not.toBeInTheDocument();
   });
 
   it('renders regional network and subnet fields for INTERNAL without unsupported draining controls', () => {
@@ -219,12 +221,14 @@ describe('GceProxyLoadBalancerEditor', () => {
         'create',
       ),
     );
-    const wrapper = shallow(<GceProxyLoadBalancerEditor command={command} data={emptyData()} onChange={vi.fn()} />);
+    const { container } = render(
+      <GceProxyLoadBalancerEditor command={command} data={emptyData()} onChange={vi.fn()} />,
+    );
 
-    expect(wrapper.find('[data-field="network"]').exists()).toBe(true);
-    expect(wrapper.find('[data-field="subnet"]').exists()).toBe(true);
-    expect(wrapper.find('[data-field="connectionDrainingTimeoutSec"]').exists()).toBe(false);
-    expect(wrapper.find('[data-field="certificate"]').exists()).toBe(false);
+    expect(field(container, 'network')).toBeInTheDocument();
+    expect(field(container, 'subnet')).toBeInTheDocument();
+    expect(field(container, 'connectionDrainingTimeoutSec')).not.toBeInTheDocument();
+    expect(field(container, 'certificate')).not.toBeInTheDocument();
   });
 
   it('keeps generated listener and backend service names aligned when the load balancer name changes', () => {
@@ -235,9 +239,11 @@ describe('GceProxyLoadBalancerEditor', () => {
       ),
     );
     const onChange = vi.fn();
-    const wrapper = shallow(<GceProxyLoadBalancerEditor command={command} data={emptyData()} onChange={onChange} />);
+    const { container } = render(
+      <GceProxyLoadBalancerEditor command={command} data={emptyData()} onChange={onChange} />,
+    );
 
-    wrapper.find('[data-field="name"] input').simulate('change', { target: { value: 'app-main' } });
+    fireEvent.change(fieldControl(container, 'name'), { target: { value: 'app-main' } });
 
     const updated = onChange.mock.lastCall[0];
     expect(updated.name).toBe('app-main');
@@ -265,9 +271,9 @@ describe('GceProxyLoadBalancerEditor', () => {
         },
       ],
     };
-    const wrapper = shallow(<GceProxyLoadBalancerEditor command={command} data={data} onChange={onChange} />);
+    const { container } = render(<GceProxyLoadBalancerEditor command={command} data={data} onChange={onChange} />);
 
-    wrapper.find('[data-field="address"] select').simulate('change', { target: { value: 'reserved-address' } });
+    fireEvent.change(fieldControl(container, 'address'), { target: { value: 'reserved-address' } });
 
     expect(onChange.mock.lastCall[0].listeners[0].address).toEqual(data.addresses[0]);
   });
@@ -308,9 +314,9 @@ describe('GceProxyLoadBalancerEditor', () => {
         },
       ],
     };
-    const wrapper = shallow(<GceProxyLoadBalancerEditor command={command} data={data} onChange={onChange} />);
+    const { container } = render(<GceProxyLoadBalancerEditor command={command} data={data} onChange={onChange} />);
 
-    wrapper.find('[data-field="healthCheck"] select').simulate('change', { target: { value: 'new-check' } });
+    fireEvent.change(fieldControl(container, 'healthCheck'), { target: { value: 'new-check' } });
 
     const updated = onChange.mock.lastCall[0];
     expect(updated.backendServices[0].healthCheck).toEqual({
@@ -346,4 +352,16 @@ function emptyData(): any {
     regions: [],
     subnets: [],
   };
+}
+
+function field(container: HTMLElement, name: string): HTMLElement | null {
+  return container.querySelector(`[data-field="${name}"]`);
+}
+
+function fieldControl(container: HTMLElement, name: string): HTMLInputElement | HTMLSelectElement {
+  const control = field(container, name)?.querySelector('input, select');
+  if (!(control instanceof HTMLInputElement || control instanceof HTMLSelectElement)) {
+    throw new Error(`No control found for ${name}`);
+  }
+  return control;
 }

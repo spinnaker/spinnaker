@@ -1,4 +1,4 @@
-import { shallow } from 'enzyme';
+import { render, screen } from '@testing-library/react';
 import React from 'react';
 
 import type { Application } from '../../application';
@@ -28,25 +28,33 @@ describe('TargetGroupDetails', () => {
   });
 
   it('renders provider React target group details when configured', () => {
-    const ReactTargetGroupDetails = () => <div className="react-target-group-details" />;
+    const ReactTargetGroupDetails = (renderedProps: any) => {
+      const exactProps =
+        renderedProps.accountId === props.accountId &&
+        renderedProps.app === app &&
+        renderedProps.name === props.name &&
+        renderedProps.provider === props.provider &&
+        renderedProps.targetGroup === targetGroup;
+      return <div>{exactProps ? renderedProps.targetGroup.name : 'wrong props'}</div>;
+    };
     const getValue = vi
       .spyOn(CloudProviderRegistry, 'getValue')
       .mockImplementation((_provider: string, key: string) =>
         key === 'loadBalancer.targetGroupDetails' ? ReactTargetGroupDetails : null,
       );
 
-    const component = shallow(<TargetGroupDetails {...props} />);
+    render(<TargetGroupDetails {...props} />);
 
-    expect(component.find(ReactTargetGroupDetails).props()).toEqual(props);
+    expect(screen.getByText('tg-1')).toBeInTheDocument();
     expect(getValue.mock.calls).toEqual([['aws', 'loadBalancer.targetGroupDetails']]);
   });
 
   it('renders nothing when provider target group details config is missing', () => {
     const getValue = vi.spyOn(CloudProviderRegistry, 'getValue').mockReturnValue(null);
 
-    const component = shallow(<TargetGroupDetails {...props} />);
+    const { container } = render(<TargetGroupDetails {...props} />);
 
-    expect(component.isEmptyRender()).toBe(true);
+    expect(container).toBeEmptyDOMElement();
     expect(getValue.mock.calls).toEqual([['aws', 'loadBalancer.targetGroupDetails']]);
   });
 });

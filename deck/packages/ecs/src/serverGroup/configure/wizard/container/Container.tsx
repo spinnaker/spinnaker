@@ -31,6 +31,36 @@ interface IContainerState {
   targetGroupMappings: IEcsTargetGroupMapping[];
 }
 
+const emptyEcsImageDescription = (): IEcsDockerImage => ({
+  imageId: '',
+  message: '',
+  fromTrigger: false,
+  fromContext: false,
+  stageId: '',
+  imageLabelOrSha: '',
+  account: '',
+  registry: '',
+  repository: '',
+  tag: '',
+});
+
+const getEcsContainerViewModel = (
+  cmd: IEcsServerGroupCommand,
+): Omit<IContainerState, 'dockerRegistryAccounts' | 'selectedDockerAccount'> => {
+  const targetGroupMappings = cmd.targetGroupMappings || [];
+  return {
+    imageDescription: cmd.imageDescription || emptyEcsImageDescription(),
+    computeUnits: cmd.computeUnits,
+    reservedMemory: cmd.reservedMemory,
+    dockerImages: cmd.backingData?.filtered?.images || [],
+    targetGroupMappings,
+    targetGroupsAvailable: uniq([
+      ...(cmd.backingData?.filtered?.targetGroups || []),
+      ...targetGroupMappings.map((mapping) => mapping.targetGroup).filter(Boolean),
+    ]),
+  };
+};
+
 export class Container extends React.Component<IContainerProps, IContainerState> {
   constructor(props: IContainerProps) {
     super(props);
@@ -94,20 +124,10 @@ export class Container extends React.Component<IContainerProps, IContainerState>
   }
 
   public componentDidUpdate() {
-    const cmd = this.props.command;
-    const targetGroupMappings = cmd.targetGroupMappings || [];
     const nextState: IContainerState = {
-      imageDescription: cmd.imageDescription || this.getEmptyImageDescription(),
-      computeUnits: cmd.computeUnits,
-      reservedMemory: cmd.reservedMemory,
-      dockerImages: cmd.backingData?.filtered?.images || [],
+      ...getEcsContainerViewModel(this.props.command),
       dockerRegistryAccounts: this.state.dockerRegistryAccounts,
       selectedDockerAccount: this.state.selectedDockerAccount,
-      targetGroupMappings,
-      targetGroupsAvailable: uniq([
-        ...(cmd.backingData?.filtered?.targetGroups || []),
-        ...targetGroupMappings.map((mapping) => mapping.targetGroup).filter(Boolean),
-      ]),
     };
     if (!isEqual(this.state, nextState)) {
       this.setState(nextState);
@@ -126,18 +146,7 @@ export class Container extends React.Component<IContainerProps, IContainerState>
   };
 
   private getEmptyImageDescription = (): IEcsDockerImage => {
-    return {
-      imageId: '',
-      message: '',
-      fromTrigger: false,
-      fromContext: false,
-      stageId: '',
-      imageLabelOrSha: '',
-      account: '',
-      registry: '',
-      repository: '',
-      tag: '',
-    };
+    return emptyEcsImageDescription();
   };
 
   private updateDockerRegistryAccount = (newAccount: Option<string>) => {
@@ -274,7 +283,7 @@ export class Container extends React.Component<IContainerProps, IContainerState>
         <tr key={index}>
           <td data-test-id="ContainerInputs.targetGroup">
             <TetheredSelect
-              inputProps={{ 'aria-label': `Target group ${index + 1}` }}
+              aria-label={`Target group ${index + 1}`}
               placeholder="Select a target group to use..."
               options={targetGroupsAvailable}
               value={mapping.targetGroup.toString()}
@@ -335,7 +344,7 @@ export class Container extends React.Component<IContainerProps, IContainerState>
           </div>
           <div className="col-md-9" data-test-id="ContainerInputs.containerImage">
             <TetheredSelect
-              inputProps={{ 'aria-label': 'Container image' }}
+              aria-label="Container image"
               placeholder="Select an image to use..."
               options={dockerImageOptions}
               value={this.state.imageDescription.imageId}

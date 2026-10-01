@@ -1,23 +1,24 @@
-import type { Mock } from 'vitest';
-import { shallow } from 'enzyme';
+import { act, render, screen } from '@testing-library/react';
+import { setupUser } from '../../utils/testUtils/userEvent';
 import React from 'react';
 import { Subject } from 'rxjs';
+import type { Mock } from 'vitest';
 
-import { JobManifestPodLogs } from './JobManifestPodLogs';
 import { JobStageExecutionLogs } from './JobStageExecutionLogs';
 import { ManifestReader } from '../ManifestReader';
 import type { IPodNameProvider } from '../PodNameProvider';
 import type { Application } from '../../application';
+import { ApplicationModelBuilder } from '../../application/applicationModel.builder';
+import type { IManifest } from '../../domain/IManifest';
+import { InstanceReader } from '../../instance/InstanceReader';
 
 describe('JobStageExecutionLogs', () => {
-  const mockApplication = {} as Application;
-  const mockManifest: {
-    manifest: { metadata: { name: string; namespace: string }; spec: {}; status: {} };
-    name: string;
-    moniker: { app: string; cluster: string };
-    account: string;
-  } = {
+  const mockManifest: IManifest = {
     account: 'test-account',
+    artifacts: [],
+    cloudProvider: 'kubernetes',
+    events: [],
+    location: 'test-namespace',
     name: 'test-manifest',
     moniker: {
       app: 'testapp',
@@ -31,6 +32,7 @@ describe('JobStageExecutionLogs', () => {
       spec: {},
       status: {},
     },
+    status: {},
   };
   const mockPodNamesProviders: IPodNameProvider[] = [
     {
@@ -39,171 +41,113 @@ describe('JobStageExecutionLogs', () => {
   ];
 
   let getManifestSpy: Mock;
-  const subject = new Subject();
+  let mockApplication: Application;
+  let subject: Subject<IManifest>;
 
-  beforeEach(() => {
-    getManifestSpy = vi.spyOn(ManifestReader, 'getManifest').mockReturnValue(subject);
-  });
-
-  afterEach(() => {
-    getManifestSpy.mockClear();
-  });
-
-  it('should fetch manifest on mount', () => {
-    shallow(
-      <JobStageExecutionLogs
-        deployedName="test-job"
-        account="test-account"
-        application={mockApplication}
-        externalLink=""
-        podNamesProviders={mockPodNamesProviders}
-        location="test-namespace"
-      />,
-    );
-
-    expect(getManifestSpy).toHaveBeenCalledWith('test-account', 'test-namespace', 'test-job');
-  });
-
-  it('should render JobManifestPodLogs when location is provided and no externalLink', () => {
-    const wrapper = shallow(
-      <JobStageExecutionLogs
-        deployedName="test-job"
-        account="test-account"
-        application={mockApplication}
-        externalLink=""
-        podNamesProviders={mockPodNamesProviders}
-        location="test-namespace"
-      />,
-    );
-
-    subject.next(mockManifest);
-    wrapper.update();
-
-    const podLogs = wrapper.find(JobManifestPodLogs);
-    expect(podLogs.exists()).toBeTruthy();
-    expect(podLogs.props()).toEqual({
-      account: 'test-account',
-      location: 'test-namespace',
-      podNamesProviders: mockPodNamesProviders,
-      linkName: 'Console Output',
-    });
-  });
-
-  it('should not render JobManifestPodLogs when location is not provided', () => {
-    const wrapper = shallow(
-      <JobStageExecutionLogs
-        deployedName="test-job"
-        account="test-account"
-        application={mockApplication}
-        externalLink=""
-        podNamesProviders={mockPodNamesProviders}
-        location=""
-      />,
-    );
-
-    subject.next(mockManifest);
-    wrapper.update();
-
-    expect(wrapper.find(JobManifestPodLogs).exists()).toBeFalsy();
-  });
-
-  it('should render external link when provided and manifest is not empty', () => {
-    const wrapper = shallow(
-      <JobStageExecutionLogs
-        deployedName="test-job"
-        account="test-account"
-        application={mockApplication}
-        externalLink="https://example.com/logs"
-        podNamesProviders={mockPodNamesProviders}
-        location="test-namespace"
-      />,
-    );
-
-    subject.next(mockManifest);
-    wrapper.update();
-
-    const link = wrapper.find('a');
-    expect(link.exists()).toBeTruthy();
-    expect(link.prop('href')).toBe('https://example.com/logs');
-    expect(link.text()).toBe('Console Output (External)');
-  });
-
-  it('should render external link with template variables', () => {
-    const wrapper = shallow(
-      <JobStageExecutionLogs
-        deployedName="test-job"
-        account="test-account"
-        application={mockApplication}
-        externalLink="https://example.com/logs/{{manifest.metadata.namespace}}/{{manifest.metadata.name}}"
-        podNamesProviders={mockPodNamesProviders}
-        location="test-namespace"
-      />,
-    );
-
-    subject.next(mockManifest);
-    wrapper.update();
-
-    const link = wrapper.find('a');
-    expect(link.exists()).toBeTruthy();
-    expect(link.prop('href')).toBe('https://example.com/logs/test-namespace/test-job');
-  });
-
-  it('should not render external link with templates when manifest is empty', () => {
-    const wrapper = shallow(
-      <JobStageExecutionLogs
-        deployedName="test-job"
-        account="test-account"
-        application={mockApplication}
-        externalLink="https://example.com/logs/{{manifest.metadata.namespace}}/{{manifest.metadata.name}}"
-        podNamesProviders={mockPodNamesProviders}
-        location="test-namespace"
-      />,
-    );
-
-    // Don't call subject.next() to simulate empty manifest state
-
-    const podLogs = wrapper.find(JobManifestPodLogs);
-    expect(podLogs.exists()).toBeTruthy();
-    expect(wrapper.find('a').exists()).toBeFalsy();
-  });
-
-  it('should not template link if it does not include template syntax', () => {
-    const externalLink = 'https://example.com/logs';
-    const wrapper = shallow(
+  const renderLogs = (externalLink = '', location = 'test-namespace') =>
+    render(
       <JobStageExecutionLogs
         deployedName="test-job"
         account="test-account"
         application={mockApplication}
         externalLink={externalLink}
         podNamesProviders={mockPodNamesProviders}
-        location="test-namespace"
+        location={location}
       />,
     );
 
-    subject.next(mockManifest);
-    wrapper.update();
+  beforeEach(() => {
+    mockApplication = ApplicationModelBuilder.createApplicationForTests('test-app');
+    subject = new Subject<IManifest>();
+    getManifestSpy = vi.spyOn(ManifestReader, 'getManifest').mockReturnValue(subject);
+  });
 
-    const link = wrapper.find('a');
-    expect(link.prop('href')).toBe(externalLink);
+  afterEach(() => subject.complete());
+
+  it('should fetch manifest on mount and release the reader on unmount', () => {
+    const { unmount } = renderLogs();
+
+    expect(getManifestSpy).toHaveBeenCalledWith('test-account', 'test-namespace', 'test-job');
+    expect(subject.observers).toHaveLength(1);
+
+    unmount();
+    expect(subject.observers).toHaveLength(0);
+
+    act(() => subject.next(mockManifest));
+    expect(subject.observers).toHaveLength(0);
+  });
+
+  it('should render JobManifestPodLogs when location is provided and no externalLink', async () => {
+    const user = setupUser();
+    vi.spyOn(InstanceReader, 'getConsoleOutput').mockResolvedValue({ output: [] });
+    renderLogs();
+
+    act(() => subject.next(mockManifest));
+    await user.click(screen.getByText('Console Output'));
+
+    expect(InstanceReader.getConsoleOutput).toHaveBeenCalledWith(
+      'test-account',
+      'test-namespace',
+      'pod test-pod',
+      'kubernetes',
+    );
+    expect(await screen.findByText('Console Output', { selector: '.modal-title' })).toBeInTheDocument();
+  });
+
+  it('should not render JobManifestPodLogs when location is not provided', () => {
+    const { container } = renderLogs('', '');
+
+    act(() => subject.next(mockManifest));
+
+    expect(container).toHaveTextContent('');
+    expect(container.querySelector('*')).not.toBeInTheDocument();
+  });
+
+  it('should render external link when provided and manifest is not empty', () => {
+    renderLogs('https://example.com/logs');
+
+    act(() => subject.next(mockManifest));
+
+    expect(screen.getByRole('link', { name: 'Console Output (External)' })).toHaveAttribute(
+      'href',
+      'https://example.com/logs',
+    );
+  });
+
+  it('should render external link with template variables', () => {
+    renderLogs('https://example.com/logs/{{manifest.metadata.namespace}}/{{manifest.metadata.name}}');
+
+    act(() => subject.next(mockManifest));
+
+    expect(screen.getByRole('link', { name: 'Console Output (External)' })).toHaveAttribute(
+      'href',
+      'https://example.com/logs/test-namespace/test-job',
+    );
+  });
+
+  it('should not render external link with templates when manifest is empty', () => {
+    renderLogs('https://example.com/logs/{{manifest.metadata.namespace}}/{{manifest.metadata.name}}');
+
+    expect(screen.getByText('Console Output')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Console Output (External)' })).not.toBeInTheDocument();
+  });
+
+  it('should not template link if it does not include template syntax', () => {
+    renderLogs('https://example.com/logs');
+
+    act(() => subject.next(mockManifest));
+
+    expect(screen.getByRole('link', { name: 'Console Output (External)' })).toHaveAttribute(
+      'href',
+      'https://example.com/logs',
+    );
   });
 
   it('should handle errors in manifest fetching gracefully', () => {
-    const wrapper = shallow(
-      <JobStageExecutionLogs
-        deployedName="test-job"
-        account="test-account"
-        application={mockApplication}
-        externalLink=""
-        podNamesProviders={mockPodNamesProviders}
-        location="test-namespace"
-      />,
-    );
+    renderLogs();
 
-    // Simulate an error
-    subject.error(new Error('Failed to fetch manifest'));
-    wrapper.update();
+    act(() => subject.error(new Error('Failed to fetch manifest')));
 
-    // Component shouldn't crash and should render the JobManifestPodLogs as fallback
-    expect(wrapper.find(JobManifestPodLogs).exists()).toBeTruthy();
+    expect(screen.getByText('Console Output')).toBeInTheDocument();
   });
 });

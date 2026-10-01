@@ -24,40 +24,35 @@ interface IEcsNetworkingState {
   subnetTypesAvailable: ISubnet[];
 }
 
+const getEcsNetworkingViewModel = (cmd: IEcsServerGroupCommand): IEcsNetworkingState => {
+  const subnetTypes = cmd.subnetTypes || [];
+  const availableSubnetTypes = cmd.backingData?.filtered?.subnetTypes || [];
+  const persistedSubnetTypes = subnetTypes
+    .filter((purpose) => !availableSubnetTypes.some((subnet) => subnet.purpose === purpose))
+    .map((purpose) => ({ purpose, vpcId: cmd.vpcId || 'unavailable' } as ISubnet));
+  return {
+    associatePublicIpAddress: cmd.associatePublicIpAddress,
+    networkMode: cmd.networkMode,
+    networkModesAvailable: uniq([...(cmd.backingData?.networkModes || []), cmd.networkMode]).filter(Boolean),
+    securityGroupNames: cmd.securityGroupNames || [],
+    securityGroupsAvailable: uniq([
+      ...(cmd.backingData?.filtered?.securityGroupNames || []),
+      ...(cmd.securityGroupNames || []),
+    ]),
+    subnetTypes,
+    subnetTypesAvailable: [...availableSubnetTypes, ...persistedSubnetTypes],
+  };
+};
+
 export class EcsNetworking extends React.Component<IEcsNetworkingProps, IEcsNetworkingState> {
   constructor(props: IEcsNetworkingProps) {
     super(props);
     const cmd = this.props.command;
-
-    let defaultSubnetTypes: string[] = [];
-    if (cmd.subnetTypes && cmd.subnetTypes.length > 0) {
-      defaultSubnetTypes = cmd.subnetTypes;
-    }
-
-    if (cmd.subnetType && cmd.subnetType.length > 0) {
-      defaultSubnetTypes.push(cmd.subnetType);
+    cmd.subnetTypes = uniqWith([...(cmd.subnetTypes || []), ...(cmd.subnetType ? [cmd.subnetType] : [])], isEqual);
+    this.state = getEcsNetworkingViewModel(cmd);
+    if (cmd.subnetType) {
       cmd.subnetType = '';
     }
-
-    cmd.subnetTypes = uniqWith(defaultSubnetTypes, isEqual);
-
-    const availableSubnetTypes = cmd.backingData?.filtered?.subnetTypes || [];
-    const persistedSubnetTypes = cmd.subnetTypes
-      .filter((purpose) => !availableSubnetTypes.some((subnet) => subnet.purpose === purpose))
-      .map((purpose) => ({ purpose, vpcId: cmd.vpcId || 'unavailable' } as ISubnet));
-
-    this.state = {
-      associatePublicIpAddress: cmd.associatePublicIpAddress,
-      networkMode: cmd.networkMode,
-      networkModesAvailable: uniq([...(cmd.backingData?.networkModes || []), cmd.networkMode]).filter(Boolean),
-      securityGroupNames: cmd.securityGroupNames,
-      securityGroupsAvailable: uniq([
-        ...(cmd.backingData?.filtered?.securityGroupNames || []),
-        ...(cmd.securityGroupNames || []),
-      ]),
-      subnetTypes: cmd.subnetTypes,
-      subnetTypesAvailable: [...availableSubnetTypes, ...persistedSubnetTypes],
-    };
   }
 
   public componentDidMount() {
@@ -84,24 +79,7 @@ export class EcsNetworking extends React.Component<IEcsNetworkingProps, IEcsNetw
 
   public componentDidUpdate() {
     const cmd = this.props.command;
-    const availableSubnetTypes = cmd.backingData?.filtered?.subnetTypes || [];
-    const nextState: IEcsNetworkingState = {
-      associatePublicIpAddress: cmd.associatePublicIpAddress,
-      networkMode: cmd.networkMode,
-      networkModesAvailable: uniq([...(cmd.backingData?.networkModes || []), cmd.networkMode]).filter(Boolean),
-      securityGroupNames: cmd.securityGroupNames || [],
-      securityGroupsAvailable: uniq([
-        ...(cmd.backingData?.filtered?.securityGroupNames || []),
-        ...(cmd.securityGroupNames || []),
-      ]),
-      subnetTypes: cmd.subnetTypes || [],
-      subnetTypesAvailable: [
-        ...availableSubnetTypes,
-        ...(cmd.subnetTypes || [])
-          .filter((purpose) => !availableSubnetTypes.some((subnet) => subnet.purpose === purpose))
-          .map((purpose) => ({ purpose, vpcId: cmd.vpcId || 'unavailable' } as ISubnet)),
-      ],
-    };
+    const nextState = getEcsNetworkingViewModel(cmd);
     if (!isEqual(this.state, nextState)) {
       this.setState(nextState);
     }
@@ -169,7 +147,7 @@ export class EcsNetworking extends React.Component<IEcsNetworkingProps, IEcsNetw
 
     const subnetTypeOptions = this.state.subnetTypesAvailable.length ? (
       <TetheredSelect
-        inputProps={{ 'aria-label': 'VPC subnet' }}
+        aria-label="VPC subnet"
         multi={true}
         options={subnetTypesAvailable}
         value={this.state.subnetTypes}
@@ -183,7 +161,7 @@ export class EcsNetworking extends React.Component<IEcsNetworkingProps, IEcsNetw
 
     const securityGroupsOptions = this.state.securityGroupsAvailable.length ? (
       <TetheredSelect
-        inputProps={{ 'aria-label': 'Security groups' }}
+        aria-label="Security groups"
         multi={true}
         options={securityGroupsAvailable}
         value={this.state.securityGroupNames}
@@ -265,7 +243,7 @@ export class EcsNetworking extends React.Component<IEcsNetworkingProps, IEcsNetw
             </div>
             <div className="col-md-9" data-test-id="Networking.networkMode">
               <TetheredSelect
-                inputProps={{ 'aria-label': 'Network mode' }}
+                aria-label="Network mode"
                 placeholder="Select a network mode to use ..."
                 options={networkModesAvailable}
                 value={this.state.networkMode}

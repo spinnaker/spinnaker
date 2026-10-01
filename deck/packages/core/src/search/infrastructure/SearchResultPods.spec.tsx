@@ -1,21 +1,31 @@
-import { shallow } from 'enzyme';
 import React from 'react';
 
 import type { ISearchResultPodData } from './SearchResultPods';
 import { SearchResultPods } from './SearchResultPods';
+import { renderWithRouter } from '../../utils/testUtils/rtl';
 
 describe('SearchResultPods', () => {
   it('does not render a nested Bootstrap container', () => {
     const results: ISearchResultPodData[] = [
       {
         category: 'applications',
-        config: {} as any,
-        results: [{ id: 'app', displayName: 'app', params: {}, extraData: {} } as any],
+        config: { state: 'home.applications.application' } as any,
+        results: [
+          {
+            id: 'app',
+            displayName: 'app',
+            state: 'home.applications.application',
+            params: {},
+            extraData: {},
+          } as any,
+        ],
       },
     ];
 
-    const wrapper = shallow(<SearchResultPods results={results} onRemoveItem={vi.fn()} onResultClick={vi.fn()} />);
+    const { container } = renderWithRouter(
+      <SearchResultPods results={results} onRemoveItem={vi.fn()} onResultClick={vi.fn()} />,
+    );
 
-    expect(wrapper.find('.infrastructure-section').hasClass('container')).toBe(false);
+    expect(container.querySelector('.infrastructure-section')).not.toHaveClass('container');
   });
 });

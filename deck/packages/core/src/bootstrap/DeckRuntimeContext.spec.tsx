@@ -1,4 +1,4 @@
-import { mount } from 'enzyme';
+import { render, screen } from '@testing-library/react';
 import React from 'react';
 
 import { createDeckRuntime } from './DeckRuntime';
@@ -8,32 +8,32 @@ import {
   useDeckRuntimeServices,
   withDeckRuntimeServices,
 } from './DeckRuntimeContext';
+import { renderHookHarness } from '../utils/testUtils/hookHarness';
 
 describe('DeckRuntimeContext service access', () => {
   it('returns the services owned by the nearest runtime', () => {
     const runtime = createDeckRuntime();
-    let services: ReturnType<typeof useDeckRuntimeServices>;
-    const Consumer = () => {
-      services = useDeckRuntimeServices();
-      return null;
-    };
-
-    mount(
-      <DeckRuntimeContext.Provider value={runtime}>
-        <Consumer />
-      </DeckRuntimeContext.Provider>,
+    const { result } = renderHookHarness(
+      () => useDeckRuntimeServices(),
+      {},
+      {
+        wrapper: ({ children }) => (
+          <DeckRuntimeContext.Provider value={runtime}>{children}</DeckRuntimeContext.Provider>
+        ),
+      },
     );
 
-    expect(services).toBe(runtime.services);
+    expect(result.current).toBe(runtime.services);
     runtime.dispose();
   });
 
   it('throws a clear error outside a runtime provider', () => {
-    vi.spyOn(React, 'useContext').mockReturnValue(null);
+    const consoleError = vi.spyOn(console, 'error').mockReturnValue(undefined);
 
-    expect(() => useDeckRuntimeServices()).toThrowError(
+    expect(() => renderHookHarness(() => useDeckRuntimeServices(), {})).toThrowError(
       'Deck runtime services are unavailable outside DeckRuntimeContext',
     );
+    consoleError.mockRestore();
   });
 
   it('injects runtime services into class components and forwards refs', () => {
@@ -51,15 +51,14 @@ describe('DeckRuntimeContext service access', () => {
     }
 
     const WrappedConsumer = withDeckRuntimeServices(ServiceConsumer);
-    const wrapper = mount(
+    render(
       <DeckRuntimeContext.Provider value={runtime}>
         <WrappedConsumer ref={ref} label="runtime services" />
       </DeckRuntimeContext.Provider>,
     );
 
-    expect(wrapper.find(ServiceConsumer).props()).toEqual(
-      expect.objectContaining({ label: 'runtime services', deckRuntimeServices: runtime.services }),
-    );
+    expect(screen.getByText('runtime services')).toBeInTheDocument();
+    expect(ref.current?.props.deckRuntimeServices).toBe(runtime.services);
     expect(ref.current).toEqual(expect.any(ServiceConsumer));
     runtime.dispose();
   });

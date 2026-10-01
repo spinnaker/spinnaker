@@ -1,4 +1,4 @@
-import { shallow } from 'enzyme';
+import { render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 
 import {
@@ -8,8 +8,9 @@ import {
   ExecutionDetailsTasks,
   Registry,
   SETTINGS,
-  Spinner,
 } from '@spinnaker/core';
+
+import { renderWithRouter } from '../../../../../core/src/utils/testUtils/rtl';
 
 import {
   applyDockerBakeStageDefaults,
@@ -96,7 +97,7 @@ describe('Docker bake stage', () => {
 
     const updateStage = vi.fn();
 
-    shallow(
+    render(
       <DockerBakeStageConfig
         application={{} as any}
         pipeline={{} as any}
@@ -107,22 +108,22 @@ describe('Docker bake stage', () => {
       />,
     );
 
-    await new Promise((resolve) => setTimeout(resolve, 0));
-
-    expect(updateStage).toHaveBeenCalledWith({
-      package: 'my-package',
-      region: 'global',
-      user: 'user@example.com',
-      baseOs: 'ubuntu',
-      baseLabel: 'release',
-    });
+    await waitFor(() =>
+      expect(updateStage).toHaveBeenCalledWith({
+        package: 'my-package',
+        region: 'global',
+        user: 'user@example.com',
+        baseOs: 'ubuntu',
+        baseLabel: 'release',
+      }),
+    );
   });
 
   it('shows an error instead of a permanent spinner when bake options fail to load', async () => {
     vi.spyOn(BakeryReader, 'getBaseOsOptions').mockReturnValue(Promise.reject(new Error('boom')));
     vi.spyOn(BakeryReader, 'getBaseLabelOptions').mockReturnValue(Promise.resolve(['release']));
 
-    const wrapper = shallow(
+    render(
       <DockerBakeStageConfig
         application={{} as any}
         pipeline={{} as any}
@@ -133,11 +134,7 @@ describe('Docker bake stage', () => {
       />,
     );
 
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    wrapper.update();
-
-    expect(wrapper.find(Spinner).exists()).toBe(false);
-    expect(wrapper.text()).toContain('Unable to load Docker bake options');
+    expect(await screen.findByText('Unable to load Docker bake options.')).toBeInTheDocument();
   });
 
   it('does not update state after unmounting before bake options load', async () => {
@@ -150,33 +147,32 @@ describe('Docker bake stage', () => {
       new Promise((resolve) => (resolveBaseLabelOptions = resolve)),
     );
 
-    const wrapper = shallow(
+    const updateStage = vi.fn();
+    const rendered = render(
       <DockerBakeStageConfig
         application={{} as any}
         pipeline={{} as any}
         stage={{ package: 'my-package' } as any}
         stageFieldUpdated={vi.fn()}
-        updateStage={vi.fn()}
+        updateStage={updateStage}
         updateStageField={vi.fn()}
       />,
     );
-    const setState = vi.spyOn(wrapper.instance() as DockerBakeStageConfig, 'setState').mockReturnValue(undefined);
-
-    wrapper.unmount();
+    rendered.unmount();
     resolveBaseOsOptions!({ baseImages: [{ id: 'ubuntu' }] });
     resolveBaseLabelOptions!(['release']);
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(setState).not.toHaveBeenCalled();
+    expect(updateStage).not.toHaveBeenCalled();
   });
 
   it('replaces every bakery detail URL placeholder occurrence', () => {
     SETTINGS.bakeryDetailUrl =
       '/bakery/{{context.region}}/{{context.region}}/{{context.status.resourceId}}/{{context.status.resourceId}}';
 
-    const wrapper = shallow(
+    renderWithRouter(
       <DockerBakeExecutionDetails
-        current={true}
+        current="bakeConfig"
         name="bakeConfig"
         stage={
           {
@@ -186,6 +182,9 @@ describe('Docker bake stage', () => {
       />,
     );
 
-    expect(wrapper.find('a').prop('href')).toBe('/bakery/us-west-2/us-west-2/image-123/image-123');
+    expect(screen.getByRole('link', { name: 'View Bakery Details' })).toHaveAttribute(
+      'href',
+      '/bakery/us-west-2/us-west-2/image-123/image-123',
+    );
   });
 });

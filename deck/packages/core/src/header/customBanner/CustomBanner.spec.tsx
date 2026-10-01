@@ -1,52 +1,59 @@
-import { shallow } from 'enzyme';
+import { act, render, screen, waitFor } from '@testing-library/react';
+import { servicesPlugin, UIRouterReact } from '@uirouter/react';
 import React from 'react';
 
-import { UIRouterReact } from '@uirouter/react';
-
 import { CustomBannerComponent } from './CustomBanner';
-import { Application } from '../../application/application.model';
-import type { ICustomBannerConfig } from '../../application/config/customBanner/CustomBannerConfig';
 import { getTestBannerConfigs } from '../../application/config/customBanner/CustomBannerConfig.spec';
+import { ApplicationReader } from '../../application/service/ApplicationReader';
 
 describe('<CustomBanner />', () => {
-  let application: Application;
-  let wrapper: any;
-  let bannerConfigs: ICustomBannerConfig[];
   let router: UIRouterReact;
 
   beforeEach(() => {
     router = new UIRouterReact();
-    application = new Application('my-app', null, []);
-    wrapper = shallow(<CustomBannerComponent router={router} stateParams={{}} stateService={router.stateService} />);
-    bannerConfigs = getTestBannerConfigs();
+    router.plugin(servicesPlugin);
+    router.stateRegistry.register({ name: 'application', url: '/:application' });
   });
 
-  afterEach(() => router.dispose());
+  afterEach(() => {
+    vi.restoreAllMocks();
+    router.dispose();
+  });
 
-  describe('view', () => {
-    it('renders no banner by default', () => {
-      expect(wrapper.state('bannerConfig')).toBeNull();
-      expect(wrapper.find('.custom-banner').length).toEqual(0);
-    });
+  const renderBanner = () =>
+    render(<CustomBannerComponent router={router} stateParams={{}} stateService={router.stateService} />);
 
-    it('renders banner when appropriate', () => {
-      wrapper.setState({ bannerConfig: bannerConfigs[0] });
-      expect(wrapper.find('.custom-banner').length).toEqual(1);
+  const goToApplication = async () => {
+    await act(async () => {
+      await router.stateService.go('application', { application: 'my-app' }, { location: false });
     });
+  };
 
-    describe('functionality', () => {
-      it('updates state appropriately when no enabled banner found on app attributes', () => {
-        expect(wrapper.state('bannerConfig')).toBeNull();
-        application.attributes.customBanners = null;
-        wrapper.instance().updateBannerConfig(application.attributes);
-        expect(wrapper.state('bannerConfig')).toBeNull();
-      });
-      it('updates state appropriately when enabled banner found on app attributes', () => {
-        expect(wrapper.state('bannerConfig')).toBeNull();
-        application.attributes.customBanners = bannerConfigs;
-        wrapper.instance().updateBannerConfig(application.attributes);
-        expect(wrapper.state('bannerConfig')).toEqual(bannerConfigs[0]);
-      });
-    });
+  it('renders no banner by default', () => {
+    const { container } = renderBanner();
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it('renders the enabled application banner with its colours and ignores disabled banners', async () => {
+    const bannerConfigs = getTestBannerConfigs();
+    vi.spyOn(ApplicationReader, 'getApplicationAttributes').mockResolvedValue({ customBanners: bannerConfigs });
+    const { container } = renderBanner();
+
+    await goToApplication();
+
+    expect(await screen.findByText(bannerConfigs[0].text)).toBeInTheDocument();
+    expect(screen.queryByText(bannerConfigs[1].text)).not.toBeInTheDocument();
+    expect(container.querySelectorAll('.custom-banner')).toHaveLength(1);
+    expect(container.querySelector('.custom-banner')).toHaveStyle({ color: bannerConfigs[0].textColor });
+  });
+
+  it('does not render when application attributes contain no enabled banner', async () => {
+    vi.spyOn(ApplicationReader, 'getApplicationAttributes').mockResolvedValue({ customBanners: null });
+    const { container } = renderBanner();
+
+    await goToApplication();
+    await waitFor(() => expect(ApplicationReader.getApplicationAttributes).toHaveBeenCalledWith('my-app'));
+
+    expect(container).toBeEmptyDOMElement();
   });
 });

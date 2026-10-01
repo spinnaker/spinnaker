@@ -1,21 +1,25 @@
-import { mount } from 'enzyme';
+import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 
 import { ExecutionBarLabel, ExecutionBarLabelComponent } from './ExecutionBarLabel';
 
 describe('ExecutionBarLabel', () => {
   it('uses injected route params to include the active grouped stage name', () => {
-    const component = new ExecutionBarLabelComponent({
-      stage: {
-        groupStages: [{ name: 'Child stage' }],
-        index: 987654,
-        name: 'Parent stage',
-        type: 'group',
-      },
-      stateParams: { stage: '987654', subStage: '0' },
-    } as any);
+    render(
+      <ExecutionBarLabelComponent
+        stage={
+          {
+            groupStages: [{ name: 'Child stage' }],
+            index: 987654,
+            name: 'Parent stage',
+            type: 'group',
+          } as any
+        }
+        stateParams={{ stage: '987654', subStage: '0' }}
+      />,
+    );
 
-    expect((component as any).getRenderableStageName()).toBe('Parent stage: Child stage');
+    expect(screen.getByText('Parent stage: Child stage')).toBeVisible();
   });
 
   it('renders the default tooltip without runtime context in the overlay root', () => {
@@ -27,7 +31,7 @@ describe('ExecutionBarLabel', () => {
       suspendedStageTypes: new Set(),
       type: 'test',
     } as any;
-    const wrapper = mount(
+    render(
       <ExecutionBarLabelComponent
         application={{} as any}
         deckRuntimeServices={{ executionService: {} } as any}
@@ -42,10 +46,6 @@ describe('ExecutionBarLabel', () => {
       </ExecutionBarLabelComponent>,
     );
 
-    try {
-      expect(() => wrapper.find('.tooltip-trigger').simulate('mouseOver')).not.toThrow();
-    } finally {
-      wrapper.unmount();
-    }
+    expect(() => fireEvent.mouseOver(screen.getByText('marker'))).not.toThrow();
   });
 });

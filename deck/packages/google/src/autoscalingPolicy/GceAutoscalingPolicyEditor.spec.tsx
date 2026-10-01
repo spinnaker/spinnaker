@@ -1,12 +1,12 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { fireEvent, render, screen } from '@testing-library/react';
 
 import { GcePredictiveMethod } from './IGceAutoscalingPolicy';
 import { GceAutoscalingPolicyEditor } from './GceAutoscalingPolicyEditor';
 
 describe('GceAutoscalingPolicyEditor', () => {
   it('renders zero values without replacing them with blanks', () => {
-    const wrapper = shallow(
+    render(
       <GceAutoscalingPolicyEditor
         policy={{
           minNumReplicas: 0,
@@ -18,10 +18,10 @@ describe('GceAutoscalingPolicyEditor', () => {
       />,
     );
 
-    expect(wrapper.find('[data-testid="minimum-replicas"]').prop('value')).toBe(0);
-    expect(wrapper.find('[data-testid="cpu-target"]').prop('value')).toBe(0);
-    expect(wrapper.find('[data-testid="scale-in-maximum"]').prop('value')).toBe(0);
-    expect(wrapper.find('[data-testid="predictive-autoscaling"]').prop('checked')).toBe(false);
+    expect(screen.getByTestId('minimum-replicas')).toHaveValue(0);
+    expect(screen.getByTestId('cpu-target')).toHaveValue(0);
+    expect(screen.getByTestId('scale-in-maximum')).toHaveValue(0);
+    expect(screen.getByTestId('predictive-autoscaling')).not.toBeChecked();
   });
 
   it('keeps the predictive setting behind its feature gate and writes NONE when disabled', () => {
@@ -29,15 +29,16 @@ describe('GceAutoscalingPolicyEditor', () => {
     const policy = {
       cpuUtilization: { utilizationTarget: 0.5, predictiveMethod: GcePredictiveMethod.STANDARD },
     };
-    const hidden = shallow(
+    const hidden = render(
       <GceAutoscalingPolicyEditor policy={policy} onChange={onChange} predictiveAutoscalingEnabled={false} />,
     );
-    expect(hidden.find('[data-testid="predictive-autoscaling"]').exists()).toBe(false);
+    expect(hidden.queryByTestId('predictive-autoscaling')).not.toBeInTheDocument();
+    hidden.unmount();
 
-    const visible = shallow(
+    const visible = render(
       <GceAutoscalingPolicyEditor policy={policy} onChange={onChange} predictiveAutoscalingEnabled={true} />,
     );
-    visible.find('[data-testid="predictive-autoscaling"]').simulate('change', { target: { checked: false } });
+    fireEvent.click(visible.getByTestId('predictive-autoscaling'));
 
     expect(onChange).toHaveBeenCalledWith({
       cpuUtilization: { utilizationTarget: 0.5, predictiveMethod: GcePredictiveMethod.NONE },
@@ -51,15 +52,15 @@ describe('GceAutoscalingPolicyEditor', () => {
       loadBalancingUtilization: { utilizationTarget: 0.6 },
       customMetricUtilizations: [{ metric: 'custom.googleapis.com/queue', utilizationTarget: 3 }],
     };
-    const wrapper = shallow(<GceAutoscalingPolicyEditor policy={policy} onChange={onChange} />);
+    render(<GceAutoscalingPolicyEditor policy={policy} onChange={onChange} />);
 
-    wrapper.find('[data-testid="cpu-target"]').simulate('change', { target: { value: '0' } });
+    fireEvent.change(screen.getByTestId('cpu-target'), { target: { value: '0' } });
     expect(onChange).toHaveBeenCalledWith({ ...policy, cpuUtilization: { utilizationTarget: 0 } });
 
-    wrapper.find('[data-testid="http-lb-target"]').simulate('change', { target: { value: '75' } });
+    fireEvent.change(screen.getByTestId('http-lb-target'), { target: { value: '75' } });
     expect(onChange).toHaveBeenCalledWith({ ...policy, loadBalancingUtilization: { utilizationTarget: 0.75 } });
 
-    wrapper.find('[data-testid="custom-metric-target-0"]').simulate('change', { target: { value: '0' } });
+    fireEvent.change(screen.getByTestId('custom-metric-target-0'), { target: { value: '0' } });
     expect(onChange).toHaveBeenCalledWith({
       ...policy,
       customMetricUtilizations: [{ metric: 'custom.googleapis.com/queue', utilizationTarget: 0 }],
@@ -78,9 +79,9 @@ describe('GceAutoscalingPolicyEditor', () => {
         },
       ],
     };
-    const wrapper = shallow(<GceAutoscalingPolicyEditor policy={policy} onChange={onChange} />);
+    render(<GceAutoscalingPolicyEditor policy={policy} onChange={onChange} />);
 
-    wrapper.find('[aria-label="Metric export scope"]').simulate('change', {
+    fireEvent.change(screen.getByLabelText('Metric export scope'), {
       target: { value: 'TIME_SERIES_PER_INSTANCE' },
     });
 
@@ -106,9 +107,9 @@ describe('GceAutoscalingPolicyEditor', () => {
         },
       ],
     };
-    const wrapper = shallow(<GceAutoscalingPolicyEditor policy={policy} onChange={onChange} />);
+    render(<GceAutoscalingPolicyEditor policy={policy} onChange={onChange} />);
 
-    wrapper.find('[aria-label="Metric export scope"]').simulate('change', {
+    fireEvent.change(screen.getByLabelText('Metric export scope'), {
       target: { value: 'SINGLE_TIME_SERIES_PER_GROUP' },
     });
 
@@ -137,9 +138,9 @@ describe('GceAutoscalingPolicyEditor', () => {
         },
       ],
     };
-    const wrapper = shallow(<GceAutoscalingPolicyEditor policy={policy} onChange={onChange} />);
+    render(<GceAutoscalingPolicyEditor policy={policy} onChange={onChange} />);
 
-    wrapper.find('[aria-label="Scaling policy"]').simulate('change', { target: { value: 'UTILIZATION_TARGET' } });
+    fireEvent.change(screen.getByLabelText('Scaling policy'), { target: { value: 'UTILIZATION_TARGET' } });
 
     expect(onChange).toHaveBeenCalledWith({
       customMetricUtilizations: [
@@ -165,9 +166,9 @@ describe('GceAutoscalingPolicyEditor', () => {
         },
       ],
     };
-    const wrapper = shallow(<GceAutoscalingPolicyEditor policy={policy} onChange={onChange} />);
+    render(<GceAutoscalingPolicyEditor policy={policy} onChange={onChange} />);
 
-    wrapper.find('[aria-label="Scaling policy"]').simulate('change', {
+    fireEvent.change(screen.getByLabelText('Scaling policy'), {
       target: { value: 'SINGLE_INSTANCE_ASSIGNMENT' },
     });
 
@@ -184,32 +185,24 @@ describe('GceAutoscalingPolicyEditor', () => {
 
   it('returns to the add action after a CPU metric is marked for deletion', () => {
     const onChange = vi.fn();
-    const wrapper = shallow(
+    const rendered = render(
       <GceAutoscalingPolicyEditor policy={{ cpuUtilization: { utilizationTarget: 0.5 } }} onChange={onChange} />,
     );
 
-    wrapper
-      .find('button')
-      .filterWhere((button) => button.text() === 'Delete CPU metric')
-      .simulate('click');
+    fireEvent.click(screen.getByRole('button', { name: 'Delete CPU metric' }));
     expect(onChange).toHaveBeenCalledWith({ cpuUtilization: {} });
 
-    wrapper.setProps({ policy: { cpuUtilization: {} } });
-    expect(wrapper.find('[data-testid="cpu-target"]').exists()).toBe(false);
-    expect(
-      wrapper
-        .find('button')
-        .filterWhere((button) => button.text() === 'Add CPU utilization metric')
-        .exists(),
-    ).toBe(true);
+    rendered.rerender(<GceAutoscalingPolicyEditor policy={{ cpuUtilization: {} }} onChange={onChange} />);
+    expect(screen.queryByTestId('cpu-target')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Add CPU utilization metric' })).toBeInTheDocument();
   });
 
   it('switches scale-in units without losing a zero maximum', () => {
     const onChange = vi.fn();
     const policy = { scaleInControl: { maxScaledInReplicas: { percent: 0 }, timeWindowSec: 60 } };
-    const wrapper = shallow(<GceAutoscalingPolicyEditor policy={policy} onChange={onChange} />);
+    render(<GceAutoscalingPolicyEditor policy={policy} onChange={onChange} />);
 
-    wrapper.find('[data-testid="scale-in-unit"]').simulate('change', { target: { value: 'fixed' } });
+    fireEvent.change(screen.getByTestId('scale-in-unit'), { target: { value: 'fixed' } });
 
     expect(onChange).toHaveBeenCalledWith({
       scaleInControl: { maxScaledInReplicas: { fixed: 0 }, timeWindowSec: 60 },
@@ -228,11 +221,11 @@ describe('GceAutoscalingPolicyEditor', () => {
         },
       ],
     };
-    const wrapper = shallow(<GceAutoscalingPolicyEditor policy={policy} onChange={onChange} />);
+    render(<GceAutoscalingPolicyEditor policy={policy} onChange={onChange} />);
 
-    expect(wrapper.find('[data-testid="schedule-enabled-0"]').prop('checked')).toBe(false);
-    expect(wrapper.find('[data-testid="schedule-minimum-0"]').prop('value')).toBe(0);
-    wrapper.find('[data-testid="schedule-timezone-0"]').simulate('change', { target: { value: 'Europe/Tallinn' } });
+    expect(screen.getByTestId('schedule-enabled-0')).not.toBeChecked();
+    expect(screen.getByTestId('schedule-minimum-0')).toHaveValue(0);
+    fireEvent.change(screen.getByTestId('schedule-timezone-0'), { target: { value: 'Europe/Tallinn' } });
 
     expect(onChange).toHaveBeenCalledWith({
       scalingSchedules: [{ ...policy.scalingSchedules[0], timezone: 'Europe/Tallinn' }],

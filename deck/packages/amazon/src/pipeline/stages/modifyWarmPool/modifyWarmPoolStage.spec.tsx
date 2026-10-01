@@ -1,9 +1,11 @@
-import { shallow } from 'enzyme';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import React from 'react';
 
-import { AccountRegionClusterSelector, AccountService, StageConstants } from '@spinnaker/core';
+import { AccountService, StageConstants } from '@spinnaker/core';
 
 import { AmazonStageConfig } from '../AmazonStageConfig';
+import { getFormGroupByLabel } from '../../../../../core/src/utils/testUtils/rtl';
+import { setupUser } from '../../../../../core/src/utils/testUtils/userEvent';
 import { awsModifyWarmPoolStage } from './modifyWarmPoolStage';
 
 describe('AWS Modify Warm Pool stage', () => {
@@ -12,7 +14,7 @@ describe('AWS Modify Warm Pool stage', () => {
     const updateStage = vi.fn();
     const StageConfig = awsModifyWarmPoolStage.component;
     const stageModel = { type: 'modifyWarmPool', cloudProviderType: 'aws', ...stage };
-    const wrapper = shallow(
+    const rendered = render(
       <StageConfig
         {...({
           application: { defaultCredentials: {}, defaultRegions: {}, getDataSource: () => ({ data: [] }) },
@@ -24,66 +26,73 @@ describe('AWS Modify Warm Pool stage', () => {
       />,
     );
 
-    return { stage: stageModel, updateStage, updateStageField, wrapper };
+    return { ...rendered, stage: stageModel, updateStage, updateStageField };
   }
 
+  const combobox = (label: string) => within(getFormGroupByLabel(label)).getByRole('combobox');
+  const spinbutton = (label: string) => within(getFormGroupByLabel(label)).getByRole('spinbutton');
+
   beforeEach(() => {
-    vi.spyOn(AccountService, 'listAccounts').mockReturnValue(Promise.resolve([]));
+    vi.spyOn(AccountService, 'listAccounts').mockResolvedValue([]);
+    vi.spyOn(AccountService, 'getUniqueAttributeForAllAccounts').mockResolvedValue([] as any);
   });
 
   it('registers a dedicated stage editor', () => {
     expect(awsModifyWarmPoolStage.component).not.toBe(AmazonStageConfig);
   });
 
-  it('renders the AWS server group selectors for a pipeline stage', () => {
-    const { wrapper } = renderEditor({ target: 'current_asg' });
-    const target = wrapper.find('select[name="target"]');
+  it('renders the AWS server group selectors for a pipeline stage', async () => {
+    renderEditor({ target: 'current_asg' });
 
-    expect(wrapper.find(AccountRegionClusterSelector).exists()).toBe(true);
-    expect(target.exists()).toBe(true);
-    if (!wrapper.find(AccountRegionClusterSelector).exists() || !target.exists()) {
-      return;
-    }
-    expect(target.find('option').map((option) => option.prop('value'))).toEqual(
-      StageConstants.TARGET_LIST.map((option) => option.val),
-    );
-    expect(target.prop('value')).toBe('current_asg');
+    await waitFor(() => expect(AccountService.getUniqueAttributeForAllAccounts).toHaveBeenCalled());
+    expect(getFormGroupByLabel('Account')).toBeInTheDocument();
+    expect(getFormGroupByLabel('Cluster')).toBeInTheDocument();
+
+    const target = combobox('Target');
+    expect(
+      within(target)
+        .getAllByRole('option')
+        .map((option) => option.getAttribute('value')),
+    ).toEqual(StageConstants.TARGET_LIST.map((option) => option.val));
+    expect(target).toHaveValue('current_asg');
   });
 
-  it('defaults the action to upsert and shows upsert-only fields', () => {
-    const { wrapper } = renderEditor();
-    const action = wrapper.find('select[name="action"]');
+  it('defaults the action to upsert and shows upsert-only fields', async () => {
+    renderEditor();
 
-    expect(action.prop('value')).toBe('upsert');
-    expect(wrapper.find('input[name="minSize"]').exists()).toBe(true);
-    expect(wrapper.find('input[name="maxGroupPreparedCapacity"]').exists()).toBe(true);
-    expect(wrapper.find('select[name="poolState"]').exists()).toBe(true);
+    await waitFor(() => expect(AccountService.getUniqueAttributeForAllAccounts).toHaveBeenCalled());
+    expect(combobox('Action')).toHaveValue('upsert');
+    expect(spinbutton('Min Size')).toBeInTheDocument();
+    expect(spinbutton('Max Group Prepared Capacity')).toBeInTheDocument();
+    expect(combobox('Instance State')).toBeInTheDocument();
   });
 
-  it('hides upsert-only fields when action is delete', () => {
-    const { wrapper } = renderEditor({ action: 'delete' });
+  it('hides upsert-only fields when action is delete', async () => {
+    renderEditor({ action: 'delete' });
 
-    expect(wrapper.find('input[name="minSize"]').exists()).toBe(false);
-    expect(wrapper.find('input[name="maxGroupPreparedCapacity"]').exists()).toBe(false);
-    expect(wrapper.find('select[name="poolState"]').exists()).toBe(false);
+    await waitFor(() => expect(AccountService.getUniqueAttributeForAllAccounts).toHaveBeenCalled());
+    expect(screen.queryByText('Min Size')).not.toBeInTheDocument();
+    expect(screen.queryByText('Max Group Prepared Capacity')).not.toBeInTheDocument();
+    expect(screen.queryByText('Instance State')).not.toBeInTheDocument();
   });
 
-  it('updates the action field on change', () => {
-    const { updateStageField, wrapper } = renderEditor({ action: 'upsert' });
-    const action = wrapper.find('select[name="action"]');
+  it('updates the action field on change', async () => {
+    const user = setupUser();
+    const { updateStageField } = renderEditor({ action: 'upsert' });
 
-    action.simulate('change', { target: { value: 'delete' } });
+    await user.selectOptions(combobox('Action'), 'delete');
 
     expect(updateStageField).toHaveBeenCalledWith({ action: 'delete' });
   });
 
-  it('updates warm pool fields on change', () => {
-    const { updateStageField, wrapper } = renderEditor({ action: 'upsert' });
+  it('updates warm pool fields on change', async () => {
+    const user = setupUser();
+    const { updateStageField } = renderEditor({ action: 'upsert' });
 
-    wrapper.find('input[name="minSize"]').simulate('change', { target: { value: '3' } });
+    fireEvent.change(spinbutton('Min Size'), { target: { value: '3' } });
     expect(updateStageField).toHaveBeenCalledWith({ minSize: 3 });
 
-    wrapper.find('select[name="poolState"]').simulate('change', { target: { value: 'Running' } });
+    await user.selectOptions(combobox('Instance State'), 'Running');
     expect(updateStageField).toHaveBeenCalledWith({ poolState: 'Running' });
   });
 });

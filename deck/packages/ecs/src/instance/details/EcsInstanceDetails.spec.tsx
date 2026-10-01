@@ -1,35 +1,71 @@
-import type { Mock } from 'vitest';
-import { shallow } from 'enzyme';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { hashLocationPlugin, servicesPlugin, UIRouterContext, UIRouterReact, UIViewContext } from '@uirouter/react';
 import React from 'react';
+import type { Mock } from 'vitest';
 
-import { InstanceInformation, InstanceStatus, VpcTag } from '@spinnaker/amazon';
-import {
-  CollapsibleSection,
-  ConsoleOutputLink,
-  InstanceDetailsHeader,
-  InstanceLinks,
-  InstanceReader,
-  LabeledValue,
-  RecentHistoryService,
-} from '@spinnaker/core';
+import { VpcReader } from '@spinnaker/amazon';
+import { AccountService, InstanceReader, RecentHistoryService, SubnetReader, timestamp } from '@spinnaker/core';
 
 import { EcsInstanceDetailsComponent as EcsInstanceDetails } from './EcsInstanceDetails';
 
 describe('EcsInstanceDetails', () => {
+  let router: UIRouterReact;
   let stateService: { go: Mock };
+
+  const withRouter = (component: React.ReactElement) => (
+    <UIRouterContext.Provider value={router}>
+      <UIViewContext.Provider
+        value={{ fqn: 'application.instance', context: router.stateRegistry.get('application.instance') as any }}
+      >
+        {component}
+      </UIViewContext.Provider>
+    </UIRouterContext.Provider>
+  );
+
+  const renderDetails = (component: React.ReactElement) => render(withRouter(component));
+
+  const expandSection = (heading: string): HTMLElement => {
+    const headingElement = screen.getByRole('heading', { name: heading });
+    const section = headingElement.closest('.collapsible-section') as HTMLElement;
+    if (!section.querySelector('.content-body')) {
+      fireEvent.click(headingElement);
+    }
+    return section;
+  };
+
+  const instanceDataLink = () => within(expandSection('Instance data')).getByRole('link', { name: 'Instance data' });
+
+  const expectValue = (label: string, value: string) => {
+    const section = screen
+      .getByRole('heading', { name: 'Instance Information' })
+      .closest('.collapsible-section') as HTMLElement;
+    const term = within(section).getByText(label, { selector: 'dt' });
+    expect(term.nextElementSibling).toHaveTextContent(value);
+  };
 
   beforeEach(() => {
     stateService = { go: vi.fn() };
+    router = new UIRouterReact();
+    router.plugin(servicesPlugin);
+    router.plugin(hashLocationPlugin);
+    ['application', 'application.instance', 'application.serverGroup'].forEach((name) =>
+      router.stateRegistry.register({ name, url: `/${name.split('.').pop()}` }),
+    );
+    vi.spyOn(AccountService, 'getAccountDetails').mockResolvedValue({} as any);
+    vi.spyOn(VpcReader, 'getVpcName').mockResolvedValue(null);
+    vi.spyOn(SubnetReader, 'getSubnetPurpose').mockResolvedValue(null);
     vi.spyOn(RecentHistoryService, 'addExtraDataToLatest').mockReturnValue(undefined);
     vi.spyOn(RecentHistoryService, 'removeLastItem').mockReturnValue(undefined);
   });
 
+  afterEach(() => router.dispose());
+
   it('loads routed details, merges the application summary, and renders all ECS detail sections', async () => {
-    const app = application();
-    const details = instanceDetails();
+    const app = withInstanceDataLink(application());
+    const details = instanceDetails({ launchTime: 1700000000000 });
     vi.spyOn(InstanceReader, 'getInstanceDetails').mockReturnValue(Promise.resolve(details) as any);
 
-    const wrapper = shallow(
+    const { container } = renderDetails(
       <EcsInstanceDetails
         app={app}
         environment="test"
@@ -38,8 +74,7 @@ describe('EcsInstanceDetails', () => {
       />,
     );
 
-    await settle();
-    wrapper.update();
+    expect(await screen.findByRole('heading', { name: 'task-1' })).toBeInTheDocument();
 
     expect(InstanceReader.getInstanceDetails).toHaveBeenCalledWith('test-account', 'eu-west-1', 'task-1');
     expect(RecentHistoryService.addExtraDataToLatest).toHaveBeenCalledWith('instances', {
@@ -48,66 +83,41 @@ describe('EcsInstanceDetails', () => {
       serverGroup: 'fnord-main-v001',
       vpcId: 'vpc-1',
     });
-    expect(wrapper.find(InstanceDetailsHeader).props()).toEqual(
-      expect.objectContaining({ healthState: 'Up', instanceId: 'task-1', loading: false, standalone: false }),
-    );
+    expect(screen.queryByRole('heading', { name: 'Instance not found.' })).not.toBeInTheDocument();
+    expect(container.querySelector('.InstanceDetailsHeader .close-button')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Instance Information' })).toBeInTheDocument();
+    expectValue('In', 'test-account');
+    expectValue('Server Group', 'fnord-main-v001');
+    expectValue('Launched', timestamp(1700000000000));
+    expectValue('Image ID', 'ami-complete');
+    expect(screen.getByRole('heading', { name: 'Status' })).toBeInTheDocument();
+    expect(screen.getByText('Ecs')).toBeInTheDocument();
+    expect(screen.getByText('Up')).toBeInTheDocument();
 
-    const information = wrapper.find(InstanceInformation);
-    expect(information.props()).toEqual(
-      expect.objectContaining({
-        account: 'test-account',
-        launchTime: 200,
-        provider: 'ecs',
-        region: 'eu-west-1',
-        serverGroup: 'fnord-main-v001',
-      }),
+    const networking = expandSection('Networking');
+    ['10.0.0.10', '2001:db8::10', '172.17.0.2'].forEach((value) =>
+      expect(within(networking).getByRole('link', { name: value })).toBeInTheDocument(),
     );
+    expect(await within(networking).findByText('(vpc-1)')).toBeInTheDocument();
     expect(
-      wrapper
-        .find(LabeledValue)
-        .filterWhere((value) => value.prop('label') === 'Image ID')
-        .prop('value'),
-    ).toBe('ami-complete');
-    expect(wrapper.find(InstanceStatus).props()).toEqual(
-      expect.objectContaining({
-        healthMetrics: [expect.objectContaining({ description: 'healthy in ECS', state: 'Up', type: 'Ecs' })],
-        healthState: 'Up',
-      }),
+      within(expandSection('Console Output')).getByRole('button', { name: 'Console Output (Raw)' }),
+    ).toBeInTheDocument();
+    expect(within(expandSection('Application')).getByRole('link', { name: 'Health endpoint' })).toHaveAttribute(
+      'href',
+      'http://task.example.test:8080/health',
     );
-    const networking = wrapper
-      .find(CollapsibleSection)
-      .filterWhere((section) => section.prop('heading') === 'Networking');
-    const vpc = shallow(<div>{networking.prop('children')}</div>)
-      .find(LabeledValue)
-      .filterWhere((value) => value.prop('label') === 'VPC');
-    expect(vpc.prop('value')).toEqual(<VpcTag vpcId="vpc-1" />);
-    const networkAddresses = shallow(<div>{networking.prop('children')}</div>)
-      .find('NetworkAddress')
-      .map((address) => address.prop('address'));
-    expect(networkAddresses).toEqual(['10.0.0.10', '2001:db8::10', '172.17.0.2']);
-    expect(wrapper.find(ConsoleOutputLink).prop('instance')).toEqual(
-      expect.objectContaining({ imageId: 'ami-complete' }),
-    );
-
-    const links = wrapper.find(InstanceLinks);
-    expect(links.props()).toEqual(
-      expect.objectContaining({ address: 'task.example.test', application: app, environment: 'test' }),
-    );
-    const renderedLinks = shallow(<InstanceLinks {...(links.props() as any)} />);
-    const linkSection = shallow(<div>{renderedLinks.find(CollapsibleSection).prop('children')}</div>);
-    expect(linkSection.text()).toContain('Health endpoint');
-    expect(linkSection.find('a').prop('href')).toBe('http://task.example.test:8080/health');
+    expect(instanceDataLink()).toHaveAttribute('href', 'http://instance.test/ami-complete/fnord-lb/fnord-target');
   });
 
   it('loads complete details from a standalone instance prop', async () => {
-    const app = application(true);
+    const app = withInstanceDataLink(application(true));
     vi.spyOn(InstanceReader, 'getInstanceDetails').mockReturnValue(
       Promise.resolve(
         instanceDetails({ loadBalancers: ['standalone-lb'], targetGroups: ['standalone-target'] }),
       ) as any,
     );
 
-    const wrapper = shallow(
+    const { container } = renderDetails(
       <EcsInstanceDetails
         app={app}
         environment="test"
@@ -116,24 +126,23 @@ describe('EcsInstanceDetails', () => {
       />,
     );
 
-    await settle();
-    wrapper.update();
+    expect(await screen.findByRole('heading', { name: 'standalone-task' })).toBeInTheDocument();
 
     expect(InstanceReader.getInstanceDetails).toHaveBeenCalledWith(
       'standalone-account',
       'us-east-1',
       'standalone-task',
     );
-    expect(wrapper.find(InstanceDetailsHeader).props()).toEqual(
-      expect.objectContaining({ instanceId: 'standalone-task', standalone: true }),
-    );
-    expect(wrapper.find(ConsoleOutputLink).prop('instance')).toEqual(
-      expect.objectContaining({ loadBalancers: ['standalone-lb'], targetGroups: ['standalone-target'] }),
+    expectValue('In', 'standalone-account');
+    expect(container.querySelector('.InstanceDetailsHeader .close-button')).not.toBeInTheDocument();
+    expect(instanceDataLink()).toHaveAttribute(
+      'href',
+      'http://instance.test/ami-complete/standalone-lb/standalone-target',
     );
   });
 
   it('finds string instance IDs in ECS target groups scoped to the routed account', async () => {
-    const app = application(false, []);
+    const app = withInstanceDataLink(application(false, []));
     app.loadBalancers.data = [
       loadBalancer('wrong-account', 'wrong-target', ['target-task']),
       loadBalancer('test-account', 'correct-target', ['target-task']),
@@ -142,7 +151,7 @@ describe('EcsInstanceDetails', () => {
       Promise.resolve(instanceDetails({ instanceId: 'target-task' })) as any,
     );
 
-    const wrapper = shallow(
+    renderDetails(
       <EcsInstanceDetails
         app={app}
         accountId="test-account"
@@ -150,13 +159,10 @@ describe('EcsInstanceDetails', () => {
       />,
     );
 
-    await settle();
-    wrapper.update();
+    expect(await screen.findByRole('heading', { name: 'target-task' })).toBeInTheDocument();
 
     expect(InstanceReader.getInstanceDetails).toHaveBeenCalledWith('test-account', 'eu-west-1', 'target-task');
-    expect(wrapper.find(ConsoleOutputLink).prop('instance')).toEqual(
-      expect.objectContaining({ targetGroups: ['correct-target'] }),
-    );
+    expect(instanceDataLink()).toHaveAttribute('href', 'http://instance.test/ami-complete//correct-target');
   });
 
   it('adds health check details only from the matching account and region target group', async () => {
@@ -205,36 +211,27 @@ describe('EcsInstanceDetails', () => {
       ) as any,
     );
 
-    const wrapper = shallow(<EcsInstanceDetails app={app} $stateParams={{ provider: 'ecs', instanceId: 'task-1' }} />);
+    renderDetails(<EcsInstanceDetails app={app} $stateParams={{ provider: 'ecs', instanceId: 'task-1' }} />);
 
-    await settle();
-    wrapper.update();
-
-    const [matching, missing] = (wrapper.find(InstanceStatus).prop('healthMetrics') as any[])[0].targetGroups;
-    expect(matching).toEqual(
-      expect.objectContaining({ healthCheckPath: ':8443/health', healthCheckProtocol: 'https' }),
-    );
-    expect(missing.healthCheckPath).toBeUndefined();
-    expect(missing.healthCheckProtocol).toBeUndefined();
+    const healthCheck = await screen.findByRole('link', { name: 'Health Check' });
+    expect(healthCheck).toHaveAttribute('href', 'https://10.0.0.10:8443/health');
+    expect(screen.getAllByRole('link', { name: 'Health Check' })).toHaveLength(1);
   });
 
   it('renders the ECS zone before availability zone fallbacks', async () => {
     vi.spyOn(InstanceReader, 'getInstanceDetails').mockReturnValue(
       Promise.resolve(instanceDetails({ availabilityZone: 'fallback-zone', zone: 'ecs-zone' })) as any,
     );
-    const wrapper = shallow(
-      <EcsInstanceDetails app={application()} $stateParams={{ provider: 'ecs', instanceId: 'task-1' }} />,
-    );
+    renderDetails(<EcsInstanceDetails app={application()} $stateParams={{ provider: 'ecs', instanceId: 'task-1' }} />);
 
-    await settle();
-    wrapper.update();
-
-    expect(wrapper.find(InstanceInformation).prop('availabilityZone')).toBe('ecs-zone');
+    expect(await screen.findByRole('heading', { name: 'task-1' })).toBeInTheDocument();
+    expectValue('In', 'ecs-zone');
+    expect(screen.queryByText(/fallback-zone/)).not.toBeInTheDocument();
   });
 
   it('shows an inline not-found state when a standalone load fails', async () => {
     vi.spyOn(InstanceReader, 'getInstanceDetails').mockReturnValue(Promise.reject(new Error('not found')) as any);
-    const wrapper = shallow(
+    renderDetails(
       <EcsInstanceDetails
         app={application(true)}
         environment="test"
@@ -243,18 +240,15 @@ describe('EcsInstanceDetails', () => {
       />,
     );
 
-    await settle();
-    wrapper.update();
-
-    expect(wrapper.text()).toContain('Instance not found.');
-    expect(wrapper.text()).toContain('missing-task');
+    expect(await screen.findByRole('heading', { name: 'Instance not found.' })).toBeInTheDocument();
+    expect(screen.getByText('missing-task', { selector: 'p' })).toBeInTheDocument();
     expect(RecentHistoryService.removeLastItem).toHaveBeenCalledWith('instances');
     expect(stateService.go).not.toHaveBeenCalled();
   });
 
   it('closes routed details when loading fails', async () => {
     vi.spyOn(InstanceReader, 'getInstanceDetails').mockReturnValue(Promise.reject(new Error('not found')) as any);
-    shallow(
+    renderDetails(
       <EcsInstanceDetails
         app={application()}
         environment="test"
@@ -266,9 +260,9 @@ describe('EcsInstanceDetails', () => {
       />,
     );
 
-    await settle();
-
-    expect(stateService.go).toHaveBeenCalledWith('^', { allowModalToStayOpen: true }, { location: 'replace' });
+    await waitFor(() =>
+      expect(stateService.go).toHaveBeenCalledWith('^', { allowModalToStayOpen: true }, { location: 'replace' }),
+    );
   });
 
   it('keeps newer instance details when an older request resolves last', async () => {
@@ -284,7 +278,7 @@ describe('EcsInstanceDetails', () => {
     ).mockImplementation((_account: string, _region: string, instanceId: string) =>
       instanceId === 'task-1' ? oldRequest.promise : newRequest.promise,
     );
-    const wrapper = shallow(
+    const rendered = renderDetails(
       <EcsInstanceDetails
         app={app}
         environment="test"
@@ -293,24 +287,30 @@ describe('EcsInstanceDetails', () => {
       />,
     );
 
-    await settle();
-    wrapper.setProps({ $stateParams: { provider: 'ecs', instanceId: 'task-2' } });
-    newRequest.resolve(instanceDetails({ instanceId: 'task-2', name: 'task-2' }));
-    await settle();
-    wrapper.update();
-    expect(wrapper.find(InstanceDetailsHeader).prop('instanceId')).toBe('task-2');
+    await waitFor(() => expect(InstanceReader.getInstanceDetails).toHaveBeenCalledOnce());
+    rendered.rerender(
+      withRouter(
+        <EcsInstanceDetails
+          app={app}
+          environment="test"
+          moniker={{ app: 'fnord' }}
+          $stateParams={{ provider: 'ecs', instanceId: 'task-2' }}
+        />,
+      ),
+    );
+    await act(async () => newRequest.resolve(instanceDetails({ instanceId: 'task-2', name: 'task-2' })));
+    expect(await screen.findByRole('heading', { name: 'task-2' })).toBeInTheDocument();
 
-    oldRequest.resolve(instanceDetails({ instanceId: 'task-1', name: 'task-1' }));
-    await settle();
-    wrapper.update();
+    await act(async () => oldRequest.resolve(instanceDetails({ instanceId: 'task-1', name: 'task-1' })));
 
-    expect(wrapper.find(InstanceDetailsHeader).prop('instanceId')).toBe('task-2');
+    expect(screen.getByRole('heading', { name: 'task-2' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'task-1' })).not.toBeInTheDocument();
   });
 
-  it('does not update state when a request resolves after unmount', async () => {
+  it('does not remove standalone history when a request rejects after unmount', async () => {
     const request = deferred<any>();
     vi.spyOn(InstanceReader, 'getInstanceDetails').mockReturnValue(request.promise as any);
-    const wrapper = shallow(
+    const rendered = renderDetails(
       <EcsInstanceDetails
         app={application(true)}
         environment="test"
@@ -318,16 +318,41 @@ describe('EcsInstanceDetails', () => {
         moniker={{ app: 'fnord' }}
       />,
     );
-    const component = wrapper.instance() as React.Component;
-    vi.spyOn(component, 'setState').mockReturnValue(undefined);
+    await waitFor(() => expect(InstanceReader.getInstanceDetails).toHaveBeenCalledOnce());
+    vi.mocked(RecentHistoryService.removeLastItem).mockClear();
+    rendered.unmount();
+    await act(async () => request.reject(new Error('late failure')));
 
-    wrapper.unmount();
-    request.resolve(instanceDetails());
-    await settle();
+    expect(RecentHistoryService.removeLastItem).not.toHaveBeenCalled();
+  });
 
-    expect(component.setState).not.toHaveBeenCalled();
+  it('does not update state when a request resolves after unmount', async () => {
+    const request = deferred<any>();
+    vi.spyOn(InstanceReader, 'getInstanceDetails').mockReturnValue(request.promise as any);
+    const consoleError = vi.spyOn(console, 'error');
+    const rendered = renderDetails(
+      <EcsInstanceDetails
+        app={application(true)}
+        environment="test"
+        instance={{ account: 'standalone-account', instanceId: 'standalone-task', region: 'us-east-1' }}
+        moniker={{ app: 'fnord' }}
+      />,
+    );
+    await waitFor(() => expect(InstanceReader.getInstanceDetails).toHaveBeenCalledOnce());
+    rendered.unmount();
+    await act(async () => request.resolve(instanceDetails()));
+
+    expect(consoleError.mock.calls.flat().join(' ')).not.toContain('unmounted component');
   });
 });
+
+function withInstanceDataLink(app: any): any {
+  app.attributes.instanceLinks.push({
+    title: 'Instance data',
+    links: [{ title: 'Instance data', path: 'http://instance.test/{{imageId}}/{{loadBalancers}}/{{targetGroups}}' }],
+  });
+  return app;
+}
 
 function application(isStandalone = false, serverGroups = [serverGroup()]): any {
   return {
@@ -416,8 +441,6 @@ function loadBalancer(
     vpcId: 'vpc-1',
   };
 }
-
-const settle = () => new Promise((resolve) => setTimeout(resolve));
 
 function deferred<T>() {
   let resolve!: (value: T | PromiseLike<T>) => void;

@@ -1,41 +1,42 @@
-import type { Mock } from 'vitest';
+import { act, fireEvent, render, screen } from '@testing-library/react';
+import type { RenderResult } from '@testing-library/react';
 import { hashLocationPlugin, servicesPlugin, UIRouterContext, UIRouterReact } from '@uirouter/react';
-import type { ReactWrapper } from 'enzyme';
-import { mount, shallow } from 'enzyme';
 import { set } from 'lodash';
 import React from 'react';
-import { act } from 'react-dom/test-utils';
+import type { Mock } from 'vitest';
 
-import type { IExecutionsProps, IExecutionsState } from './Executions';
 import { ExecutionsComponent } from './Executions';
 import type { Application } from '../../application';
 import { ApplicationModelBuilder } from '../../application/applicationModel.builder';
 import { DeckRuntimeContext } from '../../bootstrap/DeckRuntimeContext';
-import { CollapsibleSectionStateCache, ViewStateCache } from '../../cache';
-import { FilterCollapse } from '../../filterModel';
+import { CollapsibleSectionStateCache, DeckCacheFactory, ViewStateCache } from '../../cache';
+import type { ICache } from '../../cache';
+import type { IPipeline } from '../../domain';
 import { ManualExecutionModal } from '../manualExecution';
-import { ApplicationForbidden } from '../../notfound/ApplicationForbidden';
+import type { IRouterInjectedProps } from '../../navigation/routerContext';
 import * as State from '../../state';
 import { noop } from '../../utils';
-import { Spinner } from '../../widgets/spinners/Spinner';
 
 describe('<Executions/>', () => {
-  let component: ReactWrapper<IExecutionsProps, IExecutionsState>;
+  let component: RenderResult;
   let application: Application;
   let router: UIRouterReact;
-  let routerProps: any;
-  const runtimeServices = {} as any;
+  let routerProps: IRouterInjectedProps;
+  let viewStateCache: ICache;
+  const runtimeServices = {};
+  const runtime = ({ services: runtimeServices } as unknown) as React.ContextType<typeof DeckRuntimeContext>;
 
   async function settleInitialization() {
     await act(async () => {
       await Promise.resolve();
       await Promise.resolve();
     });
-    act(() => vi.advanceTimersByTime(50));
-    component.update();
+    act(() => {
+      vi.advanceTimersByTime(50);
+    });
   }
 
-  function initializeApplication(data?: any) {
+  function initializeApplication(data?: { executions?: unknown[]; pipelineConfigs?: IPipeline[] }) {
     set(application, 'executions.activate', noop);
     set(application, 'pipelineConfigs.activate', noop);
     if (data && 'executions' in data) {
@@ -47,8 +48,8 @@ describe('<Executions/>', () => {
       application.pipelineConfigs.loaded = true;
     }
 
-    component = mount(
-      <DeckRuntimeContext.Provider value={{ services: runtimeServices }}>
+    component = render(
+      <DeckRuntimeContext.Provider value={runtime}>
         <UIRouterContext.Provider value={router}>
           <ExecutionsComponent {...routerProps} app={application} />
         </UIRouterContext.Provider>
@@ -57,18 +58,22 @@ describe('<Executions/>', () => {
   }
 
   beforeEach(() => {
-    component = null;
     router = new UIRouterReact();
     router.plugin(servicesPlugin);
     router.plugin(hashLocationPlugin);
-    routerProps = { router, stateParams: {}, stateService: { go: vi.fn() } };
+    routerProps = {
+      router,
+      stateParams: {},
+      stateService: ({ go: vi.fn() } as unknown) as IRouterInjectedProps['stateService'],
+    };
     vi.spyOn(CollapsibleSectionStateCache, 'isSet').mockReturnValue(false);
     vi.spyOn(CollapsibleSectionStateCache, 'isExpanded').mockReturnValue(false);
     vi.spyOn(CollapsibleSectionStateCache, 'setExpanded').mockReturnValue(undefined);
-  });
-  beforeEach(() => vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval'] }));
-  beforeEach(() => {
-    vi.spyOn(ViewStateCache, 'createCache').mockReturnValue({ get: noop, put: noop, touch: noop } as any);
+    vi.useFakeTimers({
+      toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval'],
+    });
+    viewStateCache = DeckCacheFactory.createCache('test', 'executions-view-state', { storageMode: 'memory' });
+    vi.spyOn(ViewStateCache, 'createCache').mockReturnValue(viewStateCache);
     State.initialize();
     State.ExecutionState.filterModel.asFilterModel.sortFilter.filter = 'existing filter';
     application = ApplicationModelBuilder.createApplicationForTests(
@@ -78,6 +83,7 @@ describe('<Executions/>', () => {
       { key: 'runningExecutions', lazy: true, defaultData: [] },
     );
   });
+
   afterEach(async () => {
     await act(async () => {
       await Promise.resolve();
@@ -85,58 +91,57 @@ describe('<Executions/>', () => {
     });
     component?.unmount();
     router.dispose();
+    viewStateCache.destroy();
     vi.useRealTimers();
   });
 
   it('should not set loading flag to false until executions and pipeline configs have been loaded', async () => {
     initializeApplication();
-    expect(component.find(Spinner).length).toBe(1);
-    application.executions.loaded = true;
-    application.pipelineConfigs.loaded = true;
-    application.executions.dataUpdated();
-    application.pipelineConfigs.dataUpdated();
+    expect(component.container.querySelector('.spinner-container')).toBeInTheDocument();
+
+    act(() => {
+      application.executions.loaded = true;
+      application.pipelineConfigs.loaded = true;
+      application.executions.dataUpdated();
+      application.pipelineConfigs.dataUpdated();
+    });
     await settleInitialization();
 
-    expect(component.find(Spinner).length).toBe(0);
+    expect(component.container.querySelector('.spinner-container')).not.toBeInTheDocument();
   });
 
   it('controls filter expansion from the cache and persists committed toggles', async () => {
-    (CollapsibleSectionStateCache.isSet as Mock).mockReturnValue(true);
-    (CollapsibleSectionStateCache.isExpanded as Mock).mockReturnValue(false);
-    initializeApplication({ executions: [], pipelineConfigs: [{ id: 'pipeline-id' }] });
+    vi.mocked(CollapsibleSectionStateCache.isSet).mockReturnValue(true);
+    vi.mocked(CollapsibleSectionStateCache.isExpanded).mockReturnValue(false);
+    initializeApplication({ executions: [], pipelineConfigs: [{ id: 'pipeline-id' } as IPipeline] });
     await settleInitialization();
 
-    let filterCollapse = component.find(FilterCollapse);
     expect(CollapsibleSectionStateCache.isSet).toHaveBeenCalledWith('insightFilters');
     expect(CollapsibleSectionStateCache.isExpanded).toHaveBeenCalledWith('insightFilters');
-    expect(filterCollapse.prop('filtersExpanded')).toBe(false);
+    const toggle = screen.getByRole('button', { name: 'Show filters' });
     expect(CollapsibleSectionStateCache.setExpanded).not.toHaveBeenCalled();
 
-    const onToggle = filterCollapse.prop('onToggle') as () => void;
     act(() => {
-      onToggle();
-      onToggle();
+      toggle.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      toggle.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     });
-    component.update();
 
-    filterCollapse = component.find(FilterCollapse);
-    expect(filterCollapse.prop('filtersExpanded')).toBe(false);
+    expect(screen.getByRole('button', { name: 'Show filters' })).toBeVisible();
     expect(CollapsibleSectionStateCache.setExpanded).not.toHaveBeenCalled();
 
-    act(() => onToggle());
-    component.update();
+    fireEvent.click(screen.getByRole('button', { name: 'Show filters' }));
 
-    filterCollapse = component.find(FilterCollapse);
-    expect(filterCollapse.prop('filtersExpanded')).toBe(true);
+    expect(screen.getByText('Filters')).toBeVisible();
+    expect(screen.queryByRole('button', { name: 'Show filters' })).not.toBeInTheDocument();
+    expect(component.container.querySelector('.insight')).toHaveClass('filters-expanded');
+    expect(component.container.querySelector('.insight > .nav')).toBeInTheDocument();
     expect((CollapsibleSectionStateCache.setExpanded as Mock).mock.calls).toEqual([['insightFilters', true]]);
   });
 
-  it('clears the manual execution param through the injected state service', () => {
-    const executionComponent = shallow(<ExecutionsComponent {...routerProps} app={application} />, {
-      disableLifecycleMethods: true,
-    });
-
-    (executionComponent.instance() as any).clearManualExecutionParam();
+  it('clears an unmatched manual execution param through the router state service', async () => {
+    routerProps.stateParams = { startManualExecution: 'missing-pipeline' };
+    initializeApplication({ executions: [], pipelineConfigs: [] });
+    await settleInitialization();
 
     expect(routerProps.stateService.go).toHaveBeenCalledWith(
       '.',
@@ -145,15 +150,12 @@ describe('<Executions/>', () => {
     );
   });
 
-  it('starts a deep-linked manual execution from injected route params', async () => {
-    const pipeline = { id: 'pipeline-id', name: 'Test Pipeline' };
+  it('starts a deep-linked manual execution from route params', async () => {
+    const pipeline = { id: 'pipeline-id', name: 'Test Pipeline' } as IPipeline;
     routerProps.stateParams = { startManualExecution: pipeline.id };
     const showModal = vi.spyOn(ManualExecutionModal, 'show').mockReturnValue(Promise.reject());
     initializeApplication({ executions: [], pipelineConfigs: [pipeline] });
-    await act(async () => {
-      await Promise.resolve();
-      await Promise.resolve();
-    });
+    await settleInitialization();
 
     expect(showModal).toHaveBeenCalledWith(expect.objectContaining({ application, pipeline }), runtimeServices);
   });

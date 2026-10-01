@@ -1,14 +1,16 @@
-import { mount } from 'enzyme';
+import { fireEvent, render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
-import { act } from 'react-dom/test-utils';
 
 import { CollapsibleSectionStateCache } from '../../cache';
 import { UrlBuilder } from '../../navigation';
 import { ProjectCluster } from './ProjectCluster';
 import { RegionFilter } from './RegionFilter';
+import type { IProjectClusterMetadata, IProjectDashboardCluster } from './ProjectClusterModel';
+import type { IProject } from '../../domain';
 
 describe('<ProjectCluster />', () => {
-  const project = { name: 'kubernetesproject' } as any;
+  const project = { name: 'kubernetesproject' } as IProject;
 
   const cluster = {
     account: 'k8s-local',
@@ -38,12 +40,12 @@ describe('<ProjectCluster />', () => {
         ],
       },
     ],
-  } as any;
+  } as IProjectDashboardCluster;
 
   beforeEach(() => {
     vi.spyOn(CollapsibleSectionStateCache, 'isSet').mockReturnValue(false);
     vi.spyOn(CollapsibleSectionStateCache, 'setExpanded').mockReturnValue(undefined);
-    vi.spyOn(UrlBuilder, 'buildFromMetadata').mockImplementation((metadata: any) => {
+    vi.spyOn(UrlBuilder, 'buildFromMetadata').mockImplementation((metadata: IProjectClusterMetadata) => {
       const query = [`acct=${metadata.account}`];
       if (metadata.region) {
         query.push(`reg=${metadata.region}`);
@@ -53,14 +55,13 @@ describe('<ProjectCluster />', () => {
   });
 
   it('renders the project cluster rollup DOM contract', () => {
-    const wrapper = mount(<ProjectCluster project={project} cluster={cluster} selectedRegions={{}} />);
+    const { container } = render(<ProjectCluster project={project} cluster={cluster} selectedRegions={{}} />);
 
-    expect(wrapper.find('.project-cluster .rollup-entry').exists()).toBe(true);
-    expect(wrapper.find('project-cluster').exists()).toBe(false);
-    expect(wrapper.find('.cluster-name').text()).toContain('*-*');
-    expect(wrapper.find('.cluster-health').at(0).text()).toContain('1 Application');
-    expect(wrapper.find('.cluster-health').at(1).text()).toContain('24 Instances');
-    expect(wrapper.find('.rollup-details thead th').map((th) => th.text().trim())).toEqual([
+    expect(container.querySelector('section.project-cluster .rollup-entry')).toBeInTheDocument();
+    expect(screen.getByText('*-*')).toBeInTheDocument();
+    expect(screen.getByText('1 Application')).toBeInTheDocument();
+    expect(screen.getByText(/24 Instances/)).toBeInTheDocument();
+    expect(screen.getAllByRole('columnheader').map((header) => header.textContent?.trim())).toEqual([
       '',
       '',
       'Last Push',
@@ -68,47 +69,51 @@ describe('<ProjectCluster />', () => {
       'prod',
       'test',
     ]);
-    expect(wrapper.find('tbody tr').first().find('a.heavy').text()).toContain('KUBERNETESAPP');
-    expect(wrapper.find('tbody tr').first().find('td a[href*="reg="]').length).toBe(3);
-
-    wrapper.unmount();
+    const applicationRow = screen.getAllByRole('row')[1];
+    expect(within(applicationRow).getByText('KUBERNETESAPP')).toBeInTheDocument();
+    expect(
+      within(applicationRow)
+        .getAllByRole('link')
+        .filter((link) => link.getAttribute('href')?.includes('reg=')),
+    ).toHaveLength(3);
   });
 
   it('filters region columns and links', () => {
-    const wrapper = mount(
-      <ProjectCluster project={project} cluster={cluster} selectedRegions={{ dev: true, prod: true }} />,
-    );
+    render(<ProjectCluster project={project} cluster={cluster} selectedRegions={{ dev: true, prod: true }} />);
 
-    expect(wrapper.find('.rollup-details thead th').map((th) => th.text().trim())).toEqual([
+    expect(screen.getAllByRole('columnheader').map((header) => header.textContent?.trim())).toEqual([
       '',
       '',
       'Last Push',
       'dev',
       'prod',
     ]);
-    expect(wrapper.find('tbody tr').first().find('td a[href*="reg="]').length).toBe(2);
-
-    wrapper.unmount();
+    const applicationRow = screen.getAllByRole('row')[1];
+    expect(
+      within(applicationRow)
+        .getAllByRole('link')
+        .filter((link) => link.getAttribute('href')?.includes('reg=')),
+    ).toHaveLength(2);
   });
 
-  it('toggles details and persists expansion state', () => {
-    const wrapper = mount(<ProjectCluster project={project} cluster={cluster} selectedRegions={{}} />);
+  it('toggles details and persists expansion state', async () => {
+    const user = userEvent.setup();
+    render(<ProjectCluster project={project} cluster={cluster} selectedRegions={{}} />);
 
-    expect(wrapper.find('.rollup-details').exists()).toBe(true);
-    wrapper.find('.rollup-entry .row.clickable').simulate('click');
+    expect(screen.getByRole('table')).toBeInTheDocument();
+    await user.click(screen.getByText('*-*'));
 
-    expect(wrapper.find('.rollup-details').exists()).toBe(false);
+    expect(screen.queryByRole('table')).not.toBeInTheDocument();
     expect(CollapsibleSectionStateCache.setExpanded).toHaveBeenCalledWith('kubernetesproject:k8s-local:*', false);
-
-    wrapper.unmount();
   });
 });
 
 describe('<RegionFilter />', () => {
-  it('renders region checkboxes and exposes toggle/clear actions', () => {
+  it('renders region checkboxes and exposes toggle/clear actions', async () => {
+    const user = userEvent.setup();
     const onToggleRegion = vi.fn();
     const onClear = vi.fn();
-    const wrapper = mount(
+    render(
       <RegionFilter
         regions={['dev', 'prod']}
         selectedRegions={{ dev: true }}
@@ -117,35 +122,25 @@ describe('<RegionFilter />', () => {
       />,
     );
 
-    wrapper.find('h6.dropdown-toggle').simulate('click');
+    await user.click(screen.getByText('Filter by region / namespace'));
 
-    expect(wrapper.find('.region-filter').exists()).toBe(true);
-    expect(wrapper.find('region-filter').exists()).toBe(false);
-    expect(wrapper.find('.region-filter-button').text()).toContain('Filter by region / namespace');
-    expect(wrapper.find('input[type="checkbox"]').at(0).prop('checked')).toBe(true);
-    wrapper.find('li').at(1).simulate('click');
+    expect(screen.getAllByRole('checkbox')).toHaveLength(2);
+    expect(screen.getAllByRole('checkbox')[0]).toBeChecked();
+    await user.click(screen.getByText('prod'));
     expect(onToggleRegion).toHaveBeenCalledWith('prod');
-    wrapper.find('a').last().simulate('click');
-    expect(onClear).toHaveBeenCalled();
-
-    wrapper.unmount();
+    await user.click(screen.getByRole('link', { name: 'Clear all' }));
+    expect(onClear).toHaveBeenCalledTimes(1);
   });
 
-  it('closes the dropdown when clicking outside', () => {
-    const wrapper = mount(
-      <RegionFilter regions={['dev', 'prod']} selectedRegions={{}} onToggleRegion={vi.fn()} onClear={vi.fn()} />,
-    );
+  it('closes the dropdown when clicking outside', async () => {
+    const user = userEvent.setup();
+    render(<RegionFilter regions={['dev', 'prod']} selectedRegions={{}} onToggleRegion={vi.fn()} onClear={vi.fn()} />);
 
-    wrapper.find('h6.dropdown-toggle').simulate('click');
-    expect(wrapper.find('.dropdown-menu').exists()).toBe(true);
+    await user.click(screen.getByText('Filter by region / namespace'));
+    expect(screen.getByRole('menu')).toBeInTheDocument();
 
-    act(() => {
-      document.body.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    });
-    wrapper.update();
+    fireEvent.click(document.body);
 
-    expect(wrapper.find('.dropdown-menu').exists()).toBe(false);
-
-    wrapper.unmount();
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
   });
 });

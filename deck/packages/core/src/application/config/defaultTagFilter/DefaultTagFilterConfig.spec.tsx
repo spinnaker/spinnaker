@@ -1,4 +1,4 @@
-import { shallow } from 'enzyme';
+import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 
 import type { IDefaultTagFilterConfig } from './DefaultTagFilterConfig';
@@ -7,56 +7,45 @@ import { noop } from '../../../utils';
 
 describe('<DefaultTagFilterConfig />', () => {
   let tagConfigs: IDefaultTagFilterConfig[];
-  let wrapper: any;
+  let container: HTMLElement;
 
   beforeEach(() => {
     tagConfigs = getTestDefaultFilterTagConfigs();
-    wrapper = shallow(
+    ({ container } = render(
       <DefaultTagFilterConfig
         defaultTagFilterConfigs={tagConfigs}
         isSaving={false}
         saveError={false}
         updateDefaultTagFilterConfigs={noop}
       />,
-    );
+    ));
   });
 
   describe('view', () => {
     it('renders a row for each banner config', () => {
-      expect(wrapper.find('.default-filter-config-row').length).toEqual(tagConfigs.length);
+      expect(container.querySelectorAll('.default-filter-config-row')).toHaveLength(tagConfigs.length);
     });
     it('renders an "add" button', () => {
-      expect(wrapper.find('.add-new').length).toEqual(1);
+      expect(screen.getByRole('button', { name: /add default filter/i })).toBeInTheDocument();
     });
   });
 
   describe('functionality', () => {
     it('update default tag filter config', () => {
-      expect(wrapper.state('defaultTagFilterConfigsEditing')).toEqual(tagConfigs);
-      wrapper
-        .find('textarea')
-        .at(1)
-        .simulate('change', { target: { value: 'hello' } });
-      const updatedConfigs = [
-        {
-          ...tagConfigs[0],
-          tagValue: 'hello',
-        },
-        {
-          ...tagConfigs[1],
-        },
-      ];
-      expect(wrapper.state('defaultTagFilterConfigsEditing')).toEqual(updatedConfigs);
+      const textareas = screen.getAllByRole('textbox');
+      fireEvent.change(textareas[1], { target: { value: 'hello' } });
+      expect(textareas[1]).toHaveValue('hello');
+      expect(textareas[3]).toHaveValue(tagConfigs[1].tagValue);
     });
     it('add default filter tag config', () => {
-      expect(wrapper.state('defaultTagFilterConfigsEditing').length).toEqual(2);
-      wrapper.find('.add-new').simulate('click');
-      expect(wrapper.state('defaultTagFilterConfigsEditing').length).toEqual(3);
+      fireEvent.click(screen.getByRole('button', { name: /add default filter/i }));
+      expect(container.querySelectorAll('.default-filter-config-row')).toHaveLength(3);
+      expect(screen.getByDisplayValue(/name of the tag/i)).toBeInTheDocument();
     });
     it('remove default filter tag config', () => {
-      expect(wrapper.state('defaultTagFilterConfigsEditing').length).toEqual(2);
-      wrapper.find('.default-filter-config-remove').at(1).simulate('click');
-      expect(wrapper.state('defaultTagFilterConfigsEditing').length).toEqual(1);
+      fireEvent.click(screen.getByRole('button', { name: 'Remove default filter 2' }));
+      expect(container.querySelectorAll('.default-filter-config-row')).toHaveLength(1);
+      expect(screen.queryByDisplayValue('Repair Pipelines')).not.toBeInTheDocument();
     });
   });
 });

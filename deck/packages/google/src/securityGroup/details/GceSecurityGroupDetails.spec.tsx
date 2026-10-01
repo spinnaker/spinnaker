@@ -1,6 +1,6 @@
 import type { Mock } from 'vitest';
 import React from 'react';
-import { mount as enzymeMount, shallow } from 'enzyme';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 
 import { AccountService, ConfirmationModalService, DeckRuntimeContext, SecurityGroupWriter } from '@spinnaker/core';
 
@@ -12,7 +12,7 @@ describe('GceSecurityGroupDetails', () => {
   const RuntimeWrapper = ({ children }: React.PropsWithChildren<{}>) => (
     <DeckRuntimeContext.Provider value={{ services: runtimeServices } as any}>{children}</DeckRuntimeContext.Provider>
   );
-  const mount = (component: React.ReactElement) => enzymeMount(component, { wrappingComponent: RuntimeWrapper });
+  const renderWithRuntime = (component: React.ReactElement) => render(<RuntimeWrapper>{component}</RuntimeWrapper>);
 
   beforeEach(() => {
     runtimeServices = {};
@@ -49,11 +49,6 @@ describe('GceSecurityGroupDetails', () => {
     };
   }
 
-  async function flush(): Promise<void> {
-    await Promise.resolve();
-    await Promise.resolve();
-  }
-
   it('reloads the current firewall details after the security group data source refreshes', async () => {
     let refreshDetails: (() => void) | undefined;
     const app = {
@@ -71,20 +66,16 @@ describe('GceSecurityGroupDetails', () => {
         .mockReturnValueOnce(Promise.resolve(details('first-firewall', 'after refresh'))),
     };
     runtimeServices.securityGroupReader = reader;
-    const wrapper = mount(<GceSecurityGroupDetails app={app as any} resolvedSecurityGroup={firstRoute} />);
+    const rendered = renderWithRuntime(<GceSecurityGroupDetails app={app as any} resolvedSecurityGroup={firstRoute} />);
 
-    await flush();
-    wrapper.update();
-    expect(wrapper.text()).toContain('before refresh');
+    await waitFor(() => expect(screen.getByText('before refresh')).toBeInTheDocument());
     expect(refreshDetails).toBeDefined();
 
-    refreshDetails?.();
-    await flush();
-    wrapper.update();
+    await act(async () => refreshDetails?.());
 
     expect(reader.getSecurityGroupDetails).toHaveBeenCalledTimes(2);
-    expect(wrapper.text()).toContain('after refresh');
-    wrapper.unmount();
+    await waitFor(() => expect(screen.getByText('after refresh')).toBeInTheDocument());
+    rendered.unmount();
   });
 
   it('clears prior details and actions on route change and ignores an out-of-order response', async () => {
@@ -99,29 +90,31 @@ describe('GceSecurityGroupDetails', () => {
     };
     runtimeServices.securityGroupReader = reader;
     const app = { securityGroups: { onRefresh: () => vi.fn() } };
-    const wrapper = mount(<GceSecurityGroupDetails app={app as any} resolvedSecurityGroup={firstRoute} />);
+    const rendered = renderWithRuntime(<GceSecurityGroupDetails app={app as any} resolvedSecurityGroup={firstRoute} />);
 
-    await flush();
-    wrapper.update();
-    expect(wrapper.find(GceSecurityGroupActions).length).toBe(1);
-    expect(wrapper.text()).toContain('first details');
+    await waitFor(() => expect(screen.getByText('first details')).toBeInTheDocument());
+    expect(screen.getByRole('button', { name: /Firewall Actions/ })).toBeInTheDocument();
 
-    wrapper.setProps({ resolvedSecurityGroup: { ...firstRoute, name: 'second-firewall' } });
-    expect(wrapper.find(GceSecurityGroupActions).length).toBe(0);
-    expect(wrapper.text()).not.toContain('first details');
+    rendered.rerender(
+      <RuntimeWrapper>
+        <GceSecurityGroupDetails app={app as any} resolvedSecurityGroup={{ ...firstRoute, name: 'second-firewall' }} />
+      </RuntimeWrapper>,
+    );
+    expect(screen.queryByRole('button', { name: /Firewall Actions/ })).not.toBeInTheDocument();
+    expect(screen.queryByText('first details')).not.toBeInTheDocument();
 
-    wrapper.setProps({ resolvedSecurityGroup: { ...firstRoute, name: 'third-firewall' } });
-    secondRequest.resolve(details('second-firewall', 'stale second details'));
-    await flush();
-    wrapper.update();
-    expect(wrapper.text()).not.toContain('stale second details');
+    rendered.rerender(
+      <RuntimeWrapper>
+        <GceSecurityGroupDetails app={app as any} resolvedSecurityGroup={{ ...firstRoute, name: 'third-firewall' }} />
+      </RuntimeWrapper>,
+    );
+    await act(async () => secondRequest.resolve(details('second-firewall', 'stale second details')));
+    expect(screen.queryByText('stale second details')).not.toBeInTheDocument();
 
-    thirdRequest.resolve(details('third-firewall', 'current third details'));
-    await flush();
-    wrapper.update();
-    expect(wrapper.text()).toContain('current third details');
-    expect(wrapper.find(GceSecurityGroupActions).length).toBe(1);
-    wrapper.unmount();
+    await act(async () => thirdRequest.resolve(details('third-firewall', 'current third details')));
+    await waitFor(() => expect(screen.getByText('current third details')).toBeInTheDocument());
+    expect(screen.getByRole('button', { name: /Firewall Actions/ })).toBeInTheDocument();
+    rendered.unmount();
   });
 });
 
@@ -130,7 +123,7 @@ describe('GceSecurityGroupActions', () => {
   const RuntimeWrapper = ({ children }: React.PropsWithChildren<{}>) => (
     <DeckRuntimeContext.Provider value={{ services: runtimeServices }}>{children}</DeckRuntimeContext.Provider>
   );
-  const mountActions = (component: React.ReactElement) => enzymeMount(component, { wrappingComponent: RuntimeWrapper });
+  const renderActions = (component: React.ReactElement) => render(<RuntimeWrapper>{component}</RuntimeWrapper>);
 
   const app = {
     name: 'my-app',
@@ -156,19 +149,21 @@ describe('GceSecurityGroupActions', () => {
     vi.spyOn(GceSecurityGroupModal, 'show').mockReturnValue(undefined);
     vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(undefined);
     vi.spyOn(SecurityGroupWriter, 'deleteSecurityGroup').mockReturnValue(Promise.resolve({} as any));
-    const wrapper = mountActions(
+    const rendered = renderActions(
       <GceSecurityGroupActions
         app={app as any}
         resolvedSecurityGroup={resolvedSecurityGroup}
         securityGroup={securityGroup}
       />,
     );
-    const items = wrapper.find('button[data-action]');
+    const items = Array.from(rendered.container.querySelectorAll<HTMLButtonElement>('button[data-action]'));
 
-    expect(items.map((item) => item.text())).toEqual(['Edit Inbound Rules', 'Clone Firewall', 'Delete Firewall']);
-    items.at(0).prop('onClick')({} as any);
-    items.at(1).prop('onClick')({} as any);
-    items.at(2).prop('onClick')({} as any);
+    expect(items.map((item) => item.textContent?.trim())).toEqual([
+      'Edit Inbound Rules',
+      'Clone Firewall',
+      'Delete Firewall',
+    ]);
+    items.forEach((item) => fireEvent.click(item));
 
     const firewallWithIdentity = expect.objectContaining({
       accountId: 'my-account',
@@ -212,7 +207,7 @@ describe('GceSecurityGroupActions', () => {
   });
 
   it('disables host-project shared-VPC actions and explains why they are read-only', () => {
-    const wrapper = mountActions(
+    const rendered = renderActions(
       <GceSecurityGroupActions
         app={app as any}
         resolvedSecurityGroup={resolvedSecurityGroup}
@@ -220,10 +215,9 @@ describe('GceSecurityGroupActions', () => {
       />,
     );
 
-    expect(wrapper.find('button[data-action]').length).toBe(3);
-    wrapper.find('button[data-action]').forEach((item) => expect(item.prop('disabled')).toBe(true));
-    expect(wrapper.find('.shared-vpc-warning').text()).toContain(
-      'You cannot modify shared VPC host project firewall rules.',
-    );
+    const items = Array.from(rendered.container.querySelectorAll<HTMLButtonElement>('button[data-action]'));
+    expect(items).toHaveLength(3);
+    items.forEach((item) => expect(item).toBeDisabled());
+    expect(screen.getByText('You cannot modify shared VPC host project firewall rules.')).toBeInTheDocument();
   });
 });

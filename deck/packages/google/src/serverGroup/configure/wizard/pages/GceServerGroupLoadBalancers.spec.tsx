@@ -1,31 +1,35 @@
 import type { Mocked } from 'vitest';
-import { shallow } from 'enzyme';
 import type { FormikProps } from 'formik';
 import React from 'react';
+import { fireEvent, render } from '@testing-library/react';
+import type { RenderResult } from '@testing-library/react';
 
-import { GceServerGroupLoadBalancers } from './GceServerGroupLoadBalancers';
+import { GceServerGroupLoadBalancers, validateGceServerGroupLoadBalancers } from './GceServerGroupLoadBalancers';
 import type { IGceServerGroupCommand, IGceServerGroupWizardAdapter } from '../GceServerGroupWizard.types';
 
 describe('GCE server group Load Balancers page', () => {
   it('shows only account and region scoped load balancers without duplicate references', () => {
     const values = command({ loadBalancers: ['regional-lb', 'persisted-lb', 'persisted-lb'] });
     const { formik } = testProps(values);
-    const wrapper = shallow(<GceServerGroupLoadBalancers app={{} as any} formik={formik} />);
+    const wrapper = renderPage(<GceServerGroupLoadBalancers app={{} as any} formik={formik} />);
 
     expect(selectOptions(wrapper)).toEqual([
       ['global-lb', 'global-lb'],
       ['regional-lb', 'regional-lb'],
       ['persisted-lb', 'persisted-lb (unavailable)'],
     ]);
-    expect(wrapper.find('label[htmlFor="gce-server-group-load-balancers"]').text()).toBe('Load Balancers');
-    expect(wrapper.find('select[aria-label="Load balancers"]').prop('value')).toEqual(['regional-lb', 'persisted-lb']);
+    expect(wrapper.getByText('Load Balancers', { selector: 'label' })).toHaveAttribute(
+      'for',
+      'gce-server-group-load-balancers',
+    );
+    expect(selectedValues(wrapper.getByLabelText('Load balancers'))).toEqual(['regional-lb', 'persisted-lb']);
   });
 
   it('does not fall back to stale filtered load balancers when raw data has no scoped matches', () => {
     const values = command({ credentials: 'account-c' });
     values.backingData.filtered.loadBalancers = ['stale-lb'];
     const { formik } = testProps(values);
-    const wrapper = shallow(<GceServerGroupLoadBalancers app={{} as any} formik={formik} />);
+    const wrapper = renderPage(<GceServerGroupLoadBalancers app={{} as any} formik={formik} />);
 
     expect(selectOptions(wrapper)).toEqual([]);
   });
@@ -37,11 +41,9 @@ describe('GCE server group Load Balancers page', () => {
       command: { ...nextCommand, loadBalancers: ['regional-lb'], backendServices: { 'regional-lb': ['backend'] } },
       result: { dirty: { loadBalancers: ['persisted-lb'] } },
     }));
-    const wrapper = shallow(<GceServerGroupLoadBalancers app={{} as any} formik={formik} adapter={adapter} />);
+    const wrapper = renderPage(<GceServerGroupLoadBalancers app={{} as any} formik={formik} adapter={adapter} />);
 
-    wrapper.find('select[aria-label="Load balancers"]').simulate('change', {
-      target: { selectedOptions: [{ value: 'regional-lb' }, { value: 'persisted-lb' }, { value: 'regional-lb' }] },
-    });
+    changeMultiSelect(wrapper.getByLabelText('Load balancers'), ['regional-lb', 'persisted-lb']);
     await flush();
 
     const changedCommand = adapter.applyConfigurationUpdate.mock.lastCall[0];
@@ -62,11 +64,9 @@ describe('GCE server group Load Balancers page', () => {
       command: { ...nextCommand, loadBalancingPolicy: undefined },
       result: { dirty: {} },
     }));
-    const wrapper = shallow(<GceServerGroupLoadBalancers app={{} as any} formik={formik} adapter={adapter} />);
+    const wrapper = renderPage(<GceServerGroupLoadBalancers app={{} as any} formik={formik} adapter={adapter} />);
 
-    wrapper.find('select[aria-label="Load balancers"]').simulate('change', {
-      target: { selectedOptions: [{ value: 'regional-lb' }] },
-    });
+    changeMultiSelect(wrapper.getByLabelText('Load balancers'), ['regional-lb']);
     await flush();
 
     expect(adapter.applyConfigurationUpdate.mock.lastCall[0].loadBalancingPolicy).toEqual({
@@ -98,9 +98,9 @@ describe('GCE server group Load Balancers page', () => {
       },
       result: { dirty: {} },
     });
-    const wrapper = shallow(<GceServerGroupLoadBalancers app={{} as any} formik={formik} adapter={adapter} />);
+    const wrapper = renderPage(<GceServerGroupLoadBalancers app={{} as any} formik={formik} adapter={adapter} />);
 
-    wrapper.find('button[aria-label="Refresh load balancers"]').simulate('click');
+    fireEvent.click(wrapper.getByRole('button', { name: 'Refresh load balancers' }));
     await flush();
 
     expect(adapter.applyConfigurationRefresh).toHaveBeenCalledWith(values, 'refreshLoadBalancers');
@@ -127,7 +127,7 @@ describe('GCE server group Load Balancers page', () => {
       },
     });
     const { formik } = testProps(values);
-    const wrapper = shallow(<GceServerGroupLoadBalancers app={{} as any} formik={formik} />);
+    const wrapper = renderPage(<GceServerGroupLoadBalancers app={{} as any} formik={formik} />);
 
     expect(selectOptions(wrapper, 'Backend services for regional-lb')).toEqual([
       ['backend-a', 'backend-a'],
@@ -147,8 +147,8 @@ describe('GCE server group Load Balancers page', () => {
       ['RATE', 'RATE'],
       ['UTILIZATION', 'UTILIZATION'],
     ]);
-    expect(wrapper.find('input[aria-label="Capacity scaler"]').prop('value')).toBe(80);
-    expect(wrapper.find('input[aria-label="Max rate per instance"]').prop('value')).toBe(50);
+    expect(wrapper.getByLabelText('Capacity scaler')).toHaveValue(80);
+    expect(wrapper.getByLabelText('Max rate per instance')).toHaveValue(50);
   });
 
   it('round-trips load-balancer metadata without dropping unavailable or unrelated references', async () => {
@@ -164,11 +164,9 @@ describe('GCE server group Load Balancers page', () => {
       command: { ...nextCommand, loadBalancers: ['global-lb'], loadBalancerMetadata: {} },
       result: { dirty: { loadBalancers: ['persisted-lb'] } },
     }));
-    const wrapper = shallow(<GceServerGroupLoadBalancers app={{} as any} formik={formik} adapter={adapter} />);
+    const wrapper = renderPage(<GceServerGroupLoadBalancers app={{} as any} formik={formik} adapter={adapter} />);
 
-    wrapper.find('select[aria-label="Load balancers"]').simulate('change', {
-      target: { selectedOptions: [{ value: 'global-lb' }, { value: 'persisted-lb' }] },
-    });
+    changeMultiSelect(wrapper.getByLabelText('Load balancers'), ['global-lb', 'persisted-lb']);
     await flush();
 
     const changedCommand = adapter.applyConfigurationUpdate.mock.lastCall[0];
@@ -206,11 +204,9 @@ describe('GCE server group Load Balancers page', () => {
       },
       result: { dirty: {} },
     }));
-    const wrapper = shallow(<GceServerGroupLoadBalancers app={{} as any} formik={formik} adapter={adapter} />);
+    const wrapper = renderPage(<GceServerGroupLoadBalancers app={{} as any} formik={formik} adapter={adapter} />);
 
-    wrapper.find('select[aria-label="Load balancers"]').simulate('change', {
-      target: { selectedOptions: [{ value: 'global-lb' }, { value: 'persisted-lb' }] },
-    });
+    changeMultiSelect(wrapper.getByLabelText('Load balancers'), ['global-lb', 'persisted-lb']);
     await flush();
 
     expect(adapter.applyConfigurationUpdate.mock.lastCall[0].loadBalancers).toEqual(['global-lb']);
@@ -245,11 +241,9 @@ describe('GCE server group Load Balancers page', () => {
       },
       result: { dirty: {} },
     }));
-    const wrapper = shallow(<GceServerGroupLoadBalancers app={{} as any} formik={formik} adapter={adapter} />);
+    const wrapper = renderPage(<GceServerGroupLoadBalancers app={{} as any} formik={formik} adapter={adapter} />);
 
-    wrapper.find('select[aria-label="Backend services for regional-lb"]').simulate('change', {
-      target: { selectedOptions: [{ value: 'backend-b' }, { value: 'persisted-backend' }] },
-    });
+    changeMultiSelect(wrapper.getByLabelText('Backend services for regional-lb'), ['backend-b', 'persisted-backend']);
     await flush();
 
     const changedCommand = adapter.applyConfigurationUpdate.mock.lastCall[0];
@@ -282,9 +276,9 @@ describe('GCE server group Load Balancers page', () => {
       },
     });
     const { adapter, formik } = testProps(values);
-    const wrapper = shallow(<GceServerGroupLoadBalancers app={{} as any} formik={formik} adapter={adapter} />);
+    const wrapper = renderPage(<GceServerGroupLoadBalancers app={{} as any} formik={formik} adapter={adapter} />);
 
-    wrapper.find('select[aria-label="Balancing mode"]').simulate('change', { target: { value: 'UTILIZATION' } });
+    fireEvent.change(wrapper.getByLabelText('Balancing mode'), { target: { value: 'UTILIZATION' } });
     await flush();
 
     const changedCommand = adapter.applyConfigurationUpdate.mock.lastCall[0];
@@ -308,14 +302,14 @@ describe('GCE server group Load Balancers page', () => {
         namedPorts: [],
       },
     });
-    const connectionWrapper = shallow(
+    const connectionWrapper = renderPage(
       <GceServerGroupLoadBalancers app={{} as any} formik={testProps(connectionValues).formik} />,
     );
     expect(selectOptions(connectionWrapper, 'Balancing mode')).toEqual([
       ['CONNECTION', 'CONNECTION'],
       ['UTILIZATION', 'UTILIZATION'],
     ]);
-    expect(connectionWrapper.find('input[aria-label="Max connections per instance"]').prop('value')).toBe(25);
+    expect(connectionWrapper.getByLabelText('Max connections per instance')).toHaveValue(25);
 
     const mixedValues = command({
       loadBalancers: ['regional-lb', 'global-lb'],
@@ -326,11 +320,11 @@ describe('GCE server group Load Balancers page', () => {
         namedPorts: [],
       },
     });
-    const mixedWrapper = shallow(
+    const mixedWrapper = renderPage(
       <GceServerGroupLoadBalancers app={{} as any} formik={testProps(mixedValues).formik} />,
     );
     expect(selectOptions(mixedWrapper, 'Balancing mode')).toEqual([['UTILIZATION', 'UTILIZATION']]);
-    expect(mixedWrapper.find('input[aria-label="Max utilization"]').prop('value')).toBe(70);
+    expect(mixedWrapper.getByLabelText('Max utilization')).toHaveValue(70);
   });
 
   it('round-trips named-port and percentage edits and supports adding and removing mappings', async () => {
@@ -344,30 +338,30 @@ describe('GCE server group Load Balancers page', () => {
       },
     });
     const nameProps = testProps(values);
-    const nameWrapper = shallow(
+    const nameWrapper = renderPage(
       <GceServerGroupLoadBalancers app={{} as any} formik={nameProps.formik} adapter={nameProps.adapter} />,
     );
-    nameWrapper.find('select[aria-label="Named port name 1"]').simulate('change', { target: { value: 'metrics' } });
+    fireEvent.change(nameWrapper.getByLabelText('Named port name 1'), { target: { value: 'metrics' } });
     await flush();
     expect(nameProps.adapter.applyConfigurationUpdate.mock.lastCall[0].loadBalancingPolicy.namedPorts).toEqual([
       { name: 'metrics', port: 8080 },
     ]);
 
     const capacityProps = testProps(values);
-    const capacityWrapper = shallow(
+    const capacityWrapper = renderPage(
       <GceServerGroupLoadBalancers app={{} as any} formik={capacityProps.formik} adapter={capacityProps.adapter} />,
     );
-    capacityWrapper.find('input[aria-label="Capacity scaler"]').simulate('change', { target: { value: '75' } });
+    fireEvent.change(capacityWrapper.getByLabelText('Capacity scaler'), { target: { value: '75' } });
     await flush();
     expect(capacityProps.adapter.applyConfigurationUpdate.mock.lastCall[0].loadBalancingPolicy.capacityScaler).toBe(
       0.75,
     );
 
     const addProps = testProps(values);
-    const addWrapper = shallow(
+    const addWrapper = renderPage(
       <GceServerGroupLoadBalancers app={{} as any} formik={addProps.formik} adapter={addProps.adapter} />,
     );
-    addWrapper.find('button[aria-label="Add named port"]').simulate('click');
+    fireEvent.click(addWrapper.getByRole('button', { name: 'Add named port' }));
     await flush();
     expect(addProps.adapter.applyConfigurationUpdate.mock.lastCall[0].loadBalancingPolicy.namedPorts).toEqual([
       { name: 'http', port: 8080 },
@@ -375,16 +369,16 @@ describe('GCE server group Load Balancers page', () => {
     ]);
 
     const removeProps = testProps(values);
-    const removeWrapper = shallow(
+    const removeWrapper = renderPage(
       <GceServerGroupLoadBalancers app={{} as any} formik={removeProps.formik} adapter={removeProps.adapter} />,
     );
-    removeWrapper.find('button[aria-label="Remove named port 1"]').simulate('click');
+    fireEvent.click(removeWrapper.getByRole('button', { name: 'Remove named port 1' }));
     await flush();
     expect(removeProps.adapter.applyConfigurationUpdate.mock.lastCall[0].loadBalancingPolicy.namedPorts).toEqual([]);
   });
 
   it('renders policy validation errors and associates them with the invalid controls', () => {
-    const rateWrapper = shallow(
+    const rateWrapper = renderPage(
       <GceServerGroupLoadBalancers
         app={{} as any}
         formik={
@@ -423,7 +417,7 @@ describe('GCE server group Load Balancers page', () => {
       'Max rate must be',
     );
 
-    const modeWrapper = shallow(
+    const modeWrapper = renderPage(
       <GceServerGroupLoadBalancers
         app={{} as any}
         formik={
@@ -438,7 +432,7 @@ describe('GCE server group Load Balancers page', () => {
     );
     expectPolicyError(modeWrapper, 'select[aria-label="Balancing mode"]', 'balancing-mode', 'Select a balancing mode');
 
-    const connectionWrapper = shallow(
+    const connectionWrapper = renderPage(
       <GceServerGroupLoadBalancers
         app={{} as any}
         formik={
@@ -463,7 +457,7 @@ describe('GCE server group Load Balancers page', () => {
       'Max connections must be',
     );
 
-    const utilizationWrapper = shallow(
+    const utilizationWrapper = renderPage(
       <GceServerGroupLoadBalancers
         app={{} as any}
         formik={
@@ -500,11 +494,7 @@ describe('GCE server group Load Balancers page', () => {
       },
     });
     const { formik } = testProps(invalid);
-    const page = shallow(
-      <GceServerGroupLoadBalancers app={{} as any} formik={formik} />,
-    ).instance() as GceServerGroupLoadBalancers;
-
-    expect(page.validate(invalid)).toEqual({
+    expect(validateGceServerGroupLoadBalancers(invalid)).toEqual({
       loadBalancingPolicy: {
         capacityScaler: 'Capacity must be between 0 and 100%.',
         maxRatePerInstance: 'Max rate must be a finite number greater than or equal to zero.',
@@ -522,8 +512,8 @@ describe('GCE server group Load Balancers page', () => {
         namedPorts: [{ name: 'http', port: '${ parameters.port }' }],
       },
     });
-    expect(page.validate(pipeline)).toEqual({});
-    expect(page.validate({ ...pipeline, viewState: { mode: 'create', dirty: {} } })).toEqual({
+    expect(validateGceServerGroupLoadBalancers(pipeline)).toEqual({});
+    expect(validateGceServerGroupLoadBalancers({ ...pipeline, viewState: { mode: 'create', dirty: {} } })).toEqual({
       loadBalancingPolicy: {
         capacityScaler: 'Capacity must be between 0 and 100%.',
         maxRatePerInstance: 'Max rate must be a finite number greater than or equal to zero.',
@@ -540,7 +530,7 @@ describe('GCE server group Load Balancers page', () => {
         namedPorts: [],
       },
     });
-    expect(page.validate(blank)).toEqual({
+    expect(validateGceServerGroupLoadBalancers(blank)).toEqual({
       loadBalancingPolicy: {
         capacityScaler: 'Capacity must be between 0 and 100%.',
         maxRatePerInstance: 'Max rate must be a finite number greater than or equal to zero.',
@@ -549,22 +539,29 @@ describe('GCE server group Load Balancers page', () => {
   });
 });
 
-function selectOptions(wrapper: ReturnType<typeof shallow>, ariaLabel = 'Load balancers'): string[][] {
-  return wrapper
-    .find(`select[aria-label="${ariaLabel}"] option`)
-    .map((option) => [option.prop('value') as string, option.text()]);
+function selectOptions(wrapper: RenderResult, ariaLabel = 'Load balancers'): string[][] {
+  return Array.from(wrapper.getByLabelText(ariaLabel).querySelectorAll('option')).map((option) => [
+    option.value,
+    option.textContent || '',
+  ]);
 }
 
-function expectPolicyError(
-  wrapper: ReturnType<typeof shallow>,
-  selector: string,
-  errorName: string,
-  message: string,
-): void {
+function expectPolicyError(wrapper: RenderResult, selector: string, errorName: string, message: string): void {
   const id = `gce-load-balancing-policy-${errorName}-error`;
-  expect(wrapper.find(selector).prop('aria-invalid')).toBe(true);
-  expect(wrapper.find(selector).prop('aria-describedby')).toBe(id);
-  expect(wrapper.find(`#${id}[role="alert"]`).text()).toContain(message);
+  expect(wrapper.container.querySelector(selector)).toHaveAttribute('aria-invalid', 'true');
+  expect(wrapper.container.querySelector(selector)).toHaveAttribute('aria-describedby', id);
+  expect(wrapper.container.querySelector(`#${id}[role="alert"]`)).toHaveTextContent(message);
+}
+
+function selectedValues(select: HTMLElement): string[] {
+  return Array.from((select as HTMLSelectElement).selectedOptions).map((option) => option.value);
+}
+
+function changeMultiSelect(select: HTMLElement, values: string[]): void {
+  Array.from((select as HTMLSelectElement).options).forEach((option) => {
+    option.selected = values.includes(option.value);
+  });
+  fireEvent.change(select);
 }
 
 function testProps(values = command()) {
@@ -639,4 +636,9 @@ function command(overrides: Partial<IGceServerGroupCommand> = {}): IGceServerGro
 
 function flush(): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve));
+}
+
+function renderPage(component: React.ReactElement): RenderResult {
+  const container = document.body.appendChild(document.createElement('div'));
+  return render(component, { baseElement: container, container });
 }

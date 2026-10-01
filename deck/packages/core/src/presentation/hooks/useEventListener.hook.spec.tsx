@@ -1,23 +1,21 @@
 import type { Mock } from 'vitest';
-import { mount } from 'enzyme';
-import React from 'react';
 
+import { renderHookHarness } from '../../utils/testUtils/hookHarness';
 import { useEventListener } from './useEventListener.hook';
 
-const TestComponent = ({
-  element,
-  eventName,
-  listener,
-  options,
-}: {
+interface IHookProps {
   element: Element;
   eventName: string;
-  listener?: (e: Event) => any;
+  listener?: ((e: Event) => any) | null;
   options: AddEventListenerOptions;
-}) => {
-  useEventListener(element, eventName, listener, options);
-  return null as JSX.Element;
-};
+}
+
+const renderEventListener = (props: IHookProps) =>
+  renderHookHarness(
+    ({ element, eventName, listener, options }: IHookProps) =>
+      useEventListener(element, eventName, listener ?? undefined, options),
+    props,
+  );
 
 const eventListenerOptions = { capture: true };
 
@@ -33,9 +31,12 @@ describe('useEventListener', () => {
   });
 
   it('should call addEventListener on the target element when mounted', () => {
-    mount(
-      <TestComponent element={eventTarget} eventName="keydown" listener={() => null} options={eventListenerOptions} />,
-    );
+    renderEventListener({
+      element: eventTarget,
+      eventName: 'keydown',
+      listener: () => null,
+      options: eventListenerOptions,
+    });
 
     expect(addEventListenerSpy).toHaveBeenCalledTimes(1);
     expect(removeEventListenerSpy).toHaveBeenCalledTimes(0);
@@ -45,21 +46,24 @@ describe('useEventListener', () => {
   });
 
   it('should not do anything when mounted if there is no listener prop', () => {
-    mount(<TestComponent element={eventTarget} eventName="keydown" options={eventListenerOptions} />);
+    renderEventListener({ element: eventTarget, eventName: 'keydown', options: eventListenerOptions });
 
     expect(addEventListenerSpy).toHaveBeenCalledTimes(0);
     expect(removeEventListenerSpy).toHaveBeenCalledTimes(0);
   });
 
   it('should call removeEventListener on the target element when unmounted', () => {
-    const component = mount(
-      <TestComponent element={eventTarget} eventName="keydown" listener={() => null} options={eventListenerOptions} />,
-    );
+    const rendered = renderEventListener({
+      element: eventTarget,
+      eventName: 'keydown',
+      listener: () => null,
+      options: eventListenerOptions,
+    });
 
     expect(addEventListenerSpy).toHaveBeenCalledTimes(1);
     expect(removeEventListenerSpy).toHaveBeenCalledTimes(0);
 
-    component.unmount();
+    rendered.unmount();
 
     expect(addEventListenerSpy).toHaveBeenCalledTimes(1);
     expect(removeEventListenerSpy).toHaveBeenCalledTimes(1);
@@ -76,11 +80,14 @@ describe('useEventListener', () => {
       (_: string, eventListener: () => any) => (removedListener = eventListener),
     );
 
-    const component = mount(
-      <TestComponent element={eventTarget} eventName="keydown" listener={() => null} options={eventListenerOptions} />,
-    );
+    const rendered = renderEventListener({
+      element: eventTarget,
+      eventName: 'keydown',
+      listener: () => null,
+      options: eventListenerOptions,
+    });
 
-    component.unmount();
+    rendered.unmount();
 
     expect(addEventListenerSpy).toHaveBeenCalledTimes(1);
     expect(removeEventListenerSpy).toHaveBeenCalledTimes(1);
@@ -94,20 +101,23 @@ describe('useEventListener', () => {
 
     const initialListener = vi.fn();
 
-    const component = mount(
-      <TestComponent
-        element={eventTarget}
-        eventName="keydown"
-        listener={initialListener}
-        options={eventListenerOptions}
-      />,
-    );
+    const rendered = renderEventListener({
+      element: eventTarget,
+      eventName: 'keydown',
+      listener: initialListener,
+      options: eventListenerOptions,
+    });
 
     addedListener();
     expect(initialListener).toHaveBeenCalledTimes(1);
 
     const updatedListener = vi.fn();
-    component.setProps({ listener: updatedListener });
+    rendered.rerenderHook({
+      element: eventTarget,
+      eventName: 'keydown',
+      listener: updatedListener,
+      options: eventListenerOptions,
+    });
 
     addedListener();
     expect(initialListener).toHaveBeenCalledTimes(1);
@@ -122,18 +132,21 @@ describe('useEventListener', () => {
       (_: string, eventListener: () => any) => (removedListener = eventListener),
     );
 
-    const component = mount(
-      <TestComponent
-        element={eventTarget}
-        eventName="keydown"
-        listener={() => 'initial'}
-        options={eventListenerOptions}
-      />,
-    );
+    const rendered = renderEventListener({
+      element: eventTarget,
+      eventName: 'keydown',
+      listener: () => 'initial',
+      options: eventListenerOptions,
+    });
 
-    component.setProps({ listener: () => 'updated' });
+    rendered.rerenderHook({
+      element: eventTarget,
+      eventName: 'keydown',
+      listener: () => 'updated',
+      options: eventListenerOptions,
+    });
 
-    component.unmount();
+    rendered.unmount();
 
     expect(addEventListenerSpy).toHaveBeenCalledTimes(1);
     expect(removeEventListenerSpy).toHaveBeenCalledTimes(1);
@@ -149,32 +162,45 @@ describe('useEventListener', () => {
       (_: string, eventListener: () => any) => (removedListener = eventListener),
     );
 
-    const component = mount(
-      <TestComponent
-        element={eventTarget}
-        eventName="keydown"
-        listener={() => 'first'}
-        options={eventListenerOptions}
-      />,
-    );
+    const rendered = renderEventListener({
+      element: eventTarget,
+      eventName: 'keydown',
+      listener: () => 'first',
+      options: eventListenerOptions,
+    });
 
     expect(addEventListenerSpy).toHaveBeenCalledTimes(1);
     expect(removeEventListenerSpy).toHaveBeenCalledTimes(0);
-    component.setProps({ listener: null });
+    rendered.rerenderHook({
+      element: eventTarget,
+      eventName: 'keydown',
+      listener: null,
+      options: eventListenerOptions,
+    });
 
     expect(addEventListenerSpy).toHaveBeenCalledTimes(1);
     expect(removeEventListenerSpy).toHaveBeenCalledTimes(1);
 
     expect(addedListener).toBe(removedListener);
 
-    component.setProps({ listener: () => 'second' });
+    rendered.rerenderHook({
+      element: eventTarget,
+      eventName: 'keydown',
+      listener: () => 'second',
+      options: eventListenerOptions,
+    });
 
     expect(addEventListenerSpy).toHaveBeenCalledTimes(2);
     expect(removeEventListenerSpy).toHaveBeenCalledTimes(1);
 
     expect(addedListener).toBe(removedListener);
 
-    component.setProps({ listener: null });
+    rendered.rerenderHook({
+      element: eventTarget,
+      eventName: 'keydown',
+      listener: null,
+      options: eventListenerOptions,
+    });
 
     expect(addEventListenerSpy).toHaveBeenCalledTimes(2);
     expect(removeEventListenerSpy).toHaveBeenCalledTimes(2);

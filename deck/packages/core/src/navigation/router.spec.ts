@@ -1,6 +1,5 @@
 import { HashLocationService, UIRouterReact } from '@uirouter/react';
 import { RejectType, UrlService } from '@uirouter/core';
-import { shallow } from 'enzyme';
 import React from 'react';
 
 import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
@@ -507,10 +506,11 @@ describe('configureRouter', () => {
 
       expect(directReactViews.length, stateName).toBeGreaterThan(0);
       directReactViews.forEach((view) => {
-        const wrapper = shallow(React.createElement(view.component));
+        const routeElement = React.createElement(view.component);
+        const boundary = (routeElement.type as React.FunctionComponent)(routeElement.props) as React.ReactElement;
 
-        expect(wrapper.type(), stateName).toBe(SpinErrorBoundary);
-        expect(wrapper.prop('category'), stateName).toBe(stateName);
+        expect(boundary.type, stateName).toBe(SpinErrorBoundary);
+        expect(boundary.props.category, stateName).toBe(stateName);
       });
     });
   });

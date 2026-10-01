@@ -1,7 +1,7 @@
-import { shallow } from 'enzyme';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 
-import { PlatformHealthOverride, ReactModal, TaskReason, UserVerification, ValidationMessage } from '@spinnaker/core';
+import { AccountService, ReactModal } from '@spinnaker/core';
 
 import {
   buildGceAutoscalerResizeRequest,
@@ -10,7 +10,23 @@ import {
   validateGceResizeValues,
 } from './GceResizeServerGroupModal';
 
+vi.mock('@spinnaker/core', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@spinnaker/core')>();
+  const ReactModule = await import('react');
+  return {
+    ...actual,
+    TaskMonitorWrapper: ({ monitor }: any) =>
+      ReactModule.createElement(
+        'button',
+        { onClick: () => monitor.closeModal(), type: 'button' },
+        'Close monitored task',
+      ),
+  };
+});
+
 describe('GceResizeServerGroupModal', () => {
+  beforeEach(() => vi.spyOn(AccountService, 'challengeDestructiveActions').mockResolvedValue(true));
+
   it('rejects autoscaler minimum capacity greater than maximum capacity', () => {
     const serverGroup = {
       autoscalingPolicy: { minNumReplicas: 1, maxNumReplicas: 10 },
@@ -125,7 +141,7 @@ describe('GceResizeServerGroupModal', () => {
   });
 
   it('renders fixed-capacity mode for a server group without an autoscaler', () => {
-    const wrapper = shallow(
+    render(
       <GceResizeServerGroupModal
         application={{ name: 'fnord', serverGroups: { refresh: vi.fn() } } as any}
         autoscalingPolicyWriter={{ upsertAutoscalingPolicy: vi.fn() } as any}
@@ -142,12 +158,12 @@ describe('GceResizeServerGroupModal', () => {
       />,
     );
 
-    expect(wrapper.find('input[name="newSize"]').exists()).toBe(true);
-    expect(wrapper.find('p').text()).toBe('Sets desired instance count for this server group.');
+    expect(screen.getByRole('spinbutton', { name: 'Resize to' })).toBeInTheDocument();
+    expect(screen.getByText('Sets desired instance count for this server group.')).toBeInTheDocument();
   });
 
   it('renders min/max mode for a server group with an autoscaler', () => {
-    const wrapper = shallow(
+    render(
       <GceResizeServerGroupModal
         application={{ name: 'fnord', serverGroups: { refresh: vi.fn() } } as any}
         autoscalingPolicyWriter={{ upsertAutoscalingPolicy: vi.fn() } as any}
@@ -164,13 +180,13 @@ describe('GceResizeServerGroupModal', () => {
       />,
     );
 
-    expect(wrapper.find('input[name="newMinNumReplicas"]').exists()).toBe(true);
-    expect(wrapper.find('input[name="newMaxNumReplicas"]').exists()).toBe(true);
-    expect(wrapper.find('input[name="newSize"]').exists()).toBe(false);
+    expect(screen.getByRole('spinbutton', { name: 'Minimum replicas' })).toBeInTheDocument();
+    expect(screen.getByRole('spinbutton', { name: 'Maximum replicas' })).toBeInTheDocument();
+    expect(screen.queryByRole('spinbutton', { name: 'Resize to' })).not.toBeInTheDocument();
   });
 
   it('renders reason, account verification, and the Google platform-health override', () => {
-    const wrapper = shallow(
+    render(
       <GceResizeServerGroupModal
         application={
           {
@@ -193,12 +209,12 @@ describe('GceResizeServerGroupModal', () => {
       />,
     );
 
-    expect(wrapper.find(TaskReason).exists()).toBe(true);
-    expect(wrapper.find(UserVerification).prop('account')).toBe('prod');
-    expect(wrapper.find(PlatformHealthOverride).prop('interestingHealthProviderNames')).toEqual(['Google']);
+    expect(screen.getByRole('textbox', { name: 'Reason' })).toBeInTheDocument();
+    expect(screen.getByText(/Type the name of the account/)).toHaveTextContent('prod');
+    expect(screen.getByRole('checkbox', { name: 'Consider only Google health' })).toBeChecked();
   });
 
-  it('submits fixed capacity through the server group writer after verification', () => {
+  it('submits fixed capacity through the server group writer after verification', async () => {
     const application = {
       attributes: { platformHealthOnly: true, platformHealthOnlyShowOverride: true },
       name: 'fnord',
@@ -210,8 +226,8 @@ describe('GceResizeServerGroupModal', () => {
       name: 'fnord-main-v004',
       region: 'us-central1',
     } as any;
-    const resizeServerGroup = vi.fn().mockReturnValue(Promise.resolve({}));
-    const wrapper = shallow(
+    const resizeServerGroup = vi.fn().mockReturnValue(new Promise(() => undefined));
+    render(
       <GceResizeServerGroupModal
         application={application}
         autoscalingPolicyWriter={{ upsertAutoscalingPolicy: vi.fn() } as any}
@@ -221,13 +237,12 @@ describe('GceResizeServerGroupModal', () => {
       />,
     );
 
-    expect(wrapper.find('button.btn-primary').prop('disabled')).toBe(true);
-    wrapper.find('input[name="newSize"]').simulate('change', { target: { value: '6' } });
-    wrapper.find(TaskReason).prop('onChange')('capacity adjustment');
-    wrapper.find(UserVerification).prop('onValidChange')(true);
-    const monitor = (wrapper.state() as any).taskMonitor;
-    vi.spyOn(monitor, 'submit').mockImplementation((submitMethod: () => PromiseLike<any>) => submitMethod());
-    wrapper.find('button.btn-primary').simulate('click');
+    expect(screen.getByRole('button', { name: 'Submit' })).toBeDisabled();
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Resize to' }), { target: { value: '6' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Reason' }), { target: { value: 'capacity adjustment' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Confirm account prod' }), { target: { value: 'prod' } });
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Submit' })).toBeEnabled());
+    fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
 
     expect(resizeServerGroup).toHaveBeenCalledWith(serverGroup, application, {
       capacity: { desired: 6, max: 6, min: 6 },
@@ -239,7 +254,7 @@ describe('GceResizeServerGroupModal', () => {
     });
   });
 
-  it('submits autoscaler bounds through the injected policy writer after verification', () => {
+  it('submits autoscaler bounds through the injected policy writer after verification', async () => {
     const application = {
       attributes: { platformHealthOnly: true, platformHealthOnlyShowOverride: true },
       name: 'fnord',
@@ -251,9 +266,9 @@ describe('GceResizeServerGroupModal', () => {
       name: 'fnord-main-v004',
       region: 'us-central1',
     } as any;
-    const upsertAutoscalingPolicy = vi.fn().mockReturnValue(Promise.resolve({}));
+    const upsertAutoscalingPolicy = vi.fn().mockReturnValue(new Promise(() => undefined));
     const resizeServerGroup = vi.fn();
-    const wrapper = shallow(
+    render(
       <GceResizeServerGroupModal
         application={application}
         autoscalingPolicyWriter={{ upsertAutoscalingPolicy }}
@@ -263,13 +278,14 @@ describe('GceResizeServerGroupModal', () => {
       />,
     );
 
-    wrapper.find('input[name="newMinNumReplicas"]').simulate('change', { target: { value: '3' } });
-    wrapper.find('input[name="newMaxNumReplicas"]').simulate('change', { target: { value: '12' } });
-    wrapper.find(TaskReason).prop('onChange')('raise autoscaling ceiling');
-    wrapper.find(UserVerification).prop('onValidChange')(true);
-    const monitor = (wrapper.state() as any).taskMonitor;
-    vi.spyOn(monitor, 'submit').mockImplementation((submitMethod: () => PromiseLike<any>) => submitMethod());
-    wrapper.find('button.btn-primary').simulate('click');
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Minimum replicas' }), { target: { value: '3' } });
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Maximum replicas' }), { target: { value: '12' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Reason' }), {
+      target: { value: 'raise autoscaling ceiling' },
+    });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Confirm account prod' }), { target: { value: 'prod' } });
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Submit' })).toBeEnabled());
+    fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
 
     expect(resizeServerGroup).not.toHaveBeenCalled();
     expect(upsertAutoscalingPolicy).toHaveBeenCalledWith(
@@ -284,7 +300,7 @@ describe('GceResizeServerGroupModal', () => {
   });
 
   it('surfaces invalid autoscaler min/max validation', () => {
-    const wrapper = shallow(
+    render(
       <GceResizeServerGroupModal
         application={{ name: 'fnord', serverGroups: { refresh: vi.fn() } } as any}
         autoscalingPolicyWriter={{ upsertAutoscalingPolicy: vi.fn() } as any}
@@ -301,10 +317,10 @@ describe('GceResizeServerGroupModal', () => {
       />,
     );
 
-    wrapper.find('input[name="newMinNumReplicas"]').simulate('change', { target: { value: '8' } });
-    wrapper.find('input[name="newMaxNumReplicas"]').simulate('change', { target: { value: '4' } });
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Minimum replicas' }), { target: { value: '8' } });
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Maximum replicas' }), { target: { value: '4' } });
 
-    expect(wrapper.find(ValidationMessage).prop('message')).toBe('Min cannot be larger than Max');
+    expect(screen.getByText('Min cannot be larger than Max')).toBeInTheDocument();
   });
 
   it('opens as a standalone React modal', () => {
@@ -322,7 +338,7 @@ describe('GceResizeServerGroupModal', () => {
   });
 
   it('keeps submit disabled when fixed capacity is cleared', () => {
-    const wrapper = shallow(
+    render(
       <GceResizeServerGroupModal
         application={{ name: 'fnord', serverGroups: { refresh: vi.fn() } } as any}
         autoscalingPolicyWriter={{ upsertAutoscalingPolicy: vi.fn() } as any}
@@ -339,15 +355,15 @@ describe('GceResizeServerGroupModal', () => {
       />,
     );
 
-    wrapper.find('input[name="newSize"]').simulate('change', { target: { value: '6' } });
-    wrapper.find('input[name="newSize"]').simulate('change', { target: { value: '' } });
-    wrapper.find(UserVerification).prop('onValidChange')(true);
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Resize to' }), { target: { value: '6' } });
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Resize to' }), { target: { value: '' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Confirm account prod' }), { target: { value: 'prod' } });
 
-    expect(wrapper.find('button.btn-primary').prop('disabled')).toBe(true);
+    expect(screen.getByRole('button', { name: 'Submit' })).toBeDisabled();
   });
 
   it('requires autoscaler bounds after an input is cleared', () => {
-    const wrapper = shallow(
+    render(
       <GceResizeServerGroupModal
         application={{ name: 'fnord', serverGroups: { refresh: vi.fn() } } as any}
         autoscalingPolicyWriter={{ upsertAutoscalingPolicy: vi.fn() } as any}
@@ -364,16 +380,16 @@ describe('GceResizeServerGroupModal', () => {
       />,
     );
 
-    wrapper.find('input[name="newMinNumReplicas"]').simulate('change', { target: { value: '3' } });
-    wrapper.find('input[name="newMaxNumReplicas"]').simulate('change', { target: { value: '12' } });
-    wrapper.find('input[name="newMinNumReplicas"]').simulate('change', { target: { value: '' } });
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Minimum replicas' }), { target: { value: '3' } });
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Maximum replicas' }), { target: { value: '12' } });
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Minimum replicas' }), { target: { value: '' } });
 
-    expect(wrapper.find(ValidationMessage).prop('message')).toBe('Min is required');
+    expect(screen.getByText('Min is required')).toBeInTheDocument();
   });
 
   it('dismisses the modal from the task monitor', () => {
     const dismissModal = vi.fn();
-    const wrapper = shallow(
+    render(
       <GceResizeServerGroupModal
         application={{ name: 'fnord', serverGroups: { refresh: vi.fn() } } as any}
         autoscalingPolicyWriter={{ upsertAutoscalingPolicy: vi.fn() } as any}
@@ -383,7 +399,7 @@ describe('GceResizeServerGroupModal', () => {
       />,
     );
 
-    (wrapper.state() as any).taskMonitor.closeModal();
+    fireEvent.click(screen.getByRole('button', { name: 'Close monitored task' }));
 
     expect(dismissModal).toHaveBeenCalled();
   });

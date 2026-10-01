@@ -1,17 +1,15 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { fireEvent, render, within } from '@testing-library/react';
 
 import type { IGceLoadBalancerData } from '../common';
 import { normalizeGceLoadBalancerCommand } from '../common';
 
-import * as editorModule from './GceHttpLoadBalancerEditor';
 import {
   buildGceHttpLoadBalancerOptions,
   constrainGceHttpLoadBalancerCommand,
-  FormRow,
   GceHttpLoadBalancerEditor,
+  validateGceHttpLoadBalancerCommand,
 } from './GceHttpLoadBalancerEditor';
-import { GceHttpLoadBalancerListenerEditor } from './GceHttpLoadBalancerListenerEditor';
 
 describe('GceHttpLoadBalancerEditor', () => {
   const emptyData: IGceLoadBalancerData = {
@@ -117,14 +115,12 @@ describe('GceHttpLoadBalancerEditor', () => {
       { account: 'account-a', listeners: [{ name: 'frontend', port: 80 }], loadBalancerType: 'HTTP', name: 'web' },
       'create',
     );
-    const http = shallow(<GceHttpLoadBalancerEditor command={httpCommand} data={emptyData} onChange={onChange} />);
+    const http = render(<GceHttpLoadBalancerEditor command={httpCommand} data={emptyData} onChange={onChange} />);
 
-    const httpListener = shallow(http.find(GceHttpLoadBalancerListenerEditor).getElement());
-    expect(
-      httpListener.find('[data-testid="listener-protocol"] option').map((option) => option.prop('value')),
-    ).toEqual(['HTTP', 'HTTPS']);
+    expect(optionValues(http.getByTestId('listener-protocol'))).toEqual(['HTTP', 'HTTPS']);
+    http.unmount();
 
-    const internal = shallow(
+    const internal = render(
       <GceHttpLoadBalancerEditor
         command={{ ...httpCommand, loadBalancerType: 'INTERNAL_MANAGED', region: 'europe-west1' }}
         data={emptyData}
@@ -132,10 +128,7 @@ describe('GceHttpLoadBalancerEditor', () => {
       />,
     );
 
-    const internalListener = shallow(internal.find(GceHttpLoadBalancerListenerEditor).getElement());
-    expect(
-      internalListener.find('[data-testid="listener-protocol"] option').map((option) => option.prop('value')),
-    ).toEqual(['HTTP', 'HTTPS']);
+    expect(optionValues(internal.getByTestId('listener-protocol'))).toEqual(['HTTP', 'HTTPS']);
   });
 
   it('renders location controls as form rows instead of nesting them inside bold labels', () => {
@@ -143,8 +136,8 @@ describe('GceHttpLoadBalancerEditor', () => {
       { account: 'account-a', listeners: [{ name: 'frontend', port: 80 }], loadBalancerType: 'HTTP', name: 'web' },
       'create',
     );
-    const wrapper = shallow(<GceHttpLoadBalancerEditor command={command} data={emptyData} onChange={vi.fn()} />);
-    expect(wrapper.find(FormRow).length).toBeGreaterThan(2);
+    const { container } = render(<GceHttpLoadBalancerEditor command={command} data={emptyData} onChange={vi.fn()} />);
+    expect(container.querySelectorAll('.form-group').length).toBeGreaterThan(2);
   });
 
   it('validates account, name, location, listeners, backends, health checks, and routing', () => {
@@ -173,9 +166,7 @@ describe('GceHttpLoadBalancerEditor', () => {
       { healthCheckType: 'HTTP', name: '', port: 70000, requestPath: '' },
       { healthCheckType: 'UDP', name: 'unsupported-check', port: 80 },
     ];
-    const validate = (editorModule as any).validateGceHttpLoadBalancerCommand || (() => []);
-
-    expect(validate(invalid)).toEqual(
+    expect(validateGceHttpLoadBalancerCommand(invalid)).toEqual(
       expect.arrayContaining([
         'Name is required.',
         'Account is required.',
@@ -215,12 +206,9 @@ describe('GceHttpLoadBalancerEditor', () => {
       'create',
     );
     const data = { ...emptyData, backendServices: command.backendServices };
-    const wrapper = shallow(<GceHttpLoadBalancerEditor command={command} data={data} onChange={onChange} />);
+    const initial = render(<GceHttpLoadBalancerEditor command={command} data={data} onChange={onChange} />);
 
-    wrapper
-      .find('button')
-      .filterWhere((button) => button.text() === 'Add host rule')
-      .simulate('click');
+    fireEvent.click(initial.getByRole('button', { name: 'Add host rule' }));
 
     expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -242,11 +230,10 @@ describe('GceHttpLoadBalancerEditor', () => {
         },
       ],
     };
-    const stableWrapper = shallow(<GceHttpLoadBalancerEditor command={withMatcher} data={data} onChange={onChange} />);
+    initial.unmount();
+    const stable = render(<GceHttpLoadBalancerEditor command={withMatcher} data={data} onChange={onChange} />);
 
-    stableWrapper
-      .find('[data-testid="default-backend-service"]')
-      .simulate('change', { target: { value: 'backend-b' } });
+    fireEvent.change(stable.getByTestId('default-backend-service'), { target: { value: 'backend-b' } });
 
     expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -409,17 +396,17 @@ describe('GceHttpLoadBalancerEditor', () => {
       },
       'edit',
     );
-    const editWrapper = shallow(<GceHttpLoadBalancerEditor command={internal} data={emptyData} onChange={onChange} />);
+    const rendered = render(<GceHttpLoadBalancerEditor command={internal} data={emptyData} onChange={onChange} />);
 
     ['load-balancer-name', 'load-balancer-type', 'credentials', 'region'].forEach((testId) =>
-      expect(editWrapper.find(`[data-testid="${testId}"]`).prop('disabled')).toBe(true),
+      expect(rendered.getByTestId(testId)).toBeDisabled(),
     );
 
-    const createWrapper = shallow(
+    rendered.rerender(
       <GceHttpLoadBalancerEditor command={{ ...internal, mode: 'create' }} data={emptyData} onChange={onChange} />,
     );
     ['load-balancer-name', 'load-balancer-type', 'credentials', 'region'].forEach((testId) =>
-      expect(createWrapper.find(`[data-testid="${testId}"]`).prop('disabled')).not.toBe(true),
+      expect(rendered.getByTestId(testId)).not.toBeDisabled(),
     );
   });
 
@@ -437,7 +424,7 @@ describe('GceHttpLoadBalancerEditor', () => {
       },
       'create',
     );
-    const wrapper = shallow(
+    const rendered = render(
       <GceHttpLoadBalancerEditor
         command={command}
         data={{
@@ -451,20 +438,26 @@ describe('GceHttpLoadBalancerEditor', () => {
       />,
     );
 
-    expect(wrapper.find('[data-testid="load-balancer-type"]').prop('value')).toBe('INTERNAL_MANAGED');
-    expect(wrapper.find('[data-testid="load-balancer-name"]').prop('value')).toBe('web');
-    expect(wrapper.find('[data-testid="credentials"]').prop('value')).toBe('account-a');
-    expect(wrapper.find('[data-testid="region"]').prop('value')).toBe('europe-west1');
-    expect(wrapper.find('[data-testid="network"]').prop('value')).toBe('network-a');
-    expect(wrapper.find('[data-testid="subnet"]').prop('value')).toBe('subnet-a');
+    expect(rendered.getByTestId('load-balancer-type')).toHaveValue('INTERNAL_MANAGED');
+    expect(rendered.getByTestId('load-balancer-name')).toHaveValue('web');
+    expect(rendered.getByTestId('credentials')).toHaveValue('account-a');
+    expect(rendered.getByTestId('region')).toHaveValue('europe-west1');
+    expect(rendered.getByTestId('network')).toHaveValue('network-a');
+    expect(rendered.getByTestId('subnet')).toHaveValue('subnet-a');
 
-    wrapper.find('[data-testid="load-balancer-name"]').simulate('change', { target: { value: 'web-updated' } });
+    fireEvent.change(rendered.getByTestId('load-balancer-name'), { target: { value: 'web-updated' } });
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ name: 'web-updated' }));
 
-    wrapper.find('[data-testid="load-balancer-type"]').simulate('change', { target: { value: 'HTTP' } });
+    fireEvent.change(rendered.getByTestId('load-balancer-type'), { target: { value: 'HTTP' } });
 
     expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({ loadBalancerType: 'HTTP', network: undefined, region: 'global', subnet: undefined }),
     );
   });
 });
+
+function optionValues(select: HTMLElement): string[] {
+  return within(select)
+    .getAllByRole('option')
+    .map((option) => (option as HTMLOptionElement).value);
+}

@@ -1,9 +1,9 @@
+import { fireEvent, render, screen, within } from '@testing-library/react';
+import { setupUser } from '../../../../../core/src/utils/testUtils/userEvent';
 import type { Mock } from 'vitest';
-import type { ShallowWrapper } from 'enzyme';
-import { shallow } from 'enzyme';
 import React from 'react';
 
-import { StageConfigField } from '@spinnaker/core';
+import { getFormGroupByLabel } from '../../../../../core/src/utils/testUtils/rtl';
 
 import type { IDeleteManifestOptionsFormProps } from './DeleteManifestOptionsForm';
 import DeleteManifestOptionsForm from './DeleteManifestOptionsForm';
@@ -11,8 +11,6 @@ import DeleteManifestOptionsForm from './DeleteManifestOptionsForm';
 describe('<DeleteManifestOptionsForm />', () => {
   let onChangeSpy: Mock;
   let props: IDeleteManifestOptionsFormProps;
-  let component: ShallowWrapper<IDeleteManifestOptionsFormProps>;
-
   beforeEach(() => {
     onChangeSpy = vi.fn();
     props = {
@@ -22,61 +20,48 @@ describe('<DeleteManifestOptionsForm />', () => {
         gracePeriodSeconds: 60,
       },
     };
-    component = shallow(<DeleteManifestOptionsForm {...props} />);
+    render(<DeleteManifestOptionsForm {...props} />);
   });
 
   describe('view', () => {
-    it('renders a StageConfigField for Cascading and Grace Period options', () => {
-      expect(component.find(StageConfigField).length).toEqual(2);
-      expect(component.find(StageConfigField).at(0).prop('label')).toEqual('Cascading');
-      expect(component.find(StageConfigField).at(1).prop('label')).toEqual('Grace Period');
+    it('renders Cascading and Grace Period options', () => {
+      expect(screen.getByText('Cascading', { selector: '.label-text' })).toBeInTheDocument();
+      expect(screen.getByText('Grace Period', { selector: '.label-text' })).toBeInTheDocument();
     });
   });
   describe('functionality', () => {
-    it('calls `props.onOptionsChange` when cascading is toggled', () => {
-      component
-        .find(StageConfigField)
-        .at(0)
-        .find('input')
-        .simulate('change', { target: { checked: false } });
+    it('calls `props.onOptionsChange` when cascading is toggled', async () => {
+      const user = setupUser();
+      const cascading = within(getFormGroupByLabel('Cascading')).getByRole('checkbox');
+
+      await user.click(cascading);
       expect(onChangeSpy).toHaveBeenCalledWith({
         cascading: false,
         gracePeriodSeconds: 60,
       });
-      component
-        .find(StageConfigField)
-        .at(0)
-        .find('input')
-        .simulate('change', { target: { checked: true } });
+      expect(cascading).not.toBeChecked();
+
+      await user.click(cascading);
       expect(onChangeSpy).toHaveBeenCalledWith({
         cascading: true,
         gracePeriodSeconds: 60,
       });
+      expect(cascading).toBeChecked();
     });
     it('calls `props.onOptionsChange` when grace period is changed', () => {
-      component
-        .find(StageConfigField)
-        .at(1)
-        .find('input')
-        .simulate('change', { target: { value: 0 } });
+      const gracePeriod = within(getFormGroupByLabel('Grace Period')).getByRole('spinbutton');
+
+      fireEvent.change(gracePeriod, { target: { value: '0' } });
       expect(onChangeSpy).toHaveBeenCalledWith({
         cascading: true,
         gracePeriodSeconds: 0,
       });
-      component
-        .find(StageConfigField)
-        .at(1)
-        .find('input')
-        .simulate('change', { target: { value: 100 } });
+      fireEvent.change(gracePeriod, { target: { value: '100' } });
       expect(onChangeSpy).toHaveBeenCalledWith({
         cascading: true,
         gracePeriodSeconds: 100,
       });
-      component
-        .find(StageConfigField)
-        .at(1)
-        .find('input')
-        .simulate('change', { target: { value: '' } });
+      fireEvent.change(gracePeriod, { target: { value: '' } });
       expect(onChangeSpy).toHaveBeenCalledWith({
         cascading: true,
         gracePeriodSeconds: null,

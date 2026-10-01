@@ -1,7 +1,6 @@
-import { mount } from 'enzyme';
+import { render, screen } from '@testing-library/react';
 import React from 'react';
 
-import { StageConfigField } from '../../../..';
 import { BakeHelmConfigForm } from './BakeHelmConfigForm';
 import { AccountService } from '../../../../../account';
 import { ApplicationModelBuilder } from '../../../../../application';
@@ -44,7 +43,7 @@ describe('<BakeHelmConfigForm />', () => {
 
     const props = getProps();
 
-    const component = mount(
+    render(
       <SpinFormik
         initialValues={stage}
         onSubmit={() => null}
@@ -53,10 +52,7 @@ describe('<BakeHelmConfigForm />', () => {
       />,
     );
 
-    await new Promise((resolve) => setTimeout(resolve)); // wait one js tick for promise to resolve
-    component.setProps({}); // force a re-render
-
-    expect(component.find(StageConfigField).findWhere((x) => x.text() === helmChartFilePathFieldName).length).toBe(1);
+    expect(await screen.findByText(helmChartFilePathFieldName)).toBeVisible();
   });
 
   it('does not render the helm chart file path element when the template artifact is from an account that does not handle git/repo artifacts', async () => {
@@ -66,7 +62,7 @@ describe('<BakeHelmConfigForm />', () => {
 
     const props = getProps();
 
-    const component = mount(
+    render(
       <SpinFormik
         initialValues={stage}
         onSubmit={() => null}
@@ -75,10 +71,8 @@ describe('<BakeHelmConfigForm />', () => {
       />,
     );
 
-    await new Promise((resolve) => setTimeout(resolve)); // wait one js tick for promise to resolve
-    component.setProps({}); // force a re-render
-
-    expect(component.find(StageConfigField).findWhere((x) => x.text() === helmChartFilePathFieldName).length).toBe(0);
+    await screen.findByText('Template Artifact');
+    expect(screen.queryByText(helmChartFilePathFieldName)).not.toBeInTheDocument();
   });
 
   it('render the helm chart file path if the id of the git artifact is given but the account value does not exist', async () => {
@@ -109,7 +103,7 @@ describe('<BakeHelmConfigForm />', () => {
 
     const props = getProps();
 
-    const component = mount(
+    render(
       <SpinFormik
         initialValues={stage}
         onSubmit={() => null}
@@ -118,11 +112,8 @@ describe('<BakeHelmConfigForm />', () => {
       />,
     );
 
-    await new Promise((resolve) => setTimeout(resolve)); // wait one js tick for promise to resolve
-    component.setProps({}); // force a re-render
-
-    expect(component.find('.Select-value-label > span').text().includes(expectedArtifactDisplayName)).toBe(true);
-    expect(component.find(StageConfigField).findWhere((x) => x.text() === helmChartFilePathFieldName).length).toBe(1);
+    expect(await screen.findByText(expectedArtifactDisplayName)).toBeVisible();
+    expect(screen.getByText(helmChartFilePathFieldName)).toBeVisible();
   });
 
   it('render the include crds checkbox if the template render is HELM3', async () => {
@@ -132,7 +123,7 @@ describe('<BakeHelmConfigForm />', () => {
 
     const props = getProps();
 
-    const component = mount(
+    render(
       <SpinFormik
         initialValues={stage}
         onSubmit={() => null}
@@ -141,10 +132,7 @@ describe('<BakeHelmConfigForm />', () => {
       />,
     );
 
-    await new Promise((resolve) => setTimeout(resolve)); // wait one js tick for promise to resolve
-    component.setProps({}); // force a re-render
-
-    expect(component.find('span.label-text').findWhere((x) => x.text() === 'Include CRDs').length).toBe(1);
+    expect(await screen.findByText('Include CRDs')).toBeVisible();
   });
 
   it('does not render the include crds checkbox if the template render is HELM2', async () => {
@@ -154,7 +142,7 @@ describe('<BakeHelmConfigForm />', () => {
 
     const props = getProps();
 
-    const component = mount(
+    render(
       <SpinFormik
         initialValues={stage}
         onSubmit={() => null}
@@ -163,9 +151,7 @@ describe('<BakeHelmConfigForm />', () => {
       />,
     );
 
-    await new Promise((resolve) => setTimeout(resolve)); // wait one js tick for promise to resolve
-    component.setProps({}); // force a re-render
-
-    expect(component.find('span.label-text').findWhere((x) => x.text() === 'Include CRDs').length).toBe(0);
+    await screen.findByText('Template Artifact');
+    expect(screen.queryByText('Include CRDs')).not.toBeInTheDocument();
   });
 });

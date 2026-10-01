@@ -124,7 +124,7 @@ export class PipelineGraphNode extends React.Component<IPipelineGraphNodeProps> 
           node.status || ''
         ).toLowerCase()}`}
       >
-        <LabelComponent stage={node.stage} />
+        <LabelComponent displayName={node.name} stage={node.stage} />
       </div>
     ) : (
       <div className={`label-body node ${!isGroup ? 'clickable' : ''}`}>

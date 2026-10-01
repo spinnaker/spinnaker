@@ -1,11 +1,15 @@
-import { mount } from 'enzyme';
+import { UIRouterReact } from '@uirouter/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
-import { act } from 'react-dom/test-utils';
 
+import { ApplicationModelBuilder } from '../../../../application/applicationModel.builder';
+import { createDeckRuntime } from '../../../../bootstrap/DeckRuntime';
+import type { DeckRuntime } from '../../../../bootstrap/DeckRuntime';
 import { DeckRuntimeContext } from '../../../../bootstrap/DeckRuntimeContext';
-import type { IExecutionStage } from '../../../../domain';
-import { ViewChangesLink } from '../../../../diffs/ViewChangesLink';
+import type { IExecution, IExecutionStage, IJenkinsInfo, IServerGroup } from '../../../../domain';
 import { ServerGroupReader } from '../../../../serverGroup/serverGroupReader.service';
+import type { IExecutionDetailsSectionProps } from '../common';
 import { DeployChangesExecutionDetails } from './DeployExecutionDetails';
 
 interface IDeferred<T> {
@@ -21,146 +25,170 @@ function deferred<T>(): IDeferred<T> {
   return { promise, resolve };
 }
 
+const commit = (id: string) => ({
+  authorDisplayName: 'Developer',
+  commitUrl: `https://example.com/commits/${id}`,
+  displayId: id,
+  id,
+  message: `Commit ${id}`,
+  timestamp: 0,
+});
+
 const createStage = (id: string, serverGroup: string): IExecutionStage =>
-  (({
+  ({
     id,
     name: 'Deploy',
     context: {
       account: 'test',
       application: 'app',
       buildInfo: { ancestor: '10', target: '11' },
-      commits: [{ id: 'commit' }],
+      commits: [commit('commit')],
       'deploy.server.groups': { 'us-east-1': [serverGroup] },
       source: { region: 'us-east-1' },
     },
-  } as any) as IExecutionStage);
+  } as IExecutionStage);
 
-const createProps = (stage: IExecutionStage) =>
-  ({
-    application: {} as any,
-    current: 'changes',
-    execution: {} as any,
-    name: 'changes',
-    stage,
-  } as any);
+const serverGroupWithJenkins = (jenkins: IJenkinsInfo): IServerGroup => ({ buildInfo: { jenkins } } as IServerGroup);
 
 describe('DeployChangesExecutionDetails', () => {
-  const RuntimeWrapper = ({ children }: React.PropsWithChildren<{}>) => (
-    <DeckRuntimeContext.Provider value={{ services: { executionService: {} } } as any}>
-      {children}
-    </DeckRuntimeContext.Provider>
-  );
-  const mountDetails = (component: React.ReactElement) => mount(component, { wrappingComponent: RuntimeWrapper });
+  let runtime: DeckRuntime;
+  let router: UIRouterReact;
 
-  it('merges Jenkins metadata from the source server group into the changes config', async () => {
-    const sourceServerGroup = deferred<any>();
-    const getServerGroup = vi.spyOn(ServerGroupReader, 'getServerGroup').mockReturnValue(sourceServerGroup.promise);
-    const stage = createStage('stage-1', 'app-v001');
-    const wrapper = mountDetails(<DeployChangesExecutionDetails {...createProps(stage)} />);
-
-    expect(getServerGroup).toHaveBeenCalledWith('app', 'test', 'us-east-1', 'app-v001');
-
-    await act(async () =>
-      sourceServerGroup.resolve({ buildInfo: { jenkins: { host: 'https://jenkins/', name: 'job', number: '11' } } }),
-    );
-    wrapper.update();
-
-    expect(wrapper.find(ViewChangesLink).prop('changeConfig')).toEqual({
-      buildInfo: {
-        ancestor: '10',
-        target: '11',
-        jenkins: { host: 'https://jenkins/', name: 'job', number: '11' },
-      },
-      commits: stage.context.commits,
-      jarDiffs: undefined,
-    });
-    wrapper.unmount();
+  const createProps = (stage: IExecutionStage): IExecutionDetailsSectionProps => ({
+    application: ApplicationModelBuilder.createApplicationForTests('app'),
+    current: 'changes',
+    execution: { application: 'app', id: 'execution-id', stages: [] } as IExecution,
+    name: 'changes',
+    stage,
   });
 
-  it('ignores source metadata loaded for a previous stage', async () => {
-    const firstRequest = deferred<any>();
-    const secondRequest = deferred<any>();
-    vi.spyOn(ServerGroupReader, 'getServerGroup')
-      .mockReturnValueOnce(firstRequest.promise)
-      .mockReturnValueOnce(secondRequest.promise);
-    const firstStage = createStage('stage-1', 'app-v001');
-    const secondStage = createStage('stage-2', 'app-v002');
-    secondStage.context.buildInfo = { ancestor: '20', target: '21' };
-    const wrapper = mountDetails(<DeployChangesExecutionDetails {...createProps(firstStage)} />);
-
-    wrapper.setProps(createProps(secondStage));
-    await act(async () =>
-      firstRequest.resolve({ buildInfo: { jenkins: { host: 'https://stale/', name: 'job', number: '11' } } }),
+  const renderDetails = (stage: IExecutionStage) =>
+    render(
+      <DeckRuntimeContext.Provider value={runtime}>
+        <DeployChangesExecutionDetails {...createProps(stage)} />
+      </DeckRuntimeContext.Provider>,
     );
-    wrapper.update();
 
-    expect(wrapper.find(ViewChangesLink).prop('changeConfig').buildInfo).toEqual({ ancestor: '20', target: '21' });
-
-    await act(async () =>
-      secondRequest.resolve({ buildInfo: { jenkins: { host: 'https://current/', name: 'job', number: '21' } } }),
-    );
-    wrapper.update();
-
-    expect(wrapper.find(ViewChangesLink).prop('changeConfig').buildInfo.jenkins.host).toBe('https://current/');
-    wrapper.unmount();
+  beforeEach(() => {
+    router = new UIRouterReact();
+    runtime = createDeckRuntime(router);
   });
 
-  it('refreshes change data and source metadata when execution hydration retains the stage reference', async () => {
-    const firstRequest = deferred<any>();
-    const secondRequest = deferred<any>();
+  afterEach(() => {
+    runtime.dispose();
+    router.dispose();
+  });
+
+  it('renders stage change data through ViewChangesLink', async () => {
+    const user = userEvent.setup();
+    const jenkins = { host: 'https://jenkins.example.com/', name: 'deploy-app', number: '11' };
+    vi.spyOn(ServerGroupReader, 'getServerGroup').mockResolvedValue(serverGroupWithJenkins(jenkins));
+
+    renderDetails(createStage('stage-1', 'app-v001'));
+    await user.click(await screen.findByText('View Changes'));
+
+    expect(await screen.findByText('Changes to Deploy')).toBeVisible();
+    expect(screen.getByRole('link', { name: 'Build: #10' })).toHaveAttribute(
+      'href',
+      'https://jenkins.example.com/job/deploy-app/10',
+    );
+    expect(screen.getByRole('link', { name: 'Build: #11' })).toHaveAttribute(
+      'href',
+      'https://jenkins.example.com/job/deploy-app/11',
+    );
+    await user.click(screen.getByRole('button', { name: 'Close' }));
+    await waitFor(() => expect(screen.queryByText('Changes to Deploy')).not.toBeInTheDocument());
+  });
+
+  it('renders the current source response and does not let a stale response overwrite it', async () => {
+    const user = userEvent.setup();
+    const staleRequest = deferred<IServerGroup>();
+    const currentRequest = deferred<IServerGroup>();
     const getServerGroup = vi
       .spyOn(ServerGroupReader, 'getServerGroup')
-      .mockReturnValueOnce(firstRequest.promise)
-      .mockReturnValueOnce(secondRequest.promise);
+      .mockReturnValueOnce(staleRequest.promise)
+      .mockReturnValueOnce(currentRequest.promise);
     const stage = createStage('stage-1', 'app-v001');
-    const wrapper = mountDetails(<DeployChangesExecutionDetails {...createProps(stage)} />);
+    const view = renderDetails(stage);
 
     stage.context = {
       ...stage.context,
       account: 'updated-account',
       buildInfo: { ancestor: '20', target: '21' },
-      commits: [{ id: 'updated-commit' }],
+      commits: [commit('updated-commit')],
       jarDiffs: { updated: [{ name: 'library' }] },
       'deploy.server.groups': { 'eu-west-1': ['app-v002'] },
       source: { region: 'eu-west-1' },
     };
     stage.outputs = { refreshed: true };
-    wrapper.setProps(createProps(stage));
+    view.rerender(
+      <DeckRuntimeContext.Provider value={runtime}>
+        <DeployChangesExecutionDetails {...createProps(stage)} />
+      </DeckRuntimeContext.Provider>,
+    );
 
-    expect(wrapper.find(ViewChangesLink).prop('changeConfig')).toEqual({
-      buildInfo: { ancestor: '20', target: '21' },
-      commits: stage.context.commits,
-      jarDiffs: stage.context.jarDiffs,
-    });
+    expect(getServerGroup).toHaveBeenNthCalledWith(1, 'app', 'test', 'us-east-1', 'app-v001');
+    expect(getServerGroup).toHaveBeenNthCalledWith(2, 'app', 'updated-account', 'eu-west-1', 'app-v002');
+
+    const currentJenkins = { host: 'https://current.jenkins.example.com/', name: 'deploy-app', number: '21' };
+    await act(async () => currentRequest.resolve(serverGroupWithJenkins(currentJenkins)));
+    await user.click(await screen.findByText('View Changes'));
+    expect(screen.getByRole('link', { name: 'Build: #21' })).toHaveAttribute(
+      'href',
+      'https://current.jenkins.example.com/job/deploy-app/21',
+    );
+    await user.click(screen.getByRole('button', { name: 'Close' }));
+    await waitFor(() => expect(screen.queryByText('Changes to Deploy')).not.toBeInTheDocument());
+
+    const staleJenkins = { host: 'https://stale.jenkins.example.com/', name: 'deploy-app', number: '11' };
+    await act(async () => staleRequest.resolve(serverGroupWithJenkins(staleJenkins)));
+    await user.click(screen.getByText('View Changes'));
+
+    expect(screen.getByRole('link', { name: 'Build: #21' })).toHaveAttribute(
+      'href',
+      'https://current.jenkins.example.com/job/deploy-app/21',
+    );
+    expect(screen.queryByText('https://stale.jenkins.example.com/')).not.toBeInTheDocument();
+  });
+
+  it('refreshes source metadata when execution hydration retains the stage reference', () => {
+    const firstRequest = deferred<IServerGroup>();
+    const secondRequest = deferred<IServerGroup>();
+    const getServerGroup = vi
+      .spyOn(ServerGroupReader, 'getServerGroup')
+      .mockReturnValueOnce(firstRequest.promise)
+      .mockReturnValueOnce(secondRequest.promise);
+    const stage = createStage('stage-1', 'app-v001');
+    const view = renderDetails(stage);
+
+    stage.context = {
+      ...stage.context,
+      account: 'updated-account',
+      'deploy.server.groups': { 'eu-west-1': ['app-v002'] },
+      source: { region: 'eu-west-1' },
+    };
+    stage.outputs = { refreshed: true };
+    view.rerender(
+      <DeckRuntimeContext.Provider value={runtime}>
+        <DeployChangesExecutionDetails {...createProps(stage)} />
+      </DeckRuntimeContext.Provider>,
+    );
+
     expect(getServerGroup).toHaveBeenCalledTimes(2);
-    expect(getServerGroup).toHaveBeenCalledWith('app', 'updated-account', 'eu-west-1', 'app-v002');
-
-    await act(async () =>
-      firstRequest.resolve({ buildInfo: { jenkins: { host: 'https://stale/', name: 'job', number: '11' } } }),
-    );
-    wrapper.update();
-    expect(wrapper.find(ViewChangesLink).prop('changeConfig').buildInfo.jenkins).toBeUndefined();
-
-    await act(async () =>
-      secondRequest.resolve({ buildInfo: { jenkins: { host: 'https://current/', name: 'job', number: '21' } } }),
-    );
-    wrapper.update();
-    expect(wrapper.find(ViewChangesLink).prop('changeConfig').buildInfo.jenkins.host).toBe('https://current/');
-    wrapper.unmount();
+    expect(getServerGroup).toHaveBeenLastCalledWith('app', 'updated-account', 'eu-west-1', 'app-v002');
   });
 
   it('ignores source metadata after unmounting', async () => {
-    const sourceServerGroup = deferred<any>();
+    const sourceServerGroup = deferred<IServerGroup>();
     vi.spyOn(ServerGroupReader, 'getServerGroup').mockReturnValue(sourceServerGroup.promise);
     const consoleError = vi.spyOn(console, 'error').mockReturnValue(undefined);
-    const wrapper = mountDetails(
-      <DeployChangesExecutionDetails {...createProps(createStage('stage-1', 'app-v001'))} />,
-    );
+    const view = renderDetails(createStage('stage-1', 'app-v001'));
 
-    wrapper.unmount();
-    await act(async () =>
-      sourceServerGroup.resolve({ buildInfo: { jenkins: { host: 'https://jenkins/', name: 'job', number: '11' } } }),
+    view.unmount();
+    sourceServerGroup.resolve(
+      serverGroupWithJenkins({ host: 'https://jenkins.example.com/', name: 'deploy-app', number: '11' }),
     );
+    await sourceServerGroup.promise;
 
     expect(consoleError).not.toHaveBeenCalled();
   });

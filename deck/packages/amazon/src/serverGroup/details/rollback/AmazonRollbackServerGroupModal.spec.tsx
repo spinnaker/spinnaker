@@ -1,16 +1,16 @@
-import { shallow } from 'enzyme';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import {
-  PlatformHealthOverride,
+  AccountService,
+  DeckRuntimeContext,
   ReactModal,
   ServerGroupWriter,
-  SpinFormik,
   TaskExecutor,
-  TaskMonitorWrapper,
-  TaskReason,
-  UserVerification,
+  TaskReader,
 } from '@spinnaker/core';
+import { renderWithRouter } from '../../../../../core/src/utils/testUtils/rtl';
 
 import type { IAmazonServerGroup } from '../../../domain';
 import {
@@ -35,40 +35,23 @@ describe('AmazonRollbackServerGroupModal', () => {
     type: 'aws',
   } as IAmazonServerGroup;
 
-  function previousServerGroup(name = 'fnord-main-v003'): IAmazonServerGroup {
-    return {
-      ...serverGroup,
-      isDisabled: true,
-      name,
-    };
-  }
+  const previousServerGroup = (name = 'fnord-main-v003') => ({ ...serverGroup, isDisabled: true, name });
+  const application = (attributes: any = {}) =>
+    ({ attributes, getDataSource: vi.fn(), name: 'fnord', serverGroups: { refresh: vi.fn() } } as any);
+  const props = (app = application(), overrides: any = {}) => ({
+    allServerGroups: [previousServerGroup()],
+    application: app,
+    closeModal: vi.fn(),
+    dismissModal: vi.fn(),
+    previousServerGroup: previousServerGroup(),
+    serverGroup,
+    ...overrides,
+  });
 
-  function application(attributes: any = {}) {
-    return {
-      attributes,
-      name: 'fnord',
-      serverGroups: { refresh: vi.fn() },
-    } as any;
-  }
-
-  function props(app = application(), overrides: any = {}) {
-    return {
-      allServerGroups: [previousServerGroup()],
-      application: app,
-      closeModal: vi.fn(),
-      dismissModal: vi.fn(),
-      previousServerGroup: previousServerGroup(),
-      serverGroup,
-      ...overrides,
-    };
-  }
+  beforeEach(() => vi.spyOn(AccountService, 'challengeDestructiveActions').mockResolvedValue(true));
 
   it('uses capacity-sensitive healthy percentage defaults', () => {
-    expect(getDefaultAmazonHealthyRollbackPercentage(0)).toBe(100);
-    expect(getDefaultAmazonHealthyRollbackPercentage(9)).toBe(100);
-    expect(getDefaultAmazonHealthyRollbackPercentage(10)).toBe(90);
-    expect(getDefaultAmazonHealthyRollbackPercentage(19)).toBe(90);
-    expect(getDefaultAmazonHealthyRollbackPercentage(20)).toBe(95);
+    expect([0, 9, 10, 19, 20].map(getDefaultAmazonHealthyRollbackPercentage)).toEqual([100, 100, 90, 90, 95]);
   });
 
   it('normalizes previous-image metadata and selects that mode only without deployed candidates', () => {
@@ -96,6 +79,7 @@ describe('AmazonRollbackServerGroupModal', () => {
     });
     expect(getAmazonRollbackType(withPreviousImage, [])).toBe('PREVIOUS_IMAGE');
     expect(getAmazonRollbackType(withPreviousImage, [previousServerGroup()])).toBe('EXPLICIT');
+    expect(getAmazonRollbackType(serverGroup, [])).toBe('EXPLICIT');
     expect(
       getAmazonPreviousImageServerGroup({
         ...withPreviousImage,
@@ -110,7 +94,7 @@ describe('AmazonRollbackServerGroupModal', () => {
             },
           },
         },
-      }),
+      } as any),
     ).toEqual({ imageId: undefined, imageName: 'fnord-20260712', name: 'fnord-main-v003' });
   });
 
@@ -120,7 +104,6 @@ describe('AmazonRollbackServerGroupModal', () => {
       restoreServerGroupName: 'fnord-main-v003',
       targetHealthyRollbackPercentage: 95,
     };
-
     expect(validateAmazonRollbackValues(valid, 'EXPLICIT', ['fnord-main-v003'])).toEqual({});
     expect(validateAmazonRollbackValues({ ...valid, restoreServerGroupName: undefined }, 'EXPLICIT')).toEqual({
       restoreServerGroupName: 'Select a server group to restore',
@@ -172,7 +155,7 @@ describe('AmazonRollbackServerGroupModal', () => {
       delayBeforeDisableSeconds: 0,
       targetHealthyRollbackPercentage: 90,
     });
-    vi.spyOn(TaskExecutor, 'executeTask').mockReturnValue(Promise.resolve({}) as any);
+    vi.spyOn(TaskExecutor, 'executeTask').mockResolvedValue({} as any);
 
     new ServerGroupWriter(null).rollbackServerGroup(serverGroup, app, command);
 
@@ -201,53 +184,34 @@ describe('AmazonRollbackServerGroupModal', () => {
     });
   });
 
-  it('renders explicit controls, verification, reason, and Amazon health override', () => {
+  it('renders the controlled rollback form and submits exact values after verification', async () => {
     const app = application({ platformHealthOnly: true, platformHealthOnlyShowOverride: true });
-    const wrapper = shallow(<AmazonRollbackServerGroupModal {...props(app)} />);
-    const formik = wrapper.find(SpinFormik);
-    const content = shallow(
-      <div>
-        {(formik.prop('render') as any)({
-          errors: {},
-          isValid: true,
-          setFieldValue: vi.fn(),
-          values: formik.prop('initialValues'),
-        })}
-      </div>,
+    const rollbackServerGroup = vi.fn().mockResolvedValue({ id: 'task-id' });
+    vi.spyOn(TaskReader, 'waitUntilTaskCompletes').mockResolvedValue({} as any);
+    renderWithRouter(
+      <DeckRuntimeContext.Provider value={{ services: { serverGroupWriter: { rollbackServerGroup } } } as any}>
+        <AmazonRollbackServerGroupModal {...props(app)} />
+      </DeckRuntimeContext.Provider>,
     );
 
-    expect(wrapper.find(TaskMonitorWrapper).prop('monitor')).toBe((wrapper.instance() as any).state.taskMonitor);
-    expect(content.find('select[name="restoreServerGroupName"]').exists()).toBe(true);
-    expect(content.find('input[name="delayBeforeDisableSeconds"]').exists()).toBe(true);
-    expect(content.find('input[name="targetHealthyRollbackPercentage"]').exists()).toBe(true);
-    expect(content.find(TaskReason).exists()).toBe(true);
-    expect(content.find(UserVerification).prop('account')).toBe('test-account');
-    expect(content.find(PlatformHealthOverride).props()).toEqual(
-      expect.objectContaining({ interestingHealthProviderNames: ['Amazon'], platformHealthType: 'Amazon' }),
-    );
-  });
+    expect(screen.getByRole('combobox', { name: 'Server group to restore' })).toHaveValue('fnord-main-v003');
+    expect(screen.getByRole('spinbutton', { name: 'Delay before disabling' })).toHaveValue(0);
+    expect(screen.getByRole('spinbutton', { name: 'Target healthy rollback percentage' })).toHaveValue(90);
+    expect(screen.getByText(/Type the name of the account/)).toHaveTextContent('test-account');
+    expect(screen.getByRole('button', { name: 'Submit' })).toBeDisabled();
 
-  it('submits only after verification and preserves the exact values', () => {
-    const app = application({ platformHealthOnly: true, platformHealthOnlyShowOverride: true });
-    const writer = { rollbackServerGroup: vi.fn().mockReturnValue(Promise.resolve()) };
-    const component = new AmazonRollbackServerGroupModal(props(app));
-    (component as any).context = { services: { serverGroupWriter: writer } };
-    vi.spyOn(component.state.taskMonitor, 'submit').mockImplementation((submitMethod: any) => submitMethod());
-    const values = {
-      delayBeforeDisableSeconds: 30,
-      interestingHealthProviderNames: ['Amazon'],
-      reason: 'rollback requested',
-      restoreServerGroupName: 'fnord-main-v003',
-      targetHealthyRollbackPercentage: 95,
-    };
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Delay before disabling' }), {
+      target: { value: '30' },
+    });
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Target healthy rollback percentage' }), {
+      target: { value: '95' },
+    });
+    await userEvent.type(screen.getByRole('textbox', { name: 'Reason' }), 'rollback requested');
+    await userEvent.type(screen.getByRole('textbox', { name: 'Confirm account test-account' }), 'test-account');
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Submit' })).toBeEnabled());
+    fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
 
-    (component as any).submit(values);
-    expect(writer.rollbackServerGroup).not.toHaveBeenCalled();
-
-    component.state.verified = true;
-    (component as any).submit(values);
-
-    expect(writer.rollbackServerGroup).toHaveBeenCalledExactlyOnceWith(serverGroup, app, {
+    expect(rollbackServerGroup).toHaveBeenCalledWith(serverGroup, app, {
       interestingHealthProviderNames: ['Amazon'],
       platformHealthOnlyShowOverride: true,
       reason: 'rollback requested',
@@ -259,22 +223,45 @@ describe('AmazonRollbackServerGroupModal', () => {
       },
       rollbackType: 'EXPLICIT',
     });
+    await waitFor(() => expect(app.serverGroups.refresh).toHaveBeenCalledExactlyOnceWith());
   });
 
-  it('refreshes after task completion and dismisses through the task monitor', () => {
-    const app = application();
-    const modalProps = props(app);
-    const component = new AmazonRollbackServerGroupModal(modalProps);
+  it('dismisses through the public cancel action', async () => {
+    const modalProps = props();
+    renderWithRouter(
+      <DeckRuntimeContext.Provider value={{ services: {} } as any}>
+        <AmazonRollbackServerGroupModal {...modalProps} />
+      </DeckRuntimeContext.Provider>,
+    );
 
-    component.state.taskMonitor.config.onTaskComplete();
-    component.state.taskMonitor.closeModal();
+    await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
 
-    expect(app.serverGroups.refresh).toHaveBeenCalled();
-    expect(modalProps.dismissModal).toHaveBeenCalled();
+    expect(modalProps.dismissModal).toHaveBeenCalledExactlyOnceWith();
   });
 
-  it('exposes a show primitive for later actions integration', () => {
-    const show = vi.spyOn(ReactModal, 'show').mockReturnValue(Promise.resolve() as any);
+  it('dismisses a submitted task through TaskMonitor close', async () => {
+    const modalProps = props();
+    const rollbackServerGroup = vi.fn().mockReturnValue(new Promise(() => undefined));
+    const cancelPolling = vi.spyOn(TaskReader, 'cancelPolling');
+    renderWithRouter(
+      <DeckRuntimeContext.Provider value={{ services: { serverGroupWriter: { rollbackServerGroup } } } as any}>
+        <AmazonRollbackServerGroupModal {...modalProps} />
+      </DeckRuntimeContext.Provider>,
+    );
+
+    await userEvent.type(screen.getByRole('textbox', { name: 'Confirm account test-account' }), 'test-account');
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Submit' })).toBeEnabled());
+    await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
+    expect(rollbackServerGroup).toHaveBeenCalledOnce();
+    cancelPolling.mockClear();
+    await userEvent.click(await screen.findByRole('button', { name: 'Close' }));
+
+    expect(cancelPolling).toHaveBeenCalledExactlyOnceWith(null);
+    expect(modalProps.dismissModal).toHaveBeenCalledExactlyOnceWith();
+  });
+
+  it('exposes a show primitive for actions integration', () => {
+    const show = vi.spyOn(ReactModal, 'show').mockResolvedValue({} as any);
     const modalProps = props();
     const runtimeServices = {} as any;
 

@@ -1,7 +1,7 @@
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { defineConfig } from 'vitest/config';
+import { configDefaults, defineConfig } from 'vitest/config';
 
 const DECK_ROOT = path.dirname(fileURLToPath(import.meta.url));
 const MODULES_ROOT = path.resolve(DECK_ROOT, 'packages');
@@ -46,6 +46,26 @@ const providerAlias = PROVIDER_PACKAGES.flatMap((pkg) => {
   ];
 });
 
+// Compiling LESS/CSS and letting jsdom run real style/layout recalc on every render is by far the
+// dominant per-file cost of the suite. Only a small set of specs actually assert stylesheet-driven
+// computed styles or visibility; those run in a dedicated `css: true` project, and every other spec
+// runs with CSS processing disabled (measured ~35% faster wall time). This list is the union of the
+// specs that changed behaviour when CSS was disabled and the specs that read getComputedStyle/style.
+// If a spec starts depending on loaded styles (e.g. a `toBeVisible()` governed by a LESS class or a
+// getComputedStyle assertion), add it here so it runs in the styled project.
+const STYLE_DEPENDENT_SPECS = [
+  'packages/app/src/canary/canary/CanaryScores.spec.tsx',
+  'packages/core/src/bootstrap/bootstrapDeck.spec.tsx',
+  'packages/core/src/cluster/onDemand/OnDemandClusterPicker.spec.tsx',
+  'packages/core/src/header/customBanner/CustomBanner.spec.tsx',
+  'packages/core/src/pagerDuty/Pager.spec.tsx',
+  'packages/core/src/pipeline/config/stages/webhook/WebhookExecutionDetails.spec.tsx',
+  'packages/core/src/presentation/forms/inputs/ChecklistInput.spec.tsx',
+  'packages/core/src/presentation/forms/inputs/utils.spec.ts',
+  'packages/core/src/presentation/navigation/PageNavigator.spec.tsx',
+  'packages/core/src/task/verification/UserVerification.spec.tsx',
+];
+
 export default defineConfig({
   // Match the package builds (es2019 => useDefineForClassFields:false) so legacy
   // experimentalDecorators (e.g. lodash-decorators @Debounce/@BindAll) emit as they do in dist.
@@ -77,7 +97,6 @@ export default defineConfig({
     // wall time materially (~4.3m -> ~3.3m) while keeping per-file isolation intact.
     pool: 'threads',
     setupFiles: [path.resolve(DECK_ROOT, 'vitest.setup.ts')],
-    include: ['packages/*/src/**/*.spec.{js,ts,tsx}'],
     restoreMocks: true,
     // The per-file setup imports the full @spinnaker/core graph; under parallel load the default
     // 5s can be exceeded by legitimately-slow async specs. Give headroom without masking hangs.
@@ -91,8 +110,28 @@ export default defineConfig({
         inline: ['react-dom'],
       },
     },
-    // Compile & apply CSS/LESS so specs asserting computed styles (stylesheet loading,
-    // flex/display/color) behave as they did under Karma's real-browser style injection.
-    css: true,
+    // Split the run into two projects that inherit everything above (`extends: true`) and differ
+    // only in CSS handling. The tiny `styled` project compiles & applies LESS/CSS so its specs match
+    // Karma's real-browser style injection; the `default` project skips CSS processing entirely,
+    // which removes the dominant per-file cost for the other ~545 specs.
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: 'styled',
+          include: STYLE_DEPENDENT_SPECS,
+          css: true,
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: 'default',
+          include: ['packages/*/src/**/*.spec.{js,ts,tsx}'],
+          exclude: [...configDefaults.exclude, ...STYLE_DEPENDENT_SPECS],
+          css: false,
+        },
+      },
+    ],
   },
 });
