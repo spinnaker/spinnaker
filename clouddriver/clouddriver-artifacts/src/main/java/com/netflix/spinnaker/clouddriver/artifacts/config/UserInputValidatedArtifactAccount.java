@@ -17,13 +17,12 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.config;
 
-import lombok.AllArgsConstructor;
+import com.netflix.spinnaker.kork.web.url.UrlRestrictions;
+import com.netflix.spinnaker.kork.web.url.UrlRestrictionsProperties;
+import javax.annotation.Nullable;
 import lombok.Getter;
-import lombok.Setter;
 
 @Getter
-@Setter
-@AllArgsConstructor
 public abstract class UserInputValidatedArtifactAccount implements ArtifactAccount {
   private final String name;
 
@@ -32,5 +31,21 @@ public abstract class UserInputValidatedArtifactAccount implements ArtifactAccou
    * and simple http references. NOT all accounts need this as many define the access IN the
    * configuration file itself (e.g. dockerhub).
    */
-  private final HttpUrlRestrictions urlRestrictions;
+  @Nullable private final UrlRestrictions urlRestrictions;
+
+  /**
+   * @param urlRestrictions restrictions for user-supplied URLs, or null for accounts whose URLs
+   *     come only from their own configuration
+   */
+  protected UserInputValidatedArtifactAccount(
+      String name, @Nullable UrlRestrictionsProperties urlRestrictions) {
+    this.name = name;
+    this.urlRestrictions = urlRestrictions == null ? null : urlRestrictions.toUrlRestrictions();
+  }
+
+  /** Account restrictions as configured, or the defaults when none are configured. */
+  protected static UrlRestrictionsProperties orDefault(
+      @Nullable UrlRestrictionsProperties urlRestrictions) {
+    return urlRestrictions == null ? new UrlRestrictionsProperties() : urlRestrictions;
+  }
 }
