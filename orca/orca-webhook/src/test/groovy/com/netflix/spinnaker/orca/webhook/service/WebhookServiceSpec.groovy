@@ -21,7 +21,7 @@ import com.netflix.spinnaker.kork.web.filters.ProvidedIdRequestFilterConfigurati
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.OortService
-import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions
+import com.netflix.spinnaker.kork.web.url.UrlRestrictionsProperties
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.webhook.config.WebhookProperties
 import com.netflix.spinnaker.orca.webhook.config.WebhookConfiguration
@@ -56,7 +56,7 @@ class WebhookServiceSpec extends Specification {
   def webhookConfiguration = new WebhookConfiguration(webhookProperties)
 
   @Shared
-  def userConfiguredUrlRestrictions = new UserConfiguredUrlRestrictions.Builder().withRejectLocalhost(false).withAllowedHostnamesRegex(".*").build()
+  def userConfiguredUrlRestrictions = UrlRestrictionsProperties.builder().rejectLocalhost(false).allowedHostnamesRegex(".*").build().toUrlRestrictions()
 
   @Shared
   def requestFactory = webhookConfiguration.webhookRequestFactory(Mock(Environment),

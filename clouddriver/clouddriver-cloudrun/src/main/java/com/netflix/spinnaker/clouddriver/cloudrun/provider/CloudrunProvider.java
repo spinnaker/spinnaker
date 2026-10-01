@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.cloudrun.provider;
 
-import com.netflix.spinnaker.cats.provider.ProviderCacheConfiguration;
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider;
 import com.netflix.spinnaker.clouddriver.cloudrun.CloudrunCloudProvider;
 import com.netflix.spinnaker.clouddriver.cloudrun.cache.Keys;
@@ -25,8 +24,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
-public class CloudrunProvider extends BaseProvider
-    implements SearchableProvider, ProviderCacheConfiguration {
+public class CloudrunProvider extends BaseProvider implements SearchableProvider {
   public static final String PROVIDER_NAME = CloudrunProvider.class.getName();
 
   final Map<String, String> urlMappingTemplates = Collections.emptyMap();
@@ -76,17 +74,5 @@ public class CloudrunProvider extends BaseProvider
   @Override
   public Map<String, String> parseKey(String key) {
     return Keys.parse(key);
-  }
-
-  /**
-   * Every caching agent here always reports its authoritative namespace's key in the CacheResult,
-   * even with an empty list when there's no live data this cycle, so the SQL cache's
-   * existingIds-minus-currentIds eviction diff can always run. Without opting in here, SqlCache's
-   * default safeguard against ever evicting the last item of a type discards that entry before the
-   * diff can run, and the stale entry is never cleaned up.
-   */
-  @Override
-  public boolean supportsFullEviction() {
-    return true;
   }
 }
