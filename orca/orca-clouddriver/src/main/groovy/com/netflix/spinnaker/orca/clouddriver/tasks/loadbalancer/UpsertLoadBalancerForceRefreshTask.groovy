@@ -193,11 +193,11 @@ public class UpsertLoadBalancerForceRefreshTask implements CloudProviderAware, R
 
   private boolean usesTargetRefreshState(StageExecution stage) {
     String cloudProvider = getCloudProvider(stage)
-    if (LoadBalancerTarget.isRegionalFamily(cloudProvider, stage.context.loadBalancerType as String)) {
+    if (LoadBalancerTarget.isRegionalExternal(cloudProvider, stage.context.loadBalancerType as String)) {
       return true
     }
     return ((stage.context.targets as List<Map>) ?: []).any { Map target ->
-      LoadBalancerTarget.isRegionalFamily(cloudProvider, target.loadBalancerType as String)
+      LoadBalancerTarget.isRegionalExternal(cloudProvider, target.loadBalancerType as String)
     }
   }
 
@@ -263,7 +263,7 @@ public class UpsertLoadBalancerForceRefreshTask implements CloudProviderAware, R
     }
 
     context.refreshState.targetStates = initializedStates
-    updateLegacySummary(context)
+    rollUpTargetStates(context)
     return initializedStates
   }
 
@@ -337,20 +337,20 @@ public class UpsertLoadBalancerForceRefreshTask implements CloudProviderAware, R
       } else if (!targetState.seenPendingCacheUpdates) {
         targetState.attempt++
         if (targetState.attempt >= MAX_CHECK_FOR_PENDING) {
-          // The accepted identifiers never became observable; regional-family targets still
+          // The accepted identifiers never became observable; regional external targets still
           // require exact Oort visibility below.
           targetState.allAreComplete = true
         }
       }
     }
-    updateLegacySummary(context)
+    rollUpTargetStates(context)
   }
 
   private TaskResult succeedTargetRefreshWhenVisible(LBUpsertContext context,
                                                      List<TargetRefreshState> targetStates) {
-    // Only the new regional families wait for a cache readback; other types succeed once every
-    // refresh is complete, as before.
-    if (!targetStates.findAll { LoadBalancerTarget.isRegionalFamilyType(it.loadBalancerType) }.every {
+    // Only regional external targets wait for a cache readback; other types succeed once every
+    // refresh is complete.
+    if (!targetStates.findAll { LoadBalancerTarget.isRegionalExternalType(it.loadBalancerType) }.every {
       isLoadBalancerVisible(it)
     }) {
       return targetResult(ExecutionStatus.RUNNING, context)
@@ -389,11 +389,11 @@ public class UpsertLoadBalancerForceRefreshTask implements CloudProviderAware, R
   }
 
   private TaskResult targetResult(ExecutionStatus status, LBUpsertContext context) {
-    updateLegacySummary(context)
+    rollUpTargetStates(context)
     return TaskResult.builder(status).context(getOutput(context)).build()
   }
 
-  private static void updateLegacySummary(LBUpsertContext context) {
+  private static void rollUpTargetStates(LBUpsertContext context) {
     List<TargetRefreshState> targetStates = context.refreshState.targetStates ?: []
     context.refreshState.hasRequested = !targetStates.isEmpty() && targetStates.every { it.hasRequested }
     context.refreshState.seenPendingCacheUpdates = targetStates.any { it.seenPendingCacheUpdates }

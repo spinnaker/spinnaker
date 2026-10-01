@@ -970,7 +970,7 @@ describe('GceCloneServerGroupModal', () => {
     expect(props.closeModal).toHaveBeenCalledWith(jasmine.objectContaining({ stack: 'edited' }));
   });
 
-  it('submits concrete new-family attachment names without changing existing-family identities', () => {
+  it('submits concrete regional external attachment names without changing other load balancer identities', () => {
     const transformed = transformGceServerGroupCommand(
       buildCommand({
         backingData: {

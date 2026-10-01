@@ -52,8 +52,8 @@ class DeleteLoadBalancerForceRefreshTask implements CloudProviderAware, Retryabl
     String cloudProvider = getCloudProvider(stage)
     String account = getCredentials(stage)
 
-    if (LoadBalancerTarget.isRegionalFamily(cloudProvider, stage.context.loadBalancerType as String)) {
-      return refreshRegionalFamily(stage, cloudProvider, account)
+    if (LoadBalancerTarget.isRegionalExternal(cloudProvider, stage.context.loadBalancerType as String)) {
+      return refreshRegionalExternal(stage, cloudProvider, account)
     }
 
     String name = stage.context.loadBalancerName
@@ -67,7 +67,7 @@ class DeleteLoadBalancerForceRefreshTask implements CloudProviderAware, Retryabl
     TaskResult.ofStatus(ExecutionStatus.SUCCEEDED)
   }
 
-  private TaskResult refreshRegionalFamily(StageExecution stage, String cloudProvider, String account) {
+  private TaskResult refreshRegionalExternal(StageExecution stage, String cloudProvider, String account) {
     List<String> regions = (stage.context.regions ?: []) as List<String>
     if (!regions) {
       throw new IllegalArgumentException("Delete load balancer cache refresh requires at least one region")

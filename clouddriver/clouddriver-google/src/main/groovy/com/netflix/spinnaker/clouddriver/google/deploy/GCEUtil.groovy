@@ -440,11 +440,12 @@ class GCEUtil {
   }
 
   /**
-   * Regional names the existing families must resolve strictly. Removing an EXTERNAL_MANAGED
-   * listener leaves its name in older server groups' metadata, and the new-family helpers skip
-   * names that no longer exist, so those names must not fail the existing families' lookups.
+   * Names in load-balancer-names that the INTERNAL, INTERNAL_MANAGED, HTTP, SSL and TCP helpers
+   * must resolve strictly. Removing an EXTERNAL_MANAGED listener leaves its name in the metadata of
+   * server groups deployed before the removal, and the regional external helpers skip names that no
+   * longer exist, so names tagged in regional-external-load-balancer-names are excluded here.
    */
-  static List<String> legacyRegionalLoadBalancerNames(Map metadataMap) {
+  static List<String> regionalLoadBalancerNamesExcludingRegionalExternal(Map metadataMap) {
     def regionalNames = metadataMap?.get(REGIONAL_LOAD_BALANCER_NAMES)?.tokenize(",") ?: []
     def regionalExternalNames = metadataMap?.get(REGIONAL_EXTERNAL_LOAD_BALANCER_NAMES)?.tokenize(",") ?: []
     return regionalNames - regionalExternalNames
@@ -1167,7 +1168,7 @@ class GCEUtil {
     String region = serverGroup.region
     Metadata instanceMetadata = serverGroup?.launchConfig?.instanceTemplate?.properties?.metadata
     Map metadataMap = buildMapFromMetadata(instanceMetadata)
-    def regionalLoadBalancersInMetadata = legacyRegionalLoadBalancerNames(metadataMap)
+    def regionalLoadBalancersInMetadata = regionalLoadBalancerNamesExcludingRegionalExternal(metadataMap)
     def internalLoadBalancersToAddTo = queryAllLoadBalancers(googleLoadBalancerProvider, regionalLoadBalancersInMetadata, task, phase)
       .findAll { it.loadBalancerType == GoogleLoadBalancerType.INTERNAL }
     if (!internalLoadBalancersToAddTo) {
@@ -1299,7 +1300,7 @@ class GCEUtil {
     Metadata instanceMetadata = serverGroup?.launchConfig?.instanceTemplate?.properties?.metadata
     Map<String, String> metadataMap = buildMapFromMetadata(instanceMetadata)
     def httpLoadBalancersInMetadata = metadataMap?.get(GLOBAL_LOAD_BALANCER_NAMES)?.tokenize(",") ?: []
-    def networkLoadBalancersInMetadata = legacyRegionalLoadBalancerNames(metadataMap)
+    def networkLoadBalancersInMetadata = regionalLoadBalancerNamesExcludingRegionalExternal(metadataMap)
 
     def allFoundLoadBalancers = (httpLoadBalancersInMetadata + networkLoadBalancersInMetadata) as List<String>
     def httpLoadBalancersToAddTo = queryAllLoadBalancers(googleLoadBalancerProvider, allFoundLoadBalancers, task, phase)
@@ -1366,7 +1367,7 @@ class GCEUtil {
     String region = serverGroup.region
     Metadata instanceMetadata = serverGroup?.launchConfig?.instanceTemplate?.properties?.metadata
     Map<String, String> metadataMap = buildMapFromMetadata(instanceMetadata)
-    def internalHttpLoadBalancersInMetadata = legacyRegionalLoadBalancerNames(metadataMap)
+    def internalHttpLoadBalancersInMetadata = regionalLoadBalancerNamesExcludingRegionalExternal(metadataMap)
 
     def internalHttpLoadBalancersToAddTo = queryAllLoadBalancers(googleLoadBalancerProvider, internalHttpLoadBalancersInMetadata, task, phase)
       .findAll { it.loadBalancerType == GoogleLoadBalancerType.INTERNAL_MANAGED }
@@ -1537,7 +1538,7 @@ class GCEUtil {
     Metadata instanceMetadata = serverGroup?.launchConfig?.instanceTemplate?.properties?.metadata
     Map metadataMap = buildMapFromMetadata(instanceMetadata)
     def globalLoadBalancersInMetadata = metadataMap?.get(GLOBAL_LOAD_BALANCER_NAMES)?.tokenize(",") ?: []
-    def regionalLoadBalancersInMetadata = legacyRegionalLoadBalancerNames(metadataMap)
+    def regionalLoadBalancersInMetadata = regionalLoadBalancerNamesExcludingRegionalExternal(metadataMap)
 
     def allFoundLoadBalancers = (globalLoadBalancersInMetadata + regionalLoadBalancersInMetadata) as List<String>
     def sslLoadBalancersToAddTo = queryAllLoadBalancers(googleLoadBalancerProvider, allFoundLoadBalancers, task, phase)
@@ -1603,7 +1604,7 @@ class GCEUtil {
     Metadata instanceMetadata = serverGroup?.launchConfig?.instanceTemplate?.properties?.metadata
     Map metadataMap = buildMapFromMetadata(instanceMetadata)
     def globalLoadBalancersInMetadata = metadataMap?.get(GLOBAL_LOAD_BALANCER_NAMES)?.tokenize(",") ?: []
-    def regionalLoadBalancersInMetadata = legacyRegionalLoadBalancerNames(metadataMap)
+    def regionalLoadBalancersInMetadata = regionalLoadBalancerNamesExcludingRegionalExternal(metadataMap)
 
     def allFoundLoadBalancers = (globalLoadBalancersInMetadata + regionalLoadBalancersInMetadata) as List<String>
     def tcpLoadBalancersToAddTo = queryAllLoadBalancers(googleLoadBalancerProvider, allFoundLoadBalancers, task, phase)

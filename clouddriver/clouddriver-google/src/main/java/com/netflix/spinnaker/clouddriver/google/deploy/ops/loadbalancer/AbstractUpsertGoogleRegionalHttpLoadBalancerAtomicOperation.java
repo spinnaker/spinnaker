@@ -1144,7 +1144,8 @@ public abstract class AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperatio
               REGIONAL_LOAD_BALANCER_NAMES,
               regionalLbs.stream().distinct().collect(Collectors.joining(",")));
           if (isExternalManaged()) {
-            // Enable skips tagged names in the existing families' strict lookups, so a listener
+            // Enable skips tagged names in the other load balancer types' strict lookups, so a
+            // listener
             // added here and removed later does not block enabling this server group.
             String regionalExternalLbStr =
                 instanceMetadata.get(REGIONAL_EXTERNAL_LOAD_BALANCER_NAMES);

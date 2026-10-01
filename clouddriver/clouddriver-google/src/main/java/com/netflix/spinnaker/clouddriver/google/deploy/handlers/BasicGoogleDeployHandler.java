@@ -810,8 +810,8 @@ public class BasicGoogleDeployHandler
 
   /**
    * Tags which regional load balancer names are EXTERNAL_MANAGED or REGIONAL_EXTERNAL_NETWORK, so
-   * enable can skip them in the existing families' strict lookups after a listener is removed.
-   * Names carried from a clone source are kept only while they are still regional names.
+   * enable can skip them in the other load balancer types' strict lookups after a listener is
+   * removed. Names carried from a clone source are kept only while they are still regional names.
    */
   protected void recordRegionalExternalLoadBalancerNames(
       BasicGoogleDeployDescription description, LoadBalancerInfo lbInfo) {

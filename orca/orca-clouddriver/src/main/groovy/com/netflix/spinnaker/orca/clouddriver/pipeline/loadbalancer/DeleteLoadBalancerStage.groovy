@@ -32,7 +32,7 @@ import javax.annotation.Nonnull
 class DeleteLoadBalancerStage implements StageDefinitionBuilder {
   @Override
   void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
-    if (LoadBalancerTarget.isRegionalFamily(
+    if (LoadBalancerTarget.isRegionalExternal(
       stage.context.get("cloudProvider") as String,
       stage.context.get("loadBalancerType") as String
     )) {

@@ -17,19 +17,19 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer
 
 final class LoadBalancerTarget {
-  private static final Set<String> REGIONAL_FAMILY_TYPES = [
+  private static final Set<String> REGIONAL_EXTERNAL_TYPES = [
     "EXTERNAL_MANAGED",
     "REGIONAL_EXTERNAL_NETWORK",
   ] as Set<String>
 
   private LoadBalancerTarget() {}
 
-  static boolean isRegionalFamilyType(String loadBalancerType) {
-    return REGIONAL_FAMILY_TYPES.any { it.equalsIgnoreCase(loadBalancerType) }
+  static boolean isRegionalExternalType(String loadBalancerType) {
+    return REGIONAL_EXTERNAL_TYPES.any { it.equalsIgnoreCase(loadBalancerType) }
   }
 
-  static boolean isRegionalFamily(String cloudProvider, String loadBalancerType) {
-    return "gce".equalsIgnoreCase(cloudProvider) && isRegionalFamilyType(loadBalancerType)
+  static boolean isRegionalExternal(String cloudProvider, String loadBalancerType) {
+    return "gce".equalsIgnoreCase(cloudProvider) && isRegionalExternalType(loadBalancerType)
   }
 
   static Map<String, Object> fromOperation(String cloudProvider, Map operation, String credentials) {
@@ -39,7 +39,7 @@ final class LoadBalancerTarget {
       vpcId            : operation.vpcId,
       name             : operation.name,
     ]
-    if (isRegionalFamily(cloudProvider, operation.loadBalancerType as String)) {
+    if (isRegionalExternal(cloudProvider, operation.loadBalancerType as String)) {
       target.account = (operation.account ?: operation.credentials ?: credentials) as String
       target.region = operation.region
       target.loadBalancerType = operation.loadBalancerType

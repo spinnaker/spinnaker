@@ -334,7 +334,7 @@ describe('GceLoadBalancerActions delete behavior', () => {
       .prop('onClick')();
     expect(shallow(confirmSpy.calls.all()[1].args[0].bodyContent).find('input[type="checkbox"]').exists()).toBe(true);
 
-    // Legacy INTERNAL deletes always remove unused health checks, so no option is offered.
+    // INTERNAL deletes always remove unused health checks, so no option is offered.
     mount(
       <GceLoadBalancerActions app={app} loadBalancer={{ ...regionalExternalNetwork, loadBalancerType: 'INTERNAL' }} />,
     )

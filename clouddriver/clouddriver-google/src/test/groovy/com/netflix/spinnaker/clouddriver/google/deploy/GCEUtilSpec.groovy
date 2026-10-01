@@ -1695,7 +1695,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy
       def liveListener = new GoogleExternalHttpLoadBalancer(name: "live-listener", account: ACCOUNT_NAME, region: REGION)
 
     when:
-      invokeLegacyAddHelper(helper, compute, serverGroup, googleLoadBalancerProvider, googleOperationPoller)
+      invokeStrictLookupAddHelper(helper, compute, serverGroup, googleLoadBalancerProvider, googleOperationPoller)
 
     then:
       notThrown(GoogleResourceNotFoundException)
@@ -1710,7 +1710,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy
       0 * compute.regionBackendServices()
 
     where:
-      helper << LEGACY_ADD_HELPERS
+      helper << STRICT_LOOKUP_ADD_HELPERS
   }
 
   @Unroll
@@ -1724,7 +1724,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy
       def liveListener = new GoogleExternalHttpLoadBalancer(name: "live-listener", account: ACCOUNT_NAME, region: REGION)
 
     when:
-      invokeLegacyAddHelper(helper, compute, serverGroup, googleLoadBalancerProvider, Mock(GoogleOperationPoller))
+      invokeStrictLookupAddHelper(helper, compute, serverGroup, googleLoadBalancerProvider, Mock(GoogleOperationPoller))
 
     then:
       1 * googleLoadBalancerProvider.getApplicationLoadBalancers("") >> [liveListener.view]
@@ -1732,7 +1732,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy
       exc.message == "Load balancers [removed-listener] not found."
 
     where:
-      helper << LEGACY_ADD_HELPERS
+      helper << STRICT_LOOKUP_ADD_HELPERS
   }
 
   void "add external http backend attaches the live listener when metadata still lists a removed listener"() {
@@ -1786,7 +1786,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy
       1 * googleOperationPoller.waitForRegionalOperation(compute, PROJECT_NAME, REGION, "update-backend-service", null, taskMock, "compute.regionBackendService.update", PHASE)
   }
 
-  private static final List<String> LEGACY_ADD_HELPERS = [
+  private static final List<String> STRICT_LOOKUP_ADD_HELPERS = [
     "addHttpLoadBalancerBackends",
     "addInternalHttpLoadBalancerBackends",
     "addInternalLoadBalancerBackends",
@@ -1794,7 +1794,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy
     "addTcpLoadBalancerBackends",
   ]
 
-  private void invokeLegacyAddHelper(String helper,
+  private void invokeStrictLookupAddHelper(String helper,
                                      Compute compute,
                                      GoogleServerGroup.View serverGroup,
                                      GoogleLoadBalancerProvider googleLoadBalancerProvider,
