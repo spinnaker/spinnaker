@@ -40,7 +40,7 @@ describe('GceHttpLoadBalancerEditor', () => {
     );
 
     expect(constrainGceHttpLoadBalancerCommand(http)).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         loadBalancerType: 'HTTP',
         network: undefined,
         region: 'global',
@@ -112,7 +112,7 @@ describe('GceHttpLoadBalancerEditor', () => {
   });
 
   it('renders only protocols supported by the selected composite type', () => {
-    const onChange = jasmine.createSpy('onChange');
+    const onChange = vi.fn();
     const httpCommand = normalizeGceLoadBalancerCommand(
       { account: 'account-a', listeners: [{ name: 'frontend', port: 80 }], loadBalancerType: 'HTTP', name: 'web' },
       'create',
@@ -143,9 +143,7 @@ describe('GceHttpLoadBalancerEditor', () => {
       { account: 'account-a', listeners: [{ name: 'frontend', port: 80 }], loadBalancerType: 'HTTP', name: 'web' },
       'create',
     );
-    const wrapper = shallow(
-      <GceHttpLoadBalancerEditor command={command} data={emptyData} onChange={jasmine.createSpy()} />,
-    );
+    const wrapper = shallow(<GceHttpLoadBalancerEditor command={command} data={emptyData} onChange={vi.fn()} />);
     expect(wrapper.find(FormRow).length).toBeGreaterThan(2);
   });
 
@@ -178,7 +176,7 @@ describe('GceHttpLoadBalancerEditor', () => {
     const validate = (editorModule as any).validateGceHttpLoadBalancerCommand || (() => []);
 
     expect(validate(invalid)).toEqual(
-      jasmine.arrayContaining([
+      expect.arrayContaining([
         'Name is required.',
         'Account is required.',
         'Region is required for INTERNAL_MANAGED load balancers.',
@@ -204,7 +202,7 @@ describe('GceHttpLoadBalancerEditor', () => {
   });
 
   it('initializes path matchers from the current composite default without coupling later changes', () => {
-    const onChange = jasmine.createSpy('onChange');
+    const onChange = vi.fn();
     const command = normalizeGceLoadBalancerCommand(
       {
         account: 'account-a',
@@ -225,7 +223,7 @@ describe('GceHttpLoadBalancerEditor', () => {
       .simulate('click');
 
     expect(onChange).toHaveBeenCalledWith(
-      jasmine.objectContaining({
+      expect.objectContaining({
         hostRules: [
           {
             hostPatterns: [],
@@ -251,7 +249,7 @@ describe('GceHttpLoadBalancerEditor', () => {
       .simulate('change', { target: { value: 'backend-b' } });
 
     expect(onChange).toHaveBeenCalledWith(
-      jasmine.objectContaining({
+      expect.objectContaining({
         defaultService: { name: 'backend-b' },
         hostRules: [
           {
@@ -292,8 +290,8 @@ describe('GceHttpLoadBalancerEditor', () => {
     } as any);
 
     expect(options.addresses.map(({ name }) => name)).toEqual(['current-address', 'removed-address']);
-    expect(options.certificates).toContain(
-      jasmine.objectContaining({ name: 'removed-cert', selfLink: 'https://compute/sslCertificates/removed-cert' }),
+    expect(options.certificates).toContainEqual(
+      expect.objectContaining({ name: 'removed-cert', selfLink: 'https://compute/sslCertificates/removed-cert' }),
     );
     expect(options.healthChecks.map(({ name }) => name)).toEqual(['current-check', 'removed-check']);
     expect(options.backendServices.map(({ name }) => name)).toEqual(['current-backend', 'removed-backend']);
@@ -399,7 +397,7 @@ describe('GceHttpLoadBalancerEditor', () => {
   });
 
   it('locks infrastructure identity controls only while editing', () => {
-    const onChange = jasmine.createSpy('onChange');
+    const onChange = vi.fn();
     const internal = normalizeGceLoadBalancerCommand(
       {
         account: 'account-a',
@@ -426,7 +424,7 @@ describe('GceHttpLoadBalancerEditor', () => {
   });
 
   it('restores account, region, network, subnet, and composite type controls', () => {
-    const onChange = jasmine.createSpy('onChange');
+    const onChange = vi.fn();
     const command = normalizeGceLoadBalancerCommand(
       {
         account: 'account-a',
@@ -461,12 +459,12 @@ describe('GceHttpLoadBalancerEditor', () => {
     expect(wrapper.find('[data-testid="subnet"]').prop('value')).toBe('subnet-a');
 
     wrapper.find('[data-testid="load-balancer-name"]').simulate('change', { target: { value: 'web-updated' } });
-    expect(onChange).toHaveBeenCalledWith(jasmine.objectContaining({ name: 'web-updated' }));
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ name: 'web-updated' }));
 
     wrapper.find('[data-testid="load-balancer-type"]').simulate('change', { target: { value: 'HTTP' } });
 
     expect(onChange).toHaveBeenCalledWith(
-      jasmine.objectContaining({ loadBalancerType: 'HTTP', network: undefined, region: 'global', subnet: undefined }),
+      expect.objectContaining({ loadBalancerType: 'HTTP', network: undefined, region: 'global', subnet: undefined }),
     );
   });
 });

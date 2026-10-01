@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { cloneDeep } from 'lodash';
 import React from 'react';
 import { mount, shallow } from 'enzyme';
@@ -27,21 +28,21 @@ import { GceImageReader } from '../../../image';
 const application = {
   name: 'fnord',
   serverGroups: {
-    onNextRefresh: jasmine.createSpy('onNextRefresh'),
-    refresh: jasmine.createSpy('refresh'),
+    onNextRefresh: vi.fn(),
+    refresh: vi.fn(),
   },
 } as any;
 
 describe('GceCloneServerGroupModal', () => {
   beforeEach(() => {
-    application.serverGroups.onNextRefresh.calls.reset();
-    application.serverGroups.refresh.calls.reset();
+    application.serverGroups.onNextRefresh.mockClear();
+    application.serverGroups.refresh.mockClear();
   });
 
   it('opens as a wizard modal', () => {
     const props = buildProps(buildCommand());
     const runtimeServices = {} as any;
-    spyOn(ReactModal, 'show').and.returnValue(Promise.resolve());
+    vi.spyOn(ReactModal, 'show').mockReturnValue(Promise.resolve());
 
     GceCloneServerGroupModal.show(props, runtimeServices);
 
@@ -114,16 +115,18 @@ describe('GceCloneServerGroupModal', () => {
   it('uses the registered runtime-owned GCE configuration service in the default React path', async () => {
     registerGoogleProvider();
     const runtime = createDeckRuntime(new UIRouterReact());
-    const getAllSecurityGroups = spyOn(runtime.services.securityGroupReader, 'getAllSecurityGroups').and.resolveTo({});
-    const listLoadBalancers = spyOn(runtime.services.loadBalancerReader, 'listLoadBalancers').and.resolveTo([]);
-    spyOn(AccountService, 'getCredentialsKeyedByAccount').and.resolveTo({});
-    spyOn(AccountService, 'getAllAccountDetailsForProvider').and.resolveTo([]);
-    spyOn(AccountService, 'listAccounts').and.resolveTo([]);
-    spyOn(NetworkReader, 'listNetworksByProvider').and.resolveTo([]);
-    spyOn(SubnetReader, 'listSubnetsByProvider').and.resolveTo([]);
-    spyOn(GceImageReader, 'findImages').and.resolveTo([]);
-    spyOn(GceHealthCheckReader.prototype, 'listHealthChecks').and.resolveTo([]);
-    const getDelegate = spyOn(runtime.services.providerServiceDelegate, 'getDelegate').and.callThrough();
+    const getAllSecurityGroups = vi
+      .spyOn(runtime.services.securityGroupReader, 'getAllSecurityGroups')
+      .mockResolvedValue({});
+    const listLoadBalancers = vi.spyOn(runtime.services.loadBalancerReader, 'listLoadBalancers').mockResolvedValue([]);
+    vi.spyOn(AccountService, 'getCredentialsKeyedByAccount').mockResolvedValue({});
+    vi.spyOn(AccountService, 'getAllAccountDetailsForProvider').mockResolvedValue([]);
+    vi.spyOn(AccountService, 'listAccounts').mockResolvedValue([]);
+    vi.spyOn(NetworkReader, 'listNetworksByProvider').mockResolvedValue([]);
+    vi.spyOn(SubnetReader, 'listSubnetsByProvider').mockResolvedValue([]);
+    vi.spyOn(GceImageReader, 'findImages').mockResolvedValue([]);
+    vi.spyOn(GceHealthCheckReader.prototype, 'listHealthChecks').mockResolvedValue([]);
+    const getDelegate = vi.spyOn(runtime.services.providerServiceDelegate, 'getDelegate');
 
     try {
       const modal = new GceCloneServerGroupModal(buildProps(buildCommand())) as any;
@@ -145,12 +148,12 @@ describe('GceCloneServerGroupModal', () => {
         return renderedPage.childAt(0).prop('adapter');
       });
 
-      expect(getDelegate.calls.allArgs()).toEqual([
+      expect(getDelegate.mock.calls).toEqual([
         ['gce', 'serverGroup.commandBuilder'],
         ['gce', 'serverGroup.configurationService'],
       ]);
       expect(adapters.every((adapter) => adapter === adapters[0])).toBe(true);
-      expect(adapters[0]).toEqual(jasmine.any(GceServerGroupWizardAdapter));
+      expect(adapters[0]).toEqual(expect.any(GceServerGroupWizardAdapter));
 
       const configuredCommand = await adapters[0].configureCommand(
         application,
@@ -174,7 +177,7 @@ describe('GceCloneServerGroupModal', () => {
     const validate = wrapper.find(WizardModal).prop('validate');
 
     expect(validate({ ...buildCommand(), credentials: '', capacity: { desired: null } } as any)).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         capacity: { desired: 'Desired capacity required.' },
         credentials: 'Account required.',
       }),
@@ -193,19 +196,19 @@ describe('GceCloneServerGroupModal', () => {
       },
     } as any;
     const adapter = buildAdapter();
-    adapter.buildNewServerGroupCommand.and.resolveTo(buildCommand());
-    adapter.configureCommand.and.callFake(async (_application: any, command: IGceServerGroupCommand) => command);
+    adapter.buildNewServerGroupCommand.mockResolvedValue(buildCommand());
+    adapter.configureCommand.mockImplementation(async (_application: any, command: IGceServerGroupCommand) => command);
     const modal = new GceCloneServerGroupModal(buildProps(placeholder, adapter)) as any;
-    spyOn(modal, 'setState').and.callFake((state: any) => (modal.state = { ...modal.state, ...state }));
+    vi.spyOn(modal, 'setState').mockImplementation((state: any) => (modal.state = { ...modal.state, ...state }));
 
     await modal.configureCommand();
 
     expect(adapter.buildNewServerGroupCommand).toHaveBeenCalledWith(application, { mode: 'createPipeline' });
     expect(adapter.configureCommand).toHaveBeenCalledWith(
       application,
-      jasmine.objectContaining({
+      expect.objectContaining({
         credentials: 'gce-account',
-        viewState: jasmine.objectContaining({
+        viewState: expect.objectContaining({
           disableImageSelection: true,
           expectedArtifacts: [{ id: 'expected-image' }],
           mode: 'createPipeline',
@@ -223,12 +226,12 @@ describe('GceCloneServerGroupModal', () => {
   it('shows a recoverable error when initialization fails', async () => {
     const adapter = buildAdapter();
     let initializationError = true;
-    adapter.configureCommand.and.callFake(() =>
+    adapter.configureCommand.mockImplementation(() =>
       initializationError ? Promise.reject(new Error('network unavailable')) : Promise.resolve(buildCommand()),
     );
     const props = buildProps(buildCommand({ backingData: undefined }), adapter);
     const modal = new GceCloneServerGroupModal(props) as any;
-    spyOn(modal, 'setState').and.callFake((state: any, callback?: () => void) => {
+    vi.spyOn(modal, 'setState').mockImplementation((state: any, callback?: () => void) => {
       modal.state = { ...modal.state, ...state };
       callback?.();
     });
@@ -257,7 +260,7 @@ describe('GceCloneServerGroupModal', () => {
       });
       const request = deferred<IGceServerGroupCommand>();
       const adapter = buildAdapter();
-      adapter.configureCommand.and.returnValue(request.promise);
+      adapter.configureCommand.mockReturnValue(request.promise);
       const wrapper = mount(<GceCloneServerGroupModal {...buildProps(command, adapter)} />);
 
       expect(wrapper.find(WizardModal).key()).toBe('loading');
@@ -285,13 +288,11 @@ describe('GceCloneServerGroupModal', () => {
     const command = buildCommand({ stack: 'original' });
     const request = deferred<IGceServerGroupCommand>();
     const adapter = buildAdapter();
-    adapter.configureCommand.and.returnValue(request.promise);
+    adapter.configureCommand.mockReturnValue(request.promise);
     const modal = new GceCloneServerGroupModal(buildProps(command, adapter)) as any;
-    spyOn(modal, 'setState').and.callFake((state: any) => (modal.state = { ...modal.state, ...state }));
+    vi.spyOn(modal, 'setState').mockImplementation((state: any) => (modal.state = { ...modal.state, ...state }));
     const formik: any = {
-      setValues: jasmine
-        .createSpy('setValues')
-        .and.callFake((values: IGceServerGroupCommand) => (formik.values = values)),
+      setValues: vi.fn().mockImplementation((values: IGceServerGroupCommand) => (formik.values = values)),
       values: buildCommand({ stack: 'original' }),
     };
     modal.formik = formik;
@@ -433,14 +434,14 @@ describe('GceCloneServerGroupModal', () => {
       },
     });
     const adapter = buildAdapter();
-    adapter.configureCommand.and.resolveTo(configured);
+    adapter.configureCommand.mockResolvedValue(configured);
     const modal = new GceCloneServerGroupModal(buildProps(command, adapter)) as any;
-    spyOn(modal, 'setState').and.callFake((state: any) => (modal.state = { ...modal.state, ...state }));
+    vi.spyOn(modal, 'setState').mockImplementation((state: any) => (modal.state = { ...modal.state, ...state }));
 
     await modal.configureCommand();
 
     expect(modal.state.command).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         autoHealingPolicy: {
           healthCheck: 'persisted-health-check',
           healthCheckKind: 'http',
@@ -548,14 +549,14 @@ describe('GceCloneServerGroupModal', () => {
       },
     });
     const adapter = buildAdapter();
-    adapter.configureCommand.and.resolveTo(configured);
+    adapter.configureCommand.mockResolvedValue(configured);
     const modal = new GceCloneServerGroupModal(buildProps(command, adapter)) as any;
-    spyOn(modal, 'setState').and.callFake((state: any) => (modal.state = { ...modal.state, ...state }));
+    vi.spyOn(modal, 'setState').mockImplementation((state: any) => (modal.state = { ...modal.state, ...state }));
 
     await modal.configureCommand();
 
     expect(modal.state.command).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         autoHealingPolicy: {
           healthCheck: 'pipeline-health-check',
           healthCheckKind: 'tcp',
@@ -606,9 +607,9 @@ describe('GceCloneServerGroupModal', () => {
       },
     });
     const adapter = buildAdapter();
-    adapter.configureCommand.and.resolveTo(configured);
+    adapter.configureCommand.mockResolvedValue(configured);
     const modal = new GceCloneServerGroupModal(buildProps(command, adapter)) as any;
-    spyOn(modal, 'setState').and.callFake((state: any) => (modal.state = { ...modal.state, ...state }));
+    vi.spyOn(modal, 'setState').mockImplementation((state: any) => (modal.state = { ...modal.state, ...state }));
 
     await modal.configureCommand();
 
@@ -644,9 +645,9 @@ describe('GceCloneServerGroupModal', () => {
       loadBalancers: ['http-listener'],
     });
     const adapter = buildAdapter();
-    adapter.configureCommand.and.resolveTo(configured);
+    adapter.configureCommand.mockResolvedValue(configured);
     const modal = new GceCloneServerGroupModal(buildProps(command, adapter)) as any;
-    spyOn(modal, 'setState').and.callFake((state: any) => (modal.state = { ...modal.state, ...state }));
+    vi.spyOn(modal, 'setState').mockImplementation((state: any) => (modal.state = { ...modal.state, ...state }));
 
     await modal.configureCommand();
 
@@ -675,9 +676,9 @@ describe('GceCloneServerGroupModal', () => {
       },
     });
     const adapter = buildAdapter();
-    adapter.configureCommand.and.resolveTo(configured);
+    adapter.configureCommand.mockResolvedValue(configured);
     const modal = new GceCloneServerGroupModal(buildProps(command, adapter)) as any;
-    spyOn(modal, 'setState').and.callFake((state: any) => (modal.state = { ...modal.state, ...state }));
+    vi.spyOn(modal, 'setState').mockImplementation((state: any) => (modal.state = { ...modal.state, ...state }));
 
     await modal.configureCommand();
 
@@ -704,9 +705,9 @@ describe('GceCloneServerGroupModal', () => {
       },
     });
     const adapter = buildAdapter();
-    adapter.configureCommand.and.resolveTo(configured);
+    adapter.configureCommand.mockResolvedValue(configured);
     const modal = new GceCloneServerGroupModal(buildProps(command, adapter)) as any;
-    spyOn(modal, 'setState').and.callFake((state: any) => (modal.state = { ...modal.state, ...state }));
+    vi.spyOn(modal, 'setState').mockImplementation((state: any) => (modal.state = { ...modal.state, ...state }));
 
     await modal.configureCommand();
 
@@ -737,9 +738,9 @@ describe('GceCloneServerGroupModal', () => {
       },
     });
     const adapter = buildAdapter();
-    adapter.configureCommand.and.resolveTo(configured);
+    adapter.configureCommand.mockResolvedValue(configured);
     const modal = new GceCloneServerGroupModal(buildProps(command, adapter)) as any;
-    spyOn(modal, 'setState').and.callFake((state: any) => (modal.state = { ...modal.state, ...state }));
+    vi.spyOn(modal, 'setState').mockImplementation((state: any) => (modal.state = { ...modal.state, ...state }));
 
     await modal.configureCommand();
 
@@ -766,15 +767,15 @@ describe('GceCloneServerGroupModal', () => {
       },
     });
     const adapter = buildAdapter();
-    adapter.configureCommand.and.resolveTo(configured);
+    adapter.configureCommand.mockResolvedValue(configured);
     const modal = new GceCloneServerGroupModal(buildProps(command, adapter)) as any;
-    spyOn(modal, 'setState').and.callFake((state: any) => (modal.state = { ...modal.state, ...state }));
+    vi.spyOn(modal, 'setState').mockImplementation((state: any) => (modal.state = { ...modal.state, ...state }));
 
     await modal.configureCommand();
 
     expect(modal.state.command.credentials).toBe('gce-account');
     expect(modal.state.command.region).toBe('retired-region');
-    expect(handlers.credentialsChanged).toHaveBeenCalledOnceWith(modal.state.command);
+    expect(handlers.credentialsChanged).toHaveBeenCalledExactlyOnceWith(modal.state.command);
     ['regionalChanged', 'regionChanged', 'networkChanged', 'zoneChanged', 'customInstanceChanged'].forEach((handler) =>
       expect(handlers[handler]).not.toHaveBeenCalled(),
     );
@@ -797,9 +798,9 @@ describe('GceCloneServerGroupModal', () => {
       },
     });
     const adapter = buildAdapter();
-    adapter.configureCommand.and.resolveTo(configured);
+    adapter.configureCommand.mockResolvedValue(configured);
     const modal = new GceCloneServerGroupModal(buildProps(command, adapter)) as any;
-    spyOn(modal, 'setState').and.callFake((state: any) => (modal.state = { ...modal.state, ...state }));
+    vi.spyOn(modal, 'setState').mockImplementation((state: any) => (modal.state = { ...modal.state, ...state }));
 
     await modal.configureCommand();
 
@@ -886,12 +887,12 @@ describe('GceCloneServerGroupModal', () => {
       });
       const props = buildProps(command);
       const modal = new GceCloneServerGroupModal(props) as any;
-      const cloneServerGroup = jasmine.createSpy('cloneServerGroup');
+      const cloneServerGroup = vi.fn();
 
       modal.submit(command);
 
       expect(props.closeModal).toHaveBeenCalledWith(
-        jasmine.objectContaining({
+        expect.objectContaining({
           capacity: {
             desired: '${ parameters.desired }',
             max: '${ parameters.desired }',
@@ -925,18 +926,17 @@ describe('GceCloneServerGroupModal', () => {
       const props = buildProps(command);
       const modal = new GceCloneServerGroupModal(props) as any;
       const task = Promise.resolve({ id: 'task-id' });
-      const cloneServerGroup = jasmine.createSpy('cloneServerGroup').and.returnValue(task as any);
+      const cloneServerGroup = vi.fn().mockReturnValue(task as any);
       modal.context = { services: { serverGroupWriter: { cloneServerGroup } } };
-      const monitorSubmit = spyOn(
-        modal.state.taskMonitor,
-        'submit',
-      ).and.callFake((submitMethod: () => PromiseLike<any>) => submitMethod());
+      const monitorSubmit = vi
+        .spyOn(modal.state.taskMonitor, 'submit')
+        .mockImplementation((submitMethod: () => PromiseLike<any>) => submitMethod());
 
       modal.submit(command);
 
       expect(monitorSubmit).toHaveBeenCalled();
       expect(cloneServerGroup).toHaveBeenCalledWith(
-        jasmine.objectContaining({
+        expect.objectContaining({
           autoscalingPolicy: { maxNumReplicas: 6, minNumReplicas: 2 },
           capacity: { desired: 3, max: 6, min: 2 },
           instanceMetadata: {
@@ -948,7 +948,7 @@ describe('GceCloneServerGroupModal', () => {
         }),
         application,
       );
-      const submitted = cloneServerGroup.calls.mostRecent().args[0];
+      const submitted = cloneServerGroup.mock.lastCall[0];
       expect(submitted.loadBalancerMetadata).toBeUndefined();
       expect(submitted.securityGroups).toBeUndefined();
       expect(props.closeModal).not.toHaveBeenCalled();
@@ -967,29 +967,27 @@ describe('GceCloneServerGroupModal', () => {
 
     wizard.prop('closeModal')();
 
-    expect(props.closeModal).toHaveBeenCalledWith(jasmine.objectContaining({ stack: 'edited' }));
+    expect(props.closeModal).toHaveBeenCalledWith(expect.objectContaining({ stack: 'edited' }));
   });
 
   it('merges refreshed backing data and handlers into edits made while loading', async () => {
     const command = buildCommand({ stack: 'old', unknownReference: 'keep-me' });
     const request = deferred<IGceServerGroupCommand>();
     const adapter = buildAdapter();
-    adapter.configureCommand.and.returnValue(request.promise);
+    adapter.configureCommand.mockReturnValue(request.promise);
     const wrapper = shallow(<GceCloneServerGroupModal {...buildProps(command, adapter)} />, {
       disableLifecycleMethods: true,
     } as any);
     const modal = wrapper.instance() as any;
     const formik: any = {
-      setValues: jasmine
-        .createSpy('setValues')
-        .and.callFake((values: IGceServerGroupCommand) => (formik.values = values)),
+      setValues: vi.fn().mockImplementation((values: IGceServerGroupCommand) => (formik.values = values)),
       values: cloneDeep(command),
     };
     wrapper.find(WizardModal).prop('render')({ formik, nextIdx: () => 1, wizard: {} as any });
 
     const configure = modal.configureCommand();
     formik.values = { ...formik.values, stack: 'edited' };
-    const regionChanged = jasmine.createSpy('regionChanged');
+    const regionChanged = vi.fn();
     request.resolve(
       buildCommand({
         backingData: { filtered: { regions: ['refreshed-region'] } },
@@ -1010,9 +1008,9 @@ describe('GceCloneServerGroupModal', () => {
     const first = deferred<IGceServerGroupCommand>();
     const second = deferred<IGceServerGroupCommand>();
     const adapter = buildAdapter();
-    adapter.configureCommand.and.returnValues(first.promise, second.promise);
+    adapter.configureCommand.mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise);
     const modal = new GceCloneServerGroupModal(buildProps(buildCommand(), adapter)) as any;
-    spyOn(modal, 'setState').and.callFake((state: any) => (modal.state = { ...modal.state, ...state }));
+    vi.spyOn(modal, 'setState').mockImplementation((state: any) => (modal.state = { ...modal.state, ...state }));
 
     const firstConfigure = modal.configureCommand();
     const secondConfigure = modal.configureCommand();
@@ -1027,10 +1025,10 @@ describe('GceCloneServerGroupModal', () => {
   it('does not update state or Formik after unmount', async () => {
     const request = deferred<IGceServerGroupCommand>();
     const adapter = buildAdapter();
-    adapter.configureCommand.and.returnValue(request.promise);
+    adapter.configureCommand.mockReturnValue(request.promise);
     const modal = new GceCloneServerGroupModal(buildProps(buildCommand(), adapter)) as any;
-    const setState = spyOn(modal, 'setState');
-    const formik = { setValues: jasmine.createSpy('setValues'), values: buildCommand() };
+    const setState = vi.spyOn(modal, 'setState').mockReturnValue(undefined);
+    const formik = { setValues: vi.fn(), values: buildCommand() };
     modal.formik = formik;
 
     const configure = modal.configureCommand();
@@ -1057,8 +1055,8 @@ describe('GceCloneServerGroupModal', () => {
       },
     };
     const state = {
-      go: jasmine.createSpy('go'),
-      includes: jasmine.createSpy('includes').and.callFake((name: string) => name === '**.clusters'),
+      go: vi.fn(),
+      includes: vi.fn().mockImplementation((name: string) => name === '**.clusters'),
     };
     props.stateService = state;
 
@@ -1066,10 +1064,10 @@ describe('GceCloneServerGroupModal', () => {
 
     expect(application.serverGroups.refresh).toHaveBeenCalled();
     expect(application.serverGroups.onNextRefresh).toHaveBeenCalledWith(modal.onApplicationRefresh);
-    expect(application.serverGroups.onNextRefresh.calls.first().invocationOrder).toBeLessThan(
-      application.serverGroups.refresh.calls.first().invocationOrder,
+    expect(application.serverGroups.onNextRefresh.mock.invocationCallOrder[0]).toBeLessThan(
+      application.serverGroups.refresh.mock.invocationCallOrder[0],
     );
-    application.serverGroups.onNextRefresh.calls.mostRecent().args[0]();
+    application.serverGroups.onNextRefresh.mock.lastCall[0]();
     expect(state.go).toHaveBeenCalledWith('.serverGroup', {
       accountId: 'gce-account',
       provider: 'gce',
@@ -1079,8 +1077,8 @@ describe('GceCloneServerGroupModal', () => {
   });
 
   it('unsubscribes from the application refresh after the callback runs', () => {
-    const unsubscribe = jasmine.createSpy('unsubscribe');
-    application.serverGroups.onNextRefresh.and.returnValue(unsubscribe);
+    const unsubscribe = vi.fn();
+    application.serverGroups.onNextRefresh.mockReturnValue(unsubscribe);
     const modal = new GceCloneServerGroupModal(buildProps(buildCommand())) as any;
 
     modal.onTaskComplete();
@@ -1091,9 +1089,9 @@ describe('GceCloneServerGroupModal', () => {
   });
 
   it('ignores a late application refresh after unmount', () => {
-    const unsubscribe = jasmine.createSpy('unsubscribe');
+    const unsubscribe = vi.fn();
     let refreshCallback: (() => void) | undefined;
-    application.serverGroups.onNextRefresh.and.callFake((callback: () => void) => {
+    application.serverGroups.onNextRefresh.mockImplementation((callback: () => void) => {
       refreshCallback = callback;
       return unsubscribe;
     });
@@ -1122,9 +1120,9 @@ describe('GceCloneServerGroupModal', () => {
   });
 
   it('unsubscribes from a pending application refresh before replacing it', () => {
-    const firstUnsubscribe = jasmine.createSpy('firstUnsubscribe');
-    const secondUnsubscribe = jasmine.createSpy('secondUnsubscribe');
-    application.serverGroups.onNextRefresh.and.returnValues(firstUnsubscribe, secondUnsubscribe);
+    const firstUnsubscribe = vi.fn();
+    const secondUnsubscribe = vi.fn();
+    application.serverGroups.onNextRefresh.mockReturnValueOnce(firstUnsubscribe).mockReturnValueOnce(secondUnsubscribe);
     const modal = new GceCloneServerGroupModal(buildProps(buildCommand())) as any;
 
     modal.onTaskComplete();
@@ -1182,29 +1180,29 @@ function buildProps(command: IGceServerGroupCommand, adapter?: IGceServerGroupWi
   return {
     adapter,
     application,
-    closeModal: jasmine.createSpy('closeModal'),
+    closeModal: vi.fn(),
     command,
-    dismissModal: jasmine.createSpy('dismissModal'),
+    dismissModal: vi.fn(),
     router: {},
     stateParams: {},
-    stateService: { go: jasmine.createSpy('go'), includes: () => false },
+    stateService: { go: vi.fn(), includes: () => false },
     title: 'Configure GCE server group',
   };
 }
 
 function buildAdapter(): any {
   return {
-    applyCommandHandler: jasmine.createSpy('applyCommandHandler'),
-    applyConfigurationRefresh: jasmine.createSpy('applyConfigurationRefresh'),
-    applyConfigurationUpdate: jasmine.createSpy('applyConfigurationUpdate'),
-    buildNewServerGroupCommand: jasmine.createSpy('buildNewServerGroupCommand'),
-    configureCommand: jasmine.createSpy('configureCommand'),
+    applyCommandHandler: vi.fn(),
+    applyConfigurationRefresh: vi.fn(),
+    applyConfigurationUpdate: vi.fn(),
+    buildNewServerGroupCommand: vi.fn(),
+    configureCommand: vi.fn(),
   };
 }
 
 function buildInitializationHandlers(
   onCall: (handler: string, command: IGceServerGroupCommand) => void = () => undefined,
-): Record<string, jasmine.Spy> {
+): Record<string, Mock> {
   return [
     'credentialsChanged',
     'regionalChanged',
@@ -1213,12 +1211,12 @@ function buildInitializationHandlers(
     'zoneChanged',
     'customInstanceChanged',
   ].reduce((handlers, handler) => {
-    handlers[handler] = jasmine.createSpy(handler).and.callFake((command: IGceServerGroupCommand) => {
+    handlers[handler] = vi.fn().mockImplementation((command: IGceServerGroupCommand) => {
       onCall(handler, command);
       return { dirty: {} };
     });
     return handlers;
-  }, {} as Record<string, jasmine.Spy>);
+  }, {} as Record<string, Mock>);
 }
 
 function deferred<T>(): { promise: Promise<T>; resolve: (value: T) => void } {

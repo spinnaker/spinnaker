@@ -6,7 +6,7 @@ import { CreateApplicationModal } from '../modal/CreateApplicationModal';
 import { ApplicationReader } from '../service/ApplicationReader';
 
 describe('Applications create deep link', () => {
-  const renderApplications = (stateParams: Record<string, any>, go = jasmine.createSpy('go')) => ({
+  const renderApplications = (stateParams: Record<string, any>, go = vi.fn()) => ({
     go,
     wrapper: shallow(
       <ApplicationsComponent router={{} as any} stateParams={stateParams} stateService={{ go } as any} />,
@@ -14,8 +14,8 @@ describe('Applications create deep link', () => {
   });
 
   it('opens the direct modal and routes to the created application', async () => {
-    spyOn(ApplicationReader, 'listApplications').and.returnValue(Promise.resolve([]));
-    spyOn(CreateApplicationModal, 'show').and.returnValue(Promise.resolve({ name: 'myapp' }) as any);
+    vi.spyOn(ApplicationReader, 'listApplications').mockReturnValue(Promise.resolve([]));
+    vi.spyOn(CreateApplicationModal, 'show').mockReturnValue(Promise.resolve({ name: 'myapp' }) as any);
 
     const { go, wrapper } = renderApplications({ create: 'myapp' });
     await Promise.resolve();
@@ -27,8 +27,8 @@ describe('Applications create deep link', () => {
   });
 
   it('clears the create query parameter when the direct modal is dismissed', async () => {
-    spyOn(ApplicationReader, 'listApplications').and.returnValue(Promise.resolve([]));
-    spyOn(CreateApplicationModal, 'show').and.returnValue(Promise.reject('cancel'));
+    vi.spyOn(ApplicationReader, 'listApplications').mockReturnValue(Promise.resolve([]));
+    vi.spyOn(CreateApplicationModal, 'show').mockReturnValue(Promise.reject('cancel'));
 
     const { go, wrapper } = renderApplications({ create: 'myapp' });
     await Promise.resolve();

@@ -41,7 +41,7 @@ describe('<AmazonServerGroupActions /> rollback integration', () => {
       getDataSource: (key: string) => (key === 'serverGroups' ? { data: serverGroups } : undefined),
       isManagementPaused: false,
       name: 'test-app',
-      serverGroups: { refresh: jasmine.createSpy('refresh') },
+      serverGroups: { refresh: vi.fn() },
     } as any);
 
   const action = (wrapper: ReturnType<typeof shallow>, label: string) =>
@@ -60,18 +60,18 @@ describe('<AmazonServerGroupActions /> rollback integration', () => {
     const rollbackSource = buildServerGroup();
     const unrelated = buildServerGroup({ app: 'other-app', cluster: 'other-app-main', name: 'other-app-main-v001' });
     const application = buildApplication([selected, rollbackSource, unrelated]);
-    const show = spyOn(AmazonRollbackServerGroupModal, 'show').and.returnValue(Promise.resolve({} as any));
+    const show = vi.spyOn(AmazonRollbackServerGroupModal, 'show').mockReturnValue(Promise.resolve({} as any));
     const wrapper = shallowActions(<AmazonServerGroupActions app={application} serverGroup={selected} />);
 
     const rollback = action(wrapper, 'Rollback');
     expect(rollback.length).toBe(1);
     expect(rollback.props()).toEqual(
-      jasmine.objectContaining({ application, resource: selected, onClick: jasmine.any(Function) }),
+      expect.objectContaining({ application, resource: selected, onClick: expect.any(Function) }),
     );
 
     rollback.prop('onClick')();
 
-    expect(show).toHaveBeenCalledOnceWith(
+    expect(show).toHaveBeenCalledExactlyOnceWith(
       {
         allServerGroups: [selected],
         application,
@@ -93,15 +93,15 @@ describe('<AmazonServerGroupActions /> rollback integration', () => {
     const selected = buildServerGroup({ isDisabled: true, name: 'test-app-main-v001' });
     const rollbackSource = buildServerGroup();
     const application = buildApplication([selected, rollbackSource]);
-    const confirm = spyOn(ConfirmationModalService, 'confirm').and.returnValue(Promise.resolve() as any);
-    const show = spyOn(AmazonRollbackServerGroupModal, 'show').and.returnValue(Promise.resolve({} as any));
+    const confirm = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(Promise.resolve() as any);
+    const show = vi.spyOn(AmazonRollbackServerGroupModal, 'show').mockReturnValue(Promise.resolve({} as any));
     const wrapper = shallowActions(<AmazonServerGroupActions app={application} serverGroup={selected} />);
 
     action(wrapper, 'Enable').prop('onClick')();
     await settle();
 
     expect(confirm).toHaveBeenCalledTimes(1);
-    expect(show).toHaveBeenCalledOnceWith(
+    expect(show).toHaveBeenCalledExactlyOnceWith(
       {
         allServerGroups: [selected],
         application,
@@ -116,10 +116,12 @@ describe('<AmazonServerGroupActions /> rollback integration', () => {
     const selected = buildServerGroup({ isDisabled: true, name: 'test-app-main-v001' });
     const rollbackSource = buildServerGroup();
     const application = buildApplication([selected, rollbackSource]);
-    const confirm = spyOn(ConfirmationModalService, 'confirm').and.callFake((params: any) =>
-      params.header === 'Rolling back?' ? (Promise.reject({ source: 'footer' }) as any) : (Promise.resolve() as any),
-    );
-    const show = spyOn(AmazonRollbackServerGroupModal, 'show').and.returnValue(Promise.resolve({} as any));
+    const confirm = vi
+      .spyOn(ConfirmationModalService, 'confirm')
+      .mockImplementation((params: any) =>
+        params.header === 'Rolling back?' ? (Promise.reject({ source: 'footer' }) as any) : (Promise.resolve() as any),
+      );
+    const show = vi.spyOn(AmazonRollbackServerGroupModal, 'show').mockReturnValue(Promise.resolve({} as any));
     const wrapper = shallow(<AmazonServerGroupActions app={application} serverGroup={selected} />);
 
     action(wrapper, 'Enable').prop('onClick')();
@@ -127,10 +129,10 @@ describe('<AmazonServerGroupActions /> rollback integration', () => {
 
     expect(show).not.toHaveBeenCalled();
     expect(confirm).toHaveBeenCalledTimes(2);
-    expect(confirm.calls.mostRecent().args[0]).toEqual(
-      jasmine.objectContaining({
+    expect(confirm.mock.lastCall[0]).toEqual(
+      expect.objectContaining({
         header: `Really enable ${selected.name}?`,
-        submitMethod: jasmine.any(Function),
+        submitMethod: expect.any(Function),
       }),
     );
   });
@@ -139,11 +141,11 @@ describe('<AmazonServerGroupActions /> rollback integration', () => {
     const selected = buildServerGroup({ isDisabled: true, name: 'test-app-main-v001' });
     const rollbackSource = buildServerGroup();
     const application = buildApplication([selected, rollbackSource]);
-    const confirm = spyOn(ConfirmationModalService, 'confirm').and.returnValue(
-      Promise.reject({ source: 'header' }) as any,
-    );
-    const show = spyOn(AmazonRollbackServerGroupModal, 'show').and.returnValue(Promise.resolve({} as any));
-    const writer = { enableServerGroup: jasmine.createSpy('enableServerGroup') };
+    const confirm = vi
+      .spyOn(ConfirmationModalService, 'confirm')
+      .mockReturnValue(Promise.reject({ source: 'header' }) as any);
+    const show = vi.spyOn(AmazonRollbackServerGroupModal, 'show').mockReturnValue(Promise.resolve({} as any));
+    const writer = { enableServerGroup: vi.fn() };
     const enable = writer.enableServerGroup;
     const wrapper = shallow(<AmazonServerGroupActions app={application} serverGroup={selected} />);
     (wrapper.instance() as any).context = { services: { serverGroupWriter: writer } };
@@ -158,9 +160,9 @@ describe('<AmazonServerGroupActions /> rollback integration', () => {
 
   it('closes destroyed server group details through the injected state service', () => {
     const selected = buildServerGroup();
-    const stateService = { go: jasmine.createSpy('go'), includes: jasmine.createSpy('includes').and.returnValue(true) };
-    const confirm = spyOn(ConfirmationModalService, 'confirm');
-    spyOn(ServerGroupWarningMessageService, 'addDestroyWarningMessage');
+    const stateService = { go: vi.fn(), includes: vi.fn().mockReturnValue(true) };
+    const confirm = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(undefined);
+    vi.spyOn(ServerGroupWarningMessageService, 'addDestroyWarningMessage').mockReturnValue(undefined);
     const wrapper = shallow(
       <AmazonServerGroupActions
         app={buildApplication([selected])}
@@ -172,7 +174,7 @@ describe('<AmazonServerGroupActions /> rollback integration', () => {
     );
 
     action(wrapper, 'Destroy').prop('onClick')();
-    confirm.calls.mostRecent().args[0].taskMonitorConfig.onTaskComplete();
+    confirm.mock.lastCall[0].taskMonitorConfig.onTaskComplete();
 
     expect(stateService.includes).toHaveBeenCalledWith('**.serverGroup', {
       accountId: 'test-account',

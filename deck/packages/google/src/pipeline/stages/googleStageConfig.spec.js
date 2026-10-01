@@ -6,7 +6,7 @@ import { StageConfigField } from '@spinnaker/core';
 import { GceFindImageStageConfig } from './googleStageConfig';
 
 describe('GCE find image onlyEnabled control', () => {
-  function renderStage(stage, updateStage = jasmine.createSpy('updateStage')) {
+  function renderStage(stage, updateStage = vi.fn()) {
     const wrapper = shallow(React.createElement(GceFindImageStageConfig, { application: {}, stage, updateStage }), {
       disableLifecycleMethods: true,
     });
@@ -39,6 +39,6 @@ describe('GCE find image onlyEnabled control', () => {
 
     checkbox.simulate('change', { target: { checked: false } });
 
-    expect(updateStage).toHaveBeenCalledWith(jasmine.objectContaining({ onlyEnabled: false }));
+    expect(updateStage).toHaveBeenCalledWith(expect.objectContaining({ onlyEnabled: false }));
   });
 });

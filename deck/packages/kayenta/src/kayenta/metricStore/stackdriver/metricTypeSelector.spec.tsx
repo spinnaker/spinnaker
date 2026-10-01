@@ -64,7 +64,7 @@ describe('<StackdriverMetricTypeSelector />', () => {
 
   it('queries for metric descriptors matching selected metric type on component mount', () => {
     const store = createStore(() => state);
-    const dispatch = spyOn(store, 'dispatch').and.callThrough();
+    const dispatch = vi.spyOn(store, 'dispatch');
     mount(
       <Provider store={store}>
         <Component value="compute.googleapis.com/disk/read_ops_count" onChange={noop} />
@@ -79,7 +79,7 @@ describe('<StackdriverMetricTypeSelector />', () => {
 
   it('queries for metric descriptors on input change', () => {
     const store = createStore(() => state);
-    const dispatch = spyOn(store, 'dispatch').and.callThrough();
+    const dispatch = vi.spyOn(store, 'dispatch');
     const component = mount(
       <Provider store={store}>
         <Component value="compute.googleapis.com/disk/read_ops_count" onChange={noop} />

@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { shallow } from 'enzyme';
 import React from 'react';
 
@@ -15,18 +16,18 @@ import {
 import { EcsInstanceDetailsComponent as EcsInstanceDetails } from './EcsInstanceDetails';
 
 describe('EcsInstanceDetails', () => {
-  let stateService: { go: jasmine.Spy };
+  let stateService: { go: Mock };
 
   beforeEach(() => {
-    stateService = { go: jasmine.createSpy('go') };
-    spyOn(RecentHistoryService, 'addExtraDataToLatest');
-    spyOn(RecentHistoryService, 'removeLastItem');
+    stateService = { go: vi.fn() };
+    vi.spyOn(RecentHistoryService, 'addExtraDataToLatest').mockReturnValue(undefined);
+    vi.spyOn(RecentHistoryService, 'removeLastItem').mockReturnValue(undefined);
   });
 
   it('loads routed details, merges the application summary, and renders all ECS detail sections', async () => {
     const app = application();
     const details = instanceDetails();
-    spyOn(InstanceReader, 'getInstanceDetails').and.returnValue(Promise.resolve(details) as any);
+    vi.spyOn(InstanceReader, 'getInstanceDetails').mockReturnValue(Promise.resolve(details) as any);
 
     const wrapper = shallow(
       <EcsInstanceDetails
@@ -48,12 +49,12 @@ describe('EcsInstanceDetails', () => {
       vpcId: 'vpc-1',
     });
     expect(wrapper.find(InstanceDetailsHeader).props()).toEqual(
-      jasmine.objectContaining({ healthState: 'Up', instanceId: 'task-1', loading: false, standalone: false }),
+      expect.objectContaining({ healthState: 'Up', instanceId: 'task-1', loading: false, standalone: false }),
     );
 
     const information = wrapper.find(InstanceInformation);
     expect(information.props()).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         account: 'test-account',
         launchTime: 200,
         provider: 'ecs',
@@ -68,8 +69,8 @@ describe('EcsInstanceDetails', () => {
         .prop('value'),
     ).toBe('ami-complete');
     expect(wrapper.find(InstanceStatus).props()).toEqual(
-      jasmine.objectContaining({
-        healthMetrics: [jasmine.objectContaining({ description: 'healthy in ECS', state: 'Up', type: 'Ecs' })],
+      expect.objectContaining({
+        healthMetrics: [expect.objectContaining({ description: 'healthy in ECS', state: 'Up', type: 'Ecs' })],
         healthState: 'Up',
       }),
     );
@@ -85,12 +86,12 @@ describe('EcsInstanceDetails', () => {
       .map((address) => address.prop('address'));
     expect(networkAddresses).toEqual(['10.0.0.10', '2001:db8::10', '172.17.0.2']);
     expect(wrapper.find(ConsoleOutputLink).prop('instance')).toEqual(
-      jasmine.objectContaining({ imageId: 'ami-complete' }),
+      expect.objectContaining({ imageId: 'ami-complete' }),
     );
 
     const links = wrapper.find(InstanceLinks);
     expect(links.props()).toEqual(
-      jasmine.objectContaining({ address: 'task.example.test', application: app, environment: 'test' }),
+      expect.objectContaining({ address: 'task.example.test', application: app, environment: 'test' }),
     );
     const renderedLinks = shallow(<InstanceLinks {...(links.props() as any)} />);
     const linkSection = shallow(<div>{renderedLinks.find(CollapsibleSection).prop('children')}</div>);
@@ -100,7 +101,7 @@ describe('EcsInstanceDetails', () => {
 
   it('loads complete details from a standalone instance prop', async () => {
     const app = application(true);
-    spyOn(InstanceReader, 'getInstanceDetails').and.returnValue(
+    vi.spyOn(InstanceReader, 'getInstanceDetails').mockReturnValue(
       Promise.resolve(
         instanceDetails({ loadBalancers: ['standalone-lb'], targetGroups: ['standalone-target'] }),
       ) as any,
@@ -124,10 +125,10 @@ describe('EcsInstanceDetails', () => {
       'standalone-task',
     );
     expect(wrapper.find(InstanceDetailsHeader).props()).toEqual(
-      jasmine.objectContaining({ instanceId: 'standalone-task', standalone: true }),
+      expect.objectContaining({ instanceId: 'standalone-task', standalone: true }),
     );
     expect(wrapper.find(ConsoleOutputLink).prop('instance')).toEqual(
-      jasmine.objectContaining({ loadBalancers: ['standalone-lb'], targetGroups: ['standalone-target'] }),
+      expect.objectContaining({ loadBalancers: ['standalone-lb'], targetGroups: ['standalone-target'] }),
     );
   });
 
@@ -137,7 +138,7 @@ describe('EcsInstanceDetails', () => {
       loadBalancer('wrong-account', 'wrong-target', ['target-task']),
       loadBalancer('test-account', 'correct-target', ['target-task']),
     ];
-    spyOn(InstanceReader, 'getInstanceDetails').and.returnValue(
+    vi.spyOn(InstanceReader, 'getInstanceDetails').mockReturnValue(
       Promise.resolve(instanceDetails({ instanceId: 'target-task' })) as any,
     );
 
@@ -154,7 +155,7 @@ describe('EcsInstanceDetails', () => {
 
     expect(InstanceReader.getInstanceDetails).toHaveBeenCalledWith('test-account', 'eu-west-1', 'target-task');
     expect(wrapper.find(ConsoleOutputLink).prop('instance')).toEqual(
-      jasmine.objectContaining({ targetGroups: ['correct-target'] }),
+      expect.objectContaining({ targetGroups: ['correct-target'] }),
     );
   });
 
@@ -187,7 +188,7 @@ describe('EcsInstanceDetails', () => {
         healthCheckProtocol: 'HTTPS',
       }),
     ];
-    spyOn(InstanceReader, 'getInstanceDetails').and.returnValue(
+    vi.spyOn(InstanceReader, 'getInstanceDetails').mockReturnValue(
       Promise.resolve(
         instanceDetails({
           health: [
@@ -211,14 +212,14 @@ describe('EcsInstanceDetails', () => {
 
     const [matching, missing] = (wrapper.find(InstanceStatus).prop('healthMetrics') as any[])[0].targetGroups;
     expect(matching).toEqual(
-      jasmine.objectContaining({ healthCheckPath: ':8443/health', healthCheckProtocol: 'https' }),
+      expect.objectContaining({ healthCheckPath: ':8443/health', healthCheckProtocol: 'https' }),
     );
     expect(missing.healthCheckPath).toBeUndefined();
     expect(missing.healthCheckProtocol).toBeUndefined();
   });
 
   it('renders the ECS zone before availability zone fallbacks', async () => {
-    spyOn(InstanceReader, 'getInstanceDetails').and.returnValue(
+    vi.spyOn(InstanceReader, 'getInstanceDetails').mockReturnValue(
       Promise.resolve(instanceDetails({ availabilityZone: 'fallback-zone', zone: 'ecs-zone' })) as any,
     );
     const wrapper = shallow(
@@ -232,7 +233,7 @@ describe('EcsInstanceDetails', () => {
   });
 
   it('shows an inline not-found state when a standalone load fails', async () => {
-    spyOn(InstanceReader, 'getInstanceDetails').and.returnValue(Promise.reject(new Error('not found')) as any);
+    vi.spyOn(InstanceReader, 'getInstanceDetails').mockReturnValue(Promise.reject(new Error('not found')) as any);
     const wrapper = shallow(
       <EcsInstanceDetails
         app={application(true)}
@@ -252,7 +253,7 @@ describe('EcsInstanceDetails', () => {
   });
 
   it('closes routed details when loading fails', async () => {
-    spyOn(InstanceReader, 'getInstanceDetails').and.returnValue(Promise.reject(new Error('not found')) as any);
+    vi.spyOn(InstanceReader, 'getInstanceDetails').mockReturnValue(Promise.reject(new Error('not found')) as any);
     shallow(
       <EcsInstanceDetails
         app={application()}
@@ -277,7 +278,10 @@ describe('EcsInstanceDetails', () => {
       serverGroup('fnord-main-v001', 'task-1'),
       serverGroup('fnord-main-v002', 'task-2'),
     ]);
-    spyOn(InstanceReader, 'getInstanceDetails').and.callFake((_account: string, _region: string, instanceId: string) =>
+    vi.spyOn(
+      InstanceReader,
+      'getInstanceDetails',
+    ).mockImplementation((_account: string, _region: string, instanceId: string) =>
       instanceId === 'task-1' ? oldRequest.promise : newRequest.promise,
     );
     const wrapper = shallow(
@@ -305,7 +309,7 @@ describe('EcsInstanceDetails', () => {
 
   it('does not update state when a request resolves after unmount', async () => {
     const request = deferred<any>();
-    spyOn(InstanceReader, 'getInstanceDetails').and.returnValue(request.promise as any);
+    vi.spyOn(InstanceReader, 'getInstanceDetails').mockReturnValue(request.promise as any);
     const wrapper = shallow(
       <EcsInstanceDetails
         app={application(true)}
@@ -315,7 +319,7 @@ describe('EcsInstanceDetails', () => {
       />,
     );
     const component = wrapper.instance() as React.Component;
-    spyOn(component, 'setState');
+    vi.spyOn(component, 'setState').mockReturnValue(undefined);
 
     wrapper.unmount();
     request.resolve(instanceDetails());
@@ -340,7 +344,7 @@ function application(isStandalone = false, serverGroups = [serverGroup()]): any 
       ? undefined
       : {
           data: serverGroups,
-          onRefresh: () => jasmine.createSpy('unsubscribe'),
+          onRefresh: () => vi.fn(),
           ready: () => Promise.resolve(),
         },
   };

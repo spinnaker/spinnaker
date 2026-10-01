@@ -5,7 +5,7 @@ import { CopyToClipboard } from './CopyToClipboard';
 import { logger } from '../Logger';
 
 describe('<CopyToClipboard />', () => {
-  beforeEach(() => spyOn(logger, 'log'));
+  beforeEach(() => vi.spyOn(logger, 'log').mockReturnValue(undefined));
 
   it('renders an input with the text value', () => {
     const wrapper = mount(<CopyToClipboard toolTip="Copy Rebel Girl" text="Rebel Girl" />);

@@ -14,9 +14,7 @@ describe('SearchResultPods', () => {
       },
     ];
 
-    const wrapper = shallow(
-      <SearchResultPods results={results} onRemoveItem={jasmine.createSpy()} onResultClick={jasmine.createSpy()} />,
-    );
+    const wrapper = shallow(<SearchResultPods results={results} onRemoveItem={vi.fn()} onResultClick={vi.fn()} />);
 
     expect(wrapper.find('.infrastructure-section').hasClass('container')).toBe(false);
   });

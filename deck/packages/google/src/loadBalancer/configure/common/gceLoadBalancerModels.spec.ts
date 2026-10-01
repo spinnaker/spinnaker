@@ -19,9 +19,9 @@ describe('GCE load balancer models', () => {
     );
 
     expect(serializeGceLoadBalancerCommand(command)).toEqual(
-      jasmine.objectContaining({
-        healthChecks: [jasmine.objectContaining({ healthCheckType: 'GRPC', grpcServiceName: 'example.Health' })],
-        listeners: [jasmine.objectContaining({ certificateMap: 'shared-map' })],
+      expect.objectContaining({
+        healthChecks: [expect.objectContaining({ healthCheckType: 'GRPC', grpcServiceName: 'example.Health' })],
+        listeners: [expect.objectContaining({ certificateMap: 'shared-map' })],
       }),
     );
   });
@@ -359,7 +359,7 @@ describe('GCE load balancer models', () => {
     );
 
     expect(command.healthChecks).toEqual([
-      jasmine.objectContaining({
+      expect.objectContaining({
         checkIntervalSec: 15,
         healthCheckType: 'HTTP',
         healthyThreshold: 2,

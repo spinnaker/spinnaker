@@ -27,8 +27,8 @@ describe('ApplicationNavigation', () => {
     router.plugin(servicesPlugin);
     router.plugin(hashLocationPlugin);
     // Initialize current route
-    spyOn(router.stateService, 'includes').and.callFake((substate: any) => currentStates.includes(substate));
-    spyOn(StateMatcher.prototype, 'find').and.callFake(() => undefined as any);
+    vi.spyOn(router.stateService, 'includes').mockImplementation((substate: any) => currentStates.includes(substate));
+    vi.spyOn(StateMatcher.prototype, 'find').mockImplementation(() => undefined as any);
   });
 
   afterEach(() => router.dispose());
