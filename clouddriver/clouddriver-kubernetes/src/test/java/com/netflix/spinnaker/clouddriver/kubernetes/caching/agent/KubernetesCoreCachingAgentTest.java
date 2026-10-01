@@ -54,6 +54,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.ResourceProperty
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.*;
 import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesManifestNamer;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.*;
+import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.CustomResourceStatusEvaluator;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
@@ -100,7 +101,9 @@ final class KubernetesCoreCachingAgentTest {
   private static final ObjectMapper objectMapper = new ObjectMapper();
   private static final ResourcePropertyRegistry resourcePropertyRegistry =
       new GlobalResourcePropertyRegistry(
-          ImmutableList.of(), new KubernetesUnregisteredCustomResourceHandler());
+          ImmutableList.of(),
+          new KubernetesUnregisteredCustomResourceHandler(
+              CustomResourceStatusEvaluator.disabled()));
   private static final ImmutableList<KubernetesHandler> handlers =
       ImmutableList.of(
           new KubernetesDeploymentHandler(),

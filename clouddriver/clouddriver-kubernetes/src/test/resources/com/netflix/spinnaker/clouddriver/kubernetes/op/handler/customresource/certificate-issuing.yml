@@ -1,0 +1,26 @@
+# cert-manager Certificate while the certificate is being issued.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: my-cert
+  namespace: default
+  generation: 2
+spec:
+  secretName: my-cert-tls
+  dnsNames:
+    - example.com
+  issuerRef:
+    name: letsencrypt
+    kind: ClusterIssuer
+status:
+  conditions:
+    - type: Issuing
+      status: "True"
+      reason: DoesNotExist
+      message: Issuing certificate as Secret does not exist
+      observedGeneration: 2
+    - type: Ready
+      status: "False"
+      reason: DoesNotExist
+      message: Issuing certificate as Secret does not exist
+      observedGeneration: 2
