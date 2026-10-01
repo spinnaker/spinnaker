@@ -1,8 +1,7 @@
 # Clouddriver task repository: failure modes, fixes, and a SQL task queue
 
 **Status**: Planned. No PR landed yet. Focus is the SQL task repository and SQL task queue. Redis
-repository hardening (Phase 3) is deprioritized. The caching agent scheduler question is split out
-to [`cats-scheduler-scaling.md`](cats-scheduler-scaling.md) (deferred).
+repository hardening (Phase 3) is deprioritized.
 
 The phases describe *what* changes. The [Work plan](#work-plan) at the end turns them into an ordered
 PR list. Track status there.
@@ -16,8 +15,8 @@ PR list. Track status there.
 | 4 | `DefaultOrchestrationProcessor` fixes (stop after failure, atomic completion, bounded executor) |
 | 5a | Per-instance execution leases + reaper (fast detection of lost work, no dispatch change) |
 | 5b | SQL task queue: pending state, claim, bounded workers, draining. Opt-in |
-| 5c | Optional broadcast "work available" nudge. Only if measured latency warrants it |
-| 6 | Scale hardening of the read/write path (status-write coalescing, read-pool reads for polling) |
+| 5c | Optional real-queue transport (Redis Streams, SQS, …) fed by a transactional outbox. Only if needed |
+| 6 | Read-path optimization (cheap unchanged polls, read pool); optional write coalescing at medium scale |
 
 ## Context: clouddriver has a task *store*, not a task *queue*
 
@@ -30,7 +29,7 @@ through `GET /task/{id}` on any pod.
 
 This matters for the pub/sub question. A Redis Streams "queue" changes *who runs the work and when*
 (dispatch). It does not change *where status lives* (storage). The two current problems are both
-storage-layer problems, so a queue alone fixes neither one. See [Pub/sub evaluation](#pubsub-evaluation).
+storage-layer problems, so a queue alone fixes neither one. See [Queue semantics](#queue-semantics-what-a-real-queue-offers-and-where-task-state-lives).
 
 How Orca reacts (this determines how bad a storage failure becomes):
 - `MonitorKatoTask` retries `lookupTask` only 5 times at 100 ms (`MonitorKatoTask.groovy:~121`). A 404
@@ -41,16 +40,30 @@ How Orca reacts (this determines how bad a storage failure becomes):
 
 ## Target scale
 
-Design for **500–2,000+ operations per minute** (8–33/s), with operations running from seconds to
-several minutes. By Little's law that's **500–4,000 operations in flight** across the fleet.
+Two tiers. Design for both, and optimize for the first.
 
-| Load source | Estimate | Design consequence |
-|---|---|---|
-| Status history inserts (about 20 per operation) | 160–660 inserts/s | The largest write load. Coalesce bursts (Phase 6). |
-| Orca polling `GET /task/{id}` (5 s backoff) | about 800 reads/s, each a 4-way `UNION` | The largest read load. Serve it from a read pool (Phase 6). |
-| `task_states` growth, kept 4 days (`completedTtlMs`) | 14–57M rows/day → **55–230M rows** | No full scans or `MAX()` self-joins on `task_states`. Schema changes must be online/instant. `current_state` and cleanup indexing are required, not optional. |
-| Per-task lease heartbeats (if leases were per task) | 4,000 ÷ 20 s = 200 writes/s | Use **one lease per instance** instead: about 2 writes/s fleet-wide (5a). |
-| Claims (5b) | 8–33/s, mostly local-first | Trivial for SQL. Streams adds nothing measurable. |
+| Tier | Ops/min | Ops/s | In flight (1–2 min ops) | Status writes/s (about 20 per op) | Orca polling reads/s (in flight ÷ 5 s) |
+|---|---|---|---|---|---|
+| **Typical** (most orgs) | 50–100 | about 1–2 | 50–200 | 20–40 | 10–40 |
+| **Medium** | 500–2,000 | 8–33 | 500–4,000 | 160–660 | 100–800 |
+
+**The workload is read-heavy.**
+- **Per poll vs per write.** Each Orca poll runs `retrieveInternal`'s 4-way `UNION` and returns the
+  whole history, results and outputs, which can include large stdout. Each write is one small insert.
+- **Long operations.** Polls grow with duration (a 10-minute operation gets about 120 polls) while
+  writes stay at about 20.
+- **Other readers:** UI and API consumers, and `GET /task` listing.
+- So even where poll and write counts are similar (short operations), read *work* dominates.
+  Phase 6 targets reads first.
+
+**What each tier means for the design:**
+- **Typical:** nothing here strains SQL. The design must not add operational burden for these orgs:
+  `inline` dispatch stays the default, no new infrastructure is required, and schema changes are
+  instant.
+- **Medium:** `task_states` reaches 55–230M rows (14–57M per day, 4-day `completedTtlMs`). Nothing may
+  rewrite or scan it. `current_state` and cleanup indexing are required. Per-task heartbeats would
+  cost about 200 writes/s, so leases are **per instance** (about 2 writes/s fleet-wide). Claims (8–33/s)
+  are still trivial for SQL.
 
 ## Findings
 
@@ -104,14 +117,13 @@ clocks disagree, produce the wrong "latest" row.
 2. **Make SQL the recommended production backend** once Phase 2 lands. Document the Redis repository
    as "single Redis, no HA guarantees". Its shape (no atomic multi-key reads, which `JedisTask`'s own
    Javadoc admits) limits how correct it can become.
-3. **Build dispatch on the SQL task repository (Phase 5), not on Redis Streams.** SQL can provide
-   restart recovery, failover handling and work distribution (P2, P3). It also avoids a dual write
-   between SQL and Redis, and keeps leases and fencing in the same transactional store as task
-   status. See [Phase 5](#phase-5-sql-backed-execution-leases-and-dispatch). Streams stays an optional
-   latency optimization (5c), not a requirement.
+3. **Make SQL the system of record and the default dispatcher (Phase 5).** A real queue (Streams,
+   SQS) can be added later as an optional transport fed by a transactional outbox (5c). Correctness
+   never depends on it. See [Queue semantics](#queue-semantics-what-a-real-queue-offers-and-where-task-state-lives)
+   for when a broker would be worth adding.
 4. **Design every SQL change for the [target scale](#target-scale).** That means instant or online
-   schema changes only, indexed lookups only on `task_states`, and per-instance (not per-task)
-   heartbeats.
+   schema changes only, indexed lookups only on `task_states`, per-instance (not per-task)
+   heartbeats, and a read path that keeps unchanged polls cheap.
 
 ## Phase 0: TCK regression tests
 
@@ -154,7 +166,8 @@ so ordering uses a **per-task sequence** instead:
 - `tasks.next_seq BIGINT NULL` and `task_states.seq BIGINT NULL` (and `task_outputs.seq`). Nullable
   `ADD COLUMN` is instant on MySQL 8.0.29+ and metadata-only on Postgres 11+.
 - Each write transaction already locks the task row (below), so it reads `next_seq`, uses it as the new
-  row's `seq`, and increments it. That gives an exact per-task order with no clock involved, which is
+  row's `seq`, and increments it. Result writes bump `next_seq` too, so it doubles as the task's
+  version for Phase 6's poll cache. That gives an exact per-task order with no clock involved, which is
   all ordering needs (nothing compares order across tasks).
 - Legacy rows (`seq IS NULL`) sort first, by the old `(created_at, id)`. They belong to tasks created
   before the upgrade, which almost all reach a terminal state, and are cleaned up, within the 4-day TTL.
@@ -217,59 +230,74 @@ Redis failures (R1, R5–R7).
 - Replace the read-then-write `finally` (`if (!getStatus().isCompleted()) complete()`) with a
   repository-side "complete if not terminal" operation. Phase 2/3 make that atomic.
 
-## Pub/sub evaluation
+## Queue semantics: what a real queue offers, and where task state lives
 
-**Question:** could a Redis Streams–based task queue (kork-pubsub "Single", PR #8031) handle this
-better than the current Redis/SQL repositories? (The same question for the caching agent scheduler,
-at 80k agents, is in [`cats-scheduler-scaling.md`](cats-scheduler-scaling.md).)
+Workload processing is what queue systems (SQS, RabbitMQ, Kafka, Redis Streams) are built for, so
+choosing SQL needs a real justification. **SQL is not a better queue in general.** The argument is
+narrower: a clouddriver task has two jobs, and only one of them is queue-shaped.
 
-**What Streams would fix:**
-- **Backpressure / bounded concurrency (P2).** Each pod consumes at most N operations from a
-  consumer group, and excess work waits in the stream instead of spawning threads.
-- **Draining and rolling deploys (P3).** On shutdown a pod stops reading. Work that hasn't started
-  stays in the stream for other pods. Work abandoned by a crashed pod is visible through `XPENDING`
-  and can be reclaimed.
-- **Load spreading.** Work goes to whichever pod is free, not whichever pod the load balancer picked.
-- **Ordering, if history were stored as a Stream.** Server-assigned IDs give a total order (the
-  Phase 3 option). The SQL `seq` column fixes the same problem more cheaply for SQL installs.
+1. **Work to dispatch.** Accept an operation, buffer it, and hand it to exactly one worker. Queues
+   excel at this.
+2. **A record people read by ID**, continuously until it finishes and for days after: status, history,
+   results, outputs. This is the [read-heavy](#target-scale) side of the workload. A queue can't serve
+   it, because messages aren't queryable by ID and disappear once acknowledged.
 
-**What Streams would not fix:**
-- **Redis availability (R1/R2).** A Streams queue on the same Redis has the same blast radius. If
-  Redis is down, nothing can be enqueued or acked. Phase 1's 503 mapping is what turns that into a
-  delay instead of a failure.
-- **SQL time ordering (S1–S5).** That's a storage bug, and Phase 2 fixes it.
-- **Status reads.** Orca still polls `GET /task/{id}`, which still needs an authoritative store.
+Every design therefore has a database. The real choice is between:
+- **(a)** a database that is also the queue, or
+- **(b)** a database plus a queue, kept consistent.
 
-**The hard part is redelivery, not transport.** Cloud operations are generally **not idempotent**. A
-deploy redelivered after a crash in the middle of `operate()` could create a second server group.
-`XCLAIM` is last-claim-wins (already documented in the kork-pubsub-redis README), so it is not a
-fencing mechanism. Any queue design must:
-- Treat the task store (SQL) as the source of truth and Redis Streams as dispatch only. This is the
-  split `cats-pubsub` already uses (Streams for scheduling, SQL `pubsub_agent_state` for state).
-- Fence execution with a lease in SQL, using DB time, so a reclaimer only runs work it wins. See
-  [5a](#5a-per-instance-leases--reaper-no-change-to-who-runs-the-work) for the per-instance design.
-- On reclaim: if the task never reached "Processing op", run it. If it is saga-backed, resume the
-  saga. **Otherwise mark it `FAILED` ("worker lost before completion"). Never re-run it blindly.**
+### Queue features, measured against this workload
 
-### Why SQL rather than Streams for dispatch
+| Queue feature | Why queues are good at it | Needed here? | SQL equivalent |
+|---|---|---|---|
+| Buffering bursts, decoupling producers from consumers | Producers never wait for consumers | Yes (pipeline fan-out bursts) | `PENDING` rows. At 1–33/s this is trivial. |
+| Push delivery | No polling, millisecond latency | Somewhat. Operations take seconds to minutes, and local-first means most never wait. | Overflow waits for a 1 s poll. 5c can add push. |
+| Competing consumers, load balancing | Built in | Yes | Conditional-UPDATE or `SKIP LOCKED` claim (keiko-sql pattern). |
+| Ack + visibility timeout → redelivery | At-least-once delivery for free | **Needed in reverse.** Redelivering a half-run, non-idempotent cloud operation is unsafe. Minutes-long operations also need per-message visibility extensions (e.g. SQS `ChangeMessageVisibility`), which amounts to a per-task heartbeat. | Leases + fencing + `progress` checkpoints, with "fail, don't redeliver" for anything in flight (5a). Queues have no notion of "this message must never run twice". |
+| Dead-letter queue | Isolates poison messages | Yes | Terminal `FAILED` rows, which can also be queried by account, time or type. |
+| Delayed delivery / backoff | SQS delay, RabbitMQ TTL + DLX | Yes (retries) | `available_at`. |
+| Priority | RabbitMQ priorities (SQS has none) | Maybe later | `ORDER BY`. |
+| **Per-key ordering and fairness** (Kafka partitions, SQS FIFO message groups) | One key processed at a time, fairly across keys | **Yes, and not done today.** Per-account cloud API limits, and not mutating the same server group concurrently. | A claim predicate (cap running tasks per account or resource key). This is real work in SQL and comes natively with partitioned queues. It is the strongest queue-native advantage for this workload. |
+| Very high throughput | 10k–1M+ msgs/s | No (1–33/s) | – |
+| Autoscaling signal | Queue depth | Yes | `COUNT(*) WHERE current_state = 'PENDING'`. |
+| Fan-out / multiple consumers / replay | Topics, consumer groups, logs | **Not for dispatch.** Valuable for *task events*, e.g. pushing completion to Orca instead of polling. | None. This is a genuine queue/topic use (see "Later" in the work plan). |
+| Operations cost | – | Yes | SQL is already required. A broker is new infrastructure that most orgs, at 50–100 ops/min, shouldn't be forced to run. |
 
-Every Streams design above still needs SQL for the lease, the fencing token and the task status. So
-Streams would only add a push wake-up, and it would bring problems SQL avoids:
+### Why (a) by default, and how (b) fits later
 
-- **Dual write.** "Create task in SQL, then `XADD`" isn't atomic. A crash between the two leaves a task
-  that never runs, or a message for a task that doesn't exist, so it needs an outbox table in SQL
-  anyway. With SQL dispatch, creating and enqueueing the task is one transaction.
-- **Two failure domains.** Dispatch would depend on Redis *and* SQL being up.
-- **Redelivery semantics.** `XCLAIM` is last-claim-wins, so SQL fencing is needed regardless.
-- **Throughput isn't a constraint.** Clouddriver handles at most tens of operations per second.
-  keiko-sql already runs orca's far busier work queue on the same databases
-  (`orca/keiko-sql/.../SqlQueue.kt`).
+- **(b) is a dual write.** "Insert the task, then publish the message" isn't atomic: a crash between
+  the two leaves a task nobody runs or a message for nothing. The standard fix is a **transactional
+  outbox** in the database. The queue then becomes a delivery mechanism fed from SQL, and the
+  database stays the source of truth either way.
+- **The safety-critical parts live in the database regardless:** fencing, "never re-run a
+  non-idempotent operation", and the readable task record. A broker can't own them.
+- **At typical and medium scale**, the queue features this workload needs (buffering, competing
+  consumers, delay, DLQ, depth) are a few columns and indexed queries in SQL. The ones SQL does less
+  naturally (push, per-key fairness) are either not latency-critical or can be done with a claim
+  predicate.
 
-What Streams would still add is sub-second wake-up without polling. 5c covers that as an optional
-nudge on top of SQL, not as the source of truth.
+So: **SQL is the system of record and the default dispatcher. A real queue is an optional transport
+(5c) fed by an outbox.** It accelerates delivery and can add per-key partitioning, but correctness
+never depends on it: a lost or duplicate message is harmless because the SQL claim decides.
 
-Redis-only installs don't get Phase 5. Dispatch requires the SQL task repository. Document that
-alongside "SQL is the recommended backend".
+**When a broker would earn its place:**
+- Claim rates in the hundreds per second across many pods.
+- Per-key fairness needed at a scale where a SQL predicate gets expensive.
+- Other services consuming the work stream.
+- Orca moving from polling to completion events. This is the biggest potential read-load win, and it
+  is a topic/event use, not a work queue.
+
+**Common "database as a queue" problems, and why they don't bite here:**
+
+| Problem | Why it's fine at this scale |
+|---|---|
+| Polling load | One indexed query per pod per second. |
+| Lock contention | Conditional update / `SKIP LOCKED` at 1–33 claims/s. |
+| Hot rows | Every task is its own row. |
+| Index and MVCC churn | Each task row is updated a handful of times. Postgres autovacuum and MySQL purge handle that. |
+| Unbounded growth | The Phase 2 cleanup. |
+
+keiko-sql already runs orca's own, much busier work queue this way.
 
 ## Phase 5: SQL-backed execution leases and dispatch
 
@@ -378,13 +406,18 @@ This alone fixes the worst restart behaviour (P3) without changing dispatch.
 plus jitter. That is negligible against cloud operations that take seconds to minutes, and 5c can
 remove it.
 
-### 5c (optional): wake-up nudge
+### 5c (optional): real-queue transport via transactional outbox
 
-After committing a `PENDING` task that the accepting pod couldn't claim locally, publish a
-best-effort "work available" message on a kork-pubsub **broadcast** channel (#8031). Idle pods poll
-immediately on receipt. The message carries no task data and SQL stays the only source of truth, so a
-lost message only costs one poll interval. Build this only if the polling latency is measured to
-matter.
+Only if a [tipping point](#why-a-by-default-and-how-b-fits-later) is reached.
+
+- **Outbox.** In the same transaction that creates a `PENDING` task, insert an outbox row. A relay
+  publishes outbox rows through the kork-pubsub "Single" contract (Redis Streams in #8031, or SQS
+  through `kork-pubsub-aws`) and deletes them once the publish succeeds.
+- **Consumers.** A consumer receiving a message runs the normal SQL claim for that task ID. It acks
+  whether or not it won the claim, because SQL decides. The SQL poll stays on as the fallback, so a
+  lost message only costs one poll interval.
+- **Per-key fairness.** The transport can partition by account (SQS FIFO message group, Kafka key),
+  with the SQL claim predicate as the backstop.
 
 ### Testing
 
@@ -399,20 +432,27 @@ matter.
   assert the task is resumed (saga), re-run (op not started) or failed (op in flight), each within
   one TTL.
 
-## Phase 6: scale hardening of the read/write path
+## Phase 6: read-path optimization (and optional write coalescing)
 
-Independent of dispatch. It can land any time after Phase 2.
+Independent of dispatch. It can land any time after Phase 2. Reads first, because they dominate.
 
-- **Status-write coalescing.** Buffer rapid non-terminal `updateStatus`/`updateOutput` calls per task
-  and flush them as one multi-row insert (for example every 250 ms, and always before a terminal
-  transition or result write). This cuts the 160–660 inserts/s by several times. Terminal
-  transitions are never delayed.
+- **Cheap unchanged polls.** Phase 2 keeps a per-task version on the task row (`tasks.next_seq`, which
+  advances on every status, result and output write). A poll first reads `(current_state, next_seq)`
+  by primary key. If a small per-pod cache already holds the serialized task at that version, return
+  it without running the 4-way `UNION`. Most polls of a running task see no change since the last
+  poll, so they become a single primary-key read. This needs no Orca change, and the response is
+  byte-for-byte the same.
 - **Polling reads from a read pool.** Optionally route `GET /task/{id}` and `GET /task` to a
   configurable read pool or replica (kork-sql's named pools). Replica lag only shows a stale "still
   running" status, and Orca polls again. A just-created task missing on the replica shows as a 404,
-  which Orca already tolerates 30 times. Every read inside a write path stays on the primary.
-- **Query shape.** Keep `retrieveInternal`'s 4-way `UNION` on `task_id` indexes only. Revisit splitting
-  history reads from result and output reads if polling profiles show the `UNION` dominating.
+  which Orca already tolerates 30 times. The version check and every read inside a write path stay on
+  the primary.
+- **Later, with Orca changes:** `ETag`/`If-None-Match` on `GET /task/{id}` (304 when unchanged), or
+  push completion events so Orca stops polling. Both are tracked under "Later" in the work plan.
+- **Write coalescing (medium scale only, optional).** Buffer rapid non-terminal
+  `updateStatus`/`updateOutput` calls per task and flush them as one multi-row insert (for example
+  every 250 ms, and always before a terminal transition or result write). Terminal transitions are
+  never delayed. Not worth the complexity at typical scale.
 
 ## Work plan
 
@@ -429,12 +469,15 @@ Postgres (`kork-sql-test`, `--max-workers=1` locally). Update **Status** as PRs 
 | 5 | B: SQL foundation | Repository: row lock, `seq` ordering, `current_state` maintenance, terminal immutability, `addResultObjects` guard, duplicate-key `create()`. **Plus** processor `break` after failure (must land together) | S1–S5, S7, S8, P1 | 4 | Not started |
 | 6 | B: SQL foundation | Cleanup driven by `tasks(current_state, completed_at)`, `FAILED_RETRYABLE` TTL | S9 | 5 | Not started |
 | 7 | B: SQL foundation | Processor: repository-side atomic "complete if not terminal"; bounded executor with 503 + `Retry-After` when saturated | P2, R2 (SQL side) | 5 | Not started |
-| 8 | C: scale | Status-write coalescing; optional read-pool routing for task polling | Phase 6 | 5 | Not started |
+| 8 | C: reads | Version-checked poll cache; optional read-pool routing for task polling | Phase 6 (reads) | 5 | Not started |
 | 9 | D: task queue | `clouddriver_instances` + per-instance leases, fencing on every write, `progress` checkpoints, reaper, graceful-shutdown release (inline mode) | 5a, P3 | 5, 2 | Not started |
 | 10 | D: task queue | Refactor: extract the processor's execution body into an executor component (no behaviour change) | 5b prep | 7 | Not started |
 | 11 | D: task queue | `task_payloads`, `PENDING`, local-first claim, claim loop, `PENDING`-depth 503, `clouddriver.operations.dispatch: queued` flag (default `inline`) | 5b | 9, 10 | Not started |
-| 12 | D: task queue | Multi-instance chaos test + target-scale load test; operator docs (TTL vs failover tradeoff, migrating Redis → SQL) | 5b exit criteria | 11 | Not started |
-| – | Later | Broadcast wake-up nudge (only if measured claim latency matters) | 5c | 11, #8031 | Deferred |
+| 12 | D: task queue | Multi-instance chaos test + medium-tier load test; operator docs (TTL vs failover tradeoff, migrating Redis → SQL) | 5b exit criteria | 11 | Not started |
+| – | Later | Status-write coalescing (medium scale only) | Phase 6 (writes) | 5 | Deferred |
+| – | Later | Real-queue transport via transactional outbox (Streams/SQS through kork-pubsub), optional per-account partitioning | 5c | 11, #8031 | Deferred |
+| – | Later | Per-account / per-resource claim fairness | 5b extension | 11 | Deferred |
+| – | Later | Orca: `ETag`/304 polling or completion events instead of polling (needs Orca changes) | Read load | 8 | Deferred |
 | – | Later | Redis repository hardening | Phase 3 | – | Deprioritized |
 
 **Critical path:** 4 → 5 → 9 → 11 → 12. Track A PRs are small and independent, so land them first.
