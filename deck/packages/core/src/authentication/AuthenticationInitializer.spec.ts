@@ -4,7 +4,7 @@ import { AuthenticationInitializer } from './AuthenticationInitializer';
 import { AuthenticationService } from './AuthenticationService';
 import { initializeAuthentication, resetAuthenticationRuntime } from './authentication.module';
 import { RequestBuilder } from '../api/ApiService';
-import { FailClosedHttpClient, mockHttpClient } from '../api/mock/jasmine';
+import { FailClosedHttpClient, mockHttpClient } from '../api/mock/mockHttpSupport';
 import { SETTINGS } from '../config/settings';
 import type { IModalComponentProps } from '../presentation';
 import { ReactModal } from '../presentation/ReactModal';
@@ -39,8 +39,8 @@ describe('AuthenticationInitializer', function () {
   describe('authenticateUser', () => {
     it('keeps an unstubbed authentication request fail-closed without using fetch', async () => {
       const client = RequestBuilder.defaultHttpClient as FailClosedHttpClient;
-      const loginRedirect = spyOn(AuthenticationInitializer, 'loginRedirect');
-      const fetchRequest = spyOn(window, 'fetch');
+      const loginRedirect = vi.spyOn(AuthenticationInitializer, 'loginRedirect').mockReturnValue(undefined);
+      const fetchRequest = vi.spyOn(window, 'fetch').mockReturnValue(undefined);
 
       const result = await AuthenticationInitializer.authenticateUser();
 
@@ -54,7 +54,7 @@ describe('AuthenticationInitializer', function () {
     it('uses the controlled HTTP client configured by the test harness', async () => {
       const http = mockHttpClient();
       http.expectGET(SETTINGS.authEndpoint).respond(200, { username: 'controlled-user', roles: ['controlled-role'] });
-      const fetchRequest = spyOn(window, 'fetch');
+      const fetchRequest = vi.spyOn(window, 'fetch').mockReturnValue(undefined);
 
       const authentication = AuthenticationInitializer.authenticateUser();
       await http.flush();
@@ -62,7 +62,7 @@ describe('AuthenticationInitializer', function () {
       expect(await authentication).toBe(true);
       expect(fetchRequest).not.toHaveBeenCalled();
       expect(AuthenticationService.getAuthenticatedUser()).toEqual(
-        jasmine.objectContaining({ name: 'controlled-user', roles: ['controlled-role'], authenticated: true }),
+        expect.objectContaining({ name: 'controlled-user', roles: ['controlled-role'], authenticated: true }),
       );
     });
 
@@ -82,7 +82,7 @@ describe('AuthenticationInitializer', function () {
 
       expect(result).toBe(true);
       expect(AuthenticationService.getAuthenticatedUser()).toEqual(
-        jasmine.objectContaining({
+        expect.objectContaining({
           name: 'joe!',
           roles: ['role-a'],
           authenticated: true,
@@ -102,12 +102,12 @@ describe('AuthenticationInitializer', function () {
       await authentication;
 
       expect(AuthenticationService.getAuthenticatedUser()).toEqual(
-        jasmine.objectContaining({ canMintApiTokens: false, isAdmin: false }),
+        expect.objectContaining({ canMintApiTokens: false, isAdmin: false }),
       );
     });
 
     it('resolves false and redirects once when the response has no username', async function () {
-      const loginRedirect = spyOn(AuthenticationInitializer, 'loginRedirect');
+      const loginRedirect = vi.spyOn(AuthenticationInitializer, 'loginRedirect').mockReturnValue(undefined);
       AuthenticationService.setAuthenticatedUser({
         name: 'stale-user',
         authenticated: false,
@@ -133,7 +133,7 @@ describe('AuthenticationInitializer', function () {
     });
 
     it('resolves false and redirects once when the authentication request fails', async function () {
-      const loginRedirect = spyOn(AuthenticationInitializer, 'loginRedirect');
+      const loginRedirect = vi.spyOn(AuthenticationInitializer, 'loginRedirect').mockReturnValue(undefined);
       AuthenticationService.setAuthenticatedUser({
         name: 'stale-user',
         authenticated: false,
@@ -159,7 +159,7 @@ describe('AuthenticationInitializer', function () {
     });
 
     it('resolves false and redirects once when a successful response is malformed', async function () {
-      const loginRedirect = spyOn(AuthenticationInitializer, 'loginRedirect');
+      const loginRedirect = vi.spyOn(AuthenticationInitializer, 'loginRedirect').mockReturnValue(undefined);
       AuthenticationService.setAuthenticatedUser({
         name: 'stale-user',
         authenticated: false,
@@ -185,9 +185,9 @@ describe('AuthenticationInitializer', function () {
     });
 
     it('keeps valid authentication successful when one listener throws', async function () {
-      const loginRedirect = spyOn(AuthenticationInitializer, 'loginRedirect');
-      const reportError = spyOn(console, 'error');
-      const nextListener = jasmine.createSpy('nextListener');
+      const loginRedirect = vi.spyOn(AuthenticationInitializer, 'loginRedirect').mockReturnValue(undefined);
+      const reportError = vi.spyOn(console, 'error').mockReturnValue(undefined);
+      const nextListener = vi.fn();
       const listenerError = new Error('listener failed');
       authenticationUnsubscribes.push(
         AuthenticationService.onAuthentication(() => {
@@ -206,9 +206,9 @@ describe('AuthenticationInitializer', function () {
       expect(result).toBe(true);
       expect(loginRedirect).not.toHaveBeenCalled();
       expect(nextListener).toHaveBeenCalledTimes(1);
-      expect(reportError).toHaveBeenCalledOnceWith('Authentication listener failed', listenerError);
+      expect(reportError).toHaveBeenCalledExactlyOnceWith('Authentication listener failed', listenerError);
       expect(AuthenticationService.getAuthenticatedUser()).toEqual(
-        jasmine.objectContaining({ name: 'joe!', authenticated: true, roles: ['role-a'] }),
+        expect.objectContaining({ name: 'joe!', authenticated: true, roles: ['role-a'] }),
       );
     });
   });
@@ -223,16 +223,18 @@ describe('AuthenticationInitializer', function () {
     ReactModal.show(OpenModal, {} as any, { animation: false });
     expect(dismissers.length).toBe(2);
 
-    const dismissAll = spyOn(ReactModal, 'dismissAll').and.callFake((reason: string) => {
+    const dismissAll = vi.spyOn(ReactModal, 'dismissAll').mockImplementation((reason: string) => {
       dismissers.splice(0).forEach((dismiss) => dismiss(reason));
     });
-    const openLoggedOutModal = spyOn(AuthenticationInitializer as any, 'openLoggedOutModal');
-    const get = spyOn(AuthenticationInitializer as any, 'get').and.returnValues(
-      Promise.resolve({}),
-      Promise.resolve({ username: 'restored-user', roles: [] }),
-      Promise.resolve({}),
-    );
-    spyOnProperty(document, 'visibilityState', 'get').and.returnValue('visible');
+    const openLoggedOutModal = vi
+      .spyOn(AuthenticationInitializer as any, 'openLoggedOutModal')
+      .mockReturnValue(undefined);
+    const get = vi
+      .spyOn(AuthenticationInitializer as any, 'get')
+      .mockReturnValueOnce(Promise.resolve({}))
+      .mockReturnValueOnce(Promise.resolve({ username: 'restored-user', roles: [] }))
+      .mockReturnValueOnce(Promise.resolve({}));
+    vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('visible');
     (AuthenticationInitializer as any).userLoggedOut = false;
 
     try {
@@ -245,7 +247,7 @@ describe('AuthenticationInitializer', function () {
       await Promise.resolve();
       await Promise.resolve();
 
-      expect(dismissAll).toHaveBeenCalledOnceWith('reauthentication');
+      expect(dismissAll).toHaveBeenCalledExactlyOnceWith('reauthentication');
       document.dispatchEvent(new Event('visibilitychange'));
       await Promise.resolve();
       expect(get).toHaveBeenCalledTimes(2);
@@ -265,10 +267,12 @@ describe('AuthenticationInitializer', function () {
   it('ignores a stale visibility response from an older logout cycle', async () => {
     const firstResponse = createDeferred<any>();
     const secondResponse = createDeferred<any>();
-    const dismissAll = spyOn(ReactModal, 'dismissAll');
-    spyOn(AuthenticationInitializer as any, 'openLoggedOutModal');
-    spyOn(AuthenticationInitializer as any, 'get').and.returnValues(firstResponse.promise, secondResponse.promise);
-    spyOnProperty(document, 'visibilityState', 'get').and.returnValue('visible');
+    const dismissAll = vi.spyOn(ReactModal, 'dismissAll').mockReturnValue(undefined);
+    vi.spyOn(AuthenticationInitializer as any, 'openLoggedOutModal').mockReturnValue(undefined);
+    vi.spyOn(AuthenticationInitializer as any, 'get')
+      .mockReturnValueOnce(firstResponse.promise)
+      .mockReturnValueOnce(secondResponse.promise);
+    vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('visible');
     (AuthenticationInitializer as any).userLoggedOut = false;
 
     try {
@@ -296,9 +300,9 @@ describe('AuthenticationInitializer', function () {
 
       expect((AuthenticationInitializer as any).visibilityWatch).toBeNull();
       expect((AuthenticationInitializer as any).userLoggedOut).toBe(false);
-      expect(dismissAll).toHaveBeenCalledOnceWith('reauthentication');
+      expect(dismissAll).toHaveBeenCalledExactlyOnceWith('reauthentication');
       expect(AuthenticationService.getAuthenticatedUser()).toEqual(
-        jasmine.objectContaining({ name: 'restored-user', roles: ['restored-role'], authenticated: true }),
+        expect.objectContaining({ name: 'restored-user', roles: ['restored-role'], authenticated: true }),
       );
     } finally {
       (AuthenticationInitializer as any).visibilityWatch?.unsubscribe();
@@ -312,12 +316,12 @@ describe('initializeAuthentication', () => {
   let scheduledReauthentication: () => void;
 
   const createTestScheduler = (): IScheduler => ({
-    subscribe: jasmine.createSpy('subscribe').and.callFake((next?: () => void) => {
+    subscribe: vi.fn().mockImplementation((next?: () => void) => {
       scheduledReauthentication = next;
       return new Subscription();
     }),
-    scheduleImmediate: jasmine.createSpy('scheduleImmediate'),
-    unsubscribe: jasmine.createSpy('unsubscribe'),
+    scheduleImmediate: vi.fn(),
+    unsubscribe: vi.fn(),
   });
 
   beforeEach(() => {
@@ -335,8 +339,8 @@ describe('initializeAuthentication', () => {
 
   it('resolves true without authenticating or creating a scheduler when auth is disabled', async () => {
     SETTINGS.authEnabled = false;
-    const authenticateUser = spyOn(AuthenticationInitializer, 'authenticateUser');
-    const createScheduler = spyOn(SchedulerFactory, 'createScheduler');
+    const authenticateUser = vi.spyOn(AuthenticationInitializer, 'authenticateUser').mockReturnValue(undefined);
+    const createScheduler = vi.spyOn(SchedulerFactory, 'createScheduler').mockReturnValue(undefined);
 
     const result = await initializeAuthentication();
 
@@ -348,31 +352,31 @@ describe('initializeAuthentication', () => {
   it('shares one authentication request and scheduler between concurrent successful initializations', async () => {
     const request = createDeferred<any>();
     const scheduler = createTestScheduler();
-    const createScheduler = spyOn(SchedulerFactory, 'createScheduler').and.returnValue(scheduler);
-    const get = spyOn(AuthenticationInitializer as any, 'get').and.returnValue(request.promise);
+    const createScheduler = vi.spyOn(SchedulerFactory, 'createScheduler').mockReturnValue(scheduler);
+    const get = vi.spyOn(AuthenticationInitializer as any, 'get').mockReturnValue(request.promise);
 
     const firstInitialization = initializeAuthentication();
     const secondInitialization = initializeAuthentication();
 
     expect(secondInitialization).toBe(firstInitialization);
-    expect(get).toHaveBeenCalledOnceWith(SETTINGS.authEndpoint);
-    expect(createScheduler).toHaveBeenCalledOnceWith(1234);
+    expect(get).toHaveBeenCalledExactlyOnceWith(SETTINGS.authEndpoint);
+    expect(createScheduler).toHaveBeenCalledExactlyOnceWith(1234);
     expect(scheduler.subscribe).toHaveBeenCalledTimes(1);
 
     request.resolve({ username: 'new-user', roles: ['new-role'] });
 
     expect(await Promise.all([firstInitialization, secondInitialization])).toEqual([true, true]);
     expect(AuthenticationService.getAuthenticatedUser()).toEqual(
-      jasmine.objectContaining({ name: 'new-user', authenticated: true, roles: ['new-role'] }),
+      expect.objectContaining({ name: 'new-user', authenticated: true, roles: ['new-role'] }),
     );
   });
 
   it('shares one failed authentication result and redirect between concurrent initializations', async () => {
     const request = createDeferred<any>();
     const scheduler = createTestScheduler();
-    spyOn(SchedulerFactory, 'createScheduler').and.returnValue(scheduler);
-    const get = spyOn(AuthenticationInitializer as any, 'get').and.returnValue(request.promise);
-    const loginRedirect = spyOn(AuthenticationInitializer, 'loginRedirect');
+    vi.spyOn(SchedulerFactory, 'createScheduler').mockReturnValue(scheduler);
+    const get = vi.spyOn(AuthenticationInitializer as any, 'get').mockReturnValue(request.promise);
+    const loginRedirect = vi.spyOn(AuthenticationInitializer, 'loginRedirect').mockReturnValue(undefined);
     AuthenticationService.setAuthenticatedUser({
       name: 'stale-user',
       authenticated: false,
@@ -397,18 +401,18 @@ describe('initializeAuthentication', () => {
 
   it('authenticates again after the previous initialization settles', async () => {
     const scheduler = createTestScheduler();
-    const createScheduler = spyOn(SchedulerFactory, 'createScheduler').and.returnValue(scheduler);
-    const authenticateUser = spyOn(AuthenticationInitializer, 'authenticateUser').and.returnValues(
-      Promise.resolve(true),
-      Promise.resolve(false),
-    );
-    const reauthenticateUser = spyOn(AuthenticationInitializer, 'reauthenticateUser');
+    const createScheduler = vi.spyOn(SchedulerFactory, 'createScheduler').mockReturnValue(scheduler);
+    const authenticateUser = vi
+      .spyOn(AuthenticationInitializer, 'authenticateUser')
+      .mockReturnValueOnce(Promise.resolve(true))
+      .mockReturnValueOnce(Promise.resolve(false));
+    const reauthenticateUser = vi.spyOn(AuthenticationInitializer, 'reauthenticateUser').mockReturnValue(undefined);
 
     expect(await initializeAuthentication()).toBe(true);
     expect(await initializeAuthentication()).toBe(false);
     scheduledReauthentication();
 
-    expect(createScheduler).toHaveBeenCalledOnceWith(1234);
+    expect(createScheduler).toHaveBeenCalledExactlyOnceWith(1234);
     expect(scheduler.subscribe).toHaveBeenCalledTimes(1);
     expect(authenticateUser).toHaveBeenCalledTimes(2);
     expect(reauthenticateUser).toHaveBeenCalledTimes(1);
@@ -424,23 +428,23 @@ describe('initializeAuthentication', () => {
     it(`uses the default authentication interval when authTtl is ${description}`, async () => {
       SETTINGS.authTtl = value as number;
       const scheduler = createTestScheduler();
-      const createScheduler = spyOn(SchedulerFactory, 'createScheduler').and.returnValue(scheduler);
-      spyOn(AuthenticationInitializer, 'authenticateUser').and.returnValue(Promise.resolve(true));
+      const createScheduler = vi.spyOn(SchedulerFactory, 'createScheduler').mockReturnValue(scheduler);
+      vi.spyOn(AuthenticationInitializer, 'authenticateUser').mockReturnValue(Promise.resolve(true));
 
       await initializeAuthentication();
 
-      expect(createScheduler).toHaveBeenCalledOnceWith(600000);
+      expect(createScheduler).toHaveBeenCalledExactlyOnceWith(600000);
     });
   });
 
   it('unsubscribes the scheduler and creates a new one after reset', async () => {
     const firstScheduler = createTestScheduler();
     const secondScheduler = createTestScheduler();
-    const createScheduler = spyOn(SchedulerFactory, 'createScheduler').and.returnValues(
-      firstScheduler,
-      secondScheduler,
-    );
-    spyOn(AuthenticationInitializer, 'authenticateUser').and.returnValue(Promise.resolve(true));
+    const createScheduler = vi
+      .spyOn(SchedulerFactory, 'createScheduler')
+      .mockReturnValueOnce(firstScheduler)
+      .mockReturnValueOnce(secondScheduler);
+    vi.spyOn(AuthenticationInitializer, 'authenticateUser').mockReturnValue(Promise.resolve(true));
 
     await initializeAuthentication();
     resetAuthenticationRuntime();
@@ -456,9 +460,13 @@ describe('initializeAuthentication', () => {
     const secondRequest = createDeferred<any>();
     const firstScheduler = createTestScheduler();
     const secondScheduler = createTestScheduler();
-    spyOn(SchedulerFactory, 'createScheduler').and.returnValues(firstScheduler, secondScheduler);
-    spyOn(AuthenticationInitializer as any, 'get').and.returnValues(firstRequest.promise, secondRequest.promise);
-    const loginRedirect = spyOn(AuthenticationInitializer, 'loginRedirect');
+    vi.spyOn(SchedulerFactory, 'createScheduler')
+      .mockReturnValueOnce(firstScheduler)
+      .mockReturnValueOnce(secondScheduler);
+    vi.spyOn(AuthenticationInitializer as any, 'get')
+      .mockReturnValueOnce(firstRequest.promise)
+      .mockReturnValueOnce(secondRequest.promise);
+    const loginRedirect = vi.spyOn(AuthenticationInitializer, 'loginRedirect').mockReturnValue(undefined);
 
     const firstInitialization = initializeAuthentication();
     resetAuthenticationRuntime();
@@ -474,7 +482,7 @@ describe('initializeAuthentication', () => {
 
     expect(await secondInitialization).toBe(true);
     expect(AuthenticationService.getAuthenticatedUser()).toEqual(
-      jasmine.objectContaining({ name: 'new-user', authenticated: true, roles: ['new-role'] }),
+      expect.objectContaining({ name: 'new-user', authenticated: true, roles: ['new-role'] }),
     );
     expect(loginRedirect).not.toHaveBeenCalled();
   });
@@ -484,9 +492,13 @@ describe('initializeAuthentication', () => {
     const secondRequest = createDeferred<any>();
     const firstScheduler = createTestScheduler();
     const secondScheduler = createTestScheduler();
-    spyOn(SchedulerFactory, 'createScheduler').and.returnValues(firstScheduler, secondScheduler);
-    spyOn(AuthenticationInitializer as any, 'get').and.returnValues(firstRequest.promise, secondRequest.promise);
-    const loginRedirect = spyOn(AuthenticationInitializer, 'loginRedirect');
+    vi.spyOn(SchedulerFactory, 'createScheduler')
+      .mockReturnValueOnce(firstScheduler)
+      .mockReturnValueOnce(secondScheduler);
+    vi.spyOn(AuthenticationInitializer as any, 'get')
+      .mockReturnValueOnce(firstRequest.promise)
+      .mockReturnValueOnce(secondRequest.promise);
+    const loginRedirect = vi.spyOn(AuthenticationInitializer, 'loginRedirect').mockReturnValue(undefined);
 
     const firstInitialization = initializeAuthentication();
     resetAuthenticationRuntime();
@@ -502,7 +514,7 @@ describe('initializeAuthentication', () => {
 
     expect(await secondInitialization).toBe(true);
     expect(AuthenticationService.getAuthenticatedUser()).toEqual(
-      jasmine.objectContaining({ name: 'new-user', authenticated: true, roles: ['new-role'] }),
+      expect.objectContaining({ name: 'new-user', authenticated: true, roles: ['new-role'] }),
     );
     expect(loginRedirect).not.toHaveBeenCalled();
   });

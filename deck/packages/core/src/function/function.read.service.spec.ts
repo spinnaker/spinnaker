@@ -1,4 +1,4 @@
-import { mockHttpClient } from '../api/mock/jasmine';
+import { mockHttpClient } from '../api/mock/mockHttpSupport';
 import type { MockHttpClient } from '../api/mock/mockHttpClient';
 import type { IFunctionTransformer } from './function.transformer';
 import type { IFunctionSourceData } from '../index';

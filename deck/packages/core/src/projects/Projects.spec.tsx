@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import type { ReactWrapper } from 'enzyme';
 import * as React from 'react';
 import { act } from 'react-dom/test-utils';
@@ -34,11 +35,13 @@ export function invokeSort(toggle: ReactWrapper<any>, next: string) {
 }
 
 describe('Projects', () => {
-  let listSpy: jasmine.Spy;
+  let listSpy: Mock;
 
   describe('filtering & sorting', () => {
     beforeEach(() => {
-      listSpy = spyOn(ProjectReaderModule.ProjectReader, 'listProjects').and.returnValue(Promise.resolve(projectList));
+      listSpy = vi
+        .spyOn(ProjectReaderModule.ProjectReader, 'listProjects')
+        .mockReturnValue(Promise.resolve(projectList));
     });
 
     afterEach(() => {
@@ -71,7 +74,7 @@ describe('Projects', () => {
       );
 
       const input = wrapper.find('input[placeholder="Search projects"]');
-      expect(input.exists()).toBeTrue();
+      expect(input.exists()).toBe(true);
 
       // Filter by email
       await act(async () => {

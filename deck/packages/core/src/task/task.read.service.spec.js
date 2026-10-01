@@ -1,5 +1,5 @@
 'use strict';
-import { mockHttpClient } from '../api/mock/jasmine';
+import { mockHttpClient } from '../api/mock/mockHttpSupport';
 import { TaskReader } from './task.read.service';
 
 describe('Service: taskReader', function () {
@@ -12,7 +12,7 @@ describe('Service: taskReader', function () {
     const pollCallbacks = [];
     const pollsByHandle = new Map();
     let nextHandle = -1;
-    spyOn(window, 'setTimeout').and.callFake((callback, delay, ...args) => {
+    vi.spyOn(window, 'setTimeout').mockImplementation((callback, delay, ...args) => {
       if (delay !== 1000) {
         return nativeSetTimeout.call(window, callback, delay, ...args);
       }
@@ -21,8 +21,8 @@ describe('Service: taskReader', function () {
       pollsByHandle.set(poll.handle, poll);
       return poll.handle;
     });
-    cancelPoll = jasmine.createSpy('cancelPoll');
-    spyOn(window, 'clearTimeout').and.callFake((handle) => {
+    cancelPoll = vi.fn();
+    vi.spyOn(window, 'clearTimeout').mockImplementation((handle) => {
       const poll = pollsByHandle.get(handle);
       if (poll) {
         poll.cancelled = true;
@@ -181,17 +181,17 @@ describe('Service: taskReader', function () {
       await http.flush();
       await completed;
 
-      expect(cancelPoll).toHaveBeenCalledOnceWith(pendingPoll);
+      expect(cancelPoll).toHaveBeenCalledExactlyOnceWith(pendingPoll);
     });
 
     it('cancelPolling stops a pending task poll', async function () {
       const http = mockHttpClient();
       const task = await getTask(http, { id: 1, status: 'RUNNING' });
-      cancelPoll.calls.reset();
+      cancelPoll.mockClear();
       TaskReader.waitUntilTaskCompletes(task);
       const pendingPoll = task.poller;
 
-      expect(TaskReader.cancelPolling).toEqual(jasmine.any(Function));
+      expect(TaskReader.cancelPolling).toEqual(expect.any(Function));
       if (!TaskReader.cancelPolling) {
         return;
       }
@@ -199,7 +199,7 @@ describe('Service: taskReader', function () {
       TaskReader.cancelPolling(task);
       TaskReader.cancelPolling(task);
 
-      expect(cancelPoll).toHaveBeenCalledOnceWith(pendingPoll);
+      expect(cancelPoll).toHaveBeenCalledExactlyOnceWith(pendingPoll);
       expect(task.poller).toBeUndefined();
       expect(runNextPoll).toThrowError('No pending task poll');
     });
@@ -207,13 +207,13 @@ describe('Service: taskReader', function () {
     it('replaces an existing poll for the same task', async function () {
       const http = mockHttpClient();
       const task = await getTask(http, { id: 1, status: 'RUNNING' });
-      cancelPoll.calls.reset();
+      cancelPoll.mockClear();
       TaskReader.waitUntilTaskCompletes(task);
       const firstPoll = task.poller;
 
       TaskReader.waitUntilTaskCompletes(task);
 
-      expect(cancelPoll).toHaveBeenCalledOnceWith(firstPoll);
+      expect(cancelPoll).toHaveBeenCalledExactlyOnceWith(firstPoll);
       expect(task.poller).not.toBe(firstPoll);
     });
 
@@ -223,7 +223,7 @@ describe('Service: taskReader', function () {
       const actualRequest = http.request.bind(http);
       let notifyRequestStarted;
       const requestStarted = new Promise((resolve) => (notifyRequestStarted = resolve));
-      spyOn(http, 'request').and.callFake((...args) => {
+      vi.spyOn(http, 'request').mockImplementation((...args) => {
         const response = actualRequest(...args);
         notifyRequestStarted();
         return response;
@@ -237,7 +237,7 @@ describe('Service: taskReader', function () {
       TaskReader.cancelPolling(task);
       await http.flush();
 
-      expect(cancelPoll).toHaveBeenCalledOnceWith(pendingPoll);
+      expect(cancelPoll).toHaveBeenCalledExactlyOnceWith(pendingPoll);
       expect(task.status).toBe('RUNNING');
       expect(task.poller).toBeUndefined();
       expect(runNextPoll).toThrowError('No pending task poll');

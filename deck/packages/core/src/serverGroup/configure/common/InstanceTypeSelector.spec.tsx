@@ -18,10 +18,10 @@ describe('InstanceTypeSelector', () => {
 
   it('renders the native selector and ignores unavailable instance types', async () => {
     const instanceTypeService = serviceWithCategories();
-    spyOnProperty(runtimeServices, 'instanceTypeService', 'get').and.returnValue(instanceTypeService as any);
+    vi.spyOn(runtimeServices, 'instanceTypeService', 'get').mockReturnValue(instanceTypeService as any);
     const command = commandWithFilteredTypes(['m5.large']);
 
-    const component = mount(<InstanceTypeSelector command={command as any} onTypeChanged={jasmine.createSpy()} />);
+    const component = mount(<InstanceTypeSelector command={command as any} onTypeChanged={vi.fn()} />);
     await settle(component);
 
     component.find('tr.instance-type-row').at(1).simulate('click');
@@ -33,8 +33,8 @@ describe('InstanceTypeSelector', () => {
   it('selects an available instance type, clears dirty state, loads details, and notifies', async () => {
     const instanceTypeDetails = { name: 'm5.large' };
     const instanceTypeService = serviceWithCategories(instanceTypeDetails);
-    spyOnProperty(runtimeServices, 'instanceTypeService', 'get').and.returnValue(instanceTypeService as any);
-    const onTypeChanged = jasmine.createSpy('onTypeChanged');
+    vi.spyOn(runtimeServices, 'instanceTypeService', 'get').mockReturnValue(instanceTypeService as any);
+    const onTypeChanged = vi.fn();
     const command = commandWithFilteredTypes(['m5.large']);
 
     const component = mount(<InstanceTypeSelector command={command as any} onTypeChanged={onTypeChanged} />);
@@ -51,10 +51,10 @@ describe('InstanceTypeSelector', () => {
 
   it('recomputes unavailable types when filtered instance types are replaced', async () => {
     const instanceTypeService = serviceWithCategories();
-    spyOnProperty(runtimeServices, 'instanceTypeService', 'get').and.returnValue(instanceTypeService as any);
+    vi.spyOn(runtimeServices, 'instanceTypeService', 'get').mockReturnValue(instanceTypeService as any);
     const command = commandWithFilteredTypes(['m5.large']);
 
-    const component = mount(<InstanceTypeSelector command={command as any} onTypeChanged={jasmine.createSpy()} />);
+    const component = mount(<InstanceTypeSelector command={command as any} onTypeChanged={vi.fn()} />);
     await settle(component);
 
     expect(component.find('tr.instance-type-row').at(1).hasClass('unavailable')).toBe(true);
@@ -68,12 +68,12 @@ describe('InstanceTypeSelector', () => {
   });
 
   it('shows dirty warning, unavailable marker, and storage override display', async () => {
-    spyOnProperty(runtimeServices, 'instanceTypeService', 'get').and.returnValue(serviceWithCategories() as any);
+    vi.spyOn(runtimeServices, 'instanceTypeService', 'get').mockReturnValue(serviceWithCategories() as any);
     const command = commandWithFilteredTypes(['m5.large']);
     command.instanceType = 'm5.large';
     command.viewState.overriddenStorageDescription = 'Custom storage';
 
-    const component = mount(<InstanceTypeSelector command={command as any} onTypeChanged={jasmine.createSpy()} />);
+    const component = mount(<InstanceTypeSelector command={command as any} onTypeChanged={vi.fn()} />);
     await settle(component);
 
     expect(component.find('.dirty-instance-type-warning').text()).toContain('previously selected instance type');
@@ -84,10 +84,10 @@ describe('InstanceTypeSelector', () => {
   });
 
   it('hides the dirty warning immediately when dismissed', async () => {
-    spyOnProperty(runtimeServices, 'instanceTypeService', 'get').and.returnValue(serviceWithCategories() as any);
+    vi.spyOn(runtimeServices, 'instanceTypeService', 'get').mockReturnValue(serviceWithCategories() as any);
     const command = commandWithFilteredTypes(['m5.large']);
 
-    const component = mount(<InstanceTypeSelector command={command as any} onTypeChanged={jasmine.createSpy()} />);
+    const component = mount(<InstanceTypeSelector command={command as any} onTypeChanged={vi.fn()} />);
     await settle(component);
 
     expect(component.find('.dirty-instance-type-warning').exists()).toBe(true);
@@ -109,7 +109,7 @@ function commandWithFilteredTypes(instanceTypes: string[]) {
 
 function serviceWithCategories(details = { name: 'm5.large' }) {
   return {
-    getCategories: jasmine.createSpy('getCategories').and.returnValue(
+    getCategories: vi.fn().mockReturnValue(
       Promise.resolve([
         {
           type: 'general',
@@ -132,7 +132,7 @@ function serviceWithCategories(details = { name: 'm5.large' }) {
         },
       ]),
     ),
-    getInstanceTypeDetails: jasmine.createSpy('getInstanceTypeDetails').and.returnValue(Promise.resolve(details)),
+    getInstanceTypeDetails: vi.fn().mockReturnValue(Promise.resolve(details)),
   };
 }
 

@@ -1,3 +1,4 @@
+import type { Mocked } from 'vitest';
 import { shallow } from 'enzyme';
 import type { FormikProps } from 'formik';
 import React from 'react';
@@ -36,7 +37,7 @@ describe('GCE server group Firewalls page', () => {
       tags: [{ value: 'existing-tag' }],
     });
     const { adapter, formik } = testProps(values);
-    adapter.applyCommandHandler.and.callFake(async (nextCommand) => ({
+    adapter.applyCommandHandler.mockImplementation(async (nextCommand) => ({
       command: { ...nextCommand, securityGroups: [], tags: [] },
       result: { dirty: { securityGroups: ['persisted-firewall'] } },
     }));
@@ -49,11 +50,11 @@ describe('GCE server group Firewalls page', () => {
     });
     await flush();
 
-    const changedCommand = adapter.applyCommandHandler.calls.mostRecent().args[0];
+    const changedCommand = adapter.applyCommandHandler.mock.lastCall[0];
     expect(changedCommand.securityGroups).toEqual(['web-firewall', 'persisted-firewall']);
     expect(adapter.applyCommandHandler).toHaveBeenCalledWith(changedCommand, 'networkChanged');
     expect(formik.setValues).toHaveBeenCalledWith(
-      jasmine.objectContaining({
+      expect.objectContaining({
         securityGroups: ['web-firewall', 'persisted-firewall'],
         tags: [{ value: 'existing-tag' }],
       }),
@@ -73,12 +74,12 @@ describe('GCE server group Firewalls page', () => {
       .simulate('change', { target: { checked: true } });
     await flush();
 
-    const changedCommand = adapter.applyCommandHandler.calls.mostRecent().args[0];
+    const changedCommand = adapter.applyCommandHandler.mock.lastCall[0];
     expect(changedCommand.securityGroups).toEqual(['web-firewall', 'api-firewall']);
     expect(changedCommand.tags).toEqual([{ value: 'existing-tag' }, { value: 'shared' }]);
     expect(adapter.applyCommandHandler).toHaveBeenCalledWith(changedCommand, 'networkChanged');
     expect(formik.setValues).toHaveBeenCalledWith(
-      jasmine.objectContaining({
+      expect.objectContaining({
         securityGroups: ['web-firewall', 'api-firewall'],
         tags: [{ value: 'existing-tag' }, { value: 'shared' }],
       }),
@@ -98,7 +99,7 @@ describe('GCE server group Firewalls page', () => {
       .simulate('change', { target: { checked: false } });
     await flush();
 
-    const changedCommand = adapter.applyCommandHandler.calls.mostRecent().args[0];
+    const changedCommand = adapter.applyCommandHandler.mock.lastCall[0];
     expect(changedCommand.securityGroups).toEqual(['persisted-firewall']);
     expect(changedCommand.tags).toEqual([{ value: 'existing-tag' }]);
   });
@@ -109,7 +110,7 @@ describe('GCE server group Firewalls page', () => {
       tags: [{ value: 'existing-tag' }],
     });
     const { adapter, formik } = testProps(values);
-    adapter.applyConfigurationRefresh.and.resolveTo({
+    adapter.applyConfigurationRefresh.mockResolvedValue({
       command: {
         ...values,
         backingData: { ...values.backingData, refreshed: true },
@@ -125,8 +126,8 @@ describe('GCE server group Firewalls page', () => {
 
     expect(adapter.applyConfigurationRefresh).toHaveBeenCalledWith(values, 'refreshSecurityGroups');
     expect(formik.setValues).toHaveBeenCalledWith(
-      jasmine.objectContaining({
-        backingData: jasmine.objectContaining({ refreshed: true }),
+      expect.objectContaining({
+        backingData: expect.objectContaining({ refreshed: true }),
         securityGroups: ['persisted-firewall'],
         tags: [{ value: 'existing-tag' }],
       }),
@@ -143,17 +144,19 @@ function selectOptions(wrapper: ReturnType<typeof shallow>): string[][] {
 function testProps(values = command()) {
   const formik = ({
     values,
-    setFieldValue: jasmine.createSpy('setFieldValue'),
-    setValues: jasmine.createSpy('setValues'),
+    setFieldValue: vi.fn(),
+    setValues: vi.fn(),
   } as unknown) as FormikProps<IGceServerGroupCommand>;
   const adapter = ({
-    applyCommandHandler: jasmine
-      .createSpy('applyCommandHandler')
-      .and.callFake(async (nextCommand: IGceServerGroupCommand) => ({ command: nextCommand, result: { dirty: {} } })),
-    applyConfigurationRefresh: jasmine
-      .createSpy('applyConfigurationRefresh')
-      .and.callFake(async (nextCommand: IGceServerGroupCommand) => ({ command: nextCommand, result: { dirty: {} } })),
-  } as unknown) as jasmine.SpyObj<IGceServerGroupWizardAdapter>;
+    applyCommandHandler: vi.fn().mockImplementation(async (nextCommand: IGceServerGroupCommand) => ({
+      command: nextCommand,
+      result: { dirty: {} },
+    })),
+    applyConfigurationRefresh: vi.fn().mockImplementation(async (nextCommand: IGceServerGroupCommand) => ({
+      command: nextCommand,
+      result: { dirty: {} },
+    })),
+  } as unknown) as Mocked<IGceServerGroupWizardAdapter>;
   return { adapter, formik };
 }
 

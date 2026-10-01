@@ -37,11 +37,11 @@ describe('Service: instance writer', function () {
       });
       let executedTask: IJob = null;
 
-      spyOn(TaskExecutor, 'executeTask').and.callFake((task: ITaskCommand) => {
+      vi.spyOn(TaskExecutor, 'executeTask').mockImplementation((task: ITaskCommand) => {
         executedTask = task.job[0];
         return undefined;
       });
-      spyOn(ServerGroupReader, 'getServerGroup').and.returnValue(Promise.resolve(serverGroup as any));
+      vi.spyOn(ServerGroupReader, 'getServerGroup').mockReturnValue(Promise.resolve(serverGroup as any));
 
       await InstanceWriter.terminateInstanceAndShrinkServerGroup(instance, application, {});
 
@@ -68,7 +68,7 @@ describe('Service: instance writer', function () {
 
     beforeEach(() => {
       task = null;
-      spyOn(TaskExecutor, 'executeTask').and.callFake((command: ITaskCommand) => {
+      vi.spyOn(TaskExecutor, 'executeTask').mockImplementation((command: ITaskCommand) => {
         task = command;
         return undefined;
       });
@@ -146,7 +146,7 @@ describe('Service: instance writer', function () {
         instances: [],
       };
 
-      spyOn(TaskExecutor, 'executeTask').and.callFake((command: ITaskCommand) => {
+      vi.spyOn(TaskExecutor, 'executeTask').mockImplementation((command: ITaskCommand) => {
         task = command;
         return undefined;
       });

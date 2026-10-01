@@ -4,9 +4,9 @@ describe('createLoadBalancerTransformer', () => {
   const provider = 'loadBalancerTransformerTest';
 
   it('preserves provider item and set normalization', async () => {
-    const normalizeLoadBalancerSet = jasmine
-      .createSpy('normalizeLoadBalancerSet')
-      .and.callFake((loadBalancers: any[]) => loadBalancers.slice().reverse());
+    const normalizeLoadBalancerSet = vi
+      .fn()
+      .mockImplementation((loadBalancers: any[]) => loadBalancers.slice().reverse());
     const providerTransformer = {
       context: provider,
       normalizeLoadBalancer(loadBalancer: any) {
@@ -15,13 +15,13 @@ describe('createLoadBalancerTransformer', () => {
     };
     const providerSetTransformer = { normalizeLoadBalancerSet };
     const providerServiceDelegate = {
-      hasDelegate: jasmine.createSpy('hasDelegate').and.callFake((requestedProvider: string, serviceKey: string) => {
+      hasDelegate: vi.fn().mockImplementation((requestedProvider: string, serviceKey: string) => {
         return (
           requestedProvider === provider &&
           ['loadBalancer.transformer', 'loadBalancer.setTransformer'].includes(serviceKey)
         );
       }),
-      getDelegate: jasmine.createSpy('getDelegate').and.callFake((_requestedProvider: string, serviceKey: string) => {
+      getDelegate: vi.fn().mockImplementation((_requestedProvider: string, serviceKey: string) => {
         return serviceKey === 'loadBalancer.transformer' ? providerTransformer : providerSetTransformer;
       }),
     };
@@ -32,7 +32,7 @@ describe('createLoadBalancerTransformer', () => {
     ];
 
     await expectAsync(transformer.normalizeLoadBalancer(loadBalancers[0])).toBeResolvedTo(
-      jasmine.objectContaining({ context: provider }),
+      expect.objectContaining({ context: provider }),
     );
     expect(transformer.normalizeLoadBalancerSet(loadBalancers)).toEqual(loadBalancers.slice().reverse());
     expect(normalizeLoadBalancerSet).toHaveBeenCalledTimes(1);
@@ -46,8 +46,8 @@ describe('createLoadBalancerTransformer', () => {
     const createdDelegates: any[] = [];
     const invokedDelegates: any[] = [];
     const providerServiceDelegate = {
-      hasDelegate: jasmine.createSpy('hasDelegate').and.returnValue(true),
-      getDelegate: jasmine.createSpy('getDelegate').and.callFake((requestedProvider: string) => {
+      hasDelegate: vi.fn().mockReturnValue(true),
+      getDelegate: vi.fn().mockImplementation((requestedProvider: string) => {
         resolvedProviders.push(requestedProvider);
         const delegate = {
           normalizeLoadBalancerSet(loadBalancers: any[]) {
@@ -70,7 +70,7 @@ describe('createLoadBalancerTransformer', () => {
 
     expect(transformer.normalizeLoadBalancerSet(loadBalancers)).toBe(loadBalancers);
     expect(resolvedProviders).toEqual([provider, secondProvider]);
-    expect(providerServiceDelegate.hasDelegate.calls.allArgs()).toEqual([
+    expect(providerServiceDelegate.hasDelegate.mock.calls).toEqual([
       [provider, 'loadBalancer.setTransformer'],
       [secondProvider, 'loadBalancer.setTransformer'],
     ]);
@@ -79,8 +79,8 @@ describe('createLoadBalancerTransformer', () => {
 
   it('leaves unregistered providers unchanged', async () => {
     const providerServiceDelegate = {
-      hasDelegate: jasmine.createSpy('hasDelegate').and.returnValue(false),
-      getDelegate: jasmine.createSpy('getDelegate'),
+      hasDelegate: vi.fn().mockReturnValue(false),
+      getDelegate: vi.fn(),
     };
     const transformer = createLoadBalancerTransformer(providerServiceDelegate);
     const loadBalancer = { name: 'app-test-detail', provider };

@@ -27,7 +27,7 @@ describe('Overridable', () => {
     const wrapper = mount(<OriginalComponent />);
 
     expect(wrapper.find('.override').text()).toBe('Override');
-    expect(wrapper.find('.original').exists()).toBeFalse();
+    expect(wrapper.find('.original').exists()).toBe(false);
   });
 
   it('flushes queued override registrations into the singleton registry', () => {
@@ -69,6 +69,6 @@ describe('Overridable', () => {
     const wrapper = mount(<OriginalComponent accountId="test" />);
 
     expect(wrapper.find('.override').text()).toBe('Override');
-    expect(wrapper.find('.original').exists()).toBeFalse();
+    expect(wrapper.find('.original').exists()).toBe(false);
   });
 });

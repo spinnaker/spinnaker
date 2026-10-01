@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { RequestBuilder } from '../api';
 import type { IDeckPlugin } from './deck.plugin';
 import type { IStageTypeConfig } from '../domain';
@@ -11,11 +12,11 @@ const fakeFetchResponse = (data: any = []) => ({ ok: true, json: () => Promise.r
 
 describe('PluginRegistry', () => {
   let pluginRegistry: PluginRegistry;
-  let loadModuleFromUrlSpy: jasmine.Spy;
+  let loadModuleFromUrlSpy: Mock;
   beforeEach(() => {
     pluginRegistry = new PluginRegistry() as any;
     // @ts-ignore
-    loadModuleFromUrlSpy = spyOn(pluginRegistry, 'loadModuleFromUrl');
+    loadModuleFromUrlSpy = vi.spyOn(pluginRegistry, 'loadModuleFromUrl').mockReturnValue(undefined);
   });
 
   describe('.register()', () => {
@@ -29,33 +30,33 @@ describe('PluginRegistry', () => {
       pluginRegistry.registerPluginMetaData('deck', plugin1);
       pluginRegistry.registerPluginMetaData('deck', plugin2);
       expect(pluginRegistry.getRegisteredPlugins().length).toBe(2);
-      expect(pluginRegistry.getRegisteredPlugins()[0]).toEqual(jasmine.objectContaining(plugin1));
-      expect(pluginRegistry.getRegisteredPlugins()[1]).toEqual(jasmine.objectContaining(plugin2));
+      expect(pluginRegistry.getRegisteredPlugins()[0]).toEqual(expect.objectContaining(plugin1));
+      expect(pluginRegistry.getRegisteredPlugins()[1]).toEqual(expect.objectContaining(plugin2));
     });
   });
 
   it('loadPluginManifestFromDeck() should fetch /plugin-manifest.json from deck assets', async () => {
-    const spy = spyOn(window, 'fetch').and.callFake(() => Promise.resolve(fakeFetchResponse()));
+    const spy = vi.spyOn(window, 'fetch').mockImplementation(() => Promise.resolve(fakeFetchResponse()));
     await pluginRegistry.loadPluginManifestFromDeck();
     expect(spy).toHaveBeenCalledWith('/plugin-manifest.json', { credentials: 'include' });
   });
 
   it('loadPluginManifestFromGate() should fetch from gate /plugins/deck/plugin-manifest.json', async () => {
-    const spy = spyOn(RequestBuilder.defaultHttpClient, 'get').and.callFake(() => Promise.resolve([] as any));
+    const spy = vi.spyOn(RequestBuilder.defaultHttpClient, 'get').mockImplementation(() => Promise.resolve([] as any));
     await pluginRegistry.loadPluginManifestFromGate();
     expect(spy).toHaveBeenCalled();
   });
 
   it('loadPluginManifestFromDeck() should return empty array on error', async () => {
-    spyOn(window, 'fetch').and.callFake(() => Promise.reject({ data: null }));
-    spyOn(console, 'error').and.stub();
+    vi.spyOn(window, 'fetch').mockImplementation(() => Promise.reject({ data: null }));
+    vi.spyOn(console, 'error').mockReturnValue(undefined);
     const result = await pluginRegistry.loadPluginManifestFromDeck();
     expect(result).toEqual([]);
   });
 
   it('loadPluginManifestFromGate() should return empty array on error', async () => {
-    spyOn(RequestBuilder.defaultHttpClient, 'get').and.callFake(() => Promise.reject({ data: null }));
-    spyOn(console, 'error').and.stub();
+    vi.spyOn(RequestBuilder.defaultHttpClient, 'get').mockImplementation(() => Promise.reject({ data: null }));
+    vi.spyOn(console, 'error').mockReturnValue(undefined);
     const result = await pluginRegistry.loadPluginManifestFromGate();
     expect(result).toEqual([]);
   });
@@ -73,24 +74,24 @@ describe('PluginRegistry', () => {
 
     it('should load all registered plugins', async () => {
       // @ts-ignore
-      const loadSpy = spyOn(pluginRegistry, 'load').and.callFake(fakePromise());
+      const loadSpy = vi.spyOn(pluginRegistry, 'load').mockImplementation(fakePromise());
       const plugin1 = { id: 'foo', version: '1.0.0' };
       const plugin2 = { id: 'bar', version: '1.0.0' };
       pluginRegistry.registerPluginMetaData('deck', plugin1);
       pluginRegistry.registerPluginMetaData('deck', plugin2);
 
-      expect(loadSpy.calls.count()).toBe(0);
+      expect(loadSpy.mock.calls.length).toBe(0);
 
       await pluginRegistry.loadPlugins();
 
-      expect(loadSpy.calls.count()).toBe(2);
-      expect(loadSpy.calls.first().args[0]).toEqual(jasmine.objectContaining(plugin1));
-      expect(loadSpy.calls.mostRecent().args[0]).toEqual(jasmine.objectContaining(plugin2));
+      expect(loadSpy.mock.calls.length).toBe(2);
+      expect(loadSpy.mock.calls[0][0]).toEqual(expect.objectContaining(plugin1));
+      expect(loadSpy.mock.lastCall[0]).toEqual(expect.objectContaining(plugin2));
     });
 
     it('should represent a failed plugin load as undefined and log sanitized context', async () => {
-      loadModuleFromUrlSpy.and.callFake(fakePromise({}));
-      const errorSpy = spyOn(console, 'error').and.stub();
+      loadModuleFromUrlSpy.mockImplementation(fakePromise({}));
+      const errorSpy = vi.spyOn(console, 'error').mockReturnValue(undefined);
       const plugin1 = {
         id: 'foo',
         version: '1.0.0',
@@ -99,7 +100,7 @@ describe('PluginRegistry', () => {
       pluginRegistry.registerPluginMetaData('deck', plugin1);
 
       await expectAsync(pluginRegistry.loadPlugins()).toBeResolvedTo([undefined]);
-      expect(errorSpy).toHaveBeenCalledOnceWith(
+      expect(errorSpy).toHaveBeenCalledExactlyOnceWith(
         'Failed to load plugin foo code from https://example.com/plugins/foo.js',
       );
     });
@@ -121,13 +122,13 @@ describe('PluginRegistry', () => {
       };
       const failedPlugin = { id: 'failed-plugin', version: '1.0.0', url: '/plugins/failed.js' };
       const deferredPlugin = { id: 'deferred-plugin', version: '1.0.0', url: '/plugins/deferred.js' };
-      const errorSpy = spyOn(console, 'error').and.callFake(() => resolveFailureLogged());
-      loadModuleFromUrlSpy.and.callFake((url: string) =>
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => resolveFailureLogged());
+      loadModuleFromUrlSpy.mockImplementation((url: string) =>
         url === failedPlugin.url ? failedModulePromise : Promise.resolve(successfulModule),
       );
       pluginRegistry.registerPluginMetaData('deck', failedPlugin);
       const deferredMetadata = pluginRegistry.registerPluginMetaData('deck', deferredPlugin)!;
-      spyOn(Registry.pipeline, 'registerPreconfiguredJobStage').and.returnValue(extensionRegistrationPromise);
+      vi.spyOn(Registry.pipeline, 'registerPreconfiguredJobStage').mockReturnValue(extensionRegistrationPromise);
 
       let resolved = false;
       let rejected = false;
@@ -148,18 +149,20 @@ describe('PluginRegistry', () => {
       await failureLoggedPromise;
       await Promise.resolve();
 
-      expect(resolved).toBeFalse();
-      expect(rejected).toBeFalse();
+      expect(resolved).toBe(false);
+      expect(rejected).toBe(false);
       expect(deferredMetadata.module).toBeUndefined();
 
       resolveExtensionRegistration(stage);
       await aggregatePromise;
 
-      expect(resolved).toBeTrue();
-      expect(rejected).toBeFalse();
+      expect(resolved).toBe(true);
+      expect(rejected).toBe(false);
       expect(result).toEqual([undefined, successfulModule]);
       expect(deferredMetadata.module).toBe(successfulModule);
-      expect(errorSpy).toHaveBeenCalledOnceWith('Failed to load plugin failed-plugin code from /plugins/failed.js');
+      expect(errorSpy).toHaveBeenCalledExactlyOnceWith(
+        'Failed to load plugin failed-plugin code from /plugins/failed.js',
+      );
     });
 
     it('isolates a rejected extension registration and does not expose its module', async () => {
@@ -173,9 +176,9 @@ describe('PluginRegistry', () => {
         url: 'https://user:password@example.com/plugins/failed.js?token=secret#fragment',
       };
       const successfulPlugin = { id: 'successful-plugin', version: '1.0.0', url: '/plugins/successful.js' };
-      const errorSpy = spyOn(console, 'error').and.stub();
-      spyOn(Registry.pipeline, 'registerPreconfiguredJobStage').and.returnValue(Promise.reject(registrationError));
-      loadModuleFromUrlSpy.and.callFake((url: string) =>
+      const errorSpy = vi.spyOn(console, 'error').mockReturnValue(undefined);
+      vi.spyOn(Registry.pipeline, 'registerPreconfiguredJobStage').mockReturnValue(Promise.reject(registrationError));
+      loadModuleFromUrlSpy.mockImplementation((url: string) =>
         Promise.resolve(url === failedPlugin.url ? failedModule : successfulModule),
       );
       const failedMetadata = pluginRegistry.registerPluginMetaData('deck', failedPlugin)!;
@@ -185,7 +188,7 @@ describe('PluginRegistry', () => {
 
       expect(failedMetadata.module).toBeUndefined();
       expect(successfulMetadata.module).toBe(successfulModule);
-      expect(errorSpy).toHaveBeenCalledOnceWith(
+      expect(errorSpy).toHaveBeenCalledExactlyOnceWith(
         'Failed to load plugin failed-plugin code from https://example.com/plugins/failed.js',
       );
     });
@@ -202,11 +205,11 @@ describe('PluginRegistry', () => {
       const pluginModuleWithExtensions = {
         plugin: { preconfiguredJobStages: [rejectedStage, deferredStage] },
       };
-      const errorSpy = spyOn(console, 'error').and.stub();
-      spyOn(Registry.pipeline, 'registerPreconfiguredJobStage').and.callFake((stage) =>
+      const errorSpy = vi.spyOn(console, 'error').mockReturnValue(undefined);
+      vi.spyOn(Registry.pipeline, 'registerPreconfiguredJobStage').mockImplementation((stage) =>
         stage === rejectedStage ? rejectedRegistration : deferredRegistration,
       );
-      loadModuleFromUrlSpy.and.returnValue(Promise.resolve(pluginModuleWithExtensions));
+      loadModuleFromUrlSpy.mockReturnValue(Promise.resolve(pluginModuleWithExtensions));
       const metadata = pluginRegistry.registerPluginMetaData('deck', plugin)!;
       let settled = false;
 
@@ -217,13 +220,15 @@ describe('PluginRegistry', () => {
       rejectRegistration(registrationError);
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(settled).toBeFalse();
+      expect(settled).toBe(false);
       expect(errorSpy).not.toHaveBeenCalled();
       expect(metadata.module).toBeUndefined();
 
       resolveRegistration(deferredStage);
       await expectAsync(aggregatePromise).toBeResolvedTo([undefined]);
-      expect(errorSpy).toHaveBeenCalledOnceWith('Failed to load plugin failed-plugin code from /plugins/failed.js');
+      expect(errorSpy).toHaveBeenCalledExactlyOnceWith(
+        'Failed to load plugin failed-plugin code from /plugins/failed.js',
+      );
       expect(metadata.module).toBeUndefined();
     });
 
@@ -236,10 +241,12 @@ describe('PluginRegistry', () => {
       const pluginModuleWithExtensions = {
         plugin: { preconfiguredJobStages: [stage], help: { key: 'value' } },
       };
-      const errorSpy = spyOn(console, 'error').and.stub();
-      spyOn(Registry.pipeline, 'registerPreconfiguredJobStage').and.returnValue(deferredRegistration);
-      spyOn(HelpContentsRegistry, 'register').and.throwError(registrationError);
-      loadModuleFromUrlSpy.and.returnValue(Promise.resolve(pluginModuleWithExtensions));
+      const errorSpy = vi.spyOn(console, 'error').mockReturnValue(undefined);
+      vi.spyOn(Registry.pipeline, 'registerPreconfiguredJobStage').mockReturnValue(deferredRegistration);
+      vi.spyOn(HelpContentsRegistry, 'register').mockImplementation(() => {
+        throw registrationError;
+      });
+      loadModuleFromUrlSpy.mockReturnValue(Promise.resolve(pluginModuleWithExtensions));
       const metadata = pluginRegistry.registerPluginMetaData('deck', plugin)!;
       let settled = false;
 
@@ -249,37 +256,41 @@ describe('PluginRegistry', () => {
       });
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(settled).toBeFalse();
+      expect(settled).toBe(false);
       expect(errorSpy).not.toHaveBeenCalled();
       expect(metadata.module).toBeUndefined();
 
       resolveRegistration(stage);
       await expectAsync(aggregatePromise).toBeResolvedTo([undefined]);
-      expect(errorSpy).toHaveBeenCalledOnceWith('Failed to load plugin failed-plugin code from /plugins/failed.js');
+      expect(errorSpy).toHaveBeenCalledExactlyOnceWith(
+        'Failed to load plugin failed-plugin code from /plugins/failed.js',
+      );
       expect(metadata.module).toBeUndefined();
     });
 
     it('starts every plugin attempt and isolates a synchronous load throw', async () => {
       const firstPlugin = { id: 'first-plugin', version: '1.0.0', url: '/plugins/first.js' };
       const secondPlugin = { id: 'second-plugin', version: '1.0.0', url: '/plugins/second.js' };
-      const loadSpy = spyOn<any>(pluginRegistry, 'load').and.callFake((plugin: IPluginMetaData) => {
+      const loadSpy = vi.spyOn<any>(pluginRegistry, 'load').mockImplementation((plugin: IPluginMetaData) => {
         if (plugin.id === firstPlugin.id) {
           throw new Error('synchronous load failure');
         }
         return Promise.resolve(pluginModule);
       });
-      const errorSpy = spyOn(console, 'error').and.stub();
+      const errorSpy = vi.spyOn(console, 'error').mockReturnValue(undefined);
       pluginRegistry.registerPluginMetaData('deck', firstPlugin);
       pluginRegistry.registerPluginMetaData('deck', secondPlugin);
 
       await expectAsync(pluginRegistry.loadPlugins()).toBeResolvedTo([undefined, pluginModule]);
 
       expect(loadSpy).toHaveBeenCalledTimes(2);
-      expect(errorSpy).toHaveBeenCalledOnceWith('Failed to load plugin first-plugin code from /plugins/first.js');
+      expect(errorSpy).toHaveBeenCalledExactlyOnceWith(
+        'Failed to load plugin first-plugin code from /plugins/first.js',
+      );
     });
 
     it('isolates and logs metadata validation failures', async () => {
-      const errorSpy = spyOn(console, 'error').and.stub();
+      const errorSpy = vi.spyOn(console, 'error').mockReturnValue(undefined);
       const invalidMetadata = pluginRegistry.registerPluginMetaData('deck', {
         id: 'invalid-plugin',
         version: '1.0.0',
@@ -290,11 +301,11 @@ describe('PluginRegistry', () => {
       await expectAsync(pluginRegistry.loadPlugins()).toBeResolvedTo([undefined]);
 
       expect(loadModuleFromUrlSpy).not.toHaveBeenCalled();
-      expect(errorSpy).toHaveBeenCalledOnceWith('Failed to load plugin <unknown> code from /plugins/invalid.js');
+      expect(errorSpy).toHaveBeenCalledExactlyOnceWith('Failed to load plugin <unknown> code from /plugins/invalid.js');
     });
 
     it('should resolve to all loaded plugin modules', async () => {
-      loadModuleFromUrlSpy.and.callFake(fakePromise(pluginModule));
+      loadModuleFromUrlSpy.mockImplementation(fakePromise(pluginModule));
       const plugin1 = { id: 'foo', version: '1.0.0' };
       pluginRegistry.registerPluginMetaData('deck', plugin1);
 
@@ -302,7 +313,7 @@ describe('PluginRegistry', () => {
     });
 
     it('normalizes authoritative id, url, and source without exposing a manifest module', async () => {
-      loadModuleFromUrlSpy.and.callFake(fakePromise(pluginModule));
+      loadModuleFromUrlSpy.mockImplementation(fakePromise(pluginModule));
       const plugin1 = {
         id: 'io.spinnaker.test.plugin',
         name: 'malicious-name',
@@ -322,7 +333,7 @@ describe('PluginRegistry', () => {
     });
 
     it('prefers plugins from deck manifest over plugins from gate manifest', async () => {
-      loadModuleFromUrlSpy.and.callFake(fakePromise(pluginModule));
+      loadModuleFromUrlSpy.mockImplementation(fakePromise(pluginModule));
       const deckManifest = {
         id: 'io.spinnaker.test.plugin',
         version: '1.0.1',
@@ -346,7 +357,7 @@ describe('PluginRegistry', () => {
     });
 
     it('prefers plugins from deck manifest regardless of registration order', async () => {
-      loadModuleFromUrlSpy.and.callFake(fakePromise(pluginModule));
+      loadModuleFromUrlSpy.mockImplementation(fakePromise(pluginModule));
       const deckManifest = {
         id: 'io.spinnaker.test.plugin',
         version: '1.0.1',
@@ -370,14 +381,14 @@ describe('PluginRegistry', () => {
     });
 
     it('should return the normalized metadata object', async () => {
-      loadModuleFromUrlSpy.and.callFake(fakePromise(pluginModule));
+      loadModuleFromUrlSpy.mockImplementation(fakePromise(pluginModule));
       const plugin1 = { id: 'foo', version: '1.0.0' } as IPluginMetaData;
       const normalized = pluginRegistry.registerPluginMetaData('deck', plugin1);
       expect(pluginRegistry.getRegisteredPlugins()[0]).toBe(normalized);
     });
 
     it('should store the loaded module onto the metadata object', async () => {
-      loadModuleFromUrlSpy.and.callFake(fakePromise(pluginModule));
+      loadModuleFromUrlSpy.mockImplementation(fakePromise(pluginModule));
       const plugin1 = { id: 'foo', version: '1.0.0' } as IPluginMetaData;
       const normalized = pluginRegistry.registerPluginMetaData('deck', plugin1);
 
@@ -386,8 +397,8 @@ describe('PluginRegistry', () => {
     });
 
     it('should register stages found on the plugin', async () => {
-      const registerStageSpy = spyOn(Registry.pipeline, 'registerStage');
-      loadModuleFromUrlSpy.and.callFake(fakePromise(pluginModule));
+      const registerStageSpy = vi.spyOn(Registry.pipeline, 'registerStage').mockReturnValue(undefined);
+      loadModuleFromUrlSpy.mockImplementation(fakePromise(pluginModule));
       const plugin1 = { id: 'foo', version: '1.0.0' };
       pluginRegistry.registerPluginMetaData('deck', plugin1);
 

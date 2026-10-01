@@ -75,12 +75,12 @@ describe('GceHttpLoadBalancerModal', () => {
   });
 
   it('returns exact operations without executing a task in pipeline-edit mode', () => {
-    const closeModal = jasmine.createSpy('closeModal');
-    const executeTask = spyOn(TaskExecutor, 'executeTask');
+    const closeModal = vi.fn();
+    const executeTask = vi.spyOn(TaskExecutor, 'executeTask').mockReturnValue(undefined);
     const modal = new GceHttpLoadBalancerModal({
       app: application,
       closeModal,
-      dismissModal: jasmine.createSpy('dismissModal'),
+      dismissModal: vi.fn(),
       forPipelineConfig: true,
       isNew: false,
       loadBalancer: {
@@ -109,17 +109,17 @@ describe('GceHttpLoadBalancerModal', () => {
 
     expect((modal as any).state.command.mode).toBe('pipeline');
     expect(executeTask).not.toHaveBeenCalled();
-    expect(closeModal).toHaveBeenCalledOnceWith(expectedOperations);
+    expect(closeModal).toHaveBeenCalledExactlyOnceWith(expectedOperations);
     expect(expectedOperations.map(({ loadBalancerName }) => loadBalancerName)).toEqual(['frontend']);
   });
 
   it('executes an update task instead of returning operations in infrastructure-edit mode', () => {
-    const closeModal = jasmine.createSpy('closeModal');
-    const executeTask = spyOn(TaskExecutor, 'executeTask').and.returnValue(Promise.resolve({ id: 'task' }) as any);
+    const closeModal = vi.fn();
+    const executeTask = vi.spyOn(TaskExecutor, 'executeTask').mockReturnValue(Promise.resolve({ id: 'task' }) as any);
     const modal = new GceHttpLoadBalancerModal({
       app: application,
       closeModal,
-      dismissModal: jasmine.createSpy('dismissModal'),
+      dismissModal: vi.fn(),
       forPipelineConfig: false,
       isNew: false,
       loadBalancer: {
@@ -139,7 +139,7 @@ describe('GceHttpLoadBalancerModal', () => {
 
     expect((modal as any).state.command.mode).toBe('edit');
     expect(closeModal).not.toHaveBeenCalled();
-    expect(executeTask).toHaveBeenCalledOnceWith({
+    expect(executeTask).toHaveBeenCalledExactlyOnceWith({
       application,
       description: 'Update Load Balancer: test-app-main',
       job: expectedOperations,
@@ -147,11 +147,11 @@ describe('GceHttpLoadBalancerModal', () => {
   });
 
   it('executes normalized listener jobs in infrastructure mode', () => {
-    const executeTask = jasmine.createSpy('executeTask').and.returnValue(Promise.resolve({ id: 'task' }));
+    const executeTask = vi.fn().mockReturnValue(Promise.resolve({ id: 'task' }));
     const modal = new GceHttpLoadBalancerModal({
       app: application,
-      closeModal: jasmine.createSpy('closeModal'),
-      dismissModal: jasmine.createSpy('dismissModal'),
+      closeModal: vi.fn(),
+      dismissModal: vi.fn(),
       executeTask,
       loadBalancer: {
         account: 'account-a',
@@ -174,10 +174,10 @@ describe('GceHttpLoadBalancerModal', () => {
     (modal as any).submit();
 
     expect(executeTask).toHaveBeenCalled();
-    const jobs = executeTask.calls.mostRecent().args[0].job;
+    const jobs = executeTask.mock.lastCall[0].job;
     expect(jobs.map(({ name }: any) => name)).toEqual(['frontend-a', 'frontend-b']);
     expect(jobs[0]).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         ipAddress: 'address-a',
         ipProtocol: 'TCP',
         loadBalancerName: 'frontend-a',
@@ -189,11 +189,11 @@ describe('GceHttpLoadBalancerModal', () => {
   });
 
   it('serializes INTERNAL_MANAGED HTTPS listeners with certificates', () => {
-    const closeModal = jasmine.createSpy('closeModal');
+    const closeModal = vi.fn();
     const modal = new GceHttpLoadBalancerModal({
       app: application,
       closeModal,
-      dismissModal: jasmine.createSpy('dismissModal'),
+      dismissModal: vi.fn(),
       forPipelineConfig: true,
       loadBalancer: {
         account: 'account-a',
@@ -220,7 +220,7 @@ describe('GceHttpLoadBalancerModal', () => {
     (modal as any).submit();
 
     expect(closeModal).toHaveBeenCalledWith([
-      jasmine.objectContaining({
+      expect.objectContaining({
         certificate: 'regional-cert',
         loadBalancerName: 'internal-https',
         portRange: '443',
@@ -231,13 +231,13 @@ describe('GceHttpLoadBalancerModal', () => {
   (['HTTP', 'INTERNAL_MANAGED'] as const).forEach((loadBalancerType) => {
     ['pipeline', 'infrastructure'].forEach((submissionMode) => {
       it(`rejects ${loadBalancerType} ${submissionMode} commands with an unresolved path default and non-443 HTTPS port`, () => {
-        const closeModal = jasmine.createSpy('closeModal');
-        const executeTask = jasmine.createSpy('executeTask');
+        const closeModal = vi.fn();
+        const executeTask = vi.fn();
         const props = {
           app: application,
           closeModal,
           data: emptyData,
-          dismissModal: jasmine.createSpy('dismissModal'),
+          dismissModal: vi.fn(),
           executeTask,
           forPipelineConfig: submissionMode === 'pipeline',
           loadBalancer: {
@@ -280,13 +280,13 @@ describe('GceHttpLoadBalancerModal', () => {
 
   ['pipeline', 'infrastructure'].forEach((submissionMode) => {
     it(`does not submit invalid ${submissionMode} commands`, () => {
-      const closeModal = jasmine.createSpy('closeModal');
-      const executeTask = jasmine.createSpy('executeTask');
+      const closeModal = vi.fn();
+      const executeTask = vi.fn();
       const props = {
         app: application,
         closeModal,
         data: emptyData,
-        dismissModal: jasmine.createSpy('dismissModal'),
+        dismissModal: vi.fn(),
         executeTask,
         forPipelineConfig: submissionMode === 'pipeline',
         loadBalancer: {
@@ -313,9 +313,9 @@ describe('GceHttpLoadBalancerModal', () => {
     const wrapper = shallow(
       <GceHttpLoadBalancerModal
         app={application}
-        closeModal={jasmine.createSpy('closeModal')}
+        closeModal={vi.fn()}
         data={emptyData}
-        dismissModal={jasmine.createSpy('dismissModal')}
+        dismissModal={vi.fn()}
         loadBalancer={{ account: 'account-a', loadBalancerType: 'HTTP', name: 'test-app-main' } as any}
         mode="edit"
       />,

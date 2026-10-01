@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { mount, shallow } from 'enzyme';
 import React from 'react';
 
@@ -38,7 +39,7 @@ describe('pipeline details bridge wrappers', () => {
     const CustomStepLabel = ({ step }: any) => (
       <span className="custom-step-label">Custom {step.context.serverGroupName}</span>
     );
-    spyOn(Registry.pipeline, 'getStageConfig').and.returnValue({
+    vi.spyOn(Registry.pipeline, 'getStageConfig').mockReturnValue({
       executionStepLabelComponent: CustomStepLabel,
     } as any);
     const component = mount(
@@ -119,7 +120,7 @@ describe('pipeline details bridge wrappers', () => {
   });
 
   it('navigates execution details sections through the injected state service', () => {
-    const injectedGo = jasmine.createSpy('injectedGo');
+    const injectedGo = vi.fn();
 
     const component = shallow(
       <ExecutionDetailsSectionNavComponent
@@ -138,7 +139,7 @@ describe('pipeline details bridge wrappers', () => {
   });
 
   it('resolves deep-linked stages through injected route params and state service', () => {
-    const injectedGo = jasmine.createSpy('injectedGo');
+    const injectedGo = vi.fn();
     const firstSummary = { stages: [], type: 'wait' } as any;
     const secondSummary = {
       masterStage: { id: 'master-stage', type: 'deploy' },
@@ -179,7 +180,7 @@ describe('pipeline details bridge wrappers', () => {
         {...({
           router: {},
           stateParams: { stageId: 'first-task' },
-          stateService: { go: jasmine.createSpy('go') },
+          stateService: { go: vi.fn() },
         } as any)}
         application={{} as any}
         execution={{ stageSummaries: [{ stages: [] }, firstSummary, secondSummary] } as any}
@@ -193,7 +194,7 @@ describe('pipeline details bridge wrappers', () => {
   });
 
   it('waits for routed props before selecting a stage from a different execution', () => {
-    const injectedGo = jasmine.createSpy('injectedGo');
+    const injectedGo = vi.fn();
     const firstSummary = {
       masterStage: { id: 'first-master', type: 'deploy' },
       stages: [{ id: 'first-task', type: 'deploy' }],
@@ -217,7 +218,7 @@ describe('pipeline details bridge wrappers', () => {
     const component = shallow(<StageExecutionDetailsComponent {...initialProps} />, { disableLifecycleMethods: true });
     const instance = component.instance() as StageExecutionDetailsComponent;
 
-    injectedGo.calls.reset();
+    injectedGo.mockClear();
     instance.componentWillReceiveProps({
       ...initialProps,
       stateParams: { executionId: 'second-execution', stage: '1', step: '0' },
@@ -234,7 +235,7 @@ describe('pipeline details bridge wrappers', () => {
   });
 
   it('toggles stage summary details through the injected router and preserves stage indices', () => {
-    const injectedGo = jasmine.createSpy('injectedGo');
+    const injectedGo = vi.fn();
 
     const component = mount(
       <StageSummaryWrapperComponent
@@ -264,13 +265,13 @@ describe('pipeline details bridge wrappers', () => {
   it('confirms manual skip against the top-level stage', async () => {
     const updatedExecution = { stages: [{ id: 'parent', status: 'SKIPPED' }] };
     const executionService = {
-      patchExecution: jasmine.createSpy('patchExecution').and.returnValue(Promise.resolve(null)),
-      updateExecution: jasmine.createSpy('updateExecution').and.returnValue(Promise.resolve(null)),
-      waitUntilExecutionMatches: jasmine
-        .createSpy('waitUntilExecutionMatches')
-        .and.returnValue(Promise.resolve(updatedExecution)),
+      patchExecution: vi.fn().mockReturnValue(Promise.resolve(null)),
+      updateExecution: vi.fn().mockReturnValue(Promise.resolve(null)),
+      waitUntilExecutionMatches: vi.fn().mockReturnValue(Promise.resolve(updatedExecution)),
     };
-    spyOn(ConfirmationModalService, 'confirm').and.callFake((config: any) => config.submitMethod('operator reason'));
+    vi.spyOn(ConfirmationModalService, 'confirm').mockImplementation((config: any) =>
+      config.submitMethod('operator reason'),
+    );
 
     const component = mount(
       <StageSummaryWrapperComponent
@@ -289,7 +290,7 @@ describe('pipeline details bridge wrappers', () => {
     );
 
     component.find('button.manual-skip').simulate('click');
-    await (ConfirmationModalService.confirm as jasmine.Spy).calls.mostRecent().returnValue;
+    await (ConfirmationModalService.confirm as Mock).mock.results.at(-1).value;
 
     expect(executionService.patchExecution).toHaveBeenCalledWith('execution-id', 'parent', {
       manualSkip: true,

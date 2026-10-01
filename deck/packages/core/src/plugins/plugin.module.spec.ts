@@ -1,18 +1,19 @@
+import type { Mocked } from 'vitest';
 import type { IPluginMetaData } from './plugin.registry';
 import { PluginRegistry } from './plugin.registry';
 import { initializePlugins, resetPluginInitializationForTests } from './plugin.module';
 import { sharedLibraries } from './sharedLibraries';
 
 describe('initializePlugins', () => {
-  let pluginRegistry: jasmine.SpyObj<PluginRegistry>;
+  let pluginRegistry: Mocked<PluginRegistry>;
 
   beforeEach(() => {
     resetPluginInitializationForTests();
-    pluginRegistry = jasmine.createSpyObj<PluginRegistry>('pluginRegistry', [
-      'loadPluginManifestFromDeck',
-      'loadPluginManifestFromGate',
-      'loadPlugins',
-    ]);
+    pluginRegistry = {
+      loadPluginManifestFromDeck: vi.fn(),
+      loadPluginManifestFromGate: vi.fn(),
+      loadPlugins: vi.fn(),
+    };
   });
 
   afterEach(() => resetPluginInitializationForTests());
@@ -27,18 +28,18 @@ describe('initializePlugins', () => {
     const gateManifestPromise = new Promise<IPluginMetaData[]>((resolve) => (resolveGateManifest = resolve));
     const pluginLoadsPromise = new Promise<any[]>((resolve) => (resolvePluginLoads = resolve));
     const pluginLoadsStartedPromise = new Promise<void>((resolve) => (resolvePluginLoadsStarted = resolve));
-    spyOn(sharedLibraries, 'exposeSharedLibraries').and.callFake(async () => {
+    vi.spyOn(sharedLibraries, 'exposeSharedLibraries').mockImplementation(async () => {
       calls.push('expose');
     });
-    pluginRegistry.loadPluginManifestFromDeck.and.callFake(() => {
+    pluginRegistry.loadPluginManifestFromDeck.mockImplementation(() => {
       calls.push('deck manifest');
       return deckManifestPromise;
     });
-    pluginRegistry.loadPluginManifestFromGate.and.callFake(() => {
+    pluginRegistry.loadPluginManifestFromGate.mockImplementation(() => {
       calls.push('gate manifest');
       return gateManifestPromise;
     });
-    pluginRegistry.loadPlugins.and.callFake(() => {
+    pluginRegistry.loadPlugins.mockImplementation(() => {
       calls.push('plugins');
       resolvePluginLoadsStarted();
       return pluginLoadsPromise;
@@ -58,20 +59,20 @@ describe('initializePlugins', () => {
     resolveGateManifest([]);
     await pluginLoadsStartedPromise;
     expect(calls).toEqual(['expose', 'deck manifest', 'gate manifest', 'plugins']);
-    expect(settled).toBeFalse();
+    expect(settled).toBe(false);
 
     resolvePluginLoads([]);
     await initializationPromise;
-    expect(settled).toBeTrue();
+    expect(settled).toBe(true);
   });
 
   it('waits for shared library exposure before loading manifests and plugins', async () => {
     let resolveExposure!: () => void;
     const exposurePromise = new Promise<void>((resolve) => (resolveExposure = resolve));
-    const exposeSpy = spyOn(sharedLibraries, 'exposeSharedLibraries').and.callFake(() => exposurePromise);
-    pluginRegistry.loadPluginManifestFromDeck.and.resolveTo([]);
-    pluginRegistry.loadPluginManifestFromGate.and.resolveTo([]);
-    pluginRegistry.loadPlugins.and.resolveTo([]);
+    const exposeSpy = vi.spyOn(sharedLibraries, 'exposeSharedLibraries').mockImplementation(() => exposurePromise);
+    pluginRegistry.loadPluginManifestFromDeck.mockResolvedValue([]);
+    pluginRegistry.loadPluginManifestFromGate.mockResolvedValue([]);
+    pluginRegistry.loadPlugins.mockResolvedValue([]);
 
     const initializationPromise = initializePlugins(pluginRegistry);
     await Promise.resolve();
@@ -91,12 +92,12 @@ describe('initializePlugins', () => {
 
   it('rejects when shared library exposure fails without loading manifests or plugins', async () => {
     const exposureError = new Error('shared library exposure failed');
-    spyOn(sharedLibraries, 'exposeSharedLibraries').and.callFake(async () => {
+    vi.spyOn(sharedLibraries, 'exposeSharedLibraries').mockImplementation(async () => {
       throw exposureError;
     });
-    pluginRegistry.loadPluginManifestFromDeck.and.resolveTo([]);
-    pluginRegistry.loadPluginManifestFromGate.and.resolveTo([]);
-    pluginRegistry.loadPlugins.and.resolveTo([]);
+    pluginRegistry.loadPluginManifestFromDeck.mockResolvedValue([]);
+    pluginRegistry.loadPluginManifestFromGate.mockResolvedValue([]);
+    pluginRegistry.loadPlugins.mockResolvedValue([]);
 
     await expectAsync(initializePlugins(pluginRegistry)).toBeRejectedWith(exposureError);
 
@@ -109,9 +110,9 @@ describe('initializePlugins', () => {
     const manifestError = new Error('manifest failed');
     let rejectDeckManifest!: (reason?: any) => void;
     const deckManifestPromise = new Promise<IPluginMetaData[]>((_, reject) => (rejectDeckManifest = reject));
-    spyOn(sharedLibraries, 'exposeSharedLibraries').and.callFake(async () => undefined);
-    pluginRegistry.loadPluginManifestFromDeck.and.returnValue(deckManifestPromise);
-    pluginRegistry.loadPluginManifestFromGate.and.returnValue(Promise.resolve([]));
+    vi.spyOn(sharedLibraries, 'exposeSharedLibraries').mockImplementation(async () => undefined);
+    pluginRegistry.loadPluginManifestFromDeck.mockReturnValue(deckManifestPromise);
+    pluginRegistry.loadPluginManifestFromGate.mockReturnValue(Promise.resolve([]));
 
     const initializationPromise = initializePlugins(pluginRegistry);
     rejectDeckManifest(manifestError);
@@ -131,14 +132,14 @@ describe('initializePlugins', () => {
     const gateManifestPromise = new Promise<any[]>((resolve) => (resolveGateManifest = resolve));
     const pluginLoadsPromise = new Promise<any[]>((resolve) => (resolvePluginLoads = resolve));
     const pluginLoadsStartedPromise = new Promise<void>((resolve) => (resolvePluginLoadsStarted = resolve));
-    const exposeSpy = spyOn(sharedLibraries, 'exposeSharedLibraries').and.callFake(async () => undefined);
-    const deckManifestSpy = spyOn(PluginRegistry.prototype, 'loadPluginManifestFromDeck').and.returnValue(
-      deckManifestPromise,
-    );
-    const gateManifestSpy = spyOn(PluginRegistry.prototype, 'loadPluginManifestFromGate').and.returnValue(
-      gateManifestPromise,
-    );
-    const pluginLoadsSpy = spyOn(PluginRegistry.prototype, 'loadPlugins').and.callFake(() => {
+    const exposeSpy = vi.spyOn(sharedLibraries, 'exposeSharedLibraries').mockImplementation(async () => undefined);
+    const deckManifestSpy = vi
+      .spyOn(PluginRegistry.prototype, 'loadPluginManifestFromDeck')
+      .mockReturnValue(deckManifestPromise);
+    const gateManifestSpy = vi
+      .spyOn(PluginRegistry.prototype, 'loadPluginManifestFromGate')
+      .mockReturnValue(gateManifestPromise);
+    const pluginLoadsSpy = vi.spyOn(PluginRegistry.prototype, 'loadPlugins').mockImplementation(() => {
       resolvePluginLoadsStarted();
       return pluginLoadsPromise;
     });
@@ -171,15 +172,15 @@ describe('initializePlugins', () => {
 
   it('allows a default startup retry after a rejected attempt', async () => {
     const startupError = new Error('startup failed');
-    const exposeSpy = spyOn(sharedLibraries, 'exposeSharedLibraries').and.callFake(async () => undefined);
-    const deckManifestSpy = spyOn(PluginRegistry.prototype, 'loadPluginManifestFromDeck').and.returnValues(
-      Promise.reject(startupError),
-      Promise.resolve([]),
-    );
-    const gateManifestSpy = spyOn(PluginRegistry.prototype, 'loadPluginManifestFromGate').and.returnValue(
-      Promise.resolve([]),
-    );
-    const pluginLoadsSpy = spyOn(PluginRegistry.prototype, 'loadPlugins').and.returnValue(Promise.resolve([]));
+    const exposeSpy = vi.spyOn(sharedLibraries, 'exposeSharedLibraries').mockImplementation(async () => undefined);
+    const deckManifestSpy = vi
+      .spyOn(PluginRegistry.prototype, 'loadPluginManifestFromDeck')
+      .mockReturnValueOnce(Promise.reject(startupError))
+      .mockReturnValueOnce(Promise.resolve([]));
+    const gateManifestSpy = vi
+      .spyOn(PluginRegistry.prototype, 'loadPluginManifestFromGate')
+      .mockReturnValue(Promise.resolve([]));
+    const pluginLoadsSpy = vi.spyOn(PluginRegistry.prototype, 'loadPlugins').mockReturnValue(Promise.resolve([]));
 
     const failedInitialization = initializePlugins();
     await expectAsync(failedInitialization).toBeRejectedWith(startupError);
@@ -195,10 +196,10 @@ describe('initializePlugins', () => {
   });
 
   it('does not cache initialization for explicitly injected registries', async () => {
-    spyOn(sharedLibraries, 'exposeSharedLibraries').and.callFake(async () => undefined);
-    pluginRegistry.loadPluginManifestFromDeck.and.returnValue(Promise.resolve([]));
-    pluginRegistry.loadPluginManifestFromGate.and.returnValue(Promise.resolve([]));
-    pluginRegistry.loadPlugins.and.returnValue(Promise.resolve([]));
+    vi.spyOn(sharedLibraries, 'exposeSharedLibraries').mockImplementation(async () => undefined);
+    pluginRegistry.loadPluginManifestFromDeck.mockReturnValue(Promise.resolve([]));
+    pluginRegistry.loadPluginManifestFromGate.mockReturnValue(Promise.resolve([]));
+    pluginRegistry.loadPlugins.mockReturnValue(Promise.resolve([]));
 
     const firstInitialization = initializePlugins(pluginRegistry);
     const secondInitialization = initializePlugins(pluginRegistry);

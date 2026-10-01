@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { RetryService } from './retry.service';
 
 describe('Service: Retry', function () {
@@ -6,7 +7,7 @@ describe('Service: Retry', function () {
 
     beforeEach(() => {
       scheduledIntervals = [];
-      spyOn(window, 'setTimeout').and.callFake((callback: TimerHandler, interval?: number) => {
+      vi.spyOn(window, 'setTimeout').mockImplementation((callback: TimerHandler, interval?: number) => {
         scheduledIntervals.push(interval);
         if (typeof callback === 'function') {
           callback();
@@ -81,12 +82,12 @@ describe('Service: Retry', function () {
 
     it('clears a pending retry delay when its owner is aborted', async () => {
       let delayCallback: () => void;
-      const clearTimeout = spyOn(window, 'clearTimeout');
-      (window.setTimeout as jasmine.Spy).and.callFake((callback: TimerHandler) => {
+      const clearTimeout = vi.spyOn(window, 'clearTimeout').mockReturnValue(undefined);
+      (window.setTimeout as Mock).mockImplementation((callback: TimerHandler) => {
         delayCallback = callback as () => void;
         return 42;
       });
-      const callback = jasmine.createSpy('callback').and.resolveTo([]);
+      const callback = vi.fn().mockResolvedValue([]);
       const controller = new AbortController();
       const result = Promise.resolve(RetryService.buildRetrySequence(callback, () => false, 1, 10, controller.signal));
       await Promise.resolve();
@@ -94,13 +95,13 @@ describe('Service: Retry', function () {
       controller.abort();
       delayCallback();
 
-      await expectAsync(result).toBeRejectedWith(jasmine.objectContaining({ name: 'AbortError' }));
-      expect(clearTimeout).toHaveBeenCalledOnceWith(42);
+      await expectAsync(result).toBeRejectedWith(expect.objectContaining({ name: 'AbortError' }));
+      expect(clearTimeout).toHaveBeenCalledExactlyOnceWith(42);
       expect(callback).toHaveBeenCalledTimes(1);
     });
 
     it('returns a rejected promise without invoking a callback for a pre-aborted owner', async () => {
-      const callback = jasmine.createSpy('callback').and.resolveTo('result');
+      const callback = vi.fn().mockResolvedValue('result');
       const controller = new AbortController();
       controller.abort();
       let result: PromiseLike<string>;
@@ -109,15 +110,15 @@ describe('Service: Retry', function () {
         result = RetryService.buildRetrySequence(callback, () => true, 1, 10, controller.signal);
       }).not.toThrow();
 
-      await expectAsync(Promise.resolve(result)).toBeRejectedWith(jasmine.objectContaining({ name: 'AbortError' }));
+      await expectAsync(Promise.resolve(result)).toBeRejectedWith(expect.objectContaining({ name: 'AbortError' }));
       expect(callback).not.toHaveBeenCalled();
     });
 
     it('does not inspect or retry a late in-flight result after cancellation', async () => {
       let resolveRequest: (value: string) => void;
       const request = new Promise<string>((resolve) => (resolveRequest = resolve));
-      const callback = jasmine.createSpy('callback').and.returnValue(request);
-      const stopCondition = jasmine.createSpy('stopCondition').and.returnValue(false);
+      const callback = vi.fn().mockReturnValue(request);
+      const stopCondition = vi.fn().mockReturnValue(false);
       const controller = new AbortController();
       const result = Promise.resolve(
         RetryService.buildRetrySequence(callback, stopCondition, 1, 10, controller.signal),
@@ -126,7 +127,7 @@ describe('Service: Retry', function () {
       controller.abort();
       resolveRequest('late result');
 
-      await expectAsync(result).toBeRejectedWith(jasmine.objectContaining({ name: 'AbortError' }));
+      await expectAsync(result).toBeRejectedWith(expect.objectContaining({ name: 'AbortError' }));
       expect(stopCondition).not.toHaveBeenCalled();
       expect(callback).toHaveBeenCalledTimes(1);
       expect(window.setTimeout).not.toHaveBeenCalled();
@@ -135,8 +136,8 @@ describe('Service: Retry', function () {
     it('does not retry a late in-flight rejection after cancellation', async () => {
       let rejectRequest: (reason: unknown) => void;
       const request = new Promise<string>((_resolve, reject) => (rejectRequest = reject));
-      const callback = jasmine.createSpy('callback').and.returnValues(request, Promise.resolve('retry'));
-      const stopCondition = jasmine.createSpy('stopCondition').and.returnValue(true);
+      const callback = vi.fn().mockReturnValueOnce(request).mockReturnValueOnce(Promise.resolve('retry'));
+      const stopCondition = vi.fn().mockReturnValue(true);
       const controller = new AbortController();
       const result = Promise.resolve(
         RetryService.buildRetrySequence(callback, stopCondition, 1, 10, controller.signal),
@@ -145,7 +146,7 @@ describe('Service: Retry', function () {
       controller.abort();
       rejectRequest(new Error('late failure'));
 
-      await expectAsync(result).toBeRejectedWith(jasmine.objectContaining({ name: 'AbortError' }));
+      await expectAsync(result).toBeRejectedWith(expect.objectContaining({ name: 'AbortError' }));
       expect(stopCondition).not.toHaveBeenCalled();
       expect(callback).toHaveBeenCalledTimes(1);
     });

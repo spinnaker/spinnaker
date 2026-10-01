@@ -2,7 +2,7 @@ import { closeServerGroupManagerDetails } from './ServerGroupManagerDetails';
 
 describe('closeServerGroupManagerDetails', () => {
   it('replaces details through the injected state service', () => {
-    const stateService = { go: jasmine.createSpy('go'), params: {} };
+    const stateService = { go: vi.fn(), params: {} };
 
     closeServerGroupManagerDetails(stateService as any);
 

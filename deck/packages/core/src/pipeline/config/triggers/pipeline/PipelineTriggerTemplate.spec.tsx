@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { mount, shallow } from 'enzyme';
 import React from 'react';
 
@@ -17,8 +18,8 @@ import { ExecutionsTransformer } from '../../../service/ExecutionsTransformer';
  * - Extract fields from parentExecution for re-run scenarios
  */
 describe('<PipelineTriggerTemplate />', () => {
-  let getExecutionsForConfigIdsSpy: jasmine.Spy;
-  let addBuildInfoSpy: jasmine.Spy;
+  let getExecutionsForConfigIdsSpy: Mock;
+  let addBuildInfoSpy: Mock;
 
   class PipelineTriggerTemplate extends PipelineTriggerTemplateComponent {
     public static defaultProps = {
@@ -81,12 +82,12 @@ describe('<PipelineTriggerTemplate />', () => {
     pipelineName: 'Test Pipeline',
   });
 
-  const updateCommandSpy = jasmine.createSpy('updateCommand');
+  const updateCommandSpy = vi.fn();
 
   beforeEach(() => {
-    getExecutionsForConfigIdsSpy = jasmine.createSpy('getExecutionsForConfigIds');
-    addBuildInfoSpy = spyOn(ExecutionsTransformer, 'addBuildInfo');
-    updateCommandSpy.calls.reset();
+    getExecutionsForConfigIdsSpy = vi.fn();
+    addBuildInfoSpy = vi.spyOn(ExecutionsTransformer, 'addBuildInfo').mockReturnValue(undefined);
+    updateCommandSpy.mockClear();
   });
 
   // shallow() renders only the component, not children - faster, good for unit tests
@@ -94,7 +95,7 @@ describe('<PipelineTriggerTemplate />', () => {
   describe('Component lifecycle', () => {
     it('displays loading spinner while fetching executions', () => {
       // Promise that never resolves keeps component in loading state
-      getExecutionsForConfigIdsSpy.and.returnValue(new Promise(() => {}));
+      getExecutionsForConfigIdsSpy.mockReturnValue(new Promise(() => {}));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
@@ -105,7 +106,7 @@ describe('<PipelineTriggerTemplate />', () => {
     });
 
     it('displays error message on load failure', async () => {
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.reject(new Error('Load failed')));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.reject(new Error('Load failed')));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
@@ -121,7 +122,7 @@ describe('<PipelineTriggerTemplate />', () => {
     });
 
     it('displays "No recent executions found" when list is empty', async () => {
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve([]));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve([]));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
@@ -136,7 +137,7 @@ describe('<PipelineTriggerTemplate />', () => {
 
     it('renders execution dropdown with correct options after load', async () => {
       const executions = [execution1, execution2, execution3];
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve(executions));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve(executions));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
@@ -156,7 +157,7 @@ describe('<PipelineTriggerTemplate />', () => {
   describe('Execution selection preservation', () => {
     it('preserves selection when command object reference changes but trigger.pipeline is unchanged', async () => {
       const executions = [execution1, execution2, execution3];
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve(executions));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve(executions));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
@@ -185,7 +186,7 @@ describe('<PipelineTriggerTemplate />', () => {
         parameters: { changeNumber: 'CHG000123' },
       };
 
-      getExecutionsForConfigIdsSpy.calls.reset();
+      getExecutionsForConfigIdsSpy.mockClear();
       wrapper.setProps({ command: newCommand });
       wrapper.update();
 
@@ -196,7 +197,7 @@ describe('<PipelineTriggerTemplate />', () => {
 
     it('preserves user selection after initial load completes', async () => {
       const executions = [execution1, execution2, execution3];
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve(executions));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve(executions));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
@@ -218,7 +219,7 @@ describe('<PipelineTriggerTemplate />', () => {
   describe('Re-initialization behavior', () => {
     it('refetches executions when trigger.pipeline changes', async () => {
       const executions = [execution1, execution2];
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve(executions));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve(executions));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
@@ -228,7 +229,7 @@ describe('<PipelineTriggerTemplate />', () => {
       await Promise.resolve();
       wrapper.update();
 
-      getExecutionsForConfigIdsSpy.calls.reset();
+      getExecutionsForConfigIdsSpy.mockClear();
 
       const newTrigger = createPipelineTrigger('different-pipeline-id');
       const newCommand = createCommand(newTrigger);
@@ -239,7 +240,7 @@ describe('<PipelineTriggerTemplate />', () => {
 
     it('defaults to latest execution when parentPipelineId does not match', async () => {
       const executions = [execution1, execution2, execution3];
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve(executions));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve(executions));
 
       const trigger = createPipelineTrigger('source-pipeline-id', 'non-existent-id');
       const command = createCommand(trigger);
@@ -254,7 +255,7 @@ describe('<PipelineTriggerTemplate />', () => {
 
     it('selects matching execution when parentPipelineId exists in list', async () => {
       const executions = [execution1, execution2, execution3];
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve(executions));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve(executions));
 
       const trigger = createPipelineTrigger('source-pipeline-id', 'exec-2');
       const command = createCommand(trigger);
@@ -274,7 +275,7 @@ describe('<PipelineTriggerTemplate />', () => {
   describe('Re-run scenario', () => {
     it('extracts fields from parentExecution', async () => {
       const executions = [execution1, execution2];
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve(executions));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve(executions));
 
       const parentExecution: Partial<IExecution> = {
         id: 'parent-exec-id',
@@ -306,7 +307,7 @@ describe('<PipelineTriggerTemplate />', () => {
   describe('User interaction', () => {
     it('updates extraFields when user changes execution selection', async () => {
       const executions = [execution1, execution2];
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve(executions));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve(executions));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
@@ -328,7 +329,7 @@ describe('<PipelineTriggerTemplate />', () => {
 
     it('sets triggerInvalid to false after successful execution selection', async () => {
       const executions = [execution1];
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve(executions));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve(executions));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
@@ -345,7 +346,7 @@ describe('<PipelineTriggerTemplate />', () => {
 
     it('handles multiple rapid selection changes correctly', async () => {
       const executions = [execution1, execution2, execution3];
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve(executions));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve(executions));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
@@ -370,7 +371,7 @@ describe('<PipelineTriggerTemplate />', () => {
 
   describe('Edge cases', () => {
     it('handles trigger with undefined pipeline gracefully', async () => {
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve([]));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve([]));
 
       const trigger = ({
         enabled: true,
@@ -391,7 +392,7 @@ describe('<PipelineTriggerTemplate />', () => {
 
     it('handles trigger type change from pipeline to non-pipeline', async () => {
       const executions = [execution1, execution2];
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve(executions));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve(executions));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
@@ -403,7 +404,7 @@ describe('<PipelineTriggerTemplate />', () => {
 
       expect(wrapper.state('selectedExecution')).toBe('exec-1');
 
-      getExecutionsForConfigIdsSpy.calls.reset();
+      getExecutionsForConfigIdsSpy.mockClear();
 
       const manualTrigger = { type: 'manual', enabled: true } as any;
       const newCommand = { ...command, trigger: manualTrigger };
@@ -413,7 +414,7 @@ describe('<PipelineTriggerTemplate />', () => {
     });
 
     it('handles empty pipeline ID string', async () => {
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve([]));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve([]));
 
       const trigger = createPipelineTrigger('');
       const command = createCommand(trigger);
@@ -434,7 +435,7 @@ describe('<PipelineTriggerTemplate />', () => {
       const canceledExec = createExecution('exec-canceled', 4, { status: 'CANCELED' });
 
       const executions = [successExec, failedExec, runningExec, canceledExec];
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve(executions));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve(executions));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
@@ -460,7 +461,7 @@ describe('<PipelineTriggerTemplate />', () => {
     it('defaults to 20 when no override is configured', async () => {
       expect(SETTINGS.maxPipelineTriggerExecutionOptions).toBe(20);
 
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve([]));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve([]));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
@@ -474,7 +475,7 @@ describe('<PipelineTriggerTemplate />', () => {
 
     it('passes the configured override through to getExecutionsForConfigIds', async () => {
       SETTINGS.maxPipelineTriggerExecutionOptions = 5;
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve([]));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve([]));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
@@ -491,7 +492,7 @@ describe('<PipelineTriggerTemplate />', () => {
       // Simulate the backend honoring the overridden limit by returning only 2 executions,
       // even though 3 exist for this pipeline in these specs (execution1/2/3).
       const executions = [execution1, execution2];
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve(executions));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve(executions));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
@@ -508,7 +509,7 @@ describe('<PipelineTriggerTemplate />', () => {
     });
 
     it('re-reads the current SETTINGS value on every re-initialization (source pipeline change)', async () => {
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve([]));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve([]));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
@@ -517,7 +518,7 @@ describe('<PipelineTriggerTemplate />', () => {
       await Promise.resolve();
 
       expect(getExecutionsForConfigIdsSpy).toHaveBeenCalledWith(['source-pipeline-id'], { limit: 20 });
-      getExecutionsForConfigIdsSpy.calls.reset();
+      getExecutionsForConfigIdsSpy.mockClear();
 
       // Operator changes the setting at runtime (e.g. via settings-local.js hot-reload in dev,
       // or simply because a later test/session picked a different value) - the NEXT fetch
@@ -546,7 +547,7 @@ describe('<PipelineTriggerTemplate />', () => {
         resolveSecond = resolve;
       });
 
-      getExecutionsForConfigIdsSpy.and.returnValues(firstPromise, secondPromise);
+      getExecutionsForConfigIdsSpy.mockReturnValueOnce(firstPromise).mockReturnValueOnce(secondPromise);
 
       const trigger = createPipelineTrigger('pipeline-1');
       const command = createCommand(trigger);
@@ -583,7 +584,7 @@ describe('<PipelineTriggerTemplate />', () => {
         resolvePromise = resolve;
       });
 
-      getExecutionsForConfigIdsSpy.and.returnValue(pendingPromise);
+      getExecutionsForConfigIdsSpy.mockReturnValue(pendingPromise);
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
@@ -603,7 +604,7 @@ describe('<PipelineTriggerTemplate />', () => {
 
     it('calls addBuildInfo for each execution after load', async () => {
       const executions = [execution1, execution2, execution3];
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve(executions));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve(executions));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
@@ -622,7 +623,7 @@ describe('<PipelineTriggerTemplate />', () => {
   describe('State consistency', () => {
     it('maintains state after multiple prop updates without pipeline change', async () => {
       const executions = [execution1, execution2, execution3];
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve(executions));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve(executions));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
@@ -659,10 +660,9 @@ describe('<PipelineTriggerTemplate />', () => {
         createExecution('p2-exec-3', 3),
       ];
 
-      getExecutionsForConfigIdsSpy.and.returnValues(
-        Promise.resolve(pipeline1Executions),
-        Promise.resolve(pipeline2Executions),
-      );
+      getExecutionsForConfigIdsSpy
+        .mockReturnValueOnce(Promise.resolve(pipeline1Executions))
+        .mockReturnValueOnce(Promise.resolve(pipeline2Executions));
 
       const trigger = createPipelineTrigger('pipeline-1');
       const command = createCommand(trigger);
@@ -692,7 +692,7 @@ describe('<PipelineTriggerTemplate />', () => {
 
     it('clears extraFields when pipeline changes', async () => {
       const executions = [execution1, execution2];
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve(executions));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve(executions));
 
       const trigger = createPipelineTrigger('pipeline-1');
       const command = createCommand(trigger);
@@ -715,7 +715,7 @@ describe('<PipelineTriggerTemplate />', () => {
   describe('Formik integration', () => {
     it('preserves selection through typical form interaction sequence', async () => {
       const executions = [execution1, execution2, execution3];
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve(executions));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve(executions));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
@@ -743,7 +743,7 @@ describe('<PipelineTriggerTemplate />', () => {
           parameters: { changeNumber: changeNumberChars.substring(0, i) },
         };
 
-        getExecutionsForConfigIdsSpy.calls.reset();
+        getExecutionsForConfigIdsSpy.mockClear();
         wrapper.setProps({ command: newCommand });
         wrapper.update();
 
@@ -757,7 +757,7 @@ describe('<PipelineTriggerTemplate />', () => {
 
     it('handles simultaneous parameter and trigger changes correctly', async () => {
       const executions = [execution1, execution2];
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve(executions));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve(executions));
 
       const trigger = createPipelineTrigger('pipeline-1');
       const command = createCommand(trigger);
@@ -767,7 +767,7 @@ describe('<PipelineTriggerTemplate />', () => {
       await Promise.resolve();
       wrapper.update();
 
-      getExecutionsForConfigIdsSpy.calls.reset();
+      getExecutionsForConfigIdsSpy.mockClear();
 
       const newTrigger = createPipelineTrigger('pipeline-2');
       const newCommand = {
@@ -783,7 +783,7 @@ describe('<PipelineTriggerTemplate />', () => {
   describe('Rendering', () => {
     it('renders with form-group structure and label', async () => {
       const executions = [execution1];
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve(executions));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve(executions));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
@@ -800,7 +800,7 @@ describe('<PipelineTriggerTemplate />', () => {
     it('renders all executions as dropdown options', async () => {
       const manyExecutions = Array.from({ length: 15 }, (_, i) => createExecution(`exec-${i}`, i));
 
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve(manyExecutions));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve(manyExecutions));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
@@ -816,7 +816,7 @@ describe('<PipelineTriggerTemplate />', () => {
 
     it('dropdown is not clearable', async () => {
       const executions = [execution1];
-      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve(executions));
+      getExecutionsForConfigIdsSpy.mockReturnValue(Promise.resolve(executions));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);

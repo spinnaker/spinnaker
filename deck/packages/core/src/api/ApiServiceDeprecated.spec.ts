@@ -1,7 +1,7 @@
 /* eslint-disable @spinnaker/api-deprecation, @spinnaker/api-no-slashes */
 
 import { API, InvalidAPIResponse, invalidContentMessage, RequestBuilder } from './ApiService';
-import { mockHttpClient } from './mock/jasmine';
+import { mockHttpClient } from './mock/mockHttpSupport';
 import type { MockHttpClient } from './mock/mockHttpClient';
 import type { ICache } from '../cache';
 import { SETTINGS } from '../config/settings';
@@ -22,8 +22,14 @@ describe('API Service', function () {
   it('preserves the established invalid response rejection shape from the transport', async () => {
     const originalResult = { status: 200, statusText: 'OK', data: '<html>Sign in</html>' };
     const rejection = new InvalidAPIResponse(invalidContentMessage, originalResult);
-    const transport = jasmine.createSpyObj('transport', ['get', 'post', 'put', 'patch', 'delete']);
-    transport.get.and.returnValue(Promise.reject(rejection));
+    const transport = {
+      get: vi.fn(),
+      post: vi.fn(),
+      put: vi.fn(),
+      patch: vi.fn(),
+      delete: vi.fn(),
+    };
+    transport.get.mockReturnValue(Promise.reject(rejection));
     RequestBuilder.defaultHttpClient = transport;
 
     try {
@@ -48,13 +54,13 @@ describe('API Service', function () {
     it('trims leading slashes from urls', function () {
       const result = API.one('/foo');
       expected.url = `foo`;
-      expect(result.config).toEqual(jasmine.objectContaining(expected));
+      expect(result.config).toEqual(expect.objectContaining(expected));
     });
 
     it('trims repeated leading slashes from urls', function () {
       const result = API.one('/////foo');
       expected.url = `foo`;
-      expect(result.config).toEqual(jasmine.objectContaining(expected));
+      expect(result.config).toEqual(expect.objectContaining(expected));
     });
 
     it('trims trailing slashes from baseUrl', function () {
@@ -80,25 +86,25 @@ describe('API Service', function () {
       // it('missing url should create a default config with the base url', function () {
       //   const result = API.one();
       //   expected.url = baseUrl;
-      //   expect(result.config).toEqual(jasmine.objectContaining(expected));
+      //   expect(result.config).toEqual(expect.objectContaining(expected));
       // });
 
       it('single url should create a default config with the base url', function () {
         const result = API.one('foo');
         expected.url = `foo`;
-        expect(result.config).toEqual(jasmine.objectContaining(expected));
+        expect(result.config).toEqual(expect.objectContaining(expected));
       });
 
       it('multiple calls to "one" should create a default config with the base url and build out the url', function () {
         const result = API.one('foo').one('bar');
         expected.url = `foo/bar`;
-        expect(result.config).toEqual(jasmine.objectContaining(expected));
+        expect(result.config).toEqual(expect.objectContaining(expected));
       });
 
       it('should allow for multiple urls to be added to the url', function () {
         const result = API.one('foo', 'bar');
         expected.url = `foo/bar`;
-        expect(result.config).toEqual(jasmine.objectContaining(expected));
+        expect(result.config).toEqual(expect.objectContaining(expected));
       });
     });
 
@@ -106,25 +112,25 @@ describe('API Service', function () {
       // it('missing url should create a default config with the base url', function () {
       //   const result = API.all();
       //   expected.url = '';
-      //   expect(result.config).toEqual(jasmine.objectContaining(expected));
+      //   expect(result.config).toEqual(expect.objectContaining(expected));
       // });
 
       it('single url should create a default config with the base url', function () {
         const result = API.all('foo');
         expected.url = `foo`;
-        expect(result.config).toEqual(jasmine.objectContaining(expected));
+        expect(result.config).toEqual(expect.objectContaining(expected));
       });
 
       it('multiple calls to "all" should create a default config with the base url and build out the url', function () {
         const result = API.all('foo').all('bar');
         expected.url = `foo/bar`;
-        expect(result.config).toEqual(jasmine.objectContaining(expected));
+        expect(result.config).toEqual(expect.objectContaining(expected));
       });
 
       it('should allow for multiple urls to be added to the url', function () {
         const result = API.all('foo', 'bar');
         expected.url = `foo/bar`;
-        expect(result.config).toEqual(jasmine.objectContaining(expected));
+        expect(result.config).toEqual(expect.objectContaining(expected));
       });
     });
 
@@ -132,19 +138,19 @@ describe('API Service', function () {
       it('single url should create a default config with the base url', function () {
         const result = API.all('foo').one('bar');
         expected.url = `foo/bar`;
-        expect(result.config).toEqual(jasmine.objectContaining(expected));
+        expect(result.config).toEqual(expect.objectContaining(expected));
       });
 
       it('multiple calls to "all" should create a default config with the base url and build out the url', function () {
         const result = API.one('foo').all('bar');
         expected.url = `foo/bar`;
-        expect(result.config).toEqual(jasmine.objectContaining(expected));
+        expect(result.config).toEqual(expect.objectContaining(expected));
       });
 
       it('should allow for multiple urls to be added to the url', function () {
         const result = API.all('foo', 'bar').one('baz');
         expected.url = `foo/bar/baz`;
-        expect(result.config).toEqual(jasmine.objectContaining(expected));
+        expect(result.config).toEqual(expect.objectContaining(expected));
       });
     });
 
@@ -153,8 +159,8 @@ describe('API Service', function () {
         const first = API.one('bar');
         const second = API.one('foo');
 
-        expect(first.config).toEqual(jasmine.objectContaining({ url: `bar` }));
-        expect(second.config).toEqual(jasmine.objectContaining({ url: `foo` }));
+        expect(first.config).toEqual(expect.objectContaining({ url: `bar` }));
+        expect(second.config).toEqual(expect.objectContaining({ url: `foo` }));
       });
     });
 
@@ -164,7 +170,7 @@ describe('API Service', function () {
         const result = API.one('foo').data(data);
         expected.url = `foo`;
         expected.data = data;
-        expect(result.config).toEqual(jasmine.objectContaining(expected));
+        expect(result.config).toEqual(expect.objectContaining(expected));
       });
     });
   });
@@ -172,7 +178,7 @@ describe('API Service', function () {
   describe('create a config with params', function () {
     it('when params are provided', function () {
       const result = API.one('foo').withParams({ one: 1 });
-      expect(result.config).toEqual(jasmine.objectContaining({ url: `foo`, params: { one: 1 } }));
+      expect(result.config).toEqual(expect.objectContaining({ url: `foo`, params: { one: 1 } }));
     });
   });
 

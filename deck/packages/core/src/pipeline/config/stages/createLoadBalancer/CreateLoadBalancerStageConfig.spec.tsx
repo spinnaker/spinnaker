@@ -20,19 +20,19 @@ describe('<CreateLoadBalancerStageConfig />', () => {
       application: { name: 'fnord' } as any,
       pipeline: { stages: [stage] } as any,
       stage,
-      stageFieldUpdated: jasmine.createSpy('stageFieldUpdated'),
-      updateStage: jasmine.createSpy('updateStage'),
-      updateStageField: jasmine.createSpy('updateStageField'),
+      stageFieldUpdated: vi.fn(),
+      updateStage: vi.fn(),
+      updateStageField: vi.fn(),
     };
   }
 
   function resolveModalWith(result: any): void {
-    spyOn(ProviderSelectionService, 'selectProvider').and.returnValue(Promise.resolve('test'));
-    spyOn(CloudProviderRegistry, 'getProvider').and.returnValue({
+    vi.spyOn(ProviderSelectionService, 'selectProvider').mockReturnValue(Promise.resolve('test'));
+    vi.spyOn(CloudProviderRegistry, 'getProvider').mockReturnValue({
       loadBalancer: {
         CreateLoadBalancerModal: {
           supportsPipelineConfig: true,
-          show: jasmine.createSpy('show').and.returnValue(Promise.resolve(result)),
+          show: vi.fn().mockReturnValue(Promise.resolve(result)),
         },
       },
     } as any);

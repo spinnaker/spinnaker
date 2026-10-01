@@ -37,14 +37,14 @@ describe('useLatestCallback', () => {
     let callbackFromHook: any;
     const onCallbackChange = (callback: any) => (callbackFromHook = callback);
 
-    const initialCallback = jasmine.createSpy('initialCallback', () => 'initial');
+    const initialCallback = vi.fn();
 
     const component = mount(<TestComponent callback={initialCallback} onCallbackChange={onCallbackChange} />);
 
     callbackFromHook();
     expect(initialCallback).toHaveBeenCalledTimes(1);
 
-    const updatedCallback = jasmine.createSpy('updatedCallback', () => 'updated');
+    const updatedCallback = vi.fn();
 
     component.setProps({ callback: updatedCallback });
 

@@ -8,7 +8,7 @@ describe('ExecutionFilterModel', () => {
   it('reuses the execution filter cache across model instances', () => {
     const existingCache =
       ViewStateCache.get('executionFilters') || ViewStateCache.createCache('executionFilters', { version: 2 });
-    const createCache = spyOn(ViewStateCache, 'createCache').and.callThrough();
+    const createCache = vi.spyOn(ViewStateCache, 'createCache');
 
     const secondModel = new ExecutionFilterModel();
 
@@ -23,7 +23,7 @@ describe('ExecutionFilterService', function () {
   beforeEach(function () {
     model = ExecutionState.filterModel;
     model.asFilterModel.groups = [];
-    spyOn(model.asFilterModel, 'applyParamsToUrl').and.callFake(() => {});
+    vi.spyOn(model.asFilterModel, 'applyParamsToUrl').mockImplementation(() => {});
   });
 
   describe('Sorting', () => {

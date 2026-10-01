@@ -86,17 +86,17 @@ describe('GceRollbackServerGroupModal', () => {
             name: 'fnord',
           } as any
         }
-        dismissModal={jasmine.createSpy('dismissModal')}
+        dismissModal={vi.fn()}
         serverGroup={serverGroup}
         serverGroups={[]}
-        serverGroupWriter={{ rollbackServerGroup: jasmine.createSpy('rollbackServerGroup') } as any}
+        serverGroupWriter={{ rollbackServerGroup: vi.fn() } as any}
       />,
     );
 
     expect(wrapper.find(TaskReason).exists()).toBe(true);
     expect(wrapper.find(UserVerification).prop('account')).toBe('prod');
     expect(wrapper.find(PlatformHealthOverride).props()).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         interestingHealthProviderNames: ['Google'],
         platformHealthType: 'Google',
       }),
@@ -107,7 +107,7 @@ describe('GceRollbackServerGroupModal', () => {
     const applicationWithHealthOverride = {
       attributes: { platformHealthOnly: true, platformHealthOnlyShowOverride: true },
       name: 'fnord',
-      serverGroups: { refresh: jasmine.createSpy('refresh') },
+      serverGroups: { refresh: vi.fn() },
     } as any;
     const candidate = {
       account: 'prod',
@@ -117,18 +117,18 @@ describe('GceRollbackServerGroupModal', () => {
       name: 'fnord-main-v003',
       region: 'us-central1',
     } as any;
-    const rollbackServerGroup = jasmine.createSpy('rollbackServerGroup').and.returnValue(Promise.resolve({}));
+    const rollbackServerGroup = vi.fn().mockReturnValue(Promise.resolve({}));
     const wrapper = shallow(
       <GceRollbackServerGroupModal
         application={applicationWithHealthOverride}
-        dismissModal={jasmine.createSpy('dismissModal')}
+        dismissModal={vi.fn()}
         serverGroup={serverGroup}
         serverGroups={[candidate]}
         serverGroupWriter={{ rollbackServerGroup }}
       />,
     );
     const monitor = (wrapper.state() as any).taskMonitor;
-    spyOn(monitor, 'submit').and.callFake((submitMethod: () => PromiseLike<any>) => submitMethod());
+    vi.spyOn(monitor, 'submit').mockImplementation((submitMethod: () => PromiseLike<any>) => submitMethod());
 
     wrapper.find('select').simulate('change', { target: { value: candidate.name } });
     wrapper.find(TaskReason).prop('onChange')('bad release');
@@ -150,14 +150,14 @@ describe('GceRollbackServerGroupModal', () => {
   });
 
   it('dismisses the modal from the task monitor', () => {
-    const dismissModal = jasmine.createSpy('dismissModal');
+    const dismissModal = vi.fn();
     const wrapper = shallow(
       <GceRollbackServerGroupModal
-        application={{ name: 'fnord', serverGroups: { refresh: jasmine.createSpy('refresh') } } as any}
+        application={{ name: 'fnord', serverGroups: { refresh: vi.fn() } } as any}
         dismissModal={dismissModal}
         serverGroup={serverGroup}
         serverGroups={[]}
-        serverGroupWriter={{ rollbackServerGroup: jasmine.createSpy('rollbackServerGroup') } as any}
+        serverGroupWriter={{ rollbackServerGroup: vi.fn() } as any}
       />,
     );
 

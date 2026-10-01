@@ -14,8 +14,8 @@ import {
 } from '../..';
 
 const makeSpy = () => {
-  const renderSpy = jasmine.createSpy('render');
-  const inputProps = () => renderSpy.calls.mostRecent().args[0] as IFormInputProps;
+  const renderSpy = vi.fn();
+  const inputProps = () => renderSpy.mock.lastCall[0] as IFormInputProps;
   const InputSpy = (props: any) => {
     renderSpy(props);
     return <TextInput {...props} />;
@@ -139,7 +139,7 @@ describe('<FormikFormField/>', () => {
     });
 
     it('does not render the input even once if the field value is SpEL and freeform SpEL inputs are enabled', () => {
-      const spy = jasmine.createSpy();
+      const spy = vi.fn();
       const NeverRenderedComponent = () => {
         spy();
         return <span />;

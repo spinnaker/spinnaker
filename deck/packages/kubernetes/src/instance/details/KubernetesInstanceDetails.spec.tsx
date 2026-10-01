@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { shallow } from 'enzyme';
 import React from 'react';
 
@@ -29,7 +30,7 @@ import { ManifestCondition } from '../../manifest';
 
 describe('findKubernetesInstanceIdentifier', () => {
   it('finds pod instances under server groups and records server group recent-history data', () => {
-    const addRecentHistory = jasmine.createSpy('addRecentHistory');
+    const addRecentHistory = vi.fn();
     const identifier = findKubernetesInstanceIdentifier(
       appWithInfrastructure({
         serverGroups: [
@@ -58,7 +59,7 @@ describe('findKubernetesInstanceIdentifier', () => {
   });
 
   it('finds pod instances under load balancers without server group recent-history data', () => {
-    const addRecentHistory = jasmine.createSpy('addRecentHistory');
+    const addRecentHistory = vi.fn();
     const identifier = findKubernetesInstanceIdentifier(
       appWithInfrastructure({
         loadBalancers: [
@@ -86,7 +87,7 @@ describe('findKubernetesInstanceIdentifier', () => {
   });
 
   it('finds pod instances under load balancer server groups and records server group recent-history data', () => {
-    const addRecentHistory = jasmine.createSpy('addRecentHistory');
+    const addRecentHistory = vi.fn();
     const identifier = findKubernetesInstanceIdentifier(
       appWithInfrastructure({
         loadBalancers: [
@@ -119,7 +120,7 @@ describe('findKubernetesInstanceIdentifier', () => {
   });
 
   it('returns null for missing instances without recording recent-history data', () => {
-    const addRecentHistory = jasmine.createSpy('addRecentHistory');
+    const addRecentHistory = vi.fn();
 
     expect(
       findKubernetesInstanceIdentifier(
@@ -153,9 +154,9 @@ describe('<KubernetesInstanceDetails />', () => {
       moniker: { app: 'kubernetesapp', cluster: 'deployment backend' },
     } as IKubernetesInstanceDetailsProps;
 
-    spyOn(InstanceReader, 'getInstanceDetails').and.returnValue(Promise.resolve(instanceDetails()) as any);
-    spyOn(ManifestReader, 'getManifest').and.returnValue(Promise.resolve(manifestDetails()) as any);
-    spyOn(RecentHistoryService, 'addExtraDataToLatest');
+    vi.spyOn(InstanceReader, 'getInstanceDetails').mockReturnValue(Promise.resolve(instanceDetails()) as any);
+    vi.spyOn(ManifestReader, 'getManifest').mockReturnValue(Promise.resolve(manifestDetails()) as any);
+    vi.spyOn(RecentHistoryService, 'addExtraDataToLatest').mockReturnValue(undefined);
   });
 
   it('loads instance and manifest details before rendering the React sections', async () => {
@@ -187,7 +188,7 @@ describe('<KubernetesInstanceDetails />', () => {
     expect(component.find(ManifestLabels).prop('manifest')).toEqual(manifestDetails().manifest);
     expect(component.find(AnnotationCustomSections).prop('manifest')).toEqual(manifestDetails().manifest);
     expect(component.find(AnnotationCustomSections).prop('resource')).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         account: 'k8s-local',
         name: 'pod backend-abc123-def45',
         provider: 'kubernetes',
@@ -200,7 +201,7 @@ describe('<KubernetesInstanceDetails />', () => {
     expect(component.find(KubernetesInstanceActions).prop('app')).toBe(props.app);
     expect(component.find(KubernetesInstanceActions).prop('manifest')).toEqual(manifestDetails());
     expect(component.find(KubernetesInstanceActions).prop('instance')).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         account: 'k8s-local',
         name: 'pod backend-abc123-def45',
         provider: 'kubernetes',
@@ -211,7 +212,7 @@ describe('<KubernetesInstanceDetails />', () => {
   });
 
   it('renders an Images section with copy-to-clipboard for each manifest artifact', async () => {
-    (ManifestReader.getManifest as jasmine.Spy).and.returnValue(
+    (ManifestReader.getManifest as Mock).mockReturnValue(
       Promise.resolve(
         manifestDetails({
           artifacts: [
@@ -245,7 +246,7 @@ describe('<KubernetesInstanceDetails />', () => {
   });
 
   it('auto-closes when the instance cannot be found in application infrastructure', async () => {
-    const autoClose = jasmine.createSpy('autoClose');
+    const autoClose = vi.fn();
     const component = shallow(
       <KubernetesInstanceDetails
         {...props}
@@ -263,7 +264,7 @@ describe('<KubernetesInstanceDetails />', () => {
   });
 
   it('replaces missing instance details through the injected state service', () => {
-    const stateService = { go: jasmine.createSpy('go'), params: {} };
+    const stateService = { go: vi.fn(), params: {} };
     const component = new KubernetesInstanceDetails({
       ...props,
       router: {},
@@ -278,7 +279,7 @@ describe('<KubernetesInstanceDetails />', () => {
   });
 
   it('waits for application data before loading changed instance props', async () => {
-    const autoClose = jasmine.createSpy('autoClose');
+    const autoClose = vi.fn();
     const ready = deferred<void>();
     const serverGroups: any[] = [];
     const app = appWithInfrastructure({ serverGroups });
@@ -323,11 +324,11 @@ describe('<KubernetesInstanceDetails />', () => {
       }),
     };
 
-    (InstanceReader.getInstanceDetails as jasmine.Spy).and.callFake(
+    (InstanceReader.getInstanceDetails as Mock).mockImplementation(
       (_account: string, _namespace: string, name: string) =>
         name === 'pod backend-new' ? newInstance.promise : oldInstance.promise,
     );
-    (ManifestReader.getManifest as jasmine.Spy).and.callFake((_account: string, _namespace: string, name: string) =>
+    (ManifestReader.getManifest as Mock).mockImplementation((_account: string, _namespace: string, name: string) =>
       name === 'pod backend-new' ? newManifest.promise : oldManifest.promise,
     );
 
@@ -352,7 +353,7 @@ describe('<KubernetesInstanceDetails />', () => {
   });
 
   it('ignores stale load failures after a newer pod has rendered', async () => {
-    const autoClose = jasmine.createSpy('autoClose');
+    const autoClose = vi.fn();
     const oldInstance = deferred<any>();
     const oldManifest = deferred<any>();
     const newInstance = deferred<any>();
@@ -372,11 +373,11 @@ describe('<KubernetesInstanceDetails />', () => {
       }),
     };
 
-    (InstanceReader.getInstanceDetails as jasmine.Spy).and.callFake(
+    (InstanceReader.getInstanceDetails as Mock).mockImplementation(
       (_account: string, _namespace: string, name: string) =>
         name === 'pod backend-new' ? newInstance.promise : oldInstance.promise,
     );
-    (ManifestReader.getManifest as jasmine.Spy).and.callFake((_account: string, _namespace: string, name: string) =>
+    (ManifestReader.getManifest as Mock).mockImplementation((_account: string, _namespace: string, name: string) =>
       name === 'pod backend-new' ? newManifest.promise : oldManifest.promise,
     );
 
@@ -450,7 +451,7 @@ const appWithInfrastructure = ({
       data: key === 'serverGroups' ? serverGroups : loadBalancers,
     }),
     serverGroups: {
-      refresh: jasmine.createSpy('refreshServerGroups'),
+      refresh: vi.fn(),
     },
   } as any);
 

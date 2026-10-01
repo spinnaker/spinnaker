@@ -23,15 +23,15 @@ describe('GceUpsertAutoHealingPolicyModal', () => {
   }
 
   it('retains edited policy state when task creation is rejected', async () => {
-    spyOn(GceAutoscalingPolicyWriter, 'upsertAutoHealingPolicy').and.returnValue(
+    vi.spyOn(GceAutoscalingPolicyWriter, 'upsertAutoHealingPolicy').mockReturnValue(
       Promise.reject({ failureMessage: 'No permission' }),
     );
     const modal = new GceUpsertAutoHealingPolicyModal({
       application: { name: 'my-app' },
       serverGroup: { account: 'my-account', name: 'my-app-main-v001', region: 'us-central1' },
       policy: { healthCheck: 'web', initialDelaySec: 300 },
-      closeModal: jasmine.createSpy('closeModal'),
-      dismissModal: jasmine.createSpy('dismissModal'),
+      closeModal: vi.fn(),
+      dismissModal: vi.fn(),
     } as any);
     const editedPolicy = { healthCheck: 'web', initialDelaySec: 0 };
     modal.state.policy = editedPolicy;

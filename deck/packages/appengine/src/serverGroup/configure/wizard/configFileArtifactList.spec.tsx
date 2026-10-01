@@ -7,7 +7,7 @@ import { mockDeployStage, mockPipeline } from '@spinnaker/mocks';
 
 import { ConfigFileArtifactList } from './ConfigFileArtifactList';
 // eslint-disable-next-line @spinnaker/import-from-npm-not-relative
-import { mockHttpClient } from '../../../../../core/src/api/mock/jasmine';
+import { mockHttpClient } from '../../../../../core/src/api/mock/mockHttpSupport';
 
 describe('<ConfigFileArtifactList/>', () => {
   it('renders empty children when null/empty artifacts are passed in', () => {

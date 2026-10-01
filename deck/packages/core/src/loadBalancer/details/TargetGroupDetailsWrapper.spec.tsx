@@ -29,22 +29,24 @@ describe('TargetGroupDetails', () => {
 
   it('renders provider React target group details when configured', () => {
     const ReactTargetGroupDetails = () => <div className="react-target-group-details" />;
-    const getValue = spyOn(CloudProviderRegistry, 'getValue').and.callFake((_provider: string, key: string) =>
-      key === 'loadBalancer.targetGroupDetails' ? ReactTargetGroupDetails : null,
-    );
+    const getValue = vi
+      .spyOn(CloudProviderRegistry, 'getValue')
+      .mockImplementation((_provider: string, key: string) =>
+        key === 'loadBalancer.targetGroupDetails' ? ReactTargetGroupDetails : null,
+      );
 
     const component = shallow(<TargetGroupDetails {...props} />);
 
     expect(component.find(ReactTargetGroupDetails).props()).toEqual(props);
-    expect(getValue.calls.allArgs()).toEqual([['aws', 'loadBalancer.targetGroupDetails']]);
+    expect(getValue.mock.calls).toEqual([['aws', 'loadBalancer.targetGroupDetails']]);
   });
 
   it('renders nothing when provider target group details config is missing', () => {
-    const getValue = spyOn(CloudProviderRegistry, 'getValue').and.returnValue(null);
+    const getValue = vi.spyOn(CloudProviderRegistry, 'getValue').mockReturnValue(null);
 
     const component = shallow(<TargetGroupDetails {...props} />);
 
     expect(component.isEmptyRender()).toBe(true);
-    expect(getValue.calls.allArgs()).toEqual([['aws', 'loadBalancer.targetGroupDetails']]);
+    expect(getValue.mock.calls).toEqual([['aws', 'loadBalancer.targetGroupDetails']]);
   });
 });

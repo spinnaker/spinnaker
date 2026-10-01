@@ -8,8 +8,8 @@ import { awsModifyScalingProcessStage } from './modifyScalingProcessStage';
 
 describe('AWS Modify Scaling Process stage', () => {
   function renderEditor(stage: any = {}, pipeline: any = {}) {
-    const updateStageField = jasmine.createSpy('updateStageField');
-    const updateStage = jasmine.createSpy('updateStage');
+    const updateStageField = vi.fn();
+    const updateStage = vi.fn();
     const StageConfig = awsModifyScalingProcessStage.component;
     const stageModel = { type: 'modifyAwsScalingProcess', cloudProviderType: 'aws', ...stage };
     const wrapper = shallow(
@@ -62,10 +62,10 @@ describe('AWS Modify Scaling Process stage', () => {
     selector.prop('onComponentUpdate')(selectorStage);
 
     expect(stage).toEqual(
-      jasmine.objectContaining({ credentials: 'test', regions: ['eu-west-1'], cluster: 'app-main' }),
+      expect.objectContaining({ credentials: 'test', regions: ['eu-west-1'], cluster: 'app-main' }),
     );
     expect(updateStage).toHaveBeenCalledWith(
-      jasmine.objectContaining({ credentials: 'prod', regions: ['us-east-1'], cluster: 'app-prod' }),
+      expect.objectContaining({ credentials: 'prod', regions: ['us-east-1'], cluster: 'app-prod' }),
     );
     expect(updateStageField).not.toHaveBeenCalled();
   });
@@ -119,14 +119,14 @@ describe('AWS Modify Scaling Process stage', () => {
 
     action.simulate('change', { target: { value: 'resume' } });
 
-    const changes = updateStageField.calls.mostRecent().args[0];
+    const changes = updateStageField.mock.lastCall[0];
     expect(changes).toEqual({ action: 'resume', suspendProcesses: undefined, resumeProcesses: undefined });
     expect(Object.prototype.hasOwnProperty.call(changes, 'processes')).toBe(false);
     expect(stage.processes).toBe(processes);
   });
 
   it('normalizes legacy process fields when reopening without changing action', () => {
-    spyOn(AccountService, 'listAccounts').and.returnValue(Promise.resolve([]));
+    vi.spyOn(AccountService, 'listAccounts').mockReturnValue(Promise.resolve([]));
     const processes = ['Launch', 'ScheduledActions'];
     const stage = {
       type: 'modifyAwsScalingProcess',
@@ -141,7 +141,7 @@ describe('AWS Modify Scaling Process stage', () => {
       suspendProcesses: ['Terminate'],
       resumeProcesses: ['AZRebalance'],
     };
-    const updateStageField = jasmine.createSpy('updateStageField');
+    const updateStageField = vi.fn();
     const StageConfig = awsModifyScalingProcessStage.component;
     const wrapper = mount(
       <StageConfig
@@ -149,7 +149,7 @@ describe('AWS Modify Scaling Process stage', () => {
           application: { defaultCredentials: {}, defaultRegions: {} },
           pipeline: { strategy: true },
           stage,
-          updateStage: jasmine.createSpy('updateStage'),
+          updateStage: vi.fn(),
           updateStageField,
         } as any)}
       />,
@@ -159,7 +159,7 @@ describe('AWS Modify Scaling Process stage', () => {
       suspendProcesses: undefined,
       resumeProcesses: undefined,
     });
-    expect(Object.prototype.hasOwnProperty.call(updateStageField.calls.mostRecent().args[0], 'processes')).toBe(false);
+    expect(Object.prototype.hasOwnProperty.call(updateStageField.mock.lastCall[0], 'processes')).toBe(false);
     expect(stage.processes).toBe(processes);
 
     wrapper.unmount();

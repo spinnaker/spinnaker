@@ -16,7 +16,7 @@ describe('InstanceArchetypeSelector', () => {
   beforeEach(() => {
     runtimeServices = {};
     Object.defineProperty(runtimeServices, 'instanceTypeService', { configurable: true, get: () => undefined });
-    spyOn(CloudProviderRegistry, 'getValue').and.returnValue(null);
+    vi.spyOn(CloudProviderRegistry, 'getValue').mockReturnValue(null);
   });
 
   afterEach(() => {
@@ -25,16 +25,12 @@ describe('InstanceArchetypeSelector', () => {
   });
 
   it('renders the native selector and mutates the selected profile', async () => {
-    spyOnProperty(runtimeServices, 'instanceTypeService', 'get').and.returnValue(instanceTypeService() as any);
-    const onProfileChanged = jasmine.createSpy('onProfileChanged');
+    vi.spyOn(runtimeServices, 'instanceTypeService', 'get').mockReturnValue(instanceTypeService() as any);
+    const onProfileChanged = vi.fn();
     const command = { selectedProvider: 'aws', viewState: {}, backingData: { filtered: { instanceTypes: [] } } } as any;
 
     const component = mount(
-      <InstanceArchetypeSelector
-        command={command}
-        onProfileChanged={onProfileChanged}
-        onTypeChanged={jasmine.createSpy()}
-      />,
+      <InstanceArchetypeSelector command={command} onProfileChanged={onProfileChanged} onTypeChanged={vi.fn()} />,
     );
     await settle(component);
 
@@ -45,15 +41,11 @@ describe('InstanceArchetypeSelector', () => {
   });
 
   it('shows the selected profile indicator after a profile is clicked', async () => {
-    spyOnProperty(runtimeServices, 'instanceTypeService', 'get').and.returnValue(instanceTypeService() as any);
+    vi.spyOn(runtimeServices, 'instanceTypeService', 'get').mockReturnValue(instanceTypeService() as any);
     const command = { selectedProvider: 'aws', viewState: {}, backingData: { filtered: { instanceTypes: [] } } } as any;
 
     const component = mount(
-      <InstanceArchetypeSelector
-        command={command}
-        onProfileChanged={jasmine.createSpy()}
-        onTypeChanged={jasmine.createSpy()}
-      />,
+      <InstanceArchetypeSelector command={command} onProfileChanged={vi.fn()} onTypeChanged={vi.fn()} />,
     );
     await settle(component);
 
@@ -64,15 +56,11 @@ describe('InstanceArchetypeSelector', () => {
   });
 
   it('keeps the selected profile when the command prop is replaced with the selected profile', async () => {
-    spyOnProperty(runtimeServices, 'instanceTypeService', 'get').and.returnValue(instanceTypeService() as any);
+    vi.spyOn(runtimeServices, 'instanceTypeService', 'get').mockReturnValue(instanceTypeService() as any);
     const command = { selectedProvider: 'aws', viewState: {}, backingData: { filtered: { instanceTypes: [] } } } as any;
 
     const component = mount(
-      <InstanceArchetypeSelector
-        command={command}
-        onProfileChanged={jasmine.createSpy()}
-        onTypeChanged={jasmine.createSpy()}
-      />,
+      <InstanceArchetypeSelector command={command} onProfileChanged={vi.fn()} onTypeChanged={vi.fn()} />,
     );
     await settle(component);
 
@@ -89,17 +77,11 @@ describe('InstanceArchetypeSelector', () => {
   });
 
   it('provides the direct React layout hooks for inline archetype columns', async () => {
-    spyOnProperty(runtimeServices, 'instanceTypeService', 'get').and.returnValue(
-      instanceTypeService('general', 3) as any,
-    );
+    vi.spyOn(runtimeServices, 'instanceTypeService', 'get').mockReturnValue(instanceTypeService('general', 3) as any);
     const command = { selectedProvider: 'aws', viewState: {}, backingData: { filtered: { instanceTypes: [] } } } as any;
 
     const component = mount(
-      <InstanceArchetypeSelector
-        command={command}
-        onProfileChanged={jasmine.createSpy()}
-        onTypeChanged={jasmine.createSpy()}
-      />,
+      <InstanceArchetypeSelector command={command} onProfileChanged={vi.fn()} onTypeChanged={vi.fn()} />,
     );
     await settle(component);
 
@@ -108,17 +90,11 @@ describe('InstanceArchetypeSelector', () => {
   });
 
   it('uses the old three-column layout for six profile providers', async () => {
-    spyOnProperty(runtimeServices, 'instanceTypeService', 'get').and.returnValue(
-      instanceTypeService('general', 6) as any,
-    );
+    vi.spyOn(runtimeServices, 'instanceTypeService', 'get').mockReturnValue(instanceTypeService('general', 6) as any);
     const command = { selectedProvider: 'gce', viewState: {}, backingData: { filtered: { instanceTypes: [] } } } as any;
 
     const component = mount(
-      <InstanceArchetypeSelector
-        command={command}
-        onProfileChanged={jasmine.createSpy()}
-        onTypeChanged={jasmine.createSpy()}
-      />,
+      <InstanceArchetypeSelector command={command} onProfileChanged={vi.fn()} onTypeChanged={vi.fn()} />,
     );
     await settle(component);
 
@@ -126,7 +102,7 @@ describe('InstanceArchetypeSelector', () => {
   });
 
   it('clears the current instance type when selecting a non-custom profile that does not contain it', async () => {
-    spyOnProperty(runtimeServices, 'instanceTypeService', 'get').and.returnValue(instanceTypeService() as any);
+    vi.spyOn(runtimeServices, 'instanceTypeService', 'get').mockReturnValue(instanceTypeService() as any);
     const command = {
       selectedProvider: 'aws',
       cloudProvider: 'aws',
@@ -136,11 +112,7 @@ describe('InstanceArchetypeSelector', () => {
     } as any;
 
     const component = mount(
-      <InstanceArchetypeSelector
-        command={command}
-        onProfileChanged={jasmine.createSpy()}
-        onTypeChanged={jasmine.createSpy()}
-      />,
+      <InstanceArchetypeSelector command={command} onProfileChanged={vi.fn()} onTypeChanged={vi.fn()} />,
     );
     await settle(component);
 
@@ -150,8 +122,8 @@ describe('InstanceArchetypeSelector', () => {
   });
 
   it('uses the profile selection path for initial custom selection', async () => {
-    spyOnProperty(runtimeServices, 'instanceTypeService', 'get').and.returnValue(instanceTypeService() as any);
-    const onProfileChanged = jasmine.createSpy('onProfileChanged');
+    vi.spyOn(runtimeServices, 'instanceTypeService', 'get').mockReturnValue(instanceTypeService() as any);
+    const onProfileChanged = vi.fn();
     const command = {
       selectedProvider: 'aws',
       cloudProvider: 'aws',
@@ -161,13 +133,7 @@ describe('InstanceArchetypeSelector', () => {
       backingData: { filtered: { instanceTypes: ['m5.large'] } },
     } as any;
 
-    mount(
-      <InstanceArchetypeSelector
-        command={command}
-        onProfileChanged={onProfileChanged}
-        onTypeChanged={jasmine.createSpy()}
-      />,
-    );
+    mount(<InstanceArchetypeSelector command={command} onProfileChanged={onProfileChanged} onTypeChanged={vi.fn()} />);
     await Promise.resolve();
 
     expect(command.viewState.instanceProfile).toBe('custom');
@@ -175,13 +141,11 @@ describe('InstanceArchetypeSelector', () => {
   });
 
   it('renders a registered React custom instance builder for buildCustom profiles', async () => {
-    const CustomInstanceBuilder = jasmine.createSpy('CustomInstanceBuilder').and.callFake(() => null);
-    (CloudProviderRegistry.getValue as any).and.callFake((_provider: string, key: string) =>
+    const CustomInstanceBuilder = vi.fn().mockImplementation(() => null);
+    (CloudProviderRegistry.getValue as any).mockImplementation((_provider: string, key: string) =>
       key === 'instance.CustomInstanceBuilder' ? CustomInstanceBuilder : null,
     );
-    spyOnProperty(runtimeServices, 'instanceTypeService', 'get').and.returnValue(
-      instanceTypeService('buildCustom') as any,
-    );
+    vi.spyOn(runtimeServices, 'instanceTypeService', 'get').mockReturnValue(instanceTypeService('buildCustom') as any);
     const command = {
       selectedProvider: 'gce',
       cloudProvider: 'gce',
@@ -190,11 +154,7 @@ describe('InstanceArchetypeSelector', () => {
     } as any;
 
     const component = mount(
-      <InstanceArchetypeSelector
-        command={command}
-        onProfileChanged={jasmine.createSpy()}
-        onTypeChanged={jasmine.createSpy()}
-      />,
+      <InstanceArchetypeSelector command={command} onProfileChanged={vi.fn()} onTypeChanged={vi.fn()} />,
     );
     await settle(component);
 
@@ -205,7 +165,7 @@ describe('InstanceArchetypeSelector', () => {
   });
 
   it('shows dirty warning in the custom instance type path', async () => {
-    spyOnProperty(runtimeServices, 'instanceTypeService', 'get').and.returnValue(instanceTypeService('custom') as any);
+    vi.spyOn(runtimeServices, 'instanceTypeService', 'get').mockReturnValue(instanceTypeService('custom') as any);
     const command = {
       selectedProvider: 'aws',
       cloudProvider: 'aws',
@@ -214,11 +174,7 @@ describe('InstanceArchetypeSelector', () => {
     } as any;
 
     const component = mount(
-      <InstanceArchetypeSelector
-        command={command}
-        onProfileChanged={jasmine.createSpy()}
-        onTypeChanged={jasmine.createSpy()}
-      />,
+      <InstanceArchetypeSelector command={command} onProfileChanged={vi.fn()} onTypeChanged={vi.fn()} />,
     );
     await settle(component);
 
@@ -226,8 +182,8 @@ describe('InstanceArchetypeSelector', () => {
   });
 
   it('uses the selection path for an initial profile without notifying unchanged profile', async () => {
-    spyOnProperty(runtimeServices, 'instanceTypeService', 'get').and.returnValue(instanceTypeService() as any);
-    const onProfileChanged = jasmine.createSpy('onProfileChanged');
+    vi.spyOn(runtimeServices, 'instanceTypeService', 'get').mockReturnValue(instanceTypeService() as any);
+    const onProfileChanged = vi.fn();
     const command = {
       selectedProvider: 'aws',
       cloudProvider: 'aws',
@@ -236,13 +192,7 @@ describe('InstanceArchetypeSelector', () => {
       backingData: { filtered: { instanceTypes: [] } },
     } as any;
 
-    mount(
-      <InstanceArchetypeSelector
-        command={command}
-        onProfileChanged={onProfileChanged}
-        onTypeChanged={jasmine.createSpy()}
-      />,
-    );
+    mount(<InstanceArchetypeSelector command={command} onProfileChanged={onProfileChanged} onTypeChanged={vi.fn()} />);
     await Promise.resolve();
 
     expect(command.instanceType).toBeNull();
@@ -250,9 +200,9 @@ describe('InstanceArchetypeSelector', () => {
   });
 
   it('marks the instance type wizard page complete or incomplete when instance type changes', async () => {
-    spyOnProperty(runtimeServices, 'instanceTypeService', 'get').and.returnValue(instanceTypeService('custom') as any);
-    spyOn(ModalWizard, 'markComplete');
-    spyOn(ModalWizard, 'markIncomplete');
+    vi.spyOn(runtimeServices, 'instanceTypeService', 'get').mockReturnValue(instanceTypeService('custom') as any);
+    vi.spyOn(ModalWizard, 'markComplete').mockReturnValue(undefined);
+    vi.spyOn(ModalWizard, 'markIncomplete').mockReturnValue(undefined);
     ModalWizard.pageRegistry = [{ key: 'instance-type', state: { done: false } } as any];
     ModalWizard.renderedPages = ModalWizard.pageRegistry;
     const command = {
@@ -264,11 +214,7 @@ describe('InstanceArchetypeSelector', () => {
     } as any;
 
     const component = mount(
-      <InstanceArchetypeSelector
-        command={command}
-        onProfileChanged={jasmine.createSpy()}
-        onTypeChanged={jasmine.createSpy()}
-      />,
+      <InstanceArchetypeSelector command={command} onProfileChanged={vi.fn()} onTypeChanged={vi.fn()} />,
     );
     await settle(component);
 
@@ -280,17 +226,15 @@ describe('InstanceArchetypeSelector', () => {
   });
 
   it('marks the instance type wizard page complete when buildCustom updates the instance type', async () => {
-    const CustomInstanceBuilder = jasmine.createSpy('CustomInstanceBuilder').and.callFake(() => null);
-    (CloudProviderRegistry.getValue as any).and.callFake((_provider: string, key: string) =>
+    const CustomInstanceBuilder = vi.fn().mockImplementation(() => null);
+    (CloudProviderRegistry.getValue as any).mockImplementation((_provider: string, key: string) =>
       key === 'instance.CustomInstanceBuilder' ? CustomInstanceBuilder : null,
     );
-    spyOnProperty(runtimeServices, 'instanceTypeService', 'get').and.returnValue(
-      instanceTypeService('buildCustom') as any,
-    );
-    spyOn(ModalWizard, 'markComplete');
+    vi.spyOn(runtimeServices, 'instanceTypeService', 'get').mockReturnValue(instanceTypeService('buildCustom') as any);
+    vi.spyOn(ModalWizard, 'markComplete').mockReturnValue(undefined);
     ModalWizard.pageRegistry = [{ key: 'instance-type', state: { done: false } } as any];
     ModalWizard.renderedPages = ModalWizard.pageRegistry;
-    const onTypeChanged = jasmine.createSpy('onTypeChanged');
+    const onTypeChanged = vi.fn();
     const command = {
       selectedProvider: 'gce',
       cloudProvider: 'gce',
@@ -299,11 +243,7 @@ describe('InstanceArchetypeSelector', () => {
     } as any;
 
     const component = mount(
-      <InstanceArchetypeSelector
-        command={command}
-        onProfileChanged={jasmine.createSpy()}
-        onTypeChanged={onTypeChanged}
-      />,
+      <InstanceArchetypeSelector command={command} onProfileChanged={vi.fn()} onTypeChanged={onTypeChanged} />,
     );
     await settle(component);
 
@@ -317,7 +257,7 @@ describe('InstanceArchetypeSelector', () => {
 
 function instanceTypeService(type = 'general', count = 1) {
   return {
-    getCategories: jasmine.createSpy('getCategories').and.returnValue(
+    getCategories: vi.fn().mockReturnValue(
       Promise.resolve(
         Array.from({ length: count }, (_unused, index) => ({
           type: index === 0 ? type : `${type}-${index}`,
@@ -334,7 +274,7 @@ function instanceTypeService(type = 'general', count = 1) {
         })),
       ),
     ),
-    getInstanceTypeDetails: jasmine.createSpy('getInstanceTypeDetails').and.returnValue(Promise.resolve({})),
+    getInstanceTypeDetails: vi.fn().mockReturnValue(Promise.resolve({})),
   };
 }
 

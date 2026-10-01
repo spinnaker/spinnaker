@@ -45,13 +45,13 @@ describe('ModifyWarmPoolModal', () => {
   });
 
   it('submits the built job through the task monitor', () => {
-    const execute = spyOn(TaskExecutor, 'executeTask').and.returnValue(Promise.resolve({} as any));
-    const application = { name: 'deck', serverGroups: { refresh: jasmine.createSpy('refresh') } } as any;
+    const execute = vi.spyOn(TaskExecutor, 'executeTask').mockReturnValue(Promise.resolve({} as any));
+    const application = { name: 'deck', serverGroups: { refresh: vi.fn() } } as any;
     const modal = new ModifyWarmPoolModal({
       application,
       serverGroup: { ...serverGroup, asg: {} },
-      closeModal: jasmine.createSpy('closeModal'),
-      dismissModal: jasmine.createSpy('dismissModal'),
+      closeModal: vi.fn(),
+      dismissModal: vi.fn(),
     } as any) as any;
     modal.state.enabled = true;
     modal.state.minSize = 3;
@@ -63,7 +63,7 @@ describe('ModifyWarmPoolModal', () => {
     expect(execute).toHaveBeenCalledWith({
       application,
       description: 'Update Warm Pool for deck-main-v001',
-      job: [jasmine.objectContaining({ action: 'upsert', minSize: 3, poolState: 'Stopped' })],
+      job: [expect.objectContaining({ action: 'upsert', minSize: 3, poolState: 'Stopped' })],
     });
   });
 });

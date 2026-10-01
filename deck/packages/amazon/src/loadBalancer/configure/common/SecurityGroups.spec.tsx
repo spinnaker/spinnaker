@@ -4,7 +4,7 @@ import { SecurityGroups } from './SecurityGroups';
 
 describe('SecurityGroups', () => {
   it('renders when the security group cache has not been registered', () => {
-    spyOn(InfrastructureCaches, 'get').and.returnValue(undefined);
+    vi.spyOn(InfrastructureCaches, 'get').mockReturnValue(undefined);
 
     expect(() => new SecurityGroups(buildProps() as any)).not.toThrow();
   });
@@ -19,9 +19,9 @@ function buildProps() {
         securityGroups: [],
         vpcId: 'vpc-1',
       },
-      setFieldValue: jasmine.createSpy('setFieldValue'),
-      validateForm: jasmine.createSpy('validateForm'),
+      setFieldValue: vi.fn(),
+      validateForm: vi.fn(),
     },
-    onLoadingChanged: jasmine.createSpy('onLoadingChanged'),
+    onLoadingChanged: vi.fn(),
   };
 }

@@ -1,3 +1,4 @@
+import type { Mock, Mocked } from 'vitest';
 import type { FormikProps } from 'formik';
 import { shallow } from 'enzyme';
 import React from 'react';
@@ -79,7 +80,7 @@ describe('GCE server group Capacity page', () => {
     wrapper.find('input[aria-label="Minimum capacity"]').simulate('change', { target: { value: '3' } });
     wrapper.find('input[aria-label="Maximum capacity"]').simulate('change', { target: { value: '8' } });
 
-    expect(formik.setFieldValue.calls.allArgs()).toEqual([
+    expect(formik.setFieldValue.mock.calls).toEqual([
       ['autoscalingPolicy', { minNumReplicas: 3, maxNumReplicas: 6, unknownPolicyField: 'keep' }],
       ['capacity', { min: 3, max: 6, desired: 4 }],
       ['autoscalingPolicy', { minNumReplicas: 3, maxNumReplicas: 8, unknownPolicyField: 'keep' }],
@@ -228,7 +229,7 @@ describe('GCE server group Capacity page', () => {
       target: { value: '${ parameters.newDesired }' },
     });
 
-    expect(formik.setFieldValue.calls.allArgs()).toEqual([
+    expect(formik.setFieldValue.mock.calls).toEqual([
       ['autoscalingPolicy', { minNumReplicas: '${ parameters.newMin }', maxNumReplicas: '${ parameters.max }' }],
       ['capacity', { min: '${ parameters.newMin }', max: '${ parameters.max }', desired: '${ parameters.desired }' }],
       ['autoscalingPolicy', { minNumReplicas: '${ parameters.newMin }', maxNumReplicas: '${ parameters.newMax }' }],
@@ -321,7 +322,7 @@ describe('GCE server group Capacity page', () => {
     wrapper.find('select[aria-label="Zone"]').simulate('change', { target: { value: 'known-zone-b' } });
     await flush();
 
-    const changedCommand = adapter.applyCommandHandler.calls.first().args[0];
+    const changedCommand = adapter.applyCommandHandler.mock.calls[0][0];
     expect(changedCommand.zone).toBe('known-zone-b');
     expect(adapter.applyCommandHandler).toHaveBeenCalledWith(changedCommand, 'zoneChanged');
     expect(handlerNames(adapter)).toEqual(['zoneChanged', 'selectZonesChanged']);
@@ -348,7 +349,7 @@ describe('GCE server group Capacity page', () => {
     wrapper.find('input[aria-label="Preferred zone distribution"]').simulate('change', { target: { checked: true } });
     await flush();
 
-    const changedCommand = adapter.applyCommandHandler.calls.first().args[0];
+    const changedCommand = adapter.applyCommandHandler.mock.calls[0][0];
     expect(changedCommand.selectZones).toBe(false);
     expect(changedCommand.distributionPolicy.zones).toEqual(['known-zone-a', 'persisted-zone']);
     expect(adapter.applyCommandHandler).toHaveBeenCalledWith(changedCommand, 'selectZonesChanged');
@@ -368,19 +369,19 @@ describe('GCE server group Capacity page', () => {
     transitions[0].resolve(update(afterRegional));
     await flush();
     expect(handlerNames(adapter)).toEqual(['regionalChanged', 'regionChanged']);
-    expect(adapter.applyCommandHandler.calls.argsFor(1)[0]).toBe(afterRegional);
+    expect(adapter.applyCommandHandler.mock.calls[1][0]).toBe(afterRegional);
 
     const afterRegion = command({ regional: true, zone: null, transition: 'region' });
     transitions[1].resolve(update(afterRegion));
     await flush();
     expect(handlerNames(adapter)).toEqual(['regionalChanged', 'regionChanged', 'zoneChanged']);
-    expect(adapter.applyCommandHandler.calls.argsFor(2)[0]).toBe(afterRegion);
+    expect(adapter.applyCommandHandler.mock.calls[2][0]).toBe(afterRegion);
 
     const afterZone = command({ regional: true, zone: null, transition: 'zone' });
     transitions[2].resolve(update(afterZone));
     await flush();
     expect(handlerNames(adapter)).toEqual(['regionalChanged', 'regionChanged', 'zoneChanged', 'selectZonesChanged']);
-    expect(adapter.applyCommandHandler.calls.argsFor(3)[0]).toBe(afterZone);
+    expect(adapter.applyCommandHandler.mock.calls[3][0]).toBe(afterZone);
     expect(formik.setValues).not.toHaveBeenCalled();
 
     const reconciled = command({ regional: true, zone: null, transition: 'selectZones' });
@@ -400,7 +401,7 @@ describe('GCE server group Capacity page', () => {
     zonalTransitions[0].resolve(update(afterZone));
     await flush();
     expect(handlerNames(zonal.adapter)).toEqual(['zoneChanged', 'selectZonesChanged']);
-    expect(zonal.adapter.applyCommandHandler.calls.argsFor(1)[0]).toBe(afterZone);
+    expect(zonal.adapter.applyCommandHandler.mock.calls[1][0]).toBe(afterZone);
     const zonalReconciled = command({ zone: 'known-zone-b', transition: 'selectZones' });
     zonalTransitions[1].resolve(update(zonalReconciled));
     await flush();
@@ -427,7 +428,7 @@ describe('GCE server group Capacity page', () => {
     regionalTransitions[0].resolve(update(afterSelectZones));
     await flush();
     expect(handlerNames(regional.adapter)).toEqual(['selectZonesChanged', 'zoneChanged']);
-    expect(regional.adapter.applyCommandHandler.calls.argsFor(1)[0]).toBe(afterSelectZones);
+    expect(regional.adapter.applyCommandHandler.mock.calls[1][0]).toBe(afterSelectZones);
     const regionalReconciled = { ...afterSelectZones, transition: 'zone' };
     regionalTransitions[1].resolve(update(regionalReconciled));
     await flush();
@@ -469,7 +470,7 @@ describe('GCE server group Capacity page', () => {
     const configurer = wrapper.find(GceInstanceFlexibilityConfigurer);
 
     expect(configurer.props()).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         instanceFlexibilityPolicy,
         regional: true,
         targetShape: 'BALANCED',
@@ -590,36 +591,34 @@ function selectOptions(wrapper: ReturnType<typeof shallow>, label: string): stri
 function testProps(values = command()) {
   const formik = ({
     values,
-    setFieldValue: jasmine.createSpy('setFieldValue').and.callFake((field: string, value: any) => {
+    setFieldValue: vi.fn().mockImplementation((field: string, value: any) => {
       values[field] = value;
     }),
-    setValues: jasmine.createSpy('setValues'),
+    setValues: vi.fn(),
   } as unknown) as FormikProps<IGceServerGroupCommand>;
   const reconciled = command({ region: 'reconciled-region' });
   const adapter = ({
-    applyCommandHandler: jasmine
-      .createSpy('applyCommandHandler')
-      .and.resolveTo({ command: reconciled, result: { dirty: {} } }),
-  } as unknown) as jasmine.SpyObj<IGceServerGroupWizardAdapter>;
+    applyCommandHandler: vi.fn().mockResolvedValue({ command: reconciled, result: { dirty: {} } }),
+  } as unknown) as Mocked<IGceServerGroupWizardAdapter>;
   return { adapter, formik, reconciled };
 }
 
 function transitionProps(values: IGceServerGroupCommand, transitions: Array<ReturnType<typeof deferredCommand>>) {
   const formik = ({
     values,
-    setFieldValue: jasmine.createSpy('setFieldValue'),
-    setValues: jasmine.createSpy('setValues'),
+    setFieldValue: vi.fn(),
+    setValues: vi.fn(),
   } as unknown) as FormikProps<IGceServerGroupCommand>;
   const adapter = ({
-    applyCommandHandler: jasmine
-      .createSpy('applyCommandHandler')
-      .and.callFake(() => transitions[(adapter.applyCommandHandler as jasmine.Spy).calls.count() - 1].promise),
-  } as unknown) as jasmine.SpyObj<IGceServerGroupWizardAdapter>;
+    applyCommandHandler: vi
+      .fn()
+      .mockImplementation(() => transitions[(adapter.applyCommandHandler as Mock).mock.calls.length - 1].promise),
+  } as unknown) as Mocked<IGceServerGroupWizardAdapter>;
   return { adapter, formik };
 }
 
-function handlerNames(adapter: jasmine.SpyObj<IGceServerGroupWizardAdapter>): string[] {
-  return adapter.applyCommandHandler.calls.allArgs().map((args) => args[1]);
+function handlerNames(adapter: Mocked<IGceServerGroupWizardAdapter>): string[] {
+  return adapter.applyCommandHandler.mock.calls.map((args) => args[1]);
 }
 
 function update(commandValue: IGceServerGroupCommand) {

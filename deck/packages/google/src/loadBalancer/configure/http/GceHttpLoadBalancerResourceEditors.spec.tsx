@@ -8,7 +8,7 @@ import {
 
 describe('GceHttpLoadBalancerResourceEditors', () => {
   it('edits complete health-check objects without dropping unknown fields', () => {
-    const onChange = jasmine.createSpy('onChange');
+    const onChange = vi.fn();
     const wrapper = shallow(
       <GceHttpLoadBalancerHealthCheckEditor
         healthCheck={{
@@ -22,26 +22,26 @@ describe('GceHttpLoadBalancerResourceEditors', () => {
         }}
         healthChecks={[{ name: 'check-a' }]}
         onChange={onChange}
-        onRemove={jasmine.createSpy('onRemove')}
+        onRemove={vi.fn()}
       />,
     );
 
     wrapper.find('[data-testid="health-check-port"]').simulate('change', { target: { value: '8080' } });
 
     expect(onChange).toHaveBeenCalledWith(
-      jasmine.objectContaining({ name: 'check-a', port: 8080, requestPath: '/health', unknownField: 'keep' }),
+      expect.objectContaining({ name: 'check-a', port: 8080, requestPath: '/health', unknownField: 'keep' }),
     );
     expect(wrapper.find('button').everyWhere((button) => button.prop('type') === 'button')).toBe(true);
   });
 
   it('supports HTTP2 request paths and GRPC service names', () => {
-    const onChange = jasmine.createSpy('onChange');
+    const onChange = vi.fn();
     const wrapper = shallow(
       <GceHttpLoadBalancerHealthCheckEditor
         healthCheck={{ healthCheckType: 'GRPC', name: 'grpc-check', port: 443 }}
         healthChecks={[]}
         onChange={onChange}
-        onRemove={jasmine.createSpy('onRemove')}
+        onRemove={vi.fn()}
       />,
     );
 
@@ -55,7 +55,7 @@ describe('GceHttpLoadBalancerResourceEditors', () => {
   });
 
   it('selects complete backend-service and health-check references', () => {
-    const onChange = jasmine.createSpy('onChange');
+    const onChange = vi.fn();
     const backendServices = [
       {
         healthCheck: { name: 'check-a', selfLink: 'https://compute/healthChecks/check-a' },
@@ -72,7 +72,7 @@ describe('GceHttpLoadBalancerResourceEditors', () => {
         healthChecks={[{ name: 'check-a', selfLink: 'https://compute/healthChecks/check-a' }]}
         loadBalancerType="HTTP"
         onChange={onChange}
-        onRemove={jasmine.createSpy('onRemove')}
+        onRemove={vi.fn()}
       />,
     );
 

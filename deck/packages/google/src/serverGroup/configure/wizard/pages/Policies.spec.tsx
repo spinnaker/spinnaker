@@ -34,7 +34,7 @@ describe('GCE server group Policies page', () => {
 
     const reader = wrapper.find(GceAutoHealingPolicyEditor).prop('reader') as any;
     expect(await reader.listHealthChecks()).toEqual([
-      jasmine.objectContaining({ account: 'account', name: 'check', selfLink: 'https://compute/healthChecks/check' }),
+      expect.objectContaining({ account: 'account', name: 'check', selfLink: 'https://compute/healthChecks/check' }),
     ]);
   });
 
@@ -310,7 +310,7 @@ function command(overrides: Partial<IGceServerGroupCommand> = {}): IGceServerGro
 function formik(values: IGceServerGroupCommand): any {
   return {
     values,
-    setFieldValue: jasmine.createSpy('setFieldValue').and.callFake((field: string, value: any) => {
+    setFieldValue: vi.fn().mockImplementation((field: string, value: any) => {
       values[field] = value;
     }),
   };

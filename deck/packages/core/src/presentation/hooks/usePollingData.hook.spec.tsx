@@ -5,8 +5,12 @@ import type { IUseLatestPromiseResult } from './useLatestPromise.hook';
 import { usePollingData } from './usePollingData.hook';
 
 describe('usePollingData hook', () => {
-  beforeEach(() => jasmine.clock().install());
-  afterEach(() => jasmine.clock().uninstall());
+  beforeEach(() =>
+    vi.useFakeTimers({
+      toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval'],
+    }),
+  );
+  afterEach(() => vi.useRealTimers());
 
   // Remove the the refresh function for .isEqual assertions
   function promiseState(call: IUseLatestPromiseResult<any>) {
@@ -39,7 +43,7 @@ describe('usePollingData hook', () => {
   }
 
   it('delegates to useData', () => {
-    const spy = jasmine.createSpy('onChange');
+    const spy = vi.fn();
     const deferred = defer();
     const factory = () => deferred.promise;
     mount(
@@ -54,14 +58,14 @@ describe('usePollingData hook', () => {
 
     expect(spy).toHaveBeenCalledTimes(2);
 
-    expect(promiseState(spy.calls.argsFor(0)[0])).toEqual({
+    expect(promiseState(spy.mock.calls[0][0])).toEqual({
       status: 'NONE',
       result: 'default',
       error: undefined,
       requestId: 0,
     });
 
-    expect(promiseState(spy.calls.argsFor(1)[0])).toEqual({
+    expect(promiseState(spy.mock.calls[1][0])).toEqual({
       status: 'PENDING',
       result: 'default',
       error: undefined,
@@ -70,9 +74,9 @@ describe('usePollingData hook', () => {
   });
 
   it('calls the factory on the specified polling interval', async () => {
-    const spy = jasmine.createSpy('onChange');
+    const spy = vi.fn();
     let deferred = defer();
-    const factory = jasmine.createSpy('factory').and.callFake(() => deferred.promise);
+    const factory = vi.fn().mockImplementation(() => deferred.promise);
     const component = mount(
       <Component
         promiseFactory={factory}
@@ -88,7 +92,7 @@ describe('usePollingData hook', () => {
     component.setProps({});
     expect(factory).toHaveBeenCalledTimes(1);
     expect(spy).toHaveBeenCalledTimes(3);
-    expect(promiseState(spy.calls.argsFor(2)[0])).toEqual({
+    expect(promiseState(spy.mock.calls[2][0])).toEqual({
       status: 'RESOLVED',
       result: 'result',
       error: undefined,
@@ -100,7 +104,7 @@ describe('usePollingData hook', () => {
     deferred = defer();
 
     // Tick forward to slightly before the polling interval should kick in
-    jasmine.clock().tick(900);
+    vi.advanceTimersByTime(900);
     component.setProps({});
 
     // Confirm that ticking forward didn't trigger a refresh
@@ -108,14 +112,14 @@ describe('usePollingData hook', () => {
     expect(spy).toHaveBeenCalledTimes(3);
 
     // Clock is now at 1400ms, 400ms past the polling interval
-    jasmine.clock().tick(500);
+    vi.advanceTimersByTime(500);
     component.setProps({});
 
     // Confirm that the useData result was refreshed
     expect(factory).toHaveBeenCalledTimes(2);
     expect(spy).toHaveBeenCalledTimes(4);
 
-    expect(promiseState(spy.calls.argsFor(3)[0])).toEqual({
+    expect(promiseState(spy.mock.calls[3][0])).toEqual({
       status: 'PENDING',
       result: 'result',
       error: undefined,

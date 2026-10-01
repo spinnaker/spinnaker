@@ -7,7 +7,7 @@ const { useEffect } = React;
 
 describe('useDeepObjectDiff', () => {
   it('changes its return value when the object has changed between renders', () => {
-    const spy = jasmine.createSpy('useEffect callback');
+    const spy = vi.fn();
     function TestComponent(props: any) {
       useEffect(spy, [useDeepObjectDiff(props)]);
       return null as JSX.Element;

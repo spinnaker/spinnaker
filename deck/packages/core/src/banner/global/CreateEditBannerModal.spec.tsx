@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import type { Mock } from 'vitest';
 import { shallow } from 'enzyme';
 import React from 'react';
 
@@ -58,8 +59,8 @@ const BANNER_FIXTURE: IBannerRecord = {
 
 function makeWrapper(props: Partial<React.ComponentProps<typeof CreateEditBannerModal>> = {}) {
   const defaults = {
-    onClose: jasmine.createSpy('onClose'),
-    onSaved: jasmine.createSpy('onSaved'),
+    onClose: vi.fn(),
+    onSaved: vi.fn(),
   };
   return shallow(<CreateEditBannerModal {...defaults} {...props} />);
 }
@@ -141,8 +142,8 @@ describe('<CreateEditBannerModal /> — create mode', () => {
 
   it('calls GlobalBannerService.saveBanner and onSaved on successful submit', async () => {
     const saved = { ...BANNER_FIXTURE };
-    spyOn(GlobalBannerService, 'saveBanner').and.returnValue(Promise.resolve(saved));
-    const onSaved = jasmine.createSpy('onSaved');
+    vi.spyOn(GlobalBannerService, 'saveBanner').mockReturnValue(Promise.resolve(saved));
+    const onSaved = vi.fn();
 
     const wrapper = makeWrapper({ onSaved });
     wrapper.find('#banner-id').simulate('change', { target: { value: 'maint-2026' } });
@@ -151,13 +152,13 @@ describe('<CreateEditBannerModal /> — create mode', () => {
     await wrapper.find('form').prop('onSubmit')({ preventDefault: () => {} } as any);
 
     expect(GlobalBannerService.saveBanner).toHaveBeenCalledWith(
-      jasmine.objectContaining({ id: 'maint-2026', message: 'Maintenance window' }),
+      expect.objectContaining({ id: 'maint-2026', message: 'Maintenance window' }),
     );
     expect(onSaved).toHaveBeenCalledWith(saved);
   });
 
   it('shows error alert when saveBanner rejects', async () => {
-    spyOn(GlobalBannerService, 'saveBanner').and.returnValue(Promise.reject({ data: { message: 'Server error' } }));
+    vi.spyOn(GlobalBannerService, 'saveBanner').mockReturnValue(Promise.reject({ data: { message: 'Server error' } }));
 
     const wrapper = makeWrapper();
     wrapper.find('#banner-id').simulate('change', { target: { value: 'x' } });
@@ -170,7 +171,7 @@ describe('<CreateEditBannerModal /> — create mode', () => {
   });
 
   it('calls onClose when Cancel is clicked', () => {
-    const onClose = jasmine.createSpy('onClose');
+    const onClose = vi.fn();
     const wrapper = makeWrapper({ onClose });
     wrapper
       .find('button[type="button"]')
@@ -219,12 +220,12 @@ describe('<CreateEditBannerModal /> — edit mode', () => {
 
   it('preserves existing createdAt when saving', async () => {
     const saved = { ...BANNER_FIXTURE };
-    spyOn(GlobalBannerService, 'saveBanner').and.returnValue(Promise.resolve(saved));
+    vi.spyOn(GlobalBannerService, 'saveBanner').mockReturnValue(Promise.resolve(saved));
 
     const wrapper = makeWrapper({ existing: BANNER_FIXTURE });
     await wrapper.find('form').prop('onSubmit')({ preventDefault: () => {} } as any);
 
-    const callArg: IBannerRecord = (GlobalBannerService.saveBanner as jasmine.Spy).calls.mostRecent().args[0];
+    const callArg: IBannerRecord = (GlobalBannerService.saveBanner as Mock).mock.lastCall[0];
     expect(callArg.createdAt).toBe(BANNER_FIXTURE.createdAt);
   });
 });

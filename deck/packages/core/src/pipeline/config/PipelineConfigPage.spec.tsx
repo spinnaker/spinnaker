@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { UIRouterContext, UIRouterReact } from '@uirouter/react';
 import { mount } from 'enzyme';
 import { cloneDeep } from 'lodash';
@@ -38,9 +39,9 @@ describe('PipelineConfigPage', () => {
   let providerRenderStates: boolean[];
   let router: UIRouterReact;
   let runtime: DeckRuntime;
-  let stateGo: jasmine.Spy;
-  let transitionCleanup: jasmine.Spy;
-  let transitionOnBefore: jasmine.Spy;
+  let stateGo: Mock;
+  let transitionCleanup: Mock;
+  let transitionOnBefore: Mock;
 
   const PipelineConfigPage = (props: any) => (
     <UIRouterContext.Provider value={router}>
@@ -97,10 +98,10 @@ describe('PipelineConfigPage', () => {
     );
     app.pipelineConfigs.data = pipelines;
     app.strategyConfigs.data = strategies;
-    spyOn(app.pipelineConfigs, 'activate').and.callThrough();
-    spyOn(app.pipelineConfigs, 'refresh').and.returnValue(Promise.resolve(pipelines) as any);
-    spyOn(app.strategyConfigs, 'activate').and.callThrough();
-    spyOn(app.strategyConfigs, 'refresh').and.returnValue(Promise.resolve(strategies) as any);
+    vi.spyOn(app.pipelineConfigs, 'activate');
+    vi.spyOn(app.pipelineConfigs, 'refresh').mockReturnValue(Promise.resolve(pipelines) as any);
+    vi.spyOn(app.strategyConfigs, 'activate');
+    vi.spyOn(app.strategyConfigs, 'refresh').mockReturnValue(Promise.resolve(strategies) as any);
     return app;
   };
 
@@ -226,7 +227,7 @@ describe('PipelineConfigPage', () => {
 
   const expectCommonFieldsPreserved = (stage: any) => {
     expect(stage).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         refId: '2',
         requisiteStageRefIds: ['1'],
         isNew: true,
@@ -284,7 +285,7 @@ describe('PipelineConfigPage', () => {
 
     expect(applyStageConfigDefaults(stage, config)).toBe(true);
     expect(stage).toEqual(
-      jasmine.objectContaining({ name: 'Regular', alias: 'legacyRegular', nested: { value: 'default value' } }),
+      expect.objectContaining({ name: 'Regular', alias: 'legacyRegular', nested: { value: 'default value' } }),
     );
     expect(stage.nested).not.toBe(defaults.nested);
     expect(defaults).toEqual({ nested: { value: 'default value' } });
@@ -295,16 +296,16 @@ describe('PipelineConfigPage', () => {
     $stateParams = {};
     router = new UIRouterReact();
     runtime = createDeckRuntime(router);
-    stateGo = jasmine.createSpy('stateGo');
-    transitionCleanup = jasmine.createSpy('transitionCleanup');
-    transitionOnBefore = spyOn(router.transitionService, 'onBefore').and.returnValue(transitionCleanup);
+    stateGo = vi.fn();
+    transitionCleanup = vi.fn();
+    transitionOnBefore = vi.spyOn(router.transitionService, 'onBefore').mockReturnValue(transitionCleanup);
     fiatEnabled = SETTINGS.feature.fiatEnabled;
     providerRenderStates = [];
     Registry.reinitialize();
     ViewStateCache.get('pipelineConfig').removeAll();
-    spyOn(AccountService, 'applicationAccounts').and.callFake(() => Promise.resolve([account('aws')]) as any);
-    spyOn(ApplicationReader, 'getApplicationPermissions').and.returnValue(Promise.resolve({}) as any);
-    spyOn(runtime.services.executionService, 'getExecutionsForConfigIds').and.returnValue(Promise.resolve([]));
+    vi.spyOn(AccountService, 'applicationAccounts').mockImplementation(() => Promise.resolve([account('aws')]) as any);
+    vi.spyOn(ApplicationReader, 'getApplicationPermissions').mockReturnValue(Promise.resolve({}) as any);
+    vi.spyOn(runtime.services.executionService, 'getExecutionsForConfigIds').mockReturnValue(Promise.resolve([]));
   });
 
   afterEach(() => {
@@ -343,7 +344,7 @@ describe('PipelineConfigPage', () => {
 
     wrapper.find('.btn-configure').simulate('click');
     expect(stateGo).toHaveBeenCalledWith('^.executions');
-    expect(transitionOnBefore).toHaveBeenCalledWith({}, jasmine.any(Function));
+    expect(transitionOnBefore).toHaveBeenCalledWith({}, expect.any(Function));
 
     wrapper.unmount();
     expect(transitionCleanup).toHaveBeenCalled();
@@ -474,7 +475,7 @@ describe('PipelineConfigPage', () => {
     expect(dependencySelect.prop('multi')).toBe(true);
     expect(dependencySelect.prop('inputClassName')).toContain('pipeline-stage-dependency-select');
     expect(dependencySelect.prop('inputClassName')).not.toContain('input-sm');
-    expect(dependencySelect.prop('options')).toContain(jasmine.objectContaining({ label: 'Build', value: '1' }));
+    expect(dependencySelect.prop('options')).toContainEqual(expect.objectContaining({ label: 'Build', value: '1' }));
     expect(wrapper.find('.pipeline-stage-config-heading select[multiple]').exists()).toBe(false);
 
     wrapper.unmount();
@@ -659,7 +660,7 @@ describe('PipelineConfigPage', () => {
 
   it('renders manual judgment authorized groups from application permissions', async () => {
     SETTINGS.feature = { ...SETTINGS.feature, fiatEnabled: true };
-    (ApplicationReader.getApplicationPermissions as jasmine.Spy).and.returnValue(
+    (ApplicationReader.getApplicationPermissions as Mock).mockReturnValue(
       Promise.resolve({ READ: ['readers'], WRITE: ['writers'], EXECUTE: ['executors'] }) as any,
     );
     registerStageTypes();
@@ -686,14 +687,14 @@ describe('PipelineConfigPage', () => {
       .filterWhere((node) => node.prop('name') === 'selectedStageRoles');
     expect(authorizedGroupsSelect.exists()).toBe(true);
     expect(authorizedGroupsSelect.prop('multi')).toBe(true);
-    expect(authorizedGroupsSelect.prop('options')).toContain(
-      jasmine.objectContaining({ label: 'readers', value: 'readers' }),
+    expect(authorizedGroupsSelect.prop('options')).toContainEqual(
+      expect.objectContaining({ label: 'readers', value: 'readers' }),
     );
-    expect(authorizedGroupsSelect.prop('options')).toContain(
-      jasmine.objectContaining({ label: 'writers', value: 'writers' }),
+    expect(authorizedGroupsSelect.prop('options')).toContainEqual(
+      expect.objectContaining({ label: 'writers', value: 'writers' }),
     );
-    expect(authorizedGroupsSelect.prop('options')).toContain(
-      jasmine.objectContaining({ label: 'executors', value: 'executors' }),
+    expect(authorizedGroupsSelect.prop('options')).toContainEqual(
+      expect.objectContaining({ label: 'executors', value: 'executors' }),
     );
 
     await act(async () => {
@@ -713,7 +714,7 @@ describe('PipelineConfigPage', () => {
     const plan = { ...pipeline(requested.id, requested.name), stages: [] } as IPipeline;
     const app = createApp([requested]);
     $stateParams.pipelineId = requested.id;
-    spyOn(PipelineTemplateReader, 'getPipelinePlan').and.returnValue(Promise.resolve(plan));
+    vi.spyOn(PipelineTemplateReader, 'getPipelinePlan').mockReturnValue(Promise.resolve(plan));
 
     const wrapper = mount(<PipelineConfigPage app={app} />);
     await flush();
@@ -734,9 +735,9 @@ describe('PipelineConfigPage', () => {
     const app = createApp([requested]);
     $stateParams.pipelineId = requested.id;
     $stateParams.executionId = 'route-execution-id';
-    spyOn(PipelineTemplateReader, 'getPipelinePlan').and.returnValue(Promise.resolve(originalPlan));
+    vi.spyOn(PipelineTemplateReader, 'getPipelinePlan').mockReturnValue(Promise.resolve(originalPlan));
     const modalResult = deferred<{ plan: IPipeline; config: IPipeline }>();
-    const showModal = spyOn(ReactModal, 'show').and.returnValue(modalResult.promise);
+    const showModal = vi.spyOn(ReactModal, 'show').mockReturnValue(modalResult.promise);
 
     const wrapper = mount(<PipelineConfigPage app={app} />);
     await flush();
@@ -744,10 +745,10 @@ describe('PipelineConfigPage', () => {
 
     const configure = wrapper.find('[data-test-id="configure-template"]');
     configure.prop('onClick')();
-    const modalProps = showModal.calls.mostRecent().args[1] as any;
-    expect(showModal.calls.mostRecent().args[0]).toBe(ConfigurePipelineTemplateModal);
+    const modalProps = showModal.mock.lastCall[1] as any;
+    expect(showModal.mock.lastCall[0]).toBe(ConfigurePipelineTemplateModal);
     expect(modalProps).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         application: app,
         executionId: 'rendered-execution-id',
         isNew: requested.isNew,
@@ -789,13 +790,11 @@ describe('PipelineConfigPage', () => {
     (originalPlan as any).executionId = 'rendered-execution-id';
     const app = createApp([requested]);
     $stateParams.pipelineId = requested.id;
-    spyOn(PipelineTemplateReader, 'getPipelinePlan').and.returnValue(Promise.resolve(originalPlan));
+    vi.spyOn(PipelineTemplateReader, 'getPipelinePlan').mockReturnValue(Promise.resolve(originalPlan));
     const executionEnrichment = deferred<any[]>();
-    (runtime.services.executionService.getExecutionsForConfigIds as jasmine.Spy).and.returnValue(
-      executionEnrichment.promise,
-    );
+    (runtime.services.executionService.getExecutionsForConfigIds as Mock).mockReturnValue(executionEnrichment.promise);
     const modalResult = deferred<{ plan: IPipeline; config: IPipeline }>();
-    spyOn(ReactModal, 'show').and.returnValue(modalResult.promise);
+    vi.spyOn(ReactModal, 'show').mockReturnValue(modalResult.promise);
 
     const wrapper = mount(<PipelineConfigPage app={app} />);
     await flush();
@@ -836,10 +835,13 @@ describe('PipelineConfigPage', () => {
     const originalPlan = { ...pipeline(requested.id, requested.name), stages: [] } as IPipeline;
     const app = createApp([requested]);
     $stateParams.pipelineId = requested.id;
-    spyOn(PipelineTemplateReader, 'getPipelinePlan').and.returnValue(Promise.resolve(originalPlan));
+    vi.spyOn(PipelineTemplateReader, 'getPipelinePlan').mockReturnValue(Promise.resolve(originalPlan));
     const firstModal = deferred<{ plan: IPipeline; config: IPipeline }>();
     const secondModal = deferred<{ plan: IPipeline; config: IPipeline }>();
-    const showModal = spyOn(ReactModal, 'show').and.returnValues(firstModal.promise, secondModal.promise);
+    const showModal = vi
+      .spyOn(ReactModal, 'show')
+      .mockReturnValueOnce(firstModal.promise)
+      .mockReturnValueOnce(secondModal.promise);
 
     const wrapper = mount(<PipelineConfigPage app={app} />);
     await flush();
@@ -891,11 +893,11 @@ describe('PipelineConfigPage', () => {
     (reloaded as any).config.pipeline.pipelineConfigId = reloaded.id;
     const reloadedPlan = { ...pipeline(reloaded.id, reloaded.name), stages: [] } as IPipeline;
     const reloadedApp = createApp([reloaded]);
-    spyOn(PipelineTemplateReader, 'getPipelinePlan').and.callFake((config: IPipeline) =>
+    vi.spyOn(PipelineTemplateReader, 'getPipelinePlan').mockImplementation((config: IPipeline) =>
       Promise.resolve(config.name === reloaded.name ? reloadedPlan : originalPlan),
     );
     const modalResult = deferred<{ plan: IPipeline; config: IPipeline }>();
-    spyOn(ReactModal, 'show').and.returnValue(modalResult.promise);
+    vi.spyOn(ReactModal, 'show').mockReturnValue(modalResult.promise);
 
     const wrapper = mount(<PipelineConfigPage app={app} />);
     await flush();
@@ -928,9 +930,9 @@ describe('PipelineConfigPage', () => {
     const originalPlan = { ...pipeline(requested.id, requested.name), stages: [] } as IPipeline;
     const app = createApp([requested]);
     $stateParams.pipelineId = requested.id;
-    spyOn(PipelineTemplateReader, 'getPipelinePlan').and.returnValue(Promise.resolve(originalPlan));
-    spyOn(PipelineConfigService, 'savePipeline').and.returnValue(Promise.resolve());
-    spyOn(ReactModal, 'show').and.returnValue(
+    vi.spyOn(PipelineTemplateReader, 'getPipelinePlan').mockReturnValue(Promise.resolve(originalPlan));
+    vi.spyOn(PipelineConfigService, 'savePipeline').mockReturnValue(Promise.resolve());
+    vi.spyOn(ReactModal, 'show').mockReturnValue(
       Promise.resolve({ plan: cloneDeep(originalPlan), config: cloneDeep(requested) }),
     );
 
@@ -955,7 +957,7 @@ describe('PipelineConfigPage', () => {
     wrapper.update();
 
     expect(PipelineConfigService.savePipeline).toHaveBeenCalledWith(
-      jasmine.objectContaining({ id: requested.id, name: requested.name }),
+      expect.objectContaining({ id: requested.id, name: requested.name }),
     );
     expect(wrapper.text()).toContain('In sync with server');
     expect(wrapper.find('[data-test-id="Pipeline.revertChanges"]').exists()).toBe(false);
@@ -969,7 +971,7 @@ describe('PipelineConfigPage', () => {
     $stateParams.pipelineId = requested.id;
     $stateParams.new = '1';
     const modalResult = deferred<any>();
-    const showModal = spyOn(ReactModal, 'show').and.returnValue(modalResult.promise);
+    const showModal = vi.spyOn(ReactModal, 'show').mockReturnValue(modalResult.promise);
 
     const wrapper = mount(<PipelineConfigPage app={app} />);
     await flush();
@@ -997,9 +999,9 @@ describe('PipelineConfigPage', () => {
     const app = createApp([requested]);
     $stateParams.pipelineId = requested.id;
     $stateParams.new = '1';
-    spyOn(PipelineTemplateReader, 'getPipelinePlan').and.returnValue(Promise.resolve(plan));
+    vi.spyOn(PipelineTemplateReader, 'getPipelinePlan').mockReturnValue(Promise.resolve(plan));
     const modalResult = deferred<any>();
-    const showModal = spyOn(ReactModal, 'show').and.returnValue(modalResult.promise);
+    const showModal = vi.spyOn(ReactModal, 'show').mockReturnValue(modalResult.promise);
 
     const wrapper = mount(<PipelineConfigPage app={app} />);
     await flush();
@@ -1022,7 +1024,7 @@ describe('PipelineConfigPage', () => {
     const app = createApp([requested]);
     $stateParams.pipelineId = requested.id;
     $stateParams.new = '1';
-    const showModal = spyOn(ReactModal, 'show');
+    const showModal = vi.spyOn(ReactModal, 'show').mockReturnValue(undefined);
 
     const wrapper = mount(<PipelineConfigPage app={app} />);
     await flush();
@@ -1038,10 +1040,10 @@ describe('PipelineConfigPage', () => {
     const originalPlan = { ...pipeline(requested.id, requested.name), stages: [] } as IPipeline;
     const app = createApp([requested]);
     $stateParams.pipelineId = requested.id;
-    spyOn(PipelineTemplateReader, 'getPipelinePlan').and.returnValue(Promise.resolve(originalPlan));
+    vi.spyOn(PipelineTemplateReader, 'getPipelinePlan').mockReturnValue(Promise.resolve(originalPlan));
     const modalResult = deferred<{ plan: IPipeline; config: IPipeline }>();
-    spyOn(ReactModal, 'show').and.returnValue(modalResult.promise);
-    const consoleError = spyOn(console, 'error');
+    vi.spyOn(ReactModal, 'show').mockReturnValue(modalResult.promise);
+    const consoleError = vi.spyOn(console, 'error').mockReturnValue(undefined);
 
     const wrapper = mount(<PipelineConfigPage app={app} />);
     await flush();
@@ -1062,8 +1064,8 @@ describe('PipelineConfigPage', () => {
     const restored = { ...pipeline('target-id', 'Restored Pipeline'), updateTs: 'old-revision' };
     const app = createApp([requested]);
     $stateParams.pipelineId = requested.id;
-    spyOn(ReactModal, 'show').and.returnValue(Promise.resolve(restored));
-    spyOn(PipelineConfigService, 'savePipeline').and.returnValue(Promise.resolve());
+    vi.spyOn(ReactModal, 'show').mockReturnValue(Promise.resolve(restored));
+    vi.spyOn(PipelineConfigService, 'savePipeline').mockReturnValue(Promise.resolve());
 
     const wrapper = mount(<PipelineConfigPage app={app} />);
     await flush();
@@ -1075,7 +1077,7 @@ describe('PipelineConfigPage', () => {
     });
 
     expect(PipelineConfigService.savePipeline).toHaveBeenCalledWith(
-      jasmine.objectContaining({
+      expect.objectContaining({
         name: 'Restored Pipeline',
       }),
     );
@@ -1092,13 +1094,13 @@ describe('PipelineConfigPage', () => {
     showStageConfig(requested.id);
     let resolveAccounts: (accounts: IAccountDetails[]) => void;
     const accountRequest = new Promise<IAccountDetails[]>((resolve) => (resolveAccounts = resolve));
-    (AccountService.applicationAccounts as jasmine.Spy).and.returnValue(accountRequest as any);
+    (AccountService.applicationAccounts as Mock).mockReturnValue(accountRequest as any);
 
     const wrapper = mount(<PipelineConfigPage app={app} />);
     await flush();
     wrapper.update();
 
-    expect(AccountService.applicationAccounts).toHaveBeenCalledOnceWith(app);
+    expect(AccountService.applicationAccounts).toHaveBeenCalledExactlyOnceWith(app);
     expect(wrapper.text()).toContain('Loading application accounts...');
     expect(
       wrapper
@@ -1136,10 +1138,8 @@ describe('PipelineConfigPage', () => {
     const app = createApp([requested]);
     $stateParams.pipelineId = requested.id;
     showStageConfig(requested.id);
-    (AccountService.applicationAccounts as jasmine.Spy).and.callFake(() =>
-      Promise.reject(new Error('accounts failed')),
-    );
-    const getConfigurableStageTypes = spyOn(Registry.pipeline, 'getConfigurableStageTypes').and.callThrough();
+    (AccountService.applicationAccounts as Mock).mockImplementation(() => Promise.reject(new Error('accounts failed')));
+    const getConfigurableStageTypes = vi.spyOn(Registry.pipeline, 'getConfigurableStageTypes');
 
     const wrapper = mount(<PipelineConfigPage app={app} />);
     await flush();
@@ -1173,8 +1173,8 @@ describe('PipelineConfigPage', () => {
     const app = createApp([requested]);
     $stateParams.pipelineId = requested.id;
     showStageConfig(requested.id);
-    (AccountService.applicationAccounts as jasmine.Spy).and.returnValue(Promise.resolve([]) as any);
-    const getConfigurableStageTypes = spyOn(Registry.pipeline, 'getConfigurableStageTypes').and.callThrough();
+    (AccountService.applicationAccounts as Mock).mockReturnValue(Promise.resolve([]) as any);
+    const getConfigurableStageTypes = vi.spyOn(Registry.pipeline, 'getConfigurableStageTypes');
 
     const wrapper = mount(<PipelineConfigPage app={app} />);
     await flush();
@@ -1217,8 +1217,8 @@ describe('PipelineConfigPage', () => {
     const accounts = [account('ecs')];
     $stateParams.pipelineId = requested.id;
     showStageConfig(requested.id);
-    (AccountService.applicationAccounts as jasmine.Spy).and.returnValue(Promise.resolve(accounts) as any);
-    const getConfigurableStageTypes = spyOn(Registry.pipeline, 'getConfigurableStageTypes').and.callThrough();
+    (AccountService.applicationAccounts as Mock).mockReturnValue(Promise.resolve(accounts) as any);
+    const getConfigurableStageTypes = vi.spyOn(Registry.pipeline, 'getConfigurableStageTypes');
 
     const wrapper = mount(<PipelineConfigPage app={app} />);
     await flush();
@@ -1231,9 +1231,9 @@ describe('PipelineConfigPage', () => {
         .find(ReactSelectInput)
         .filterWhere((node) => node.prop('name') === 'type')
         .prop('options') as any[])[0],
-    ).toEqual(jasmine.objectContaining({ key: 'destroyServerGroup', cloudProviders: ['ecs'] }));
+    ).toEqual(expect.objectContaining({ key: 'destroyServerGroup', cloudProviders: ['ecs'] }));
     expect(updatedPipeline.stages[0]).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         type: 'destroyServerGroup',
         cloudProvider: 'ecs',
         cloudProviderType: 'ecs',
@@ -1258,7 +1258,7 @@ describe('PipelineConfigPage', () => {
     const app = createApp([requested]);
     $stateParams.pipelineId = requested.id;
     showStageConfig(requested.id, 1);
-    (AccountService.applicationAccounts as jasmine.Spy).and.returnValue(Promise.resolve([account('ecs')]) as any);
+    (AccountService.applicationAccounts as Mock).mockReturnValue(Promise.resolve([account('ecs')]) as any);
 
     const wrapper = mount(<PipelineConfigPage app={app} />);
     await flush();
@@ -1309,7 +1309,7 @@ describe('PipelineConfigPage', () => {
       const app = createApp([requested]);
       $stateParams.pipelineId = requested.id;
       showStageConfig(requested.id);
-      (AccountService.applicationAccounts as jasmine.Spy).and.returnValue(
+      (AccountService.applicationAccounts as Mock).mockReturnValue(
         Promise.resolve([account('aws'), account('ecs')]) as any,
       );
 
@@ -1352,10 +1352,10 @@ describe('PipelineConfigPage', () => {
     const app = createApp([requested]);
     $stateParams.pipelineId = requested.id;
     showStageConfig(requested.id);
-    (AccountService.applicationAccounts as jasmine.Spy).and.returnValue(
+    (AccountService.applicationAccounts as Mock).mockReturnValue(
       Promise.resolve([account('aws'), account('ecs')]) as any,
     );
-    spyOn(ReactModal, 'show').and.callFake((_component, props: { stage: IStage }) => {
+    vi.spyOn(ReactModal, 'show').mockImplementation((_component, props: { stage: IStage }) => {
       delete props.stage.cloudProviderType;
       return Promise.resolve();
     });
@@ -1396,7 +1396,7 @@ describe('PipelineConfigPage', () => {
     const app = createApp([requested]);
     $stateParams.pipelineId = requested.id;
     showStageConfig(requested.id);
-    (AccountService.applicationAccounts as jasmine.Spy).and.returnValue(
+    (AccountService.applicationAccounts as Mock).mockReturnValue(
       Promise.resolve([account('aws'), account('ecs')]) as any,
     );
 
@@ -1432,7 +1432,7 @@ describe('PipelineConfigPage', () => {
 
     const updatedPipeline = wrapper.find(PipelineGraph).prop('pipeline') as IPipeline;
     expect(updatedPipeline.stages[0]).toEqual(
-      jasmine.objectContaining({ cloudProvider: 'aws', cloudProviderType: 'aws' }),
+      expect.objectContaining({ cloudProvider: 'aws', cloudProviderType: 'aws' }),
     );
     expect(wrapper.find('.aws-stage-config').exists()).toBe(true);
     expect(wrapper.find('.ecs-stage-config').exists()).toBe(false);
@@ -1455,7 +1455,7 @@ describe('PipelineConfigPage', () => {
     const app = createApp([requested]);
     $stateParams.pipelineId = requested.id;
     showStageConfig(requested.id, 1);
-    (AccountService.applicationAccounts as jasmine.Spy).and.returnValue(
+    (AccountService.applicationAccounts as Mock).mockReturnValue(
       Promise.resolve([account('aws'), account('ecs')]) as any,
     );
 
@@ -1473,7 +1473,7 @@ describe('PipelineConfigPage', () => {
     expectCommonFieldsPreserved(switchedStage);
     expectProviderFieldsRemoved(switchedStage, 'ecs');
     expect(switchedStage).toEqual(
-      jasmine.objectContaining({ type: 'destroyServerGroup', cloudProvider: 'aws', cloudProviderType: 'aws' }),
+      expect.objectContaining({ type: 'destroyServerGroup', cloudProvider: 'aws', cloudProviderType: 'aws' }),
     );
     expect(wrapper.find('.aws-stage-config').exists()).toBe(true);
     expect(wrapper.find('.ecs-stage-config').exists()).toBe(false);
@@ -1492,7 +1492,7 @@ describe('PipelineConfigPage', () => {
     const app = createApp([requested]);
     $stateParams.pipelineId = requested.id;
     showStageConfig(requested.id, 1);
-    (AccountService.applicationAccounts as jasmine.Spy).and.returnValue(
+    (AccountService.applicationAccounts as Mock).mockReturnValue(
       Promise.resolve([account('aws'), account('ecs')]) as any,
     );
 
@@ -1510,7 +1510,7 @@ describe('PipelineConfigPage', () => {
     expectCommonFieldsPreserved(switchedStage);
     expectProviderFieldsRemoved(switchedStage, 'aws');
     expect(switchedStage).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         type: 'customDestroyServerGroup',
         cloudProvider: 'ecs',
         cloudProviderType: 'ecs',
@@ -1533,7 +1533,7 @@ describe('PipelineConfigPage', () => {
     const app = createApp([requested]);
     $stateParams.pipelineId = requested.id;
     showStageConfig(requested.id, 1);
-    (AccountService.applicationAccounts as jasmine.Spy).and.returnValue(Promise.resolve([account('ecs')]) as any);
+    (AccountService.applicationAccounts as Mock).mockReturnValue(Promise.resolve([account('ecs')]) as any);
 
     const wrapper = mount(<PipelineConfigPage app={app} />);
     await flush();
@@ -1573,7 +1573,7 @@ describe('PipelineConfigPage', () => {
     const app = createApp([requested]);
     $stateParams.pipelineId = requested.id;
     showStageConfig(requested.id);
-    (AccountService.applicationAccounts as jasmine.Spy).and.returnValue(Promise.resolve([account('ecs')]) as any);
+    (AccountService.applicationAccounts as Mock).mockReturnValue(Promise.resolve([account('ecs')]) as any);
 
     const wrapper = mount(<PipelineConfigPage app={app} />);
     await flush();
@@ -1581,7 +1581,7 @@ describe('PipelineConfigPage', () => {
 
     const updatedPipeline = wrapper.find(PipelineGraph).prop('pipeline') as IPipeline;
     expect(updatedPipeline.stages[0]).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         type: 'customDestroyServerGroup',
         cloudProvider: 'ecs',
         cloudProviderType: 'ecs',
@@ -1638,7 +1638,7 @@ describe('PipelineConfigPage', () => {
 
     const defaultedStage = (wrapper.find(PipelineGraph).prop('pipeline') as IPipeline).stages[0] as any;
     expect(defaultedStage).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         name: 'Regular With Defaults',
         alias: 'legacyRegular',
         nested: { value: 'default value' },
@@ -1699,7 +1699,7 @@ describe('PipelineConfigPage', () => {
     let resolveNewAccounts: (accounts: IAccountDetails[]) => void;
     const oldRequest = new Promise<IAccountDetails[]>((resolve) => (resolveOldAccounts = resolve));
     const newRequest = new Promise<IAccountDetails[]>((resolve) => (resolveNewAccounts = resolve));
-    (AccountService.applicationAccounts as jasmine.Spy).and.callFake((requestedApp) =>
+    (AccountService.applicationAccounts as Mock).mockImplementation((requestedApp) =>
       requestedApp === oldApp ? oldRequest : newRequest,
     );
 
@@ -1736,10 +1736,10 @@ describe('PipelineConfigPage', () => {
     const copiedStage = providerStage('ecs');
     copiedStage.isNew = false;
     $stateParams.pipelineId = requested.id;
-    (AccountService.applicationAccounts as jasmine.Spy).and.returnValue(
+    (AccountService.applicationAccounts as Mock).mockReturnValue(
       Promise.resolve([account('aws'), account('ecs')]) as any,
     );
-    spyOn(ReactModal, 'show').and.returnValue(Promise.resolve(copiedStage));
+    vi.spyOn(ReactModal, 'show').mockReturnValue(Promise.resolve(copiedStage));
 
     const wrapper = mount(<PipelineConfigPage app={app} />);
     await flush();

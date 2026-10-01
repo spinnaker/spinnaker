@@ -13,7 +13,7 @@ describe('<PreconditionList />', () => {
 
   const createProps = (overrides = {}) => ({
     application: {} as any,
-    onChange: jasmine.createSpy('onChange'),
+    onChange: vi.fn(),
     preconditions: [expressionPrecondition] as any[],
     strategy: false,
     upstreamStages: [{ name: 'Bake' }] as any[],
@@ -34,7 +34,7 @@ describe('<PreconditionList />', () => {
   it('adds a precondition from the edit modal result', async () => {
     const props = createProps({ preconditions: [] });
     const newPrecondition = { type: 'expression', failPipeline: true, context: { expression: '${bar}' } };
-    spyOn(EditPreconditionModal, 'show').and.returnValue(Promise.resolve(newPrecondition));
+    vi.spyOn(EditPreconditionModal, 'show').mockReturnValue(Promise.resolve(newPrecondition));
     const component = mount(<PreconditionList {...props} />);
 
     component.find('button.add-new').simulate('click');
@@ -52,7 +52,7 @@ describe('<PreconditionList />', () => {
   it('edits a precondition from the edit modal result', async () => {
     const props = createProps();
     const updatedPrecondition = { type: 'expression', failPipeline: false, context: { expression: '${updated}' } };
-    spyOn(EditPreconditionModal, 'show').and.returnValue(Promise.resolve(updatedPrecondition));
+    vi.spyOn(EditPreconditionModal, 'show').mockReturnValue(Promise.resolve(updatedPrecondition));
     const component = mount(<PreconditionList {...props} />);
 
     component.find('button[data-action="edit"]').simulate('click');

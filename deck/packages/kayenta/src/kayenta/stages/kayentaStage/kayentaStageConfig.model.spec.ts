@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { CanarySettings } from '../../canary.settings';
 import type { IKayentaAccount, IKayentaStage } from '../../domain';
 import { KayentaAccountType, KayentaAnalysisType } from '../../domain';
@@ -174,7 +175,7 @@ describe('kayentaStageConfig model', () => {
     populateScopeWithExpressions(stage);
 
     expect(stage.canaryConfig.scopes[0]).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         controlScope: "${ #stage('Clone Server Group')['context']['source']['serverGroupName'] }",
         controlLocation: '${ deployedServerGroups[0].region }',
         experimentScope: '${ deployedServerGroups[0].serverGroup }',
@@ -192,22 +193,22 @@ describe('kayentaStageConfig model', () => {
     expect(deps.providerSelectionService.selectProvider).toHaveBeenCalledWith(
       deps.application,
       'serverGroup',
-      jasmine.any(Function),
+      expect.any(Function),
     );
-    const filterFn = (deps.providerSelectionService.selectProvider as jasmine.Spy).calls.argsFor(0)[2];
+    const filterFn = (deps.providerSelectionService.selectProvider as Mock).mock.calls[0][2];
     expect(filterFn(null, null, { serverGroup: { CloneServerGroupModal: {} } })).toBe(true);
     expect(filterFn(null, null, { serverGroup: {} })).toBe(false);
     expect(stage.deployments.baseline.cloudProvider).toBe('gce');
     const cloneServerGroupModal = getCloneServerGroupModal(deps);
     expect(cloneServerGroupModal.show).toHaveBeenCalledWith(
-      jasmine.objectContaining({
+      expect.objectContaining({
         application: deps.application,
-        command: jasmine.any(Object),
+        command: expect.any(Object),
         title: 'Add Baseline + Canary Pair',
       }),
       deps.runtimeServices,
     );
-    expect((cloneServerGroupModal.show as jasmine.Spy).calls.argsFor(0)[1]).toBe(deps.runtimeServices);
+    expect((cloneServerGroupModal.show as Mock).mock.calls[0][1]).toBe(deps.runtimeServices);
   });
 
   it('passes the same runtime services to the React clone modal when editing a pair', async () => {
@@ -221,14 +222,14 @@ describe('kayentaStageConfig model', () => {
 
     const cloneServerGroupModal = getCloneServerGroupModal(deps);
     expect(cloneServerGroupModal.show).toHaveBeenCalledWith(
-      jasmine.objectContaining({
+      expect.objectContaining({
         application: deps.application,
-        command: jasmine.any(Object),
+        command: expect.any(Object),
         title: 'Configure Control Server Group',
       }),
       deps.runtimeServices,
     );
-    expect((cloneServerGroupModal.show as jasmine.Spy).calls.argsFor(0)[1]).toBe(deps.runtimeServices);
+    expect((cloneServerGroupModal.show as Mock).mock.calls[0][1]).toBe(deps.runtimeServices);
     expect(stage.deployments.serverGroupPairs[0].control).toEqual({ application: 'fnord', freeFormDetails: '' });
   });
 
@@ -285,7 +286,7 @@ function createStageWithAnalysisFields(): IKayentaStage {
 function createServerGroupModalDependencies({
   selectedProvider,
   registeredModal = {
-    show: jasmine.createSpy('show').and.callFake((props) => Promise.resolve(props.command)),
+    show: vi.fn().mockImplementation((props) => Promise.resolve(props.command)),
   },
 }: {
   selectedProvider: string;
@@ -296,23 +297,19 @@ function createServerGroupModalDependencies({
   return {
     application: { name: 'fnord' },
     cloudProviderRegistry: {
-      getValue: jasmine.createSpy('getValue').and.callFake(() => ({ CloneServerGroupModal: registeredModal })),
+      getValue: vi.fn().mockImplementation(() => ({ CloneServerGroupModal: registeredModal })),
     },
     providerSelectionService: {
-      selectProvider: jasmine.createSpy('selectProvider').and.resolveTo(selectedProvider),
+      selectProvider: vi.fn().mockResolvedValue(selectedProvider),
     },
     serverGroupCommandBuilder: {
-      buildNewServerGroupCommandForPipeline: jasmine
-        .createSpy('buildNewServerGroupCommandForPipeline')
-        .and.resolveTo(command),
-      buildServerGroupCommandFromPipeline: jasmine
-        .createSpy('buildServerGroupCommandFromPipeline')
-        .and.resolveTo(command),
+      buildNewServerGroupCommandForPipeline: vi.fn().mockResolvedValue(command),
+      buildServerGroupCommandFromPipeline: vi.fn().mockResolvedValue(command),
     },
     serverGroupTransformer: {
-      convertServerGroupCommandToDeployConfiguration: jasmine
-        .createSpy('convertServerGroupCommandToDeployConfiguration')
-        .and.returnValue({ application: 'fnord', freeFormDetails: '' }),
+      convertServerGroupCommandToDeployConfiguration: vi
+        .fn()
+        .mockReturnValue({ application: 'fnord', freeFormDetails: '' }),
     },
     runtimeServices,
   };

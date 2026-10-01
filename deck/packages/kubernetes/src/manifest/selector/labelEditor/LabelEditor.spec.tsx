@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import type { ShallowWrapper } from 'enzyme';
 import { shallow } from 'enzyme';
 import React from 'react';
@@ -6,12 +7,12 @@ import type { ILabelEditorProps } from './LabelEditor';
 import LabelEditor from './LabelEditor';
 
 describe('<LabelEditor />', () => {
-  let onChangeSpy: jasmine.Spy;
+  let onChangeSpy: Mock;
   let props: ILabelEditorProps;
   let component: ShallowWrapper<LabelEditor>;
 
   beforeEach(() => {
-    onChangeSpy = jasmine.createSpy('onChangeSpy');
+    onChangeSpy = vi.fn();
     props = {
       labelSelectors: [
         {

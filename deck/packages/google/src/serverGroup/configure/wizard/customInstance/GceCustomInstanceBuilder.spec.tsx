@@ -20,7 +20,7 @@ describe('GceCustomInstanceBuilder', () => {
     runtimeServices.instanceTypeService = instanceTypeService();
     const command = commandWithCustomInstance('n2-custom-4-16384-ext');
 
-    const component = mount(<GceCustomInstanceBuilder command={command as any} onTypeChanged={jasmine.createSpy()} />);
+    const component = mount(<GceCustomInstanceBuilder command={command as any} onTypeChanged={vi.fn()} />);
     const configurer = component.find(CustomInstanceConfigurer);
 
     expect(configurer.prop('selectedInstanceFamily')).toBe('N2');
@@ -35,7 +35,7 @@ describe('GceCustomInstanceBuilder', () => {
   it('updates command.instanceType, notifies, and loads details when custom choices change', async () => {
     const instanceTypeDetails = { name: 'n2-custom-8-32768' };
     runtimeServices.instanceTypeService = instanceTypeService(instanceTypeDetails);
-    const onTypeChanged = jasmine.createSpy('onTypeChanged');
+    const onTypeChanged = vi.fn();
     const command = commandWithCustomInstance('n2-custom-4-16384');
 
     const component = mount(<GceCustomInstanceBuilder command={command as any} onTypeChanged={onTypeChanged} />);
@@ -57,7 +57,7 @@ describe('GceCustomInstanceBuilder', () => {
     runtimeServices.instanceTypeService = instanceTypeService();
     const command = commandWithCustomInstance(null);
 
-    const component = mount(<GceCustomInstanceBuilder command={command as any} onTypeChanged={jasmine.createSpy()} />);
+    const component = mount(<GceCustomInstanceBuilder command={command as any} onTypeChanged={vi.fn()} />);
     const configurer = component.find(CustomInstanceConfigurer);
 
     expect(configurer.prop('selectedInstanceFamily')).toBe('N1');
@@ -73,7 +73,7 @@ describe('GceCustomInstanceBuilder', () => {
 
   it('keeps valid defaults when memory changes before cores', async () => {
     runtimeServices.instanceTypeService = instanceTypeService();
-    const onTypeChanged = jasmine.createSpy('onTypeChanged');
+    const onTypeChanged = vi.fn();
     const command = commandWithCustomInstance(null);
 
     const component = mount(<GceCustomInstanceBuilder command={command as any} onTypeChanged={onTypeChanged} />);
@@ -108,13 +108,13 @@ function commandWithCustomInstance(instanceType: string | null) {
       },
     },
     credentials: 'test',
-    customInstanceChanged: jasmine.createSpy('customInstanceChanged'),
+    customInstanceChanged: vi.fn(),
   };
 }
 
 function instanceTypeService(details = { name: 'n2-custom-8-32768' }) {
   return {
-    getInstanceTypeDetails: jasmine.createSpy('getInstanceTypeDetails').and.returnValue(Promise.resolve(details)),
+    getInstanceTypeDetails: vi.fn().mockReturnValue(Promise.resolve(details)),
   };
 }
 

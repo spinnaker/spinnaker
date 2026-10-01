@@ -8,12 +8,12 @@ import { defaultTrafficManagementConfig, ManifestDeploymentOptions } from './Man
 import { ManifestKindSearchService } from '../../../manifest/ManifestKindSearch';
 
 describe('<ManifestDeploymentOptions />', () => {
-  const onConfigChangeSpy = jasmine.createSpy('onConfigChangeSpy');
+  const onConfigChangeSpy = vi.fn();
   let wrapper: any;
   let props: IManifestDeploymentOptionsProps;
 
   beforeEach(() => {
-    spyOn(ManifestKindSearchService, 'search').and.returnValue(Promise.resolve([]));
+    vi.spyOn(ManifestKindSearchService, 'search').mockReturnValue(Promise.resolve([]));
     props = {
       accounts: [],
       config: defaultTrafficManagementConfig,

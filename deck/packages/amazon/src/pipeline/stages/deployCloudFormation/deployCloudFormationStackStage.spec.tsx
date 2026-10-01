@@ -22,13 +22,13 @@ import { registerDeployCloudFormationStackStage } from './deployCloudFormationSt
 
 describe('Deploy CloudFormation stack stage', () => {
   beforeEach(() => {
-    spyOn(AccountService, 'getAllAccountDetailsForProvider').and.returnValue(Promise.resolve([]));
-    spyOn(AccountService, 'getArtifactAccounts').and.returnValue(Promise.resolve([]));
-    spyOn(AccountService, 'getUniqueAttributeForAllAccounts').and.returnValue(Promise.resolve([]));
+    vi.spyOn(AccountService, 'getAllAccountDetailsForProvider').mockReturnValue(Promise.resolve([]));
+    vi.spyOn(AccountService, 'getArtifactAccounts').mockReturnValue(Promise.resolve([]));
+    vi.spyOn(AccountService, 'getUniqueAttributeForAllAccounts').mockReturnValue(Promise.resolve([]));
   });
 
   function renderEditor(stage: any = {}, application: any = {}) {
-    const updateStageField = jasmine.createSpy('updateStageField');
+    const updateStageField = vi.fn();
     const wrapper = shallow(
       <DeployCloudFormationStackStageConfig
         application={application}
@@ -41,7 +41,7 @@ describe('Deploy CloudFormation stack stage', () => {
   }
 
   function mountEditor(stage: any = {}, application: any = {}) {
-    const updateStageField = jasmine.createSpy('updateStageField');
+    const updateStageField = vi.fn();
     const wrapper = mount(
       <DeployCloudFormationStackStageConfig
         application={application}
@@ -54,11 +54,11 @@ describe('Deploy CloudFormation stack stage', () => {
   }
 
   it('registers a dedicated stage editor', () => {
-    const registerStage = spyOn(Registry.pipeline, 'registerStage');
+    const registerStage = vi.spyOn(Registry.pipeline, 'registerStage').mockReturnValue(undefined);
 
     registerDeployCloudFormationStackStage();
 
-    expect(registerStage.calls.mostRecent().args[0].component).not.toBe(AmazonStageConfig);
+    expect(registerStage.mock.lastCall[0].component).not.toBe(AmazonStageConfig);
   });
 
   it('renders all text-template settings without changing the stage on mount', () => {
@@ -105,7 +105,7 @@ describe('Deploy CloudFormation stack stage', () => {
       },
     );
 
-    expect(updateStageField.calls.allArgs()).toEqual([
+    expect(updateStageField.mock.calls).toEqual([
       [
         {
           account: 'default-account',
@@ -170,7 +170,7 @@ describe('Deploy CloudFormation stack stage', () => {
     wrapper.find('input[name="isChangeSet"]').simulate('change', { target: { checked: true } });
     wrapper.find('input[name="source"][value="artifact"]').simulate('change');
 
-    expect(updateStageField.calls.allArgs()).toEqual([
+    expect(updateStageField.mock.calls).toEqual([
       [{ credentials: 'other-account', account: 'other-account' }],
       [{ regions: ['us-east-1'] }],
       [{ stackName: 'other-stack' }],
@@ -199,7 +199,7 @@ describe('Deploy CloudFormation stack stage', () => {
       stage: { type: 'deployCloudFormation', ...stage, templateBody: parsedTemplate },
     });
 
-    expect(updateStageField.calls.allArgs()).toEqual([[{ templateBody: parsedTemplate }]]);
+    expect(updateStageField.mock.calls).toEqual([[{ templateBody: parsedTemplate }]]);
     expect(wrapper.find(YamlEditor).prop('value')).toBe(rawTemplateBody);
     wrapper.unmount();
   });
@@ -244,7 +244,7 @@ describe('Deploy CloudFormation stack stage', () => {
     const { updateStageField, wrapper } = mountEditor(firstStage);
 
     wrapper.find(YamlEditor).prop('onChange')(firstRawTemplateBody, [{ Resources: { First: {} } }]);
-    updateStageField.calls.reset();
+    updateStageField.mockClear();
     wrapper.setProps({
       stage: {
         type: 'deployCloudFormation',
@@ -259,7 +259,7 @@ describe('Deploy CloudFormation stack stage', () => {
 
     wrapper.find(YamlEditor).prop('onChange')(secondRawTemplateBody, secondParsedTemplate);
 
-    expect(updateStageField.calls.allArgs()).toEqual([[{ templateBody: secondParsedTemplate }]]);
+    expect(updateStageField.mock.calls).toEqual([[{ templateBody: secondParsedTemplate }]]);
     wrapper.unmount();
   });
 
@@ -277,7 +277,7 @@ describe('Deploy CloudFormation stack stage', () => {
     wrapper.find(MapEditor).at(1).prop('onChange')(tags, false);
     wrapper.find(ReactSelectInput).prop('onChange')({ target: { value: capabilities } } as any);
 
-    expect(updateStageField.calls.allArgs()).toEqual([[{ parameters }], [{ tags }], [{ capabilities }]]);
+    expect(updateStageField.mock.calls).toEqual([[{ parameters }], [{ tags }], [{ capabilities }]]);
   });
 
   it('renders and updates an artifact template reference', () => {
@@ -301,7 +301,7 @@ describe('Deploy CloudFormation stack stage', () => {
     } as any);
     selector.prop('onArtifactEdited')({ type: 'http/file', reference: 'https://example.test/template.yml' } as any);
 
-    expect(updateStageField.calls.allArgs()).toEqual([
+    expect(updateStageField.mock.calls).toEqual([
       [{ stackArtifactId: 'replacement-id', stackArtifactAccount: 'artifact-account', stackArtifact: null }],
       [
         {
@@ -326,7 +326,7 @@ describe('Deploy CloudFormation stack stage', () => {
     } as any);
     wrapper.find('input[name="source"][value="text"]').simulate('change');
 
-    expect(updateStageField.calls.allArgs()).toEqual([
+    expect(updateStageField.mock.calls).toEqual([
       [
         {
           stackArtifactId: 'expected-artifact-id',
@@ -353,15 +353,15 @@ describe('Deploy CloudFormation stack stage', () => {
       return;
     }
     expect(wrapper.find(CloudFormationChangeSetInfo).props()).toEqual(
-      jasmine.objectContaining({
-        stage: jasmine.objectContaining({ changeSetName: 'existing-change-set' }),
+      expect.objectContaining({
+        stage: expect.objectContaining({ changeSetName: 'existing-change-set' }),
         updateStageField,
       }),
     );
   });
 
   it('updates change-set settings through the direct stage contract', () => {
-    const updateStageField = jasmine.createSpy('updateStageField');
+    const updateStageField = vi.fn();
     const wrapper = shallow(
       <CloudFormationChangeSetInfo
         {...({
@@ -394,7 +394,7 @@ describe('Deploy CloudFormation stack stage', () => {
     if (contractError) {
       return;
     }
-    expect(updateStageField.calls.allArgs()).toEqual([
+    expect(updateStageField.mock.calls).toEqual([
       [{ changeSetName: 'new-change-set' }],
       [{ executeChangeSet: false }],
       [{ actionOnReplacement: 'skip' }],

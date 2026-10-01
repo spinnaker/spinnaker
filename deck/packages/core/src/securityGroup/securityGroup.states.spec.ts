@@ -18,7 +18,7 @@ describe('security group states', () => {
     const state = getStandaloneFirewallState({} as any);
 
     expect(state.views['main@']).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         component: StandaloneSecurityGroupDetails,
         $type: 'react',
       }),
@@ -27,10 +27,10 @@ describe('security group states', () => {
 
   it('resolves a standalone firewall through the direct security group reader', async () => {
     const securityGroupsIndex = { aws: { prod: {} } };
-    const loadSecurityGroups = jasmine.createSpy('loadSecurityGroups').and.resolveTo(securityGroupsIndex);
+    const loadSecurityGroups = vi.fn().mockResolvedValue(securityGroupsIndex);
     const router = new UIRouterReact();
     const runtime = createDeckRuntime(router);
-    spyOn(runtime.services.securityGroupReader, 'loadSecurityGroups').and.callFake(loadSecurityGroups);
+    vi.spyOn(runtime.services.securityGroupReader, 'loadSecurityGroups').mockImplementation(loadSecurityGroups);
     router.disposable({ dispose: runtime.dispose });
     configureRouter(router, runtime.services, runtime.routingState);
     routers.push(router);

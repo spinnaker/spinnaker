@@ -1,5 +1,5 @@
 // eslint-disable-next-line @spinnaker/import-from-npm-not-relative
-import { mockHttpClient } from '../../../core/src/api/mock/jasmine';
+import { mockHttpClient } from '../../../core/src/api/mock/mockHttpSupport';
 import { VpcReader } from '../vpc/VpcReader';
 
 describe('VpcReader', function () {

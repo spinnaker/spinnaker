@@ -18,7 +18,7 @@ describe('GceSecurityGroupModal', () => {
 
   const application = {
     name: 'my-app',
-    securityGroups: { refresh: jasmine.createSpy('refresh') },
+    securityGroups: { refresh: vi.fn() },
   };
 
   function validSecurityGroup(overrides: any = {}): any {
@@ -58,7 +58,7 @@ describe('GceSecurityGroupModal', () => {
 
   it('keeps create submit disabled until the global firewall inventory has loaded', async () => {
     let finishLoading: ((securityGroups: any) => void) | undefined;
-    const getAllSecurityGroups = jasmine.createSpy('getAllSecurityGroups').and.returnValue(
+    const getAllSecurityGroups = vi.fn().mockReturnValue(
       new Promise((resolve) => {
         finishLoading = resolve;
       }),
@@ -83,9 +83,7 @@ describe('GceSecurityGroupModal', () => {
 
   (['create', 'clone'] as const).forEach((mode) => {
     it(`rejects a ${mode} name used in the same account on another network outside the application`, async () => {
-      const getAllSecurityGroups = jasmine
-        .createSpy('getAllSecurityGroups')
-        .and.returnValue(Promise.resolve(globalSecurityGroups()));
+      const getAllSecurityGroups = vi.fn().mockReturnValue(Promise.resolve(globalSecurityGroups()));
       runtimeServices.securityGroupReader = { getAllSecurityGroups };
       const wrapper = mount(
         <GceSecurityGroupModal
@@ -106,9 +104,7 @@ describe('GceSecurityGroupModal', () => {
   });
 
   it('permits a name used only in another account and permits editing the current firewall identity', async () => {
-    const getAllSecurityGroups = jasmine
-      .createSpy('getAllSecurityGroups')
-      .and.returnValue(Promise.resolve(globalSecurityGroups()));
+    const getAllSecurityGroups = vi.fn().mockReturnValue(Promise.resolve(globalSecurityGroups()));
     runtimeServices.securityGroupReader = { getAllSecurityGroups };
     const createWrapper = mount(<GceSecurityGroupModal application={application as any} credentials="my-account" />);
     createWrapper.setState({ securityGroup: validSecurityGroup({ name: 'cross-account-firewall' }) } as any);
@@ -125,9 +121,7 @@ describe('GceSecurityGroupModal', () => {
   });
 
   it('keeps create submit disabled when the global firewall inventory cannot be loaded', async () => {
-    const getAllSecurityGroups = jasmine
-      .createSpy('getAllSecurityGroups')
-      .and.returnValue(Promise.reject(new Error('inventory unavailable')));
+    const getAllSecurityGroups = vi.fn().mockReturnValue(Promise.reject(new Error('inventory unavailable')));
     runtimeServices.securityGroupReader = { getAllSecurityGroups };
     const wrapper = mount(<GceSecurityGroupModal application={application as any} credentials="my-account" />);
     wrapper.setState({ securityGroup: validSecurityGroup({ name: 'new-firewall' }) } as any);
@@ -142,15 +136,15 @@ describe('GceSecurityGroupModal', () => {
   (['create', 'clone'] as const).forEach((mode) => {
     it(`waits for refreshed security groups before closing and navigating after ${mode}`, () => {
       let finishRefresh: (() => void) | undefined;
-      const refresh = jasmine.createSpy('refresh');
-      const onNextRefresh = jasmine.createSpy('onNextRefresh').and.callFake((callback: () => void) => {
+      const refresh = vi.fn();
+      const onNextRefresh = vi.fn().mockImplementation((callback: () => void) => {
         finishRefresh = callback;
         return () => undefined;
       });
-      const closeModal = jasmine.createSpy('closeModal');
+      const closeModal = vi.fn();
       const state = {
-        go: jasmine.createSpy('go'),
-        includes: jasmine.createSpy('includes').and.returnValue(mode === 'clone'),
+        go: vi.fn(),
+        includes: vi.fn().mockReturnValue(mode === 'clone'),
       };
       const modal = new GceSecurityGroupModal({
         application: { name: 'my-app', securityGroups: { onNextRefresh, refresh } },
@@ -168,7 +162,7 @@ describe('GceSecurityGroupModal', () => {
       (modal as any).onTaskComplete();
 
       expect(onNextRefresh).toHaveBeenCalled();
-      expect(onNextRefresh.calls.first().invocationOrder).toBeLessThan(refresh.calls.first().invocationOrder);
+      expect(onNextRefresh.mock.invocationCallOrder[0]).toBeLessThan(refresh.mock.invocationCallOrder[0]);
       expect(closeModal).not.toHaveBeenCalled();
       expect(state.go).not.toHaveBeenCalled();
 
@@ -186,16 +180,16 @@ describe('GceSecurityGroupModal', () => {
   });
 
   it('owns its refresh subscription across replacement and unmount', () => {
-    const firstUnsubscribe = jasmine.createSpy('firstUnsubscribe');
-    const secondUnsubscribe = jasmine.createSpy('secondUnsubscribe');
+    const firstUnsubscribe = vi.fn();
+    const secondUnsubscribe = vi.fn();
     const callbacks: Array<() => void> = [];
-    const onNextRefresh = jasmine.createSpy('onNextRefresh').and.callFake((callback: () => void) => {
+    const onNextRefresh = vi.fn().mockImplementation((callback: () => void) => {
       callbacks.push(callback);
       return callbacks.length === 1 ? firstUnsubscribe : secondUnsubscribe;
     });
-    const refresh = jasmine.createSpy('refresh');
-    const closeModal = jasmine.createSpy('closeModal');
-    const stateService = { go: jasmine.createSpy('go'), includes: jasmine.createSpy('includes') };
+    const refresh = vi.fn();
+    const closeModal = vi.fn();
+    const stateService = { go: vi.fn(), includes: vi.fn() };
     const modal = new GceSecurityGroupModal({
       application: { name: 'my-app', securityGroups: { onNextRefresh, refresh } },
       closeModal,
@@ -206,7 +200,7 @@ describe('GceSecurityGroupModal', () => {
 
     modal.onTaskComplete();
 
-    expect(onNextRefresh.calls.first().invocationOrder).toBeLessThan(refresh.calls.first().invocationOrder);
+    expect(onNextRefresh.mock.invocationCallOrder[0]).toBeLessThan(refresh.mock.invocationCallOrder[0]);
 
     modal.onTaskComplete();
 
@@ -222,7 +216,7 @@ describe('GceSecurityGroupModal', () => {
   });
 
   it('submits multiple protocol and port-range rows using the GCE firewall operation contract', () => {
-    const upsert = spyOn(SecurityGroupWriter, 'upsertSecurityGroup').and.returnValue(new Promise(() => {}));
+    const upsert = vi.spyOn(SecurityGroupWriter, 'upsertSecurityGroup').mockReturnValue(new Promise(() => {}));
     const modal = new GceSecurityGroupModal({ application: application as any, credentials: 'my-account' } as any);
     (modal.state as any).securityGroup = {
       ...(modal.state as any).securityGroup,
@@ -238,12 +232,12 @@ describe('GceSecurityGroupModal', () => {
 
     (modal as any).submit();
 
-    expect(upsert.calls.mostRecent().args[0].allowed).toEqual([
+    expect(upsert.mock.lastCall[0].allowed).toEqual([
       { ipProtocol: 'tcp', portRanges: ['443-443'] },
       { ipProtocol: 'udp', portRanges: ['7001-7002'] },
       { ipProtocol: 'icmp' },
     ]);
-    expect(upsert.calls.mostRecent().args[2]).toBe('Create');
+    expect(upsert.mock.lastCall[2]).toBe('Create');
   });
 
   it('loads and normalizes all inbound rules for edit while retaining firewall identity', () => {
@@ -269,7 +263,7 @@ describe('GceSecurityGroupModal', () => {
       sourceTags: '[backend, jobs]',
       targetTags: '[web, api]',
     };
-    const upsert = spyOn(SecurityGroupWriter, 'upsertSecurityGroup').and.returnValue(new Promise(() => {}));
+    const upsert = vi.spyOn(SecurityGroupWriter, 'upsertSecurityGroup').mockReturnValue(new Promise(() => {}));
     const modal = new GceSecurityGroupModal({
       application: application as any,
       mode: 'edit',
@@ -277,7 +271,7 @@ describe('GceSecurityGroupModal', () => {
     } as any);
 
     expect((modal.state as any).securityGroup).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         accountId: 'my-account',
         credentials: 'my-account',
         id: 'my-firewall',
@@ -295,23 +289,23 @@ describe('GceSecurityGroupModal', () => {
 
     (modal as any).submit();
 
-    expect(upsert.calls.mostRecent().args[0]).toEqual(
-      jasmine.objectContaining({
+    expect(upsert.mock.lastCall[0]).toEqual(
+      expect.objectContaining({
         accountId: 'my-account',
         id: 'my-firewall',
         name: 'my-firewall',
       }),
     );
-    expect(upsert.calls.mostRecent().args[0].allowed).toEqual([
+    expect(upsert.mock.lastCall[0].allowed).toEqual([
       { ipProtocol: 'tcp', portRanges: ['80-80'] },
       { ipProtocol: 'tcp', portRanges: ['443-444'] },
       { ipProtocol: 'icmp' },
     ]);
-    expect(upsert.calls.mostRecent().args[2]).toBe('Update');
+    expect(upsert.mock.lastCall[2]).toBe('Update');
   });
 
   it('preserves fetched firewall CIDRs from ipRangeRules without duplicating sourceRanges', () => {
-    const upsert = spyOn(SecurityGroupWriter, 'upsertSecurityGroup').and.returnValue(new Promise(() => {}));
+    const upsert = vi.spyOn(SecurityGroupWriter, 'upsertSecurityGroup').mockReturnValue(new Promise(() => {}));
     const modal = new GceSecurityGroupModal({
       application: application as any,
       mode: 'edit',
@@ -340,11 +334,11 @@ describe('GceSecurityGroupModal', () => {
 
     (modal as any).submit();
 
-    expect(upsert.calls.mostRecent().args[0].sourceRanges).toEqual(['10.0.0.0/8', '192.168.0.0/24']);
+    expect(upsert.mock.lastCall[0].sourceRanges).toEqual(['10.0.0.0/8', '192.168.0.0/24']);
   });
 
   it('clears cloned firewall identity and name but preserves its editable rules', () => {
-    const upsert = spyOn(SecurityGroupWriter, 'upsertSecurityGroup').and.returnValue(new Promise(() => {}));
+    const upsert = vi.spyOn(SecurityGroupWriter, 'upsertSecurityGroup').mockReturnValue(new Promise(() => {}));
     const modal = new GceSecurityGroupModal({
       application: application as any,
       mode: 'clone',
@@ -359,7 +353,7 @@ describe('GceSecurityGroupModal', () => {
     } as any);
 
     expect((modal.state as any).securityGroup).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         id: undefined,
         ipIngress: [{ type: 'sctp', startPort: 5000, endPort: 5001 }],
         name: '',
@@ -369,13 +363,13 @@ describe('GceSecurityGroupModal', () => {
     (modal.state as any).securityGroup.name = 'cloned-firewall';
     (modal as any).submit();
 
-    expect(upsert.calls.mostRecent().args[0]).toEqual(
-      jasmine.objectContaining({
+    expect(upsert.mock.lastCall[0]).toEqual(
+      expect.objectContaining({
         allowed: [{ ipProtocol: 'sctp', portRanges: ['5000-5001'] }],
         id: undefined,
         name: 'cloned-firewall',
       }),
     );
-    expect(upsert.calls.mostRecent().args[2]).toBe('Clone');
+    expect(upsert.mock.lastCall[2]).toBe('Clone');
   });
 });

@@ -35,7 +35,7 @@ describe('EcsRollbackServerGroupModal', () => {
           target('fnord-main-v003-other-region', { region: 'us-east-1' }),
           target('fnord-main-v003-other-app', { moniker: { app: 'other', cluster: 'fnord-main' } }),
         ],
-        refresh: jasmine.createSpy('refresh'),
+        refresh: vi.fn(),
       },
     } as any;
   }
@@ -55,8 +55,8 @@ describe('EcsRollbackServerGroupModal', () => {
   function props(app = application()) {
     return {
       application: app,
-      closeModal: jasmine.createSpy('closeModal'),
-      dismissModal: jasmine.createSpy('dismissModal'),
+      closeModal: vi.fn(),
+      dismissModal: vi.fn(),
       serverGroup: serverGroup as any,
     };
   }
@@ -89,11 +89,11 @@ describe('EcsRollbackServerGroupModal', () => {
 
   it('does not submit a rollback target outside the eligible disabled set', () => {
     const app = application();
-    const writer = { rollbackServerGroup: jasmine.createSpy('rollbackServerGroup') };
+    const writer = { rollbackServerGroup: vi.fn() };
     const component = new EcsRollbackServerGroupModal(props(app));
     (component as any).context = { services: { serverGroupWriter: writer } };
     component.state.verified = true;
-    spyOn(component.state.taskMonitor, 'submit');
+    vi.spyOn(component.state.taskMonitor, 'submit').mockReturnValue(undefined);
 
     (component as any).submit({
       restoreServerGroupName: 'fnord-main-v999',
@@ -106,14 +106,14 @@ describe('EcsRollbackServerGroupModal', () => {
 
   it('submits the exact shared rollback writer contract through its task monitor', () => {
     const app = application({ platformHealthOnly: true, platformHealthOnlyShowOverride: true });
-    const writer = { rollbackServerGroup: jasmine.createSpy('rollbackServerGroup').and.returnValue(Promise.resolve()) };
+    const writer = { rollbackServerGroup: vi.fn().mockReturnValue(Promise.resolve()) };
     const component = new EcsRollbackServerGroupModal(props(app));
     (component as any).context = { services: { serverGroupWriter: writer } };
     component.setState = ((update: any) => {
       component.state = { ...component.state, ...(typeof update === 'function' ? update(component.state) : update) };
     }) as any;
     component.setState({ verified: true });
-    spyOn(component.state.taskMonitor, 'submit').and.callFake((submitMethod: any) => submitMethod());
+    vi.spyOn(component.state.taskMonitor, 'submit').mockImplementation((submitMethod: any) => submitMethod());
 
     (component as any).submit({
       interestingHealthProviderNames: ['Ecs'],
@@ -123,7 +123,7 @@ describe('EcsRollbackServerGroupModal', () => {
     });
 
     expect(component.state.taskMonitor.submit).toHaveBeenCalled();
-    expect(writer.rollbackServerGroup).toHaveBeenCalledOnceWith(serverGroup, app, {
+    expect(writer.rollbackServerGroup).toHaveBeenCalledExactlyOnceWith(serverGroup, app, {
       interestingHealthProviderNames: ['Ecs'],
       platformHealthOnlyShowOverride: true,
       reason: '  preserve this reason exactly  ',
@@ -147,7 +147,7 @@ describe('EcsRollbackServerGroupModal', () => {
         {(formik.prop('render') as any)({
           errors: {},
           isValid: true,
-          setFieldValue: jasmine.createSpy('setFieldValue'),
+          setFieldValue: vi.fn(),
           values: formik.prop('initialValues'),
         })}
       </div>,
@@ -157,17 +157,17 @@ describe('EcsRollbackServerGroupModal', () => {
     expect(content.find(TaskReason).exists()).toBe(true);
     expect(content.find('input[name="targetHealthyRollbackPercentage"]').exists()).toBe(true);
     expect(content.find(PlatformHealthOverride).props()).toEqual(
-      jasmine.objectContaining({ interestingHealthProviderNames: ['Ecs'], platformHealthType: 'Ecs' }),
+      expect.objectContaining({ interestingHealthProviderNames: ['Ecs'], platformHealthType: 'Ecs' }),
     );
   });
 
   it('exports a show primitive for later actions integration', () => {
-    const show = spyOn(ReactModal, 'show').and.returnValue(Promise.resolve() as any);
+    const show = vi.spyOn(ReactModal, 'show').mockReturnValue(Promise.resolve() as any);
     const modalProps = props();
     const runtimeServices = {} as any;
 
     EcsRollbackServerGroupModal.show(modalProps, runtimeServices);
 
-    expect(show).toHaveBeenCalledOnceWith(EcsRollbackServerGroupModal, modalProps, undefined, runtimeServices);
+    expect(show).toHaveBeenCalledExactlyOnceWith(EcsRollbackServerGroupModal, modalProps, undefined, runtimeServices);
   });
 });

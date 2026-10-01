@@ -54,7 +54,7 @@ describe('DeployChangesExecutionDetails', () => {
 
   it('merges Jenkins metadata from the source server group into the changes config', async () => {
     const sourceServerGroup = deferred<any>();
-    const getServerGroup = spyOn(ServerGroupReader, 'getServerGroup').and.returnValue(sourceServerGroup.promise);
+    const getServerGroup = vi.spyOn(ServerGroupReader, 'getServerGroup').mockReturnValue(sourceServerGroup.promise);
     const stage = createStage('stage-1', 'app-v001');
     const wrapper = mountDetails(<DeployChangesExecutionDetails {...createProps(stage)} />);
 
@@ -80,7 +80,9 @@ describe('DeployChangesExecutionDetails', () => {
   it('ignores source metadata loaded for a previous stage', async () => {
     const firstRequest = deferred<any>();
     const secondRequest = deferred<any>();
-    spyOn(ServerGroupReader, 'getServerGroup').and.returnValues(firstRequest.promise, secondRequest.promise);
+    vi.spyOn(ServerGroupReader, 'getServerGroup')
+      .mockReturnValueOnce(firstRequest.promise)
+      .mockReturnValueOnce(secondRequest.promise);
     const firstStage = createStage('stage-1', 'app-v001');
     const secondStage = createStage('stage-2', 'app-v002');
     secondStage.context.buildInfo = { ancestor: '20', target: '21' };
@@ -106,10 +108,10 @@ describe('DeployChangesExecutionDetails', () => {
   it('refreshes change data and source metadata when execution hydration retains the stage reference', async () => {
     const firstRequest = deferred<any>();
     const secondRequest = deferred<any>();
-    const getServerGroup = spyOn(ServerGroupReader, 'getServerGroup').and.returnValues(
-      firstRequest.promise,
-      secondRequest.promise,
-    );
+    const getServerGroup = vi
+      .spyOn(ServerGroupReader, 'getServerGroup')
+      .mockReturnValueOnce(firstRequest.promise)
+      .mockReturnValueOnce(secondRequest.promise);
     const stage = createStage('stage-1', 'app-v001');
     const wrapper = mountDetails(<DeployChangesExecutionDetails {...createProps(stage)} />);
 
@@ -149,8 +151,8 @@ describe('DeployChangesExecutionDetails', () => {
 
   it('ignores source metadata after unmounting', async () => {
     const sourceServerGroup = deferred<any>();
-    spyOn(ServerGroupReader, 'getServerGroup').and.returnValue(sourceServerGroup.promise);
-    const consoleError = spyOn(console, 'error');
+    vi.spyOn(ServerGroupReader, 'getServerGroup').mockReturnValue(sourceServerGroup.promise);
+    const consoleError = vi.spyOn(console, 'error').mockReturnValue(undefined);
     const wrapper = mountDetails(
       <DeployChangesExecutionDetails {...createProps(createStage('stage-1', 'app-v001'))} />,
     );

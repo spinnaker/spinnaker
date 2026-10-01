@@ -46,15 +46,15 @@ describe('useAmazonLoadBalancerDetails', () => {
       data: [loadBalancer],
     });
     const app = {
-      getDataSource: jasmine.createSpy('getDataSource').and.returnValue({
+      getDataSource: vi.fn().mockReturnValue({
         status$,
-        refresh: jasmine.createSpy('refresh'),
+        refresh: vi.fn(),
       }),
     } as any;
-    const get = jasmine.createSpy('get').and.returnValue(new Promise(() => undefined));
+    const get = vi.fn().mockReturnValue(new Promise(() => undefined));
     RequestBuilder.defaultHttpClient = { get } as any;
     runtimeServices.securityGroupReader = {
-      getApplicationSecurityGroup: jasmine.createSpy('getApplicationSecurityGroup'),
+      getApplicationSecurityGroup: vi.fn(),
     };
 
     function TestComponent() {
@@ -96,20 +96,20 @@ describe('useAmazonLoadBalancerDetails', () => {
       data: [loadBalancer],
     });
     const app = {
-      getDataSource: jasmine.createSpy('getDataSource').and.returnValue({
+      getDataSource: vi.fn().mockReturnValue({
         status$,
-        refresh: jasmine.createSpy('refresh'),
+        refresh: vi.fn(),
       }),
     } as any;
     let resolveDetails: (details: any[]) => void = () => undefined;
     const detailsRequest = new Promise<any[]>((resolve) => {
       resolveDetails = resolve;
     });
-    const get = jasmine.createSpy('get').and.returnValue(detailsRequest);
-    const consoleError = spyOn(console, 'error');
+    const get = vi.fn().mockReturnValue(detailsRequest);
+    const consoleError = vi.spyOn(console, 'error').mockReturnValue(undefined);
     RequestBuilder.defaultHttpClient = { get } as any;
     runtimeServices.securityGroupReader = {
-      getApplicationSecurityGroup: jasmine.createSpy('getApplicationSecurityGroup'),
+      getApplicationSecurityGroup: vi.fn(),
     };
 
     function TestComponent() {
@@ -133,9 +133,9 @@ describe('useAmazonLoadBalancerDetails', () => {
       await flush();
     });
 
-    const unmountedStateUpdateWarning = consoleError.calls
-      .allArgs()
-      .some(([message]) => String(message).includes('unmounted component'));
+    const unmountedStateUpdateWarning = consoleError.mock.calls.some(([message]) =>
+      String(message).includes('unmounted component'),
+    );
     expect(unmountedStateUpdateWarning).toBe(false);
   });
 });

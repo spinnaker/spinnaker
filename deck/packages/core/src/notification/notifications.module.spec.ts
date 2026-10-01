@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import React from 'react';
 
 import type { INotificationSettings } from '../config';
@@ -26,11 +27,8 @@ describe('notification runtime registration', () => {
     SETTINGS.notifications = originalNotifications;
   });
 
-  it('does not register built-in notifications when notification types are imported', () => {
-    const notificationTypesModule = require.resolve('./notification.types');
-    delete require.cache[notificationTypesModule];
-
-    require('./notification.types');
+  it('does not register built-in notifications when notification types are imported', async () => {
+    await import('./notification.types');
 
     expect(Registry.pipeline.getNotificationTypes()).toEqual([]);
   });
@@ -80,7 +78,7 @@ describe('notification runtime registration', () => {
       cdevents: { enabled: false },
     } as INotificationSettings;
     registerBuiltinNotificationTypes();
-    spyOn(NotificationService, 'getNotificationTypeMetadata').and.returnValue(
+    vi.spyOn(NotificationService, 'getNotificationTypeMetadata').mockReturnValue(
       Promise.resolve([
         { notificationType: 'SLACK', uiType: 'BASIC', parameters: [] },
         { notificationType: 'runtime-basic', uiType: 'BASIC', parameters: [] },
@@ -107,7 +105,7 @@ describe('notification runtime registration', () => {
       cdevents: { enabled: false },
     } as INotificationSettings;
     registerBuiltinNotificationTypes();
-    spyOn(NotificationService, 'getNotificationTypeMetadata').and.returnValue(
+    vi.spyOn(NotificationService, 'getNotificationTypeMetadata').mockReturnValue(
       Promise.resolve([
         { notificationType: 'SLACK', uiType: 'BASIC', parameters: [] },
         { notificationType: 'runtime-basic', uiType: 'BASIC', parameters: [] },
@@ -118,7 +116,7 @@ describe('notification runtime registration', () => {
     await registerDynamicNotificationTypes();
 
     const notificationKeys = Registry.pipeline.getNotificationTypes().map(({ key }) => key);
-    expect(notificationKeys.some((key) => key.toLowerCase() === 'slack')).toBeFalse();
+    expect(notificationKeys.some((key) => key.toLowerCase() === 'slack')).toBe(false);
     expect(notificationKeys.filter((key) => key === 'runtime-basic').length).toBe(1);
   });
 
@@ -132,7 +130,7 @@ describe('notification runtime registration', () => {
         description: 'Destination channel',
       },
     ];
-    const getMetadata = spyOn(NotificationService, 'getNotificationTypeMetadata').and.returnValue(
+    const getMetadata = vi.spyOn(NotificationService, 'getNotificationTypeMetadata').mockReturnValue(
       Promise.resolve([
         { notificationType: 'runtime-basic', uiType: 'BASIC', parameters },
         { notificationType: 'runtime-custom', uiType: 'CUSTOM', parameters: [] },
@@ -146,19 +144,19 @@ describe('notification runtime registration', () => {
     const notificationTypes = Registry.pipeline.getNotificationTypes();
     expect(notificationTypes.map(({ key }) => key)).toEqual(['runtime-basic']);
     expect(notificationTypes[0]).toEqual(
-      jasmine.objectContaining({ key: 'runtime-basic', label: 'runtime-basic', config: {} }),
+      expect.objectContaining({ key: 'runtime-basic', label: 'runtime-basic', config: {} }),
     );
 
     const component = new (notificationTypes[0].component as any)({});
     const fields = React.Children.toArray(component.render().props.children) as React.ReactElement<any>[];
     expect(fields.length).toBe(1);
     expect(fields[0].props).toEqual(
-      jasmine.objectContaining({ name: 'channel', label: 'Channel', input: jasmine.any(Function) }),
+      expect.objectContaining({ name: 'channel', label: 'Channel', input: expect.any(Function) }),
     );
   });
 
   it('preserves case-distinct dynamic notification keys without duplicating exact keys', async () => {
-    spyOn(NotificationService, 'getNotificationTypeMetadata').and.returnValue(
+    vi.spyOn(NotificationService, 'getNotificationTypeMetadata').mockReturnValue(
       Promise.resolve([
         { notificationType: 'custom', uiType: 'BASIC', parameters: [] },
         { notificationType: 'CUSTOM', uiType: 'BASIC', parameters: [] },
@@ -173,15 +171,15 @@ describe('notification runtime registration', () => {
 
   it('propagates metadata failures to registration callers', async () => {
     const failure = new Error('metadata unavailable');
-    spyOn(NotificationService, 'getNotificationTypeMetadata').and.returnValue(Promise.reject(failure));
+    vi.spyOn(NotificationService, 'getNotificationTypeMetadata').mockReturnValue(Promise.reject(failure));
 
     await expectAsync(registerDynamicNotificationTypes()).toBeRejectedWith(failure);
   });
 
   it('isolates metadata initialization failures and logs once', async () => {
     const failure = new Error('metadata unavailable');
-    spyOn(NotificationService, 'getNotificationTypeMetadata').and.returnValue(Promise.reject(failure));
-    const consoleError = spyOn(console, 'error').and.stub();
+    vi.spyOn(NotificationService, 'getNotificationTypeMetadata').mockReturnValue(Promise.reject(failure));
+    const consoleError = vi.spyOn(console, 'error').mockReturnValue(undefined);
 
     await expectAsync(initializeDynamicNotificationTypes()).toBeResolved();
 
@@ -214,11 +212,11 @@ describe('direct notification initialization', () => {
     it('registers built-ins synchronously before loading dynamic metadata', async () => {
       registrationEvents.length = 0;
       const registerNotification = Registry.pipeline.registerNotification.bind(Registry.pipeline);
-      spyOn(Registry.pipeline, 'registerNotification').and.callFake((config) => {
+      vi.spyOn(Registry.pipeline, 'registerNotification').mockImplementation((config) => {
         registrationEvents.push(`register:${config.key}`);
         registerNotification(config);
       });
-      spyOn(NotificationService, 'getNotificationTypeMetadata').and.callFake(() => {
+      vi.spyOn(NotificationService, 'getNotificationTypeMetadata').mockImplementation(() => {
         registrationEvents.push('load-dynamic');
         return Promise.resolve([]);
       });
@@ -235,11 +233,11 @@ describe('direct notification initialization', () => {
 
   describe('failed metadata loading', () => {
     const failure = new Error('metadata unavailable');
-    let consoleError: jasmine.Spy;
+    let consoleError: Mock;
 
     it('awaits and isolates dynamic metadata failures with exactly one log', async () => {
-      spyOn(NotificationService, 'getNotificationTypeMetadata').and.returnValue(Promise.reject(failure));
-      consoleError = spyOn(console, 'error').and.stub();
+      vi.spyOn(NotificationService, 'getNotificationTypeMetadata').mockReturnValue(Promise.reject(failure));
+      consoleError = vi.spyOn(console, 'error').mockReturnValue(undefined);
 
       await expectAsync(initializeDynamicNotificationTypes()).toBeResolved();
 
@@ -250,7 +248,7 @@ describe('direct notification initialization', () => {
 
   describe('after direct registration', () => {
     it('keeps built-in notifications idempotent across repeated direct initialization', async () => {
-      spyOn(NotificationService, 'getNotificationTypeMetadata').and.returnValue(Promise.resolve([]));
+      vi.spyOn(NotificationService, 'getNotificationTypeMetadata').mockReturnValue(Promise.resolve([]));
       registerBuiltinNotificationTypes();
       registerBuiltinNotificationTypes();
       await initializeDynamicNotificationTypes();

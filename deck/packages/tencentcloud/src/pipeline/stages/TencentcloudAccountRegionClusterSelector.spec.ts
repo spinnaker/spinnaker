@@ -18,7 +18,7 @@ describe('<TencentcloudAccountRegionClusterSelector />', () => {
         data: [{ account: 'test', cluster: 'fnord-prod', moniker: cachedMoniker, region: 'us-east-1' } as IServerGroup],
       }),
     } as Application;
-    const setFieldValue = jasmine.createSpy('setFieldValue');
+    const setFieldValue = vi.fn();
 
     const component = shallow(
       React.createElement(TencentcloudAccountRegionClusterSelector, {
@@ -33,7 +33,7 @@ describe('<TencentcloudAccountRegionClusterSelector />', () => {
 
     expect(cachedMoniker.sequence).toBe(7);
     expect(setFieldValue).toHaveBeenCalledWith('moniker', { ...cachedMoniker, sequence: null });
-    expect(setFieldValue.calls.mostRecent().args[1]).not.toBe(cachedMoniker);
+    expect(setFieldValue.mock.lastCall[1]).not.toBe(cachedMoniker);
   });
 
   it('updates custom cluster text without recalculating the moniker until blur', () => {
@@ -44,7 +44,7 @@ describe('<TencentcloudAccountRegionClusterSelector />', () => {
         data: [{ account: 'test', cluster: 'fnord-prod', moniker: cachedMoniker, region: 'us-east-1' } as IServerGroup],
       }),
     } as Application;
-    const setFieldValue = jasmine.createSpy('setFieldValue');
+    const setFieldValue = vi.fn();
     const component = shallow(
       React.createElement(TencentcloudAccountRegionClusterSelector, {
         accounts: [],
@@ -54,11 +54,11 @@ describe('<TencentcloudAccountRegionClusterSelector />', () => {
       }),
     );
 
-    component.find('a').simulate('click', { preventDefault: jasmine.createSpy('preventDefault') });
-    setFieldValue.calls.reset();
+    component.find('a').simulate('click', { preventDefault: vi.fn() });
+    setFieldValue.mockClear();
     component.find('input').simulate('change', { target: { value: 'fnord' } });
 
-    expect(setFieldValue.calls.allArgs()).toEqual([['cluster', 'fnord']]);
+    expect(setFieldValue.mock.calls).toEqual([['cluster', 'fnord']]);
 
     component.find('input').simulate('blur', { target: { value: 'fnord-prod' } });
 

@@ -6,7 +6,7 @@ import { Tooltip } from '../presentation';
 
 describe('FilterCollapse', () => {
   it('renders and toggles solely from controlled expansion state', () => {
-    const onToggle = jasmine.createSpy('onToggle');
+    const onToggle = vi.fn();
     const wrapper = shallow(<FilterCollapse filtersExpanded={false} onToggle={onToggle} />);
 
     expect(wrapper.find('.filters-hidden').length).toBe(1);

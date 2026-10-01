@@ -19,11 +19,9 @@ describe('<ManualJudgmentStageConfig />', () => {
       application: {} as any,
       pipeline: { stages: [stage] } as any,
       stage,
-      stageFieldUpdated: jasmine.createSpy('stageFieldUpdated'),
-      updateStage: jasmine.createSpy('updateStage'),
-      updateStageField: jasmine
-        .createSpy('updateStageField')
-        .and.callFake((changes: any) => Object.assign(stage, changes)),
+      stageFieldUpdated: vi.fn(),
+      updateStage: vi.fn(),
+      updateStageField: vi.fn().mockImplementation((changes: any) => Object.assign(stage, changes)),
     };
   };
 

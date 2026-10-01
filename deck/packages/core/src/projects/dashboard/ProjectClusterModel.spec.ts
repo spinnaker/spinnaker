@@ -5,7 +5,7 @@ describe('ProjectClusterModel', () => {
   const project = { name: 'kubernetesproject' } as any;
 
   beforeEach(() => {
-    spyOn(UrlBuilder, 'buildFromMetadata').and.callFake((metadata: any) => {
+    vi.spyOn(UrlBuilder, 'buildFromMetadata').mockImplementation((metadata: any) => {
       return [
         '#/clusters',
         metadata.project,
@@ -132,7 +132,7 @@ describe('ProjectClusterModel', () => {
       '#/clusters/kubernetesproject/kubernetesapp/k8s-local/dev/no-stack/no-detail/no-cluster',
     );
     expect(UrlBuilder.buildFromMetadata).toHaveBeenCalledWith(
-      jasmine.objectContaining({
+      expect.objectContaining({
         type: 'clusters',
         project: 'kubernetesproject',
         application: 'kubernetesapp',

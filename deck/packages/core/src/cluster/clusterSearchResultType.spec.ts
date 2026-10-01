@@ -6,9 +6,9 @@ import './clusterSearchResultType';
 
 describe('cluster search result type', () => {
   it('builds cluster links from result metadata', async () => {
-    const buildFromMetadata = spyOn(UrlBuilder, 'buildFromMetadata').and.returnValue(
-      '/clusters?acct=prod&q=cluster:payments',
-    );
+    const buildFromMetadata = vi
+      .spyOn(UrlBuilder, 'buildFromMetadata')
+      .mockReturnValue('/clusters?acct=prod&q=cluster:payments');
     const resultType = searchResultTypeRegistry.get('clusters');
 
     const result = await resultType
@@ -31,7 +31,7 @@ describe('cluster search result type', () => {
       .toPromise();
 
     expect(buildFromMetadata).toHaveBeenCalledWith(
-      jasmine.objectContaining({ account: 'prod', application: 'payments', cluster: 'payments', type: 'clusters' }),
+      expect.objectContaining({ account: 'prod', application: 'payments', cluster: 'payments', type: 'clusters' }),
     );
     expect(result.results[0].href).toBe('/clusters?acct=prod&q=cluster:payments');
   });

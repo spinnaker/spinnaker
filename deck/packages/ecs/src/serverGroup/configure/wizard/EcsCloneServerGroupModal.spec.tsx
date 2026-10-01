@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import type { ShallowWrapper } from 'enzyme';
 import { mount, shallow } from 'enzyme';
 import React from 'react';
@@ -55,19 +56,19 @@ const buildProps = (command: IEcsServerGroupCommand) =>
     application: {
       name: 'app',
       serverGroups: {
-        onNextRefresh: jasmine.createSpy('onNextRefresh'),
-        refresh: jasmine.createSpy('refresh'),
+        onNextRefresh: vi.fn(),
+        refresh: vi.fn(),
       },
     },
-    closeModal: jasmine.createSpy('closeModal'),
+    closeModal: vi.fn(),
     command,
-    dismissModal: jasmine.createSpy('dismissModal'),
+    dismissModal: vi.fn(),
     title: 'Deploy ECS server group',
   } as any);
 
 const buildUnrenderedModal = (command = buildCommand()): EcsCloneServerGroupModal => {
   const modal = new EcsCloneServerGroupModal(buildProps(command));
-  spyOn(modal, 'setState').and.callFake((state: any, callback?: () => void) => {
+  vi.spyOn(modal, 'setState').mockImplementation((state: any, callback?: () => void) => {
     modal.state = { ...modal.state, ...state };
     callback?.();
   });
@@ -91,15 +92,20 @@ const renderCapacityProvider = (command: IEcsServerGroupCommand): ShallowWrapper
 };
 
 describe('EcsCloneServerGroupModal', () => {
+  beforeEach(() => {
+    // TaskDefinition and Container load docker registry accounts on mount.
+    vi.spyOn(AccountService, 'listAccounts').mockReturnValue(Promise.resolve([]));
+  });
+
   it('does not set state when backing data resolves after unmount', async () => {
     const modal = new EcsCloneServerGroupModal(buildProps(buildCommand())) as any;
     let resolveBackingData: () => void;
-    spyOn(modal, 'loadBackingData').and.returnValue(
+    vi.spyOn(modal, 'loadBackingData').mockReturnValue(
       new Promise<void>((resolve) => {
         resolveBackingData = resolve;
       }),
     );
-    const setState = spyOn(modal, 'setState');
+    const setState = vi.spyOn(modal, 'setState').mockReturnValue(undefined);
 
     const configurePromise = modal.configureCommand();
     modal.componentWillUnmount();
@@ -115,7 +121,7 @@ describe('EcsCloneServerGroupModal', () => {
     const modal = new EcsCloneServerGroupModal(buildProps(firstCommand)) as any;
     let resolveFirst: () => void;
     let resolveSecond: () => void;
-    spyOn(modal, 'loadBackingData').and.callFake((command: IEcsServerGroupCommand) => {
+    vi.spyOn(modal, 'loadBackingData').mockImplementation((command: IEcsServerGroupCommand) => {
       return new Promise<void>((resolve) => {
         if (command === firstCommand) {
           resolveFirst = resolve;
@@ -124,7 +130,7 @@ describe('EcsCloneServerGroupModal', () => {
         }
       });
     });
-    spyOn(modal, 'setState').and.callFake((state: any) => {
+    vi.spyOn(modal, 'setState').mockImplementation((state: any) => {
       modal.state = { ...modal.state, ...state };
     });
 
@@ -145,7 +151,7 @@ describe('EcsCloneServerGroupModal', () => {
     const originalHttpClient = RequestBuilder.defaultHttpClient;
     const command = buildCommand({ backingData: { filtered: {} } as any });
     const modal = new EcsCloneServerGroupModal(buildProps(command)) as any;
-    spyOn(AccountService, 'getCredentialsKeyedByAccount').and.returnValue(Promise.resolve({}));
+    vi.spyOn(AccountService, 'getCredentialsKeyedByAccount').mockReturnValue(Promise.resolve({}));
     RequestBuilder.defaultHttpClient = {
       get: (config: any) => {
         if (config.url.endsWith('loadBalancers')) {
@@ -160,11 +166,11 @@ describe('EcsCloneServerGroupModal', () => {
         return Promise.resolve([]);
       },
     } as any;
-    spyOn(modal.iamRoleReader, 'listRoles').and.returnValue(Promise.resolve([]));
-    spyOn(modal.ecsClusterReader, 'listClusters').and.returnValue(Promise.resolve([]));
-    spyOn(modal.ecsClusterReader, 'describeClusters').and.returnValue(Promise.resolve([]));
-    spyOn(modal.metricAlarmReader, 'listMetricAlarms').and.returnValue(Promise.resolve([]));
-    spyOn(modal.secretReader, 'listSecrets').and.returnValue(Promise.resolve([]));
+    vi.spyOn(modal.iamRoleReader, 'listRoles').mockReturnValue(Promise.resolve([]));
+    vi.spyOn(modal.ecsClusterReader, 'listClusters').mockReturnValue(Promise.resolve([]));
+    vi.spyOn(modal.ecsClusterReader, 'describeClusters').mockReturnValue(Promise.resolve([]));
+    vi.spyOn(modal.metricAlarmReader, 'listMetricAlarms').mockReturnValue(Promise.resolve([]));
+    vi.spyOn(modal.secretReader, 'listSecrets').mockReturnValue(Promise.resolve([]));
 
     modal.configureRequest = 2;
     await modal.loadBackingData(command, '', 1);
@@ -177,14 +183,14 @@ describe('EcsCloneServerGroupModal', () => {
     const command = buildCommand({ capacity: { desired: 1, max: 2, min: 0 } });
     const modal = buildUnrenderedModal(command) as any;
     let resolveBackingData: () => void;
-    spyOn(modal, 'loadBackingData').and.returnValue(
+    vi.spyOn(modal, 'loadBackingData').mockReturnValue(
       new Promise<void>((resolve) => {
         resolveBackingData = resolve;
       }),
     );
     const formik = {
-      setFieldValue: jasmine.createSpy('setFieldValue'),
-      setValues: jasmine.createSpy('setValues'),
+      setFieldValue: vi.fn(),
+      setValues: vi.fn(),
       values: command,
     } as any;
 
@@ -213,7 +219,7 @@ describe('EcsCloneServerGroupModal', () => {
     const modal = buildUnrenderedModal(command) as any;
     modal.attachEventHandlers(command);
     let resolveBackingData: () => void;
-    spyOn(modal, 'loadBackingData').and.callFake(
+    vi.spyOn(modal, 'loadBackingData').mockImplementation(
       (requestCommand: IEcsServerGroupCommand) =>
         new Promise<void>((resolve) => {
           resolveBackingData = () => {
@@ -233,8 +239,8 @@ describe('EcsCloneServerGroupModal', () => {
         }),
     );
     const formik = {
-      setFieldValue: jasmine.createSpy('setFieldValue'),
-      setValues: jasmine.createSpy('setValues'),
+      setFieldValue: vi.fn(),
+      setValues: vi.fn(),
       values: command,
     } as any;
 
@@ -271,17 +277,19 @@ describe('EcsCloneServerGroupModal', () => {
       promise: Promise<void>;
       resolve: () => void;
     }> = [];
-    const loadBackingData = spyOn(modal, 'loadBackingData').and.callFake((requestCommand: IEcsServerGroupCommand) => {
-      let resolve: () => void;
-      const promise = new Promise<void>((requestResolve) => {
-        resolve = requestResolve;
+    const loadBackingData = vi
+      .spyOn(modal, 'loadBackingData')
+      .mockImplementation((requestCommand: IEcsServerGroupCommand) => {
+        let resolve: () => void;
+        const promise = new Promise<void>((requestResolve) => {
+          resolve = requestResolve;
+        });
+        requests.push({ command: requestCommand, promise, resolve });
+        return promise;
       });
-      requests.push({ command: requestCommand, promise, resolve });
-      return promise;
-    });
     const formik = {
-      setFieldValue: jasmine.createSpy('setFieldValue'),
-      setValues: jasmine.createSpy('setValues'),
+      setFieldValue: vi.fn(),
+      setValues: vi.fn(),
       values: command,
     } as any;
 
@@ -384,28 +392,28 @@ describe('EcsCloneServerGroupModal', () => {
         return Promise.resolve([]);
       },
     } as any;
-    spyOn(AccountService, 'getCredentialsKeyedByAccount').and.returnValue(
+    vi.spyOn(AccountService, 'getCredentialsKeyedByAccount').mockReturnValue(
       Promise.resolve({
         'ecs-account': { regions: [{ availabilityZones: ['us-west-2a'], name: 'us-west-2' }] },
       }) as any,
     );
-    spyOn(modal.iamRoleReader, 'listRoles').and.returnValue(Promise.resolve([]));
-    spyOn(modal.ecsClusterReader, 'listClusters').and.returnValue(Promise.resolve([]));
-    spyOn(modal.ecsClusterReader, 'describeClusters').and.returnValue(Promise.resolve([]));
-    spyOn(modal.metricAlarmReader, 'listMetricAlarms').and.returnValue(Promise.resolve([]));
-    spyOn(modal.secretReader, 'listSecrets').and.returnValue(Promise.resolve([]));
-    spyOn(ServiceDiscoveryReader, 'listServiceDiscoveryRegistries').and.returnValue(Promise.resolve([]));
-    const configureCommand = spyOn(modal, 'configureCommand').and.callThrough();
+    vi.spyOn(modal.iamRoleReader, 'listRoles').mockReturnValue(Promise.resolve([]));
+    vi.spyOn(modal.ecsClusterReader, 'listClusters').mockReturnValue(Promise.resolve([]));
+    vi.spyOn(modal.ecsClusterReader, 'describeClusters').mockReturnValue(Promise.resolve([]));
+    vi.spyOn(modal.metricAlarmReader, 'listMetricAlarms').mockReturnValue(Promise.resolve([]));
+    vi.spyOn(modal.secretReader, 'listSecrets').mockReturnValue(Promise.resolve([]));
+    vi.spyOn(ServiceDiscoveryReader, 'listServiceDiscoveryRegistries').mockReturnValue(Promise.resolve([]));
+    const configureCommand = vi.spyOn(modal, 'configureCommand');
     const formik = {
-      setFieldValue: jasmine.createSpy('setFieldValue'),
-      setValues: jasmine.createSpy('setValues'),
+      setFieldValue: vi.fn(),
+      setValues: vi.fn(),
       values: command,
     } as any;
 
     try {
       const oldConfigure = modal.configureCommand();
       modal.updateCommand(formik, 'subnetTypes', ['new-subnet']);
-      const newConfigure = configureCommand.calls.mostRecent().returnValue;
+      const newConfigure = configureCommand.mock.results.at(-1).value;
 
       securityGroupRequests[1].resolve(securityGroups);
       await newConfigure;
@@ -419,7 +427,7 @@ describe('EcsCloneServerGroupModal', () => {
       ]);
 
       modal.updateCommand(formik, 'subnetTypes', ['old-subnet']);
-      const repeatedConfigure = configureCommand.calls.mostRecent().returnValue;
+      const repeatedConfigure = configureCommand.mock.results.at(-1).value;
       securityGroupRequests[2].resolve(securityGroups);
       await repeatedConfigure;
 
@@ -457,18 +465,18 @@ describe('EcsCloneServerGroupModal', () => {
       region: 'eu-west-1',
     });
     const modal = new EcsCloneServerGroupModal(buildProps(command)) as any;
-    spyOn(AccountService, 'getCredentialsKeyedByAccount').and.returnValue(
+    vi.spyOn(AccountService, 'getCredentialsKeyedByAccount').mockReturnValue(
       Promise.resolve({ 'ecs-account': { regions } }) as any,
     );
     RequestBuilder.defaultHttpClient = {
       get: (config: any) => Promise.resolve(config.url.endsWith('securityGroups') ? {} : []),
     } as any;
-    spyOn(modal.iamRoleReader, 'listRoles').and.returnValue(Promise.resolve([]));
-    spyOn(modal.ecsClusterReader, 'listClusters').and.returnValue(Promise.resolve([]));
-    spyOn(modal.ecsClusterReader, 'describeClusters').and.returnValue(Promise.resolve([]));
-    spyOn(modal.metricAlarmReader, 'listMetricAlarms').and.returnValue(Promise.resolve([]));
-    spyOn(modal.secretReader, 'listSecrets').and.returnValue(Promise.resolve([]));
-    spyOn(ServiceDiscoveryReader, 'listServiceDiscoveryRegistries').and.returnValue(Promise.resolve([]));
+    vi.spyOn(modal.iamRoleReader, 'listRoles').mockReturnValue(Promise.resolve([]));
+    vi.spyOn(modal.ecsClusterReader, 'listClusters').mockReturnValue(Promise.resolve([]));
+    vi.spyOn(modal.ecsClusterReader, 'describeClusters').mockReturnValue(Promise.resolve([]));
+    vi.spyOn(modal.metricAlarmReader, 'listMetricAlarms').mockReturnValue(Promise.resolve([]));
+    vi.spyOn(modal.secretReader, 'listSecrets').mockReturnValue(Promise.resolve([]));
+    vi.spyOn(ServiceDiscoveryReader, 'listServiceDiscoveryRegistries').mockReturnValue(Promise.resolve([]));
 
     await modal.loadBackingData(command, '');
     RequestBuilder.defaultHttpClient = originalHttpClient;
@@ -490,7 +498,7 @@ describe('EcsCloneServerGroupModal', () => {
       region: 'eu-west-1',
     });
     const modal = buildUnrenderedModal(command) as any;
-    const configureCommand = spyOn(modal, 'configureCommand').and.returnValue(Promise.resolve());
+    const configureCommand = vi.spyOn(modal, 'configureCommand').mockReturnValue(Promise.resolve());
 
     modal.attachEventHandlers(command);
     command.credentialsChanged(command);
@@ -540,7 +548,7 @@ describe('EcsCloneServerGroupModal', () => {
   it('reloads backing data when account or region changes', () => {
     const command = buildCommand();
     const modal = buildUnrenderedModal(command) as any;
-    const configureCommand = spyOn(modal, 'configureCommand').and.returnValue(Promise.resolve());
+    const configureCommand = vi.spyOn(modal, 'configureCommand').mockReturnValue(Promise.resolve());
 
     modal.attachEventHandlers(command);
     command.credentialsChanged(command);
@@ -553,7 +561,7 @@ describe('EcsCloneServerGroupModal', () => {
     it(`returns the transformed command without executing infrastructure in ${mode} mode`, () => {
       const command = buildCommand({ viewState: { contextImages: [], dirty: {}, mode } as any });
       const modal = buildUnrenderedModal(command) as any;
-      const cloneServerGroup = jasmine.createSpy('cloneServerGroup');
+      const cloneServerGroup = vi.fn();
 
       modal.submit();
 
@@ -580,13 +588,13 @@ describe('EcsCloneServerGroupModal', () => {
       disableLifecycleMethods: true,
     } as any);
     const modal = wrapper.instance() as any;
-    spyOn(modal, 'configureCommand').and.returnValue(Promise.resolve());
+    vi.spyOn(modal, 'configureCommand').mockReturnValue(Promise.resolve());
     modal.attachEventHandlers(command);
     const formik: any = {
-      setFieldValue: jasmine.createSpy('setFieldValue').and.callFake((field: string, value: any) => {
+      setFieldValue: vi.fn().mockImplementation((field: string, value: any) => {
         formik.values = { ...formik.values, [field]: value };
       }),
-      setValues: jasmine.createSpy('setValues').and.callFake((values: IEcsServerGroupCommand) => {
+      setValues: vi.fn().mockImplementation((values: IEcsServerGroupCommand) => {
         formik.values = values;
       }),
       values: { ...command },
@@ -644,10 +652,10 @@ describe('EcsCloneServerGroupModal', () => {
       disableLifecycleMethods: true,
     } as any);
     const formik: any = {
-      setFieldValue: jasmine.createSpy('setFieldValue').and.callFake((field: string, value: any) => {
+      setFieldValue: vi.fn().mockImplementation((field: string, value: any) => {
         formik.values = { ...formik.values, [field]: value };
       }),
-      setValues: jasmine.createSpy('setValues').and.callFake((values: IEcsServerGroupCommand) => {
+      setValues: vi.fn().mockImplementation((values: IEcsServerGroupCommand) => {
         formik.values = values;
       }),
       values: { ...command },
@@ -700,8 +708,8 @@ describe('EcsCloneServerGroupModal', () => {
     const command = buildCommand({ preferSourceCapacity: false, useSourceCapacity: false });
     const modal = buildUnrenderedModal(command) as any;
     const formik = {
-      setFieldValue: jasmine.createSpy('setFieldValue'),
-      setValues: jasmine.createSpy('setValues'),
+      setFieldValue: vi.fn(),
+      setValues: vi.fn(),
       values: { ...command },
     } as any;
 
@@ -710,7 +718,7 @@ describe('EcsCloneServerGroupModal', () => {
 
     expect(modal.state.command.useSourceCapacity).toBe(true);
     expect(modal.state.command.preferSourceCapacity).toBe(true);
-    expect(formik.setValues.calls.mostRecent().args[0]).toEqual(modal.state.command);
+    expect(formik.setValues.mock.lastCall[0]).toEqual(modal.state.command);
   });
 
   ['create', 'clone'].forEach((mode) => {
@@ -719,12 +727,11 @@ describe('EcsCloneServerGroupModal', () => {
       const props = buildProps(command);
       const modal = new EcsCloneServerGroupModal(props) as any;
       const task = Promise.resolve({ id: 'task-id' });
-      const cloneServerGroup = jasmine.createSpy('cloneServerGroup').and.returnValue(task as any);
+      const cloneServerGroup = vi.fn().mockReturnValue(task as any);
       modal.context = { services: { serverGroupWriter: { cloneServerGroup } } };
-      const monitorSubmit = spyOn(
-        modal.state.taskMonitor,
-        'submit',
-      ).and.callFake((submitMethod: () => PromiseLike<any>) => submitMethod());
+      const monitorSubmit = vi
+        .spyOn(modal.state.taskMonitor, 'submit')
+        .mockImplementation((submitMethod: () => PromiseLike<any>) => submitMethod());
 
       modal.submit();
 
@@ -753,8 +760,8 @@ describe('EcsCloneServerGroupModal', () => {
       },
     };
     const state = {
-      go: jasmine.createSpy('go'),
-      includes: jasmine.createSpy('includes').and.callFake((name: string) => name === '**.clusters'),
+      go: vi.fn(),
+      includes: vi.fn().mockImplementation((name: string) => name === '**.clusters'),
     };
     props.stateService = state;
 
@@ -763,7 +770,7 @@ describe('EcsCloneServerGroupModal', () => {
     expect(props.application.serverGroups.refresh).toHaveBeenCalled();
     expect(props.application.serverGroups.onNextRefresh).toHaveBeenCalledWith(modal.onApplicationRefresh);
 
-    const refreshCallback = props.application.serverGroups.onNextRefresh.calls.mostRecent().args[0];
+    const refreshCallback = props.application.serverGroups.onNextRefresh.mock.lastCall[0];
     refreshCallback();
 
     expect(state.includes).toHaveBeenCalledWith('**.clusters');
@@ -777,20 +784,20 @@ describe('EcsCloneServerGroupModal', () => {
 
   it('owns its refresh subscription across replacement and unmount', () => {
     const props = buildProps(buildCommand());
-    const firstUnsubscribe = jasmine.createSpy('firstUnsubscribe');
-    const secondUnsubscribe = jasmine.createSpy('secondUnsubscribe');
+    const firstUnsubscribe = vi.fn();
+    const secondUnsubscribe = vi.fn();
     const callbacks: Array<() => void> = [];
-    props.application.serverGroups.onNextRefresh.and.callFake((callback: () => void) => {
+    props.application.serverGroups.onNextRefresh.mockImplementation((callback: () => void) => {
       callbacks.push(callback);
       return callbacks.length === 1 ? firstUnsubscribe : secondUnsubscribe;
     });
-    props.stateService = { go: jasmine.createSpy('go'), includes: jasmine.createSpy('includes') };
+    props.stateService = { go: vi.fn(), includes: vi.fn() };
     const modal = new EcsCloneServerGroupModal(props) as any;
 
     modal.onTaskComplete();
 
-    expect(props.application.serverGroups.onNextRefresh.calls.first().invocationOrder).toBeLessThan(
-      props.application.serverGroups.refresh.calls.first().invocationOrder,
+    expect(props.application.serverGroups.onNextRefresh.mock.invocationCallOrder[0]).toBeLessThan(
+      props.application.serverGroups.refresh.mock.invocationCallOrder[0],
     );
 
     modal.onTaskComplete();
@@ -809,9 +816,9 @@ describe('EcsCloneServerGroupModal', () => {
     const command = buildCommand({ viewState: { contextImages: [], dirty: {}, mode: 'create' } as any });
     const props = buildProps(command);
     const modal = new EcsCloneServerGroupModal(props) as any;
-    const cloneServerGroup = jasmine
-      .createSpy('cloneServerGroup')
-      .and.callFake(() => Promise.reject({ failureMessage: 'create failed' }) as any);
+    const cloneServerGroup = vi
+      .fn()
+      .mockImplementation(() => Promise.reject({ failureMessage: 'create failed' }) as any);
     modal.context = { services: { serverGroupWriter: { cloneServerGroup } } };
     const errorPublished = new Promise<void>((resolve) => {
       const subscription = modal.state.taskMonitor.statusUpdatedStream.subscribe(() => {
@@ -1133,7 +1140,7 @@ describe('EcsCloneServerGroupModal', () => {
     const childProps = {
       command,
       configureCommand: () => Promise.resolve(),
-      onFieldChange: jasmine.createSpy('onFieldChange'),
+      onFieldChange: vi.fn(),
     };
     const capacityProvider = shallow(<EcsCapacityProvider {...childProps} />, {
       disableLifecycleMethods: true,
@@ -1149,7 +1156,7 @@ describe('EcsCloneServerGroupModal', () => {
           application={buildProps(command).application}
           command={command}
           configureCommand={() => Promise.resolve()}
-          onFieldChange={jasmine.createSpy('onFieldChange')}
+          onFieldChange={vi.fn()}
         />,
       ),
     ];
@@ -1176,7 +1183,7 @@ describe('EcsCloneServerGroupModal', () => {
       stack: 'prod',
       viewState: { contextImages: [], dirty: {}, disableStrategySelection: false } as any,
     });
-    const onFieldChange = jasmine.createSpy('onFieldChange');
+    const onFieldChange = vi.fn();
     const wrapper = shallow(
       React.createElement(BasicSettings as any, {
         application: buildProps(command).application,
@@ -1215,8 +1222,8 @@ describe('EcsCloneServerGroupModal', () => {
       securityGroupNames: ['persisted-sg'],
       subnetTypes: ['persisted-subnet'],
     });
-    const onFieldChange = jasmine.createSpy('onFieldChange');
-    const configureCommand = jasmine.createSpy('configureCommand').and.returnValue(Promise.resolve());
+    const onFieldChange = vi.fn();
+    const configureCommand = vi.fn().mockReturnValue(Promise.resolve());
     const page = shallow(
       React.createElement(NetworkingSettings as any, {
         application: buildProps(command).application,
@@ -1257,8 +1264,8 @@ describe('EcsCloneServerGroupModal', () => {
         pipeline: {},
       } as any,
     });
-    const onFieldChange = jasmine.createSpy('onFieldChange');
-    const configureCommand = jasmine.createSpy('configureCommand').and.returnValue(Promise.resolve());
+    const onFieldChange = vi.fn();
+    const configureCommand = vi.fn().mockReturnValue(Promise.resolve());
     const page = shallow(
       React.createElement(TaskDefinitionSettings as any, {
         application: buildProps(command).application,
@@ -1293,12 +1300,12 @@ describe('EcsCloneServerGroupModal', () => {
       reservedMemory: 1024,
       targetGroupMappings: [{ containerName: '', containerPort: 8080, targetGroup: 'persisted-target' }],
     });
-    const onFieldChange = jasmine.createSpy('onFieldChange');
+    const onFieldChange = vi.fn();
     const page = shallow(
       React.createElement(ContainerSettings as any, {
         application: buildProps(command).application,
         command,
-        configureCommand: jasmine.createSpy('configureCommand').and.returnValue(Promise.resolve()),
+        configureCommand: vi.fn().mockReturnValue(Promise.resolve()),
         onFieldChange,
       }),
     );
@@ -1321,12 +1328,12 @@ describe('EcsCloneServerGroupModal', () => {
       launchType: 'FARGATE',
       useSourceCapacity: false,
     });
-    const onFieldChange = jasmine.createSpy('onFieldChange');
+    const onFieldChange = vi.fn();
     const page = shallow(
       React.createElement(HorizontalScalingSettings as any, {
         application: buildProps(command).application,
         command,
-        configureCommand: jasmine.createSpy('configureCommand').and.returnValue(Promise.resolve()),
+        configureCommand: vi.fn().mockReturnValue(Promise.resolve()),
         onFieldChange,
       }),
     );
@@ -1348,7 +1355,7 @@ describe('EcsCloneServerGroupModal', () => {
       React.createElement(HorizontalScalingSettings as any, {
         application: buildProps(command).application,
         command: { ...command, computeOption: 'capacityProviders' },
-        configureCommand: jasmine.createSpy('configureCommand').and.returnValue(Promise.resolve()),
+        configureCommand: vi.fn().mockReturnValue(Promise.resolve()),
         onFieldChange,
       }),
     );
@@ -1356,17 +1363,17 @@ describe('EcsCloneServerGroupModal', () => {
   });
 
   it('restores Horizontal Scaling monitoring controls and toggles high-resolution metrics', () => {
-    const renderPage = (command: IEcsServerGroupCommand, onFieldChange: jasmine.Spy) =>
+    const renderPage = (command: IEcsServerGroupCommand, onFieldChange: Mock) =>
       shallow(
         React.createElement(HorizontalScalingSettings as any, {
           application: buildProps(command).application,
           command,
-          configureCommand: jasmine.createSpy('configureCommand').and.returnValue(Promise.resolve()),
+          configureCommand: vi.fn().mockReturnValue(Promise.resolve()),
           onFieldChange,
         }),
       );
 
-    const defaultOnFieldChange = jasmine.createSpy('onFieldChange');
+    const defaultOnFieldChange = vi.fn();
     const defaultPage = renderPage(buildCommand({ copySourceMonitoringConfiguration: true }), defaultOnFieldChange);
     expect(findByTestId(defaultPage, 'ServerGroup.copySourceMonitoringConfiguration').prop('checked')).toBe(true);
     expect(findByTestId(defaultPage, 'ServerGroup.monitoringConfiguration.CPUUtilization').prop('checked')).toBe(false);
@@ -1386,7 +1393,7 @@ describe('EcsCloneServerGroupModal', () => {
       metricConfigurations: [{ metricNames: ['CPUUtilization'], resolutionSeconds: 20 }],
     });
 
-    const cpuOnFieldChange = jasmine.createSpy('onFieldChange');
+    const cpuOnFieldChange = vi.fn();
     const cpuPage = renderPage(
       buildCommand({
         monitoringConfiguration: { metricConfigurations: [{ metricNames: ['CPUUtilization'], resolutionSeconds: 20 }] },
@@ -1414,7 +1421,7 @@ describe('EcsCloneServerGroupModal', () => {
           metricConfigurations: [{ metricNames: ['CPUUtilization', 'MemoryUtilization'], resolutionSeconds: 60 }],
         },
       }),
-      jasmine.createSpy('onFieldChange'),
+      vi.fn(),
     );
     expect(
       findByTestId(standardResolutionPage, 'ServerGroup.monitoringConfiguration.CPUUtilization').prop('checked'),
@@ -1423,7 +1430,7 @@ describe('EcsCloneServerGroupModal', () => {
 
   it('restores Logging driver and option-map controls', () => {
     const command = buildCommand({ logDriver: 'awslogs', logOptions: { 'awslogs-region': 'eu-west-1' } });
-    const onFieldChange = jasmine.createSpy('onFieldChange');
+    const onFieldChange = vi.fn();
     const page = shallow(
       React.createElement(LoggingSettings as any, {
         application: buildProps(command).application,
@@ -1453,8 +1460,8 @@ describe('EcsCloneServerGroupModal', () => {
       React.createElement(ServiceDiscoverySettings as any, {
         application: buildProps(command).application,
         command,
-        configureCommand: jasmine.createSpy('configureCommand').and.returnValue(Promise.resolve()),
-        onFieldChange: jasmine.createSpy('onFieldChange'),
+        configureCommand: vi.fn().mockReturnValue(Promise.resolve()),
+        onFieldChange: vi.fn(),
       }),
     );
 
@@ -1489,7 +1496,7 @@ describe('EcsCloneServerGroupModal', () => {
       <EcsNetworking
         command={command}
         configureCommand={() => new Promise<void>(() => undefined)}
-        onFieldChange={jasmine.createSpy('onFieldChange')}
+        onFieldChange={vi.fn()}
       />,
     );
 
@@ -1517,7 +1524,7 @@ describe('EcsCloneServerGroupModal', () => {
       <Container
         command={command}
         configureCommand={() => new Promise<void>(() => undefined)}
-        onFieldChange={jasmine.createSpy('onFieldChange')}
+        onFieldChange={vi.fn()}
       />,
     );
 
@@ -1543,7 +1550,7 @@ describe('EcsCloneServerGroupModal', () => {
       <TaskDefinition
         command={command}
         configureCommand={() => new Promise<void>(() => undefined)}
-        onFieldChange={jasmine.createSpy('onFieldChange')}
+        onFieldChange={vi.fn()}
       />,
     );
 
@@ -1572,7 +1579,7 @@ describe('EcsCloneServerGroupModal', () => {
       <ServiceDiscovery
         command={command}
         configureCommand={() => new Promise<void>(() => undefined)}
-        onFieldChange={jasmine.createSpy('onFieldChange')}
+        onFieldChange={vi.fn()}
       />,
     );
 
@@ -1593,7 +1600,7 @@ describe('EcsCloneServerGroupModal', () => {
       serviceDiscoveryAssociations: [{ containerName: 'api', containerPort: 8080, registry } as any],
       useTaskDefinitionArtifact: true,
     });
-    const onFieldChange = jasmine.createSpy('onFieldChange');
+    const onFieldChange = vi.fn();
     const wrapper = shallow(
       <ServiceDiscovery
         command={command}
@@ -1622,7 +1629,7 @@ describe('EcsCloneServerGroupModal', () => {
       serviceDiscoveryAssociations: [{ containerName: null, containerPort: 8080, registry } as any],
       useTaskDefinitionArtifact: false,
     });
-    const onFieldChange = jasmine.createSpy('onFieldChange');
+    const onFieldChange = vi.fn();
     const wrapper = shallow(
       <ServiceDiscovery
         command={command}
@@ -1669,7 +1676,7 @@ describe('EcsCloneServerGroupModal', () => {
       <EcsCapacityProvider
         command={command}
         configureCommand={() => new Promise<void>(() => undefined)}
-        onFieldChange={jasmine.createSpy('onFieldChange')}
+        onFieldChange={vi.fn()}
       />,
     );
 
@@ -1694,8 +1701,8 @@ describe('EcsCloneServerGroupModal', () => {
       capacityProviderStrategy: [{ base: 0, capacityProvider: 'FARGATE', weight: 1 }],
       useDefaultCapacityProviders: true,
     });
-    const onFieldChange = jasmine.createSpy('onFieldChange');
-    const configureCommand = jasmine.createSpy('configureCommand').and.callFake(() => {
+    const onFieldChange = vi.fn();
+    const configureCommand = vi.fn().mockImplementation(() => {
       command.backingData.filtered.defaultCapacityProviderStrategy = refreshedStrategy;
       return Promise.resolve();
     });
@@ -1705,7 +1712,7 @@ describe('EcsCloneServerGroupModal', () => {
     );
     const instance = wrapper.instance() as any;
     let applyState: () => void;
-    spyOn(instance, 'setState').and.callFake((state: any, callback?: () => void) => {
+    vi.spyOn(instance, 'setState').mockImplementation((state: any, callback?: () => void) => {
       applyState = () => {
         instance.state = { ...instance.state, ...state };
         callback?.();
@@ -1714,7 +1721,7 @@ describe('EcsCloneServerGroupModal', () => {
 
     instance.componentDidMount();
     await Promise.resolve();
-    expect(onFieldChange).not.toHaveBeenCalledWith('capacityProviderStrategy', jasmine.anything());
+    expect(onFieldChange).not.toHaveBeenCalledWith('capacityProviderStrategy', expect.anything());
 
     applyState();
     expect(onFieldChange).toHaveBeenCalledWith('capacityProviderStrategy', refreshedStrategy);
@@ -1734,7 +1741,7 @@ describe('EcsCloneServerGroupModal', () => {
       ecsClusterName: 'cluster-a',
       useDefaultCapacityProviders: true,
     });
-    const onFieldChange = jasmine.createSpy('onFieldChange').and.callFake((field: string, value: any) => {
+    const onFieldChange = vi.fn().mockImplementation((field: string, value: any) => {
       command[field] = value;
     });
     const wrapper = shallow(
@@ -1751,7 +1758,7 @@ describe('EcsCloneServerGroupModal', () => {
 
     expect(wrapper.state('capacityProviderStrategy')).toBe(refreshedStrategy);
     expect(command.capacityProviderStrategy).toBe(refreshedStrategy);
-    expect(onFieldChange).toHaveBeenCalledOnceWith('capacityProviderStrategy', refreshedStrategy);
+    expect(onFieldChange).toHaveBeenCalledExactlyOnceWith('capacityProviderStrategy', refreshedStrategy);
 
     (wrapper.instance() as EcsCapacityProvider).componentDidUpdate();
     expect(onFieldChange).toHaveBeenCalledTimes(1);
@@ -1798,7 +1805,7 @@ describe('EcsCloneServerGroupModal', () => {
       useTaskDefinitionArtifact: true,
     });
     const pageProps = buildProps(command);
-    const fieldChange = jasmine.createSpy('onFieldChange');
+    const fieldChange = vi.fn();
     const configureCommand = () => Promise.resolve();
     const props = { ...pageProps, configureCommand, onFieldChange: fieldChange };
 
@@ -1924,7 +1931,7 @@ describe('EcsCloneServerGroupModal', () => {
       tags: { owner: 'payments' },
       useTaskDefinitionArtifact: false,
     });
-    const onFieldChange = jasmine.createSpy('onFieldChange');
+    const onFieldChange = vi.fn();
     const page = shallow(
       React.createElement(AdvancedSettings as any, {
         application: buildProps(command).application,

@@ -9,8 +9,8 @@ import { awsResizeAsgStage } from './awsResizeAsgStage';
 
 describe('AWS Resize Server Group stage', () => {
   beforeEach(() => {
-    spyOn(AccountService, 'getUniqueAttributeForAllAccounts').and.returnValue(Promise.resolve([]));
-    spyOn(AccountService, 'listAccounts').and.returnValue(Promise.resolve([]));
+    vi.spyOn(AccountService, 'getUniqueAttributeForAllAccounts').mockReturnValue(Promise.resolve([]));
+    vi.spyOn(AccountService, 'listAccounts').mockReturnValue(Promise.resolve([]));
   });
 
   function renderStage(stageOverrides: Record<string, any> = {}, applicationOverrides: Record<string, any> = {}) {
@@ -30,15 +30,15 @@ describe('AWS Resize Server Group stage', () => {
       getDataSource: () => ({ data: [] }),
       ...applicationOverrides,
     };
-    const updateStage = jasmine.createSpy('updateStage');
-    const updateStageField = jasmine.createSpy('updateStageField');
+    const updateStage = vi.fn();
+    const updateStageField = vi.fn();
     const Component = awsResizeAsgStage.component as React.ComponentType<any>;
     const wrapper = mount(
       <Component
         application={application}
         pipeline={{}}
         stage={stage}
-        stageFieldUpdated={jasmine.createSpy('stageFieldUpdated')}
+        stageFieldUpdated={vi.fn()}
         updateStage={updateStage}
         updateStageField={updateStageField}
       />,
@@ -52,7 +52,7 @@ describe('AWS Resize Server Group stage', () => {
   });
 
   it('registers a prevent-save numeric validator', () => {
-    expect(awsResizeAsgStage.validators).toContain(jasmine.objectContaining({ type: 'custom', preventSave: true }));
+    expect(awsResizeAsgStage.validators).toContainEqual(expect.objectContaining({ type: 'custom', preventSave: true }));
   });
 
   it('prevents saving persisted invalid percentages while allowing valid values and expressions', () => {
@@ -296,8 +296,8 @@ describe('AWS Resize Server Group stage', () => {
         scalePct: undefined,
       });
       const originalStage = { ...exact.stage, capacity: { ...exact.stage.capacity } };
-      exact.updateStage.calls.reset();
-      exact.updateStageField.calls.reset();
+      exact.updateStage.mockClear();
+      exact.updateStageField.mockClear();
 
       exact.wrapper.find('select[name="action"]').simulate('change', { target: { value: action } });
 
@@ -316,8 +316,8 @@ describe('AWS Resize Server Group stage', () => {
   it('reports stale resize field removals without mutating the stage prop', () => {
     const exact = renderStage({ scaleNum: 3 });
     const originalExactStage = { ...exact.stage, capacity: { ...exact.stage.capacity } };
-    exact.updateStage.calls.reset();
-    exact.updateStageField.calls.reset();
+    exact.updateStage.mockClear();
+    exact.updateStageField.mockClear();
 
     exact.wrapper.find('select[name="action"]').simulate('change', { target: { value: 'scale_exact' } });
 
@@ -332,8 +332,8 @@ describe('AWS Resize Server Group stage', () => {
 
     const incremental = renderStage({ capacity: { desired: 4 }, scalePct: 25 });
     const originalIncrementalStage = { ...incremental.stage, capacity: { ...incremental.stage.capacity } };
-    incremental.updateStage.calls.reset();
-    incremental.updateStageField.calls.reset();
+    incremental.updateStage.mockClear();
+    incremental.updateStageField.mockClear();
 
     incremental.wrapper.find('select[name="resizeType"]').simulate('change', { target: { value: 'incr' } });
 
@@ -349,8 +349,8 @@ describe('AWS Resize Server Group stage', () => {
 
     const percentage = renderStage({ resizeType: 'incr', scaleNum: 3, scalePct: undefined });
     const originalPercentageStage = { ...percentage.stage, capacity: { ...percentage.stage.capacity } };
-    percentage.updateStage.calls.reset();
-    percentage.updateStageField.calls.reset();
+    percentage.updateStage.mockClear();
+    percentage.updateStageField.mockClear();
 
     percentage.wrapper.find('select[name="resizeType"]').simulate('change', { target: { value: 'pct' } });
 
@@ -367,7 +367,7 @@ describe('AWS Resize Server Group stage', () => {
 
   it('validates numeric modes while preserving pipeline expressions', () => {
     const percentage = renderStage({ scalePct: 125 });
-    percentage.updateStageField.calls.reset();
+    percentage.updateStageField.mockClear();
     const percentageInput = percentage.wrapper.find('input[name="scalePct"]');
 
     expect(percentageInput.prop('aria-invalid')).toBe(false);
@@ -375,7 +375,7 @@ describe('AWS Resize Server Group stage', () => {
     expect(percentage.updateStageField).toHaveBeenCalledWith({ scalePct: '${ parameters.percentage }' });
 
     const healthPercentage = renderStage({ targetHealthyDeployPercentage: 100 });
-    healthPercentage.updateStageField.calls.reset();
+    healthPercentage.updateStageField.mockClear();
     const healthPercentageInput = healthPercentage.wrapper.find('input[name="targetHealthyDeployPercentage"]');
 
     expect(healthPercentageInput.prop('aria-invalid')).toBe(false);
@@ -420,7 +420,7 @@ describe('AWS Resize Server Group stage', () => {
 
   it('keeps invalid resize percentage edits local and only reports valid values', () => {
     const percentage = renderStage({ scalePct: 25 });
-    percentage.updateStageField.calls.reset();
+    percentage.updateStageField.mockClear();
 
     ['12.5', '-1', 'Infinity'].forEach((value) => {
       percentage.wrapper.find('input[name="scalePct"]').simulate('change', { target: { value } });
@@ -435,7 +435,7 @@ describe('AWS Resize Server Group stage', () => {
     percentage.wrapper.find('input[name="scalePct"]').simulate('change', { target: { value: '125' } });
     expect(percentage.updateStageField).toHaveBeenCalledWith({ scalePct: 125 });
 
-    percentage.updateStageField.calls.reset();
+    percentage.updateStageField.mockClear();
     percentage.wrapper
       .find('input[name="scalePct"]')
       .simulate('change', { target: { value: '${ parameters.percentage }' } });
@@ -444,7 +444,7 @@ describe('AWS Resize Server Group stage', () => {
 
   it('keeps invalid health percentage edits local and only reports valid values', () => {
     const health = renderStage({ targetHealthyDeployPercentage: 75 });
-    health.updateStageField.calls.reset();
+    health.updateStageField.mockClear();
 
     ['75.5', '-1', '101', 'Infinity'].forEach((value) => {
       health.wrapper.find('input[name="targetHealthyDeployPercentage"]').simulate('change', { target: { value } });
@@ -459,7 +459,7 @@ describe('AWS Resize Server Group stage', () => {
     health.wrapper.find('input[name="targetHealthyDeployPercentage"]').simulate('change', { target: { value: '100' } });
     expect(health.updateStageField).toHaveBeenCalledWith({ targetHealthyDeployPercentage: 100 });
 
-    health.updateStageField.calls.reset();
+    health.updateStageField.mockClear();
     health.wrapper
       .find('input[name="targetHealthyDeployPercentage"]')
       .simulate('change', { target: { value: '${ parameters.healthPercentage }' } });
@@ -470,7 +470,7 @@ describe('AWS Resize Server Group stage', () => {
 
   it('keeps invalid incremental edits local and only reports valid values', () => {
     const incremental = renderStage({ action: 'scale_down', resizeType: 'incr', scaleNum: 2 });
-    incremental.updateStageField.calls.reset();
+    incremental.updateStageField.mockClear();
 
     ['2.5', '-1', 'NaN'].forEach((value) => {
       incremental.wrapper.find('input[name="scaleNum"]').simulate('change', { target: { value } });
@@ -485,7 +485,7 @@ describe('AWS Resize Server Group stage', () => {
     incremental.wrapper.find('input[name="scaleNum"]').simulate('change', { target: { value: '3' } });
     expect(incremental.updateStageField).toHaveBeenCalledWith({ scaleNum: 3 });
 
-    incremental.updateStageField.calls.reset();
+    incremental.updateStageField.mockClear();
     incremental.wrapper
       .find('input[name="scaleNum"]')
       .simulate('change', { target: { value: '${ parameters.count }' } });
@@ -505,7 +505,7 @@ describe('AWS Resize Server Group stage', () => {
       { field: 'desired', value: 'NaN' },
     ].forEach(({ field, value }) => {
       const exact = renderStage({ action: 'scale_exact', capacity, resizeType: 'exact' });
-      exact.updateStageField.calls.reset();
+      exact.updateStageField.mockClear();
 
       exact.wrapper.find(`input[data-capacity-field="${field}"]`).simulate('change', { target: { value } });
 
@@ -517,12 +517,12 @@ describe('AWS Resize Server Group stage', () => {
     });
 
     const exact = renderStage({ action: 'scale_exact', capacity, resizeType: 'exact' });
-    exact.updateStageField.calls.reset();
+    exact.updateStageField.mockClear();
 
     exact.wrapper.find('input[data-capacity-field="min"]').simulate('change', { target: { value: '4' } });
     expect(exact.updateStageField).toHaveBeenCalledWith({ capacity: { min: 4, max: 2, desired: 3 } });
 
-    exact.updateStageField.calls.reset();
+    exact.updateStageField.mockClear();
     exact.wrapper
       .find('input[data-capacity-field="max"]')
       .simulate('change', { target: { value: '${ parameters.max }' } });
@@ -530,7 +530,7 @@ describe('AWS Resize Server Group stage', () => {
       capacity: { min: 1, max: '${ parameters.max }', desired: 3 },
     });
 
-    exact.updateStageField.calls.reset();
+    exact.updateStageField.mockClear();
     exact.wrapper.find('input[data-capacity-field="desired"]').simulate('change', { target: { value: '5' } });
     expect(exact.updateStageField).toHaveBeenCalledWith({ capacity: { min: 1, max: 2, desired: 5 } });
 
@@ -566,7 +566,7 @@ describe('AWS Resize Server Group stage', () => {
       scalePct: 25,
       targetHealthyDeployPercentage: 75,
     });
-    percentage.updateStageField.calls.reset();
+    percentage.updateStageField.mockClear();
     percentage.wrapper.find('input[name="scalePct"]').simulate('change', { target: { value: '12.5' } });
     percentage.wrapper
       .find('input[name="targetHealthyDeployPercentage"]')
@@ -583,7 +583,7 @@ describe('AWS Resize Server Group stage', () => {
     expect(validator.validate({}, nextPercentageStage)).toBe('');
 
     const incremental = renderStage({ action: 'scale_down', refId: 'stage-a', resizeType: 'incr', scaleNum: 2 });
-    incremental.updateStageField.calls.reset();
+    incremental.updateStageField.mockClear();
     incremental.wrapper.find('input[name="scaleNum"]').simulate('change', { target: { value: '2.5' } });
     const nextIncrementalStage = { ...incremental.stage, refId: 'stage-b' };
     incremental.wrapper.setProps({ stage: nextIncrementalStage });
@@ -600,7 +600,7 @@ describe('AWS Resize Server Group stage', () => {
       refId: 'stage-a',
       resizeType: 'exact',
     });
-    exact.updateStageField.calls.reset();
+    exact.updateStageField.mockClear();
     ['min', 'max', 'desired'].forEach((field) => {
       exact.wrapper.find(`input[data-capacity-field="${field}"]`).simulate('change', { target: { value: 'NaN' } });
     });

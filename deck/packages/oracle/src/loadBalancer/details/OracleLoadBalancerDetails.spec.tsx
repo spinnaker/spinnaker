@@ -9,16 +9,16 @@ describe('useOracleLoadBalancerDetails', () => {
     let result: any;
     const dataSource = {
       status$: new BehaviorSubject(status),
-      refresh: jasmine.createSpy('refresh'),
+      refresh: vi.fn(),
     };
     const app = {
-      getDataSource: jasmine.createSpy('getDataSource').and.returnValue(dataSource),
+      getDataSource: vi.fn().mockReturnValue(dataSource),
       ...appOverrides,
     };
     const props = {
       app,
       loadBalancerParams: { name: 'my-lb', region: 'us-phoenix-1', accountId: 'oracle-account' },
-      autoClose: jasmine.createSpy('autoClose'),
+      autoClose: vi.fn(),
     };
 
     function TestComponent() {

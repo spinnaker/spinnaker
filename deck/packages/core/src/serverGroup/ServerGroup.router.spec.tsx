@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { shallow } from 'enzyme';
 import React from 'react';
 import { Subject } from 'rxjs';
@@ -17,7 +18,7 @@ describe('server group router bridge', () => {
   } as any;
   const sortFilter = { multiselect: false, showAllInstances: false } as any;
 
-  const props = (includes: jasmine.Spy) =>
+  const props = (includes: Mock) =>
     ({
       application,
       cluster: 'test',
@@ -31,7 +32,7 @@ describe('server group router bridge', () => {
     } as any);
 
   it('selects a server group through the injected state service', () => {
-    const includes = jasmine.createSpy('includes').and.returnValue(true);
+    const includes = vi.fn().mockReturnValue(true);
     const component = shallow(<ServerGroupComponent {...props(includes)} />, { disableLifecycleMethods: true });
 
     expect(component.state('isSelected')).toBe(true);
@@ -47,7 +48,7 @@ describe('server group router bridge', () => {
     const previousFilterService = ClusterState.filterService;
     const serverGroupsStream = new Subject<void>();
     const instancesStream = new Subject<void>();
-    const serverGroupIsSelected = jasmine.createSpy('serverGroupIsSelected').and.returnValue(false);
+    const serverGroupIsSelected = vi.fn().mockReturnValue(false);
     ClusterState.multiselectModel = { serverGroupsStream, instancesStream, serverGroupIsSelected } as any;
     ClusterState.filterService = { shouldShowInstance: () => true } as any;
     const selectedServerGroup = {
@@ -55,7 +56,7 @@ describe('server group router bridge', () => {
       instances: [{ name: 'test-v001-0', buildInfo: { images: [] } }],
     } as any;
     const streamProps = {
-      ...props(jasmine.createSpy('includes').and.returnValue(false)),
+      ...props(vi.fn().mockReturnValue(false)),
       router: { transitionService: { onSuccess: () => () => undefined } },
       serverGroup: selectedServerGroup,
       sortFilter: { ...sortFilter, multiselect: true },
@@ -65,7 +66,7 @@ describe('server group router bridge', () => {
     try {
       serverGroupWrapper = shallow(<ServerGroupComponent {...streamProps} />);
 
-      serverGroupIsSelected.and.returnValue(true);
+      serverGroupIsSelected.mockReturnValue(true);
       serverGroupsStream.next();
       serverGroupWrapper.update();
 

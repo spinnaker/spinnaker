@@ -51,15 +51,15 @@ describe('Execution', () => {
 
     expect(component.state('showingDetails')).toBe(true);
     expect(component.state('viewState')).toEqual(
-      jasmine.objectContaining({ activeStageId: 2, activeSubStageId: 3, executionId: 'execution-id' }),
+      expect.objectContaining({ activeStageId: 2, activeSubStageId: 3, executionId: 'execution-id' }),
     );
     expect((component.instance() as ExecutionComponent).isActive({ index: 2 } as any)).toBe(true);
   });
 
   it('updates its view from injected route transitions', () => {
     let transitionHandler: (transition: any) => void;
-    const unsubscribe = jasmine.createSpy('unsubscribe');
-    const onSuccess = jasmine.createSpy('onSuccess').and.callFake((_criteria, callback) => {
+    const unsubscribe = vi.fn();
+    const onSuccess = vi.fn().mockImplementation((_criteria, callback) => {
       transitionHandler = callback;
       return unsubscribe;
     });
@@ -90,14 +90,14 @@ describe('Execution', () => {
     });
 
     expect(component.state('showingDetails')).toBe(true);
-    expect(component.state('viewState')).toEqual(jasmine.objectContaining({ activeStageId: 4, activeSubStageId: 5 }));
+    expect(component.state('viewState')).toEqual(expect.objectContaining({ activeStageId: 4, activeSubStageId: 5 }));
     instance.componentWillUnmount();
     expect(unsubscribe).toHaveBeenCalled();
   });
 
   it('configures the pipeline through the injected state service', () => {
-    const go = jasmine.createSpy('go');
-    const stopPropagation = jasmine.createSpy('stopPropagation');
+    const go = vi.fn();
+    const stopPropagation = vi.fn();
     const component = shallow(
       <ExecutionComponent
         deckRuntimeServices={deckRuntimeServices}

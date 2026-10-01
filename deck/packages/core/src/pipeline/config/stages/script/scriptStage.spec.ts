@@ -29,7 +29,7 @@ describe('Script stage runtime registration', () => {
   });
 
   it('registers the complete Script stage exactly once', () => {
-    const registerStage = spyOn(Registry.pipeline, 'registerStage').and.callThrough();
+    const registerStage = vi.spyOn(Registry.pipeline, 'registerStage');
 
     registerScriptStage();
     registerScriptStage();
@@ -37,9 +37,9 @@ describe('Script stage runtime registration', () => {
     expect(Registry.pipeline.getStageTypes().filter(({ key }) => key === 'script').length).toBe(1);
     expect(registerStage).toHaveBeenCalledTimes(1);
 
-    const scriptStage = registerStage.calls.mostRecent().args[0] as IStageTypeConfig;
+    const scriptStage = registerStage.mock.lastCall[0] as IStageTypeConfig;
     expect(scriptStage).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         label: 'Script',
         description: 'Runs a script',
         supportsCustomTimeout: true,
@@ -52,7 +52,7 @@ describe('Script stage runtime registration', () => {
       }),
     );
     expect(scriptStage.defaults).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         waitForCompletion: true,
         failPipeline: true,
       }),

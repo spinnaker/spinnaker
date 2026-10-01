@@ -1,5 +1,5 @@
 'use strict';
-import { mockHttpClient } from 'core/api/mock/jasmine';
+import { mockHttpClient } from 'core/api/mock/mockHttpSupport';
 import { AzureImageReader } from './image.reader';
 
 describe('Service: Azure Image Reader', function () {

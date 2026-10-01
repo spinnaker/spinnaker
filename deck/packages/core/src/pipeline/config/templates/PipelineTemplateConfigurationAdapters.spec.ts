@@ -207,7 +207,7 @@ describe('PipelineTemplateConfigurationAdapters', () => {
     } as IPipeline;
 
     expect(mergeTemplatePlan(config, plan, state)).toEqual(
-      jasmine.objectContaining({ parameterConfig: plan.parameterConfig }),
+      expect.objectContaining({ parameterConfig: plan.parameterConfig }),
     );
     expect(mergeTemplatePlan(config, plan, state).expectedArtifacts).toBeUndefined();
     expect(mergeTemplatePlan(config, plan, state).triggers).toBeUndefined();

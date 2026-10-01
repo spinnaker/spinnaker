@@ -1,15 +1,16 @@
+import type { Mocked } from 'vitest';
 import { ManualJudgmentService } from './manualJudgment.service';
 import type { ExecutionService } from '../../../service/execution.service';
 
 describe('Service: manualJudgment', () => {
-  let service: ManualJudgmentService, executionService: jasmine.SpyObj<ExecutionService>;
+  let service: ManualJudgmentService, executionService: Mocked<ExecutionService>;
 
   beforeEach(() => {
-    executionService = jasmine.createSpyObj<ExecutionService>('executionService', [
-      'patchExecution',
-      'waitUntilExecutionMatches',
-      'updateExecution',
-    ]);
+    executionService = {
+      patchExecution: vi.fn(),
+      waitUntilExecutionMatches: vi.fn(),
+      updateExecution: vi.fn(),
+    };
     service = new ManualJudgmentService(executionService);
   });
 
@@ -23,9 +24,9 @@ describe('Service: manualJudgment', () => {
     });
 
     it('patches the judgment, waits for the stage to finish running, and updates the execution', async () => {
-      executionService.patchExecution.and.returnValue(Promise.resolve(null) as any);
-      executionService.waitUntilExecutionMatches.and.returnValue(Promise.resolve(updatedExecution) as any);
-      executionService.updateExecution.and.returnValue(Promise.resolve(null) as any);
+      executionService.patchExecution.mockReturnValue(Promise.resolve(null) as any);
+      executionService.waitUntilExecutionMatches.mockReturnValue(Promise.resolve(updatedExecution) as any);
+      executionService.updateExecution.mockReturnValue(Promise.resolve(null) as any);
 
       await service.provideJudgment(application, execution, stage, 'continue', 'ship it');
 
@@ -33,7 +34,7 @@ describe('Service: manualJudgment', () => {
         judgmentStatus: 'continue',
         judgmentInput: 'ship it',
       });
-      const matcher = executionService.waitUntilExecutionMatches.calls.mostRecent().args[1];
+      const matcher = executionService.waitUntilExecutionMatches.mock.lastCall[1];
       expect(matcher({ stages: [{ id: 'stage-id', status: 'RUNNING' }] } as any)).toBe(false);
       expect(matcher(updatedExecution)).toBe(true);
       expect(executionService.updateExecution).toHaveBeenCalledWith(application, updatedExecution);
@@ -41,8 +42,8 @@ describe('Service: manualJudgment', () => {
 
     it('fails when waitUntilExecutionMatches fails', async () => {
       const error = new Error('wait failed');
-      executionService.patchExecution.and.returnValue(Promise.resolve(null) as any);
-      executionService.waitUntilExecutionMatches.and.returnValue(Promise.reject(error) as any);
+      executionService.patchExecution.mockReturnValue(Promise.resolve(null) as any);
+      executionService.waitUntilExecutionMatches.mockReturnValue(Promise.reject(error) as any);
 
       await expectAsync(service.provideJudgment(application, execution, stage, 'continue')).toBeRejectedWith(error);
       expect(executionService.updateExecution).not.toHaveBeenCalled();
@@ -50,7 +51,7 @@ describe('Service: manualJudgment', () => {
 
     it('fails when patch call fails', async () => {
       const error = new Error('patch failed');
-      executionService.patchExecution.and.returnValue(Promise.reject(error) as any);
+      executionService.patchExecution.mockReturnValue(Promise.reject(error) as any);
 
       await expectAsync(service.provideJudgment(application, execution, stage, 'continue')).toBeRejectedWith(error);
       expect(executionService.waitUntilExecutionMatches).not.toHaveBeenCalled();

@@ -7,7 +7,7 @@ import { ExecutionState } from '../../../state';
 describe('ExecutionGroups', () => {
   const group = { executions: [{ id: 'execution-id' }], heading: 'Pipeline', runningExecutions: [] } as any;
   const application = {
-    executions: { onRefresh: jasmine.createSpy('onRefresh').and.returnValue(() => undefined) },
+    executions: { onRefresh: vi.fn().mockReturnValue(() => undefined) },
   } as any;
   let previousFilterModel: any;
 
@@ -37,8 +37,8 @@ describe('ExecutionGroups', () => {
   });
 
   it('observes route changes through the injected router', () => {
-    const injectedUnsubscribe = jasmine.createSpy('injectedUnsubscribe');
-    const injectedOnSuccess = jasmine.createSpy('injectedOnSuccess').and.returnValue(injectedUnsubscribe);
+    const injectedUnsubscribe = vi.fn();
+    const injectedOnSuccess = vi.fn().mockReturnValue(injectedUnsubscribe);
     const component = shallow(
       <ExecutionGroupsComponent
         {...({
@@ -52,7 +52,7 @@ describe('ExecutionGroups', () => {
 
     component.unmount();
 
-    expect(injectedOnSuccess).toHaveBeenCalledWith({}, jasmine.any(Function));
+    expect(injectedOnSuccess).toHaveBeenCalledWith({}, expect.any(Function));
     expect(injectedUnsubscribe).toHaveBeenCalled();
   });
 

@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import type { ShallowWrapper } from 'enzyme';
 import { shallow } from 'enzyme';
 import React from 'react';
@@ -33,12 +34,12 @@ function tick(ms: number): Promise<void> {
 
 describe('SearchV1', () => {
   let params$: BehaviorSubject<any>;
-  let query: jasmine.Spy;
-  let go: jasmine.Spy;
+  let query: Mock;
+  let go: Mock;
   let wrapper: ShallowWrapper | undefined;
   const deckRuntimeServices = {
     infrastructureSearchService: { getSearcher: () => ({ query: (...args: any[]) => query(...args) }) },
-    pageTitleService: { handleRoutingSuccess: jasmine.createSpy('handleRoutingSuccess') },
+    pageTitleService: { handleRoutingSuccess: vi.fn() },
   } as any;
 
   const renderSearch = () =>
@@ -53,8 +54,8 @@ describe('SearchV1', () => {
 
   beforeEach(() => {
     params$ = new BehaviorSubject({ q: null, route: null });
-    query = jasmine.createSpy('query').and.returnValue(Promise.resolve([]));
-    go = jasmine.createSpy('go');
+    query = vi.fn().mockReturnValue(Promise.resolve([]));
+    go = vi.fn();
   });
 
   afterEach(() => {
@@ -63,7 +64,7 @@ describe('SearchV1', () => {
   });
 
   it('requires three characters, debounces valid queries, and replaces q in the URL', async () => {
-    query.and.returnValue(
+    query.mockReturnValue(
       Promise.resolve([
         resultSet('serverGroups', [{ href: '#/server', displayName: 'Server', provider: 'aws', type: 'serverGroups' }]),
       ]),
@@ -90,11 +91,10 @@ describe('SearchV1', () => {
     let resolveFirst: (value: ISearchResultSet[]) => void;
     let resolveSecond: (value: ISearchResultSet[]) => void;
     let resolveThird: (value: ISearchResultSet[]) => void;
-    query.and.returnValues(
-      new Promise((resolve) => (resolveFirst = resolve)),
-      new Promise((resolve) => (resolveSecond = resolve)),
-      new Promise((resolve) => (resolveThird = resolve)),
-    );
+    query
+      .mockReturnValueOnce(new Promise((resolve) => (resolveFirst = resolve)))
+      .mockReturnValueOnce(new Promise((resolve) => (resolveSecond = resolve)))
+      .mockReturnValueOnce(new Promise((resolve) => (resolveThird = resolve)));
     wrapper = renderSearch();
     const instance = wrapper.instance() as SearchV1;
 
@@ -120,7 +120,7 @@ describe('SearchV1', () => {
 
   it('ignores an in-flight result after the query becomes too short', async () => {
     let resolveSearch: (value: ISearchResultSet[]) => void;
-    query.and.returnValue(new Promise((resolve) => (resolveSearch = resolve)));
+    query.mockReturnValue(new Promise((resolve) => (resolveSearch = resolve)));
     wrapper = renderSearch();
     const instance = wrapper.instance() as SearchV1;
 
@@ -137,7 +137,7 @@ describe('SearchV1', () => {
   });
 
   it('separates projects, ranks infrastructure results, and renders direct result links', async () => {
-    query.and.returnValue(
+    query.mockReturnValue(
       Promise.resolve([
         resultSet('projects', [{ name: 'project', config: { applications: ['app'] } }]),
         resultSet('applications', [
@@ -168,13 +168,16 @@ describe('SearchV1', () => {
 
   it('navigates once when the initial routed query has exactly one result', async () => {
     params$.next({ q: 'initial', route: true });
-    query.and.returnValues(
-      Promise.resolve([resultSet('applications', [{ displayName: 'initial', href: '#/one-shot-result' }])]),
-      Promise.resolve([resultSet('applications', [{ displayName: 'later', href: '#/unexpected-result' }])]),
-    );
+    query
+      .mockReturnValueOnce(
+        Promise.resolve([resultSet('applications', [{ displayName: 'initial', href: '#/one-shot-result' }])]),
+      )
+      .mockReturnValueOnce(
+        Promise.resolve([resultSet('applications', [{ displayName: 'later', href: '#/unexpected-result' }])]),
+      );
     wrapper = renderSearch();
     const instance = wrapper.instance() as SearchV1;
-    const navigateToResult = spyOn<any>(instance, 'navigateToResult');
+    const navigateToResult = vi.spyOn<any>(instance, 'navigateToResult').mockReturnValue(undefined);
 
     await tick(350);
     await flushPromises();
@@ -189,14 +192,13 @@ describe('SearchV1', () => {
   it('consumes routed navigation when input changes before the initial search completes', async () => {
     let resolveInitial: (value: ISearchResultSet[]) => void;
     let resolveLater: (value: ISearchResultSet[]) => void;
-    query.and.returnValues(
-      new Promise((resolve) => (resolveInitial = resolve)),
-      new Promise((resolve) => (resolveLater = resolve)),
-    );
+    query
+      .mockReturnValueOnce(new Promise((resolve) => (resolveInitial = resolve)))
+      .mockReturnValueOnce(new Promise((resolve) => (resolveLater = resolve)));
     params$.next({ q: 'initial', route: true });
     wrapper = renderSearch();
     const instance = wrapper.instance() as SearchV1;
-    const navigateToResult = spyOn<any>(instance, 'navigateToResult');
+    const navigateToResult = vi.spyOn<any>(instance, 'navigateToResult').mockReturnValue(undefined);
     await tick(350);
 
     instance.handleQueryChange('later');
@@ -216,14 +218,13 @@ describe('SearchV1', () => {
   it('consumes routed navigation when dynamic query params change before the initial search completes', async () => {
     let resolveInitial: (value: ISearchResultSet[]) => void;
     let resolveLater: (value: ISearchResultSet[]) => void;
-    query.and.returnValues(
-      new Promise((resolve) => (resolveInitial = resolve)),
-      new Promise((resolve) => (resolveLater = resolve)),
-    );
+    query
+      .mockReturnValueOnce(new Promise((resolve) => (resolveInitial = resolve)))
+      .mockReturnValueOnce(new Promise((resolve) => (resolveLater = resolve)));
     params$.next({ q: 'initial', route: true });
     wrapper = renderSearch();
     const instance = wrapper.instance() as SearchV1;
-    const navigateToResult = spyOn<any>(instance, 'navigateToResult');
+    const navigateToResult = vi.spyOn<any>(instance, 'navigateToResult').mockReturnValue(undefined);
     await tick(350);
 
     params$.next({ q: 'later', route: null });

@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import type { ReactWrapper } from 'enzyme';
 import { mount } from 'enzyme';
 import type { ICanaryConfig, IKayentaAccount, IKayentaStage } from '../../domain';
@@ -8,25 +9,21 @@ import { act } from 'react-dom/test-utils';
 import type { DeckRuntimeServices } from '@spinnaker/core';
 import { AccountService, CloudProviderRegistry, DeckRuntimeContext, ProviderSelectionService } from '@spinnaker/core';
 
-import { mockHttpClient } from '../../../../../core/src/api/mock/jasmine';
+import { mockHttpClient } from '../../../../../core/src/api/mock/mockHttpSupport';
 import { KayentaCanaryStageConfig } from './KayentaCanaryStageConfig';
 
 const cloneServerGroupModal = {
-  show: jasmine.createSpy('showCloneServerGroupModal').and.callFake((props) => Promise.resolve(props.command)),
+  show: vi.fn().mockImplementation((props) => Promise.resolve(props.command)),
 };
 const mockRuntimeServices = ({
   serverGroupCommandBuilder: {
-    buildNewServerGroupCommandForPipeline: jasmine
-      .createSpy('buildNewServerGroupCommandForPipeline')
-      .and.resolveTo({ viewState: {}, strategy: 'redblack' }),
-    buildServerGroupCommandFromPipeline: jasmine
-      .createSpy('buildServerGroupCommandFromPipeline')
-      .and.resolveTo({ viewState: {}, strategy: 'redblack' }),
+    buildNewServerGroupCommandForPipeline: vi.fn().mockResolvedValue({ viewState: {}, strategy: 'redblack' }),
+    buildServerGroupCommandFromPipeline: vi.fn().mockResolvedValue({ viewState: {}, strategy: 'redblack' }),
   },
   serverGroupTransformer: {
-    convertServerGroupCommandToDeployConfiguration: jasmine
-      .createSpy('convertServerGroupCommandToDeployConfiguration')
-      .and.returnValue({ application: 'spinnaker', freeFormDetails: '' }),
+    convertServerGroupCommandToDeployConfiguration: vi
+      .fn()
+      .mockReturnValue({ application: 'spinnaker', freeFormDetails: '' }),
   },
 } as any) as DeckRuntimeServices;
 
@@ -58,10 +55,8 @@ describe('<KayentaCanaryStageConfig />', () => {
 
   const application = {
     name: 'spinnaker',
-    ready: jasmine.createSpy('ready').and.resolveTo(),
-    getDataSource: jasmine
-      .createSpy('getDataSource')
-      .and.returnValue({ data: [{ id: 'config-1', name: 'Config One' }] }),
+    ready: vi.fn().mockResolvedValue(),
+    getDataSource: vi.fn().mockReturnValue({ data: [{ id: 'config-1', name: 'Config One' }] }),
     serverGroups: { loaded: true, data: [] as any[] },
   };
 
@@ -93,24 +88,23 @@ describe('<KayentaCanaryStageConfig />', () => {
 
   beforeEach(() => {
     mountedWrappers = [];
-    application.ready.calls.reset();
-    application.getDataSource.calls.reset();
+    application.ready.mockClear();
+    application.getDataSource.mockClear();
     http = mockHttpClient({ autoFlush: true });
-    spyOn(AccountService, 'listProviders').and.resolveTo(['aws', 'gce']);
-    spyOn(AccountService, 'listAccounts').and.resolveTo([{ name: 'prod', environment: 'prod' }] as any);
-    spyOn(AccountService, 'challengeDestructiveActions').and.resolveTo(false);
-    cloneServerGroupModal.show.calls.reset();
-    (mockRuntimeServices.serverGroupCommandBuilder.buildNewServerGroupCommandForPipeline as jasmine.Spy).calls.reset();
-    (mockRuntimeServices.serverGroupCommandBuilder.buildServerGroupCommandFromPipeline as jasmine.Spy).calls.reset();
-    (mockRuntimeServices.serverGroupTransformer
-      .convertServerGroupCommandToDeployConfiguration as jasmine.Spy).calls.reset();
+    vi.spyOn(AccountService, 'listProviders').mockResolvedValue(['aws', 'gce']);
+    vi.spyOn(AccountService, 'listAccounts').mockResolvedValue([{ name: 'prod', environment: 'prod' }] as any);
+    vi.spyOn(AccountService, 'challengeDestructiveActions').mockResolvedValue(false);
+    cloneServerGroupModal.show.mockClear();
+    (mockRuntimeServices.serverGroupCommandBuilder.buildNewServerGroupCommandForPipeline as Mock).mockClear();
+    (mockRuntimeServices.serverGroupCommandBuilder.buildServerGroupCommandFromPipeline as Mock).mockClear();
+    (mockRuntimeServices.serverGroupTransformer.convertServerGroupCommandToDeployConfiguration as Mock).mockClear();
   });
 
   afterEach(() => mountedWrappers.forEach((wrapper) => wrapper.unmount()));
 
   async function render(
     stage: IKayentaStage = defaultStage(),
-    updateStage = jasmine.createSpy('updateStage'),
+    updateStage = vi.fn(),
     app: typeof application = application,
     expectRequests = true,
   ): Promise<ReactWrapper> {
@@ -138,14 +132,14 @@ describe('<KayentaCanaryStageConfig />', () => {
   it('renders loading without throwing for a bare new stage', () => {
     const pendingApplication = {
       ...application,
-      ready: jasmine.createSpy('ready').and.returnValue(new Promise(() => undefined)),
+      ready: vi.fn().mockReturnValue(new Promise(() => undefined)),
     };
     const wrapper = mount(
       <DeckRuntimeContext.Provider value={{ services: mockRuntimeServices }}>
         {React.createElement(KayentaCanaryStageConfig as React.ComponentType<any>, {
           application: pendingApplication,
           stage: { isNew: true },
-          updateStage: jasmine.createSpy('updateStage'),
+          updateStage: vi.fn(),
         })}
       </DeckRuntimeContext.Provider>,
     );
@@ -156,7 +150,7 @@ describe('<KayentaCanaryStageConfig />', () => {
 
   it('initializes a bare new stage after backing data loads', async () => {
     const stage = { isNew: true } as any;
-    const updateStage = jasmine.createSpy('updateStage');
+    const updateStage = vi.fn();
 
     const wrapper = await render(stage, updateStage);
 
@@ -164,17 +158,17 @@ describe('<KayentaCanaryStageConfig />', () => {
     expect(stage.analysisType).toBe(KayentaAnalysisType.RealTimeAutomatic);
     expect(stage.canaryConfig.scoreThresholds).toEqual({ marginal: null, pass: null });
     expect(stage.canaryConfig.scopes).toEqual([{ scopeName: 'default' }]);
-    expect(updateStage).toHaveBeenCalledWith(jasmine.objectContaining({ canaryConfig: stage.canaryConfig }));
+    expect(updateStage).toHaveBeenCalledWith(expect.objectContaining({ canaryConfig: stage.canaryConfig }));
   });
 
   it('loads account options for a bare new stage with one supported provider', async () => {
-    (AccountService.listProviders as jasmine.Spy).and.resolveTo(['aws']);
+    (AccountService.listProviders as Mock).mockResolvedValue(['aws']);
     const stage = { isNew: true } as any;
 
     const wrapper = await render(stage);
 
     expect(wrapper.text()).not.toContain('Provider');
-    expect(AccountService.listAccounts).toHaveBeenCalledOnceWith('aws');
+    expect(AccountService.listAccounts).toHaveBeenCalledExactlyOnceWith('aws');
     expect(wrapper.find('option[value="prod"]')).toHaveSize(1);
 
     wrapper
@@ -191,10 +185,10 @@ describe('<KayentaCanaryStageConfig />', () => {
     const stage = defaultStage();
     stage.isNew = true;
     stage.analysisType = KayentaAnalysisType.RealTimeAutomatic;
-    const updateStage = jasmine.createSpy('updateStage');
+    const updateStage = vi.fn();
     const wrapper = await render(stage, updateStage);
-    updateStage.calls.reset();
-    (AccountService.listAccounts as jasmine.Spy).and.rejectWith(new Error('accounts failed'));
+    updateStage.mockClear();
+    (AccountService.listAccounts as Mock).mockRejectedValue(new Error('accounts failed'));
 
     wrapper
       .find('select')
@@ -208,21 +202,21 @@ describe('<KayentaCanaryStageConfig />', () => {
     expect(stage.deployments.baseline.cloudProvider).toBe('aws');
     expect(stage.deployments.baseline.account).toBeNull();
     expect(stage.deployments.baseline.cluster).toBeNull();
-    expect(updateStage).toHaveBeenCalledWith(jasmine.objectContaining({ deployments: stage.deployments }));
+    expect(updateStage).toHaveBeenCalledWith(expect.objectContaining({ deployments: stage.deployments }));
     expect(wrapper.find('option[value="prod"]')).toHaveSize(1);
   });
 
   it('renders a loading spinner while backing data loads', () => {
     const pendingApplication = {
       ...application,
-      ready: jasmine.createSpy('ready').and.returnValue(new Promise(() => undefined)),
+      ready: vi.fn().mockReturnValue(new Promise(() => undefined)),
     };
     const wrapper = mount(
       <DeckRuntimeContext.Provider value={{ services: mockRuntimeServices }}>
         {React.createElement(KayentaCanaryStageConfig as React.ComponentType<any>, {
           application: pendingApplication,
           stage: defaultStage(),
-          updateStage: jasmine.createSpy('updateStage'),
+          updateStage: vi.fn(),
         })}
       </DeckRuntimeContext.Provider>,
     );
@@ -253,7 +247,7 @@ describe('<KayentaCanaryStageConfig />', () => {
         children: React.createElement(KayentaCanaryStageConfig, {
           application: application as any,
           stage: { ...stage, refId: '1' },
-          updateStage: jasmine.createSpy('replacementUpdateStage'),
+          updateStage: vi.fn(),
         }),
       });
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -265,20 +259,20 @@ describe('<KayentaCanaryStageConfig />', () => {
 
   it('updates the stage analysis type and calls updateStage', async () => {
     const stage = defaultStage();
-    const updateStage = jasmine.createSpy('updateStage');
+    const updateStage = vi.fn();
     const wrapper = await render(stage, updateStage);
 
     wrapper.find('input[name="analysisType"]').at(2).simulate('change');
 
     expect(stage.analysisType).toBe(KayentaAnalysisType.Retrospective);
     expect(updateStage).toHaveBeenCalledWith(
-      jasmine.objectContaining({ analysisType: KayentaAnalysisType.Retrospective }),
+      expect.objectContaining({ analysisType: KayentaAnalysisType.Retrospective }),
     );
   });
 
   it('updates score thresholds and calls updateStage', async () => {
     const stage = defaultStage();
-    const updateStage = jasmine.createSpy('updateStage');
+    const updateStage = vi.fn();
     const wrapper = await render(stage, updateStage);
 
     wrapper
@@ -287,12 +281,12 @@ describe('<KayentaCanaryStageConfig />', () => {
       .simulate('change', { target: { value: '80' } });
 
     expect(stage.canaryConfig.scoreThresholds.marginal).toBe('80');
-    expect(updateStage).toHaveBeenCalledWith(jasmine.objectContaining({ canaryConfig: stage.canaryConfig }));
+    expect(updateStage).toHaveBeenCalledWith(expect.objectContaining({ canaryConfig: stage.canaryConfig }));
   });
 
   it('reverts config selection when selected config details fail to load', async () => {
     const stage = defaultStage();
-    const updateStage = jasmine.createSpy('updateStage');
+    const updateStage = vi.fn();
     const wrapper = await render(stage, updateStage);
     http.expectGET('/v2/canaryConfig/missing-config').respond(500);
 
@@ -306,9 +300,7 @@ describe('<KayentaCanaryStageConfig />', () => {
     wrapper.update();
 
     expect(stage.canaryConfig.canaryConfigId).toBe('config-1');
-    expect(updateStage.calls.mostRecent().args).toEqual([
-      jasmine.objectContaining({ canaryConfig: stage.canaryConfig }),
-    ]);
+    expect(updateStage.mock.lastCall).toEqual([expect.objectContaining({ canaryConfig: stage.canaryConfig })]);
   });
 
   it('renders expression-valued lookback as static JSON editor guidance', async () => {
@@ -350,10 +342,10 @@ describe('<KayentaCanaryStageConfig />', () => {
   });
 
   it('uses core provider services for server group pair add and edit actions', async () => {
-    const getProviderConfig = spyOn(CloudProviderRegistry, 'getValue').and.returnValue({
+    const getProviderConfig = vi.spyOn(CloudProviderRegistry, 'getValue').mockReturnValue({
       CloneServerGroupModal: cloneServerGroupModal,
     });
-    const selectProvider = spyOn(ProviderSelectionService, 'selectProvider').and.resolveTo('aws');
+    const selectProvider = vi.spyOn(ProviderSelectionService, 'selectProvider').mockResolvedValue('aws');
     const control = { cloudProvider: 'aws', account: 'prod', location: 'us-east-1', application: 'api' };
     const stage = defaultStage();
     stage.analysisType = KayentaAnalysisType.RealTimeAutomatic;
@@ -376,12 +368,11 @@ describe('<KayentaCanaryStageConfig />', () => {
     await act(async () => Promise.resolve());
 
     expect(getProviderConfig).toHaveBeenCalledWith('aws', 'serverGroup');
-    const buildEditCommand = mockRuntimeServices.serverGroupCommandBuilder
-      .buildServerGroupCommandFromPipeline as jasmine.Spy;
+    const buildEditCommand = mockRuntimeServices.serverGroupCommandBuilder.buildServerGroupCommandFromPipeline as Mock;
     expect(buildEditCommand).toHaveBeenCalledTimes(1);
-    expect(buildEditCommand.calls.argsFor(0)[0]).toBe(application);
-    expect(buildEditCommand.calls.argsFor(0)[1]).toBe(control);
-    expect(buildEditCommand.calls.argsFor(0).slice(2)).toEqual([null, null]);
+    expect(buildEditCommand.mock.calls[0][0]).toBe(application);
+    expect(buildEditCommand.mock.calls[0][1]).toBe(control);
+    expect(buildEditCommand.mock.calls[0].slice(2)).toEqual([null, null]);
 
     const emptyStage = defaultStage();
     emptyStage.analysisType = KayentaAnalysisType.RealTimeAutomatic;
@@ -394,7 +385,7 @@ describe('<KayentaCanaryStageConfig />', () => {
     emptyWrapper.find('button.add-new').first().simulate('click');
     await act(async () => Promise.resolve());
 
-    expect(selectProvider).toHaveBeenCalledWith(application, 'serverGroup', jasmine.any(Function));
+    expect(selectProvider).toHaveBeenCalledWith(application, 'serverGroup', expect.any(Function));
     expect(mockRuntimeServices.serverGroupCommandBuilder.buildNewServerGroupCommandForPipeline).toHaveBeenCalledWith(
       'aws',
       null,

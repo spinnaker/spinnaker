@@ -64,7 +64,7 @@ describe('Component: List', () => {
   });
 
   it('emits the correct value and index on update', () => {
-    const spy = jasmine.createSpy();
+    const spy = vi.fn();
     const component = mount(
       <Provider store={createStore(rootReducer)}>
         <List list={['a', 'b', 'c']} actionCreator={spy} />

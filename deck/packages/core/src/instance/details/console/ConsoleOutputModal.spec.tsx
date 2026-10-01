@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { mount } from 'enzyme';
 import React from 'react';
 import { act } from 'react-dom/test-utils';
@@ -43,23 +44,23 @@ function makeWrapper(usesMultiOutput = false) {
 }
 
 describe('ConsoleOutputModal', () => {
-  let getConsoleOutputSpy: jasmine.Spy;
+  let getConsoleOutputSpy: Mock;
 
   beforeEach(() => {
-    getConsoleOutputSpy = spyOn(InstanceReader, 'getConsoleOutput').and.returnValue(Promise.resolve(singleOutput));
+    getConsoleOutputSpy = vi.spyOn(InstanceReader, 'getConsoleOutput').mockReturnValue(Promise.resolve(singleOutput));
     SETTINGS.consoleLogRefreshIntervalMs = 30000;
   });
 
   afterEach(() => {
     SETTINGS.resetToOriginal();
     try {
-      jasmine.clock().uninstall();
+      vi.useRealTimers();
     } catch (_) {}
   });
 
   describe('rendering', () => {
     it('shows a spinner while loading', () => {
-      getConsoleOutputSpy.and.returnValue(new Promise(() => {}));
+      getConsoleOutputSpy.mockReturnValue(new Promise(() => {}));
       const wrapper = makeWrapper();
       expect(wrapper.find('Spinner').exists()).toBe(true);
       wrapper.unmount();
@@ -74,7 +75,7 @@ describe('ConsoleOutputModal', () => {
     });
 
     it('renders tabs for multi-output logs', async () => {
-      getConsoleOutputSpy.and.returnValue(Promise.resolve(multiOutput));
+      getConsoleOutputSpy.mockReturnValue(Promise.resolve(multiOutput));
       const wrapper = makeWrapper(true);
       await flushMicrotasks();
       wrapper.update();
@@ -96,7 +97,7 @@ describe('ConsoleOutputModal', () => {
     });
 
     it('does not show Refresh or Auto-Refresh buttons while loading', () => {
-      getConsoleOutputSpy.and.returnValue(new Promise(() => {}));
+      getConsoleOutputSpy.mockReturnValue(new Promise(() => {}));
       const wrapper = makeWrapper();
       const labels = wrapper.find('button').map((b: any) => b.text());
       expect(labels).not.toContain('Refresh');
@@ -111,7 +112,7 @@ describe('ConsoleOutputModal', () => {
       await flushMicrotasks();
       wrapper.update();
 
-      getConsoleOutputSpy.calls.reset();
+      getConsoleOutputSpy.mockClear();
       wrapper
         .find('button')
         .filterWhere((b: any) => b.text() === 'Refresh')
@@ -140,7 +141,7 @@ describe('ConsoleOutputModal', () => {
     });
 
     it('registers a setInterval with the configured refresh interval when auto-refresh is enabled', async () => {
-      const setIntervalSpy = spyOn(window, 'setInterval').and.callThrough();
+      const setIntervalSpy = vi.spyOn(window, 'setInterval');
       const wrapper = makeWrapper();
       await flushMicrotasks();
       wrapper.update();
@@ -153,12 +154,12 @@ describe('ConsoleOutputModal', () => {
       });
       wrapper.update();
 
-      expect(setIntervalSpy).toHaveBeenCalledWith(jasmine.any(Function), 30000);
+      expect(setIntervalSpy).toHaveBeenCalledWith(expect.any(Function), 30000);
       wrapper.unmount();
     });
 
     it('clears the interval when auto-refresh is toggled off', async () => {
-      const clearIntervalSpy = spyOn(window, 'clearInterval').and.callThrough();
+      const clearIntervalSpy = vi.spyOn(window, 'clearInterval');
       const wrapper = makeWrapper();
       await flushMicrotasks();
       wrapper.update();
@@ -180,7 +181,7 @@ describe('ConsoleOutputModal', () => {
 
     it('respects consoleLogRefreshIntervalMs setting', async () => {
       SETTINGS.consoleLogRefreshIntervalMs = 10000;
-      const setIntervalSpy = spyOn(window, 'setInterval').and.callThrough();
+      const setIntervalSpy = vi.spyOn(window, 'setInterval');
       const wrapper = makeWrapper();
       await flushMicrotasks();
       wrapper.update();
@@ -193,7 +194,7 @@ describe('ConsoleOutputModal', () => {
       });
       wrapper.update();
 
-      expect(setIntervalSpy).toHaveBeenCalledWith(jasmine.any(Function), 10000);
+      expect(setIntervalSpy).toHaveBeenCalledWith(expect.any(Function), 10000);
       wrapper.unmount();
     });
   });

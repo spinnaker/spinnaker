@@ -24,13 +24,13 @@ function deferred<T>(): IDeferred<T> {
 
 class TestServerGroupsDataSource {
   public callbacks: Array<() => void> = [];
-  public onRefresh = jasmine.createSpy('onRefresh').and.callFake((callback: () => void) => {
+  public onRefresh = vi.fn().mockImplementation((callback: () => void) => {
     this.callbacks.push(callback);
     return () => {
       this.callbacks = this.callbacks.filter((candidate) => candidate !== callback);
     };
   });
-  public ready = jasmine.createSpy('ready').and.callFake(() => this.readiness.promise);
+  public ready = vi.fn().mockImplementation(() => this.readiness.promise);
 
   constructor(private readiness: IDeferred<unknown>) {}
 
@@ -47,19 +47,23 @@ function StateHarness({ app }: { app: Application }): JSX.Element {
 const makeApplication = (serverGroups: TestServerGroupsDataSource) =>
   (({
     serverGroups,
-    setActiveState: jasmine.createSpy('setActiveState'),
+    setActiveState: vi.fn(),
   } as any) as Application);
 
 describe('ClusterMaster lifecycle', () => {
-  beforeEach(() => initialize());
+  beforeEach(() => {
+    initialize();
+    // Materialize lodash-decorators' lazy @Debounce getter before vi.spyOn inspects it.
+    void ClusterState.filterService.updateClusterGroups;
+  });
 
   it('activates filters and server groups, subscribes before readiness, and updates groups initially and on refresh', async () => {
     const readiness = deferred<unknown>();
     const serverGroups = new TestServerGroupsDataSource(readiness);
     const app = makeApplication(serverGroups);
-    const activate = spyOn(ClusterState.filterModel, 'activate');
-    const updateClusterGroups = spyOn(ClusterState.filterService, 'updateClusterGroups');
-    const clearAll = spyOn(ClusterState.multiselectModel, 'clearAll');
+    const activate = vi.spyOn(ClusterState.filterModel, 'activate').mockReturnValue(undefined);
+    const updateClusterGroups = vi.spyOn(ClusterState.filterService, 'updateClusterGroups').mockReturnValue(undefined);
+    const clearAll = vi.spyOn(ClusterState.multiselectModel, 'clearAll').mockReturnValue(undefined);
     const wrapper = mount(<StateHarness app={app} />);
 
     expect(app.setActiveState).toHaveBeenCalledWith(serverGroups as any);
@@ -95,7 +99,7 @@ describe('ClusterMaster lifecycle', () => {
   });
 
   it('ignores late readiness resolution and rejection after unmount', async () => {
-    const updateClusterGroups = spyOn(ClusterState.filterService, 'updateClusterGroups');
+    const updateClusterGroups = vi.spyOn(ClusterState.filterService, 'updateClusterGroups').mockReturnValue(undefined);
     const resolvingReadiness = deferred<unknown>();
     const resolvingWrapper = mount(
       <StateHarness app={makeApplication(new TestServerGroupsDataSource(resolvingReadiness))} />,

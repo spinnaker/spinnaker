@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import React from 'react';
 import { mount as enzymeMount, shallow } from 'enzyme';
 
@@ -15,7 +16,7 @@ describe('GceSecurityGroupDetails', () => {
 
   beforeEach(() => {
     runtimeServices = {};
-    spyOn(AccountService, 'challengeDestructiveActions').and.resolveTo(false);
+    vi.spyOn(AccountService, 'challengeDestructiveActions').mockResolvedValue(false);
   });
 
   const firstRoute = {
@@ -57,19 +58,17 @@ describe('GceSecurityGroupDetails', () => {
     let refreshDetails: (() => void) | undefined;
     const app = {
       securityGroups: {
-        onRefresh: jasmine.createSpy('onRefresh').and.callFake((callback: () => void) => {
+        onRefresh: vi.fn().mockImplementation((callback: () => void) => {
           refreshDetails = callback;
-          return jasmine.createSpy('unsubscribe');
+          return vi.fn();
         }),
       },
     };
     const reader = {
-      getSecurityGroupDetails: jasmine
-        .createSpy('getSecurityGroupDetails')
-        .and.returnValues(
-          Promise.resolve(details('first-firewall', 'before refresh')),
-          Promise.resolve(details('first-firewall', 'after refresh')),
-        ),
+      getSecurityGroupDetails: vi
+        .fn()
+        .mockReturnValueOnce(Promise.resolve(details('first-firewall', 'before refresh')))
+        .mockReturnValueOnce(Promise.resolve(details('first-firewall', 'after refresh'))),
     };
     runtimeServices.securityGroupReader = reader;
     const wrapper = mount(<GceSecurityGroupDetails app={app as any} resolvedSecurityGroup={firstRoute} />);
@@ -92,16 +91,14 @@ describe('GceSecurityGroupDetails', () => {
     const secondRequest = deferred<any>();
     const thirdRequest = deferred<any>();
     const reader = {
-      getSecurityGroupDetails: jasmine
-        .createSpy('getSecurityGroupDetails')
-        .and.returnValues(
-          Promise.resolve(details('first-firewall', 'first details')),
-          secondRequest.promise,
-          thirdRequest.promise,
-        ),
+      getSecurityGroupDetails: vi
+        .fn()
+        .mockReturnValueOnce(Promise.resolve(details('first-firewall', 'first details')))
+        .mockReturnValueOnce(secondRequest.promise)
+        .mockReturnValueOnce(thirdRequest.promise),
     };
     runtimeServices.securityGroupReader = reader;
-    const app = { securityGroups: { onRefresh: () => jasmine.createSpy('unsubscribe') } };
+    const app = { securityGroups: { onRefresh: () => vi.fn() } };
     const wrapper = mount(<GceSecurityGroupDetails app={app as any} resolvedSecurityGroup={firstRoute} />);
 
     await flush();
@@ -137,7 +134,7 @@ describe('GceSecurityGroupActions', () => {
 
   const app = {
     name: 'my-app',
-    securityGroups: { refresh: jasmine.createSpy('refresh') },
+    securityGroups: { refresh: vi.fn() },
   };
   const resolvedSecurityGroup = {
     accountId: 'my-account',
@@ -156,9 +153,9 @@ describe('GceSecurityGroupActions', () => {
   };
 
   it('opens edit and clone modals and confirms deletion with complete firewall identity', () => {
-    spyOn(GceSecurityGroupModal, 'show');
-    spyOn(ConfirmationModalService, 'confirm');
-    spyOn(SecurityGroupWriter, 'deleteSecurityGroup').and.returnValue(Promise.resolve({} as any));
+    vi.spyOn(GceSecurityGroupModal, 'show').mockReturnValue(undefined);
+    vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(undefined);
+    vi.spyOn(SecurityGroupWriter, 'deleteSecurityGroup').mockReturnValue(Promise.resolve({} as any));
     const wrapper = mountActions(
       <GceSecurityGroupActions
         app={app as any}
@@ -173,7 +170,7 @@ describe('GceSecurityGroupActions', () => {
     items.at(1).prop('onClick')({} as any);
     items.at(2).prop('onClick')({} as any);
 
-    const firewallWithIdentity = jasmine.objectContaining({
+    const firewallWithIdentity = expect.objectContaining({
       accountId: 'my-account',
       id: 'my-firewall',
       name: 'my-firewall',
@@ -197,20 +194,20 @@ describe('GceSecurityGroupActions', () => {
       runtimeServices,
     );
     expect(ConfirmationModalService.confirm).toHaveBeenCalledWith(
-      jasmine.objectContaining({
+      expect.objectContaining({
         account: 'my-account',
         buttonText: 'Delete my-firewall',
         header: 'Really delete my-firewall?',
-        taskMonitorConfig: jasmine.objectContaining({ application: app as any, title: 'Deleting my-firewall' }),
+        taskMonitorConfig: expect.objectContaining({ application: app as any, title: 'Deleting my-firewall' }),
       }),
     );
 
-    const confirmation = (ConfirmationModalService.confirm as jasmine.Spy).calls.mostRecent().args[0];
+    const confirmation = (ConfirmationModalService.confirm as Mock).mock.lastCall[0];
     confirmation.submitMethod();
     expect(SecurityGroupWriter.deleteSecurityGroup).toHaveBeenCalledWith(
       firewallWithIdentity,
       app as any,
-      jasmine.objectContaining({ cloudProvider: 'gce', securityGroupName: 'my-firewall' }),
+      expect.objectContaining({ cloudProvider: 'gce', securityGroupName: 'my-firewall' }),
     );
   });
 

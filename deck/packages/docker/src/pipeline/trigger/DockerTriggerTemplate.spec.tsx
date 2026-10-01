@@ -32,7 +32,7 @@ describe('<DockerTriggerTemplate/>', () => {
   });
 
   it('writes docker image artifacts using tag references', () => {
-    const updateCommand = jasmine.createSpy('updateCommand');
+    const updateCommand = vi.fn();
     const component = new DockerTriggerTemplate({
       command: {
         trigger: {
@@ -58,7 +58,7 @@ describe('<DockerTriggerTemplate/>', () => {
   });
 
   it('writes Helm OCI image artifacts using digest references', () => {
-    const updateCommand = jasmine.createSpy('updateCommand');
+    const updateCommand = vi.fn();
     const component = new DockerTriggerTemplate({
       command: {
         trigger: {
@@ -86,26 +86,29 @@ describe('<DockerTriggerTemplate/>', () => {
   it('aborts superseded and unmounted tag queries without publishing cancellation errors', async () => {
     const firstRequest = deferred<string[]>();
     const secondRequest = deferred<string[]>();
-    const findTags = spyOn(DockerImageReader, 'findTags').and.returnValues(firstRequest.promise, secondRequest.promise);
+    const findTags = vi
+      .spyOn(DockerImageReader, 'findTags')
+      .mockReturnValueOnce(firstRequest.promise)
+      .mockReturnValueOnce(secondRequest.promise);
     const wrapper = shallow(
       <DockerTriggerTemplate
         command={{
           trigger: { type: 'docker', repository: 'example/service' },
         }}
-        updateCommand={jasmine.createSpy('updateCommand')}
+        updateCommand={vi.fn()}
       />,
       { disableLifecycleMethods: true },
     );
     const component = wrapper.instance() as DockerTriggerTemplate;
-    const tagLoadSuccess = spyOn(component as any, 'tagLoadSuccess').and.callThrough();
-    const tagLoadFailure = spyOn(component as any, 'tagLoadFailure').and.callThrough();
+    const tagLoadSuccess = vi.spyOn(component as any, 'tagLoadSuccess');
+    const tagLoadFailure = vi.spyOn(component as any, 'tagLoadFailure');
 
     (component as any).initialize();
     await tick(250);
     (component as any).searchTags();
     await tick(250);
-    const firstSignal = findTags.calls.argsFor(0)[1] as AbortSignal;
-    const secondSignal = findTags.calls.argsFor(1)[1] as AbortSignal;
+    const firstSignal = findTags.mock.calls[0][1] as AbortSignal;
+    const secondSignal = findTags.mock.calls[1][1] as AbortSignal;
 
     expect(firstSignal.aborted).toBe(true);
     expect(secondSignal.aborted).toBe(false);

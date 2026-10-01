@@ -13,8 +13,8 @@ describe('<CloudFoundryDeleteServiceBindingsStageConfigForm/>', function () {
   } as Application;
 
   beforeEach(() => {
-    spyOn(AccountService, 'listAccounts').and.returnValue(Promise.resolve([]));
-    spyOn(AccountService, 'getRegionsForAccount').and.returnValue(Promise.resolve([]));
+    vi.spyOn(AccountService, 'listAccounts').mockReturnValue(Promise.resolve([]));
+    vi.spyOn(AccountService, 'getRegionsForAccount').mockReturnValue(Promise.resolve([]));
   });
 
   const getProps = () => {
@@ -39,7 +39,7 @@ describe('<CloudFoundryDeleteServiceBindingsStageConfigForm/>', function () {
     } as unknown) as IStage;
     const formik = {
       values: stage,
-      setFieldValue: jasmine.createSpy('setFieldValue'),
+      setFieldValue: vi.fn(),
     } as any;
 
     const props = getProps();

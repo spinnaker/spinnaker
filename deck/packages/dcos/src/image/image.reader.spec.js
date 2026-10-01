@@ -1,4 +1,4 @@
-import { mockHttpClient } from 'core/api/mock/jasmine';
+import { mockHttpClient } from 'core/api/mock/mockHttpSupport';
 
 import { dcosImageReader } from './image.reader';
 

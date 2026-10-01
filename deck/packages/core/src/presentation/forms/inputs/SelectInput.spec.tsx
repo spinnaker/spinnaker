@@ -46,36 +46,36 @@ describe('<SelectInput />', () => {
   it('wires the onChange handler to the selected item', () => {
     const value = 'b';
     const options = ['a', 'b', 'c', 'd'];
-    const spy = jasmine.createSpy('onChange');
+    const spy = vi.fn();
     const component = mount(<SelectInput value={value} options={options} onChange={spy} />);
     component.find('select').simulate('change', { target: { value: 'c' } });
     expect(spy).toHaveBeenCalledTimes(1);
-    expect(spy.calls.mostRecent().args[0].target.value).toBe('c');
+    expect(spy.mock.lastCall[0].target.value).toBe('c');
   });
 
   describe('defaultValue prop', () => {
     it('causes the onChange handler to be called with a default value when no value is set', () => {
       const value = undefined as string;
       const options = ['a', 'b', 'c', 'd'];
-      const spy = jasmine.createSpy('onChange');
+      const spy = vi.fn();
       mount(<SelectInput value={value} defaultValue={options[0]} options={options} onChange={spy} />);
       expect(spy).toHaveBeenCalledTimes(1);
-      expect(spy.calls.mostRecent().args[0].target.value).toBe('a');
+      expect(spy.mock.lastCall[0].target.value).toBe('a');
     });
 
     it('causes the onChange handler to be called with a default value when an invalid value is set', () => {
       const value = 'x';
       const options = ['a', 'b', 'c', 'd'];
-      const spy = jasmine.createSpy('onChange');
+      const spy = vi.fn();
       mount(<SelectInput value={value} defaultValue={options[0]} options={options} onChange={spy} />);
       expect(spy).toHaveBeenCalledTimes(1);
-      expect(spy.calls.mostRecent().args[0].target.value).toBe('a');
+      expect(spy.mock.lastCall[0].target.value).toBe('a');
     });
 
     it('does not call the onChange handler if no defaultValue is provided', () => {
       const value = 'x';
       const options = ['a', 'b', 'c', 'd'];
-      const spy = jasmine.createSpy('onChange');
+      const spy = vi.fn();
       mount(<SelectInput value={value} options={options} onChange={spy} />);
       expect(spy).not.toHaveBeenCalled();
     });

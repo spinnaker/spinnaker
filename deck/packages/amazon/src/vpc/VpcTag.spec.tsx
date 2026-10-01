@@ -21,14 +21,14 @@ describe('VpcTag', function () {
 
   describe('vpc tag rendering - VPC provided', function () {
     it('displays vpc name when found', async function () {
-      spyOn(VpcReader, 'getVpcName').and.returnValue(Promise.resolve('Main VPC'));
+      vi.spyOn(VpcReader, 'getVpcName').mockReturnValue(Promise.resolve('Main VPC'));
       const component = mount(<VpcTag vpcId="vpc-1" />);
       await tick();
       expect(component.text()).toBe('Main VPC (vpc-1)');
     });
 
     it('displays vpc id when not found', async function () {
-      spyOn(VpcReader, 'getVpcName').and.returnValue(Promise.resolve(null));
+      vi.spyOn(VpcReader, 'getVpcName').mockReturnValue(Promise.resolve(null));
       const component = mount(<VpcTag vpcId="vpc-2" />);
       await tick();
       expect(component.text()).toBe('(vpc-2)');

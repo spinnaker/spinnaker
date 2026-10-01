@@ -48,7 +48,7 @@ describe('<DatadogMetricTypeSelector />', () => {
 
   it('queries for metric descriptors on input change', () => {
     const store = createStore(() => state);
-    const dispatch = spyOn(store, 'dispatch').and.callThrough();
+    const dispatch = vi.spyOn(store, 'dispatch');
     const component = mount(
       <Provider store={store}>
         <Component value="" onChange={noop} />

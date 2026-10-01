@@ -35,12 +35,13 @@ class TaskTracker {
 
 describe('Worker pool', () => {
   describe('.task()', () => {
-    it('registers a task and returns a promise that resolves to the task result', (done) => {
-      new WorkerPool(1)
-        .task(() => Promise.resolve(2))
-        .then((val) => expect(val).toBe(2))
-        .then(done);
-    });
+    it('registers a task and returns a promise that resolves to the task result', () =>
+      new Promise((done, reject) => {
+        new WorkerPool(1)
+          .task(() => Promise.resolve(2))
+          .then((val) => expect(val).toBe(2))
+          .then(done);
+      }));
 
     it('runs one task at a time when concurrency === 1', async () => {
       const pool = new WorkerPool(1);

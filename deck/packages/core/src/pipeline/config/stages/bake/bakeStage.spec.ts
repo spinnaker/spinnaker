@@ -4,7 +4,7 @@ import { bakeStage } from './bakeStage';
 describe('Bake stage registration', () => {
   it('exports the Bake stage config', () => {
     expect(bakeStage).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         useBaseProvider: true,
         label: 'Bake',
         description: 'Bakes an image',

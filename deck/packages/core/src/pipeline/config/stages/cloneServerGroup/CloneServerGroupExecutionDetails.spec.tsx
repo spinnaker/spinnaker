@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { CloneServerGroupExecutionDetailsComponent } from './CloneServerGroupExecutionDetails';
 import { setDirectRouter } from '../../../../navigation/directRouter';
 
@@ -27,11 +28,11 @@ describe('CloneServerGroupExecutionDetails', () => {
       },
       stateParams: { project: 'injected-project' },
     } as any);
-    spyOn(component, 'setState');
+    vi.spyOn(component, 'setState').mockReturnValue(undefined);
 
     (component as any).addDeployedArtifacts(component.props);
 
-    const deployResults = (component.setState as jasmine.Spy).calls.mostRecent().args[0].deployResults;
+    const deployResults = (component.setState as Mock).mock.lastCall[0].deployResults;
     expect(deployResults[0].project).toBe('injected-project');
   });
 });

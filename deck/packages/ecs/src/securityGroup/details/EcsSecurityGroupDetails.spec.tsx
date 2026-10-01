@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { shallow } from 'enzyme';
 import React from 'react';
 
@@ -22,13 +23,13 @@ describe('EcsSecurityGroupDetails', () => {
       isStandalone,
       getDataSource: () => ({
         ready: () => Promise.resolve(),
-        onRefresh: () => jasmine.createSpy('unsubscribe'),
+        onRefresh: () => vi.fn(),
       }),
     } as any;
   }
 
   it('replaces missing details through the injected state service', () => {
-    const stateService = { go: jasmine.createSpy('go') };
+    const stateService = { go: vi.fn() };
     const component = new EcsSecurityGroupDetails({
       app: app(),
       resolvedSecurityGroup,
@@ -77,11 +78,11 @@ describe('EcsSecurityGroupDetails', () => {
   it('loads full details and renders descriptions, VPC names, and Amazon rule models with ECS links', async () => {
     const details = securityGroup();
     const securityGroupReader = {
-      getApplicationSecurityGroup: jasmine.createSpy('getApplicationSecurityGroup').and.returnValue({}),
-      getSecurityGroupDetails: jasmine.createSpy('getSecurityGroupDetails').and.returnValue(Promise.resolve(details)),
+      getApplicationSecurityGroup: vi.fn().mockReturnValue({}),
+      getSecurityGroupDetails: vi.fn().mockReturnValue(Promise.resolve(details)),
     };
     const vpcReader = {
-      getVpcName: jasmine.createSpy('getVpcName').and.returnValue(Promise.resolve('Production VPC')),
+      getVpcName: vi.fn().mockReturnValue(Promise.resolve('Production VPC')),
     };
     const wrapper = shallow(
       <EcsSecurityGroupDetails
@@ -96,7 +97,7 @@ describe('EcsSecurityGroupDetails', () => {
     wrapper.update();
 
     expect(securityGroupReader.getSecurityGroupDetails).toHaveBeenCalledWith(
-      jasmine.anything(),
+      expect.anything(),
       'test-account',
       'ecs',
       'eu-west-1',
@@ -118,7 +119,7 @@ describe('EcsSecurityGroupDetails', () => {
     expect(referencedRules.text()).toContain('tcp: 443');
     const securityGroupLink = referencedRules.find('UISref');
     expect(shallow(<div>{securityGroupLink.prop('children')}</div>).text()).toContain('source-sg (sg-source)');
-    expect(securityGroupLink.prop('params')).toEqual(jasmine.objectContaining({ provider: 'ecs', name: 'source-sg' }));
+    expect(securityGroupLink.prop('params')).toEqual(expect.objectContaining({ provider: 'ecs', name: 'source-sg' }));
   });
 
   it('renders explicit empty states when no IP or referenced security-group rules exist', async () => {
@@ -183,16 +184,17 @@ describe('EcsSecurityGroupDetails', () => {
     const firstVpc = new Promise<string>((resolve) => (resolveFirstVpc = resolve));
     const securityGroupReader = {
       getApplicationSecurityGroup: () => ({}),
-      getSecurityGroupDetails: jasmine
-        .createSpy('getSecurityGroupDetails')
-        .and.callFake((_app: any, _account: string, _provider: string, _region: string, _vpcId: string, name: string) =>
-          name === 'web-sg' ? firstDetails : Promise.resolve({ ...securityGroup('api-sg'), vpcId: 'vpc-2' }),
+      getSecurityGroupDetails: vi
+        .fn()
+        .mockImplementation(
+          (_app: any, _account: string, _provider: string, _region: string, _vpcId: string, name: string) =>
+            name === 'web-sg' ? firstDetails : Promise.resolve({ ...securityGroup('api-sg'), vpcId: 'vpc-2' }),
         ),
     };
     const vpcReader = {
-      getVpcName: jasmine
-        .createSpy('getVpcName')
-        .and.callFake((vpcId: string) => (vpcId === 'vpc-1' ? firstVpc : Promise.resolve('API VPC'))),
+      getVpcName: vi
+        .fn()
+        .mockImplementation((vpcId: string) => (vpcId === 'vpc-1' ? firstVpc : Promise.resolve('API VPC'))),
     };
     const wrapper = shallow(
       <EcsSecurityGroupDetails
@@ -232,10 +234,10 @@ describe('EcsSecurityGroupDetails', () => {
       resolvedSecurityGroup,
       securityGroupReader: securityGroupReader as any,
     });
-    spyOn(component, 'setState');
+    vi.spyOn(component, 'setState').mockReturnValue(undefined);
 
     (component as any).loadSecurityGroup();
-    (component.setState as jasmine.Spy).calls.reset();
+    (component.setState as Mock).mockClear();
     component.componentWillUnmount();
     resolveDetails(securityGroup());
     await tick();

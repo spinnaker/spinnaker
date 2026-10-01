@@ -6,11 +6,11 @@ import { SearchV2Component } from './SearchV2';
 
 describe('SearchV2', () => {
   const deckRuntimeServices = {
-    pageTitleService: { handleRoutingSuccess: jasmine.createSpy('handleRoutingSuccess') },
+    pageTitleService: { handleRoutingSuccess: vi.fn() },
   } as any;
 
   it('uses injected route state for tab selection and filter navigation', () => {
-    const go = jasmine.createSpy('go');
+    const go = vi.fn();
     const component = shallow(
       <SearchV2Component
         deckRuntimeServices={deckRuntimeServices}

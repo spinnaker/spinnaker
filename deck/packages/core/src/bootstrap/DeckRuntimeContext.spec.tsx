@@ -29,7 +29,7 @@ describe('DeckRuntimeContext service access', () => {
   });
 
   it('throws a clear error outside a runtime provider', () => {
-    spyOn(React, 'useContext').and.returnValue(null);
+    vi.spyOn(React, 'useContext').mockReturnValue(null);
 
     expect(() => useDeckRuntimeServices()).toThrowError(
       'Deck runtime services are unavailable outside DeckRuntimeContext',
@@ -58,9 +58,9 @@ describe('DeckRuntimeContext service access', () => {
     );
 
     expect(wrapper.find(ServiceConsumer).props()).toEqual(
-      jasmine.objectContaining({ label: 'runtime services', deckRuntimeServices: runtime.services }),
+      expect.objectContaining({ label: 'runtime services', deckRuntimeServices: runtime.services }),
     );
-    expect(ref.current).toEqual(jasmine.any(ServiceConsumer));
+    expect(ref.current).toEqual(expect.any(ServiceConsumer));
     runtime.dispose();
   });
 });

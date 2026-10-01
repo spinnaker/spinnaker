@@ -17,23 +17,23 @@ describe('ECS server group events', () => {
   const serverGroup = { name: 'fnord-main-v001' } as any;
   const modalProps = {
     serverGroup,
-    dismissModal: jasmine.createSpy('dismissModal'),
-    resolveModal: jasmine.createSpy('resolveModal'),
+    dismissModal: vi.fn(),
+    resolveModal: vi.fn(),
   };
 
   const modalBody = (wrapper: any) => shallow(<div>{wrapper.find(ModalBody).prop('children')}</div>);
 
   it('opens the React events modal from the events link', () => {
-    const show = spyOn(ReactModal, 'show');
+    const show = vi.spyOn(ReactModal, 'show').mockReturnValue(undefined);
     const wrapper = shallow(<EventsLink serverGroup={serverGroup} />);
 
-    wrapper.find('a').simulate('click', { preventDefault: jasmine.createSpy('preventDefault') });
+    wrapper.find('a').simulate('click', { preventDefault: vi.fn() });
 
-    expect(show).toHaveBeenCalledOnceWith(EcsServerGroupEventsModal, { serverGroup });
+    expect(show).toHaveBeenCalledExactlyOnceWith(EcsServerGroupEventsModal, { serverGroup });
   });
 
   it('renders loading while events are pending', () => {
-    spyOn(ServerGroupEventsReader, 'getEvents').and.returnValue(new Promise(() => undefined));
+    vi.spyOn(ServerGroupEventsReader, 'getEvents').mockReturnValue(new Promise(() => undefined));
 
     const wrapper = shallow(<EcsServerGroupEventsModal {...modalProps} />);
 
@@ -41,7 +41,7 @@ describe('ECS server group events', () => {
   });
 
   it('renders an error when the reader rejects', async () => {
-    spyOn(ServerGroupEventsReader, 'getEvents').and.returnValue(Promise.reject(new Error('failed')));
+    vi.spyOn(ServerGroupEventsReader, 'getEvents').mockReturnValue(Promise.reject(new Error('failed')));
     const wrapper = shallow(<EcsServerGroupEventsModal {...modalProps} />);
 
     await Promise.resolve();
@@ -51,7 +51,7 @@ describe('ECS server group events', () => {
   });
 
   it('renders an empty state when no events are returned', async () => {
-    spyOn(ServerGroupEventsReader, 'getEvents').and.returnValue(Promise.resolve([]));
+    vi.spyOn(ServerGroupEventsReader, 'getEvents').mockReturnValue(Promise.resolve([]));
     const wrapper = shallow(<EcsServerGroupEventsModal {...modalProps} />);
 
     await Promise.resolve();
@@ -61,7 +61,7 @@ describe('ECS server group events', () => {
   });
 
   it('renders ECS events and status labels', async () => {
-    spyOn(ServerGroupEventsReader, 'getEvents').and.returnValue(
+    vi.spyOn(ServerGroupEventsReader, 'getEvents').mockReturnValue(
       Promise.resolve([
         { id: 'one', createdAt: 1710000000000, message: 'service reached steady state', status: 'Success' },
         { id: 'two', createdAt: 1710000001000, message: 'deployment transitioning', status: 'Transition' },
@@ -82,9 +82,9 @@ describe('ECS server group events', () => {
   it('ignores stale responses and responses received after unmount', async () => {
     const first = deferred<any[]>();
     const second = deferred<any[]>();
-    const getEvents = spyOn(ServerGroupEventsReader, 'getEvents').and.callFake((group: any) =>
-      group.name === 'first' ? first.promise : second.promise,
-    );
+    const getEvents = vi
+      .spyOn(ServerGroupEventsReader, 'getEvents')
+      .mockImplementation((group: any) => (group.name === 'first' ? first.promise : second.promise));
     const wrapper = shallow(
       <EcsServerGroupEventsModal {...modalProps} serverGroup={{ ...serverGroup, name: 'first' }} />,
     );
@@ -97,7 +97,7 @@ describe('ECS server group events', () => {
     expect(modalBody(wrapper).text()).not.toContain('stale event');
 
     const instance = wrapper.instance() as EcsServerGroupEventsModal;
-    const setState = spyOn(instance, 'setState').and.callThrough();
+    const setState = vi.spyOn(instance, 'setState');
     wrapper.unmount();
     second.resolve([{ id: 'new', message: 'late event', status: 'Success', createdAt: 2 }]);
     await second.promise;

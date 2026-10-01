@@ -37,9 +37,7 @@ describe('<KubernetesSecurityGroupDetails />', () => {
     SETTINGS.feature.entityTags = false;
 
     securityGroupReader = {
-      getSecurityGroupDetails: jasmine
-        .createSpy('getSecurityGroupDetails')
-        .and.returnValue(Promise.resolve(securityGroup())),
+      getSecurityGroupDetails: vi.fn().mockReturnValue(Promise.resolve(securityGroup())),
     };
     props = {
       app: appWithSecurityGroups(),
@@ -51,11 +49,11 @@ describe('<KubernetesSecurityGroupDetails />', () => {
       securityGroupReader,
     } as IKubernetesSecurityGroupDetailsProps;
 
-    spyOn(ManifestReader, 'getManifest').and.returnValue(Promise.resolve(manifestDetails()) as any);
+    vi.spyOn(ManifestReader, 'getManifest').mockReturnValue(Promise.resolve(manifestDetails()) as any);
   });
 
   it('replaces missing details through the injected state service', () => {
-    const stateService = { go: jasmine.createSpy('go'), params: {} };
+    const stateService = { go: vi.fn(), params: {} };
     const component = new KubernetesSecurityGroupDetails({
       ...props,
       router: {},
@@ -107,8 +105,8 @@ describe('<KubernetesSecurityGroupDetails />', () => {
   });
 
   it('auto-closes when the security group cannot be found', async () => {
-    const autoClose = jasmine.createSpy('autoClose');
-    securityGroupReader.getSecurityGroupDetails.and.returnValue(Promise.resolve(null));
+    const autoClose = vi.fn();
+    securityGroupReader.getSecurityGroupDetails.mockReturnValue(Promise.resolve(null));
     const component = shallow(<KubernetesSecurityGroupDetails {...props} autoClose={autoClose} />);
 
     await settle();
@@ -185,8 +183,10 @@ describe('<KubernetesSecurityGroupActions />', () => {
 
   it('opens the manifest wizard from the actions menu', async () => {
     const command = { manifest: {} };
-    spyOn(KubernetesManifestCommandBuilder, 'buildNewManifestCommand').and.returnValue(Promise.resolve(command) as any);
-    spyOn(ManifestWizard, 'show');
+    vi.spyOn(KubernetesManifestCommandBuilder, 'buildNewManifestCommand').mockReturnValue(
+      Promise.resolve(command) as any,
+    );
+    vi.spyOn(ManifestWizard, 'show').mockReturnValue(undefined);
     const app = appWithSecurityGroups();
     const component = shallow(
       <KubernetesSecurityGroupActions app={app} manifest={manifestDetails()} securityGroup={securityGroup()} />,
@@ -256,7 +256,7 @@ const appWithSecurityGroups = () =>
       onRefresh: () => () => null,
     }),
     securityGroups: {
-      refresh: jasmine.createSpy('refreshSecurityGroups'),
+      refresh: vi.fn(),
     },
   } as any);
 

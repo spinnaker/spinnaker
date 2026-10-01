@@ -1,12 +1,13 @@
+import type { Mock } from 'vitest';
 import { TaskMonitor } from './TaskMonitor';
-import { mockHttpClient } from '../../api/mock/jasmine';
+import { mockHttpClient } from '../../api/mock/mockHttpSupport';
 import { ApplicationModelBuilder } from '../../application/applicationModel.builder';
 import type { ITask } from '../../domain';
 import { OrchestratedItemTransformer } from '../../orchestratedItem/orchestratedItem.transformer';
 import { TaskReader } from '../task.read.service';
 import { createDeferred } from '../../utils/deferred';
 
-import Spy = jasmine.Spy;
+import Spy = Mock;
 
 describe('TaskMonitor', () => {
   const settleNativePromises = async () => {
@@ -20,7 +21,7 @@ describe('TaskMonitor', () => {
       const task: any = { id: 'a', status: 'RUNNING' };
       OrchestratedItemTransformer.defineProperties(task);
       const completion = createDeferred<ITask>();
-      const waitUntilTaskCompletes = spyOn(TaskReader, 'waitUntilTaskCompletes').and.returnValue(completion.promise);
+      const waitUntilTaskCompletes = vi.spyOn(TaskReader, 'waitUntilTaskCompletes').mockReturnValue(completion.promise);
 
       const operation = () => Promise.resolve(task);
       const monitor = new TaskMonitor({
@@ -33,7 +34,7 @@ describe('TaskMonitor', () => {
         monitorInterval: 1,
         onTaskComplete: () => (completeCalled = true),
       });
-      spyOn(monitor.application.getDataSource('runningTasks'), 'refresh');
+      vi.spyOn(monitor.application.getDataSource('runningTasks'), 'refresh').mockReturnValue(undefined);
 
       monitor.submit(operation);
 
@@ -42,8 +43,8 @@ describe('TaskMonitor', () => {
 
       await settleNativePromises();
       expect(monitor.task.isCompleted).toBe(false);
-      expect((monitor.application.getDataSource('runningTasks').refresh as Spy).calls.count()).toBe(1);
-      expect(waitUntilTaskCompletes).toHaveBeenCalledOnceWith(task, 1, monitor.statusUpdatedStream);
+      expect((monitor.application.getDataSource('runningTasks').refresh as Spy).mock.calls.length).toBe(1);
+      expect(waitUntilTaskCompletes).toHaveBeenCalledExactlyOnceWith(task, 1, monitor.statusUpdatedStream);
 
       completion.resolve(task);
       await settleNativePromises();
@@ -81,7 +82,7 @@ describe('TaskMonitor', () => {
       const task = { id: 'a', status: 'RUNNING' } as ITask;
       OrchestratedItemTransformer.defineProperties(task);
       const completion = createDeferred<ITask>();
-      const waitUntilTaskCompletes = spyOn(TaskReader, 'waitUntilTaskCompletes').and.returnValue(completion.promise);
+      const waitUntilTaskCompletes = vi.spyOn(TaskReader, 'waitUntilTaskCompletes').mockReturnValue(completion.promise);
 
       const operation = () => Promise.resolve(task);
       const monitor = new TaskMonitor({
@@ -102,7 +103,7 @@ describe('TaskMonitor', () => {
 
       await settleNativePromises();
       expect(monitor.task.isCompleted).toBe(false);
-      expect(waitUntilTaskCompletes).toHaveBeenCalledOnceWith(task, 1, monitor.statusUpdatedStream);
+      expect(waitUntilTaskCompletes).toHaveBeenCalledExactlyOnceWith(task, 1, monitor.statusUpdatedStream);
 
       completion.reject(task);
       await settleNativePromises();
@@ -114,13 +115,15 @@ describe('TaskMonitor', () => {
     });
 
     it('polls the submitted task at the configured interval until its status completes', async () => {
-      jasmine.clock().install();
+      vi.useFakeTimers({
+        toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval'],
+      });
       try {
         const http = mockHttpClient();
         const task = { id: 'task-id', status: 'RUNNING' } as ITask;
         OrchestratedItemTransformer.defineProperties(task);
         const completed = createDeferred<void>();
-        const onTaskComplete = jasmine.createSpy('onTaskComplete').and.callFake(() => completed.resolve());
+        const onTaskComplete = vi.fn().mockImplementation(() => completed.resolve());
         const monitor = new TaskMonitor({
           title: 'polling task',
           monitorInterval: 25,
@@ -131,9 +134,9 @@ describe('TaskMonitor', () => {
         monitor.submit(() => Promise.resolve(task));
         await settleNativePromises();
 
-        jasmine.clock().tick(24);
+        vi.advanceTimersByTime(24);
         expect(http.receivedRequests).toEqual([]);
-        jasmine.clock().tick(1);
+        vi.advanceTimersByTime(1);
         await http.flush();
         await completed.promise;
 
@@ -143,17 +146,19 @@ describe('TaskMonitor', () => {
         expect(monitor.task.isCompleted).toBe(true);
         expect(onTaskComplete).toHaveBeenCalledTimes(1);
       } finally {
-        jasmine.clock().uninstall();
+        vi.useRealTimers();
       }
     });
 
     it('cancels the submitted task poll when the monitor closes', async () => {
-      jasmine.clock().install();
+      vi.useFakeTimers({
+        toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval'],
+      });
       try {
         const http = mockHttpClient();
         const task = { id: 'task-id', status: 'RUNNING' } as ITask;
         OrchestratedItemTransformer.defineProperties(task);
-        const onDismiss = jasmine.createSpy('onDismiss');
+        const onDismiss = vi.fn();
         const monitor = new TaskMonitor({ title: 'polling task', monitorInterval: 25, onDismiss });
 
         monitor.submit(() => Promise.resolve(task));
@@ -161,13 +166,13 @@ describe('TaskMonitor', () => {
         expect(task.poller).toBeDefined();
 
         monitor.closeModal();
-        jasmine.clock().tick(25);
+        vi.advanceTimersByTime(25);
 
         expect(task.poller).toBeUndefined();
         expect(http.receivedRequests).toEqual([]);
         expect(onDismiss).toHaveBeenCalledTimes(1);
       } finally {
-        jasmine.clock().uninstall();
+        vi.useRealTimers();
       }
     });
 
@@ -178,13 +183,13 @@ describe('TaskMonitor', () => {
       const activeTask = { id: 'active-task', status: 'RUNNING' } as ITask;
       const staleTask = { id: 'stale-task', status: 'RUNNING' } as ITask;
       const polling = createDeferred<ITask>();
-      const waitUntilTaskCompletes = spyOn(TaskReader, 'waitUntilTaskCompletes').and.returnValue(polling.promise);
+      const waitUntilTaskCompletes = vi.spyOn(TaskReader, 'waitUntilTaskCompletes').mockReturnValue(polling.promise);
       const application = ApplicationModelBuilder.createApplicationForTests('app', {
         key: 'runningTasks',
         lazy: true,
         defaultData: [],
       });
-      const refresh = spyOn(application.getDataSource('runningTasks'), 'refresh');
+      const refresh = vi.spyOn(application.getDataSource('runningTasks'), 'refresh').mockReturnValue(undefined);
       const monitor = new TaskMonitor({ application, title: 'replacement task' });
 
       monitor.submit(() => staleSuccess.promise);
@@ -200,7 +205,7 @@ describe('TaskMonitor', () => {
       expect(monitor.task).toBe(activeTask);
       expect(monitor.error).toBe(false);
       expect(refresh).toHaveBeenCalledTimes(1);
-      expect(waitUntilTaskCompletes).toHaveBeenCalledOnceWith(activeTask, 1000, monitor.statusUpdatedStream);
+      expect(waitUntilTaskCompletes).toHaveBeenCalledExactlyOnceWith(activeTask, 1000, monitor.statusUpdatedStream);
     });
 
     it('ignores terminal callbacks from polls replaced by newer generations', async () => {
@@ -210,8 +215,8 @@ describe('TaskMonitor', () => {
       const firstPoll = createDeferred<ITask>();
       const secondPoll = createDeferred<ITask>();
       const activePoll = createDeferred<ITask>();
-      const onTaskComplete = jasmine.createSpy('onTaskComplete');
-      spyOn(TaskReader, 'waitUntilTaskCompletes').and.callFake((task) => {
+      const onTaskComplete = vi.fn();
+      vi.spyOn(TaskReader, 'waitUntilTaskCompletes').mockImplementation((task) => {
         if (task === firstTask) {
           return firstPoll.promise;
         }
@@ -248,9 +253,9 @@ describe('TaskMonitor', () => {
       const lateFailure = createDeferred<ITask>();
       const successMonitor = new TaskMonitor({ title: 'closed success' });
       const failureMonitor = new TaskMonitor({ title: 'closed failure' });
-      const waitUntilTaskCompletes = spyOn(TaskReader, 'waitUntilTaskCompletes').and.returnValue(
-        new Promise(() => undefined),
-      );
+      const waitUntilTaskCompletes = vi
+        .spyOn(TaskReader, 'waitUntilTaskCompletes')
+        .mockReturnValue(new Promise(() => undefined));
 
       successMonitor.submit(() => lateSuccess.promise);
       successMonitor.onModalClose();
@@ -273,9 +278,9 @@ describe('TaskMonitor', () => {
       const failedTask = { id: 'late-failure', status: 'RUNNING' } as ITask;
       const successfulPoll = createDeferred<ITask>();
       const failedPoll = createDeferred<ITask>();
-      const onSuccessfulTaskComplete = jasmine.createSpy('onSuccessfulTaskComplete');
-      const onFailedTaskComplete = jasmine.createSpy('onFailedTaskComplete');
-      spyOn(TaskReader, 'waitUntilTaskCompletes').and.callFake((task) =>
+      const onSuccessfulTaskComplete = vi.fn();
+      const onFailedTaskComplete = vi.fn();
+      vi.spyOn(TaskReader, 'waitUntilTaskCompletes').mockImplementation((task) =>
         task === successfulTask ? successfulPoll.promise : failedPoll.promise,
       );
       const successMonitor = new TaskMonitor({
@@ -306,20 +311,20 @@ describe('TaskMonitor', () => {
 
   describe('close', () => {
     it('stops event propagation and invokes the direct dismiss handler', () => {
-      const stopPropagation = jasmine.createSpy('stopPropagation');
-      const onDismiss = jasmine.createSpy('onDismiss');
+      const stopPropagation = vi.fn();
+      const onDismiss = vi.fn();
       const monitor = new TaskMonitor({ title: 'dismissable task', onDismiss });
 
       monitor.closeModal({ stopPropagation } as any);
 
       expect(stopPropagation).toHaveBeenCalledTimes(1);
-      expect(onDismiss).toHaveBeenCalledOnceWith();
+      expect(onDismiss).toHaveBeenCalledExactlyOnceWith();
     });
 
     it('invalidates a pending submission before dismissing', async () => {
       const submission = createDeferred<ITask>();
-      const waitUntilTaskCompletes = spyOn(TaskReader, 'waitUntilTaskCompletes');
-      const onDismiss = jasmine.createSpy('onDismiss');
+      const waitUntilTaskCompletes = vi.spyOn(TaskReader, 'waitUntilTaskCompletes').mockReturnValue(undefined);
+      const onDismiss = vi.fn();
       const monitor = new TaskMonitor({ title: 'pending task', onDismiss });
 
       monitor.submit(() => submission.promise);
@@ -333,8 +338,8 @@ describe('TaskMonitor', () => {
     });
 
     it('cancels and dismisses only once when closed repeatedly', () => {
-      const onDismiss = jasmine.createSpy('onDismiss');
-      const cancelPolling = spyOn(TaskReader, 'cancelPolling');
+      const onDismiss = vi.fn();
+      const cancelPolling = vi.spyOn(TaskReader, 'cancelPolling').mockReturnValue(undefined);
       const monitor = new TaskMonitor({ title: 'idempotent task', onDismiss });
 
       monitor.closeModal();

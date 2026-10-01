@@ -54,7 +54,7 @@ describe('EditScheduledActionsModal', () => {
   });
 
   it('projects cached scheduled actions onto editable fields at initialization', () => {
-    const application = { name: 'deck', serverGroups: { refresh: jasmine.createSpy('refresh') } } as any;
+    const application = { name: 'deck', serverGroups: { refresh: vi.fn() } } as any;
     const modal = new EditScheduledActionsModal({
       application,
       serverGroup: {
@@ -72,8 +72,8 @@ describe('EditScheduledActionsModal', () => {
           },
         ],
       },
-      closeModal: jasmine.createSpy('closeModal'),
-      dismissModal: jasmine.createSpy('dismissModal'),
+      closeModal: vi.fn(),
+      dismissModal: vi.fn(),
     } as any) as any;
 
     expect(modal.state.scheduledActions).toEqual([
@@ -82,13 +82,13 @@ describe('EditScheduledActionsModal', () => {
   });
 
   it('adds, edits, removes, and submits capacity rows', () => {
-    const execute = spyOn(TaskExecutor, 'executeTask').and.returnValue(Promise.resolve({} as any));
-    const application = { name: 'deck', serverGroups: { refresh: jasmine.createSpy('refresh') } } as any;
+    const execute = vi.spyOn(TaskExecutor, 'executeTask').mockReturnValue(Promise.resolve({} as any));
+    const application = { name: 'deck', serverGroups: { refresh: vi.fn() } } as any;
     const modal = new EditScheduledActionsModal({
       application,
       serverGroup: { ...serverGroup, scheduledActions: [{ recurrence: 'old', minSize: 1 }] },
-      closeModal: jasmine.createSpy('closeModal'),
-      dismissModal: jasmine.createSpy('dismissModal'),
+      closeModal: vi.fn(),
+      dismissModal: vi.fn(),
     } as any) as any;
     modal.setState = (update: any) => {
       const next = typeof update === 'function' ? update(modal.state) : update;
@@ -106,7 +106,7 @@ describe('EditScheduledActionsModal', () => {
       application,
       description: 'Update Scheduled Actions for deck-main-v001',
       job: [
-        jasmine.objectContaining({
+        expect.objectContaining({
           scheduledActions: [{ recurrence: '0 12 * * *', minSize: undefined, maxSize: undefined, desiredCapacity: 3 }],
         }),
       ],

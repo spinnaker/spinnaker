@@ -21,15 +21,15 @@ describe('<DeployStageConfig />', () => {
       application: { name: 'fnord' } as any,
       pipeline: { stages: [stage] } as any,
       stage,
-      stageFieldUpdated: jasmine.createSpy('stageFieldUpdated'),
-      updateStage: jasmine.createSpy('updateStage'),
-      updateStageField: jasmine.createSpy('updateStageField'),
+      stageFieldUpdated: vi.fn(),
+      updateStage: vi.fn(),
+      updateStageField: vi.fn(),
     };
   }
 
   it('shows provider selection errors when adding a cluster', async () => {
-    spyOn(AccountService, 'listProviders').and.returnValue(Promise.resolve(['aws']) as any);
-    spyOn(ProviderSelectionService, 'selectProvider').and.returnValue(
+    vi.spyOn(AccountService, 'listProviders').mockReturnValue(Promise.resolve(['aws']) as any);
+    vi.spyOn(ProviderSelectionService, 'selectProvider').mockReturnValue(
       Promise.reject(new Error('No providers support serverGroup for this action.')),
     );
     const component = mount(
@@ -45,12 +45,14 @@ describe('<DeployStageConfig />', () => {
   });
 
   it('only offers providers with React clone server group modals when adding a cluster', () => {
-    spyOn(AccountService, 'listProviders').and.returnValue(Promise.resolve(['aws']) as any);
+    vi.spyOn(AccountService, 'listProviders').mockReturnValue(Promise.resolve(['aws']) as any);
     let filterFn: any;
-    spyOn(ProviderSelectionService, 'selectProvider').and.callFake((_application, _feature, providerFilter) => {
-      filterFn = providerFilter;
-      return Promise.reject(new Error('cancelled')) as any;
-    });
+    vi.spyOn(ProviderSelectionService, 'selectProvider').mockImplementation(
+      (_application, _feature, providerFilter) => {
+        filterFn = providerFilter;
+        return Promise.reject(new Error('cancelled')) as any;
+      },
+    );
     const props = createProps();
     const component = mount(<DeployStageConfigComponent {...props} deckRuntimeServices={deckRuntimeServices} />);
 
@@ -59,7 +61,7 @@ describe('<DeployStageConfig />', () => {
     expect(ProviderSelectionService.selectProvider).toHaveBeenCalledWith(
       props.application,
       'serverGroup',
-      jasmine.any(Function),
+      expect.any(Function),
     );
     expect(filterFn(props.application, {}, { serverGroup: { CloneServerGroupModal: { show: () => null } } })).toBe(
       true,

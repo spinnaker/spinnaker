@@ -1,15 +1,15 @@
 import { RequestBuilder } from '../ApiService';
-import { FailClosedHttpClient } from './jasmine';
+import { FailClosedHttpClient } from './mockHttpSupport';
 
 const httpClientWhileLoadingSpecs = RequestBuilder.defaultHttpClient;
 
-describe('Karma HTTP isolation', () => {
+describe('Mock HTTP isolation', () => {
   it('is fail-closed while test modules are loading', () => {
-    expect(httpClientWhileLoadingSpecs).toEqual(jasmine.any(FailClosedHttpClient));
+    expect(httpClientWhileLoadingSpecs).toEqual(expect.any(FailClosedHttpClient));
   });
 
   it('rejects unmocked requests locally without creating a network request', async () => {
-    const createRequest = spyOn(window, 'XMLHttpRequest').and.callThrough();
+    const createRequest = vi.spyOn(window, 'XMLHttpRequest');
     const client = new FailClosedHttpClient();
     const request = new RequestBuilder(undefined, client, 'http://localhost:8084').path('unmocked').get();
 

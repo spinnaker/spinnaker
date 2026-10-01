@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { shallow } from 'enzyme';
 import React from 'react';
 
@@ -8,13 +9,13 @@ import { CloudFoundryLoadBalancerActionsComponent } from './loadBalancer/details
 import { CloudFoundryServerGroupActionsComponent } from './serverGroup/details/cloudFoundryServerGroupActions';
 
 describe('Cloud Foundry routed actions', () => {
-  const routerProps = (includes: jasmine.Spy, go: jasmine.Spy) =>
+  const routerProps = (includes: Mock, go: Mock) =>
     ({ router: {}, stateParams: {}, stateService: { go, includes } } as any);
 
   it('closes instance details through the injected state service', () => {
-    const includes = jasmine.createSpy('includes').and.returnValue(true);
-    const go = jasmine.createSpy('go');
-    const confirm = spyOn(ConfirmationModalService, 'confirm');
+    const includes = vi.fn().mockReturnValue(true);
+    const go = vi.fn();
+    const confirm = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(undefined);
     const component = shallow(
       <CloudFoundryInstanceActionsComponent
         {...routerProps(includes, go)}
@@ -24,15 +25,15 @@ describe('Cloud Foundry routed actions', () => {
     );
 
     (component.instance() as any).terminateInstance();
-    confirm.calls.mostRecent().args[0].taskMonitorConfig.onTaskComplete();
+    confirm.mock.lastCall[0].taskMonitorConfig.onTaskComplete();
 
     expect(go).toHaveBeenCalledWith('^');
   });
 
   it('closes load balancer details through the injected state service', () => {
-    const includes = jasmine.createSpy('includes').and.returnValue(true);
-    const go = jasmine.createSpy('go');
-    const confirm = spyOn(ConfirmationModalService, 'confirm');
+    const includes = vi.fn().mockReturnValue(true);
+    const go = vi.fn();
+    const confirm = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(undefined);
     const component = shallow(
       <CloudFoundryLoadBalancerActionsComponent
         {...routerProps(includes, go)}
@@ -42,16 +43,16 @@ describe('Cloud Foundry routed actions', () => {
     );
 
     (component.instance() as any).deleteLoadBalancer();
-    confirm.calls.mostRecent().args[0].taskMonitorConfig.onTaskComplete();
+    confirm.mock.lastCall[0].taskMonitorConfig.onTaskComplete();
 
     expect(go).toHaveBeenCalledWith('^');
   });
 
   it('closes server group details through the injected state service', () => {
-    const includes = jasmine.createSpy('includes').and.returnValue(true);
-    const go = jasmine.createSpy('go');
-    spyOn(ServerGroupWarningMessageService, 'addDestroyWarningMessage');
-    const confirm = spyOn(ConfirmationModalService, 'confirm');
+    const includes = vi.fn().mockReturnValue(true);
+    const go = vi.fn();
+    vi.spyOn(ServerGroupWarningMessageService, 'addDestroyWarningMessage').mockReturnValue(undefined);
+    const confirm = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(undefined);
     const component = shallow(
       <CloudFoundryServerGroupActionsComponent
         {...routerProps(includes, go)}
@@ -69,7 +70,7 @@ describe('Cloud Foundry routed actions', () => {
     );
 
     (component.instance() as any).destroyServerGroup();
-    confirm.calls.mostRecent().args[0].taskMonitorConfig.onTaskComplete();
+    confirm.mock.lastCall[0].taskMonitorConfig.onTaskComplete();
 
     expect(go).toHaveBeenCalledWith('^');
   });

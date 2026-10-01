@@ -4,7 +4,7 @@ describe('TargetGroupDetails', () => {
   let stateService: any;
 
   beforeEach(() => {
-    stateService = { params: {}, go: jasmine.createSpy('go') };
+    stateService = { params: {}, go: vi.fn() };
   });
 
   function buildComponent(loadBalancers: any[]): TargetGroupDetails {
@@ -64,7 +64,7 @@ describe('TargetGroupDetails', () => {
         targetGroups: [{ name: 'test-target-group' }],
       },
     ]);
-    spyOn(component, 'setState');
+    vi.spyOn(component, 'setState').mockReturnValue(undefined);
 
     component.componentWillUnmount();
     (component as any).extractTargetGroup();
@@ -84,8 +84,8 @@ describe('TargetGroupDetails', () => {
     const app = {
       getDataSource: () => ({
         data: [],
-        ready: jasmine.createSpy('ready').and.returnValue(rejectedReadiness),
-        onRefresh: jasmine.createSpy('onRefresh'),
+        ready: vi.fn().mockReturnValue(rejectedReadiness),
+        onRefresh: vi.fn(),
       }),
     } as any;
     const component = new TargetGroupDetails({
@@ -104,7 +104,7 @@ describe('TargetGroupDetails', () => {
         region: 'us-west-2',
       },
     });
-    spyOn(component, 'setState');
+    vi.spyOn(component, 'setState').mockReturnValue(undefined);
 
     component.componentDidMount();
 

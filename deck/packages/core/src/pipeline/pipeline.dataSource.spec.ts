@@ -51,13 +51,15 @@ describe('Pipeline Data Source', function () {
 
   describe('loading executions', function () {
     beforeEach(function () {
-      spyOn(executionService, 'getRunningExecutions').and.returnValue(Promise.resolve([]));
-      spyOn(PipelineConfigService, 'getPipelinesForApplication').and.returnValue(Promise.resolve([]));
-      spyOn(PipelineConfigService, 'getStrategiesForApplication').and.returnValue(Promise.resolve([]));
+      vi.spyOn(executionService, 'getRunningExecutions').mockReturnValue(Promise.resolve([]));
+      vi.spyOn(PipelineConfigService, 'getPipelinesForApplication').mockReturnValue(Promise.resolve([]));
+      vi.spyOn(PipelineConfigService, 'getStrategiesForApplication').mockReturnValue(Promise.resolve([]));
     });
 
     it('loads executions and sets appropriate flags', async function () {
-      spyOn(executionService, 'getExecutions').and.returnValue(Promise.resolve([{ status: 'SUCCEEDED', stages: [] }]));
+      vi.spyOn(executionService, 'getExecutions').mockReturnValue(
+        Promise.resolve([{ status: 'SUCCEEDED', stages: [] }]),
+      );
       await configureApplication();
       const refreshComplete = waitForRefresh(application.getDataSource('executions'));
       application.getDataSource('executions').activate();
@@ -68,7 +70,7 @@ describe('Pipeline Data Source', function () {
     });
 
     it('sets appropriate flags when execution load fails', async function () {
-      spyOn(executionService, 'getExecutions').and.returnValue(Promise.reject(null));
+      vi.spyOn(executionService, 'getExecutions').mockReturnValue(Promise.reject(null));
       await configureApplication();
       const refreshComplete = waitForRefresh(application.getDataSource('executions'));
       application.getDataSource('executions').activate();
@@ -81,13 +83,13 @@ describe('Pipeline Data Source', function () {
 
   describe('reload executions', function () {
     beforeEach(function () {
-      spyOn(executionService, 'getRunningExecutions').and.returnValue(Promise.resolve([]));
-      spyOn(PipelineConfigService, 'getPipelinesForApplication').and.returnValue(Promise.resolve([]));
-      spyOn(PipelineConfigService, 'getStrategiesForApplication').and.returnValue(Promise.resolve([]));
+      vi.spyOn(executionService, 'getRunningExecutions').mockReturnValue(Promise.resolve([]));
+      vi.spyOn(PipelineConfigService, 'getPipelinesForApplication').mockReturnValue(Promise.resolve([]));
+      vi.spyOn(PipelineConfigService, 'getStrategiesForApplication').mockReturnValue(Promise.resolve([]));
     });
 
     it('reloads executions and sets appropriate flags', async function () {
-      spyOn(executionService, 'getExecutions').and.returnValue(Promise.resolve([]));
+      vi.spyOn(executionService, 'getExecutions').mockReturnValue(Promise.resolve([]));
       await configureApplication();
       let refreshComplete = waitForRefresh(application.getDataSource('executions'));
       application.getDataSource('executions').activate();
@@ -107,7 +109,7 @@ describe('Pipeline Data Source', function () {
     });
 
     it('sets appropriate flags when executions reload fails; subscriber is responsible for error checking', async function () {
-      spyOn(executionService, 'getExecutions').and.returnValue(Promise.reject(null));
+      vi.spyOn(executionService, 'getExecutions').mockReturnValue(Promise.reject(null));
       let errorsHandled = 0;
       let successesHandled = 0;
       await configureApplication();
@@ -134,13 +136,13 @@ describe('Pipeline Data Source', function () {
 
   describe('loading pipeline configs', function () {
     beforeEach(function () {
-      spyOn(executionService, 'getRunningExecutions').and.returnValue(Promise.resolve([]));
-      spyOn(executionService, 'getExecutions').and.returnValue(Promise.resolve([]));
+      vi.spyOn(executionService, 'getRunningExecutions').mockReturnValue(Promise.resolve([]));
+      vi.spyOn(executionService, 'getExecutions').mockReturnValue(Promise.resolve([]));
     });
 
     it('loads configs and sets appropriate flags', async function () {
-      spyOn(PipelineConfigService, 'getPipelinesForApplication').and.returnValue(Promise.resolve([]));
-      spyOn(PipelineConfigService, 'getStrategiesForApplication').and.returnValue(Promise.resolve([]));
+      vi.spyOn(PipelineConfigService, 'getPipelinesForApplication').mockReturnValue(Promise.resolve([]));
+      vi.spyOn(PipelineConfigService, 'getStrategiesForApplication').mockReturnValue(Promise.resolve([]));
       await configureApplication();
       application.getDataSource('pipelineConfigs').activate();
 
@@ -154,8 +156,8 @@ describe('Pipeline Data Source', function () {
     });
 
     it('sets appropriate flags when pipeline config reload fails; subscriber is responsible for error checking', async function () {
-      spyOn(PipelineConfigService, 'getPipelinesForApplication').and.returnValue(Promise.resolve([]));
-      spyOn(PipelineConfigService, 'getStrategiesForApplication').and.returnValue(Promise.reject([]));
+      vi.spyOn(PipelineConfigService, 'getPipelinesForApplication').mockReturnValue(Promise.resolve([]));
+      vi.spyOn(PipelineConfigService, 'getStrategiesForApplication').mockReturnValue(Promise.reject([]));
       let errorsHandled = 0;
       let successesHandled = 0;
       await configureApplication();

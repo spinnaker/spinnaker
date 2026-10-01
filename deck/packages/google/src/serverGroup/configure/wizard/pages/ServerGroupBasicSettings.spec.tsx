@@ -1,3 +1,4 @@
+import type { Mock, Mocked } from 'vitest';
 import type { FormikProps } from 'formik';
 import React from 'react';
 import { shallow } from 'enzyme';
@@ -18,10 +19,10 @@ describe('ServerGroupBasicSettings', () => {
       ['known-account', 'known-account'],
       ['persisted-account', 'persisted-account (unavailable)'],
     ]);
-    expect(selectOptions(wrapper, 'Region')).toContain(['persisted-region', 'persisted-region (unavailable)']);
-    expect(selectOptions(wrapper, 'Zone')).toContain(['persisted-zone', 'persisted-zone (unavailable)']);
-    expect(selectOptions(wrapper, 'Network')).toContain(['persisted-network', 'persisted-network (unavailable)']);
-    expect(selectOptions(wrapper, 'Subnet')).toContain(['persisted-subnet', 'persisted-subnet (unavailable)']);
+    expect(selectOptions(wrapper, 'Region')).toContainEqual(['persisted-region', 'persisted-region (unavailable)']);
+    expect(selectOptions(wrapper, 'Zone')).toContainEqual(['persisted-zone', 'persisted-zone (unavailable)']);
+    expect(selectOptions(wrapper, 'Network')).toContainEqual(['persisted-network', 'persisted-network (unavailable)']);
+    expect(selectOptions(wrapper, 'Subnet')).toContainEqual(['persisted-subnet', 'persisted-subnet (unavailable)']);
     expect(wrapper.find('[aria-label="Location mode"]').prop('value')).toBe('zonal');
     expect(wrapper.find('input[aria-label="Stack"]').prop('value')).toBe('main');
     expect(wrapper.find('input[aria-label="Detail"]').prop('value')).toBe('detail');
@@ -51,7 +52,7 @@ describe('ServerGroupBasicSettings', () => {
       wrapper.find(`[aria-label="${label}"]`).simulate('change', { target: { value: selected } });
       await flush();
 
-      const changedCommand = adapter.applyCommandHandler.calls.mostRecent().args[0];
+      const changedCommand = adapter.applyCommandHandler.mock.lastCall[0];
       expect(changedCommand[field]).toBe(field === 'regional' ? true : selected);
       expect(adapter.applyCommandHandler).toHaveBeenCalledWith(changedCommand, handler);
       expect(formik.setValues).toHaveBeenCalledWith(reconciled);
@@ -60,7 +61,7 @@ describe('ServerGroupBasicSettings', () => {
 
   it('reloads account-scoped images in addition to reconciling account-dependent fields', async () => {
     const images = [{ imageName: 'new-account-image' }];
-    spyOn(GceImageReader, 'findImages').and.resolveTo(images);
+    vi.spyOn(GceImageReader, 'findImages').mockResolvedValue(images);
     const values = command({
       backingData: {
         ...command().backingData,
@@ -68,7 +69,7 @@ describe('ServerGroupBasicSettings', () => {
       },
     });
     const { adapter, formik } = testProps(values);
-    adapter.applyCommandHandler.and.callFake((working: IGceServerGroupCommand) =>
+    adapter.applyCommandHandler.mockImplementation((working: IGceServerGroupCommand) =>
       Promise.resolve({ command: { ...working, region: null }, result: { dirty: {} } }),
     );
     const wrapper = shallow(
@@ -84,10 +85,10 @@ describe('ServerGroupBasicSettings', () => {
       q: '*',
     });
     expect(adapter.applyCommandHandler).toHaveBeenCalledWith(
-      jasmine.objectContaining({ credentials: 'known-account' }),
+      expect.objectContaining({ credentials: 'known-account' }),
       'credentialsChanged',
     );
-    expect(formik.setValues.calls.mostRecent().args[0].backingData.allImages).toEqual(images);
+    expect(formik.setValues.mock.lastCall[0].backingData.allImages).toEqual(images);
   });
 
   ([
@@ -105,7 +106,7 @@ describe('ServerGroupBasicSettings', () => {
     },
   ] as const).forEach(({ description, expectedImage, image, images }) => {
     it(description, async () => {
-      spyOn(GceImageReader, 'findImages').and.resolveTo(images as any);
+      vi.spyOn(GceImageReader, 'findImages').mockResolvedValue(images as any);
       const values = command({
         image,
         backingData: {
@@ -124,7 +125,7 @@ describe('ServerGroupBasicSettings', () => {
       });
       await request;
 
-      expect(adapter.applyCommandHandler.calls.mostRecent().args[0].backingData.allImages).toEqual(images);
+      expect(adapter.applyCommandHandler.mock.lastCall[0].backingData.allImages).toEqual(images);
       expect(formik.values.image).toBe(expectedImage);
     });
   });
@@ -132,7 +133,7 @@ describe('ServerGroupBasicSettings', () => {
   it('keeps the latest account images and user edits when account reloads finish out of order', async () => {
     const firstImages = deferred<Array<{ imageName: string }>>();
     const secondImages = deferred<Array<{ imageName: string }>>();
-    spyOn(GceImageReader, 'findImages').and.callFake(({ account }) =>
+    vi.spyOn(GceImageReader, 'findImages').mockImplementation(({ account }) =>
       account === 'first-account' ? firstImages.promise : secondImages.promise,
     );
     const values = command({
@@ -144,12 +145,12 @@ describe('ServerGroupBasicSettings', () => {
     });
     const formik = publishingFormik(values);
     const adapter = ({
-      applyCommandHandler: jasmine
-        .createSpy('applyCommandHandler')
-        .and.callFake((working: IGceServerGroupCommand) =>
+      applyCommandHandler: vi
+        .fn()
+        .mockImplementation((working: IGceServerGroupCommand) =>
           Promise.resolve({ command: working, result: { dirty: {} } }),
         ),
-    } as unknown) as jasmine.SpyObj<IGceServerGroupWizardAdapter>;
+    } as unknown) as Mocked<IGceServerGroupWizardAdapter>;
     const wrapper = shallow(
       <ServerGroupBasicSettings app={{ name: 'app' } as any} formik={formik} adapter={adapter} />,
     );
@@ -178,7 +179,7 @@ describe('ServerGroupBasicSettings', () => {
     wrapper.find('input[aria-label="Stack"]').simulate('change', { target: { value: 'new-stack' } });
     wrapper.find('input[aria-label="Detail"]').simulate('change', { target: { value: 'new-detail' } });
 
-    expect(formik.setFieldValue.calls.allArgs()).toEqual([
+    expect(formik.setFieldValue.mock.calls).toEqual([
       ['subnet', 'known-subnet'],
       ['stack', 'new-stack'],
       ['freeFormDetails', 'new-detail'],
@@ -229,7 +230,7 @@ describe('ServerGroupBasicSettings', () => {
   });
 
   it('forwards strategy commands and strategy-specific fields through Formik and the command callback', () => {
-    const onStrategyChange = jasmine.createSpy('onStrategyChange');
+    const onStrategyChange = vi.fn();
     const values = command({
       onStrategyChange,
       strategy: '',
@@ -307,10 +308,10 @@ describe('ServerGroupBasicSettings', () => {
       const errorId = `gce-server-group-${field}-error`;
       const alert = wrapper.find(`[id="${errorId}"][role="alert"]`);
 
-      expect(control.prop('aria-invalid')).withContext(label).toBe(true);
-      expect(control.prop('aria-describedby')).withContext(label).toBe(errorId);
-      expect(alert.length).withContext(label).toBe(1);
-      expect(alert.text()).withContext(label).toBe(message);
+      expect(control.prop('aria-invalid'), label).toBe(true);
+      expect(control.prop('aria-describedby'), label).toBe(errorId);
+      expect(alert.length, label).toBe(1);
+      expect(alert.text(), label).toBe(message);
     });
   });
 
@@ -336,32 +337,30 @@ function selectOptions(wrapper: ReturnType<typeof shallow>, label: string): stri
 function testProps(values = command(), adapterResult = values) {
   const formik = ({
     values,
-    setFieldValue: jasmine.createSpy('setFieldValue'),
-    setValues: jasmine.createSpy('setValues'),
+    setFieldValue: vi.fn(),
+    setValues: vi.fn(),
   } as unknown) as FormikProps<IGceServerGroupCommand>;
   const adapter = ({
-    applyCommandHandler: jasmine
-      .createSpy('applyCommandHandler')
-      .and.resolveTo({ command: adapterResult, result: { dirty: {} } }),
-  } as unknown) as jasmine.SpyObj<IGceServerGroupWizardAdapter>;
+    applyCommandHandler: vi.fn().mockResolvedValue({ command: adapterResult, result: { dirty: {} } }),
+  } as unknown) as Mocked<IGceServerGroupWizardAdapter>;
   return { adapter, formik };
 }
 
 function publishingFormik(values = command()): FormikProps<IGceServerGroupCommand> {
   const formik = ({
     values,
-    setFieldValue: jasmine.createSpy('setFieldValue'),
-    setValues: jasmine.createSpy('setValues'),
+    setFieldValue: vi.fn(),
+    setValues: vi.fn(),
   } as unknown) as FormikProps<IGceServerGroupCommand>;
-  (formik.setValues as jasmine.Spy).and.callFake((nextValues: IGceServerGroupCommand) => {
+  (formik.setValues as Mock).mockImplementation((nextValues: IGceServerGroupCommand) => {
     formik.values = nextValues;
   });
   return formik;
 }
 
-function imageValidatingAdapter(): jasmine.SpyObj<IGceServerGroupWizardAdapter> {
+function imageValidatingAdapter(): Mocked<IGceServerGroupWizardAdapter> {
   return ({
-    applyCommandHandler: jasmine.createSpy('applyCommandHandler').and.callFake((working: IGceServerGroupCommand) => {
+    applyCommandHandler: vi.fn().mockImplementation((working: IGceServerGroupCommand) => {
       const imageAvailable = (working.backingData.allImages || []).some(
         ({ imageName }: { imageName: string }) => imageName === working.image,
       );
@@ -370,7 +369,7 @@ function imageValidatingAdapter(): jasmine.SpyObj<IGceServerGroupWizardAdapter> 
         result: { dirty: {} },
       });
     }),
-  } as unknown) as jasmine.SpyObj<IGceServerGroupWizardAdapter>;
+  } as unknown) as Mocked<IGceServerGroupWizardAdapter>;
 }
 
 function command(overrides: Partial<IGceServerGroupCommand> = {}): IGceServerGroupCommand {

@@ -39,12 +39,12 @@ describe('EditSecurityGroupsModal', () => {
     vpcId: 'vpc-1',
   } as any;
 
-  const application = { name: 'deck', serverGroups: { refresh: jasmine.createSpy('refresh') } } as any;
+  const application = { name: 'deck', serverGroups: { refresh: vi.fn() } } as any;
   const modalProps = {
     application,
     serverGroup,
-    closeModal: jasmine.createSpy('closeModal'),
-    dismissModal: jasmine.createSpy('dismissModal'),
+    closeModal: vi.fn(),
+    dismissModal: vi.fn(),
   };
 
   async function flush(): Promise<void> {
@@ -89,9 +89,10 @@ describe('EditSecurityGroupsModal', () => {
     const allGroups = {
       test: { aws: { 'us-east-1': [{ id: 'sg-available', name: 'available', vpcId: 'vpc-1' }] } },
     };
-    const getAllSecurityGroups = jasmine
-      .createSpy('getAllSecurityGroups')
-      .and.returnValues(Promise.reject(new Error('inventory unavailable')), Promise.resolve(allGroups));
+    const getAllSecurityGroups = vi
+      .fn()
+      .mockReturnValueOnce(Promise.reject(new Error('inventory unavailable')))
+      .mockReturnValueOnce(Promise.resolve(allGroups));
     runtimeServices.securityGroupReader = { getAllSecurityGroups };
     const wrapper = shallowModal({ ...modalProps, securityGroups: selected });
     await flush();
@@ -119,7 +120,7 @@ describe('EditSecurityGroupsModal', () => {
 
   it('does not update state when security-group loading completes after unmount', async () => {
     let finishLoading: (groups: any) => void;
-    const getAllSecurityGroups = jasmine.createSpy('getAllSecurityGroups').and.returnValue(
+    const getAllSecurityGroups = vi.fn().mockReturnValue(
       new Promise((resolve) => {
         finishLoading = resolve;
       }),
@@ -127,7 +128,7 @@ describe('EditSecurityGroupsModal', () => {
     runtimeServices.securityGroupReader = { getAllSecurityGroups };
     const wrapper = shallowModal(modalProps);
     const modal = wrapper.instance() as EditSecurityGroupsModal;
-    const setState = spyOn(modal, 'setState').and.callThrough();
+    const setState = vi.spyOn(modal, 'setState');
 
     wrapper.unmount();
     finishLoading({});
@@ -137,14 +138,14 @@ describe('EditSecurityGroupsModal', () => {
   });
 
   it('submits selected groups through the writer with mixed-instance launch-template state', () => {
-    const update = jasmine.createSpy('updateSecurityGroups').and.returnValue(Promise.resolve({} as any));
+    const update = vi.fn().mockReturnValue(Promise.resolve({} as any));
     const selected = [{ id: 'sg-attached', name: 'attached' }] as any;
     const modal = new EditSecurityGroupsModal({
       application,
       securityGroups: selected,
       serverGroup: { ...serverGroup, mixedInstancesPolicy: {} },
-      closeModal: jasmine.createSpy('closeModal'),
-      dismissModal: jasmine.createSpy('dismissModal'),
+      closeModal: vi.fn(),
+      dismissModal: vi.fn(),
     } as any) as any;
     modal.context = { services: { serverGroupWriter: { updateSecurityGroups: update } } };
     modal.state.taskMonitor = { submit: (method: () => any) => method() };
@@ -152,7 +153,7 @@ describe('EditSecurityGroupsModal', () => {
     modal.submit();
 
     expect(update).toHaveBeenCalledWith(
-      jasmine.objectContaining({ name: 'deck-main-v001' }),
+      expect.objectContaining({ name: 'deck-main-v001' }),
       selected,
       application,
       true,

@@ -43,7 +43,7 @@ describe('<EcsServerGroupActions />', () => {
       attributes: {},
       getDataSource: (key: string) => (key === 'serverGroups' ? { data: serverGroups } : undefined),
       name: 'test-app',
-      serverGroups: { data: serverGroups, refresh: jasmine.createSpy('refresh') },
+      serverGroups: { data: serverGroups, refresh: vi.fn() },
       ...overrides,
     } as any;
   };
@@ -132,23 +132,23 @@ describe('<EcsServerGroupActions />', () => {
   it('opens the completed rollback modal with the enriched server group', () => {
     const app = buildApp();
     const serverGroup = buildServerGroup();
-    const show = spyOn(EcsRollbackServerGroupModal, 'show').and.returnValue(Promise.resolve({} as any));
+    const show = vi.spyOn(EcsRollbackServerGroupModal, 'show').mockReturnValue(Promise.resolve({} as any));
     const wrapper = shallow(<EcsServerGroupActions app={app} serverGroup={serverGroup} />);
 
     action(wrapper, 'Rollback').prop('onClick')();
 
-    expect(show).toHaveBeenCalledOnceWith({ application: app, serverGroup }, runtimeServices);
+    expect(show).toHaveBeenCalledExactlyOnceWith({ application: app, serverGroup }, runtimeServices);
   });
 
   it('opens the completed resize modal with the enriched server group', () => {
     const app = buildApp();
     const serverGroup = buildServerGroup();
-    const show = spyOn(EcsResizeServerGroupModal, 'show').and.returnValue(Promise.resolve({} as any));
+    const show = vi.spyOn(EcsResizeServerGroupModal, 'show').mockReturnValue(Promise.resolve({} as any));
     const wrapper = shallow(<EcsServerGroupActions app={app} serverGroup={serverGroup} />);
 
     action(wrapper, 'Resize').prop('onClick')();
 
-    expect(show).toHaveBeenCalledOnceWith({ application: app, serverGroup }, runtimeServices);
+    expect(show).toHaveBeenCalledExactlyOnceWith({ application: app, serverGroup }, runtimeServices);
   });
 
   ['Disable', 'Enable', 'Destroy'].forEach((label) => {
@@ -157,14 +157,14 @@ describe('<EcsServerGroupActions />', () => {
       const serverGroup = buildServerGroup({ isDisabled: label === 'Enable' });
       const writerMethod = `${label.toLowerCase()}ServerGroup`;
       const writer = runtimeServices.serverGroupWriter as any;
-      const write = spyOn(writer, writerMethod).and.returnValue(Promise.resolve());
-      const confirm = spyOn(ConfirmationModalService, 'confirm').and.returnValue(Promise.resolve());
+      const write = vi.spyOn(writer, writerMethod).mockReturnValue(Promise.resolve());
+      const confirm = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(Promise.resolve());
       const stateService = {
-        go: jasmine.createSpy('go'),
-        includes: jasmine.createSpy('includes').and.returnValue(true),
+        go: vi.fn(),
+        includes: vi.fn().mockReturnValue(true),
       };
-      spyOn(ServerGroupWarningMessageService, 'addDisableWarningMessage');
-      spyOn(ServerGroupWarningMessageService, 'addDestroyWarningMessage');
+      vi.spyOn(ServerGroupWarningMessageService, 'addDisableWarningMessage').mockReturnValue(undefined);
+      vi.spyOn(ServerGroupWarningMessageService, 'addDestroyWarningMessage').mockReturnValue(undefined);
       const wrapper = shallow(
         <EcsServerGroupActions
           app={app}
@@ -177,12 +177,12 @@ describe('<EcsServerGroupActions />', () => {
 
       action(wrapper, label).prop('onClick')();
 
-      const params = confirm.calls.mostRecent().args[0] as any;
+      const params = confirm.mock.lastCall[0] as any;
       expect(params.account).toBe('test-account');
       expect(params.askForReason).toBe(true);
       const command = { interestingHealthProviderNames: ['Ecs'], reason: 'because it is safe' };
       params.submitMethod(command);
-      expect(write).toHaveBeenCalledOnceWith(serverGroup, label === 'Disable' ? app.name : app, command);
+      expect(write).toHaveBeenCalledExactlyOnceWith(serverGroup, label === 'Disable' ? app.name : app, command);
       if (label === 'Destroy') {
         params.taskMonitorConfig.onTaskComplete();
         expect(stateService.go).toHaveBeenCalledWith('^');
@@ -192,13 +192,13 @@ describe('<EcsServerGroupActions />', () => {
 
   it('preselects ECS health only when the application requests platform-only health', () => {
     const app = buildApp({ attributes: { platformHealthOnly: true, platformHealthOnlyShowOverride: true } });
-    const confirm = spyOn(ConfirmationModalService, 'confirm').and.returnValue(Promise.resolve());
-    spyOn(ServerGroupWarningMessageService, 'addDisableWarningMessage');
+    const confirm = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(Promise.resolve());
+    vi.spyOn(ServerGroupWarningMessageService, 'addDisableWarningMessage').mockReturnValue(undefined);
     const wrapper = shallow(<EcsServerGroupActions app={app} serverGroup={buildServerGroup()} />);
 
     action(wrapper, 'Disable').prop('onClick')();
 
-    expect((confirm.calls.mostRecent().args[0] as any).interestingHealthProviderNames).toEqual(['Ecs']);
+    expect((confirm.mock.lastCall[0] as any).interestingHealthProviderNames).toEqual(['Ecs']);
   });
 
   it('adds entity tag links using the enriched ECS coordinates and refreshes after updates', () => {
@@ -212,12 +212,12 @@ describe('<EcsServerGroupActions />', () => {
     expect(links.prop('application')).toBe(app);
     expect(links.prop('entityType')).toBe('serverGroup');
     expect(links.prop('ownerOptions')).toEqual([
-      jasmine.objectContaining({ type: 'serverGroup', owner: serverGroup }),
-      jasmine.objectContaining({
+      expect.objectContaining({ type: 'serverGroup', owner: serverGroup }),
+      expect.objectContaining({
         type: 'cluster',
         owner: { account: 'test-account', cloudProvider: 'ecs', name: 'test-app-main', region: 'us-east-1' },
       }),
-      jasmine.objectContaining({
+      expect.objectContaining({
         type: 'cluster',
         owner: { account: 'test-account', cloudProvider: 'ecs', name: 'test-app-main', region: '*' },
       }),

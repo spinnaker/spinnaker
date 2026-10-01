@@ -3,12 +3,19 @@ import React from 'react';
 
 import { EditPreconditionModal } from './EditPreconditionModal';
 import { PreconditionSelector } from './PreconditionSelector';
+import { AccountService } from '../../../account/AccountService';
 
 describe('<EditPreconditionModal />', () => {
+  // PreconditionSelector fetches accounts on mount; isolate the unit from the network (as the
+  // sibling PreconditionSelector spec does) so the fail-closed HTTP client sees no request.
+  beforeEach(() => {
+    vi.spyOn(AccountService, 'listAccounts').mockResolvedValue([] as any);
+  });
+
   const createProps = (overrides = {}) => ({
     application: { getDataSource: () => ({ data: [] }) } as any,
-    closeModal: jasmine.createSpy('closeModal'),
-    dismissModal: jasmine.createSpy('dismissModal'),
+    closeModal: vi.fn(),
+    dismissModal: vi.fn(),
     precondition: {
       type: 'expression',
       failPipeline: true,

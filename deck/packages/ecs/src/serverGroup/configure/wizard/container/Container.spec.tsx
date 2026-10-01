@@ -43,8 +43,8 @@ describe('Container', () => {
       backingData: { filtered: { images: [], targetGroups: [] } } as any,
     } as any) as IEcsServerGroupCommand;
 
-    spyOn(AccountService, 'listAccounts').and.returnValue(Promise.resolve(dockerAccounts));
-    spyOn(DockerImageReader, 'findImages').and.returnValue(Promise.resolve(dockerImages));
+    vi.spyOn(AccountService, 'listAccounts').mockReturnValue(Promise.resolve(dockerAccounts));
+    vi.spyOn(DockerImageReader, 'findImages').mockReturnValue(Promise.resolve(dockerImages));
   });
 
   describe('updateDockerRegistryAccount', () => {

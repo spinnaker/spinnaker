@@ -41,9 +41,9 @@ describe('<ProjectCluster />', () => {
   } as any;
 
   beforeEach(() => {
-    spyOn(CollapsibleSectionStateCache, 'isSet').and.returnValue(false);
-    spyOn(CollapsibleSectionStateCache, 'setExpanded').and.stub();
-    spyOn(UrlBuilder, 'buildFromMetadata').and.callFake((metadata: any) => {
+    vi.spyOn(CollapsibleSectionStateCache, 'isSet').mockReturnValue(false);
+    vi.spyOn(CollapsibleSectionStateCache, 'setExpanded').mockReturnValue(undefined);
+    vi.spyOn(UrlBuilder, 'buildFromMetadata').mockImplementation((metadata: any) => {
       const query = [`acct=${metadata.account}`];
       if (metadata.region) {
         query.push(`reg=${metadata.region}`);
@@ -106,8 +106,8 @@ describe('<ProjectCluster />', () => {
 
 describe('<RegionFilter />', () => {
   it('renders region checkboxes and exposes toggle/clear actions', () => {
-    const onToggleRegion = jasmine.createSpy('onToggleRegion');
-    const onClear = jasmine.createSpy('onClear');
+    const onToggleRegion = vi.fn();
+    const onClear = vi.fn();
     const wrapper = mount(
       <RegionFilter
         regions={['dev', 'prod']}
@@ -133,12 +133,7 @@ describe('<RegionFilter />', () => {
 
   it('closes the dropdown when clicking outside', () => {
     const wrapper = mount(
-      <RegionFilter
-        regions={['dev', 'prod']}
-        selectedRegions={{}}
-        onToggleRegion={jasmine.createSpy()}
-        onClear={jasmine.createSpy()}
-      />,
+      <RegionFilter regions={['dev', 'prod']} selectedRegions={{}} onToggleRegion={vi.fn()} onClear={vi.fn()} />,
     );
 
     wrapper.find('h6.dropdown-toggle').simulate('click');

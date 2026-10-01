@@ -20,7 +20,7 @@ describe('useContainerClassNames', () => {
   });
 
   it('should add class names to the container element when mounted', () => {
-    spyOn(document, 'querySelector').and.returnValue(containerElement);
+    vi.spyOn(document, 'querySelector').mockReturnValue(containerElement);
 
     mount(<TestComponent classNames={testClassNames} />);
 
@@ -29,7 +29,7 @@ describe('useContainerClassNames', () => {
   });
 
   it('should remove class names from the container element when unmounted', () => {
-    spyOn(document, 'querySelector').and.returnValue(containerElement);
+    vi.spyOn(document, 'querySelector').mockReturnValue(containerElement);
 
     const component = mount(<TestComponent classNames={testClassNames} />);
 
@@ -41,7 +41,7 @@ describe('useContainerClassNames', () => {
   });
 
   it('should add and remove class names when the elements in "classNames" change', () => {
-    spyOn(document, 'querySelector').and.returnValue(containerElement);
+    vi.spyOn(document, 'querySelector').mockReturnValue(containerElement);
 
     const component = mount(<TestComponent classNames={testClassNames} />);
 
@@ -69,7 +69,7 @@ describe('useContainerClassNames', () => {
   });
 
   it('should silently do nothing when the container element does not exist', () => {
-    spyOn(document, 'querySelector').and.returnValue(null);
+    vi.spyOn(document, 'querySelector').mockReturnValue(null);
 
     expect(() => mount(<TestComponent classNames={testClassNames} />)).not.toThrow();
   });

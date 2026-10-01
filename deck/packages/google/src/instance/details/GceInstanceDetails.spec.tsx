@@ -60,7 +60,7 @@ describe('GceInstanceDetails', () => {
   function actionsFor(
     loadedInstance: any,
     app = application([networkLoadBalancer()]),
-    stateService = { go: jasmine.createSpy('go'), includes: () => false },
+    stateService = { go: vi.fn(), includes: () => false },
   ): Action[] {
     const wrapper = shallow(
       <GceInstanceDetails
@@ -84,8 +84,8 @@ describe('GceInstanceDetails', () => {
   }
 
   it('finds instances through disabled server groups attached to load balancers', () => {
-    spyOn(RecentHistoryService, 'addExtraDataToLatest');
-    spyOn(InstanceReader, 'getInstanceDetails').and.returnValue(
+    vi.spyOn(RecentHistoryService, 'addExtraDataToLatest').mockReturnValue(undefined);
+    vi.spyOn(InstanceReader, 'getInstanceDetails').mockReturnValue(
       Promise.resolve(
         instance({
           networkInterfaces: [{ networkIP: '10.0.0.1' }],
@@ -123,17 +123,17 @@ describe('GceInstanceDetails', () => {
   });
 
   it('clears actions on instance identity changes and ignores stale responses', async () => {
-    spyOn(AccountService, 'challengeDestructiveActions').and.returnValue(Promise.resolve(false));
+    vi.spyOn(AccountService, 'challengeDestructiveActions').mockReturnValue(Promise.resolve(false));
     const oldRequest = deferred<any>();
     const newRequest = deferred<any>();
-    spyOn(RecentHistoryService, 'addExtraDataToLatest');
-    spyOn(Details, 'Header').and.callFake(({ actions, name }: any) => (
+    vi.spyOn(RecentHistoryService, 'addExtraDataToLatest').mockReturnValue(undefined);
+    vi.spyOn(Details, 'Header').mockImplementation(({ actions, name }: any) => (
       <div className="test-instance-header">
         {name}
         {actions}
       </div>
     ));
-    spyOn(InstanceReader, 'getInstanceDetails').and.callFake(
+    vi.spyOn(InstanceReader, 'getInstanceDetails').mockImplementation(
       (_account: string, _region: string, instanceId: string) => {
         if (instanceId === 'instance-1') {
           return Promise.resolve(instance());
@@ -233,13 +233,13 @@ describe('GceInstanceDetails', () => {
   });
 
   it('passes only eligible network load balancer names to registration writers', () => {
-    const confirmation = spyOn(ConfirmationModalService, 'confirm');
-    const register = spyOn(InstanceWriter, 'registerInstanceWithLoadBalancer').and.returnValue(
-      Promise.resolve({} as any),
-    );
-    const deregister = spyOn(InstanceWriter, 'deregisterInstanceFromLoadBalancer').and.returnValue(
-      Promise.resolve({} as any),
-    );
+    const confirmation = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(undefined);
+    const register = vi
+      .spyOn(InstanceWriter, 'registerInstanceWithLoadBalancer')
+      .mockReturnValue(Promise.resolve({} as any));
+    const deregister = vi
+      .spyOn(InstanceWriter, 'deregisterInstanceFromLoadBalancer')
+      .mockReturnValue(Promise.resolve({} as any));
     const app = application([
       networkLoadBalancer(),
       networkLoadBalancer({ loadBalancerType: 'HTTP', name: 'http-lb' }),
@@ -254,7 +254,13 @@ describe('GceInstanceDetails', () => {
     actions.find(({ label }) => label === 'Register with Load Balancer')!.triggerAction();
     actions.find(({ label }) => label === 'Deregister from Load Balancer')!.triggerAction();
     const reason = { reason: 'operator requested' };
-    confirmation.calls.all().forEach(({ args }) => args[0].submitMethod(reason));
+    confirmation.mock.calls
+      .map((args, __i) => ({
+        args,
+        returnValue: confirmation.mock.results[__i].value,
+        invocationOrder: confirmation.mock.invocationCallOrder[__i],
+      }))
+      .forEach(({ args }) => args[0].submitMethod(reason));
 
     const eligibleInstance = { ...loadedInstance, loadBalancers: ['network-lb'] };
     expect(register).toHaveBeenCalledWith(eligibleInstance, app, reason);
@@ -271,15 +277,15 @@ describe('GceInstanceDetails', () => {
   });
 
   it('uses confirmation, account verification, task monitors, and exact GCE writer contracts', () => {
-    const confirmation = spyOn(ConfirmationModalService, 'confirm');
-    spyOn(InstanceWriter, 'terminateInstance').and.returnValue(Promise.resolve({} as any));
-    spyOn(InstanceWriter, 'terminateInstanceAndShrinkServerGroup').and.returnValue(Promise.resolve({} as any));
-    spyOn(InstanceWriter, 'rebootInstance').and.returnValue(Promise.resolve({} as any));
-    spyOn(InstanceWriter, 'registerInstanceWithLoadBalancer').and.returnValue(Promise.resolve({} as any));
-    spyOn(InstanceWriter, 'deregisterInstanceFromLoadBalancer').and.returnValue(Promise.resolve({} as any));
-    spyOn(InstanceWriter, 'enableInstanceInDiscovery').and.returnValue(Promise.resolve({} as any));
-    spyOn(InstanceWriter, 'disableInstanceInDiscovery').and.returnValue(Promise.resolve({} as any));
-    const $state = { go: jasmine.createSpy('go'), includes: jasmine.createSpy('includes').and.returnValue(true) };
+    const confirmation = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(undefined);
+    vi.spyOn(InstanceWriter, 'terminateInstance').mockReturnValue(Promise.resolve({} as any));
+    vi.spyOn(InstanceWriter, 'terminateInstanceAndShrinkServerGroup').mockReturnValue(Promise.resolve({} as any));
+    vi.spyOn(InstanceWriter, 'rebootInstance').mockReturnValue(Promise.resolve({} as any));
+    vi.spyOn(InstanceWriter, 'registerInstanceWithLoadBalancer').mockReturnValue(Promise.resolve({} as any));
+    vi.spyOn(InstanceWriter, 'deregisterInstanceFromLoadBalancer').mockReturnValue(Promise.resolve({} as any));
+    vi.spyOn(InstanceWriter, 'enableInstanceInDiscovery').mockReturnValue(Promise.resolve({} as any));
+    vi.spyOn(InstanceWriter, 'disableInstanceInDiscovery').mockReturnValue(Promise.resolve({} as any));
+    const $state = { go: vi.fn(), includes: vi.fn().mockReturnValue(true) };
     const app = application([networkLoadBalancer()]);
     const loadedInstance = instance({
       health: [
@@ -297,7 +303,13 @@ describe('GceInstanceDetails', () => {
     actions.forEach(({ triggerAction }) => triggerAction());
 
     expect(confirmation).toHaveBeenCalledTimes(7);
-    const confirmations = confirmation.calls.all().map(({ args }) => args[0]);
+    const confirmations = confirmation.mock.calls
+      .map((args, __i) => ({
+        args,
+        returnValue: confirmation.mock.results[__i].value,
+        invocationOrder: confirmation.mock.invocationCallOrder[__i],
+      }))
+      .map(({ args }) => args[0]);
     confirmations.forEach((params) => {
       expect(params.account).toBe('test-account');
       expect(params.askForReason).toBe(true);

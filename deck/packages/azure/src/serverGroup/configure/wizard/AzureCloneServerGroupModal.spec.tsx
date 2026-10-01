@@ -34,8 +34,8 @@ describe('AzureCloneServerGroupModal', () => {
   const application = {
     name: 'fnord',
     serverGroups: {
-      refresh: jasmine.createSpy('refresh'),
-      onNextRefresh: jasmine.createSpy('onNextRefresh'),
+      refresh: vi.fn(),
+      onNextRefresh: vi.fn(),
     },
   } as any;
 
@@ -63,8 +63,8 @@ describe('AzureCloneServerGroupModal', () => {
         accounts: ['test'],
         filtered: { regions: [{ name: 'westus' }], loadBalancers: [], securityGroups: [], instanceTypes: [] },
       },
-      credentialsChanged: jasmine.createSpy('credentialsChanged').and.returnValue({ dirty: {} }),
-      regionChanged: jasmine.createSpy('regionChanged').and.returnValue({ dirty: {} }),
+      credentialsChanged: vi.fn().mockReturnValue({ dirty: {} }),
+      regionChanged: vi.fn().mockReturnValue({ dirty: {} }),
       ...overrides,
     };
   }
@@ -72,12 +72,12 @@ describe('AzureCloneServerGroupModal', () => {
   beforeEach(() => {
     runtimeServices = {
       cacheInitializer: {},
-      loadBalancerReader: { getLoadBalancerDetails: jasmine.createSpy('getLoadBalancerDetails') },
+      loadBalancerReader: { getLoadBalancerDetails: vi.fn() },
       securityGroupReader: {},
     };
     const configurationService = new AzureServerGroupConfigurationService(nativePromiseService, runtimeServices);
     runtimeServices.providerServiceDelegate = {
-      getDelegate: jasmine.createSpy('getDelegate').and.returnValue(configurationService),
+      getDelegate: vi.fn().mockReturnValue(configurationService),
     };
   });
 
@@ -87,8 +87,8 @@ describe('AzureCloneServerGroupModal', () => {
         title="Configure"
         application={application}
         command={serverGroupCommand}
-        closeModal={jasmine.createSpy('closeModal')}
-        dismissModal={jasmine.createSpy('dismissModal')}
+        closeModal={vi.fn()}
+        dismissModal={vi.fn()}
       />,
       { disableLifecycleMethods: true },
     );
@@ -108,7 +108,7 @@ describe('AzureCloneServerGroupModal', () => {
   function formik(values: any): any {
     return {
       values,
-      setFieldValue: jasmine.createSpy('setFieldValue').and.callFake((field: string, value: any) => {
+      setFieldValue: vi.fn().mockImplementation((field: string, value: any) => {
         const path = field.split('.');
         const leaf = path.pop();
         const target = path.reduce((acc: any, key) => {
@@ -131,7 +131,7 @@ describe('AzureCloneServerGroupModal', () => {
   it('show opens the React wizard and resolves with the submitted pipeline command', async () => {
     const serverGroupCommand = command();
     const runtimeServices = {} as any;
-    spyOn(ReactModal, 'show').and.returnValue(Promise.resolve(serverGroupCommand));
+    vi.spyOn(ReactModal, 'show').mockReturnValue(Promise.resolve(serverGroupCommand));
 
     const result = await RoutedAzureCloneServerGroupModal.show(
       {
@@ -145,33 +145,33 @@ describe('AzureCloneServerGroupModal', () => {
     expect(result).toBe(serverGroupCommand);
     expect(ReactModal.show).toHaveBeenCalledWith(
       RoutedAzureCloneServerGroupModal,
-      jasmine.objectContaining({ title: 'Configure', application, command: serverGroupCommand }),
+      expect.objectContaining({ title: 'Configure', application, command: serverGroupCommand }),
       { dialogClassName: 'wizard-modal modal-lg' },
       runtimeServices,
     );
   });
 
   it('owns its refresh subscription across replacement and unmount', () => {
-    const firstUnsubscribe = jasmine.createSpy('firstUnsubscribe');
-    const secondUnsubscribe = jasmine.createSpy('secondUnsubscribe');
+    const firstUnsubscribe = vi.fn();
+    const secondUnsubscribe = vi.fn();
     const callbacks: Array<() => void> = [];
-    const onNextRefresh = jasmine.createSpy('onNextRefresh').and.callFake((callback: () => void) => {
+    const onNextRefresh = vi.fn().mockImplementation((callback: () => void) => {
       callbacks.push(callback);
       return callbacks.length === 1 ? firstUnsubscribe : secondUnsubscribe;
     });
-    const refresh = jasmine.createSpy('refresh');
-    const stateService = { go: jasmine.createSpy('go'), includes: jasmine.createSpy('includes') };
+    const refresh = vi.fn();
+    const stateService = { go: vi.fn(), includes: vi.fn() };
     const modal = new AzureCloneServerGroupModal({
       application: { name: 'fnord', serverGroups: { onNextRefresh, refresh } },
       command: command(),
-      dismissModal: jasmine.createSpy('dismissModal'),
+      dismissModal: vi.fn(),
       stateService,
       title: 'Create server group',
     } as any) as any;
 
     modal.onTaskComplete();
 
-    expect(onNextRefresh.calls.first().invocationOrder).toBeLessThan(refresh.calls.first().invocationOrder);
+    expect(onNextRefresh.mock.invocationCallOrder[0]).toBeLessThan(refresh.mock.invocationCallOrder[0]);
 
     modal.onTaskComplete();
 
@@ -188,7 +188,7 @@ describe('AzureCloneServerGroupModal', () => {
   it('cancel and dismiss reject without submitting or mutating the command', async () => {
     const serverGroupCommand = command({ viewState: { mode: 'clone' } });
     const original = JSON.stringify(serverGroupCommand);
-    spyOn(ReactModal, 'show').and.returnValue(Promise.reject('cancelled'));
+    vi.spyOn(ReactModal, 'show').mockReturnValue(Promise.reject('cancelled'));
 
     await expectAsync(
       RoutedAzureCloneServerGroupModal.show(
@@ -202,13 +202,13 @@ describe('AzureCloneServerGroupModal', () => {
 
   it('returns a pipeline command with fields consumed by Azure deploy configuration conversion', () => {
     const serverGroupCommand = command();
-    const closeModal = jasmine.createSpy('closeModal').and.callFake((result: any) => result);
+    const closeModal = vi.fn().mockImplementation((result: any) => result);
     const modal = new AzureCloneServerGroupModal({
       title: 'Configure',
       application,
       command: serverGroupCommand,
       closeModal,
-      dismissModal: jasmine.createSpy('dismissModal'),
+      dismissModal: vi.fn(),
     } as any) as any;
 
     const submitted = modal.submit(serverGroupCommand);
@@ -347,7 +347,7 @@ describe('AzureCloneServerGroupModal', () => {
   });
 
   it('renders account and region filtered load balancers from the command', () => {
-    spyOn(NetworkReader, 'listNetworks').and.returnValue(Promise.resolve({ azure: [] }) as any);
+    vi.spyOn(NetworkReader, 'listNetworks').mockReturnValue(Promise.resolve({ azure: [] }) as any);
     const serverGroupCommand = command({
       loadBalancers: ['lb-a'],
       loadBalancerName: null,
@@ -372,7 +372,7 @@ describe('AzureCloneServerGroupModal', () => {
     runtimeServices.loadBalancerReader = {
       getLoadBalancerDetails: () => Promise.resolve([{ vnet: 'vnet-a' }]),
     };
-    spyOn(NetworkReader, 'listNetworks').and.returnValue(
+    vi.spyOn(NetworkReader, 'listNetworks').mockReturnValue(
       Promise.resolve({
         azure: [
           {
@@ -411,7 +411,7 @@ describe('AzureCloneServerGroupModal', () => {
     runtimeServices.loadBalancerReader = {
       getLoadBalancerDetails: () => Promise.resolve([{ vnet: 'vnet-a' }]),
     };
-    spyOn(NetworkReader, 'listNetworks').and.returnValue(
+    vi.spyOn(NetworkReader, 'listNetworks').mockReturnValue(
       Promise.resolve({
         azure: [
           {
@@ -445,9 +445,9 @@ describe('AzureCloneServerGroupModal', () => {
       backingData: { loadBalancers: [], filtered: { loadBalancers: [] } },
     });
     runtimeServices.loadBalancerReader = {
-      getLoadBalancerDetails: jasmine.createSpy('getLoadBalancerDetails'),
+      getLoadBalancerDetails: vi.fn(),
     };
-    spyOn(NetworkReader, 'listNetworks').and.returnValue(
+    vi.spyOn(NetworkReader, 'listNetworks').mockReturnValue(
       Promise.resolve({
         azure: [
           {
@@ -479,9 +479,9 @@ describe('AzureCloneServerGroupModal', () => {
       backingData: { loadBalancers: [], filtered: { loadBalancers: [] } },
     });
     runtimeServices.loadBalancerReader = {
-      getLoadBalancerDetails: jasmine.createSpy('getLoadBalancerDetails'),
+      getLoadBalancerDetails: vi.fn(),
     };
-    spyOn(NetworkReader, 'listNetworks').and.returnValue(
+    vi.spyOn(NetworkReader, 'listNetworks').mockReturnValue(
       Promise.resolve({
         azure: [
           {
@@ -599,9 +599,9 @@ describe('AzureCloneServerGroupModal', () => {
       backingData: { loadBalancers: [], filtered: { loadBalancers: [] } },
     });
     runtimeServices.loadBalancerReader = {
-      getLoadBalancerDetails: jasmine.createSpy('getLoadBalancerDetails'),
+      getLoadBalancerDetails: vi.fn(),
     };
-    spyOn(NetworkReader, 'listNetworks').and.returnValue(Promise.reject(new Error('boom')));
+    vi.spyOn(NetworkReader, 'listNetworks').mockReturnValue(Promise.reject(new Error('boom')));
 
     const page = loadBalancerPage(serverGroupCommand);
 
@@ -624,9 +624,9 @@ describe('AzureCloneServerGroupModal', () => {
       vnetResourceGroup: 'old-rg',
     });
     runtimeServices.loadBalancerReader = {
-      getLoadBalancerDetails: jasmine.createSpy('getLoadBalancerDetails'),
+      getLoadBalancerDetails: vi.fn(),
     };
-    spyOn(NetworkReader, 'listNetworks').and.returnValue(Promise.reject(new Error('boom')));
+    vi.spyOn(NetworkReader, 'listNetworks').mockReturnValue(Promise.reject(new Error('boom')));
 
     const page = loadBalancerPage(serverGroupCommand);
 
@@ -657,7 +657,7 @@ describe('AzureCloneServerGroupModal', () => {
     runtimeServices.loadBalancerReader = {
       getLoadBalancerDetails: () => Promise.resolve([]),
     };
-    spyOn(NetworkReader, 'listNetworks').and.returnValue(
+    vi.spyOn(NetworkReader, 'listNetworks').mockReturnValue(
       Promise.resolve({
         azure: [
           { account: 'test', name: 'vnet-a', region: 'westus', resourceGroup: 'rg-a', subnets: [{ name: 'subnet-a' }] },
@@ -697,7 +697,7 @@ describe('AzureCloneServerGroupModal', () => {
         return Promise.resolve([{ vnet: 'vnet-b' }]);
       },
     };
-    spyOn(NetworkReader, 'listNetworks').and.returnValue(
+    vi.spyOn(NetworkReader, 'listNetworks').mockReturnValue(
       Promise.resolve({
         azure: [
           { account: 'test', name: 'vnet-a', region: 'westus', resourceGroup: 'rg-a', subnets: [{ name: 'subnet-a' }] },

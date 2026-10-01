@@ -13,7 +13,7 @@ import {
 
 describe('GceProxyLoadBalancerModal', () => {
   const application = {
-    loadBalancers: { onNextRefresh: jasmine.createSpy('onNextRefresh'), refresh: jasmine.createSpy('refresh') },
+    loadBalancers: { onNextRefresh: vi.fn(), refresh: vi.fn() },
     name: 'app',
   } as any;
 
@@ -50,14 +50,14 @@ describe('GceProxyLoadBalancerModal', () => {
 
     expect(command.mode).toBe('edit');
     expect(command.listeners[0]).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         address: { name: 'removed-address', selfLink: 'projects/test/global/addresses/removed-address' },
         certificate: { name: 'removed-cert', selfLink: 'projects/test/global/sslCertificates/removed-cert' },
         protocol: 'SSL',
       }),
     );
     expect(command.backendServices[0]).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         affinityCookieTtlSec: 120,
         connectionDrainingTimeoutSec: 30,
         healthCheck: {
@@ -71,7 +71,7 @@ describe('GceProxyLoadBalancerModal', () => {
       }),
     );
     expect(command.healthChecks[0]).toEqual(
-      jasmine.objectContaining({ healthCheckType: 'TCP', name: 'removed-check', port: 443, timeoutSec: 5 }),
+      expect.objectContaining({ healthCheckType: 'TCP', name: 'removed-check', port: 443, timeoutSec: 5 }),
     );
   });
 
@@ -114,10 +114,10 @@ describe('GceProxyLoadBalancerModal', () => {
 
     expect(command.listeners[0].protocol).toBe('SSL');
     expect(payload).toEqual(
-      jasmine.objectContaining({
-        backendService: jasmine.objectContaining({
+      expect.objectContaining({
+        backendService: expect.objectContaining({
           connectionDrainingTimeoutSec: 30,
-          healthCheck: jasmine.objectContaining({
+          healthCheck: expect.objectContaining({
             checkIntervalSec: 15,
             healthCheckType: 'HTTP',
             healthyThreshold: 2,
@@ -175,7 +175,7 @@ describe('GceProxyLoadBalancerModal', () => {
     const payload = serializeGceProxyLoadBalancerCommand(command);
 
     expect(payload).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         ipProtocol: 'UDP',
         network: 'network-a',
         ports: ['80', '443'],
@@ -187,22 +187,22 @@ describe('GceProxyLoadBalancerModal', () => {
   });
 
   it('returns the operation payload through the modal in pipeline mode without starting a task', () => {
-    const closeModal = jasmine.createSpy('closeModal');
-    const taskMonitor = { submit: jasmine.createSpy('submit') } as any;
+    const closeModal = vi.fn();
+    const taskMonitor = { submit: vi.fn() } as any;
     const command = validCommand('pipeline');
 
     submitGceProxyLoadBalancerCommand(command, { application, closeModal, taskMonitor });
 
-    expect(closeModal).toHaveBeenCalledOnceWith(serializeGceProxyLoadBalancerCommand(command));
+    expect(closeModal).toHaveBeenCalledExactlyOnceWith(serializeGceProxyLoadBalancerCommand(command));
     expect(taskMonitor.submit).not.toHaveBeenCalled();
   });
 
   (['create', 'edit'] as const).forEach((mode) => {
     it(`submits the Clouddriver payload through LoadBalancerWriter in infrastructure ${mode} mode`, () => {
-      const upsert = spyOn(LoadBalancerWriter, 'upsertLoadBalancer').and.returnValue(new Promise(() => {}));
+      const upsert = vi.spyOn(LoadBalancerWriter, 'upsertLoadBalancer').mockReturnValue(new Promise(() => {}));
       let operation: (() => PromiseLike<any>) | undefined;
       const taskMonitor = {
-        submit: jasmine.createSpy('submit').and.callFake((submitOperation: () => PromiseLike<any>) => {
+        submit: vi.fn().mockImplementation((submitOperation: () => PromiseLike<any>) => {
           operation = submitOperation;
         }),
       } as any;
@@ -210,7 +210,7 @@ describe('GceProxyLoadBalancerModal', () => {
 
       submitGceProxyLoadBalancerCommand(command, {
         application,
-        closeModal: jasmine.createSpy('closeModal'),
+        closeModal: vi.fn(),
         taskMonitor,
       });
       operation?.();
@@ -230,8 +230,8 @@ describe('GceProxyLoadBalancerModal', () => {
     const wrapper = shallow(
       <GceProxyLoadBalancerModal
         app={application}
-        closeModal={jasmine.createSpy('closeModal')}
-        dismissModal={jasmine.createSpy('dismissModal')}
+        closeModal={vi.fn()}
+        dismissModal={vi.fn()}
         isNew={false}
         loadBalancer={
           {
@@ -251,15 +251,15 @@ describe('GceProxyLoadBalancerModal', () => {
   });
 
   it('owns its refresh subscription across replacement and unmount', () => {
-    const firstUnsubscribe = jasmine.createSpy('firstUnsubscribe');
-    const secondUnsubscribe = jasmine.createSpy('secondUnsubscribe');
+    const firstUnsubscribe = vi.fn();
+    const secondUnsubscribe = vi.fn();
     const callbacks: Array<() => void> = [];
-    const onNextRefresh = jasmine.createSpy('onNextRefresh').and.callFake((callback: () => void) => {
+    const onNextRefresh = vi.fn().mockImplementation((callback: () => void) => {
       callbacks.push(callback);
       return callbacks.length === 1 ? firstUnsubscribe : secondUnsubscribe;
     });
-    const refresh = jasmine.createSpy('refresh');
-    const closeModal = jasmine.createSpy('closeModal');
+    const refresh = vi.fn();
+    const closeModal = vi.fn();
     const pending = new Promise<any[]>(() => undefined);
     const readers = {
       accounts: () => pending,
@@ -283,7 +283,7 @@ describe('GceProxyLoadBalancerModal', () => {
 
     taskMonitor.config.onTaskComplete();
 
-    expect(onNextRefresh.calls.first().invocationOrder).toBeLessThan(refresh.calls.first().invocationOrder);
+    expect(onNextRefresh.mock.invocationCallOrder[0]).toBeLessThan(refresh.mock.invocationCallOrder[0]);
 
     taskMonitor.config.onTaskComplete();
 

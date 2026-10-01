@@ -13,7 +13,7 @@ describe('GceHttpLoadBalancerRoutingEditor', () => {
   ];
 
   it('adds and removes exact nested path-rule rows with non-submit buttons', () => {
-    const onChange = jasmine.createSpy('onChange');
+    const onChange = vi.fn();
     const wrapper = shallow(
       <GceHttpLoadBalancerHostRuleEditor
         backendServices={backendServices}
@@ -25,7 +25,7 @@ describe('GceHttpLoadBalancerRoutingEditor', () => {
           },
         }}
         onChange={onChange}
-        onRemove={jasmine.createSpy('onRemove')}
+        onRemove={vi.fn()}
       />,
     );
 
@@ -42,12 +42,12 @@ describe('GceHttpLoadBalancerRoutingEditor', () => {
   });
 
   it('edits path lists and preserves complete unresolved backend references', () => {
-    const onChange = jasmine.createSpy('onChange');
+    const onChange = vi.fn();
     const wrapper = shallow(
       <GceHttpLoadBalancerPathRuleEditor
         backendServices={backendServices}
         onChange={onChange}
-        onRemove={jasmine.createSpy('onRemove')}
+        onRemove={vi.fn()}
         pathRule={{ backendService: backendServices[1], paths: ['/v1'] }}
       />,
     );
@@ -57,8 +57,8 @@ describe('GceHttpLoadBalancerRoutingEditor', () => {
       target: { value: 'default-backend' },
     });
 
-    expect(onChange.calls.argsFor(0)[0]).toEqual({ backendService: backendServices[1], paths: ['/v1', '/v2'] });
-    expect(onChange.calls.argsFor(1)[0]).toEqual({ backendService: backendServices[0], paths: ['/v1'] });
+    expect(onChange.mock.calls[0][0]).toEqual({ backendService: backendServices[1], paths: ['/v1', '/v2'] });
+    expect(onChange.mock.calls[1][0]).toEqual({ backendService: backendServices[0], paths: ['/v1'] });
     expect(wrapper.find('button').everyWhere((button) => button.prop('type') === 'button')).toBe(true);
   });
 
@@ -70,8 +70,8 @@ describe('GceHttpLoadBalancerRoutingEditor', () => {
           hostPatterns: ['api.example.com'],
           pathMatcher: { defaultService: backendServices[0], pathRules: [] },
         }}
-        onChange={jasmine.createSpy('onChange')}
-        onRemove={jasmine.createSpy('onRemove')}
+        onChange={vi.fn()}
+        onRemove={vi.fn()}
       />,
     );
     const select = wrapper.find('[data-testid="host-rule-default-backend"]');

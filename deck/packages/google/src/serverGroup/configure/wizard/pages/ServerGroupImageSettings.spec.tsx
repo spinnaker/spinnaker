@@ -35,7 +35,7 @@ describe('ServerGroupImageSettings', () => {
     wrapper.find('[aria-label="Image source"]').simulate('change', { target: { value: 'priorStage' } });
     wrapper.find('[aria-label="Image"]').simulate('change', { target: { value: 'known-image' } });
 
-    expect(formik.setFieldValue.calls.allArgs()).toEqual([
+    expect(formik.setFieldValue.mock.calls).toEqual([
       ['imageSource', 'priorStage'],
       ['image', 'known-image'],
     ]);
@@ -67,7 +67,7 @@ describe('ServerGroupImageSettings', () => {
     selector.prop('onArtifactEdited')(editedArtifact as any);
     selector.prop('onExpectedArtifactSelected')({ id: 'expected-id' } as any);
 
-    expect(formik.setFieldValue.calls.allArgs()).toEqual([
+    expect(formik.setFieldValue.mock.calls).toEqual([
       ['imageArtifactId', null],
       ['imageArtifact', editedArtifact],
       ['imageArtifactId', 'expected-id'],
@@ -116,8 +116,8 @@ function selectOptions(wrapper: ReturnType<typeof shallow>, label: string): stri
 function testFormik(values = command()): FormikProps<IGceServerGroupCommand> {
   return ({
     values,
-    setFieldValue: jasmine.createSpy('setFieldValue'),
-    setValues: jasmine.createSpy('setValues'),
+    setFieldValue: vi.fn(),
+    setValues: vi.fn(),
   } as unknown) as FormikProps<IGceServerGroupCommand>;
 }
 

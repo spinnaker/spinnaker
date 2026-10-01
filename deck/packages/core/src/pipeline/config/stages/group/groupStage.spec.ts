@@ -5,7 +5,7 @@ import { groupStage } from './groupStage';
 describe('Group stage registration', () => {
   it('registers Group as a synthetic stage with a React execution label', () => {
     expect(groupStage).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         description: 'A group of stages',
         executionLabelComponent: GroupExecutionLabel,
         markerIcon: GroupMarkerIcon,

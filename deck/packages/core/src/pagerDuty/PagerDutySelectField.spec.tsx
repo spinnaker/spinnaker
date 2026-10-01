@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { mount } from 'enzyme';
 import React from 'react';
 import { Observable } from 'rxjs';
@@ -12,28 +13,28 @@ import { SchedulerFactory } from '../scheduler/SchedulerFactory';
 
 describe('PagerDutySelectField', () => {
   let reload: () => void;
-  let schedulerSubscription: { unsubscribe: jasmine.Spy };
-  let scheduler: { subscribe: jasmine.Spy; scheduleImmediate: jasmine.Spy; unsubscribe: jasmine.Spy };
+  let schedulerSubscription: { unsubscribe: Mock };
+  let scheduler: { subscribe: Mock; scheduleImmediate: Mock; unsubscribe: Mock };
   let serviceObserver: any;
-  let readerUnsubscribes: jasmine.Spy[];
+  let readerUnsubscribes: Mock[];
   let originalPagerDuty: typeof SETTINGS.pagerDuty;
 
   beforeEach(() => {
     originalPagerDuty = SETTINGS.pagerDuty;
     SETTINGS.pagerDuty = { required: true } as any;
     readerUnsubscribes = [];
-    schedulerSubscription = { unsubscribe: jasmine.createSpy('scheduler subscription unsubscribe') };
+    schedulerSubscription = { unsubscribe: vi.fn() };
     scheduler = {
-      scheduleImmediate: jasmine.createSpy('scheduleImmediate'),
-      subscribe: jasmine.createSpy('subscribe').and.callFake((callback: () => void) => {
+      scheduleImmediate: vi.fn(),
+      subscribe: vi.fn().mockImplementation((callback: () => void) => {
         reload = callback;
         return schedulerSubscription;
       }),
-      unsubscribe: jasmine.createSpy('scheduler unsubscribe'),
+      unsubscribe: vi.fn(),
     };
-    spyOn(SchedulerFactory, 'createScheduler').and.returnValue(scheduler as any);
-    spyOn(PagerDutyReader, 'listServices').and.callFake(() => {
-      const unsubscribe = jasmine.createSpy('reader unsubscribe');
+    vi.spyOn(SchedulerFactory, 'createScheduler').mockReturnValue(scheduler as any);
+    vi.spyOn(PagerDutyReader, 'listServices').mockImplementation(() => {
+      const unsubscribe = vi.fn();
       readerUnsubscribes.push(unsubscribe);
       return new Observable<IPagerDutyService[]>((observer) => {
         serviceObserver = observer;
@@ -62,7 +63,7 @@ describe('PagerDutySelectField', () => {
   });
 
   it('emits the selected service integration key', () => {
-    const onChange = jasmine.createSpy('onChange');
+    const onChange = vi.fn();
     const wrapper = mount(<PagerDutySelectField value={null} onChange={onChange} />);
     serviceObserver.next([{ integration_key: 'key-one', name: 'Service one' }] as IPagerDutyService[]);
     wrapper.update();

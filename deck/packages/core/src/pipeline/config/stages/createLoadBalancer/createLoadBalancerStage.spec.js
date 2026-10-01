@@ -46,7 +46,7 @@ describe('createLoadBalancerStage modal opener', () => {
     const config = {
       CreateLoadBalancerModal: {
         supportsPipelineConfig: true,
-        show: jasmine.createSpy('show').and.returnValue(Promise.resolve(result)),
+        show: vi.fn().mockReturnValue(Promise.resolve(result)),
       },
     };
     const command = await openLoadBalancerModal(
@@ -79,7 +79,7 @@ describe('createLoadBalancerStage modal opener', () => {
     const result = { name: 'fnord-main', type: 'upsertLoadBalancer' };
     const config = {
       CreateLoadBalancerModal: {
-        show: jasmine.createSpy('show').and.returnValue(Promise.resolve(result)),
+        show: vi.fn().mockReturnValue(Promise.resolve(result)),
       },
     };
 

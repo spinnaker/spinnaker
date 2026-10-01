@@ -4,7 +4,7 @@ import { DockerChartImageReader, DockerImageReader } from './DockerImageReader';
 
 describe('Docker image readers', () => {
   it('passes owner signals through all image and tag retry sequences', async () => {
-    const retry = spyOn(RetryService, 'buildRetrySequence').and.returnValue(Promise.resolve([]));
+    const retry = vi.spyOn(RetryService, 'buildRetrySequence').mockReturnValue(Promise.resolve([]));
     const signal = new AbortController().signal;
     const imageParams = { provider: 'dockerRegistry', account: 'registry.example' };
     const tagParams = { ...imageParams, repository: 'example/service' };
@@ -16,6 +16,6 @@ describe('Docker image readers', () => {
       DockerChartImageReader.findTags(tagParams, signal),
     ]);
 
-    expect(retry.calls.allArgs().map((args) => args[4])).toEqual([signal, signal, signal, signal]);
+    expect(retry.mock.calls.map((args) => args[4])).toEqual([signal, signal, signal, signal]);
   });
 });

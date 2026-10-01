@@ -10,14 +10,14 @@ import { configureRouter } from '../navigation/router';
 
 describe('SpinnakerContainer', () => {
   it('renders the transition overlay from RoutingState and unsubscribes on unmount', () => {
-    spyOn(GlobalBannerService, 'getActiveBanners').and.returnValue(Promise.resolve([]));
+    vi.spyOn(GlobalBannerService, 'getActiveBanners').mockReturnValue(Promise.resolve([]));
     const router = new UIRouterReact();
     const runtime = createDeckRuntime(router);
     const routingState = runtime.routingState;
     configureRouter(router, runtime.services, routingState);
     const actualSubscribe = routingState.subscribe.bind(routingState);
-    const unsubscribe = jasmine.createSpy('unsubscribe');
-    spyOn(routingState, 'subscribe').and.callFake((listener) => {
+    const unsubscribe = vi.fn();
+    vi.spyOn(routingState, 'subscribe').mockImplementation((listener) => {
       const dispose = actualSubscribe(listener);
       return () => {
         unsubscribe();

@@ -11,7 +11,7 @@ describe('PermissionsConfigurer', () => {
   };
 
   beforeEach(() => {
-    spyOn(AuthenticationService, 'getAuthenticatedUser').and.returnValue({
+    vi.spyOn(AuthenticationService, 'getAuthenticatedUser').mockReturnValue({
       roles: ['groupA', 'groupB', 'groupC'],
     } as any);
   });

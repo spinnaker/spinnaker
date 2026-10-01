@@ -31,7 +31,9 @@ module.exports = [
       globals: {
         ...globals.browser,
         ...globals.node,
-        ...globals.jasmine,
+        ...globals.vitest,
+        expectAsync: true,
+        fail: true,
         $: true,
         _: true,
       },

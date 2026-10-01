@@ -4,7 +4,7 @@ describe('AmazonLoadBalancersTag', () => {
   it('opens load balancer and target group details through the injected state service', () => {
     const stateService = {
       current: { name: 'home.applications.application.insight.clusters' },
-      go: jasmine.createSpy('go'),
+      go: vi.fn(),
     };
     const component = new AmazonLoadBalancersTagComponent({
       application: {},

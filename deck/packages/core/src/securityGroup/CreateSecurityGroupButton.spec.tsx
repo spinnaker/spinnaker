@@ -36,14 +36,14 @@ describe('<CreateSecurityGroupButton />', () => {
     const providerSelection = deferred<string>();
     const modalShown = deferred<void>();
     const modal = {
-      show: jasmine.createSpy('show').and.callFake(() => modalShown.resolve(undefined)),
+      show: vi.fn().mockImplementation(() => modalShown.resolve(undefined)),
     };
     const app = {
       defaultCredentials: {},
       defaultRegions: {},
     } as any;
-    spyOn(ProviderSelectionService, 'selectProvider').and.returnValue(providerSelection.promise);
-    spyOn(CloudProviderRegistry, 'getValue').and.returnValue({
+    vi.spyOn(ProviderSelectionService, 'selectProvider').mockReturnValue(providerSelection.promise);
+    vi.spyOn(CloudProviderRegistry, 'getValue').mockReturnValue({
       CreateSecurityGroupModal: modal,
     });
 
@@ -77,15 +77,15 @@ describe('<CreateSecurityGroupButton />', () => {
     const providerSelection = deferred<string>();
     const modalShown = deferred<void>();
     const modal = {
-      show: jasmine.createSpy('show').and.callFake(() => modalShown.resolve(undefined)),
+      show: vi.fn().mockImplementation(() => modalShown.resolve(undefined)),
     };
     const app = {
       defaultCredentials: {},
       defaultRegions: {},
     } as any;
     SETTINGS.providers.kubernetes = {};
-    spyOn(ProviderSelectionService, 'selectProvider').and.returnValue(providerSelection.promise);
-    spyOn(CloudProviderRegistry, 'getValue').and.returnValue({
+    vi.spyOn(ProviderSelectionService, 'selectProvider').mockReturnValue(providerSelection.promise);
+    vi.spyOn(CloudProviderRegistry, 'getValue').mockReturnValue({
       CreateSecurityGroupModal: modal,
     });
 

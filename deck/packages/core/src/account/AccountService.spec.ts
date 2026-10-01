@@ -1,6 +1,6 @@
 import type { IAccount } from './AccountService';
 import { AccountService } from './AccountService';
-import { mockHttpClient } from '../api/mock/jasmine';
+import { mockHttpClient } from '../api/mock/mockHttpSupport';
 import type { MockHttpClient } from '../api/mock/mockHttpClient';
 import { CloudProviderRegistry } from '../cloudProvider';
 import { SETTINGS } from '../config/settings';
@@ -64,7 +64,7 @@ describe('Service: AccountService', () => {
     const setupTest = () => {
       const http = mockHttpClient();
       http.expectGET('/credentials').withParams({ expand: true }).respond(200, providers);
-      spyOn(CloudProviderRegistry, 'listRegisteredProviders').and.returnValue(registeredProviders);
+      vi.spyOn(CloudProviderRegistry, 'listRegisteredProviders').mockReturnValue(registeredProviders);
       return http;
     };
 
@@ -77,7 +77,7 @@ describe('Service: AccountService', () => {
     it('should filter out providers not registered', async () => {
       const http = mockHttpClient();
       http.expectGET('/credentials').withParams({ expand: true }).respond(200, providers.slice(0, 2));
-      spyOn(CloudProviderRegistry, 'listRegisteredProviders').and.returnValue(registeredProviders.slice(0, 2));
+      vi.spyOn(CloudProviderRegistry, 'listRegisteredProviders').mockReturnValue(registeredProviders.slice(0, 2));
 
       const result = await flush(http, AccountService.listProviders());
       expect(result).toEqual(['aws', 'gce']);

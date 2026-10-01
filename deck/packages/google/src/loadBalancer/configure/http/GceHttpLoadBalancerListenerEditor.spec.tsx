@@ -5,7 +5,7 @@ import { GceHttpLoadBalancerListenerEditor } from './GceHttpLoadBalancerListener
 
 describe('GceHttpLoadBalancerListenerEditor', () => {
   it('edits listener addresses and certificates without submitting the parent form', () => {
-    const onChange = jasmine.createSpy('onChange');
+    const onChange = vi.fn();
     const wrapper = shallow(
       <GceHttpLoadBalancerListenerEditor
         addresses={[{ name: 'removed-address', selfLink: 'https://compute/addresses/removed-address' }]}
@@ -19,7 +19,7 @@ describe('GceHttpLoadBalancerListenerEditor', () => {
         }}
         loadBalancerType="HTTP"
         onChange={onChange}
-        onRemove={jasmine.createSpy('onRemove')}
+        onRemove={vi.fn()}
         subnets={[]}
       />,
     );
@@ -34,7 +34,7 @@ describe('GceHttpLoadBalancerListenerEditor', () => {
 
     wrapper.find('[data-testid="listener-address"]').simulate('change', { target: { value: '' } });
     expect(onChange).toHaveBeenCalledWith(
-      jasmine.objectContaining({ address: undefined, certificate: jasmine.any(Object), name: 'frontend' }),
+      expect.objectContaining({ address: undefined, certificate: expect.any(Object), name: 'frontend' }),
     );
   });
 
@@ -51,8 +51,8 @@ describe('GceHttpLoadBalancerListenerEditor', () => {
           subnet: { name: 'subnet-a' },
         }}
         loadBalancerType="INTERNAL_MANAGED"
-        onChange={jasmine.createSpy('onChange')}
-        onRemove={jasmine.createSpy('onRemove')}
+        onChange={vi.fn()}
+        onRemove={vi.fn()}
         subnets={[{ name: 'subnet-a' }]}
       />,
     );
@@ -66,7 +66,7 @@ describe('GceHttpLoadBalancerListenerEditor', () => {
 
   (['HTTP', 'INTERNAL_MANAGED'] as const).forEach((loadBalancerType) => {
     it(`sets and locks port 443 for ${loadBalancerType} HTTPS listeners`, () => {
-      const onChange = jasmine.createSpy('onChange');
+      const onChange = vi.fn();
       const wrapper = shallow(
         <GceHttpLoadBalancerListenerEditor
           addresses={[]}
@@ -74,7 +74,7 @@ describe('GceHttpLoadBalancerListenerEditor', () => {
           listener={{ name: 'frontend', portRange: '80', protocol: 'HTTP' }}
           loadBalancerType={loadBalancerType}
           onChange={onChange}
-          onRemove={jasmine.createSpy('onRemove')}
+          onRemove={vi.fn()}
           subnets={[]}
         />,
       );
@@ -82,7 +82,7 @@ describe('GceHttpLoadBalancerListenerEditor', () => {
       wrapper.find('[data-testid="listener-protocol"]').simulate('change', { target: { value: 'HTTPS' } });
 
       expect(onChange).toHaveBeenCalledWith(
-        jasmine.objectContaining({ name: 'frontend', portRange: '443', protocol: 'HTTPS' }),
+        expect.objectContaining({ name: 'frontend', portRange: '443', protocol: 'HTTPS' }),
       );
 
       wrapper.setProps({

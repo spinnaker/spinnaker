@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { hashLocationPlugin, servicesPlugin, UIRouterContext, UIRouterReact, UIViewContext } from '@uirouter/react';
 import { mount } from 'enzyme';
 import React from 'react';
@@ -35,7 +36,7 @@ describe('<MultipleInstancesDetails />', () => {
           ],
         },
       ],
-      onRefresh: jasmine.createSpy('onRefresh').and.returnValue(() => null),
+      onRefresh: vi.fn().mockReturnValue(() => null),
     },
   } as any;
 
@@ -72,15 +73,15 @@ describe('<MultipleInstancesDetails />', () => {
       deselectAllInstances: () => null,
     } as any;
 
-    spyOn(AccountService, 'challengeDestructiveActions').and.returnValue(Promise.resolve(false));
-    spyOn(ProviderSelectionService, 'isDisabled').and.returnValue(Promise.resolve(false));
-    spyOn(ConfirmationModalService, 'confirm').and.stub();
-    spyOn(InstanceWriter, 'terminateInstances').and.returnValue(Promise.resolve({}) as any);
-    spyOn(ClusterState.multiselectModel.instancesStream, 'subscribe').and.callFake((callback: any) => {
+    vi.spyOn(AccountService, 'challengeDestructiveActions').mockReturnValue(Promise.resolve(false));
+    vi.spyOn(ProviderSelectionService, 'isDisabled').mockReturnValue(Promise.resolve(false));
+    vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(undefined);
+    vi.spyOn(InstanceWriter, 'terminateInstances').mockReturnValue(Promise.resolve({}) as any);
+    vi.spyOn(ClusterState.multiselectModel.instancesStream, 'subscribe').mockImplementation((callback: any) => {
       callback();
-      return { unsubscribe: jasmine.createSpy('unsubscribe') } as any;
+      return { unsubscribe: vi.fn() } as any;
     });
-    spyOn(ClusterState.multiselectModel, 'deselectAllInstances').and.stub();
+    vi.spyOn(ClusterState.multiselectModel, 'deselectAllInstances').mockReturnValue(undefined);
     ClusterState.multiselectModel.instanceGroups = [
       {
         account: 'prod',
@@ -130,23 +131,23 @@ describe('<MultipleInstancesDetails />', () => {
       .simulate('click');
 
     expect(ConfirmationModalService.confirm).toHaveBeenCalledWith(
-      jasmine.objectContaining({
+      expect.objectContaining({
         buttonText: 'Terminate 1 instance',
         textToVerify: '1',
       }),
     );
-    const confirmation = (ConfirmationModalService.confirm as jasmine.Spy).calls.mostRecent().args[0];
+    const confirmation = (ConfirmationModalService.confirm as Mock).mock.lastCall[0];
 
     confirmation.submitMethod();
 
     expect(InstanceWriter.terminateInstances).toHaveBeenCalledWith(
       [
-        jasmine.objectContaining({
+        expect.objectContaining({
           account: 'prod',
           cloudProvider: 'aws',
           instanceIds: ['i-1'],
           instances: [
-            jasmine.objectContaining({
+            expect.objectContaining({
               availabilityZone: 'us-west-2a',
               healthState: 'Up',
               id: 'i-1',

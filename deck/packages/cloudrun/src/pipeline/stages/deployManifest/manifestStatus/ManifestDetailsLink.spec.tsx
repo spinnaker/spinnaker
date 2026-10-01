@@ -7,10 +7,10 @@ import { ManifestDetailsLinkComponent } from './ManifestDetailsLink';
 
 describe('Cloud Run ManifestDetailsLink', () => {
   it('builds its link through the injected state service', async () => {
-    spyOn(AccountService, 'getAccountDetails').and.returnValue(
+    vi.spyOn(AccountService, 'getAccountDetails').mockReturnValue(
       Promise.resolve({ spinnakerKindMap: { Service: 'unclassified' } } as any) as any,
     );
-    const href = jasmine.createSpy('href').and.returnValue('#/manifest');
+    const href = vi.fn().mockReturnValue('#/manifest');
     const component = shallow(
       <ManifestDetailsLinkComponent
         {...({ router: {}, stateParams: {}, stateService: { href } } as any)}

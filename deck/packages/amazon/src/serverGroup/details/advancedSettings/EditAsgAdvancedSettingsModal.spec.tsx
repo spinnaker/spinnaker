@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { mount, shallow } from 'enzyme';
 import React from 'react';
 
@@ -6,21 +7,21 @@ import { DeckRuntimeContext, FormikFormField, ReactModal, TaskMonitorModal } fro
 import { EditAsgAdvancedSettingsModal } from './EditAsgAdvancedSettingsModal';
 
 describe('EditAsgAdvancedSettingsModal', () => {
-  const application = { name: 'deck', serverGroups: { refresh: jasmine.createSpy('refresh') } } as any;
+  const application = { name: 'deck', serverGroups: { refresh: vi.fn() } } as any;
   const serverGroup = { name: 'deck-main-v001', account: 'test', region: 'us-east-1' } as any;
-  let buildUpdateServerGroupCommand: jasmine.Spy;
+  let buildUpdateServerGroupCommand: Mock;
   const modalProps = {
     application,
     serverGroup,
-    closeModal: jasmine.createSpy('closeModal'),
-    dismissModal: jasmine.createSpy('dismissModal'),
+    closeModal: vi.fn(),
+    dismissModal: vi.fn(),
   };
 
   function mountModal(command: any) {
-    buildUpdateServerGroupCommand = jasmine.createSpy().and.returnValue(command);
+    buildUpdateServerGroupCommand = vi.fn().mockReturnValue(command);
     const commandBuilder = { buildUpdateServerGroupCommand };
     const runtime = {
-      services: { providerServiceDelegate: { getDelegate: jasmine.createSpy().and.returnValue(commandBuilder) } },
+      services: { providerServiceDelegate: { getDelegate: vi.fn().mockReturnValue(commandBuilder) } },
     } as any;
     return mount(
       <DeckRuntimeContext.Provider value={runtime}>
@@ -95,7 +96,7 @@ describe('EditAsgAdvancedSettingsModal', () => {
   });
 
   it('opens only after managed-resource verification succeeds', async () => {
-    const show = spyOn(ReactModal, 'show').and.returnValue(Promise.resolve() as any);
+    const show = vi.spyOn(ReactModal, 'show').mockReturnValue(Promise.resolve() as any);
     const runtimeServices = {} as any;
 
     await EditAsgAdvancedSettingsModal.show({ application, serverGroup }, runtimeServices);

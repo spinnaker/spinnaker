@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { mount } from 'enzyme';
 import React from 'react';
 import { AccountService } from '@spinnaker/core';
@@ -6,9 +7,9 @@ import { AmazonStageConfig, getAmazonStageFields } from './AmazonStageConfig';
 
 describe('AmazonStageConfig', () => {
   beforeEach(() => {
-    spyOn(AccountService, 'listAccounts').and.returnValue(Promise.resolve([{ name: 'test', type: 'aws' }] as any));
-    spyOn(AccountService, 'getUniqueAttributeForAllAccounts').and.returnValue(Promise.resolve(['us-east-1']) as any);
-    spyOn(AccountService, 'getAllAccountDetailsForProvider').and.returnValue(Promise.resolve([]) as any);
+    vi.spyOn(AccountService, 'listAccounts').mockReturnValue(Promise.resolve([{ name: 'test', type: 'aws' }] as any));
+    vi.spyOn(AccountService, 'getUniqueAttributeForAllAccounts').mockReturnValue(Promise.resolve(['us-east-1']) as any);
+    vi.spyOn(AccountService, 'getAllAccountDetailsForProvider').mockReturnValue(Promise.resolve([]) as any);
   });
 
   function renderStage(stage: any = {}) {
@@ -23,7 +24,7 @@ describe('AmazonStageConfig', () => {
         application={application as any}
         pipeline={{} as any}
         stage={{ type: 'destroyServerGroup', cloudProviderType: 'aws', ...stage }}
-        updateStageField={jasmine.createSpy('updateStageField') as any}
+        updateStageField={vi.fn() as any}
       />,
     );
   }
@@ -78,17 +79,17 @@ describe('AmazonStageConfig', () => {
   it('does not update account and region state after unmount', async () => {
     let resolveAccounts: (accounts: any[]) => void;
     let resolveRegions: (regions: string[]) => void;
-    (AccountService.listAccounts as jasmine.Spy).and.returnValue(
+    (AccountService.listAccounts as Mock).mockReturnValue(
       new Promise((resolve) => {
         resolveAccounts = resolve;
       }) as any,
     );
-    (AccountService.getUniqueAttributeForAllAccounts as jasmine.Spy).and.returnValue(
+    (AccountService.getUniqueAttributeForAllAccounts as Mock).mockReturnValue(
       new Promise((resolve) => {
         resolveRegions = resolve;
       }) as any,
     );
-    spyOn(console, 'error');
+    vi.spyOn(console, 'error').mockReturnValue(undefined);
 
     const wrapper = renderStage();
     wrapper.unmount();
@@ -96,7 +97,7 @@ describe('AmazonStageConfig', () => {
     resolveRegions!(['us-east-1']);
     await Promise.resolve();
 
-    expect((console.error as jasmine.Spy).calls.allArgs().join('\n')).not.toContain(
+    expect((console.error as Mock).mock.calls.join('\n')).not.toContain(
       "Can't perform a React state update on an unmounted component",
     );
   });

@@ -25,7 +25,7 @@ describe('GceAutoscalingPolicyEditor', () => {
   });
 
   it('keeps the predictive setting behind its feature gate and writes NONE when disabled', () => {
-    const onChange = jasmine.createSpy('onChange');
+    const onChange = vi.fn();
     const policy = {
       cpuUtilization: { utilizationTarget: 0.5, predictiveMethod: GcePredictiveMethod.STANDARD },
     };
@@ -45,7 +45,7 @@ describe('GceAutoscalingPolicyEditor', () => {
   });
 
   it('edits CPU, HTTP load-balancing, and custom metrics as controlled values', () => {
-    const onChange = jasmine.createSpy('onChange');
+    const onChange = vi.fn();
     const policy = {
       cpuUtilization: { utilizationTarget: 0.5 },
       loadBalancingUtilization: { utilizationTarget: 0.6 },
@@ -67,7 +67,7 @@ describe('GceAutoscalingPolicyEditor', () => {
   });
 
   it('clears group-only scaling fields when a custom metric changes to per-instance scope', () => {
-    const onChange = jasmine.createSpy('onChange');
+    const onChange = vi.fn();
     const policy = {
       customMetricUtilizations: [
         {
@@ -95,7 +95,7 @@ describe('GceAutoscalingPolicyEditor', () => {
   });
 
   it('defaults to utilization target when a custom metric changes to group scope', () => {
-    const onChange = jasmine.createSpy('onChange');
+    const onChange = vi.fn();
     const policy = {
       customMetricUtilizations: [
         {
@@ -126,7 +126,7 @@ describe('GceAutoscalingPolicyEditor', () => {
   });
 
   it('clears single-instance assignment when group scaling switches to utilization target', () => {
-    const onChange = jasmine.createSpy('onChange');
+    const onChange = vi.fn();
     const policy = {
       customMetricUtilizations: [
         {
@@ -153,7 +153,7 @@ describe('GceAutoscalingPolicyEditor', () => {
   });
 
   it('clears utilization fields when group scaling switches to single-instance assignment', () => {
-    const onChange = jasmine.createSpy('onChange');
+    const onChange = vi.fn();
     const policy = {
       customMetricUtilizations: [
         {
@@ -183,7 +183,7 @@ describe('GceAutoscalingPolicyEditor', () => {
   });
 
   it('returns to the add action after a CPU metric is marked for deletion', () => {
-    const onChange = jasmine.createSpy('onChange');
+    const onChange = vi.fn();
     const wrapper = shallow(
       <GceAutoscalingPolicyEditor policy={{ cpuUtilization: { utilizationTarget: 0.5 } }} onChange={onChange} />,
     );
@@ -205,7 +205,7 @@ describe('GceAutoscalingPolicyEditor', () => {
   });
 
   it('switches scale-in units without losing a zero maximum', () => {
-    const onChange = jasmine.createSpy('onChange');
+    const onChange = vi.fn();
     const policy = { scaleInControl: { maxScaledInReplicas: { percent: 0 }, timeWindowSec: 60 } };
     const wrapper = shallow(<GceAutoscalingPolicyEditor policy={policy} onChange={onChange} />);
 
@@ -217,7 +217,7 @@ describe('GceAutoscalingPolicyEditor', () => {
   });
 
   it('edits scaling schedules including timezone and preserves disabled schedules', () => {
-    const onChange = jasmine.createSpy('onChange');
+    const onChange = vi.fn();
     const policy = {
       scalingSchedules: [
         {

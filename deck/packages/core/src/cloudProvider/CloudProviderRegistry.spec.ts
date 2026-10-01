@@ -1,6 +1,8 @@
 import { CloudProviderRegistry } from './CloudProviderRegistry';
 import { SETTINGS } from '../config/settings';
 
+const testContext: any = {};
+
 describe('CloudProviderRegistry: API', function () {
   const registrationTestProvider = 'cloudProviderRegistryRegistrationTest';
   const lookupTestProvider = 'cloudProviderRegistryLookupTest';
@@ -28,7 +30,7 @@ describe('CloudProviderRegistry: API', function () {
 
   describe('property lookup', function () {
     beforeEach(function () {
-      this.config = {
+      testContext.config = {
         key: 'a',
         nested: {
           good: 'nice',
@@ -40,17 +42,17 @@ describe('CloudProviderRegistry: API', function () {
     });
 
     it('returns simple or nested properties', function () {
-      CloudProviderRegistry.registerProvider(lookupTestProvider, this.config);
+      CloudProviderRegistry.registerProvider(lookupTestProvider, testContext.config);
       expect(CloudProviderRegistry.getValue(lookupTestProvider, 'key')).toEqual('a');
-      expect(CloudProviderRegistry.getValue(lookupTestProvider, 'nested')).toEqual(this.config.nested);
+      expect(CloudProviderRegistry.getValue(lookupTestProvider, 'nested')).toEqual(testContext.config.nested);
       expect(CloudProviderRegistry.getValue(lookupTestProvider, 'nested.good')).toEqual('nice');
     });
 
     it('returns a copy of properties, not actual registered values', function () {
-      CloudProviderRegistry.registerProvider(lookupTestProvider, this.config);
+      CloudProviderRegistry.registerProvider(lookupTestProvider, testContext.config);
 
-      expect(CloudProviderRegistry.getValue(lookupTestProvider, 'nested')).not.toBe(this.config.nested);
-      expect(CloudProviderRegistry.getValue(lookupTestProvider, 'nested')).toEqual(this.config.nested);
+      expect(CloudProviderRegistry.getValue(lookupTestProvider, 'nested')).not.toBe(testContext.config.nested);
+      expect(CloudProviderRegistry.getValue(lookupTestProvider, 'nested')).toEqual(testContext.config.nested);
 
       // the above tests should be sufficient, but just to really drive home the point
       const nested = CloudProviderRegistry.getValue(lookupTestProvider, 'nested');
@@ -60,14 +62,14 @@ describe('CloudProviderRegistry: API', function () {
     });
 
     it('returns falsy values', function () {
-      CloudProviderRegistry.registerProvider(lookupTestProvider, this.config);
+      CloudProviderRegistry.registerProvider(lookupTestProvider, testContext.config);
       expect(CloudProviderRegistry.getValue(lookupTestProvider, 'nested.falsy')).toBe(false);
       expect(CloudProviderRegistry.getValue(lookupTestProvider, 'nested.nully')).toBe(null);
       expect(CloudProviderRegistry.getValue(lookupTestProvider, 'nested.zero')).toBe(0);
     });
 
     it('returns null when provider or property is not found', function () {
-      CloudProviderRegistry.registerProvider(lookupTestProvider, this.config);
+      CloudProviderRegistry.registerProvider(lookupTestProvider, testContext.config);
       expect(CloudProviderRegistry.getValue('gce', 'a')).toBe(null);
       expect(CloudProviderRegistry.getValue(lookupTestProvider, 'b')).toBe(null);
       expect(CloudProviderRegistry.getValue(lookupTestProvider, 'a.b')).toBe(null);
@@ -76,7 +78,7 @@ describe('CloudProviderRegistry: API', function () {
 
   describe('hasValue', function () {
     beforeEach(function () {
-      this.config = {
+      testContext.config = {
         key: 'a',
         nested: {
           good: 'nice',
@@ -88,7 +90,7 @@ describe('CloudProviderRegistry: API', function () {
     });
 
     it('returns true on simple or nested properties', function () {
-      CloudProviderRegistry.registerProvider(lookupTestProvider, this.config);
+      CloudProviderRegistry.registerProvider(lookupTestProvider, testContext.config);
       expect(CloudProviderRegistry.hasValue(lookupTestProvider, 'key')).toBe(true);
       expect(CloudProviderRegistry.hasValue(lookupTestProvider, 'nested')).toBe(true);
       expect(CloudProviderRegistry.hasValue(lookupTestProvider, 'nested.good')).toBe(true);
@@ -97,7 +99,7 @@ describe('CloudProviderRegistry: API', function () {
     });
 
     it('returns false on null properties, non-existent properties or non-existent providers', function () {
-      CloudProviderRegistry.registerProvider(lookupTestProvider, this.config);
+      CloudProviderRegistry.registerProvider(lookupTestProvider, testContext.config);
       expect(CloudProviderRegistry.hasValue(lookupTestProvider, 'nested.nully')).toBe(false);
       expect(CloudProviderRegistry.hasValue(lookupTestProvider, 'nonexistent')).toBe(false);
       expect(CloudProviderRegistry.hasValue(lookupTestProvider, 'definitely.nonexistent')).toBe(false);

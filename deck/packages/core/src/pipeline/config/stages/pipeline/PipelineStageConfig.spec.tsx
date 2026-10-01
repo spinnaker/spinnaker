@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { mount } from 'enzyme';
 import React from 'react';
 import { act } from 'react-dom/test-utils';
@@ -16,17 +17,17 @@ describe('PipelineStageConfig', () => {
   };
 
   beforeEach(() => {
-    spyOn(ApplicationReader, 'listApplications').and.returnValue(Promise.resolve([{ name: 'app' }]) as any);
+    vi.spyOn(ApplicationReader, 'listApplications').mockReturnValue(Promise.resolve([{ name: 'app' }]) as any);
   });
 
   it('uses a searchable virtualized application selector for static application values', async () => {
-    (ApplicationReader.listApplications as jasmine.Spy).and.returnValue(
+    (ApplicationReader.listApplications as Mock).mockReturnValue(
       Promise.resolve([{ name: 'app' }, { name: 'zzz-app' }]) as any,
     );
     const parentPipeline = { id: 'parent-pipeline', parameterConfig: [], stages: [] } as IPipeline;
     const stage = { application: 'app' } as IStage;
-    const updateStageField = jasmine.createSpy('updateStageField');
-    spyOn(PipelineConfigService, 'getPipelinesForApplication').and.returnValue(Promise.resolve([]) as any);
+    const updateStageField = vi.fn();
+    vi.spyOn(PipelineConfigService, 'getPipelinesForApplication').mockReturnValue(Promise.resolve([]) as any);
 
     const wrapper = mount(
       <PipelineStageConfig
@@ -76,8 +77,10 @@ describe('PipelineStageConfig', () => {
       pipeline: 'child-pipeline',
       pipelineParameters: { choice: '${ trigger.properties.choice }' },
     } as IStage;
-    const updateStageField = jasmine.createSpy('updateStageField');
-    spyOn(PipelineConfigService, 'getPipelinesForApplication').and.returnValue(Promise.resolve([childPipeline]) as any);
+    const updateStageField = vi.fn();
+    vi.spyOn(PipelineConfigService, 'getPipelinesForApplication').mockReturnValue(
+      Promise.resolve([childPipeline]) as any,
+    );
 
     const wrapper = mount(
       <PipelineStageConfig

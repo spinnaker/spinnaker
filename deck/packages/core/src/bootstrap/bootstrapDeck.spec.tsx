@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { StateRegistry, UrlService } from '@uirouter/core';
 import { UIRouterContext, UIRouterReact } from '@uirouter/react';
 import { mount } from 'enzyme';
@@ -110,25 +111,25 @@ describe('bootstrapDeck', () => {
     State.LoadBalancerState,
     State.SecurityGroupState,
   ];
-  let authenticationSpy: jasmine.Spy;
-  let cacheInitializeSpy: jasmine.Spy;
-  let deckManifestSpy: jasmine.Spy;
-  let listenSpy: jasmine.Spy;
-  let metadataGet: jasmine.Spy;
-  let notificationMetadataSpy: jasmine.Spy;
+  let authenticationSpy: Mock;
+  let cacheInitializeSpy: Mock;
+  let deckManifestSpy: Mock;
+  let listenSpy: Mock;
+  let metadataGet: Mock;
+  let notificationMetadataSpy: Mock;
   let originalAuthEnabled: boolean;
   let originalCheckForUpdates: boolean;
   let originalDataSources: ReturnType<typeof ApplicationDataSourceRegistry.getDataSources>;
   let originalHash: string;
   let originalHttpClient: IHttpClientImplementation;
-  let pluginLoadsSpy: jasmine.Spy;
-  let renderSpy: jasmine.Spy;
-  let routerPluginSpy: jasmine.Spy;
-  let runtimeDataSourceSpy: jasmine.Spy;
-  let schedulerCreateSpy: jasmine.Spy;
+  let pluginLoadsSpy: Mock;
+  let renderSpy: Mock;
+  let routerPluginSpy: Mock;
+  let runtimeDataSourceSpy: Mock;
+  let schedulerCreateSpy: Mock;
   let stateSnapshots: IStateSnapshot[];
-  let syncSpy: jasmine.Spy;
-  let unmountSpy: jasmine.Spy;
+  let syncSpy: Mock;
+  let unmountSpy: Mock;
 
   function createRoot(attachToBody = false): HTMLElement {
     const root = document.createElement('div');
@@ -149,7 +150,7 @@ describe('bootstrapDeck', () => {
   }
 
   function versionSchedulerCount(): number {
-    return schedulerCreateSpy.calls.allArgs().filter((args) => args.length === 0).length;
+    return schedulerCreateSpy.mock.calls.filter((args) => args.length === 0).length;
   }
 
   beforeEach(() => {
@@ -163,26 +164,26 @@ describe('bootstrapDeck', () => {
     ApplicationDataSourceRegistry.clearDataSources();
     SETTINGS.authEnabled = true;
     SETTINGS.checkForUpdates = true;
-    metadataGet = jasmine.createSpy('metadataGet').and.returnValue(Promise.resolve([]));
+    metadataGet = vi.fn().mockReturnValue(Promise.resolve([]));
     RequestBuilder.defaultHttpClient = { get: metadataGet } as IHttpClientImplementation;
-    authenticationSpy = spyOn(AuthenticationInitializer, 'authenticateUser').and.returnValue(Promise.resolve(true));
-    spyOn(GlobalBannerService, 'getActiveBanners').and.returnValue(Promise.resolve([]));
-    notificationMetadataSpy = spyOn(NotificationService, 'getNotificationTypeMetadata').and.returnValue(
-      Promise.resolve([]),
-    );
-    deckManifestSpy = spyOn(PluginRegistry.prototype, 'loadPluginManifestFromDeck').and.returnValue(
-      Promise.resolve([]),
-    );
-    spyOn(PluginRegistry.prototype, 'loadPluginManifestFromGate').and.returnValue(Promise.resolve([]));
-    pluginLoadsSpy = spyOn(PluginRegistry.prototype, 'loadPlugins').and.returnValue(Promise.resolve([]));
-    runtimeDataSourceSpy = spyOn(ApplicationDataSourceRegistry, 'registerDataSource').and.callThrough();
-    cacheInitializeSpy = spyOn(CacheInitializerService.prototype, 'initialize').and.returnValue(Promise.resolve([]));
-    renderSpy = spyOn(ReactDOM, 'render').and.callThrough();
-    unmountSpy = spyOn(ReactDOM, 'unmountComponentAtNode').and.callThrough();
-    schedulerCreateSpy = spyOn(SchedulerFactory, 'createScheduler').and.callThrough();
-    routerPluginSpy = spyOn(UIRouterReact.prototype, 'plugin').and.callThrough();
-    listenSpy = spyOn(UrlService.prototype, 'listen');
-    syncSpy = spyOn(UrlService.prototype, 'sync');
+    authenticationSpy = vi.spyOn(AuthenticationInitializer, 'authenticateUser').mockReturnValue(Promise.resolve(true));
+    vi.spyOn(GlobalBannerService, 'getActiveBanners').mockReturnValue(Promise.resolve([]));
+    notificationMetadataSpy = vi
+      .spyOn(NotificationService, 'getNotificationTypeMetadata')
+      .mockReturnValue(Promise.resolve([]));
+    deckManifestSpy = vi
+      .spyOn(PluginRegistry.prototype, 'loadPluginManifestFromDeck')
+      .mockReturnValue(Promise.resolve([]));
+    vi.spyOn(PluginRegistry.prototype, 'loadPluginManifestFromGate').mockReturnValue(Promise.resolve([]));
+    pluginLoadsSpy = vi.spyOn(PluginRegistry.prototype, 'loadPlugins').mockReturnValue(Promise.resolve([]));
+    runtimeDataSourceSpy = vi.spyOn(ApplicationDataSourceRegistry, 'registerDataSource');
+    cacheInitializeSpy = vi.spyOn(CacheInitializerService.prototype, 'initialize').mockReturnValue(Promise.resolve([]));
+    renderSpy = vi.spyOn(ReactDOM, 'render');
+    unmountSpy = vi.spyOn(ReactDOM, 'unmountComponentAtNode');
+    schedulerCreateSpy = vi.spyOn(SchedulerFactory, 'createScheduler');
+    routerPluginSpy = vi.spyOn(UIRouterReact.prototype, 'plugin');
+    listenSpy = vi.spyOn(UrlService.prototype, 'listen').mockReturnValue(undefined);
+    syncSpy = vi.spyOn(UrlService.prototype, 'sync').mockReturnValue(undefined);
   });
 
   afterEach(() => {
@@ -223,9 +224,9 @@ describe('bootstrapDeck', () => {
 
     const result = bootstrapDeck(root);
 
-    expect(result).toEqual(jasmine.any(Promise));
+    expect(result).toEqual(expect.any(Promise));
     await result;
-    expect(renderSpy).toHaveBeenCalledWith(jasmine.any(Object), root);
+    expect(renderSpy).toHaveBeenCalledWith(expect.any(Object), root);
   });
 
   it('allows the direct React root to fill the viewport height', async () => {
@@ -287,7 +288,7 @@ describe('bootstrapDeck', () => {
     const placeholder = document.createElement('div');
     placeholder.className = 'loading-placeholder';
     document.body.appendChild(placeholder);
-    renderSpy.and.callFake(() => {
+    renderSpy.mockImplementation(() => {
       expect(document.querySelector('.loading-placeholder')).toBe(placeholder);
       return null;
     });
@@ -300,7 +301,7 @@ describe('bootstrapDeck', () => {
   it('creates a pure direct UI Router and Spinnaker container tree for the supplied router', () => {
     const router = createConfiguredRouter();
     const runtime = createDeckRuntime();
-    routerPluginSpy.calls.reset();
+    routerPluginSpy.mockClear();
     (State.ExecutionState as any).filterModel = null;
 
     const app = createDeckRoot(router, runtime);
@@ -312,7 +313,7 @@ describe('bootstrapDeck', () => {
     expect(routerProvider.props.value).toBe(router);
     expect(routerProvider.props.children.type).toBe(SpinnakerContainer);
     expect(routerProvider.props.children.props).toEqual(
-      jasmine.objectContaining({ authenticating: false, routingState: runtime.routingState }),
+      expect.objectContaining({ authenticating: false, routingState: runtime.routingState }),
     );
     expect(routerPluginSpy).not.toHaveBeenCalled();
     expect(State.ExecutionState.filterModel).toBeNull();
@@ -362,14 +363,14 @@ describe('bootstrapDeck', () => {
       }
     }
 
-    renderSpy.and.callFake((element: React.ReactElement, container: Element) =>
+    renderSpy.mockImplementation((element: React.ReactElement, container: Element) =>
       actualRender(<MountObserver>{element}</MountObserver>, container),
     );
-    listenSpy.and.callFake(() => {
+    listenSpy.mockImplementation(() => {
       expect(document.querySelector('.loading-placeholder')).toBeNull();
       order.push('listen');
     });
-    syncSpy.and.callFake(() => order.push('sync'));
+    syncSpy.mockImplementation(() => order.push('sync'));
 
     await bootstrapDeck(root);
     await new Promise((resolve) => setTimeout(resolve, 0));
@@ -385,10 +386,10 @@ describe('bootstrapDeck', () => {
     window.location.hash = `#/applications/payments/clusters?clusters=${encodeURIComponent(
       clusterKey,
     )}&acct=main-euc1-se-main01&q=payments`;
-    listenSpy.and.callThrough();
-    syncSpy.and.callThrough();
-    renderSpy.and.returnValue(null);
-    spyOn(ApplicationReader, 'getApplication').and.returnValue(
+    listenSpy.mockRestore();
+    syncSpy.mockRestore();
+    renderSpy.mockReturnValue(null);
+    vi.spyOn(ApplicationReader, 'getApplication').mockReturnValue(
       Promise.resolve({ name: 'payments', dataSources: [] } as any),
     );
 
@@ -414,22 +415,22 @@ describe('bootstrapDeck', () => {
     let runtimeMetadataObserved = false;
     let routerObserved = false;
     let filterModel: unknown;
-    runtimeDataSourceSpy.and.callFake((config: any) => {
+    runtimeDataSourceSpy.mockImplementation((config: any) => {
       if (!runtimeMetadataObserved) {
         runtimeMetadataObserved = true;
         order.push('runtime metadata');
       }
       actualRegisterDataSource.call(ApplicationDataSourceRegistry, config);
     });
-    authenticationSpy.and.callFake(() => {
+    authenticationSpy.mockImplementation(() => {
       order.push('authentication');
       return Promise.resolve(true);
     });
-    deckManifestSpy.and.callFake(() => {
+    deckManifestSpy.mockImplementation(() => {
       order.push('plugins');
       return Promise.resolve([]);
     });
-    routerPluginSpy.and.callFake(function (...args: any[]) {
+    routerPluginSpy.mockImplementation(function (...args: any[]) {
       if (!routerObserved) {
         routerObserved = true;
         order.push('router constructed');
@@ -444,16 +445,16 @@ describe('bootstrapDeck', () => {
         order.push('state initialized');
       },
     });
-    cacheInitializeSpy.and.callFake(() => {
+    cacheInitializeSpy.mockImplementation(() => {
       order.push('cache started');
       return Promise.resolve([]);
     });
-    renderSpy.and.callFake(() => {
+    renderSpy.mockImplementation(() => {
       order.push('render');
       return null;
     });
-    listenSpy.and.callFake(() => order.push('listen'));
-    syncSpy.and.callFake(() => order.push('sync'));
+    listenSpy.mockImplementation(() => order.push('listen'));
+    syncSpy.mockImplementation(() => order.push('sync'));
 
     await bootstrapDeck(root);
 
@@ -484,7 +485,7 @@ describe('bootstrapDeck', () => {
   it('stops after authentication fails without starting authenticated work', async () => {
     const root = createRoot();
     const originalFilterModel = State.ExecutionState.filterModel;
-    authenticationSpy.and.returnValue(Promise.resolve(false));
+    authenticationSpy.mockReturnValue(Promise.resolve(false));
 
     await bootstrapDeck(root);
 
@@ -503,7 +504,7 @@ describe('bootstrapDeck', () => {
   it('does not request dynamic metadata before authentication succeeds', async () => {
     const root = createRoot();
     const authentication = deferred<boolean>();
-    authenticationSpy.and.returnValue(authentication.promise);
+    authenticationSpy.mockReturnValue(authentication.promise);
 
     const bootstrap = bootstrapDeck(root);
 
@@ -512,17 +513,19 @@ describe('bootstrapDeck', () => {
     authentication.resolve(true);
     await bootstrap;
     expect(notificationMetadataSpy).toHaveBeenCalledTimes(1);
-    expect(metadataGet.calls.allArgs().map(([config]) => config.url)).toEqual(
-      jasmine.arrayWithExactContents([
-        jasmine.stringMatching(/jobs\/preconfigured$/),
-        jasmine.stringMatching(/webhooks\/preconfigured$/),
+    const requestedMetadataUrls = metadataGet.mock.calls.map(([config]) => config.url);
+    expect(requestedMetadataUrls).toHaveLength(2);
+    expect(requestedMetadataUrls).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/jobs\/preconfigured$/),
+        expect.stringMatching(/webhooks\/preconfigured$/),
       ]),
     );
   });
 
   it('does not wait for dynamic metadata before plugins and router startup', async () => {
     const root = createRoot();
-    notificationMetadataSpy.and.returnValue(new Promise(() => undefined));
+    notificationMetadataSpy.mockReturnValue(new Promise(() => undefined));
 
     await bootstrapDeck(root);
 
@@ -535,7 +538,7 @@ describe('bootstrapDeck', () => {
   it('waits for plugin initialization before constructing the router', async () => {
     const root = createRoot();
     const plugins = deferred<any[]>();
-    deckManifestSpy.and.returnValue(plugins.promise);
+    deckManifestSpy.mockReturnValue(plugins.promise);
 
     const bootstrap = bootstrapDeck(root);
     await new Promise((resolve) => setTimeout(resolve, 0));
@@ -550,8 +553,8 @@ describe('bootstrapDeck', () => {
   it('rejects plugin manifest failures before constructing or starting the router', async () => {
     const root = createRoot();
     const failure = new Error('plugin manifest unavailable');
-    const routerConstructionSpy = spyOn(StateRegistry.prototype, 'decorator').and.callThrough();
-    deckManifestSpy.and.returnValue(Promise.reject(failure));
+    const routerConstructionSpy = vi.spyOn(StateRegistry.prototype, 'decorator');
+    deckManifestSpy.mockReturnValue(Promise.reject(failure));
 
     await expectAsync(bootstrapDeck(root)).toBeRejectedWith(failure);
 
@@ -564,7 +567,7 @@ describe('bootstrapDeck', () => {
 
   it('continues startup after initializePlugins settles plugin attempt failures', async () => {
     const root = createRoot();
-    pluginLoadsSpy.and.returnValue(Promise.resolve([undefined]));
+    pluginLoadsSpy.mockReturnValue(Promise.resolve([undefined]));
 
     await bootstrapDeck(root);
 
@@ -577,15 +580,15 @@ describe('bootstrapDeck', () => {
   it('starts cache initialization before render without waiting for it', async () => {
     const order: string[] = [];
     const root = createRoot();
-    cacheInitializeSpy.and.callFake(() => {
+    cacheInitializeSpy.mockImplementation(() => {
       order.push('cache started');
       return new Promise<any[]>(() => undefined);
     });
-    renderSpy.and.callFake(() => {
+    renderSpy.mockImplementation(() => {
       order.push('render');
       return null;
     });
-    listenSpy.and.callFake(() => order.push('listen'));
+    listenSpy.mockImplementation(() => order.push('listen'));
 
     await bootstrapDeck(root);
 
@@ -595,10 +598,13 @@ describe('bootstrapDeck', () => {
   it('logs a cache rejection exactly once without rejecting bootstrap', async () => {
     const root = createRoot();
     const failure = new Error('cache unavailable');
-    const consoleError = spyOn(console, 'error');
-    cacheInitializeSpy.and.returnValue(Promise.reject(failure));
+    const consoleError = vi.spyOn(console, 'error').mockReturnValue(undefined);
+    cacheInitializeSpy.mockReturnValue(Promise.reject(failure));
 
     await expectAsync(bootstrapDeck(root)).toBeResolved();
+    // The cache initializer is fire-and-forget; let its detached rejection chain settle before
+    // asserting it was logged (a macrotask flushes the pending microtasks).
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(consoleError).toHaveBeenCalledTimes(1);
     expect(consoleError).toHaveBeenCalledWith('Failed to initialize infrastructure caches', failure);
@@ -608,8 +614,8 @@ describe('bootstrapDeck', () => {
   it('isolates a synchronous cache initialization failure', async () => {
     const root = createRoot();
     const failure = new Error('cache initialization threw');
-    const consoleError = spyOn(console, 'error');
-    cacheInitializeSpy.and.callFake(() => {
+    const consoleError = vi.spyOn(console, 'error').mockReturnValue(undefined);
+    cacheInitializeSpy.mockImplementation(() => {
       throw failure;
     });
 
@@ -624,8 +630,8 @@ describe('bootstrapDeck', () => {
 
   it('assimilates a resolving cache thenable without blocking bootstrap', async () => {
     const root = createRoot();
-    const consoleError = spyOn(console, 'error');
-    cacheInitializeSpy.and.returnValue({
+    const consoleError = vi.spyOn(console, 'error').mockReturnValue(undefined);
+    cacheInitializeSpy.mockReturnValue({
       then: (resolve: (value: any[]) => void) => resolve([]),
     } as any);
 
@@ -640,8 +646,8 @@ describe('bootstrapDeck', () => {
   it('assimilates and logs a rejecting cache thenable exactly once', async () => {
     const root = createRoot();
     const failure = new Error('cache thenable rejected');
-    const consoleError = spyOn(console, 'error');
-    cacheInitializeSpy.and.returnValue({
+    const consoleError = vi.spyOn(console, 'error').mockReturnValue(undefined);
+    cacheInitializeSpy.mockReturnValue({
       then: (_resolve: (value: any[]) => void, reject: (error: Error) => void) => reject(failure),
     } as any);
 
@@ -680,7 +686,7 @@ describe('bootstrapDeck', () => {
     const root = createRoot();
     const competingRoot = createRoot();
     const authentication = deferred<boolean>();
-    authenticationSpy.and.returnValue(authentication.promise);
+    authenticationSpy.mockReturnValue(authentication.promise);
 
     const activeBootstrap = bootstrapDeck(root);
 
@@ -701,12 +707,20 @@ describe('bootstrapDeck', () => {
         throw failure;
       },
     });
-    const dispose = spyOn(UIRouterReact.prototype, 'dispose').and.callThrough();
+    const dispose = vi.spyOn(UIRouterReact.prototype, 'dispose');
 
     await expectAsync(bootstrapDeck(root)).toBeRejectedWith(failure);
 
     expect(getDirectRouter()).toBeNull();
-    expect(dispose.calls.all().filter(({ args }) => args.length === 0).length).toBe(1);
+    expect(
+      dispose.mock.calls
+        .map((args, __i) => ({
+          args,
+          returnValue: dispose.mock.results[__i].value,
+          invocationOrder: dispose.mock.invocationCallOrder[__i],
+        }))
+        .filter(({ args }) => args.length === 0).length,
+    ).toBe(1);
     expect(renderSpy).not.toHaveBeenCalled();
     expect(unmountSpy).not.toHaveBeenCalled();
     expect(syncSpy).not.toHaveBeenCalled();
@@ -726,9 +740,9 @@ describe('bootstrapDeck', () => {
     const replacementRouter = new UIRouterReact();
     configuredRouters.push(replacementRouter);
     const failure = new Error('render failed');
-    const dispose = spyOn(UIRouterReact.prototype, 'dispose').and.callThrough();
-    cacheInitializeSpy.and.returnValue(new Promise<any[]>(() => undefined));
-    renderSpy.and.callFake(() => {
+    const dispose = vi.spyOn(UIRouterReact.prototype, 'dispose');
+    cacheInitializeSpy.mockReturnValue(new Promise<any[]>(() => undefined));
+    renderSpy.mockImplementation(() => {
       setDirectRouter(replacementRouter);
       throw failure;
     });
@@ -736,11 +750,19 @@ describe('bootstrapDeck', () => {
     await expectAsync(bootstrapDeck(root)).toBeRejectedWith(failure);
 
     expect(getDirectRouter()).toBe(replacementRouter);
-    expect(dispose.calls.all().filter(({ args }) => args.length === 0).length).toBe(1);
-    expect(unmountSpy.calls.allArgs().filter(([unmountedRoot]) => unmountedRoot === root).length).toBe(1);
+    expect(
+      dispose.mock.calls
+        .map((args, __i) => ({
+          args,
+          returnValue: dispose.mock.results[__i].value,
+          invocationOrder: dispose.mock.invocationCallOrder[__i],
+        }))
+        .filter(({ args }) => args.length === 0).length,
+    ).toBe(1);
+    expect(unmountSpy.mock.calls.filter(([unmountedRoot]) => unmountedRoot === root).length).toBe(1);
     expect(syncSpy).not.toHaveBeenCalled();
 
-    renderSpy.and.callThrough();
+    renderSpy.mockReturnValue(null);
     await expectAsync(bootstrapDeck(root)).toBeResolved();
     expect(renderSpy).toHaveBeenCalledTimes(2);
     expect(syncSpy).toHaveBeenCalledTimes(1);
@@ -753,25 +775,37 @@ describe('bootstrapDeck', () => {
     const retryRoot = createRoot();
     const failure = new Error('router start failed');
     const cacheFailure = new Error('cache failed before router start');
-    const consoleError = spyOn(console, 'error');
-    const dispose = spyOn(UIRouterReact.prototype, 'dispose').and.callThrough();
-    const start = spyOn(UIRouterReact.prototype, 'start').and.throwError(failure);
-    cacheInitializeSpy.and.returnValue(Promise.reject(cacheFailure));
+    const consoleError = vi.spyOn(console, 'error').mockReturnValue(undefined);
+    const dispose = vi.spyOn(UIRouterReact.prototype, 'dispose');
+    const start = vi.spyOn(UIRouterReact.prototype, 'start').mockImplementation(() => {
+      throw failure;
+    });
+    cacheInitializeSpy.mockReturnValue(Promise.reject(cacheFailure));
 
     await expectAsync(bootstrapDeck(root)).toBeRejectedWith(failure);
 
     expect(getDirectRouter()).toBeNull();
-    expect(dispose.calls.all().filter(({ args }) => args.length === 0).length).toBe(1);
-    expect(unmountSpy.calls.allArgs().filter(([unmountedRoot]) => unmountedRoot === root).length).toBe(1);
+    expect(
+      dispose.mock.calls
+        .map((args, __i) => ({
+          args,
+          returnValue: dispose.mock.results[__i].value,
+          invocationOrder: dispose.mock.invocationCallOrder[__i],
+        }))
+        .filter(({ args }) => args.length === 0).length,
+    ).toBe(1);
+    expect(unmountSpy.mock.calls.filter(([unmountedRoot]) => unmountedRoot === root).length).toBe(1);
     expect(syncSpy).not.toHaveBeenCalled();
 
-    start.and.callThrough();
+    start.mockRestore();
     await expectAsync(bootstrapDeck(retryRoot)).toBeResolved();
+    // Let the retry's fire-and-forget cache rejection settle before asserting it was logged again.
+    await new Promise((resolve) => setTimeout(resolve, 0));
     expect(renderSpy).toHaveBeenCalledTimes(2);
     expect(syncSpy).toHaveBeenCalledTimes(1);
     expect(cacheInitializeSpy).toHaveBeenCalledTimes(2);
     expect(versionSchedulerCount()).toBe(1);
-    expect(consoleError.calls.allArgs()).toEqual([
+    expect(consoleError.mock.calls).toEqual([
       ['Failed to initialize infrastructure caches', cacheFailure],
       ['Failed to initialize infrastructure caches', cacheFailure],
     ]);
@@ -781,19 +815,31 @@ describe('bootstrapDeck', () => {
     const root = createRoot();
     const bootstrapFailure = new Error('render failed');
     const unmountFailure = new Error('unmount failed');
-    const consoleError = spyOn(console, 'error');
-    const dispose = spyOn(UIRouterReact.prototype, 'dispose').and.callThrough();
-    renderSpy.and.throwError(bootstrapFailure);
-    unmountSpy.and.throwError(unmountFailure);
+    const consoleError = vi.spyOn(console, 'error').mockReturnValue(undefined);
+    const dispose = vi.spyOn(UIRouterReact.prototype, 'dispose');
+    renderSpy.mockImplementation(() => {
+      throw bootstrapFailure;
+    });
+    unmountSpy.mockImplementation(() => {
+      throw unmountFailure;
+    });
 
     await expectAsync(bootstrapDeck(root)).toBeRejectedWith(bootstrapFailure);
 
     expect(getDirectRouter()).toBeNull();
-    expect(dispose.calls.all().filter(({ args }) => args.length === 0).length).toBe(1);
+    expect(
+      dispose.mock.calls
+        .map((args, __i) => ({
+          args,
+          returnValue: dispose.mock.results[__i].value,
+          invocationOrder: dispose.mock.invocationCallOrder[__i],
+        }))
+        .filter(({ args }) => args.length === 0).length,
+    ).toBe(1);
     expect(consoleError).toHaveBeenCalledWith('Failed to unmount Deck runtime', unmountFailure);
 
-    renderSpy.and.callThrough();
-    unmountSpy.and.callThrough();
+    renderSpy.mockReturnValue(null);
+    unmountSpy.mockRestore();
     await expectAsync(bootstrapDeck(root)).toBeResolved();
     expect(renderSpy).toHaveBeenCalledTimes(2);
     expect(syncSpy).toHaveBeenCalledTimes(1);
@@ -828,7 +874,7 @@ describe('bootstrapDeck', () => {
     }
 
     await bootstrapDeck(root);
-    const runtime = renderSpy.calls.mostRecent().args[0].props.value as DeckRuntime;
+    const runtime = renderSpy.mock.lastCall[0].props.value as DeckRuntime;
 
     expect(await ReactModal.show(RuntimeModalComponent, {} as any, { animation: false })).toBe(runtime.services);
 
@@ -840,13 +886,13 @@ describe('bootstrapDeck', () => {
   it('disposes the bootstrap-owned runtime during explicit reset', async () => {
     const root = createRoot();
     let runtime: DeckRuntime;
-    renderSpy.and.callFake((element: React.ReactElement) => {
+    renderSpy.mockImplementation((element: React.ReactElement) => {
       runtime = element.props.value;
       return null;
     });
 
     await bootstrapDeck(root);
-    const dispose = spyOn(runtime, 'dispose').and.callThrough();
+    const dispose = vi.spyOn(runtime, 'dispose');
 
     resetBootstrapDeckForTests();
 
@@ -861,14 +907,14 @@ describe('bootstrapDeck', () => {
       ReactModal.show(OpenModal, {} as any, { animation: false }).catch((reason) => rejectionReasons.push(reason)),
       ReactModal.show(OpenModal, {} as any, { animation: false }).catch((reason) => rejectionReasons.push(reason)),
     ];
-    const dismissAll = spyOn(ReactModal, 'dismissAll').and.callThrough();
+    const dismissAll = vi.spyOn(ReactModal, 'dismissAll');
 
     await bootstrapDeck(root);
 
     resetBootstrapDeckForTests();
     await Promise.all(modalSettlements);
 
-    expect(dismissAll).toHaveBeenCalledOnceWith('runtime-disposed');
+    expect(dismissAll).toHaveBeenCalledExactlyOnceWith('runtime-disposed');
     expect(rejectionReasons).toEqual(['runtime-disposed', 'runtime-disposed']);
   });
 
@@ -876,26 +922,26 @@ describe('bootstrapDeck', () => {
     const root = createRoot();
 
     await bootstrapDeck(root);
-    const runtime = renderSpy.calls.mostRecent().args[0].props.value as DeckRuntime;
+    const runtime = renderSpy.mock.lastCall[0].props.value as DeckRuntime;
     const router = getDirectRouter();
     const monitor = new TaskMonitor({ title: 'Active modal task' });
     monitor.submitting = true;
     monitor.task = {} as any;
-    const monitorCleanup = spyOn(monitor, 'onModalClose').and.callThrough();
+    const monitorCleanup = vi.spyOn(monitor, 'onModalClose');
     const ActiveTaskModal = () => <TaskMonitorWrapper monitor={monitor} />;
     act(() => {
       ReactModal.show(ActiveTaskModal, {} as any).catch(() => undefined);
     });
-    const modalRoot = renderSpy.calls.mostRecent().args[1] as HTMLElement;
+    const modalRoot = renderSpy.mock.lastCall[1] as HTMLElement;
     document.body.appendChild(modalRoot);
-    const dismissAll = spyOn(ReactModal, 'dismissAll').and.callThrough();
-    const setDefaultRuntimeServices = spyOn(ReactModal, 'setDefaultRuntimeServices').and.callThrough();
-    const disposeRouter = spyOn(router, 'dispose').and.callThrough();
-    const disposeRuntime = spyOn(runtime, 'dispose').and.callThrough();
+    const dismissAll = vi.spyOn(ReactModal, 'dismissAll');
+    const setDefaultRuntimeServices = vi.spyOn(ReactModal, 'setDefaultRuntimeServices');
+    const disposeRouter = vi.spyOn(router, 'dispose');
+    const disposeRuntime = vi.spyOn(runtime, 'dispose');
 
     resetBootstrapDeckForTests();
 
-    expect(dismissAll).toHaveBeenCalledOnceWith('runtime-disposed');
+    expect(dismissAll).toHaveBeenCalledExactlyOnceWith('runtime-disposed');
     expect(dismissAll).toHaveBeenCalledBefore(unmountSpy);
     expect(modalRoot.isConnected).toBe(false);
     expect(monitorCleanup).toHaveBeenCalledBefore(disposeRouter);
@@ -903,33 +949,35 @@ describe('bootstrapDeck', () => {
     expect(dismissAll).toHaveBeenCalledBefore(disposeRouter);
     expect(dismissAll).toHaveBeenCalledBefore(disposeRuntime);
     expect(dismissAll).toHaveBeenCalledBefore(setDefaultRuntimeServices);
-    expect(setDefaultRuntimeServices).toHaveBeenCalledOnceWith(null);
+    expect(setDefaultRuntimeServices).toHaveBeenCalledExactlyOnceWith(null);
   });
 
   it('clears runtime-scheduled and router-bound work on rebootstrap', async () => {
-    jasmine.clock().install();
+    vi.useFakeTimers({
+      toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval'],
+    });
     try {
       const firstRoot = createRoot();
       const secondRoot = createRoot();
       let firstRuntime: DeckRuntime;
-      renderSpy.and.callFake((element: React.ReactElement) => {
+      renderSpy.mockImplementation((element: React.ReactElement) => {
         firstRuntime = element.props.value;
         return null;
       });
 
       await bootstrapDeck(firstRoot);
       const firstRouter = getDirectRouter();
-      const scheduled = jasmine.createSpy('scheduled');
+      const scheduled = vi.fn();
       firstRuntime.timeoutService(scheduled, 100);
 
       resetBootstrapDeckForTests();
-      jasmine.clock().tick(100);
+      vi.advanceTimersByTime(100);
       await bootstrapDeck(secondRoot);
 
       expect(scheduled).not.toHaveBeenCalled();
       expect(getDirectRouter()).not.toBe(firstRouter);
     } finally {
-      jasmine.clock().uninstall();
+      vi.useRealTimers();
     }
   });
 });

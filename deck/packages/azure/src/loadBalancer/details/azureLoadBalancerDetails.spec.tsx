@@ -67,14 +67,14 @@ describe('AzureLoadBalancerDetails', () => {
       data: [summary],
     });
     const app = {
-      getDataSource: jasmine.createSpy('getDataSource').and.returnValue({
+      getDataSource: vi.fn().mockReturnValue({
         status$,
-        refresh: jasmine.createSpy('refresh'),
+        refresh: vi.fn(),
       }),
     } as any;
-    const getLoadBalancerDetails = spyOn(LoadBalancerReader.prototype, 'getLoadBalancerDetails').and.returnValue(
-      new Promise(() => undefined),
-    );
+    const getLoadBalancerDetails = vi
+      .spyOn(LoadBalancerReader.prototype, 'getLoadBalancerDetails')
+      .mockReturnValue(new Promise(() => undefined));
 
     function TestComponent({ renderCount }: { renderCount: number }) {
       useAzureLoadBalancerDetails({
@@ -110,17 +110,17 @@ describe('AzureLoadBalancerDetails', () => {
       data: [oldSummary, newSummary],
     });
     const app = {
-      getDataSource: jasmine.createSpy('getDataSource').and.returnValue({
+      getDataSource: vi.fn().mockReturnValue({
         status$,
-        refresh: jasmine.createSpy('refresh'),
+        refresh: vi.fn(),
       }),
     } as any;
     const oldRequest = deferred<any[]>();
     const newRequest = deferred<any[]>();
-    const getLoadBalancerDetails = spyOn(LoadBalancerReader.prototype, 'getLoadBalancerDetails').and.returnValues(
-      oldRequest.promise,
-      newRequest.promise,
-    );
+    const getLoadBalancerDetails = vi
+      .spyOn(LoadBalancerReader.prototype, 'getLoadBalancerDetails')
+      .mockReturnValueOnce(oldRequest.promise)
+      .mockReturnValueOnce(newRequest.promise);
 
     function TestComponent({ name }: { name: string }) {
       const result = useAzureLoadBalancerDetails({
@@ -169,15 +169,15 @@ describe('AzureLoadBalancerDetails', () => {
       error: null,
     });
     const app = {
-      getDataSource: jasmine.createSpy('getDataSource').and.returnValue({
+      getDataSource: vi.fn().mockReturnValue({
         status$,
-        refresh: jasmine.createSpy('refresh'),
+        refresh: vi.fn(),
       }),
     } as any;
     const request = deferred<any[]>();
-    const getLoadBalancerDetails = spyOn(LoadBalancerReader.prototype, 'getLoadBalancerDetails').and.returnValue(
-      request.promise,
-    );
+    const getLoadBalancerDetails = vi
+      .spyOn(LoadBalancerReader.prototype, 'getLoadBalancerDetails')
+      .mockReturnValue(request.promise);
 
     function TestComponent() {
       const result = useAzureLoadBalancerDetails({
@@ -228,13 +228,13 @@ describe('AzureLoadBalancerDetails', () => {
       data: [summary],
     });
     const app = {
-      getDataSource: jasmine.createSpy('getDataSource').and.returnValue({
+      getDataSource: vi.fn().mockReturnValue({
         status$,
-        refresh: jasmine.createSpy('refresh'),
+        refresh: vi.fn(),
       }),
     } as any;
     const request = deferred<any[]>();
-    spyOn(LoadBalancerReader.prototype, 'getLoadBalancerDetails').and.returnValue(request.promise);
+    vi.spyOn(LoadBalancerReader.prototype, 'getLoadBalancerDetails').mockReturnValue(request.promise);
 
     function TestComponent() {
       useAzureLoadBalancerDetails({ app, loadBalancerParams: params, autoClose: () => undefined } as any);
@@ -246,7 +246,7 @@ describe('AzureLoadBalancerDetails', () => {
       wrapper = mountWithRuntime(<TestComponent />);
       await Promise.resolve();
     });
-    const consoleError = spyOn(console, 'error');
+    const consoleError = vi.spyOn(console, 'error').mockReturnValue(undefined);
     wrapper.unmount();
 
     await act(async () => {
@@ -254,7 +254,7 @@ describe('AzureLoadBalancerDetails', () => {
       await request.promise;
     });
 
-    const errors = consoleError.calls.allArgs().flat().map(String).join(' ');
+    const errors = consoleError.mock.calls.flat().map(String).join(' ');
     expect(errors).not.toContain('state update on an unmounted component');
   });
 
@@ -278,10 +278,10 @@ describe('AzureLoadBalancerDetails', () => {
       },
     ];
     const loadBalancerReader = {
-      getLoadBalancerDetails: jasmine.createSpy('getLoadBalancerDetails').and.returnValue(Promise.resolve(details)),
+      getLoadBalancerDetails: vi.fn().mockReturnValue(Promise.resolve(details)),
     };
     const securityGroupReader = {
-      getApplicationSecurityGroup: jasmine.createSpy('getApplicationSecurityGroup').and.callFake(
+      getApplicationSecurityGroup: vi.fn().mockImplementation(
         (_app: any, account: string, region: string, id: string) =>
           ({
             'sg-1': { id: 'sg-1', name: 'z-firewall', account, region },
@@ -289,7 +289,7 @@ describe('AzureLoadBalancerDetails', () => {
           }[id]),
       ),
     };
-    const autoClose = jasmine.createSpy('autoClose');
+    const autoClose = vi.fn();
 
     const loadBalancer = await loadAzureLoadBalancerDetails({
       app: buildApp([otherSummary, summary]),
@@ -306,7 +306,7 @@ describe('AzureLoadBalancerDetails', () => {
       'fnord-frontend',
     );
     expect(securityGroupReader.getApplicationSecurityGroup).toHaveBeenCalledWith(
-      jasmine.anything(),
+      expect.anything(),
       'test-account',
       'westus',
       'sg-2',
@@ -336,19 +336,18 @@ describe('AzureLoadBalancerDetails', () => {
       data: [summary],
     });
     const app = {
-      getDataSource: jasmine.createSpy('getDataSource').and.returnValue({
+      getDataSource: vi.fn().mockReturnValue({
         status$,
-        refresh: jasmine.createSpy('refresh'),
+        refresh: vi.fn(),
       }),
       loadBalancers: { data: [summary] },
     } as any;
-    const getLoadBalancerDetails = spyOn(LoadBalancerReader.prototype, 'getLoadBalancerDetails').and.resolveTo([
-      { name: 'fnord-frontend', securityGroups: ['firewall-id'] },
-    ] as any);
-    const getApplicationSecurityGroup = spyOn(
-      runtime.services.securityGroupReader,
-      'getApplicationSecurityGroup',
-    ).and.returnValue({ id: 'firewall-id', name: 'firewall' } as any);
+    const getLoadBalancerDetails = vi
+      .spyOn(LoadBalancerReader.prototype, 'getLoadBalancerDetails')
+      .mockResolvedValue([{ name: 'fnord-frontend', securityGroups: ['firewall-id'] }] as any);
+    const getApplicationSecurityGroup = vi
+      .spyOn(runtime.services.securityGroupReader, 'getApplicationSecurityGroup')
+      .mockReturnValue({ id: 'firewall-id', name: 'firewall' } as any);
 
     function TestComponent() {
       useAzureLoadBalancerDetails({ app, loadBalancerParams: params, autoClose: () => undefined } as any);
@@ -362,16 +361,16 @@ describe('AzureLoadBalancerDetails', () => {
       await Promise.resolve();
     });
 
-    expect(getLoadBalancerDetails.calls.mostRecent().object).toBe(runtime.services.loadBalancerReader);
+    expect(getLoadBalancerDetails.mock.instances.at(-1)).toBe(runtime.services.loadBalancerReader);
     expect(getApplicationSecurityGroup).toHaveBeenCalledWith(app, 'test-account', 'westus', 'firewall-id');
     wrapper.unmount();
   });
 
   it('closes the details panel when no matching summary exists', async () => {
     const loadBalancerReader = {
-      getLoadBalancerDetails: jasmine.createSpy('getLoadBalancerDetails'),
+      getLoadBalancerDetails: vi.fn(),
     };
-    const autoClose = jasmine.createSpy('autoClose');
+    const autoClose = vi.fn();
 
     const loadBalancer = await loadAzureLoadBalancerDetails({
       app: buildApp([{ name: 'fnord-frontend', account: 'test-account', region: 'eastus', provider: 'azure' }]),
@@ -391,9 +390,9 @@ describe('AzureLoadBalancerDetails', () => {
     const freshSummary = { name: 'fnord-frontend', account: 'test-account', region: 'westus', provider: 'azure' };
     const details = [{ name: 'fnord-frontend' }];
     const loadBalancerReader = {
-      getLoadBalancerDetails: jasmine.createSpy('getLoadBalancerDetails').and.returnValue(Promise.resolve(details)),
+      getLoadBalancerDetails: vi.fn().mockReturnValue(Promise.resolve(details)),
     };
-    const autoClose = jasmine.createSpy('autoClose');
+    const autoClose = vi.fn();
 
     const loadBalancer = await loadAzureLoadBalancerDetails({
       app: buildApp([staleSummary]),

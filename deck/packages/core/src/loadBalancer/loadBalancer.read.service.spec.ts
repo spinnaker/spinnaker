@@ -1,4 +1,4 @@
-import { mockHttpClient } from '../api/mock/jasmine';
+import { mockHttpClient } from '../api/mock/mockHttpSupport';
 import type { DeckRuntime } from '../bootstrap/DeckRuntime';
 import { createDeckRuntime } from '../bootstrap/DeckRuntime';
 import { CloudProviderRegistry } from '../cloudProvider';
@@ -43,7 +43,7 @@ describe('direct runtime load balancer reader', () => {
     const loadBalancers = await loadBalancersPromise;
 
     expect(loadBalancers).toEqual([
-      jasmine.objectContaining({
+      expect.objectContaining({
         name: 'app-test-detail',
         provider,
         cloudProvider: provider,

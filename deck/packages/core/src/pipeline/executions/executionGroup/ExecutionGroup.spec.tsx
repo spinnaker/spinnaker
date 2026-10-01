@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { shallow } from 'enzyme';
 import React from 'react';
 import { Subject } from 'rxjs';
@@ -13,7 +14,7 @@ describe('ExecutionGroup', () => {
   const application = {
     name: 'test-app',
     pipelineConfigs: { data: [] },
-    pipelineLocks: { data: [], onRefresh: jasmine.createSpy('onRefresh').and.returnValue(() => undefined) },
+    pipelineLocks: { data: [], onRefresh: vi.fn().mockReturnValue(() => undefined) },
     strategyConfigs: { data: [] },
   } as any;
   const group = { executions: [], heading: 'Pipeline', runningExecutions: [] } as any;
@@ -25,7 +26,7 @@ describe('ExecutionGroup', () => {
       asFilterModel: { sortFilter: { groupBy: 'name' } },
       expandSubject: new Subject<boolean>(),
     } as any;
-    spyOn(CollapsibleSectionStateCache, 'isSet').and.returnValue(false);
+    vi.spyOn(CollapsibleSectionStateCache, 'isSet').mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -33,7 +34,7 @@ describe('ExecutionGroup', () => {
   });
 
   it('configures the pipeline through the injected state service', () => {
-    const injectedGo = jasmine.createSpy('injectedGo');
+    const injectedGo = vi.fn();
     const stateName = 'home.applications.application.pipelines.executions';
     const component = shallow(
       <ExecutionGroupComponent
@@ -56,8 +57,8 @@ describe('ExecutionGroup', () => {
   });
 
   it('observes route changes through the injected router', () => {
-    const injectedUnsubscribe = jasmine.createSpy('injectedUnsubscribe');
-    const injectedOnSuccess = jasmine.createSpy('injectedOnSuccess').and.returnValue(injectedUnsubscribe);
+    const injectedUnsubscribe = vi.fn();
+    const injectedOnSuccess = vi.fn().mockReturnValue(injectedUnsubscribe);
     const component = shallow(
       <ExecutionGroupComponent
         deckRuntimeServices={deckRuntimeServices}
@@ -77,20 +78,18 @@ describe('ExecutionGroup', () => {
     instance.componentDidMount();
     instance.componentWillUnmount();
 
-    expect(injectedOnSuccess).toHaveBeenCalledWith({}, jasmine.any(Function));
+    expect(injectedOnSuccess).toHaveBeenCalledWith({}, expect.any(Function));
     expect(injectedUnsubscribe).toHaveBeenCalled();
   });
 
   it('expands and marks the group from transition target params', () => {
     let transitionSuccess: (transition: any) => void;
-    const injectedOnSuccess = jasmine
-      .createSpy('injectedOnSuccess')
-      .and.callFake((_criteria: any, callback: (transition: any) => void) => {
-        transitionSuccess = callback;
-        return () => undefined;
-      });
-    (CollapsibleSectionStateCache.isSet as jasmine.Spy).and.returnValue(true);
-    spyOn(CollapsibleSectionStateCache, 'isExpanded').and.returnValue(false);
+    const injectedOnSuccess = vi.fn().mockImplementation((_criteria: any, callback: (transition: any) => void) => {
+      transitionSuccess = callback;
+      return () => undefined;
+    });
+    (CollapsibleSectionStateCache.isSet as Mock).mockReturnValue(true);
+    vi.spyOn(CollapsibleSectionStateCache, 'isExpanded').mockReturnValue(false);
     const component = shallow(
       <ExecutionGroupComponent
         deckRuntimeServices={deckRuntimeServices}

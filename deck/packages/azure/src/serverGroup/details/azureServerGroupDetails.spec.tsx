@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { mount } from 'enzyme';
 import React from 'react';
 
@@ -23,7 +24,7 @@ import {
 
 describe('Azure server group details', () => {
   let runtimeServices: any;
-  const stateService = { go: jasmine.createSpy('go'), includes: jasmine.createSpy('includes').and.returnValue(true) };
+  const stateService = { go: vi.fn(), includes: vi.fn().mockReturnValue(true) };
   const routerProps = { router: {} as any, stateParams: {}, stateService: stateService as any };
   const serverGroupParams = {
     name: 'azure-v001',
@@ -34,7 +35,7 @@ describe('Azure server group details', () => {
   function buildApp(overrides: any = {}): any {
     return {
       name: 'fnord',
-      serverGroups: { data: [], refresh: jasmine.createSpy('refresh') },
+      serverGroups: { data: [], refresh: vi.fn() },
       loadBalancers: { data: [] },
       securityGroups: { data: [] },
       clusters: [],
@@ -43,7 +44,7 @@ describe('Azure server group details', () => {
     };
   }
 
-  function subscribeToGetter(props: any, autoClose = jasmine.createSpy('autoClose')): Promise<any> {
+  function subscribeToGetter(props: any, autoClose = vi.fn()): Promise<any> {
     return new Promise((resolve, reject) => {
       azureServerGroupDetailsGetter(props, autoClose).subscribe({
         next: resolve,
@@ -56,9 +57,9 @@ describe('Azure server group details', () => {
     runtimeServices = {
       serverGroupCommandBuilder: new AzureServerGroupCommandBuilder(nativePromiseService),
       serverGroupWriter: {
-        destroyServerGroup: jasmine.createSpy('destroyServerGroup'),
-        disableServerGroup: jasmine.createSpy('disableServerGroup'),
-        enableServerGroup: jasmine.createSpy('enableServerGroup'),
+        destroyServerGroup: vi.fn(),
+        disableServerGroup: vi.fn(),
+        enableServerGroup: vi.fn(),
       },
     };
     return mount(
@@ -69,7 +70,7 @@ describe('Azure server group details', () => {
   }
 
   beforeEach(() => {
-    spyOn(ServerGroupReader, 'getServerGroup').and.returnValue(
+    vi.spyOn(ServerGroupReader, 'getServerGroup').mockReturnValue(
       Promise.resolve({
         name: 'azure-v001',
         account: 'test-account',
@@ -96,7 +97,7 @@ describe('Azure server group details', () => {
     const result = await subscribeToGetter({ app, serverGroup: serverGroupParams });
 
     expect(ServerGroupReader.getServerGroup).toHaveBeenCalledWith('fnord', 'test-account', 'westus', 'azure-v001');
-    expect(result).toEqual(jasmine.objectContaining(summary));
+    expect(result).toEqual(expect.objectContaining(summary));
     expect(result.account).toBe('test-account');
     expect(result.image.imageName).toBe('ubuntu');
   });
@@ -120,11 +121,11 @@ describe('Azure server group details', () => {
 
     const result = await subscribeToGetter({ app, serverGroup: serverGroupParams });
 
-    expect(result).toEqual(jasmine.objectContaining(loadBalancerSummary));
+    expect(result).toEqual(expect.objectContaining(loadBalancerSummary));
   });
 
   it('auto-closes when the summary is missing', async () => {
-    const autoClose = jasmine.createSpy('autoClose');
+    const autoClose = vi.fn();
     const app = buildApp();
 
     await new Promise<void>((resolve) => {
@@ -139,8 +140,8 @@ describe('Azure server group details', () => {
   });
 
   it('auto-closes when server group details are missing', async () => {
-    (ServerGroupReader.getServerGroup as jasmine.Spy).and.returnValue(Promise.resolve(null) as any);
-    const autoClose = jasmine.createSpy('autoClose');
+    (ServerGroupReader.getServerGroup as Mock).mockReturnValue(Promise.resolve(null) as any);
+    const autoClose = vi.fn();
     const app = buildApp({ serverGroups: { data: [{ ...serverGroupParams, account: 'test-account' }] } });
 
     await new Promise<void>((resolve) => {
@@ -168,9 +169,9 @@ describe('Azure server group details', () => {
   it('wires destroy, disable, and enable actions to confirmation modals', () => {
     const app = buildApp();
     const serverGroup = { name: 'azure-v001', account: 'test-account', region: 'westus', isDisabled: false };
-    spyOn(ConfirmationModalService, 'confirm');
-    spyOn(ServerGroupWarningMessageService, 'addDestroyWarningMessage');
-    spyOn(ServerGroupWarningMessageService, 'addDisableWarningMessage');
+    vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(undefined);
+    vi.spyOn(ServerGroupWarningMessageService, 'addDestroyWarningMessage').mockReturnValue(undefined);
+    vi.spyOn(ServerGroupWarningMessageService, 'addDisableWarningMessage').mockReturnValue(undefined);
 
     const wrapper = mountActions(app, serverGroup);
     wrapper
@@ -188,10 +189,12 @@ describe('Azure server group details', () => {
 
     expect(ServerGroupWarningMessageService.addDestroyWarningMessage).toHaveBeenCalled();
     expect(ServerGroupWarningMessageService.addDisableWarningMessage).toHaveBeenCalled();
-    expect(
-      (ConfirmationModalService.confirm as jasmine.Spy).calls.allArgs().map(([params]) => params.buttonText),
-    ).toEqual(['Destroy azure-v001', 'Disable azure-v001', 'Enable azure-v001']);
-    (ConfirmationModalService.confirm as jasmine.Spy).calls.first().args[0].taskMonitorConfig.onTaskComplete();
+    expect((ConfirmationModalService.confirm as Mock).mock.calls.map(([params]) => params.buttonText)).toEqual([
+      'Destroy azure-v001',
+      'Disable azure-v001',
+      'Enable azure-v001',
+    ]);
+    (ConfirmationModalService.confirm as Mock).mock.calls[0][0].taskMonitorConfig.onTaskComplete();
     expect(stateService.go).toHaveBeenCalledWith('^');
   });
 
@@ -200,10 +203,10 @@ describe('Azure server group details', () => {
     const app = buildApp();
     const serverGroup = { name: 'azure-v001', account: 'test-account', region: 'westus' };
     const command = { viewState: { mode: 'clone' }, source: { serverGroupName: 'azure-v001' } };
-    spyOn(AzureServerGroupCommandBuilder.prototype as any, 'buildServerGroupCommandFromExisting').and.returnValue(
+    vi.spyOn(AzureServerGroupCommandBuilder.prototype as any, 'buildServerGroupCommandFromExisting').mockReturnValue(
       Promise.resolve(command),
     );
-    spyOn(AzureCloneServerGroupModal, 'show').and.returnValue(Promise.resolve());
+    vi.spyOn(AzureCloneServerGroupModal, 'show').mockReturnValue(Promise.resolve());
 
     const wrapper = mountActions(app, serverGroup);
     wrapper
@@ -244,8 +247,8 @@ describe('Azure server group details', () => {
       sku: { name: 'Standard_DS1_v2', capacity: 1 },
       capacity: { min: 1, max: 1, desired: 1 },
     };
-    spyOn(AzureImageReader.prototype, 'findImages').and.returnValue(Promise.resolve(images));
-    spyOn(AzureCloneServerGroupModal, 'show').and.returnValue(Promise.resolve());
+    vi.spyOn(AzureImageReader.prototype, 'findImages').mockReturnValue(Promise.resolve(images));
+    vi.spyOn(AzureCloneServerGroupModal, 'show').mockReturnValue(Promise.resolve());
 
     const wrapper = mountActions(app, serverGroup);
     wrapper
@@ -255,7 +258,7 @@ describe('Azure server group details', () => {
     await Promise.resolve();
     await Promise.resolve();
 
-    const props = (AzureCloneServerGroupModal.show as jasmine.Spy).calls.mostRecent().args[0];
+    const props = (AzureCloneServerGroupModal.show as Mock).mock.lastCall[0];
     expect(props.command.images).toBe(images);
     expect(props.command.imageName).toBe('ubuntu-west');
     expect(props.command.selectedImage).toBe(images[0]);

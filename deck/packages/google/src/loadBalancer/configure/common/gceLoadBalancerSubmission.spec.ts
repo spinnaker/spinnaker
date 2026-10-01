@@ -234,7 +234,7 @@ describe('GCE load balancer submission', () => {
       },
       'pipeline',
     );
-    const executeTask = jasmine.createSpy('executeTask');
+    const executeTask = vi.fn();
 
     const result = submitGceLoadBalancerCommand(command, { application: {} as any, executeTask });
 
@@ -244,7 +244,7 @@ describe('GCE load balancer submission', () => {
       'internal-api',
     ]);
     expect((result as any[])[0]).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         ipProtocol: 'TCP',
         loadBalancerName: 'internal-http',
         network: 'network-a',

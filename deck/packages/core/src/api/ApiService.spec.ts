@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import type { IHttpClientImplementation, XhrError } from './ApiService';
 import { InvalidAPIResponse, invalidContentMessage, makeRequestBuilderConfig, RequestBuilder } from './ApiService';
 import { CacheFactory } from 'cachefactory';
@@ -6,7 +7,7 @@ import { AuthenticationInitializer } from '../authentication/AuthenticationIniti
 import type { ICache } from '../cache/deckCacheFactory';
 import { SETTINGS } from '../config/settings';
 import { resetIapSessionRefreshState } from './iapSessionRefresh';
-import { useRealHttpClient } from './mock/jasmine';
+import { useRealHttpClient } from './mock/mockHttpSupport';
 
 describe('XhrError', () => {
   it('accepts native errors without requiring XHR response fields', () => {
@@ -20,8 +21,13 @@ describe('XhrError', () => {
 });
 
 describe('RequestBuilder backend', () => {
-  const createBackend = (): IHttpClientImplementation =>
-    jasmine.createSpyObj(['get', 'post', 'put', 'patch', 'delete']);
+  const createBackend = (): IHttpClientImplementation => ({
+    get: vi.fn(),
+    post: vi.fn(),
+    put: vi.fn(),
+    patch: vi.fn(),
+    delete: vi.fn(),
+  });
 
   it('normalizes thenables from every pluggable client method to native Promises', async () => {
     const response = { value: 'response' };
@@ -38,50 +44,50 @@ describe('RequestBuilder backend', () => {
 
     const promises = [request.get(), request.post(), request.put(), request.patch(), request.delete()];
 
-    promises.forEach((promise) => expect(promise).toEqual(jasmine.any(Promise)));
+    promises.forEach((promise) => expect(promise).toEqual(expect.any(Promise)));
     await expectAsync(Promise.all(promises)).toBeResolvedTo(Array(5).fill(response));
   });
 
   it('receives a url prefixed with the baseUrl', () => {
     const backend = createBackend();
     new RequestBuilder(undefined, backend, 'thebaseurl').get();
-    expect(backend.get).toHaveBeenCalledWith(jasmine.objectContaining({ url: 'thebaseurl' }));
+    expect(backend.get).toHaveBeenCalledWith(expect.objectContaining({ url: 'thebaseurl' }));
   });
 
   it('url prefix defaults to the gate url', () => {
     const backend = createBackend();
     new RequestBuilder(undefined, backend).get();
-    expect(backend.get).toHaveBeenCalledWith(jasmine.objectContaining({ url: SETTINGS.gateUrl }));
+    expect(backend.get).toHaveBeenCalledWith(expect.objectContaining({ url: SETTINGS.gateUrl }));
   });
 
   it('receives the url prefixed with the gate url (when no baseUrl specified)', () => {
     const backend = createBackend();
     new RequestBuilder(undefined, backend).get();
-    expect(backend.get).toHaveBeenCalledWith(jasmine.objectContaining({ url: SETTINGS.gateUrl }));
+    expect(backend.get).toHaveBeenCalledWith(expect.objectContaining({ url: SETTINGS.gateUrl }));
   });
 
   it('accepts a different base url', function () {
     const backend = createBackend();
     new RequestBuilder(undefined, backend, 'http://different').get();
-    expect(backend.get).toHaveBeenCalledWith(jasmine.objectContaining({ url: 'http://different' }));
+    expect(backend.get).toHaveBeenCalledWith(expect.objectContaining({ url: 'http://different' }));
   });
 
   it('trims trailing slashes from base url', function () {
     const backend = createBackend();
     new RequestBuilder(undefined, backend, 'http://different//////').get();
-    expect(backend.get).toHaveBeenCalledWith(jasmine.objectContaining({ url: 'http://different' }));
+    expect(backend.get).toHaveBeenCalledWith(expect.objectContaining({ url: 'http://different' }));
   });
 
   it('trims trailing slashes from base urls with embedded paths', function () {
     const backend = createBackend();
     new RequestBuilder(undefined, backend, 'http://different/path/////').get();
-    expect(backend.get).toHaveBeenCalledWith(jasmine.objectContaining({ url: 'http://different/path' }));
+    expect(backend.get).toHaveBeenCalledWith(expect.objectContaining({ url: 'http://different/path' }));
   });
 
   it('trims all leading and trailing slashes from the base url', function () {
     const backend = createBackend();
     new RequestBuilder(undefined, backend, '///http://different/path/////').path('foo').get();
-    expect(backend.get).toHaveBeenCalledWith(jasmine.objectContaining({ url: 'http://different/path/foo' }));
+    expect(backend.get).toHaveBeenCalledWith(expect.objectContaining({ url: 'http://different/path/foo' }));
   });
 });
 
@@ -171,7 +177,7 @@ describe('REST Service', function () {
 
   describe('direct XHR fallback', () => {
     const originalXMLHttpRequest = window.XMLHttpRequest;
-    let reauthenticateUser: jasmine.Spy;
+    let reauthenticateUser: Mock;
 
     class FakeXMLHttpRequest {
       public static instances: FakeXMLHttpRequest[] = [];
@@ -293,7 +299,7 @@ describe('REST Service', function () {
       useRealHttpClient();
       FakeXMLHttpRequest.instances = [];
       window.XMLHttpRequest = FakeXMLHttpRequest as any;
-      reauthenticateUser = spyOn(AuthenticationInitializer, 'reauthenticateUser');
+      reauthenticateUser = vi.spyOn(AuthenticationInitializer, 'reauthenticateUser').mockReturnValue(undefined);
       resetIapSessionRefreshState();
     });
 
@@ -308,7 +314,7 @@ describe('REST Service', function () {
         params: { one: 'first', many: ['second', 'third'], ignored: null },
       });
 
-      expect(promise).toEqual(jasmine.any(Promise));
+      expect(promise).toEqual(expect.any(Promise));
       expect(request.method).toBe('GET');
       expect(request.url).toBe(`${window.location.origin}/example?one=first&many=second&many=third`);
       expect(request.explicitHeaderValues('X-Custom')).toEqual(['caller']);
@@ -327,7 +333,7 @@ describe('REST Service', function () {
       const first = request.get<{ value: string }>();
       const second = request.get<{ value: string }>();
 
-      expect(first).toEqual(jasmine.any(Promise));
+      expect(first).toEqual(expect.any(Promise));
       expect(second).toBe(first);
       expect(FakeXMLHttpRequest.instances.length).toBe(1);
       FakeXMLHttpRequest.instances[0].respond({
@@ -344,7 +350,7 @@ describe('REST Service', function () {
 
       const promise = builder('cached-value').useCache(cache).get<typeof value>();
 
-      expect(promise).toEqual(jasmine.any(Promise));
+      expect(promise).toEqual(expect.any(Promise));
       await expectAsync(promise).toBeResolvedTo(value);
       expect(FakeXMLHttpRequest.instances).toEqual([]);
     });
@@ -357,7 +363,7 @@ describe('REST Service', function () {
 
       const promise = builder('cached-thenable').useCache(cache).get<typeof value>();
 
-      expect(promise).toEqual(jasmine.any(Promise));
+      expect(promise).toEqual(expect.any(Promise));
       await expectAsync(promise).toBeResolvedTo(value);
       expect(FakeXMLHttpRequest.instances).toEqual([]);
     });
@@ -378,9 +384,9 @@ describe('REST Service', function () {
     it('uses a caller-provided cache for in-flight and successful GET responses', async () => {
       const values = new Map<string, unknown>();
       const cache = ({
-        get: jasmine.createSpy('get').and.callFake((key: string) => values.get(key)),
-        put: jasmine.createSpy('put').and.callFake((key: string, value: unknown) => values.set(key, value)),
-        remove: jasmine.createSpy('remove').and.callFake((key: string) => values.delete(key)),
+        get: vi.fn().mockImplementation((key: string) => values.get(key)),
+        put: vi.fn().mockImplementation((key: string, value: unknown) => values.set(key, value)),
+        remove: vi.fn().mockImplementation((key: string) => values.delete(key)),
       } as unknown) as ICache;
       const request = builder('custom-cache').useCache(cache);
 
@@ -397,7 +403,7 @@ describe('REST Service', function () {
       await expectAsync(request.get()).toBeResolvedTo(result);
       expect(FakeXMLHttpRequest.instances.length).toBe(1);
       expect(cache.get).toHaveBeenCalledTimes(3);
-      expect(cache.put).toHaveBeenCalledWith(jasmine.any(String), result);
+      expect(cache.put).toHaveBeenCalledWith(expect.any(String), result);
       expect(cache.remove).not.toHaveBeenCalled();
     });
 
@@ -909,7 +915,7 @@ describe('REST Service', function () {
           await promise;
           fail(`Expected ${name} to reject`);
         } catch (error) {
-          expect(error).toEqual(jasmine.any(InvalidAPIResponse));
+          expect(error).toEqual(expect.any(InvalidAPIResponse));
           expect((error as InvalidAPIResponse).message).toBe(invalidContentMessage);
           expect((error as InvalidAPIResponse).data).toEqual({ message: invalidContentMessage });
           expect((error as InvalidAPIResponse).originalResult).toEqual({ status: 200, statusText: 'OK', data: body });
@@ -931,7 +937,7 @@ describe('REST Service', function () {
         await promise;
         fail('Expected the unsupported content type to reject');
       } catch (error) {
-        expect(error).toEqual(jasmine.any(InvalidAPIResponse));
+        expect(error).toEqual(expect.any(InvalidAPIResponse));
         expect((error as InvalidAPIResponse).message).toBe(invalidContentMessage);
         expect((error as InvalidAPIResponse).data).toEqual({ message: invalidContentMessage });
         expect((error as InvalidAPIResponse).originalResult).toEqual({ status: 200, statusText: 'OK', data });
@@ -946,8 +952,8 @@ describe('REST Service', function () {
       first.request.respond({ body: '<html>Sign in</html>', headers: { 'Content-Type': 'text/html' } });
       second.request.respond({ body: '<html>Sign in</html>', headers: { 'Content-Type': 'text/html' } });
 
-      await expectAsync(first.promise).toBeRejectedWith(jasmine.any(InvalidAPIResponse));
-      await expectAsync(second.promise).toBeRejectedWith(jasmine.any(InvalidAPIResponse));
+      await expectAsync(first.promise).toBeRejectedWith(expect.any(InvalidAPIResponse));
+      await expectAsync(second.promise).toBeRejectedWith(expect.any(InvalidAPIResponse));
       expect(reauthenticateUser).toHaveBeenCalledTimes(2);
     });
 

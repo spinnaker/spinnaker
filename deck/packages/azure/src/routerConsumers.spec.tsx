@@ -4,8 +4,8 @@ import { AzureCloneServerGroupModalComponent } from './serverGroup/configure/wiz
 describe('Azure routed modal consumers', () => {
   function stateService(includedState: string) {
     return {
-      go: jasmine.createSpy('go'),
-      includes: jasmine.createSpy('includes').and.callFake((state: string) => state === includedState),
+      go: vi.fn(),
+      includes: vi.fn().mockImplementation((state: string) => state === includedState),
     };
   }
 
@@ -13,8 +13,8 @@ describe('Azure routed modal consumers', () => {
     const state = stateService('**.loadBalancerDetails');
     const modal = new AzureLoadBalancerModalComponent({
       app: { defaultCredentials: {}, defaultRegions: {}, name: 'fnord' },
-      closeModal: jasmine.createSpy('closeModal'),
-      dismissModal: jasmine.createSpy('dismissModal'),
+      closeModal: vi.fn(),
+      dismissModal: vi.fn(),
       isNew: true,
       stateService: state,
     } as any) as any;
@@ -38,7 +38,7 @@ describe('Azure routed modal consumers', () => {
     const modal = new AzureCloneServerGroupModalComponent({
       application: { name: 'fnord' },
       command: { viewState: { requiresTemplateSelection: true } },
-      dismissModal: jasmine.createSpy('dismissModal'),
+      dismissModal: vi.fn(),
       stateService: state,
     } as any) as any;
     modal.state = {

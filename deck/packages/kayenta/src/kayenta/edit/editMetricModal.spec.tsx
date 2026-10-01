@@ -28,14 +28,14 @@ describe('EditMetricModal', () => {
     useInlineTemplateEditor: false,
     disableEdit: false,
     validationErrors: {},
-    rename: jasmine.createSpy(),
-    changeGroup: jasmine.createSpy(),
-    updateDirection: jasmine.createSpy(),
-    updateNanStrategy: jasmine.createSpy(),
-    updateCriticality: jasmine.createSpy(),
-    updateDataRequired: jasmine.createSpy(),
-    confirm: jasmine.createSpy(),
-    cancel: jasmine.createSpy(),
+    rename: vi.fn(),
+    changeGroup: vi.fn(),
+    updateDirection: vi.fn(),
+    updateNanStrategy: vi.fn(),
+    updateCriticality: vi.fn(),
+    updateDataRequired: vi.fn(),
+    confirm: vi.fn(),
+    cancel: vi.fn(),
   };
 
   const mockState = {
@@ -71,10 +71,10 @@ describe('EditMetricModal', () => {
   };
 
   const store = createStore(() => mockState);
-  const dispatch = jasmine.createSpy('dispatch');
+  const dispatch = vi.fn();
   store.dispatch = dispatch;
 
-  beforeEach(() => dispatch.calls.reset());
+  beforeEach(() => dispatch.mockClear());
 
   const buildComponent = (props: object) =>
     mount(

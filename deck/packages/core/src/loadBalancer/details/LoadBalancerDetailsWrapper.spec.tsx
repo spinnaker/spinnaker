@@ -28,14 +28,16 @@ describe('LoadBalancerDetailsWrapper', () => {
     const Actions = () => <button />;
     const Section = () => <div />;
     const useDetailsHook = () => ({ data: undefined, error: null, loading: true, refetch: () => Promise.resolve() });
-    const getValue = spyOn(CloudProviderRegistry, 'getValue').and.callFake((_provider: string, key: string) => {
-      const values: { [key: string]: any } = {
-        'loadBalancer.detailsActions': Actions,
-        'loadBalancer.detailsSections': [Section],
-        'loadBalancer.useDetailsHook': useDetailsHook,
-      };
-      return values[key] || null;
-    });
+    const getValue = vi
+      .spyOn(CloudProviderRegistry, 'getValue')
+      .mockImplementation((_provider: string, key: string) => {
+        const values: { [key: string]: any } = {
+          'loadBalancer.detailsActions': Actions,
+          'loadBalancer.detailsSections': [Section],
+          'loadBalancer.useDetailsHook': useDetailsHook,
+        };
+        return values[key] || null;
+      });
 
     const component = mount(wrapWithRouter(<LoadBalancerDetailsWrapper app={app} loadBalancer={loadBalancer} />));
     await act(async () => {
@@ -48,7 +50,7 @@ describe('LoadBalancerDetailsWrapper', () => {
     expect(component.find(LoadBalancerDetailsContent).prop('Actions')).toBe(Actions);
     expect(component.find(LoadBalancerDetailsContent).prop('sections')).toEqual([Section]);
     expect(component.find(LoadBalancerDetailsContent).prop('useDetails')).toBe(useDetailsHook);
-    expect(getValue.calls.allArgs()).toEqual([
+    expect(getValue.mock.calls).toEqual([
       ['aws', 'loadBalancer.useDetailsHook'],
       ['aws', 'loadBalancer.detailsActions'],
       ['aws', 'loadBalancer.detailsSections'],
@@ -58,7 +60,7 @@ describe('LoadBalancerDetailsWrapper', () => {
   });
 
   it('renders nothing when provider load balancer details config is missing', async () => {
-    const getValue = spyOn(CloudProviderRegistry, 'getValue').and.returnValue(null);
+    const getValue = vi.spyOn(CloudProviderRegistry, 'getValue').mockReturnValue(null);
 
     const component = mount(wrapWithRouter(<LoadBalancerDetailsWrapper app={app} loadBalancer={loadBalancer} />));
     await act(async () => {
@@ -67,7 +69,7 @@ describe('LoadBalancerDetailsWrapper', () => {
     component.update();
 
     expect(component.find(LoadBalancerDetailsWrapper).isEmptyRender()).toBe(true);
-    expect(getValue.calls.allArgs()).toEqual([
+    expect(getValue.mock.calls).toEqual([
       ['aws', 'loadBalancer.useDetailsHook'],
       ['aws', 'loadBalancer.detailsActions'],
       ['aws', 'loadBalancer.detailsSections'],

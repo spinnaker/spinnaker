@@ -1,3 +1,4 @@
+import type { Mocked } from 'vitest';
 import { shallow } from 'enzyme';
 import type { FormikProps } from 'formik';
 import React from 'react';
@@ -32,7 +33,7 @@ describe('GCE server group Load Balancers page', () => {
   it('runs load-balancer configuration and preserves selected unavailable references', async () => {
     const values = command({ loadBalancers: ['persisted-lb'] });
     const { adapter, formik } = testProps(values);
-    adapter.applyConfigurationUpdate.and.callFake(async (nextCommand) => ({
+    adapter.applyConfigurationUpdate.mockImplementation(async (nextCommand) => ({
       command: { ...nextCommand, loadBalancers: ['regional-lb'], backendServices: { 'regional-lb': ['backend'] } },
       result: { dirty: { loadBalancers: ['persisted-lb'] } },
     }));
@@ -43,11 +44,11 @@ describe('GCE server group Load Balancers page', () => {
     });
     await flush();
 
-    const changedCommand = adapter.applyConfigurationUpdate.calls.mostRecent().args[0];
+    const changedCommand = adapter.applyConfigurationUpdate.mock.lastCall[0];
     expect(changedCommand.loadBalancers).toEqual(['regional-lb']);
     expect(adapter.applyConfigurationUpdate).toHaveBeenCalledWith(changedCommand, 'configureLoadBalancerOptions');
     expect(formik.setValues).toHaveBeenCalledWith(
-      jasmine.objectContaining({
+      expect.objectContaining({
         backendServices: { 'regional-lb': ['backend'] },
         loadBalancers: ['regional-lb', 'persisted-lb'],
       }),
@@ -57,7 +58,7 @@ describe('GCE server group Load Balancers page', () => {
   it('initializes the backend-compatible default policy when selecting the first supported load balancer', async () => {
     const values = command();
     const { adapter, formik } = testProps(values);
-    adapter.applyConfigurationUpdate.and.callFake(async (nextCommand) => ({
+    adapter.applyConfigurationUpdate.mockImplementation(async (nextCommand) => ({
       command: { ...nextCommand, loadBalancingPolicy: undefined },
       result: { dirty: {} },
     }));
@@ -68,14 +69,14 @@ describe('GCE server group Load Balancers page', () => {
     });
     await flush();
 
-    expect(adapter.applyConfigurationUpdate.calls.mostRecent().args[0].loadBalancingPolicy).toEqual({
+    expect(adapter.applyConfigurationUpdate.mock.lastCall[0].loadBalancingPolicy).toEqual({
       balancingMode: 'UTILIZATION',
       capacityScaler: 1,
       maxUtilization: 0.8,
       namedPorts: [{ name: 'http', port: 80 }],
     });
     expect(formik.setValues).toHaveBeenCalledWith(
-      jasmine.objectContaining({
+      expect.objectContaining({
         loadBalancingPolicy: {
           balancingMode: 'UTILIZATION',
           capacityScaler: 1,
@@ -89,7 +90,7 @@ describe('GCE server group Load Balancers page', () => {
   it('refreshes backing data while preserving selected load balancers', async () => {
     const values = command({ loadBalancers: ['persisted-lb'] });
     const { adapter, formik } = testProps(values);
-    adapter.applyConfigurationRefresh.and.resolveTo({
+    adapter.applyConfigurationRefresh.mockResolvedValue({
       command: {
         ...values,
         backingData: { ...values.backingData, refreshed: true },
@@ -104,8 +105,8 @@ describe('GCE server group Load Balancers page', () => {
 
     expect(adapter.applyConfigurationRefresh).toHaveBeenCalledWith(values, 'refreshLoadBalancers');
     expect(formik.setValues).toHaveBeenCalledWith(
-      jasmine.objectContaining({
-        backingData: jasmine.objectContaining({ refreshed: true }),
+      expect.objectContaining({
+        backingData: expect.objectContaining({ refreshed: true }),
         loadBalancers: ['persisted-lb'],
       }),
     );
@@ -159,7 +160,7 @@ describe('GCE server group Load Balancers page', () => {
       },
     });
     const { adapter, formik } = testProps(values);
-    adapter.applyConfigurationUpdate.and.callFake(async (nextCommand) => ({
+    adapter.applyConfigurationUpdate.mockImplementation(async (nextCommand) => ({
       command: { ...nextCommand, loadBalancers: ['global-lb'], loadBalancerMetadata: {} },
       result: { dirty: { loadBalancers: ['persisted-lb'] } },
     }));
@@ -170,13 +171,13 @@ describe('GCE server group Load Balancers page', () => {
     });
     await flush();
 
-    const changedCommand = adapter.applyConfigurationUpdate.calls.mostRecent().args[0];
+    const changedCommand = adapter.applyConfigurationUpdate.mock.lastCall[0];
     expect(changedCommand.loadBalancerMetadata).toEqual({
       'global-load-balancer-names': ['persisted-listener', 'global-lb'],
       'load-balancer-names': ['unrelated-regional-listener'],
     });
     expect(formik.setValues).toHaveBeenCalledWith(
-      jasmine.objectContaining({
+      expect.objectContaining({
         loadBalancers: ['global-lb', 'persisted-lb'],
         loadBalancerMetadata: {
           'global-load-balancer-names': ['persisted-listener', 'global-lb'],
@@ -197,7 +198,7 @@ describe('GCE server group Load Balancers page', () => {
       backendServiceMetadata: ['old-backend', 'persisted-backend', 'other-backend'],
     });
     const { adapter, formik } = testProps(values);
-    adapter.applyConfigurationUpdate.and.callFake(async (nextCommand) => ({
+    adapter.applyConfigurationUpdate.mockImplementation(async (nextCommand) => ({
       command: {
         ...nextCommand,
         backendServices: { 'global-lb': ['configured-backend'] },
@@ -212,9 +213,9 @@ describe('GCE server group Load Balancers page', () => {
     });
     await flush();
 
-    expect(adapter.applyConfigurationUpdate.calls.mostRecent().args[0].loadBalancers).toEqual(['global-lb']);
+    expect(adapter.applyConfigurationUpdate.mock.lastCall[0].loadBalancers).toEqual(['global-lb']);
     expect(formik.setValues).toHaveBeenCalledWith(
-      jasmine.objectContaining({
+      expect.objectContaining({
         loadBalancers: ['global-lb', 'persisted-lb'],
         backendServices: {
           'persisted-lb': ['persisted-backend'],
@@ -236,7 +237,7 @@ describe('GCE server group Load Balancers page', () => {
       backendServiceMetadata: ['backend-a', 'persisted-backend', 'other-backend'],
     });
     const { adapter, formik } = testProps(values);
-    adapter.applyConfigurationUpdate.and.callFake(async (nextCommand) => ({
+    adapter.applyConfigurationUpdate.mockImplementation(async (nextCommand) => ({
       command: {
         ...nextCommand,
         backendServices: { 'regional-lb': ['backend-b'] },
@@ -251,14 +252,14 @@ describe('GCE server group Load Balancers page', () => {
     });
     await flush();
 
-    const changedCommand = adapter.applyConfigurationUpdate.calls.mostRecent().args[0];
+    const changedCommand = adapter.applyConfigurationUpdate.mock.lastCall[0];
     expect(changedCommand.backendServices).toEqual({
       'regional-lb': ['backend-b', 'persisted-backend'],
       'other-lb': ['other-backend'],
     });
     expect(changedCommand.backendServiceMetadata).toEqual(['backend-b', 'persisted-backend', 'other-backend']);
     expect(formik.setValues).toHaveBeenCalledWith(
-      jasmine.objectContaining({
+      expect.objectContaining({
         backendServices: {
           'regional-lb': ['backend-b', 'persisted-backend'],
           'other-lb': ['other-backend'],
@@ -286,7 +287,7 @@ describe('GCE server group Load Balancers page', () => {
     wrapper.find('select[aria-label="Balancing mode"]').simulate('change', { target: { value: 'UTILIZATION' } });
     await flush();
 
-    const changedCommand = adapter.applyConfigurationUpdate.calls.mostRecent().args[0];
+    const changedCommand = adapter.applyConfigurationUpdate.mock.lastCall[0];
     expect(changedCommand.loadBalancingPolicy).toEqual({
       balancingMode: 'UTILIZATION',
       capacityScaler: 1,
@@ -294,7 +295,7 @@ describe('GCE server group Load Balancers page', () => {
       unknownField: 'keep',
     });
     expect(adapter.applyConfigurationUpdate).toHaveBeenCalledWith(changedCommand, 'configureLoadBalancerOptions');
-    expect(formik.setValues).toHaveBeenCalledWith(jasmine.objectContaining(changedCommand));
+    expect(formik.setValues).toHaveBeenCalledWith(expect.objectContaining(changedCommand));
   });
 
   it('derives balancing modes from selected load-balancer types and renders the active limit', () => {
@@ -348,9 +349,9 @@ describe('GCE server group Load Balancers page', () => {
     );
     nameWrapper.find('select[aria-label="Named port name 1"]').simulate('change', { target: { value: 'metrics' } });
     await flush();
-    expect(
-      nameProps.adapter.applyConfigurationUpdate.calls.mostRecent().args[0].loadBalancingPolicy.namedPorts,
-    ).toEqual([{ name: 'metrics', port: 8080 }]);
+    expect(nameProps.adapter.applyConfigurationUpdate.mock.lastCall[0].loadBalancingPolicy.namedPorts).toEqual([
+      { name: 'metrics', port: 8080 },
+    ]);
 
     const capacityProps = testProps(values);
     const capacityWrapper = shallow(
@@ -358,9 +359,9 @@ describe('GCE server group Load Balancers page', () => {
     );
     capacityWrapper.find('input[aria-label="Capacity scaler"]').simulate('change', { target: { value: '75' } });
     await flush();
-    expect(
-      capacityProps.adapter.applyConfigurationUpdate.calls.mostRecent().args[0].loadBalancingPolicy.capacityScaler,
-    ).toBe(0.75);
+    expect(capacityProps.adapter.applyConfigurationUpdate.mock.lastCall[0].loadBalancingPolicy.capacityScaler).toBe(
+      0.75,
+    );
 
     const addProps = testProps(values);
     const addWrapper = shallow(
@@ -368,12 +369,10 @@ describe('GCE server group Load Balancers page', () => {
     );
     addWrapper.find('button[aria-label="Add named port"]').simulate('click');
     await flush();
-    expect(addProps.adapter.applyConfigurationUpdate.calls.mostRecent().args[0].loadBalancingPolicy.namedPorts).toEqual(
-      [
-        { name: 'http', port: 8080 },
-        { name: '', port: 80 },
-      ],
-    );
+    expect(addProps.adapter.applyConfigurationUpdate.mock.lastCall[0].loadBalancingPolicy.namedPorts).toEqual([
+      { name: 'http', port: 8080 },
+      { name: '', port: 80 },
+    ]);
 
     const removeProps = testProps(values);
     const removeWrapper = shallow(
@@ -381,9 +380,7 @@ describe('GCE server group Load Balancers page', () => {
     );
     removeWrapper.find('button[aria-label="Remove named port 1"]').simulate('click');
     await flush();
-    expect(
-      removeProps.adapter.applyConfigurationUpdate.calls.mostRecent().args[0].loadBalancingPolicy.namedPorts,
-    ).toEqual([]);
+    expect(removeProps.adapter.applyConfigurationUpdate.mock.lastCall[0].loadBalancingPolicy.namedPorts).toEqual([]);
   });
 
   it('renders policy validation errors and associates them with the invalid controls', () => {
@@ -573,17 +570,19 @@ function expectPolicyError(
 function testProps(values = command()) {
   const formik = ({
     values,
-    setFieldValue: jasmine.createSpy('setFieldValue'),
-    setValues: jasmine.createSpy('setValues'),
+    setFieldValue: vi.fn(),
+    setValues: vi.fn(),
   } as unknown) as FormikProps<IGceServerGroupCommand>;
   const adapter = ({
-    applyConfigurationRefresh: jasmine
-      .createSpy('applyConfigurationRefresh')
-      .and.callFake(async (nextCommand: IGceServerGroupCommand) => ({ command: nextCommand, result: { dirty: {} } })),
-    applyConfigurationUpdate: jasmine
-      .createSpy('applyConfigurationUpdate')
-      .and.callFake(async (nextCommand: IGceServerGroupCommand) => ({ command: nextCommand, result: { dirty: {} } })),
-  } as unknown) as jasmine.SpyObj<IGceServerGroupWizardAdapter>;
+    applyConfigurationRefresh: vi.fn().mockImplementation(async (nextCommand: IGceServerGroupCommand) => ({
+      command: nextCommand,
+      result: { dirty: {} },
+    })),
+    applyConfigurationUpdate: vi.fn().mockImplementation(async (nextCommand: IGceServerGroupCommand) => ({
+      command: nextCommand,
+      result: { dirty: {} },
+    })),
+  } as unknown) as Mocked<IGceServerGroupWizardAdapter>;
   return { adapter, formik };
 }
 

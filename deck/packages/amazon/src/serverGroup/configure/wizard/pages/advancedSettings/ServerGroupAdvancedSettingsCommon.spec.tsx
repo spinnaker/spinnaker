@@ -25,7 +25,7 @@ function buildApplication() {
 
 function buildFormik() {
   return {
-    setFieldValue: jasmine.createSpy('setFieldValue'),
+    setFieldValue: vi.fn(),
     values: {
       associatePublicIpAddress: null,
       backingData: {
@@ -37,16 +37,16 @@ function buildFormik() {
       },
       ebsOptimized: false,
       enabledMetrics: [],
-      getBlockDeviceMappingsSource: jasmine.createSpy('getBlockDeviceMappingsSource').and.returnValue('default'),
+      getBlockDeviceMappingsSource: vi.fn().mockReturnValue('default'),
       healthCheckType: 'EC2',
       instanceMonitoring: false,
       keyPair: '',
       requireIMDSv2: false,
-      selectBlockDeviceMappingsSource: jasmine.createSpy('selectBlockDeviceMappingsSource'),
+      selectBlockDeviceMappingsSource: vi.fn(),
       suspendedProcesses: [],
       tags: {},
       terminationPolicies: [],
-      toggleSuspendedProcess: jasmine.createSpy('toggleSuspendedProcess'),
+      toggleSuspendedProcess: vi.fn(),
       viewState: { useSimpleInstanceTypeSelector: true },
     },
   };

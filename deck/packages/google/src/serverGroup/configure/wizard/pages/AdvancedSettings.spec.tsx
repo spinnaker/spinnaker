@@ -256,8 +256,8 @@ describe('GCE server group Advanced Settings page', () => {
       ['[aria-label="Auth scope 1"]', 'gce-advanced-auth-scopes-error'],
     ].forEach(([selector, errorId]) => {
       const control = wrapper.find(selector);
-      expect(control.prop('aria-invalid')).withContext(selector).toBe(true);
-      expect(control.prop('aria-describedby')).withContext(selector).toBe(errorId);
+      expect(control.prop('aria-invalid'), selector).toBe(true);
+      expect(control.prop('aria-describedby'), selector).toBe(errorId);
     });
 
     expectAdvancedError(wrapper, 'gce-advanced-disks-error', 'Every persistent disk requires a type');
@@ -281,8 +281,8 @@ describe('GCE server group Advanced Settings page', () => {
 
 function expectAdvancedError(wrapper: ReturnType<typeof shallow>, id: string, message: string): void {
   const error = wrapper.find(`#${id}`);
-  expect(error.prop('role')).withContext(id).toBe('alert');
-  expect(error.text()).withContext(id).toContain(message);
+  expect(error.prop('role'), id).toBe('alert');
+  expect(error.text(), id).toContain(message);
 }
 
 function command(overrides: Partial<IGceServerGroupCommand> = {}): IGceServerGroupCommand {
@@ -332,7 +332,7 @@ function command(overrides: Partial<IGceServerGroupCommand> = {}): IGceServerGro
 function formik(values: IGceServerGroupCommand): any {
   return {
     values,
-    setFieldValue: jasmine.createSpy('setFieldValue').and.callFake((field: string, value: any) => {
+    setFieldValue: vi.fn().mockImplementation((field: string, value: any) => {
       values[field] = value;
     }),
   };

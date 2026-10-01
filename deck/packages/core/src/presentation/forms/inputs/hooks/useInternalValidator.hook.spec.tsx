@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { mount } from 'enzyme';
 import React from 'react';
 
@@ -12,9 +13,9 @@ function TestInputComponent(props: IFormInputProps & { validator?: IValidator; r
 }
 
 interface IFormInputValidationMock extends IFormInputValidation {
-  revalidate: jasmine.Spy & IFormInputValidation['revalidate'];
-  addValidator: jasmine.Spy & IFormInputValidation['addValidator'];
-  removeValidator: jasmine.Spy & IFormInputValidation['removeValidator'];
+  revalidate: Mock & IFormInputValidation['revalidate'];
+  addValidator: Mock & IFormInputValidation['addValidator'];
+  removeValidator: Mock & IFormInputValidation['removeValidator'];
 }
 
 function validationMock(): IFormInputValidationMock {
@@ -23,9 +24,9 @@ function validationMock(): IFormInputValidationMock {
     hidden: false,
     category: null,
     messageNode: null,
-    revalidate: jasmine.createSpy('validation.revalidate'),
-    addValidator: jasmine.createSpy('validation.addValidator'),
-    removeValidator: jasmine.createSpy('validation.removeValidator'),
+    revalidate: vi.fn(),
+    addValidator: vi.fn(),
+    removeValidator: vi.fn(),
   };
 }
 
@@ -64,8 +65,8 @@ describe('useInternalValidator', () => {
     const validation = validationMock();
 
     let addedValidator: any, removedValidator: any;
-    validation.addValidator.and.callFake((arg: any) => (addedValidator = arg));
-    validation.removeValidator.and.callFake((arg: any) => (removedValidator = arg));
+    validation.addValidator.mockImplementation((arg: any) => (addedValidator = arg));
+    validation.removeValidator.mockImplementation((arg: any) => (removedValidator = arg));
 
     const component = mount(<TestInputComponent validation={validation} />);
     component.unmount();
@@ -78,8 +79,8 @@ describe('useInternalValidator', () => {
     const validation = validationMock();
 
     let addedValidator: any, removedValidator: any;
-    validation.addValidator.and.callFake((arg: any) => (addedValidator = arg));
-    validation.removeValidator.and.callFake((arg: any) => (removedValidator = arg));
+    validation.addValidator.mockImplementation((arg: any) => (addedValidator = arg));
+    validation.removeValidator.mockImplementation((arg: any) => (removedValidator = arg));
 
     const component = mount(<TestInputComponent validation={validation} />);
     component.render();
@@ -93,17 +94,17 @@ describe('useInternalValidator', () => {
   it('should call the latest validate function prop', () => {
     const validation = validationMock();
     let validators: IValidator[] = [];
-    validation.addValidator.and.callFake((v: IValidator) => validators.push(v));
-    validation.removeValidator.and.callFake((v: IValidator) => (validators = validators.filter((x) => x !== v)));
-    validation.revalidate.and.callFake(() => validators.forEach((v) => v(null, null)));
+    validation.addValidator.mockImplementation((v: IValidator) => validators.push(v));
+    validation.removeValidator.mockImplementation((v: IValidator) => (validators = validators.filter((x) => x !== v)));
+    validation.revalidate.mockImplementation(() => validators.forEach((v) => v(null, null)));
 
-    const initialValidator: IValidator = jasmine.createSpy('initialValidator', () => 'initial');
+    const initialValidator: IValidator = vi.fn();
     const component = mount(<TestInputComponent validation={validation} validator={initialValidator} />);
 
     validation.revalidate();
     expect(initialValidator).toHaveBeenCalledTimes(1);
 
-    const updatedValidator: IValidator = jasmine.createSpy('updatedValidator', () => 'updated');
+    const updatedValidator: IValidator = vi.fn();
     component.setProps({ validator: updatedValidator });
     validation.revalidate();
 
@@ -115,8 +116,8 @@ describe('useInternalValidator', () => {
     const validation = validationMock();
 
     let addedValidator: any, removedValidator: any;
-    validation.addValidator.and.callFake((arg: any) => (addedValidator = arg));
-    validation.removeValidator.and.callFake((arg: any) => (removedValidator = arg));
+    validation.addValidator.mockImplementation((arg: any) => (addedValidator = arg));
+    validation.removeValidator.mockImplementation((arg: any) => (removedValidator = arg));
 
     const component = mount(<TestInputComponent validation={validation} validator={() => 'Error: 1'} />);
     component.render();

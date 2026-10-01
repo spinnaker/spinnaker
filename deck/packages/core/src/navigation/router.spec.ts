@@ -195,29 +195,29 @@ describe('configureRouter', () => {
   it('uses hash URLs to preserve existing Deck routes', () => {
     const router = createRouter();
 
-    expect(router.locationService).toEqual(jasmine.any(HashLocationService));
+    expect(router.locationService).toEqual(expect.any(HashLocationService));
   });
 
   it('configures the direct router without starting URL handling', () => {
-    const listen = spyOn(UrlService.prototype, 'listen');
-    const sync = spyOn(UrlService.prototype, 'sync');
+    const listen = vi.spyOn(UrlService.prototype, 'listen').mockReturnValue(undefined);
+    const sync = vi.spyOn(UrlService.prototype, 'sync').mockReturnValue(undefined);
 
     const router = createRouter();
 
     expect(getDirectRouter()).toBe(router);
-    expect(listen.calls.allArgs().filter((args) => args.length === 0).length).toBe(0);
+    expect(listen.mock.calls.filter((args) => args.length === 0).length).toBe(0);
     expect(sync).not.toHaveBeenCalled();
   });
 
   it('does not register infrastructure data sources owned by runtime initialization', () => {
     const originalDataSources = ApplicationDataSourceRegistry.getDataSources();
     ApplicationDataSourceRegistry.clearDataSources();
-    const registerDataSource = spyOn(ApplicationDataSourceRegistry, 'registerDataSource').and.callThrough();
+    const registerDataSource = vi.spyOn(ApplicationDataSourceRegistry, 'registerDataSource');
 
     try {
       createRouter();
 
-      const registeredKeys = registerDataSource.calls.allArgs().map(([config]) => config.key);
+      const registeredKeys = registerDataSource.mock.calls.map(([config]) => config.key);
       expect(registeredKeys).not.toContain('serverGroups');
       expect(registeredKeys).not.toContain('loadBalancers');
       expect(registeredKeys).not.toContain('securityGroups');
@@ -229,11 +229,11 @@ describe('configureRouter', () => {
 
   it('starts URL listening before synchronizing the initial location', () => {
     const order: string[] = [];
-    spyOn(UrlService.prototype, 'listen').and.callFake(() => {
+    vi.spyOn(UrlService.prototype, 'listen').mockImplementation(() => {
       order.push('listen');
       return undefined;
     });
-    spyOn(UrlService.prototype, 'sync').and.callFake(() => {
+    vi.spyOn(UrlService.prototype, 'sync').mockImplementation(() => {
       order.push('sync');
       return undefined;
     });
@@ -276,10 +276,10 @@ describe('configureRouter', () => {
 
   it('transitions through both application trees and resolves their applications', async () => {
     const projectConfiguration = { name: 'delivery' } as any;
-    const getApplication = spyOn(ApplicationReader, 'getApplication').and.callFake((name: string) =>
-      Promise.resolve({ name, dataSources: [] } as any),
-    );
-    spyOn(ProjectReader, 'getProjectConfig').and.resolveTo(projectConfiguration);
+    const getApplication = vi
+      .spyOn(ApplicationReader, 'getApplication')
+      .mockImplementation((name: string) => Promise.resolve({ name, dataSources: [] } as any));
+    vi.spyOn(ProjectReader, 'getProjectConfig').mockResolvedValue(projectConfiguration);
     const router = createRouter();
 
     await router.stateService.go(
@@ -301,12 +301,12 @@ describe('configureRouter', () => {
     const projectTransition = router.globals.successfulTransitions.peekTail();
     expect(getApplication).toHaveBeenCalledWith('payments', false);
     expect(getApplication).toHaveBeenCalledWith('transfers', false);
-    expect(ProjectReader.getProjectConfig).toHaveBeenCalledOnceWith('delivery');
+    expect(ProjectReader.getProjectConfig).toHaveBeenCalledExactlyOnceWith('delivery');
     expect(projectTransition.injector().get('projectConfiguration')).toBe(projectConfiguration);
   });
 
   it('updates page titles and recent history after successful direct transitions', async () => {
-    const addHistory = spyOn(RecentHistoryService, 'addItem');
+    const addHistory = vi.spyOn(RecentHistoryService, 'addItem').mockReturnValue(undefined);
     const router = createRouter();
 
     await router.stateService.go('home.instanceDetails', {
@@ -317,10 +317,10 @@ describe('configureRouter', () => {
     });
 
     expect(document.title).toBe('Spinnaker · Instance Details: i-123');
-    expect(addHistory).toHaveBeenCalledOnceWith(
+    expect(addHistory).toHaveBeenCalledExactlyOnceWith(
       'instances',
       'home.instanceDetails',
-      jasmine.objectContaining({ instanceId: 'i-123', provider: 'aws' }),
+      expect.objectContaining({ instanceId: 'i-123', provider: 'aws' }),
       undefined,
     );
   });
@@ -344,10 +344,10 @@ describe('configureRouter', () => {
 
   it('settles routing without success side effects when a direct transition rejects', async () => {
     const { router, runtime } = createRuntimeRouter();
-    const handleRoutingStart = spyOn(runtime.services.pageTitleService, 'handleRoutingStart').and.callThrough();
-    const handleRoutingError = spyOn(runtime.services.pageTitleService, 'handleRoutingError').and.callThrough();
-    const handleRoutingSuccess = spyOn(runtime.services.pageTitleService, 'handleRoutingSuccess').and.callThrough();
-    const addHistory = spyOn(RecentHistoryService, 'addItem');
+    const handleRoutingStart = vi.spyOn(runtime.services.pageTitleService, 'handleRoutingStart');
+    const handleRoutingError = vi.spyOn(runtime.services.pageTitleService, 'handleRoutingError');
+    const handleRoutingSuccess = vi.spyOn(runtime.services.pageTitleService, 'handleRoutingSuccess');
+    const addHistory = vi.spyOn(RecentHistoryService, 'addItem').mockReturnValue(undefined);
     const routingValues: boolean[] = [];
     runtime.routingState.subscribe((routing) => routingValues.push(routing));
     router.stateRegistry.register({
@@ -397,8 +397,8 @@ describe('configureRouter', () => {
 
   it('settles superseded routing and applies success side effects only to the replacement', async () => {
     const { router, runtime } = createRuntimeRouter();
-    const handleRoutingSuccess = spyOn(runtime.services.pageTitleService, 'handleRoutingSuccess').and.callThrough();
-    const addHistory = spyOn(RecentHistoryService, 'addItem');
+    const handleRoutingSuccess = vi.spyOn(runtime.services.pageTitleService, 'handleRoutingSuccess');
+    const addHistory = vi.spyOn(RecentHistoryService, 'addItem').mockReturnValue(undefined);
     const routingValues: boolean[] = [];
     runtime.routingState.subscribe((routing) => routingValues.push(routing));
     router.stateRegistry.register({
@@ -444,14 +444,14 @@ describe('configureRouter', () => {
     expect(document.title).toBe('Replacement transition');
     expect(handleRoutingSuccess).toHaveBeenCalledTimes(1);
     expect(addHistory).toHaveBeenCalledTimes(1);
-    expect(addHistory.calls.mostRecent().args[1]).toBe('route-lifecycle-replacement');
+    expect(addHistory.mock.lastCall[1]).toBe('route-lifecycle-replacement');
   });
 
   it('does not publish or run success side effects when a transition settles after runtime disposal', async () => {
     const { router, runtime } = createRuntimeRouter();
     const pending = deferred<void>();
-    const handleRoutingSuccess = spyOn(runtime.services.pageTitleService, 'handleRoutingSuccess').and.callThrough();
-    const addHistory = spyOn(RecentHistoryService, 'addItem');
+    const handleRoutingSuccess = vi.spyOn(runtime.services.pageTitleService, 'handleRoutingSuccess');
+    const addHistory = vi.spyOn(RecentHistoryService, 'addItem').mockReturnValue(undefined);
     const routingValues: boolean[] = [];
     runtime.routingState.subscribe((routing) => routingValues.push(routing));
     router.stateRegistry.register({
@@ -505,12 +505,12 @@ describe('configureRouter', () => {
       const state = router.stateRegistry.get(stateName);
       const directReactViews = Object.values(state.views ?? {}).filter((view) => view.$type === 'react');
 
-      expect(directReactViews.length).withContext(stateName).toBeGreaterThan(0);
+      expect(directReactViews.length, stateName).toBeGreaterThan(0);
       directReactViews.forEach((view) => {
         const wrapper = shallow(React.createElement(view.component));
 
-        expect(wrapper.type()).withContext(stateName).toBe(SpinErrorBoundary);
-        expect(wrapper.prop('category')).withContext(stateName).toBe(stateName);
+        expect(wrapper.type(), stateName).toBe(SpinErrorBoundary);
+        expect(wrapper.prop('category'), stateName).toBe(stateName);
       });
     });
   });
@@ -554,10 +554,12 @@ describe('configureRouter', () => {
     routers.push(previousRouter);
     setDirectRouter(previousRouter);
     const failure = new Error('state configuration failed');
-    spyOn(StateConfigProvider.prototype, 'setStates').and.throwError(failure);
-    const dispose = spyOn(UIRouterReact.prototype, 'dispose').and.callThrough();
-    const listen = spyOn(UrlService.prototype, 'listen');
-    const sync = spyOn(UrlService.prototype, 'sync');
+    vi.spyOn(StateConfigProvider.prototype, 'setStates').mockImplementation(() => {
+      throw failure;
+    });
+    const dispose = vi.spyOn(UIRouterReact.prototype, 'dispose');
+    const listen = vi.spyOn(UrlService.prototype, 'listen').mockReturnValue(undefined);
+    const sync = vi.spyOn(UrlService.prototype, 'sync').mockReturnValue(undefined);
 
     const failedRouter = new UIRouterReact();
     const runtime = createDeckRuntime(failedRouter);
@@ -565,10 +567,16 @@ describe('configureRouter', () => {
     expect(() => configureRouter(failedRouter, runtime.services, runtime.routingState)).toThrow(failure);
 
     expect(getDirectRouter()).toBe(previousRouter);
-    const ownershipDisposals = dispose.calls.all().filter(({ args }) => args.length === 0);
+    const ownershipDisposals = dispose.mock.calls
+      .map((args, __i) => ({
+        args,
+        returnValue: dispose.mock.results[__i].value,
+        invocationOrder: dispose.mock.invocationCallOrder[__i],
+      }))
+      .filter(({ args }) => args.length === 0);
     expect(ownershipDisposals.length).toBe(1);
     expect(ownershipDisposals[0].object).not.toBe(previousRouter);
-    expect(listen.calls.allArgs().filter((args) => args.length === 0).length).toBe(0);
+    expect(listen.mock.calls.filter((args) => args.length === 0).length).toBe(0);
     expect(sync).not.toHaveBeenCalled();
   });
 });

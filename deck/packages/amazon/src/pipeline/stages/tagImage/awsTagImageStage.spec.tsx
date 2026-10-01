@@ -14,8 +14,8 @@ describe('AwsTagImageStageConfig', () => {
   } as any;
 
   beforeEach(() => {
-    spyOn(AccountService, 'listAccounts').and.returnValue(Promise.resolve([]) as any);
-    spyOn(AccountService, 'getUniqueAttributeForAllAccounts').and.returnValue(Promise.resolve([]) as any);
+    vi.spyOn(AccountService, 'listAccounts').mockReturnValue(Promise.resolve([]) as any);
+    vi.spyOn(AccountService, 'getUniqueAttributeForAllAccounts').mockReturnValue(Promise.resolve([]) as any);
   });
 
   function renderStage(stageOverrides: Record<string, any> = {}) {
@@ -44,7 +44,7 @@ describe('AwsTagImageStageConfig', () => {
       ...stageOverrides,
     };
     const pipeline = { stages: [bake, findImage, wait, unrelatedBake, stage] } as any;
-    const updateStageField = jasmine.createSpy('updateStageField');
+    const updateStageField = vi.fn();
     const StageComponent = awsTagImageStage.component as React.ComponentType<any>;
 
     const wrapper = mount(
@@ -52,8 +52,8 @@ describe('AwsTagImageStageConfig', () => {
         application={application}
         pipeline={pipeline}
         stage={stage}
-        stageFieldUpdated={jasmine.createSpy('stageFieldUpdated')}
-        updateStage={jasmine.createSpy('updateStage')}
+        stageFieldUpdated={vi.fn()}
+        updateStage={vi.fn()}
         updateStageField={updateStageField}
       />,
     );
@@ -68,7 +68,7 @@ describe('AwsTagImageStageConfig', () => {
   it('persists missing defaults once without causing an update loop', () => {
     const { stage, updateStageField, wrapper } = renderStage({ cloudProvider: undefined, tags: undefined });
 
-    expect(updateStageField.calls.allArgs()).toEqual([[{ cloudProvider: 'aws', tags: {} }]]);
+    expect(updateStageField.mock.calls).toEqual([[{ cloudProvider: 'aws', tags: {} }]]);
 
     wrapper.setProps({ stage: { ...stage, cloudProvider: 'aws', tags: {} } });
 
@@ -78,14 +78,14 @@ describe('AwsTagImageStageConfig', () => {
   it('preserves an explicit cloud provider while initializing missing tags', () => {
     const { updateStageField } = renderStage({ cloudProvider: 'aws-custom', tags: undefined });
 
-    expect(updateStageField.calls.allArgs()).toEqual([[{ tags: {} }]]);
+    expect(updateStageField.mock.calls).toEqual([[{ tags: {} }]]);
   });
 
   it('preserves explicit tags while initializing a missing cloud provider', () => {
     const tags = { Owner: '', unknown: 'persisted' };
     const { updateStageField, wrapper } = renderStage({ cloudProvider: undefined, tags });
 
-    expect(updateStageField.calls.allArgs()).toEqual([[{ cloudProvider: 'aws' }]]);
+    expect(updateStageField.mock.calls).toEqual([[{ cloudProvider: 'aws' }]]);
     expect(wrapper.find(MapEditor).prop('model')).toBe(tags);
   });
 
@@ -108,7 +108,7 @@ describe('AwsTagImageStageConfig', () => {
     mapEditor.prop('onChange')(edited, false);
     mapEditor.prop('onChange')(removed, false);
 
-    expect(updateStageField.calls.allArgs()).toEqual([[{ tags: added }], [{ tags: edited }], [{ tags: removed }]]);
+    expect(updateStageField.mock.calls).toEqual([[{ tags: added }], [{ tags: edited }], [{ tags: removed }]]);
   });
 
   it('offers only direct and indirect upstream image-producing stage refIds', () => {

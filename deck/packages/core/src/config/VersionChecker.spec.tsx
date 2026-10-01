@@ -8,11 +8,11 @@ describe('VersionChecker', () => {
 
   it('creates and subscribes one scheduler when initialized repeatedly', () => {
     const scheduler: IScheduler = {
-      scheduleImmediate: jasmine.createSpy('scheduleImmediate'),
-      subscribe: jasmine.createSpy('subscribe'),
-      unsubscribe: jasmine.createSpy('unsubscribe'),
+      scheduleImmediate: vi.fn(),
+      subscribe: vi.fn(),
+      unsubscribe: vi.fn(),
     };
-    const createScheduler = spyOn(SchedulerFactory, 'createScheduler').and.returnValue(scheduler);
+    const createScheduler = vi.spyOn(SchedulerFactory, 'createScheduler').mockReturnValue(scheduler);
 
     VersionChecker.initialize();
     VersionChecker.initialize();
@@ -23,11 +23,11 @@ describe('VersionChecker', () => {
 
   it('unsubscribes the active scheduler and permits fresh initialization after reset', () => {
     const scheduler: IScheduler = {
-      scheduleImmediate: jasmine.createSpy('scheduleImmediate'),
-      subscribe: jasmine.createSpy('subscribe'),
-      unsubscribe: jasmine.createSpy('unsubscribe'),
+      scheduleImmediate: vi.fn(),
+      subscribe: vi.fn(),
+      unsubscribe: vi.fn(),
     };
-    const createScheduler = spyOn(SchedulerFactory, 'createScheduler').and.returnValue(scheduler);
+    const createScheduler = vi.spyOn(SchedulerFactory, 'createScheduler').mockReturnValue(scheduler);
 
     VersionChecker.initialize();
     VersionChecker.resetForTests();
