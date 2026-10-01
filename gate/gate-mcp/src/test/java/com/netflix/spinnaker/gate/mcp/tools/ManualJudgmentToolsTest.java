@@ -106,7 +106,7 @@ class ManualJudgmentToolsTest {
     execution.put("stages", List.of(stage));
 
     when(orcaServiceSelector.select()).thenReturn(orcaService);
-    when(orcaService.getPipelines("myapp", 100, "RUNNING", true, null, null))
+    when(orcaService.getPipelines("myapp", 100, "RUNNING", true, null, null, false))
         .thenReturn(Calls.response(List.of(execution)));
 
     List<Map<String, Object>> pending = manualJudgmentTools.listPendingManualJudgments("myapp");

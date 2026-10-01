@@ -28,7 +28,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.SpinnakerKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.model.Manifest;
-import com.netflix.spinnaker.clouddriver.kubernetes.model.Manifest.Status;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import javax.annotation.Nonnull;
 import org.springframework.lang.Nullable;
@@ -39,8 +38,9 @@ public class CustomKubernetesHandlerFactory {
       KubernetesKind kubernetesKind,
       SpinnakerKind spinnakerKind,
       boolean versioned,
-      int deployPriority) {
-    return new Handler(kubernetesKind, spinnakerKind, versioned, deployPriority);
+      int deployPriority,
+      CustomResourceStatusEvaluator statusEvaluator) {
+    return new Handler(kubernetesKind, spinnakerKind, versioned, deployPriority, statusEvaluator);
   }
 
   private static class Handler extends KubernetesHandler {
@@ -48,16 +48,19 @@ public class CustomKubernetesHandlerFactory {
     private final SpinnakerKind spinnakerKind;
     private final boolean versioned;
     private final int deployPriority;
+    private final CustomResourceStatusEvaluator statusEvaluator;
 
     Handler(
         KubernetesKind kubernetesKind,
         SpinnakerKind spinnakerKind,
         boolean versioned,
-        int deployPriority) {
+        int deployPriority,
+        CustomResourceStatusEvaluator statusEvaluator) {
       this.kubernetesKind = kubernetesKind;
       this.spinnakerKind = spinnakerKind;
       this.versioned = versioned;
       this.deployPriority = deployPriority;
+      this.statusEvaluator = statusEvaluator;
     }
 
     @Override
@@ -84,7 +87,7 @@ public class CustomKubernetesHandlerFactory {
 
     @Override
     public Manifest.Status status(KubernetesManifest manifest) {
-      return Status.defaultStatus();
+      return statusEvaluator.status(manifest);
     }
 
     @Override

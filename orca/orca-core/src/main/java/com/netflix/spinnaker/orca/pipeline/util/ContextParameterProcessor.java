@@ -27,10 +27,11 @@ import com.netflix.spinnaker.kork.api.expressions.ExpressionFunctionProvider;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.expressions.ExpressionEvaluationSummary;
 import com.netflix.spinnaker.kork.expressions.config.ExpressionProperties;
+import com.netflix.spinnaker.kork.web.url.UrlRestrictions;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.Trigger;
-import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions;
+import com.netflix.spinnaker.orca.config.UserConfiguredHttpClientProperties;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator;
 import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator.SpelEvaluatorVersion;
@@ -65,8 +66,9 @@ public class ContextParameterProcessor {
             new ManifestLabelValueExpressionFunctionProvider(),
             new StageExpressionFunctionProvider(),
             new UrlExpressionFunctionProvider(
-                new UserConfiguredUrlRestrictions.Builder().build(),
-                new HttpClientUtils(new UserConfiguredUrlRestrictions.Builder().build()))),
+                UrlRestrictions.defaults(),
+                new HttpClientUtils(
+                    UrlRestrictions.defaults(), new UserConfiguredHttpClientProperties()))),
         new DefaultPluginManager(),
         DynamicConfigService.NOOP,
         new ExpressionProperties());

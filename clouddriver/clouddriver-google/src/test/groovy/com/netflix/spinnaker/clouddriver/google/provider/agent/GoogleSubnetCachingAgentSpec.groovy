@@ -58,8 +58,7 @@ class GoogleSubnetCachingAgentSpec extends Specification {
     // Regression test: the last live subnet in a namespace being deleted must still evict its
     // stale cache entry, not leave it stuck forever. That only happens if the namespace's key is
     // present in the CacheResult even when nothing was found this cycle -- see
-    // CacheResultBuilder's dataTypes-arg constructor and GoogleInfrastructureProvider's
-    // ProviderCacheConfiguration opt-in.
+    // CacheResultBuilder's dataTypes-arg constructor.
     setup:
     def registry = new DefaultRegistry()
     def computeMock = Mock(Compute)

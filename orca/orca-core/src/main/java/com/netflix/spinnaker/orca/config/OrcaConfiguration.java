@@ -63,7 +63,6 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
@@ -96,6 +95,7 @@ import tools.jackson.databind.json.JsonMapper;
   PreprocessorConfiguration.class,
   PluginsAutoConfiguration.class,
   ArtifactStoreConfiguration.class,
+  UrlRestrictionsConfiguration.class,
 })
 @EnableConfigurationProperties({
   TaskOverrideConfigurationProperties.class,
@@ -152,18 +152,6 @@ public class OrcaConfiguration {
   @ConditionalOnProperty(value = "jar-diffs.enabled", matchIfMissing = false)
   public ComparableLooseVersion comparableLooseVersion() {
     return new DefaultComparableLooseVersion();
-  }
-
-  @Bean
-  @ConfigurationProperties("user-configured-url-restrictions")
-  public UserConfiguredUrlRestrictions.Builder userConfiguredUrlRestrictionProperties() {
-    return new UserConfiguredUrlRestrictions.Builder();
-  }
-
-  @Bean
-  UserConfiguredUrlRestrictions userConfiguredUrlRestrictions(
-      UserConfiguredUrlRestrictions.Builder userConfiguredUrlRestrictionProperties) {
-    return userConfiguredUrlRestrictionProperties.build();
   }
 
   @Bean

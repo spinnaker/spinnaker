@@ -21,8 +21,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
-import com.netflix.spinnaker.clouddriver.artifacts.config.HttpUrlRestrictions;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.web.url.UrlRestrictionsProperties;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -50,7 +50,7 @@ class GitlabArtifactCredentialsTest {
   void downloadWithToken(@WiremockResolver.Wiremock WireMockServer server) throws IOException {
     GitlabArtifactAccount account =
         GitlabArtifactAccount.builder()
-            .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
+            .urlRestrictions(UrlRestrictionsProperties.builder().rejectLocalhost(false).build())
             .name("my-gitlab-account")
             .token("abc")
             .build();
@@ -68,7 +68,7 @@ class GitlabArtifactCredentialsTest {
     GitlabArtifactAccount account =
         GitlabArtifactAccount.builder()
             .name("my-gitlab-account")
-            .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
+            .urlRestrictions(UrlRestrictionsProperties.builder().rejectLocalhost(false).build())
             .tokenFile(authFile.toAbsolutePath().toString())
             .build();
 
@@ -79,7 +79,7 @@ class GitlabArtifactCredentialsTest {
   void downloadWithNoAuth(@WiremockResolver.Wiremock WireMockServer server) throws IOException {
     GitlabArtifactAccount account =
         GitlabArtifactAccount.builder()
-            .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
+            .urlRestrictions(UrlRestrictionsProperties.builder().rejectLocalhost(false).build())
             .name("my-gitlab-account")
             .build();
 
@@ -107,7 +107,7 @@ class GitlabArtifactCredentialsTest {
     GitlabArtifactAccount account =
         GitlabArtifactAccount.builder()
             .urlRestrictions(
-                HttpUrlRestrictions.builder()
+                UrlRestrictionsProperties.builder()
                     .allowedHostnamesRegex("localhost|127\\.0\\.0\\.1")
                     .rejectLocalhost(false)
                     .build())

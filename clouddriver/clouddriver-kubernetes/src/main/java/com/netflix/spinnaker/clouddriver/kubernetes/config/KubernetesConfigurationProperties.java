@@ -38,6 +38,8 @@ public class KubernetesConfigurationProperties {
   private KubectlProperties kubectl = new KubectlProperties();
   private OAuthProperties oAuth = new OAuthProperties();
 
+  private CustomResourceStatus customResourceStatus = new CustomResourceStatus();
+
   public KubernetesConfigurationProperties kubernetesConfigurationProperties() {
     return new KubernetesConfigurationProperties();
   }
@@ -130,6 +132,22 @@ public class KubernetesConfigurationProperties {
      * enabled.
      */
     boolean checkApplicationInFront50 = false;
+  }
+
+  /** Health status reported for custom resources (and other kinds without a dedicated handler). */
+  @Data
+  public static class CustomResourceStatus {
+    /**
+     * When false, custom resources are always reported as stable, which was the only behaviour
+     * before status evaluation existed.
+     */
+    private boolean enabled = false;
+
+    /**
+     * Status messages taken from a resource's conditions are truncated to this many characters. A
+     * value of zero or less disables truncation.
+     */
+    private int maxMessageLength = 1024;
   }
 
   /** kubectl configuration properties */

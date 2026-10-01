@@ -20,8 +20,8 @@ import static java.lang.String.format;
 
 import com.netflix.spinnaker.kork.expressions.ExpressionFunctionProvider;
 import com.netflix.spinnaker.kork.expressions.SpelHelperFunctionException;
+import com.netflix.spinnaker.kork.web.url.UrlRestrictions;
 import com.netflix.spinnaker.kork.yaml.YamlHelper;
-import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import com.netflix.spinnaker.orca.pipeline.util.HttpClientUtils;
 import java.io.ByteArrayInputStream;
@@ -38,12 +38,12 @@ import tools.jackson.databind.ObjectMapper;
 @Component
 public class UrlExpressionFunctionProvider implements ExpressionFunctionProvider {
   private static AtomicReference<HttpClientUtils> httpClientUtils = new AtomicReference<>();
-  private static AtomicReference<UserConfiguredUrlRestrictions> helperFunctionUrlRestrictions =
+  private static AtomicReference<UrlRestrictions> helperFunctionUrlRestrictions =
       new AtomicReference<>();
   private static final ObjectMapper mapper = OrcaObjectMapper.getInstance();
 
   public UrlExpressionFunctionProvider(
-      UserConfiguredUrlRestrictions urlRestrictions, HttpClientUtils httpClient) {
+      UrlRestrictions urlRestrictions, HttpClientUtils httpClient) {
     helperFunctionUrlRestrictions.set(urlRestrictions);
     httpClientUtils.set(httpClient);
   }

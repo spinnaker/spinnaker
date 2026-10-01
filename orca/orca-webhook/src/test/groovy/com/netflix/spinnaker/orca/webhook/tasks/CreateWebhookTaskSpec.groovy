@@ -171,7 +171,7 @@ class CreateWebhookTaskSpec extends Specification {
     RestTemplateData restTemplateData = Mock(RestTemplateData)
     1 * webhookService.getRestTemplateData(WebhookService.WebhookTaskType.CREATE, stage) >> restTemplateData
     1 * webhookService.callWebhook(restTemplateData) >> {
-        // throwing it like UserConfiguredUrlRestrictions::validateURI does
+        // throwing it like UrlRestrictions::validateURI does
         throw new Exception("Invalid URL", new UnknownHostException("Temporary failure in name resolution"))
     }
     0 * webhookService._
