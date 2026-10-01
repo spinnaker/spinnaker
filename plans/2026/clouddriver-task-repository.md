@@ -93,8 +93,8 @@ clocks disagree, produce the wrong "latest" row.
 
 | # | Finding | Verified |
 |---|---|---|
-| S1 | **Clock skew between pods hides state transitions.** In the retry/resume path, a different pod calls `retry()` and `updateOwnerId()`. If that pod's clock lags, its `STARTED` row sorts **before** the existing `FAILED_RETRYABLE` row, so the task stays failed for everyone, and every later status from that pod is invisible. `selectLatestState` (`SqlTaskRepository.kt:353`) and `runningTaskIds` (`:389`) both order by `created_at`. | **Repro: 200/200** retries invisible with 50 ms of skew |
-| S2 | **Rows that share a millisecond make completed tasks look running.** `runningTaskIds` joins on `created_at = MAX(created_at)` (`:389`). With a tie, both the `STARTED` and the `COMPLETED` row match, so the task counts as running. That affects `GET /task` and `@PreDestroy`, which waits the full `shutdownWaitSeconds` on tasks that already finished. | **Repro: 200/200** with a fixed clock. 0/200 with the real clock against a slow local MySQL. A fast production DB makes ties more likely. |
+| S1 | **Clock skew between pods hides state transitions.** In the retry/resume path, a different pod calls `retry()` and `updateOwnerId()`. If that pod's clock lags, its `STARTED` row sorts **before** the existing `FAILED_RETRYABLE` row, so the task stays failed for everyone, and every later status from that pod is invisible. `selectLatestState` (`SqlTaskRepository.kt:353`) and `runningTaskIds` (`:389`) both order by `created_at`. | **Repro: 200/200** retries invisible with 50 ms of skew. Kept as `SqlTaskRepositoryKnownIssuesTest` (see Phase 0). |
+| S2 | **Rows that share a millisecond make completed tasks look running.** `runningTaskIds` joins on `created_at = MAX(created_at)` (`:389`). With a tie, both the `STARTED` and the `COMPLETED` row match, so the task counts as running. That affects `GET /task` and `@PreDestroy`, which waits the full `shutdownWaitSeconds` on tasks that already finished. | **Repro: 200/200** with a fixed clock. 0/200 with the real clock against a slow local MySQL. A fast production DB makes ties more likely. Kept as `SqlTaskRepositoryKnownIssuesTest` (see Phase 0). |
 | S3 | **History order is undefined.** `retrieveInternal` is a 4-way `UNION ALL` with **no `ORDER BY`** (`:340`), and `SqlTask.getStatus()` is `history.lastOrNull()` (`SqlTask.kt:81`). On MySQL it happens to come back in `(task_id, created_at, id)` index order. Within one millisecond the tiebreak is the ULID, whose low 80 bits are random (sulky `nextULID()`, not the monotonic variant). So a same-millisecond `COMPLETED` row can sort before the `STARTED` row. Postgres or a different query plan can reorder everything. | Code path. **Not reproduced** (0/200): the ULIDs used real time and rarely collided within a millisecond. |
 | S4 | **A FAILED task can be overwritten as COMPLETED.** Neither `updateState` (`:189`) nor `updateCurrentStatus` (`:169`) enforces terminal immutability. Redis does, through `ensureUpdateable`. If S3 makes `getStatus()` report non-terminal, the processor's `finally` (`DefaultOrchestrationProcessor.java:280`) calls `complete()`, which appends a later `COMPLETED` row after `FAILED`. Orca then sees success. | Code path. **Not reproduced** (0/200, depends on S3). |
 | S5 | **Read-then-insert races.** `updateCurrentStatus`/`updateState` read the latest state and then insert, at `READ_COMMITTED` with no row lock. A concurrent `complete()` and `updateStatus()` can append a `STARTED`-state row after the `COMPLETED` row. | Code path |
@@ -139,6 +139,12 @@ every backend:
 
 The Redis-specific cases (R1/R3/R4) need a fault-injecting delegate or Toxiproxy around the Valkey
 container. Use Valkey per the project test-infra standard.
+
+**Already landed with this plan:** `clouddriver-sql`'s `SqlTaskRepositoryKnownIssuesTest` reproduces
+S1 and S2 against MySQL (50/50 each). Each test asserts the correct behaviour, but while the defect is
+present it logs a `KNOWN ISSUE` warning and is **skipped** through a JUnit assumption rather than
+failed, so the build stays green and the defect stays visible in test reports. The PR that fixes S1
+or S2 should replace the assumption with a hard assertion (or move the case into the TCK).
 
 ## Phase 1: small, independent fixes (land first, separate PRs)
 
