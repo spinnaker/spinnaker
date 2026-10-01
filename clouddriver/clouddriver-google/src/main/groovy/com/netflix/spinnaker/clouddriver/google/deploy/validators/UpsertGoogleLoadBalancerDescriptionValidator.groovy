@@ -176,6 +176,8 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
           errors.rejectValue("certificate OR certificateMap",
             "upsertGoogleLoadBalancerDescription.certificateAndCertificateMap.mutuallyExclusive")
         }
+        // GCP only supports certificateMap on global target HTTPS proxies; regional proxies take
+        // Compute SSL or Certificate Manager certificates through the certificate field.
         if (description.certificateMap) {
           errors.rejectValue("certificateMap",
             "upsertGoogleLoadBalancerDescription.certificateMap.regionalManagedNotSupported")
@@ -271,6 +273,8 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
             "upsertGoogleLoadBalancerDescription.backendService.healthCheckRequired")
         }
 
+        // GCP accepts at most five entries in a forwarding rule's ports list. This type writes
+        // ports only, so portRange is rejected below rather than silently ignored.
         if (!description.ports) {
           errors.rejectValue("ports",
             "upsertGoogleLoadBalancerDescription.ports.required")

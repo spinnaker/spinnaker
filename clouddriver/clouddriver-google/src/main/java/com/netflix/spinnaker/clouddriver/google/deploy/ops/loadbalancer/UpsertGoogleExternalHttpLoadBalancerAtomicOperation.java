@@ -231,6 +231,8 @@ public class UpsertGoogleExternalHttpLoadBalancerAtomicOperation
     if (networkReference.contains("projects/")) {
       return GCEUtil.deriveProjectId(networkReference);
     }
+    // Cached Shared VPC networks and subnets name the network as "hostProject/network"
+    // (Utils.decorateXpnResourceIdIfNeeded); a bare name has no project and returns null.
     int lastSlash = networkReference.lastIndexOf('/');
     if (lastSlash > 0) {
       return networkReference.substring(0, lastSlash);

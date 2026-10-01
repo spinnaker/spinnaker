@@ -112,12 +112,14 @@ export function buildGceLoadBalancerJobs(command: IGceLoadBalancerCommand): GceL
 function serializeBackendService(
   service: IGceLoadBalancerBackendService,
   healthChecks: IGceLoadBalancerHealthCheck[],
-  boundToV1Fields = false,
+  v1FieldsOnly = false,
 ): Record<string, unknown> {
   const healthCheck = service.healthCheck
     ? healthChecks.find(({ name }) => name === service.healthCheck?.name) || service.healthCheck
     : undefined;
-  if (boundToV1Fields) {
+  // EXTERNAL_MANAGED sends only the backend-service and health-check fields its v1 editor
+  // supports instead of echoing every cached field; existing families keep sending the cached object.
+  if (v1FieldsOnly) {
     return {
       ...serializeGceBackendService(service),
       ...(healthCheck ? { healthCheck: serializeGceHealthCheck(healthCheck as IGceLoadBalancerHealthCheck) } : {}),

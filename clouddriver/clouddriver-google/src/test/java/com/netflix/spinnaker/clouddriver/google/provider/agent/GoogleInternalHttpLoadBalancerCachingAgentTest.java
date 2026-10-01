@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.google.provider.agent;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.services.compute.Compute;
@@ -27,6 +28,7 @@ import com.netflix.spectator.api.DefaultRegistry;
 import com.netflix.spinnaker.clouddriver.google.batch.GoogleBatchRequest;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService;
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleInternalHttpLoadBalancer;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
 import java.util.ArrayList;
@@ -233,17 +235,21 @@ public class GoogleInternalHttpLoadBalancerCachingAgentTest {
   }
 
   @Test
-  void fullRefreshMarksMalformedSameSchemeForwardingRulesAsFailed() throws Exception {
+  void fullRefreshSkipsMalformedAndOtherProxySameSchemeForwardingRules() throws Exception {
     GoogleInternalHttpLoadBalancerCachingAgent agent = createAgent(mock(Compute.class));
+    List<GoogleInternalHttpLoadBalancer> loadBalancers = new ArrayList<>();
     List<String> failedLoadBalancers = new ArrayList<>();
+    GoogleBatchRequest targetProxyRequest = mock(GoogleBatchRequest.class);
+    GoogleBatchRequest urlMapRequest = mock(GoogleBatchRequest.class);
+    GoogleBatchRequest groupHealthRequest = mock(GoogleBatchRequest.class);
     GoogleInternalHttpLoadBalancerCachingAgent.ForwardingRuleCallbacks callbacks =
         agent
         .new ForwardingRuleCallbacks(
-            new ArrayList<>(),
+            loadBalancers,
             failedLoadBalancers,
-            mock(GoogleBatchRequest.class),
-            mock(GoogleBatchRequest.class),
-            mock(GoogleBatchRequest.class),
+            targetProxyRequest,
+            urlMapRequest,
+            groupHealthRequest,
             List.of(),
             List.of());
     ForwardingRule malformedRule =
@@ -262,7 +268,9 @@ public class GoogleInternalHttpLoadBalancerCachingAgentTest {
         .onSuccess(
             new ForwardingRuleList().setItems(List.of(malformedRule, managedTcpProxyRule)), null);
 
-    assertThat(failedLoadBalancers).containsExactly("malformed-lb");
+    assertThat(loadBalancers).isEmpty();
+    assertThat(failedLoadBalancers).isEmpty();
+    verifyNoInteractions(targetProxyRequest, urlMapRequest, groupHealthRequest);
   }
 
   @Test

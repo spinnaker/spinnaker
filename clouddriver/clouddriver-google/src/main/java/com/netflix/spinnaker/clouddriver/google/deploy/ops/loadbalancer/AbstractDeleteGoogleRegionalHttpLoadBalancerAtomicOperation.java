@@ -498,6 +498,8 @@ public abstract class AbstractDeleteGoogleRegionalHttpLoadBalancerAtomicOperatio
     }
   }
 
+  // Each listener is cached as its own load balancer; Orca's DeleteLoadBalancerForceRefreshTask
+  // refreshes and waits on every name reported here.
   private Map<String, Object> deleteResult(List<String> deletedLoadBalancerNames) {
     return Collections.singletonMap(
         "deletedLoadBalancerNames", List.copyOf(deletedLoadBalancerNames));

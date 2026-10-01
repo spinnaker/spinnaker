@@ -177,6 +177,7 @@ class DeleteGoogleRegionalExternalNetworkLoadBalancerAtomicOperation extends Goo
     }
 
     task.updateStatus BASE_PHASE, "Done deleting load balancer $description.loadBalancerName in $region."
+    // Orca's DeleteLoadBalancerForceRefreshTask refreshes and waits on each reported name.
     return [deletedLoadBalancerNames: [forwardingRuleName]]
   }
 }

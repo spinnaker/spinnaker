@@ -458,13 +458,16 @@ class GCEUtil {
 
   static boolean isRegionalExternalNetworkPassthroughForwardingRule(ForwardingRule forwardingRule) {
     // Regional external proxy LBs also use EXTERNAL forwarding rules; passthrough NLBs have no
-    // target proxy and point directly at the regional backend service.
+    // target proxy and point directly at the regional backend service. Only TCP and UDP rules are
+    // treated as owned; other passthrough protocols are outside this load balancer type.
     forwardingRule?.backendService &&
       !forwardingRule?.target &&
       forwardingRule?.loadBalancingScheme == "EXTERNAL" &&
       forwardingRule?.IPProtocol in ["TCP", "UDP"]
   }
 
+  // Compares from "projects/" onward so the same resource matches whether it is written with the
+  // www.googleapis.com or compute.googleapis.com host, an API version, or as a relative path.
   private static boolean sameComputeResource(String left, String right) {
     canonicalComputeResourcePath(left) == canonicalComputeResourcePath(right)
   }
@@ -790,6 +793,11 @@ class GCEUtil {
     return CERTIFICATE_MANAGER_API_PREFIX + "$projectName/locations/global/certificateMaps/$mapName"
   }
 
+  // Reduces the Certificate Manager certificate forms a caller or proxy may carry (https or
+  // scheme-relative host, API version, relative path) to a single
+  // "//certificatemanager.googleapis.com/projects/.../locations/.../certificates/..." string, so
+  // caching and upsert compare like for like. Returns null for anything else, such as a Compute
+  // SSL certificate.
   static String normalizeRegionalCertificateManagerCertificate(String certName) {
     if (!certName) {
       return null

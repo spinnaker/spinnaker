@@ -668,6 +668,8 @@ function getBalancingModes(command: IGceServerGroupCommand): string[] {
   const loadBalancerTypes = uniqueStrings(command.loadBalancers)
     .map((loadBalancerName) => loadBalancerIndex[loadBalancerName]?.loadBalancerType)
     .filter((loadBalancerType): loadBalancerType is string => Boolean(loadBalancerType));
+  // Clouddriver always attaches passthrough NLB backends with CONNECTION balancing and this page
+  // rejects mixing them with other families, so there is no balancing mode to choose.
   if (loadBalancerTypes.includes('REGIONAL_EXTERNAL_NETWORK')) {
     return [];
   }

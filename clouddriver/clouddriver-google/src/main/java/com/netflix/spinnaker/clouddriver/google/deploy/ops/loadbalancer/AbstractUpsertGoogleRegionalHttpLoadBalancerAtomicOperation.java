@@ -183,6 +183,8 @@ public abstract class AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperatio
     List<String> listenersToDelete =
         Optional.ofNullable(description.getListenersToDelete()).orElseGet(List::of);
     if (StringUtils.isNotBlank(description.getCertificate())) {
+      // Called only to validate: the EXTERNAL_MANAGED implementation throws for a malformed or
+      // out-of-project/region certificate, so the request fails before anything is created.
       buildCertificateUrl(project, region, description.getCertificate());
     }
 
@@ -471,6 +473,8 @@ public abstract class AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperatio
                 });
       }
 
+      // Check every listener to delete before Step 1 so an ownership mismatch fails before any
+      // health check, backend service, URL map or proxy is changed. Deletion re-checks it.
       if (isExternalManaged()) {
         for (String forwardingRuleName : listenersToDelete) {
           validateRegionalListenerOwnership(
@@ -673,6 +677,8 @@ public abstract class AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperatio
           String pathMatcherName = PATH_MATCHER_PREFIX + "-" + UUID.randomUUID().toString();
           GooglePathMatcher pathMatcher = hostRule.getPathMatcher();
           PathMatcher matcher = new PathMatcher();
+          // The host rule below refers to this matcher by name. INTERNAL_MANAGED's create path has
+          // never set it, and that behavior is kept unchanged; the update path names it for both.
           if (isExternalManaged()) {
             matcher.setName(pathMatcherName);
           }
@@ -1031,6 +1037,8 @@ public abstract class AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperatio
       Map<String, String> lb = new HashMap<>(1);
       lb.put("name", internalHttpLoadBalancerName);
       Map<String, Map<String, String>> regionToLb = new HashMap<>(1);
+      // INTERNAL_MANAGED keeps its historical literal "region" key; EXTERNAL_MANAGED keys the
+      // result by the actual region.
       regionToLb.put(isExternalManaged() ? region : "region", lb);
 
       Map<String, Map<String, Map<String, String>>> lbs = new HashMap<>(1);
@@ -1370,6 +1378,8 @@ public abstract class AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperatio
 
   private void validateImmutableListener(
       ForwardingRule existingRule, GoogleInternalHttpLoadBalancer desired) {
+    // Both subclasses write HTTPS forwarding rules on 443 regardless of the requested portRange,
+    // so compare against the port that will actually be written.
     String existingPort = normalizeSinglePort(existingRule.getPortRange());
     String desiredPort =
         StringGroovyMethods.asBoolean(desired.getCertificate())
@@ -1408,6 +1418,7 @@ public abstract class AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperatio
     }
   }
 
+  // GCP reports a single-port portRange as "N-N"; collapse it so "80" and "80-80" compare equal.
   private static String normalizeSinglePort(String portRange) {
     if (portRange == null) {
       return null;

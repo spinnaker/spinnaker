@@ -498,6 +498,8 @@ function serializeCertificateReference(
   reference: IGceResourceReference,
   loadBalancerType: GceLoadBalancerType,
 ): string {
+  // Clouddriver recognizes a Certificate Manager certificate only by its full resource path and
+  // resolves a bare name as a regional Compute SSL certificate, so keep the selfLink.
   if (loadBalancerType === 'EXTERNAL_MANAGED' && reference.selfLink) {
     return reference.selfLink;
   }
@@ -617,6 +619,8 @@ function serializeRegionalExternalNetworkCommand(command: IGceLoadBalancerComman
   const listener = command.listeners[0];
   const backendService = command.backendServices[0];
   const address = listener?.address;
+  // A passthrough NLB has a single forwarding rule, so its tier lives on the command; EXTERNAL_MANAGED
+  // sets it per listener instead (see serializeListener).
   const networkTier = command.networkTier || undefined;
 
   return {

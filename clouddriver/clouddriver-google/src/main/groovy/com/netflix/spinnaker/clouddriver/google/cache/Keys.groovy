@@ -196,6 +196,8 @@ class Keys implements KeyParser {
         }
         break
       case Namespace.SSL_CERTIFICATES.ns:
+        // Regional certificates carry a region segment (gce:sslCertificates:account:region:name);
+        // global ones keep the original four-part key.
         if (parts.length == 5) {
           result << [
             account: parts[2],

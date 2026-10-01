@@ -117,6 +117,9 @@ class DeleteLoadBalancerForceRefreshTask implements CloudProviderAware, Retryabl
     return result(ExecutionStatus.SUCCEEDED, refreshState)
   }
 
+  // A single delete can remove several cached load balancers (GCE regional HTTP(S) caches one per
+  // listener), so the successful Kato task may report deletedLoadBalancerNames; each name is
+  // refreshed and waited on alongside the requested one.
   private static List<String> deletedLoadBalancerNames(StageExecution stage) {
     List<Object> candidates = [stage.context.loadBalancerName]
     TaskId lastTaskId = stage.context."kato.last.task.id" as TaskId
@@ -144,6 +147,7 @@ class DeleteLoadBalancerForceRefreshTask implements CloudProviderAware, Retryabl
     return (responseBody?.cachedIdentifiersByType?.loadBalancers ?: []) as List<String>
   }
 
+  // Must match the provider's cache key; for GCE that is Keys.getLoadBalancerKey in clouddriver-google.
   private static String loadBalancerKey(String cloudProvider, String account, String region, String name) {
     "${cloudProvider}:loadBalancers:${account}:${region}:${name}"
   }

@@ -406,7 +406,6 @@ abstract class AbstractGoogleRegionalHttpLoadBalancerCachingAgent<T extends Goog
           if (isOwnedForwardingRule(forwardingRule)) {
             cacheRemainderOfLoadBalancerResourceGraph(forwardingRule);
           } else if (isMalformedOwnedSchemeRule(forwardingRule)) {
-            failedLoadBalancers.add(forwardingRule.getName());
             logMalformedRule(forwardingRule);
           }
         }

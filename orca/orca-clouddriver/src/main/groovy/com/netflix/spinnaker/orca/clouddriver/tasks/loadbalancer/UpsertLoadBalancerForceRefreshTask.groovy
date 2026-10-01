@@ -248,6 +248,8 @@ public class UpsertLoadBalancerForceRefreshTask implements CloudProviderAware, R
       }
 
       regions.each { String region ->
+        // The target's position keeps two targets with the same identity in separate refresh
+        // states; targets come from the stage context, so their order is stable across task runs.
         String key = "${targetIndex}|${account}|${region}|${loadBalancerType ?: ''}|${loadBalancerName}"
         TargetRefreshState state = existingStates.find { it.key == key } ?: new TargetRefreshState(
           key: key,
@@ -335,8 +337,8 @@ public class UpsertLoadBalancerForceRefreshTask implements CloudProviderAware, R
       } else if (!targetState.seenPendingCacheUpdates) {
         targetState.attempt++
         if (targetState.attempt >= MAX_CHECK_FOR_PENDING) {
-          // The accepted identifiers never became observable; success still requires exact Oort
-          // visibility below.
+          // The accepted identifiers never became observable; regional-family targets still
+          // require exact Oort visibility below.
           targetState.allAreComplete = true
         }
       }
@@ -346,6 +348,8 @@ public class UpsertLoadBalancerForceRefreshTask implements CloudProviderAware, R
 
   private TaskResult succeedTargetRefreshWhenVisible(LBUpsertContext context,
                                                      List<TargetRefreshState> targetStates) {
+    // Only the new regional families wait for a cache readback; other types succeed once every
+    // refresh is complete, as before.
     if (!targetStates.findAll { LoadBalancerTarget.isRegionalFamilyType(it.loadBalancerType) }.every {
       isLoadBalancerVisible(it)
     }) {
