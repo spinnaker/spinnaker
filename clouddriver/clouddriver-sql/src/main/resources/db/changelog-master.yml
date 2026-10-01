@@ -32,3 +32,6 @@ databaseChangeLog:
 - include:
     file: changelog/20250908-pubsub-scheduler.yml
     relativeToChangelogFile: true
+- include:
+    file: changelog/20260328-task-states-state-created-at-idx.yml
+    relativeToChangelogFile: true
