@@ -19,7 +19,8 @@ package com.netflix.spinnaker.orca.webhook.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.crypto.StandardCrypto;
 import com.netflix.spinnaker.kork.crypto.StaticX509Identity;
-import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions;
+import com.netflix.spinnaker.kork.web.url.UrlRestrictions;
+import com.netflix.spinnaker.kork.web.url.UrlRestrictionsProperties;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileWriter;
@@ -72,8 +73,8 @@ class MtlsConfigurationTestBase {
 
   static class TestConfigurationBase {
     @Bean
-    UserConfiguredUrlRestrictions userConfiguredUrlRestrictions() {
-      return new UserConfiguredUrlRestrictions.Builder().withRejectLocalhost(false).build();
+    UrlRestrictions userConfiguredUrlRestrictions() {
+      return UrlRestrictionsProperties.builder().rejectLocalhost(false).build().toUrlRestrictions();
     }
 
     @Bean

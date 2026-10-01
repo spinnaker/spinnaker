@@ -18,7 +18,8 @@ package com.netflix.spinnaker.orca.pipeline.util;
 
 import com.google.common.io.CharStreams;
 import com.google.common.util.concurrent.Uninterruptibles;
-import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions;
+import com.netflix.spinnaker.kork.web.url.UrlRestrictions;
+import com.netflix.spinnaker.orca.config.UserConfiguredHttpClientProperties;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -53,7 +54,7 @@ import org.springframework.stereotype.Component;
 public class HttpClientUtils {
 
   private final CloseableHttpClient httpClient;
-  private final UserConfiguredUrlRestrictions urlRestrictions;
+  private final UrlRestrictions urlRestrictions;
   private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientUtils.class);
   private static final String JVM_HTTP_PROXY_HOST = "http.proxyHost";
   private static final String JVM_HTTP_PROXY_PORT = "http.proxyPort";
@@ -64,13 +65,13 @@ public class HttpClientUtils {
           HttpStatus.SC_INTERNAL_SERVER_ERROR,
           HttpStatus.SC_GATEWAY_TIMEOUT);
 
-  public HttpClientUtils(UserConfiguredUrlRestrictions userConfiguredUrlRestrictions) {
-    this.httpClient = create(userConfiguredUrlRestrictions.getHttpClientProperties());
-    this.urlRestrictions = userConfiguredUrlRestrictions;
+  public HttpClientUtils(
+      UrlRestrictions urlRestrictions, UserConfiguredHttpClientProperties httpClientProperties) {
+    this.httpClient = create(httpClientProperties);
+    this.urlRestrictions = urlRestrictions;
   }
 
-  private CloseableHttpClient create(
-      UserConfiguredUrlRestrictions.HttpClientProperties httpClientProperties) {
+  private CloseableHttpClient create(UserConfiguredHttpClientProperties httpClientProperties) {
     HttpClientBuilder httpClientBuilder = HttpClients.custom();
 
     if (httpClientProperties.isEnableRetry()) {
