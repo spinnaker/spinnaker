@@ -23,10 +23,9 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
-import org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration;
-import org.springframework.boot.autoconfigure.integration.IntegrationAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.data.redis.autoconfigure.DataRedisAutoConfiguration;
+import org.springframework.boot.integration.autoconfigure.IntegrationAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -41,7 +40,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
  * {@code @Bean}-declared here, matching {@code cats-pubsub}'s {@code PubSubSchedulerConfig}.
  *
  * <p>This must be a plain {@code @Import}, NOT {@code @ImportAutoConfiguration}: a host app that
- * excludes {@code RedisAutoConfiguration} (e.g. because it talks to Redis through a different
+ * excludes {@code DataRedisAutoConfiguration} (e.g. because it talks to Redis through a different
  * client elsewhere) has that exclusion merged across its whole auto-configuration import group, and
  * an {@code @ImportAutoConfiguration} of an excluded class would be silently dropped. A direct
  * import bypasses the group; the conditions inside the imported classes still apply, so a host app
@@ -57,11 +56,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
     })
 @ConditionalOnProperty({"pubsub.enabled", "pubsub.redis.enabled"})
 @EnableConfigurationProperties(RedisPubsubProperties.class)
-@Import({
-  RedisAutoConfiguration.class,
-  RedisRepositoriesAutoConfiguration.class,
-  IntegrationAutoConfiguration.class
-})
+@Import({DataRedisAutoConfiguration.class, IntegrationAutoConfiguration.class})
 public class RedisPubsubConfig {
   public static final String SYSTEM = "redis";
 

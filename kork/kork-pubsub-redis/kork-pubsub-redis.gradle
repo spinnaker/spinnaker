@@ -27,7 +27,7 @@ dependencies {
   implementation 'jakarta.validation:jakarta.validation-api'
 
   // spring-boot-starter-data-redis (not bare spring-data-redis) is required to pull in the
-  // Lettuce client - without it Spring's RedisAutoConfiguration can't build a
+  // Lettuce client - without it Spring's DataRedisAutoConfiguration can't build a
   // RedisConnectionFactory/StringRedisTemplate. Matches clouddriver's cats-pubsub module, the only
   // other place in this monorepo doing Redis Streams consumer-group work.
   api 'org.springframework.boot:spring-boot-starter-data-redis'
@@ -36,10 +36,14 @@ dependencies {
   // RedisMessageListenerContainer wiring - see package-level docs in .redis.broadcast for why this
   // was NOT also adopted for the Streams/consumer-group side.
   api 'org.springframework.integration:spring-integration-redis'
+  // Spring Boot 4 split IntegrationAutoConfiguration out of spring-boot-autoconfigure into its own
+  // module; RedisPubsubConfig imports it directly.
+  implementation 'org.springframework.boot:spring-boot-integration'
   api 'io.micrometer:micrometer-core'
   api 'org.slf4j:slf4j-api'
 
   testImplementation project(':kork-jedis-test')
+  testImplementation 'org.springframework.boot:spring-boot-test'
   testImplementation 'org.testcontainers:testcontainers'
   testImplementation 'org.testcontainers:junit-jupiter'
   testImplementation 'org.assertj:assertj-core'

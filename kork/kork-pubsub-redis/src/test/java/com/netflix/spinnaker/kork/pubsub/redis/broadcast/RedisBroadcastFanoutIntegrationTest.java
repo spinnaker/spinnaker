@@ -29,8 +29,11 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.redis.inbound.RedisInboundChannelAdapter;
 import org.springframework.integration.redis.outbound.RedisPublishingMessageHandler;
 import org.testcontainers.containers.GenericContainer;
@@ -47,6 +50,17 @@ class RedisBroadcastFanoutIntegrationTest {
   private static GenericContainer<?> valkey;
   private static LettuceConnectionFactory connectionFactory;
 
+  /**
+   * Spring Integration 7 requires the {@code integrationEvaluationContext} bean registered by
+   * {@code @EnableIntegration} to initialize its endpoints; in an application that comes from
+   * {@code IntegrationAutoConfiguration}, imported by {@code RedisPubsubConfig}.
+   */
+  private static AnnotationConfigApplicationContext integrationContext;
+
+  @Configuration
+  @EnableIntegration
+  static class IntegrationTestConfig {}
+
   @BeforeAll
   static void startValkey() {
     valkey =
@@ -54,10 +68,14 @@ class RedisBroadcastFanoutIntegrationTest {
     valkey.start();
     connectionFactory = new LettuceConnectionFactory(valkey.getHost(), valkey.getMappedPort(6379));
     connectionFactory.afterPropertiesSet();
+    integrationContext = new AnnotationConfigApplicationContext(IntegrationTestConfig.class);
   }
 
   @AfterAll
   static void stopValkey() {
+    if (integrationContext != null) {
+      integrationContext.close();
+    }
     if (connectionFactory != null) {
       connectionFactory.destroy();
     }
@@ -92,8 +110,7 @@ class RedisBroadcastFanoutIntegrationTest {
         new RedisPublishingMessageHandler(connectionFactory);
     publishingHandler.setSerializer(StringRedisSerializer.UTF_8);
     publishingHandler.setTopic(channel);
-    publishingHandler.setBeanFactory(
-        new org.springframework.context.support.GenericApplicationContext());
+    publishingHandler.setBeanFactory(integrationContext);
     publishingHandler.afterPropertiesSet();
     RedisNativePubsubPublisher publisher =
         new RedisNativePubsubPublisher(subscription, publishingHandler, new SimpleMeterRegistry());
@@ -147,7 +164,7 @@ class RedisBroadcastFanoutIntegrationTest {
     adapter.setTopics(subscription.getChannel());
     RedisNativePubsubSubscriber subscriber =
         new RedisNativePubsubSubscriber(subscription, adapter, handler, new SimpleMeterRegistry());
-    adapter.setBeanFactory(new org.springframework.context.support.GenericApplicationContext());
+    adapter.setBeanFactory(integrationContext);
     adapter.afterPropertiesSet();
     return subscriber;
   }
