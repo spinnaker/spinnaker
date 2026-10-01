@@ -28,6 +28,7 @@ import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.KatoService;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
+import com.netflix.spinnaker.orca.clouddriver.config.TaskConfigurationProperties;
 import com.netflix.spinnaker.orca.clouddriver.model.Manifest;
 import com.netflix.spinnaker.orca.clouddriver.model.Task;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskOwner;
@@ -55,8 +56,9 @@ public class MonitorDeployManifestTask extends MonitorKatoTask {
       OortService oortService,
       Registry registry,
       DynamicConfigService dynamicConfigService,
-      RetrySupport retrySupport) {
-    super(katoService, registry, dynamicConfigService, retrySupport);
+      RetrySupport retrySupport,
+      TaskConfigurationProperties configProperties) {
+    super(katoService, registry, dynamicConfigService, retrySupport, configProperties);
     this.oortService = oortService;
   }
 

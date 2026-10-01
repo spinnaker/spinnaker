@@ -33,6 +33,7 @@ import com.netflix.spinnaker.orca.pipeline.model.support.TriggerDeserializer
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.sql.PipelineRefTriggerDeserializerSupplier
 import com.netflix.spinnaker.orca.sql.SpringLiquibaseProxy
+import com.netflix.spinnaker.orca.sql.SqlExceptionHandler
 import com.netflix.spinnaker.orca.sql.SqlHealthIndicator
 import com.netflix.spinnaker.orca.sql.SqlHealthcheckActivator
 import com.netflix.spinnaker.orca.sql.pipeline.persistence.ExecutionStatisticsRepository
@@ -185,6 +186,11 @@ class SqlConfiguration {
     val customTrigger = PipelineRefTriggerDeserializerSupplier(pipelineRefProperties.enabled)
     TriggerDeserializer.customTriggerSuppliers.add(customTrigger)
     return customTrigger
+  }
+
+  @Bean
+  fun sqlExceptionHandler(): SqlExceptionHandler {
+    return SqlExceptionHandler()
   }
 
 }

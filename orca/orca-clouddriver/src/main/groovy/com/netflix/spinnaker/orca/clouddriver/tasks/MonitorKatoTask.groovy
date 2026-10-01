@@ -29,6 +29,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.TaskExecution
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.Task
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
+import com.netflix.spinnaker.orca.clouddriver.config.TaskConfigurationProperties
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.SystemNotification
@@ -55,23 +56,24 @@ class MonitorKatoTask implements RetryableTask, CloudProviderAware {
   private final KatoService kato
   private final DynamicConfigService dynamicConfigService
   private final RetrySupport retrySupport
-  private static final int MAX_NOTFOUND_RETRIES = 30
+  private final TaskConfigurationProperties.MonitorKatoTaskConfig config
 
   @VisibleForTesting
   static final int MAX_HTTP_INTERNAL_RETRIES = 5
 
   @Autowired
-  MonitorKatoTask(KatoService katoService, Registry registry, DynamicConfigService dynamicConfigService, RetrySupport retrySupport) {
-    this(katoService, registry, Clock.systemUTC(), dynamicConfigService, retrySupport)
+  MonitorKatoTask(KatoService katoService, Registry registry, DynamicConfigService dynamicConfigService, RetrySupport retrySupport, TaskConfigurationProperties configProperties) {
+    this(katoService, registry, Clock.systemUTC(), dynamicConfigService, retrySupport, configProperties.monitorKatoTask)
   }
 
   @VisibleForTesting
-  MonitorKatoTask(KatoService katoService, Registry registry, Clock clock, DynamicConfigService dynamicConfigService, RetrySupport retrySupport) {
+  MonitorKatoTask(KatoService katoService, Registry registry, Clock clock, DynamicConfigService dynamicConfigService, RetrySupport retrySupport, TaskConfigurationProperties.MonitorKatoTaskConfig config) {
     this.registry = registry
     this.clock = clock
     this.kato = katoService
     this.dynamicConfigService = dynamicConfigService
     this.retrySupport = retrySupport
+    this.config = config
   }
 
   DynamicConfigService getDynamicConfigService() {
@@ -128,7 +130,7 @@ class MonitorKatoTask implements RetryableTask, CloudProviderAware {
         def notFoundRetryCount = ((stage.context."kato.task.notFoundRetryCount" as Long) ?: 0) + 1
 
         def ctx = ['kato.task.notFoundRetryCount': notFoundRetryCount]
-        if (notFoundRetryCount >= MAX_NOTFOUND_RETRIES) {
+        if (notFoundRetryCount >= config.maxNotFoundRetries) {
           throw re
         }
 
