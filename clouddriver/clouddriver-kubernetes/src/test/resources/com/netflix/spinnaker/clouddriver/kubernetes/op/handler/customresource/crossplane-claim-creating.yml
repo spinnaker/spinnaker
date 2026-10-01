@@ -1,0 +1,20 @@
+# Crossplane claim while the composite resource is still being created.
+apiVersion: database.example.org/v1alpha1
+kind: PostgreSQLInstance
+metadata:
+  name: my-db
+  namespace: default
+  generation: 1
+spec:
+  parameters:
+    storageGB: 20
+status:
+  conditions:
+    - type: Synced
+      status: "True"
+      reason: ReconcileSuccess
+      lastTransitionTime: "2026-09-29T10:00:00Z"
+    - type: Ready
+      status: "False"
+      reason: Creating
+      lastTransitionTime: "2026-09-29T10:00:00Z"

@@ -31,6 +31,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class KubernetesUnregisteredCustomResourceHandler extends KubernetesHandler
     implements CanDelete {
+  private final CustomResourceStatusEvaluator statusEvaluator;
+
+  public KubernetesUnregisteredCustomResourceHandler(
+      CustomResourceStatusEvaluator statusEvaluator) {
+    this.statusEvaluator = statusEvaluator;
+  }
+
   @Override
   public int deployPriority() {
     return LOWEST_PRIORITY.getValue();
@@ -55,7 +62,7 @@ public class KubernetesUnregisteredCustomResourceHandler extends KubernetesHandl
 
   @Override
   public Status status(KubernetesManifest manifest) {
-    return Status.defaultStatus();
+    return statusEvaluator.status(manifest);
   }
 
   @Override
