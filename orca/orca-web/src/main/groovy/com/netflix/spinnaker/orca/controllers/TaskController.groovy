@@ -428,6 +428,11 @@ class TaskController {
    * missing, it is defaulted to false.
    * @param expand (optional) Expands each execution object in the resulting list. If this value is
    * missing, it is defaulted to false.
+   * @param includeDeletedPipelines (optional) When true, and a specific (non-"*") application is
+   * given without a pipelineName, also includes executions belonging to pipeline config ids that
+   * Front50 no longer knows about (e.g. the pipeline was since deleted) but that Orca still has
+   * execution history for. Has no effect when pipelineName is supplied, since a deleted pipeline's
+   * name can no longer be resolved from Front50. If this value is missing, it is defaulted to false.
    * @return
    */
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")
@@ -444,7 +449,8 @@ class TaskController {
     @RequestParam(value = "startIndex", defaultValue = "0") int startIndex,
     @RequestParam(value = "size", defaultValue = "10") int size,
     @RequestParam(value = "reverse", defaultValue = "false") boolean reverse,
-    @RequestParam(value = "expand", defaultValue = "false") boolean expand
+    @RequestParam(value = "expand", defaultValue = "false") boolean expand,
+    @RequestParam(value = "includeDeletedPipelines", defaultValue = "false") boolean includeDeletedPipelines
     // TODO(joonlim): May make sense to add a summary boolean so that, when true, this returns a condensed summary rather than complete execution objects.
   ) {
     validateSearchForPipelinesByTriggerParameters(triggerTimeStartBoundary, triggerTimeEndBoundary, startIndex, size)
@@ -485,6 +491,11 @@ class TaskController {
       } else {
         List<Map<String, Object>> pipelines = Retrofit2SyncCall.execute(front50Service.getPipelines(application, false))
         pipelineConfigIds = pipelines*.id as List<String>
+        if (includeDeletedPipelines) {
+          // Front50 only knows about pipelines that still exist; union in every pipeline config id
+          // Orca has execution history for so that deleted pipelines' executions remain searchable.
+          pipelineConfigIds = (pipelineConfigIds + executionRepository.retrievePipelineConfigIdsForApplication(application)).unique()
+        }
       }
     }
 
@@ -729,6 +740,7 @@ class TaskController {
    * @param expand
    * @param pipelineNameFilter
    * @param pipelineLimit
+   * @param includeDeletedPipelines
    * @return
    */
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")
@@ -738,8 +750,9 @@ class TaskController {
                                                       @RequestParam(value = "statuses", required = false) String statuses,
                                                       @RequestParam(value = "expand", defaultValue = "true") Boolean expand,
                                                       @RequestParam(value = "pipelineNameFilter", required = false) String pipelineNameFilter,
-                                                      @RequestParam(value = "pipelineLimit", required = false) Integer pipelineLimit) {
-    return getPipelinesForApplication(application, limit, statuses, expand, pipelineNameFilter, pipelineLimit)
+                                                      @RequestParam(value = "pipelineLimit", required = false) Integer pipelineLimit,
+                                                      @RequestParam(value = "includeDeletedPipelines", defaultValue = "false") boolean includeDeletedPipelines) {
+    return getPipelinesForApplication(application, limit, statuses, expand, pipelineNameFilter, pipelineLimit, includeDeletedPipelines)
   }
 
   /**
@@ -763,6 +776,11 @@ class TaskController {
    *                      of pipelineLimit. This value is simply passed through to front50s
    *                      pipelines/applicationName endpoint. The return value from that endpoint is used
    *                      to determine which pipeline names orca should retrieve executions for
+   * @param includeDeletedPipelines When true, and pipelineNameFilter is not supplied, also includes
+   *                      executions belonging to pipeline config ids that front50 no longer knows about
+   *                      (e.g. the pipeline was since deleted) but that orca still has execution history
+   *                      for. Has no effect when pipelineNameFilter is supplied, since a deleted
+   *                      pipeline's name can no longer be resolved from front50. Defaults to false.
    * @return
    */
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")
@@ -772,7 +790,8 @@ class TaskController {
                                                      @RequestParam(value = "statuses", required = false) String statuses,
                                                      @RequestParam(value = "expand", defaultValue = "true") Boolean expand,
                                                      @RequestParam(value = "pipelineNameFilter", required = false) String pipelineNameFilter,
-                                                     @RequestParam(value = "pipelineLimit", required = false) Integer pipelineLimit) {
+                                                     @RequestParam(value = "pipelineLimit", required = false) Integer pipelineLimit,
+                                                     @RequestParam(value = "includeDeletedPipelines", defaultValue = "false") boolean includeDeletedPipelines) {
     if (!front50Service) {
       throw new UnsupportedOperationException("Cannot lookup pipelines, front50 has not been enabled. Fix this by setting front50.enabled: true")
     }
@@ -794,6 +813,15 @@ class TaskController {
     log.debug("received ${strategyConfigIds.size()} strategies for application: $application from front50")
 
     def allFront50PipelineConfigIds = pipelineConfigIds + strategyConfigIds
+
+    if (includeDeletedPipelines && (pipelineNameFilter == null || pipelineNameFilter == "")) {
+      // front50 only knows about pipelines that still exist; union in every pipeline config id orca
+      // has execution history for so that deleted pipelines' executions remain reachable. Skipped
+      // when pipelineNameFilter is set since a deleted pipeline's name can't be resolved from front50.
+      List<String> allOrcaPipelineConfigIds = executionRepository.retrievePipelineConfigIdsForApplication(application)
+      log.debug("received ${allOrcaPipelineConfigIds.size()} pipeline config ids for application: $application from orca")
+      allFront50PipelineConfigIds = (allFront50PipelineConfigIds + allOrcaPipelineConfigIds).unique()
+    }
 
     List<PipelineExecution> allPipelineExecutions = []
 

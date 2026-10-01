@@ -24,6 +24,7 @@ allprojects {
     implementation "com.squareup.okhttp3:okhttp"
     implementation "io.spinnaker.kork:kork-artifacts"
     implementation "io.spinnaker.kork:kork-credentials"
+    implementation "io.spinnaker.kork:kork-web"
     implementation "org.springframework.boot:spring-boot-starter-web"
 
     testImplementation "org.wiremock:wiremock"
@@ -73,7 +74,6 @@ subprojects {
 }
 
 dependencies {
-  implementation "io.spinnaker.kork:kork-web"
   implementation "commons-codec:commons-codec"
   implementation "commons-io:commons-io"
 }

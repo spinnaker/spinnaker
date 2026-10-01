@@ -79,7 +79,12 @@ public class ExecutionTools {
               required = false)
           Long triggerTimeEndBoundary,
       @McpToolParam(description = "Maximum number of executions to return", required = false)
-          Integer size) {
+          Integer size,
+      @McpToolParam(
+              description =
+                  "When true, and pipelineName is not supplied, also include executions belonging to pipelines that have since been deleted",
+              required = false)
+          Boolean includeDeletedPipelines) {
     return Retrofit2SyncCall.execute(
         orcaServiceSelector
             .select()
@@ -95,7 +100,8 @@ public class ExecutionTools {
                 0,
                 size == null ? 10 : size,
                 false,
-                false));
+                false,
+                includeDeletedPipelines != null && includeDeletedPipelines));
   }
 
   @McpTool(
