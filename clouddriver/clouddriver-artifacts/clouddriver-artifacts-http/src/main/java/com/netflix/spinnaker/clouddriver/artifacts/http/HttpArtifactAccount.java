@@ -20,10 +20,10 @@ package com.netflix.spinnaker.clouddriver.artifacts.http;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Strings;
 import com.netflix.spinnaker.clouddriver.artifacts.config.BasicAuth;
-import com.netflix.spinnaker.clouddriver.artifacts.config.HttpUrlRestrictions;
 import com.netflix.spinnaker.clouddriver.artifacts.config.UserInputValidatedArtifactAccount;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
+import com.netflix.spinnaker.kork.web.url.UrlRestrictionsProperties;
 import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNullableByDefault;
@@ -51,11 +51,11 @@ public class HttpArtifactAccount extends UserInputValidatedArtifactAccount imple
       String username,
       String password,
       String usernamePasswordFile,
-      @Nullable HttpUrlRestrictions urlRestrictions,
+      @Nullable UrlRestrictionsProperties urlRestrictions,
       @Nullable Permissions.Builder permissions) {
     super(
         name,
-        Optional.ofNullable(urlRestrictions).orElse(HttpUrlRestrictions.builder().build()),
+        orDefault(urlRestrictions),
         Optional.ofNullable(permissions).orElseGet(Permissions.Builder::new));
     this.username = Optional.ofNullable(Strings.emptyToNull(username));
     this.password = Optional.ofNullable(Strings.emptyToNull(password));
