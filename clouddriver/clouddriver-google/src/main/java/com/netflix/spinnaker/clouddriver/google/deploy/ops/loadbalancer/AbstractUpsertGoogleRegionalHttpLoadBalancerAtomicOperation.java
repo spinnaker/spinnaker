@@ -1,3 +1,19 @@
+/*
+ * Copyright 2026 Harness, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License")
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer;
 
 import static com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil.REGIONAL_EXTERNAL_LOAD_BALANCER_NAMES;
@@ -44,6 +60,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+/**
+ * Shared create/update flow for regional managed HTTP(S) load balancers ({@code INTERNAL_MANAGED}
+ * and {@code EXTERNAL_MANAGED}): health checks, backend services, URL map, target proxy, then one
+ * forwarding rule per listener.
+ *
+ * <p>Subclasses supply the scheme, network/subnet placement, certificate handling and forwarding
+ * rule shape. Behavior added for the external scheme (immutable listener checks, the defaulted URL
+ * map name comparison, and the regional-external metadata tag) is keyed off {@code
+ * isExternalManaged()}. Apart from the scheme-ownership checks both schemes share, {@code
+ * INTERNAL_MANAGED} behaves as it did before the external scheme was added.
+ */
 public abstract class AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperation
     extends UpsertGoogleLoadBalancerAtomicOperation {
   private static Task getTask() {
@@ -79,7 +106,11 @@ public abstract class AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperatio
   }
 
   /**
-   * minimal command: curl -v -X POST -H "Content-Type: application/json" -d '[{
+   * Example {@code INTERNAL_MANAGED} requests. They omit {@code region}, {@code network} and {@code
+   * subnet}, which this operation also reads; {@code EXTERNAL_MANAGED} requests send {@code
+   * network} and no {@code subnet}.
+   *
+   * <p>minimal command: curl -v -X POST -H "Content-Type: application/json" -d '[{
    * "upsertLoadBalancer": {"credentials": "my-google-account", "loadBalancerType":
    * "INTERNAL_MANAGED", "loadBalancerName": "internal-http-create", "portRange": "80",
    * "backendServiceDiff": [], "defaultService": {"name": "default-backend-service", "backends": [],
@@ -1166,6 +1197,10 @@ public abstract class AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperatio
     this.orchestrationProcessor = orchestrationProcessor;
   }
 
+  /**
+   * Validates the subnet requirements for this scheme and returns the subnet the forwarding rule
+   * should use, or null when the forwarding rule must not set a subnetwork.
+   */
   protected abstract GoogleSubnet resolveSubnet(GoogleNetwork network);
 
   protected Operation deleteRegionalListenerIfOwned(
@@ -1226,7 +1261,9 @@ public abstract class AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperatio
                 getRegistry());
 
     if (forwardingRule == null) {
-      // Listener removal is retry-safe: an already absent listener has no descendants to mutate.
+      // An already absent listener counts as removed, so a re-run skips it. If an earlier attempt
+      // deleted the rule but not its target proxy, that proxy is not found from here and stays
+      // behind; orphan recovery is out of scope.
       return false;
     }
     if (!getLoadBalancingScheme().equals(forwardingRule.getLoadBalancingScheme())) {
@@ -1398,20 +1435,33 @@ public abstract class AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperatio
     }
   }
 
+  /** Records the network (and subnet, when the scheme uses one) on the load balancer model. */
   protected abstract void configureLoadBalancerNetwork(
       GoogleInternalHttpLoadBalancer loadBalancer, GoogleNetwork network, GoogleSubnet subnet);
 
+  /** The GCP {@code loadBalancingScheme} this operation creates and is allowed to modify. */
   protected abstract String getLoadBalancingScheme();
 
+  /**
+   * Whether upserts compare and write the backend service protocol (blank means HTTP). False keeps
+   * the existing protocol untouched, as {@code INTERNAL_MANAGED} always did.
+   */
   protected abstract boolean managesBackendProtocol();
 
+  /** Builds the certificate reference written to the regional target HTTPS proxy. */
   protected abstract String buildCertificateUrl(String project, String region, String certificate);
 
+  /**
+   * Normalizes the proxy's current certificate so it can be compared with {@link
+   * #getDesiredCertificateForComparison}; equal values mean the proxy needs no certificate update.
+   */
   protected abstract String getExistingCertificateForComparison(List<String> sslCertificates);
 
+  /** Normalizes the requested certificate into the same form as the existing one. */
   protected abstract String getDesiredCertificateForComparison(
       String project, String region, String certificate);
 
+  /** Fills the scheme-specific fields of a new listener's forwarding rule. */
   protected abstract void configureForwardingRule(
       ForwardingRule rule, GoogleInternalHttpLoadBalancer loadBalancer, String targetProxyUrl);
 

@@ -193,11 +193,9 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
             "upsertGoogleLoadBalancerDescription.ipProtocol.tcpRequired")
         }
 
-        // GCP does support IPv6 here, but only for a forwarding rule created with ipVersion IPV6
-        // against a dual-stack or IPv6-only subnet, and this operation sets neither. Reject up
-        // front so the request fails before any health check, backend service, url map or proxy
-        // is created; the forwarding rule is built last, so GCP rejecting it there would strand
-        // everything already written.
+        // This operation never sets an IPv6 ipVersion on the forwarding rule, so an IPv6 address
+        // would only fail when the forwarding rule is created. That happens last, after the health
+        // checks, backend services, URL map and proxy already exist, so reject it up front.
         if (isIpv6Literal(description.ipAddress)) {
           errors.rejectValue("ipAddress",
             "upsertGoogleLoadBalancerDescription.ipAddress.ipv6NotSupported")

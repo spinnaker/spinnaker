@@ -1477,8 +1477,9 @@ class GCEUtil {
       externalBackendServiceNames.addAll(fallbackExternalBackendServiceNames)
       externalBackendServiceNames = externalBackendServiceNames.unique()
       List<String> configuredBackendServiceNames = metadataMap?.get(REGION_BACKEND_SERVICE_NAMES)?.split(",") ?: []
-      // If the server group already carries regional backend metadata, use it as the user's
-      // explicit subset. Otherwise mutate the backend services discovered from the selected LBs.
+      // Deploy records the backend services it attached in region-backend-service-names, so enable
+      // re-attaches only those that the load balancer still uses. Without that metadata, attach
+      // every backend service of the selected load balancers.
       List<String> backendServiceNames = configuredBackendServiceNames ?
         configuredBackendServiceNames.findAll { it in externalBackendServiceNames } :
         externalBackendServiceNames
@@ -2150,9 +2151,9 @@ class GCEUtil {
                                                                           String region,
                                                                           List<ForwardingRule> forwardingRules,
                                                                           GoogleExecutorTraits executor) {
-    // Server group metadata can be missing on older or externally-created regional HTTP(S) LBs.
-    // When the cache has the listener but not the logical LB view, the forwarding rule -> proxy
-    // -> URL map path is the source of truth for the regional backend services to mutate.
+    // Callers use this for listener names missing from the cache, for example right after a
+    // listener is created. The live forwarding rule -> proxy -> URL map path then gives the
+    // regional backend services to mutate.
     def backendServiceNames = []
     forwardingRules?.each { ForwardingRule forwardingRule ->
       def proxy

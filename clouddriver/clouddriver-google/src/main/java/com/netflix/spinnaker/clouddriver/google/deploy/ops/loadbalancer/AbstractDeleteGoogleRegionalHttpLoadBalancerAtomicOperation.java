@@ -1,3 +1,19 @@
+/*
+ * Copyright 2026 Harness, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License")
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer;
 
 import static java.lang.String.format;
@@ -25,6 +41,12 @@ import java.io.UncheckedIOException;
 import java.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
+/**
+ * Shared delete flow for regional managed HTTP(S) load balancers ({@code INTERNAL_MANAGED} and
+ * {@code EXTERNAL_MANAGED}). The request names one listener; the operation resolves its URL map and
+ * deletes every listener of this scheme on that URL map, then the URL map, backend services and,
+ * when requested, health checks. Deleted listener names are returned so Orca can evict them.
+ */
 public abstract class AbstractDeleteGoogleRegionalHttpLoadBalancerAtomicOperation
     extends GoogleAtomicOperation<Map<String, Object>> {
   private static Task getTask() {
@@ -57,8 +79,8 @@ public abstract class AbstractDeleteGoogleRegionalHttpLoadBalancerAtomicOperatio
 
   /**
    * curl -X POST -H "Content-Type: application/json" -d '[ { "deleteLoadBalancer": { "credentials":
-   * "my-account-name", "loadBalancerName": "spin-lb", "deleteHealthChecks": false,
-   * "loadBalancerType": "HTTP"}} ]' localhost:7002/gce/ops
+   * "my-account-name", "loadBalancerName": "spin-lb", "deleteHealthChecks": false, "region":
+   * "us-central1", "loadBalancerType": "INTERNAL_MANAGED"}} ]' localhost:7002/gce/ops
    */
   @Override
   public Map<String, Object> operate(List priorOutputs) {
@@ -493,6 +515,7 @@ public abstract class AbstractDeleteGoogleRegionalHttpLoadBalancerAtomicOperatio
     this.googleOperationPoller = googleOperationPoller;
   }
 
+  /** The GCP {@code loadBalancingScheme} whose listeners, URL maps and backends may be deleted. */
   protected abstract String getLoadBalancingScheme();
 
   public static class HealthCheckAsyncDeleteOperation {

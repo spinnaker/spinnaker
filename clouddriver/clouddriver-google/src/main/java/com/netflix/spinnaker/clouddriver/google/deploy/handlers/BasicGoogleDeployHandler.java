@@ -795,7 +795,8 @@ public class BasicGoogleDeployHandler
               "No balancing mode was specified, but the same instance group must use %s when it also attaches to a regional passthrough load balancer backend.",
               hasHttpBackend ? "RATE for HTTP backends" : "CONNECTION for SSL/TCP proxy backends"));
     }
-    // GCP requires one MIG-wide mode compatible with every attached backend family.
+    // The deploy's single load-balancing policy applies to every HTTP backend this group joins, so
+    // it must be a mode that can sit alongside the passthrough backend's CONNECTION mode.
     if (hasHttpBackend && balancingMode != GoogleLoadBalancingPolicy.BalancingMode.RATE) {
       throw new IllegalArgumentException(
           "The same instance group must use RATE for HTTP backends when it also uses CONNECTION for a regional passthrough load balancer backend.");
@@ -1796,7 +1797,8 @@ public class BasicGoogleDeployHandler
    * @param backendServiceName Name of the regional backend service to update
    * @param backendService Backend service configuration with new backends to add
    * @param region GCP region where the backend service is located
-   * @return Closure that returns an Operation object for the update request
+   * @return Closure that returns the update Operation, or null when the update request fails; that
+   *     failure is only logged, and the caller still reports the backend service as associated
    */
   private Closure updateBackendServices(
       Compute compute,

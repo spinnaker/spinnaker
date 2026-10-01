@@ -31,10 +31,11 @@ import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
 /**
- * Deletes the resource graph for a regional external passthrough Network Load Balancer.
+ * Deletes one regional external passthrough Network Load Balancer.
  *
- * <p>Only the EXTERNAL passthrough shape is owned here: regional forwarding rule, regional backend
- * service, and optionally the regional health check when the request allows health-check cleanup.
+ * <p>Only the EXTERNAL passthrough shape is owned here. The requested forwarding rule is always
+ * deleted. Its regional backend service and, when requested, its regional health check are then
+ * deleted unless another resource still uses them.
  */
 @Slf4j
 class DeleteGoogleRegionalExternalNetworkLoadBalancerAtomicOperation extends GoogleAtomicOperation<Map<String, Object>> {
