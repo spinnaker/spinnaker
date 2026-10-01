@@ -25,64 +25,64 @@
     "@spinnaker/presentation": "workspace:^"
   },
   "peerDependencies": {
-    "@rollup/plugin-commonjs": "^28.0.9",
-    "@rollup/plugin-json": "^6.1.0",
-    "@rollup/plugin-node-resolve": "^16.0.0",
-    "@rollup/plugin-replace": "^6.0.3",
-    "@rollup/plugin-typescript": "^12.3.0",
-    "@rollup/plugin-url": "^8.0.2",
+    "@ampproject/remapping": "2.3.0",
     "@spinnaker/core": "0.29.1",
     "@spinnaker/eslint-plugin": "3.0.2",
     "@spinnaker/pluginsdk": "*",
     "@spinnaker/presentation": "0.3.1",
+    "@spinnaker/styleguide": "^2.0.0",
+    "@svgr/rollup": "^6.3.1",
     "@types/react": "~17.0.93",
     "@uirouter/core": "6.0.8",
     "@uirouter/react": "1.0.7",
+    "autoprefixer": "^10.4.8",
     "bufferutil": "4.0.9",
+    "less": "4.1.1",
     "lodash-es": "4.18.1",
+    "magic-string": "0.30.21",
     "npm-run-all2": "5.0.0",
     "postcss": "^8.4.14",
+    "postcss-colorfix": "0.0.5",
+    "postcss-url": "^10.1.3",
     "prettier": "2.1.2",
     "pretty-quick": "^3.1.0",
     "prop-types": "15.6.1",
     "react": "~17.0.2",
     "react-dom": "~17.0.2",
-    "rollup": "^4.59.0",
-    "rollup-plugin-external-globals": "^0.13.0",
-    "rollup-plugin-less": "1.1.3",
-    "rollup-plugin-postcss": "^4.0.2",
     "rollup-plugin-visualizer": "^5.14.0",
     "rxjs": "7.8.2",
     "shx": "0.3.3",
+    "terser": "5.49.0",
     "typescript": "5.0.4",
-    "utf-8-validate": "5.0.10"
+    "utf-8-validate": "5.0.10",
+    "vite": "7.3.6"
   },
   "peerDependenciesMeta": {
-    "@rollup/plugin-commonjs": {
-      "dev": true
-    },
-    "@rollup/plugin-json": {
-      "dev": true
-    },
-    "@rollup/plugin-node-resolve": {
-      "dev": true
-    },
-    "@rollup/plugin-replace": {
-      "dev": true
-    },
-    "@rollup/plugin-typescript": {
-      "dev": true
-    },
-    "@rollup/plugin-url": {
+    "@ampproject/remapping": {
       "dev": true
     },
     "@spinnaker/eslint-plugin": {
       "dev": true
     },
+    "@spinnaker/styleguide": {
+      "dev": true
+    },
+    "@svgr/rollup": {
+      "dev": true
+    },
     "@types/react": {
       "dev": true
     },
+    "autoprefixer": {
+      "dev": true
+    },
     "bufferutil": {
+      "dev": true
+    },
+    "less": {
+      "dev": true
+    },
+    "magic-string": {
       "dev": true
     },
     "npm-run-all": {
@@ -91,22 +91,16 @@
     "postcss": {
       "dev": true
     },
+    "postcss-colorfix": {
+      "dev": true
+    },
+    "postcss-url": {
+      "dev": true
+    },
     "prettier": {
       "dev": true
     },
     "pretty-quick": {
-      "dev": true
-    },
-    "rollup": {
-      "dev": true
-    },
-    "rollup-plugin-external-globals": {
-      "dev": true
-    },
-    "rollup-plugin-less": {
-      "dev": true
-    },
-    "rollup-plugin-postcss": {
       "dev": true
     },
     "rollup-plugin-visualizer": {
@@ -115,10 +109,16 @@
     "shx": {
       "dev": true
     },
+    "terser": {
+      "dev": true
+    },
     "typescript": {
       "dev": true
     },
     "utf-8-validate": {
+      "dev": true
+    },
+    "vite": {
       "dev": true
     }
   }
