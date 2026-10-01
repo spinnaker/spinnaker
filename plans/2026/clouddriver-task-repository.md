@@ -16,6 +16,7 @@ PR list. Track status there.
 | 5a | Per-instance execution leases + reaper (fast detection of lost work, no dispatch change) |
 | 5b | SQL task queue: pending state, claim, bounded workers, draining. Opt-in |
 | 5c | Optional real-queue transport (Redis Streams, SQS, …) fed by a transactional outbox. Only if needed |
+| 5d | Optional task-completion events so Orca reacts instead of polling (needs an Orca change) |
 | 6 | Read-path optimization (cheap unchanged polls, read pool); optional write coalescing at medium scale |
 
 ## Context: clouddriver has a task *store*, not a task *queue*
@@ -260,7 +261,7 @@ Every design therefore has a database. The real choice is between:
 | **Per-key ordering and fairness** (Kafka partitions, SQS FIFO message groups) | One key processed at a time, fairly across keys | **Yes, and not done today.** Per-account cloud API limits, and not mutating the same server group concurrently. | A claim predicate (cap running tasks per account or resource key). This is real work in SQL and comes natively with partitioned queues. It is the strongest queue-native advantage for this workload. |
 | Very high throughput | 10k–1M+ msgs/s | No (1–33/s) | – |
 | Autoscaling signal | Queue depth | Yes | `COUNT(*) WHERE current_state = 'PENDING'`. |
-| Fan-out / multiple consumers / replay | Topics, consumer groups, logs | **Not for dispatch.** Valuable for *task events*, e.g. pushing completion to Orca instead of polling. | None. This is a genuine queue/topic use (see "Later" in the work plan). |
+| Fan-out / multiple consumers / replay | Topics, consumer groups, logs | **Not for dispatch.** Valuable for *task events*, e.g. pushing completion to Orca instead of polling. | None. This is a genuine queue/topic use: see [5d](#5d-optional-completion-events-to-orca-instead-of-polling). |
 | Operations cost | – | Yes | SQL is already required. A broker is new infrastructure that most orgs, at 50–100 ops/min, shouldn't be forced to run. |
 
 ### Why (a) by default, and how (b) fits later
@@ -284,8 +285,8 @@ never depends on it: a lost or duplicate message is harmless because the SQL cla
 - Claim rates in the hundreds per second across many pods.
 - Per-key fairness needed at a scale where a SQL predicate gets expensive.
 - Other services consuming the work stream.
-- Orca moving from polling to completion events. This is the biggest potential read-load win, and it
-  is a topic/event use, not a work queue.
+- Orca moving from polling to completion events ([5d](#5d-optional-completion-events-to-orca-instead-of-polling)).
+  This is the biggest potential read-load win, and it is a topic/event use, not a work queue.
 
 **Common "database as a queue" problems, and why they don't bite here:**
 
@@ -419,6 +420,39 @@ Only if a [tipping point](#why-a-by-default-and-how-b-fits-later) is reached.
 - **Per-key fairness.** The transport can partition by account (SQS FIFO message group, Kafka key),
   with the SQL claim predicate as the backstop.
 
+### 5d (optional): completion events to Orca instead of polling
+
+Orca's `MonitorKatoTask` polls `GET /task/{id}` every 5 s for the whole life of every operation. That's
+the [dominant read load](#target-scale), and it adds up to 5 s of latency to every completion.
+
+**Orca already has the receiving half.** `RescheduleExecution` (`RescheduleExecutionHandler.kt`)
+re-runs an execution's waiting tasks immediately (`queue.ensure` + `queue.reschedule` of their
+`RunTask` messages). Manual judgment already works this way: the approval `PATCH
+/pipelines/{id}/stages/{stageId}` goes through `CompoundExecutionOperator.updateStage` →
+`runner.reschedule`, so its 15 s backoff is only a fallback. What's missing is a way for clouddriver to
+trigger it.
+
+**Design:**
+- **Correlation.** Orca already sends `X-SPINNAKER-EXECUTION-ID`, and clouddriver's `RequestContext`
+  carries it. Store it on the task at `create()` as a new nullable `tasks.execution_id` (an instant
+  add).
+- **Publish.** After committing a transition to `COMPLETED`, `FAILED` or `FAILED_RETRYABLE`, publish a
+  best-effort `{taskId, executionId, state}` event. Use the kork-pubsub "Single" contract (Redis
+  Streams #8031, or SQS), so exactly one Orca instance handles each event. Clouddriver gets no HTTP
+  dependency on Orca (it has no Orca client today).
+- **Consume (Orca change).** On an event, push `RescheduleExecution(executionId)`. `MonitorKatoTask`
+  runs immediately and makes one `GET /task/{id}`, which also picks up results. Duplicate events are
+  harmless, since rescheduling is idempotent.
+- **Polling stays as the fallback, at a longer backoff** (for example 30–60 s, configurable) when
+  events are enabled. A lost event only delays completion detection to the next poll, so no outbox is
+  needed.
+
+**Effect:** completion is noticed in well under a second instead of up to 5 s. Task polling drops by
+the backoff ratio, about 6–12× for long operations, which also shrinks what Phase 6 has to optimize.
+
+**Cost:** an Orca change, plus an opt-in messaging dependency (Redis Streams or SQS) on both services.
+Typical-scale orgs keep polling by default.
+
 ### Testing
 
 - Extend the Phase 0 TCK: claim exclusivity under concurrent claimers, fencing rejection after an
@@ -447,8 +481,9 @@ Independent of dispatch. It can land any time after Phase 2. Reads first, becaus
   running" status, and Orca polls again. A just-created task missing on the replica shows as a 404,
   which Orca already tolerates 30 times. The version check and every read inside a write path stay on
   the primary.
-- **Later, with Orca changes:** `ETag`/`If-None-Match` on `GET /task/{id}` (304 when unchanged), or
-  push completion events so Orca stops polling. Both are tracked under "Later" in the work plan.
+- **Later, with Orca changes:** completion events (5d) cut the number of polls. `ETag`/`If-None-Match`
+  on `GET /task/{id}` (304 when unchanged) cuts the cost of each one. Both are tracked under "Later" in
+  the work plan.
 - **Write coalescing (medium scale only, optional).** Buffer rapid non-terminal
   `updateStatus`/`updateOutput` calls per task and flush them as one multi-row insert (for example
   every 250 ms, and always before a terminal transition or result write). Terminal transitions are
@@ -477,7 +512,33 @@ Postgres (`kork-sql-test`, `--max-workers=1` locally). Update **Status** as PRs 
 | – | Later | Status-write coalescing (medium scale only) | Phase 6 (writes) | 5 | Deferred |
 | – | Later | Real-queue transport via transactional outbox (Streams/SQS through kork-pubsub), optional per-account partitioning | 5c | 11, #8031 | Deferred |
 | – | Later | Per-account / per-resource claim fairness | 5b extension | 11 | Deferred |
-| – | Later | Orca: `ETag`/304 polling or completion events instead of polling (needs Orca changes) | Read load | 8 | Deferred |
+| – | Later | Task-completion events → Orca `RescheduleExecution`; longer `MonitorKatoTask` fallback backoff (needs Orca change) | 5d | 5, #8031 | Deferred |
+| – | Later | Orca: `ETag`/304 on task polling (needs Orca change; less valuable if 5d lands) | Read load | 8 | Deferred |
 | – | Later | Redis repository hardening | Phase 3 | – | Deprioritized |
 
 **Critical path:** 4 → 5 → 9 → 11 → 12. Track A PRs are small and independent, so land them first.
+
+## Follow-up outside this plan: event-driven waiting across Orca
+
+Not needed for clouddriver task operations. Noted here as a project-wide improvement to pick up
+separately.
+
+Orca has **82 `RetryableTask` implementations** that wait by polling (`Monitor*`, `WaitFor*`, …) on a
+fixed backoff. The 5d pattern generalizes: a system that knows when something changed publishes a
+best-effort event, Orca pushes `RescheduleExecution`, and polling stays as a slower fallback.
+Starting points:
+
+| Waiting on | Today | Event-driven option |
+|---|---|---|
+| Manual judgment | **Already event-driven.** The stage `PATCH` → `updateStage` → `RescheduleExecution`. | None needed. A model for the rest. |
+| Child pipelines (`MonitorPipelineTask`, `MonitorMultiplePipelinesTask`) | Polls the child execution | Orca-internal: on child completion, reschedule the parent. No external dependency. |
+| Bakes (`MonitorBakeTask`) | Polls rosco | Rosco publishes bake completion. |
+| CI builds (`MonitorJenkinsJobTask`, `MonitorQueuedJenkinsJobTask`, Concourse, GCB, CodeBuild) | Polls igor | Igor already detects build completion for triggers. Publish it to Orca too. |
+| Webhooks (`MonitorWebhookTask`) | Polls the target URL | Callback endpoint → `RescheduleExecution`. |
+| Clouddriver cache convergence (`WaitForUpInstanceHealthTask`, `WaitForManifestStableTask`, …) | Polls clouddriver caches | Harder: these wait for state to converge, not for a discrete event. Probably stays polling. |
+
+Shared pieces worth designing once:
+- An event envelope keyed by execution ID.
+- An Orca consumer that maps events to `RescheduleExecution`.
+- Per-task configuration for the fallback backoff.
+
