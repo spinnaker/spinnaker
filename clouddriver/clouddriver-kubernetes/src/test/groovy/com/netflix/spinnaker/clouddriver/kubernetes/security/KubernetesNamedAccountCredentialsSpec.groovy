@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.security
 
+import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.CustomResourceStatusEvaluator
 import com.google.common.collect.ImmutableList
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesAccountProperties.ManagedAccount
@@ -39,7 +40,7 @@ class KubernetesNamedAccountCredentialsSpec extends Specification {
   AccountResourcePropertyRegistry.Factory resourcePropertyRegistryFactory = Mock(AccountResourcePropertyRegistry.Factory)
   KubernetesKindRegistry.Factory kindRegistryFactory = Mock(KubernetesKindRegistry.Factory)
   KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap = new KubernetesSpinnakerKindMap(ImmutableList.of())
-  GlobalResourcePropertyRegistry globalResourcePropertyRegistry = new GlobalResourcePropertyRegistry(ImmutableList.of(), new KubernetesUnregisteredCustomResourceHandler())
+  GlobalResourcePropertyRegistry globalResourcePropertyRegistry = new GlobalResourcePropertyRegistry(ImmutableList.of(), new KubernetesUnregisteredCustomResourceHandler(CustomResourceStatusEvaluator.disabled()))
 
   KubectlJobExecutor mockKubectlJobExecutor = Mock(KubectlJobExecutor)
 
@@ -51,7 +52,8 @@ class KubernetesNamedAccountCredentialsSpec extends Specification {
     resourcePropertyRegistryFactory,
     kindRegistryFactory,
     kubernetesSpinnakerKindMap,
-    globalResourcePropertyRegistry
+    globalResourcePropertyRegistry,
+    CustomResourceStatusEvaluator.disabled()
   )
 
 

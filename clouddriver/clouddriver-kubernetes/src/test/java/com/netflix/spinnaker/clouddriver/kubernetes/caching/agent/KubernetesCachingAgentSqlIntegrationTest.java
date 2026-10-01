@@ -43,6 +43,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKindProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesManifestNamer;
+import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.CustomResourceStatusEvaluator;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesDeploymentHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesUnregisteredCustomResourceHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
@@ -156,7 +157,8 @@ class KubernetesCachingAgentSqlIntegrationTest {
         .thenReturn(
             new GlobalResourcePropertyRegistry(
                 ImmutableList.of(new KubernetesDeploymentHandler()),
-                new KubernetesUnregisteredCustomResourceHandler()));
+                new KubernetesUnregisteredCustomResourceHandler(
+                    CustomResourceStatusEvaluator.disabled())));
     when(credentials.getNamer()).thenReturn(new KubernetesManifestNamer());
     when(credentials.isValidKind(any(KubernetesKind.class))).thenReturn(true);
     when(credentials.getKubernetesSpinnakerKindMap())

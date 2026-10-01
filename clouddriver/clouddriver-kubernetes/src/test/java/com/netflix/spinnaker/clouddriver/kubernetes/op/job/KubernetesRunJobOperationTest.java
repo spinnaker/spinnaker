@@ -41,6 +41,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesManifestNamer;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.OperationResult;
+import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.CustomResourceStatusEvaluator;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesReplicaSetHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesServiceHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesUnregisteredCustomResourceHandler;
@@ -60,7 +61,8 @@ final class KubernetesRunJobOperationTest {
   private static final ResourcePropertyRegistry resourcePropertyRegistry =
       new GlobalResourcePropertyRegistry(
           ImmutableList.of(new KubernetesReplicaSetHandler(), new KubernetesServiceHandler()),
-          new KubernetesUnregisteredCustomResourceHandler());
+          new KubernetesUnregisteredCustomResourceHandler(
+              CustomResourceStatusEvaluator.disabled()));
   private static final Namer<KubernetesManifest> NAMER = new KubernetesManifestNamer();
 
   @BeforeEach
