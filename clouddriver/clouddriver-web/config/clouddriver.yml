@@ -8,7 +8,6 @@ server:
 redis:
   connection: ${services.redis.baseUrl:redis://localhost:6379}
   scheduler: default
-  parallelism: -1
 
 services:
   front50:
@@ -256,6 +255,17 @@ kubernetes:
   enabled: false
   v2:
     applyAppLabels: true
+    # Annotate deployed resources with provenance.spinnaker.io/deployed-by and
+    # provenance.spinnaker.io/execution-id so a running workload can be traced
+    # back to the Spinnaker user and pipeline execution that deployed it.
+    applyProvenanceAnnotations: false
+  # Report real health for custom resources (and other kinds without a dedicated
+  # handler) from their Stalled/Reconciling/Ready conditions and status.phase.
+  # When disabled, they are always reported as stable.
+  customResourceStatus:
+    enabled: false
+    # Condition messages are truncated to this many characters.
+    maxMessageLength: 1024
 
 dockerRegistry:
   enabled: ${DOCKER_REGISTRY_ENABLED:false}

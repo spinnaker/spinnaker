@@ -24,7 +24,7 @@ class BulkDestroyServerGroupTaskSpec extends Specification {
     def task = new BulkDestroyServerGroupTask(trafficGuard: trafficGuard, monikerHelper: new MonikerHelper(), cloudDriverService: cloudDriverService)
     def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "")
     stage.context = [
-      cloudProvider:  "titus",
+      cloudProvider:  "aws",
       credentials:  "test",
       region: "us-west-1",
       serverGroupNames: [
@@ -36,17 +36,17 @@ class BulkDestroyServerGroupTaskSpec extends Specification {
     and:
     Cluster cluster = ModelUtils.cluster([
       name: "cluster",
-      type: "titus",
-      accountName: "titustestvpc",
+      type: "aws",
+      accountName: "test",
       serverGroups: [
         [
           name: "app-v00",
-          cloudprovider: "titus",
+          cloudprovider: "aws",
           region: "us-west-1"
         ],
         [
           name: "app-v01",
-          cloudprovider: "titus",
+          cloudprovider: "aws",
           region: "us-west-1"
         ]
       ]

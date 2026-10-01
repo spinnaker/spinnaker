@@ -194,11 +194,11 @@ class SpinnakerMetadataServerGroupTagGeneratorSpec extends Specification {
 
     when: "NEWEST != just created server group"
     def previousServerGroupMetadata = tagGenerator.getPreviousServerGroupFromCluster(
-      "application", "account", "cluster", "titus", "us-west-2", "application-v002"
+      "application", "account", "cluster", "aws", "us-west-2", "application-v002"
     )
 
     then: "previous server group == NEWEST"
-    1 * oortService.getServerGroupSummary("application", "account", "cluster", "titus", "us-west-2", "NEWEST", "image", "true") >> {
+    1 * oortService.getServerGroupSummary("application", "account", "cluster", "aws", "us-west-2", "NEWEST", "image", "true") >> {
       Calls.response( [
         serverGroupName: "application-v001",
         imageId        : "1234567",
@@ -210,23 +210,23 @@ class SpinnakerMetadataServerGroupTagGeneratorSpec extends Specification {
       name         : "application-v001",
       imageId      : "1234567",
       imageName    : "my_image",
-      cloudProvider: "titus"
+      cloudProvider: "aws"
     ]
 
     when: "NEWEST == just created server group"
     previousServerGroupMetadata = tagGenerator.getPreviousServerGroupFromCluster(
-      "application", "account", "cluster", "titus", "us-west-2", "application-v002"
+      "application", "account", "cluster", "aws", "us-west-2", "application-v002"
     )
 
     then: "previous server group == ANCESTOR"
-    1 * oortService.getServerGroupSummary("application", "account", "cluster", "titus", "us-west-2", "NEWEST", "image", "true") >> {
+    1 * oortService.getServerGroupSummary("application", "account", "cluster", "aws", "us-west-2", "NEWEST", "image", "true") >> {
       Calls.response( [
         serverGroupName: "application-v002",
         imageId        : "1234567",
         imageName      : "my_image"
       ])
     }
-    1 * oortService.getServerGroupSummary("application", "account", "cluster", "titus", "us-west-2", "ANCESTOR", "image", "true") >> {
+    1 * oortService.getServerGroupSummary("application", "account", "cluster", "aws", "us-west-2", "ANCESTOR", "image", "true") >> {
       Calls.response( [
         serverGroupName: "application-v001",
         imageId        : "1234567",
@@ -238,7 +238,7 @@ class SpinnakerMetadataServerGroupTagGeneratorSpec extends Specification {
       name         : "application-v001",
       imageId      : "1234567",
       imageName    : "my_image",
-      cloudProvider: "titus"
+      cloudProvider: "aws"
     ]
   }
 

@@ -1,4 +1,8 @@
-import { getStageFailureRoute } from './StageFailureMessage';
+import { shallow } from 'enzyme';
+import React from 'react';
+
+import { Markdown } from '../../presentation';
+import { getStageFailureRoute, StageFailureMessageComponent } from './StageFailureMessage';
 
 describe('StageFailureMessage', () => {
   it('builds failed-stage navigation from the injected state service', () => {
@@ -17,5 +21,29 @@ describe('StageFailureMessage', () => {
       params: { stageId: 7 },
       state: 'home.applications.application.pipelines.execution',
     });
+  });
+});
+
+describe('StageFailureMessageComponent', () => {
+  it('renders a single failure message with the wrap-friendly class', () => {
+    const component = shallow(
+      <StageFailureMessageComponent {...({ stage: { isFailed: true }, message: 'boom' } as any)} />,
+    )
+      .dive()
+      .dive();
+
+    expect(component.find(Markdown).prop('className')).toBe('break-word-wrap');
+  });
+
+  it('renders multiple exception messages with the wrap-friendly class', () => {
+    const component = shallow(
+      <StageFailureMessageComponent {...({ stage: { isFailed: true }, messages: ['first', 'second'] } as any)} />,
+    )
+      .dive()
+      .dive();
+
+    const markdowns = component.find(Markdown);
+    expect(markdowns.length).toEqual(2);
+    markdowns.forEach((node) => expect(node.prop('className')).toBe('break-word-wrap'));
   });
 });

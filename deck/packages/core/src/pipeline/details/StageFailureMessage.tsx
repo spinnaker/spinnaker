@@ -95,10 +95,10 @@ export class StageFailureMessageComponent extends React.Component<
       const exceptionTitle = isFailed ? (messages.length ? 'Exceptions' : 'Exception') : 'Warning';
       const displayMessages =
         message || !messages.length ? (
-          <Markdown message={message || StageFailureMessages.NO_REASON_PROVIDED} className="break-word" />
+          <Markdown message={message || StageFailureMessages.NO_REASON_PROVIDED} className="break-word-wrap" />
         ) : (
           messages.map((m, i) => (
-            <Markdown key={i} message={m || StageFailureMessages.NO_REASON_PROVIDED} className="break-word" />
+            <Markdown key={i} message={m || StageFailureMessages.NO_REASON_PROVIDED} className="break-word-wrap" />
           ))
         );
 

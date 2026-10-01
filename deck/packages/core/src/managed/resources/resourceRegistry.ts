@@ -66,10 +66,6 @@ class ResourcesManager extends BasePluginManager<IResourceKindConfig> {
 
 const DEFAULT_RESOURCES: IResourceKindConfig[] = [
   {
-    kind: 'titus/cluster',
-    iconName: 'cluster',
-  },
-  {
     kind: 'ec2/cluster',
     iconName: 'cluster',
   },

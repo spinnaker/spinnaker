@@ -57,6 +57,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesManifestNamer;
 import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesNamerRegistry;
+import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.CustomResourceStatusEvaluator;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesDeploymentHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesPodHandler;
@@ -92,6 +93,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.internal.stubbing.defaultanswers.ReturnsSmartNulls;
+import org.mockito.stubbing.Answer;
 
 @ExtendWith(SoftAssertionsExtension.class)
 final class KubernetesDataProviderIntegrationTest {
@@ -112,7 +114,9 @@ final class KubernetesDataProviderIntegrationTest {
           objectMapper, registry, new KubernetesConfigurationProperties(), kindMap, null);
   private static final GlobalResourcePropertyRegistry resourcePropertyRegistry =
       new GlobalResourcePropertyRegistry(
-          handlers, new KubernetesUnregisteredCustomResourceHandler());
+          handlers,
+          new KubernetesUnregisteredCustomResourceHandler(
+              CustomResourceStatusEvaluator.disabled()));
   private static final CredentialsRepository<KubernetesNamedAccountCredentials>
       credentialsRepository =
           new MapBackedCredentialsRepository<>(
@@ -587,21 +591,30 @@ final class KubernetesDataProviderIntegrationTest {
 
   private static KubectlJobExecutor getJobExecutor() {
     KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class, new ReturnsSmartNulls());
+    Answer<ImmutableList<KubernetesManifest>> listAnswer =
+        invocation ->
+            manifestsByNamespace.get(invocation.getArgument(2, String.class)).stream()
+                .map(
+                    file ->
+                        ManifestFetcher.getManifest(
+                                KubernetesDataProviderIntegrationTest.class, file)
+                            .get(0))
+                .filter(m -> invocation.getArgument(1, List.class).contains(m.getKind()))
+                .collect(toImmutableList());
     when(jobExecutor.list(
             any(KubernetesCredentials.class),
             anyList(),
             any(String.class),
             any(KubernetesSelectorList.class)))
-        .thenAnswer(
-            invocation ->
-                manifestsByNamespace.get(invocation.getArgument(2, String.class)).stream()
-                    .map(
-                        file ->
-                            ManifestFetcher.getManifest(
-                                    KubernetesDataProviderIntegrationTest.class, file)
-                                .get(0))
-                    .filter(m -> invocation.getArgument(1, List.class).contains(m.getKind()))
-                    .collect(toImmutableList()));
+        .thenAnswer(listAnswer);
+    // KubernetesCachingAgent#loadResources calls listAuthoritative, not list, when driving cache
+    // eviction -- see KubectlJobExecutor#listAuthoritative.
+    when(jobExecutor.listAuthoritative(
+            any(KubernetesCredentials.class),
+            anyList(),
+            any(String.class),
+            any(KubernetesSelectorList.class)))
+        .thenAnswer(listAnswer);
     return jobExecutor;
   }
 
@@ -622,7 +635,10 @@ final class KubernetesDataProviderIntegrationTest {
             new KubernetesKindRegistry.Factory(new GlobalKubernetesKindRegistry()),
             kindMap,
             new GlobalResourcePropertyRegistry(
-                ImmutableList.of(), new KubernetesUnregisteredCustomResourceHandler()));
+                ImmutableList.of(),
+                new KubernetesUnregisteredCustomResourceHandler(
+                    CustomResourceStatusEvaluator.disabled())),
+            CustomResourceStatusEvaluator.disabled());
     return new KubernetesNamedAccountCredentials(managedAccount, credentialFactory);
   }
 

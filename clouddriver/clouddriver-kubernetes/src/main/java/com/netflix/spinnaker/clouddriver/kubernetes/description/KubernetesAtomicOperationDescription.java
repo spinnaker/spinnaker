@@ -43,6 +43,12 @@ public class KubernetesAtomicOperationDescription
   KubernetesNamedAccountCredentials credentials;
   private KubernetesSelectorList labelSelectors = new KubernetesSelectorList();
 
+  @JsonProperty("provenance.deployedBy")
+  private String deployedBy;
+
+  @JsonProperty("provenance.executionId")
+  private String executionId;
+
   @Override
   public boolean requiresApplicationRestriction() {
     return false;

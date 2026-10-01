@@ -1,0 +1,35 @@
+label: Publish Assets
+description: Publishes static assets built by the pipeline
+type: publishAssets
+waitForCompletion: true
+uiType: BASIC
+parameters:
+  - name: buildFolder
+    mapping: manifest.spec.template.spec.containers[0].env[0].value
+    defaultValue: build
+    description: The folder to publish (from the Jenkins Job)
+    label: Build Folder
+    order: 0
+  - name: account
+    mapping: credentials
+    label: Kubernetes Account
+    defaultValue: my-k8s-account
+    order: 1
+cloudProvider: kubernetes
+credentials: my-k8s-account
+manifest:
+  apiVersion: batch/v1
+  kind: Job
+  metadata:
+    name: publish-assets
+  spec:
+    backoffLimit: 2
+    template:
+      spec:
+        restartPolicy: Never
+        containers:
+          - name: publish-assets
+            image: example/publish-assets:latest
+            env:
+              - name: BUILD_FOLDER
+                value: build

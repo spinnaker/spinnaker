@@ -5,7 +5,7 @@ import jQuery from 'jquery';
 // jquery has to be first or many a test will break
 global.$ = global.jQuery = jQuery;
 import { configure } from 'enzyme';
-import Adapter from 'enzyme-adapter-react-16';
+import Adapter from '@wojtekmaj/enzyme-adapter-react-17';
 
 configure({ adapter: new Adapter() });
 
@@ -78,7 +78,4 @@ testContext = require.context('./packages/oracle/src', true, /\.spec\.(js|ts|tsx
 testContext.keys().forEach(testContext);
 
 testContext = require.context('./packages/tencentcloud/src', true, /\.spec\.(js|ts|tsx)$/);
-testContext.keys().forEach(testContext);
-
-testContext = require.context('./packages/titus/src', true, /\.spec\.(js|ts|tsx)$/);
 testContext.keys().forEach(testContext);
