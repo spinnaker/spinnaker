@@ -4,9 +4,13 @@
 .gradle
 .storybook
 app
+build
 gradle
 halconfig
 node_modules
-packages
+packages/*
+!packages/app/
+packages/app/*
+!packages/app/dist/
+!packages/app/dist/**
 test
-
