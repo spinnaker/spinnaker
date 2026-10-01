@@ -1,15 +1,17 @@
-import type { Mock } from 'vitest';
-import { mount } from 'enzyme';
+import { screen, waitFor, within } from '@testing-library/react';
+import type { Transition } from '@uirouter/core';
 import React from 'react';
-import { act } from 'react-dom/test-utils';
+import type { Mock } from 'vitest';
 
+import type { IProjectClusterMetadata, IProjectDashboardCluster } from './ProjectClusterModel';
+import { ProjectDashboard } from './ProjectDashboard';
 import { DeckRuntimeContext } from '../../bootstrap/DeckRuntimeContext';
+import type { IExecution, IPipeline, IProject } from '../../domain';
 import { RecentHistoryService } from '../../history/recentHistory.service';
 import { UrlBuilder } from '../../navigation';
 import { PipelineConfigService } from '../../pipeline/config/services/PipelineConfigService';
-import { mountAndFlush } from '../../utils/testUtils';
-import { ProjectDashboard } from './ProjectDashboard';
 import { ProjectReader } from '../service/ProjectReader';
+import { renderWithRouter, setupUser } from '../../utils/testUtils';
 
 const project = {
   id: 'kubernetesproject',
@@ -21,7 +23,7 @@ const project = {
     clusters: [{ account: 'k8s-local', stack: '*', detail: '*', applications: ['kubernetesapp'] }],
     pipelineConfigs: [{ application: 'kubernetesapp', pipelineConfigId: 'deployment' }],
   },
-} as any;
+} as IProject;
 
 const cluster = {
   account: 'k8s-local',
@@ -35,9 +37,9 @@ const cluster = {
       clusters: [{ region: 'dev', builds: [{ images: ['nginx'] }], instanceCounts: { total: 8, up: 8 } }],
     },
   ],
-} as any;
+} as IProjectDashboardCluster;
 
-const execution = {
+const execution = ({
   id: '01',
   application: 'kubernetesapp',
   name: 'deployment',
@@ -60,7 +62,11 @@ const execution = {
       suspendedStageTypes: new Set(),
     },
   ],
-} as any;
+} as unknown) as IExecution;
+
+interface TestTransition extends Transition {
+  router: Transition['router'] & { stateService: Transition['router']['stateService'] & { go: Mock } };
+}
 
 const taggedPipeline = {
   id: 'tagged-deployment',
@@ -72,141 +78,139 @@ const taggedPipeline = {
   parameterConfig: [],
   limitConcurrent: true,
   keepWaitingPipelines: false,
-} as any;
+} as IPipeline;
 
-const transition = (params: any = {}) =>
-  ({
+const transition = (params: Record<string, unknown> = {}) =>
+  (({
     params: () => params,
     router: {
       stateService: {
         go: vi.fn(),
       },
     },
-  } as any);
+  } as unknown) as TestTransition);
 
 describe('<ProjectDashboard />', () => {
   let executionService: { getProjectExecutions: Mock; getProjectExecutionsForConfigIds: Mock };
-  const TestDashboard = (props: React.ComponentProps<typeof ProjectDashboard>) => (
-    <DeckRuntimeContext.Provider value={{ services: { executionService } } as any}>
-      <ProjectDashboard {...props} />
-    </DeckRuntimeContext.Provider>
-  );
+
+  const renderDashboard = (projectConfiguration: IProject, currentTransition = transition()) =>
+    renderWithRouter(
+      <DeckRuntimeContext.Provider
+        value={{ services: { executionService } } as React.ContextType<typeof DeckRuntimeContext>}
+      >
+        <ProjectDashboard projectConfiguration={projectConfiguration} transition={currentTransition} />
+      </DeckRuntimeContext.Provider>,
+    );
+
+  const pipelineRefreshButton = () =>
+    within(screen.getByRole('heading', { name: 'Pipeline Status' })).getByRole('button');
+
+  const executionsError = 'There was a problem loading the executions for this project.';
 
   beforeEach(() => {
-    vi.spyOn(RecentHistoryService, 'addExtraDataToLatest').mockImplementation(() => undefined);
-    vi.spyOn(RecentHistoryService, 'removeLastItem').mockImplementation(() => undefined);
-    vi.spyOn(UrlBuilder, 'buildFromMetadata').mockImplementation((metadata: any) => {
+    vi.spyOn(RecentHistoryService, 'addExtraDataToLatest').mockReturnValue(undefined);
+    vi.spyOn(RecentHistoryService, 'removeLastItem').mockReturnValue(undefined);
+    vi.spyOn(UrlBuilder, 'buildFromMetadata').mockImplementation((metadata: IProjectClusterMetadata) => {
       const reg = metadata.region ? `?reg=${metadata.region}` : '';
       return `#/projects/${metadata.project}/applications/${metadata.application}/clusters${reg}`;
     });
-    vi.spyOn(ProjectReader, 'getProjectClusters').mockReturnValue(Promise.resolve([cluster]));
-    vi.spyOn(PipelineConfigService, 'getAllPipelineConfigs').mockReturnValue(
-      Promise.resolve([
-        { ...taggedPipeline },
-        { ...taggedPipeline, id: 'deployment', application: 'kubernetesapp', name: 'Deployment', tags: [] },
-      ]),
-    );
+    vi.spyOn(ProjectReader, 'getProjectClusters').mockResolvedValue([cluster]);
+    vi.spyOn(PipelineConfigService, 'getAllPipelineConfigs').mockResolvedValue([
+      { ...taggedPipeline },
+      { ...taggedPipeline, id: 'deployment', application: 'kubernetesapp', name: 'Deployment', tags: [] },
+    ]);
     executionService = {
-      getProjectExecutions: vi.fn().mockReturnValue(Promise.resolve([execution])),
-      getProjectExecutionsForConfigIds: vi.fn().mockReturnValue(Promise.resolve([execution])),
+      getProjectExecutions: vi.fn().mockResolvedValue([execution]),
+      getProjectExecutionsForConfigIds: vi.fn().mockResolvedValue([execution]),
     };
   });
 
   it('loads clusters and executions and renders dashboard columns', async () => {
-    const wrapper = await mountAndFlush(<TestDashboard projectConfiguration={project} transition={transition()} />);
+    const { container } = renderDashboard(project);
 
+    expect(await screen.findByText('KUBERNETESAPP')).toBeInTheDocument();
+    expect(await screen.findByText('Never run')).toBeInTheDocument();
     expect(RecentHistoryService.addExtraDataToLatest).toHaveBeenCalledWith('projects', {
       config: { applications: ['kubernetesapp'] },
     });
     expect(ProjectReader.getProjectClusters).toHaveBeenCalledWith('kubernetesproject');
     expect(PipelineConfigService.getAllPipelineConfigs).toHaveBeenCalled();
     expect(executionService.getProjectExecutionsForConfigIds).toHaveBeenCalledWith(['deployment', 'tagged-deployment']);
-    expect(wrapper.find('.project-dashboard').exists()).toBe(true);
-    expect(wrapper.find('h3').at(0).text()).toContain('Application Status');
-    expect(wrapper.find('ProjectCluster').length).toBe(1);
-    expect(wrapper.find('.project-pipeline-group').length).toBe(2);
-    expect(wrapper.find('ProjectPipeline').length).toBe(1);
-    expect(wrapper.find('.project-pipeline').length).toBe(1);
-    expect(wrapper.text()).toContain('Never run');
-    expect(wrapper.find('project-pipeline').exists()).toBe(false);
-
-    wrapper.unmount();
+    expect(container.querySelector('.project-dashboard')).toBeInTheDocument();
+    expect(screen.getAllByRole('heading', { level: 3 })[0]).toHaveTextContent('Application Status');
+    expect(screen.getByRole('heading', { name: 'Pipeline Status' })).toBeInTheDocument();
+    expect(container.querySelectorAll('section.project-cluster')).toHaveLength(1);
+    expect(container.querySelectorAll('.project-pipeline-group')).toHaveLength(2);
+    expect(container.querySelectorAll('section.project-pipeline')).toHaveLength(1);
+    expect(screen.getByText('Storefront deploy')).toBeInTheDocument();
+    expect(container.querySelector('project-pipeline')).not.toBeInTheDocument();
   });
 
   it('skips cluster request and renders empty states when nothing is configured', async () => {
-    (ProjectReader.getProjectClusters as Mock).mockClear();
-    (PipelineConfigService.getAllPipelineConfigs as Mock).mockReturnValue(Promise.resolve([]));
+    vi.mocked(ProjectReader.getProjectClusters).mockClear();
+    vi.mocked(PipelineConfigService.getAllPipelineConfigs).mockResolvedValue([]);
     const emptyProject = {
       ...project,
       config: { applications: [], clusters: [], pipelineConfigs: [] },
     };
 
-    const wrapper = await mountAndFlush(
-      <TestDashboard projectConfiguration={emptyProject} transition={transition()} />,
-    );
+    renderDashboard(emptyProject);
 
+    expect(await screen.findByRole('heading', { name: 'No pipelines found' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'No clusters configured' })).toBeInTheDocument();
     expect(ProjectReader.getProjectClusters).not.toHaveBeenCalled();
-    expect(wrapper.text()).toContain('No clusters configured');
-    expect(wrapper.text()).toContain('No pipelines found');
-
-    wrapper.unmount();
   });
 
   it('renders independent cluster and execution load errors', async () => {
-    (ProjectReader.getProjectClusters as Mock).mockReturnValue(Promise.reject(new Error('clusters failed')));
-    executionService.getProjectExecutionsForConfigIds.mockReturnValue(Promise.reject(new Error('executions failed')));
+    vi.mocked(ProjectReader.getProjectClusters).mockRejectedValue(new Error('clusters failed'));
+    executionService.getProjectExecutionsForConfigIds.mockRejectedValue(new Error('executions failed'));
 
-    const wrapper = await mountAndFlush(<TestDashboard projectConfiguration={project} transition={transition()} />);
+    renderDashboard(project);
 
-    expect(wrapper.text()).toContain('There was a problem loading the clusters for this project.');
-    expect(wrapper.text()).toContain('There was a problem loading the executions for this project.');
-
-    wrapper.unmount();
+    expect(
+      await screen.findByRole('heading', { name: 'There was a problem loading the clusters for this project.' }),
+    ).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: executionsError })).toBeInTheDocument();
   });
 
   it('loads manual pipeline executions through the application-filtered endpoint when config discovery fails', async () => {
-    (PipelineConfigService.getAllPipelineConfigs as Mock).mockReturnValue(Promise.reject(new Error('configs failed')));
+    vi.mocked(PipelineConfigService.getAllPipelineConfigs).mockRejectedValue(new Error('configs failed'));
 
-    const wrapper = await mountAndFlush(<TestDashboard projectConfiguration={project} transition={transition()} />);
+    const { container } = renderDashboard(project);
 
+    expect(await screen.findByText(/Automatic pipeline discovery is unavailable/)).toBeInTheDocument();
     expect(executionService.getProjectExecutionsForConfigIds).toHaveBeenCalledWith(['deployment']);
     expect(executionService.getProjectExecutions).not.toHaveBeenCalled();
-    expect(wrapper.find('ProjectPipeline').length).toBe(1);
-    expect(wrapper.text()).toContain('Automatic pipeline discovery is unavailable');
-    wrapper.unmount();
+    expect(container.querySelectorAll('section.project-pipeline')).toHaveLength(1);
   });
 
   it('shows an execution error instead of never-run rows when selected execution loading fails', async () => {
-    executionService.getProjectExecutionsForConfigIds.mockReturnValue(Promise.reject(new Error('executions failed')));
+    executionService.getProjectExecutionsForConfigIds.mockRejectedValue(new Error('executions failed'));
 
-    const wrapper = await mountAndFlush(<TestDashboard projectConfiguration={project} transition={transition()} />);
+    renderDashboard(project);
 
-    expect(wrapper.text()).toContain('There was a problem loading the executions for this project.');
-    expect(wrapper.text()).not.toContain('Never run');
+    expect(await screen.findByRole('heading', { name: executionsError })).toBeInTheDocument();
+    expect(screen.queryByText('Never run')).not.toBeInTheDocument();
     expect(executionService.getProjectExecutions).not.toHaveBeenCalled();
-    wrapper.unmount();
   });
 
   it('clears prior never-run rows when a refresh fails', async () => {
-    executionService.getProjectExecutionsForConfigIds.mockReturnValue(Promise.resolve([]));
+    const user = setupUser();
+    executionService.getProjectExecutionsForConfigIds.mockResolvedValue([]);
 
-    const wrapper = await mountAndFlush(<TestDashboard projectConfiguration={project} transition={transition()} />);
-    expect(wrapper.text()).toContain('Never run');
+    renderDashboard(project);
+    expect(await screen.findAllByText('Never run')).not.toHaveLength(0);
 
-    executionService.getProjectExecutionsForConfigIds.mockReturnValue(Promise.reject(new Error('refresh failed')));
-    await act(async () => {
-      wrapper.find('.col-md-5 RefreshControl button').simulate('click');
-      await Promise.resolve();
-    });
-    wrapper.update();
+    executionService.getProjectExecutionsForConfigIds.mockRejectedValue(new Error('refresh failed'));
+    await user.click(pipelineRefreshButton());
 
-    expect(wrapper.text()).toContain('There was a problem loading the executions for this project.');
-    expect(wrapper.text()).not.toContain('Never run');
-    expect(wrapper.text()).not.toContain('No pipelines found');
-    wrapper.unmount();
+    expect(await screen.findByRole('heading', { name: executionsError })).toBeInTheDocument();
+    expect(screen.queryByText('Never run')).not.toBeInTheDocument();
+    expect(screen.queryByText('No pipelines found')).not.toBeInTheDocument();
   });
 
   it('updates execution layout when a refresh returns a new execution', async () => {
+    const user = setupUser();
     const refreshedExecution = {
       ...execution,
       id: '02',
@@ -216,90 +220,71 @@ describe('<ProjectDashboard />', () => {
       ],
     };
     executionService.getProjectExecutionsForConfigIds
-      .mockReturnValueOnce(Promise.resolve([execution]))
-      .mockReturnValueOnce(Promise.resolve([refreshedExecution]));
+      .mockResolvedValueOnce([execution])
+      .mockResolvedValueOnce([refreshedExecution]);
 
-    const wrapper = await mountAndFlush(<TestDashboard projectConfiguration={project} transition={transition()} />);
-    expect(wrapper.find('.execution-marker').at(0).prop('style').width).toBe('100%');
+    const { container } = renderDashboard(project);
+    const markers = () => Array.from(container.querySelectorAll<HTMLElement>('.execution-marker'));
 
-    await act(async () => {
-      wrapper.find('.col-md-5 RefreshControl button').simulate('click');
-      await Promise.resolve();
-      await Promise.resolve();
-    });
-    wrapper.update();
+    await waitFor(() => expect(markers()).toHaveLength(1));
+    expect(markers()[0].style.width).toBe('100%');
 
-    expect(wrapper.find('.execution-marker').length).toBe(2);
-    expect(wrapper.find('.execution-marker').at(0).prop('style').width).toBe('50%');
-    wrapper.unmount();
+    await user.click(pipelineRefreshButton());
+
+    await waitFor(() => expect(markers()).toHaveLength(2));
+    expect(markers()[0].style.width).toBe('50%');
   });
 
   it('ignores a superseded pipeline load', async () => {
-    let resolveInitialDiscovery: (configs: any[]) => void;
-    const initialDiscovery = new Promise<any[]>((resolve) => {
+    const user = setupUser();
+    let resolveInitialDiscovery: (configs: IPipeline[]) => void;
+    const initialDiscovery = new Promise<IPipeline[]>((resolve) => {
       resolveInitialDiscovery = resolve;
     });
-    (PipelineConfigService.getAllPipelineConfigs as Mock).mockReturnValue(initialDiscovery);
+    vi.mocked(PipelineConfigService.getAllPipelineConfigs).mockReturnValue(initialDiscovery);
 
-    const wrapper = mount(<TestDashboard projectConfiguration={project} transition={transition()} />);
-    (PipelineConfigService.getAllPipelineConfigs as Mock).mockReturnValue(Promise.reject(new Error('refresh failed')));
-    executionService.getProjectExecutionsForConfigIds.mockReturnValue(Promise.reject(new Error('fallback failed')));
+    renderDashboard(project);
+    vi.mocked(PipelineConfigService.getAllPipelineConfigs).mockRejectedValue(new Error('refresh failed'));
+    executionService.getProjectExecutionsForConfigIds.mockRejectedValue(new Error('fallback failed'));
 
-    await act(async () => {
-      wrapper.find('.col-md-5 RefreshControl button').simulate('click');
-      await Promise.resolve();
-      await Promise.resolve();
-    });
-    wrapper.update();
-    expect(wrapper.text()).toContain('There was a problem loading the executions for this project.');
+    await user.click(pipelineRefreshButton());
+    expect(await screen.findByRole('heading', { name: executionsError })).toBeInTheDocument();
 
-    await act(async () => {
-      resolveInitialDiscovery!([taggedPipeline]);
-      await Promise.resolve();
-    });
-    wrapper.update();
+    executionService.getProjectExecutionsForConfigIds.mockResolvedValue([]);
+    resolveInitialDiscovery([taggedPipeline]);
+    await waitFor(() => expect(executionService.getProjectExecutionsForConfigIds).toHaveBeenCalledTimes(2));
+    await Promise.resolve();
 
-    expect(wrapper.text()).toContain('There was a problem loading the executions for this project.');
-    expect(wrapper.text()).not.toContain('Never run');
-    wrapper.unmount();
+    expect(screen.getByRole('heading', { name: executionsError })).toBeInTheDocument();
+    expect(screen.queryByText('Never run')).not.toBeInTheDocument();
   });
 
   it('renders an empty state when no manual or tagged pipelines exist', async () => {
-    (PipelineConfigService.getAllPipelineConfigs as Mock).mockReturnValue(Promise.resolve([]));
+    vi.mocked(PipelineConfigService.getAllPipelineConfigs).mockResolvedValue([]);
     const emptyProject = { ...project, config: { applications: [], clusters: [], pipelineConfigs: [] } };
 
-    const wrapper = await mountAndFlush(
-      <TestDashboard projectConfiguration={emptyProject} transition={transition()} />,
-    );
+    renderDashboard(emptyProject);
 
+    expect(await screen.findByRole('heading', { name: 'No pipelines found' })).toBeInTheDocument();
     expect(executionService.getProjectExecutionsForConfigIds).toHaveBeenCalledWith([]);
-    expect(wrapper.text()).toContain('No pipelines found');
-    wrapper.unmount();
   });
 
   it('toggles region filters and replaces the current route params', async () => {
-    const tx = transition({ reg: { dev: true } });
-    const wrapper = await mountAndFlush(<TestDashboard projectConfiguration={project} transition={tx} />);
+    const user = setupUser();
+    const currentTransition = transition({ reg: { dev: true } });
+    renderDashboard(project, currentTransition);
+    await screen.findByText('KUBERNETESAPP');
 
-    wrapper.find('RegionFilter h6.dropdown-toggle').simulate('click');
-    await act(async () => {
-      wrapper.find('RegionFilter li').first().simulate('click');
-    });
-    wrapper.update();
+    await user.click(screen.getByText('Filter by region / namespace'));
+    await user.click(screen.getByText('dev', { selector: 'label' }));
 
-    expect(tx.router.stateService.go).toHaveBeenCalledWith('.', { reg: {} }, { location: 'replace' });
-
-    wrapper.unmount();
+    expect(currentTransition.router.stateService.go).toHaveBeenCalledWith('.', { reg: {} }, { location: 'replace' });
   });
 
   it('renders nothing for missing projects and removes recent history', () => {
-    const wrapper = mount(
-      <TestDashboard projectConfiguration={{ ...project, notFound: true }} transition={transition()} />,
-    );
+    const { container } = renderDashboard({ ...project, notFound: true });
 
     expect(RecentHistoryService.removeLastItem).toHaveBeenCalledWith('projects');
-    expect(wrapper.find('.project-dashboard').exists()).toBe(false);
-
-    wrapper.unmount();
+    expect(container).toBeEmptyDOMElement();
   });
 });

@@ -1,412 +1,430 @@
 import type { Mock } from 'vitest';
-import { mount, shallow } from 'enzyme';
+import { UIRouterReact } from '@uirouter/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { setupUser } from '../../utils/testUtils/userEvent';
 import React from 'react';
 
 import { ConfirmationModalService } from '../../confirmationModal';
+import type {
+  Application,
+  IExecution,
+  IExecutionDetailsComponentProps,
+  IExecutionDetailsProps,
+  IExecutionStage,
+  IExecutionStageSummary,
+  IStageTypeConfig,
+} from '../..';
+import { DeckRuntimeContext } from '../../bootstrap/DeckRuntimeContext';
+import type { IRouterInjectedProps } from '../../navigation/routerContext';
 import { setDirectRouter } from '../../navigation/directRouter';
 import { Registry } from '../../registry/Registry';
-import { ExecutionDetailsSectionNav, ExecutionDetailsSectionNavComponent } from './ExecutionDetailsSectionNav';
+import { renderWithRouter } from '../../utils/testUtils/rtl';
+import { ExecutionDetailsSectionNavComponent } from './ExecutionDetailsSectionNav';
 import { StageExecutionDetailsComponent } from './StageExecutionDetails';
-import { StageFailureMessage } from './StageFailureMessage';
 import { StageSummary } from './StageSummary';
 import { StageSummaryWrapper, StageSummaryWrapperComponent } from './StageSummaryWrapper';
 import { StepDetails } from './StepDetails';
-import { StepExecutionDetailsWrapper, StepExecutionDetailsWrapperComponent } from './StepExecutionDetailsWrapper';
-import { ExecutionStepDetails } from '../config/stages/common/ExecutionStepDetails';
-import { StepExecutionDetails } from '../config/stages/common/StepExecutionDetails';
+import { StepExecutionDetailsWrapperComponent } from './StepExecutionDetailsWrapper';
 
 describe('pipeline details bridge wrappers', () => {
-  const routerProps = { router: {} as any, stateParams: {}, stateService: {} as any };
-  const deckRuntimeServices = { executionService: {} } as any;
+  const stateService = ({ go: vi.fn() } as unknown) as IRouterInjectedProps['stateService'];
+  const routerProps = {
+    router: {} as IRouterInjectedProps['router'],
+    stateParams: {},
+    stateService,
+  };
+  const executionService = {
+    patchExecution: vi.fn(),
+    updateExecution: vi.fn(),
+    waitUntilExecutionMatches: vi.fn(),
+  };
+  const runtime = ({
+    services: {
+      executionDetailsSectionService: {
+        synchronizeSection: vi.fn((_sections: string[], callback: () => void) => callback()),
+      },
+      executionService,
+    },
+  } as unknown) as React.ContextType<typeof DeckRuntimeContext>;
+  const application = { attributes: {} } as Application;
 
-  afterEach(() => setDirectRouter(null));
+  const stage = (values: Partial<IExecutionStage> = {}) =>
+    ({ context: {}, id: 'stage-id', name: 'Deploy', tasks: [], type: 'deploy', ...values } as IExecutionStage);
+  const summary = (values: Partial<IExecutionStageSummary> = {}) =>
+    ({ masterStage: stage(), name: 'Deploy', stages: [], type: 'deploy', ...values } as IExecutionStageSummary);
+  const execution = (values: Partial<IExecution> = {}) =>
+    ({ id: 'execution-id', stageSummaries: [], stages: [], ...values } as IExecution);
+
+  function renderWithRuntime(ui: React.ReactElement) {
+    return renderWithRouter(<DeckRuntimeContext.Provider value={runtime}>{ui}</DeckRuntimeContext.Provider>);
+  }
+
+  afterEach(() => {
+    setDirectRouter(null);
+    vi.restoreAllMocks();
+  });
 
   it('renders the direct StageSummaryWrapper without template compatibility props', () => {
     const props = {
-      application: {} as any,
-      config: {},
-      execution: {} as any,
-      stage: {} as any,
-      stageSummary: {} as any,
+      application,
+      config: {} as IStageTypeConfig,
+      execution: execution(),
+      stage: stage(),
+      stageSummary: summary(),
     };
 
-    const component = shallow(<StageSummary {...props} />);
+    const element = StageSummary(props) as React.ReactElement;
+    const wrapper = React.Children.only(element.props.children) as React.ReactElement;
 
-    expect(component.find(StageSummaryWrapper).length).toBe(1);
+    expect(wrapper.type).toBe(StageSummaryWrapper);
+    expect(wrapper.props).toEqual({
+      application: props.application,
+      execution: props.execution,
+      stage: props.stage,
+      stageSummary: props.stageSummary,
+    });
+    expect(wrapper.props).not.toHaveProperty('configSections');
   });
 
   it('renders StageSummaryWrapper directly with step rows, markdown comments, and current step state', () => {
-    const CustomStepLabel = ({ step }: any) => (
-      <span className="custom-step-label">Custom {step.context.serverGroupName}</span>
-    );
+    const CustomStepLabel = ({ step }: { step: IExecutionStage }) => <span>Custom {step.context.serverGroupName}</span>;
     vi.spyOn(Registry.pipeline, 'getStageConfig').mockReturnValue({
       executionStepLabelComponent: CustomStepLabel,
-    } as any);
-    const component = mount(
+    } as IStageTypeConfig);
+
+    const { container } = renderWithRuntime(
       <StageSummaryWrapperComponent
         {...routerProps}
-        deckRuntimeServices={deckRuntimeServices}
-        application={{ attributes: {} } as any}
-        execution={{ stages: [] } as any}
-        stage={{ context: {}, type: 'deploy' } as any}
+        deckRuntimeServices={runtime.services}
+        application={application}
+        execution={execution()}
+        stage={stage()}
         stateParams={{ step: '1' }}
-        stageSummary={
-          {
-            comments: '**approved**',
-            name: 'Deploy',
-            runningTimeInMs: 60000,
-            stages: [
-              { context: { serverGroupName: 'blue' }, name: 'first task', status: 'SUCCEEDED', type: 'task' },
-              { context: { serverGroupName: 'green' }, name: 'second task', status: 'RUNNING', type: 'task' },
-            ],
-          } as any
-        }
+        stageSummary={summary({
+          comments: '**approved**',
+          runningTimeInMs: 60000,
+          stages: [
+            stage({ context: { serverGroupName: 'blue' }, name: 'first task', status: 'SUCCEEDED', type: 'task' }),
+            stage({ context: { serverGroupName: 'green' }, name: 'second task', status: 'RUNNING', type: 'task' }),
+          ],
+        })}
       />,
     );
 
-    expect(component.find('tr.clickable').length).toBe(2);
-    expect(component.find('tr.clickable').at(1).hasClass('info')).toBe(true);
-    expect(component.find('.custom-step-label').at(0).text()).toBe('Custom blue');
-    expect(component.find('.execution-details-comments').html()).toContain('<strong>approved</strong>');
+    expect(screen.getByText('Custom blue')).toBeVisible();
+    expect(screen.getByText('Custom green')).toBeVisible();
+    expect(screen.getByText('approved', { selector: 'strong' })).toBeVisible();
+    expect(within(screen.getByRole('row', { name: /Custom green/ })).getByText('Running')).toBeVisible();
+    expect(screen.getByRole('row', { name: /Custom green/ })).toHaveClass('info');
+    expect(container.querySelectorAll('tbody tr')).toHaveLength(2);
   });
 
   it('sanitizes stage summary markdown comments', () => {
-    const component = mount(
+    const { container } = renderWithRuntime(
       <StageSummaryWrapperComponent
         {...routerProps}
-        deckRuntimeServices={deckRuntimeServices}
-        application={{ attributes: {} } as any}
-        execution={{ stages: [] } as any}
-        stage={{ context: {}, type: 'deploy' } as any}
-        stageSummary={
-          {
-            comments: '<img src=x onerror="alert(1)"> **safe** <script>alert(2)</script>',
-            name: 'Deploy',
-            stages: [],
-          } as any
-        }
+        deckRuntimeServices={runtime.services}
+        application={application}
+        execution={execution()}
+        stage={stage()}
+        stageSummary={summary({ comments: '<img src=x onerror="alert(1)"> **safe** <script>alert(2)</script>' })}
       />,
     );
 
-    const comments = component.find('.execution-details-comments').html();
-    expect(comments).toContain('<strong>safe</strong>');
-    expect(comments).not.toContain('onerror');
-    expect(comments).not.toContain('<script>');
+    expect(screen.getByText('safe', { selector: 'strong' })).toBeVisible();
+    expect(container.querySelector('script')).not.toBeInTheDocument();
+    expect(container.querySelector('[onerror]')).not.toBeInTheDocument();
   });
 
   it('tracks the active execution details section from injected route params', () => {
-    const component = shallow(
+    const props = {
+      ...routerProps,
+      sections: ['firstSection', 'secondSection'],
+      stateParams: { details: 'firstSection' },
+    };
+    const { rerender } = render(<ExecutionDetailsSectionNavComponent {...props} />);
+
+    expect(screen.getByText('First Section')).toHaveClass('active');
+    expect(screen.getByText('Second Section')).not.toHaveClass('active');
+
+    rerender(<ExecutionDetailsSectionNavComponent {...props} stateParams={{ details: 'secondSection' }} />);
+
+    expect(screen.getByText('First Section')).not.toHaveClass('active');
+    expect(screen.getByText('Second Section')).toHaveClass('active');
+  });
+
+  it('navigates execution details sections through the injected state service', async () => {
+    const user = setupUser();
+    render(
       <ExecutionDetailsSectionNavComponent
-        {...({
-          router: {},
-          sections: ['firstSection', 'secondSection'],
-          stateParams: { details: 'firstSection' },
-          stateService: {},
-        } as any)}
+        {...routerProps}
+        sections={['firstSection', 'secondSection']}
+        stateParams={{}}
       />,
     );
 
-    const activeSection = () =>
-      component
-        .find('Section')
-        .filterWhere((section) => section.prop('active'))
-        .prop('section');
+    await user.click(screen.getByText('Second Section'));
 
-    expect(activeSection()).toBe('firstSection');
-
-    component.setProps({ stateParams: { details: 'secondSection' } } as any);
-
-    expect(activeSection()).toBe('secondSection');
+    expect(stateService.go).toHaveBeenCalledWith('.', { details: 'secondSection' });
   });
 
-  it('navigates execution details sections through the injected state service', () => {
-    const injectedGo = vi.fn();
+  it('resolves deep-linked stages through injected route params and state service', async () => {
+    const firstSummary = summary({ name: 'Wait', type: 'wait' });
+    const secondSummary = summary({
+      masterStage: stage({ id: 'master-stage' }),
+      name: 'Deploy selected',
+      stages: [stage({ id: 'task-stage' })],
+    });
 
-    const component = shallow(
-      <ExecutionDetailsSectionNavComponent
-        {...({
-          router: {},
-          sections: ['firstSection', 'secondSection'],
-          stateParams: {},
-          stateService: { go: injectedGo },
-        } as any)}
-      />,
-    );
-
-    component.find('Section').at(1).dive().find('a').simulate('click');
-
-    expect(injectedGo).toHaveBeenCalledWith('.', { details: 'secondSection' });
-  });
-
-  it('resolves deep-linked stages through injected route params and state service', () => {
-    const injectedGo = vi.fn();
-    const firstSummary = { stages: [], type: 'wait' } as any;
-    const secondSummary = {
-      masterStage: { id: 'master-stage', type: 'deploy' },
-      stages: [{ id: 'task-stage', type: 'deploy' }],
-      type: 'deploy',
-    } as any;
-
-    const component = shallow(
+    renderWithRuntime(
       <StageExecutionDetailsComponent
-        {...({ router: {}, stateParams: { stageId: 'task-stage' }, stateService: { go: injectedGo } } as any)}
-        application={{} as any}
-        execution={{ stageSummaries: [firstSummary, secondSummary] } as any}
+        {...routerProps}
+        stateParams={{ stageId: 'task-stage' }}
+        application={application}
+        execution={execution({ stageSummaries: [firstSummary, secondSummary] })}
       />,
-      { disableLifecycleMethods: true },
     );
 
-    expect(injectedGo).toHaveBeenCalledWith(
+    expect(stateService.go).toHaveBeenCalledWith(
       '.',
       { stage: 1, subStage: undefined, step: 0, stageId: null },
       { location: 'replace' },
     );
-    expect(component.find(StageSummary).prop('stageSummary')).toBe(secondSummary);
+    expect(await screen.findByText('Stage details: Deploy selected')).toBeVisible();
   });
 
-  it('selects the next routed stage immediately when route props change', () => {
-    const firstSummary = {
-      masterStage: { id: 'first-master', type: 'deploy' },
-      stages: [{ id: 'first-task', type: 'deploy' }],
-      type: 'deploy',
-    } as any;
-    const secondSummary = {
-      masterStage: { id: 'second-master', type: 'deploy' },
-      stages: [{ id: 'second-task', type: 'deploy' }],
-      type: 'deploy',
-    } as any;
-    const component = shallow(
-      <StageExecutionDetailsComponent
-        {...({
-          router: {},
-          stateParams: { stageId: 'first-task' },
-          stateService: { go: vi.fn() },
-        } as any)}
-        application={{} as any}
-        execution={{ stageSummaries: [{ stages: [] }, firstSummary, secondSummary] } as any}
-      />,
-      { disableLifecycleMethods: true },
+  it('selects the next routed stage immediately when route props change', async () => {
+    const firstSummary = summary({ name: 'First deploy', stages: [stage({ id: 'first-task' })] });
+    const secondSummary = summary({ name: 'Second deploy', stages: [stage({ id: 'second-task' })] });
+    const props = {
+      ...routerProps,
+      application,
+      execution: execution({ stageSummaries: [summary({ name: 'Initial' }), firstSummary, secondSummary] }),
+    };
+    const { rerender } = renderWithRuntime(
+      <StageExecutionDetailsComponent {...props} stateParams={{ stageId: 'first-task' }} />,
+    );
+    expect(await screen.findByText('Stage details: First deploy')).toBeVisible();
+
+    rerender(
+      <DeckRuntimeContext.Provider value={runtime}>
+        <StageExecutionDetailsComponent {...props} stateParams={{ stageId: 'second-task' }} />
+      </DeckRuntimeContext.Provider>,
     );
 
-    component.setProps({ stateParams: { stageId: 'second-task' } } as any);
-
-    expect(component.find(StageSummary).prop('stageSummary')).toBe(secondSummary);
+    expect(await screen.findByText('Stage details: Second deploy')).toBeVisible();
+    expect(screen.queryByText('Stage details: First deploy')).not.toBeInTheDocument();
   });
 
-  it('waits for routed props before selecting a stage from a different execution', () => {
-    const injectedGo = vi.fn();
-    const firstSummary = {
-      masterStage: { id: 'first-master', type: 'deploy' },
-      stages: [{ id: 'first-task', type: 'deploy' }],
-      type: 'deploy',
-    } as any;
-    const secondSummary = {
-      masterStage: { id: 'second-master', type: 'deploy' },
-      stages: [{ id: 'second-task', type: 'deploy' }],
-      type: 'deploy',
-    } as any;
-    const firstExecution = { id: 'first-execution', stageSummaries: [firstSummary] } as any;
-    const secondExecution = { id: 'second-execution', stageSummaries: [{ stages: [] }, secondSummary] } as any;
-    const initialProps = {
-      application: {} as any,
-      execution: firstExecution,
-      router: {},
-      stateParams: { executionId: 'first-execution', stage: '0', step: '0' },
-      stateService: { go: injectedGo },
-    } as any;
+  it('waits for routed props before selecting a stage from a different execution', async () => {
+    const firstSummary = summary({ name: 'First deploy', stages: [stage({ id: 'first-task' })] });
+    const secondSummary = summary({ name: 'Second deploy', stages: [stage({ id: 'second-task' })] });
+    const firstExecution = execution({ id: 'first-execution', stageSummaries: [firstSummary] });
+    const secondExecution = execution({ id: 'second-execution', stageSummaries: [summary(), secondSummary] });
+    const commonProps = { ...routerProps, application };
+    const { rerender } = renderWithRuntime(
+      <StageExecutionDetailsComponent
+        {...commonProps}
+        execution={firstExecution}
+        stateParams={{ executionId: 'first-execution', stage: '0', step: '0' }}
+      />,
+    );
+    expect(await screen.findByText('Stage details: First deploy')).toBeVisible();
+    (stateService.go as Mock).mockClear();
 
-    const component = shallow(<StageExecutionDetailsComponent {...initialProps} />, { disableLifecycleMethods: true });
-    const instance = component.instance() as StageExecutionDetailsComponent;
+    rerender(
+      <DeckRuntimeContext.Provider value={runtime}>
+        <StageExecutionDetailsComponent
+          {...commonProps}
+          execution={firstExecution}
+          stateParams={{ executionId: 'second-execution', stage: '1', step: '0' }}
+        />
+      </DeckRuntimeContext.Provider>,
+    );
 
-    injectedGo.mockClear();
-    instance.componentWillReceiveProps({
-      ...initialProps,
-      stateParams: { executionId: 'second-execution', stage: '1', step: '0' },
-    });
+    expect(stateService.go).not.toHaveBeenCalled();
+    expect(screen.queryByText('Stage details: Second deploy')).not.toBeInTheDocument();
 
-    expect(injectedGo).not.toHaveBeenCalled();
+    rerender(
+      <DeckRuntimeContext.Provider value={runtime}>
+        <StageExecutionDetailsComponent
+          {...commonProps}
+          execution={secondExecution}
+          stateParams={{ executionId: 'second-execution', stage: '1', step: '0' }}
+        />
+      </DeckRuntimeContext.Provider>,
+    );
 
-    component.setProps({
-      execution: secondExecution,
-      stateParams: { executionId: 'second-execution', stage: '1', step: '0' },
-    });
-
-    expect(component.find(StageSummary).prop('stageSummary')).toBe(secondSummary);
+    expect(await screen.findByText('Stage details: Second deploy')).toBeVisible();
   });
 
   it('toggles stage summary details through the injected router and preserves stage indices', () => {
-    const injectedGo = vi.fn();
-
-    const component = mount(
+    renderWithRuntime(
       <StageSummaryWrapperComponent
         {...routerProps}
-        deckRuntimeServices={deckRuntimeServices}
-        application={{ attributes: {} } as any}
-        execution={{ stages: [] } as any}
-        stage={{ context: {}, type: 'deploy' } as any}
-        stageSummary={
-          {
-            stages: [
-              { name: 'first task', status: 'SUCCEEDED' },
-              { name: 'second task', status: 'RUNNING' },
-            ],
-          } as any
-        }
+        deckRuntimeServices={runtime.services}
+        application={application}
+        execution={execution()}
+        stage={stage()}
+        stageSummary={summary({
+          stages: [
+            stage({ name: 'first task', status: 'SUCCEEDED' }),
+            stage({ name: 'second task', status: 'RUNNING' }),
+          ],
+        })}
         stateParams={{ stage: '2', subStage: '3', step: '0' }}
-        stateService={{ go: injectedGo } as any}
       />,
     );
 
-    component.find('tr.clickable').at(1).simulate('click');
+    fireEvent.click(screen.getByRole('row', { name: /Second task/ }));
 
-    expect(injectedGo).toHaveBeenCalledWith('.', { stage: 2, step: 1, subStage: 3 });
+    expect(stateService.go).toHaveBeenCalledWith('.', { stage: 2, step: 1, subStage: 3 });
   });
 
   it('confirms manual skip against the top-level stage', async () => {
-    const updatedExecution = { stages: [{ id: 'parent', status: 'SKIPPED' }] };
-    const executionService = {
-      patchExecution: vi.fn().mockReturnValue(Promise.resolve(null)),
-      updateExecution: vi.fn().mockReturnValue(Promise.resolve(null)),
-      waitUntilExecutionMatches: vi.fn().mockReturnValue(Promise.resolve(updatedExecution)),
-    };
-    vi.spyOn(ConfirmationModalService, 'confirm').mockImplementation((config: any) =>
+    const updatedExecution = execution({ stages: [stage({ id: 'parent', status: 'SKIPPED' })] });
+    executionService.patchExecution.mockResolvedValue(null);
+    executionService.waitUntilExecutionMatches.mockResolvedValue(updatedExecution);
+    executionService.updateExecution.mockResolvedValue(null);
+    vi.spyOn(ConfirmationModalService, 'confirm').mockImplementation((config) =>
       config.submitMethod('operator reason'),
     );
 
-    const component = mount(
+    renderWithRuntime(
       <StageSummaryWrapperComponent
         {...routerProps}
-        deckRuntimeServices={{ executionService } as any}
-        application={{ attributes: {} } as any}
-        execution={
-          {
-            id: 'execution-id',
-            stages: [{ id: 'parent', context: { canManuallySkip: true }, name: 'Parent' }],
-          } as any
-        }
-        stage={{ id: 'child', context: {}, isRunning: true, parentStageId: 'parent', type: 'deploy' } as any}
-        stageSummary={{ name: 'Child', stages: [] } as any}
+        deckRuntimeServices={runtime.services}
+        application={application}
+        execution={execution({
+          stages: [stage({ id: 'parent', context: { canManuallySkip: true }, name: 'Parent' })],
+        })}
+        stage={stage({ id: 'child', isRunning: true, parentStageId: 'parent' })}
+        stageSummary={summary({ name: 'Child' })}
       />,
     );
 
-    component.find('button.manual-skip').simulate('click');
-    await (ConfirmationModalService.confirm as Mock).mock.results.at(-1).value;
+    fireEvent.click(screen.getByRole('button', { name: 'Skip Parent' }));
 
-    expect(executionService.patchExecution).toHaveBeenCalledWith('execution-id', 'parent', {
-      manualSkip: true,
-      reason: 'operator reason',
-    });
-    expect(executionService.updateExecution).toHaveBeenCalledWith({ attributes: {} } as any, updatedExecution);
+    await waitFor(() =>
+      expect(executionService.patchExecution).toHaveBeenCalledWith('execution-id', 'parent', {
+        manualSkip: true,
+        reason: 'operator reason',
+      }),
+    );
+    expect(executionService.updateExecution).toHaveBeenCalledWith(application, updatedExecution);
   });
 
   it('renders the direct StepExecutionDetailsWrapper with provider and no legacy section props', () => {
-    const props = {
-      application: {} as any,
-      config: { cloudProvider: 'aws' },
-      execution: {} as any,
-      stage: {} as any,
+    const BridgeDetails = (props: IExecutionDetailsComponentProps) => {
+      const hasLegacyConfigSections = Object.prototype.hasOwnProperty.call(props, 'configSections');
+      return (
+        <div>{`Bridge provider: ${props.provider}; legacy configSections: ${
+          hasLegacyConfigSections ? 'present' : 'absent'
+        }`}</div>
+      );
     };
 
-    const component = shallow(<StepDetails {...props} />);
+    renderWithRuntime(
+      <StepDetails
+        application={application}
+        config={{ cloudProvider: 'aws', executionDetailsComponent: BridgeDetails } as IStageTypeConfig}
+        execution={execution()}
+        stage={stage({ tasks: [stage({ name: 'deploy task', status: 'SUCCEEDED' })] })}
+      />,
+    );
 
-    expect(component.find(StepExecutionDetailsWrapper).length).toBe(1);
-    expect(component.find(StepExecutionDetailsWrapper).prop('provider')).toBe('aws');
-    expect(
-      Object.prototype.hasOwnProperty.call(component.find(StepExecutionDetailsWrapper).props(), 'configSections'),
-    ).toBe(false);
+    expect(screen.getByText('Bridge provider: aws; legacy configSections: absent')).toBeVisible();
+    expect(screen.queryByText('Deploy task')).not.toBeInTheDocument();
   });
 
   it('renders direct execution detail sections instead of the default wrapper', () => {
-    const DirectExecutionDetails = () => <div className="direct-execution-details" />;
-    DirectExecutionDetails.title = 'Direct';
-    const detailsSections = [DirectExecutionDetails];
+    const DirectExecutionDetails = Object.assign(
+      ({ provider }: IExecutionDetailsProps) => <div>Direct details for {provider}</div>,
+      { title: 'Direct' },
+    );
 
-    const component = shallow(
+    renderWithRuntime(
       <StepDetails
-        application={{} as any}
-        config={{ cloudProvider: 'aws', executionDetailsSections: detailsSections } as any}
-        execution={{} as any}
-        stage={{} as any}
+        application={application}
+        config={{ cloudProvider: 'aws', executionDetailsSections: [DirectExecutionDetails] } as IStageTypeConfig}
+        execution={execution()}
+        stage={stage({ tasks: [stage({ name: 'default task', status: 'SUCCEEDED' })] })}
       />,
     );
 
-    expect(component.find(StepExecutionDetailsWrapper).exists()).toBe(false);
-    expect(component.find(StepExecutionDetails).prop('detailsSections')).toBe(detailsSections);
-    expect(component.find(StepExecutionDetails).prop('provider')).toBe('aws');
+    expect(screen.getByText('Direct details for aws')).toBeVisible();
+    expect(screen.queryByText('Default Task')).not.toBeInTheDocument();
   });
 
   it('preserves the no-details state when no stage config is registered', () => {
-    const component = shallow(
-      <StepDetails application={{} as any} config={null} execution={{} as any} stage={{} as any} />,
+    renderWithRuntime(
+      <StepDetails
+        application={application}
+        config={null}
+        execution={execution()}
+        stage={stage({ name: 'No config' })}
+      />,
     );
 
-    expect(component.find(StepExecutionDetailsWrapper).exists()).toBe(false);
-    expect(component.find(StepExecutionDetails).exists()).toBe(false);
+    expect(screen.getByRole('heading', { name: 'No config' })).toBeVisible();
+    expect(screen.queryByText('Task')).not.toBeInTheDocument();
   });
 
   it('renders StepExecutionDetailsWrapper default execution details without section nav', () => {
-    const component = shallow(
+    renderWithRuntime(
       <StepExecutionDetailsWrapperComponent
         {...routerProps}
-        application={{} as any}
-        execution={{} as any}
-        stage={{ failureMessage: 'it failed', tasks: [{ name: 'deploy', status: 'SUCCEEDED' }] } as any}
+        application={application}
+        execution={execution()}
+        stage={stage({ failureMessage: 'it failed', tasks: [stage({ name: 'deploy', status: 'SUCCEEDED' })] })}
       />,
     );
 
-    expect(component.find(ExecutionDetailsSectionNav).exists()).toBe(false);
-    expect(component.find(ExecutionStepDetails).prop('item')).toEqual({
-      failureMessage: 'it failed',
-      tasks: [{ name: 'deploy', status: 'SUCCEEDED' }],
-    } as any);
-    expect(component.find(StageFailureMessage).prop('message')).toBe('it failed');
+    expect(screen.getByText('Deploy')).toBeVisible();
+    expect(screen.getByText('it failed')).toBeVisible();
+    expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
   });
 
   it('renders custom StepExecutionDetailsWrapper execution details component', () => {
-    const CustomExecutionDetails = ({ stage }: any) => (
-      <div className="custom-execution-details">Custom details for {stage.context.serverGroupName}</div>
+    const CustomExecutionDetails = ({ stage: currentStage }: { stage: IExecutionStage }) => (
+      <div>Custom details for {currentStage.context.serverGroupName}</div>
     );
 
-    const component = shallow(
+    renderWithRuntime(
       <StepExecutionDetailsWrapperComponent
         {...routerProps}
-        application={{} as any}
-        config={{ executionDetailsComponent: CustomExecutionDetails } as any}
-        execution={{} as any}
+        application={application}
+        config={{ executionDetailsComponent: CustomExecutionDetails } as IStageTypeConfig}
+        execution={execution()}
         provider="aws"
-        stage={{ context: { serverGroupName: 'my-server-group' }, failureMessage: 'it failed', tasks: [] } as any}
+        stage={stage({ context: { serverGroupName: 'my-server-group' }, tasks: [stage({ name: 'default task' })] })}
       />,
     );
 
-    expect(component.find(CustomExecutionDetails).prop('stage')).toEqual({
-      context: { serverGroupName: 'my-server-group' },
-      failureMessage: 'it failed',
-      tasks: [],
-    } as any);
-    expect(Object.prototype.hasOwnProperty.call(component.find(CustomExecutionDetails).props(), 'configSections')).toBe(
-      false,
-    );
-    expect(component.find(ExecutionStepDetails).exists()).toBe(false);
+    expect(screen.getByText('Custom details for my-server-group')).toBeVisible();
+    expect(screen.queryByText('Default Task')).not.toBeInTheDocument();
   });
 
   it('passes the injected details route param to custom step execution details', () => {
     const params = { details: 'facade-details' };
-    setDirectRouter({ globals: { params }, stateService: { params } } as any);
-    const CustomExecutionDetails = () => null;
+    const directRouter = new UIRouterReact();
+    directRouter.globals.params = params;
+    setDirectRouter(directRouter);
+    const CustomExecutionDetails = ({ currentSection }: { currentSection: string }) => <div>{currentSection}</div>;
 
-    const component = shallow(
+    renderWithRuntime(
       <StepExecutionDetailsWrapperComponent
         {...routerProps}
-        {...({
-          application: {},
-          config: { executionDetailsComponent: CustomExecutionDetails },
-          execution: {},
-          stage: {},
-          stateParams: { details: 'injected-details' },
-        } as any)}
+        application={application}
+        config={{ executionDetailsComponent: CustomExecutionDetails } as IStageTypeConfig}
+        execution={execution()}
+        stage={stage()}
+        stateParams={{ details: 'injected-details' }}
       />,
     );
 
-    expect(component.find(CustomExecutionDetails).prop('currentSection')).toBe('injected-details');
+    expect(screen.getByText('injected-details')).toBeVisible();
+    expect(screen.queryByText('facade-details')).not.toBeInTheDocument();
+    directRouter.dispose();
   });
 });

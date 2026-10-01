@@ -75,9 +75,11 @@ export class PrometheusMetricTypeSelector extends React.Component<
         {accountOptions.length > 1 && (
           <div className="prometheus-metric-type-selector-account-hint">
             <span>Metric search is currently populating from {this.state.selectedAccount}.</span>
-            <span className="btn btn-link" onClick={this.showAccountDropdown}>
-              {!this.state.showAccountDropdown && 'Switch Account'}
-            </span>
+            {!this.state.showAccountDropdown && (
+              <button type="button" className="btn btn-link" onClick={this.showAccountDropdown}>
+                Switch Account
+              </button>
+            )}
           </div>
         )}
         {this.state.showAccountDropdown && (

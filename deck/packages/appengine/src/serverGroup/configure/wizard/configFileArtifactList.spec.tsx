@@ -1,8 +1,7 @@
-import { mount } from 'enzyme';
+import { render, screen } from '@testing-library/react';
 import React from 'react';
 
 import type { IArtifactAccount, IArtifactAccountPair } from '@spinnaker/core';
-import { StageArtifactSelector } from '@spinnaker/core';
 import { mockDeployStage, mockPipeline } from '@spinnaker/mocks';
 
 import { ConfigFileArtifactList } from './ConfigFileArtifactList';
@@ -12,7 +11,7 @@ import { mockHttpClient } from '../../../../../core/src/api/mock/mockHttpSupport
 describe('<ConfigFileArtifactList/>', () => {
   it('renders empty children when null/empty artifacts are passed in', () => {
     const configArtifacts: IArtifactAccountPair[] = [];
-    const wrapper = mount(
+    render(
       <ConfigFileArtifactList
         configArtifacts={configArtifacts}
         pipeline={mockPipeline}
@@ -20,7 +19,7 @@ describe('<ConfigFileArtifactList/>', () => {
         updateConfigArtifacts={() => {}}
       />,
     );
-    expect(wrapper.find(StageArtifactSelector).length).toBe(0);
+    expect(screen.queryAllByRole('button', { name: /Delete/ })).toHaveLength(0);
   });
 
   it('renders 2 children of StageArtifactSelector when 2 artifacts are passed in', async () => {
@@ -34,7 +33,7 @@ describe('<ConfigFileArtifactList/>', () => {
       { account: 'http-acc', id: '1234abcd', artifact: { id: '1234abcd' } },
     ];
 
-    const wrapper = mount(
+    render(
       <ConfigFileArtifactList
         configArtifacts={configArtifacts}
         pipeline={mockPipeline}
@@ -42,7 +41,7 @@ describe('<ConfigFileArtifactList/>', () => {
         updateConfigArtifacts={() => {}}
       />,
     );
-    expect(wrapper.find(StageArtifactSelector).length).toBe(2);
+    expect(screen.getAllByRole('button', { name: /Delete/ })).toHaveLength(2);
     await http.flush();
   });
 
@@ -64,7 +63,7 @@ describe('<ConfigFileArtifactList/>', () => {
       },
     ];
 
-    const wrapper = mount(
+    render(
       <ConfigFileArtifactList
         configArtifacts={configArtifacts}
         pipeline={mockPipeline}
@@ -72,7 +71,7 @@ describe('<ConfigFileArtifactList/>', () => {
         updateConfigArtifacts={() => {}}
       />,
     );
-    expect(wrapper.find(StageArtifactSelector).length).toBe(1);
+    expect(screen.getAllByRole('button', { name: /Delete/ })).toHaveLength(1);
     await http.flush();
   });
 });

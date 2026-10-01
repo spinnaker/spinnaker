@@ -57,6 +57,8 @@ export interface IHoverablePopoverState {
   PopoverRenderer?: React.ComponentType<IHoverablePopoverContentsProps>;
 }
 
+type FocusableElement = Element & { focus: () => void };
+
 export class HoverablePopover extends React.Component<IHoverablePopoverProps, IHoverablePopoverState> {
   public static defaultProps: Partial<IHoverablePopoverProps> = {
     placement: 'top',
@@ -65,10 +67,12 @@ export class HoverablePopover extends React.Component<IHoverablePopoverProps, IH
     delayHide: 300,
   };
 
-  private mouseEvents$ = new Subject<React.SyntheticEvent<any>>();
-  private hidePopoverEvents$ = new Subject<void>();
+  private interactionEvents$ = new Subject<React.SyntheticEvent<any>>();
+  private hidePopoverEvents$ = new Subject<boolean>();
   private destroy$ = new Subject<void>();
   private targetRef = React.createRef<HTMLElement>();
+  private focusOrigin?: FocusableElement;
+  private restoringFocus = false;
 
   constructor(props: IHoverablePopoverProps) {
     super(props);
@@ -80,39 +84,68 @@ export class HoverablePopover extends React.Component<IHoverablePopoverProps, IH
   }
 
   public componentDidMount() {
-    const shouldShowEvents = ['mouseenter', 'mouseover'];
-    const showHideMouseEvents$ = this.mouseEvents$.pipe(
+    const shouldShowEvents = ['focus', 'mouseenter', 'mouseover'];
+    const showHideInteractionEvents$ = this.interactionEvents$.pipe(
       map((event: React.MouseEvent<any>) => {
         const shouldOpen = shouldShowEvents.includes(event.type);
         const eventDelay = shouldOpen ? this.props.delayShow : this.props.delayHide;
-        return { shouldOpen, eventDelay, animation: true };
+        return { shouldOpen, eventDelay, animation: true, restoreFocus: false };
       }),
     );
 
     const hideProgramatically$ = this.hidePopoverEvents$.pipe(
-      map(() => {
-        return { shouldOpen: false, eventDelay: 0, animation: false };
+      map((restoreFocus) => {
+        return { shouldOpen: false, eventDelay: 0, animation: false, restoreFocus };
       }),
     );
 
-    observableMerge(showHideMouseEvents$, hideProgramatically$)
+    observableMerge(showHideInteractionEvents$, hideProgramatically$)
       .pipe(
-        map(({ shouldOpen, eventDelay, animation }) => observableOf({ shouldOpen, animation }).pipe(delay(eventDelay))),
+        map(({ shouldOpen, eventDelay, animation, restoreFocus }) =>
+          observableOf({ shouldOpen, animation, restoreFocus }).pipe(delay(eventDelay)),
+        ),
         switchMap((result) => result),
         filter(({ shouldOpen }) => shouldOpen !== this.state.popoverIsOpen),
         takeUntil(this.destroy$),
       )
-      .subscribe(({ shouldOpen, animation }) => this.setPopoverOpen(shouldOpen, animation));
+      .subscribe(({ shouldOpen, animation, restoreFocus }) => this.setPopoverOpen(shouldOpen, animation, restoreFocus));
   }
 
-  private setPopoverOpen(popoverIsOpen: boolean, animation = true): void {
-    this.setState({ animation, popoverIsOpen });
+  private setPopoverOpen(popoverIsOpen: boolean, animation = true, restoreFocus = false): void {
+    this.setState({ animation, popoverIsOpen }, () => {
+      if (!popoverIsOpen && restoreFocus && this.focusOrigin?.isConnected) {
+        this.restoringFocus = true;
+        try {
+          this.focusOrigin.focus();
+        } finally {
+          this.restoringFocus = false;
+        }
+      }
+    });
     const callback = popoverIsOpen ? this.props.onShow : this.props.onHide;
     callback && callback();
   }
 
-  private handleMouseEvent = (e: React.SyntheticEvent<any>): void => {
-    this.mouseEvents$.next(e);
+  private handleInteractionEvent = (e: React.SyntheticEvent<any>): void => {
+    const eventTarget = e.target;
+    if (e.type === 'focus' && eventTarget instanceof Element && this.targetRef.current?.contains(eventTarget)) {
+      const target = eventTarget as FocusableElement;
+      if (typeof target.focus === 'function') {
+        this.focusOrigin = target;
+      }
+      if (this.restoringFocus) {
+        return;
+      }
+    }
+    this.interactionEvents$.next(e);
+  };
+
+  private handleKeyDown = (event: React.KeyboardEvent<any>): void => {
+    if (event.key === 'Escape') {
+      const eventTarget = event.target;
+      const escapedFromPopover = eventTarget instanceof Node && !this.targetRef.current?.contains(eventTarget);
+      this.hidePopoverEvents$.next(escapedFromPopover);
+    }
   };
 
   private rendererRefCallback = (ref: React.Component): void => {
@@ -163,7 +196,7 @@ export class HoverablePopover extends React.Component<IHoverablePopoverProps, IH
     const { Wrapper } = this;
 
     const popoverContent: JSX.Element = Component ? (
-      <Component {...this.props} hidePopover={() => this.hidePopoverEvents$.next()} />
+      <Component {...this.props} hidePopover={() => this.hidePopoverEvents$.next(false)} />
     ) : (
       template
     );
@@ -171,8 +204,11 @@ export class HoverablePopover extends React.Component<IHoverablePopoverProps, IH
     return (
       <Wrapper
         className={classnames('HoverablePopover', this.props.wrapperClassName)}
-        onMouseEnter={this.handleMouseEvent}
-        onMouseLeave={this.handleMouseEvent}
+        onBlur={this.handleInteractionEvent}
+        onFocus={this.handleInteractionEvent}
+        onKeyDown={this.handleKeyDown}
+        onMouseEnter={this.handleInteractionEvent}
+        onMouseLeave={this.handleInteractionEvent}
       >
         {this.props.children}
         <Overlay
@@ -185,8 +221,11 @@ export class HoverablePopover extends React.Component<IHoverablePopoverProps, IH
         >
           <PopoverOffset
             ref={this.rendererRefCallback}
-            onMouseOver={this.handleMouseEvent}
-            onMouseLeave={this.handleMouseEvent}
+            onBlur={this.handleInteractionEvent}
+            onFocus={this.handleInteractionEvent}
+            onKeyDown={this.handleKeyDown}
+            onMouseOver={this.handleInteractionEvent}
+            onMouseLeave={this.handleInteractionEvent}
             offsetPercent={hOffsetPercent}
             id={id}
             title={title}

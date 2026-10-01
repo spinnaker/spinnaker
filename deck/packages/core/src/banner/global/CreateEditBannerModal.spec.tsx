@@ -12,13 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import type { Mock } from 'vitest';
-import { shallow } from 'enzyme';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import React from 'react';
+import type { Mock } from 'vitest';
 
+import { CreateEditBannerModal, datetimeLocalToMs, msToDatetimeLocal } from './CreateEditBannerModal';
 import type { IBannerRecord } from './GlobalBannerService';
 import { GlobalBannerService } from './GlobalBannerService';
-import { CreateEditBannerModal, datetimeLocalToMs, msToDatetimeLocal } from './CreateEditBannerModal';
+import { setupUser } from '../../utils/testUtils';
 
 // ---------------------------------------------------------------------------
 // Pure helper tests — no DOM required
@@ -57,13 +58,28 @@ const BANNER_FIXTURE: IBannerRecord = {
   updatedAt: 2000,
 };
 
-function makeWrapper(props: Partial<React.ComponentProps<typeof CreateEditBannerModal>> = {}) {
+function renderModal(props: Partial<React.ComponentProps<typeof CreateEditBannerModal>> = {}) {
   const defaults = {
     onClose: vi.fn(),
     onSaved: vi.fn(),
   };
-  return shallow(<CreateEditBannerModal {...defaults} {...props} />);
+  return render(<CreateEditBannerModal {...defaults} {...props} />);
 }
+
+const idInput = () => screen.getByLabelText('ID *') as HTMLInputElement;
+const messageInput = () => screen.getByLabelText(/^Message \*/) as HTMLTextAreaElement;
+const enabledCheckbox = () => screen.getByRole('checkbox', { name: 'Enabled' }) as HTMLInputElement;
+const scheduleToggle = () => screen.getByRole('button', { name: /Schedule activation window/ });
+const submitButton = (name: string | RegExp = /^(Create Banner|Save)$/) =>
+  screen.getByRole('button', { name }) as HTMLButtonElement;
+const colorSelectValue = (label: string) => {
+  const group = screen.getByText(label, { selector: 'label' }).closest('.form-group') as HTMLElement;
+  return group.querySelector('.Select-value .custom-banner-config-color-option') as HTMLElement;
+};
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 // ---------------------------------------------------------------------------
 // Create mode
@@ -71,112 +87,116 @@ function makeWrapper(props: Partial<React.ComponentProps<typeof CreateEditBanner
 
 describe('<CreateEditBannerModal /> — create mode', () => {
   it('renders "Create Banner" title', () => {
-    const wrapper = makeWrapper();
-    expect(wrapper.find('ModalTitle').prop('children')).toBe('Create Banner');
+    renderModal();
+    expect(document.querySelector('.modal-title')).toHaveTextContent(/^Create Banner$/);
   });
 
   it('ID field is enabled', () => {
-    const wrapper = makeWrapper();
-    expect(wrapper.find('#banner-id').prop('disabled')).toBe(false);
+    renderModal();
+    expect(idInput()).toBeEnabled();
   });
 
   it('submit button is disabled when ID is empty', () => {
-    const wrapper = makeWrapper();
-    expect(wrapper.find('button[type="submit"]').prop('disabled')).toBe(true);
+    renderModal();
+    expect(submitButton('Create Banner')).toBeDisabled();
   });
 
-  it('submit button is disabled when message is empty', () => {
-    const wrapper = makeWrapper();
-    wrapper.find('#banner-id').simulate('change', { target: { value: 'my-banner' } });
-    expect(wrapper.find('button[type="submit"]').prop('disabled')).toBe(true);
+  it('submit button is disabled when message is empty', async () => {
+    const user = setupUser();
+    renderModal();
+    await user.type(idInput(), 'my-banner');
+    expect(submitButton('Create Banner')).toBeDisabled();
   });
 
-  it('submit button is enabled when ID and message are filled', () => {
-    const wrapper = makeWrapper();
-    wrapper.find('#banner-id').simulate('change', { target: { value: 'my-banner' } });
-    wrapper.find('#banner-message').simulate('change', { target: { value: 'Hello world' } });
-    expect(wrapper.find('button[type="submit"]').prop('disabled')).toBe(false);
+  it('submit button is enabled when ID and message are filled', async () => {
+    const user = setupUser();
+    renderModal();
+    await user.type(idInput(), 'my-banner');
+    await user.type(messageInput(), 'Hello world');
+    expect(submitButton('Create Banner')).toBeEnabled();
   });
 
-  it('shows an ID validation error for invalid characters', () => {
-    const wrapper = makeWrapper();
-    wrapper.find('#banner-id').simulate('change', { target: { value: 'bad id!' } });
-    expect(wrapper.find('#banner-id').closest('.form-group').find('.help-block').text()).toContain(
-      'letters, numbers, hyphens and underscores',
-    );
+  it('shows an ID validation error for invalid characters', async () => {
+    const user = setupUser();
+    renderModal();
+    await user.type(idInput(), 'bad id!');
+    const group = idInput().closest('.form-group') as HTMLElement;
+    expect(within(group).getByText(/letters, numbers, hyphens and underscores/)).toHaveClass('help-block');
   });
 
   it('enabled checkbox defaults to checked', () => {
-    const wrapper = makeWrapper();
-    expect(wrapper.find('#banner-enabled').prop('checked')).toBe(true);
+    renderModal();
+    expect(enabledCheckbox()).toBeChecked();
   });
 
   it('schedule section is collapsed by default', () => {
-    const wrapper = makeWrapper();
-    // The inner schedule content is only rendered when open
-    expect(wrapper.find('#banner-start').exists()).toBe(false);
+    renderModal();
+    expect(screen.queryByLabelText('Activate at')).not.toBeInTheDocument();
   });
 
-  it('clicking the schedule button expands the section', () => {
-    const wrapper = makeWrapper();
-    wrapper.find('button.btn-link').simulate('click');
-    expect(wrapper.find('#banner-start').exists()).toBe(true);
+  it('clicking the schedule button expands the section', async () => {
+    const user = setupUser();
+    renderModal();
+    await user.click(scheduleToggle());
+    expect(screen.getByLabelText('Activate at')).toBeInTheDocument();
   });
 
-  it('shows end-time validation error when end ≤ start', () => {
-    const wrapper = makeWrapper();
-    wrapper.find('button.btn-link').simulate('click'); // open schedule
+  it('shows end-time validation error when end ≤ start', async () => {
+    const user = setupUser();
+    renderModal();
+    await user.click(scheduleToggle());
 
-    wrapper.find('#banner-start').simulate('change', { target: { value: '2026-06-01T10:00' } });
-    wrapper.find('#banner-end').simulate('change', { target: { value: '2026-06-01T09:00' } });
+    fireEvent.change(screen.getByLabelText('Activate at'), { target: { value: '2026-06-01T10:00' } });
+    fireEvent.change(screen.getByLabelText('Deactivate at'), { target: { value: '2026-06-01T09:00' } });
 
-    expect(wrapper.find('.has-error .help-block').text()).toContain('End time must be after start time');
+    const group = screen.getByLabelText('Deactivate at').closest('.form-group') as HTMLElement;
+    expect(group).toHaveClass('has-error');
+    expect(within(group).getByText('End time must be after start time')).toHaveClass('help-block');
   });
 
-  it('live preview appears once message is non-empty', () => {
-    const wrapper = makeWrapper();
-    expect(wrapper.find('.create-edit-banner-modal-preview').exists()).toBe(false);
-    wrapper.find('#banner-message').simulate('change', { target: { value: 'Hello' } });
-    expect(wrapper.find('.create-edit-banner-modal-preview').exists()).toBe(true);
+  it('live preview appears once message is non-empty', async () => {
+    const user = setupUser();
+    renderModal();
+    expect(screen.queryByText('Preview')).not.toBeInTheDocument();
+    await user.type(messageInput(), 'Hello');
+    expect(screen.getByText('Preview')).toBeInTheDocument();
+    expect(document.querySelector('.create-edit-banner-modal-preview')).toHaveTextContent('Hello');
   });
 
   it('calls GlobalBannerService.saveBanner and onSaved on successful submit', async () => {
+    const user = setupUser();
     const saved = { ...BANNER_FIXTURE };
     vi.spyOn(GlobalBannerService, 'saveBanner').mockReturnValue(Promise.resolve(saved));
     const onSaved = vi.fn();
 
-    const wrapper = makeWrapper({ onSaved });
-    wrapper.find('#banner-id').simulate('change', { target: { value: 'maint-2026' } });
-    wrapper.find('#banner-message').simulate('change', { target: { value: 'Maintenance window' } });
+    renderModal({ onSaved });
+    await user.type(idInput(), 'maint-2026');
+    await user.type(messageInput(), 'Maintenance window');
+    await user.click(submitButton('Create Banner'));
 
-    await wrapper.find('form').prop('onSubmit')({ preventDefault: () => {} } as any);
-
+    await waitFor(() => expect(onSaved).toHaveBeenCalledWith(saved));
     expect(GlobalBannerService.saveBanner).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'maint-2026', message: 'Maintenance window' }),
     );
-    expect(onSaved).toHaveBeenCalledWith(saved);
   });
 
   it('shows error alert when saveBanner rejects', async () => {
+    const user = setupUser();
     vi.spyOn(GlobalBannerService, 'saveBanner').mockReturnValue(Promise.reject({ data: { message: 'Server error' } }));
 
-    const wrapper = makeWrapper();
-    wrapper.find('#banner-id').simulate('change', { target: { value: 'x' } });
-    wrapper.find('#banner-message').simulate('change', { target: { value: 'msg' } });
+    renderModal();
+    await user.type(idInput(), 'x');
+    await user.type(messageInput(), 'msg');
+    await user.click(submitButton('Create Banner'));
 
-    await wrapper.find('form').prop('onSubmit')({ preventDefault: () => {} } as any);
-    wrapper.update();
-
-    expect(wrapper.find('.alert-danger').text()).toContain('Server error');
+    expect(await screen.findByRole('alert')).toHaveTextContent('Server error');
   });
 
-  it('calls onClose when Cancel is clicked', () => {
+  it('calls onClose when Cancel is clicked', async () => {
+    const user = setupUser();
     const onClose = vi.fn();
-    const wrapper = makeWrapper({ onClose });
-    wrapper
-      .find('button[type="button"]')
-      .filterWhere((b) => b.text() === 'Cancel')
-      .simulate('click');
+    renderModal({ onClose });
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
     expect(onClose).toHaveBeenCalled();
   });
 });
@@ -187,44 +207,48 @@ describe('<CreateEditBannerModal /> — create mode', () => {
 
 describe('<CreateEditBannerModal /> — edit mode', () => {
   it('renders "Edit Banner: {id}" title', () => {
-    const wrapper = makeWrapper({ existing: BANNER_FIXTURE });
-    expect(wrapper.find('ModalTitle').prop('children')).toBe(`Edit Banner: ${BANNER_FIXTURE.id}`);
+    renderModal({ existing: BANNER_FIXTURE });
+    expect(document.querySelector('.modal-title')).toHaveTextContent(`Edit Banner: ${BANNER_FIXTURE.id}`);
   });
 
   it('ID field is disabled', () => {
-    const wrapper = makeWrapper({ existing: BANNER_FIXTURE });
-    expect(wrapper.find('#banner-id').prop('disabled')).toBe(true);
+    renderModal({ existing: BANNER_FIXTURE });
+    expect(idInput()).toBeDisabled();
   });
 
   it('pre-populates all text fields from existing banner', () => {
-    const wrapper = makeWrapper({ existing: BANNER_FIXTURE });
-    expect(wrapper.find('#banner-id').prop('value')).toBe(BANNER_FIXTURE.id);
-    expect(wrapper.find('#banner-message').prop('value')).toBe(BANNER_FIXTURE.message);
+    renderModal({ existing: BANNER_FIXTURE });
+    expect(idInput()).toHaveValue(BANNER_FIXTURE.id);
+    expect(messageInput()).toHaveValue(BANNER_FIXTURE.message);
   });
 
   it('pre-populates enabled checkbox', () => {
-    const wrapper = makeWrapper({ existing: { ...BANNER_FIXTURE, enabled: false } });
-    expect(wrapper.find('#banner-enabled').prop('checked')).toBe(false);
+    renderModal({ existing: { ...BANNER_FIXTURE, enabled: false } });
+    expect(enabledCheckbox()).not.toBeChecked();
   });
 
   it('schedule section auto-expands when existing banner has timestamps', () => {
     const withSchedule: IBannerRecord = { ...BANNER_FIXTURE, startTimestamp: Date.now() + 60000 };
-    const wrapper = makeWrapper({ existing: withSchedule });
-    expect(wrapper.find('#banner-start').exists()).toBe(true);
+    renderModal({ existing: withSchedule });
+    expect(screen.getByLabelText('Activate at')).toBeInTheDocument();
   });
 
   it('submit button label is "Save" in edit mode', () => {
-    const wrapper = makeWrapper({ existing: BANNER_FIXTURE });
-    expect(wrapper.find('button[type="submit"]').text()).toBe('Save');
+    renderModal({ existing: BANNER_FIXTURE });
+    expect(submitButton()).toHaveTextContent(/^Save$/);
+    expect(submitButton()).toHaveAttribute('type', 'submit');
   });
 
   it('preserves existing createdAt when saving', async () => {
+    const user = setupUser();
     const saved = { ...BANNER_FIXTURE };
     vi.spyOn(GlobalBannerService, 'saveBanner').mockReturnValue(Promise.resolve(saved));
+    const onSaved = vi.fn();
 
-    const wrapper = makeWrapper({ existing: BANNER_FIXTURE });
-    await wrapper.find('form').prop('onSubmit')({ preventDefault: () => {} } as any);
+    renderModal({ existing: BANNER_FIXTURE, onSaved });
+    await user.click(submitButton('Save'));
 
+    await waitFor(() => expect(onSaved).toHaveBeenCalled());
     const callArg: IBannerRecord = (GlobalBannerService.saveBanner as Mock).mock.lastCall[0];
     expect(callArg.createdAt).toBe(BANNER_FIXTURE.createdAt);
   });
@@ -236,20 +260,18 @@ describe('<CreateEditBannerModal /> — edit mode', () => {
 
 describe('<CreateEditBannerModal /> colour controls', () => {
   it('text-colour Select defaults to DEFAULT_COLOR', () => {
-    const wrapper = makeWrapper();
-    const selects = wrapper.find('Select');
-    expect(selects.at(0).prop('value')).toBe('var(--color-text-on-dark)');
+    renderModal();
+    expect(colorSelectValue('Text colour').style.backgroundColor).toBe('var(--color-text-on-dark)');
   });
 
   it('background-colour Select defaults to DEFAULT_BG', () => {
-    const wrapper = makeWrapper();
-    const selects = wrapper.find('Select');
-    expect(selects.at(1).prop('value')).toBe('var(--color-alert)');
+    renderModal();
+    expect(colorSelectValue('Background colour').style.backgroundColor).toBe('var(--color-alert)');
   });
 
   it('textarea is styled with the selected colour values', () => {
-    const wrapper = makeWrapper({ existing: BANNER_FIXTURE });
-    const style = wrapper.find('#banner-message').prop('style') as React.CSSProperties;
+    renderModal({ existing: BANNER_FIXTURE });
+    const style = messageInput().style;
     expect(style.color).toBe(BANNER_FIXTURE.color);
     expect(style.backgroundColor).toBe(BANNER_FIXTURE.backgroundColor);
   });

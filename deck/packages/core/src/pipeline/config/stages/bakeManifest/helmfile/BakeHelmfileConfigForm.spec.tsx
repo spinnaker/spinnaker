@@ -1,7 +1,6 @@
-import { mount } from 'enzyme';
+import { render, screen } from '@testing-library/react';
 import React from 'react';
 
-import { StageConfigField } from '../../../..';
 import { BakeHelmfileConfigForm } from './BakeHelmfileConfigForm';
 import { AccountService } from '../../../../../account';
 import { ApplicationModelBuilder } from '../../../../../application';
@@ -44,7 +43,7 @@ describe('<BakeHelmfileConfigForm />', () => {
 
     const props = getProps();
 
-    const component = mount(
+    render(
       <SpinFormik
         initialValues={stage}
         onSubmit={() => null}
@@ -53,10 +52,7 @@ describe('<BakeHelmfileConfigForm />', () => {
       />,
     );
 
-    await new Promise((resolve) => setTimeout(resolve)); // wait one js tick for promise to resolve
-    component.setProps({}); // force a re-render
-
-    expect(component.find(StageConfigField).findWhere((x) => x.text() === helmfileFilePathFieldName).length).toBe(1);
+    expect(await screen.findByText(helmfileFilePathFieldName)).toBeVisible();
   });
 
   it('does not render the helmfile file path element when the template artifact is from an account that does not handle git/repo artifacts', async () => {
@@ -66,7 +62,7 @@ describe('<BakeHelmfileConfigForm />', () => {
 
     const props = getProps();
 
-    const component = mount(
+    render(
       <SpinFormik
         initialValues={stage}
         onSubmit={() => null}
@@ -75,10 +71,8 @@ describe('<BakeHelmfileConfigForm />', () => {
       />,
     );
 
-    await new Promise((resolve) => setTimeout(resolve)); // wait one js tick for promise to resolve
-    component.setProps({}); // force a re-render
-
-    expect(component.find(StageConfigField).findWhere((x) => x.text() === helmfileFilePathFieldName).length).toBe(0);
+    await screen.findByText('Template Artifact');
+    expect(screen.queryByText(helmfileFilePathFieldName)).not.toBeInTheDocument();
   });
 
   it('render the helmfile file path if the id of the git artifact is given but the account value does not exist', async () => {
@@ -109,7 +103,7 @@ describe('<BakeHelmfileConfigForm />', () => {
 
     const props = getProps();
 
-    const component = mount(
+    render(
       <SpinFormik
         initialValues={stage}
         onSubmit={() => null}
@@ -118,10 +112,7 @@ describe('<BakeHelmfileConfigForm />', () => {
       />,
     );
 
-    await new Promise((resolve) => setTimeout(resolve)); // wait one js tick for promise to resolve
-    component.setProps({}); // force a re-render
-
-    expect(component.find('.Select-value-label > span').text().includes(expectedArtifactDisplayName)).toBe(true);
-    expect(component.find(StageConfigField).findWhere((x) => x.text() === helmfileFilePathFieldName).length).toBe(1);
+    expect(await screen.findByText(expectedArtifactDisplayName)).toBeVisible();
+    expect(screen.getByText(helmfileFilePathFieldName)).toBeVisible();
   });
 });

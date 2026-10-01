@@ -1,12 +1,12 @@
+import { fireEvent, render, within } from '@testing-library/react';
 import React from 'react';
-import { shallow } from 'enzyme';
 
 import { GceHttpLoadBalancerListenerEditor } from './GceHttpLoadBalancerListenerEditor';
 
 describe('GceHttpLoadBalancerListenerEditor', () => {
   it('edits listener addresses and certificates without submitting the parent form', () => {
     const onChange = vi.fn();
-    const wrapper = shallow(
+    const { getByTestId, getAllByRole } = render(
       <GceHttpLoadBalancerListenerEditor
         addresses={[{ name: 'removed-address', selfLink: 'https://compute/addresses/removed-address' }]}
         certificates={[{ name: 'removed-cert', selfLink: 'https://compute/certificates/removed-cert' }]}
@@ -24,22 +24,18 @@ describe('GceHttpLoadBalancerListenerEditor', () => {
       />,
     );
 
-    expect(wrapper.find('[data-testid="listener-address"] option').map((option) => option.prop('value'))).toContain(
-      'removed-address',
-    );
-    expect(wrapper.find('[data-testid="listener-certificate"] option').map((option) => option.prop('value'))).toContain(
-      'removed-cert',
-    );
-    expect(wrapper.find('button').everyWhere((button) => button.prop('type') === 'button')).toBe(true);
+    expect(optionValues(getByTestId('listener-address'))).toContain('removed-address');
+    expect(optionValues(getByTestId('listener-certificate'))).toContain('removed-cert');
+    expect(getAllByRole('button').every((button) => button.getAttribute('type') === 'button')).toBe(true);
 
-    wrapper.find('[data-testid="listener-address"]').simulate('change', { target: { value: '' } });
+    fireEvent.change(getByTestId('listener-address'), { target: { value: '' } });
     expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({ address: undefined, certificate: expect.any(Object), name: 'frontend' }),
     );
   });
 
   it('supports HTTPS certificates for INTERNAL_MANAGED listeners', () => {
-    const wrapper = shallow(
+    const { getByTestId } = render(
       <GceHttpLoadBalancerListenerEditor
         addresses={[]}
         certificates={[{ name: 'regional-cert' }]}
@@ -57,38 +53,43 @@ describe('GceHttpLoadBalancerListenerEditor', () => {
       />,
     );
 
-    expect(wrapper.find('[data-testid="listener-protocol"] option').map((option) => option.prop('value'))).toEqual([
-      'HTTP',
-      'HTTPS',
-    ]);
-    expect(wrapper.find('[data-testid="listener-certificate"]').prop('value')).toBe('regional-cert');
+    expect(optionValues(getByTestId('listener-protocol'))).toEqual(['HTTP', 'HTTPS']);
+    expect(getByTestId('listener-certificate')).toHaveValue('regional-cert');
   });
 
   (['HTTP', 'INTERNAL_MANAGED'] as const).forEach((loadBalancerType) => {
     it(`sets and locks port 443 for ${loadBalancerType} HTTPS listeners`, () => {
       const onChange = vi.fn();
-      const wrapper = shallow(
-        <GceHttpLoadBalancerListenerEditor
-          addresses={[]}
-          certificates={[{ name: 'cert-a' }]}
-          listener={{ name: 'frontend', portRange: '80', protocol: 'HTTP' }}
-          loadBalancerType={loadBalancerType}
-          onChange={onChange}
-          onRemove={vi.fn()}
-          subnets={[]}
-        />,
-      );
+      const props = {
+        addresses: [],
+        certificates: [{ name: 'cert-a' }],
+        listener: { name: 'frontend', portRange: '80', protocol: 'HTTP' as const },
+        loadBalancerType,
+        onChange,
+        onRemove: vi.fn(),
+        subnets: [],
+      };
+      const { getByTestId, rerender } = render(<GceHttpLoadBalancerListenerEditor {...props} />);
 
-      wrapper.find('[data-testid="listener-protocol"]').simulate('change', { target: { value: 'HTTPS' } });
+      fireEvent.change(getByTestId('listener-protocol'), { target: { value: 'HTTPS' } });
 
       expect(onChange).toHaveBeenCalledWith(
         expect.objectContaining({ name: 'frontend', portRange: '443', protocol: 'HTTPS' }),
       );
 
-      wrapper.setProps({
-        listener: { certificate: { name: 'cert-a' }, name: 'frontend', portRange: '443', protocol: 'HTTPS' },
-      });
-      expect(wrapper.find('[data-testid="listener-port"]').prop('disabled')).toBe(true);
+      rerender(
+        <GceHttpLoadBalancerListenerEditor
+          {...props}
+          listener={{ certificate: { name: 'cert-a' }, name: 'frontend', portRange: '443', protocol: 'HTTPS' }}
+        />,
+      );
+      expect(getByTestId('listener-port')).toBeDisabled();
     });
   });
 });
+
+function optionValues(select: HTMLElement): string[] {
+  return within(select)
+    .getAllByRole('option')
+    .map((option) => (option as HTMLOptionElement).value);
+}

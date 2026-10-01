@@ -1,5 +1,5 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 
 import { ReactModal } from '@spinnaker/core';
 
@@ -52,31 +52,30 @@ describe('GceLoadBalancerChoiceModal', () => {
   });
 
   it('renders native modal sections and controls', () => {
-    const wrapper = shallow(<GceLoadBalancerChoiceModal application={application} />);
+    const { container } = render(<GceLoadBalancerChoiceModal application={application} />);
 
-    expect(wrapper.find('.modal-header')).toHaveSize(1);
-    expect(wrapper.find('.modal-body')).toHaveSize(1);
-    expect(wrapper.find('.modal-footer')).toHaveSize(1);
-    expect(wrapper.find('button.btn.btn-primary').text()).toContain('Configure Load Balancer');
+    expect(container.querySelectorAll('.modal-header')).toHaveLength(1);
+    expect(container.querySelectorAll('.modal-body')).toHaveLength(1);
+    expect(container.querySelectorAll('.modal-footer')).toHaveLength(1);
+    expect(screen.getByRole('button', { name: /Configure Load Balancer/ })).toBeInTheDocument();
   });
 
   it('renders each type card as a native pressed-state button', () => {
-    const wrapper = shallow(<GceLoadBalancerChoiceModal application={application} />);
-    const choices = wrapper.find('button.card');
+    const { container } = render(<GceLoadBalancerChoiceModal application={application} />);
+    const choices = Array.from(container.querySelectorAll<HTMLButtonElement>('button.card'));
 
-    expect(choices).toHaveSize(GCE_LOAD_BALANCER_CHOICES.length);
+    expect(choices).toHaveLength(GCE_LOAD_BALANCER_CHOICES.length);
     choices.forEach((choice, index) => {
-      expect(choice.prop('type'), GCE_LOAD_BALANCER_CHOICES[index].type).toBe('button');
-      expect(choice.prop('aria-pressed'), GCE_LOAD_BALANCER_CHOICES[index].type).toBe(index === 0);
-      expect(choice.prop('disabled'), GCE_LOAD_BALANCER_CHOICES[index].type).toBe(false);
+      expect(choice.type, GCE_LOAD_BALANCER_CHOICES[index].type).toBe('button');
+      expect(choice, GCE_LOAD_BALANCER_CHOICES[index].type).toHaveAttribute('aria-pressed', String(index === 0));
+      expect(choice, GCE_LOAD_BALANCER_CHOICES[index].type).not.toBeDisabled();
     });
 
-    choices.at(2).simulate('click');
-    wrapper.update();
+    fireEvent.click(choices[2]);
 
-    expect(wrapper.find('button.card').at(0).prop('aria-pressed')).toBe(false);
-    expect(wrapper.find('button.card').at(2).prop('aria-pressed')).toBe(true);
-    expect(wrapper.find('button.card').at(2).hasClass('active')).toBe(true);
+    expect(choices[0]).toHaveAttribute('aria-pressed', 'false');
+    expect(choices[2]).toHaveAttribute('aria-pressed', 'true');
+    expect(choices[2]).toHaveClass('active');
   });
 
   it('opens every exposed type in create and pipeline modes', () => {
@@ -86,10 +85,9 @@ describe('GceLoadBalancerChoiceModal', () => {
 
     ([false, true] as const).forEach((forPipelineConfig) => {
       GCE_LOAD_BALANCER_CHOICES.forEach((choice) => {
-        const modal = new GceLoadBalancerChoiceModal({ application, forPipelineConfig } as any);
-        modal.state = { ...modal.state, selectedChoice: choice };
-
-        (modal as any).choose();
+        render(<GceLoadBalancerChoiceModal application={application} forPipelineConfig={forPipelineConfig} />);
+        fireEvent.click(choiceButton(choice.label));
+        fireEvent.click(screen.getByRole('button', { name: /Configure Load Balancer/ }));
 
         expect(
           getGceLoadBalancerModal(choice.type).show,
@@ -103,6 +101,7 @@ describe('GceLoadBalancerChoiceModal', () => {
             mode: forPipelineConfig ? 'pipeline' : 'create',
           }),
         );
+        cleanup();
       });
     });
   });
@@ -111,10 +110,10 @@ describe('GceLoadBalancerChoiceModal', () => {
     const closeModal = vi.fn();
     const result = Promise.resolve({ loadBalancerType: 'SSL' });
     const show = vi.spyOn(GceProxyLoadBalancerModal, 'show').mockReturnValue(result as any);
-    const modal = new GceLoadBalancerChoiceModal({ application, closeModal } as any);
+    render(<GceLoadBalancerChoiceModal application={application} closeModal={closeModal} />);
 
-    modal.state = { ...modal.state, selectedChoice: GCE_LOAD_BALANCER_CHOICES[3] };
-    (modal as any).choose();
+    fireEvent.click(choiceButton('SSL'));
+    fireEvent.click(screen.getByRole('button', { name: /Configure Load Balancer/ }));
 
     expect(show).toHaveBeenCalledExactlyOnceWith(
       expect.objectContaining({
@@ -135,10 +134,10 @@ describe('GceLoadBalancerChoiceModal', () => {
     const command = { loadBalancerType: 'INTERNAL_MANAGED', type: 'upsertLoadBalancer' };
     const result = Promise.resolve(command);
     const show = vi.spyOn(GceHttpLoadBalancerModal, 'show').mockReturnValue(result);
-    const modal = new GceLoadBalancerChoiceModal({ application, closeModal, forPipelineConfig: true } as any);
+    render(<GceLoadBalancerChoiceModal application={application} closeModal={closeModal} forPipelineConfig={true} />);
 
-    modal.state = { ...modal.state, selectedChoice: GCE_LOAD_BALANCER_CHOICES[5] };
-    (modal as any).choose();
+    fireEvent.click(choiceButton('Internal HTTP(S)'));
+    fireEvent.click(screen.getByRole('button', { name: /Configure Load Balancer/ }));
 
     expect(show).toHaveBeenCalledExactlyOnceWith(
       expect.objectContaining({
@@ -246,7 +245,7 @@ describe('GceLoadBalancerChoiceModal', () => {
 
   ([undefined, 'http', 'UNKNOWN'] as const).forEach((persistedType) => {
     it(`renders a non-submittable blocked pipeline-edit state for ${String(persistedType)}`, () => {
-      const wrapper = shallow(
+      const { container } = render(
         <GceLoadBalancerChoiceModal
           application={application}
           forPipelineConfig={true}
@@ -255,14 +254,15 @@ describe('GceLoadBalancerChoiceModal', () => {
         />,
       );
 
-      expect(wrapper.find('[role="alert"]').text()).toContain('cannot be edited');
-      expect(wrapper.find('[role="alert"]').text()).toContain(persistedType || 'missing');
-      expect(wrapper.find('button.card')).toHaveSize(GCE_LOAD_BALANCER_CHOICES.length);
-      wrapper.find('button.card').forEach((choice) => {
-        expect(choice.prop('disabled')).toBe(true);
-        expect(choice.prop('aria-pressed')).toBe(false);
+      expect(screen.getByRole('alert')).toHaveTextContent('cannot be edited');
+      expect(screen.getByRole('alert')).toHaveTextContent(persistedType || 'missing');
+      const choices = Array.from(container.querySelectorAll<HTMLButtonElement>('button.card'));
+      expect(choices).toHaveLength(GCE_LOAD_BALANCER_CHOICES.length);
+      choices.forEach((choice) => {
+        expect(choice).toBeDisabled();
+        expect(choice).toHaveAttribute('aria-pressed', 'false');
       });
-      expect(wrapper.find('button.btn.btn-primary').prop('disabled')).toBe(true);
+      expect(screen.getByRole('button', { name: /Configure Load Balancer/ })).toBeDisabled();
     });
   });
 
@@ -270,17 +270,27 @@ describe('GceLoadBalancerChoiceModal', () => {
     const networkShow = vi.spyOn(GceNetworkLoadBalancerModal, 'show').mockReturnValue(undefined);
     const proxyShow = vi.spyOn(GceProxyLoadBalancerModal, 'show').mockReturnValue(undefined);
     const httpShow = vi.spyOn(GceHttpLoadBalancerModal, 'show').mockReturnValue(undefined);
-    const modal = new GceLoadBalancerChoiceModal({
-      application,
-      forPipelineConfig: true,
-      isNew: false,
-      loadBalancer: { name: 'fnord', loadBalancerType: 'http' },
-    } as any);
+    render(
+      <GceLoadBalancerChoiceModal
+        application={application}
+        forPipelineConfig={true}
+        isNew={false}
+        loadBalancer={{ name: 'fnord', loadBalancerType: 'http' }}
+      />,
+    );
 
-    (modal as any).choose();
+    fireEvent.click(screen.getByRole('button', { name: /Configure Load Balancer/ }));
 
     expect(networkShow).not.toHaveBeenCalled();
     expect(proxyShow).not.toHaveBeenCalled();
     expect(httpShow).not.toHaveBeenCalled();
   });
 });
+
+function choiceButton(label: string): HTMLButtonElement {
+  const button = screen.getByText(label, { selector: '.load-balancer-label' }).closest('button');
+  if (!(button instanceof HTMLButtonElement)) {
+    throw new Error(`No choice button found for ${label}`);
+  }
+  return button;
+}

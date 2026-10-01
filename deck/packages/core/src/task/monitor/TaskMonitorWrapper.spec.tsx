@@ -1,4 +1,4 @@
-import { mount } from 'enzyme';
+import { render } from '@testing-library/react';
 import React from 'react';
 
 import { TaskMonitor } from './TaskMonitor';
@@ -9,9 +9,9 @@ describe('TaskMonitorWrapper', () => {
   it('keeps an idle monitor available when its wrapper unmounts during a parent rerender', () => {
     const monitor = new TaskMonitor({ title: 'idle task monitor' });
     const onModalClose = vi.spyOn(monitor, 'onModalClose');
-    const wrapper = mount(<TaskMonitorWrapper monitor={monitor} />);
+    const { unmount } = render(<TaskMonitorWrapper monitor={monitor} />);
 
-    wrapper.unmount();
+    unmount();
 
     expect(onModalClose).not.toHaveBeenCalled();
   });
@@ -26,9 +26,9 @@ describe('TaskMonitorWrapper', () => {
       const onDismiss = vi.fn();
       const monitor = new TaskMonitor({ title: 'owned task monitor', onDismiss });
       monitor.task = task;
-      const wrapper = mount(<TaskMonitorWrapper monitor={monitor} />);
+      const { unmount } = render(<TaskMonitorWrapper monitor={monitor} />);
 
-      wrapper.unmount();
+      unmount();
       vi.advanceTimersByTime(25);
 
       expect(task.poller).toBeUndefined();

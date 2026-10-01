@@ -1,83 +1,65 @@
-import { mount } from 'enzyme';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import { SelectInput } from './SelectInput';
 
 const noop = () => {};
+const options = ['a', 'b', 'c', 'd'];
 
 describe('<SelectInput />', () => {
   it('renders a select with options', () => {
-    const value = 'b';
-    const options = ['a', 'b', 'c', 'd'];
-    const wrapper = mount(<SelectInput value={value} options={options} onChange={noop} />);
-    expect(wrapper.find('.SelectInput').length).toBe(1);
-    expect(wrapper.find('select').length).toBe(1);
-    expect(wrapper.find('option').length).toBe(4);
+    render(<SelectInput value="b" options={options} onChange={noop} />);
+
+    expect(screen.getByRole('combobox')).toBeInTheDocument();
+    expect(screen.getAllByRole('option')).toHaveLength(4);
   });
 
   it('updates the selected item using the value prop', () => {
-    const value = 'b';
-    const options = ['a', 'b', 'c', 'd'];
-    const wrapper = mount(<SelectInput value={value} options={options} onChange={noop} />);
-    expect(wrapper.find('select').getDOMNode<HTMLSelectElement>().value).toBe('b');
-    wrapper.setProps({ value: 'c' });
-    expect(wrapper.find('select').getDOMNode<HTMLSelectElement>().value).toBe('c');
+    const { rerender } = render(<SelectInput value="b" options={options} onChange={noop} />);
+    expect(screen.getByRole('combobox')).toHaveValue('b');
+
+    rerender(<SelectInput value="c" options={options} onChange={noop} />);
+
+    expect(screen.getByRole('combobox')).toHaveValue('c');
   });
 
   it('preserves the native select and focus when props change', () => {
-    const host = document.createElement('div');
-    document.body.appendChild(host);
-    const wrapper = mount(<SelectInput value="a" options={['a', 'b']} onChange={noop} />, { attachTo: host });
+    const { rerender } = render(<SelectInput value="a" options={['a', 'b']} onChange={noop} />);
+    const select = screen.getByRole('combobox');
+    select.focus();
 
-    try {
-      const select = wrapper.find('select').getDOMNode<HTMLSelectElement>();
-      select.focus();
+    rerender(<SelectInput value="b" options={['a', 'b', 'c']} onChange={noop} />);
 
-      wrapper.setProps({ value: 'b', options: ['a', 'b', 'c'] });
-
-      expect(wrapper.find('select').getDOMNode<HTMLSelectElement>()).toBe(select);
-      expect(document.activeElement).toBe(select);
-    } finally {
-      wrapper.unmount();
-      host.remove();
-    }
+    expect(screen.getByRole('combobox')).toBe(select);
+    expect(select).toHaveFocus();
   });
 
-  it('wires the onChange handler to the selected item', () => {
-    const value = 'b';
-    const options = ['a', 'b', 'c', 'd'];
-    const spy = vi.fn();
-    const component = mount(<SelectInput value={value} options={options} onChange={spy} />);
-    component.find('select').simulate('change', { target: { value: 'c' } });
-    expect(spy).toHaveBeenCalledTimes(1);
-    expect(spy.mock.lastCall[0].target.value).toBe('c');
+  it('wires the onChange handler to the selected item', async () => {
+    const values: string[] = [];
+    const onChange = vi.fn((event) => values.push(event.target.value));
+    render(<SelectInput value="b" options={options} onChange={onChange} />);
+
+    await userEvent.selectOptions(screen.getByRole('combobox'), 'c');
+
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(values).toEqual(['c']);
   });
 
   describe('defaultValue prop', () => {
-    it('causes the onChange handler to be called with a default value when no value is set', () => {
-      const value = undefined as string;
-      const options = ['a', 'b', 'c', 'd'];
-      const spy = vi.fn();
-      mount(<SelectInput value={value} defaultValue={options[0]} options={options} onChange={spy} />);
-      expect(spy).toHaveBeenCalledTimes(1);
-      expect(spy.mock.lastCall[0].target.value).toBe('a');
-    });
+    it.each([undefined, 'x'])('uses the default value when the current value is %s', (value) => {
+      const onChange = vi.fn();
+      render(<SelectInput value={value} defaultValue="a" options={options} onChange={onChange} />);
 
-    it('causes the onChange handler to be called with a default value when an invalid value is set', () => {
-      const value = 'x';
-      const options = ['a', 'b', 'c', 'd'];
-      const spy = vi.fn();
-      mount(<SelectInput value={value} defaultValue={options[0]} options={options} onChange={spy} />);
-      expect(spy).toHaveBeenCalledTimes(1);
-      expect(spy.mock.lastCall[0].target.value).toBe('a');
+      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(onChange.mock.lastCall[0].target.value).toBe('a');
     });
 
     it('does not call the onChange handler if no defaultValue is provided', () => {
-      const value = 'x';
-      const options = ['a', 'b', 'c', 'd'];
-      const spy = vi.fn();
-      mount(<SelectInput value={value} options={options} onChange={spy} />);
-      expect(spy).not.toHaveBeenCalled();
+      const onChange = vi.fn();
+      render(<SelectInput value="x" options={options} onChange={onChange} />);
+
+      expect(onChange).not.toHaveBeenCalled();
     });
   });
 });

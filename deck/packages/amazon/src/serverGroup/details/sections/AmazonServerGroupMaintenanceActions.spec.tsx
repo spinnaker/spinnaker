@@ -1,8 +1,10 @@
-import { shallow } from 'enzyme';
+import { fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { hashLocationPlugin, servicesPlugin, UIRouterContext, UIRouterReact, UIViewContext } from '@uirouter/react';
 import React from 'react';
 
 import type { Application, ISecurityGroup } from '@spinnaker/core';
-import { FirewallLabels } from '@spinnaker/core';
+import { CollapsibleSectionStateCache, DeckRuntimeContext, FirewallLabels } from '@spinnaker/core';
 
 import type { IAmazonServerGroupView } from '../../../domain';
 import { AWSProviderSettings } from '../../../aws.settings';
@@ -16,6 +18,7 @@ import { ScheduledActionsDetailsSection } from './ScheduledActionsDetailsSection
 import { SecurityGroupsDetailsSection } from './SecurityGroupsDetailsSection';
 
 describe('Amazon server group maintenance action integration', () => {
+  let router: UIRouterReact;
   const originalAdHocInfraWritesEnabled = AWSProviderSettings.adHocInfraWritesEnabled;
   const runtimeServices = {} as any;
   const editSecurityGroupsLabel = `Edit ${FirewallLabels.get('Firewalls')}`;
@@ -50,58 +53,75 @@ describe('Amazon server group maintenance action integration', () => {
     vpcId: 'vpc-123',
   } as IAmazonServerGroupView;
 
-  const editLink = (wrapper: ReturnType<typeof shallow>, label: string) =>
-    wrapper.find('a.clickable').filterWhere((link) => link.text() === label);
-
-  const withRuntimeServices = <T extends React.Component>(wrapper: ReturnType<typeof shallow>) => {
-    (wrapper.instance() as T).context = { services: runtimeServices };
-    return wrapper;
-  };
+  const renderSection = (section: React.ReactElement) =>
+    render(
+      <UIRouterContext.Provider value={router}>
+        <UIViewContext.Provider
+          value={{
+            fqn: 'application.serverGroup',
+            context: router.stateRegistry.get('application.serverGroup') as any,
+          }}
+        >
+          <DeckRuntimeContext.Provider value={{ services: runtimeServices } as any}>
+            {section}
+          </DeckRuntimeContext.Provider>
+        </UIViewContext.Provider>
+      </UIRouterContext.Provider>,
+    );
+  const expand = (heading: string) => fireEvent.click(screen.getByText(heading));
 
   beforeEach(() => {
+    vi.spyOn(CollapsibleSectionStateCache, 'isSet').mockReturnValue(false);
     AWSProviderSettings.adHocInfraWritesEnabled = true;
+    router = new UIRouterReact();
+    router.plugin(servicesPlugin);
+    router.plugin(hashLocationPlugin);
+    ['application', 'application.serverGroup', 'application.firewallDetails'].forEach((name) =>
+      router.stateRegistry.register({ name, url: `/${name.split('.').pop()}` }),
+    );
   });
 
   afterEach(() => {
+    router.dispose();
     AWSProviderSettings.adHocInfraWritesEnabled = originalAdHocInfraWritesEnabled;
   });
 
-  it('opens Advanced Settings with the exact application and enriched server group', () => {
+  it('opens Advanced Settings with the exact application and enriched server group', async () => {
     const show = vi.spyOn(EditAsgAdvancedSettingsModal, 'show').mockReturnValue(undefined);
-    const wrapper = withRuntimeServices(
-      shallow(<AdvancedSettingsDetailsSection app={application} serverGroup={serverGroup} />),
-    );
+    renderSection(<AdvancedSettingsDetailsSection app={application} serverGroup={serverGroup} />);
 
-    editLink(wrapper, 'Edit Advanced Settings').simulate('click');
+    expand('Advanced Settings');
+    await userEvent.click(screen.getByText('Edit Advanced Settings'));
 
     expect(show).toHaveBeenCalledExactlyOnceWith({ application, serverGroup }, runtimeServices);
   });
 
-  it('opens Scaling Processes with the exact application and enriched server group', () => {
+  it('opens Scaling Processes with the exact application and enriched server group', async () => {
     const show = vi.spyOn(ModifyScalingProcessesModal, 'show').mockReturnValue(undefined);
-    const wrapper = shallow(<ScalingProcessesDetailsSection app={application} serverGroup={serverGroup} />);
+    renderSection(<ScalingProcessesDetailsSection app={application} serverGroup={serverGroup} />);
 
-    editLink(wrapper, 'Edit Scaling Processes').simulate('click');
+    expand('Scaling Processes');
+    await userEvent.click(screen.getByText('Edit Scaling Processes'));
 
     expect(show).toHaveBeenCalledExactlyOnceWith({ application, serverGroup });
   });
 
-  it('opens Scheduled Actions with the exact application and enriched server group', () => {
+  it('opens Scheduled Actions with the exact application and enriched server group', async () => {
     const show = vi.spyOn(EditScheduledActionsModal, 'show').mockReturnValue(undefined);
-    const wrapper = shallow(<ScheduledActionsDetailsSection app={application} serverGroup={serverGroup} />);
+    renderSection(<ScheduledActionsDetailsSection app={application} serverGroup={serverGroup} />);
 
-    editLink(wrapper, 'Edit Scheduled Actions').simulate('click');
+    expand('Scheduled Actions');
+    await userEvent.click(screen.getByText('Edit Scheduled Actions'));
 
     expect(show).toHaveBeenCalledExactlyOnceWith({ application, serverGroup });
   });
 
-  it('opens Security Groups with resolved groups and exact application and enriched server group', () => {
+  it('opens Security Groups with resolved groups and exact application and enriched server group', async () => {
     const show = vi.spyOn(EditSecurityGroupsModal, 'show').mockReturnValue(undefined);
-    const wrapper = withRuntimeServices(
-      shallow(<SecurityGroupsDetailsSection app={application} serverGroup={serverGroup} />),
-    );
+    renderSection(<SecurityGroupsDetailsSection app={application} serverGroup={serverGroup} />);
 
-    editLink(wrapper, editSecurityGroupsLabel).simulate('click');
+    expand(FirewallLabels.get('Firewalls'));
+    await userEvent.click(screen.getByText(editSecurityGroupsLabel));
 
     expect(show).toHaveBeenCalledExactlyOnceWith(
       { application, securityGroups: [resolvedSecurityGroup], serverGroup },
@@ -112,37 +132,28 @@ describe('Amazon server group maintenance action integration', () => {
   it('hides all maintenance links when ad-hoc infrastructure writes are disabled', () => {
     AWSProviderSettings.adHocInfraWritesEnabled = false;
 
-    expect(
-      editLink(
-        shallow(<AdvancedSettingsDetailsSection app={application} serverGroup={serverGroup} />),
-        'Edit Advanced Settings',
-      ).length,
-    ).toBe(0);
-    expect(
-      editLink(
-        shallow(<ScalingProcessesDetailsSection app={application} serverGroup={serverGroup} />),
-        'Edit Scaling Processes',
-      ).length,
-    ).toBe(0);
-    expect(
-      editLink(
-        shallow(<ScheduledActionsDetailsSection app={application} serverGroup={serverGroup} />),
-        'Edit Scheduled Actions',
-      ).length,
-    ).toBe(0);
-    expect(
-      editLink(
-        shallow(<SecurityGroupsDetailsSection app={application} serverGroup={serverGroup} />),
-        editSecurityGroupsLabel,
-      ).length,
-    ).toBe(0);
+    renderSection(
+      <>
+        <AdvancedSettingsDetailsSection app={application} serverGroup={serverGroup} />
+        <ScalingProcessesDetailsSection app={application} serverGroup={serverGroup} />
+        <ScheduledActionsDetailsSection app={application} serverGroup={serverGroup} />
+        <SecurityGroupsDetailsSection app={application} serverGroup={serverGroup} />
+      </>,
+    );
+
+    ['Advanced Settings', 'Scaling Processes', 'Scheduled Actions', FirewallLabels.get('Firewalls')].forEach(expand);
+    expect(screen.queryByText('Edit Advanced Settings')).not.toBeInTheDocument();
+    expect(screen.queryByText('Edit Scaling Processes')).not.toBeInTheDocument();
+    expect(screen.queryByText('Edit Scheduled Actions')).not.toBeInTheDocument();
+    expect(screen.queryByText(editSecurityGroupsLabel)).not.toBeInTheDocument();
   });
 
   it('hides Security Groups editing when the server group has no VPC', () => {
-    const wrapper = shallow(
+    renderSection(
       <SecurityGroupsDetailsSection app={application} serverGroup={{ ...serverGroup, vpcId: undefined }} />,
     );
 
-    expect(editLink(wrapper, editSecurityGroupsLabel).length).toBe(0);
+    expand(FirewallLabels.get('Firewalls'));
+    expect(screen.queryByText(editSecurityGroupsLabel)).not.toBeInTheDocument();
   });
 });

@@ -1,11 +1,11 @@
-import { mount } from 'enzyme';
+import { render as rtlRender } from '@testing-library/react';
 import React from 'react';
 
 import { Markdown } from './Markdown';
 
-// Markdown sets its content with dangerouslySetInnerHTML, so assert on the rendered DOM rather than
-// enzyme's React tree.
-const render = (message: string): HTMLElement => mount(<Markdown message={message} />).getDOMNode();
+// Markdown sets its content with dangerouslySetInnerHTML, so assert on the rendered DOM.
+const render = (message: string): HTMLElement =>
+  rtlRender(<Markdown message={message} />).container.firstElementChild as HTMLElement;
 
 describe('<Markdown />', () => {
   it('renders links and emphasis', () => {

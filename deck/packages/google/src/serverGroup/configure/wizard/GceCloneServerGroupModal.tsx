@@ -6,7 +6,9 @@ import type {
   DeckRuntimeServices,
   IModalComponentProps,
   IRouterInjectedProps,
+  IServerGroupCommand,
   IStage,
+  ITask,
   IWizardPageInjectedProps,
 } from '@spinnaker/core';
 import {
@@ -214,6 +216,54 @@ export function transformGceServerGroupCommand(command: IGceServerGroupCommand):
   return transformed;
 }
 
+function submitGceServerGroupCommand(
+  command: IGceServerGroupCommand,
+  options: {
+    application: Application;
+    closeModal: (command: IGceServerGroupCommand) => unknown;
+    forPipelineConfig?: boolean;
+    serverGroupWriter: {
+      cloneServerGroup: (command: IServerGroupCommand, application: Application) => PromiseLike<ITask>;
+    };
+    taskMonitor: TaskMonitor;
+  },
+): unknown {
+  const transformed = transformGceServerGroupCommand(command);
+  const mode = transformed.viewState?.mode;
+  if (options.forPipelineConfig || mode === 'createPipeline' || mode === 'editPipeline') {
+    return options.closeModal(transformed);
+  }
+  return options.taskMonitor.submit(() =>
+    options.serverGroupWriter.cloneServerGroup((transformed as unknown) as IServerGroupCommand, options.application),
+  );
+}
+
+function getCreatedServerGroupNavigation(
+  command: IGceServerGroupCommand,
+  task: ITask,
+  includes: (state: string) => boolean,
+): { params: Record<string, string>; state: string } | undefined {
+  const cloneStage = task?.execution?.stages?.find((stage: IStage) => stage.type === 'cloneServerGroup');
+  const newServerGroupName = cloneStage?.context?.['deploy.server.groups']?.[command.region];
+  if (!newServerGroupName) {
+    return undefined;
+  }
+
+  let state = '^.^.^.clusters.serverGroup';
+  if (includes('**.clusters.serverGroup')) state = '^.serverGroup';
+  if (includes('**.clusters.cluster.serverGroup')) state = '^.^.serverGroup';
+  if (includes('**.clusters')) state = '.serverGroup';
+  return {
+    state,
+    params: {
+      accountId: command.credentials,
+      provider: 'gce',
+      region: command.region,
+      serverGroup: newServerGroupName,
+    },
+  };
+}
+
 export class GceCloneServerGroupModalComponent extends React.Component<
   IGceCloneServerGroupModalProps & IRouterInjectedProps,
   IGceCloneServerGroupModalState
@@ -268,17 +318,35 @@ export class GceCloneServerGroupModalComponent extends React.Component<
     void this.configureCommand();
   }
 
+  public componentDidUpdate(previousProps: IGceCloneServerGroupModalProps & IRouterInjectedProps): void {
+    if (previousProps.command === this.props.command) {
+      return;
+    }
+
+    const command = cloneDeep(this.props.command);
+    this.command = command;
+    this.commandState.command = command;
+    this.commandState.formikValues = command;
+    this.formik?.setValues(command);
+    this.setState({
+      command,
+      initializationError: false,
+      loaded: Boolean(command.backingData?.filtered),
+    });
+    void this.configureCommand(command);
+  }
+
   public componentWillUnmount(): void {
     this.unmounted = true;
     this.configureRequest++;
     this.clearApplicationRefreshSubscription();
   }
 
-  private configureCommand = async (): Promise<void> => {
+  private configureCommand = async (requestedCommand?: IGceServerGroupCommand): Promise<void> => {
     const request = ++this.configureRequest;
     const adapter = this.getAdapter();
     try {
-      let command = this.formik?.values || this.command;
+      let command = requestedCommand || this.formik?.values || this.command;
       if (command.viewState?.requiresTemplateSelection) {
         const baseCommand = await adapter.buildNewServerGroupCommand(this.props.application, {
           mode: 'createPipeline',
@@ -295,10 +363,7 @@ export class GceCloneServerGroupModalComponent extends React.Component<
       }
 
       const latestCommand = this.formik?.values || command;
-      const persistedSelections = snapshotPersistedSelections(latestCommand);
-      const refreshedCommand = mergeRefreshedCommand(latestCommand, configured);
-      initializeCommand(refreshedCommand, persistedSelections);
-      restoreUnavailableSelections(refreshedCommand, persistedSelections);
+      const refreshedCommand = reconcileGceServerGroupCommand(latestCommand, configured);
       this.command = refreshedCommand;
       this.commandState.command = refreshedCommand;
       this.commandState.formikValues = refreshedCommand;
@@ -331,14 +396,13 @@ export class GceCloneServerGroupModalComponent extends React.Component<
   }
 
   private submit = (command: IGceServerGroupCommand = this.formik?.values || this.command): any => {
-    const transformed = transformGceServerGroupCommand(command);
-    const mode = transformed.viewState?.mode;
-    if (this.props.forPipelineConfig || mode === 'createPipeline' || mode === 'editPipeline') {
-      return this.props.closeModal(transformed);
-    }
-    return this.state.taskMonitor.submit(() =>
-      this.context.services.serverGroupWriter.cloneServerGroup(transformed as any, this.props.application),
-    );
+    return submitGceServerGroupCommand(command, {
+      application: this.props.application,
+      closeModal: this.props.closeModal,
+      forPipelineConfig: this.props.forPipelineConfig,
+      serverGroupWriter: this.context.services.serverGroupWriter,
+      taskMonitor: this.state.taskMonitor,
+    });
   };
 
   private onTaskComplete = (): void => {
@@ -353,31 +417,15 @@ export class GceCloneServerGroupModalComponent extends React.Component<
       return;
     }
 
-    const command = this.formik?.values || this.command;
-    const cloneStage = this.state.taskMonitor.task?.execution?.stages?.find(
-      (stage: IStage) => stage.type === 'cloneServerGroup',
+    const navigation = getCreatedServerGroupNavigation(
+      this.formik?.values || this.command,
+      this.state.taskMonitor.task,
+      (state) => this.props.stateService.includes(state),
     );
-    const newServerGroupName = cloneStage?.context?.['deploy.server.groups']?.[command.region];
-    if (!newServerGroupName) {
+    if (!navigation) {
       return;
     }
-
-    let transitionTo = '^.^.^.clusters.serverGroup';
-    if (this.props.stateService.includes('**.clusters.serverGroup')) {
-      transitionTo = '^.serverGroup';
-    }
-    if (this.props.stateService.includes('**.clusters.cluster.serverGroup')) {
-      transitionTo = '^.^.serverGroup';
-    }
-    if (this.props.stateService.includes('**.clusters')) {
-      transitionTo = '.serverGroup';
-    }
-    this.props.stateService.go(transitionTo, {
-      accountId: command.credentials,
-      provider: 'gce',
-      region: command.region,
-      serverGroup: newServerGroupName,
-    });
+    this.props.stateService.go(navigation.state, navigation.params);
   };
 
   private clearApplicationRefreshSubscription = (): void => {
@@ -772,6 +820,17 @@ function uniqueByName(values: any[]): any[] {
   });
 }
 
+export function reconcileGceServerGroupCommand(
+  persistedCommand: IGceServerGroupCommand,
+  configuredCommand: IGceServerGroupCommand,
+): IGceServerGroupCommand {
+  const persistedSelections = snapshotPersistedSelections(persistedCommand);
+  const refreshedCommand = mergeRefreshedCommand(persistedCommand, configuredCommand);
+  initializeCommand(refreshedCommand, persistedSelections);
+  restoreUnavailableSelections(refreshedCommand, persistedSelections);
+  return refreshedCommand;
+}
+
 function mergeRefreshedCommand(
   current: IGceServerGroupCommand,
   configured: IGceServerGroupCommand,
@@ -796,7 +855,7 @@ function mergeRefreshedCommand(
   };
 }
 
-function initializePipelineCreateCommand(
+export function initializePipelineCreateCommand(
   baseCommand: IGceServerGroupCommand,
   placeholder: IGceServerGroupCommand,
 ): IGceServerGroupCommand {

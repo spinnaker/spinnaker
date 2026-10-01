@@ -1,7 +1,7 @@
+import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
-import { shallow } from 'enzyme';
 
-import { CloudProviderRegistry, ManagedMenuItem } from '@spinnaker/core';
+import { CloudProviderRegistry, ConfirmationModalService } from '@spinnaker/core';
 
 import { GceLoadBalancerChoiceModal } from '../configure/choice/GceLoadBalancerChoiceModal';
 import { GceLoadBalancerActions } from './gceLoadBalancerDetails';
@@ -15,51 +15,67 @@ describe('GceLoadBalancerActions', () => {
     name: 'fnord-main',
     region: 'europe-west1',
   } as any;
+  const managedLoadBalancer = {
+    ...loadBalancer,
+    isManaged: true,
+    managedResourceSummary: { id: 'resource-a', isPaused: false, locations: { account: 'account-a', regions: [] } },
+  };
 
   it('hides write actions when the Google provider is disabled', () => {
     vi.spyOn(CloudProviderRegistry, 'isDisabled').mockReturnValue(true);
 
-    const wrapper = shallow(<GceLoadBalancerActions app={app} loadBalancer={loadBalancer} />);
+    const { container } = render(<GceLoadBalancerActions app={app} loadBalancer={loadBalancer} />);
 
-    expect(wrapper.isEmptyRender()).toBe(true);
+    expect(container).toBeEmptyDOMElement();
   });
 
-  it('opens the current load balancer in edit mode through managed-resource gating', () => {
+  it('opens the current load balancer in edit mode through managed-resource gating', async () => {
     vi.spyOn(CloudProviderRegistry, 'isDisabled').mockReturnValue(false);
     const show = vi.spyOn(GceLoadBalancerChoiceModal, 'show').mockReturnValue(Promise.resolve() as any);
+    const confirm = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(Promise.reject() as any);
 
-    const wrapper = shallow(<GceLoadBalancerActions app={app} loadBalancer={loadBalancer} />);
-    const edit = wrapper.find(ManagedMenuItem).filterWhere((item) => item.prop('children') === 'Edit Load Balancer');
+    const managed = render(<GceLoadBalancerActions app={app} loadBalancer={managedLoadBalancer} />);
+    fireEvent.click(screen.getByText('Edit Load Balancer'));
+    await vi.waitFor(() =>
+      expect(confirm).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ header: 'Pause Management?' })),
+    );
+    expect(show).not.toHaveBeenCalled();
+    managed.unmount();
 
-    expect(edit.prop('application')).toBe(app);
-    expect(edit.prop('resource')).toBe(loadBalancer);
-    edit.prop('onClick')();
-    expect(show).toHaveBeenCalledExactlyOnceWith({
-      app,
-      application: app,
-      forPipelineConfig: false,
-      isNew: false,
-      loadBalancer,
-      mode: 'edit',
-    } as any);
+    render(<GceLoadBalancerActions app={app} loadBalancer={loadBalancer} />);
+
+    fireEvent.click(screen.getByText('Edit Load Balancer'));
+    await vi.waitFor(() =>
+      expect(show).toHaveBeenCalledExactlyOnceWith({
+        app,
+        application: app,
+        forPipelineConfig: false,
+        isNew: false,
+        loadBalancer,
+        mode: 'edit',
+      } as any),
+    );
   });
 
-  it('keeps delete behind managed-resource gating and disables it while instances are attached', () => {
+  it('keeps delete behind managed-resource gating and disables it while instances are attached', async () => {
     vi.spyOn(CloudProviderRegistry, 'isDisabled').mockReturnValue(false);
+    const confirm = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(Promise.reject() as any);
 
-    const editable = shallow(<GceLoadBalancerActions app={app} loadBalancer={loadBalancer} />);
-    const managedDelete = editable
-      .find(ManagedMenuItem)
-      .filterWhere((item) => item.prop('children') === 'Delete Load Balancer');
-    expect(managedDelete.prop('application')).toBe(app);
-    expect(managedDelete.prop('resource')).toBe(loadBalancer);
+    const editable = render(<GceLoadBalancerActions app={app} loadBalancer={managedLoadBalancer} />);
+    fireEvent.click(editable.getByText('Delete Load Balancer'));
+    await vi.waitFor(() =>
+      expect(confirm).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ header: 'Pause Management?' })),
+    );
+    editable.unmount();
+    confirm.mockClear();
 
-    const attached = shallow(
+    render(
       <GceLoadBalancerActions app={app} loadBalancer={{ ...loadBalancer, instances: [{ name: 'instance-a' }] }} />,
     );
-    expect(
-      attached.find(ManagedMenuItem).filterWhere((item) => item.prop('children') === 'Delete Load Balancer'),
-    ).toHaveSize(0);
-    expect(attached.find('li.disabled').text()).toContain('Delete Load Balancer');
+    const attachedDelete = screen.getByText('Delete Load Balancer');
+    expect(attachedDelete.closest('li')).toHaveClass('disabled');
+    fireEvent.click(attachedDelete);
+    await Promise.resolve();
+    expect(confirm).not.toHaveBeenCalled();
   });
 });

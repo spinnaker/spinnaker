@@ -1,5 +1,5 @@
+import { fireEvent, render, within } from '@testing-library/react';
 import React from 'react';
-import { shallow } from 'enzyme';
 
 import {
   GceHttpLoadBalancerBackendServiceEditor,
@@ -9,7 +9,7 @@ import {
 describe('GceHttpLoadBalancerResourceEditors', () => {
   it('edits complete health-check objects without dropping unknown fields', () => {
     const onChange = vi.fn();
-    const wrapper = shallow(
+    const { getByTestId, getAllByRole } = render(
       <GceHttpLoadBalancerHealthCheckEditor
         healthCheck={{
           checkIntervalSec: 10,
@@ -26,17 +26,17 @@ describe('GceHttpLoadBalancerResourceEditors', () => {
       />,
     );
 
-    wrapper.find('[data-testid="health-check-port"]').simulate('change', { target: { value: '8080' } });
+    fireEvent.change(getByTestId('health-check-port'), { target: { value: '8080' } });
 
     expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({ name: 'check-a', port: 8080, requestPath: '/health', unknownField: 'keep' }),
     );
-    expect(wrapper.find('button').everyWhere((button) => button.prop('type') === 'button')).toBe(true);
+    expect(getAllByRole('button').every((button) => button.getAttribute('type') === 'button')).toBe(true);
   });
 
   it('supports HTTP2 request paths and GRPC service names', () => {
     const onChange = vi.fn();
-    const wrapper = shallow(
+    const { getByTestId, queryByTestId, rerender } = render(
       <GceHttpLoadBalancerHealthCheckEditor
         healthCheck={{ healthCheckType: 'GRPC', name: 'grpc-check', port: 443 }}
         healthChecks={[]}
@@ -45,13 +45,27 @@ describe('GceHttpLoadBalancerResourceEditors', () => {
       />,
     );
 
-    expect(
-      wrapper.find('[data-testid="health-check-protocol"] option').map((option) => option.prop('value')),
-    ).toContain('HTTP2');
-    expect(
-      wrapper.find('[data-testid="health-check-protocol"] option').map((option) => option.prop('value')),
-    ).toContain('GRPC');
-    expect(wrapper.find('[data-testid="health-check-grpc-service-name"]').length).toBe(1);
+    expect(optionValues(getByTestId('health-check-protocol'))).toContain('HTTP2');
+    expect(optionValues(getByTestId('health-check-protocol'))).toContain('GRPC');
+    expect(getByTestId('health-check-grpc-service-name')).toBeInTheDocument();
+    expect(queryByTestId('health-check-path')).not.toBeInTheDocument();
+
+    fireEvent.change(getByTestId('health-check-grpc-service-name'), { target: { value: 'new.Service' } });
+    expect(onChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ grpcServiceName: 'new.Service', healthCheckType: 'GRPC' }),
+    );
+
+    rerender(
+      <GceHttpLoadBalancerHealthCheckEditor
+        healthCheck={{ healthCheckType: 'HTTP2', name: 'http2-check', port: 443, requestPath: '/ready' }}
+        healthChecks={[]}
+        onChange={onChange}
+        onRemove={vi.fn()}
+      />,
+    );
+
+    expect(getByTestId('health-check-path')).toHaveValue('/ready');
+    expect(queryByTestId('health-check-grpc-service-name')).not.toBeInTheDocument();
   });
 
   it('selects complete backend-service and health-check references', () => {
@@ -65,7 +79,7 @@ describe('GceHttpLoadBalancerResourceEditors', () => {
         unknownField: 'keep',
       },
     ];
-    const wrapper = shallow(
+    const { getByTestId, getAllByRole } = render(
       <GceHttpLoadBalancerBackendServiceEditor
         backendService={{ name: '' }}
         backendServices={backendServices}
@@ -76,11 +90,17 @@ describe('GceHttpLoadBalancerResourceEditors', () => {
       />,
     );
 
-    wrapper.find('[data-testid="backend-service-reference"]').simulate('change', {
+    fireEvent.change(getByTestId('backend-service-reference'), {
       target: { value: 'backend-a' },
     });
 
     expect(onChange).toHaveBeenCalledWith(backendServices[0]);
-    expect(wrapper.find('button').everyWhere((button) => button.prop('type') === 'button')).toBe(true);
+    expect(getAllByRole('button').every((button) => button.getAttribute('type') === 'button')).toBe(true);
   });
 });
+
+function optionValues(select: HTMLElement): string[] {
+  return within(select)
+    .getAllByRole('option')
+    .map((option) => (option as HTMLOptionElement).value);
+}
