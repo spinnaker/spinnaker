@@ -27,7 +27,9 @@ describe('initializePlugins', () => {
     const gateManifestPromise = new Promise<IPluginMetaData[]>((resolve) => (resolveGateManifest = resolve));
     const pluginLoadsPromise = new Promise<any[]>((resolve) => (resolvePluginLoads = resolve));
     const pluginLoadsStartedPromise = new Promise<void>((resolve) => (resolvePluginLoadsStarted = resolve));
-    spyOn(sharedLibraries, 'exposeSharedLibraries').and.callFake(() => calls.push('expose'));
+    spyOn(sharedLibraries, 'exposeSharedLibraries').and.callFake(async () => {
+      calls.push('expose');
+    });
     pluginRegistry.loadPluginManifestFromDeck.and.callFake(() => {
       calls.push('deck manifest');
       return deckManifestPromise;
@@ -44,6 +46,7 @@ describe('initializePlugins', () => {
 
     let settled = false;
     const initializationPromise = initializePlugins(pluginRegistry).then(() => (settled = true));
+    await Promise.resolve();
 
     expect(calls).toEqual(['expose', 'deck manifest', 'gate manifest']);
     expect(pluginRegistry.loadPlugins).not.toHaveBeenCalled();
@@ -62,11 +65,51 @@ describe('initializePlugins', () => {
     expect(settled).toBeTrue();
   });
 
+  it('waits for shared library exposure before loading manifests and plugins', async () => {
+    let resolveExposure!: () => void;
+    const exposurePromise = new Promise<void>((resolve) => (resolveExposure = resolve));
+    const exposeSpy = spyOn(sharedLibraries, 'exposeSharedLibraries').and.callFake(() => exposurePromise);
+    pluginRegistry.loadPluginManifestFromDeck.and.resolveTo([]);
+    pluginRegistry.loadPluginManifestFromGate.and.resolveTo([]);
+    pluginRegistry.loadPlugins.and.resolveTo([]);
+
+    const initializationPromise = initializePlugins(pluginRegistry);
+    await Promise.resolve();
+
+    expect(exposeSpy).toHaveBeenCalledTimes(1);
+    expect(pluginRegistry.loadPluginManifestFromDeck).not.toHaveBeenCalled();
+    expect(pluginRegistry.loadPluginManifestFromGate).not.toHaveBeenCalled();
+    expect(pluginRegistry.loadPlugins).not.toHaveBeenCalled();
+
+    resolveExposure();
+    await initializationPromise;
+
+    expect(pluginRegistry.loadPluginManifestFromDeck).toHaveBeenCalledTimes(1);
+    expect(pluginRegistry.loadPluginManifestFromGate).toHaveBeenCalledTimes(1);
+    expect(pluginRegistry.loadPlugins).toHaveBeenCalledTimes(1);
+  });
+
+  it('rejects when shared library exposure fails without loading manifests or plugins', async () => {
+    const exposureError = new Error('shared library exposure failed');
+    spyOn(sharedLibraries, 'exposeSharedLibraries').and.callFake(async () => {
+      throw exposureError;
+    });
+    pluginRegistry.loadPluginManifestFromDeck.and.resolveTo([]);
+    pluginRegistry.loadPluginManifestFromGate.and.resolveTo([]);
+    pluginRegistry.loadPlugins.and.resolveTo([]);
+
+    await expectAsync(initializePlugins(pluginRegistry)).toBeRejectedWith(exposureError);
+
+    expect(pluginRegistry.loadPluginManifestFromDeck).not.toHaveBeenCalled();
+    expect(pluginRegistry.loadPluginManifestFromGate).not.toHaveBeenCalled();
+    expect(pluginRegistry.loadPlugins).not.toHaveBeenCalled();
+  });
+
   it('rejects on a manifest failure without starting plugin loads', async () => {
     const manifestError = new Error('manifest failed');
     let rejectDeckManifest!: (reason?: any) => void;
     const deckManifestPromise = new Promise<IPluginMetaData[]>((_, reject) => (rejectDeckManifest = reject));
-    spyOn(sharedLibraries, 'exposeSharedLibraries').and.stub();
+    spyOn(sharedLibraries, 'exposeSharedLibraries').and.callFake(async () => undefined);
     pluginRegistry.loadPluginManifestFromDeck.and.returnValue(deckManifestPromise);
     pluginRegistry.loadPluginManifestFromGate.and.returnValue(Promise.resolve([]));
 
@@ -88,7 +131,7 @@ describe('initializePlugins', () => {
     const gateManifestPromise = new Promise<any[]>((resolve) => (resolveGateManifest = resolve));
     const pluginLoadsPromise = new Promise<any[]>((resolve) => (resolvePluginLoads = resolve));
     const pluginLoadsStartedPromise = new Promise<void>((resolve) => (resolvePluginLoadsStarted = resolve));
-    const exposeSpy = spyOn(sharedLibraries, 'exposeSharedLibraries').and.stub();
+    const exposeSpy = spyOn(sharedLibraries, 'exposeSharedLibraries').and.callFake(async () => undefined);
     const deckManifestSpy = spyOn(PluginRegistry.prototype, 'loadPluginManifestFromDeck').and.returnValue(
       deckManifestPromise,
     );
@@ -102,6 +145,7 @@ describe('initializePlugins', () => {
 
     const firstInitialization = initializePlugins();
     const concurrentInitialization = initializePlugins();
+    await Promise.resolve();
 
     expect(concurrentInitialization).toBe(firstInitialization);
     expect(exposeSpy).toHaveBeenCalledTimes(1);
@@ -127,7 +171,7 @@ describe('initializePlugins', () => {
 
   it('allows a default startup retry after a rejected attempt', async () => {
     const startupError = new Error('startup failed');
-    const exposeSpy = spyOn(sharedLibraries, 'exposeSharedLibraries').and.stub();
+    const exposeSpy = spyOn(sharedLibraries, 'exposeSharedLibraries').and.callFake(async () => undefined);
     const deckManifestSpy = spyOn(PluginRegistry.prototype, 'loadPluginManifestFromDeck').and.returnValues(
       Promise.reject(startupError),
       Promise.resolve([]),
@@ -151,7 +195,7 @@ describe('initializePlugins', () => {
   });
 
   it('does not cache initialization for explicitly injected registries', async () => {
-    spyOn(sharedLibraries, 'exposeSharedLibraries').and.stub();
+    spyOn(sharedLibraries, 'exposeSharedLibraries').and.callFake(async () => undefined);
     pluginRegistry.loadPluginManifestFromDeck.and.returnValue(Promise.resolve([]));
     pluginRegistry.loadPluginManifestFromGate.and.returnValue(Promise.resolve([]));
     pluginRegistry.loadPlugins.and.returnValue(Promise.resolve([]));

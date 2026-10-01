@@ -17,33 +17,46 @@ export const sharedLibraries = {
   },
 
   // Expose a subset of shared libraries on the global object, to be used by plugins
-  exposeSharedLibraries(): void {
+  async exposeSharedLibraries(): Promise<void> {
     const destinationObject = lodash.get(window, this.globalVariablePrefix) as any;
 
+    if (!destinationObject) {
+      return;
+    }
+
+    const unwrapCommonJs = (module: any) => module.default ?? module;
     const exposeSharedLibrary = (libraryName: string, library: any) => {
       const sanitizedLibraryName = this.sanitizeLibraryName(libraryName);
       destinationObject[sanitizedLibraryName] = library;
     };
 
+    const [ajv, spinnakerKayenta, reactRedux, reduxActions, reselect] = (
+      await Promise.all([
+        import('ajv'),
+        import('@spinnaker/kayenta' as string),
+        import('react-redux' as string),
+        import('redux-actions' as string),
+        import('reselect'),
+      ])
+    ).map(unwrapCommonJs);
+
     // Updates here should also be added in packages/pluginsdk/pluginconfig/rollup.config.js
-    if (destinationObject) {
-      // Temporarily expose @spinnaker/core.
-      // This should be removed at some point and replaced with a much smaller spinnaker/ui module which doesn't yet exist
-      exposeSharedLibrary('ajv', require('ajv'));
-      exposeSharedLibrary('@spinnaker/core', spinnakerCore);
-      exposeSharedLibrary('@spinnaker/kayenta', require('@spinnaker/kayenta'));
-      exposeSharedLibrary('@uirouter/core', uiRouterCore);
-      exposeSharedLibrary('@uirouter/react', uiRouterReact);
-      exposeSharedLibrary('@uirouter/rx', uiRouterRx);
-      exposeSharedLibrary('lodash', lodash);
-      exposeSharedLibrary('prop-types', propTypes);
-      exposeSharedLibrary('react', react);
-      exposeSharedLibrary('react-dom', reactDOM);
-      exposeSharedLibrary('react-redux', require('react-redux'));
-      exposeSharedLibrary('redux-actions', require('redux-actions'));
-      exposeSharedLibrary('reselect', require('reselect'));
-      exposeSharedLibrary('rxjs', rxjs);
-      exposeSharedLibrary('rxjs/Observable', { Observable: rxjs.Observable });
-    }
+    // Temporarily expose @spinnaker/core.
+    // This should be removed at some point and replaced with a much smaller spinnaker/ui module which doesn't yet exist
+    exposeSharedLibrary('ajv', ajv);
+    exposeSharedLibrary('@spinnaker/core', spinnakerCore);
+    exposeSharedLibrary('@spinnaker/kayenta', spinnakerKayenta);
+    exposeSharedLibrary('@uirouter/core', uiRouterCore);
+    exposeSharedLibrary('@uirouter/react', uiRouterReact);
+    exposeSharedLibrary('@uirouter/rx', uiRouterRx);
+    exposeSharedLibrary('lodash', lodash);
+    exposeSharedLibrary('prop-types', propTypes);
+    exposeSharedLibrary('react', react);
+    exposeSharedLibrary('react-dom', reactDOM);
+    exposeSharedLibrary('react-redux', reactRedux);
+    exposeSharedLibrary('redux-actions', reduxActions);
+    exposeSharedLibrary('reselect', reselect);
+    exposeSharedLibrary('rxjs', rxjs);
+    exposeSharedLibrary('rxjs/Observable', { Observable: rxjs.Observable });
   },
 };
