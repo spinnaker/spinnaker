@@ -16,7 +16,7 @@
   },
   "private": true,
   "scripts": {
-    "clean": "rimraf .cache-loader build packages/*/dist",
+    "clean": "rimraf build packages/*/dist",
     "fixup": "scripts/monorepo_fixup.sh",
     "build": "pnpm --filter deck-app build",
     "lint": "eslint --max-warnings=0 --ext js,jsx,ts,tsx packages",
@@ -29,8 +29,7 @@
     "prettier": "prettier --write 'packages/**/*.{js,jsx,ts,tsx,html,css,less}'",
     "prettier:check": "prettier --check 'packages/**/*.{js,jsx,ts,tsx,html,css,less}'",
     "functional": "pnpm --dir test/functional install && pnpm --dir test/functional build && pnpm --dir test/functional test",
-    "functional:debug": "pnpm --dir test/functional install && pnpm --dir test/functional build && pnpm --dir test/functional open",
-    "storybook": "start-storybook -p 9001"
+    "functional:debug": "pnpm --dir test/functional install && pnpm --dir test/functional build && pnpm --dir test/functional open"
   },
   "devDependencies": {
     "@eslint/compat": "^2.0.3",
@@ -41,7 +40,6 @@
     "@typescript-eslint/eslint-plugin": "8.32.0",
     "@typescript-eslint/parser": "8.32.0",
     "@wojtekmaj/enzyme-adapter-react-17": "^0.8.0",
-    "babel-loader": "8.1.0",
     "enzyme": "3.11.0",
     "eslint": "9.39.2",
     "eslint-config-prettier": "10.1.8",
