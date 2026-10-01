@@ -46,7 +46,6 @@ task modules(type: PnpmTask) {
 
 // Package builds write outside Gradle's build directory.
 clean {
-  delete file('.cache-loader')
   delete file('packages').listFiles()
     .findAll { it.isDirectory() }
     .collect { new File(it, 'dist') }
