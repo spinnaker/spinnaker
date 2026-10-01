@@ -96,7 +96,7 @@ class ApplicationControllerTest {
         List.of(
             Map.of("name", "pipelineA", "executionField", "some-random-x"),
             Map.of("name", "pipelineB", "executionField", "some-random-F"));
-    when(executionHistoryService.getPipelines("true-app", 10, null, null, null, null))
+    when(executionHistoryService.getPipelines("true-app", 10, null, null, null, null, false))
         .thenReturn(pipelines);
 
     ResultActions response =
@@ -109,7 +109,8 @@ class ApplicationControllerTest {
             null /* statuses */,
             null /*expand */,
             null /*pipelineNameFilter */,
-            null /*pipelineLimit*/);
+            null /*pipelineLimit*/,
+            false /*includeDeletedPipelines*/);
     verifyNoMoreInteractions(executionHistoryService);
 
     response.andExpect(status().isOk());
@@ -128,8 +129,15 @@ class ApplicationControllerTest {
     boolean expand = false;
     String pipelineNameFilter = "pipeline";
     Integer pipelineLimit = 1;
+    boolean includeDeletedPipelines = true;
     when(executionHistoryService.getPipelines(
-            "true-app", limit, statuses, expand, pipelineNameFilter, pipelineLimit))
+            "true-app",
+            limit,
+            statuses,
+            expand,
+            pipelineNameFilter,
+            pipelineLimit,
+            includeDeletedPipelines))
         .thenReturn(pipelines);
 
     ResultActions response =
@@ -140,10 +148,18 @@ class ApplicationControllerTest {
                 .param("expand", Boolean.toString(expand))
                 .param("pipelineNameFilter", pipelineNameFilter)
                 .param("pipelineLimit", Integer.toString(pipelineLimit))
+                .param("includeDeletedPipelines", Boolean.toString(includeDeletedPipelines))
                 .accept(MediaType.APPLICATION_JSON));
 
     verify(executionHistoryService)
-        .getPipelines("true-app", limit, statuses, expand, pipelineNameFilter, pipelineLimit);
+        .getPipelines(
+            "true-app",
+            limit,
+            statuses,
+            expand,
+            pipelineNameFilter,
+            pipelineLimit,
+            includeDeletedPipelines);
     verifyNoMoreInteractions(executionHistoryService);
 
     response.andExpect(status().isOk());

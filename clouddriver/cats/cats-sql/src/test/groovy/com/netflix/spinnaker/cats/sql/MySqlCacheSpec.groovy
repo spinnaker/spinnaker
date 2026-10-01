@@ -36,8 +36,6 @@ import java.time.ZoneId
 
 @Requires({ DockerClientFactory.instance().isDockerAvailable() })
 class MySqlCacheSpec extends SqlCacheSpec {
-  def providerCacheConfiguration = new StaticProviderCacheConfiguration(supportsFullEviction: false)
-
   @Override
   Cache getSubject() {
     def mapper = new ObjectMapper()
@@ -62,39 +60,19 @@ class MySqlCacheSpec extends SqlCacheSpec {
       "test",
       Mock(SqlCacheMetrics),
       dynamicConfigService,
-      new SqlConstraintsInitializer().getDefaultSqlConstraints(SQLDialect.MYSQL),
-      providerCacheConfiguration
+      new SqlConstraintsInitializer().getDefaultSqlConstraints(SQLDialect.MYSQL)
     )
   }
 
-  def cleanup() {
-    providerCacheConfiguration.supportsFullEviction = false
-  }
-
-  def "mergeAll with full eviction support"() {
+  def "mergeAll with no items evicts the last cached item of a type"() {
     when:
-    providerCacheConfiguration.supportsFullEviction = false
-    ((WriteableCache) cache).mergeAll("keys", [
-      createData("keys-1"),
-      createData("keys-2")
-    ])
-    ((WriteableCache) cache).mergeAll("keys", [])
-    def retrieved = ((SqlCache) cache).getAll("keys")
-
-    then:
-    retrieved.size() == 2
-
-    when:
-    providerCacheConfiguration.supportsFullEviction = true
     ((WriteableCache) cache).mergeAll("keys", [
       createData("keys-1"),
       createData("keys-2")
     ])
     ((WriteableCache) cache).mergeAll("keys", [])
 
-    retrieved = ((SqlCache) cache).getAll("keys")
-
     then:
-    retrieved.isEmpty()
+    ((SqlCache) cache).getAll("keys").isEmpty()
   }
 }
