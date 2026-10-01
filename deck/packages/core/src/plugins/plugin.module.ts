@@ -5,7 +5,7 @@ let defaultPluginRegistry = new PluginRegistry();
 let defaultInitializationPromise: Promise<void> | undefined;
 
 async function initializePluginRegistry(pluginRegistry: PluginRegistry): Promise<void> {
-  sharedLibraries.exposeSharedLibraries();
+  await sharedLibraries.exposeSharedLibraries();
   await Promise.all([pluginRegistry.loadPluginManifestFromDeck(), pluginRegistry.loadPluginManifestFromGate()]);
   await pluginRegistry.loadPlugins();
 }
