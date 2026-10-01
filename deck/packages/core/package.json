@@ -110,7 +110,6 @@
     "@types/resize-observer-browser": "0.1.5",
     "@types/tether": "1.4.4",
     "graphql": "^15.5.1",
-    "rollup-plugin-copy": "^3.4.0",
     "shx": "0.3.3",
     "typescript": "5.0.4"
   }

@@ -1,195 +1,348 @@
 #!/usr/bin/env node
 
-const chalk = require('chalk');
-const child_process = require('child_process');
-const fs = require('fs');
+const { execFile, execFileSync } = require('node:child_process');
+const fs = require('node:fs');
+const path = require('node:path');
+const process = require('node:process');
+const { promisify } = require('node:util');
 
-const { loadConfigFile } = require('rollup/loadConfigFile');
+const execFileAsync = promisify(execFile);
+const sharedViteConfigPath = path.resolve(__dirname, 'config', 'vite.config.base.module.js');
 
-const ora = require('ora');
-const path = require('path');
-const process = require('process');
-const rollup = require('rollup');
-const util = require('util');
+const preserveSubprocessDiagnostics = (error) => {
+  const diagnostics = [error.stdout, error.stderr]
+    .filter((output) => typeof output === 'string' && output.trim())
+    .map((output) => output.trimEnd())
+    .filter((output) => !error.message.includes(output));
+  if (diagnostics.length) error.message = [error.message, ...diagnostics].join('\n');
+  return error;
+};
 
-const exec = util.promisify(child_process.exec);
-
-const ESM_SYNTAX = /^\s*(import\s+|export\s+(default\s+)?)/m;
-
-// Rollup 4's loadConfigFile writes temporary .cjs files (named with Date.now()) to the same
-// directory as the config file. When multiple packages build in parallel and share the same
-// config (e.g. rollup.config.base.module.js), one build can delete another's temp file before
-// it's been loaded causing "Cannot find module" errors. To work around this, CJS configs are
-// loaded directly via require() (no temp files), while ESM configs still use loadConfigFile
-// (only used in sequential builds, so safe).
-const loadConfig = async (configPath) => {
-  const source = fs.readFileSync(configPath, 'utf8');
-  if (ESM_SYNTAX.test(source)) {
-    // ESM configs must go through loadConfigFile which bundles them to CJS.
-    // These are only used in sequential builds (core, presentation) so no race condition.
-    const { options, warnings } = await loadConfigFile(configPath, { bundleConfigAsCjs: true });
-    warnings.flush();
-    return options;
+const withCallerNodeEnvironment = async (callback) => {
+  const callerNodeEnvironment = process.env.NODE_ENV;
+  if (!callerNodeEnvironment) process.env.NODE_ENV = 'development';
+  try {
+    return await callback();
+  } finally {
+    if (callerNodeEnvironment === undefined) delete process.env.NODE_ENV;
+    else process.env.NODE_ENV = callerNodeEnvironment;
   }
-  // CJS configs can be required directly, avoiding the race condition where
-  // parallel builds sharing the same config collide on temp .cjs files.
-  delete require.cache[require.resolve(configPath)];
-  const config = require(configPath);
-  return Array.isArray(config) ? config : [config];
 };
 
-const getRollupConfigPath = (file) => {
-  if (file && !fs.existsSync(path.resolve(path.join('.', file)))) {
-    // If the user explicitly provides a rollup config file and if it is not available, then throw an error and exit.
-    console.error(`Could not find ${path.join('.', file)}`);
-    process.exit(1);
+const resolveViteConfigPath = (file, cwd = process.cwd()) => {
+  if (file) {
+    const explicitConfigPath = path.resolve(cwd, file);
+    if (!fs.existsSync(explicitConfigPath)) throw new Error(`Could not find ${explicitConfigPath}`);
+    return explicitConfigPath;
   }
-  // If user does't provide a rollup config file, then search for `rollup.config.js` in the project directory. If it is
-  // not found, then use `rollup.config.base.module.js` which contains pretty reasonable defaults.
-  const projectRollupConfigFilePath = path.resolve(path.join('.', file || 'rollup.config.js'));
-  return fs.existsSync(projectRollupConfigFilePath)
-    ? projectRollupConfigFilePath
-    : path.resolve(path.join(__dirname), 'config', 'rollup.config.base.module.js');
+
+  const localConfigPath = path.resolve(cwd, 'vite.config.js');
+  return fs.existsSync(localConfigPath) ? localConfigPath : sharedViteConfigPath;
 };
 
-const OUTPUT_DIR_REGEX = /\/?(\w+)$/;
-
-const getOutputDir = (output) => {
-  const outputDirMatch = OUTPUT_DIR_REGEX.exec(output);
-  return outputDirMatch.length > 1 ? outputDirMatch[1] : output;
-};
-
-// Runs typescript compiler for type checking and emitting declarations in a separate process to run in parallel with
-// the bundler.
-const runTsc = (options, exitOnFailure) => {
-  const tscBin = path.resolve(`./node_modules/.bin/tsc`);
-  return exec(`${tscBin} --emitDeclarationOnly`)
-    .then(() => ora().succeed(chalk.green.bold('type checking done')))
-    .catch(({ stderr, stdout }) => {
-      console.log();
-      if (stdout) {
-        console.log(stdout);
-      }
-      if (stderr) {
-        console.error(stderr);
-      }
-
-      if (exitOnFailure) {
-        process.exit(1);
-      }
-    })
-    .finally(() => {
-      options.forEach((option) => {
-        const fixTSPathRewritePlugin = option.plugins.find((plugin) => plugin.name == 'fixTSPathRewrite');
-        if (fixTSPathRewritePlugin) {
-          fixTSPathRewritePlugin.writeBundle();
-        }
-      });
-    });
-};
-
-const startHandler = async ({ file, push }) => {
-  process.env.ROLLUP_WATCH = true;
-
-  const options = await loadConfig(getRollupConfigPath(file));
-  // A map of `input-output` bundle key to a tracker object. This is used to quickly access a spinner object and
-  // startTime when succeeding/failing that object on receiving a `BUNDLE_END`/`ERROR` event.
-  const buildTracker = {};
-  // Kick-starting rollup's bundling process in watch mode.
-  const watcher = rollup.watch(options);
-  let startTime;
-  watcher.on('event', (event) => {
-    // Rollup will be emitting lifecycle events for the bundling process such as start, end and error. These events are
-    // used to control a spinner in the terminal for each `input-output` bundle.
-    switch (event.code) {
-      case 'START':
-        runTsc(options, false);
-        break;
-      case 'END':
-        if (push) {
-          console.log();
-          console.log(chalk.gray.bold('yalc push'));
-          const yalcBin = path.resolve(__dirname, 'node_modules', '.bin', 'yalc');
-          const output = child_process.execSync(`${yalcBin} push`);
-          console.log(chalk.blue.bold(output.toString('utf-8')));
-        }
-        break;
-      case 'BUNDLE_START':
-        console.log('');
-        event.output.forEach((output) => {
-          const outputDir = getOutputDir(output);
-          const spinner = ora({
-            text: chalk.blue.bold(`${event.input} -> ${outputDir}`),
-          });
-          buildTracker[`${event.input}-${output}`] = { spinner, startTime: Date.now() };
-
-          spinner.start();
-        });
-        break;
-      case 'BUNDLE_END':
-        event.output.forEach((output) => {
-          const tracker = buildTracker[`${event.input}-${output}`];
-          if (tracker.spinner) {
-            const outputDir = getOutputDir(output);
-            const completedTimeInS = (Date.now() - tracker.startTime) / 1000;
-            tracker.spinner.succeed(chalk.green.bold(`${event.input} -> ${outputDir} (${completedTimeInS}s)`));
-            delete buildTracker[`${event.input}-${output}`];
-          }
-        });
-        break;
-      case 'ERROR':
-        Object.entries(buildTracker).forEach(([key, tracker]) => {
-          tracker.spinner.fail(event.error);
-          console.error(event.error);
-          delete buildTracker[key];
-        });
-        break;
-    }
+const runDeclarations = (cwd = process.cwd(), execute = execFileAsync) => {
+  const typescriptBin = require.resolve('typescript/bin/tsc', { paths: [cwd] });
+  return execute(process.execPath, [typescriptBin, '--emitDeclarationOnly'], { cwd }).catch((error) => {
+    throw preserveSubprocessDiagnostics(error);
   });
-
-  watcher.close();
 };
 
-const printBundleStart = (option) => {
-  const message = option.output.map((output) => `${option.input} -> ${output.dir}...`).join('\n');
-  console.log(chalk.blue.bold(message));
-};
-const printBundleComplete = (option, completedTimeInMS) => {
-  const outputFolder = chalk.green.bold(option.output.map((output) => output.dir).join(', '));
-  const completedTimeInS = chalk.green.bold(`${completedTimeInMS / 1000}s`);
-  console.log(chalk.green(`created ${outputFolder} in ${completedTimeInS}`));
+const runYalcPush = (cwd = process.cwd(), execute = execFileSync) => {
+  const yalcBin = require.resolve('yalc/src/yalc.js', { paths: [__dirname] });
+  return execute(process.execPath, [yalcBin, 'push'], { cwd });
 };
 
-const buildHandler = async ({ file }) => {
-  const options = await loadConfig(getRollupConfigPath(file));
+const resolveOutputDirectories = (resolvedConfig) => {
+  const { outDir, rollupOptions } = resolvedConfig.build;
+  const outputOptions = rollupOptions.output
+    ? Array.isArray(rollupOptions.output)
+      ? rollupOptions.output
+      : [rollupOptions.output]
+    : [{}];
+  const outputDirectories = outputOptions.map((output) => {
+    const outputDirectory = output?.dir ?? outDir;
+    if (!output || typeof output !== 'object' || Array.isArray(output) || typeof outputDirectory !== 'string') {
+      throw new Error(`Refusing to clean unsafe Vite output directory: ${String(outputDirectory)}`);
+    }
+    return path.resolve(resolvedConfig.root, outputDirectory);
+  });
+  return [...new Set(outputDirectories)];
+};
 
-  for (const o of options) {
-    const start = Date.now();
-    console.log('');
-    printBundleStart(o);
+const isStrictDescendant = (parent, child) => {
+  const relativePath = path.relative(parent, child);
+  return (
+    Boolean(relativePath) &&
+    relativePath !== '..' &&
+    !relativePath.startsWith(`..${path.sep}`) &&
+    !path.isAbsolute(relativePath)
+  );
+};
 
-    const bundle = await rollup.rollup(o);
-    await Promise.all([...o.output.map(bundle.write), runTsc(options, true)]);
+const pathsOverlap = (first, second) =>
+  first === second || isStrictDescendant(first, second) || isStrictDescendant(second, first);
 
-    printBundleComplete(o, Date.now() - start);
+const hasSymlinkComponent = (packageRoot, target) => {
+  let current = packageRoot;
+  for (const segment of path.relative(packageRoot, target).split(path.sep)) {
+    current = path.join(current, segment);
+    try {
+      if (fs.lstatSync(current).isSymbolicLink()) return true;
+    } catch (error) {
+      if (error.code === 'ENOENT') return false;
+      throw error;
+    }
   }
+  return false;
+};
+
+const collectInputPaths = (input, root, paths = []) => {
+  if (typeof input === 'string' && input && !input.startsWith('\0')) {
+    paths.push(path.resolve(root, input));
+  } else if (Array.isArray(input)) {
+    input.forEach((value) => collectInputPaths(value, root, paths));
+  } else if (input && typeof input === 'object') {
+    Object.values(input).forEach((value) => collectInputPaths(value, root, paths));
+  }
+  return paths;
+};
+
+const createHandlers = (dependencies = {}) => {
+  const cwd = dependencies.cwd ?? process.cwd();
+  const loadVite = dependencies.loadVite ?? (() => import('vite'));
+  const resolveConfigPath = dependencies.resolveViteConfigPath ?? resolveViteConfigPath;
+  const reportError = dependencies.reportError ?? console.error;
+  const emitDeclarations = dependencies.runDeclarations ?? (() => runDeclarations(cwd));
+  const runDeclarationJob = (resolvedConfig) =>
+    Promise.resolve()
+      .then(() => emitDeclarations())
+      .then(() => resolvedConfig.spinnaker?.afterDeclarations?.(resolvedConfig))
+      .catch((error) => {
+        throw preserveSubprocessDiagnostics(error);
+      });
+  const pushPackage = dependencies.runYalcPush ?? (() => runYalcPush(cwd));
+  const scheduleZeroDelay =
+    dependencies.scheduleZeroDelay ??
+    ((callback) => {
+      const timer = setTimeout(callback, 0);
+      return () => clearTimeout(timer);
+    });
+  const schedulePush =
+    dependencies.schedulePush ??
+    ((callback) => {
+      let cancelSecondTurn;
+      const cancelFirstTurn = scheduleZeroDelay(() => {
+        cancelSecondTurn = scheduleZeroDelay(callback);
+      });
+      return () => {
+        cancelFirstTurn();
+        cancelSecondTurn?.();
+      };
+    });
+  const setExitCode =
+    dependencies.setExitCode ??
+    ((code) => {
+      process.exitCode = code;
+    });
+  const signalSource = dependencies.signalSource ?? process;
+  const cleanOutput = async (resolvedConfig, configFile) => {
+    const packageRoot = fs.realpathSync(cwd);
+    const outputDirectories = resolveOutputDirectories(resolvedConfig);
+    const buildInputs = collectInputPaths(
+      [resolvedConfig.build.lib?.entry, resolvedConfig.build.rollupOptions.input],
+      resolvedConfig.root,
+    );
+    const protectedInputs = [
+      path.join(packageRoot, 'src'),
+      path.join(packageRoot, 'package.json'),
+      path.join(packageRoot, 'tsconfig.json'),
+      configFile,
+      resolvedConfig.configFile,
+      ...(resolvedConfig.configFileDependencies ?? []),
+      ...buildInputs,
+    ]
+      .filter(Boolean)
+      .map((input) => path.resolve(input));
+
+    for (const outputDirectory of outputDirectories) {
+      if (
+        !isStrictDescendant(packageRoot, outputDirectory) ||
+        outputDirectory === path.resolve(resolvedConfig.root) ||
+        hasSymlinkComponent(packageRoot, outputDirectory) ||
+        protectedInputs.some((input) => pathsOverlap(outputDirectory, input))
+      ) {
+        throw new Error(`Refusing to clean unsafe Vite output directory: ${outputDirectory}`);
+      }
+    }
+    for (const outputDirectory of outputDirectories) {
+      await fs.promises.rm(outputDirectory, { force: true, recursive: true });
+    }
+    for (const outputDirectory of outputDirectories) {
+      await fs.promises.mkdir(outputDirectory, { recursive: true });
+    }
+  };
+
+  const buildHandler = async ({ file }) => {
+    const configFile = resolveConfigPath(file, cwd);
+    await withCallerNodeEnvironment(async () => {
+      const vite = await loadVite();
+      const resolvedConfig = await vite.resolveConfig({ configFile }, 'build', 'production', 'production');
+      await cleanOutput(resolvedConfig, configFile);
+      await Promise.all([vite.build({ configFile, build: { emptyOutDir: false } }), runDeclarationJob(resolvedConfig)]);
+    });
+  };
+
+  const startHandler = async ({ file, push }) => {
+    const configFile = resolveConfigPath(file, cwd);
+    const { resolvedConfig, watcher } = await withCallerNodeEnvironment(async () => {
+      const vite = await loadVite();
+      const resolvedConfig = await vite.resolveConfig({ configFile }, 'build', 'production', 'production');
+      await cleanOutput(resolvedConfig, configFile);
+      const watcher = await vite.build({ configFile, build: { emptyOutDir: false, watch: {} } });
+      return { resolvedConfig, watcher };
+    });
+    const closeViteWatcher = watcher.close.bind(watcher);
+    let currentCycle;
+    let latestGeneration = 0;
+    let declarationQueue = Promise.resolve();
+    let cancelPendingPush;
+    let closing;
+
+    const clearPendingPush = () => {
+      cancelPendingPush?.();
+      cancelPendingPush = undefined;
+    };
+    const invalidateGeneration = () => {
+      latestGeneration++;
+      clearPendingPush();
+    };
+
+    watcher.on('change', invalidateGeneration);
+    watcher.on('restart', invalidateGeneration);
+
+    watcher.on('event', (event) => {
+      if (event.code === 'START') {
+        clearPendingPush();
+        const cycle = { bundleSucceeded: false, generation: ++latestGeneration };
+        const declarationJob = declarationQueue.then(() => runDeclarationJob(resolvedConfig));
+        cycle.declarations = declarationJob.then(
+          () => true,
+          (error) => {
+            reportError(error);
+            return false;
+          },
+        );
+        declarationQueue = cycle.declarations.then(() => undefined);
+        currentCycle = cycle;
+        return;
+      }
+      if (event.code === 'BUNDLE_END' && currentCycle) {
+        currentCycle.bundleSucceeded = true;
+        return;
+      }
+      if (event.code === 'ERROR') {
+        if (currentCycle) currentCycle.bundleSucceeded = false;
+        reportError(event.error);
+        return;
+      }
+      if (event.code === 'END' && currentCycle) {
+        const completedCycle = currentCycle;
+        currentCycle = undefined;
+        void completedCycle.declarations.then((declarationsSucceeded) => {
+          if (
+            !push ||
+            closing ||
+            completedCycle.generation !== latestGeneration ||
+            !completedCycle.bundleSucceeded ||
+            !declarationsSucceeded
+          ) {
+            return;
+          }
+          cancelPendingPush = schedulePush(async () => {
+            cancelPendingPush = undefined;
+            if (closing || completedCycle.generation !== latestGeneration) return;
+            try {
+              await pushPackage();
+            } catch (error) {
+              reportError(error);
+            }
+          });
+        });
+      }
+    });
+
+    const closeWatcher = (signal) => {
+      if (closing) return closing;
+      clearPendingPush();
+      signalSource.removeListener('SIGINT', handleSigint);
+      signalSource.removeListener('SIGTERM', handleSigterm);
+      closing = Promise.resolve()
+        .then(() => closeViteWatcher())
+        .then(
+          () => {
+            if (signal) setExitCode(signal === 'SIGINT' ? 130 : 143);
+          },
+          (error) => {
+            reportError(error);
+            setExitCode(1);
+            throw error;
+          },
+        );
+      return closing;
+    };
+    const handleSigint = () => void closeWatcher('SIGINT').catch(() => undefined);
+    const handleSigterm = () => void closeWatcher('SIGTERM').catch(() => undefined);
+    signalSource.once('SIGINT', handleSigint);
+    signalSource.once('SIGTERM', handleSigterm);
+    watcher.close = () => closeWatcher();
+
+    return watcher;
+  };
+
+  return { buildHandler, startHandler };
 };
 
 const fileOption = {
-  alias: 'file',
-  describe: 'custom rollup config file',
+  alias: 'f',
+  describe: 'custom Vite config file',
   type: 'string',
 };
 
 const pushOption = {
-  alias: 'push',
+  alias: 'p',
   default: false,
   type: 'boolean',
 };
 
-require('yargs')
-  .scriptName('spinnaker-scripts')
-  .command('start', 'Builds your package in watch mode', { f: fileOption, p: pushOption }, startHandler)
-  .command('build', 'Builds your package', { f: fileOption }, buildHandler)
-  .help()
-  .demandCommand().argv;
+const runCli = (argv = process.argv.slice(2), handlers = createHandlers()) =>
+  require('yargs/yargs')(argv)
+    .scriptName('spinnaker-scripts')
+    .command(
+      'start',
+      'Builds your package in watch mode',
+      { file: fileOption, push: pushOption },
+      handlers.startHandler,
+    )
+    .command('build', 'Builds your package', { file: fileOption }, handlers.buildHandler)
+    .help()
+    .demandCommand(1)
+    .exitProcess(false)
+    .fail((message, error) => {
+      throw error || new Error(message);
+    })
+    .parseAsync();
+
+if (require.main === module) {
+  void runCli().catch((error) => {
+    console.error(error instanceof Error ? error.message : error);
+    process.exitCode = 1;
+  });
+}
+
+module.exports = {
+  createHandlers,
+  resolveViteConfigPath,
+  runCli,
+  runDeclarations,
+  runYalcPush,
+};
