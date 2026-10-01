@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.description
 
+import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.CustomResourceStatusEvaluator
 import com.google.common.collect.ImmutableList
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesApiGroup
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind
@@ -27,7 +28,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesUnregis
 import spock.lang.Specification
 
 class GlobalResourcePropertyRegistrySpec extends Specification {
-  KubernetesUnregisteredCustomResourceHandler defaultHandler = new KubernetesUnregisteredCustomResourceHandler()
+  KubernetesUnregisteredCustomResourceHandler defaultHandler = new KubernetesUnregisteredCustomResourceHandler(CustomResourceStatusEvaluator.disabled())
   void "creates an empty resource map"() {
     given:
     def replicaSetHandler = new KubernetesReplicaSetHandler()
@@ -60,7 +61,7 @@ class GlobalResourcePropertyRegistrySpec extends Specification {
 
   void "registers handlers passed to the constructor"() {
     given:
-    def unregisteredHandler = new KubernetesUnregisteredCustomResourceHandler()
+    def unregisteredHandler = new KubernetesUnregisteredCustomResourceHandler(CustomResourceStatusEvaluator.disabled())
     def replicaSetHandler = new KubernetesReplicaSetHandler()
 
     when:
@@ -75,7 +76,7 @@ class GlobalResourcePropertyRegistrySpec extends Specification {
   void "is aware of custom resources only after updateCrdProperties has been called"() {
     given:
     KubernetesKind customResource = KubernetesKind.from("MyCRD", KubernetesApiGroup.fromString("foo.com")) // arbitrary custom/non-native kind
-    KubernetesHandler customResourceHandler = new KubernetesCustomResourceHandler(customResource)
+    KubernetesHandler customResourceHandler = new KubernetesCustomResourceHandler(customResource, CustomResourceStatusEvaluator.disabled())
 
     when:
     GlobalResourcePropertyRegistry registry = new GlobalResourcePropertyRegistry([], defaultHandler)

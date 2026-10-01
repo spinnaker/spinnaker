@@ -43,6 +43,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKindProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesManifestNamer;
+import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.CustomResourceStatusEvaluator;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesDeploymentHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesUnregisteredCustomResourceHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
@@ -70,11 +71,11 @@ import org.testcontainers.DockerClientFactory;
  * from a real SQL-backed cache, rather than only asserting on the in-memory {@code CacheResult}
  * returned by {@code loadData()} (as {@link KubernetesCoreCachingAgentTest} does).
  *
- * <p>This runs the real {@link KubernetesCoreCachingAgent}, the real {@link KubernetesProvider} (so
- * a regression to its {@code supportsFullEviction} opt-in is caught here too), and a real {@code
- * SqlCache}/{@code SqlProviderCache} backed by a MySQL testcontainer -- the same backend and wiring
- * (via {@code CachingAgent.CacheExecution}) production uses. Only the kubectl/API layer is mocked,
- * via {@link KubernetesCredentials}, exactly as in the module's other caching-agent tests.
+ * <p>This runs the real {@link KubernetesCoreCachingAgent}, the real {@link KubernetesProvider},
+ * and a real {@code SqlCache}/{@code SqlProviderCache} backed by a MySQL testcontainer -- the same
+ * backend and wiring (via {@code CachingAgent.CacheExecution}) production uses. Only the
+ * kubectl/API layer is mocked, via {@link KubernetesCredentials}, exactly as in the module's other
+ * caching-agent tests.
  */
 class KubernetesCachingAgentSqlIntegrationTest {
 
@@ -156,7 +157,8 @@ class KubernetesCachingAgentSqlIntegrationTest {
         .thenReturn(
             new GlobalResourcePropertyRegistry(
                 ImmutableList.of(new KubernetesDeploymentHandler()),
-                new KubernetesUnregisteredCustomResourceHandler()));
+                new KubernetesUnregisteredCustomResourceHandler(
+                    CustomResourceStatusEvaluator.disabled())));
     when(credentials.getNamer()).thenReturn(new KubernetesManifestNamer());
     when(credentials.isValidKind(any(KubernetesKind.class))).thenReturn(true);
     when(credentials.getKubernetesSpinnakerKindMap())
