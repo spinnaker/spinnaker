@@ -249,7 +249,7 @@ function discoverActiveBuildConfigFiles(roots = [deckRoot, functionalRoot, spinn
 activeBuildConfigFiles.push(...discoverActiveBuildConfigFiles());
 
 function discoverActiveAppArtifactFiles(appRoot, fixtureHost) {
-  const indexPaths = ['index.deck', 'index.html'].map((file) => path.join(appRoot, file)).filter(existsSync);
+  const indexPaths = ['index.html'].map((file) => path.join(appRoot, file)).filter(existsSync);
   const scriptsRoot = path.join(appRoot, 'scripts');
   const scriptFiles = existsSync(scriptsRoot)
     ? workspaceSourceFiles(scriptsRoot).filter((file) => sourceExtensions.includes(path.extname(file)))
@@ -2036,7 +2036,6 @@ test('active source scan covers Deck, Kayenta, app artifacts, functional tests, 
     .map((entry) => path.join(appScriptsRoot, entry.name))
     .filter((file) => file !== angularRemovalGuardFixturePath);
   const representativeFiles = [
-    path.join(deckRoot, 'packages/app/index.deck'),
     path.join(deckRoot, 'packages/app/index.html'),
     path.join(appScriptsRoot, 'bootstrap-entry.test.js'),
     path.join(coreSourceRoot, 'bootstrap/bootstrapDeck.spec.tsx'),
@@ -2050,7 +2049,6 @@ test('active source scan covers Deck, Kayenta, app artifacts, functional tests, 
     path.join(deckKayentaSourceRoot, 'initializeKayenta.spec.ts'),
     path.join(deckKayentaSourceRoot, 'kayenta/report/detail/graph/semiotic/declarations/semiotic.d.ts'),
     path.join(deckTestRoot, 'functional/cypress.config.ts'),
-    path.join(deckRoot, 'packages/app/webpack.config.js'),
     ...karmaFiles,
   ];
 
@@ -2072,7 +2070,6 @@ test('app artifact discovery includes active entrypoints and excludes only gener
     mkdirSync(dependencyRoot);
     const fixtureHost = path.join(scriptsRoot, 'guard.test.js');
     const expectedFiles = [
-      path.join(appRoot, 'index.deck'),
       path.join(appRoot, 'index.html'),
       path.join(scriptsRoot, 'bootstrap.test.js'),
       path.join(scriptsRoot, 'local-auth.js'),
@@ -2130,7 +2127,7 @@ test('app shell detector rejects Angular bootstrap contracts and accepts React a
 });
 
 test('active app shells use only the React root contract', () => {
-  const shellFiles = [path.join(deckRoot, 'packages/app/index.deck'), path.join(deckRoot, 'packages/app/index.html')];
+  const shellFiles = [path.join(deckRoot, 'packages/app/index.html')];
 
   shellFiles.forEach((file) => assert.ok(activeSourceFiles().includes(file)));
   assert.deepEqual(findForbiddenAppShellContracts(shellFiles, repositoryRoot), []);
@@ -2604,10 +2601,10 @@ test('active build config discovery covers every representative toolchain', () =
     path.join(deckRoot, 'tsconfig.json'),
     path.join(deckRoot, 'build.gradle'),
     path.join(deckRoot, 'settings.gradle'),
-    path.join(deckRoot, 'packages/app/webpack.config.js'),
-    path.join(deckRoot, 'packages/app/vite.config.js'),
+    path.join(deckRoot, 'packages/app/vite.config.ts'),
     path.join(deckRoot, 'packages/app/.babelrc'),
-    path.join(deckRoot, 'packages/app/webpackImportMetaLoader.js'),
+    path.join(deckRoot, 'test/karma/webpack.config.js'),
+    path.join(deckRoot, 'test/karma/webpackImportMetaLoader.js'),
     path.join(deckRoot, 'packages/core/rollup.config.js'),
     path.join(deckRoot, 'packages/presentation/rollup.config.js'),
     path.join(deckRoot, 'packages/pluginsdk/rollup.config.js'),
