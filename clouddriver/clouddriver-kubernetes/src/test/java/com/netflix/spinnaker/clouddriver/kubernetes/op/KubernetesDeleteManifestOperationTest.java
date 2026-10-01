@@ -39,6 +39,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesDeleteManifestDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKindProperties;
+import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.CustomResourceStatusEvaluator;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesCustomResourceDefinitionHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesCustomResourceHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesHandler;
@@ -69,12 +70,13 @@ public class KubernetesDeleteManifestOperationTest {
               new KubernetesReplicaSetHandler(),
               new KubernetesServiceHandler(),
               new KubernetesCustomResourceDefinitionHandler()),
-          new KubernetesUnregisteredCustomResourceHandler());
+          new KubernetesUnregisteredCustomResourceHandler(
+              CustomResourceStatusEvaluator.disabled()));
   private static final KubernetesKind customResource =
       KubernetesKind.from(
           "MyCRD", KubernetesApiGroup.fromString("foo.com")); // arbitrary custom/non-native kind
   private static final KubernetesHandler customResourceHandler =
-      new KubernetesCustomResourceHandler(customResource);
+      new KubernetesCustomResourceHandler(customResource, CustomResourceStatusEvaluator.disabled());
   private static KubernetesDeleteManifestConverter converter;
   private static ObjectMapper mapper;
   private static MapType mapType;

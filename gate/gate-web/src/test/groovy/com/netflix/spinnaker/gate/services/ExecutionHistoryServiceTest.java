@@ -71,7 +71,8 @@ public class ExecutionHistoryServiceTest {
     Integer pipelineLimit = 1;
     List<Map<String, Object>> expectedPipelines =
         List.of(Map.of("name", "testName1"), Map.of("name", "testName2"));
-    when(orcaService.getPipelines(app, limit, statuses, expand, pipelineNameFilter, pipelineLimit))
+    when(orcaService.getPipelines(
+            app, limit, statuses, expand, pipelineNameFilter, pipelineLimit, false))
         .thenReturn(Calls.response(expectedPipelines));
 
     List<Map<String, Object>> pipelines =
@@ -80,7 +81,30 @@ public class ExecutionHistoryServiceTest {
 
     assertEquals(expectedPipelines, pipelines);
     verify(orcaService)
-        .getPipelines(app, limit, statuses, expand, pipelineNameFilter, pipelineLimit);
+        .getPipelines(app, limit, statuses, expand, pipelineNameFilter, pipelineLimit, false);
+    verifyNoMoreInteractions(orcaService);
+  }
+
+  @Test
+  public void getPipelinesPassesIncludeDeletedPipelinesToOrca() {
+    String app = "myApp";
+    Integer limit = 10;
+    String statuses = "SUCCESS,FAILED";
+    Boolean expand = false;
+    String pipelineNameFilter = null;
+    Integer pipelineLimit = null;
+    List<Map<String, Object>> expectedPipelines = List.of(Map.of("name", "testName1"));
+    when(orcaService.getPipelines(
+            app, limit, statuses, expand, pipelineNameFilter, pipelineLimit, true))
+        .thenReturn(Calls.response(expectedPipelines));
+
+    List<Map<String, Object>> pipelines =
+        executionHistoryService.getPipelines(
+            app, limit, statuses, expand, pipelineNameFilter, pipelineLimit, true);
+
+    assertEquals(expectedPipelines, pipelines);
+    verify(orcaService)
+        .getPipelines(app, limit, statuses, expand, pipelineNameFilter, pipelineLimit, true);
     verifyNoMoreInteractions(orcaService);
   }
 }

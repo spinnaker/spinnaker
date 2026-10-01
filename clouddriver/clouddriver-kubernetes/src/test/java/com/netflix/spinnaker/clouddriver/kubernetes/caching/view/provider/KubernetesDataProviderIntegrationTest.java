@@ -56,6 +56,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesManifestNamer;
 import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesNamerRegistry;
+import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.CustomResourceStatusEvaluator;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesDeploymentHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesPodHandler;
@@ -111,7 +112,9 @@ final class KubernetesDataProviderIntegrationTest {
           objectMapper, registry, new KubernetesConfigurationProperties(), kindMap, null);
   private static final GlobalResourcePropertyRegistry resourcePropertyRegistry =
       new GlobalResourcePropertyRegistry(
-          handlers, new KubernetesUnregisteredCustomResourceHandler());
+          handlers,
+          new KubernetesUnregisteredCustomResourceHandler(
+              CustomResourceStatusEvaluator.disabled()));
   private static final CredentialsRepository<KubernetesNamedAccountCredentials>
       credentialsRepository =
           new MapBackedCredentialsRepository<>(
@@ -621,7 +624,10 @@ final class KubernetesDataProviderIntegrationTest {
             new KubernetesKindRegistry.Factory(new GlobalKubernetesKindRegistry()),
             kindMap,
             new GlobalResourcePropertyRegistry(
-                ImmutableList.of(), new KubernetesUnregisteredCustomResourceHandler()));
+                ImmutableList.of(),
+                new KubernetesUnregisteredCustomResourceHandler(
+                    CustomResourceStatusEvaluator.disabled())),
+            CustomResourceStatusEvaluator.disabled());
     return new KubernetesNamedAccountCredentials(managedAccount, credentialFactory);
   }
 
