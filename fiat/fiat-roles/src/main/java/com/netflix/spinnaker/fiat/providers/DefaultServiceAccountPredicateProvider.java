@@ -18,7 +18,9 @@ package com.netflix.spinnaker.fiat.providers;
 
 import com.netflix.spinnaker.fiat.config.FiatRoleConfig;
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 
 /**
@@ -34,6 +36,11 @@ public class DefaultServiceAccountPredicateProvider implements ServiceAccountPre
 
   @Override
   public Predicate<ServiceAccount> get(String userId, List<String> userRoles, boolean isAdmin) {
+    return get(userId, new HashSet<>(userRoles), isAdmin);
+  }
+
+  @Override
+  public Predicate<ServiceAccount> get(String userId, Set<String> userRoles, boolean isAdmin) {
     if (isAdmin) {
       return svcAcct -> true;
     }
