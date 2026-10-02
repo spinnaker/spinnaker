@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.clouddriver.core.test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.netflix.spinnaker.clouddriver.core.ClouddriverHostname;
@@ -88,6 +89,66 @@ public abstract class TaskRepositoryTck<T extends TaskRepository> {
     assertThat(t2.getStatus().isCompleted()).isTrue();
     assertThat(t2.getStatus().isFailed()).isTrue();
     assertThat(t2.getStatus().isRetryable()).isTrue();
+  }
+
+  @Test
+  public void testRetryMovesARetryableFailureBackToStarted() {
+    Task t1 = subject.create("TEST", "Test Status");
+    t1.fail(true);
+
+    t1.retry();
+    t1.updateStatus("TEST", "Retrying");
+
+    Task t2 = subject.get(t1.getId());
+    assertThat(t2.getStatus().isCompleted()).isFalse();
+    assertThat(t2.getStatus().getStatus()).isEqualTo("Retrying");
+
+    t2.complete();
+    assertThat(subject.get(t1.getId()).getStatus().isCompleted()).isTrue();
+  }
+
+  @Test
+  public void testNonRetryableFailureCannotBeRetried() {
+    Task t1 = subject.create("TEST", "Test Status");
+    t1.fail(false);
+
+    assertThatThrownBy(t1::retry).isInstanceOf(IllegalStateException.class);
+    assertThat(subject.get(t1.getId()).getStatus().isFailed()).isTrue();
+  }
+
+  @Test
+  public void testTerminalStateCannotBeChanged() {
+    Task t1 = subject.create("TEST", "Test Status");
+    t1.fail(false);
+
+    assertThatThrownBy(t1::complete).isInstanceOf(IllegalStateException.class);
+    assertThatThrownBy(() -> t1.updateStatus("TEST", "After failure"))
+        .isInstanceOf(IllegalStateException.class);
+
+    Status status = subject.get(t1.getId()).getStatus();
+    assertThat(status.isFailed()).isTrue();
+    assertThat(status.getStatus()).isEqualTo("Test Status");
+  }
+
+  @Test
+  public void testResultObjectsCannotBeAddedAfterCompletion() {
+    Task t1 = subject.create("TEST", "Test Status");
+    t1.complete();
+
+    assertThatThrownBy(() -> t1.addResultObjects(List.of(Map.of("key", "value"))))
+        .isInstanceOf(IllegalStateException.class);
+    assertThat(subject.get(t1.getId()).getResultObjects()).isEmpty();
+  }
+
+  @Test
+  public void testDuplicateCreateLeavesTheExistingTaskUntouched() {
+    Task t1 = subject.create("Test", "Test Status", "duplicate-key");
+    Task t2 = subject.create("Test", "Test Status 2", "duplicate-key");
+
+    assertThat(t2.getId()).isEqualTo(t1.getId());
+    Status status = subject.get(t1.getId()).getStatus();
+    assertThat(status.isCompleted()).isFalse();
+    assertThat(status.getStatus()).isEqualTo("Test Status");
   }
 
   @Test

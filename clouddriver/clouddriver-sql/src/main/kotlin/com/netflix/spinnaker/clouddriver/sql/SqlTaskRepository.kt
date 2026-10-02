@@ -22,20 +22,30 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskOutput
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.data.task.TaskState
-import com.netflix.spinnaker.clouddriver.data.task.TaskState.FAILED
 import com.netflix.spinnaker.clouddriver.data.task.TaskState.STARTED
 import com.netflix.spinnaker.kork.sql.routing.withPool
 import de.huxhorn.sulky.ulid.ULID
 import java.time.Clock
+import java.time.Duration
 import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.Record
+import org.jooq.exception.SQLStateClass
 import org.jooq.Select
+import org.jooq.exception.DataAccessException
 import org.jooq.impl.DSL.field
-import org.jooq.impl.DSL.max
+import org.jooq.impl.DSL.noCondition
 import org.jooq.impl.DSL.sql
 import org.slf4j.LoggerFactory
 
+/**
+ * Task state is ordered by a per-task sequence number (`seq`), assigned while holding a row lock on the
+ * task, so the order of a task's history never depends on pod clocks or on how IDs sort. `tasks.current_state`
+ * holds the latest state, so finding running tasks never has to aggregate `task_states`.
+ *
+ * Tasks created before those columns existed have NULL `seq`/`current_state`. Their rows sort first, in the
+ * old `(created_at, id)` order, and their `current_state` is filled in by their next write.
+ */
 class SqlTaskRepository(
   private val jooq: DSLContext,
   private val mapper: ObjectMapper,
@@ -54,32 +64,36 @@ class SqlTaskRepository(
   }
 
   override fun create(phase: String, status: String, clientRequestId: String): Task {
-    var task = SqlTask(ulid.nextULID(), ClouddriverHostname.ID, clientRequestId, clock.millis(), mutableSetOf(), this)
-    val historyId = ulid.nextULID()
+    // A task already exists for this request: return it untouched.
+    getByClientRequestId(clientRequestId)?.let { return it }
 
-    withPool(poolName) {
-      jooq.transactional { ctx ->
-        val existingTask = getByClientRequestId(clientRequestId)
-        if (existingTask != null) {
-          task = existingTask as SqlTask
-          addToHistory(ctx, historyId, existingTask.id, FAILED, phase, "Duplicate of $clientRequestId")
-        } else {
+    val task = SqlTask(ulid.nextULID(), ClouddriverHostname.ID, clientRequestId, clock.millis(), mutableSetOf(), this)
+    try {
+      withPool(poolName) {
+        jooq.transactional { ctx ->
           val pairs = mapOf(
             field("id") to task.id,
             field("owner_id") to task.ownerId,
             field("request_id") to task.requestId,
             field("created_at") to task.startTimeMs,
-            field("saga_ids") to mapper.writeValueAsString(task.sagaIds)
+            field("saga_ids") to mapper.writeValueAsString(task.sagaIds),
+            field("current_state") to STARTED.toString(),
+            field("next_seq") to FIRST_SEQ + 1
           )
-
           ctx.insertInto(tasksTable, *pairs.keys.toTypedArray()).values(*pairs.values.toTypedArray()).execute()
-          addToHistory(ctx, historyId, task.id, STARTED, phase, status)
+          insertState(ctx, task.id, FIRST_SEQ, STARTED, phase, status)
         }
       }
-      // TODO(rz): So janky and bad.
-      task.refresh(true)
+    } catch (e: DataAccessException) {
+      if (e.sqlStateClass() != SQLStateClass.C23_INTEGRITY_CONSTRAINT_VIOLATION) {
+        throw e
+      }
+      // A concurrent request with the same client request ID created its task first (request_id is unique).
+      return getByClientRequestId(clientRequestId) ?: throw e
     }
 
+    // TODO(rz): So janky and bad.
+    task.refresh(true)
     return task
   }
 
@@ -133,101 +147,80 @@ class SqlTaskRepository(
   }
 
   internal fun addResultObjects(results: List<Any>, task: Task) {
-    val resultIdPairs = results.map { ulid.nextULID() to it }.toMap()
-
     withPool(poolName) {
       jooq.transactional { ctx ->
-        ctx.select(taskStatesFields)
-          .from(taskStatesTable)
-          .where(field("task_id").eq(task.id))
-          .orderBy(field("created_at").asc())
-          .limit(1)
-          .fetchTaskStatus()
-          ?.run {
-            ensureUpdateable()
-          }
+        val row = lockTask(ctx, task.id)
+        currentStatus(ctx, task.id, row).ensureUpdateable()
 
-        resultIdPairs.forEach { result ->
-          ctx.insertInto(taskResultsTable, listOf(field("id"), field("task_id"), field("body")))
-            .values(
-              listOf(
-                result.key,
-                task.id,
-                mapper.writeValueAsString(result.value)
-              )
-            )
+        results.forEachIndexed { index, result ->
+          ctx.insertInto(taskResultsTable, listOf(field("id"), field("task_id"), field("seq"), field("body")))
+            .values(listOf(ulid.nextULID(), task.id, row.nextSeq + index, mapper.writeValueAsString(result)))
             .execute()
         }
+        updateTaskRow(ctx, task.id, row.nextSeq + results.size)
       }
     }
   }
 
   internal fun updateCurrentStatus(task: Task, phase: String, status: String) {
-    val historyId = ulid.nextULID()
     withPool(poolName) {
       jooq.transactional { ctx ->
-        val state = selectLatestState(ctx, task.id)
-        addToHistory(ctx, historyId, task.id, state?.state ?: STARTED, phase, status.take(MAX_STATUS_LENGTH))
+        val row = lockTask(ctx, task.id)
+        // Throws if the task has already reached a terminal state.
+        val updated = currentStatus(ctx, task.id, row).update(phase, status.take(MAX_STATUS_LENGTH))
+        insertState(ctx, task.id, row.nextSeq, updated.state, updated.phase, updated.status)
+        updateTaskRow(ctx, task.id, row.nextSeq + 1, updated.state)
       }
     }
   }
 
-  private fun addToHistory(ctx: DSLContext, id: String, taskId: String, state: TaskState, phase: String, status: String) {
-    ctx
-      .insertInto(
-        taskStatesTable,
-        listOf(field("id"), field("task_id"), field("created_at"), field("state"), field("phase"), field("status"))
-      )
-      .values(listOf(id, taskId, clock.millis(), state.toString(), phase, status))
-      .execute()
-  }
-
   internal fun updateState(task: Task, state: TaskState) {
-    val historyId = ulid.nextULID()
     withPool(poolName) {
       jooq.transactional { ctx ->
-        selectLatestState(ctx, task.id)?.let {
-          addToHistory(ctx, historyId, task.id, state, it.phase, it.status)
-        }
+        val row = lockTask(ctx, task.id)
+        // Throws unless the transition is allowed: nothing leaves a terminal state except retrying a
+        // FAILED_RETRYABLE task.
+        val updated = currentStatus(ctx, task.id, row).update(state)
+        insertState(ctx, task.id, row.nextSeq, updated.state, updated.phase, updated.status)
+        updateTaskRow(ctx, task.id, row.nextSeq + 1, updated.state)
       }
     }
   }
 
   internal fun updateOutput(taskOutput: TaskOutput, task: Task) {
-    val outputId = ulid.nextULID()
     withPool(poolName) {
       jooq.transactional { ctx ->
-        addToOutput(ctx, outputId, task.id, taskOutput.manifest, taskOutput.phase, taskOutput.stdOut, taskOutput.stdError)
+        val row = lockTask(ctx, task.id)
+        ctx
+          .insertInto(
+            taskOutputsTable,
+            listOf(
+              field("id"),
+              field("task_id"),
+              field("seq"),
+              field("created_at"),
+              field("manifest"),
+              field("phase"),
+              field("std_out"),
+              field("std_error")
+            )
+          )
+          .values(
+            listOf(
+              ulid.nextULID(),
+              task.id,
+              row.nextSeq,
+              clock.millis(),
+              taskOutput.manifest,
+              taskOutput.phase,
+              taskOutput.stdOut,
+              taskOutput.stdError
+            )
+          )
+          .execute()
+        updateTaskRow(ctx, task.id, row.nextSeq + 1)
       }
     }
-  }
-
-  private fun addToOutput(ctx: DSLContext, id: String, taskId: String, manifestName: String, phase: String, stdOut: String?, stdError: String?) {
-    ctx
-      .insertInto(
-        taskOutputsTable,
-        listOf(
-          field("id"),
-          field("task_id"),
-          field("created_at"),
-          field("manifest"),
-          field("phase"),
-          field("std_out"),
-          field("std_error")
-        )
-      )
-      .values(
-        listOf(
-          id,
-          taskId,
-          clock.millis(),
-          manifestName,
-          phase,
-          stdOut,
-          stdError
-        )
-      )
-      .execute()
   }
 
   fun updateOwnerId(task: Task) {
@@ -253,15 +246,8 @@ class SqlTaskRepository(
     //  REPEATABLE_READ is correct here.
     withPool(poolName) {
       jooq.transactional { ctx ->
-        /**
-         *  (select id as task_id, owner_id, request_id, created_at, saga_ids, null as body, null as state, null as phase, null as status from tasks_copy where id = '01D2H4H50VTF7CGBMP0D6HTGTF')
-         *  UNION ALL
-         *  (select task_id, null as owner_id, null as request_id, null as created_at, null as saga_ids, null as body, state, phase, status from task_states_copy where task_id = '01D2H4H50VTF7CGBMP0D6HTGTF')
-         *  UNION ALL
-         *  (select task_id, null as owner_id, null as request_id, null as created_at, null as saga_ids, body, null as state, null as phase, null as status from task_results_copy where task_id = '01D2H4H50VTF7CGBMP0D6HTGTF')
-         *  UNION ALL
-         *  (select task_id, null as owner_id, null as request_id, null as created_at, null as saga_ids, null as body, null as state, manifest, phase, stdOut, stdError, null as status  from task_outputs_copy where task_id = '01D2H4H50VTF7CGBMP0D6HTGTF')
-         */
+        // One UNION ALL across the task and its states, results and outputs. Each child row carries its ordering
+        // columns (seq, sort_created_at, row_id); TaskMapper sorts each task's rows by them.
         tasks.addAll(
           ctx
             .select(
@@ -276,7 +262,10 @@ class SqlTaskRepository(
               field(sql("null")).`as`("status"),
               field(sql("null")).`as`("manifest"),
               field(sql("null")).`as`("std_out"),
-              field(sql("null")).`as`("std_error")
+              field(sql("null")).`as`("std_error"),
+              field(sql("null")).`as`("seq"),
+              field(sql("null")).`as`("sort_created_at"),
+              field(sql("null")).`as`("row_id")
             )
             .from(tasksTable)
             .where(condition)
@@ -294,7 +283,10 @@ class SqlTaskRepository(
                   field("status"),
                   field(sql("null")).`as`("manifest"),
                   field(sql("null")).`as`("std_out"),
-                  field(sql("null")).`as`("std_error")
+                  field(sql("null")).`as`("std_error"),
+                  field("seq"),
+                  field("created_at").`as`("sort_created_at"),
+                  field("id").`as`("row_id")
                 )
                 .from(taskStatesTable)
                 .where(relationshipCondition ?: condition)
@@ -313,7 +305,10 @@ class SqlTaskRepository(
                   field(sql("null")).`as`("status"),
                   field(sql("null")).`as`("manifest"),
                   field(sql("null")).`as`("std_out"),
-                  field(sql("null")).`as`("std_error")
+                  field(sql("null")).`as`("std_error"),
+                  field("seq"),
+                  field(sql("null")).`as`("sort_created_at"),
+                  field("id").`as`("row_id")
                 )
                 .from(taskResultsTable)
                 .where(relationshipCondition ?: condition)
@@ -332,7 +327,10 @@ class SqlTaskRepository(
                   field(sql("null")).`as`("status"),
                   field("manifest"),
                   field("std_out"),
-                  field("std_error")
+                  field("std_error"),
+                  field("seq"),
+                  field("created_at").`as`("sort_created_at"),
+                  field("id").`as`("row_id")
                 )
                 .from(taskOutputsTable)
                 .where(relationshipCondition ?: condition)
@@ -345,63 +343,93 @@ class SqlTaskRepository(
     return tasks
   }
 
-  private fun selectLatestState(ctx: DSLContext, taskId: String): DefaultTaskStatus? {
-    return withPool(poolName) {
-      ctx.select(taskStatesFields)
-        .from(taskStatesTable)
-        .where(field("task_id").eq(taskId))
-        .orderBy(field("created_at").desc())
-        .limit(1)
-        .fetchTaskStatus()
+  private data class TaskRow(val currentState: TaskState?, val nextSeq: Long)
+
+  /**
+   * Locks the task's row for the rest of the transaction, so writes to one task are serialized and each gets
+   * the next sequence number.
+   */
+  private fun lockTask(ctx: DSLContext, taskId: String): TaskRow {
+    val record = ctx.select(field("current_state"), field("next_seq"))
+      .from(tasksTable)
+      .where(field("id").eq(taskId))
+      .forUpdate()
+      .fetchOne()
+      ?: throw IllegalStateException("Task $taskId does not exist")
+    return TaskRow(
+      record.get("current_state", String::class.java)?.let { TaskState.valueOf(it) },
+      record.get("next_seq", Long::class.javaObjectType) ?: FIRST_SEQ
+    )
+  }
+
+  /** The task's latest status. Its state comes from `tasks.current_state` when that's set. */
+  private fun currentStatus(ctx: DSLContext, taskId: String, row: TaskRow): DefaultTaskStatus {
+    val latest = ctx.select(taskStatesFields)
+      .from(taskStatesTable)
+      .where(field("task_id").eq(taskId))
+      .orderBy(field("seq").desc().nullsLast(), field("created_at").desc(), field("id").desc())
+      .limit(1)
+      .fetchTaskStatus()
+      ?: throw IllegalStateException("Task $taskId has no state")
+    return row.currentState
+      ?.let { DefaultTaskStatus.create(latest.phase, latest.status, it) }
+      ?: latest
+  }
+
+  private fun insertState(ctx: DSLContext, taskId: String, seq: Long, state: TaskState, phase: String, status: String) {
+    ctx
+      .insertInto(
+        taskStatesTable,
+        listOf(field("id"), field("task_id"), field("seq"), field("created_at"), field("state"), field("phase"), field("status"))
+      )
+      .values(listOf(ulid.nextULID(), taskId, seq, clock.millis(), state.toString(), phase, status))
+      .execute()
+  }
+
+  /** Advances the task's sequence and, when [state] is given, records it as the task's current state. */
+  private fun updateTaskRow(ctx: DSLContext, taskId: String, nextSeq: Long, state: TaskState? = null) {
+    var update = ctx.update(tasksTable).set(field("next_seq"), nextSeq)
+    if (state != null) {
+      update = update
+        .set(field("current_state"), state.toString())
+        .set(field("completed_at"), if (state.isCompleted) clock.millis() else null)
     }
+    update.where(field("id").eq(taskId)).execute()
   }
 
   /**
-   * Since task statuses are insert-only, we first need to find the most
-   * recent status record for each task ID and the filter that result set
-   * down to the ones that are running.
+   * IDs of tasks whose current state is STARTED.
    *
-   * Query used:
-   * SELECT a.task_id
-   * FROM task_states AS `a`
-   *  JOIN (
-   *    SELECT task_id, MAX(created_at) AS `created`
-   *    FROM task_states
-   *    GROUP BY task_id
-   *  ) AS `b`
-   *    ON (a.task_id = b.task_id AND a.created_at = b.created)
-   *  JOIN tasks AS `t`
-   *    ON (a.task_id = t.id)
-   * WHERE (
-   *  t.owner_id = '<clouddriver host name>'
-   *    and a.state = 'STARTED'
-   * )
+   * Tasks created before `current_state` existed have it NULL until their next write. Those are checked
+   * against their latest history row instead, but only if created within [LEGACY_RUNNING_WINDOW]: older
+   * pre-upgrade tasks can't still be running, and the bound keeps this query cheap once all such tasks have
+   * aged out.
    */
   private fun runningTaskIds(ctx: DSLContext, thisInstance: Boolean): Array<String> {
     return withPool(poolName) {
-      val baseQuery = ctx.select(field("a.task_id"))
-        .from(taskStatesTable.`as`("a"))
-        .innerJoin(
-          ctx.select(field("task_id"), max(field("created_at")).`as`("created"))
-            .from(taskStatesTable)
-            .groupBy(field("task_id"))
-            .asTable("b")
-        ).on(sql("a.task_id = b.task_id and a.created_at = b.created"))
+      val owner = if (thisInstance) field("owner_id").eq(ClouddriverHostname.ID) else noCondition()
+      val current = ctx.select(field("id"))
+        .from(tasksTable)
+        .where(field("current_state").eq(STARTED.toString()).and(owner))
+        .fetch("id", String::class.java)
 
-      val select = if (thisInstance) {
-        baseQuery
-          .innerJoin(tasksTable.`as`("t")).on(sql("a.task_id = t.id"))
-          .where(
-            field("t.owner_id").eq(ClouddriverHostname.ID)
-              .and(field("a.state").eq(STARTED.toString()))
-          )
-      } else {
-        baseQuery.where(field("a.state").eq(STARTED.toString()))
-      }
+      val legacyLatestState = ctx.select(field("s.state"))
+        .from(taskStatesTable.`as`("s"))
+        .where(field("s.task_id").eq(field("t.id")))
+        .orderBy(field("s.created_at").desc(), field("s.id").desc())
+        .limit(1)
+      val legacyOwner = if (thisInstance) field("t.owner_id").eq(ClouddriverHostname.ID) else noCondition()
+      val legacy = ctx.select(field("t.id"))
+        .from(tasksTable.`as`("t"))
+        .where(
+          field("t.current_state").isNull
+            .and(field("t.created_at").gt(clock.millis() - LEGACY_RUNNING_WINDOW.toMillis()))
+            .and(legacyLatestState.asField<String>().eq(STARTED.toString()))
+            .and(legacyOwner)
+        )
+        .fetch("t.id", String::class.java)
 
-      select
-        .fetch("a.task_id", String::class.java)
-        .toTypedArray()
+      (current + legacy).distinct().toTypedArray()
     }
   }
 
@@ -417,5 +445,7 @@ class SqlTaskRepository(
   companion object {
     private val ulid = ULID()
     private val MAX_STATUS_LENGTH = 10_000
+    private const val FIRST_SEQ = 1L
+    private val LEGACY_RUNNING_WINDOW = Duration.ofDays(1)
   }
 }

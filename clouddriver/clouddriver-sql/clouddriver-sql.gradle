@@ -38,6 +38,7 @@ dependencies {
   testImplementation "io.spinnaker.kork:kork-sql-test"
   testImplementation "org.testcontainers:testcontainers-mysql"
   testImplementation "com.mysql:mysql-connector-j"
+  testRuntimeOnly "org.postgresql:postgresql"
 
   testImplementation "cglib:cglib-nodep"
   testImplementation "org.objenesis:objenesis"
