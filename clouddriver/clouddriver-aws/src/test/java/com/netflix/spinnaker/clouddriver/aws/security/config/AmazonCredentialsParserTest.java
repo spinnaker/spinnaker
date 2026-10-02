@@ -46,6 +46,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.io.TempDir;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.services.ec2.Ec2Client;
+import software.amazon.awssdk.services.ec2.model.AvailabilityZone;
+import software.amazon.awssdk.services.ec2.model.DescribeAvailabilityZonesResponse;
+import software.amazon.awssdk.services.ec2.model.DescribeRegionsRequest;
 
 class AmazonCredentialsParserTest {
 
@@ -233,6 +239,226 @@ class AmazonCredentialsParserTest {
 
     // And make sure our lookup factory and credentials factory never got used
     verifyNoInteractions(lookupFactory);
+  }
+
+  @Test
+  public void verifyUseAccountRegionsWithFullyConfiguredAvailabilityZonesMakesNoAwsCalls()
+      throws Throwable {
+    // given: useAccountRegions is on and the account's regions already have AZs specified, so no
+    // EC2 calls of any kind should be needed.
+    CredentialsConfig config = new CredentialsConfig();
+    config.setUseAccountRegions(true);
+
+    Region euWest1 = new Region();
+    euWest1.setName("eu-west-1");
+    euWest1.setAvailabilityZones(List.of("eu-west-1a", "eu-west-1b"));
+
+    AccountsConfiguration.Account account = new AccountsConfiguration.Account();
+    account.setName("prod");
+    account.setAccountId("111122223333");
+    account.setRegions(new ArrayList<>(List.of(euWest1)));
+    AccountsConfiguration accountsConfig = new AccountsConfiguration();
+    accountsConfig.setAccounts(List.of(account));
+
+    AwsCredentialsProvider provider = mock(AwsCredentialsProvider.class);
+    AmazonClientProvider amazonClientProvider = mock(AmazonClientProvider.class);
+    AWSAccountInfoLookup lookup = mock(AWSAccountInfoLookup.class);
+    AWSAccountInfoLookupFactory lookupFactory = spy(AWSAccountInfoLookupFactory.class);
+    AWSCredentialsProviderFactory credentialsProviderFactory =
+        spy(AWSCredentialsProviderFactory.class);
+
+    AmazonCredentialsParser<AccountsConfiguration.Account, NetflixAmazonCredentials> ci =
+        new AmazonCredentialsParser<>(
+            provider,
+            amazonClientProvider,
+            lookup,
+            lookupFactory,
+            credentialsProviderFactory,
+            NetflixAmazonCredentials.class,
+            config,
+            accountsConfig,
+            awsConfigurationProperties);
+
+    // when
+    List<NetflixAmazonCredentials> creds = ci.load(config);
+
+    // then: no EC2 client is ever requested because an accountId was provided and the region
+    // already has its availability zones configured.
+    verifyNoInteractions(amazonClientProvider);
+    verifyNoInteractions(lookup);
+    assertThat(creds).hasSize(1);
+    assertThat(creds.get(0).getRegions()).hasSize(1);
+    assertThat(creds.get(0).getRegions().get(0).getAvailabilityZones())
+        .containsExactly("eu-west-1a", "eu-west-1b");
+  }
+
+  @Test
+  public void verifyUseAccountRegionsResolvesAccountIdUsingAccountsFirstRegion() throws Throwable {
+    // given: useAccountRegions is on, the account has no accountId (so it must be resolved) and
+    // has an explicit region that should be used for the bootstrapping EC2 call instead of the
+    // host's default region.
+    CredentialsConfig config = new CredentialsConfig();
+    config.setUseAccountRegions(true);
+
+    Region apSoutheast1 = new Region();
+    apSoutheast1.setName("ap-southeast-1");
+    apSoutheast1.setAvailabilityZones(List.of("ap-southeast-1a"));
+
+    AccountsConfiguration.Account account = new AccountsConfiguration.Account();
+    account.setName("auto-id-account");
+    account.setRegions(new ArrayList<>(List.of(apSoutheast1)));
+    AccountsConfiguration accountsConfig = new AccountsConfiguration();
+    accountsConfig.setAccounts(List.of(account));
+
+    AwsCredentialsProvider provider = mock(AwsCredentialsProvider.class);
+    AmazonClientProvider amazonClientProvider = mock(AmazonClientProvider.class);
+    AWSAccountInfoLookup lookup = mock(AWSAccountInfoLookup.class);
+    AWSAccountInfoLookupFactory lookupFactory = spy(AWSAccountInfoLookupFactory.class);
+    AWSCredentialsProviderFactory credentialsProviderFactory =
+        spy(AWSCredentialsProviderFactory.class);
+
+    Ec2Client apEc2 = mock(Ec2Client.class);
+    when(amazonClientProvider.getAmazonEC2V2(provider, "ap-southeast-1")).thenReturn(apEc2);
+
+    AwsServiceException ase =
+        AwsServiceException.builder()
+            .message(
+                "User: arn:aws:iam::333333333333:user/test is not authorized to perform: ec2:DescribeVpcs")
+            .awsErrorDetails(
+                AwsErrorDetails.builder()
+                    .errorCode("AccessDenied")
+                    .errorMessage(
+                        "User: arn:aws:iam::333333333333:user/test is not authorized to perform: ec2:DescribeVpcs")
+                    .build())
+            .build();
+    when(apEc2.describeVpcs()).thenThrow(ase);
+
+    AmazonCredentialsParser<AccountsConfiguration.Account, NetflixAmazonCredentials> ci =
+        new AmazonCredentialsParser<>(
+            provider,
+            amazonClientProvider,
+            lookup,
+            lookupFactory,
+            credentialsProviderFactory,
+            NetflixAmazonCredentials.class,
+            config,
+            accountsConfig,
+            awsConfigurationProperties);
+
+    // when
+    List<NetflixAmazonCredentials> creds = ci.load(config);
+
+    // then: findAccountId used the account's own region ("ap-southeast-1"), not the standalone
+    // lookup or the host's default region, and extracted the account id from the IAM ARN.
+    assertThat(creds).hasSize(1);
+    assertThat(creds.get(0).getAccountId()).isEqualTo("333333333333");
+    verifyNoInteractions(lookup);
+  }
+
+  @Test
+  public void verifyUseAccountRegionsFallsBackToStandardLookupWhenAccountHasNoRegions()
+      throws Throwable {
+    // given: useAccountRegions is on, but the account doesn't specify its own regions, so the
+    // standard (shared) AWSAccountInfoLookup should still be used.
+    CredentialsConfig config = new CredentialsConfig();
+    config.setUseAccountRegions(true);
+
+    AccountsConfiguration.Account account = new AccountsConfiguration.Account();
+    account.setName("no-region-account");
+    AccountsConfiguration accountsConfig = new AccountsConfiguration();
+    accountsConfig.setAccounts(List.of(account));
+
+    AwsCredentialsProvider provider = mock(AwsCredentialsProvider.class);
+    AmazonClientProvider amazonClientProvider = mock(AmazonClientProvider.class);
+    AWSAccountInfoLookup lookup = mock(AWSAccountInfoLookup.class);
+    AWSAccountInfoLookupFactory lookupFactory = spy(AWSAccountInfoLookupFactory.class);
+    AWSCredentialsProviderFactory credentialsProviderFactory =
+        spy(AWSCredentialsProviderFactory.class);
+
+    when(lookup.findAccountId()).thenReturn("444");
+    when(lookup.listRegions()).thenReturn(List.of());
+
+    AmazonCredentialsParser<AccountsConfiguration.Account, NetflixAmazonCredentials> ci =
+        new AmazonCredentialsParser<>(
+            provider,
+            amazonClientProvider,
+            lookup,
+            lookupFactory,
+            credentialsProviderFactory,
+            NetflixAmazonCredentials.class,
+            config,
+            accountsConfig,
+            awsConfigurationProperties);
+
+    // when
+    List<NetflixAmazonCredentials> creds = ci.load(config);
+
+    // then
+    assertThat(creds).hasSize(1);
+    assertThat(creds.get(0).getAccountId()).isEqualTo("444");
+    verify(lookup).findAccountId();
+    verify(lookup).listRegions();
+  }
+
+  @Test
+  public void
+      verifyUseAccountRegionsWithMissingAvailabilityZonesCallsDescribeAvailabilityZonesDirectly()
+          throws Throwable {
+    // given: useAccountRegions is on; the account's region has no AZs, so describeAvailabilityZones
+    // should be called directly against that region, with no describeRegions call at all.
+    CredentialsConfig config = new CredentialsConfig();
+    config.setUseAccountRegions(true);
+
+    Region euWest1 = new Region();
+    euWest1.setName("eu-west-1"); // no AZs
+
+    AccountsConfiguration.Account account = new AccountsConfiguration.Account();
+    account.setName("prod");
+    account.setAccountId("111122223333");
+    account.setRegions(new ArrayList<>(List.of(euWest1)));
+    AccountsConfiguration accountsConfig = new AccountsConfiguration();
+    accountsConfig.setAccounts(List.of(account));
+
+    AwsCredentialsProvider provider = mock(AwsCredentialsProvider.class);
+    AmazonClientProvider amazonClientProvider = mock(AmazonClientProvider.class);
+    AWSAccountInfoLookup lookup = mock(AWSAccountInfoLookup.class);
+    AWSAccountInfoLookupFactory lookupFactory = spy(AWSAccountInfoLookupFactory.class);
+    AWSCredentialsProviderFactory credentialsProviderFactory =
+        spy(AWSCredentialsProviderFactory.class);
+
+    Ec2Client euWest1Ec2 = mock(Ec2Client.class);
+    when(amazonClientProvider.getAmazonEC2V2(provider, "eu-west-1")).thenReturn(euWest1Ec2);
+    when(euWest1Ec2.describeAvailabilityZones())
+        .thenReturn(
+            DescribeAvailabilityZonesResponse.builder()
+                .availabilityZones(
+                    AvailabilityZone.builder().zoneName("eu-west-1a").build(),
+                    AvailabilityZone.builder().zoneName("eu-west-1b").build())
+                .build());
+
+    AmazonCredentialsParser<AccountsConfiguration.Account, NetflixAmazonCredentials> ci =
+        new AmazonCredentialsParser<>(
+            provider,
+            amazonClientProvider,
+            lookup,
+            lookupFactory,
+            credentialsProviderFactory,
+            NetflixAmazonCredentials.class,
+            config,
+            accountsConfig,
+            awsConfigurationProperties);
+
+    // when
+    List<NetflixAmazonCredentials> creds = ci.load(config);
+
+    // then
+    verifyNoInteractions(lookup);
+    verify(euWest1Ec2, never())
+        .describeRegions(org.mockito.ArgumentMatchers.any(DescribeRegionsRequest.class));
+    assertThat(creds).hasSize(1);
+    assertThat(creds.get(0).getRegions()).hasSize(1);
+    assertThat(creds.get(0).getRegions().get(0).getAvailabilityZones())
+        .containsExactly("eu-west-1a", "eu-west-1b");
   }
 
   @NonnullByDefault
