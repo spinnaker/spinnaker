@@ -42,6 +42,7 @@ class SqlTaskRepositoryPostgresTest extends TaskRepositoryTck<SqlTaskRepository>
   void cleanup() {
     if (database != null) {
       SqlTestUtil.cleanupDb(database.context);
+      database.close();
     }
   }
 }

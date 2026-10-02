@@ -80,6 +80,7 @@ class TaskRequestIdMigrationTest {
       assertThat(ctx.fetchCount(table("tasks"))).isEqualTo(4)
     } finally {
       SqlTestUtil.cleanupDb(database.context)
+      database.close()
     }
   }
 
