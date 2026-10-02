@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.services.ec2.Ec2Client;
@@ -43,18 +44,26 @@ public class DefaultAWSAccountInfoLookup implements AWSAccountInfoLookup {
 
   private final AwsCredentialsProvider credentialsProvider;
   private final AmazonClientProvider amazonClientProvider;
+  // When non-null, used instead of AmazonClientProvider.DEFAULT_REGION for bootstrapping calls.
+  private final String firstRegion;
 
   public DefaultAWSAccountInfoLookup(
       AwsCredentialsProvider credentialsProvider, AmazonClientProvider amazonClientProvider) {
+    this(credentialsProvider, amazonClientProvider, null);
+  }
+
+  public DefaultAWSAccountInfoLookup(
+      AwsCredentialsProvider credentialsProvider,
+      AmazonClientProvider amazonClientProvider,
+      String firstRegion) {
     this.credentialsProvider = credentialsProvider;
     this.amazonClientProvider = amazonClientProvider;
+    this.firstRegion = firstRegion;
   }
 
   @Override
   public String findAccountId() {
-    Ec2Client ec2 =
-        amazonClientProvider.getAmazonEC2V2(
-            credentialsProvider, AmazonClientProvider.DEFAULT_REGION);
+    Ec2Client ec2 = amazonClientProvider.getAmazonEC2V2(credentialsProvider, firstRegion);
     try {
       List<Vpc> vpcs = ec2.describeVpcs().vpcs();
       boolean supportsByName = false;
@@ -113,10 +122,14 @@ public class DefaultAWSAccountInfoLookup implements AWSAccountInfoLookup {
 
   @Override
   public List<AWSRegion> listRegions(Collection<String> regionNames) {
+    // When firstRegion is set (useAccountRegions: true) we trust the caller-supplied region names
+    // and skip describeRegions entirely, going straight to describeAvailabilityZones per region.
+    if (firstRegion != null) {
+      return describeAvailabilityZonesForRegions(regionNames);
+    }
+
     Set<String> nameSet = new HashSet<>(regionNames);
-    Ec2Client ec2 =
-        amazonClientProvider.getAmazonEC2V2(
-            credentialsProvider, AmazonClientProvider.DEFAULT_REGION);
+    Ec2Client ec2 = amazonClientProvider.getAmazonEC2V2(credentialsProvider, null);
 
     DescribeRegionsRequest.Builder requestBuilder = DescribeRegionsRequest.builder();
     if (!nameSet.isEmpty()) {
@@ -131,17 +144,25 @@ public class DefaultAWSAccountInfoLookup implements AWSAccountInfoLookup {
       throw new IllegalArgumentException(
           "Unknown region" + (missingSet.size() > 1 ? "s: " : ": ") + missingSet);
     }
-    List<AWSRegion> awsRegions = new ArrayList<>(regions.size());
-    for (Region region : regions) {
-      Ec2Client regionalEc2 =
-          amazonClientProvider.getAmazonEC2V2(credentialsProvider, region.regionName());
+    return describeAvailabilityZonesForRegions(
+        regions.stream().map(Region::regionName).collect(Collectors.toList()));
+  }
+
+  /**
+   * Calls describeAvailabilityZones for each region name directly, without a prior describeRegions
+   * call. Used when {@code useAccountRegions} is true and the region names are already known from
+   * configuration.
+   */
+  private List<AWSRegion> describeAvailabilityZonesForRegions(Collection<String> regionNames) {
+    List<AWSRegion> awsRegions = new ArrayList<>(regionNames.size());
+    for (String regionName : regionNames) {
+      Ec2Client regionalEc2 = amazonClientProvider.getAmazonEC2V2(credentialsProvider, regionName);
       List<AvailabilityZone> azs = regionalEc2.describeAvailabilityZones().availabilityZones();
       List<String> availabilityZoneNames = new ArrayList<>(azs.size());
       for (AvailabilityZone az : azs) {
         availabilityZoneNames.add(az.zoneName());
       }
-
-      awsRegions.add(new AWSRegion(region.regionName(), availabilityZoneNames));
+      awsRegions.add(new AWSRegion(regionName, availabilityZoneNames));
     }
     return awsRegions;
   }
