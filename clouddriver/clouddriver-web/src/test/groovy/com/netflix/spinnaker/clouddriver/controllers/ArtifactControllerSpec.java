@@ -20,7 +20,6 @@ import static com.netflix.spinnaker.kork.common.Header.USER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.is;
-import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -48,10 +47,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -67,6 +68,7 @@ import tools.jackson.databind.ObjectMapper;
  */
 @ExtendWith(SpringExtension.class)
 @AutoConfigureMockMvc
+@Import(ArtifactControllerSpec.RemoteArtifactStoreConfig.class)
 @SpringBootTest(classes = Main.class)
 @TestPropertySource(
     properties = {
@@ -83,7 +85,26 @@ public class ArtifactControllerSpec {
 
   @Autowired private CredentialsRepository<HelmArtifactCredentials> helmCredentials;
 
-  @MockitoBean private ArtifactStoreGetter artifactStoreGetter;
+  @TestConfiguration
+  static class RemoteArtifactStoreConfig {
+    static final String STORED_CONTENT = "hello-manifest";
+
+    @Bean
+    ArtifactStoreGetter artifactStoreGetter() {
+      String encoded =
+          Base64.getEncoder().encodeToString(STORED_CONTENT.getBytes(StandardCharsets.UTF_8));
+      return (uri, decorators) -> {
+        Artifact.ArtifactBuilder builder =
+            Artifact.builder().type(ArtifactTypes.REMOTE_BASE64.getMimeType()).reference(encoded);
+        if (decorators != null) {
+          for (ArtifactDecorator decorator : decorators) {
+            builder = decorator.decorate(builder);
+          }
+        }
+        return builder.build();
+      };
+    }
+  }
 
   @Test
   public void testFetchWithMisconfiguredArtifact() throws Exception {
@@ -117,25 +138,6 @@ public class ArtifactControllerSpec {
 
   @Test
   public void fetchRemoteBase64ArtifactReturnsStoredContent() throws Exception {
-    String storedContent = "hello-manifest";
-    String encoded =
-        Base64.getEncoder().encodeToString(storedContent.getBytes(StandardCharsets.UTF_8));
-    Mockito.when(artifactStoreGetter.get(any(), any()))
-        .thenAnswer(
-            invocation -> {
-              Artifact.ArtifactBuilder builder =
-                  Artifact.builder()
-                      .type(ArtifactTypes.REMOTE_BASE64.getMimeType())
-                      .reference(encoded);
-              ArtifactDecorator[] decorators = invocation.getArgument(1);
-              if (decorators != null) {
-                for (ArtifactDecorator decorator : decorators) {
-                  builder = decorator.decorate(builder);
-                }
-              }
-              return builder.build();
-            });
-
     Artifact remote =
         Artifact.builder()
             .type(ArtifactTypes.REMOTE_BASE64.getMimeType())
@@ -151,7 +153,7 @@ public class ArtifactControllerSpec {
 
     mvc.perform(asyncDispatch(result))
         .andExpect(status().isOk())
-        .andExpect(content().string(storedContent));
+        .andExpect(content().string(RemoteArtifactStoreConfig.STORED_CONTENT));
   }
 
   @Test

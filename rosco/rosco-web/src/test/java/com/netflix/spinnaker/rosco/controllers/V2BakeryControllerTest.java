@@ -15,15 +15,22 @@
  */
 package com.netflix.spinnaker.rosco.controllers;
 
+import static com.netflix.spinnaker.kork.common.Header.APPLICATION;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.nullable;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
 import com.google.common.collect.ImmutableList;
+import com.netflix.spinnaker.filters.AuthenticatedRequestFilter;
+import com.netflix.spinnaker.kork.artifacts.ArtifactTypes;
+import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreStorer;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
@@ -31,14 +38,20 @@ import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import com.netflix.spinnaker.rosco.Main;
 import com.netflix.spinnaker.rosco.executor.BakePoller;
 import com.netflix.spinnaker.rosco.manifests.helm.HelmBakeManifestRequest;
+import com.netflix.spinnaker.rosco.manifests.helm.HelmBakeManifestService;
 import com.netflix.spinnaker.rosco.services.ClouddriverService;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import okhttp3.ResponseBody;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -130,5 +143,60 @@ class V2BakeryControllerTest {
             .build();
 
     return new SpinnakerHttpException(retrofit2Response, retrofit);
+  }
+
+  @Nested
+  @Import(V2BakeryControllerTest.WithArtifactStore.StoreConfig.class)
+  class WithArtifactStore {
+    private static final String STORED_REFERENCE = "ref://myapp/hash";
+
+    @Autowired private WebApplicationContext nestedWebApplicationContext;
+    @Autowired private ObjectMapper nestedObjectMapper;
+    @Autowired private AuthenticatedRequestFilter authenticatedRequestFilter;
+
+    @MockitoBean private HelmBakeManifestService helmBakeManifestService;
+
+    @TestConfiguration
+    static class StoreConfig {
+      @Bean
+      ArtifactStoreStorer artifactStoreStorer() {
+        return (artifact, decorators) ->
+            artifact.toBuilder()
+                .type(ArtifactTypes.REMOTE_BASE64.getMimeType())
+                .reference(STORED_REFERENCE)
+                .build();
+      }
+    }
+
+    @Test
+    void bakeResponseReturnsRemoteBase64WhenStoreIsPresent() throws Exception {
+      Artifact embedded =
+          Artifact.builder()
+              .type(ArtifactTypes.EMBEDDED_BASE64.getMimeType())
+              .name("baked-manifest")
+              .reference(
+                  Base64.getEncoder()
+                      .encodeToString("apiVersion: v1".getBytes(StandardCharsets.UTF_8)))
+              .build();
+      doReturn(true).when(helmBakeManifestService).handles("HELM2");
+      doReturn(HelmBakeManifestRequest.class).when(helmBakeManifestService).requestType();
+      doReturn(embedded)
+          .when(helmBakeManifestService)
+          .bake(nullable(HelmBakeManifestRequest.class));
+
+      MockMvc mvc =
+          webAppContextSetup(nestedWebApplicationContext)
+              .addFilters(authenticatedRequestFilter)
+              .build();
+      mvc.perform(
+              post("/api/v2/manifest/bake/HELM2")
+                  .contentType(MediaType.APPLICATION_JSON_VALUE)
+                  .characterEncoding(StandardCharsets.UTF_8.toString())
+                  .header(APPLICATION.getHeader(), "myapp")
+                  .content(nestedObjectMapper.writeValueAsString(new HelmBakeManifestRequest())))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.type").value(ArtifactTypes.REMOTE_BASE64.getMimeType()))
+          .andExpect(jsonPath("$.reference").value(STORED_REFERENCE));
+    }
   }
 }
