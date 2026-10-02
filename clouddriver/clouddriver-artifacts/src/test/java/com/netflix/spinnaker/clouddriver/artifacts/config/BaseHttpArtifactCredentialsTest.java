@@ -18,10 +18,14 @@ package com.netflix.spinnaker.clouddriver.artifacts.config;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.netflix.spinnaker.fiat.model.resources.Permissions;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.web.url.UrlRestrictions;
 import com.netflix.spinnaker.kork.web.url.UrlRestrictionsProperties;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
+import java.util.List;
 import okhttp3.OkHttpClient;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -216,7 +220,7 @@ class BaseHttpArtifactCredentialsTest {
     private UrlRestrictions mutableRestrictions;
 
     TestArtifactAccount() {
-      super("test-account", null);
+      super("test-account", null, new Permissions.Builder());
     }
 
     @Override
@@ -232,6 +236,26 @@ class BaseHttpArtifactCredentialsTest {
   static class TestArtifactCredentials extends BaseHttpArtifactCredentials<TestArtifactAccount> {
     protected TestArtifactCredentials(OkHttpClient okHttpClient, TestArtifactAccount account) {
       super(okHttpClient, account);
+    }
+
+    @Override
+    public String getName() {
+      return getAccount().getName();
+    }
+
+    @Override
+    public String getType() {
+      return "test";
+    }
+
+    @Override
+    public List<String> getTypes() {
+      return List.of();
+    }
+
+    @Override
+    public InputStream download(Artifact artifact) {
+      throw new UnsupportedOperationException();
     }
   }
 }
