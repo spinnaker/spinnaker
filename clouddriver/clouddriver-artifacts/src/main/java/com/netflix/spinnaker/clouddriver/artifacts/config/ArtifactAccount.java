@@ -17,8 +17,8 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.config;
 
-import com.netflix.spinnaker.credentials.definition.CredentialsDefinition;
+import com.netflix.spinnaker.clouddriver.security.AccessControlledAccountDefinition;
 
-public interface ArtifactAccount extends CredentialsDefinition {
+public interface ArtifactAccount extends AccessControlledAccountDefinition {
   String getName();
 }
