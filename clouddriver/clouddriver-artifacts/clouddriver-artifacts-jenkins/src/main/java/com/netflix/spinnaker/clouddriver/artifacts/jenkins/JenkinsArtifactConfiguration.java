@@ -52,7 +52,11 @@ class JenkinsArtifactConfiguration {
                     .map(
                         m ->
                             new JenkinsArtifactAccount(
-                                m.getName(), m.getUsername(), m.getPassword(), m.getAddress()))
+                                m.getName(),
+                                m.getUsername(),
+                                m.getPassword(),
+                                m.getAddress(),
+                                null))
                     .collect(Collectors.toList()))
         .credentialsParser(
             a -> {
