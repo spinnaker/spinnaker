@@ -1,0 +1,205 @@
+# Task ordering and state tracking (spinnaker/spinnaker#8109, plan: plans/2026/clouddriver-task-repository.md).
+#
+# Every change here is safe on large tables: nullable ADD COLUMN is instant on MySQL 8 and metadata-only on
+# Postgres 11+, indexes are only added to `tasks` (one row per task, never the much larger `task_states`), and
+# the request_id de-duplication renames rows rather than deleting them.
+#
+# Indexes: MySQL builds them online. On Postgres they are built with a plain CREATE INDEX, which blocks writes
+# to `tasks` while it runs (seconds for typical installs). CREATE INDEX CONCURRENTLY can't be used from a
+# migration: it waits for every open transaction, including idle connections held by the migration tooling.
+# Large Postgres installs can create the indexes CONCURRENTLY by hand before upgrading; the migration then
+# skips them (IF NOT EXISTS).
+databaseChangeLog:
+  - changeSet:
+      id: task-ordering-columns
+      author: jasonmcintosh
+      changes:
+        - addColumn:
+            tableName: tasks
+            columns:
+              # Next per-task sequence number; NULL for tasks created before this change.
+              - column:
+                  name: next_seq
+                  type: bigint
+              # Latest TaskState; NULL for tasks created before this change.
+              - column:
+                  name: current_state
+                  type: varchar(20)
+              # When the task reached a terminal state.
+              - column:
+                  name: completed_at
+                  type: bigint
+        - addColumn:
+            tableName: task_states
+            columns:
+              - column:
+                  name: seq
+                  type: bigint
+        - addColumn:
+            tableName: task_results
+            columns:
+              - column:
+                  name: seq
+                  type: bigint
+        - addColumn:
+            tableName: task_outputs
+            columns:
+              - column:
+                  name: seq
+                  type: bigint
+      rollback:
+        - dropColumn:
+            tableName: task_outputs
+            columnName: seq
+        - dropColumn:
+            tableName: task_results
+            columnName: seq
+        - dropColumn:
+            tableName: task_states
+            columnName: seq
+        - dropColumn:
+            tableName: tasks
+            columnName: completed_at
+        - dropColumn:
+            tableName: tasks
+            columnName: current_state
+        - dropColumn:
+            tableName: tasks
+            columnName: next_seq
+
+  # task_states.state was created as varchar(10) and only MySQL was later widened, so Postgres could not store
+  # FAILED_RETRYABLE (16 characters). Lengthening a varchar is metadata-only on Postgres.
+  - changeSet:
+      preConditions:
+        onFail: MARK_RAN
+        dbms:
+          type: postgresql
+      id: task-states-state-length-postgresql
+      author: jasonmcintosh
+      changes:
+        - modifyDataType:
+            tableName: task_states
+            columnName: state
+            newDataType: varchar(20)
+
+  - changeSet:
+      preConditions:
+        onFail: MARK_RAN
+        dbms:
+          type: mysql
+      id: task-state-indexes-mysql
+      author: jasonmcintosh
+      changes:
+        # InnoDB builds secondary indexes online (ALGORITHM=INPLACE, LOCK=NONE).
+        - createIndex:
+            indexName: tasks_current_state_owner_idx
+            tableName: tasks
+            columns:
+              - column:
+                  name: current_state
+              - column:
+                  name: owner_id
+        - createIndex:
+            indexName: tasks_current_state_completed_at_idx
+            tableName: tasks
+            columns:
+              - column:
+                  name: current_state
+              - column:
+                  name: completed_at
+      rollback:
+        - dropIndex:
+            indexName: tasks_current_state_completed_at_idx
+            tableName: tasks
+        - dropIndex:
+            indexName: tasks_current_state_owner_idx
+            tableName: tasks
+
+  - changeSet:
+      preConditions:
+        onFail: MARK_RAN
+        dbms:
+          type: postgresql
+      id: task-state-indexes-postgresql
+      author: jasonmcintosh
+      changes:
+        - sql:
+            sql: >-
+              CREATE INDEX IF NOT EXISTS tasks_current_state_owner_idx ON tasks (current_state, owner_id);
+              CREATE INDEX IF NOT EXISTS tasks_current_state_completed_at_idx ON tasks (current_state, completed_at)
+      rollback:
+        - sql:
+            sql: >-
+              DROP INDEX IF EXISTS tasks_current_state_completed_at_idx;
+              DROP INDEX IF EXISTS tasks_current_state_owner_idx
+
+  # request_id becomes unique so concurrent requests with the same client request ID can't create two tasks.
+  # Existing duplicates keep their data: every duplicate except the earliest (lowest ULID) gets a suffixed
+  # request_id. The UPDATE is idempotent, so if the index build fails (for example because an older clouddriver
+  # inserted a new duplicate mid-deploy) the whole changeset simply re-runs on the next start.
+  - changeSet:
+      preConditions:
+        onFail: MARK_RAN
+        dbms:
+          type: mysql
+      id: task-request-id-unique-mysql
+      author: jasonmcintosh
+      changes:
+        - sql:
+            sql: >-
+              UPDATE tasks t
+              JOIN (SELECT request_id, MIN(id) AS keep_id FROM tasks GROUP BY request_id HAVING COUNT(*) > 1) d
+              ON t.request_id = d.request_id
+              SET t.request_id = CONCAT(LEFT(t.request_id, 200), ':duplicate:', TRIM(t.id))
+              WHERE t.id <> d.keep_id
+        - createIndex:
+            indexName: task_request_id_uidx
+            tableName: tasks
+            unique: true
+            columns:
+              - column:
+                  name: request_id
+      rollback:
+        - dropIndex:
+            indexName: task_request_id_uidx
+            tableName: tasks
+
+  - changeSet:
+      preConditions:
+        onFail: MARK_RAN
+        dbms:
+          type: postgresql
+      id: task-request-id-unique-postgresql
+      author: jasonmcintosh
+      changes:
+        - sql:
+            sql: >-
+              UPDATE tasks t
+              SET request_id = LEFT(t.request_id, 200) || ':duplicate:' || t.id
+              FROM (SELECT request_id, MIN(id) AS keep_id FROM tasks GROUP BY request_id HAVING COUNT(*) > 1) d
+              WHERE t.request_id = d.request_id AND t.id <> d.keep_id;
+              CREATE UNIQUE INDEX IF NOT EXISTS task_request_id_uidx ON tasks (request_id)
+      rollback:
+        - sql:
+            sql: DROP INDEX IF EXISTS task_request_id_uidx
+
+  # The unique index replaces the original non-unique request_id index.
+  - changeSet:
+      preConditions:
+        onFail: MARK_RAN
+        indexExists:
+          tableName: tasks
+          indexName: task_request_id_idx
+      id: drop-task-request-id-non-unique-index
+      author: jasonmcintosh
+      changes:
+        - dropIndex:
+            indexName: task_request_id_idx
+            tableName: tasks
+      rollback:
+        - createIndex:
+            indexName: task_request_id_idx
+            tableName: tasks
+            columns:
+              - column:
+                  name: request_id
