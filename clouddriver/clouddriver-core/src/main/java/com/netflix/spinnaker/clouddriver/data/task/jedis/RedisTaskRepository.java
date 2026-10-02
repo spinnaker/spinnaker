@@ -43,6 +43,7 @@ import net.jodah.failsafe.function.CheckedConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.exceptions.JedisException;
+import redis.clients.jedis.params.SetParams;
 
 public class RedisTaskRepository implements TaskRepository {
   private static final Logger log = LoggerFactory.getLogger(RedisTaskRepository.class);
@@ -95,23 +96,40 @@ public class RedisTaskRepository implements TaskRepository {
             false);
     addToHistory(DefaultTaskStatus.create(phase, status, TaskState.STARTED), task);
     set(taskId, task);
-    Long newTask =
+    // SET NX EX rather than SETNX: the index key expires with the task instead of accumulating
+    // forever.
+    String registered =
         retry(
             () ->
                 redisClientDelegate.withCommandsClient(
                     client -> {
-                      return client.setnx(taskKey, taskId);
+                      return client.set(taskKey, taskId, SetParams.setParams().nx().ex(TASK_TTL));
                     }),
             "Registering task with index");
-    if (newTask != 0) {
+    if (registered != null) {
       return task;
     }
 
-    // There's an existing taskId for this key, clean up what we just created and get the existing
-    // task
-    addToHistory(
-        DefaultTaskStatus.create(phase, "Duplicate of " + clientRequestId, TaskState.FAILED), task);
-    return getByClientRequestId(clientRequestId);
+    Task existingTask = getByClientRequestId(clientRequestId);
+    if (existingTask != null) {
+      // There's an existing taskId for this key, clean up what we just created and return the
+      // existing task
+      addToHistory(
+          DefaultTaskStatus.create(phase, "Duplicate of " + clientRequestId, TaskState.FAILED),
+          task);
+      return existingTask;
+    }
+
+    // The index points at a task that has since expired. Point it at the new task rather than
+    // returning no task at all.
+    retry(
+        () ->
+            redisClientDelegate.withCommandsClient(
+                client -> {
+                  return client.set(taskKey, taskId, SetParams.setParams().ex(TASK_TTL));
+                }),
+        "Re-registering task with index");
+    return task;
   }
 
   @Override
@@ -199,15 +217,40 @@ public class RedisTaskRepository implements TaskRepository {
 
   @Override
   public List<Task> list() {
-    return retry(
-        () ->
-            redisClientDelegate.withCommandsClient(
-                client -> {
-                  return client.smembers(RUNNING_TASK_KEY).stream()
-                      .map(this::get)
-                      .collect(Collectors.toList());
-                }),
-        "Getting all running tasks");
+    Set<String> runningTaskIds =
+        retry(
+            () ->
+                redisClientDelegate.withCommandsClient(
+                    client -> {
+                      return client.smembers(RUNNING_TASK_KEY);
+                    }),
+            "Getting all running tasks");
+
+    List<Task> tasks = new ArrayList<>();
+    List<String> expiredTaskIds = new ArrayList<>();
+    for (String taskId : runningTaskIds) {
+      Task task = get(taskId);
+      if (task == null) {
+        // The task never reached a terminal state (e.g. its clouddriver stopped) and its data has
+        // since expired, so it can't be returned and shouldn't stay in the running set.
+        expiredTaskIds.add(taskId);
+      } else {
+        tasks.add(task);
+      }
+    }
+
+    if (!expiredTaskIds.isEmpty()) {
+      try {
+        redisClientDelegate.withCommandsClient(
+            client -> {
+              client.srem(RUNNING_TASK_KEY, expiredTaskIds.toArray(new String[0]));
+            });
+        log.info("Removed {} expired tasks from the running task set", expiredTaskIds.size());
+      } catch (Exception e) {
+        log.warn("Failed to remove expired tasks from the running task set", e);
+      }
+    }
+    return tasks;
   }
 
   @Override
