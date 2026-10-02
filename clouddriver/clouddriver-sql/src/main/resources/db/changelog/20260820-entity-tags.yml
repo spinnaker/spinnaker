@@ -1,0 +1,130 @@
+databaseChangeLog:
+- changeSet:
+    id: create-entity-tags-table
+    author: jason.mcintosh
+    changes:
+    - createTable:
+        tableName: entity_tags
+        columns:
+        - column:
+            name: id
+            type: varchar(255)
+            constraints:
+              primaryKey: true
+              nullable: false
+        - column:
+            name: body
+            type: longtext
+            constraints:
+              nullable: false
+        - column:
+            name: cloud_provider
+            type: varchar(64)
+        - column:
+            name: application
+            type: varchar(255)
+        - column:
+            name: account
+            type: varchar(255)
+        - column:
+            name: region
+            type: varchar(64)
+        - column:
+            name: entity_type
+            type: varchar(64)
+        - column:
+            name: entity_id
+            type: varchar(255)
+        - column:
+            name: created_at
+            type: bigint
+            constraints:
+              nullable: false
+        - column:
+            name: last_modified_at
+            type: bigint
+            constraints:
+              nullable: false
+        - column:
+            name: last_modified_by
+            type: varchar(255)
+            constraints:
+              nullable: false
+    - modifySql:
+        dbms: mysql
+        append:
+          value: " engine innodb DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci"
+    rollback:
+    - dropTable:
+        tableName: entity_tags
+
+- changeSet:
+    id: create-entity-tags-indexes
+    author: jason.mcintosh
+    changes:
+    - createIndex:
+        tableName: entity_tags
+        indexName: entity_tags_app_idx
+        columns:
+        - column: { name: application }
+    - createIndex:
+        tableName: entity_tags
+        indexName: entity_tags_acct_reg_idx
+        columns:
+        - column: { name: cloud_provider }
+        - column: { name: account }
+        - column: { name: region }
+    - createIndex:
+        tableName: entity_tags
+        indexName: entity_tags_entity_idx
+        columns:
+        - column: { name: entity_type }
+        - column: { name: entity_id }
+
+- changeSet:
+    id: create-entity-tag-index-table
+    author: jason.mcintosh
+    changes:
+    - createTable:
+        tableName: entity_tag_index
+        columns:
+        - column:
+            name: entity_tags_id
+            type: varchar(255)
+            constraints:
+              nullable: false
+        - column:
+            name: namespace
+            type: varchar(255)
+            constraints:
+              nullable: false
+        - column:
+            name: name
+            type: varchar(255)
+            constraints:
+              nullable: false
+        - column:
+            name: category
+            type: varchar(64)
+    - modifySql:
+        dbms: mysql
+        append:
+          value: " engine innodb DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci"
+    rollback:
+    - dropTable:
+        tableName: entity_tag_index
+
+- changeSet:
+    id: create-entity-tag-index-constraints
+    author: jason.mcintosh
+    changes:
+    - addPrimaryKey:
+        tableName: entity_tag_index
+        columnNames: entity_tags_id, namespace, name
+        constraintName: entity_tag_index_pk
+    - createIndex:
+        tableName: entity_tag_index
+        indexName: entity_tag_index_ns_name_idx
+        columns:
+        - column: { name: namespace }
+        - column: { name: name }

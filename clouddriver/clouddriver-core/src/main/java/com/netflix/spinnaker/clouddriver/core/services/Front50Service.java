@@ -25,7 +25,6 @@ import java.util.Set;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
-import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
@@ -61,12 +60,8 @@ public interface Front50Service {
   @GET("snapshots/{id}/{timestamp}")
   Call<Map> getSnapshotVersion(@Path("id") String id, @Path("timestamp") String timestamp);
 
-  @POST("v2/tags")
-  Call<EntityTags> saveEntityTags(@Body EntityTags entityTags);
-
-  @POST("v2/tags/batchUpdate")
-  Call<Collection<EntityTags>> batchUpdate(@Body Collection<EntityTags> entityTags);
-
+  // Read-only entity-tag endpoints retained for the one-shot Front50→SQL migration.
+  // The write endpoints (POST/DELETE) have been removed; SQL is now the source of truth.
   @GET("v2/tags/{id}")
   Call<EntityTags> getEntityTags(@Path("id") String id);
 
@@ -75,9 +70,6 @@ public interface Front50Service {
 
   @GET("v2/tags?prefix=")
   Call<Collection<EntityTags>> getAllEntityTags(@Query("refresh") boolean refresh);
-
-  @DELETE("v2/tags/{id}")
-  Call<ResponseBody> deleteEntityTags(@Path("id") String id);
 
   // v2 MPT APIs
   @GET("v2/pipelineTemplates/{pipelineTemplateId}")

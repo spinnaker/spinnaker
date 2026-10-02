@@ -21,9 +21,13 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.event.persistence.EventRepository
 import com.netflix.spinnaker.clouddriver.security.AccountDefinitionMapper
 import com.netflix.spinnaker.clouddriver.security.AccountDefinitionRepository
+import com.netflix.spinnaker.clouddriver.model.EntityTagsProvider
+import com.netflix.spinnaker.clouddriver.model.ServerGroupProvider
 import com.netflix.spinnaker.clouddriver.sql.SqlProvider
 import com.netflix.spinnaker.clouddriver.sql.SqlTaskCleanupAgent
 import com.netflix.spinnaker.clouddriver.sql.SqlTaskRepository
+import com.netflix.spinnaker.clouddriver.sql.entitytags.SqlEntityTagsProvider
+import com.netflix.spinnaker.clouddriver.sql.entitytags.SqlEntityTagsReconciler
 import com.netflix.spinnaker.clouddriver.sql.event.SqlEventCleanupAgent
 import com.netflix.spinnaker.clouddriver.sql.event.SqlEventRepository
 import com.netflix.spinnaker.clouddriver.sql.security.SqlAccountDefinitionRepository
@@ -35,6 +39,7 @@ import com.netflix.spinnaker.kork.sql.config.SqlProperties
 import com.netflix.spinnaker.kork.telemetry.InstrumentedProxy
 import com.netflix.spinnaker.kork.version.ServiceVersion
 import org.jooq.DSLContext
+import org.springframework.beans.factory.ObjectProvider
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -134,5 +139,23 @@ class SqlConfiguration {
     clock: Clock,
     mapper: AccountDefinitionMapper
   ): AccountDefinitionRepository = SqlAccountDefinitionRepository(jooq, mapper, clock, ConnectionPools.ACCOUNTS.value)
+
+  @Bean
+  @ConditionalOnProperty(value = ["entity-tags.provider"], havingValue = "sql", matchIfMissing = true)
+  fun sqlEntityTagsReconciler(
+    serverGroupProviders: ObjectProvider<ServerGroupProvider>,
+    clock: Clock
+  ): SqlEntityTagsReconciler =
+    SqlEntityTagsReconciler(serverGroupProviders.orderedStream().toList(), clock)
+
+  @Bean
+  @ConditionalOnProperty(value = ["entity-tags.provider"], havingValue = "sql", matchIfMissing = true)
+  fun sqlEntityTagsProvider(
+    jooq: DSLContext,
+    objectMapper: ObjectMapper,
+    clock: Clock,
+    reconciler: SqlEntityTagsReconciler
+  ): EntityTagsProvider =
+    SqlEntityTagsProvider(jooq, objectMapper, clock, ConnectionPools.TASKS.value, reconciler)
 
 }
