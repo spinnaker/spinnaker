@@ -88,7 +88,7 @@ class EcrImageProviderSpec extends Specification {
       region: region,
       imageName: accountId + '.dkr.ecr.' + region + '.amazonaws.com/' + repoName + '@' + digest,
       amis: ['us-west-1': Collections.singletonList(digest)],
-      attributes: [creationDate: creationDate]
+      attributes: [creationDate: creationDate.toEpochMilli()]
     )]
 
     when:
@@ -126,7 +126,7 @@ class EcrImageProviderSpec extends Specification {
       region: region,
       imageName: accountId + '.dkr.ecr.' + region + '.amazonaws.com/' + repoName + '@' + digest,
       amis: ['us-west-1': Collections.singletonList(digest)],
-      attributes: [creationDate: creationDate]
+      attributes: [creationDate: creationDate.toEpochMilli()]
     )]
 
     when:
@@ -185,7 +185,7 @@ class EcrImageProviderSpec extends Specification {
       region: region,
       imageName: accountId + '.dkr.ecr.' + region + '.amazonaws.com/' + repoName + '@' + digest,
       amis: ['us-east-1': Collections.singletonList(digest)],
-      attributes: [creationDate: creationDate]
+      attributes: [creationDate: creationDate.toEpochMilli()]
     )]
 
     when:
@@ -307,7 +307,7 @@ class EcrImageProviderSpec extends Specification {
       region: region,
       imageName: accountId + '.dkr.ecr.' + region + '.amazonaws.com/' + repoName + '@' + digest,
       amis: ['us-west-1': Collections.singletonList(digest)],
-      attributes: [creationDate: creationDate],
+      attributes: [creationDate: creationDate.toEpochMilli()],
     )]
 
     when:
