@@ -434,7 +434,7 @@ class RedisPermissionsRepositorySpec extends Specification {
                  .setAdmin(true))
 
     then:
-    jedis.keys("*").size() == 6 // users, accounts, applications, roles, and reverse-index roles.
+    jedis.keys("*").size() == 9 // users, accounts, applications, roles, their digests, and reverse-index roles.
     jedis.sismember("unittests:permissions:admin", "testuser")
 
     when:

@@ -142,6 +142,7 @@ public class ArtifactControllerSpec {
         Artifact.builder()
             .type(ArtifactTypes.REMOTE_BASE64.getMimeType())
             .reference("ref://myapp/abc")
+            .artifactAccount("embedded-artifact")
             .build();
 
     MvcResult result =

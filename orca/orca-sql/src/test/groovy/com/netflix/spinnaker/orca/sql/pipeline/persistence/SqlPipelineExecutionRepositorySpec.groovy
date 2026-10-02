@@ -35,7 +35,12 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.PipelineExecutionRepositoryTck
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import org.jooq.DSLContext
+import org.jooq.ExecuteContext
 import org.jooq.impl.DSL
+import org.jooq.impl.DefaultExecuteListener
+import org.jooq.impl.DefaultExecuteListenerProvider
 import io.reactivex.rxjava3.schedulers.Schedulers
 import de.huxhorn.sulky.ulid.ULID
 import spock.lang.AutoCleanup
@@ -96,23 +101,28 @@ abstract class SqlPipelineExecutionRepositorySpec extends PipelineExecutionRepos
     return createExecutionRepository("test")
   }
 
-  ExecutionRepository createExecutionRepository(String partition, Interlink interlink = null, boolean compression = false) {
+  ExecutionRepository createExecutionRepository(String partition, Interlink interlink = null, boolean compression = false, boolean enforceForeignPartition = true) {
     return InstrumentedProxy.proxy(
         new DefaultRegistry(),
-        new SqlExecutionRepository(partition,
-            currentDatabase.context,
-            mapper,
-            new RetryProperties(),
-            10,
-            100,
-            "poolName",
-            "readPoolName",
-            interlink,
-            [],
-            new ExecutionCompressionProperties(enabled: compression),
-            false,
-            Mock(DataSource)),
+        createSqlExecutionRepository(partition, interlink, compression, enforceForeignPartition, currentDatabase.context),
         "namespace")
+  }
+
+  SqlExecutionRepository createSqlExecutionRepository(String partition, Interlink interlink, boolean compression, boolean enforceForeignPartition, DSLContext context) {
+    return new SqlExecutionRepository(partition,
+        context,
+        mapper,
+        new RetryProperties(),
+        10,
+        100,
+        "poolName",
+        "readPoolName",
+        interlink,
+        [],
+        new ExecutionCompressionProperties(enabled: compression),
+        false,
+        Mock(DataSource),
+        enforceForeignPartition)
   }
 
   def "can store a new pipeline"() {
@@ -254,6 +264,151 @@ abstract class SqlPipelineExecutionRepositorySpec extends PipelineExecutionRepos
 
     then:
     1 * interlink.publish(_ as PatchStageInterlinkEvent)
+  }
+
+  def "skips the foreign partition check for storeStage and delete when not enforcing foreign partitions"() {
+    given:
+    ExecutionRepository repo = createExecutionRepository("test", null, false, false)
+    PipelineExecution e = new PipelineExecutionImpl(PIPELINE, "myapp")
+    e.status = ExecutionStatus.RUNNING
+    e.stages.add(new StageExecutionImpl(e, "wait", "wait stage", [foo: 'FOO']))
+    repo.store(e)
+
+    currentDatabase.context
+      .update(DSL.table("pipelines"))
+      .set(DSL.field(DSL.name("partition")), DSL.value("foreign"))
+      .execute()
+
+    when: "operations that rewrite the execution are still rejected when it is stored"
+    repo.pause(PIPELINE, e.id, "test@user.com")
+
+    then:
+    thrown(ForeignExecutionException)
+
+    when:
+    StageExecution stage = e.stages.find()
+    stage.context.putAll([foo: 'BAR'])
+    repo.storeStage(stage)
+
+    then:
+    repo.retrieve(PIPELINE, e.id).stages[0].context.foo == 'BAR'
+
+    when:
+    repo.delete(PIPELINE, e.id)
+
+    then:
+    repo.retrieve(PIPELINE).toList().blockingGet().isEmpty()
+  }
+
+  def "sends interlink events for foreign executions when not enforcing foreign partitions"() {
+    given:
+    Interlink interlink = Mock(Interlink)
+    ExecutionRepository repo = createExecutionRepository("test", interlink, false, false)
+    PipelineExecution e = new PipelineExecutionImpl(PIPELINE, "myapp")
+    e.stages.add(new StageExecutionImpl(e, "wait", "wait stage", [foo: 'FOO']))
+    repo.store(e)
+
+    currentDatabase.context
+      .update(DSL.table("pipelines"))
+      .set(DSL.field(DSL.name("partition")), DSL.value("foreign"))
+      .execute()
+
+    when:
+    repo.pause(PIPELINE, e.id, "test@user.com")
+    repo.storeStage(e.stages.find())
+    repo.delete(PIPELINE, e.id)
+
+    then:
+    1 * interlink.publish(_ as PauseInterlinkEvent)
+    1 * interlink.publish(_ as PatchStageInterlinkEvent)
+    1 * interlink.publish(_ as DeleteInterlinkEvent)
+  }
+
+  def "storeStage and delete operate on local executions without a partition"() {
+    given:
+    ExecutionRepository repo = createExecutionRepository()
+    PipelineExecution e = new PipelineExecutionImpl(PIPELINE, "myapp")
+    e.stages.add(new StageExecutionImpl(e, "wait", "wait stage", [foo: 'FOO']))
+    repo.store(e)
+
+    currentDatabase.context
+      .update(DSL.table("pipelines"))
+      .set(DSL.field(DSL.name("partition")), DSL.value(null, String))
+      .execute()
+
+    when:
+    StageExecution stage = e.stages.find()
+    stage.context.putAll([foo: 'BAR'])
+    repo.storeStage(stage)
+
+    then:
+    repo.retrieve(PIPELINE, e.id).stages[0].context.foo == 'BAR'
+
+    when:
+    repo.delete(PIPELINE, e.id)
+
+    then:
+    repo.retrieve(PIPELINE).toList().blockingGet().isEmpty()
+  }
+
+  def "storeStage and delete are no-ops for executions that don't exist"() {
+    given:
+    ExecutionRepository repo = createExecutionRepository()
+    PipelineExecution e = new PipelineExecutionImpl(PIPELINE, "myapp")
+    e.stages.add(new StageExecutionImpl(e, "wait", "wait stage", [foo: 'FOO']))
+
+    when:
+    repo.storeStage(e.stages.find())
+    repo.delete(PIPELINE, e.id)
+
+    then:
+    noExceptionThrown()
+    currentDatabase.context.fetchCount(DSL.table("pipeline_stages")) == 0
+  }
+
+  def "storeStage resolves executions stored with a legacy id"() {
+    given:
+    ExecutionRepository repo = createExecutionRepository()
+    PipelineExecution e = new PipelineExecutionImpl(PIPELINE, "legacy-execution-id", "myapp")
+    e.stages.add(new StageExecutionImpl(e, "wait", "wait stage", [foo: 'FOO']))
+    repo.store(e)
+
+    when:
+    StageExecution stage = e.stages.find()
+    stage.context.putAll([foo: 'BAR'])
+    repo.storeStage(stage)
+
+    then:
+    repo.retrieve(PIPELINE, "legacy-execution-id").stages[0].context.foo == 'BAR'
+  }
+
+  def "storeStage does not load the execution's stages"() {
+    given:
+    List<String> statements = []
+    def listener = new DefaultExecuteListener() {
+      @Override
+      void executeStart(ExecuteContext ctx) {
+        statements << ctx.sql().toLowerCase()
+      }
+    }
+    def context = DSL.using(currentDatabase.context.configuration().derive(new DefaultExecuteListenerProvider(listener)))
+    ExecutionRepository repo = createSqlExecutionRepository("test", null, false, true, context)
+
+    PipelineExecution e = new PipelineExecutionImpl(PIPELINE, "myapp")
+    e.stages.add(new StageExecutionImpl(e, "wait", "wait stage", [foo: 'FOO']))
+    e.stages.add(new StageExecutionImpl(e, "wait", "another wait stage", [foo: 'FOO']))
+    repo.store(e)
+    statements.clear()
+
+    when:
+    StageExecution stage = e.stages.find()
+    stage.context.putAll([foo: 'BAR'])
+    repo.storeStage(stage)
+
+    then:
+    !statements.isEmpty()
+    statements.findAll { it.startsWith("select") && it.contains("pipeline_stages") }.isEmpty()
+    repo.retrieve(PIPELINE, e.id).stages.find { it.id == stage.id }.context.foo == 'BAR'
   }
 
   def "can store a pipeline with a provided ULID"() {
