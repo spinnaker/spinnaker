@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.Getter;
@@ -39,7 +40,7 @@ public class WaitForManifestStableContext extends HashMap<String, Object> {
   private final List warnings;
   private final boolean includeEvents;
   private final Map<String, ManifestCoordinates> replicaSetPerDeployment;
-  private final Map<String, List<WaitForManifestStableTask.KubernetesManifestMetadata>>
+  private final Map<String, Set<WaitForManifestStableTask.KubernetesManifestMetadata>>
       manifestsMetadataByNamespace;
 
   // There does not seem to be a way to auto-generate a constructor using our current version of
@@ -55,7 +56,7 @@ public class WaitForManifestStableContext extends HashMap<String, Object> {
       @JsonProperty("replicaSetPerDeployment")
           Map<String, ManifestCoordinates> replicaSetPerDeployment,
       @JsonProperty("manifestsMetadataByNamespace")
-          Map<String, List<WaitForManifestStableTask.KubernetesManifestMetadata>>
+          Map<String, Set<WaitForManifestStableTask.KubernetesManifestMetadata>>
               manifestsMetadataByNamespace) {
     this.messages = messages.orElseGet(ArrayList::new);
     this.failureMessages =

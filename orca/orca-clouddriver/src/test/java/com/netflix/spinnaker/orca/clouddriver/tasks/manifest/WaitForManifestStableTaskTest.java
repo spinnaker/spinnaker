@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.manifest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -38,7 +39,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -436,6 +439,18 @@ final class WaitForManifestStableTaskTest {
     assertThat(getMessages(result))
         .containsExactly(failedMessage(k8sDeploymentName), waitingToStabilizeMessage(MANIFEST_2));
     assertThat(getErrors(result)).contains(failedMessage(k8sDeploymentName));
+    Map<String, Set<WaitForManifestStableTask.KubernetesManifestMetadata>>
+        manifestsMetadataByNamespace =
+            objectMapper.convertValue(
+                result.getContext().get("manifestsMetadataByNamespace"),
+                new TypeReference<
+                    Map<String, Set<WaitForManifestStableTask.KubernetesManifestMetadata>>>() {});
+    assertThat(manifestsMetadataByNamespace.get(NAMESPACE).size()).isEqualTo(2);
+    assertThat(
+            manifestsMetadataByNamespace.get(NAMESPACE).stream()
+                .map(WaitForManifestStableTask.KubernetesManifestMetadata::getName)
+                .collect(Collectors.toSet()))
+        .containsExactlyInAnyOrder("not set", k8sDeploymentName);
 
     reset(oortService);
 
@@ -508,6 +523,19 @@ final class WaitForManifestStableTaskTest {
     verify(oortService, times(1)).getManifest(ACCOUNT, NAMESPACE, MANIFEST_2, true);
     verify(oortService, times(1)).getManifest(ACCOUNT, NAMESPACE, replicaSetName, true);
     verify(oortService, times(1)).getManifest(ACCOUNT, NAMESPACE, podName, true);
+    assertTrue(result.getContext().containsKey("manifestsMetadataByNamespace"));
+    manifestsMetadataByNamespace =
+        objectMapper.convertValue(
+            result.getContext().get("manifestsMetadataByNamespace"),
+            new TypeReference<
+                Map<String, Set<WaitForManifestStableTask.KubernetesManifestMetadata>>>() {});
+    assertThat(manifestsMetadataByNamespace.get(NAMESPACE).size()).isEqualTo(4);
+
+    assertThat(
+            manifestsMetadataByNamespace.get(NAMESPACE).stream()
+                .map(WaitForManifestStableTask.KubernetesManifestMetadata::getName)
+                .collect(Collectors.toSet()))
+        .containsExactlyInAnyOrder("not set", k8sDeploymentName, podName, replicaSetName);
   }
 
   private static String waitingToStabilizeMessage(String manifest) {
@@ -611,6 +639,7 @@ final class WaitForManifestStableTaskTest {
       manifest.put("kind", "Deployment");
       return Manifest.builder()
           .name(name)
+          .location(NAMESPACE)
           .manifest(manifest)
           .status(getStatus())
           .events(eventsList)

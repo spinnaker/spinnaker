@@ -36,7 +36,6 @@ import com.netflix.spinnaker.orca.clouddriver.model.Manifest.Status;
 import com.netflix.spinnaker.orca.clouddriver.model.ManifestCoordinates;
 import com.netflix.spinnaker.orca.clouddriver.model.ManifestEvents;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -50,6 +49,7 @@ import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -99,7 +99,7 @@ public class WaitForManifestStableTask
     List<Map<String, String>> failedManifests = context.getFailedManifests();
     List warnings = context.getWarnings();
     Map<String, ManifestCoordinates> replicaSetPerDeployment = context.getReplicaSetPerDeployment();
-    Map<String, List<KubernetesManifestMetadata>> manifestsMetadataByNamespace =
+    Map<String, Set<KubernetesManifestMetadata>> manifestsMetadataByNamespace =
         context.getManifestsMetadataByNamespace();
     Map<String, String> outputs = new HashMap<>();
     boolean includeEvents = context.isIncludeEvents();
@@ -301,9 +301,10 @@ public class WaitForManifestStableTask
 
   private KubernetesManifestMetadata updateMetadata(
       Manifest manifest,
-      Map<String, List<KubernetesManifestMetadata>> manifestsMetadataByNamespace) {
-    List<KubernetesManifestMetadata> existingResourcesByNamespace =
-        manifestsMetadataByNamespace.getOrDefault(manifest.getLocation(), new ArrayList<>());
+      Map<String, Set<KubernetesManifestMetadata>> manifestsMetadataByNamespace) {
+    Set<KubernetesManifestMetadata> existingResourcesByNamespace =
+        manifestsMetadataByNamespace.getOrDefault(manifest.getLocation(), new HashSet<>());
+
     KubernetesManifestMetadata metadata =
         existingResourcesByNamespace.stream()
             .filter(w -> w.getName().equals(manifest.getName()))
@@ -385,7 +386,7 @@ public class WaitForManifestStableTask
       String account,
       List<Map<String, String>> failedManifests,
       Map<String, ManifestCoordinates> replicaSetPerDeployment,
-      Map<String, List<KubernetesManifestMetadata>> manifestMetadata) {
+      Map<String, Set<KubernetesManifestMetadata>> manifestMetadata) {
     Set<String> failureDetails = new HashSet<>();
     // failedManifests looks like this - I have no idea why they made it a map instead of a class,
     // but
@@ -467,9 +468,9 @@ public class WaitForManifestStableTask
   @NoArgsConstructor
   public static class KubernetesManifestMetadata {
     String name;
-    Set<KubernetesManifestStatusCondition> conditions;
-    Set<ManifestEvents> events;
-    Set<String> warnings;
+    @EqualsAndHashCode.Exclude Set<KubernetesManifestStatusCondition> conditions;
+    @EqualsAndHashCode.Exclude Set<ManifestEvents> events;
+    @EqualsAndHashCode.Exclude Set<String> warnings;
 
     public KubernetesManifestMetadata(String name) {
       this.name = name;
