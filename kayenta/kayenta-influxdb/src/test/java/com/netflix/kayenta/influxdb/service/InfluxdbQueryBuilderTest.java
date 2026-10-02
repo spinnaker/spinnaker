@@ -19,12 +19,15 @@ package com.netflix.kayenta.influxdb.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.providers.metrics.InfluxdbCanaryMetricSetQueryConfig;
 import com.netflix.kayenta.influxdb.canary.InfluxDbCanaryScope;
 import com.netflix.kayenta.influxdb.metrics.InfluxDbQueryBuilder;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 public class InfluxdbQueryBuilderTest {
@@ -37,7 +40,7 @@ public class InfluxdbQueryBuilderTest {
 
     InfluxDbCanaryScope canaryScope = createScope();
     InfluxdbCanaryMetricSetQueryConfig queryConfig = queryConfig(measurement, fieldsList(), null);
-    String query = queryBuilder.build(queryConfig, canaryScope);
+    String query = queryBuilder.build(canaryConfig(null), queryConfig, canaryScope);
     assertThat(query)
         .isEqualTo(
             "SELECT external, internal FROM temperature WHERE time >= '2010-01-01T12:00:00Z' AND time < '2010-01-01T12:01:40Z'");
@@ -65,7 +68,8 @@ public class InfluxdbQueryBuilderTest {
     canaryScope.setScope("server='myapp-prod-v002'");
     InfluxdbCanaryMetricSetQueryConfig queryConfig = queryConfig(measurement, fieldsList(), null);
     assertThrows(
-        IllegalArgumentException.class, () -> queryBuilder.build(queryConfig, canaryScope));
+        IllegalArgumentException.class,
+        () -> queryBuilder.build(canaryConfig(null), queryConfig, canaryScope));
   }
 
   @Test
@@ -75,7 +79,7 @@ public class InfluxdbQueryBuilderTest {
     InfluxDbCanaryScope canaryScope = createScope();
     canaryScope.setScope("server:myapp-prod-v002");
     InfluxdbCanaryMetricSetQueryConfig queryConfig = queryConfig(measurement, fieldsList(), null);
-    String query = queryBuilder.build(queryConfig, canaryScope);
+    String query = queryBuilder.build(canaryConfig(null), queryConfig, canaryScope);
     assertThat(query)
         .isEqualTo(
             "SELECT external, internal FROM temperature WHERE time >= '2010-01-01T12:00:00Z' AND time < '2010-01-01T12:01:40Z' AND server = 'myapp-prod-v002'");
@@ -87,9 +91,15 @@ public class InfluxdbQueryBuilderTest {
         InfluxdbCanaryMetricSetQueryConfig.builder()
             .metricName(measurement)
             .fields(fieldsList)
-            .customInlineTemplate(customInlineTemplate)
+            .template(customInlineTemplate)
             .build();
     return queryConfig;
+  }
+
+  private CanaryConfig canaryConfig(Map<String, String> templates) {
+    return CanaryConfig.builder()
+        .templates(templates == null ? Collections.emptyMap() : templates)
+        .build();
   }
 
   @Test
@@ -99,7 +109,7 @@ public class InfluxdbQueryBuilderTest {
     InfluxDbCanaryScope canaryScope = createScope();
     canaryScope.setScope("server:myapp-prod-v002");
     InfluxdbCanaryMetricSetQueryConfig queryConfig = queryConfig(measurement, null, null);
-    String query = queryBuilder.build(queryConfig, canaryScope);
+    String query = queryBuilder.build(canaryConfig(null), queryConfig, canaryScope);
     assertThat(query)
         .isEqualTo(
             "SELECT *::field FROM temperature WHERE time >= '2010-01-01T12:00:00Z' AND time < '2010-01-01T12:01:40Z' AND server = 'myapp-prod-v002'");
@@ -114,7 +124,8 @@ public class InfluxdbQueryBuilderTest {
     canaryScope.setScope("server:myapp-prod-v002");
     InfluxdbCanaryMetricSetQueryConfig queryConfig = queryConfig(null, null, inLineQuery);
     assertThrows(
-        IllegalArgumentException.class, () -> queryBuilder.build(queryConfig, canaryScope));
+        IllegalArgumentException.class,
+        () -> queryBuilder.build(canaryConfig(null), queryConfig, canaryScope));
   }
 
   @Test
@@ -125,7 +136,7 @@ public class InfluxdbQueryBuilderTest {
     InfluxDbCanaryScope canaryScope = createScope();
     canaryScope.setScope("server:myapp-prod-v002");
     InfluxdbCanaryMetricSetQueryConfig queryConfig = queryConfig(null, null, inLineQuery);
-    String query = queryBuilder.build(queryConfig, canaryScope);
+    String query = queryBuilder.build(canaryConfig(null), queryConfig, canaryScope);
     assertThat(query)
         .isEqualTo(
             "SELECT count FROM measurement WHERE label1 = 'value1' AND time >= '2010-01-01T12:00:00Z' AND time < '2010-01-01T12:01:40Z' AND server = 'myapp-prod-v002'");
@@ -140,7 +151,8 @@ public class InfluxdbQueryBuilderTest {
     canaryScope.setScope("server:myapp-prod-v002");
     InfluxdbCanaryMetricSetQueryConfig queryConfig = queryConfig(null, null, inLineQuery);
     assertThrows(
-        IllegalArgumentException.class, () -> queryBuilder.build(queryConfig, canaryScope));
+        IllegalArgumentException.class,
+        () -> queryBuilder.build(canaryConfig(null), queryConfig, canaryScope));
   }
 
   @Test
@@ -152,7 +164,8 @@ public class InfluxdbQueryBuilderTest {
     canaryScope.setScope("server:myapp-prod-v002");
     InfluxdbCanaryMetricSetQueryConfig queryConfig = queryConfig(null, null, inLineQuery);
     assertThrows(
-        IllegalArgumentException.class, () -> queryBuilder.build(queryConfig, canaryScope));
+        IllegalArgumentException.class,
+        () -> queryBuilder.build(canaryConfig(null), queryConfig, canaryScope));
   }
 
   @Test
@@ -164,6 +177,44 @@ public class InfluxdbQueryBuilderTest {
     canaryScope.setScope("server:myapp-prod-v002");
     InfluxdbCanaryMetricSetQueryConfig queryConfig = queryConfig(null, null, inLineQuery);
     assertThrows(
-        IllegalArgumentException.class, () -> queryBuilder.build(queryConfig, canaryScope));
+        IllegalArgumentException.class,
+        () -> queryBuilder.build(canaryConfig(null), queryConfig, canaryScope));
+  }
+
+  @Test
+  public void testBuild_customFilterTemplateResolvesToSameQueryAsEquivalentInlineTemplate() {
+    String templateBody =
+        "SELECT count FROM measurement WHERE label1 = 'value1' AND $\\{timeFilter} AND $\\{scope}";
+
+    InfluxDbCanaryScope canaryScope = createScope();
+    canaryScope.setScope("server:myapp-prod-v002");
+
+    InfluxdbCanaryMetricSetQueryConfig inlineQueryConfig = queryConfig(null, null, templateBody);
+    String inlineResult = queryBuilder.build(canaryConfig(null), inlineQueryConfig, canaryScope);
+
+    InfluxdbCanaryMetricSetQueryConfig namedQueryConfig =
+        InfluxdbCanaryMetricSetQueryConfig.builder().customFilterTemplate("myTemplate").build();
+    CanaryConfig canaryConfigWithTemplate =
+        canaryConfig(Collections.singletonMap("myTemplate", templateBody));
+    String namedResult =
+        queryBuilder.build(canaryConfigWithTemplate, namedQueryConfig, canaryScope);
+
+    assertThat(namedResult).isEqualTo(inlineResult);
+  }
+
+  @Test
+  public void testBuild_customFilterTemplateNotFoundThrows() {
+    InfluxDbCanaryScope canaryScope = createScope();
+    canaryScope.setScope("server:myapp-prod-v002");
+
+    InfluxdbCanaryMetricSetQueryConfig namedQueryConfig =
+        InfluxdbCanaryMetricSetQueryConfig.builder()
+            .customFilterTemplate("missingTemplate")
+            .build();
+    CanaryConfig canaryConfigWithoutTemplate = canaryConfig(null);
+
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> queryBuilder.build(canaryConfigWithoutTemplate, namedQueryConfig, canaryScope));
   }
 }

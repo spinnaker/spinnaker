@@ -11,21 +11,17 @@ import { CanarySettings } from '../canary.settings';
 import type { ICanaryMetricConfig } from '../domain';
 import EditMetricEffectSizes from './editMetricEffectSizes';
 import type { ICanaryMetricValidationErrors } from './editMetricValidation';
-import FilterTemplateSelector from './filterTemplateSelector';
-import InlineTemplateEditor from './inlineTemplateEditor';
 import { DISABLE_EDIT_CONFIG, DisableableInput, DisableableSelect } from '../layout/disableable';
 import FormRow from '../layout/formRow';
 import RadioChoice from '../layout/radioChoice';
 import Styleguide from '../layout/styleguide';
 import MetricConfigurerDelegator from './metricConfigurerDelegator';
-import metricStoreConfigService from '../metricStore/metricStoreConfig.service';
 import type { ICanaryState } from '../reducers';
 import { editingMetricValidationErrorsSelector } from '../selectors';
-import { isTemplateValidSelector, useInlineTemplateEditorSelector } from '../selectors/filterTemplatesSelectors';
 
 import './editMetricModal.less';
 
-interface IEditMetricModalDispatchProps {
+export interface IEditMetricModalDispatchProps {
   rename: (event: any) => void;
   changeGroup: (event: any) => void;
   updateDirection: (event: any) => void;
@@ -37,11 +33,9 @@ interface IEditMetricModalDispatchProps {
   cancel: () => void;
 }
 
-interface IEditMetricModalStateProps {
+export interface IEditMetricModalStateProps {
   metric: ICanaryMetricConfig;
   groups: string[];
-  isTemplateValid: boolean;
-  useInlineTemplateEditor: boolean;
   disableEdit: boolean;
   validationErrors: ICanaryMetricValidationErrors;
 }
@@ -56,13 +50,11 @@ function EditMetricModal({
   groups,
   confirm,
   cancel,
-  isTemplateValid,
   updateDirection,
   updateNanStrategy,
   updateOutlierStrategy,
   updateCriticality,
   updateDataRequired,
-  useInlineTemplateEditor,
   disableEdit,
   validationErrors,
 }: IEditMetricModalDispatchProps & IEditMetricModalStateProps) {
@@ -76,16 +68,9 @@ function EditMetricModal({
   const critical = metric.analysisConfigurations?.canary?.critical ?? false;
   const dataRequired = metric.analysisConfigurations?.canary?.mustHaveData ?? false;
   const isConfirmDisabled =
-    !isTemplateValid ||
-    disableEdit ||
-    CanarySettings.disableConfigEdit ||
-    values(validationErrors).some((e) => !isNull(e));
+    disableEdit || CanarySettings.disableConfigEdit || values(validationErrors).some((e) => !isNull(e));
 
   const metricGroup = metric.groups.length ? metric.groups[0] : groups[0];
-  const templatesEnabled =
-    metricStoreConfigService.getDelegate(metric.query.type) &&
-    metricStoreConfigService.getDelegate(metric.query.type).useTemplates &&
-    CanarySettings.templatesEnabled;
   return (
     <Modal bsSize="large" show={true} onHide={noop} className={classNames('kayenta-edit-metric-modal')}>
       <Styleguide>
@@ -223,8 +208,6 @@ function EditMetricModal({
           </FormRow>
           <EditMetricEffectSizes />
           <MetricConfigurerDelegator />
-          {templatesEnabled && !useInlineTemplateEditor && <FilterTemplateSelector />}
-          {templatesEnabled && useInlineTemplateEditor && <InlineTemplateEditor />}
         </Modal.Body>
         <Modal.Footer>
           <ul className="list-inline pull-right">
@@ -255,11 +238,9 @@ function mapDispatchToProps(dispatch: any): IEditMetricModalDispatchProps {
     },
     cancel: () => {
       dispatch(Creators.editMetricCancel());
-      dispatch(Creators.editTemplateCancel());
     },
     confirm: () => {
       dispatch(Creators.editMetricConfirm());
-      dispatch(Creators.editTemplateCancel());
     },
     updateDirection: ({ target }: React.ChangeEvent<HTMLInputElement>) => {
       dispatch(Creators.updateMetricDirection({ id: target.dataset.id, direction: target.value }));
@@ -283,9 +264,6 @@ function mapStateToProps(state: ICanaryState): IEditMetricModalStateProps {
   return {
     metric: state.selectedConfig.editingMetric,
     groups: state.selectedConfig.group.list.sort(),
-    isTemplateValid: isTemplateValidSelector(state),
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    useInlineTemplateEditor: useInlineTemplateEditorSelector(state),
     disableEdit: state.app.disableConfigEdit || CanarySettings.disableConfigEdit,
     validationErrors: editingMetricValidationErrorsSelector(state),
   };

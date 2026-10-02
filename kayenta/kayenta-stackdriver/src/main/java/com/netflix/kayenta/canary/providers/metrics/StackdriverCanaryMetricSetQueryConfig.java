@@ -17,50 +17,53 @@
 package com.netflix.kayenta.canary.providers.metrics;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.netflix.kayenta.canary.CanaryMetricSetQueryConfig;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import lombok.*;
-import org.springframework.util.StringUtils;
+import lombok.experimental.SuperBuilder;
 
-@Builder(toBuilder = true)
+@SuperBuilder(toBuilder = true)
 @ToString
 @NoArgsConstructor
-@AllArgsConstructor
 @JsonTypeName("stackdriver")
-public class StackdriverCanaryMetricSetQueryConfig implements CanaryMetricSetQueryConfig {
+public class StackdriverCanaryMetricSetQueryConfig extends AbstractCanaryMetricSetQueryConfig {
 
   public static final String SERVICE_TYPE = "stackdriver";
 
-  @Getter private String resourceType;
+  /**
+   * @deprecated use {@link #getCustomInlineTemplate()} or {@link #getCustomFilterTemplate()}
+   *     instead; planned for removal in a future release
+   */
+  @Deprecated @Getter private String resourceType;
 
-  @NotNull @Getter private String metricType;
+  /**
+   * @deprecated use {@link #getCustomInlineTemplate()} or {@link #getCustomFilterTemplate()}
+   *     instead; planned for removal in a future release
+   */
+  @Deprecated @NotNull @Getter private String metricType;
 
-  @Getter private String crossSeriesReducer;
+  /**
+   * @deprecated use {@link #getCustomInlineTemplate()} or {@link #getCustomFilterTemplate()}
+   *     instead; planned for removal in a future release
+   */
+  @Deprecated @Getter private String crossSeriesReducer;
 
-  @Getter private String perSeriesAligner;
+  /**
+   * @deprecated use {@link #getCustomInlineTemplate()} or {@link #getCustomFilterTemplate()}
+   *     instead; planned for removal in a future release
+   */
+  @Deprecated @Getter private String perSeriesAligner;
 
-  @NotNull @Getter private List<String> groupByFields;
+  /**
+   * @deprecated use {@link #getCustomInlineTemplate()} or {@link #getCustomFilterTemplate()}
+   *     instead; planned for removal in a future release
+   */
+  @Deprecated @NotNull @Getter private List<String> groupByFields;
 
   /**
    * @deprecated Use customInlineTemplate instead.
    */
   @Deprecated @Getter private String customFilter;
-
-  @Getter private String customInlineTemplate;
-
-  @Getter private String customFilterTemplate;
-
-  @Override
-  public CanaryMetricSetQueryConfig cloneWithEscapedInlineTemplate() {
-    if (StringUtils.isEmpty(customInlineTemplate)) {
-      return this;
-    } else {
-      return this.toBuilder()
-          .customInlineTemplate(customInlineTemplate.replace("${", "$\\{"))
-          .build();
-    }
-  }
 
   @Override
   public String getServiceType() {

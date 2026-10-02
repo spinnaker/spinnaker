@@ -96,6 +96,7 @@ public class DatadogFetchController {
             .getRequiredOneBy(storageAccountName, AccountCredentials.Type.OBJECT_STORE)
             .getName();
 
+    @SuppressWarnings("deprecation")
     DatadogCanaryMetricSetQueryConfig datadogCanaryMetricSetQueryConfig =
         DatadogCanaryMetricSetQueryConfig.builder().metricName(metricName).build();
 

@@ -82,6 +82,7 @@ public class NewRelicQueryBuilderService {
    * @param scopeConfiguration The default scope configuration for the given metrics account.
    * @return The complete NRQL query from the select and q query fragments.
    */
+  @SuppressWarnings("deprecation")
   protected String buildQueryFromSelectAndQ(
       NewRelicCanaryScope canaryScope,
       NewRelicCanaryMetricSetQueryConfig queryConfig,

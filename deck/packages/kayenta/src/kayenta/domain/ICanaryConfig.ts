@@ -31,7 +31,11 @@ export interface ICanaryMetricConfig<T extends ICanaryMetricSetQueryConfig = any
 export interface ICanaryMetricSetQueryConfig {
   type: string;
   serviceType: string;
-  customInlineTemplate?: string;
+  template?: string;
+  // Legacy field from the old named/saved-template mechanism. The backend normalizes this into
+  // `template` on read (via QueryConfigUtils), so nothing in the frontend sets or reads it
+  // anymore -- it's kept here only because the raw JSON for a config the backend hasn't
+  // rewritten in place yet may still carry it.
   customFilterTemplate?: string;
 }
 
