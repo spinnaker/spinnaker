@@ -47,6 +47,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -380,8 +381,14 @@ public class WaitForManifestStableTask
 
     i = 1;
     boolean initialEventMessage = true;
-    for (ManifestEvents e : metadata.getEvents()) {
-      if (e.getType().equals("Warning") && !failureEventMessages.contains(e.getMessage())) {
+    List<ManifestEvents> warningEvents =
+        metadata.getEvents().stream()
+            .filter(it -> it.getType().equals("Warning"))
+            .sorted((e1, e2) -> e2.getFirstTimestamp().compareTo(e1.getFirstTimestamp()))
+            .limit(3)
+            .collect(Collectors.toList());
+    for (ManifestEvents e : warningEvents) {
+      if (!failureEventMessages.contains(e.getMessage())) {
         if (initialMessage) {
           failureDetails.add(
               "Resource: "
@@ -390,7 +397,7 @@ public class WaitForManifestStableTask
           initialMessage = false;
         }
         if (initialEventMessage) {
-          failureDetails.add("* Events:");
+          failureDetails.add("* Events (Please check the most recent event which is shown first):");
           initialEventMessage = false;
         }
         failureEventMessages.add(e.getMessage());
