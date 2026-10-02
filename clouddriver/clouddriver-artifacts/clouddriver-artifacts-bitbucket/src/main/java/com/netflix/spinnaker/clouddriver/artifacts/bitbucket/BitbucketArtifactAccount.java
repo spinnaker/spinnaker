@@ -21,6 +21,7 @@ import com.google.common.base.Strings;
 import com.netflix.spinnaker.clouddriver.artifacts.config.BasicAuth;
 import com.netflix.spinnaker.clouddriver.artifacts.config.TokenAuth;
 import com.netflix.spinnaker.clouddriver.artifacts.config.UserInputValidatedArtifactAccount;
+import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.web.url.UrlRestrictionsProperties;
 import java.util.Optional;
@@ -49,8 +50,12 @@ public class BitbucketArtifactAccount extends UserInputValidatedArtifactAccount
       String usernamePasswordFile,
       String token,
       String tokenFile,
-      UrlRestrictionsProperties urlRestrictions) {
-    super(Strings.nullToEmpty(name), orDefault(urlRestrictions));
+      UrlRestrictionsProperties urlRestrictions,
+      Permissions.Builder permissions) {
+    super(
+        Strings.nullToEmpty(name),
+        orDefault(urlRestrictions),
+        Optional.ofNullable(permissions).orElseGet(Permissions.Builder::new));
     this.username = Optional.ofNullable(Strings.emptyToNull(username));
     this.password = Optional.ofNullable(Strings.emptyToNull(password));
     this.usernamePasswordFile = Optional.ofNullable(Strings.emptyToNull(usernamePasswordFile));
@@ -65,6 +70,6 @@ public class BitbucketArtifactAccount extends UserInputValidatedArtifactAccount
       String password,
       String usernamePasswordFile,
       UrlRestrictionsProperties urlRestrictions) {
-    this(name, username, password, usernamePasswordFile, null, null, urlRestrictions);
+    this(name, username, password, usernamePasswordFile, null, null, urlRestrictions, null);
   }
 }
