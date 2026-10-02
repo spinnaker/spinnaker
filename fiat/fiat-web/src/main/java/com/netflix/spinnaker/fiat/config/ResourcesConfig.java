@@ -109,6 +109,12 @@ public class ResourcesConfig {
   }
 
   @Bean
+  ClouddriverArtifactAccountLoader clouddriverArtifactAccountLoader(
+      ProviderHealthTracker providerHealthTracker, ClouddriverApi clouddriverApi) {
+    return new ClouddriverArtifactAccountLoader(providerHealthTracker, clouddriverApi);
+  }
+
+  @Bean
   @ConditionalOnProperty(
       name = "resource.provider.application.clouddriver.load-applications",
       havingValue = "true",

@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.aws.security.AWSAccountInfoLookupFactor
 import com.netflix.spinnaker.clouddriver.aws.security.AWSCredentialsProviderFactory;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials;
+import com.netflix.spinnaker.clouddriver.aws.security.DefaultAWSAccountInfoLookup;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.aws.security.config.AccountsConfiguration.Account;
 import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsConfig.Region;
@@ -46,6 +47,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.util.CollectionUtils;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.services.ec2.Ec2Client;
+import software.amazon.awssdk.services.ec2.model.AvailabilityZone;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
@@ -151,8 +154,22 @@ public class AmazonCredentialsParser<
    *
    * <p>- An account's region does not have availability zones defined and that region doesn't exist
    * in the region cache.
+   *
+   * <p>When {@code useAccountRegions} is true and the account has explicit regions configured, the
+   * shared default-region cache is bypassed entirely. Any missing availability zones are resolved
+   * by calling describeAvailabilityZones directly against each account region's own endpoint,
+   * without going through describeRegions first.
    */
-  private List<Region> initRegions(AWSAccountInfoLookup awsAccountInfoLookup, List<Region> toInit) {
+  private List<Region> initRegions(
+      AWSAccountInfoLookup awsAccountInfoLookup,
+      AwsCredentialsProvider credentialsProviderToUse,
+      List<Region> toInit) {
+    // Fast path: when useAccountRegions is enabled and the account has its own regions, skip the
+    // shared default-region cache entirely and resolve AZs directly per account region.
+    if (credentialsConfig.isUseAccountRegions() && !CollectionUtils.isEmpty(toInit)) {
+      return initRegionsFromAccountConfig(credentialsProviderToUse, toInit);
+    }
+
     // initialize regions cache if it hasn't been done already. We do this here and not in
     // toInit.isNullOrEmpty() because we need the default region values if a region in toInit list
     // has no availability zones specified.
@@ -205,6 +222,37 @@ public class AmazonCredentialsParser<
       }
     }
 
+    return result;
+  }
+
+  /**
+   * Initializes regions purely from the account's own configuration, without consulting the shared
+   * default-region cache. For regions missing availability zones, describeAvailabilityZones is
+   * called directly against each region's own endpoint — no describeRegions call is made.
+   */
+  private List<Region> initRegionsFromAccountConfig(
+      AwsCredentialsProvider credentialsProviderToUse, List<Region> toInit) {
+    List<Region> result = new ArrayList<>(toInit.size());
+    for (Region region : toInit) {
+      if (!CollectionUtils.isEmpty(region.getAvailabilityZones())) {
+        // AZs fully specified — use as-is
+        result.add(region);
+      } else {
+        // AZs missing — call describeAvailabilityZones against this region's own endpoint
+        log.info(
+            "useAccountRegions: fetching availability zones for {} directly", region.getName());
+        Ec2Client ec2 =
+            amazonClientProvider.getAmazonEC2V2(credentialsProviderToUse, region.getName());
+        List<AvailabilityZone> azs = ec2.describeAvailabilityZones().availabilityZones();
+        List<String> azNames = new ArrayList<>(azs.size());
+        for (AvailabilityZone az : azs) {
+          azNames.add(az.zoneName());
+        }
+        Region resolved = region.copyOf();
+        resolved.setAvailabilityZones(azNames);
+        result.add(resolved);
+      }
+    }
     return result;
   }
 
@@ -372,8 +420,7 @@ public class AmazonCredentialsParser<
       }
 
       account.setAccountId(
-          Retry.decorateSupplier(retry, getAwsAccountInfoLookup(config, account)::findAccountId)
-              .get());
+          Retry.decorateSupplier(retry, () -> findAccountId(config, account)).get());
     }
 
     if (account.getEnvironment() == null) {
@@ -387,9 +434,13 @@ public class AmazonCredentialsParser<
     log.info("Setting regions for aws account: {}", account.getName());
 
     AWSAccountInfoLookup awsAccountInfoLookupToUse = getAwsAccountInfoLookup(config, account);
+    AwsCredentialsProvider credentialsProviderToUse = getCredentialsProvider(config, account);
     account.setRegions(
         Retry.decorateSupplier(
-                retry, () -> initRegions(awsAccountInfoLookupToUse, account.getRegions()))
+                retry,
+                () ->
+                    initRegions(
+                        awsAccountInfoLookupToUse, credentialsProviderToUse, account.getRegions()))
             .get());
 
     account.setDefaultSecurityGroups(
@@ -443,6 +494,36 @@ public class AmazonCredentialsParser<
     }
     return credentialTranslator.translate(
         getCredentialsProvider(config, account), account, awsConfigurationProperties);
+  }
+
+  /**
+   * Returns the name of the first region in the list, or null if the list is null/empty. Used to
+   * pick an explicit region for bootstrapping SDK calls when useAccountRegions is true.
+   */
+  private static String firstRegionNameOf(List<Region> regions) {
+    if (regions != null && !regions.isEmpty()) {
+      return regions.get(0).getName();
+    }
+    return null;
+  }
+
+  /**
+   * Resolves the account ID for the given account.
+   *
+   * <p>When {@code useAccountRegions} is enabled and the account has at least one region
+   * configured, a dedicated lookup is created that targets that region so the bootstrapping EC2
+   * call does not depend on the host's AWS region. Otherwise the account's configured {@link
+   * AWSAccountInfoLookup} (which may fall back to {@link
+   * software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain}) is used.
+   */
+  private String findAccountId(CredentialsConfig config, Account account) {
+    if (config.isUseAccountRegions() && !CollectionUtils.isEmpty(account.getRegions())) {
+      String region = firstRegionNameOf(account.getRegions());
+      return new DefaultAWSAccountInfoLookup(
+              getCredentialsProvider(config, account), amazonClientProvider, region)
+          .findAccountId();
+    }
+    return getAwsAccountInfoLookup(config, account).findAccountId();
   }
 
   /**

@@ -20,13 +20,13 @@ import static com.netflix.spinnaker.kork.common.Header.USER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.is;
+import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
 import ch.qos.logback.classic.Level;
 import com.google.common.collect.ImmutableList;
@@ -34,28 +34,39 @@ import com.netflix.spinnaker.clouddriver.Main;
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.artifacts.helm.HelmArtifactCredentials;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
-import com.netflix.spinnaker.filters.AuthenticatedRequestFilter;
+import com.netflix.spinnaker.kork.artifacts.ArtifactTypes;
+import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactDecorator;
+import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreGetter;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.test.log.MemoryAppender;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.List;
 import org.hamcrest.Matchers;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.web.context.WebApplicationContext;
 import tools.jackson.databind.ObjectMapper;
 
+/**
+ * {@code @AutoConfigureMockMvc} wires the real, fully-configured MockMvc instance -- including
+ * Spring Security's filter chain (so {@code @PreAuthorize}/{@code @PostFilter} on
+ * ArtifactController/ArtifactCredentialsRepository see a real, at-minimum-anonymous Authentication
+ * instead of none at all) and every registered servlet Filter bean, such as WebConfig's
+ * AuthenticatedRequestFilter -- the same way the real running app assembles its filter chain,
+ * rather than hand-building a partial one.
+ */
 @ExtendWith(SpringExtension.class)
-@WebAppConfiguration
+@AutoConfigureMockMvc
 @SpringBootTest(classes = Main.class)
 @TestPropertySource(
     properties = {
@@ -66,26 +77,13 @@ import tools.jackson.databind.ObjectMapper;
     })
 public class ArtifactControllerSpec {
 
-  private MockMvc mvc;
-
-  @Autowired private WebApplicationContext webApplicationContext;
+  @Autowired private MockMvc mvc;
 
   @Autowired private ObjectMapper objectMapper;
 
   @Autowired private CredentialsRepository<HelmArtifactCredentials> helmCredentials;
 
-  /**
-   * This takes X-SPINNAKER-* headers from requests to clouddriver and puts them in the MDC. This is
-   * enabled when clouddriver runs normally (by WebConfig), but needs explicit mention to function
-   * in these tests.
-   */
-  @Autowired AuthenticatedRequestFilter authenticatedRequestFilter;
-
-  @BeforeEach
-  public void setup() throws Exception {
-    this.mvc =
-        webAppContextSetup(webApplicationContext).addFilters(authenticatedRequestFilter).build();
-  }
+  @MockitoBean private ArtifactStoreGetter artifactStoreGetter;
 
   @Test
   public void testFetchWithMisconfiguredArtifact() throws Exception {
@@ -115,6 +113,45 @@ public class ArtifactControllerSpec {
 
     List<String> userMessages = memoryAppender.layoutSearch("[" + userValue + "]", Level.DEBUG);
     assertThat(userMessages).hasSize(1);
+  }
+
+  @Test
+  public void fetchRemoteBase64ArtifactReturnsStoredContent() throws Exception {
+    String storedContent = "hello-manifest";
+    String encoded =
+        Base64.getEncoder().encodeToString(storedContent.getBytes(StandardCharsets.UTF_8));
+    Mockito.when(artifactStoreGetter.get(any(), any()))
+        .thenAnswer(
+            invocation -> {
+              Artifact.ArtifactBuilder builder =
+                  Artifact.builder()
+                      .type(ArtifactTypes.REMOTE_BASE64.getMimeType())
+                      .reference(encoded);
+              ArtifactDecorator[] decorators = invocation.getArgument(1);
+              if (decorators != null) {
+                for (ArtifactDecorator decorator : decorators) {
+                  builder = decorator.decorate(builder);
+                }
+              }
+              return builder.build();
+            });
+
+    Artifact remote =
+        Artifact.builder()
+            .type(ArtifactTypes.REMOTE_BASE64.getMimeType())
+            .reference("ref://myapp/abc")
+            .build();
+
+    MvcResult result =
+        mvc.perform(
+                put("/artifacts/fetch")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(remote)))
+            .andReturn();
+
+    mvc.perform(asyncDispatch(result))
+        .andExpect(status().isOk())
+        .andExpect(content().string(storedContent));
   }
 
   @Test
