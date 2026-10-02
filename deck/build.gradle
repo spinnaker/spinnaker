@@ -137,6 +137,15 @@ task viteBuild(type: PnpmTask) {
 viteBuild.inputs.file file('version.json')
 viteBuild.outputs.dir file('packages/app/dist')
 
+// Deprecated alias for the pre-Vite task name, so external build scripts keep working for now.
+tasks.register('webpack') {
+  description = 'Deprecated alias for viteBuild.'
+  dependsOn 'viteBuild'
+  doFirst {
+    it.logger.warn("The 'webpack' task is deprecated and will be removed in a future release. Use 'viteBuild' instead; build output is now in packages/app/dist.")
+  }
+}
+
 task generateVersionFile {
   doLast {
     'git update-index --assume-unchanged version.json'.execute()
