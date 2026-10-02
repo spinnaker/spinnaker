@@ -1,7 +1,8 @@
 # Clouddriver task repository: failure modes, fixes, and a SQL task queue
 
-**Status**: Planned. No PR landed yet. Focus is the SQL task repository and SQL task queue. Redis
-repository hardening (Phase 3) is deprioritized.
+**Status**: In progress. Track A fixes are in review (see the [Work plan](#work-plan)). Focus is the
+SQL task repository and SQL task queue. The Redis task repository gets bridge fixes only, then is
+**deprecated in 2026.4.0** (Phase 3).
 
 The phases describe *what* changes. The [Work plan](#work-plan) at the end turns them into an ordered
 PR list. Track status there.
@@ -11,7 +12,7 @@ PR list. Track status there.
 | 0 | Shared TCK regression tests that reproduce each finding |
 | 1 | Small independent fixes (503 mapping, SQL retry no-op, Redis saga IDs / key TTL / null tasks) |
 | 2 | SQL ordering + concurrency fix (per-task sequence, `current_state`, row lock, terminal immutability, cleanup) |
-| 3 | Redis hardening. **Deprioritized**: recommend moving to SQL via `DualTaskRepository` instead |
+| 3 | Deprecate the Redis task repository in 2026.4.0 and remove it later (proposed 2027.0.0). No further Redis hardening |
 | 4 | `DefaultOrchestrationProcessor` fixes (stop after failure, atomic completion, bounded executor) |
 | 5a | Per-instance execution leases + reaper (fast detection of lost work, no dispatch change) |
 | 5b | SQL task queue: pending state, claim, bounded workers, draining. Opt-in |
@@ -115,9 +116,10 @@ clocks disagree, produce the wrong "latest" row.
 
 1. **Fix the existing implementations first** (Phases 0–4). The worst user-visible failures (R1, R2,
    R5, S1, S6) are each small, independent fixes.
-2. **Make SQL the recommended production backend** once Phase 2 lands. Document the Redis repository
-   as "single Redis, no HA guarantees". Its shape (no atomic multi-key reads, which `JedisTask`'s own
-   Javadoc admits) limits how correct it can become.
+2. **Make SQL the recommended production backend, and deprecate the Redis task repository** (Phase 3)
+   once the bridge fixes (R1, R5–R7) land. Its shape (no atomic multi-key reads, which `JedisTask`'s
+   own Javadoc admits) limits how correct it can become, so the remaining Redis findings are not worth
+   fixing.
 3. **Make SQL the system of record and the default dispatcher (Phase 5).** A real queue (Streams,
    SQS) can be added later as an optional transport fed by a transactional outbox (5c). Correctness
    never depends on it. See [Queue semantics](#queue-semantics-what-a-real-queue-offers-and-where-task-state-lives)
@@ -211,25 +213,41 @@ Risk: P1 currently "works" on SQL because there is no immutability. Land Phase 4
 before the immutability change so multi-op requests fail cleanly instead of throwing from
 `updateStatus`.
 
-## Phase 3: Redis hardening (deprioritized)
+## Phase 3: Deprecate and remove the Redis task repository
 
-Only worth doing if a significant number of installs must stay on the Redis task repository. The
-recommended path is moving to SQL with `DualTaskRepository`. Phase 1 already covers the worst
-Redis failures (R1, R5–R7).
+**Scope:** only the Redis *task repository* (`RedisTaskRepository`/`JedisTask`, selected by
+`redis.task-repository.enabled`). Redis stays supported for clouddriver's other uses, such as caching
+(cats-redis).
 
+**Why:** the Redis repository can't be made correct cheaply. There are no atomic multi-key reads,
+retried appends aren't idempotent (R3), and multi-key writes aren't atomic (R4). The SQL repository
+is getting ordering, immutability and leasing fixes (Phases 2 and 5) that Redis would need to
+duplicate.
 
-- **Isolate status writes from operation outcome (R2).** Route non-terminal `updateStatus`/`updateOutput`
-  through a small per-task ordered buffer that retries in the background with backoff. A failed
-  progress write is logged and counted but never fails `operate()`. Terminal transitions (`complete`,
-  `fail`) retry with a much longer, configurable budget before giving up.
-- **Atomicity (R4, R8).** Use `MULTI`/Lua for `set()` and for "read current state, append if not
-  terminal". A Lua script also halves the round trips.
-- **Idempotent appends (R3).** Either tag each history/result entry with a client-generated ID and
-  dedupe on read, or store history as a per-task Stream and append with `XADD` at an explicit
-  client-chosen ID. A retried `XADD` with an ID at or below the last one is rejected, which gives
-  natural dedupe. The server-assigned order also makes the Stream an exact ordering source.
-- **Configurable retry policy** (exponential backoff, max duration) instead of the hard-coded 3 × 500 ms.
-- Align `getHistory()` with SQL (R9). That changes the API response, so call it out in release notes.
+**Note:** Redis is the **default** today (`redis.task-repository.enabled` defaults to `true`), so this
+affects every install that hasn't explicitly moved to SQL.
+
+**Bridge fixes first (Phase 1):** R1 (503 instead of 500), R5 (saga IDs persisted), R6 (index keys
+expire) and R7 (`list()` safe with expired tasks). These keep Redis installs working while they
+migrate.
+
+**Won't fix (Redis):** R2, R3, R4, R8, R9. These were the Phase 3 hardening items. They are dropped in
+favour of migration.
+
+**Timeline** (removal release to be confirmed by maintainers):
+
+| Release | Change |
+|---|---|
+| 2026.4.0 | **Deprecated.** `@Deprecated` on `RedisTaskRepository`/`JedisTask`. A startup `WARN` whenever the Redis task repository bean is created, naming the replacement. Release notes and docs carry the migration guide. Add a row to `CODE_STYLE.md`'s deprecation table. |
+| Proposed 2027.0.0 | **Removed.** Aligned with the removal of Orca's Redis execution storage (already scheduled for 2027.0.0). `redis.task-repository.enabled` is removed. Multi-instance clouddriver requires the SQL task repository. `InMemoryTaskRepository` remains for single-instance/dev. |
+
+**Migration guide** (for the release notes and docs):
+1. Enable the SQL task repository: `sql.task-repository.enabled: true`, with the SQL connection
+   configured.
+2. For at least one Redis task TTL (12 h), run with `dual-task-repository.enabled: true`,
+   `primary-class` set to the SQL repository and `previous-class` set to the Redis one. New tasks go
+   to SQL. In-flight Redis tasks stay readable, so Orca can keep polling them.
+3. Set `redis.task-repository.enabled: false` and `dual-task-repository.enabled: false`.
 
 ## Phase 4: `DefaultOrchestrationProcessor`
 
@@ -505,9 +523,10 @@ Postgres (`kork-sql-test`, `--max-workers=1` locally). Update **Status** as PRs 
 
 | # | Track | PR | Covers | Depends on | Status |
 |---|---|---|---|---|---|
-| 1 | A: correctness | Return 503 (not 500) when the task store is unavailable | R1 | – | Not started |
-| 2 | A: correctness | Make the SQL `sqlTransaction`/`sqlRead` retries actually run | S6 | – | Not started |
-| 3 | A: correctness | Redis: persist saga IDs, TTL on `kato:taskmap:*`, null-safe `list()` | R5, R6, R7 | – | Not started |
+| 1 | A: correctness | Return 503 (not 500) when the task store is unavailable | R1 | – | In review: #8110 |
+| 2 | A: correctness | Make the SQL `sqlTransaction`/`sqlRead` retries actually run, and return 503 when the database stays unreachable | S6, R1 (SQL) | – | In review: #8111 |
+| 3 | A: correctness | Redis: persist saga IDs, TTL on `kato:taskmap:*`, null-safe `list()` | R5, R6, R7 | – | In review: #8129 |
+| 3b | A: Redis deprecation | Deprecate the Redis task repository: `@Deprecated`, startup `WARN`, migration guide, `CODE_STYLE.md` deprecation table | Phase 3 | 1, 3 | Not started (targets 2026.4.0) |
 | 4 | B: SQL foundation | Schema: per-task `seq`, `current_state`/`completed_at`, online indexes, `request_id` dedupe + unique index, backfill agent | S1–S3, S7, S9 (schema) | – | Not started |
 | 5 | B: SQL foundation | Repository: row lock, `seq` ordering, `current_state` maintenance, terminal immutability, `addResultObjects` guard, duplicate-key `create()`. **Plus** processor `break` after failure (must land together) | S1–S5, S7, S8, P1 | 4 | Not started |
 | 6 | B: SQL foundation | Cleanup driven by `tasks(current_state, completed_at)`, `FAILED_RETRYABLE` TTL | S9 | 5 | Not started |
@@ -522,7 +541,7 @@ Postgres (`kork-sql-test`, `--max-workers=1` locally). Update **Status** as PRs 
 | – | Later | Per-account / per-resource claim fairness | 5b extension | 11 | Deferred |
 | – | Later | Task-completion events → Orca `RescheduleExecution`; longer `MonitorKatoTask` fallback backoff (needs Orca change) | 5d | 5, #8031 | Deferred |
 | – | Later | Orca: `ETag`/304 on task polling (needs Orca change; less valuable if 5d lands) | Read load | 8 | Deferred |
-| – | Later | Redis repository hardening | Phase 3 | – | Deprioritized |
+| – | Later | Remove the Redis task repository | Phase 3 | 3b | Proposed for 2027.0.0 |
 
 **Critical path:** 4 → 5 → 9 → 11 → 12. Track A PRs are small and independent, so land them first.
 
