@@ -18,7 +18,9 @@ package com.netflix.spinnaker.clouddriver.artifacts.s3;
 
 import com.google.common.base.Strings;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccount;
+import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
+import java.util.Optional;
 import javax.annotation.ParametersAreNullableByDefault;
 import lombok.Builder;
 import lombok.Value;
@@ -34,6 +36,7 @@ public class S3ArtifactAccount implements ArtifactAccount {
   private final String awsAccessKeyId;
   private final String awsSecretAccessKey;
   private final String signerOverride;
+  private final Permissions.Builder permissions;
 
   @Builder
   @ConstructorBinding
@@ -45,7 +48,8 @@ public class S3ArtifactAccount implements ArtifactAccount {
       String region,
       String awsAccessKeyId,
       String awsSecretAccessKey,
-      String signerOverride) {
+      String signerOverride,
+      Permissions.Builder permissions) {
     this.name = Strings.nullToEmpty(name);
     this.apiEndpoint = Strings.nullToEmpty(apiEndpoint);
     this.apiRegion = Strings.nullToEmpty(apiRegion);
@@ -53,5 +57,6 @@ public class S3ArtifactAccount implements ArtifactAccount {
     this.awsAccessKeyId = Strings.nullToEmpty(awsAccessKeyId);
     this.awsSecretAccessKey = Strings.nullToEmpty(awsSecretAccessKey);
     this.signerOverride = Strings.nullToEmpty(signerOverride);
+    this.permissions = Optional.ofNullable(permissions).orElseGet(Permissions.Builder::new);
   }
 }
