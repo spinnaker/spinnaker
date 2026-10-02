@@ -137,6 +137,24 @@ public class CredentialsConfig {
     }
   }
 
+  /**
+   * When true, AWS SDK calls that require a region for account bootstrapping (e.g. listRegions)
+   * will use the first configured region of the account (or of defaultRegions) instead of relying
+   * on the host's region via {@link
+   * com.netflix.spinnaker.clouddriver.aws.security.sdkclient.SpinnakerAwsRegionProvider}.
+   *
+   * <p>Defaults to false to preserve existing behaviour.
+   */
+  private boolean useAccountRegions = false;
+
+  public boolean isUseAccountRegions() {
+    return useAccountRegions;
+  }
+
+  public void setUseAccountRegions(boolean useAccountRegions) {
+    this.useAccountRegions = useAccountRegions;
+  }
+
   /** LoadAccounts class contains configuration related to loading aws accounts at start up. */
   @Data
   public static class LoadAccounts {
