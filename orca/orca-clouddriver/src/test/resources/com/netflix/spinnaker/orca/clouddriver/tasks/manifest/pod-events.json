@@ -1,0 +1,482 @@
+[
+  {
+    "apiVersion": "v1",
+    "count": 1607,
+    "firstTimestamp": "2024-04-03T04:07:31Z",
+    "involvedObject": {
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "name": "example-service-web-867f486c5-cvprp",
+      "namespace": "my-namespace",
+      "resourceVersion": "1094462992",
+      "uid": "f95f5cc1-77ec-4ca1-ac49-a483a070c2e3"
+    },
+    "kind": "Event",
+    "lastTimestamp": "2024-04-09T20:35:25Z",
+    "message": "pod didn't trigger scale-up: 1 node(s) had untolerated taint {example.com/infra: true}, 4 not ready for scale-up, 8 node(s) had untolerated taint {example.com/node-not-ready: true}, 3 node(s) didn't match Pod's node affinity/selector",
+    "metadata": {
+      "creationTimestamp": "2024-04-09T20:35:25Z",
+      "name": "example-service-web-867f486c5-cvprp.17c2a99193103a04",
+      "namespace": "my-namespace",
+      "resourceVersion": "54883524",
+      "uid": "d9120b3d-4f78-48a2-bbe9-cadf852ec89e"
+    },
+    "reason": "NotTriggerScaleUp",
+    "reportingComponent": "cluster-autoscaler",
+    "reportingInstance": "",
+    "source": {
+      "component": "cluster-autoscaler"
+    },
+    "type": "Normal"
+  },
+  {
+    "apiVersion": "v1",
+    "count": 709,
+    "firstTimestamp": "2024-04-03T04:44:56Z",
+    "involvedObject": {
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "name": "example-service-web-867f486c5-cvprp",
+      "namespace": "my-namespace",
+      "resourceVersion": "1094462992",
+      "uid": "f95f5cc1-77ec-4ca1-ac49-a483a070c2e3"
+    },
+    "kind": "Event",
+    "lastTimestamp": "2024-04-09T20:38:33Z",
+    "message": "pod didn't trigger scale-up: 4 max node group size reached, 6 node(s) didn't match Pod's node affinity/selector, 3 node(s) had untolerated taint {example.com/monitoring: true}, 3 node(s) had untolerated taint {example.com/infra: true}",
+    "metadata": {
+      "creationTimestamp": "2024-04-09T20:38:33Z",
+      "name": "example-service-web-867f486c5-cvprp.17c2ab9c73ed8b27",
+      "namespace": "my-namespace",
+      "resourceVersion": "54883729",
+      "uid": "f1b35dbf-900e-413a-976e-57b9c05a2c21"
+    },
+    "reason": "NotTriggerScaleUp",
+    "reportingComponent": "",
+    "reportingInstance": "",
+    "source": {
+      "component": "cluster-autoscaler"
+    },
+    "type": "Normal"
+  },
+  {
+    "apiVersion": "v1",
+    "count": 11391,
+    "firstTimestamp": "2024-04-03T04:06:50Z",
+    "involvedObject": {
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "name": "example-service-web-867f486c5-cvprp",
+      "namespace": "my-namespace",
+      "resourceVersion": "1094462992",
+      "uid": "f95f5cc1-77ec-4ca1-ac49-a483a070c2e3"
+    },
+    "kind": "Event",
+    "lastTimestamp": "2024-04-09T20:40:27Z",
+    "message": "pod didn't trigger scale-up: 8 node(s) had untolerated taint {example.com/node-not-ready: true}, 3 node(s) didn't match Pod's node affinity/selector, 1 node(s) had untolerated taint {example.com/infra: true}, 4 not ready for scale-up",
+    "metadata": {
+      "creationTimestamp": "2024-04-09T20:40:27Z",
+      "name": "example-service-web-867f486c5-cvprp.17c2a9883daa50eb",
+      "namespace": "my-namespace",
+      "resourceVersion": "54883931",
+      "uid": "55a8ae7a-3ce0-4140-b613-d46237b1a67c"
+    },
+    "reason": "NotTriggerScaleUp",
+    "reportingComponent": "cluster-autoscaler",
+    "reportingInstance": "",
+    "source": {
+      "component": "cluster-autoscaler"
+    },
+    "type": "Normal"
+  },
+  {
+    "apiVersion": "v1",
+    "count": 3504,
+    "firstTimestamp": "2024-04-03T04:08:27Z",
+    "involvedObject": {
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "name": "example-service-web-867f486c5-cvprp",
+      "namespace": "my-namespace",
+      "resourceVersion": "1094462992",
+      "uid": "f95f5cc1-77ec-4ca1-ac49-a483a070c2e3"
+    },
+    "kind": "Event",
+    "lastTimestamp": "2024-04-09T20:43:37Z",
+    "message": "pod didn't trigger scale-up: 3 node(s) had untolerated taint {example.com/monitoring: true}, 6 node(s) didn't match Pod's node affinity/selector, 3 node(s) had untolerated taint {example.com/infra: true}, 4 max node group size reached",
+    "metadata": {
+      "creationTimestamp": "2024-04-09T20:18:17Z",
+      "name": "example-service-web-867f486c5-cvprp.17c2a99ecf0e3810",
+      "namespace": "my-namespace",
+      "resourceVersion": "54884026",
+      "uid": "79ba9ba1-72df-4d9c-9714-33c65b7410b1"
+    },
+    "reason": "NotTriggerScaleUp",
+    "reportingComponent": "",
+    "reportingInstance": "",
+    "source": {
+      "component": "cluster-autoscaler"
+    },
+    "type": "Normal"
+  },
+  {
+    "apiVersion": "v1",
+    "count": 896,
+    "firstTimestamp": "2024-04-03T04:27:16Z",
+    "involvedObject": {
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "name": "example-service-web-867f486c5-cvprp",
+      "namespace": "my-namespace",
+      "resourceVersion": "1094462992",
+      "uid": "f95f5cc1-77ec-4ca1-ac49-a483a070c2e3"
+    },
+    "kind": "Event",
+    "lastTimestamp": "2024-04-09T20:45:28Z",
+    "message": "pod didn't trigger scale-up: 4 not ready for scale-up, 8 node(s) had untolerated taint {example.com/node-not-ready: true}, 1 node(s) had untolerated taint {example.com/infra: true}, 3 node(s) didn't match Pod's node affinity/selector",
+    "metadata": {
+      "creationTimestamp": "2024-04-09T20:45:28Z",
+      "name": "example-service-web-867f486c5-cvprp.17c2aaa5b1be3431",
+      "namespace": "my-namespace",
+      "resourceVersion": "54884188",
+      "uid": "f69d6ee8-8450-47d1-bf82-a53df275933c"
+    },
+    "reason": "NotTriggerScaleUp",
+    "reportingComponent": "cluster-autoscaler",
+    "reportingInstance": "",
+    "source": {
+      "component": "cluster-autoscaler"
+    },
+    "type": "Normal"
+  },
+  {
+    "apiVersion": "v1",
+    "count": 357,
+    "firstTimestamp": "2024-04-03T04:17:35Z",
+    "involvedObject": {
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "name": "example-service-web-867f486c5-cvprp",
+      "namespace": "my-namespace",
+      "resourceVersion": "1094462992",
+      "uid": "f95f5cc1-77ec-4ca1-ac49-a483a070c2e3"
+    },
+    "kind": "Event",
+    "lastTimestamp": "2024-04-09T20:48:41Z",
+    "message": "pod didn't trigger scale-up: 3 node(s) had untolerated taint {example.com/monitoring: true}, 4 max node group size reached, 3 node(s) had untolerated taint {example.com/infra: true}, 6 node(s) didn't match Pod's node affinity/selector",
+    "metadata": {
+      "creationTimestamp": "2024-04-09T20:48:41Z",
+      "name": "example-service-web-867f486c5-cvprp.17c2aa1e457f7e38",
+      "namespace": "my-namespace",
+      "resourceVersion": "54884525",
+      "uid": "0a08e578-25ed-4c8b-960f-1559ba06b4bd"
+    },
+    "reason": "NotTriggerScaleUp",
+    "reportingComponent": "",
+    "reportingInstance": "",
+    "source": {
+      "component": "cluster-autoscaler"
+    },
+    "type": "Normal"
+  },
+  {
+    "apiVersion": "v1",
+    "count": 6076,
+    "firstTimestamp": "2024-04-03T04:06:30Z",
+    "involvedObject": {
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "name": "example-service-web-867f486c5-cvprp",
+      "namespace": "my-namespace",
+      "resourceVersion": "1094462992",
+      "uid": "f95f5cc1-77ec-4ca1-ac49-a483a070c2e3"
+    },
+    "kind": "Event",
+    "lastTimestamp": "2024-04-09T20:50:30Z",
+    "message": "pod didn't trigger scale-up: 3 node(s) didn't match Pod's node affinity/selector, 8 node(s) had untolerated taint {example.com/node-not-ready: true}, 1 node(s) had untolerated taint {example.com/infra: true}, 4 not ready for scale-up",
+    "metadata": {
+      "creationTimestamp": "2024-04-09T20:00:14Z",
+      "name": "example-service-web-867f486c5-cvprp.17c2a98389f863d3",
+      "namespace": "my-namespace",
+      "resourceVersion": "54884610",
+      "uid": "142318ab-3de1-473a-b9e6-cc2bf4d30f50"
+    },
+    "reason": "NotTriggerScaleUp",
+    "reportingComponent": "cluster-autoscaler",
+    "reportingInstance": "",
+    "source": {
+      "component": "cluster-autoscaler"
+    },
+    "type": "Normal"
+  },
+  {
+    "apiVersion": "v1",
+    "count": 7000,
+    "firstTimestamp": "2024-04-03T04:08:17Z",
+    "involvedObject": {
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "name": "example-service-web-867f486c5-cvprp",
+      "namespace": "my-namespace",
+      "resourceVersion": "1094462992",
+      "uid": "f95f5cc1-77ec-4ca1-ac49-a483a070c2e3"
+    },
+    "kind": "Event",
+    "lastTimestamp": "2024-04-09T20:53:45Z",
+    "message": "pod didn't trigger scale-up: 6 node(s) didn't match Pod's node affinity/selector, 3 node(s) had untolerated taint {example.com/monitoring: true}, 3 node(s) had untolerated taint {example.com/infra: true}, 4 max node group size reached",
+    "metadata": {
+      "creationTimestamp": "2024-04-09T18:01:28Z",
+      "name": "example-service-web-867f486c5-cvprp.17c2a99c758187b5",
+      "namespace": "my-namespace",
+      "resourceVersion": "54884693",
+      "uid": "2ad7d3c3-c171-4213-bd66-a6330f6a160c"
+    },
+    "reason": "NotTriggerScaleUp",
+    "reportingComponent": "",
+    "reportingInstance": "",
+    "source": {
+      "component": "cluster-autoscaler"
+    },
+    "type": "Normal"
+  },
+  {
+    "apiVersion": "v1",
+    "count": 7124,
+    "firstTimestamp": "2024-04-03T04:07:11Z",
+    "involvedObject": {
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "name": "example-service-web-867f486c5-cvprp",
+      "namespace": "my-namespace",
+      "resourceVersion": "1094462992",
+      "uid": "f95f5cc1-77ec-4ca1-ac49-a483a070c2e3"
+    },
+    "kind": "Event",
+    "lastTimestamp": "2024-04-09T20:55:31Z",
+    "message": "pod didn't trigger scale-up: 8 node(s) had untolerated taint {example.com/node-not-ready: true}, 1 node(s) had untolerated taint {example.com/infra: true}, 3 node(s) didn't match Pod's node affinity/selector, 4 not ready for scale-up",
+    "metadata": {
+      "creationTimestamp": "2024-04-09T20:55:31Z",
+      "name": "example-service-web-867f486c5-cvprp.17c2a98ce860201b",
+      "namespace": "my-namespace",
+      "resourceVersion": "54884873",
+      "uid": "78f3bd52-eaaf-4f8e-a390-cdba9246fcf4"
+    },
+    "reason": "NotTriggerScaleUp",
+    "reportingComponent": "cluster-autoscaler",
+    "reportingInstance": "",
+    "source": {
+      "component": "cluster-autoscaler"
+    },
+    "type": "Normal"
+  },
+  {
+    "apiVersion": "v1",
+    "count": 1663,
+    "firstTimestamp": "2024-04-03T04:08:51Z",
+    "involvedObject": {
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "name": "example-service-web-867f486c5-cvprp",
+      "namespace": "my-namespace",
+      "resourceVersion": "1094462992",
+      "uid": "f95f5cc1-77ec-4ca1-ac49-a483a070c2e3"
+    },
+    "kind": "Event",
+    "lastTimestamp": "2024-04-09T21:00:33Z",
+    "message": "pod didn't trigger scale-up: 1 node(s) had untolerated taint {example.com/infra: true}, 4 not ready for scale-up, 3 node(s) didn't match Pod's node affinity/selector, 8 node(s) had untolerated taint {example.com/node-not-ready: true}",
+    "metadata": {
+      "creationTimestamp": "2024-04-09T21:00:33Z",
+      "name": "example-service-web-867f486c5-cvprp.17c2a9a45127bd78",
+      "namespace": "my-namespace",
+      "resourceVersion": "54885284",
+      "uid": "b4511b8a-18f7-45ee-9598-1f83fcc273ac"
+    },
+    "reason": "NotTriggerScaleUp",
+    "reportingComponent": "cluster-autoscaler",
+    "reportingInstance": "",
+    "source": {
+      "component": "cluster-autoscaler"
+    },
+    "type": "Normal"
+  },
+  {
+    "apiVersion": "v1",
+    "count": 25959,
+    "firstTimestamp": "2024-04-03T04:08:37Z",
+    "involvedObject": {
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "name": "example-service-web-867f486c5-cvprp",
+      "namespace": "my-namespace",
+      "resourceVersion": "1094462992",
+      "uid": "f95f5cc1-77ec-4ca1-ac49-a483a070c2e3"
+    },
+    "kind": "Event",
+    "lastTimestamp": "2024-04-09T21:03:53Z",
+    "message": "(combined from similar events): pod didn't trigger scale-up: 3 node(s) had untolerated taint {example.com/monitoring: true}, 6 node(s) didn't match Pod's node affinity/selector, 3 node(s) had untolerated taint {example.com/infra: true}, 4 max node group size reached",
+    "metadata": {
+      "creationTimestamp": "2024-04-03T04:21:48Z",
+      "name": "example-service-web-867f486c5-cvprp.17c2a9a12890bfe8",
+      "namespace": "my-namespace",
+      "resourceVersion": "54885503",
+      "uid": "1b5648a2-f3dd-4a7f-931b-4e9868bfc5b2"
+    },
+    "reason": "NotTriggerScaleUp",
+    "reportingComponent": "",
+    "reportingInstance": "",
+    "source": {
+      "component": "cluster-autoscaler"
+    },
+    "type": "Normal"
+  },
+  {
+    "apiVersion": "v1",
+    "count": 467,
+    "firstTimestamp": "2024-04-03T04:07:17Z",
+    "involvedObject": {
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "name": "example-service-web-867f486c5-cvprp",
+      "namespace": "my-namespace",
+      "resourceVersion": "1094462992",
+      "uid": "f95f5cc1-77ec-4ca1-ac49-a483a070c2e3"
+    },
+    "kind": "Event",
+    "lastTimestamp": "2024-04-09T21:08:57Z",
+    "message": "pod didn't trigger scale-up: 6 node(s) didn't match Pod's node affinity/selector, 3 node(s) had untolerated taint {example.com/monitoring: true}, 4 max node group size reached, 3 node(s) had untolerated taint {example.com/infra: true}",
+    "metadata": {
+      "creationTimestamp": "2024-04-09T21:08:57Z",
+      "name": "example-service-web-867f486c5-cvprp.17c2a98e51952f72",
+      "namespace": "my-namespace",
+      "resourceVersion": "54885847",
+      "uid": "b86286e4-ebf4-4f40-b7df-c218a4006765"
+    },
+    "reason": "NotTriggerScaleUp",
+    "reportingComponent": "",
+    "reportingInstance": "",
+    "source": {
+      "component": "cluster-autoscaler"
+    },
+    "type": "Normal"
+  },
+  {
+    "apiVersion": "v1",
+    "count": 1295,
+    "firstTimestamp": "2024-04-03T04:17:24Z",
+    "involvedObject": {
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "name": "example-service-web-867f486c5-cvprp",
+      "namespace": "my-namespace",
+      "resourceVersion": "1094462992",
+      "uid": "f95f5cc1-77ec-4ca1-ac49-a483a070c2e3"
+    },
+    "kind": "Event",
+    "lastTimestamp": "2024-04-09T21:10:36Z",
+    "message": "pod didn't trigger scale-up: 3 node(s) didn't match Pod's node affinity/selector, 4 not ready for scale-up, 8 node(s) had untolerated taint {example.com/node-not-ready: true}, 1 node(s) had untolerated taint {example.com/infra: true}",
+    "metadata": {
+      "creationTimestamp": "2024-04-09T21:10:36Z",
+      "name": "example-service-web-867f486c5-cvprp.17c2aa1ba145b472",
+      "namespace": "my-namespace",
+      "resourceVersion": "54885960",
+      "uid": "533db77a-6b82-483d-877e-097461be52b7"
+    },
+    "reason": "NotTriggerScaleUp",
+    "reportingComponent": "cluster-autoscaler",
+    "reportingInstance": "",
+    "source": {
+      "component": "cluster-autoscaler"
+    },
+    "type": "Normal"
+  },
+  {
+    "apiVersion": "v1",
+    "count": 6288,
+    "firstTimestamp": "2024-04-03T04:06:46Z",
+    "involvedObject": {
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "name": "example-service-web-867f486c5-cvprp",
+      "namespace": "my-namespace",
+      "resourceVersion": "1094462992",
+      "uid": "f95f5cc1-77ec-4ca1-ac49-a483a070c2e3"
+    },
+    "kind": "Event",
+    "lastTimestamp": "2024-04-09T21:14:01Z",
+    "message": "pod didn't trigger scale-up: 6 node(s) didn't match Pod's node affinity/selector, 3 node(s) had untolerated taint {example.com/infra: true}, 3 node(s) had untolerated taint {example.com/monitoring: true}, 4 max node group size reached",
+    "metadata": {
+      "creationTimestamp": "2024-04-09T19:37:45Z",
+      "name": "example-service-web-867f486c5-cvprp.17c2a98737c296d6",
+      "namespace": "my-namespace",
+      "resourceVersion": "54886179",
+      "uid": "717b5d6c-1160-4331-8688-5656a6974a41"
+    },
+    "reason": "NotTriggerScaleUp",
+    "reportingComponent": "",
+    "reportingInstance": "",
+    "source": {
+      "component": "cluster-autoscaler"
+    },
+    "type": "Normal"
+  },
+  {
+    "apiVersion": "v1",
+    "count": 20394,
+    "firstTimestamp": "2024-04-03T04:11:02Z",
+    "involvedObject": {
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "name": "example-service-web-867f486c5-cvprp",
+      "namespace": "my-namespace",
+      "resourceVersion": "1094462992",
+      "uid": "f95f5cc1-77ec-4ca1-ac49-a483a070c2e3"
+    },
+    "kind": "Event",
+    "lastTimestamp": "2024-04-09T21:15:38Z",
+    "message": "(combined from similar events): pod didn't trigger scale-up: 3 node(s) didn't match Pod's node affinity/selector, 1 node(s) had untolerated taint {example.com/infra: true}, 4 not ready for scale-up, 8 node(s) had untolerated taint {example.com/node-not-ready: true}",
+    "metadata": {
+      "creationTimestamp": "2024-04-09T10:12:14Z",
+      "name": "example-service-web-867f486c5-cvprp.17c2a9c2bc3c8fa0",
+      "namespace": "my-namespace",
+      "resourceVersion": "54886217",
+      "uid": "d90ef68b-b85f-464c-a7af-8773c8f9b3f1"
+    },
+    "reason": "NotTriggerScaleUp",
+    "reportingComponent": "",
+    "reportingInstance": "",
+    "source": {
+      "component": "cluster-autoscaler"
+    },
+    "type": "Normal"
+  },
+  {
+    "apiVersion": "v1",
+    "count": 1935,
+    "firstTimestamp": "2024-04-03T04:06:26Z",
+    "involvedObject": {
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "name": "example-service-web-867f486c5-cvprp",
+      "namespace": "my-namespace",
+      "resourceVersion": "1094462989",
+      "uid": "f95f5cc1-77ec-4ca1-ac49-a483a070c2e3"
+    },
+    "kind": "Event",
+    "lastTimestamp": "2024-04-09T21:16:53Z",
+    "message": "0/7 nodes are available: 1 node(s) had untolerated taint {example.com/infra: true}, 3 node(s) didn't match Pod's node affinity/selector, 3 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }. preemption: 0/7 nodes are available: 7 Preemption is not helpful for scheduling..",
+    "metadata": {
+      "creationTimestamp": "2024-04-03T04:06:26Z",
+      "name": "example-service-web-867f486c5-cvprp.17c2a98276584ea1",
+      "namespace": "my-namespace",
+      "resourceVersion": "54886284",
+      "uid": "7d291b8d-c35b-4fc5-8453-2a14d69a2bd1"
+    },
+    "reason": "FailedScheduling",
+    "reportingComponent": "default-scheduler",
+    "reportingInstance": "",
+    "source": {
+      "component": "default-scheduler"
+    },
+    "type": "Warning"
+  }
+]

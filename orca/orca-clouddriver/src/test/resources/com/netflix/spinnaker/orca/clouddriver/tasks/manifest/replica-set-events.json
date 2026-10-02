@@ -1,0 +1,92 @@
+[
+  {
+    "apiVersion": "v1",
+    "count": 1,
+    "firstTimestamp": "2024-04-09T19:49:42Z",
+    "involvedObject": {
+      "apiVersion": "apps/v1",
+      "kind": "ReplicaSet",
+      "name": "example-service-web-867f486c5",
+      "namespace": "my-namespace",
+      "resourceVersion": "1114889836",
+      "uid": "93e24f17-02fb-4ba5-b084-74a665102ff2"
+    },
+    "kind": "Event",
+    "lastTimestamp": "2024-04-09T19:49:42Z",
+    "message": "Created pod: example-service-web-867f486c5-abc",
+    "metadata": {
+      "creationTimestamp": "2024-04-09T20:49:42Z",
+      "name": "example-service-web-867f486c5.17c4b7bd660ca3a3",
+      "namespace": "my-namespace",
+      "resourceVersion": "54884593",
+      "uid": "dae5e247-92f3-4ce7-8c30-10728054a053"
+    },
+    "reason": "SuccessfulCreate",
+    "reportingComponent": "replicaset-controller",
+    "reportingInstance": "",
+    "source": {
+      "component": "replicaset-controller"
+    },
+    "type": "Normal"
+  },
+  {
+    "apiVersion": "v1",
+    "count": 1,
+    "firstTimestamp": "2024-04-09T20:49:42Z",
+    "involvedObject": {
+      "apiVersion": "apps/v1",
+      "kind": "ReplicaSet",
+      "name": "example-service-web-867f486c5",
+      "namespace": "my-namespace",
+      "resourceVersion": "1114889836",
+      "uid": "93e24f17-02fb-4ba5-b084-74a665102ff2"
+    },
+    "kind": "Event",
+    "lastTimestamp": "2024-04-09T20:49:42Z",
+    "message": "Created pod: example-service-web-867f486c5-vn27p",
+    "metadata": {
+      "creationTimestamp": "2024-04-09T20:49:42Z",
+      "name": "example-service-web-867f486c5.17c4b7bd660ca3a3",
+      "namespace": "my-namespace",
+      "resourceVersion": "54884593",
+      "uid": "dae5e247-92f3-4ce7-8c30-10728054a053"
+    },
+    "reason": "SuccessfulCreate",
+    "reportingComponent": "replicaset-controller",
+    "reportingInstance": "",
+    "source": {
+      "component": "replicaset-controller"
+    },
+    "type": "Normal"
+  },
+  {
+    "apiVersion": "v1",
+    "count": 1,
+    "firstTimestamp": "2024-04-09T21:49:42Z",
+    "involvedObject": {
+      "apiVersion": "apps/v1",
+      "kind": "ReplicaSet",
+      "name": "example-service-web-867f486c5",
+      "namespace": "my-namespace",
+      "resourceVersion": "1114889836",
+      "uid": "93e24f17-02fb-4ba5-b084-74a665102ff2"
+    },
+    "kind": "Event",
+    "lastTimestamp": "2024-04-09T21:49:42Z",
+    "message": "Created pod: example-service-web-867f486c5-cvprp",
+    "metadata": {
+      "creationTimestamp": "2024-04-09T21:49:42Z",
+      "name": "example-service-web-867f486c5.17c4b7bd660ca3a3",
+      "namespace": "my-namespace",
+      "resourceVersion": "54884593",
+      "uid": "dae5e247-92f3-4ce7-8c30-10728054a053"
+    },
+    "reason": "SuccessfulCreate",
+    "reportingComponent": "replicaset-controller",
+    "reportingInstance": "",
+    "source": {
+      "component": "replicaset-controller"
+    },
+    "type": "Normal"
+  }
+]

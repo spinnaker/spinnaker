@@ -18,10 +18,12 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.manifest;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.netflix.spinnaker.orca.clouddriver.model.ManifestCoordinates;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -35,8 +37,10 @@ public class WaitForManifestStableContext extends HashMap<String, Object> {
   private final List<Map<String, String>> stableManifests;
   private final List<Map<String, String>> failedManifests;
   private final List warnings;
-  private final List<Object> events;
   private final boolean includeEvents;
+  private final Map<String, ManifestCoordinates> replicaSetPerDeployment;
+  private final Map<String, List<WaitForManifestStableTask.KubernetesManifestMetadata>>
+      manifestsMetadataByNamespace;
 
   // There does not seem to be a way to auto-generate a constructor using our current version of
   // Lombok (1.16.20) that
@@ -47,8 +51,12 @@ public class WaitForManifestStableContext extends HashMap<String, Object> {
       @JsonProperty("stableManifests") Optional<List<Map<String, String>>> stableManifests,
       @JsonProperty("failedManifests") Optional<List<Map<String, String>>> failedManifests,
       @JsonProperty("warnings") Optional<List> warnings,
-      @JsonProperty("events") Optional<List<Object>> events,
-      @JsonProperty("includeEvents") Optional<Boolean> includeEvents) {
+      @JsonProperty("includeEvents") Optional<Boolean> includeEvents,
+      @JsonProperty("replicaSetPerDeployment")
+          Map<String, ManifestCoordinates> replicaSetPerDeployment,
+      @JsonProperty("manifestsMetadataByNamespace")
+          Map<String, List<WaitForManifestStableTask.KubernetesManifestMetadata>>
+              manifestsMetadataByNamespace) {
     this.messages = messages.orElseGet(ArrayList::new);
     this.failureMessages =
         exception
@@ -57,8 +65,11 @@ public class WaitForManifestStableContext extends HashMap<String, Object> {
     this.stableManifests = stableManifests.orElseGet(ArrayList::new);
     this.failedManifests = failedManifests.orElseGet(ArrayList::new);
     this.warnings = warnings.orElseGet(ArrayList::new);
-    this.events = events.orElseGet(ArrayList::new);
     this.includeEvents = includeEvents.orElse(false);
+    this.replicaSetPerDeployment =
+        Objects.requireNonNullElseGet(replicaSetPerDeployment, HashMap::new);
+    this.manifestsMetadataByNamespace =
+        Objects.requireNonNullElseGet(manifestsMetadataByNamespace, HashMap::new);
   }
 
   public List<Map<String, String>> getCompletedManifests() {

@@ -17,6 +17,12 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.manifest;
 
+import static java.util.Comparator.comparing;
+import static java.util.Comparator.naturalOrder;
+import static java.util.Comparator.nullsFirst;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
@@ -27,15 +33,24 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.model.Manifest;
 import com.netflix.spinnaker.orca.clouddriver.model.Manifest.Status;
+import com.netflix.spinnaker.orca.clouddriver.model.ManifestCoordinates;
+import com.netflix.spinnaker.orca.clouddriver.model.ManifestEvents;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -50,6 +65,7 @@ public class WaitForManifestStableTask
   private static final Pattern BACKTICK_RUN = Pattern.compile("`+");
 
   private final OortService oortService;
+  private final ObjectMapper objectMapper;
 
   @Override
   public long getBackoffPeriod() {
@@ -82,7 +98,10 @@ public class WaitForManifestStableTask
     List<Map<String, String>> stableManifests = context.getStableManifests();
     List<Map<String, String>> failedManifests = context.getFailedManifests();
     List warnings = context.getWarnings();
-    List events = context.getEvents();
+    Map<String, ManifestCoordinates> replicaSetPerDeployment = context.getReplicaSetPerDeployment();
+    Map<String, List<KubernetesManifestMetadata>> manifestsMetadataByNamespace =
+        context.getManifestsMetadataByNamespace();
+    Map<String, String> outputs = new HashMap<>();
     boolean includeEvents = context.isIncludeEvents();
 
     boolean anyIncomplete = false;
@@ -143,8 +162,13 @@ public class WaitForManifestStableTask
           warnings.addAll(manifest.getWarnings());
         }
 
-        if (!manifest.getEvents().isEmpty()) {
-          events.addAll(manifest.getEvents());
+        if (includeEvents) {
+          KubernetesManifestMetadata manifestMetadata =
+              updateMetadata(manifest, manifestsMetadataByNamespace);
+          replicaSetPerDeployment.put(
+              name,
+              getLatestReplicaSetsInK8sDeployment(
+                  manifest, location, manifestMetadata.getEvents()));
         }
       }
     }
@@ -155,33 +179,44 @@ public class WaitForManifestStableTask
             .put("stableManifests", stableManifests)
             .put("failedManifests", failedManifests);
 
-    if (!failureMessages.isEmpty()) {
-      builder.put("exception", buildExceptions(failureMessages));
-    }
     if (!warnings.isEmpty()) {
       builder.put("warnings", warnings);
     }
-    if (!events.isEmpty()) {
-      builder.put("events", events);
+    if (includeEvents) {
+      builder.put("replicaSetPerDeployment", replicaSetPerDeployment);
+      builder.put("manifestsMetadataByNamespace", manifestsMetadataByNamespace);
     }
 
-    Map<String, Object> newContext = builder.build();
+    // at this point, some of the manifests have failed. So we want to surface as many relevant
+    // manifest metadata details as possible
+    if (includeEvents && !failedManifests.isEmpty()) {
+      try {
+        failureMessages.addAll(
+            includeReplicaSetAndPodDetails(
+                account, failedManifests, replicaSetPerDeployment, manifestsMetadataByNamespace));
+      } catch (Exception e) {
+        // this exception isn't the most important one, thus it should not overwrite the main cause
+        // of the stage failure. So just adding the exception to the stage outputs so that we can
+        // inspect what the problem is without needing to look into orca logs
+        outputs.put(
+            "includeEventsError",
+            "failed to include replica set and pod events and warnings. Error: " + e);
+      }
+    }
+
+    if (!failureMessages.isEmpty()) {
+      builder.put("exception", buildExceptions(failureMessages));
+    }
+
+    ExecutionStatus status = ExecutionStatus.SUCCEEDED;
 
     if (anyIncomplete) {
-      return TaskResult.builder(ExecutionStatus.RUNNING)
-          .context(newContext)
-          .outputs(new HashMap<>())
-          .build();
+      status = ExecutionStatus.RUNNING;
+    } else if (!failedManifests.isEmpty()) {
+      status = ExecutionStatus.TERMINAL;
     }
 
-    if (failedManifests.isEmpty()) {
-      return TaskResult.builder(ExecutionStatus.SUCCEEDED)
-          .context(newContext)
-          .outputs(new HashMap<>())
-          .build();
-    } else {
-      return TaskResult.builder(ExecutionStatus.TERMINAL).context(newContext).build();
-    }
+    return TaskResult.builder(status).context(builder.build()).outputs(outputs).build();
   }
 
   private String readableIdentifier(String account, String location, String name) {
@@ -216,5 +251,264 @@ public class WaitForManifestStableTask
             "details",
             new ImmutableMap.Builder<String, List<String>>().put("errors", failureMessages).build())
         .build();
+  }
+
+  /**
+   * Given a K8s Deployment kind manifest, find the latest replica set in that deployment
+   *
+   * @param manifest A Kubernetes Manifest
+   * @param location Namespace
+   * @param manifestEvents list of events contained in the manifest
+   * @return {@link ManifestCoordinates}> latest replica set in deployment
+   */
+  private ManifestCoordinates getLatestReplicaSetsInK8sDeployment(
+      Manifest manifest, String location, Set<ManifestEvents> manifestEvents) {
+    // for Deployment Kinds, we are attempting to get the events for a replicaSet and
+    // the pods controlled by that replicaSet as well. This is because the most meaningful events
+    // are those that belong to the pods. The idea is to showcase all the relevant events in the
+    // execution context
+    if (manifest.getManifest().get("kind").equals("Deployment")) {
+      // without having to make another call to clouddriver, this is the simplest way to obtain the
+      // name of the replica set. We only care about the replica sets that are being scaled up, as
+      // these are the newly created replica sets, and within this, we only care about the most
+      // recent
+      Optional<ManifestEvents> replicaSet =
+          manifestEvents.stream()
+              .filter(
+                  m ->
+                      m.getReason().equals("ScalingReplicaSet")
+                          && m.getMessage().contains("Scaled up replica set"))
+              .max(
+                  nullsFirst(
+                      comparing(ManifestEvents::getLastTimestamp, nullsFirst(naturalOrder()))));
+
+      if (replicaSet.isPresent()) {
+        return ManifestCoordinates.builder()
+            .kind("ReplicaSet")
+            .namespace(location)
+            .name(
+                replicaSet
+                    .get()
+                    .getMessage()
+                    .replace("(combined from similar events): ", "")
+                    .replace("Scaled up replica set", "replicaSet")
+                    .split(" to")[0])
+            .build();
+      }
+    }
+    return null;
+  }
+
+  private KubernetesManifestMetadata updateMetadata(
+      Manifest manifest,
+      Map<String, List<KubernetesManifestMetadata>> manifestsMetadataByNamespace) {
+    List<KubernetesManifestMetadata> existingResourcesByNamespace =
+        manifestsMetadataByNamespace.getOrDefault(manifest.getLocation(), new ArrayList<>());
+    KubernetesManifestMetadata metadata =
+        existingResourcesByNamespace.stream()
+            .filter(w -> w.getName().equals(manifest.getName()))
+            .findFirst()
+            .orElse(new KubernetesManifestMetadata(manifest.getName()));
+
+    // 1. add warnings
+    if (!manifest.getWarnings().isEmpty()) {
+      metadata.addWarnings(manifest.getWarnings());
+    }
+
+    // 2. add statuses
+    try {
+      KubernetesManifestStatus status =
+          objectMapper.convertValue(
+              manifest.getManifest().get("status"), KubernetesManifestStatus.class);
+      if (status != null) {
+        metadata.updateStatusConditions(status);
+      }
+    } catch (Exception ignored) {
+    }
+
+    // 3. add events
+    if (!manifest.getEvents().isEmpty()) {
+      Set<ManifestEvents> manifestEvents =
+          objectMapper.convertValue(
+              manifest.getEvents(), new TypeReference<Set<ManifestEvents>>() {});
+      metadata.addEvents(manifestEvents);
+    }
+
+    existingResourcesByNamespace.add(metadata);
+    manifestsMetadataByNamespace.put(manifest.getLocation(), existingResourcesByNamespace);
+
+    return metadata;
+  }
+
+  private Set<String> getFailureMessages(
+      KubernetesManifestMetadata metadata, String account, String namespace, String resourceName) {
+    Set<String> failureDetails = new HashSet<>();
+    metadata.getEvents().stream()
+        .filter(e -> e.getType().equals("Warning"))
+        .forEach(
+            e ->
+                failureDetails.add(
+                    "Resource: "
+                        + readableIdentifier(account, namespace, resourceName)
+                        + " is not stable. Reason: "
+                        + e.getReason()
+                        + ". Details: "
+                        + e.getMessage()));
+
+    metadata.getConditions().stream()
+        .filter(c -> !c.getStatus().equals("True"))
+        .forEach(
+            c ->
+                failureDetails.add(
+                    "Resource: "
+                        + readableIdentifier(account, namespace, resourceName)
+                        + ". Condition: "
+                        + c.getReason()
+                        + ". Details: "
+                        + c.getMessage()));
+
+    return failureDetails;
+  }
+
+  /**
+   * This method finds all the failed manifests that are in the manifestResourcesMap and attempts to
+   * find kube events related to replica sets and pods belonging to that manifest. It saves all
+   * events, warnings and statuses from these resources in the execution context
+   *
+   * @param account spinnaker's K8s account definition for a cluster
+   * @param failedManifests a {@link List}<{@link Map}><{@link String}, {@link String}>> containing
+   *     a list of namespace to resource name mappings of manifests that did not deploy successfully
+   * @param replicaSetPerDeployment a {@link Map}<{@link String}, <{@link ManifestCoordinates}>>
+   *     containing a map of K8s Deployment manifest names to latest replica set contained within it
+   */
+  private Set<String> includeReplicaSetAndPodDetails(
+      String account,
+      List<Map<String, String>> failedManifests,
+      Map<String, ManifestCoordinates> replicaSetPerDeployment,
+      Map<String, List<KubernetesManifestMetadata>> manifestMetadata) {
+    Set<String> failureDetails = new HashSet<>();
+    // failedManifests looks like this - I have no idea why they made it a map instead of a class,
+    // but
+    // I am not changing it as it could very well break other things:
+    // "failedManifests": [
+    //  {
+    //    "location": "example-service",
+    //    "manifestName": "deployment example-service-web"
+    //  }
+    // ]
+    for (Map<String, String> failedManifest : failedManifests) {
+      if (!replicaSetPerDeployment.containsKey(failedManifest.get("manifestName"))) {
+        continue;
+      }
+      ManifestCoordinates replicaSetCoordinates =
+          replicaSetPerDeployment.get(failedManifest.get("manifestName"));
+      Manifest manifest = null;
+      try {
+        manifest =
+            Retrofit2SyncCall.execute(
+                oortService.getManifest(
+                    account,
+                    replicaSetCoordinates.getNamespace(),
+                    replicaSetCoordinates.getName(),
+                    true));
+      } catch (Exception ignored) { // these exceptions aren't important, this is best effort anyway
+      }
+      if (manifest == null) {
+        continue;
+      }
+      KubernetesManifestMetadata metadata = updateMetadata(manifest, manifestMetadata);
+      failureDetails.addAll(
+          getFailureMessages(
+              metadata,
+              account,
+              replicaSetCoordinates.getNamespace(),
+              replicaSetCoordinates.getName()));
+
+      // now attempt to get this replica set's pod events.
+      // We don't want to get all pod events. A replica set can have potentially 275
+      // pods. We just need the latest pod's events for now
+      if (!metadata.getEvents().isEmpty()) {
+        ManifestEvents podEvent =
+            metadata.getEvents().stream()
+                .filter(
+                    m ->
+                        m.getReason().equals("SuccessfulCreate")
+                            && m.getMessage().contains("Created pod:"))
+                .max(
+                    nullsFirst(
+                        comparing(ManifestEvents::getLastTimestamp, nullsFirst(naturalOrder()))))
+                .orElse(null);
+
+        if (podEvent != null) {
+          String podName = podEvent.getMessage().replace("Created pod:", "pod");
+          Manifest podManifest = null;
+          try {
+            podManifest =
+                Retrofit2SyncCall.execute(
+                    oortService.getManifest(
+                        account, replicaSetCoordinates.getNamespace(), podName, true));
+          } catch (Exception e) { // these exceptions aren't important, this is best effort anyway
+          }
+          if (podManifest == null) {
+            continue;
+          }
+          KubernetesManifestMetadata podMetadata = updateMetadata(podManifest, manifestMetadata);
+          failureDetails.addAll(
+              getFailureMessages(
+                  podMetadata, account, replicaSetCoordinates.getNamespace(), podName));
+        }
+      }
+    }
+    return failureDetails;
+  }
+
+  @Data
+  @AllArgsConstructor
+  @NoArgsConstructor
+  public static class KubernetesManifestMetadata {
+    String name;
+    Set<KubernetesManifestStatusCondition> conditions;
+    Set<ManifestEvents> events;
+    Set<String> warnings;
+
+    public KubernetesManifestMetadata(String name) {
+      this.name = name;
+      conditions = new HashSet<>();
+      events = new HashSet<>();
+      warnings = new HashSet<>();
+    }
+
+    public void addWarnings(Collection<String> warnings) {
+      this.warnings.addAll(warnings);
+    }
+
+    public void addEvents(Collection<ManifestEvents> events) {
+      this.events.addAll(events);
+    }
+
+    public void updateStatusConditions(KubernetesManifestStatus status) {
+      this.conditions.addAll(status.getConditions());
+    }
+  }
+
+  @Data
+  public static class KubernetesManifestStatus {
+    String phase;
+    Set<KubernetesManifestStatusCondition> conditions;
+  }
+
+  @Data
+  public static class KubernetesManifestStatusCondition {
+    String lastTransitionTime;
+    String message;
+    String reason;
+    String status;
+    String type;
+  }
+
+  @Data
+  public static class KubernetesManifestWarning {
+    String name;
+    Set<String> warnings;
   }
 }
