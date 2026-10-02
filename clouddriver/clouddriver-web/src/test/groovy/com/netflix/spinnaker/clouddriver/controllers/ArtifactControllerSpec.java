@@ -26,7 +26,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
 import ch.qos.logback.classic.Level;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,27 +34,32 @@ import com.netflix.spinnaker.clouddriver.Main;
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.artifacts.helm.HelmArtifactCredentials;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
-import com.netflix.spinnaker.filters.AuthenticatedRequestFilter;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.test.log.MemoryAppender;
 import java.util.List;
 import org.hamcrest.Matchers;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.web.context.WebApplicationContext;
 
+/**
+ * {@code @AutoConfigureMockMvc} wires the real, fully-configured MockMvc instance -- including
+ * Spring Security's filter chain (so {@code @PreAuthorize}/{@code @PostFilter} on
+ * ArtifactController/ArtifactCredentialsRepository see a real, at-minimum-anonymous Authentication
+ * instead of none at all) and every registered servlet Filter bean, such as WebConfig's
+ * AuthenticatedRequestFilter -- the same way the real running app assembles its filter chain,
+ * rather than hand-building a partial one.
+ */
 @ExtendWith(SpringExtension.class)
-@WebAppConfiguration
+@AutoConfigureMockMvc
 @SpringBootTest(classes = Main.class)
 @TestPropertySource(
     properties = {
@@ -66,26 +70,11 @@ import org.springframework.web.context.WebApplicationContext;
     })
 public class ArtifactControllerSpec {
 
-  private MockMvc mvc;
-
-  @Autowired private WebApplicationContext webApplicationContext;
+  @Autowired private MockMvc mvc;
 
   @Autowired private ObjectMapper objectMapper;
 
   @Autowired private CredentialsRepository<HelmArtifactCredentials> helmCredentials;
-
-  /**
-   * This takes X-SPINNAKER-* headers from requests to clouddriver and puts them in the MDC. This is
-   * enabled when clouddriver runs normally (by WebConfig), but needs explicit mention to function
-   * in these tests.
-   */
-  @Autowired AuthenticatedRequestFilter authenticatedRequestFilter;
-
-  @BeforeEach
-  public void setup() throws Exception {
-    this.mvc =
-        webAppContextSetup(webApplicationContext).addFilters(authenticatedRequestFilter).build();
-  }
 
   @Test
   public void testFetchWithMisconfiguredArtifact() throws Exception {
