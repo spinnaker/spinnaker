@@ -32,6 +32,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -64,12 +66,26 @@ public class ArtifactController {
   }
 
   @RequestMapping(method = RequestMethod.GET, value = "/credentials")
+  @PostFilter("hasPermission(filterObject.name, 'artifact_account', 'READ')")
   List<ArtifactCredentials> list() {
     if (artifactCredentialsRepository == null) {
       return Collections.emptyList();
-    } else {
-      return artifactCredentialsRepository.getAllCredentials();
     }
+    return artifactCredentialsRepository.getAllCredentials();
+  }
+
+  /**
+   * Unfiltered account listing consumed by Fiat's {@code ArtifactAccountResourceProvider} to sync
+   * artifact accounts as a Fiat resource type, the same way cloud-provider accounts are synced from
+   * the unfiltered {@code /credentials} endpoint. Not intended for end-user callers -- use {@link
+   * #list()} for that.
+   */
+  @RequestMapping(method = RequestMethod.GET, value = "/credentials/all")
+  List<ArtifactCredentials> listAll() {
+    if (artifactCredentialsRepository == null) {
+      return Collections.emptyList();
+    }
+    return artifactCredentialsRepository.getAllCredentials();
   }
 
   // PUT because we need to send a body, which GET does not allow for spring/retrofit
@@ -120,4 +136,10 @@ public class ArtifactController {
   @ExceptionHandler(MissingCredentialsException.class)
   @ResponseStatus(HttpStatus.NOT_FOUND)
   public void handleMissingCredentials() {}
+
+  // Same status as a missing account so an unauthorized caller can't distinguish a restricted
+  // artifact account from one that doesn't exist.
+  @ExceptionHandler(AccessDeniedException.class)
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  public void handleAccessDenied() {}
 }

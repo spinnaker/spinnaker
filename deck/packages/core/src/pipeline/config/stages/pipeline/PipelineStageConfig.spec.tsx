@@ -106,4 +106,60 @@ describe('PipelineStageConfig', () => {
 
     wrapper.unmount();
   });
+
+  it('reloads the parameter values when switching between stages that run the same pipeline', async () => {
+    const parentPipeline = { id: 'parent-pipeline', parameterConfig: [], stages: [] } as IPipeline;
+    const childPipeline = {
+      id: 'child-pipeline',
+      name: 'Child Pipeline',
+      parameterConfig: [{ default: 'dev', name: 'env' }],
+    } as IPipeline;
+    const stageA = {
+      application: 'app',
+      failPipeline: false,
+      pipeline: 'child-pipeline',
+      pipelineParameters: { env: 'stage-a' },
+      refId: '1',
+      waitForCompletion: false,
+    } as IStage;
+    const stageB = { ...stageA, pipelineParameters: { env: 'stage-b' }, refId: '2' } as IStage;
+    const updateStageField = jasmine.createSpy('updateStageField');
+    spyOn(PipelineConfigService, 'getPipelinesForApplication').and.returnValue(Promise.resolve([childPipeline]) as any);
+
+    const wrapper = mount(
+      <PipelineStageConfig
+        application={{ name: 'app' } as any}
+        pipeline={parentPipeline}
+        stage={stageA}
+        updateStageField={updateStageField}
+      />,
+    );
+
+    await act(async () => {
+      await flush();
+    });
+    wrapper.update();
+
+    const parameterInput = () => wrapper.find('.well input.form-control').filterWhere((node) => !node.prop('disabled'));
+    expect(parameterInput().prop('value')).toBe('stage-a');
+
+    // The stage changes, but the application and the invoked pipeline stay the same, so the child
+    // pipeline list is not refetched and the parameter form must still reload its values.
+    await act(async () => {
+      wrapper.setProps({ stage: stageB });
+      await flush();
+    });
+    wrapper.update();
+
+    expect(parameterInput().prop('value')).toBe('stage-b');
+
+    await act(async () => {
+      parameterInput().prop('onChange')({ target: { value: 'stage-b-edited' } } as any);
+      await flush();
+    });
+
+    expect(updateStageField).toHaveBeenCalledWith({ pipelineParameters: { env: 'stage-b-edited' } });
+
+    wrapper.unmount();
+  });
 });
