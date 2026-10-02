@@ -1,11 +1,11 @@
 /*
- * Copyright 2020 Netflix, Inc.
+ * Copyright 2026 McIntosh.farm
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,11 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-apply plugin: "java-library"
-apply from: "$rootDir/gradle/lombok.gradle"
 
-dependencies {
-  api(platform(project(":spinnaker-dependencies")))
+package com.netflix.spinnaker.kork.pubsub.redis.streams;
 
-  implementation project(':kork-core')
+import com.netflix.spinnaker.kork.pubsub.redis.config.RedisPubsubProperties;
+import lombok.Builder;
+import lombok.Data;
+
+@Data
+@Builder
+public class RedisStreamSubscriptionInformation {
+  RedisPubsubProperties.RedisStreamSubscription subscription;
+  String streamKey;
+  String consumerGroup;
 }
