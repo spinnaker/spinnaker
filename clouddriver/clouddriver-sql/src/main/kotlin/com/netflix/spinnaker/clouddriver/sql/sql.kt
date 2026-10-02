@@ -15,11 +15,18 @@
  */
 package com.netflix.spinnaker.clouddriver.sql
 
-import io.github.resilience4j.retry.annotation.Retry
+import com.netflix.spinnaker.config.SqlRetryProperties
+import java.sql.SQLTransientException
 import org.jooq.DSLContext
+import org.jooq.exception.DataAccessException
 import org.jooq.impl.DSL
 import org.jooq.impl.DSL.field
 import org.jooq.impl.DSL.table
+import org.slf4j.LoggerFactory
+
+private val log = LoggerFactory.getLogger("com.netflix.spinnaker.clouddriver.sql")
+
+internal var sqlRetryProperties = SqlRetryProperties()
 
 internal val tasksTable = table("tasks")
 internal val taskStatesTable = table("task_states")
@@ -32,20 +39,48 @@ internal val taskResultsFields = listOf("id", "task_id", "body").map { field(it)
 internal val taskOutputsFields = listOf("id", "task_id", "created_at", "manifest", "phase", "std_out", "std_error").map { field(it) }
 
 /**
- * Run the provided [fn] in a transaction, retrying on failures using resilience4j.retry.instances.sqlTransaction
- * configuration.
+ * Run the provided [fn] in a transaction with retry.
+ * Retry parameters are configured via `sql.retry.*` properties.
  */
-@Retry(name = "sqlTransaction")
 internal fun DSLContext.transactional(fn: (DSLContext) -> Unit) {
-  transaction { ctx ->
-    fn(DSL.using(ctx))
+  retryable("sqlTransaction") {
+    transaction { ctx ->
+      fn(DSL.using(ctx))
+    }
   }
 }
 
 /**
- * Run the provided [fn], retrying on failures using resilience4j.retry.instances.sqlRead configuration.
+ * Run the provided [fn] with retry.
+ * Retry parameters are configured via `sql.retry.*` properties.
  */
-@Retry(name = "sqlRead")
 internal fun <T> DSLContext.read(fn: (DSLContext) -> T): T {
-  return fn(this)
+  return retryable("sqlRead") {
+    fn(this)
+  }
+}
+
+private inline fun <T> retryable(label: String, block: () -> T): T {
+  val props = sqlRetryProperties
+  for (attempt in 1..props.maxRetryAttempts) {
+    try {
+      return block()
+    } catch (e: Exception) {
+      if (attempt == props.maxRetryAttempts || !isRetryable(e)) {
+        throw e
+      }
+      log.warn("{} failed (attempt {}/{}): {}", label, attempt, props.maxRetryAttempts, e.message)
+      Thread.sleep(props.waitDurationMs)
+    }
+  }
+  throw IllegalStateException("retryable block for '$label' never executed — maxRetryAttempts must be >= 1, got ${props.maxRetryAttempts}")
+}
+
+private fun isRetryable(e: Exception): Boolean {
+  var cause: Throwable? = e
+  while (cause != null) {
+    if (cause is SQLTransientException || cause is DataAccessException) return true
+    cause = cause.cause
+  }
+  return false
 }

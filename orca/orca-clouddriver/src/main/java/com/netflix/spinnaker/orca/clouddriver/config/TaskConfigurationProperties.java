@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.clouddriver.config;
 import com.netflix.spinnaker.orca.clouddriver.config.tasks.CheckIfApplicationExistsTaskConfig;
 import com.netflix.spinnaker.orca.clouddriver.config.tasks.RetryConfig;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCheckIfApplicationExistsTask;
+import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.job.WaitOnJobCompletion;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.PromoteManifestKatoOutputsTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ResolveDeploySourceManifestTask;
@@ -46,6 +47,19 @@ public class TaskConfigurationProperties {
   /** properties that pertain to {@link AbstractCheckIfApplicationExistsTask} task */
   private CheckIfApplicationExistsTaskConfig checkIfApplicationExistsTask =
       new CheckIfApplicationExistsTaskConfig();
+
+  /** properties that pertain to {@link MonitorKatoTask} and its subclasses */
+  private MonitorKatoTaskConfig monitorKatoTask = new MonitorKatoTaskConfig();
+
+  @Data
+  public static class MonitorKatoTaskConfig {
+    /**
+     * Maximum number of 404 retries when polling clouddriver for a kato task. Each retry is
+     * separated by the task's backoff period (default 5s), so the default of 30 gives a ~150s
+     * window to tolerate read-replica lag.
+     */
+    private int maxNotFoundRetries = 30;
+  }
 
   @Data
   public static class WaitOnJobCompletionTaskConfig {

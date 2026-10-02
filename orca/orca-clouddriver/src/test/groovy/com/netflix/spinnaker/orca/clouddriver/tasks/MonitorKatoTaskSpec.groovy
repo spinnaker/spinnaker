@@ -23,6 +23,7 @@ import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.KatoService
+import com.netflix.spinnaker.orca.clouddriver.config.TaskConfigurationProperties
 import com.netflix.spinnaker.orca.clouddriver.model.Task
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
@@ -49,8 +50,9 @@ class MonitorKatoTaskSpec extends Specification {
   }
   KatoService kato = Mock(KatoService)
   DynamicConfigService dynamicConfigService = Mock()
+  def monitorKatoConfig = new TaskConfigurationProperties.MonitorKatoTaskConfig()
 
-  @Subject task = new MonitorKatoTask(kato, new NoopRegistry(), Clock.fixed(now, ZoneId.of("UTC")), dynamicConfigService, retrySupport)
+  @Subject task = new MonitorKatoTask(kato, new NoopRegistry(), Clock.fixed(now, ZoneId.of("UTC")), dynamicConfigService, retrySupport, monitorKatoConfig)
 
   @Unroll("result is #expectedResult if kato task is #katoStatus")
   def "result depends on Kato task status"() {
@@ -206,6 +208,39 @@ class MonitorKatoTaskSpec extends Specification {
 
     then:
     thrown(SpinnakerHttpException)
+  }
+
+  def "should respect configured max not-found retries"() {
+    given:
+    def taskId = "katoTaskId"
+    monitorKatoConfig.maxNotFoundRetries = 120
+    def stage = stage {
+      type = "type"
+      context = [
+        "kato.last.task.id": new TaskId(taskId),
+        "kato.task.notFoundRetryCount": 59,
+      ]
+    }
+
+    when: 'retry count below configured limit'
+    def result = task.execute(stage)
+
+    then:
+    1 * kato.lookupTask(taskId, false) >> { notFoundException() }
+    result.context['kato.task.notFoundRetryCount'] == 60
+    result.status == ExecutionStatus.RUNNING
+    notThrown(SpinnakerHttpException)
+
+    when: 'retry count at configured limit'
+    stage.context.put('kato.task.notFoundRetryCount', 119)
+    task.execute(stage)
+
+    then:
+    1 * kato.lookupTask(taskId, false) >> { notFoundException() }
+    thrown(SpinnakerHttpException)
+
+    cleanup:
+    monitorKatoConfig.maxNotFoundRetries = 30
   }
 
   def notFoundException() {

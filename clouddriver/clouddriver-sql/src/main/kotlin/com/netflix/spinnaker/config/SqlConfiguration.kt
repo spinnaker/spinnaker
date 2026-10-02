@@ -48,8 +48,14 @@ import java.time.Clock
 @Configuration
 @ConditionalOnProperty("sql.enabled")
 @Import(DefaultSqlConfiguration::class)
-@EnableConfigurationProperties(SqlTaskCleanupAgentProperties::class, SqlEventCleanupAgentConfigProperties::class)
+@EnableConfigurationProperties(SqlTaskCleanupAgentProperties::class, SqlEventCleanupAgentConfigProperties::class, SqlRetryProperties::class)
 class SqlConfiguration {
+
+  @Bean
+  fun sqlRetryInitializer(properties: SqlRetryProperties): SqlRetryProperties {
+    com.netflix.spinnaker.clouddriver.sql.sqlRetryProperties = properties
+    return properties
+  }
 
   @Bean
   @ConditionalOnProperty("sql.task-repository.enabled")
@@ -67,7 +73,6 @@ class SqlConfiguration {
     clock: Clock,
     objectMapper: ObjectMapper,
     @Value("\${sql.task-repository.secondary.pool-name}") poolName: String
-
   ): TaskRepository =
     SqlTaskRepository(jooq, objectMapper, clock, poolName)
 

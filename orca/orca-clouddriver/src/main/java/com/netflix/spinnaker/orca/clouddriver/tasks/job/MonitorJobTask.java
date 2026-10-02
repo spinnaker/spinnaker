@@ -23,6 +23,7 @@ import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.KatoService;
+import com.netflix.spinnaker.orca.clouddriver.config.TaskConfigurationProperties;
 import com.netflix.spinnaker.orca.clouddriver.model.Task;
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask;
 import java.util.Map;
@@ -45,8 +46,9 @@ public class MonitorJobTask extends MonitorKatoTask {
       Registry registry,
       JobUtils jobUtils,
       DynamicConfigService dynamicConfigService,
-      RetrySupport retrySupport) {
-    super(katoService, registry, dynamicConfigService, retrySupport);
+      RetrySupport retrySupport,
+      TaskConfigurationProperties configProperties) {
+    super(katoService, registry, dynamicConfigService, retrySupport, configProperties);
     this.jobUtils = jobUtils;
   }
 
@@ -54,8 +56,9 @@ public class MonitorJobTask extends MonitorKatoTask {
       KatoService katoService,
       Registry registry,
       DynamicConfigService dynamicConfigService,
-      RetrySupport retrySupport) {
-    super(katoService, registry, dynamicConfigService, retrySupport);
+      RetrySupport retrySupport,
+      TaskConfigurationProperties configProperties) {
+    super(katoService, registry, dynamicConfigService, retrySupport, configProperties);
     this.jobUtils = null;
   }
 
