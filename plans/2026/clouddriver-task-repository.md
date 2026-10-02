@@ -103,6 +103,8 @@ clocks disagree, produce the wrong "latest" row.
 | S7 | **`create()` dedupe races.** `create()` checks `getByClientRequestId` and then inserts (`:62`), and `task_request_id_idx` is **not unique**. Two concurrent requests with the same ID both insert, and every later `getByClientRequestId` → `fetchOne` throws `TooManyRowsException`. | Code path |
 | S8 | The `addResultObjects` guard checks the **earliest** state (`orderBy(created_at.asc())`, `:143`), which is always `STARTED`, so it never fires. | Code path |
 | S9 | `SqlTaskCleanupAgent` deletes only `COMPLETED`/`FAILED` (`SqlTaskCleanupAgent.kt:55`). `FAILED_RETRYABLE` tasks that are never resumed stay forever. The candidate query also scans `task_states` without an index on `state`. | Code path |
+| S10 | **A duplicate `create()` marked the existing task FAILED.** When a task already existed for the client request ID, `create()` appended a `FAILED` state to the *existing* task. Later status updates copy the latest state forward, so a healthy running task could be reported as failed. Redis and in-memory leave the existing task untouched. Found while fixing S7. | **Test:** TCK `testDuplicateCreateLeavesTheExistingTaskUntouched` (fails on the old SQL code) |
+| S11 | **Postgres couldn't store `FAILED_RETRYABLE`.** `task_states.state` was created `varchar(10)` and only MySQL was later widened, so on Postgres every `fail(true)` threw. Saga-backed retryable failures couldn't even be recorded. | **Repro:** the TCK on Postgres (`testRetryableStatus`) failed on `main` |
 
 ### Shared / processor
 
@@ -111,6 +113,7 @@ clocks disagree, produce the wrong "latest" row.
 | P1 | **On SQL, a multi-op request keeps executing after one op fails.** The inner `catch` calls `failTask` and does not `break` (`DefaultOrchestrationProcessor.java:216`, `:250`). On Redis, the next `updateStatus` throws (`ensureUpdateable`), which stops the loop by accident. On SQL nothing throws, so the next `operate()` runs against a failed task. | Code path |
 | P2 | **The executor is unbounded** (`Integer.MAX_VALUE` threads). A burst of operations means unbounded threads and cloud API calls, with no backpressure and nothing that tells Orca to slow down. | Code path |
 | P3 | **A pod restart loses in-flight work.** `@PreDestroy` waits `shutdownWaitSeconds`, and anything still running is orphaned in `STARTED`. Non-saga operations can't be resumed; Orca waits until its timeout. | Code path |
+| P4 | **`retry()` threw on the in-memory and Redis repositories.** `DefaultTaskStatus.update(STARTED)` rejected every terminal state, including `FAILED_RETRYABLE`, so a retryable task could only be re-run on SQL, which had no checks at all. The processor also recorded "Re-initializing" *before* calling `retry()`, which a terminal task rejects. | **Test:** TCK `testRetryMovesARetryableFailureBackToStarted` (fails on in-memory and Redis on `main`) |
 
 ## Recommendation (summary)
 
@@ -142,13 +145,20 @@ every backend:
 The Redis-specific cases (R1/R3/R4) need a fault-injecting delegate or Toxiproxy around the Valkey
 container. Use Valkey per the project test-infra standard.
 
-**Already landed with this plan:** `clouddriver-sql`'s `SqlTaskRepositoryKnownIssuesTest` reproduces
-S1, S2 and S3 against MySQL (50/50 each). S3 writes the completion row directly, sharing the STARTED
-row's timestamp with a lower ID, because two real writes can't be forced into one millisecond with a
-chosen ULID order. Each test asserts the correct behaviour, but while the defect is
-present it logs a `KNOWN ISSUE` warning and is **skipped** through a JUnit assumption rather than
+**Known-issue tests (landed with this plan):** each asserts the correct behaviour, but while the defect
+is present it logs a `KNOWN ISSUE` warning and is **skipped** through a JUnit assumption rather than
 failed, so the build stays green and the defect stays visible in test reports. The PR that fixes each
-defect should replace the assumption with a hard assertion (or move the case into the TCK).
+defect should replace the assumption with a hard assertion, or delete the case if the fix adds its own.
+- `clouddriver-sql`'s `SqlTaskRepositoryKnownIssuesTest`: **S1, S2, S3** (50/50 each on MySQL) and
+  **S9**. S3 completes a task with a fixed clock, then rewrites its completion row's ID to sort first,
+  because two real writes can't be forced into one millisecond with a chosen ULID order.
+- `clouddriver-core`'s `DefaultOrchestrationProcessorKnownIssuesTest`: **R2**, SQL side (a failed
+  "Orchestration completed." write marks a successful operation failed).
+
+Verified both ways: all five reproduce on `main`. With #8130 applied, S1–S3 pass and S9/R2 are still
+skipped until work-plan PRs 6 and 7.
+
+See [Test coverage](#test-coverage) for every finding's test.
 
 ## Phase 1: small, independent fixes (land first, separate PRs)
 
@@ -515,6 +525,36 @@ Independent of dispatch. It can land any time after Phase 2. Reads first, becaus
   every 250 ms, and always before a terminal transition or result write). Terminal transitions are
   never delayed. Not worth the complexity at typical scale.
 
+## Test coverage
+
+Every finding has a test that fails (or is skipped as a known issue) while the defect exists, except
+where noted.
+
+| Finding | Test | Where | Status |
+|---|---|---|---|
+| R1 | `OperationsControllerTaskStoreUnavailableTest` (503 through MockMvc and kork's real handler) | #8110 | Fixed in review |
+| R2 (Redis) | none | – | Won't fix (Redis deprecated) |
+| R2 (SQL) | `DefaultOrchestrationProcessorKnownIssuesTest.r2…` (known issue) | #8108 | Fix: work-plan PR 7 |
+| R3, R4, R8, R9 | none | – | Won't fix (Redis deprecated) |
+| R5 | TCK `testSagaIdsPersistence` (all backends) | #8129 | Fixed in review |
+| R6 | `RedisTaskRepositoryTest`: index TTL, expired-index recovery | #8129 | Fixed in review |
+| R7 | `RedisTaskRepositoryTest`: `list()` with expired tasks | #8129 | Fixed in review |
+| S1 | `SqlTaskRepositoryOrderingTck` (MySQL + Postgres); known-issue test in #8108 | #8130 | Fixed in review |
+| S2 | `SqlTaskRepositoryOrderingTck`; known-issue test in #8108 | #8130 | Fixed in review |
+| S3 | `SqlTaskRepositoryOrderingTck`; known-issue test in #8108 | #8130 | Fixed in review |
+| S4 | TCK `testTerminalStateCannotBeChanged`, `testNonRetryableFailureCannotBeRetried` | #8130 | Fixed in review |
+| S5 | `SqlTaskRepositoryOrderingTck.concurrentUpdatesCannotReopenACompletedTask` | #8130 | Fixed in review |
+| S6 | `SqlRetriesTest` (MockConnection: retry, 503, no retry on non-transient) | #8111 | Fixed in review |
+| S7 | `SqlTaskRepositoryOrderingTck.concurrentCreatesWithTheSameRequestIdShareOneTask`; `TaskRequestIdMigrationTest` | #8130 | Fixed in review |
+| S8 | TCK `testResultObjectsCannotBeAddedAfterCompletion` | #8130 | Fixed in review |
+| S9 | `SqlTaskRepositoryKnownIssuesTest.s9…` (known issue) | #8108 | Fix: work-plan PR 6 |
+| S10 | TCK `testDuplicateCreateLeavesTheExistingTaskUntouched` | #8130 | Fixed in review |
+| S11 | TCK on Postgres (`SqlTaskRepositoryPostgresTest`) | #8130 | Fixed in review |
+| P1 | `DefaultOrchestrationProcessorSpec` "does not run the remaining operations after one fails" | #8130 | Fixed in review |
+| P2 | Lands with its fix: the concurrency limit it would assert is defined there | – | Fix: work-plan PR 7 |
+| P3 | Lands with its fix: the lease/reaper it would assert doesn't exist yet | – | Fix: work-plan PR 9 (5a) |
+| P4 | TCK `testRetryMovesARetryableFailureBackToStarted`; `DefaultOrchestrationProcessorSpec` "re-runs a task whose failure is retryable" | #8130 | Fixed in review |
+
 ## Work plan
 
 One PR per row, in order within each track. Tracks A and B can start in parallel. Every PR carries the
@@ -527,23 +567,22 @@ Postgres (`kork-sql-test`, `--max-workers=1` locally). Update **Status** as PRs 
 | 2 | A: correctness | Make the SQL `sqlTransaction`/`sqlRead` retries actually run, and return 503 when the database stays unreachable | S6, R1 (SQL) | – | In review: #8111 |
 | 3 | A: correctness | Redis: persist saga IDs, TTL on `kato:taskmap:*`, null-safe `list()` | R5, R6, R7 | – | In review: #8129 |
 | 3b | A: Redis deprecation | Deprecate the Redis task repository: `@Deprecated`, startup `WARN`, migration guide, `CODE_STYLE.md` deprecation table | Phase 3 | 1, 3 | Not started (targets 2026.4.0) |
-| 4 | B: SQL foundation | Schema: per-task `seq`, `current_state`/`completed_at`, online indexes, `request_id` dedupe + unique index, backfill agent | S1–S3, S7, S9 (schema) | – | Not started |
-| 5 | B: SQL foundation | Repository: row lock, `seq` ordering, `current_state` maintenance, terminal immutability, `addResultObjects` guard, duplicate-key `create()`. **Plus** processor `break` after failure (must land together) | S1–S5, S7, S8, P1 | 4 | Not started |
-| 6 | B: SQL foundation | Cleanup driven by `tasks(current_state, completed_at)`, `FAILED_RETRYABLE` TTL | S9 | 5 | Not started |
-| 7 | B: SQL foundation | Processor: repository-side atomic "complete if not terminal"; bounded executor with 503 + `Retry-After` when saturated | P2, R2 (SQL side) | 5 | Not started |
-| 8 | C: reads | Version-checked poll cache; optional read-pool routing for task polling | Phase 6 (reads) | 5 | Not started |
-| 9 | D: task queue | `clouddriver_instances` + per-instance leases, fencing on every write, `progress` checkpoints, reaper, graceful-shutdown release (inline mode) | 5a, P3 | 5, 2 | Not started |
+| 4 + 5 | B: SQL foundation | **Combined into one PR** (schema commit + code commit): per-task `seq`, `current_state`/`completed_at`, `tasks` indexes, `request_id` dedupe + unique index, Postgres `state` width; row lock, `seq` ordering, terminal immutability, duplicate-safe `create()`, retry rule in `DefaultTaskStatus`, processor stop-after-failure and retry order. No backfill agent: pre-upgrade tasks are handled lazily | S1–S5, S7, S8, S10, S11, P1, P4 | – | In review: #8130 |
+| 6 | B: SQL foundation | Cleanup driven by `tasks(current_state, completed_at)`, `FAILED_RETRYABLE` TTL; flip the S9 known-issue test | S9 | 4 + 5 | Not started |
+| 7 | B: SQL foundation | Processor: repository-side atomic "complete if not terminal"; bounded executor with 503 + `Retry-After` when saturated; progress writes that can't fail a successful operation; flip the R2 known-issue test | P2, R2 (SQL side) | 4 + 5 | Not started |
+| 8 | C: reads | Version-checked poll cache; optional read-pool routing for task polling | Phase 6 (reads) | 4 + 5 | Not started |
+| 9 | D: task queue | `clouddriver_instances` + per-instance leases, fencing on every write, `progress` checkpoints, reaper, graceful-shutdown release (inline mode) | 5a, P3 | 4 + 5, 2 | Not started |
 | 10 | D: task queue | Refactor: extract the processor's execution body into an executor component (no behaviour change) | 5b prep | 7 | Not started |
 | 11 | D: task queue | `task_payloads`, `PENDING`, local-first claim, claim loop, `PENDING`-depth 503, `clouddriver.operations.dispatch: queued` flag (default `inline`) | 5b | 9, 10 | Not started |
 | 12 | D: task queue | Multi-instance chaos test + medium-tier load test; operator docs (TTL vs failover tradeoff, migrating Redis → SQL) | 5b exit criteria | 11 | Not started |
-| – | Later | Status-write coalescing (medium scale only) | Phase 6 (writes) | 5 | Deferred |
+| – | Later | Status-write coalescing (medium scale only) | Phase 6 (writes) | 4 + 5 | Deferred |
 | – | Later | Real-queue transport via transactional outbox (Streams/SQS through kork-pubsub), optional per-account partitioning | 5c | 11, #8031 | Deferred |
 | – | Later | Per-account / per-resource claim fairness | 5b extension | 11 | Deferred |
 | – | Later | Task-completion events → Orca `RescheduleExecution`; longer `MonitorKatoTask` fallback backoff (needs Orca change) | 5d | 5, #8031 | Deferred |
 | – | Later | Orca: `ETag`/304 on task polling (needs Orca change; less valuable if 5d lands) | Read load | 8 | Deferred |
 | – | Later | Remove the Redis task repository | Phase 3 | 3b | Proposed for 2027.0.0 |
 
-**Critical path:** 4 → 5 → 9 → 11 → 12. Track A PRs are small and independent, so land them first.
+**Critical path:** 4 + 5 (#8130) → 9 → 11 → 12. Track A PRs are small and independent, so land them first.
 
 ## Follow-up outside this plan: event-driven waiting across Orca
 

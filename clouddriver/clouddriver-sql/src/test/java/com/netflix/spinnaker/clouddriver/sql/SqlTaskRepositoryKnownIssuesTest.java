@@ -21,8 +21,10 @@ import static org.jooq.impl.DSL.table;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.config.ConnectionPools;
+import com.netflix.spinnaker.config.SqlTaskCleanupAgentProperties;
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil;
 import java.time.Clock;
 import java.time.Duration;
@@ -62,6 +64,7 @@ class SqlTaskRepositoryKnownIssuesTest {
   void cleanup() {
     if (database != null) {
       SqlTestUtil.cleanupDb(database.context);
+      database.close();
     }
   }
 
@@ -83,8 +86,8 @@ class SqlTaskRepositoryKnownIssuesTest {
       task.fail(true);
 
       Task onPodB = podB.get(task.getId());
-      onPodB.updateStatus("ORCHESTRATION", "Re-initializing");
       onPodB.retry();
+      onPodB.updateStatus("ORCHESTRATION", "Re-initializing");
 
       if (podA.get(task.getId()).getStatus().isCompleted()) {
         retriesHidden++;
@@ -130,35 +133,24 @@ class SqlTaskRepositoryKnownIssuesTest {
    * about half the time a task completed in the same millisecond as its previous status reports
    * itself as still running, and Orca polls it until the stage times out.
    *
-   * <p>Two real writes can't be forced into one millisecond with a chosen ID order, so the
-   * completion row is written directly: same {@code created_at} as the STARTED row, and an ID that
-   * sorts below it.
+   * <p>Two real writes can't be forced into one millisecond with a chosen ID order, so the task is
+   * completed normally with a fixed clock and its completion row's ID is then rewritten to sort
+   * first.
    */
   @Test
   void s3CompletedTaskReportsCompletedWhenItsStatesShareAMillisecond() {
-    Instant now = Instant.now();
-    SqlTaskRepository repository = repository(Clock.fixed(now, ZoneOffset.UTC));
+    SqlTaskRepository repository = repository(Clock.fixed(Instant.now(), ZoneOffset.UTC));
 
     int reportedAsRunning = 0;
     for (int i = 0; i < ATTEMPTS; i++) {
       Task task = repository.create("ORCHESTRATION", "Initializing");
+      task.updateStatus("ORCHESTRATION", "Orchestration completed.");
+      task.complete();
       database
           .context
-          .insertInto(table("task_states"))
-          .columns(
-              field("id"),
-              field("task_id"),
-              field("created_at"),
-              field("state"),
-              field("phase"),
-              field("status"))
-          .values(
-              String.format("%026d", i),
-              task.getId(),
-              now.toEpochMilli(),
-              "COMPLETED",
-              "ORCHESTRATION",
-              "Orchestration completed.")
+          .update(table("task_states"))
+          .set(field("id"), String.format("%026d", i))
+          .where(field("task_id").eq(task.getId()).and(field("state").eq("COMPLETED")))
           .execute();
 
       if (!repository.get(task.getId()).getStatus().isCompleted()) {
@@ -171,6 +163,34 @@ class SqlTaskRepositoryKnownIssuesTest {
         reportedAsRunning,
         "completed tasks report STARTED from get() when the completion shares a millisecond with "
             + "the previous state and its ID sorts lower");
+  }
+
+  /**
+   * S9: {@link SqlTaskCleanupAgent} only deletes {@code COMPLETED} and {@code FAILED} tasks, so
+   * {@code FAILED_RETRYABLE} tasks that are never resumed stay forever.
+   */
+  @Test
+  void s9CleanupRemovesExpiredRetryableFailures() {
+    SqlTaskRepository repository =
+        repository(Clock.fixed(Instant.now().minus(Duration.ofDays(10)), ZoneOffset.UTC));
+
+    Set<String> retryable = new HashSet<>();
+    for (int i = 0; i < ATTEMPTS; i++) {
+      Task task = repository.create("ORCHESTRATION", "Initializing");
+      task.fail(true);
+      retryable.add(task.getId());
+    }
+
+    new SqlTaskCleanupAgent(
+            database.context,
+            Clock.systemUTC(),
+            new NoopRegistry(),
+            new SqlTaskCleanupAgentProperties())
+        .run();
+
+    int remaining = database.context.fetchCount(table("tasks"), field("id").in(retryable));
+    knownIssue(
+        "S9", remaining, "FAILED_RETRYABLE tasks older than the cleanup TTL are never deleted");
   }
 
   private SqlTaskRepository repository(Clock clock) {
