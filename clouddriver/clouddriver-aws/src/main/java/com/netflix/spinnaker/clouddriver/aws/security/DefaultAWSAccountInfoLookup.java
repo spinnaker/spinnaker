@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class DefaultAWSAccountInfoLookup implements AWSAccountInfoLookup {
   private static final String DEFAULT_SECURITY_GROUP_NAME = "default";
@@ -37,17 +38,26 @@ public class DefaultAWSAccountInfoLookup implements AWSAccountInfoLookup {
 
   private final AWSCredentialsProvider credentialsProvider;
   private final AmazonClientProvider amazonClientProvider;
+  // When non-null, used instead of AmazonClientProvider.DEFAULT_REGION for bootstrapping calls.
+  private final String firstRegion;
 
   public DefaultAWSAccountInfoLookup(
       AWSCredentialsProvider credentialsProvider, AmazonClientProvider amazonClientProvider) {
+    this(credentialsProvider, amazonClientProvider, null);
+  }
+
+  public DefaultAWSAccountInfoLookup(
+      AWSCredentialsProvider credentialsProvider,
+      AmazonClientProvider amazonClientProvider,
+      String firstRegion) {
     this.credentialsProvider = credentialsProvider;
     this.amazonClientProvider = amazonClientProvider;
+    this.firstRegion = firstRegion;
   }
 
   @Override
   public String findAccountId() {
-    AmazonEC2 ec2 =
-        amazonClientProvider.getAmazonEC2(credentialsProvider, AmazonClientProvider.DEFAULT_REGION);
+    AmazonEC2 ec2 = amazonClientProvider.getAmazonEC2(credentialsProvider, firstRegion);
     try {
       List<Vpc> vpcs = ec2.describeVpcs().getVpcs();
       boolean supportsByName = false;
@@ -105,9 +115,14 @@ public class DefaultAWSAccountInfoLookup implements AWSAccountInfoLookup {
 
   @Override
   public List<AWSRegion> listRegions(Collection<String> regionNames) {
+    // When firstRegion is set (useAccountRegions: true) we trust the caller-supplied region names
+    // and skip describeRegions entirely, going straight to describeAvailabilityZones per region.
+    if (firstRegion != null) {
+      return describeAvailabilityZonesForRegions(regionNames);
+    }
+
     Set<String> nameSet = new HashSet<>(regionNames);
-    AmazonEC2 ec2 =
-        amazonClientProvider.getAmazonEC2(credentialsProvider, AmazonClientProvider.DEFAULT_REGION);
+    AmazonEC2 ec2 = amazonClientProvider.getAmazonEC2(credentialsProvider, null);
 
     DescribeRegionsRequest request = new DescribeRegionsRequest();
     if (!nameSet.isEmpty()) {
@@ -122,17 +137,25 @@ public class DefaultAWSAccountInfoLookup implements AWSAccountInfoLookup {
       throw new IllegalArgumentException(
           "Unknown region" + (missingSet.size() > 1 ? "s: " : ": ") + missingSet);
     }
-    List<AWSRegion> awsRegions = new ArrayList<>(regions.size());
-    for (Region region : regions) {
-      AmazonEC2 regionalEc2 =
-          amazonClientProvider.getAmazonEC2(credentialsProvider, region.getRegionName());
+    return describeAvailabilityZonesForRegions(
+        regions.stream().map(Region::getRegionName).collect(Collectors.toList()));
+  }
+
+  /**
+   * Calls describeAvailabilityZones for each region name directly, without a prior describeRegions
+   * call. Used when {@code useAccountRegions} is true and the region names are already known from
+   * configuration.
+   */
+  private List<AWSRegion> describeAvailabilityZonesForRegions(Collection<String> regionNames) {
+    List<AWSRegion> awsRegions = new ArrayList<>(regionNames.size());
+    for (String regionName : regionNames) {
+      AmazonEC2 regionalEc2 = amazonClientProvider.getAmazonEC2(credentialsProvider, regionName);
       List<AvailabilityZone> azs = regionalEc2.describeAvailabilityZones().getAvailabilityZones();
       List<String> availabilityZoneNames = new ArrayList<>(azs.size());
       for (AvailabilityZone az : azs) {
         availabilityZoneNames.add(az.getZoneName());
       }
-
-      awsRegions.add(new AWSRegion(region.getRegionName(), availabilityZoneNames));
+      awsRegions.add(new AWSRegion(regionName, availabilityZoneNames));
     }
     return awsRegions;
   }
