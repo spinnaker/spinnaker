@@ -8,7 +8,7 @@ import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.OVERRIDE_FAIL
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.OVERRIDE_PASS
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.services.ApplicationService
-import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
+import org.springframework.http.MediaType.APPLICATION_YAML_VALUE
 import org.springframework.http.HttpStatus.CONFLICT
 import org.springframework.http.HttpStatus.NOT_FOUND
 import org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY

@@ -14,7 +14,7 @@ import com.netflix.spinnaker.keel.export.ExportService
 import com.netflix.spinnaker.keel.logging.TracingSupport.Companion.blankMDC
 import com.netflix.spinnaker.keel.logging.TracingSupport.Companion.withTracingContext
 import com.netflix.spinnaker.keel.retrofit.isNotFound
-import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
+import org.springframework.http.MediaType.APPLICATION_YAML_VALUE
 import kotlinx.coroutines.runBlocking
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion
 import org.slf4j.LoggerFactory

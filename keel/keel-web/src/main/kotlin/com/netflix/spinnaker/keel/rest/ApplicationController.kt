@@ -29,7 +29,7 @@ import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
 import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.persistence.ResourceRepository.Companion.DEFAULT_MAX_EVENTS
 import com.netflix.spinnaker.keel.services.ApplicationService
-import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
+import org.springframework.http.MediaType.APPLICATION_YAML_VALUE
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import org.slf4j.LoggerFactory
 import org.springframework.boot.context.properties.EnableConfigurationProperties

@@ -160,7 +160,7 @@ class BakeControllerWiremockTest {
                     .withHeader("Content-Type", "application/json")
                     .withBody("{\"logsContent\":\"some logs\"}")));
 
-    // BakeService.lookupLogs returns a plain (i.e. not json) String
+    // BakeService.lookupLogs returns an HTML fragment, served as-is (not JSON-quoted)
     webAppMockMvc
         .perform(
             get("/bakery/logs/us-east-1/some-status-id")
@@ -168,7 +168,8 @@ class BakeControllerWiremockTest {
                 .header(ACCOUNTS.getHeader(), ACCOUNT))
         .andDo(print())
         .andExpect(status().isOk())
-        .andExpect(content().string("\"<pre>some logs</pre>\""));
+        .andExpect(content().contentTypeCompatibleWith("text/html"))
+        .andExpect(content().string("<pre>some logs</pre>"));
 
     wmRosco.verify(1, getRequestedFor(urlPathEqualTo("/api/v1/us-east-1/logs/some-status-id")));
   }

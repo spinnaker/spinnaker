@@ -43,7 +43,7 @@ class DeliveryConfigYamlParsingFilterTests : JUnit5Minutests {
     val response = MockHttpServletResponse()
 
     init {
-      request.contentType = "application/x-yaml"
+      request.contentType = "application/yaml"
       request.setContent(
         """
         application: nimakspin

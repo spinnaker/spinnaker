@@ -20,7 +20,7 @@ import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
 import com.netflix.spinnaker.keel.test.resource
-import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML
+import org.springframework.http.MediaType.APPLICATION_YAML
 import com.netflix.spinnaker.time.MutableClock
 import com.ninjasquad.springmockk.MockkBean
 import dev.minutest.junit.JUnit5Minutests

@@ -20,6 +20,8 @@ import com.netflix.spinnaker.gate.services.BakeService;
 import io.swagger.v3.oas.annotations.Operation;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -45,8 +47,11 @@ public class BakeController {
 
   @Operation(summary = "Retrieve the logs for a given bake")
   @RequestMapping(value = "/logs/{region}/{statusId}", method = RequestMethod.GET)
-  public String lookupLogs(
+  public ResponseEntity<String> lookupLogs(
       @PathVariable("region") String region, @PathVariable("statusId") String statusId) {
-    return bakeService.lookupLogs(region, statusId);
+    // an HTML fragment, served as-is rather than as a JSON string literal
+    return ResponseEntity.ok()
+        .contentType(MediaType.TEXT_HTML)
+        .body(bakeService.lookupLogs(region, statusId));
   }
 }

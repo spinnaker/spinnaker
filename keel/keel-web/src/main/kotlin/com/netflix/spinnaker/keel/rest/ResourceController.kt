@@ -24,7 +24,7 @@ import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.ResourceStatus
 import com.netflix.spinnaker.keel.services.ResourceStatusService
-import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
+import org.springframework.http.MediaType.APPLICATION_YAML_VALUE
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE

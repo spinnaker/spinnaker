@@ -3,7 +3,7 @@ package com.netflix.spinnaker.keel.rest
 import com.netflix.spinnaker.keel.events.ResourceHistoryEvent
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository.Companion.DEFAULT_MAX_EVENTS
-import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
+import org.springframework.http.MediaType.APPLICATION_YAML_VALUE
 import org.slf4j.LoggerFactory.getLogger
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.security.access.prepost.PreAuthorize
