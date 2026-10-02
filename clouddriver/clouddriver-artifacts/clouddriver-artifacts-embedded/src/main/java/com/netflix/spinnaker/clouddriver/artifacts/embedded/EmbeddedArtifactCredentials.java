@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.artifacts.embedded;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.collect.ImmutableList;
-import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
+import com.netflix.spinnaker.clouddriver.artifacts.config.AbstractArtifactCredentials;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.ArtifactTypes;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
@@ -32,7 +32,7 @@ import org.apache.commons.lang3.NotImplementedException;
 
 @NonnullByDefault
 @Slf4j
-final class EmbeddedArtifactCredentials implements ArtifactCredentials {
+final class EmbeddedArtifactCredentials extends AbstractArtifactCredentials {
   public static final String CREDENTIALS_TYPE = "artifacts-embedded";
   @Getter private final String name;
 
@@ -44,6 +44,7 @@ final class EmbeddedArtifactCredentials implements ArtifactCredentials {
   @JsonIgnore private final Base64.Decoder base64Decoder;
 
   EmbeddedArtifactCredentials(EmbeddedArtifactAccount account) {
+    super(account);
     name = account.getName();
     base64Decoder = Base64.getDecoder();
   }
