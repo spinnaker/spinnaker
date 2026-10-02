@@ -75,9 +75,9 @@ public interface EntityTagsProvider {
   void reindex();
 
   /**
-   * Fetch delta (counts of EntityTags broken down by Elasticsearch and Front50)
+   * Fetch delta (counts of EntityTags held by the provider's backing store, keyed by store name)
    *
-   * <p>Can be used to identify when Elasticsearch and Front50 are out-of-sync.
+   * <p>Can be used to sanity check record counts, for example after a Front50 migration.
    */
   Map delta();
 

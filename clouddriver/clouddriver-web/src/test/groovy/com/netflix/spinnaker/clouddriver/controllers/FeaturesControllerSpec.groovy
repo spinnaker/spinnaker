@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.clouddriver.elasticsearch.converters.UpsertEntityTagsAtomicOperationConverter
+import com.netflix.spinnaker.clouddriver.entitytags.converters.UpsertEntityTagsAtomicOperationConverter
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationConverter
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
