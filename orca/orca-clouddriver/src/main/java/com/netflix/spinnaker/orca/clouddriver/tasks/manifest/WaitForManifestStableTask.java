@@ -36,6 +36,7 @@ import com.netflix.spinnaker.orca.clouddriver.model.Manifest.Status;
 import com.netflix.spinnaker.orca.clouddriver.model.ManifestCoordinates;
 import com.netflix.spinnaker.orca.clouddriver.model.ManifestEvents;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -341,32 +342,71 @@ public class WaitForManifestStableTask
     return metadata;
   }
 
-  private Set<String> getFailureMessages(
+  private List<String> getFailureMessages(
       KubernetesManifestMetadata metadata, String account, String namespace, String resourceName) {
-    Set<String> failureDetails = new HashSet<>();
-    metadata.getEvents().stream()
-        .filter(e -> e.getType().equals("Warning"))
-        .forEach(
-            e ->
-                failureDetails.add(
-                    "Resource: "
-                        + readableIdentifier(account, namespace, resourceName)
-                        + " is not stable. Reason: "
-                        + e.getReason()
-                        + ". Details: "
-                        + e.getMessage()));
+    Set<String> failureEventMessages = new HashSet<>();
+    Set<String> failureConditions = new HashSet<>();
+    ArrayList<String> failureDetails = new ArrayList<>();
 
-    metadata.getConditions().stream()
-        .filter(c -> !c.getStatus().equals("True"))
-        .forEach(
-            c ->
-                failureDetails.add(
-                    "Resource: "
-                        + readableIdentifier(account, namespace, resourceName)
-                        + ". Condition: "
-                        + c.getReason()
-                        + ". Details: "
-                        + c.getMessage()));
+    boolean initialMessage = true;
+    boolean initialStatusMessage = true;
+    int i = 1;
+    for (KubernetesManifestStatusCondition c : metadata.getConditions()) {
+      if (!c.getStatus().equals("True") && !failureConditions.contains(c.getMessage())) {
+        if (initialMessage) {
+          failureDetails.add(
+              "Resource: "
+                  + readableIdentifier(account, namespace, resourceName)
+                  + " is not stable.");
+          initialMessage = false;
+        }
+
+        if (initialStatusMessage) {
+          failureDetails.add("* Status:");
+          initialStatusMessage = false;
+        }
+        failureConditions.add(c.getMessage());
+        failureDetails.add(
+            "\t"
+                + i++
+                + ". Last Transition Time: "
+                + c.getLastTransitionTime()
+                + ". Status: "
+                + c.getReason()
+                + ". Message: "
+                + c.getMessage());
+      }
+    }
+
+    i = 1;
+    boolean initialEventMessage = true;
+    for (ManifestEvents e : metadata.getEvents()) {
+      if (e.getType().equals("Warning") && !failureEventMessages.contains(e.getMessage())) {
+        if (initialMessage) {
+          failureDetails.add(
+              "Resource: "
+                  + readableIdentifier(account, namespace, resourceName)
+                  + " is not stable.");
+          initialMessage = false;
+        }
+        if (initialEventMessage) {
+          failureDetails.add("* Events:");
+          initialEventMessage = false;
+        }
+        failureEventMessages.add(e.getMessage());
+        failureDetails.add(
+            "\t"
+                + i++
+                + ". Event: "
+                + e.getReason()
+                + ". First Seen: "
+                + e.getFirstTimestamp()
+                + ". Last Seen: "
+                + e.getLastTimestamp()
+                + ". Message: "
+                + e.getMessage());
+      }
+    }
 
     return failureDetails;
   }
@@ -382,12 +422,12 @@ public class WaitForManifestStableTask
    * @param replicaSetPerDeployment a {@link Map}<{@link String}, <{@link ManifestCoordinates}>>
    *     containing a map of K8s Deployment manifest names to latest replica set contained within it
    */
-  private Set<String> includeReplicaSetAndPodDetails(
+  private List<String> includeReplicaSetAndPodDetails(
       String account,
       List<Map<String, String>> failedManifests,
       Map<String, ManifestCoordinates> replicaSetPerDeployment,
       Map<String, Set<KubernetesManifestMetadata>> manifestMetadata) {
-    Set<String> failureDetails = new HashSet<>();
+    List<String> failureDetails = new ArrayList<>();
     // failedManifests looks like this - I have no idea why they made it a map instead of a class,
     // but
     // I am not changing it as it could very well break other things:

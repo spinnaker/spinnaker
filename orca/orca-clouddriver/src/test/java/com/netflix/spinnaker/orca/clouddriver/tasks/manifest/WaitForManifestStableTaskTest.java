@@ -513,12 +513,14 @@ final class WaitForManifestStableTaskTest {
         .containsExactly(
             failedMessage(k8sDeploymentName),
             String.format(
-                "Resource: '%s' in '%s' for account %s is not stable. Reason: FailedScheduling."
-                    + " Details: 0/7 nodes are available: 1 node(s) had untolerated taint {example.com/infra: true},"
-                    + " 3 node(s) didn't match Pod's node affinity/selector, 3 node(s) had untolerated taint"
-                    + " {node-role.kubernetes.io/control-plane: }."
-                    + " preemption: 0/7 nodes are available: 7 Preemption is not helpful for scheduling..",
-                podName, NAMESPACE, ACCOUNT));
+                "Resource: '%s' in '%s' for account %s is not stable.",
+                podName, NAMESPACE, ACCOUNT),
+            "* Events:",
+            "	1. Event: FailedScheduling. First Seen: 2024-04-03T04:06:26Z. Last Seen: 2024-04-09T21:16:53Z"
+                + ". Message: 0/7 nodes are available: 1 node(s) had untolerated taint {example.com/infra: true},"
+                + " 3 node(s) didn't match Pod's node affinity/selector, 3 node(s) had untolerated taint"
+                + " {node-role.kubernetes.io/control-plane: }."
+                + " preemption: 0/7 nodes are available: 7 Preemption is not helpful for scheduling..");
     verify(oortService, times(0)).getManifest(ACCOUNT, NAMESPACE, k8sDeploymentName, true);
     verify(oortService, times(1)).getManifest(ACCOUNT, NAMESPACE, MANIFEST_2, true);
     verify(oortService, times(1)).getManifest(ACCOUNT, NAMESPACE, replicaSetName, true);
