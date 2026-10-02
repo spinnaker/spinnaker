@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
-import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
+import com.netflix.spinnaker.clouddriver.artifacts.config.AbstractArtifactCredentials;
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
@@ -40,9 +40,9 @@ import lombok.extern.slf4j.Slf4j;
 
 @NonnullByDefault
 @Slf4j
-final class Front50ArtifactCredentials implements ArtifactCredentials {
+final class Front50ArtifactCredentials extends AbstractArtifactCredentials {
   public static final String CREDENTIALS_TYPE = "artifacts-front50";
-  private static final String ACCOUNT_NAME = "front50ArtifactCredentials";
+  static final String ACCOUNT_NAME = "front50ArtifactCredentials";
   private static final String URL_PREFIX = "spinnaker://";
 
   @Getter private final String name = ACCOUNT_NAME;
@@ -51,7 +51,9 @@ final class Front50ArtifactCredentials implements ArtifactCredentials {
   @JsonIgnore private final Front50Service front50Service;
   @JsonIgnore private final ObjectMapper objectMapper;
 
-  Front50ArtifactCredentials(ObjectMapper objectMapper, Front50Service front50Service) {
+  Front50ArtifactCredentials(
+      ObjectMapper objectMapper, Front50Service front50Service, Front50ArtifactAccount account) {
+    super(account);
     this.objectMapper = objectMapper;
     this.front50Service = front50Service;
   }
