@@ -96,7 +96,8 @@ class SqlConfiguration {
       executionRepositoryListeners = executionRepositoryListeners,
       compressionProperties = compressionProperties,
       pipelineRefEnabled = pipelineRefProperties.enabled,
-      dataSource = dataSource
+      dataSource = dataSource,
+      enforceForeignPartition = orcaSqlProperties.enforceForeignPartition
     ).let {
       InstrumentedProxy.proxy(registry, it, "sql.executions", mapOf(Pair("repository", "primary"))) as ExecutionRepository
     }
@@ -124,7 +125,8 @@ class SqlConfiguration {
       poolName,
       compressionProperties = compressionProperties,
       pipelineRefEnabled = pipelineRefProperties.enabled,
-      dataSource = dataSource
+      dataSource = dataSource,
+      enforceForeignPartition = orcaSqlProperties.enforceForeignPartition
     ).let {
       InstrumentedProxy.proxy(registry, it, "sql.executions", mapOf(Pair("repository", "secondary"))) as ExecutionRepository
     }
