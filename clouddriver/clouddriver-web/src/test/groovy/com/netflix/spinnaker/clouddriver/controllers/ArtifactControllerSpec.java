@@ -20,6 +20,8 @@ import static com.netflix.spinnaker.kork.common.Header.USER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.is;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -34,8 +36,14 @@ import com.netflix.spinnaker.clouddriver.Main;
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.artifacts.helm.HelmArtifactCredentials;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
+import com.netflix.spinnaker.kork.artifacts.ArtifactTypes;
+import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactDecorator;
+import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactReferenceURI;
+import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreGetter;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.test.log.MemoryAppender;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.List;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
@@ -46,6 +54,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -76,6 +85,8 @@ public class ArtifactControllerSpec {
 
   @Autowired private CredentialsRepository<HelmArtifactCredentials> helmCredentials;
 
+  @MockitoBean private ArtifactStoreGetter artifactStoreGetter;
+
   @Test
   public void testFetchWithMisconfiguredArtifact() throws Exception {
     Artifact misconfiguredArtifact = Artifact.builder().name("foo").build();
@@ -104,6 +115,48 @@ public class ArtifactControllerSpec {
 
     List<String> userMessages = memoryAppender.layoutSearch("[" + userValue + "]", Level.DEBUG);
     assertThat(userMessages).hasSize(1);
+  }
+
+  @Test
+  public void testFetchExpandsStoredArtifact() throws Exception {
+    String content = "kind: ConfigMap";
+    String encodedContent =
+        Base64.getEncoder().encodeToString(content.getBytes(StandardCharsets.UTF_8));
+
+    // Mirrors S3ArtifactStoreGetter: the stored content comes back as a remote/base64 builder
+    // that the caller's decorators then complete.
+    when(artifactStoreGetter.get(any(ArtifactReferenceURI.class), any(ArtifactDecorator[].class)))
+        .thenAnswer(
+            invocation -> {
+              Artifact.ArtifactBuilder builder =
+                  Artifact.builder()
+                      .type(ArtifactTypes.REMOTE_BASE64.getMimeType())
+                      .reference(encodedContent);
+              for (Object argument : invocation.getArguments()) {
+                if (argument instanceof ArtifactDecorator decorator) {
+                  builder = decorator.decorate(builder);
+                }
+              }
+              return builder.build();
+            });
+
+    Artifact storedArtifact =
+        Artifact.builder()
+            .type(ArtifactTypes.REMOTE_BASE64.getMimeType())
+            .artifactAccount("embedded-artifact")
+            .reference("ref://my-app/0123456789abcdef")
+            .build();
+
+    MvcResult result =
+        mvc.perform(
+                put("/artifacts/fetch")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(storedArtifact)))
+            .andReturn();
+
+    mvc.perform(asyncDispatch(result))
+        .andExpect(status().isOk())
+        .andExpect(content().string(content));
   }
 
   @Test

@@ -290,7 +290,19 @@ oracle:
   enabled: ${ORACLE_ENABLED:false}
 
 spring:
+  # Artifact store and entity store (de)serializers and mixins are registered on the Jackson 2
+  # ObjectMapper only, so HTTP bodies have to go through it until they move to Jackson 3.
+  http:
+    converters:
+      preferred-json-mapper: jackson2
   jackson:
+    mapper:
+      SORT_PROPERTIES_ALPHABETICALLY: true
+    serialization:
+      ORDER_MAP_ENTRIES_BY_KEYS: true
+  # Spring Boot 4 binds spring.jackson.* to Jackson 3 only; the Jackson 2 ObjectMapper reads
+  # spring.jackson2.*.
+  jackson2:
     mapper:
       SORT_PROPERTIES_ALPHABETICALLY: true
     serialization:
