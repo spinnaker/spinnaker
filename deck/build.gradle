@@ -116,25 +116,34 @@ project.tasks.register('test') {
   dependsOn 'functionalTests'
 }
 
-task webpack(type: PnpmTask) {
+task typecheck(type: PnpmTask) {
+  dependsOn "modules"
+
+  pnpmCommand = ["typecheck"]
+}
+
+task viteBuild(type: PnpmTask) {
   dependsOn "pnpmInstall"
   dependsOn "modules"
+  dependsOn "typecheck"
 
   pnpmCommand = ["build"]
   environment = [
     "NODE_ENV": "production",
     "GATE_HOST": "spinnaker-api-prestaging.prod.netflix.net",
-    "NODE_OPTIONS": "--max_old_space_size=8192 --openssl-legacy-provider",
+    "NODE_OPTIONS": "--max_old_space_size=8192",
   ]
 }
-webpack.outputs.dir file('build/webpack')
+viteBuild.inputs.file file('version.json')
+viteBuild.outputs.dir file('packages/app/dist')
 
-task copyFavicon(type: Copy) {
-  dependsOn "webpack"
-
-  from "packages/app/icons/prod-favicon.ico"
-  into "build/webpack"
-  rename "prod-favicon.ico", "favicon.ico"
+// Deprecated alias for the pre-Vite task name, so external build scripts keep working for now.
+tasks.register('webpack') {
+  description = 'Deprecated alias for viteBuild.'
+  dependsOn 'viteBuild'
+  doFirst {
+    it.logger.warn("The 'webpack' task is deprecated and will be removed in a future release. Use 'viteBuild' instead; build output is now in packages/app/dist.")
+  }
 }
 
 task generateVersionFile {
@@ -145,15 +154,13 @@ task generateVersionFile {
       created: new Date().getTime()
     ]
     def buildJson = JsonOutput.prettyPrint(JsonOutput.toJson(buildInfo))
-    mkdir "build/webpack"
-    file(Paths.get("build", "webpack", "version.json")).write(buildJson)
     file("version.json").write(buildJson)
   }
 }
 pnpmInstall.dependsOn 'generateVersionFile'
 
-buildDeb.dependsOn 'copyFavicon'
-buildRpm.dependsOn 'webpack'
+buildDeb.dependsOn 'viteBuild'
+buildRpm.dependsOn 'viteBuild'
 build.dependsOn 'buildDeb'
 
 build.dependsOn 'test'
@@ -180,7 +187,7 @@ ospackage {
   version = toVers(project.version.toString())
   release toRelease(project.version.toString())
   into "/opt/deck/html"
-  from "build/webpack"
+  from "packages/app/dist"
   os = LINUX
 }
 

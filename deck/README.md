@@ -15,7 +15,8 @@ Run the following commands (in the deck directory) to get all dependencies insta
 
 The app will start up on localhost:9000.
 
-When editing `core` or any other cloud provider package, please run the following in that folder
+Vite consumes each workspace package from its `dist` directory, so run `pnpm modules` before starting Deck. While
+editing `core` or another package, run its development watcher in that package:
 
 - `pnpm dev`
 
@@ -55,8 +56,8 @@ API_HOST=http://localhost:8084 pnpm start
 
 ## Building &amp; Deploying
 
-To build the application, run `pnpm modules && pnpm build`.
-The built application lives in `build/`.
+To build the application, run `pnpm modules && pnpm typecheck && pnpm build`.
+The packaged application is written to `packages/app/dist`.
 
 ## Graphql
 

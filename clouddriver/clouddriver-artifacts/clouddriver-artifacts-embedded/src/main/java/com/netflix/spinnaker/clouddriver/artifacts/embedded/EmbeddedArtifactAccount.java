@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.clouddriver.artifacts.embedded;
 
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccount;
+import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import lombok.Value;
 
@@ -25,4 +26,5 @@ import lombok.Value;
 @Value
 final class EmbeddedArtifactAccount implements ArtifactAccount {
   private final String name = "embedded-artifact";
+  private final Permissions.Builder permissions = new Permissions.Builder();
 }
