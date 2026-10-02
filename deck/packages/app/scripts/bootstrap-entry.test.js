@@ -147,7 +147,9 @@ test('application packaging uses the Vite task and app-local dist output', () =>
   const gradleBuild = readDeckFile('build.gradle');
 
   assert.match(gradleBuild, /task\s+viteBuild\s*\(type:\s*PnpmTask\)/);
-  assert.doesNotMatch(gradleBuild, /(?:task\s+webpack\b|tasks?(?:\.register|\.create)\s*\(\s*['"]webpack['"])/);
+  // `webpack` remains only as a deprecated alias that delegates to viteBuild.
+  assert.doesNotMatch(gradleBuild, /task\s+webpack\b|tasks?\.create\s*\(\s*['"]webpack['"]/);
+  assert.match(gradleBuild, /tasks\.register\(\s*['"]webpack['"]\s*\)\s*\{[^}]*\bdependsOn\s+['"]viteBuild['"]/);
   assert.match(gradleBuild, /viteBuild\.inputs\.file\s+file\(['"]version\.json['"]\)/);
   assert.match(gradleBuild, /viteBuild\.outputs\.dir\s+file\(['"]packages\/app\/dist['"]\)/);
   assert.doesNotMatch(gradleBuild, /\bcopyFavicon\b/);
