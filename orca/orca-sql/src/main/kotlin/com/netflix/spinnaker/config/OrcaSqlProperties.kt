@@ -20,10 +20,17 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 /**
  * @param partitionName Multi-region partitioning; unused presently
  * @param batchReadSize Defines the internal page size for large select scans
+ * @param enforceForeignPartition When interlink is disabled, controls whether storeStage and delete
+ *   check the execution's partition and throw a ForeignExecutionException for executions owned by
+ *   a different partition. Operations that store the whole execution (cancel, pause, resume) are
+ *   always rejected for foreign executions. Keep this enabled when multiple Orca partitions share
+ *   a database without interlink; disable it to skip the partition lookup when all executions are
+ *   local.
  */
 @ConfigurationProperties("sql")
 class OrcaSqlProperties {
   var partitionName: String? = null
   var batchReadSize: Int = 10
   var stageReadSize: Int = 200
+  var enforceForeignPartition: Boolean = true
 }
