@@ -2,6 +2,7 @@
 
 export const GCE_SERVER_GROUP_HIDDEN_METADATA_KEYS = [
   'load-balancer-names',
+  'regional-external-load-balancer-names',
   'global-load-balancer-names',
   'backend-service-names',
   'load-balancing-policy',
