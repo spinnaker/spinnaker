@@ -30,7 +30,9 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.io.ResourceLoader;
+import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.cfg.DateTimeFeature;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.dataformat.cbor.CBORMapper;
 import tools.jackson.dataformat.yaml.YAMLMapper;
@@ -47,14 +49,34 @@ public class SecretConfiguration {
   @Bean
   public UserSecretSerde userSecretSerde(
       final List<UserSecretTypeProvider> userSecretTypeProviders) {
+    // Secret bytes are persisted. Keep Jackson 2 property order and Date format.
     List<ObjectMapper> mappers =
-        List.of(JsonMapper.builder().build(), new YAMLMapper(), new CBORMapper());
+        List.of(
+            jsonMapper(),
+            YAMLMapper.builder()
+                .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+                .disable(MapperFeature.SORT_CREATOR_PROPERTIES_FIRST)
+                .enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .build(),
+            CBORMapper.builder()
+                .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+                .disable(MapperFeature.SORT_CREATOR_PROPERTIES_FIRST)
+                .enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .build());
     Set<Class<? extends UserSecretData>> classes =
         userSecretTypeProviders.stream()
             .flatMap(UserSecretTypeProvider::getUserSecretTypes)
             .filter(type -> type != null && type.isAnnotationPresent(UserSecretType.class))
             .collect(Collectors.toSet());
     return new DefaultUserSecretSerde(mappers, classes);
+  }
+
+  private static JsonMapper jsonMapper() {
+    return JsonMapper.builder()
+        .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+        .disable(MapperFeature.SORT_CREATOR_PROPERTIES_FIRST)
+        .enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+        .build();
   }
 
   @Bean

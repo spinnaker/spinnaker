@@ -20,6 +20,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.artifact;
 import static com.jayway.jsonpath.Criteria.where;
 import static com.jayway.jsonpath.Filter.filter;
 
+// Jayway JSONPath's Jackson provider is Jackson 2, so these node types stay on databind 2.
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.ImmutableCollection;

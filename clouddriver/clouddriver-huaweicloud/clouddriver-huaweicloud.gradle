@@ -16,6 +16,7 @@ dependencies {
     exclude group: 'org.slf4j', module: 'slf4j-simple'
   }
   implementation "org.glassfish.jersey.core:jersey-client:2.22.1"
+  // Huawei Jersey client still binds JSON with Jackson 2.
   implementation "org.glassfish.jersey.media:jersey-media-json-jackson:2.11"
   implementation "org.apache.groovy:groovy"
   implementation "org.springframework.boot:spring-boot-actuator"

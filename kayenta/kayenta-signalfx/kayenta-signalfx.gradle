@@ -82,7 +82,6 @@ dependencies {
   implementation project(":kayenta-core")
 
   testImplementation project(":kayenta-standalone-canary-analysis")
-  testImplementation "com.squareup.retrofit2:converter-jackson"
   testImplementation "com.squareup.okhttp3:mockwebserver"
   // Integration Test dependencies
   integrationTestImplementation sourceSets.main.output

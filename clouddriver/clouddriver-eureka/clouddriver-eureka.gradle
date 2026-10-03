@@ -16,5 +16,4 @@ dependencies {
   testImplementation "org.springframework:spring-test"
   testImplementation "com.squareup.retrofit2:retrofit-mock"
   testImplementation "com.squareup.okhttp3:mockwebserver"
-  testImplementation "com.squareup.retrofit2:converter-jackson"
 }

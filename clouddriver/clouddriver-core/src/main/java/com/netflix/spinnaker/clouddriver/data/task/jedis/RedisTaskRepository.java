@@ -41,7 +41,9 @@ import org.slf4j.LoggerFactory;
 import redis.clients.jedis.exceptions.JedisException;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.cfg.DateTimeFeature;
 import tools.jackson.databind.json.JsonMapper;
 
 public class RedisTaskRepository implements TaskRepository {
@@ -64,7 +66,13 @@ public class RedisTaskRepository implements TaskRepository {
 
   private final RedisClientDelegate redisClientDelegate;
   private final Optional<RedisClientDelegate> redisClientDelegatePrevious;
-  private final ObjectMapper mapper = JsonMapper.builder().build();
+  // Stored in Redis and read back later. Keep Jackson 2 property order and Date format.
+  private final ObjectMapper mapper =
+      JsonMapper.builder()
+          .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+          .disable(MapperFeature.SORT_CREATOR_PROPERTIES_FIRST)
+          .enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+          .build();
 
   public RedisTaskRepository(
       RedisClientDelegate redisClientDelegate,

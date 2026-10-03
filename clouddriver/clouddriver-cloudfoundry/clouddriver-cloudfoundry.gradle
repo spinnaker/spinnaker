@@ -35,7 +35,6 @@ dependencies {
   implementation "com.netflix.spectator:spectator-api"
   implementation "com.squareup.okhttp3:okhttp"
   implementation "com.squareup.okhttp3:okhttp-urlconnection"
-  implementation "com.squareup.retrofit2:converter-jackson"
   implementation "com.squareup.retrofit2:retrofit"
   implementation "com.squareup.retrofit2:retrofit-mock"
   implementation "com.squareup.retrofit2:converter-protobuf:2.8.1"
