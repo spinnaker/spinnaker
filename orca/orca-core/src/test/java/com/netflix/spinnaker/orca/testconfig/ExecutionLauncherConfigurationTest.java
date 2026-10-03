@@ -21,6 +21,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
+import com.netflix.spectator.api.Counter;
+import com.netflix.spectator.api.Id;
+import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.common.Header;
 import com.netflix.spinnaker.kork.web.filters.ProvidedIdRequestFilterConfigurationProperties;
@@ -71,7 +74,7 @@ public class ExecutionLauncherConfigurationTest extends YamlFileApplicationConte
   @Mock private ExecutionRunner executionRunner;
   private Clock clock;
   private Optional<PipelineValidator> pipelineValidator;
-  private Optional<Registry> registry;
+  private Registry registry;
   @Mock private ApplicationEventPublisher applicationEventPublisher;
   private ExecutionLauncher executionLauncher;
 
@@ -92,7 +95,7 @@ public class ExecutionLauncherConfigurationTest extends YamlFileApplicationConte
     objectMapper = JsonMapper.builder().build();
     clock = Clock.systemUTC();
     pipelineValidator = Optional.empty();
-    registry = Optional.empty();
+    registry = new NoopRegistry();
     MDC.clear();
 
     executionLauncher =
@@ -210,16 +213,57 @@ public class ExecutionLauncherConfigurationTest extends YamlFileApplicationConte
         executionLauncher.start(
             ExecutionType.ORCHESTRATION, getConfigJson("ad-hoc/save-pipeline-blocked-user.json"));
 
+    String expectedReason =
+        "Failed on startup: ad-hoc execution of type: savePipeline has been"
+            + " disabled for user: not-explicitly-permitted-user@abc.com";
     // then
     verify(executionRepository).store(pipelineExecution);
     // verify that the failure reason is what we expect
     verify(executionRepository)
-        .cancel(
-            ExecutionType.ORCHESTRATION,
-            pipelineExecution.getId(),
-            "system",
-            "Failed on startup: ad-hoc execution of type: savePipeline has been"
-                + " disabled for user: not-explicitly-permitted-user@abc.com");
+        .cancel(ExecutionType.ORCHESTRATION, pipelineExecution.getId(), "system", expectedReason);
+  }
+
+  @DisplayName("when a pipeline fails to start, validate that a counter is set correctly")
+  @Test
+  public void testThatSystemErrorCounterIsSetCorrectly() throws Exception {
+    // when:
+    registry = mock(Registry.class);
+    Id mockId = mock(Id.class);
+    Counter mockCounter = mock(Counter.class);
+    when(registry.createId(anyString())).thenReturn(mockId);
+    when(mockId.withTags(anyString(), anyString(), anyString(), anyString())).thenReturn(mockId);
+    when(registry.counter(mockId)).thenReturn(mockCounter);
+
+    executionLauncher =
+        new ExecutionLauncher(
+            objectMapper,
+            executionRepository,
+            executionRunner,
+            clock,
+            applicationEventPublisher,
+            pipelineValidator,
+            registry,
+            executionConfigurationProperties,
+            providedIdRequestFilterConfigurationProperties);
+
+    PipelineExecution pipelineExecution =
+        executionLauncher.start(
+            ExecutionType.ORCHESTRATION, getConfigJson("ad-hoc/save-pipeline-blocked-user.json"));
+
+    String expectedReason =
+        "Failed on startup: ad-hoc execution of type: savePipeline has been"
+            + " disabled for user: not-explicitly-permitted-user@abc.com";
+    // then
+    verify(executionRepository).store(pipelineExecution);
+    // verify that the failure reason is what we expect
+    verify(executionRepository)
+        .cancel(ExecutionType.ORCHESTRATION, pipelineExecution.getId(), "system", expectedReason);
+
+    verify(registry).createId("execution.trigger.system.errors");
+    verify(registry).counter(mockId);
+    verify(mockCounter).increment();
+    verify(mockId)
+        .withTags("type", ExecutionType.ORCHESTRATION.toString(), "reason", expectedReason);
   }
 
   @DisplayName(

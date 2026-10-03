@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.kork.web.filters.ProvidedIdRequestFilterConfigurationProperties
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.config.ExecutionConfigurationProperties
@@ -24,7 +25,6 @@ import org.springframework.context.ApplicationEventPublisher
 
 import javax.annotation.Nonnull
 import java.time.Clock
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.test.TestConfiguration
@@ -51,7 +51,7 @@ class PipelineExecutionLauncherSpec extends Specification {
       Clock.systemDefaultZone(),
       applicationEventPublisher,
       Optional.of(pipelineValidator),
-      Optional.<Registry> empty(),
+      new NoopRegistry(),
       new ExecutionConfigurationProperties(),
       providedIdRequestFilterConfigurationProperties
     )
@@ -76,6 +76,7 @@ class PipelineExecutionLauncherSpec extends Specification {
           }
         })
         registerSingleton("executionConfigurationProperties", new ExecutionConfigurationProperties())
+        registerSingleton("registry", new NoopRegistry())
       }
       register(ExecutionLauncher)
       refresh()
@@ -103,6 +104,7 @@ class PipelineExecutionLauncherSpec extends Specification {
           }
         })
         registerSingleton("executionConfigurationProperties", new ExecutionConfigurationProperties())
+        registerSingleton("registry", new NoopRegistry())
         registerSingleton("providedIdRequestFilterConfigurationProperties", new ProvidedIdRequestFilterConfigurationProperties())
       }
       register(ExecutionLauncher)
