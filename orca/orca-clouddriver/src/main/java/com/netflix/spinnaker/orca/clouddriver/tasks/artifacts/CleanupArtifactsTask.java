@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.artifacts;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
@@ -27,18 +26,20 @@ import com.netflix.spinnaker.orca.clouddriver.KatoService;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Nonnull;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class CleanupArtifactsTask implements CloudProviderAware, Task {
   public static final String TASK_NAME = "cleanupArtifacts";
 
-  @Autowired KatoService kato;
+  KatoService katoService;
 
-  @Autowired ObjectMapper objectMapper;
+  public CleanupArtifactsTask(KatoService katoService) {
+    this.katoService = katoService;
+  }
 
   @Nonnull
   @Override
@@ -47,16 +48,19 @@ public class CleanupArtifactsTask implements CloudProviderAware, Task {
     String credentials = getCredentials(stage);
     String cloudProvider = getCloudProvider(stage);
 
-    Map<String, Object> task =
-        new ImmutableMap.Builder<String, Object>()
-            .put("manifests", context.get("outputs.manifests"))
-            .put("account", credentials)
-            .build();
+    Map<String, Object> task = new HashMap<>();
+    task.put("manifests", context.get("outputs.manifests"));
+    task.put("account", credentials);
+
+    if (context.containsKey("labelSelectors")) {
+      task.put("labelSelectors", context.get("labelSelectors"));
+    }
 
     Map<String, Map> operation =
         new ImmutableMap.Builder<String, Map>().put(TASK_NAME, task).build();
 
-    TaskId taskId = kato.requestOperations(cloudProvider, Collections.singletonList(operation));
+    TaskId taskId =
+        katoService.requestOperations(cloudProvider, Collections.singletonList(operation));
 
     Map<String, Object> outputs =
         new ImmutableMap.Builder<String, Object>()
