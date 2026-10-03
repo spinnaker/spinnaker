@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.cloudrun.converter.manifest.CloudrunDeployManifestConverter;
 import com.netflix.spinnaker.clouddriver.cloudrun.description.manifest.CloudrunDeployManifestDescription;
 import com.netflix.spinnaker.clouddriver.cloudrun.op.manifest.CloudrunDeployManifestOperation;
@@ -14,6 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.json.JsonMapper;
 
 public class CloudrunDeployManifestDescriptionTest {
 
@@ -32,7 +32,7 @@ public class CloudrunDeployManifestDescriptionTest {
     converter = new CloudrunDeployManifestConverter();
     credentialsRepository = mock(CredentialsRepository.class);
     converter.setCredentialsRepository(credentialsRepository);
-    converter.setObjectMapper(new ObjectMapper());
+    converter.setObjectMapper(JsonMapper.builder().build());
     mockCredentials = mock(CloudrunNamedAccountCredentials.class);
   }
 

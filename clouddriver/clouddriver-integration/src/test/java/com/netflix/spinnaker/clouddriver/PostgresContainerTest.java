@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
 import java.util.Map;
 import org.junit.jupiter.api.AfterAll;
@@ -30,6 +28,9 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Testcontainers
@@ -69,7 +70,7 @@ public class PostgresContainerTest extends BaseContainerTest {
     clouddriverContainer.followOutput(logConsumer);
   }
 
-  private String getSpringApplicationJson() throws JsonProcessingException {
+  private String getSpringApplicationJson() throws JacksonException {
     logger.info("----------- jdbcUrl: '{}'", jdbcUrl);
     Map<String, String> connectionPool =
         Map.of("jdbcUrl", jdbcUrl, "user", "clouddriver_service", "password", "c10uddriver");
@@ -88,7 +89,7 @@ public class PostgresContainerTest extends BaseContainerTest {
             "false",
             "sql.migration",
             migration);
-    ObjectMapper mapper = new ObjectMapper();
+    ObjectMapper mapper = JsonMapper.builder().build();
     return mapper.writeValueAsString(properties);
   }
 

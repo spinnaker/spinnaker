@@ -1,12 +1,13 @@
 package com.netflix.spinnaker.q.redis
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.netflix.spinnaker.q.DeadMessageCallback
 import com.netflix.spinnaker.q.Message
 import com.netflix.spinnaker.q.Queue
 import java.time.Clock
 import redis.clients.jedis.JedisCluster
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.KotlinModule
 
 class RedisClusterDeadMessageHandler(
   deadLetterQueueName: String,
@@ -16,7 +17,9 @@ class RedisClusterDeadMessageHandler(
 
   private val dlqKey = "{$deadLetterQueueName}.messages"
 
-  private val mapper = ObjectMapper().registerModule(KotlinModule.Builder().build())
+  private val mapper = JsonMapper.builder()
+    .addModule(KotlinModule.Builder().build())
+    .build()
 
   override fun invoke(queue: Queue, message: Message) {
     jedisCluster.use { cluster ->

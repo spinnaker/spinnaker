@@ -46,6 +46,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/** Jayway JSONPath's Jackson provider is Jackson 2, so node types here stay on databind 2. */
 @NonnullByDefault
 public final class Replacer {
   private static final Logger log = LoggerFactory.getLogger(Replacer.class);
@@ -153,6 +154,9 @@ public final class Replacer {
     } catch (PathNotFoundException e) {
       return false;
     }
+    // ArrayNode is deliberately com.fasterxml.jackson (not tools.jackson): jayway's
+    // JacksonJsonNodeJsonProvider produces Jackson 2 nodes, so the instanceof check must match
+    // them, otherwise empty matches fall through to set() and throw PathNotFoundException.
     if (get == null || (get instanceof ArrayNode && ((ArrayNode) get).size() == 0)) {
       return false;
     }

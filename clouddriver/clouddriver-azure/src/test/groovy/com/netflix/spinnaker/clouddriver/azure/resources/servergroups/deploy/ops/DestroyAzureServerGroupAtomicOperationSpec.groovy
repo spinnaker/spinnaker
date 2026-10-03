@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.azure.resources.servergroups.deploy.ops
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials
 import com.netflix.spinnaker.clouddriver.azure.security.AzureNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
@@ -27,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvi
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
 import spock.lang.Shared
 import spock.lang.Specification
+import tools.jackson.databind.json.JsonMapper
 
 class DestroyAzureServerGroupAtomicOperationSpec extends Specification {
   static final ACCOUNT_NAME = "my-azure-account"
@@ -39,7 +40,7 @@ class DestroyAzureServerGroupAtomicOperationSpec extends Specification {
   private static final DEFAULT_RESOURCE_GROUP = "azuredefaultresourcegroup"
 
   @Shared
-  ObjectMapper mapper = new ObjectMapper()
+  ObjectMapper mapper = JsonMapper.builder().build()
 
   @Shared
   DestroyAzureServerGroupAtomicOperationConverter converter

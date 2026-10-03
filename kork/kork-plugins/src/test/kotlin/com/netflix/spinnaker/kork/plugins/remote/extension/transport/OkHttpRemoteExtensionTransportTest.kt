@@ -1,8 +1,9 @@
 package com.netflix.spinnaker.kork.plugins.remote.extension.transport
 
 import com.fasterxml.jackson.annotation.JsonTypeName
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.KotlinModule
 import com.netflix.spinnaker.kork.api.plugins.remote.RemoteExtensionConfig
 import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer
 import com.netflix.spinnaker.kork.plugins.remote.extension.transport.http.OkHttpRemoteExtensionTransport
@@ -66,9 +67,14 @@ class OkHttpRemoteExtensionTransportTest : JUnit5Minutests {
   private class Fixture {
     val readQuery = Query()
     val payload = Payload()
-    val objectMapper: ObjectMapper = jacksonObjectMapper()
     val subTypeLocator = ObjectMapperSubtypeConfigurer.ClassSubtypeLocator(
       RemoteExtensionResponse::class.java, listOf("com.netflix.spinnaker.kork.plugins.remote.extension.transport")
+    )
+    val objectMapper: ObjectMapper = ObjectMapperSubtypeConfigurer(true).registerSubtypes(
+      JsonMapper.builder()
+        .addModule(KotlinModule.Builder().build())
+        .build(),
+      listOf(subTypeLocator)
     )
 
     val client: OkHttpClient = mockk(relaxed = true)
@@ -88,9 +94,6 @@ class OkHttpRemoteExtensionTransportTest : JUnit5Minutests {
       httpConfig
     )
 
-    init {
-      ObjectMapperSubtypeConfigurer(true).registerSubtypes(objectMapper, listOf(subTypeLocator))
-    }
   }
 
   private class Payload: RemoteExtensionPayload

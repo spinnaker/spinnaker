@@ -17,9 +17,6 @@
 package com.netflix.spinnaker.fiat.config;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.collect.ImmutableList;
 import java.io.IOException;
 import java.util.List;
@@ -35,6 +32,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.util.backoff.BackOffExecution;
 import org.springframework.util.backoff.ExponentialBackOff;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 /** This package is placed in fiat-core in order to be shared by fiat-web and fiat-shared. */
 @Configuration
@@ -46,11 +46,13 @@ public class RetrofitConfig {
 
   @Bean
   @Primary
-  ObjectMapper objectMapper() {
-    return new ObjectMapper()
-        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-        .configure(SerializationFeature.INDENT_OUTPUT, true)
-        .setSerializationInclusion(JsonInclude.Include.NON_NULL);
+  JsonMapper objectMapper() {
+    return JsonMapper.builder()
+        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+        .enable(SerializationFeature.INDENT_OUTPUT)
+        .changeDefaultPropertyInclusion(
+            value -> value.withValueInclusion(JsonInclude.Include.NON_NULL))
+        .build();
   }
 
   @Bean

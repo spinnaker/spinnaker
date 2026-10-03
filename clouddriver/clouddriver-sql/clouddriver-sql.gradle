@@ -30,7 +30,7 @@ dependencies {
   implementation "org.jooq:jooq"
   implementation "org.hibernate.validator:hibernate-validator"
   implementation "com.fasterxml.jackson.core:jackson-annotations"
-  implementation "com.fasterxml.jackson.core:jackson-databind"
+  implementation "tools.jackson.core:jackson-databind"
   implementation "jakarta.validation:jakarta.validation-api"
 
   testImplementation project(":clouddriver-core-tck")
@@ -48,7 +48,6 @@ dependencies {
   testImplementation "io.strikt:strikt-core"
   testImplementation "dev.minutest:minutest"
   testImplementation "io.mockk:mockk"
-  testImplementation "com.fasterxml.jackson.module:jackson-module-kotlin"
-  testImplementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
+  testImplementation "tools.jackson.module:jackson-module-kotlin"
   testImplementation "org.mockito.kotlin:mockito-kotlin"
 }

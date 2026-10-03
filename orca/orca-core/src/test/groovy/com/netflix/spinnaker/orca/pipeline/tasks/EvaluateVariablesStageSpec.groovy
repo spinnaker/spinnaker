@@ -16,20 +16,21 @@
 
 package com.netflix.spinnaker.orca.pipeline.tasks
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.expressions.ExpressionEvaluationSummary
 import com.netflix.spinnaker.orca.pipeline.EvaluateVariablesStage
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import spock.lang.Specification
 import spock.lang.Subject
+import tools.jackson.databind.ObjectMapper
 
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
+import tools.jackson.databind.json.JsonMapper
 
 class EvaluateVariablesStageSpec extends Specification {
   ContextParameterProcessor contextParameterProcessor = new ContextParameterProcessor()
 
   @Subject
-  evaluateVariablesStage = new EvaluateVariablesStage(new ObjectMapper())
+  evaluateVariablesStage = new EvaluateVariablesStage(JsonMapper.builder().build())
 
   void "Should sequentially eval variables"() {
     setup:

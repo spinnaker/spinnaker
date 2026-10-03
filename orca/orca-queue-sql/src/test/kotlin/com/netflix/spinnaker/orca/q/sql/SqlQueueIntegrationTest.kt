@@ -16,10 +16,11 @@
 
 package com.netflix.spinnaker.orca.q.sql
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.module.SimpleModule
-import com.fasterxml.jackson.module.kotlin.KotlinModule
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.databind.module.SimpleModule
+import tools.jackson.module.kotlin.KotlinModule
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.ExecutionCompressionProperties
 import com.netflix.spinnaker.config.ObjectMapperSubtypeProperties
@@ -54,6 +55,7 @@ import java.time.Duration
 import java.util.Optional
 import org.jooq.DSLContext
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -75,29 +77,32 @@ class SqlTestConfig {
     objectMapperSubtypeProperties: ObjectMapperSubtypeProperties,
     taskResolver: TaskResolver
   ): ObjectMapper {
-    return mapper.apply {
-      registerModule(KotlinModule.Builder().build())
-      registerModule(
+    val configuredMapper = mapper.rebuild<JsonMapper, JsonMapper.Builder>()
+      // Jackson 3 writes enums via toString()/lowercase; queue messages must stay name()-compatible.
+      .disable(tools.jackson.databind.cfg.EnumFeature.WRITE_ENUMS_USING_TO_STRING)
+      .disable(tools.jackson.databind.cfg.EnumFeature.WRITE_ENUMS_TO_LOWERCASE)
+      .addModule(KotlinModule.Builder().build())
+      .addModule(
         SimpleModule()
           .addDeserializer(ExecutionType::class.java, ExecutionTypeDeserializer())
           .addDeserializer(Class::class.java, TaskTypeDeserializer(taskResolver))
       )
-      disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+      .build()
 
-      SpringObjectMapperConfigurer(
-        objectMapperSubtypeProperties.apply {
-          messagePackages = messagePackages + listOf("com.netflix.spinnaker.orca.q")
-          attributePackages = attributePackages + listOf("com.netflix.spinnaker.orca.q")
-        }
-      ).registerSubtypes(this)
-    }
+    return SpringObjectMapperConfigurer(
+      objectMapperSubtypeProperties.apply {
+        messagePackages = messagePackages + listOf("com.netflix.spinnaker.orca.q")
+        attributePackages = attributePackages + listOf("com.netflix.spinnaker.orca.q")
+      }
+    ).registerSubtypes(configuredMapper)
   }
 
   @Bean
   fun queue(
     jooq: DSLContext,
     clock: Clock,
-    mapper: ObjectMapper,
+    @Qualifier("sqlQueueObjectMapper") mapper: ObjectMapper,
     publisher: EventPublisher
   ): MonitorableQueue =
     SqlQueue(
@@ -143,7 +148,7 @@ class SqlTestConfig {
     jooq: DSLContext,
     queue: Queue,
     repository: ExecutionRepository,
-    mapper: ObjectMapper,
+    @Qualifier("sqlQueueObjectMapper") mapper: ObjectMapper,
     clock: Clock,
     registry: Registry
   ) =

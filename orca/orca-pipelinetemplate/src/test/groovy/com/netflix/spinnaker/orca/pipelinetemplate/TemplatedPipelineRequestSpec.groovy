@@ -15,19 +15,21 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.module.kotlin.KotlinModule
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.SerializationFeature
+import tools.jackson.module.kotlin.KotlinModule
 import spock.lang.Specification
 import spock.lang.Unroll
+import tools.jackson.databind.json.JsonMapper
 
 class TemplatedPipelineRequestSpec extends Specification {
 
-  def objectMapper = new ObjectMapper()
+  def objectMapper = JsonMapper.builder()
     .enable(SerializationFeature.INDENT_OUTPUT)
     .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-    .registerModule(new KotlinModule.Builder().build())
+    .addModule(new KotlinModule.Builder().build())
+    .build()
 
   @Unroll
   def 'should deserialize config'() {

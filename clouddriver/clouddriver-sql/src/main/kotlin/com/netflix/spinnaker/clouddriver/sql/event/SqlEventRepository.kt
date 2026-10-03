@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.clouddriver.sql.event
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.event.Aggregate
 import com.netflix.spinnaker.clouddriver.event.CompositeSpinnakerEvent
@@ -40,6 +39,7 @@ import org.jooq.impl.DSL.max
 import org.jooq.impl.DSL.table
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
+import tools.jackson.databind.ObjectMapper
 
 class SqlEventRepository(
   private val jooq: DSLContext,

@@ -19,17 +19,18 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.aliyuncs.IAcsClient;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.alicloud.security.AliCloudCredentials;
 import spock.lang.Subject;
+import tools.jackson.databind.json.JsonMapper;
 
 public class CommonCachingAgentTest {
 
   static final String ACCOUNT = "test-account";
   static final String REGION = "cn-test";
 
-  @Subject ObjectMapper objectMapper = new ObjectMapper();
+  @Subject ObjectMapper objectMapper = JsonMapper.builder().build();
 
   final IAcsClient client = mock(IAcsClient.class);
 

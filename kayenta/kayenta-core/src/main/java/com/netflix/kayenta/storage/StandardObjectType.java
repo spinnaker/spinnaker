@@ -16,8 +16,8 @@
 
 package com.netflix.kayenta.storage;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.Value;
+import tools.jackson.core.type.TypeReference;
 
 @Value
 public class StandardObjectType implements ObjectType {

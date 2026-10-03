@@ -32,9 +32,6 @@ import static net.logstash.logback.argument.StructuredArguments.value;
 import static redis.clients.jedis.args.ListPosition.AFTER;
 import static redis.clients.jedis.args.ListPosition.BEFORE;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
@@ -52,7 +49,6 @@ import io.reactivex.rxjava3.functions.BiFunction;
 import io.reactivex.rxjava3.functions.Function;
 import io.reactivex.rxjava3.functions.Supplier;
 import io.reactivex.rxjava3.schedulers.Schedulers;
-import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -70,6 +66,9 @@ import redis.clients.jedis.Response;
 import redis.clients.jedis.args.ListPosition;
 import redis.clients.jedis.params.ScanParams;
 import redis.clients.jedis.resps.ScanResult;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 public class RedisExecutionRepository implements ExecutionRepository {
 
@@ -151,7 +150,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
         c -> {
           try {
             c.hset(key, contextKey, mapper.writeValueAsString(stage.getContext()));
-          } catch (JsonProcessingException e) {
+          } catch (JacksonException e) {
             throw new StageSerializationException(
                 format(
                     "Failed serializing stage, executionId: %s, stageId: %s",
@@ -260,7 +259,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
           Map<String, String> data = new HashMap<>();
           try {
             data.put("paused", mapper.writeValueAsString(pausedDetails));
-          } catch (JsonProcessingException e) {
+          } catch (JacksonException e) {
             throw new ExecutionSerializationException("Failed converting pausedDetails to json", e);
           }
           data.put("status", ExecutionStatus.PAUSED.toString());
@@ -301,7 +300,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
             data.put("status", ExecutionStatus.RUNNING.toString());
             c.hmset(pair.getLeft(), data);
             c.srem(allBufferedExecutionsKey(type), id);
-          } catch (IOException e) {
+          } catch (JacksonException e) {
             throw new ExecutionSerializationException("Failed converting pausedDetails to json", e);
           }
         });
@@ -1045,7 +1044,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
             }
             stage.setExecution(execution);
             stages.add(stage);
-          } catch (IOException e) {
+          } catch (JacksonException e) {
             registry.counter(serializationErrorId).increment();
             throw new StageSerializationException(
                 format(
@@ -1071,7 +1070,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
               .getInitialConfig()
               .putAll(mapper.readValue(map.get("initialConfig"), Map.class));
         }
-      } catch (IOException e) {
+      } catch (JacksonException e) {
         registry.counter(serializationErrorId).increment();
         throw new ExecutionSerializationException("Failed serializing execution json", e);
       }
@@ -1111,7 +1110,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
       map.put(
           "systemNotifications",
           mapper.writeValueAsString(((PipelineExecutionImpl) execution).getSystemNotifications()));
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new ExecutionSerializationException("Failed serializing execution", e);
     }
 
@@ -1125,7 +1124,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
         map.put(
             "initialConfig",
             mapper.writeValueAsString(((PipelineExecutionImpl) execution).getInitialConfig()));
-      } catch (JsonProcessingException e) {
+      } catch (JacksonException e) {
         throw new ExecutionSerializationException("Failed serializing execution", e);
       }
     } else if (execution.getType() == ORCHESTRATION) {
@@ -1169,7 +1168,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
           (stage.getLastModified() != null
               ? mapper.writeValueAsString(stage.getLastModified())
               : null));
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new StageSerializationException(
           format(
               "Failed converting stage to json, executionId: %s, stageId: %s",

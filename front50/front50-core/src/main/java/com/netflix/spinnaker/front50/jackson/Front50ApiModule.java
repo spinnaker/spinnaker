@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.front50.jackson;
 
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.netflix.spinnaker.front50.api.model.Timestamped;
 import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.jackson.mixins.PipelineMixins;
 import com.netflix.spinnaker.front50.jackson.mixins.TimestampedMixins;
+import tools.jackson.databind.module.SimpleModule;
 
 public class Front50ApiModule extends SimpleModule {
 
@@ -31,7 +31,7 @@ public class Front50ApiModule extends SimpleModule {
   @Override
   public void setupModule(SetupContext context) {
     super.setupModule(context);
-    context.setMixInAnnotations(Pipeline.class, PipelineMixins.class);
-    context.setMixInAnnotations(Timestamped.class, TimestampedMixins.class);
+    context.setMixIn(Pipeline.class, PipelineMixins.class);
+    context.setMixIn(Timestamped.class, TimestampedMixins.class);
   }
 }

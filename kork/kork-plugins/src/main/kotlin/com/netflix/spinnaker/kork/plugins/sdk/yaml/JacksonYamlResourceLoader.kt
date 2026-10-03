@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.kork.plugins.sdk.yaml
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.dataformat.yaml.YAMLMapper
 import com.netflix.spinnaker.kork.plugins.api.yaml.YamlResourceLoader
 
 /**
@@ -28,8 +28,9 @@ class JacksonYamlResourceLoader(
   private val pluginClass: Class<*>
 ) : YamlResourceLoader {
 
-  private val mapper: ObjectMapper = ObjectMapper(YAMLFactory())
+  private val mapper: ObjectMapper = YAMLMapper.builder()
     .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+    .build()
 
   override fun <T : Any?> loadResource(resourceName: String, toValueType: Class<T>): T? {
     pluginClass.classLoader.getResourceAsStream(resourceName).use { inputStream ->

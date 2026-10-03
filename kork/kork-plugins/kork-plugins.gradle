@@ -21,7 +21,6 @@ dependencies {
 
   implementation project(":kork-web")
   implementation("com.squareup.retrofit2:retrofit")
-  implementation("com.squareup.retrofit2:converter-jackson")
   implementation("com.squareup.okhttp3:logging-interceptor")
 
   implementation "org.pf4j:pf4j"
@@ -32,9 +31,9 @@ dependencies {
   implementation("com.google.guava:guava")
   implementation "jakarta.inject:jakarta.inject-api:2.0.1"
 
-  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
-  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-properties")
-  implementation "com.fasterxml.jackson.module:jackson-module-kotlin"
+  implementation("tools.jackson.dataformat:jackson-dataformat-yaml")
+  implementation("tools.jackson.dataformat:jackson-dataformat-properties")
+  implementation "tools.jackson.module:jackson-module-kotlin"
 
   testImplementation project(":kork-plugins-tck")
   testImplementation project(":kork-secrets")

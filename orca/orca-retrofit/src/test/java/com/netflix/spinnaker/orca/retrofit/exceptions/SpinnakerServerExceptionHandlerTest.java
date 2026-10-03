@@ -30,6 +30,7 @@ import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler;
 import java.io.IOException;
 import java.util.List;
@@ -53,7 +54,6 @@ import org.springframework.http.HttpStatus;
 import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
 
 class SpinnakerServerExceptionHandlerTest {
   private static Retrofit2Service retrofit2Service;
@@ -84,7 +84,7 @@ class SpinnakerServerExceptionHandlerTest {
                     .connectTimeout(1, TimeUnit.SECONDS)
                     .build())
             .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-            .addConverterFactory(JacksonConverterFactory.create())
+            .addConverterFactory(CustomConverterFactory.create())
             .build()
             .create(Retrofit2Service.class);
   }
@@ -232,7 +232,7 @@ class SpinnakerServerExceptionHandlerTest {
             .baseUrl(wmServer.baseUrl())
             .client(new OkHttpClient())
             .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-            .addConverterFactory(JacksonConverterFactory.create())
+            .addConverterFactory(CustomConverterFactory.create())
             .build()
             .create(DummyRetrofitApi.class);
 
@@ -374,7 +374,7 @@ class SpinnakerServerExceptionHandlerTest {
     Retrofit retrofit =
         new Retrofit.Builder()
             .baseUrl(url)
-            .addConverterFactory(JacksonConverterFactory.create())
+            .addConverterFactory(CustomConverterFactory.create())
             .build();
 
     return new SpinnakerHttpException(retrofit2Response, retrofit);

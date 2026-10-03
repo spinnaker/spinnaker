@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.rosco.providers.google
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.providers.util.ImageNameFactory
@@ -34,6 +34,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 import java.nio.file.Paths
+import tools.jackson.databind.json.JsonMapper
 
 class GCEBakeHandlerSpec extends Specification implements TestDefaults{
 
@@ -56,7 +57,7 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
   RoscoGoogleConfiguration.GoogleConfigurationProperties googleConfigurationProperties
 
   @Shared
-  ObjectMapper objectMapper = new ObjectMapper()
+  ObjectMapper objectMapper = JsonMapper.builder().build()
 
   @Shared
   def gceBakeryDefaultsJson = [
@@ -124,7 +125,7 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
   ]
 
   void setupSpec() {
-    gceBakeryDefaults = new ObjectMapper().convertValue(gceBakeryDefaultsJson, RoscoGoogleConfiguration.GCEBakeryDefaults)
+    gceBakeryDefaults = JsonMapper.builder().build().convertValue(gceBakeryDefaultsJson, RoscoGoogleConfiguration.GCEBakeryDefaults)
 
     def googleConfigurationPropertiesJson = [
       accounts: [
@@ -140,7 +141,7 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
       ]
     ]
 
-    googleConfigurationProperties = new ObjectMapper().convertValue(googleConfigurationPropertiesJson, RoscoGoogleConfiguration.GoogleConfigurationProperties)
+    googleConfigurationProperties = JsonMapper.builder().build().convertValue(googleConfigurationPropertiesJson, RoscoGoogleConfiguration.GoogleConfigurationProperties)
   }
 
   void 'can scrape packer logs for image name'() {
@@ -661,7 +662,7 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
                                         cloud_provider_type: BakeRequest.CloudProviderType.gce)
       def osPackages = parseDebOsPackageNames(bakeRequest.package_name)
       def targetImageName = "kato-x8664-timestamp-trusty"
-      def gceBakeryDefaults = new ObjectMapper().convertValue(gceBakeryDefaultsJson, RoscoGoogleConfiguration.GCEBakeryDefaults)
+      def gceBakeryDefaults = JsonMapper.builder().build().convertValue(gceBakeryDefaultsJson, RoscoGoogleConfiguration.GCEBakeryDefaults)
       gceBakeryDefaults.networkProjectId = "some-xpn-host-project"
       def parameterMap = [
         gce_project_id: googleConfigurationProperties.accounts.get(0).project,

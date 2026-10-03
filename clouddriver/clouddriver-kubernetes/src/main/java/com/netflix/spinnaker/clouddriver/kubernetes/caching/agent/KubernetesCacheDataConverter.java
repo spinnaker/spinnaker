@@ -26,7 +26,6 @@ import static com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.
 import static com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind.SERVICE;
 import static java.lang.Math.toIntExact;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -50,10 +49,12 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class KubernetesCacheDataConverter {
   private static final Logger log = LoggerFactory.getLogger(KubernetesCacheDataConverter.class);
-  private static final ObjectMapper mapper = new ObjectMapper();
+  private static final ObjectMapper mapper = JsonMapper.builder().build();
   private static final JSON json = new JSON();
   // TODO(lwander): make configurable
   @Getter private static final int logicalTtlSeconds = toIntExact(TimeUnit.MINUTES.toSeconds(10));

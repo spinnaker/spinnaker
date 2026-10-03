@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.fiat.permissions;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.fiat.config.AccountManagerConfig;
 import com.netflix.spinnaker.fiat.config.FiatAdminConfig;
@@ -44,6 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 @Slf4j

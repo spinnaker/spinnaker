@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pollers
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
@@ -30,12 +30,13 @@ import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import spock.lang.Specification
 import spock.lang.Subject
+import tools.jackson.databind.json.JsonMapper
 
 class RestorePinnedServerGroupsPollerSpec extends Specification {
   def notificationClusterLock = Mock(NotificationClusterLock) {
     tryAcquireLock(_, _) >> true
   }
-  def objectMapper = new ObjectMapper()
+  def objectMapper = JsonMapper.builder().build()
   CloudDriverService cloudDriverService = Mock()
   def executionLauncher = Mock(ExecutionLauncher)
   def executionRepository = Mock(ExecutionRepository)

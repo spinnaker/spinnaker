@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.yandex.provider.agent;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.yandex.model.YandexCloudImage;
 import com.netflix.spinnaker.clouddriver.yandex.provider.Keys;
 import com.netflix.spinnaker.clouddriver.yandex.security.YandexCloudCredentials;
 import com.netflix.spinnaker.clouddriver.yandex.service.YandexCloudFacade;
 import java.util.*;
+import tools.jackson.databind.ObjectMapper;
 
 public class YandexImageCachingAgent extends AbstractYandexCachingAgent<YandexCloudImage> {
   private static final String TYPE = Keys.Namespace.IMAGES.getNs();

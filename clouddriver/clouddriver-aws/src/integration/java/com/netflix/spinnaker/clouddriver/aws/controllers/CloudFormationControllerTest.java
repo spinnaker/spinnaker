@@ -17,7 +17,6 @@ package com.netflix.spinnaker.clouddriver.aws.controllers;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.CompositeCache;
@@ -28,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.Main;
 import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonCloudFormationProvider;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor;
 import java.util.HashMap;
 import java.util.List;
@@ -42,9 +42,9 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.TestPropertySource;
 import retrofit2.Call;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
 import retrofit2.http.GET;
 import retrofit2.http.Query;
+import tools.jackson.databind.ObjectMapper;
 
 @Import(CloudFormationControllerTest.CloudFormationTestConfig.class)
 @SpringBootTest(
@@ -78,7 +78,7 @@ public class CloudFormationControllerTest {
             new okhttp3.OkHttpClient.Builder()
                 .addInterceptor(new Retrofit2EncodeCorrectionInterceptor())
                 .build())
-        .addConverterFactory(JacksonConverterFactory.create())
+        .addConverterFactory(CustomConverterFactory.create())
         .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
         .build()
         .create(OortService.class);
@@ -103,8 +103,9 @@ public class CloudFormationControllerTest {
     }
 
     @Bean
-    public AmazonCloudFormationProvider amazonCloudFormationProvider(Cache cache) {
-      return new AmazonCloudFormationProvider(cache, new ObjectMapper());
+    public AmazonCloudFormationProvider amazonCloudFormationProvider(
+        Cache cache, ObjectMapper objectMapper) {
+      return new AmazonCloudFormationProvider(cache, objectMapper);
     }
   }
 }

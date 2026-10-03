@@ -1,9 +1,6 @@
 package com.netflix.spinnaker.q.sql
 
 import arrow.core.partially1
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.google.common.hash.Hashing
 import com.netflix.spinnaker.KotlinOpen
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
@@ -62,6 +59,10 @@ import org.jooq.impl.DSL.table
 import org.jooq.util.mysql.MySQLDSL
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.SerializationFeature
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.readValue
 
 @KotlinOpen
 class SqlQueue(
@@ -93,9 +94,9 @@ class SqlQueue(
       .hashString(InetAddress.getLocalHost().hostName, StandardCharsets.UTF_8)
       .toString()
 
-    private val hashObjectMapper = ObjectMapper().copy().apply {
-      enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS)
-    }
+    private val hashObjectMapper = JsonMapper.builder()
+      .enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS)
+      .build()
 
     private val lockedAtRegex =
       """^\w+:(\d+)$""".toRegex()

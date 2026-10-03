@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.fiat.controllers
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.FiatSystemTest
@@ -48,6 +47,7 @@ import redis.clients.jedis.util.Pool
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
+import tools.jackson.databind.ObjectMapper
 
 import jakarta.servlet.http.HttpServletResponse
 

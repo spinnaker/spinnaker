@@ -21,12 +21,11 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.http.HttpHeaders;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
@@ -40,11 +39,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.http.HttpStatus;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
+import tools.jackson.core.exc.StreamReadException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class ClusterSizePreconditionTaskTest {
 
-  private static ObjectMapper objectMapper = new ObjectMapper();
+  private static ObjectMapper objectMapper = JsonMapper.builder().build();
 
   private static OortService oortService;
 
@@ -61,7 +62,7 @@ public class ClusterSizePreconditionTaskTest {
             .baseUrl(wireMock.baseUrl())
             .client(new OkHttpClient())
             .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-            .addConverterFactory(JacksonConverterFactory.create())
+            .addConverterFactory(CustomConverterFactory.create())
             .build()
             .create(OortService.class);
   }
@@ -108,9 +109,9 @@ public class ClusterSizePreconditionTaskTest {
     simulateFault("/applications/foo/clusters/test/foo/aws", "{non-json-response}", HttpStatus.OK);
 
     assertThatThrownBy(() -> clusterSizePreconditionTask.execute(stage))
-        .isExactlyInstanceOf(JsonParseException.class)
+        .isExactlyInstanceOf(StreamReadException.class)
         .hasMessage(
-            "Unexpected character ('n' (code 110)): was expecting double-quote to start field name\n"
-                + " at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 1, column: 2]");
+            "Unexpected character ('n' (code 110)): was expecting double-quote to start property name\n"
+                + " at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); byte offset: #1]");
   }
 }

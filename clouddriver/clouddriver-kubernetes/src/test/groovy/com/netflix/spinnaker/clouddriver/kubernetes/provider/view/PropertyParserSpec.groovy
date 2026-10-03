@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.provider.view
 
-import com.fasterxml.jackson.core.JsonParseException
 import spock.lang.Specification
 
 class PropertyParserSpec extends Specification {
@@ -69,7 +68,7 @@ class PropertyParserSpec extends Specification {
         PropertyParser.extractPropertiesFromLog(buildLog)
 
         then:
-        thrown(JsonParseException)
+        thrown(IOException)
     }
 
     def "Do not detect json magic string if it is not first non-whitespace substring in the line"() {

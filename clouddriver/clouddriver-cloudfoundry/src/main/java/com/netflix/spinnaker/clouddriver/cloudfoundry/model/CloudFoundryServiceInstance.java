@@ -17,15 +17,16 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.model;
 
 import com.fasterxml.jackson.annotation.JsonView;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.netflix.spinnaker.clouddriver.model.ServiceInstance;
 import java.util.Set;
 import lombok.Builder;
 import lombok.Value;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 /** "Service" in this context refers to an Open Service Broker service. */
 @Value
-@Builder
+@Builder(builderClassName = "CloudFoundryServiceInstanceBuilder")
 @JsonDeserialize(builder = CloudFoundryServiceInstance.CloudFoundryServiceInstanceBuilder.class)
 public class CloudFoundryServiceInstance implements ServiceInstance {
   @JsonView(Views.Cache.class)
@@ -54,4 +55,7 @@ public class CloudFoundryServiceInstance implements ServiceInstance {
 
   @JsonView(Views.Cache.class)
   String type;
+
+  @JsonPOJOBuilder(withPrefix = "")
+  public static class CloudFoundryServiceInstanceBuilder {}
 }

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.gce
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.ImageTagger
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.ImageTaggerSpec
@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import retrofit2.mock.Calls
 import spock.lang.Unroll
+import tools.jackson.databind.json.JsonMapper
 
 class GoogleImageTaggerSpec extends ImageTaggerSpec {
 
@@ -31,7 +32,7 @@ class GoogleImageTaggerSpec extends ImageTaggerSpec {
 
   @Override
   protected ImageTagger subject() {
-    new GoogleImageTagger(oortService, new ObjectMapper())
+    new GoogleImageTagger(oortService, JsonMapper.builder().build())
   }
 
   @Unroll

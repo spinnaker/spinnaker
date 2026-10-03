@@ -34,7 +34,6 @@ dependencies {
   testImplementation("io.spinnaker.fiat:fiat-core")
   testImplementation("org.wiremock:wiremock")
   testRuntimeOnly("net.bytebuddy:byte-buddy")
-  testImplementation("com.squareup.retrofit2:converter-jackson")
   testImplementation("com.squareup.retrofit2:retrofit-mock")
 }
 

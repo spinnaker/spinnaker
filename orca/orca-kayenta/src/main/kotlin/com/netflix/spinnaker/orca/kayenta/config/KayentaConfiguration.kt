@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.kayenta.config
 
-import com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.kork.api.expressions.ExpressionFunctionProvider
 import com.netflix.spinnaker.kork.client.ServiceClientProvider
@@ -31,6 +30,8 @@ import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import com.netflix.spinnaker.orca.kayenta.pipeline.functions.KayentaConfigExpressionFunctionProvider
+import tools.jackson.databind.cfg.DateTimeFeature
+import tools.jackson.databind.json.JsonMapper
 
 
 @Configuration
@@ -49,7 +50,9 @@ class KayentaConfiguration {
   ): KayentaService {
     val mapper = OrcaObjectMapper
       .newInstance()
-      .disable(WRITE_DATES_AS_TIMESTAMPS) // we want Instant serialized as ISO string
+      .rebuild<JsonMapper, JsonMapper.Builder>()
+      .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS) // we want Instant serialized as ISO string
+      .build()
     return serviceClientProvider.getService(
       KayentaService::class.java,
       DefaultServiceEndpoint("kayenta", RetrofitUtils.getBaseUrl(kayentaBaseUrl)),

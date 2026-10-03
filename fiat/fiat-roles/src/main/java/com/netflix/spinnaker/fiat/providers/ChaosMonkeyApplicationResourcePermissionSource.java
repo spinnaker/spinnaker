@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.fiat.providers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.fiat.model.Authorization;
 import com.netflix.spinnaker.fiat.model.resources.Application;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import java.util.Set;
 import javax.annotation.Nonnull;
+import tools.jackson.databind.ObjectMapper;
 
 public class ChaosMonkeyApplicationResourcePermissionSource
     implements ResourcePermissionSource<Application> {

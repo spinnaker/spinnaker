@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.dcos.provider.view
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
@@ -53,8 +53,8 @@ class DcosClusterProvider implements ClusterProvider<DcosCluster> {
     this.cacheView = cacheView
 
     // TODO should we be registering this at a higher level? Figured we wanted to isolate as much as possible.
-    this.objectMapper = objectMapper.copy()
-    DcosProviderUtils.registerDeserializer(this.objectMapper, Volume.class, new MarathonVolumeDeserializer())
+    this.objectMapper = objectMapper.rebuild().build()
+    this.objectMapper = DcosProviderUtils.registerDeserializer(this.objectMapper, Volume.class, new MarathonVolumeDeserializer())
   }
 
   @Override

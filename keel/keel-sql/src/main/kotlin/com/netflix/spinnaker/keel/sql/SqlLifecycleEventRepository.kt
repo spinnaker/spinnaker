@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.sql
 
-import com.fasterxml.jackson.databind.JsonMappingException
+import tools.jackson.databind.DatabindException
 import com.netflix.spectator.api.BasicTag
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
@@ -62,7 +62,7 @@ class SqlLifecycleEventRepository(
                   .where(LIFECYCLE_EVENT.UID.eq(uid))
                   .execute()
               }
-            } catch (e: JsonMappingException) {
+            } catch (e: DatabindException) {
               // ignore existing event with incorrect serialization, just store a new one.
             }
           }

@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.deploymentmonitor;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.config.DefaultServiceEndpoint;
 import com.netflix.spinnaker.config.DeploymentMonitorDefinition;
 import com.netflix.spinnaker.kork.client.ServiceClientProvider;
@@ -27,6 +26,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tools.jackson.databind.json.JsonMapper;
 
 public class DeploymentMonitorServiceProvider {
   private static final Logger log = LoggerFactory.getLogger(DeploymentMonitorServiceProvider.class);
@@ -71,7 +71,7 @@ public class DeploymentMonitorServiceProvider {
               DeploymentMonitorService.class,
               new DefaultServiceEndpoint(
                   "deploymentmonitor", RetrofitUtils.getBaseUrl(definition.getBaseUrl())),
-              new ObjectMapper());
+              JsonMapper.builder().build());
 
       serviceCache.put(definition.getId(), service);
     }

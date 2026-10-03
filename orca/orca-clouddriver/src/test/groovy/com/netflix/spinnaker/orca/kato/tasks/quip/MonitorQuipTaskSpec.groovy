@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.quip
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
@@ -30,6 +30,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
+import tools.jackson.databind.json.JsonMapper
 
 class MonitorQuipTaskSpec extends Specification {
 
@@ -37,7 +38,7 @@ class MonitorQuipTaskSpec extends Specification {
   InstanceService instanceService = Mock(InstanceService)
 
   def setup() {
-    task.objectMapper = new ObjectMapper()
+    task.objectMapper = JsonMapper.builder().build()
   }
 
   @Unroll

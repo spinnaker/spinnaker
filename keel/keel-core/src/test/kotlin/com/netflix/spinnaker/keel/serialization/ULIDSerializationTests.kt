@@ -1,8 +1,7 @@
 package com.netflix.spinnaker.keel.serialization
 
-import com.fasterxml.jackson.databind.node.JsonNodeType.MISSING
-import com.fasterxml.jackson.databind.node.ObjectNode
-import com.fasterxml.jackson.module.kotlin.readValue
+import tools.jackson.databind.node.ObjectNode
+import tools.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.core.api.randomUID
 import de.huxhorn.sulky.ulid.ULID
 import dev.minutest.junit.JUnit5Minutests
@@ -10,10 +9,7 @@ import dev.minutest.rootContext
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNull
-import strikt.jackson.hasNodeType
-import strikt.jackson.isTextual
-import strikt.jackson.path
-import strikt.jackson.textValue
+import strikt.assertions.isTrue
 
 internal object ULIDSerializationTests : JUnit5Minutests {
 
@@ -38,19 +34,13 @@ internal object ULIDSerializationTests : JUnit5Minutests {
       test("serializes ULID to JSON") {
         val tree = objectMapper
           .valueToTree<ObjectNode>(person)
-        expectThat(tree)
-          .path("id")
-          .isTextual()
-          .textValue()
-          .isEqualTo(person.id.toString())
+        expectThat(tree.get("id").textValue()).isEqualTo(person.id.toString())
       }
 
       test("serializes null ULID to JSON") {
         val tree = objectMapper
           .valueToTree<ObjectNode>(person.copy(id = null))
-        expectThat(tree)
-          .path("id")
-          .hasNodeType(MISSING)
+        expectThat(tree.path("id").isMissingNode).isTrue()
       }
     }
 

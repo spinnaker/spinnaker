@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.yandex.provider.view;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
@@ -36,6 +35,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 public class YandexClusterProvider implements ClusterProvider<YandexCloudCluster> {

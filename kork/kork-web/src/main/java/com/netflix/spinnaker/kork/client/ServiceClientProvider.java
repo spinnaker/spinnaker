@@ -17,12 +17,12 @@
 
 package com.netflix.spinnaker.kork.client;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.config.ServiceEndpoint;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import java.util.List;
 import okhttp3.Interceptor;
 import retrofit2.Converter;
+import tools.jackson.databind.ObjectMapper;
 
 @NonnullByDefault
 public interface ServiceClientProvider {

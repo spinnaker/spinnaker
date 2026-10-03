@@ -17,8 +17,8 @@
 
 package com.netflix.spinnaker.clouddriver.dcos.provider.view
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.SerializationFeature
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 import static com.netflix.spinnaker.clouddriver.dcos.provider.DcosProviderUtils.getAllMatchingKeyPattern
+import tools.jackson.databind.cfg.DateTimeFeature
 
 @Component
 class DcosApplicationProvider implements ApplicationProvider {
@@ -42,7 +43,7 @@ class DcosApplicationProvider implements ApplicationProvider {
   DcosApplicationProvider(DcosCloudProvider dcosCloudProvider, Cache cacheView, ObjectMapper objectMapper) {
     this.dcosCloudProvider = dcosCloudProvider
     this.cacheView = cacheView
-    this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+    this.objectMapper = objectMapper.rebuild().enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS).build()
   }
 
   @Override

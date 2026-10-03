@@ -17,17 +17,17 @@
 
 package com.netflix.spinnaker.kork.jackson;
 
-import com.fasterxml.jackson.databind.jsontype.NamedType;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.jsontype.NamedType;
+import tools.jackson.databind.module.SimpleModule;
 
 /**
  * Jackson module to register {@link NamedType} data discovered from {@link NamedTypeProvider}
  * beans. When using {@link
  * org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration}, all {@link
- * com.fasterxml.jackson.databind.Module} beans are registered in the {@link
- * com.fasterxml.jackson.databind.ObjectMapper} created by {@link
+ * tools.jackson.databind.JacksonModule} beans are registered in the {@link
+ * tools.jackson.databind.ObjectMapper} created by {@link
  * org.springframework.http.converter.json.Jackson2ObjectMapperBuilder}.
  */
 @Component

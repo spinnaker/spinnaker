@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.igor.travis.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.igor.service.ArtifactDecorator;
@@ -28,6 +27,7 @@ import com.netflix.spinnaker.igor.travis.client.model.v3.Root;
 import com.netflix.spinnaker.igor.travis.service.TravisService;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import jakarta.validation.Valid;
@@ -47,7 +47,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Converts the list of Travis Configuration properties a collection of clients to access the Travis
@@ -142,7 +142,7 @@ public class TravisConfig {
     return new Retrofit.Builder()
         .baseUrl(RetrofitUtils.getBaseUrl(address))
         .client(client)
-        .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+        .addConverterFactory(CustomConverterFactory.create(objectMapper))
         .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
         .build()
         .create(TravisClient.class);

@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.huaweicloud.provider;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.clouddriver.huaweicloud.provider.agent.HuaweiCloudImageCachingAgent;
@@ -37,6 +36,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Scope;
+import tools.jackson.databind.ObjectMapper;
 
 @Configuration
 public class HuaweiCloudInfrastructureProviderConfig {

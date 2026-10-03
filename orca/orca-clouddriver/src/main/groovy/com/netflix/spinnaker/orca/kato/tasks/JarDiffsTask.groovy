@@ -26,7 +26,7 @@ import org.slf4j.Logger
 
 import java.util.concurrent.TimeUnit
 import java.util.regex.Matcher
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.InstanceService

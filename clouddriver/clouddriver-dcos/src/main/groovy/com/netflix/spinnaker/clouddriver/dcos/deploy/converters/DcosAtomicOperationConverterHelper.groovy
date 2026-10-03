@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.dcos.deploy.converters
 
-import com.fasterxml.jackson.databind.DeserializationFeature
+import tools.jackson.databind.DeserializationFeature
 import com.netflix.spinnaker.clouddriver.dcos.deploy.description.AbstractDcosCredentialsDescription
 import com.netflix.spinnaker.clouddriver.dcos.deploy.util.id.DcosSpinnakerAppId
 import com.netflix.spinnaker.clouddriver.dcos.security.DcosAccountCredentials
@@ -35,8 +35,7 @@ class DcosAtomicOperationConverterHelper {
     def credentials = (DcosAccountCredentials) credentialsSupport.getCredentialsObject(account)
 
     def converted = (AbstractDcosCredentialsDescription) credentialsSupport.objectMapper
-      .copy()
-      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+      .rebuild().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build()
       .convertValue(input, targetDescriptionType)
 
     // Re-assign the credentials.

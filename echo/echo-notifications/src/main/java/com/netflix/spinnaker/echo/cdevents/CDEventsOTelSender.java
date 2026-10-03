@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.echo.cdevents;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.cloudevents.CloudEvent;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
@@ -48,6 +46,8 @@ import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Sends CDEvents as OTel spans to an OTLP/gRPC endpoint.
@@ -285,12 +285,9 @@ public class CDEventsOTelSender {
       JsonNode customData = root.path("customData");
       if (customData.isMissingNode() || !customData.isObject()) return attrs;
       var builder = attrs.toBuilder();
-      var fields = customData.fields();
-      while (fields.hasNext()) {
-        var entry = fields.next();
-        builder.put(
-            AttributeKey.stringKey("cdevents.custom." + entry.getKey()), entry.getValue().asText());
-      }
+      customData.forEachEntry(
+          (key, value) ->
+              builder.put(AttributeKey.stringKey("cdevents.custom." + key), value.asText()));
       return builder.build();
     } catch (Exception e) {
       log.debug("Could not extract customData from CDEvent", e);

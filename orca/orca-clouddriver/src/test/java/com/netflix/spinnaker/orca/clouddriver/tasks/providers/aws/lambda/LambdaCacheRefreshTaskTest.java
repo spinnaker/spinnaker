@@ -18,8 +18,6 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.lambda;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -43,6 +41,8 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import ru.lanwen.wiremock.ext.WiremockResolver;
 import ru.lanwen.wiremock.ext.WiremockUriResolver;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 
 @ExtendWith({WiremockResolver.class, WiremockUriResolver.class})
 public class LambdaCacheRefreshTaskTest {
@@ -103,12 +103,12 @@ public class LambdaCacheRefreshTaskTest {
 
   @Test
   public void execute_ShouldWaitForCacheToComplete_CachingShouldBeCompleted_SUCCEEDED()
-      throws JsonProcessingException {
+      throws JacksonException {
     Map<String, Object> map = new HashMap<>();
     map.put("processedCount", 1);
     // increase 15 seconds
     map.put("cacheTime", System.currentTimeMillis() + 15 * 1000);
-    String getFromCloudDriverJson = new ObjectMapper().writeValueAsString(List.of(map));
+    String getFromCloudDriverJson = JsonMapper.builder().build().writeValueAsString(List.of(map));
     Mockito.when(lambdaCloudDriverUtilsMock.getFromCloudDriver(Mockito.any()))
         .thenReturn(getFromCloudDriverJson);
     assertEquals(
@@ -118,12 +118,12 @@ public class LambdaCacheRefreshTaskTest {
   @Test
   public void
       forceCacheRefresh_waitForCacheToComplete_NotFoundAndThenCachingShouldBeCompleted_SUCCEEDED()
-          throws JsonProcessingException {
+          throws JacksonException {
     Map<String, Object> mapSecondCall = new HashMap<>();
     mapSecondCall.put("processedCount", 1);
     // increase 15 seconds
     mapSecondCall.put("cacheTime", System.currentTimeMillis() + 15 * 1000);
-    String secondCallJson = new ObjectMapper().writeValueAsString(List.of(mapSecondCall));
+    String secondCallJson = JsonMapper.builder().build().writeValueAsString(List.of(mapSecondCall));
 
     Mockito.when(lambdaCloudDriverUtilsMock.getFromCloudDriver(Mockito.any()))
         .thenReturn("[]")
@@ -135,11 +135,11 @@ public class LambdaCacheRefreshTaskTest {
   @Test
   public void
       forceCacheRefresh_waitForCacheToComplete_ShouldRetryAndThenCachingShouldBeCompleted_SUCCEEDED()
-          throws JsonProcessingException {
+          throws JacksonException {
     Map<String, Object> mapSecondCall = new HashMap<>();
     mapSecondCall.put("processedCount", 1);
     mapSecondCall.put("cacheTime", System.currentTimeMillis() + 15 * 1000);
-    String secondCallJson = new ObjectMapper().writeValueAsString(List.of(mapSecondCall));
+    String secondCallJson = JsonMapper.builder().build().writeValueAsString(List.of(mapSecondCall));
 
     Mockito.when(lambdaCloudDriverUtilsMock.getFromCloudDriver(Mockito.any()))
         .thenReturn("[{\"processedCount\":0}]")

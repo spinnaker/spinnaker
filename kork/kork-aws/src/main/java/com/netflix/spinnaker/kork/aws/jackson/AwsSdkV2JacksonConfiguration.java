@@ -16,22 +16,18 @@
 
 package com.netflix.spinnaker.kork.aws.jackson;
 
-import com.fasterxml.jackson.databind.Module;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Spring Boot auto-configuration that registers {@link AwsSdkV2Module} as a bean. Any {@code
- * ObjectMapper} that is auto-configured by Spring Boot will pick this module up automatically.
- *
- * <p>Also registers {@link AwsSdkV2Jackson3Module}: Boot 4 serves HTTP JSON with Jackson 3, which
- * ignores Jackson 2 modules.
+ * Spring Boot configuration that registers the AWS SDK v2 Jackson 3 module as a bean. Any Jackson 3
+ * mapper auto-configured by Spring Boot will pick this module up automatically.
  */
 @Configuration
 public class AwsSdkV2JacksonConfiguration {
 
   @Bean
-  Module awsSdkV2Module() {
+  tools.jackson.databind.JacksonModule awsSdkV2Module() {
     return new AwsSdkV2Module();
   }
 

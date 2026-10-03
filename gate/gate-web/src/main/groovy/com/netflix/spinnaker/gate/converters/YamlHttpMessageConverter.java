@@ -17,11 +17,11 @@
  */
 package com.netflix.spinnaker.gate.converters;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter;
+import org.springframework.http.converter.AbstractJacksonHttpMessageConverter;
+import tools.jackson.databind.ObjectMapper;
 
-public class YamlHttpMessageConverter extends AbstractJackson2HttpMessageConverter {
+public class YamlHttpMessageConverter extends AbstractJacksonHttpMessageConverter<ObjectMapper> {
   public YamlHttpMessageConverter(ObjectMapper objectMapper) {
     super(
         objectMapper,

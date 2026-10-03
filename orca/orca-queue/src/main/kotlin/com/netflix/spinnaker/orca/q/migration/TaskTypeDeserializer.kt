@@ -16,18 +16,18 @@
 
 package com.netflix.spinnaker.orca.q.migration
 
-import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.databind.DeserializationContext
-import com.fasterxml.jackson.databind.JsonDeserializer
 import com.netflix.spinnaker.orca.TaskResolver
+import tools.jackson.core.JsonParser
+import tools.jackson.databind.DeserializationContext
+import tools.jackson.databind.deser.std.StdDeserializer
 
 class TaskTypeDeserializer(
   private val taskResolver: TaskResolver
-) : JsonDeserializer<Class<*>>() {
+) : StdDeserializer<Class<*>>(Class::class.java) {
   override fun deserialize(
     p: JsonParser,
     ctxt: DeserializationContext
-  ) = if (p.parsingContext.currentName == "taskType") {
+  ) = if (p.streamReadContext().currentName() == "taskType") {
     taskResolver.getTaskClass(p.valueAsString)
   } else {
     Class.forName(p.valueAsString)

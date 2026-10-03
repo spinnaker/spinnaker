@@ -30,11 +30,12 @@ import org.springframework.http.HttpHeaders
 import spock.lang.Specification
 import io.cloudevents.CloudEvent
 import io.cloudevents.core.builder.CloudEventBuilder
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 
 
 import java.nio.charset.StandardCharsets
+import tools.jackson.databind.json.JsonMapper
 
 class WebhooksControllerSpec extends Specification {
 
@@ -1126,7 +1127,7 @@ class WebhooksControllerSpec extends Specification {
       .withType("dev.cdevents.artifact.published")
       .withSource(URI.create("https://cdevents.dev"))
       .build();
-    Map dataMap = new ObjectMapper().readValue(cdEventData, Map) ?: [:]
+    Map dataMap = JsonMapper.builder().build().readValue(cdEventData, Map) ?: [:]
 
     when:
     controller.forwardEvent("artifactPublished",cdevent, headers)
@@ -1162,7 +1163,7 @@ class WebhooksControllerSpec extends Specification {
       .withType("dev.cdevents.artifact.published")
       .withSource(URI.create("https://cdevents.dev"))
       .build();
-    Map dataMap = new ObjectMapper().readValue(cdEventData, Map) ?: [:]
+    Map dataMap = JsonMapper.builder().build().readValue(cdEventData, Map) ?: [:]
 
     when:
     controller.forwardEvent("artifactPublished",cdevent, headers)
@@ -1198,7 +1199,7 @@ class WebhooksControllerSpec extends Specification {
       .withType("dev.cdevents.artifact.published")
       .withSource(URI.create("https://cdevents.dev"))
       .build();
-    Map dataMap = new ObjectMapper().readValue(cdEventData, Map) ?: [:]
+    Map dataMap = JsonMapper.builder().build().readValue(cdEventData, Map) ?: [:]
 
     when:
     controller.forwardEvent("artifactPublished",cdevent, headers)

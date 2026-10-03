@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.cache;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.NamedCacheFactory;
 import com.netflix.spinnaker.cats.redis.cache.RedisCache.CacheMetrics;
 import com.netflix.spinnaker.cats.redis.cache.RedisCacheOptions;
@@ -29,6 +28,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import redis.clients.jedis.JedisPool;
+import tools.jackson.databind.ObjectMapper;
 
 @Configuration
 @ConditionalOnExpression("${redis.enabled:true} && ${redis.cache.enabled:true}")

@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.converters
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteAlarmDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAlarmDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.DeleteAlarmAtomicOperation
@@ -25,6 +23,8 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.ops.UpsertAlarmAtomicOperati
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.ObjectMapper
 
 @Component('deleteAlarmDescription')
 class DeleteAlarmDescriptionAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
@@ -39,7 +39,7 @@ class DeleteAlarmDescriptionAtomicOperationConverter extends AbstractAtomicOpera
 
   @Override
   DeleteAlarmDescription convertDescription(Map input) {
-    def converted = objectMapper.copy().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).convertValue(input, DeleteAlarmDescription)
+    def converted = objectMapper.rebuild().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build().convertValue(input, DeleteAlarmDescription)
     converted.credentials = getCredentialsObject(input.credentials as String)
     converted
   }

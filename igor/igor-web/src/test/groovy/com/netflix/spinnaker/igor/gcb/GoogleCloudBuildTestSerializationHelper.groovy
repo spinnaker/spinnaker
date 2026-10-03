@@ -16,11 +16,12 @@
 
 package com.netflix.spinnaker.igor.gcb
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.services.cloudbuild.v1.model.Build
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 
 class GoogleCloudBuildTestSerializationHelper {
-  private static ObjectMapper objectMapper = new ObjectMapper()
+  private static ObjectMapper objectMapper = JsonMapper.builder().build()
 
   @SuppressWarnings("unchecked")
   static final Map serializeBuild(Build inputBuild) {

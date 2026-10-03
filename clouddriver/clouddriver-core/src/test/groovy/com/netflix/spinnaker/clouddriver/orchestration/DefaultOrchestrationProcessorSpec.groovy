@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.orchestration
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.clouddriver.config.ExceptionClassifierConfigurationProperties
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTask
@@ -36,6 +36,7 @@ import spock.lang.Subject
 import spock.lang.Unroll
 
 import java.util.concurrent.TimeUnit
+import tools.jackson.databind.json.JsonMapper
 
 class DefaultOrchestrationProcessorSpec extends Specification {
 
@@ -69,7 +70,7 @@ class DefaultOrchestrationProcessorSpec extends Specification {
       applicationContext,
       new NoopRegistry(),
       Optional.empty(),
-      new ObjectMapper(),
+      JsonMapper.builder().build(),
       new ExceptionClassifier(new ExceptionClassifierConfigurationProperties(
         retryableClasses: [RetryableException.class.getName()]
       ), dynamicConfigService),

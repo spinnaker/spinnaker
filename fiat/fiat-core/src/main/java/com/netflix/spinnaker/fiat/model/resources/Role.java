@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.fiat.model.resources;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.Objects;
 import java.util.Set;
@@ -46,6 +47,11 @@ public class Role implements Resource, Viewable {
 
   public Role(String name) {
     this.setName(name);
+  }
+
+  @JsonCreator
+  public static Role fromString(String name) {
+    return new Role(name);
   }
 
   public ResourceType getResourceType() {

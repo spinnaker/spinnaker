@@ -23,17 +23,14 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.cats.provider.ProviderRegistry;
-import com.netflix.spinnaker.clouddriver.aws.jackson.AwsSdkV2Module;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.EcsSpec;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.provider.EcsProvider;
+import com.netflix.spinnaker.kork.aws.jackson.AwsSdkV2Module;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import java.util.*;
@@ -46,6 +43,10 @@ import software.amazon.awssdk.services.ecs.EcsClient;
 import software.amazon.awssdk.services.ecs.model.Cluster;
 import software.amazon.awssdk.services.ecs.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.ecs.model.DescribeClustersResponse;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class EcsControllersSpec extends EcsSpec {
 
@@ -58,7 +59,7 @@ public class EcsControllersSpec extends EcsSpec {
           + "of the cluster from /ecs/ecsDescribeClusters/{account}/{region}"
           + "\n===")
   @Test
-  public void getAllEcsClusterDetailsTest() throws JsonProcessingException {
+  public void getAllEcsClusterDetailsTest() throws JacksonException {
     // given
     ProviderCache ecsCache = providerRegistry.getProviderCache(EcsProvider.NAME);
     String testClusterName = "example-app-test-Cluster-NSnYsTXmCfV2";
@@ -94,8 +95,11 @@ public class EcsControllersSpec extends EcsSpec {
     Response response =
         get(testUrl).then().statusCode(200).contentType(ContentType.JSON).extract().response();
 
-    ObjectMapper objectMapper = new ObjectMapper().registerModule(new AwsSdkV2Module());
-    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    ObjectMapper objectMapper =
+        JsonMapper.builder()
+            .addModule(new AwsSdkV2Module())
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .build();
     Collection<Cluster> clusters =
         Arrays.asList(objectMapper.readValue(response.asString(), Cluster[].class));
     // then

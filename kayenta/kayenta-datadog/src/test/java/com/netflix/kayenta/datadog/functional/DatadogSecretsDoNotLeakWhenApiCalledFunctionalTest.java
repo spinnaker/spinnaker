@@ -23,14 +23,13 @@ import static org.junit.jupiter.api.Assertions.fail;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.netflix.kayenta.datadog.service.DatadogRemoteService;
 import com.netflix.kayenta.datadog.service.DatadogTimeSeries;
 import com.netflix.kayenta.model.DatadogMetricDescriptorsResponse;
 import com.netflix.kayenta.retrofit.config.RemoteService;
 import com.netflix.kayenta.retrofit.config.RetrofitClientFactory;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -45,7 +44,9 @@ import org.mockserver.model.HttpRequest;
 import org.mockserver.model.HttpResponse;
 import org.mockserver.netty.MockServer;
 import org.slf4j.LoggerFactory;
-import retrofit2.converter.jackson.JacksonConverterFactory;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /** TDD for https://github.com/spinnaker/kayenta/issues/684 */
 public class DatadogSecretsDoNotLeakWhenApiCalledFunctionalTest {
@@ -84,11 +85,11 @@ public class DatadogSecretsDoNotLeakWhenApiCalledFunctionalTest {
     retrofitLogger.addAppender(listAppender);
     listAppender.start();
 
-    objectMapper = new ObjectMapper();
+    objectMapper = JsonMapper.builder().build();
     datadogRemoteService =
         retrofitClientFactory.createClient(
             DatadogRemoteService.class,
-            JacksonConverterFactory.create(objectMapper),
+            CustomConverterFactory.create(objectMapper),
             new RemoteService().setBaseUrl("http://localhost:" + mockServer.getPort()),
             client);
   }
@@ -106,7 +107,7 @@ public class DatadogSecretsDoNotLeakWhenApiCalledFunctionalTest {
     String mockResponseAsString;
     try {
       mockResponseAsString = objectMapper.writeValueAsString(mockResponse);
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new RuntimeException("Failed to serialize mock DatadogTimeSeries response");
     }
     mockServerClient
@@ -134,7 +135,7 @@ public class DatadogSecretsDoNotLeakWhenApiCalledFunctionalTest {
     String mockResponseAsString;
     try {
       mockResponseAsString = objectMapper.writeValueAsString(mockResponse);
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new RuntimeException("Failed to serialize mock DatadogTimeSeries response");
     }
 

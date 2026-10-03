@@ -18,8 +18,9 @@ package com.netflix.spinnaker.clouddriver.ecs.provider.agent
 import software.amazon.awssdk.services.servicediscovery.ServiceDiscoveryClient
 import software.amazon.awssdk.services.servicediscovery.model.ListServicesResponse
 import software.amazon.awssdk.services.servicediscovery.model.ServiceSummary
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.ServiceDiscoveryRegistry
@@ -32,8 +33,9 @@ class ServiceDiscoveryCachingAgentSpec extends Specification {
   def serviceDiscovery = Mock(ServiceDiscoveryClient)
   def clientProvider = Mock(AmazonClientProvider)
   def providerCache = Mock(ProviderCache)
-  def objectMapper = new ObjectMapper()
-    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+  def objectMapper = JsonMapper.builder()
+    .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+    .build()
 
   @Subject
   ServiceDiscoveryCachingAgent agent = new ServiceDiscoveryCachingAgent(CommonCachingAgent.netflixAmazonCredentials, 'us-west-1', clientProvider)

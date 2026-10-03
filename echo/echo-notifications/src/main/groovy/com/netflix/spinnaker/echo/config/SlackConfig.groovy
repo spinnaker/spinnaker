@@ -22,6 +22,7 @@ import com.netflix.spinnaker.echo.slack.SlackAppService
 import com.netflix.spinnaker.echo.slack.SlackClient
 import com.netflix.spinnaker.echo.slack.SlackService
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -31,7 +32,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
 
 
 @Configuration
@@ -58,7 +58,7 @@ class SlackConfig {
         .baseUrl(RetrofitUtils.getBaseUrl(config.baseUrl))
         .client(okHttpClientConfig.createForRetrofit2().build())
         .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-        .addConverterFactory(JacksonConverterFactory.create())
+         .addConverterFactory(CustomConverterFactory.create())
         .build()
         .create(SlackClient.class);
 
@@ -83,7 +83,7 @@ class SlackConfig {
       .baseUrl(RetrofitUtils.getBaseUrl(config.baseUrl))
       .client(okHttpClientConfig.createForRetrofit2().build())
       .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-      .addConverterFactory(JacksonConverterFactory.create())
+       .addConverterFactory(CustomConverterFactory.create())
       .build()
       .create(SlackClient.class);
 

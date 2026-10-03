@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.fiat.permissions
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.fiat.config.AccountManagerConfig
 import com.netflix.spinnaker.fiat.config.FiatAdminConfig
 import com.netflix.spinnaker.fiat.config.FiatRoleConfig
@@ -41,6 +41,7 @@ import com.netflix.spinnaker.fiat.roles.UserRolesProvider
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
+import tools.jackson.databind.json.JsonMapper
 
 class DefaultPermissionsResolverSpec extends Specification {
   UserRolesProvider userRolesProvider = Mock(UserRolesProvider)
@@ -107,7 +108,7 @@ class DefaultPermissionsResolverSpec extends Specification {
   def "should resolve the anonymous user permission, when enabled"() {
     setup:
     @Subject DefaultPermissionsResolver resolver = new DefaultPermissionsResolver(
-            userRolesProvider, serviceAccountProvider, resourceProviders, new FiatAdminConfig(), new AccountManagerConfig(), new ObjectMapper())
+            userRolesProvider, serviceAccountProvider, resourceProviders, new FiatAdminConfig(), new AccountManagerConfig(), JsonMapper.builder().build())
 
     when:
     def result = resolver.resolveUnrestrictedUser()
@@ -126,7 +127,7 @@ class DefaultPermissionsResolverSpec extends Specification {
     def testUserId = "testUserId"
     UserRolesProvider userRolesProvider = Mock(UserRolesProvider)
     @Subject DefaultPermissionsResolver resolver = new DefaultPermissionsResolver(
-            userRolesProvider, serviceAccountProvider, resourceProviders, new FiatAdminConfig(), new AccountManagerConfig(), new ObjectMapper())
+            userRolesProvider, serviceAccountProvider, resourceProviders, new FiatAdminConfig(), new AccountManagerConfig(), JsonMapper.builder().build())
 
     def role1 = new Role("group1")
     def role2 = new Role("gRoUP2") // to test case insensitivity.
@@ -184,7 +185,7 @@ class DefaultPermissionsResolverSpec extends Specification {
     UserRolesProvider userRolesProvider = Mock(UserRolesProvider)
 
     @Subject DefaultPermissionsResolver resolver = new DefaultPermissionsResolver(
-            userRolesProvider, serviceAccountProvider, resourceProviders, fiatAdminConfig, new AccountManagerConfig(), new ObjectMapper())
+            userRolesProvider, serviceAccountProvider, resourceProviders, fiatAdminConfig, new AccountManagerConfig(), JsonMapper.builder().build())
 
     def role1 = new Role("delivery-team")
     def testUser = new ExternalUser().setId(testUserId).setExternalRoles([role1])
@@ -206,7 +207,7 @@ class DefaultPermissionsResolverSpec extends Specification {
     setup:
     UserRolesProvider userRolesProvider = Mock(UserRolesProvider)
     @Subject DefaultPermissionsResolver resolver = new DefaultPermissionsResolver(
-            userRolesProvider, serviceAccountProvider, resourceProviders, new FiatAdminConfig(), new AccountManagerConfig(), new ObjectMapper())
+            userRolesProvider, serviceAccountProvider, resourceProviders, new FiatAdminConfig(), new AccountManagerConfig(), JsonMapper.builder().build())
 
     def role1 = new Role("group1")
     def role2 = new Role("group2")
@@ -260,7 +261,7 @@ class DefaultPermissionsResolverSpec extends Specification {
     setup:
     UserRolesProvider userRolesProvider = Mock(UserRolesProvider)
     @Subject DefaultPermissionsResolver resolver = new DefaultPermissionsResolver(
-            userRolesProvider, serviceAccountProvider, resourceProviders, new FiatAdminConfig(), new AccountManagerConfig(), new ObjectMapper())
+            userRolesProvider, serviceAccountProvider, resourceProviders, new FiatAdminConfig(), new AccountManagerConfig(), JsonMapper.builder().build())
 
     def role1 = new Role(group1SvcAcct.memberOf[0])
     def svc1 = new ExternalUser().setId(group1SvcAcct.name).setExternalRoles([role1])
@@ -303,7 +304,7 @@ class DefaultPermissionsResolverSpec extends Specification {
 
     def testUsername = 'ron'
     def userRolesProvider = Mock(UserRolesProvider)
-    @Subject def resolver = new DefaultPermissionsResolver(userRolesProvider, serviceAccountProvider, resourceProviders, new FiatAdminConfig(), accountManagerConfig, new ObjectMapper())
+    @Subject def resolver = new DefaultPermissionsResolver(userRolesProvider, serviceAccountProvider, resourceProviders, new FiatAdminConfig(), accountManagerConfig, JsonMapper.builder().build())
     def role = new Role('sre')
     def user = new ExternalUser().setId(testUsername).setExternalRoles([role])
 
@@ -330,7 +331,7 @@ class DefaultPermissionsResolverSpec extends Specification {
     def testAppAdmin = new Application().setName("adminOnlyApp")
     ResourceProvider<Application> applicationProvider = Mock(DefaultApplicationResourceProvider)
 
-    @Subject def resolver = new DefaultPermissionsResolver(userRolesProvider, serviceAccountProvider, [applicationProvider], fiatAdminConfig, new AccountManagerConfig(), new ObjectMapper())
+    @Subject def resolver = new DefaultPermissionsResolver(userRolesProvider, serviceAccountProvider, [applicationProvider], fiatAdminConfig, new AccountManagerConfig(), JsonMapper.builder().build())
 
     def userToRoles = [
             "user1": [role1],

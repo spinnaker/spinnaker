@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.test;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.config.DefaultServiceClientProvider;
 import com.netflix.spinnaker.config.okhttp3.DefaultOkHttpClientBuilderProvider;
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientBuilderProvider;
@@ -30,6 +29,7 @@ import okhttp3.OkHttpClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import tools.jackson.databind.json.JsonMapper;
 
 @Configuration
 public class Retrofit2TestConfig {
@@ -65,6 +65,7 @@ public class Retrofit2TestConfig {
 
   @Bean
   public ServiceClientProvider serviceClientProvider(ServiceClientFactory serviceClientFactory) {
-    return new DefaultServiceClientProvider(List.of(serviceClientFactory), new ObjectMapper());
+    return new DefaultServiceClientProvider(
+        List.of(serviceClientFactory), JsonMapper.builder().build());
   }
 }

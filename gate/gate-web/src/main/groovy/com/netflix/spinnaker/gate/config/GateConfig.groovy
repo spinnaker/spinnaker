@@ -16,9 +16,10 @@
 
 package com.netflix.spinnaker.gate.config
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.SerializationFeature
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.dataformat.yaml.YAMLMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.config.PluginsAutoConfiguration
@@ -65,8 +66,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.core.Ordered
-import org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder
+import org.springframework.http.converter.AbstractJacksonHttpMessageConverter
 import org.springframework.util.CollectionUtils
 import org.springframework.web.client.RestTemplate
 
@@ -99,20 +99,20 @@ class GateConfig {
   ServiceConfiguration serviceConfiguration
 
   @Autowired
-  Jackson2ObjectMapperBuilder objectMapperBuilder
+  JsonMapper jsonMapper
 
   /**
    * This needs to be before the yaml converter in order for json to be the default
    * response type.
    */
   @Bean
-  AbstractJackson2HttpMessageConverter jsonHttpMessageConverter() {
-    return new JsonHttpMessageConverter(objectMapperBuilder.build())
+  AbstractJacksonHttpMessageConverter jsonHttpMessageConverter() {
+    return new JsonHttpMessageConverter(jsonMapper)
   }
 
   @Bean
-  AbstractJackson2HttpMessageConverter yamlHttpMessageConverter() {
-    return new YamlHttpMessageConverter(objectMapperBuilder.factory(new YAMLFactory()).build())
+  AbstractJacksonHttpMessageConverter yamlHttpMessageConverter() {
+    return new YamlHttpMessageConverter(YAMLMapper.builder().findAndAddModules().build())
   }
 
   @Bean
@@ -273,11 +273,12 @@ class GateConfig {
   }
 
   private <T> T buildService(String serviceName, Class<T> type, String endpoint) {
-    ObjectMapper objectMapper = objectMapperBuilder.build() as ObjectMapper
+    JsonMapper.Builder mapperBuilder = jsonMapper.rebuild()
     if(serviceName.equals("echo")) {
-      objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
-      objectMapper.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, false)
+      mapperBuilder.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
+      mapperBuilder.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, false)
     }
+    ObjectMapper objectMapper = mapperBuilder.build()
     serviceClientProvider.getService(type, new DefaultServiceEndpoint(serviceName, endpoint), objectMapper)
   }
 

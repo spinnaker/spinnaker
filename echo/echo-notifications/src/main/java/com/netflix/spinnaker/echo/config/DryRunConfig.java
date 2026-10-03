@@ -22,6 +22,7 @@ import com.netflix.spinnaker.echo.notification.DryRunNotificationAgent;
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService;
 import com.netflix.spinnaker.echo.services.Front50Service;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
 import java.util.List;
 import lombok.Data;
@@ -32,7 +33,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
 
 @Configuration
 @EnableConfigurationProperties(DryRunConfig.DryRunProperties.class)
@@ -51,7 +51,7 @@ public class DryRunConfig {
                 clientProvider.getClient(
                     new DefaultServiceEndpoint("orca", properties.getBaseUrl())))
             .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-            .addConverterFactory(JacksonConverterFactory.create())
+            .addConverterFactory(CustomConverterFactory.create())
             .build()
             .create(OrcaService.class);
     return new DryRunNotificationAgent(front50, orca, properties);

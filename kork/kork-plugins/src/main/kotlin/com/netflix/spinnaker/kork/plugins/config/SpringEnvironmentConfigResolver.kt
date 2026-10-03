@@ -15,17 +15,18 @@
  */
 package com.netflix.spinnaker.kork.plugins.config
 
-import com.fasterxml.jackson.core.JsonParseException
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.JsonMappingException
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.databind.node.MissingNode
-import com.fasterxml.jackson.databind.node.ObjectNode
-import com.fasterxml.jackson.databind.node.TreeTraversingParser
-import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import tools.jackson.core.type.TypeReference
+import tools.jackson.core.exc.StreamReadException
+import tools.jackson.databind.DatabindException
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.SerializationFeature
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.databind.node.MissingNode
+import tools.jackson.databind.node.ObjectNode
+import tools.jackson.databind.node.TreeTraversingParser
+import tools.jackson.dataformat.javaprop.JavaPropsMapper
+import tools.jackson.module.kotlin.KotlinModule
 import com.netflix.spinnaker.kork.annotations.Beta
 import com.netflix.spinnaker.kork.exceptions.IntegrationException
 import com.netflix.spinnaker.kork.exceptions.SystemException
@@ -55,10 +56,11 @@ class SpringEnvironmentConfigResolver(
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  private val mapper = ObjectMapper()
+  private val mapper: ObjectMapper = JsonMapper.builder()
     .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
     .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
-    .registerKotlinModule()
+    .addModule(KotlinModule.Builder().build())
+    .build()
 
   override fun <T> resolve(coordinates: ConfigCoordinates, expectedType: Class<T>): T =
     resolveInternal(coordinates, { mapper.convertValue(emptyMap<Any, Any>(), expectedType) }) {
@@ -103,10 +105,10 @@ class SpringEnvironmentConfigResolver(
     log.debug("Found config at '$pointer'")
 
     try {
-      return callback(TreeTraversingParser(tree, mapper))
-    } catch (pe: JsonParseException) {
+      return callback(TreeTraversingParser(tree))
+    } catch (pe: StreamReadException) {
       throw IntegrationException("Failed reading extension config: Input appears invalid", pe)
-    } catch (me: JsonMappingException) {
+    } catch (me: DatabindException) {
       throw IntegrationException("Failed reading extension config: Could not map provided config to expected shape", me)
     } catch (@Suppress("TooGenericExceptionCaught") e: RuntimeException) {
       throw SystemException("Failed resolving extension config for an unexpected reason", e)

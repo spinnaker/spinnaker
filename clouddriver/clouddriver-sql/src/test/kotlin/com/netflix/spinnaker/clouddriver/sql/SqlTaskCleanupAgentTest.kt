@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.sql
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.clouddriver.sql.event.SqlEventCleanupAgent
 import com.netflix.spinnaker.config.SqlEventCleanupAgentConfigProperties
@@ -34,6 +33,7 @@ import java.sql.Timestamp
 import java.time.Clock
 import java.time.Instant
 import java.time.temporal.ChronoUnit
+import tools.jackson.databind.json.JsonMapper
 
 
 class SqlTaskCleanupAgentTest : JUnit5Minutests {
@@ -156,6 +156,6 @@ class SqlTaskCleanupAgentTest : JUnit5Minutests {
       SqlTaskCleanupAgentProperties()
     )
 
-    val objectMapper = ObjectMapper()
+    val objectMapper = JsonMapper.builder().build()
   }
 }

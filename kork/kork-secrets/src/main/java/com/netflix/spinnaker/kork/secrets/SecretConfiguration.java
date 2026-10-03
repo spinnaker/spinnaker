@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.kork.secrets;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.cbor.databind.CBORMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.netflix.spinnaker.kork.secrets.user.DefaultUserSecretSerde;
 import com.netflix.spinnaker.kork.secrets.user.UserSecretData;
 import com.netflix.spinnaker.kork.secrets.user.UserSecretSerde;
@@ -33,6 +30,12 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.io.ResourceLoader;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.dataformat.cbor.CBORMapper;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 @AutoConfiguration
 @ComponentScan
@@ -46,13 +49,34 @@ public class SecretConfiguration {
   @Bean
   public UserSecretSerde userSecretSerde(
       final List<UserSecretTypeProvider> userSecretTypeProviders) {
-    List<ObjectMapper> mappers = List.of(new ObjectMapper(), new YAMLMapper(), new CBORMapper());
+    // Secret bytes are persisted. Keep Jackson 2 property order and Date format.
+    List<ObjectMapper> mappers =
+        List.of(
+            jsonMapper(),
+            YAMLMapper.builder()
+                .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+                .disable(MapperFeature.SORT_CREATOR_PROPERTIES_FIRST)
+                .enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .build(),
+            CBORMapper.builder()
+                .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+                .disable(MapperFeature.SORT_CREATOR_PROPERTIES_FIRST)
+                .enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .build());
     Set<Class<? extends UserSecretData>> classes =
         userSecretTypeProviders.stream()
             .flatMap(UserSecretTypeProvider::getUserSecretTypes)
             .filter(type -> type != null && type.isAnnotationPresent(UserSecretType.class))
             .collect(Collectors.toSet());
     return new DefaultUserSecretSerde(mappers, classes);
+  }
+
+  private static JsonMapper jsonMapper() {
+    return JsonMapper.builder()
+        .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+        .disable(MapperFeature.SORT_CREATOR_PROPERTIES_FIRST)
+        .enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+        .build();
   }
 
   @Bean

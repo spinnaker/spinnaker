@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.core.Front50ConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service;
 import com.netflix.spinnaker.config.DefaultServiceEndpoint;
@@ -27,6 +26,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import tools.jackson.databind.json.JsonMapper;
 
 @Configuration
 @EnableConfigurationProperties(Front50ConfigurationProperties.class)
@@ -41,7 +41,7 @@ public class RetrofitConfig {
     return serviceClientProvider.getService(
         Front50Service.class,
         new DefaultServiceEndpoint("front50", front50ConfigurationProperties.getBaseUrl()),
-        new ObjectMapper(),
+        JsonMapper.builder().build(),
         List.of(spinnakerRequestHeaderInterceptor));
   }
 }

@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.eureka.provider.agent
 
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
+import tools.jackson.core.type.TypeReference
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.SerializationFeature
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.CachingAgent
@@ -39,6 +39,7 @@ import groovy.util.logging.Slf4j
 
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.INSTANCES
+import tools.jackson.databind.cfg.DateTimeFeature
 
 @Slf4j
 class EurekaCachingAgent implements CachingAgent, HealthProvidingCachingAgent, CustomScheduledAgent {
@@ -68,7 +69,7 @@ class EurekaCachingAgent implements CachingAgent, HealthProvidingCachingAgent, C
   ) {
     this.region = region
     this.eurekaApi = eurekaApi
-    this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+    this.objectMapper = objectMapper.rebuild().enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS).build()
     this.eurekaHost = eurekaHost
     this.allowMultipleEurekaPerAccount = allowMultipleEurekaPerAccount
     this.eurekaAccountName = eurekaAccountName

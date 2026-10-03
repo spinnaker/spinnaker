@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.clouddriver.sql
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.core.ClouddriverHostname
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTaskStatus
 import com.netflix.spinnaker.clouddriver.data.task.Task
@@ -35,6 +34,7 @@ import org.jooq.impl.DSL.field
 import org.jooq.impl.DSL.max
 import org.jooq.impl.DSL.sql
 import org.slf4j.LoggerFactory
+import tools.jackson.databind.ObjectMapper
 
 class SqlTaskRepository(
   private val jooq: DSLContext,

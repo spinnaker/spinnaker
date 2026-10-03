@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.dcos.deploy.converters.instance
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.dcos.DcosClientProvider
 import com.netflix.spinnaker.clouddriver.dcos.security.DcosAccountCredentials
 import com.netflix.spinnaker.clouddriver.dcos.deploy.BaseSpecification
@@ -27,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCreden
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import mesosphere.dcos.client.DCOS
 import spock.lang.Subject
+import tools.jackson.databind.json.JsonMapper
 
 class TerminateDcosInstancesAtomicOperationConverterSpec extends BaseSpecification {
 
@@ -48,7 +49,7 @@ class TerminateDcosInstancesAtomicOperationConverterSpec extends BaseSpecificati
     void 'convertDescription should return a valid TerminateDcosInstancesDescription'() {
         given:
         atomicOperationConverter.accountCredentialsProvider = accountCredentialsProvider
-        atomicOperationConverter.objectMapper = new ObjectMapper()
+        atomicOperationConverter.objectMapper = JsonMapper.builder().build()
         def input = [
                 account: "test",
                 region: "default",
@@ -67,7 +68,7 @@ class TerminateDcosInstancesAtomicOperationConverterSpec extends BaseSpecificati
     void 'convertOperation should return a TerminateDcosInstancesAtomicOperation with TerminateDcosInstancesDescription'() {
         given:
         atomicOperationConverter.accountCredentialsProvider = accountCredentialsProvider
-        atomicOperationConverter.objectMapper = new ObjectMapper()
+        atomicOperationConverter.objectMapper = JsonMapper.builder().build()
         def input = [
                 account: "test",
                 region: "default",

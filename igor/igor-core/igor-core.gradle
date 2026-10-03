@@ -7,7 +7,6 @@ dependencies {
   implementation "jakarta.validation:jakarta.validation-api"
 
   implementation "com.squareup.retrofit2:retrofit"
-  implementation "com.squareup.retrofit2:converter-jackson"
 
   testImplementation "com.netflix.spectator:spectator-reg-micrometer"
   testImplementation "io.spinnaker.kork:kork-retrofit"

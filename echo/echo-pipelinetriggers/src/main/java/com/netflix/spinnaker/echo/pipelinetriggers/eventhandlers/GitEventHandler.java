@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.config.PipelineTriggerConfiguration;
 import com.netflix.spinnaker.echo.model.Trigger;
@@ -35,6 +34,7 @@ import org.apache.commons.codec.digest.HmacUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Implementation of TriggerEventHandler for events of type {@link GitEvent}, which occur when a

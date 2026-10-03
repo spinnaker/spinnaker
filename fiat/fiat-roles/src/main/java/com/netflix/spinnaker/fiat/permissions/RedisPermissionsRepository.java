@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.fiat.permissions;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig;
@@ -32,7 +29,6 @@ import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import io.github.resilience4j.retry.RetryRegistry;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -52,6 +48,8 @@ import net.jpountz.xxhash.XXHashFactory;
 import redis.clients.jedis.*;
 import redis.clients.jedis.commands.JedisBinaryCommands;
 import redis.clients.jedis.util.SafeEncoder;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * This Redis-backed permission repository is structured in a way to optimized reading types of
@@ -256,8 +254,7 @@ public class RedisPermissionsRepository implements PermissionsRepository {
     private final AtomicLong keysUnchanged = new AtomicLong();
 
     /** Returns each resource serialized as a single-entry map, sorted by resource name. */
-    List<byte[]> serializeSortedByName(Map<String, Resource> resourcesByName)
-        throws JsonProcessingException {
+    List<byte[]> serializeSortedByName(Map<String, Resource> resourcesByName) {
       List<String> names = new ArrayList<>(resourcesByName.keySet());
       // HashMap iteration order depends on insertion history; sorting keeps the bytes, and so the
       // digest, stable for unchanged content.
@@ -269,20 +266,10 @@ public class RedisPermissionsRepository implements PermissionsRepository {
       return serialized;
     }
 
-    private byte[] serialize(String name, Resource resource) throws JsonProcessingException {
-      try {
-        return serializedResources.computeIfAbsent(
-            new IdentityKey(resource),
-            key -> {
-              try {
-                return objectMapper.writeValueAsBytes(Collections.singletonMap(name, resource));
-              } catch (JsonProcessingException e) {
-                throw new UncheckedIOException(e);
-              }
-            });
-      } catch (UncheckedIOException e) {
-        throw (JsonProcessingException) e.getCause();
-      }
+    private byte[] serialize(String name, Resource resource) {
+      return serializedResources.computeIfAbsent(
+          new IdentityKey(resource),
+          key -> objectMapper.writeValueAsBytes(Collections.singletonMap(name, resource)));
     }
   }
 

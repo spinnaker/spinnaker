@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.rosco.providers.huaweicloud
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.config.RoscoConfiguration
@@ -29,6 +29,7 @@ import com.netflix.spinnaker.rosco.providers.util.TestDefaults
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
+import tools.jackson.databind.json.JsonMapper
 
 class HuaweiCloudBakeHandlerSpec extends Specification implements TestDefaults {
 
@@ -79,7 +80,7 @@ class HuaweiCloudBakeHandlerSpec extends Specification implements TestDefaults {
       ]
     ]
 
-    huaweicloudBakeryDefaults = new ObjectMapper().convertValue(huaweicloudBakeryDefaultsJson, HuaweiCloudBakeryDefaults)
+    huaweicloudBakeryDefaults = JsonMapper.builder().build().convertValue(huaweicloudBakeryDefaultsJson, HuaweiCloudBakeryDefaults)
   }
 
   void 'can scrape packer logs for image name'() {

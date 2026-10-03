@@ -22,7 +22,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.DeployAppengineConfigDescription;
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactDownloader;
 import com.netflix.spinnaker.kork.artifacts.ArtifactTypes;
@@ -39,6 +38,8 @@ import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class DeployAppengineConfigAtomicOperationTest {
 
@@ -50,7 +51,7 @@ public class DeployAppengineConfigAtomicOperationTest {
   @BeforeEach
   public void init() {
     deployAppengineConfigAtomicOperation = new DeployAppengineConfigAtomicOperation(description);
-    mapper = new ObjectMapper();
+    mapper = JsonMapper.builder().build();
     ReflectionTestUtils.setField(
         deployAppengineConfigAtomicOperation, "artifactDownloader", artifactDownloader);
   }

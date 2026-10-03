@@ -18,8 +18,6 @@ package com.netflix.spinnaker.kayenta;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -39,6 +37,9 @@ import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @Testcontainers
 class StandaloneContainerTest {
@@ -83,11 +84,11 @@ class StandaloneContainerTest {
     kayentaContainer.followOutput(logConsumer);
   }
 
-  private static String getSpringApplicationJson() throws JsonProcessingException {
+  private static String getSpringApplicationJson() throws JacksonException {
     String redisUrl = "redis://" + REDIS_NETWORK_ALIAS + ":" + REDIS_PORT;
     logger.info("redisUrl: '{}'", redisUrl);
     Map<String, String> properties = Map.of("redis.connection", redisUrl);
-    ObjectMapper mapper = new ObjectMapper();
+    ObjectMapper mapper = JsonMapper.builder().build();
     return mapper.writeValueAsString(properties);
   }
 

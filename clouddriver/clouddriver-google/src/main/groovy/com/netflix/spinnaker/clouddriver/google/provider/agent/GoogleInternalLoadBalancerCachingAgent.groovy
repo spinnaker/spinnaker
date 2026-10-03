@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.provider.agent
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback
 import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.http.HttpHeaders
@@ -35,6 +35,7 @@ import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCrede
 import com.netflix.spinnaker.clouddriver.google.batch.GoogleBatchRequest
 import groovy.util.logging.Slf4j
 import org.slf4j.LoggerFactory
+import tools.jackson.databind.json.JsonMapper
 
 @Slf4j
 class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachingAgent {
@@ -150,7 +151,7 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerC
       void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
         // 404 is thrown if the forwarding rule does not exist in the given region. Any other exception needs to be propagated.
         if (e.code != 404) {
-          def errorJson = new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(e)
+          def errorJson = JsonMapper.builder().build().writerWithDefaultPrettyPrinter().writeValueAsString(e)
           log.error errorJson
         }
       }

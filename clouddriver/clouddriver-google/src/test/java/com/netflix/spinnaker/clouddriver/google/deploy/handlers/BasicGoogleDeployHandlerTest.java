@@ -42,8 +42,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.*;
@@ -113,6 +111,9 @@ import org.mockito.MockedStatic;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.util.CollectionUtils;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @ExtendWith(MockitoExtension.class)
 public class BasicGoogleDeployHandlerTest {
@@ -125,7 +126,7 @@ public class BasicGoogleDeployHandlerTest {
   @Mock private GoogleNetworkProvider googleNetworkProvider;
   @Mock private GoogleSubnetProvider googleSubnetProvider;
   @Mock private Cache cacheView;
-  private ObjectMapper objectMapper = new ObjectMapper();
+  private ObjectMapper objectMapper = JsonMapper.builder().build();
   @Mock private SafeRetry safeRetry;
   @Mock private Registry registry;
 
@@ -1498,8 +1499,8 @@ public class BasicGoogleDeployHandlerTest {
             .path("metadata")
             .path("items");
 
-    assertThat(metadataItems.findValuesAsText("key")).containsExactly("unrelated-key");
-    assertThat(metadataItems.findValuesAsText("value")).containsExactly("unrelated-value");
+    assertThat(metadataItems.findValuesAsString("key")).containsExactly("unrelated-key");
+    assertThat(metadataItems.findValuesAsString("value")).containsExactly("unrelated-value");
     assertThat(insertRequest.body()).doesNotContain("select-zones");
   }
 
@@ -2958,9 +2959,9 @@ public class BasicGoogleDeployHandlerTest {
     metadata.put("load-balancing-policy", "invalid-json{");
     description.setInstanceMetadata(metadata);
 
-    // Should throw JsonProcessingException for invalid JSON
+    // Should throw JacksonException for invalid JSON
     assertThrows(
-        com.fasterxml.jackson.core.JsonProcessingException.class,
+        tools.jackson.core.JacksonException.class,
         () -> {
           basicGoogleDeployHandler.buildLoadBalancerPolicyFromInput(description);
         });

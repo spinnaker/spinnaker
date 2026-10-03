@@ -19,7 +19,6 @@ package com.netflix.spinnaker.gate.banner;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis;
 import java.util.List;
 import java.util.Optional;
@@ -31,6 +30,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+import tools.jackson.databind.json.JsonMapper;
 
 class RedisBannerRepositoryTest {
 
@@ -55,7 +55,7 @@ class RedisBannerRepositoryTest {
     try (Jedis jedis = jedisPool.getResource()) {
       jedis.flushAll();
     }
-    repo = new RedisBannerRepository(jedisPool, new ObjectMapper(), "global-banner");
+    repo = new RedisBannerRepository(jedisPool, JsonMapper.builder().build(), "global-banner");
   }
 
   // ---------------------------------------------------------------------------

@@ -20,7 +20,6 @@ package com.netflix.spinnaker.clouddriver.kubernetes.caching.agent;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.netflix.spectator.api.Registry;
@@ -31,6 +30,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import org.springframework.lang.Nullable;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Instances of this class cache CRDs for one particular account at regular intervals.

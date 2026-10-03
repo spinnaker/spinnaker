@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.config
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.actuation.ArtifactHandler
 import com.netflix.spinnaker.keel.api.ClusterDeployStrategy
 import com.netflix.spinnaker.keel.api.Highlander
@@ -24,7 +23,6 @@ import com.netflix.spinnaker.keel.api.support.extensionsOf
 import com.netflix.spinnaker.keel.api.support.register
 import com.netflix.spinnaker.keel.bakery.BaseImageCache
 import com.netflix.spinnaker.keel.ec2.jackson.registerEc2Subtypes
-import com.netflix.spinnaker.keel.ec2.jackson.registerKeelEc2ApiModule
 import com.netflix.spinnaker.keel.resources.SpecMigrator
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -43,7 +41,6 @@ class KeelConfigurationFinalizer(
   private val postDeployActionHandlers: List<PostDeployActionHandler<*>> = emptyList(),
   private val artifactHandlers: List<ArtifactHandler> = emptyList(),
   private val artifactSuppliers: List<ArtifactSupplier<*, *>> = emptyList(),
-  private val objectMappers: List<ObjectMapper>,
   private val extensionRegistry: ExtensionRegistry,
   private val resolvers: List<Resolver<*>>
 ) {
@@ -56,9 +53,6 @@ class KeelConfigurationFinalizer(
     // Registering sub-types with the extension registry is redundant with the call to
     // registerKeelEc2ApiModule below, as far as object mappers go, but needed for the schema generator.
     extensionRegistry.registerEc2Subtypes()
-    objectMappers.forEach {
-      it.registerKeelEc2ApiModule()
-    }
   }
 
   @PostConstruct

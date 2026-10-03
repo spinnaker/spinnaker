@@ -19,12 +19,10 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.model;
 import static com.netflix.spinnaker.clouddriver.model.HealthState.*;
 import static java.util.Collections.*;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonView;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.netflix.frigga.Names;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryCloudProvider;
 import com.netflix.spinnaker.clouddriver.model.Image;
@@ -40,15 +38,20 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import lombok.With;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
+import tools.jackson.databind.json.JsonMapper;
 
 @Value
 @EqualsAndHashCode(of = "id", callSuper = false)
-@Builder(toBuilder = true)
+@Builder(toBuilder = true, builderClassName = "CloudFoundryServerGroupBuilder")
 @JsonDeserialize(builder = CloudFoundryServerGroup.CloudFoundryServerGroupBuilder.class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("loadBalancerNames")
 public class CloudFoundryServerGroup extends CloudFoundryModel implements ServerGroup {
-  private static final ObjectMapper IMAGE_MAPPER = new ObjectMapper();
+  private static final ObjectMapper IMAGE_MAPPER = JsonMapper.builder().build();
 
   @JsonView(Views.Cache.class)
   String account;
@@ -153,7 +156,11 @@ public class CloudFoundryServerGroup extends CloudFoundryModel implements Server
                 return droplet == null ? "unknown" : droplet.getId();
               }
 
+              // Serializing this summary must not include "image" itself: getImage()
+              // converts this same object, so including it recurses infinitely (the image
+              // details could never be serialized).
               @Override
+              @JsonIgnore
               public Map<String, Object> getImage() {
                 return IMAGE_MAPPER.convertValue(this, new TypeReference<>() {});
               }
@@ -220,6 +227,7 @@ public class CloudFoundryServerGroup extends CloudFoundryModel implements Server
 
   @Override
   public InstanceCounts getInstanceCounts() {
+    Set<CloudFoundryInstance> instances = getInstances();
     return new InstanceCounts(
         instances.size(),
         (int) instances.stream().filter(in -> Up.equals(in.getHealthState())).count(),
@@ -231,7 +239,8 @@ public class CloudFoundryServerGroup extends CloudFoundryModel implements Server
 
   @Override
   public Capacity getCapacity() {
-    return new ServerGroup.Capacity(instances.size(), instances.size(), instances.size());
+    int size = getInstances().size();
+    return new ServerGroup.Capacity(size, size, size);
   }
 
   public String getStack() {
@@ -261,4 +270,7 @@ public class CloudFoundryServerGroup extends CloudFoundryModel implements Server
     STOPPED,
     STARTED
   }
+
+  @JsonPOJOBuilder(withPrefix = "")
+  public static class CloudFoundryServerGroupBuilder {}
 }

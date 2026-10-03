@@ -24,9 +24,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig;
 import com.netflix.spinnaker.fiat.model.Authorization;
 import com.netflix.spinnaker.fiat.model.UserPermission;
@@ -66,6 +63,10 @@ import org.testcontainers.utility.DockerImageName;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.util.SafeEncoder;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 class RedisPermissionsRepositoryTest {
 
@@ -82,14 +83,19 @@ class RedisPermissionsRepositoryTest {
   private static LZ4DecompressorWithLength lz4Decompressor;
 
   private static final ObjectMapper objectMapper =
-      new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
+      JsonMapper.builder()
+          .changeDefaultPropertyInclusion(
+              value -> value.withValueInclusion(JsonInclude.Include.NON_NULL))
+          .build();
 
   // Matches the ObjectMapper bean Fiat is deployed with (see RetrofitConfig).
   private static final ObjectMapper productionObjectMapper =
-      new ObjectMapper()
-          .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-          .configure(SerializationFeature.INDENT_OUTPUT, true)
-          .setSerializationInclusion(JsonInclude.Include.NON_NULL);
+      JsonMapper.builder()
+          .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+          .enable(SerializationFeature.INDENT_OUTPUT)
+          .changeDefaultPropertyInclusion(
+              value -> value.withValueInclusion(JsonInclude.Include.NON_NULL))
+          .build();
 
   private RedisPermissionRepositoryConfigProps configProps;
   private RedisPermissionsRepository repo;

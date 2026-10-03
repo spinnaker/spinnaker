@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.consul.deploy.ops
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.consul.api.v1.ConsulKeyValueStore
 import com.netflix.spinnaker.clouddriver.consul.api.v1.model.KeyValuePair
 import com.netflix.spinnaker.clouddriver.consul.config.ConsulConfig
@@ -26,6 +25,8 @@ import com.netflix.spinnaker.kork.client.ServiceClientProvider
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 
 class UpsertConsulLoadBalancer {
   // This operation is a bit odd, since services in Consul don't exist until they are attached to an instance - and
@@ -34,7 +35,7 @@ class UpsertConsulLoadBalancer {
   static void operate(ConsulConfig config, ConsulLoadBalancerDescription description, ServiceClientProvider serviceClientProvider) {
     // who comes up with these names??
     def jsonSlurper = new JsonSlurper()
-    def objectMapper = new ObjectMapper()
+    def objectMapper = JsonMapper.builder().build()
 
     def kvApi = new ConsulKeyValueStore(config, serviceClientProvider).api
     List<KeyValuePair> services = Retrofit2SyncCall.execute(kvApi.getKey(description.name, description.datacenter, false))

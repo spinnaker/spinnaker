@@ -15,8 +15,6 @@
  */
 package com.netflix.spinnaker.clouddriver.sql
 
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTaskStatus
 import com.netflix.spinnaker.clouddriver.data.task.SagaId
 import com.netflix.spinnaker.clouddriver.data.task.Status
@@ -24,10 +22,12 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskDisplayOutput
 import com.netflix.spinnaker.clouddriver.data.task.TaskOutput
 import com.netflix.spinnaker.clouddriver.data.task.TaskState
-import java.io.IOException
 import java.lang.String.format
 import java.sql.ResultSet
 import org.slf4j.LoggerFactory
+import tools.jackson.core.JacksonException
+import tools.jackson.core.type.TypeReference
+import tools.jackson.databind.ObjectMapper
 
 class TaskMapper(
   private val sqlTaskRepository: SqlTaskRepository,
@@ -65,7 +65,7 @@ class TaskMapper(
               results[rs.getString("task_id")] = mutableListOf()
             }
             results[rs.getString("task_id")]!!.add(mapper.readValue(rs.getString("body"), Map::class.java))
-          } catch (e: IOException) {
+          } catch (e: JacksonException) {
             val id = rs.getString("id")
             val taskId = rs.getString("task_id")
             throw RuntimeException(

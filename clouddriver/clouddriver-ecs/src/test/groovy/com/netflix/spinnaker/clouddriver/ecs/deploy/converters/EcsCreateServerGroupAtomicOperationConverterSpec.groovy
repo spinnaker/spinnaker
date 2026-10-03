@@ -16,9 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.deploy.converters
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.SerializationFeature
+import tools.jackson.databind.json.JsonMapper
 import com.netflix.spinnaker.clouddriver.ecs.TestCredential
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.CreateServerGroupDescription
 import com.netflix.spinnaker.clouddriver.ecs.deploy.ops.CreateServerGroupAtomicOperation
@@ -31,9 +32,10 @@ class EcsCreateServerGroupAtomicOperationConverterSpec extends Specification {
 
   def 'should convert'() {
     given:
-    def objectMapper = new ObjectMapper()
-      .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
-      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+    def objectMapper = JsonMapper.builder()
+      .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
+      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+      .build()
     def converter = new EcsCreateServerGroupAtomicOperationConverter(objectMapper: objectMapper)
     converter.accountCredentialsProvider = accountCredentialsProvider
 

@@ -17,8 +17,6 @@
 package com.netflix.spinnaker.clouddriver.artifacts.helm;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,6 +28,11 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.versioning.ComparableVersion;
+import org.snakeyaml.engine.v2.api.LoadSettings;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 @Slf4j
 @Data
@@ -113,13 +116,21 @@ public class IndexParser {
 
   private IndexConfig buildIndexConfig(InputStream in) throws IOException {
     ObjectMapper mapper =
-        new ObjectMapper(
-            YAMLFactory.builder().loaderOptions(YamlHelper.getLoaderOptions()).build());
+        YAMLMapper.builder(
+                YAMLFactory.builder()
+                    .loadSettings(
+                        LoadSettings.builder()
+                            .setMaxAliasesForCollections(
+                                YamlHelper.getLoaderOptions().getMaxAliasesForCollections())
+                            .setCodePointLimit(YamlHelper.getLoaderOptions().getCodePointLimit())
+                            .build())
+                    .build())
+            .build();
     IndexConfig indexConfig;
     try {
       indexConfig = mapper.readValue(in, IndexConfig.class);
-    } catch (IOException e) {
-      throw new IOException("Invalid index.yaml file in repository " + repository);
+    } catch (JacksonException e) {
+      throw new IOException("Invalid index.yaml file in repository " + repository, e);
     }
     return indexConfig;
   }

@@ -19,7 +19,7 @@ dependencies {
   api project(":clouddriver-saga")
   implementation "io.spinnaker.kork:kork-core"
   implementation "io.spinnaker.kork:kork-exceptions"
-  implementation "com.fasterxml.jackson.module:jackson-module-kotlin"
+  implementation "tools.jackson.module:jackson-module-kotlin"
 
   implementation "cglib:cglib-nodep"
   implementation "org.objenesis:objenesis"

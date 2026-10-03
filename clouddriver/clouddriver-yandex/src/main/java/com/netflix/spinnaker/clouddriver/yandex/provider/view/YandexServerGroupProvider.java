@@ -19,7 +19,6 @@ package com.netflix.spinnaker.clouddriver.yandex.provider.view;
 import static com.netflix.spinnaker.clouddriver.yandex.provider.Keys.Namespace.INSTANCES;
 import static com.netflix.spinnaker.clouddriver.yandex.provider.Keys.Namespace.LOAD_BALANCERS;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.clouddriver.model.HealthState;
@@ -35,6 +34,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 public class YandexServerGroupProvider {

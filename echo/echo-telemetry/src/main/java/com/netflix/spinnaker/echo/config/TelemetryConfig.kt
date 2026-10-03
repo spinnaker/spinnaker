@@ -21,6 +21,7 @@ import com.netflix.spinnaker.config.okhttp3.DefaultOkHttpClientBuilderProvider
 import com.netflix.spinnaker.echo.config.TelemetryConfig.TelemetryConfigProps
 import com.netflix.spinnaker.echo.telemetry.TelemetryService
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
 import de.huxhorn.sulky.ulid.ULID
@@ -32,7 +33,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
 
 @Configuration
 @ConditionalOnProperty(value = ["stats.enabled"], matchIfMissing = true)
@@ -59,7 +59,7 @@ open class TelemetryConfig {
       .baseUrl(RetrofitUtils.getBaseUrl(configProps.endpoint))
       .client(clientProvider.get(DefaultServiceEndpoint("telemetry", configProps.endpoint)).build())
       .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-      .addConverterFactory(JacksonConverterFactory.create())
+      .addConverterFactory(CustomConverterFactory.create())
       .build()
       .create(TelemetryService::class.java)
   }

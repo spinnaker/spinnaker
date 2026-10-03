@@ -16,20 +16,20 @@
 
 package com.netflix.spinnaker.orca.cf.pipeline.expressions.functions;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.TreeTraversingParser;
 import com.netflix.spinnaker.kork.expressions.ExpressionFunctionProvider;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
-import java.io.IOException;
 import java.util.*;
 import java.util.function.Predicate;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.TreeTraversingParser;
 
 @Component
 public class ServiceKeyExpressionFunctionProvider implements ExpressionFunctionProvider {
@@ -72,11 +72,11 @@ public class ServiceKeyExpressionFunctionProvider implements ExpressionFunctionP
                           ServiceKeyKatoTask katoTask =
                               objectMapper.readValue(
                                   new TreeTraversingParser(
-                                      objectMapper.valueToTree(katoTasks.get(0)), objectMapper),
+                                      objectMapper.valueToTree(katoTasks.get(0))),
                                   ServiceKeyKatoTask.class);
                           serviceKeyDetails.putAll(
                               katoTask.getResultObjects().get(0).getServiceKey());
-                        } catch (IOException e) {
+                        } catch (JacksonException e) {
                         }
                       });
 

@@ -25,8 +25,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.netflix.spectator.api.NoopRegistry;
@@ -58,6 +56,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 @SpringBootTest(
     classes = {
@@ -93,7 +93,7 @@ public class TrafficGuardTest {
   }
 
   @BeforeEach
-  void init() throws JsonProcessingException {
+  void init() throws JacksonException {
     wmFront50.stubFor(
         WireMock.get(urlMatching("/v2/applications/" + APP_NAME))
             .willReturn(

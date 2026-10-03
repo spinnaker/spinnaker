@@ -2,7 +2,7 @@
  *
  * Copyright 2019 Netflix, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License")
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -17,20 +17,21 @@
  */
 package com.netflix.spinnaker.gate.converters;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PushbackInputStream;
-import java.lang.reflect.Type;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import org.springframework.core.ResolvableType;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter;
+import org.springframework.http.converter.AbstractJacksonHttpMessageConverter;
 import org.springframework.util.StreamUtils;
+import tools.jackson.databind.ObjectMapper;
 
-public class JsonHttpMessageConverter extends AbstractJackson2HttpMessageConverter {
+public class JsonHttpMessageConverter extends AbstractJacksonHttpMessageConverter<ObjectMapper> {
   public JsonHttpMessageConverter(ObjectMapper objectMapper) {
     super(
         objectMapper,
@@ -49,10 +50,10 @@ public class JsonHttpMessageConverter extends AbstractJackson2HttpMessageConvert
    * literal, which keeps being unwrapped as before.
    */
   @Override
-  public Object read(Type type, Class<?> contextClass, HttpInputMessage inputMessage)
+  public Object read(ResolvableType type, HttpInputMessage inputMessage, Map<String, Object> hints)
       throws IOException {
-    if (!String.class.equals(type)) {
-      return super.read(type, contextClass, inputMessage);
+    if (!String.class.equals(type.resolve())) {
+      return super.read(type, inputMessage, hints);
     }
 
     // Only peeks at the first non-whitespace byte; the body is otherwise streamed, not buffered.
@@ -62,12 +63,12 @@ public class JsonHttpMessageConverter extends AbstractJackson2HttpMessageConvert
       first = body.read();
     }
     if (first == -1) {
-      return super.read(type, contextClass, replayable(inputMessage, body));
+      return super.read(type, replayable(inputMessage, body), hints);
     }
     body.unread(first);
 
     if (first == '"') {
-      return super.read(type, contextClass, replayable(inputMessage, body));
+      return super.read(type, replayable(inputMessage, body), hints);
     }
     return StreamUtils.copyToString(body, charsetOf(inputMessage.getHeaders()));
   }

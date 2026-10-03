@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheStatusService
@@ -36,6 +36,7 @@ import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUC
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 import static java.net.HttpURLConnection.HTTP_ACCEPTED
 import static java.net.HttpURLConnection.HTTP_OK
+import tools.jackson.databind.json.JsonMapper
 
 class ServerGroupCacheForceRefreshTaskSpec extends Specification {
 
@@ -46,7 +47,7 @@ class ServerGroupCacheForceRefreshTaskSpec extends Specification {
   def task = new ServerGroupCacheForceRefreshTask(
     cacheStatusService,
     cacheService,
-    new ObjectMapper(),
+    JsonMapper.builder().build(),
     new NoopRegistry()
   )
   def stage = stage()
@@ -192,7 +193,7 @@ class ServerGroupCacheForceRefreshTaskSpec extends Specification {
   @Unroll
   void "should correctly extract `zone` from `zones` in StageData"() {
     given:
-    def objectMapper = new ObjectMapper()
+    def objectMapper = JsonMapper.builder().build()
     def json = objectMapper.writeValueAsString([
       "deploy.server.groups"   : ["us-west-1": ["s-v001"]],
       "refreshed.server.groups": [

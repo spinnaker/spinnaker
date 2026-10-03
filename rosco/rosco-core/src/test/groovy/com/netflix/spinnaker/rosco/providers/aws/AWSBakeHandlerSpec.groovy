@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.rosco.providers.aws
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeRequest
@@ -34,6 +34,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+import tools.jackson.databind.json.JsonMapper
 
 class AWSBakeHandlerSpec extends Specification implements TestDefaults {
 
@@ -211,7 +212,7 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
       ]
     ]
 
-    awsBakeryDefaults = new ObjectMapper().convertValue(awsBakeryDefaultsJson, RoscoAWSConfiguration.AWSBakeryDefaults)
+    awsBakeryDefaults = JsonMapper.builder().build().convertValue(awsBakeryDefaultsJson, RoscoAWSConfiguration.AWSBakeryDefaults)
 
     searchByNameResults = [
         new RoscoAWSConfiguration.AWSNamedImage(
@@ -702,7 +703,7 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
           ]
         ]
       ]
-      RoscoAWSConfiguration.AWSBakeryDefaults localAwsBakeryDefaults = new ObjectMapper().convertValue(awsBakeryDefaultsJson, RoscoAWSConfiguration.AWSBakeryDefaults)
+      RoscoAWSConfiguration.AWSBakeryDefaults localAwsBakeryDefaults = JsonMapper.builder().build().convertValue(awsBakeryDefaultsJson, RoscoAWSConfiguration.AWSBakeryDefaults)
 
       def imageNameFactoryMock = Mock(ImageNameFactory)
       def packerCommandFactoryMock = Mock(PackerCommandFactory)

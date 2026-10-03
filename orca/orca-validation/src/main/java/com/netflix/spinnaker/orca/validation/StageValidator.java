@@ -21,8 +21,7 @@ import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonView;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.fge.jackson.JsonLoader;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.main.JsonSchema;
@@ -38,6 +37,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 public class StageValidator {
@@ -53,7 +54,7 @@ public class StageValidator {
   }
 
   StageValidator(ObjectMapper objectMapper, String schemaRoot) {
-    this.objectMapper = objectMapper;
+    this.objectMapper = objectMapper.rebuild().enable(MapperFeature.DEFAULT_VIEW_INCLUSION).build();
     this.jsonSchemaFactory = JsonSchemaFactory.byDefault();
 
     // support overriding the schema root (primarily for test cases)
@@ -69,8 +70,8 @@ public class StageValidator {
     JsonSchema jsonSchema = processSchema(schema.get());
 
     try {
-      JsonNode json = objectMapper.readTree(objectMapper.writeValueAsString(stage.getContext()));
-      ProcessingReport processingReport = jsonSchema.validate(json);
+      String json = objectMapper.writeValueAsString(stage.getContext());
+      ProcessingReport processingReport = jsonSchema.validate(JsonLoader.fromString(json));
 
       if (!processingReport.isSuccess()) {
         log.info(
@@ -104,7 +105,7 @@ public class StageValidator {
       Schema schema =
           objectMapper
               .readerWithView(Views.Spinnaker.class)
-              .withType(Schema.class)
+              .forType(Schema.class)
               .readValue(new File(schemaUrl.toURI()));
 
       schema.properties =
@@ -147,7 +148,7 @@ public class StageValidator {
   private JsonSchema processSchema(Schema schema) {
     try {
       return jsonSchemaFactory.getJsonSchema(
-          objectMapper.readTree(
+          JsonLoader.fromString(
               objectMapper.writerWithView(Views.Public.class).writeValueAsString(schema)));
     } catch (Exception e) {
       throw new StageValidationException(e);

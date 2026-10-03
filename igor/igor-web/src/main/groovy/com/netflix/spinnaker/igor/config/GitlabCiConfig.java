@@ -16,13 +16,13 @@
  */
 package com.netflix.spinnaker.igor.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.igor.gitlabci.client.GitlabCiClient;
 import com.netflix.spinnaker.igor.gitlabci.service.GitlabCiService;
 import com.netflix.spinnaker.igor.service.BuildServices;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
 import java.io.IOException;
 import java.util.Map;
@@ -40,7 +40,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
+import tools.jackson.databind.ObjectMapper;
 
 @Configuration
 @ConditionalOnProperty("gitlab-ci.enabled")
@@ -104,7 +104,7 @@ public class GitlabCiConfig {
                 .readTimeout(timeout, TimeUnit.MILLISECONDS)
                 .addInterceptor(new GitlabCiHeaders(privateToken))
                 .build())
-        .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+        .addConverterFactory(CustomConverterFactory.create(objectMapper))
         .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
         .build()
         .create(GitlabCiClient.class);

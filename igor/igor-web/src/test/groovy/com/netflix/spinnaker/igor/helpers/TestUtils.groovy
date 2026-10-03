@@ -17,24 +17,22 @@
 
 package com.netflix.spinnaker.igor.helpers
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
 import okhttp3.ResponseBody
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Response
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 
 class TestUtils {
   static ObjectMapper createObjectMapper() {
-    ObjectMapper mapper = new ObjectMapper()
-    mapper.registerModule(new JavaTimeModule())
-    mapper
+    JsonMapper.builder().build()
   }
 
   static SpinnakerHttpException makeSpinnakerHttpException(String url, int code, ResponseBody body){
@@ -43,7 +41,7 @@ class TestUtils {
     Retrofit retrofit =
       new Retrofit.Builder()
         .baseUrl(RetrofitUtils.getBaseUrl(url))
-        .addConverterFactory(JacksonConverterFactory.create())
+        .addConverterFactory(CustomConverterFactory.create())
         .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
         .build()
 

@@ -12,6 +12,10 @@ internal interface DeliveryArtifactMixin {
   @get:JsonProperty(access = WRITE_ONLY)
   val deliveryConfigName: String
 
+  @get:JsonProperty("isPreview")
+  @set:JsonProperty("isPreview")
+  var isPreview: Boolean
+
   @get:JsonIgnore
   val sortingStrategy: SortingStrategy
 

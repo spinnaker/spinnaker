@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.igor.scm;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.netflix.spinnaker.igor.config.ManagedDeliveryConfigProperties;
 import com.netflix.spinnaker.igor.scm.bitbucket.client.BitBucketMaster;
 import com.netflix.spinnaker.igor.scm.github.client.GitHubMaster;
@@ -31,8 +28,13 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.snakeyaml.engine.v2.api.LoadSettings;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.stereotype.Service;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 /** Support for retrieving Managed Delivery-related information from SCM systems. */
 @Service
@@ -63,9 +65,15 @@ public class ManagedDeliveryScmService {
     this.gitHubMaster = gitHubMaster;
     this.gitLabMaster = gitLabMaster;
     this.bitBucketMaster = bitBucketMaster;
-    this.jsonMapper = new ObjectMapper();
+    this.jsonMapper = YAMLMapper.builder().build();
+    var loaderOptions = yamlHelper.loaderOptions();
+    LoadSettings loadSettings =
+        LoadSettings.builder()
+            .setMaxAliasesForCollections(loaderOptions.getMaxAliasesForCollections())
+            .setCodePointLimit(loaderOptions.getCodePointLimit())
+            .build();
     this.yamlMapper =
-        new ObjectMapper(YAMLFactory.builder().loaderOptions(yamlHelper.loaderOptions()).build());
+        YAMLMapper.builder(YAMLFactory.builder().loadSettings(loadSettings).build()).build();
   }
 
   /**
@@ -155,7 +163,7 @@ public class ManagedDeliveryScmService {
       } else {
         return (Map<String, Object>) yamlMapper.readValue(manifestContents, Map.class);
       }
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new IllegalArgumentException(
           String.format(
               "Error parsing contents of delivery config manifest %s: %s",

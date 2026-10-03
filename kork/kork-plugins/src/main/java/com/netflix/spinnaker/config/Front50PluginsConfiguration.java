@@ -17,10 +17,6 @@
 package com.netflix.spinnaker.config;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.module.kotlin.KotlinModule;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.config.PluginsConfigurationProperties.PluginRepositoryProperties;
 import com.netflix.spinnaker.kork.plugins.update.EnvironmentServerGroupLocationResolver;
@@ -35,6 +31,7 @@ import com.netflix.spinnaker.kork.plugins.update.release.source.Front50PluginInf
 import com.netflix.spinnaker.kork.plugins.update.release.source.PluginInfoReleaseSource;
 import com.netflix.spinnaker.kork.plugins.update.repository.Front50UpdateRepository;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
 import com.netflix.spinnaker.okhttp.OkHttp3MetricsInterceptor;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
@@ -56,7 +53,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.module.kotlin.KotlinModule;
 
 @Configuration
 @ConditionalOnProperty("spinnaker.extensibility.repositories.front50.enabled")
@@ -127,14 +129,20 @@ public class Front50PluginsConfiguration {
     KotlinModule kotlinModule = new KotlinModule.Builder().build();
 
     ObjectMapper objectMapper =
-        new ObjectMapper()
-            .registerModule(kotlinModule)
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-            .configure(SerializationFeature.INDENT_OUTPUT, true)
-            .setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        JsonMapper.builder()
+            .addModule(kotlinModule)
+            .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .enable(SerializationFeature.INDENT_OUTPUT)
+            .changeDefaultPropertyInclusion(
+                value ->
+                    value
+                        .withValueInclusion(JsonInclude.Include.NON_NULL)
+                        .withContentInclusion(JsonInclude.Include.NON_NULL))
+            .build();
 
     return new Retrofit.Builder()
-        .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+        .addConverterFactory(CustomConverterFactory.createWithJsonStringResponses(objectMapper))
         .baseUrl(RetrofitUtils.getBaseUrl(front50Url.toString()))
         .client(pluginsOkHttpClientProvider.getOkHttpClient())
         .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())

@@ -19,10 +19,10 @@ package com.netflix.spinnaker.gate.mcp.tools;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +37,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Verifies {@link SearchTools} against a real HTTP server (via a genuine Retrofit-backed {@link
@@ -67,7 +67,7 @@ class SearchToolsWireTest {
     Retrofit retrofit =
         new Retrofit.Builder()
             .baseUrl(server.url("/"))
-            .addConverterFactory(JacksonConverterFactory.create(new ObjectMapper()))
+            .addConverterFactory(CustomConverterFactory.create(JsonMapper.builder().build()))
             // Matches production wiring (kork's ServiceClientProvider): without this,
             // Retrofit2SyncCall.execute() just returns a null body for non-2xx responses instead
             // of throwing, since it does not itself check response.isSuccessful() - see

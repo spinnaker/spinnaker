@@ -17,8 +17,6 @@
 package com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.NamedContent;
 import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.V2PipelineTemplateVisitor;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.VersionedSchema;
@@ -27,6 +25,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @Data
 public class V2PipelineTemplate implements VersionedSchema {
@@ -122,12 +123,12 @@ public class V2PipelineTemplate implements VersionedSchema {
     if (pipelineStages == null) {
       return Collections.emptyList();
     }
-    ObjectMapper oj = new ObjectMapper();
+    ObjectMapper oj = JsonMapper.builder().build();
     return oj.convertValue(pipelineStages, new TypeReference<List<V2StageDefinition>>() {});
   }
 
   public void setStages(List<V2StageDefinition> stages) {
-    ObjectMapper oj = new ObjectMapper();
+    ObjectMapper oj = JsonMapper.builder().build();
     TypeReference mapTypeRef = new TypeReference<List<Map<String, Object>>>() {};
     pipeline.put("stages", oj.convertValue(stages, mapTypeRef));
   }

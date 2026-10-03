@@ -23,7 +23,6 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 import brave.Tracing;
 import brave.http.HttpTracing;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.netflix.spectator.api.NoopRegistry;
@@ -58,6 +57,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
+import tools.jackson.databind.ObjectMapper;
 
 @SpringBootTest(
     classes = {

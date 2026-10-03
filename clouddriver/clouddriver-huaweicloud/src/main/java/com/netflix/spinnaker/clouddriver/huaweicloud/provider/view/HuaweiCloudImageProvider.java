@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.huaweicloud.provider.view;
 
 import static com.netflix.spinnaker.clouddriver.huaweicloud.cache.Keys.Namespace.IMAGES;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.huawei.openstack4j.openstack.ims.v2.domain.Image;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
@@ -34,6 +33,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 public class HuaweiCloudImageProvider implements ImageProvider {

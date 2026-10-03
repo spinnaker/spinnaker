@@ -18,10 +18,10 @@ package com.netflix.spinnaker.echo.jackson;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.core.StreamReadConstraints;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.StreamReadConstraints;
+import tools.jackson.databind.ObjectMapper;
 
 class EchoObjectMapperTest {
 
@@ -41,7 +41,7 @@ class EchoObjectMapperTest {
   @Test
   void defaultStreamReadConstraintsAreRelaxed() {
     ObjectMapper mapper = EchoObjectMapper.newInstance();
-    StreamReadConstraints constraints = mapper.getFactory().streamReadConstraints();
+    StreamReadConstraints constraints = mapper.tokenStreamFactory().streamReadConstraints();
 
     assertThat(constraints.getMaxNameLength()).isEqualTo(200_000);
     assertThat(constraints.getMaxStringLength()).isEqualTo(50_000_000);

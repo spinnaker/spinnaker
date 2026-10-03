@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spectator.api.Id
 import com.netflix.spinnaker.assertj.assertSoftly

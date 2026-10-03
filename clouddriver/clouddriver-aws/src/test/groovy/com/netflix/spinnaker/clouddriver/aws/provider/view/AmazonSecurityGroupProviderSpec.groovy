@@ -21,7 +21,7 @@ import software.amazon.awssdk.services.ec2.model.IpRange
 import software.amazon.awssdk.services.ec2.model.Ipv6Range
 import software.amazon.awssdk.services.ec2.model.SecurityGroup
 import software.amazon.awssdk.services.ec2.model.UserIdGroupPair
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.aws.jackson.AwsObjectMapperFactory
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
@@ -46,7 +46,7 @@ class AmazonSecurityGroupProviderSpec extends Specification {
   AmazonSecurityGroupProvider provider
 
   WriteableCache cache = new InMemoryCache()
-  ObjectMapper mapper = AwsObjectMapperFactory.createConfigured().registerModule(new AwsSdkV2Module())
+  ObjectMapper mapper = AwsObjectMapperFactory.createConfigured().rebuild().addModule(new AwsSdkV2Module()).build()
 
   def credential1 = Stub(NetflixAmazonCredentials) {
     getName() >> "accountName1"

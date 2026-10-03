@@ -105,7 +105,8 @@ abstract class DeliveryArtifact {
   open val from: ArtifactOriginFilter? = null
 
   /** Whether this artifact was created for a preview environment. */
-  open val isPreview: Boolean = false
+  open var isPreview: Boolean = false
+    protected set
 
   @get:ExcludedFromDiff
   val filteredByBranch: Boolean

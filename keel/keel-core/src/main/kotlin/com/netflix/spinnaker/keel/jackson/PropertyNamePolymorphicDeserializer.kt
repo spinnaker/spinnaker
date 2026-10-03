@@ -1,8 +1,8 @@
 package com.netflix.spinnaker.keel.jackson
 
-import com.fasterxml.jackson.databind.DeserializationContext
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.deser.std.StdNodeBasedDeserializer
+import tools.jackson.databind.DeserializationContext
+import tools.jackson.databind.JsonNode
+import tools.jackson.databind.deser.std.StdNodeBasedDeserializer
 
 /**
  * Base class for deserializing a polymorphic type by looking at the fields present in the JSON to
@@ -15,9 +15,9 @@ import com.fasterxml.jackson.databind.deser.std.StdNodeBasedDeserializer
 abstract class PropertyNamePolymorphicDeserializer<T>(clazz: Class<T>) : StdNodeBasedDeserializer<T>(clazz) {
 
   override fun convert(root: JsonNode, context: DeserializationContext): T {
-    val fieldNames = root.fieldNames().asSequence().toList()
+    val fieldNames = root.propertyNames()
     val subType = identifySubType(root, context, fieldNames)
-    return context.parser.codec.treeToValue(root, subType)
+    return context.readTreeAsValue(root, subType)
   }
 
   protected open fun identifySubType(

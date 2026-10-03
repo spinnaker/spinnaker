@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.gradle.extension.extensions
 
-import com.fasterxml.jackson.module.kotlin.convertValue
+import tools.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.gradle.extension.PluginObjectMapper
 import com.netflix.spinnaker.gradle.extension.compatibility.SpinnakerVersionAlias
 import org.gradle.api.Action

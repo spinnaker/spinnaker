@@ -30,7 +30,9 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 public class LambdaFunctionProvider implements FunctionProvider {
@@ -38,8 +40,9 @@ public class LambdaFunctionProvider implements FunctionProvider {
   private final Cache cacheView;
 
   @Autowired
-  public LambdaFunctionProvider(Cache cacheView) {
-    this.awsLambdaCacheClient = new LambdaCacheClient(cacheView);
+  public LambdaFunctionProvider(
+      Cache cacheView, @Qualifier("amazonObjectMapper") ObjectMapper objectMapper) {
+    this.awsLambdaCacheClient = new LambdaCacheClient(cacheView, objectMapper);
     this.cacheView = cacheView;
   }
 

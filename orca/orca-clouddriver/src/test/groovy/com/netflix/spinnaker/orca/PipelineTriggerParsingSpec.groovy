@@ -26,7 +26,7 @@ class PipelineTriggerParsingSpec extends Specification {
 
   def "can parse"() {
     given:
-    def execution = mapper.readValue(json, PipelineExecution)
+    def execution = mapper.readValue(json.text, PipelineExecution)
 
     when:
     def parent = mapper.convertValue(execution.trigger.parentExecution, PipelineExecution)

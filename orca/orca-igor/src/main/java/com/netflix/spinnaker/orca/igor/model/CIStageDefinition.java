@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.igor.model;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
@@ -42,7 +43,7 @@ public class CIStageDefinition implements RetryableStageDefinition {
   public CIStageDefinition(
       @JsonProperty("master") String master,
       @JsonProperty("job") String job,
-      @JsonProperty("property") String propertyFile,
+      @JsonProperty("property") @JsonAlias("propertyFile") String propertyFile,
       @JsonProperty("buildNumber") Long buildNumber,
       @JsonProperty("buildInfo") BuildInfo buildInfo,
       @JsonProperty("waitForCompletion") Boolean waitForCompletion,

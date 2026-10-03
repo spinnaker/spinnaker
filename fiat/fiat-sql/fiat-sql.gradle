@@ -24,6 +24,7 @@ dependencies {
     }
 
     implementation "com.github.ben-manes.caffeine:caffeine"
+    implementation "tools.jackson.core:jackson-databind"
 
     implementation "io.spinnaker.kork:kork-telemetry"
     implementation "io.spinnaker.kork:kork-sql"

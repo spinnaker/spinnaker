@@ -15,8 +15,8 @@
  */
 package com.netflix.spinnaker.kork.artifacts.artifactstore.entities;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
+import tools.jackson.databind.DeserializationContext;
 
 /** ArtifactExpandHandler is a handler that handles expansion of some object. */
 public interface ArtifactExpandHandler extends ArtifactHandler {
@@ -32,8 +32,8 @@ public interface ArtifactExpandHandler extends ArtifactHandler {
    * @param store The artifact store to use for retrieval
    * @param v The object to process
    * @param clazz The expected class type for the result
-   * @param objectMapper The object mapper to use for deserialization if needed
+   * @param context The deserialization context to use if deserialization is needed
    * @return The processed object, with the same type as the input class
    */
-  <T> T handle(ArtifactStore store, Object v, Class<T> clazz, ObjectMapper objectMapper);
+  <T> T handle(ArtifactStore store, Object v, Class<T> clazz, DeserializationContext context);
 }
