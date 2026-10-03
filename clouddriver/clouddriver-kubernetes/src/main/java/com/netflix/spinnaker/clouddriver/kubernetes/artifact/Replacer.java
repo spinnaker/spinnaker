@@ -20,7 +20,6 @@ package com.netflix.spinnaker.clouddriver.kubernetes.artifact;
 import static com.jayway.jsonpath.Criteria.where;
 import static com.jayway.jsonpath.Filter.filter;
 
-// Jayway JSONPath's Jackson provider is Jackson 2, so these node types stay on databind 2.
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.ImmutableCollection;
@@ -47,6 +46,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/** Jayway JSONPath's Jackson provider is Jackson 2, so node types here stay on databind 2. */
 @NonnullByDefault
 public final class Replacer {
   private static final Logger log = LoggerFactory.getLogger(Replacer.class);
