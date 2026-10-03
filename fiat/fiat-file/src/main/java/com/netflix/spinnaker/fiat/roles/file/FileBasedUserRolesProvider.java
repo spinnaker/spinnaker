@@ -33,6 +33,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.dataformat.yaml.YAMLMapper;
 
@@ -56,7 +57,7 @@ public class FileBasedUserRolesProvider implements UserRolesProvider {
   public List<Role> loadRoles(ExternalUser user) {
     try {
       return Optional.ofNullable(parse().get(user.getId())).orElse(Collections.emptyList());
-    } catch (IOException io) {
+    } catch (IOException | JacksonException io) {
       log.error("Couldn't load roles for user " + user.getId() + " from file", io);
     }
     return Collections.emptyList();
@@ -70,7 +71,7 @@ public class FileBasedUserRolesProvider implements UserRolesProvider {
       return parse().entrySet().stream()
           .filter(e -> userIds.contains(e.getKey()))
           .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    } catch (IOException io) {
+    } catch (IOException | JacksonException io) {
       log.error("Couldn't mulitLoad roles from file", io);
     }
     return Collections.emptyMap();

@@ -23,6 +23,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -52,7 +53,7 @@ public class PackerManifestService {
                 StandardOpenOption.READ,
                 StandardOpenOption.DELETE_ON_CLOSE))) {
       manifestData = objectMapper.readValue(manifestInput, PackerManifest.class);
-    } catch (IOException e) {
+    } catch (IOException | JacksonException e) {
       throw new IllegalStateException("Could not read packer manifest file: " + e.getMessage());
     }
     return manifestData;

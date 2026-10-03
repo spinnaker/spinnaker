@@ -27,6 +27,7 @@ import java.util.function.Supplier;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Response;
+import tools.jackson.core.JacksonException;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.PropertyNamingStrategies;
@@ -60,7 +61,7 @@ public final class CloudFoundryClientUtils {
           ErrorDescription errorDescription =
               mapper.readValue(responseBody.string(), ErrorDescription.class);
           throw new CloudFoundryApiException(errorDescription);
-        } catch (IOException e) {
+        } catch (IOException | JacksonException e) {
           throw new CloudFoundryApiException(e, "Could not parse error");
         }
       }

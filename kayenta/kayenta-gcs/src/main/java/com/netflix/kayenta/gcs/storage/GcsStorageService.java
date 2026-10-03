@@ -262,7 +262,7 @@ public class GcsStorageService implements StorageService {
         canaryConfigIndex.finishPendingUpdate(
             credentials, CanaryConfigIndexAction.UPDATE, correlationId);
       }
-    } catch (IOException e) {
+    } catch (IOException | JacksonException e) {
       log.error("Update failed on path {}: {}", path, e);
 
       if (objectType == ObjectType.CANARY_CONFIG) {

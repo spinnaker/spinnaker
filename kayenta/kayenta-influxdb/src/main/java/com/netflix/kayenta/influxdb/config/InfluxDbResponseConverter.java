@@ -34,6 +34,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import retrofit2.Converter;
 import retrofit2.Retrofit;
+import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
 @Component
@@ -121,7 +122,7 @@ public class InfluxDbResponseConverter extends Converter.Factory {
 
         log.debug("Converted response: {}", influxDbResultsList);
         return influxDbResultsList;
-      } catch (IOException e) {
+      } catch (IOException | JacksonException e) {
         e.printStackTrace();
       }
       return null;

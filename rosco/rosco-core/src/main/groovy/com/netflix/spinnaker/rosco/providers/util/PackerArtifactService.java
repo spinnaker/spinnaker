@@ -25,6 +25,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
+import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -53,7 +54,7 @@ public class PackerArtifactService {
             Files.newOutputStream(
                 artifactFile, StandardOpenOption.CREATE, StandardOpenOption.WRITE))) {
       objectMapper.writeValue(artifactStream, artifacts);
-    } catch (IOException e) {
+    } catch (IOException | JacksonException e) {
       throw new IllegalStateException("Could not write artifacts to file: " + e.getMessage());
     }
 

@@ -53,6 +53,19 @@ class FileBasedUserRolesProviderSpec extends Specification {
     result6.keySet().size() == 0
   }
 
+  def "should return no roles when the permissions file is malformed"() {
+    setup:
+    File file = File.createTempFile("fiat-malformed-permissions", ".yml")
+    file.deleteOnExit()
+    file.text = "users: [this is: not valid yaml"
+    configProps.path = file.absolutePath
+    FileBasedUserRolesProvider provider = new FileBasedUserRolesProvider(configProps: configProps)
+
+    expect:
+    provider.loadRoles(externalUser("batman")) == []
+    provider.multiLoadRoles([externalUser("batman")]) == [:]
+  }
+
   private static ExternalUser externalUser(String id) {
     return new ExternalUser().setId(id)
   }

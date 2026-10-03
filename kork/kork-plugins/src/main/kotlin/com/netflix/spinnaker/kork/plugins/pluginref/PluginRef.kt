@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.kork.plugins.pluginref
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import tools.jackson.core.JacksonException
 import tools.jackson.databind.json.JsonMapper
 import tools.jackson.module.kotlin.KotlinModule
 import com.netflix.spinnaker.kork.exceptions.UserException
@@ -100,6 +101,8 @@ data class PluginRef(
           ref.copy(pluginPath = path.parent.resolve(ref.refPath).toAbsolutePath().toString())
         }
       } catch (ex: IOException) {
+        throw MalformedPluginRefException(path!!, ex)
+      } catch (ex: JacksonException) {
         throw MalformedPluginRefException(path!!, ex)
       }
     }

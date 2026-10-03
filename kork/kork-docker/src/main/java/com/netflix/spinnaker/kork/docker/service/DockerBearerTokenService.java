@@ -21,11 +21,11 @@ import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import com.netflix.spinnaker.kork.docker.exceptions.DockerRegistryAuthenticationException;
 import com.netflix.spinnaker.kork.docker.model.DockerBearerToken;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
-import io.micrometer.core.instrument.util.IOUtils;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -110,11 +110,14 @@ public class DockerBearerTokenService {
     ProcessBuilder processBuilder = new ProcessBuilder("bash", "-c", passwordCommand);
     Process process = processBuilder.start();
     int exitCode = process.waitFor();
-    if (exitCode != 0) {
-      String errorOutput = IOUtils.toString(process.getErrorStream(), StandardCharsets.UTF_8);
-      log.error("Password command returned non-zero exit code. Stderr/stdout: '{}'", errorOutput);
+    try (InputStream errorStream = process.getErrorStream();
+        InputStream inputStream = process.getInputStream()) {
+      if (exitCode != 0) {
+        String errorOutput = new String(errorStream.readAllBytes(), StandardCharsets.UTF_8);
+        log.error("Password command returned non-zero exit code. Stderr/stdout: '{}'", errorOutput);
+      }
+      return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8).trim();
     }
-    return IOUtils.toString(process.getInputStream(), StandardCharsets.UTF_8).trim();
   }
 
   private String resolvePasswordFromFile() throws IOException {

@@ -32,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -65,7 +66,13 @@ public class KubernetesManifestAnnotater {
   private static final String KUBECTL_LAST_APPLIED_CONFIGURATION =
       KUBECTL_ANNOTATION_PREFIX + "/last-applied-configuration";
 
-  private static final ObjectMapper objectMapper = JsonMapper.builder().build();
+  // Annotation values are written onto the manifest and compared across applies, so keep the
+  // declaration order Jackson 2 produced rather than Jackson 3's alphabetical default.
+  private static final ObjectMapper objectMapper =
+      JsonMapper.builder()
+          .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+          .disable(MapperFeature.SORT_CREATOR_PROPERTIES_FIRST)
+          .build();
 
   private static void storeAnnotation(Map<String, String> annotations, String key, Object value) {
     if (value == null) {

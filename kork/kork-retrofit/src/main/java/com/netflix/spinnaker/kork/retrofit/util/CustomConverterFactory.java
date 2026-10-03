@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.kork.retrofit.util;
 
-import io.micrometer.core.instrument.util.IOUtils;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import okhttp3.MediaType;
@@ -100,7 +99,7 @@ public class CustomConverterFactory extends Converter.Factory {
           };
     }
     if (type == String.class && !deserializeStringResponses) {
-      return (Converter<ResponseBody, String>) value -> IOUtils.toString(value.byteStream());
+      return (Converter<ResponseBody, String>) ResponseBody::string;
     }
     return (Converter<ResponseBody, Object>)
         value -> {

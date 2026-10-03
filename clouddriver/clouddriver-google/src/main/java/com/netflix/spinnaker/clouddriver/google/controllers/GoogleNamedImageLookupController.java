@@ -46,6 +46,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import tools.jackson.core.JacksonException;
 import tools.jackson.core.json.JsonWriteFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
@@ -99,7 +100,7 @@ public class GoogleNamedImageLookupController {
       Map<String, Object> attributes = new HashMap<>();
       attributes.put("creationDate", image.get("creationTimestamp"));
       return new NamedImage(imageAccount, image.getName(), attributes, buildTagsMap(image));
-    } catch (IOException e) {
+    } catch (IOException | JacksonException e) {
       throw new RuntimeException("Image deserialization failed");
     }
   }

@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.front50.model
 
+import tools.jackson.core.JacksonException
 import tools.jackson.databind.ObjectMapper
 import com.google.cloud.storage.Blob
 import com.google.cloud.storage.BlobId
@@ -285,6 +286,8 @@ class GcsStorageService(
       @Suppress("UNCHECKED_CAST")
       objectMapper.readValue(bytes, objectType.clazz as Class<T>)
     } catch (e: IOException) {
+      throw GcsStorageServiceException("error reading $objectType $objectKey", e)
+    } catch (e: JacksonException) {
       throw GcsStorageServiceException("error reading $objectType $objectKey", e)
     }
   }
