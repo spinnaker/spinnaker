@@ -25,10 +25,9 @@ import tools.jackson.databind.module.SimpleModule;
 /**
  * Jackson module to register {@link NamedType} data discovered from {@link NamedTypeProvider}
  * beans. When using {@link
- * org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration}, all {@link
+ * org.springframework.boot.jackson.autoconfigure.JacksonAutoConfiguration}, all {@link
  * tools.jackson.databind.JacksonModule} beans are registered in the {@link
- * tools.jackson.databind.ObjectMapper} created by {@link
- * org.springframework.http.converter.json.Jackson2ObjectMapperBuilder}.
+ * tools.jackson.databind.ObjectMapper}.
  */
 @Component
 public class NamedTypeProviderModule extends SimpleModule {
