@@ -19,10 +19,13 @@ package com.netflix.spinnaker.orca.pipelinetemplate.loader;
 import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import org.snakeyaml.engine.v2.api.LoadSettings;
 import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.EnumNamingStrategy;
 import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.PropertyNamingStrategy;
 import tools.jackson.databind.SerializationFeature;
 import tools.jackson.databind.cfg.MapperBuilder;
+import tools.jackson.databind.introspect.AccessorNamingStrategy;
 import tools.jackson.dataformat.yaml.YAMLFactory;
 import tools.jackson.dataformat.yaml.YAMLMapper;
 
@@ -52,6 +55,33 @@ final class YamlObjectMapperFactory {
    */
   private static ObjectMapper copyConfig(MapperBuilder<?, ?> builder, ObjectMapper objectMapper) {
     builder.addModules(objectMapper.registeredModules());
+    var serializationConfig = objectMapper.serializationConfig();
+    var deserializationConfig = objectMapper.deserializationConfig();
+
+    AccessorNamingStrategy.Provider accessorNaming = serializationConfig.getAccessorNaming();
+    if (accessorNaming == null) {
+      accessorNaming = deserializationConfig.getAccessorNaming();
+    }
+    if (accessorNaming != null) {
+      builder.accessorNaming(accessorNaming);
+    }
+
+    PropertyNamingStrategy propertyNamingStrategy = serializationConfig.getPropertyNamingStrategy();
+    if (propertyNamingStrategy == null) {
+      propertyNamingStrategy = deserializationConfig.getPropertyNamingStrategy();
+    }
+    if (propertyNamingStrategy != null) {
+      builder.propertyNamingStrategy(propertyNamingStrategy);
+    }
+
+    EnumNamingStrategy enumNamingStrategy = serializationConfig.getEnumNamingStrategy();
+    if (enumNamingStrategy == null) {
+      enumNamingStrategy = deserializationConfig.getEnumNamingStrategy();
+    }
+    if (enumNamingStrategy != null) {
+      builder.enumNamingStrategy(enumNamingStrategy);
+    }
+
     for (DeserializationFeature f : DeserializationFeature.values()) {
       builder.configure(f, objectMapper.isEnabled(f));
     }
