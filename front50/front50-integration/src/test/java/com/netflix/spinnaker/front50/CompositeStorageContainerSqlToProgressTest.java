@@ -188,7 +188,7 @@ class CompositeStorageContainerSqlToProgressTest {
 
     List<Map<String, Object>> expected = convertResultSetToList(outputPrimary);
     List<Map<String, Object>> actual = convertResultSetToList(outputSecondary);
-    assertThat(actual.contains(expected));
+    assertThat(actual).containsAll(expected);
     assertThat(actual.size()).isGreaterThan(1);
     assertThat(expected.size()).isGreaterThan(1);
     assertThat(actual.size()).isGreaterThan(expected.size());
