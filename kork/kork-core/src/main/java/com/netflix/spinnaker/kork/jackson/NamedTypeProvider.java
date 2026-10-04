@@ -25,7 +25,7 @@ import tools.jackson.databind.jsontype.NamedType;
  * Bean for providing {@link NamedType} data for type discriminators. When combined with {@link
  * NamedTypeAutoConfiguration}, beans of this type will register named subtypes to Jackson. These
  * named types will be automatically registered with {@code ObjectMapper} instances configured via
- * {@link org.springframework.boot.jackson.autoconfigure.JacksonAutoConfiguration}.
+ * {@code org.springframework.boot.jackson.autoconfigure.JacksonAutoConfiguration}.
  */
 @FunctionalInterface
 public interface NamedTypeProvider extends SpinnakerExtensionPoint {
