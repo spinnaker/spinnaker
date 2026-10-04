@@ -62,7 +62,7 @@ class OracleInfrastructureProviderConfig {
     def allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository,
       OracleNamedAccountCredentials)
 
-    objectMapper.rebuild().enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS).build()
+    objectMapper = objectMapper.rebuild().enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS).build()
 
     allAccounts.each { OracleNamedAccountCredentials credentials ->
       if (!scheduledAccounts.contains(credentials.name)) {

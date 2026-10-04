@@ -28,6 +28,7 @@ import static tools.jackson.databind.cfg.DateTimeFeature.WRITE_DATE_TIMESTAMPS_A
 import static tools.jackson.databind.cfg.EnumFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE;
 
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
+import com.netflix.spinnaker.kork.jackson.Jackson2AccessorNamingStrategy;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.TaskExecution;
@@ -51,6 +52,7 @@ import tools.jackson.core.Version;
 import tools.jackson.core.json.JsonFactory;
 import tools.jackson.databind.DeserializationContext;
 import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.SerializationContext;
 import tools.jackson.databind.ValueSerializer;
@@ -89,6 +91,8 @@ public class OrcaObjectMapper {
 
     JsonMapper.Builder builder =
         JsonMapper.builder(JsonFactory.builder().streamReadConstraints(constraints).build())
+            .accessorNaming(new Jackson2AccessorNamingStrategy.Provider())
+            .disable(MapperFeature.FIX_FIELD_NAME_UPPER_CASE_PREFIX)
             .addModule(new GuavaModule())
             .addModule(new KotlinModule.Builder().build())
             .disable(READ_DATE_TIMESTAMPS_AS_NANOSECONDS)

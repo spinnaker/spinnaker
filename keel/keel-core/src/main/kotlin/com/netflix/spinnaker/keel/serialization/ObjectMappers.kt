@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.serialization
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
+import com.netflix.spinnaker.keel.jackson.ExtensionSubtypeModule
 import com.netflix.spinnaker.keel.jackson.KeelApiModule
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
@@ -59,6 +60,7 @@ fun <M : ObjectMapper, B : MapperBuilder<M, B>> B.configureForKeel(): B {
 
   return apply {
     addModule(KeelApiModule)
+    addModule(ExtensionSubtypeModule())
     addModule(kotlinModule)
     addModule(ulidModule)
     addModule(precisionModule)

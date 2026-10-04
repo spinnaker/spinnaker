@@ -37,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
 import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.ObjectMapper;
 
@@ -82,7 +83,7 @@ public class StageValidator {
       }
 
       return processingReport.isSuccess();
-    } catch (ProcessingException | IOException e) {
+    } catch (JacksonException | ProcessingException | IOException e) {
       throw new StageValidationException(e);
     }
   }

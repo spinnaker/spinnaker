@@ -348,6 +348,21 @@ public class ExpressionsSupportTest {
   }
 
   @Test
+  void toJsonKeepsLegacyAcronymPropertyNames() {
+    assertEquals(
+        "{\"oauthScopes\":\"scope\"}",
+        ExpressionsSupport.JsonExpressionFunctionProvider.toJson(new OAuthBean()));
+  }
+
+  static class OAuthBean {
+    private String oAuthScopes = "scope";
+
+    public String getOAuthScopes() {
+      return oAuthScopes;
+    }
+  }
+
+  @Test
   void toJsonKeepsDeclarationOrderAndEpochDates() {
     class Bean {
       public String zeta = "z";

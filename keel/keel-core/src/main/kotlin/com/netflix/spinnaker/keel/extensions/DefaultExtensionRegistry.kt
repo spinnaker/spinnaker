@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.extensions
 import tools.jackson.databind.ObjectMapper
 import tools.jackson.databind.jsontype.NamedType
 import com.netflix.spinnaker.keel.api.support.ExtensionRegistry
+import com.netflix.spinnaker.keel.jackson.ExtensionSubtypeModule
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
@@ -23,8 +24,11 @@ class DefaultExtensionRegistry(
     log.info("Registering extension \"$discriminator\" for ${baseType.simpleName} using ${extensionType.simpleName}")
     mappers.forEach {
       val subtype = NamedType(extensionType, discriminator)
+      it.registeredModules().filterIsInstance<ExtensionSubtypeModule>().forEach { module -> module.register(baseType, subtype) }
       it.deserializationConfig().getSubtypeResolver().registerSubtypes(subtype)
       it.serializationConfig().getSubtypeResolver().registerSubtypes(subtype)
+      // Type deserializers cache the known subtype IDs on their first use.
+      it.clearCaches()
     }
   }
 

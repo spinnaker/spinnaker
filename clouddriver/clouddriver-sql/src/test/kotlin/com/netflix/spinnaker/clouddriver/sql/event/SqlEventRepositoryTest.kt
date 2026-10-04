@@ -18,9 +18,13 @@ package com.netflix.spinnaker.clouddriver.sql.event
 import com.fasterxml.jackson.annotation.JsonTypeName
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.clouddriver.event.AbstractSpinnakerEvent
+import com.netflix.spinnaker.clouddriver.event.SpinnakerEvent
 import com.netflix.spinnaker.clouddriver.event.exceptions.AggregateChangeRejectedException
 import com.netflix.spinnaker.clouddriver.event.persistence.EventRepository.ListAggregatesCriteria
 import com.netflix.spinnaker.clouddriver.event.persistence.EventRepository.ListAggregatesResult
+import com.netflix.spinnaker.config.SqlConfiguration
+import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer.ClassSubtypeLocator
+import com.netflix.spinnaker.kork.sql.config.SqlProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import com.netflix.spinnaker.kork.version.ServiceVersion
 import dev.minutest.junit.JUnit5Minutests
@@ -205,15 +209,16 @@ class SqlEventRepositoryTest : JUnit5Minutests {
     val serviceVersion: ServiceVersion = mockk(relaxed = true)
     val applicationEventPublisher: ApplicationEventPublisher = mockk(relaxed = true)
 
-    val subject = SqlEventRepository(
+    val subject = SqlConfiguration().sqlEventRepository(
       jooq = database.context,
+      sqlProperties = SqlProperties(),
       serviceVersion = serviceVersion,
       objectMapper = JsonMapper.builder()
         .addModule(KotlinModule.Builder().build())
-        .registerSubtypes(MyEvent::class.java)
         .build(),
       applicationEventPublisher = applicationEventPublisher,
-      registry = NoopRegistry()
+      registry = NoopRegistry(),
+      subtypeLocators = listOf(ClassSubtypeLocator(SpinnakerEvent::class.java, listOf(MyEvent::class.java.packageName)))
     )
 
     init {

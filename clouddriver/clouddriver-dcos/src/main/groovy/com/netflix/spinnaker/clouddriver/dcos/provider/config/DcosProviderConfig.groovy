@@ -72,7 +72,7 @@ class DcosProviderConfig {
 
     Set<DcosAccountCredentials> allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, DcosAccountCredentials)
 
-    objectMapper.rebuild().enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS).build()
+    objectMapper = objectMapper.rebuild().enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS).build()
 
     def newlyAddedAgents = []
 

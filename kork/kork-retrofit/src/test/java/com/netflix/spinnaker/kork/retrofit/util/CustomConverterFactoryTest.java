@@ -45,6 +45,43 @@ class CustomConverterFactoryTest {
 
   @SuppressWarnings("unchecked")
   @Test
+  void defaultFactoryPreservesLegacyRequestPropertyNames() throws IOException {
+    Converter<OAuthBean, RequestBody> converter =
+        (Converter<OAuthBean, RequestBody>)
+            CustomConverterFactory.create()
+                .requestBodyConverter(OAuthBean.class, NO_ANNOTATIONS, NO_ANNOTATIONS, null);
+    Buffer bytes = new Buffer();
+    converter.convert(new OAuthBean()).writeTo(bytes);
+    assertEquals("{\"oauthScopes\":\"scope\"}", bytes.readUtf8());
+  }
+
+  @Test
+  void defaultFactoryReadsLegacyResponsePropertyNames() throws IOException {
+    Converter<ResponseBody, ?> converter =
+        CustomConverterFactory.create()
+            .responseBodyConverter(OAuthBean.class, NO_ANNOTATIONS, null);
+    OAuthBean bean =
+        (OAuthBean)
+            converter.convert(
+                ResponseBody.create(
+                    "{\"oauthScopes\":\"legacy\"}", MediaType.get("application/json")));
+    assertEquals("legacy", bean.getOAuthScopes());
+  }
+
+  static class OAuthBean {
+    private String oAuthScopes = "scope";
+
+    public String getOAuthScopes() {
+      return oAuthScopes;
+    }
+
+    public void setOAuthScopes(String value) {
+      oAuthScopes = value;
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test
   void convertsJackson3RequestsAndGenericResponses() throws IOException {
     Converter<Payload, RequestBody> requestConverter =
         (Converter<Payload, RequestBody>)

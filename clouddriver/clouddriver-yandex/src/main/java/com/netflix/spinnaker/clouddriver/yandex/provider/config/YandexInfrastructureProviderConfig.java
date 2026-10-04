@@ -42,7 +42,7 @@ public class YandexInfrastructureProviderConfig {
       YandexCloudFacade yandexCloudFacade,
       ObjectMapper objectMapper,
       Registry registry) {
-    objectMapper.rebuild().enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS).build();
+    objectMapper = objectMapper.rebuild().enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS).build();
 
     Set<YandexCloudCredentials> allAccounts =
         ProviderUtils.buildThreadSafeSetOfAccounts(

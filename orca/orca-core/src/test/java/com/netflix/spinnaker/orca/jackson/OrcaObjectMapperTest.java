@@ -36,6 +36,26 @@ import tools.jackson.databind.ObjectMapper;
 class OrcaObjectMapperTest {
 
   @Test
+  void preservesLegacyAcronymPropertyNames() {
+    ObjectMapper mapper = OrcaObjectMapper.newInstance();
+    assertThat(mapper.writeValueAsString(new OAuthBean())).isEqualTo("{\"oauthScopes\":\"scope\"}");
+    assertThat(mapper.readValue("{\"oauthScopes\":\"legacy\"}", OAuthBean.class).getOAuthScopes())
+        .isEqualTo("legacy");
+  }
+
+  static class OAuthBean {
+    private String oAuthScopes = "scope";
+
+    public String getOAuthScopes() {
+      return oAuthScopes;
+    }
+
+    public void setOAuthScopes(String value) {
+      oAuthScopes = value;
+    }
+  }
+
+  @Test
   void canDeserializeMapWithKeyExceedingDefaultJacksonNameLengthLimit() throws Exception {
     ObjectMapper mapper = OrcaObjectMapper.newInstance();
 

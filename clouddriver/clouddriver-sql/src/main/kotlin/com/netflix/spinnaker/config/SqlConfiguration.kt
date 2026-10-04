@@ -104,11 +104,11 @@ class SqlConfiguration {
     subtypeLocators: List<SubtypeLocator>
   ): EventRepository {
     // TODO(rz): ObjectMapperSubtypeConfigurer should become a standard kork feature. This is pretty gross.
-    ObjectMapperSubtypeConfigurer(true).registerSubtypes(objectMapper, subtypeLocators)
+    val eventMapper = ObjectMapperSubtypeConfigurer(true).registerSubtypes(objectMapper, subtypeLocators)
     return SqlEventRepository(
       jooq,
       serviceVersion,
-      objectMapper,
+      eventMapper,
       applicationEventPublisher,
       registry
     ).let {

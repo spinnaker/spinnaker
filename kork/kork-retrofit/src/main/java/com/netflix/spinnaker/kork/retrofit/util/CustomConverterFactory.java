@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.kork.retrofit.util;
 
+import com.netflix.spinnaker.kork.jackson.Jackson2AccessorNamingStrategy;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import okhttp3.MediaType;
@@ -24,6 +25,7 @@ import okhttp3.ResponseBody;
 import retrofit2.Converter;
 import retrofit2.Retrofit;
 import tools.jackson.databind.JavaType;
+import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -42,7 +44,12 @@ public class CustomConverterFactory extends Converter.Factory {
       MediaType.get("application/json; charset=UTF-8");
 
   public static CustomConverterFactory create() {
-    return new CustomConverterFactory(JsonMapper.builder().build(), false);
+    return new CustomConverterFactory(
+        JsonMapper.builder()
+            .accessorNaming(new Jackson2AccessorNamingStrategy.Provider())
+            .disable(MapperFeature.FIX_FIELD_NAME_UPPER_CASE_PREFIX)
+            .build(),
+        false);
   }
 
   public static CustomConverterFactory create(ObjectMapper mapper) {

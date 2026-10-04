@@ -28,6 +28,7 @@ import com.netflix.spinnaker.kork.expressions.allowlist.MapPropertyAccessor;
 import com.netflix.spinnaker.kork.expressions.allowlist.ReturnTypeRestrictor;
 import com.netflix.spinnaker.kork.expressions.config.ExpressionProperties;
 import com.netflix.spinnaker.kork.expressions.functions.ArtifactStoreFunctions;
+import com.netflix.spinnaker.kork.jackson.Jackson2AccessorNamingStrategy;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -65,6 +66,8 @@ public class ExpressionsSupport {
   // format.
   private static final ObjectMapper mapper =
       JsonMapper.builder()
+          .accessorNaming(new Jackson2AccessorNamingStrategy.Provider())
+          .disable(MapperFeature.FIX_FIELD_NAME_UPPER_CASE_PREFIX)
           .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
           .disable(MapperFeature.SORT_CREATOR_PROPERTIES_FIRST)
           .enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)

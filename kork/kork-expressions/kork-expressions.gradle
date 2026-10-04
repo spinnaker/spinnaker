@@ -7,6 +7,7 @@ dependencies {
   api(platform(project(":spinnaker-dependencies")))
 
   api project(":kork-api")
+  implementation project(":kork-core")
   api project(":kork-artifacts")
   api project(":kork-plugins-api")
   api project(":kork-exceptions")
