@@ -17,7 +17,8 @@ Boot-built JSON mappers retain Jackson 2 accessor names, including `getOAuthScop
 stored data and clients. Standalone mappers can use `Jackson2AccessorNamingStrategy.Provider`
 with `MapperFeature.FIX_FIELD_NAME_UPPER_CASE_PREFIX` disabled.
 
-Inject `YamlHelper` and use `yamlFactory()` when building Jackson YAML mappers for
+Inject `YamlHelper` and use `yamlFactory()` (or call `YamlHelper.newYamlFactory()` for
+callers that are not Spring-managed) when building Jackson YAML mappers for
 manifests, templates, and Helm documents. It preserves empty values as null,
 last-value-wins duplicate keys, and Jackson 2 plain scalar interpretation (`yes`,
 `0644`, `0xFF`) while retaining configured YAML parsing limits. Quoted scalars and

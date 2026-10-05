@@ -209,13 +209,16 @@ public class YamlHelper {
   // ---------------------------------------------------------------------------
 
   /**
-   * @deprecated inject the {@link YamlHelper} bean and call {@link #newSafeConstructorYaml()}.
+   * @deprecated inject the {@link YamlHelper} bean and call {@link #yamlFactory()}.
    */
   @Deprecated
   public static YAMLFactory newYamlFactory() {
     return buildJacksonYamlFactory(staticYamlParserProperties);
   }
 
+  /**
+   * @deprecated inject the {@link YamlHelper} bean and call {@link #newSafeConstructorYaml()}.
+   */
   @Deprecated
   public static Yaml newYamlSafeConstructor() {
     return buildYamlSafeConstructor(staticYamlParserProperties);
