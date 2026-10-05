@@ -288,7 +288,8 @@ class Utils {
   static List<GoogleBackendService> getBackendServicesFromExternalHttpLoadBalancerView(ExternalHttpLbView googleLoadBalancer) {
     List<GoogleBackendService> backendServices = [googleLoadBalancer.defaultService]
     collectBackendServicesFromHostRules(googleLoadBalancer?.hostRules, backendServices)
-    return backendServices
+    // The caching agent leaves redirect entries null.
+    return backendServices.findAll { it != null }
   }
 
   static void collectBackendServicesFromHostRules(List<GoogleHostRule> hostRules, List<GoogleBackendService> backendServices) {

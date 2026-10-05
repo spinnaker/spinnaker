@@ -40,6 +40,7 @@ import com.google.api.services.compute.model.ForwardingRuleList;
 import com.google.api.services.compute.model.HealthCheckList;
 import com.google.api.services.compute.model.HealthStatus;
 import com.google.api.services.compute.model.HostRule;
+import com.google.api.services.compute.model.HttpRedirectAction;
 import com.google.api.services.compute.model.PathMatcher;
 import com.google.api.services.compute.model.PathRule;
 import com.google.api.services.compute.model.ResourceGroupReference;
@@ -48,6 +49,8 @@ import com.google.api.services.compute.model.TargetHttpsProxy;
 import com.google.api.services.compute.model.UrlMap;
 import com.netflix.spectator.api.DefaultRegistry;
 import com.netflix.spinnaker.clouddriver.google.batch.GoogleBatchRequest;
+import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils;
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleExternalHttpLoadBalancer;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancer;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleSessionAffinity;
@@ -212,6 +215,65 @@ public class GoogleExternalHttpLoadBalancerCachingAgentTest {
     assertThat(loadBalancers).hasSize(1);
     assertThat(loadBalancers.get(0).getName()).isEqualTo("good-lb");
     verify(forwardingRules).get(PROJECT, REGION, "good-lb");
+  }
+
+  @Test
+  void constructLoadBalancers_cachesUrlMapThatMixesRedirectsAndBackendServices()
+      throws IOException {
+    Compute compute = mock(Compute.class);
+    configureSharedRegionalData(compute, "CLIENT_IP");
+    Compute.ForwardingRules forwardingRules = mock(Compute.ForwardingRules.class);
+    Compute.ForwardingRules.Get getForwardingRule = mock(Compute.ForwardingRules.Get.class);
+    when(compute.forwardingRules()).thenReturn(forwardingRules);
+    when(forwardingRules.get(PROJECT, REGION, "redirect-lb")).thenReturn(getForwardingRule);
+    when(getForwardingRule.execute()).thenReturn(buildHttpRule("redirect-lb", "redirect-proxy"));
+
+    Compute.RegionTargetHttpProxies targetHttpProxies = mock(Compute.RegionTargetHttpProxies.class);
+    Compute.RegionTargetHttpProxies.Get getProxy = mock(Compute.RegionTargetHttpProxies.Get.class);
+    when(compute.regionTargetHttpProxies()).thenReturn(targetHttpProxies);
+    when(targetHttpProxies.get(PROJECT, REGION, "redirect-proxy")).thenReturn(getProxy);
+    when(getProxy.execute()).thenReturn(new TargetHttpProxy().setUrlMap(urlMapUrl("redirect-map")));
+
+    HttpRedirectAction redirect = new HttpRedirectAction().setHttpsRedirect(true);
+    PathMatcher pathMatcher =
+        new PathMatcher()
+            .setName("matcher")
+            .setDefaultService(backendServiceUrl("backend-service"))
+            .setPathRules(
+                List.of(new PathRule().setPaths(List.of("/old/*")).setUrlRedirect(redirect)));
+    Compute.RegionUrlMaps regionUrlMaps = mock(Compute.RegionUrlMaps.class);
+    Compute.RegionUrlMaps.Get getMap = mock(Compute.RegionUrlMaps.Get.class);
+    when(compute.regionUrlMaps()).thenReturn(regionUrlMaps);
+    when(regionUrlMaps.get(PROJECT, REGION, "redirect-map")).thenReturn(getMap);
+    when(getMap.execute())
+        .thenReturn(
+            new UrlMap()
+                .setName("redirect-map")
+                .setDefaultUrlRedirect(redirect)
+                .setPathMatchers(List.of(pathMatcher))
+                .setHostRules(
+                    List.of(new HostRule().setHosts(List.of("*")).setPathMatcher("matcher"))));
+
+    GoogleExternalHttpLoadBalancerCachingAgent agent = createAgent(compute);
+
+    List<GoogleLoadBalancer> loadBalancers = agent.constructLoadBalancers("redirect-lb");
+
+    assertThat(loadBalancers).hasSize(1);
+    GoogleExternalHttpLoadBalancer loadBalancer =
+        (GoogleExternalHttpLoadBalancer) loadBalancers.get(0);
+    assertThat(loadBalancer.getDefaultService()).isNull();
+    assertThat(loadBalancer.getHostRules().get(0).getPathMatcher().getPathRules())
+        .singleElement()
+        .satisfies(pathRule -> assertThat(pathRule.getBackendService()).isNull());
+    List<GoogleBackendService> backendServices =
+        Utils.getBackendServicesFromExternalHttpLoadBalancerView(loadBalancer.getView());
+    assertThat(backendServices)
+        .singleElement()
+        .satisfies(
+            service -> {
+              assertThat(service.getName()).isEqualTo("backend-service");
+              assertThat(service.getSessionAffinity()).isEqualTo(GoogleSessionAffinity.CLIENT_IP);
+            });
   }
 
   @Test

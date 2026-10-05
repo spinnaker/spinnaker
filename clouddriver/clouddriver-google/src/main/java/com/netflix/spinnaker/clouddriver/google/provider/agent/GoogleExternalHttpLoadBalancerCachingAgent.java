@@ -119,6 +119,10 @@ public class GoogleExternalHttpLoadBalancerCachingAgent
   @Override
   protected void handleMissingBackendService(
       String backendServiceName, GoogleExternalHttpLoadBalancer loadBalancer) {
+    if (backendServiceName == null) {
+      // A redirect has no backend service to look up.
+      return;
+    }
     // Preserve the load balancer and let the next successful backend-service read enrich it.
     log.warn(
         "Could not enrich regional external HTTP load balancer {} because backend service {} was missing.",

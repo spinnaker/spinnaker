@@ -24,8 +24,12 @@ import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleTarget
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleExternalHttpLoadBalancer
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHostRule
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleInternalLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancedBackend
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GooglePathMatcher
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GooglePathRule
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleRegionalExternalNetworkLoadBalancer
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -216,5 +220,25 @@ class UtilsSpec extends Specification {
 
     expect:
       Utils.getBackendServicesFromUrlMap(urlMap) == ["backend-a", "backend-b"]
+  }
+
+  void "getBackendServicesFromExternalHttpLoadBalancerView skips redirects"() {
+    given:
+      def backendA = new GoogleBackendService(name: "backend-a")
+      def backendB = new GoogleBackendService(name: "backend-b")
+      def loadBalancer = new GoogleExternalHttpLoadBalancer(
+        defaultService: null,
+        hostRules: [
+          new GoogleHostRule(pathMatcher: new GooglePathMatcher(defaultService: backendA, pathRules: [])),
+          new GoogleHostRule(pathMatcher: new GooglePathMatcher(
+            defaultService: null,
+            pathRules: [
+              new GooglePathRule(paths: ["/old/*"], backendService: null),
+              new GooglePathRule(paths: ["/api/*"], backendService: backendB)
+            ]))
+        ])
+
+    expect:
+      Utils.getBackendServicesFromExternalHttpLoadBalancerView(loadBalancer.view) == [backendA, backendB]
   }
 }

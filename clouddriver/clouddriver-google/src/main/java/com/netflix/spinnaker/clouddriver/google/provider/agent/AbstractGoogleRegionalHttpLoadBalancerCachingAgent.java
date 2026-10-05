@@ -578,9 +578,7 @@ abstract class AbstractGoogleRegionalHttpLoadBalancerCachingAgent<T extends Goog
 
     String urlMapDefaultService = Utils.getLocalName(urlMap.getDefaultService());
     queuedServices.add(urlMapDefaultService);
-    GoogleBackendService defaultService = new GoogleBackendService();
-    defaultService.setName(urlMapDefaultService);
-    setDefaultService(loadBalancer, defaultService);
+    setDefaultService(loadBalancer, namedBackendService(urlMapDefaultService));
 
     if (urlMap.getPathMatchers() != null && urlMap.getHostRules() != null) {
       for (PathMatcher pathMatcher : urlMap.getPathMatchers()) {
@@ -590,12 +588,9 @@ abstract class AbstractGoogleRegionalHttpLoadBalancerCachingAgent<T extends Goog
         for (HostRule hostRule : urlMap.getHostRules()) {
           if (hostRule.getPathMatcher() != null
               && hostRule.getPathMatcher().equals(pathMatcher.getName())) {
-            GoogleBackendService googleBackendService = new GoogleBackendService();
-            googleBackendService.setName(pathMatchDefaultService);
-
             GooglePathMatcher googlePathMatcher = new GooglePathMatcher();
             googlePathMatcher.setPathRules(new ArrayList<>());
-            googlePathMatcher.setDefaultService(googleBackendService);
+            googlePathMatcher.setDefaultService(namedBackendService(pathMatchDefaultService));
 
             GoogleHostRule googleHostRule = new GoogleHostRule();
             googleHostRule.setHostPatterns(hostRule.getHosts());
@@ -604,12 +599,10 @@ abstract class AbstractGoogleRegionalHttpLoadBalancerCachingAgent<T extends Goog
                 pathRules.stream()
                     .map(
                         pathRule -> {
-                          GoogleBackendService service = new GoogleBackendService();
-                          service.setName(Utils.getLocalName(pathRule.getService()));
-
                           GooglePathRule googlePathRule = new GooglePathRule();
                           googlePathRule.setPaths(pathRule.getPaths());
-                          googlePathRule.setBackendService(service);
+                          googlePathRule.setBackendService(
+                              namedBackendService(Utils.getLocalName(pathRule.getService())));
                           return googlePathRule;
                         })
                     .collect(toList()));
@@ -636,6 +629,17 @@ abstract class AbstractGoogleRegionalHttpLoadBalancerCachingAgent<T extends Goog
                       service, loadBalancer, projectHealthChecks, groupHealthRequest),
               () -> handleMissingBackendService(queuedService, loadBalancer));
     }
+  }
+
+  // A URL map entry that redirects has no backend service, so the view leaves it null rather than
+  // holding a service without a name.
+  private static GoogleBackendService namedBackendService(String name) {
+    if (name == null) {
+      return null;
+    }
+    GoogleBackendService service = new GoogleBackendService();
+    service.setName(name);
+    return service;
   }
 
   private void applyBackendService(
