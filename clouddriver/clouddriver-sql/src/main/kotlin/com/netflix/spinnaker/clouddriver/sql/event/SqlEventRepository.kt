@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.event.exceptions.AggregateChangeRejecte
 import com.netflix.spinnaker.clouddriver.event.exceptions.DuplicateEventAggregateException
 import com.netflix.spinnaker.clouddriver.event.persistence.EventRepository
 import com.netflix.spinnaker.clouddriver.event.persistence.EventRepository.ListAggregatesCriteria
+import com.netflix.spinnaker.clouddriver.sql.SqlRetries
 import com.netflix.spinnaker.clouddriver.sql.transactional
 import com.netflix.spinnaker.config.ConnectionPools
 import com.netflix.spinnaker.kork.sql.routing.withPool
@@ -41,12 +42,13 @@ import org.jooq.impl.DSL.table
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 
-class SqlEventRepository(
+class SqlEventRepository @JvmOverloads constructor(
   private val jooq: DSLContext,
   private val serviceVersion: ServiceVersion,
   private val objectMapper: ObjectMapper,
   private val applicationEventPublisher: ApplicationEventPublisher,
-  private val registry: Registry
+  private val registry: Registry,
+  private val retries: SqlRetries = SqlRetries()
 ) : EventRepository {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -68,7 +70,7 @@ class SqlEventRepository(
 
     try {
       withPool(POOL_NAME) {
-        jooq.transactional { ctx ->
+        jooq.transactional(retries) { ctx ->
           // Get or create the aggregate and immediately assert that this save operation is being committed against the
           // most recent aggregate state.
           val aggregate = ctx.maybeGetAggregate(aggregateCondition) ?: {

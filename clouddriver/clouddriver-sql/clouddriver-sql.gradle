@@ -26,6 +26,7 @@ dependencies {
   implementation "io.spinnaker.kork:kork-secrets"
   implementation "io.spinnaker.kork:kork-sql"
   implementation "io.spinnaker.kork:kork-telemetry"
+  implementation "org.springframework:spring-web"
   implementation "de.huxhorn.sulky:de.huxhorn.sulky.ulid"
   implementation "org.jooq:jooq"
   implementation "org.hibernate.validator:hibernate-validator"
@@ -36,7 +37,12 @@ dependencies {
   testImplementation project(":clouddriver-core-tck")
 
   testImplementation "io.spinnaker.kork:kork-sql-test"
+<<<<<<< HEAD
   testImplementation "org.testcontainers:mysql"
+=======
+  testImplementation "io.spinnaker.kork:kork-web"
+  testImplementation "org.testcontainers:testcontainers-mysql"
+>>>>>>> 10a54d1 (fix(clouddriver): make clouddriver-sql retries actually run (#8111))
   testImplementation "com.mysql:mysql-connector-j"
 
   testImplementation "cglib:cglib-nodep"
