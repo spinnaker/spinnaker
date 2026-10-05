@@ -475,11 +475,8 @@ public abstract class AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperatio
 
       // Check every listener to delete before Step 1 so an ownership mismatch fails before any
       // health check, backend service, URL map or proxy is changed. Deletion re-checks it.
-      if (isExternalManaged()) {
-        for (String forwardingRuleName : listenersToDelete) {
-          validateRegionalListenerOwnership(
-              compute, project, region, forwardingRuleName, urlMapName);
-        }
+      for (String forwardingRuleName : listenersToDelete) {
+        validateRegionalListenerOwnership(compute, project, region, forwardingRuleName, urlMapName);
       }
 
       // Step 1: If there are no existing components in GCE, insert the new L7 components.
@@ -999,17 +996,6 @@ public abstract class AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperatio
             .updateStatus(
                 getBasePhase(),
                 "Deleting listener " + forwardingRuleName + " in " + region + "...");
-        if (!isExternalManaged()) {
-          GCEUtil.deleteRegionalListener(
-              compute,
-              project,
-              region,
-              forwardingRuleName,
-              getBasePhase(),
-              getSafeRetry(),
-              AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperation.this);
-          continue;
-        }
         Operation deleteProxyOp =
             deleteRegionalListenerIfOwned(compute, project, region, forwardingRuleName, urlMapName);
         if (deleteProxyOp != null) {
@@ -1291,6 +1277,9 @@ public abstract class AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperatio
       throw new GoogleOperationException(
           "Listener " + forwardingRuleName + " does not target a regional HTTP(S) proxy.");
     }
+    if (!isExternalManaged()) {
+      return true;
+    }
 
     GenericJson targetProxy;
     String targetProxyName = GCEUtil.getLocalName(forwardingRule.getTarget());
@@ -1371,8 +1360,9 @@ public abstract class AbstractUpsertGoogleRegionalHttpLoadBalancerAtomicOperatio
     return true;
   }
 
-  // INTERNAL_MANAGED keeps its historical upsert contract; listener guards apply to the external
-  // scheme only.
+  // Both schemes delete only their own scheme's listeners that target a regional HTTP(S) proxy.
+  // Every other listener guard, including the URL map ownership check, applies to the external
+  // scheme only, so INTERNAL_MANAGED keeps its historical upsert contract.
   private boolean isExternalManaged() {
     return "EXTERNAL_MANAGED".equals(getLoadBalancingScheme());
   }

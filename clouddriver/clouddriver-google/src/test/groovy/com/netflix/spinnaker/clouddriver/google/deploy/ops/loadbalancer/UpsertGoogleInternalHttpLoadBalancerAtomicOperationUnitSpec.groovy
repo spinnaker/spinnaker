@@ -497,6 +497,134 @@ class UpsertGoogleInternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       0 * backendServices.insert(_, _, _)
   }
 
+  void "rejects a listener to delete that belongs to another scheme before changing anything"() {
+    setup:
+      def computeMock = Mock(Compute)
+
+      def credentialsRepo = new MapBackedCredentialsRepository(GoogleNamedAccountCredentials.CREDENTIALS_TYPE,
+        new NoopCredentialsLifecycleHandler<>())
+      def credentials = new GoogleNamedAccountCredentials.Builder().name(ACCOUNT_NAME).project(PROJECT_NAME).applicationName("my-application").compute(computeMock).credentials(new FakeGoogleCredentials()).build()
+      credentialsRepo.save(credentials)
+      def converter = new UpsertGoogleLoadBalancerAtomicOperationConverter(
+        credentialsRepository: credentialsRepo
+      )
+
+      def googleNetworkProviderMock = Mock(GoogleNetworkProvider)
+      def networkKeyPattern = "gce:networks:some-network:$ACCOUNT_NAME:global"
+      def googleNetwork = new GoogleNetwork(selfLink: "projects/$PROJECT_NAME/global/networks/some-network")
+
+      def googleSubnetProviderMock = Mock(GoogleSubnetProvider)
+      def subnetKeyPattern = "gce:subnets:some-subnet:$ACCOUNT_NAME:$REGION"
+      def googleSubnet = new GoogleSubnet(selfLink: "projects/$PROJECT_NAME/regions/$REGION/subnetworks/some-subnet")
+
+      def healthChecks = Mock(Compute.RegionHealthChecks)
+      def healthChecksList = Mock(Compute.RegionHealthChecks.List)
+      def backendServices = Mock(Compute.RegionBackendServices)
+      def backendServicesList = Mock(Compute.RegionBackendServices.List)
+      def urlMaps = Mock(Compute.RegionUrlMaps)
+      def urlMapsGet = Mock(Compute.RegionUrlMaps.Get)
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
+      def listenerGet = Mock(Compute.ForwardingRules.Get)
+
+      def input = [
+        accountName        : ACCOUNT_NAME,
+        "loadBalancerName" : LOAD_BALANCER_NAME,
+        "portRange"        : PORT_RANGE,
+        "region"           : REGION,
+        "defaultService"   : [
+          "name"           : DEFAULT_SERVICE,
+          "backends"       : [],
+          "healthCheck"    : hc,
+          "sessionAffinity": "NONE",
+        ],
+        "certificate"      : "",
+        "hostRules"        : null,
+        "network"          : "some-network",
+        "subnet"           : "some-subnet",
+        "listenersToDelete": ["external-listener"],
+      ]
+      def description = converter.convertDescription(input)
+      @Subject def operation = new UpsertGoogleInternalHttpLoadBalancerAtomicOperation(description)
+      operation.googleNetworkProvider = googleNetworkProviderMock
+      operation.googleSubnetProvider = googleSubnetProviderMock
+      operation.registry = registry
+      operation.safeRetry = safeRetry
+
+    when:
+      operation.operate([])
+
+    then:
+      1 * googleNetworkProviderMock.getAllMatchingKeyPattern(networkKeyPattern) >> [googleNetwork]
+      1 * googleSubnetProviderMock.getAllMatchingKeyPattern(subnetKeyPattern) >> [googleSubnet]
+
+      1 * computeMock.regionHealthChecks() >> healthChecks
+      1 * healthChecks.list(PROJECT_NAME, REGION) >> healthChecksList
+      1 * healthChecksList.execute() >> new HealthCheckList(items: [])
+
+      1 * computeMock.regionBackendServices() >> backendServices
+      1 * backendServices.list(PROJECT_NAME, REGION) >> backendServicesList
+      1 * backendServicesList.execute() >> new BackendServiceList(items: [])
+
+      1 * computeMock.regionUrlMaps() >> urlMaps
+      1 * urlMaps.get(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> urlMapsGet
+      1 * urlMapsGet.execute() >> null
+
+      2 * computeMock.forwardingRules() >> forwardingRules
+      1 * forwardingRules.get(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRulesGet
+      1 * forwardingRulesGet.execute() >> null
+      1 * forwardingRules.get(PROJECT_NAME, REGION, "external-listener") >> listenerGet
+      1 * listenerGet.execute() >> new ForwardingRule(
+        name: "external-listener",
+        loadBalancingScheme: "EXTERNAL_MANAGED",
+        target: "projects/$PROJECT_NAME/regions/$REGION/targetHttpProxies/external-proxy")
+
+      thrown(GoogleOperationException)
+      0 * healthChecks.insert(_, _, _)
+      0 * forwardingRules.delete(_, _, _)
+  }
+
+  void "deletes its own listener without checking which URL map it points at"() {
+    setup:
+      def compute = Mock(Compute)
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
+      def forwardingRulesDelete = Mock(Compute.ForwardingRules.Delete)
+      def targetHttpProxies = Mock(Compute.RegionTargetHttpProxies)
+      def targetHttpProxiesDelete = Mock(Compute.RegionTargetHttpProxies.Delete)
+      def proxyDeleteOperation = new Operation(name: "proxy-delete", status: DONE)
+      @Subject def operation = new UpsertGoogleInternalHttpLoadBalancerAtomicOperation(
+        new UpsertGoogleLoadBalancerDescription())
+      operation.registry = registry
+      operation.safeRetry = safeRetry
+
+    when:
+      def result = operation.deleteRegionalListenerIfOwned(
+        compute,
+        PROJECT_NAME,
+        REGION,
+        "internal-listener",
+        "expected-url-map")
+
+    then:
+      _ * compute.forwardingRules() >> forwardingRules
+      2 * forwardingRules.get(PROJECT_NAME, REGION, "internal-listener") >> forwardingRulesGet
+      2 * forwardingRulesGet.execute() >> new ForwardingRule(
+        name: "internal-listener",
+        loadBalancingScheme: "INTERNAL_MANAGED",
+        target: "projects/$PROJECT_NAME/regions/$REGION/targetHttpProxies/internal-proxy")
+
+      _ * compute.regionTargetHttpProxies() >> targetHttpProxies
+      0 * targetHttpProxies.get(_, _, _)
+
+      1 * forwardingRules.delete(PROJECT_NAME, REGION, "internal-listener") >> forwardingRulesDelete
+      1 * forwardingRulesDelete.execute() >> new Operation(name: "rule-delete", status: DONE)
+      1 * targetHttpProxies.delete(PROJECT_NAME, REGION, "internal-proxy") >> targetHttpProxiesDelete
+      1 * targetHttpProxiesDelete.execute() >> proxyDeleteOperation
+
+      result == proxyDeleteOperation
+  }
+
   void "should create an Internal HTTPS Load Balancer when certificate specified"() {
     setup:
       def computeMock = Mock(Compute)
