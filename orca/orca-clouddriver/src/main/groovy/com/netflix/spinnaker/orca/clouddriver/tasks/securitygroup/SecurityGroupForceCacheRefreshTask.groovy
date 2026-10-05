@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.securitygroup
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
@@ -23,11 +24,13 @@ import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
 
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 import javax.annotation.Nonnull
 
+@Slf4j
 @Component
 public class SecurityGroupForceCacheRefreshTask implements CloudProviderAware, Task {
   static final String REFRESH_TYPE = "SecurityGroup"
@@ -41,9 +44,12 @@ public class SecurityGroupForceCacheRefreshTask implements CloudProviderAware, T
     String cloudProvider = getCloudProvider(stage)
 
     stage.context.targets.each { Map target ->
-      cacheService.forceCacheUpdate(
-        cloudProvider, REFRESH_TYPE, [account: target.accountName, securityGroupName: target.name, region: target.region] as Map
-      )
+      def model = [account: target.accountName, securityGroupName: target.name, region: target.region] as Map
+      try {
+        Retrofit2SyncCall.executeCall(cacheService.forceCacheUpdate(cloudProvider, REFRESH_TYPE, model))
+      } catch (Exception e) {
+        log.warn("Failed to force cache refresh (cloudProvider: {}, type: {}, model: {})", cloudProvider, REFRESH_TYPE, model, e)
+      }
     }
 
     TaskResult.ofStatus(ExecutionStatus.SUCCEEDED)

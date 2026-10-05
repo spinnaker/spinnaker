@@ -17,40 +17,76 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.securitygroup
 
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
+import okhttp3.MediaType
+import okhttp3.ResponseBody
+import retrofit2.Call
+import retrofit2.Response
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
+
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class SecurityGroupForceCacheRefreshTaskSpec extends Specification {
   @Subject task = new SecurityGroupForceCacheRefreshTask()
   def stage = stage()
 
-  def config = [
+  def westTarget = [
     name       : "sg-12345a",
     region     : "us-west-1",
     accountName: "fzlem"
   ]
 
+  def eastTarget = [
+    name       : "sg-67890b",
+    region     : "us-east-1",
+    accountName: "fzlem"
+  ]
+
   def setup() {
-    stage.context.targets = [
-        config
-    ]
+    stage.context.targets = [westTarget, eastTarget]
+    task.cacheService = Mock(CloudDriverCacheService)
   }
 
-  void "should force cache refresh security groups via mort"() {
-    setup:
-    task.cacheService = Mock(CloudDriverCacheService)
+  void "should force cache refresh every target security group"() {
+    given:
+    def westCall = refreshResponse()
+    def eastCall = refreshResponse()
 
     when:
-    task.execute(stage)
+    def result = task.execute(stage)
 
     then:
-    1 * task.cacheService.forceCacheUpdate('aws', SecurityGroupForceCacheRefreshTask.REFRESH_TYPE, _) >> {
-      String cloudProvider, String type, Map<String, Object> body ->
+    1 * task.cacheService.forceCacheUpdate('aws', SecurityGroupForceCacheRefreshTask.REFRESH_TYPE, refreshBody(westTarget)) >> westCall
+    1 * task.cacheService.forceCacheUpdate('aws', SecurityGroupForceCacheRefreshTask.REFRESH_TYPE, refreshBody(eastTarget)) >> eastCall
+    0 * task.cacheService._
+    westCall.isExecuted()
+    eastCall.isExecuted()
+    result.status == SUCCEEDED
+  }
 
-      assert body.securityGroupName == config.name
-      assert body.account == config.accountName
-      assert body.region == "us-west-1"
-    }
+  void "should still refresh the remaining targets when one refresh fails"() {
+    given:
+    def failedCall = Calls.<ResponseBody>failure(new IOException("clouddriver unavailable"))
+    def eastCall = refreshResponse()
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    1 * task.cacheService.forceCacheUpdate('aws', SecurityGroupForceCacheRefreshTask.REFRESH_TYPE, refreshBody(westTarget)) >> failedCall
+    1 * task.cacheService.forceCacheUpdate('aws', SecurityGroupForceCacheRefreshTask.REFRESH_TYPE, refreshBody(eastTarget)) >> eastCall
+    failedCall.isExecuted()
+    eastCall.isExecuted()
+    result.status == SUCCEEDED
+  }
+
+  private static Map refreshBody(Map target) {
+    [account: target.accountName, securityGroupName: target.name, region: target.region]
+  }
+
+  private static Call<ResponseBody> refreshResponse() {
+    Calls.response(Response.success(200, ResponseBody.create(MediaType.parse("application/json"), "{}")))
   }
 }
