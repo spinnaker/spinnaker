@@ -32,8 +32,10 @@ import java.sql.*;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -187,12 +189,15 @@ class CompositeStorageContainerSqlToProgressTest {
         DriverManager.getConnection(mysql.getJdbcUrl(), mysql.getUsername(), mysql.getPassword());
     ResultSet outputPrimary = connectionPrimary.prepareStatement(query).executeQuery();
 
-    List<Map<String, Object>> expected = convertResultSetToList(outputPrimary);
-    List<Map<String, Object>> actual = convertResultSetToList(outputSecondary);
-    assertThat(actual.contains(expected));
-    assertThat(actual.size()).isGreaterThan(1);
-    assertThat(expected.size()).isGreaterThan(1);
-    assertThat(actual.size()).isGreaterThan(expected.size());
+    Set<String> expectedIds = changeSetIds(outputPrimary);
+    Set<String> actualIds = changeSetIds(outputSecondary);
+    assertThat(expectedIds).hasSizeGreaterThan(1);
+    // MySQL-only changeset; Postgres runs create-indexes-postgresql instead
+    expectedIds.remove("create-indexes");
+    assertThat(actualIds)
+        .containsAll(expectedIds)
+        .contains("create-indexes-postgresql")
+        .hasSizeGreaterThan(expectedIds.size());
 
     connectionPrimary.close();
     connectionSecondary.close();
@@ -280,6 +285,14 @@ class CompositeStorageContainerSqlToProgressTest {
 
     connectionPrimaryClass.close();
     connectionPreviousClass.close();
+  }
+
+  private static Set<String> changeSetIds(ResultSet rs) throws SQLException {
+    Set<String> ids = new HashSet<>();
+    while (rs.next()) {
+      ids.add(rs.getString(1));
+    }
+    return ids;
   }
 
   private static List<Map<String, Object>> convertResultSetToList(ResultSet rs)
