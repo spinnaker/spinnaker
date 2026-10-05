@@ -51,7 +51,6 @@ class DeleteLoadBalancerStageSpec extends Specification {
     "aws"         | "application"
     "gce"         | "INTERNAL_MANAGED"
     "gce"         | "EXTERNAL_MANAGED"
-    "gce"         | "REGIONAL_EXTERNAL_NETWORK"
     "azure"       | null
   }
 }

@@ -19,7 +19,6 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer.DeleteLoadBalancerForceRefreshTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer.DeleteLoadBalancerTask
-import com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer.LoadBalancerTarget
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
 import groovy.transform.CompileStatic
@@ -32,18 +31,6 @@ import javax.annotation.Nonnull
 class DeleteLoadBalancerStage implements StageDefinitionBuilder {
   @Override
   void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
-    if (LoadBalancerTarget.isRegionalExternal(
-      stage.context.get("cloudProvider") as String,
-      stage.context.get("loadBalancerType") as String
-    )) {
-      // Regional families evict only after the cloud deletion has completed.
-      builder
-        .withTask("deleteLoadBalancer", DeleteLoadBalancerTask)
-        .withTask("monitorDelete", MonitorKatoTask)
-        .withTask("forceCacheRefresh", DeleteLoadBalancerForceRefreshTask)
-      return
-    }
-
     builder
       .withTask("deleteLoadBalancer", DeleteLoadBalancerTask)
       .withTask("monitorDelete", MonitorKatoTask)
