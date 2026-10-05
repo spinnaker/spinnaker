@@ -126,6 +126,7 @@ import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.JacksonModule;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.cfg.DateTimeFeature;
 import tools.jackson.module.kotlin.KotlinModule;
 
 @Configuration
@@ -165,6 +166,8 @@ class CloudDriverConfig {
                   .withContentInclusion(JsonInclude.Include.NON_NULL));
       jsonMapperBuilder.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
       jsonMapperBuilder.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+      jsonMapperBuilder.disable(DateTimeFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS);
+      jsonMapperBuilder.disable(DateTimeFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS);
     };
   }
 
