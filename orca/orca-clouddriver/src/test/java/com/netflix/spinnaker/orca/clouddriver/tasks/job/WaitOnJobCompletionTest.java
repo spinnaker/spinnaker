@@ -347,8 +347,8 @@ public final class WaitOnJobCompletionTest {
     assertThat(result.getOutputs()).isNotEmpty();
     assertThat(result.getContext()).isNotEmpty();
 
-    assertThat(result.getOutputs().containsKey("some-key"));
-    assertThat(result.getOutputs().containsValue("some-value"));
+    assertThat(result.getOutputs()).containsKey("some-key");
+    assertThat(result.getOutputs().containsValue("some-value")).isTrue();
     verify(mockKatoRestService)
         .getFileContents("test-app", "test-account", "test", "job testrep", "testrep");
     // no need to get file contents from a specific pod if the getFileContents call was successful
@@ -390,8 +390,8 @@ public final class WaitOnJobCompletionTest {
     assertThat(result.getOutputs()).isNotEmpty();
     assertThat(result.getContext()).isNotEmpty();
 
-    assertThat(result.getOutputs().containsKey("some-key"));
-    assertThat(result.getOutputs().containsValue("some-value"));
+    assertThat(result.getOutputs()).containsKey("some-key");
+    assertThat(result.getOutputs().containsValue("some-value")).isTrue();
     verify(mockKatoRestService)
         .getFileContents("test-app", "test-account", "test", "job testrep", "testrep");
     verify(mockKatoRestService)
