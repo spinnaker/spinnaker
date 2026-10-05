@@ -86,7 +86,12 @@ public class JobUtils implements CloudProviderAware {
 
       validAppName = appName;
       retrySupport.retry(
-          () -> katoRestService.cancelJob(validAppName, account, location, name), 6, 5000, false);
+          () ->
+              Retrofit2SyncCall.executeCall(
+                  katoRestService.cancelJob(validAppName, account, location, name)),
+          6,
+          5000,
+          false);
     }
   }
 
