@@ -37,7 +37,7 @@ final class Yaml11Scalars {
   private static final Pattern BINARY = Pattern.compile("[-+]?0b[01_]+");
   private static final Pattern OCTAL = Pattern.compile("[-+]?0[0-7_]+");
   private static final Pattern NUMBER =
-      Pattern.compile("[-+]?(?:[0-9][0-9_]*)?\\.?[0-9_]*(?:[eE][-+]?[0-9_]+)?");
+      Pattern.compile("[-+]?(?:[0-9][0-9_]*(?:\\.[0-9_]*)?|\\.[0-9_]+)(?:[eE][-+]?[0-9_]+)?");
 
   /** What the Jackson 3 scalar resolver already decodes as an int or a float. */
   private static final Pattern JACKSON_NUMBER =
@@ -102,7 +102,7 @@ final class Yaml11Scalars {
 
   @Nullable
   private static String normalizeDecimal(String value) {
-    if (!NUMBER.matcher(value).matches() || !startsWithDigitOrDot(value)) {
+    if (!NUMBER.matcher(value).matches()) {
       return null;
     }
     String cleaned = value.replace("_", "");
@@ -123,11 +123,6 @@ final class Yaml11Scalars {
       }
     }
     return false;
-  }
-
-  private static boolean startsWithDigitOrDot(String value) {
-    int i = (value.charAt(0) == '-' || value.charAt(0) == '+') ? 1 : 0;
-    return i < value.length() && (Character.isDigit(value.charAt(i)) || value.charAt(i) == '.');
   }
 
   private static String integer(

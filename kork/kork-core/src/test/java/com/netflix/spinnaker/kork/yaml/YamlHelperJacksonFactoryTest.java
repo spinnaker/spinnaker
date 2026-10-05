@@ -196,6 +196,14 @@ class YamlHelperJacksonFactoryTest {
         .isInstanceOf(JacksonException.class);
   }
 
+  @Test
+  void invalidRadixNumbersRemainJacksonParsingFailures() {
+    for (String scalar : List.of("0x_", "0b_")) {
+      assertThatThrownBy(() -> helperMapper.readValue("v: " + scalar, Object.class))
+          .isInstanceOf(JacksonException.class);
+    }
+  }
+
   static class StringValue {
     public String v;
   }
