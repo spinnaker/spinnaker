@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Counter;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent;
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock;
@@ -90,7 +91,7 @@ public class AccountCache extends AbstractPollingNotificationAgent {
                   retrySupport.retry(
                       () ->
                           objectMapper.convertValue(
-                              oortService.getCredentials(true),
+                              Retrofit2SyncCall.execute(oortService.getCredentials(true)),
                               new TypeReference<List<Account>>() {}),
                       5,
                       3000,
@@ -112,8 +113,13 @@ public class AccountCache extends AbstractPollingNotificationAgent {
   }
 
   public String getEnvironment(String accountName) {
+    List<Account> knownAccounts = getAccounts();
+    if (knownAccounts == null) {
+      return "unknown";
+    }
+
     final Optional<Account> account =
-        getAccounts().stream().filter(i -> i.name.equals(accountName)).findFirst();
+        knownAccounts.stream().filter(i -> i.name.equals(accountName)).findFirst();
 
     return account.map(a -> a.environment).orElse("unknown");
   }
