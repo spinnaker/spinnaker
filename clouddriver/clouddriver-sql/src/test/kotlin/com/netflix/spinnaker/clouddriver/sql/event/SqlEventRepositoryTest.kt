@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.event.SpinnakerEvent
 import com.netflix.spinnaker.clouddriver.event.exceptions.AggregateChangeRejectedException
 import com.netflix.spinnaker.clouddriver.event.persistence.EventRepository.ListAggregatesCriteria
 import com.netflix.spinnaker.clouddriver.event.persistence.EventRepository.ListAggregatesResult
+import com.netflix.spinnaker.clouddriver.sql.SqlRetries
 import com.netflix.spinnaker.config.SqlConfiguration
 import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer.ClassSubtypeLocator
 import com.netflix.spinnaker.kork.sql.config.SqlProperties
@@ -218,7 +219,8 @@ class SqlEventRepositoryTest : JUnit5Minutests {
         .build(),
       applicationEventPublisher = applicationEventPublisher,
       registry = NoopRegistry(),
-      subtypeLocators = listOf(ClassSubtypeLocator(SpinnakerEvent::class.java, listOf(MyEvent::class.java.packageName)))
+      subtypeLocators = listOf(ClassSubtypeLocator(SpinnakerEvent::class.java, listOf(MyEvent::class.java.packageName))),
+      sqlRetries = SqlRetries()
     )
 
     init {
