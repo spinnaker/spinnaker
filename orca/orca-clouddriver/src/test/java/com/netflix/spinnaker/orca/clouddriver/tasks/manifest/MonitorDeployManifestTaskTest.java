@@ -96,7 +96,12 @@ final class MonitorDeployManifestTaskTest {
   void setUp() {
     task =
         new MonitorDeployManifestTask(
-            katoService, oortService, noopRegistry, dynamicConfigService, retrySupport);
+            katoService,
+            oortService,
+            noopRegistry,
+            dynamicConfigService,
+            retrySupport,
+            new com.netflix.spinnaker.orca.clouddriver.config.TaskConfigurationProperties());
     katoTask = new Task("2", new Task.Status(false, false, false), List.of(), List.of(), List.of());
 
     myStage =

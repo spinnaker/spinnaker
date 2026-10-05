@@ -32,7 +32,6 @@ import org.jooq.DSLContext
 import org.jooq.Record
 import org.jooq.Select
 import org.jooq.impl.DSL.field
-import org.jooq.impl.DSL.max
 import org.jooq.impl.DSL.sql
 import org.slf4j.LoggerFactory
 
@@ -357,50 +356,39 @@ class SqlTaskRepository(
   }
 
   /**
-   * Since task statuses are insert-only, we first need to find the most
-   * recent status record for each task ID and the filter that result set
-   * down to the ones that are running.
+   * Finds task IDs whose most recent state is STARTED by querying the smaller
+   * tasks table and using a correlated subquery to look up the latest state
+   * per task via the (task_id, created_at) index on task_states.
    *
-   * Query used:
-   * SELECT a.task_id
-   * FROM task_states AS `a`
-   *  JOIN (
-   *    SELECT task_id, MAX(created_at) AS `created`
-   *    FROM task_states
-   *    GROUP BY task_id
-   *  ) AS `b`
-   *    ON (a.task_id = b.task_id AND a.created_at = b.created)
-   *  JOIN tasks AS `t`
-   *    ON (a.task_id = t.id)
+   * Query used (thisInstance = true):
+   * SELECT t.id
+   * FROM tasks AS t
    * WHERE (
-   *  t.owner_id = '<clouddriver host name>'
-   *    and a.state = 'STARTED'
-   * )
+   *   SELECT state FROM task_states
+   *   WHERE task_id = t.id
+   *   ORDER BY created_at DESC
+   *   LIMIT 1
+   * ) = 'STARTED'
+   * AND t.owner_id = '<clouddriver host name>'
    */
   private fun runningTaskIds(ctx: DSLContext, thisInstance: Boolean): Array<String> {
     return withPool(poolName) {
-      val baseQuery = ctx.select(field("a.task_id"))
-        .from(taskStatesTable.`as`("a"))
-        .innerJoin(
-          ctx.select(field("task_id"), max(field("created_at")).`as`("created"))
-            .from(taskStatesTable)
-            .groupBy(field("task_id"))
-            .asTable("b")
-        ).on(sql("a.task_id = b.task_id and a.created_at = b.created"))
+      val latestState = ctx.select(field("state"))
+        .from(taskStatesTable)
+        .where(field("task_id", String::class.java).eq(field("t.id", String::class.java)))
+        .orderBy(field("created_at").desc())
+        .limit(1)
 
-      val select = if (thisInstance) {
-        baseQuery
-          .innerJoin(tasksTable.`as`("t")).on(sql("a.task_id = t.id"))
-          .where(
-            field("t.owner_id").eq(ClouddriverHostname.ID)
-              .and(field("a.state").eq(STARTED.toString()))
-          )
-      } else {
-        baseQuery.where(field("a.state").eq(STARTED.toString()))
+      var condition = latestState.asField<String>().eq(STARTED.toString())
+
+      if (thisInstance) {
+        condition = condition.and(field("t.owner_id").eq(ClouddriverHostname.ID))
       }
 
-      select
-        .fetch("a.task_id", String::class.java)
+      ctx.select(field("t.id"))
+        .from(tasksTable.`as`("t"))
+        .where(listOf(condition))
+        .fetch("t.id", String::class.java)
         .toTypedArray()
     }
   }

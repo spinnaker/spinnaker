@@ -1,0 +1,17 @@
+databaseChangeLog:
+  - changeSet:
+      id: task-states-state-created-at-idx
+      author: steven.landry
+      changes:
+        - createIndex:
+            indexName: task_states_state_created_at_idx
+            tableName: task_states
+            columns:
+              - column:
+                  name: state
+              - column:
+                  name: created_at
+      rollback:
+        - dropIndex:
+            indexName: task_states_state_created_at_idx
+            tableName: task_states
