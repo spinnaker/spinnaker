@@ -18,10 +18,12 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheStatusService
 import okhttp3.ResponseBody
 import okhttp3.MediaType
+import retrofit2.Call
 import retrofit2.mock.Calls
 import retrofit2.Response
 import spock.lang.Specification
@@ -187,6 +189,112 @@ class ServerGroupCacheForceRefreshTaskSpec extends Specification {
     ["s-v001"]           | [pFCU("s-v001", -1, 1)]                       || false   // cacheTime < startTime, processedTime > startTime
     ["s-v001"]           | [pFCU("s-v001", 1, -1)]                       || false   // cacheTime > startTime, processedTime < startTime
     ["s-v001"]           | []                                            || false   // no pending force cache update
+  }
+
+  @Unroll
+  void "should re-force a missing cache refresh with the refresh model (status: #responseCode, zone: #zone)"() {
+    given:
+    def stageData = new ServerGroupCacheForceRefreshTask.StageData(
+      deployServerGroups: ["us-west-1": ["s-v001"] as Set<String>],
+      zone: zone
+    )
+    def refreshModel = [asgName: "s-v001", serverGroupName: "s-v001", region: "us-west-1", account: "test"]
+    if (zone) {
+      refreshModel.zone = zone
+    }
+    def refreshCall = Calls.response(Response.success(responseCode, ResponseBody.create(MediaType.parse("application/json"), "")))
+
+    when:
+    def processingComplete = task.processPendingForceCacheUpdates("executionId", "test", "aws", stageData, 0)
+
+    then:
+    1 * task.cacheStatusService.pendingForceCacheUpdates("aws", "ServerGroup") >> Calls.response([])
+    1 * task.cacheService.forceCacheUpdate("aws", "ServerGroup", refreshModel) >> refreshCall
+    0 * task.cacheService._
+    refreshCall.isExecuted()
+    processingComplete == expectedProcessingComplete
+    stageData.errors.isEmpty()
+    stageData.processedServerGroups == (expectedProcessingComplete ? [[serverGroup: "s-v001", region: "us-west-1", account: "test"]] : []) as Set
+    stageData.refreshedServerGroups == [refreshModel] as Set
+
+    where:
+    responseCode  | zone         || expectedProcessingComplete
+    HTTP_OK       | null         || true
+    HTTP_OK       | "us-west-1a" || true
+    HTTP_ACCEPTED | null         || false
+    HTTP_ACCEPTED | "us-west-1a" || false
+  }
+
+  void "should record a failed re-force and keep waiting"() {
+    given:
+    def stageData = new ServerGroupCacheForceRefreshTask.StageData(
+      deployServerGroups: ["us-west-1": ["s-v001"] as Set<String>]
+    )
+    def failedCall = Calls.<ResponseBody>failure(new IOException("clouddriver unavailable"))
+
+    when:
+    def processingComplete = task.processPendingForceCacheUpdates("executionId", "test", "aws", stageData, 0)
+
+    then:
+    1 * task.cacheStatusService.pendingForceCacheUpdates("aws", "ServerGroup") >> Calls.response([])
+    1 * task.cacheService.forceCacheUpdate("aws", "ServerGroup", _) >> failedCall
+    failedCall.isExecuted()
+    !processingComplete
+    stageData.errors.size() == 1
+    stageData.processedServerGroups.isEmpty()
+    stageData.refreshedServerGroups.isEmpty()
+  }
+
+  void "should keep waiting for other server groups after a re-forced refresh is applied immediately"() {
+    given:
+    task.clock = Mock(Clock) {
+      _ * millis() >> 0
+    }
+    stage.context."deploy.server.groups" = ["us-east-1": ["a-v001"], "us-west-2": ["b-v001"]]
+    def pendingB = { Long processedTime ->
+      [cacheTime: 1, processedTime: processedTime, details: [serverGroup: "b-v001", region: "us-west-2", account: "fzlem"]]
+    }
+
+    when: "both server groups are refreshed and queued"
+    def result = executeAndMergeContext()
+
+    then:
+    2 * cacheService.forceCacheUpdate("aws", "ServerGroup", _) >> { refreshResponse(HTTP_ACCEPTED) }
+    result.status == RUNNING
+
+    when: "a has no pending update, so it is re-forced and applied immediately"
+    result = executeAndMergeContext()
+
+    then:
+    1 * cacheStatusService.pendingForceCacheUpdates("aws", "ServerGroup") >> Calls.response([pendingB(null)])
+    1 * cacheService.forceCacheUpdate("aws", "ServerGroup", [asgName: "a-v001", serverGroupName: "a-v001", region: "us-east-1", account: "fzlem"]) >> refreshResponse(HTTP_OK)
+    result.status == RUNNING
+
+    when: "b is still awaiting processing"
+    result = executeAndMergeContext()
+
+    then:
+    1 * cacheStatusService.pendingForceCacheUpdates("aws", "ServerGroup") >> Calls.response([pendingB(null)])
+    0 * cacheService.forceCacheUpdate(*_)
+    result.status == RUNNING
+
+    when: "b has been processed"
+    result = executeAndMergeContext()
+
+    then:
+    1 * cacheStatusService.pendingForceCacheUpdates("aws", "ServerGroup") >> Calls.response([pendingB(1)])
+    0 * cacheService.forceCacheUpdate(*_)
+    result.status == SUCCEEDED
+  }
+
+  private TaskResult executeAndMergeContext() {
+    def result = task.execute(stage)
+    stage.context.putAll(result.context)
+    return result
+  }
+
+  private static Call<ResponseBody> refreshResponse(int responseCode) {
+    Calls.response(Response.success(responseCode, ResponseBody.create(MediaType.parse("application/json"), "")))
   }
 
   @Unroll
