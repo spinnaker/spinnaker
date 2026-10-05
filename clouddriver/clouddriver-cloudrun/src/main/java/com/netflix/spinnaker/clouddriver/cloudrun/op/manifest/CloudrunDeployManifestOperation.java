@@ -41,7 +41,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import tools.jackson.core.JacksonException;
+import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.dataformat.yaml.YAMLMapper;
 
 public class CloudrunDeployManifestOperation implements AtomicOperation<DeploymentResult> {
@@ -60,7 +62,8 @@ public class CloudrunDeployManifestOperation implements AtomicOperation<Deployme
 
   CloudrunDeployManifestDescription description;
 
-  private final ObjectMapper objectMapper = YAMLMapper.builder().build();
+  private final ObjectMapper objectMapper =
+      JsonMapper.builder().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
 
   private final ObjectMapper yamlMapper = YAMLMapper.builder(YamlHelper.newYamlFactory()).build();
 

@@ -30,6 +30,7 @@ import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import tools.jackson.dataformat.yaml.YAMLFactory
 
 import static com.netflix.spinnaker.igor.scm.stash.client.StashMaster.DEFAULT_PAGED_RESPONSE_LIMIT
@@ -42,7 +43,7 @@ class ManagedDeliveryScmServiceSpec extends Specification {
   StashClient client = Mock(StashClient)
   def STASH_ADDRESS = "https://stash.com"
 
-  ObjectMapper jsonMapper = YAMLMapper.builder().build()
+  ObjectMapper jsonMapper = JsonMapper.builder().build()
   ObjectMapper yamlMapper = YAMLMapper.builder().build()
 
   void setup() {

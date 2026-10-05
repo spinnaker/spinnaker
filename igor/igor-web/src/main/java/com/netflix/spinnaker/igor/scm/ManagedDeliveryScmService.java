@@ -32,6 +32,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.stereotype.Service;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.dataformat.yaml.YAMLMapper;
 
 /** Support for retrieving Managed Delivery-related information from SCM systems. */
@@ -63,7 +64,7 @@ public class ManagedDeliveryScmService {
     this.gitHubMaster = gitHubMaster;
     this.gitLabMaster = gitLabMaster;
     this.bitBucketMaster = bitBucketMaster;
-    this.jsonMapper = YAMLMapper.builder().build();
+    this.jsonMapper = JsonMapper.builder().build();
     this.yamlMapper = YAMLMapper.builder(yamlHelper.yamlFactory()).build();
   }
 
