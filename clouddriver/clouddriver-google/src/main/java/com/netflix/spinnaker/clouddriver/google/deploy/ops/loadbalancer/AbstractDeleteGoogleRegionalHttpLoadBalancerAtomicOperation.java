@@ -53,17 +53,6 @@ public abstract class AbstractDeleteGoogleRegionalHttpLoadBalancerAtomicOperatio
     return TaskRepository.threadLocalTask.get();
   }
 
-  private static void addServicesFromPathMatchers(
-      List<String> backendServiceUrls, List<PathMatcher> pathMatchers) {
-    if (pathMatchers == null) return;
-    for (PathMatcher pathMatcher : pathMatchers) {
-      backendServiceUrls.add(pathMatcher.getDefaultService());
-      for (PathRule pathRule : pathMatcher.getPathRules()) {
-        backendServiceUrls.add(pathRule.getService());
-      }
-    }
-  }
-
   @Autowired private SafeRetry safeRetry;
   @Autowired private GoogleOperationPoller googleOperationPoller;
   protected DeleteGoogleLoadBalancerDescription description;
@@ -215,15 +204,12 @@ public abstract class AbstractDeleteGoogleRegionalHttpLoadBalancerAtomicOperatio
                   () -> new IllegalStateException(format("urlMap %s not found.", urlMapName)));
       projectUrlMaps.removeIf(u -> u.getName().equals(urlMapName));
 
-      List<String> backendServiceUrls = new ArrayList<>();
-      backendServiceUrls.add(urlMap.getDefaultService());
-      addServicesFromPathMatchers(backendServiceUrls, urlMap.getPathMatchers());
-      backendServiceUrls = ImmutableSet.copyOf(backendServiceUrls).asList();
+      List<String> backendServiceNames =
+          ImmutableSet.copyOf(Utils.getBackendServicesFromUrlMap(urlMap)).asList();
 
       // Backend services. Also, get health check URLs.
       Set<String> healthCheckUrls = new HashSet<>();
-      for (String backendServiceUrl : backendServiceUrls) {
-        final String backendServiceName = GCEUtil.getLocalName(backendServiceUrl);
+      for (String backendServiceName : backendServiceNames) {
         getTask()
             .updateStatus(
                 getBasePhase(),
@@ -281,7 +267,9 @@ public abstract class AbstractDeleteGoogleRegionalHttpLoadBalancerAtomicOperatio
                   + ".");
         }
 
-        healthCheckUrls.addAll(backendService.getHealthChecks());
+        if (backendService.getHealthChecks() != null) {
+          healthCheckUrls.addAll(backendService.getHealthChecks());
+        }
       }
 
       final Long timeoutSeconds = description.getDeleteOperationTimeoutSeconds();
@@ -363,8 +351,7 @@ public abstract class AbstractDeleteGoogleRegionalHttpLoadBalancerAtomicOperatio
       // We make a list of the delete operations for backend services.
       List<BackendServiceAsyncDeleteOperation> deleteBackendServiceAsyncOperations =
           new ArrayList<>();
-      for (String backendServiceUrl : backendServiceUrls) {
-        final String backendServiceName = GCEUtil.getLocalName(backendServiceUrl);
+      for (String backendServiceName : backendServiceNames) {
         Operation deleteBackendServiceOp =
             GCEUtil.deleteIfNotInUse(
                 new Closure<Operation>(this, this) {

@@ -309,7 +309,8 @@ class Utils {
         backendServices << GCEUtil.getLocalName(pathRule.service)
       }
     }
-    return backendServices
+    // A redirect has no backend service.
+    return backendServices.findAll { it != null }
   }
 
   static boolean determineHttpLoadBalancerDisabledState(GoogleHttpLoadBalancer loadBalancer,

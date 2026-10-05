@@ -16,6 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.google.model.callbacks
 
+import com.google.api.services.compute.model.HttpRedirectAction
+import com.google.api.services.compute.model.PathMatcher
+import com.google.api.services.compute.model.PathRule
+import com.google.api.services.compute.model.UrlMap
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleTargetProxyType
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
@@ -193,5 +197,24 @@ class UtilsSpec extends Specification {
 
     expect:
       Utils.determineInternalLoadBalancerDisabledState(loadBalancer, serverGroup)
+  }
+
+  void "getBackendServicesFromUrlMap skips redirects"() {
+    given:
+      def redirect = new HttpRedirectAction(httpsRedirect: true)
+      def urlMap = new UrlMap(
+        defaultUrlRedirect: redirect,
+        pathMatchers: [
+          new PathMatcher(defaultService: "projects/p/regions/$REGION/backendServices/backend-a"),
+          new PathMatcher(
+            defaultUrlRedirect: redirect,
+            pathRules: [
+              new PathRule(paths: ["/old/*"], urlRedirect: redirect),
+              new PathRule(paths: ["/api/*"], service: "projects/p/regions/$REGION/backendServices/backend-b")
+            ])
+        ])
+
+    expect:
+      Utils.getBackendServicesFromUrlMap(urlMap) == ["backend-a", "backend-b"]
   }
 }

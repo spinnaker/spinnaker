@@ -179,6 +179,87 @@ class DeleteGoogleExternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       result.deletedLoadBalancerNames == [LOAD_BALANCER_NAME, SECOND_LISTENER_NAME]
   }
 
+  void "deletes a load balancer whose url map has redirects and no path rules"() {
+    setup:
+      def compute = Mock(Compute)
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
+      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
+      def forwardingRulesDelete = Mock(Compute.ForwardingRules.Delete)
+      def targetHttpProxies = Mock(Compute.RegionTargetHttpProxies)
+      def targetHttpProxiesGet = Mock(Compute.RegionTargetHttpProxies.Get)
+      def targetHttpProxiesDelete = Mock(Compute.RegionTargetHttpProxies.Delete)
+      def urlMaps = Mock(Compute.RegionUrlMaps)
+      def urlMapsList = Mock(Compute.RegionUrlMaps.List)
+      def urlMapsDelete = Mock(Compute.RegionUrlMaps.Delete)
+      def backendServices = Mock(Compute.RegionBackendServices)
+      def backendServicesGet = Mock(Compute.RegionBackendServices.Get)
+      def backendServicesDelete = Mock(Compute.RegionBackendServices.Delete)
+      def poller = Mock(GoogleOperationPoller)
+      def operationResult = new Operation(name: "operation", status: "DONE")
+      def forwardingRule = new ForwardingRule(
+        name: LOAD_BALANCER_NAME,
+        target: TARGET_HTTP_PROXY_URL,
+        loadBalancingScheme: "EXTERNAL_MANAGED")
+      def redirect = new HttpRedirectAction(httpsRedirect: true)
+      // Compute omits empty lists, so a path matcher without path rules has none at all.
+      def urlMap = new UrlMap(
+        name: URL_MAP_NAME,
+        defaultUrlRedirect: redirect,
+        pathMatchers: [
+          new PathMatcher(name: "matcher-a", defaultService: BACKEND_SERVICE_URL),
+          new PathMatcher(
+            name: "matcher-b",
+            defaultService: BACKEND_SERVICE_URL,
+            pathRules: [new PathRule(paths: ["/old/*"], urlRedirect: redirect)])
+        ])
+      def backendService = new BackendService(backends: [])
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(compute).build()
+      def description = new DeleteGoogleLoadBalancerDescription(
+        loadBalancerName: LOAD_BALANCER_NAME,
+        region: REGION,
+        accountName: ACCOUNT_NAME,
+        credentials: credentials,
+        deleteHealthChecks: true)
+      @Subject def operation = new DeleteGoogleExternalHttpLoadBalancerAtomicOperation(description)
+      setPrivateField(operation, AbstractDeleteGoogleRegionalHttpLoadBalancerAtomicOperation, "googleOperationPoller", poller)
+      operation.registry = new DefaultRegistry()
+      operation.safeRetry = safeRetry
+
+    when:
+      def result = operation.operate([])
+
+    then:
+      _ * compute.forwardingRules() >> forwardingRules
+      1 * forwardingRules.list(PROJECT_NAME, REGION) >> forwardingRulesList
+      1 * forwardingRulesList.execute() >> new ForwardingRuleList(items: [forwardingRule])
+      1 * forwardingRules.get(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRulesGet
+      1 * forwardingRulesGet.execute() >> forwardingRule
+      1 * forwardingRules.delete(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRulesDelete
+      1 * forwardingRulesDelete.execute() >> operationResult
+
+      _ * compute.regionTargetHttpProxies() >> targetHttpProxies
+      _ * targetHttpProxies.get(PROJECT_NAME, REGION, TARGET_HTTP_PROXY_NAME) >> targetHttpProxiesGet
+      _ * targetHttpProxiesGet.execute() >> new TargetHttpProxy(urlMap: URL_MAP_URL)
+      1 * targetHttpProxies.delete(PROJECT_NAME, REGION, TARGET_HTTP_PROXY_NAME) >> targetHttpProxiesDelete
+      1 * targetHttpProxiesDelete.execute() >> operationResult
+
+      _ * compute.regionUrlMaps() >> urlMaps
+      1 * urlMaps.list(PROJECT_NAME, REGION) >> urlMapsList
+      1 * urlMapsList.execute() >> new UrlMapList(items: [urlMap])
+      1 * urlMaps.delete(PROJECT_NAME, REGION, URL_MAP_NAME) >> urlMapsDelete
+      1 * urlMapsDelete.execute() >> operationResult
+      _ * compute.regionBackendServices() >> backendServices
+      1 * backendServices.get(PROJECT_NAME, REGION, BACKEND_SERVICE_NAME) >> backendServicesGet
+      1 * backendServicesGet.execute() >> backendService
+      1 * backendServices.delete(PROJECT_NAME, REGION, BACKEND_SERVICE_NAME) >> backendServicesDelete
+      1 * backendServicesDelete.execute() >> operationResult
+      0 * compute.regionHealthChecks()
+      // The listener proxy, the URL map and the backend service.
+      3 * poller.waitForRegionalOperation(*_)
+      result.deletedLoadBalancerNames == [LOAD_BALANCER_NAME]
+  }
+
   private static void setPrivateField(Object target, Class owner, String fieldName, Object value) {
     def field = owner.getDeclaredField(fieldName)
     field.accessible = true
