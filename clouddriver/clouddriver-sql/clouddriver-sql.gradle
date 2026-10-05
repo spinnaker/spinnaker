@@ -37,12 +37,8 @@ dependencies {
   testImplementation project(":clouddriver-core-tck")
 
   testImplementation "io.spinnaker.kork:kork-sql-test"
-<<<<<<< HEAD
-  testImplementation "org.testcontainers:mysql"
-=======
   testImplementation "io.spinnaker.kork:kork-web"
-  testImplementation "org.testcontainers:testcontainers-mysql"
->>>>>>> 10a54d1 (fix(clouddriver): make clouddriver-sql retries actually run (#8111))
+  testImplementation "org.testcontainers:mysql"
   testImplementation "com.mysql:mysql-connector-j"
 
   testImplementation "cglib:cglib-nodep"
