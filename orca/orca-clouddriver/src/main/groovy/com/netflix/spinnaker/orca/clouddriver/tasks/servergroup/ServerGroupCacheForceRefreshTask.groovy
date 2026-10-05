@@ -122,10 +122,7 @@ class ServerGroupCacheForceRefreshTask implements CloudProviderAware, RetryableT
 
     def refreshableServerGroups = stageData.deployServerGroups.collect { region, serverGroups ->
       serverGroups.findResults { String serverGroup ->
-        def model = [asgName: serverGroup, serverGroupName: serverGroup, region: region, account: account]
-        if (zone) {
-          model.zone = zone
-        }
+        def model = buildRefreshModel(serverGroup, region, account, zone)
 
         return !stageData.refreshedServerGroups.contains(model) ? model : null
       }
@@ -212,22 +209,23 @@ class ServerGroupCacheForceRefreshTask implements CloudProviderAware, RetryableT
           )
 
           try {
+            def refreshModel = buildRefreshModel(serverGroup, region, account, stageData.zone)
             log.debug(
               "Force immediate cache refresh POST to clouddriver (model: {}, executionId: {})",
-              model,
+              refreshModel,
               executionId
             )
-            def response = cacheService.forceCacheUpdate(cloudProvider, REFRESH_TYPE, model)
-            if (response.status == HttpURLConnection.HTTP_OK) {
+            def response = Retrofit2SyncCall.executeCall(cacheService.forceCacheUpdate(cloudProvider, REFRESH_TYPE, refreshModel))
+            stageData.refreshedServerGroups << refreshModel
+            if (response.code() == HttpURLConnection.HTTP_OK) {
               // cache update was applied immediately, no need to poll for completion
               log.debug(
                 "Processed force cache refresh request immediately (model: {}, executionId: {})",
-                model,
+                refreshModel,
                 executionId
               )
               return true
             }
-            stageData.refreshedServerGroups << model
           } catch (e) {
             stageData.errors << e.message
           }
@@ -285,6 +283,16 @@ class ServerGroupCacheForceRefreshTask implements CloudProviderAware, RetryableT
       finishedProcessing = finishedProcessing && (processedServerGroups == serverGroups)
     }
     return finishedProcessing
+  }
+
+  // Clouddriver's on-demand server group agents key on asgName/serverGroupName (and zone); a body
+  // without them is ignored and answered with 200 as if the refresh had been applied.
+  private static Map<String, String> buildRefreshModel(String serverGroup, String region, String account, String zone) {
+    def model = [asgName: serverGroup, serverGroupName: serverGroup, region: region, account: account]
+    if (zone) {
+      model.zone = zone
+    }
+    return model
   }
 
   private Map convertAndStripNullValues(StageData stageData) {

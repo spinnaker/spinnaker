@@ -46,7 +46,7 @@ class DeleteLoadBalancerStage implements StageDefinitionBuilder {
 
     builder
       .withTask("deleteLoadBalancer", DeleteLoadBalancerTask)
-      .withTask("forceCacheRefresh", DeleteLoadBalancerForceRefreshTask)
       .withTask("monitorDelete", MonitorKatoTask)
+      .withTask("forceCacheRefresh", DeleteLoadBalancerForceRefreshTask)
   }
 }

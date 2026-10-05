@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,6 +17,9 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.loadbalancer
 
 import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
+import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer.DeleteLoadBalancerForceRefreshTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer.DeleteLoadBalancerTask
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -25,7 +28,7 @@ import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 class DeleteLoadBalancerStageSpec extends Specification {
 
   @Unroll
-  def "orders the cache refresh for #cloudProvider #loadBalancerType"() {
+  def "refreshes the cache only after the delete operation completes for #cloudProvider"() {
     given:
     def deleteStage = stage {
       context = [cloudProvider: cloudProvider, loadBalancerType: loadBalancerType]
@@ -37,14 +40,18 @@ class DeleteLoadBalancerStageSpec extends Specification {
     }
 
     then:
-    graph*.name == expectedTasks
+    graph.collect { [it.name, it.implementingClass] } == [
+      ["deleteLoadBalancer", DeleteLoadBalancerTask],
+      ["monitorDelete", MonitorKatoTask],
+      ["forceCacheRefresh", DeleteLoadBalancerForceRefreshTask]
+    ]
 
     where:
-    cloudProvider | loadBalancerType            || expectedTasks
-    "gce"         | "EXTERNAL_MANAGED"          || ["deleteLoadBalancer", "monitorDelete", "forceCacheRefresh"]
-    "gce"         | "REGIONAL_EXTERNAL_NETWORK" || ["deleteLoadBalancer", "monitorDelete", "forceCacheRefresh"]
-    "gce"         | "INTERNAL_MANAGED"          || ["deleteLoadBalancer", "forceCacheRefresh", "monitorDelete"]
-    "aws"         | "application"               || ["deleteLoadBalancer", "forceCacheRefresh", "monitorDelete"]
-    "azure"       | null                        || ["deleteLoadBalancer", "forceCacheRefresh", "monitorDelete"]
+    cloudProvider | loadBalancerType
+    "aws"         | "application"
+    "gce"         | "INTERNAL_MANAGED"
+    "gce"         | "EXTERNAL_MANAGED"
+    "gce"         | "REGIONAL_EXTERNAL_NETWORK"
+    "azure"       | null
   }
 }

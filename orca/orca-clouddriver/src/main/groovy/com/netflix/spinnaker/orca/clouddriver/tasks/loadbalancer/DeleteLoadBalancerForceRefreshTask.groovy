@@ -29,6 +29,7 @@ import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
 
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit2.Response
@@ -36,6 +37,7 @@ import retrofit2.Response
 import javax.annotation.Nonnull
 import java.util.concurrent.TimeUnit
 
+@Slf4j
 @Component
 class DeleteLoadBalancerForceRefreshTask implements CloudProviderAware, RetryableTask {
   static final String REFRESH_TYPE = "LoadBalancer"
@@ -60,11 +62,17 @@ class DeleteLoadBalancerForceRefreshTask implements CloudProviderAware, Retryabl
     String vpcId = stage.context.vpcId ?: ''
     List<String> regions = stage.context.regions
 
+    List<String> errors = []
     regions.each { region ->
       def model = [loadBalancerName: name, region: region, account: account, vpcId: vpcId, evict: true] as Map
-      cacheService.forceCacheUpdate(cloudProvider, REFRESH_TYPE, model)
+      try {
+        Retrofit2SyncCall.executeCall(cacheService.forceCacheUpdate(cloudProvider, REFRESH_TYPE, model))
+      } catch (Exception e) {
+        log.warn("Failed to force cache refresh (cloudProvider: {}, type: {}, model: {})", cloudProvider, REFRESH_TYPE, model, e)
+        errors << "Failed to refresh ${name} in ${region}: ${e.message}".toString()
+      }
     }
-    TaskResult.ofStatus(ExecutionStatus.SUCCEEDED)
+    TaskResult.builder(ExecutionStatus.SUCCEEDED).context(errors ? ["force.cache.refresh.errors": errors] : [:]).build()
   }
 
   private TaskResult refreshRegionalExternal(StageExecution stage, String cloudProvider, String account) {
