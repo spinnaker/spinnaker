@@ -48,14 +48,16 @@ class DeleteSecurityGroupForceRefreshTask implements CloudProviderAware, Task {
     String name = stage.context.securityGroupName
     List<String> regions = stage.context.regions
 
+    List<String> errors = []
     regions.each { region ->
       def model = [securityGroupName: name, vpcId: vpcId, region: region, account: account, evict: true] as Map
       try {
         Retrofit2SyncCall.executeCall(cacheService.forceCacheUpdate(cloudProvider, REFRESH_TYPE, model))
       } catch (Exception e) {
         log.warn("Failed to force cache refresh (cloudProvider: {}, type: {}, model: {})", cloudProvider, REFRESH_TYPE, model, e)
+        errors << "Failed to refresh ${name} in ${region}: ${e.message}".toString()
       }
     }
-    TaskResult.ofStatus(ExecutionStatus.SUCCEEDED)
+    TaskResult.builder(ExecutionStatus.SUCCEEDED).context(errors ? ["force.cache.refresh.errors": errors] : [:]).build()
   }
 }

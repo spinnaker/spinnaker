@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.annotation.Nonnull;
 import org.slf4j.Logger;
@@ -63,6 +64,15 @@ public class LambdaFunctionForceRefreshTask implements CloudProviderAware, Task 
           task.get("region"),
           task.get("functionName"),
           e);
+      return TaskResult.builder(ExecutionStatus.SUCCEEDED)
+          .context(
+              Map.of(
+                  "force.cache.refresh.errors",
+                  List.of(
+                      String.format(
+                          "Failed to refresh %s in %s: %s",
+                          task.get("functionName"), task.get("region"), e.getMessage()))))
+          .build();
     }
 
     return TaskResult.ofStatus(ExecutionStatus.SUCCEEDED);

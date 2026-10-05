@@ -43,15 +43,17 @@ public class SecurityGroupForceCacheRefreshTask implements CloudProviderAware, T
   TaskResult execute(@Nonnull StageExecution stage) {
     String cloudProvider = getCloudProvider(stage)
 
+    List<String> errors = []
     stage.context.targets.each { Map target ->
       def model = [account: target.accountName, securityGroupName: target.name, region: target.region] as Map
       try {
         Retrofit2SyncCall.executeCall(cacheService.forceCacheUpdate(cloudProvider, REFRESH_TYPE, model))
       } catch (Exception e) {
         log.warn("Failed to force cache refresh (cloudProvider: {}, type: {}, model: {})", cloudProvider, REFRESH_TYPE, model, e)
+        errors << "Failed to refresh ${target.name} in ${target.region}: ${e.message}".toString()
       }
     }
 
-    TaskResult.ofStatus(ExecutionStatus.SUCCEEDED)
+    TaskResult.builder(ExecutionStatus.SUCCEEDED).context(errors ? ["force.cache.refresh.errors": errors] : [:]).build()
   }
 }

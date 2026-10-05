@@ -48,14 +48,16 @@ class DeleteLoadBalancerForceRefreshTask implements CloudProviderAware, Task {
     String vpcId = stage.context.vpcId ?: ''
     List<String> regions = stage.context.regions
 
+    List<String> errors = []
     regions.each { region ->
       def model = [loadBalancerName: name, region: region, account: account, vpcId: vpcId, evict: true] as Map
       try {
         Retrofit2SyncCall.executeCall(cacheService.forceCacheUpdate(cloudProvider, REFRESH_TYPE, model))
       } catch (Exception e) {
         log.warn("Failed to force cache refresh (cloudProvider: {}, type: {}, model: {})", cloudProvider, REFRESH_TYPE, model, e)
+        errors << "Failed to refresh ${name} in ${region}: ${e.message}".toString()
       }
     }
-    TaskResult.ofStatus(ExecutionStatus.SUCCEEDED)
+    TaskResult.builder(ExecutionStatus.SUCCEEDED).context(errors ? ["force.cache.refresh.errors": errors] : [:]).build()
   }
 }

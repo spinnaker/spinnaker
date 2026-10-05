@@ -52,6 +52,9 @@ class DestroyJobForceCacheRefreshTask implements CloudProviderAware, Task {
       Retrofit2SyncCall.executeCall(cacheService.forceCacheUpdate(cloudProvider, REFRESH_TYPE, model))
     } catch (Exception e) {
       log.warn("Failed to force cache refresh (cloudProvider: {}, type: {}, model: {})", cloudProvider, REFRESH_TYPE, model, e)
+      return TaskResult.builder(ExecutionStatus.SUCCEEDED)
+        .context(["force.cache.refresh.errors": ["Failed to refresh ${name} in ${region}: ${e.message}".toString()]])
+        .build()
     }
     TaskResult.ofStatus(ExecutionStatus.SUCCEEDED)
   }

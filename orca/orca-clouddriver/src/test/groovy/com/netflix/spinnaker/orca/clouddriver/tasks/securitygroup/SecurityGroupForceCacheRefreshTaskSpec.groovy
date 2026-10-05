@@ -64,6 +64,7 @@ class SecurityGroupForceCacheRefreshTaskSpec extends Specification {
     westCall.isExecuted()
     eastCall.isExecuted()
     result.status == SUCCEEDED
+    !result.context.containsKey("force.cache.refresh.errors")
   }
 
   void "should still refresh the remaining targets when one refresh fails"() {
@@ -80,6 +81,11 @@ class SecurityGroupForceCacheRefreshTaskSpec extends Specification {
     failedCall.isExecuted()
     eastCall.isExecuted()
     result.status == SUCCEEDED
+
+    List<String> errors = result.context."force.cache.refresh.errors"
+    errors.size() == 1
+    errors[0].startsWith("Failed to refresh sg-12345a in us-west-1: ")
+    errors[0].contains("clouddriver unavailable")
   }
 
   private static Map refreshBody(Map target) {

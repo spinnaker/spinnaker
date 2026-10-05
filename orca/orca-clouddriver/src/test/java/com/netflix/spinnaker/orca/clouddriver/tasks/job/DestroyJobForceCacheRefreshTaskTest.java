@@ -30,6 +30,7 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import okhttp3.MediaType;
 import okhttp3.ResponseBody;
@@ -82,6 +83,7 @@ class DestroyJobForceCacheRefreshTaskTest {
     verify(cacheService).forceCacheUpdate("kubernetes", "Job", REFRESH_BODY);
     assertThat(call.isExecuted()).isTrue();
     assertEquals(SUCCEEDED, result.getStatus());
+    assertThat(result.getContext()).doesNotContainKey("force.cache.refresh.errors");
   }
 
   @Test
@@ -93,5 +95,10 @@ class DestroyJobForceCacheRefreshTaskTest {
 
     assertThat(call.isExecuted()).isTrue();
     assertEquals(SUCCEEDED, result.getStatus());
+    assertThat((List<String>) result.getContext().get("force.cache.refresh.errors"))
+        .singleElement()
+        .asString()
+        .startsWith("Failed to refresh job test-job in test-namespace: ")
+        .contains("clouddriver unavailable");
   }
 }
