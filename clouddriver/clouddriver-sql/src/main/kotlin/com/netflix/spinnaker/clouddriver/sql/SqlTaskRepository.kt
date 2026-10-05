@@ -36,11 +36,12 @@ import org.jooq.impl.DSL.max
 import org.jooq.impl.DSL.sql
 import org.slf4j.LoggerFactory
 
-class SqlTaskRepository(
+class SqlTaskRepository @JvmOverloads constructor(
   private val jooq: DSLContext,
   private val mapper: ObjectMapper,
   private val clock: Clock,
-  private val poolName: String
+  private val poolName: String,
+  private val retries: SqlRetries = SqlRetries()
 ) : TaskRepository {
 
   private val log = LoggerFactory.getLogger(javaClass)
@@ -58,7 +59,7 @@ class SqlTaskRepository(
     val historyId = ulid.nextULID()
 
     withPool(poolName) {
-      jooq.transactional { ctx ->
+      jooq.transactional(retries) { ctx ->
         val existingTask = getByClientRequestId(clientRequestId)
         if (existingTask != null) {
           task = existingTask as SqlTask
@@ -85,7 +86,7 @@ class SqlTaskRepository(
 
   fun updateSagaIds(task: Task) {
     return withPool(poolName) {
-      jooq.transactional { ctx ->
+      jooq.transactional(retries) { ctx ->
         ctx.update(tasksTable)
           .set(field("saga_ids"), mapper.writeValueAsString(task.sagaIds))
           .where(field("id").eq(task.id))
@@ -100,7 +101,7 @@ class SqlTaskRepository(
 
   override fun getByClientRequestId(clientRequestId: String): Task? {
     return withPool(poolName) {
-      jooq.read {
+      jooq.read(retries) {
         it.select(field("id"))
           .from(tasksTable)
           .where(field("request_id").eq(clientRequestId))
@@ -114,7 +115,7 @@ class SqlTaskRepository(
 
   override fun list(): MutableList<Task> {
     return withPool(poolName) {
-      jooq.read {
+      jooq.read(retries) {
         runningTaskIds(it, false).let { taskIds ->
           retrieveInternal(field("id").`in`(*taskIds), field("task_id").`in`(*taskIds)).toMutableList()
         }
@@ -124,7 +125,7 @@ class SqlTaskRepository(
 
   override fun listByThisInstance(): MutableList<Task> {
     return withPool(poolName) {
-      jooq.read {
+      jooq.read(retries) {
         runningTaskIds(it, true).let { taskIds ->
           retrieveInternal(field("id").`in`(*taskIds), field("task_id").`in`(*taskIds)).toMutableList()
         }
@@ -136,7 +137,7 @@ class SqlTaskRepository(
     val resultIdPairs = results.map { ulid.nextULID() to it }.toMap()
 
     withPool(poolName) {
-      jooq.transactional { ctx ->
+      jooq.transactional(retries) { ctx ->
         ctx.select(taskStatesFields)
           .from(taskStatesTable)
           .where(field("task_id").eq(task.id))
@@ -165,7 +166,7 @@ class SqlTaskRepository(
   internal fun updateCurrentStatus(task: Task, phase: String, status: String) {
     val historyId = ulid.nextULID()
     withPool(poolName) {
-      jooq.transactional { ctx ->
+      jooq.transactional(retries) { ctx ->
         val state = selectLatestState(ctx, task.id)
         addToHistory(ctx, historyId, task.id, state?.state ?: STARTED, phase, status.take(MAX_STATUS_LENGTH))
       }
@@ -185,7 +186,7 @@ class SqlTaskRepository(
   internal fun updateState(task: Task, state: TaskState) {
     val historyId = ulid.nextULID()
     withPool(poolName) {
-      jooq.transactional { ctx ->
+      jooq.transactional(retries) { ctx ->
         selectLatestState(ctx, task.id)?.let {
           addToHistory(ctx, historyId, task.id, state, it.phase, it.status)
         }
@@ -196,7 +197,7 @@ class SqlTaskRepository(
   internal fun updateOutput(taskOutput: TaskOutput, task: Task) {
     val outputId = ulid.nextULID()
     withPool(poolName) {
-      jooq.transactional { ctx ->
+      jooq.transactional(retries) { ctx ->
         addToOutput(ctx, outputId, task.id, taskOutput.manifest, taskOutput.phase, taskOutput.stdOut, taskOutput.stdError)
       }
     }
@@ -232,7 +233,7 @@ class SqlTaskRepository(
 
   fun updateOwnerId(task: Task) {
     return withPool(poolName) {
-      jooq.transactional { ctx ->
+      jooq.transactional(retries) { ctx ->
         ctx.update(tasksTable)
           .set(field("owner_id"), task.ownerId)
           .where(field("id").eq(task.id))
@@ -252,7 +253,7 @@ class SqlTaskRepository(
     //  on every connection acquire - need to change this so running on !aurora will behave consistently.
     //  REPEATABLE_READ is correct here.
     withPool(poolName) {
-      jooq.transactional { ctx ->
+      jooq.transactional(retries) { ctx ->
         /**
          *  (select id as task_id, owner_id, request_id, created_at, saga_ids, null as body, null as state, null as phase, null as status from tasks_copy where id = '01D2H4H50VTF7CGBMP0D6HTGTF')
          *  UNION ALL
