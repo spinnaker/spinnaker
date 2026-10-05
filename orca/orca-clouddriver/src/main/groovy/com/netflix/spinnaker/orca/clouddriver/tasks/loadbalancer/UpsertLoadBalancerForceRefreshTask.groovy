@@ -203,7 +203,7 @@ public class UpsertLoadBalancerForceRefreshTask implements CloudProviderAware, R
 
   private TaskResult executeWithTargetRefreshState(StageExecution stage, LBUpsertContext context) {
     String cloudProvider = getCloudProvider(stage)
-    List<TargetRefreshState> targetStates = initializeTargetStates(stage, context)
+    List<TargetRefreshState> targetStates = initializeTargetStates(stage, context, cloudProvider)
 
     if (targetStates.any { !it.hasRequested }) {
       return requestTargetCacheUpdates(context, targetStates, cloudProvider)
@@ -220,7 +220,9 @@ public class UpsertLoadBalancerForceRefreshTask implements CloudProviderAware, R
     return targetResult(ExecutionStatus.RUNNING, context)
   }
 
-  private List<TargetRefreshState> initializeTargetStates(StageExecution stage, LBUpsertContext context) {
+  private List<TargetRefreshState> initializeTargetStates(StageExecution stage,
+                                                          LBUpsertContext context,
+                                                          String cloudProvider) {
     List<Map> targets = stage.context.targets as List<Map>
     if (!targets) {
       throw new IllegalArgumentException("Force cache refresh requires at least one load balancer target")
@@ -241,7 +243,10 @@ public class UpsertLoadBalancerForceRefreshTask implements CloudProviderAware, R
         regions.addAll((target.availabilityZones as Map).keySet().findAll { it }*.toString())
       }
 
-      if (!account || !loadBalancerName || !regions) {
+      // Only regional external targets carry their own type. Other targets in the same stage keep
+      // the historical refresh: no identity checks and no Oort readback.
+      boolean regionalExternal = LoadBalancerTarget.isRegionalExternal(cloudProvider, target.loadBalancerType as String)
+      if (regionalExternal && (!account || !loadBalancerName || !regions)) {
         throw new IllegalArgumentException(
           "Load balancer target ${targetIndex} requires an account, region, and concrete listener name"
         )
@@ -258,6 +263,7 @@ public class UpsertLoadBalancerForceRefreshTask implements CloudProviderAware, R
           loadBalancerType: loadBalancerType,
           loadBalancerName: loadBalancerName
         )
+        state.regionalExternal = regionalExternal
         initializedStates.add(state)
       }
     }
@@ -298,12 +304,14 @@ public class UpsertLoadBalancerForceRefreshTask implements CloudProviderAware, R
 
       if (response.code() == HttpURLConnection.HTTP_ACCEPTED) {
         List<String> refreshIds = extractRefreshIds(response)
-        if (refreshIds.isEmpty()) {
+        if (refreshIds.isEmpty() && targetState.regionalExternal) {
           // An atomic scheduler could not take the agent lock, so the refresh did not run.
           return targetResult(ExecutionStatus.RUNNING, context)
         }
         targetState.hasRequested = true
         targetState.refreshIds = refreshIds
+        // Other types historically completed when no identifiers came back.
+        targetState.allAreComplete = refreshIds.isEmpty()
       } else {
         targetState.hasRequested = true
         targetState.allAreComplete = true
@@ -350,7 +358,7 @@ public class UpsertLoadBalancerForceRefreshTask implements CloudProviderAware, R
                                                      List<TargetRefreshState> targetStates) {
     // Only regional external targets wait for a cache readback; other types succeed once every
     // refresh is complete.
-    if (!targetStates.findAll { LoadBalancerTarget.isRegionalExternalType(it.loadBalancerType) }.every {
+    if (!targetStates.findAll { it.regionalExternal }.every {
       isLoadBalancerVisible(it)
     }) {
       return targetResult(ExecutionStatus.RUNNING, context)
@@ -449,6 +457,7 @@ public class UpsertLoadBalancerForceRefreshTask implements CloudProviderAware, R
     String region
     String loadBalancerType
     String loadBalancerName
+    Boolean regionalExternal = false
     Boolean hasRequested = false
     Boolean seenPendingCacheUpdates = false
     Integer attempt = 0

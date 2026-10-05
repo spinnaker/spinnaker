@@ -611,6 +611,42 @@ class UpsertLoadBalancerForceRefreshTaskSpec extends Specification {
     result.status == ExecutionStatus.SUCCEEDED
   }
 
+  void "keeps historical refresh semantics for other gce families in a mixed stage"() {
+    given:
+    stage.context = [
+      cloudProvider   : "gce",
+      loadBalancerType: "EXTERNAL_MANAGED",
+      targets         : [
+        regionalTarget("listener-a", "EXTERNAL_MANAGED", "account-a", "us-central1"),
+        [credentials: "account-b", availabilityZones: ["global": []], name: "http-lb"],
+        [availabilityZones: [:], name: "zoneless-lb"],
+      ],
+    ]
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    1 * cloudDriverCacheService.forceCacheUpdate("gce", "LoadBalancer", [
+      loadBalancerName: "listener-a",
+      region          : "us-central1",
+      account         : "account-a",
+      loadBalancerType: "EXTERNAL_MANAGED",
+    ]) >> Calls.response(null)
+    // An accepted refresh without identifiers completed other families before regional ones existed.
+    1 * cloudDriverCacheService.forceCacheUpdate("gce", "LoadBalancer", [
+      loadBalancerName: "http-lb",
+      region          : "global",
+      account         : "account-b",
+      loadBalancerType: "EXTERNAL_MANAGED",
+    ]) >> Calls.response(Response.success(HTTP_ACCEPTED, pendingBody([])))
+    1 * oortService.getLoadBalancerDetails("gce", "account-a", "us-central1", "listener-a") >>
+      Calls.response([visibleLoadBalancer("listener-a", "EXTERNAL_MANAGED")])
+    0 * cloudDriverCacheService._
+    0 * oortService._
+    result.status == ExecutionStatus.SUCCEEDED
+  }
+
   void "uses per-target refresh state for regional families"() {
     given:
     stage.context = [
