@@ -26,6 +26,7 @@ import okhttp3.ResponseBody;
 import retrofit2.Converter;
 import retrofit2.Retrofit;
 import tools.jackson.core.JacksonException;
+import tools.jackson.core.exc.JacksonIOException;
 import tools.jackson.databind.JavaType;
 import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.ObjectMapper;
@@ -115,6 +116,8 @@ public class CustomConverterFactory extends Converter.Factory {
           JavaType javaType = mapper.getTypeFactory().constructType(type);
           try (value) {
             return mapper.readValue(value.charStream(), javaType);
+          } catch (JacksonIOException e) {
+            throw e.getCause();
           } catch (JacksonException e) {
             throw new IOException("Unable to deserialize response body", e);
           }

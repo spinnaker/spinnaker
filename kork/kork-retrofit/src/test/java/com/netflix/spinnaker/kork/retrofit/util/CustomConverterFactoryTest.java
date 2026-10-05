@@ -18,18 +18,23 @@ package com.netflix.spinnaker.kork.retrofit.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.net.SocketTimeoutException;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import okio.Buffer;
 import okio.BufferedSource;
+import okio.Okio;
 import org.junit.jupiter.api.Test;
 import retrofit2.Converter;
 import retrofit2.Retrofit;
@@ -139,6 +144,32 @@ class CustomConverterFactoryTest {
     IOException failure = assertThrows(IOException.class, () -> converter.convert(body));
     assertTrue(failure.getCause() instanceof JacksonException);
     assertTrue(body.closed);
+  }
+
+  @Test
+  void responseReadTimeoutsPreserveTheOriginalIOExceptionAndCloseTheBody() {
+    SocketTimeoutException timeout = new SocketTimeoutException("response read timed out");
+    AtomicBoolean closed = new AtomicBoolean();
+    InputStream failingStream =
+        new InputStream() {
+          @Override
+          public int read() throws IOException {
+            throw timeout;
+          }
+
+          @Override
+          public void close() {
+            closed.set(true);
+          }
+        };
+    ResponseBody body =
+        ResponseBody.create(
+            MediaType.get("application/json"), -1, Okio.buffer(Okio.source(failingStream)));
+    Converter<ResponseBody, ?> converter =
+        factory.responseBodyConverter(Payload.class, NO_ANNOTATIONS, null);
+
+    assertSame(timeout, assertThrows(SocketTimeoutException.class, () -> converter.convert(body)));
+    assertTrue(closed.get());
   }
 
   @SuppressWarnings("unchecked")
