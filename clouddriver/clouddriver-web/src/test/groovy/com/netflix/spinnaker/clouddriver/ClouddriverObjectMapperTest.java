@@ -17,7 +17,12 @@
 package com.netflix.spinnaker.clouddriver;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.google.api.services.compute.model.InstanceGroupManagerAutoHealingPolicy;
+import com.google.api.services.compute.model.StatefulPolicy;
+import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesAccountProperties.ManagedAccount;
 import com.netflix.spinnaker.clouddriver.security.AccountDefinitionMapper;
 import java.util.List;
@@ -27,6 +32,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.exc.InvalidTypeIdException;
 
 @SpringBootTest(classes = Main.class)
 @TestPropertySource(
@@ -39,6 +45,36 @@ import tools.jackson.databind.ObjectMapper;
 class ClouddriverObjectMapperTest {
   @Autowired private ObjectMapper mapper;
   @Autowired private AccountDefinitionMapper accountDefinitionMapper;
+
+  @Test
+  void googlePoliciesRoundTripThroughTheServiceMapper() {
+    GoogleServerGroup serverGroup = new GoogleServerGroup();
+    serverGroup.setStatefulPolicy(new StatefulPolicy().set("custom", "stateful"));
+    serverGroup.setAutoHealingPolicy(
+        new InstanceGroupManagerAutoHealingPolicy()
+            .setHealthCheck("health-check")
+            .setInitialDelaySec(30));
+    GoogleServerGroup read =
+        mapper.readValue(mapper.writeValueAsString(serverGroup), GoogleServerGroup.class);
+    assertThat(read.getStatefulPolicy().get("custom")).isEqualTo("stateful");
+    assertThat(read.getAutoHealingPolicy().getHealthCheck()).isEqualTo("health-check");
+    assertThat(read.getAutoHealingPolicy().getInitialDelaySec()).isEqualTo(30);
+  }
+
+  @Test
+  void classIdsOutsideAllowedPackagesAreRejected() {
+    assertThatThrownBy(
+            () ->
+                mapper.readValue(
+                    "{\"value\":{\"@class\":\"java.io.File\",\"path\":\"test\"}}",
+                    ClassTypedValue.class))
+        .isInstanceOf(InvalidTypeIdException.class);
+  }
+
+  static class ClassTypedValue {
+    @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
+    public Object value;
+  }
 
   @Test
   void accountSerializationPreservesOAuthPropertyNames() {

@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.kork.yaml;
 
 import lombok.extern.log4j.Log4j2;
+import org.snakeyaml.engine.v2.api.LoadSettings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.DumperOptions;
@@ -9,6 +10,9 @@ import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
 import org.yaml.snakeyaml.representer.Representer;
+import tools.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.dataformat.yaml.YAMLFactoryBuilder;
+import tools.jackson.dataformat.yaml.YAMLReadFeature;
 
 /**
  * Utility component for creating preconfigured {@link Yaml} instances with optional
@@ -133,6 +137,29 @@ public class YamlHelper {
     return new Yaml(constructor, representer);
   }
 
+  /**
+   * Builds the Jackson 3 {@link YAMLFactory} for the configured limits.
+   *
+   * <p>Passing a {@link LoadSettings} to {@code YAMLFactory.builder()} changes more than the
+   * limits: with the engine defaults, duplicate keys start to fail and an empty value ({@code
+   * key:}) reads as {@code ""} instead of {@code null}, both unlike a plain {@code
+   * YAMLMapper.builder().build()} and unlike Jackson 2. Use this factory instead of assembling
+   * {@link LoadSettings} by hand.
+   */
+  private static YAMLFactory buildJacksonYamlFactory(YamlParserProperties props) {
+    LoaderOptions opts = buildLoaderOptions(props);
+    LoadSettings settings =
+        LoadSettings.builder()
+            .setMaxAliasesForCollections(opts.getMaxAliasesForCollections())
+            .setCodePointLimit(opts.getCodePointLimit())
+            .setAllowDuplicateKeys(true)
+            .build();
+    YAMLFactoryBuilder builder =
+        YAMLFactory.builder().loadSettings(settings).enable(YAMLReadFeature.EMPTY_STRING_AS_NULL);
+    boolean yaml11Scalars = props == null || !Boolean.FALSE.equals(props.getYaml11Scalars());
+    return yaml11Scalars ? new Yaml11CompatYAMLFactory(builder) : builder.build();
+  }
+
   // ---------------------------------------------------------------------------
   // Instance API — preferred. Inject the YamlHelper bean and call these.
   // ---------------------------------------------------------------------------
@@ -143,6 +170,11 @@ public class YamlHelper {
    */
   public LoaderOptions loaderOptions() {
     return buildLoaderOptions(yamlParserProperties);
+  }
+
+  /** A Jackson 3 {@link YAMLFactory} honouring the configured limits; see the note on parity. */
+  public YAMLFactory yamlFactory() {
+    return buildJacksonYamlFactory(yamlParserProperties);
   }
 
   /**
@@ -179,6 +211,11 @@ public class YamlHelper {
   /**
    * @deprecated inject the {@link YamlHelper} bean and call {@link #newSafeConstructorYaml()}.
    */
+  @Deprecated
+  public static YAMLFactory newYamlFactory() {
+    return buildJacksonYamlFactory(staticYamlParserProperties);
+  }
+
   @Deprecated
   public static Yaml newYamlSafeConstructor() {
     return buildYamlSafeConstructor(staticYamlParserProperties);

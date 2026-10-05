@@ -25,12 +25,10 @@ import com.netflix.spinnaker.orca.kato.pipeline.support.StageData;
 import groovy.util.logging.Slf4j;
 import java.util.List;
 import java.util.Map;
-import org.snakeyaml.engine.v2.api.LoadSettings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
-import tools.jackson.dataformat.yaml.YAMLFactory;
 import tools.jackson.dataformat.yaml.YAMLMapper;
 
 @Component
@@ -60,17 +58,7 @@ public class CloudrunSourceServerGroupTask extends DetermineSourceServerGroupTas
 
   private void setRegionInContextFromPayload(StageExecution stage) {
 
-    ObjectMapper yamlReader =
-        YAMLMapper.builder(
-                YAMLFactory.builder()
-                    .loadSettings(
-                        LoadSettings.builder()
-                            .setMaxAliasesForCollections(
-                                yamlHelper.loaderOptions().getMaxAliasesForCollections())
-                            .setCodePointLimit(yamlHelper.loaderOptions().getCodePointLimit())
-                            .build())
-                    .build())
-            .build();
+    ObjectMapper yamlReader = YAMLMapper.builder(yamlHelper.yamlFactory()).build();
     if (stage.getContext() != null
         && stage.getContext().get("configFiles") != null
         && (!((List) stage.getContext().get("configFiles")).isEmpty())) {

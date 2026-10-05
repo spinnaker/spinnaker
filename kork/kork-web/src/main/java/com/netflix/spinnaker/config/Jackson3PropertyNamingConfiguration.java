@@ -18,6 +18,7 @@ package com.netflix.spinnaker.config;
 
 import com.netflix.spinnaker.kork.jackson.Jackson2AccessorNamingStrategy;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.jackson.autoconfigure.JsonMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,6 +29,10 @@ import tools.jackson.databind.ObjectMapper;
 /** Restores legacy bean property names independently of service-specific property ordering. */
 @Configuration
 @ConditionalOnClass({JsonMapperBuilderCustomizer.class, ObjectMapper.class})
+@ConditionalOnProperty(
+    name = "spinnaker.jackson.legacy-bean-naming",
+    havingValue = "true",
+    matchIfMissing = true)
 public class Jackson3PropertyNamingConfiguration {
   @Bean
   @Order(-1)

@@ -30,8 +30,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.snakeyaml.engine.v2.api.LoadSettings;
-import org.yaml.snakeyaml.LoaderOptions;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.JsonToken;
@@ -40,7 +38,6 @@ import tools.jackson.databind.DeserializationContext;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.ValueDeserializer;
 import tools.jackson.databind.annotation.JsonDeserialize;
-import tools.jackson.dataformat.yaml.YAMLFactory;
 import tools.jackson.dataformat.yaml.YAMLMapper;
 
 @Slf4j
@@ -110,11 +107,7 @@ public class ServiceManifest {
         new TypeReference<Map<String, Object>>() {};
 
     private final ObjectMapper yamlObjectMapper =
-        YAMLMapper.builder(
-                YAMLFactory.builder()
-                    .loadSettings(toLoadSettings(YamlHelper.getLoaderOptions()))
-                    .build())
-            .build();
+        YAMLMapper.builder(YamlHelper.newYamlFactory()).build();
 
     private final ObjectMapper jsonObjectMapper = YAMLMapper.builder().build();
 
@@ -162,13 +155,6 @@ public class ServiceManifest {
         }
       }
       throw deserializationFailed;
-    }
-
-    private static LoadSettings toLoadSettings(LoaderOptions loaderOptions) {
-      return LoadSettings.builder()
-          .setMaxAliasesForCollections(loaderOptions.getMaxAliasesForCollections())
-          .setCodePointLimit(loaderOptions.getCodePointLimit())
-          .build();
     }
   }
 }

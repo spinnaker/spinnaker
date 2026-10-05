@@ -169,6 +169,10 @@ public class ErrorHandlingExecutorCallAdapterFactory extends CallAdapter.Factory
         throw new SpinnakerConversionException(
             "Failed to process response body: " + jpe.getMessage(), jpe, delegate.request());
       } catch (IOException e) {
+        if (e.getCause() instanceof JacksonException jpe) {
+          throw new SpinnakerConversionException(
+              "Failed to process response body: " + jpe.getMessage(), jpe, delegate.request());
+        }
         throw new SpinnakerNetworkException(e, delegate.request());
       } catch (Exception e) {
         throw new SpinnakerServerException(e, delegate.request());
@@ -264,7 +268,15 @@ public class ErrorHandlingExecutorCallAdapterFactory extends CallAdapter.Factory
     public void onFailure(Call<T> call, final Throwable t) {
 
       SpinnakerServerException exception;
-      if (t instanceof IOException) {
+      if (t instanceof IOException && t.getCause() instanceof JacksonException jpe) {
+        exception =
+            new SpinnakerConversionException(
+                "Failed to process response body: " + jpe.getMessage(), jpe, call.request());
+      } else if (t instanceof JacksonException jpe) {
+        exception =
+            new SpinnakerConversionException(
+                "Failed to process response body: " + jpe.getMessage(), jpe, call.request());
+      } else if (t instanceof IOException) {
         exception = new SpinnakerNetworkException(t, call.request());
       } else if (t instanceof SpinnakerHttpException) {
         exception = (SpinnakerHttpException) t;

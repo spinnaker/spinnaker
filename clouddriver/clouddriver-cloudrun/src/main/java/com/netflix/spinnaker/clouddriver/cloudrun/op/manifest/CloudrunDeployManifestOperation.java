@@ -39,11 +39,9 @@ import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.snakeyaml.engine.v2.api.LoadSettings;
 import org.springframework.beans.factory.annotation.Autowired;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
-import tools.jackson.dataformat.yaml.YAMLFactory;
 import tools.jackson.dataformat.yaml.YAMLMapper;
 
 public class CloudrunDeployManifestOperation implements AtomicOperation<DeploymentResult> {
@@ -64,17 +62,7 @@ public class CloudrunDeployManifestOperation implements AtomicOperation<Deployme
 
   private final ObjectMapper objectMapper = YAMLMapper.builder().build();
 
-  private final ObjectMapper yamlMapper =
-      YAMLMapper.builder(
-              YAMLFactory.builder()
-                  .loadSettings(
-                      LoadSettings.builder()
-                          .setMaxAliasesForCollections(
-                              YamlHelper.getLoaderOptions().getMaxAliasesForCollections())
-                          .setCodePointLimit(YamlHelper.getLoaderOptions().getCodePointLimit())
-                          .build())
-                  .build())
-          .build();
+  private final ObjectMapper yamlMapper = YAMLMapper.builder(YamlHelper.newYamlFactory()).build();
 
   private CloudrunYmlData ymlData = new CloudrunYmlData();
 

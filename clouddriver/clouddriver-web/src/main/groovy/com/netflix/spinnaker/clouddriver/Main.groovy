@@ -35,11 +35,9 @@ import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Primary
-import tools.jackson.databind.DatabindContext
-import tools.jackson.databind.JavaType
 import tools.jackson.databind.MapperFeature
 import tools.jackson.databind.json.JsonMapper
-import tools.jackson.databind.jsontype.PolymorphicTypeValidator
+import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator
 import org.springframework.scheduling.annotation.EnableScheduling
 
 import java.security.Security
@@ -91,13 +89,14 @@ class Main extends SpringBootServletInitializer {
     // Declared as JsonMapper (not ObjectMapper) so Boot 4's JacksonAutoConfiguration backs off
     // its own jacksonJsonMapper bean; otherwise two primaries collide at injection points.
     builder.addMixIn(Artifact.class, ArtifactMixin.class);
-    // Jackson 3 refuses polymorphic fields whose base type erases to Object (Google Id.CLASS fields).
-    builder.polymorphicTypeValidator(new PolymorphicTypeValidator.Base() {
-      @Override
-      PolymorphicTypeValidator.Validity validateBaseType(DatabindContext ctxt, JavaType baseType) {
-        PolymorphicTypeValidator.Validity.ALLOWED
-      }
-    })
+    // Google GenericJson policies contain Object-valued maps; validate their concrete types.
+    builder.polymorphicTypeValidator(BasicPolymorphicTypeValidator.builder()
+      .allowIfSubType("com.google.api.services.compute.model.")
+      .allowIfSubType("com.netflix.spinnaker.")
+      .allowIfSubType(Map)
+      .allowIfSubType(Collection)
+      .allowIfSubType("java.lang.")
+      .build())
     // Jackson 2 merged JSON into getter-only collections (e.g. KubernetesSelectorList).
     builder.enable(MapperFeature.USE_GETTERS_AS_SETTERS)
 

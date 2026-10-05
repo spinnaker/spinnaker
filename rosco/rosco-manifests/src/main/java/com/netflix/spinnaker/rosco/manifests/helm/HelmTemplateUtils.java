@@ -23,12 +23,11 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.snakeyaml.engine.v2.api.LoadSettings;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
-import tools.jackson.dataformat.yaml.YAMLFactory;
 import tools.jackson.dataformat.yaml.YAMLMapper;
 
 @Component
@@ -55,17 +54,7 @@ public class HelmTemplateUtils extends HelmBakeTemplateUtils<HelmBakeManifestReq
       YamlHelper yamlHelper) {
     super(artifactDownloader, artifactStore, artifactStoreProperties.getHelm());
     this.helmConfigurationProperties = helmConfigurationProperties;
-    this.yamlObjectMapper =
-        YAMLMapper.builder(
-                YAMLFactory.builder()
-                    .loadSettings(
-                        LoadSettings.builder()
-                            .setMaxAliasesForCollections(
-                                yamlHelper.loaderOptions().getMaxAliasesForCollections())
-                            .setCodePointLimit(yamlHelper.loaderOptions().getCodePointLimit())
-                            .build())
-                    .build())
-            .build();
+    this.yamlObjectMapper = YAMLMapper.builder(yamlHelper.yamlFactory()).build();
   }
 
   public BakeRecipe buildBakeRecipe(BakeManifestEnvironment env, HelmBakeManifestRequest request)
@@ -282,7 +271,7 @@ public class HelmTemplateUtils extends HelmBakeTemplateUtils<HelmBakeManifestReq
             filePath.toString(),
             System.lineSeparator(),
             new String(Files.readAllBytes(filePath)));
-    } catch (IOException ioException) {
+    } catch (IOException | JacksonException ioException) {
       throw new IllegalStateException(
           String.format("failed to write override yaml file %s.", filePath.toString())
               + ioException.getMessage(),

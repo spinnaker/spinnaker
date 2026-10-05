@@ -55,6 +55,18 @@ class Jackson3PropertyNamingConfigurationTest {
   }
 
   @Test
+  void legacyNamingCanBeDisabled() {
+    new ApplicationContextRunner()
+        .withConfiguration(AutoConfigurations.of(JacksonAutoConfiguration.class))
+        .withUserConfiguration(Jackson3PropertyNamingConfiguration.class)
+        .withPropertyValues("spinnaker.jackson.legacy-bean-naming=false")
+        .run(
+            context ->
+                assertThat(context.getBean(JsonMapper.class).writeValueAsString(new AcronymBean()))
+                    .contains("\"oAuthScopes\":\"scope\""));
+  }
+
+  @Test
   void serviceNamingStrategyIsRespected() {
     new ApplicationContextRunner()
         .withConfiguration(AutoConfigurations.of(JacksonAutoConfiguration.class))

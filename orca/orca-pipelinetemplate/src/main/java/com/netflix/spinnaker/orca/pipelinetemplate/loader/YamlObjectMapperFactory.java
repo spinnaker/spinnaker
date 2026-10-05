@@ -17,32 +17,22 @@
 package com.netflix.spinnaker.orca.pipelinetemplate.loader;
 
 import com.netflix.spinnaker.kork.yaml.YamlHelper;
-import org.snakeyaml.engine.v2.api.LoadSettings;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.SerializationFeature;
 import tools.jackson.databind.cfg.MapperBuilder;
-import tools.jackson.dataformat.yaml.YAMLFactory;
 import tools.jackson.dataformat.yaml.YAMLMapper;
 
 final class YamlObjectMapperFactory {
   private YamlObjectMapperFactory() {}
 
   static ObjectMapper create(ObjectMapper objectMapper, YamlHelper yamlHelper) {
-    var loaderOptions = yamlHelper.loaderOptions();
-    LoadSettings loadSettings =
-        LoadSettings.builder()
-            .setMaxAliasesForCollections(loaderOptions.getMaxAliasesForCollections())
-            .setCodePointLimit(loaderOptions.getCodePointLimit())
-            .build();
-
-    return copyConfig(
-        YAMLMapper.builder(YAMLFactory.builder().loadSettings(loadSettings).build()), objectMapper);
+    return copyConfig(YAMLMapper.builder(yamlHelper.yamlFactory()), objectMapper);
   }
 
   static ObjectMapper create(ObjectMapper objectMapper) {
-    return copyConfig(YAMLMapper.builder(), objectMapper);
+    return copyConfig(YAMLMapper.builder(YamlHelper.newYamlFactory()), objectMapper);
   }
 
   /**

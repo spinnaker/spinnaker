@@ -37,7 +37,6 @@ import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
-import org.snakeyaml.engine.v2.api.LoadSettings;
 import org.springframework.stereotype.Component;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.JsonParser;
@@ -46,7 +45,6 @@ import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.*;
 import tools.jackson.databind.DatabindException;
 import tools.jackson.databind.annotation.JsonDeserialize;
-import tools.jackson.dataformat.yaml.YAMLFactory;
 import tools.jackson.dataformat.yaml.YAMLMapper;
 
 @CloudFoundryOperation(AtomicOperations.DEPLOY_SERVICE)
@@ -54,7 +52,7 @@ import tools.jackson.dataformat.yaml.YAMLMapper;
 public class DeployCloudFoundryServiceAtomicOperationConverter
     extends AbstractCloudFoundryAtomicOperationConverter {
   private static final ObjectMapper objectMapper =
-      YAMLMapper.builder()
+      YAMLMapper.builder(YamlHelper.newYamlFactory())
           .propertyNamingStrategy(PropertyNamingStrategies.KEBAB_CASE)
           .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
           .build();
@@ -266,16 +264,7 @@ public class DeployCloudFoundryServiceAtomicOperationConverter
         new TypeReference<Map<String, Object>>() {};
 
     private final ObjectMapper yamlObjectMapper =
-        YAMLMapper.builder(
-                YAMLFactory.builder()
-                    .loadSettings(
-                        LoadSettings.builder()
-                            .setMaxAliasesForCollections(
-                                YamlHelper.getLoaderOptions().getMaxAliasesForCollections())
-                            .setCodePointLimit(YamlHelper.getLoaderOptions().getCodePointLimit())
-                            .build())
-                    .build())
-            .build();
+        YAMLMapper.builder(YamlHelper.newYamlFactory()).build();
 
     @Override
     public Map<String, Object> deserialize(JsonParser parser, DeserializationContext context)

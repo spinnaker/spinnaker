@@ -32,6 +32,25 @@ class Jackson2AccessorNamingStrategyTest {
           .build();
 
   @Test
+  void lowercaseAccessorPrefixesAreDiscovered() {
+    LowercaseBean read = mapper.readValue("{\"vpcId\":\"vpc-1\"}", LowercaseBean.class);
+    assertEquals("vpc-1", read.getvpcId());
+    assertEquals("{\"vpcId\":\"vpc-1\"}", mapper.writeValueAsString(read));
+  }
+
+  static class LowercaseBean {
+    private String vpcId;
+
+    public String getvpcId() {
+      return vpcId;
+    }
+
+    public void setvpcId(String value) {
+      vpcId = value;
+    }
+  }
+
+  @Test
   void acronymAccessorsUseLegacyNamesForSerializationAndDeserialization() {
     AcronymBean bean = new AcronymBean();
     bean.setOAuthScopes("scope");

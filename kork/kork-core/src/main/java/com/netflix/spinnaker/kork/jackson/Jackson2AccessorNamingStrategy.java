@@ -70,6 +70,15 @@ public final class Jackson2AccessorNamingStrategy extends AccessorNamingStrategy
 
   /** Uses Jackson's accessor discovery and builder prefixes; record names remain unchanged. */
   public static final class Provider extends DefaultAccessorNamingStrategy.Provider {
+    public Provider() {
+      super(
+          "set",
+          "with",
+          "get",
+          "is",
+          DefaultAccessorNamingStrategy.FirstCharBasedValidator.forFirstNameRule(true, true));
+    }
+
     @Override
     public AccessorNamingStrategy forPOJO(MapperConfig<?> config, AnnotatedClass targetClass) {
       return new Jackson2AccessorNamingStrategy(super.forPOJO(config, targetClass));

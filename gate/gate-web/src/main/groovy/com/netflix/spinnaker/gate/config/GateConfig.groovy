@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.gate.config
 
+import com.netflix.spinnaker.kork.yaml.YamlHelper
 import tools.jackson.databind.ObjectMapper
 import tools.jackson.databind.SerializationFeature
 import tools.jackson.databind.json.JsonMapper
@@ -112,7 +113,7 @@ class GateConfig {
 
   @Bean
   AbstractJacksonHttpMessageConverter yamlHttpMessageConverter() {
-    return new YamlHttpMessageConverter(YAMLMapper.builder().findAndAddModules().build())
+    return new YamlHttpMessageConverter(YAMLMapper.builder(YamlHelper.newYamlFactory()).findAndAddModules().build())
   }
 
   @Bean

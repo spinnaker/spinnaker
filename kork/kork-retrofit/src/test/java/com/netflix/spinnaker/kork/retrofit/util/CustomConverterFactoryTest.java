@@ -124,17 +124,53 @@ class CustomConverterFactoryTest {
         standardFactory.responseBodyConverter(String.class, NO_ANNOTATIONS, null);
 
     assertThrows(
-        JacksonException.class,
+        IOException.class,
         () ->
             responseConverter.convert(
                 ResponseBody.create(
                     "{\"value\":\"response\"}", MediaType.get("application/json"))));
   }
 
+  @Test
+  void malformedResponsesFailAsIOExceptionAndCloseTheBody() {
+    TrackingResponseBody body = new TrackingResponseBody("{invalid");
+    Converter<ResponseBody, ?> converter =
+        factory.responseBodyConverter(Payload.class, NO_ANNOTATIONS, null);
+    IOException failure = assertThrows(IOException.class, () -> converter.convert(body));
+    assertTrue(failure.getCause() instanceof JacksonException);
+    assertTrue(body.closed);
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test
+  void failedRequestSerializationRemainsAnIOException() {
+    Converter<BrokenPayload, RequestBody> converter =
+        (Converter<BrokenPayload, RequestBody>)
+            factory.requestBodyConverter(BrokenPayload.class, NO_ANNOTATIONS, NO_ANNOTATIONS, null);
+    IOException failure =
+        assertThrows(IOException.class, () -> converter.convert(new BrokenPayload()));
+    assertTrue(failure.getCause() instanceof JacksonException);
+  }
+
+  static class BrokenPayload {
+    public String getValue() {
+      throw new IllegalStateException("cannot serialize");
+    }
+  }
+
   private record Payload(String value) {}
 
   private static final class TrackingResponseBody extends ResponseBody {
     private boolean closed;
+    private final Buffer buffer;
+
+    TrackingResponseBody() {
+      this("");
+    }
+
+    TrackingResponseBody(String content) {
+      buffer = new Buffer().writeUtf8(content);
+    }
 
     @Override
     public MediaType contentType() {
@@ -148,7 +184,7 @@ class CustomConverterFactoryTest {
 
     @Override
     public BufferedSource source() {
-      return new Buffer();
+      return buffer;
     }
 
     @Override

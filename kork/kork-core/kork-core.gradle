@@ -20,11 +20,13 @@ dependencies {
   implementation "org.apache.logging.log4j:log4j-api"
   implementation "com.fasterxml.jackson.core:jackson-annotations"
   implementation "tools.jackson.core:jackson-databind"
+  api "tools.jackson.dataformat:jackson-dataformat-yaml"
   implementation "com.netflix.spectator:spectator-ext-gc"
   implementation "com.netflix.spectator:spectator-ext-jvm"
   implementation "com.netflix.spectator:spectator-reg-micrometer"
 
   testImplementation project(":kork-test")
+  testImplementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
   testImplementation "org.springframework.boot:spring-boot-starter-test"
   testImplementation "org.springframework.boot:spring-boot-jackson"
 

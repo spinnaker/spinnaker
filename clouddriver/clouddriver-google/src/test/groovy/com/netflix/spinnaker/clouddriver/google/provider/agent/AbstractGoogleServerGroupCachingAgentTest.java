@@ -89,6 +89,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 
 class AbstractGoogleServerGroupCachingAgentTest {
 
@@ -108,16 +109,13 @@ class AbstractGoogleServerGroupCachingAgentTest {
     objectMapper =
         JsonMapper.builder()
             .polymorphicTypeValidator(
-                new tools.jackson.databind.jsontype.PolymorphicTypeValidator.Base() {
-                  @Override
-                  public tools.jackson.databind.jsontype.PolymorphicTypeValidator.Validity
-                      validateBaseType(
-                          tools.jackson.databind.DatabindContext ctxt,
-                          tools.jackson.databind.JavaType baseType) {
-                    return tools.jackson.databind.jsontype.PolymorphicTypeValidator.Validity
-                        .ALLOWED;
-                  }
-                })
+                BasicPolymorphicTypeValidator.builder()
+                    .allowIfSubType("com.google.api.services.compute.model.")
+                    .allowIfSubType("com.netflix.spinnaker.")
+                    .allowIfSubType(Map.class)
+                    .allowIfSubType(Collection.class)
+                    .allowIfSubType("java.lang.")
+                    .build())
             .build();
   }
 

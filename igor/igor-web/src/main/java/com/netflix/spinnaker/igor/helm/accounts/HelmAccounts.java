@@ -26,10 +26,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.snakeyaml.engine.v2.api.LoadSettings;
 import org.springframework.beans.factory.annotation.Autowired;
 import tools.jackson.databind.ObjectMapper;
-import tools.jackson.dataformat.yaml.YAMLFactory;
 import tools.jackson.dataformat.yaml.YAMLMapper;
 
 @Slf4j
@@ -42,14 +40,7 @@ public class HelmAccounts {
 
   public HelmAccounts(YamlHelper yamlHelper) {
     this.accounts = new ArrayList<>();
-    var loaderOptions = yamlHelper.loaderOptions();
-    LoadSettings loadSettings =
-        LoadSettings.builder()
-            .setMaxAliasesForCollections(loaderOptions.getMaxAliasesForCollections())
-            .setCodePointLimit(loaderOptions.getCodePointLimit())
-            .build();
-    this.mapper =
-        YAMLMapper.builder(YAMLFactory.builder().loadSettings(loadSettings).build()).build();
+    this.mapper = YAMLMapper.builder(yamlHelper.yamlFactory()).build();
   }
 
   public HelmIndex getIndex(String account) {

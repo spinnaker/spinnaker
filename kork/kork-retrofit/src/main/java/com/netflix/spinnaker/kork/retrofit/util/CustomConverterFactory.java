@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.kork.retrofit.util;
 
 import com.netflix.spinnaker.kork.jackson.Jackson2AccessorNamingStrategy;
+import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import okhttp3.MediaType;
@@ -24,6 +25,7 @@ import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import retrofit2.Converter;
 import retrofit2.Retrofit;
+import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JavaType;
 import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.ObjectMapper;
@@ -111,7 +113,11 @@ public class CustomConverterFactory extends Converter.Factory {
     return (Converter<ResponseBody, Object>)
         value -> {
           JavaType javaType = mapper.getTypeFactory().constructType(type);
-          return mapper.readValue(value.charStream(), javaType);
+          try (value) {
+            return mapper.readValue(value.charStream(), javaType);
+          } catch (JacksonException e) {
+            throw new IOException("Unable to deserialize response body", e);
+          }
         };
   }
 
@@ -141,8 +147,12 @@ public class CustomConverterFactory extends Converter.Factory {
       Retrofit retrofit) {
     return (Converter<Object, RequestBody>)
         value -> {
-          byte[] jsonValue = mapper.writeValueAsBytes(value);
-          return RequestBody.create(jsonValue, DEFAULT_MEDIA_TYPE);
+          try {
+            byte[] jsonValue = mapper.writeValueAsBytes(value);
+            return RequestBody.create(jsonValue, DEFAULT_MEDIA_TYPE);
+          } catch (JacksonException e) {
+            throw new IOException("Unable to serialize request body", e);
+          }
         };
   }
 }
