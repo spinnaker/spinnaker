@@ -20,6 +20,7 @@ import com.netflix.spinnaker.clouddriver.security.AccountDefinitionMapper
 import com.netflix.spinnaker.clouddriver.security.AccountDefinitionRepository
 import com.netflix.spinnaker.clouddriver.security.AccountDefinitionTypes
 import com.netflix.spinnaker.clouddriver.sql.read
+import com.netflix.spinnaker.clouddriver.sql.SqlRetries
 import com.netflix.spinnaker.clouddriver.sql.transactional
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinition
 import com.netflix.spinnaker.kork.secrets.SecretException
@@ -32,16 +33,17 @@ import org.jooq.exception.DataAccessException
 import org.jooq.impl.DSL.*
 import java.time.Clock
 
-class SqlAccountDefinitionRepository(
+class SqlAccountDefinitionRepository @JvmOverloads constructor(
   private val jooq: DSLContext,
   private val mapper: AccountDefinitionMapper,
   private val clock: Clock,
-  private val poolName: String
+  private val poolName: String,
+  private val retries: SqlRetries = SqlRetries()
 ) : AccountDefinitionRepository {
 
   override fun getByName(name: String): CredentialsDefinition? =
     withPool(poolName) {
-      jooq.read { ctx ->
+      jooq.read(retries) { ctx ->
         ctx.select(bodyColumn)
           .from(accountsTable)
           .where(idColumn.eq(name))
@@ -57,7 +59,7 @@ class SqlAccountDefinitionRepository(
     startingAccountName: String?
   ): MutableList<out CredentialsDefinition> =
     withPool(poolName) {
-      jooq.read { ctx ->
+      jooq.read(retries) { ctx ->
         val conditions = mutableListOf(typeColumn.eq(typeName))
         startingAccountName?.let { conditions += idColumn.ge(it) }
         ctx.select(bodyColumn)
@@ -74,7 +76,7 @@ class SqlAccountDefinitionRepository(
 
   override fun listByType(typeName: String): MutableList<out CredentialsDefinition> =
     withPool(poolName) {
-      jooq.read { ctx ->
+      jooq.read(retries) { ctx ->
         ctx.select(bodyColumn)
           .from(accountsTable)
           .where(typeColumn.eq(typeName))
@@ -111,7 +113,7 @@ class SqlAccountDefinitionRepository(
       val user = AuthenticatedRequest.getSpinnakerUser().orElse("anonymous")
       val body = JSON.valueOf(mapper.serialize(definition))
       try {
-        jooq.transactional { ctx ->
+        jooq.transactional(retries) { ctx ->
           ctx.insertInto(accountsTable)
             .set(idColumn, name)
             .set(typeColumn, typeName)
@@ -143,7 +145,7 @@ class SqlAccountDefinitionRepository(
       val user = AuthenticatedRequest.getSpinnakerUser().orElse("anonymous")
       val body = JSON.valueOf(mapper.serialize(definition))
       try {
-        jooq.transactional { ctx ->
+        jooq.transactional(retries) { ctx ->
           ctx.insertInto(accountsTable)
             .set(idColumn, name)
             .set(typeColumn, typeName)
@@ -183,7 +185,7 @@ class SqlAccountDefinitionRepository(
       val user = AuthenticatedRequest.getSpinnakerUser().orElse("anonymous")
       val body = JSON.valueOf(mapper.serialize(definition))
       try {
-        jooq.transactional { ctx ->
+        jooq.transactional(retries) { ctx ->
           val rows = ctx.update(accountsTable)
             .set(typeColumn, typeName)
             .set(bodyColumn, body)
@@ -211,14 +213,14 @@ class SqlAccountDefinitionRepository(
 
   override fun delete(name: String) {
     withPool(poolName) {
-      val typeName = jooq.read { ctx ->
+      val typeName = jooq.read(retries) { ctx ->
         ctx.select(typeColumn)
           .from(accountsTable)
           .where(idColumn.eq(name))
           .fetchOne(typeColumn)
       } ?: throw NotFoundException("No account found with name $name")
       try {
-        jooq.transactional { ctx ->
+        jooq.transactional(retries) { ctx ->
           ctx.insertInto(accountHistoryTable)
             .set(idColumn, name)
             .set(deletedColumn, true)
@@ -238,7 +240,7 @@ class SqlAccountDefinitionRepository(
 
   private fun findLatestVersion(name: String): Select<Record1<Int>> =
     withPool(poolName) {
-      jooq.read { ctx ->
+      jooq.read(retries) { ctx ->
         ctx.select(count(versionColumn) + 1)
           .from(accountHistoryTable)
           .where(idColumn.eq(name))
@@ -247,7 +249,7 @@ class SqlAccountDefinitionRepository(
 
   override fun revisionHistory(name: String): MutableList<AccountDefinitionRepository.Revision> =
     withPool(poolName) {
-      jooq.read { ctx ->
+      jooq.read(retries) { ctx ->
         ctx.select(bodyColumn, versionColumn, lastModifiedColumn)
           .from(accountHistoryTable)
           .where(idColumn.eq(name))

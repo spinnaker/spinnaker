@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.artifacts.gitlab;
 import com.google.common.base.Strings;
 import com.netflix.spinnaker.clouddriver.artifacts.config.TokenAuth;
 import com.netflix.spinnaker.clouddriver.artifacts.config.UserInputValidatedArtifactAccount;
+import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.web.url.UrlRestrictionsProperties;
 import java.util.Optional;
@@ -37,8 +38,15 @@ public class GitlabArtifactAccount extends UserInputValidatedArtifactAccount imp
   @ConstructorBinding
   @ParametersAreNullableByDefault
   GitlabArtifactAccount(
-      String name, String token, String tokenFile, UrlRestrictionsProperties urlRestrictions) {
-    super(Strings.nullToEmpty(name), orDefault(urlRestrictions));
+      String name,
+      String token,
+      String tokenFile,
+      UrlRestrictionsProperties urlRestrictions,
+      Permissions.Builder permissions) {
+    super(
+        Strings.nullToEmpty(name),
+        orDefault(urlRestrictions),
+        Optional.ofNullable(permissions).orElseGet(Permissions.Builder::new));
     this.token = Optional.ofNullable(Strings.emptyToNull(token));
     this.tokenFile = Optional.ofNullable(Strings.emptyToNull(tokenFile));
   }

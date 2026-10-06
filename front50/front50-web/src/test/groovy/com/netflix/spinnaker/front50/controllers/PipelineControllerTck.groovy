@@ -114,6 +114,35 @@ abstract class PipelineControllerTck extends Specification {
 
   abstract PipelineDAO createPipelineDAO()
 
+  /** Storage-level state included in failure diagnostics; override where it's cheap to get. */
+  String describeStorageState() {
+    return "n/a"
+  }
+
+  /**
+   * Asserts that every result lists the "test" application's pipelines in the expected order. On
+   * failure, dumps what each response contained along with the DAO cache and storage state, since
+   * this is hard to reproduce outside CI.
+   */
+  void assertPipelinesInOrder(List results) {
+    try {
+      results.each {
+        it.andExpect(jsonPath('$.[*].name').value(["a1", "b1", "a3", "b", "c"]))
+          .andExpect(jsonPath('$.[*].index').value([0, 1, 2, 3, 4]))
+      }
+    } catch (Throwable t) {
+      println "=== cache refresh diagnostics (${specificationContext.currentIteration.name}) ==="
+      results.eachWithIndex { r, i ->
+        def response = r.andReturn().response
+        println "result ${i}: status=${response.status} body=${response.contentAsString}"
+      }
+      println "dao cache (no refresh): ${pipelineDAO.all(false).collect { "${it.application}/${it.name}@${it.lastModified}" }}"
+      println "storage: ${describeStorageState()}"
+      println "thread: ${Thread.currentThread().name}, available processors: ${Runtime.runtime.availableProcessors()}"
+      throw t
+    }
+  }
+
   def "should fail to save if application is missing"() {
     given:
     def command = [
@@ -713,10 +742,7 @@ abstract class PipelineControllerTck extends Specification {
     }
 
     then:
-    results.each {
-      it.andExpect(jsonPath('$.[*].name').value(["a1", "b1", "a3", "b", "c"]))
-        .andExpect(jsonPath('$.[*].index').value([0, 1, 2, 3, 4]))
-    }
+    assertPipelinesInOrder(results)
 
     where:
     synchronizeCacheRefresh << [ false, true ]
@@ -772,10 +798,7 @@ abstract class PipelineControllerTck extends Specification {
     }
 
     then:
-    results.each {
-      it.andExpect(jsonPath('$.[*].name').value(["a1", "b1", "a3", "b", "c"]))
-        .andExpect(jsonPath('$.[*].index').value([0, 1, 2, 3, 4]))
-    }
+    assertPipelinesInOrder(results)
 
     where:
     synchronizeCacheRefresh << [ false, true ]
@@ -1113,6 +1136,11 @@ class SqlPipelineControllerTck extends PipelineControllerTck {
 
   @Override
   PipelineDAO createPipelineDAO() {
-    return SqlPipelineDAOTestConfiguration.createPipelineDAO(database)
+    return SqlPipelineDAOTestConfiguration.createPipelineDAO(database, pipelineDAOConfigProperties)
+  }
+
+  @Override
+  String describeStorageState() {
+    return database.context.fetch("select id, last_modified_at, is_deleted from pipelines").toString()
   }
 }
