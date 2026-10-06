@@ -347,7 +347,6 @@ class SqlPermissionsRepository(
     private fun putResources(resources: Set<Resource>, cleanup: Boolean = false) {
         val existingHashIds = getResourceHashes()
 
-        val existingHashes = existingHashIds.values.toSet()
         val existingIds = existingHashIds.keys
 
         val currentIds = mutableSetOf<ResourceId>() // current resources from the request
@@ -362,7 +361,7 @@ class SqlPermissionsRepository(
             val body: String? = objectMapper.writeValueAsString(it)
             val bodyHash = getHash(body)
 
-            if (body != null && bodyHash != null && !existingHashes.contains(bodyHash)) {
+            if (body != null && bodyHash != null && existingHashIds[id] != bodyHash) {
                 toStore.add(id)
                 bodies[id] = body
                 hashes[id] = bodyHash
