@@ -239,6 +239,27 @@ export function GceHttpLoadBalancerBackendServiceEditor({
           onChange={(event) => onChange({ ...backendService, portName: event.target.value })}
         />
       </label>
+      {loadBalancerType === 'EXTERNAL_MANAGED' && (
+        <label>
+          Protocol
+          <select
+            data-testid="backend-service-protocol"
+            value={backendService.protocol || 'HTTP'}
+            onChange={(event) =>
+              onChange({
+                ...backendService,
+                protocol: event.target.value as IGceLoadBalancerBackendService['protocol'],
+              })
+            }
+          >
+            {['HTTP', 'HTTPS'].map((protocol) => (
+              <option key={protocol} value={protocol}>
+                {protocol}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
       <label>
         Connection draining timeout
         <input
