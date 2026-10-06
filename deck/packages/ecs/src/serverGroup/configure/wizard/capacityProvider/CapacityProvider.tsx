@@ -22,6 +22,22 @@ interface IEcsCapacityProviderState {
   activeCapacityProviderIndex: number | null;
 }
 
+const getEcsCapacityProviderViewModel = (cmd: IEcsServerGroupCommand) => {
+  const available = cmd.backingData?.filtered?.availableCapacityProviders || [];
+  const persisted = (cmd.capacityProviderStrategy || []).map((strategy) => strategy.capacityProvider);
+  const useDefaultCapacityProviders = cmd.useDefaultCapacityProviders !== false;
+  const defaultCapacityProviderStrategy = cmd.backingData?.filtered?.defaultCapacityProviderStrategy || [];
+  return {
+    availableCapacityProviders: Array.from(new Set([...available, ...persisted])).filter(Boolean),
+    defaultCapacityProviderStrategy,
+    ecsClusterName: cmd.ecsClusterName,
+    useDefaultCapacityProviders,
+    capacityProviderStrategy: useDefaultCapacityProviders
+      ? defaultCapacityProviderStrategy
+      : cmd.capacityProviderStrategy || [],
+  };
+};
+
 export class EcsCapacityProvider extends React.Component<IEcsCapacityProviderProps, IEcsCapacityProviderState> {
   constructor(props: IEcsCapacityProviderProps) {
     super(props);
@@ -89,15 +105,11 @@ export class EcsCapacityProvider extends React.Component<IEcsCapacityProviderPro
   }
 
   private getAvailableCapacityProviders = (cmd: IEcsServerGroupCommand) => {
-    const available = cmd.backingData?.filtered?.availableCapacityProviders || [];
-    const persisted = (cmd.capacityProviderStrategy || []).map((strategy) => strategy.capacityProvider);
-    return Array.from(new Set([...available, ...persisted])).filter(Boolean);
+    return getEcsCapacityProviderViewModel(cmd).availableCapacityProviders;
   };
 
   private getDefaultCapacityProviderStrategy = (cmd: IEcsServerGroupCommand) => {
-    return cmd.backingData && cmd.backingData.filtered && cmd.backingData.filtered.defaultCapacityProviderStrategy
-      ? cmd.backingData.filtered.defaultCapacityProviderStrategy
-      : [];
+    return getEcsCapacityProviderViewModel(cmd).defaultCapacityProviderStrategy;
   };
 
   private getCapacityProviderStrategy = (useDefaultCapacityProviders: boolean, cmd: IEcsServerGroupCommand) => {

@@ -19,7 +19,7 @@ describe('instance states', () => {
     const state = getStandaloneInstanceState();
 
     expect(state.views['main@']).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         component: StandaloneInstanceDetails,
         $type: 'react',
       }),
@@ -51,7 +51,7 @@ describe('instance states', () => {
     const state = getMultipleInstancesState();
     const view = state.views['detail@../insight'];
 
-    expect(view).toEqual(jasmine.objectContaining({ component: MultipleInstancesDetails, $type: 'react' }));
+    expect(view).toEqual(expect.objectContaining({ component: MultipleInstancesDetails, $type: 'react' }));
   });
 
   it('resolves a standalone instance during a direct transition', async () => {

@@ -1,4 +1,5 @@
-import { mount } from 'enzyme';
+import type { Mock } from 'vitest';
+import { act, render, screen } from '@testing-library/react';
 import React from 'react';
 
 import type { IPipeline } from '../../../domain';
@@ -8,7 +9,7 @@ describe('PipelineGraph', () => {
   let container: HTMLDivElement;
   let originalResizeObserver: typeof ResizeObserver;
   let originalRequestAnimationFrame: typeof requestAnimationFrame;
-  let requestAnimationFrameSpy: jasmine.Spy;
+  let requestAnimationFrameSpy: Mock;
   let resizeCallback: ResizeObserverCallback;
 
   const pipeline: IPipeline = {
@@ -29,10 +30,10 @@ describe('PipelineGraph', () => {
     document.body.appendChild(container);
     originalResizeObserver = window.ResizeObserver;
     originalRequestAnimationFrame = window.requestAnimationFrame;
-    requestAnimationFrameSpy = spyOn(window, 'requestAnimationFrame').and.returnValue(1);
+    requestAnimationFrameSpy = vi.spyOn(window, 'requestAnimationFrame').mockReturnValue(1);
     (window as any).ResizeObserver = class {
-      public observe = jasmine.createSpy('observe');
-      public disconnect = jasmine.createSpy('disconnect');
+      public observe = vi.fn();
+      public disconnect = vi.fn();
 
       constructor(callback: ResizeObserverCallback) {
         resizeCallback = callback;
@@ -48,51 +49,45 @@ describe('PipelineGraph', () => {
   });
 
   it('recalculates graph layout when the element receives width after mounting', () => {
-    const wrapper = mount(
-      <PipelineGraph
-        pipeline={pipeline}
-        viewState={{ section: 'triggers' } as any}
-        onNodeClick={jasmine.createSpy()}
-      />,
-      { attachTo: container },
+    const { unmount } = render(
+      <PipelineGraph pipeline={pipeline} viewState={{ section: 'triggers' } as any} onNodeClick={vi.fn()} />,
+      { container },
     );
-    const graph = wrapper.find(PipelineGraph).instance() as PipelineGraph;
+    const graphContainer = container.querySelector('div.pipeline-graph');
+    const graph = container.querySelector('svg.pipeline-graph') as SVGElement;
 
     expect(resizeCallback).toBeDefined();
-    expect(graph.state.graphWidth).not.toBe('100%');
+    expect(graph).toBeVisible();
+    expect(graph.style.width).not.toBe('100%');
+    expect(screen.getByText('Bake')).toBeVisible();
 
     container.style.width = '600px';
-    resizeCallback(
-      [{ target: wrapper.find('div.pipeline-graph').getDOMNode(), contentRect: { width: 600 } } as any],
-      {} as any,
-    );
-    wrapper.update();
+    act(() => {
+      resizeCallback([{ target: graphContainer, contentRect: { width: 600 } } as any], {} as any);
+    });
 
-    expect(graph.state.graphWidth).toBe('100%');
+    expect(graph.style.width).toBe('100%');
+    expect(screen.getByText('Bake')).toBeVisible();
 
-    wrapper.unmount();
+    unmount();
   });
 
   it('retries layout when mounted before the element has width', () => {
-    const wrapper = mount(
-      <PipelineGraph
-        pipeline={pipeline}
-        viewState={{ section: 'triggers' } as any}
-        onNodeClick={jasmine.createSpy()}
-      />,
-      { attachTo: container },
+    const { unmount } = render(
+      <PipelineGraph pipeline={pipeline} viewState={{ section: 'triggers' } as any} onNodeClick={vi.fn()} />,
+      { container },
     );
-    const graph = wrapper.find(PipelineGraph).instance() as PipelineGraph;
+    const graph = container.querySelector('svg.pipeline-graph') as SVGElement;
 
-    expect(graph.state.graphWidth).not.toBe('100%');
+    expect(graph.style.width).not.toBe('100%');
     expect(requestAnimationFrameSpy).toHaveBeenCalled();
 
     container.style.width = '600px';
-    requestAnimationFrameSpy.calls.mostRecent().args[0](0);
-    wrapper.update();
+    act(() => requestAnimationFrameSpy.mock.lastCall[0](0));
 
-    expect(graph.state.graphWidth).toBe('100%');
+    expect(graph.style.width).toBe('100%');
+    expect(screen.getByText('Bake')).toBeVisible();
 
-    wrapper.unmount();
+    unmount();
   });
 });

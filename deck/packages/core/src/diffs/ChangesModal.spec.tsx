@@ -1,24 +1,23 @@
-import { mount } from 'enzyme';
+import { render, screen } from '@testing-library/react';
 import React from 'react';
 
 import { ChangesModal } from './ChangesModal';
 import { ModalContext } from '../presentation/modal/ModalContext';
 
-const mountModal = (modal: React.ReactElement) =>
-  mount(<ModalContext.Provider value={{ onRequestClose: () => {} }}>{modal}</ModalContext.Provider>);
+const renderModal = (modal: React.ReactElement) =>
+  render(<ModalContext.Provider value={{ onRequestClose: () => {} }}>{modal}</ModalContext.Provider>);
 
 describe('ChangesModal', () => {
   it('renders safely when optional change data is absent', () => {
-    const wrapper = mountModal(<ChangesModal dismissModal={() => {}} nameItem={{ name: 'Deploy' }} />);
+    renderModal(<ChangesModal dismissModal={() => {}} nameItem={{ name: 'Deploy' }} />);
 
-    expect(wrapper.text()).toContain('Changes to Deploy');
-    expect(wrapper.text()).not.toContain('Commits');
-    expect(wrapper.text()).not.toContain('JAR Changes');
-    wrapper.unmount();
+    expect(screen.getByText('Changes to Deploy')).toBeInTheDocument();
+    expect(screen.queryByText('Commits')).not.toBeInTheDocument();
+    expect(screen.queryByText('JAR Changes')).not.toBeInTheDocument();
   });
 
   it('renders build numbers without links when Jenkins metadata is absent', () => {
-    const wrapper = mountModal(
+    renderModal(
       <ChangesModal
         buildInfo={{ ancestor: '100', target: '101' }}
         dismissModal={() => {}}
@@ -26,9 +25,8 @@ describe('ChangesModal', () => {
       />,
     );
 
-    expect(wrapper.text()).toContain('Previous: Build: #100');
-    expect(wrapper.text()).toContain('Current: Build: #101');
-    expect(wrapper.find('a').length).toBe(0);
-    wrapper.unmount();
+    expect(screen.getByText('Previous:').parentElement).toHaveTextContent(/^Previous: Build: #100$/);
+    expect(screen.getByText('Current:').parentElement).toHaveTextContent(/^Current: Build: #101$/);
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
   });
 });
