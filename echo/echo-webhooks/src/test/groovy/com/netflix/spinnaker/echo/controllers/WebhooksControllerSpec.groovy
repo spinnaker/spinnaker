@@ -21,6 +21,7 @@ import com.netflix.spinnaker.echo.artifacts.ArtifactExtractor
 import com.netflix.spinnaker.echo.events.EventPropagator
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
 import com.netflix.spinnaker.echo.scm.BitbucketWebhookEventHandler
+import com.netflix.spinnaker.echo.scm.GiteaWebhookEventHandler
 import com.netflix.spinnaker.echo.scm.GithubWebhookEventHandler
 import com.netflix.spinnaker.echo.scm.GitlabWebhookEventHandler
 import com.netflix.spinnaker.echo.scm.ScmWebhookHandler
@@ -42,6 +43,7 @@ class WebhooksControllerSpec extends Specification {
     [
       new BitbucketWebhookEventHandler(new BitbucketServerEventHandler()),
       new GitlabWebhookEventHandler(),
+      new GiteaWebhookEventHandler(),
       new GithubWebhookEventHandler(),
       new StashWebhookEventHandler()]
   )
@@ -590,6 +592,168 @@ class WebhooksControllerSpec extends Specification {
     event.content.slug == "Diaspora"
     event.content.branch == "master"
     event.content.action == "push"
+  }
+
+  void "handles Gitea push Webhook Event"() {
+    def event
+
+    given:
+    WebhooksController controller = new WebhooksController(mapper: EchoObjectMapper.getInstance(), scmWebhookHandler: scmWebhookHandler)
+    controller.propagator = Mock(EventPropagator)
+    controller.artifactExtractor = Mock(ArtifactExtractor)
+    controller.artifactExtractor.extractArtifacts(_, _, _) >> []
+
+    when:
+    controller.forwardEvent(
+      "git",
+      "gitea",
+      """{
+          "ref": "refs/heads/main",
+          "after": "da1560886d4f094c3e6c9ef40349f7d38b5d27d7",
+          "repository": {
+            "name": "echo",
+            "full_name": "spinnaker/echo",
+            "owner": {"login": "spinnaker", "username": "spinnaker"}
+          }
+        }
+        """, new HttpHeaders())
+
+    then:
+    1 * controller.propagator.processEvent(_) >> {
+      event = it[0]
+    }
+
+    event.content.hash == "da1560886d4f094c3e6c9ef40349f7d38b5d27d7"
+    event.content.repoProject == "spinnaker"
+    event.content.slug == "echo"
+    event.content.branch == "main"
+    event.content.action == "push"
+  }
+
+  void "falls back to the full_name prefix for the Gitea owner"() {
+    def event
+
+    given:
+    WebhooksController controller = new WebhooksController(mapper: EchoObjectMapper.getInstance(), scmWebhookHandler: scmWebhookHandler)
+    controller.propagator = Mock(EventPropagator)
+    controller.artifactExtractor = Mock(ArtifactExtractor)
+    controller.artifactExtractor.extractArtifacts(_, _, _) >> []
+
+    when:
+    controller.forwardEvent(
+      "git", "gitea",
+      '''{"ref": "refs/heads/main", "after": "abc", "repository": {"name": "echo", "full_name": "spinnaker/echo"}}''',
+      new HttpHeaders())
+
+    then:
+    1 * controller.propagator.processEvent(_) >> {
+      event = it[0]
+    }
+    event.content.repoProject == "spinnaker"
+  }
+
+  void "handles Gitea pull request Webhook Event"() {
+    def event
+
+    given:
+    WebhooksController controller = new WebhooksController(mapper: EchoObjectMapper.getInstance(), scmWebhookHandler: scmWebhookHandler)
+    controller.propagator = Mock(EventPropagator)
+    controller.artifactExtractor = Mock(ArtifactExtractor)
+    controller.artifactExtractor.extractArtifacts(_, _, _) >> []
+
+    when:
+    controller.forwardEvent(
+      "git",
+      "gitea",
+      """{
+          "action": "synchronized",
+          "number": 7,
+          "pull_request": {
+            "number": 7,
+            "state": "open",
+            "title": "Add a thing",
+            "head": {"ref": "feature/thing", "sha": "1111111111111111111111111111111111111111"}
+          },
+          "repository": {
+            "name": "echo",
+            "full_name": "spinnaker/echo",
+            "owner": {"login": "spinnaker"}
+          }
+        }
+        """, new HttpHeaders())
+
+    then:
+    1 * controller.propagator.processEvent(_) >> {
+      event = it[0]
+    }
+
+    event.content.hash == "1111111111111111111111111111111111111111"
+    event.content.branch == "feature/thing"
+    event.content.repoProject == "spinnaker"
+    event.content.slug == "echo"
+    event.content.action == "pull_request:synchronized"
+    event.content.number == "7"
+    event.content.state == "open"
+    event.content.title == "Add a thing"
+    !event.content.containsKey("draft")
+  }
+
+  void "handles Gitea branch and tag create/delete Webhook Events"() {
+    def event
+
+    given:
+    WebhooksController controller = new WebhooksController(mapper: EchoObjectMapper.getInstance(), scmWebhookHandler: scmWebhookHandler)
+    controller.propagator = Mock(EventPropagator)
+    controller.artifactExtractor = Mock(ArtifactExtractor)
+    controller.artifactExtractor.extractArtifacts(_, _, _) >> []
+    HttpHeaders headers = new HttpHeaders()
+    headers.add("X-Gitea-Event", eventHeader)
+
+    when:
+    controller.forwardEvent(
+      "git", "gitea",
+      """{"ref": "v1.0", "ref_type": "${refType}", "sha": "abc123",
+          "repository": {"name": "echo", "full_name": "spinnaker/echo", "owner": {"login": "spinnaker"}}}""",
+      headers)
+
+    then:
+    1 * controller.propagator.processEvent(_) >> {
+      event = it[0]
+    }
+    event.content.action == expectedAction
+    event.content.hash == "abc123"
+    event.content.branch == "v1.0"
+
+    where:
+    refType  | eventHeader | expectedAction
+    "branch" | "create"    | "branch:create"
+    "branch" | "delete"    | "branch:delete"
+    "tag"    | "create"    | "tag:create"
+  }
+
+  void "reads the GitHub event type header case-insensitively for branch events"() {
+    def event
+
+    given:
+    WebhooksController controller = new WebhooksController(mapper: EchoObjectMapper.getInstance(), scmWebhookHandler: scmWebhookHandler)
+    controller.propagator = Mock(EventPropagator)
+    controller.artifactExtractor = Mock(ArtifactExtractor)
+    controller.artifactExtractor.extractArtifacts(_, _, _) >> []
+    HttpHeaders headers = new HttpHeaders()
+    headers.add("X-GitHub-Event", "delete")
+
+    when:
+    controller.forwardEvent(
+      "git", "github",
+      '''{"ref": "feature", "ref_type": "branch",
+          "repository": {"name": "echo", "full_name": "spinnaker/echo", "owner": {"login": "spinnaker"}}}''',
+      headers)
+
+    then:
+    1 * controller.propagator.processEvent(_) >> {
+      event = it[0]
+    }
+    event.content.action == "branch:delete"
   }
 
   void "handles Stash Webhook Event"() {
