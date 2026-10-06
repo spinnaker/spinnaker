@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { mount } from 'enzyme';
 import React from 'react';
 
@@ -8,7 +9,7 @@ import type { IKubernetesServerGroupManagerDetailsProps } from './ServerGroupMan
 
 describe('useKubernetesServerGroupManagerDetails', () => {
   beforeEach(() => {
-    spyOn(ManifestReader, 'getManifest').and.returnValue(Promise.resolve(manifestDetails()) as any);
+    vi.spyOn(ManifestReader, 'getManifest').mockReturnValue(Promise.resolve(manifestDetails()) as any);
   });
 
   it('waits for the server group manager data source before loading manifest details', async () => {
@@ -16,10 +17,10 @@ describe('useKubernetesServerGroupManagerDetails', () => {
     const ready = new Promise<void>((resolve) => {
       resolveReady = resolve;
     });
-    const autoClose = jasmine.createSpy('autoClose');
+    const autoClose = vi.fn();
     const dataSource = {
       data: [] as any[],
-      ready: jasmine.createSpy('ready').and.returnValue(ready),
+      ready: vi.fn().mockReturnValue(ready),
     };
     const component = mount(<HookHarness {...props(dataSource)} autoClose={autoClose} />);
 
@@ -44,12 +45,12 @@ describe('useKubernetesServerGroupManagerDetails', () => {
   });
 
   it('auto-closes when manifest details fail to load', async () => {
-    (ManifestReader.getManifest as jasmine.Spy).and.returnValue(Promise.reject(new Error('manifest failed')));
-    spyOn(console, 'error').and.stub();
-    const autoClose = jasmine.createSpy('autoClose');
+    (ManifestReader.getManifest as Mock).mockReturnValue(Promise.reject(new Error('manifest failed')));
+    vi.spyOn(console, 'error').mockReturnValue(undefined);
+    const autoClose = vi.fn();
     const dataSource = {
       data: [serverGroupManagerDetails()],
-      ready: jasmine.createSpy('ready').and.returnValue(Promise.resolve()),
+      ready: vi.fn().mockReturnValue(Promise.resolve()),
     };
 
     const component = mount(<HookHarness {...props(dataSource)} autoClose={autoClose} />);

@@ -46,7 +46,7 @@ describe('Builds', () => {
     app.attributes.repoType = 'github';
     app.attributes.repoProjectKey = 'spinnaker';
     app.attributes.repoSlug = 'deck';
-    spyOn(router.stateService, 'go').and.returnValue(Promise.resolve(null) as any);
+    vi.spyOn(router.stateService, 'go').mockReturnValue(Promise.resolve(null) as any);
 
     const wrapper = mount(
       <UIRouterContext.Provider value={router}>

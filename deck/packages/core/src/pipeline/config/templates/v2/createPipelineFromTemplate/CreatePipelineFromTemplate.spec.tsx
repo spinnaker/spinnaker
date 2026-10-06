@@ -6,7 +6,7 @@ import { CreatePipelineModal } from '../../../../create';
 
 describe('CreatePipelineFromTemplate', () => {
   it('opens a saved pipeline through the injected state service', () => {
-    const injectedGo = jasmine.createSpy('injectedGo');
+    const injectedGo = vi.fn();
     const component = shallow(
       <CreatePipelineFromTemplateComponent
         {...({ router: {}, stateParams: {}, stateService: { go: injectedGo } } as any)}

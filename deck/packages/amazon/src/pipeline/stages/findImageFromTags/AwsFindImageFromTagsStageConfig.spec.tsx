@@ -9,7 +9,7 @@ import { awsFindImageFromTagsStage } from './awsFindImageFromTagsStage';
 
 describe('AWS Find Image from Tags stage', () => {
   function renderEditor(stage: any) {
-    const updateStageField = jasmine.createSpy('updateStageField');
+    const updateStageField = vi.fn();
     const wrapper = shallow(
       <AwsFindImageFromTagsStageConfig
         application={{ defaultRegions: { aws: 'eu-west-1' } } as any}
@@ -26,9 +26,9 @@ describe('AWS Find Image from Tags stage', () => {
   });
 
   it('renders explicit persisted values without changing them on mount', () => {
-    spyOn(BakeryReader, 'getRegions').and.returnValue(Promise.resolve([]) as any);
+    vi.spyOn(BakeryReader, 'getRegions').mockReturnValue(Promise.resolve([]) as any);
     const tags = { Environment: 'production', EmptyValue: '' };
-    const updateStageField = jasmine.createSpy('updateStageField');
+    const updateStageField = vi.fn();
     const wrapper = mount(
       <AwsFindImageFromTagsStageConfig
         application={{ defaultRegions: { aws: 'eu-west-1' } } as any}
@@ -47,8 +47,8 @@ describe('AWS Find Image from Tags stage', () => {
   });
 
   it('defaults only undefined stage fields on mount', () => {
-    spyOn(BakeryReader, 'getRegions').and.returnValue(Promise.resolve([]) as any);
-    const updateStageField = jasmine.createSpy('updateStageField');
+    vi.spyOn(BakeryReader, 'getRegions').mockReturnValue(Promise.resolve([]) as any);
+    const updateStageField = vi.fn();
 
     const wrapper = mount(
       <AwsFindImageFromTagsStageConfig
@@ -59,13 +59,17 @@ describe('AWS Find Image from Tags stage', () => {
       />,
     );
 
-    expect(updateStageField).toHaveBeenCalledOnceWith({ cloudProvider: 'aws', regions: ['eu-west-1'], tags: {} });
+    expect(updateStageField).toHaveBeenCalledExactlyOnceWith({
+      cloudProvider: 'aws',
+      regions: ['eu-west-1'],
+      tags: {},
+    });
     wrapper.unmount();
   });
 
   it('loads AWS regions while retaining persisted selections as options', async () => {
-    spyOn(BakeryReader, 'getRegions').and.returnValue(Promise.resolve(['eu-west-1', 'us-east-1']) as any);
-    const updateStageField = jasmine.createSpy('updateStageField');
+    vi.spyOn(BakeryReader, 'getRegions').mockReturnValue(Promise.resolve(['eu-west-1', 'us-east-1']) as any);
+    const updateStageField = vi.fn();
     const wrapper = mount(
       <AwsFindImageFromTagsStageConfig
         application={{} as any}
@@ -113,7 +117,7 @@ describe('AWS Find Image from Tags stage', () => {
     onChange({ Environment: 'staging' }, false);
     onChange({}, false);
 
-    expect(updateStageField.calls.allArgs()).toEqual([
+    expect(updateStageField.mock.calls).toEqual([
       [{ tags: { Environment: 'production', Team: '' } }],
       [{ tags: { Environment: 'staging' } }],
       [{ tags: {} }],

@@ -12,8 +12,8 @@ import { SpinnakerHeaderContent } from './SpinnakerHeader';
 
 describe('SpinnakerHeader', () => {
   beforeEach(() => {
-    spyOn(AuthenticationService, 'getAuthenticatedUser').and.returnValue({ roles: [] } as any);
-    spyOn(GlobalBannerService, 'getActiveBanners').and.returnValue(Promise.resolve([]));
+    vi.spyOn(AuthenticationService, 'getAuthenticatedUser').mockReturnValue({ roles: [] } as any);
+    vi.spyOn(GlobalBannerService, 'getActiveBanners').mockReturnValue(Promise.resolve([]));
   });
 
   it('renders primary navigation with the legacy navbar class contract', () => {

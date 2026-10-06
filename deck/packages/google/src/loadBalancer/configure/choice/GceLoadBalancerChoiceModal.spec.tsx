@@ -6,6 +6,7 @@ import { ReactModal } from '@spinnaker/core';
 import { GceProxyLoadBalancerModal } from '../common/GceProxyLoadBalancerModal';
 import { GceHttpLoadBalancerModal } from '../http/GceHttpLoadBalancerModal';
 import { GceNetworkLoadBalancerModal } from '../network/GceNetworkLoadBalancerModal';
+import { GceRegionalExternalNetworkLoadBalancerModal } from '../network/GceRegionalExternalNetworkLoadBalancerModal';
 import {
   GCE_LOAD_BALANCER_CHOICES,
   GceLoadBalancerChoiceModal,
@@ -15,6 +16,13 @@ import {
 describe('GceLoadBalancerChoiceModal', () => {
   const application = { name: 'fnord' } as any;
 
+  const spyOnAllGceLoadBalancerModals = (impl: (props: any) => Promise<any> = () => Promise.resolve() as any): void => {
+    vi.spyOn(GceNetworkLoadBalancerModal, 'show').mockImplementation(impl);
+    vi.spyOn(GceProxyLoadBalancerModal, 'show').mockImplementation(impl);
+    vi.spyOn(GceHttpLoadBalancerModal, 'show').mockImplementation(impl);
+    vi.spyOn(GceRegionalExternalNetworkLoadBalancerModal, 'show').mockImplementation(impl);
+  };
+
   it('routes every exposed GCE load balancer type to its React modal', () => {
     expect(GCE_LOAD_BALANCER_CHOICES.map(({ type }) => type)).toEqual([
       'NETWORK',
@@ -23,14 +31,17 @@ describe('GceLoadBalancerChoiceModal', () => {
       'SSL',
       'HTTP',
       'INTERNAL_MANAGED',
+      'EXTERNAL_MANAGED',
+      'REGIONAL_EXTERNAL_NETWORK',
     ]);
     expect(getGceLoadBalancerModal('NETWORK')).toBe(GceNetworkLoadBalancerModal);
     (['INTERNAL', 'TCP', 'SSL'] as const).forEach((type) => {
-      expect(getGceLoadBalancerModal(type)).withContext(type).toBe(GceProxyLoadBalancerModal);
+      expect(getGceLoadBalancerModal(type), type).toBe(GceProxyLoadBalancerModal);
     });
-    (['HTTP', 'INTERNAL_MANAGED'] as const).forEach((type) => {
-      expect(getGceLoadBalancerModal(type)).withContext(type).toBe(GceHttpLoadBalancerModal);
+    (['HTTP', 'INTERNAL_MANAGED', 'EXTERNAL_MANAGED'] as const).forEach((type) => {
+      expect(getGceLoadBalancerModal(type), type).toBe(GceHttpLoadBalancerModal);
     });
+    expect(getGceLoadBalancerModal('REGIONAL_EXTERNAL_NETWORK')).toBe(GceRegionalExternalNetworkLoadBalancerModal);
   });
 
   it('advertises pipeline support only at the fully routed choice entry point', () => {
@@ -39,12 +50,12 @@ describe('GceLoadBalancerChoiceModal', () => {
 
   it('passes modal sizing as ReactModal dialog options instead of component props', () => {
     const result = Promise.resolve();
-    const show = spyOn(ReactModal, 'show').and.returnValue(result);
+    const show = vi.spyOn(ReactModal, 'show').mockReturnValue(result);
 
     const opened = GceLoadBalancerChoiceModal.show({ application } as any);
 
     expect(opened).toBe(result);
-    expect(show).toHaveBeenCalledOnceWith(
+    expect(show).toHaveBeenCalledExactlyOnceWith(
       GceLoadBalancerChoiceModal,
       { application },
       { dialogClassName: 'create-pipeline-modal-overflow-visible modal-lg' },
@@ -66,11 +77,9 @@ describe('GceLoadBalancerChoiceModal', () => {
 
     expect(choices).toHaveSize(GCE_LOAD_BALANCER_CHOICES.length);
     choices.forEach((choice, index) => {
-      expect(choice.prop('type')).withContext(GCE_LOAD_BALANCER_CHOICES[index].type).toBe('button');
-      expect(choice.prop('aria-pressed'))
-        .withContext(GCE_LOAD_BALANCER_CHOICES[index].type)
-        .toBe(index === 0);
-      expect(choice.prop('disabled')).withContext(GCE_LOAD_BALANCER_CHOICES[index].type).toBe(false);
+      expect(choice.prop('type'), GCE_LOAD_BALANCER_CHOICES[index].type).toBe('button');
+      expect(choice.prop('aria-pressed'), GCE_LOAD_BALANCER_CHOICES[index].type).toBe(index === 0);
+      expect(choice.prop('disabled'), GCE_LOAD_BALANCER_CHOICES[index].type).toBe(false);
     });
 
     choices.at(2).simulate('click');
@@ -82,9 +91,7 @@ describe('GceLoadBalancerChoiceModal', () => {
   });
 
   it('opens every exposed type in create and pipeline modes', () => {
-    spyOn(GceNetworkLoadBalancerModal, 'show').and.returnValue(Promise.resolve() as any);
-    spyOn(GceProxyLoadBalancerModal, 'show').and.returnValue(Promise.resolve() as any);
-    spyOn(GceHttpLoadBalancerModal, 'show').and.returnValue(Promise.resolve() as any);
+    spyOnAllGceLoadBalancerModals();
 
     ([false, true] as const).forEach((forPipelineConfig) => {
       GCE_LOAD_BALANCER_CHOICES.forEach((choice) => {
@@ -93,32 +100,33 @@ describe('GceLoadBalancerChoiceModal', () => {
 
         (modal as any).choose();
 
-        expect(getGceLoadBalancerModal(choice.type).show)
-          .withContext(`${choice.type} ${forPipelineConfig ? 'pipeline' : 'create'}`)
-          .toHaveBeenCalledWith(
-            jasmine.objectContaining({
-              forPipelineConfig,
-              isNew: !forPipelineConfig,
-              loadBalancer: null,
-              loadBalancerType: choice.type,
-              mode: forPipelineConfig ? 'pipeline' : 'create',
-            }),
-          );
+        expect(
+          getGceLoadBalancerModal(choice.type).show,
+          `${choice.type} ${forPipelineConfig ? 'pipeline' : 'create'}`,
+        ).toHaveBeenCalledWith(
+          expect.objectContaining({
+            forPipelineConfig,
+            isNew: !forPipelineConfig,
+            loadBalancer: null,
+            loadBalancerType: choice.type,
+            mode: forPipelineConfig ? 'pipeline' : 'create',
+          }),
+        );
       });
     });
   });
 
   it('opens a selected type in create mode without persisted data', () => {
-    const closeModal = jasmine.createSpy('closeModal');
+    const closeModal = vi.fn();
     const result = Promise.resolve({ loadBalancerType: 'SSL' });
-    const show = spyOn(GceProxyLoadBalancerModal, 'show').and.returnValue(result as any);
+    const show = vi.spyOn(GceProxyLoadBalancerModal, 'show').mockReturnValue(result as any);
     const modal = new GceLoadBalancerChoiceModal({ application, closeModal } as any);
 
     modal.state = { ...modal.state, selectedChoice: GCE_LOAD_BALANCER_CHOICES[3] };
     (modal as any).choose();
 
-    expect(show).toHaveBeenCalledOnceWith(
-      jasmine.objectContaining({
+    expect(show).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
         app: application,
         application,
         forPipelineConfig: false,
@@ -128,64 +136,58 @@ describe('GceLoadBalancerChoiceModal', () => {
         mode: 'create',
       }),
     );
-    expect(closeModal).toHaveBeenCalledOnceWith(result);
+    expect(closeModal).toHaveBeenCalledExactlyOnceWith(result);
   });
 
   it('opens a selected type in pipeline mode and propagates its command promise', async () => {
-    const closeModal = jasmine.createSpy('closeModal');
+    const closeModal = vi.fn();
     const command = { loadBalancerType: 'INTERNAL_MANAGED', type: 'upsertLoadBalancer' };
     const result = Promise.resolve(command);
-    const show = spyOn(GceHttpLoadBalancerModal, 'show').and.returnValue(result);
+    const show = vi.spyOn(GceHttpLoadBalancerModal, 'show').mockReturnValue(result);
     const modal = new GceLoadBalancerChoiceModal({ application, closeModal, forPipelineConfig: true } as any);
 
     modal.state = { ...modal.state, selectedChoice: GCE_LOAD_BALANCER_CHOICES[5] };
     (modal as any).choose();
 
-    expect(show).toHaveBeenCalledOnceWith(
-      jasmine.objectContaining({
+    expect(show).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
         forPipelineConfig: true,
         loadBalancer: null,
         loadBalancerType: 'INTERNAL_MANAGED',
         mode: 'pipeline',
       }),
     );
-    expect(closeModal).toHaveBeenCalledOnceWith(result);
-    await expectAsync(closeModal.calls.mostRecent().args[0]).toBeResolvedTo(command);
+    expect(closeModal).toHaveBeenCalledExactlyOnceWith(result);
+    await expectAsync(closeModal.mock.lastCall[0]).toBeResolvedTo(command);
   });
 
   it('routes every exposed type directly to edit mode with the current load balancer', () => {
-    spyOn(GceNetworkLoadBalancerModal, 'show').and.callFake((props: any) => Promise.resolve(props.loadBalancer) as any);
-    spyOn(GceProxyLoadBalancerModal, 'show').and.callFake((props: any) => Promise.resolve(props.loadBalancer) as any);
-    spyOn(GceHttpLoadBalancerModal, 'show').and.callFake((props: any) => Promise.resolve(props.loadBalancer) as any);
-    const reactModalShow = spyOn(ReactModal, 'show');
+    spyOnAllGceLoadBalancerModals((props: any) => Promise.resolve(props.loadBalancer) as any);
+    const reactModalShow = vi.spyOn(ReactModal, 'show').mockReturnValue(undefined);
 
     GCE_LOAD_BALANCER_CHOICES.forEach((choice) => {
       const current = { account: 'account-a', loadBalancerType: choice.type, name: `fnord-${choice.type}` };
       GceLoadBalancerChoiceModal.show({ application, isNew: false, loadBalancer: current } as any);
 
-      expect(getGceLoadBalancerModal(choice.type).show)
-        .withContext(choice.type)
-        .toHaveBeenCalledWith(
-          jasmine.objectContaining({
-            app: application,
-            application,
-            forPipelineConfig: false,
-            isNew: false,
-            loadBalancer: current,
-            loadBalancerType: choice.type,
-            mode: 'edit',
-          }),
-        );
+      expect(getGceLoadBalancerModal(choice.type).show, choice.type).toHaveBeenCalledWith(
+        expect.objectContaining({
+          app: application,
+          application,
+          forPipelineConfig: false,
+          isNew: false,
+          loadBalancer: current,
+          loadBalancerType: choice.type,
+          mode: 'edit',
+        }),
+      );
     });
 
     expect(reactModalShow).not.toHaveBeenCalled();
   });
 
   it('routes every existing type to pipeline mode when editing pipeline configuration', () => {
-    spyOn(GceNetworkLoadBalancerModal, 'show').and.callFake((props: any) => Promise.resolve(props.loadBalancer) as any);
-    spyOn(GceProxyLoadBalancerModal, 'show').and.callFake((props: any) => Promise.resolve(props.loadBalancer) as any);
-    spyOn(GceHttpLoadBalancerModal, 'show').and.callFake((props: any) => Promise.resolve(props.loadBalancer) as any);
-    const reactModalShow = spyOn(ReactModal, 'show');
+    spyOnAllGceLoadBalancerModals((props: any) => Promise.resolve(props.loadBalancer) as any);
+    const reactModalShow = vi.spyOn(ReactModal, 'show').mockReturnValue(undefined);
 
     GCE_LOAD_BALANCER_CHOICES.forEach((choice) => {
       const current = { account: 'account-a', loadBalancerType: choice.type, name: `fnord-${choice.type}` };
@@ -196,19 +198,17 @@ describe('GceLoadBalancerChoiceModal', () => {
         loadBalancer: current,
       } as any);
 
-      expect(getGceLoadBalancerModal(choice.type).show)
-        .withContext(choice.type)
-        .toHaveBeenCalledWith(
-          jasmine.objectContaining({
-            app: application,
-            application,
-            forPipelineConfig: true,
-            isNew: false,
-            loadBalancer: current,
-            loadBalancerType: choice.type,
-            mode: 'pipeline',
-          }),
-        );
+      expect(getGceLoadBalancerModal(choice.type).show, choice.type).toHaveBeenCalledWith(
+        expect.objectContaining({
+          app: application,
+          application,
+          forPipelineConfig: true,
+          isNew: false,
+          loadBalancer: current,
+          loadBalancerType: choice.type,
+          mode: 'pipeline',
+        }),
+      );
     });
 
     expect(reactModalShow).not.toHaveBeenCalled();
@@ -216,17 +216,20 @@ describe('GceLoadBalancerChoiceModal', () => {
 
   ([undefined, '', 'http', 'UNKNOWN'] as const).forEach((persistedType) => {
     it(`blocks edit routing for unsupported persisted type ${String(persistedType)}`, () => {
-      const networkShow = spyOn(GceNetworkLoadBalancerModal, 'show');
-      const proxyShow = spyOn(GceProxyLoadBalancerModal, 'show');
-      const httpShow = spyOn(GceHttpLoadBalancerModal, 'show');
+      const networkShow = vi.spyOn(GceNetworkLoadBalancerModal, 'show').mockReturnValue(undefined);
+      const proxyShow = vi.spyOn(GceProxyLoadBalancerModal, 'show').mockReturnValue(undefined);
+      const httpShow = vi.spyOn(GceHttpLoadBalancerModal, 'show').mockReturnValue(undefined);
+      const regionalExternalNetworkShow = vi
+        .spyOn(GceRegionalExternalNetworkLoadBalancerModal, 'show')
+        .mockReturnValue(undefined);
       const blockedResult = Promise.resolve();
-      const reactModalShow = spyOn(ReactModal, 'show').and.returnValue(blockedResult);
+      const reactModalShow = vi.spyOn(ReactModal, 'show').mockReturnValue(blockedResult);
       const loadBalancer = { name: 'fnord', loadBalancerType: persistedType };
 
       const result = GceLoadBalancerChoiceModal.show({ application, isNew: false, loadBalancer } as any);
 
       expect(result).toBe(blockedResult);
-      expect(reactModalShow).toHaveBeenCalledOnceWith(
+      expect(reactModalShow).toHaveBeenCalledExactlyOnceWith(
         GceLoadBalancerChoiceModal,
         { application, isNew: false, loadBalancer },
         { dialogClassName: 'create-pipeline-modal-overflow-visible modal-lg' },
@@ -234,6 +237,7 @@ describe('GceLoadBalancerChoiceModal', () => {
       expect(networkShow).not.toHaveBeenCalled();
       expect(proxyShow).not.toHaveBeenCalled();
       expect(httpShow).not.toHaveBeenCalled();
+      expect(regionalExternalNetworkShow).not.toHaveBeenCalled();
     });
   });
 
@@ -260,9 +264,12 @@ describe('GceLoadBalancerChoiceModal', () => {
   });
 
   it('does not open a type modal when blocked submission is invoked programmatically', () => {
-    const networkShow = spyOn(GceNetworkLoadBalancerModal, 'show');
-    const proxyShow = spyOn(GceProxyLoadBalancerModal, 'show');
-    const httpShow = spyOn(GceHttpLoadBalancerModal, 'show');
+    const networkShow = vi.spyOn(GceNetworkLoadBalancerModal, 'show').mockReturnValue(undefined);
+    const proxyShow = vi.spyOn(GceProxyLoadBalancerModal, 'show').mockReturnValue(undefined);
+    const httpShow = vi.spyOn(GceHttpLoadBalancerModal, 'show').mockReturnValue(undefined);
+    const regionalExternalNetworkShow = vi
+      .spyOn(GceRegionalExternalNetworkLoadBalancerModal, 'show')
+      .mockReturnValue(undefined);
     const modal = new GceLoadBalancerChoiceModal({
       application,
       forPipelineConfig: true,
@@ -275,5 +282,29 @@ describe('GceLoadBalancerChoiceModal', () => {
     expect(networkShow).not.toHaveBeenCalled();
     expect(proxyShow).not.toHaveBeenCalled();
     expect(httpShow).not.toHaveBeenCalled();
+    expect(regionalExternalNetworkShow).not.toHaveBeenCalled();
+  });
+
+  it('exposes EXTERNAL_MANAGED and REGIONAL_EXTERNAL_NETWORK choices', () => {
+    expect(GCE_LOAD_BALANCER_CHOICES.map(({ type }) => type)).toEqual([
+      'NETWORK',
+      'INTERNAL',
+      'TCP',
+      'SSL',
+      'HTTP',
+      'INTERNAL_MANAGED',
+      'EXTERNAL_MANAGED',
+      'REGIONAL_EXTERNAL_NETWORK',
+    ]);
+  });
+
+  it('routes EXTERNAL_MANAGED to the HTTP modal', () => {
+    expect(getGceLoadBalancerModal('EXTERNAL_MANAGED' as any)).toBe(GceHttpLoadBalancerModal);
+  });
+
+  it('routes REGIONAL_EXTERNAL_NETWORK to its dedicated modal', () => {
+    expect(getGceLoadBalancerModal('REGIONAL_EXTERNAL_NETWORK' as any)).toBe(
+      GceRegionalExternalNetworkLoadBalancerModal,
+    );
   });
 });
