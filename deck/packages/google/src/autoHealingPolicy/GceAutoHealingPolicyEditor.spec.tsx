@@ -1,15 +1,10 @@
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import React from 'react';
-import { shallow } from 'enzyme';
 
-import { IGceHealthCheckKind } from '../domain';
 import { GceAutoHealingPolicyEditor } from './GceAutoHealingPolicyEditor';
+import { IGceHealthCheckKind } from '../domain';
 
 describe('GceAutoHealingPolicyEditor', () => {
-  async function flush(): Promise<void> {
-    await Promise.resolve();
-    await Promise.resolve();
-  }
-
   it('loads only health checks from the selected account', async () => {
     const reader = {
       listHealthChecks: vi.fn().mockReturnValue(
@@ -29,26 +24,40 @@ describe('GceAutoHealingPolicyEditor', () => {
         ]),
       ),
     };
-    const wrapper = shallow(
+    render(
       <GceAutoHealingPolicyEditor account="my-account" policy={{}} onChange={() => undefined} reader={reader as any} />,
     );
 
-    await flush();
-    wrapper.update();
-
-    expect(wrapper.find('[data-testid="health-check"] option').length).toBe(2);
-    expect(wrapper.find('[data-testid="health-check"]').text()).toContain('web');
-    expect(wrapper.find('[data-testid="health-check"]').text()).not.toContain('other');
+    const select = await screen.findByTestId('health-check');
+    await waitFor(() => expect(reader.listHealthChecks).toHaveBeenCalled());
+    expect(within(select).getAllByRole('option')).toHaveLength(2);
+    expect(select).toHaveTextContent('web');
+    expect(select).not.toHaveTextContent('other');
   });
 
-  it('writes the selected health check name and kind from its URL', () => {
+  it('writes the selected health check name and kind from its URL', async () => {
     const onChange = vi.fn();
-    const wrapper = shallow(
-      <GceAutoHealingPolicyEditor account="my-account" policy={{ initialDelaySec: 0 }} onChange={onChange} />,
-      { disableLifecycleMethods: true },
+    const reader = {
+      listHealthChecks: vi.fn().mockResolvedValue([
+        {
+          account: 'my-account',
+          kind: IGceHealthCheckKind.httpHealthCheck,
+          name: 'web',
+          selfLink: 'https://compute/httpHealthChecks/web',
+        },
+      ]),
+    };
+    render(
+      <GceAutoHealingPolicyEditor
+        account="my-account"
+        policy={{ initialDelaySec: 0 }}
+        onChange={onChange}
+        reader={reader as any}
+      />,
     );
 
-    wrapper.find('[data-testid="health-check"]').simulate('change', {
+    await waitFor(() => expect(screen.getByTestId('health-check')).toBeEnabled());
+    fireEvent.change(screen.getByTestId('health-check'), {
       target: { value: 'https://compute/httpHealthChecks/web' },
     });
 
@@ -65,7 +74,7 @@ describe('GceAutoHealingPolicyEditor', () => {
     const reader = {
       listHealthChecks: vi.fn().mockReturnValue(Promise.resolve([])),
     };
-    shallow(
+    render(
       <GceAutoHealingPolicyEditor
         account="my-account"
         policy={{ healthCheck: 'https://compute/httpHealthChecks/web', initialDelaySec: 0 }}
@@ -74,14 +83,14 @@ describe('GceAutoHealingPolicyEditor', () => {
       />,
     );
 
-    await flush();
-
-    expect(onChange).toHaveBeenCalledWith({
-      healthCheckUrl: 'https://compute/httpHealthChecks/web',
-      healthCheck: 'web',
-      healthCheckKind: IGceHealthCheckKind.httpHealthCheck,
-      initialDelaySec: 0,
-    });
+    await waitFor(() =>
+      expect(onChange).toHaveBeenCalledWith({
+        healthCheckUrl: 'https://compute/httpHealthChecks/web',
+        healthCheck: 'web',
+        healthCheckKind: IGceHealthCheckKind.httpHealthCheck,
+        initialDelaySec: 0,
+      }),
+    );
   });
 
   it('resolves an existing healthCheck name to the matching URL and kind', async () => {
@@ -98,7 +107,7 @@ describe('GceAutoHealingPolicyEditor', () => {
         ]),
       ),
     };
-    shallow(
+    render(
       <GceAutoHealingPolicyEditor
         account="my-account"
         policy={{ healthCheck: 'web', initialDelaySec: 0 }}
@@ -107,27 +116,34 @@ describe('GceAutoHealingPolicyEditor', () => {
       />,
     );
 
-    await flush();
-
-    expect(onChange).toHaveBeenCalledWith({
-      healthCheckUrl: 'https://compute/healthChecks/web',
-      healthCheck: 'web',
-      healthCheckKind: IGceHealthCheckKind.healthCheck,
-      initialDelaySec: 0,
-    });
+    await waitFor(() =>
+      expect(onChange).toHaveBeenCalledWith({
+        healthCheckUrl: 'https://compute/healthChecks/web',
+        healthCheck: 'web',
+        healthCheckKind: IGceHealthCheckKind.healthCheck,
+        initialDelaySec: 0,
+      }),
+    );
   });
 
-  it('preserves zero for initial delay without rendering legacy max unavailable controls', () => {
+  it('preserves zero for initial delay without rendering legacy max unavailable controls', async () => {
     const onChange = vi.fn();
+    const reader = { listHealthChecks: vi.fn().mockResolvedValue([]) };
     const legacyPolicy = { initialDelaySec: 0, maxUnavailable: { percent: 0 } };
-    const wrapper = shallow(
-      <GceAutoHealingPolicyEditor account="my-account" policy={legacyPolicy as any} onChange={onChange} />,
-      { disableLifecycleMethods: true },
+    const { container } = render(
+      <GceAutoHealingPolicyEditor
+        account="my-account"
+        policy={legacyPolicy as any}
+        onChange={onChange}
+        reader={reader as any}
+      />,
     );
 
-    expect(wrapper.find('[data-testid="initial-delay"]').prop('value')).toBe(0);
-    expect(wrapper.find('[data-testid="max-unavailable"]').exists()).toBe(false);
-    expect(wrapper.find('[data-testid="max-unavailable-unit"]').exists()).toBe(false);
-    expect(wrapper.text()).not.toContain('Max unavailable');
+    await waitFor(() => expect(screen.getByTestId('health-check')).toBeEnabled());
+    expect(reader.listHealthChecks).toHaveBeenCalled();
+    expect(screen.getByTestId('initial-delay')).toHaveValue(0);
+    expect(screen.queryByTestId('max-unavailable')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('max-unavailable-unit')).not.toBeInTheDocument();
+    expect(container).not.toHaveTextContent('Max unavailable');
   });
 });

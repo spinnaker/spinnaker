@@ -1,5 +1,6 @@
 import type { Mock } from 'vitest';
-import { mount } from 'enzyme';
+import { render, screen } from '@testing-library/react';
+import { setupUser } from '../../../utils/testUtils/userEvent';
 import React from 'react';
 
 import type { ITriggersPageContentProps } from './TriggersPageContent';
@@ -68,49 +69,47 @@ describe('<TriggersPageContent />', () => {
   });
 
   describe('Adding a trigger', () => {
-    it('Adds a first trigger to the pipeline', () => {
-      const component = mount(<TriggersPageContent {...props} />);
+    it('Adds a first trigger to the pipeline', async () => {
+      const user = setupUser();
+      render(<TriggersPageContent {...props} />);
       expect(updatePipelineSpy).toHaveBeenCalledTimes(0);
-      component.find('.btn-add-trigger').simulate('click');
+      await user.click(screen.getByRole('button', { name: /Add Trigger/ }));
       expect(updatePipelineSpy).toHaveBeenCalledTimes(1);
       expect(updatePipelineSpy).toHaveBeenCalledWith({ triggers: [newTrigger] });
     });
-    it('Adds a second trigger to the pipeline', () => {
-      const component = mount(
-        <TriggersPageContent {...props} pipeline={{ ...props.pipeline, triggers: [triggerA] }} />,
-      );
+    it('Adds a second trigger to the pipeline', async () => {
+      const user = setupUser();
+      render(<TriggersPageContent {...props} pipeline={{ ...props.pipeline, triggers: [triggerA] }} />);
       expect(updatePipelineSpy).toHaveBeenCalledTimes(0);
-      component.find('.btn-add-trigger').simulate('click');
+      await user.click(screen.getByRole('button', { name: /Add Trigger/ }));
       expect(updatePipelineSpy).toHaveBeenCalledTimes(1);
       expect(updatePipelineSpy).toHaveBeenCalledWith({ triggers: [triggerA, newTrigger] });
     });
   });
 
   describe('Editing a trigger', () => {
-    it('Edits a property of an existing trigger', () => {
-      const component = mount(
-        <TriggersPageContent {...props} pipeline={{ ...props.pipeline, triggers: [triggerA] }} />,
-      );
+    it('Edits a property of an existing trigger', async () => {
+      const user = setupUser();
+      render(<TriggersPageContent {...props} pipeline={{ ...props.pipeline, triggers: [triggerA] }} />);
       expect(updatePipelineSpy).toHaveBeenCalledTimes(0);
-      component.find('.enable-trigger-checkbox').simulate('change', { target: { checked: false } });
-      component.update();
+      await user.click(screen.getByRole('checkbox', { name: 'Trigger Enabled' }));
       expect(updatePipelineSpy).toHaveBeenCalledTimes(1);
       expect(updatePipelineSpy).toHaveBeenCalledWith({ triggers: [{ ...triggerA, enabled: false }] });
     });
   });
 
   describe('Removing a trigger', () => {
-    it('Removes the trigger from the pipeline', () => {
-      const component = mount(
-        <TriggersPageContent {...props} pipeline={{ ...props.pipeline, triggers: [triggerA, triggerB] }} />,
-      );
+    it('Removes the trigger from the pipeline', async () => {
+      const user = setupUser();
+      render(<TriggersPageContent {...props} pipeline={{ ...props.pipeline, triggers: [triggerA, triggerB] }} />);
       expect(updatePipelineSpy).toHaveBeenCalledTimes(0);
-      component.find('.glyphicon-trash').at(0).simulate('click');
+      await user.click(screen.getAllByRole('button', { name: /Remove trigger/ })[0]);
       expect(updatePipelineSpy).toHaveBeenCalledTimes(1);
       expect(updatePipelineSpy).toHaveBeenCalledWith({ triggers: [triggerB] });
     });
-    it('Removes expected artifacts if associated only with the removed trigger', () => {
-      const component = mount(
+    it('Removes expected artifacts if associated only with the removed trigger', async () => {
+      const user = setupUser();
+      render(
         <TriggersPageContent
           {...props}
           pipeline={{
@@ -122,14 +121,15 @@ describe('<TriggersPageContent />', () => {
       );
       expect(updatePipelineSpy).toHaveBeenCalledTimes(0);
       expect(removeReferencesFromStagesSpy).toHaveBeenCalledTimes(0);
-      component.find('.glyphicon-trash').at(0).simulate('click');
+      await user.click(screen.getAllByRole('button', { name: /Remove trigger/ })[0]);
       expect(updatePipelineSpy).toHaveBeenCalledTimes(1);
       expect(removeReferencesFromStagesSpy).toHaveBeenCalledTimes(1);
       expect(updatePipelineSpy).toHaveBeenCalledWith({ triggers: [triggerB], expectedArtifacts: [expectedArtifactB] });
       expect(removeReferencesFromStagesSpy).toHaveBeenCalledWith([expectedArtifactA.id], props.pipeline.stages);
     });
-    it('Does not remove expected artifacts if associated with multiple triggers', () => {
-      const component = mount(
+    it('Does not remove expected artifacts if associated with multiple triggers', async () => {
+      const user = setupUser();
+      render(
         <TriggersPageContent
           {...props}
           pipeline={{
@@ -143,7 +143,7 @@ describe('<TriggersPageContent />', () => {
         />,
       );
       expect(updatePipelineSpy).toHaveBeenCalledTimes(0);
-      component.find('.glyphicon-trash').at(0).simulate('click');
+      await user.click(screen.getAllByRole('button', { name: /Remove trigger/ })[0]);
       expect(updatePipelineSpy).toHaveBeenCalledTimes(1);
       expect(removeReferencesFromStagesSpy).toHaveBeenCalledTimes(0);
       expect(updatePipelineSpy).toHaveBeenCalledWith({

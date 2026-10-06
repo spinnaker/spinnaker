@@ -1,7 +1,8 @@
 import type { Mock } from 'vitest';
-import { mount as enzymeMount } from 'enzyme';
 import type { FormikProps } from 'formik';
 import React from 'react';
+import { fireEvent, render } from '@testing-library/react';
+import type { RenderResult } from '@testing-library/react';
 
 import { DeckRuntimeContext } from '@spinnaker/core';
 
@@ -10,14 +11,11 @@ import type {
   IGceServerGroupWizardAdapter,
   IGceServerGroupWizardPageProps,
 } from '../GceServerGroupWizard.types';
-import { ServerGroupInstanceType } from './ServerGroupInstanceType';
+import { ServerGroupInstanceType, validateGceServerGroupInstanceType } from './ServerGroupInstanceType';
 
 describe('ServerGroupInstanceType', () => {
   let runtimeServices: any;
-  const RuntimeWrapper = ({ children }: React.PropsWithChildren<{}>) => (
-    <DeckRuntimeContext.Provider value={{ services: runtimeServices } as any}>{children}</DeckRuntimeContext.Provider>
-  );
-  const shallow = (component: React.ReactElement) => enzymeMount(component, { wrappingComponent: RuntimeWrapper });
+  const renderPage = (component: React.ReactElement) => renderWithRuntime(component, runtimeServices);
 
   beforeEach(() => {
     runtimeServices = {
@@ -34,9 +32,9 @@ describe('ServerGroupInstanceType', () => {
       acceleratorConfigs: [{ acceleratorType: 'retired-gpu', acceleratorCount: 3 }],
     });
 
-    const wrapper = shallow(<ServerGroupInstanceType {...props(values)} />);
+    const wrapper = renderPage(<ServerGroupInstanceType {...props(values)} />);
 
-    expect(wrapper.find('label[htmlFor="gce-machine-type"]').text()).toContain('Machine type');
+    expect(wrapper.getByText(/Machine type/, { selector: 'label' })).toHaveAttribute('for', 'gce-machine-type');
     expect(optionText(wrapper, '#gce-machine-type')).toContain('retired-machine (Unavailable)');
     expect(optionText(wrapper, '#gce-min-cpu-platform')).toContain('Retired CPU (Unavailable)');
     expect(optionText(wrapper, '#gce-accelerator-type-0')).toContain('retired-gpu (Unavailable)');
@@ -49,9 +47,9 @@ describe('ServerGroupInstanceType', () => {
     };
     const values = command({ instanceType: 'n1-standard-1' });
     const testProps = props(values);
-    const wrapper = shallow(<ServerGroupInstanceType {...testProps} />);
+    const wrapper = renderPage(<ServerGroupInstanceType {...testProps} />);
 
-    wrapper.find('#gce-machine-type').simulate('change', { target: { value: 'n2-standard-2' } });
+    fireEvent.change(control(wrapper, '#gce-machine-type'), { target: { value: 'n2-standard-2' } });
 
     expect(values.instanceType).toBe('n1-standard-1');
     expect(testProps.formik.setValues).toHaveBeenCalledWith(
@@ -77,9 +75,9 @@ describe('ServerGroupInstanceType', () => {
       });
       const adapter = adapterForHandlers();
       const testProps = props(values, adapter);
-      const wrapper = shallow(<ServerGroupInstanceType {...testProps} />);
+      const wrapper = renderPage(<ServerGroupInstanceType {...testProps} />);
 
-      wrapper.find('#gce-machine-type').simulate('change', { target: { value: instanceType } });
+      fireEvent.change(control(wrapper, '#gce-machine-type'), { target: { value: instanceType } });
 
       expect(testProps.formik.setValues).toHaveBeenCalledWith(expect.objectContaining({ instanceType }));
       expect(instanceTypeService.getInstanceTypeDetails).not.toHaveBeenCalled();
@@ -120,9 +118,9 @@ describe('ServerGroupInstanceType', () => {
       result: { dirty: {} },
     }));
     const testProps = props(values, adapter);
-    const wrapper = shallow(<ServerGroupInstanceType {...testProps} />);
+    const wrapper = renderPage(<ServerGroupInstanceType {...testProps} />);
 
-    wrapper.find('#gce-machine-type').simulate('change', { target: { value: 'n2-standard-2' } });
+    fireEvent.change(control(wrapper, '#gce-machine-type'), { target: { value: 'n2-standard-2' } });
 
     expect(instanceTypeService.getInstanceTypeDetails).toHaveBeenCalledWith('gce', 'n2-standard-2');
     detailsRequest.resolve({
@@ -166,11 +164,11 @@ describe('ServerGroupInstanceType', () => {
     const values = command();
     const adapter = adapterForHandlers();
     const testProps = props(values, adapter);
-    const wrapper = shallow(<ServerGroupInstanceType {...testProps} />);
+    const wrapper = renderPage(<ServerGroupInstanceType {...testProps} />);
 
-    wrapper.find('#gce-machine-type').simulate('change', { target: { value: 'n2-standard-2' } });
-    setFormikValues(wrapper, testProps, (testProps.formik.setValues as Mock).mock.lastCall[0]);
-    wrapper.find('#gce-machine-type').simulate('change', { target: { value: 'n1-standard-1' } });
+    fireEvent.change(control(wrapper, '#gce-machine-type'), { target: { value: 'n2-standard-2' } });
+    setFormikValues(wrapper, testProps, (testProps.formik.setValues as Mock).mock.lastCall[0], runtimeServices);
+    fireEvent.change(control(wrapper, '#gce-machine-type'), { target: { value: 'n1-standard-1' } });
 
     newRequest.resolve(instanceTypeDetails('n1-standard-1', 30));
     await settle();
@@ -192,11 +190,11 @@ describe('ServerGroupInstanceType', () => {
     const values = command();
     const adapter = adapterForHandlers();
     const testProps = props(values, adapter);
-    const wrapper = shallow(<ServerGroupInstanceType {...testProps} />);
+    const wrapper = renderPage(<ServerGroupInstanceType {...testProps} />);
 
-    wrapper.find('#gce-machine-type').simulate('change', { target: { value: 'n2-standard-2' } });
-    setFormikValues(wrapper, testProps, (testProps.formik.setValues as Mock).mock.lastCall[0]);
-    wrapper.find('#gce-machine-type-custom').simulate('change');
+    fireEvent.change(control(wrapper, '#gce-machine-type'), { target: { value: 'n2-standard-2' } });
+    setFormikValues(wrapper, testProps, (testProps.formik.setValues as Mock).mock.lastCall[0], runtimeServices);
+    fireEvent.click(control(wrapper, '#gce-machine-type-custom'));
     await settle();
     detailsRequest.resolve(instanceTypeDetails('n2-standard-2', 40));
     await settle();
@@ -215,14 +213,19 @@ describe('ServerGroupInstanceType', () => {
     };
     const values = command();
     const testProps = props(values);
-    const wrapper = shallow(<ServerGroupInstanceType {...testProps} />);
+    const wrapper = renderPage(<ServerGroupInstanceType {...testProps} />);
 
-    wrapper.find('#gce-machine-type').simulate('change', { target: { value: 'n2-standard-2' } });
+    fireEvent.change(control(wrapper, '#gce-machine-type'), { target: { value: 'n2-standard-2' } });
     const selectedValues = (testProps.formik.setValues as Mock).mock.lastCall[0];
-    setFormikValues(wrapper, testProps, {
-      ...selectedValues,
-      disks: [{ type: 'pd-standard', sizeGb: 500 }],
-    });
+    setFormikValues(
+      wrapper,
+      testProps,
+      {
+        ...selectedValues,
+        disks: [{ type: 'pd-standard', sizeGb: 500 }],
+      },
+      runtimeServices,
+    );
     detailsRequest.resolve(instanceTypeDetails('n2-standard-2', 40));
     await settle();
 
@@ -244,9 +247,9 @@ describe('ServerGroupInstanceType', () => {
     });
     const adapter = adapterForHandlers();
     const testProps = props(values, adapter);
-    const wrapper = shallow(<ServerGroupInstanceType {...testProps} />);
+    const wrapper = renderPage(<ServerGroupInstanceType {...testProps} />);
 
-    wrapper.find('#gce-custom-cpu').simulate('change', { target: { value: '8' } });
+    fireEvent.change(control(wrapper, '#gce-custom-cpu'), { target: { value: '8' } });
     await settle();
 
     expect(adapter.applyCommandHandler).toHaveBeenCalledWith(
@@ -267,9 +270,9 @@ describe('ServerGroupInstanceType', () => {
   it('keeps spot scheduling fields compatible when preemptibility changes', () => {
     const values = command({ preemptible: false, automaticRestart: true, onHostMaintenance: 'MIGRATE' });
     const testProps = props(values);
-    const wrapper = shallow(<ServerGroupInstanceType {...testProps} />);
+    const wrapper = renderPage(<ServerGroupInstanceType {...testProps} />);
 
-    wrapper.find('#gce-preemptible').simulate('change', { target: { checked: true } });
+    fireEvent.click(control(wrapper, '#gce-preemptible'));
 
     expect(testProps.formik.setValues).toHaveBeenCalledWith(
       expect.objectContaining({ preemptible: true, automaticRestart: false, onHostMaintenance: 'TERMINATE' }),
@@ -285,9 +288,9 @@ describe('ServerGroupInstanceType', () => {
       ],
     });
     const testProps = props(values);
-    const wrapper = shallow(<ServerGroupInstanceType {...testProps} />);
+    const wrapper = renderPage(<ServerGroupInstanceType {...testProps} />);
 
-    wrapper.find('#gce-accelerator-type-0').simulate('change', { target: { value: 'nvidia-tesla-v100' } });
+    fireEvent.change(control(wrapper, '#gce-accelerator-type-0'), { target: { value: 'nvidia-tesla-v100' } });
 
     expect(testProps.formik.setValues).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -309,11 +312,11 @@ describe('ServerGroupInstanceType', () => {
       ],
     });
     const testProps = props(values);
-    const wrapper = shallow(<ServerGroupInstanceType {...testProps} />);
+    const wrapper = renderPage(<ServerGroupInstanceType {...testProps} />);
 
-    expect(wrapper.find('#gce-boot-disk-size').prop('min')).toBe(10);
-    expect(wrapper.find('#gce-boot-disk-size').prop('max')).toBe(65536);
-    wrapper.find('#gce-boot-disk-type').simulate('change', { target: { value: 'pd-standard' } });
+    expect(control(wrapper, '#gce-boot-disk-size')).toHaveAttribute('min', '10');
+    expect(control(wrapper, '#gce-boot-disk-size')).toHaveAttribute('max', '65536');
+    fireEvent.change(control(wrapper, '#gce-boot-disk-type'), { target: { value: 'pd-standard' } });
 
     expect(testProps.formik.setValues).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -328,14 +331,13 @@ describe('ServerGroupInstanceType', () => {
   });
 
   it('accepts pipeline expressions but validates finite concrete disk and accelerator values', () => {
-    const page = shallow(<ServerGroupInstanceType {...props(command())} />).instance() as ServerGroupInstanceType;
     const invalid = command({
       instanceType: '',
       disks: [{ type: 'pd-ssd', sizeGb: Infinity }],
       acceleratorConfigs: [{ acceleratorType: 'nvidia-tesla-t4', acceleratorCount: 3 }],
     });
 
-    expect(page.validate(invalid)).toEqual({
+    expect(validateGceServerGroupInstanceType(invalid)).toEqual({
       instanceType: 'Machine type required.',
       disks: 'Boot disk size must be between 10 and 65536 GB.',
       acceleratorConfigs: 'Accelerator count is unavailable for the selected type.',
@@ -346,10 +348,10 @@ describe('ServerGroupInstanceType', () => {
       disks: [{ type: 'pd-ssd', sizeGb: '${ parameters.diskSize }' }],
       acceleratorConfigs: [{ acceleratorType: 'retired-gpu', acceleratorCount: '${ parameters.gpuCount }' }],
     });
-    expect(page.validate(expressionValues)).toEqual({});
-    const expressionWrapper = shallow(<ServerGroupInstanceType {...props(expressionValues)} />);
-    expect(expressionWrapper.find('#gce-boot-disk-size').prop('type')).toBe('text');
-    expect(expressionWrapper.find('#gce-accelerator-count-0').prop('type')).toBe('text');
+    expect(validateGceServerGroupInstanceType(expressionValues)).toEqual({});
+    const expressionWrapper = renderPage(<ServerGroupInstanceType {...props(expressionValues)} />);
+    expect(control(expressionWrapper, '#gce-boot-disk-size')).toHaveAttribute('type', 'text');
+    expect(control(expressionWrapper, '#gce-accelerator-count-0')).toHaveAttribute('type', 'text');
   });
 
   it('renders and associates instance type, boot disk, and accelerator validation errors', () => {
@@ -364,7 +366,7 @@ describe('ServerGroupInstanceType', () => {
       acceleratorConfigs: 'Accelerator count is unavailable for the selected type.',
     };
     const testProps = props(values, adapterForHandlers(), errors);
-    const wrapper = shallow(<ServerGroupInstanceType {...testProps} />);
+    const wrapper = renderPage(<ServerGroupInstanceType {...testProps} />);
 
     [
       ['#gce-machine-type', 'gce-machine-type-error'],
@@ -386,7 +388,11 @@ describe('ServerGroupInstanceType', () => {
         acceleratorTypes: [],
       },
     });
-    wrapper.setProps({ formik: { ...testProps.formik, errors, values: customValues } });
+    rerenderInstanceType(
+      wrapper,
+      { ...testProps, formik: { ...testProps.formik, errors, values: customValues } },
+      runtimeServices,
+    );
 
     expectAssociatedError(wrapper, '#gce-custom-cpu', 'gce-machine-type-error');
     expectAssociatedError(wrapper, '#gce-custom-memory', 'gce-machine-type-error');
@@ -394,24 +400,52 @@ describe('ServerGroupInstanceType', () => {
   });
 });
 
-function expectAssociatedError(wrapper: any, selector: string, errorId: string): void {
-  const control = wrapper.find(selector);
-  expect(control.prop('aria-invalid'), selector).toBe(true);
-  expect(control.prop('aria-describedby'), selector).toBe(errorId);
+function expectAssociatedError(wrapper: RenderResult, selector: string, errorId: string): void {
+  const element = control(wrapper, selector);
+  expect(element, selector).toHaveAttribute('aria-invalid', 'true');
+  expect(element, selector).toHaveAttribute('aria-describedby', errorId);
 }
 
-function expectValidationAlert(wrapper: any, id: string, message: string): void {
-  const alert = wrapper.find(`#${id}`);
-  expect(alert.prop('role'), id).toBe('alert');
-  expect(alert.text(), id).toContain(message);
+function expectValidationAlert(wrapper: RenderResult, id: string, message: string): void {
+  const alert = control(wrapper, `#${id}`);
+  expect(alert, id).toHaveAttribute('role', 'alert');
+  expect(alert, id).toHaveTextContent(message);
 }
 
-function optionText(wrapper: any, selector: string): string[] {
-  return wrapper.find(`${selector} option`).map((option: any) => option.text());
+function optionText(wrapper: RenderResult, selector: string): string[] {
+  return Array.from(control(wrapper, selector).querySelectorAll('option')).map((option) => option.textContent || '');
 }
 
-function optionValues(wrapper: any, selector: string): string[] {
-  return wrapper.find(`${selector} option`).map((option: any) => String(option.prop('value')));
+function optionValues(wrapper: RenderResult, selector: string): string[] {
+  return Array.from(control(wrapper, selector).querySelectorAll('option')).map((option) => option.value);
+}
+
+function control(wrapper: RenderResult, selector: string): HTMLElement {
+  const element = wrapper.container.querySelector<HTMLElement>(selector);
+  if (!element) {
+    throw new Error(`Missing control: ${selector}`);
+  }
+  return element;
+}
+
+function renderWithRuntime(component: React.ReactElement, runtimeServices: any): RenderResult {
+  const container = document.body.appendChild(document.createElement('div'));
+  return render(
+    <DeckRuntimeContext.Provider value={{ services: runtimeServices } as any}>{component}</DeckRuntimeContext.Provider>,
+    { baseElement: container, container },
+  );
+}
+
+function rerenderInstanceType(
+  rendered: RenderResult,
+  pageProps: IGceServerGroupWizardPageProps,
+  runtimeServices: any,
+): void {
+  rendered.rerender(
+    <DeckRuntimeContext.Provider value={{ services: runtimeServices } as any}>
+      <ServerGroupInstanceType {...pageProps} />
+    </DeckRuntimeContext.Provider>,
+  );
 }
 
 function props(
@@ -522,10 +556,11 @@ function instanceTypeDetails(name: string, diskSize: number): any {
 }
 
 function setFormikValues(
-  wrapper: any,
+  wrapper: RenderResult,
   testProps: IGceServerGroupWizardPageProps,
   values: IGceServerGroupCommand,
+  runtimeServices: any,
 ): void {
   const formik = ({ ...testProps.formik, values } as unknown) as FormikProps<IGceServerGroupCommand>;
-  wrapper.setProps({ formik });
+  rerenderInstanceType(wrapper, { ...testProps, formik }, runtimeServices);
 }

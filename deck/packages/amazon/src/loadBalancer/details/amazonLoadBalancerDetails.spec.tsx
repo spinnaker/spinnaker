@@ -1,32 +1,25 @@
-import { mount as enzymeMount, ReactWrapper } from 'enzyme';
+import { act, waitFor } from '@testing-library/react';
 import React from 'react';
-import { act } from 'react-dom/test-utils';
 import { BehaviorSubject } from 'rxjs';
 
 import { DeckRuntimeContext } from '@spinnaker/core';
+import { renderHookHarness } from '../../../../core/src/utils/testUtils/hookHarness';
 
 import { useAmazonLoadBalancerDetails } from './amazonLoadBalancerDetails';
 import { RequestBuilder } from '../../../../core/src/api/ApiService';
 
 describe('useAmazonLoadBalancerDetails', () => {
-  const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
   const defaultHttpClient = RequestBuilder.defaultHttpClient;
-  let wrapper: ReactWrapper | undefined;
   let runtimeServices: any;
   const RuntimeWrapper = ({ children }: React.PropsWithChildren<{}>) => (
     <DeckRuntimeContext.Provider value={{ services: runtimeServices } as any}>{children}</DeckRuntimeContext.Provider>
   );
-  const mount = (component: React.ReactElement) => enzymeMount(component, { wrappingComponent: RuntimeWrapper });
 
   beforeEach(() => {
     runtimeServices = {};
   });
 
   afterEach(() => {
-    if (wrapper) {
-      wrapper.unmount();
-      wrapper = undefined;
-    }
     RequestBuilder.defaultHttpClient = defaultHttpClient;
   });
 
@@ -57,25 +50,14 @@ describe('useAmazonLoadBalancerDetails', () => {
       getApplicationSecurityGroup: vi.fn(),
     };
 
-    function TestComponent() {
-      useAmazonLoadBalancerDetails({
-        app,
-        loadBalancerParams: { accountId: 'test', name: 'frontend', provider: 'aws', region: 'us-east-1' },
-        autoClose: () => undefined,
-      } as any);
-      return null;
-    }
-
-    await act(async () => {
-      wrapper = mount(<TestComponent />);
-      await flush();
-    });
-    wrapper.update();
-
-    await act(async () => {
-      await flush();
-    });
-    wrapper.update();
+    const props = {
+      app,
+      loadBalancerParams: { accountId: 'test', name: 'frontend', provider: 'aws', region: 'us-east-1' },
+      autoClose: () => undefined,
+    } as any;
+    const hook = renderHookHarness(useAmazonLoadBalancerDetails, props, { wrapper: RuntimeWrapper });
+    await waitFor(() => expect(get).toHaveBeenCalledTimes(1));
+    hook.rerenderHook({ ...props, autoClose: () => undefined });
 
     expect(get).toHaveBeenCalledTimes(1);
   });
@@ -112,25 +94,21 @@ describe('useAmazonLoadBalancerDetails', () => {
       getApplicationSecurityGroup: vi.fn(),
     };
 
-    function TestComponent() {
-      useAmazonLoadBalancerDetails({
+    const hook = renderHookHarness(
+      useAmazonLoadBalancerDetails,
+      {
         app,
         loadBalancerParams: { accountId: 'test', name: 'frontend', provider: 'aws', region: 'us-east-1' },
         autoClose: () => undefined,
-      } as any);
-      return null;
-    }
-
-    await act(async () => {
-      wrapper = mount(<TestComponent />);
-      await flush();
-    });
-    wrapper.unmount();
-    wrapper = undefined;
+      } as any,
+      { wrapper: RuntimeWrapper },
+    );
+    await waitFor(() => expect(get).toHaveBeenCalledTimes(1));
+    hook.unmount();
 
     await act(async () => {
       resolveDetails([]);
-      await flush();
+      await detailsRequest;
     });
 
     const unmountedStateUpdateWarning = consoleError.mock.calls.some(([message]) =>

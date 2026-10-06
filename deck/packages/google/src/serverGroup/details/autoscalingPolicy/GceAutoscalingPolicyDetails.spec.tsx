@@ -1,5 +1,5 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 import { ConfirmationModalService } from '@spinnaker/core';
 
@@ -30,7 +30,7 @@ describe('GceAutoscalingPolicyDetails', () => {
   };
 
   it('summarizes zero-valued metrics, scale-in controls, and schedules', () => {
-    const wrapper = shallow(
+    const { container } = render(
       <GceAutoscalingPolicyDetails
         application={application}
         mutationsEnabled={true}
@@ -39,16 +39,15 @@ describe('GceAutoscalingPolicyDetails', () => {
       />,
     );
 
-    expect(wrapper.text()).toContain('CPU Usage');
-    expect(wrapper.text()).toContain('0%');
-    expect(wrapper.text()).toContain('Max Scaled-in Replicas');
-    expect(wrapper.text()).toContain('overnight (disabled)');
+    expect(container).toHaveTextContent('CPU Usage: 0%');
+    expect(container).toHaveTextContent('Max Scaled-in Replicas');
+    expect(container).toHaveTextContent('overnight (disabled)');
   });
 
   it('opens edit after managed-resource confirmation proceeds', async () => {
     const show = vi.spyOn(GceUpsertAutoscalingPolicyModal, 'show').mockReturnValue(undefined);
     const confirm = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(Promise.resolve() as any);
-    const wrapper = shallow(
+    render(
       <GceAutoscalingPolicyDetails
         application={application}
         mutationsEnabled={true}
@@ -57,19 +56,17 @@ describe('GceAutoscalingPolicyDetails', () => {
       />,
     );
 
-    wrapper.find('[data-testid="edit-autoscaling-policy"]').simulate('click');
+    fireEvent.click(screen.getByTestId('edit-autoscaling-policy'));
     expect(show).not.toHaveBeenCalled();
-    await Promise.resolve();
-    await Promise.resolve();
 
     expect(confirm).toHaveBeenCalledWith(expect.objectContaining({ header: 'Pause Management?' }));
-    expect(show).toHaveBeenCalledWith({ application, serverGroup: managedServerGroup, policy });
+    await waitFor(() => expect(show).toHaveBeenCalledWith({ application, serverGroup: managedServerGroup, policy }));
   });
 
   it('does not open edit when managed-resource confirmation is cancelled', async () => {
     const show = vi.spyOn(GceUpsertAutoscalingPolicyModal, 'show').mockReturnValue(undefined);
     vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(Promise.reject() as any);
-    const wrapper = shallow(
+    render(
       <GceAutoscalingPolicyDetails
         application={application}
         mutationsEnabled={true}
@@ -78,9 +75,8 @@ describe('GceAutoscalingPolicyDetails', () => {
       />,
     );
 
-    wrapper.find('[data-testid="edit-autoscaling-policy"]').simulate('click');
-    await Promise.resolve();
-    await Promise.resolve();
+    fireEvent.click(screen.getByTestId('edit-autoscaling-policy'));
+    await waitFor(() => expect(ConfirmationModalService.confirm).toHaveBeenCalled());
 
     expect(show).not.toHaveBeenCalled();
   });
@@ -88,7 +84,7 @@ describe('GceAutoscalingPolicyDetails', () => {
   it('opens add after managed-resource confirmation proceeds', async () => {
     const show = vi.spyOn(GceUpsertAutoscalingPolicyModal, 'show').mockReturnValue(undefined);
     const confirm = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(Promise.resolve() as any);
-    const wrapper = shallow(
+    render(
       <GceAutoscalingPolicyDetails
         application={application}
         mutationsEnabled={true}
@@ -97,19 +93,17 @@ describe('GceAutoscalingPolicyDetails', () => {
       />,
     );
 
-    wrapper.find('[data-testid="add-autoscaling-policy"]').simulate('click');
+    fireEvent.click(screen.getByTestId('add-autoscaling-policy'));
     expect(show).not.toHaveBeenCalled();
-    await Promise.resolve();
-    await Promise.resolve();
 
     expect(confirm).toHaveBeenCalledWith(expect.objectContaining({ header: 'Pause Management?' }));
-    expect(show).toHaveBeenCalledWith({ application, serverGroup: managedServerGroup });
+    await waitFor(() => expect(show).toHaveBeenCalledWith({ application, serverGroup: managedServerGroup }));
   });
 
   it('does not open add when managed-resource confirmation is cancelled', async () => {
     const show = vi.spyOn(GceUpsertAutoscalingPolicyModal, 'show').mockReturnValue(undefined);
     vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(Promise.reject() as any);
-    const wrapper = shallow(
+    render(
       <GceAutoscalingPolicyDetails
         application={application}
         mutationsEnabled={true}
@@ -118,9 +112,8 @@ describe('GceAutoscalingPolicyDetails', () => {
       />,
     );
 
-    wrapper.find('[data-testid="add-autoscaling-policy"]').simulate('click');
-    await Promise.resolve();
-    await Promise.resolve();
+    fireEvent.click(screen.getByTestId('add-autoscaling-policy'));
+    await waitFor(() => expect(ConfirmationModalService.confirm).toHaveBeenCalled());
 
     expect(show).not.toHaveBeenCalled();
   });
@@ -131,7 +124,7 @@ describe('GceAutoscalingPolicyDetails', () => {
       .mockReturnValueOnce(Promise.resolve() as any)
       .mockReturnValueOnce(Promise.resolve() as any);
     const deletePolicy = vi.spyOn(GceAutoscalingPolicyWriter, 'deleteAutoscalingPolicy').mockReturnValue(undefined);
-    const wrapper = shallow(
+    render(
       <GceAutoscalingPolicyDetails
         application={application}
         mutationsEnabled={true}
@@ -140,11 +133,9 @@ describe('GceAutoscalingPolicyDetails', () => {
       />,
     );
 
-    wrapper.find('[data-testid="delete-autoscaling-policy"]').simulate('click');
-    await Promise.resolve();
-    await Promise.resolve();
+    fireEvent.click(screen.getByTestId('delete-autoscaling-policy'));
+    await waitFor(() => expect(confirm.mock.calls.length).toBe(2));
 
-    expect(confirm.mock.calls.length).toBe(2);
     const deleteConfirmation = confirm.mock.lastCall[0];
     deleteConfirmation.submitMethod();
 
@@ -157,7 +148,7 @@ describe('GceAutoscalingPolicyDetails', () => {
     } as any;
     const confirm = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(cancelledConfirmation);
     const deletePolicy = vi.spyOn(GceAutoscalingPolicyWriter, 'deleteAutoscalingPolicy').mockReturnValue(undefined);
-    const wrapper = shallow(
+    render(
       <GceAutoscalingPolicyDetails
         application={application}
         mutationsEnabled={true}
@@ -166,9 +157,8 @@ describe('GceAutoscalingPolicyDetails', () => {
       />,
     );
 
-    wrapper.find('[data-testid="delete-autoscaling-policy"]').simulate('click');
-    await Promise.resolve();
-    await Promise.resolve();
+    fireEvent.click(screen.getByTestId('delete-autoscaling-policy'));
+    await waitFor(() => expect(confirm).toHaveBeenCalled());
 
     expect(confirm.mock.calls.length).toBe(1);
     expect(confirm).toHaveBeenCalledWith(expect.objectContaining({ header: 'Pause Management?' }));
@@ -176,7 +166,7 @@ describe('GceAutoscalingPolicyDetails', () => {
   });
 
   it('hides all mutation actions when mutations are disabled', () => {
-    const details = shallow(
+    const details = render(
       <GceAutoscalingPolicyDetails
         application={application}
         mutationsEnabled={false}
@@ -184,7 +174,10 @@ describe('GceAutoscalingPolicyDetails', () => {
         policy={policy}
       />,
     );
-    const emptyDetails = shallow(
+    expect(details.queryByTestId('edit-autoscaling-policy')).not.toBeInTheDocument();
+    expect(details.queryByTestId('delete-autoscaling-policy')).not.toBeInTheDocument();
+    details.unmount();
+    const emptyDetails = render(
       <GceAutoscalingPolicyDetails
         application={application}
         mutationsEnabled={false}
@@ -193,8 +186,6 @@ describe('GceAutoscalingPolicyDetails', () => {
       />,
     );
 
-    expect(details.find('[data-testid="edit-autoscaling-policy"]').exists()).toBe(false);
-    expect(details.find('[data-testid="delete-autoscaling-policy"]').exists()).toBe(false);
-    expect(emptyDetails.isEmptyRender()).toBe(true);
+    expect(emptyDetails.container).toBeEmptyDOMElement();
   });
 });

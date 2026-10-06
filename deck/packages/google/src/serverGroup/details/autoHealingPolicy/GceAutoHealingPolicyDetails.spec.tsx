@@ -1,10 +1,10 @@
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
-import { shallow } from 'enzyme';
 
 import { ConfirmationModalService } from '@spinnaker/core';
 
-import { GceAutoscalingPolicyWriter } from '../../../autoscalingPolicy';
 import { GceAutoHealingPolicyDetails } from './GceAutoHealingPolicyDetails';
+import { GceAutoscalingPolicyWriter } from '../../../autoscalingPolicy';
 import { GceUpsertAutoHealingPolicyModal } from './modal/GceUpsertAutoHealingPolicyModal';
 
 describe('GceAutoHealingPolicyDetails', () => {
@@ -22,7 +22,7 @@ describe('GceAutoHealingPolicyDetails', () => {
   const policy = { healthCheck: 'web', initialDelaySec: 0, maxUnavailable: { fixed: 0 } } as any;
 
   it('summarizes zero-valued delay without rendering legacy max unavailable data', () => {
-    const wrapper = shallow(
+    const { container } = render(
       <GceAutoHealingPolicyDetails
         application={application}
         mutationsEnabled={true}
@@ -31,16 +31,16 @@ describe('GceAutoHealingPolicyDetails', () => {
       />,
     );
 
-    expect(wrapper.text()).toContain('web');
-    expect(wrapper.text()).toContain('0 seconds');
-    expect(wrapper.text()).not.toContain('Max Unavailable');
-    expect(wrapper.text()).not.toContain('0 fixed');
+    expect(screen.getByText('web')).toBeInTheDocument();
+    expect(screen.getByText('0 seconds')).toBeInTheDocument();
+    expect(container).not.toHaveTextContent('Max Unavailable');
+    expect(container).not.toHaveTextContent('0 fixed');
   });
 
   it('opens edit after managed-resource confirmation proceeds', async () => {
     const show = vi.spyOn(GceUpsertAutoHealingPolicyModal, 'show').mockReturnValue(undefined);
     const confirm = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(Promise.resolve() as any);
-    const wrapper = shallow(
+    render(
       <GceAutoHealingPolicyDetails
         application={application}
         mutationsEnabled={true}
@@ -49,19 +49,17 @@ describe('GceAutoHealingPolicyDetails', () => {
       />,
     );
 
-    wrapper.find('[data-testid="edit-auto-healing-policy"]').simulate('click');
+    fireEvent.click(screen.getByTestId('edit-auto-healing-policy'));
     expect(show).not.toHaveBeenCalled();
-    await Promise.resolve();
-    await Promise.resolve();
 
     expect(confirm).toHaveBeenCalledWith(expect.objectContaining({ header: 'Pause Management?' }));
-    expect(show).toHaveBeenCalledWith({ application, serverGroup: managedServerGroup, policy });
+    await waitFor(() => expect(show).toHaveBeenCalledWith({ application, serverGroup: managedServerGroup, policy }));
   });
 
   it('does not open edit when managed-resource confirmation is cancelled', async () => {
     const show = vi.spyOn(GceUpsertAutoHealingPolicyModal, 'show').mockReturnValue(undefined);
     vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(Promise.reject() as any);
-    const wrapper = shallow(
+    render(
       <GceAutoHealingPolicyDetails
         application={application}
         mutationsEnabled={true}
@@ -70,9 +68,8 @@ describe('GceAutoHealingPolicyDetails', () => {
       />,
     );
 
-    wrapper.find('[data-testid="edit-auto-healing-policy"]').simulate('click');
-    await Promise.resolve();
-    await Promise.resolve();
+    fireEvent.click(screen.getByTestId('edit-auto-healing-policy'));
+    await waitFor(() => expect(ConfirmationModalService.confirm).toHaveBeenCalled());
 
     expect(show).not.toHaveBeenCalled();
   });
@@ -80,7 +77,7 @@ describe('GceAutoHealingPolicyDetails', () => {
   it('opens add after managed-resource confirmation proceeds', async () => {
     const show = vi.spyOn(GceUpsertAutoHealingPolicyModal, 'show').mockReturnValue(undefined);
     const confirm = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(Promise.resolve() as any);
-    const wrapper = shallow(
+    render(
       <GceAutoHealingPolicyDetails
         application={application}
         mutationsEnabled={true}
@@ -89,19 +86,17 @@ describe('GceAutoHealingPolicyDetails', () => {
       />,
     );
 
-    wrapper.find('[data-testid="add-auto-healing-policy"]').simulate('click');
+    fireEvent.click(screen.getByTestId('add-auto-healing-policy'));
     expect(show).not.toHaveBeenCalled();
-    await Promise.resolve();
-    await Promise.resolve();
 
     expect(confirm).toHaveBeenCalledWith(expect.objectContaining({ header: 'Pause Management?' }));
-    expect(show).toHaveBeenCalledWith({ application, serverGroup: managedServerGroup });
+    await waitFor(() => expect(show).toHaveBeenCalledWith({ application, serverGroup: managedServerGroup }));
   });
 
   it('does not open add when managed-resource confirmation is cancelled', async () => {
     const show = vi.spyOn(GceUpsertAutoHealingPolicyModal, 'show').mockReturnValue(undefined);
     vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(Promise.reject() as any);
-    const wrapper = shallow(
+    render(
       <GceAutoHealingPolicyDetails
         application={application}
         mutationsEnabled={true}
@@ -110,9 +105,8 @@ describe('GceAutoHealingPolicyDetails', () => {
       />,
     );
 
-    wrapper.find('[data-testid="add-auto-healing-policy"]').simulate('click');
-    await Promise.resolve();
-    await Promise.resolve();
+    fireEvent.click(screen.getByTestId('add-auto-healing-policy'));
+    await waitFor(() => expect(ConfirmationModalService.confirm).toHaveBeenCalled());
 
     expect(show).not.toHaveBeenCalled();
   });
@@ -123,7 +117,7 @@ describe('GceAutoHealingPolicyDetails', () => {
       .mockReturnValueOnce(Promise.resolve() as any)
       .mockReturnValueOnce(Promise.resolve() as any);
     const deletePolicy = vi.spyOn(GceAutoscalingPolicyWriter, 'deleteAutoHealingPolicy').mockReturnValue(undefined);
-    const wrapper = shallow(
+    render(
       <GceAutoHealingPolicyDetails
         application={application}
         mutationsEnabled={true}
@@ -132,11 +126,9 @@ describe('GceAutoHealingPolicyDetails', () => {
       />,
     );
 
-    wrapper.find('[data-testid="delete-auto-healing-policy"]').simulate('click');
-    await Promise.resolve();
-    await Promise.resolve();
+    fireEvent.click(screen.getByTestId('delete-auto-healing-policy'));
+    await waitFor(() => expect(confirm.mock.calls.length).toBe(2));
 
-    expect(confirm.mock.calls.length).toBe(2);
     const deleteConfirmation = confirm.mock.lastCall[0];
     deleteConfirmation.submitMethod();
 
@@ -149,7 +141,7 @@ describe('GceAutoHealingPolicyDetails', () => {
     } as any;
     const confirm = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(cancelledConfirmation);
     const deletePolicy = vi.spyOn(GceAutoscalingPolicyWriter, 'deleteAutoHealingPolicy').mockReturnValue(undefined);
-    const wrapper = shallow(
+    render(
       <GceAutoHealingPolicyDetails
         application={application}
         mutationsEnabled={true}
@@ -158,9 +150,8 @@ describe('GceAutoHealingPolicyDetails', () => {
       />,
     );
 
-    wrapper.find('[data-testid="delete-auto-healing-policy"]').simulate('click');
-    await Promise.resolve();
-    await Promise.resolve();
+    fireEvent.click(screen.getByTestId('delete-auto-healing-policy'));
+    await waitFor(() => expect(confirm).toHaveBeenCalled());
 
     expect(confirm.mock.calls.length).toBe(1);
     expect(confirm).toHaveBeenCalledWith(expect.objectContaining({ header: 'Pause Management?' }));
@@ -168,7 +159,7 @@ describe('GceAutoHealingPolicyDetails', () => {
   });
 
   it('hides all mutation actions when mutations are disabled', () => {
-    const details = shallow(
+    const details = render(
       <GceAutoHealingPolicyDetails
         application={application}
         mutationsEnabled={false}
@@ -176,7 +167,10 @@ describe('GceAutoHealingPolicyDetails', () => {
         policy={policy}
       />,
     );
-    const emptyDetails = shallow(
+    expect(details.queryByTestId('edit-auto-healing-policy')).not.toBeInTheDocument();
+    expect(details.queryByTestId('delete-auto-healing-policy')).not.toBeInTheDocument();
+    details.unmount();
+    const emptyDetails = render(
       <GceAutoHealingPolicyDetails
         application={application}
         mutationsEnabled={false}
@@ -185,8 +179,6 @@ describe('GceAutoHealingPolicyDetails', () => {
       />,
     );
 
-    expect(details.find('[data-testid="edit-auto-healing-policy"]').exists()).toBe(false);
-    expect(details.find('[data-testid="delete-auto-healing-policy"]').exists()).toBe(false);
-    expect(emptyDetails.isEmptyRender()).toBe(true);
+    expect(emptyDetails.container).toBeEmptyDOMElement();
   });
 });

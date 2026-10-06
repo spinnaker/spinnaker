@@ -1,22 +1,28 @@
-import { mount } from 'enzyme';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import React from 'react';
 
-import { AccountRegionClusterSelector, AccountService, PlatformHealthOverride, TargetSelect } from '@spinnaker/core';
+import { AccountService } from '@spinnaker/core';
+import { getFormGroupByLabel } from '../../../../../core/src/utils/testUtils/rtl';
 
 import { AmazonStageConfig } from '../AmazonStageConfig';
-
 import { awsResizeAsgStage } from './awsResizeAsgStage';
 
 describe('AWS Resize Server Group stage', () => {
   beforeEach(() => {
-    vi.spyOn(AccountService, 'getUniqueAttributeForAllAccounts').mockReturnValue(Promise.resolve([]));
-    vi.spyOn(AccountService, 'listAccounts').mockReturnValue(Promise.resolve([]));
+    vi.spyOn(AccountService, 'getUniqueAttributeForAllAccounts').mockResolvedValue([]);
+    vi.spyOn(AccountService, 'listAccounts').mockResolvedValue([]);
   });
 
-  function renderStage(stageOverrides: Record<string, any> = {}, applicationOverrides: Record<string, any> = {}) {
-    const stage = {
+  function renderStage(
+    stageOverrides: Record<string, any> = {},
+    applicationOverrides: Record<string, any> = {},
+    pipelineOverrides: Record<string, any> = {},
+  ) {
+    const initialStage = {
       action: 'scale_up',
       capacity: {},
+      cloudProvider: 'aws',
+      regions: [],
       resizeType: 'pct',
       scalePct: 150,
       target: 'current_asg',
@@ -33,58 +39,64 @@ describe('AWS Resize Server Group stage', () => {
     const updateStage = vi.fn();
     const updateStageField = vi.fn();
     const Component = awsResizeAsgStage.component as React.ComponentType<any>;
-    const wrapper = mount(
-      <Component
-        application={application}
-        pipeline={{}}
-        stage={stage}
-        stageFieldUpdated={vi.fn()}
-        updateStage={updateStage}
-        updateStageField={updateStageField}
-      />,
-    );
+    let replaceStage: React.Dispatch<React.SetStateAction<any>>;
 
-    return { stage, updateStage, updateStageField, wrapper };
+    function StageHarness() {
+      const [stage, setStage] = React.useState(initialStage);
+      replaceStage = setStage;
+      const update = (changes: any) => {
+        updateStage(changes);
+        setStage((current: any) => ({ ...current, ...changes }));
+      };
+      const updateField = (changes: any) => {
+        updateStageField(changes);
+        setStage((current: any) => ({ ...current, ...changes }));
+      };
+      return (
+        <Component
+          application={application}
+          pipeline={{ strategy: true, ...pipelineOverrides }}
+          stage={stage}
+          stageFieldUpdated={vi.fn()}
+          updateStage={update}
+          updateStageField={updateField}
+        />
+      );
+    }
+
+    return {
+      initialStage,
+      replaceStage: (stage: any) => act(() => replaceStage(stage)),
+      updateStage,
+      updateStageField,
+      ...render(<StageHarness />),
+    };
   }
 
-  it('registers a dedicated stage editor', () => {
+  const validator = () => awsResizeAsgStage.validators.find(({ type }) => type === 'custom');
+
+  it('registers a dedicated stage editor and prevent-save numeric validator', () => {
     expect(awsResizeAsgStage.component).not.toBe(AmazonStageConfig);
+    expect(validator()).toEqual(expect.objectContaining({ type: 'custom', preventSave: true }));
   });
 
-  it('registers a prevent-save numeric validator', () => {
-    expect(awsResizeAsgStage.validators).toContainEqual(expect.objectContaining({ type: 'custom', preventSave: true }));
-  });
-
-  it('prevents saving persisted invalid percentages while allowing valid values and expressions', () => {
-    const validator = awsResizeAsgStage.validators.find(({ type }) => type === 'custom');
-    const validStage = {
-      action: 'scale_up',
-      resizeType: 'pct',
-      scalePct: 25,
-      targetHealthyDeployPercentage: 75,
-    };
-
-    expect(validator.validate({}, { ...validStage, scalePct: 12.5 })).toBe(
+  it('validates percentage and health values while allowing integers and expressions', () => {
+    const valid = { action: 'scale_up', resizeType: 'pct', scalePct: 25, targetHealthyDeployPercentage: 75 };
+    expect(validator().validate({}, { ...valid, scalePct: 12.5 })).toBe(
       'Resize percentage must be a nonnegative integer or pipeline expression.',
     );
-    expect(validator.validate({}, { ...validStage, scalePct: -1 })).toBe(
+    expect(validator().validate({}, { ...valid, scalePct: -1 })).toBe(
       'Resize percentage must be a nonnegative integer or pipeline expression.',
     );
-    expect(validator.validate({}, { ...validStage, scalePct: null })).toBe(
-      'Resize percentage must be a nonnegative integer or pipeline expression.',
-    );
-    expect(validator.validate({}, { ...validStage, targetHealthyDeployPercentage: 75.5 })).toBe(
+    expect(validator().validate({}, { ...valid, targetHealthyDeployPercentage: 101 })).toBe(
       'Target healthy percentage must be an integer from 0 through 100 or pipeline expression.',
     );
-    expect(validator.validate({}, { ...validStage, targetHealthyDeployPercentage: 101 })).toBe(
-      'Target healthy percentage must be an integer from 0 through 100 or pipeline expression.',
-    );
-    expect(validator.validate({}, { ...validStage, scalePct: 125, targetHealthyDeployPercentage: 100 })).toBe('');
+    expect(validator().validate({}, { ...valid, scalePct: 125, targetHealthyDeployPercentage: 100 })).toBe('');
     expect(
-      validator.validate(
+      validator().validate(
         {},
         {
-          ...validStage,
+          ...valid,
           scalePct: '${ parameters.percentage }',
           targetHealthyDeployPercentage: '${ parameters.healthPercentage }',
         },
@@ -92,82 +104,30 @@ describe('AWS Resize Server Group stage', () => {
     ).toBe('');
   });
 
-  it('only applies percentage validation to fields used by the selected resize mode', () => {
-    const validator = awsResizeAsgStage.validators.find(({ type }) => type === 'custom');
-
+  it('validates only fields used by incremental and exact modes', () => {
+    const countMessage = 'Resize count must be a nonnegative integer or pipeline expression.';
+    expect(validator().validate({}, { action: 'scale_down', resizeType: 'incr', scaleNum: 2.5 })).toBe(countMessage);
+    expect(validator().validate({}, { action: 'scale_down', resizeType: 'incr', scaleNum: 0 })).toBe('');
     expect(
-      validator.validate(
+      validator().validate(
         {},
-        {
-          action: 'scale_up',
-          resizeType: 'capacity',
-          scalePct: 12.5,
-          targetHealthyDeployPercentage: 75,
-        },
+        { action: 'scale_exact', resizeType: 'exact', capacity: { min: 1.5, max: -1, desired: Number.NaN } },
       ),
-    ).toBe('');
+    ).toBe('Minimum capacity must be a nonnegative integer or pipeline expression.');
     expect(
-      validator.validate(
+      validator().validate(
         {},
-        {
-          action: 'scale_down',
-          resizeType: 'pct',
-          scalePct: 25,
-          targetHealthyDeployPercentage: 101,
-        },
+        { action: 'scale_exact', resizeType: 'exact', capacity: { min: 1, max: -1, desired: Number.NaN } },
       ),
-    ).toBe('');
-  });
-
-  it('prevents saving invalid incremental counts while allowing integers and expressions', () => {
-    const validator = awsResizeAsgStage.validators.find(({ type }) => type === 'custom');
-    const validStage = { action: 'scale_down', resizeType: 'incr', scaleNum: 2 };
-    const message = 'Resize count must be a nonnegative integer or pipeline expression.';
-
-    expect(validator.validate({}, { ...validStage, scaleNum: 2.5 })).toBe(message);
-    expect(validator.validate({}, { ...validStage, scaleNum: -1 })).toBe(message);
-    expect(validator.validate({}, { ...validStage, scaleNum: Number.NaN })).toBe(message);
-    expect(validator.validate({}, { ...validStage, scaleNum: 0 })).toBe('');
-    expect(validator.validate({}, { ...validStage, scaleNum: '${ parameters.count }' })).toBe('');
-  });
-
-  it('prevents saving invalid exact capacities in min, max, desired order', () => {
-    const validator = awsResizeAsgStage.validators.find(({ type }) => type === 'custom');
-    const validStage = {
-      action: 'scale_exact',
-      resizeType: 'exact',
-      capacity: { min: 1, max: 2, desired: 3 },
-    };
-
-    expect(validator.validate({}, { ...validStage, capacity: { min: 1.5, max: -1, desired: Number.NaN } })).toBe(
-      'Minimum capacity must be a nonnegative integer or pipeline expression.',
-    );
-    expect(validator.validate({}, { ...validStage, capacity: { min: 1, max: -1, desired: Number.NaN } })).toBe(
-      'Maximum capacity must be a nonnegative integer or pipeline expression.',
-    );
-    expect(validator.validate({}, { ...validStage, capacity: { min: 1, max: 2, desired: Number.NaN } })).toBe(
-      'Desired capacity must be a nonnegative integer or pipeline expression.',
-    );
+    ).toBe('Maximum capacity must be a nonnegative integer or pipeline expression.');
     expect(
-      validator.validate(
+      validator().validate(
         {},
-        {
-          ...validStage,
-          capacity: {
-            min: '${ parameters.min }',
-            max: '${ parameters.max }',
-            desired: '${ parameters.desired }',
-          },
-        },
+        { action: 'scale_exact', resizeType: 'exact', capacity: { min: 1, max: 2, desired: Number.NaN } },
       ),
-    ).toBe('');
-  });
-
-  it('ignores stale incremental and capacity values outside their active modes', () => {
-    const validator = awsResizeAsgStage.validators.find(({ type }) => type === 'custom');
-
+    ).toBe('Desired capacity must be a nonnegative integer or pipeline expression.');
     expect(
-      validator.validate(
+      validator().validate(
         {},
         {
           action: 'scale_up',
@@ -179,81 +139,130 @@ describe('AWS Resize Server Group stage', () => {
         },
       ),
     ).toBe('');
+  });
+
+  it('rejects a null percentage in percentage mode', () => {
     expect(
-      validator.validate(
+      validator().validate(
+        {},
+        { action: 'scale_up', resizeType: 'pct', scalePct: null, targetHealthyDeployPercentage: 100 },
+      ),
+    ).toBe('Resize percentage must be a nonnegative integer or pipeline expression.');
+  });
+
+  it('rejects a fractional target health percentage', () => {
+    expect(
+      validator().validate(
+        {},
+        { action: 'scale_up', resizeType: 'pct', scalePct: 25, targetHealthyDeployPercentage: 99.5 },
+      ),
+    ).toBe('Target healthy percentage must be an integer from 0 through 100 or pipeline expression.');
+  });
+
+  it('rejects negative and non-finite incremental counts while accepting an expression', () => {
+    const message = 'Resize count must be a nonnegative integer or pipeline expression.';
+
+    expect(validator().validate({}, { action: 'scale_down', resizeType: 'incr', scaleNum: -1 })).toBe(message);
+    expect(validator().validate({}, { action: 'scale_down', resizeType: 'incr', scaleNum: Number.NaN })).toBe(message);
+    expect(validator().validate({}, { action: 'scale_down', resizeType: 'incr', scaleNum: '${ count }' })).toBe('');
+  });
+
+  it('accepts expressions for every exact capacity', () => {
+    expect(
+      validator().validate(
         {},
         {
-          action: 'scale_down',
+          action: 'scale_exact',
+          resizeType: 'exact',
+          capacity: { min: '${ min }', max: '${ max }', desired: '${ desired }' },
+        },
+      ),
+    ).toBe('');
+  });
+
+  it('validates only eligible fields across incremental, exact, and scale-down percentage modes', () => {
+    expect(
+      validator().validate(
+        {},
+        {
+          action: 'scale_up',
           resizeType: 'incr',
-          scaleNum: 2,
+          scaleNum: 1,
+          scalePct: null,
           capacity: { min: -1, max: -1, desired: -1 },
+          targetHealthyDeployPercentage: 100,
         },
       ),
     ).toBe('');
     expect(
-      validator.validate(
+      validator().validate(
         {},
         {
           action: 'scale_exact',
           resizeType: 'exact',
           scaleNum: -1,
-          capacity: { min: 1, max: 2, desired: 3 },
+          scalePct: null,
+          capacity: { min: 1, max: 2, desired: 2 },
+          targetHealthyDeployPercentage: 99.5,
+        },
+      ),
+    ).toBe('');
+    expect(
+      validator().validate(
+        {},
+        {
+          action: 'scale_down',
+          resizeType: 'pct',
+          scaleNum: Number.NaN,
+          scalePct: 25,
+          capacity: { min: -1, max: -1, desired: -1 },
+          targetHealthyDeployPercentage: 99.5,
         },
       ),
     ).toBe('');
   });
 
-  it('renders AWS target, action, percentage, health threshold, and platform health controls', () => {
-    const { wrapper } = renderStage();
+  it('renders target, action, percentage, health threshold, and task completion controls', () => {
+    renderStage();
 
-    expect(wrapper.find(AccountRegionClusterSelector).exists()).toBe(true);
-    expect(wrapper.find(TargetSelect).exists()).toBe(true);
-    expect(wrapper.find('select[name="action"] option').map((option) => option.prop('value'))).toEqual([
-      'scale_up',
-      'scale_down',
-      'scale_to_cluster',
-      'scale_exact',
-    ]);
-    expect(wrapper.find('select[name="resizeType"]').exists()).toBe(true);
-    expect(wrapper.find('input[name="scalePct"]').prop('value')).toBe(150);
-    expect(wrapper.find('input[name="targetHealthyDeployPercentage"]').prop('value')).toBe(100);
-    expect(wrapper.find(PlatformHealthOverride).prop('platformHealthType')).toBe('Amazon');
+    expect(within(getFormGroupByLabel('Target')).getByRole('combobox')).toHaveAttribute(
+      'placeholder',
+      '(Deprecated) Current Server Group',
+    );
+    const action = within(getFormGroupByLabel('Action')).getByRole('combobox');
+    expect(
+      within(action)
+        .getAllByRole('option')
+        .map((option) => (option as HTMLOptionElement).value),
+    ).toEqual(['scale_up', 'scale_down', 'scale_to_cluster', 'scale_exact']);
+    expect(screen.getByRole('textbox', { name: 'Resize percentage' })).toHaveValue('150');
+    expect(screen.getByRole('textbox', { name: 'Target healthy percentage' })).toHaveValue('100');
+    expect(getFormGroupByLabel('Task Completion')).toHaveTextContent('Amazon');
   });
 
   it('renders exact min, max, and desired capacity without percentage controls', () => {
-    const { wrapper } = renderStage({
+    renderStage({
       action: 'scale_exact',
       capacity: { desired: 4, max: '${ parameters.max }', min: 2 },
       resizeType: 'exact',
     });
 
-    expect(wrapper.find('select[name="resizeType"]').exists()).toBe(false);
-    const capacityInputs = wrapper.find('input[data-capacity-field]');
-    expect(capacityInputs.map((input) => input.prop('name'))).toEqual([
-      'capacity.min',
-      'capacity.max',
-      'capacity.desired',
-    ]);
-    expect(capacityInputs.map((input) => input.prop('value'))).toEqual([2, '${ parameters.max }', 4]);
-    expect(wrapper.find('input[name="targetHealthyDeployPercentage"]').exists()).toBe(false);
+    expect(screen.getByRole('textbox', { name: 'Minimum capacity' })).toHaveValue('2');
+    expect(screen.getByRole('textbox', { name: 'Maximum capacity' })).toHaveValue('${ parameters.max }');
+    expect(screen.getByRole('textbox', { name: 'Desired capacity' })).toHaveValue('4');
+    expect(screen.queryByRole('textbox', { name: 'Resize percentage' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: 'Target healthy percentage' })).not.toBeInTheDocument();
   });
 
   it('renders an incremental count for scale down without a health threshold', () => {
-    const { wrapper } = renderStage({
-      action: 'scale_down',
-      resizeType: 'incr',
-      scaleNum: '${ parameters.count }',
-    });
+    renderStage({ action: 'scale_down', resizeType: 'incr', scaleNum: '${ parameters.count }' });
 
-    expect(wrapper.find('input[name="scaleNum"]').map((input) => input.prop('value'))).toEqual([
-      '${ parameters.count }',
-    ]);
-    expect(wrapper.find('input[name="scalePct"]').exists()).toBe(false);
-    expect(wrapper.find('input[name="targetHealthyDeployPercentage"]').exists()).toBe(false);
+    expect(screen.getByRole('textbox', { name: 'Resize count' })).toHaveValue('${ parameters.count }');
+    expect(screen.queryByRole('textbox', { name: 'Target healthy percentage' })).not.toBeInTheDocument();
   });
 
   it('applies AWS defaults to a new stage', () => {
-    const { updateStageField } = renderStage(
+    const rendered = renderStage(
       {
         action: undefined,
         capacity: undefined,
@@ -273,7 +282,7 @@ describe('AWS Resize Server Group stage', () => {
       },
     );
 
-    expect(updateStageField).toHaveBeenCalledWith({
+    expect(rendered.updateStageField).toHaveBeenCalledWith({
       action: 'scale_up',
       capacity: {},
       cloudProvider: 'aws',
@@ -286,313 +295,206 @@ describe('AWS Resize Server Group stage', () => {
     });
   });
 
-  ['scale_up', 'scale_down', 'scale_to_cluster'].forEach((action) => {
-    it(`defaults legacy exact mode to percentage when changing to ${action}`, () => {
-      const exact = renderStage({
-        action: 'scale_exact',
-        capacity: { desired: 4, max: 4, min: 4 },
-        resizeType: 'exact',
-        scaleNum: 3,
-        scalePct: undefined,
-      });
-      const originalStage = { ...exact.stage, capacity: { ...exact.stage.capacity } };
+  describe('mode transitions', () => {
+    it.each(['scale_up', 'scale_down', 'scale_to_cluster'])(
+      'defaults legacy exact mode to percentage when changing to %s',
+      (action) => {
+        const rendered = renderStage({
+          action: 'scale_exact',
+          capacity: { desired: 4, max: 4, min: 4 },
+          resizeType: 'exact',
+          scaleNum: 3,
+          scalePct: undefined,
+        });
+        const original = { ...rendered.initialStage, capacity: { ...rendered.initialStage.capacity } };
+        rendered.updateStage.mockClear();
+        rendered.updateStageField.mockClear();
+
+        fireEvent.change(within(getFormGroupByLabel('Action')).getByRole('combobox'), { target: { value: action } });
+
+        expect(rendered.initialStage).toEqual(original);
+        expect(rendered.updateStage.mock.lastCall?.[0]).toStrictEqual({
+          action,
+          capacity: {},
+          resizeType: 'pct',
+          scaleNum: undefined,
+          scalePct: 0,
+        });
+        expect(rendered.updateStageField).not.toHaveBeenCalled();
+      },
+    );
+
+    it('clears stale fields when changing between exact, incremental, and percentage modes', () => {
+      const exact = renderStage({ scaleNum: 3 });
+      const originalExact = { ...exact.initialStage, capacity: { ...exact.initialStage.capacity } };
       exact.updateStage.mockClear();
       exact.updateStageField.mockClear();
 
-      exact.wrapper.find('select[name="action"]').simulate('change', { target: { value: action } });
+      fireEvent.change(within(getFormGroupByLabel('Action')).getByRole('combobox'), {
+        target: { value: 'scale_exact' },
+      });
 
-      expect(exact.stage).toEqual(originalStage);
-      expect(exact.updateStage).toHaveBeenCalledWith({
-        action,
+      expect(exact.initialStage).toEqual(originalExact);
+      expect(exact.updateStage.mock.lastCall?.[0]).toStrictEqual({
+        action: 'scale_exact',
+        resizeType: 'exact',
+        scaleNum: undefined,
+        scalePct: undefined,
+      });
+      expect(exact.updateStageField).not.toHaveBeenCalled();
+
+      exact.updateStage.mockClear();
+      fireEvent.change(within(getFormGroupByLabel('Action')).getByRole('combobox'), {
+        target: { value: 'scale_up' },
+      });
+      fireEvent.change(within(getFormGroupByLabel('Type')).getByRole('combobox'), {
+        target: { value: 'incr' },
+      });
+      expect(exact.updateStage.mock.lastCall?.[0]).toStrictEqual({
+        action: 'scale_up',
+        capacity: {},
+        resizeType: 'incr',
+        scaleNum: 0,
+        scalePct: undefined,
+      });
+
+      fireEvent.change(within(getFormGroupByLabel('Type')).getByRole('combobox'), {
+        target: { value: 'pct' },
+      });
+      expect(exact.updateStage.mock.lastCall?.[0]).toStrictEqual({
+        action: 'scale_up',
         capacity: {},
         resizeType: 'pct',
         scaleNum: undefined,
         scalePct: 0,
       });
-      expect(exact.updateStageField).not.toHaveBeenCalled();
     });
   });
 
-  it('reports stale resize field removals without mutating the stage prop', () => {
-    const exact = renderStage({ scaleNum: 3 });
-    const originalExactStage = { ...exact.stage, capacity: { ...exact.stage.capacity } };
-    exact.updateStage.mockClear();
-    exact.updateStageField.mockClear();
+  it('keeps invalid percentage edits local and reports valid values and expressions', () => {
+    const rendered = renderStage({ scalePct: 25 });
+    rendered.updateStageField.mockClear();
+    const percentage = screen.getByRole('textbox', { name: 'Resize percentage' });
 
-    exact.wrapper.find('select[name="action"]').simulate('change', { target: { value: 'scale_exact' } });
+    for (const value of ['12.5', '-1', 'Infinity']) {
+      fireEvent.change(percentage, { target: { value } });
+      expect(percentage).toHaveValue(value);
+      expect(percentage).toHaveAttribute('aria-invalid', 'true');
+      expect(rendered.initialStage.scalePct).toBe(25);
+      expect(rendered.updateStageField).not.toHaveBeenCalled();
+    }
 
-    expect(exact.stage).toEqual(originalExactStage);
-    expect(exact.updateStage).toHaveBeenCalledWith({
-      action: 'scale_exact',
-      resizeType: 'exact',
-      scaleNum: undefined,
-      scalePct: undefined,
-    });
-    expect(exact.updateStageField).not.toHaveBeenCalled();
-
-    const incremental = renderStage({ capacity: { desired: 4 }, scalePct: 25 });
-    const originalIncrementalStage = { ...incremental.stage, capacity: { ...incremental.stage.capacity } };
-    incremental.updateStage.mockClear();
-    incremental.updateStageField.mockClear();
-
-    incremental.wrapper.find('select[name="resizeType"]').simulate('change', { target: { value: 'incr' } });
-
-    expect(incremental.stage).toEqual(originalIncrementalStage);
-    expect(incremental.updateStage).toHaveBeenCalledWith({
-      action: 'scale_up',
-      capacity: {},
-      resizeType: 'incr',
-      scaleNum: 0,
-      scalePct: undefined,
-    });
-    expect(incremental.updateStageField).not.toHaveBeenCalled();
-
-    const percentage = renderStage({ resizeType: 'incr', scaleNum: 3, scalePct: undefined });
-    const originalPercentageStage = { ...percentage.stage, capacity: { ...percentage.stage.capacity } };
-    percentage.updateStage.mockClear();
-    percentage.updateStageField.mockClear();
-
-    percentage.wrapper.find('select[name="resizeType"]').simulate('change', { target: { value: 'pct' } });
-
-    expect(percentage.stage).toEqual(originalPercentageStage);
-    expect(percentage.updateStage).toHaveBeenCalledWith({
-      action: 'scale_up',
-      capacity: {},
-      resizeType: 'pct',
-      scaleNum: undefined,
-      scalePct: 0,
-    });
-    expect(percentage.updateStageField).not.toHaveBeenCalled();
+    fireEvent.change(percentage, { target: { value: '125' } });
+    expect(rendered.updateStageField).toHaveBeenCalledWith({ scalePct: 125 });
+    rendered.updateStageField.mockClear();
+    fireEvent.change(percentage, { target: { value: '${ parameters.percentage }' } });
+    expect(rendered.updateStageField).toHaveBeenCalledWith({ scalePct: '${ parameters.percentage }' });
   });
 
-  it('validates numeric modes while preserving pipeline expressions', () => {
-    const percentage = renderStage({ scalePct: 125 });
-    percentage.updateStageField.mockClear();
-    const percentageInput = percentage.wrapper.find('input[name="scalePct"]');
-
-    expect(percentageInput.prop('aria-invalid')).toBe(false);
-    percentageInput.simulate('change', { target: { value: '${ parameters.percentage }' } });
-    expect(percentage.updateStageField).toHaveBeenCalledWith({ scalePct: '${ parameters.percentage }' });
-
-    const healthPercentage = renderStage({ targetHealthyDeployPercentage: 100 });
-    healthPercentage.updateStageField.mockClear();
-    const healthPercentageInput = healthPercentage.wrapper.find('input[name="targetHealthyDeployPercentage"]');
-
-    expect(healthPercentageInput.prop('aria-invalid')).toBe(false);
-    healthPercentageInput.simulate('change', { target: { value: '${ parameters.healthPercentage }' } });
-    expect(healthPercentage.updateStageField).toHaveBeenCalledWith({
-      targetHealthyDeployPercentage: '${ parameters.healthPercentage }',
-    });
-
-    expect(renderStage({ scalePct: -1 }).wrapper.find('input[name="scalePct"]').prop('aria-invalid')).toBe(true);
-    expect(renderStage({ scalePct: 12.5 }).wrapper.find('input[name="scalePct"]').prop('aria-invalid')).toBe(true);
-    expect(
-      renderStage({ targetHealthyDeployPercentage: -1 })
-        .wrapper.find('input[name="targetHealthyDeployPercentage"]')
-        .prop('aria-invalid'),
-    ).toBe(true);
-    expect(
-      renderStage({ targetHealthyDeployPercentage: 12.5 })
-        .wrapper.find('input[name="targetHealthyDeployPercentage"]')
-        .prop('aria-invalid'),
-    ).toBe(true);
-    expect(
-      renderStage({ targetHealthyDeployPercentage: 101 })
-        .wrapper.find('input[name="targetHealthyDeployPercentage"]')
-        .prop('aria-invalid'),
-    ).toBe(true);
-    expect(
-      renderStage({ action: 'scale_down', resizeType: 'incr', scaleNum: 2.5 })
-        .wrapper.find('input[name="scaleNum"]')
-        .prop('aria-invalid'),
-    ).toBe(true);
-    expect(
-      renderStage({ action: 'scale_exact', capacity: { desired: 3, max: '${ parameters.max }', min: -1 } })
-        .wrapper.find('input[data-capacity-field="min"]')
-        .prop('aria-invalid'),
-    ).toBe(true);
-    expect(
-      renderStage({ action: 'scale_exact', capacity: { desired: 3, max: '${ parameters.max }', min: 1 } })
-        .wrapper.find('input[data-capacity-field="max"]')
-        .prop('aria-invalid'),
-    ).toBe(false);
-  });
-
-  it('keeps invalid resize percentage edits local and only reports valid values', () => {
-    const percentage = renderStage({ scalePct: 25 });
-    percentage.updateStageField.mockClear();
-
-    ['12.5', '-1', 'Infinity'].forEach((value) => {
-      percentage.wrapper.find('input[name="scalePct"]').simulate('change', { target: { value } });
-
-      const input = percentage.wrapper.find('input[name="scalePct"]');
-      expect(input.prop('value')).toBe(value);
-      expect(input.prop('aria-invalid')).toBe(true);
-      expect(percentage.stage.scalePct).toBe(25);
-      expect(percentage.updateStageField).not.toHaveBeenCalled();
-    });
-
-    percentage.wrapper.find('input[name="scalePct"]').simulate('change', { target: { value: '125' } });
-    expect(percentage.updateStageField).toHaveBeenCalledWith({ scalePct: 125 });
-
-    percentage.updateStageField.mockClear();
-    percentage.wrapper
-      .find('input[name="scalePct"]')
-      .simulate('change', { target: { value: '${ parameters.percentage }' } });
-    expect(percentage.updateStageField).toHaveBeenCalledWith({ scalePct: '${ parameters.percentage }' });
-  });
-
-  it('keeps invalid health percentage edits local and only reports valid values', () => {
+  it('keeps invalid health and incremental edits local and reports valid values', () => {
     const health = renderStage({ targetHealthyDeployPercentage: 75 });
     health.updateStageField.mockClear();
+    const healthPercentage = screen.getByRole('textbox', { name: 'Target healthy percentage' });
 
-    ['75.5', '-1', '101', 'Infinity'].forEach((value) => {
-      health.wrapper.find('input[name="targetHealthyDeployPercentage"]').simulate('change', { target: { value } });
-
-      const input = health.wrapper.find('input[name="targetHealthyDeployPercentage"]');
-      expect(input.prop('value')).toBe(value);
-      expect(input.prop('aria-invalid')).toBe(true);
-      expect(health.stage.targetHealthyDeployPercentage).toBe(75);
+    for (const value of ['75.5', '-1', '101', 'Infinity']) {
+      fireEvent.change(healthPercentage, { target: { value } });
+      expect(healthPercentage).toHaveValue(value);
+      expect(healthPercentage).toHaveAttribute('aria-invalid', 'true');
       expect(health.updateStageField).not.toHaveBeenCalled();
-    });
-
-    health.wrapper.find('input[name="targetHealthyDeployPercentage"]').simulate('change', { target: { value: '100' } });
+    }
+    fireEvent.change(healthPercentage, { target: { value: '100' } });
     expect(health.updateStageField).toHaveBeenCalledWith({ targetHealthyDeployPercentage: 100 });
+    health.unmount();
 
-    health.updateStageField.mockClear();
-    health.wrapper
-      .find('input[name="targetHealthyDeployPercentage"]')
-      .simulate('change', { target: { value: '${ parameters.healthPercentage }' } });
-    expect(health.updateStageField).toHaveBeenCalledWith({
-      targetHealthyDeployPercentage: '${ parameters.healthPercentage }',
-    });
-  });
-
-  it('keeps invalid incremental edits local and only reports valid values', () => {
     const incremental = renderStage({ action: 'scale_down', resizeType: 'incr', scaleNum: 2 });
     incremental.updateStageField.mockClear();
-
-    ['2.5', '-1', 'NaN'].forEach((value) => {
-      incremental.wrapper.find('input[name="scaleNum"]').simulate('change', { target: { value } });
-
-      const input = incremental.wrapper.find('input[name="scaleNum"]');
-      expect(input.prop('value')).toBe(value);
-      expect(input.prop('aria-invalid')).toBe(true);
-      expect(incremental.stage.scaleNum).toBe(2);
+    const count = screen.getByRole('textbox', { name: 'Resize count' });
+    for (const value of ['2.5', '-1', 'NaN']) {
+      fireEvent.change(count, { target: { value } });
+      expect(count).toHaveValue(value);
+      expect(count).toHaveAttribute('aria-invalid', 'true');
       expect(incremental.updateStageField).not.toHaveBeenCalled();
-    });
-
-    incremental.wrapper.find('input[name="scaleNum"]').simulate('change', { target: { value: '3' } });
+    }
+    fireEvent.change(count, { target: { value: '3' } });
     expect(incremental.updateStageField).toHaveBeenCalledWith({ scaleNum: 3 });
-
-    incremental.updateStageField.mockClear();
-    incremental.wrapper
-      .find('input[name="scaleNum"]')
-      .simulate('change', { target: { value: '${ parameters.count }' } });
-    expect(incremental.updateStageField).toHaveBeenCalledWith({ scaleNum: '${ parameters.count }' });
-
-    incremental.wrapper.setProps({ stage: { ...incremental.stage, scaleNum: 4 } });
-    incremental.wrapper.update();
-    expect(incremental.wrapper.find('input[name="scaleNum"]').prop('value')).toBe(4);
   });
 
-  it('keeps invalid exact capacity edits local and reports valid values in capacity order', () => {
-    const capacity = { min: 1, max: 2, desired: 3 };
-
-    [
-      { field: 'min', value: '1.5' },
-      { field: 'max', value: '-1' },
-      { field: 'desired', value: 'NaN' },
-    ].forEach(({ field, value }) => {
-      const exact = renderStage({ action: 'scale_exact', capacity, resizeType: 'exact' });
-      exact.updateStageField.mockClear();
-
-      exact.wrapper.find(`input[data-capacity-field="${field}"]`).simulate('change', { target: { value } });
-
-      const input = exact.wrapper.find(`input[data-capacity-field="${field}"]`);
-      expect(input.prop('value')).toBe(value);
-      expect(input.prop('aria-invalid')).toBe(true);
-      expect(exact.stage.capacity).toEqual(capacity);
-      expect(exact.updateStageField).not.toHaveBeenCalled();
+  it('keeps invalid exact capacity edits local', () => {
+    const rendered = renderStage({
+      action: 'scale_exact',
+      capacity: { min: 1, max: 2, desired: 3 },
+      resizeType: 'exact',
     });
+    rendered.updateStageField.mockClear();
 
-    const exact = renderStage({ action: 'scale_exact', capacity, resizeType: 'exact' });
-    exact.updateStageField.mockClear();
-
-    exact.wrapper.find('input[data-capacity-field="min"]').simulate('change', { target: { value: '4' } });
-    expect(exact.updateStageField).toHaveBeenCalledWith({ capacity: { min: 4, max: 2, desired: 3 } });
-
-    exact.updateStageField.mockClear();
-    exact.wrapper
-      .find('input[data-capacity-field="max"]')
-      .simulate('change', { target: { value: '${ parameters.max }' } });
-    expect(exact.updateStageField).toHaveBeenCalledWith({
-      capacity: { min: 1, max: '${ parameters.max }', desired: 3 },
-    });
-
-    exact.updateStageField.mockClear();
-    exact.wrapper.find('input[data-capacity-field="desired"]').simulate('change', { target: { value: '5' } });
-    expect(exact.updateStageField).toHaveBeenCalledWith({ capacity: { min: 1, max: 2, desired: 5 } });
-
-    exact.wrapper.setProps({ stage: { ...exact.stage, capacity: { min: 4, max: 5, desired: 6 } } });
-    exact.wrapper.update();
-    const inputs = exact.wrapper.find('input[data-capacity-field]');
-    expect(inputs.map((input) => input.prop('data-capacity-field'))).toEqual(['min', 'max', 'desired']);
-    expect(inputs.map((input) => input.prop('value'))).toEqual([4, 5, 6]);
+    for (const [name, value] of [
+      ['Minimum capacity', '1.5'],
+      ['Maximum capacity', '-1'],
+      ['Desired capacity', 'NaN'],
+    ]) {
+      const input = screen.getByRole('textbox', { name });
+      fireEvent.change(input, { target: { value } });
+      expect(input).toHaveValue(value);
+      expect(input).toHaveAttribute('aria-invalid', 'true');
+    }
+    expect(rendered.initialStage.capacity).toEqual({ min: 1, max: 2, desired: 3 });
+    expect(rendered.updateStageField).not.toHaveBeenCalled();
   });
 
-  it('synchronizes controlled percentage inputs when stage props change', () => {
-    const rendered = renderStage({ scalePct: 25, targetHealthyDeployPercentage: 75 });
-
-    rendered.wrapper.find('input[name="scalePct"]').simulate('change', { target: { value: '12.5' } });
-    rendered.wrapper
-      .find('input[name="targetHealthyDeployPercentage"]')
-      .simulate('change', { target: { value: '101' } });
-
-    rendered.wrapper.setProps({
-      stage: { ...rendered.stage, scalePct: 50, targetHealthyDeployPercentage: 80 },
+  it('reports valid exact capacities in min, max, desired order', () => {
+    const rendered = renderStage({
+      action: 'scale_exact',
+      capacity: { min: 1, max: 2, desired: 3 },
+      resizeType: 'exact',
     });
-    rendered.wrapper.update();
+    rendered.updateStageField.mockClear();
+    const input = (name: string) => screen.getByRole('textbox', { name });
 
-    expect(rendered.wrapper.find('input[name="scalePct"]').prop('value')).toBe(50);
-    expect(rendered.wrapper.find('input[name="targetHealthyDeployPercentage"]').prop('value')).toBe(80);
+    fireEvent.change(input('Minimum capacity'), { target: { value: '4' } });
+    expect(rendered.updateStageField).toHaveBeenLastCalledWith({ capacity: { min: 4, max: 2, desired: 3 } });
+    fireEvent.change(input('Maximum capacity'), { target: { value: '${ parameters.max }' } });
+    expect(rendered.updateStageField).toHaveBeenLastCalledWith({
+      capacity: { min: 4, max: '${ parameters.max }', desired: 3 },
+    });
+    fireEvent.change(input('Desired capacity'), { target: { value: '5' } });
+    expect(rendered.updateStageField).toHaveBeenLastCalledWith({
+      capacity: { min: 4, max: '${ parameters.max }', desired: 5 },
+    });
   });
 
-  it('resets every controlled draft when the stage refId changes with equal persisted values', () => {
-    const validator = awsResizeAsgStage.validators.find(({ type }) => type === 'custom');
+  it('synchronizes controlled drafts when persisted stage values change', () => {
+    const rendered = renderStage({ refId: 'stage-a', scalePct: 25, targetHealthyDeployPercentage: 75 });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Resize percentage' }), { target: { value: '12.5' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Target healthy percentage' }), {
+      target: { value: '101' },
+    });
 
-    const percentage = renderStage({
-      refId: 'stage-a',
-      scalePct: 25,
-      targetHealthyDeployPercentage: 75,
+    rendered.replaceStage({ ...rendered.initialStage, scalePct: 50, targetHealthyDeployPercentage: 80 });
+
+    expect(screen.getByRole('textbox', { name: 'Resize percentage' })).toHaveValue('50');
+    expect(screen.getByRole('textbox', { name: 'Target healthy percentage' })).toHaveValue('80');
+  });
+
+  it('resets every controlled draft when refId changes with equal persisted values', () => {
+    const percentage = renderStage({ refId: 'stage-a', scalePct: 25, targetHealthyDeployPercentage: 75 });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Resize percentage' }), { target: { value: '12.5' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Target healthy percentage' }), {
+      target: { value: '101' },
     });
     percentage.updateStageField.mockClear();
-    percentage.wrapper.find('input[name="scalePct"]').simulate('change', { target: { value: '12.5' } });
-    percentage.wrapper
-      .find('input[name="targetHealthyDeployPercentage"]')
-      .simulate('change', { target: { value: '101' } });
-    const nextPercentageStage = { ...percentage.stage, refId: 'stage-b' };
-    percentage.wrapper.setProps({ stage: nextPercentageStage });
-    percentage.wrapper.update();
-
-    expect(percentage.wrapper.find('input[name="scalePct"]').prop('value')).toBe(25);
-    expect(percentage.wrapper.find('input[name="scalePct"]').prop('aria-invalid')).toBe(false);
-    expect(percentage.wrapper.find('input[name="targetHealthyDeployPercentage"]').prop('value')).toBe(75);
-    expect(percentage.wrapper.find('input[name="targetHealthyDeployPercentage"]').prop('aria-invalid')).toBe(false);
+    percentage.replaceStage({ ...percentage.initialStage, refId: 'stage-b' });
+    expect(screen.getByRole('textbox', { name: 'Resize percentage' })).toHaveValue('25');
+    expect(screen.getByRole('textbox', { name: 'Target healthy percentage' })).toHaveValue('75');
     expect(percentage.updateStageField).not.toHaveBeenCalled();
-    expect(validator.validate({}, nextPercentageStage)).toBe('');
+    percentage.unmount();
 
     const incremental = renderStage({ action: 'scale_down', refId: 'stage-a', resizeType: 'incr', scaleNum: 2 });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Resize count' }), { target: { value: '2.5' } });
     incremental.updateStageField.mockClear();
-    incremental.wrapper.find('input[name="scaleNum"]').simulate('change', { target: { value: '2.5' } });
-    const nextIncrementalStage = { ...incremental.stage, refId: 'stage-b' };
-    incremental.wrapper.setProps({ stage: nextIncrementalStage });
-    incremental.wrapper.update();
-
-    expect(incremental.wrapper.find('input[name="scaleNum"]').prop('value')).toBe(2);
-    expect(incremental.wrapper.find('input[name="scaleNum"]').prop('aria-invalid')).toBe(false);
+    incremental.replaceStage({ ...incremental.initialStage, refId: 'stage-b' });
+    expect(screen.getByRole('textbox', { name: 'Resize count' })).toHaveValue('2');
     expect(incremental.updateStageField).not.toHaveBeenCalled();
-    expect(validator.validate({}, nextIncrementalStage)).toBe('');
+    incremental.unmount();
 
     const exact = renderStage({
       action: 'scale_exact',
@@ -600,18 +502,30 @@ describe('AWS Resize Server Group stage', () => {
       refId: 'stage-a',
       resizeType: 'exact',
     });
+    for (const name of ['Minimum capacity', 'Maximum capacity', 'Desired capacity']) {
+      fireEvent.change(screen.getByRole('textbox', { name }), { target: { value: 'NaN' } });
+    }
     exact.updateStageField.mockClear();
-    ['min', 'max', 'desired'].forEach((field) => {
-      exact.wrapper.find(`input[data-capacity-field="${field}"]`).simulate('change', { target: { value: 'NaN' } });
-    });
-    const nextExactStage = { ...exact.stage, refId: 'stage-b' };
-    exact.wrapper.setProps({ stage: nextExactStage });
-    exact.wrapper.update();
-
-    const capacityInputs = exact.wrapper.find('input[data-capacity-field]');
-    expect(capacityInputs.map((input) => input.prop('value'))).toEqual([1, 2, 3]);
-    expect(capacityInputs.map((input) => input.prop('aria-invalid'))).toEqual([false, false, false]);
+    exact.replaceStage({ ...exact.initialStage, refId: 'stage-b' });
+    expect(screen.getByRole('textbox', { name: 'Minimum capacity' })).toHaveValue('1');
+    expect(screen.getByRole('textbox', { name: 'Maximum capacity' })).toHaveValue('2');
+    expect(screen.getByRole('textbox', { name: 'Desired capacity' })).toHaveValue('3');
     expect(exact.updateStageField).not.toHaveBeenCalled();
-    expect(validator.validate({}, nextExactStage)).toBe('');
+  });
+
+  it('renders the account, region, and cluster selector outside strategy pipelines', async () => {
+    vi.spyOn(AccountService, 'listAccounts').mockResolvedValue([{ name: 'test-account' }] as any);
+    vi.spyOn(AccountService, 'getUniqueAttributeForAllAccounts').mockResolvedValue(['eu-west-1'] as any);
+    renderStage(
+      { cloudProviderType: 'aws', credentials: 'test-account', regions: ['eu-west-1'] },
+      {},
+      { strategy: false },
+    );
+
+    await waitFor(() =>
+      expect(within(getFormGroupByLabel('Account')).getByRole('combobox')).toHaveValue('test-account'),
+    );
+    expect(within(getFormGroupByLabel('Regions')).getByRole('checkbox', { name: 'eu-west-1' })).toBeChecked();
+    expect(within(getFormGroupByLabel('Cluster')).getByRole('combobox')).toHaveDisplayValue('Select a cluster...');
   });
 });

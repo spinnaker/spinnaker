@@ -449,7 +449,11 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
       newState.showGraph = true;
     } else {
       newState = { allNodes: this.state.allNodes } as IPipelineGraphState;
-      newState.allNodes.forEach((node) => this.resetLinks(props, node));
+      const updatedNames = new Map(nodes.map((node) => [node.id, node.name]));
+      newState.allNodes.forEach((node) => {
+        node.name = updatedNames.get(node.id) ?? node.name;
+        this.resetLinks(props, node);
+      });
       newState.showGraph = true;
     }
     this.applyAllNodes(newState);

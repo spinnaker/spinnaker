@@ -1,7 +1,6 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render, screen } from '@testing-library/react';
 
-import { GceNetworkLoadBalancerEditor } from './GceNetworkLoadBalancerEditor';
 import {
   GceNetworkLoadBalancerModal,
   normalizeGceNetworkLoadBalancerCommand,
@@ -140,7 +139,7 @@ describe('GceNetworkLoadBalancerModal', () => {
 
   ([null, undefined] as const).forEach((loadBalancer) => {
     it(`initializes infrastructure create when the persisted load balancer is ${String(loadBalancer)}`, () => {
-      const wrapper = shallow(
+      const { container } = render(
         <GceNetworkLoadBalancerModal
           app={application}
           closeModal={vi.fn()}
@@ -151,20 +150,17 @@ describe('GceNetworkLoadBalancerModal', () => {
         />,
       );
 
-      const command = wrapper.find(GceNetworkLoadBalancerEditor).prop('command');
-      expect(command.mode).toBe('create');
-      expect(command.listeners).toEqual([{ name: 'app', portRange: '8080', protocol: 'TCP' }]);
-      expect(command.healthChecks).toEqual([
-        {
-          checkIntervalSec: 10,
-          healthCheckType: 'HTTP',
-          healthyThreshold: 10,
-          port: 80,
-          requestPath: '/',
-          timeoutSec: 5,
-          unhealthyThreshold: 2,
-        },
-      ]);
+      expect(screen.getByRole('heading', { name: 'Create Network Load Balancer' })).toBeInTheDocument();
+      expect(fieldControl(container, 'name')).toHaveValue('app');
+      expect(fieldControl(container, 'protocol')).toHaveValue('TCP');
+      expect(fieldControl(container, 'portRange')).toHaveValue('8080');
+      expect(fieldControl(container, 'healthCheckEnabled')).toBeChecked();
+      expect(fieldControl(container, 'healthCheckPort')).toHaveValue(80);
+      expect(fieldControl(container, 'requestPath')).toHaveValue('/');
+      expect(fieldControl(container, 'timeoutSec')).toHaveValue(5);
+      expect(fieldControl(container, 'checkIntervalSec')).toHaveValue(10);
+      expect(fieldControl(container, 'healthyThreshold')).toHaveValue(10);
+      expect(fieldControl(container, 'unhealthyThreshold')).toHaveValue(2);
     });
   });
 
@@ -256,7 +252,7 @@ describe('GceNetworkLoadBalancerModal', () => {
   it('exposes pipeline support and passes edit mode to the editor', () => {
     expect(GceNetworkLoadBalancerModal.supportsPipelineConfig).toBe(true);
     expect(typeof GceNetworkLoadBalancerModal.show).toBe('function');
-    const wrapper = shallow(
+    const { container } = render(
       <GceNetworkLoadBalancerModal
         app={application}
         closeModal={vi.fn()}
@@ -267,7 +263,8 @@ describe('GceNetworkLoadBalancerModal', () => {
       />,
     );
 
-    expect(wrapper.find(GceNetworkLoadBalancerEditor).prop('command').mode).toBe('edit');
+    expect(screen.getByRole('heading', { name: 'Edit app-main' })).toBeInTheDocument();
+    expect(fieldControl(container, 'name')).toBeDisabled();
   });
 });
 
@@ -300,4 +297,12 @@ function emptyData(): any {
     regions: [],
     subnets: [],
   };
+}
+
+function fieldControl(container: HTMLElement, name: string): HTMLInputElement | HTMLSelectElement {
+  const control = container.querySelector(`[data-field="${name}"] input, [data-field="${name}"] select`);
+  if (!(control instanceof HTMLInputElement || control instanceof HTMLSelectElement)) {
+    throw new Error(`No control found for ${name}`);
+  }
+  return control;
 }
