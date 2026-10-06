@@ -116,7 +116,7 @@ describe('App Engine provider registration', () => {
   });
 
   it('keeps App Engine clone submissions on createServerGroup', () => {
-    const executeTask = spyOn(TaskExecutor, 'executeTask').and.returnValue(Promise.resolve({}) as any);
+    const executeTask = vi.spyOn(TaskExecutor, 'executeTask').mockReturnValue(Promise.resolve({}) as any);
     const writer = new AppengineServerGroupWriter();
 
     writer.cloneServerGroup(
@@ -133,17 +133,17 @@ describe('App Engine provider registration', () => {
       { name: 'myapp' } as any,
     );
 
-    expect(executeTask.calls.mostRecent().args[0].job[0].type).toBe('createServerGroup');
+    expect(executeTask.mock.lastCall[0].job[0].type).toBe('createServerGroup');
   });
 
   it('keeps disable server group task ownership on the application object', () => {
-    const executeTask = spyOn(TaskExecutor, 'executeTask').and.returnValue(Promise.resolve({}) as any);
+    const executeTask = vi.spyOn(TaskExecutor, 'executeTask').mockReturnValue(Promise.resolve({}) as any);
     const writer = new AppengineServerGroupWriter();
     const application = { name: 'myapp' } as any;
 
     writer.disableServerGroup({ name: 'myapp-v001', region: 'europe-west1', account: 'test' } as any, application);
 
-    expect(executeTask.calls.mostRecent().args[0].application).toBe(application);
+    expect(executeTask.mock.lastCall[0].application).toBe(application);
   });
 
   it('restores App Engine server group action eligibility from traffic allocations', () => {

@@ -14,18 +14,18 @@ describe('ECS package registration', () => {
     expect(CloudProviderRegistry.getValue('ecs', 'serverGroup.detailsActions').displayName).toBe(
       EcsServerGroupActions.displayName,
     );
-    expect(CloudProviderRegistry.getValue('ecs', 'adHocInfrastructureWritesEnabled')).toBeTrue();
+    expect(CloudProviderRegistry.getValue('ecs', 'adHocInfrastructureWritesEnabled')).toBe(true);
     const detailsSections = CloudProviderRegistry.getValue('ecs', 'serverGroup.detailsSections');
     expect(detailsSections.length).toBe(9);
-    expect(detailsSections.every((section: unknown) => typeof section === 'function')).toBeTrue();
+    expect(detailsSections.every((section: unknown) => typeof section === 'function')).toBe(true);
     expect(CloudProviderRegistry.getValue('ecs', 'securityGroup.reader')).toBe(EcsSecurityGroupReader);
     expect(CloudProviderRegistry.getValue('ecs', 'securityGroup.transformer')).toBe(EcsSecurityGroupTransformer);
     expect(
       new (CloudProviderRegistry.getValue('ecs', 'serverGroup.commandBuilder') as any)().buildNewServerGroupCommand,
-    ).toEqual(jasmine.any(Function));
+    ).toEqual(expect.any(Function));
     expect(
       new (CloudProviderRegistry.getValue('ecs', 'securityGroup.transformer') as any)().normalizeSecurityGroup,
-    ).toEqual(jasmine.any(Function));
+    ).toEqual(expect.any(Function));
     const controllerKey = 'Cont' + 'roller';
     const templateUrlKey = 'Template' + 'Url';
     expect(CloudProviderRegistry.getValue('ecs', `serverGroup.details${controllerKey}`)).toBeNull();
@@ -39,10 +39,10 @@ describe('ECS package registration', () => {
     registerEcsPipelineStages();
     const stages = Registry.pipeline.getStageTypes();
     expect(stages.find((stage) => stage.cloudProvider === 'ecs' && stage.provides === 'destroyServerGroup')).toEqual(
-      jasmine.objectContaining({ cloudProvider: 'ecs', provides: 'destroyServerGroup' }),
+      expect.objectContaining({ cloudProvider: 'ecs', provides: 'destroyServerGroup' }),
     );
     expect(stages.find((stage) => stage.cloudProvider === 'ecs' && stage.provides === 'resizeServerGroup')).toEqual(
-      jasmine.objectContaining({ cloudProvider: 'ecs', provides: 'resizeServerGroup' }),
+      expect.objectContaining({ cloudProvider: 'ecs', provides: 'resizeServerGroup' }),
     );
   });
 
@@ -65,13 +65,13 @@ describe('ECS package registration', () => {
       'shrinkCluster',
     ]);
     ecsStages.forEach((stage) => {
-      expect(stage.component).toEqual(jasmine.any(Function));
+      expect(stage.component).toEqual(expect.any(Function));
       expect(stage.templateUrl).toBeUndefined();
     });
   });
 
   it('does not bundle ECS HTML templates', () => {
-    const ecsTemplates = require.context('./', true, /\.html$/).keys();
+    const ecsTemplates = Object.keys(import.meta.glob('./**/*.html'));
 
     expect(ecsTemplates).toEqual([]);
   });

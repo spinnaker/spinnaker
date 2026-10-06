@@ -1,8 +1,9 @@
 'use strict';
-
 import { nativePromiseService } from '@spinnaker/core';
 
 import { AzureServerGroupConfigurationService } from './serverGroupConfiguration.service';
+
+const testContext = {};
 
 describe('Service: azureServerGroupConfiguration', function () {
   var service;
@@ -14,7 +15,7 @@ describe('Service: azureServerGroupConfiguration', function () {
       securityGroupReader: {},
     });
 
-    this.allLoadBalancers = [
+    testContext.allLoadBalancers = [
       {
         name: 'elb-1',
         accounts: [
@@ -58,7 +59,7 @@ describe('Service: azureServerGroupConfiguration', function () {
 
   describe('configureSecurityGroupOptions', function () {
     beforeEach(function () {
-      this.allSecurityGroups = {
+      testContext.allSecurityGroups = {
         azurecred1: {
           eastus: [
             {
@@ -100,9 +101,9 @@ describe('Service: azureServerGroupConfiguration', function () {
         },
       };
 
-      this.command = {
+      testContext.command = {
         backingData: {
-          securityGroups: this.allSecurityGroups,
+          securityGroups: testContext.allSecurityGroups,
           filtered: {},
         },
         viewState: {
@@ -114,30 +115,30 @@ describe('Service: azureServerGroupConfiguration', function () {
     });
 
     it('finds matching firewalls and assigns them to the filtered list the first time', function () {
-      this.command.region = 'westus';
-      var expected = this.allSecurityGroups.azurecred1['westus'];
+      testContext.command.region = 'westus';
+      var expected = testContext.allSecurityGroups.azurecred1['westus'];
 
-      var result = service.configureSecurityGroupOptions(this.command);
+      var result = service.configureSecurityGroupOptions(testContext.command);
 
-      expect(this.command.backingData.filtered.securityGroups).toEqual(expected);
+      expect(testContext.command.backingData.filtered.securityGroups).toEqual(expected);
       expect(result).toEqual({ dirty: { securityGroups: true } });
-      expect(this.command.viewState.securityGroupsConfigured).toBeTrue();
+      expect(testContext.command.viewState.securityGroupsConfigured).toBe(true);
     });
 
     it('finds matching firewalls, sets dirty flag for subsequent time', function () {
-      this.command.region = 'eastus';
-      this.command.backingData.filtered.securityGroups = this.allSecurityGroups.azurecred1['westus'];
-      var expected = this.allSecurityGroups.azurecred1['eastus'];
+      testContext.command.region = 'eastus';
+      testContext.command.backingData.filtered.securityGroups = testContext.allSecurityGroups.azurecred1['westus'];
+      var expected = testContext.allSecurityGroups.azurecred1['eastus'];
 
-      var result = service.configureSecurityGroupOptions(this.command);
+      var result = service.configureSecurityGroupOptions(testContext.command);
 
-      expect(this.command.backingData.filtered.securityGroups).toEqual(expected);
+      expect(testContext.command.backingData.filtered.securityGroups).toEqual(expected);
       expect(result).toEqual({ dirty: { securityGroups: true } });
-      expect(this.command.viewState.securityGroupsConfigured).toBeTrue();
+      expect(testContext.command.viewState.securityGroupsConfigured).toBe(true);
     });
 
     it('clears the selected securityGroup', function () {
-      this.command.selectedSecurityGroup = {
+      testContext.command.selectedSecurityGroup = {
         'onlyazure-web': {
           account: 'azure-cred1',
           accountName: 'azure-cred1',
@@ -148,66 +149,66 @@ describe('Service: azureServerGroupConfiguration', function () {
           region: 'westus',
         },
       };
-      this.command.region = 'eastus';
+      testContext.command.region = 'eastus';
 
-      var result = service.configureSecurityGroupOptions(this.command);
+      var result = service.configureSecurityGroupOptions(testContext.command);
 
-      expect(this.command.selectedSecurityGroup).toBeNull();
+      expect(testContext.command.selectedSecurityGroup).toBeNull();
       expect(result).toEqual({ dirty: { securityGroups: true } });
-      expect(this.command.viewState.securityGroupsConfigured).toBeTrue();
+      expect(testContext.command.viewState.securityGroupsConfigured).toBe(true);
     });
 
     it('returns no firewalls if none match', function () {
-      this.command.region = 'eastasia';
-      this.command.backingData.filtered.securityGroups = this.allSecurityGroups.azurecred1['westus'];
+      testContext.command.region = 'eastasia';
+      testContext.command.backingData.filtered.securityGroups = testContext.allSecurityGroups.azurecred1['westus'];
 
-      var result = service.configureSecurityGroupOptions(this.command);
+      var result = service.configureSecurityGroupOptions(testContext.command);
 
-      expect(this.command.selectedSecurityGroup).toBeUndefined();
+      expect(testContext.command.selectedSecurityGroup).toBeUndefined();
       expect(result).toEqual({ dirty: { securityGroups: true } });
-      expect(this.command.backingData.filtered.securityGroups).toEqual([]);
-      expect(this.command.viewState.securityGroupsConfigured).toBeFalse();
+      expect(testContext.command.backingData.filtered.securityGroups).toEqual([]);
+      expect(testContext.command.viewState.securityGroupsConfigured).toBe(false);
     });
 
     it('returns empty zone list if region is not supported', function () {
-      this.command.region = 'eastasia';
-      this.command.backingData.credentialsKeyedByAccount = {};
-      this.command.backingData.credentialsKeyedByAccount[this.command.credentials] = {
+      testContext.command.region = 'eastasia';
+      testContext.command.backingData.credentialsKeyedByAccount = {};
+      testContext.command.backingData.credentialsKeyedByAccount[testContext.command.credentials] = {
         regionsSupportZones: [],
         availabilityZones: ['1', '2', '3'],
       };
 
-      service.configureZones(this.command);
+      service.configureZones(testContext.command);
 
-      expect(this.command.backingData.filtered.zones).toEqual([]);
+      expect(testContext.command.backingData.filtered.zones).toEqual([]);
     });
 
     it('returns actual zone list if region is supported', function () {
-      this.command.region = 'eastasia';
-      this.command.backingData.credentialsKeyedByAccount = {};
-      this.command.backingData.credentialsKeyedByAccount[this.command.credentials] = {
+      testContext.command.region = 'eastasia';
+      testContext.command.backingData.credentialsKeyedByAccount = {};
+      testContext.command.backingData.credentialsKeyedByAccount[testContext.command.credentials] = {
         regionsSupportZones: ['eastasia'],
         availabilityZones: ['1', '2', '3'],
       };
 
-      service.configureZones(this.command);
+      service.configureZones(testContext.command);
 
-      expect(this.command.backingData.filtered.zones).toEqual(
-        this.command.backingData.credentialsKeyedByAccount[this.command.credentials].availabilityZones,
+      expect(testContext.command.backingData.filtered.zones).toEqual(
+        testContext.command.backingData.credentialsKeyedByAccount[testContext.command.credentials].availabilityZones,
       );
     });
 
     it('does not return zone list if region is not specified', function () {
-      this.command.region = null;
-      this.command.backingData.credentialsKeyedByAccount = {};
-      this.command.backingData.credentialsKeyedByAccount[this.command.credentials] = {
+      testContext.command.region = null;
+      testContext.command.backingData.credentialsKeyedByAccount = {};
+      testContext.command.backingData.credentialsKeyedByAccount[testContext.command.credentials] = {
         regionsSupportZones: ['eastasia'],
         availabilityZones: ['1', '2', '3'],
       };
 
-      service.configureZones(this.command);
+      service.configureZones(testContext.command);
 
-      expect(this.command.backingData.filtered.zones).toBeUndefined();
+      expect(testContext.command.backingData.filtered.zones).toBeUndefined();
     });
   });
 });
