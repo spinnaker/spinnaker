@@ -1,0 +1,423 @@
+import React from 'react';
+import { shallow } from 'enzyme';
+
+import type { IGceLoadBalancerData } from '../common';
+
+import {
+  buildGceRegionalExternalNetworkLoadBalancerOptions,
+  GceRegionalExternalNetworkLoadBalancerEditor,
+  validateGceRegionalExternalNetworkLoadBalancerCommand,
+} from './GceRegionalExternalNetworkLoadBalancerEditor';
+import { normalizeGceRegionalExternalNetworkLoadBalancerCommand } from './GceRegionalExternalNetworkLoadBalancerModal';
+
+describe('GceRegionalExternalNetworkLoadBalancerEditor', () => {
+  const emptyData = (): IGceLoadBalancerData => ({
+    accounts: [],
+    addresses: [],
+    backendServices: [],
+    certificates: [],
+    healthChecks: [],
+    networks: [],
+    regions: [],
+    subnets: [],
+  });
+
+  it('filters external addresses and stores selected IP and network tier', () => {
+    const command = normalizeGceRegionalExternalNetworkLoadBalancerCommand(
+      { account: 'account-a', loadBalancerName: 'app-main', region: 'europe-west1' },
+      'create',
+    );
+    const options = buildGceRegionalExternalNetworkLoadBalancerOptions(command, {
+      ...emptyData(),
+      addresses: [
+        {
+          account: 'account-a',
+          address: '35.1.2.3',
+          addressType: 'EXTERNAL',
+          networkTier: 'PREMIUM',
+          region: 'europe-west1',
+        },
+        {
+          account: 'account-a',
+          address: '10.0.0.1',
+          addressType: 'INTERNAL',
+          networkTier: 'PREMIUM',
+          region: 'europe-west1',
+        },
+        { account: 'account-a', address: '198.51.100.1', addressType: 'EXTERNAL', region: 'us-central1' },
+      ],
+    } as any);
+
+    expect(options.addresses.map(({ address }) => address)).toEqual(['35.1.2.3']);
+
+    const onChange = vi.fn();
+    const wrapper = shallow(
+      <GceRegionalExternalNetworkLoadBalancerEditor command={command} data={emptyData()} onChange={onChange} />,
+    );
+
+    wrapper.find('[data-field="address"] select').simulate('change', {
+      target: { value: '35.1.2.3' },
+    });
+
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        listeners: [expect.objectContaining({ address: { address: '35.1.2.3', name: '35.1.2.3' } })],
+        networkTier: 'PREMIUM',
+      }),
+    );
+  });
+
+  it('renders region, protocol, discrete ports, health check, and session affinity controls', () => {
+    const command = normalizeGceRegionalExternalNetworkLoadBalancerCommand(
+      {
+        account: 'account-a',
+        backendService: {
+          healthCheck: { healthCheckType: 'TCP', name: 'tcp-check', port: 80 },
+          name: 'app-main',
+          sessionAffinity: 'CLIENT_IP',
+        },
+        ipProtocol: 'TCP',
+        loadBalancerName: 'app-main',
+        ports: ['80', '443'],
+        region: 'europe-west1',
+      },
+      'edit',
+    );
+    const wrapper = shallow(
+      <GceRegionalExternalNetworkLoadBalancerEditor command={command} data={emptyData()} onChange={vi.fn()} />,
+    );
+
+    [
+      'credentials',
+      'region',
+      'address',
+      'networkTier',
+      'protocol',
+      'ports',
+      'sessionAffinity',
+      'healthCheck',
+      'healthCheckName',
+    ].forEach((field) => expect(wrapper.find(`[data-field="${field}"]`).exists()).toBe(true));
+    expect(wrapper.find('[data-field="protocol"] option').map((option) => option.prop('value'))).toEqual([
+      'TCP',
+      'UDP',
+    ]);
+    expect(wrapper.find('[data-field="sessionAffinity"] option').map((option) => option.prop('value'))).toEqual([
+      'NONE',
+      'CLIENT_IP',
+      'CLIENT_IP_PROTO',
+      'CLIENT_IP_PORT_PROTO',
+    ]);
+  });
+
+  it('updates both health check references by name without mutating the command', () => {
+    const command = normalizeGceRegionalExternalNetworkLoadBalancerCommand(
+      {
+        account: 'account-a',
+        backendService: {
+          healthCheck: { healthCheckType: 'TCP', name: 'old-check', port: 80 },
+          name: 'app-main',
+          sessionAffinity: 'NONE',
+        },
+        loadBalancerName: 'app-main',
+        ports: ['80'],
+        region: 'europe-west1',
+      },
+      'edit',
+    );
+    const onChange = vi.fn();
+    const wrapper = shallow(
+      <GceRegionalExternalNetworkLoadBalancerEditor command={command} data={emptyData()} onChange={onChange} />,
+    );
+
+    wrapper.find('[data-field="healthCheckName"] input').simulate('change', { target: { value: 'new-check' } });
+
+    const nextCommand = onChange.mock.lastCall[0];
+    expect(nextCommand.backendServices[0].healthCheck).toBe(nextCommand.healthChecks[0]);
+    expect(nextCommand.backendServices[0].healthCheck.name).toBe('new-check');
+    expect(nextCommand.healthChecks[0].name).toBe('new-check');
+    expect((command.backendServices[0].healthCheck as any).name).toBe('old-check');
+    expect(command.healthChecks[0].name).toBe('old-check');
+  });
+
+  it('updates protocol, raw ports, and session affinity through editor changes', () => {
+    const command = normalizeGceRegionalExternalNetworkLoadBalancerCommand(
+      { account: 'account-a', loadBalancerName: 'app-main', region: 'europe-west1' },
+      'create',
+    );
+    const onChange = vi.fn();
+    const wrapper = shallow(
+      <GceRegionalExternalNetworkLoadBalancerEditor command={command} data={emptyData()} onChange={onChange} />,
+    );
+
+    wrapper.find('[data-field="protocol"] select').simulate('change', { target: { value: 'UDP' } });
+    expect(onChange.mock.lastCall[0].listeners[0].protocol).toBe('UDP');
+
+    wrapper.find('[data-field="ports"] input').simulate('change', { target: { value: '80, 443 , 8080' } });
+    expect(onChange.mock.lastCall[0].ports).toEqual(['80', ' 443 ', ' 8080']);
+
+    wrapper.find('[data-field="sessionAffinity"] select').simulate('change', {
+      target: { value: 'CLIENT_IP_PORT_PROTO' },
+    });
+    expect(onChange.mock.lastCall[0].backendServices[0].sessionAffinity).toBe('CLIENT_IP_PORT_PROTO');
+  });
+
+  it('locks identity and forwarding-rule fields while allowing backend edits', () => {
+    const command = normalizeGceRegionalExternalNetworkLoadBalancerCommand(
+      {
+        account: 'account-a',
+        backendService: {
+          healthCheck: { healthCheckType: 'TCP', name: 'tcp-check', port: 80 },
+          name: 'app-main',
+          sessionAffinity: 'CLIENT_IP',
+        },
+        ipAddress: '35.1.2.3',
+        ipProtocol: 'TCP',
+        loadBalancerName: 'app-main',
+        networkTier: 'PREMIUM',
+        ports: ['80'],
+        region: 'europe-west1',
+      },
+      'edit',
+    );
+    const wrapper = shallow(
+      <GceRegionalExternalNetworkLoadBalancerEditor command={command} data={emptyData()} onChange={vi.fn()} />,
+    );
+
+    ['name', 'credentials', 'region', 'address', 'networkTier', 'protocol', 'ports'].forEach((field) => {
+      const control = wrapper.find(`[data-field="${field}"]`);
+      expect((control.find('input').exists() ? control.find('input') : control.find('select')).prop('disabled')).toBe(
+        true,
+      );
+    });
+    ['sessionAffinity', 'healthCheckName'].forEach((field) => {
+      const control = wrapper.find(`[data-field="${field}"]`);
+      expect(
+        (control.find('input').exists() ? control.find('input') : control.find('select')).prop('disabled'),
+      ).not.toBe(true);
+    });
+  });
+
+  it('drops the selected address when the account or region changes', () => {
+    const command = normalizeGceRegionalExternalNetworkLoadBalancerCommand(
+      { account: 'account-a', ipAddress: '35.1.2.3', loadBalancerName: 'app-main', region: 'europe-west1' },
+      'create',
+    );
+    const onChange = vi.fn();
+    const wrapper = shallow(
+      <GceRegionalExternalNetworkLoadBalancerEditor command={command} data={emptyData()} onChange={onChange} />,
+    );
+
+    wrapper.find('[data-field="credentials"] select').simulate('change', { target: { value: 'account-b' } });
+    expect(onChange.mock.lastCall[0].credentials).toBe('account-b');
+    expect(onChange.mock.lastCall[0].listeners[0].address).toBeUndefined();
+
+    wrapper.find('[data-field="region"] select').simulate('change', { target: { value: 'us-central1' } });
+    expect(onChange.mock.lastCall[0].region).toBe('us-central1');
+    expect(onChange.mock.lastCall[0].listeners[0].address).toBeUndefined();
+  });
+
+  it('lets an ephemeral address choose its network tier and derives it from a reserved address', () => {
+    const onChange = vi.fn();
+    const ephemeral = normalizeGceRegionalExternalNetworkLoadBalancerCommand(
+      { account: 'account-a', loadBalancerName: 'app-main', region: 'europe-west1' },
+      'create',
+    );
+    const ephemeralTier = shallow(
+      <GceRegionalExternalNetworkLoadBalancerEditor command={ephemeral} data={emptyData()} onChange={onChange} />,
+    ).find('[data-field="networkTier"] select');
+
+    expect(ephemeralTier.prop('disabled')).toBe(false);
+    expect(ephemeralTier.find('option').map((option) => option.prop('value'))).toEqual(['PREMIUM', 'STANDARD']);
+    ephemeralTier.simulate('change', { target: { value: 'STANDARD' } });
+    expect(onChange.mock.lastCall[0].networkTier).toBe('STANDARD');
+
+    const reserved = normalizeGceRegionalExternalNetworkLoadBalancerCommand(
+      { account: 'account-a', ipAddress: '35.1.2.3', loadBalancerName: 'app-main', region: 'europe-west1' },
+      'create',
+    );
+    expect(
+      shallow(
+        <GceRegionalExternalNetworkLoadBalancerEditor command={reserved} data={emptyData()} onChange={onChange} />,
+      )
+        .find('[data-field="networkTier"] select')
+        .prop('disabled'),
+    ).toBe(true);
+  });
+
+  it('associates every field label with its control', () => {
+    const command = normalizeGceRegionalExternalNetworkLoadBalancerCommand(
+      { account: 'account-a', loadBalancerName: 'app-main', region: 'europe-west1' },
+      'create',
+    );
+    const wrapper = shallow(
+      <GceRegionalExternalNetworkLoadBalancerEditor command={command} data={emptyData()} onChange={vi.fn()} />,
+    );
+
+    const labels = wrapper.find('label');
+    expect(labels.length).toBeGreaterThan(0);
+    labels.forEach((label) => {
+      const id = label.prop('htmlFor');
+      expect(id).toBeTruthy();
+      expect(wrapper.find(`#${id}`).length).toBe(1);
+    });
+  });
+
+  it('validates required discrete ports, protocol, health check, and supported session affinity', () => {
+    const command = normalizeGceRegionalExternalNetworkLoadBalancerCommand(
+      {
+        account: '',
+        backendService: { name: '', sessionAffinity: 'GENERATED_COOKIE' },
+        loadBalancerName: '',
+        ports: ['70000', 'abc'],
+        region: '',
+      },
+      'create',
+    );
+
+    expect(validateGceRegionalExternalNetworkLoadBalancerCommand(command)).toEqual([
+      'Name is required.',
+      'Account is required.',
+      'Region is required.',
+      'Ports must be between 1 and 65535.',
+      'Backend service name is required.',
+      'Each backend service requires a health check.',
+      'Health check name is required.',
+      'Health check port must be between 1 and 65535.',
+      'Session affinity must be NONE, CLIENT_IP, CLIENT_IP_PROTO, or CLIENT_IP_PORT_PROTO.',
+    ]);
+  });
+
+  it('accepts every supported passthrough session affinity', () => {
+    (['NONE', 'CLIENT_IP', 'CLIENT_IP_PROTO', 'CLIENT_IP_PORT_PROTO'] as const).forEach((sessionAffinity) => {
+      const command = normalizeGceRegionalExternalNetworkLoadBalancerCommand(
+        {
+          account: 'account-a',
+          backendService: {
+            healthCheck: { healthCheckType: 'TCP', name: 'tcp-check', port: 80 },
+            name: 'app-main',
+            sessionAffinity,
+          },
+          loadBalancerName: 'app-main',
+          ports: ['80'],
+          region: 'europe-west1',
+        },
+        'create',
+      );
+
+      expect(
+        validateGceRegionalExternalNetworkLoadBalancerCommand(command).some((error) =>
+          error.startsWith('Session affinity'),
+        ),
+      ).toBe(false);
+    });
+  });
+
+  (['edit', 'pipeline'] as const).forEach((mode) => {
+    it(`rejects an explicitly null ${mode} health check without throwing`, () => {
+      const command = normalizeGceRegionalExternalNetworkLoadBalancerCommand(
+        {
+          account: 'account-a',
+          backendService: {
+            healthCheck: null,
+            name: 'app-main',
+            sessionAffinity: 'NONE',
+          },
+          loadBalancerName: 'app-main',
+          ports: ['80'],
+          region: 'europe-west1',
+        },
+        mode,
+      );
+
+      expect(validateGceRegionalExternalNetworkLoadBalancerCommand(command)).toEqual([
+        'Each backend service requires a health check.',
+        'Health check name is required.',
+        'Health check port must be between 1 and 65535.',
+      ]);
+    });
+  });
+
+  it('rejects a health check whose name is omitted', () => {
+    const command = normalizeGceRegionalExternalNetworkLoadBalancerCommand(
+      {
+        account: 'account-a',
+        backendService: {
+          healthCheck: { healthCheckType: 'TCP', name: 'tcp-check', port: 80 },
+          name: 'app-main',
+          sessionAffinity: 'NONE',
+        },
+        loadBalancerName: 'app-main',
+        ports: ['80'],
+        region: 'europe-west1',
+      },
+      'create',
+    );
+    command.backendServices[0].healthCheck = { healthCheckType: 'TCP', name: '', port: 80 };
+    command.healthChecks = [{ healthCheckType: 'TCP', name: '', port: 80 }];
+
+    expect(validateGceRegionalExternalNetworkLoadBalancerCommand(command)).toContain('Health check name is required.');
+  });
+
+  it('rejects more than five discrete ports', () => {
+    const command = normalizeGceRegionalExternalNetworkLoadBalancerCommand(
+      {
+        account: 'account-a',
+        backendService: {
+          healthCheck: { healthCheckType: 'TCP', name: 'tcp-check', port: 80 },
+          name: 'app-main',
+          sessionAffinity: 'NONE',
+        },
+        loadBalancerName: 'app-main',
+        ports: ['1', '2', '3', '4', '5', '6'],
+        region: 'europe-west1',
+      },
+      'create',
+    );
+
+    expect(validateGceRegionalExternalNetworkLoadBalancerCommand(command)).toContain(
+      'REGIONAL_EXTERNAL_NETWORK load balancers accept between one and five ports.',
+    );
+  });
+
+  it('rejects non-lexical ports, unsupported protocols, and destructive edit changes', () => {
+    const command = normalizeGceRegionalExternalNetworkLoadBalancerCommand(
+      {
+        account: 'account-a',
+        backendService: {
+          healthCheck: { healthCheckType: 'TCP', name: 'tcp-check', port: 80 },
+          name: 'app-main',
+          sessionAffinity: 'NONE',
+        },
+        ipProtocol: 'TCP',
+        loadBalancerName: 'app-main',
+        ports: ['80'],
+        region: 'europe-west1',
+      },
+      'edit',
+    );
+
+    ['0', '65536', '1.5', '1e2', ' 80', '80 ', '', 'abc'].forEach((port) => {
+      command.ports = [port];
+      expect(validateGceRegionalExternalNetworkLoadBalancerCommand(command)).toContain(
+        'Ports must be between 1 and 65535.',
+      );
+    });
+
+    command.ports = ['80'];
+    command.listeners[0].protocol = 'HTTP';
+    expect(validateGceRegionalExternalNetworkLoadBalancerCommand(command)).toEqual(
+      expect.arrayContaining([
+        'Protocol must be TCP or UDP.',
+        'Protocol and ports cannot be changed while editing a REGIONAL_EXTERNAL_NETWORK load balancer.',
+      ]),
+    );
+
+    const healthCheck = { ...command.healthChecks[0], port: '1e2' } as any;
+    command.healthChecks = [healthCheck];
+    command.backendServices[0].healthCheck = healthCheck;
+    expect(validateGceRegionalExternalNetworkLoadBalancerCommand(command)).toContain(
+      'Health check port must be between 1 and 65535.',
+    );
+  });
+});

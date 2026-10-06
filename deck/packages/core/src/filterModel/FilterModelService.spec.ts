@@ -8,9 +8,9 @@ describe('FilterModelService direct router integration', () => {
   });
 
   it('registers shared filter hooks and hydrates permalink params', () => {
-    const onBefore = jasmine.createSpy('onBefore');
-    const onStart = jasmine.createSpy('onStart');
-    const onSuccess = jasmine.createSpy('onSuccess');
+    const onBefore = vi.fn();
+    const onStart = vi.fn();
+    const onSuccess = vi.fn();
     const stateGlob = '**.application.insight.test.**';
     const router = { transitionService: { onBefore, onStart, onSuccess } };
     const config: IFilterConfig[] = [
@@ -22,12 +22,12 @@ describe('FilterModelService direct router integration', () => {
 
     FilterModelService.registerRouterHooks(filterModel, stateGlob);
 
-    expect(onSuccess).toHaveBeenCalledWith({ exiting: stateGlob, retained: '**.application' }, jasmine.any(Function));
-    expect(onBefore).toHaveBeenCalledWith({ entering: stateGlob, retained: '**.application' }, jasmine.any(Function));
-    expect(onStart).toHaveBeenCalledWith({ exiting: '**.application' }, jasmine.any(Function));
-    const hydrateHook = onBefore.calls.allArgs().find(([criteria]) => criteria.to === stateGlob)?.[1];
+    expect(onSuccess).toHaveBeenCalledWith({ exiting: stateGlob, retained: '**.application' }, expect.any(Function));
+    expect(onBefore).toHaveBeenCalledWith({ entering: stateGlob, retained: '**.application' }, expect.any(Function));
+    expect(onStart).toHaveBeenCalledWith({ exiting: '**.application' }, expect.any(Function));
+    const hydrateHook = onBefore.mock.calls.find(([criteria]) => criteria.to === stateGlob)?.[1];
 
-    expect(hydrateHook).toEqual(jasmine.any(Function));
+    expect(hydrateHook).toEqual(expect.any(Function));
     hydrateHook({ params: () => ({ acct: { production: true }, q: 'payments' }) });
     expect(filterModel.sortFilter).toEqual({ account: { production: true }, filter: 'payments' });
   });

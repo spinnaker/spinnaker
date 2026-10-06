@@ -38,7 +38,7 @@ describe('infrastructure states', () => {
     // enumerable-keys-only copy @uirouter/react's state/view registration does
     // internally on its way through the state registry. The `render` function
     // reference is unaffected and reliably identifies the routed component.
-    expect((SearchV1 as any).render).toEqual(jasmine.any(Function));
+    expect((SearchV1 as any).render).toEqual(expect.any(Function));
     expect((errorBoundary.prop('children').type as any).render).toBe((SearchV1 as any).render);
     expect(view.$type).toBe('react');
     expect(searchState.url).toContain('&route');
@@ -55,7 +55,7 @@ describe('infrastructure states', () => {
 
     expect(errorBoundary.type()).toBe(SpinErrorBoundary);
     // See the V1 test above for why `render` is compared instead of `displayName`.
-    expect((SearchV2 as any).render).toEqual(jasmine.any(Function));
+    expect((SearchV2 as any).render).toEqual(expect.any(Function));
     expect((errorBoundary.prop('children').type as any).render).toBe((SearchV2 as any).render);
     expect(view.$type).toBe('react');
     router.dispose();

@@ -1,4 +1,5 @@
-import Spy = jasmine.Spy;
+import type { Mock } from 'vitest';
+import Spy = Mock;
 
 import { InferredApplicationWarningService } from './InferredApplicationWarningService';
 import type { Application } from '../application.model';
@@ -16,7 +17,7 @@ describe('Service: inferredApplicationWarning', () => {
       inferredApp = ApplicationModelBuilder.createNotFoundApplication('myInferredApp');
 
       InferredApplicationWarningService.resetViewedApplications();
-      spyOn(NotifierService, 'publish');
+      vi.spyOn(NotifierService, 'publish').mockReturnValue(undefined);
     });
 
     it('should warn a user when an application is inferred (i.e., missing attributes)', () => {
@@ -36,7 +37,7 @@ describe('Service: inferredApplicationWarning', () => {
       InferredApplicationWarningService.checkIfInferredAndWarn(inferredApp);
       InferredApplicationWarningService.checkIfInferredAndWarn(inferredApp);
 
-      expect((NotifierService.publish as Spy).calls.count()).toEqual(1);
+      expect((NotifierService.publish as Spy).mock.calls.length).toEqual(1);
     });
   });
 });

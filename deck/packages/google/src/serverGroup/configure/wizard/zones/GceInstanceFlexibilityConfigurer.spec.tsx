@@ -21,7 +21,7 @@ describe('GceInstanceFlexibilityConfigurer', () => {
       <GceInstanceFlexibilityConfigurer
         regional={true}
         targetShape="BALANCED"
-        setInstanceFlexibilityPolicy={jasmine.createSpy('setPolicy')}
+        setInstanceFlexibilityPolicy={vi.fn()}
       />,
     );
 
@@ -129,7 +129,7 @@ describe('GceInstanceFlexibilityConfigurer', () => {
         instanceFlexibilityPolicy={duplicatePolicy}
         regional={true}
         targetShape="BALANCED"
-        setInstanceFlexibilityPolicy={jasmine.createSpy('setPolicy')}
+        setInstanceFlexibilityPolicy={vi.fn()}
       />,
     );
     expect(wrapper.text()).toContain('Machine types must be unique across instance selections.');
@@ -178,7 +178,7 @@ describe('GceInstanceFlexibilityConfigurer', () => {
         regional={true}
         targetShape="BALANCED"
         validationError="Instance flexibility policy is invalid."
-        setInstanceFlexibilityPolicy={jasmine.createSpy('setPolicy')}
+        setInstanceFlexibilityPolicy={vi.fn()}
       />,
     );
     const errorId = 'gce-instance-flexibility-error';
@@ -222,7 +222,7 @@ describe('GceInstanceFlexibilityConfigurer', () => {
   });
 
   it('adds a named selection through the configurer', () => {
-    const setPolicy = jasmine.createSpy('setPolicy');
+    const setPolicy = vi.fn();
     const wrapper = shallow(
       <GceInstanceFlexibilityConfigurer
         instanceFlexibilityPolicy={undefined}
@@ -242,7 +242,7 @@ describe('GceInstanceFlexibilityConfigurer', () => {
   });
 
   it('does not overwrite an existing renamed selection when adding another', () => {
-    const setPolicy = jasmine.createSpy('setPolicy');
+    const setPolicy = vi.fn();
     const wrapper = shallow(
       <GceInstanceFlexibilityConfigurer
         instanceFlexibilityPolicy={{
@@ -267,7 +267,7 @@ describe('GceInstanceFlexibilityConfigurer', () => {
   });
 
   it('sends an explicit empty policy when the final selection is removed', () => {
-    const setPolicy = jasmine.createSpy('setPolicy');
+    const setPolicy = vi.fn();
     const wrapper = shallow(
       <GceInstanceFlexibilityConfigurer
         instanceFlexibilityPolicy={policy}
@@ -286,7 +286,7 @@ describe('GceInstanceFlexibilityConfigurer', () => {
   });
 
   it('only persists finite non-negative integer ranks and supports rank zero and clearing', () => {
-    const setPolicy = jasmine.createSpy('setPolicy');
+    const setPolicy = vi.fn();
     const wrapper = shallow(
       <GceInstanceFlexibilityConfigurer
         instanceFlexibilityPolicy={policy}
@@ -311,7 +311,7 @@ describe('GceInstanceFlexibilityConfigurer', () => {
       },
     });
 
-    setPolicy.calls.reset();
+    setPolicy.mockClear();
     rankInput.simulate('change', { target: { value: '' } });
     expect(setPolicy).toHaveBeenCalledWith({
       instanceSelections: {
@@ -321,7 +321,7 @@ describe('GceInstanceFlexibilityConfigurer', () => {
   });
 
   it('resets blank and duplicate rename drafts to the current valid selection name', () => {
-    const setPolicy = jasmine.createSpy('setPolicy');
+    const setPolicy = vi.fn();
     const wrapper = shallow(
       <GceInstanceFlexibilityConfigurer
         instanceFlexibilityPolicy={{
@@ -352,7 +352,7 @@ describe('GceInstanceFlexibilityConfigurer', () => {
         instanceFlexibilityPolicy={policy}
         regional={true}
         targetShape="BALANCED"
-        setInstanceFlexibilityPolicy={jasmine.createSpy('setPolicy')}
+        setInstanceFlexibilityPolicy={vi.fn()}
       />,
     );
     const selectionId = 'instance-flexibility-selection-preferred';
@@ -374,7 +374,7 @@ describe('GceInstanceFlexibilityConfigurer', () => {
         instanceFlexibilityPolicy={undefined}
         regional={true}
         targetShape="BALANCED"
-        setInstanceFlexibilityPolicy={jasmine.createSpy('setPolicy')}
+        setInstanceFlexibilityPolicy={vi.fn()}
       />,
     );
 

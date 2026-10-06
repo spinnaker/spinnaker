@@ -70,7 +70,7 @@ describe('ApplicationProviderFields', () => {
       name: 'app',
       providerSettings: { [secondProvider]: { associateAddress: true } },
     };
-    const onChange = jasmine.createSpy('onChange');
+    const onChange = vi.fn();
 
     mount(
       <ApplicationProviderFields
@@ -83,7 +83,7 @@ describe('ApplicationProviderFields', () => {
 
     expect(application.providerSettings[firstProvider]).toBeUndefined();
     expect(onChange).toHaveBeenCalledTimes(1);
-    const changed = onChange.calls.mostRecent().args[0];
+    const changed = onChange.mock.lastCall[0];
     expect(changed).not.toBe(application);
     expect(changed.providerSettings[firstProvider].enabledByDefault).toBe(true);
     expect(changed.providerSettings[secondProvider].associateAddress).toBe(true);
@@ -94,7 +94,7 @@ describe('ApplicationProviderFields', () => {
       name: 'app',
       providerSettings: { [firstProvider]: { enabledByDefault: true } },
     };
-    const onChange = jasmine.createSpy('onChange');
+    const onChange = vi.fn();
     const wrapper = mount(
       <ApplicationProviderFields
         application={application}
@@ -106,7 +106,7 @@ describe('ApplicationProviderFields', () => {
 
     wrapper.find('input[type="checkbox"]').simulate('change', { target: { checked: false } });
 
-    const changed = onChange.calls.mostRecent().args[0];
+    const changed = onChange.mock.lastCall[0];
     expect(changed).not.toBe(application);
     expect(changed.providerSettings[firstProvider].enabledByDefault).toBe(false);
     expect(application.providerSettings[firstProvider].enabledByDefault).toBe(true);

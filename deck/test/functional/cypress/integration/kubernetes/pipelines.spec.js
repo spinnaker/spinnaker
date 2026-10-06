@@ -3,9 +3,12 @@ import { registerDefaultFixtures } from '../../support';
 describe('kubernetes: Pipelines', () => {
   beforeEach(() => {
     registerDefaultFixtures();
-    cy.intercept({ pathname: '/applications/kubernetesapp/pipelines' }, {
-      fixture: 'kubernetes/pipelines/pipelines.json',
-    });
+    cy.intercept(
+      { pathname: '/applications/kubernetesapp/pipelines' },
+      {
+        fixture: 'kubernetes/pipelines/pipelines.json',
+      },
+    );
 
     cy.fixture('kubernetes/pipelines/01JSDR9Q2VBK2PTRZWKG0F5452.succeeded.json').then((execution) => {
       cy.intercept('/applications/kubernetesapp/pipelines?*expand=true*', [execution]);

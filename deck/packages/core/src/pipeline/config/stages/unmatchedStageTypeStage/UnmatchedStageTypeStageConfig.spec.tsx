@@ -6,7 +6,7 @@ import { JsonEditor } from '../../../../presentation';
 import { UnmatchedStageTypeStageConfig } from './UnmatchedStageTypeStageConfig';
 
 describe('UnmatchedStageTypeStageConfig', () => {
-  const mountEditor = (stage: IStage, stageFieldUpdated = jasmine.createSpy('stageFieldUpdated')) =>
+  const mountEditor = (stage: IStage, stageFieldUpdated = vi.fn()) =>
     mount((<UnmatchedStageTypeStageConfig stage={stage} stageFieldUpdated={stageFieldUpdated} />) as any);
 
   it('hides common fields that are edited by the direct React page', () => {
@@ -32,7 +32,7 @@ describe('UnmatchedStageTypeStageConfig', () => {
   });
 
   it('updates editable fields while preserving common fields', () => {
-    const stageFieldUpdated = jasmine.createSpy('stageFieldUpdated');
+    const stageFieldUpdated = vi.fn();
     const stage = {
       refId: '1',
       requisiteStageRefIds: ['0'],
@@ -58,7 +58,7 @@ describe('UnmatchedStageTypeStageConfig', () => {
   });
 
   it('rejects invalid JSON without updating the stage', () => {
-    const stageFieldUpdated = jasmine.createSpy('stageFieldUpdated');
+    const stageFieldUpdated = vi.fn();
     const stage = { type: 'customStage', customField: 'old' } as any;
     const component = mountEditor(stage, stageFieldUpdated);
 
@@ -71,7 +71,7 @@ describe('UnmatchedStageTypeStageConfig', () => {
   });
 
   it('rejects deleting type without updating the stage', () => {
-    const stageFieldUpdated = jasmine.createSpy('stageFieldUpdated');
+    const stageFieldUpdated = vi.fn();
     const stage = { type: 'customStage', customField: 'old' } as any;
     const component = mountEditor(stage, stageFieldUpdated);
 

@@ -24,8 +24,8 @@ describe('AmazonImageSelectInput', () => {
   const image2 = makeImage('app-package-2.0', 'ami-222');
 
   beforeEach(() => {
-    spyOn(AwsImageReader.prototype, 'findImages').and.returnValue(Promise.resolve([image1, image2]));
-    spyOn(AwsImageReader.prototype, 'getImage').and.returnValue(Promise.resolve(null));
+    vi.spyOn(AwsImageReader.prototype, 'findImages').mockReturnValue(Promise.resolve([image1, image2]));
+    vi.spyOn(AwsImageReader.prototype, 'getImage').mockReturnValue(Promise.resolve(null));
   });
 
   async function settle(component: ReactWrapper): Promise<void> {
@@ -58,7 +58,7 @@ describe('AmazonImageSelectInput', () => {
   }
 
   it('renders a single options menu wrapper, not a nested duplicate', async () => {
-    const component = mountInput(jasmine.createSpy('onChange'));
+    const component = mountInput(vi.fn());
     await settle(component);
     openMenu(component);
 
@@ -71,7 +71,7 @@ describe('AmazonImageSelectInput', () => {
   });
 
   it('selects the clicked image from the package images dropdown', async () => {
-    const onChange = jasmine.createSpy('onChange');
+    const onChange = vi.fn();
     const component = mountInput(onChange);
     await settle(component);
     openMenu(component);
@@ -80,11 +80,11 @@ describe('AmazonImageSelectInput', () => {
     expect(options.length).toBe(2);
     options.first().simulate('mousedown');
 
-    expect(onChange).toHaveBeenCalledWith(jasmine.objectContaining({ imageName: image1.imageName }));
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ imageName: image1.imageName }));
   });
 
   it('provides a way back from "Search All Images" to the package images dropdown', async () => {
-    const component = mountInput(jasmine.createSpy('onChange'));
+    const component = mountInput(vi.fn());
     await settle(component);
 
     expect(component.text()).toContain('Pick an image');
@@ -103,7 +103,7 @@ describe('AmazonImageSelectInput', () => {
   });
 
   it('selects the clicked image while searching all images', async () => {
-    const onChange = jasmine.createSpy('onChange');
+    const onChange = vi.fn();
     const component = mountInput(onChange);
     await settle(component);
 
@@ -120,6 +120,6 @@ describe('AmazonImageSelectInput', () => {
     expect(options.length).toBe(1);
     options.first().simulate('mousedown');
 
-    expect(onChange).toHaveBeenCalledWith(jasmine.objectContaining({ imageName: image2.imageName }));
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ imageName: image2.imageName }));
   });
 });

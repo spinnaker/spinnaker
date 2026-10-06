@@ -24,21 +24,21 @@ describe('useData hook', () => {
   }
 
   it('the factory is not called when some deps are null', () => {
-    const spy = jasmine.createSpy('onChange');
-    const factory = jasmine.createSpy('factory');
+    const spy = vi.fn();
+    const factory = vi.fn();
     mount(<TestComponent promiseFactory={factory} deps={['foo', null]} defaultValue={'default'} onChange={spy} />);
     expect(factory).toHaveBeenCalledTimes(0);
   });
 
   it('the factory is not called when some deps are undefined', () => {
-    const spy = jasmine.createSpy('onChange');
-    const factory = jasmine.createSpy('factory');
+    const spy = vi.fn();
+    const factory = vi.fn();
     mount(<TestComponent promiseFactory={factory} deps={['foo', undefined]} defaultValue={'default'} onChange={spy} />);
     expect(factory).toHaveBeenCalledTimes(0);
   });
 
   it('the default result is returned until the promise resolves', async () => {
-    const spy = jasmine.createSpy('onChange');
+    const spy = vi.fn();
     const deferred = defer();
     const factory = () => deferred.promise;
     const wrapper = mount(
@@ -47,37 +47,37 @@ describe('useData hook', () => {
 
     expect(spy).toHaveBeenCalledTimes(2);
 
-    expect(spy.calls.argsFor(0)[0]).toEqual({
+    expect(spy.mock.calls[0][0]).toEqual({
       status: 'NONE',
       result: 'default',
       error: undefined,
       requestId: 0,
-      refresh: jasmine.any(Function),
+      refresh: expect.any(Function),
     });
 
-    expect(spy.calls.argsFor(1)[0]).toEqual({
+    expect(spy.mock.calls[1][0]).toEqual({
       status: 'PENDING',
       result: 'default',
       error: undefined,
       requestId: 0,
-      refresh: jasmine.any(Function),
+      refresh: expect.any(Function),
     });
 
     deferred.resolve('result');
     await deferred.promise;
     wrapper.setProps({});
     expect(spy).toHaveBeenCalledTimes(3);
-    expect(spy.calls.argsFor(2)[0]).toEqual({
+    expect(spy.mock.calls[2][0]).toEqual({
       status: 'RESOLVED',
       result: 'result',
       error: undefined,
       requestId: 0,
-      refresh: jasmine.any(Function),
+      refresh: expect.any(Function),
     });
   });
 
   it('the default result is returned until the first result is seen (even if deps are falsey)', async () => {
-    const spy = jasmine.createSpy('onChange');
+    const spy = vi.fn();
     const deferred = defer();
     const factory = () => deferred.promise;
     const wrapper = mount(
@@ -86,12 +86,12 @@ describe('useData hook', () => {
 
     expect(spy).toHaveBeenCalledTimes(1);
 
-    expect(spy.calls.argsFor(0)[0]).toEqual({
+    expect(spy.mock.calls[0][0]).toEqual({
       status: 'NONE',
       result: 'default',
       error: undefined,
       requestId: 0,
-      refresh: jasmine.any(Function),
+      refresh: expect.any(Function),
     });
 
     // Why twice? Somehow the onChange useEffect isn't running unless you run this multiple times
@@ -100,12 +100,12 @@ describe('useData hook', () => {
 
     expect(spy).toHaveBeenCalledTimes(2);
 
-    expect(spy.calls.argsFor(1)[0]).toEqual({
+    expect(spy.mock.calls[1][0]).toEqual({
       status: 'PENDING',
       result: 'default',
       error: undefined,
       requestId: 1,
-      refresh: jasmine.any(Function),
+      refresh: expect.any(Function),
     });
 
     deferred.resolve('result');
@@ -113,12 +113,12 @@ describe('useData hook', () => {
 
     wrapper.setProps({});
     expect(spy).toHaveBeenCalledTimes(3);
-    expect(spy.calls.argsFor(2)[0]).toEqual({
+    expect(spy.mock.calls[2][0]).toEqual({
       status: 'RESOLVED',
       result: 'result',
       error: undefined,
       requestId: 1,
-      refresh: jasmine.any(Function),
+      refresh: expect.any(Function),
     });
   });
 });

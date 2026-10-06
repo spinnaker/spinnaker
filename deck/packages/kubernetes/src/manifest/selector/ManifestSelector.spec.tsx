@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { mount } from 'enzyme';
 import type { ReactWrapper } from 'enzyme';
 import React from 'react';
@@ -20,7 +21,7 @@ import type { IManifestSelectorState } from './ManifestSelector';
 import { ManifestSelector } from './ManifestSelector';
 import LabelEditor from './labelEditor/LabelEditor';
 
-import Spy = jasmine.Spy;
+import Spy = Mock;
 
 describe('<ManifestSelector />', () => {
   let accountService: Spy;
@@ -29,13 +30,21 @@ describe('<ManifestSelector />', () => {
 
   beforeEach(() => {
     mountedComponents = [];
-    searchService = spyOn(ManifestKindSearchService, 'search').and.returnValue(Promise.resolve([]));
-    accountService = spyOn(AccountService, 'getAllAccountDetailsForProvider').and.returnValue(Promise.resolve([]));
+    searchService = vi.spyOn(ManifestKindSearchService, 'search').mockReturnValue(Promise.resolve([]));
+    accountService = vi.spyOn(AccountService, 'getAllAccountDetailsForProvider').mockReturnValue(Promise.resolve([]));
   });
 
   afterEach(async () => {
     await act(async () => {
-      await Promise.all(searchService.calls.all().map(({ returnValue }) => returnValue));
+      await Promise.all(
+        searchService.mock.calls
+          .map((args, __i) => ({
+            args,
+            returnValue: searchService.mock.results[__i].value,
+            invocationOrder: searchService.mock.invocationCallOrder[__i],
+          }))
+          .map(({ returnValue }) => returnValue),
+      );
       mountedComponents.splice(0).forEach((wrapper) => wrapper.unmount());
     });
   });
@@ -47,7 +56,7 @@ describe('<ManifestSelector />', () => {
     mountedComponents.push(wrapper);
 
     await act(async () => {
-      await accountService.calls.mostRecent().returnValue;
+      await accountService.mock.results.at(-1).value;
       await Promise.resolve();
     });
     wrapper.update();
@@ -317,7 +326,7 @@ describe('<ManifestSelector />', () => {
       wrapper.setState({
         accounts: [{ name: 'my-account', namespaces: ['default'] }],
       } as IManifestSelectorState);
-      searchService.calls.reset();
+      searchService.mockClear();
 
       const account = wrapper.find(AccountSelectInput).first();
       account.props().onChange(createFakeReactSyntheticEvent({ value: 'my-account' }));
@@ -329,7 +338,7 @@ describe('<ManifestSelector />', () => {
 
       const kind = wrapper.find({ label: 'Kind' }).find(Creatable).first();
       kind.props().onChange({ value: 'deployment', label: 'deployment' });
-      expect(searchService).toHaveBeenCalledOnceWith('deployment', 'default', 'my-account');
+      expect(searchService).toHaveBeenCalledExactlyOnceWith('deployment', 'default', 'my-account');
     });
 
     it('clears namespace when changing account if account does not have selected namespace', async () => {

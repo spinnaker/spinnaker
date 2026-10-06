@@ -19,9 +19,9 @@ describe('AzureSecurityGroupModal', () => {
   function buildModal(props: any, state: any = {}): any {
     const modal = Object.create(AzureSecurityGroupModal.prototype);
     modal.props = {
-      app: { name: 'fnord', securityGroups: { refresh: jasmine.createSpy('refresh') } },
-      closeModal: jasmine.createSpy('closeModal'),
-      dismissModal: jasmine.createSpy('dismissModal'),
+      app: { name: 'fnord', securityGroups: { refresh: vi.fn() } },
+      closeModal: vi.fn(),
+      dismissModal: vi.fn(),
       mode: 'create',
       ...props,
     };
@@ -36,7 +36,7 @@ describe('AzureSecurityGroupModal', () => {
       },
       selectedSubnets: [],
       selectedVnets: [],
-      taskMonitor: { submit: jasmine.createSpy('submit').and.callFake((method: () => any) => method()) },
+      taskMonitor: { submit: vi.fn().mockImplementation((method: () => any) => method()) },
       ...state,
     };
     modal.setState = (updater: any, callback?: () => void) => {
@@ -202,9 +202,9 @@ describe('AzureSecurityGroupModal', () => {
       'fnord',
     );
     const modal = new AzureSecurityGroupModal({
-      app: { name: 'fnord', securityGroups: { refresh: jasmine.createSpy('refresh') } },
-      closeModal: jasmine.createSpy('closeModal'),
-      dismissModal: jasmine.createSpy('dismissModal'),
+      app: { name: 'fnord', securityGroups: { refresh: vi.fn() } },
+      closeModal: vi.fn(),
+      dismissModal: vi.fn(),
       mode: 'create',
       securityGroup: created,
     } as any) as any;
@@ -267,7 +267,7 @@ describe('AzureSecurityGroupModal', () => {
   });
 
   it('submits create edit and clone modes through the Azure security group writer', () => {
-    spyOn(AzureSecurityGroupWriter, 'upsertSecurityGroup').and.returnValue(Promise.resolve({} as any));
+    vi.spyOn(AzureSecurityGroupWriter, 'upsertSecurityGroup').mockReturnValue(Promise.resolve({} as any));
 
     ['create', 'edit', 'clone'].forEach((mode) => {
       const modal = buildModal({ mode });
@@ -275,14 +275,14 @@ describe('AzureSecurityGroupModal', () => {
     });
 
     expect(AzureSecurityGroupWriter.upsertSecurityGroup).toHaveBeenCalledTimes(3);
-    expect(AzureSecurityGroupWriter.upsertSecurityGroup.calls.argsFor(0)[2]).toBe('Create');
-    expect(AzureSecurityGroupWriter.upsertSecurityGroup.calls.argsFor(1)[2]).toBe('Update');
-    expect(AzureSecurityGroupWriter.upsertSecurityGroup.calls.argsFor(2)[2]).toBe('Clone');
+    expect(AzureSecurityGroupWriter.upsertSecurityGroup.mock.calls[0][2]).toBe('Create');
+    expect(AzureSecurityGroupWriter.upsertSecurityGroup.mock.calls[1][2]).toBe('Update');
+    expect(AzureSecurityGroupWriter.upsertSecurityGroup.mock.calls[2][2]).toBe('Clone');
   });
 
   it('loads regions and Azure VNets for the selected account and region', async () => {
-    spyOn(AccountService, 'getRegionsForAccount').and.returnValue(Promise.resolve([{ name: 'westus' }]) as any);
-    spyOn(NetworkReader, 'listNetworks').and.returnValue(
+    vi.spyOn(AccountService, 'getRegionsForAccount').mockReturnValue(Promise.resolve([{ name: 'westus' }]) as any);
+    vi.spyOn(NetworkReader, 'listNetworks').mockReturnValue(
       Promise.resolve({
         azure: [
           {
@@ -297,10 +297,10 @@ describe('AzureSecurityGroupModal', () => {
       }) as any,
     );
     const modal = new AzureSecurityGroupModal({
-      app: { name: 'fnord', securityGroups: { refresh: jasmine.createSpy('refresh') } },
-      closeModal: jasmine.createSpy('closeModal'),
+      app: { name: 'fnord', securityGroups: { refresh: vi.fn() } },
+      closeModal: vi.fn(),
       credentials: 'test-account',
-      dismissModal: jasmine.createSpy('dismissModal'),
+      dismissModal: vi.fn(),
       mode: 'create',
     } as any) as any;
     modal.setState = (updater: any, callback?: () => void) => {
@@ -321,11 +321,11 @@ describe('AzureSecurityGroupModal', () => {
   });
 
   it('clears stale VNet and subnet fields when account or region reloads networks', async () => {
-    spyOn(NetworkReader, 'listNetworks').and.returnValue(Promise.resolve({ azure: [] }) as any);
+    vi.spyOn(NetworkReader, 'listNetworks').mockReturnValue(Promise.resolve({ azure: [] }) as any);
     const modal = new AzureSecurityGroupModal({
-      app: { name: 'fnord', securityGroups: { refresh: jasmine.createSpy('refresh') } },
-      closeModal: jasmine.createSpy('closeModal'),
-      dismissModal: jasmine.createSpy('dismissModal'),
+      app: { name: 'fnord', securityGroups: { refresh: vi.fn() } },
+      closeModal: vi.fn(),
+      dismissModal: vi.fn(),
       mode: 'create',
       securityGroup: {
         accountId: 'test-account',
@@ -363,9 +363,9 @@ describe('AzureSecurityGroupModal', () => {
   it('updates vpcId when selecting a new VNet', () => {
     const selectedVnet = { name: 'new-vnet', resourceGroup: 'new-rg', subnets: [{ name: 'new-subnet' }] };
     const modal = new AzureSecurityGroupModal({
-      app: { name: 'fnord', securityGroups: { refresh: jasmine.createSpy('refresh') } },
-      closeModal: jasmine.createSpy('closeModal'),
-      dismissModal: jasmine.createSpy('dismissModal'),
+      app: { name: 'fnord', securityGroups: { refresh: vi.fn() } },
+      closeModal: vi.fn(),
+      dismissModal: vi.fn(),
       mode: 'clone',
       securityGroup: {
         accountId: 'test-account',
@@ -485,19 +485,19 @@ describe('AzureSecurityGroupModal', () => {
   });
 
   it('waits for refreshed security groups and navigates to new details after create or clone completes', () => {
-    const state = { go: jasmine.createSpy('go'), includes: jasmine.createSpy('includes').and.returnValue(false) };
+    const state = { go: vi.fn(), includes: vi.fn().mockReturnValue(false) };
     let refreshCallback: () => void;
-    const onNextRefresh = jasmine.createSpy('onNextRefresh').and.callFake((callback: () => void) => {
+    const onNextRefresh = vi.fn().mockImplementation((callback: () => void) => {
       refreshCallback = callback;
-      return jasmine.createSpy('unsubscribe');
+      return vi.fn();
     });
-    const refresh = jasmine.createSpy('refresh').and.callFake(() => refreshCallback());
-    const closeModal = jasmine.createSpy('closeModal');
+    const refresh = vi.fn().mockImplementation(() => refreshCallback());
+    const closeModal = vi.fn();
     const modal = new AzureSecurityGroupModal({
       app: { name: 'fnord', securityGroups: { onNextRefresh, refresh } },
       closeModal,
       credentials: 'test-account',
-      dismissModal: jasmine.createSpy('dismissModal'),
+      dismissModal: vi.fn(),
       mode: 'clone',
       securityGroup: { accountId: 'test-account', name: 'fnord-sg', region: 'westus', vpcId: 'vnet-1' },
       stateService: state,
@@ -507,7 +507,7 @@ describe('AzureSecurityGroupModal', () => {
     modal.onTaskComplete();
 
     expect(onNextRefresh).toHaveBeenCalled();
-    expect(onNextRefresh.calls.first().invocationOrder).toBeLessThan(refresh.calls.first().invocationOrder);
+    expect(onNextRefresh.mock.invocationCallOrder[0]).toBeLessThan(refresh.mock.invocationCallOrder[0]);
     expect(closeModal).toHaveBeenCalled();
     expect(state.go).toHaveBeenCalledWith('.firewallDetails', {
       accountId: 'test-account',
@@ -519,20 +519,20 @@ describe('AzureSecurityGroupModal', () => {
   });
 
   it('owns its refresh subscription across replacement and unmount', () => {
-    const firstUnsubscribe = jasmine.createSpy('firstUnsubscribe');
-    const secondUnsubscribe = jasmine.createSpy('secondUnsubscribe');
+    const firstUnsubscribe = vi.fn();
+    const secondUnsubscribe = vi.fn();
     const callbacks: Array<() => void> = [];
-    const onNextRefresh = jasmine.createSpy('onNextRefresh').and.callFake((callback: () => void) => {
+    const onNextRefresh = vi.fn().mockImplementation((callback: () => void) => {
       callbacks.push(callback);
       return callbacks.length === 1 ? firstUnsubscribe : secondUnsubscribe;
     });
-    const refresh = jasmine.createSpy('refresh');
-    const closeModal = jasmine.createSpy('closeModal');
-    const stateService = { go: jasmine.createSpy('go'), includes: jasmine.createSpy('includes') };
+    const refresh = vi.fn();
+    const closeModal = vi.fn();
+    const stateService = { go: vi.fn(), includes: vi.fn() };
     const modal = new AzureSecurityGroupModal({
       app: { name: 'fnord', securityGroups: { onNextRefresh, refresh } },
       closeModal,
-      dismissModal: jasmine.createSpy('dismissModal'),
+      dismissModal: vi.fn(),
       mode: 'create',
       securityGroup: { accountId: 'test-account', name: 'fnord-sg', region: 'westus' },
       stateService,
@@ -541,7 +541,7 @@ describe('AzureSecurityGroupModal', () => {
 
     modal.onTaskComplete();
 
-    expect(onNextRefresh.calls.first().invocationOrder).toBeLessThan(refresh.calls.first().invocationOrder);
+    expect(onNextRefresh.mock.invocationCallOrder[0]).toBeLessThan(refresh.mock.invocationCallOrder[0]);
 
     modal.onTaskComplete();
 

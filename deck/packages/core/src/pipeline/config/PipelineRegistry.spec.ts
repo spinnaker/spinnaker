@@ -196,7 +196,7 @@ describe('PipelineRegistry: API', function () {
     };
 
     const spyOnReader = () =>
-      spyOn(PreconfiguredJobReader, 'list').and.callFake(() => Promise.resolve([makeJobMetadata()]));
+      vi.spyOn(PreconfiguredJobReader, 'list').mockImplementation(() => Promise.resolve([makeJobMetadata()]));
 
     it('registration returns a promise', async () => {
       spyOnReader();
