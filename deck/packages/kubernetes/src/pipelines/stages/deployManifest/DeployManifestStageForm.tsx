@@ -2,8 +2,26 @@ import { capitalize, get, isEmpty, map } from 'lodash';
 import React from 'react';
 import type { Option } from 'react-select';
 
-import type { IAccountDetails, IArtifact, IExpectedArtifact, IFormikStageConfigInjectedProps, IManifest } from '@spinnaker/core';
-import { ArtifactTypePatterns, CheckboxInput, isStoredManifestReference, NumberInput, RadioButtonInput, resolveStoredManifests, SETTINGS, StageArtifactSelectorDelegate, StageConfigField, yamlDocumentsToString, YamlEditor } from '@spinnaker/core';
+import type {
+  IAccountDetails,
+  IArtifact,
+  IExpectedArtifact,
+  IFormikStageConfigInjectedProps,
+  IManifest,
+} from '@spinnaker/core';
+import {
+  ArtifactTypePatterns,
+  CheckboxInput,
+  isStoredManifestReference,
+  NumberInput,
+  RadioButtonInput,
+  resolveStoredManifests,
+  SETTINGS,
+  StageArtifactSelectorDelegate,
+  StageConfigField,
+  yamlDocumentsToString,
+  YamlEditor,
+} from '@spinnaker/core';
 
 import { CopyFromTemplateButton } from './CopyFromTemplateButton';
 import type { IManifestBindArtifact } from './ManifestBindArtifactsSelector';
