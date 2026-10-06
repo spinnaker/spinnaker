@@ -1,5 +1,5 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { fireEvent, render, within } from '@testing-library/react';
 
 import {
   GceHttpLoadBalancerHostRuleEditor,
@@ -13,8 +13,8 @@ describe('GceHttpLoadBalancerRoutingEditor', () => {
   ];
 
   it('adds and removes exact nested path-rule rows with non-submit buttons', () => {
-    const onChange = jasmine.createSpy('onChange');
-    const wrapper = shallow(
+    const onChange = vi.fn();
+    const { getByTestId, getAllByRole } = render(
       <GceHttpLoadBalancerHostRuleEditor
         backendServices={backendServices}
         hostRule={{
@@ -25,11 +25,11 @@ describe('GceHttpLoadBalancerRoutingEditor', () => {
           },
         }}
         onChange={onChange}
-        onRemove={jasmine.createSpy('onRemove')}
+        onRemove={vi.fn()}
       />,
     );
 
-    wrapper.find('[data-testid="add-path-rule"]').simulate('click');
+    fireEvent.click(getByTestId('add-path-rule'));
 
     expect(onChange).toHaveBeenCalledWith({
       hostPatterns: ['api.example.com'],
@@ -38,45 +38,49 @@ describe('GceHttpLoadBalancerRoutingEditor', () => {
         pathRules: [{ backendService: backendServices[1], paths: ['/v1'] }, { paths: [] }],
       },
     });
-    expect(wrapper.find('button').everyWhere((button) => button.prop('type') === 'button')).toBe(true);
+    expect(getAllByRole('button').every((button) => button.getAttribute('type') === 'button')).toBe(true);
   });
 
   it('edits path lists and preserves complete unresolved backend references', () => {
-    const onChange = jasmine.createSpy('onChange');
-    const wrapper = shallow(
+    const onChange = vi.fn();
+    const { getByTestId, getAllByRole } = render(
       <GceHttpLoadBalancerPathRuleEditor
         backendServices={backendServices}
         onChange={onChange}
-        onRemove={jasmine.createSpy('onRemove')}
+        onRemove={vi.fn()}
         pathRule={{ backendService: backendServices[1], paths: ['/v1'] }}
       />,
     );
 
-    wrapper.find('[data-testid="path-rule-paths"]').simulate('change', { target: { value: '/v1, /v2' } });
-    wrapper.find('[data-testid="path-rule-backend"]').simulate('change', {
+    fireEvent.change(getByTestId('path-rule-paths'), { target: { value: '/v1, /v2' } });
+    fireEvent.change(getByTestId('path-rule-backend'), {
       target: { value: 'default-backend' },
     });
 
-    expect(onChange.calls.argsFor(0)[0]).toEqual({ backendService: backendServices[1], paths: ['/v1', '/v2'] });
-    expect(onChange.calls.argsFor(1)[0]).toEqual({ backendService: backendServices[0], paths: ['/v1'] });
-    expect(wrapper.find('button').everyWhere((button) => button.prop('type') === 'button')).toBe(true);
+    expect(onChange.mock.calls[0][0]).toEqual({ backendService: backendServices[1], paths: ['/v1', '/v2'] });
+    expect(onChange.mock.calls[1][0]).toEqual({ backendService: backendServices[0], paths: ['/v1'] });
+    expect(getAllByRole('button').every((button) => button.getAttribute('type') === 'button')).toBe(true);
   });
 
   it('requires every path matcher to select an explicit default backend', () => {
-    const wrapper = shallow(
+    const { getByTestId } = render(
       <GceHttpLoadBalancerHostRuleEditor
         backendServices={backendServices}
         hostRule={{
           hostPatterns: ['api.example.com'],
           pathMatcher: { defaultService: backendServices[0], pathRules: [] },
         }}
-        onChange={jasmine.createSpy('onChange')}
-        onRemove={jasmine.createSpy('onRemove')}
+        onChange={vi.fn()}
+        onRemove={vi.fn()}
       />,
     );
-    const select = wrapper.find('[data-testid="host-rule-default-backend"]');
+    const select = getByTestId('host-rule-default-backend');
 
-    expect(select.prop('required')).toBe(true);
-    expect(select.find('option').map((option) => option.prop('value'))).toEqual(['default-backend', 'api-backend']);
+    expect(select).toBeRequired();
+    expect(
+      within(select)
+        .getAllByRole('option')
+        .map((option) => (option as HTMLOptionElement).value),
+    ).toEqual(['default-backend', 'api-backend']);
   });
 });

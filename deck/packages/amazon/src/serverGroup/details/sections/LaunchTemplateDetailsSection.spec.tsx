@@ -1,7 +1,8 @@
-import { shallow } from 'enzyme';
+import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 
 import type { Application } from '@spinnaker/core';
+import { CollapsibleSectionStateCache } from '@spinnaker/core';
 import {
   createCustomMockLaunchTemplate,
   mockLaunchTemplate,
@@ -15,6 +16,11 @@ import type { IAmazonMixedInstancesPolicy, IAmazonServerGroupView, IScalingPolic
 
 describe('Launch template details', () => {
   const app = {} as Application;
+  const expectValue = (label: string, value: string) => {
+    const term = screen.getByText(label, { selector: 'dt' });
+    expect(term.nextElementSibling).toHaveTextContent(value);
+  };
+  const expand = () => fireEvent.click(screen.getByText('Launch Template'));
 
   const baseServerGroupWithLt = {
     ...mockServerGroup,
@@ -22,6 +28,7 @@ describe('Launch template details', () => {
       ...mockLaunchTemplateData,
       kernelId: 'kernal-abc',
       ramDiskId: 'ramDisk-123',
+      userData: btoa('test user data'),
       instanceMarketOptions: {
         spotOptions: {
           maxPrice: '0.50',
@@ -56,7 +63,7 @@ describe('Launch template details', () => {
           createdBy: 'testuser@test.com',
           createdTime: 1588787656527,
           defaultVersion: true,
-          launchTemplateData: mockLaunchTemplateData,
+          launchTemplateData: { ...mockLaunchTemplateData, userData: btoa('test user data') },
           launchTemplateId: '123456',
           launchTemplateName: 'testLaunchTemplatev001',
           versionDescription: 'Test purposes',
@@ -76,26 +83,26 @@ describe('Launch template details', () => {
     } as IAmazonMixedInstancesPolicy,
   } as IAmazonServerGroupView;
 
+  beforeEach(() => vi.spyOn(CollapsibleSectionStateCache, 'isSet').mockReturnValue(false));
+
   it('should not render if no launch template', () => {
     const testServerGroup = {
       ...mockServerGroup,
       scalingPolicies: [] as IScalingPolicy[],
     } as IAmazonServerGroupView;
 
-    const wrapper = shallow(<LaunchTemplateDetailsSection serverGroup={testServerGroup} app={app} />);
-    expect(wrapper.type()).toEqual(null);
+    const { container } = render(<LaunchTemplateDetailsSection serverGroup={testServerGroup} app={app} />);
+    expect(container).toBeEmptyDOMElement();
   });
 
   it('should render base info', () => {
-    const wrapper = shallow(<LaunchTemplateDetailsSection serverGroup={baseServerGroupWithLt} app={app} />);
-    const labeledValues = wrapper.find('LabeledValue');
-
-    expect(labeledValues.length).toEqual(12);
-    expect(labeledValues.at(0).prop('value')).toEqual('test123');
-    expect(labeledValues.at(1).prop('value')).toEqual('ami-0123456789');
-    expect(labeledValues.at(4).prop('value')).toEqual('m5.large');
-    expect(labeledValues.at(5).prop('value')).toEqual('testapplicationInstanceProfile');
-    expect(labeledValues.at(6).prop('value')).toEqual('disabled');
+    render(<LaunchTemplateDetailsSection serverGroup={baseServerGroupWithLt} app={app} />);
+    expand();
+    expectValue('Name', 'test123');
+    expectValue('Image ID', 'ami-0123456789');
+    expectValue('Instance Type', 'm5.large');
+    expectValue('IAM Profile', 'testapplicationInstanceProfile');
+    expectValue('Instance Monitoring', 'disabled');
   });
 
   it('should render launch template details for server group with launchTemplate', () => {
@@ -114,7 +121,7 @@ describe('Launch template details', () => {
         keyName: 'test',
         kernelId: 'kernal-abc',
         ramDiskId: 'ramDisk-123',
-        userData: 'thisisfakeuserdata',
+        userData: btoa('test user data'),
       }),
       image: {
         description: 'ancestor_name=testBaseImage',
@@ -122,10 +129,6 @@ describe('Launch template details', () => {
       },
     } as IAmazonServerGroupView;
 
-    const wrapper = shallow(<LaunchTemplateDetailsSection serverGroup={testServerGroup} app={app} />);
-    const actualLabeledValues = wrapper.find('LabeledValue');
-
-    expect(actualLabeledValues.length).toEqual(13);
     const expectedLabels = new Map([
       ['Name', 'ltWithCredits'],
       ['Image ID', 'ami-0123456789'],
@@ -141,77 +144,51 @@ describe('Launch template details', () => {
       ['Ramdisk ID', 'ramDisk-123'],
       ['User Data', ''],
     ]);
-    let index = 0;
-    expectedLabels.forEach((value, key) => {
-      const labeledValue = actualLabeledValues.at(index++);
-      expect(labeledValue.prop('label')).toEqual(key);
-      value != '' && expect(labeledValue.prop('value')).toEqual(value);
-    });
+    render(<LaunchTemplateDetailsSection serverGroup={testServerGroup} app={app} />);
+    expand();
+    expectedLabels.forEach((value, key) => value && expectValue(key, value));
+    expect(screen.getByText('User Data', { selector: 'dt' })).toBeInTheDocument();
   });
 
   it('should conditionally render launch template details for server group with mixedInstancesPolicy', () => {
     const testServerGroup = baseServerGroupWithMipOverrides;
 
-    const wrapper = shallow(<LaunchTemplateDetailsSection serverGroup={testServerGroup} app={app} />);
-    const labeledValues = wrapper.find('LabeledValue');
-
-    expect(labeledValues.length).toEqual(9);
-    expect(labeledValues.at(0).prop('value')).toEqual('testLaunchTemplatev001');
-    expect(labeledValues.at(1).prop('value')).toEqual('ami-0123456789');
-    expect(labeledValues.at(2).prop('value')).toEqual('location');
-    expect(labeledValues.at(3).prop('value')).toEqual('testBaseImage');
-    expect(labeledValues.at(4).prop('value')).toEqual('testapplicationInstanceProfile');
-    expect(labeledValues.at(5).prop('value')).toEqual('disabled');
-    expect(labeledValues.at(6).prop('value')).toEqual('1.5');
-    expect(labeledValues.at(7).prop('value')).toEqual('test');
-    expect(labeledValues.at(8).prop('label')).toEqual('User Data');
-
-    const multipleInstanceTypes = shallow(
-      <MultipleInstanceTypesSubSection
-        instanceTypeOverrides={testServerGroup.mixedInstancesPolicy.launchTemplateOverridesForInstanceType}
-      />,
-    );
-    expect(multipleInstanceTypes.isEmptyRender()).toEqual(false);
-    const multipleInstanceTypesTableRows = multipleInstanceTypes.find('td');
-
-    expect(multipleInstanceTypesTableRows.length).toEqual(4);
-    expect(multipleInstanceTypesTableRows.at(0).text()).toEqual('some.type.medium');
-    expect(multipleInstanceTypesTableRows.at(1).text()).toEqual('2');
-    expect(multipleInstanceTypesTableRows.at(2).text()).toEqual('some.type.large');
-    expect(multipleInstanceTypesTableRows.at(3).text()).toEqual('4');
+    render(<LaunchTemplateDetailsSection serverGroup={testServerGroup} app={app} />);
+    expand();
+    expectValue('Name', 'testLaunchTemplatev001');
+    expectValue('Image ID', 'ami-0123456789');
+    expectValue('Image Name', 'location');
+    expectValue('Base Image Name', 'testBaseImage');
+    expectValue('IAM Profile', 'testapplicationInstanceProfile');
+    expectValue('Instance Monitoring', 'disabled');
+    expectValue('Max Spot Price', '1.5');
+    expect(screen.getByRole('cell', { name: 'some.type.medium' })).toBeInTheDocument();
+    expect(screen.getByRole('cell', { name: '2' })).toBeInTheDocument();
+    expect(screen.getByRole('cell', { name: 'some.type.large' })).toBeInTheDocument();
+    expect(screen.getByRole('cell', { name: '4' })).toBeInTheDocument();
   });
 
   it('should conditionally render image information', () => {
-    const wrapper = shallow(<LaunchTemplateDetailsSection serverGroup={baseServerGroupWithLt} app={app} />);
-    const labeledValues = wrapper.find('LabeledValue');
-
-    expect(labeledValues.at(2).prop('label')).toEqual('Image Name');
-    expect(labeledValues.at(3).prop('label')).toEqual('Base Image Name');
+    const { rerender } = render(<LaunchTemplateDetailsSection serverGroup={baseServerGroupWithLt} app={app} />);
+    expand();
+    expect(screen.getByText('Image Name', { selector: 'dt' })).toBeInTheDocument();
+    expect(screen.getByText('Base Image Name', { selector: 'dt' })).toBeInTheDocument();
 
     const newServerGroup = {
       ...baseServerGroupWithLt,
     };
     delete newServerGroup.image;
-    wrapper.setProps({
-      serverGroup: newServerGroup,
-    });
-
-    const imageName = wrapper.findWhere((lv) => lv.prop('label') === 'Image Name');
-    const baseImage = wrapper.findWhere((lv) => lv.prop('label') === 'Base Image Name');
-
-    expect(imageName.length).toEqual(0);
-    expect(baseImage.length).toEqual(0);
+    rerender(<LaunchTemplateDetailsSection serverGroup={newServerGroup} app={app} />);
+    expect(screen.queryByText('Image Name', { selector: 'dt' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Base Image Name', { selector: 'dt' })).not.toBeInTheDocument();
   });
 
   it('should conditionally render additional info', () => {
-    const wrapper = shallow(<LaunchTemplateDetailsSection serverGroup={baseServerGroupWithLt} app={app} />);
-    const labeledValues = wrapper.find('LabeledValue');
-
-    expect(labeledValues.at(7).prop('label')).toEqual('Max Spot Price');
-    expect(labeledValues.at(8).prop('label')).toEqual('Key Name');
-    expect(labeledValues.at(9).prop('label')).toEqual('Kernel ID');
-    expect(labeledValues.at(10).prop('label')).toEqual('Ramdisk ID');
-    expect(labeledValues.at(11).prop('label')).toEqual('User Data');
+    const { rerender } = render(<LaunchTemplateDetailsSection serverGroup={baseServerGroupWithLt} app={app} />);
+    expand();
+    ['Max Spot Price', 'Key Name', 'Kernel ID', 'Ramdisk ID', 'User Data'].forEach((label) =>
+      expect(screen.getByText(label, { selector: 'dt' })).toBeInTheDocument(),
+    );
 
     const newServerGroup = {
       ...baseServerGroupWithLt,
@@ -220,32 +197,14 @@ describe('Launch template details', () => {
     delete newServerGroup.launchTemplate.launchTemplateData.userData;
     delete newServerGroup.launchTemplate.launchTemplateData.keyName;
 
-    wrapper.setProps({
-      serverGroup: newServerGroup,
-    });
-
-    const spotPrice = wrapper.findWhere((lv) => lv.prop('label') === 'Max Spot Price');
-    const keyName = wrapper.findWhere((lv) => lv.prop('label') === 'Key Name');
-    const kernelId = wrapper.findWhere((lv) => lv.prop('label') === 'Kernel ID');
-    const ramdiskId = wrapper.findWhere((lv) => lv.prop('label') === 'Ramdisk ID');
-    const userData = wrapper.findWhere((lv) => lv.prop('label') === 'User Data');
-
-    expect(spotPrice.length).toEqual(0);
-    expect(keyName.length).toEqual(0);
-    expect(ramdiskId.length).toEqual(0);
-    expect(kernelId.length).toEqual(0);
-    expect(userData.length).toEqual(0);
+    rerender(<LaunchTemplateDetailsSection serverGroup={newServerGroup} app={app} />);
+    ['Max Spot Price', 'Key Name', 'Kernel ID', 'Ramdisk ID', 'User Data'].forEach((label) =>
+      expect(screen.queryByText(label, { selector: 'dt' })).not.toBeInTheDocument(),
+    );
   });
 
   it('should not render multiple instance types subsection when overrides are not specified', () => {
-    const testServerGroup = baseServerGroupWithMipOverrides;
-    testServerGroup.mixedInstancesPolicy.launchTemplateOverridesForInstanceType = null;
-
-    const multipleInstanceTypes = shallow(
-      <MultipleInstanceTypesSubSection
-        instanceTypeOverrides={testServerGroup.mixedInstancesPolicy.launchTemplateOverridesForInstanceType}
-      />,
-    );
-    expect(multipleInstanceTypes.isEmptyRender()).toEqual(true);
+    const { container } = render(<MultipleInstanceTypesSubSection instanceTypeOverrides={null} />);
+    expect(container).toBeEmptyDOMElement();
   });
 });

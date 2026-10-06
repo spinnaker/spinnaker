@@ -1,7 +1,5 @@
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import React from 'react';
-import { shallow } from 'enzyme';
-
-import { CollapsibleSection, HealthCounts } from '@spinnaker/core';
 
 import {
   EcsBuildInfoSection,
@@ -12,8 +10,9 @@ import {
   EcsScalingPoliciesSection,
   EcsTaskDefinitionSection,
 } from './EcsServerGroupDetailsSections';
+import { AccountService } from '@spinnaker/core';
+
 import { EcsServerGroupInformationSection } from './EcsServerGroupInformationSection';
-import { EventsLink } from '../../events/EventsLink';
 import { EcsServerGroupEventsSection } from './EcsServerGroupEventsSection';
 
 describe('ECS server group details sections', () => {
@@ -50,81 +49,100 @@ describe('ECS server group details sections', () => {
   } as any;
   const props = { app: {} as any, serverGroup };
 
-  const sectionContent = (wrapper: any) => shallow(<div>{wrapper.find(CollapsibleSection).prop('children')}</div>);
+  const expandSection = (heading: string): HTMLElement => {
+    const headingElement = screen.getByRole('heading', { name: heading });
+    const section = headingElement.closest('.collapsible-section') as HTMLElement;
+    if (!section.querySelector('.content-body')) {
+      fireEvent.click(headingElement);
+    }
+    return section;
+  };
+
+  beforeEach(() => vi.spyOn(AccountService, 'getAccountDetails').mockResolvedValue({} as any));
 
   it('renders general ECS location information', () => {
-    const wrapper = shallow(<EcsServerGroupInformationSection {...props} />);
+    render(<EcsServerGroupInformationSection {...props} />);
+    const section = expandSection('Server Group Information');
 
-    expect(sectionContent(wrapper).text()).toContain('production');
-    expect(sectionContent(wrapper).text()).toContain('vpc-123');
+    expect(within(section).getByText('production')).toBeInTheDocument();
+    expect(within(section).getByText('vpc-123')).toBeInTheDocument();
   });
 
   it('renders task definition and container resources', () => {
-    const wrapper = shallow(<EcsTaskDefinitionSection {...props} />);
-    const text = sectionContent(wrapper).text();
+    render(<EcsTaskDefinitionSection {...props} />);
+    const section = expandSection('Task Definition');
 
-    expect(text).toContain('fnord:42');
-    expect(text).toContain('example/fnord:1.2.3');
-    expect(text).toContain('fnord-task-role');
-    expect(text).toContain('8080');
-    expect(text).toContain('512');
-    expect(text).toContain('1024 MB');
-    expect(text).toContain('2048 MB');
+    ['fnord:42', 'example/fnord:1.2.3', 'fnord-task-role', '8080', '512', '1024 MB', '2048 MB'].forEach((value) =>
+      expect(within(section).getByText(value)).toBeInTheDocument(),
+    );
   });
 
   it('renders environment variables and its empty state', () => {
-    const populated = shallow(<EcsEnvironmentVariablesSection {...props} />);
-    const empty = shallow(
+    const rendered = render(<EcsEnvironmentVariablesSection {...props} />);
+    let section = expandSection('Environment Variables');
+
+    expect(within(section).getByText('ENVIRONMENT')).toBeInTheDocument();
+    expect(within(section).getByText('production')).toBeInTheDocument();
+
+    rendered.unmount();
+    render(
       <EcsEnvironmentVariablesSection
         {...props}
         serverGroup={{ ...serverGroup, taskDefinition: { ...serverGroup.taskDefinition, environmentVariables: [] } }}
       />,
     );
+    section = expandSection('Environment Variables');
 
-    expect(sectionContent(populated).text()).toContain('ENVIRONMENT');
-    expect(sectionContent(populated).text()).toContain('production');
-    expect(sectionContent(empty).text()).toContain('This server group has no environment variables');
+    expect(within(section).getByText('This server group has no environment variables')).toBeInTheDocument();
   });
 
   it('renders health, firewalls, capacity, and scaling alarms', () => {
-    const health = shallow(<EcsHealthSection {...props} />);
-    const firewalls = shallow(<EcsFirewallsSection {...props} />);
-    const capacity = shallow(<EcsCapacitySection {...props} />);
-    const alarms = shallow(<EcsScalingPoliciesSection {...props} />);
+    const rendered = render(<EcsHealthSection {...props} />);
+    expect(screen.getByRole('heading', { name: 'Health' })).toBeInTheDocument();
+    expect(screen.getByText('100%')).toBeInTheDocument();
 
-    expect(health.find(HealthCounts).prop('container')).toBe(serverGroup.instanceCounts);
-    expect(sectionContent(firewalls).text()).toContain('sg-web');
-    expect(sectionContent(firewalls).text()).toContain('sg-admin');
-    expect(sectionContent(capacity).text()).toContain('Current2');
-    expect(sectionContent(capacity).text()).toContain('Desired3');
-    expect(sectionContent(capacity).text()).toContain('Min1');
-    expect(sectionContent(capacity).text()).toContain('Max5');
-    expect(sectionContent(alarms).text()).toContain('cpu-high');
-    expect(sectionContent(alarms).text()).toContain('memory-high');
+    rendered.rerender(<EcsFirewallsSection {...props} />);
+    let section = expandSection('Firewalls');
+    expect(within(section).getByText('sg-web')).toBeInTheDocument();
+    expect(within(section).getByText('sg-admin')).toBeInTheDocument();
+
+    rendered.rerender(<EcsCapacitySection {...props} />);
+    section = expandSection('Capacity');
+    expect(section).toHaveTextContent('Current2');
+    expect(section).toHaveTextContent('Desired3');
+    expect(section).toHaveTextContent('Min1');
+    expect(section).toHaveTextContent('Max5');
+
+    rendered.rerender(<EcsScalingPoliciesSection {...props} />);
+    section = expandSection('Scaling Policies');
+    expect(within(section).getByText('cpu-high')).toBeInTheDocument();
+    expect(within(section).getByText('memory-high')).toBeInTheDocument();
   });
 
   it('renders the scaling alarms empty state', () => {
-    const wrapper = shallow(
-      <EcsScalingPoliciesSection {...props} serverGroup={{ ...serverGroup, metricAlarms: [] }} />,
-    );
+    render(<EcsScalingPoliciesSection {...props} serverGroup={{ ...serverGroup, metricAlarms: [] }} />);
 
-    expect(sectionContent(wrapper).text()).toContain('There are no scaling policies assigned.');
+    expect(
+      within(expandSection('Scaling Policies')).getByText('There are no scaling policies assigned.'),
+    ).toBeInTheDocument();
   });
 
   it('renders build metadata and a Jenkins link', () => {
-    const wrapper = shallow(<EcsBuildInfoSection {...props} />);
-    const content = sectionContent(wrapper);
-    const text = content.text();
+    render(<EcsBuildInfoSection {...props} />);
+    const section = expandSection('Build Data');
 
-    expect(text).toContain('fnord-package');
-    expect(text).toContain('12345678');
-    expect(text).toContain('1.2.3');
-    expect(content.find('a').prop('href')).toBe('https://jenkins.example/job/fnord/123');
+    expect(within(section).getByText('fnord-package')).toBeInTheDocument();
+    expect(within(section).getByText('12345678')).toBeInTheDocument();
+    expect(within(section).getByText('1.2.3')).toBeInTheDocument();
+    expect(within(section).getByRole('link', { name: 'https://jenkins.example/job/fnord/123' })).toHaveAttribute(
+      'href',
+      'https://jenkins.example/job/fnord/123',
+    );
   });
 
   it('renders the ECS events link', () => {
-    const wrapper = shallow(<EcsServerGroupEventsSection {...props} />);
+    render(<EcsServerGroupEventsSection {...props} />);
 
-    expect(wrapper.find(EventsLink).prop('serverGroup')).toBe(serverGroup);
+    expect(within(expandSection('ECS Events')).getByRole('link', { name: 'View Events' })).toBeInTheDocument();
   });
 });

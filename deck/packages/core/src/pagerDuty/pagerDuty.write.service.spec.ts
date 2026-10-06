@@ -5,16 +5,16 @@ import { PagerDutyWriter } from './pagerDuty.write.service';
 describe('PagerDuty owner paging', () => {
   it('pages the application owner with the application name and supplied reason', async () => {
     const app = ApplicationModelBuilder.createApplicationForTests('payments');
-    const confirm = spyOn(ConfirmationModalService, 'confirm').and.returnValue(Promise.resolve());
-    const pageApplicationOwner = spyOn(PagerDutyWriter, 'pageApplicationOwner').and.returnValue(Promise.resolve());
+    const confirm = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(Promise.resolve());
+    const pageApplicationOwner = vi.spyOn(PagerDutyWriter, 'pageApplicationOwner').mockReturnValue(Promise.resolve());
 
     const confirmationPromise = PagerDutyWriter.pageApplicationOwnerModal(app);
 
     expect(confirm).toHaveBeenCalledTimes(1);
-    expect(confirmationPromise).toBe(confirm.calls.mostRecent().returnValue);
-    const confirmation = confirm.calls.mostRecent()?.args[0];
+    expect(confirmationPromise).toBe(confirm.mock.results.at(-1).value);
+    const confirmation = confirm.mock.lastCall[0];
     expect(confirmation).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         header: 'Page payments Owner',
         buttonText: 'Page Owner',
         askForReason: true,
@@ -24,7 +24,7 @@ describe('PagerDuty owner paging', () => {
           application: app,
           title: 'Paging payments owner',
         },
-        submitMethod: jasmine.any(Function),
+        submitMethod: expect.any(Function),
       }),
     );
     if (!confirmation) {
@@ -33,6 +33,6 @@ describe('PagerDuty owner paging', () => {
 
     await confirmation.submitMethod({ reason: '  Production outage  ' });
 
-    expect(pageApplicationOwner).toHaveBeenCalledOnceWith(app, '[PAYMENTS] Production outage');
+    expect(pageApplicationOwner).toHaveBeenCalledExactlyOnceWith(app, '[PAYMENTS] Production outage');
   });
 });

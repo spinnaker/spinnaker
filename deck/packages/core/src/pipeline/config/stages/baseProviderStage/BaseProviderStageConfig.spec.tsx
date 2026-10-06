@@ -1,42 +1,41 @@
-import { mount } from 'enzyme';
+import { render, screen } from '@testing-library/react';
+import { setupUser } from '../../../../utils/testUtils/userEvent';
 import React from 'react';
 
-import { CloudProviderLabel, CloudProviderLogo } from '../../../../cloudProvider';
-import { ReactSelectInput } from '../../../../presentation';
+import { CloudProviderRegistry } from '../../../../cloudProvider';
 import { BaseProviderStageConfig } from './BaseProviderStageConfig';
 
 describe('BaseProviderStageConfig', () => {
+  // CloudProviderLabel resolves the display name from CloudProviderRegistry. The 'ecs' provider's
+  // name is registered by the ecs package (loaded globally under the old Karma bundle); register it
+  // here so this core-only spec exercises the same label without depending on that package.
+  beforeEach(() => {
+    CloudProviderRegistry.registerProvider('ecs', { name: 'EC2 Container Service' } as any);
+  });
+
   it('renders nothing when no providers are available', () => {
-    const wrapper = mount(
-      <BaseProviderStageConfig providers={[]} readOnly={false} onProviderChange={jasmine.createSpy()} />,
+    const { container } = render(
+      <BaseProviderStageConfig providers={[]} readOnly={false} onProviderChange={vi.fn()} />,
     );
-
-    expect(wrapper.isEmptyRender()).toBe(true);
-
-    wrapper.unmount();
+    expect(container).toBeEmptyDOMElement();
   });
 
   it('renders and selects the only provider once from an effect', () => {
-    const onProviderChange = jasmine.createSpy('onProviderChange');
+    const onProviderChange = vi.fn();
     const providers = ['ecs'];
-    const wrapper = mount(
+    const { rerender } = render(
       <BaseProviderStageConfig providers={providers} readOnly={false} onProviderChange={onProviderChange} />,
     );
 
-    wrapper.setProps({ providers });
-    wrapper.update();
+    rerender(<BaseProviderStageConfig providers={providers} readOnly={false} onProviderChange={onProviderChange} />);
 
-    expect(wrapper.find(CloudProviderLogo).prop('provider')).toBe('ecs');
-    expect(wrapper.find(CloudProviderLabel).prop('provider')).toBe('ecs');
-    expect(wrapper.find('.base-provider-label').text()).toBe('EC2 Container Service');
+    expect(screen.getByText('EC2 Container Service')).toBeVisible();
     expect(onProviderChange).toHaveBeenCalledTimes(1);
     expect(onProviderChange).toHaveBeenCalledWith('ecs');
-
-    wrapper.unmount();
   });
 
   it('auto-selects the same sole provider again when a controlled parent changes stages and clears selection', () => {
-    const onProviderChange = jasmine.createSpy('onProviderChange');
+    const onProviderChange = vi.fn();
 
     const ControlledSelector = ({ stageId }: { stageId: string }) => {
       const [selectedProvider, setSelectedProvider] = React.useState<string>();
@@ -54,67 +53,50 @@ describe('BaseProviderStageConfig', () => {
       );
     };
 
-    const wrapper = mount(<ControlledSelector stageId="1" />);
+    const { rerender } = render(<ControlledSelector stageId="1" />);
 
     expect(onProviderChange).toHaveBeenCalledTimes(1);
     expect(onProviderChange).toHaveBeenCalledWith('1', 'ecs');
 
-    wrapper.setProps({ stageId: '2' });
-    wrapper.update();
+    rerender(<ControlledSelector stageId="2" />);
 
     expect(onProviderChange).toHaveBeenCalledTimes(2);
     expect(onProviderChange).toHaveBeenCalledWith('2', 'ecs');
-
-    wrapper.unmount();
   });
 
-  it('renders an editable provider select and emits its selected value', () => {
-    const onProviderChange = jasmine.createSpy('onProviderChange');
-    const wrapper = mount(
-      <BaseProviderStageConfig providers={['aws', 'ecs']} readOnly={false} onProviderChange={onProviderChange} />,
-    );
+  it('renders an editable provider select and emits its selected value', async () => {
+    const user = setupUser();
+    const onProviderChange = vi.fn();
+    render(<BaseProviderStageConfig providers={['aws', 'ecs']} readOnly={false} onProviderChange={onProviderChange} />);
 
-    const select = wrapper.find(ReactSelectInput);
-    expect(select.prop('name')).toBe('cloudProviderType');
-    expect(select.prop('options')).toEqual([
-      { label: 'aws', value: 'aws' },
-      { label: 'ecs', value: 'ecs' },
-    ]);
+    const select = screen.getByRole('combobox');
+    await user.click(select);
+    expect(screen.getByRole('option', { name: 'aws' })).toBeVisible();
+    await user.click(screen.getByRole('option', { name: 'ecs' }));
 
-    select.prop('onChange')({ target: { value: 'ecs' } } as any);
-
-    expect(onProviderChange).toHaveBeenCalledOnceWith('ecs');
-
-    wrapper.unmount();
+    expect(onProviderChange).toHaveBeenCalledExactlyOnceWith('ecs');
   });
 
   it('renders the selected provider without an editable select when read-only', () => {
-    const wrapper = mount(
+    render(
       <BaseProviderStageConfig
         providers={['aws', 'ecs']}
         selectedProvider="ecs"
         readOnly={true}
-        onProviderChange={jasmine.createSpy()}
+        onProviderChange={vi.fn()}
       />,
     );
 
-    expect(wrapper.find(ReactSelectInput).exists()).toBe(false);
-    expect(wrapper.find(CloudProviderLogo).prop('provider')).toBe('ecs');
-    expect(wrapper.find(CloudProviderLabel).prop('provider')).toBe('ecs');
-
-    wrapper.unmount();
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+    expect(screen.getByText('EC2 Container Service')).toBeVisible();
   });
 
   it('does not auto-select a sole provider when read-only', () => {
-    const onProviderChange = jasmine.createSpy('onProviderChange');
-    const wrapper = mount(
-      <BaseProviderStageConfig providers={['ecs']} readOnly={true} onProviderChange={onProviderChange} />,
-    );
+    const onProviderChange = vi.fn();
+    render(<BaseProviderStageConfig providers={['ecs']} readOnly={true} onProviderChange={onProviderChange} />);
 
-    expect(wrapper.find(ReactSelectInput).exists()).toBe(false);
-    expect(wrapper.find(CloudProviderLogo).prop('provider')).toBe('ecs');
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+    expect(screen.getByText('EC2 Container Service')).toBeVisible();
     expect(onProviderChange).not.toHaveBeenCalled();
-
-    wrapper.unmount();
   });
 });

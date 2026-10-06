@@ -1,42 +1,42 @@
-import { mount } from 'enzyme';
+import { render, screen } from '@testing-library/react';
 import { identity } from 'lodash';
 import * as React from 'react';
 import { Provider } from 'react-redux';
 import { createStore } from 'redux';
 
-import { noop, ValidationMessage } from '@spinnaker/core';
+import { noop } from '@spinnaker/core';
 
 import { IInlineTemplateEditorProps, InlineTemplateEditor } from './inlineTemplateEditor';
-import { DisableableTextarea } from '../layout/disableable';
 
 describe('<InlineTemplateEditor />', () => {
   const buildComponent = (props: IInlineTemplateEditorProps) =>
-    mount(
+    render(
       <Provider store={createStore(() => ({}))}>
         <InlineTemplateEditor {...props} />
       </Provider>,
-    ).find(InlineTemplateEditor);
+    );
 
   it('renders a textarea with template value', () => {
-    const component = buildComponent({
+    buildComponent({
       templateValue: 'metadata.user_labels."app"="${scope}"',
       transformValueForSave: identity,
       editTemplateValue: noop,
     });
-    expect(component.find(DisableableTextarea).first().props().value).toEqual('metadata.user_labels."app"="${scope}"');
+    expect(screen.getByRole('textbox')).toHaveValue('metadata.user_labels."app"="${scope}"');
   });
   it('renders an error for empty input', () => {
-    let component = buildComponent({
+    buildComponent({
       templateValue: 'metadata.user_labels."app"="${scope}"',
       transformValueForSave: identity,
       editTemplateValue: noop,
     });
-    expect(component.find(ValidationMessage).length).toEqual(0);
-    component = buildComponent({
+    expect(screen.queryByText('Template is required')).not.toBeInTheDocument();
+
+    buildComponent({
       templateValue: '',
       transformValueForSave: identity,
       editTemplateValue: noop,
     });
-    expect(component.find(ValidationMessage).props().message).toEqual('Template is required');
+    expect(screen.getByText('Template is required')).toBeVisible();
   });
 });

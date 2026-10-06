@@ -377,12 +377,16 @@ export class GceSecurityGroupModalComponent extends React.Component<
     onChange: (value: string) => void,
     readOnly = false,
   ): JSX.Element {
+    const id = `gce-firewall-${label.toLowerCase().replace(/\s+/g, '-')}`;
     return (
       <div className="form-group">
-        <label className="col-md-3 control-label">{label}</label>
+        <label className="col-md-3 control-label" htmlFor={id}>
+          {label}
+        </label>
         <div className="col-md-7">
           <input
             className="form-control input-sm"
+            id={id}
             onChange={(event) => onChange(event.target.value)}
             readOnly={readOnly}
             value={value || ''}
@@ -410,6 +414,7 @@ export class GceSecurityGroupModalComponent extends React.Component<
                 <tr key={index}>
                   <td>
                     <select
+                      aria-label={`Protocol ${index + 1}`}
                       className="form-control input-sm"
                       onChange={(event) => this.updateRule(index, { type: event.target.value })}
                       value={rule.type}
@@ -423,6 +428,7 @@ export class GceSecurityGroupModalComponent extends React.Component<
                   </td>
                   <td>
                     <input
+                      aria-label={`Start port ${index + 1}`}
                       className="form-control input-sm"
                       min="0"
                       onChange={(event) =>
@@ -436,6 +442,7 @@ export class GceSecurityGroupModalComponent extends React.Component<
                   </td>
                   <td>
                     <input
+                      aria-label={`End port ${index + 1}`}
                       className="form-control input-sm"
                       min="0"
                       onChange={(event) =>
@@ -448,7 +455,12 @@ export class GceSecurityGroupModalComponent extends React.Component<
                     />
                   </td>
                   <td>
-                    <button className="btn btn-link" onClick={() => this.removeRule(index)} type="button">
+                    <button
+                      aria-label={`Remove rule ${index + 1}`}
+                      className="btn btn-link"
+                      onClick={() => this.removeRule(index)}
+                      type="button"
+                    >
                       <span className="glyphicon glyphicon-trash" />
                     </button>
                   </td>

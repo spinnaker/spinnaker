@@ -90,6 +90,7 @@ export function ClusterControls({ showInstancesToggle, sortFilter, updateCluster
     <div className="form-inline clearfix filters">
       <div className="form-group">
         <button
+          aria-label="Edit multiple server groups"
           className={`btn btn-xs btn-default${sortFilter.multiselect ? ' active' : ''}`}
           onClick={handleMultiselectToggle}
         >
@@ -176,12 +177,16 @@ export function CreateServerGroupButton({ app }: { app: Application }) {
 
   return (
     <>
-      <button className="btn btn-sm btn-default" onClick={createServerGroup}>
+      <button aria-label="Create Server Group" className="btn btn-sm btn-default" onClick={createServerGroup}>
         <span className="glyphicon glyphicon-plus-sign visible-lg-inline" />
         <span className="glyphicon glyphicon-plus-sign visible-md-inline visible-sm-inline" />
         <span className="visible-lg-inline">Create Server Group</span>
       </button>
-      {createServerGroupError && <div className="alert alert-warning">{createServerGroupError}</div>}
+      {createServerGroupError && (
+        <div className="alert alert-warning" role="alert">
+          {createServerGroupError}
+        </div>
+      )}
     </>
   );
 }

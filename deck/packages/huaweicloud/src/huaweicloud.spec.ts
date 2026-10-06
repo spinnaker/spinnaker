@@ -5,12 +5,12 @@ describe('HuaweiCloud package entrypoint', () => {
     SETTINGS.providers.huaweicloud = { defaults: {} };
   });
 
-  it('loads successfully', () => {
-    expect(() => require('./index')).not.toThrow();
+  it('loads successfully', async () => {
+    await expect(import('./index')).resolves.toBeDefined();
   });
 
-  it('registers the provider configuration', () => {
-    require('./index');
+  it('registers the provider configuration', async () => {
+    await import('./index');
 
     expect(CloudProviderRegistry.getProvider('huaweicloud')).toEqual({ name: 'huaweicloud' });
   });

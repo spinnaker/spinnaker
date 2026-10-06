@@ -1,126 +1,127 @@
-import { mount } from 'enzyme';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import { ChecklistInput } from './ChecklistInput';
 
 const noop = () => {};
+const options = ['a', 'b', 'c', 'd'];
+const checkedOptions = ['a', 'b', 'c'];
 
 describe('<ChecklistInput />', () => {
   it('initializes properly with provided values', () => {
-    const checkedOptions = ['a', 'b', 'c'];
-    const options = ['a', 'b', 'c', 'd'];
-    const component = mount(<ChecklistInput value={checkedOptions} stringOptions={options} onChange={noop} />);
-    expect(component.find('input[type="checkbox"]').length).toBe(4);
-    expect(component.find('input[type="checkbox"][checked=true]').length).toBe(3);
+    render(<ChecklistInput value={checkedOptions} stringOptions={options} onChange={noop} />);
+
+    expect(screen.getAllByRole('checkbox')).toHaveLength(4);
+    expect(screen.getAllByRole('checkbox').filter((checkbox) => (checkbox as HTMLInputElement).checked)).toHaveLength(
+      3,
+    );
   });
 
-  it('updates items when an item is added externally', () => {
-    const checkedOptions = ['a', 'b', 'c'];
-    const options = ['a', 'b', 'c', 'd'];
-    const component = mount(<ChecklistInput value={checkedOptions} stringOptions={options} onChange={noop} />);
+  it('updates items when options are added or removed externally', () => {
+    const { rerender } = render(<ChecklistInput value={checkedOptions} stringOptions={options} onChange={noop} />);
 
-    expect(component.find('input[type="checkbox"]').length).toBe(4);
-    expect(component.find('input[type="checkbox"][checked=true]').length).toBe(3);
-    component.setProps({ stringOptions: options.concat('e') });
-    expect(component.find('input[type="checkbox"]').length).toBe(5);
-    expect(component.find('input[type="checkbox"][checked=true]').length).toBe(3);
+    rerender(<ChecklistInput value={checkedOptions} stringOptions={options.concat('e')} onChange={noop} />);
+    expect(screen.getAllByRole('checkbox')).toHaveLength(5);
+
+    rerender(
+      <ChecklistInput value={checkedOptions} stringOptions={options.filter((item) => item !== 'c')} onChange={noop} />,
+    );
+    expect(screen.getAllByRole('checkbox')).toHaveLength(3);
+    expect(screen.getAllByRole('checkbox').filter((checkbox) => (checkbox as HTMLInputElement).checked)).toHaveLength(
+      2,
+    );
   });
 
-  it('updates items when an item is removed externally', () => {
-    const checkedOptions = ['a', 'b', 'c'];
-    const options = ['a', 'b', 'c', 'd'];
-    const component = mount(<ChecklistInput value={checkedOptions} stringOptions={options} onChange={noop} />);
+  it('updates checked items when values change externally', () => {
+    const { rerender } = render(<ChecklistInput value={checkedOptions} stringOptions={options} onChange={noop} />);
 
-    expect(component.find('input[type="checkbox"]').length).toBe(4);
-    expect(component.find('input[type="checkbox"][checked=true]').length).toBe(3);
-    component.setProps({ stringOptions: options.filter((item) => item !== 'c') });
-    expect(component.find('input[type="checkbox"]').length).toBe(3);
-    expect(component.find('input[type="checkbox"][checked=true]').length).toBe(2);
+    rerender(<ChecklistInput value={options} stringOptions={options} onChange={noop} />);
+    expect(screen.getAllByRole('checkbox').every((checkbox) => (checkbox as HTMLInputElement).checked)).toBe(true);
+
+    rerender(<ChecklistInput value={['a', 'b']} stringOptions={options} onChange={noop} />);
+    expect(screen.getAllByRole('checkbox').filter((checkbox) => (checkbox as HTMLInputElement).checked)).toHaveLength(
+      2,
+    );
   });
 
-  it('updates checked items when an item is checked externally', () => {
-    const checkedOptions = ['a', 'b', 'c'];
-    const options = ['a', 'b', 'c', 'd'];
-    const component = mount(<ChecklistInput value={checkedOptions} stringOptions={options} onChange={noop} />);
+  it('returns the exact values when an individual checkbox is selected', async () => {
+    const onChange = vi.fn();
+    render(<ChecklistInput value={['a']} stringOptions={options} onChange={onChange} />);
 
-    expect(component.find('input[type="checkbox"]').length).toBe(4);
-    expect(component.find('input[type="checkbox"][checked=true]').length).toBe(3);
-    component.setProps({ value: checkedOptions.concat('d') });
-    expect(component.find('input[type="checkbox"]').length).toBe(4);
-    expect(component.find('input[type="checkbox"][checked=true]').length).toBe(4);
+    await userEvent.click(screen.getByRole('checkbox', { name: 'c' }));
+
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(onChange.mock.lastCall[0].target.value).toEqual(['a', 'c']);
   });
 
-  it('updates checked items when an item is unchecked externally', () => {
-    const checkedOptions = ['a', 'b', 'c'];
-    const options = ['a', 'b', 'c', 'd'];
-    const component = mount(<ChecklistInput value={checkedOptions} stringOptions={options} onChange={noop} />);
-
-    expect(component.find('input[type="checkbox"]').length).toBe(4);
-    expect(component.find('input[type="checkbox"][checked=true]').length).toBe(3);
-    component.setProps({ value: checkedOptions.filter((item) => item !== 'c') });
-    expect(component.find('input[type="checkbox"]').length).toBe(4);
-    expect(component.find('input[type="checkbox"][checked=true]').length).toBe(2);
-  });
-
-  it('shows the select all button when necessary', () => {
-    const checkedOptions = ['a', 'b', 'c'];
-    const options = ['a', 'b', 'c', 'd'];
-    const component = mount(
+  it('shows the bulk selection button only when requested', () => {
+    const { rerender } = render(
       <ChecklistInput value={checkedOptions} stringOptions={options} onChange={noop} showSelectAll={true} />,
     );
-    expect(component.find('a').length).toBe(1);
+    expect(screen.getByRole('button', { name: 'Select All' })).toBeInTheDocument();
+
+    rerender(<ChecklistInput value={checkedOptions} stringOptions={options} onChange={noop} showSelectAll={false} />);
+    expect(screen.queryByRole('button', { name: 'Select All' })).not.toBeInTheDocument();
   });
 
-  it('does not show the select all button when necessary', () => {
-    const checkedOptions = ['a', 'b', 'c'];
-    const options = ['a', 'b', 'c', 'd'];
-    const component = mount(
-      <ChecklistInput value={checkedOptions} stringOptions={options} onChange={noop} showSelectAll={false} />,
+  it('selects and deselects all values', async () => {
+    const onChange = vi.fn();
+    const { rerender } = render(
+      <ChecklistInput value={['a']} stringOptions={options} onChange={onChange} showSelectAll={true} />,
     );
-    expect(component.find('a').length).toBe(0);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Select All' }));
+    expect(onChange.mock.lastCall[0].target.value).toEqual(options);
+
+    rerender(<ChecklistInput value={options} stringOptions={options} onChange={onChange} showSelectAll={true} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Deselect All' }));
+    expect(onChange.mock.lastCall[0].target.value).toEqual([]);
   });
 
-  it('shows correct text for the select all button when not all the items are checked', () => {
-    const checkedOptions = ['a', 'b', 'c'];
-    const options = ['a', 'b', 'c', 'd'];
-    const component = mount(
-      <ChecklistInput value={checkedOptions} stringOptions={options} onChange={noop} showSelectAll={true} />,
+  it('preserves the inline appearance of the previous anchor control', () => {
+    render(
+      <>
+        <div className="ChecklistInput ChecklistInput_inline">
+          <ul>
+            <li>
+              <a type="button">Previous anchor</a>
+            </li>
+          </ul>
+        </div>
+        <ChecklistInput
+          inline={true}
+          value={checkedOptions}
+          stringOptions={options}
+          onChange={noop}
+          showSelectAll={true}
+        />
+      </>,
     );
 
-    expect(component.find('a').text()).toBe('Select All');
-  });
+    const previousStyle = window.getComputedStyle(screen.getByText('Previous anchor'));
+    const buttonStyle = window.getComputedStyle(screen.getByRole('button', { name: 'Select All' }));
+    const parityProperties = [
+      'backgroundColor',
+      'borderTopStyle',
+      'borderRightStyle',
+      'borderBottomStyle',
+      'borderLeftStyle',
+      'color',
+      'marginTop',
+      'marginRight',
+      'marginBottom',
+      'marginLeft',
+      'paddingTop',
+      'paddingRight',
+      'paddingBottom',
+      'paddingLeft',
+      'textDecorationLine',
+    ] as const;
 
-  it('shows correct text for the select all button when all the items are checked', () => {
-    const checkedOptions = ['a', 'b', 'c', 'd'];
-    const options = ['a', 'b', 'c', 'd'];
-    const component = mount(
-      <ChecklistInput value={checkedOptions} stringOptions={options} onChange={noop} showSelectAll={true} />,
+    const normalizeZero = (value: string) => (value === '0' ? '0px' : value);
+    parityProperties.forEach((property) =>
+      expect(normalizeZero(buttonStyle[property])).toBe(normalizeZero(previousStyle[property])),
     );
-
-    expect(component.find('a').text()).toBe('Deselect All');
-  });
-
-  it('passes an empty list to the onChange handler when deselect all clicked', () => {
-    const checkedOptions = ['a', 'b', 'c', 'd'];
-    const options = ['a', 'b', 'c', 'd'];
-    const onChange = (e: React.ChangeEvent<any>): void => {
-      expect(e.target.value.length).toBe(0);
-    };
-    const component = mount(
-      <ChecklistInput value={checkedOptions} stringOptions={options} onChange={onChange} showSelectAll={true} />,
-    );
-    component.find('a').simulate('click');
-  });
-
-  it('passes a complete list to the onChange handler when select all clicked', () => {
-    const checkedOptions = ['a'];
-    const options = ['a', 'b', 'c', 'd'];
-    const onChange = (e: React.ChangeEvent<any>): void => {
-      expect(e.target.value.length).toBe(4);
-    };
-    const component = mount(
-      <ChecklistInput value={checkedOptions} stringOptions={options} onChange={onChange} showSelectAll={true} />,
-    );
-    component.find('a').simulate('click');
   });
 });
