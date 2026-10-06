@@ -29,11 +29,11 @@ describe('ReactModal', () => {
 
   it('resolves after the modal exit completes', async () => {
     const renders: React.ReactElement[] = [];
-    spyOn(ReactDOM, 'render').and.callFake((element) => {
+    vi.spyOn(ReactDOM, 'render').mockImplementation((element) => {
       renders.push(element as React.ReactElement);
       return null;
     });
-    const unmountSpy = spyOn(ReactDOM, 'unmountComponentAtNode').and.returnValue(true);
+    const unmountSpy = vi.spyOn(ReactDOM, 'unmountComponentAtNode').mockReturnValue(true);
 
     let resolvedValue: string | null = null;
     const promise = ReactModal.show(TestModal);
@@ -58,11 +58,11 @@ describe('ReactModal', () => {
 
   it('rejects after the modal exit completes', async () => {
     const renders: React.ReactElement[] = [];
-    spyOn(ReactDOM, 'render').and.callFake((element) => {
+    vi.spyOn(ReactDOM, 'render').mockImplementation((element) => {
       renders.push(element as React.ReactElement);
       return null;
     });
-    const unmountSpy = spyOn(ReactDOM, 'unmountComponentAtNode').and.returnValue(true);
+    const unmountSpy = vi.spyOn(ReactDOM, 'unmountComponentAtNode').mockReturnValue(true);
 
     let rejectedValue: string | null = null;
     const promise = ReactModal.show(TestModal);
@@ -102,7 +102,7 @@ describe('ReactModal router context', () => {
 
   it('provides the direct router to routed modal components', () => {
     const renders: React.ReactElement[] = [];
-    spyOn(ReactDOM, 'render').and.callFake((element) => {
+    vi.spyOn(ReactDOM, 'render').mockImplementation((element) => {
       renders.push(element as React.ReactElement);
       return null;
     });
@@ -125,7 +125,7 @@ describe('ReactModal router context', () => {
 
   it('provides explicitly supplied runtime services to modal components', () => {
     const renders: React.ReactElement[] = [];
-    spyOn(ReactDOM, 'render').and.callFake((element) => {
+    vi.spyOn(ReactDOM, 'render').mockImplementation((element) => {
       renders.push(element as React.ReactElement);
       return null;
     });
@@ -203,8 +203,8 @@ describe('ReactModal router context', () => {
 
   it('provides default runtime services to SpelText rendered by ExpectedArtifactModal', async () => {
     const runtimeServices = { executionService: {} } as DeckRuntimeServices;
-    const spelMount = spyOn(SpelText.prototype, 'componentDidMount').and.callThrough();
-    spyOn(AccountService, 'getArtifactAccounts').and.returnValue(
+    const spelMount = vi.spyOn(SpelText.prototype, 'componentDidMount');
+    vi.spyOn(AccountService, 'getArtifactAccounts').mockReturnValue(
       Promise.resolve([{ name: 'custom-artifact', types: ['custom/object'] }]),
     );
     ReactModal.setDefaultRuntimeServices(runtimeServices);
@@ -218,7 +218,7 @@ describe('ReactModal router context', () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(spelMount).toHaveBeenCalled();
-      expect((spelMount.calls.mostRecent().object as SpelText).context?.services).toBe(runtimeServices);
+      expect((spelMount.mock.instances.at(-1) as SpelText).context?.services).toBe(runtimeServices);
     } finally {
       ReactModal.dismissAll('test-cleanup');
       await settlement;
@@ -240,22 +240,24 @@ describe('ReactModal router context', () => {
   });
 
   it('synchronously force-dismisses an animated modal and cancels active task polling', async () => {
-    jasmine.clock().install();
+    vi.useFakeTimers({
+      toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval'],
+    });
     const root = document.createElement('div');
     try {
-      const poll = jasmine.createSpy('poll');
+      const poll = vi.fn();
       const monitor = new TaskMonitor({ title: 'Active task' });
       monitor.submitting = true;
       monitor.task = { poller: window.setTimeout(poll, 100) } as any;
-      const onModalClose = spyOn(monitor, 'onModalClose').and.callThrough();
-      const render = spyOn(ReactDOM, 'render').and.callThrough();
+      const onModalClose = vi.spyOn(monitor, 'onModalClose');
+      const render = vi.spyOn(ReactDOM, 'render');
       const ActiveTaskModal = () => <TaskMonitorWrapper monitor={monitor} />;
       let modal: Promise<unknown>;
 
       act(() => {
         modal = ReactModal.show(ActiveTaskModal, {} as any);
       });
-      const modalRoot = render.calls.mostRecent().args[1] as HTMLElement;
+      const modalRoot = render.mock.lastCall[1] as HTMLElement;
       root.appendChild(modalRoot);
       document.body.appendChild(root);
       const rejectionReasons: unknown[] = [];
@@ -268,25 +270,25 @@ describe('ReactModal router context', () => {
 
       expect(modalRoot.isConnected).toBe(false);
       expect(onModalClose).toHaveBeenCalledTimes(1);
-      jasmine.clock().tick(100);
+      vi.advanceTimersByTime(100);
       expect(poll).not.toHaveBeenCalled();
       await Promise.resolve();
       expect(rejectionReasons).toEqual(['runtime-disposed']);
     } finally {
       root.remove();
-      jasmine.clock().uninstall();
+      vi.useRealTimers();
     }
   });
 
   it('force-unmounts an animated modal that was already closing', async () => {
-    const render = spyOn(ReactDOM, 'render').and.callThrough();
+    const render = vi.spyOn(ReactDOM, 'render');
     let dismissModal: (reason?: unknown) => void;
     const OpenModal = ({ dismissModal: dismiss }: IModalComponentProps): React.ReactElement => {
       dismissModal = dismiss;
       return null;
     };
     const modal = ReactModal.show(OpenModal, {} as any);
-    const modalRoot = render.calls.mostRecent().args[1] as HTMLElement;
+    const modalRoot = render.mock.lastCall[1] as HTMLElement;
     document.body.appendChild(modalRoot);
     const settlement = modal.catch((reason) => reason);
     let didSettle = false;
@@ -307,21 +309,21 @@ describe('ReactModal router context', () => {
 
   it('continues force-dismissing active modals when one unmount fails', async () => {
     const unmountFailure = new Error('unmount failed');
-    const reportError = spyOn(diagnosticLogger, 'error');
-    const render = spyOn(ReactDOM, 'render').and.callThrough();
+    const reportError = vi.spyOn(diagnosticLogger, 'error').mockReturnValue(undefined);
+    const render = vi.spyOn(ReactDOM, 'render');
     const OpenModal = (): React.ReactElement => null;
     const firstRejections: unknown[] = [];
     const secondRejections: unknown[] = [];
 
     ReactModal.show(OpenModal, {} as any).catch((reason) => firstRejections.push(reason));
-    const failingRoot = render.calls.mostRecent().args[1] as Element;
+    const failingRoot = render.mock.lastCall[1] as Element;
     document.body.appendChild(failingRoot);
     ReactModal.show(OpenModal, {} as any).catch((reason) => secondRejections.push(reason));
-    const healthyRoot = render.calls.mostRecent().args[1] as Element;
+    const healthyRoot = render.mock.lastCall[1] as Element;
     document.body.appendChild(healthyRoot);
 
     const actualUnmount = ReactDOM.unmountComponentAtNode;
-    spyOn(ReactDOM, 'unmountComponentAtNode').and.callFake((container) => {
+    vi.spyOn(ReactDOM, 'unmountComponentAtNode').mockImplementation((container) => {
       actualUnmount(container);
       if (container === failingRoot) {
         throw unmountFailure;
@@ -336,7 +338,7 @@ describe('ReactModal router context', () => {
 
     expect(firstRejections).toEqual(['runtime-disposed']);
     expect(secondRejections).toEqual(['runtime-disposed']);
-    expect(reportError).toHaveBeenCalledOnceWith('Failed to force-unmount React modal', unmountFailure);
+    expect(reportError).toHaveBeenCalledExactlyOnceWith('Failed to force-unmount React modal', unmountFailure);
 
     expect(() => ReactModal.dismissAll('runtime-disposed')).not.toThrow();
     await Promise.resolve();
@@ -347,21 +349,21 @@ describe('ReactModal router context', () => {
   it('reports an asynchronous exit unmount failure and still removes the root', async () => {
     setDirectRouter(null);
     const unmountFailure = new Error('unmount failed');
-    const reportError = spyOn(diagnosticLogger, 'error');
-    const render = spyOn(ReactDOM, 'render').and.callThrough();
+    const reportError = vi.spyOn(diagnosticLogger, 'error').mockReturnValue(undefined);
+    const render = vi.spyOn(ReactDOM, 'render');
     let dismissModal: (reason?: unknown) => void;
     const OpenModal = ({ dismissModal: dismiss }: IModalComponentProps): React.ReactElement => {
       dismissModal = dismiss;
       return null;
     };
     const modal = ReactModal.show(OpenModal, {} as any, { animation: true });
-    const renderedModal = render.calls.mostRecent().args[0] as React.ReactElement;
+    const renderedModal = render.mock.lastCall[0] as React.ReactElement;
     const onExited = renderedModal.props.onExited as () => void;
-    const root = render.calls.mostRecent().args[1] as HTMLElement;
+    const root = render.mock.lastCall[1] as HTMLElement;
     document.body.appendChild(root);
-    render.and.stub();
+    render.mockReturnValue(undefined);
     const actualUnmount = ReactDOM.unmountComponentAtNode;
-    spyOn(ReactDOM, 'unmountComponentAtNode').and.callFake((container) => {
+    vi.spyOn(ReactDOM, 'unmountComponentAtNode').mockImplementation((container) => {
       actualUnmount(container);
       throw unmountFailure;
     });
@@ -372,6 +374,9 @@ describe('ReactModal router context', () => {
     expect(() => onExited()).not.toThrow();
     expect(await rejection).toBe('dismissed');
     expect(root.isConnected).toBe(false);
-    expect(reportError).toHaveBeenCalledOnceWith('Failed to unmount React modal after exit animation', unmountFailure);
+    expect(reportError).toHaveBeenCalledExactlyOnceWith(
+      'Failed to unmount React modal after exit animation',
+      unmountFailure,
+    );
   });
 });

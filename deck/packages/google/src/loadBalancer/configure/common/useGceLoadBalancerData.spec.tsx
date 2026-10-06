@@ -1,3 +1,4 @@
+import type { Mocked } from 'vitest';
 import React from 'react';
 import { mount } from 'enzyme';
 
@@ -14,7 +15,7 @@ describe('useGceLoadBalancerData', () => {
     wrapper.setProps({ account: 'second' });
     await settle();
 
-    expect(readers.regions.calls.allArgs()).toEqual([['first'], ['second']]);
+    expect(readers.regions.mock.calls).toEqual([['first'], ['second']]);
     expect(states[states.length - 1].status).toBe('ready');
     wrapper.unmount();
   });
@@ -22,17 +23,17 @@ describe('useGceLoadBalancerData', () => {
   it('does not publish a request result after unmount', async () => {
     const regions = deferred<unknown[]>();
     const readers = testReaders();
-    readers.regions.and.returnValue(regions.promise);
-    const onState = jasmine.createSpy('onState');
+    readers.regions.mockReturnValue(regions.promise);
+    const onState = vi.fn();
     const wrapper = mount(<Harness account="test-account" readers={readers} onState={onState} />);
     await settle();
-    const callsBeforeUnmount = onState.calls.count();
+    const callsBeforeUnmount = onState.mock.calls.length;
 
     wrapper.unmount();
     regions.resolve([{ name: 'late-region' }]);
     await settle();
 
-    expect(onState.calls.count()).toBe(callsBeforeUnmount);
+    expect(onState.mock.calls.length).toBe(callsBeforeUnmount);
   });
 });
 
@@ -52,17 +53,17 @@ function Harness({
   return null;
 }
 
-function testReaders(): jasmine.SpyObj<IGceLoadBalancerDataReaders> {
-  return jasmine.createSpyObj<IGceLoadBalancerDataReaders>('readers', {
-    accounts: Promise.resolve([]),
-    addresses: Promise.resolve([]),
-    backendServices: Promise.resolve([]),
-    certificates: Promise.resolve([]),
-    healthChecks: Promise.resolve([]),
-    networks: Promise.resolve([]),
-    regions: Promise.resolve([]),
-    subnets: Promise.resolve([]),
-  });
+function testReaders(): Mocked<IGceLoadBalancerDataReaders> {
+  return {
+    accounts: vi.fn().mockReturnValue(Promise.resolve([])),
+    addresses: vi.fn().mockReturnValue(Promise.resolve([])),
+    backendServices: vi.fn().mockReturnValue(Promise.resolve([])),
+    certificates: vi.fn().mockReturnValue(Promise.resolve([])),
+    healthChecks: vi.fn().mockReturnValue(Promise.resolve([])),
+    networks: vi.fn().mockReturnValue(Promise.resolve([])),
+    regions: vi.fn().mockReturnValue(Promise.resolve([])),
+    subnets: vi.fn().mockReturnValue(Promise.resolve([])),
+  };
 }
 
 function deferred<T>() {

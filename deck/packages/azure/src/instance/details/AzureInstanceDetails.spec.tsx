@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { shallow } from 'enzyme';
 import { UISref } from '@uirouter/react';
 import React from 'react';
@@ -23,7 +24,7 @@ import {
 import { registerAzureProvider } from '../../azure.module';
 
 describe('AzureInstanceDetails', () => {
-  const stateService = { go: jasmine.createSpy('go'), includes: jasmine.createSpy('includes').and.returnValue(true) };
+  const stateService = { go: vi.fn(), includes: vi.fn().mockReturnValue(true) };
   const routerProps = { router: {} as any, stateParams: {}, stateService: stateService as any };
   const instanceParams = {
     account: 'test-account',
@@ -38,12 +39,12 @@ describe('AzureInstanceDetails', () => {
       loadBalancers: {
         data: loadBalancers,
         ready: () => Promise.resolve(),
-        onRefresh: () => jasmine.createSpy('unsubscribe'),
+        onRefresh: () => vi.fn(),
       },
       serverGroups: {
         data: serverGroups,
         ready: () => Promise.resolve(),
-        onRefresh: () => jasmine.createSpy('unsubscribe'),
+        onRefresh: () => vi.fn(),
       },
     } as any;
   }
@@ -80,7 +81,7 @@ describe('AzureInstanceDetails', () => {
   }
 
   async function load(appFixture: any, params: any = instanceParams, fetchedDetails: any = details()) {
-    spyOn(InstanceReader, 'getInstanceDetails').and.returnValue(Promise.resolve(fetchedDetails));
+    vi.spyOn(InstanceReader, 'getInstanceDetails').mockReturnValue(Promise.resolve(fetchedDetails));
     return loadAzureInstanceDetails({ app: appFixture, instance: params });
   }
 
@@ -95,7 +96,7 @@ describe('AzureInstanceDetails', () => {
 
     expect(InstanceReader.getInstanceDetails).toHaveBeenCalledWith('test-account', 'westus', 'i-123');
     expect(instance).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         account: 'test-account',
         baseIpAddress: 'i-123.example.com',
         instanceType: 'Standard_D2_v2',
@@ -107,7 +108,7 @@ describe('AzureInstanceDetails', () => {
       }),
     );
     expect(instance.healthMetrics[0]).toEqual(
-      jasmine.objectContaining({ extra: 'from details', reason: 'summary reason', state: 'Down' }),
+      expect.objectContaining({ extra: 'from details', reason: 'summary reason', state: 'Down' }),
     );
   });
 
@@ -124,7 +125,7 @@ describe('AzureInstanceDetails', () => {
 
     expect(InstanceReader.getInstanceDetails).toHaveBeenCalledWith('lb-account', 'eastus', 'i-123');
     expect(instance).toEqual(
-      jasmine.objectContaining({ account: 'lb-account', loadBalancers: ['lb-1'], region: 'eastus' }),
+      expect.objectContaining({ account: 'lb-account', loadBalancers: ['lb-1'], region: 'eastus' }),
     );
   });
 
@@ -142,7 +143,7 @@ describe('AzureInstanceDetails', () => {
 
     expect(InstanceReader.getInstanceDetails).toHaveBeenCalledWith('lb-account', 'eastus', 'i-123');
     expect(instance).toEqual(
-      jasmine.objectContaining({ account: 'lb-account', loadBalancers: ['lb-server-groups'], region: 'eastus' }),
+      expect.objectContaining({ account: 'lb-account', loadBalancers: ['lb-server-groups'], region: 'eastus' }),
     );
   });
 
@@ -161,7 +162,7 @@ describe('AzureInstanceDetails', () => {
 
     expect(InstanceReader.getInstanceDetails).toHaveBeenCalledWith('lb-account', 'eastus', 'i-123');
     expect(instance).toEqual(
-      jasmine.objectContaining({ account: 'lb-account', loadBalancers: ['lb-disabled'], region: 'eastus' }),
+      expect.objectContaining({ account: 'lb-account', loadBalancers: ['lb-disabled'], region: 'eastus' }),
     );
   });
 
@@ -174,12 +175,12 @@ describe('AzureInstanceDetails', () => {
     );
 
     expect(InstanceReader.getInstanceDetails).toHaveBeenCalledWith('test-account', 'westus', 'i-123');
-    expect(instance).toEqual(jasmine.objectContaining({ account: 'test-account', region: 'westus' }));
-    expect(instance.healthMetrics).toEqual([jasmine.objectContaining({ type: 'LoadBalancer', state: 'Up' })] as any);
+    expect(instance).toEqual(expect.objectContaining({ account: 'test-account', region: 'westus' }));
+    expect(instance.healthMetrics).toEqual([expect.objectContaining({ type: 'LoadBalancer', state: 'Up' })] as any);
   });
 
   it('returns not-found state when no summary exists', async () => {
-    spyOn(InstanceReader, 'getInstanceDetails');
+    vi.spyOn(InstanceReader, 'getInstanceDetails').mockReturnValue(undefined);
 
     const instance = await loadAzureInstanceDetails({ app: app(), instance: instanceParams });
 
@@ -245,7 +246,10 @@ describe('AzureInstanceDetails', () => {
         ],
       }),
     ]);
-    spyOn(InstanceReader, 'getInstanceDetails').and.callFake((_account: string, _region: string, instanceId: string) =>
+    vi.spyOn(
+      InstanceReader,
+      'getInstanceDetails',
+    ).mockImplementation((_account: string, _region: string, instanceId: string) =>
       Promise.resolve(details({ instanceId, instanceType: instanceId === 'i-456' ? 'new-type' : 'old-type' })),
     );
     const wrapper = shallow(
@@ -271,14 +275,14 @@ describe('AzureInstanceDetails', () => {
   });
 
   it('preserves supported instance actions', () => {
-    spyOn(ConfirmationModalService, 'confirm');
-    spyOn(InstanceWriter, 'terminateInstance').and.returnValue(Promise.resolve({} as any));
-    spyOn(InstanceWriter, 'terminateInstanceAndShrinkServerGroup').and.returnValue(Promise.resolve({} as any));
-    spyOn(InstanceWriter, 'rebootInstance').and.returnValue(Promise.resolve({} as any));
-    spyOn(InstanceWriter, 'registerInstanceWithLoadBalancer').and.returnValue(Promise.resolve({} as any));
-    spyOn(InstanceWriter, 'deregisterInstanceFromLoadBalancer').and.returnValue(Promise.resolve({} as any));
-    spyOn(InstanceWriter, 'enableInstanceInDiscovery').and.returnValue(Promise.resolve({} as any));
-    spyOn(InstanceWriter, 'disableInstanceInDiscovery').and.returnValue(Promise.resolve({} as any));
+    vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(undefined);
+    vi.spyOn(InstanceWriter, 'terminateInstance').mockReturnValue(Promise.resolve({} as any));
+    vi.spyOn(InstanceWriter, 'terminateInstanceAndShrinkServerGroup').mockReturnValue(Promise.resolve({} as any));
+    vi.spyOn(InstanceWriter, 'rebootInstance').mockReturnValue(Promise.resolve({} as any));
+    vi.spyOn(InstanceWriter, 'registerInstanceWithLoadBalancer').mockReturnValue(Promise.resolve({} as any));
+    vi.spyOn(InstanceWriter, 'deregisterInstanceFromLoadBalancer').mockReturnValue(Promise.resolve({} as any));
+    vi.spyOn(InstanceWriter, 'enableInstanceInDiscovery').mockReturnValue(Promise.resolve({} as any));
+    vi.spyOn(InstanceWriter, 'disableInstanceInDiscovery').mockReturnValue(Promise.resolve({} as any));
     const application = app();
     const instance = {
       account: 'test-account',
@@ -295,7 +299,13 @@ describe('AzureInstanceDetails', () => {
     wrapper.find(MenuItem).forEach((item) => item.prop('onClick')({} as any));
 
     expect(ConfirmationModalService.confirm).toHaveBeenCalledTimes(7);
-    (ConfirmationModalService.confirm as jasmine.Spy).calls.all().forEach((call) => call.args[0].submitMethod());
+    (ConfirmationModalService.confirm as Mock).mock.calls
+      .map((args, __i) => ({
+        args,
+        returnValue: (ConfirmationModalService.confirm as Mock).mock.results[__i].value,
+        invocationOrder: (ConfirmationModalService.confirm as Mock).mock.invocationCallOrder[__i],
+      }))
+      .forEach((call) => call.args[0].submitMethod());
     expect(InstanceWriter.terminateInstance).toHaveBeenCalledWith(instance, application);
     expect(InstanceWriter.terminateInstanceAndShrinkServerGroup).toHaveBeenCalledWith(instance, application);
     expect(InstanceWriter.rebootInstance).toHaveBeenCalledWith(instance, application);
@@ -303,7 +313,7 @@ describe('AzureInstanceDetails', () => {
     expect(InstanceWriter.deregisterInstanceFromLoadBalancer).toHaveBeenCalledWith(instance, application);
     expect(InstanceWriter.enableInstanceInDiscovery).toHaveBeenCalledWith(instance, application);
     expect(InstanceWriter.disableInstanceInDiscovery).toHaveBeenCalledWith(instance, application);
-    (ConfirmationModalService.confirm as jasmine.Spy).calls.first().args[0].taskMonitorConfig.onTaskComplete();
+    (ConfirmationModalService.confirm as Mock).mock.calls[0][0].taskMonitorConfig.onTaskComplete();
     expect(stateService.includes).toHaveBeenCalledWith('**.instanceDetails', { instanceId: 'i-123' });
     expect(stateService.go).toHaveBeenCalledWith('^');
   });

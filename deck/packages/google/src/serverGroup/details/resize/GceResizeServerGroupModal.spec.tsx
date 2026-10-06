@@ -127,9 +127,9 @@ describe('GceResizeServerGroupModal', () => {
   it('renders fixed-capacity mode for a server group without an autoscaler', () => {
     const wrapper = shallow(
       <GceResizeServerGroupModal
-        application={{ name: 'fnord', serverGroups: { refresh: jasmine.createSpy('refresh') } } as any}
-        autoscalingPolicyWriter={{ upsertAutoscalingPolicy: jasmine.createSpy('upsertAutoscalingPolicy') } as any}
-        dismissModal={jasmine.createSpy('dismissModal')}
+        application={{ name: 'fnord', serverGroups: { refresh: vi.fn() } } as any}
+        autoscalingPolicyWriter={{ upsertAutoscalingPolicy: vi.fn() } as any}
+        dismissModal={vi.fn()}
         serverGroup={
           {
             account: 'prod',
@@ -138,7 +138,7 @@ describe('GceResizeServerGroupModal', () => {
             region: 'us-central1',
           } as any
         }
-        serverGroupWriter={{ resizeServerGroup: jasmine.createSpy('resizeServerGroup') } as any}
+        serverGroupWriter={{ resizeServerGroup: vi.fn() } as any}
       />,
     );
 
@@ -149,9 +149,9 @@ describe('GceResizeServerGroupModal', () => {
   it('renders min/max mode for a server group with an autoscaler', () => {
     const wrapper = shallow(
       <GceResizeServerGroupModal
-        application={{ name: 'fnord', serverGroups: { refresh: jasmine.createSpy('refresh') } } as any}
-        autoscalingPolicyWriter={{ upsertAutoscalingPolicy: jasmine.createSpy('upsertAutoscalingPolicy') } as any}
-        dismissModal={jasmine.createSpy('dismissModal')}
+        application={{ name: 'fnord', serverGroups: { refresh: vi.fn() } } as any}
+        autoscalingPolicyWriter={{ upsertAutoscalingPolicy: vi.fn() } as any}
+        dismissModal={vi.fn()}
         serverGroup={
           {
             account: 'prod',
@@ -160,7 +160,7 @@ describe('GceResizeServerGroupModal', () => {
             region: 'us-central1',
           } as any
         }
-        serverGroupWriter={{ resizeServerGroup: jasmine.createSpy('resizeServerGroup') } as any}
+        serverGroupWriter={{ resizeServerGroup: vi.fn() } as any}
       />,
     );
 
@@ -176,11 +176,11 @@ describe('GceResizeServerGroupModal', () => {
           {
             attributes: { platformHealthOnly: true, platformHealthOnlyShowOverride: true },
             name: 'fnord',
-            serverGroups: { refresh: jasmine.createSpy('refresh') },
+            serverGroups: { refresh: vi.fn() },
           } as any
         }
-        autoscalingPolicyWriter={{ upsertAutoscalingPolicy: jasmine.createSpy('upsertAutoscalingPolicy') } as any}
-        dismissModal={jasmine.createSpy('dismissModal')}
+        autoscalingPolicyWriter={{ upsertAutoscalingPolicy: vi.fn() } as any}
+        dismissModal={vi.fn()}
         serverGroup={
           {
             account: 'prod',
@@ -189,7 +189,7 @@ describe('GceResizeServerGroupModal', () => {
             region: 'us-central1',
           } as any
         }
-        serverGroupWriter={{ resizeServerGroup: jasmine.createSpy('resizeServerGroup') } as any}
+        serverGroupWriter={{ resizeServerGroup: vi.fn() } as any}
       />,
     );
 
@@ -202,7 +202,7 @@ describe('GceResizeServerGroupModal', () => {
     const application = {
       attributes: { platformHealthOnly: true, platformHealthOnlyShowOverride: true },
       name: 'fnord',
-      serverGroups: { refresh: jasmine.createSpy('refresh') },
+      serverGroups: { refresh: vi.fn() },
     } as any;
     const serverGroup = {
       account: 'prod',
@@ -210,12 +210,12 @@ describe('GceResizeServerGroupModal', () => {
       name: 'fnord-main-v004',
       region: 'us-central1',
     } as any;
-    const resizeServerGroup = jasmine.createSpy('resizeServerGroup').and.returnValue(Promise.resolve({}));
+    const resizeServerGroup = vi.fn().mockReturnValue(Promise.resolve({}));
     const wrapper = shallow(
       <GceResizeServerGroupModal
         application={application}
-        autoscalingPolicyWriter={{ upsertAutoscalingPolicy: jasmine.createSpy('upsertAutoscalingPolicy') } as any}
-        dismissModal={jasmine.createSpy('dismissModal')}
+        autoscalingPolicyWriter={{ upsertAutoscalingPolicy: vi.fn() } as any}
+        dismissModal={vi.fn()}
         serverGroup={serverGroup}
         serverGroupWriter={{ resizeServerGroup }}
       />,
@@ -226,7 +226,7 @@ describe('GceResizeServerGroupModal', () => {
     wrapper.find(TaskReason).prop('onChange')('capacity adjustment');
     wrapper.find(UserVerification).prop('onValidChange')(true);
     const monitor = (wrapper.state() as any).taskMonitor;
-    spyOn(monitor, 'submit').and.callFake((submitMethod: () => PromiseLike<any>) => submitMethod());
+    vi.spyOn(monitor, 'submit').mockImplementation((submitMethod: () => PromiseLike<any>) => submitMethod());
     wrapper.find('button.btn-primary').simulate('click');
 
     expect(resizeServerGroup).toHaveBeenCalledWith(serverGroup, application, {
@@ -243,7 +243,7 @@ describe('GceResizeServerGroupModal', () => {
     const application = {
       attributes: { platformHealthOnly: true, platformHealthOnlyShowOverride: true },
       name: 'fnord',
-      serverGroups: { refresh: jasmine.createSpy('refresh') },
+      serverGroups: { refresh: vi.fn() },
     } as any;
     const serverGroup = {
       account: 'prod',
@@ -251,13 +251,13 @@ describe('GceResizeServerGroupModal', () => {
       name: 'fnord-main-v004',
       region: 'us-central1',
     } as any;
-    const upsertAutoscalingPolicy = jasmine.createSpy('upsertAutoscalingPolicy').and.returnValue(Promise.resolve({}));
-    const resizeServerGroup = jasmine.createSpy('resizeServerGroup');
+    const upsertAutoscalingPolicy = vi.fn().mockReturnValue(Promise.resolve({}));
+    const resizeServerGroup = vi.fn();
     const wrapper = shallow(
       <GceResizeServerGroupModal
         application={application}
         autoscalingPolicyWriter={{ upsertAutoscalingPolicy }}
-        dismissModal={jasmine.createSpy('dismissModal')}
+        dismissModal={vi.fn()}
         serverGroup={serverGroup}
         serverGroupWriter={{ resizeServerGroup } as any}
       />,
@@ -268,7 +268,7 @@ describe('GceResizeServerGroupModal', () => {
     wrapper.find(TaskReason).prop('onChange')('raise autoscaling ceiling');
     wrapper.find(UserVerification).prop('onValidChange')(true);
     const monitor = (wrapper.state() as any).taskMonitor;
-    spyOn(monitor, 'submit').and.callFake((submitMethod: () => PromiseLike<any>) => submitMethod());
+    vi.spyOn(monitor, 'submit').mockImplementation((submitMethod: () => PromiseLike<any>) => submitMethod());
     wrapper.find('button.btn-primary').simulate('click');
 
     expect(resizeServerGroup).not.toHaveBeenCalled();
@@ -286,9 +286,9 @@ describe('GceResizeServerGroupModal', () => {
   it('surfaces invalid autoscaler min/max validation', () => {
     const wrapper = shallow(
       <GceResizeServerGroupModal
-        application={{ name: 'fnord', serverGroups: { refresh: jasmine.createSpy('refresh') } } as any}
-        autoscalingPolicyWriter={{ upsertAutoscalingPolicy: jasmine.createSpy('upsertAutoscalingPolicy') } as any}
-        dismissModal={jasmine.createSpy('dismissModal')}
+        application={{ name: 'fnord', serverGroups: { refresh: vi.fn() } } as any}
+        autoscalingPolicyWriter={{ upsertAutoscalingPolicy: vi.fn() } as any}
+        dismissModal={vi.fn()}
         serverGroup={
           {
             account: 'prod',
@@ -297,7 +297,7 @@ describe('GceResizeServerGroupModal', () => {
             region: 'us-central1',
           } as any
         }
-        serverGroupWriter={{ resizeServerGroup: jasmine.createSpy('resizeServerGroup') } as any}
+        serverGroupWriter={{ resizeServerGroup: vi.fn() } as any}
       />,
     );
 
@@ -310,11 +310,11 @@ describe('GceResizeServerGroupModal', () => {
   it('opens as a standalone React modal', () => {
     const props = {
       application: { name: 'fnord' },
-      autoscalingPolicyWriter: { upsertAutoscalingPolicy: jasmine.createSpy('upsertAutoscalingPolicy') },
+      autoscalingPolicyWriter: { upsertAutoscalingPolicy: vi.fn() },
       serverGroup: { account: 'prod', name: 'fnord-main-v004', region: 'us-central1' },
-      serverGroupWriter: { resizeServerGroup: jasmine.createSpy('resizeServerGroup') },
+      serverGroupWriter: { resizeServerGroup: vi.fn() },
     } as any;
-    const show = spyOn(ReactModal, 'show').and.returnValue(Promise.resolve({}) as any);
+    const show = vi.spyOn(ReactModal, 'show').mockReturnValue(Promise.resolve({}) as any);
 
     GceResizeServerGroupModal.show(props);
 
@@ -324,9 +324,9 @@ describe('GceResizeServerGroupModal', () => {
   it('keeps submit disabled when fixed capacity is cleared', () => {
     const wrapper = shallow(
       <GceResizeServerGroupModal
-        application={{ name: 'fnord', serverGroups: { refresh: jasmine.createSpy('refresh') } } as any}
-        autoscalingPolicyWriter={{ upsertAutoscalingPolicy: jasmine.createSpy('upsertAutoscalingPolicy') } as any}
-        dismissModal={jasmine.createSpy('dismissModal')}
+        application={{ name: 'fnord', serverGroups: { refresh: vi.fn() } } as any}
+        autoscalingPolicyWriter={{ upsertAutoscalingPolicy: vi.fn() } as any}
+        dismissModal={vi.fn()}
         serverGroup={
           {
             account: 'prod',
@@ -335,7 +335,7 @@ describe('GceResizeServerGroupModal', () => {
             region: 'us-central1',
           } as any
         }
-        serverGroupWriter={{ resizeServerGroup: jasmine.createSpy('resizeServerGroup') } as any}
+        serverGroupWriter={{ resizeServerGroup: vi.fn() } as any}
       />,
     );
 
@@ -349,9 +349,9 @@ describe('GceResizeServerGroupModal', () => {
   it('requires autoscaler bounds after an input is cleared', () => {
     const wrapper = shallow(
       <GceResizeServerGroupModal
-        application={{ name: 'fnord', serverGroups: { refresh: jasmine.createSpy('refresh') } } as any}
-        autoscalingPolicyWriter={{ upsertAutoscalingPolicy: jasmine.createSpy('upsertAutoscalingPolicy') } as any}
-        dismissModal={jasmine.createSpy('dismissModal')}
+        application={{ name: 'fnord', serverGroups: { refresh: vi.fn() } } as any}
+        autoscalingPolicyWriter={{ upsertAutoscalingPolicy: vi.fn() } as any}
+        dismissModal={vi.fn()}
         serverGroup={
           {
             account: 'prod',
@@ -360,7 +360,7 @@ describe('GceResizeServerGroupModal', () => {
             region: 'us-central1',
           } as any
         }
-        serverGroupWriter={{ resizeServerGroup: jasmine.createSpy('resizeServerGroup') } as any}
+        serverGroupWriter={{ resizeServerGroup: vi.fn() } as any}
       />,
     );
 
@@ -372,14 +372,14 @@ describe('GceResizeServerGroupModal', () => {
   });
 
   it('dismisses the modal from the task monitor', () => {
-    const dismissModal = jasmine.createSpy('dismissModal');
+    const dismissModal = vi.fn();
     const wrapper = shallow(
       <GceResizeServerGroupModal
-        application={{ name: 'fnord', serverGroups: { refresh: jasmine.createSpy('refresh') } } as any}
-        autoscalingPolicyWriter={{ upsertAutoscalingPolicy: jasmine.createSpy('upsertAutoscalingPolicy') } as any}
+        application={{ name: 'fnord', serverGroups: { refresh: vi.fn() } } as any}
+        autoscalingPolicyWriter={{ upsertAutoscalingPolicy: vi.fn() } as any}
         dismissModal={dismissModal}
         serverGroup={{ account: 'prod', name: 'fnord-main-v004', region: 'us-central1' } as any}
-        serverGroupWriter={{ resizeServerGroup: jasmine.createSpy('resizeServerGroup') } as any}
+        serverGroupWriter={{ resizeServerGroup: vi.fn() } as any}
       />,
     );
 

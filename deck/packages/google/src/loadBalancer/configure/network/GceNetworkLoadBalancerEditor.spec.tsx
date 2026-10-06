@@ -57,9 +57,7 @@ describe('GceNetworkLoadBalancerEditor', () => {
       },
       'edit',
     );
-    const wrapper = shallow(
-      <GceNetworkLoadBalancerEditor command={command} data={emptyData()} onChange={jasmine.createSpy('onChange')} />,
-    );
+    const wrapper = shallow(<GceNetworkLoadBalancerEditor command={command} data={emptyData()} onChange={vi.fn()} />);
 
     [
       'name',
@@ -109,22 +107,22 @@ describe('GceNetworkLoadBalancerEditor', () => {
       { account: 'account-a', loadBalancerName: 'app-main', region: 'europe-west1' },
       'create',
     );
-    const onChange = jasmine.createSpy('onChange');
+    const onChange = vi.fn();
     const wrapper = shallow(<GceNetworkLoadBalancerEditor command={command} data={emptyData()} onChange={onChange} />);
 
     wrapper.find('[data-field="protocol"] select').simulate('change', { target: { value: 'UDP' } });
-    expect(onChange.calls.mostRecent().args[0].listeners[0].protocol).toBe('UDP');
+    expect(onChange.mock.lastCall[0].listeners[0].protocol).toBe('UDP');
 
     wrapper.find('[data-field="sessionAffinity"] select').simulate('change', {
       target: { value: 'CLIENT_IP_PROTO' },
     });
-    expect(onChange.calls.mostRecent().args[0].sessionAffinity).toBe('CLIENT_IP_PROTO');
+    expect(onChange.mock.lastCall[0].sessionAffinity).toBe('CLIENT_IP_PROTO');
 
     wrapper.find('[data-field="requestPath"] input').simulate('change', { target: { value: 'status' } });
-    expect(onChange.calls.mostRecent().args[0].healthChecks[0].requestPath).toBe('/status');
+    expect(onChange.mock.lastCall[0].healthChecks[0].requestPath).toBe('/status');
 
     wrapper.find('[data-field="healthCheckEnabled"] input').simulate('change', { target: { checked: false } });
-    expect(onChange.calls.mostRecent().args[0].healthChecks).toEqual([]);
+    expect(onChange.mock.lastCall[0].healthChecks).toEqual([]);
   });
 
   it('validates the exact required listener and enabled health-check fields', () => {

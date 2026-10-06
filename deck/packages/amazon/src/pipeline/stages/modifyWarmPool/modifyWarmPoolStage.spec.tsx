@@ -8,8 +8,8 @@ import { awsModifyWarmPoolStage } from './modifyWarmPoolStage';
 
 describe('AWS Modify Warm Pool stage', () => {
   function renderEditor(stage: any = {}, pipeline: any = {}) {
-    const updateStageField = jasmine.createSpy('updateStageField');
-    const updateStage = jasmine.createSpy('updateStage');
+    const updateStageField = vi.fn();
+    const updateStage = vi.fn();
     const StageConfig = awsModifyWarmPoolStage.component;
     const stageModel = { type: 'modifyWarmPool', cloudProviderType: 'aws', ...stage };
     const wrapper = shallow(
@@ -28,7 +28,7 @@ describe('AWS Modify Warm Pool stage', () => {
   }
 
   beforeEach(() => {
-    spyOn(AccountService, 'listAccounts').and.returnValue(Promise.resolve([]));
+    vi.spyOn(AccountService, 'listAccounts').mockReturnValue(Promise.resolve([]));
   });
 
   it('registers a dedicated stage editor', () => {

@@ -88,20 +88,22 @@ describe('Docker bake stage', () => {
   });
 
   it('persists Docker bake defaults after loading options', async () => {
-    spyOn(AuthenticationService, 'getAuthenticatedUser').and.returnValue({ name: 'user@example.com' } as any);
-    spyOn(BakeryReader, 'getBaseOsOptions').and.returnValue(Promise.resolve({ baseImages: [{ id: 'ubuntu' }] } as any));
-    spyOn(BakeryReader, 'getBaseLabelOptions').and.returnValue(Promise.resolve(['release']));
+    vi.spyOn(AuthenticationService, 'getAuthenticatedUser').mockReturnValue({ name: 'user@example.com' } as any);
+    vi.spyOn(BakeryReader, 'getBaseOsOptions').mockReturnValue(
+      Promise.resolve({ baseImages: [{ id: 'ubuntu' }] } as any),
+    );
+    vi.spyOn(BakeryReader, 'getBaseLabelOptions').mockReturnValue(Promise.resolve(['release']));
 
-    const updateStage = jasmine.createSpy('updateStage');
+    const updateStage = vi.fn();
 
     shallow(
       <DockerBakeStageConfig
         application={{} as any}
         pipeline={{} as any}
         stage={{ package: 'my-package', organization: '' } as any}
-        stageFieldUpdated={jasmine.createSpy('stageFieldUpdated')}
+        stageFieldUpdated={vi.fn()}
         updateStage={updateStage}
-        updateStageField={jasmine.createSpy('updateStageField')}
+        updateStageField={vi.fn()}
       />,
     );
 
@@ -117,17 +119,17 @@ describe('Docker bake stage', () => {
   });
 
   it('shows an error instead of a permanent spinner when bake options fail to load', async () => {
-    spyOn(BakeryReader, 'getBaseOsOptions').and.returnValue(Promise.reject(new Error('boom')));
-    spyOn(BakeryReader, 'getBaseLabelOptions').and.returnValue(Promise.resolve(['release']));
+    vi.spyOn(BakeryReader, 'getBaseOsOptions').mockReturnValue(Promise.reject(new Error('boom')));
+    vi.spyOn(BakeryReader, 'getBaseLabelOptions').mockReturnValue(Promise.resolve(['release']));
 
     const wrapper = shallow(
       <DockerBakeStageConfig
         application={{} as any}
         pipeline={{} as any}
         stage={{ package: 'my-package' } as any}
-        stageFieldUpdated={jasmine.createSpy('stageFieldUpdated')}
-        updateStage={jasmine.createSpy('updateStage')}
-        updateStageField={jasmine.createSpy('updateStageField')}
+        stageFieldUpdated={vi.fn()}
+        updateStage={vi.fn()}
+        updateStageField={vi.fn()}
       />,
     );
 
@@ -141,8 +143,10 @@ describe('Docker bake stage', () => {
   it('does not update state after unmounting before bake options load', async () => {
     let resolveBaseOsOptions: (value: any) => void;
     let resolveBaseLabelOptions: (value: string[]) => void;
-    spyOn(BakeryReader, 'getBaseOsOptions').and.returnValue(new Promise((resolve) => (resolveBaseOsOptions = resolve)));
-    spyOn(BakeryReader, 'getBaseLabelOptions').and.returnValue(
+    vi.spyOn(BakeryReader, 'getBaseOsOptions').mockReturnValue(
+      new Promise((resolve) => (resolveBaseOsOptions = resolve)),
+    );
+    vi.spyOn(BakeryReader, 'getBaseLabelOptions').mockReturnValue(
       new Promise((resolve) => (resolveBaseLabelOptions = resolve)),
     );
 
@@ -151,12 +155,12 @@ describe('Docker bake stage', () => {
         application={{} as any}
         pipeline={{} as any}
         stage={{ package: 'my-package' } as any}
-        stageFieldUpdated={jasmine.createSpy('stageFieldUpdated')}
-        updateStage={jasmine.createSpy('updateStage')}
-        updateStageField={jasmine.createSpy('updateStageField')}
+        stageFieldUpdated={vi.fn()}
+        updateStage={vi.fn()}
+        updateStageField={vi.fn()}
       />,
     );
-    const setState = spyOn(wrapper.instance() as DockerBakeStageConfig, 'setState');
+    const setState = vi.spyOn(wrapper.instance() as DockerBakeStageConfig, 'setState').mockReturnValue(undefined);
 
     wrapper.unmount();
     resolveBaseOsOptions!({ baseImages: [{ id: 'ubuntu' }] });

@@ -22,9 +22,9 @@ describe('SimpleModeSelector', () => {
     const component = mount(
       <SimpleModeSelector
         command={command as any}
-        setUnlimitedCpuCredits={jasmine.createSpy('setUnlimitedCpuCredits')}
-        setFieldValue={jasmine.createSpy('setFieldValue')}
-        clearWarnings={jasmine.createSpy('clearWarnings')}
+        setUnlimitedCpuCredits={vi.fn()}
+        setFieldValue={vi.fn()}
+        clearWarnings={vi.fn()}
       />,
     );
     await settle(component);
@@ -43,9 +43,9 @@ describe('SimpleModeSelector', () => {
     const component = mount(
       <SimpleModeSelector
         command={command as any}
-        setUnlimitedCpuCredits={jasmine.createSpy('setUnlimitedCpuCredits')}
-        setFieldValue={jasmine.createSpy('setFieldValue')}
-        clearWarnings={jasmine.createSpy('clearWarnings')}
+        setUnlimitedCpuCredits={vi.fn()}
+        setFieldValue={vi.fn()}
+        clearWarnings={vi.fn()}
       />,
     );
     await settle(component);
@@ -54,14 +54,14 @@ describe('SimpleModeSelector', () => {
     await settle(component);
     component.find('.instance-type-row').simulate('click');
 
-    expect(command.instanceTypeChanged).toHaveBeenCalledWith(jasmine.objectContaining({ instanceType: 'm5.large' }));
+    expect(command.instanceTypeChanged).toHaveBeenCalledWith(expect.objectContaining({ instanceType: 'm5.large' }));
   });
 });
 
 function buildCommand() {
   return {
     backingData: { filtered: { instanceTypes: ['m5.large'] } },
-    instanceTypeChanged: jasmine.createSpy('instanceTypeChanged'),
+    instanceTypeChanged: vi.fn(),
     selectedProvider: 'aws',
     viewState: { dirty: {} },
   };
@@ -69,7 +69,7 @@ function buildCommand() {
 
 function instanceTypeService() {
   return {
-    getCategories: jasmine.createSpy('getCategories').and.returnValue(
+    getCategories: vi.fn().mockReturnValue(
       Promise.resolve([
         {
           type: 'general',
@@ -94,7 +94,7 @@ function instanceTypeService() {
         },
       ]),
     ),
-    getInstanceTypeDetails: jasmine.createSpy('getInstanceTypeDetails').and.returnValue(Promise.resolve({})),
+    getInstanceTypeDetails: vi.fn().mockReturnValue(Promise.resolve({})),
   };
 }
 

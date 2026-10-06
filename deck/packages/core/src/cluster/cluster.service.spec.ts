@@ -1,6 +1,6 @@
 import { find } from 'lodash';
 
-import { mockHttpClient } from '../api/mock/jasmine';
+import { mockHttpClient } from '../api/mock/mockHttpSupport';
 import type { Application } from '../application/application.model';
 import { ApplicationModelBuilder } from '../application/applicationModel.builder';
 import { ClusterService } from './cluster.service';
@@ -9,6 +9,8 @@ import { SETTINGS } from '../config/settings';
 import type { IInstanceCounts, IServerGroup } from '../domain';
 import * as State from '../state';
 import { nativePromiseService } from '../utils/nativePromiseService';
+
+const testContext: any = {};
 
 const ClusterState = State.ClusterState;
 
@@ -114,7 +116,9 @@ describe('Service: Cluster', function () {
       http
         .expectGET('/applications/app/serverGroups')
         .respond(200, [({ name: 'app-v001', account: 'test', region: 'us-east-1' } as unknown) as IServerGroup]);
-      spyOn(serverGroupTransformer, 'normalizeServerGroup').and.callFake((serverGroup: IServerGroup) => serverGroup);
+      vi.spyOn(serverGroupTransformer, 'normalizeServerGroup').mockImplementation(
+        (serverGroup: IServerGroup) => serverGroup,
+      );
       let serverGroups: IServerGroup[] = null;
 
       clusterService.loadServerGroups(application).then((result: IServerGroup[]) => (serverGroups = result));
@@ -125,7 +129,7 @@ describe('Service: Cluster', function () {
 
     it('converts clusters parameter to q and account params when there are fewer than 251 clusters', async () => {
       const http = mockHttpClient();
-      spyOn(ClusterState.filterModel.asFilterModel, 'applyParamsToUrl').and.callFake(() => {});
+      vi.spyOn(ClusterState.filterModel.asFilterModel, 'applyParamsToUrl').mockImplementation(() => {});
       const clusters = Array(250);
       ClusterState.filterModel.asFilterModel.sortFilter.clusters = { 'test:myapp': true };
       http.expectGET('/applications/app/clusters').respond(200, { test: clusters });
@@ -519,7 +523,7 @@ describe('Service: Cluster', function () {
 
     describe('resizeasg, disableasg, destroyasg, enableasg', () => {
       beforeEach(() => {
-        this.validateTaskAttached = () => {
+        testContext.validateTaskAttached = () => {
           clusterService.addTasksToServerGroups(application);
           const serverGroups: IServerGroup[] = application.serverGroups.data;
           expect(serverGroups[0].runningTasks.length).toBe(0);
@@ -529,7 +533,7 @@ describe('Service: Cluster', function () {
           expect(serverGroups[4].runningTasks.length).toBe(0);
         };
 
-        this.buildCommonTask = (type: string) => {
+        testContext.buildCommonTask = (type: string) => {
           application.runningTasks = {
             data: [
               buildTask({
@@ -547,27 +551,27 @@ describe('Service: Cluster', function () {
       });
 
       it('resizeasg', () => {
-        this.buildCommonTask('resizeasg');
-        this.validateTaskAttached();
+        testContext.buildCommonTask('resizeasg');
+        testContext.validateTaskAttached();
       });
 
       it('disableasg', () => {
-        this.buildCommonTask('resizeasg');
-        this.validateTaskAttached();
+        testContext.buildCommonTask('resizeasg');
+        testContext.validateTaskAttached();
       });
 
       it('destroyasg', () => {
-        this.buildCommonTask('resizeasg');
-        this.validateTaskAttached();
+        testContext.buildCommonTask('resizeasg');
+        testContext.validateTaskAttached();
       });
 
       it('enableasg', () => {
-        this.buildCommonTask('resizeasg');
-        this.validateTaskAttached();
+        testContext.buildCommonTask('resizeasg');
+        testContext.validateTaskAttached();
       });
 
       it('some unknown task', () => {
-        this.buildCommonTask('someuknownthing');
+        testContext.buildCommonTask('someuknownthing');
         clusterService.addTasksToServerGroups(application);
         application.serverGroups.data.forEach((serverGroup: IServerGroup) => {
           expect(serverGroup.runningTasks.length).toBe(0);

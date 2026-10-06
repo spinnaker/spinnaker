@@ -57,7 +57,7 @@ describe('GCE server group details integration', () => {
         { ...eligibleRollbackCandidate, app: 'other', name: 'other-main-v003' },
         { ...eligibleRollbackCandidate, isDisabled: false, name: 'fnord-main-v002' },
       ],
-      refresh: jasmine.createSpy('refresh'),
+      refresh: vi.fn(),
     },
   } as any;
 
@@ -83,15 +83,15 @@ describe('GCE server group details integration', () => {
     );
 
     expect(autoscaling.find(GceAutoscalingPolicyDetails).props()).toEqual(
-      jasmine.objectContaining({ application: app, policy: serverGroup.autoscalingPolicy, serverGroup }),
+      expect.objectContaining({ application: app, policy: serverGroup.autoscalingPolicy, serverGroup }),
     );
     expect(autoHealing.find(GceAutoHealingPolicyDetails).props()).toEqual(
-      jasmine.objectContaining({ application: app, policy: serverGroup.autoHealingPolicy, serverGroup }),
+      expect.objectContaining({ application: app, policy: serverGroup.autoHealingPolicy, serverGroup }),
     );
   });
 
   it('keeps policy summaries read-only when GCE ad-hoc infrastructure writes are disabled', () => {
-    spyOn(CloudProviderRegistry, 'isDisabled').and.returnValue(true);
+    vi.spyOn(CloudProviderRegistry, 'isDisabled').mockReturnValue(true);
     const renderedSections = gceServerGroupDetailsSections.map((Section) =>
       shallow(<Section app={app} serverGroup={serverGroup} />),
     );
@@ -113,7 +113,7 @@ describe('GCE server group details integration', () => {
   });
 
   it('does not offer policy creation when GCE ad-hoc infrastructure writes are disabled', () => {
-    spyOn(CloudProviderRegistry, 'isDisabled').and.returnValue(true);
+    vi.spyOn(CloudProviderRegistry, 'isDisabled').mockReturnValue(true);
     const serverGroupWithoutPolicies = {
       ...serverGroup,
       autoscalingPolicy: undefined,
@@ -200,11 +200,9 @@ describe('GCE server group details integration', () => {
   it('opens clone with the command builder and runtime services from Deck context', async () => {
     const command = { application: serverGroup.app, stack: 'main' };
     runtimeServices.serverGroupCommandBuilder = {
-      buildServerGroupCommandFromExisting: jasmine
-        .createSpy('buildServerGroupCommandFromExisting')
-        .and.resolveTo(command),
+      buildServerGroupCommandFromExisting: vi.fn().mockResolvedValue(command),
     };
-    const show = spyOn(GceCloneServerGroupModal, 'show').and.resolveTo({} as any);
+    const show = vi.spyOn(GceCloneServerGroupModal, 'show').mockResolvedValue({} as any);
     const wrapper = mount(<GceServerGroupActions app={app} serverGroup={serverGroup} />);
 
     linkAction(wrapper, 'Clone').simulate('click');
@@ -230,12 +228,12 @@ describe('GCE server group details integration', () => {
   });
 
   it('opens rollback with filtered candidates and the existing server group writer', () => {
-    const show = spyOn(GceRollbackServerGroupModal, 'show').and.returnValue(Promise.resolve({} as any));
+    const show = vi.spyOn(GceRollbackServerGroupModal, 'show').mockReturnValue(Promise.resolve({} as any));
     const wrapper = mount(<GceServerGroupActions app={app} serverGroup={serverGroup} />);
 
     managedAction(wrapper, 'Rollback').prop('onClick')();
 
-    expect(show).toHaveBeenCalledOnceWith({
+    expect(show).toHaveBeenCalledExactlyOnceWith({
       application: app,
       serverGroup,
       serverGroups: [eligibleRollbackCandidate],
@@ -245,24 +243,24 @@ describe('GCE server group details integration', () => {
 
   it('keeps rollback available when there are no candidates and delegates empty handling to the modal', () => {
     const appWithoutCandidates = { ...app, serverGroups: { ...app.serverGroups, data: [] } };
-    const show = spyOn(GceRollbackServerGroupModal, 'show').and.returnValue(Promise.resolve({} as any));
+    const show = vi.spyOn(GceRollbackServerGroupModal, 'show').mockReturnValue(Promise.resolve({} as any));
     const wrapper = mount(<GceServerGroupActions app={appWithoutCandidates} serverGroup={serverGroup} />);
 
     expect(managedAction(wrapper, 'Rollback').length).toBe(1);
     managedAction(wrapper, 'Rollback').prop('onClick')();
 
-    expect(show).toHaveBeenCalledOnceWith(
-      jasmine.objectContaining({ application: appWithoutCandidates, serverGroup, serverGroups: [] }),
+    expect(show).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({ application: appWithoutCandidates, serverGroup, serverGroups: [] }),
     );
   });
 
   it('opens resize with the completed writers', () => {
-    const show = spyOn(GceResizeServerGroupModal, 'show').and.returnValue(Promise.resolve());
+    const show = vi.spyOn(GceResizeServerGroupModal, 'show').mockReturnValue(Promise.resolve());
     const wrapper = mount(<GceServerGroupActions app={app} serverGroup={serverGroup} />);
 
     managedAction(wrapper, 'Resize').prop('onClick')();
 
-    expect(show).toHaveBeenCalledOnceWith({
+    expect(show).toHaveBeenCalledExactlyOnceWith({
       application: app,
       autoscalingPolicyWriter: GceAutoscalingPolicyWriter,
       serverGroup,
@@ -275,13 +273,13 @@ describe('GCE server group details integration', () => {
 
     ['Rollback', 'Resize'].forEach((label) => {
       expect(managedAction(wrapper, label).props()).toEqual(
-        jasmine.objectContaining({ application: app, resource: jasmine.objectContaining({ isManaged: true }) }),
+        expect.objectContaining({ application: app, resource: expect.objectContaining({ isManaged: true }) }),
       );
     });
   });
 
   it('hides server group actions when GCE ad-hoc infrastructure writes are disabled', () => {
-    spyOn(CloudProviderRegistry, 'isDisabled').and.returnValue(true);
+    vi.spyOn(CloudProviderRegistry, 'isDisabled').mockReturnValue(true);
 
     const wrapper = mount(<GceServerGroupActions app={app} serverGroup={serverGroup} />);
 

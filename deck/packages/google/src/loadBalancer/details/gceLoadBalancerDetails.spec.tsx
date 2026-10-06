@@ -10,6 +10,7 @@ import {
   TaskExecutor,
 } from '@spinnaker/core';
 
+import { mockHttpClient } from '../../../../core/src/api/mock/mockHttpSupport';
 import { GceLoadBalancerChoiceModal } from '../configure/choice/GceLoadBalancerChoiceModal';
 import {
   GceLoadBalancerActions,
@@ -30,7 +31,7 @@ describe('GceLoadBalancerActions', () => {
   } as any;
 
   it('hides write actions when the Google provider is disabled', () => {
-    spyOn(CloudProviderRegistry, 'isDisabled').and.returnValue(true);
+    vi.spyOn(CloudProviderRegistry, 'isDisabled').mockReturnValue(true);
 
     const wrapper = shallow(<GceLoadBalancerActions app={app} loadBalancer={loadBalancer} />);
 
@@ -38,8 +39,8 @@ describe('GceLoadBalancerActions', () => {
   });
 
   it('opens the current load balancer in edit mode through managed-resource gating', () => {
-    spyOn(CloudProviderRegistry, 'isDisabled').and.returnValue(false);
-    const show = spyOn(GceLoadBalancerChoiceModal, 'show').and.returnValue(Promise.resolve() as any);
+    vi.spyOn(CloudProviderRegistry, 'isDisabled').mockReturnValue(false);
+    const show = vi.spyOn(GceLoadBalancerChoiceModal, 'show').mockReturnValue(Promise.resolve() as any);
 
     const wrapper = shallow(<GceLoadBalancerActions app={app} loadBalancer={loadBalancer} />);
     const edit = wrapper.find(ManagedMenuItem).filterWhere((item) => item.prop('children') === 'Edit Load Balancer');
@@ -47,7 +48,7 @@ describe('GceLoadBalancerActions', () => {
     expect(edit.prop('application')).toBe(app);
     expect(edit.prop('resource')).toBe(loadBalancer);
     edit.prop('onClick')();
-    expect(show).toHaveBeenCalledOnceWith({
+    expect(show).toHaveBeenCalledExactlyOnceWith({
       app,
       application: app,
       forPipelineConfig: false,
@@ -58,7 +59,7 @@ describe('GceLoadBalancerActions', () => {
   });
 
   it('keeps delete behind managed-resource gating and disables it while instances are attached', () => {
-    spyOn(CloudProviderRegistry, 'isDisabled').and.returnValue(false);
+    vi.spyOn(CloudProviderRegistry, 'isDisabled').mockReturnValue(false);
 
     const editable = shallow(<GceLoadBalancerActions app={app} loadBalancer={loadBalancer} />);
     const managedDelete = editable
@@ -91,7 +92,7 @@ describe('loadGceLoadBalancerDetails', () => {
       urlMapName: 'regional-url-map',
     };
     const loadBalancerReader = {
-      getLoadBalancerDetails: jasmine.createSpy('getLoadBalancerDetails').and.returnValue(
+      getLoadBalancerDetails: vi.fn().mockReturnValue(
         Promise.resolve([
           {
             dnsname: '1.2.3.4',
@@ -101,11 +102,9 @@ describe('loadGceLoadBalancerDetails', () => {
       ),
     };
     const accountService = {
-      getAccountDetails: jasmine
-        .createSpy('getAccountDetails')
-        .and.returnValue(Promise.resolve({ project: 'gce-project' })),
+      getAccountDetails: vi.fn().mockReturnValue(Promise.resolve({ project: 'gce-project' })),
     };
-    const autoClose = jasmine.createSpy('autoClose');
+    const autoClose = vi.fn();
 
     const loadBalancer = await loadGceLoadBalancerDetails({
       app: { loadBalancers: { data: [normalizedLoadBalancer] } } as any,
@@ -134,12 +133,12 @@ describe('loadGceLoadBalancerDetails', () => {
   });
 
   it('prefers an exact name over a regional URL-map alias', async () => {
-    const autoClose = jasmine.createSpy('autoClose');
+    const autoClose = vi.fn();
     const loadBalancerReader = {
-      getLoadBalancerDetails: jasmine.createSpy('getLoadBalancerDetails').and.returnValue(Promise.resolve([])),
+      getLoadBalancerDetails: vi.fn().mockReturnValue(Promise.resolve([])),
     };
     const accountService = {
-      getAccountDetails: jasmine.createSpy('getAccountDetails').and.returnValue(Promise.resolve({})),
+      getAccountDetails: vi.fn().mockReturnValue(Promise.resolve({})),
     };
     const internalManaged = {
       account: 'test',
@@ -201,7 +200,7 @@ describe('loadGceLoadBalancerDetails', () => {
     await loadGceLoadBalancerDetails({
       accountService: { getAccountDetails: () => Promise.resolve({}) } as any,
       app: { loadBalancers: { data: [loadBalancer] } } as any,
-      autoClose: jasmine.createSpy('autoClose'),
+      autoClose: vi.fn(),
       loadBalancerParams: {
         accountId: 'test',
         name: 'passthrough-lb',
@@ -214,10 +213,14 @@ describe('loadGceLoadBalancerDetails', () => {
       } as any,
     });
 
+    // AccountTag lazily loads credentials; answer that request so the fail-closed test client allows it.
+    const http = mockHttpClient();
+    http.expectGET('/credentials').respond(200, []);
     const wrapper = mount(<GceLoadBalancerInformationSection app={{}} loadBalancer={loadBalancer} />);
     expect(wrapper.text()).toContain('203.0.113.10');
     expect(wrapper.text()).not.toContain('http://');
     expect(wrapper.text()).not.toContain('https://');
+    await http.flush();
   });
 
   it('reads back the REGIONAL_EXTERNAL_NETWORK backend service and health check', async () => {
@@ -232,7 +235,7 @@ describe('loadGceLoadBalancerDetails', () => {
     await loadGceLoadBalancerDetails({
       accountService: { getAccountDetails: () => Promise.resolve({}) } as any,
       app: { loadBalancers: { data: [loadBalancer] } } as any,
-      autoClose: jasmine.createSpy('autoClose'),
+      autoClose: vi.fn(),
       loadBalancerParams: {
         accountId: 'test',
         name: 'passthrough-lb',
@@ -255,13 +258,13 @@ describe('GceLoadBalancerActions delete behavior', () => {
   const app = { name: 'fnord' } as any;
 
   beforeEach(() => {
-    spyOn(CloudProviderRegistry, 'isDisabled').and.returnValue(false);
+    vi.spyOn(CloudProviderRegistry, 'isDisabled').mockReturnValue(false);
   });
 
   it('deletes EXTERNAL_MANAGED load balancers using raw listener names and regional scope', async () => {
-    const confirmSpy = spyOn(ConfirmationModalService, 'confirm').and.returnValue(Promise.resolve({}) as any);
-    spyOn(InfrastructureCaches, 'clearCache');
-    const executeTaskSpy = spyOn(TaskExecutor, 'executeTask').and.returnValue(Promise.resolve({}) as any);
+    const confirmSpy = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(Promise.resolve({}) as any);
+    vi.spyOn(InfrastructureCaches, 'clearCache').mockReturnValue(undefined);
+    const executeTaskSpy = vi.spyOn(TaskExecutor, 'executeTask').mockReturnValue(Promise.resolve({}) as any);
     const loadBalancer = {
       account: 'test-account',
       instances: [],
@@ -278,14 +281,14 @@ describe('GceLoadBalancerActions delete behavior', () => {
       .find(ManagedMenuItem)
       .filterWhere((item) => item.prop('children') === 'Delete Load Balancer')
       .prop('onClick')();
-    const modalParams = confirmSpy.calls.mostRecent().args[0] as any;
+    const modalParams = confirmSpy.mock.lastCall[0] as any;
     await modalParams.submitMethod({ deleteHealthChecks: true });
 
     expect(executeTaskSpy).toHaveBeenCalledWith({
       application: app,
       description: 'Delete load balancer: regional-url-map in test-account:us-central1',
       job: [
-        jasmine.objectContaining({
+        expect.objectContaining({
           cloudProvider: 'gce',
           credentials: 'test-account',
           deleteHealthChecks: true,
@@ -301,7 +304,7 @@ describe('GceLoadBalancerActions delete behavior', () => {
   });
 
   it('shows delete-health-check controls for EXTERNAL_MANAGED and REGIONAL_EXTERNAL_NETWORK load balancers', () => {
-    const confirmSpy = spyOn(ConfirmationModalService, 'confirm').and.returnValue(Promise.resolve({}) as any);
+    const confirmSpy = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(Promise.resolve({}) as any);
 
     const externalManaged = {
       account: 'test-account',
@@ -317,7 +320,11 @@ describe('GceLoadBalancerActions delete behavior', () => {
       .find(ManagedMenuItem)
       .filterWhere((item) => item.prop('children') === 'Delete Load Balancer')
       .prop('onClick')();
-    expect(shallow(confirmSpy.calls.all()[0].args[0].bodyContent).find('input[type="checkbox"]').exists()).toBe(true);
+    expect(
+      shallow(confirmSpy.mock.calls.map((args) => ({ args }))[0].args[0].bodyContent)
+        .find('input[type="checkbox"]')
+        .exists(),
+    ).toBe(true);
 
     const regionalExternalNetwork = {
       account: 'test-account',
@@ -332,7 +339,11 @@ describe('GceLoadBalancerActions delete behavior', () => {
       .find(ManagedMenuItem)
       .filterWhere((item) => item.prop('children') === 'Delete Load Balancer')
       .prop('onClick')();
-    expect(shallow(confirmSpy.calls.all()[1].args[0].bodyContent).find('input[type="checkbox"]').exists()).toBe(true);
+    expect(
+      shallow(confirmSpy.mock.calls.map((args) => ({ args }))[1].args[0].bodyContent)
+        .find('input[type="checkbox"]')
+        .exists(),
+    ).toBe(true);
 
     // INTERNAL deletes always remove unused health checks, so no option is offered.
     mount(
@@ -341,7 +352,11 @@ describe('GceLoadBalancerActions delete behavior', () => {
       .find(ManagedMenuItem)
       .filterWhere((item) => item.prop('children') === 'Delete Load Balancer')
       .prop('onClick')();
-    expect(shallow(confirmSpy.calls.all()[2].args[0].bodyContent).find('input[type="checkbox"]').exists()).toBe(false);
+    expect(
+      shallow(confirmSpy.mock.calls.map((args) => ({ args }))[2].args[0].bodyContent)
+        .find('input[type="checkbox"]')
+        .exists(),
+    ).toBe(false);
   });
 });
 

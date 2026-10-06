@@ -26,11 +26,11 @@ describe('Cloud Run edit load balancer stage', () => {
       application: {
         loadBalancers: {
           data: [],
-          ready: jasmine.createSpy('ready').and.returnValue(Promise.resolve()),
+          ready: vi.fn().mockReturnValue(Promise.resolve()),
         },
       },
-      closeModal: jasmine.createSpy('closeModal'),
-      dismissModal: jasmine.createSpy('dismissModal'),
+      closeModal: vi.fn(),
+      dismissModal: vi.fn(),
       ...overrides,
     } as any;
 
@@ -79,11 +79,11 @@ describe('Cloud Run edit load balancer stage', () => {
       application: {
         loadBalancers: {
           data: [],
-          ready: jasmine.createSpy('ready').and.returnValue(Promise.reject(new Error('load failed'))),
+          ready: vi.fn().mockReturnValue(Promise.reject(new Error('load failed'))),
         },
       },
     });
-    spyOn(modal, 'setState');
+    vi.spyOn(modal, 'setState').mockReturnValue(undefined);
 
     modal.componentDidMount();
     await Promise.resolve();
@@ -101,11 +101,11 @@ describe('Cloud Run edit load balancer stage', () => {
       application: {
         loadBalancers: {
           data: [{ name: 'default', account: 'test', region: 'us-central1', cloudProvider: 'cloudrun' }],
-          ready: jasmine.createSpy('ready').and.returnValue(ready),
+          ready: vi.fn().mockReturnValue(ready),
         },
       },
     });
-    spyOn(modal, 'setState');
+    vi.spyOn(modal, 'setState').mockReturnValue(undefined);
 
     modal.componentDidMount();
     (modal as any).componentWillUnmount?.();
@@ -117,9 +117,9 @@ describe('Cloud Run edit load balancer stage', () => {
   });
 
   it('handles dismissal of the load balancer edit modal', () => {
-    const catchSpy = jasmine.createSpy('catch');
-    const modalResult = { then: jasmine.createSpy('then').and.returnValue({ catch: catchSpy }) };
-    spyOn(CloudrunLoadBalancerModal, 'show').and.returnValue(modalResult as any);
+    const catchSpy = vi.fn();
+    const modalResult = { then: vi.fn().mockReturnValue({ catch: catchSpy }) };
+    vi.spyOn(CloudrunLoadBalancerModal, 'show').mockReturnValue(modalResult as any);
     const modal = buildChoiceModal();
     modal.state = { ...modal.state, selectedLoadBalancer: { name: 'default' } as any };
 
@@ -129,14 +129,14 @@ describe('Cloud Run edit load balancer stage', () => {
   });
 
   it('handles dismissal of the load balancer choice modal when adding to a stage', () => {
-    const catchSpy = jasmine.createSpy('catch');
-    const modalResult = { then: jasmine.createSpy('then').and.returnValue({ catch: catchSpy }) };
-    spyOn(CloudrunLoadBalancerChoiceModal, 'show').and.returnValue(modalResult as any);
+    const catchSpy = vi.fn();
+    const modalResult = { then: vi.fn().mockReturnValue({ catch: catchSpy }) };
+    vi.spyOn(CloudrunLoadBalancerChoiceModal, 'show').mockReturnValue(modalResult as any);
     const stageConfig = new CloudrunEditLoadBalancerStageConfig({
       application: {},
       pipeline: {},
       stage: { loadBalancers: [] },
-      updateStage: jasmine.createSpy('updateStage'),
+      updateStage: vi.fn(),
     } as any);
 
     (stageConfig as any).addLoadBalancer();
@@ -145,14 +145,14 @@ describe('Cloud Run edit load balancer stage', () => {
   });
 
   it('handles dismissal of the load balancer edit modal when editing a stage load balancer', () => {
-    const catchSpy = jasmine.createSpy('catch');
-    const modalResult = { then: jasmine.createSpy('then').and.returnValue({ catch: catchSpy }) };
-    spyOn(CloudrunLoadBalancerModal, 'show').and.returnValue(modalResult as any);
+    const catchSpy = vi.fn();
+    const modalResult = { then: vi.fn().mockReturnValue({ catch: catchSpy }) };
+    vi.spyOn(CloudrunLoadBalancerModal, 'show').mockReturnValue(modalResult as any);
     const stageConfig = new CloudrunEditLoadBalancerStageConfig({
       application: {},
       pipeline: {},
       stage: { loadBalancers: [{ name: 'default' }] },
-      updateStage: jasmine.createSpy('updateStage'),
+      updateStage: vi.fn(),
     } as any);
 
     (stageConfig as any).editLoadBalancer(0);
@@ -170,23 +170,23 @@ describe('Cloud Run edit load balancer stage', () => {
       data: [firstLoadBalancer],
     });
     const app = {
-      getDataSource: jasmine.createSpy('getDataSource').and.returnValue({
+      getDataSource: vi.fn().mockReturnValue({
         status$,
-        refresh: jasmine.createSpy('refresh'),
+        refresh: vi.fn(),
       }),
       loadBalancers: {
         data: [firstLoadBalancer],
-        ready: jasmine.createSpy('ready').and.returnValue(Promise.resolve()),
+        ready: vi.fn().mockReturnValue(Promise.resolve()),
       },
     } as any;
-    const onChange = jasmine.createSpy('onChange');
+    const onChange = vi.fn();
     const loadBalancerParams = { name: 'default', accountId: 'test', region: 'us-central1' } as any;
 
     function TestComponent() {
       const details = useCloudrunLoadBalancerDetails({
         app,
         loadBalancerParams,
-        autoClose: jasmine.createSpy(),
+        autoClose: vi.fn(),
       } as any);
       React.useEffect(() => onChange(details), [details.data, details.loading, details.error]);
       return null;
@@ -200,6 +200,6 @@ describe('Cloud Run edit load balancer stage', () => {
     status$.next({ status: 'FETCHED', loaded: true, lastRefresh: 2, data: [refreshedLoadBalancer] });
     wrapper.setProps({});
 
-    expect(onChange.calls.mostRecent().args[0].data).toBe(refreshedLoadBalancer);
+    expect(onChange.mock.lastCall[0].data).toBe(refreshedLoadBalancer);
   });
 });

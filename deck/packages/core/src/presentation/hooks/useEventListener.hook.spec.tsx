@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { mount } from 'enzyme';
 import React from 'react';
 
@@ -22,13 +23,13 @@ const eventListenerOptions = { capture: true };
 
 describe('useEventListener', () => {
   let eventTarget: HTMLDivElement;
-  let addEventListenerSpy: jasmine.Spy;
-  let removeEventListenerSpy: jasmine.Spy;
+  let addEventListenerSpy: Mock;
+  let removeEventListenerSpy: Mock;
 
   beforeEach(() => {
     eventTarget = document.createElement('div');
-    addEventListenerSpy = spyOn(eventTarget, 'addEventListener').and.returnValue(undefined);
-    removeEventListenerSpy = spyOn(eventTarget, 'removeEventListener').and.returnValue(undefined);
+    addEventListenerSpy = vi.spyOn(eventTarget, 'addEventListener').mockReturnValue(undefined);
+    removeEventListenerSpy = vi.spyOn(eventTarget, 'removeEventListener').mockReturnValue(undefined);
   });
 
   it('should call addEventListener on the target element when mounted', () => {
@@ -39,8 +40,8 @@ describe('useEventListener', () => {
     expect(addEventListenerSpy).toHaveBeenCalledTimes(1);
     expect(removeEventListenerSpy).toHaveBeenCalledTimes(0);
 
-    expect(addEventListenerSpy.calls.argsFor(0)[0]).toBe('keydown');
-    expect(addEventListenerSpy.calls.argsFor(0)[2]).toBe(eventListenerOptions);
+    expect(addEventListenerSpy.mock.calls[0][0]).toBe('keydown');
+    expect(addEventListenerSpy.mock.calls[0][2]).toBe(eventListenerOptions);
   });
 
   it('should not do anything when mounted if there is no listener prop', () => {
@@ -63,15 +64,17 @@ describe('useEventListener', () => {
     expect(addEventListenerSpy).toHaveBeenCalledTimes(1);
     expect(removeEventListenerSpy).toHaveBeenCalledTimes(1);
 
-    expect(removeEventListenerSpy.calls.argsFor(0)[0]).toBe('keydown');
-    expect(removeEventListenerSpy.calls.argsFor(0)[2]).toBe(eventListenerOptions);
+    expect(removeEventListenerSpy.mock.calls[0][0]).toBe('keydown');
+    expect(removeEventListenerSpy.mock.calls[0][2]).toBe(eventListenerOptions);
   });
 
   it('should call removeEventListener with the same event listener function reference', () => {
     let addedListener: any;
     let removedListener: any;
-    addEventListenerSpy.and.callFake((_: string, eventListener: () => any) => (addedListener = eventListener));
-    removeEventListenerSpy.and.callFake((_: string, eventListener: () => any) => (removedListener = eventListener));
+    addEventListenerSpy.mockImplementation((_: string, eventListener: () => any) => (addedListener = eventListener));
+    removeEventListenerSpy.mockImplementation(
+      (_: string, eventListener: () => any) => (removedListener = eventListener),
+    );
 
     const component = mount(
       <TestComponent element={eventTarget} eventName="keydown" listener={() => null} options={eventListenerOptions} />,
@@ -87,9 +90,9 @@ describe('useEventListener', () => {
 
   it('should call the latest listener prop', () => {
     let addedListener: any;
-    addEventListenerSpy.and.callFake((_: string, eventListener: () => any) => (addedListener = eventListener));
+    addEventListenerSpy.mockImplementation((_: string, eventListener: () => any) => (addedListener = eventListener));
 
-    const initialListener = jasmine.createSpy('initialListener', () => 'initial');
+    const initialListener = vi.fn();
 
     const component = mount(
       <TestComponent
@@ -103,7 +106,7 @@ describe('useEventListener', () => {
     addedListener();
     expect(initialListener).toHaveBeenCalledTimes(1);
 
-    const updatedListener = jasmine.createSpy('updatedListener', () => 'updated');
+    const updatedListener = vi.fn();
     component.setProps({ listener: updatedListener });
 
     addedListener();
@@ -114,8 +117,10 @@ describe('useEventListener', () => {
   it('should call removeEventListener with the same event listener function reference after updating the listener prop', () => {
     let addedListener: any;
     let removedListener: any;
-    addEventListenerSpy.and.callFake((_: string, eventListener: () => any) => (addedListener = eventListener));
-    removeEventListenerSpy.and.callFake((_: string, eventListener: () => any) => (removedListener = eventListener));
+    addEventListenerSpy.mockImplementation((_: string, eventListener: () => any) => (addedListener = eventListener));
+    removeEventListenerSpy.mockImplementation(
+      (_: string, eventListener: () => any) => (removedListener = eventListener),
+    );
 
     const component = mount(
       <TestComponent
@@ -139,8 +144,10 @@ describe('useEventListener', () => {
   it('should add and remove the same listener reference when the listener prop is added/removed', () => {
     let addedListener: any;
     let removedListener: any;
-    addEventListenerSpy.and.callFake((_: string, eventListener: () => any) => (addedListener = eventListener));
-    removeEventListenerSpy.and.callFake((_: string, eventListener: () => any) => (removedListener = eventListener));
+    addEventListenerSpy.mockImplementation((_: string, eventListener: () => any) => (addedListener = eventListener));
+    removeEventListenerSpy.mockImplementation(
+      (_: string, eventListener: () => any) => (removedListener = eventListener),
+    );
 
     const component = mount(
       <TestComponent

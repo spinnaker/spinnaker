@@ -1,4 +1,4 @@
-import { mockHttpClient } from '../../../../core/src/api/mock/jasmine';
+import { mockHttpClient } from '../../../../core/src/api/mock/mockHttpSupport';
 
 import { ServerGroupEventsReader } from './serverGroupEventsReader.service';
 

@@ -50,7 +50,7 @@ describe('GceRegionalExternalNetworkLoadBalancerEditor', () => {
 
     expect(options.addresses.map(({ address }) => address)).toEqual(['35.1.2.3']);
 
-    const onChange = jasmine.createSpy('onChange');
+    const onChange = vi.fn();
     const wrapper = shallow(
       <GceRegionalExternalNetworkLoadBalancerEditor command={command} data={emptyData()} onChange={onChange} />,
     );
@@ -60,8 +60,8 @@ describe('GceRegionalExternalNetworkLoadBalancerEditor', () => {
     });
 
     expect(onChange).toHaveBeenCalledWith(
-      jasmine.objectContaining({
-        listeners: [jasmine.objectContaining({ address: { address: '35.1.2.3', name: '35.1.2.3' } })],
+      expect.objectContaining({
+        listeners: [expect.objectContaining({ address: { address: '35.1.2.3', name: '35.1.2.3' } })],
         networkTier: 'PREMIUM',
       }),
     );
@@ -84,11 +84,7 @@ describe('GceRegionalExternalNetworkLoadBalancerEditor', () => {
       'edit',
     );
     const wrapper = shallow(
-      <GceRegionalExternalNetworkLoadBalancerEditor
-        command={command}
-        data={emptyData()}
-        onChange={jasmine.createSpy()}
-      />,
+      <GceRegionalExternalNetworkLoadBalancerEditor command={command} data={emptyData()} onChange={vi.fn()} />,
     );
 
     [
@@ -129,14 +125,14 @@ describe('GceRegionalExternalNetworkLoadBalancerEditor', () => {
       },
       'edit',
     );
-    const onChange = jasmine.createSpy('onChange');
+    const onChange = vi.fn();
     const wrapper = shallow(
       <GceRegionalExternalNetworkLoadBalancerEditor command={command} data={emptyData()} onChange={onChange} />,
     );
 
     wrapper.find('[data-field="healthCheckName"] input').simulate('change', { target: { value: 'new-check' } });
 
-    const nextCommand = onChange.calls.mostRecent().args[0];
+    const nextCommand = onChange.mock.lastCall[0];
     expect(nextCommand.backendServices[0].healthCheck).toBe(nextCommand.healthChecks[0]);
     expect(nextCommand.backendServices[0].healthCheck.name).toBe('new-check');
     expect(nextCommand.healthChecks[0].name).toBe('new-check');
@@ -149,21 +145,21 @@ describe('GceRegionalExternalNetworkLoadBalancerEditor', () => {
       { account: 'account-a', loadBalancerName: 'app-main', region: 'europe-west1' },
       'create',
     );
-    const onChange = jasmine.createSpy('onChange');
+    const onChange = vi.fn();
     const wrapper = shallow(
       <GceRegionalExternalNetworkLoadBalancerEditor command={command} data={emptyData()} onChange={onChange} />,
     );
 
     wrapper.find('[data-field="protocol"] select').simulate('change', { target: { value: 'UDP' } });
-    expect(onChange.calls.mostRecent().args[0].listeners[0].protocol).toBe('UDP');
+    expect(onChange.mock.lastCall[0].listeners[0].protocol).toBe('UDP');
 
     wrapper.find('[data-field="ports"] input').simulate('change', { target: { value: '80, 443 , 8080' } });
-    expect(onChange.calls.mostRecent().args[0].ports).toEqual(['80', ' 443 ', ' 8080']);
+    expect(onChange.mock.lastCall[0].ports).toEqual(['80', ' 443 ', ' 8080']);
 
     wrapper.find('[data-field="sessionAffinity"] select').simulate('change', {
       target: { value: 'CLIENT_IP_PORT_PROTO' },
     });
-    expect(onChange.calls.mostRecent().args[0].backendServices[0].sessionAffinity).toBe('CLIENT_IP_PORT_PROTO');
+    expect(onChange.mock.lastCall[0].backendServices[0].sessionAffinity).toBe('CLIENT_IP_PORT_PROTO');
   });
 
   it('locks identity and forwarding-rule fields while allowing backend edits', () => {
@@ -185,11 +181,7 @@ describe('GceRegionalExternalNetworkLoadBalancerEditor', () => {
       'edit',
     );
     const wrapper = shallow(
-      <GceRegionalExternalNetworkLoadBalancerEditor
-        command={command}
-        data={emptyData()}
-        onChange={jasmine.createSpy()}
-      />,
+      <GceRegionalExternalNetworkLoadBalancerEditor command={command} data={emptyData()} onChange={vi.fn()} />,
     );
 
     ['name', 'credentials', 'region', 'address', 'networkTier', 'protocol', 'ports'].forEach((field) => {
@@ -211,22 +203,22 @@ describe('GceRegionalExternalNetworkLoadBalancerEditor', () => {
       { account: 'account-a', ipAddress: '35.1.2.3', loadBalancerName: 'app-main', region: 'europe-west1' },
       'create',
     );
-    const onChange = jasmine.createSpy('onChange');
+    const onChange = vi.fn();
     const wrapper = shallow(
       <GceRegionalExternalNetworkLoadBalancerEditor command={command} data={emptyData()} onChange={onChange} />,
     );
 
     wrapper.find('[data-field="credentials"] select').simulate('change', { target: { value: 'account-b' } });
-    expect(onChange.calls.mostRecent().args[0].credentials).toBe('account-b');
-    expect(onChange.calls.mostRecent().args[0].listeners[0].address).toBeUndefined();
+    expect(onChange.mock.lastCall[0].credentials).toBe('account-b');
+    expect(onChange.mock.lastCall[0].listeners[0].address).toBeUndefined();
 
     wrapper.find('[data-field="region"] select').simulate('change', { target: { value: 'us-central1' } });
-    expect(onChange.calls.mostRecent().args[0].region).toBe('us-central1');
-    expect(onChange.calls.mostRecent().args[0].listeners[0].address).toBeUndefined();
+    expect(onChange.mock.lastCall[0].region).toBe('us-central1');
+    expect(onChange.mock.lastCall[0].listeners[0].address).toBeUndefined();
   });
 
   it('lets an ephemeral address choose its network tier and derives it from a reserved address', () => {
-    const onChange = jasmine.createSpy('onChange');
+    const onChange = vi.fn();
     const ephemeral = normalizeGceRegionalExternalNetworkLoadBalancerCommand(
       { account: 'account-a', loadBalancerName: 'app-main', region: 'europe-west1' },
       'create',
@@ -238,7 +230,7 @@ describe('GceRegionalExternalNetworkLoadBalancerEditor', () => {
     expect(ephemeralTier.prop('disabled')).toBe(false);
     expect(ephemeralTier.find('option').map((option) => option.prop('value'))).toEqual(['PREMIUM', 'STANDARD']);
     ephemeralTier.simulate('change', { target: { value: 'STANDARD' } });
-    expect(onChange.calls.mostRecent().args[0].networkTier).toBe('STANDARD');
+    expect(onChange.mock.lastCall[0].networkTier).toBe('STANDARD');
 
     const reserved = normalizeGceRegionalExternalNetworkLoadBalancerCommand(
       { account: 'account-a', ipAddress: '35.1.2.3', loadBalancerName: 'app-main', region: 'europe-west1' },
@@ -259,11 +251,7 @@ describe('GceRegionalExternalNetworkLoadBalancerEditor', () => {
       'create',
     );
     const wrapper = shallow(
-      <GceRegionalExternalNetworkLoadBalancerEditor
-        command={command}
-        data={emptyData()}
-        onChange={jasmine.createSpy()}
-      />,
+      <GceRegionalExternalNetworkLoadBalancerEditor command={command} data={emptyData()} onChange={vi.fn()} />,
     );
 
     const labels = wrapper.find('label');
@@ -419,7 +407,7 @@ describe('GceRegionalExternalNetworkLoadBalancerEditor', () => {
     command.ports = ['80'];
     command.listeners[0].protocol = 'HTTP';
     expect(validateGceRegionalExternalNetworkLoadBalancerCommand(command)).toEqual(
-      jasmine.arrayContaining([
+      expect.arrayContaining([
         'Protocol must be TCP or UDP.',
         'Protocol and ports cannot be changed while editing a REGIONAL_EXTERNAL_NETWORK load balancer.',
       ]),
