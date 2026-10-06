@@ -1,6 +1,7 @@
 import type { Mock } from 'vitest';
 import { hashLocationPlugin, servicesPlugin, UIRouterContext, UIRouterReact, UIViewContext } from '@uirouter/react';
-import { mount } from 'enzyme';
+import { render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import { AccountService } from '../../account';
@@ -40,8 +41,8 @@ describe('<MultipleServerGroupsDetails />', () => {
     type: 'aws',
   } as any;
 
-  const mountDetails = () =>
-    mount(
+  const renderDetails = () =>
+    render(
       <UIRouterContext.Provider value={router}>
         <UIViewContext.Provider
           value={{
@@ -77,9 +78,7 @@ describe('<MultipleServerGroupsDetails />', () => {
     ['application', 'application.insight', 'application.insight.multipleServerGroups'].forEach((name) => {
       router.stateRegistry.register({ name, url: `/${name.split('.').pop()}` } as any);
     });
-  });
 
-  beforeEach(() => {
     previousMultiselectModel = ClusterState.multiselectModel;
     ClusterState.multiselectModel = {
       clearAllServerGroups: () => null,
@@ -107,28 +106,23 @@ describe('<MultipleServerGroupsDetails />', () => {
   });
 
   it('renders selected server group details', () => {
-    const wrapper = mountDetails();
+    const { container } = renderDetails();
 
-    expect(wrapper.find('.details-panel h3').text()).toContain('1 Server Group');
-    expect(wrapper.text()).toContain('app-v001');
-    expect(wrapper.text()).toContain('prod');
-    expect(wrapper.text()).toContain('us-west-2');
-    expect(wrapper.find('.multiple-server-group').length).toBe(1);
-    expect(wrapper.find('multiple-server-group').exists()).toBe(false);
-    expect(wrapper.find('.instance-health-counts').text()).toContain('2');
-    expect(wrapper.find('.instance-health-counts').text()).toContain('1');
-
-    wrapper.unmount();
+    expect(screen.getByRole('heading', { name: '1 Server Group' })).toBeInTheDocument();
+    expect(screen.getByText('app-v001')).toBeInTheDocument();
+    expect(screen.getByText('prod')).toBeInTheDocument();
+    expect(screen.getByText(/us-west-2/)).toBeInTheDocument();
+    expect(container.querySelectorAll('.multiple-server-group')).toHaveLength(1);
+    expect(container.querySelector('multiple-server-group')).not.toBeInTheDocument();
+    expect(container.querySelector('.instance-health-counts')).toHaveTextContent('2');
+    expect(container.querySelector('.instance-health-counts')).toHaveTextContent('1');
   });
 
-  it('opens destroy confirmation using legacy task monitor semantics', () => {
-    const wrapper = mountDetails();
+  it('opens destroy confirmation using legacy task monitor semantics', async () => {
+    renderDetails();
 
-    wrapper.find('button.dropdown-toggle').simulate('click');
-    wrapper
-      .find('a')
-      .filterWhere((node) => node.text() === 'Destroy')
-      .simulate('click');
+    await userEvent.click(screen.getByRole('button', { name: 'Actions' }));
+    await userEvent.click(screen.getByText('Destroy', { selector: 'a' }));
 
     expect(ConfirmationModalService.confirm).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -142,25 +136,38 @@ describe('<MultipleServerGroupsDetails />', () => {
     confirmation.taskMonitorConfigs[0].submitMethod({ reason: 'user reason' });
 
     expect(serverGroupWriter.destroyServerGroup).toHaveBeenCalledWith(
-      expect.objectContaining({
+      {
         account: 'prod',
+        disabled: false,
+        instanceCounts: { down: 1, total: 3, up: 2 },
         name: 'app-v001',
+        provider: 'aws',
         region: 'us-west-2',
-      }),
+        type: 'aws',
+      },
       app,
-      expect.objectContaining({
+      {
         mixinName: 'app-v001',
         reason: 'user reason',
-      }),
+      },
     );
+  });
 
-    wrapper.unmount();
+  it('renders actions eligible for the selected server groups', async () => {
+    renderDetails();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Actions' }));
+    const menu = screen.getByRole('menu');
+
+    expect(within(menu).getByText('Destroy')).toBeInTheDocument();
+    expect(within(menu).getByText('Disable')).toBeInTheDocument();
+    expect(within(menu).queryByText('Enable')).not.toBeInTheDocument();
   });
 
   it('clears server group multiselect on unmount only when more than one group is selected', () => {
-    const wrapper = mountDetails();
+    const firstRender = renderDetails();
 
-    wrapper.unmount();
+    firstRender.unmount();
 
     expect(ClusterState.multiselectModel.clearAllServerGroups).not.toHaveBeenCalled();
 
@@ -168,9 +175,9 @@ describe('<MultipleServerGroupsDetails />', () => {
       selectedServerGroup,
       { ...selectedServerGroup, name: 'app-v002' },
     ] as any;
-    const multiWrapper = mountDetails();
+    const secondRender = renderDetails();
 
-    multiWrapper.unmount();
+    secondRender.unmount();
 
     expect(ClusterState.multiselectModel.clearAllServerGroups).toHaveBeenCalled();
   });

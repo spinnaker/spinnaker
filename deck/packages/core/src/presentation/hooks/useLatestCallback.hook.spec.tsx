@@ -1,65 +1,44 @@
-import { mount } from 'enzyme';
-import React from 'react';
-
+import { renderHookHarness } from '../../utils/testUtils/hookHarness';
 import { useLatestCallback } from './useLatestCallback.hook';
-
-const TestComponent = ({
-  callback,
-  onCallbackChange,
-}: {
-  callback: (...args: any) => any;
-  onCallbackChange: (callback: Function) => any;
-}) => {
-  const memoizedCallback = useLatestCallback(callback);
-  onCallbackChange(memoizedCallback);
-  return null as JSX.Element;
-};
 
 describe('useLatestCallback', () => {
   it('should give back a stable function reference when the callback argument changes', () => {
-    const callbacksFromHook: any[] = [];
-    const onCallbackChange = (callback: any) => callbacksFromHook.push(callback);
+    const rendered = renderHookHarness(({ callback }) => useLatestCallback(callback), {
+      callback: () => 'first',
+    });
+    const firstCallback = rendered.result.current;
 
-    const component = mount(<TestComponent callback={() => 'first'} onCallbackChange={onCallbackChange} />);
+    rendered.rerenderHook({ callback: () => 'second' });
 
-    component.setProps({ callback: () => 'second' });
+    expect(rendered.result.current).toBe(firstCallback);
 
-    expect(callbacksFromHook.length).toBe(2);
-    expect(callbacksFromHook[0]).toBe(callbacksFromHook[1]);
+    const secondCallback = rendered.result.current;
+    rendered.rerenderHook({ callback: () => 'third' });
 
-    component.setProps({ callback: () => 'third' });
-
-    expect(callbacksFromHook.length).toBe(3);
-    expect(callbacksFromHook[1]).toBe(callbacksFromHook[2]);
+    expect(rendered.result.current).toBe(secondCallback);
   });
 
   it('should always call the latest callback argument', () => {
-    let callbackFromHook: any;
-    const onCallbackChange = (callback: any) => (callbackFromHook = callback);
-
     const initialCallback = vi.fn();
+    const rendered = renderHookHarness(({ callback }) => useLatestCallback(callback), { callback: initialCallback });
 
-    const component = mount(<TestComponent callback={initialCallback} onCallbackChange={onCallbackChange} />);
-
-    callbackFromHook();
+    rendered.result.current();
     expect(initialCallback).toHaveBeenCalledTimes(1);
 
     const updatedCallback = vi.fn();
+    rendered.rerenderHook({ callback: updatedCallback });
 
-    component.setProps({ callback: updatedCallback });
-
-    callbackFromHook();
+    rendered.result.current();
     expect(initialCallback).toHaveBeenCalledTimes(1);
     expect(updatedCallback).toHaveBeenCalledTimes(1);
   });
 
   it('should pass through the arguments/return value of the original callback', () => {
-    let callbackFromHook: any;
-    const onCallbackChange = (callback: any) => (callbackFromHook = callback);
+    const rendered = renderHookHarness(({ callback }) => useLatestCallback(callback), {
+      callback: (value: string) => `Hello ${value}`,
+    });
 
-    mount(<TestComponent callback={(value) => `Hello ${value}`} onCallbackChange={onCallbackChange} />);
-
-    const returnValue = callbackFromHook('World');
+    const returnValue = rendered.result.current('World');
     expect(returnValue).toBe('Hello World');
   });
 });

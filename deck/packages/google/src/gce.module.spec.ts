@@ -1,4 +1,4 @@
-import { mount as enzymeMount } from 'enzyme';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 
 import {
@@ -8,13 +8,11 @@ import {
   ErrorModalService,
   InfrastructureCaches,
   LoadBalancerWriter,
-  ManagedMenuItem,
   nativePromiseService,
   ProviderServiceDelegate,
   Registry,
   ServerGroupReader,
   ServerGroupWarningMessageService,
-  SubmitButton,
   TaskExecutor,
 } from '@spinnaker/core';
 
@@ -34,11 +32,7 @@ import { GceSecurityGroupReader } from './securityGroup/securityGroup.reader';
 import { GceSecurityGroupTransformer } from './securityGroup/securityGroup.transformer';
 import { GceServerGroupCommandBuilder } from './serverGroup/configure/serverGroupCommandBuilder.service';
 import { GceServerGroupConfigurationService } from './serverGroup/configure/serverGroupConfiguration.service';
-import {
-  cloneGceServerGroup,
-  GceServerGroupActions,
-  gceServerGroupDetailsGetter,
-} from './serverGroup/details/gceServerGroupDetails';
+import { cloneGceServerGroup, GceServerGroupActions } from './serverGroup/details/gceServerGroupDetails';
 import { GceServerGroupTransformer } from './serverGroup/serverGroup.transformer';
 import { GceSubnetRenderer } from './subnet/subnet.renderer';
 
@@ -46,7 +40,8 @@ describe('Google provider registration', () => {
   let runtimeServices: any;
   const RuntimeWrapper = ({ children }: React.PropsWithChildren<{}>) =>
     React.createElement(DeckRuntimeContext.Provider, { value: { services: runtimeServices } as any }, children);
-  const mount = (component: React.ReactElement) => enzymeMount(component, { wrappingComponent: RuntimeWrapper });
+  const renderWithRuntime = (component: React.ReactElement) =>
+    render(React.createElement(RuntimeWrapper, undefined, component));
 
   beforeEach(() => {
     runtimeServices = {
@@ -185,30 +180,20 @@ describe('Google provider registration', () => {
     runtimeServices.securityGroupReader = {
       getAllSecurityGroups: () => Promise.resolve({}),
     };
-    const wrapper = mount(
+    renderWithRuntime(
       React.createElement(GceSecurityGroupModal, {
         application: { name: 'fnord', securityGroups: { data: [] } },
         credentials: 'test-account',
       }),
     );
 
-    wrapper.setState({
-      securityGroup: {
-        ...(wrapper.state() as any).securityGroup,
-        ipIngress: [{ type: 'tcp', startPort: 443, endPort: 443 }],
-        name: 'fnord-firewall',
-        network: 'default',
-        sourceRanges: ['10.0.0.0/8'],
-        sourceTags: [],
-        targetTags: [],
-      },
-    } as any);
+    fireEvent.change(screen.getByRole('textbox', { name: 'Name' }), { target: { value: 'fnord-firewall' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Network' }), { target: { value: 'default' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Source CIDRs' }), { target: { value: '10.0.0.0/8' } });
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Start port 1' }), { target: { value: '443' } });
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'End port 1' }), { target: { value: '443' } });
 
-    await Promise.resolve();
-    await Promise.resolve();
-    wrapper.update();
-
-    expect(wrapper.find(SubmitButton).prop('isDisabled')).toBe(false);
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Create' })).toBeEnabled());
   });
 
   it('loads and enriches GCE load balancer details through the Core reader', async () => {
@@ -311,11 +296,9 @@ describe('Google provider registration', () => {
       urlMapName: 'frontend-map',
     };
 
-    const wrapper = mount(React.createElement(GceLoadBalancerActions, { app, loadBalancer }));
-    wrapper
-      .find(ManagedMenuItem)
-      .filterWhere((item) => item.prop('children') === 'Delete Load Balancer')
-      .prop('onClick')();
+    render(React.createElement(GceLoadBalancerActions, { app, loadBalancer }));
+    fireEvent.click(screen.getByText('Delete Load Balancer'));
+    await waitFor(() => expect(confirmSpy).toHaveBeenCalled());
     const modalParams = confirmSpy.mock.lastCall[0] as any;
     await modalParams.submitMethod({ deleteHealthChecks: true, reason: 'cleanup' });
 
@@ -343,6 +326,8 @@ describe('Google provider registration', () => {
 
   it('loads GCE server group details even when the app summary is not loaded yet', () =>
     new Promise((done, reject) => {
+      googlePackage.registerGoogleProvider();
+      const registeredDetailsGetter = CloudProviderRegistry.getValue('gce', 'serverGroup.detailsGetter');
       const autoClose = vi.fn();
       vi.spyOn(ServerGroupReader, 'getServerGroup').mockReturnValue(
         Promise.resolve({
@@ -360,7 +345,7 @@ describe('Google provider registration', () => {
         }) as any,
       );
 
-      gceServerGroupDetailsGetter(
+      registeredDetailsGetter(
         {
           app: { loadBalancers: { data: [] }, name: 'fnord', serverGroups: { data: [] } },
           serverGroup: { accountId: 'test-account', name: 'fnord-v001', region: 'us-central1' },
@@ -388,6 +373,8 @@ describe('Google provider registration', () => {
 
   it('loads GCE server group details when the launch template is missing', () =>
     new Promise((done, reject) => {
+      googlePackage.registerGoogleProvider();
+      const registeredDetailsGetter = CloudProviderRegistry.getValue('gce', 'serverGroup.detailsGetter');
       const autoClose = vi.fn();
       vi.spyOn(ServerGroupReader, 'getServerGroup').mockReturnValue(
         Promise.resolve({
@@ -398,7 +385,7 @@ describe('Google provider registration', () => {
         }) as any,
       );
 
-      gceServerGroupDetailsGetter(
+      registeredDetailsGetter(
         {
           app: { loadBalancers: { data: [] }, name: 'fnord', serverGroups: { data: [] } },
           serverGroup: { accountId: 'test-account', name: 'fnord-v001', region: 'us-central1' },
@@ -434,15 +421,13 @@ describe('Google provider registration', () => {
     const writer = { enableServerGroup: vi.fn().mockReturnValue(Promise.resolve({})) };
     runtimeServices.serverGroupWriter = writer;
 
-    mount(
+    renderWithRuntime(
       React.createElement(GceServerGroupActions, {
         app: { attributes: { platformHealthOnly: true, platformHealthOnlyShowOverride: false }, name: 'fnord' },
         serverGroup: { account: 'test-account', isDisabled: true, name: 'fnord-v001', region: 'us-central1' },
       }),
-    )
-      .find('a')
-      .filterWhere((link) => link.text() === 'Enable')
-      .simulate('click');
+    );
+    fireEvent.click(screen.getByText('Enable', { selector: 'a' }));
 
     const modalParams = confirmSpy.mock.lastCall[0] as any;
     expect(modalParams.platformHealthOnlyShowOverride).toBe(false);
@@ -462,20 +447,14 @@ describe('Google provider registration', () => {
     const app = { attributes: { platformHealthOnly: true, platformHealthOnlyShowOverride: true }, name: 'fnord' };
     const serverGroup = { account: 'test-account', isDisabled: false, name: 'fnord-v001', region: 'us-central1' };
 
-    const wrapper = mount(React.createElement(GceServerGroupActions, { app, serverGroup }));
-    wrapper
-      .find('a')
-      .filterWhere((link) => link.text() === 'Disable')
-      .simulate('click');
+    renderWithRuntime(React.createElement(GceServerGroupActions, { app, serverGroup }));
+    fireEvent.click(screen.getByText('Disable', { selector: 'a' }));
     let modalParams = confirmSpy.mock.lastCall[0] as any;
     expect(modalParams.platformHealthOnlyShowOverride).toBe(true);
     await modalParams.submitMethod({ reason: 'platform health only' });
     expect(writer.disableServerGroup.mock.lastCall[2].interestingHealthProviderNames).toEqual(['Google']);
 
-    wrapper
-      .find('a')
-      .filterWhere((link) => link.text() === 'Destroy')
-      .simulate('click');
+    fireEvent.click(screen.getByText('Destroy', { selector: 'a' }));
     modalParams = confirmSpy.mock.lastCall[0] as any;
     expect(modalParams.platformHealthOnlyShowOverride).toBe(true);
     await modalParams.submitMethod({ reason: 'platform health only' });

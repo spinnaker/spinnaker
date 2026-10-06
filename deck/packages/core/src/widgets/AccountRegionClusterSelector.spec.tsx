@@ -1,35 +1,39 @@
-import { mount } from 'enzyme';
+import { render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import { AccountService } from '../account/AccountService';
+import { getFormGroupByLabel } from '../utils/testUtils/rtl';
 import { AccountRegionClusterSelector } from './AccountRegionClusterSelector';
 
 describe('AccountRegionClusterSelector', () => {
   beforeEach(() => {
-    vi.spyOn(AccountService, 'getUniqueAttributeForAllAccounts').mockReturnValue(
-      Promise.resolve(['us-east-1', { 'us-west-2': ['us-west-2a'] }] as any),
-    );
-    vi.spyOn(AccountService, 'getAllAccountDetailsForProvider').mockReturnValue(Promise.resolve([]) as any);
+    vi.spyOn(AccountService, 'getUniqueAttributeForAllAccounts').mockResolvedValue([
+      'us-east-1',
+      { 'us-west-2': ['us-west-2a'] },
+    ] as any);
+    vi.spyOn(AccountService, 'getAllAccountDetailsForProvider').mockResolvedValue([] as any);
   });
 
-  it('renders the native selector and defaults the cluster field', async () => {
-    const componentModel = { cloudProviderType: 'aws', credentials: 'test' } as any;
+  const regionSelect = () => within(getFormGroupByLabel('Region')).getByRole('combobox');
+  const clusterGroup = () => within(getFormGroupByLabel('Cluster'));
+  const accountSelect = () => within(getFormGroupByLabel('Account')).getByRole('combobox');
 
-    const component = mount(
+  it('renders the native selector and defaults the cluster field', async () => {
+    render(
       <AccountRegionClusterSelector
         accounts={[]}
         application={applicationWithServerGroups([])}
-        component={componentModel}
+        component={{ cloudProviderType: 'aws', credentials: 'test' }}
       />,
     );
-    await settle(component);
 
-    expect(component.find('select.cluster-select').exists()).toBe(true);
+    expect(await clusterGroup().findByRole('combobox')).toBeInTheDocument();
   });
 
   it('normalizes fetched regions and clears invalid clusters after region changes', async () => {
     const onComponentUpdate = vi.fn();
-    const componentModel = {
+    const component = {
       cloudProviderType: 'aws',
       credentials: 'test',
       region: 'us-east-1',
@@ -39,183 +43,182 @@ describe('AccountRegionClusterSelector', () => {
       { account: 'test', region: 'us-east-1', cluster: 'app-main', moniker: { cluster: 'app-main', sequence: 4 } },
       { account: 'test', region: 'us-west-2', cluster: 'app-west', moniker: { cluster: 'app-west', sequence: 1 } },
     ]);
-
-    const component = mount(
+    render(
       <AccountRegionClusterSelector
         accounts={[]}
         application={application}
-        component={componentModel}
+        component={component}
         onComponentUpdate={onComponentUpdate}
-        singleRegion={true}
+        singleRegion={true as any}
       />,
     );
-    await settle(component);
 
-    expect(component.find('select.region-select option').map((option) => option.text())).toContain('us-west-2');
+    expect(await within(regionSelect()).findByRole('option', { name: 'us-west-2' })).toBeInTheDocument();
+    await userEvent.selectOptions(regionSelect(), 'us-west-2');
 
-    component.find('select.region-select').simulate('change', { target: { value: 'us-west-2' } });
-
-    expect(componentModel.cluster).toBeUndefined();
-    expect(onComponentUpdate).toHaveBeenCalledWith(componentModel);
+    expect(component.cluster).toBeUndefined();
+    expect(onComponentUpdate).toHaveBeenCalledWith(component);
   });
 
-  it('updates moniker from the selected cluster and notifies account changes', async () => {
-    const onAccountUpdate = vi.fn();
+  it('immediately publishes the exact component after selecting a cluster', async () => {
     const onComponentUpdate = vi.fn();
-    const componentModel = { cloudProviderType: 'aws', credentials: 'test', region: 'us-east-1' } as any;
+    const component = { cloudProviderType: 'aws', credentials: 'test', region: 'us-east-1' } as any;
     const application = applicationWithServerGroups([
       { account: 'test', region: 'us-east-1', cluster: 'app-main', moniker: { cluster: 'app-main', sequence: 7 } },
     ]);
-
-    const component = mount(
+    render(
       <AccountRegionClusterSelector
-        accounts={['test', 'prod']}
+        accounts={[]}
         application={application}
-        component={componentModel}
-        onAccountUpdate={onAccountUpdate}
+        component={component}
         onComponentUpdate={onComponentUpdate}
-        singleRegion={true}
+        singleRegion={true as any}
       />,
     );
-    await settle(component);
 
-    component.find('select.cluster-select').simulate('change', { target: { value: 'app-main' } });
-    expect(componentModel.moniker).toEqual({ cluster: 'app-main', sequence: null });
-    expect(onComponentUpdate).toHaveBeenCalledWith(componentModel);
+    await waitFor(() => expect(clusterGroup().getByRole('option', { name: 'app-main' })).toBeInTheDocument());
+    await userEvent.selectOptions(clusterGroup().getByRole('combobox'), 'app-main');
 
-    component.find('select.SelectInput').simulate('change', { target: { value: 'prod' }, persist: vi.fn() });
-    expect(componentModel.credentials).toBe('prod');
-    expect(componentModel.cluster).toBeUndefined();
-    expect(onAccountUpdate).toHaveBeenCalled();
-    expect(onComponentUpdate).toHaveBeenCalledWith(componentModel);
+    expect(onComponentUpdate).toHaveBeenCalledTimes(1);
+    expect(onComponentUpdate).toHaveBeenLastCalledWith({
+      cloudProviderType: 'aws',
+      credentials: 'test',
+      region: 'us-east-1',
+      cluster: 'app-main',
+      moniker: { cluster: 'app-main', sequence: null },
+    });
   });
 
-  it('renders expression credentials as runtime-resolved account text', async () => {
-    const componentModel = { cloudProviderType: 'aws', credentials: '${parameters.account}' } as any;
-
-    const component = mount(
+  it('notifies account changes', async () => {
+    const onAccountUpdate = vi.fn();
+    const onComponentUpdate = vi.fn();
+    const component = { cloudProviderType: 'aws', credentials: 'test', region: 'us-east-1' } as any;
+    render(
       <AccountRegionClusterSelector
         accounts={['test', 'prod']}
         application={applicationWithServerGroups([])}
-        component={componentModel}
+        component={component}
+        onAccountUpdate={onAccountUpdate}
+        onComponentUpdate={onComponentUpdate}
+        singleRegion={true as any}
       />,
     );
-    await settle(component);
 
-    expect(component.text()).toContain('Resolved at runtime from expression');
-    expect(component.text()).toContain('${parameters.account}');
-    expect(component.find('select.SelectInput').exists()).toBe(false);
+    await waitFor(() => expect(within(accountSelect()).getByRole('option', { name: 'prod' })).toBeInTheDocument());
+    await userEvent.selectOptions(accountSelect(), 'prod');
+    expect(component.credentials).toBe('prod');
+    expect(component.cluster).toBeUndefined();
+    expect(onAccountUpdate).toHaveBeenCalledWith('prod');
+    expect(onComponentUpdate).toHaveBeenCalledWith(component);
+  });
+
+  it('renders expression credentials as runtime-resolved account text', async () => {
+    render(
+      <AccountRegionClusterSelector
+        accounts={['test', 'prod']}
+        application={applicationWithServerGroups([])}
+        component={{ cloudProviderType: 'aws', credentials: '${parameters.account}' }}
+      />,
+    );
+
+    expect(screen.getByText(/Resolved at runtime from expression/)).toHaveTextContent('${parameters.account}');
+    expect(within(getFormGroupByLabel('Account')).queryByRole('combobox')).not.toBeInTheDocument();
   });
 
   it('supports entering arbitrary cluster text while using all provider regions', async () => {
-    const componentModel = { cloudProviderType: 'aws', credentials: 'test', region: 'us-east-1' } as any;
+    let component = { cloudProviderType: 'aws', credentials: 'test', region: 'us-east-1' } as any;
     const application = applicationWithServerGroups([
       { account: 'test', region: 'us-east-1', cluster: 'app-main', moniker: { cluster: 'app-main', sequence: 7 } },
     ]);
+    const Harness = () => {
+      const [model, setModel] = React.useState(component);
+      return (
+        <AccountRegionClusterSelector
+          accounts={[]}
+          application={application}
+          component={model}
+          onComponentUpdate={(updated) => {
+            component = { ...updated };
+            setModel(component);
+          }}
+          singleRegion={true as any}
+        />
+      );
+    };
+    render(<Harness />);
 
-    const component = mount(
-      <AccountRegionClusterSelector
-        accounts={[]}
-        application={application}
-        component={componentModel}
-        singleRegion={true}
-      />,
-    );
-    await settle(component);
+    await userEvent.click(await clusterGroup().findByRole('button', { name: 'Enter a cluster name' }));
+    const input = clusterGroup().getByRole('textbox');
+    expect(within(regionSelect()).getByRole('option', { name: 'us-west-2' })).toBeInTheDocument();
+    await userEvent.type(input, 'new-cluster');
 
-    component.find('button.cluster-text-toggle').simulate('click');
-
-    expect(component.find('input.cluster-text-input').exists()).toBe(true);
-    expect(component.find('select.region-select option').map((option) => option.text())).toContain('us-west-2');
-
-    component.find('input.cluster-text-input').simulate('change', { target: { value: 'new-cluster' } });
-
-    expect(componentModel.cluster).toBe('new-cluster');
-    expect(componentModel.moniker).toBeUndefined();
+    expect(component.cluster).toBe('new-cluster');
+    expect(component.moniker).toBeUndefined();
   });
 
   it('clears cluster text and recomputes regions when toggled back to cluster select', async () => {
-    const componentModel = {
+    const component = {
       cloudProviderType: 'aws',
       credentials: 'test',
       region: 'us-east-1',
       cluster: 'typed',
     } as any;
-    const application = applicationWithServerGroups([
-      { account: 'test', region: 'us-east-1', cluster: 'app-main', moniker: { cluster: 'app-main', sequence: 7 } },
-    ]);
-
-    const component = mount(
+    render(
       <AccountRegionClusterSelector
         accounts={[]}
-        application={application}
-        component={componentModel}
-        singleRegion={true}
+        application={applicationWithServerGroups([
+          { account: 'test', region: 'us-east-1', cluster: 'app-main', moniker: { cluster: 'app-main', sequence: 7 } },
+        ])}
+        component={component}
+        singleRegion={true as any}
       />,
     );
-    await settle(component);
 
-    component.find('button.cluster-select-toggle').simulate('click');
+    await userEvent.click(await clusterGroup().findByRole('button', { name: 'Select an existing cluster' }));
 
-    expect(componentModel.cluster).toBeUndefined();
-    expect(component.find('select.cluster-select').exists()).toBe(true);
-    expect(component.find('select.region-select option').map((option) => option.text())).not.toContain('us-west-2');
+    expect(component.cluster).toBeUndefined();
+    expect(clusterGroup().getByRole('combobox')).toBeInTheDocument();
+    expect(within(regionSelect()).queryByRole('option', { name: 'us-west-2' })).not.toBeInTheDocument();
   });
 
   it('reopens persisted custom cluster values in text input mode', async () => {
-    const componentModel = {
-      cloudProviderType: 'aws',
-      credentials: 'test',
-      region: 'us-east-1',
-      cluster: 'persisted-custom-cluster',
-    } as any;
-    const application = applicationWithServerGroups([
-      { account: 'test', region: 'us-east-1', cluster: 'app-main', moniker: { cluster: 'app-main', sequence: 7 } },
-    ]);
-
-    const component = mount(
+    render(
       <AccountRegionClusterSelector
         accounts={[]}
-        application={application}
-        component={componentModel}
-        singleRegion={true}
+        application={applicationWithServerGroups([
+          { account: 'test', region: 'us-east-1', cluster: 'app-main', moniker: { cluster: 'app-main', sequence: 7 } },
+        ])}
+        component={{
+          cloudProviderType: 'aws',
+          credentials: 'test',
+          region: 'us-east-1',
+          cluster: 'persisted-custom-cluster',
+        }}
+        singleRegion={true as any}
       />,
     );
-    await settle(component);
 
-    expect(component.find('input.cluster-text-input').prop('value')).toBe('persisted-custom-cluster');
-    expect(component.find('select.cluster-select').exists()).toBe(false);
+    expect(await clusterGroup().findByRole('textbox')).toHaveValue('persisted-custom-cluster');
+    expect(clusterGroup().queryByRole('combobox')).not.toBeInTheDocument();
   });
 
-  it('shows all provider regions when no cluster is selected and current cluster is not in cluster list', async () => {
-    const componentModel = { cloudProviderType: 'aws', credentials: 'test', region: 'us-east-1' } as any;
-    const application = applicationWithServerGroups([
-      { account: 'test', region: 'us-east-1', cluster: 'app-main', moniker: { cluster: 'app-main', sequence: 7 } },
-    ]);
-
-    const component = mount(
+  it('shows all provider regions when no cluster is selected', async () => {
+    render(
       <AccountRegionClusterSelector
         accounts={[]}
-        application={application}
-        component={componentModel}
-        singleRegion={true}
+        application={applicationWithServerGroups([
+          { account: 'test', region: 'us-east-1', cluster: 'app-main', moniker: { cluster: 'app-main', sequence: 7 } },
+        ])}
+        component={{ cloudProviderType: 'aws', credentials: 'test', region: 'us-east-1' }}
+        singleRegion={true as any}
       />,
     );
-    await settle(component);
 
-    expect(component.find('select.region-select option').map((option) => option.text())).toContain('us-west-2');
-    expect(component.find('select.cluster-select').exists()).toBe(true);
+    expect(await within(regionSelect()).findByRole('option', { name: 'us-west-2' })).toBeInTheDocument();
+    expect(clusterGroup().getByRole('combobox')).toBeInTheDocument();
   });
 });
 
 function applicationWithServerGroups(serverGroups: any[]) {
-  return {
-    getDataSource: () => ({ data: serverGroups }),
-  } as any;
-}
-
-async function settle(component: any) {
-  await Promise.resolve();
-  await Promise.resolve();
-  component.update();
+  return { getDataSource: () => ({ data: serverGroups }) } as any;
 }

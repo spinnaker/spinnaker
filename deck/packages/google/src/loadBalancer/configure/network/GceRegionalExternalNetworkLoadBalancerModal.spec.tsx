@@ -1,10 +1,7 @@
+import { render, screen } from '@testing-library/react';
 import React from 'react';
-import { shallow } from 'enzyme';
 
-import {
-  GceRegionalExternalNetworkLoadBalancerEditor,
-  validateGceRegionalExternalNetworkLoadBalancerCommand,
-} from './GceRegionalExternalNetworkLoadBalancerEditor';
+import { validateGceRegionalExternalNetworkLoadBalancerCommand } from './GceRegionalExternalNetworkLoadBalancerEditor';
 import {
   GceRegionalExternalNetworkLoadBalancerModal,
   normalizeGceRegionalExternalNetworkLoadBalancerCommand,
@@ -298,7 +295,7 @@ describe('GceRegionalExternalNetworkLoadBalancerModal', () => {
 
   it('exposes pipeline support and passes edit mode to the editor', () => {
     expect(GceRegionalExternalNetworkLoadBalancerModal.supportsPipelineConfig).toBe(true);
-    const wrapper = shallow(
+    render(
       <GceRegionalExternalNetworkLoadBalancerModal
         app={application}
         closeModal={vi.fn()}
@@ -309,7 +306,13 @@ describe('GceRegionalExternalNetworkLoadBalancerModal', () => {
       />,
     );
 
-    expect(wrapper.find(GceRegionalExternalNetworkLoadBalancerEditor).prop('command').mode).toBe('edit');
+    expect(screen.getByRole('heading', { name: 'Edit app-main' })).toBeInTheDocument();
+    ['Account', 'Region', 'IP address', 'Network tier', 'Protocol', 'Ports'].forEach((label) =>
+      expect(screen.getByLabelText(label), label).toBeDisabled(),
+    );
+    expect(screen.getAllByLabelText('Name')[0]).toBeDisabled();
+    expect(screen.getByLabelText('Session affinity')).toBeEnabled();
+    expect(screen.getByRole('button', { name: /Update/ })).toBeInTheDocument();
   });
 });
 

@@ -1,10 +1,10 @@
-import { mount } from 'enzyme';
+import { render, screen, waitFor } from '@testing-library/react';
+import { setupUser } from '../../../../utils/testUtils/userEvent';
 import React from 'react';
-import Select from 'react-select';
 
 import { BuildServiceType, IgorService } from '../../../../ci/igor.service';
-import { HelpField } from '../../../../help';
-import { ReactModal } from '../../../../presentation';
+import { HelpContentsRegistry, HelpTextExpandedContext } from '../../../../help';
+import { AddCiBuildParameterModal } from './AddCiBuildParameterModal';
 import { CiBuildStageConfig } from './CiBuildStageConfig';
 
 describe('<CiBuildStageConfig />', () => {
@@ -14,7 +14,10 @@ describe('<CiBuildStageConfig />', () => {
     vi.spyOn(IgorService, 'getJobConfig').mockReturnValue(Promise.resolve({ parameterDefinitionList: [] } as any));
   });
 
-  const flushPromises = () => new Promise((resolve) => setTimeout(resolve));
+  const flushPromises = async () => {
+    await Promise.resolve();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  };
 
   const createProps = (stageOverrides = {}) => {
     const stage: any = {
@@ -41,32 +44,26 @@ describe('<CiBuildStageConfig />', () => {
   };
 
   const expectFullJobListSearchBeforeLimit = async (buildServiceType: BuildServiceType) => {
+    const user = setupUser();
     const jobs = Array.from({ length: 500 }, (_value, index) => `common-job-${index}`);
     jobs.push('target-job-after-limit');
-    (IgorService.listJobsForMaster as any).mockReturnValue(Promise.resolve(jobs));
+    vi.mocked(IgorService.listJobsForMaster).mockReturnValue(Promise.resolve(jobs));
     const props = createProps({ master: 'master' });
 
-    const component = mount(<CiBuildStageConfig {...props} buildServiceType={buildServiceType} />);
-    await flushPromises();
-    component.update();
+    render(<CiBuildStageConfig {...props} buildServiceType={buildServiceType} />);
+    const jobInput = (await screen.findByText('Start typing...')).closest('.Select').querySelector('input');
+    await user.click(jobInput);
+    expect(screen.getAllByRole('option')).toHaveLength(100);
 
-    const jobSelect = component.find(Select).filterWhere((select) => select.prop('placeholder') === 'Start typing...');
-    const options = jobSelect.prop('options') as any[];
-    const filterOptions = jobSelect.prop('filterOptions') as any;
-    const filter = (query: string) => filterOptions(options, query, [], jobSelect.props());
-
-    expect(filterOptions).toBeDefined();
-    expect(filter('')).toHaveSize(100);
-    expect(filter('common-job')).toHaveSize(100);
-    expect(filter('target-job-after-limit')).toEqual([
-      { label: 'target-job-after-limit', value: 'target-job-after-limit' },
-    ]);
+    await user.type(jobInput, 'target-job-after-limit');
+    expect(screen.getAllByRole('option')).toHaveLength(1);
+    expect(screen.getByRole('option', { name: 'target-job-after-limit' })).toBeVisible();
   };
 
   it('sets legacy defaults without marking the stage dirty', () => {
     const props = createProps();
 
-    mount(<CiBuildStageConfig {...props} />);
+    render(<CiBuildStageConfig {...props} />);
 
     expect(props.stage.failPipeline).toBe(true);
     expect(props.stage.continuePipeline).toBe(false);
@@ -76,24 +73,22 @@ describe('<CiBuildStageConfig />', () => {
 
   it('initializes missing job parameters without marking the stage dirty', async () => {
     const props = createProps({ master: 'master', job: 'job' });
-    (IgorService.listJobsForMaster as any).mockReturnValue(Promise.resolve(['job']));
+    vi.mocked(IgorService.listJobsForMaster).mockReturnValue(Promise.resolve(['job']));
 
-    mount(<CiBuildStageConfig {...props} />);
-    await flushPromises();
+    render(<CiBuildStageConfig {...props} />);
+    await waitFor(() => expect(props.stage.parameters).toEqual({}));
 
-    expect(props.stage.parameters).toEqual({});
     expect(props.updateStageField).not.toHaveBeenCalled();
     expect(props.stageFieldUpdated).not.toHaveBeenCalled();
   });
 
   it('clears saved jobs missing from Igor through updateStageField', async () => {
     const props = createProps({ master: 'master', job: 'missing-job' });
-    (IgorService.listJobsForMaster as any).mockReturnValue(Promise.resolve(['current-job']));
+    vi.mocked(IgorService.listJobsForMaster).mockReturnValue(Promise.resolve(['current-job']));
 
-    mount(<CiBuildStageConfig {...props} />);
-    await flushPromises();
+    render(<CiBuildStageConfig {...props} />);
+    await waitFor(() => expect(props.stage.job).toBe(''));
 
-    expect(props.stage.job).toBe('');
     expect(props.updateStageField).toHaveBeenCalledWith({ job: '' });
     expect(props.stageFieldUpdated).toHaveBeenCalled();
   });
@@ -109,38 +104,33 @@ describe('<CiBuildStageConfig />', () => {
   it('clears master refresh state when Igor rejects', async () => {
     let rejectMasters: (error: Error) => void;
     const mastersPromise = new Promise<string[]>((_resolve, reject) => (rejectMasters = reject));
-    (IgorService.listMasters as any).mockReturnValue(mastersPromise);
-    const props = createProps();
+    vi.mocked(IgorService.listMasters).mockReturnValue(mastersPromise);
 
-    const component = mount(<CiBuildStageConfig {...props} />);
+    const { container } = render(<CiBuildStageConfig {...createProps()} />);
+    expect(container.querySelector('[title="Refresh masters list"] .fa-spin')).toBeInTheDocument();
 
-    expect(component.state('mastersRefreshing')).toBe(true);
-    rejectMasters!(new Error('failed to load masters'));
-    await mastersPromise.catch(() => undefined);
-    await flushPromises();
-
-    expect(component.state('mastersRefreshing')).toBe(false);
+    rejectMasters(new Error('failed to load masters'));
+    await waitFor(() =>
+      expect(container.querySelector('[title="Refresh masters list"] .fa-spin')).not.toBeInTheDocument(),
+    );
   });
 
-  it('does not set state when async job list responses resolve after unmount', async () => {
+  it('does not update after async job list responses resolve after unmount', async () => {
     let resolveJobs: (jobs: string[]) => void;
-    (IgorService.listJobsForMaster as any).mockReturnValue(new Promise((resolve) => (resolveJobs = resolve)));
-    const props = createProps({ master: 'master', job: 'job' });
+    vi.mocked(IgorService.listJobsForMaster).mockReturnValue(new Promise((resolve) => (resolveJobs = resolve)));
+    const consoleError = vi.spyOn(console, 'error').mockReturnValue(undefined);
+    const view = render(<CiBuildStageConfig {...createProps({ master: 'master', job: 'job' })} />);
 
-    const component = mount(<CiBuildStageConfig {...props} />);
-    const instance = component.instance() as CiBuildStageConfig;
-    const setStateSpy = vi.spyOn(instance, 'setState');
-
-    component.unmount();
-    resolveJobs!(['job']);
+    view.unmount();
+    resolveJobs(['job']);
     await flushPromises();
 
-    expect(setStateSpy).not.toHaveBeenCalled();
+    expect(consoleError).not.toHaveBeenCalled();
   });
 
   it('ignores stale job list responses for an old master', async () => {
     let resolveOldMasterJobs: (jobs: string[]) => void;
-    (IgorService.listJobsForMaster as any).mockImplementation((master: string) => {
+    vi.mocked(IgorService.listJobsForMaster).mockImplementation((master: string) => {
       if (master === 'old-master') {
         return new Promise<string[]>((resolve) => (resolveOldMasterJobs = resolve));
       }
@@ -148,10 +138,10 @@ describe('<CiBuildStageConfig />', () => {
     });
     const props = createProps({ master: 'old-master', job: 'old-job' });
 
-    mount(<CiBuildStageConfig {...props} />);
+    render(<CiBuildStageConfig {...props} />);
     props.stage.master = 'new-master';
     props.stage.job = 'new-job';
-    resolveOldMasterJobs!(['old-job']);
+    resolveOldMasterJobs(['old-job']);
     await flushPromises();
 
     expect(props.stage.job).toBe('new-job');
@@ -160,12 +150,12 @@ describe('<CiBuildStageConfig />', () => {
 
   it('ignores stale job list responses for a newer job on the same master', async () => {
     let resolveJobs: (jobs: string[]) => void;
-    (IgorService.listJobsForMaster as any).mockReturnValue(new Promise((resolve) => (resolveJobs = resolve)));
+    vi.mocked(IgorService.listJobsForMaster).mockReturnValue(new Promise((resolve) => (resolveJobs = resolve)));
     const props = createProps({ master: 'master', job: 'old-job' });
 
-    mount(<CiBuildStageConfig {...props} />);
+    render(<CiBuildStageConfig {...props} />);
     props.stage.job = 'new-job';
-    resolveJobs!(['old-job']);
+    resolveJobs(['old-job']);
     await flushPromises();
 
     expect(props.stage.job).toBe('new-job');
@@ -175,47 +165,38 @@ describe('<CiBuildStageConfig />', () => {
   it('ignores stale job config responses after a saved job is cleared', async () => {
     let resolveJobConfig: (config: any) => void;
     const props = createProps({ master: 'master', job: 'old-job' });
-    (IgorService.listJobsForMaster as any).mockReturnValue(Promise.resolve(['new-job']));
-    (IgorService.getJobConfig as any).mockReturnValue(new Promise((resolve) => (resolveJobConfig = resolve)));
+    vi.mocked(IgorService.listJobsForMaster).mockReturnValue(Promise.resolve(['new-job']));
+    vi.mocked(IgorService.getJobConfig).mockReturnValue(new Promise((resolve) => (resolveJobConfig = resolve)));
 
-    const component = mount(<CiBuildStageConfig {...props} showJenkinsParameters={true} />);
-    await flushPromises();
-
-    expect(props.stage.job).toBe('');
-    resolveJobConfig!({
+    render(<CiBuildStageConfig {...props} showJenkinsParameters={true} />);
+    await waitFor(() => expect(props.stage.job).toBe(''));
+    resolveJobConfig({
       parameterDefinitionList: [
         { name: 'OLD_PARAM', type: 'StringParameterDefinition', defaultValue: 'old', description: 'Old job param' },
       ],
     });
     await flushPromises();
-    component.update();
 
     expect(props.stage.parameters).toBeUndefined();
-    expect(
-      component
-        .find('b.break-word')
-        .filterWhere((parameterName) => parameterName.text() === 'OLD_PARAM')
-        .exists(),
-    ).toBe(false);
+    expect(screen.queryByText('OLD_PARAM')).not.toBeInTheDocument();
   });
 
   it('adds inline parameters through a React modal result', async () => {
-    vi.spyOn(ReactModal, 'show').mockReturnValue(Promise.resolve({ key: 'branch', value: 'main' }));
+    const user = setupUser();
+    vi.spyOn(AddCiBuildParameterModal, 'show').mockReturnValue(Promise.resolve({ key: 'branch', value: 'main' }));
     const props = createProps({ parameters: {} });
 
-    const component = mount(<CiBuildStageConfig {...props} showInlineParameters={true} />);
-    component.find('button.add-new').simulate('click');
-    await flushPromises();
+    render(<CiBuildStageConfig {...props} showInlineParameters={true} />);
+    await user.click(screen.getByRole('button', { name: 'Add Parameter' }));
 
-    expect(ReactModal.show).toHaveBeenCalled();
-    expect(props.updateStageField).toHaveBeenCalledWith({ parameters: { branch: 'main' } });
+    await waitFor(() => expect(props.updateStageField).toHaveBeenCalledWith({ parameters: { branch: 'main' } }));
     expect(props.stageFieldUpdated).toHaveBeenCalled();
   });
 
   it('renders Jenkins parameter descriptions as help fields', async () => {
     const props = createProps({ master: 'master', job: 'job', parameters: {} });
-    (IgorService.listJobsForMaster as any).mockReturnValue(Promise.resolve(['job']));
-    (IgorService.getJobConfig as any).mockReturnValue(
+    vi.mocked(IgorService.listJobsForMaster).mockReturnValue(Promise.resolve(['job']));
+    vi.mocked(IgorService.getJobConfig).mockReturnValue(
       Promise.resolve({
         parameterDefinitionList: [
           { name: 'BRANCH', type: 'StringParameterDefinition', defaultValue: 'main', description: 'Branch to build' },
@@ -223,21 +204,26 @@ describe('<CiBuildStageConfig />', () => {
       } as any),
     );
 
-    const component = mount(<CiBuildStageConfig {...props} showJenkinsParameters={true} />);
-    await flushPromises();
-    component.update();
+    render(
+      <HelpTextExpandedContext.Provider value={true}>
+        <CiBuildStageConfig {...props} showJenkinsParameters={true} />
+      </HelpTextExpandedContext.Provider>,
+    );
 
-    expect(
-      component.find(HelpField).filterWhere((helpField) => helpField.prop('content') === 'Branch to build').length,
-    ).toBe(1);
+    expect(await screen.findByText('Branch to build')).toBeVisible();
   });
 
   it('renders unstable build help fields from the configured help key prefix', () => {
-    const component = mount(<CiBuildStageConfig {...createProps()} />);
+    HelpContentsRegistry.register('pipeline.config.jenkins.markUnstableAsSuccessful.false', 'Fail unstable help');
+    HelpContentsRegistry.register('pipeline.config.jenkins.markUnstableAsSuccessful.true', 'Accept unstable help');
 
-    const helpFieldIds = component.find(HelpField).map((helpField) => helpField.prop('id'));
+    render(
+      <HelpTextExpandedContext.Provider value={true}>
+        <CiBuildStageConfig {...createProps()} />
+      </HelpTextExpandedContext.Provider>,
+    );
 
-    expect(helpFieldIds).toContain('pipeline.config.jenkins.markUnstableAsSuccessful.false');
-    expect(helpFieldIds).toContain('pipeline.config.jenkins.markUnstableAsSuccessful.true');
+    expect(screen.getByText('Fail unstable help')).toBeVisible();
+    expect(screen.getByText('Accept unstable help')).toBeVisible();
   });
 });

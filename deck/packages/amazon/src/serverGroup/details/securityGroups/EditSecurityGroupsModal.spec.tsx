@@ -1,11 +1,9 @@
-import { mount as enzymeMount } from 'enzyme';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import React from 'react';
-import Select from 'react-select';
 import { of } from 'rxjs';
 
 import { AccountService, DeckRuntimeContext } from '@spinnaker/core';
-
-import { AwsModalFooter } from '../../../common/AwsModalFooter';
+import { renderWithRouter } from '../../../../../core/src/utils/testUtils/rtl';
 
 import {
   EditSecurityGroupsModal,
@@ -16,11 +14,10 @@ import {
 describe('EditSecurityGroupsModal', () => {
   let originalAccounts: typeof AccountService.accounts$;
   let runtimeServices: any;
-  const RuntimeWrapper = ({ children }: React.PropsWithChildren<{}>) => (
-    <DeckRuntimeContext.Provider value={{ services: runtimeServices } as any}>{children}</DeckRuntimeContext.Provider>
-  );
-  const shallowModal = (props: any) =>
-    enzymeMount(<EditSecurityGroupsModal {...props} />, { wrappingComponent: RuntimeWrapper });
+
+  const serverGroup = { name: 'deck-main-v001', account: 'test', region: 'us-east-1', vpcId: 'vpc-1' } as any;
+  const application = { name: 'deck', serverGroups: { refresh: vi.fn() } } as any;
+  const modalProps = { application, serverGroup, closeModal: vi.fn(), dismissModal: vi.fn() };
 
   beforeEach(() => {
     originalAccounts = AccountService.accounts$;
@@ -32,24 +29,12 @@ describe('EditSecurityGroupsModal', () => {
     AccountService.accounts$ = originalAccounts;
   });
 
-  const serverGroup = {
-    name: 'deck-main-v001',
-    account: 'test',
-    region: 'us-east-1',
-    vpcId: 'vpc-1',
-  } as any;
-
-  const application = { name: 'deck', serverGroups: { refresh: vi.fn() } } as any;
-  const modalProps = {
-    application,
-    serverGroup,
-    closeModal: vi.fn(),
-    dismissModal: vi.fn(),
-  };
-
-  async function flush(): Promise<void> {
-    await Promise.resolve();
-    await Promise.resolve();
+  function renderModal(props: any) {
+    return renderWithRouter(
+      <DeckRuntimeContext.Provider value={{ services: runtimeServices } as any}>
+        <EditSecurityGroupsModal {...props} />
+      </DeckRuntimeContext.Provider>,
+    );
   }
 
   it('filters by account, region, and VPC while preserving unresolved attached groups', () => {
@@ -91,68 +76,53 @@ describe('EditSecurityGroupsModal', () => {
     };
     const getAllSecurityGroups = vi
       .fn()
-      .mockReturnValueOnce(Promise.reject(new Error('inventory unavailable')))
-      .mockReturnValueOnce(Promise.resolve(allGroups));
+      .mockRejectedValueOnce(new Error('inventory unavailable'))
+      .mockResolvedValueOnce(allGroups);
     runtimeServices.securityGroupReader = { getAllSecurityGroups };
-    const wrapper = shallowModal({ ...modalProps, securityGroups: selected });
-    await flush();
-    wrapper.update();
+    renderModal({ ...modalProps, securityGroups: selected });
 
-    expect(wrapper.find(Select).prop('isLoading')).toBe(false);
-    expect(wrapper.find('.security-groups-load-error').text()).toContain('Unable to load');
-    expect(wrapper.find(AwsModalFooter).prop('isValid')).toBe(false);
-    expect(wrapper.state('securityGroups')).toEqual(selected);
+    expect(await screen.findByRole('alert')).toHaveTextContent('Unable to load');
+    expect(screen.getByText('attached')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Submit' })).toBeDisabled();
 
-    wrapper.find('.security-groups-load-error button').simulate('click');
-    expect(wrapper.find(Select).prop('isLoading')).toBe(true);
-    await flush();
-    wrapper.update();
+    fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
+    await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument());
 
     expect(getAllSecurityGroups).toHaveBeenCalledTimes(2);
-    expect(wrapper.find('.security-groups-load-error').length).toBe(0);
-    expect(wrapper.find(AwsModalFooter).prop('isValid')).toBe(true);
-    expect(wrapper.state('securityGroups')).toEqual(selected);
-    expect((wrapper.state('availableSecurityGroups') as any[]).map((group) => group.id)).toEqual([
-      'sg-attached',
-      'sg-available',
-    ]);
+    expect(screen.getByText('attached')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Submit' })).toBeEnabled();
+    fireEvent.keyDown(screen.getByRole('combobox'), { key: 'ArrowDown', keyCode: 40 });
+    expect(screen.getByText('available (sg-available)')).toBeInTheDocument();
   });
 
   it('does not update state when security-group loading completes after unmount', async () => {
     let finishLoading: (groups: any) => void;
-    const getAllSecurityGroups = vi.fn().mockReturnValue(
-      new Promise((resolve) => {
-        finishLoading = resolve;
-      }),
-    );
-    runtimeServices.securityGroupReader = { getAllSecurityGroups };
-    const wrapper = shallowModal(modalProps);
-    const modal = wrapper.instance() as EditSecurityGroupsModal;
-    const setState = vi.spyOn(modal, 'setState');
+    runtimeServices.securityGroupReader = {
+      getAllSecurityGroups: vi.fn().mockReturnValue(new Promise((resolve) => (finishLoading = resolve))),
+    };
+    const consoleError = vi.spyOn(console, 'error').mockReturnValue(undefined);
+    const rendered = renderModal(modalProps);
+    rendered.unmount();
 
-    wrapper.unmount();
-    finishLoading({});
-    await flush();
+    await act(async () => {
+      finishLoading!({});
+      await Promise.resolve();
+    });
 
-    expect(setState).not.toHaveBeenCalled();
+    expect(consoleError.mock.calls.join('\n')).not.toContain('unmounted component');
   });
 
-  it('submits selected groups through the writer with mixed-instance launch-template state', () => {
-    const update = vi.fn().mockReturnValue(Promise.resolve({} as any));
+  it('submits selected groups through the writer with mixed-instance launch-template state', async () => {
+    const updateSecurityGroups = vi.fn().mockResolvedValue({} as any);
     const selected = [{ id: 'sg-attached', name: 'attached' }] as any;
-    const modal = new EditSecurityGroupsModal({
-      application,
-      securityGroups: selected,
-      serverGroup: { ...serverGroup, mixedInstancesPolicy: {} },
-      closeModal: vi.fn(),
-      dismissModal: vi.fn(),
-    } as any) as any;
-    modal.context = { services: { serverGroupWriter: { updateSecurityGroups: update } } };
-    modal.state.taskMonitor = { submit: (method: () => any) => method() };
+    runtimeServices.securityGroupReader = { getAllSecurityGroups: vi.fn().mockResolvedValue({}) };
+    runtimeServices.serverGroupWriter = { updateSecurityGroups };
+    renderModal({ ...modalProps, securityGroups: selected, serverGroup: { ...serverGroup, mixedInstancesPolicy: {} } });
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Submit' })).toBeEnabled());
 
-    modal.submit();
+    fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
 
-    expect(update).toHaveBeenCalledWith(
+    expect(updateSecurityGroups).toHaveBeenCalledWith(
       expect.objectContaining({ name: 'deck-main-v001' }),
       selected,
       application,

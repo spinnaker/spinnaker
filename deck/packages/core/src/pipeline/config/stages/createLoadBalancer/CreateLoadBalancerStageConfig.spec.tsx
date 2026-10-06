@@ -1,4 +1,5 @@
-import { mount } from 'enzyme';
+import { render, screen } from '@testing-library/react';
+import { setupUser } from '../../../../utils/testUtils/userEvent';
 import React from 'react';
 
 import { CloudProviderRegistry, ProviderSelectionService } from '../../../../cloudProvider';
@@ -44,8 +45,8 @@ describe('<CreateLoadBalancerStageConfig />', () => {
     await Promise.resolve();
   }
 
-  function mountConfig(props: ReturnType<typeof createProps>) {
-    return mount(
+  function renderConfig(props: ReturnType<typeof createProps>) {
+    return render(
       <DeckRuntimeContext.Provider value={{ services: runtimeServices }}>
         <CreateLoadBalancerStageConfig {...props} />
       </DeckRuntimeContext.Provider>,
@@ -53,14 +54,15 @@ describe('<CreateLoadBalancerStageConfig />', () => {
   }
 
   it('appends every operation returned when creating a load balancer', async () => {
+    const user = setupUser();
     const existing = { name: 'existing' };
     const originalLoadBalancers = [existing];
     const created = [{ name: 'listener-1' }, { name: 'listener-2' }];
     const props = createProps(originalLoadBalancers);
     resolveModalWith(created);
-    const component = mountConfig(props);
+    renderConfig(props);
 
-    component.find('button.add-new').simulate('click');
+    await user.click(screen.getByRole('button', { name: /Add load balancer/i }));
     await flushModalResult();
 
     expect(props.stage.loadBalancers).toEqual([existing, ...created]);
@@ -70,13 +72,14 @@ describe('<CreateLoadBalancerStageConfig />', () => {
   });
 
   it('appends a single operation returned when creating a load balancer', async () => {
+    const user = setupUser();
     const existing = { name: 'existing' };
     const created = { name: 'created' };
     const props = createProps([existing]);
     resolveModalWith(created);
-    const component = mountConfig(props);
+    renderConfig(props);
 
-    component.find('button.add-new').simulate('click');
+    await user.click(screen.getByRole('button', { name: /Add load balancer/i }));
     await flushModalResult();
 
     expect(props.stage.loadBalancers).toEqual([existing, created]);
@@ -84,6 +87,7 @@ describe('<CreateLoadBalancerStageConfig />', () => {
   });
 
   it('replaces the edited slot with every returned operation in order', async () => {
+    const user = setupUser();
     const before = { name: 'before' };
     const edited = { name: 'edited' };
     const after = { name: 'after' };
@@ -91,13 +95,9 @@ describe('<CreateLoadBalancerStageConfig />', () => {
     const replacements = [{ name: 'listener-1' }, { name: 'listener-2' }];
     const props = createProps(originalLoadBalancers);
     resolveModalWith(replacements);
-    const component = mountConfig(props);
+    renderConfig(props);
 
-    component
-      .find('button')
-      .filterWhere((button) => button.text() === 'Edit')
-      .at(1)
-      .simulate('click');
+    await user.click(screen.getAllByRole('button', { name: 'Edit' })[1]);
     await flushModalResult();
 
     expect(props.stage.loadBalancers).toEqual([before, ...replacements, after]);
@@ -107,19 +107,16 @@ describe('<CreateLoadBalancerStageConfig />', () => {
   });
 
   it('replaces the edited slot with a single returned operation', async () => {
+    const user = setupUser();
     const before = { name: 'before' };
     const edited = { name: 'edited' };
     const after = { name: 'after' };
     const replacement = { name: 'replacement' };
     const props = createProps([before, edited, after]);
     resolveModalWith(replacement);
-    const component = mountConfig(props);
+    renderConfig(props);
 
-    component
-      .find('button')
-      .filterWhere((button) => button.text() === 'Edit')
-      .at(1)
-      .simulate('click');
+    await user.click(screen.getAllByRole('button', { name: 'Edit' })[1]);
     await flushModalResult();
 
     expect(props.stage.loadBalancers).toEqual([before, replacement, after]);

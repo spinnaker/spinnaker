@@ -93,60 +93,69 @@ function renderPolicyError(error: string | undefined, id: string): React.ReactNo
   );
 }
 
+export function validateGceServerGroupLoadBalancers(
+  values: IGceServerGroupCommand,
+): IGceServerGroupCommandValidationErrors {
+  const errors = {} as IGceServerGroupCommandValidationErrors & {
+    loadBalancingPolicy?: ILoadBalancingPolicyErrors;
+  };
+  if (hasAmbiguousSelectedName(values)) {
+    errors.loadBalancers =
+      'The selected load balancer name is ambiguous across regions or load balancer types. Rename it or select an unambiguous load balancer.';
+  } else if (hasMixedRegionalExternalNetworkSelection(values)) {
+    errors.loadBalancers =
+      'REGIONAL_EXTERNAL_NETWORK load balancers cannot be combined with other load balancer families in this editor.';
+  }
+  const policy = values.loadBalancingPolicy as ILoadBalancingPolicy | undefined;
+  if (!policy || !getBalancingModes(values).length) {
+    return errors;
+  }
+
+  const policyErrors: ILoadBalancingPolicyErrors = {};
+  const balancingModes = getBalancingModes(values);
+  if (!policy.balancingMode || !balancingModes.includes(policy.balancingMode)) {
+    policyErrors.balancingMode = 'Select a balancing mode supported by the selected load balancers.';
+  }
+  if (!isValidBoundedValue(policy.capacityScaler, values, 0, 1)) {
+    policyErrors.capacityScaler = 'Capacity must be between 0 and 100%.';
+  }
+
+  const namedPortErrors = (policy.namedPorts || []).map(({ name, port }) => {
+    const namedPortError: { name?: string; port?: string } = {};
+    if (!name?.trim()) {
+      namedPortError.name = 'Port name required.';
+    }
+    if (!isValidInteger(port, values, 1, 65535)) {
+      namedPortError.port = 'Port must be an integer between 1 and 65535.';
+    }
+    return namedPortError;
+  });
+  if (namedPortErrors.some((namedPortError) => Object.keys(namedPortError).length)) {
+    policyErrors.namedPorts = namedPortErrors;
+  }
+
+  if (policy.balancingMode === 'RATE' && !isValidMinimum(policy.maxRatePerInstance, values, 0)) {
+    policyErrors.maxRatePerInstance = 'Max rate must be a finite number greater than or equal to zero.';
+  }
+  if (policy.balancingMode === 'CONNECTION' && !isValidMinimum(policy.maxConnectionsPerInstance, values, 0)) {
+    policyErrors.maxConnectionsPerInstance = 'Max connections must be a finite number greater than or equal to zero.';
+  }
+  if (policy.balancingMode === 'UTILIZATION' && !isValidBoundedValue(policy.maxUtilization, values, 0, 1)) {
+    policyErrors.maxUtilization = 'Max utilization must be between 0 and 100%.';
+  }
+
+  if (Object.keys(policyErrors).length) {
+    errors.loadBalancingPolicy = policyErrors;
+  }
+  return errors;
+}
+
 export class GceServerGroupLoadBalancers extends GceServerGroupWizardPage<IGceServerGroupWizardPageProps> {
   public validate(values: IGceServerGroupCommand): IGceServerGroupCommandValidationErrors {
-    const errors = super.validate(values) as IGceServerGroupCommandValidationErrors & {
-      loadBalancingPolicy?: ILoadBalancingPolicyErrors;
-    };
-    if (hasAmbiguousSelectedName(values)) {
-      errors.loadBalancers =
-        'The selected load balancer name is ambiguous across regions or load balancer types. Rename it or select an unambiguous load balancer.';
-    } else if (hasMixedRegionalExternalNetworkSelection(values)) {
-      errors.loadBalancers =
-        'REGIONAL_EXTERNAL_NETWORK load balancers cannot be combined with other load balancer families in this editor.';
-    }
-    const policy = values.loadBalancingPolicy as ILoadBalancingPolicy | undefined;
-    if (!policy || !getBalancingModes(values).length) {
-      return errors;
-    }
-
-    const policyErrors: ILoadBalancingPolicyErrors = {};
-    const balancingModes = getBalancingModes(values);
-    if (!policy.balancingMode || !balancingModes.includes(policy.balancingMode)) {
-      policyErrors.balancingMode = 'Select a balancing mode supported by the selected load balancers.';
-    }
-    if (!isValidBoundedValue(policy.capacityScaler, values, 0, 1)) {
-      policyErrors.capacityScaler = 'Capacity must be between 0 and 100%.';
-    }
-
-    const namedPortErrors = (policy.namedPorts || []).map(({ name, port }) => {
-      const namedPortError: { name?: string; port?: string } = {};
-      if (!name?.trim()) {
-        namedPortError.name = 'Port name required.';
-      }
-      if (!isValidInteger(port, values, 1, 65535)) {
-        namedPortError.port = 'Port must be an integer between 1 and 65535.';
-      }
-      return namedPortError;
-    });
-    if (namedPortErrors.some((namedPortError) => Object.keys(namedPortError).length)) {
-      policyErrors.namedPorts = namedPortErrors;
-    }
-
-    if (policy.balancingMode === 'RATE' && !isValidMinimum(policy.maxRatePerInstance, values, 0)) {
-      policyErrors.maxRatePerInstance = 'Max rate must be a finite number greater than or equal to zero.';
-    }
-    if (policy.balancingMode === 'CONNECTION' && !isValidMinimum(policy.maxConnectionsPerInstance, values, 0)) {
-      policyErrors.maxConnectionsPerInstance = 'Max connections must be a finite number greater than or equal to zero.';
-    }
-    if (policy.balancingMode === 'UTILIZATION' && !isValidBoundedValue(policy.maxUtilization, values, 0, 1)) {
-      policyErrors.maxUtilization = 'Max utilization must be between 0 and 100%.';
-    }
-
-    if (Object.keys(policyErrors).length) {
-      errors.loadBalancingPolicy = policyErrors;
-    }
-    return errors;
+    return {
+      ...super.validate(values),
+      ...validateGceServerGroupLoadBalancers(values),
+    } as IGceServerGroupCommandValidationErrors;
   }
 
   public render(): React.ReactElement {
