@@ -10,6 +10,7 @@ import {
   constrainGceHttpLoadBalancerCommand,
   FormRow,
   GceHttpLoadBalancerEditor,
+  validateGceHttpLoadBalancerCommand,
 } from './GceHttpLoadBalancerEditor';
 import { GceHttpLoadBalancerListenerEditor } from './GceHttpLoadBalancerListenerEditor';
 
@@ -423,6 +424,64 @@ describe('GceHttpLoadBalancerEditor', () => {
     );
   });
 
+  it('locks the EXTERNAL_MANAGED network while editing because existing listeners keep their network', () => {
+    const onChange = vi.fn();
+    const command = (loadBalancerType: 'EXTERNAL_MANAGED' | 'INTERNAL_MANAGED', mode: 'create' | 'edit') =>
+      normalizeGceLoadBalancerCommand(
+        {
+          account: 'account-a',
+          loadBalancerType,
+          name: 'web',
+          network: 'network-a',
+          region: 'europe-west1',
+          subnet: 'subnet-a',
+        },
+        mode,
+      );
+    const networkDisabled = (loadBalancerType: 'EXTERNAL_MANAGED' | 'INTERNAL_MANAGED', mode: 'create' | 'edit') =>
+      shallow(
+        <GceHttpLoadBalancerEditor command={command(loadBalancerType, mode)} data={emptyData} onChange={onChange} />,
+      )
+        .find('[data-testid="network"]')
+        .prop('disabled');
+
+    expect(networkDisabled('EXTERNAL_MANAGED', 'edit')).toBe(true);
+    expect(networkDisabled('EXTERNAL_MANAGED', 'create')).toBe(false);
+    expect(networkDisabled('INTERNAL_MANAGED', 'edit')).toBe(false);
+  });
+
+  it('drops EXTERNAL_MANAGED listener addresses when the account or region changes', () => {
+    const scopedCommand = (loadBalancerType: 'EXTERNAL_MANAGED' | 'INTERNAL_MANAGED') =>
+      normalizeGceLoadBalancerCommand(
+        {
+          account: 'account-a',
+          listeners: [{ ipAddress: '203.0.113.10', name: 'frontend', port: 80, protocol: 'HTTP', subnet: 'subnet-a' }],
+          loadBalancerType,
+          name: 'web',
+          network: 'network-a',
+          region: 'europe-west1',
+          subnet: 'subnet-a',
+        },
+        'create',
+      );
+    const onChange = vi.fn();
+    const external = shallow(
+      <GceHttpLoadBalancerEditor command={scopedCommand('EXTERNAL_MANAGED')} data={emptyData} onChange={onChange} />,
+    );
+
+    external.find('[data-testid="credentials"]').simulate('change', { target: { value: 'account-b' } });
+    expect(onChange.mock.lastCall[0].listeners[0].address).toBeUndefined();
+    external.find('[data-testid="region"]').simulate('change', { target: { value: 'us-central1' } });
+    expect(onChange.mock.lastCall[0].listeners[0].address).toBeUndefined();
+
+    shallow(
+      <GceHttpLoadBalancerEditor command={scopedCommand('INTERNAL_MANAGED')} data={emptyData} onChange={onChange} />,
+    )
+      .find('[data-testid="region"]')
+      .simulate('change', { target: { value: 'us-central1' } });
+    expect(onChange.mock.lastCall[0].listeners[0].address).toEqual({ name: '203.0.113.10' });
+  });
+
   it('restores account, region, network, subnet, and composite type controls', () => {
     const onChange = vi.fn();
     const command = normalizeGceLoadBalancerCommand(
@@ -466,5 +525,284 @@ describe('GceHttpLoadBalancerEditor', () => {
     expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({ loadBalancerType: 'HTTP', network: undefined, region: 'global', subnet: undefined }),
     );
+  });
+
+  it('constrains EXTERNAL_MANAGED to regional scope with network and listener tier', () => {
+    const command = normalizeGceLoadBalancerCommand(
+      {
+        account: 'account-a',
+        listeners: [
+          {
+            certificate: 'regional-cert',
+            ipAddress: '203.0.113.10',
+            name: 'app-https',
+            networkTier: 'STANDARD',
+            port: 443,
+            protocol: 'HTTPS',
+          },
+        ],
+        loadBalancerType: 'EXTERNAL_MANAGED',
+        name: 'web',
+        network: 'network-a',
+        region: 'europe-west1',
+      },
+      'create',
+    );
+
+    expect(constrainGceHttpLoadBalancerCommand(command)).toEqual(
+      expect.objectContaining({
+        loadBalancerType: 'EXTERNAL_MANAGED',
+        network: { name: 'network-a' },
+        region: 'europe-west1',
+        subnet: undefined,
+      }),
+    );
+    expect(constrainGceHttpLoadBalancerCommand(command).listeners).toEqual([
+      {
+        certificate: { name: 'regional-cert' },
+        address: { name: '203.0.113.10' },
+        name: 'app-https',
+        networkTier: 'STANDARD',
+        portRange: '443',
+        protocol: 'HTTPS',
+      },
+    ]);
+  });
+
+  it('retains networkTier when constraining an EXTERNAL_MANAGED plaintext HTTP listener', () => {
+    const command = normalizeGceLoadBalancerCommand(
+      {
+        account: 'account-a',
+        listeners: [
+          {
+            ipAddress: '203.0.113.10',
+            name: 'app-http',
+            networkTier: 'STANDARD',
+            port: 80,
+            protocol: 'HTTP',
+          },
+        ],
+        loadBalancerType: 'EXTERNAL_MANAGED',
+        name: 'web',
+        network: 'network-a',
+        region: 'europe-west1',
+      },
+      'create',
+    );
+
+    expect(constrainGceHttpLoadBalancerCommand(command).listeners).toEqual([
+      {
+        address: { name: '203.0.113.10' },
+        name: 'app-http',
+        networkTier: 'STANDARD',
+        portRange: '80',
+        protocol: 'HTTP',
+      },
+    ]);
+  });
+
+  it('scopes EXTERNAL_MANAGED resources by account and region and filters proxy-only networks', () => {
+    const data = {
+      ...emptyData,
+      addresses: [
+        { account: 'account-a', address: '203.0.113.10', addressType: 'EXTERNAL', region: 'europe-west1' },
+        { account: 'account-a', address: '10.0.0.1', addressType: 'INTERNAL', region: 'europe-west1' },
+        { account: 'account-a', address: '198.51.100.1', addressType: 'EXTERNAL', region: 'us-central1' },
+        { account: 'account-b', address: '203.0.113.11', addressType: 'EXTERNAL', region: 'europe-west1' },
+      ],
+      backendServices: [
+        { account: 'account-a', name: 'regional-backend', region: 'europe-west1' },
+        { account: 'account-a', name: 'global-backend', region: 'global' },
+      ],
+      certificates: [
+        { account: 'account-a', name: 'regional-cert', region: 'europe-west1' },
+        { account: 'account-b', name: 'wrong-account-cert', region: 'europe-west1' },
+      ],
+      healthChecks: [
+        { account: 'account-a', name: 'regional-check', region: 'europe-west1' },
+        { account: 'account-a', name: 'global-check', region: 'global' },
+      ],
+      networks: [
+        { account: 'account-a', id: 'network-a', name: 'network-a', region: 'global' },
+        { account: 'account-a', id: 'network-b', name: 'network-b', region: 'global' },
+      ],
+      subnets: [
+        {
+          account: 'account-a',
+          name: 'proxy-subnet',
+          network: 'network-a',
+          purpose: 'REGIONAL_MANAGED_PROXY',
+          region: 'europe-west1',
+        },
+        {
+          account: 'account-a',
+          name: 'internal-subnet',
+          network: 'network-b',
+          purpose: 'INTERNAL_HTTPS_LOAD_BALANCER',
+          region: 'europe-west1',
+        },
+      ],
+    } as any;
+    const command = normalizeGceLoadBalancerCommand(
+      {
+        account: 'account-a',
+        backendServices: [{ healthCheck: 'regional-check', name: 'regional-backend' }],
+        certificate: 'regional-cert',
+        ipAddress: '203.0.113.10',
+        loadBalancerType: 'EXTERNAL_MANAGED',
+        name: 'external',
+        network: 'network-a',
+        region: 'europe-west1',
+      },
+      'create',
+    );
+
+    const options = buildGceHttpLoadBalancerOptions(command, data);
+    expect(options.addresses.filter(({ address }) => address).map(({ address }) => address)).toEqual(['203.0.113.10']);
+    // The listener select value is the persisted IP, so it must stay selectable next to the named address.
+    expect(options.addresses.map(({ name }) => name)).toContain('203.0.113.10');
+    expect(options.certificates.map(({ name }) => name)).toEqual(['regional-cert']);
+    expect(options.healthChecks.map(({ name }) => name)).toEqual(['regional-check']);
+    expect(options.backendServices.map(({ name }) => name)).toEqual(['regional-backend']);
+    expect(options.networks.map(({ name }) => name)).toEqual(['network-a']);
+    expect(options.subnets).toEqual([]);
+  });
+
+  it('rejects Shared VPCs, unsupported backend protocols, and destructive same-name listener edits', () => {
+    const command = normalizeGceLoadBalancerCommand(
+      {
+        account: 'account-a',
+        backendServices: [{ healthCheck: 'check-a', name: 'backend-a', portName: 'http', protocol: 'HTTP2' }],
+        defaultService: 'backend-a',
+        healthChecks: [{ healthCheckType: 'HTTP', name: 'check-a', port: 80, requestPath: '/' }],
+        listeners: [{ name: 'frontend', networkTier: 'PREMIUM', port: 80, protocol: 'HTTP' }],
+        loadBalancerType: 'EXTERNAL_MANAGED',
+        name: 'web',
+        network: 'host-project/shared-network',
+        region: 'europe-west1',
+      },
+      'edit',
+    );
+    command.listeners[0].portRange = '8080';
+
+    expect(validateGceHttpLoadBalancerCommand(command)).toEqual(
+      expect.arrayContaining([
+        'Shared VPC networks are not supported for EXTERNAL_MANAGED load balancers.',
+        'Backend service protocol must be HTTP or HTTPS.',
+        'Rename the listener to change its port, address, network tier, or HTTP/HTTPS protocol.',
+      ]),
+    );
+
+    command.network = { name: 'local-network' };
+    command.backendServices[0].protocol = 'HTTPS';
+    command.listeners[0] = { ...command.listeners[0], name: 'replacement' };
+    expect(validateGceHttpLoadBalancerCommand(command)).not.toEqual(
+      expect.arrayContaining([
+        'Shared VPC networks are not supported for EXTERNAL_MANAGED load balancers.',
+        'Backend service protocol must be HTTP or HTTPS.',
+        'Rename the listener to change its port, address, network tier, or HTTP/HTTPS protocol.',
+      ]),
+    );
+  });
+
+  it('reports a missing network for a new EXTERNAL_MANAGED load balancer instead of throwing', () => {
+    const command = normalizeGceLoadBalancerCommand(
+      { account: 'account-a', loadBalancerType: 'EXTERNAL_MANAGED', region: 'europe-west1' },
+      'create',
+    );
+    command.network = undefined;
+
+    const errors = validateGceHttpLoadBalancerCommand(command);
+
+    expect(errors).toContain('Network is required for EXTERNAL_MANAGED load balancers.');
+    expect(errors).not.toContain('Shared VPC networks are not supported for EXTERNAL_MANAGED load balancers.');
+  });
+
+  it('offers only account-local networks for EXTERNAL_MANAGED', () => {
+    const command = normalizeGceLoadBalancerCommand(
+      {
+        account: 'account-a',
+        loadBalancerType: 'EXTERNAL_MANAGED',
+        name: 'web',
+        region: 'europe-west1',
+      },
+      'create',
+    );
+    const options = buildGceHttpLoadBalancerOptions(command, {
+      ...emptyData,
+      networks: [
+        { account: 'account-a', id: 'local-network', name: 'local-network' },
+        { account: 'account-a', id: 'host-project/shared-network', name: 'shared-network' },
+      ],
+      subnets: [
+        {
+          account: 'account-a',
+          name: 'local-proxy',
+          network: 'local-network',
+          purpose: 'REGIONAL_MANAGED_PROXY',
+          region: 'europe-west1',
+        },
+        {
+          account: 'account-a',
+          name: 'shared-proxy',
+          network: 'host-project/shared-network',
+          purpose: 'REGIONAL_MANAGED_PROXY',
+          region: 'europe-west1',
+        },
+      ],
+    } as any);
+
+    expect(options.networks.map(({ name }) => name)).toEqual(['local-network']);
+  });
+
+  it('rejects EXTERNAL_MANAGED listeners that use certificate maps', () => {
+    const command = normalizeGceLoadBalancerCommand(
+      {
+        account: 'account-a',
+        listeners: [{ certificateMap: 'shared-map', name: 'frontend', port: 443, protocol: 'HTTPS' }],
+        loadBalancerType: 'EXTERNAL_MANAGED',
+        name: 'web',
+        network: 'network-a',
+        region: 'europe-west1',
+      },
+      'create',
+    );
+    const validate = (editorModule as any).validateGceHttpLoadBalancerCommand || (() => []);
+
+    expect(validate(command)).toContain('Certificate maps are not supported for EXTERNAL_MANAGED load balancers.');
+  });
+
+  (['HTTP', 'INTERNAL_MANAGED'] as const).forEach((loadBalancerType) => {
+    it(`strips stale networkTier when constraining ${loadBalancerType} from EXTERNAL_MANAGED`, () => {
+      const external = normalizeGceLoadBalancerCommand(
+        {
+          account: 'account-a',
+          listeners: [
+            {
+              ipAddress: '203.0.113.10',
+              name: 'frontend',
+              networkTier: 'STANDARD',
+              port: 443,
+              protocol: 'HTTPS',
+            },
+          ],
+          loadBalancerType: 'EXTERNAL_MANAGED',
+          name: 'web',
+          network: 'network-a',
+          region: 'europe-west1',
+        },
+        'create',
+      );
+
+      const constrained = constrainGceHttpLoadBalancerCommand({
+        ...external,
+        loadBalancerType,
+        ...(loadBalancerType === 'INTERNAL_MANAGED'
+          ? { network: { name: 'network-a' }, region: 'europe-west1', subnet: { name: 'subnet-a' } }
+          : { network: undefined, region: 'global', subnet: undefined }),
+      });
+
+      expect(constrained.listeners.every(({ networkTier }) => networkTier === undefined)).toBe(true);
+    });
   });
 });

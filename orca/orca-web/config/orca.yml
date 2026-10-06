@@ -1,6 +1,14 @@
 server:
   port: 8083
 
+spring:
+  # OrcaObjectMapper's mixins, (de)serializers and NON_NULL inclusion, and the artifact store
+  # entity serializer, are Jackson 2 only, so HTTP bodies have to go through it until they move
+  # to Jackson 3.
+  http:
+    converters:
+      preferred-json-mapper: jackson2
+
 default:
   bake:
     account: default

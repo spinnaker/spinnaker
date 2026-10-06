@@ -3,9 +3,12 @@ import { registerDefaultFixtures } from '../../support';
 describe('kubernetes: Pipelines', () => {
   beforeEach(() => {
     registerDefaultFixtures();
-    cy.intercept({ pathname: '/applications/kubernetesapp/pipelines' }, {
-      fixture: 'kubernetes/pipelines/pipelines.json',
-    });
+    cy.intercept(
+      { pathname: '/applications/kubernetesapp/pipelines' },
+      {
+        fixture: 'kubernetes/pipelines/pipelines.json',
+      },
+    );
 
     cy.fixture('kubernetes/pipelines/01JSDR9Q2VBK2PTRZWKG0F5452.succeeded.json').then((execution) => {
       cy.intercept('/applications/kubernetesapp/pipelines?*expand=true*', [execution]);
@@ -109,7 +112,7 @@ describe('kubernetes: Pipelines', () => {
       .should('exist')
       .within(() => {
         cy.contains('Baked Manifest').should('exist');
-        cy.get('textarea').contains('# Source: nginx/templates/configmap.yaml').should('exist');
+        cy.get('.ace_content').contains('# Source: nginx/templates/configmap.yaml').should('exist');
         cy.get('button.btn').contains('Close').click();
       });
   });
@@ -146,7 +149,7 @@ describe('kubernetes: Pipelines', () => {
       .should('exist')
       .within(() => {
         cy.contains('dev-p01-nginx-v000').should('exist');
-        cy.get('textarea').contains('kind: ConfigMap').should('exist');
+        cy.get('.ace_content').contains('kind: ConfigMap').should('exist');
         cy.get('button.btn').contains('Close').click();
       });
   });

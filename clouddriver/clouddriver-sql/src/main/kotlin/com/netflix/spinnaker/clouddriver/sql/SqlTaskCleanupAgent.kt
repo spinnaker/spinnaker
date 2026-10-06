@@ -34,11 +34,12 @@ import org.slf4j.LoggerFactory
 /**
  * Cleans up completed Tasks after a configurable TTL.
  */
-class SqlTaskCleanupAgent(
+class SqlTaskCleanupAgent @JvmOverloads constructor(
   private val jooq: DSLContext,
   private val clock: Clock,
   private val registry: Registry,
-  private val properties: SqlTaskCleanupAgentProperties
+  private val properties: SqlTaskCleanupAgentProperties,
+  private val retries: SqlRetries = SqlRetries()
 ) : RunnableAgent, CustomScheduledAgent {
 
   private val log = LoggerFactory.getLogger(javaClass)
@@ -48,7 +49,7 @@ class SqlTaskCleanupAgent(
 
   override fun run() {
     withPool(ConnectionPools.TASKS.value) {
-      val candidates = jooq.read { j ->
+      val candidates = jooq.read(retries) { j ->
         val candidates = j.select(field("id"), field("task_id"))
           .from(taskStatesTable)
           .where(
@@ -116,7 +117,7 @@ class SqlTaskCleanupAgent(
 
         registry.timer(timingId).record {
           candidates.resultIds.chunked(properties.batchSize) { chunk ->
-            jooq.transactional { ctx ->
+            jooq.transactional(retries) { ctx ->
               ctx.deleteFrom(taskResultsTable)
                 .where(field("id").`in`(*chunk.toTypedArray()))
                 .execute()
@@ -124,7 +125,7 @@ class SqlTaskCleanupAgent(
           }
 
           candidates.stateIds.chunked(properties.batchSize) { chunk ->
-            jooq.transactional { ctx ->
+            jooq.transactional(retries) { ctx ->
               ctx.deleteFrom(taskStatesTable)
                 .where(field("id").`in`(*chunk.toTypedArray()))
                 .execute()
@@ -132,7 +133,7 @@ class SqlTaskCleanupAgent(
           }
 
           candidates.outputIds.chunked(properties.batchSize) { chunk ->
-            jooq.transactional { ctx ->
+            jooq.transactional(retries) { ctx ->
               ctx.deleteFrom(taskOutputsTable)
                 .where(field("id").`in`(*chunk.toTypedArray()))
                 .execute()
@@ -140,7 +141,7 @@ class SqlTaskCleanupAgent(
           }
 
           candidates.taskIds.chunked(properties.batchSize) { chunk ->
-            jooq.transactional { ctx ->
+            jooq.transactional(retries) { ctx ->
               ctx.deleteFrom(tasksTable)
                 .where(field("id").`in`(*chunk.toTypedArray()))
                 .execute()

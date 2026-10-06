@@ -43,7 +43,7 @@ export interface IGceHttpLoadBalancerModalProps extends IModalComponentProps {
   forPipelineConfig?: boolean;
   isNew?: boolean;
   loadBalancer?: Record<string, unknown>;
-  loadBalancerType?: Extract<GceLoadBalancerType, 'HTTP' | 'INTERNAL_MANAGED'>;
+  loadBalancerType?: Extract<GceLoadBalancerType, 'HTTP' | 'INTERNAL_MANAGED' | 'EXTERNAL_MANAGED'>;
   mode?: GceLoadBalancerEditorMode;
 }
 
@@ -171,7 +171,13 @@ export class GceHttpLoadBalancerModal extends React.Component<
     const validationErrors = validateGceHttpLoadBalancerCommand(command);
     const heading =
       command.mode === 'create'
-        ? `Create ${command.loadBalancerType === 'HTTP' ? 'HTTP(S)' : 'Internal managed HTTP(S)'} load balancer`
+        ? `Create ${
+            command.loadBalancerType === 'INTERNAL_MANAGED'
+              ? 'Internal managed HTTP(S)'
+              : command.loadBalancerType === 'EXTERNAL_MANAGED'
+              ? 'External managed HTTP(S)'
+              : 'HTTP(S)'
+          } load balancer`
         : `Edit ${command.name}`;
 
     return (
