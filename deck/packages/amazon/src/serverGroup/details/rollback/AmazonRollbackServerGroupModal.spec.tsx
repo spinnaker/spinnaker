@@ -47,7 +47,7 @@ describe('AmazonRollbackServerGroupModal', () => {
     return {
       attributes,
       name: 'fnord',
-      serverGroups: { refresh: jasmine.createSpy('refresh') },
+      serverGroups: { refresh: vi.fn() },
     } as any;
   }
 
@@ -55,8 +55,8 @@ describe('AmazonRollbackServerGroupModal', () => {
     return {
       allServerGroups: [previousServerGroup()],
       application: app,
-      closeModal: jasmine.createSpy('closeModal'),
-      dismissModal: jasmine.createSpy('dismissModal'),
+      closeModal: vi.fn(),
+      dismissModal: vi.fn(),
       previousServerGroup: previousServerGroup(),
       serverGroup,
       ...overrides,
@@ -172,11 +172,11 @@ describe('AmazonRollbackServerGroupModal', () => {
       delayBeforeDisableSeconds: 0,
       targetHealthyRollbackPercentage: 90,
     });
-    spyOn(TaskExecutor, 'executeTask').and.returnValue(Promise.resolve({}) as any);
+    vi.spyOn(TaskExecutor, 'executeTask').mockReturnValue(Promise.resolve({}) as any);
 
     new ServerGroupWriter(null).rollbackServerGroup(serverGroup, app, command);
 
-    expect(TaskExecutor.executeTask).toHaveBeenCalledOnceWith({
+    expect(TaskExecutor.executeTask).toHaveBeenCalledExactlyOnceWith({
       application: app,
       description: 'Rollback Server Group: fnord-main-v004',
       job: [
@@ -210,7 +210,7 @@ describe('AmazonRollbackServerGroupModal', () => {
         {(formik.prop('render') as any)({
           errors: {},
           isValid: true,
-          setFieldValue: jasmine.createSpy('setFieldValue'),
+          setFieldValue: vi.fn(),
           values: formik.prop('initialValues'),
         })}
       </div>,
@@ -223,16 +223,16 @@ describe('AmazonRollbackServerGroupModal', () => {
     expect(content.find(TaskReason).exists()).toBe(true);
     expect(content.find(UserVerification).prop('account')).toBe('test-account');
     expect(content.find(PlatformHealthOverride).props()).toEqual(
-      jasmine.objectContaining({ interestingHealthProviderNames: ['Amazon'], platformHealthType: 'Amazon' }),
+      expect.objectContaining({ interestingHealthProviderNames: ['Amazon'], platformHealthType: 'Amazon' }),
     );
   });
 
   it('submits only after verification and preserves the exact values', () => {
     const app = application({ platformHealthOnly: true, platformHealthOnlyShowOverride: true });
-    const writer = { rollbackServerGroup: jasmine.createSpy('rollbackServerGroup').and.returnValue(Promise.resolve()) };
+    const writer = { rollbackServerGroup: vi.fn().mockReturnValue(Promise.resolve()) };
     const component = new AmazonRollbackServerGroupModal(props(app));
     (component as any).context = { services: { serverGroupWriter: writer } };
-    spyOn(component.state.taskMonitor, 'submit').and.callFake((submitMethod: any) => submitMethod());
+    vi.spyOn(component.state.taskMonitor, 'submit').mockImplementation((submitMethod: any) => submitMethod());
     const values = {
       delayBeforeDisableSeconds: 30,
       interestingHealthProviderNames: ['Amazon'],
@@ -247,7 +247,7 @@ describe('AmazonRollbackServerGroupModal', () => {
     component.state.verified = true;
     (component as any).submit(values);
 
-    expect(writer.rollbackServerGroup).toHaveBeenCalledOnceWith(serverGroup, app, {
+    expect(writer.rollbackServerGroup).toHaveBeenCalledExactlyOnceWith(serverGroup, app, {
       interestingHealthProviderNames: ['Amazon'],
       platformHealthOnlyShowOverride: true,
       reason: 'rollback requested',
@@ -274,12 +274,17 @@ describe('AmazonRollbackServerGroupModal', () => {
   });
 
   it('exposes a show primitive for later actions integration', () => {
-    const show = spyOn(ReactModal, 'show').and.returnValue(Promise.resolve() as any);
+    const show = vi.spyOn(ReactModal, 'show').mockReturnValue(Promise.resolve() as any);
     const modalProps = props();
     const runtimeServices = {} as any;
 
     AmazonRollbackServerGroupModal.show(modalProps, runtimeServices);
 
-    expect(show).toHaveBeenCalledOnceWith(AmazonRollbackServerGroupModal, modalProps, undefined, runtimeServices);
+    expect(show).toHaveBeenCalledExactlyOnceWith(
+      AmazonRollbackServerGroupModal,
+      modalProps,
+      undefined,
+      runtimeServices,
+    );
   });
 });

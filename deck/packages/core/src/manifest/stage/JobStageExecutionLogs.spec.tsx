@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { shallow } from 'enzyme';
 import React from 'react';
 import { Subject } from 'rxjs';
@@ -37,15 +38,15 @@ describe('JobStageExecutionLogs', () => {
     },
   ];
 
-  let getManifestSpy: jasmine.Spy;
+  let getManifestSpy: Mock;
   const subject = new Subject();
 
   beforeEach(() => {
-    getManifestSpy = spyOn(ManifestReader, 'getManifest').and.returnValue(subject);
+    getManifestSpy = vi.spyOn(ManifestReader, 'getManifest').mockReturnValue(subject);
   });
 
   afterEach(() => {
-    getManifestSpy.calls.reset();
+    getManifestSpy.mockClear();
   });
 
   it('should fetch manifest on mount', () => {

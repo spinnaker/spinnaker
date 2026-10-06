@@ -38,8 +38,8 @@ describe('GceAutoHealingPolicyDetails', () => {
   });
 
   it('opens edit after managed-resource confirmation proceeds', async () => {
-    const show = spyOn(GceUpsertAutoHealingPolicyModal, 'show');
-    const confirm = spyOn(ConfirmationModalService, 'confirm').and.returnValue(Promise.resolve() as any);
+    const show = vi.spyOn(GceUpsertAutoHealingPolicyModal, 'show').mockReturnValue(undefined);
+    const confirm = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(Promise.resolve() as any);
     const wrapper = shallow(
       <GceAutoHealingPolicyDetails
         application={application}
@@ -54,13 +54,13 @@ describe('GceAutoHealingPolicyDetails', () => {
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(confirm).toHaveBeenCalledWith(jasmine.objectContaining({ header: 'Pause Management?' }));
+    expect(confirm).toHaveBeenCalledWith(expect.objectContaining({ header: 'Pause Management?' }));
     expect(show).toHaveBeenCalledWith({ application, serverGroup: managedServerGroup, policy });
   });
 
   it('does not open edit when managed-resource confirmation is cancelled', async () => {
-    const show = spyOn(GceUpsertAutoHealingPolicyModal, 'show');
-    spyOn(ConfirmationModalService, 'confirm').and.returnValue(Promise.reject() as any);
+    const show = vi.spyOn(GceUpsertAutoHealingPolicyModal, 'show').mockReturnValue(undefined);
+    vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(Promise.reject() as any);
     const wrapper = shallow(
       <GceAutoHealingPolicyDetails
         application={application}
@@ -78,8 +78,8 @@ describe('GceAutoHealingPolicyDetails', () => {
   });
 
   it('opens add after managed-resource confirmation proceeds', async () => {
-    const show = spyOn(GceUpsertAutoHealingPolicyModal, 'show');
-    const confirm = spyOn(ConfirmationModalService, 'confirm').and.returnValue(Promise.resolve() as any);
+    const show = vi.spyOn(GceUpsertAutoHealingPolicyModal, 'show').mockReturnValue(undefined);
+    const confirm = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(Promise.resolve() as any);
     const wrapper = shallow(
       <GceAutoHealingPolicyDetails
         application={application}
@@ -94,13 +94,13 @@ describe('GceAutoHealingPolicyDetails', () => {
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(confirm).toHaveBeenCalledWith(jasmine.objectContaining({ header: 'Pause Management?' }));
+    expect(confirm).toHaveBeenCalledWith(expect.objectContaining({ header: 'Pause Management?' }));
     expect(show).toHaveBeenCalledWith({ application, serverGroup: managedServerGroup });
   });
 
   it('does not open add when managed-resource confirmation is cancelled', async () => {
-    const show = spyOn(GceUpsertAutoHealingPolicyModal, 'show');
-    spyOn(ConfirmationModalService, 'confirm').and.returnValue(Promise.reject() as any);
+    const show = vi.spyOn(GceUpsertAutoHealingPolicyModal, 'show').mockReturnValue(undefined);
+    vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(Promise.reject() as any);
     const wrapper = shallow(
       <GceAutoHealingPolicyDetails
         application={application}
@@ -118,11 +118,11 @@ describe('GceAutoHealingPolicyDetails', () => {
   });
 
   it('offers delete confirmation after managed-resource confirmation proceeds', async () => {
-    const confirm = spyOn(ConfirmationModalService, 'confirm').and.returnValues(
-      Promise.resolve() as any,
-      Promise.resolve() as any,
-    );
-    const deletePolicy = spyOn(GceAutoscalingPolicyWriter, 'deleteAutoHealingPolicy');
+    const confirm = vi
+      .spyOn(ConfirmationModalService, 'confirm')
+      .mockReturnValueOnce(Promise.resolve() as any)
+      .mockReturnValueOnce(Promise.resolve() as any);
+    const deletePolicy = vi.spyOn(GceAutoscalingPolicyWriter, 'deleteAutoHealingPolicy').mockReturnValue(undefined);
     const wrapper = shallow(
       <GceAutoHealingPolicyDetails
         application={application}
@@ -136,8 +136,8 @@ describe('GceAutoHealingPolicyDetails', () => {
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(confirm.calls.count()).toBe(2);
-    const deleteConfirmation = confirm.calls.mostRecent().args[0];
+    expect(confirm.mock.calls.length).toBe(2);
+    const deleteConfirmation = confirm.mock.lastCall[0];
     deleteConfirmation.submitMethod();
 
     expect(deletePolicy).toHaveBeenCalledWith(application, managedServerGroup);
@@ -147,8 +147,8 @@ describe('GceAutoHealingPolicyDetails', () => {
     const cancelledConfirmation = {
       then: (_onProceed: () => void, onCancel: () => void) => Promise.resolve(onCancel()),
     } as any;
-    const confirm = spyOn(ConfirmationModalService, 'confirm').and.returnValue(cancelledConfirmation);
-    const deletePolicy = spyOn(GceAutoscalingPolicyWriter, 'deleteAutoHealingPolicy');
+    const confirm = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(cancelledConfirmation);
+    const deletePolicy = vi.spyOn(GceAutoscalingPolicyWriter, 'deleteAutoHealingPolicy').mockReturnValue(undefined);
     const wrapper = shallow(
       <GceAutoHealingPolicyDetails
         application={application}
@@ -162,8 +162,8 @@ describe('GceAutoHealingPolicyDetails', () => {
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(confirm.calls.count()).toBe(1);
-    expect(confirm).toHaveBeenCalledWith(jasmine.objectContaining({ header: 'Pause Management?' }));
+    expect(confirm.mock.calls.length).toBe(1);
+    expect(confirm).toHaveBeenCalledWith(expect.objectContaining({ header: 'Pause Management?' }));
     expect(deletePolicy).not.toHaveBeenCalled();
   });
 

@@ -260,14 +260,14 @@ describe('Multiselect Model', () => {
 
         instanceGroup = multiselectModel.getOrCreateInstanceGroup(serverGroup);
 
-        spyOn(multiselectModel, 'syncNavigation');
+        vi.spyOn(multiselectModel, 'syncNavigation').mockReturnValue(undefined);
       });
 
       it('adds instance id if not present', () => {
         multiselectModel.toggleInstance(serverGroup, 'i-1234');
 
         expect(instanceGroup.instanceIds).toEqual(['i-1234']);
-        expect((multiselectModel.syncNavigation as any).calls.count()).toBe(1);
+        expect((multiselectModel.syncNavigation as any).mock.calls.length).toBe(1);
       });
 
       it('removes instance id if present and sets selectAll flag to false', () => {
@@ -278,7 +278,7 @@ describe('Multiselect Model', () => {
 
         expect(instanceGroup.instanceIds).toEqual([]);
         expect(instanceGroup.selectAll).toBe(false);
-        expect((multiselectModel.syncNavigation as any).calls.count()).toBe(1);
+        expect((multiselectModel.syncNavigation as any).mock.calls.length).toBe(1);
       });
 
       it('clears server groups', () => {
@@ -302,7 +302,7 @@ describe('Multiselect Model', () => {
 
         instanceGroup = multiselectModel.getOrCreateInstanceGroup(serverGroup);
 
-        spyOn(multiselectModel, 'syncNavigation');
+        vi.spyOn(multiselectModel, 'syncNavigation').mockReturnValue(undefined);
       });
 
       it('clears server groups', () => {
@@ -317,7 +317,7 @@ describe('Multiselect Model', () => {
 
         expect(instanceGroup.selectAll).toBe(true);
         expect(instanceGroup.instanceIds).toBe(instanceIds);
-        expect((multiselectModel.syncNavigation as any).calls.count()).toBe(1);
+        expect((multiselectModel.syncNavigation as any).mock.calls.length).toBe(1);
       });
 
       it('sets selectAll flag to false and clears supplied instanceIds when selectAll is true', () => {
@@ -328,7 +328,7 @@ describe('Multiselect Model', () => {
 
         expect(instanceGroup.selectAll).toBe(false);
         expect(instanceGroup.instanceIds).toEqual([]);
-        expect((multiselectModel.syncNavigation as any).calls.count()).toBe(1);
+        expect((multiselectModel.syncNavigation as any).mock.calls.length).toBe(1);
       });
     });
 

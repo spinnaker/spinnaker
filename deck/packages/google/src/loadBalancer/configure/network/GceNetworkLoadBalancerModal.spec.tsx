@@ -39,7 +39,7 @@ describe('GceNetworkLoadBalancerModal', () => {
     );
 
     expect(command).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         credentials: 'account-a',
         loadBalancerType: 'NETWORK',
         mode: 'edit',
@@ -65,7 +65,7 @@ describe('GceNetworkLoadBalancerModal', () => {
       },
     ]);
     expect(command.healthChecks).toEqual([
-      jasmine.objectContaining({
+      expect.objectContaining({
         checkIntervalSec: 15,
         healthyThreshold: 3,
         name: 'app-main-hc',
@@ -102,7 +102,7 @@ describe('GceNetworkLoadBalancerModal', () => {
       portRange: '53',
       protocol: 'UDP',
     });
-    expect(command.healthChecks[0]).toEqual(jasmine.objectContaining({ port: 53, requestPath: '/health' }));
+    expect(command.healthChecks[0]).toEqual(expect.objectContaining({ port: 53, requestPath: '/health' }));
     expect(command.sessionAffinity).toBe('CLIENT_IP');
   });
 
@@ -113,7 +113,7 @@ describe('GceNetworkLoadBalancerModal', () => {
     });
 
     expect(command).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         credentials: 'account-a',
         loadBalancerType: 'NETWORK',
         mode: 'create',
@@ -143,9 +143,9 @@ describe('GceNetworkLoadBalancerModal', () => {
       const wrapper = shallow(
         <GceNetworkLoadBalancerModal
           app={application}
-          closeModal={jasmine.createSpy('closeModal')}
+          closeModal={vi.fn()}
           data={emptyData()}
-          dismissModal={jasmine.createSpy('dismissModal')}
+          dismissModal={vi.fn()}
           loadBalancer={loadBalancer as any}
           mode="create"
         />,
@@ -227,7 +227,7 @@ describe('GceNetworkLoadBalancerModal', () => {
   });
 
   it('returns only the normalized command in pipeline mode', () => {
-    const executeTask = jasmine.createSpy('executeTask');
+    const executeTask = vi.fn();
     const command = validCommand('pipeline');
 
     const result = submitGceNetworkLoadBalancerCommand(command, { application, executeTask });
@@ -239,13 +239,13 @@ describe('GceNetworkLoadBalancerModal', () => {
   (['create', 'edit'] as const).forEach((mode) => {
     it(`executes the direct normalized job in infrastructure ${mode} mode`, () => {
       const task = Promise.resolve({ id: 'task' });
-      const executeTask = jasmine.createSpy('executeTask').and.returnValue(task);
+      const executeTask = vi.fn().mockReturnValue(task);
       const command = validCommand(mode);
 
       const result = submitGceNetworkLoadBalancerCommand(command, { application, executeTask });
 
       expect(result).toBe(task);
-      expect(executeTask).toHaveBeenCalledOnceWith({
+      expect(executeTask).toHaveBeenCalledExactlyOnceWith({
         application,
         description: `${mode === 'edit' ? 'Update' : 'Create'} Load Balancer: app-main`,
         job: [serializeGceNetworkLoadBalancerCommand(command)],
@@ -259,9 +259,9 @@ describe('GceNetworkLoadBalancerModal', () => {
     const wrapper = shallow(
       <GceNetworkLoadBalancerModal
         app={application}
-        closeModal={jasmine.createSpy('closeModal')}
+        closeModal={vi.fn()}
         data={emptyData()}
-        dismissModal={jasmine.createSpy('dismissModal')}
+        dismissModal={vi.fn()}
         isNew={false}
         loadBalancer={{ account: 'account-a', name: 'app-main', region: 'europe-west1' } as any}
       />,

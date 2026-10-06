@@ -50,7 +50,7 @@ describe('InsightLayout', () => {
   });
 
   it('reacts to server group initialization and cleans up on app replacement and unmount', async () => {
-    spyOn(CollapsibleSectionStateCache, 'isSet').and.returnValue(false);
+    vi.spyOn(CollapsibleSectionStateCache, 'isSet').mockReturnValue(false);
     const firstServerGroups = new TestServerGroupsDataSource();
     const secondServerGroups = new TestServerGroupsDataSource();
     const firstApp = application(firstServerGroups);
@@ -117,9 +117,9 @@ describe('InsightLayout', () => {
   });
 
   it('controls filter expansion from the cache and persists committed toggles', () => {
-    spyOn(CollapsibleSectionStateCache, 'isSet').and.returnValue(true);
-    spyOn(CollapsibleSectionStateCache, 'isExpanded').and.returnValue(true);
-    const setExpanded = spyOn(CollapsibleSectionStateCache, 'setExpanded');
+    vi.spyOn(CollapsibleSectionStateCache, 'isSet').mockReturnValue(true);
+    vi.spyOn(CollapsibleSectionStateCache, 'isExpanded').mockReturnValue(true);
+    const setExpanded = vi.spyOn(CollapsibleSectionStateCache, 'setExpanded').mockReturnValue(undefined);
     const router = new UIRouterReact();
     const wrapper = mount(
       React.createElement(
@@ -139,7 +139,7 @@ describe('InsightLayout', () => {
     expect(filterCollapse.prop('filtersExpanded')).toBe(true);
     expect(setExpanded).not.toHaveBeenCalled();
     const onToggle = filterCollapse.prop('onToggle') as (() => void) | undefined;
-    expect(onToggle).toEqual(jasmine.any(Function));
+    expect(onToggle).toEqual(expect.any(Function));
     act(() => {
       onToggle?.();
       onToggle?.();
@@ -155,7 +155,7 @@ describe('InsightLayout', () => {
 
     filterCollapse = wrapper.find(FilterCollapse);
     expect(filterCollapse.prop('filtersExpanded')).toBe(false);
-    expect(setExpanded.calls.allArgs()).toEqual([['insightFilters', false]]);
+    expect(setExpanded.mock.calls).toEqual([['insightFilters', false]]);
 
     wrapper.unmount();
     router.dispose();

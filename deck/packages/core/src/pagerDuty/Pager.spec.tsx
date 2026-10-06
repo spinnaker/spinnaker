@@ -24,7 +24,7 @@ describe('Pager', () => {
     );
 
     expect(component.state()).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         app: 'test-app',
         filterString: 'injected query',
         hideNoApps: true,
@@ -36,7 +36,7 @@ describe('Pager', () => {
   });
 
   it('updates sorting through the injected state service', () => {
-    const injectedGo = jasmine.createSpy('injectedGo');
+    const injectedGo = vi.fn();
 
     const component = shallow(
       <PagerComponent {...({ router: {}, stateParams: {}, stateService: { go: injectedGo } } as any)} />,
@@ -49,7 +49,7 @@ describe('Pager', () => {
   });
 
   it('updates selected service keys through the injected state service', () => {
-    const injectedGo = jasmine.createSpy('injectedGo');
+    const injectedGo = vi.fn();
     const component = shallow(
       <PagerComponent {...({ router: {}, stateParams: {}, stateService: { go: injectedGo } } as any)} />,
       { disableLifecycleMethods: true },
@@ -62,7 +62,7 @@ describe('Pager', () => {
   });
 
   it('updates application visibility through the injected state service', () => {
-    const injectedGo = jasmine.createSpy('injectedGo');
+    const injectedGo = vi.fn();
     const component = shallow(
       <PagerComponent {...({ router: {}, stateParams: {}, stateService: { go: injectedGo } } as any)} />,
       { disableLifecycleMethods: true },

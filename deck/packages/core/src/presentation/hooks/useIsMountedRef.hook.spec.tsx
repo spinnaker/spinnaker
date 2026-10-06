@@ -1,16 +1,17 @@
+import type { Mock } from 'vitest';
 import { mount } from 'enzyme';
 import React from 'react';
 
 import { useIsMountedRef } from '..';
 
 describe('useIsMountedRef hook', () => {
-  let useIsMountedRefSpy: jasmine.Spy;
+  let useIsMountedRefSpy: Mock;
   let TestComponent: React.FunctionComponent;
   let ref: React.RefObject<boolean>;
   let isMountedInRender: boolean;
 
   beforeEach(() => {
-    useIsMountedRefSpy = jasmine.createSpy('useIsMountedRef', useIsMountedRef).and.callThrough();
+    useIsMountedRefSpy = vi.fn(useIsMountedRef);
 
     TestComponent = function () {
       ref = useIsMountedRefSpy();
@@ -49,14 +50,15 @@ describe('useIsMountedRef hook', () => {
     expect(ref.current).toBe(true);
   });
 
-  it('ref.current is false after the component unmounts', (done) => {
-    const component = mount(<TestComponent />);
-    expect(ref.current).toBe(true);
+  it('ref.current is false after the component unmounts', () =>
+    new Promise((done, reject) => {
+      const component = mount(<TestComponent />);
+      expect(ref.current).toBe(true);
 
-    component.unmount();
-    setTimeout(() => {
-      expect(ref.current).toBe(false);
-      done();
-    });
-  });
+      component.unmount();
+      setTimeout(() => {
+        expect(ref.current).toBe(false);
+        done();
+      });
+    }));
 });
