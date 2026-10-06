@@ -94,7 +94,7 @@ public class BindProducedArtifactsTaskTest {
     // the 'outputs' key should not contain the values present in the input i.e. in `keysToFilter`
     if (expectedKeysToBeExcludedFromOutput.containsAll(
         List.of("artifacts", "resolvedExpectedArtifacts"))) {
-      assertThat(result.getOutputs().isEmpty());
+      assertThat(result.getOutputs()).isEmpty();
     } else {
       assertThat(result.getOutputs()).isNotEmpty();
     }
@@ -133,8 +133,8 @@ public class BindProducedArtifactsTaskTest {
 
     // for deploy manifests, there is no expected Artifacts present in the stage context, so the
     // result won't contain either outputs or context properties
-    assertThat(result.getOutputs().isEmpty());
-    assertThat(result.getContext().isEmpty());
+    assertThat(result.getOutputs()).isEmpty();
+    assertThat(result.getContext()).isEmpty();
   }
 
   private InputStream getResource(String name) {
