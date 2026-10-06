@@ -4,13 +4,13 @@ import { KubernetesManifestCommandBuilder } from './manifestCommandBuilder.servi
 
 describe('KubernetesManifestCommandBuilder', () => {
   beforeEach(() => {
-    spyOn(AccountService, 'getArtifactAccounts').and.returnValue(
+    vi.spyOn(AccountService, 'getArtifactAccounts').mockReturnValue(
       Promise.resolve([{ name: 'artifact-account' }]) as any,
     );
   });
 
   it('uses the source account when it is available', async () => {
-    spyOn(AccountService, 'getAllAccountDetailsForProvider').and.returnValue(
+    vi.spyOn(AccountService, 'getAllAccountDetailsForProvider').mockReturnValue(
       Promise.resolve([{ name: 'fallback-account' }, { name: 'source-account' }]) as any,
     );
 
@@ -25,7 +25,7 @@ describe('KubernetesManifestCommandBuilder', () => {
   });
 
   it('falls back to the first account when the source account is unavailable', async () => {
-    spyOn(AccountService, 'getAllAccountDetailsForProvider').and.returnValue(
+    vi.spyOn(AccountService, 'getAllAccountDetailsForProvider').mockReturnValue(
       Promise.resolve([{ name: 'fallback-account' }]) as any,
     );
 

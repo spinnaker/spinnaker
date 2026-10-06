@@ -10,7 +10,7 @@ describe('AllClustersGroupings', () => {
 
   it('scrolls to the server group identified by the injected route params', () => {
     const groupsUpdatedStream = new Subject<any[]>();
-    const scrollToRow = jasmine.createSpy('scrollToRow');
+    const scrollToRow = vi.fn();
     const component = new AllClustersGroupingsComponent({
       app: {} as any,
       initialized: true,
@@ -45,12 +45,10 @@ describe('AllClustersGroupings', () => {
 
   it('clears cached row heights after a relevant transition from the injected router', () => {
     let onTransitionSuccess: (transition: any) => void;
-    const onSuccess = jasmine
-      .createSpy('onSuccess')
-      .and.callFake((_criteria: any, callback: (transition: any) => void) => {
-        onTransitionSuccess = callback;
-        return () => undefined;
-      });
+    const onSuccess = vi.fn().mockImplementation((_criteria: any, callback: (transition: any) => void) => {
+      onTransitionSuccess = callback;
+      return () => undefined;
+    });
     const component = new AllClustersGroupingsComponent({
       app: {} as any,
       initialized: true,
@@ -58,7 +56,7 @@ describe('AllClustersGroupings', () => {
       stateParams: {},
       stateService: {} as any,
     });
-    const clearAll = spyOn((component as any).cellCache, 'clearAll');
+    const clearAll = vi.spyOn((component as any).cellCache, 'clearAll').mockReturnValue(undefined);
 
     component.componentDidMount();
     onTransitionSuccess({
@@ -76,7 +74,7 @@ describe('AllClustersGroupings', () => {
     const sortFilter = { listInstances: false } as any;
     ClusterState.filterModel = { asFilterModel: { groups: [], sortFilter } } as any;
     ClusterState.filterService = { groupsUpdatedStream } as any;
-    const onSuccess = jasmine.createSpy('onSuccess').and.returnValue(() => undefined);
+    const onSuccess = vi.fn().mockReturnValue(() => undefined);
     const wrapper = shallow(
       <AllClustersGroupingsComponent
         app={{ getDataSource: () => ({ loadFailure: false, data: [], fetchOnDemand: false }) } as any}
@@ -89,13 +87,13 @@ describe('AllClustersGroupings', () => {
     const updatedGrouping = { key: 'updated-grouping', subgroups: [] } as any;
 
     const component = wrapper.instance() as AllClustersGroupingsComponent;
-    const recomputeRowHeights = jasmine.createSpy('recomputeRowHeights');
+    const recomputeRowHeights = vi.fn();
     (component as any).listRef = { recomputeRowHeights };
 
     groupsUpdatedStream.next([{ subgroups: [updatedGrouping] }]);
 
     expect(component.state.groups).toEqual([updatedGrouping]);
-    expect(recomputeRowHeights).toHaveBeenCalledOnceWith(0);
+    expect(recomputeRowHeights).toHaveBeenCalledExactlyOnceWith(0);
     wrapper.unmount();
     expect(groupsUpdatedStream.observers.length).toBe(0);
   });

@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import type { ShallowWrapper } from 'enzyme';
 import { shallow } from 'enzyme';
 import React from 'react';
@@ -7,7 +8,7 @@ import type { IAccountSelectInputProps, IAccountSelectInputState } from './Accou
 import { AccountSelectInput } from './AccountSelectInput';
 import type { IAccountDetails } from './AccountService';
 import { AccountService } from './AccountService';
-import Spy = jasmine.Spy;
+import Spy = Mock;
 
 const makeAccount = (name: string, cloudProvider: string, primaryAccount: boolean): IAccountDetails => {
   return {
@@ -35,9 +36,11 @@ describe('<AccountSelectInput/>', () => {
   };
 
   beforeEach(() => {
-    AccountServiceSpy = spyOn(AccountService, 'getAllAccountDetailsForProvider').and.callFake((provider: string) => {
-      return Promise.resolve(allAccounts[provider]);
-    });
+    AccountServiceSpy = vi
+      .spyOn(AccountService, 'getAllAccountDetailsForProvider')
+      .mockImplementation((provider: string) => {
+        return Promise.resolve(allAccounts[provider]);
+      });
   });
 
   async function settleComponent(): Promise<void> {
@@ -62,7 +65,7 @@ describe('<AccountSelectInput/>', () => {
 
     expect(component.state().primaryAccounts).toEqual(['prod']);
     expect(component.state().secondaryAccounts).toEqual(['backup']);
-    expect(AccountServiceSpy.calls.count()).toBe(1);
+    expect(AccountServiceSpy.mock.calls.length).toBe(1);
   });
 
   it('groups accounts by primary field when only names and provider supplied', async () => {
@@ -72,7 +75,7 @@ describe('<AccountSelectInput/>', () => {
 
     expect(component.state().primaryAccounts).toEqual(['prod']);
     expect(component.state().secondaryAccounts).toEqual(['backup']);
-    expect(AccountServiceSpy.calls.count()).toBe(1);
+    expect(AccountServiceSpy.mock.calls.length).toBe(1);
   });
 
   it('sets mergedAccounts only if there are no accounts supplied', () => {
@@ -82,7 +85,7 @@ describe('<AccountSelectInput/>', () => {
     expect(state.mergedAccounts).toEqual([]);
     expect(state.primaryAccounts).toEqual([]);
     expect(state.secondaryAccounts).toEqual([]);
-    expect(AccountServiceSpy.calls.count()).toBe(0);
+    expect(AccountServiceSpy.mock.calls.length).toBe(0);
   });
 
   it('sets all accounts as primary when only names are supplied and provider is not set', async () => {
@@ -93,7 +96,7 @@ describe('<AccountSelectInput/>', () => {
     expect(state.mergedAccounts).toEqual(['prod', 'test']);
     expect(state.primaryAccounts).toEqual(['prod', 'test']);
     expect(state.secondaryAccounts).toEqual([]);
-    expect(AccountServiceSpy.calls.count()).toBe(0);
+    expect(AccountServiceSpy.mock.calls.length).toBe(0);
   });
 
   it('re-groups accounts when they change', async () => {
@@ -104,7 +107,7 @@ describe('<AccountSelectInput/>', () => {
     expect(state.mergedAccounts).toEqual(['prod', 'test']);
     expect(state.primaryAccounts).toEqual(['prod', 'test']);
     expect(state.secondaryAccounts).toEqual([]);
-    expect(AccountServiceSpy.calls.count()).toBe(0);
+    expect(AccountServiceSpy.mock.calls.length).toBe(0);
 
     component.setProps({ accounts: ['prod', 'test', 'staging'] });
     await settleComponent();
@@ -113,7 +116,7 @@ describe('<AccountSelectInput/>', () => {
     expect(state.mergedAccounts).toEqual(['prod', 'staging', 'test']);
     expect(state.primaryAccounts).toEqual(['prod', 'staging', 'test']);
     expect(state.secondaryAccounts).toEqual([]);
-    expect(AccountServiceSpy.calls.count()).toBe(0);
+    expect(AccountServiceSpy.mock.calls.length).toBe(0);
   });
 
   it('unselects nonexistent account', async function () {

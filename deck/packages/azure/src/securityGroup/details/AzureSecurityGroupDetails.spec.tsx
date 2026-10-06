@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { shallow } from 'enzyme';
 import React from 'react';
 import { MenuItem } from 'react-bootstrap';
@@ -25,8 +26,8 @@ describe('AzureSecurityGroupDetails', () => {
   function app() {
     return {
       name: 'fnord',
-      getDataSource: () => ({ ready: () => Promise.resolve(), onRefresh: () => jasmine.createSpy('unsubscribe') }),
-      securityGroups: { refresh: jasmine.createSpy('refresh') },
+      getDataSource: () => ({ ready: () => Promise.resolve(), onRefresh: () => vi.fn() }),
+      securityGroups: { refresh: vi.fn() },
     } as any;
   }
 
@@ -54,7 +55,7 @@ describe('AzureSecurityGroupDetails', () => {
   }
 
   it('closes missing details through the injected state service', () => {
-    const stateService = { go: jasmine.createSpy('go') };
+    const stateService = { go: vi.fn() };
     const component = new AzureSecurityGroupDetails({
       app: app(),
       resolvedSecurityGroup,
@@ -70,9 +71,7 @@ describe('AzureSecurityGroupDetails', () => {
 
   it('loads details with the core security group reader and renders basic sections', async () => {
     const securityGroupReader = {
-      getSecurityGroupDetails: jasmine
-        .createSpy('getSecurityGroupDetails')
-        .and.returnValue(Promise.resolve(securityGroup())),
+      getSecurityGroupDetails: vi.fn().mockReturnValue(Promise.resolve(securityGroup())),
     };
     const wrapper = shallow(
       <AzureSecurityGroupDetails
@@ -87,7 +86,7 @@ describe('AzureSecurityGroupDetails', () => {
     wrapper.update();
 
     expect(securityGroupReader.getSecurityGroupDetails).toHaveBeenCalledWith(
-      jasmine.anything(),
+      expect.anything(),
       'test-account',
       'azure',
       'westus',
@@ -181,9 +180,9 @@ describe('AzureSecurityGroupDetails', () => {
     let resolveFirst: (value: any) => void;
     let resolveSecond: (value: any) => void;
     const securityGroupReader = {
-      getSecurityGroupDetails: jasmine
-        .createSpy('getSecurityGroupDetails')
-        .and.callFake(
+      getSecurityGroupDetails: vi
+        .fn()
+        .mockImplementation(
           (_app: any, _account: string, _provider: string, _region: string, _vpcId: string, name: string) => {
             if (name === 'fnord-sg') {
               return new Promise((resolve) => {
@@ -213,14 +212,14 @@ describe('AzureSecurityGroupDetails', () => {
     await Promise.resolve();
     wrapper.update();
 
-    expect(securityGroupReader.getSecurityGroupDetails.calls.count()).toBe(2);
+    expect(securityGroupReader.getSecurityGroupDetails.mock.calls.length).toBe(2);
     expect(wrapper.find('h3').text()).toContain('other-sg');
   });
 
   it('auto-closes when the details response is empty', async () => {
-    const autoClose = jasmine.createSpy('autoClose');
+    const autoClose = vi.fn();
     const securityGroupReader = {
-      getSecurityGroupDetails: jasmine.createSpy('getSecurityGroupDetails').and.returnValue(Promise.resolve({})),
+      getSecurityGroupDetails: vi.fn().mockReturnValue(Promise.resolve({})),
     };
 
     shallow(
@@ -239,30 +238,30 @@ describe('AzureSecurityGroupDetails', () => {
   });
 
   it('opens edit, clone, and delete actions', () => {
-    spyOn(AzureSecurityGroupModal, 'show');
-    spyOn(ConfirmationModalService, 'confirm');
-    spyOn(AzureSecurityGroupWriter, 'deleteSecurityGroup').and.returnValue(Promise.resolve({} as any));
+    vi.spyOn(AzureSecurityGroupModal, 'show').mockReturnValue(undefined);
+    vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(undefined);
+    vi.spyOn(AzureSecurityGroupWriter, 'deleteSecurityGroup').mockReturnValue(Promise.resolve({} as any));
     const wrapper = shallow(<AzureSecurityGroupActions app={app()} securityGroup={securityGroup()} />);
 
     wrapper.find(MenuItem).at(0).prop('onClick')({} as any);
     wrapper.find(MenuItem).at(1).prop('onClick')({} as any);
     wrapper.find(MenuItem).at(2).prop('onClick')({} as any);
 
-    expect(AzureSecurityGroupModal.show).toHaveBeenCalledWith(jasmine.objectContaining({ mode: 'edit' }));
-    expect(AzureSecurityGroupModal.show).toHaveBeenCalledWith(jasmine.objectContaining({ mode: 'clone' }));
+    expect(AzureSecurityGroupModal.show).toHaveBeenCalledWith(expect.objectContaining({ mode: 'edit' }));
+    expect(AzureSecurityGroupModal.show).toHaveBeenCalledWith(expect.objectContaining({ mode: 'clone' }));
     expect(ConfirmationModalService.confirm).toHaveBeenCalled();
-    const confirmArgs = (ConfirmationModalService.confirm as jasmine.Spy).calls.mostRecent().args[0];
+    const confirmArgs = (ConfirmationModalService.confirm as Mock).mock.lastCall[0];
     confirmArgs.submitMethod();
     expect(AzureSecurityGroupWriter.deleteSecurityGroup).toHaveBeenCalledWith(
       securityGroup(),
-      jasmine.anything(),
-      jasmine.objectContaining({ cloudProvider: 'azure', vpcId: 'vnet-1' }),
+      expect.anything(),
+      expect.objectContaining({ cloudProvider: 'azure', vpcId: 'vnet-1' }),
     );
   });
 
   it('uses resolved coordinates when deleting fetched details without account identity', () => {
-    spyOn(ConfirmationModalService, 'confirm');
-    spyOn(AzureSecurityGroupWriter, 'deleteSecurityGroup').and.returnValue(Promise.resolve({} as any));
+    vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(undefined);
+    vi.spyOn(AzureSecurityGroupWriter, 'deleteSecurityGroup').mockReturnValue(Promise.resolve({} as any));
     const fetchedDetails = {
       name: 'fnord-sg',
       region: 'westus',
@@ -279,13 +278,13 @@ describe('AzureSecurityGroupDetails', () => {
 
     wrapper.find(MenuItem).at(2).prop('onClick')({} as any);
 
-    const confirmArgs = (ConfirmationModalService.confirm as jasmine.Spy).calls.mostRecent().args[0];
+    const confirmArgs = (ConfirmationModalService.confirm as Mock).mock.lastCall[0];
     expect(confirmArgs.account).toBe('test-account');
     confirmArgs.submitMethod();
     expect(AzureSecurityGroupWriter.deleteSecurityGroup).toHaveBeenCalledWith(
-      jasmine.objectContaining({ accountId: 'test-account', name: 'fnord-sg', region: 'westus' }),
-      jasmine.anything(),
-      jasmine.objectContaining({ cloudProvider: 'azure', vpcId: 'vnet-1' }),
+      expect.objectContaining({ accountId: 'test-account', name: 'fnord-sg', region: 'westus' }),
+      expect.anything(),
+      expect.objectContaining({ cloudProvider: 'azure', vpcId: 'vnet-1' }),
     );
   });
 });

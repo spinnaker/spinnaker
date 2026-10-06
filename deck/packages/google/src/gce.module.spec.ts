@@ -152,8 +152,8 @@ describe('Google provider registration', () => {
       'serverGroup.commandBuilder',
     );
 
-    expect(commandBuilder.buildNewServerGroupCommand).toEqual(jasmine.any(Function));
-    expect(commandBuilder.buildServerGroupCommandFromExisting).toEqual(jasmine.any(Function));
+    expect(commandBuilder.buildNewServerGroupCommand).toEqual(expect.any(Function));
+    expect(commandBuilder.buildServerGroupCommandFromExisting).toEqual(expect.any(Function));
   });
 
   it('normalizes HTTP load balancers without constructor dependencies', () => {
@@ -230,9 +230,9 @@ describe('Google provider registration', () => {
       defaultService: { name: 'backend-default', healthCheck: { name: 'hc-default' } },
     };
     const loadBalancerReader = {
-      getLoadBalancerDetails: jasmine
-        .createSpy('getLoadBalancerDetails')
-        .and.callFake((_provider: string, _account: string, _region: string, name: string) =>
+      getLoadBalancerDetails: vi
+        .fn()
+        .mockImplementation((_provider: string, _account: string, _region: string, name: string) =>
           Promise.resolve([
             {
               name,
@@ -244,11 +244,9 @@ describe('Google provider registration', () => {
         ),
     };
     const accountService = {
-      getAccountDetails: jasmine
-        .createSpy('getAccountDetails')
-        .and.returnValue(Promise.resolve({ project: 'gce-project' })),
+      getAccountDetails: vi.fn().mockReturnValue(Promise.resolve({ project: 'gce-project' })),
     };
-    const autoClose = jasmine.createSpy('autoClose');
+    const autoClose = vi.fn();
 
     const loadBalancer = await loadGceLoadBalancerDetails({
       app: { loadBalancers: { data: [summary] } } as any,
@@ -298,10 +296,10 @@ describe('Google provider registration', () => {
   });
 
   it('deletes HTTP load balancers by forwarding rule and preserves delete params', async () => {
-    const confirmSpy = spyOn(ConfirmationModalService, 'confirm').and.returnValue(Promise.resolve({}) as any);
-    spyOn(LoadBalancerWriter, 'deleteLoadBalancer').and.returnValue(Promise.resolve({}) as any);
-    const clearCacheSpy = spyOn(InfrastructureCaches, 'clearCache');
-    const executeTaskSpy = spyOn(TaskExecutor, 'executeTask').and.returnValue(Promise.resolve({}) as any);
+    const confirmSpy = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(Promise.resolve({}) as any);
+    vi.spyOn(LoadBalancerWriter, 'deleteLoadBalancer').mockReturnValue(Promise.resolve({}) as any);
+    const clearCacheSpy = vi.spyOn(InfrastructureCaches, 'clearCache').mockReturnValue(undefined);
+    const executeTaskSpy = vi.spyOn(TaskExecutor, 'executeTask').mockReturnValue(Promise.resolve({}) as any);
     const app = { name: 'fnord' };
     const loadBalancer = {
       account: 'test-account',
@@ -318,7 +316,7 @@ describe('Google provider registration', () => {
       .find(ManagedMenuItem)
       .filterWhere((item) => item.prop('children') === 'Delete Load Balancer')
       .prop('onClick')();
-    const modalParams = confirmSpy.calls.mostRecent().args[0] as any;
+    const modalParams = confirmSpy.mock.lastCall[0] as any;
     await modalParams.submitMethod({ deleteHealthChecks: true, reason: 'cleanup' });
 
     expect(LoadBalancerWriter.deleteLoadBalancer).not.toHaveBeenCalled();
@@ -328,7 +326,7 @@ describe('Google provider registration', () => {
       application: app,
       description: 'Delete load balancer: frontend-map in test-account:global',
       job: [
-        jasmine.objectContaining({
+        expect.objectContaining({
           cloudProvider: 'gce',
           credentials: 'test-account',
           deleteHealthChecks: true,
@@ -343,79 +341,81 @@ describe('Google provider registration', () => {
     });
   });
 
-  it('loads GCE server group details even when the app summary is not loaded yet', (done) => {
-    const autoClose = jasmine.createSpy('autoClose');
-    spyOn(ServerGroupReader, 'getServerGroup').and.returnValue(
-      Promise.resolve({
-        account: 'test-account',
-        launchConfig: {
-          instanceTemplate: {
-            properties: { networkInterfaces: [] },
-            selfLink:
-              'https://compute.googleapis.com/compute/beta/projects/gce-project/global/instanceTemplates/fnord-v001',
+  it('loads GCE server group details even when the app summary is not loaded yet', () =>
+    new Promise((done, reject) => {
+      const autoClose = vi.fn();
+      vi.spyOn(ServerGroupReader, 'getServerGroup').mockReturnValue(
+        Promise.resolve({
+          account: 'test-account',
+          launchConfig: {
+            instanceTemplate: {
+              properties: { networkInterfaces: [] },
+              selfLink:
+                'https://compute.googleapis.com/compute/beta/projects/gce-project/global/instanceTemplates/fnord-v001',
+            },
           },
+          name: 'fnord-v001',
+          region: 'us-central1',
+          zones: ['us-central1-b', 'us-central1-a'],
+        }) as any,
+      );
+
+      gceServerGroupDetailsGetter(
+        {
+          app: { loadBalancers: { data: [] }, name: 'fnord', serverGroups: { data: [] } },
+          serverGroup: { accountId: 'test-account', name: 'fnord-v001', region: 'us-central1' },
         },
-        name: 'fnord-v001',
-        region: 'us-central1',
-        zones: ['us-central1-b', 'us-central1-a'],
-      }) as any,
-    );
+        autoClose,
+      ).subscribe({
+        error: reject,
+        next: (serverGroup: any) => {
+          expect(serverGroup.name).toBe('fnord-v001');
+          expect(serverGroup.account).toBe('test-account');
+          expect(serverGroup.zones).toEqual(['us-central1-a', 'us-central1-b']);
+        },
+        complete: () => {
+          expect(autoClose).not.toHaveBeenCalled();
+          expect(ServerGroupReader.getServerGroup).toHaveBeenCalledWith(
+            'fnord',
+            'test-account',
+            'us-central1',
+            'fnord-v001',
+          );
+          done();
+        },
+      });
+    }));
 
-    gceServerGroupDetailsGetter(
-      {
-        app: { loadBalancers: { data: [] }, name: 'fnord', serverGroups: { data: [] } },
-        serverGroup: { accountId: 'test-account', name: 'fnord-v001', region: 'us-central1' },
-      },
-      autoClose,
-    ).subscribe({
-      error: done.fail,
-      next: (serverGroup: any) => {
-        expect(serverGroup.name).toBe('fnord-v001');
-        expect(serverGroup.account).toBe('test-account');
-        expect(serverGroup.zones).toEqual(['us-central1-a', 'us-central1-b']);
-      },
-      complete: () => {
-        expect(autoClose).not.toHaveBeenCalled();
-        expect(ServerGroupReader.getServerGroup).toHaveBeenCalledWith(
-          'fnord',
-          'test-account',
-          'us-central1',
-          'fnord-v001',
-        );
-        done();
-      },
-    });
-  });
+  it('loads GCE server group details when the launch template is missing', () =>
+    new Promise((done, reject) => {
+      const autoClose = vi.fn();
+      vi.spyOn(ServerGroupReader, 'getServerGroup').mockReturnValue(
+        Promise.resolve({
+          account: 'test-account',
+          name: 'fnord-v001',
+          region: 'us-central1',
+          zones: ['us-central1-a'],
+        }) as any,
+      );
 
-  it('loads GCE server group details when the launch template is missing', (done) => {
-    const autoClose = jasmine.createSpy('autoClose');
-    spyOn(ServerGroupReader, 'getServerGroup').and.returnValue(
-      Promise.resolve({
-        account: 'test-account',
-        name: 'fnord-v001',
-        region: 'us-central1',
-        zones: ['us-central1-a'],
-      }) as any,
-    );
-
-    gceServerGroupDetailsGetter(
-      {
-        app: { loadBalancers: { data: [] }, name: 'fnord', serverGroups: { data: [] } },
-        serverGroup: { accountId: 'test-account', name: 'fnord-v001', region: 'us-central1' },
-      },
-      autoClose,
-    ).subscribe({
-      error: done.fail,
-      next: (serverGroup: any) => {
-        expect(serverGroup.name).toBe('fnord-v001');
-        expect(serverGroup.logsLink).toBeUndefined();
-      },
-      complete: () => {
-        expect(autoClose).not.toHaveBeenCalled();
-        done();
-      },
-    });
-  });
+      gceServerGroupDetailsGetter(
+        {
+          app: { loadBalancers: { data: [] }, name: 'fnord', serverGroups: { data: [] } },
+          serverGroup: { accountId: 'test-account', name: 'fnord-v001', region: 'us-central1' },
+        },
+        autoClose,
+      ).subscribe({
+        error: reject,
+        next: (serverGroup: any) => {
+          expect(serverGroup.name).toBe('fnord-v001');
+          expect(serverGroup.logsLink).toBeUndefined();
+        },
+        complete: () => {
+          expect(autoClose).not.toHaveBeenCalled();
+          done();
+        },
+      });
+    }));
 
   it('builds GCE instance logs links with the expected resource type', async () => {
     const instance = decorateInstance({
@@ -430,8 +430,8 @@ describe('Google provider registration', () => {
   });
 
   it('does not force Google health provider params when platform-health override is disabled', async () => {
-    const confirmSpy = spyOn(ConfirmationModalService, 'confirm').and.returnValue(Promise.resolve({}) as any);
-    const writer = { enableServerGroup: jasmine.createSpy('enableServerGroup').and.returnValue(Promise.resolve({})) };
+    const confirmSpy = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(Promise.resolve({}) as any);
+    const writer = { enableServerGroup: vi.fn().mockReturnValue(Promise.resolve({})) };
     runtimeServices.serverGroupWriter = writer;
 
     mount(
@@ -444,19 +444,19 @@ describe('Google provider registration', () => {
       .filterWhere((link) => link.text() === 'Enable')
       .simulate('click');
 
-    const modalParams = confirmSpy.calls.mostRecent().args[0] as any;
+    const modalParams = confirmSpy.mock.lastCall[0] as any;
     expect(modalParams.platformHealthOnlyShowOverride).toBe(false);
     await modalParams.submitMethod({ reason: 'not forced' });
-    expect(writer.enableServerGroup.calls.mostRecent().args[2].interestingHealthProviderNames).toBeUndefined();
+    expect(writer.enableServerGroup.mock.lastCall[2].interestingHealthProviderNames).toBeUndefined();
   });
 
   it('adds Google health provider params to GCE server group actions when platform health only is enabled', async () => {
-    const confirmSpy = spyOn(ConfirmationModalService, 'confirm').and.returnValue(Promise.resolve({}) as any);
-    spyOn(ServerGroupWarningMessageService, 'addDisableWarningMessage');
-    spyOn(ServerGroupWarningMessageService, 'addDestroyWarningMessage');
+    const confirmSpy = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(Promise.resolve({}) as any);
+    vi.spyOn(ServerGroupWarningMessageService, 'addDisableWarningMessage').mockReturnValue(undefined);
+    vi.spyOn(ServerGroupWarningMessageService, 'addDestroyWarningMessage').mockReturnValue(undefined);
     const writer = {
-      destroyServerGroup: jasmine.createSpy('destroyServerGroup').and.returnValue(Promise.resolve({})),
-      disableServerGroup: jasmine.createSpy('disableServerGroup').and.returnValue(Promise.resolve({})),
+      destroyServerGroup: vi.fn().mockReturnValue(Promise.resolve({})),
+      disableServerGroup: vi.fn().mockReturnValue(Promise.resolve({})),
     };
     runtimeServices.serverGroupWriter = writer;
     const app = { attributes: { platformHealthOnly: true, platformHealthOnlyShowOverride: true }, name: 'fnord' };
@@ -467,27 +467,27 @@ describe('Google provider registration', () => {
       .find('a')
       .filterWhere((link) => link.text() === 'Disable')
       .simulate('click');
-    let modalParams = confirmSpy.calls.mostRecent().args[0] as any;
+    let modalParams = confirmSpy.mock.lastCall[0] as any;
     expect(modalParams.platformHealthOnlyShowOverride).toBe(true);
     await modalParams.submitMethod({ reason: 'platform health only' });
-    expect(writer.disableServerGroup.calls.mostRecent().args[2].interestingHealthProviderNames).toEqual(['Google']);
+    expect(writer.disableServerGroup.mock.lastCall[2].interestingHealthProviderNames).toEqual(['Google']);
 
     wrapper
       .find('a')
       .filterWhere((link) => link.text() === 'Destroy')
       .simulate('click');
-    modalParams = confirmSpy.calls.mostRecent().args[0] as any;
+    modalParams = confirmSpy.mock.lastCall[0] as any;
     expect(modalParams.platformHealthOnlyShowOverride).toBe(true);
     await modalParams.submitMethod({ reason: 'platform health only' });
-    expect(writer.destroyServerGroup.calls.mostRecent().args[2].interestingHealthProviderNames).toEqual(['Google']);
+    expect(writer.destroyServerGroup.mock.lastCall[2].interestingHealthProviderNames).toEqual(['Google']);
   });
 
   it('shows an error when the GCE clone command cannot be built', async () => {
-    const errorSpy = spyOn(ErrorModalService, 'error').and.returnValue(Promise.resolve({}) as any);
+    const errorSpy = vi.spyOn(ErrorModalService, 'error').mockReturnValue(Promise.resolve({}) as any);
     const commandBuilder = {
-      buildServerGroupCommandFromExisting: jasmine
-        .createSpy('buildServerGroupCommandFromExisting')
-        .and.returnValue(Promise.reject({ data: { message: 'missing launch template' } })),
+      buildServerGroupCommandFromExisting: vi
+        .fn()
+        .mockReturnValue(Promise.reject({ data: { message: 'missing launch template' } })),
     };
 
     await cloneGceServerGroup(
@@ -508,8 +508,8 @@ describe('Google provider registration', () => {
   });
 
   it('closes GCE load balancer details when no matching summary exists', async () => {
-    const loadBalancerReader = { getLoadBalancerDetails: jasmine.createSpy('getLoadBalancerDetails') };
-    const autoClose = jasmine.createSpy('autoClose');
+    const loadBalancerReader = { getLoadBalancerDetails: vi.fn() };
+    const autoClose = vi.fn();
 
     const loadBalancer = await loadGceLoadBalancerDetails({
       app: { loadBalancers: { data: [] } } as any,
@@ -555,8 +555,8 @@ describe('Google provider registration', () => {
 
       expectedStages.forEach((provides) => {
         const stage = gceStages.find((candidate: any) => candidate.provides === provides);
-        expect(stage).withContext(`gce ${provides} stage`).toBeDefined();
-        expect(stage?.component).withContext(`gce ${provides} stage component`).toBeDefined();
+        expect(stage, `gce ${provides} stage`).toBeDefined();
+        expect(stage?.component, `gce ${provides} stage component`).toBeDefined();
       });
     } finally {
       Registry.pipeline = previousPipeline;
@@ -591,7 +591,7 @@ describe('Google provider registration', () => {
 
       expectedStages.forEach((provides) => {
         const registrations = gceStages.filter((stage: any) => stage.provides === provides);
-        expect(registrations.length).withContext(`gce ${provides} registration count`).toBe(1);
+        expect(registrations.length, `gce ${provides} registration count`).toBe(1);
       });
     } finally {
       Registry.pipeline = previousPipeline;

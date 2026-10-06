@@ -29,7 +29,7 @@ describe('<BakeHelmfileConfigForm />', () => {
   };
 
   beforeEach(() =>
-    spyOn(AccountService, 'getArtifactAccounts').and.returnValue(
+    vi.spyOn(AccountService, 'getArtifactAccounts').mockReturnValue(
       Promise.resolve([
         { name: 'gitrepo', types: ['something-else', 'git/repo'] },
         { name: 'notgitrepo', types: ['something-else'] },
@@ -105,7 +105,7 @@ describe('<BakeHelmfileConfigForm />', () => {
       inputArtifacts: [{ id: expectedArtifactId }],
     } as unknown) as IStage;
 
-    spyOn(ExpectedArtifactService, 'getExpectedArtifactsAvailableToStage').and.returnValue([expectedGitArtifact]);
+    vi.spyOn(ExpectedArtifactService, 'getExpectedArtifactsAvailableToStage').mockReturnValue([expectedGitArtifact]);
 
     const props = getProps();
 

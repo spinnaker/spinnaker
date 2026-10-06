@@ -8,12 +8,12 @@ import { StageStatusPreconditionConfig } from './types/stageStatus/StageStatusPr
 
 describe('<PreconditionSelector />', () => {
   beforeEach(() => {
-    spyOn(AccountService, 'listAccounts').and.returnValue(Promise.resolve([]) as any);
+    vi.spyOn(AccountService, 'listAccounts').mockReturnValue(Promise.resolve([]) as any);
   });
 
   const createProps = (overrides = {}) => ({
     application: { getDataSource: () => ({ data: [] }) } as any,
-    onChange: jasmine.createSpy('onChange'),
+    onChange: vi.fn(),
     precondition: {} as any,
     strategy: false,
     upstreamStages: [] as any[],
@@ -374,7 +374,7 @@ describe('<PreconditionSelector />', () => {
       type: 'clusterSize',
     });
 
-    props.onChange.calls.reset();
+    props.onChange.mockClear();
     component.find('input[name="expected"]').simulate('change', { target: { value: '4' } });
 
     expect(props.onChange).toHaveBeenCalledWith({

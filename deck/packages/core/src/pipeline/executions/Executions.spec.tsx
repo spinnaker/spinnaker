@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { hashLocationPlugin, servicesPlugin, UIRouterContext, UIRouterReact } from '@uirouter/react';
 import type { ReactWrapper } from 'enzyme';
 import { mount, shallow } from 'enzyme';
@@ -30,7 +31,7 @@ describe('<Executions/>', () => {
       await Promise.resolve();
       await Promise.resolve();
     });
-    act(() => jasmine.clock().tick(50));
+    act(() => vi.advanceTimersByTime(50));
     component.update();
   }
 
@@ -60,14 +61,14 @@ describe('<Executions/>', () => {
     router = new UIRouterReact();
     router.plugin(servicesPlugin);
     router.plugin(hashLocationPlugin);
-    routerProps = { router, stateParams: {}, stateService: { go: jasmine.createSpy('injectedGo') } };
-    spyOn(CollapsibleSectionStateCache, 'isSet').and.returnValue(false);
-    spyOn(CollapsibleSectionStateCache, 'isExpanded').and.returnValue(false);
-    spyOn(CollapsibleSectionStateCache, 'setExpanded');
+    routerProps = { router, stateParams: {}, stateService: { go: vi.fn() } };
+    vi.spyOn(CollapsibleSectionStateCache, 'isSet').mockReturnValue(false);
+    vi.spyOn(CollapsibleSectionStateCache, 'isExpanded').mockReturnValue(false);
+    vi.spyOn(CollapsibleSectionStateCache, 'setExpanded').mockReturnValue(undefined);
   });
-  beforeEach(() => jasmine.clock().install());
+  beforeEach(() => vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval'] }));
   beforeEach(() => {
-    spyOn(ViewStateCache, 'createCache').and.returnValue({ get: noop, put: noop, touch: noop } as any);
+    vi.spyOn(ViewStateCache, 'createCache').mockReturnValue({ get: noop, put: noop, touch: noop } as any);
     State.initialize();
     State.ExecutionState.filterModel.asFilterModel.sortFilter.filter = 'existing filter';
     application = ApplicationModelBuilder.createApplicationForTests(
@@ -84,7 +85,7 @@ describe('<Executions/>', () => {
     });
     component?.unmount();
     router.dispose();
-    jasmine.clock().uninstall();
+    vi.useRealTimers();
   });
 
   it('should not set loading flag to false until executions and pipeline configs have been loaded', async () => {
@@ -100,8 +101,8 @@ describe('<Executions/>', () => {
   });
 
   it('controls filter expansion from the cache and persists committed toggles', async () => {
-    (CollapsibleSectionStateCache.isSet as jasmine.Spy).and.returnValue(true);
-    (CollapsibleSectionStateCache.isExpanded as jasmine.Spy).and.returnValue(false);
+    (CollapsibleSectionStateCache.isSet as Mock).mockReturnValue(true);
+    (CollapsibleSectionStateCache.isExpanded as Mock).mockReturnValue(false);
     initializeApplication({ executions: [], pipelineConfigs: [{ id: 'pipeline-id' }] });
     await settleInitialization();
 
@@ -127,9 +128,7 @@ describe('<Executions/>', () => {
 
     filterCollapse = component.find(FilterCollapse);
     expect(filterCollapse.prop('filtersExpanded')).toBe(true);
-    expect((CollapsibleSectionStateCache.setExpanded as jasmine.Spy).calls.allArgs()).toEqual([
-      ['insightFilters', true],
-    ]);
+    expect((CollapsibleSectionStateCache.setExpanded as Mock).mock.calls).toEqual([['insightFilters', true]]);
   });
 
   it('clears the manual execution param through the injected state service', () => {
@@ -149,13 +148,13 @@ describe('<Executions/>', () => {
   it('starts a deep-linked manual execution from injected route params', async () => {
     const pipeline = { id: 'pipeline-id', name: 'Test Pipeline' };
     routerProps.stateParams = { startManualExecution: pipeline.id };
-    const showModal = spyOn(ManualExecutionModal, 'show').and.returnValue(Promise.reject());
+    const showModal = vi.spyOn(ManualExecutionModal, 'show').mockReturnValue(Promise.reject());
     initializeApplication({ executions: [], pipelineConfigs: [pipeline] });
     await act(async () => {
       await Promise.resolve();
       await Promise.resolve();
     });
 
-    expect(showModal).toHaveBeenCalledWith(jasmine.objectContaining({ application, pipeline }), runtimeServices);
+    expect(showModal).toHaveBeenCalledWith(expect.objectContaining({ application, pipeline }), runtimeServices);
   });
 });

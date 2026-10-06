@@ -5,9 +5,7 @@ import { ScopeClusterSelector } from './ScopeClusterSelector';
 
 describe('<ScopeClusterSelector />', () => {
   it('uses link-styled buttons to toggle between dropdown and free-form modes', () => {
-    const component = mount(
-      <ScopeClusterSelector clusters={['api']} model="" onChange={jasmine.createSpy('onChange')} />,
-    );
+    const component = mount(<ScopeClusterSelector clusters={['api']} model="" onChange={vi.fn()} />);
 
     let toggle = component.find('button[type="button"].btn-link.clickable');
 

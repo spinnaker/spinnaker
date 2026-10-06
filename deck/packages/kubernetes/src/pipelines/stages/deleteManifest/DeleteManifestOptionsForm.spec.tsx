@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import type { ShallowWrapper } from 'enzyme';
 import { shallow } from 'enzyme';
 import React from 'react';
@@ -8,12 +9,12 @@ import type { IDeleteManifestOptionsFormProps } from './DeleteManifestOptionsFor
 import DeleteManifestOptionsForm from './DeleteManifestOptionsForm';
 
 describe('<DeleteManifestOptionsForm />', () => {
-  let onChangeSpy: jasmine.Spy;
+  let onChangeSpy: Mock;
   let props: IDeleteManifestOptionsFormProps;
   let component: ShallowWrapper<IDeleteManifestOptionsFormProps>;
 
   beforeEach(() => {
-    onChangeSpy = jasmine.createSpy('onChangeSpy');
+    onChangeSpy = vi.fn();
     props = {
       onOptionsChange: onChangeSpy,
       options: {

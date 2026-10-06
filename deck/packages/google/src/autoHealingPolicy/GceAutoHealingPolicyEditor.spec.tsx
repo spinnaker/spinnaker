@@ -12,7 +12,7 @@ describe('GceAutoHealingPolicyEditor', () => {
 
   it('loads only health checks from the selected account', async () => {
     const reader = {
-      listHealthChecks: jasmine.createSpy('listHealthChecks').and.returnValue(
+      listHealthChecks: vi.fn().mockReturnValue(
         Promise.resolve([
           {
             account: 'my-account',
@@ -42,7 +42,7 @@ describe('GceAutoHealingPolicyEditor', () => {
   });
 
   it('writes the selected health check name and kind from its URL', () => {
-    const onChange = jasmine.createSpy('onChange');
+    const onChange = vi.fn();
     const wrapper = shallow(
       <GceAutoHealingPolicyEditor account="my-account" policy={{ initialDelaySec: 0 }} onChange={onChange} />,
       { disableLifecycleMethods: true },
@@ -61,9 +61,9 @@ describe('GceAutoHealingPolicyEditor', () => {
   });
 
   it('normalizes an existing healthCheck URL into its URL, name, and kind fields', async () => {
-    const onChange = jasmine.createSpy('onChange');
+    const onChange = vi.fn();
     const reader = {
-      listHealthChecks: jasmine.createSpy('listHealthChecks').and.returnValue(Promise.resolve([])),
+      listHealthChecks: vi.fn().mockReturnValue(Promise.resolve([])),
     };
     shallow(
       <GceAutoHealingPolicyEditor
@@ -85,9 +85,9 @@ describe('GceAutoHealingPolicyEditor', () => {
   });
 
   it('resolves an existing healthCheck name to the matching URL and kind', async () => {
-    const onChange = jasmine.createSpy('onChange');
+    const onChange = vi.fn();
     const reader = {
-      listHealthChecks: jasmine.createSpy('listHealthChecks').and.returnValue(
+      listHealthChecks: vi.fn().mockReturnValue(
         Promise.resolve([
           {
             account: 'my-account',
@@ -118,7 +118,7 @@ describe('GceAutoHealingPolicyEditor', () => {
   });
 
   it('preserves zero for initial delay without rendering legacy max unavailable controls', () => {
-    const onChange = jasmine.createSpy('onChange');
+    const onChange = vi.fn();
     const legacyPolicy = { initialDelaySec: 0, maxUnavailable: { percent: 0 } };
     const wrapper = shallow(
       <GceAutoHealingPolicyEditor account="my-account" policy={legacyPolicy as any} onChange={onChange} />,

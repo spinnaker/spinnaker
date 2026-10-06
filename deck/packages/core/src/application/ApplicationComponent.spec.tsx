@@ -6,13 +6,13 @@ import type { Application } from './application.model';
 
 describe('<ApplicationComponent />', () => {
   it('does not remount the same app when child route props refresh', () => {
-    const unsubscribeRefresh = jasmine.createSpy('unsubscribeRefresh');
+    const unsubscribeRefresh = vi.fn();
     const app = ({
       attributes: {},
-      disableAutoRefresh: jasmine.createSpy('disableAutoRefresh'),
-      enableAutoRefresh: jasmine.createSpy('enableAutoRefresh'),
+      disableAutoRefresh: vi.fn(),
+      enableAutoRefresh: vi.fn(),
       name: 'kubernetesapp',
-      subscribeToRefresh: jasmine.createSpy('subscribeToRefresh').and.returnValue(unsubscribeRefresh),
+      subscribeToRefresh: vi.fn().mockReturnValue(unsubscribeRefresh),
     } as unknown) as Application;
 
     const wrapper = shallow(<ApplicationComponent app={app} />);

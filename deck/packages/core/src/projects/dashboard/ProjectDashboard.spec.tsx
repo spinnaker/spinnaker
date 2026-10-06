@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { mount } from 'enzyme';
 import React from 'react';
 import { act } from 'react-dom/test-utils';
@@ -78,13 +79,13 @@ const transition = (params: any = {}) =>
     params: () => params,
     router: {
       stateService: {
-        go: jasmine.createSpy('go'),
+        go: vi.fn(),
       },
     },
   } as any);
 
 describe('<ProjectDashboard />', () => {
-  let executionService: { getProjectExecutions: jasmine.Spy; getProjectExecutionsForConfigIds: jasmine.Spy };
+  let executionService: { getProjectExecutions: Mock; getProjectExecutionsForConfigIds: Mock };
   const TestDashboard = (props: React.ComponentProps<typeof ProjectDashboard>) => (
     <DeckRuntimeContext.Provider value={{ services: { executionService } } as any}>
       <ProjectDashboard {...props} />
@@ -92,24 +93,22 @@ describe('<ProjectDashboard />', () => {
   );
 
   beforeEach(() => {
-    spyOn(RecentHistoryService, 'addExtraDataToLatest').and.stub();
-    spyOn(RecentHistoryService, 'removeLastItem').and.stub();
-    spyOn(UrlBuilder, 'buildFromMetadata').and.callFake((metadata: any) => {
+    vi.spyOn(RecentHistoryService, 'addExtraDataToLatest').mockImplementation(() => undefined);
+    vi.spyOn(RecentHistoryService, 'removeLastItem').mockImplementation(() => undefined);
+    vi.spyOn(UrlBuilder, 'buildFromMetadata').mockImplementation((metadata: any) => {
       const reg = metadata.region ? `?reg=${metadata.region}` : '';
       return `#/projects/${metadata.project}/applications/${metadata.application}/clusters${reg}`;
     });
-    spyOn(ProjectReader, 'getProjectClusters').and.returnValue(Promise.resolve([cluster]));
-    spyOn(PipelineConfigService, 'getAllPipelineConfigs').and.returnValue(
+    vi.spyOn(ProjectReader, 'getProjectClusters').mockReturnValue(Promise.resolve([cluster]));
+    vi.spyOn(PipelineConfigService, 'getAllPipelineConfigs').mockReturnValue(
       Promise.resolve([
         { ...taggedPipeline },
         { ...taggedPipeline, id: 'deployment', application: 'kubernetesapp', name: 'Deployment', tags: [] },
       ]),
     );
     executionService = {
-      getProjectExecutions: jasmine.createSpy('getProjectExecutions').and.returnValue(Promise.resolve([execution])),
-      getProjectExecutionsForConfigIds: jasmine
-        .createSpy('getProjectExecutionsForConfigIds')
-        .and.returnValue(Promise.resolve([execution])),
+      getProjectExecutions: vi.fn().mockReturnValue(Promise.resolve([execution])),
+      getProjectExecutionsForConfigIds: vi.fn().mockReturnValue(Promise.resolve([execution])),
     };
   });
 
@@ -135,8 +134,8 @@ describe('<ProjectDashboard />', () => {
   });
 
   it('skips cluster request and renders empty states when nothing is configured', async () => {
-    (ProjectReader.getProjectClusters as jasmine.Spy).calls.reset();
-    (PipelineConfigService.getAllPipelineConfigs as jasmine.Spy).and.returnValue(Promise.resolve([]));
+    (ProjectReader.getProjectClusters as Mock).mockClear();
+    (PipelineConfigService.getAllPipelineConfigs as Mock).mockReturnValue(Promise.resolve([]));
     const emptyProject = {
       ...project,
       config: { applications: [], clusters: [], pipelineConfigs: [] },
@@ -154,8 +153,8 @@ describe('<ProjectDashboard />', () => {
   });
 
   it('renders independent cluster and execution load errors', async () => {
-    (ProjectReader.getProjectClusters as jasmine.Spy).and.returnValue(Promise.reject(new Error('clusters failed')));
-    executionService.getProjectExecutionsForConfigIds.and.returnValue(Promise.reject(new Error('executions failed')));
+    (ProjectReader.getProjectClusters as Mock).mockReturnValue(Promise.reject(new Error('clusters failed')));
+    executionService.getProjectExecutionsForConfigIds.mockReturnValue(Promise.reject(new Error('executions failed')));
 
     const wrapper = await mountAndFlush(<TestDashboard projectConfiguration={project} transition={transition()} />);
 
@@ -166,9 +165,7 @@ describe('<ProjectDashboard />', () => {
   });
 
   it('loads manual pipeline executions through the application-filtered endpoint when config discovery fails', async () => {
-    (PipelineConfigService.getAllPipelineConfigs as jasmine.Spy).and.returnValue(
-      Promise.reject(new Error('configs failed')),
-    );
+    (PipelineConfigService.getAllPipelineConfigs as Mock).mockReturnValue(Promise.reject(new Error('configs failed')));
 
     const wrapper = await mountAndFlush(<TestDashboard projectConfiguration={project} transition={transition()} />);
 
@@ -180,7 +177,7 @@ describe('<ProjectDashboard />', () => {
   });
 
   it('shows an execution error instead of never-run rows when selected execution loading fails', async () => {
-    executionService.getProjectExecutionsForConfigIds.and.returnValue(Promise.reject(new Error('executions failed')));
+    executionService.getProjectExecutionsForConfigIds.mockReturnValue(Promise.reject(new Error('executions failed')));
 
     const wrapper = await mountAndFlush(<TestDashboard projectConfiguration={project} transition={transition()} />);
 
@@ -191,12 +188,12 @@ describe('<ProjectDashboard />', () => {
   });
 
   it('clears prior never-run rows when a refresh fails', async () => {
-    executionService.getProjectExecutionsForConfigIds.and.returnValue(Promise.resolve([]));
+    executionService.getProjectExecutionsForConfigIds.mockReturnValue(Promise.resolve([]));
 
     const wrapper = await mountAndFlush(<TestDashboard projectConfiguration={project} transition={transition()} />);
     expect(wrapper.text()).toContain('Never run');
 
-    executionService.getProjectExecutionsForConfigIds.and.returnValue(Promise.reject(new Error('refresh failed')));
+    executionService.getProjectExecutionsForConfigIds.mockReturnValue(Promise.reject(new Error('refresh failed')));
     await act(async () => {
       wrapper.find('.col-md-5 RefreshControl button').simulate('click');
       await Promise.resolve();
@@ -218,10 +215,9 @@ describe('<ProjectDashboard />', () => {
         { ...execution.stageSummaries[0], id: '2', refId: '2', index: 1, name: 'Verify' },
       ],
     };
-    executionService.getProjectExecutionsForConfigIds.and.returnValues(
-      Promise.resolve([execution]),
-      Promise.resolve([refreshedExecution]),
-    );
+    executionService.getProjectExecutionsForConfigIds
+      .mockReturnValueOnce(Promise.resolve([execution]))
+      .mockReturnValueOnce(Promise.resolve([refreshedExecution]));
 
     const wrapper = await mountAndFlush(<TestDashboard projectConfiguration={project} transition={transition()} />);
     expect(wrapper.find('.execution-marker').at(0).prop('style').width).toBe('100%');
@@ -243,13 +239,11 @@ describe('<ProjectDashboard />', () => {
     const initialDiscovery = new Promise<any[]>((resolve) => {
       resolveInitialDiscovery = resolve;
     });
-    (PipelineConfigService.getAllPipelineConfigs as jasmine.Spy).and.returnValue(initialDiscovery);
+    (PipelineConfigService.getAllPipelineConfigs as Mock).mockReturnValue(initialDiscovery);
 
     const wrapper = mount(<TestDashboard projectConfiguration={project} transition={transition()} />);
-    (PipelineConfigService.getAllPipelineConfigs as jasmine.Spy).and.returnValue(
-      Promise.reject(new Error('refresh failed')),
-    );
-    executionService.getProjectExecutionsForConfigIds.and.returnValue(Promise.reject(new Error('fallback failed')));
+    (PipelineConfigService.getAllPipelineConfigs as Mock).mockReturnValue(Promise.reject(new Error('refresh failed')));
+    executionService.getProjectExecutionsForConfigIds.mockReturnValue(Promise.reject(new Error('fallback failed')));
 
     await act(async () => {
       wrapper.find('.col-md-5 RefreshControl button').simulate('click');
@@ -271,7 +265,7 @@ describe('<ProjectDashboard />', () => {
   });
 
   it('renders an empty state when no manual or tagged pipelines exist', async () => {
-    (PipelineConfigService.getAllPipelineConfigs as jasmine.Spy).and.returnValue(Promise.resolve([]));
+    (PipelineConfigService.getAllPipelineConfigs as Mock).mockReturnValue(Promise.resolve([]));
     const emptyProject = { ...project, config: { applications: [], clusters: [], pipelineConfigs: [] } };
 
     const wrapper = await mountAndFlush(
