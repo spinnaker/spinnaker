@@ -133,7 +133,8 @@ export function getGceProxyResourceOptions(
       references(backend),
     ),
     certificates: mergeGceResourceOptions(
-      accountScoped(data.certificates as IGceProxyDataItem[]),
+      // Global SSL proxies cannot use the regional certificates cached for regional HTTPS proxies.
+      accountScoped(data.certificates as IGceProxyDataItem[]).filter((item) => !item.region),
       references(listener?.certificate),
     ),
     healthChecks: mergeGceResourceOptions(
