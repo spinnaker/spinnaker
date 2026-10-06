@@ -193,14 +193,15 @@ export class PermissionsConfigurer extends React.Component<IPermissionsConfigure
     return (
       <div className="permissions-configurer">
         {this.state.permissionRows.map((row, i) => {
-          const permissionTypeLabel = [
-            ...PermissionsConfigurer.accessTypes,
-            ...PermissionsConfigurer.legacyAccessTypes,
-          ].find((type) => type.value === row.access).label;
+          const permissionTypeLabel =
+            [...PermissionsConfigurer.accessTypes, ...PermissionsConfigurer.legacyAccessTypes].find(
+              (type) => type.value === row.access,
+            )?.label || row.access;
           return (
             <div key={row.group || i} className="permissions-row clearfix">
               <div className="col-md-5 permissions-group">
                 <Creatable
+                  aria-label={`Group for permission ${i + 1}`}
                   clearable={false}
                   value={{ value: row.group, label: row.group }}
                   options={this.state.roleOptions}
@@ -209,6 +210,7 @@ export class PermissionsConfigurer extends React.Component<IPermissionsConfigure
               </div>
               <div className="col-md-6">
                 <Select
+                  aria-label={`Access for permission ${i + 1}`}
                   value={{ value: row.access, label: permissionTypeLabel }}
                   options={PermissionsConfigurer.accessTypes}
                   onChange={this.handleAccessTypeSelect(i)}
@@ -216,9 +218,14 @@ export class PermissionsConfigurer extends React.Component<IPermissionsConfigure
                 />
               </div>
               <div className="col-md-1 delete-permissions">
-                <a onClick={this.handleDeletePermission(i)} className="clickable">
+                <button
+                  aria-label={`Remove permission for ${row.group || `row ${i + 1}`}`}
+                  className="link"
+                  onClick={this.handleDeletePermission(i)}
+                  type="button"
+                >
                   <span className="glyphicon glyphicon-trash" />
-                </a>
+                </button>
               </div>
             </div>
           );

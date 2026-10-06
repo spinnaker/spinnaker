@@ -1,4 +1,4 @@
-import { mockHttpClient } from '../api/mock/jasmine';
+import { mockHttpClient } from '../api/mock/mockHttpSupport';
 import type { ISubnet } from '../domain';
 import { SubnetReader } from './subnet.read.service';
 

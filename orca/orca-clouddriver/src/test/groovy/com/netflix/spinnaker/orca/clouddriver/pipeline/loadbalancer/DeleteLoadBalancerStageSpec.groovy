@@ -50,6 +50,7 @@ class DeleteLoadBalancerStageSpec extends Specification {
     cloudProvider | loadBalancerType
     "aws"         | "application"
     "gce"         | "INTERNAL_MANAGED"
+    "gce"         | "EXTERNAL_MANAGED"
     "azure"       | null
   }
 }

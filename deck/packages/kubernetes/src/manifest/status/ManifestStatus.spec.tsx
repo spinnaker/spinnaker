@@ -1,9 +1,8 @@
-import { mount } from 'enzyme';
+import { render, screen } from '@testing-library/react';
 import React from 'react';
 
-import { Tooltip } from '@spinnaker/core';
-
 import { ManifestStatus } from './ManifestStatus';
+import { setupUser } from '../../../../core/src/utils/testUtils/userEvent';
 
 describe('<ManifestStatus />', () => {
   const status = (overrides: { [key: string]: { state: boolean; message?: string } }) => ({
@@ -14,36 +13,45 @@ describe('<ManifestStatus />', () => {
     ...overrides,
   });
 
-  it('renders status messages as plain text rather than Markdown', () => {
+  it('renders status messages as plain text rather than Markdown', async () => {
+    const user = setupUser();
     const message = 'Degraded: [see details](https://example.com) ![x](https://example.com/x.png) <b>bold</b>';
-    const wrapper = mount(<ManifestStatus status={status({ stable: { state: false, message } }) as any} />);
+    const { container } = render(<ManifestStatus status={status({ stable: { state: false, message } }) as any} />);
 
-    expect(wrapper.find('.band-active').text()).toBe('Transitioning');
+    const band = screen.getByText('Transitioning');
+    expect(band).toHaveClass('band-active');
+    expect(container.querySelectorAll('.band')).toHaveLength(1);
 
-    const tooltip = wrapper.find(Tooltip);
-    expect(tooltip.length).toBe(1);
-    expect(tooltip.prop('value')).toBeFalsy();
+    await user.hover(band);
 
-    const content = mount(tooltip.prop('template'));
-    expect(content.text()).toBe(message);
-    expect(content.find('a').length).toBe(0);
-    expect(content.find('img').length).toBe(0);
-    expect(content.find('b').length).toBe(0);
+    const tooltip = await screen.findByRole('tooltip');
+    expect(tooltip.textContent).toBe(message);
+    expect(tooltip.querySelector('a')).toBeNull();
+    expect(tooltip.querySelector('img')).toBeNull();
+    expect(tooltip.querySelector('b')).toBeNull();
   });
 
-  it('shows no tooltip content when there is no message', () => {
-    const wrapper = mount(<ManifestStatus status={status({ available: { state: false } }) as any} />);
+  it('shows no tooltip content when there is no message', async () => {
+    const user = setupUser();
+    render(<ManifestStatus status={status({ available: { state: false } }) as any} />);
 
-    expect(wrapper.find('.band-warning').text()).toBe('Not Fully Available');
-    expect(wrapper.find(Tooltip).prop('template')).toBeUndefined();
+    const band = screen.getByText('Not Fully Available');
+    expect(band).toHaveClass('band-warning');
+
+    await user.hover(band);
+
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
   });
 
-  it('shows the paused band with its message', () => {
-    const wrapper = mount(
-      <ManifestStatus status={status({ paused: { state: true, message: 'Paused by user' } }) as any} />,
-    );
+  it('shows the paused band with its message', async () => {
+    const user = setupUser();
+    render(<ManifestStatus status={status({ paused: { state: true, message: 'Paused by user' } }) as any} />);
 
-    expect(wrapper.find('.band-info').text()).toBe('Rollout Paused');
-    expect(mount(wrapper.find(Tooltip).prop('template')).text()).toBe('Paused by user');
+    const band = screen.getByText('Rollout Paused');
+    expect(band).toHaveClass('band-info');
+
+    await user.hover(band);
+
+    expect(await screen.findByRole('tooltip')).toHaveTextContent('Paused by user');
   });
 });

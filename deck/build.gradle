@@ -46,7 +46,6 @@ task modules(type: PnpmTask) {
 
 // Package builds write outside Gradle's build directory.
 clean {
-  delete file('.cache-loader')
   delete file('packages').listFiles()
     .findAll { it.isDirectory() }
     .collect { new File(it, 'dist') }
@@ -89,20 +88,19 @@ project.tasks.register('runLinters') {
   dependsOn "prettier"
 }
 
-task karma(type: PnpmTask) {
+task unitTests(type: PnpmTask) {
   dependsOn "modules"
 
   pnpmCommand = ["test"]
-  args = ["--single-run", "--reporters", "dots"]
 
   if (project.hasProperty('skipTests')) {
-    karma.enabled = false
+    unitTests.enabled = false
   }
 }
 
 task functionalTests(type: PnpmTask) {
   dependsOn "modules"
-  dependsOn "karma"
+  dependsOn "unitTests"
 
   pnpmCommand = ["functional"]
 
@@ -112,7 +110,7 @@ task functionalTests(type: PnpmTask) {
 }
 
 project.tasks.register('test') {
-  dependsOn 'karma'
+  dependsOn 'unitTests'
   dependsOn 'functionalTests'
 }
 
