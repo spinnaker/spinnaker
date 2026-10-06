@@ -114,12 +114,14 @@ const createHandlers = (dependencies = {}) => {
   const reportError = dependencies.reportError ?? console.error;
   const emitDeclarations = dependencies.runDeclarations ?? (() => runDeclarations(cwd));
   const runDeclarationJob = (resolvedConfig) =>
-    Promise.resolve()
-      .then(() => emitDeclarations())
-      .then(() => resolvedConfig.spinnaker?.afterDeclarations?.(resolvedConfig))
-      .catch((error) => {
-        throw preserveSubprocessDiagnostics(error);
-      });
+    resolvedConfig.spinnaker?.declarations === false
+      ? Promise.resolve()
+      : Promise.resolve()
+          .then(() => emitDeclarations())
+          .then(() => resolvedConfig.spinnaker?.afterDeclarations?.(resolvedConfig))
+          .catch((error) => {
+            throw preserveSubprocessDiagnostics(error);
+          });
   const pushPackage = dependencies.runYalcPush ?? (() => runYalcPush(cwd));
   const scheduleZeroDelay =
     dependencies.scheduleZeroDelay ??
