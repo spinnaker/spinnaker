@@ -183,7 +183,10 @@ async function createViteLibraryConfig(options = {}) {
         plugins: [autoprefixer(), postCssColorFix({ colors: colorMap }), postCssUrl({ url: 'inline' })],
       },
     },
-    ...(options.afterDeclarations ? { spinnaker: { afterDeclarations: options.afterDeclarations } } : {}),
+    spinnaker: {
+      declarations: options.declarations ?? true,
+      ...(options.afterDeclarations ? { afterDeclarations: options.afterDeclarations } : {}),
+    },
     plugins,
   };
 }
