@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.artifacts.config;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
+import com.netflix.spinnaker.kork.web.url.UrlRestrictions;
 import java.io.IOException;
 import java.util.Optional;
 import lombok.Getter;
@@ -42,6 +43,46 @@ public abstract class BaseHttpArtifactCredentials<T extends UserInputValidatedAr
     // We manually follow redirects, validating each Location header when restrictions are set.
     this.okHttpClient =
         okHttpClient.newBuilder().followRedirects(false).followSslRedirects(false).build();
+    warnIfCredentialsAreNotPinnedToHosts(account);
+  }
+
+  /**
+   * An account's credentials are sent to whichever host an artifact reference names, as long as
+   * that host passes the account's URL restrictions. Without {@code allowedDomains} those only
+   * exclude local and internal names, so point operators at the setting that ties the account to
+   * its own server.
+   *
+   * <p>TODO: accounts that authenticate in another way (e.g. GitHub App installation tokens) are
+   * not detected here.
+   */
+  private void warnIfCredentialsAreNotPinnedToHosts(T account) {
+    UrlRestrictions restrictions = account.getUrlRestrictions();
+    if (restrictions == null
+        || !restrictions.getAllowedDomains().isEmpty()
+        || !hasCredentials(account)) {
+      return;
+    }
+    log.warn(
+        "Artifact account {} has credentials but no urlRestrictions.allowedDomains, so they can be "
+            + "sent to any host that passes the default URL restrictions. Set allowedDomains to the "
+            + "host(s) this account should connect to.",
+        account.getName());
+  }
+
+  /** Whether the account is configured with credentials, without reading any credentials file. */
+  private static boolean hasCredentials(ArtifactAccount account) {
+    if (account instanceof TokenAuth) {
+      TokenAuth tokenAuth = (TokenAuth) account;
+      if (tokenAuth.getToken().isPresent() || tokenAuth.getTokenFile().isPresent()) {
+        return true;
+      }
+    }
+    if (account instanceof BasicAuth) {
+      BasicAuth basicAuth = (BasicAuth) account;
+      return basicAuth.getUsernamePasswordFile().isPresent()
+          || (basicAuth.getUsername().isPresent() && basicAuth.getPassword().isPresent());
+    }
+    return false;
   }
 
   private Optional<String> getAuthHeader(ArtifactAccount account) {
