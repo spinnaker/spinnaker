@@ -1,5 +1,6 @@
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import type { Mock } from 'vitest';
-import { shallow } from 'enzyme';
 import React from 'react';
 
 import { ConfirmationModalService, ServerGroupWarningMessageService } from '@spinnaker/core';
@@ -12,11 +13,11 @@ describe('Cloud Foundry routed actions', () => {
   const routerProps = (includes: Mock, go: Mock) =>
     ({ router: {}, stateParams: {}, stateService: { go, includes } } as any);
 
-  it('closes instance details through the injected state service', () => {
+  it('closes instance details through the injected state service', async () => {
     const includes = vi.fn().mockReturnValue(true);
     const go = vi.fn();
     const confirm = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(undefined);
-    const component = shallow(
+    render(
       <CloudFoundryInstanceActionsComponent
         {...routerProps(includes, go)}
         application={{} as any}
@@ -24,17 +25,17 @@ describe('Cloud Foundry routed actions', () => {
       />,
     );
 
-    (component.instance() as any).terminateInstance();
+    await userEvent.click(screen.getByText('Terminate'));
     confirm.mock.lastCall[0].taskMonitorConfig.onTaskComplete();
 
     expect(go).toHaveBeenCalledWith('^');
   });
 
-  it('closes load balancer details through the injected state service', () => {
+  it('closes load balancer details through the injected state service', async () => {
     const includes = vi.fn().mockReturnValue(true);
     const go = vi.fn();
     const confirm = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(undefined);
-    const component = shallow(
+    render(
       <CloudFoundryLoadBalancerActionsComponent
         {...routerProps(includes, go)}
         application={{} as any}
@@ -42,18 +43,18 @@ describe('Cloud Foundry routed actions', () => {
       />,
     );
 
-    (component.instance() as any).deleteLoadBalancer();
+    await userEvent.click(screen.getByText('Delete Load Balancer'));
     confirm.mock.lastCall[0].taskMonitorConfig.onTaskComplete();
 
     expect(go).toHaveBeenCalledWith('^');
   });
 
-  it('closes server group details through the injected state service', () => {
+  it('closes server group details through the injected state service', async () => {
     const includes = vi.fn().mockReturnValue(true);
     const go = vi.fn();
     vi.spyOn(ServerGroupWarningMessageService, 'addDestroyWarningMessage').mockReturnValue(undefined);
     const confirm = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(undefined);
-    const component = shallow(
+    render(
       <CloudFoundryServerGroupActionsComponent
         {...routerProps(includes, go)}
         app={{ attributes: {} } as any}
@@ -69,7 +70,7 @@ describe('Cloud Foundry routed actions', () => {
       />,
     );
 
-    (component.instance() as any).destroyServerGroup();
+    await userEvent.click(screen.getByText('Destroy'));
     confirm.mock.lastCall[0].taskMonitorConfig.onTaskComplete();
 
     expect(go).toHaveBeenCalledWith('^');

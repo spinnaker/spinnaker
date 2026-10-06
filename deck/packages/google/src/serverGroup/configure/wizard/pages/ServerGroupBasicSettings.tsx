@@ -17,26 +17,32 @@ interface ISelectOption {
   value: string;
 }
 
+export function validateGceServerGroupBasicSettings(
+  values: IGceServerGroupCommand,
+): IGceServerGroupCommandValidationErrors {
+  const sharedErrors = validateGceServerGroupCommand(values);
+  const errors: IGceServerGroupCommandValidationErrors = {};
+  if (sharedErrors.credentials) errors.credentials = sharedErrors.credentials;
+  if (sharedErrors.region) errors.region = sharedErrors.region;
+  if (sharedErrors.zone) errors.zone = sharedErrors.zone;
+  if (sharedErrors.stack) errors.stack = sharedErrors.stack;
+  if (sharedErrors.freeFormDetails) errors.freeFormDetails = sharedErrors.freeFormDetails;
+  const stackPattern = values.viewState.templatingEnabled ? /^([a-zA-Z0-9]*(\${.+})*)*$/ : /^[a-zA-Z0-9]*$/;
+  const detailPattern = values.viewState.templatingEnabled ? /^([a-zA-Z0-9-]*(\${.+})*)*$/ : /^[a-zA-Z0-9-]*$/;
+
+  if (values.stack && !stackPattern.test(values.stack)) {
+    errors.stack = 'Stack can only contain letters and numbers.';
+  }
+  if (values.freeFormDetails && !detailPattern.test(values.freeFormDetails)) {
+    errors.freeFormDetails = 'Detail can only contain letters, numbers, and dashes.';
+  }
+
+  return errors;
+}
+
 export class ServerGroupBasicSettings extends GceServerGroupWizardPage {
   public validate(values: IGceServerGroupCommand): IGceServerGroupCommandValidationErrors {
-    const sharedErrors = validateGceServerGroupCommand(values);
-    const errors: IGceServerGroupCommandValidationErrors = {};
-    if (sharedErrors.credentials) errors.credentials = sharedErrors.credentials;
-    if (sharedErrors.region) errors.region = sharedErrors.region;
-    if (sharedErrors.zone) errors.zone = sharedErrors.zone;
-    if (sharedErrors.stack) errors.stack = sharedErrors.stack;
-    if (sharedErrors.freeFormDetails) errors.freeFormDetails = sharedErrors.freeFormDetails;
-    const stackPattern = values.viewState.templatingEnabled ? /^([a-zA-Z0-9]*(\${.+})*)*$/ : /^[a-zA-Z0-9]*$/;
-    const detailPattern = values.viewState.templatingEnabled ? /^([a-zA-Z0-9-]*(\${.+})*)*$/ : /^[a-zA-Z0-9-]*$/;
-
-    if (values.stack && !stackPattern.test(values.stack)) {
-      errors.stack = 'Stack can only contain letters and numbers.';
-    }
-    if (values.freeFormDetails && !detailPattern.test(values.freeFormDetails)) {
-      errors.freeFormDetails = 'Detail can only contain letters, numbers, and dashes.';
-    }
-
-    return errors;
+    return validateGceServerGroupBasicSettings(values);
   }
 
   private parentChanged = (

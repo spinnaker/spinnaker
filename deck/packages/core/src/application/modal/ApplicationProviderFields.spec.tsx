@@ -1,11 +1,10 @@
-import { mount } from 'enzyme';
+import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 
 import type { IApplicationAttributes } from '../service/ApplicationWriter';
 import { ApplicationProviderFields } from './ApplicationProviderFields';
 import { CloudProviderRegistry } from '../../cloudProvider';
 import { SETTINGS } from '../../config/settings';
-import { HelpField } from '../../help/HelpField';
 
 describe('ApplicationProviderFields', () => {
   const firstProvider = 'applicationFieldsFirst';
@@ -39,7 +38,7 @@ describe('ApplicationProviderFields', () => {
   });
 
   it('uses selected unique providers when providers are selected', () => {
-    const wrapper = mount(
+    const { container } = render(
       <ApplicationProviderFields
         application={{ name: 'app' }}
         availableProviders={[firstProvider, secondProvider]}
@@ -48,12 +47,12 @@ describe('ApplicationProviderFields', () => {
       />,
     );
 
-    expect(wrapper.find('input[type="checkbox"]').length).toBe(1);
-    expect(wrapper.find('input').prop('data-provider')).toBe(secondProvider);
+    expect(screen.getAllByRole('checkbox')).toHaveLength(1);
+    expect(container.querySelector('input')).toHaveAttribute('data-provider', secondProvider);
   });
 
   it('uses all unique available providers when none are selected', () => {
-    const wrapper = mount(
+    render(
       <ApplicationProviderFields
         application={{ name: 'app' }}
         availableProviders={[firstProvider, firstProvider, secondProvider]}
@@ -62,7 +61,7 @@ describe('ApplicationProviderFields', () => {
       />,
     );
 
-    expect(wrapper.find('input[type="checkbox"]').length).toBe(2);
+    expect(screen.getAllByRole('checkbox')).toHaveLength(2);
   });
 
   it('clones the application and initializes configured defaults only when values are absent', () => {
@@ -72,7 +71,7 @@ describe('ApplicationProviderFields', () => {
     };
     const onChange = vi.fn();
 
-    mount(
+    render(
       <ApplicationProviderFields
         application={application}
         availableProviders={[firstProvider, secondProvider]}
@@ -95,7 +94,7 @@ describe('ApplicationProviderFields', () => {
       providerSettings: { [firstProvider]: { enabledByDefault: true } },
     };
     const onChange = vi.fn();
-    const wrapper = mount(
+    render(
       <ApplicationProviderFields
         application={application}
         availableProviders={[firstProvider]}
@@ -104,7 +103,7 @@ describe('ApplicationProviderFields', () => {
       />,
     );
 
-    wrapper.find('input[type="checkbox"]').simulate('change', { target: { checked: false } });
+    fireEvent.click(screen.getByRole('checkbox', { name: /enabled by default/i }));
 
     const changed = onChange.mock.lastCall[0];
     expect(changed).not.toBe(application);
@@ -113,7 +112,7 @@ describe('ApplicationProviderFields', () => {
   });
 
   it('renders provider help metadata with its boolean field', () => {
-    const wrapper = mount(
+    const { container } = render(
       <ApplicationProviderFields
         application={{ name: 'app', providerSettings: { [secondProvider]: { associateAddress: false } } }}
         availableProviders={[secondProvider]}
@@ -122,8 +121,8 @@ describe('ApplicationProviderFields', () => {
       />,
     );
 
-    expect(wrapper.text()).toContain('Associate address');
-    expect(wrapper.find(HelpField).prop('id')).toBe('second.associateAddress');
-    expect(wrapper.find('input').prop('checked')).toBe(false);
+    expect(screen.getByText(/associate address/i)).toBeInTheDocument();
+    expect(container.querySelector('.help-field')).toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: /associate address/i })).not.toBeChecked();
   });
 });

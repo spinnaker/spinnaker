@@ -1,4 +1,5 @@
-import { mount as enzymeMount } from 'enzyme';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import { DeckRuntimeContext } from '../../../bootstrap/DeckRuntimeContext';
@@ -9,22 +10,22 @@ describe('InstanceTypeSelector', () => {
   const RuntimeWrapper = ({ children }: React.PropsWithChildren<{}>) => (
     <DeckRuntimeContext.Provider value={{ services: runtimeServices } as any}>{children}</DeckRuntimeContext.Provider>
   );
-  const mount = (component: React.ReactElement) => enzymeMount(component, { wrappingComponent: RuntimeWrapper });
 
   beforeEach(() => {
     runtimeServices = {};
     Object.defineProperty(runtimeServices, 'instanceTypeService', { configurable: true, get: () => undefined });
   });
 
+  const renderSelector = (command: any, onTypeChanged = vi.fn()) =>
+    render(<InstanceTypeSelector command={command} onTypeChanged={onTypeChanged} />, { wrapper: RuntimeWrapper });
+
   it('renders the native selector and ignores unavailable instance types', async () => {
     const instanceTypeService = serviceWithCategories();
     vi.spyOn(runtimeServices, 'instanceTypeService', 'get').mockReturnValue(instanceTypeService as any);
     const command = commandWithFilteredTypes(['m5.large']);
+    renderSelector(command);
 
-    const component = mount(<InstanceTypeSelector command={command as any} onTypeChanged={vi.fn()} />);
-    await settle(component);
-
-    component.find('tr.instance-type-row').at(1).simulate('click');
+    await userEvent.click(await screen.findByText('xlarge'));
 
     expect(command.instanceType).toBeUndefined();
     expect(instanceTypeService.getInstanceTypeDetails).not.toHaveBeenCalled();
@@ -36,16 +37,13 @@ describe('InstanceTypeSelector', () => {
     vi.spyOn(runtimeServices, 'instanceTypeService', 'get').mockReturnValue(instanceTypeService as any);
     const onTypeChanged = vi.fn();
     const command = commandWithFilteredTypes(['m5.large']);
+    renderSelector(command, onTypeChanged);
 
-    const component = mount(<InstanceTypeSelector command={command as any} onTypeChanged={onTypeChanged} />);
-    await settle(component);
-
-    component.find('tr.instance-type-row').at(0).simulate('click');
-    await settle(component);
+    await userEvent.click(await screen.findByText('large'));
 
     expect(command.instanceType).toBe('m5.large');
     expect(command.viewState.dirty.instanceType).toBeUndefined();
-    expect(command.viewState.instanceTypeDetails).toBe(instanceTypeDetails as any);
+    await waitFor(() => expect(command.viewState.instanceTypeDetails).toBe(instanceTypeDetails as any));
     expect(onTypeChanged).toHaveBeenCalledWith('m5.large');
   });
 
@@ -53,18 +51,15 @@ describe('InstanceTypeSelector', () => {
     const instanceTypeService = serviceWithCategories();
     vi.spyOn(runtimeServices, 'instanceTypeService', 'get').mockReturnValue(instanceTypeService as any);
     const command = commandWithFilteredTypes(['m5.large']);
+    const { rerender } = renderSelector(command);
 
-    const component = mount(<InstanceTypeSelector command={command as any} onTypeChanged={vi.fn()} />);
-    await settle(component);
-
-    expect(component.find('tr.instance-type-row').at(1).hasClass('unavailable')).toBe(true);
+    expect((await screen.findByText('xlarge')).closest('tr')).toHaveClass('unavailable');
 
     command.backingData.filtered.instanceTypes = ['m5.xlarge'];
-    component.setProps({ command });
-    await settle(component);
+    rerender(<InstanceTypeSelector command={command as any} onTypeChanged={vi.fn()} />);
 
-    expect(component.find('tr.instance-type-row').at(0).hasClass('unavailable')).toBe(true);
-    expect(component.find('tr.instance-type-row').at(1).hasClass('unavailable')).toBe(false);
+    await waitFor(() => expect(screen.getByText('large').closest('tr')).toHaveClass('unavailable'));
+    expect(screen.getByText('xlarge').closest('tr')).not.toHaveClass('unavailable');
   });
 
   it('shows dirty warning, unavailable marker, and storage override display', async () => {
@@ -72,30 +67,26 @@ describe('InstanceTypeSelector', () => {
     const command = commandWithFilteredTypes(['m5.large']);
     command.instanceType = 'm5.large';
     command.viewState.overriddenStorageDescription = 'Custom storage';
+    const { container } = renderSelector(command);
 
-    const component = mount(<InstanceTypeSelector command={command as any} onTypeChanged={vi.fn()} />);
-    await settle(component);
-
-    expect(component.find('.dirty-instance-type-warning').text()).toContain('previously selected instance type');
-    expect(component.find('tr.instance-type-row').at(1).hasClass('unavailable')).toBe(true);
-    expect(component.find('tr.instance-type-row').at(1).find('.unavailable-marker').exists()).toBe(true);
-    expect(component.find('tr.instance-type-row').at(0).text()).toContain('Custom storage');
-    expect(component.find('tr.instance-type-row').at(0).find('.storage-override-indicator').exists()).toBe(true);
+    expect(await screen.findByText(/previously selected instance type/)).toBeInTheDocument();
+    const unavailableRow = screen.getByText('xlarge').closest('tr');
+    expect(unavailableRow).toHaveClass('unavailable');
+    expect(unavailableRow?.querySelector('.unavailable-marker')).toBeInTheDocument();
+    expect(screen.getByText('Custom storage')).toBeInTheDocument();
+    expect(container.querySelector('.storage-override-indicator')).toBeInTheDocument();
   });
 
   it('hides the dirty warning immediately when dismissed', async () => {
     vi.spyOn(runtimeServices, 'instanceTypeService', 'get').mockReturnValue(serviceWithCategories() as any);
     const command = commandWithFilteredTypes(['m5.large']);
+    renderSelector(command);
 
-    const component = mount(<InstanceTypeSelector command={command as any} onTypeChanged={vi.fn()} />);
-    await settle(component);
-
-    expect(component.find('.dirty-instance-type-warning').exists()).toBe(true);
-
-    component.find('button.dirty-flag-dismiss').simulate('click');
+    expect(await screen.findByText(/previously selected instance type/)).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Okay' }));
 
     expect(command.viewState.dirty.instanceType).toBeNull();
-    expect(component.find('.dirty-instance-type-warning').exists()).toBe(false);
+    expect(screen.queryByText(/previously selected instance type/)).not.toBeInTheDocument();
   });
 });
 
@@ -134,10 +125,4 @@ function serviceWithCategories(details = { name: 'm5.large' }) {
     ),
     getInstanceTypeDetails: vi.fn().mockReturnValue(Promise.resolve(details)),
   };
-}
-
-async function settle(component: any) {
-  await Promise.resolve();
-  await Promise.resolve();
-  component.update();
 }

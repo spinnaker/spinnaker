@@ -12,6 +12,27 @@ import { GCEProviderSettings } from '../../../../gce.settings';
 const MAX_INT = 2147483647;
 const MAX_SCHEDULE_DURATION_SECONDS = 14 * 24 * 60 * 60;
 
+interface IAutoscalingPolicyValidationErrors {
+  coolDownPeriodSec?: string;
+  maxNumReplicas?: string;
+  metric?: string;
+  minNumReplicas?: string;
+  predictiveAutoscaling?: string;
+  scaleInControl?: string;
+  scalingSchedules?: string;
+}
+
+interface IAutoHealingPolicyValidationErrors {
+  healthCheck?: string;
+  healthCheckKind?: string;
+  initialDelaySec?: string;
+}
+
+interface IPoliciesValidationErrors {
+  autoHealingPolicy?: IAutoHealingPolicyValidationErrors;
+  autoscalingPolicy?: IAutoscalingPolicyValidationErrors;
+}
+
 function isIntegerInRange(value: unknown, minimum: number, maximum = MAX_INT): value is number {
   return (
     typeof value === 'number' &&
@@ -92,61 +113,8 @@ function hasValidScaleInControl(policy: IGceAutoscalingPolicy): boolean {
 }
 
 export class Policies extends GceServerGroupWizardPage {
-  public validate(values: IGceServerGroupCommand): { [key: string]: any } {
-    const errors: { [key: string]: any } = {};
-
-    if (values.autoscalingPolicy) {
-      const policy = values.autoscalingPolicy as IGceAutoscalingPolicy;
-      const policyErrors: { [key: string]: string } = {};
-      const validMinimum = isIntegerInRange(policy.minNumReplicas, 0);
-      const validMaximum = isIntegerInRange(policy.maxNumReplicas, 0);
-      if (!validMinimum) {
-        policyErrors.minNumReplicas = 'Minimum capacity must be a nonnegative integer.';
-      }
-      if (!validMaximum) {
-        policyErrors.maxNumReplicas = 'Maximum capacity must be a nonnegative integer.';
-      } else if (validMinimum && policy.maxNumReplicas < policy.minNumReplicas) {
-        policyErrors.maxNumReplicas = 'Maximum capacity must be at least the minimum capacity.';
-      }
-      if (!isIntegerInRange(policy.coolDownPeriodSec, 15)) {
-        policyErrors.coolDownPeriodSec = 'Cool-down period must be an integer of at least 15 seconds.';
-      }
-      if (!hasValidMetrics(policy)) {
-        policyErrors.metric = 'At least one complete autoscaling metric required.';
-      }
-      if (!hasValidSchedules(policy)) {
-        policyErrors.scalingSchedules = 'Every scaling schedule must be complete and within supported bounds.';
-      }
-      if (!hasValidScaleInControl(policy)) {
-        policyErrors.scaleInControl = 'Scale-in control values are outside supported bounds.';
-      }
-      const predictiveEnabled = policy.cpuUtilization?.predictiveMethod === GcePredictiveMethod.STANDARD;
-      if (predictiveEnabled && !GCEProviderSettings.feature.predictiveAutoscaling) {
-        policyErrors.predictiveAutoscaling = 'Predictive autoscaling is not enabled.';
-      }
-      if (Object.keys(policyErrors).length) {
-        errors.autoscalingPolicy = policyErrors;
-      }
-    }
-
-    if (values.enableAutoHealing) {
-      const policy = (values.autoHealingPolicy || {}) as IGceAutoHealingPolicy;
-      const policyErrors: { [key: string]: string } = {};
-      if (!policy.healthCheck?.trim()) {
-        policyErrors.healthCheck = 'Health check required.';
-      }
-      if (!policy.healthCheckKind) {
-        policyErrors.healthCheckKind = 'Health check kind required.';
-      }
-      if (!isIntegerInRange(policy.initialDelaySec, 0)) {
-        policyErrors.initialDelaySec = 'Initial delay must be an integer between 0 and 2147483647 seconds.';
-      }
-      if (Object.keys(policyErrors).length) {
-        errors.autoHealingPolicy = policyErrors;
-      }
-    }
-
-    return errors;
+  public validate(values: IGceServerGroupCommand): IPoliciesValidationErrors {
+    return validateGceServerGroupPolicies(values);
   }
 
   private setField = (field: string, value: any): void => {
@@ -283,6 +251,63 @@ export class Policies extends GceServerGroupWizardPage {
       </div>
     );
   }
+}
+
+export function validateGceServerGroupPolicies(values: IGceServerGroupCommand): IPoliciesValidationErrors {
+  const errors: IPoliciesValidationErrors = {};
+
+  if (values.autoscalingPolicy) {
+    const policy = values.autoscalingPolicy as IGceAutoscalingPolicy;
+    const policyErrors: IAutoscalingPolicyValidationErrors = {};
+    const validMinimum = isIntegerInRange(policy.minNumReplicas, 0);
+    const validMaximum = isIntegerInRange(policy.maxNumReplicas, 0);
+    if (!validMinimum) {
+      policyErrors.minNumReplicas = 'Minimum capacity must be a nonnegative integer.';
+    }
+    if (!validMaximum) {
+      policyErrors.maxNumReplicas = 'Maximum capacity must be a nonnegative integer.';
+    } else if (validMinimum && policy.maxNumReplicas < policy.minNumReplicas) {
+      policyErrors.maxNumReplicas = 'Maximum capacity must be at least the minimum capacity.';
+    }
+    if (!isIntegerInRange(policy.coolDownPeriodSec, 15)) {
+      policyErrors.coolDownPeriodSec = 'Cool-down period must be an integer of at least 15 seconds.';
+    }
+    if (!hasValidMetrics(policy)) {
+      policyErrors.metric = 'At least one complete autoscaling metric required.';
+    }
+    if (!hasValidSchedules(policy)) {
+      policyErrors.scalingSchedules = 'Every scaling schedule must be complete and within supported bounds.';
+    }
+    if (!hasValidScaleInControl(policy)) {
+      policyErrors.scaleInControl = 'Scale-in control values are outside supported bounds.';
+    }
+    const predictiveEnabled = policy.cpuUtilization?.predictiveMethod === GcePredictiveMethod.STANDARD;
+    if (predictiveEnabled && !GCEProviderSettings.feature.predictiveAutoscaling) {
+      policyErrors.predictiveAutoscaling = 'Predictive autoscaling is not enabled.';
+    }
+    if (Object.keys(policyErrors).length) {
+      errors.autoscalingPolicy = policyErrors;
+    }
+  }
+
+  if (values.enableAutoHealing) {
+    const policy = (values.autoHealingPolicy || {}) as IGceAutoHealingPolicy;
+    const policyErrors: IAutoHealingPolicyValidationErrors = {};
+    if (!policy.healthCheck?.trim()) {
+      policyErrors.healthCheck = 'Health check required.';
+    }
+    if (!policy.healthCheckKind) {
+      policyErrors.healthCheckKind = 'Health check kind required.';
+    }
+    if (!isIntegerInRange(policy.initialDelaySec, 0)) {
+      policyErrors.initialDelaySec = 'Initial delay must be an integer between 0 and 2147483647 seconds.';
+    }
+    if (Object.keys(policyErrors).length) {
+      errors.autoHealingPolicy = policyErrors;
+    }
+  }
+
+  return errors;
 }
 
 function coherentDesiredCapacity(desired: any, min: any, max: any): any {

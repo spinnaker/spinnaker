@@ -1,9 +1,10 @@
-import type { Mock } from 'vitest';
-import { mount } from 'enzyme';
+import { render, screen } from '@testing-library/react';
 import React from 'react';
+import type { Mock } from 'vitest';
 
 import { MetadataPage } from './MetadataPageContent';
 import type { IPipeline, IPipelineTag } from '../../../domain';
+import { setupUser } from '../../../utils/testUtils';
 
 describe('<MetadataPageContent />', () => {
   let updatePipelineConfigSpy: Mock;
@@ -24,39 +25,38 @@ describe('<MetadataPageContent />', () => {
     updatePipelineConfigSpy = vi.fn();
   });
 
+  const tagRows = (container: HTMLElement) => container.querySelectorAll('table.tags tbody tr');
+  const tagInputs = (container: HTMLElement) =>
+    Array.from(container.querySelectorAll<HTMLInputElement>('table.tags tbody input[type="text"]'));
+
   describe('Rendering tags', () => {
     it('renders tag rows when pipeline has tags', () => {
       const tags: IPipelineTag[] = [
         { name: 'service', value: 'products' },
         { name: 'type', value: 'scale' },
       ];
-      const pipeline = makePipeline({ tags });
-      const wrapper = mount(<MetadataPage pipeline={pipeline} updatePipelineConfig={updatePipelineConfigSpy} />);
+      const { container } = render(
+        <MetadataPage pipeline={makePipeline({ tags })} updatePipelineConfig={updatePipelineConfigSpy} />,
+      );
 
-      const tagInputs = wrapper.find('table.tags tbody tr');
-      expect(tagInputs.length).toBe(2);
-
-      const nameInputs = wrapper.find('table.tags tbody input[type="text"]');
-      expect(nameInputs.at(0).prop('value')).toBe('service');
-      expect(nameInputs.at(1).prop('value')).toBe('products');
-      expect(nameInputs.at(2).prop('value')).toBe('type');
-      expect(nameInputs.at(3).prop('value')).toBe('scale');
+      expect(tagRows(container)).toHaveLength(2);
+      expect(tagInputs(container).map((input) => input.value)).toEqual(['service', 'products', 'type', 'scale']);
     });
 
     it('renders no tag rows when pipeline.tags is undefined', () => {
-      const pipeline = makePipeline();
-      const wrapper = mount(<MetadataPage pipeline={pipeline} updatePipelineConfig={updatePipelineConfigSpy} />);
+      const { container } = render(
+        <MetadataPage pipeline={makePipeline()} updatePipelineConfig={updatePipelineConfigSpy} />,
+      );
 
-      const tagRows = wrapper.find('table.tags tbody tr');
-      expect(tagRows.length).toBe(0);
+      expect(tagRows(container)).toHaveLength(0);
     });
 
     it('renders no tag rows when pipeline.tags is an empty array', () => {
-      const pipeline = makePipeline({ tags: [] });
-      const wrapper = mount(<MetadataPage pipeline={pipeline} updatePipelineConfig={updatePipelineConfigSpy} />);
+      const { container } = render(
+        <MetadataPage pipeline={makePipeline({ tags: [] })} updatePipelineConfig={updatePipelineConfigSpy} />,
+      );
 
-      const tagRows = wrapper.find('table.tags tbody tr');
-      expect(tagRows.length).toBe(0);
+      expect(tagRows(container)).toHaveLength(0);
     });
   });
 
@@ -68,15 +68,12 @@ describe('<MetadataPageContent />', () => {
           { name: 'type', value: 'eval' },
         ],
       });
+      // Orca plan does NOT include instance-level tags
+      const orcaPlan = makePipeline({ name: instanceConfig.name });
 
-      const orcaPlan = makePipeline({
-        name: instanceConfig.name,
-        // Orca plan does NOT include instance-level tags
-      });
+      const { container } = render(<MetadataPage pipeline={orcaPlan} updatePipelineConfig={updatePipelineConfigSpy} />);
 
-      const wrapper = mount(<MetadataPage pipeline={orcaPlan} updatePipelineConfig={updatePipelineConfigSpy} />);
-      const tagRows = wrapper.find('table.tags tbody tr');
-      expect(tagRows.length).toBe(0);
+      expect(tagRows(container)).toHaveLength(0);
     });
 
     it('renders tags when given the raw instance config directly', () => {
@@ -87,20 +84,22 @@ describe('<MetadataPageContent />', () => {
         ],
       });
 
-      const wrapper = mount(<MetadataPage pipeline={instanceConfig} updatePipelineConfig={updatePipelineConfigSpy} />);
-      const tagRows = wrapper.find('table.tags tbody tr');
-      expect(tagRows.length).toBe(2);
+      const { container } = render(
+        <MetadataPage pipeline={instanceConfig} updatePipelineConfig={updatePipelineConfigSpy} />,
+      );
+
+      expect(tagRows(container)).toHaveLength(2);
     });
   });
 
   describe('Adding a tag', () => {
-    it('calls updatePipelineConfig with new empty tag appended', () => {
-      const pipeline = makePipeline({
-        tags: [{ name: 'service', value: 'products' }],
-      });
-      const wrapper = mount(<MetadataPage pipeline={pipeline} updatePipelineConfig={updatePipelineConfigSpy} />);
+    it('calls updatePipelineConfig with new empty tag appended', async () => {
+      const user = setupUser();
+      const pipeline = makePipeline({ tags: [{ name: 'service', value: 'products' }] });
+      render(<MetadataPage pipeline={pipeline} updatePipelineConfig={updatePipelineConfigSpy} />);
 
-      wrapper.find('button.add-new').simulate('click');
+      await user.click(screen.getByRole('button', { name: 'Add tag' }));
+
       expect(updatePipelineConfigSpy).toHaveBeenCalledTimes(1);
       expect(updatePipelineConfigSpy).toHaveBeenCalledWith({
         tags: [
@@ -110,32 +109,30 @@ describe('<MetadataPageContent />', () => {
       });
     });
 
-    it('creates the first tag when pipeline has no tags', () => {
-      const pipeline = makePipeline();
-      const wrapper = mount(<MetadataPage pipeline={pipeline} updatePipelineConfig={updatePipelineConfigSpy} />);
+    it('creates the first tag when pipeline has no tags', async () => {
+      const user = setupUser();
+      render(<MetadataPage pipeline={makePipeline()} updatePipelineConfig={updatePipelineConfigSpy} />);
 
-      wrapper.find('button.add-new').simulate('click');
+      await user.click(screen.getByRole('button', { name: 'Add tag' }));
+
       expect(updatePipelineConfigSpy).toHaveBeenCalledTimes(1);
-      expect(updatePipelineConfigSpy).toHaveBeenCalledWith({
-        tags: [{ name: '', value: '' }],
-      });
+      expect(updatePipelineConfigSpy).toHaveBeenCalledWith({ tags: [{ name: '', value: '' }] });
     });
   });
 
   describe('Deleting a tag', () => {
-    it('removes the tag at the clicked index', () => {
+    it('removes the tag at the clicked index', async () => {
+      const user = setupUser();
       const tags: IPipelineTag[] = [
         { name: 'service', value: 'products' },
         { name: 'type', value: 'scale' },
       ];
-      const pipeline = makePipeline({ tags });
-      const wrapper = mount(<MetadataPage pipeline={pipeline} updatePipelineConfig={updatePipelineConfigSpy} />);
+      render(<MetadataPage pipeline={makePipeline({ tags })} updatePipelineConfig={updatePipelineConfigSpy} />);
 
-      wrapper.find('.glyphicon-trash').at(0).simulate('click');
+      await user.click(screen.getAllByText('Remove field')[0]);
+
       expect(updatePipelineConfigSpy).toHaveBeenCalledTimes(1);
-      expect(updatePipelineConfigSpy).toHaveBeenCalledWith({
-        tags: [{ name: 'type', value: 'scale' }],
-      });
+      expect(updatePipelineConfigSpy).toHaveBeenCalledWith({ tags: [{ name: 'type', value: 'scale' }] });
     });
   });
 });

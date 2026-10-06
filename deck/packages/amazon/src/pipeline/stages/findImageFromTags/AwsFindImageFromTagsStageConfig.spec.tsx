@@ -1,126 +1,102 @@
-import { mount, shallow } from 'enzyme';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import React from 'react';
 
-import { BakeryReader, ChecklistInput, MapEditor } from '@spinnaker/core';
+import { BakeryReader } from '@spinnaker/core';
+import { getFormGroupByLabel } from '../../../../../core/src/utils/testUtils/rtl';
 
 import { AmazonStageConfig } from '../AmazonStageConfig';
 import { AwsFindImageFromTagsStageConfig } from './AwsFindImageFromTagsStageConfig';
 import { awsFindImageFromTagsStage } from './awsFindImageFromTagsStage';
 
 describe('AWS Find Image from Tags stage', () => {
-  function renderEditor(stage: any) {
+  function renderEditor(initialStage: any) {
     const updateStageField = vi.fn();
-    const wrapper = shallow(
-      <AwsFindImageFromTagsStageConfig
-        application={{ defaultRegions: { aws: 'eu-west-1' } } as any}
-        pipeline={{} as any}
-        stage={stage}
-        updateStageField={updateStageField}
-      />,
-    );
-    return { updateStageField, wrapper };
+    function StageHarness() {
+      const [stage, setStage] = React.useState(initialStage);
+      const update = (changes: any) => {
+        updateStageField(changes);
+        setStage((current: any) => ({ ...current, ...changes }));
+      };
+      return (
+        <AwsFindImageFromTagsStageConfig
+          application={{ defaultRegions: { aws: 'eu-west-1' } } as any}
+          pipeline={{} as any}
+          stage={stage}
+          updateStageField={update}
+        />
+      );
+    }
+    return { updateStageField, ...render(<StageHarness />) };
   }
 
   it('registers a dedicated stage editor', () => {
     expect(awsFindImageFromTagsStage.component).not.toBe(AmazonStageConfig);
   });
 
-  it('renders explicit persisted values without changing them on mount', () => {
-    vi.spyOn(BakeryReader, 'getRegions').mockReturnValue(Promise.resolve([]) as any);
-    const tags = { Environment: 'production', EmptyValue: '' };
-    const updateStageField = vi.fn();
-    const wrapper = mount(
-      <AwsFindImageFromTagsStageConfig
-        application={{ defaultRegions: { aws: 'eu-west-1' } } as any}
-        pipeline={{} as any}
-        stage={{ cloudProvider: '', packageName: 'payments', regions: [], tags }}
-        updateStageField={updateStageField}
-      />,
-    );
+  it('renders explicit persisted values without changing them on mount', async () => {
+    vi.spyOn(BakeryReader, 'getRegions').mockResolvedValue([] as any);
+    const rendered = renderEditor({ cloudProvider: '', packageName: 'payments', regions: [], tags: { Owner: '' } });
 
-    expect(wrapper.find('input[name="packageName"]').prop('value')).toBe('payments');
-    expect(wrapper.find(ChecklistInput).prop('value')).toEqual([]);
-    expect(wrapper.find(MapEditor).prop('model')).toBe(tags);
-    expect(wrapper.find(MapEditor).prop('allowEmpty')).toBe(true);
-    expect(updateStageField).not.toHaveBeenCalled();
-    wrapper.unmount();
+    expect(within(getFormGroupByLabel('Package')).getByRole('textbox')).toHaveValue('payments');
+    expect(within(getFormGroupByLabel('Tags')).getByLabelText('Key')).toHaveValue('Owner');
+    await waitFor(() => expect(BakeryReader.getRegions).toHaveBeenCalledWith('aws'));
+    expect(rendered.updateStageField).not.toHaveBeenCalled();
   });
 
-  it('defaults only undefined stage fields on mount', () => {
-    vi.spyOn(BakeryReader, 'getRegions').mockReturnValue(Promise.resolve([]) as any);
-    const updateStageField = vi.fn();
+  it('defaults only undefined stage fields on mount', async () => {
+    vi.spyOn(BakeryReader, 'getRegions').mockResolvedValue([] as any);
+    const rendered = renderEditor({ cloudProvider: undefined, regions: undefined, tags: undefined });
 
-    const wrapper = mount(
-      <AwsFindImageFromTagsStageConfig
-        application={{ defaultRegions: { aws: 'eu-west-1' } } as any}
-        pipeline={{} as any}
-        stage={{ cloudProvider: undefined, regions: undefined, tags: undefined }}
-        updateStageField={updateStageField}
-      />,
+    await waitFor(() =>
+      expect(rendered.updateStageField).toHaveBeenCalledExactlyOnceWith({
+        cloudProvider: 'aws',
+        regions: ['eu-west-1'],
+        tags: {},
+      }),
     );
-
-    expect(updateStageField).toHaveBeenCalledExactlyOnceWith({
-      cloudProvider: 'aws',
-      regions: ['eu-west-1'],
-      tags: {},
-    });
-    wrapper.unmount();
   });
 
   it('loads AWS regions while retaining persisted selections as options', async () => {
-    vi.spyOn(BakeryReader, 'getRegions').mockReturnValue(Promise.resolve(['eu-west-1', 'us-east-1']) as any);
-    const updateStageField = vi.fn();
-    const wrapper = mount(
-      <AwsFindImageFromTagsStageConfig
-        application={{} as any}
-        pipeline={{} as any}
-        stage={{ cloudProvider: 'aws', packageName: 'payments', regions: ['persisted-region'], tags: {} }}
-        updateStageField={updateStageField}
-      />,
-    );
-
-    await Promise.resolve();
-    await Promise.resolve();
-    wrapper.update();
-
-    expect(BakeryReader.getRegions).toHaveBeenCalledWith('aws');
-    expect(wrapper.find(ChecklistInput).prop('stringOptions')).toEqual(['persisted-region', 'eu-west-1', 'us-east-1']);
-    expect(updateStageField).not.toHaveBeenCalled();
-    wrapper.unmount();
-  });
-
-  it('updates the package through the stage config callback', () => {
-    const { updateStageField, wrapper } = renderEditor({ packageName: 'payments', regions: [], tags: {} });
-
-    wrapper.find('input[name="packageName"]').simulate('change', { target: { value: 'transfers' } });
-
-    expect(updateStageField).toHaveBeenCalledWith({ packageName: 'transfers' });
-  });
-
-  it('updates regions through the stage config callback', () => {
-    const { updateStageField, wrapper } = renderEditor({ packageName: 'payments', regions: [], tags: {} });
-
-    wrapper.find(ChecklistInput).prop('onChange')({ target: { value: ['eu-west-1', 'us-east-1'] } } as any);
-
-    expect(updateStageField).toHaveBeenCalledWith({ regions: ['eu-west-1', 'us-east-1'] });
-  });
-
-  it('persists map-valued tag additions, edits, and removals through the stage config callback', () => {
-    const { updateStageField, wrapper } = renderEditor({
+    vi.spyOn(BakeryReader, 'getRegions').mockResolvedValue(['eu-west-1', 'us-east-1'] as any);
+    const rendered = renderEditor({
+      cloudProvider: 'aws',
       packageName: 'payments',
-      regions: [],
-      tags: { Environment: 'production' },
+      regions: ['persisted-region'],
+      tags: {},
     });
-    const onChange = wrapper.find(MapEditor).prop('onChange');
 
-    onChange({ Environment: 'production', Team: '' }, false);
-    onChange({ Environment: 'staging' }, false);
-    onChange({}, false);
+    expect(await screen.findByRole('checkbox', { name: 'persisted-region' })).toBeChecked();
+    expect(await screen.findByRole('checkbox', { name: 'eu-west-1' })).not.toBeChecked();
+    expect(await screen.findByRole('checkbox', { name: 'us-east-1' })).not.toBeChecked();
+    expect(rendered.updateStageField).not.toHaveBeenCalled();
+  });
 
-    expect(updateStageField.mock.calls).toEqual([
-      [{ tags: { Environment: 'production', Team: '' } }],
+  it('updates package, regions, and map-valued tags through the controlled stage contract', async () => {
+    vi.spyOn(BakeryReader, 'getRegions').mockResolvedValue(['eu-west-1'] as any);
+    const rendered = renderEditor({ packageName: 'payments', regions: [], tags: { Environment: 'production' } });
+    rendered.updateStageField.mockClear();
+
+    fireEvent.change(within(getFormGroupByLabel('Package')).getByRole('textbox'), { target: { value: 'transfers' } });
+    fireEvent.click(await screen.findByRole('checkbox', { name: 'eu-west-1' }));
+    fireEvent.change(within(getFormGroupByLabel('Tags')).getByLabelText('Value'), { target: { value: 'staging' } });
+    fireEvent.click(within(getFormGroupByLabel('Tags')).getByRole('button', { name: 'Remove field' }));
+
+    expect(rendered.updateStageField.mock.calls).toEqual([
+      [{ packageName: 'transfers' }],
+      [{ regions: ['eu-west-1'] }],
       [{ tags: { Environment: 'staging' } }],
       [{ tags: {} }],
     ]);
+  });
+
+  it('reports a newly added tag field through the controlled stage contract', () => {
+    vi.spyOn(BakeryReader, 'getRegions').mockResolvedValue([] as any);
+    const rendered = renderEditor({ packageName: 'payments', regions: [], tags: {} });
+    rendered.updateStageField.mockClear();
+
+    fireEvent.click(within(getFormGroupByLabel('Tags')).getByRole('button', { name: 'Add Field' }));
+
+    expect(rendered.updateStageField).toHaveBeenCalledWith({ tags: { '': '' } });
+    expect(within(getFormGroupByLabel('Tags')).getByLabelText('Key')).toHaveValue('');
   });
 });

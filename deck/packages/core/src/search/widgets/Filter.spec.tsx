@@ -1,14 +1,10 @@
-import type { ReactWrapper } from 'enzyme';
-import { mount } from 'enzyme';
+import { render, screen } from '@testing-library/react';
 import React from 'react';
 
-import type { IFilterProps } from './Filter';
 import { Filter } from './Filter';
 import type { IFilterType } from './SearchFilterTypeRegistry';
 
 describe('<Filter/>', () => {
-  let component: ReactWrapper<IFilterProps, any>;
-
   function getNewFilterType(): IFilterType {
     return {
       key: 'region',
@@ -16,30 +12,24 @@ describe('<Filter/>', () => {
     };
   }
 
-  function getNewTagComponent(filterType: IFilterType, isActive: boolean): ReactWrapper<IFilterProps, any> {
-    return mount(<Filter filterType={filterType} isActive={isActive} />);
-  }
-
   it('should display a filter', () => {
     const filterType: IFilterType = getNewFilterType();
-    component = getNewTagComponent(filterType, true);
+    const { container } = render(<Filter filterType={filterType} isActive={true} />);
 
-    expect(component.render().hasClass('filter')).toBeTruthy();
-    expect(component.find('div.filter__text').text()).toBe(filterType.name);
-    expect(component.find('div.filter__modifier').text()).toBe(`[${filterType.key.toLocaleUpperCase()}:]`);
+    expect(container.firstChild).toHaveClass('filter');
+    expect(screen.getByText(filterType.name)).toHaveClass('filter__text');
+    expect(screen.getByText(`[${filterType.key.toLocaleUpperCase()}:]`)).toHaveClass('filter__modifier');
   });
 
   it('should set the tab focus class when active', () => {
-    component = getNewTagComponent(getNewFilterType(), true);
-    expect(component.render().hasClass('filter')).toBeTruthy();
-    expect(component.render().hasClass('filter--focus')).toBeTruthy();
-    expect(component.render().hasClass('filter--blur')).toBeFalsy();
+    const { container } = render(<Filter filterType={getNewFilterType()} isActive={true} />);
+    expect(container.firstChild).toHaveClass('filter', 'filter--focus');
+    expect(container.firstChild).not.toHaveClass('filter--blur');
   });
 
   it('should set the tab blur class when not active', () => {
-    component = getNewTagComponent(getNewFilterType(), false);
-    expect(component.render().hasClass('filter')).toBeTruthy();
-    expect(component.render().hasClass('filter--focus')).toBeFalsy();
-    expect(component.render().hasClass('filter--blur')).toBeTruthy();
+    const { container } = render(<Filter filterType={getNewFilterType()} isActive={false} />);
+    expect(container.firstChild).toHaveClass('filter', 'filter--blur');
+    expect(container.firstChild).not.toHaveClass('filter--focus');
   });
 });

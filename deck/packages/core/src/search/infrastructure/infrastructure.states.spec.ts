@@ -1,15 +1,13 @@
-import { shallow } from 'enzyme';
-import React from 'react';
 import { UIRouterReact } from '@uirouter/react';
+import React from 'react';
 
-import { createDeckRuntime } from '../../bootstrap/DeckRuntime';
-import { SETTINGS } from '../../config/settings';
-import { configureRouter } from '../../navigation/router';
-import { SpinErrorBoundary } from '../../presentation';
 import { SearchV1 } from './SearchV1';
 import { SearchV2 } from './SearchV2';
-
+import { createDeckRuntime } from '../../bootstrap/DeckRuntime';
+import { SETTINGS } from '../../config/settings';
 import './infrastructure.states';
+import { configureRouter } from '../../navigation/router';
+import { SpinErrorBoundary } from '../../presentation';
 
 describe('infrastructure states', () => {
   const originalSearchVersion = SETTINGS.searchVersion;
@@ -30,16 +28,17 @@ describe('infrastructure states', () => {
     const router = createRouter();
     const searchState = router.stateRegistry.get('home.search');
     const view = searchState.views['main@'];
-    const errorBoundary = shallow(React.createElement(view.component));
+    const routeElement = React.createElement(view.component);
+    const errorBoundary = (routeElement.type as React.FunctionComponent)(routeElement.props) as React.ReactElement;
 
-    expect(errorBoundary.type()).toBe(SpinErrorBoundary);
+    expect(errorBoundary.type).toBe(SpinErrorBoundary);
     // React 17's dev-mode forwardRef defines `displayName` as a non-enumerable
     // getter/setter (for its own dev warnings), so it doesn't survive whatever
     // enumerable-keys-only copy @uirouter/react's state/view registration does
     // internally on its way through the state registry. The `render` function
     // reference is unaffected and reliably identifies the routed component.
     expect((SearchV1 as any).render).toEqual(expect.any(Function));
-    expect((errorBoundary.prop('children').type as any).render).toBe((SearchV1 as any).render);
+    expect((errorBoundary.props.children.type as any).render).toBe((SearchV1 as any).render);
     expect(view.$type).toBe('react');
     expect(searchState.url).toContain('&route');
     expect(searchState.params.route.dynamic).toBe(true);
@@ -51,12 +50,13 @@ describe('infrastructure states', () => {
     const router = createRouter();
     const searchState = router.stateRegistry.get('home.search');
     const view = searchState.views['main@'];
-    const errorBoundary = shallow(React.createElement(view.component));
+    const routeElement = React.createElement(view.component);
+    const errorBoundary = (routeElement.type as React.FunctionComponent)(routeElement.props) as React.ReactElement;
 
-    expect(errorBoundary.type()).toBe(SpinErrorBoundary);
+    expect(errorBoundary.type).toBe(SpinErrorBoundary);
     // See the V1 test above for why `render` is compared instead of `displayName`.
     expect((SearchV2 as any).render).toEqual(expect.any(Function));
-    expect((errorBoundary.prop('children').type as any).render).toBe((SearchV2 as any).render);
+    expect((errorBoundary.props.children.type as any).render).toBe((SearchV2 as any).render);
     expect(view.$type).toBe('react');
     router.dispose();
   });

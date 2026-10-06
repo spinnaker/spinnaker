@@ -1,4 +1,5 @@
-import { mount } from 'enzyme';
+import { cleanup, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import { ShowPipelineTemplateJsonModal } from './ShowPipelineTemplateJsonModal';
@@ -18,18 +19,25 @@ describe('<ShowPipelineTemplateJsonModal />', () => {
     'example@example.com',
   );
 
-  it('dismisses modal with close button', () => {
+  beforeEach(() => vi.useFakeTimers());
+
+  afterEach(() => {
+    cleanup();
+    vi.clearAllTimers();
+    vi.useRealTimers();
+  });
+
+  it('dismisses modal with close button', async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     const dismissModal = vi.fn();
-    const wrapper = mount(<ShowPipelineTemplateJsonModal template={mockTemplate} dismissModal={dismissModal} />);
-    const button = wrapper.find('button').filterWhere((n) => n.text() === 'Close');
-    button.simulate('click');
+    render(<ShowPipelineTemplateJsonModal template={mockTemplate} dismissModal={dismissModal} />);
+    await user.click(screen.getByRole('button', { name: 'Close' }));
     expect(dismissModal).toHaveBeenCalled();
   });
 
-  it('updates template json with user input', () => {
-    const wrapper = mount(<ShowPipelineTemplateJsonModal template={mockTemplate} />);
-    const simulateInputChange = (id: string, value: string) =>
-      wrapper.find(id).simulate('change', { target: { value } });
+  it('updates template json with user input', async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    const { container } = render(<ShowPipelineTemplateJsonModal template={mockTemplate} />);
 
     const mockTemplateMetadata = {
       description: 'mock-template-description',
@@ -37,15 +45,15 @@ describe('<ShowPipelineTemplateJsonModal />', () => {
       owner: 'mock-template-owner',
     };
 
-    simulateInputChange('#template-name', mockTemplateMetadata.name);
-    simulateInputChange('#template-description', mockTemplateMetadata.description);
-    simulateInputChange('#template-owner', mockTemplateMetadata.owner);
+    await user.clear(screen.getByRole('textbox', { name: 'Name' }));
+    await user.type(screen.getByRole('textbox', { name: 'Name' }), mockTemplateMetadata.name);
+    await user.clear(screen.getByRole('textbox', { name: 'Description' }));
+    await user.type(screen.getByRole('textbox', { name: 'Description' }), mockTemplateMetadata.description);
+    await user.clear(screen.getByRole('textbox', { name: 'Owner' }));
+    await user.type(screen.getByRole('textbox', { name: 'Owner' }), mockTemplateMetadata.owner);
 
-    const templateStr = wrapper.find('JsonEditor').prop('value');
-    const template = JSON.parse(templateStr as string);
-
-    expect(template.metadata.name).toEqual(mockTemplateMetadata.name);
-    expect(template.metadata.description).toEqual(mockTemplateMetadata.description);
-    expect(template.metadata.owner).toEqual(mockTemplateMetadata.owner);
+    const copyCommand = (container.querySelector('textarea[tabindex="-1"]') as HTMLTextAreaElement).value;
+    const template = JSON.parse(copyCommand.match(/^echo '(.*)' \| spin pipeline-templates save$/s)[1]);
+    expect(template.metadata).toEqual(expect.objectContaining(mockTemplateMetadata));
   });
 });
