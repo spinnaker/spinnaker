@@ -29,8 +29,8 @@ describe('<Triggers />', () => {
   beforeEach(() => {
     defaultProps = {
       application: ApplicationModelBuilder.createApplicationForTests('products'),
-      fieldUpdated: jasmine.createSpy('fieldUpdated'),
-      updatePipelineConfig: jasmine.createSpy('updatePipelineConfig'),
+      fieldUpdated: vi.fn(),
+      updatePipelineConfig: vi.fn(),
       revertCount: 0,
     };
   });

@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { SecurityGroupWriter } from '@spinnaker/core';
 import { shallow } from 'enzyme';
 import React from 'react';
@@ -37,15 +38,15 @@ describe('AmazonSecurityGroupModal', () => {
   function buildModal(securityGroup: any, mode = 'edit'): any {
     const modal = new AmazonSecurityGroupModal({
       app: { name: 'fnord' },
-      closeModal: jasmine.createSpy('closeModal'),
-      dismissModal: jasmine.createSpy('dismissModal'),
+      closeModal: vi.fn(),
+      dismissModal: vi.fn(),
       mode,
       securityGroup,
     } as any) as any;
     modal.state = {
       ...modal.state,
       securityGroup,
-      taskMonitor: { submit: jasmine.createSpy('submit').and.callFake((method: () => any) => method()) },
+      taskMonitor: { submit: vi.fn().mockImplementation((method: () => any) => method()) },
     };
     modal.setState = (updater: any) => {
       const nextState = typeof updater === 'function' ? updater(modal.state, modal.props) : updater;
@@ -93,7 +94,7 @@ describe('AmazonSecurityGroupModal', () => {
   });
 
   it('renders existing identity immutably, allows protocol and port edits, and submits the retained identity', () => {
-    spyOn(SecurityGroupWriter, 'upsertSecurityGroup').and.returnValue(Promise.resolve({} as any));
+    vi.spyOn(SecurityGroupWriter, 'upsertSecurityGroup').mockReturnValue(Promise.resolve({} as any));
     const securityGroup = initializeAmazonSecurityGroupForModal(
       { mode: 'edit', securityGroup: inferredSecurityGroup() } as any,
       'fnord',
@@ -111,8 +112,7 @@ describe('AmazonSecurityGroupModal', () => {
     inputs.at(2).simulate('change', { target: { value: '9443' } });
     modal.submit();
 
-    const submittedRule = (SecurityGroupWriter.upsertSecurityGroup as jasmine.Spy).calls.mostRecent().args[0]
-      .securityGroupIngress[0];
+    const submittedRule = (SecurityGroupWriter.upsertSecurityGroup as Mock).mock.lastCall[0].securityGroupIngress[0];
     expect(submittedRule).toEqual({
       account: 'source-account',
       accountId: 'source-account-id',
@@ -128,7 +128,7 @@ describe('AmazonSecurityGroupModal', () => {
   });
 
   it('submits cloned rules by their editable name without stale source identity', () => {
-    spyOn(SecurityGroupWriter, 'upsertSecurityGroup').and.returnValue(Promise.resolve({} as any));
+    vi.spyOn(SecurityGroupWriter, 'upsertSecurityGroup').mockReturnValue(Promise.resolve({} as any));
     const source = inferredSecurityGroup();
     source.inboundRules[0].securityGroup.inferredName = false;
     source.inboundRules[0].securityGroup.name = 'resolved-source-group';
@@ -145,8 +145,7 @@ describe('AmazonSecurityGroupModal', () => {
     nameInput.simulate('change', { target: { value: 'cloned-source-group' } });
     modal.submit();
 
-    const submittedRule = (SecurityGroupWriter.upsertSecurityGroup as jasmine.Spy).calls.mostRecent().args[0]
-      .securityGroupIngress[0];
+    const submittedRule = (SecurityGroupWriter.upsertSecurityGroup as Mock).mock.lastCall[0].securityGroupIngress[0];
     expect(submittedRule).toEqual({
       endPort: 443,
       name: 'cloned-source-group',

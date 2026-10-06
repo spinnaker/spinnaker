@@ -1,15 +1,20 @@
 import { mount } from 'enzyme';
 import React from 'react';
 
-import { CloudProviderLabel, CloudProviderLogo } from '../../../../cloudProvider';
+import { CloudProviderLabel, CloudProviderLogo, CloudProviderRegistry } from '../../../../cloudProvider';
 import { ReactSelectInput } from '../../../../presentation';
 import { BaseProviderStageConfig } from './BaseProviderStageConfig';
 
 describe('BaseProviderStageConfig', () => {
+  // CloudProviderLabel resolves the display name from CloudProviderRegistry. The 'ecs' provider's
+  // name is registered by the ecs package (loaded globally under the old Karma bundle); register it
+  // here so this core-only spec exercises the same label without depending on that package.
+  beforeEach(() => {
+    CloudProviderRegistry.registerProvider('ecs', { name: 'EC2 Container Service' } as any);
+  });
+
   it('renders nothing when no providers are available', () => {
-    const wrapper = mount(
-      <BaseProviderStageConfig providers={[]} readOnly={false} onProviderChange={jasmine.createSpy()} />,
-    );
+    const wrapper = mount(<BaseProviderStageConfig providers={[]} readOnly={false} onProviderChange={vi.fn()} />);
 
     expect(wrapper.isEmptyRender()).toBe(true);
 
@@ -17,7 +22,7 @@ describe('BaseProviderStageConfig', () => {
   });
 
   it('renders and selects the only provider once from an effect', () => {
-    const onProviderChange = jasmine.createSpy('onProviderChange');
+    const onProviderChange = vi.fn();
     const providers = ['ecs'];
     const wrapper = mount(
       <BaseProviderStageConfig providers={providers} readOnly={false} onProviderChange={onProviderChange} />,
@@ -36,7 +41,7 @@ describe('BaseProviderStageConfig', () => {
   });
 
   it('auto-selects the same sole provider again when a controlled parent changes stages and clears selection', () => {
-    const onProviderChange = jasmine.createSpy('onProviderChange');
+    const onProviderChange = vi.fn();
 
     const ControlledSelector = ({ stageId }: { stageId: string }) => {
       const [selectedProvider, setSelectedProvider] = React.useState<string>();
@@ -69,7 +74,7 @@ describe('BaseProviderStageConfig', () => {
   });
 
   it('renders an editable provider select and emits its selected value', () => {
-    const onProviderChange = jasmine.createSpy('onProviderChange');
+    const onProviderChange = vi.fn();
     const wrapper = mount(
       <BaseProviderStageConfig providers={['aws', 'ecs']} readOnly={false} onProviderChange={onProviderChange} />,
     );
@@ -83,7 +88,7 @@ describe('BaseProviderStageConfig', () => {
 
     select.prop('onChange')({ target: { value: 'ecs' } } as any);
 
-    expect(onProviderChange).toHaveBeenCalledOnceWith('ecs');
+    expect(onProviderChange).toHaveBeenCalledExactlyOnceWith('ecs');
 
     wrapper.unmount();
   });
@@ -94,7 +99,7 @@ describe('BaseProviderStageConfig', () => {
         providers={['aws', 'ecs']}
         selectedProvider="ecs"
         readOnly={true}
-        onProviderChange={jasmine.createSpy()}
+        onProviderChange={vi.fn()}
       />,
     );
 
@@ -106,7 +111,7 @@ describe('BaseProviderStageConfig', () => {
   });
 
   it('does not auto-select a sole provider when read-only', () => {
-    const onProviderChange = jasmine.createSpy('onProviderChange');
+    const onProviderChange = vi.fn();
     const wrapper = mount(
       <BaseProviderStageConfig providers={['ecs']} readOnly={true} onProviderChange={onProviderChange} />,
     );

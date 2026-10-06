@@ -40,7 +40,7 @@ export const sharedLibraries = {
       ])
     ).map(unwrapCommonJs);
 
-    // Updates here should also be added in packages/pluginsdk/pluginconfig/rollup.config.js
+    // Keep packages/pluginsdk/pluginconfig/vite.config.js in sync with this runtime exposure table.
     // Temporarily expose @spinnaker/core.
     // This should be removed at some point and replaced with a much smaller spinnaker/ui module which doesn't yet exist
     exposeSharedLibrary('ajv', ajv);

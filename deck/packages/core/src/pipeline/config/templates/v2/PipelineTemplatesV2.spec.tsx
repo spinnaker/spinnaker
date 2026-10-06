@@ -21,7 +21,7 @@ describe('PipelineTemplatesV2', () => {
   });
 
   it('dismisses template details through the injected state service', () => {
-    const injectedGo = jasmine.createSpy('injectedGo');
+    const injectedGo = vi.fn();
     const component = shallow(
       <PipelineTemplatesV2Component {...({ router: {}, stateParams: {}, stateService: { go: injectedGo } } as any)} />,
       { disableLifecycleMethods: true },
@@ -33,9 +33,9 @@ describe('PipelineTemplatesV2', () => {
   });
 
   it('observes route changes through the injected router', () => {
-    const injectedUnsubscribe = jasmine.createSpy('injectedUnsubscribe');
-    const injectedOnSuccess = jasmine.createSpy('injectedOnSuccess').and.returnValue(injectedUnsubscribe);
-    spyOn(PipelineTemplateReader, 'getV2PipelineTemplateList').and.returnValue(Promise.resolve({}));
+    const injectedUnsubscribe = vi.fn();
+    const injectedOnSuccess = vi.fn().mockReturnValue(injectedUnsubscribe);
+    vi.spyOn(PipelineTemplateReader, 'getV2PipelineTemplateList').mockReturnValue(Promise.resolve({}));
     const component = shallow(
       <PipelineTemplatesV2Component
         {...({
@@ -51,7 +51,7 @@ describe('PipelineTemplatesV2', () => {
     instance.componentDidMount();
     instance.componentWillUnmount();
 
-    expect(injectedOnSuccess).toHaveBeenCalledWith({}, jasmine.any(Function));
+    expect(injectedOnSuccess).toHaveBeenCalledWith({}, expect.any(Function));
     expect(injectedUnsubscribe).toHaveBeenCalled();
   });
 });

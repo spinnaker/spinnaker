@@ -22,10 +22,9 @@ describe('<CanaryScores />', () => {
   it('styles directly invalid score inputs', () => {
     const host = document.createElement('div');
     document.body.appendChild(host);
-    const wrapper = mount(
-      <CanaryScores successfulScore="50" unhealthyScore="60" onChange={jasmine.createSpy('onChange')} />,
-      { attachTo: host },
-    );
+    const wrapper = mount(<CanaryScores successfulScore="50" unhealthyScore="60" onChange={vi.fn()} />, {
+      attachTo: host,
+    });
     const inputs = wrapper.find('input');
 
     expect(inputs.at(0).hasClass('form-control')).toBe(true);

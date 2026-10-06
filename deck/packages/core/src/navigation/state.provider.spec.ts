@@ -12,8 +12,8 @@ describe('StateConfigProvider', () => {
   afterEach(() => resetRootStateRegistrationsForTests(originalRegistrations));
 
   function createProvider() {
-    const urlRouter = { when: jasmine.createSpy('when') };
-    const stateHelper = { setNestedState: jasmine.createSpy('setNestedState') };
+    const urlRouter = { when: vi.fn() };
+    const stateHelper = { setNestedState: vi.fn() };
 
     return {
       provider: new StateConfigProvider(urlRouter as any, stateHelper as any, {} as any),
@@ -50,7 +50,7 @@ describe('StateConfigProvider', () => {
     provider.addToRootState({ name: 'applications', url: '/applications' });
     provider.addToRootState({ name: 'applications', url: '/duplicate' });
 
-    const rootState = stateHelper.setNestedState.calls.mostRecent().args[0];
+    const rootState = stateHelper.setNestedState.mock.lastCall[0];
     expect(rootState.children).toEqual([{ name: 'applications', url: '/applications' }]);
   });
 

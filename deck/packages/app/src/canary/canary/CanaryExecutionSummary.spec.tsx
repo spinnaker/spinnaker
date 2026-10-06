@@ -37,7 +37,7 @@ describe('CanaryExecutionSummary', () => {
   });
 
   it('navigates step details through the injected route', () => {
-    const go = jasmine.createSpy('go');
+    const go = vi.fn();
     const component = shallow(
       <CanaryExecutionSummaryComponent
         {...summaryProps}
