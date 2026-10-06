@@ -24,6 +24,25 @@ describe('<SelectInput />', () => {
     expect(wrapper.find('select').getDOMNode<HTMLSelectElement>().value).toBe('c');
   });
 
+  it('preserves the native select and focus when props change', () => {
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    const wrapper = mount(<SelectInput value="a" options={['a', 'b']} onChange={noop} />, { attachTo: host });
+
+    try {
+      const select = wrapper.find('select').getDOMNode<HTMLSelectElement>();
+      select.focus();
+
+      wrapper.setProps({ value: 'b', options: ['a', 'b', 'c'] });
+
+      expect(wrapper.find('select').getDOMNode<HTMLSelectElement>()).toBe(select);
+      expect(document.activeElement).toBe(select);
+    } finally {
+      wrapper.unmount();
+      host.remove();
+    }
+  });
+
   it('wires the onChange handler to the selected item', () => {
     const value = 'b';
     const options = ['a', 'b', 'c', 'd'];
