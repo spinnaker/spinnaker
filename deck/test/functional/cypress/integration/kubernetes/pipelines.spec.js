@@ -109,7 +109,7 @@ describe('kubernetes: Pipelines', () => {
       .should('exist')
       .within(() => {
         cy.contains('Baked Manifest').should('exist');
-        cy.get('textarea').contains('# Source: nginx/templates/configmap.yaml').should('exist');
+        cy.get('.ace_content').contains('# Source: nginx/templates/configmap.yaml').should('exist');
         cy.get('button.btn').contains('Close').click();
       });
   });
@@ -146,7 +146,7 @@ describe('kubernetes: Pipelines', () => {
       .should('exist')
       .within(() => {
         cy.contains('dev-p01-nginx-v000').should('exist');
-        cy.get('textarea').contains('kind: ConfigMap').should('exist');
+        cy.get('.ace_content').contains('kind: ConfigMap').should('exist');
         cy.get('button.btn').contains('Close').click();
       });
   });
