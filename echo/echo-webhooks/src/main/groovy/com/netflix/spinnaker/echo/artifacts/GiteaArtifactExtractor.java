@@ -20,6 +20,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,6 +29,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -57,6 +60,15 @@ public class GiteaArtifactExtractor implements WebhookArtifactExtractor {
       return new ArrayList<>();
     }
 
+    // The payload is not trusted until the trigger verifies its signature, and these values end up
+    // in the URL that clouddriver fetches, so only accept the shapes Gitea produces.
+    if (!FULL_NAME.matcher(repository.fullName).matches()
+        || hasDotSegment(repository.fullName)
+        || !isHttpUrl(repository.htmlUrl)) {
+      log.warn("Ignoring Gitea push with an invalid repository full_name or html_url");
+      return new ArrayList<>();
+    }
+
     String suffix = "/" + repository.fullName;
     if (!repository.htmlUrl.endsWith(suffix)) {
       log.warn(
@@ -75,6 +87,7 @@ public class GiteaArtifactExtractor implements WebhookArtifactExtractor {
         pushEvent.commits.stream()
             .flatMap(c -> Arrays.asList(c.added, c.modified).stream())
             .flatMap(Collection::stream)
+            .filter(GiteaArtifactExtractor::isSafeFilePath)
             .collect(Collectors.toSet());
 
     return affectedFiles.stream()
@@ -92,6 +105,35 @@ public class GiteaArtifactExtractor implements WebhookArtifactExtractor {
   @Override
   public boolean handles(String type, String source) {
     return type.equals("git") && source.equals("gitea");
+  }
+
+  /** Gitea owner and repository names are limited to alphanumerics, '-', '_' and '.'. */
+  private static final Pattern FULL_NAME = Pattern.compile("[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+");
+
+  private static boolean hasDotSegment(String path) {
+    return Arrays.stream(path.split("/", -1))
+        .anyMatch(segment -> segment.isEmpty() || segment.equals(".") || segment.equals(".."));
+  }
+
+  /**
+   * Git cannot store a path with an empty, {@code .} or {@code ..} segment, so such a path is never
+   * legitimate and would be rewritten when the URL is normalized.
+   */
+  private static boolean isSafeFilePath(String path) {
+    if (path == null || path.isEmpty() || hasDotSegment(path)) {
+      log.warn("Ignoring Gitea file path with an empty, '.' or '..' segment");
+      return false;
+    }
+    return true;
+  }
+
+  private static boolean isHttpUrl(String url) {
+    try {
+      String scheme = new URI(url).getScheme();
+      return "http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme);
+    } catch (URISyntaxException e) {
+      return false;
+    }
   }
 
   private static String encodePath(String path) {

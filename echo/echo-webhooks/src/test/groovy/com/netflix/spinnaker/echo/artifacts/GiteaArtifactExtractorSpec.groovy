@@ -67,4 +67,33 @@ class GiteaArtifactExtractorSpec extends Specification {
     extractor.getArtifacts("gitea", pushPayload("https://gitea.example.com/somewhere/else")) == []
     extractor.getArtifacts("gitea", [after: "abc"]) == []
   }
+
+  void "ignores file paths that would escape the repository"() {
+    given:
+    def payload = pushPayload("https://gitea.example.com/spinnaker/echo")
+    payload.commits = [[added: ["../../../../user", "a/../../b", "./c", "a//b", "ok/file.yaml"], modified: [""]]]
+
+    expect:
+    extractor.getArtifacts("gitea", payload)*.name == ["ok/file.yaml"]
+  }
+
+  void "ignores a repository full_name or html_url that is not what Gitea would send"() {
+    given:
+    def payload = pushPayload(htmlUrl)
+    payload.repository.full_name = fullName
+
+    expect:
+    extractor.getArtifacts("gitea", payload) == []
+
+    where:
+    htmlUrl                                         | fullName
+    "https://evil.example.com/x/../../admin?q="     | "x/../../admin?q="
+    "https://gitea.example.com/spinnaker/echo"      | "../echo"
+    "https://gitea.example.com/spinnaker/echo?x=1"  | "spinnaker/echo?x=1"
+    "https://gitea.example.com/spinnaker/echo#frag" | "spinnaker/echo#frag"
+    "https://gitea.example.com/a b/echo"            | "a b/echo"
+    "file:///spinnaker/echo"                        | "spinnaker/echo"
+    "javascript:alert(1)//spinnaker/echo"           | "spinnaker/echo"
+    "https://gitea.example.com/spinnaker/echo"      | "spinnaker/echo/extra"
+  }
 }

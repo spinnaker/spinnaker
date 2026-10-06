@@ -43,7 +43,17 @@ interface IGiteaBuilderState {
 
 const encodeFilePath = (filePath: string): string => filePath.split('/').map(encodeURIComponent).join('/');
 
-const decodeFilePath = (filePath: string): string => filePath.split('/').map(decodeURIComponent).join('/');
+// decodeURIComponent throws a URIError on a malformed escape (e.g. a bare '%'), which would crash the editor
+// for a hand-typed reference, so fall back to the raw text.
+const safeDecode = (value: string): string => {
+  try {
+    return decodeURIComponent(value);
+  } catch (e) {
+    return value;
+  }
+};
+
+const decodeFilePath = (filePath: string): string => filePath.split('/').map(safeDecode).join('/');
 
 export const GiteaDefault: IArtifactKindConfig = {
   label: 'Gitea',
@@ -62,8 +72,8 @@ export const GiteaDefault: IArtifactKindConfig = {
       this.state = {
         useUrlBuilder: !props.artifact.reference || results !== null,
         baseUrl: results ? results[1] : DEFAULT_API_BASE_URL,
-        org: results ? decodeURIComponent(results[2]) : '',
-        repo: results ? decodeURIComponent(results[3]) : '',
+        org: results ? safeDecode(results[2]) : '',
+        repo: results ? safeDecode(results[3]) : '',
         filePath: results ? decodeFilePath(results[4]) : props.artifact.name || '',
       };
     }

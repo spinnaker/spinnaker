@@ -28,6 +28,14 @@ import lombok.Builder;
 import lombok.Value;
 import org.springframework.boot.context.properties.bind.ConstructorBinding;
 
+/**
+ * A Gitea account used to fetch {@code gitea/file} artifacts.
+ *
+ * <p>The account's token is sent to whichever host an artifact reference names, provided that host
+ * passes {@code urlRestrictions}. The defaults only exclude local and internal names, so set {@code
+ * urlRestrictions.allowedDomains} to your Gitea host (entries are regular expressions, so escape
+ * dots, e.g. {@code gitea\.example\.com}) to keep the token from being sent anywhere else.
+ */
 @NonnullByDefault
 @Value
 public class GiteaArtifactAccount extends UserInputValidatedArtifactAccount implements TokenAuth {

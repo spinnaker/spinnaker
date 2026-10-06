@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.clouddriver.artifacts.config.SimpleHttpArtifactCredentials;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import java.util.List;
 import lombok.Getter;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
@@ -50,12 +51,39 @@ public class GiteaArtifactCredentials extends SimpleHttpArtifactCredentials<Gite
   @Override
   protected HttpUrl getDownloadUrl(Artifact artifact) {
     HttpUrl url = parseUrl(artifact.getReference());
+    requireRawFileUrl(url);
     String version = Strings.nullToEmpty(artifact.getVersion());
     if (version.isEmpty()) {
       // Without a ref, Gitea serves the file from the repository's default branch.
       return url;
     }
     return url.newBuilder().setQueryParameter("ref", version).build();
+  }
+
+  /**
+   * The account token is sent with every request, so only allow URLs that address a file through
+   * the raw file API ({@code <prefix>/api/v1/repos/{owner}/{repo}/raw/{path}}) rather than any
+   * other endpoint on the host. {@link HttpUrl} has already normalized {@code .} and {@code ..}
+   * segments (including percent-encoded ones), so a reference cannot climb out of that shape.
+   */
+  private static void requireRawFileUrl(HttpUrl url) {
+    List<String> segments = url.pathSegments();
+    // api, v1, repos, {owner}, {repo}, raw, then at least one non-empty path segment
+    for (int i = 0; i + 6 < segments.size(); i++) {
+      if (segments.get(i).equals("api")
+          && segments.get(i + 1).equals("v1")
+          && segments.get(i + 2).equals("repos")
+          && !segments.get(i + 3).isEmpty()
+          && !segments.get(i + 4).isEmpty()
+          && segments.get(i + 5).equals("raw")
+          && !segments.get(segments.size() - 1).isEmpty()) {
+        return;
+      }
+    }
+    throw new IllegalArgumentException(
+        "Gitea artifact references must use the raw file API, i.e. "
+            + "https://<host>/api/v1/repos/{owner}/{repo}/raw/{path}: "
+            + url);
   }
 
   @Override
