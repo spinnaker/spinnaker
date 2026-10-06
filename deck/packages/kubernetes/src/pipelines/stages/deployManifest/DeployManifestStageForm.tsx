@@ -2,24 +2,8 @@ import { capitalize, get, isEmpty, map } from 'lodash';
 import React from 'react';
 import type { Option } from 'react-select';
 
-import type {
-  IAccountDetails,
-  IArtifact,
-  IExpectedArtifact,
-  IFormikStageConfigInjectedProps,
-  IManifest,
-} from '@spinnaker/core';
-import {
-  ArtifactTypePatterns,
-  CheckboxInput,
-  NumberInput,
-  RadioButtonInput,
-  SETTINGS,
-  StageArtifactSelectorDelegate,
-  StageConfigField,
-  yamlDocumentsToString,
-  YamlEditor,
-} from '@spinnaker/core';
+import type { IAccountDetails, IArtifact, IExpectedArtifact, IFormikStageConfigInjectedProps, IManifest } from '@spinnaker/core';
+import { ArtifactTypePatterns, CheckboxInput, isStoredManifestReference, NumberInput, RadioButtonInput, resolveStoredManifests, SETTINGS, StageArtifactSelectorDelegate, StageConfigField, yamlDocumentsToString, YamlEditor } from '@spinnaker/core';
 
 import { CopyFromTemplateButton } from './CopyFromTemplateButton';
 import type { IManifestBindArtifact } from './ManifestBindArtifactsSelector';
@@ -50,6 +34,8 @@ export class DeployManifestStageForm extends React.Component<
   IDeployManifestStageConfigFormProps & IFormikStageConfigInjectedProps,
   IDeployManifestStageConfigFormState
 > {
+  private unmounted = false;
+
   private readonly excludedManifestArtifactTypes = [
     ArtifactTypePatterns.DOCKER_IMAGE,
     ArtifactTypePatterns.KUBERNETES,
@@ -73,6 +59,27 @@ export class DeployManifestStageForm extends React.Component<
       },
       labelSelectors: [],
     };
+  }
+
+  public componentDidMount() {
+    const manifests: any[] = get(this.props.formik.values, 'manifests');
+    const isTextManifest = get(this.props.formik.values, 'source') === ManifestSource.TEXT;
+    if (isEmpty(manifests) || !isTextManifest || !manifests.some(isStoredManifestReference)) {
+      return;
+    }
+    // The entity store replaces inline manifests with references when a pipeline is saved; show the
+    // real manifests instead. Saving the stage sends them back and the backend stores them again.
+    resolveStoredManifests(manifests).then((resolved) => {
+      if (this.unmounted) {
+        return;
+      }
+      this.props.formik.setFieldValue('manifests', resolved);
+      this.setState({ rawManifest: yamlDocumentsToString(resolved) });
+    });
+  }
+
+  public componentWillUnmount() {
+    this.unmounted = true;
   }
 
   private getSourceOptions = (): Array<Option<string>> => {
