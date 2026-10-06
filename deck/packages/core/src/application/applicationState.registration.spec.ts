@@ -14,7 +14,7 @@ describe('applicationState registration', () => {
 
   function createProvider(): ApplicationStateProvider {
     return new ApplicationStateProvider({
-      setStates: jasmine.createSpy('setStates'),
+      setStates: vi.fn(),
     } as any);
   }
 
@@ -27,7 +27,7 @@ describe('applicationState registration', () => {
 
   it('applies queued registrations when the application state provider is created', () => {
     const detailState: INestedState = { name: 'queuedDetail' };
-    const registration = jasmine.createSpy('registration').and.callFake((provider: ApplicationStateProvider) => {
+    const registration = vi.fn().mockImplementation((provider: ApplicationStateProvider) => {
       provider.addInsightDetailState(detailState);
     });
 
@@ -44,10 +44,10 @@ describe('applicationState registration', () => {
   it('applies late registrations immediately to the active application state provider', () => {
     const provider = createProvider();
     const childState: INestedState = { name: 'lateChild' };
-    const registration = jasmine.createSpy('registration').and.callFake((activeProvider: ApplicationStateProvider) => {
+    const registration = vi.fn().mockImplementation((activeProvider: ApplicationStateProvider) => {
       activeProvider.addChildState(childState);
     });
-    const addChildState = spyOn(provider, 'addChildState').and.callThrough();
+    const addChildState = vi.spyOn(provider, 'addChildState');
 
     registerApplicationState(registration);
     applyApplicationStateRegistrations(provider);
@@ -58,8 +58,8 @@ describe('applicationState registration', () => {
   });
 
   it('passes the state config provider to registrations', () => {
-    const stateConfigProvider = { setStates: jasmine.createSpy('setStates') } as any;
-    const registration = jasmine.createSpy('registration');
+    const stateConfigProvider = { setStates: vi.fn() } as any;
+    const registration = vi.fn();
 
     registerApplicationState(registration);
 
@@ -69,7 +69,7 @@ describe('applicationState registration', () => {
   });
 
   it('does not replay queued registrations for the same application state provider', () => {
-    const registration = jasmine.createSpy('registration');
+    const registration = vi.fn();
 
     registerApplicationState(registration);
 

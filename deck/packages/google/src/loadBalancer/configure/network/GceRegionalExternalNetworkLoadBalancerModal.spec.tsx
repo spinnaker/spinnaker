@@ -22,7 +22,7 @@ describe('GceRegionalExternalNetworkLoadBalancerModal', () => {
 
     expect({ ...create, mode: undefined }).toEqual({ ...pipeline, mode: undefined });
     expect(create).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         credentials: 'account-a',
         name: 'app-main',
         networkTier: 'PREMIUM',
@@ -59,7 +59,7 @@ describe('GceRegionalExternalNetworkLoadBalancerModal', () => {
     );
 
     expect(command).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         credentials: 'account-a',
         loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK',
         mode: 'edit',
@@ -78,8 +78,8 @@ describe('GceRegionalExternalNetworkLoadBalancerModal', () => {
       },
     ]);
     expect(command.backendServices[0]).toEqual(
-      jasmine.objectContaining({
-        healthCheck: jasmine.objectContaining({ name: 'tcp-check', port: 80 }),
+      expect.objectContaining({
+        healthCheck: expect.objectContaining({ name: 'tcp-check', port: 80 }),
         name: 'app-main',
         sessionAffinity: 'CLIENT_IP',
       }),
@@ -133,7 +133,7 @@ describe('GceRegionalExternalNetworkLoadBalancerModal', () => {
   });
 
   it('returns a named health check in pipeline mode when the persisted name is omitted', () => {
-    const executeTask = jasmine.createSpy('executeTask');
+    const executeTask = vi.fn();
     const persisted = {
       account: 'account-a',
       backendService: {
@@ -265,7 +265,7 @@ describe('GceRegionalExternalNetworkLoadBalancerModal', () => {
 
   it('executes the direct normalized job in infrastructure create mode', () => {
     const task = Promise.resolve({ id: 'task' });
-    const executeTask = jasmine.createSpy('executeTask').and.returnValue(task);
+    const executeTask = vi.fn().mockReturnValue(task);
     const command = normalizeGceRegionalExternalNetworkLoadBalancerCommand(
       {
         account: 'account-a',
@@ -289,7 +289,7 @@ describe('GceRegionalExternalNetworkLoadBalancerModal', () => {
     expect(command.backendServices[0].healthCheck).toBe(command.healthChecks[0]);
     expect((command.backendServices[0].healthCheck as any).name).toBe('app-main');
     expect(result).toBe(task);
-    expect(executeTask).toHaveBeenCalledOnceWith({
+    expect(executeTask).toHaveBeenCalledExactlyOnceWith({
       application,
       description: 'Create Load Balancer: app-main',
       job: [serializeGceRegionalExternalNetworkLoadBalancerCommand(command)],
@@ -301,9 +301,9 @@ describe('GceRegionalExternalNetworkLoadBalancerModal', () => {
     const wrapper = shallow(
       <GceRegionalExternalNetworkLoadBalancerModal
         app={application}
-        closeModal={jasmine.createSpy('closeModal')}
+        closeModal={vi.fn()}
         data={emptyData()}
-        dismissModal={jasmine.createSpy('dismissModal')}
+        dismissModal={vi.fn()}
         isNew={false}
         loadBalancer={{ account: 'account-a', name: 'app-main', region: 'europe-west1' } as any}
       />,

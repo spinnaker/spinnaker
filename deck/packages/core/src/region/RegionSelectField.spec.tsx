@@ -7,7 +7,7 @@ import { RegionSelectInput } from './RegionSelectInput';
 describe('RegionSelectField', () => {
   it('propagates a selection and renders the current component value', () => {
     const component = { region: 'us-east-1' };
-    const onChange = jasmine.createSpy('onChange');
+    const onChange = vi.fn();
     const wrapper = shallow(
       <RegionSelectField
         account="test-account"
@@ -24,7 +24,7 @@ describe('RegionSelectField', () => {
     } as React.ChangeEvent<HTMLSelectElement>);
 
     expect(component.region).toBe('us-west-2');
-    expect(onChange).toHaveBeenCalledOnceWith('us-west-2');
+    expect(onChange).toHaveBeenCalledExactlyOnceWith('us-west-2');
 
     wrapper.setProps({ component });
     expect(wrapper.find(RegionSelectInput).prop('value')).toBe('us-west-2');

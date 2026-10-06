@@ -19,7 +19,7 @@ describe('ServerGroupDetailsWrapper', () => {
   it('renders React server group details when provider React config is available', () => {
     const Actions = () => <button />;
     const Section = () => <div />;
-    const detailsGetter = jasmine.createSpy('detailsGetter');
+    const detailsGetter = vi.fn();
     const component = shallow(<ServerGroupDetailsWrapper app={app} serverGroup={serverGroup} />, {
       disableLifecycleMethods: true,
     });
@@ -46,10 +46,10 @@ describe('ServerGroupDetailsWrapper', () => {
   it('switches provider configuration before rendering the next server group', async () => {
     const AwsActions = () => <button className="aws-actions" />;
     const AwsSection = () => <div className="aws-section" />;
-    const awsGetter = jasmine.createSpy('awsGetter');
+    const awsGetter = vi.fn();
     const KubernetesActions = () => <button className="kubernetes-actions" />;
     const KubernetesSection = () => <div className="kubernetes-section" />;
-    const kubernetesGetter = jasmine.createSpy('kubernetesGetter');
+    const kubernetesGetter = vi.fn();
     const values: Record<string, Record<string, any>> = {
       aws: {
         'serverGroup.detailsActions': AwsActions,
@@ -62,9 +62,9 @@ describe('ServerGroupDetailsWrapper', () => {
         'serverGroup.detailsSections': [KubernetesSection],
       },
     };
-    const getValue = spyOn(CloudProviderRegistry, 'getValue').and.callFake(
-      (provider: string, key: string) => values[provider]?.[key],
-    );
+    const getValue = vi
+      .spyOn(CloudProviderRegistry, 'getValue')
+      .mockImplementation((provider: string, key: string) => values[provider]?.[key]);
     const component = shallow(<ServerGroupDetailsWrapper app={app} serverGroup={serverGroup} />);
     await Promise.resolve();
     await Promise.resolve();
@@ -79,7 +79,7 @@ describe('ServerGroupDetailsWrapper', () => {
     await Promise.resolve();
     await Promise.resolve();
     component.update();
-    expect(getValue.calls.allArgs().filter(([provider]) => provider === 'kubernetes')).toEqual([
+    expect(getValue.mock.calls.filter(([provider]) => provider === 'kubernetes')).toEqual([
       ['kubernetes', 'serverGroup.detailsActions'],
       ['kubernetes', 'serverGroup.detailsGetter'],
       ['kubernetes', 'serverGroup.detailsSections'],
@@ -93,16 +93,16 @@ describe('ServerGroupDetailsWrapper', () => {
   it('cancels old provider details when the server group and getter change', () => {
     const oldUpdates = new Subject<any>();
     const newUpdates = new Subject<any>();
-    const oldGetter = jasmine.createSpy('oldGetter').and.returnValue(oldUpdates);
-    const newGetter = jasmine.createSpy('newGetter').and.returnValue(newUpdates);
+    const oldGetter = vi.fn().mockReturnValue(oldUpdates);
+    const newGetter = vi.fn().mockReturnValue(newUpdates);
     const OldActions = () => <button className="old-actions" />;
     const NewActions = () => <button className="new-actions" />;
-    const go = jasmine.createSpy('go');
+    const go = vi.fn();
     const stateService = { go, params: {} };
     const oldProps = {
       Actions: OldActions,
       app: {
-        serverGroups: { onRefresh: jasmine.createSpy('onRefresh').and.returnValue(() => undefined) },
+        serverGroups: { onRefresh: vi.fn().mockReturnValue(() => undefined) },
       } as any,
       detailsGetter: oldGetter,
       router: {},
@@ -115,7 +115,7 @@ describe('ServerGroupDetailsWrapper', () => {
     const instance = component.instance() as ServerGroupDetailsComponent;
     instance.componentDidMount();
     oldUpdates.next({ name: 'old-details', type: 'aws' });
-    const oldAutoClose = oldGetter.calls.mostRecent().args[1];
+    const oldAutoClose = oldGetter.mock.lastCall[1];
 
     const nextProps = {
       ...oldProps,
@@ -126,7 +126,7 @@ describe('ServerGroupDetailsWrapper', () => {
     instance.componentWillReceiveProps(nextProps);
     component.setProps(nextProps);
 
-    expect(newGetter).toHaveBeenCalledWith(nextProps, jasmine.any(Function));
+    expect(newGetter).toHaveBeenCalledWith(nextProps, expect.any(Function));
     expect(component.state()).toEqual({ loading: true, serverGroup: undefined });
 
     oldUpdates.next({ name: 'stale-details', type: 'aws' });
@@ -140,12 +140,12 @@ describe('ServerGroupDetailsWrapper', () => {
     oldAutoClose();
     expect(go).not.toHaveBeenCalled();
 
-    const newAutoClose = newGetter.calls.mostRecent().args[1];
+    const newAutoClose = newGetter.mock.lastCall[1];
     newAutoClose();
     expect(stateService.params).toEqual({ allowModalToStayOpen: true });
     expect(go).toHaveBeenCalledWith('^', null, { location: 'replace' });
 
-    go.calls.reset();
+    go.mockClear();
     instance.componentWillUnmount();
     newAutoClose();
     expect(go).not.toHaveBeenCalled();
@@ -153,9 +153,9 @@ describe('ServerGroupDetailsWrapper', () => {
 
   it('keeps the current actions mounted while refreshing the same server group', () => {
     const updates = new Subject<any>();
-    const detailsGetter = jasmine.createSpy('detailsGetter').and.returnValue(updates);
+    const detailsGetter = vi.fn().mockReturnValue(updates);
     const Actions = () => <button className="actions" />;
-    const onRefresh = jasmine.createSpy('onRefresh').and.returnValue(() => undefined);
+    const onRefresh = vi.fn().mockReturnValue(() => undefined);
     const props = {
       Actions,
       app: { serverGroups: { onRefresh } } as any,
@@ -164,7 +164,7 @@ describe('ServerGroupDetailsWrapper', () => {
       sections: [],
       serverGroup,
       stateParams: {},
-      stateService: { go: jasmine.createSpy('go'), params: {} },
+      stateService: { go: vi.fn(), params: {} },
     } as any;
     const component = shallow(<ServerGroupDetailsComponent {...props} />, { disableLifecycleMethods: true });
     const instance = component.instance() as ServerGroupDetailsComponent;
@@ -174,7 +174,7 @@ describe('ServerGroupDetailsWrapper', () => {
 
     expect(component.find(Actions)).toHaveSize(1);
 
-    onRefresh.calls.mostRecent().args[0]();
+    onRefresh.mock.lastCall[0]();
 
     expect(component.state()).toEqual({ loading: false, serverGroup: details });
     expect(component.find(Actions)).toHaveSize(1);

@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { mount, shallow } from 'enzyme';
 import React from 'react';
 
@@ -44,6 +45,12 @@ describe('<ApplicationConfig />', () => {
       slack: true,
     };
     SETTINGS.slack = { baseUrl: 'https://slack.example.com' } as any;
+    // Components in this file fetch providers/accounts on mount (accounts$ -> GET /credentials).
+    // Mock the base account methods so no test leaks an un-mocked request into the fail-closed HTTP
+    // client (individual tests override these as needed).
+    vi.spyOn(AccountService, 'listProviders').mockReturnValue(Promise.resolve([]) as any);
+    vi.spyOn(AccountService, 'listAllAccounts').mockReturnValue(Promise.resolve([]) as any);
+    vi.spyOn(AccountService, 'getCredentialsKeyedByAccount').mockReturnValue(Promise.resolve({}) as any);
   });
 
   afterEach(() => {
@@ -92,7 +99,7 @@ describe('<ApplicationConfig />', () => {
   });
 
   it('redirects missing applications using the injected state service', () => {
-    const stateService = { go: jasmine.createSpy('go') };
+    const stateService = { go: vi.fn() };
 
     shallow(
       <ApplicationConfigComponent
@@ -121,7 +128,7 @@ describe('<ApplicationConfig />', () => {
     expect(notificationList.prop('application')).toBe(application as any);
     expect(notificationList.prop('level')).toBe('application');
     expect(notificationList.prop('notifications')).toEqual(notifications as any);
-    expect(notificationList.prop('updateNotifications')).toEqual(jasmine.any(Function));
+    expect(notificationList.prop('updateNotifications')).toEqual(expect.any(Function));
   });
 
   it('renders configured application attributes with an edit button', () => {
@@ -163,7 +170,7 @@ describe('<ApplicationConfig />', () => {
 
   it('opens application attributes in a modal instead of editing inline', () => {
     const application = buildApplication();
-    spyOn(ReactModal, 'show').and.returnValue(Promise.resolve(application.attributes));
+    vi.spyOn(ReactModal, 'show').mockReturnValue(Promise.resolve(application.attributes));
 
     const wrapper = shallow(<ApplicationConfigComponent {...routerProps} app={application as any} />);
     const attributes = wrapper.find(ApplicationAttributes).dive();
@@ -175,8 +182,8 @@ describe('<ApplicationConfig />', () => {
 
     expect(ReactModal.show).toHaveBeenCalledWith(
       ApplicationAttributesForm,
-      jasmine.objectContaining({ application, isConfigured: true }),
-      jasmine.objectContaining({ dialogClassName: 'modal-lg' }),
+      expect.objectContaining({ application, isConfigured: true }),
+      expect.objectContaining({ dialogClassName: 'modal-lg' }),
     );
     expect(attributes.find(ApplicationAttributesForm).exists()).toBe(false);
   });
@@ -199,11 +206,7 @@ describe('<ApplicationConfig />', () => {
     const application = buildApplication();
 
     const form = shallow(
-      <ApplicationAttributesForm
-        application={application as any}
-        isConfigured={true}
-        onAttributesSaved={jasmine.createSpy('onAttributesSaved')}
-      />,
+      <ApplicationAttributesForm application={application as any} isConfigured={true} onAttributesSaved={vi.fn()} />,
     );
 
     expect(form.find('TextField[label="Account(s)"]').exists()).toBe(false);
@@ -214,11 +217,7 @@ describe('<ApplicationConfig />', () => {
     const application = buildApplication();
 
     const form = shallow(
-      <ApplicationAttributesForm
-        application={application as any}
-        isConfigured={true}
-        onAttributesSaved={jasmine.createSpy('onAttributesSaved')}
-      />,
+      <ApplicationAttributesForm application={application as any} isConfigured={true} onAttributesSaved={vi.fn()} />,
     );
 
     expect(
@@ -236,11 +235,7 @@ describe('<ApplicationConfig />', () => {
     const application = buildApplication({ attributes: { repoType: '', repoProjectKey: '', repoSlug: '' } });
 
     const form = shallow(
-      <ApplicationAttributesForm
-        application={application as any}
-        isConfigured={true}
-        onAttributesSaved={jasmine.createSpy('onAttributesSaved')}
-      />,
+      <ApplicationAttributesForm application={application as any} isConfigured={true} onAttributesSaved={vi.fn()} />,
     );
 
     const repoTypeSelect = form.find('select[name="repoType"]');
@@ -261,15 +256,11 @@ describe('<ApplicationConfig />', () => {
     const application = buildApplication();
 
     const form = shallow(
-      <ApplicationAttributesForm
-        application={application as any}
-        isConfigured={true}
-        onAttributesSaved={jasmine.createSpy('onAttributesSaved')}
-      />,
+      <ApplicationAttributesForm application={application as any} isConfigured={true} onAttributesSaved={vi.fn()} />,
     );
 
     expect(form.find(CheckboxField).map((checkbox) => checkbox.prop('helpFieldId'))).toEqual(
-      jasmine.arrayContaining([
+      expect.arrayContaining([
         'application.platformHealthOnly',
         'application.showPlatformHealthOverride',
         'application.enableRestartRunningExecutions',
@@ -282,14 +273,10 @@ describe('<ApplicationConfig />', () => {
 
   it('renders cloud providers as a multi-select instead of checkboxes', async () => {
     const application = buildApplication();
-    spyOn(AccountService, 'listProviders').and.returnValue(Promise.resolve(['aws', 'gce']) as any);
+    vi.spyOn(AccountService, 'listProviders').mockReturnValue(Promise.resolve(['aws', 'gce']) as any);
 
     const form = mount(
-      <ApplicationAttributesForm
-        application={application as any}
-        isConfigured={true}
-        onAttributesSaved={jasmine.createSpy('onAttributesSaved')}
-      />,
+      <ApplicationAttributesForm application={application as any} isConfigured={true} onAttributesSaved={vi.fn()} />,
     );
 
     await Promise.resolve();
@@ -315,11 +302,7 @@ describe('<ApplicationConfig />', () => {
     const application = buildApplication();
 
     const form = shallow(
-      <ApplicationAttributesForm
-        application={application as any}
-        isConfigured={true}
-        onAttributesSaved={jasmine.createSpy('onAttributesSaved')}
-      />,
+      <ApplicationAttributesForm application={application as any} isConfigured={true} onAttributesSaved={vi.fn()} />,
     );
 
     expect(form.find(CheckboxField).map((checkbox) => checkbox.prop('groupLabel'))).toContain('Instance Health');
@@ -353,11 +336,7 @@ describe('<ApplicationConfig />', () => {
     });
 
     const form = shallow(
-      <ApplicationAttributesForm
-        application={application as any}
-        isConfigured={true}
-        onAttributesSaved={jasmine.createSpy('onAttributesSaved')}
-      />,
+      <ApplicationAttributesForm application={application as any} isConfigured={true} onAttributesSaved={vi.fn()} />,
     );
 
     expect(form.find('TextAreaField[label="Permissions JSON"]').exists()).toBe(false);
@@ -377,16 +356,16 @@ describe('<ApplicationConfig />', () => {
           [permissionType]: [emptyGroup],
         };
         const application = buildApplication({ attributes: { permissions } });
-        spyOn(ApplicationWriter, 'updateApplication').and.returnValue(new Promise(() => {}) as any);
+        vi.spyOn(ApplicationWriter, 'updateApplication').mockReturnValue(new Promise(() => {}) as any);
         const form = shallow(
           <ApplicationAttributesForm
             application={application as any}
             isConfigured={true}
-            onAttributesSaved={jasmine.createSpy('onAttributesSaved')}
+            onAttributesSaved={vi.fn()}
           />,
         );
 
-        form.simulate('submit', { preventDefault: jasmine.createSpy('preventDefault') });
+        form.simulate('submit', { preventDefault: vi.fn() });
 
         expect(form.find('.error-message').map((message) => message.text())).toEqual([
           'Permission groups cannot be empty.',
@@ -401,16 +380,12 @@ describe('<ApplicationConfig />', () => {
     const application = buildApplication({
       attributes: { permissions: { READ: ['readers'], WRITE: [], EXECUTE: [] } },
     });
-    spyOn(ApplicationWriter, 'updateApplication').and.returnValue(new Promise(() => {}) as any);
+    vi.spyOn(ApplicationWriter, 'updateApplication').mockReturnValue(new Promise(() => {}) as any);
     const form = shallow(
-      <ApplicationAttributesForm
-        application={application as any}
-        isConfigured={true}
-        onAttributesSaved={jasmine.createSpy('onAttributesSaved')}
-      />,
+      <ApplicationAttributesForm application={application as any} isConfigured={true} onAttributesSaved={vi.fn()} />,
     );
 
-    form.simulate('submit', { preventDefault: jasmine.createSpy('preventDefault') });
+    form.simulate('submit', { preventDefault: vi.fn() });
 
     expect(form.find('.error-message').map((message) => message.text())).toEqual([
       'Write permission is required when read permission is configured.',
@@ -422,16 +397,12 @@ describe('<ApplicationConfig />', () => {
     const application = buildApplication({
       attributes: { permissions: { READ: ['readers', ''], WRITE: [], EXECUTE: [null] } },
     });
-    spyOn(ApplicationWriter, 'updateApplication').and.returnValue(new Promise(() => {}) as any);
+    vi.spyOn(ApplicationWriter, 'updateApplication').mockReturnValue(new Promise(() => {}) as any);
     const form = shallow(
-      <ApplicationAttributesForm
-        application={application as any}
-        isConfigured={true}
-        onAttributesSaved={jasmine.createSpy('onAttributesSaved')}
-      />,
+      <ApplicationAttributesForm application={application as any} isConfigured={true} onAttributesSaved={vi.fn()} />,
     );
 
-    form.simulate('submit', { preventDefault: jasmine.createSpy('preventDefault') });
+    form.simulate('submit', { preventDefault: vi.fn() });
 
     expect(form.find('.error-message').exists()).toBe(false);
     expect(ApplicationWriter.updateApplication).toHaveBeenCalled();
@@ -439,22 +410,18 @@ describe('<ApplicationConfig />', () => {
 
   it('allows saving permissions that warn about locking out the current user', () => {
     SETTINGS.feature = { ...SETTINGS.feature, fiatEnabled: true };
-    spyOn(AuthenticationService, 'getAuthenticatedUser').and.returnValue({ roles: ['current-user-group'] } as any);
+    vi.spyOn(AuthenticationService, 'getAuthenticatedUser').mockReturnValue({ roles: ['current-user-group'] } as any);
     const application = buildApplication({
       attributes: {
         permissions: { READ: ['other-group'], WRITE: ['other-group'], EXECUTE: ['other-group'] },
       },
     });
-    spyOn(ApplicationWriter, 'updateApplication').and.returnValue(new Promise(() => {}) as any);
+    vi.spyOn(ApplicationWriter, 'updateApplication').mockReturnValue(new Promise(() => {}) as any);
     const form = shallow(
-      <ApplicationAttributesForm
-        application={application as any}
-        isConfigured={true}
-        onAttributesSaved={jasmine.createSpy('onAttributesSaved')}
-      />,
+      <ApplicationAttributesForm application={application as any} isConfigured={true} onAttributesSaved={vi.fn()} />,
     );
 
-    form.simulate('submit', { preventDefault: jasmine.createSpy('preventDefault') });
+    form.simulate('submit', { preventDefault: vi.fn() });
 
     expect(form.find('.error-message').exists()).toBe(false);
     expect(ApplicationWriter.updateApplication).toHaveBeenCalled();
@@ -462,33 +429,29 @@ describe('<ApplicationConfig />', () => {
 
   it('preserves batched application attribute updates when saving', async () => {
     const application = buildApplication({ attributes: { appGroup: '', email: 'old@example.com' } });
-    spyOn(ApplicationWriter, 'updateApplication').and.returnValue(Promise.resolve({ id: '1' }) as any);
-    const waitUntilTaskCompletes = spyOn(TaskReader, 'waitUntilTaskCompletes').and.returnValue(
-      Promise.resolve({}) as any,
-    );
+    vi.spyOn(ApplicationWriter, 'updateApplication').mockReturnValue(Promise.resolve({ id: '1' }) as any);
+    const waitUntilTaskCompletes = vi
+      .spyOn(TaskReader, 'waitUntilTaskCompletes')
+      .mockReturnValue(Promise.resolve({}) as any);
     const form = shallow(
-      <ApplicationAttributesForm
-        application={application as any}
-        isConfigured={true}
-        onAttributesSaved={jasmine.createSpy('onAttributesSaved')}
-      />,
+      <ApplicationAttributesForm application={application as any} isConfigured={true} onAttributesSaved={vi.fn()} />,
     );
 
     form.find('TextField[label="Owner Email"]').prop('onChange')('new@example.com');
     form.find('TextField[label="App Group"]').prop('onChange')('payments');
     form.update();
-    form.simulate('submit', { preventDefault: jasmine.createSpy('preventDefault') });
+    form.simulate('submit', { preventDefault: vi.fn() });
     await Promise.resolve();
 
     expect(ApplicationWriter.updateApplication).toHaveBeenCalledWith(
-      jasmine.objectContaining({ appGroup: 'payments', email: 'new@example.com' }),
+      expect.objectContaining({ appGroup: 'payments', email: 'new@example.com' }),
     );
     expect(waitUntilTaskCompletes).toHaveBeenCalled();
   });
 
   it('rejects fractional instance ports', () => {
     const application = buildApplication();
-    const onAttributesSaved = jasmine.createSpy('onAttributesSaved');
+    const onAttributesSaved = vi.fn();
     const form = shallow(
       <ApplicationAttributesForm
         application={application as any}
@@ -498,7 +461,7 @@ describe('<ApplicationConfig />', () => {
     );
 
     form.find('TextField[label="Instance Port"]').prop('onChange')('80.5');
-    form.simulate('submit', { preventDefault: jasmine.createSpy('preventDefault') });
+    form.simulate('submit', { preventDefault: vi.fn() });
 
     const errorMessage = form.find('.error-message');
     expect(errorMessage.exists()).toBe(true);
@@ -508,9 +471,9 @@ describe('<ApplicationConfig />', () => {
 
   it('clears saving state after saving attributes without a modal close handler', async () => {
     const application = buildApplication();
-    const onAttributesSaved = jasmine.createSpy('onAttributesSaved');
-    spyOn(ApplicationWriter, 'updateApplication').and.returnValue(Promise.resolve({ id: '1' }) as any);
-    spyOn(TaskReader, 'waitUntilTaskCompletes').and.returnValue(Promise.resolve({}) as any);
+    const onAttributesSaved = vi.fn();
+    vi.spyOn(ApplicationWriter, 'updateApplication').mockReturnValue(Promise.resolve({ id: '1' }) as any);
+    vi.spyOn(TaskReader, 'waitUntilTaskCompletes').mockReturnValue(Promise.resolve({}) as any);
     const form = shallow(
       <ApplicationAttributesForm
         application={application as any}
@@ -519,7 +482,7 @@ describe('<ApplicationConfig />', () => {
       />,
     );
 
-    form.simulate('submit', { preventDefault: jasmine.createSpy('preventDefault') });
+    form.simulate('submit', { preventDefault: vi.fn() });
     expect(form.find('button[type="submit"]').text()).toBe('Saving...');
 
     await Promise.resolve();
@@ -592,7 +555,7 @@ describe('<ApplicationConfig />', () => {
         },
       },
     });
-    spyOn(AccountService, 'getCredentialsKeyedByAccount').and.returnValue(
+    vi.spyOn(AccountService, 'getCredentialsKeyedByAccount').mockReturnValue(
       Promise.resolve({
         aws: { name: 'aws', regions: [{ name: 'eu-west-1' }] },
         kubernetes: { name: 'kubernetes', namespaces: ['default'] },
@@ -627,7 +590,7 @@ describe('<ApplicationConfig />', () => {
         },
       },
     });
-    spyOn(AccountService, 'getCredentialsKeyedByAccount').and.returnValue(
+    vi.spyOn(AccountService, 'getCredentialsKeyedByAccount').mockReturnValue(
       Promise.resolve({ aws: { name: 'aws', regions: [{ name: 'eu-west-1' }] } }) as any,
     );
     const chaos = mountChaosMonkeyConfig(application);
@@ -675,11 +638,11 @@ describe('<ApplicationConfig />', () => {
       },
       { account: 'prod', name: 'fnord-other', serverGroups: [{ region: 'eu-west-1' }] },
     ];
-    application.getDataSource = jasmine.createSpy('getDataSource').and.returnValue({ ready: () => serverGroupsReady });
-    spyOn(AccountService, 'getCredentialsKeyedByAccount').and.returnValue(
+    application.getDataSource = vi.fn().mockReturnValue({ ready: () => serverGroupsReady });
+    vi.spyOn(AccountService, 'getCredentialsKeyedByAccount').mockReturnValue(
       Promise.resolve({ prod: { name: 'prod', regions: [{ name: 'us-east-1' }] } }) as any,
     );
-    spyOn(ClusterMatcher, 'getMatchingRule').and.callThrough();
+    vi.spyOn(ClusterMatcher, 'getMatchingRule');
 
     const chaos = mountChaosMonkeyConfig(application);
     await Promise.resolve();
@@ -694,7 +657,7 @@ describe('<ApplicationConfig />', () => {
     chaos.update();
 
     expect(ClusterMatcher.getMatchingRule).toHaveBeenCalledWith('prod', 'us-west-2', 'fnord-payments-zeta', [
-      jasmine.objectContaining({ account: 'prod', location: '*', stack: 'payments', detail: '*' }),
+      expect.objectContaining({ account: 'prod', location: '*', stack: 'payments', detail: '*' }),
     ]);
     expect(chaos.find(ClusterMatches)).toHaveSize(2);
     expect(chaos.find(ClusterMatches).at(0).prop('matches')).toEqual([
@@ -716,12 +679,12 @@ describe('<ApplicationConfig />', () => {
         },
       });
       const failure = new Error(`${failureSource} unavailable`);
-      spyOn(AccountService, 'getCredentialsKeyedByAccount').and.returnValue(
+      vi.spyOn(AccountService, 'getCredentialsKeyedByAccount').mockReturnValue(
         failureSource === 'credentials'
           ? (Promise.reject(failure) as any)
           : (Promise.resolve({ prod: { name: 'prod', regions: [{ name: 'eu-west-1' }] } }) as any),
       );
-      application.getDataSource = jasmine.createSpy('getDataSource').and.returnValue({
+      application.getDataSource = vi.fn().mockReturnValue({
         ready: () => (failureSource === 'server groups' ? Promise.reject(failure) : Promise.resolve()),
       });
 
@@ -756,13 +719,13 @@ describe('<ApplicationConfig />', () => {
       { account: 'prod', name: 'fnord-payments', serverGroups: [{ region: 'eu-west-1' }] },
       { account: 'prod', name: 'fnord-platform', serverGroups: [{ region: 'us-east-1' }] },
     ];
-    application.getDataSource = jasmine.createSpy('getDataSource').and.returnValue({ ready: () => Promise.resolve() });
-    spyOn(AccountService, 'getCredentialsKeyedByAccount').and.returnValue(
+    application.getDataSource = vi.fn().mockReturnValue({ ready: () => Promise.resolve() });
+    vi.spyOn(AccountService, 'getCredentialsKeyedByAccount').mockReturnValue(
       Promise.resolve({ prod: { name: 'prod', regions: [{ name: 'eu-west-1' }, { name: 'us-east-1' }] } }) as any,
     );
-    spyOn(ClusterMatcher, 'getMatchingRule').and.callThrough();
-    spyOn(ApplicationWriter, 'updateApplication').and.returnValue(Promise.resolve({ id: '1' }) as any);
-    spyOn(TaskReader, 'waitUntilTaskCompletes').and.returnValue(Promise.resolve({}) as any);
+    vi.spyOn(ClusterMatcher, 'getMatchingRule');
+    vi.spyOn(ApplicationWriter, 'updateApplication').mockReturnValue(Promise.resolve({ id: '1' }) as any);
+    vi.spyOn(TaskReader, 'waitUntilTaskCompletes').mockReturnValue(Promise.resolve({}) as any);
 
     const chaos = mountChaosMonkeyConfig(application);
     await Promise.resolve();
@@ -774,10 +737,10 @@ describe('<ApplicationConfig />', () => {
     chaos.update();
 
     expect(chaos.find('select[name="chaosExceptionRegion"]').map((select) => select.prop('value'))).toEqual(['*', '*']);
-    expect((ClusterMatcher.getMatchingRule as jasmine.Spy).calls.allArgs().map((args) => args[3][0])).toEqual(
-      jasmine.arrayContaining([
-        jasmine.objectContaining({ location: '*', stack: 'payments' }),
-        jasmine.objectContaining({ location: '*', stack: 'platform' }),
+    expect((ClusterMatcher.getMatchingRule as Mock).mock.calls.map((args) => args[3][0])).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ location: '*', stack: 'payments' }),
+        expect.objectContaining({ location: '*', stack: 'platform' }),
       ]),
     );
 
@@ -790,8 +753,8 @@ describe('<ApplicationConfig />', () => {
     await Promise.resolve();
 
     expect(ApplicationWriter.updateApplication).toHaveBeenCalledWith(
-      jasmine.objectContaining({
-        chaosMonkey: jasmine.objectContaining({
+      expect.objectContaining({
+        chaosMonkey: expect.objectContaining({
           exceptions: [
             { account: 'prod', region: '*', stack: 'payments', detail: '*' },
             { account: 'prod', region: '*', stack: 'platform', detail: '*' },
@@ -814,8 +777,8 @@ describe('<ApplicationConfig />', () => {
         },
       },
     });
-    application.getDataSource = jasmine.createSpy('getDataSource').and.returnValue({ ready: () => Promise.resolve() });
-    spyOn(AccountService, 'getCredentialsKeyedByAccount').and.returnValue(
+    application.getDataSource = vi.fn().mockReturnValue({ ready: () => Promise.resolve() });
+    vi.spyOn(AccountService, 'getCredentialsKeyedByAccount').mockReturnValue(
       Promise.resolve({ prod: { name: 'prod', regions: [{ name: 'eu-west-1' }] } }) as any,
     );
     const chaos = mountChaosMonkeyConfig(application);
@@ -839,7 +802,7 @@ describe('<ApplicationConfig />', () => {
 
   it('opens application links JSON editing in a modal instead of editing inline', () => {
     const application = buildApplication();
-    spyOn(ReactModal, 'show').and.returnValue(Promise.resolve(application.attributes.instanceLinks));
+    vi.spyOn(ReactModal, 'show').mockReturnValue(Promise.resolve(application.attributes.instanceLinks));
 
     const wrapper = shallow(<ApplicationConfigComponent {...routerProps} app={application as any} />);
     const links = wrapper.find('ApplicationLinksConfig').dive();
@@ -850,9 +813,9 @@ describe('<ApplicationConfig />', () => {
       .simulate('click');
 
     expect(ReactModal.show).toHaveBeenCalledWith(
-      jasmine.any(Function),
-      jasmine.objectContaining({ sections: jasmine.any(Array) }),
-      jasmine.objectContaining({ dialogClassName: 'modal-lg modal-fullscreen' }),
+      expect.any(Function),
+      expect.objectContaining({ sections: expect.any(Array) }),
+      expect.objectContaining({ dialogClassName: 'modal-lg modal-fullscreen' }),
     );
     expect(links.find('TextAreaField[label="Links JSON"]').exists()).toBe(false);
   });
@@ -873,7 +836,7 @@ describe('<ApplicationConfig />', () => {
 
   it('rejects non-array links JSON in the edit modal', () => {
     const application = buildApplication();
-    spyOn(ReactModal, 'show').and.returnValue(Promise.resolve(application.attributes.instanceLinks));
+    vi.spyOn(ReactModal, 'show').mockReturnValue(Promise.resolve(application.attributes.instanceLinks));
 
     const wrapper = shallow(<ApplicationConfigComponent {...routerProps} app={application as any} />);
     const links = wrapper.find('ApplicationLinksConfig').dive();
@@ -881,12 +844,12 @@ describe('<ApplicationConfig />', () => {
       .find('button')
       .filterWhere((button) => button.text().includes('Edit as JSON'))
       .simulate('click');
-    const [ModalComponent, modalProps] = (ReactModal.show as jasmine.Spy).calls.mostRecent().args;
-    const closeModal = jasmine.createSpy('closeModal');
+    const [ModalComponent, modalProps] = (ReactModal.show as Mock).mock.lastCall;
+    const closeModal = vi.fn();
     const modal = shallow(<ModalComponent {...modalProps} closeModal={closeModal} />);
 
     modal.find('TextAreaField[label="Links JSON"]').prop('onChange')('{"title":"Main"}');
-    modal.simulate('submit', { preventDefault: jasmine.createSpy('preventDefault') });
+    modal.simulate('submit', { preventDefault: vi.fn() });
 
     const errorMessage = modal.find('.error-message');
     expect(errorMessage.exists()).toBe(true);
@@ -912,7 +875,7 @@ function buildApplication(overrides: any = {}) {
     },
     clusters: [],
     dataSources: [],
-    refresh: jasmine.createSpy('refresh'),
+    refresh: vi.fn(),
     getDataSource: () => ({
       ready: () => Promise.resolve({ hasManagedResources: true }),
     }),

@@ -29,7 +29,7 @@ describe('Amazon server group maintenance action integration', () => {
   const application = ({
     name: 'test-app',
     securityGroups: { data: [resolvedSecurityGroup] },
-    serverGroups: { refresh: jasmine.createSpy('refresh') },
+    serverGroups: { refresh: vi.fn() },
   } as any) as Application;
   const serverGroup = {
     account: 'test-account',
@@ -67,43 +67,43 @@ describe('Amazon server group maintenance action integration', () => {
   });
 
   it('opens Advanced Settings with the exact application and enriched server group', () => {
-    const show = spyOn(EditAsgAdvancedSettingsModal, 'show');
+    const show = vi.spyOn(EditAsgAdvancedSettingsModal, 'show').mockReturnValue(undefined);
     const wrapper = withRuntimeServices(
       shallow(<AdvancedSettingsDetailsSection app={application} serverGroup={serverGroup} />),
     );
 
     editLink(wrapper, 'Edit Advanced Settings').simulate('click');
 
-    expect(show).toHaveBeenCalledOnceWith({ application, serverGroup }, runtimeServices);
+    expect(show).toHaveBeenCalledExactlyOnceWith({ application, serverGroup }, runtimeServices);
   });
 
   it('opens Scaling Processes with the exact application and enriched server group', () => {
-    const show = spyOn(ModifyScalingProcessesModal, 'show');
+    const show = vi.spyOn(ModifyScalingProcessesModal, 'show').mockReturnValue(undefined);
     const wrapper = shallow(<ScalingProcessesDetailsSection app={application} serverGroup={serverGroup} />);
 
     editLink(wrapper, 'Edit Scaling Processes').simulate('click');
 
-    expect(show).toHaveBeenCalledOnceWith({ application, serverGroup });
+    expect(show).toHaveBeenCalledExactlyOnceWith({ application, serverGroup });
   });
 
   it('opens Scheduled Actions with the exact application and enriched server group', () => {
-    const show = spyOn(EditScheduledActionsModal, 'show');
+    const show = vi.spyOn(EditScheduledActionsModal, 'show').mockReturnValue(undefined);
     const wrapper = shallow(<ScheduledActionsDetailsSection app={application} serverGroup={serverGroup} />);
 
     editLink(wrapper, 'Edit Scheduled Actions').simulate('click');
 
-    expect(show).toHaveBeenCalledOnceWith({ application, serverGroup });
+    expect(show).toHaveBeenCalledExactlyOnceWith({ application, serverGroup });
   });
 
   it('opens Security Groups with resolved groups and exact application and enriched server group', () => {
-    const show = spyOn(EditSecurityGroupsModal, 'show');
+    const show = vi.spyOn(EditSecurityGroupsModal, 'show').mockReturnValue(undefined);
     const wrapper = withRuntimeServices(
       shallow(<SecurityGroupsDetailsSection app={application} serverGroup={serverGroup} />),
     );
 
     editLink(wrapper, editSecurityGroupsLabel).simulate('click');
 
-    expect(show).toHaveBeenCalledOnceWith(
+    expect(show).toHaveBeenCalledExactlyOnceWith(
       { application, securityGroups: [resolvedSecurityGroup], serverGroup },
       runtimeServices,
     );

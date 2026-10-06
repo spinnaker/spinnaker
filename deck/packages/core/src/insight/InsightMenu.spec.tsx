@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import type { ReactWrapper } from 'enzyme';
 import { mount } from 'enzyme';
 import React from 'react';
@@ -10,9 +11,9 @@ import type { CacheInitializerService } from '../cache/cacheInitializer.service'
 
 describe('<InsightMenu />', () => {
   let component: ReactWrapper<IInsightMenuProps, IInsightMenuState>;
-  let go: jasmine.Spy;
+  let go: Mock;
 
-  beforeEach(() => (go = jasmine.createSpy('go')));
+  beforeEach(() => (go = vi.fn()));
 
   function getNewMenu(params: object): ReactWrapper<IInsightMenuProps, any> {
     // Set defaults to zero so we only need to pass in the prop we want rendered
@@ -83,7 +84,7 @@ describe('<InsightMenu />', () => {
   });
 
   it('opens the direct application modal and routes after creation', async () => {
-    spyOn(CreateApplicationModal, 'show').and.returnValue(Promise.resolve({ name: 'myapp' }) as any);
+    vi.spyOn(CreateApplicationModal, 'show').mockReturnValue(Promise.resolve({ name: 'myapp' }) as any);
     component = getNewMenu({ createApp: true });
 
     component.find(Button).simulate('click');

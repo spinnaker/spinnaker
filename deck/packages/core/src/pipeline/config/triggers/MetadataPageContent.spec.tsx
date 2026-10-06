@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { mount } from 'enzyme';
 import React from 'react';
 
@@ -5,7 +6,7 @@ import { MetadataPage } from './MetadataPageContent';
 import type { IPipeline, IPipelineTag } from '../../../domain';
 
 describe('<MetadataPageContent />', () => {
-  let updatePipelineConfigSpy: jasmine.Spy;
+  let updatePipelineConfigSpy: Mock;
 
   const makePipeline = (overrides: Partial<IPipeline> = {}): IPipeline => ({
     application: 'products',
@@ -20,7 +21,7 @@ describe('<MetadataPageContent />', () => {
   });
 
   beforeEach(() => {
-    updatePipelineConfigSpy = jasmine.createSpy('updatePipelineConfig');
+    updatePipelineConfigSpy = vi.fn();
   });
 
   describe('Rendering tags', () => {

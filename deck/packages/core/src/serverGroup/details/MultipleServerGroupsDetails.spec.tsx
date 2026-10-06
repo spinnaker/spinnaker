@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { hashLocationPlugin, servicesPlugin, UIRouterContext, UIRouterReact, UIViewContext } from '@uirouter/react';
 import { mount } from 'enzyme';
 import React from 'react';
@@ -27,7 +28,7 @@ describe('<MultipleServerGroupsDetails />', () => {
           type: 'aws',
         },
       ],
-      onRefresh: jasmine.createSpy('onRefresh').and.returnValue(() => null),
+      onRefresh: vi.fn().mockReturnValue(() => null),
     },
   } as any;
 
@@ -87,17 +88,17 @@ describe('<MultipleServerGroupsDetails />', () => {
     } as any;
 
     serverGroupWriter = {
-      destroyServerGroup: jasmine.createSpy('destroyServerGroup').and.returnValue(Promise.resolve({})),
+      destroyServerGroup: vi.fn().mockReturnValue(Promise.resolve({})),
     };
 
-    spyOn(AccountService, 'challengeDestructiveActions').and.returnValue(Promise.resolve(false));
-    spyOn(ProviderSelectionService, 'isDisabled').and.returnValue(Promise.resolve(false));
-    spyOn(ConfirmationModalService, 'confirm').and.stub();
-    spyOn(ClusterState.multiselectModel.serverGroupsStream, 'subscribe').and.callFake((callback: any) => {
+    vi.spyOn(AccountService, 'challengeDestructiveActions').mockReturnValue(Promise.resolve(false));
+    vi.spyOn(ProviderSelectionService, 'isDisabled').mockReturnValue(Promise.resolve(false));
+    vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(undefined);
+    vi.spyOn(ClusterState.multiselectModel.serverGroupsStream, 'subscribe').mockImplementation((callback: any) => {
       callback();
-      return { unsubscribe: jasmine.createSpy('unsubscribe') } as any;
+      return { unsubscribe: vi.fn() } as any;
     });
-    spyOn(ClusterState.multiselectModel, 'clearAllServerGroups').and.stub();
+    vi.spyOn(ClusterState.multiselectModel, 'clearAllServerGroups').mockReturnValue(undefined);
   });
 
   afterEach(() => {
@@ -130,24 +131,24 @@ describe('<MultipleServerGroupsDetails />', () => {
       .simulate('click');
 
     expect(ConfirmationModalService.confirm).toHaveBeenCalledWith(
-      jasmine.objectContaining({
+      expect.objectContaining({
         askForReason: true,
         buttonText: 'Destroy 1 server group',
         textToVerify: '1',
       }),
     );
-    const confirmation = (ConfirmationModalService.confirm as jasmine.Spy).calls.mostRecent().args[0];
+    const confirmation = (ConfirmationModalService.confirm as Mock).mock.lastCall[0];
 
     confirmation.taskMonitorConfigs[0].submitMethod({ reason: 'user reason' });
 
     expect(serverGroupWriter.destroyServerGroup).toHaveBeenCalledWith(
-      jasmine.objectContaining({
+      expect.objectContaining({
         account: 'prod',
         name: 'app-v001',
         region: 'us-west-2',
       }),
       app,
-      jasmine.objectContaining({
+      expect.objectContaining({
         mixinName: 'app-v001',
         reason: 'user reason',
       }),

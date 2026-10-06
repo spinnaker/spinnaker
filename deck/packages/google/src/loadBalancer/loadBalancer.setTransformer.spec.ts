@@ -69,14 +69,14 @@ describe('GceLoadBalancerSetTransformer', () => {
     expect(normalized.name).toBe('app (test/us-central1/EXTERNAL_MANAGED)');
     expect((normalized as any).urlMapName).toBe('app');
     expect((normalized as any).listeners).toEqual([
-      jasmine.objectContaining({
+      expect.objectContaining({
         certificate: undefined,
         ipAddress: '34.0.0.1',
         name: 'listener-http',
         networkTier: 'STANDARD',
         port: '80',
       }),
-      jasmine.objectContaining({
+      expect.objectContaining({
         certificate: '//certificatemanager.googleapis.com/projects/p/locations/us-central1/certificates/cert',
         ipAddress: '34.0.0.2',
         name: 'listener-https',

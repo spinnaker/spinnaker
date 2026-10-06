@@ -6,10 +6,10 @@ import { AccountRegionClusterSelector } from './AccountRegionClusterSelector';
 
 describe('AccountRegionClusterSelector', () => {
   beforeEach(() => {
-    spyOn(AccountService, 'getUniqueAttributeForAllAccounts').and.returnValue(
+    vi.spyOn(AccountService, 'getUniqueAttributeForAllAccounts').mockReturnValue(
       Promise.resolve(['us-east-1', { 'us-west-2': ['us-west-2a'] }] as any),
     );
-    spyOn(AccountService, 'getAllAccountDetailsForProvider').and.returnValue(Promise.resolve([]) as any);
+    vi.spyOn(AccountService, 'getAllAccountDetailsForProvider').mockReturnValue(Promise.resolve([]) as any);
   });
 
   it('renders the native selector and defaults the cluster field', async () => {
@@ -28,7 +28,7 @@ describe('AccountRegionClusterSelector', () => {
   });
 
   it('normalizes fetched regions and clears invalid clusters after region changes', async () => {
-    const onComponentUpdate = jasmine.createSpy('onComponentUpdate');
+    const onComponentUpdate = vi.fn();
     const componentModel = {
       cloudProviderType: 'aws',
       credentials: 'test',
@@ -60,8 +60,8 @@ describe('AccountRegionClusterSelector', () => {
   });
 
   it('updates moniker from the selected cluster and notifies account changes', async () => {
-    const onAccountUpdate = jasmine.createSpy('onAccountUpdate');
-    const onComponentUpdate = jasmine.createSpy('onComponentUpdate');
+    const onAccountUpdate = vi.fn();
+    const onComponentUpdate = vi.fn();
     const componentModel = { cloudProviderType: 'aws', credentials: 'test', region: 'us-east-1' } as any;
     const application = applicationWithServerGroups([
       { account: 'test', region: 'us-east-1', cluster: 'app-main', moniker: { cluster: 'app-main', sequence: 7 } },
@@ -83,9 +83,7 @@ describe('AccountRegionClusterSelector', () => {
     expect(componentModel.moniker).toEqual({ cluster: 'app-main', sequence: null });
     expect(onComponentUpdate).toHaveBeenCalledWith(componentModel);
 
-    component
-      .find('select.SelectInput')
-      .simulate('change', { target: { value: 'prod' }, persist: jasmine.createSpy() });
+    component.find('select.SelectInput').simulate('change', { target: { value: 'prod' }, persist: vi.fn() });
     expect(componentModel.credentials).toBe('prod');
     expect(componentModel.cluster).toBeUndefined();
     expect(onAccountUpdate).toHaveBeenCalled();
