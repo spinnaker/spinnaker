@@ -4,7 +4,7 @@ import { SecurityGroupSelector } from './SecurityGroupSelector';
 
 describe('SecurityGroupSelector', () => {
   it('renders when the security group cache has not been registered', () => {
-    spyOn(InfrastructureCaches, 'get').and.returnValue(undefined);
+    vi.spyOn(InfrastructureCaches, 'get').mockReturnValue(undefined);
 
     expect(() => new SecurityGroupSelector(buildProps() as any)).not.toThrow();
   });
@@ -15,6 +15,6 @@ function buildProps() {
     command: { selectedProvider: 'aws' },
     availableGroups: [],
     groupsToEdit: [],
-    onChange: jasmine.createSpy('onChange'),
+    onChange: vi.fn(),
   };
 }

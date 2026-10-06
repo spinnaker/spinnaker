@@ -75,6 +75,7 @@ export class PreconditionList extends React.Component<IPreconditionListProps> {
                   </td>
                   <td>
                     <button
+                      aria-label="Edit precondition"
                       type="button"
                       className="btn btn-xs btn-link"
                       data-action="edit"
@@ -83,6 +84,7 @@ export class PreconditionList extends React.Component<IPreconditionListProps> {
                       <span className="glyphicon glyphicon-edit" />
                     </button>
                     <button
+                      aria-label="Remove precondition"
                       type="button"
                       className="btn btn-xs btn-link pad-left"
                       data-action="remove"
