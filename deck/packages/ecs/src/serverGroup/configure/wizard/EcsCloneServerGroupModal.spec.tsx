@@ -1,36 +1,30 @@
-import type { Mock } from 'vitest';
-import type { ShallowWrapper } from 'enzyme';
-import { mount, shallow } from 'enzyme';
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { UIRouterContext, UIRouterReact } from '@uirouter/react';
 import React from 'react';
 
-import {
-  AccountService,
-  AccountSelectInput,
-  DeploymentStrategySelector,
-  RegionSelectInput,
-  RequestBuilder,
-  TetheredSelect,
-  MapEditor,
-  WizardModal,
-  WizardPage,
-} from '@spinnaker/core';
+import { AccountService, DeckRuntimeContext, RequestBuilder, TaskReader } from '@spinnaker/core';
 
-import type { IEcsServerGroupCommand } from '../serverGroupConfiguration.service';
-import { ServiceDiscoveryReader } from '../../../serviceDiscovery/serviceDiscovery.read.service';
 import { EcsCloneServerGroupModalComponent as EcsCloneServerGroupModal } from './EcsCloneServerGroupModal';
-import { BasicSettings } from './pages/BasicSettings';
-import { NetworkingSettings } from './pages/NetworkingSettings';
-import { EcsNetworking } from './networking/Networking';
-import { TaskDefinitionSettings } from './pages/TaskDefinitionSettings';
-import { TaskDefinition } from './taskDefinition/TaskDefinition';
-import { ContainerSettings } from './pages/ContainerSettings';
-import { Container } from './container/Container';
-import { HorizontalScalingSettings } from './pages/HorizontalScalingSettings';
 import { EcsCapacityProvider } from './capacityProvider/CapacityProvider';
-import { LoggingSettings } from './pages/LoggingSettings';
-import { ServiceDiscoverySettings } from './pages/ServiceDiscoverySettings';
-import { ServiceDiscovery } from './serviceDiscovery/ServiceDiscovery';
+import { Container } from './container/Container';
+// ModalContext is not exported from @spinnaker/core.
+// eslint-disable-next-line @spinnaker/import-from-npm-not-relative
+import { ModalContext } from '../../../../../core/src/presentation/modal/ModalContext';
+import { EcsClusterReader } from '../../../ecsCluster/ecsCluster.read.service';
+import { IamRoleReader } from '../../../iamRoles/iamRole.read.service';
+import { MetricAlarmReader } from '../../../metricAlarm/metricAlarm.read.service';
+import { EcsNetworking } from './networking/Networking';
 import { AdvancedSettings } from './pages/AdvancedSettings';
+import { BasicSettings } from './pages/BasicSettings';
+import { HorizontalScalingSettings } from './pages/HorizontalScalingSettings';
+import { LoggingSettings } from './pages/LoggingSettings';
+import { TaskDefinitionSettings } from './pages/TaskDefinitionSettings';
+import { validateEcsCapacity, validateEcsServerGroup, validateEcsTaskDefinition } from './pages/validation';
+import { SecretReader } from '../../../secrets/secret.read.service';
+import type { IEcsServerGroupCommand } from '../serverGroupConfiguration.service';
+import { ServiceDiscovery } from './serviceDiscovery/ServiceDiscovery';
+import { ServiceDiscoveryReader } from '../../../serviceDiscovery/serviceDiscovery.read.service';
+import { TaskDefinition } from './taskDefinition/TaskDefinition';
 
 const buildCommand = (overrides: Partial<IEcsServerGroupCommand> = {}): IEcsServerGroupCommand =>
   ({
@@ -39,11 +33,27 @@ const buildCommand = (overrides: Partial<IEcsServerGroupCommand> = {}): IEcsServ
         availableCapacityProviders: [],
         defaultCapacityProviderStrategy: [],
         ecsClusters: [],
+        iamRoles: [],
+        images: [],
+        metricAlarms: [],
+        secrets: [],
+        securityGroupNames: [],
+        serviceDiscoveryRegistries: [],
+        subnetTypes: [],
+        targetGroups: [],
       },
       launchTypes: ['EC2', 'FARGATE'],
+      networkModes: ['bridge', 'awsvpc'],
     },
+    capacity: { desired: 1, max: 2, min: 0 },
     capacityProviderStrategy: [],
+    computeOption: 'launchType',
     containerMappings: [],
+    credentials: 'account-a',
+    ecsClusterName: 'cluster-a',
+    imageDescription: { imageId: 'registry/api:latest' },
+    launchType: 'FARGATE',
+    region: 'eu-west-1',
     targetGroupMappings: [],
     taskDefinitionArtifact: {},
     useDefaultCapacityProviders: true,
@@ -51,826 +61,574 @@ const buildCommand = (overrides: Partial<IEcsServerGroupCommand> = {}): IEcsServ
     ...overrides,
   } as any);
 
-const buildProps = (command: IEcsServerGroupCommand) =>
-  ({
-    application: {
-      name: 'app',
-      serverGroups: {
-        onNextRefresh: vi.fn(),
-        refresh: vi.fn(),
-      },
-    },
-    closeModal: vi.fn(),
-    command,
-    dismissModal: vi.fn(),
-    title: 'Deploy ECS server group',
-  } as any);
+const application = {
+  getDataSource: vi.fn().mockReturnValue(null),
+  name: 'app',
+  serverGroups: { onNextRefresh: vi.fn(), refresh: vi.fn() },
+} as any;
 
-const buildUnrenderedModal = (command = buildCommand()): EcsCloneServerGroupModal => {
-  const modal = new EcsCloneServerGroupModal(buildProps(command));
-  vi.spyOn(modal, 'setState').mockImplementation((state: any, callback?: () => void) => {
-    modal.state = { ...modal.state, ...state };
-    callback?.();
-  });
-  return modal;
-};
+const pageProps = (command: IEcsServerGroupCommand, onFieldChange = vi.fn()) => ({
+  application,
+  command,
+  configureCommand: vi.fn().mockResolvedValue(undefined),
+  onFieldChange,
+});
 
-const findByTestId = (wrapper: ShallowWrapper, testId: string): ShallowWrapper =>
-  wrapper.findWhere((node) => node.prop('data-test-id') === testId);
-
-const renderCapacityProvider = (command: IEcsServerGroupCommand): ShallowWrapper => {
-  const wrapper = shallow(
+const renderCapacityProvider = async (command: IEcsServerGroupCommand, onFieldChange = vi.fn()) => {
+  const rendered = render(
     <EcsCapacityProvider
       command={command}
-      configureCommand={() => Promise.resolve()}
-      onFieldChange={(field, value) => (command[field] = value)}
+      configureCommand={vi.fn().mockResolvedValue(undefined)}
+      onFieldChange={onFieldChange}
     />,
-    { disableLifecycleMethods: true } as any,
   );
-  wrapper.setState({ capacityProviderLoadedFlag: true });
-  return wrapper;
+  await waitFor(() => expect(screen.queryByText('Loading capacity providers...')).not.toBeInTheDocument());
+  return { ...rendered, onFieldChange };
 };
 
+const openSelect = (name: string): HTMLElement => {
+  const select = screen.getByRole('combobox', { name });
+  fireEvent.mouseDown(select);
+  return select;
+};
+
+const selectOption = async (name: string, option: string): Promise<void> => {
+  openSelect(name);
+  fireEvent.mouseDown(await screen.findByRole('option', { name: option }));
+};
+
+function deferred<T>() {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  let reject!: (reason?: any) => void;
+  const promise = new Promise<T>((resolvePromise, rejectPromise) => {
+    resolve = resolvePromise;
+    reject = rejectPromise;
+  });
+  return { promise, reject, resolve };
+}
+
+const buildModalProps = (command: IEcsServerGroupCommand, overrides: Record<string, any> = {}) => ({
+  application,
+  closeModal: vi.fn(),
+  command,
+  dismissModal: vi.fn(),
+  router: {},
+  stateParams: {},
+  stateService: { go: vi.fn(), includes: vi.fn().mockReturnValue(false) },
+  title: 'Deploy ECS server group',
+  ...overrides,
+});
+
+const renderModal = (
+  command = buildCommand(),
+  runtimeServices: Record<string, any> = { serverGroupWriter: { cloneServerGroup: vi.fn() } },
+  overrides: Record<string, any> = {},
+) => {
+  const props = buildModalProps(command, overrides);
+  const router = new UIRouterReact();
+  routers.push(router);
+  const rendered = render(
+    <UIRouterContext.Provider value={router}>
+      <ModalContext.Provider value={{ onRequestClose: vi.fn() }}>
+        <DeckRuntimeContext.Provider value={{ services: runtimeServices } as any}>
+          <EcsCloneServerGroupModal {...(props as any)} />
+        </DeckRuntimeContext.Provider>
+      </ModalContext.Provider>
+    </UIRouterContext.Provider>,
+  );
+  return { ...rendered, props, runtimeServices };
+};
+
+const routers: UIRouterReact[] = [];
+
 describe('EcsCloneServerGroupModal', () => {
+  let originalHttpClient: typeof RequestBuilder.defaultHttpClient;
+
   beforeEach(() => {
+    originalHttpClient = RequestBuilder.defaultHttpClient;
+    vi.spyOn(AccountService, 'getArtifactAccounts').mockResolvedValue([]);
     // TaskDefinition and Container load docker registry accounts on mount.
-    vi.spyOn(AccountService, 'listAccounts').mockReturnValue(Promise.resolve([]));
-  });
-
-  it('does not set state when backing data resolves after unmount', async () => {
-    const modal = new EcsCloneServerGroupModal(buildProps(buildCommand())) as any;
-    let resolveBackingData: () => void;
-    vi.spyOn(modal, 'loadBackingData').mockReturnValue(
-      new Promise<void>((resolve) => {
-        resolveBackingData = resolve;
-      }),
-    );
-    const setState = vi.spyOn(modal, 'setState').mockReturnValue(undefined);
-
-    const configurePromise = modal.configureCommand();
-    modal.componentWillUnmount();
-    resolveBackingData();
-    await configurePromise;
-
-    expect(setState).not.toHaveBeenCalled();
-  });
-
-  it('ignores stale backing data requests', async () => {
-    const firstCommand = buildCommand({ ecsClusterName: 'first-cluster' });
-    const secondCommand = buildCommand({ ecsClusterName: 'second-cluster' });
-    const modal = new EcsCloneServerGroupModal(buildProps(firstCommand)) as any;
-    let resolveFirst: () => void;
-    let resolveSecond: () => void;
-    vi.spyOn(modal, 'loadBackingData').mockImplementation((command: IEcsServerGroupCommand) => {
-      return new Promise<void>((resolve) => {
-        if (command === firstCommand) {
-          resolveFirst = resolve;
-        } else {
-          resolveSecond = resolve;
-        }
-      });
-    });
-    vi.spyOn(modal, 'setState').mockImplementation((state: any) => {
-      modal.state = { ...modal.state, ...state };
-    });
-
-    const firstConfigure = modal.configureCommand();
-    modal.state = { ...modal.state, command: secondCommand };
-    const secondConfigure = modal.configureCommand();
-
-    resolveSecond();
-    await secondConfigure;
-    expect(modal.state.command).toBe(secondCommand);
-
-    resolveFirst();
-    await firstConfigure;
-    expect(modal.state.command).toBe(secondCommand);
-  });
-
-  it('does not apply backing data from stale requests', async () => {
-    const originalHttpClient = RequestBuilder.defaultHttpClient;
-    const command = buildCommand({ backingData: { filtered: {} } as any });
-    const modal = new EcsCloneServerGroupModal(buildProps(command)) as any;
-    vi.spyOn(AccountService, 'getCredentialsKeyedByAccount').mockReturnValue(Promise.resolve({}));
+    vi.spyOn(AccountService, 'listAccounts').mockResolvedValue([]);
+    vi.spyOn(AccountService, 'getCredentialsKeyedByAccount').mockResolvedValue({
+      'account-a': {
+        name: 'account-a',
+        regions: [
+          { availabilityZones: ['eu-west-1a'], name: 'eu-west-1' },
+          { availabilityZones: ['us-east-1a'], name: 'us-east-1' },
+        ],
+      },
+      'account-b': {
+        name: 'account-b',
+        regions: [{ availabilityZones: ['us-west-2a'], name: 'us-west-2' }],
+      },
+    } as any);
+    vi.spyOn(AccountService, 'listAllAccounts').mockResolvedValue([
+      { authorized: true, name: 'account-a', regions: [], type: 'ecs' },
+      { authorized: true, name: 'account-b', regions: [], type: 'ecs' },
+    ] as any);
+    vi.spyOn(IamRoleReader.prototype, 'listRoles').mockResolvedValue([]);
+    vi.spyOn(EcsClusterReader.prototype, 'listClusters').mockResolvedValue([
+      { account: 'account-a', name: 'cluster-a', region: 'eu-west-1' },
+      { account: 'account-a', name: 'cluster-us', region: 'us-east-1' },
+      { account: 'account-b', name: 'cluster-b', region: 'us-west-2' },
+    ] as any);
+    vi.spyOn(EcsClusterReader.prototype, 'describeClusters').mockResolvedValue([]);
+    vi.spyOn(MetricAlarmReader.prototype, 'listMetricAlarms').mockResolvedValue([]);
+    vi.spyOn(SecretReader.prototype, 'listSecrets').mockResolvedValue([]);
+    vi.spyOn(ServiceDiscoveryReader, 'listServiceDiscoveryRegistries').mockResolvedValue([]);
     RequestBuilder.defaultHttpClient = {
-      get: (config: any) => {
-        if (config.url.endsWith('loadBalancers')) {
-          return Promise.resolve([{ name: 'stale-load-balancer' }]);
-        }
-        if (config.url.endsWith('subnets/ecs')) {
-          return Promise.resolve([]);
-        }
+      get: vi.fn((config: any) => {
         if (config.url.endsWith('securityGroups')) {
           return Promise.resolve({});
         }
         return Promise.resolve([]);
-      },
+      }),
     } as any;
-    vi.spyOn(modal.iamRoleReader, 'listRoles').mockReturnValue(Promise.resolve([]));
-    vi.spyOn(modal.ecsClusterReader, 'listClusters').mockReturnValue(Promise.resolve([]));
-    vi.spyOn(modal.ecsClusterReader, 'describeClusters').mockReturnValue(Promise.resolve([]));
-    vi.spyOn(modal.metricAlarmReader, 'listMetricAlarms').mockReturnValue(Promise.resolve([]));
-    vi.spyOn(modal.secretReader, 'listSecrets').mockReturnValue(Promise.resolve([]));
+  });
 
-    modal.configureRequest = 2;
-    await modal.loadBackingData(command, '', 1);
+  afterEach(() => {
     RequestBuilder.defaultHttpClient = originalHttpClient;
+    cleanup();
+    routers.splice(0).forEach((router) => router.dispose());
+  });
+
+  it('does not apply backing data when the mounted modal request resolves after unmount', async () => {
+    const loadBalancers = deferred<any[]>();
+    const get = vi.fn((config: any) => {
+      if (config.url.endsWith('loadBalancers')) {
+        return loadBalancers.promise;
+      }
+      return Promise.resolve(config.url.endsWith('securityGroups') ? {} : []);
+    });
+    RequestBuilder.defaultHttpClient = { get } as any;
+    const command = buildCommand();
+    const rendered = renderModal(command);
+    await waitFor(() => expect(get).toHaveBeenCalled());
+
+    rendered.unmount();
+    await act(async () => loadBalancers.resolve([{ name: 'late-load-balancer' }]));
 
     expect(command.backingData.loadBalancers).toBeUndefined();
   });
 
-  it('does not replace edits made while configureCommand is pending', async () => {
-    const command = buildCommand({ capacity: { desired: 1, max: 2, min: 0 } });
-    const modal = buildUnrenderedModal(command) as any;
-    let resolveBackingData: () => void;
-    vi.spyOn(modal, 'loadBackingData').mockReturnValue(
-      new Promise<void>((resolve) => {
-        resolveBackingData = resolve;
+  it('ignores stale mounted-modal backing data requests after a newer Formik location change', async () => {
+    renderModal();
+    expect(await screen.findByRole('heading', { name: 'Basic Settings' })).toBeInTheDocument();
+    const oldRequest = deferred<any[]>();
+    const newRequest = deferred<any[]>();
+    const describeClusters = vi
+      .spyOn(EcsClusterReader.prototype, 'describeClusters')
+      .mockImplementation((_account: string, region: string) =>
+        region === 'us-east-1' ? oldRequest.promise : newRequest.promise,
+      );
+
+    fireEvent.change(screen.getByLabelText('Region'), { target: { value: 'us-east-1' } });
+    await waitFor(() => expect(describeClusters).toHaveBeenCalledWith('account-a', 'us-east-1'));
+    fireEvent.change(screen.getByLabelText('Region'), { target: { value: 'eu-west-1' } });
+    await waitFor(() => expect(describeClusters).toHaveBeenCalledWith('account-a', 'eu-west-1'));
+    await act(async () => newRequest.resolve([]));
+    await waitFor(() => expect(screen.getByLabelText('Region')).toHaveValue('eu-west-1'));
+
+    await act(async () => oldRequest.resolve([]));
+
+    expect(screen.getByLabelText('Region')).toHaveValue('eu-west-1');
+  });
+
+  it('does not apply stale mounted-modal options after a replacement request', async () => {
+    renderModal(buildCommand({ networkMode: 'awsvpc' }));
+    expect(await screen.findByRole('heading', { name: 'Networking' })).toBeInTheDocument();
+    const staleSecurityGroups = deferred<any>();
+    let securityGroupRequest = 0;
+    const get = vi.fn((config: any) => {
+      if (config.url.endsWith('securityGroups')) {
+        return ++securityGroupRequest === 1 ? staleSecurityGroups.promise : Promise.resolve({});
+      }
+      return Promise.resolve([]);
+    });
+    RequestBuilder.defaultHttpClient = { get } as any;
+
+    fireEvent.change(screen.getByLabelText('Region'), { target: { value: 'us-east-1' } });
+    await waitFor(() => expect(get).toHaveBeenCalled());
+    fireEvent.change(screen.getByLabelText('Region'), { target: { value: 'eu-west-1' } });
+    await waitFor(() => expect(screen.getByLabelText('Region')).toHaveValue('eu-west-1'));
+    await act(async () =>
+      staleSecurityGroups.resolve({
+        'account-a': { ecs: { 'us-east-1': [{ name: 'stale-security-group', vpcId: 'stale-vpc' }] } },
       }),
     );
-    const formik = {
-      setFieldValue: vi.fn(),
-      setValues: vi.fn(),
-      values: command,
-    } as any;
 
-    const configurePromise = modal.configureCommand();
-    modal.updateCommand(formik, 'capacity', { desired: 3, max: 4, min: 0 });
-    resolveBackingData();
-    await configurePromise;
-
-    expect(modal.state.command.capacity).toEqual({ desired: 3, max: 4, min: 0 });
+    expect(screen.getByText('No security groups found in the selected account/region')).toBeInTheDocument();
+    expect(screen.queryByText('stale-security-group')).not.toBeInTheDocument();
   });
 
-  it('merges refreshed backing data into edits made while configureCommand is pending', async () => {
+  it('does not replace Formik edits made while mounted-modal configuration is pending', async () => {
     const command = buildCommand({
-      backingData: {
-        filtered: {
-          availableCapacityProviders: ['old-provider'],
-          defaultCapacityProviderStrategy: [],
-          ecsClusters: [],
-          images: [],
-          targetGroups: ['old-target'],
-        },
-      } as any,
-      capacity: { desired: 1, max: 2, min: 0 },
-      stack: 'old-stack',
+      stack: 'original',
+      viewState: { contextImages: [], dirty: {}, mode: 'editPipeline' } as any,
     });
-    const modal = buildUnrenderedModal(command) as any;
-    modal.attachEventHandlers(command);
-    let resolveBackingData: () => void;
-    vi.spyOn(modal, 'loadBackingData').mockImplementation(
-      (requestCommand: IEcsServerGroupCommand) =>
-        new Promise<void>((resolve) => {
-          resolveBackingData = () => {
-            const images = [{ imageId: 'registry/refreshed:latest' }];
-            requestCommand.backingData = {
-              ...requestCommand.backingData,
-              filtered: {
-                ...requestCommand.backingData.filtered,
-                availableCapacityProviders: ['refreshed-provider'],
-                images,
-                targetGroups: ['refreshed-target'],
-              },
-              images,
-            } as any;
-            resolve();
-          };
-        }),
+    const rendered = renderModal(command);
+    expect(await screen.findByRole('heading', { name: 'Basic Settings' })).toBeInTheDocument();
+    const request = deferred<any[]>();
+    vi.spyOn(EcsClusterReader.prototype, 'describeClusters').mockReturnValue(request.promise);
+
+    fireEvent.change(screen.getByLabelText('Region'), { target: { value: 'us-east-1' } });
+    fireEvent.change(screen.getByLabelText('Stack'), { target: { value: 'edited' } });
+    await act(async () => request.resolve([]));
+    await waitFor(() => expect(screen.getByLabelText('Stack')).toHaveValue('edited'));
+    fireEvent.click(screen.getByRole('button', { name: 'Done' }));
+
+    await waitFor(() =>
+      expect(rendered.props.closeModal).toHaveBeenCalledWith(expect.objectContaining({ stack: 'edited' })),
     );
-    const formik = {
-      setFieldValue: vi.fn(),
-      setValues: vi.fn(),
-      values: command,
-    } as any;
-
-    const configurePromise = modal.configureCommand('refreshed');
-    modal.updateCommand(formik, 'stack', 'edited-stack');
-    modal.updateCommand(formik, 'capacity', { desired: 3, max: 4, min: 0 });
-    resolveBackingData();
-    await configurePromise;
-
-    expect(modal.state.command.stack).toBe('edited-stack');
-    expect(modal.state.command.capacity).toEqual({ desired: 3, max: 4, min: 0 });
-    expect(modal.state.command.backingData.filtered.targetGroups).toEqual(['refreshed-target']);
-    expect(modal.state.command.backingData.filtered.images).toEqual([{ imageId: 'registry/refreshed:latest' }]);
-    expect(modal.state.command.backingData.filtered.availableCapacityProviders).toEqual(['refreshed-provider']);
   });
 
-  it('ignores an in-flight response and refreshes options when subnet types change', async () => {
+  it('merges refreshed backing data into Formik edits made while mounted-modal configuration is pending', async () => {
+    const command = buildCommand({ stack: 'original' });
+    const rendered = renderModal(command);
+    expect(await screen.findByRole('heading', { name: 'Basic Settings' })).toBeInTheDocument();
+    const request = deferred<any[]>();
+    vi.spyOn(EcsClusterReader.prototype, 'describeClusters').mockReturnValue(request.promise);
+
+    fireEvent.change(screen.getByLabelText('Region'), { target: { value: 'us-east-1' } });
+    fireEvent.change(screen.getByLabelText('Stack'), { target: { value: 'edited' } });
+    await act(async () => request.resolve([{ clusterName: 'cluster-a', capacityProviders: ['FARGATE_SPOT'] }]));
+
+    await waitFor(() => expect(screen.getByLabelText('Stack')).toHaveValue('edited'));
+    fireEvent.click(screen.getByLabelText('Capacity Providers'));
+    await waitFor(() => expect(screen.queryByText('Loading capacity providers...')).not.toBeInTheDocument());
+    fireEvent.click(screen.getByLabelText(/Use custom/));
+    fireEvent.click(await screen.findByRole('button', { name: 'Add New Capacity Provider' }));
+    fireEvent.focus(screen.getByLabelText('Capacity provider name 1'));
+    expect(screen.getByRole('button', { name: 'FARGATE_SPOT' })).toBeInTheDocument();
+  });
+
+  it('submits mounted-modal subnet changes from the public control', async () => {
     const command = buildCommand({
-      backingData: {
-        filtered: {
-          availableCapacityProviders: [],
-          defaultCapacityProviderStrategy: [],
-          ecsClusters: [],
-          securityGroupNames: ['initial-security-group'],
-          subnetTypes: [{ purpose: 'old-subnet', vpcId: 'old-vpc' }],
-        },
-      } as any,
-      subnetTypes: ['old-subnet'],
+      networkMode: 'awsvpc',
+      subnetTypes: ['private'],
+      viewState: { contextImages: [], dirty: {}, mode: 'editPipeline' },
     });
-    const modal = buildUnrenderedModal(command) as any;
-    modal.attachEventHandlers(command);
-    const requests: Array<{
-      command: IEcsServerGroupCommand;
-      promise: Promise<void>;
-      resolve: () => void;
-    }> = [];
-    const loadBackingData = vi
-      .spyOn(modal, 'loadBackingData')
-      .mockImplementation((requestCommand: IEcsServerGroupCommand) => {
-        let resolve: () => void;
-        const promise = new Promise<void>((requestResolve) => {
-          resolve = requestResolve;
-        });
-        requests.push({ command: requestCommand, promise, resolve });
-        return promise;
-      });
-    const formik = {
-      setFieldValue: vi.fn(),
-      setValues: vi.fn(),
-      values: command,
-    } as any;
-
-    const oldConfigure = modal.configureCommand();
-    modal.updateCommand(formik, 'subnetTypes', ['new-subnet']);
-
-    expect(loadBackingData).toHaveBeenCalledTimes(2);
-    const newRequest = requests[1];
-    if (newRequest) {
-      newRequest.command.backingData = {
-        ...newRequest.command.backingData,
-        filtered: {
-          ...newRequest.command.backingData.filtered,
-          securityGroupNames: ['new-security-group'],
-          subnetTypes: [{ purpose: 'new-subnet', vpcId: 'new-vpc' }],
-        },
-      } as any;
-      newRequest.resolve();
-      await newRequest.promise;
-    }
-
-    const oldRequest = requests[0];
-    oldRequest.command.backingData = {
-      ...oldRequest.command.backingData,
-      filtered: {
-        ...oldRequest.command.backingData.filtered,
-        securityGroupNames: ['old-security-group'],
-        subnetTypes: [{ purpose: 'old-subnet', vpcId: 'old-vpc' }],
-      },
-    } as any;
-    oldRequest.resolve();
-    await oldConfigure;
-
-    expect(modal.state.command.subnetTypes).toEqual(['new-subnet']);
-    expect(modal.state.command.backingData.filtered.securityGroupNames).toEqual(['new-security-group']);
-    expect(modal.state.command.backingData.filtered.subnetTypes).toEqual([{ purpose: 'new-subnet', vpcId: 'new-vpc' }]);
-  });
-
-  it('preserves image options while refreshing security groups after a subnet change', async () => {
-    const originalHttpClient = RequestBuilder.defaultHttpClient;
-    const images = [
-      { id: 'backing-api-v1', imageId: 'registry/api:v1' },
-      { id: 'backing-api-v2', imageId: 'registry/api:v2' },
-    ];
-    const subnets = [
-      { account: 'ecs-account', purpose: 'old-subnet', region: 'us-west-2', vpcId: 'old-vpc' },
-      { account: 'ecs-account', purpose: 'new-subnet', region: 'us-west-2', vpcId: 'new-vpc' },
-    ];
-    const securityGroups = {
-      'ecs-account': {
-        ecs: {
-          'us-west-2': [
-            { name: 'old-security-group', vpcId: 'old-vpc' },
-            { name: 'new-security-group', vpcId: 'new-vpc' },
-          ],
-        },
-      },
-    };
-    const command = buildCommand({
-      backingData: {
-        filtered: {
-          availableCapacityProviders: [],
-          defaultCapacityProviderStrategy: [],
-          ecsClusters: [],
-          images,
-          securityGroupNames: ['old-security-group'],
-        },
-        images,
-      } as any,
-      containerMappings: [
-        {
-          containerName: 'worker',
-          imageDescription: { id: 'mapped-api-v2', imageId: 'registry/api:v2' },
-        } as any,
-      ],
-      credentials: 'ecs-account',
-      imageDescription: { id: 'selected-api-v1', imageId: 'registry/api:v1' } as any,
-      region: 'us-west-2',
-      subnetTypes: ['old-subnet'],
-    });
-    const modal = buildUnrenderedModal(command) as any;
-    modal.attachEventHandlers(command);
-    const securityGroupRequests: Array<{
-      promise: Promise<any>;
-      resolve: (value: any) => void;
-    }> = [];
-    RequestBuilder.defaultHttpClient = {
-      get: (config: any) => {
-        if (config.url.endsWith('securityGroups')) {
-          let resolve: (value: any) => void;
-          const promise = new Promise<any>((requestResolve) => {
-            resolve = requestResolve;
-          });
-          securityGroupRequests.push({ promise, resolve });
-          return promise;
-        }
-        if (config.url.endsWith('subnets/ecs')) {
-          return Promise.resolve(subnets);
-        }
-        return Promise.resolve([]);
-      },
-    } as any;
-    vi.spyOn(AccountService, 'getCredentialsKeyedByAccount').mockReturnValue(
-      Promise.resolve({
-        'ecs-account': { regions: [{ availabilityZones: ['us-west-2a'], name: 'us-west-2' }] },
-      }) as any,
-    );
-    vi.spyOn(modal.iamRoleReader, 'listRoles').mockReturnValue(Promise.resolve([]));
-    vi.spyOn(modal.ecsClusterReader, 'listClusters').mockReturnValue(Promise.resolve([]));
-    vi.spyOn(modal.ecsClusterReader, 'describeClusters').mockReturnValue(Promise.resolve([]));
-    vi.spyOn(modal.metricAlarmReader, 'listMetricAlarms').mockReturnValue(Promise.resolve([]));
-    vi.spyOn(modal.secretReader, 'listSecrets').mockReturnValue(Promise.resolve([]));
-    vi.spyOn(ServiceDiscoveryReader, 'listServiceDiscoveryRegistries').mockReturnValue(Promise.resolve([]));
-    const configureCommand = vi.spyOn(modal, 'configureCommand');
-    const formik = {
-      setFieldValue: vi.fn(),
-      setValues: vi.fn(),
-      values: command,
-    } as any;
-
-    try {
-      const oldConfigure = modal.configureCommand();
-      modal.updateCommand(formik, 'subnetTypes', ['new-subnet']);
-      const newConfigure = configureCommand.mock.results.at(-1).value;
-
-      securityGroupRequests[1].resolve(securityGroups);
-      await newConfigure;
-      securityGroupRequests[0].resolve(securityGroups);
-      await oldConfigure;
-
-      expect(modal.state.command.backingData.filtered.securityGroupNames).toEqual(['new-security-group']);
-      expect(modal.state.command.backingData.filtered.images.map((image: any) => image.imageId)).toEqual([
-        'registry/api:v1',
-        'registry/api:v2',
-      ]);
-
-      modal.updateCommand(formik, 'subnetTypes', ['old-subnet']);
-      const repeatedConfigure = configureCommand.mock.results.at(-1).value;
-      securityGroupRequests[2].resolve(securityGroups);
-      await repeatedConfigure;
-
-      expect(modal.state.command.backingData.filtered.securityGroupNames).toEqual(['old-security-group']);
-      expect(modal.state.command.backingData.filtered.images.map((image: any) => image.imageId)).toEqual([
-        'registry/api:v1',
-        'registry/api:v2',
-      ]);
-    } finally {
-      RequestBuilder.defaultHttpClient = originalHttpClient;
-    }
-  });
-
-  it('initializes optional backing data arrays used by child sections', () => {
-    const command = buildCommand({ backingData: { filtered: {} } as any });
-    const modal = buildUnrenderedModal(command) as any;
-
-    modal.ensureCommandShape(command);
-
-    expect(command.backingData.filtered.iamRoles).toEqual([]);
-    expect(command.backingData.filtered.metricAlarms).toEqual([]);
-    expect(command.backingData.filtered.secrets).toEqual([]);
-    expect(command.backingData.filtered.serviceDiscoveryRegistries).toEqual([]);
-  });
-
-  it('populates regions and availability zones for the selected account during initial configuration', async () => {
-    const originalHttpClient = RequestBuilder.defaultHttpClient;
-    const regions = [
-      { availabilityZones: ['eu-west-1a', 'eu-west-1b'], name: 'eu-west-1' },
-      { availabilityZones: ['us-east-1a'], name: 'us-east-1' },
-    ];
-    const command = buildCommand({
-      backingData: { filtered: {} } as any,
-      credentials: 'ecs-account',
-      region: 'eu-west-1',
-    });
-    const modal = new EcsCloneServerGroupModal(buildProps(command)) as any;
-    vi.spyOn(AccountService, 'getCredentialsKeyedByAccount').mockReturnValue(
-      Promise.resolve({ 'ecs-account': { regions } }) as any,
-    );
-    RequestBuilder.defaultHttpClient = {
-      get: (config: any) => Promise.resolve(config.url.endsWith('securityGroups') ? {} : []),
-    } as any;
-    vi.spyOn(modal.iamRoleReader, 'listRoles').mockReturnValue(Promise.resolve([]));
-    vi.spyOn(modal.ecsClusterReader, 'listClusters').mockReturnValue(Promise.resolve([]));
-    vi.spyOn(modal.ecsClusterReader, 'describeClusters').mockReturnValue(Promise.resolve([]));
-    vi.spyOn(modal.metricAlarmReader, 'listMetricAlarms').mockReturnValue(Promise.resolve([]));
-    vi.spyOn(modal.secretReader, 'listSecrets').mockReturnValue(Promise.resolve([]));
-    vi.spyOn(ServiceDiscoveryReader, 'listServiceDiscoveryRegistries').mockReturnValue(Promise.resolve([]));
-
-    await modal.loadBackingData(command, '');
-    RequestBuilder.defaultHttpClient = originalHttpClient;
-
-    expect(command.backingData.filtered.regions).toEqual(regions);
-    expect(command.backingData.filtered.availabilityZones).toEqual(['eu-west-1a', 'eu-west-1b']);
-    expect(command.availabilityZones).toEqual(['eu-west-1a', 'eu-west-1b']);
-  });
-
-  it('reconciles invalid location selections before account and region handlers reload backing data', () => {
-    const command = buildCommand({
-      backingData: {
-        credentialsKeyedByAccount: {
-          'account-b': { regions: [{ availabilityZones: ['us-east-1a'], name: 'us-east-1' }] },
-        },
-        filtered: { regions: [{ availabilityZones: ['eu-west-1a'], name: 'eu-west-1' }] },
-      } as any,
-      credentials: 'account-b',
-      region: 'eu-west-1',
-    });
-    const modal = buildUnrenderedModal(command) as any;
-    const configureCommand = vi.spyOn(modal, 'configureCommand').mockReturnValue(Promise.resolve());
-
-    modal.attachEventHandlers(command);
-    command.credentialsChanged(command);
-
-    expect(command.backingData.filtered.regions).toEqual([{ availabilityZones: ['us-east-1a'], name: 'us-east-1' }]);
-    expect(command.region).toBeNull();
-    expect(configureCommand).toHaveBeenCalledTimes(1);
-
-    command.region = 'not-an-account-region';
-    command.regionChanged(command);
-
-    expect(command.region).toBeNull();
-    expect(configureCommand).toHaveBeenCalledTimes(2);
-  });
-
-  it('filters security groups when the subnet type changes', () => {
-    const command = buildCommand({
-      backingData: {
-        ...buildCommand().backingData,
-        securityGroups: {
-          'ecs-account': {
+    const get = vi.fn((config: any) => {
+      if (config.url.endsWith('subnets/ecs')) {
+        return Promise.resolve([
+          { account: 'account-a', purpose: 'private', region: 'eu-west-1', vpcId: 'vpc-private' },
+          { account: 'account-a', purpose: 'public', region: 'eu-west-1', vpcId: 'vpc-public' },
+        ]);
+      }
+      if (config.url.endsWith('securityGroups')) {
+        return Promise.resolve({
+          'account-a': {
             ecs: {
-              'us-west-2': [
-                { name: 'private-sg', vpcId: 'vpc-1' },
-                { name: 'public-sg', vpcId: 'vpc-2' },
+              'eu-west-1': [
+                { name: 'private-sg', vpcId: 'vpc-private' },
+                { name: 'public-sg', vpcId: 'vpc-public' },
               ],
             },
           },
-        },
-        subnets: [
-          { account: 'ecs-account', purpose: 'private-subnet', region: 'us-west-2', vpcId: 'vpc-1' },
-          { account: 'ecs-account', purpose: 'public-subnet', region: 'us-west-2', vpcId: 'vpc-2' },
-        ],
-      } as any,
-      credentials: 'ecs-account',
-      region: 'us-west-2',
-      subnetTypes: ['private-subnet'],
+        });
+      }
+      return Promise.resolve([]);
     });
-    const modal = buildUnrenderedModal(command) as any;
+    RequestBuilder.defaultHttpClient = {
+      get,
+    } as any;
+    const rendered = renderModal(command);
+    expect(await screen.findByLabelText('VPC subnet')).toBeInTheDocument();
 
-    modal.attachEventHandlers(command);
-    command.subnetTypeChanged(command);
+    await selectOption('VPC subnet', 'public (vpc-public)');
+    await waitFor(() => expect(screen.getByText('public (vpc-public)')).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: 'Done' }));
 
-    expect(command.backingData.filtered.securityGroupNames).toEqual(['private-sg']);
+    await waitFor(() =>
+      expect(rendered.props.closeModal).toHaveBeenCalledWith(
+        expect.objectContaining({ subnetTypes: expect.arrayContaining(['public']) }),
+      ),
+    );
   });
 
-  it('reloads backing data when account or region changes', () => {
+  it('preserves mounted-modal image options while refreshing backing data', async () => {
+    const command = buildCommand({
+      containerMappings: [{ containerName: 'worker', imageDescription: { imageId: 'registry/api:v2' } } as any],
+      imageDescription: { imageId: 'registry/api:v1' } as any,
+      taskDefinitionArtifact: { artifactId: 'task-definition' },
+      useTaskDefinitionArtifact: true,
+    });
+    renderModal(command);
+    expect(await screen.findByLabelText('Container image 1')).toBeInTheDocument();
+
+    openSelect('Container image 1');
+    expect(await screen.findByText('(registry/api:v1)')).toBeInTheDocument();
+    expect(screen.getAllByText('(registry/api:v2)').length).toBeGreaterThan(0);
+  });
+
+  it('initializes optional backing data arrays used by mounted child sections', async () => {
+    const command = buildCommand({ backingData: { filtered: {} } as any });
+    renderModal(command);
+    expect(await screen.findByRole('heading', { name: 'Basic Settings' })).toBeInTheDocument();
+    expect(command.backingData.filtered).toEqual(
+      expect.objectContaining({ iamRoles: [], metricAlarms: [], secrets: [], serviceDiscoveryRegistries: [] }),
+    );
+  });
+
+  it('populates regions and availability zones for the selected account during mounted configuration', async () => {
     const command = buildCommand();
-    const modal = buildUnrenderedModal(command) as any;
-    const configureCommand = vi.spyOn(modal, 'configureCommand').mockReturnValue(Promise.resolve());
+    renderModal(command);
+    expect(await screen.findByLabelText('Region')).toHaveValue('eu-west-1');
+    expect(command.backingData.filtered.regions.map((region: any) => region.name)).toEqual(['eu-west-1', 'us-east-1']);
+    expect(command.availabilityZones).toEqual(['eu-west-1a']);
+  });
 
-    modal.attachEventHandlers(command);
-    command.credentialsChanged(command);
-    command.regionChanged(command);
+  it('reconciles invalid location selections through the mounted account handler before reloading', async () => {
+    renderModal();
+    expect(await screen.findByLabelText('Account')).toHaveValue('account-a');
 
-    expect(configureCommand).toHaveBeenCalledTimes(2);
+    fireEvent.change(screen.getByLabelText('Account'), { target: { value: 'account-b' } });
+
+    await waitFor(() => expect(screen.getByLabelText('Region')).toHaveValue(''));
+    expect(screen.getByRole('option', { name: 'us-west-2' })).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: 'eu-west-1' })).not.toBeInTheDocument();
+  });
+
+  it('filters security groups through the mounted command when the subnet type changes', async () => {
+    RequestBuilder.defaultHttpClient = {
+      get: vi.fn((config: any) => {
+        if (config.url.endsWith('subnets/ecs')) {
+          return Promise.resolve([{ account: 'account-a', purpose: 'private', region: 'eu-west-1', vpcId: 'vpc-1' }]);
+        }
+        if (config.url.endsWith('securityGroups')) {
+          return Promise.resolve({
+            'account-a': { ecs: { 'eu-west-1': [{ name: 'private-sg', vpcId: 'vpc-1' }] } },
+          });
+        }
+        return Promise.resolve([]);
+      }),
+    } as any;
+    renderModal(buildCommand({ networkMode: 'awsvpc', subnetTypes: ['private'] }));
+    expect(await screen.findByRole('heading', { name: 'Networking' })).toBeInTheDocument();
+    openSelect('Security groups');
+    expect(await screen.findByText('private-sg')).toBeInTheDocument();
+  });
+
+  it('does not match security groups when backing subnets have no purpose', async () => {
+    RequestBuilder.defaultHttpClient = {
+      get: vi.fn((config: any) => {
+        if (config.url.endsWith('subnets/ecs')) {
+          return Promise.resolve([{ account: 'account-a', region: 'eu-west-1', vpcId: 'vpc-1' }]);
+        }
+        if (config.url.endsWith('securityGroups')) {
+          return Promise.resolve({
+            'account-a': { ecs: { 'eu-west-1': [{ name: 'purposeless-sg', vpcId: 'vpc-1' }] } },
+          });
+        }
+        return Promise.resolve([]);
+      }),
+    } as any;
+    renderModal(buildCommand({ networkMode: 'awsvpc', subnetTypes: [] }));
+    expect(await screen.findByRole('heading', { name: 'Networking' })).toBeInTheDocument();
+    expect(screen.getByText('No security groups found in the selected account/region')).toBeInTheDocument();
+    expect(screen.queryByText('purposeless-sg')).not.toBeInTheDocument();
+  });
+
+  it('reloads mounted backing data when account or region changes', async () => {
+    const describeClusters = vi.spyOn(EcsClusterReader.prototype, 'describeClusters');
+    renderModal();
+    expect(await screen.findByLabelText('Account')).toHaveValue('account-a');
+    describeClusters.mockClear();
+
+    fireEvent.change(screen.getByLabelText('Account'), { target: { value: 'account-b' } });
+    fireEvent.change(screen.getByLabelText('Region'), { target: { value: 'us-west-2' } });
+
+    await waitFor(() => expect(describeClusters).toHaveBeenCalledWith('account-b', 'us-west-2'));
   });
 
   ['createPipeline', 'editPipeline'].forEach((mode) => {
-    it(`returns the transformed command without executing infrastructure in ${mode} mode`, () => {
+    it(`submits authoritative WizardModal Formik values without executing infrastructure in ${mode} mode`, async () => {
       const command = buildCommand({ viewState: { contextImages: [], dirty: {}, mode } as any });
-      const modal = buildUnrenderedModal(command) as any;
-      const cloneServerGroup = vi.fn();
+      const writer = vi.fn();
+      const rendered = renderModal(command, { serverGroupWriter: { cloneServerGroup: writer } });
+      expect(await screen.findByRole('heading', { name: 'Basic Settings' })).toBeInTheDocument();
+      fireEvent.change(screen.getByLabelText('Detail'), { target: { value: 'authoritative-detail' } });
+      fireEvent.click(screen.getByRole('button', { name: 'Done' }));
 
-      modal.submit();
-
-      expect(modal.props.closeModal).toHaveBeenCalledWith(command);
-      expect(cloneServerGroup).not.toHaveBeenCalled();
+      await waitFor(() =>
+        expect(rendered.props.closeModal).toHaveBeenCalledWith(
+          expect.objectContaining({ freeFormDetails: 'authoritative-detail' }),
+        ),
+      );
+      expect(writer).not.toHaveBeenCalled();
     });
   });
 
-  it('uses authoritative Formik values for account normalization, display, and submission', () => {
-    const regions = [{ availabilityZones: ['us-east-1a'], name: 'us-east-1' }];
+  it('uses authoritative Formik values for account normalization, display, and submission', async () => {
     const command = buildCommand({
-      backingData: {
-        credentialsKeyedByAccount: {
-          'account-a': { regions: [{ availabilityZones: ['eu-west-1a'], name: 'eu-west-1' }] },
-          'account-b': { regions },
-        },
-        filtered: { regions: [{ availabilityZones: ['eu-west-1a'], name: 'eu-west-1' }] },
-      } as any,
-      credentials: 'account-a',
-      region: 'eu-west-1',
       viewState: { contextImages: [], dirty: {}, mode: 'editPipeline' } as any,
     });
-    const wrapper = shallow(<EcsCloneServerGroupModal {...buildProps(command)} />, {
-      disableLifecycleMethods: true,
-    } as any);
-    const modal = wrapper.instance() as any;
-    vi.spyOn(modal, 'configureCommand').mockReturnValue(Promise.resolve());
-    modal.attachEventHandlers(command);
-    const formik: any = {
-      setFieldValue: vi.fn().mockImplementation((field: string, value: any) => {
-        formik.values = { ...formik.values, [field]: value };
-      }),
-      setValues: vi.fn().mockImplementation((values: IEcsServerGroupCommand) => {
-        formik.values = values;
-      }),
-      values: { ...command },
-    };
-    const wizardModal = wrapper.find(WizardModal);
-    const renderPages = () =>
-      shallow(
-        <div>
-          {wizardModal.prop('render')({
-            formik,
-            nextIdx: (() => {
-              let index = 0;
-              return () => ++index;
-            })(),
-            wizard: {} as any,
-          })}
-        </div>,
-      );
+    const rendered = renderModal(command);
+    expect(await screen.findByLabelText('Account')).toHaveValue('account-a');
+    fireEvent.change(screen.getByLabelText('Account'), { target: { value: 'account-b' } });
+    await waitFor(() => expect(screen.getByLabelText('Region')).toHaveValue(''));
+    fireEvent.change(screen.getByLabelText('Region'), { target: { value: 'us-west-2' } });
+    await waitFor(() => expect(screen.getByLabelText('Region')).toHaveValue('us-west-2'));
+    fireEvent.change(screen.getByLabelText('ECS Cluster name'), { target: { value: 'cluster-b' } });
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Done' })).toBeEnabled());
+    fireEvent.click(screen.getByRole('button', { name: 'Done' }));
 
-    const basicPage = renderPages()
-      .find(WizardPage)
-      .filterWhere((page) => page.prop('label') === 'Basic Settings');
-    const basicSettings = basicPage.prop('render')({
-      innerRef: React.createRef(),
-      onLoadingChanged: () => undefined,
-    }).props.children;
-    basicSettings.props.onFieldChange('credentials', 'account-b');
-
-    const displayedCommand = renderPages()
-      .find(WizardPage)
-      .filterWhere((page) => page.prop('label') === 'Basic Settings')
-      .prop('render')({ innerRef: React.createRef(), onLoadingChanged: () => undefined }).props.children.props.command;
-    expect(formik.setValues).toHaveBeenCalled();
-    expect(displayedCommand.credentials).toBe('account-b');
-    expect(displayedCommand.region).toBeNull();
-    expect(displayedCommand.backingData.filtered.regions).toEqual(regions);
-
-    wizardModal.prop('closeModal')(formik.values);
-    expect(wrapper.instance().props.closeModal).toHaveBeenCalledWith(displayedCommand);
+    await waitFor(() =>
+      expect(rendered.props.closeModal).toHaveBeenCalledWith(
+        expect.objectContaining({ credentials: 'account-b', region: 'us-west-2', ecsClusterName: 'cluster-b' }),
+      ),
+    );
   });
 
-  it('uses authoritative Formik values across artifact and input mode normalization and submission', () => {
+  it('uses authoritative Formik values across artifact and input mode normalization and submission', async () => {
     const command = buildCommand({
       serviceDiscoveryAssociations: [
-        {
-          containerName: 'api',
-          containerPort: 8080,
-          registry: { displayName: 'registry', id: 'registry' },
-        } as any,
+        { containerName: 'api', containerPort: 8080, registry: { displayName: 'registry', id: 'registry' } } as any,
       ],
+      taskDefinitionArtifact: { artifactId: 'task-definition' },
       useTaskDefinitionArtifact: true,
       viewState: { contextImages: [], dirty: {}, mode: 'editPipeline' } as any,
     });
-    const wrapper = shallow(<EcsCloneServerGroupModal {...buildProps(command)} />, {
-      disableLifecycleMethods: true,
-    } as any);
-    const formik: any = {
-      setFieldValue: vi.fn().mockImplementation((field: string, value: any) => {
-        formik.values = { ...formik.values, [field]: value };
-      }),
-      setValues: vi.fn().mockImplementation((values: IEcsServerGroupCommand) => {
-        formik.values = values;
-      }),
-      values: { ...command },
-    };
-    const wizardModal = wrapper.find(WizardModal);
-    const renderPages = () =>
-      shallow(
-        <div>
-          {wizardModal.prop('render')({
-            formik,
-            nextIdx: (() => {
-              let index = 0;
-              return () => ++index;
-            })(),
-            wizard: {} as any,
-          })}
-        </div>,
-      );
+    const rendered = renderModal(command);
+    expect(await screen.findByLabelText('Artifact')).toBeChecked();
+    fireEvent.click(screen.getByLabelText('Inputs'));
+    expect(screen.getByRole('heading', { name: 'Container' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Logging' })).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Done' })).toBeEnabled());
+    fireEvent.click(screen.getByRole('button', { name: 'Done' }));
+    await waitFor(() => expect(rendered.props.closeModal).toHaveBeenCalled());
+    expect(rendered.props.closeModal.mock.lastCall[0].serviceDiscoveryAssociations[0].containerName).toBeNull();
 
-    let taskDefinition = renderPages()
-      .find(WizardPage)
-      .filterWhere((page) => page.prop('label') === 'Task Definition')
-      .prop('render')({ innerRef: React.createRef(), onLoadingChanged: () => undefined }).props.children;
-    taskDefinition.props.onFieldChange('useTaskDefinitionArtifact', false);
-    expect(formik.values.serviceDiscoveryAssociations[0].containerName).toBeNull();
-    expect(
-      renderPages()
-        .find(WizardPage)
-        .someWhere((page) => page.prop('label') === 'Container'),
-    ).toBe(true);
-
-    taskDefinition = renderPages()
-      .find(WizardPage)
-      .filterWhere((page) => page.prop('label') === 'Task Definition')
-      .prop('render')({ innerRef: React.createRef(), onLoadingChanged: () => undefined }).props.children;
-    taskDefinition.props.onFieldChange('useTaskDefinitionArtifact', true);
-    expect(formik.values.serviceDiscoveryAssociations[0].containerName).toBe('');
-    expect(
-      renderPages()
-        .find(WizardPage)
-        .someWhere((page) => page.prop('label') === 'Container'),
-    ).toBe(false);
-    expect(formik.setValues).toHaveBeenCalledTimes(2);
-
-    wizardModal.prop('closeModal')(formik.values);
-    expect(wrapper.instance().props.closeModal).toHaveBeenCalledWith(formik.values);
+    fireEvent.click(screen.getByLabelText('Artifact'));
+    await waitFor(() => expect(screen.queryByRole('heading', { name: 'Container' })).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.getByLabelText('Container name 1')).toHaveValue(''));
+    expect(screen.getByRole('button', { name: 'Done' })).toBeDisabled();
+    fireEvent.change(screen.getByLabelText('Container name 1'), { target: { value: 'worker' } });
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Done' })).toBeEnabled());
+    fireEvent.click(screen.getByRole('button', { name: 'Done' }));
+    await waitFor(() => expect(rendered.props.closeModal).toHaveBeenCalledTimes(2));
+    expect(rendered.props.closeModal.mock.lastCall[0].serviceDiscoveryAssociations[0].containerName).toBe('worker');
   });
 
-  it('composes sequential updates before asynchronous Formik values settle', () => {
-    const command = buildCommand({ preferSourceCapacity: false, useSourceCapacity: false });
-    const modal = buildUnrenderedModal(command) as any;
-    const formik = {
-      setFieldValue: vi.fn(),
-      setValues: vi.fn(),
-      values: { ...command },
-    } as any;
+  it('composes sequential WizardModal Formik updates before values settle', async () => {
+    const command = buildCommand({ viewState: { contextImages: [], dirty: {}, mode: 'editPipeline' } as any });
+    const rendered = renderModal(command);
+    expect(await screen.findByLabelText(/use the previous server group's capacity/i)).toBeInTheDocument();
 
-    modal.updateCommand(formik, 'useSourceCapacity', true);
-    modal.updateCommand(formik, 'preferSourceCapacity', true);
+    fireEvent.click(screen.getByLabelText(/use the previous server group's capacity/i));
+    fireEvent.click(screen.getByRole('button', { name: 'Done' }));
 
-    expect(modal.state.command.useSourceCapacity).toBe(true);
-    expect(modal.state.command.preferSourceCapacity).toBe(true);
-    expect(formik.setValues.mock.lastCall[0]).toEqual(modal.state.command);
+    await waitFor(() => expect(rendered.props.closeModal).toHaveBeenCalled());
+    expect(rendered.props.closeModal.mock.lastCall[0]).toEqual(
+      expect.objectContaining({ preferSourceCapacity: true, useSourceCapacity: true }),
+    );
   });
 
   ['create', 'clone'].forEach((mode) => {
-    it(`submits ad-hoc ${mode} commands through TaskMonitor`, () => {
+    it(`submits ad-hoc ${mode} WizardModal values through TaskMonitor`, async () => {
       const command = buildCommand({ viewState: { contextImages: [], dirty: {}, mode } as any });
-      const props = buildProps(command);
-      const modal = new EcsCloneServerGroupModal(props) as any;
-      const task = Promise.resolve({ id: 'task-id' });
-      const cloneServerGroup = vi.fn().mockReturnValue(task as any);
-      modal.context = { services: { serverGroupWriter: { cloneServerGroup } } };
-      const monitorSubmit = vi
-        .spyOn(modal.state.taskMonitor, 'submit')
-        .mockImplementation((submitMethod: () => PromiseLike<any>) => submitMethod());
+      const writer = vi.fn().mockResolvedValue({ id: 'task' });
+      vi.spyOn(TaskReader, 'waitUntilTaskCompletes').mockReturnValue(new Promise(() => undefined));
+      renderModal(command, { serverGroupWriter: { cloneServerGroup: writer } });
+      expect(await screen.findByRole('button', { name: 'Done' })).toBeEnabled();
 
-      modal.submit();
+      fireEvent.change(screen.getByLabelText('Detail'), { target: { value: `${mode}-detail` } });
+      fireEvent.click(screen.getByRole('button', { name: 'Done' }));
 
-      expect(monitorSubmit).toHaveBeenCalled();
-      expect(cloneServerGroup).toHaveBeenCalledWith(modal.state.command, props.application);
-      expect(props.closeModal).not.toHaveBeenCalled();
+      await waitFor(() =>
+        expect(writer).toHaveBeenCalledWith(
+          expect.objectContaining({ freeFormDetails: `${mode}-detail` }),
+          application,
+        ),
+      );
     });
   });
 
-  it('refreshes server groups and navigates to the created group from task and command identity', () => {
-    const command = buildCommand({
-      credentials: 'ecs-account',
-      region: 'eu-west-1',
-      viewState: { contextImages: [], dirty: {}, mode: 'create' } as any,
-    });
-    const props = buildProps(command);
-    const modal = new EcsCloneServerGroupModal(props) as any;
-    modal.state.taskMonitor.task = {
+  it('refreshes server groups and navigates to the created group through TaskMonitor completion', async () => {
+    const task = {
       execution: {
-        stages: [
-          {
-            context: { 'deploy.server.groups': { 'eu-west-1': 'app-main-v042' } },
-            type: 'cloneServerGroup',
-          },
-        ],
+        stages: [{ context: { 'deploy.server.groups': { 'eu-west-1': 'app-main-v042' } }, type: 'cloneServerGroup' }],
       },
-    };
-    const state = {
+      id: 'task',
+    } as any;
+    const writer = vi.fn().mockResolvedValue(task);
+    vi.spyOn(TaskReader, 'waitUntilTaskCompletes').mockResolvedValue(task);
+    const refreshCallbacks: Array<() => void> = [];
+    application.serverGroups.onNextRefresh.mockImplementation((callback: () => void) => {
+      refreshCallbacks.push(callback);
+      return vi.fn();
+    });
+    const stateService = {
       go: vi.fn(),
-      includes: vi.fn().mockImplementation((name: string) => name === '**.clusters'),
+      includes: vi.fn((name: string) => name === '**.clusters'),
     };
-    props.stateService = state;
+    renderModal(buildCommand(), { serverGroupWriter: { cloneServerGroup: writer } }, { stateService });
+    expect(await screen.findByRole('button', { name: 'Done' })).toBeEnabled();
 
-    modal.onTaskComplete();
+    fireEvent.click(screen.getByRole('button', { name: 'Done' }));
+    await waitFor(() => expect(application.serverGroups.refresh).toHaveBeenCalled());
+    refreshCallbacks[0]();
 
-    expect(props.application.serverGroups.refresh).toHaveBeenCalled();
-    expect(props.application.serverGroups.onNextRefresh).toHaveBeenCalledWith(modal.onApplicationRefresh);
-
-    const refreshCallback = props.application.serverGroups.onNextRefresh.mock.lastCall[0];
-    refreshCallback();
-
-    expect(state.includes).toHaveBeenCalledWith('**.clusters');
-    expect(state.go).toHaveBeenCalledWith('.serverGroup', {
-      accountId: 'ecs-account',
+    expect(stateService.go).toHaveBeenCalledWith('.serverGroup', {
+      accountId: 'account-a',
       provider: 'ecs',
       region: 'eu-west-1',
       serverGroup: 'app-main-v042',
     });
   });
 
-  it('owns its refresh subscription across replacement and unmount', () => {
-    const props = buildProps(buildCommand());
-    const firstUnsubscribe = vi.fn();
-    const secondUnsubscribe = vi.fn();
+  it('owns the TaskMonitor refresh subscription after public submission and unmount', async () => {
+    const unsubscribe = vi.fn();
     const callbacks: Array<() => void> = [];
-    props.application.serverGroups.onNextRefresh.mockImplementation((callback: () => void) => {
+    application.serverGroups.onNextRefresh.mockImplementation((callback: () => void) => {
       callbacks.push(callback);
-      return callbacks.length === 1 ? firstUnsubscribe : secondUnsubscribe;
+      return unsubscribe;
     });
-    props.stateService = { go: vi.fn(), includes: vi.fn() };
-    const modal = new EcsCloneServerGroupModal(props) as any;
+    const stateService = { go: vi.fn(), includes: vi.fn() };
+    const task = { execution: { stages: [] }, id: 'task' } as any;
+    vi.spyOn(TaskReader, 'waitUntilTaskCompletes').mockResolvedValue(task);
+    const writer = vi.fn().mockResolvedValue(task);
+    const rendered = renderModal(buildCommand(), { serverGroupWriter: { cloneServerGroup: writer } }, { stateService });
+    expect(await screen.findByRole('button', { name: 'Done' })).toBeEnabled();
 
-    modal.onTaskComplete();
+    fireEvent.click(screen.getByRole('button', { name: 'Done' }));
+    await waitFor(() => expect(application.serverGroups.refresh).toHaveBeenCalledOnce());
+    rendered.unmount();
+    callbacks[0]();
 
-    expect(props.application.serverGroups.onNextRefresh.mock.invocationCallOrder[0]).toBeLessThan(
-      props.application.serverGroups.refresh.mock.invocationCallOrder[0],
-    );
-
-    modal.onTaskComplete();
-
-    expect(firstUnsubscribe).toHaveBeenCalledTimes(1);
-
-    modal.componentWillUnmount();
-    callbacks[1]();
-
-    expect(secondUnsubscribe).toHaveBeenCalledTimes(1);
-    expect(modal.applicationRefreshUnsubscribe).toBeUndefined();
-    expect(props.stateService.go).not.toHaveBeenCalled();
+    expect(unsubscribe).toHaveBeenCalledOnce();
+    expect(stateService.go).not.toHaveBeenCalled();
   });
 
   it('retains modal command state when ad-hoc submission fails', async () => {
     const command = buildCommand({ viewState: { contextImages: [], dirty: {}, mode: 'create' } as any });
-    const props = buildProps(command);
-    const modal = new EcsCloneServerGroupModal(props) as any;
-    const cloneServerGroup = vi
-      .fn()
-      .mockImplementation(() => Promise.reject({ failureMessage: 'create failed' }) as any);
-    modal.context = { services: { serverGroupWriter: { cloneServerGroup } } };
-    const errorPublished = new Promise<void>((resolve) => {
-      const subscription = modal.state.taskMonitor.statusUpdatedStream.subscribe(() => {
-        if (modal.state.taskMonitor.error) {
-          subscription.unsubscribe();
-          resolve();
-        }
-      });
-    });
+    const writer = vi.fn().mockRejectedValue({ failureMessage: 'create failed' });
+    const rendered = renderModal(command, { serverGroupWriter: { cloneServerGroup: writer } });
+    expect(await screen.findByRole('button', { name: 'Done' })).toBeEnabled();
 
-    modal.submit();
-    await errorPublished;
+    fireEvent.click(screen.getByRole('button', { name: 'Done' }));
 
-    expect(modal.state.taskMonitor.error).toBe(true);
-    expect(modal.state.taskMonitor.errorMessage).toBe('create failed');
-    expect(modal.state.command).toBe(command);
-    expect(props.closeModal).not.toHaveBeenCalled();
-    expect(props.dismissModal).not.toHaveBeenCalled();
+    expect(await screen.findByText('create failed')).toBeInTheDocument();
+    expect(rendered.props.closeModal).not.toHaveBeenCalled();
+    expect(rendered.props.dismissModal).not.toHaveBeenCalled();
   });
 
-  it('renders task submission and failure status inside the modal', () => {
-    const wrapper = shallow(<EcsCloneServerGroupModal {...buildProps(buildCommand())} />, {
-      disableLifecycleMethods: true,
-    } as any);
+  it('renders actual task submission status inside the WizardModal', async () => {
+    const task = deferred<any>();
+    renderModal(buildCommand(), { serverGroupWriter: { cloneServerGroup: () => task.promise } });
+    expect(await screen.findByRole('button', { name: 'Done' })).toBeEnabled();
 
-    expect(wrapper.find(WizardModal).prop('taskMonitor')).toBe(wrapper.state('taskMonitor'));
+    fireEvent.click(screen.getByRole('button', { name: 'Done' }));
+
+    expect(await screen.findByText('Creating your server group')).toBeInTheDocument();
   });
 
-  it('renders the legacy eight-page WizardModal grouping', () => {
+  it('renders the legacy eight-page grouping through the actual WizardModal', async () => {
     const command = buildCommand({ useTaskDefinitionArtifact: false });
-    const wrapper = shallow(<EcsCloneServerGroupModal {...buildProps(command)} />, {
-      disableLifecycleMethods: true,
-    } as any);
-    wrapper.setState({ loaded: true });
-
-    const wizardModal = wrapper.find(WizardModal);
-    expect(wizardModal.exists()).toBe(true);
-
-    const pageTree = shallow(
-      <div>
-        {wizardModal.prop('render')({
-          formik: { values: command } as any,
-          nextIdx: (() => {
-            let index = 0;
-            return () => ++index;
-          })(),
-          wizard: {} as any,
-        })}
-      </div>,
-    );
-
-    expect(pageTree.find(WizardPage).map((page) => page.prop('label'))).toEqual([
+    renderModal(command);
+    expect(await screen.findByRole('heading', { name: 'Basic Settings' })).toBeInTheDocument();
+    expect(screen.getAllByRole('heading', { level: 4 }).map((heading) => heading.textContent)).toEqual([
+      'Deploy ECS server group',
       'Basic Settings',
       'Networking',
       'Task Definition',
@@ -882,516 +640,336 @@ describe('EcsCloneServerGroupModal', () => {
     ]);
   });
 
-  it('validates required location, task source, and populated mapping fields', () => {
+  it('validates required location, task source, and populated mapping fields through the actual WizardModal', async () => {
     const command = buildCommand({
-      capacity: { desired: 1, max: 2, min: 0 },
       credentials: '',
       ecsClusterName: '',
-      freeFormDetails: '',
       region: '',
-      stack: '',
       taskDefinitionArtifact: {},
       useTaskDefinitionArtifact: true,
+      containerMappings: [{ containerName: '', imageDescription: {} } as any],
+      targetGroupMappings: [{ containerName: '', containerPort: '' as any, targetGroup: '' }],
+      serviceDiscoveryAssociations: [
+        { containerName: '', containerPort: '', registry: { displayName: '', id: '' } } as any,
+      ],
     });
-    const wrapper = shallow(<EcsCloneServerGroupModal {...buildProps(command)} />, {
-      disableLifecycleMethods: true,
-    } as any);
-    const validate = wrapper.find(WizardModal).prop('validate');
+    const rendered = renderModal(command);
+    expect(await screen.findByRole('heading', { name: 'Basic Settings' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Done' })).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: 'Done' }));
+    expect(rendered.props.closeModal).not.toHaveBeenCalled();
 
-    const requiredErrors = validate(command);
-    expect(requiredErrors.credentials).toBeTruthy();
-    expect(requiredErrors.region).toBeTruthy();
-    expect(requiredErrors.ecsClusterName).toBeTruthy();
-    expect(requiredErrors.taskDefinitionArtifact).toBeTruthy();
-
-    const artifactMappingErrors = validate({
-      ...command,
-      containerMappings: [{ containerName: '', imageDescription: {} }],
-      credentials: 'account',
-      ecsClusterName: 'cluster',
-      region: 'eu-west-1',
-      serviceDiscoveryAssociations: [{ containerName: '', containerPort: NaN, registry: {} }],
-      targetGroupMappings: [{ containerName: '', containerPort: NaN, targetGroup: '' }],
-      taskDefinitionArtifact: { artifactId: 'artifact-id' },
-    } as any);
-    expect(artifactMappingErrors.containerMappings[0].containerName).toBeTruthy();
-    expect(artifactMappingErrors.containerMappings[0].imageDescription).toBeTruthy();
-    expect(artifactMappingErrors.targetGroupMappings[0].containerName).toBeTruthy();
-    expect(artifactMappingErrors.targetGroupMappings[0].targetGroup).toBeTruthy();
-    expect(artifactMappingErrors.targetGroupMappings[0].containerPort).toBeTruthy();
-    expect(artifactMappingErrors.serviceDiscoveryAssociations[0].containerName).toBeTruthy();
-    expect(artifactMappingErrors.serviceDiscoveryAssociations[0].registry).toBeTruthy();
-    expect(artifactMappingErrors.serviceDiscoveryAssociations[0].containerPort).toBeTruthy();
-
-    const inputErrors = validate({
-      ...command,
-      credentials: 'account',
-      ecsClusterName: 'cluster',
-      imageDescription: {},
-      region: 'eu-west-1',
-      serviceDiscoveryAssociations: [{ containerName: null, containerPort: NaN, registry: {} }],
-      targetGroupMappings: [{ containerName: null, containerPort: NaN, targetGroup: '' }],
-      useTaskDefinitionArtifact: false,
-    } as any);
-    expect(inputErrors.imageDescription.imageId).toBeTruthy();
-    expect(inputErrors.targetGroupMappings[0].containerName).toBeUndefined();
-    expect(inputErrors.targetGroupMappings[0].targetGroup).toBeTruthy();
-    expect(inputErrors.serviceDiscoveryAssociations[0].containerName).toBeUndefined();
+    const errors = validateEcsServerGroup(command);
+    expect(errors).toEqual(
+      expect.objectContaining({
+        credentials: expect.any(String),
+        ecsClusterName: expect.any(String),
+        region: expect.any(String),
+      }),
+    );
+    expect(errors.containerMappings[0]).toEqual(
+      expect.objectContaining({ containerName: expect.any(String), imageDescription: expect.any(String) }),
+    );
+    expect(errors.targetGroupMappings[0]).toEqual(
+      expect.objectContaining({
+        containerName: expect.any(String),
+        containerPort: expect.any(String),
+        targetGroup: expect.any(String),
+      }),
+    );
+    expect(errors.serviceDiscoveryAssociations[0]).toEqual(
+      expect.objectContaining({
+        containerName: expect.any(String),
+        containerPort: expect.any(String),
+        registry: expect.any(String),
+      }),
+    );
   });
 
-  it('validates naming patterns and finite ordered capacity through page refs', () => {
+  it('validates naming patterns and finite ordered capacity through production validators', () => {
     const command = buildCommand({
-      capacity: { desired: Infinity, max: 1.5, min: NaN },
       credentials: 'account',
       ecsClusterName: 'cluster',
       freeFormDetails: 'detail!',
+      launchType: 'FARGATE',
       region: 'eu-west-1',
       stack: 'main-stack',
-      taskDefinitionArtifact: { artifactId: 'artifact-id' },
+      taskDefinitionArtifact: { artifactId: 'id' },
+      useTaskDefinitionArtifact: true,
+      capacity: { desired: Infinity, max: 1.5, min: NaN },
+    });
+    const errors = validateEcsServerGroup(command);
+    expect(errors).toEqual(expect.objectContaining({ stack: expect.any(String), freeFormDetails: expect.any(String) }));
+    expect(errors.capacity).toEqual(
+      expect.objectContaining({ desired: expect.any(String), max: expect.any(String), min: expect.any(String) }),
+    );
+  });
+
+  it('requires a task definition artifact only when artifact mode is selected', () => {
+    const artifactCommand = buildCommand({ taskDefinitionArtifact: {}, useTaskDefinitionArtifact: true });
+
+    expect(validateEcsTaskDefinition(artifactCommand)).toEqual({
+      taskDefinitionArtifact: 'Task definition artifact is required.',
+    });
+    expect(validateEcsTaskDefinition({ ...artifactCommand, useTaskDefinitionArtifact: false })).toEqual({});
+  });
+
+  it('accepts a complete task definition artifact command', () => {
+    const command = buildCommand({
+      containerMappings: [{ containerName: 'api', imageDescription: { imageId: 'registry/api:v1' } } as any],
+      targetGroupMappings: [{ containerName: 'api', containerPort: 8080, targetGroup: 'api-target' }],
+      taskDefinitionArtifact: { artifactId: 'task-definition' },
       useTaskDefinitionArtifact: true,
     });
-    const wrapper = shallow(<EcsCloneServerGroupModal {...buildProps(command)} />, {
-      disableLifecycleMethods: true,
-    } as any);
-    const wizardModal = wrapper.find(WizardModal);
-    const validate = wizardModal.prop('validate');
-    const errors = validate(command);
-    expect(errors.stack).toBeTruthy();
-    expect(errors.freeFormDetails).toBeTruthy();
-    expect(errors.capacity.min).toBeTruthy();
-    expect(errors.capacity.desired).toBeTruthy();
-    expect(errors.capacity.max).toBeTruthy();
 
-    const validCommand = {
-      ...command,
-      capacity: { desired: 2, max: 3, min: 1 },
-      freeFormDetails: 'detail-one_1.0',
-      launchType: 'FARGATE',
-      stack: 'main_stack.1',
-    } as IEcsServerGroupCommand;
-    expect(validate(validCommand)).toEqual({});
+    expect(validateEcsTaskDefinition(command)).toEqual({});
+    expect(validateEcsServerGroup(command)).toEqual({});
+  });
 
-    const relationshipErrors = validate({ ...validCommand, capacity: { desired: 4, max: 3, min: 2 } });
-    expect(relationshipErrors.capacity.desired).toBeTruthy();
-    const reversedErrors = validate({ ...validCommand, capacity: { desired: 2, max: 1, min: 3 } });
-    expect(reversedErrors.capacity.min).toBeTruthy();
+  it.each([
+    [
+      { min: 3, desired: 3, max: 2 },
+      {
+        min: 'Minimum capacity cannot exceed maximum capacity.',
+        desired: 'Desired capacity must be between minimum and maximum capacity.',
+      },
+    ],
+    [{ min: 1, desired: 0, max: 3 }, { desired: 'Desired capacity must be between minimum and maximum capacity.' }],
+    [{ min: 1, desired: 4, max: 3 }, { desired: 'Desired capacity must be between minimum and maximum capacity.' }],
+  ])('rejects unordered capacity %o with the exact relationship error', (capacity, expected) => {
+    expect(validateEcsCapacity(buildCommand({ capacity })).capacity).toEqual(expected);
+  });
 
-    const pageTree = shallow(
-      <div>
-        {wizardModal.prop('render')({
-          formik: { values: validCommand } as any,
-          nextIdx: (() => {
-            let index = 0;
-            return () => ++index;
-          })(),
-          wizard: {
-            onWizardPageAdded: () => undefined,
-            onWizardPageRemoved: () => undefined,
-            onWizardPageStateChanged: () => undefined,
-          },
-        })}
-      </div>,
-    );
-    const capacityPage = pageTree
-      .find(WizardPage)
-      .filterWhere((page) => page.prop('label') === 'Horizontal Scaling')
-      .getElement();
-    const mountedPage = mount(capacityPage);
-    const pageErrors = (mountedPage.instance() as WizardPage<IEcsServerGroupCommand>).validate(command);
-    expect(pageErrors.capacity.min).toBeTruthy();
-    expect(pageErrors.capacity.desired).toBeTruthy();
-    expect(pageErrors.capacity.max).toBeTruthy();
-    mountedPage.unmount();
+  it('accepts capacity ordered as minimum, desired, maximum', () => {
+    expect(validateEcsCapacity(buildCommand({ capacity: { min: 1, desired: 2, max: 3 } })).capacity).toBeUndefined();
   });
 
   it('requires a launch type in launch type compute mode', () => {
-    const command = buildCommand({
-      capacity: { desired: 1, max: 2, min: 0 },
-      computeOption: 'launchType',
-      credentials: 'account',
-      ecsClusterName: 'cluster',
-      launchType: '',
-      region: 'eu-west-1',
-      taskDefinitionArtifact: { artifactId: 'artifact-id' },
-      useTaskDefinitionArtifact: true,
-    });
-    const wrapper = shallow(<EcsCloneServerGroupModal {...buildProps(command)} />, {
-      disableLifecycleMethods: true,
-    } as any);
-    const validate = wrapper.find(WizardModal).prop('validate');
-
-    expect(validate(command).launchType).toBeTruthy();
-    expect(validate({ ...command, launchType: 'FARGATE' }).launchType).toBeUndefined();
+    const command = buildCommand({ computeOption: 'launchType', launchType: '' });
+    expect(validateEcsCapacity(command).launchType).toBeTruthy();
+    expect(validateEcsCapacity({ ...command, launchType: 'FARGATE' }).launchType).toBeUndefined();
   });
 
   it('requires a usable default strategy in default capacity provider mode', () => {
-    const command = buildCommand({
-      backingData: {
-        ...buildCommand().backingData,
-        filtered: { ...buildCommand().backingData.filtered, defaultCapacityProviderStrategy: [] },
-      },
-      capacity: { desired: 1, max: 2, min: 0 },
-      computeOption: 'capacityProviders',
-      credentials: 'account',
-      ecsClusterName: 'cluster',
-      region: 'eu-west-1',
-      taskDefinitionArtifact: { artifactId: 'artifact-id' },
-      useDefaultCapacityProviders: true,
-      useTaskDefinitionArtifact: true,
-    });
-    const wrapper = shallow(<EcsCloneServerGroupModal {...buildProps(command)} />, {
-      disableLifecycleMethods: true,
-    } as any);
-    const validate = wrapper.find(WizardModal).prop('validate');
-
-    expect(validate(command).capacityProviderStrategy).toBeTruthy();
-    expect(
-      validate({
-        ...command,
-        backingData: {
-          ...command.backingData,
-          filtered: {
-            ...command.backingData.filtered,
-            defaultCapacityProviderStrategy: [{ base: -1, capacityProvider: '', weight: NaN }],
-          },
-        },
-      }).capacityProviderStrategy,
-    ).toBeTruthy();
-    expect(
-      validate({
-        ...command,
-        backingData: {
-          ...command.backingData,
-          filtered: {
-            ...command.backingData.filtered,
-            defaultCapacityProviderStrategy: [{ base: 0, capacityProvider: 'FARGATE', weight: 1 }],
-          },
-        },
-      }).capacityProviderStrategy,
-    ).toBeUndefined();
+    const command = buildCommand({ computeOption: 'capacityProviders', useDefaultCapacityProviders: true });
+    expect(validateEcsCapacity(command).capacityProviderStrategy).toBeTruthy();
+    command.backingData.filtered.defaultCapacityProviderStrategy = [
+      { base: 0, capacityProvider: 'FARGATE', weight: 1 },
+    ];
+    expect(validateEcsCapacity(command).capacityProviderStrategy).toBeUndefined();
   });
 
   it('validates every custom capacity provider strategy row', () => {
     const command = buildCommand({
-      capacity: { desired: 1, max: 2, min: 0 },
-      capacityProviderStrategy: [],
       computeOption: 'capacityProviders',
-      credentials: 'account',
-      ecsClusterName: 'cluster',
-      region: 'eu-west-1',
-      taskDefinitionArtifact: { artifactId: 'artifact-id' },
       useDefaultCapacityProviders: false,
-      useTaskDefinitionArtifact: true,
-    });
-    const wrapper = shallow(<EcsCloneServerGroupModal {...buildProps(command)} />, {
-      disableLifecycleMethods: true,
-    } as any);
-    const validate = wrapper.find(WizardModal).prop('validate');
-
-    expect(validate(command).capacityProviderStrategy).toBeTruthy();
-
-    const errors = validate({
-      ...command,
       capacityProviderStrategy: [
         { base: -1, capacityProvider: '', weight: Infinity },
         { base: 1.5, capacityProvider: 'FARGATE', weight: NaN },
       ],
-    } as any).capacityProviderStrategy;
-    expect(errors[0].capacityProvider).toBeTruthy();
-    expect(errors[0].base).toBeTruthy();
-    expect(errors[0].weight).toBeTruthy();
-    expect(errors[1].capacityProvider).toBeUndefined();
-    expect(errors[1].base).toBeTruthy();
-    expect(errors[1].weight).toBeTruthy();
-
-    expect(
-      validate({
-        ...command,
-        capacityProviderStrategy: [{ base: 0, capacityProvider: 'FARGATE', weight: 1 }],
-      }).capacityProviderStrategy,
-    ).toBeUndefined();
+    });
+    const errors = validateEcsCapacity(command).capacityProviderStrategy;
+    expect(errors[0]).toEqual(
+      expect.objectContaining({
+        base: expect.any(String),
+        capacityProvider: expect.any(String),
+        weight: expect.any(String),
+      }),
+    );
+    expect(errors[1]).toEqual(expect.objectContaining({ base: expect.any(String), weight: expect.any(String) }));
   });
 
-  it('does not submit the wizard from add, remove, or option buttons', () => {
+  it('does not submit the wizard from add, remove, or option buttons', async () => {
     const command = buildCommand({
       backingData: {
+        ...buildCommand().backingData,
         filtered: {
+          ...buildCommand().backingData.filtered,
           availableCapacityProviders: ['FARGATE'],
-          defaultCapacityProviderStrategy: [],
-          images: [],
-          serviceDiscoveryRegistries: [{ displayName: 'registry', id: 'registry' }],
-          targetGroups: ['target-group'],
+          serviceDiscoveryRegistries: [{ displayName: 'registry', id: 'id' }],
+          targetGroups: ['target'],
         },
-        networkModes: [],
       } as any,
-      capacityProviderStrategy: [{ base: 0, capacityProvider: 'FARGATE', weight: 1 }],
+      computeOption: 'capacityProviders',
       credentials: 'account',
       ecsClusterName: 'cluster',
-      placementConstraints: [{}],
-      region: 'eu-west-1',
-      serviceDiscoveryAssociations: [
-        { containerName: 'api', containerPort: 8080, registry: { displayName: 'registry', id: 'registry' } } as any,
-      ],
-      targetGroupMappings: [{ containerName: 'api', containerPort: 8080, targetGroup: 'target-group' }],
+      region: 'eu',
+      capacityProviderStrategy: [{ base: 0, capacityProvider: 'FARGATE', weight: 1 }],
       useDefaultCapacityProviders: false,
-      useTaskDefinitionArtifact: true,
-      viewState: { contextImages: [], currentStage: {}, dirty: {}, pipeline: {} } as any,
     });
-    const childProps = {
-      command,
-      configureCommand: () => Promise.resolve(),
-      onFieldChange: vi.fn(),
-    };
-    const capacityProvider = shallow(<EcsCapacityProvider {...childProps} />, {
-      disableLifecycleMethods: true,
-    } as any);
-    capacityProvider.setState({ activeCapacityProviderIndex: 0, capacityProviderLoadedFlag: true });
-    const wrappers = [
-      shallow(<Container {...childProps} />, { disableLifecycleMethods: true } as any),
-      shallow(<TaskDefinition {...childProps} />, { disableLifecycleMethods: true } as any),
-      shallow(<ServiceDiscovery {...childProps} />, { disableLifecycleMethods: true } as any),
-      capacityProvider,
-      shallow(
-        <AdvancedSettings
-          application={buildProps(command).application}
-          command={command}
-          configureCommand={() => Promise.resolve()}
-          onFieldChange={vi.fn()}
-        />,
-      ),
-    ];
-
-    const buttons = wrappers.flatMap((wrapper) => wrapper.find('button').getElements());
-    expect(buttons.length).toBeGreaterThan(0);
-    buttons.forEach((button) => expect(button.props.type).toBe('button'));
+    await renderCapacityProvider(command);
+    expect(screen.getAllByRole('button').length).toBeGreaterThan(0);
+    screen.getAllByRole('button').forEach((button) => expect(button).toHaveAttribute('type', 'button'));
   });
 
-  it('restores Basic Settings account, region, cluster, naming, and strategy controls', () => {
+  it('restores Basic Settings account, region, cluster, naming, and strategy controls', async () => {
+    const onFieldChange = vi.fn();
     const command = buildCommand({
       backingData: {
         accounts: ['account-a', 'account-b'],
-        filtered: {
-          ecsClusters: ['available-cluster', 'persisted-cluster'],
-          regions: [{ name: 'eu-west-1' }, { name: 'us-east-1' }],
-        },
+        filtered: { ecsClusters: ['cluster'], regions: [{ name: 'eu-west-1' }] },
       } as any,
       credentials: 'account-a',
-      ecsClusterName: 'persisted-cluster',
+      ecsClusterName: 'cluster',
       freeFormDetails: 'api',
       region: 'eu-west-1',
       selectedProvider: 'ecs',
       stack: 'prod',
-      viewState: { contextImages: [], dirty: {}, disableStrategySelection: false } as any,
     });
-    const onFieldChange = vi.fn();
-    const wrapper = shallow(
-      React.createElement(BasicSettings as any, {
-        application: buildProps(command).application,
-        command,
-        onFieldChange,
-      }),
-    );
+    const rendered = render(<BasicSettings {...pageProps(command, onFieldChange)} />);
+    await waitFor(() => expect(screen.getByLabelText('Account')).toHaveValue('account-a'));
+    expect(screen.getByLabelText('Region')).toHaveValue('eu-west-1');
+    expect(screen.getByLabelText('ECS Cluster name')).toHaveValue('cluster');
+    expect(screen.getByLabelText('Stack')).toHaveValue('prod');
+    expect(screen.getByLabelText('Detail')).toHaveValue('api');
 
-    expect(wrapper.find(AccountSelectInput).prop('value')).toBe('account-a');
-    expect(wrapper.find(RegionSelectInput).prop('value')).toBe('eu-west-1');
-    expect(findByTestId(wrapper, 'ServerGroup.clusterName').prop('value')).toBe('persisted-cluster');
-    expect(findByTestId(wrapper, 'ServerGroup.stack').prop('value')).toBe('prod');
-    expect(findByTestId(wrapper, 'ServerGroup.details').prop('value')).toBe('api');
-    expect(wrapper.find(DeploymentStrategySelector).exists()).toBe(true);
-
-    wrapper.find(AccountSelectInput).prop('onChange')({ target: { value: 'account-b' } } as any);
-    wrapper.find(RegionSelectInput).prop('onChange')({ target: { value: 'us-east-1' } } as any);
-    findByTestId(wrapper, 'ServerGroup.clusterName').simulate('change', { target: { value: 'available-cluster' } });
+    fireEvent.change(screen.getByLabelText('Account'), { target: { value: 'account-b' } });
+    fireEvent.change(screen.getByLabelText('Region'), { target: { value: 'eu-west-1' } });
+    fireEvent.change(screen.getByLabelText('ECS Cluster name'), { target: { value: 'cluster' } });
+    fireEvent.change(screen.getByLabelText('Stack'), { target: { value: 'next' } });
+    fireEvent.change(screen.getByLabelText('Detail'), { target: { value: 'worker' } });
+    const strategyControl = rendered.container.querySelector('.Select-control') as HTMLElement;
+    expect(strategyControl).toBeInTheDocument();
+    fireEvent.mouseDown(strategyControl);
+    fireEvent.mouseDown(await screen.findByRole('option', { name: 'Highlander' }));
 
     expect(onFieldChange).toHaveBeenCalledWith('credentials', 'account-b');
-    expect(onFieldChange).toHaveBeenCalledWith('region', 'us-east-1');
-    expect(onFieldChange).toHaveBeenCalledWith('ecsClusterName', 'available-cluster');
+    expect(onFieldChange).toHaveBeenCalledWith('region', 'eu-west-1');
+    expect(onFieldChange).toHaveBeenCalledWith('ecsClusterName', 'cluster');
+    expect(onFieldChange).toHaveBeenCalledWith('stack', 'next');
+    expect(onFieldChange).toHaveBeenCalledWith('freeFormDetails', 'worker');
+    expect(onFieldChange).toHaveBeenCalledWith('strategy', 'highlander');
   });
 
   it('restores Networking VPC subnet and security-group controls without hiding persisted references', () => {
     const command = buildCommand({
-      associatePublicIpAddress: false,
       backingData: {
         filtered: {
           securityGroupNames: ['available-sg'],
           subnetTypes: [{ purpose: 'available-subnet', vpcId: 'vpc-1' }],
         },
-        networkModes: ['bridge', 'awsvpc'],
+        networkModes: ['awsvpc'],
       } as any,
       networkMode: 'awsvpc',
       securityGroupNames: ['persisted-sg'],
       subnetTypes: ['persisted-subnet'],
     });
-    const onFieldChange = vi.fn();
-    const configureCommand = vi.fn().mockReturnValue(Promise.resolve());
-    const page = shallow(
-      React.createElement(NetworkingSettings as any, {
-        application: buildProps(command).application,
-        command,
-        configureCommand,
-        onFieldChange,
-      }),
-    );
-
-    expect(page.find(EcsNetworking).exists()).toBe(true);
-    const networking = shallow(page.find(EcsNetworking).getElement());
-    const subnetOptions = findByTestId(networking, 'Networking.subnetType').find(TetheredSelect).prop('options');
-    const securityGroupOptions = findByTestId(networking, 'Networking.securityGroups')
-      .find(TetheredSelect)
-      .prop('options');
-
-    expect(subnetOptions.map((option: any) => option.value)).toEqual(['available-subnet', 'persisted-subnet']);
-    expect(securityGroupOptions.map((option: any) => option.value)).toEqual(['available-sg', 'persisted-sg']);
+    render(<EcsNetworking {...pageProps(command)} />);
+    expect(screen.getByLabelText('Network mode')).toBeInTheDocument();
+    expect(screen.getByLabelText('VPC subnet')).toBeInTheDocument();
+    expect(screen.getByLabelText('Security groups')).toBeInTheDocument();
+    expect(screen.getByText('persisted-subnet (unavailable)')).toBeInTheDocument();
+    expect(screen.getByText('persisted-sg')).toBeInTheDocument();
   });
 
-  it('restores Task Definition source, artifact mappings, and persisted target groups', () => {
+  it('restores the actual Task Definition source, artifact mappings, and persisted target groups', async () => {
+    const onFieldChange = vi.fn();
     const command = buildCommand({
       backingData: {
-        filtered: {
-          images: [],
-          targetGroups: ['available-target'],
-        },
+        filtered: { images: [{ imageId: 'registry/api:latest' }], targetGroups: ['available-target'] },
       } as any,
-      containerMappings: [],
+      containerMappings: [{ containerName: 'api', imageDescription: { imageId: 'registry/api:latest' } } as any],
       targetGroupMappings: [{ containerName: 'api', containerPort: 8080, targetGroup: 'persisted-target' }],
-      taskDefinitionArtifact: {},
+      taskDefinitionArtifact: { artifactId: 'task-definition' },
       useTaskDefinitionArtifact: true,
-      viewState: {
-        contextImages: [],
-        currentStage: {},
-        dirty: {},
-        mode: 'editPipeline',
-        pipeline: {},
-      } as any,
     });
-    const onFieldChange = vi.fn();
-    const configureCommand = vi.fn().mockReturnValue(Promise.resolve());
-    const page = shallow(
-      React.createElement(TaskDefinitionSettings as any, {
-        application: buildProps(command).application,
-        command,
-        configureCommand,
-        onFieldChange,
-      }),
+    render(<TaskDefinitionSettings {...pageProps(command, onFieldChange)} />);
+    expect(screen.getByLabelText('Artifact')).toBeChecked();
+    expect(screen.getByLabelText('Container name 1')).toHaveValue('api');
+    expect(screen.getByLabelText('Container image 1')).toBeInTheDocument();
+    expect(screen.getByLabelText('Target group container name 1')).toHaveValue('api');
+    expect(screen.getByLabelText('Target group 1')).toBeInTheDocument();
+    expect(screen.getByLabelText('Target port 1')).toHaveValue(8080);
+    expect(await screen.findByText('persisted-target')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Container name 1'), { target: { value: 'worker' } });
+    fireEvent.change(screen.getByLabelText('Target port 1'), { target: { value: '9090' } });
+    expect(onFieldChange).toHaveBeenCalledWith(
+      'containerMappings',
+      expect.arrayContaining([expect.objectContaining({ containerName: 'worker' })]),
     );
-
-    expect(findByTestId(page, 'ServerGroup.useInputs').prop('checked')).toBe(false);
-    expect(findByTestId(page, 'ServerGroup.useArtifacts').prop('checked')).toBe(true);
-    expect(page.find(TaskDefinition).exists()).toBe(true);
-
-    findByTestId(page, 'ServerGroup.useInputs').simulate('change');
-    expect(onFieldChange).toHaveBeenCalledWith('useTaskDefinitionArtifact', false);
-
-    const taskDefinition = shallow(page.find(TaskDefinition).getElement());
-    const targetOptions = findByTestId(taskDefinition, 'Artifacts.targetGroup').find(TetheredSelect).prop('options');
-    expect(targetOptions.map((option: any) => option.value)).toEqual(['available-target', 'persisted-target']);
+    expect(onFieldChange).toHaveBeenCalledWith(
+      'targetGroupMappings',
+      expect.arrayContaining([expect.objectContaining({ containerPort: 9090 })]),
+    );
   });
 
   it('restores Container image, resources, and persisted target-group mappings', () => {
+    const onFieldChange = vi.fn();
     const command = buildCommand({
       backingData: {
-        filtered: {
-          images: [{ imageId: 'registry/api:latest' }],
-          targetGroups: ['available-target'],
-        },
+        filtered: { images: [{ imageId: 'registry/api:latest' }], targetGroups: ['available-target'] },
       } as any,
       computeUnits: 512,
       imageDescription: { imageId: 'registry/api:latest' } as any,
       reservedMemory: 1024,
       targetGroupMappings: [{ containerName: '', containerPort: 8080, targetGroup: 'persisted-target' }],
     });
-    const onFieldChange = vi.fn();
-    const page = shallow(
-      React.createElement(ContainerSettings as any, {
-        application: buildProps(command).application,
-        command,
-        configureCommand: vi.fn().mockReturnValue(Promise.resolve()),
-        onFieldChange,
-      }),
+    render(<Container {...pageProps(command, onFieldChange)} />);
+    expect(screen.getByLabelText('Container image')).toBeInTheDocument();
+    expect(screen.getByLabelText('Compute units')).toHaveValue(512);
+    expect(screen.getByLabelText('Reserved memory')).toHaveValue(1024);
+    expect(screen.getByLabelText('Target group 1')).toBeInTheDocument();
+    expect(screen.getByLabelText('Target port 1')).toHaveValue(8080);
+    expect(screen.getByText('persisted-target')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Compute units'), { target: { value: '256' } });
+    fireEvent.change(screen.getByLabelText('Reserved memory'), { target: { value: '512' } });
+    fireEvent.change(screen.getByLabelText('Target port 1'), { target: { value: '9090' } });
+    expect(onFieldChange).toHaveBeenCalledWith('computeUnits', 256);
+    expect(onFieldChange).toHaveBeenCalledWith('reservedMemory', 512);
+    expect(onFieldChange).toHaveBeenCalledWith(
+      'targetGroupMappings',
+      expect.arrayContaining([expect.objectContaining({ containerPort: 9090 })]),
     );
-
-    expect(page.find(Container).exists()).toBe(true);
-    const container = shallow(page.find(Container).getElement());
-    expect(findByTestId(container, 'ContainerInputs.containerImage').exists()).toBe(true);
-    expect(findByTestId(container, 'ContainerInputs.computeUnits').prop('value')).toBe(512);
-    expect(findByTestId(container, 'ContainerInputs.reservedMemory').prop('value')).toBe(1024);
-    const targetOptions = findByTestId(container, 'ContainerInputs.targetGroup').find(TetheredSelect).prop('options');
-    expect(targetOptions.map((option: any) => option.value)).toEqual(['available-target', 'persisted-target']);
   });
 
   it('restores Horizontal Scaling compute mode, capacity, and source-policy controls', () => {
+    const onFieldChange = vi.fn();
     const command = buildCommand({
       capacity: { desired: 3, max: 5, min: 2 },
       computeOption: 'launchType',
+      launchType: 'FARGATE',
       copySourceScalingPoliciesAndActions: true,
       copySourceMonitoringConfiguration: true,
-      launchType: 'FARGATE',
-      useSourceCapacity: false,
     });
-    const onFieldChange = vi.fn();
-    const page = shallow(
-      React.createElement(HorizontalScalingSettings as any, {
-        application: buildProps(command).application,
-        command,
-        configureCommand: vi.fn().mockReturnValue(Promise.resolve()),
-        onFieldChange,
-      }),
-    );
-
-    expect(findByTestId(page, 'ServerGroup.computeOptionsLaunchType').prop('checked')).toBe(true);
-    expect(findByTestId(page, 'ServerGroup.launchType').prop('value')).toBe('FARGATE');
-    expect(findByTestId(page, 'ServerGroup.capacity.desired').prop('value')).toBe(3);
-    expect(findByTestId(page, 'ServerGroup.capacity.min').prop('value')).toBe(2);
-    expect(findByTestId(page, 'ServerGroup.capacity.max').prop('value')).toBe(5);
-    expect(findByTestId(page, 'ServerGroup.useSourceCapacity').prop('checked')).toBe(false);
-    expect(findByTestId(page, 'ServerGroup.copySourceScalingPoliciesAndActions').prop('checked')).toBe(true);
-    expect(findByTestId(page, 'ServerGroup.copySourceMonitoringConfiguration').prop('checked')).toBe(true);
-
-    findByTestId(page, 'ServerGroup.computeOptionsCapacityProviders').simulate('change');
+    render(<HorizontalScalingSettings {...pageProps(command, onFieldChange)} />);
+    expect(screen.getByRole('radio', { name: 'Launch type' })).toBeChecked();
+    expect(screen.getByRole('combobox', { name: 'Launch type' })).toHaveValue('FARGATE');
+    expect(screen.getByLabelText('Desired capacity')).toHaveValue(3);
+    expect(screen.getByLabelText('Minimum capacity')).toHaveValue(2);
+    expect(screen.getByLabelText('Maximum capacity')).toHaveValue(5);
+    expect(screen.getByLabelText(/previous server group's capacity/)).not.toBeChecked();
+    expect(screen.getByLabelText(/previous server group's autoscaling policies/)).toBeChecked();
+    expect(screen.getByLabelText(/previous server group's monitoring configuration/)).toBeChecked();
+    fireEvent.change(screen.getByLabelText('Minimum capacity'), { target: { value: '1' } });
+    expect(onFieldChange).toHaveBeenCalledWith('capacity', { desired: 3, max: 5, min: 1 });
+    fireEvent.click(screen.getByLabelText(/previous server group's capacity/));
+    expect(onFieldChange).toHaveBeenCalledWith('useSourceCapacity', true);
+    expect(onFieldChange).toHaveBeenCalledWith('preferSourceCapacity', true);
+    fireEvent.click(screen.getByLabelText(/Capacity Providers/));
     expect(onFieldChange).toHaveBeenCalledWith('computeOption', 'capacityProviders');
     expect(onFieldChange).toHaveBeenCalledWith('launchType', '');
-
-    const capacityProviderPage = shallow(
-      React.createElement(HorizontalScalingSettings as any, {
-        application: buildProps(command).application,
-        command: { ...command, computeOption: 'capacityProviders' },
-        configureCommand: vi.fn().mockReturnValue(Promise.resolve()),
-        onFieldChange,
-      }),
-    );
-    expect(capacityProviderPage.find(EcsCapacityProvider).exists()).toBe(true);
   });
 
   it('restores Horizontal Scaling monitoring controls and toggles high-resolution metrics', () => {
-    const renderPage = (command: IEcsServerGroupCommand, onFieldChange: Mock) =>
-      shallow(
-        React.createElement(HorizontalScalingSettings as any, {
-          application: buildProps(command).application,
-          command,
-          configureCommand: vi.fn().mockReturnValue(Promise.resolve()),
-          onFieldChange,
-        }),
-      );
+    const renderPage = (command: IEcsServerGroupCommand, onFieldChange = vi.fn()) =>
+      render(<HorizontalScalingSettings {...pageProps(command, onFieldChange)} />);
+    const copyMonitoring = () => screen.getByLabelText(/previous server group's monitoring configuration/);
+    const metric = (name: string) => screen.getByRole('checkbox', { name });
 
     const defaultOnFieldChange = vi.fn();
     const defaultPage = renderPage(buildCommand({ copySourceMonitoringConfiguration: true }), defaultOnFieldChange);
-    expect(findByTestId(defaultPage, 'ServerGroup.copySourceMonitoringConfiguration').prop('checked')).toBe(true);
-    expect(findByTestId(defaultPage, 'ServerGroup.monitoringConfiguration.CPUUtilization').prop('checked')).toBe(false);
-    expect(findByTestId(defaultPage, 'ServerGroup.monitoringConfiguration.MemoryUtilization').prop('checked')).toBe(
-      false,
-    );
+    expect(copyMonitoring()).toBeChecked();
+    expect(metric('CPUUtilization')).not.toBeChecked();
+    expect(metric('MemoryUtilization')).not.toBeChecked();
 
-    findByTestId(defaultPage, 'ServerGroup.copySourceMonitoringConfiguration').simulate('change', {
-      target: { checked: false },
-    });
+    fireEvent.click(copyMonitoring());
     expect(defaultOnFieldChange).toHaveBeenCalledWith('copySourceMonitoringConfiguration', false);
 
-    findByTestId(defaultPage, 'ServerGroup.monitoringConfiguration.CPUUtilization').simulate('change', {
-      target: { checked: true },
-    });
+    fireEvent.click(metric('CPUUtilization'));
     expect(defaultOnFieldChange).toHaveBeenCalledWith('monitoringConfiguration', {
       metricConfigurations: [{ metricNames: ['CPUUtilization'], resolutionSeconds: 20 }],
     });
+    defaultPage.unmount();
 
     const cpuOnFieldChange = vi.fn();
     const cpuPage = renderPage(
@@ -1400,655 +978,578 @@ describe('EcsCloneServerGroupModal', () => {
       }),
       cpuOnFieldChange,
     );
-    expect(findByTestId(cpuPage, 'ServerGroup.monitoringConfiguration.CPUUtilization').prop('checked')).toBe(true);
-    expect(findByTestId(cpuPage, 'ServerGroup.monitoringConfiguration.MemoryUtilization').prop('checked')).toBe(false);
+    expect(metric('CPUUtilization')).toBeChecked();
+    expect(metric('MemoryUtilization')).not.toBeChecked();
 
-    findByTestId(cpuPage, 'ServerGroup.monitoringConfiguration.MemoryUtilization').simulate('change', {
-      target: { checked: true },
-    });
+    fireEvent.click(metric('MemoryUtilization'));
     expect(cpuOnFieldChange).toHaveBeenCalledWith('monitoringConfiguration', {
       metricConfigurations: [{ metricNames: ['CPUUtilization', 'MemoryUtilization'], resolutionSeconds: 20 }],
     });
 
-    findByTestId(cpuPage, 'ServerGroup.monitoringConfiguration.CPUUtilization').simulate('change', {
-      target: { checked: false },
-    });
+    fireEvent.click(metric('CPUUtilization'));
     expect(cpuOnFieldChange).toHaveBeenCalledWith('monitoringConfiguration', undefined);
+    cpuPage.unmount();
 
-    const standardResolutionPage = renderPage(
+    renderPage(
       buildCommand({
         monitoringConfiguration: {
           metricConfigurations: [{ metricNames: ['CPUUtilization', 'MemoryUtilization'], resolutionSeconds: 60 }],
         },
       }),
-      vi.fn(),
     );
-    expect(
-      findByTestId(standardResolutionPage, 'ServerGroup.monitoringConfiguration.CPUUtilization').prop('checked'),
-    ).toBe(false);
+    expect(metric('CPUUtilization')).not.toBeChecked();
   });
 
   it('restores Logging driver and option-map controls', () => {
-    const command = buildCommand({ logDriver: 'awslogs', logOptions: { 'awslogs-region': 'eu-west-1' } });
     const onFieldChange = vi.fn();
-    const page = shallow(
-      React.createElement(LoggingSettings as any, {
-        application: buildProps(command).application,
-        command,
-        onFieldChange,
-      }),
+    render(
+      <LoggingSettings
+        {...pageProps(buildCommand({ logDriver: 'awslogs', logOptions: { region: 'eu' } }), onFieldChange)}
+      />,
     );
-
-    expect(findByTestId(page, 'Logging.logDriver').prop('value')).toBe('awslogs');
-    expect(page.find(MapEditor).prop('model')).toEqual({ 'awslogs-region': 'eu-west-1' });
-
-    findByTestId(page, 'Logging.logDriver').simulate('change', { target: { value: 'fluentd' } });
-    page.find(MapEditor).prop('onChange')({ address: 'localhost:24224' }, true);
+    expect(screen.getByLabelText('Log driver')).toHaveValue('awslogs');
+    expect(screen.getByLabelText('Logging option')).toHaveValue('region');
+    expect(screen.getByLabelText('Logging option value')).toHaveValue('eu');
+    fireEvent.change(screen.getByLabelText('Logging option value'), { target: { value: 'us' } });
+    expect(onFieldChange).toHaveBeenCalledWith('logOptions', { region: 'us' });
+    fireEvent.change(screen.getByLabelText('Log driver'), { target: { value: 'fluentd' } });
     expect(onFieldChange).toHaveBeenCalledWith('logDriver', 'fluentd');
-    expect(onFieldChange).toHaveBeenCalledWith('logOptions', { address: 'localhost:24224' });
   });
 
   it('restores Service Discovery mappings without hiding persisted registries', () => {
-    const availableRegistry = { displayName: 'available (registry-1)', id: 'registry-1' };
-    const persistedRegistry = { displayName: 'persisted (registry-2)', id: 'registry-2' };
+    const onFieldChange = vi.fn();
+    const available = { displayName: 'available', id: 'one' } as any;
+    const persisted = { displayName: 'persisted', id: 'two' } as any;
     const command = buildCommand({
-      backingData: { filtered: { serviceDiscoveryRegistries: [availableRegistry] } } as any,
-      serviceDiscoveryAssociations: [{ containerName: 'api', containerPort: 8080, registry: persistedRegistry } as any],
+      backingData: { filtered: { serviceDiscoveryRegistries: [available] } } as any,
+      serviceDiscoveryAssociations: [{ containerName: 'api', containerPort: 8080, registry: persisted } as any],
       useTaskDefinitionArtifact: true,
     });
-    const page = shallow(
-      React.createElement(ServiceDiscoverySettings as any, {
-        application: buildProps(command).application,
-        command,
-        configureCommand: vi.fn().mockReturnValue(Promise.resolve()),
-        onFieldChange: vi.fn(),
-      }),
+    render(<ServiceDiscovery {...pageProps(command, onFieldChange)} />);
+    expect(screen.getByLabelText('Container name 1')).toHaveValue('api');
+    expect(screen.getByLabelText('Service registry 1')).toBeInTheDocument();
+    expect(screen.getByLabelText('Container port 1')).toHaveValue(8080);
+    expect(screen.getByText('persisted')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Container name 1'), { target: { value: 'worker' } });
+    fireEvent.change(screen.getByLabelText('Container port 1'), { target: { value: '9090' } });
+    expect(onFieldChange).toHaveBeenCalledWith(
+      'serviceDiscoveryAssociations',
+      expect.arrayContaining([expect.objectContaining({ containerName: 'worker', containerPort: 9090 })]),
     );
-
-    expect(page.find(ServiceDiscovery).exists()).toBe(true);
-    const serviceDiscovery = shallow(page.find(ServiceDiscovery).getElement());
-    const registryOptions = findByTestId(serviceDiscovery, 'ServiceDiscovery.registry')
-      .find(TetheredSelect)
-      .prop('options');
-    expect(registryOptions.map((option: any) => option.value)).toEqual([
-      'available (registry-1)',
-      'persisted (registry-2)',
-    ]);
-    expect(findByTestId(serviceDiscovery, 'ServiceDiscovery.containerName').prop('value')).toBe('api');
-    expect(findByTestId(serviceDiscovery, 'ServiceDiscovery.containerPort').prop('value')).toBe(8080);
   });
 
-  it('refreshes Networking options from rerendered command props without clobbering selections', () => {
+  it('refreshes Networking options through the actual component without clobbering selections', async () => {
     const command = buildCommand({
-      associatePublicIpAddress: false,
-      backingData: {
-        filtered: {
-          securityGroupNames: ['old-sg'],
-          subnetTypes: [{ purpose: 'old-subnet', vpcId: 'vpc-old' }],
-        },
-        networkModes: ['awsvpc'],
-      } as any,
+      backingData: { filtered: { securityGroupNames: ['old-sg'], subnetTypes: [] }, networkModes: ['awsvpc'] } as any,
       networkMode: 'awsvpc',
       securityGroupNames: ['persisted-sg'],
       subnetTypes: ['persisted-subnet'],
     });
-    const wrapper = shallow(
-      <EcsNetworking
-        command={command}
-        configureCommand={() => new Promise<void>(() => undefined)}
-        onFieldChange={vi.fn()}
-      />,
+    const next = {
+      ...command,
+      backingData: {
+        ...command.backingData,
+        filtered: {
+          ...command.backingData.filtered,
+          securityGroupNames: ['new-sg'],
+          subnetTypes: [{ purpose: 'new-subnet', vpcId: 'new' }],
+        },
+      },
+    } as any;
+    const configureCommand = vi.fn().mockResolvedValue(undefined);
+    const rendered = render(
+      <EcsNetworking command={command} configureCommand={configureCommand} onFieldChange={vi.fn()} />,
     );
-
-    command.backingData.filtered.securityGroupNames = ['new-sg'];
-    command.backingData.filtered.subnetTypes = [{ purpose: 'new-subnet', vpcId: 'vpc-new' } as any];
-    wrapper.setProps({ command });
-
-    expect(wrapper.state('securityGroupNames')).toEqual(['persisted-sg']);
-    expect(wrapper.state('subnetTypes')).toEqual(['persisted-subnet']);
-    expect(wrapper.state('securityGroupsAvailable')).toEqual(['new-sg', 'persisted-sg']);
-    expect((wrapper.state('subnetTypesAvailable') as any[]).map((subnet) => subnet.purpose)).toEqual([
-      'new-subnet',
-      'persisted-subnet',
-    ]);
+    rendered.rerender(<EcsNetworking command={next} configureCommand={configureCommand} onFieldChange={vi.fn()} />);
+    await waitFor(() => expect(configureCommand).toHaveBeenCalledOnce());
+    expect(screen.getByText('persisted-sg')).toBeInTheDocument();
+    expect(screen.getByText('persisted-subnet (unavailable)')).toBeInTheDocument();
+    openSelect('Security groups');
+    expect(await screen.findByRole('option', { name: 'new-sg' })).toBeInTheDocument();
+    expect(screen.getAllByRole('option', { name: 'persisted-sg' }).length).toBeGreaterThan(0);
+    openSelect('VPC subnet');
+    expect(await screen.findByRole('option', { name: 'new-subnet (new)' })).toBeInTheDocument();
   });
 
-  it('refreshes Container options from rerendered command props without clobbering selections', () => {
-    const persistedImage = { imageId: 'registry/persisted:latest' } as any;
-    const command = buildCommand({
-      backingData: { filtered: { images: [], targetGroups: ['old-target'] } } as any,
-      imageDescription: persistedImage,
-      targetGroupMappings: [{ containerName: '', containerPort: 8080, targetGroup: 'persisted-target' }],
-    });
-    const wrapper = shallow(
-      <Container
-        command={command}
-        configureCommand={() => new Promise<void>(() => undefined)}
-        onFieldChange={vi.fn()}
-      />,
-    );
-
-    command.backingData.filtered.images = [{ imageId: 'registry/new:latest' } as any];
-    command.backingData.filtered.targetGroups = ['new-target'];
-    wrapper.setProps({ command });
-
-    expect(wrapper.state('imageDescription')).toBe(persistedImage);
-    expect(wrapper.state('targetGroupMappings')).toEqual(command.targetGroupMappings);
-    expect((wrapper.state('dockerImages') as any[]).map((image) => image.imageId)).toEqual(['registry/new:latest']);
-    expect(wrapper.state('targetGroupsAvailable')).toEqual(['new-target', 'persisted-target']);
-  });
-
-  it('refreshes TaskDefinition options from rerendered command props without clobbering selections', () => {
-    const persistedArtifact = { artifactId: 'expected-artifact' };
-    const command = buildCommand({
-      backingData: { filtered: { images: [], targetGroups: ['old-target'] } } as any,
-      containerMappings: [{ containerName: 'api', imageDescription: { imageId: 'registry/persisted:latest' } as any }],
-      targetGroupMappings: [{ containerName: 'api', containerPort: 8080, targetGroup: 'persisted-target' }],
-      taskDefinitionArtifact: persistedArtifact,
-    });
-    const wrapper = shallow(
-      <TaskDefinition
-        command={command}
-        configureCommand={() => new Promise<void>(() => undefined)}
-        onFieldChange={vi.fn()}
-      />,
-    );
-
-    command.backingData.filtered.images = [{ imageId: 'registry/new:latest' } as any];
-    command.backingData.filtered.targetGroups = ['new-target'];
-    wrapper.setProps({ command });
-
-    expect(wrapper.state('taskDefArtifact')).toBe(persistedArtifact);
-    expect(wrapper.state('containerMappings')).toEqual(command.containerMappings);
-    expect(wrapper.state('targetGroupMappings')).toEqual(command.targetGroupMappings);
-    expect((wrapper.state('dockerImages') as any[]).map((image) => image.imageId)).toEqual(['registry/new:latest']);
-    expect(wrapper.state('targetGroupsAvailable')).toEqual(['new-target', 'persisted-target']);
-  });
-
-  it('refreshes ServiceDiscovery options from rerendered command props without clobbering selections', () => {
-    const persistedRegistry = { displayName: 'persisted (registry-1)', id: 'registry-1' };
-    const associations = [{ containerName: 'api', containerPort: 8080, registry: persistedRegistry } as any];
+  it('does not reapply a legacy subnet type during prop reconciliation', async () => {
     const command = buildCommand({
       backingData: {
-        filtered: { serviceDiscoveryRegistries: [{ displayName: 'old (registry-2)', id: 'registry-2' }] },
+        filtered: { securityGroupNames: [], subnetTypes: [{ purpose: 'private', vpcId: 'vpc-private' }] },
+        networkModes: ['awsvpc'],
       } as any,
-      serviceDiscoveryAssociations: associations,
-      useTaskDefinitionArtifact: true,
+      networkMode: 'awsvpc',
+      subnetType: 'legacy',
+      subnetTypes: ['private'],
     });
-    const wrapper = shallow(
-      <ServiceDiscovery
-        command={command}
-        configureCommand={() => new Promise<void>(() => undefined)}
-        onFieldChange={vi.fn()}
-      />,
-    );
+    const rendered = render(<EcsNetworking {...pageProps(command)} />);
+    expect(screen.getByText('legacy (unavailable)')).toBeInTheDocument();
 
-    command.backingData.filtered.serviceDiscoveryRegistries = [
-      { displayName: 'new (registry-3)', id: 'registry-3' } as any,
-    ];
-    wrapper.setProps({ command });
+    const next = {
+      ...command,
+      backingData: {
+        ...command.backingData,
+        filtered: {
+          ...command.backingData.filtered,
+          subnetTypes: [{ purpose: 'public', vpcId: 'vpc-public' }],
+        },
+      },
+      subnetType: 'legacy',
+      subnetTypes: ['public'],
+    } as any;
+    rendered.rerender(<EcsNetworking {...pageProps(next)} />);
 
-    expect(wrapper.state('serviceDiscoveryAssociations')).toBe(associations);
-    expect(
-      (wrapper.state('serviceDiscoveryRegistriesAvailable') as any[]).map((registry) => registry.displayName),
-    ).toEqual(['new (registry-3)', 'persisted (registry-1)']);
+    await waitFor(() => expect(screen.getByText('public (vpc-public)')).toBeInTheDocument());
+    expect(screen.queryByText('legacy (unavailable)')).not.toBeInTheDocument();
   });
 
-  it('normalizes ServiceDiscovery container names when switching away from task definition artifacts', () => {
-    const registry = { displayName: 'persisted (registry-1)', id: 'registry-1' };
+  it('refreshes Container options through the actual component without clobbering selections', async () => {
+    const image = { imageId: 'persisted' } as any;
     const command = buildCommand({
-      serviceDiscoveryAssociations: [{ containerName: 'api', containerPort: 8080, registry } as any],
+      imageDescription: image,
+      targetGroupMappings: [{ containerName: '', containerPort: 80, targetGroup: 'persisted' }],
+    });
+    const next = {
+      ...command,
+      backingData: {
+        ...command.backingData,
+        filtered: { ...command.backingData.filtered, images: [{ imageId: 'new' }], targetGroups: ['new'] },
+      },
+    } as any;
+    const onFieldChange = vi.fn();
+    const rendered = render(<Container {...pageProps(command, onFieldChange)} />);
+    rendered.rerender(<Container {...pageProps(next, onFieldChange)} />);
+    expect(screen.getByLabelText('Container image')).toBeInTheDocument();
+    expect(screen.getByLabelText('Target group 1')).toBeInTheDocument();
+    expect(screen.getByText('persisted')).toBeInTheDocument();
+    openSelect('Target group 1');
+    expect(await screen.findByRole('option', { name: 'new' })).toBeInTheDocument();
+    expect(onFieldChange).not.toHaveBeenCalled();
+  });
+
+  it('refreshes TaskDefinition options through the actual component without clobbering selections', async () => {
+    const artifact = { artifactId: 'expected' };
+    const command = buildCommand({
+      taskDefinitionArtifact: artifact,
+      targetGroupMappings: [{ containerName: 'api', containerPort: 80, targetGroup: 'persisted' }],
+    });
+    const next = {
+      ...command,
+      backingData: {
+        ...command.backingData,
+        filtered: { ...command.backingData.filtered, images: [{ imageId: 'new' }], targetGroups: ['new'] },
+      },
+    } as any;
+    const onFieldChange = vi.fn();
+    const rendered = render(<TaskDefinition {...pageProps(command, onFieldChange)} />);
+    rendered.rerender(<TaskDefinition {...pageProps(next, onFieldChange)} />);
+    expect(screen.getByLabelText('Target group 1')).toBeInTheDocument();
+    expect(screen.getByText('persisted')).toBeInTheDocument();
+    openSelect('Target group 1');
+    expect(await screen.findByRole('option', { name: 'new' })).toBeInTheDocument();
+    expect(onFieldChange).not.toHaveBeenCalled();
+  });
+
+  it('refreshes ServiceDiscovery options through the actual component without clobbering selections', async () => {
+    const persisted = { displayName: 'persisted', id: 'one' } as any;
+    const associations = [{ containerName: 'api', containerPort: 80, registry: persisted }] as any;
+    const command = buildCommand({ serviceDiscoveryAssociations: associations, useTaskDefinitionArtifact: true });
+    const onFieldChange = vi.fn();
+    const rendered = render(<ServiceDiscovery {...pageProps(command, onFieldChange)} />);
+    const next = {
+      ...command,
+      backingData: {
+        ...command.backingData,
+        filtered: {
+          ...command.backingData.filtered,
+          serviceDiscoveryRegistries: [{ displayName: 'new', id: 'two' }],
+        },
+      },
+    } as any;
+    rendered.rerender(<ServiceDiscovery {...pageProps(next, onFieldChange)} />);
+    expect(screen.getByLabelText('Service registry 1')).toBeInTheDocument();
+    expect(screen.getByText('persisted')).toBeInTheDocument();
+    openSelect('Service registry 1');
+    expect(await screen.findByRole('option', { name: 'new' })).toBeInTheDocument();
+    expect(onFieldChange).not.toHaveBeenCalled();
+  });
+
+  it('normalizes ServiceDiscovery container names through actual prop reconciliation when switching to inputs', async () => {
+    const registry = { displayName: 'registry', id: 'registry' } as any;
+    const command = buildCommand({
+      serviceDiscoveryAssociations: [{ containerName: 'api', containerPort: 80, registry } as any],
       useTaskDefinitionArtifact: true,
     });
     const onFieldChange = vi.fn();
-    const wrapper = shallow(
-      <ServiceDiscovery
-        command={command}
-        configureCommand={() => new Promise<void>(() => undefined)}
-        onFieldChange={onFieldChange}
-      />,
-    );
+    const rendered = render(<ServiceDiscovery {...pageProps(command, onFieldChange)} />);
+    const next = { ...command, useTaskDefinitionArtifact: false };
+    rendered.rerender(<ServiceDiscovery {...pageProps(next, onFieldChange)} />);
 
-    command.useTaskDefinitionArtifact = false;
-    wrapper.setProps({ command });
-
-    expect(wrapper.state('useTaskDefinitionArtifact')).toBe(false);
-    expect(wrapper.state('serviceDiscoveryAssociations')).toEqual([
-      { containerName: null, containerPort: 8080, registry } as any,
-    ]);
-    expect(findByTestId(wrapper, 'ServiceDiscovery.containerName').exists()).toBe(false);
-    expect(onFieldChange).toHaveBeenCalledWith(
-      'serviceDiscoveryAssociations',
-      wrapper.state('serviceDiscoveryAssociations'),
+    expect(screen.queryByLabelText('Container name 1')).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(onFieldChange).toHaveBeenCalledWith(
+        'serviceDiscoveryAssociations',
+        expect.arrayContaining([expect.objectContaining({ containerName: null })]),
+      ),
     );
   });
 
-  it('preserves and normalizes ServiceDiscovery container names when switching to task definition artifacts', () => {
-    const registry = { displayName: 'persisted (registry-1)', id: 'registry-1' };
+  it('preserves and normalizes ServiceDiscovery container names through actual prop reconciliation for artifacts', async () => {
+    const registry = { displayName: 'registry', id: 'registry' } as any;
     const command = buildCommand({
-      serviceDiscoveryAssociations: [{ containerName: null, containerPort: 8080, registry } as any],
+      serviceDiscoveryAssociations: [{ containerName: null, containerPort: 80, registry } as any],
       useTaskDefinitionArtifact: false,
     });
     const onFieldChange = vi.fn();
-    const wrapper = shallow(
-      <ServiceDiscovery
-        command={command}
-        configureCommand={() => new Promise<void>(() => undefined)}
-        onFieldChange={onFieldChange}
-      />,
-    );
+    const rendered = render(<ServiceDiscovery {...pageProps(command, onFieldChange)} />);
+    const next = {
+      ...command,
+      serviceDiscoveryAssociations: [
+        { containerName: null, containerPort: 80, registry },
+        { containerName: 'worker', containerPort: 90, registry },
+      ],
+      useTaskDefinitionArtifact: true,
+    } as any;
+    rendered.rerender(<ServiceDiscovery {...pageProps(next, onFieldChange)} />);
 
-    command.serviceDiscoveryAssociations = [
-      { containerName: null, containerPort: 8080, registry } as any,
-      { containerName: 'worker', containerPort: 9090, registry } as any,
-    ];
-    command.useTaskDefinitionArtifact = true;
-    wrapper.setProps({ command });
-
-    expect(wrapper.state('useTaskDefinitionArtifact')).toBe(true);
-    expect(
-      (wrapper.state('serviceDiscoveryAssociations') as any[]).map((association) => association.containerName),
-    ).toEqual(['', 'worker']);
-    expect(findByTestId(wrapper, 'ServiceDiscovery.containerName').map((input) => input.prop('value'))).toEqual([
-      '',
-      'worker',
-    ]);
+    await waitFor(() => expect(screen.getByLabelText('Container name 1')).toHaveValue(''));
+    expect(screen.getByLabelText('Container name 2')).toHaveValue('worker');
     expect(onFieldChange).toHaveBeenCalledWith(
       'serviceDiscoveryAssociations',
-      wrapper.state('serviceDiscoveryAssociations'),
+      expect.arrayContaining([
+        expect.objectContaining({ containerName: '' }),
+        expect.objectContaining({ containerName: 'worker' }),
+      ]),
     );
   });
 
-  it('refreshes CapacityProvider options from rerendered command props without clobbering selections', () => {
-    const strategy = [{ base: 0, capacityProvider: 'persisted-provider', weight: 1 }];
-    const command = buildCommand({
+  it('refreshes CapacityProvider options through actual prop reconciliation without clobbering selections', async () => {
+    const strategy = [{ base: 0, capacityProvider: 'persisted', weight: 1 }];
+    const command = buildCommand({ capacityProviderStrategy: strategy, useDefaultCapacityProviders: false });
+    const rendered = await renderCapacityProvider(command);
+    const next = {
+      ...command,
       backingData: {
-        filtered: {
-          availableCapacityProviders: ['old-provider'],
-          defaultCapacityProviderStrategy: [],
-        },
-      } as any,
-      capacityProviderStrategy: strategy,
-      ecsClusterName: 'old-cluster',
-      useDefaultCapacityProviders: false,
-    });
-    const wrapper = shallow(
+        ...command.backingData,
+        filtered: { ...command.backingData.filtered, availableCapacityProviders: ['new'] },
+      },
+      ecsClusterName: 'new-cluster',
+    } as any;
+    rendered.rerender(
       <EcsCapacityProvider
-        command={command}
-        configureCommand={() => new Promise<void>(() => undefined)}
-        onFieldChange={vi.fn()}
+        command={next}
+        configureCommand={vi.fn().mockResolvedValue(undefined)}
+        onFieldChange={rendered.onFieldChange}
       />,
     );
-
-    command.backingData.filtered.availableCapacityProviders = ['new-provider'];
-    command.ecsClusterName = 'new-cluster';
-    wrapper.setProps({ command });
-
-    expect(wrapper.state('capacityProviderStrategy')).toBe(strategy);
-    expect(wrapper.state('availableCapacityProviders')).toEqual(['new-provider', 'persisted-provider']);
-    expect(wrapper.state('ecsClusterName')).toBe('new-cluster');
+    await waitFor(() => expect(screen.getByText('(new-cluster)')).toBeInTheDocument());
+    expect(screen.getByLabelText('Capacity provider name 1')).toHaveValue('persisted');
+    fireEvent.focus(screen.getByLabelText('Capacity provider name 1'));
+    expect(screen.getByRole('button', { name: 'new' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'persisted' })).toBeInTheDocument();
   });
 
-  it('publishes the refreshed cluster strategy from the setState callback', async () => {
-    const refreshedStrategy = [{ base: 1, capacityProvider: 'FARGATE_SPOT', weight: 2 }];
-    const command = buildCommand({
-      backingData: {
-        filtered: {
-          availableCapacityProviders: [],
-          defaultCapacityProviderStrategy: [],
-        },
-      } as any,
-      capacityProviderStrategy: [{ base: 0, capacityProvider: 'FARGATE', weight: 1 }],
-      useDefaultCapacityProviders: true,
-    });
+  it('publishes the refreshed cluster strategy through the field callback', async () => {
+    const refreshed = [{ base: 1, capacityProvider: 'FARGATE_SPOT', weight: 2 }];
+    const command = buildCommand({ useDefaultCapacityProviders: true });
     const onFieldChange = vi.fn();
-    const configureCommand = vi.fn().mockImplementation(() => {
-      command.backingData.filtered.defaultCapacityProviderStrategy = refreshedStrategy;
-      return Promise.resolve();
-    });
-    const wrapper = shallow(
-      <EcsCapacityProvider command={command} configureCommand={configureCommand} onFieldChange={onFieldChange} />,
-      { disableLifecycleMethods: true } as any,
-    );
-    const instance = wrapper.instance() as any;
-    let applyState: () => void;
-    vi.spyOn(instance, 'setState').mockImplementation((state: any, callback?: () => void) => {
-      applyState = () => {
-        instance.state = { ...instance.state, ...state };
-        callback?.();
-      };
-    });
-
-    instance.componentDidMount();
-    await Promise.resolve();
-    expect(onFieldChange).not.toHaveBeenCalledWith('capacityProviderStrategy', expect.anything());
-
-    applyState();
-    expect(onFieldChange).toHaveBeenCalledWith('capacityProviderStrategy', refreshedStrategy);
-  });
-
-  it('publishes refreshed default strategy props once without a notification loop', () => {
-    const originalStrategy = [{ base: 0, capacityProvider: 'FARGATE', weight: 1 }];
-    const refreshedStrategy = [{ base: 1, capacityProvider: 'FARGATE_SPOT', weight: 2 }];
-    const command = buildCommand({
-      backingData: {
-        filtered: {
-          availableCapacityProviders: ['FARGATE', 'FARGATE_SPOT'],
-          defaultCapacityProviderStrategy: originalStrategy,
-        },
-      } as any,
-      capacityProviderStrategy: originalStrategy,
-      ecsClusterName: 'cluster-a',
-      useDefaultCapacityProviders: true,
-    });
-    const onFieldChange = vi.fn().mockImplementation((field: string, value: any) => {
-      command[field] = value;
-    });
-    const wrapper = shallow(
+    render(
       <EcsCapacityProvider
         command={command}
-        configureCommand={() => new Promise<void>(() => undefined)}
+        configureCommand={vi.fn().mockImplementation(async () => {
+          command.backingData.filtered.defaultCapacityProviderStrategy = refreshed;
+        })}
         onFieldChange={onFieldChange}
       />,
-      { disableLifecycleMethods: true } as any,
     );
 
-    command.backingData.filtered.defaultCapacityProviderStrategy = refreshedStrategy;
-    (wrapper.instance() as EcsCapacityProvider).componentDidUpdate();
-
-    expect(wrapper.state('capacityProviderStrategy')).toBe(refreshedStrategy);
-    expect(command.capacityProviderStrategy).toBe(refreshedStrategy);
-    expect(onFieldChange).toHaveBeenCalledExactlyOnceWith('capacityProviderStrategy', refreshedStrategy);
-
-    (wrapper.instance() as EcsCapacityProvider).componentDidUpdate();
-    expect(onFieldChange).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(onFieldChange).toHaveBeenCalledWith('capacityProviderStrategy', refreshed));
+    expect(screen.getByLabelText('Capacity provider name 1')).toHaveValue('FARGATE_SPOT');
   });
 
-  it('gives interactive fields accessible names across all wizard pages', () => {
-    const command = buildCommand({
+  it('publishes refreshed default strategy props once through the actual component without a notification loop', async () => {
+    const original = [{ base: 0, capacityProvider: 'FARGATE', weight: 1 }];
+    const refreshed = [{ base: 1, capacityProvider: 'FARGATE_SPOT', weight: 2 }];
+    const command = buildCommand({ capacityProviderStrategy: original, useDefaultCapacityProviders: true });
+    command.backingData.filtered.defaultCapacityProviderStrategy = original;
+    const rendered = await renderCapacityProvider(command);
+    rendered.onFieldChange.mockClear();
+    const next = {
+      ...command,
       backingData: {
-        accounts: ['test-account'],
-        filtered: {
-          availableCapacityProviders: ['FARGATE'],
-          defaultCapacityProviderStrategy: [],
-          ecsClusters: ['test-cluster'],
-          iamRoles: ['ecs-role'],
-          images: [{ imageId: 'registry/image:latest' }],
-          regions: [{ name: 'us-east-1' }],
-          secrets: ['docker-secret'],
-          securityGroupNames: ['test-sg'],
-          subnetTypes: [{ purpose: 'internal', vpcId: 'vpc-1' }],
-          targetGroups: ['test-target'],
-        },
-        launchTypes: ['FARGATE'],
-        networkModes: ['awsvpc'],
-      } as any,
-      capacity: { desired: 1, max: 2, min: 1 },
-      capacityProviderStrategy: [{ base: 0, capacityProvider: 'FARGATE', weight: 1 }],
-      computeOption: 'launchType',
-      containerMappings: [{ containerName: 'api', imageDescription: { imageId: 'registry/image:latest' } as any }],
-      credentials: 'test-account',
-      dockerImageCredentialsSecret: 'docker-secret',
-      ecsClusterName: 'test-cluster',
-      iamRole: 'ecs-role',
-      imageDescription: { imageId: 'registry/image:latest' } as any,
-      launchType: 'FARGATE',
-      logDriver: 'awslogs',
-      networkMode: 'awsvpc',
-      placementConstraints: [{ expression: 'attribute:ecs.instance-type =~ t3.*', type: 'memberOf' }],
-      region: 'us-east-1',
+        ...command.backingData,
+        filtered: { ...command.backingData.filtered, defaultCapacityProviderStrategy: refreshed },
+      },
+    } as any;
+    const component = (
+      <EcsCapacityProvider
+        command={next}
+        configureCommand={vi.fn().mockResolvedValue(undefined)}
+        onFieldChange={rendered.onFieldChange}
+      />
+    );
+    rendered.rerender(component);
+    await waitFor(() =>
+      expect(rendered.onFieldChange).toHaveBeenCalledExactlyOnceWith('capacityProviderStrategy', refreshed),
+    );
+    rendered.rerender(component);
+    expect(rendered.onFieldChange).toHaveBeenCalledTimes(1);
+  });
+
+  it('gives interactive fields accessible names across every actual wizard page', async () => {
+    const options = {
+      ...buildCommand().backingData,
+      accounts: ['account-a'],
+      filtered: {
+        ...buildCommand().backingData.filtered,
+        availableCapacityProviders: ['FARGATE'],
+        ecsClusters: ['cluster-a'],
+        iamRoles: ['role'],
+        images: [{ imageId: 'image' }],
+        regions: [{ name: 'eu-west-1' }],
+        secrets: ['secret'],
+        securityGroupNames: ['sg'],
+        serviceDiscoveryRegistries: [{ displayName: 'registry', id: 'registry' }],
+        subnetTypes: [{ purpose: 'subnet', vpcId: 'vpc' }],
+        targetGroups: ['target'],
+      },
+    } as any;
+    const taskCommand = buildCommand({
+      backingData: options,
+      containerMappings: [{ containerName: 'api', imageDescription: { imageId: 'image' } } as any],
       serviceDiscoveryAssociations: [
-        { containerName: 'api', containerPort: 8080, registry: { displayName: 'registry (registry-1)' } },
+        { containerName: 'api', containerPort: 80, registry: { displayName: 'registry', id: 'registry' } } as any,
       ],
-      targetGroupMappings: [{ containerName: 'api', containerPort: 8080, targetGroup: 'test-target' }],
-      useDefaultCapacityProviders: false,
+      targetGroupMappings: [{ containerName: 'api', containerPort: 80, targetGroup: 'target' }],
+      taskDefinitionArtifact: { artifactId: 'task-definition' },
       useTaskDefinitionArtifact: true,
     });
-    const pageProps = buildProps(command);
-    const fieldChange = vi.fn();
-    const configureCommand = () => Promise.resolve();
-    const props = { ...pageProps, configureCommand, onFieldChange: fieldChange };
-
-    const basic = shallow(<BasicSettings {...props} />);
-    expect(basic.find(AccountSelectInput).prop('aria-label')).toBe('Account');
-    expect(basic.find(RegionSelectInput).prop('aria-label')).toBe('Region');
-    expect(findByTestId(basic, 'ServerGroup.clusterName').prop('aria-label')).toBe('ECS Cluster name');
-    expect(findByTestId(basic, 'ServerGroup.stack').prop('aria-label')).toBe('Stack');
-    expect(findByTestId(basic, 'ServerGroup.details').prop('aria-label')).toBe('Detail');
-
-    const networking = shallow(
-      <EcsNetworking command={command} configureCommand={configureCommand} onFieldChange={fieldChange} />,
-      { disableLifecycleMethods: true } as any,
-    );
-    expect(findByTestId(networking, 'Networking.networkMode').find(TetheredSelect).prop('inputProps')).toEqual({
-      'aria-label': 'Network mode',
+    const containerCommand = buildCommand({
+      backingData: options,
+      computeUnits: 512,
+      reservedMemory: 1024,
+      targetGroupMappings: [{ containerName: '', containerPort: 80, targetGroup: 'target' }],
     });
-    expect(findByTestId(networking, 'Networking.subnetType').find(TetheredSelect).prop('inputProps')).toEqual({
-      'aria-label': 'VPC subnet',
+    const capacityCommand = buildCommand({
+      backingData: options,
+      capacityProviderStrategy: [{ base: 0, capacityProvider: 'FARGATE', weight: 1 }],
+      computeOption: 'capacityProviders',
+      useDefaultCapacityProviders: false,
     });
-    expect(findByTestId(networking, 'Networking.securityGroups').find(TetheredSelect).prop('inputProps')).toEqual({
-      'aria-label': 'Security groups',
-    });
-
-    const taskDefinition = shallow(
-      <TaskDefinition command={command} configureCommand={configureCommand} onFieldChange={fieldChange} />,
-      { disableLifecycleMethods: true } as any,
+    const rendered = render(
+      <>
+        <div data-testid="basic">
+          <BasicSettings {...pageProps(buildCommand({ backingData: options }))} />
+        </div>
+        <div data-testid="networking">
+          <EcsNetworking
+            {...pageProps(
+              buildCommand({
+                backingData: options,
+                networkMode: 'awsvpc',
+                securityGroupNames: ['sg'],
+                subnetTypes: ['subnet'],
+              }),
+            )}
+          />
+        </div>
+        <div data-testid="task-definition">
+          <TaskDefinition {...pageProps(taskCommand)} />
+        </div>
+        <div data-testid="container">
+          <Container {...pageProps(containerCommand)} />
+        </div>
+        <div data-testid="scaling">
+          <HorizontalScalingSettings {...pageProps(buildCommand({ backingData: options }))} />
+        </div>
+        <div data-testid="capacity-provider">
+          <EcsCapacityProvider
+            command={capacityCommand}
+            configureCommand={vi.fn().mockResolvedValue(undefined)}
+            onFieldChange={vi.fn()}
+          />
+        </div>
+        <div data-testid="logging">
+          <LoggingSettings {...pageProps(buildCommand({ logDriver: 'awslogs' }))} />
+        </div>
+        <div data-testid="service-discovery">
+          <ServiceDiscovery {...pageProps(taskCommand)} />
+        </div>
+        <div data-testid="advanced">
+          <AdvancedSettings
+            {...pageProps(
+              buildCommand({
+                backingData: options,
+                placementConstraints: [{ expression: '', type: 'memberOf' }],
+                useTaskDefinitionArtifact: false,
+              }),
+            )}
+          />
+        </div>
+      </>,
     );
-    expect(findByTestId(taskDefinition, 'Artifacts.containerName').prop('aria-label')).toBe('Container name 1');
-    expect(findByTestId(taskDefinition, 'Artifacts.containerImage').find(TetheredSelect).prop('inputProps')).toEqual({
-      'aria-label': 'Container image 1',
-    });
-    expect(findByTestId(taskDefinition, 'Artifacts.targetGroupContainer').prop('aria-label')).toBe(
-      'Target group container name 1',
+    await waitFor(() => expect(within(rendered.getByTestId('basic')).getByLabelText('Account')).toBeInTheDocument());
+    ['Account', 'Region', 'ECS Cluster name', 'Stack', 'Detail'].forEach((name) =>
+      expect(within(rendered.getByTestId('basic')).getByLabelText(name)).toBeInTheDocument(),
     );
-    expect(findByTestId(taskDefinition, 'Artifacts.targetGroup').find(TetheredSelect).prop('inputProps')).toEqual({
-      'aria-label': 'Target group 1',
-    });
-    expect(findByTestId(taskDefinition, 'Artifacts.targetGroupPort').prop('aria-label')).toBe('Target port 1');
-
-    const container = shallow(
-      <Container command={command} configureCommand={configureCommand} onFieldChange={fieldChange} />,
-      { disableLifecycleMethods: true } as any,
-    );
-    expect(findByTestId(container, 'ContainerInputs.containerImage').find(TetheredSelect).prop('inputProps')).toEqual({
-      'aria-label': 'Container image',
-    });
-    expect(findByTestId(container, 'ContainerInputs.computeUnits').prop('aria-label')).toBe('Compute units');
-    expect(findByTestId(container, 'ContainerInputs.reservedMemory').prop('aria-label')).toBe('Reserved memory');
-    expect(findByTestId(container, 'ContainerInputs.targetGroup').find(TetheredSelect).prop('inputProps')).toEqual({
-      'aria-label': 'Target group 1',
-    });
-    expect(findByTestId(container, 'ContainerInputs.targetGroupPort').prop('aria-label')).toBe('Target port 1');
-
-    const scaling = shallow(<HorizontalScalingSettings {...props} />);
-    expect(findByTestId(scaling, 'ServerGroup.launchType').prop('aria-label')).toBe('Launch type');
-    expect(findByTestId(scaling, 'ServerGroup.capacity.desired').prop('aria-label')).toBe('Desired capacity');
-    expect(findByTestId(scaling, 'ServerGroup.capacity.min').prop('aria-label')).toBe('Minimum capacity');
-    expect(findByTestId(scaling, 'ServerGroup.capacity.max').prop('aria-label')).toBe('Maximum capacity');
-    const capacityProvider = renderCapacityProvider(command);
-    expect(findByTestId(capacityProvider, 'ServerGroup.customCapacityProvider.name.0').prop('aria-label')).toBe(
-      'Capacity provider name 1',
-    );
-    expect(findByTestId(capacityProvider, 'ServerGroup.capacityProvider.base.0').prop('aria-label')).toBe(
-      'Capacity provider base 1',
-    );
-    expect(findByTestId(capacityProvider, 'ServerGroup.capacityProvider.weight.0').prop('aria-label')).toBe(
-      'Capacity provider weight 1',
-    );
-
-    const logging = shallow(<LoggingSettings {...props} />);
-    expect(findByTestId(logging, 'Logging.logDriver').prop('aria-label')).toBe('Log driver');
-    expect(logging.find(MapEditor).prop('keyLabel')).toBe('Logging option');
-    expect(logging.find(MapEditor).prop('valueLabel')).toBe('Logging option value');
-
-    const discovery = shallow(
-      <ServiceDiscovery command={command} configureCommand={configureCommand} onFieldChange={fieldChange} />,
-      { disableLifecycleMethods: true } as any,
-    );
-    expect(findByTestId(discovery, 'ServiceDiscovery.containerName').prop('aria-label')).toBe('Container name 1');
-    expect(findByTestId(discovery, 'ServiceDiscovery.registry').find(TetheredSelect).prop('inputProps')).toEqual({
-      'aria-label': 'Service registry 1',
-    });
-    expect(findByTestId(discovery, 'ServiceDiscovery.containerPort').prop('aria-label')).toBe('Container port 1');
-
-    const advanced = shallow(
-      <AdvancedSettings {...props} command={{ ...command, useTaskDefinitionArtifact: false }} />,
+    ['Network mode', 'VPC subnet', 'Security groups'].forEach((name) =>
+      expect(within(rendered.getByTestId('networking')).getByLabelText(name)).toBeInTheDocument(),
     );
     [
-      ['Advanced.healthCheckGracePeriodSeconds', 'Health check grace period'],
-      ['Advanced.iamRole', 'ECS IAM instance profile'],
-      ['Advanced.dockerImageCredentialsSecret', 'Docker image credentials'],
-      ['Advanced.platformVersion', 'Fargate platform version'],
-      ['Advanced.enableDeploymentCircuitBreaker', 'Enable deployment circuit breaker'],
-      ['Advanced.placementStrategyName', 'Placement strategy'],
-      ['Advanced.placementConstraint.type.0', 'Placement constraint type 1'],
-      ['Advanced.placementConstraint.expression.0', 'Placement constraint expression 1'],
-    ].forEach(([testId, label]) => expect(findByTestId(advanced, testId).prop('aria-label')).toBe(label));
-    expect(findByTestId(advanced, 'Advanced.dockerLabels').find(MapEditor).prop('keyLabel')).toBe('Docker label name');
-    expect(findByTestId(advanced, 'Advanced.environmentVariables').find(MapEditor).prop('keyLabel')).toBe(
-      'Environment variable name',
+      'Container name 1',
+      'Container image 1',
+      'Target group container name 1',
+      'Target group 1',
+      'Target port 1',
+    ].forEach((name) =>
+      expect(within(rendered.getByTestId('task-definition')).getByLabelText(name)).toBeInTheDocument(),
     );
-    expect(findByTestId(advanced, 'Advanced.tags').find(MapEditor).prop('keyLabel')).toBe('Tag name');
+    ['Container image', 'Compute units', 'Reserved memory', 'Target group 1', 'Target port 1'].forEach((name) =>
+      expect(within(rendered.getByTestId('container')).getByLabelText(name)).toBeInTheDocument(),
+    );
+    expect(within(rendered.getByTestId('scaling')).getByRole('combobox', { name: 'Launch type' })).toBeInTheDocument();
+    ['Desired capacity', 'Minimum capacity', 'Maximum capacity'].forEach((name) =>
+      expect(within(rendered.getByTestId('scaling')).getByLabelText(name)).toBeInTheDocument(),
+    );
+    await waitFor(() =>
+      expect(
+        within(rendered.getByTestId('capacity-provider')).queryByText('Loading capacity providers...'),
+      ).not.toBeInTheDocument(),
+    );
+    ['Capacity provider name 1', 'Capacity provider base 1', 'Capacity provider weight 1'].forEach((name) =>
+      expect(within(rendered.getByTestId('capacity-provider')).getByLabelText(name)).toBeInTheDocument(),
+    );
+    expect(within(rendered.getByTestId('logging')).getByLabelText('Log driver')).toBeInTheDocument();
+    ['Container name 1', 'Service registry 1', 'Container port 1'].forEach((name) =>
+      expect(within(rendered.getByTestId('service-discovery')).getByLabelText(name)).toBeInTheDocument(),
+    );
+    [
+      'Health check grace period',
+      'ECS IAM instance profile',
+      'Docker image credentials',
+      'Fargate platform version',
+      'Enable deployment circuit breaker',
+      'Placement strategy',
+      'Placement constraint type 1',
+      'Placement constraint expression 1',
+    ].forEach((name) => expect(within(rendered.getByTestId('advanced')).getByLabelText(name)).toBeInTheDocument());
   });
 
   it('restores Advanced Settings service, task, placement, and metadata controls', () => {
+    const onFieldChange = vi.fn();
     const command = buildCommand({
-      backingData: {
-        filtered: {
-          iamRoles: ['available-role'],
-          secrets: ['available-secret'],
-        },
-      } as any,
-      dockerImageCredentialsSecret: 'available-secret',
-      dockerLabels: { component: 'api' },
+      backingData: { filtered: { iamRoles: ['role'], secrets: ['secret'] } } as any,
+      dockerImageCredentialsSecret: 'secret',
       enableDeploymentCircuitBreaker: true,
-      environmentVariables: { ENVIRONMENT: 'production' },
       healthCheckGracePeriodSeconds: 60,
-      iamRole: 'available-role',
-      placementConstraints: [{ expression: 'attribute:ecs.instance-type =~ t3.*', type: 'memberOf' }],
+      iamRole: 'role',
+      placementConstraints: [{ expression: 'attribute:test', type: 'memberOf' }],
       placementStrategyName: 'BinPack CPU',
       platformVersion: '1.4.0',
-      tags: { owner: 'payments' },
+      dockerLabels: { team: 'delivery' },
+      environmentVariables: { ENV: 'prod' },
+      tags: { owner: 'ecs' },
       useTaskDefinitionArtifact: false,
     });
-    const onFieldChange = vi.fn();
-    const page = shallow(
-      React.createElement(AdvancedSettings as any, {
-        application: buildProps(command).application,
-        command,
-        onFieldChange,
-      }),
-    );
-
-    expect(findByTestId(page, 'Advanced.healthCheckGracePeriodSeconds').prop('value')).toBe(60);
-    expect(findByTestId(page, 'Advanced.iamRole').prop('value')).toBe('available-role');
-    expect(findByTestId(page, 'Advanced.dockerImageCredentialsSecret').prop('value')).toBe('available-secret');
-    expect(findByTestId(page, 'Advanced.platformVersion').prop('value')).toBe('1.4.0');
-    expect(findByTestId(page, 'Advanced.enableDeploymentCircuitBreaker').prop('checked')).toBe(true);
-    expect(findByTestId(page, 'Advanced.placementStrategyName').prop('value')).toBe('BinPack CPU');
-    expect(findByTestId(page, 'Advanced.placementConstraint.type.0').prop('value')).toBe('memberOf');
-    expect(findByTestId(page, 'Advanced.placementConstraint.expression.0').prop('value')).toContain('t3.*');
-    expect(findByTestId(page, 'Advanced.dockerLabels').find(MapEditor).prop('model')).toEqual({ component: 'api' });
-    expect(findByTestId(page, 'Advanced.environmentVariables').find(MapEditor).prop('model')).toEqual({
-      ENVIRONMENT: 'production',
-    });
-    expect(findByTestId(page, 'Advanced.tags').find(MapEditor).prop('model')).toEqual({ owner: 'payments' });
-
-    findByTestId(page, 'Advanced.placementStrategyName').simulate('change', { target: { value: 'One Task Per Host' } });
-    expect(onFieldChange).toHaveBeenCalledWith('placementStrategyName', 'One Task Per Host');
-
-    const artifactPage = shallow(
-      React.createElement(AdvancedSettings as any, {
-        application: buildProps(command).application,
-        command: { ...command, useTaskDefinitionArtifact: true },
-        onFieldChange,
-      }),
-    );
-    expect(findByTestId(artifactPage, 'Advanced.dockerImageCredentialsSecret').exists()).toBe(false);
-    expect(findByTestId(artifactPage, 'Advanced.dockerLabels').exists()).toBe(false);
-    expect(findByTestId(artifactPage, 'Advanced.environmentVariables').exists()).toBe(false);
-    expect(findByTestId(artifactPage, 'Advanced.tags').exists()).toBe(true);
-  });
-
-  it('only includes target groups from the selected account', () => {
-    const command = buildCommand({ credentials: 'selected-account', region: 'us-east-1' });
-    const modal = buildUnrenderedModal(command) as any;
-    const loadBalancers = [
-      {
-        accounts: [
-          {
-            name: 'selected-account',
-            regions: [
-              {
-                loadBalancers: [
-                  {
-                    targetGroups: ['selected-target', { targetGroupName: 'selected-object-target' }],
-                  },
-                ],
-                name: 'us-east-1',
-              },
-            ],
-          },
-          {
-            name: 'other-account',
-            regions: [
-              {
-                loadBalancers: [{ targetGroups: ['other-account-target'] }],
-                name: 'us-east-1',
-              },
-            ],
-          },
-        ],
-      },
-    ];
-
-    expect(modal.getTargetGroups(command, loadBalancers)).toEqual(['selected-target', 'selected-object-target']);
-  });
-
-  it('only includes target groups from the selected region while preserving deduplicated selections', () => {
-    const command = buildCommand({
-      credentials: 'selected-account',
-      region: 'us-east-1',
-      targetGroup: 'legacy-unavailable-target',
-      targetGroupMappings: [
-        { targetGroup: 'persisted-unavailable-target' } as any,
-        { targetGroup: 'duplicate-target' } as any,
-      ],
-    });
-    const modal = buildUnrenderedModal(command) as any;
-    const loadBalancers = [
-      {
-        accounts: [
-          {
-            name: 'selected-account',
-            regions: [
-              {
-                loadBalancers: [
-                  {
-                    targetGroups: ['duplicate-target', 'available-target', 'available-target'],
-                  },
-                ],
-                name: 'us-east-1',
-              },
-              {
-                loadBalancers: [{ targetGroups: ['other-region-target'] }],
-                name: 'eu-west-1',
-              },
-            ],
-          },
-        ],
-      },
-    ];
-
-    expect(modal.getTargetGroups(command, loadBalancers)).toEqual([
-      'duplicate-target',
-      'available-target',
-      'persisted-unavailable-target',
-      'legacy-unavailable-target',
+    render(<AdvancedSettings {...pageProps(command, onFieldChange)} />);
+    expect(screen.getByLabelText('Health check grace period')).toHaveValue(60);
+    expect(screen.getByLabelText('ECS IAM instance profile')).toHaveValue('role');
+    expect(screen.getByLabelText('Docker image credentials')).toHaveValue('secret');
+    expect(screen.getByLabelText('Placement strategy')).toHaveValue('BinPack CPU');
+    expect(screen.getByLabelText('Placement constraint type 1')).toHaveValue('memberOf');
+    expect(screen.getByLabelText('Docker label name')).toHaveValue('team');
+    expect(screen.getByLabelText('Environment variable name')).toHaveValue('ENV');
+    expect(screen.getByLabelText('Tag name')).toHaveValue('owner');
+    fireEvent.change(screen.getByLabelText('Fargate platform version'), { target: { value: 'LATEST' } });
+    fireEvent.click(screen.getByLabelText('Enable deployment circuit breaker'));
+    fireEvent.click(screen.getByRole('button', { name: 'Add New Placement Constraint' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Remove placement constraint 1' }));
+    expect(onFieldChange).toHaveBeenCalledWith('platformVersion', 'LATEST');
+    expect(onFieldChange).toHaveBeenCalledWith('enableDeploymentCircuitBreaker', false);
+    expect(onFieldChange).toHaveBeenCalledWith('placementConstraints', [
+      { expression: 'attribute:test', type: 'memberOf' },
+      {},
     ]);
+    expect(onFieldChange).toHaveBeenCalledWith('placementConstraints', []);
   });
 
-  it('starts custom capacity provider mode empty when switching from the cluster default', () => {
+  it('hides task-definition-owned advanced fields in artifact mode', () => {
+    render(<AdvancedSettings {...pageProps(buildCommand({ useTaskDefinitionArtifact: true }))} />);
+
+    expect(screen.queryByLabelText('Docker image credentials')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Docker label name')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Environment variable name')).not.toBeInTheDocument();
+    expect(screen.getByText(/cannot be individually set when using a Task Definition artifact/)).toBeInTheDocument();
+  });
+
+  it('only includes target groups from the selected account through mounted backing-data loading', async () => {
+    const command = buildCommand();
+    const loadBalancers = [
+      {
+        accounts: [
+          {
+            name: 'account-a',
+            regions: [{ name: 'eu-west-1', loadBalancers: [{ targetGroups: ['selected-target'] }] }],
+          },
+          {
+            name: 'account-b',
+            regions: [{ name: 'eu-west-1', loadBalancers: [{ targetGroups: ['other-target'] }] }],
+          },
+        ],
+      },
+    ];
+    RequestBuilder.defaultHttpClient = {
+      get: vi.fn((config: any) =>
+        Promise.resolve(
+          config.url.endsWith('loadBalancers') ? loadBalancers : config.url.endsWith('securityGroups') ? {} : [],
+        ),
+      ),
+    } as any;
+    renderModal(command);
+    expect(await screen.findByRole('heading', { name: 'Container' })).toBeInTheDocument();
+    fireEvent.click(screen.getAllByText('Container')[0]);
+    fireEvent.click(await screen.findByRole('button', { name: 'Add New Target Group Mapping' }));
+    openSelect('Target group 1');
+    expect(await screen.findByRole('option', { name: 'selected-target' })).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: 'other-target' })).not.toBeInTheDocument();
+  });
+
+  it('only includes target groups from the selected region while mounted loading preserves deduplicated selections', async () => {
+    const command = buildCommand({
+      containerPort: 80,
+      targetGroup: 'legacy',
+      targetGroupMappings: [{ containerName: '', containerPort: 80, targetGroup: 'persisted' }],
+    });
+    const loadBalancers = [
+      {
+        accounts: [
+          {
+            name: 'account-a',
+            regions: [
+              { name: 'eu-west-1', loadBalancers: [{ targetGroups: ['available', 'available'] }] },
+              { name: 'us-east-1', loadBalancers: [{ targetGroups: ['other-region'] }] },
+            ],
+          },
+        ],
+      },
+    ];
+    RequestBuilder.defaultHttpClient = {
+      get: vi.fn((config: any) =>
+        Promise.resolve(
+          config.url.endsWith('loadBalancers') ? loadBalancers : config.url.endsWith('securityGroups') ? {} : [],
+        ),
+      ),
+    } as any;
+    renderModal(command);
+    expect(await screen.findByRole('heading', { name: 'Container' })).toBeInTheDocument();
+    fireEvent.click(screen.getAllByText('Container')[0]);
+    openSelect('Target group 1');
+    expect(await screen.findByRole('option', { name: 'available' })).toBeInTheDocument();
+    expect(screen.getAllByRole('option', { name: 'persisted' }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('option', { name: 'legacy' }).length).toBeGreaterThan(0);
+    expect(screen.queryByRole('option', { name: 'other-region' })).not.toBeInTheDocument();
+  });
+
+  it('adds, selects, and removes capacity providers through actual custom controls', async () => {
     const command = buildCommand({
       backingData: {
         filtered: {
@@ -2057,97 +1558,109 @@ describe('EcsCloneServerGroupModal', () => {
         },
       } as any,
       capacityProviderStrategy: [{ base: 0, capacityProvider: 'FARGATE_SPOT', weight: 1 }],
-      credentials: 'ecs-account',
+      computeOption: 'capacityProviders',
+      credentials: 'account',
       ecsClusterName: 'cluster',
-      region: 'eu-west-1',
+      region: 'eu',
       useDefaultCapacityProviders: true,
     });
-    const wrapper = renderCapacityProvider(command);
-
-    findByTestId(wrapper, 'ServerGroup.capacityProviders.custom').simulate('click');
-    findByTestId(wrapper, 'ServerGroup.addCapacityProvider').simulate('click');
-
-    expect(command.useDefaultCapacityProviders).toBe(false);
-    expect(command.capacityProviderStrategy).toEqual([{ base: null, capacityProvider: '', weight: null } as any]);
+    const onFieldChange = vi.fn((field: string, value: any) => {
+      (command as any)[field] = value;
+    });
+    await renderCapacityProvider(command, onFieldChange);
+    fireEvent.click(screen.getByLabelText(/Use custom/));
+    expect(onFieldChange).toHaveBeenCalledWith('capacityProviderStrategy', []);
+    fireEvent.click(await screen.findByRole('button', { name: 'Add New Capacity Provider' }));
+    const name = screen.getByLabelText('Capacity provider name 1');
+    expect(name).toHaveValue('');
+    fireEvent.focus(name);
+    fireEvent.click(screen.getByRole('button', { name: 'FARGATE_SPOT' }));
+    expect(name).toHaveValue('FARGATE_SPOT');
+    fireEvent.click(screen.getByRole('button', { name: 'Remove capacity provider 1' }));
+    expect(screen.queryByLabelText('Capacity provider name 1')).not.toBeInTheDocument();
   });
 
-  it('renders and updates each custom capacity provider row by index', () => {
+  it('renders and updates each custom capacity provider row by index', async () => {
     const command = buildCommand({
-      capacityProviderMode: 'custom',
       capacityProviderStrategy: [
         { base: 0, capacityProvider: 'FARGATE', weight: 1 },
         { base: 1, capacityProvider: 'FARGATE_SPOT', weight: 2 },
       ],
+      computeOption: 'capacityProviders',
+      credentials: 'account',
+      ecsClusterName: 'cluster',
+      region: 'eu',
       useDefaultCapacityProviders: false,
     });
-    const wrapper = renderCapacityProvider(command);
-    expect(findByTestId(wrapper, 'ServerGroup.capacityProvider.base.1').prop('value')).toBe(1);
-
-    findByTestId(wrapper, 'ServerGroup.capacityProvider.weight.1').simulate('change', {
-      target: { valueAsNumber: 3 },
-    });
-
-    expect(command.capacityProviderStrategy[1].weight).toBe(3);
+    const { onFieldChange } = await renderCapacityProvider(command);
+    fireEvent.change(screen.getByLabelText('Capacity provider weight 2'), { target: { value: '3' } });
+    expect(onFieldChange).toHaveBeenCalledWith(
+      'capacityProviderStrategy',
+      expect.arrayContaining([expect.objectContaining({ capacityProvider: 'FARGATE_SPOT', weight: 3 })]),
+    );
   });
 
-  it('renders custom capacity provider names as standard inputs', () => {
+  it('renders custom capacity provider names as standard inputs', async () => {
     const command = buildCommand({
-      capacityProviderMode: 'custom',
       capacityProviderStrategy: [{ base: 0, capacityProvider: 'FARGATE', weight: 1 }],
+      computeOption: 'capacityProviders',
+      credentials: 'account',
+      ecsClusterName: 'cluster',
+      region: 'eu',
       useDefaultCapacityProviders: false,
     });
-    const wrapper = renderCapacityProvider(command);
-    const nameInput = findByTestId(wrapper, 'ServerGroup.customCapacityProvider.name.0');
-
-    expect(nameInput.type()).toBe('input');
-    expect(nameInput.prop('value')).toBe('FARGATE');
-
-    nameInput.simulate('change', { target: { value: 'FARGATE_SPOT' } });
-
-    expect(command.capacityProviderStrategy[0].capacityProvider).toBe('FARGATE_SPOT');
+    await renderCapacityProvider(command);
+    expect(screen.getByLabelText('Capacity provider name 1')).toHaveAttribute('type', 'text');
+    expect(screen.getByLabelText('Capacity provider name 1')).toHaveValue('FARGATE');
   });
 
-  it('does not show custom capacity provider controls for matching default strategy values', () => {
+  it('does not show custom capacity provider controls for matching default strategy values', async () => {
+    const strategy = [{ base: 1, capacityProvider: 'FARGATE_SPOT', weight: 2 }];
     const command = buildCommand({
-      capacityProviderMode: 'default',
-      capacityProviderStrategy: [{ base: 1, capacityProvider: 'FARGATE_SPOT', weight: 2 }],
+      capacityProviderStrategy: strategy,
+      computeOption: 'capacityProviders',
       useDefaultCapacityProviders: true,
     });
-    const wrapper = renderCapacityProvider(command);
-
-    expect(findByTestId(wrapper, 'ServerGroup.addCapacityProvider').exists()).toBe(false);
-    expect(findByTestId(wrapper, 'ServerGroup.defaultCapacityProvider.name.0').prop('value')).toBe('FARGATE_SPOT');
+    command.backingData.filtered.defaultCapacityProviderStrategy = strategy;
+    await renderCapacityProvider(command);
+    expect(screen.queryByRole('button', { name: 'Add New Capacity Provider' })).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Capacity provider name 1')).toBeDisabled();
   });
 
-  it('does not synthesize FARGATE_SPOT when the cluster has no default capacity provider strategy', () => {
+  it('does not synthesize FARGATE_SPOT through actual controls when the cluster has no default strategy', async () => {
     const command = buildCommand({
-      backingData: { ...buildCommand().backingData, filtered: { defaultCapacityProviderStrategy: [] } } as any,
       capacityProviderStrategy: [],
+      computeOption: 'capacityProviders',
       useDefaultCapacityProviders: false,
     });
-    const wrapper = renderCapacityProvider(command);
+    const { onFieldChange } = await renderCapacityProvider(command);
+    onFieldChange.mockClear();
 
-    findByTestId(wrapper, 'ServerGroup.capacityProviders.default').simulate('click');
+    fireEvent.click(screen.getByLabelText(/Use cluster default/));
 
-    expect(command.capacityProviderStrategy).toEqual([]);
-    expect(wrapper.state('capacityProviderStrategy')).toEqual([]);
+    expect(onFieldChange).toHaveBeenCalledWith('capacityProviderStrategy', []);
+    expect(screen.getByText(/does not have capacity providers defined/)).toBeInTheDocument();
   });
 
-  it('renders a capacity provider option only for the active custom row', () => {
+  it('renders a capacity provider option only for the active custom row', async () => {
     const command = buildCommand({
-      capacityProviderMode: 'custom',
+      backingData: {
+        ...buildCommand().backingData,
+        filtered: { ...buildCommand().backingData.filtered, availableCapacityProviders: ['FARGATE', 'FARGATE_SPOT'] },
+      } as any,
       capacityProviderStrategy: [
         { base: 0, capacityProvider: 'FARGATE', weight: 1 },
         { base: 1, capacityProvider: 'FARGATE_SPOT', weight: 2 },
       ],
+      computeOption: 'capacityProviders',
+      credentials: 'account',
+      ecsClusterName: 'cluster',
+      region: 'eu',
       useDefaultCapacityProviders: false,
     });
-    const wrapper = renderCapacityProvider(command);
-    wrapper.setState({ activeCapacityProviderIndex: null });
-    expect(wrapper.find('.Select-option').length).toBe(0);
-
-    wrapper.setState({ activeCapacityProviderIndex: 1 });
-    expect(wrapper.find('.Select-option').length).toBeGreaterThan(0);
-    expect(findByTestId(wrapper, 'ServerGroup.customCapacityProvider.name.1').exists()).toBe(true);
+    await renderCapacityProvider(command);
+    expect(screen.queryByRole('button', { name: 'FARGATE_SPOT' })).not.toBeInTheDocument();
+    fireEvent.focus(screen.getByLabelText('Capacity provider name 2'));
+    expect(screen.getByRole('button', { name: 'FARGATE_SPOT' })).toBeInTheDocument();
   });
 });

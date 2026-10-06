@@ -1,6 +1,6 @@
+import { render, screen } from '@testing-library/react';
 import { StateMatcher } from '@uirouter/core';
 import { hashLocationPlugin, servicesPlugin, UIRouterContext, UIRouterReact } from '@uirouter/react';
-import { mount } from 'enzyme';
 import React from 'react';
 import { RecoilRoot } from 'recoil';
 
@@ -20,9 +20,11 @@ import type { ApplicationDataSource } from '../service/applicationDataSource';
 
 describe('ApplicationNavigation', () => {
   let router: UIRouterReact;
+  let originalPagerDuty: boolean;
   const currentStates = ['**.pipelines.**', '**.tasks.**'];
 
   beforeEach(() => {
+    originalPagerDuty = SETTINGS.feature.pagerDuty;
     router = new UIRouterReact();
     router.plugin(servicesPlugin);
     router.plugin(hashLocationPlugin);
@@ -31,7 +33,19 @@ describe('ApplicationNavigation', () => {
     vi.spyOn(StateMatcher.prototype, 'find').mockImplementation(() => undefined as any);
   });
 
-  afterEach(() => router.dispose());
+  afterEach(() => {
+    SETTINGS.feature.pagerDuty = originalPagerDuty;
+    router.dispose();
+  });
+
+  const renderNavigation = (app: ReturnType<typeof ApplicationModelBuilder.createApplicationForTests>) =>
+    render(
+      <RecoilRoot>
+        <UIRouterContext.Provider value={router}>
+          <ApplicationNavigation app={app} />
+        </UIRouterContext.Provider>
+      </RecoilRoot>,
+    );
 
   it('should render header, categories', () => {
     const app = ApplicationModelBuilder.createApplicationForTests(
@@ -53,40 +67,21 @@ describe('ApplicationNavigation', () => {
 
     app.setActiveState(activeDataSource);
 
-    const wrapper = mount(
-      <RecoilRoot>
-        <UIRouterContext.Provider value={router}>
-          <ApplicationNavigation app={app} />
-        </UIRouterContext.Provider>
-      </RecoilRoot>,
-    );
+    const { container } = renderNavigation(app);
 
-    const header = wrapper.find('.nav-header');
-    expect(header.length).toEqual(1);
-
-    const navSections = wrapper.find('NavSection');
-    expect(navSections.length).toEqual(3);
-
-    const pagerDutyButton = wrapper.find('.page-category');
-    expect(pagerDutyButton.length).toEqual(0);
+    expect(container.querySelector('.nav-header')).toBeInTheDocument();
+    expect(container.querySelectorAll('.nav-section')).toHaveLength(3);
+    expect(container.querySelector('.page-category')).not.toBeInTheDocument();
   });
 
   it('renders nav routes with shared flex row classes', () => {
     const app = ApplicationModelBuilder.createApplicationForTests('testapp', mockServerGroupDataSourceConfig);
     app.attributes.dataSources = app.dataSources;
 
-    const wrapper = mount(
-      <RecoilRoot>
-        <UIRouterContext.Provider value={router}>
-          <ApplicationNavigation app={app} />
-        </UIRouterContext.Provider>
-      </RecoilRoot>,
-    );
+    const { container } = renderNavigation(app);
+    const firstNavRoute = container.querySelector('a.nav-category');
 
-    const firstNavRoute = wrapper.find('a.nav-category').first();
-
-    expect(firstNavRoute.hasClass('flex-container-h')).toBe(true);
-    expect(firstNavRoute.hasClass('middle')).toBe(true);
+    expect(firstNavRoute).toHaveClass('flex-container-h', 'middle');
   });
 
   it('should render pager button', () => {
@@ -94,31 +89,18 @@ describe('ApplicationNavigation', () => {
     const app = ApplicationModelBuilder.createApplicationForTests('testapp');
     app.attributes.pdApiKey = 'fake-api-key';
 
-    const wrapper = mount(
-      <RecoilRoot>
-        <UIRouterContext.Provider value={router}>
-          <ApplicationNavigation app={app} />
-        </UIRouterContext.Provider>
-      </RecoilRoot>,
-    );
+    const { container } = renderNavigation(app);
 
-    const pagerDutyButton = wrapper.find('.page-category');
-    expect(pagerDutyButton.length).toEqual(1);
+    expect(container.querySelectorAll('.page-category')).toHaveLength(1);
+    expect(screen.getByText(/page app owner/i)).toBeInTheDocument();
   });
 
   it('should not render any categories if none configured', () => {
     const app = ApplicationModelBuilder.createApplicationForTests('testapp');
 
-    const wrapper = mount(
-      <RecoilRoot>
-        <UIRouterContext.Provider value={router}>
-          <ApplicationNavigation app={app} />
-        </UIRouterContext.Provider>
-      </RecoilRoot>,
-    );
+    const { container } = renderNavigation(app);
 
-    const navSection = wrapper.find('NavSection');
-    expect(navSection.length).toEqual(0);
+    expect(container.querySelectorAll('.nav-content .nav-section')).toHaveLength(0);
   });
 
   it('sets active category', () => {
@@ -141,24 +123,14 @@ describe('ApplicationNavigation', () => {
     app.attributes.dataSources = app.dataSources;
     app.setActiveState(activeDataSource);
 
-    const wrapper = mount(
-      <RecoilRoot>
-        <UIRouterContext.Provider value={router}>
-          <ApplicationNavigation app={app} />
-        </UIRouterContext.Provider>
-      </RecoilRoot>,
-    );
+    const { container } = renderNavigation(app);
+    const taskAndConfigSection = container.querySelectorAll('.nav-section')[1] as HTMLElement;
 
-    const navSection = wrapper.find('NavSection').at(1);
-    const taskRoute = navSection.find('NavRoute').at(0);
+    const [taskRoute, configRoute] = Array.from(taskAndConfigSection.querySelectorAll('a.nav-category'));
 
-    const taskCategory = taskRoute.find('NavItem');
-    const isTaskCategoryActive = taskCategory.prop('isActive');
-    expect(isTaskCategoryActive).toEqual(true);
-
-    const configRoute = navSection.find('NavRoute').at(1);
-    const configCategory = configRoute.find('NavItem');
-    const isConfigCategoryActive = configCategory.prop('isActive');
-    expect(isConfigCategoryActive).toEqual(false);
+    expect(taskRoute).toHaveTextContent('Tasks');
+    expect(taskRoute).toHaveClass('active');
+    expect(configRoute).toHaveTextContent('Config');
+    expect(configRoute).not.toHaveClass('active');
   });
 });

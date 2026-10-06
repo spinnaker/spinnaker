@@ -1,14 +1,13 @@
-import { shallow } from 'enzyme';
+import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 
 import { RegionSelectField } from './RegionSelectField';
-import { RegionSelectInput } from './RegionSelectInput';
 
 describe('RegionSelectField', () => {
   it('propagates a selection and renders the current component value', () => {
     const component = { region: 'us-east-1' };
     const onChange = vi.fn();
-    const wrapper = shallow(
+    const { rerender } = render(
       <RegionSelectField
         account="test-account"
         component={component}
@@ -19,14 +18,21 @@ describe('RegionSelectField', () => {
       />,
     );
 
-    (wrapper.find(RegionSelectInput).prop('onChange') as (event: React.ChangeEvent<HTMLSelectElement>) => void)({
-      target: { value: 'us-west-2' },
-    } as React.ChangeEvent<HTMLSelectElement>);
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'us-west-2' } });
 
     expect(component.region).toBe('us-west-2');
     expect(onChange).toHaveBeenCalledExactlyOnceWith('us-west-2');
 
-    wrapper.setProps({ component });
-    expect(wrapper.find(RegionSelectInput).prop('value')).toBe('us-west-2');
+    rerender(
+      <RegionSelectField
+        account="test-account"
+        component={component}
+        field="region"
+        labelColumns={3}
+        onChange={onChange}
+        regions={[{ name: 'us-east-1' }, { name: 'us-west-2' }] as any}
+      />,
+    );
+    expect(screen.getByRole('combobox')).toHaveValue('us-west-2');
   });
 });

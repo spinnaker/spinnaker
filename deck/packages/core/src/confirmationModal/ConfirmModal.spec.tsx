@@ -1,23 +1,60 @@
 import { UIRouterContext, UIRouterReact } from '@uirouter/react';
-import { mount } from 'enzyme';
+import { act, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
-import { act } from 'react-dom/test-utils';
 import { filter, take } from 'rxjs/operators';
 
 import { ConfirmModal } from './ConfirmModal';
-import { TaskMonitor, TaskReader } from '../task';
 import type { ITask } from '../domain';
+import { TaskMonitor, TaskReader } from '../task';
 
 describe('ConfirmModal', () => {
-  it('requires a reason and uses the configured placeholder', () => {
-    const submitMethod = vi.fn().mockReturnValue(Promise.resolve());
+  it('submits the exact reason entered through the public controls', async () => {
+    const submitMethod = vi.fn().mockResolvedValue(undefined);
     const closeModal = vi.fn();
+    render(
+      <ConfirmModal
+        header="Page payments Owner"
+        buttonText="Page Owner"
+        cancelButtonText="Cancel"
+        reasonPlaceholder="Why is the owner being paged?"
+        submitJustWithReason={true}
+        submitMethod={submitMethod}
+        closeModal={closeModal}
+        dismissModal={vi.fn()}
+      />,
+    );
+
+    await userEvent.type(screen.getByPlaceholderText('Why is the owner being paged?'), 'Production outage');
+    await userEvent.click(screen.getByRole('button', { name: 'Page Owner' }));
+
+    expect(submitMethod).toHaveBeenCalledTimes(1);
+    expect(submitMethod).toHaveBeenCalledWith({ reason: 'Production outage' });
+    await act(async () => Promise.resolve());
+    expect(closeModal).toHaveBeenCalledTimes(1);
+  });
+
+  it('dismisses from the footer when the visible cancel button is clicked', async () => {
     const dismissModal = vi.fn();
-    const taskMonitor = new TaskMonitor({
-      title: 'Page application owner',
-      onDismiss: () => undefined,
-    });
-    const wrapper = mount(
+    render(
+      <ConfirmModal
+        header="Page payments Owner"
+        buttonText="Page Owner"
+        cancelButtonText="Cancel"
+        closeModal={vi.fn()}
+        dismissModal={dismissModal}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    expect(dismissModal).toHaveBeenCalledTimes(1);
+    expect(dismissModal).toHaveBeenCalledWith({ source: 'footer' });
+  });
+
+  it('requires a reason and uses the configured placeholder', async () => {
+    const taskMonitor = new TaskMonitor({ title: 'Page application owner', onDismiss: () => undefined });
+    render(
       <ConfirmModal
         header="Page payments Owner"
         buttonText="Page Owner"
@@ -25,40 +62,35 @@ describe('ConfirmModal', () => {
         askForReason={true}
         reasonRequired={true}
         reasonPlaceholder="Why is the owner being paged?"
-        submitMethod={submitMethod}
-        closeModal={closeModal}
-        dismissModal={dismissModal}
+        submitMethod={vi.fn().mockResolvedValue(undefined)}
+        closeModal={vi.fn()}
+        dismissModal={vi.fn()}
         taskMonitor={taskMonitor}
       />,
     );
+    const submit = screen.getByRole('button', { name: 'Page Owner' });
+    const reason = screen.getByPlaceholderText('Why is the owner being paged?');
 
-    expect(wrapper.find('button.btn-primary').prop('disabled')).toBe(true);
-    wrapper.find('textarea').simulate('change', { target: { value: '   ' } });
-    wrapper.update();
-    expect(wrapper.find('button.btn-primary').prop('disabled')).toBe(true);
-    wrapper.find('textarea').simulate('change', { target: { value: 'Production outage' } });
-    wrapper.update();
-    expect(wrapper.find('button.btn-primary').prop('disabled')).toBe(false);
-    expect(wrapper.find('textarea').prop('placeholder')).toBe('Why is the owner being paged?');
-
-    wrapper.unmount();
+    expect(submit).toBeDisabled();
+    await userEvent.type(reason, '   ');
+    expect(submit).toBeDisabled();
+    await userEvent.clear(reason);
+    await userEvent.type(reason, 'Production outage');
+    expect(submit).toBeEnabled();
   });
 
   it('resets submitting after a task rejection when retry has no original callback', async () => {
     let rejectSubmission: (reason: unknown) => void;
-    const submission = new Promise((_resolve, reject) => {
-      rejectSubmission = reject;
-    });
-    const submitMethod = vi.fn().mockReturnValue(submission);
+    const submission = new Promise((_resolve, reject) => (rejectSubmission = reject));
     const taskMonitor = new TaskMonitor({ title: 'Page application owner' });
     const router = new UIRouterReact();
-    const wrapper = mount(
+    render(
       <UIRouterContext.Provider value={router}>
         <ConfirmModal
           header="Page payments Owner"
           buttonText="Page Owner"
           cancelButtonText="Cancel"
-          submitMethod={submitMethod}
+          submitMethod={vi.fn().mockReturnValue(submission)}
           closeModal={vi.fn()}
           dismissModal={vi.fn()}
           taskMonitor={taskMonitor}
@@ -67,12 +99,9 @@ describe('ConfirmModal', () => {
     );
 
     expect(taskMonitor.hasDismissHandler()).toBe(false);
-    act(() => {
-      wrapper.find('button.btn-primary').last().simulate('click');
-    });
-    wrapper.update();
+    await userEvent.click(screen.getByRole('button', { name: 'Page Owner' }));
+    expect(screen.getByRole('button', { name: 'Page Owner' })).toBeDisabled();
 
-    expect(wrapper.find('button.btn-primary .load.nano').exists()).toBe(true);
     const errorPublished = taskMonitor.statusUpdatedStream
       .pipe(
         filter(() => taskMonitor.error),
@@ -83,33 +112,21 @@ describe('ConfirmModal', () => {
       rejectSubmission({ failureMessage: 'Page request failed' });
       await errorPublished;
     });
-    wrapper.update();
 
     expect(taskMonitor.error).toBe(true);
-    expect(wrapper.find('.overlay-modal-error').exists()).toBe(true);
-
-    act(() => {
-      wrapper
-        .find('button')
-        .filterWhere((button) => button.text() === 'Go back and try to fix this')
-        .simulate('click');
-    });
-    wrapper.update();
+    await userEvent.click(screen.getByRole('button', { name: 'Go back and try to fix this' }));
 
     expect(taskMonitor.error).toBeNull();
-    expect(wrapper.find('.overlay-modal-error').exists()).toBe(false);
-    expect(wrapper.find('button.btn-primary').last().prop('disabled')).toBe(false);
-
-    wrapper.unmount();
+    expect(screen.getByRole('button', { name: 'Page Owner' })).toBeEnabled();
     router.dispose();
   });
 
-  it('installs a local close override when the task monitor has no dismiss handler', () => {
+  it('installs a local close override and restores it on unmount when no dismiss handler exists', () => {
     const dismissModal = vi.fn();
     const stopPropagation = vi.fn();
     const taskMonitor = new TaskMonitor({ title: 'Page application owner' });
     const originalCloseModal = taskMonitor.closeModal;
-    const wrapper = mount(
+    const { unmount } = render(
       <ConfirmModal
         header="Page payments Owner"
         buttonText="Page Owner"
@@ -122,18 +139,15 @@ describe('ConfirmModal', () => {
 
     expect(taskMonitor.closeModal).not.toBe(originalCloseModal);
     taskMonitor.closeModal({ stopPropagation } as any);
-
     expect(stopPropagation).toHaveBeenCalledTimes(1);
     expect(dismissModal).toHaveBeenCalledTimes(1);
 
-    wrapper.unmount();
+    unmount();
     expect(taskMonitor.closeModal).toBe(originalCloseModal);
   });
 
   it('closes the task monitor before dismissing and dismisses only once when dismissal throws', async () => {
-    vi.useFakeTimers({
-      toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval'],
-    });
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval'] });
     const poll = vi.fn();
     const activeTask = { poller: setTimeout(poll, 25) } as ITask;
     const lateTask = { id: 'late-task', status: 'RUNNING' } as ITask;
@@ -143,13 +157,13 @@ describe('ConfirmModal', () => {
     const dismissalError = new Error('dismiss failed');
     let pollingWasActiveAtDismiss: boolean;
     const taskMonitor = new TaskMonitor({ title: 'Page application owner' });
-    const router = new UIRouterReact();
     const dismissModal = vi.fn().mockImplementation(() => {
       pollingWasActiveAtDismiss = activeTask.poller !== undefined;
       resolveSubmission(lateTask);
       throw dismissalError;
     });
-    const wrapper = mount(
+    const router = new UIRouterReact();
+    const { unmount } = render(
       <UIRouterContext.Provider value={router}>
         <ConfirmModal
           header="Page payments Owner"
@@ -176,11 +190,10 @@ describe('ConfirmModal', () => {
       expect(poll).not.toHaveBeenCalled();
       expect(waitUntilTaskCompletes).not.toHaveBeenCalled();
       expect(taskMonitor.task).toBe(activeTask);
-
       expect(() => taskMonitor.closeModal()).not.toThrow();
       expect(dismissModal).toHaveBeenCalledTimes(1);
     } finally {
-      wrapper.unmount();
+      unmount();
       router.dispose();
       vi.useRealTimers();
     }
@@ -191,7 +204,7 @@ describe('ConfirmModal', () => {
     const dismissModal = vi.fn();
     const taskMonitor = new TaskMonitor({ title: 'Page application owner', onDismiss });
     const originalCloseModal = taskMonitor.closeModal;
-    const wrapper = mount(
+    const { unmount } = render(
       <ConfirmModal
         header="Page payments Owner"
         buttonText="Page Owner"
@@ -204,10 +217,8 @@ describe('ConfirmModal', () => {
 
     expect(taskMonitor.closeModal).toBe(originalCloseModal);
     taskMonitor.closeModal();
-
     expect(onDismiss).toHaveBeenCalledTimes(1);
     expect(dismissModal).not.toHaveBeenCalled();
-
-    wrapper.unmount();
+    unmount();
   });
 });

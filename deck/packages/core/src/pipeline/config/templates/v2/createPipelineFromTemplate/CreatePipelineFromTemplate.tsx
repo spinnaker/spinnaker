@@ -101,14 +101,6 @@ export class CreatePipelineFromTemplateComponent extends React.Component<
       );
   };
 
-  private goToPipelineConfig = (application: string, id: string) => {
-    this.props.stateService.go('home.applications.application.pipelines.pipelineConfig', {
-      application,
-      pipelineId: id,
-      new: 1,
-    });
-  };
-
   public render() {
     const {
       applications,
@@ -128,7 +120,11 @@ export class CreatePipelineFromTemplateComponent extends React.Component<
           show={true}
           showCallback={closeModalCallback}
           pipelineSavedCallback={(id) => {
-            this.goToPipelineConfig(loadedApplication.name, id);
+            this.props.stateService.go('home.applications.application.pipelines.pipelineConfig', {
+              application: loadedApplication.name,
+              pipelineId: id,
+              new: 1,
+            });
           }}
           preselectedTemplate={template}
         />

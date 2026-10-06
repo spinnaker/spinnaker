@@ -1,12 +1,11 @@
-import { servicesPlugin, UIRouterContext, UIRouterReact } from '@uirouter/react';
-import { mount } from 'enzyme';
+import { act, fireEvent, render, screen } from '@testing-library/react';
+import { hashLocationPlugin, servicesPlugin, UIRouterContext, UIRouterReact } from '@uirouter/react';
 import React from 'react';
-import { act } from 'react-dom/test-utils';
 import { RecoilRoot } from 'recoil';
 
 import { InsightLayout, isInsightDetailUrl, shouldHideInsightFilters, shouldShowDetailsView } from './InsightLayout';
+import type { Application } from '../application';
 import { CollapsibleSectionStateCache } from '../cache';
-import { FilterCollapse } from '../filterModel/FilterCollapse';
 
 class TestServerGroupsDataSource {
   public fetchOnDemand: boolean;
@@ -35,12 +34,12 @@ class TestServerGroupsDataSource {
 
 describe('InsightLayout', () => {
   const application = (serverGroups = new TestServerGroupsDataSource()) =>
-    ({
+    (({
       notFound: false,
       hasError: false,
       serverGroups,
       getDataSource: () => serverGroups,
-    } as any);
+    } as unknown) as Application);
 
   it('computes hidden filters from the current server group visibility state', () => {
     const currentState = { name: 'home.applications.application.insight.clusters' };
@@ -57,36 +56,35 @@ describe('InsightLayout', () => {
     const secondApp = application(secondServerGroups);
     const router = new UIRouterReact();
     router.plugin(servicesPlugin);
+    router.plugin(hashLocationPlugin);
     router.stateRegistry.register({ name: 'clusters', url: '/clusters' });
     await router.stateService.go('clusters', {}, { location: false });
-    const Harness = ({ app }: { app: any }) =>
+    const Harness = ({ app }: { app: Application }) =>
       React.createElement(
         RecoilRoot,
         null,
         React.createElement(UIRouterContext.Provider, { value: router }, React.createElement(InsightLayout, { app })),
       );
-    const wrapper = mount(React.createElement(Harness, { app: firstApp }));
+    const { container, rerender, unmount } = render(React.createElement(Harness, { app: firstApp }));
 
-    expect(wrapper.find(FilterCollapse).length).toBe(1);
-    expect(wrapper.find('.insight > .nav').length).toBe(1);
-    expect(wrapper.find('.ng-scope').length).toBe(0);
+    expect(screen.getByText('Filters')).toBeInTheDocument();
+    expect(container.querySelector('.insight > .nav')).toBeInTheDocument();
+    expect(container.querySelector('.ng-scope')).not.toBeInTheDocument();
     expect(firstServerGroups.callbackCount()).toBe(1);
 
     act(() => firstServerGroups.emit(true));
-    wrapper.update();
 
-    expect(wrapper.find(FilterCollapse).length).toBe(0);
-    expect(wrapper.find('.insight > .nav').length).toBe(0);
+    expect(screen.queryByText('Filters')).not.toBeInTheDocument();
+    expect(container.querySelector('.insight > .nav')).not.toBeInTheDocument();
 
-    act(() => wrapper.setProps({ app: secondApp }));
-    wrapper.update();
+    rerender(React.createElement(Harness, { app: secondApp }));
 
     expect(firstServerGroups.callbackCount()).toBe(0);
     expect(secondServerGroups.callbackCount()).toBe(1);
-    expect(wrapper.find(FilterCollapse).length).toBe(1);
-    expect(wrapper.find('.insight > .nav').length).toBe(1);
+    expect(screen.getByText('Filters')).toBeInTheDocument();
+    expect(container.querySelector('.insight > .nav')).toBeInTheDocument();
 
-    wrapper.unmount();
+    unmount();
     router.dispose();
     expect(secondServerGroups.callbackCount()).toBe(0);
   });
@@ -121,7 +119,7 @@ describe('InsightLayout', () => {
     vi.spyOn(CollapsibleSectionStateCache, 'isExpanded').mockReturnValue(true);
     const setExpanded = vi.spyOn(CollapsibleSectionStateCache, 'setExpanded').mockReturnValue(undefined);
     const router = new UIRouterReact();
-    const wrapper = mount(
+    const { container, unmount } = render(
       React.createElement(
         RecoilRoot,
         null,
@@ -133,31 +131,27 @@ describe('InsightLayout', () => {
       ),
     );
 
-    let filterCollapse = wrapper.find(FilterCollapse);
     expect(CollapsibleSectionStateCache.isSet).toHaveBeenCalledWith('insightFilters');
     expect(CollapsibleSectionStateCache.isExpanded).toHaveBeenCalledWith('insightFilters');
-    expect(filterCollapse.prop('filtersExpanded')).toBe(true);
+    expect(container.querySelector('.insight')).toHaveClass('filters-expanded');
+    expect(screen.getByText('Filters')).toBeInTheDocument();
     expect(setExpanded).not.toHaveBeenCalled();
-    const onToggle = filterCollapse.prop('onToggle') as (() => void) | undefined;
-    expect(onToggle).toEqual(expect.any(Function));
+    const hideFilters = container.querySelector('button.unpin') as HTMLButtonElement;
     act(() => {
-      onToggle?.();
-      onToggle?.();
+      fireEvent.click(hideFilters);
+      fireEvent.click(hideFilters);
     });
-    wrapper.update();
 
-    filterCollapse = wrapper.find(FilterCollapse);
-    expect(filterCollapse.prop('filtersExpanded')).toBe(true);
+    expect(container.querySelector('.insight')).toHaveClass('filters-expanded');
     expect(setExpanded).not.toHaveBeenCalled();
 
-    act(() => onToggle?.());
-    wrapper.update();
+    fireEvent.click(hideFilters);
 
-    filterCollapse = wrapper.find(FilterCollapse);
-    expect(filterCollapse.prop('filtersExpanded')).toBe(false);
+    expect(container.querySelector('.insight')).toHaveClass('filters-collapsed');
+    expect(screen.getByRole('button', { name: 'Show filters' })).toBeInTheDocument();
     expect(setExpanded.mock.calls).toEqual([['insightFilters', false]]);
 
-    wrapper.unmount();
+    unmount();
     router.dispose();
   });
 });

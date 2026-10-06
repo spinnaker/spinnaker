@@ -1,4 +1,5 @@
-import { mount } from 'enzyme';
+import { render, screen } from '@testing-library/react';
+import { setupUser } from '../../../../utils/testUtils/userEvent';
 import React from 'react';
 
 import { AccountService } from '../../../../account/AccountService';
@@ -28,23 +29,20 @@ describe('<DeployStageConfig />', () => {
   }
 
   it('shows provider selection errors when adding a cluster', async () => {
+    const user = setupUser();
     vi.spyOn(AccountService, 'listProviders').mockReturnValue(Promise.resolve(['aws']) as any);
-    vi.spyOn(ProviderSelectionService, 'selectProvider').mockReturnValue(
+    vi.spyOn(ProviderSelectionService, 'selectProvider').mockImplementation(() =>
       Promise.reject(new Error('No providers support serverGroup for this action.')),
     );
-    const component = mount(
-      <DeployStageConfigComponent {...createProps()} deckRuntimeServices={deckRuntimeServices} />,
-    );
+    render(<DeployStageConfigComponent {...createProps()} deckRuntimeServices={deckRuntimeServices} />);
 
-    component.find('button.add-new').simulate('click');
-    await Promise.resolve();
-    await Promise.resolve();
-    component.update();
+    await user.click(screen.getByRole('button', { name: /Add server group/i }));
 
-    expect(component.find('.alert-danger').text()).toBe('No providers support serverGroup for this action.');
+    expect(await screen.findByText('No providers support serverGroup for this action.')).toBeVisible();
   });
 
-  it('only offers providers with React clone server group modals when adding a cluster', () => {
+  it('only offers providers with React clone server group modals when adding a cluster', async () => {
+    const user = setupUser();
     vi.spyOn(AccountService, 'listProviders').mockReturnValue(Promise.resolve(['aws']) as any);
     let filterFn: any;
     vi.spyOn(ProviderSelectionService, 'selectProvider').mockImplementation(
@@ -54,9 +52,9 @@ describe('<DeployStageConfig />', () => {
       },
     );
     const props = createProps();
-    const component = mount(<DeployStageConfigComponent {...props} deckRuntimeServices={deckRuntimeServices} />);
+    render(<DeployStageConfigComponent {...props} deckRuntimeServices={deckRuntimeServices} />);
 
-    component.find('button.add-new').simulate('click');
+    await user.click(screen.getByRole('button', { name: /Add server group/i }));
 
     expect(ProviderSelectionService.selectProvider).toHaveBeenCalledWith(
       props.application,
