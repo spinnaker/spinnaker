@@ -1,16 +1,8 @@
-import { shallow } from 'enzyme';
+import { render, screen, waitFor } from '@testing-library/react';
+import { setupUser } from '../../../../core/src/utils/testUtils/userEvent';
 import React from 'react';
-import { MenuItem } from 'react-bootstrap';
 
-import {
-  AccountTag,
-  AddEntityTagLinks,
-  CloudProviderLogo,
-  CollapsibleSection,
-  EntityNotifications,
-  ManifestReader,
-  SETTINGS,
-} from '@spinnaker/core';
+import { AccountService, EntityTagEditor, ManifestReader, SETTINGS } from '@spinnaker/core';
 
 import {
   KubernetesSecurityGroupActions,
@@ -18,10 +10,7 @@ import {
 } from './KubernetesSecurityGroupDetails';
 import type { IKubernetesSecurityGroupDetailsProps } from './KubernetesSecurityGroupDetails';
 import { KubernetesV2SecurityGroupTransformer } from '../transformer';
-import { AnnotationCustomSections } from '../../manifest/AnnotationCustomSections';
-import { DeleteModal } from '../../manifest/delete/DeleteModal';
 import { KubernetesManifestCommandBuilder } from '../../manifest/manifestCommandBuilder.service';
-import { ManifestLabels } from '../../manifest/ManifestLabels';
 import { ManifestWizard } from '../../manifest/wizard/ManifestWizard';
 
 describe('<KubernetesSecurityGroupDetails />', () => {
@@ -35,9 +24,10 @@ describe('<KubernetesSecurityGroupDetails />', () => {
     originalEntityTags = SETTINGS.feature.entityTags;
     SETTINGS.kubernetesAdHocInfraWritesEnabled = true;
     SETTINGS.feature.entityTags = false;
+    vi.spyOn(AccountService, 'challengeDestructiveActions').mockResolvedValue(false);
 
     securityGroupReader = {
-      getSecurityGroupDetails: vi.fn().mockReturnValue(Promise.resolve(securityGroup())),
+      getSecurityGroupDetails: vi.fn().mockResolvedValue(securityGroup()),
     };
     props = {
       app: appWithSecurityGroups(),
@@ -49,7 +39,12 @@ describe('<KubernetesSecurityGroupDetails />', () => {
       securityGroupReader,
     } as IKubernetesSecurityGroupDetailsProps;
 
-    vi.spyOn(ManifestReader, 'getManifest').mockReturnValue(Promise.resolve(manifestDetails()) as any);
+    vi.spyOn(ManifestReader, 'getManifest').mockResolvedValue(manifestDetails() as any);
+  });
+
+  afterEach(() => {
+    SETTINGS.kubernetesAdHocInfraWritesEnabled = originalAdHocInfraWritesEnabled;
+    SETTINGS.feature.entityTags = originalEntityTags;
   });
 
   it('replaces missing details through the injected state service', () => {
@@ -67,17 +62,10 @@ describe('<KubernetesSecurityGroupDetails />', () => {
     expect(stateService.go).toHaveBeenCalledWith('^', null, { location: 'replace' });
   });
 
-  afterEach(() => {
-    SETTINGS.kubernetesAdHocInfraWritesEnabled = originalAdHocInfraWritesEnabled;
-    SETTINGS.feature.entityTags = originalEntityTags;
-  });
+  it('loads security group and manifest details before rendering the sections', async () => {
+    render(<KubernetesSecurityGroupDetails {...props} />);
 
-  it('loads security group and manifest details before rendering the React sections', async () => {
-    const component = shallow(<KubernetesSecurityGroupDetails {...props} />);
-
-    await settle();
-    component.update();
-
+    expect(await screen.findByRole('heading', { name: 'backend-security-policy' })).toBeInTheDocument();
     expect(securityGroupReader.getSecurityGroupDetails).toHaveBeenCalledWith(
       props.app,
       'k8s-local',
@@ -91,38 +79,61 @@ describe('<KubernetesSecurityGroupDetails />', () => {
       'dev',
       'networkPolicy backend-security-policy',
     );
-    expect(component.find(CloudProviderLogo).prop('provider')).toBe('kubernetes');
-    expect(component.find('h3').text()).toContain('backend-security-policy');
-    expect(component.find(KubernetesSecurityGroupActions).prop('securityGroup')).toEqual(securityGroup());
-    expect(component.find(CollapsibleSection).map((section) => section.prop('heading'))).toEqual([
-      'Information',
-      'Labels',
-    ]);
-    expect(component.find(AccountTag).prop('account')).toBe('k8s-local');
-    expect(component.find(AnnotationCustomSections).prop('manifest')).toEqual(manifestDetails().manifest);
-    expect(component.find(AnnotationCustomSections).prop('resource')).toEqual(securityGroup());
-    expect(component.find(ManifestLabels).prop('manifest')).toEqual(manifestDetails().manifest);
+    expect(screen.getByRole('heading', { name: 'Information' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Labels' })).toBeInTheDocument();
+    expect(screen.getByText('k8s-local')).toBeInTheDocument();
+    expect(screen.getByText('Account: k8s-local')).toBeInTheDocument();
+    expect(screen.getByText(/app.kubernetes.io\/name:\s*kubernetesapp/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Network Policy Actions' })).toBeInTheDocument();
   });
 
   it('auto-closes when the security group cannot be found', async () => {
     const autoClose = vi.fn();
-    securityGroupReader.getSecurityGroupDetails.mockReturnValue(Promise.resolve(null));
-    const component = shallow(<KubernetesSecurityGroupDetails {...props} autoClose={autoClose} />);
+    securityGroupReader.getSecurityGroupDetails.mockResolvedValue(null);
+    render(<KubernetesSecurityGroupDetails {...props} autoClose={autoClose} />);
 
-    await settle();
-    component.update();
-
-    expect(autoClose).toHaveBeenCalled();
+    await waitFor(() => expect(autoClose).toHaveBeenCalled());
   });
 
-  it('renders entity tag integrations when enabled', async () => {
+  it('renders notifications from the loaded security group tags', async () => {
     SETTINGS.feature.entityTags = true;
-    const component = shallow(<KubernetesSecurityGroupDetails {...props} />);
+    const user = setupUser();
+    securityGroupReader.getSecurityGroupDetails.mockResolvedValue(
+      securityGroup({
+        entityTags: {
+          alerts: [],
+          entityRef: {
+            account: 'k8s-local',
+            cloudProvider: 'kubernetes',
+            entityId: 'networkPolicy backend-security-policy',
+            entityType: 'securityGroup',
+            region: 'dev',
+          },
+          id: 'security-group-tags',
+          notices: [
+            {
+              lastModified: 1753718892000,
+              name: 'backend-maintenance',
+              value: {
+                message: 'Backend policy maintenance tonight',
+                type: 'notice',
+              },
+            },
+          ],
+          tags: [],
+          tagsMetadata: [],
+        },
+      }),
+    );
+    const { container } = render(<KubernetesSecurityGroupDetails {...props} />);
 
-    await settle();
-    component.update();
+    expect(await screen.findByRole('heading', { name: 'backend-security-policy' })).toBeInTheDocument();
+    const noticeMarker = container.querySelector('.notification.fa-flag');
+    expect(noticeMarker).toBeInTheDocument();
 
-    expect(component.find(EntityNotifications).prop('entity')).toEqual(securityGroup());
+    await user.hover(noticeMarker as HTMLElement);
+
+    expect(await screen.findByText('Backend policy maintenance tonight')).toBeVisible();
   });
 
   it('loads standalone security group details when the securityGroups data source is absent', async () => {
@@ -131,11 +142,9 @@ describe('<KubernetesSecurityGroupDetails />', () => {
       isStandalone: true,
       getDataSource: () => undefined,
     };
-    const component = shallow(<KubernetesSecurityGroupDetails {...props} app={app} />);
+    render(<KubernetesSecurityGroupDetails {...props} app={app} />);
 
-    await settle();
-    component.update();
-
+    expect(await screen.findByRole('heading', { name: 'backend-security-policy' })).toBeInTheDocument();
     expect(securityGroupReader.getSecurityGroupDetails).toHaveBeenCalledWith(
       app,
       'k8s-local',
@@ -144,7 +153,6 @@ describe('<KubernetesSecurityGroupDetails />', () => {
       '',
       'networkPolicy backend-security-policy',
     );
-    expect(component.find('h3').text()).toContain('backend-security-policy');
   });
 });
 
@@ -157,6 +165,7 @@ describe('<KubernetesSecurityGroupActions />', () => {
     originalEntityTags = SETTINGS.feature.entityTags;
     SETTINGS.kubernetesAdHocInfraWritesEnabled = true;
     SETTINGS.feature.entityTags = false;
+    vi.spyOn(AccountService, 'challengeDestructiveActions').mockResolvedValue(false);
   });
 
   afterEach(() => {
@@ -164,42 +173,37 @@ describe('<KubernetesSecurityGroupActions />', () => {
     SETTINGS.feature.entityTags = originalEntityTags;
   });
 
-  it('opens the delete modal from the actions menu', () => {
-    const component = shallow(
-      <KubernetesSecurityGroupActions
-        app={appWithSecurityGroups()}
-        manifest={manifestDetails()}
-        securityGroup={securityGroup()}
-      />,
-    );
+  const openActions = async (app = appWithSecurityGroups()) => {
+    const user = setupUser();
+    const resource = securityGroup();
+    render(<KubernetesSecurityGroupActions app={app} manifest={manifestDetails()} securityGroup={resource} />);
+    await user.click(screen.getByRole('button', { name: 'Network Policy Actions' }));
+    return { app, resource, user };
+  };
 
-    expect(component.find(DeleteModal).prop('isOpen')).toBe(false);
+  it('opens the delete modal from the actions menu', async () => {
+    const { user } = await openActions();
 
-    component.find(MenuItem).at(0).prop('onClick')({} as any);
+    await user.click(screen.getByRole('menuitem', { name: /Delete/ }));
 
-    expect(component.find(DeleteModal).prop('isOpen')).toBe(true);
-    expect(component.find(DeleteModal).prop('resource')).toEqual(securityGroup());
+    expect(screen.getByText('Delete NetworkPolicy backend-security-policy in dev')).toBeInTheDocument();
   });
 
   it('opens the manifest wizard from the actions menu', async () => {
     const command = { manifest: {} };
-    vi.spyOn(KubernetesManifestCommandBuilder, 'buildNewManifestCommand').mockReturnValue(
-      Promise.resolve(command) as any,
-    );
+    vi.spyOn(KubernetesManifestCommandBuilder, 'buildNewManifestCommand').mockResolvedValue(command as any);
     vi.spyOn(ManifestWizard, 'show').mockReturnValue(undefined);
-    const app = appWithSecurityGroups();
-    const component = shallow(
-      <KubernetesSecurityGroupActions app={app} manifest={manifestDetails()} securityGroup={securityGroup()} />,
-    );
+    const { app, user } = await openActions();
 
-    component.find(MenuItem).at(1).prop('onClick')({} as any);
-    await settle();
+    await user.click(screen.getByRole('menuitem', { name: /Edit/ }));
 
-    expect(KubernetesManifestCommandBuilder.buildNewManifestCommand).toHaveBeenCalledWith(
-      app,
-      manifestDetails().manifest,
-      securityGroup().moniker,
-      'k8s-local',
+    await waitFor(() =>
+      expect(KubernetesManifestCommandBuilder.buildNewManifestCommand).toHaveBeenCalledWith(
+        app,
+        manifestDetails().manifest,
+        securityGroup().moniker,
+        'k8s-local',
+      ),
     );
     expect(ManifestWizard.show).toHaveBeenCalledWith({
       title: 'Edit Manifest',
@@ -208,22 +212,37 @@ describe('<KubernetesSecurityGroupActions />', () => {
     });
   });
 
-  it('renders entity tag links when enabled', () => {
+  it('opens the entity tag editor with the security group context', async () => {
     SETTINGS.feature.entityTags = true;
-    const app = appWithSecurityGroups();
-    const component = shallow(
-      <KubernetesSecurityGroupActions app={app} manifest={manifestDetails()} securityGroup={securityGroup()} />,
-    );
+    const showTagEditor = vi.spyOn(EntityTagEditor, 'show').mockResolvedValue(undefined);
+    const { app, resource, user } = await openActions();
 
-    expect(component.find(AddEntityTagLinks).prop('component')).toEqual(securityGroup());
-    expect(component.find(AddEntityTagLinks).prop('application')).toBe(app);
-    expect(component.find(AddEntityTagLinks).prop('entityType')).toBe('securityGroup');
+    await user.click(screen.getByText('Add notice'));
+
+    expect(showTagEditor).toHaveBeenCalledWith({
+      application: app,
+      entityRef: null,
+      entityType: 'securityGroup',
+      isNew: true,
+      onUpdate: expect.any(Function),
+      owner: resource,
+      ownerOptions: undefined,
+      tag: {
+        name: null,
+        value: {
+          message: null,
+          type: 'notice',
+        },
+      },
+    });
+    showTagEditor.mock.calls[0][0].onUpdate();
+    expect(app.securityGroups.refresh).toHaveBeenCalled();
   });
 
   it('does not render action controls when ad-hoc infrastructure writes are disabled', () => {
     SETTINGS.kubernetesAdHocInfraWritesEnabled = false;
 
-    const component = shallow(
+    const { container } = render(
       <KubernetesSecurityGroupActions
         app={appWithSecurityGroups()}
         manifest={manifestDetails()}
@@ -231,10 +250,8 @@ describe('<KubernetesSecurityGroupActions />', () => {
       />,
     );
 
-    expect(component.isEmptyRender()).toBe(true);
-    expect(component.find('Dropdown').exists()).toBe(false);
-    expect(component.find(MenuItem).exists()).toBe(false);
-    expect(component.find(DeleteModal).exists()).toBe(false);
+    expect(container).toBeEmptyDOMElement();
+    expect(screen.queryByRole('button', { name: /Actions/ })).not.toBeInTheDocument();
   });
 });
 
@@ -246,8 +263,6 @@ describe('KubernetesV2SecurityGroupTransformer', () => {
   });
 });
 
-const settle = () => new Promise((resolve) => setTimeout(resolve));
-
 const appWithSecurityGroups = () =>
   ({
     isStandalone: false,
@@ -256,6 +271,9 @@ const appWithSecurityGroups = () =>
       onRefresh: () => () => null,
     }),
     securityGroups: {
+      refresh: vi.fn(),
+    },
+    serverGroups: {
       refresh: vi.fn(),
     },
   } as any);
@@ -281,7 +299,7 @@ const manifestDetails = () =>
     manifest: {
       metadata: {
         annotations: {
-          'strategy.spinnaker.io/deployment-info': 'Account: {{ resource.account }}',
+          'strategy.details.spinnaker.io/deployment-info': 'Account: {{ resource.account }}',
         },
         labels: {
           'app.kubernetes.io/name': 'kubernetesapp',

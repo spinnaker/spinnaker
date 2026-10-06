@@ -1,7 +1,5 @@
+import { fireEvent, render, within } from '@testing-library/react';
 import React from 'react';
-import { shallow } from 'enzyme';
-
-import type { IGceLoadBalancerData } from '../common';
 
 import {
   buildGceRegionalExternalNetworkLoadBalancerOptions,
@@ -9,6 +7,7 @@ import {
   validateGceRegionalExternalNetworkLoadBalancerCommand,
 } from './GceRegionalExternalNetworkLoadBalancerEditor';
 import { normalizeGceRegionalExternalNetworkLoadBalancerCommand } from './GceRegionalExternalNetworkLoadBalancerModal';
+import type { IGceLoadBalancerData } from '../common';
 
 describe('GceRegionalExternalNetworkLoadBalancerEditor', () => {
   const emptyData = (): IGceLoadBalancerData => ({
@@ -51,17 +50,27 @@ describe('GceRegionalExternalNetworkLoadBalancerEditor', () => {
     expect(options.addresses.map(({ address }) => address)).toEqual(['35.1.2.3']);
 
     const onChange = vi.fn();
-    const wrapper = shallow(
-      <GceRegionalExternalNetworkLoadBalancerEditor command={command} data={emptyData()} onChange={onChange} />,
+    const { getByLabelText } = render(
+      <GceRegionalExternalNetworkLoadBalancerEditor
+        command={command}
+        data={
+          {
+            ...emptyData(),
+            addresses: [{ address: '35.1.2.3', addressType: 'EXTERNAL', networkTier: 'PREMIUM' }],
+          } as any
+        }
+        onChange={onChange}
+      />,
     );
 
-    wrapper.find('[data-field="address"] select').simulate('change', {
-      target: { value: '35.1.2.3' },
-    });
+    expect(optionValues(getByLabelText('IP address'))).toEqual(['', '35.1.2.3']);
+    fireEvent.change(getByLabelText('IP address'), { target: { value: '35.1.2.3' } });
 
     expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({
-        listeners: [expect.objectContaining({ address: { address: '35.1.2.3', name: '35.1.2.3' } })],
+        listeners: [
+          expect.objectContaining({ address: expect.objectContaining({ address: '35.1.2.3', name: '35.1.2.3' }) }),
+        ],
         networkTier: 'PREMIUM',
       }),
     );
@@ -83,26 +92,17 @@ describe('GceRegionalExternalNetworkLoadBalancerEditor', () => {
       },
       'edit',
     );
-    const wrapper = shallow(
+    const { container, getByLabelText, getByRole } = render(
       <GceRegionalExternalNetworkLoadBalancerEditor command={command} data={emptyData()} onChange={vi.fn()} />,
     );
 
-    [
-      'credentials',
-      'region',
-      'address',
-      'networkTier',
-      'protocol',
-      'ports',
-      'sessionAffinity',
-      'healthCheck',
-      'healthCheckName',
-    ].forEach((field) => expect(wrapper.find(`[data-field="${field}"]`).exists()).toBe(true));
-    expect(wrapper.find('[data-field="protocol"] option').map((option) => option.prop('value'))).toEqual([
-      'TCP',
-      'UDP',
-    ]);
-    expect(wrapper.find('[data-field="sessionAffinity"] option').map((option) => option.prop('value'))).toEqual([
+    ['Account', 'Region', 'IP address', 'Network tier', 'Protocol', 'Ports', 'Session affinity'].forEach((label) =>
+      expect(getByLabelText(label)).toBeInTheDocument(),
+    );
+    expect(getByRole('heading', { name: 'Health Check' })).toBeInTheDocument();
+    expect(controls(container).healthCheckName).toHaveValue('tcp-check');
+    expect(optionValues(getByLabelText('Protocol'))).toEqual(['TCP', 'UDP']);
+    expect(optionValues(getByLabelText('Session affinity'))).toEqual([
       'NONE',
       'CLIENT_IP',
       'CLIENT_IP_PROTO',
@@ -126,11 +126,11 @@ describe('GceRegionalExternalNetworkLoadBalancerEditor', () => {
       'edit',
     );
     const onChange = vi.fn();
-    const wrapper = shallow(
+    const { container } = render(
       <GceRegionalExternalNetworkLoadBalancerEditor command={command} data={emptyData()} onChange={onChange} />,
     );
 
-    wrapper.find('[data-field="healthCheckName"] input').simulate('change', { target: { value: 'new-check' } });
+    fireEvent.change(controls(container).healthCheckName, { target: { value: 'new-check' } });
 
     const nextCommand = onChange.mock.lastCall[0];
     expect(nextCommand.backendServices[0].healthCheck).toBe(nextCommand.healthChecks[0]);
@@ -146,19 +146,17 @@ describe('GceRegionalExternalNetworkLoadBalancerEditor', () => {
       'create',
     );
     const onChange = vi.fn();
-    const wrapper = shallow(
+    const { getByLabelText } = render(
       <GceRegionalExternalNetworkLoadBalancerEditor command={command} data={emptyData()} onChange={onChange} />,
     );
 
-    wrapper.find('[data-field="protocol"] select').simulate('change', { target: { value: 'UDP' } });
+    fireEvent.change(getByLabelText('Protocol'), { target: { value: 'UDP' } });
     expect(onChange.mock.lastCall[0].listeners[0].protocol).toBe('UDP');
 
-    wrapper.find('[data-field="ports"] input').simulate('change', { target: { value: '80, 443 , 8080' } });
+    fireEvent.change(getByLabelText('Ports'), { target: { value: '80, 443 , 8080' } });
     expect(onChange.mock.lastCall[0].ports).toEqual(['80', ' 443 ', ' 8080']);
 
-    wrapper.find('[data-field="sessionAffinity"] select').simulate('change', {
-      target: { value: 'CLIENT_IP_PORT_PROTO' },
-    });
+    fireEvent.change(getByLabelText('Session affinity'), { target: { value: 'CLIENT_IP_PORT_PROTO' } });
     expect(onChange.mock.lastCall[0].backendServices[0].sessionAffinity).toBe('CLIENT_IP_PORT_PROTO');
   });
 
@@ -180,22 +178,15 @@ describe('GceRegionalExternalNetworkLoadBalancerEditor', () => {
       },
       'edit',
     );
-    const wrapper = shallow(
+    const { container } = render(
       <GceRegionalExternalNetworkLoadBalancerEditor command={command} data={emptyData()} onChange={vi.fn()} />,
     );
+    const fields = controls(container);
 
-    ['name', 'credentials', 'region', 'address', 'networkTier', 'protocol', 'ports'].forEach((field) => {
-      const control = wrapper.find(`[data-field="${field}"]`);
-      expect((control.find('input').exists() ? control.find('input') : control.find('select')).prop('disabled')).toBe(
-        true,
-      );
-    });
-    ['sessionAffinity', 'healthCheckName'].forEach((field) => {
-      const control = wrapper.find(`[data-field="${field}"]`);
-      expect(
-        (control.find('input').exists() ? control.find('input') : control.find('select')).prop('disabled'),
-      ).not.toBe(true);
-    });
+    (['name', 'credentials', 'region', 'address', 'networkTier', 'protocol', 'ports'] as const).forEach((field) =>
+      expect(fields[field], field).toBeDisabled(),
+    );
+    (['sessionAffinity', 'healthCheckName'] as const).forEach((field) => expect(fields[field], field).toBeEnabled());
   });
 
   it('drops the selected address when the account or region changes', () => {
@@ -204,15 +195,23 @@ describe('GceRegionalExternalNetworkLoadBalancerEditor', () => {
       'create',
     );
     const onChange = vi.fn();
-    const wrapper = shallow(
-      <GceRegionalExternalNetworkLoadBalancerEditor command={command} data={emptyData()} onChange={onChange} />,
+    const { getByLabelText } = render(
+      <GceRegionalExternalNetworkLoadBalancerEditor
+        command={command}
+        data={{
+          ...emptyData(),
+          accounts: [{ name: 'account-a' }, { name: 'account-b' }],
+          regions: [{ name: 'europe-west1' }, { name: 'us-central1' }],
+        }}
+        onChange={onChange}
+      />,
     );
 
-    wrapper.find('[data-field="credentials"] select').simulate('change', { target: { value: 'account-b' } });
+    fireEvent.change(getByLabelText('Account'), { target: { value: 'account-b' } });
     expect(onChange.mock.lastCall[0].credentials).toBe('account-b');
     expect(onChange.mock.lastCall[0].listeners[0].address).toBeUndefined();
 
-    wrapper.find('[data-field="region"] select').simulate('change', { target: { value: 'us-central1' } });
+    fireEvent.change(getByLabelText('Region'), { target: { value: 'us-central1' } });
     expect(onChange.mock.lastCall[0].region).toBe('us-central1');
     expect(onChange.mock.lastCall[0].listeners[0].address).toBeUndefined();
   });
@@ -223,26 +222,25 @@ describe('GceRegionalExternalNetworkLoadBalancerEditor', () => {
       { account: 'account-a', loadBalancerName: 'app-main', region: 'europe-west1' },
       'create',
     );
-    const ephemeralTier = shallow(
+    const ephemeralRender = render(
       <GceRegionalExternalNetworkLoadBalancerEditor command={ephemeral} data={emptyData()} onChange={onChange} />,
-    ).find('[data-field="networkTier"] select');
+    );
+    const ephemeralTier = ephemeralRender.getByLabelText('Network tier');
 
-    expect(ephemeralTier.prop('disabled')).toBe(false);
-    expect(ephemeralTier.find('option').map((option) => option.prop('value'))).toEqual(['PREMIUM', 'STANDARD']);
-    ephemeralTier.simulate('change', { target: { value: 'STANDARD' } });
+    expect(ephemeralTier).toBeEnabled();
+    expect(optionValues(ephemeralTier)).toEqual(['PREMIUM', 'STANDARD']);
+    fireEvent.change(ephemeralTier, { target: { value: 'STANDARD' } });
     expect(onChange.mock.lastCall[0].networkTier).toBe('STANDARD');
+    ephemeralRender.unmount();
 
     const reserved = normalizeGceRegionalExternalNetworkLoadBalancerCommand(
       { account: 'account-a', ipAddress: '35.1.2.3', loadBalancerName: 'app-main', region: 'europe-west1' },
       'create',
     );
-    expect(
-      shallow(
-        <GceRegionalExternalNetworkLoadBalancerEditor command={reserved} data={emptyData()} onChange={onChange} />,
-      )
-        .find('[data-field="networkTier"] select')
-        .prop('disabled'),
-    ).toBe(true);
+    const { getByLabelText } = render(
+      <GceRegionalExternalNetworkLoadBalancerEditor command={reserved} data={emptyData()} onChange={onChange} />,
+    );
+    expect(getByLabelText('Network tier')).toBeDisabled();
   });
 
   it('associates every field label with its control', () => {
@@ -250,16 +248,16 @@ describe('GceRegionalExternalNetworkLoadBalancerEditor', () => {
       { account: 'account-a', loadBalancerName: 'app-main', region: 'europe-west1' },
       'create',
     );
-    const wrapper = shallow(
+    const { container } = render(
       <GceRegionalExternalNetworkLoadBalancerEditor command={command} data={emptyData()} onChange={vi.fn()} />,
     );
 
-    const labels = wrapper.find('label');
+    const labels = Array.from(container.querySelectorAll('label'));
     expect(labels.length).toBeGreaterThan(0);
     labels.forEach((label) => {
-      const id = label.prop('htmlFor');
-      expect(id).toBeTruthy();
-      expect(wrapper.find(`#${id}`).length).toBe(1);
+      expect(label.htmlFor).toBeTruthy();
+      expect(container.querySelectorAll(`#${label.htmlFor}`)).toHaveLength(1);
+      expect(label.control, label.textContent).not.toBeNull();
     });
   });
 
@@ -421,3 +419,25 @@ describe('GceRegionalExternalNetworkLoadBalancerEditor', () => {
     );
   });
 });
+
+function optionValues(select: HTMLElement): string[] {
+  return within(select)
+    .getAllByRole('option')
+    .map((option) => (option as HTMLOptionElement).value);
+}
+
+function controls(container: HTMLElement) {
+  const { getAllByLabelText, getByLabelText } = within(container);
+  const [name, healthCheckName] = getAllByLabelText('Name');
+  return {
+    address: getByLabelText('IP address'),
+    credentials: getByLabelText('Account'),
+    healthCheckName,
+    name,
+    networkTier: getByLabelText('Network tier'),
+    ports: getByLabelText('Ports'),
+    protocol: getByLabelText('Protocol'),
+    region: getByLabelText('Region'),
+    sessionAffinity: getByLabelText('Session affinity'),
+  };
+}

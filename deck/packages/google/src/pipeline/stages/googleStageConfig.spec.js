@@ -1,28 +1,34 @@
-import { shallow } from 'enzyme';
+import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 
-import { StageConfigField } from '@spinnaker/core';
+import { AccountService } from '@spinnaker/core';
 
 import { GceFindImageStageConfig } from './googleStageConfig';
 
-describe('GCE find image onlyEnabled control', () => {
-  function renderStage(stage, updateStage = vi.fn()) {
-    const wrapper = shallow(React.createElement(GceFindImageStageConfig, { application: {}, stage, updateStage }), {
-      disableLifecycleMethods: true,
-    });
-    const field = wrapper.find(StageConfigField).filterWhere((node) => node.prop('label') === 'Server Group Filters');
+vi.mock('@spinnaker/core', async (importOriginal) => {
+  const actual = await importOriginal();
+  return { ...actual, AccountRegionClusterSelector: () => null };
+});
 
-    return { checkbox: field.find('input[type="checkbox"]'), field, updateStage };
+describe('GCE find image onlyEnabled control', () => {
+  beforeEach(() => vi.spyOn(AccountService, 'listAccounts').mockResolvedValue([]));
+
+  function renderStage(stage, updateStage = vi.fn()) {
+    const rendered = render(React.createElement(GceFindImageStageConfig, { application: {}, stage, updateStage }));
+    return {
+      ...rendered,
+      checkbox: screen.getByRole('checkbox', { name: 'Only consider enabled Server Groups' }),
+      updateStage,
+    };
   }
 
   it('defaults to considering only enabled server groups', () => {
     const stage = {};
-    const { checkbox, field } = renderStage(stage);
+    const { checkbox } = renderStage(stage);
 
     expect(stage.onlyEnabled).toBe(true);
-    expect(field.exists()).toBe(true);
-    expect(field.find('label').text().trim()).toBe('Only consider enabled Server Groups');
-    expect(checkbox.prop('checked')).toBe(true);
+    expect(screen.getByText('Server Group Filters')).toBeInTheDocument();
+    expect(checkbox).toBeChecked();
   });
 
   it('preserves an explicit false value', () => {
@@ -30,14 +36,14 @@ describe('GCE find image onlyEnabled control', () => {
     const { checkbox } = renderStage(stage);
 
     expect(stage.onlyEnabled).toBe(false);
-    expect(checkbox.prop('checked')).toBe(false);
+    expect(checkbox).not.toBeChecked();
   });
 
   it('updates onlyEnabled with the checkbox value', () => {
     const stage = { onlyEnabled: true };
     const { checkbox, updateStage } = renderStage(stage);
 
-    checkbox.simulate('change', { target: { checked: false } });
+    fireEvent.click(checkbox);
 
     expect(updateStage).toHaveBeenCalledWith(expect.objectContaining({ onlyEnabled: false }));
   });

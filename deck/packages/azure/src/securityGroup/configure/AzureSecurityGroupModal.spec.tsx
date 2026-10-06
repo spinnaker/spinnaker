@@ -1,7 +1,6 @@
 import { AccountService, NetworkReader } from '@spinnaker/core';
-import { shallow } from 'enzyme';
+import { render, screen } from '@testing-library/react';
 import React from 'react';
-import { Modal } from 'react-bootstrap';
 
 import {
   addSecurityRule,
@@ -48,6 +47,12 @@ describe('AzureSecurityGroupModal', () => {
     };
     return modal;
   }
+
+  beforeEach(() => {
+    vi.spyOn(AccountService, 'listAccounts').mockResolvedValue([]);
+    vi.spyOn(AccountService, 'getRegionsForAccount').mockResolvedValue([]);
+    vi.spyOn(NetworkReader, 'listNetworks').mockResolvedValue({ azure: [] } as any);
+  });
 
   it('normalizes multiple and single destination ports and source CIDRs for submit', () => {
     const command = normalizeAzureSecurityGroupForSubmit({
@@ -395,26 +400,27 @@ describe('AzureSecurityGroupModal', () => {
   });
 
   it('does not render identity and location controls while editing inbound rules', () => {
-    const modal = buildModal(
-      { mode: 'edit' },
-      {
-        securityGroup: {
+    render(
+      <AzureSecurityGroupModal
+        app={{ name: 'fnord', securityGroups: { refresh: vi.fn() } } as any}
+        closeModal={vi.fn()}
+        dismissModal={vi.fn()}
+        mode="edit"
+        securityGroup={{
           accountId: 'test-account',
           name: 'fnord-sg',
           region: 'westus',
           securityRules: [{ name: 'allow-web', destinationPorts: ['80'], sourceCidrs: ['*'] }],
-        },
-      },
+        }}
+        stateService={{ go: vi.fn(), includes: vi.fn() } as any}
+      />,
     );
-    const wrapper = shallow(<div>{modal.render()}</div>);
-    const body = shallow(<div>{wrapper.find(Modal.Body).prop('children')}</div>);
-    const labels = body.find('label').map((label) => label.text());
 
-    expect(labels).not.toContain('Account');
-    expect(labels).not.toContain('Region');
-    expect(labels).not.toContain('VNet');
-    expect(labels).not.toContain('Subnet');
-    expect(body.text()).toContain('Inbound Rules');
+    expect(screen.queryByText('Account', { selector: 'label' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Region', { selector: 'label' })).not.toBeInTheDocument();
+    expect(screen.queryByText('VNet', { selector: 'label' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Subnet', { selector: 'label' })).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Inbound Rules' })).toBeInTheDocument();
   });
 
   it('rejects missing or invalid source CIDRs and destination ports before submit', () => {

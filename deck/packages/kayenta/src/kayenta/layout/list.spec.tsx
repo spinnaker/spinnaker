@@ -1,4 +1,4 @@
-import { mount } from 'enzyme';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { IKayentaAction } from '../actions/creators';
 import * as React from 'react';
 import { Provider } from 'react-redux';
@@ -54,25 +54,24 @@ describe('Reducer: updateListReducer', () => {
 
 describe('Component: List', () => {
   it('renders a list', () => {
-    const component = mount(
+    render(
       <Provider store={createStore(rootReducer)}>
         <List list={['a', 'b', 'c']} actionCreator={() => null} />
       </Provider>,
     );
 
-    expect(component.find('input').length).toEqual(3);
+    expect(screen.getAllByRole('textbox')).toHaveLength(3);
   });
 
   it('emits the correct value and index on update', () => {
     const spy = vi.fn();
-    const component = mount(
+    render(
       <Provider store={createStore(rootReducer)}>
         <List list={['a', 'b', 'c']} actionCreator={spy} />
       </Provider>,
     );
 
-    const input = component.find('input').at(1);
-    input.simulate('change', { target: { value: 'newValue' } });
+    fireEvent.change(screen.getAllByRole('textbox')[1], { target: { value: 'newValue' } });
 
     expect(spy).toHaveBeenCalledWith({
       type: ListAction.Edit,

@@ -1,8 +1,9 @@
-import { shallow } from 'enzyme';
+import { act, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import type { Application } from '@spinnaker/core';
-import { ConfirmationModalService, ManagedMenuItem, ServerGroupWarningMessageService } from '@spinnaker/core';
+import { ConfirmationModalService, DeckRuntimeContext, ServerGroupWarningMessageService } from '@spinnaker/core';
 
 import type { IAmazonServerGroupView } from '../../domain';
 import { AWSProviderSettings } from '../../aws.settings';
@@ -11,13 +12,6 @@ import { AmazonRollbackServerGroupModal } from './rollback';
 
 describe('<AmazonServerGroupActions /> rollback integration', () => {
   const originalAdHocInfraWritesEnabled = AWSProviderSettings.adHocInfraWritesEnabled;
-  const runtimeServices = {} as any;
-
-  const shallowActions = (component: React.ReactElement) => {
-    const wrapper = shallow(component);
-    (wrapper.instance() as any).context = { services: runtimeServices };
-    return wrapper;
-  };
 
   const buildServerGroup = (overrides: Partial<IAmazonServerGroupView> = {}): IAmazonServerGroupView =>
     ({
@@ -44,8 +38,27 @@ describe('<AmazonServerGroupActions /> rollback integration', () => {
       serverGroups: { refresh: vi.fn() },
     } as any);
 
-  const action = (wrapper: ReturnType<typeof shallow>, label: string) =>
-    wrapper.find(ManagedMenuItem).filterWhere((item) => item.prop('children') === label);
+  const renderActions = (
+    app: Application,
+    serverGroup: IAmazonServerGroupView,
+    stateService: any = { go: vi.fn(), includes: vi.fn() },
+    runtimeServices: any = {},
+  ) => ({
+    runtimeServices,
+    ...render(
+      <DeckRuntimeContext.Provider value={{ services: runtimeServices } as any}>
+        <AmazonServerGroupActions
+          app={app}
+          router={{} as any}
+          serverGroup={serverGroup}
+          stateParams={{}}
+          stateService={stateService}
+        />
+      </DeckRuntimeContext.Provider>,
+    ),
+  });
+
+  const openActions = () => userEvent.click(screen.getByRole('button', { name: 'Server Group Actions' }));
 
   beforeEach(() => {
     AWSProviderSettings.adHocInfraWritesEnabled = true;
@@ -55,21 +68,16 @@ describe('<AmazonServerGroupActions /> rollback integration', () => {
     AWSProviderSettings.adHocInfraWritesEnabled = originalAdHocInfraWritesEnabled;
   });
 
-  it('renders standalone Rollback as a managed action and opens the modal with exact enriched state', () => {
+  it('renders standalone Rollback as a managed action and opens the modal with exact enriched state', async () => {
     const selected = buildServerGroup({ isDisabled: true, name: 'test-app-main-v001' });
     const rollbackSource = buildServerGroup();
     const unrelated = buildServerGroup({ app: 'other-app', cluster: 'other-app-main', name: 'other-app-main-v001' });
     const application = buildApplication([selected, rollbackSource, unrelated]);
     const show = vi.spyOn(AmazonRollbackServerGroupModal, 'show').mockReturnValue(Promise.resolve({} as any));
-    const wrapper = shallowActions(<AmazonServerGroupActions app={application} serverGroup={selected} />);
+    const { runtimeServices } = renderActions(application, selected);
 
-    const rollback = action(wrapper, 'Rollback');
-    expect(rollback.length).toBe(1);
-    expect(rollback.props()).toEqual(
-      expect.objectContaining({ application, resource: selected, onClick: expect.any(Function) }),
-    );
-
-    rollback.prop('onClick')();
+    await openActions();
+    await userEvent.click(screen.getByText('Rollback'));
 
     expect(show).toHaveBeenCalledExactlyOnceWith(
       {
@@ -82,11 +90,12 @@ describe('<AmazonServerGroupActions /> rollback integration', () => {
     );
   });
 
-  it('does not render Rollback when a disabled server group has no enabled rollback source', () => {
+  it('does not render Rollback when a disabled server group has no enabled rollback source', async () => {
     const selected = buildServerGroup({ isDisabled: true, name: 'test-app-main-v001' });
-    const wrapper = shallow(<AmazonServerGroupActions app={buildApplication([selected])} serverGroup={selected} />);
+    renderActions(buildApplication([selected]), selected);
+    await openActions();
 
-    expect(action(wrapper, 'Rollback').length).toBe(0);
+    expect(screen.queryByText('Rollback')).not.toBeInTheDocument();
   });
 
   it('opens rollback settings when orchestrated rollback is accepted from Enable', async () => {
@@ -95,9 +104,10 @@ describe('<AmazonServerGroupActions /> rollback integration', () => {
     const application = buildApplication([selected, rollbackSource]);
     const confirm = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(Promise.resolve() as any);
     const show = vi.spyOn(AmazonRollbackServerGroupModal, 'show').mockReturnValue(Promise.resolve({} as any));
-    const wrapper = shallowActions(<AmazonServerGroupActions app={application} serverGroup={selected} />);
+    const { runtimeServices } = renderActions(application, selected);
 
-    action(wrapper, 'Enable').prop('onClick')();
+    await openActions();
+    await userEvent.click(screen.getByText('Enable'));
     await settle();
 
     expect(confirm).toHaveBeenCalledTimes(1);
@@ -122,9 +132,10 @@ describe('<AmazonServerGroupActions /> rollback integration', () => {
         params.header === 'Rolling back?' ? (Promise.reject({ source: 'footer' }) as any) : (Promise.resolve() as any),
       );
     const show = vi.spyOn(AmazonRollbackServerGroupModal, 'show').mockReturnValue(Promise.resolve({} as any));
-    const wrapper = shallow(<AmazonServerGroupActions app={application} serverGroup={selected} />);
+    renderActions(application, selected);
 
-    action(wrapper, 'Enable').prop('onClick')();
+    await openActions();
+    await userEvent.click(screen.getByText('Enable'));
     await settle();
 
     expect(show).not.toHaveBeenCalled();
@@ -141,39 +152,38 @@ describe('<AmazonServerGroupActions /> rollback integration', () => {
     const selected = buildServerGroup({ isDisabled: true, name: 'test-app-main-v001' });
     const rollbackSource = buildServerGroup();
     const application = buildApplication([selected, rollbackSource]);
-    const confirm = vi
-      .spyOn(ConfirmationModalService, 'confirm')
-      .mockReturnValue(Promise.reject({ source: 'header' }) as any);
+    let rejectConfirmation: (reason: any) => void;
+    const confirmation = new Promise((_, reject) => {
+      rejectConfirmation = reject;
+    });
+    const confirm = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(confirmation as any);
     const show = vi.spyOn(AmazonRollbackServerGroupModal, 'show').mockReturnValue(Promise.resolve({} as any));
     const writer = { enableServerGroup: vi.fn() };
     const enable = writer.enableServerGroup;
-    const wrapper = shallow(<AmazonServerGroupActions app={application} serverGroup={selected} />);
-    (wrapper.instance() as any).context = { services: { serverGroupWriter: writer } };
+    const runtimeServices = { serverGroupWriter: writer } as any;
+    renderActions(application, selected, undefined, runtimeServices);
 
-    action(wrapper, 'Enable').prop('onClick')();
-    await settle();
+    await openActions();
+    await userEvent.click(screen.getByText('Enable'));
+    await act(async () => {
+      rejectConfirmation({ source: 'header' });
+      await confirmation.catch(() => undefined);
+    });
 
     expect(confirm).toHaveBeenCalledTimes(1);
     expect(show).not.toHaveBeenCalled();
     expect(enable).not.toHaveBeenCalled();
   });
 
-  it('closes destroyed server group details through the injected state service', () => {
+  it('closes destroyed server group details through the injected state service', async () => {
     const selected = buildServerGroup();
     const stateService = { go: vi.fn(), includes: vi.fn().mockReturnValue(true) };
     const confirm = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(undefined);
     vi.spyOn(ServerGroupWarningMessageService, 'addDestroyWarningMessage').mockReturnValue(undefined);
-    const wrapper = shallow(
-      <AmazonServerGroupActions
-        app={buildApplication([selected])}
-        router={{} as any}
-        serverGroup={selected}
-        stateParams={{}}
-        stateService={stateService as any}
-      />,
-    );
+    renderActions(buildApplication([selected]), selected, stateService);
 
-    action(wrapper, 'Destroy').prop('onClick')();
+    await openActions();
+    await userEvent.click(screen.getByText('Destroy'));
     confirm.mock.lastCall[0].taskMonitorConfig.onTaskComplete();
 
     expect(stateService.includes).toHaveBeenCalledWith('**.serverGroup', {
@@ -185,4 +195,4 @@ describe('<AmazonServerGroupActions /> rollback integration', () => {
   });
 });
 
-const settle = () => new Promise((resolve) => setTimeout(resolve));
+const settle = () => act(() => new Promise((resolve) => setTimeout(resolve)));

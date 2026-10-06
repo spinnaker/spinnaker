@@ -1,11 +1,14 @@
-import { shallow } from 'enzyme';
+import { fireEvent } from '@testing-library/react';
 import React from 'react';
 
-import { MetadataPageContent } from './MetadataPageContent';
 import { Triggers } from './Triggers';
 import { ApplicationModelBuilder } from '../../../application';
 import type { IPipeline, IPipelineTag } from '../../../domain';
+import { renderWithRouter } from '../../../utils/testUtils/rtl';
 
+// Triggers routes `pipelineConfig || pipeline` into the "Metadata" page. Rather than inspecting
+// child props (Enzyme shallow), we render the real Metadata section and assert on the tags/description
+// it renders for the routed pipeline, plus that edits flow back through updatePipelineConfig.
 describe('<Triggers />', () => {
   const makePipeline = (overrides: Partial<IPipeline> = {}): IPipeline => ({
     application: 'products',
@@ -35,46 +38,50 @@ describe('<Triggers />', () => {
     };
   });
 
-  describe('MetadataPageContent pipeline prop routing', () => {
-    it('receives the plan pipeline when pipelineConfig is not provided', () => {
+  const metadataSection = (container: HTMLElement) =>
+    container.querySelector('[data-page-content="description"]') as HTMLElement;
+
+  const tagValues = (container: HTMLElement): string[] =>
+    Array.from(metadataSection(container).querySelectorAll('table.tags tbody input')).map(
+      (input) => (input as HTMLInputElement).value,
+    );
+
+  describe('MetadataPageContent pipeline routing', () => {
+    it('renders the plan pipeline (no tags) when pipelineConfig is not provided', () => {
       const plan = makePipeline({ name: 'test-pipeline' });
 
-      const wrapper = shallow(<Triggers {...defaultProps} pipeline={plan} />);
-      const metadataContent = wrapper.find(MetadataPageContent);
+      const { container } = renderWithRouter(<Triggers {...defaultProps} pipeline={plan} />);
 
-      expect(metadataContent.prop('pipeline')).toBe(plan);
-      expect(metadataContent.prop('pipeline').tags).toBeUndefined();
+      expect(tagValues(container)).toEqual([]);
     });
 
-    it('receives the raw config instead of the plan when pipelineConfig is provided', () => {
+    it('renders the raw config tags instead of the plan when pipelineConfig is provided', () => {
       const plan = makePipeline({ name: 'test-pipeline' });
       const rawConfig = makePipeline({ name: 'test-pipeline', tags: instanceTags });
 
-      const wrapper = shallow(<Triggers {...defaultProps} pipeline={plan} pipelineConfig={rawConfig} />);
-      const metadataContent = wrapper.find(MetadataPageContent);
+      const { container } = renderWithRouter(<Triggers {...defaultProps} pipeline={plan} pipelineConfig={rawConfig} />);
 
-      expect(metadataContent.prop('pipeline')).toBe(rawConfig);
-      expect(metadataContent.prop('pipeline').tags).toEqual(instanceTags);
+      expect(tagValues(container)).toEqual(['service', 'products', 'type', 'eval']);
     });
 
-    it('uses pipeline directly for standard non-templated pipelines without pipelineConfig', () => {
-      const standardPipeline = makePipeline({
-        tags: [{ name: 'env', value: 'prod' }],
-      });
+    it('renders the pipeline directly for standard pipelines without pipelineConfig', () => {
+      const standardPipeline = makePipeline({ tags: [{ name: 'env', value: 'prod' }] });
 
-      const wrapper = shallow(<Triggers {...defaultProps} pipeline={standardPipeline} />);
-      const metadataContent = wrapper.find(MetadataPageContent);
+      const { container } = renderWithRouter(<Triggers {...defaultProps} pipeline={standardPipeline} />);
 
-      expect(metadataContent.prop('pipeline')).toBe(standardPipeline);
-      expect(metadataContent.prop('pipeline').tags).toEqual([{ name: 'env', value: 'prod' }]);
+      expect(tagValues(container)).toEqual(['env', 'prod']);
     });
 
-    it('passes updatePipelineConfig through to MetadataPageContent', () => {
+    it('routes Metadata edits back through updatePipelineConfig', () => {
       const pipeline = makePipeline();
-      const wrapper = shallow(<Triggers {...defaultProps} pipeline={pipeline} />);
-      const metadataContent = wrapper.find(MetadataPageContent);
 
-      expect(metadataContent.prop('updatePipelineConfig')).toBe(defaultProps.updatePipelineConfig);
+      const { container } = renderWithRouter(<Triggers {...defaultProps} pipeline={pipeline} />);
+      const description = metadataSection(container).querySelector('textarea') as HTMLTextAreaElement;
+      fireEvent.change(description, { target: { value: 'updated description' } });
+
+      expect(defaultProps.updatePipelineConfig).toHaveBeenCalledWith(
+        expect.objectContaining({ description: 'updated description' }),
+      );
     });
   });
 });

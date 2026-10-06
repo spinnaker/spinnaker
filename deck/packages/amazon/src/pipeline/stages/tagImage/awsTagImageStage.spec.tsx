@@ -1,21 +1,16 @@
-import { mount } from 'enzyme';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import React from 'react';
 
-import { AccountService, MapEditor } from '@spinnaker/core';
+import { AccountService } from '@spinnaker/core';
+import { getFormGroupByLabel } from '../../../../../core/src/utils/testUtils/rtl';
 
 import { AmazonStageConfig } from '../AmazonStageConfig';
 import { awsTagImageStage } from './awsTagImageStage';
 
 describe('AwsTagImageStageConfig', () => {
-  const application = {
-    defaultCredentials: {},
-    defaultRegions: {},
-    getDataSource: () => ({ data: [] }),
-  } as any;
-
   beforeEach(() => {
-    vi.spyOn(AccountService, 'listAccounts').mockReturnValue(Promise.resolve([]) as any);
-    vi.spyOn(AccountService, 'getUniqueAttributeForAllAccounts').mockReturnValue(Promise.resolve([]) as any);
+    vi.spyOn(AccountService, 'listAccounts').mockResolvedValue([] as any);
+    vi.spyOn(AccountService, 'getUniqueAttributeForAllAccounts').mockResolvedValue([] as any);
   });
 
   function renderStage(stageOverrides: Record<string, any> = {}) {
@@ -33,7 +28,7 @@ describe('AwsTagImageStageConfig', () => {
       requisiteStageRefIds: [],
       type: 'bake',
     };
-    const stage = {
+    const initialStage = {
       cloudProvider: 'aws',
       consideredStages: ['bake-ref', 'stale-ref'],
       name: 'Tag image',
@@ -43,125 +38,85 @@ describe('AwsTagImageStageConfig', () => {
       type: 'upsertImageTags',
       ...stageOverrides,
     };
-    const pipeline = { stages: [bake, findImage, wait, unrelatedBake, stage] } as any;
+    const pipeline = { stages: [bake, findImage, wait, unrelatedBake, initialStage] } as any;
     const updateStageField = vi.fn();
     const StageComponent = awsTagImageStage.component as React.ComponentType<any>;
-
-    const wrapper = mount(
-      <StageComponent
-        application={application}
-        pipeline={pipeline}
-        stage={stage}
-        stageFieldUpdated={vi.fn()}
-        updateStage={vi.fn()}
-        updateStageField={updateStageField}
-      />,
-    );
-
-    return { stage, updateStageField, wrapper };
+    function StageHarness() {
+      const [stage, setStage] = React.useState(initialStage);
+      const update = (changes: any) => {
+        updateStageField(changes);
+        setStage((current: any) => ({ ...current, ...changes }));
+      };
+      return <StageComponent application={{} as any} pipeline={pipeline} stage={stage} updateStageField={update} />;
+    }
+    return { initialStage, updateStageField, ...render(<StageHarness />) };
   }
 
   it('registers a dedicated editor instead of the generic Amazon stage editor', () => {
     expect(awsTagImageStage.component).not.toBe(AmazonStageConfig);
   });
 
-  it('persists missing defaults once without causing an update loop', () => {
-    const { stage, updateStageField, wrapper } = renderStage({ cloudProvider: undefined, tags: undefined });
-
-    expect(updateStageField.mock.calls).toEqual([[{ cloudProvider: 'aws', tags: {} }]]);
-
-    wrapper.setProps({ stage: { ...stage, cloudProvider: 'aws', tags: {} } });
-
-    expect(updateStageField).toHaveBeenCalledTimes(1);
+  it('persists only missing defaults without causing an update loop', () => {
+    const rendered = renderStage({ cloudProvider: undefined, tags: undefined });
+    expect(rendered.updateStageField.mock.calls).toEqual([[{ cloudProvider: 'aws', tags: {} }]]);
   });
 
-  it('preserves an explicit cloud provider while initializing missing tags', () => {
-    const { updateStageField } = renderStage({ cloudProvider: 'aws-custom', tags: undefined });
-
-    expect(updateStageField.mock.calls).toEqual([[{ tags: {} }]]);
-  });
-
-  it('preserves explicit tags while initializing a missing cloud provider', () => {
+  it('preserves explicit values while initializing the other missing field', () => {
+    expect(renderStage({ cloudProvider: 'aws-custom', tags: undefined }).updateStageField.mock.calls).toEqual([
+      [{ tags: {} }],
+    ]);
     const tags = { Owner: '', unknown: 'persisted' };
-    const { updateStageField, wrapper } = renderStage({ cloudProvider: undefined, tags });
-
-    expect(updateStageField.mock.calls).toEqual([[{ cloudProvider: 'aws' }]]);
-    expect(wrapper.find(MapEditor).prop('model')).toBe(tags);
+    const rendered = renderStage({ cloudProvider: undefined, tags });
+    expect(rendered.updateStageField.mock.calls).toEqual([[{ cloudProvider: 'aws' }]]);
+    expect(
+      within(getFormGroupByLabel('Tags', rendered.container))
+        .getAllByLabelText('Key')
+        .map((input) => input.getAttribute('value')),
+    ).toEqual(['Owner', 'unknown']);
   });
 
-  it('round-trips added, edited, and removed tags as structured objects', () => {
-    const { stage, updateStageField, wrapper } = renderStage();
-    const mapEditor = wrapper.find(MapEditor);
+  it('round-trips edited and removed tags as structured objects', () => {
+    const rendered = renderStage();
+    rendered.updateStageField.mockClear();
+    const tags = getFormGroupByLabel('Tags');
 
-    expect(mapEditor.exists()).toBe(true);
-    if (!mapEditor.exists()) {
-      return;
-    }
+    fireEvent.change(within(tags).getAllByLabelText('Value')[1], { target: { value: 'updated' } });
+    fireEvent.click(within(tags).getAllByRole('button', { name: 'Remove field' })[0]);
 
-    expect(mapEditor.prop('allowEmpty')).toBe(true);
-    expect(mapEditor.prop('model')).toEqual(stage.tags);
-
-    const added = { ...stage.tags, Environment: 'production' };
-    const edited = { ...added, 'legacy:key': 'updated' };
-    const removed = { Owner: '', 'legacy:key': 'updated' };
-    mapEditor.prop('onChange')(added, false);
-    mapEditor.prop('onChange')(edited, false);
-    mapEditor.prop('onChange')(removed, false);
-
-    expect(updateStageField.mock.calls).toEqual([[{ tags: added }], [{ tags: edited }], [{ tags: removed }]]);
+    expect(rendered.updateStageField.mock.calls).toEqual([
+      [{ tags: { Owner: '', 'legacy:key': 'updated' } }],
+      [{ tags: { 'legacy:key': 'updated' } }],
+    ]);
   });
 
-  it('offers only direct and indirect upstream image-producing stage refIds', () => {
-    const { wrapper } = renderStage();
-    const refIds = wrapper
-      .find('input[type="checkbox"]')
-      .map((input) => input.prop('value'))
-      .sort();
+  it('reports a newly added tag field through the controlled stage contract', () => {
+    const rendered = renderStage({ tags: {} });
+    rendered.updateStageField.mockClear();
 
-    expect(refIds).toEqual(['bake-ref', 'find-image-ref', 'stale-ref']);
+    fireEvent.click(within(getFormGroupByLabel('Tags')).getByRole('button', { name: 'Add Field' }));
+
+    expect(rendered.updateStageField).toHaveBeenCalledWith({ tags: { '': '' } });
+    expect(within(getFormGroupByLabel('Tags')).getByLabelText('Key')).toHaveValue('');
   });
 
-  it('shows a selected stale stage ref as unavailable', () => {
-    const { wrapper } = renderStage();
-    const staleStage = wrapper.find('input[type="checkbox"][value="stale-ref"]');
-
-    expect(staleStage.exists()).toBe(true);
-    if (!staleStage.exists()) {
-      return;
-    }
-
-    expect(staleStage.prop('checked')).toBe(true);
-    expect(staleStage.prop('disabled')).toBe(true);
-    expect(staleStage.closest('label').text()).toContain('stale-ref (unavailable)');
+  it('offers only upstream image-producing stages and marks stale selections unavailable', () => {
+    renderStage();
+    expect(screen.getByRole('checkbox', { name: 'Bake image' })).toBeChecked();
+    expect(screen.getByRole('checkbox', { name: 'Find image' })).not.toBeChecked();
+    expect(screen.queryByRole('checkbox', { name: 'Unrelated bake' })).not.toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: 'stale-ref (unavailable)' })).toBeDisabled();
   });
 
-  it('preserves a stale stage ref when selecting an available stage', () => {
-    const { updateStageField, wrapper } = renderStage();
-    const findImage = wrapper.find('input[type="checkbox"][value="find-image-ref"]');
-
-    expect(findImage.exists()).toBe(true);
-    if (!findImage.exists()) {
-      return;
-    }
-
-    findImage.simulate('change', { target: { checked: true } });
-
-    expect(updateStageField).toHaveBeenCalledWith({
+  it('preserves stale refs when selecting and deselecting available stages', () => {
+    const selected = renderStage();
+    selected.updateStageField.mockClear();
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Find image' }));
+    expect(selected.updateStageField).toHaveBeenCalledWith({
       consideredStages: ['bake-ref', 'stale-ref', 'find-image-ref'],
     });
-  });
 
-  it('preserves a stale stage ref when deselecting an available stage', () => {
-    const { updateStageField, wrapper } = renderStage();
-    const bake = wrapper.find('input[type="checkbox"][value="bake-ref"]');
-
-    expect(bake.exists()).toBe(true);
-    if (!bake.exists()) {
-      return;
-    }
-
-    bake.simulate('change', { target: { checked: false } });
-
-    expect(updateStageField).toHaveBeenCalledWith({ consideredStages: ['stale-ref'] });
+    selected.updateStageField.mockClear();
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Bake image' }));
+    expect(selected.updateStageField).toHaveBeenCalledWith({ consideredStages: ['stale-ref', 'find-image-ref'] });
   });
 });

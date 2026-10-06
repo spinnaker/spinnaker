@@ -1,41 +1,53 @@
-import type { FormikProps } from 'formik';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import React from 'react';
-import { shallow } from 'enzyme';
 
-import { Markdown, StageArtifactSelectorDelegate } from '@spinnaker/core';
-
-import { ServerGroupImageSettings } from './ServerGroupImageSettings';
 import type { IGceServerGroupCommand } from '../GceServerGroupWizard.types';
+import { ServerGroupImageSettings, validateGceServerGroupImageSettings } from './ServerGroupImageSettings';
+
+vi.mock('@spinnaker/core', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@spinnaker/core')>();
+  return {
+    ...actual,
+    StageArtifactSelectorDelegate: ({ onArtifactEdited, onExpectedArtifactSelected }: any) => (
+      <div data-testid="artifact-selector">
+        <button onClick={() => onArtifactEdited({ type: 'custom/object', reference: 'new' })} type="button">
+          Edit artifact
+        </button>
+        <button onClick={() => onExpectedArtifactSelected({ id: 'expected-id' })} type="button">
+          Select expected artifact
+        </button>
+      </div>
+    ),
+  };
+});
 
 describe('ServerGroupImageSettings', () => {
   it('renders accessible image and source controls while preserving unavailable persisted values', () => {
-    const formik = testFormik(
-      command({ backingData: { allImages: [{ imageName: 'known-image' }, { imageName: 'known-image' }] } }),
-    );
-    const wrapper = shallow(<ServerGroupImageSettings app={{ name: 'app' } as any} formik={formik} />);
+    const values = command({
+      backingData: { allImages: [{ imageName: 'known-image' }, { imageName: 'known-image' }] },
+    });
+    const { setFieldValue } = renderImageSettings(values);
 
-    expect(selectOptions(wrapper, 'Image source')).toEqual([
+    expect(selectOptions('Image source')).toEqual([
       ['artifact', 'Artifact'],
       ['priorStage', 'Prior Stage'],
       ['persisted-source', 'persisted-source (unavailable)'],
     ]);
-    expect(selectOptions(wrapper, 'Image')).toEqual([
+    expect(selectOptions('Image')).toEqual([
       ['', 'Select...'],
       ['known-image', 'known-image'],
       ['persisted-image', 'persisted-image (unavailable)'],
     ]);
-    expect(formik.setFieldValue).not.toHaveBeenCalled();
-    expect(formik.setValues).not.toHaveBeenCalled();
+    expect(setFieldValue).not.toHaveBeenCalled();
   });
 
   it('updates image source and image selection as page-owned fields', () => {
-    const formik = testFormik();
-    const wrapper = shallow(<ServerGroupImageSettings app={{ name: 'app' } as any} formik={formik} />);
+    const { setFieldValue } = renderImageSettings(command());
 
-    wrapper.find('[aria-label="Image source"]').simulate('change', { target: { value: 'priorStage' } });
-    wrapper.find('[aria-label="Image"]').simulate('change', { target: { value: 'known-image' } });
+    fireEvent.change(screen.getByLabelText('Image source'), { target: { value: 'priorStage' } });
+    fireEvent.change(screen.getByLabelText('Image'), { target: { value: 'known-image' } });
 
-    expect(formik.setFieldValue.mock.calls).toEqual([
+    expect(setFieldValue.mock.calls).toEqual([
       ['imageSource', 'priorStage'],
       ['image', 'known-image'],
     ]);
@@ -46,11 +58,11 @@ describe('ServerGroupImageSettings', () => {
       imageSource: 'artifact',
       viewState: { mode: 'editPipeline', showImageSourceSelector: true, imageSourceText: 'From **trigger**' },
     });
-    const wrapper = shallow(<ServerGroupImageSettings app={{ name: 'app' } as any} formik={testFormik(values)} />);
+    renderImageSettings(values);
 
-    expect(wrapper.find('[aria-label="Image source"]').exists()).toBe(false);
-    expect(wrapper.find(Markdown).prop('message')).toBe('From **trigger**');
-    expect(wrapper.find(StageArtifactSelectorDelegate).exists()).toBe(true);
+    expect(screen.queryByLabelText('Image source')).not.toBeInTheDocument();
+    expect(screen.getByText((_, element) => element?.textContent === 'From trigger')).toBeInTheDocument();
+    expect(screen.getByTestId('artifact-selector')).toBeInTheDocument();
   });
 
   it('edits inline and expected image artifacts without retaining the other reference', () => {
@@ -59,17 +71,14 @@ describe('ServerGroupImageSettings', () => {
       imageArtifactId: 'old-id',
       imageArtifact: { type: 'custom/object', reference: 'old' },
     });
-    const formik = testFormik(values);
-    const wrapper = shallow(<ServerGroupImageSettings app={{ name: 'app' } as any} formik={formik} />);
-    const selector = wrapper.find(StageArtifactSelectorDelegate);
-    const editedArtifact = { type: 'custom/object', reference: 'new' };
+    const { setFieldValue } = renderImageSettings(values);
 
-    selector.prop('onArtifactEdited')(editedArtifact as any);
-    selector.prop('onExpectedArtifactSelected')({ id: 'expected-id' } as any);
+    fireEvent.click(screen.getByRole('button', { name: 'Edit artifact' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Select expected artifact' }));
 
-    expect(formik.setFieldValue.mock.calls).toEqual([
+    expect(setFieldValue.mock.calls).toEqual([
       ['imageArtifactId', null],
-      ['imageArtifact', editedArtifact],
+      ['imageArtifact', { type: 'custom/object', reference: 'new' }],
       ['imageArtifactId', 'expected-id'],
       ['imageArtifact', null],
     ]);
@@ -77,48 +86,45 @@ describe('ServerGroupImageSettings', () => {
 
   it('does not render or require image selection when it is disabled', () => {
     const values = command({ image: null, viewState: { mode: 'editPipeline', disableImageSelection: true } });
-    const formik = testFormik(values);
-    const page = new ServerGroupImageSettings({ app: { name: 'app' } as any, formik } as any);
-    const wrapper = shallow(<ServerGroupImageSettings app={{ name: 'app' } as any} formik={formik} />);
+    renderImageSettings(values);
 
-    expect(wrapper.find('[aria-label="Image"]').exists()).toBe(false);
-    expect(wrapper.text()).toContain('Image selection is disabled for this command.');
-    expect(page.validate(values)).toEqual({});
+    expect(screen.queryByLabelText('Image')).not.toBeInTheDocument();
+    expect(screen.getByText('Image selection is disabled for this command.')).toBeInTheDocument();
+    expect(validateGceServerGroupImageSettings(values)).toEqual({});
   });
 
   it('requires an image when selection is enabled', () => {
-    const values = command({ image: '' });
-    const formik = testFormik(values);
-    const page = new ServerGroupImageSettings({ app: { name: 'app' } as any, formik } as any);
-
-    expect(page.validate(values)).toEqual({ image: 'Image required.' });
+    expect(validateGceServerGroupImageSettings(command({ image: '' }))).toEqual({ image: 'Image required.' });
   });
 
   it('renders image validation next to the required control with an accessible description', () => {
-    const values = command({ image: '' });
-    const wrapper = shallow(<ServerGroupImageSettings app={{ name: 'app' } as any} formik={testFormik(values)} />);
-    const image = wrapper.find('select[aria-label="Image"]');
+    renderImageSettings(command({ image: '' }));
+    const image = screen.getByLabelText('Image');
+    const alert = screen.getByRole('alert');
 
-    expect(image.prop('required')).toBe(true);
-    expect(image.prop('aria-invalid')).toBe(true);
-    expect(image.prop('aria-describedby')).toBe('gce-server-group-image-error');
-    expect(wrapper.find('#gce-server-group-image-error').prop('role')).toBe('alert');
-    expect(wrapper.find('#gce-server-group-image-error').text()).toBe('Image required.');
+    expect(image).toBeRequired();
+    expect(image).toHaveAttribute('aria-invalid', 'true');
+    expect(image).toHaveAttribute('aria-describedby', 'gce-server-group-image-error');
+    expect(alert).toHaveAttribute('id', 'gce-server-group-image-error');
+    expect(alert).toHaveTextContent('Image required.');
   });
 });
 
-function selectOptions(wrapper: ReturnType<typeof shallow>, label: string): string[][] {
-  return wrapper
-    .find(`[aria-label="${label}"] option`)
-    .map((option) => [option.prop('value') as string, option.text()]);
+function renderImageSettings(values: IGceServerGroupCommand) {
+  const setFieldValue = vi.fn();
+  render(
+    <ServerGroupImageSettings
+      app={{ name: 'app' } as any}
+      formik={{ errors: {}, setFieldValue, setValues: vi.fn(), values } as any}
+    />,
+  );
+  return { setFieldValue };
 }
 
-function testFormik(values = command()): FormikProps<IGceServerGroupCommand> {
-  return ({
-    values,
-    setFieldValue: vi.fn(),
-    setValues: vi.fn(),
-  } as unknown) as FormikProps<IGceServerGroupCommand>;
+function selectOptions(label: string): string[][] {
+  return within(screen.getByLabelText(label))
+    .getAllByRole('option')
+    .map((option) => [(option as HTMLOptionElement).value, option.textContent || '']);
 }
 
 function command(overrides: Partial<IGceServerGroupCommand> = {}): IGceServerGroupCommand {
