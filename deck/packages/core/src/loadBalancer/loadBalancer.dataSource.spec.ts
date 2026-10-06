@@ -19,7 +19,7 @@ describe('direct runtime load balancer data source registration', () => {
   it('loads through the shared reader and returns a Promise-compatible onLoad result', async () => {
     const loadBalancers = [{ name: 'app-test-detail' }] as any[];
     const loadBalancerReader = {
-      loadLoadBalancers: jasmine.createSpy('loadLoadBalancers').and.returnValue(Promise.resolve(loadBalancers)),
+      loadLoadBalancers: vi.fn().mockReturnValue(Promise.resolve(loadBalancers)),
     };
     registerLoadBalancerDataSource(runtime.promiseService, loadBalancerReader as any);
     const dataSource = ApplicationDataSourceRegistry.getDataSources()[0];

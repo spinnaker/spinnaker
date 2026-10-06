@@ -18,16 +18,16 @@ describe('ApplicationDataSource refresh subscriptions', () => {
 
   it('notifies every-refresh callbacks without a lifecycle object until explicitly unsubscribed', () => {
     const dataSource = createDataSource();
-    const onRefresh = jasmine.createSpy('onRefresh');
-    const onError = jasmine.createSpy('onError');
+    const onRefresh = vi.fn();
+    const onError = vi.fn();
     const unsubscribe = dataSource.onRefresh(onRefresh, onError);
     const refreshError = new Error('refresh failed');
 
     dataSource.data$.next(['first']);
     emitError(dataSource, refreshError);
 
-    expect(onRefresh).toHaveBeenCalledOnceWith(['first']);
-    expect(onError).toHaveBeenCalledOnceWith(refreshError);
+    expect(onRefresh).toHaveBeenCalledExactlyOnceWith(['first']);
+    expect(onError).toHaveBeenCalledExactlyOnceWith(refreshError);
 
     unsubscribe();
     dataSource.data$.next(['second']);
@@ -39,17 +39,17 @@ describe('ApplicationDataSource refresh subscriptions', () => {
 
   it('notifies next-refresh callbacks without a lifecycle object and honors explicit unsubscribe', () => {
     const dataSource = createDataSource();
-    const onRefresh = jasmine.createSpy('onRefresh');
-    const onError = jasmine.createSpy('onError');
+    const onRefresh = vi.fn();
+    const onError = vi.fn();
 
     dataSource.onNextRefresh(onRefresh, onError);
     dataSource.data$.next(['first']);
-    expect(onRefresh).toHaveBeenCalledOnceWith(['first']);
+    expect(onRefresh).toHaveBeenCalledExactlyOnceWith(['first']);
 
     dataSource.onNextRefresh(onRefresh, onError);
     const refreshError = new Error('refresh failed');
     emitError(dataSource, refreshError);
-    expect(onError).toHaveBeenCalledOnceWith(refreshError);
+    expect(onError).toHaveBeenCalledExactlyOnceWith(refreshError);
 
     const unsubscribe = dataSource.onNextRefresh(onRefresh, onError);
     unsubscribe();

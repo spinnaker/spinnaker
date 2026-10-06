@@ -6,11 +6,11 @@ describe('UrlBuilder', () => {
   afterEach(() => setDirectRouter(null));
 
   it('builds metadata URLs with the direct router state service', () => {
-    const href = jasmine.createSpy('href').and.returnValue('/applications/payments');
+    const href = vi.fn().mockReturnValue('/applications/payments');
     const stateService = { href } as any;
-    const build = jasmine
-      .createSpy('build')
-      .and.callFake((input: any, injectedStateService: any) =>
+    const build = vi
+      .fn()
+      .mockImplementation((input: any, injectedStateService: any) =>
         injectedStateService.href(
           'home.applications.application',
           { application: input.application },

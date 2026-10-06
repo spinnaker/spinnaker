@@ -1,10 +1,7 @@
+import { render, screen } from '@testing-library/react';
 import React from 'react';
-import { shallow } from 'enzyme';
 
-import {
-  GceRegionalExternalNetworkLoadBalancerEditor,
-  validateGceRegionalExternalNetworkLoadBalancerCommand,
-} from './GceRegionalExternalNetworkLoadBalancerEditor';
+import { validateGceRegionalExternalNetworkLoadBalancerCommand } from './GceRegionalExternalNetworkLoadBalancerEditor';
 import {
   GceRegionalExternalNetworkLoadBalancerModal,
   normalizeGceRegionalExternalNetworkLoadBalancerCommand,
@@ -22,7 +19,7 @@ describe('GceRegionalExternalNetworkLoadBalancerModal', () => {
 
     expect({ ...create, mode: undefined }).toEqual({ ...pipeline, mode: undefined });
     expect(create).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         credentials: 'account-a',
         name: 'app-main',
         networkTier: 'PREMIUM',
@@ -59,7 +56,7 @@ describe('GceRegionalExternalNetworkLoadBalancerModal', () => {
     );
 
     expect(command).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         credentials: 'account-a',
         loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK',
         mode: 'edit',
@@ -78,8 +75,8 @@ describe('GceRegionalExternalNetworkLoadBalancerModal', () => {
       },
     ]);
     expect(command.backendServices[0]).toEqual(
-      jasmine.objectContaining({
-        healthCheck: jasmine.objectContaining({ name: 'tcp-check', port: 80 }),
+      expect.objectContaining({
+        healthCheck: expect.objectContaining({ name: 'tcp-check', port: 80 }),
         name: 'app-main',
         sessionAffinity: 'CLIENT_IP',
       }),
@@ -133,7 +130,7 @@ describe('GceRegionalExternalNetworkLoadBalancerModal', () => {
   });
 
   it('returns a named health check in pipeline mode when the persisted name is omitted', () => {
-    const executeTask = jasmine.createSpy('executeTask');
+    const executeTask = vi.fn();
     const persisted = {
       account: 'account-a',
       backendService: {
@@ -265,7 +262,7 @@ describe('GceRegionalExternalNetworkLoadBalancerModal', () => {
 
   it('executes the direct normalized job in infrastructure create mode', () => {
     const task = Promise.resolve({ id: 'task' });
-    const executeTask = jasmine.createSpy('executeTask').and.returnValue(task);
+    const executeTask = vi.fn().mockReturnValue(task);
     const command = normalizeGceRegionalExternalNetworkLoadBalancerCommand(
       {
         account: 'account-a',
@@ -289,7 +286,7 @@ describe('GceRegionalExternalNetworkLoadBalancerModal', () => {
     expect(command.backendServices[0].healthCheck).toBe(command.healthChecks[0]);
     expect((command.backendServices[0].healthCheck as any).name).toBe('app-main');
     expect(result).toBe(task);
-    expect(executeTask).toHaveBeenCalledOnceWith({
+    expect(executeTask).toHaveBeenCalledExactlyOnceWith({
       application,
       description: 'Create Load Balancer: app-main',
       job: [serializeGceRegionalExternalNetworkLoadBalancerCommand(command)],
@@ -298,18 +295,24 @@ describe('GceRegionalExternalNetworkLoadBalancerModal', () => {
 
   it('exposes pipeline support and passes edit mode to the editor', () => {
     expect(GceRegionalExternalNetworkLoadBalancerModal.supportsPipelineConfig).toBe(true);
-    const wrapper = shallow(
+    render(
       <GceRegionalExternalNetworkLoadBalancerModal
         app={application}
-        closeModal={jasmine.createSpy('closeModal')}
+        closeModal={vi.fn()}
         data={emptyData()}
-        dismissModal={jasmine.createSpy('dismissModal')}
+        dismissModal={vi.fn()}
         isNew={false}
         loadBalancer={{ account: 'account-a', name: 'app-main', region: 'europe-west1' } as any}
       />,
     );
 
-    expect(wrapper.find(GceRegionalExternalNetworkLoadBalancerEditor).prop('command').mode).toBe('edit');
+    expect(screen.getByRole('heading', { name: 'Edit app-main' })).toBeInTheDocument();
+    ['Account', 'Region', 'IP address', 'Network tier', 'Protocol', 'Ports'].forEach((label) =>
+      expect(screen.getByLabelText(label), label).toBeDisabled(),
+    );
+    expect(screen.getAllByLabelText('Name')[0]).toBeDisabled();
+    expect(screen.getByLabelText('Session affinity')).toBeEnabled();
+    expect(screen.getByRole('button', { name: /Update/ })).toBeInTheDocument();
   });
 });
 
