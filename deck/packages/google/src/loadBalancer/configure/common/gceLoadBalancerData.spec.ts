@@ -1,3 +1,4 @@
+import type { Mocked } from 'vitest';
 import {
   GceLoadBalancerDataController,
   IGceLoadBalancerDataReaders,
@@ -39,7 +40,7 @@ describe('GCE load balancer data', () => {
     const first = deferred<unknown[]>();
     const second = deferred<unknown[]>();
     const readers = testReaders();
-    readers.regions.and.callFake((account: string) => (account === 'first' ? first.promise : second.promise));
+    readers.regions.mockImplementation((account: string) => (account === 'first' ? first.promise : second.promise));
     const controller = new GceLoadBalancerDataController(readers);
 
     const firstLoad = controller.load('first');
@@ -56,7 +57,7 @@ describe('GCE load balancer data', () => {
   it('reports an error from the latest request', async () => {
     const readers = testReaders();
     const failure = new Error('regions failed');
-    readers.regions.and.returnValue(Promise.reject(failure));
+    readers.regions.mockReturnValue(Promise.reject(failure));
     const controller = new GceLoadBalancerDataController(readers);
 
     await controller.load('test-account');
@@ -68,13 +69,13 @@ describe('GCE load balancer data', () => {
   it('does not publish responses after disposal', async () => {
     const pendingRegions = deferred<unknown[]>();
     const readers = testReaders();
-    readers.regions.and.returnValue(pendingRegions.promise);
+    readers.regions.mockReturnValue(pendingRegions.promise);
     const controller = new GceLoadBalancerDataController(readers);
-    const listener = jasmine.createSpy('listener');
+    const listener = vi.fn();
     controller.subscribe(listener);
 
     const loading = controller.load('test-account');
-    listener.calls.reset();
+    listener.mockClear();
     controller.dispose();
     pendingRegions.resolve([{ name: 'late-region' }]);
     await loading;
@@ -97,17 +98,17 @@ describe('GCE load balancer data', () => {
   });
 });
 
-function testReaders(): jasmine.SpyObj<IGceLoadBalancerDataReaders> {
-  return jasmine.createSpyObj<IGceLoadBalancerDataReaders>('readers', {
-    accounts: Promise.resolve([{ name: 'test-account' }]),
-    addresses: Promise.resolve([{ name: 'address' }]),
-    backendServices: Promise.resolve([{ name: 'backend' }]),
-    certificates: Promise.resolve([{ name: 'certificate' }]),
-    healthChecks: Promise.resolve([{ name: 'check' }]),
-    networks: Promise.resolve([{ name: 'network' }]),
-    regions: Promise.resolve([{ name: 'europe-west1' }]),
-    subnets: Promise.resolve([{ name: 'subnet' }]),
-  });
+function testReaders(): Mocked<IGceLoadBalancerDataReaders> {
+  return ({
+    accounts: vi.fn().mockReturnValue(Promise.resolve([{ name: 'test-account' }])),
+    addresses: vi.fn().mockReturnValue(Promise.resolve([{ name: 'address' }])),
+    backendServices: vi.fn().mockReturnValue(Promise.resolve([{ name: 'backend' }])),
+    certificates: vi.fn().mockReturnValue(Promise.resolve([{ name: 'certificate' }])),
+    healthChecks: vi.fn().mockReturnValue(Promise.resolve([{ name: 'check' }])),
+    networks: vi.fn().mockReturnValue(Promise.resolve([{ name: 'network' }])),
+    regions: vi.fn().mockReturnValue(Promise.resolve([{ name: 'europe-west1' }])),
+    subnets: vi.fn().mockReturnValue(Promise.resolve([{ name: 'subnet' }])),
+  } as unknown) as Mocked<IGceLoadBalancerDataReaders>;
 }
 
 function deferred<T>() {

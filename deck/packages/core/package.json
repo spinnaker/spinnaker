@@ -42,7 +42,6 @@
     "date-fns": "2.21.1",
     "diff-match-patch": "1.0.4",
     "dompurify": "^3.0.0",
-    "enzyme": "3.11.0",
     "formik": "1.5.1",
     "human-readable-ids": "1.0.4",
     "jquery": "3.7.1",
@@ -90,8 +89,6 @@
     "@types/clipboard": "1.5.36",
     "@types/commonmark": "0.27.0",
     "@types/dompurify": "^2.3.3",
-    "@types/enzyme": "3.10.3",
-    "@types/jasmine": "3.6.9",
     "@types/jquery": "3.5.32",
     "@types/js-yaml": "3.5.30",
     "@types/lodash": "4.14.64",
@@ -110,7 +107,6 @@
     "@types/resize-observer-browser": "0.1.5",
     "@types/tether": "1.4.4",
     "graphql": "^15.5.1",
-    "rollup-plugin-copy": "^3.4.0",
     "shx": "0.3.3",
     "typescript": "5.0.4"
   }
