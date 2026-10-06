@@ -32,7 +32,7 @@ const flushPromises = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 class TestServerGroupsDataSource {
   public fetchOnDemand = true;
-  public refresh = jasmine.createSpy('refresh');
+  public refresh = vi.fn();
   public callbacks: Array<() => void> = [];
 
   constructor(public clusters: Array<{ account: string; name: string }> = []) {}
@@ -69,8 +69,8 @@ describe('OnDemandClusterPicker', () => {
     ];
 
     expect(getAvailableClusters(clusters, { 'prod:payments': true, 'staging:payments': false })).toEqual([
-      jasmine.objectContaining({ value: 'staging:payments', account: 'staging', name: 'payments' }),
-      jasmine.objectContaining({ value: 'prod:ledger', account: 'prod', name: 'ledger' }),
+      expect.objectContaining({ value: 'staging:payments', account: 'staging', name: 'payments' }),
+      expect.objectContaining({ value: 'prod:ledger', account: 'prod', name: 'ledger' }),
     ]);
     expect(getAvailableClusters(undefined, undefined)).toEqual([]);
   });
@@ -86,7 +86,7 @@ describe('OnDemandClusterPicker', () => {
 
     expect(filterClusterOptions(options, '')).toHaveSize(50);
     expect(filterClusterOptions(options, 'PROD payment')).toEqual([
-      jasmine.objectContaining({ account: 'Main-PROD', name: 'Payment-API' }),
+      expect.objectContaining({ account: 'Main-PROD', name: 'Payment-API' }),
     ]);
     expect(filterClusterOptions(undefined, 'anything')).toEqual([]);
   });
@@ -116,7 +116,9 @@ describe('OnDemandClusterPicker', () => {
   it('selects the full key, updates the URL before refresh, clears control state, and ignores null', () => {
     const serverGroups = new TestServerGroupsDataSource([{ account: 'prod', name: 'payments' }]);
     const application = makeApplication(serverGroups);
-    const applyParamsToUrl = spyOn(ClusterState.filterModel.asFilterModel, 'applyParamsToUrl');
+    const applyParamsToUrl = vi
+      .spyOn(ClusterState.filterModel.asFilterModel, 'applyParamsToUrl')
+      .mockReturnValue(undefined);
     const wrapper = mount(<OnDemandClusterPicker application={application} />);
     const onChange = wrapper.find(ReactSelectInput).prop('onChange') as any;
 
@@ -160,8 +162,10 @@ describe('OnDemandClusterPicker', () => {
       { account: 'staging', name: 'ledger' },
     ];
     application.getDataSource = (key: string) => (key === 'serverGroups' ? serverGroups : undefined);
-    const applyParamsToUrl = spyOn(ClusterState.filterModel.asFilterModel, 'applyParamsToUrl');
-    const refresh = spyOn(serverGroups, 'refresh').and.callThrough();
+    const applyParamsToUrl = vi
+      .spyOn(ClusterState.filterModel.asFilterModel, 'applyParamsToUrl')
+      .mockReturnValue(undefined);
+    const refresh = vi.spyOn(serverGroups, 'refresh');
     const wrapper = mount(<OnDemandClusterPicker application={application} />);
     const onChange = wrapper.find(ReactSelectInput).prop('onChange') as any;
     await flushPromises();
@@ -172,9 +176,9 @@ describe('OnDemandClusterPicker', () => {
     await flushPromises();
 
     expect(requests).toEqual([firstKey, `${firstKey},${secondKey}`]);
-    expect(refresh.calls.allArgs()).toEqual([[true], [true]]);
-    expect(applyParamsToUrl.calls.all()[0].invocationOrder).toBeLessThan(refresh.calls.all()[0].invocationOrder);
-    expect(applyParamsToUrl.calls.all()[1].invocationOrder).toBeLessThan(refresh.calls.all()[1].invocationOrder);
+    expect(refresh.mock.calls).toEqual([[true], [true]]);
+    expect(applyParamsToUrl.mock.invocationCallOrder[0]).toBeLessThan(refresh.mock.invocationCallOrder[0]);
+    expect(applyParamsToUrl.mock.invocationCallOrder[1]).toBeLessThan(refresh.mock.invocationCallOrder[1]);
 
     responses[1].resolve([]);
     responses[0].resolve([]);
@@ -201,7 +205,7 @@ describe('OnDemandClusterPicker', () => {
 
     expect(wrapper.find('h4').text()).toBe('2 clusters found in this application');
     expect(wrapper.find(ReactSelectInput).prop('options')).toEqual([
-      jasmine.objectContaining({ value: 'staging:payments' }),
+      expect.objectContaining({ value: 'staging:payments' }),
     ]);
 
     wrapper.unmount();

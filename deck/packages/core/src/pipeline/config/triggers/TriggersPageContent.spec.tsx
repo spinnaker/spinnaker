@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { mount } from 'enzyme';
 import React from 'react';
 
@@ -9,8 +10,8 @@ import type { IExpectedArtifact, ITrigger } from '../../../domain';
 import { Registry } from '../../../registry';
 
 describe('<TriggersPageContent />', () => {
-  let removeReferencesFromStagesSpy: jasmine.Spy;
-  let updatePipelineSpy: jasmine.Spy;
+  let removeReferencesFromStagesSpy: Mock;
+  let updatePipelineSpy: Mock;
 
   let props: ITriggersPageContentProps;
 
@@ -22,10 +23,12 @@ describe('<TriggersPageContent />', () => {
   let expectedArtifactB: IExpectedArtifact;
 
   beforeEach(() => {
-    spyOn(Registry.pipeline, 'getTriggerTypes').and.returnValue([{ key: 'cron' }, { key: 'git' }]);
+    vi.spyOn(Registry.pipeline, 'getTriggerTypes').mockReturnValue([{ key: 'cron' }, { key: 'git' }]);
 
-    removeReferencesFromStagesSpy = spyOn(ArtifactReferenceService, 'removeReferencesFromStages');
-    updatePipelineSpy = jasmine.createSpy('updatePipeline');
+    removeReferencesFromStagesSpy = vi
+      .spyOn(ArtifactReferenceService, 'removeReferencesFromStages')
+      .mockReturnValue(undefined);
+    updatePipelineSpy = vi.fn();
 
     props = {
       application: ApplicationModelBuilder.createApplicationForTests('my-application'),

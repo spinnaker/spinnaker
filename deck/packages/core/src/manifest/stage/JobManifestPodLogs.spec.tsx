@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { mount, shallow } from 'enzyme';
 import React from 'react';
 
@@ -26,17 +27,19 @@ const defaultProps = {
 const flushPromises = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 describe('JobManifestPodLogs', () => {
-  let getConsoleOutputSpy: jasmine.Spy;
+  let getConsoleOutputSpy: Mock;
 
   beforeEach(() => {
-    getConsoleOutputSpy = spyOn(InstanceReader, 'getConsoleOutput').and.returnValue(Promise.resolve(mockConsoleOutput));
+    getConsoleOutputSpy = vi
+      .spyOn(InstanceReader, 'getConsoleOutput')
+      .mockReturnValue(Promise.resolve(mockConsoleOutput));
     SETTINGS.consoleLogRefreshIntervalMs = 30000;
   });
 
   afterEach(() => {
     SETTINGS.resetToOriginal();
     try {
-      jasmine.clock().uninstall();
+      vi.useRealTimers();
     } catch (_) {}
   });
 
@@ -79,7 +82,7 @@ describe('JobManifestPodLogs', () => {
       await flushPromises();
       wrapper.update();
 
-      getConsoleOutputSpy.calls.reset();
+      getConsoleOutputSpy.mockClear();
       (wrapper.instance() as JobManifestPodLogs).refresh();
       expect(getConsoleOutputSpy).toHaveBeenCalledTimes(1);
       wrapper.unmount();
@@ -123,7 +126,7 @@ describe('JobManifestPodLogs', () => {
     });
 
     it('registers a setInterval with the configured refresh interval when auto-refresh is enabled', async () => {
-      const setIntervalSpy = spyOn(window, 'setInterval').and.callThrough();
+      const setIntervalSpy = vi.spyOn(window, 'setInterval');
       const wrapper = mount(<JobManifestPodLogs {...defaultProps} />);
       wrapper.find('a.clickable').simulate('click');
       await flushPromises();
@@ -131,13 +134,13 @@ describe('JobManifestPodLogs', () => {
 
       (wrapper.instance() as JobManifestPodLogs).toggleAutoRefresh();
 
-      expect(setIntervalSpy).toHaveBeenCalledWith(jasmine.any(Function), 30000);
+      expect(setIntervalSpy).toHaveBeenCalledWith(expect.any(Function), 30000);
       (wrapper.instance() as JobManifestPodLogs).toggleAutoRefresh(); // clean up
       wrapper.unmount();
     });
 
     it('clears interval when auto-refresh is toggled off', async () => {
-      const clearIntervalSpy = spyOn(window, 'clearInterval').and.callThrough();
+      const clearIntervalSpy = vi.spyOn(window, 'clearInterval');
       const wrapper = mount(<JobManifestPodLogs {...defaultProps} />);
       wrapper.find('a.clickable').simulate('click');
       await flushPromises();
@@ -152,7 +155,7 @@ describe('JobManifestPodLogs', () => {
     });
 
     it('clears interval when modal is closed', async () => {
-      const clearIntervalSpy = spyOn(window, 'clearInterval').and.callThrough();
+      const clearIntervalSpy = vi.spyOn(window, 'clearInterval');
       const wrapper = mount(<JobManifestPodLogs {...defaultProps} />);
       wrapper.find('a.clickable').simulate('click');
       await flushPromises();
@@ -167,7 +170,7 @@ describe('JobManifestPodLogs', () => {
     });
 
     it('clears interval on unmount', async () => {
-      const clearIntervalSpy = spyOn(window, 'clearInterval').and.callThrough();
+      const clearIntervalSpy = vi.spyOn(window, 'clearInterval');
       const wrapper = mount(<JobManifestPodLogs {...defaultProps} />);
       wrapper.find('a.clickable').simulate('click');
       await flushPromises();
@@ -181,7 +184,7 @@ describe('JobManifestPodLogs', () => {
 
     it('respects consoleLogRefreshIntervalMs setting', async () => {
       SETTINGS.consoleLogRefreshIntervalMs = 5000;
-      const setIntervalSpy = spyOn(window, 'setInterval').and.callThrough();
+      const setIntervalSpy = vi.spyOn(window, 'setInterval');
       const wrapper = mount(<JobManifestPodLogs {...defaultProps} />);
       wrapper.find('a.clickable').simulate('click');
       await flushPromises();
@@ -189,7 +192,7 @@ describe('JobManifestPodLogs', () => {
 
       (wrapper.instance() as JobManifestPodLogs).toggleAutoRefresh();
 
-      expect(setIntervalSpy).toHaveBeenCalledWith(jasmine.any(Function), 5000);
+      expect(setIntervalSpy).toHaveBeenCalledWith(expect.any(Function), 5000);
       (wrapper.instance() as JobManifestPodLogs).toggleAutoRefresh(); // clean up
       wrapper.unmount();
     });

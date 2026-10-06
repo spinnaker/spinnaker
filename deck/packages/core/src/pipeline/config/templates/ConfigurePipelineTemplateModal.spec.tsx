@@ -76,8 +76,8 @@ describe('ConfigurePipelineTemplateModal', () => {
   };
 
   const mountModal = (pipelineTemplateConfig: IPipelineTemplateConfig | IPipelineTemplateConfigV2, isNew = false) => {
-    const closeModal = jasmine.createSpy('closeModal');
-    const dismissModal = jasmine.createSpy('dismissModal');
+    const closeModal = vi.fn();
+    const dismissModal = vi.fn();
     const wrapper = mount(
       <ConfigurePipelineTemplateModal
         application={application}
@@ -107,7 +107,7 @@ describe('ConfigurePipelineTemplateModal', () => {
 
   it('loads by source and renders loading, close, grouped V1 variables, validation, and inheritance controls', async () => {
     const loadRequest = deferred<IPipelineTemplate>();
-    spyOn(PipelineTemplateReader, 'getPipelineTemplateFromSourceUrl').and.returnValue(loadRequest.promise);
+    vi.spyOn(PipelineTemplateReader, 'getPipelineTemplateFromSourceUrl').mockReturnValue(loadRequest.promise);
     const { wrapper, dismissModal } = mountModal(v1Config());
 
     expect(wrapper.find(Spinner).exists()).toBe(true);
@@ -163,7 +163,7 @@ describe('ConfigurePipelineTemplateModal', () => {
   });
 
   it('renders V2 inheritance labels and only offers Cancel for an existing template with variables', async () => {
-    spyOn(PipelineTemplateReader, 'getPipelineTemplateFromSourceUrl').and.returnValue(
+    vi.spyOn(PipelineTemplateReader, 'getPipelineTemplateFromSourceUrl').mockReturnValue(
       Promise.resolve(template([{ name: 'value', type: 'string', defaultValue: 'valid' }])),
     );
     const { wrapper, dismissModal } = mountModal(v2Config());
@@ -183,7 +183,7 @@ describe('ConfigurePipelineTemplateModal', () => {
   });
 
   it('omits Cancel for new templates with variables', async () => {
-    spyOn(PipelineTemplateReader, 'getPipelineTemplateFromSourceUrl').and.returnValue(
+    vi.spyOn(PipelineTemplateReader, 'getPipelineTemplateFromSourceUrl').mockReturnValue(
       Promise.resolve(template([{ name: 'value', type: 'string', defaultValue: 'valid' }])),
     );
     const { wrapper } = mountModal(v1Config(), true);
@@ -196,7 +196,7 @@ describe('ConfigurePipelineTemplateModal', () => {
   });
 
   it('renders load failures without losing the close control', async () => {
-    spyOn(PipelineTemplateReader, 'getPipelineTemplateFromSourceUrl').and.returnValue(
+    vi.spyOn(PipelineTemplateReader, 'getPipelineTemplateFromSourceUrl').mockReturnValue(
       Promise.reject(new Error('load')),
     );
     const { wrapper } = mountModal(v1Config());
@@ -211,12 +211,12 @@ describe('ConfigurePipelineTemplateModal', () => {
   });
 
   it('dismisses plan errors for retry while preserving variable input', async () => {
-    spyOn(PipelineTemplateReader, 'getPipelineTemplateFromSourceUrl').and.returnValue(
+    vi.spyOn(PipelineTemplateReader, 'getPipelineTemplateFromSourceUrl').mockReturnValue(
       Promise.resolve(template([{ name: 'value', type: 'string', defaultValue: 'keep me' }])),
     );
-    const getPlan = spyOn(PipelineTemplateReader, 'getPipelinePlan');
+    const getPlan = vi.spyOn(PipelineTemplateReader, 'getPipelinePlan').mockReturnValue(undefined);
     const rejectedPlan = deferred<IPipeline>();
-    getPlan.and.returnValue(rejectedPlan.promise);
+    getPlan.mockReturnValue(rejectedPlan.promise);
     const { wrapper } = mountModal(v1Config());
     await act(flush);
     wrapper.update();
@@ -228,16 +228,14 @@ describe('ConfigurePipelineTemplateModal', () => {
     });
     wrapper.update();
 
-    expect(wrapper.find(TemplatePlanErrors).prop('errors')).toEqual([
-      jasmine.objectContaining({ message: 'bad plan' }),
-    ]);
+    expect(wrapper.find(TemplatePlanErrors).prop('errors')).toEqual([expect.objectContaining({ message: 'bad plan' })]);
     expect(wrapper.text()).toContain('Could not generate pipeline from provided template configuration.');
     wrapper.find('[data-test-id="template-plan-errors-dismiss"]').prop('onClick')({ preventDefault: () => {} });
     wrapper.update();
     expect(wrapper.find(TemplatePlanErrors).exists()).toBe(false);
     expect(wrapper.find(Variable).prop('variable').value).toBe('keep me');
 
-    getPlan.and.returnValue(Promise.resolve({ stages: [] } as IPipeline));
+    getPlan.mockReturnValue(Promise.resolve({ stages: [] } as IPipeline));
     await act(async () => {
       findButton(wrapper, 'Configure').prop('onClick')();
       await flush();
@@ -248,15 +246,15 @@ describe('ConfigurePipelineTemplateModal', () => {
   });
 
   it('renders an unstructured plan failure and allows retry without losing variable input', async () => {
-    spyOn(PipelineTemplateReader, 'getPipelineTemplateFromSourceUrl').and.returnValue(
+    vi.spyOn(PipelineTemplateReader, 'getPipelineTemplateFromSourceUrl').mockReturnValue(
       Promise.resolve(template([{ name: 'value', type: 'string', defaultValue: 'keep me' }])),
     );
     const firstPlan = deferred<IPipeline>();
     const successfulPlan = { stages: [{ refId: '1', type: 'wait' }] } as IPipeline;
-    const getPlan = spyOn(PipelineTemplateReader, 'getPipelinePlan').and.returnValues(
-      firstPlan.promise,
-      Promise.resolve(successfulPlan),
-    );
+    const getPlan = vi
+      .spyOn(PipelineTemplateReader, 'getPipelinePlan')
+      .mockReturnValueOnce(firstPlan.promise)
+      .mockReturnValueOnce(Promise.resolve(successfulPlan));
     const { wrapper, closeModal } = mountModal(v1Config());
     await act(flush);
     wrapper.update();
@@ -286,7 +284,7 @@ describe('ConfigurePipelineTemplateModal', () => {
   });
 
   it('validates V2 object variables as JSON before submission', async () => {
-    spyOn(PipelineTemplateReader, 'getPipelineTemplateFromSourceUrl').and.returnValue(
+    vi.spyOn(PipelineTemplateReader, 'getPipelineTemplateFromSourceUrl').mockReturnValue(
       Promise.resolve(template([{ name: 'objectValue', type: 'object', defaultValue: { foo: 'bar' } }])),
     );
     const { wrapper } = mountModal(v2Config());
@@ -324,11 +322,11 @@ describe('ConfigurePipelineTemplateModal', () => {
   });
 
   it('recovers from V2 conversion exceptions without remaining in the submitting state', async () => {
-    spyOn(PipelineTemplateReader, 'getPipelineTemplateFromSourceUrl').and.returnValue(
+    vi.spyOn(PipelineTemplateReader, 'getPipelineTemplateFromSourceUrl').mockReturnValue(
       Promise.resolve(template([{ name: 'objectValue', type: 'object', defaultValue: { foo: 'bar' } }])),
     );
     const plan = { stages: [] } as IPipeline;
-    const getPlan = spyOn(PipelineTemplateReader, 'getPipelinePlan').and.returnValue(Promise.resolve(plan));
+    const getPlan = vi.spyOn(PipelineTemplateReader, 'getPipelinePlan').mockReturnValue(Promise.resolve(plan));
     const { wrapper, closeModal } = mountModal(v2Config());
     await act(flush);
     wrapper.update();
@@ -373,9 +371,9 @@ describe('ConfigurePipelineTemplateModal', () => {
   });
 
   it('returns the exact V1 plan and merged config when Dismiss is clicked', async () => {
-    spyOn(PipelineTemplateReader, 'getPipelineTemplateFromSourceUrl').and.returnValue(Promise.resolve(template()));
+    vi.spyOn(PipelineTemplateReader, 'getPipelineTemplateFromSourceUrl').mockReturnValue(Promise.resolve(template()));
     const plan = { stages: [{ refId: '1', type: 'wait' }] } as IPipeline;
-    spyOn(PipelineTemplateReader, 'getPipelinePlan').and.returnValue(Promise.resolve(plan));
+    vi.spyOn(PipelineTemplateReader, 'getPipelinePlan').mockReturnValue(Promise.resolve(plan));
     const { wrapper, closeModal } = mountModal(v1Config());
     await act(flush);
     wrapper.update();
@@ -413,7 +411,7 @@ describe('ConfigurePipelineTemplateModal', () => {
   });
 
   it('returns the exact V2 plan and merged config when Dismiss is clicked', async () => {
-    spyOn(PipelineTemplateReader, 'getPipelineTemplateFromSourceUrl').and.returnValue(Promise.resolve(template()));
+    vi.spyOn(PipelineTemplateReader, 'getPipelineTemplateFromSourceUrl').mockReturnValue(Promise.resolve(template()));
     const plan = {
       stages: [{ refId: '1', type: 'wait' }],
       parameterConfig: [{ name: 'parameter' }],
@@ -421,7 +419,7 @@ describe('ConfigurePipelineTemplateModal', () => {
       expectedArtifacts: [{ id: 'artifact' }],
       triggers: [{ type: 'manual' }],
     } as IPipeline;
-    spyOn(PipelineTemplateReader, 'getPipelinePlan').and.returnValue(Promise.resolve(plan));
+    vi.spyOn(PipelineTemplateReader, 'getPipelinePlan').mockReturnValue(Promise.resolve(plan));
     const { wrapper, closeModal } = mountModal(v2Config());
     await act(flush);
     wrapper.update();
@@ -457,11 +455,11 @@ describe('ConfigurePipelineTemplateModal', () => {
   });
 
   it('submits and closes exactly once even when the action is triggered twice', async () => {
-    spyOn(PipelineTemplateReader, 'getPipelineTemplateFromSourceUrl').and.returnValue(
+    vi.spyOn(PipelineTemplateReader, 'getPipelineTemplateFromSourceUrl').mockReturnValue(
       Promise.resolve(template([{ name: 'value', type: 'string', defaultValue: 'valid' }])),
     );
     const planRequest = deferred<IPipeline>();
-    spyOn(PipelineTemplateReader, 'getPipelinePlan').and.returnValue(planRequest.promise);
+    vi.spyOn(PipelineTemplateReader, 'getPipelinePlan').mockReturnValue(planRequest.promise);
     const { wrapper, closeModal } = mountModal(v1Config());
     await act(flush);
     wrapper.update();
@@ -482,8 +480,8 @@ describe('ConfigurePipelineTemplateModal', () => {
 
   it('does not update state when loading finishes after unmount', async () => {
     const loadRequest = deferred<IPipelineTemplate>();
-    spyOn(PipelineTemplateReader, 'getPipelineTemplateFromSourceUrl').and.returnValue(loadRequest.promise);
-    const consoleError = spyOn(console, 'error');
+    vi.spyOn(PipelineTemplateReader, 'getPipelineTemplateFromSourceUrl').mockReturnValue(loadRequest.promise);
+    const consoleError = vi.spyOn(console, 'error').mockReturnValue(undefined);
     const { wrapper } = mountModal(v1Config());
     wrapper.unmount();
 

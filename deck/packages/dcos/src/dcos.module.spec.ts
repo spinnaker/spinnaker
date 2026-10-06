@@ -50,13 +50,13 @@ async function importDcosEntrypoint() {
 }
 
 function setStateSynchronously(component: React.Component<any, any>) {
-  spyOn(component, 'setState').and.callFake((updater: any) => {
+  vi.spyOn(component, 'setState').mockImplementation((updater: any) => {
     const nextState = typeof updater === 'function' ? updater(component.state, component.props) : updater;
     component.state = { ...component.state, ...nextState };
   });
 }
 
-function buildLoadedDataSource(data: any[], refresh = jasmine.createSpy('refresh')) {
+function buildLoadedDataSource(data: any[], refresh = vi.fn()) {
   return {
     refresh,
     status$: {
@@ -131,9 +131,9 @@ describe('DC/OS provider registration', () => {
     } as any);
 
     expect(config.validators).toEqual(
-      jasmine.arrayContaining([
-        jasmine.objectContaining({ type: 'targetImpedance' }),
-        jasmine.objectContaining({ type: 'requiredField', fieldName: 'target' }),
+      expect.arrayContaining([
+        expect.objectContaining({ type: 'targetImpedance' }),
+        expect.objectContaining({ type: 'requiredField', fieldName: 'target' }),
       ]),
     );
   });
@@ -197,8 +197,8 @@ describe('DC/OS provider registration', () => {
   });
 
   it('does not overwrite DC/OS label values when renaming a key to an existing key', () => {
-    spyOn(AccountService, 'getCredentialsKeyedByAccount').and.returnValue(new Promise(() => null) as any);
-    const updateStage = jasmine.createSpy('updateStage');
+    vi.spyOn(AccountService, 'getCredentialsKeyedByAccount').mockReturnValue(new Promise(() => null) as any);
+    const updateStage = vi.fn();
     const wrapper = mount(
       React.createElement(DcosRunJobStageConfig, {
         application: {},
@@ -242,12 +242,12 @@ describe('DC/OS provider registration', () => {
 
   it('initializes async DC/OS stage defaults against the latest stage props', async () => {
     let resolveCredentials: (credentials: any) => void;
-    spyOn(AccountService, 'getCredentialsKeyedByAccount').and.returnValue(
+    vi.spyOn(AccountService, 'getCredentialsKeyedByAccount').mockReturnValue(
       new Promise((resolve) => {
         resolveCredentials = resolve;
       }) as any,
     );
-    const updateStage = jasmine.createSpy('updateStage');
+    const updateStage = vi.fn();
     const application = { name: 'dcosapp', defaultCredentials: { dcos: 'test-account' } } as any;
     const wrapper = mount(
       React.createElement(DcosRunJobStageConfig, {
@@ -267,7 +267,7 @@ describe('DC/OS provider registration', () => {
     await Promise.resolve();
     await Promise.resolve();
 
-    const initializedStage = updateStage.calls.mostRecent().args[0];
+    const initializedStage = updateStage.mock.lastCall[0];
     expect(initializedStage.propertyFile).toBe('edited');
     expect(initializedStage.customField).toBe('preserved');
     expect(initializedStage.cloudProvider).toBe('dcos');
@@ -277,7 +277,7 @@ describe('DC/OS provider registration', () => {
 
   it('initializes DC/OS stage defaults without mutating stage props', async () => {
     const stage = { type: 'resizeServerGroup', cluster: 'test-cluster' } as any;
-    const updateStage = jasmine.createSpy('updateStage');
+    const updateStage = vi.fn();
     const wrapper = mount(
       React.createElement(DcosStageConfig, {
         application: { defaultCredentials: { dcos: 'test-account' }, defaultRegions: { dcos: 'test-region' } },
@@ -288,10 +288,10 @@ describe('DC/OS provider registration', () => {
 
     await Promise.resolve();
 
-    const initializedStage = updateStage.calls.mostRecent().args[0];
+    const initializedStage = updateStage.mock.lastCall[0];
     expect(initializedStage).not.toBe(stage);
     expect(initializedStage).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         action: 'scale_up',
         capacity: {},
         cloudProvider: 'dcos',
@@ -305,14 +305,14 @@ describe('DC/OS provider registration', () => {
   });
 
   it('confirms before terminating a DC/OS instance', async () => {
-    const confirmSpy = spyOn(ConfirmationModalService, 'confirm');
-    spyOn(InstanceWriter, 'terminateInstance').and.returnValue(Promise.resolve() as any);
-    const refresh = jasmine.createSpy('refresh');
+    const confirmSpy = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(undefined);
+    vi.spyOn(InstanceWriter, 'terminateInstance').mockReturnValue(Promise.resolve() as any);
+    const refresh = vi.fn();
     const dataSource = buildLoadedDataSource(
       [{ id: 'instance-1', account: 'test-account', region: 'test-cluster' }],
       refresh,
     );
-    const app = { getDataSource: jasmine.createSpy('getDataSource').and.returnValue(dataSource) } as any;
+    const app = { getDataSource: vi.fn().mockReturnValue(dataSource) } as any;
     const wrapper = shallow(
       React.createElement(DcosInstanceDetails, {
         app,
@@ -323,40 +323,40 @@ describe('DC/OS provider registration', () => {
     wrapper.find('button').simulate('click');
 
     expect(confirmSpy).toHaveBeenCalledWith(
-      jasmine.objectContaining({
+      expect.objectContaining({
         account: 'test-account',
         buttonText: 'Terminate',
         header: 'Really terminate instance-1?',
-        submitMethod: jasmine.any(Function),
+        submitMethod: expect.any(Function),
       }),
     );
 
-    await confirmSpy.calls.mostRecent().args[0].submitMethod();
-    expect(InstanceWriter.terminateInstance).toHaveBeenCalledWith(jasmine.objectContaining({ id: 'instance-1' }), app);
+    await confirmSpy.mock.lastCall[0].submitMethod();
+    expect(InstanceWriter.terminateInstance).toHaveBeenCalledWith(expect.objectContaining({ id: 'instance-1' }), app);
     expect(refresh).toHaveBeenCalled();
   });
 
   it('confirms before deleting a DC/OS load balancer', async () => {
-    const confirmSpy = spyOn(ConfirmationModalService, 'confirm');
-    spyOn(LoadBalancerWriter, 'deleteLoadBalancer').and.returnValue(Promise.resolve() as any);
-    const app = { loadBalancers: { refresh: jasmine.createSpy('refresh') } } as any;
+    const confirmSpy = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(undefined);
+    vi.spyOn(LoadBalancerWriter, 'deleteLoadBalancer').mockReturnValue(Promise.resolve() as any);
+    const app = { loadBalancers: { refresh: vi.fn() } } as any;
     const loadBalancer = { name: 'lb-1', account: 'test-account', region: 'test-cluster' } as any;
     const wrapper = shallow(React.createElement(DcosLoadBalancerActions, { app, loadBalancer } as any));
 
     wrapper.find('a').at(1).simulate('click');
 
     expect(confirmSpy).toHaveBeenCalledWith(
-      jasmine.objectContaining({
+      expect.objectContaining({
         account: 'test-account',
         buttonText: 'Delete lb-1',
         header: 'Really delete lb-1?',
-        submitMethod: jasmine.any(Function),
+        submitMethod: expect.any(Function),
       }),
     );
 
-    await confirmSpy.calls.mostRecent().args[0].submitMethod();
+    await confirmSpy.mock.lastCall[0].submitMethod();
     expect(LoadBalancerWriter.deleteLoadBalancer).toHaveBeenCalledWith(
-      jasmine.objectContaining({
+      expect.objectContaining({
         cloudProvider: 'dcos',
         credentials: 'test-account',
         loadBalancerName: 'lb-1',
@@ -391,9 +391,9 @@ describe('DC/OS provider registration', () => {
     const upsert = new Promise<void>((resolve) => {
       resolveUpsert = resolve;
     });
-    const refresh = jasmine.createSpy('refresh').and.returnValue(Promise.resolve());
-    spyOn(LoadBalancerWriter, 'upsertLoadBalancer').and.returnValue(upsert as any);
-    const closeModal = jasmine.createSpy('closeModal');
+    const refresh = vi.fn().mockReturnValue(Promise.resolve());
+    vi.spyOn(LoadBalancerWriter, 'upsertLoadBalancer').mockReturnValue(upsert as any);
+    const closeModal = vi.fn();
     const modal = new DcosCreateLoadBalancerModal({
       app: { loadBalancers: { refresh } },
       closeModal,
@@ -408,17 +408,17 @@ describe('DC/OS provider registration', () => {
     await Promise.resolve();
 
     expect(refresh).toHaveBeenCalled();
-    await refresh.calls.mostRecent().returnValue;
+    await refresh.mock.results.at(-1).value;
     await Promise.resolve();
-    expect(closeModal).toHaveBeenCalledWith(jasmine.objectContaining({ cloudProvider: 'dcos', provider: 'dcos' }));
+    expect(closeModal).toHaveBeenCalledWith(expect.objectContaining({ cloudProvider: 'dcos', provider: 'dcos' }));
   });
 
   it('keeps the DC/OS load balancer modal open when upsert fails', async () => {
     const upsert = Promise.reject(new Error('upsert failed'));
-    spyOn(LoadBalancerWriter, 'upsertLoadBalancer').and.returnValue(upsert as any);
-    const closeModal = jasmine.createSpy('closeModal');
+    vi.spyOn(LoadBalancerWriter, 'upsertLoadBalancer').mockReturnValue(upsert as any);
+    const closeModal = vi.fn();
     const modal = new DcosCreateLoadBalancerModal({
-      app: { loadBalancers: { refresh: jasmine.createSpy('refresh') } },
+      app: { loadBalancers: { refresh: vi.fn() } },
       closeModal,
     } as any);
 

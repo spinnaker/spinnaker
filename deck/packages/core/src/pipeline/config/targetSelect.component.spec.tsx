@@ -5,7 +5,7 @@ import * as TargetSelectExports from './TargetSelect';
 
 describe('TargetSelect', () => {
   it('renders the native selector and updates the model target', () => {
-    const onChange = jasmine.createSpy('onChange');
+    const onChange = vi.fn();
     const model = { target: 'current_asg_dynamic' };
     const component = mount(
       <TargetSelectExports.TargetSelect model={model} onChange={onChange} options={targetOptions()} />,
@@ -20,11 +20,7 @@ describe('TargetSelect', () => {
 
   it('renders descriptions and filters options by search text', () => {
     const component = mount(
-      <TargetSelectExports.TargetSelect
-        model={{ target: '' }}
-        onChange={jasmine.createSpy()}
-        options={targetOptions()}
-      />,
+      <TargetSelectExports.TargetSelect model={{ target: '' }} onChange={vi.fn()} options={targetOptions()} />,
     );
 
     component.find('input.target-select-search').simulate('focus');
@@ -39,7 +35,7 @@ describe('TargetSelect', () => {
   });
 
   it('supports clearing to None', () => {
-    const onChange = jasmine.createSpy('onChange');
+    const onChange = vi.fn();
     const model = { target: 'current_asg_dynamic' };
     const component = mount(
       <TargetSelectExports.TargetSelect model={model} onChange={onChange} options={targetOptions()} />,
