@@ -5,9 +5,9 @@ import { TencentcloudImageReader } from './image';
 describe('Tencentcloud package entrypoint', () => {
   let tencentcloudPackage: any;
 
-  beforeAll(() => {
+  beforeAll(async () => {
     SETTINGS.providers.tencentcloud = {};
-    tencentcloudPackage = require('./index');
+    tencentcloudPackage = await import('./index');
   });
 
   it('loads successfully', () => {

@@ -1,97 +1,97 @@
-import { mount } from 'enzyme';
-import React from 'react';
+import { act } from '@testing-library/react';
 
+import { renderHookHarness } from '../../utils/testUtils/hookHarness';
 import { useInterval } from './useInterval.hook';
 
 describe('useInterval hook', () => {
-  beforeEach(() => jasmine.clock().install());
-  afterEach(() => jasmine.clock().uninstall());
+  beforeEach(() =>
+    vi.useFakeTimers({
+      toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval'],
+    }),
+  );
+  afterEach(() => vi.useRealTimers());
 
-  function Component(props: any) {
-    const { callback, interval } = props;
+  interface IHookProps {
+    callback: (() => any) | null;
+    interval: number;
+  }
 
-    useInterval(callback, interval);
-
-    return <></>;
+  function renderInterval(props: IHookProps) {
+    return renderHookHarness(({ callback, interval }) => useInterval(callback as () => any, interval), props);
   }
 
   it('calls the callback on the specified interval', () => {
-    const spy = jasmine.createSpy('callback');
-    const component = mount(<Component callback={spy} interval={1000} />);
+    const spy = vi.fn();
+    const rendered = renderInterval({ callback: spy, interval: 1000 });
 
     expect(spy).toHaveBeenCalledTimes(0);
 
     // Tick forward to slightly before the polling interval should kick in
-    jasmine.clock().tick(900);
-    component.setProps({});
+    act(() => vi.advanceTimersByTime(900));
 
     expect(spy).toHaveBeenCalledTimes(0);
 
     // Tick forward to past the first interval
-    jasmine.clock().tick(200);
-    component.setProps({});
+    act(() => vi.advanceTimersByTime(200));
     expect(spy).toHaveBeenCalledTimes(1);
 
     // Second interval
-    jasmine.clock().tick(1000);
-    component.setProps({});
+    act(() => vi.advanceTimersByTime(1000));
+    expect(spy).toHaveBeenCalledTimes(2);
+
+    rendered.unmount();
+    act(() => vi.advanceTimersByTime(1000));
     expect(spy).toHaveBeenCalledTimes(2);
   });
 
   it('resets the interval when changed', () => {
-    const spy = jasmine.createSpy('callback');
-    const component = mount(<Component callback={spy} interval={1000} />);
+    const spy = vi.fn();
+    const rendered = renderInterval({ callback: spy, interval: 1000 });
 
     expect(spy).toHaveBeenCalledTimes(0);
 
     // Tick forward to slightly before the polling interval should kick in
-    jasmine.clock().tick(900);
-    component.setProps({});
+    act(() => vi.advanceTimersByTime(900));
 
     expect(spy).toHaveBeenCalledTimes(0);
 
     // Change / reset interval
-    component.setProps({ interval: 5000 });
+    rendered.rerenderHook({ callback: spy, interval: 5000 });
 
     // Tick forward to slightly past the original interval (clock is now at 1200)
-    jasmine.clock().tick(200);
-    component.setProps({});
+    act(() => vi.advanceTimersByTime(200));
     expect(spy).toHaveBeenCalledTimes(0);
 
     // Tick forward to first iteration of new interval
-    jasmine.clock().tick(5000);
-    component.setProps({});
+    act(() => vi.advanceTimersByTime(5000));
     expect(spy).toHaveBeenCalledTimes(1);
   });
 
   it('does not call a callback when none is provided', () => {
-    const spy = jasmine.createSpy('callback');
-    const component = mount(<Component callback={spy} interval={1000} />);
+    const spy = vi.fn();
+    const rendered = renderInterval({ callback: spy, interval: 1000 });
 
     expect(spy).toHaveBeenCalledTimes(0);
 
-    jasmine.clock().tick(1200);
-    component.setProps({});
+    act(() => vi.advanceTimersByTime(1200));
 
     expect(spy).toHaveBeenCalledTimes(1);
 
-    component.setProps({ callback: null });
+    rendered.rerenderHook({ callback: null, interval: 1000 });
 
     // Because we got rid of the callback, the hook should stop the interval and
     // throw away the previous callback
-    jasmine.clock().tick(1200);
-    component.setProps({});
+    act(() => vi.advanceTimersByTime(1200));
     expect(spy).toHaveBeenCalledTimes(1);
 
-    const newSpy = jasmine.createSpy('newCallback');
+    const newSpy = vi.fn();
 
-    component.setProps({ callback: newSpy });
+    rendered.rerenderHook({ callback: newSpy, interval: 1000 });
 
     // Passing a new callback after null should restart the interval
     expect(newSpy).toHaveBeenCalledTimes(0);
 
-    jasmine.clock().tick(1200);
-    component.setProps({});
+    act(() => vi.advanceTimersByTime(1200));
     expect(newSpy).toHaveBeenCalledTimes(1);
   });
 });

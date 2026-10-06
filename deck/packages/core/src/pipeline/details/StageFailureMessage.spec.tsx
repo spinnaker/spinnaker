@@ -1,8 +1,8 @@
-import { shallow } from 'enzyme';
+import { screen } from '@testing-library/react';
 import React from 'react';
 
-import { Markdown } from '../../presentation';
 import { getStageFailureRoute, StageFailureMessageComponent } from './StageFailureMessage';
+import { renderWithRouter } from '../../utils/testUtils';
 
 describe('StageFailureMessage', () => {
   it('builds failed-stage navigation from the injected state service', () => {
@@ -26,24 +26,20 @@ describe('StageFailureMessage', () => {
 
 describe('StageFailureMessageComponent', () => {
   it('renders a single failure message with the wrap-friendly class', () => {
-    const component = shallow(
-      <StageFailureMessageComponent {...({ stage: { isFailed: true }, message: 'boom' } as any)} />,
-    )
-      .dive()
-      .dive();
+    renderWithRouter(<StageFailureMessageComponent {...({ stage: { isFailed: true }, message: 'boom' } as any)} />);
 
-    expect(component.find(Markdown).prop('className')).toBe('break-word-wrap');
+    expect(screen.getByText('boom').closest('.Markdown')).toHaveClass('break-word-wrap');
   });
 
   it('renders multiple exception messages with the wrap-friendly class', () => {
-    const component = shallow(
+    const { container } = renderWithRouter(
       <StageFailureMessageComponent {...({ stage: { isFailed: true }, messages: ['first', 'second'] } as any)} />,
-    )
-      .dive()
-      .dive();
+    );
 
-    const markdowns = component.find(Markdown);
-    expect(markdowns.length).toEqual(2);
-    markdowns.forEach((node) => expect(node.prop('className')).toBe('break-word-wrap'));
+    const markdowns = container.querySelectorAll('.Markdown');
+    expect(markdowns).toHaveLength(2);
+    expect(screen.getByText('first').closest('.Markdown')).toHaveClass('break-word-wrap');
+    expect(screen.getByText('second').closest('.Markdown')).toHaveClass('break-word-wrap');
+    markdowns.forEach((node) => expect(node).toHaveClass('break-word-wrap'));
   });
 });

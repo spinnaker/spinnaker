@@ -1,83 +1,93 @@
-import { mount } from 'enzyme';
-import React from 'react';
+import type { Mock } from 'vitest';
 
+import { renderHookHarness } from '../../utils/testUtils/hookHarness';
 import { useEventListener } from './useEventListener.hook';
 
-const TestComponent = ({
-  element,
-  eventName,
-  listener,
-  options,
-}: {
+interface IHookProps {
   element: Element;
   eventName: string;
-  listener?: (e: Event) => any;
+  listener?: ((e: Event) => any) | null;
   options: AddEventListenerOptions;
-}) => {
-  useEventListener(element, eventName, listener, options);
-  return null as JSX.Element;
-};
+}
+
+const renderEventListener = (props: IHookProps) =>
+  renderHookHarness(
+    ({ element, eventName, listener, options }: IHookProps) =>
+      useEventListener(element, eventName, listener ?? undefined, options),
+    props,
+  );
 
 const eventListenerOptions = { capture: true };
 
 describe('useEventListener', () => {
   let eventTarget: HTMLDivElement;
-  let addEventListenerSpy: jasmine.Spy;
-  let removeEventListenerSpy: jasmine.Spy;
+  let addEventListenerSpy: Mock;
+  let removeEventListenerSpy: Mock;
 
   beforeEach(() => {
     eventTarget = document.createElement('div');
-    addEventListenerSpy = spyOn(eventTarget, 'addEventListener').and.returnValue(undefined);
-    removeEventListenerSpy = spyOn(eventTarget, 'removeEventListener').and.returnValue(undefined);
+    addEventListenerSpy = vi.spyOn(eventTarget, 'addEventListener').mockReturnValue(undefined);
+    removeEventListenerSpy = vi.spyOn(eventTarget, 'removeEventListener').mockReturnValue(undefined);
   });
 
   it('should call addEventListener on the target element when mounted', () => {
-    mount(
-      <TestComponent element={eventTarget} eventName="keydown" listener={() => null} options={eventListenerOptions} />,
-    );
+    renderEventListener({
+      element: eventTarget,
+      eventName: 'keydown',
+      listener: () => null,
+      options: eventListenerOptions,
+    });
 
     expect(addEventListenerSpy).toHaveBeenCalledTimes(1);
     expect(removeEventListenerSpy).toHaveBeenCalledTimes(0);
 
-    expect(addEventListenerSpy.calls.argsFor(0)[0]).toBe('keydown');
-    expect(addEventListenerSpy.calls.argsFor(0)[2]).toBe(eventListenerOptions);
+    expect(addEventListenerSpy.mock.calls[0][0]).toBe('keydown');
+    expect(addEventListenerSpy.mock.calls[0][2]).toBe(eventListenerOptions);
   });
 
   it('should not do anything when mounted if there is no listener prop', () => {
-    mount(<TestComponent element={eventTarget} eventName="keydown" options={eventListenerOptions} />);
+    renderEventListener({ element: eventTarget, eventName: 'keydown', options: eventListenerOptions });
 
     expect(addEventListenerSpy).toHaveBeenCalledTimes(0);
     expect(removeEventListenerSpy).toHaveBeenCalledTimes(0);
   });
 
   it('should call removeEventListener on the target element when unmounted', () => {
-    const component = mount(
-      <TestComponent element={eventTarget} eventName="keydown" listener={() => null} options={eventListenerOptions} />,
-    );
+    const rendered = renderEventListener({
+      element: eventTarget,
+      eventName: 'keydown',
+      listener: () => null,
+      options: eventListenerOptions,
+    });
 
     expect(addEventListenerSpy).toHaveBeenCalledTimes(1);
     expect(removeEventListenerSpy).toHaveBeenCalledTimes(0);
 
-    component.unmount();
+    rendered.unmount();
 
     expect(addEventListenerSpy).toHaveBeenCalledTimes(1);
     expect(removeEventListenerSpy).toHaveBeenCalledTimes(1);
 
-    expect(removeEventListenerSpy.calls.argsFor(0)[0]).toBe('keydown');
-    expect(removeEventListenerSpy.calls.argsFor(0)[2]).toBe(eventListenerOptions);
+    expect(removeEventListenerSpy.mock.calls[0][0]).toBe('keydown');
+    expect(removeEventListenerSpy.mock.calls[0][2]).toBe(eventListenerOptions);
   });
 
   it('should call removeEventListener with the same event listener function reference', () => {
     let addedListener: any;
     let removedListener: any;
-    addEventListenerSpy.and.callFake((_: string, eventListener: () => any) => (addedListener = eventListener));
-    removeEventListenerSpy.and.callFake((_: string, eventListener: () => any) => (removedListener = eventListener));
-
-    const component = mount(
-      <TestComponent element={eventTarget} eventName="keydown" listener={() => null} options={eventListenerOptions} />,
+    addEventListenerSpy.mockImplementation((_: string, eventListener: () => any) => (addedListener = eventListener));
+    removeEventListenerSpy.mockImplementation(
+      (_: string, eventListener: () => any) => (removedListener = eventListener),
     );
 
-    component.unmount();
+    const rendered = renderEventListener({
+      element: eventTarget,
+      eventName: 'keydown',
+      listener: () => null,
+      options: eventListenerOptions,
+    });
+
+    rendered.unmount();
 
     expect(addEventListenerSpy).toHaveBeenCalledTimes(1);
     expect(removeEventListenerSpy).toHaveBeenCalledTimes(1);
@@ -87,24 +97,27 @@ describe('useEventListener', () => {
 
   it('should call the latest listener prop', () => {
     let addedListener: any;
-    addEventListenerSpy.and.callFake((_: string, eventListener: () => any) => (addedListener = eventListener));
+    addEventListenerSpy.mockImplementation((_: string, eventListener: () => any) => (addedListener = eventListener));
 
-    const initialListener = jasmine.createSpy('initialListener', () => 'initial');
+    const initialListener = vi.fn();
 
-    const component = mount(
-      <TestComponent
-        element={eventTarget}
-        eventName="keydown"
-        listener={initialListener}
-        options={eventListenerOptions}
-      />,
-    );
+    const rendered = renderEventListener({
+      element: eventTarget,
+      eventName: 'keydown',
+      listener: initialListener,
+      options: eventListenerOptions,
+    });
 
     addedListener();
     expect(initialListener).toHaveBeenCalledTimes(1);
 
-    const updatedListener = jasmine.createSpy('updatedListener', () => 'updated');
-    component.setProps({ listener: updatedListener });
+    const updatedListener = vi.fn();
+    rendered.rerenderHook({
+      element: eventTarget,
+      eventName: 'keydown',
+      listener: updatedListener,
+      options: eventListenerOptions,
+    });
 
     addedListener();
     expect(initialListener).toHaveBeenCalledTimes(1);
@@ -114,21 +127,26 @@ describe('useEventListener', () => {
   it('should call removeEventListener with the same event listener function reference after updating the listener prop', () => {
     let addedListener: any;
     let removedListener: any;
-    addEventListenerSpy.and.callFake((_: string, eventListener: () => any) => (addedListener = eventListener));
-    removeEventListenerSpy.and.callFake((_: string, eventListener: () => any) => (removedListener = eventListener));
-
-    const component = mount(
-      <TestComponent
-        element={eventTarget}
-        eventName="keydown"
-        listener={() => 'initial'}
-        options={eventListenerOptions}
-      />,
+    addEventListenerSpy.mockImplementation((_: string, eventListener: () => any) => (addedListener = eventListener));
+    removeEventListenerSpy.mockImplementation(
+      (_: string, eventListener: () => any) => (removedListener = eventListener),
     );
 
-    component.setProps({ listener: () => 'updated' });
+    const rendered = renderEventListener({
+      element: eventTarget,
+      eventName: 'keydown',
+      listener: () => 'initial',
+      options: eventListenerOptions,
+    });
 
-    component.unmount();
+    rendered.rerenderHook({
+      element: eventTarget,
+      eventName: 'keydown',
+      listener: () => 'updated',
+      options: eventListenerOptions,
+    });
+
+    rendered.unmount();
 
     expect(addEventListenerSpy).toHaveBeenCalledTimes(1);
     expect(removeEventListenerSpy).toHaveBeenCalledTimes(1);
@@ -139,35 +157,50 @@ describe('useEventListener', () => {
   it('should add and remove the same listener reference when the listener prop is added/removed', () => {
     let addedListener: any;
     let removedListener: any;
-    addEventListenerSpy.and.callFake((_: string, eventListener: () => any) => (addedListener = eventListener));
-    removeEventListenerSpy.and.callFake((_: string, eventListener: () => any) => (removedListener = eventListener));
-
-    const component = mount(
-      <TestComponent
-        element={eventTarget}
-        eventName="keydown"
-        listener={() => 'first'}
-        options={eventListenerOptions}
-      />,
+    addEventListenerSpy.mockImplementation((_: string, eventListener: () => any) => (addedListener = eventListener));
+    removeEventListenerSpy.mockImplementation(
+      (_: string, eventListener: () => any) => (removedListener = eventListener),
     );
+
+    const rendered = renderEventListener({
+      element: eventTarget,
+      eventName: 'keydown',
+      listener: () => 'first',
+      options: eventListenerOptions,
+    });
 
     expect(addEventListenerSpy).toHaveBeenCalledTimes(1);
     expect(removeEventListenerSpy).toHaveBeenCalledTimes(0);
-    component.setProps({ listener: null });
+    rendered.rerenderHook({
+      element: eventTarget,
+      eventName: 'keydown',
+      listener: null,
+      options: eventListenerOptions,
+    });
 
     expect(addEventListenerSpy).toHaveBeenCalledTimes(1);
     expect(removeEventListenerSpy).toHaveBeenCalledTimes(1);
 
     expect(addedListener).toBe(removedListener);
 
-    component.setProps({ listener: () => 'second' });
+    rendered.rerenderHook({
+      element: eventTarget,
+      eventName: 'keydown',
+      listener: () => 'second',
+      options: eventListenerOptions,
+    });
 
     expect(addEventListenerSpy).toHaveBeenCalledTimes(2);
     expect(removeEventListenerSpy).toHaveBeenCalledTimes(1);
 
     expect(addedListener).toBe(removedListener);
 
-    component.setProps({ listener: null });
+    rendered.rerenderHook({
+      element: eventTarget,
+      eventName: 'keydown',
+      listener: null,
+      options: eventListenerOptions,
+    });
 
     expect(addEventListenerSpy).toHaveBeenCalledTimes(2);
     expect(removeEventListenerSpy).toHaveBeenCalledTimes(2);

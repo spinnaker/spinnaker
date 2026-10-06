@@ -1,4 +1,4 @@
-import { shallow } from 'enzyme';
+import { render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 
 import { AccountService } from '@spinnaker/core';
@@ -6,8 +6,8 @@ import { AccountService } from '@spinnaker/core';
 import { ManifestDetailsLinkComponent } from './ManifestDetailsLink';
 
 describe('Kubernetes ManifestDetailsLink', () => {
-  const render = (manifest: any, accountId = 'test-account', href = jasmine.createSpy('href')) => {
-    const component = shallow(
+  const renderLink = (manifest: any, accountId = 'test-account', href = vi.fn()) =>
+    render(
       <ManifestDetailsLinkComponent
         {...({ router: {}, stateParams: {}, stateService: { href } } as any)}
         accountId={accountId}
@@ -15,23 +15,19 @@ describe('Kubernetes ManifestDetailsLink', () => {
         manifest={manifest}
       />,
     );
-    return component;
-  };
 
   it('uses the "name" parameter (not "serverGroupManager") for Deployment manifests', async () => {
-    spyOn(AccountService, 'getAccountDetails').and.returnValue(
+    vi.spyOn(AccountService, 'getAccountDetails').mockReturnValue(
       Promise.resolve({ spinnakerKindMap: { Deployment: 'serverGroupManagers' } } as any) as any,
     );
-    const href = jasmine.createSpy('href').and.returnValue('#/manifest');
-    const component = render(
+    const href = vi.fn().mockReturnValue('#/manifest');
+    renderLink(
       { manifest: { kind: 'Deployment', metadata: { annotations: {}, name: 'test-v001' } } },
       'test-account',
       href,
     );
 
-    await Promise.resolve();
-    component.update();
-
+    const link = await screen.findByRole('link', { name: 'Manifest' });
     expect(href).toHaveBeenCalledWith('home.applications.application.insight.clusters.serverGroupManager', {
       accountId: 'test-account',
       provider: 'kubernetes',
@@ -39,23 +35,21 @@ describe('Kubernetes ManifestDetailsLink', () => {
       region: '_',
       name: 'deployment test-v001',
     });
-    expect(component.find('a').prop('href')).toBe('#/manifest');
+    expect(link).toHaveAttribute('href', '#/manifest');
   });
 
   it('builds its link through the injected state service for a ReplicaSet manifest', async () => {
-    spyOn(AccountService, 'getAccountDetails').and.returnValue(
+    vi.spyOn(AccountService, 'getAccountDetails').mockReturnValue(
       Promise.resolve({ spinnakerKindMap: { Deployment: 'serverGroups' } } as any) as any,
     );
-    const href = jasmine.createSpy('href').and.returnValue('#/manifest');
-    const component = render(
+    const href = vi.fn().mockReturnValue('#/manifest');
+    renderLink(
       { manifest: { kind: 'Deployment', metadata: { annotations: {}, name: 'test-v001' } } },
       'test-account',
       href,
     );
 
-    await Promise.resolve();
-    component.update();
-
+    const link = await screen.findByRole('link', { name: 'Manifest' });
     expect(href).toHaveBeenCalledWith('home.applications.application.insight.clusters.serverGroup', {
       accountId: 'test-account',
       provider: 'kubernetes',
@@ -63,13 +57,15 @@ describe('Kubernetes ManifestDetailsLink', () => {
       region: '_',
       serverGroup: 'deployment test-v001',
     });
-    expect(component.find('a').prop('href')).toBe('#/manifest');
+    expect(link).toHaveAttribute('href', '#/manifest');
   });
 
   it('uses the "kubernetesResource" parameter for unmapped kinds', async () => {
-    spyOn(AccountService, 'getAccountDetails').and.returnValue(Promise.resolve({ spinnakerKindMap: {} } as any) as any);
-    const href = jasmine.createSpy('href').and.returnValue('#/manifest');
-    const component = render(
+    vi.spyOn(AccountService, 'getAccountDetails').mockReturnValue(
+      Promise.resolve({ spinnakerKindMap: {} } as any) as any,
+    );
+    const href = vi.fn().mockReturnValue('#/manifest');
+    renderLink(
       {
         manifest: {
           kind: 'ConfigMap',
@@ -80,9 +76,7 @@ describe('Kubernetes ManifestDetailsLink', () => {
       href,
     );
 
-    await Promise.resolve();
-    component.update();
-
+    await screen.findByRole('link', { name: 'Manifest' });
     expect(href).toHaveBeenCalledWith('home.applications.application.insight.clusters.kubernetesResource', {
       accountId: 'test-account',
       provider: 'kubernetes',
@@ -93,45 +87,46 @@ describe('Kubernetes ManifestDetailsLink', () => {
   });
 
   it('uses the resource name as region for an unmapped Namespace manifest', async () => {
-    spyOn(AccountService, 'getAccountDetails').and.returnValue(Promise.resolve({ spinnakerKindMap: {} } as any) as any);
-    const href = jasmine.createSpy('href').and.returnValue('#/manifest');
-    const component = render(
+    vi.spyOn(AccountService, 'getAccountDetails').mockReturnValue(
+      Promise.resolve({ spinnakerKindMap: {} } as any) as any,
+    );
+    const href = vi.fn().mockReturnValue('#/manifest');
+    renderLink(
       { manifest: { kind: 'Namespace', metadata: { annotations: {}, name: 'my-namespace' } } },
       'test-account',
       href,
     );
 
-    await Promise.resolve();
-    component.update();
-
+    await screen.findByRole('link', { name: 'Manifest' });
     expect(href).toHaveBeenCalledWith(
       'home.applications.application.insight.clusters.kubernetesResource',
-      jasmine.objectContaining({ region: 'my-namespace' }),
+      expect.objectContaining({ region: 'my-namespace' }),
     );
   });
 
   it('does not render a link when the manifest is missing', () => {
-    spyOn(AccountService, 'getAccountDetails').and.returnValue(Promise.resolve({ spinnakerKindMap: {} } as any) as any);
-    const href = jasmine.createSpy('href');
-    const component = render({ manifest: null }, 'test-account', href);
+    const getAccountDetails = vi
+      .spyOn(AccountService, 'getAccountDetails')
+      .mockReturnValue(Promise.resolve({ spinnakerKindMap: {} } as any) as any);
+    const href = vi.fn();
+    renderLink({ manifest: null }, 'test-account', href);
 
-    expect(component.find('a').exists()).toBeFalsy();
+    expect(getAccountDetails).not.toHaveBeenCalled();
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
   });
 
   it('does not render a link when the generated URL is empty', async () => {
-    spyOn(AccountService, 'getAccountDetails').and.returnValue(
+    vi.spyOn(AccountService, 'getAccountDetails').mockReturnValue(
       Promise.resolve({ spinnakerKindMap: { Deployment: 'serverGroupManagers' } } as any) as any,
     );
-    const href = jasmine.createSpy('href').and.returnValue('');
-    const component = render(
+    const href = vi.fn().mockReturnValue('');
+    renderLink(
       { manifest: { kind: 'Deployment', metadata: { annotations: {}, name: 'test-v001' } } },
       'test-account',
       href,
     );
 
-    await Promise.resolve();
-    component.update();
-
-    expect(component.find('a').exists()).toBeFalsy();
+    await waitFor(() => expect(href).toHaveBeenCalled());
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
   });
 });

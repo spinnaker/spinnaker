@@ -13,7 +13,7 @@ describe('GceAutoscalingPolicyWriter', () => {
   const policy = { minNumReplicas: 0, maxNumReplicas: 5 } as any;
 
   beforeEach(() => {
-    spyOn(TaskExecutor, 'executeTask').and.returnValue(Promise.resolve({}) as any);
+    vi.spyOn(TaskExecutor, 'executeTask').mockReturnValue(Promise.resolve({}) as any);
   });
 
   it('upserts an autoscaling policy with the GCE operation contract', () => {
