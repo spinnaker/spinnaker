@@ -1,11 +1,15 @@
 import { MockHttpClient } from './mockHttpClient';
 
 describe('MockHttpClient', () => {
-  beforeAll(() => jasmine.clock().install());
-  afterAll(() => jasmine.clock().uninstall());
+  beforeAll(() =>
+    vi.useFakeTimers({
+      toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval'],
+    }),
+  );
+  afterAll(() => vi.useRealTimers());
 
   it('clears its timeout watchdog as soon as all expected requests are flushed', async () => {
-    const clearTimeout = spyOn(window, 'clearTimeout').and.callThrough();
+    const clearTimeout = vi.spyOn(window, 'clearTimeout');
     const http = new MockHttpClient();
     http.expectGET('/tasks/1').respond(200, { status: 'SUCCEEDED' });
     const response = http.get({ url: '/tasks/1', params: {}, data: undefined } as any);
@@ -13,7 +17,7 @@ describe('MockHttpClient', () => {
     const flush = http.flush();
 
     expect(clearTimeout).toHaveBeenCalledTimes(1);
-    jasmine.clock().tick(0);
+    vi.advanceTimersByTime(0);
     await flush;
     await expectAsync(Promise.resolve(response)).toBeResolvedTo({ status: 'SUCCEEDED' });
   });
@@ -29,7 +33,7 @@ describe('MockHttpClient', () => {
         'The following HTTP calls were expected, but were not received:\n' +
         '\t- HTTP GET /tasks/1',
     );
-    jasmine.clock().tick(50);
+    vi.advanceTimersByTime(50);
 
     await rejection;
   });

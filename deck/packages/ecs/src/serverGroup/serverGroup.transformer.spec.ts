@@ -3,6 +3,8 @@ import { VpcReader } from '@spinnaker/amazon';
 
 import { EcsServerGroupTransformer } from './serverGroup.transformer';
 
+const testContext: any = {};
+
 describe('ecsServerGroupTransformer', () => {
   let transformer: EcsServerGroupTransformer;
 
@@ -12,7 +14,7 @@ describe('ecsServerGroupTransformer', () => {
 
   describe('normalize server group', () => {
     beforeEach(() => {
-      spyOn(VpcReader, 'listVpcs').and.returnValue(
+      vi.spyOn(VpcReader, 'listVpcs').mockReturnValue(
         Promise.resolve([{ account: 'test', region: 'us-east-1', id: 'vpc-1', name: 'main' } as any]),
       );
     });
@@ -110,7 +112,7 @@ describe('ecsServerGroupTransformer', () => {
 
     describe('sorting step adjustments', () => {
       beforeEach(function () {
-        this.test = (steps: IStepAdjustment[], expected: any[]) => {
+        testContext.test = (steps: IStepAdjustment[], expected: any[]) => {
           const serverGroup = {
             scalingPolicies: [
               {
@@ -125,7 +127,7 @@ describe('ecsServerGroupTransformer', () => {
       });
 
       it('reverse sorts step adjustments by lower bound when none have an upper bound defined', function () {
-        this.test(
+        testContext.test(
           [
             { scalingAdjustment: 10, metricIntervalLowerBound: 3 },
             { scalingAdjustment: 0, metricIntervalLowerBound: 5 },
@@ -136,7 +138,7 @@ describe('ecsServerGroupTransformer', () => {
       });
 
       it('reverse sorts step adjustments by lower bound when some do not have an upper bound defined', function () {
-        this.test(
+        testContext.test(
           [
             { id: 1, scalingAdjustment: 10, metricIntervalLowerBound: 3, metricIntervalUpperBound: 5 },
             { id: 2, scalingAdjustment: 0, metricIntervalLowerBound: 5 },
@@ -146,7 +148,7 @@ describe('ecsServerGroupTransformer', () => {
         );
       });
       it('verify float adjustments work within the range', function () {
-        this.test(
+        testContext.test(
           [
             { id: 1, scalingAdjustment: 10, metricIntervalLowerBound: 3.5, metricIntervalUpperBound: 5.5 },
             { id: 2, scalingAdjustment: 0, metricIntervalLowerBound: 5.5 },
@@ -156,7 +158,7 @@ describe('ecsServerGroupTransformer', () => {
         );
       });
       it('reverse sorts step adjustments by upper bound when all have an upper bound defined', function () {
-        this.test(
+        testContext.test(
           [
             { id: 1, scalingAdjustment: 10, metricIntervalLowerBound: 3, metricIntervalUpperBound: 5 },
             { id: 2, scalingAdjustment: 0, metricIntervalLowerBound: 5, metricIntervalUpperBound: 9 },

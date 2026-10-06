@@ -62,6 +62,6 @@ describe('stage configs expose React components', () => {
   it('registers the wait-for-parent transformer from the production root', () => {
     expect(
       registeredExecutionTransformers.some((transformer) => transformer instanceof WaitForParentTasksTransformer),
-    ).toBeTrue();
+    ).toBe(true);
   });
 });
