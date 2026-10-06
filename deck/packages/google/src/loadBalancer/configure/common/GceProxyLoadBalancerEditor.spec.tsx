@@ -107,7 +107,10 @@ describe('GceProxyLoadBalancerEditor', () => {
         { name: 'address-b', account: 'account-b', region: 'global' },
       ],
       backendServices: [{ name: 'backend-a', account: 'account-a', region: 'global' }],
-      certificates: [{ name: 'cert-a', account: 'account-a' }],
+      certificates: [
+        { name: 'cert-a', account: 'account-a' },
+        { name: 'regional-cert', account: 'account-a', region: 'us-central1' },
+      ],
       healthChecks: [{ name: 'check-a', account: 'account-a' }],
       networks: [],
       regions: [{ name: 'global' }],

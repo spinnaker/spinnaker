@@ -128,7 +128,8 @@ class SqlExecutionRepository(
   private val executionRepositoryListeners: Collection<ExecutionRepositoryListener> = emptyList(),
   private val compressionProperties: ExecutionCompressionProperties,
   private val pipelineRefEnabled: Boolean,
-  private val dataSource: DataSource
+  private val dataSource: DataSource,
+  private val enforceForeignPartition: Boolean = true
 ) : ExecutionRepository, ExecutionStatisticsRepository {
   companion object {
     val ulid = SpinULID(SecureRandom())
@@ -179,9 +180,12 @@ class SqlExecutionRepository(
   }
 
   override fun storeStage(stage: StageExecution) {
-    doForeignAware(PatchStageInterlinkEvent(stage.execution.type, stage.execution.id, stage.id, mapper.writeValueAsString(stage))) {
-      _, dslContext ->
-      jooq.transactional { storeStageInternal(dslContext, stage) }
+    doForeignAwareByPartition(
+      stage.execution.type,
+      stage.execution.id,
+      { PatchStageInterlinkEvent(stage.execution.type, stage.execution.id, stage.id, mapper.writeValueAsString(stage)) }
+    ) { dslContext ->
+      storeStageInternal(dslContext, stage)
     }
   }
 
@@ -217,7 +221,7 @@ class SqlExecutionRepository(
       jooq.transactional { dslContext ->
         selectExecution(dslContext, event.executionType, event.executionId)
           ?.let { execution ->
-            if (isForeign(execution)) {
+            if (checksForeignPartition && isForeign(execution)) {
               interlink?.publish(event.withPartition(execution.partition))
                 ?: throw ForeignExecutionException(event.executionId, execution.partition, partitionName)
             } else {
@@ -227,6 +231,50 @@ class SqlExecutionRepository(
       }
     }
   }
+
+  /**
+   * Like [doForeignAware], but only reads the execution's partition instead of the full execution
+   * and all of its stages. Use this when [block] doesn't need the execution itself.
+   *
+   * [event] is only invoked when the execution is foreign and interlink is enabled.
+   */
+  private fun doForeignAwareByPartition(
+    type: ExecutionType,
+    id: String,
+    event: () -> InterlinkEvent,
+    block: (dslContext: DSLContext) -> Unit
+  ) {
+    withPool(poolName) {
+      jooq.transactional { dslContext ->
+        if (!checksForeignPartition) {
+          block(dslContext)
+          return@transactional
+        }
+
+        val record = dslContext.select(field(name("partition")))
+          .from(type.tableName)
+          .where(id.toWhereCondition())
+          .limit(1)
+          .fetchOne()
+          ?: return@transactional
+
+        val partition = record.value1() as String?
+        if (partition != null && !handlesPartition(partition)) {
+          interlink?.publish(event().withPartition(partition))
+            ?: throw ForeignExecutionException(id, partition, partitionName)
+        } else {
+          block(dslContext)
+        }
+      }
+    }
+  }
+
+  /**
+   * Foreign executions can only be handed off via interlink, or rejected when
+   * [enforceForeignPartition] is set. Otherwise every execution is treated as local.
+   */
+  private val checksForeignPartition: Boolean
+    get() = interlink != null || enforceForeignPartition
 
   override fun cancel(type: ExecutionType, id: String, user: String?, reason: String?) {
     doForeignAware(CancelInterlinkEvent(type, id, user, reason)) {
@@ -328,8 +376,7 @@ class SqlExecutionRepository(
   }
 
   override fun delete(type: ExecutionType, id: String) {
-    doForeignAware(DeleteInterlinkEvent(type, id)) {
-      _, dslContext ->
+    doForeignAwareByPartition(type, id, { DeleteInterlinkEvent(type, id) }) { dslContext ->
       val (ulid, _) = mapLegacyId(dslContext, type.tableName, id)
 
       deleteInternal(dslContext, type, listOf(ulid))

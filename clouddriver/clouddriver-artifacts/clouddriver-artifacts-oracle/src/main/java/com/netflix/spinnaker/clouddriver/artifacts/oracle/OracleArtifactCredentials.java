@@ -11,7 +11,7 @@ package com.netflix.spinnaker.clouddriver.artifacts.oracle;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.collect.ImmutableList;
-import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
+import com.netflix.spinnaker.clouddriver.artifacts.config.AbstractArtifactCredentials;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.sun.jersey.api.client.UniformInterfaceException;
@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @NonnullByDefault
 @Slf4j
-public class OracleArtifactCredentials implements ArtifactCredentials {
+public class OracleArtifactCredentials extends AbstractArtifactCredentials {
   public static final String CREDENTIALS_TYPE = "artifacts-oracle";
   private static final String ARTIFACT_REFERENCE_PREFIX = "oci://";
   private static final String ARTIFACT_VERSION_QUERY_PARAM = "versionId";
@@ -45,6 +45,7 @@ public class OracleArtifactCredentials implements ArtifactCredentials {
   @JsonIgnore private final OracleArtifactClient client;
 
   OracleArtifactCredentials(String applicationName, OracleArtifactAccount account) {
+    super(account);
     this.name = account.getName();
     this.namespace = account.getNamespace();
     this.region = account.getRegion();

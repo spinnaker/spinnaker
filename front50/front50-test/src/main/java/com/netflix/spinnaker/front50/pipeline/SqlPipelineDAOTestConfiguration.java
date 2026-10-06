@@ -35,10 +35,17 @@ import java.util.concurrent.Executors;
 public class SqlPipelineDAOTestConfiguration {
 
   public static DefaultPipelineDAO createPipelineDAO(SqlTestUtil.TestDatabase database) {
-    Scheduler scheduler = Schedulers.from(Executors.newFixedThreadPool(1));
+    return createPipelineDAO(database, new StorageServiceConfigurationProperties().getPipeline());
+  }
 
-    StorageServiceConfigurationProperties.PerObjectType pipelineDAOConfigProperties =
-        new StorageServiceConfigurationProperties().getPipeline();
+  /**
+   * @param pipelineDAOConfigProperties the properties the DAO reads, so callers can change them
+   *     (e.g. synchronizeCacheRefresh) after the DAO is created
+   */
+  public static DefaultPipelineDAO createPipelineDAO(
+      SqlTestUtil.TestDatabase database,
+      StorageServiceConfigurationProperties.PerObjectType pipelineDAOConfigProperties) {
+    Scheduler scheduler = Schedulers.from(Executors.newFixedThreadPool(1));
 
     SqlStorageService storageService =
         new SqlStorageService(

@@ -30,6 +30,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifestStrategy;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.OperationResult;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesSelectorList;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import io.kubernetes.client.openapi.models.V1DeleteOptions;
@@ -49,6 +50,7 @@ public class KubernetesCleanupArtifactsOperation implements AtomicOperation<Oper
   private final KubernetesCredentials credentials;
   @Nonnull private final String accountName;
   private final ArtifactProvider artifactProvider;
+  private KubernetesSelectorList labelSelectors = new KubernetesSelectorList();
   private static final String OP_NAME = "CLEANUP_KUBERNETES_ARTIFACTS";
 
   public KubernetesCleanupArtifactsOperation(
@@ -56,6 +58,7 @@ public class KubernetesCleanupArtifactsOperation implements AtomicOperation<Oper
     this.description = description;
     this.credentials = description.getCredentials().getCredentials();
     this.accountName = description.getCredentials().getName();
+    this.labelSelectors = description.getLabelSelectors();
     this.artifactProvider = artifactProvider;
   }
 
@@ -69,7 +72,7 @@ public class KubernetesCleanupArtifactsOperation implements AtomicOperation<Oper
 
     List<Artifact> artifacts =
         description.getManifests().stream()
-            .map(this::artifactsToDelete)
+            .map(m -> artifactsToDelete(m, labelSelectors))
             .flatMap(Collection::stream)
             .collect(Collectors.toList());
 
@@ -106,24 +109,25 @@ public class KubernetesCleanupArtifactsOperation implements AtomicOperation<Oper
     return result;
   }
 
-  private ImmutableList<Artifact> artifactsToDelete(KubernetesManifest manifest) {
+  private ImmutableList<Artifact> artifactsToDelete(
+      KubernetesManifest manifest, KubernetesSelectorList labelSelectors) {
     KubernetesManifestStrategy strategy = KubernetesManifestAnnotater.getStrategy(manifest);
     OptionalInt optionalMaxVersionHistory = strategy.getMaxVersionHistory();
-    if (!optionalMaxVersionHistory.isPresent()) {
+    if (optionalMaxVersionHistory.isEmpty()) {
       return ImmutableList.of();
     }
 
     int maxVersionHistory = optionalMaxVersionHistory.getAsInt();
-    Optional<Artifact> optional = KubernetesManifestAnnotater.getArtifact(manifest, accountName);
-    if (!optional.isPresent()) {
+    Optional<Artifact> optionalArtifact =
+        KubernetesManifestAnnotater.getArtifact(manifest, accountName);
+    if (optionalArtifact.isEmpty()) {
       return ImmutableList.of();
     }
 
-    Artifact artifact = optional.get();
+    Artifact artifact = optionalArtifact.get();
 
     ImmutableList<Artifact> artifacts =
-        artifactProvider.getArtifacts(
-            manifest.getKind(), artifact.getName(), artifact.getLocation(), credentials);
+        artifactProvider.getArtifacts(manifest, artifact.getName(), credentials, labelSelectors);
     if (maxVersionHistory >= artifacts.size()) {
       return ImmutableList.of();
     } else {
