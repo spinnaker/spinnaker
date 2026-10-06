@@ -19,6 +19,7 @@ export class GceServerGroupTransformer {
               serverGroup.loadBalancers,
               serverGroup.account,
               application.getDataSource('loadBalancers').data,
+              serverGroup.region,
             );
           }
           return serverGroup;

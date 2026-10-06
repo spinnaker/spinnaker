@@ -227,6 +227,7 @@ export class GceResizeServerGroupModal extends React.Component<
                   <label className="col-md-3 sm-label-right">Current</label>
                   <div className="col-md-2">
                     <input
+                      aria-label="Current minimum replicas"
                       className="form-control input-sm"
                       disabled={true}
                       type="number"
@@ -235,6 +236,7 @@ export class GceResizeServerGroupModal extends React.Component<
                   </div>
                   <div className="col-md-2">
                     <input
+                      aria-label="Current maximum replicas"
                       className="form-control input-sm"
                       disabled={true}
                       type="number"
@@ -246,6 +248,7 @@ export class GceResizeServerGroupModal extends React.Component<
                   <label className="col-md-3 sm-label-right">Resize to</label>
                   <div className="col-md-2">
                     <input
+                      aria-label="Minimum replicas"
                       className="form-control input-sm"
                       min={0}
                       name="newMinNumReplicas"
@@ -263,6 +266,7 @@ export class GceResizeServerGroupModal extends React.Component<
                   </div>
                   <div className="col-md-2">
                     <input
+                      aria-label="Maximum replicas"
                       className="form-control input-sm"
                       min={0}
                       name="newMaxNumReplicas"

@@ -80,34 +80,7 @@ function renderValidationError(error: string, id: string): React.ReactNode {
 
 export class AdvancedSettings extends GceServerGroupWizardPage {
   public validate(values: IGceServerGroupCommand): { [key: string]: string } {
-    const errors: { [key: string]: string } = {};
-    if (getPersistentDisks(values).some((disk: any) => !disk.type || !isValidInteger(disk.sizeGb, 10, values, 65536))) {
-      errors.disks = 'Every persistent disk requires a type and an integer size between 10 and 65536 GB.';
-    }
-    if ((values.acceleratorConfigs || []).some((accelerator: any) => !isValidAccelerator(accelerator, values))) {
-      errors.acceleratorConfigs = 'Every accelerator requires a type and a supported positive integer count.';
-    }
-    if (hasEmptyKey(values.instanceMetadata)) {
-      errors.instanceMetadata = 'Metadata keys cannot be empty.';
-    }
-    if (hasEmptyKey(values.labels) || hasEmptyValue(values.labels)) {
-      errors.labels = hasEmptyKey(values.labels) ? 'Label keys cannot be empty.' : 'Label values cannot be empty.';
-    }
-    if (hasEmptyKey(values.resourceManagerTags) || hasEmptyValue(values.resourceManagerTags)) {
-      errors.resourceManagerTags = hasEmptyKey(values.resourceManagerTags)
-        ? 'Resource Manager tag keys cannot be empty.'
-        : 'Resource Manager tag values cannot be empty.';
-    }
-    if ((values.tags || []).some((tag: any) => !(typeof tag === 'string' ? tag : tag.value)?.trim())) {
-      errors.tags = 'Network tags cannot be empty.';
-    }
-    if ((values.authScopes || []).some((scope: string) => !scope.trim())) {
-      errors.authScopes = 'Auth scopes cannot be empty.';
-    }
-    if (values.enableConfidentialCompute && 'confidentialInstanceType' in values && !values.confidentialInstanceType) {
-      errors.confidentialInstanceType = 'Confidential instance type required.';
-    }
-    return errors;
+    return validateGceAdvancedSettings(values);
   }
 
   private setField = (field: string, value: any): void => {
@@ -868,4 +841,35 @@ export class AdvancedSettings extends GceServerGroupWizardPage {
       </div>
     );
   }
+}
+
+export function validateGceAdvancedSettings(values: IGceServerGroupCommand): { [key: string]: string } {
+  const errors: { [key: string]: string } = {};
+  if (getPersistentDisks(values).some((disk: any) => !disk.type || !isValidInteger(disk.sizeGb, 10, values, 65536))) {
+    errors.disks = 'Every persistent disk requires a type and an integer size between 10 and 65536 GB.';
+  }
+  if ((values.acceleratorConfigs || []).some((accelerator: any) => !isValidAccelerator(accelerator, values))) {
+    errors.acceleratorConfigs = 'Every accelerator requires a type and a supported positive integer count.';
+  }
+  if (hasEmptyKey(values.instanceMetadata)) {
+    errors.instanceMetadata = 'Metadata keys cannot be empty.';
+  }
+  if (hasEmptyKey(values.labels) || hasEmptyValue(values.labels)) {
+    errors.labels = hasEmptyKey(values.labels) ? 'Label keys cannot be empty.' : 'Label values cannot be empty.';
+  }
+  if (hasEmptyKey(values.resourceManagerTags) || hasEmptyValue(values.resourceManagerTags)) {
+    errors.resourceManagerTags = hasEmptyKey(values.resourceManagerTags)
+      ? 'Resource Manager tag keys cannot be empty.'
+      : 'Resource Manager tag values cannot be empty.';
+  }
+  if ((values.tags || []).some((tag: any) => !(typeof tag === 'string' ? tag : tag.value)?.trim())) {
+    errors.tags = 'Network tags cannot be empty.';
+  }
+  if ((values.authScopes || []).some((scope: string) => !scope.trim())) {
+    errors.authScopes = 'Auth scopes cannot be empty.';
+  }
+  if (values.enableConfidentialCompute && 'confidentialInstanceType' in values && !values.confidentialInstanceType) {
+    errors.confidentialInstanceType = 'Confidential instance type required.';
+  }
+  return errors;
 }

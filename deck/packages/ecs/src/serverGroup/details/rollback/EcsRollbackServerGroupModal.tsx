@@ -205,6 +205,7 @@ export class EcsRollbackServerGroupModal extends React.Component<
                         input={(props) => (
                           <ReactSelectInput
                             {...props}
+                            aria-label="Server group to restore"
                             clearable={false}
                             stringOptions={targets.map(({ name }) => name)}
                           />
@@ -236,6 +237,7 @@ export class EcsRollbackServerGroupModal extends React.Component<
                     <div className="col-sm-3 sm-label-right">Healthy threshold</div>
                     <div className="col-sm-3">
                       <input
+                        aria-label="Healthy threshold"
                         className="form-control input-sm"
                         max={100}
                         min={0}

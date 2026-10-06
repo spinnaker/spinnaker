@@ -1,5 +1,6 @@
 import { UIRouterContext, UIRouterReact } from '@uirouter/react';
-import { mount } from 'enzyme';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import $ from 'jquery';
 import React from 'react';
 
@@ -7,24 +8,19 @@ import { PageNavigator } from './PageNavigator';
 import { PageSection } from './PageSection';
 
 describe('PageNavigator', () => {
-  let host: HTMLElement;
   let router: UIRouterReact;
 
   beforeEach(() => {
     router = new UIRouterReact();
-    host = document.createElement('div');
-    document.body.appendChild(host);
   });
 
   afterEach(() => {
     $.fx.off = false;
     router.dispose();
-    host.remove();
   });
 
-  it('scrolls to the selected section in direct React usage', () => {
-    $.fx.off = true;
-    const wrapper = mount(
+  function renderNavigator() {
+    return render(
       <UIRouterContext.Provider value={router}>
         <div className="container" style={{ height: 60, overflowY: 'scroll' }}>
           <PageNavigator scrollableContainer=".container">
@@ -37,40 +33,34 @@ describe('PageNavigator', () => {
           </PageNavigator>
         </div>
       </UIRouterContext.Provider>,
-      { attachTo: host },
     );
-    wrapper.update();
+  }
 
-    const secondNavigationLink = wrapper.find('.page-navigation a').at(1);
-    expect(secondNavigationLink.exists()).toBe(true);
-    expect(() => secondNavigationLink.simulate('click')).not.toThrow();
-    expect(host.querySelector('[data-page-id="two"]').classList.contains('highlighted')).toBe(true);
+  it('scrolls to the selected section in direct React usage', async () => {
+    $.fx.off = true;
+    const { container } = renderNavigator();
 
-    wrapper.unmount();
+    const navigationControl = await screen.findByRole('button', { name: 'Two' });
+    expect(screen.getByRole('button', { name: 'One' })).toHaveAttribute('aria-current', 'location');
+    expect(navigationControl).not.toHaveAttribute('aria-current');
+    navigationControl.focus();
+    expect(navigationControl).toHaveFocus();
+    await userEvent.keyboard('{Enter}');
+
+    expect(container.querySelector('[data-page-id="two"]')).toHaveClass('highlighted');
+    expect(screen.getByRole('button', { name: 'One' })).not.toHaveAttribute('aria-current');
+    expect(navigationControl).toHaveAttribute('aria-current', 'location');
   });
 
-  it('loads navigation styles for direct React usage', () => {
-    const wrapper = mount(
-      <UIRouterContext.Provider value={router}>
-        <div className="container" style={{ height: 60, overflowY: 'scroll' }}>
-          <PageNavigator scrollableContainer=".container">
-            <PageSection pageKey="one" label="One">
-              <div style={{ height: 100 }} />
-            </PageSection>
-          </PageNavigator>
-        </div>
-      </UIRouterContext.Provider>,
-      { attachTo: host },
-    );
-    wrapper.update();
-
-    const navigation = wrapper.find('.page-navigation').getDOMNode<HTMLElement>();
-    const heading = wrapper.find('h4.sticky-header').getDOMNode<HTMLElement>();
+  it('loads navigation styles for direct React usage', async () => {
+    const { container } = renderNavigator();
+    const navigation = await screen.findByRole('list');
+    const heading = container.querySelector('h4.sticky-header');
+    const accentColor = window.getComputedStyle(document.documentElement).getPropertyValue('--color-accent').trim();
 
     expect(window.getComputedStyle(navigation).listStyleType).toBe('none');
     expect(window.getComputedStyle(navigation).textTransform).toBe('uppercase');
     expect(window.getComputedStyle(heading).paddingTop).toBe('10px');
-
-    wrapper.unmount();
+    expect(window.getComputedStyle(screen.getByRole('button', { name: 'Two' })).color).toBe(accentColor);
   });
 });

@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import type { FormikProps } from 'formik';
 import React from 'react';
 import { UIRouterReact } from '@uirouter/react';
@@ -106,17 +107,19 @@ describe('GceServerGroupWizard foundation', () => {
     it('uses runtime-owned readers through the registered default configuration path', async () => {
       registerGoogleProvider();
       const runtime = createDeckRuntime(new UIRouterReact());
-      const getAllSecurityGroups = spyOn(runtime.services.securityGroupReader, 'getAllSecurityGroups').and.resolveTo(
-        {},
-      );
-      const listLoadBalancers = spyOn(runtime.services.loadBalancerReader, 'listLoadBalancers').and.resolveTo([]);
-      spyOn(AccountService, 'getCredentialsKeyedByAccount').and.resolveTo({});
-      spyOn(AccountService, 'getAllAccountDetailsForProvider').and.resolveTo([]);
-      spyOn(AccountService, 'listAccounts').and.resolveTo([]);
-      spyOn(NetworkReader, 'listNetworksByProvider').and.resolveTo([]);
-      spyOn(SubnetReader, 'listSubnetsByProvider').and.resolveTo([]);
-      spyOn(GceImageReader, 'findImages').and.resolveTo([]);
-      spyOn(GceHealthCheckReader.prototype, 'listHealthChecks').and.resolveTo([]);
+      const getAllSecurityGroups = vi
+        .spyOn(runtime.services.securityGroupReader, 'getAllSecurityGroups')
+        .mockResolvedValue({});
+      const listLoadBalancers = vi
+        .spyOn(runtime.services.loadBalancerReader, 'listLoadBalancers')
+        .mockResolvedValue([]);
+      vi.spyOn(AccountService, 'getCredentialsKeyedByAccount').mockResolvedValue({});
+      vi.spyOn(AccountService, 'getAllAccountDetailsForProvider').mockResolvedValue([]);
+      vi.spyOn(AccountService, 'listAccounts').mockResolvedValue([]);
+      vi.spyOn(NetworkReader, 'listNetworksByProvider').mockResolvedValue([]);
+      vi.spyOn(SubnetReader, 'listSubnetsByProvider').mockResolvedValue([]);
+      vi.spyOn(GceImageReader, 'findImages').mockResolvedValue([]);
+      vi.spyOn(GceHealthCheckReader.prototype, 'listHealthChecks').mockResolvedValue([]);
 
       try {
         const delegate = runtime.services.providerServiceDelegate;
@@ -131,7 +134,7 @@ describe('GceServerGroupWizard foundation', () => {
         );
 
         expect(getAllSecurityGroups).toHaveBeenCalledTimes(1);
-        expect(listLoadBalancers).toHaveBeenCalledOnceWith('gce');
+        expect(listLoadBalancers).toHaveBeenCalledExactlyOnceWith('gce');
       } finally {
         runtime.dispose();
       }
@@ -139,10 +142,10 @@ describe('GceServerGroupWizard foundation', () => {
 
     it('delegates the four surviving command-builder signatures', async () => {
       const builder = {
-        buildNewServerGroupCommand: jasmine.createSpy().and.resolveTo(command()),
-        buildNewServerGroupCommandForPipeline: jasmine.createSpy().and.resolveTo(command()),
-        buildServerGroupCommandFromExisting: jasmine.createSpy().and.resolveTo(command()),
-        buildServerGroupCommandFromPipeline: jasmine.createSpy().and.resolveTo(command()),
+        buildNewServerGroupCommand: vi.fn().mockResolvedValue(command()),
+        buildNewServerGroupCommandForPipeline: vi.fn().mockResolvedValue(command()),
+        buildServerGroupCommandFromExisting: vi.fn().mockResolvedValue(command()),
+        buildServerGroupCommandFromPipeline: vi.fn().mockResolvedValue(command()),
       };
       const adapter = new GceServerGroupWizardAdapter(builder as any, configurationService());
       const app = { name: 'app' } as any;
@@ -165,7 +168,7 @@ describe('GceServerGroupWizard foundation', () => {
     it('configures a cloned command and leaves Formik values unchanged', async () => {
       const original = command({ backingData: undefined });
       const service = configurationService();
-      service.configureCommand.and.callFake(async (_app: any, working: IGceServerGroupCommand) => {
+      service.configureCommand.mockImplementation(async (_app: any, working: IGceServerGroupCommand) => {
         working.backingData = { accounts: ['account'] };
       });
       const adapter = new GceServerGroupWizardAdapter(commandBuilder(), service);
@@ -178,13 +181,13 @@ describe('GceServerGroupWizard foundation', () => {
     });
 
     it('applies configuration updates immutably and processes dirty results', async () => {
-      const processCommandUpdateResult = jasmine.createSpy('processCommandUpdateResult');
+      const processCommandUpdateResult = vi.fn();
       const original = command({
         processCommandUpdateResult,
         viewState: { mode: 'create', dirty: { existing: true } },
       });
       const service = configurationService();
-      service.configureImages.and.callFake((working: IGceServerGroupCommand) => {
+      service.configureImages.mockImplementation((working: IGceServerGroupCommand) => {
         working.image = 'new-image';
         return { dirty: { image: true } };
       });
@@ -200,7 +203,7 @@ describe('GceServerGroupWizard foundation', () => {
     });
 
     it('invokes command handlers against a clone', async () => {
-      const credentialsChanged = jasmine.createSpy().and.callFake((working: IGceServerGroupCommand) => {
+      const credentialsChanged = vi.fn().mockImplementation((working: IGceServerGroupCommand) => {
         working.region = 'new-region';
         return { dirty: { region: true } };
       });
@@ -211,21 +214,21 @@ describe('GceServerGroupWizard foundation', () => {
 
       expect(update.command.region).toBe('new-region');
       expect(original.region).toBe('region');
-      expect(credentialsChanged.calls.mostRecent().args[0]).not.toBe(original);
+      expect(credentialsChanged.mock.lastCall[0]).not.toBe(original);
     });
 
     it('forwards refresh options while refreshing a cloned command', async () => {
       const original = command();
       const service = configurationService();
-      service.refreshHealthChecks.and.callFake(async (working: IGceServerGroupCommand) => {
+      service.refreshHealthChecks.mockImplementation(async (working: IGceServerGroupCommand) => {
         working.backingData = { healthChecks: ['health-check'] };
       });
       const adapter = new GceServerGroupWizardAdapter(commandBuilder(), service);
 
       const update = await adapter.applyConfigurationRefresh(original, 'refreshHealthChecks', true);
 
-      expect(service.refreshHealthChecks.calls.mostRecent().args[0]).not.toBe(original);
-      expect(service.refreshHealthChecks.calls.mostRecent().args[1]).toBe(true);
+      expect(service.refreshHealthChecks.mock.lastCall[0]).not.toBe(original);
+      expect(service.refreshHealthChecks.mock.lastCall[1]).toBe(true);
       expect(update.command.backingData).toEqual({ healthChecks: ['health-check'] });
       expect(original.backingData).toBeUndefined();
     });
@@ -245,9 +248,9 @@ describe('GceServerGroupWizard foundation', () => {
         return nextCommand;
       });
 
-      expect(setValues.calls.count()).toBe(2);
+      expect(setValues.mock.calls.length).toBe(2);
       expect(requestCommands[1]).toEqual(
-        jasmine.objectContaining({
+        expect.objectContaining({
           backingData: { regions: ['first-region'] },
           region: 'first-region',
           zone: 'second-zone',
@@ -285,7 +288,7 @@ describe('GceServerGroupWizard foundation', () => {
       await olderRequest;
 
       expect(formik.values).toEqual(
-        jasmine.objectContaining({
+        expect.objectContaining({
           backingData: { regions: ['newer'] },
           credentials: 'new-account',
           freeFormDetails: 'newer-user-edit',
@@ -323,7 +326,7 @@ describe('GceServerGroupWizard foundation', () => {
       await newerRequest;
 
       expect(formik.values).toEqual(
-        jasmine.objectContaining({
+        expect.objectContaining({
           backingData: { regions: ['option-b'] },
           credentials: 'new-account',
           freeFormDetails: 'newer-user-edit',
@@ -344,9 +347,9 @@ describe('GceServerGroupWizard foundation', () => {
       first.resolve(command({ region: 'first' }));
       await firstRequest;
 
-      expect(setValues.calls.count()).toBe(1);
-      expect(setValues.calls.mostRecent().args[0].region).toBe('second');
-      expect(onLoadingChanged.calls.allArgs()).toEqual([[true], [true], [false]]);
+      expect(setValues.mock.calls.length).toBe(1);
+      expect(setValues.mock.lastCall[0].region).toBe('second');
+      expect(onLoadingChanged.mock.calls).toEqual([[true], [true], [false]]);
     });
 
     it('does not publish a command after unmount', async () => {
@@ -382,8 +385,8 @@ class TestWizardPage extends GceServerGroupWizardPage {
 }
 
 function testPage(formik = asyncFormik(command()), commandState?: IGceServerGroupWizardCommandState) {
-  const setValues = formik.setValues as jasmine.Spy;
-  const onLoadingChanged = jasmine.createSpy('onLoadingChanged');
+  const setValues = formik.setValues as Mock;
+  const onLoadingChanged = vi.fn();
   const props = {
     app: { name: 'app' },
     commandState,
@@ -395,13 +398,13 @@ function testPage(formik = asyncFormik(command()), commandState?: IGceServerGrou
 
 function asyncFormik(values: IGceServerGroupCommand): FormikProps<IGceServerGroupCommand> {
   const formik = ({ values } as unknown) as FormikProps<IGceServerGroupCommand>;
-  formik.setValues = jasmine.createSpy('setValues').and.resolveTo(undefined);
+  formik.setValues = vi.fn().mockResolvedValue(undefined);
   return formik;
 }
 
 function publishingFormik(values: IGceServerGroupCommand): FormikProps<IGceServerGroupCommand> {
   const formik = asyncFormik(values);
-  (formik.setValues as jasmine.Spy).and.callFake((nextValues: IGceServerGroupCommand) => {
+  (formik.setValues as Mock).mockImplementation((nextValues: IGceServerGroupCommand) => {
     formik.values = nextValues;
   });
   return formik;
@@ -426,28 +429,28 @@ function command(overrides: Partial<IGceServerGroupCommand> = {}): IGceServerGro
 
 function commandBuilder() {
   return {
-    buildNewServerGroupCommand: jasmine.createSpy().and.resolveTo(command()),
-    buildNewServerGroupCommandForPipeline: jasmine.createSpy().and.resolveTo(command()),
-    buildServerGroupCommandFromExisting: jasmine.createSpy().and.resolveTo(command()),
-    buildServerGroupCommandFromPipeline: jasmine.createSpy().and.resolveTo(command()),
+    buildNewServerGroupCommand: vi.fn().mockResolvedValue(command()),
+    buildNewServerGroupCommandForPipeline: vi.fn().mockResolvedValue(command()),
+    buildServerGroupCommandFromExisting: vi.fn().mockResolvedValue(command()),
+    buildServerGroupCommandFromPipeline: vi.fn().mockResolvedValue(command()),
   };
 }
 
 function configurationService(): Record<
   GceConfigurationRefreshMethod | GceConfigurationUpdateMethod | 'configureCommand',
-  jasmine.Spy
+  Mock
 > {
   return {
-    configureCommand: jasmine.createSpy().and.resolveTo(undefined),
-    configureImages: jasmine.createSpy().and.returnValue({ dirty: {} }),
-    configureInstanceTypes: jasmine.createSpy().and.returnValue({ dirty: {} }),
-    configureLoadBalancerOptions: jasmine.createSpy().and.returnValue({ dirty: {} }),
-    configureSubnets: jasmine.createSpy().and.returnValue({ dirty: {} }),
-    configureZones: jasmine.createSpy().and.returnValue({ dirty: {} }),
-    refreshHealthChecks: jasmine.createSpy().and.resolveTo(undefined),
-    refreshInstanceTypes: jasmine.createSpy().and.resolveTo(undefined),
-    refreshLoadBalancers: jasmine.createSpy().and.resolveTo(undefined),
-    refreshSecurityGroups: jasmine.createSpy().and.resolveTo(undefined),
+    configureCommand: vi.fn().mockResolvedValue(undefined),
+    configureImages: vi.fn().mockReturnValue({ dirty: {} }),
+    configureInstanceTypes: vi.fn().mockReturnValue({ dirty: {} }),
+    configureLoadBalancerOptions: vi.fn().mockReturnValue({ dirty: {} }),
+    configureSubnets: vi.fn().mockReturnValue({ dirty: {} }),
+    configureZones: vi.fn().mockReturnValue({ dirty: {} }),
+    refreshHealthChecks: vi.fn().mockResolvedValue(undefined),
+    refreshInstanceTypes: vi.fn().mockResolvedValue(undefined),
+    refreshLoadBalancers: vi.fn().mockResolvedValue(undefined),
+    refreshSecurityGroups: vi.fn().mockResolvedValue(undefined),
   };
 }
 

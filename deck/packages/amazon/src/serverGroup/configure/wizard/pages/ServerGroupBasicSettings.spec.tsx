@@ -2,7 +2,7 @@ import { ServerGroupBasicSettingsComponent } from './ServerGroupBasicSettings';
 
 describe('Amazon ServerGroupBasicSettings', () => {
   it('opens the latest server group through the injected state service', () => {
-    const stateService = { go: jasmine.createSpy('go'), is: () => true };
+    const stateService = { go: vi.fn(), is: () => true };
     const component = new ServerGroupBasicSettingsComponent({
       app: {
         clusters: [],
