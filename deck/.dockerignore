@@ -1,8 +1,6 @@
-.cache-loader
 .dependabot
 .github
 .gradle
-.storybook
 app
 build
 gradle
