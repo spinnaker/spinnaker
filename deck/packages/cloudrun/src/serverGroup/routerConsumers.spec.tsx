@@ -1,23 +1,23 @@
-import { mount, shallow } from 'enzyme';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
-import { MenuItem } from 'react-bootstrap';
 
-import { ConfirmationModalService, DeckRuntimeContext, ServerGroupNamePreview } from '@spinnaker/core';
+import { ConfirmationModalService, DeckRuntimeContext } from '@spinnaker/core';
 
 import { ServerGroupBasicSettingsComponent } from './configure/wizard/BasicSettings';
 import { ServerGroupWizardComponent } from './configure/wizard/serverGroupWizard';
 import { CloudrunServerGroupActionsComponent } from './details/CloudrunServerGroupActions';
 
 describe('Cloud Run server group router consumers', () => {
-  it('opens the latest server group through the injected state service', () => {
+  it('opens the latest server group through the injected state service', async () => {
     const go = vi.fn();
-    const component = shallow(
+    render(
       <ServerGroupBasicSettingsComponent
         {...({ router: {}, stateParams: {}, stateService: { go, is: () => true } } as any)}
         accounts={[]}
         app={
           {
-            clusters: [],
+            clusters: [{ name: 'app-main' }],
             name: 'app',
             serverGroups: {
               data: [{ account: 'test', cluster: 'app-main', createdTime: 1, name: 'app-main-v001', region: 'us' }],
@@ -44,7 +44,7 @@ describe('Cloud Run server group router consumers', () => {
       />,
     );
 
-    component.find(ServerGroupNamePreview).prop('navigateToLatestServerGroup')();
+    await userEvent.click(screen.getByText('Go to details for app-main-v001'));
 
     expect(go).toHaveBeenCalledWith('.serverGroup', {
       accountId: 'test',
@@ -54,10 +54,10 @@ describe('Cloud Run server group router consumers', () => {
     });
   });
 
-  it('closes destroyed server group details through the injected state service', () => {
+  it('closes destroyed server group details through the injected state service', async () => {
     const go = vi.fn();
     const confirm = vi.spyOn(ConfirmationModalService, 'confirm').mockReturnValue(undefined);
-    const component = mount(
+    render(
       <DeckRuntimeContext.Provider value={{ services: { serverGroupWriter: {} } } as any}>
         <CloudrunServerGroupActionsComponent
           {...({ router: {}, stateParams: {}, stateService: { go, includes: () => true } } as any)}
@@ -75,7 +75,7 @@ describe('Cloud Run server group router consumers', () => {
       </DeckRuntimeContext.Provider>,
     );
 
-    component.find(MenuItem).first().prop('onClick')();
+    await userEvent.click(screen.getByText('Destroy'));
     confirm.mock.lastCall[0].taskMonitorConfig.onTaskComplete();
 
     expect(go).toHaveBeenCalledWith('^');

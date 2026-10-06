@@ -1,84 +1,106 @@
+import { act, waitFor } from '@testing-library/react';
 import type { Mock } from 'vitest';
-import { mount } from 'enzyme';
-import React from 'react';
 
 import { ManifestReader } from '@spinnaker/core';
 
 import { useKubernetesServerGroupManagerDetails } from './useKubernetesServerGroupManagerDetails';
 import type { IKubernetesServerGroupManagerDetailsProps } from './ServerGroupManagerDetails';
+import { renderHookHarness } from '../../../../core/src/utils/testUtils/hookHarness';
 
 describe('useKubernetesServerGroupManagerDetails', () => {
   beforeEach(() => {
-    vi.spyOn(ManifestReader, 'getManifest').mockReturnValue(Promise.resolve(manifestDetails()) as any);
+    vi.spyOn(ManifestReader, 'getManifest').mockResolvedValue(manifestDetails() as any);
   });
 
   it('waits for the server group manager data source before loading manifest details', async () => {
-    let resolveReady: () => void;
-    const ready = new Promise<void>((resolve) => {
-      resolveReady = resolve;
-    });
+    const ready = deferred<void>();
     const autoClose = vi.fn();
     const dataSource = {
       data: [] as any[],
-      ready: vi.fn().mockReturnValue(ready),
+      ready: vi.fn().mockReturnValue(ready.promise),
     };
-    const component = mount(<HookHarness {...props(dataSource)} autoClose={autoClose} />);
-
-    await settle();
-    component.update();
+    const rendered = renderDetailsHook(props(dataSource), autoClose);
 
     expect(dataSource.ready).toHaveBeenCalled();
     expect(autoClose).not.toHaveBeenCalled();
     expect(ManifestReader.getManifest).not.toHaveBeenCalled();
-    expect(component.find('.hook-state').prop('data-loading')).toBe(true);
+    expect(rendered.result.current[2]).toBe(true);
 
     dataSource.data = [serverGroupManagerDetails()];
-    resolveReady!();
-    await settle();
-    await settle();
-    component.update();
+    await act(async () => ready.resolve());
 
+    await waitFor(() => expect(rendered.result.current[2]).toBe(false));
     expect(ManifestReader.getManifest).toHaveBeenCalledWith('k8s-local', 'dev', 'deployment backend');
-    expect(component.find('.hook-state').prop('data-loading')).toBe(false);
-    expect(component.find('.hook-state').prop('data-manager')).toBe('backend');
-    expect(component.find('.hook-state').prop('data-manifest')).toBe('deployment backend');
+    expect(rendered.result.current[0]?.displayName).toBe('backend');
+    expect(rendered.result.current[1]?.name).toBe('deployment backend');
   });
 
   it('auto-closes when manifest details fail to load', async () => {
-    (ManifestReader.getManifest as Mock).mockReturnValue(Promise.reject(new Error('manifest failed')));
+    (ManifestReader.getManifest as Mock).mockRejectedValue(new Error('manifest failed'));
     vi.spyOn(console, 'error').mockReturnValue(undefined);
     const autoClose = vi.fn();
     const dataSource = {
       data: [serverGroupManagerDetails()],
-      ready: vi.fn().mockReturnValue(Promise.resolve()),
+      ready: vi.fn().mockResolvedValue(undefined),
     };
 
-    const component = mount(<HookHarness {...props(dataSource)} autoClose={autoClose} />);
+    renderDetailsHook(props(dataSource), autoClose);
 
-    await settle();
-    await settle();
-    component.update();
+    await waitFor(() => expect(autoClose).toHaveBeenCalled());
+  });
 
-    expect(autoClose).toHaveBeenCalled();
+  it('loads details again when the requested manager changes', async () => {
+    const autoClose = vi.fn();
+    const dataSource = {
+      data: [
+        serverGroupManagerDetails(),
+        serverGroupManagerDetails({ displayName: 'frontend', name: 'deployment frontend' }),
+      ],
+      ready: vi.fn().mockResolvedValue(undefined),
+    };
+    (ManifestReader.getManifest as Mock).mockImplementation((_account: string, _region: string, name: string) =>
+      Promise.resolve(manifestDetails({ name })),
+    );
+    const rendered = renderDetailsHook(props(dataSource), autoClose);
+    await waitFor(() => expect(rendered.result.current[0]?.displayName).toBe('backend'));
 
-    component.unmount();
+    rendered.rerenderHook({
+      hookProps: props(dataSource, { name: 'deployment frontend' }),
+      autoClose,
+    });
+
+    await waitFor(() => expect(rendered.result.current[0]?.displayName).toBe('frontend'));
+    expect(ManifestReader.getManifest).toHaveBeenLastCalledWith('k8s-local', 'dev', 'deployment frontend');
+    expect(rendered.result.current[1]?.name).toBe('deployment frontend');
+  });
+
+  it('cancels pending work when unmounted', async () => {
+    const ready = deferred<void>();
+    const autoClose = vi.fn();
+    const dataSource = {
+      data: [] as any[],
+      ready: vi.fn().mockReturnValue(ready.promise),
+    };
+    const rendered = renderDetailsHook(props(dataSource), autoClose);
+
+    rendered.unmount();
+    dataSource.data = [serverGroupManagerDetails()];
+    await act(async () => ready.resolve());
+
+    expect(ManifestReader.getManifest).not.toHaveBeenCalled();
+    expect(autoClose).not.toHaveBeenCalled();
   });
 });
 
-function HookHarness({ autoClose, ...props }: IKubernetesServerGroupManagerDetailsProps & { autoClose: () => void }) {
-  const [serverGroupManager, manifest, loading] = useKubernetesServerGroupManagerDetails(props, autoClose);
-
-  return (
-    <div
-      className="hook-state"
-      data-loading={loading}
-      data-manager={serverGroupManager?.displayName || ''}
-      data-manifest={manifest?.name || ''}
-    />
+function renderDetailsHook(hookProps: IKubernetesServerGroupManagerDetailsProps, autoClose: () => void) {
+  return renderHookHarness(
+    ({ hookProps: currentProps, autoClose: currentAutoClose }) =>
+      useKubernetesServerGroupManagerDetails(currentProps, currentAutoClose),
+    { hookProps, autoClose },
   );
 }
 
-function props(dataSource: any): IKubernetesServerGroupManagerDetailsProps {
+function props(dataSource: any, overrides: Record<string, string> = {}): IKubernetesServerGroupManagerDetailsProps {
   return {
     app: {
       getDataSource: () => dataSource,
@@ -88,26 +110,37 @@ function props(dataSource: any): IKubernetesServerGroupManagerDetailsProps {
       provider: 'kubernetes',
       region: 'dev',
       name: 'deployment backend',
+      ...overrides,
     },
   } as IKubernetesServerGroupManagerDetailsProps;
 }
 
-function serverGroupManagerDetails() {
+function serverGroupManagerDetails(overrides: Record<string, string> = {}) {
   return {
     account: 'k8s-local',
     cloudProvider: 'kubernetes',
     displayName: 'backend',
     name: 'deployment backend',
     region: 'dev',
+    ...overrides,
   } as any;
 }
 
-function manifestDetails() {
+function manifestDetails(overrides: Record<string, string> = {}) {
   return {
     account: 'k8s-local',
     location: 'dev',
     name: 'deployment backend',
+    ...overrides,
   } as any;
 }
 
-const settle = () => new Promise((resolve) => setTimeout(resolve));
+function deferred<T>() {
+  let resolve!: (value?: T | PromiseLike<T>) => void;
+  let reject!: (reason?: any) => void;
+  const promise = new Promise<T>((resolvePromise, rejectPromise) => {
+    resolve = resolvePromise;
+    reject = rejectPromise;
+  });
+  return { promise, resolve, reject };
+}

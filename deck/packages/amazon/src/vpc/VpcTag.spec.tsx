@@ -1,37 +1,33 @@
-import { mount } from 'enzyme';
+import { render, screen } from '@testing-library/react';
 import React from 'react';
 
 import { VpcTag } from './VpcTag';
 import { VpcReader } from '../vpc/VpcReader';
 
-const tick = () => new Promise((resolve) => setTimeout(resolve));
-
 describe('VpcTag', function () {
   describe('vpc tag rendering - no VPC provided', function () {
     it('displays default message when no vpcId supplied', function () {
-      const component = mount(<VpcTag vpcId={undefined} />);
-      expect(component.text()).toBe('None (EC2 Classic)');
+      render(<VpcTag vpcId={undefined} />);
+      expect(screen.getByText('None (EC2 Classic)')).toBeInTheDocument();
     });
 
     it('displays default message when null vpcId supplied', function () {
-      const component = mount(<VpcTag vpcId={null} />);
-      expect(component.text()).toBe('None (EC2 Classic)');
+      render(<VpcTag vpcId={null} />);
+      expect(screen.getByText('None (EC2 Classic)')).toBeInTheDocument();
     });
   });
 
   describe('vpc tag rendering - VPC provided', function () {
     it('displays vpc name when found', async function () {
       vi.spyOn(VpcReader, 'getVpcName').mockReturnValue(Promise.resolve('Main VPC'));
-      const component = mount(<VpcTag vpcId="vpc-1" />);
-      await tick();
-      expect(component.text()).toBe('Main VPC (vpc-1)');
+      render(<VpcTag vpcId="vpc-1" />);
+      expect(await screen.findByText('Main VPC (vpc-1)')).toBeInTheDocument();
     });
 
     it('displays vpc id when not found', async function () {
       vi.spyOn(VpcReader, 'getVpcName').mockReturnValue(Promise.resolve(null));
-      const component = mount(<VpcTag vpcId="vpc-2" />);
-      await tick();
-      expect(component.text()).toBe('(vpc-2)');
+      render(<VpcTag vpcId="vpc-2" />);
+      expect(await screen.findByText('(vpc-2)')).toBeInTheDocument();
     });
   });
 });
