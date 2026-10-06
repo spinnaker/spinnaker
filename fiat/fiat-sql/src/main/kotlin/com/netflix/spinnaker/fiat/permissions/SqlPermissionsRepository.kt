@@ -94,22 +94,36 @@ class SqlPermissionsRepository(
 
         putResources(allResources)
 
-        if (coroutineContext.useAsync(permissions.size, this::useAsync)) {
-            permissions.values.chunked(
-                dynamicConfigService.getConfig(Int::class.java, "permissions-repository.sql.max-query-concurrency", 4)
-            ).forEach { chunk ->
-                val scope = SqlCoroutineScope(coroutineContext)
+        // Non-null only when this sync is big enough to be worth running concurrently.
+        val asyncContext = if (coroutineContext.useAsync(permissions.size, this::useAsync)) coroutineContext else null
 
-                val deferred = chunk.map {
-                    scope.async { putUserPermission(it) }
-                }
+        // Fetch existing permission rows for a batch of users in one query rather than one per user.
+        val existingPermissionsBatchSize = dynamicConfigService.getConfig(
+            Int::class.java,
+            "permissions-repository.sql.existing-permissions-batch-size",
+            100
+        )
 
-                runBlocking {
-                    deferred.awaitAll()
+        permissions.values.chunked(existingPermissionsBatchSize).forEach { batch ->
+            val existing = getUserPermissionsRecords(batch.map { it.id })
+
+            if (asyncContext != null) {
+                batch.chunked(
+                    dynamicConfigService.getConfig(Int::class.java, "permissions-repository.sql.max-query-concurrency", 4)
+                ).forEach { chunk ->
+                    val scope = SqlCoroutineScope(asyncContext)
+
+                    val deferred = chunk.map {
+                        scope.async { putUserPermission(it, existing[it.id].orEmpty()) }
+                    }
+
+                    runBlocking {
+                        deferred.awaitAll()
+                    }
                 }
+            } else {
+                batch.forEach { putUserPermission(it, existing[it.id].orEmpty()) }
             }
-        } else {
-            permissions.values.forEach { putUserPermission(it) }
         }
     }
 
@@ -223,7 +237,7 @@ class SqlPermissionsRepository(
             .mapValues { record -> record.value.mapNotNull { allRoles[it] }.toSet() }
     }
 
-    private fun putUserPermission(permission: UserPermission) {
+    private fun putUserPermission(permission: UserPermission, existingPermissions: Set<ResourceId>) {
         val insert = jooq.insertInto(USER, USER.ID, USER.ADMIN, USER.ACCOUNT_MANAGER, USER.UPDATED_AT)
 
         insert.apply {
@@ -248,13 +262,11 @@ class SqlPermissionsRepository(
             insert.execute()
         }
 
-        putUserPermissions(permission.id, permission.allResources)
+        putUserPermissions(permission.id, permission.allResources, existingPermissions)
     }
 
-    private fun putUserPermissions(id: String, resources: Set<Resource>) {
+    private fun putUserPermissions(id: String, resources: Set<Resource>, existingPermissions: Set<ResourceId>) {
         val writeBatchSize = dynamicConfigService.getConfig(Int::class.java, "permissions-repository.sql.write-batch-size", 100)
-
-        val existingPermissions = getUserPermissionsRecords(id)
 
         val currentPermissions = mutableSetOf<ResourceId>() // current permissions from request
         val toStore = mutableListOf<ResourceId>() // ids that are new or changed
@@ -335,13 +347,17 @@ class SqlPermissionsRepository(
         }
     }
 
-    private fun getUserPermissionsRecords(id: String) =
+    private fun getUserPermissionsRecords(userIds: Collection<String>): Map<String, Set<ResourceId>> =
         withRetry(RetryCategory.READ) {
             jooq
-                .select(PERMISSION.RESOURCE_TYPE, PERMISSION.RESOURCE_NAME)
+                .select(PERMISSION.USER_ID, PERMISSION.RESOURCE_TYPE, PERMISSION.RESOURCE_NAME)
                 .from(PERMISSION)
-                .where(PERMISSION.USER_ID.eq(id))
-                .fetchSet { ResourceId(it.get(PERMISSION.RESOURCE_TYPE), it.get(PERMISSION.RESOURCE_NAME)) }
+                .where(PERMISSION.USER_ID.`in`(userIds))
+                .fetchGroups(
+                    { it.get(PERMISSION.USER_ID) },
+                    { ResourceId(it.get(PERMISSION.RESOURCE_TYPE), it.get(PERMISSION.RESOURCE_NAME)) }
+                )
+                .mapValues { it.value.toSet() }
         }
 
     private fun putResources(resources: Set<Resource>, cleanup: Boolean = false) {
