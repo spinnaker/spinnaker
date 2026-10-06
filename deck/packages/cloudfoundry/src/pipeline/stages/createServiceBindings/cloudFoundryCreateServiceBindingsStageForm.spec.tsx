@@ -1,6 +1,6 @@
+import { render, screen } from '@testing-library/react';
 import type { Application, IStage } from 'core';
-import { AccountService, StageConfigField } from 'core';
-import { shallow } from 'enzyme';
+import { AccountService } from 'core';
 import React from 'react';
 
 import { CloudFoundryCreateServiceBindingsStageConfigForm } from './CloudFoundryCreateServiceBindingsStageConfigForm';
@@ -14,6 +14,7 @@ describe('<CloudFoundryCreateServiceBindingsStageConfigForm/>', function () {
   beforeEach(() => {
     vi.spyOn(AccountService, 'listAccounts').mockReturnValue(Promise.resolve([]));
     vi.spyOn(AccountService, 'getRegionsForAccount').mockReturnValue(Promise.resolve([]));
+    vi.spyOn(AccountService, 'getArtifactAccounts').mockReturnValue(Promise.resolve([]));
   });
 
   const getProps = () => {
@@ -42,13 +43,11 @@ describe('<CloudFoundryCreateServiceBindingsStageConfigForm/>', function () {
     } as any;
 
     const props = getProps();
-    const component = shallow(<CloudFoundryCreateServiceBindingsStageConfigForm {...props} formik={formik} />);
+    render(<CloudFoundryCreateServiceBindingsStageConfigForm {...props} formik={formik} />);
 
-    expect(component.find(StageConfigField).filterWhere((x) => x.prop('label') === 'Target').length).toBe(1);
-    expect(component.find(StageConfigField).filterWhere((x) => x.prop('label') === 'Restage Required').length).toBe(1);
-    expect(component.find(StageConfigField).filterWhere((x) => x.prop('label') === 'Restart Required').length).toBe(1);
-    expect(
-      component.find(StageConfigField).filterWhere((x) => x.prop('label') === 'Service Instance Name').length,
-    ).toBe(2);
+    expect(screen.getAllByText('Target', { selector: '.label-text' })).toHaveLength(1);
+    expect(screen.getAllByText('Restage Required', { selector: '.label-text' })).toHaveLength(1);
+    expect(screen.getAllByText('Restart Required', { selector: '.label-text' })).toHaveLength(1);
+    expect(screen.getAllByText('Service Instance Name', { selector: '.label-text' })).toHaveLength(2);
   });
 });

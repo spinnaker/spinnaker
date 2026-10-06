@@ -1,5 +1,5 @@
 import type { Mock } from 'vitest';
-import { mount } from 'enzyme';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 
 import {
@@ -62,7 +62,7 @@ describe('Azure server group details', () => {
         enableServerGroup: vi.fn(),
       },
     };
-    return mount(
+    return render(
       <DeckRuntimeContext.Provider value={{ services: runtimeServices }}>
         <AzureServerGroupActions {...routerProps} app={app} serverGroup={serverGroup} />
       </DeckRuntimeContext.Provider>,
@@ -173,19 +173,10 @@ describe('Azure server group details', () => {
     vi.spyOn(ServerGroupWarningMessageService, 'addDestroyWarningMessage').mockReturnValue(undefined);
     vi.spyOn(ServerGroupWarningMessageService, 'addDisableWarningMessage').mockReturnValue(undefined);
 
-    const wrapper = mountActions(app, serverGroup);
-    wrapper
-      .find('a')
-      .filterWhere((node) => node.text() === 'Destroy')
-      .simulate('click');
-    wrapper
-      .find('a')
-      .filterWhere((node) => node.text() === 'Disable')
-      .simulate('click');
-    wrapper
-      .find('a')
-      .filterWhere((node) => node.text() === 'Enable')
-      .simulate('click');
+    mountActions(app, serverGroup);
+    fireEvent.click(screen.getByText('Destroy'));
+    fireEvent.click(screen.getByText('Disable'));
+    fireEvent.click(screen.getByText('Enable'));
 
     expect(ServerGroupWarningMessageService.addDestroyWarningMessage).toHaveBeenCalled();
     expect(ServerGroupWarningMessageService.addDisableWarningMessage).toHaveBeenCalled();
@@ -208,12 +199,9 @@ describe('Azure server group details', () => {
     );
     vi.spyOn(AzureCloneServerGroupModal, 'show').mockReturnValue(Promise.resolve());
 
-    const wrapper = mountActions(app, serverGroup);
-    wrapper
-      .find('a')
-      .filterWhere((node) => node.text() === 'Clone')
-      .simulate('click');
-    await Promise.resolve();
+    mountActions(app, serverGroup);
+    fireEvent.click(screen.getByText('Clone'));
+    await waitFor(() => expect(AzureCloneServerGroupModal.show).toHaveBeenCalled());
 
     expect(AzureServerGroupCommandBuilder.prototype.buildServerGroupCommandFromExisting).toHaveBeenCalledWith(
       app,
@@ -250,13 +238,9 @@ describe('Azure server group details', () => {
     vi.spyOn(AzureImageReader.prototype, 'findImages').mockReturnValue(Promise.resolve(images));
     vi.spyOn(AzureCloneServerGroupModal, 'show').mockReturnValue(Promise.resolve());
 
-    const wrapper = mountActions(app, serverGroup);
-    wrapper
-      .find('a')
-      .filterWhere((node) => node.text() === 'Clone')
-      .simulate('click');
-    await Promise.resolve();
-    await Promise.resolve();
+    mountActions(app, serverGroup);
+    fireEvent.click(screen.getByText('Clone'));
+    await waitFor(() => expect(AzureCloneServerGroupModal.show).toHaveBeenCalled());
 
     const props = (AzureCloneServerGroupModal.show as Mock).mock.lastCall[0];
     expect(props.command.images).toBe(images);

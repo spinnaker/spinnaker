@@ -1,20 +1,19 @@
-import { mount } from 'enzyme';
-import { DisableableInput, DisableableTextarea } from '../layout/disableable';
+import { fireEvent, render, screen, within } from '@testing-library/react';
+import { setupUser } from '../../../../core/src/utils/testUtils/userEvent';
 import * as React from 'react';
 import { Provider } from 'react-redux';
-import Select, { Option } from 'react-select';
 import { createStore } from 'redux';
 
-import { noop, ValidationMessage } from '@spinnaker/core';
+import { noop } from '@spinnaker/core';
 
 import { FilterTemplateSelector, IFilterTemplateSelectorProps } from './filterTemplateSelector';
 
 const buildComponent = (props: IFilterTemplateSelectorProps) =>
-  mount(
+  render(
     <Provider store={createStore(() => ({}))}>
       <FilterTemplateSelector {...props} />
     </Provider>,
-  ).find(FilterTemplateSelector);
+  );
 
 describe('<FilterTemplateSelector />', () => {
   let defaultProps: IFilterTemplateSelectorProps;
@@ -37,70 +36,85 @@ describe('<FilterTemplateSelector />', () => {
       selectTemplate: noop,
     };
   });
-  it('builds options from filter template map', () => {
-    const component = buildComponent(defaultProps);
-    const allProps: any = component.find(Select).first().props();
+  it('builds options from filter template map and selects a template', async () => {
+    const user = setupUser();
+    const selectTemplate = vi.fn();
+    buildComponent({ ...defaultProps, selectTemplate });
 
-    expect(allProps.options.map((o: Option) => o.value)).toEqual([
-      'my-filter-template',
-      'my-other-filter-template',
-      null,
-    ]); // null is "Create new" option
+    fireEvent.keyDown(screen.getByRole('combobox'), { key: 'ArrowDown', keyCode: 40 });
+
+    const menu = within(screen.getByRole('listbox'));
+    expect(menu.getByRole('option', { name: 'my-filter-template' })).toBeVisible();
+    expect(menu.getByRole('option', { name: 'my-other-filter-template' })).toBeVisible();
+    expect(menu.getByRole('option', { name: 'Create new...' })).toBeVisible();
+
+    await user.click(menu.getByRole('option', { name: 'my-other-filter-template' }));
+
+    expect(selectTemplate).toHaveBeenCalledWith({
+      label: 'my-other-filter-template',
+      requestingNew: false,
+      value: 'my-other-filter-template',
+    });
   });
 
   it('renders filter template', () => {
-    let component = buildComponent(defaultProps);
+    const { rerender } = buildComponent(defaultProps);
 
-    let pre = component.find('pre').first();
-    expect(pre.html()).toContain('${scope}');
+    expect(screen.getByText(/\$\{scope\}/)).toBeVisible();
 
-    component = buildComponent({
-      ...defaultProps,
-      selectedTemplateName: 'my-other-filter-template',
-    });
-    pre = component.find('pre').first();
-    expect(pre.html()).toContain('${location}');
+    rerender(
+      <Provider store={createStore(() => ({}))}>
+        <FilterTemplateSelector {...defaultProps} selectedTemplateName="my-other-filter-template" />
+      </Provider>,
+    );
+    expect(screen.getByText(/\$\{location\}/)).toBeVisible();
   });
 
   it('does not render filter template if not selected', () => {
-    const component = buildComponent({
+    buildComponent({
       ...defaultProps,
       selectedTemplateName: null,
     });
-    expect(component.find('pre').length).toEqual(0);
+    expect(screen.queryByText(/metadata\.user_labels/)).not.toBeInTheDocument();
   });
 
   it('renders errors when appropriate', () => {
-    let component = buildComponent(defaultProps);
-    expect(component.find(ValidationMessage).length).toEqual(0);
+    const { rerender } = buildComponent(defaultProps);
+    expect(screen.queryByText('Template name is required')).not.toBeInTheDocument();
 
-    component = buildComponent({
-      ...defaultProps,
-      editedTemplateName: '',
-      editedTemplateValue: 'metadata.user_labels."app"="${scope}"',
-      validation: {
-        warnings: {},
-        errors: {
-          templateName: {
-            message: 'Template name is required',
-          },
-        },
-      },
-    });
-    expect(component.find(ValidationMessage).first().props().message).toEqual('Template name is required');
+    rerender(
+      <Provider store={createStore(() => ({}))}>
+        <FilterTemplateSelector
+          {...defaultProps}
+          editedTemplateName=""
+          editedTemplateValue={'metadata.user_labels."app"="${scope}"'}
+          validation={{
+            warnings: {},
+            errors: {
+              templateName: {
+                message: 'Template name is required',
+              },
+            },
+          }}
+        />
+      </Provider>,
+    );
+    expect(screen.getByText('Template name is required')).toBeVisible();
   });
 
   it('renders input and textarea when editing template', () => {
-    let component = buildComponent(defaultProps);
-    expect(component.find(DisableableInput).length).toEqual(0);
-    expect(component.find(DisableableTextarea).length).toEqual(0);
+    const { rerender } = buildComponent(defaultProps);
+    expect(screen.queryAllByRole('textbox')).toHaveLength(0);
 
-    component = buildComponent({
-      ...defaultProps,
-      editedTemplateName: 'edited name',
-      editedTemplateValue: 'edited value',
-    });
-    expect(component.find(DisableableInput).length).toEqual(1);
-    expect(component.find(DisableableTextarea).length).toEqual(1);
+    rerender(
+      <Provider store={createStore(() => ({}))}>
+        <FilterTemplateSelector {...defaultProps} editedTemplateName="edited name" editedTemplateValue="edited value" />
+      </Provider>,
+    );
+
+    const fields = screen.getAllByRole('textbox');
+    expect(fields).toHaveLength(2);
+    expect(fields[0]).toHaveValue('edited name');
+    expect(fields[1]).toHaveValue('edited value');
   });
 });

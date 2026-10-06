@@ -1,30 +1,24 @@
-import type { Mock } from 'vitest';
-import { mount } from 'enzyme';
+import { act, render, screen } from '@testing-library/react';
 import React from 'react';
+import type { Mock } from 'vitest';
 
 import type { IFormInputProps, IStageForSpelPreview, IValidator } from '..';
 import { SpelInput } from './SpelInput';
 import { SpelService } from './SpelService';
 
-function defer() {
-  let resolve: Function, reject: Function;
-  const promise = new Promise((_resolve, _reject) => {
-    resolve = _resolve;
-    reject = _reject;
+function defer<T = unknown>() {
+  let resolve: (value: T) => void;
+  let reject: (reason: unknown) => void;
+  const promise = new Promise<T>((resolvePromise, rejectPromise) => {
+    resolve = resolvePromise;
+    reject = rejectPromise;
   });
   return { promise, resolve, reject };
 }
 
 describe('<SpelInput/>', () => {
-  beforeEach(() =>
-    vi.useFakeTimers({
-      toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval'],
-    }),
-  );
-  afterEach(() => vi.useRealTimers());
-
   let inputProps: IFormInputProps;
-  let evaluateExpressionSpy: Mock;
+  let evaluateExpression: Mock;
 
   const previewStage: IStageForSpelPreview = {
     stageId: '123',
@@ -33,6 +27,7 @@ describe('<SpelInput/>', () => {
   };
 
   beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval'] });
     inputProps = {
       name: 'name',
       onBlur: vi.fn(),
@@ -48,184 +43,146 @@ describe('<SpelInput/>', () => {
         category: 'error',
       },
     };
-
-    evaluateExpressionSpy = vi.spyOn(SpelService, 'evaluateExpression').mockReturnValue(undefined);
+    evaluateExpression = vi.spyOn(SpelService, 'evaluateExpression').mockReturnValue(undefined);
   });
 
-  it('should render a text area with the value in it', () => {
-    const component = mount(<SpelInput {...inputProps} previewStage={previewStage} />);
-    expect(component.render().is('textarea')).toBe(true);
-    expect(component.render().text()).toBe('abc123');
+  afterEach(() => vi.useRealTimers());
+
+  it('renders a text area with the value in it', () => {
+    render(<SpelInput {...inputProps} previewStage={previewStage} />);
+
+    expect(screen.getByRole('textbox')).toHaveValue('abc123');
   });
 
-  it('should eagerly fetch the preview from the server on initial load', () => {
-    mount(<SpelInput {...inputProps} previewStage={previewStage} />);
-    expect(evaluateExpressionSpy).toHaveBeenCalledTimes(1);
+  it('eagerly fetches the preview using the value, pipeline, and stage ids', () => {
+    render(<SpelInput {...inputProps} previewStage={previewStage} />);
+
+    expect(evaluateExpression).toHaveBeenCalledTimes(1);
+    expect(evaluateExpression).toHaveBeenCalledWith('abc123', 'abc', '123');
   });
 
-  it('should pass the value, pipeline, and stage ids to the SpelService', () => {
-    mount(<SpelInput {...inputProps} previewStage={previewStage} />);
-    expect(evaluateExpressionSpy).toHaveBeenCalledWith('abc123', 'abc', '123');
+  it('debounces preview fetches when the input value changes', async () => {
+    const deferred = defer<string>();
+    evaluateExpression.mockReturnValue(deferred.promise);
+    const { rerender } = render(<SpelInput {...inputProps} previewStage={previewStage} />);
+    await act(async () => deferred.resolve('async value'));
+
+    rerender(<SpelInput {...inputProps} value="def456" previewStage={previewStage} />);
+    expect(evaluateExpression).toHaveBeenCalledTimes(1);
+
+    act(() => vi.advanceTimersByTime(300));
+
+    expect(evaluateExpression).toHaveBeenCalledTimes(2);
   });
 
-  it('should debounce preview fetches when the input value changes', async () => {
-    const deferred1 = defer();
-    evaluateExpressionSpy.mockImplementation(() => deferred1.promise);
-    const component = mount(<SpelInput {...inputProps} previewStage={previewStage} />);
-    expect(evaluateExpressionSpy).toHaveBeenCalledTimes(1);
-
-    // First preview request resolves
-    deferred1.resolve('async value');
-    await deferred1.promise;
-    component.setProps({});
-
-    // Update value -- evaluate is not called yet
-    component.setProps({ value: 'def456' });
-    expect(evaluateExpressionSpy).toHaveBeenCalledTimes(1);
-
-    // After debounce interval, evaluate is called again
-    vi.advanceTimersByTime(1000);
-    component.setProps({});
-    expect(evaluateExpressionSpy).toHaveBeenCalledTimes(2);
-  });
-
-  it('should call revalidate whenever an async event occurs', async () => {
-    const deferred1 = defer();
-    evaluateExpressionSpy.mockImplementation(() => deferred1.promise);
-    const component = mount(<SpelInput {...inputProps} previewStage={previewStage} />);
-
-    // [ NONE -> PENDING ] a promise was found, results pending
+  it('revalidates whenever an async event occurs', async () => {
+    const first = defer<string>();
+    evaluateExpression.mockReturnValue(first.promise);
+    const { rerender } = render(<SpelInput {...inputProps} previewStage={previewStage} />);
     expect(inputProps.validation.revalidate).toHaveBeenCalledTimes(1);
 
-    // Result received from the server
-    deferred1.resolve('async value1');
-    await deferred1.promise;
-    component.setProps({});
-
-    // [ PENDING -> RESOLVED ]
+    await act(async () => first.resolve('async value1'));
     expect(inputProps.validation.revalidate).toHaveBeenCalledTimes(2);
 
-    // Prepare the test for second async fetch
-    const deferred2 = defer();
-    evaluateExpressionSpy.mockImplementation(() => deferred2.promise);
-    component.setProps({ value: 'def456' });
-
-    // [ notDebouncing -> isDebouncing ]
+    const second = defer<string>();
+    evaluateExpression.mockReturnValue(second.promise);
+    rerender(<SpelInput {...inputProps} value="def456" previewStage={previewStage} />);
     expect(inputProps.validation.revalidate).toHaveBeenCalledTimes(3);
-    vi.advanceTimersByTime(1000);
-    component.setProps({});
 
-    // [ isDebouncing -> notDebouncing ], [ RESOLVED -> PENDING ]
+    act(() => vi.advanceTimersByTime(300));
     expect(inputProps.validation.revalidate).toHaveBeenCalledTimes(5);
 
-    deferred2.resolve('async value2');
-    await deferred2.promise;
-    component.setProps({});
-
-    // [ PENDING -> RESOLVED ]
+    await act(async () => second.resolve('async value2'));
     expect(inputProps.validation.revalidate).toHaveBeenCalledTimes(6);
   });
 
-  it('should add a validator on mount', () => {
-    mount(<SpelInput {...inputProps} previewStage={previewStage} />);
+  it('adds a validator on mount and removes the same validator on unmount', () => {
+    const { unmount } = render(<SpelInput {...inputProps} previewStage={previewStage} />);
+    const validator = (inputProps.validation.addValidator as Mock).mock.lastCall[0];
+
     expect(inputProps.validation.addValidator).toHaveBeenCalledTimes(1);
-  });
+    unmount();
 
-  it('should remove the same validator on unmount as it added on mount', () => {
-    const addValidator = inputProps.validation.addValidator as Mock;
-    const removeValidator = inputProps.validation.removeValidator as Mock;
-
-    const component = mount(<SpelInput {...inputProps} previewStage={previewStage} />);
-
-    expect(addValidator).toHaveBeenCalledTimes(1);
-    expect(removeValidator).toHaveBeenCalledTimes(0);
-
-    component.unmount();
-
-    expect(addValidator).toHaveBeenCalledTimes(1);
-    expect(removeValidator).toHaveBeenCalledTimes(1);
-
-    expect(addValidator.mock.lastCall[0]).toBe(removeValidator.mock.lastCall[0]);
+    expect(inputProps.validation.removeValidator).toHaveBeenCalledTimes(1);
+    expect((inputProps.validation.removeValidator as Mock).mock.lastCall[0]).toBe(validator);
   });
 
   describe('async validation', () => {
     let validators: IValidator[];
-    let mockValidate: Mock;
+    let validate: Mock;
 
     beforeEach(() => {
       validators = [];
-      mockValidate = vi.fn().mockImplementation(() => {
-        return validators.map((v) => v(null)).filter((x) => !!x)[0];
+      validate = vi.fn(() => validators.map((validator) => validator(null)).filter(Boolean)[0]);
+      (inputProps.validation.addValidator as Mock).mockImplementation((validator: IValidator) =>
+        validators.push(validator),
+      );
+      (inputProps.validation.removeValidator as Mock).mockImplementation(
+        (validator: IValidator) => (validators = validators.filter((candidate) => candidate !== validator)),
+      );
+      (inputProps.validation.revalidate as Mock).mockImplementation(() => validate());
+    });
+
+    it('validates as async while a preview is pending', () => {
+      evaluateExpression.mockReturnValue(new Promise(() => undefined));
+
+      render(<SpelInput {...inputProps} previewStage={previewStage} />);
+
+      expect(validate.mock.results.at(-1).value).toMatch('Async: ');
+    });
+
+    it('continues to include the previous result while a new preview is pending', async () => {
+      evaluateExpression.mockResolvedValue('preview result');
+      const { rerender } = render(<SpelInput {...inputProps} previewStage={previewStage} />);
+      await act(async () => Promise.resolve());
+      validate.mockClear();
+
+      evaluateExpression.mockReturnValue(new Promise(() => undefined));
+      rerender(<SpelInput {...inputProps} value="some other value" previewStage={previewStage} />);
+
+      expect(validate.mock.results.at(-1).value).toMatch('Async: ');
+      expect(validate.mock.results.at(-1).value).toMatch('preview result');
+    });
+
+    it('validates as a message when a preview resolves', async () => {
+      const deferred = defer<string>();
+      evaluateExpression.mockReturnValue(deferred.promise);
+      render(<SpelInput {...inputProps} previewStage={previewStage} />);
+
+      await act(async () => deferred.resolve('expression result'));
+
+      expect(validate.mock.results.at(-1).value).toMatch('Message: ');
+      expect(validate.mock.results.at(-1).value).toMatch('expression result');
+    });
+
+    it('validates as a warning when a preview is rejected', async () => {
+      const deferred = defer<string>();
+      evaluateExpression.mockReturnValue(deferred.promise);
+      render(<SpelInput {...inputProps} previewStage={previewStage} />);
+
+      await act(async () => {
+        deferred.reject('something bad happened');
+        await deferred.promise.catch(() => undefined);
       });
 
-      const addValidator = inputProps.validation.addValidator as Mock;
-      const removeValidator = inputProps.validation.removeValidator as Mock;
-      const revalidate = inputProps.validation.revalidate as Mock;
-
-      addValidator.mockImplementation((v: IValidator) => validators.push(v));
-      removeValidator.mockImplementation((v: IValidator) => (validators = validators.filter((x) => x !== v)));
-      revalidate.mockImplementation(() => mockValidate());
+      expect(validate.mock.results.at(-1).value).toMatch('Warning: something bad happened');
     });
 
-    it('should validate as "Async: *" when a SpelService fetch is pending', async () => {
-      evaluateExpressionSpy.mockImplementation(() => new Promise<any>(() => null));
-      mount(<SpelInput {...inputProps} previewStage={previewStage} />);
-      expect(mockValidate).toHaveBeenCalledTimes(1);
-      expect(mockValidate.mock.results.at(-1).value).toMatch('Async: ');
-    });
+    it('ignores an older preview response that resolves after the latest response', async () => {
+      const older = defer<string>();
+      const latest = defer<string>();
+      evaluateExpression.mockReturnValueOnce(older.promise).mockReturnValueOnce(latest.promise);
+      const { rerender } = render(<SpelInput {...inputProps} previewStage={previewStage} />);
 
-    it('should continue to render the previous result when a SpelService fetch is pending', async () => {
-      const result1 = new Promise<any>((resolve) => resolve('preview result'));
-      evaluateExpressionSpy.mockImplementation(() => result1);
-      const component = mount(<SpelInput {...inputProps} previewStage={previewStage} />);
-      expect(mockValidate).toHaveBeenCalledTimes(1);
-      expect(mockValidate.mock.results.at(-1).value).toMatch('Async: ');
-      mockValidate.mockClear();
+      rerender(<SpelInput {...inputProps} value="latest expression" previewStage={previewStage} />);
+      act(() => vi.advanceTimersByTime(300));
+      await act(async () => latest.resolve('latest result'));
+      expect(validate.mock.results.at(-1).value).toMatch('latest result');
 
-      await result1;
-      component.setProps({ value: 'some other value' });
+      await act(async () => older.resolve('stale result'));
 
-      expect(mockValidate).toHaveBeenCalledTimes(2);
-      expect(mockValidate.mock.results[0].value).toMatch('Message: ');
-      expect(mockValidate.mock.results.at(-1).value).toMatch('Async: ');
-      expect(mockValidate.mock.results.at(-1).value).toMatch('preview result');
-    });
-
-    it('should validate as "Message: *" when a SpelService fetch is resolved with a result', async () => {
-      const deferred = defer();
-      evaluateExpressionSpy.mockImplementation(() => deferred.promise);
-      const component = mount(<SpelInput {...inputProps} previewStage={previewStage} />);
-      expect(mockValidate).toHaveBeenCalledTimes(1);
-      expect(mockValidate.mock.results.at(-1).value).toMatch('Async: ');
-
-      deferred.resolve('expression result');
-      await deferred.promise;
-      component.setProps({});
-
-      expect(mockValidate).toHaveBeenCalledTimes(2);
-      expect(mockValidate.mock.results.at(-1).value).toMatch('Message: ');
-      expect(mockValidate.mock.results.at(-1).value).toMatch('expression result');
-    });
-
-    it('should validate as "Warning: *" when a SpelService fetch is rejected', async () => {
-      const deferred = defer();
-      evaluateExpressionSpy.mockImplementation(() => deferred.promise);
-      const component = mount(<SpelInput {...inputProps} previewStage={previewStage} />);
-      expect(mockValidate).toHaveBeenCalledTimes(1);
-      expect(mockValidate.mock.results.at(-1).value).toMatch('Async: ');
-
-      let caught = false;
-      deferred.reject('something bad happened');
-      try {
-        await deferred.promise;
-      } catch (error) {
-        caught = true;
-      }
-      expect(caught).toBe(true);
-      component.setProps({});
-
-      expect(mockValidate).toHaveBeenCalledTimes(2);
-      expect(mockValidate.mock.results.at(-1).value).toMatch('Warning: something bad happened');
+      expect(validators[0](null)).toMatch('latest result');
+      expect(validators[0](null)).not.toMatch('stale result');
     });
   });
 });

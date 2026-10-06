@@ -1,46 +1,52 @@
-import { mount } from 'enzyme';
+import { fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import { CopyToClipboard } from './CopyToClipboard';
 import { logger } from '../Logger';
 
 describe('<CopyToClipboard />', () => {
-  beforeEach(() => vi.spyOn(logger, 'log').mockReturnValue(undefined));
-
-  it('renders an input with the text value', () => {
-    const wrapper = mount(<CopyToClipboard toolTip="Copy Rebel Girl" text="Rebel Girl" />);
-    const input = wrapper.find('textarea');
-    expect(input.get(0).props.value).toEqual('Rebel Girl');
+  beforeEach(() => {
+    vi.spyOn(logger, 'log').mockReturnValue(undefined);
+    document.execCommand = vi.fn().mockReturnValue(true);
   });
 
-  it('Mouseover/click triggers overlay with toolTip', () => {
-    const wrapper = mount(<CopyToClipboard toolTip="Copy Rebel Girl" text="Rebel Girl" />);
-    const button = wrapper.find('button');
-    button.simulate('mouseOver');
+  it('renders a textarea with the text value', () => {
+    render(<CopyToClipboard toolTip="Copy Rebel Girl" text="Rebel Girl" />);
 
-    // Grab the overlay from document by generated ID
-    const overlay = document.getElementById('clipboardValue-Rebel-Girl');
-    expect(overlay.innerText).toEqual('Copy Rebel Girl');
+    expect(screen.getByDisplayValue('Rebel Girl')).toBeInTheDocument();
   });
 
-  it('Shows tooltip when button clicked, even if no default tooltip configured', () => {
-    const wrapper = mount(<CopyToClipboard text="No Tooltip" />);
-    const button = wrapper.find('button');
-    button.simulate('mouseOver');
+  it('shows the configured tooltip on mouseover', async () => {
+    render(<CopyToClipboard toolTip="Copy Rebel Girl" text="Rebel Girl" />);
 
-    // Grab the overlay from document by generated ID
-    let overlay = document.getElementById('clipboardValue-No-Tooltip');
-    expect(overlay).toBeFalsy();
+    fireEvent.mouseOver(screen.getByRole('button', { name: 'Copy to clipboard' }));
 
-    button.simulate('click');
-    overlay = document.getElementById('clipboardValue-No-Tooltip');
-    expect(overlay.innerText).toEqual('Copied!');
+    expect(await screen.findByText('Copy Rebel Girl')).toBeInTheDocument();
   });
 
-  it('fires a GA event on click', () => {
-    const wrapper = mount(<CopyToClipboard toolTip="Copy Rebel Girl" text="Rebel Girl" />);
-    const button = wrapper.find('button');
-    button.simulate('click');
-    expect(logger.log).toHaveBeenCalled();
+  it('shows success feedback when clicked without a default tooltip', async () => {
+    render(<CopyToClipboard text="No Tooltip" />);
+    const button = screen.getByRole('button', { name: 'Copy to clipboard' });
+
+    fireEvent.mouseOver(button);
+    expect(screen.queryByText('Copied!')).not.toBeInTheDocument();
+    await userEvent.click(button);
+
+    expect(await screen.findByText('Copied!')).toBeInTheDocument();
+    expect(document.execCommand).toHaveBeenCalledWith('copy');
+  });
+
+  it('fires a GA event on click', async () => {
+    render(<CopyToClipboard analyticsLabel="rebel-girl-label" toolTip="Copy Rebel Girl" text="Rebel Girl" />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Copy to clipboard' }));
+
+    expect(logger.log).toHaveBeenCalledTimes(1);
+    expect(logger.log).toHaveBeenCalledWith({
+      category: 'Copy to Clipboard',
+      action: 'copy',
+      data: { label: 'rebel-girl-label' },
+    });
   });
 });

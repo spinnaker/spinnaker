@@ -1,14 +1,14 @@
-import type { Mock } from 'vitest';
-import type { ReactWrapper } from 'enzyme';
+import { screen, within } from '@testing-library/react';
+import { setupUser } from '../utils/testUtils/userEvent';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
+import type { Mock } from 'vitest';
 
 import { Projects } from './Projects';
 import { DeckRuntimeContext } from '../bootstrap/DeckRuntimeContext';
 import { ViewStateCache } from '../cache';
 import * as ProjectReaderModule from './service/ProjectReader';
 import { timestamp } from '../utils';
-import { mountAndFlush } from '../utils/testUtils';
+import { renderWithRouter } from '../utils/testUtils/rtl';
 
 type TestProject = ReturnType<typeof makeProject>;
 
@@ -27,21 +27,24 @@ const oort = makeProject('oort', 'b@netflix.com', new Date(3).getTime(), new Dat
 const mort = makeProject('mort', 'c@netflix.com', new Date(1).getTime(), new Date(1).getTime());
 const projectList: TestProject[] = [deck, oort, mort];
 
-const getRenderedNames = (wrapper: ReactWrapper) => wrapper.find('tbody tr').map((r) => r.find('td a').first().text());
-
-export function invokeSort(toggle: ReactWrapper<any>, next: string) {
-  const onChange = toggle.prop('onChange') as (v: string) => void;
-  onChange(next);
-}
+const getRenderedRows = () => screen.getAllByRole('row').slice(1);
+const getRenderedNames = () => getRenderedRows().map((row) => within(row).getAllByRole('cell')[0].textContent ?? '');
 
 describe('Projects', () => {
   let listSpy: Mock;
 
+  const renderProjects = () =>
+    renderWithRouter(
+      <DeckRuntimeContext.Provider
+        value={{ services: { cacheInitializer: {} } } as React.ContextType<typeof DeckRuntimeContext>}
+      >
+        <Projects />
+      </DeckRuntimeContext.Provider>,
+    );
+
   describe('filtering & sorting', () => {
     beforeEach(() => {
-      listSpy = vi
-        .spyOn(ProjectReaderModule.ProjectReader, 'listProjects')
-        .mockReturnValue(Promise.resolve(projectList));
+      listSpy = vi.spyOn(ProjectReaderModule.ProjectReader, 'listProjects').mockResolvedValue(projectList);
     });
 
     afterEach(() => {
@@ -49,97 +52,53 @@ describe('Projects', () => {
     });
 
     it('sets loaded flag and renders projects sorted by name asc', async () => {
-      const wrapper = await mountAndFlush(
-        <DeckRuntimeContext.Provider value={{ services: { cacheInitializer: {} } } as any}>
-          <Projects />
-        </DeckRuntimeContext.Provider>,
-      );
+      renderProjects();
 
-      const rows = wrapper.find('tbody tr');
-      expect(rows.length).toBe(3);
+      expect(await screen.findByText('deck')).toBeInTheDocument();
+      expect(getRenderedRows()).toHaveLength(3);
+      expect(getRenderedNames()).toEqual(['deck', 'mort', 'oort']);
 
-      expect(getRenderedNames(wrapper)).toEqual(['deck', 'mort', 'oort']);
-
-      const firstRowTds = rows.at(0).find('td');
-      expect(firstRowTds.at(1).text()).toContain(timestamp(new Date(2).getTime())); // createTs
-      expect(firstRowTds.at(2).text()).toContain(timestamp(new Date(2).getTime())); // updateTs
-      expect(firstRowTds.at(3).text()).toBe('a@netflix.com');
+      const firstRowCells = within(getRenderedRows()[0]).getAllByRole('cell');
+      expect(firstRowCells[1]).toHaveTextContent(timestamp(new Date(2).getTime()));
+      expect(firstRowCells[2]).toHaveTextContent(timestamp(new Date(2).getTime()));
+      expect(firstRowCells[3]).toHaveTextContent('a@netflix.com');
+      expect(listSpy).toHaveBeenCalledTimes(1);
     });
 
     it('filters by name or email as the user types', async () => {
-      const wrapper = await mountAndFlush(
-        <DeckRuntimeContext.Provider value={{ services: { cacheInitializer: {} } } as any}>
-          <Projects />
-        </DeckRuntimeContext.Provider>,
-      );
+      const user = setupUser();
+      renderProjects();
+      const input = await screen.findByPlaceholderText('Search projects');
+      await screen.findByText('deck');
 
-      const input = wrapper.find('input[placeholder="Search projects"]');
-      expect(input.exists()).toBe(true);
+      await user.type(input, 'a@netflix.com');
+      expect(getRenderedNames()).toEqual(['deck']);
 
-      // Filter by email
-      await act(async () => {
-        input.prop('onChange')?.({ target: { value: 'a@netflix.com' } } as any);
-      });
-      wrapper.update();
-      let rows = wrapper.find('tbody tr');
-      expect(rows.length).toBe(1);
-      expect(rows.at(0).find('td a').text()).toBe('deck');
+      await user.clear(input);
+      await user.type(input, 'ort');
+      expect(getRenderedNames()).toEqual(['mort', 'oort']);
 
-      // Filter by substring 'ort'
-      await act(async () => {
-        input.prop('onChange')?.({ target: { value: 'ort' } } as any);
-      });
-      wrapper.update();
-      rows = wrapper.find('tbody tr');
-      expect(rows.map((r) => r.find('td a').text())).toEqual(['mort', 'oort']);
-
-      // Clear
-      await act(async () => {
-        input.prop('onChange')?.({ target: { value: '' } } as any);
-      });
-      wrapper.update();
-      expect(wrapper.find('tbody tr').length).toBe(3);
+      await user.clear(input);
+      expect(getRenderedRows()).toHaveLength(3);
     });
 
     it('sorts by -name, -createTs, createTs, and combines with a filter', async () => {
-      const wrapper = await mountAndFlush(
-        <DeckRuntimeContext.Provider value={{ services: { cacheInitializer: {} } } as any}>
-          <Projects />
-        </DeckRuntimeContext.Provider>,
-      );
+      const user = setupUser();
+      renderProjects();
+      await screen.findByText('deck');
 
-      const sortToggles = wrapper.find('SortToggle');
+      await user.click(screen.getByText('Name', { selector: '.sort-toggle' }));
+      expect(getRenderedNames()).toEqual(['oort', 'mort', 'deck']);
 
-      // -name (desc)
-      const nameToggle = sortToggles.filterWhere((n) => n.prop('label') === 'Name').first();
-      await act(async () => {
-        invokeSort(nameToggle, '-name');
-      });
-      wrapper.update();
-      expect(getRenderedNames(wrapper)).toEqual(['oort', 'mort', 'deck']);
+      const createdToggle = screen.getByText('Created', { selector: '.sort-toggle' });
+      await user.click(createdToggle);
+      expect(getRenderedNames()).toEqual(['oort', 'deck', 'mort']);
 
-      // -createTs (desc)
-      const createdToggle = sortToggles.filterWhere((n) => n.prop('label') === 'Created').first();
-      await act(async () => {
-        invokeSort(createdToggle, '-createTs');
-      });
-      wrapper.update();
-      expect(getRenderedNames(wrapper)).toEqual(['oort', 'deck', 'mort']);
+      await user.click(createdToggle);
+      expect(getRenderedNames()).toEqual(['mort', 'deck', 'oort']);
 
-      // -createTs (asc)
-      await act(async () => {
-        invokeSort(createdToggle, 'createTs');
-      });
-      wrapper.update();
-      expect(getRenderedNames(wrapper)).toEqual(['mort', 'deck', 'oort']);
-
-      // Add filter ("ort") while sorted by createTs
-      const input = wrapper.find('input[placeholder="Search projects"]');
-      await act(async () => {
-        input.prop('onChange')?.({ target: { value: 'ort' } } as any);
-      });
-      wrapper.update();
-      expect(getRenderedNames(wrapper)).toEqual(['mort', 'oort']);
+      await user.type(screen.getByPlaceholderText('Search projects'), 'ort');
+      expect(getRenderedNames()).toEqual(['mort', 'oort']);
     });
   });
 });

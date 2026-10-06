@@ -1,8 +1,7 @@
 import { hashLocationPlugin, servicesPlugin, UIRouterContext, UIRouterReact } from '@uirouter/react';
 import { UIRouterRxPlugin } from '@uirouter/rx';
-import { mount } from 'enzyme';
+import { act, render, screen } from '@testing-library/react';
 import React from 'react';
-import { act } from 'react-dom/test-utils';
 
 import type { IRouterInjectedProps } from './routerContext';
 import { locationChangeSuccess$, stateChangeSuccess$, withRouter } from './routerContext';
@@ -38,23 +37,21 @@ describe('direct router context', () => {
     const router = createRouter();
     const values: string[] = [];
     await router.stateService.go('root', { value: 'first' }, { location: false });
-    const wrapper = mount(
+    const { unmount } = render(
       <UIRouterContext.Provider value={router}>
         <RoutedProbe values={values} />
       </UIRouterContext.Provider>,
     );
 
-    expect(wrapper.find('a').prop('href')).toContain('/root/child');
-    expect(wrapper.find('a').text()).toBe('first');
+    expect(screen.getByRole('link')).toHaveAttribute('href', expect.stringContaining('/root/child'));
+    expect(screen.getByRole('link')).toHaveTextContent('first');
 
     await act(async () => {
       await router.stateService.go('.', { value: 'second' }, { location: false, reload: true });
     });
-    wrapper.update();
-
     expect(values).toContain('second');
-    expect(wrapper.find('a').text()).toBe('second');
-    wrapper.unmount();
+    expect(screen.getByRole('link')).toHaveTextContent('second');
+    unmount();
   });
 
   it('forwards refs to routed class components', () => {
@@ -69,14 +66,14 @@ describe('direct router context', () => {
     const router = createRouter();
     const ref = React.createRef<Probe>();
 
-    const wrapper = mount(
+    const { unmount } = render(
       <UIRouterContext.Provider value={router}>
         <RoutedProbe ref={ref} />
       </UIRouterContext.Provider>,
     );
 
     expect(ref.current?.value).toBe('probe');
-    wrapper.unmount();
+    unmount();
   });
 
   it('maps successful transitions to the legacy payload without observing after unsubscribe', async () => {
