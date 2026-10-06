@@ -4,6 +4,7 @@ import { CustomDefault, CustomMatch } from './custom/CustomArtifactEditor';
 import { DockerDefault, DockerMatch } from './docker/DockerArtifactEditor';
 import type { IArtifactKindConfig } from '../../../../domain';
 import { GcsDefault, GcsMatch } from './gcs/GcsArtifactEditor';
+import { GiteaDefault, GiteaMatch } from './gitea/GiteaArtifactEditor';
 import { GithubDefault, GithubMatch } from './github/GithubArtifactEditor';
 import { GitlabDefault, GitlabMatch } from './gitlab/GitlabArtifactEditor';
 import { GitRepoDefault, GitRepoMatch } from './gitrepo/GitRepoArtifactEditor';
@@ -28,6 +29,8 @@ export const artifactKindConfigs: IArtifactKindConfig[] = [
   DockerDefault,
   GcsMatch,
   GcsDefault,
+  GiteaMatch,
+  GiteaDefault,
   GithubMatch,
   GithubDefault,
   GitRepoMatch,
