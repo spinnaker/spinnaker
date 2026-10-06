@@ -17,11 +17,20 @@
 package com.netflix.spinnaker.clouddriver.google.provider.agent;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.*;
+import com.netflix.spectator.api.DefaultRegistry;
+import com.netflix.spinnaker.clouddriver.google.batch.GoogleBatchRequest;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService;
-import java.lang.reflect.Method;
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleInternalHttpLoadBalancer;
+import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials;
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -205,6 +214,99 @@ public class GoogleInternalHttpLoadBalancerCachingAgentTest {
   }
 
   @Test
+  void isOwnedForwardingRule_rejectsOtherManagedSchemes() {
+    GoogleInternalHttpLoadBalancerCachingAgent agent = createAgent(mock(Compute.class));
+    ForwardingRule internalManagedRule =
+        new ForwardingRule()
+            .setLoadBalancingScheme("INTERNAL_MANAGED")
+            .setTarget("projects/test/regions/us-central1/targetHttpProxies/internal-proxy");
+    ForwardingRule externalManagedRule =
+        new ForwardingRule()
+            .setLoadBalancingScheme("EXTERNAL_MANAGED")
+            .setTarget("projects/test/regions/us-central1/targetHttpProxies/external-proxy");
+    ForwardingRule sslProxyRule =
+        new ForwardingRule()
+            .setLoadBalancingScheme("INTERNAL_MANAGED")
+            .setTarget("projects/test/regions/us-central1/targetSslProxies/ssl-proxy");
+
+    assertThat(agent.isOwnedForwardingRule(internalManagedRule)).isTrue();
+    assertThat(agent.isOwnedForwardingRule(externalManagedRule)).isFalse();
+    assertThat(agent.isOwnedForwardingRule(sslProxyRule)).isFalse();
+  }
+
+  @Test
+  void fullRefreshSkipsMalformedAndOtherProxySameSchemeForwardingRules() throws Exception {
+    GoogleInternalHttpLoadBalancerCachingAgent agent = createAgent(mock(Compute.class));
+    List<GoogleInternalHttpLoadBalancer> loadBalancers = new ArrayList<>();
+    List<String> failedLoadBalancers = new ArrayList<>();
+    GoogleBatchRequest targetProxyRequest = mock(GoogleBatchRequest.class);
+    GoogleBatchRequest urlMapRequest = mock(GoogleBatchRequest.class);
+    GoogleBatchRequest groupHealthRequest = mock(GoogleBatchRequest.class);
+    GoogleInternalHttpLoadBalancerCachingAgent.ForwardingRuleCallbacks callbacks =
+        agent
+        .new ForwardingRuleCallbacks(
+            loadBalancers,
+            failedLoadBalancers,
+            targetProxyRequest,
+            urlMapRequest,
+            groupHealthRequest,
+            List.of(),
+            List.of());
+    ForwardingRule malformedRule =
+        new ForwardingRule()
+            .setName("malformed-lb")
+            .setLoadBalancingScheme("INTERNAL_MANAGED")
+            .setTarget("projects/test/regions/us-central1/targetUnknownProxies/unsupported-proxy");
+    ForwardingRule managedTcpProxyRule =
+        new ForwardingRule()
+            .setName("managed-tcp-proxy")
+            .setLoadBalancingScheme("INTERNAL_MANAGED")
+            .setTarget("projects/test/regions/us-central1/targetTcpProxies/managed-tcp-proxy");
+
+    callbacks
+        .newForwardingRuleListCallback()
+        .onSuccess(
+            new ForwardingRuleList().setItems(List.of(malformedRule, managedTcpProxyRule)), null);
+
+    assertThat(loadBalancers).isEmpty();
+    assertThat(failedLoadBalancers).isEmpty();
+    verifyNoInteractions(targetProxyRequest, urlMapRequest, groupHealthRequest);
+  }
+
+  @Test
+  void onDemandDistinguishesMalformedSameSchemeRulesFromKnownProxyFamilies() {
+    GoogleInternalHttpLoadBalancerCachingAgent agent = createAgent(mock(Compute.class));
+    GoogleInternalHttpLoadBalancerCachingAgent.ForwardingRuleCallbacks callbacks =
+        agent
+        .new ForwardingRuleCallbacks(
+            new ArrayList<>(),
+            new ArrayList<>(),
+            mock(GoogleBatchRequest.class),
+            mock(GoogleBatchRequest.class),
+            mock(GoogleBatchRequest.class),
+            List.of(),
+            List.of());
+    ForwardingRule malformedRule =
+        new ForwardingRule()
+            .setName("malformed-lb")
+            .setLoadBalancingScheme("INTERNAL_MANAGED")
+            .setTarget("projects/test/regions/us-central1/targetUnknownProxies/unsupported-proxy");
+    ForwardingRule managedTcpProxyRule =
+        new ForwardingRule()
+            .setName("managed-tcp-proxy")
+            .setLoadBalancingScheme("INTERNAL_MANAGED")
+            .setTarget("projects/test/regions/us-central1/targetTcpProxies/managed-tcp-proxy");
+
+    assertThatThrownBy(
+            () -> callbacks.newForwardingRuleSingletonCallback().onSuccess(malformedRule, null))
+        .isInstanceOf(IllegalStateException.class);
+    assertThatThrownBy(
+            () ->
+                callbacks.newForwardingRuleSingletonCallback().onSuccess(managedTcpProxyRule, null))
+        .isInstanceOf(IllegalArgumentException.class);
+  }
+
+  @Test
   void handleHealthCheck_withMultipleBackendServices() throws Exception {
     // Given
     HealthCheck healthCheck = buildBaseHealthCheck("multi-hc", "us-central1");
@@ -232,13 +334,21 @@ public class GoogleInternalHttpLoadBalancerCachingAgentTest {
     }
   }
 
-  /** Helper method to invoke the private static handleHealthCheck method using reflection */
   private void invokeHandleHealthCheck(
-      HealthCheck healthCheck, List<GoogleBackendService> googleBackendServices) throws Exception {
-    Method handleHealthCheckMethod =
-        GoogleInternalHttpLoadBalancerCachingAgent.class.getDeclaredMethod(
-            "handleHealthCheck", HealthCheck.class, List.class);
-    handleHealthCheckMethod.setAccessible(true);
-    handleHealthCheckMethod.invoke(null, healthCheck, googleBackendServices);
+      HealthCheck healthCheck, List<GoogleBackendService> googleBackendServices) {
+    AbstractGoogleRegionalHttpLoadBalancerCachingAgent.handleHealthCheck(
+        healthCheck, googleBackendServices);
+  }
+
+  private static GoogleInternalHttpLoadBalancerCachingAgent createAgent(Compute compute) {
+    GoogleNamedAccountCredentials credentials =
+        new GoogleNamedAccountCredentials.Builder()
+            .name("auto")
+            .project("test")
+            .compute(compute)
+            .credentials(mock(GoogleCredentials.class))
+            .build();
+    return new GoogleInternalHttpLoadBalancerCachingAgent(
+        "clouddriver", credentials, new ObjectMapper(), new DefaultRegistry(), "us-central1");
   }
 }
