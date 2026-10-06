@@ -234,7 +234,7 @@ describe('GCE load balancer submission', () => {
       },
       'pipeline',
     );
-    const executeTask = jasmine.createSpy('executeTask');
+    const executeTask = vi.fn();
 
     const result = submitGceLoadBalancerCommand(command, { application: {} as any, executeTask });
 
@@ -244,7 +244,7 @@ describe('GCE load balancer submission', () => {
       'internal-api',
     ]);
     expect((result as any[])[0]).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         ipProtocol: 'TCP',
         loadBalancerName: 'internal-http',
         network: 'network-a',
@@ -398,7 +398,7 @@ describe('GCE load balancer submission', () => {
     expect(job.listenersToDelete).toEqual(['app-https']);
     expect(job.backendServiceDiff).toEqual([]);
     expect(job).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         loadBalancerName: 'app-http',
         loadBalancerType: 'EXTERNAL_MANAGED',
         network: 'network-a',
@@ -432,13 +432,13 @@ describe('GCE load balancer submission', () => {
       },
       'pipeline',
     );
-    const executeTask = jasmine.createSpy('executeTask');
+    const executeTask = vi.fn();
 
     const result = submitGceLoadBalancerCommand(command, { application: {} as any, executeTask });
 
     expect(result).toEqual(buildGceLoadBalancerJobs(command));
     expect((result as any[])[0]).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         ipAddress: '203.0.113.10',
         loadBalancerName: 'external-http',
         loadBalancerType: 'EXTERNAL_MANAGED',

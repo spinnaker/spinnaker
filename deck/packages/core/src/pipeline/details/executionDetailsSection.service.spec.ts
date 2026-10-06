@@ -47,8 +47,8 @@ describe('executionDetailsSectionService', function () {
 
   describe('synchronizeSection', () => {
     it('does nothing when state is not in execution details', function () {
-      spyOn($state, 'includes').and.returnValue(false);
-      spyOn($state, 'go');
+      vi.spyOn($state, 'includes').mockReturnValue(false);
+      vi.spyOn($state, 'go').mockReturnValue(undefined);
 
       service.synchronizeSection(['a', 'b']);
 
@@ -57,8 +57,8 @@ describe('executionDetailsSectionService', function () {
     });
 
     it('reuses current section if still valid', function () {
-      spyOn($state, 'includes').and.returnValue(true);
-      spyOn($state, 'go');
+      vi.spyOn($state, 'includes').mockReturnValue(true);
+      vi.spyOn($state, 'go').mockReturnValue(undefined);
 
       $stateParams.details = 'b';
 
@@ -69,8 +69,8 @@ describe('executionDetailsSectionService', function () {
     });
 
     it('replaces current section if not valid', function () {
-      spyOn($state, 'includes').and.returnValue(true);
-      spyOn($state, 'go');
+      vi.spyOn($state, 'includes').mockReturnValue(true);
+      vi.spyOn($state, 'go').mockReturnValue(undefined);
 
       $stateParams.details = 'c';
 
@@ -81,8 +81,8 @@ describe('executionDetailsSectionService', function () {
     });
 
     it('uses first section if none present in state params', function () {
-      spyOn($state, 'includes').and.returnValue(true);
-      spyOn($state, 'go');
+      vi.spyOn($state, 'includes').mockReturnValue(true);
+      vi.spyOn($state, 'go').mockReturnValue(undefined);
 
       $stateParams.details = undefined;
 
@@ -96,8 +96,8 @@ describe('executionDetailsSectionService', function () {
       let completed = false;
       const init = () => (completed = true);
 
-      spyOn($state, 'includes').and.returnValue(true);
-      spyOn($state, 'go');
+      vi.spyOn($state, 'includes').mockReturnValue(true);
+      vi.spyOn($state, 'go').mockReturnValue(undefined);
 
       service.synchronizeSection(['a', 'b'], init);
       expect(completed).toBe(false);
@@ -109,8 +109,8 @@ describe('executionDetailsSectionService', function () {
       let completed = false;
       const init = () => (completed = true);
 
-      spyOn($state, 'includes').and.returnValue(true);
-      spyOn($state, 'go');
+      vi.spyOn($state, 'includes').mockReturnValue(true);
+      vi.spyOn($state, 'go').mockReturnValue(undefined);
 
       service.synchronizeSection(['a', 'b'], init);
       service.synchronizeSection(['a', 'b'], noop);

@@ -1,3 +1,5 @@
+import { afterAll, afterEach, beforeEach, expect } from 'vitest';
+
 import type { IHttpClientImplementation } from '../ApiService';
 import { RequestBuilder, XhrHttpClient } from '../ApiService';
 import { setAuthenticationHttpClient } from '../../authentication/AuthenticationInitializer';
@@ -28,7 +30,7 @@ export class FailClosedHttpClient implements IHttpClientImplementation {
 
   public verifyNoRequests(): void {
     const message = this.requests.map(({ method, url }) => `Unexpected HTTP ${method} ${url}`).join('\n');
-    expect(this.requests.length).toBe(0, message);
+    expect(this.requests.length, message).toBe(0);
   }
 
   private reject<T>(method: HttpMethod, config: RequestConfig): Promise<T> {
@@ -51,10 +53,10 @@ export function useRealHttpClient(): XhrHttpClient {
   return setHttpClient(new XhrHttpClient());
 }
 
-// Jasmine support:
+// Mock HTTP support:
 // - keeps HTTP fail-closed while specs load and between test runs
 // - asserts that no outstanding or unexpected requests were found in the MockHttpClient.
-export function jasmineMockHttpSupport() {
+export function installMockHttpSupport() {
   const failClosed = () => setHttpClient(new FailClosedHttpClient());
   const verifyFailClosed = () => {
     const http = RequestBuilder.defaultHttpClient;

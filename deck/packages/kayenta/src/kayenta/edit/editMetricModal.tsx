@@ -75,6 +75,7 @@ function EditMetricModal({
   const outlierStrategy = metric.analysisConfigurations?.canary?.outliers?.strategy ?? 'default';
   const critical = metric.analysisConfigurations?.canary?.critical ?? false;
   const dataRequired = metric.analysisConfigurations?.canary?.mustHaveData ?? false;
+  const modalTitle = disableEdit || CanarySettings.disableConfigEdit ? 'Metric Details' : 'Configure Metric';
   const isConfirmDisabled =
     !isTemplateValid ||
     disableEdit ||
@@ -87,12 +88,16 @@ function EditMetricModal({
     metricStoreConfigService.getDelegate(metric.query.type).useTemplates &&
     CanarySettings.templatesEnabled;
   return (
-    <Modal bsSize="large" show={true} onHide={noop} className={classNames('kayenta-edit-metric-modal')}>
+    <Modal
+      bsSize="large"
+      show={true}
+      onHide={noop}
+      className={classNames('kayenta-edit-metric-modal')}
+      aria-labelledby="edit-metric-modal-title"
+    >
       <Styleguide>
         <Modal.Header>
-          <Modal.Title>
-            {disableEdit || CanarySettings.disableConfigEdit ? 'Metric Details' : 'Configure Metric'}
-          </Modal.Title>
+          <Modal.Title id="edit-metric-modal-title">{modalTitle}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <FormRow label="Group" inputOnly={true}>
@@ -139,6 +144,7 @@ function EditMetricModal({
               name="direction"
               current={direction}
               action={updateDirection}
+              metricId={metric.id}
             />
             <RadioChoice
               value="decrease"
@@ -146,14 +152,23 @@ function EditMetricModal({
               name="direction"
               current={direction}
               action={updateDirection}
+              metricId={metric.id}
             />
-            <RadioChoice value="either" label="Either" name="direction" current={direction} action={updateDirection} />
+            <RadioChoice
+              value="either"
+              label="Either"
+              name="direction"
+              current={direction}
+              action={updateDirection}
+              metricId={metric.id}
+            />
           </FormRow>
           <FormRow label="Criticality" checkbox={true}>
             <label>
               <DisableableInput
                 type="checkbox"
                 name="criticality"
+                data-id={metric.id}
                 checked={critical}
                 onChange={updateCriticality}
                 disabled={CanarySettings.disableConfigEdit}
@@ -167,6 +182,7 @@ function EditMetricModal({
               <DisableableInput
                 type="checkbox"
                 name="dataRequired"
+                data-id={metric.id}
                 checked={dataRequired}
                 onChange={updateDataRequired}
                 disabled={CanarySettings.disableConfigEdit}
@@ -182,6 +198,7 @@ function EditMetricModal({
               name="nanStrategy"
               current={nanStrategy}
               action={updateNanStrategy}
+              metricId={metric.id}
             />
             <RadioChoice
               value="replace"
@@ -189,6 +206,7 @@ function EditMetricModal({
               name="nanStrategy"
               current={nanStrategy}
               action={updateNanStrategy}
+              metricId={metric.id}
             />
             <RadioChoice
               value="remove"
@@ -196,6 +214,7 @@ function EditMetricModal({
               name="nanStrategy"
               current={nanStrategy}
               action={updateNanStrategy}
+              metricId={metric.id}
             />
           </FormRow>
           <FormRow label="Outlier Strategy" helpId="canary.config.outlierStrategy">
@@ -205,6 +224,7 @@ function EditMetricModal({
               name="outlierStrategy"
               current={outlierStrategy}
               action={updateOutlierStrategy}
+              metricId={metric.id}
             />
             <RadioChoice
               value="remove"
@@ -212,6 +232,7 @@ function EditMetricModal({
               name="outlierStrategy"
               current={outlierStrategy}
               action={updateOutlierStrategy}
+              metricId={metric.id}
             />
             <RadioChoice
               value="keep"
@@ -219,6 +240,7 @@ function EditMetricModal({
               name="outlierStrategy"
               current={outlierStrategy}
               action={updateOutlierStrategy}
+              metricId={metric.id}
             />
           </FormRow>
           <EditMetricEffectSizes />
