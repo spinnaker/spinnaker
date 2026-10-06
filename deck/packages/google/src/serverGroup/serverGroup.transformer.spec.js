@@ -47,6 +47,54 @@ describe('gceServerGroupTransformer', () => {
       expect(normalizedServerGroup.loadBalancers.includes('network-load-balancer')).toEqual(true);
       expect(normalizedServerGroup.loadBalancers.includes('internal-load-balancer')).toEqual(true);
     });
+
+    it('scopes EXTERNAL_MANAGED listener normalization by server group region', async function () {
+      app = {
+        getDataSource: () => ({
+          ready: () => Promise.resolve(),
+          data: [
+            {
+              account: 'my-google-account',
+              listeners: [{ name: 'external-listener' }],
+              loadBalancerType: 'EXTERNAL_MANAGED',
+              name: 'app-main (my-google-account/us-central1/EXTERNAL_MANAGED)',
+              provider: 'gce',
+              region: 'us-central1',
+              urlMapName: 'app-main',
+            },
+            {
+              account: 'my-google-account',
+              listeners: [{ name: 'external-listener' }],
+              loadBalancerType: 'EXTERNAL_MANAGED',
+              name: 'app-main (my-google-account/europe-west1/EXTERNAL_MANAGED)',
+              provider: 'gce',
+              region: 'europe-west1',
+              urlMapName: 'app-main',
+            },
+          ],
+        }),
+      };
+
+      const centralServerGroup = await transformer.normalizeServerGroup(
+        {
+          account: 'my-google-account',
+          region: 'us-central1',
+          loadBalancers: ['external-listener'],
+        },
+        app,
+      );
+      const europeServerGroup = await transformer.normalizeServerGroup(
+        {
+          account: 'my-google-account',
+          region: 'europe-west1',
+          loadBalancers: ['external-listener'],
+        },
+        app,
+      );
+
+      expect(centralServerGroup.loadBalancers).toEqual(['app-main (my-google-account/us-central1/EXTERNAL_MANAGED)']);
+      expect(europeServerGroup.loadBalancers).toEqual(['app-main (my-google-account/europe-west1/EXTERNAL_MANAGED)']);
+    });
   });
 
   describe('convert server group command to deploy configuration', () => {
