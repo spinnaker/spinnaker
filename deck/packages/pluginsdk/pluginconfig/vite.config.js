@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const MagicString = require('magic-string');
-const { createPackageExternal, createViteLibraryConfig } = require('@spinnaker/scripts/config/vite.config.base.module');
+const { createViteLibraryConfig } = require('@spinnaker/scripts/config/vite.config.base.module');
 
 const SHARED_LIBRARY_GLOBAL_PREFIX = 'spinnaker.plugins.sharedLibraries';
 const SHARED_LIBRARY_SPECIFIERS = [
@@ -162,17 +162,23 @@ function createSharedLibraryGlobalsPlugin() {
   };
 }
 
-async function pluginViteConfig() {
-  const root = process.cwd();
+// Deck loads plugins with a native import(url), so the bundle must not contain bare imports. Shared
+// libraries are rewritten to globals by createSharedLibraryGlobalsPlugin; everything else is bundled.
+async function createPluginViteConfig(root = process.cwd()) {
   const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
   const config = await createViteLibraryConfig({
     root,
     packageJson,
-    external: createPackageExternal([packageJson.dependencies, packageJson.peerDependencies]),
+    external: () => false,
     outDir: path.join(root, 'build/dist'),
+    declarations: false,
   });
   config.plugins.push(createSharedLibraryGlobalsPlugin());
   return config;
 }
 
-module.exports = Object.assign(pluginViteConfig, { createSharedLibraryGlobalsPlugin });
+async function pluginViteConfig() {
+  return createPluginViteConfig();
+}
+
+module.exports = Object.assign(pluginViteConfig, { createPluginViteConfig, createSharedLibraryGlobalsPlugin });
