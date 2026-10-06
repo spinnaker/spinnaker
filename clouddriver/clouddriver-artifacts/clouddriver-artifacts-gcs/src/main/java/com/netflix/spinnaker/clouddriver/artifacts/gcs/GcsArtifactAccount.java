@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.artifacts.gcs;
 
 import com.google.common.base.Strings;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccount;
+import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import java.util.Optional;
 import javax.annotation.ParametersAreNullableByDefault;
@@ -31,12 +32,14 @@ import org.springframework.boot.context.properties.bind.ConstructorBinding;
 public class GcsArtifactAccount implements ArtifactAccount {
   private final String name;
   private final Optional<String> jsonPath;
+  private final Permissions.Builder permissions;
 
   @Builder
   @ConstructorBinding
   @ParametersAreNullableByDefault
-  GcsArtifactAccount(String name, String jsonPath) {
+  GcsArtifactAccount(String name, String jsonPath, Permissions.Builder permissions) {
     this.name = Strings.nullToEmpty(name);
     this.jsonPath = Optional.ofNullable(Strings.emptyToNull(jsonPath));
+    this.permissions = Optional.ofNullable(permissions).orElseGet(Permissions.Builder::new);
   }
 }

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.artifacts.gitRepo;
 import com.google.common.base.Strings;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccount;
 import com.netflix.spinnaker.clouddriver.artifacts.config.TokenAuth;
+import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.github.GitHubAppCredentials;
 import java.util.List;
@@ -47,6 +48,7 @@ public class GitRepoArtifactAccount implements ArtifactAccount, TokenAuth {
    Only works with http(s) clone URLs.
   */
   private final Optional<GitHubAppCredentials> githubApp;
+  private final Permissions.Builder permissions;
 
   // Kept for source compatibility; delegates to the full constructor below. Only the full
   // constructor carries @Builder: with two @Builder constructors lombok merges the builder fields
@@ -75,6 +77,7 @@ public class GitRepoArtifactAccount implements ArtifactAccount, TokenAuth {
         sshKnownHostsFilePath,
         sshTrustUnknownHosts,
         List.of(),
+        null,
         null);
   }
 
@@ -93,7 +96,8 @@ public class GitRepoArtifactAccount implements ArtifactAccount, TokenAuth {
       String sshKnownHostsFilePath,
       boolean sshTrustUnknownHosts,
       List<String> allowedHosts,
-      GitHubAppCredentials githubApp) {
+      GitHubAppCredentials githubApp,
+      Permissions.Builder permissions) {
     this.name = Strings.nullToEmpty(name);
     this.username = Strings.nullToEmpty(username);
     this.password = Strings.nullToEmpty(password);
@@ -106,5 +110,6 @@ public class GitRepoArtifactAccount implements ArtifactAccount, TokenAuth {
     this.sshTrustUnknownHosts = sshTrustUnknownHosts;
     this.allowedHosts = allowedHosts;
     this.githubApp = Optional.ofNullable(githubApp);
+    this.permissions = Optional.ofNullable(permissions).orElseGet(Permissions.Builder::new);
   }
 }

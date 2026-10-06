@@ -1,0 +1,61 @@
+/*
+ * Copyright 2026 spinnaker.io
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License")
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.netflix.spinnaker.clouddriver.artifacts.gitea;
+
+import com.google.common.base.Strings;
+import com.netflix.spinnaker.clouddriver.artifacts.config.TokenAuth;
+import com.netflix.spinnaker.clouddriver.artifacts.config.UserInputValidatedArtifactAccount;
+import com.netflix.spinnaker.fiat.model.resources.Permissions;
+import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
+import com.netflix.spinnaker.kork.web.url.UrlRestrictionsProperties;
+import java.util.Optional;
+import javax.annotation.ParametersAreNullableByDefault;
+import lombok.Builder;
+import lombok.Value;
+import org.springframework.boot.context.properties.bind.ConstructorBinding;
+
+/**
+ * A Gitea account used to fetch {@code gitea/file} artifacts.
+ *
+ * <p>The account's token is sent to whichever host an artifact reference names, provided that host
+ * passes {@code urlRestrictions}. The defaults only exclude local and internal names, so set {@code
+ * urlRestrictions.allowedDomains} to your Gitea host (entries are regular expressions, so escape
+ * dots, e.g. {@code gitea\.example\.com}) to keep the token from being sent anywhere else.
+ */
+@NonnullByDefault
+@Value
+public class GiteaArtifactAccount extends UserInputValidatedArtifactAccount implements TokenAuth {
+  private final Optional<String> token;
+  private final Optional<String> tokenFile;
+
+  @Builder
+  @ConstructorBinding
+  @ParametersAreNullableByDefault
+  GiteaArtifactAccount(
+      String name,
+      String token,
+      String tokenFile,
+      UrlRestrictionsProperties urlRestrictions,
+      Permissions.Builder permissions) {
+    super(
+        Strings.nullToEmpty(name),
+        orDefault(urlRestrictions),
+        Optional.ofNullable(permissions).orElseGet(Permissions.Builder::new));
+    this.token = Optional.ofNullable(Strings.emptyToNull(token));
+    this.tokenFile = Optional.ofNullable(Strings.emptyToNull(tokenFile));
+  }
+}
