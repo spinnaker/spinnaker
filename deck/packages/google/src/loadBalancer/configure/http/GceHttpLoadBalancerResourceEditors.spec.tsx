@@ -68,6 +68,21 @@ describe('GceHttpLoadBalancerResourceEditors', () => {
     expect(queryByTestId('health-check-grpc-service-name')).not.toBeInTheDocument();
   });
 
+  it('offers only HTTP and HTTPS backend protocols for EXTERNAL_MANAGED', () => {
+    const { getByTestId } = render(
+      <GceHttpLoadBalancerBackendServiceEditor
+        backendService={{ name: 'backend-a', protocol: 'HTTP' }}
+        backendServices={[]}
+        healthChecks={[]}
+        loadBalancerType="EXTERNAL_MANAGED"
+        onChange={vi.fn()}
+        onRemove={vi.fn()}
+      />,
+    );
+
+    expect(optionValues(getByTestId('backend-service-protocol'))).toEqual(['HTTP', 'HTTPS']);
+  });
+
   it('selects complete backend-service and health-check references', () => {
     const onChange = vi.fn();
     const backendServices = [

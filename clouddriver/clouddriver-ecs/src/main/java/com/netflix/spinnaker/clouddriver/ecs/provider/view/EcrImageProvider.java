@@ -128,7 +128,7 @@ public class EcrImageProvider implements ImageRepositoryProvider {
     EcsDockerImage ecsDockerImage = new EcsDockerImage();
     ecsDockerImage.setRegion(region);
     ecsDockerImage.addAmiForRegion(region, matchedImage.imageDigest());
-    ecsDockerImage.setAttribute("creationDate", matchedImage.imagePushedAt());
+    ecsDockerImage.setAttribute("creationDate", matchedImage.imagePushedAt().toEpochMilli());
     ecsDockerImage.setImageName(
         buildFullDockerImageUrl(
             matchedImage.imageDigest(),

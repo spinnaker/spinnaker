@@ -1,12 +1,12 @@
-import type { Mock } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { setupUser } from '../../../../utils/testUtils/userEvent';
 import React from 'react';
+import type { Mock } from 'vitest';
 
-import { ApplicationReader } from '../../../../application/service/ApplicationReader';
-import { PipelineConfigService } from '../../services/PipelineConfigService';
 import { PipelineStageConfig } from './PipelineStageConfig';
+import { ApplicationReader } from '../../../../application/service/ApplicationReader';
 import type { IPipeline, IStage } from '../../../../domain';
+import { PipelineConfigService } from '../../services/PipelineConfigService';
+import { setupUser } from '../../../../utils/testUtils/userEvent';
 
 describe('PipelineStageConfig', () => {
   const flush = async () => {
@@ -85,5 +85,57 @@ describe('PipelineStageConfig', () => {
     await flush();
 
     expect(updateStageField).toHaveBeenCalledWith({ pipelineParameters: { choice: '${ parameters.choice }' } });
+  });
+
+  it('reloads the parameter values when switching between stages that run the same pipeline', async () => {
+    const parentPipeline = { id: 'parent-pipeline', parameterConfig: [], stages: [] } as IPipeline;
+    const childPipeline = {
+      id: 'child-pipeline',
+      name: 'Child Pipeline',
+      parameterConfig: [{ default: 'dev', name: 'env' }],
+    } as IPipeline;
+    const stageA = {
+      application: 'app',
+      failPipeline: false,
+      pipeline: 'child-pipeline',
+      pipelineParameters: { env: 'stage-a' },
+      refId: '1',
+      waitForCompletion: false,
+    } as IStage;
+    const stageB = { ...stageA, pipelineParameters: { env: 'stage-b' }, refId: '2' } as IStage;
+    const updateStageField = vi.fn();
+    vi.spyOn(PipelineConfigService, 'getPipelinesForApplication').mockReturnValue(
+      Promise.resolve([childPipeline]) as any,
+    );
+
+    const { rerender } = render(
+      <PipelineStageConfig
+        application={{ name: 'app' } as any}
+        pipeline={parentPipeline}
+        stage={stageA}
+        updateStageField={updateStageField}
+      />,
+    );
+
+    expect(await screen.findByDisplayValue('stage-a')).toBeInTheDocument();
+
+    // The stage changes, but the application and the invoked pipeline stay the same, so the child
+    // pipeline list is not refetched and the parameter form must still reload its values.
+    rerender(
+      <PipelineStageConfig
+        application={{ name: 'app' } as any}
+        pipeline={parentPipeline}
+        stage={stageB}
+        updateStageField={updateStageField}
+      />,
+    );
+
+    const parameterInput = await screen.findByDisplayValue('stage-b');
+    expect(screen.queryByDisplayValue('stage-a')).not.toBeInTheDocument();
+
+    fireEvent.change(parameterInput, { target: { value: 'stage-b-edited' } });
+    await flush();
+
+    expect(updateStageField).toHaveBeenCalledWith({ pipelineParameters: { env: 'stage-b-edited' } });
   });
 });

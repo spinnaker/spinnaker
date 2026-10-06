@@ -1,8 +1,8 @@
-import type { Mocked } from 'vitest';
-import type { FormikProps } from 'formik';
-import React from 'react';
 import { fireEvent, render } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
+import type { FormikProps } from 'formik';
+import React from 'react';
+import type { Mocked } from 'vitest';
 
 import { GceServerGroupLoadBalancers, validateGceServerGroupLoadBalancers } from './GceServerGroupLoadBalancers';
 import type { IGceServerGroupCommand, IGceServerGroupWizardAdapter } from '../GceServerGroupWizard.types';
@@ -536,6 +536,131 @@ describe('GCE server group Load Balancers page', () => {
         maxRatePerInstance: 'Max rate must be a finite number greater than or equal to zero.',
       },
     });
+  });
+
+  it('rejects ambiguous cross-scope names and mixed passthrough attachments', () => {
+    const ambiguous = command({
+      loadBalancers: ['shared-name'],
+      backingData: {
+        ...command().backingData,
+        loadBalancers: [
+          {
+            accounts: [
+              {
+                name: 'account-a',
+                regions: [
+                  {
+                    loadBalancers: [
+                      { loadBalancerType: 'TCP', name: 'shared-name', region: 'global' },
+                      {
+                        loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK',
+                        name: 'shared-name',
+                        region: 'us-central1',
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    });
+    const ambiguousMessage =
+      'The selected load balancer name is ambiguous across regions or load balancer types. Rename it or select an unambiguous load balancer.';
+    expect(validateGceServerGroupLoadBalancers(ambiguous).loadBalancers).toBe(ambiguousMessage);
+    const ambiguousWrapper = renderPage(
+      <GceServerGroupLoadBalancers app={{} as any} formik={testProps(ambiguous).formik} />,
+    );
+    expect(ambiguousWrapper.getByRole('alert')).toHaveTextContent(ambiguousMessage);
+    ambiguousWrapper.unmount();
+
+    const mixedPassthrough = command({
+      loadBalancers: ['regional-network', 'regional-lb'],
+      backingData: {
+        ...command().backingData,
+        filtered: {
+          loadBalancerIndex: {
+            'regional-lb': command().backingData.filtered.loadBalancerIndex['regional-lb'],
+            'regional-network': {
+              loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK',
+              name: 'regional-network',
+            },
+          },
+        },
+      },
+    });
+    const mixedMessage =
+      'REGIONAL_EXTERNAL_NETWORK load balancers cannot be combined with other load balancer families in this editor.';
+    expect(validateGceServerGroupLoadBalancers(mixedPassthrough).loadBalancers).toBe(mixedMessage);
+    const mixedWrapper = renderPage(
+      <GceServerGroupLoadBalancers app={{} as any} formik={testProps(mixedPassthrough).formik} />,
+    );
+    expect(
+      mixedWrapper.container.querySelector('#gce-server-group-load-balancers-error[role="alert"]'),
+    ).toHaveTextContent(mixedMessage);
+  });
+
+  it('treats EXTERNAL_MANAGED as HTTP and REGIONAL_EXTERNAL_NETWORK as policy-free', () => {
+    const externalManaged = command({
+      loadBalancers: ['external-managed'],
+      loadBalancingPolicy: {
+        balancingMode: 'RATE',
+        capacityScaler: 1,
+        maxRatePerInstance: 50,
+        namedPorts: [{ name: 'http', port: 80 }],
+      },
+      backingData: {
+        ...command().backingData,
+        filtered: {
+          loadBalancerIndex: {
+            'external-managed': {
+              backendServices: [{ name: 'backend-a', portName: 'http' }],
+              listeners: [{ name: 'frontend' }],
+              loadBalancerType: 'EXTERNAL_MANAGED',
+              name: 'external-managed',
+            },
+          },
+        },
+      },
+    });
+    const externalWrapper = renderPage(
+      <GceServerGroupLoadBalancers app={{} as any} formik={testProps(externalManaged).formik} />,
+    );
+    expect(selectOptions(externalWrapper, 'Balancing mode')).toEqual([
+      ['RATE', 'RATE'],
+      ['UTILIZATION', 'UTILIZATION'],
+    ]);
+    externalWrapper.unmount();
+
+    const passthrough = command({
+      loadBalancers: ['regional-network'],
+      loadBalancingPolicy: {
+        balancingMode: 'UTILIZATION',
+        capacityScaler: 1,
+        maxUtilization: 0.8,
+        namedPorts: [{ name: 'http', port: 80 }],
+      },
+      backingData: {
+        ...command().backingData,
+        filtered: {
+          loadBalancerIndex: {
+            'regional-network': {
+              backendServices: ['backend-a'],
+              loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK',
+              name: 'regional-network',
+            },
+          },
+        },
+      },
+    });
+    const passthroughWrapper = renderPage(
+      <GceServerGroupLoadBalancers app={{} as any} formik={testProps(passthrough).formik} />,
+    );
+    expect(passthroughWrapper.queryByLabelText('Balancing mode')).not.toBeInTheDocument();
+    expect(passthroughWrapper.queryByLabelText('Backend services for regional-network')).not.toBeInTheDocument();
+    expect(passthroughWrapper.queryByRole('alert')).not.toBeInTheDocument();
+    expect(validateGceServerGroupLoadBalancers(passthrough)).toEqual({});
   });
 });
 

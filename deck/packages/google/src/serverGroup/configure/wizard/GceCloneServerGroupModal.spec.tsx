@@ -560,6 +560,39 @@ describe('GceCloneServerGroupModal', () => {
     expect(rendered.props.closeModal).toHaveBeenCalledWith(expect.objectContaining({ stack: 'latest' }));
   });
 
+  it('submits concrete regional external attachment names without changing other load balancer identities', () => {
+    const transformed = transformGceServerGroupCommand(
+      buildCommand({
+        backingData: {
+          filtered: {
+            loadBalancerIndex: {
+              'external-managed': {
+                listeners: [{ name: 'external-http' }, { name: 'external-https' }],
+                loadBalancerType: 'EXTERNAL_MANAGED',
+                name: 'external-managed',
+              },
+              'regional-network': {
+                loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK',
+                name: 'regional-network',
+              },
+              'existing-tcp': {
+                loadBalancerType: 'TCP',
+                name: 'existing-tcp',
+              },
+            },
+          },
+        },
+        loadBalancers: ['external-managed', 'regional-network', 'existing-tcp'],
+      }),
+    );
+
+    expect(transformed.loadBalancers).toEqual(['external-http', 'external-https', 'regional-network', 'existing-tcp']);
+    expect(transformed.instanceMetadata).toEqual({
+      'global-load-balancer-names': 'existing-tcp',
+      'load-balancer-names': 'external-http,external-https,regional-network',
+    });
+  });
+
   it.each([
     [
       'merges refreshed backing data into Formik edits made while configuration is loading',
