@@ -1,4 +1,4 @@
-import { mount } from 'enzyme';
+import { fireEvent, render, screen } from '@testing-library/react';
 import * as React from 'react';
 import { Provider } from 'react-redux';
 import { createStore } from 'redux';
@@ -18,9 +18,9 @@ describe('MetricQueryTemplateEditor', () => {
   const store = createStore(() => ({ app: { disableConfigEdit: false } }));
 
   const buildComponent = (props: Partial<React.ComponentProps<typeof MetricQueryTemplateEditor>> = {}) => {
-    const editInlineTemplate = jasmine.createSpy('editInlineTemplate');
+    const editInlineTemplate = vi.fn();
     const transformValueForSave = (value: string) => value;
-    const component = mount(
+    render(
       <Provider store={store}>
         <MetricQueryTemplateEditor
           providerVariableHints={providerVariableHints}
@@ -31,13 +31,12 @@ describe('MetricQueryTemplateEditor', () => {
         />
       </Provider>,
     );
-    return { component, editInlineTemplate };
+    return { editInlineTemplate };
   };
 
   it('pre-fills the textarea with the provider example when the metric has no template yet', () => {
-    const { component } = buildComponent({ inlineTemplateValue: '' });
-    const textarea = component.find('textarea');
-    expect(textarea.prop('value')).toEqual(providerVariableHints.example);
+    buildComponent({ inlineTemplateValue: '' });
+    expect(screen.getByRole('textbox')).toHaveValue(providerVariableHints.example);
   });
 
   it('does not dispatch anything just from rendering with an empty template', () => {
@@ -46,37 +45,36 @@ describe('MetricQueryTemplateEditor', () => {
   });
 
   it('shows the real value, not the example, once the metric already has a template', () => {
-    const { component, editInlineTemplate } = buildComponent({ inlineTemplateValue: 'existing template text' });
-    const textarea = component.find('textarea');
-    expect(textarea.prop('value')).toEqual('existing template text');
+    const { editInlineTemplate } = buildComponent({ inlineTemplateValue: 'existing template text' });
+    expect(screen.getByRole('textbox')).toHaveValue('existing template text');
     expect(editInlineTemplate).not.toHaveBeenCalled();
   });
 
   it('dispatches the edited value via editInlineTemplate when the user types', () => {
-    const { component, editInlineTemplate } = buildComponent({ inlineTemplateValue: '' });
-    component.find('textarea').simulate('change', { target: { value: 'my custom query' } });
+    const { editInlineTemplate } = buildComponent({ inlineTemplateValue: '' });
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'my custom query' } });
     expect(editInlineTemplate).toHaveBeenCalledWith('my custom query');
   });
 
   it('shows a "Template is required" error when there is no example and no value', () => {
-    const { component } = buildComponent({ inlineTemplateValue: '', providerVariableHints: undefined });
-    expect(component.text()).toContain('Template is required');
+    buildComponent({ inlineTemplateValue: '', providerVariableHints: undefined });
+    expect(screen.getByText(/Template is required/)).toBeVisible();
   });
 
   it('does not render a "Saved Templates" dropdown', () => {
-    const { component } = buildComponent();
-    expect(component.find('Select').length).toEqual(0);
-    expect(component.text()).not.toContain('Saved Templates');
+    buildComponent();
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Saved Templates/)).not.toBeInTheDocument();
   });
 
   it('does not render a "Save as reusable template" button', () => {
-    const { component } = buildComponent();
-    expect(component.find('button').length).toEqual(0);
-    expect(component.text()).not.toContain('Save as reusable template');
+    buildComponent();
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Save as reusable template/)).not.toBeInTheDocument();
   });
 
   it('renders the provider variable hint line', () => {
-    const { component } = buildComponent();
-    expect(component.text()).toContain('Available variables: ${scope}, ${location}');
+    buildComponent();
+    expect(screen.getByText(/Available variables: \$\{scope\}, \$\{location\}/)).toBeVisible();
   });
 });
